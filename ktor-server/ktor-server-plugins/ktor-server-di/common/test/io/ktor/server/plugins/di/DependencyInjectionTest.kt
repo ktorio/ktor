@@ -4,6 +4,7 @@
 
 package io.ktor.server.plugins.di
 
+import io.ktor.server.application.*
 import io.ktor.server.testing.*
 import io.ktor.util.reflect.*
 import kotlin.reflect.KClass
@@ -53,155 +54,146 @@ data class PaidWork(val requiredExperience: WorkExperience)
 class DependencyInjectionTest {
 
     @Test
-    fun missing() = testApplication {
+    fun missing() = testDI {
+        assertFailsWith<MissingDependencyException> {
+            val service: GreetingService by dependencies
+            fail("Should fail but found $service")
+        }
+    }
+
+    @Test
+    fun `resolution out of order`() = testDI {
+        assertFailsWith<OutOfOrderDependencyException> {
+            dependencies { provide<GreetingService> { GreetingServiceImpl() } }
+            assertNotNull(dependencies.resolve<GreetingService>())
+            dependencies { provide<String> { "Hello" } }
+        }
+    }
+
+    @Test
+    fun `conflicting declarations`() = testDI {
+        assertFailsWith<DuplicateDependencyException> {
+            dependencies { provide<GreetingService> { GreetingServiceImpl() } }
+            dependencies { provide<GreetingService> { BankGreetingService() } }
+        }
+    }
+
+    @Test
+    fun `last entry wins for tests`() = testApplication {
         application {
+            dependencies { provide<GreetingService> { GreetingServiceImpl() } }
+            dependencies { provide<GreetingService> { BankGreetingService() } }
+
+            val service: GreetingService by dependencies
+            assertEquals(HELLO_CUSTOMER, service.hello())
+        }
+    }
+
+    @Test
+    fun `circular dependencies`() = testDI {
+        assertFailsWith<CircularDependencyException> {
+            dependencies {
+                provide<WorkExperience> { WorkExperience(resolve()) }
+                provide<PaidWork> { PaidWork(resolve()) }
+                provide<List<PaidWork>> { listOf(resolve()) }
+            }
+            val eligibleJobs: List<PaidWork> by dependencies
+            fail("This should fail but returned $eligibleJobs")
+        }
+    }
+
+    @Test
+    fun basic() = testDI {
+        dependencies {
+            provide<GreetingService> { GreetingServiceImpl() }
+        }
+
+        val service: GreetingService by dependencies
+        assertEquals(HELLO, service.hello())
+    }
+
+    @Test
+    fun caching() = testDI {
+        var callCount = 0
+        dependencies {
+            provide<GreetingService> {
+                callCount++
+                GreetingServiceImpl()
+            }
+        }
+
+        val delegatedService: GreetingService by dependencies
+        assertEquals(0, callCount, "Delegated properties should be lazily resolved")
+        assertEquals(HELLO, delegatedService.hello())
+        assertEquals(1, callCount)
+        assertEquals(HELLO, dependencies.resolve<GreetingService>().hello())
+        assertEquals(HELLO, dependencies.resolve<GreetingService>().hello())
+        assertEquals(1, callCount)
+    }
+
+    @Test
+    fun `basic with qualifier`() = testDI {
+        dependencies {
+            provide<GreetingService>(name = "test") { GreetingServiceImpl() }
+        }
+
+        val service: GreetingService by dependencies.named("test")
+        assertEquals(HELLO, service.hello())
+    }
+
+    @Test
+    fun lambdas() = testDI {
+        dependencies {
+            provide<() -> GreetingService> { { GreetingServiceImpl() } }
+        }
+
+        val service: () -> GreetingService by dependencies
+        assertEquals(HELLO, service().hello())
+    }
+
+    @Test
+    fun parameterized() = testDI {
+        dependencies {
+            provide<GreetingService> { GreetingServiceImpl() }
+            provide<List<GreetingService>> { listOf(resolve(), resolve()) }
+        }
+
+        val services: List<GreetingService> by dependencies
+        for (service in services) {
+            assertEquals(HELLO, service.hello())
             assertFailsWith<MissingDependencyException> {
-                val service: GreetingService by dependencies
-                fail("Should fail but found $service")
+                dependencies.resolve<List<BankService>>()
             }
         }
     }
 
     @Test
-    fun `resolution out of order`() = testApplication {
-        application {
-            assertFailsWith<OutOfOrderDependencyException> {
-                dependencies { provide<GreetingService> { GreetingServiceImpl() } }
-                assertNotNull(dependencies.resolve<GreetingService>())
-                dependencies { provide<String> { "Hello" } }
+    fun arguments() = testDI {
+        var expectedStringList = listOf("one", "two")
+
+        dependencies {
+            provide<GreetingService> { GreetingServiceImpl() }
+            provide<List<String>>("my-strings") {
+                expectedStringList
+            }
+            provide<List<Any>>("my-list") {
+                listOf(
+                    resolve<GreetingService>(),
+                    resolve<List<String>>("my-strings"),
+                )
             }
         }
-    }
 
-    @Test
-    fun `conflicting declarations`() = testApplication {
-        application {
-            assertFailsWith<DuplicateDependencyException> {
-                dependencies { provide<GreetingService> { GreetingServiceImpl() } }
-                dependencies { provide<GreetingService> { BankGreetingService() } }
-            }
-        }
-    }
+        val service: GreetingService by dependencies
+        val stringList: List<String> by dependencies.named("my-strings")
+        val anyList: List<Any> by dependencies.named("my-list")
 
-    @Test
-    fun `circular dependencies`() = testApplication {
-        application {
-            assertFailsWith<CircularDependencyException> {
-                dependencies {
-                    provide<WorkExperience> { WorkExperience(resolve()) }
-                    provide<PaidWork> { PaidWork(resolve()) }
-                    provide<List<PaidWork>> { listOf(resolve()) }
-                }
-                val eligibleJobs: List<PaidWork> by dependencies
-                fail("This should fail but returned $eligibleJobs")
-            }
-        }
-    }
-
-    @Test
-    fun basic() = testApplication {
-        application {
-            dependencies {
-                provide<GreetingService> { GreetingServiceImpl() }
-            }
-
-            val service: GreetingService by dependencies
-            assertEquals(HELLO, service.hello())
-        }
-    }
-
-    @Test
-    fun caching() = testApplication {
-        application {
-            var callCount = 0
-            dependencies {
-                provide<GreetingService> {
-                    callCount++
-                    GreetingServiceImpl()
-                }
-            }
-
-            val delegatedService: GreetingService by dependencies
-            assertEquals(0, callCount, "Delegated properties should be lazily resolved")
-            assertEquals(HELLO, delegatedService.hello())
-            assertEquals(1, callCount)
-            assertEquals(HELLO, dependencies.resolve<GreetingService>().hello())
-            assertEquals(HELLO, dependencies.resolve<GreetingService>().hello())
-            assertEquals(1, callCount)
-        }
-    }
-
-    @Test
-    fun `basic with qualifier`() = testApplication {
-        application {
-            dependencies {
-                provide<GreetingService>(name = "test") { GreetingServiceImpl() }
-            }
-
-            val service: GreetingService by dependencies.named("test")
-            assertEquals(HELLO, service.hello())
-        }
-    }
-
-    @Test
-    fun lambdas() = testApplication {
-        application {
-            dependencies {
-                provide<() -> GreetingService> { { GreetingServiceImpl() } }
-            }
-
-            val service: () -> GreetingService by dependencies
-            assertEquals(HELLO, service().hello())
-        }
-    }
-
-    @Test
-    fun parameterized() = testApplication {
-        application {
-            dependencies {
-                provide<GreetingService> { GreetingServiceImpl() }
-                provide<List<GreetingService>> { listOf(resolve(), resolve()) }
-            }
-
-            val services: List<GreetingService> by dependencies
-            for (service in services) {
-                assertEquals(HELLO, service.hello())
-                assertFailsWith<MissingDependencyException> {
-                    dependencies.resolve<List<BankService>>()
-                }
-            }
-        }
-    }
-
-    @Test
-    fun arguments() = testApplication {
-        application {
-            var expectedStringList = listOf("one", "two")
-
-            dependencies {
-                provide<GreetingService> { GreetingServiceImpl() }
-                provide<List<String>>("my-strings") {
-                    expectedStringList
-                }
-                provide<List<Any>>("my-list") {
-                    listOf(
-                        resolve<GreetingService>(),
-                        resolve<List<String>>("my-strings"),
-                    )
-                }
-            }
-
-            val service: GreetingService by dependencies
-            val stringList: List<String> by dependencies.named("my-strings")
-            val anyList: List<Any> by dependencies.named("my-list")
-
-            assertEquals(HELLO, service.hello())
-            assertEquals(expectedStringList, stringList)
-            val (first, second) = anyList
-            assertIs<GreetingService>(first)
-            assertEquals(HELLO, first.hello())
-            assertEquals(expectedStringList, second)
-        }
+        assertEquals(HELLO, service.hello())
+        assertEquals(expectedStringList, stringList)
+        val (first, second) = anyList
+        assertIs<GreetingService>(first)
+        assertEquals(HELLO, first.hello())
+        assertEquals(expectedStringList, second)
     }
 
     @Test
@@ -229,39 +221,49 @@ class DependencyInjectionTest {
 
     @Suppress("UNCHECKED_CAST")
     @Test
-    fun `custom reflection`() = testApplication {
-        install(DI) {
-            reflection = object : DependencyReflection {
-                override fun <T : Any> create(
-                    kClass: KClass<T>,
-                    init: (DependencyKey) -> Any
-                ): T = when (kClass) {
-                    GreetingService::class -> GreetingServiceImpl() as T
-                    else -> fail("Unexpected class $kClass")
-                }
+    fun `custom reflection`() = testDI({
+        reflection = object : DependencyReflection {
+            override fun <T : Any> create(
+                kClass: KClass<T>,
+                init: (DependencyKey) -> Any
+            ): T = when (kClass) {
+                GreetingService::class -> GreetingServiceImpl() as T
+                else -> fail("Unexpected class $kClass")
             }
         }
-        application {
-            val service: GreetingService = dependencies.create()
-            assertEquals(HELLO, service.hello())
-        }
+    }) {
+        val service: GreetingService = dependencies.create()
+        assertEquals(HELLO, service.hello())
     }
 
     @Test
-    fun `unnamed key mapping`() = testApplication {
+    fun `unnamed key mapping`() = testDI({
+        provider {
+            keyMapping = Unnamed
+        }
+    }) {
+        dependencies {
+            provide<GreetingService>("bank") { BankGreetingService() }
+        }
+        val named: GreetingService by dependencies.named("bank")
+        val unnamed: GreetingService by dependencies
+        assertEquals(HELLO_CUSTOMER, named.hello())
+        assertEquals(HELLO_CUSTOMER, unnamed.hello())
+    }
+
+    // Use default DI configuration (not test mode)
+    private fun testDI(
+        pluginInstall: DependencyInjectionConfig.() -> Unit = {},
+        block: Application.() -> Unit
+    ) = testApplication {
         install(DI) {
-            provider {
-                keyMapping = Unnamed
-            }
+            pluginInstall()
+            if (!providerChanged)
+                provider = MapDependencyProvider()
         }
         application {
-            dependencies {
-                provide<GreetingService>("bank") { BankGreetingService() }
-            }
-            val named: GreetingService by dependencies.named("bank")
-            val unnamed: GreetingService by dependencies
-            assertEquals(HELLO_CUSTOMER, named.hello())
-            assertEquals(HELLO_CUSTOMER, unnamed.hello())
+            block()
         }
     }
+
 }

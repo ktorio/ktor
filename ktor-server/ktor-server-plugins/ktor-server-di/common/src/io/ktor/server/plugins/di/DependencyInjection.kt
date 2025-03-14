@@ -5,6 +5,7 @@
 package io.ktor.server.plugins.di
 
 import io.ktor.server.application.ApplicationPlugin
+import io.ktor.server.application.PluginBuilder
 import io.ktor.server.application.createApplicationPlugin
 import io.ktor.server.plugins.di.utils.ClasspathReference
 import io.ktor.server.plugins.di.utils.installReference
@@ -61,10 +62,14 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
                 ?.map(::ClasspathReference)
                 .orEmpty()
 
+        val provider = if (isTestEngine() && !pluginConfig.providerChanged) {
+            MapDependencyProvider(conflictPolicy = LastEntryWinsPolicy)
+        } else pluginConfig.provider
+
         application.attributes.put(
             DependencyRegistryKey,
             DependencyRegistryImpl(
-                pluginConfig.provider,
+                provider,
                 pluginConfig.resolution,
                 pluginConfig.reflection,
             ).also { registry ->
@@ -74,6 +79,9 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
             }
         )
     }
+
+private fun PluginBuilder<*>.isTestEngine(): Boolean =
+    application.engine::class.simpleName == "TestApplicationEngine"
 
 public val DependencyRegistryKey: AttributeKey<DependencyRegistry> =
     AttributeKey<DependencyRegistry>("DependencyRegistry")
@@ -111,8 +119,10 @@ public object NoReflection : DependencyReflection {
  * @see MapDependencyProvider
  */
 public class DependencyInjectionConfig {
+    internal var providerChanged = false
     public var reflection: DependencyReflection = DefaultReflection
     public var provider: DependencyProvider = MapDependencyProvider()
+        set(value) { field = value; providerChanged = true }
     public var resolution: DependencyResolution = DefaultDependencyResolution
 
     /**
