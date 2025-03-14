@@ -5,38 +5,43 @@
 package io.ktor.client.plugins.auth
 
 import io.ktor.client.plugins.auth.providers.*
-import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.runTest
+import kotlin.coroutines.CoroutineContext
 import kotlin.test.*
 
 class AuthTokenHolderTest {
 
     @Test
     @OptIn(DelicateCoroutinesApi::class)
-    fun testFirstResumedSetTokenBlockWins() = runTest {
+    fun testOnlyOneSetTokenCallComputesBlock() = runTest {
         val holder = AuthTokenHolder<Int> { fail() }
 
-        val monitor = Job()
+        var firstCalled = false
         val first = GlobalScope.launch(Dispatchers.Unconfined) {
             holder.setToken {
-                monitor.join()
+                firstCalled = true
+                delay(100)
                 1
             }
         }
 
+        var secondCalled = false
         val second = GlobalScope.launch(Dispatchers.Unconfined) {
+            delay(50)
             holder.setToken {
+                secondCalled = true
                 2
             }
         }
 
-        monitor.complete()
         first.join()
         second.join()
 
         val token = holder.loadToken()
-        assertEquals(token, 2)
+        assertEquals(token, 1)
+        assertTrue { firstCalled }
+        assertFalse { secondCalled }
     }
 
     @Test
@@ -74,7 +79,7 @@ class AuthTokenHolderTest {
             }
 
             monitor.join()
-            BearerTokens("1", "2")
+            1
         }
 
         val first = GlobalScope.async(Dispatchers.Unconfined) {
@@ -87,9 +92,10 @@ class AuthTokenHolderTest {
         }
 
         monitor.complete()
-        assertNull(first.await())
-        assertNotNull(second.await())
+        assertEquals(1, first.await())
+        second.await()
         assertTrue(clearTokenCalled)
+        assertNull(holder.get())
     }
 
     @Test
@@ -98,7 +104,7 @@ class AuthTokenHolderTest {
         val monitor = Job()
 
         var clearTokenCalled = false
-        val holder = AuthTokenHolder<BearerTokens> {
+        val holder = AuthTokenHolder<Int> {
             fail("loadTokens argument function shouldn't be invoked")
         }
 
@@ -109,7 +115,7 @@ class AuthTokenHolderTest {
                     delay(10)
                 }
                 monitor.join()
-                BearerTokens("1", "2")
+                1
             }
         }
 
@@ -119,9 +125,10 @@ class AuthTokenHolderTest {
         }
 
         monitor.complete()
-        assertNull(first.await())
-        assertNotNull(second.await())
+        assertEquals(1, first.await())
+        second.await()
         assertTrue(clearTokenCalled)
+        assertNull(holder.get())
     }
 
     @Test
@@ -147,40 +154,52 @@ class AuthTokenHolderTest {
         assertEquals("token", holder.setToken { "token" })
     }
 
-    private val value = atomic(0)
+    internal class MyContext(val value: Int) : CoroutineContext.Element {
+        override val key: CoroutineContext.Key<*>
+            get() = MyContext
 
-    @OptIn(DelicateCoroutinesApi::class)
-    @Test
-    fun firstResumedLoadTokenCoroutineWins() = runTest {
-        val holder = AuthTokenHolder {
-            val v = value.incrementAndGet()
-            delay(v * 50L)
-            v
-        }
-
-        val first = GlobalScope.async(Dispatchers.Unconfined) {
-            holder.loadToken()
-        }
-
-        val second = GlobalScope.async(Dispatchers.Unconfined) {
-            holder.loadToken()
-        }
-
-        assertEquals(1, first.await())
-        assertEquals(1, second.await())
-        assertEquals(1, holder.loadToken())
+        companion object : CoroutineContext.Key<MyContext>
     }
 
     @OptIn(DelicateCoroutinesApi::class)
     @Test
-    fun firstResumedSetTokenCoroutineWins() = runTest {
+    fun firstLoadTokenCallComputesBlockAndSetsValue() = runTest {
+        val holder = AuthTokenHolder {
+            coroutineScope {
+                val context = coroutineContext[MyContext]
+                assertNotNull(context)
+                context.value
+            }
+        }
+        val first = GlobalScope.async(Dispatchers.Unconfined) {
+            delay(50)
+            withContext(MyContext(1)) {
+                holder.loadToken()
+            }
+        }
+
+        val second = GlobalScope.async(Dispatchers.Unconfined) {
+            withContext(MyContext(2)) {
+                holder.loadToken()
+            }
+        }
+
+        assertEquals(2, first.await())
+        assertEquals(2, second.await())
+        assertEquals(2, holder.get())
+        assertEquals(2, holder.loadToken())
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    @Test
+    fun firstSetTokenCallComputesBlockAndSetsValue() = runTest {
         val holder = AuthTokenHolder<Int> {
             fail()
         }
 
         val first = GlobalScope.async(Dispatchers.Unconfined) {
+            delay(50)
             holder.setToken {
-                delay(50)
                 1
             }
         }
@@ -192,14 +211,15 @@ class AuthTokenHolderTest {
             }
         }
 
-        assertEquals(1, first.await())
-        assertEquals(1, second.await())
-        assertEquals(1, holder.loadToken())
+        assertEquals(2, first.await())
+        assertEquals(2, second.await())
+        assertEquals(2, holder.get())
+        assertEquals(2, holder.loadToken())
     }
 
     @Test
     @OptIn(DelicateCoroutinesApi::class)
-    fun testFirstResumedClearCoroutineCancelsLoadsAndSets() = runTest {
+    fun testClearCoroutineResetsCachedValue() = runTest {
         val holder = AuthTokenHolder {
             delay(200)
             1
@@ -210,6 +230,7 @@ class AuthTokenHolderTest {
         }
 
         val setToken = GlobalScope.async(Dispatchers.Unconfined) {
+            delay(50)
             holder.setToken {
                 delay(100)
                 2
@@ -217,31 +238,31 @@ class AuthTokenHolderTest {
         }
 
         val clear = GlobalScope.async(Dispatchers.Unconfined) {
-            delay(50)
+            delay(100)
             holder.clearToken()
         }
 
-        assertNull(loadToken.await())
-        assertNull(setToken.await())
+        assertEquals(1, loadToken.await())
+        assertEquals(2, setToken.await())
         clear.await()
+        assertNull(holder.get())
     }
 
     @Test
     @OptIn(DelicateCoroutinesApi::class)
-    fun firstLoadTokenCoroutineDoesNotCancelSetToken() = runTest {
+    fun lockedSetTokenByLoadTokenSetsValue() = runTest {
         val holder = AuthTokenHolder {
-            delay(50)
+            delay(200)
             1
         }
 
         val loadToken = GlobalScope.async(Dispatchers.Unconfined) {
-            delay(50)
             holder.loadToken()
         }
 
         val setToken = GlobalScope.async(Dispatchers.Unconfined) {
+            delay(100)
             holder.setToken {
-                delay(200)
                 2
             }
         }
