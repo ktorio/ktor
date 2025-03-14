@@ -58,10 +58,7 @@ public class DependencyRegistryImpl(
 public val DefaultDependencyResolution: DependencyResolution =
     DependencyResolution { provider, reflection ->
         val injector = ProcessingDependencyResolver(reflection, provider)
-        val instances = provider.declarations.keys.associateWith { key ->
-            runCatching { injector.get(key) as Any }
-        }
-        MapDependencyResolver(reflection, instances)
+        MapDependencyResolver(reflection, injector.resolveAll())
     }
 
 /**
@@ -72,17 +69,36 @@ public class ProcessingDependencyResolver(
     override val reflection: DependencyReflection,
     private val provider: DependencyProvider,
 ) : DependencyResolver {
-    private val resolved = mutableMapOf<DependencyKey, Any>()
+    private val resolved = mutableMapOf<DependencyKey, Result<Any>>()
     private val visited = mutableSetOf<DependencyKey>()
 
-    override fun <T : Any> get(key: DependencyKey): T =
-        getOrPut(key) {
-            if (!visited.add(key)) throw CircularDependencyException(key)
-            val result = provider.declarations[key]?.create(this)
-                ?: throw MissingDependencyException(key)
-            result as T
+    public fun resolveAll(): Map<DependencyKey, Result<Any>> {
+        for (key in provider.declarations.keys) {
+            get<Any>(key)
         }
+        return resolved.toMap()
+    }
+
+    override fun <T : Any> get(key: DependencyKey): T =
+        resolved.getOrPut(key) {
+            if (!visited.add(key)) throw CircularDependencyException(listOf(key))
+            try {
+                val createFunction = provider.declarations[key]
+                    ?: throw MissingDependencyException(key)
+                Result.success(createFunction.create(this))
+            } catch (cause: CircularDependencyException) {
+                // Always throw when encountering with circular references,
+                // capturing each key in the stack allows for better debugging
+                throw CircularDependencyException(listOf(key) + cause.keys)
+            } catch (cause: Throwable) {
+                Result.failure(cause)
+            }
+        }.getOrThrow() as T
 
     override fun <T : Any> getOrPut(key: DependencyKey, defaultValue: () -> T): T =
-        resolved.getOrPut(key, defaultValue) as T
+        resolved.getOrPut(key) {
+            runCatching {
+                defaultValue()
+            }
+        }.getOrThrow() as T
 }

@@ -5,17 +5,12 @@
 package io.ktor.server.plugins.di
 
 import io.ktor.server.testing.*
-import io.ktor.util.reflect.typeInfo
+import io.ktor.util.reflect.*
 import kotlin.reflect.KClass
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertIs
-import kotlin.test.assertNotNull
-import kotlin.test.fail
+import kotlin.test.*
 
 internal const val HELLO = "Hello, world!"
-private const val HELLO_CUSTOMER = "Hello, customer!"
+internal const val HELLO_CUSTOMER = "Hello, customer!"
 
 internal interface GreetingService {
     fun hello(): String
@@ -47,7 +42,7 @@ internal class BankServiceImpl : BankService {
 }
 
 internal data class BankTeller(
-    val greetingService: GreetingService,
+    val greetingService: GreetingService = BankGreetingService(),
     val bankService: BankService
 ) : GreetingService by greetingService, BankService by bankService
 

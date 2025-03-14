@@ -6,6 +6,8 @@ package io.ktor.server.plugins.di
 
 import io.ktor.server.application.ApplicationPlugin
 import io.ktor.server.application.createApplicationPlugin
+import io.ktor.server.plugins.di.utils.ClasspathReference
+import io.ktor.server.plugins.di.utils.installReference
 import io.ktor.util.AttributeKey
 import io.ktor.util.reflect.TypeInfo
 import kotlin.reflect.KClass
@@ -20,13 +22,23 @@ import kotlin.reflect.KClass
  */
 public val DI: ApplicationPlugin<DependencyInjectionConfig> =
     createApplicationPlugin("DI", ::DependencyInjectionConfig) {
+        val configuredDependencyReferences =
+            environment.config.propertyOrNull("ktor.application.dependencies")
+                ?.getList()
+                ?.map(::ClasspathReference)
+                .orEmpty()
+
         application.attributes.put(
             DependencyRegistryKey,
             DependencyRegistryImpl(
                 pluginConfig.provider,
                 pluginConfig.resolution,
                 pluginConfig.reflection,
-            )
+            ).also { registry ->
+                for (reference in configuredDependencyReferences) {
+                    installReference(application, registry, reference)
+                }
+            }
         )
     }
 
@@ -136,8 +148,8 @@ public class AmbiguousDependencyException(key: DependencyKey, keys: Collection<D
 /**
  * Thrown when resolving a given dependency loops back on itself.
  */
-public class CircularDependencyException(key: DependencyKey) :
-    IllegalStateException("Circular dependency found for dependency `$key`")
+public class CircularDependencyException(internal val keys: Collection<DependencyKey>) :
+    IllegalStateException("Circular dependency found: ${keys.joinToString(" -> ")}")
 
 /**
  * Thrown when attempting to provide a dependency AFTER the dependency map is created.
@@ -165,3 +177,12 @@ public open class DependencyReflectionDisabledException() :
 public class DependencyAbstractTypeConstructionException(
     qualifiedName: String,
 ) : DependencyConstructionException("Cannot instantiate abstract type: $qualifiedName")
+
+/**
+ * Thrown when we are unable to resolve a static reference from the configuration file.
+ */
+public class InvalidDependencyReferenceException internal constructor(
+    message: String,
+    reference: ClasspathReference,
+    cause: Throwable? = null
+) : DependencyConstructionException("$message: $reference", cause)
