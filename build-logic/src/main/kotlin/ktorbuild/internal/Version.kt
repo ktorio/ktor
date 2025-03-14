@@ -15,8 +15,8 @@ import org.gradle.api.Project
  */
 internal fun Project.resolveVersion(): String {
     val projectVersion = project.version.toString()
-    val releaseVersion = findProperty("releaseVersion")?.toString()
-    val eapVersion = findProperty("eapVersion")?.toString()
+    val releaseVersion = providers.gradleProperty("releaseVersion").orNull
+    val eapVersion = providers.gradleProperty("eapVersion").orNull
 
     return when {
         releaseVersion != null -> releaseVersion

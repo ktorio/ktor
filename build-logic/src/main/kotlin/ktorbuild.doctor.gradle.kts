@@ -24,7 +24,7 @@ doctor {
 // Always monitor tasks on CI, but disable it locally by default with providing an option to opt-in.
 // See 'doctor.enableTaskMonitoring' in gradle.properties for details.
 val enableTasksMonitoring = ktorBuild.isCI.get() ||
-    findProperty("doctor.enableTaskMonitoring")?.toString().toBoolean()
+    providers.gradleProperty("doctor.enableTaskMonitoring").orNull.toBoolean()
 
 if (!enableTasksMonitoring) {
     logger.info("Gradle Doctor task monitoring is disabled.")
