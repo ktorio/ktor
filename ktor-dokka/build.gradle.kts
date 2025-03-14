@@ -29,7 +29,7 @@ dokka {
     }
 
     dokkaPublications.html {
-        if (dokkaVersionsDirectory != null) outputDirectory = dokkaVersionsDirectory.dir(projectVersion)
+        if (dokkaVersionsDirectory != null) outputDirectory = dokkaVersionsDirectory.resolve(projectVersion)
     }
 }
 
@@ -43,7 +43,7 @@ configurations.dokka {
     dependencies.addAllLater(libraryProjects)
 }
 
-fun resolveVersionsDirectory(): Directory? {
-    val outputDirectory = project.findProperty("ktor.dokka.versionsDirectory") as? String
-    return outputDirectory?.let(rootProject.layout.projectDirectory::dir)
+fun resolveVersionsDirectory(): File? {
+    val outputDirectory = providers.gradleProperty("ktor.dokka.versionsDirectory").orNull
+    return outputDirectory?.let(rootDir::resolve)
 }
