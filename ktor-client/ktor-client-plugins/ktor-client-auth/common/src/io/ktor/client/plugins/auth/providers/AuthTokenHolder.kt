@@ -49,7 +49,7 @@ internal class AuthTokenHolder<T>(private val loadTokens: suspend () -> T?) {
     /**
      * Replaces the current cached value with one computed with [block].
      * Only one [loadToken] or [setToken] call can be executed at a time,
-     * although the resumed setToken call recomputes the value cached by [loadToken].
+     * although the resumed [setToken] call recomputes the value cached by [loadToken].
      * DO NOT call [loadToken] inside the [block] because this will lead to a deadlock.
      */
     internal suspend fun setToken(block: suspend () -> T?): T? {
