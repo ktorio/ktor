@@ -74,8 +74,6 @@ public open class DependencyReflectionJvm : DependencyReflection {
 
     /**
      * Maps a parameter to a [DependencyKey].
-     *
-     * TODO annotation for named qualifier
      */
     public open fun toDependencyKey(parameter: KParameter): DependencyKey =
         DependencyKey(TypeInfo(parameter.type.jvmErasure, parameter.type))

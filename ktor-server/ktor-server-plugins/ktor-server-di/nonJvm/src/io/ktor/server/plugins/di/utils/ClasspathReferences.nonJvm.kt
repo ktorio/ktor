@@ -11,6 +11,4 @@ internal actual fun installReference(
     application: Application,
     registry: DependencyRegistry,
     reference: ClasspathReference
-) {
-    TODO("Reflection is unavailable for non-JVM targets for the time being")
-}
+): Unit = error("Reflection is not supported on this platform.")

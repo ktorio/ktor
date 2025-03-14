@@ -73,6 +73,8 @@ public class ProcessingDependencyResolver(
     private val visited = mutableSetOf<DependencyKey>()
 
     public fun resolveAll(): Map<DependencyKey, Result<Any>> {
+        if (resolved.isNotEmpty()) return resolved.toMap()
+
         for (key in provider.declarations.keys) {
             get<Any>(key)
         }

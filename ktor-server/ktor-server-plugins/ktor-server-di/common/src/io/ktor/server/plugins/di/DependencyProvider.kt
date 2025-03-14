@@ -95,12 +95,16 @@ public class ImplicitCreateFunction(public val origin: ExplicitCreateFunction) :
  * @throws AmbiguousDependencyException Always thrown when attempting to create a dependency
  * through the [create] method.
  *
- * TODO it would be nice to handle delegate properties somehow
+ * TODO [KTOR-8322 Handle delegate pattern](https://youtrack.jetbrains.com/issue/KTOR-8322/Dependency-injection-handle-delegate-pattern)
  */
 public data class AmbiguousCreateFunction(
     public override val key: DependencyKey,
     val functions: Set<DependencyCreateFunction>
 ) : DependencyCreateFunction {
+    init {
+        require(functions.isNotEmpty()) { "Functions must not be empty" }
+    }
+
     public constructor(key: DependencyKey, vararg functions: DependencyCreateFunction) :
         this(key, functions.flatMap { (it as? AmbiguousCreateFunction)?.functions ?: setOf(it) }.toSet())
 

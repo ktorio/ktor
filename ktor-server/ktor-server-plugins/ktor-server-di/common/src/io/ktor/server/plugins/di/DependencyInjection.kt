@@ -19,6 +19,39 @@ import kotlin.reflect.KClass
  * 1. `provider`: the logic for registering new types
  * 2. `resolution`: the function for validating the provided types and creating the dependency map
  * 3. `reflection`: controls how objects are initialized from type references
+ *
+ * Dependencies can be declared via the dependencies DSL:
+ *
+ * ```kotlin
+ * fun Application.databaseModule() {
+ *     dependencies {
+ *         provide<Database> { PostgresDatabase(resolve("connectionUrl")) }
+ *     }
+ * }
+ * ```
+ *
+ * Or through configuration:
+ *
+ * ```yaml
+ * ktor:
+ *   application:
+ *     dependencies:
+ *       - com.example.db.PostgresDatabase
+ * ```
+ *
+ * Each item declared via configuration can be a reference to a class or a
+ * top-level function.
+ *
+ * Resolving dependencies in application modules is also achieved through the DSL:
+ *
+ * ```kotlin
+ * fun Application.routing() {
+ *     val database: Database by dependencies
+ *     val repository: MessagesRepository = dependencies.create()
+ * }
+ * ```
+ *
+ * Alternatively, they can be supplied automatically through parameters.
  */
 public val DI: ApplicationPlugin<DependencyInjectionConfig> =
     createApplicationPlugin("DI", ::DependencyInjectionConfig) {
