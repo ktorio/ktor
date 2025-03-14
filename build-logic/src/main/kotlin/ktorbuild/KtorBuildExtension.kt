@@ -11,19 +11,16 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.kotlin.dsl.newInstance
 import org.gradle.kotlin.dsl.property
-import org.gradle.platform.BuildPlatform
-import org.gradle.platform.OperatingSystem
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import javax.inject.Inject
 
-@Suppress("UnstableApiUsage")
 abstract class KtorBuildExtension(
     objects: ObjectFactory,
     providers: ProviderFactory,
-    buildPlatform: BuildPlatform,
     val targets: KtorTargets,
 ) {
 
@@ -31,8 +28,7 @@ abstract class KtorBuildExtension(
     constructor(
         objects: ObjectFactory,
         providers: ProviderFactory,
-        buildPlatform: BuildPlatform,
-    ) : this(objects, providers, buildPlatform, targets = objects.newInstance())
+    ) : this(objects, providers, targets = objects.newInstance())
 
     private val buildingOnTeamCity: Provider<Boolean> =
         providers.environmentVariable("TEAMCITY_VERSION").map(String::isNotBlank)
@@ -91,7 +87,7 @@ abstract class KtorBuildExtension(
             .orElse(DEFAULT_KOTLIN_LANGUAGE_VERSION)
 
     /** Host operating system. */
-    val os: Provider<OperatingSystem> = providers.provider { buildPlatform.operatingSystem }
+    val os: Provider<OperatingSystem> = providers.provider { OperatingSystem.current() }
 
     companion object {
         const val NAME = "ktorBuild"
