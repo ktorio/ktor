@@ -2,6 +2,7 @@
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+import ktorbuild.*
 import ktorbuild.internal.gradle.findByName
 import ktorbuild.internal.ktorBuild
 import ktorbuild.internal.publish.*
@@ -12,6 +13,8 @@ plugins {
     id("maven-publish")
     id("signing") apply false
 }
+
+addProjectTag(ProjectTag.Published)
 
 publishing {
     publications.configureEach {
