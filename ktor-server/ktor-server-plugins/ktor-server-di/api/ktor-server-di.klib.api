@@ -280,6 +280,8 @@ final val io.ktor.server.plugins.di/DefaultReflection // io.ktor.server.plugins.
     final fun <get-DefaultReflection>(): io.ktor.server.plugins.di/DependencyReflection // io.ktor.server.plugins.di/DefaultReflection.<get-DefaultReflection>|<get-DefaultReflection>(){}[0]
 final val io.ktor.server.plugins.di/DependencyRegistryKey // io.ktor.server.plugins.di/DependencyRegistryKey|{}DependencyRegistryKey[0]
     final fun <get-DependencyRegistryKey>(): io.ktor.util/AttributeKey<io.ktor.server.plugins.di/DependencyRegistry> // io.ktor.server.plugins.di/DependencyRegistryKey.<get-DependencyRegistryKey>|<get-DependencyRegistryKey>(){}[0]
+final val io.ktor.server.plugins.di/LastEntryWinsPolicy // io.ktor.server.plugins.di/LastEntryWinsPolicy|{}LastEntryWinsPolicy[0]
+    final fun <get-LastEntryWinsPolicy>(): io.ktor.server.plugins.di/DependencyConflictPolicy // io.ktor.server.plugins.di/LastEntryWinsPolicy.<get-LastEntryWinsPolicy>|<get-LastEntryWinsPolicy>(){}[0]
 final val io.ktor.server.plugins.di/Supertypes // io.ktor.server.plugins.di/Supertypes|{}Supertypes[0]
     final fun <get-Supertypes>(): io.ktor.server.plugins.di/DependencyKeyCovariance // io.ktor.server.plugins.di/Supertypes.<get-Supertypes>|<get-Supertypes>(){}[0]
 final val io.ktor.server.plugins.di/Unnamed // io.ktor.server.plugins.di/Unnamed|{}Unnamed[0]
