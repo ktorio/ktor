@@ -4,122 +4,85 @@
 
 package io.ktor.client.plugins.auth.providers
 
-import io.ktor.util.collections.*
-import io.ktor.utils.io.*
-import io.ktor.utils.io.locks.*
-import kotlinx.atomicfu.*
-import kotlinx.atomicfu.locks.synchronized
-import kotlinx.coroutines.*
-import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlin.concurrent.Volatile
 
-/**
- * Thread-safe
- */
 internal class AuthTokenHolder<T>(private val loadTokens: suspend () -> T?) {
-    private val ref = atomic<T?>(null)
 
-    @OptIn(InternalAPI::class) private val lock = SynchronizedObject()
+    @Volatile private var value: T? = null
 
-    private val loadJobs = ConcurrentSet<Deferred<T?>>()
-    private val setJobs = ConcurrentSet<Deferred<T?>>()
+    @Volatile private var isLoadRequest = false
 
-    private object JobCancelledException : CancellationException("Job cancelled")
+    private val mutex = Mutex()
 
     /**
-     * Returns a cached reference if any. Otherwise, computes a value using [loadTokens] and caches it.
-     * If there are loadToken coroutines in-progress, the first resumed one wins and the other ones are cancelled.
+     * Exist only for testing
      */
-    @OptIn(InternalAPI::class)
+    internal fun get(): T? = value
+
+    /**
+     * Returns a cached value if any. Otherwise, computes a value using [loadTokens] and caches it.
+     * Only one [loadToken] call can be executed at a time. The other calls are suspended and have no effect on the cached value.
+     */
     internal suspend fun loadToken(): T? {
-        if (ref.value != null) return ref.value
+        if (value != null) return value // Hot path
+        val prevValue = value
 
-        return coroutineScope {
-            val deferred = async {
-                loadTokens()
-            }
-
-            loadJobs.add(deferred)
-
-            return@coroutineScope try {
-                val value = deferred.await()
-
-                synchronized(lock) {
-                    if (deferred in loadJobs) {
-                        ref.value = value
-
-                        for (def in loadJobs) {
-                            def.cancel(JobCancelledException)
-                        }
-
-                        loadJobs.clear()
-                    }
-
-                    ref.value
+        return mutex.withLock {
+            isLoadRequest = true
+            try {
+                if (prevValue == value) { // Raced first
+                    value = loadTokens()
                 }
-            } catch (_: JobCancelledException) {
-                ref.value
+            } finally {
+                isLoadRequest = false
             }
+
+            value
         }
     }
 
     /**
      * Replaces the current cached value with one computed with [block].
-     * If there are loadToken and/or setToken coroutines in-progress,
-     * the first resumed setToken coroutine wins and the other ones are cancelled.
+     * Only one [loadToken] or [setToken] call can be executed at a time,
+     * although the resumed setToken call recomputes the value cached by [loadToken].
+     * DO NOT call [loadToken] inside the [block] because this will lead to a deadlock.
      */
-    @OptIn(InternalAPI::class)
-    internal suspend fun setToken(block: suspend () -> T?): T? = coroutineScope {
-        val deferred = async {
-            block()
-        }
+    internal suspend fun setToken(block: suspend () -> T?): T? {
+        val prevValue = value
+        val lockedByLoad = isLoadRequest
 
-        setJobs.add(deferred)
+        return mutex.withLock {
+            if (prevValue == value || lockedByLoad) { // Raced first
+                val newValue = block()
 
-        return@coroutineScope try {
-            val value = deferred.await()
-
-            synchronized(lock) {
-                if (deferred in setJobs) {
-                    ref.value = value
-
-                    for (def in loadJobs) {
-                        def.cancel(JobCancelledException)
-                    }
-
-                    for (def in setJobs) {
-                        def.cancel(JobCancelledException)
-                    }
-
-                    loadJobs.clear()
-                    setJobs.clear()
+                if (newValue != null) {
+                    value = newValue
                 }
-
-                ref.value
             }
-        } catch (_: JobCancelledException) {
-            ref.value
+
+            value
         }
     }
 
     /**
      * Resets the cached value.
-     * Cancels all in-progress loadToken and setToken coroutines.
      */
-    @OptIn(InternalAPI::class)
+    @OptIn(DelicateCoroutinesApi::class)
     internal fun clearToken() {
-        synchronized(lock) {
-            ref.value = null
-
-            for (def in loadJobs) {
-                def.cancel(JobCancelledException)
+        if (mutex.tryLock()) {
+            value = null
+            mutex.unlock()
+        } else {
+            GlobalScope.launch {
+                mutex.withLock {
+                    value = null
+                }
             }
-
-            for (def in setJobs) {
-                def.cancel(JobCancelledException)
-            }
-
-            loadJobs.clear()
-            setJobs.clear()
         }
     }
 }

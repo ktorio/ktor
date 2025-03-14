@@ -156,8 +156,9 @@ public class BearerAuthProvider(
     }
 
     public override suspend fun refreshToken(response: HttpResponse): Boolean {
+        val token = tokensHolder.loadToken()
         val newToken = tokensHolder.setToken {
-            refreshTokens(RefreshTokensParams(response.call.client, response, tokensHolder.loadToken()))
+            refreshTokens(RefreshTokensParams(response.call.client, response, token))
         }
         return newToken != null
     }
