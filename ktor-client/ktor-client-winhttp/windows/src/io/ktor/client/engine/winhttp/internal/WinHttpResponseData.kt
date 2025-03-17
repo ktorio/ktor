@@ -46,9 +46,9 @@ internal suspend fun WinHttpResponseData.convert(
 private fun HttpHeadersMap.toMap(): Map<String, List<String>> {
     val result = mutableMapOf<String, MutableList<String>>()
 
-    for (index in 0 until size) {
-        val key = nameAt(index).toString()
-        val value = valueAt(index).toString()
+    for (offset in offsets()) {
+        val key = nameAtOffset(offset).toString()
+        val value = valueAtOffset(offset).toString()
 
         if (result[key]?.add(value) == null) {
             result[key] = mutableListOf(value)

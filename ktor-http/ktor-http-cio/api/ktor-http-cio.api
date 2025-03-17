@@ -64,10 +64,14 @@ public final class io/ktor/http/cio/HttpHeadersMap {
 	public final fun getAll (Ljava/lang/String;)Lkotlin/sequences/Sequence;
 	public final fun getSize ()I
 	public final fun nameAt (I)Ljava/lang/CharSequence;
+	public final fun nameAtOffset (I)Ljava/lang/CharSequence;
+	public final fun offsets ()Lkotlin/sequences/Sequence;
+	public final fun put (IIII)V
 	public final fun put (IIIIII)V
 	public final fun release ()V
 	public fun toString ()Ljava/lang/String;
 	public final fun valueAt (I)Ljava/lang/CharSequence;
+	public final fun valueAtOffset (I)Ljava/lang/CharSequence;
 }
 
 public abstract class io/ktor/http/cio/HttpMessage : java/io/Closeable {
