@@ -1,0 +1,28 @@
+name: Auto-Approve
+
+on:
+  pull_request_target:
+    types: [labeled]
+
+jobs:
+  auto-approve:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    if: github.actor == 'renovate[bot]' || contains(github.event.pull_request.labels.*.name, '👍 ship!')
+    steps:
+      - name: Approve
+        run: |
+          pr_number=${{ github.event.pull_request.number }}
+          decision=$(gh pr view "$pr_number" --json reviewDecision --jq ".reviewDecision")
+          echo "Current review decision: $decision"
+
+          if [[ "$decision" == "REVIEW_REQUIRED" ]]; then
+            gh pr review "$pr_number" --approve --body "Ship it! :shipit:"
+            echo "Approved!"
+          else
+            echo "Skipped."
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository_owner }}/${{ github.event.repository.name }}

@@ -57,4 +57,4 @@ dependencies {
 }
 
 internal val Project.hasJavaModule: Boolean
-    get() = plugins.hasPlugin("maven-publish") && name != "ktor-bom" && name != "ktor-java-modules-test" && name != "ktor-serialization-kotlinx-xml" && hasJvm
+    get() = plugins.hasPlugin("ktorbuild.project.library") && name != "ktor-serialization-kotlinx-xml" && ktorBuild.targets.hasJvm
