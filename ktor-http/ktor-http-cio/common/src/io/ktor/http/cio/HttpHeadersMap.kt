@@ -100,7 +100,10 @@ public class HttpHeadersMap internal constructor(private val builder: CharArrayB
 
     public fun offsets(): Sequence<Int> = headersData.headersStarts()
 
-    @Deprecated("Use put without `nameHash` and `valueHash` instead", ReplaceWith("put(nameStartIndex, nameEndIndex, valueStartIndex, valueEndIndex)"))
+    @Deprecated(
+        "Use put without `nameHash` and `valueHash` instead",
+        ReplaceWith("put(nameStartIndex, nameEndIndex, valueStartIndex, valueEndIndex)")
+    )
     public fun put(
         nameHash: Int,
         valueHash: Int,
@@ -232,7 +235,7 @@ internal fun HttpHeadersMap.dumpTo(indent: String, out: Appendable) {
 /**
  * Helper class that joins multiple IntArrays from IntArrayPool
  * */
-private class HeadersData() {
+private class HeadersData {
 
     private var arrays = mutableListOf<IntArray>()
 
