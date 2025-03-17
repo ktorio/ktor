@@ -100,7 +100,7 @@ public class HttpHeadersMap internal constructor(private val builder: CharArrayB
 
     public fun offsets(): Sequence<Int> = headersData.headersStarts()
 
-    @Deprecated("Use put instead", ReplaceWith("put"))
+    @Deprecated("Use put without `nameHash` and `valueHash` instead", ReplaceWith("put(nameStartIndex, nameEndIndex, valueStartIndex, valueEndIndex)"))
     public fun put(
         nameHash: Int,
         valueHash: Int,
