@@ -208,4 +208,11 @@ class HttpHeadersMapTest {
             headers.release()
         }
     }
+
+    @Test
+    fun testHeadersMapRelease() = test {
+        val builder = CharArrayBuilder()
+        (0..1000).map { HttpHeadersMap(builder) }.toList()
+        builder.release()
+    }
 }

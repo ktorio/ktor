@@ -41,8 +41,8 @@ public class HttpHeadersMap internal constructor(private val builder: CharArrayB
     public var size: Int = 0
         private set
 
-    private var headersData = HeadersData(1)
-    private var headerCapacity: Int = EXPECTED_HEADERS_QTY
+    private var headerCapacity: Int = 0
+    private var headersData = HeadersDataPool.borrow()
 
     private fun thresholdReached(): Boolean = size >= headerCapacity * RESIZE_THRESHOLD
 
@@ -64,7 +64,19 @@ public class HttpHeadersMap internal constructor(private val builder: CharArrayB
     }
 
     public operator fun get(name: String): CharSequence? {
-        return getAll(name).firstOrNull()
+        if (size == 0) return null
+
+        val hash = name.hashCodeLowerCase().absoluteValue
+        var headerIndex = hash % headerCapacity
+
+        while (headersData.at(headerIndex * HEADER_SIZE + OFFSET_NAME_HASH) != EMPTY_INDEX) {
+            if (headerHasName(name, headerIndex * HEADER_SIZE)) {
+                return valueAtOffset(headerIndex * HEADER_SIZE)
+            }
+            headerIndex = (headerIndex + 1) % headerCapacity
+        }
+
+        return null
     }
 
     public fun getAll(name: String): Sequence<CharSequence> = sequence {
@@ -154,12 +166,12 @@ public class HttpHeadersMap internal constructor(private val builder: CharArrayB
     }
 
     private fun resize() {
-        val prevData = headersData
         val prevSize = size
+        val prevData = headersData
 
         size = 0
-        headerCapacity *= 2
-        headersData = HeadersData(headersData.subArraysCount * 2)
+        headerCapacity = (headerCapacity * 2).or(EXPECTED_HEADERS_QTY)
+        headersData = HeadersDataPool.borrow().apply { prepare((prevData.arraysCount() * 2).or(1)) }
 
         for (headerOffset in prevData.headersStarts()) {
             put(
@@ -170,7 +182,7 @@ public class HttpHeadersMap internal constructor(private val builder: CharArrayB
             )
         }
 
-        prevData.release()
+        HeadersDataPool.recycle(prevData)
         require(prevSize == size)
     }
 
@@ -194,9 +206,9 @@ public class HttpHeadersMap internal constructor(private val builder: CharArrayB
 
     public fun release() {
         size = 0
-        headersData.release()
-        headersData = HeadersData(1)
-        headerCapacity = EXPECTED_HEADERS_QTY
+        headerCapacity = 0
+        HeadersDataPool.recycle(headersData)
+        headersData = HeadersDataPool.borrow()
     }
 
     override fun toString(): String {
@@ -217,21 +229,20 @@ internal fun HttpHeadersMap.dumpTo(indent: String, out: Appendable) {
     }
 }
 
-private val IntArrayPool: DefaultPool<IntArray> = object : DefaultPool<IntArray>(HEADER_ARRAY_POOL_SIZE) {
-    override fun produceInstance(): IntArray = IntArray(HEADER_ARRAY_SIZE) { EMPTY_INDEX }
-
-    override fun clearInstance(instance: IntArray): IntArray {
-        instance.fill(EMPTY_INDEX)
-        return super.clearInstance(instance)
-    }
-}
-
 /**
  * Helper class that joins multiple IntArrays from IntArrayPool
  * */
-private class HeadersData(val subArraysCount: Int) {
+private class HeadersData() {
 
-    private val arrays = Array(subArraysCount) { IntArrayPool.borrow() }
+    private var arrays = mutableListOf<IntArray>()
+
+    fun arraysCount(): Int = arrays.size
+
+    fun prepare(subArraysCount: Int) {
+        repeat(subArraysCount) {
+            arrays.add(IntArrayPool.borrow())
+        }
+    }
 
     fun at(index: Int): Int {
         return arrays[index / HEADER_ARRAY_SIZE][index % HEADER_ARRAY_SIZE]
@@ -257,5 +268,24 @@ private class HeadersData(val subArraysCount: Int) {
 
     fun release() {
         for (array in arrays) IntArrayPool.recycle(array)
+        arrays.clear()
+    }
+}
+
+private val IntArrayPool: DefaultPool<IntArray> = object : DefaultPool<IntArray>(HEADER_ARRAY_POOL_SIZE) {
+    override fun produceInstance(): IntArray = IntArray(HEADER_ARRAY_SIZE) { EMPTY_INDEX }
+
+    override fun clearInstance(instance: IntArray): IntArray {
+        instance.fill(EMPTY_INDEX)
+        return super.clearInstance(instance)
+    }
+}
+
+private val HeadersDataPool: DefaultPool<HeadersData> = object : DefaultPool<HeadersData>(HEADER_ARRAY_POOL_SIZE) {
+    override fun produceInstance(): HeadersData = HeadersData()
+
+    override fun clearInstance(instance: HeadersData): HeadersData {
+        instance.release()
+        return super.clearInstance(instance)
     }
 }

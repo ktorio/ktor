@@ -57,18 +57,6 @@ public final class io/ktor/http/cio/HttpBodyKt {
 	public static final fun parseHttpBody (Lio/ktor/http/cio/HttpHeadersMap;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class io/ktor/http/cio/HttpHeadersHashMap {
-	public final fun get (Ljava/lang/String;)Ljava/lang/String;
-	public final fun getAll (Ljava/lang/String;)Lkotlin/sequences/Sequence;
-	public final fun getValuesCount ()I
-	public final fun nameAtOffset (I)Ljava/lang/CharSequence;
-	public final fun offsets ()Lkotlin/sequences/Sequence;
-	public final fun put (IIII)V
-	public final fun release ()V
-	public fun toString ()Ljava/lang/String;
-	public final fun valueAtOffset (I)Ljava/lang/CharSequence;
-}
-
 public final class io/ktor/http/cio/HttpHeadersMap {
 	public final fun find (Ljava/lang/String;I)I
 	public static synthetic fun find$default (Lio/ktor/http/cio/HttpHeadersMap;Ljava/lang/String;IILjava/lang/Object;)I
