@@ -4,82 +4,103 @@
 
 package io.ktor.client.plugins.auth.providers
 
-import kotlinx.atomicfu.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
+import kotlin.concurrent.Volatile
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.coroutineContext
 
-internal class AuthTokenHolder<T>(
-    private val loadTokens: suspend () -> T?
-) {
-    private val refreshTokensDeferred = atomic<CompletableDeferred<T?>?>(null)
-    private val loadTokensDeferred = atomic<CompletableDeferred<T?>?>(null)
+internal class AuthTokenHolder<T>(private val loadTokens: suspend () -> T?) {
 
-    internal fun clearToken() {
-        loadTokensDeferred.value = null
-        refreshTokensDeferred.value = null
-    }
+    @Volatile private var value: T? = null
 
+    @Volatile private var isLoadRequest = false
+
+    private val mutex = Mutex()
+
+    /**
+     * Exist only for testing
+     */
+    internal fun get(): T? = value
+
+    /**
+     * Returns a cached value if any. Otherwise, computes a value using [loadTokens] and caches it.
+     * Only one [loadToken] call can be executed at a time. The other calls are suspended and have no effect on the cached value.
+     */
     internal suspend fun loadToken(): T? {
-        var deferred: CompletableDeferred<T?>?
-        lateinit var newDeferred: CompletableDeferred<T?>
-        while (true) {
-            deferred = loadTokensDeferred.value
-            val newValue = deferred ?: CompletableDeferred()
-            if (loadTokensDeferred.compareAndSet(deferred, newValue)) {
-                newDeferred = newValue
-                break
+        if (value != null) return value // Hot path
+        val prevValue = value
+
+        return if (coroutineContext[SetTokenContext] != null) { // Already locked by setToken
+            value = loadTokens()
+            value
+        } else {
+            mutex.withLock {
+                isLoadRequest = true
+                try {
+                    if (prevValue == value) { // Raced first
+                        value = loadTokens()
+                    }
+                } finally {
+                    isLoadRequest = false
+                }
+
+                value
             }
-        }
-
-        // if there's already a pending loadTokens(), just wait for it to complete
-        if (deferred != null) {
-            return deferred.await()
-        }
-
-        try {
-            val newTokens = loadTokens()
-
-            // [loadTokensDeferred.value] could be null by now (if clearToken() was called while
-            // suspended), which is why we are using [newDeferred] to complete the suspending callback.
-            newDeferred.complete(newTokens)
-
-            return newTokens
-        } catch (cause: Throwable) {
-            newDeferred.completeExceptionally(cause)
-            loadTokensDeferred.compareAndSet(newDeferred, null)
-            throw cause
         }
     }
 
+    private class SetTokenContext : CoroutineContext.Element {
+        override val key: CoroutineContext.Key<*>
+            get() = SetTokenContext
+
+        companion object : CoroutineContext.Key<SetTokenContext>
+    }
+
+    private val setTokenMarker = SetTokenContext()
+
+    /**
+     * Replaces the current cached value with one computed with [block].
+     * Only one [loadToken] or [setToken] call can be executed at a time,
+     * although the resumed [setToken] call recomputes the value cached by [loadToken].
+     */
     internal suspend fun setToken(block: suspend () -> T?): T? {
-        var deferred: CompletableDeferred<T?>?
-        lateinit var newDeferred: CompletableDeferred<T?>
-        while (true) {
-            deferred = refreshTokensDeferred.value
-            val newValue = deferred ?: CompletableDeferred()
-            if (refreshTokensDeferred.compareAndSet(deferred, newValue)) {
-                newDeferred = newValue
-                break
+        val prevValue = value
+        val lockedByLoad = isLoadRequest
+
+        return mutex.withLock {
+            if (prevValue == value || lockedByLoad) { // Raced first
+                val newValue = withContext(coroutineContext + setTokenMarker) {
+                    block()
+                }
+
+                if (newValue != null) {
+                    value = newValue
+                }
             }
+
+            value
         }
+    }
 
-        try {
-            val newToken = if (deferred == null) {
-                val newTokens = block()
-
-                // [refreshTokensDeferred.value] could be null by now (if clearToken() was called while
-                // suspended), which is why we are using [newDeferred] to complete the suspending callback.
-                newDeferred.complete(newTokens)
-                refreshTokensDeferred.value = null
-                newTokens
-            } else {
-                deferred.await()
+    /**
+     * Resets the cached value.
+     */
+    @OptIn(DelicateCoroutinesApi::class)
+    internal fun clearToken() {
+        if (mutex.tryLock()) {
+            value = null
+            mutex.unlock()
+        } else {
+            GlobalScope.launch {
+                mutex.withLock {
+                    value = null
+                }
             }
-            loadTokensDeferred.value = CompletableDeferred(newToken)
-            return newToken
-        } catch (cause: Throwable) {
-            newDeferred.completeExceptionally(cause)
-            refreshTokensDeferred.compareAndSet(newDeferred, null)
-            throw cause
         }
     }
 }
