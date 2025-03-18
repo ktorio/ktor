@@ -271,4 +271,21 @@ class AuthTokenHolderTest {
         assertEquals(2, setToken.await())
         assertEquals(2, holder.loadToken())
     }
+
+    @Test
+    @OptIn(DelicateCoroutinesApi::class)
+    fun loadTokensCanBeCalledInSetTokenBlock() = runTest {
+        val holder = AuthTokenHolder {
+            1
+        }
+
+        val setToken = GlobalScope.async(Dispatchers.Unconfined) {
+            holder.setToken {
+                1 + holder.loadToken()!!
+            }
+        }
+
+        assertEquals(2, setToken.await())
+        assertEquals(2, holder.loadToken())
+    }
 }
