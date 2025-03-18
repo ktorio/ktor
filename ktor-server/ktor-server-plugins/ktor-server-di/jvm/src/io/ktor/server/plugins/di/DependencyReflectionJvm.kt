@@ -54,7 +54,7 @@ public open class DependencyReflectionJvm : DependencyReflection {
     /**
      * Resolves the list of parameters from the provided resolve function.
      *
-     * When optional or nullable, we ignore failures to retrieve the values.
+     * When optional or nullable, failures to retrieve the values are ignored.
      */
     public open fun mapParameters(
         parameters: List<KParameter>,

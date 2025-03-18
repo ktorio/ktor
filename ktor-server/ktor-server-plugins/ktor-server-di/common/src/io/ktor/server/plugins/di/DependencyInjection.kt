@@ -20,7 +20,7 @@ import kotlin.reflect.KClass
  * 2. `resolution`: the function for validating the provided types and creating the dependency map
  * 3. `reflection`: controls how objects are initialized from type references
  *
- * Dependencies can be declared via the dependencies DSL:
+ * You can declare dependencies using the dependencies DSL:
  *
  * ```kotlin
  * fun Application.databaseModule() {
@@ -212,7 +212,7 @@ public class DependencyAbstractTypeConstructionException(
 ) : DependencyConstructionException("Cannot instantiate abstract type: $qualifiedName")
 
 /**
- * Thrown when we are unable to resolve a static reference from the configuration file.
+ * Thrown when a static reference cannot be resolved from the configuration file.
  */
 public class InvalidDependencyReferenceException internal constructor(
     message: String,
