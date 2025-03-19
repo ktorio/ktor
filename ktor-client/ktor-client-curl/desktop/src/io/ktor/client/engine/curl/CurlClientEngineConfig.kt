@@ -29,7 +29,7 @@ public class CurlClientEngineConfig : HttpClientEngineConfig() {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.curl.CurlClientEngineConfig.caPath)
      */
-    public var caPath: String? = null
+    public var caPath: String? = "/etc/ssl/certs"
 
     /**
      * Enables TLS host and certificate verification by setting the
