@@ -1,17 +1,19 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 import java.time.Year
 
 description = ""
 
+plugins {
+    id("ktorbuild.project.server-plugin")
+}
+
 kotlin {
     sourceSets {
-        commonMain {
-            dependencies {
-                api(libs.kotlinx.datetime)
-            }
+        commonMain.dependencies {
+            api(libs.kotlinx.datetime)
         }
     }
 }

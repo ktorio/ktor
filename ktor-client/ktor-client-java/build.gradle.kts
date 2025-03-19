@@ -3,6 +3,7 @@
  */
 
 plugins {
+    id("ktorbuild.project.library")
     id("test-server")
 }
 
@@ -11,15 +12,13 @@ ktorBuild {
     jvmToolchain(11)
 }
 
-kotlin.sourceSets {
-    jvmMain {
-        dependencies {
+kotlin {
+    sourceSets {
+        jvmMain.dependencies {
             api(project(":ktor-client:ktor-client-core"))
             implementation(libs.kotlinx.coroutines.jdk8)
         }
-    }
-    jvmTest {
-        dependencies {
+        jvmTest.dependencies {
             api(project(":ktor-client:ktor-client-tests"))
         }
     }
