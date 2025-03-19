@@ -1,13 +1,14 @@
 public final class io/ktor/server/plugins/di/AmbiguousCreateFunction : io/ktor/server/plugins/di/DependencyCreateFunction {
 	public fun <init> (Lio/ktor/server/plugins/di/DependencyKey;Ljava/util/Set;)V
+	public fun <init> (Lio/ktor/server/plugins/di/DependencyKey;[Lio/ktor/server/plugins/di/DependencyCreateFunction;)V
 	public final fun component1 ()Lio/ktor/server/plugins/di/DependencyKey;
 	public final fun component2 ()Ljava/util/Set;
 	public final fun copy (Lio/ktor/server/plugins/di/DependencyKey;Ljava/util/Set;)Lio/ktor/server/plugins/di/AmbiguousCreateFunction;
 	public static synthetic fun copy$default (Lio/ktor/server/plugins/di/AmbiguousCreateFunction;Lio/ktor/server/plugins/di/DependencyKey;Ljava/util/Set;ILjava/lang/Object;)Lio/ktor/server/plugins/di/AmbiguousCreateFunction;
 	public fun create (Lio/ktor/server/plugins/di/DependencyResolver;)Ljava/lang/Object;
 	public fun equals (Ljava/lang/Object;)Z
-	public final fun getKey ()Lio/ktor/server/plugins/di/DependencyKey;
-	public final fun getKeys ()Ljava/util/Set;
+	public final fun getFunctions ()Ljava/util/Set;
+	public fun getKey ()Lio/ktor/server/plugins/di/DependencyKey;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -17,7 +18,7 @@ public final class io/ktor/server/plugins/di/AmbiguousDependencyException : java
 }
 
 public final class io/ktor/server/plugins/di/CircularDependencyException : java/lang/IllegalStateException {
-	public fun <init> (Lio/ktor/server/plugins/di/DependencyKey;)V
+	public fun <init> (Ljava/util/Collection;)V
 }
 
 public final class io/ktor/server/plugins/di/DependencyAbstractTypeConstructionException : io/ktor/server/plugins/di/DependencyConstructionException {
@@ -63,6 +64,7 @@ public class io/ktor/server/plugins/di/DependencyConstructionException : java/la
 
 public abstract interface class io/ktor/server/plugins/di/DependencyCreateFunction {
 	public abstract fun create (Lio/ktor/server/plugins/di/DependencyResolver;)Ljava/lang/Object;
+	public abstract fun getKey ()Lio/ktor/server/plugins/di/DependencyKey;
 }
 
 public final class io/ktor/server/plugins/di/DependencyInjectionConfig {
@@ -149,7 +151,6 @@ public final class io/ktor/server/plugins/di/DependencyProviderContext : io/ktor
 public final class io/ktor/server/plugins/di/DependencyProviderKt {
 	public static final fun ifImplicit (Lio/ktor/server/plugins/di/DependencyCreateFunction;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 	public static final fun invoke (Lio/ktor/server/plugins/di/DependencyProvider;Lkotlin/jvm/functions/Function1;)V
-	public static final fun keys (Lio/ktor/server/plugins/di/DependencyCreateFunction;)Ljava/util/Set;
 }
 
 public abstract interface class io/ktor/server/plugins/di/DependencyReflection {
@@ -164,6 +165,7 @@ public class io/ktor/server/plugins/di/DependencyReflectionJvm : io/ktor/server/
 	public fun <init> ()V
 	public fun create (Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 	public fun findConstructors (Lkotlin/reflect/KClass;)Ljava/util/Collection;
+	public fun mapParameters (Ljava/util/List;Lkotlin/jvm/functions/Function1;)Ljava/util/Map;
 	public fun toDependencyKey (Lkotlin/reflect/KParameter;)Lio/ktor/server/plugins/di/DependencyKey;
 }
 
@@ -218,13 +220,18 @@ public final class io/ktor/server/plugins/di/ExplicitCreateFunction : io/ktor/se
 	public fun <init> (Lio/ktor/server/plugins/di/DependencyKey;Lkotlin/jvm/functions/Function1;)V
 	public fun create (Lio/ktor/server/plugins/di/DependencyResolver;)Ljava/lang/Object;
 	public final fun derived ()Lio/ktor/server/plugins/di/ImplicitCreateFunction;
-	public final fun getKey ()Lio/ktor/server/plugins/di/DependencyKey;
+	public fun getKey ()Lio/ktor/server/plugins/di/DependencyKey;
 }
 
 public final class io/ktor/server/plugins/di/ImplicitCreateFunction : io/ktor/server/plugins/di/DependencyCreateFunction {
 	public fun <init> (Lio/ktor/server/plugins/di/ExplicitCreateFunction;)V
 	public fun create (Lio/ktor/server/plugins/di/DependencyResolver;)Ljava/lang/Object;
+	public fun getKey ()Lio/ktor/server/plugins/di/DependencyKey;
 	public final fun getOrigin ()Lio/ktor/server/plugins/di/ExplicitCreateFunction;
+}
+
+public final class io/ktor/server/plugins/di/InvalidDependencyReferenceException : io/ktor/server/plugins/di/DependencyConstructionException {
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
 public class io/ktor/server/plugins/di/MapDependencyProvider : io/ktor/server/plugins/di/DependencyProvider {
@@ -263,6 +270,7 @@ public final class io/ktor/server/plugins/di/ProcessingDependencyResolver : io/k
 	public fun get (Lio/ktor/server/plugins/di/DependencyKey;)Ljava/lang/Object;
 	public fun getOrPut (Lio/ktor/server/plugins/di/DependencyKey;Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
 	public fun getReflection ()Lio/ktor/server/plugins/di/DependencyReflection;
+	public final fun resolveAll ()Ljava/util/Map;
 }
 
 public final class io/ktor/server/plugins/di/utils/Types_jvmKt {
