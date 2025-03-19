@@ -5,15 +5,12 @@
 package ktorbuild.internal.publish
 
 import ktorbuild.internal.capitalized
-import ktorbuild.internal.gradle.isLinux
-import ktorbuild.internal.gradle.isMacOs
-import ktorbuild.internal.gradle.isWindows
-import ktorbuild.maybeNamed
+import ktorbuild.internal.gradle.maybeNamed
 import ktorbuild.targets.KtorTargets
 import org.gradle.api.Project
 import org.gradle.api.publish.maven.tasks.AbstractPublishToMaven
 import org.gradle.api.publish.plugins.PublishingPlugin
-import org.gradle.platform.OperatingSystem
+import org.gradle.internal.os.OperatingSystem
 
 private val jvmAndCommonPublications = setOf(
     "jvm",
@@ -30,12 +27,11 @@ private val windowsPublications = KtorTargets.resolveTargets("windows")
 private val darwinPublications = KtorTargets.resolveTargets("darwin")
 private val androidNativePublications = KtorTargets.resolveTargets("androidNative")
 
-@Suppress("UnstableApiUsage")
 internal fun AbstractPublishToMaven.isAvailableForPublication(os: OperatingSystem): Boolean {
     return when (val name = publication.name) {
-        in linuxPublications -> os.isLinux()
-        in windowsPublications -> os.isWindows()
-        in darwinPublications -> os.isMacOs()
+        in linuxPublications -> os.isLinux
+        in windowsPublications -> os.isWindows
+        in darwinPublications -> os.isMacOsX
         in jvmAndCommonPublications,
         in jsPublications,
         in androidNativePublications -> true

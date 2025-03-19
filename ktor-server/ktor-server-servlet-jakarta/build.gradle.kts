@@ -4,21 +4,23 @@
 
 description = ""
 
+plugins {
+    id("ktorbuild.project.library")
+}
+
 ktorBuild {
     jvmToolchain(11)
 }
 
-kotlin.sourceSets {
-    jvmMain {
-        dependencies {
+kotlin {
+    sourceSets {
+        jvmMain.dependencies {
             api(project(":ktor-server:ktor-server-core"))
 
             compileOnly(libs.jakarta.servlet)
         }
-    }
 
-    jvmTest {
-        dependencies {
+        jvmTest.dependencies {
             api(project(":ktor-server:ktor-server-config-yaml"))
             implementation(libs.mockk)
             implementation(libs.jakarta.servlet)

@@ -53,17 +53,18 @@ private fun Project.printManifest() {
 }
 
 private fun Project.configureVersion() {
-    version = findProperty("DeployVersion") ?: return
+    version = providers.gradleProperty("DeployVersion").orNull ?: return
+    val skipSnapshotChecks = providers.gradleProperty("skip_snapshot_checks").orNull.toBoolean()
 
-    if (buildSnapshotTrain && !rootProject.hasProperty("skip_snapshot_checks")) {
-        check(version, rootProject.libs.versions.atomicfu, "atomicfu")
-        check(version, rootProject.libs.versions.coroutines, "coroutines")
-        check(version, rootProject.libs.versions.serialization, "serialization")
+    if (buildSnapshotTrain && !skipSnapshotChecks) {
+        check(version, libs.versions.atomicfu, "atomicfu")
+        check(version, libs.versions.coroutines, "coroutines")
+        check(version, libs.versions.serialization, "serialization")
     }
 }
 
 private val Project.buildSnapshotTrain: Boolean
-    get() = rootProject.findProperty("build_snapshot_train")?.toString().toBoolean()
+    get() = providers.gradleProperty("build_snapshot_train").orNull.toBoolean()
 
 private fun check(version: Any, libVersionProvider: Provider<String>, libName: String) {
     val libVersion = libVersionProvider.get()
