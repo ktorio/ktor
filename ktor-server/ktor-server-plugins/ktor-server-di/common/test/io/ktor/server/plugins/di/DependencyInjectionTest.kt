@@ -4,9 +4,15 @@
 
 package io.ktor.server.plugins.di
 
+import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
 import io.ktor.server.application.*
+import io.ktor.server.response.respondText
+import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.test.dispatcher.runTestWithRealTime
 import io.ktor.util.reflect.*
+import kotlinx.coroutines.test.TestResult
 import kotlin.reflect.KClass
 import kotlin.test.*
 
@@ -54,15 +60,17 @@ data class PaidWork(val requiredExperience: WorkExperience)
 class DependencyInjectionTest {
 
     @Test
-    fun missing() = testDI {
+    fun missing() = runTestWithRealTime {
         assertFailsWith<MissingDependencyException> {
-            val service: GreetingService by dependencies
-            fail("Should fail but found $service")
+            testDI {
+                val service: GreetingService by dependencies
+                fail("Should fail but found $service")
+            }
         }
     }
 
     @Test
-    fun `resolution out of order`() = testDI {
+    fun `resolution out of order`() = runTestDI {
         assertFailsWith<OutOfOrderDependencyException> {
             dependencies { provide<GreetingService> { GreetingServiceImpl() } }
             assertNotNull(dependencies.resolve<GreetingService>())
@@ -71,10 +79,32 @@ class DependencyInjectionTest {
     }
 
     @Test
-    fun `conflicting declarations`() = testDI {
+    fun `conflicting declarations`() = runTestDI {
         assertFailsWith<DuplicateDependencyException> {
             dependencies { provide<GreetingService> { GreetingServiceImpl() } }
             dependencies { provide<GreetingService> { BankGreetingService() } }
+        }
+    }
+
+    @Test
+    fun `fails on server startup`() = runTestWithRealTime {
+        assertFailsWith<MissingDependencyException> {
+            runTestApplication {
+                application {
+                    val service: GreetingService by dependencies
+                    routing {
+                        get("/ok") {
+                            call.respondText("OK")
+                        }
+                        get("/hello") {
+                            call.respondText(service.hello())
+                        }
+                    }
+                }
+
+                val response = client.get("/ok").bodyAsText()
+                fail("Expected to throw on missing dependency but got $response")
+            }
         }
     }
 
@@ -90,20 +120,22 @@ class DependencyInjectionTest {
     }
 
     @Test
-    fun `circular dependencies`() = testDI {
+    fun `circular dependencies`() = runTestWithRealTime {
         assertFailsWith<CircularDependencyException> {
-            dependencies {
-                provide<WorkExperience> { WorkExperience(resolve()) }
-                provide<PaidWork> { PaidWork(resolve()) }
-                provide<List<PaidWork>> { listOf(resolve()) }
+            testDI {
+                dependencies {
+                    provide<WorkExperience> { WorkExperience(this.resolve()) }
+                    provide<PaidWork> { PaidWork(this.resolve()) }
+                    provide<List<PaidWork>> { listOf(this.resolve()) }
+                }
+                val eligibleJobs: List<PaidWork> by dependencies
+                fail("This should fail but returned $eligibleJobs")
             }
-            val eligibleJobs: List<PaidWork> by dependencies
-            fail("This should fail but returned $eligibleJobs")
         }
     }
 
     @Test
-    fun basic() = testDI {
+    fun basic() = runTestDI {
         dependencies {
             provide<GreetingService> { GreetingServiceImpl() }
         }
@@ -113,7 +145,7 @@ class DependencyInjectionTest {
     }
 
     @Test
-    fun caching() = testDI {
+    fun caching() = runTestDI {
         var callCount = 0
         dependencies {
             provide<GreetingService> {
@@ -132,7 +164,7 @@ class DependencyInjectionTest {
     }
 
     @Test
-    fun `basic with qualifier`() = testDI {
+    fun `basic with qualifier`() = runTestDI {
         dependencies {
             provide<GreetingService>(name = "test") { GreetingServiceImpl() }
         }
@@ -142,7 +174,7 @@ class DependencyInjectionTest {
     }
 
     @Test
-    fun lambdas() = testDI {
+    fun lambdas() = runTestDI {
         dependencies {
             provide<() -> GreetingService> { { GreetingServiceImpl() } }
         }
@@ -152,10 +184,10 @@ class DependencyInjectionTest {
     }
 
     @Test
-    fun parameterized() = testDI {
+    fun parameterized() = runTestDI {
         dependencies {
             provide<GreetingService> { GreetingServiceImpl() }
-            provide<List<GreetingService>> { listOf(resolve(), resolve()) }
+            provide<List<GreetingService>> { listOf(this.resolve(), this.resolve()) }
         }
 
         val services: List<GreetingService> by dependencies
@@ -168,7 +200,7 @@ class DependencyInjectionTest {
     }
 
     @Test
-    fun arguments() = testDI {
+    fun arguments() = runTestDI {
         var expectedStringList = listOf("one", "two")
 
         dependencies {
@@ -178,8 +210,8 @@ class DependencyInjectionTest {
             }
             provide<List<Any>>("my-list") {
                 listOf(
-                    resolve<GreetingService>(),
-                    resolve<List<String>>("my-strings"),
+                    this.resolve<GreetingService>(),
+                    this.resolve<List<String>>("my-strings"),
                 )
             }
         }
@@ -221,7 +253,7 @@ class DependencyInjectionTest {
 
     @Suppress("UNCHECKED_CAST")
     @Test
-    fun `custom reflection`() = testDI({
+    fun `custom reflection`() = runTestDI({
         reflection = object : DependencyReflection {
             override fun <T : Any> create(
                 kClass: KClass<T>,
@@ -237,7 +269,7 @@ class DependencyInjectionTest {
     }
 
     @Test
-    fun `unnamed key mapping`() = testDI({
+    fun `unnamed key mapping`() = runTestDI({
         provider {
             keyMapping = Unnamed
         }
@@ -251,11 +283,18 @@ class DependencyInjectionTest {
         assertEquals(HELLO_CUSTOMER, unnamed.hello())
     }
 
-    // Use default DI configuration (not test mode)
-    private fun testDI(
+    private fun runTestDI(
         pluginInstall: DependencyInjectionConfig.() -> Unit = {},
         block: Application.() -> Unit
-    ) = testApplication {
+    ): TestResult = runTestWithRealTime {
+        testDI(pluginInstall, block)
+    }
+
+    // Use default DI configuration (not test mode)
+    private suspend fun testDI(
+        pluginInstall: DependencyInjectionConfig.() -> Unit = {},
+        block: Application.() -> Unit
+    ): Unit = runTestApplication {
         install(DI) {
             pluginInstall()
             if (!providerChanged) {

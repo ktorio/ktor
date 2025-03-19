@@ -13,15 +13,15 @@ public final class io/ktor/server/plugins/di/AmbiguousCreateFunction : io/ktor/s
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class io/ktor/server/plugins/di/AmbiguousDependencyException : java/lang/IllegalArgumentException {
+public final class io/ktor/server/plugins/di/AmbiguousDependencyException : io/ktor/server/plugins/di/DependencyInjectionException {
 	public fun <init> (Lio/ktor/server/plugins/di/DependencyKey;Ljava/util/Collection;)V
 }
 
-public final class io/ktor/server/plugins/di/CircularDependencyException : java/lang/IllegalStateException {
+public final class io/ktor/server/plugins/di/CircularDependencyException : io/ktor/server/plugins/di/DependencyInjectionException {
 	public fun <init> (Ljava/util/Collection;)V
 }
 
-public final class io/ktor/server/plugins/di/DependencyAbstractTypeConstructionException : io/ktor/server/plugins/di/DependencyConstructionException {
+public final class io/ktor/server/plugins/di/DependencyAbstractTypeConstructionException : io/ktor/server/plugins/di/DependencyInjectionException {
 	public fun <init> (Ljava/lang/String;)V
 }
 
@@ -76,11 +76,6 @@ public final class io/ktor/server/plugins/di/DependencyConflictResult$Replace : 
 	public fun toString ()Ljava/lang/String;
 }
 
-public class io/ktor/server/plugins/di/DependencyConstructionException : java/lang/IllegalArgumentException {
-	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-}
-
 public abstract interface class io/ktor/server/plugins/di/DependencyCreateFunction {
 	public abstract fun create (Lio/ktor/server/plugins/di/DependencyResolver;)Ljava/lang/Object;
 	public abstract fun getKey ()Lio/ktor/server/plugins/di/DependencyKey;
@@ -119,6 +114,11 @@ public final class io/ktor/server/plugins/di/DependencyInjectionConfig$ProviderS
 
 public final class io/ktor/server/plugins/di/DependencyInjectionConfig_jvmKt {
 	public static final fun getDefaultReflection ()Lio/ktor/server/plugins/di/DependencyReflection;
+}
+
+public class io/ktor/server/plugins/di/DependencyInjectionException : java/lang/IllegalArgumentException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
 public final class io/ktor/server/plugins/di/DependencyInjectionKt {
@@ -176,10 +176,6 @@ public abstract interface class io/ktor/server/plugins/di/DependencyReflection {
 	public abstract fun create (Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
-public class io/ktor/server/plugins/di/DependencyReflectionDisabledException : io/ktor/server/plugins/di/DependencyConstructionException {
-	public fun <init> ()V
-}
-
 public class io/ktor/server/plugins/di/DependencyReflectionJvm : io/ktor/server/plugins/di/DependencyReflection {
 	public fun <init> ()V
 	public fun create (Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
@@ -189,6 +185,8 @@ public class io/ktor/server/plugins/di/DependencyReflectionJvm : io/ktor/server/
 }
 
 public abstract interface class io/ktor/server/plugins/di/DependencyRegistry : io/ktor/server/plugins/di/DependencyProvider, io/ktor/server/plugins/di/DependencyResolver {
+	public abstract fun require (Lio/ktor/server/plugins/di/DependencyKey;)V
+	public abstract fun validate ()V
 }
 
 public final class io/ktor/server/plugins/di/DependencyRegistryImpl : io/ktor/server/plugins/di/DependencyProvider, io/ktor/server/plugins/di/DependencyRegistry {
@@ -197,7 +195,9 @@ public final class io/ktor/server/plugins/di/DependencyRegistryImpl : io/ktor/se
 	public fun getDeclarations ()Ljava/util/Map;
 	public fun getOrPut (Lio/ktor/server/plugins/di/DependencyKey;Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
 	public fun getReflection ()Lio/ktor/server/plugins/di/DependencyReflection;
+	public fun require (Lio/ktor/server/plugins/di/DependencyKey;)V
 	public fun set (Lio/ktor/server/plugins/di/DependencyKey;Lkotlin/jvm/functions/Function1;)V
+	public fun validate ()V
 }
 
 public final class io/ktor/server/plugins/di/DependencyRegistryKt {
@@ -231,7 +231,7 @@ public final class io/ktor/server/plugins/di/DependencyResolverContext {
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class io/ktor/server/plugins/di/DuplicateDependencyException : java/lang/IllegalArgumentException {
+public final class io/ktor/server/plugins/di/DuplicateDependencyException : io/ktor/server/plugins/di/DependencyInjectionException {
 	public fun <init> (Lio/ktor/server/plugins/di/DependencyKey;)V
 }
 
@@ -249,7 +249,7 @@ public final class io/ktor/server/plugins/di/ImplicitCreateFunction : io/ktor/se
 	public final fun getOrigin ()Lio/ktor/server/plugins/di/ExplicitCreateFunction;
 }
 
-public final class io/ktor/server/plugins/di/InvalidDependencyReferenceException : io/ktor/server/plugins/di/DependencyConstructionException {
+public final class io/ktor/server/plugins/di/InvalidDependencyReferenceException : io/ktor/server/plugins/di/DependencyInjectionException {
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
@@ -271,7 +271,7 @@ public final class io/ktor/server/plugins/di/MapDependencyResolver : io/ktor/ser
 	public fun getReflection ()Lio/ktor/server/plugins/di/DependencyReflection;
 }
 
-public final class io/ktor/server/plugins/di/MissingDependencyException : java/lang/IllegalArgumentException {
+public final class io/ktor/server/plugins/di/MissingDependencyException : io/ktor/server/plugins/di/DependencyInjectionException {
 	public fun <init> (Lio/ktor/server/plugins/di/DependencyKey;)V
 }
 
@@ -280,8 +280,13 @@ public final class io/ktor/server/plugins/di/NoReflection : io/ktor/server/plugi
 	public fun create (Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
-public final class io/ktor/server/plugins/di/OutOfOrderDependencyException : java/lang/IllegalStateException {
+public final class io/ktor/server/plugins/di/OutOfOrderDependencyException : io/ktor/server/plugins/di/DependencyInjectionException {
 	public fun <init> (Lio/ktor/server/plugins/di/DependencyKey;)V
+}
+
+public final class io/ktor/server/plugins/di/PluginModuleInjector : io/ktor/server/application/ApplicationModuleInjector {
+	public fun <init> ()V
+	public fun resolveParameter (Lio/ktor/server/application/Application;Lkotlin/reflect/KParameter;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/plugins/di/ProcessingDependencyResolver : io/ktor/server/plugins/di/DependencyResolver {

@@ -5,6 +5,8 @@
 package io.ktor.server.plugins.di
 
 import io.ktor.server.application.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 
 internal fun createGreetingService(): GreetingService =
     GreetingServiceImpl()
@@ -44,4 +46,16 @@ private fun getBankServicePrivately(): BankService =
 internal class BankModule {
     fun getBankServiceFromClass(): BankService =
         BankServiceImpl()
+}
+
+internal fun Application.bankingModule(
+    greetingService: GreetingService,
+    bankService: BankService
+) {
+    val teller = BankTeller(greetingService, bankService)
+    routing {
+        get("/hello") {
+            call.respondText(teller.hello())
+        }
+    }
 }
