@@ -142,7 +142,12 @@ class DependencyInjectionJvmTest {
         }
     }
 
-    @Ignore // TODO BankService is ambiguous due to delegation
+    /**
+     * [KTOR-8322 Handle delegate pattern](https://youtrack.jetbrains.com/issue/KTOR-8322/Dependency-injection-handle-delegate-pattern)
+     *     When declaring two classes that share an interface via delegation,
+     *     we should resolve the ambiguity automatically.
+     */
+    @Ignore
     @Test
     fun `install class ref with args from config`() {
         testConfigFile(
