@@ -36,3 +36,12 @@ internal fun createBankTellerWithNullables(
         greetingService ?: BankGreetingService(),
         bankService ?: BankServiceImpl()
     )
+
+@Suppress("unused")
+private fun getBankServicePrivately(): BankService =
+    BankServiceImpl()
+
+internal class BankModule {
+    fun getBankServiceFromClass(): BankService =
+        BankServiceImpl()
+}

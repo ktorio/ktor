@@ -8,15 +8,19 @@ import io.ktor.server.application.Application
 import io.ktor.server.plugins.di.DependencyRegistry
 import kotlin.jvm.JvmInline
 
-private val delimiters = charArrayOf('#', '.')
-
 @JvmInline
-internal value class ClasspathReference(val value: String) {
+internal value class ClasspathReference private constructor(val value: String) {
+    companion object {
+        operator fun invoke(value: String): ClasspathReference {
+            return ClasspathReference(value.replace('#', '.'))
+        }
+    }
+
     /**
      * Refers to the containing compiled type, i.e. "FileNameKt", when referring to inner classes and
      * top-level functions.  Otherwise, it may be the package name.
      */
-    val container: String get() = value.lastIndexOfAny(delimiters).let { index ->
+    val container: String get() = value.lastIndexOf('.').let { index ->
         if (index == -1) return ""
         value.substring(0, index)
     }
@@ -24,8 +28,8 @@ internal value class ClasspathReference(val value: String) {
     /**
      * The string value after the last delimiter (# or .) - generally the function name or class name.
      */
-    val name: String get() = value.lastIndexOfAny(delimiters).let { index ->
-        if (index == -1 || index == value.length - 1) return ""
+    val name: String get() = value.lastIndexOf('.').let { index ->
+        if (index == -1 || index == value.length - 1) return value
         value.substring(index + 1)
     }
 

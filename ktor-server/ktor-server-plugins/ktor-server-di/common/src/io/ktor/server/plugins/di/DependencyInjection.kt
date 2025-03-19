@@ -58,7 +58,7 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
         val configuredDependencyReferences =
             environment.config.propertyOrNull("ktor.application.dependencies")
                 ?.getList()
-                ?.map(::ClasspathReference)
+                ?.map { ClasspathReference(it) }
                 .orEmpty()
 
         application.attributes.put(

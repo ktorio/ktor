@@ -9,6 +9,7 @@ import io.ktor.server.config.MapApplicationConfig
 import io.ktor.server.testing.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
+import kotlin.reflect.full.IllegalCallableAccessException
 import kotlin.reflect.jvm.javaMethod
 import kotlin.test.Ignore
 import kotlin.test.Test
@@ -190,6 +191,32 @@ class DependencyInjectionJvmTest {
             assertFails {
                 val teller: BankTeller by dependencies
                 fail("Should fail but resolved $teller")
+            }
+        }
+    }
+
+    @Test
+    fun `install from non-static functions`() {
+        testConfigFile(
+            BankModule::class.qualifiedName!!,
+            BankModule::getBankServiceFromClass.qualifiedName,
+        ) {
+            val bank: BankService by dependencies
+            assertEquals(0, bank.balance())
+        }
+    }
+
+    @Test
+    fun `install from private function fails`() {
+        testConfigFile(
+            ::createBankTellerWithArgs.qualifiedName.replace(
+                ::createBankTellerWithArgs.name,
+                "getBankServicePrivately"
+            ),
+        ) {
+            assertFailsWith<IllegalCallableAccessException> {
+                val bank: BankService by dependencies
+                fail("Should fail but resolved $bank")
             }
         }
     }
