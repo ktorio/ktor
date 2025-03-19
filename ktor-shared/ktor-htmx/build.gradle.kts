@@ -3,3 +3,15 @@
  */
 
 description = "Common HTMX constants for use in client and server"
+
+plugins {
+    id("ktorbuild.project.library")
+}
+
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
+            api(project(":ktor-utils"))
+        }
+    }
+}

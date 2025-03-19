@@ -4,9 +4,13 @@
 
 description = "HTMX support for the Kotlin HTML DSL"
 
-kotlin.sourceSets {
-    commonMain {
-        dependencies {
+plugins {
+    id("ktorbuild.project.library")
+}
+
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
             api(libs.kotlinx.html)
             api(project(":ktor-shared:ktor-htmx"))
             implementation(project(":ktor-utils"))
