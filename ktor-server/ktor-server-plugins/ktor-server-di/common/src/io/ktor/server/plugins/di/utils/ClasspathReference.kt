@@ -28,10 +28,7 @@ internal value class ClasspathReference private constructor(val value: String) {
     /**
      * The string value after the last delimiter (# or .) - generally the function name or class name.
      */
-    val name: String get() = value.lastIndexOf('.').let { index ->
-        if (index == -1 || index == value.length - 1) return value
-        value.substring(index + 1)
-    }
+    val name: String get() = value.substringAfterLast('.')
 
     override fun toString(): String = value
 }
