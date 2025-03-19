@@ -6,6 +6,8 @@ package io.ktor.server.plugins.di
 
 import io.ktor.server.application.ApplicationPlugin
 import io.ktor.server.application.createApplicationPlugin
+import io.ktor.server.plugins.di.utils.ClasspathReference
+import io.ktor.server.plugins.di.utils.installReference
 import io.ktor.util.AttributeKey
 import io.ktor.util.reflect.TypeInfo
 import kotlin.reflect.KClass
@@ -17,16 +19,59 @@ import kotlin.reflect.KClass
  * 1. `provider`: the logic for registering new types
  * 2. `resolution`: the function for validating the provided types and creating the dependency map
  * 3. `reflection`: controls how objects are initialized from type references
+ *
+ * You can declare dependencies using the dependencies DSL:
+ *
+ * ```kotlin
+ * fun Application.databaseModule() {
+ *     dependencies {
+ *         provide<Database> { PostgresDatabase(resolve("connectionUrl")) }
+ *     }
+ * }
+ * ```
+ *
+ * Or through configuration:
+ *
+ * ```yaml
+ * ktor:
+ *   application:
+ *     dependencies:
+ *       - com.example.db.PostgresDatabase
+ * ```
+ *
+ * Each item declared via configuration can be a reference to a class or a
+ * top-level function.
+ *
+ * Resolving dependencies in application modules is also achieved through the DSL:
+ *
+ * ```kotlin
+ * fun Application.routing() {
+ *     val database: Database by dependencies
+ *     val repository: MessagesRepository = dependencies.create()
+ * }
+ * ```
+ *
+ * Alternatively, they can be supplied automatically through parameters.
  */
 public val DI: ApplicationPlugin<DependencyInjectionConfig> =
     createApplicationPlugin("DI", ::DependencyInjectionConfig) {
+        val configuredDependencyReferences =
+            environment.config.propertyOrNull("ktor.application.dependencies")
+                ?.getList()
+                ?.map { ClasspathReference(it) }
+                .orEmpty()
+
         application.attributes.put(
             DependencyRegistryKey,
             DependencyRegistryImpl(
                 pluginConfig.provider,
                 pluginConfig.resolution,
                 pluginConfig.reflection,
-            )
+            ).also { registry ->
+                for (reference in configuredDependencyReferences) {
+                    installReference(application, registry, reference)
+                }
+            }
         )
     }
 
@@ -136,8 +181,8 @@ public class AmbiguousDependencyException(key: DependencyKey, keys: Collection<D
 /**
  * Thrown when resolving a given dependency loops back on itself.
  */
-public class CircularDependencyException(key: DependencyKey) :
-    IllegalStateException("Circular dependency found for dependency `$key`")
+public class CircularDependencyException(internal val keys: Collection<DependencyKey>) :
+    IllegalStateException("Circular dependency found: ${keys.joinToString(" -> ")}")
 
 /**
  * Thrown when attempting to provide a dependency AFTER the dependency map is created.
@@ -165,3 +210,12 @@ public open class DependencyReflectionDisabledException() :
 public class DependencyAbstractTypeConstructionException(
     qualifiedName: String,
 ) : DependencyConstructionException("Cannot instantiate abstract type: $qualifiedName")
+
+/**
+ * Thrown when a static reference cannot be resolved from the configuration file.
+ */
+public class InvalidDependencyReferenceException internal constructor(
+    message: String,
+    reference: ClasspathReference,
+    cause: Throwable? = null
+) : DependencyConstructionException("$message: $reference", cause)

@@ -47,6 +47,7 @@ public interface DependencyProvider {
  * Concrete types of this sealed interface are used to include some metadata regarding how they were registered.
  */
 public sealed interface DependencyCreateFunction {
+    public val key: DependencyKey
     public fun create(resolver: DependencyResolver): Any
 }
 
@@ -59,7 +60,7 @@ public sealed interface DependencyCreateFunction {
  * @property init A lambda that implements the creation logic for the dependency.
  */
 public class ExplicitCreateFunction(
-    public val key: DependencyKey,
+    public override val key: DependencyKey,
     private val init: DependencyResolver.() -> Any
 ) : DependencyCreateFunction {
     private var cached: Any? = null
@@ -77,6 +78,9 @@ public class ExplicitCreateFunction(
  * @property origin The instance of [ExplicitCreateFunction] that this class delegates creation logic to.
  */
 public class ImplicitCreateFunction(public val origin: ExplicitCreateFunction) : DependencyCreateFunction {
+    override val key: DependencyKey
+        get() = origin.key
+
     override fun create(resolver: DependencyResolver): Any =
         origin.create(resolver)
 }
@@ -92,29 +96,19 @@ public class ImplicitCreateFunction(public val origin: ExplicitCreateFunction) :
  * through the [create] method.
  */
 public data class AmbiguousCreateFunction(
-    val key: DependencyKey,
-    val keys: Set<DependencyKey>
+    public override val key: DependencyKey,
+    val functions: Set<DependencyCreateFunction>
 ) : DependencyCreateFunction {
-    override fun create(resolver: DependencyResolver): Any =
-        throw AmbiguousDependencyException(key, keys)
-}
-
-/**
- * Retrieves the set of dependency keys associated with this creation function.
- *
- * For `ExplicitCreateFunction`, it returns a single key associated with the explicit registration.
- * For `ImplicitCreateFunction`, it returns the key of its origin `ExplicitCreateFunction`.
- * For `AmbiguousCreateFunction`, it returns all the keys that caused the ambiguity.
- *
- * @return A set of `DependencyKey` instances representing the dependency keys for this creation function,
- * depending on its specific implementation.
- */
-public fun DependencyCreateFunction.keys(): Set<DependencyKey> =
-    when (this) {
-        is ExplicitCreateFunction -> setOf(key)
-        is ImplicitCreateFunction -> setOf(origin.key)
-        is AmbiguousCreateFunction -> keys
+    init {
+        require(functions.isNotEmpty()) { "Functions must not be empty" }
     }
+
+    public constructor(key: DependencyKey, vararg functions: DependencyCreateFunction) :
+        this(key, functions.flatMap { (it as? AmbiguousCreateFunction)?.functions ?: setOf(it) }.toSet())
+
+    override fun create(resolver: DependencyResolver): Any =
+        throw AmbiguousDependencyException(key, functions.map { it.key })
+}
 
 /**
  * Executes the given block of code with the current instance if it is of type [ImplicitCreateFunction].
@@ -158,14 +152,14 @@ public open class MapDependencyProvider(
         insertCovariantKeys(create, key)
     }
 
-    private fun trySet(key: DependencyKey, value: DependencyCreateFunction) {
+    private fun trySet(key: DependencyKey, newFunction: DependencyCreateFunction) {
         when (val previous = map[key]) {
-            null -> map[key] = value
+            null -> map[key] = newFunction
             else -> {
-                map[key] = when (val result = conflictPolicy.resolve(previous, value)) {
-                    Ambiguous -> AmbiguousCreateFunction(key, previous.keys() + value.keys())
+                map[key] = when (val result = conflictPolicy.resolve(previous, newFunction)) {
+                    Ambiguous -> AmbiguousCreateFunction(key, previous, newFunction)
                     Conflict -> throw DuplicateDependencyException(key)
-                    KeepNew -> value
+                    KeepNew -> newFunction
                     KeepPrevious -> previous
                     is Replace -> result.function
                 }
