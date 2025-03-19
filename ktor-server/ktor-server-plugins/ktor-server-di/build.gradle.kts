@@ -3,3 +3,7 @@
  */
 
 description = "An extensible dependency injection framework for the Ktor server"
+
+plugins {
+    id("ktorbuild.project.server-plugin")
+}
