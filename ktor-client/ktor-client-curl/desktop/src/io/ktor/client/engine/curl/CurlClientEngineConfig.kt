@@ -22,7 +22,7 @@ public class CurlClientEngineConfig : HttpClientEngineConfig() {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.curl.CurlClientEngineConfig.caInfo)
      */
-    public var caInfo: String? = null
+    public var caInfo: String? = "/etc/ssl/certs"
 
     /**
      * Sets directory that holds Certificate Authority (CA) certificates using `CURLOPT_CAPATH`.
