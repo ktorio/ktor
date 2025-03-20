@@ -127,7 +127,7 @@ public class Application internal constructor(
      */
     @Suppress("DEPRECATION_ERROR")
     public fun dispose() {
-        applicationJob.cancel()
+        applicationJob.cancelAndJoin()
         uninstallAllPlugins()
     }
 }
