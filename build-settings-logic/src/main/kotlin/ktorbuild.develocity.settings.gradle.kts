@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 import java.util.*
@@ -9,11 +9,13 @@ plugins {
     id("com.gradle.common-custom-user-data-gradle-plugin")
 }
 
+val isCIRun = providers.environmentVariable("TEAMCITY_VERSION").isPresent
+
 develocity {
     val startParameter = gradle.startParameter
     val scanJournal = File(settingsDir, "scan-journal.log")
 
-    server = DEVELOCITY_SERVER
+    server = "https://ge.jetbrains.com"
 
     buildScan {
         uploadInBackground = !isCIRun
@@ -31,9 +33,9 @@ develocity {
             scanJournal.appendText("${Date()} — $buildScanUri — $startParameter\n")
         }
 
-        val skipBuildScans = settings.providers.gradleProperty("ktor.develocity.skipBuildScans")
-            .getOrElse("false")
-            .toBooleanStrict()
+        val skipBuildScans = providers.gradleProperty("ktor.develocity.skipBuildScans")
+            .orNull
+            .toBoolean()
 
         publishing.onlyIf { !skipBuildScans }
     }
@@ -51,6 +53,3 @@ buildCache {
         isEnabled = true
     }
 }
-
-enrichTeamCityData()
-enrichGitData()
