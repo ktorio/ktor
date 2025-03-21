@@ -9,6 +9,9 @@ import io.ktor.server.plugins.di.DependencyConflictResult.Conflict
 import io.ktor.server.plugins.di.DependencyConflictResult.KeepNew
 import io.ktor.server.plugins.di.DependencyConflictResult.KeepPrevious
 import io.ktor.server.plugins.di.DependencyConflictResult.Replace
+import io.ktor.util.logging.KtorSimpleLogger
+import io.ktor.util.logging.Logger
+import io.ktor.util.logging.trace
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 
@@ -139,7 +142,8 @@ public fun <T> DependencyCreateFunction.ifImplicit(block: (ImplicitCreateFunctio
 public open class MapDependencyProvider(
     public val keyMapping: DependencyKeyCovariance = Supertypes,
     public val conflictPolicy: DependencyConflictPolicy = DefaultConflictPolicy,
-    public val onConflict: (DependencyKey) -> Unit = { throw DuplicateDependencyException(it) }
+    public val onConflict: (DependencyKey) -> Unit = { throw DuplicateDependencyException(it) },
+    private val log: Logger = KtorSimpleLogger("io.ktor.server.plugins.di.MapDependencyProvider"),
 ) : DependencyProvider {
     private val map = mutableMapOf<DependencyKey, DependencyCreateFunction>()
 
@@ -156,7 +160,7 @@ public open class MapDependencyProvider(
         when (val previous = map[key]) {
             null -> map[key] = newFunction
             else -> {
-                map[key] = when (val result = conflictPolicy.resolve(previous, newFunction)) {
+                map[key] = when (val result = resolveConflict(previous, newFunction)) {
                     Ambiguous -> AmbiguousCreateFunction(key, previous, newFunction)
                     Conflict -> throw DuplicateDependencyException(key)
                     KeepNew -> newFunction
@@ -167,12 +171,23 @@ public open class MapDependencyProvider(
         }
     }
 
+    private fun resolveConflict(
+        previous: DependencyCreateFunction,
+        newFunction: DependencyCreateFunction
+    ): DependencyConflictResult {
+        val result = conflictPolicy.resolve(previous, newFunction)
+        log.trace { "Conflicting keys: (${previous.key}, ${newFunction.key}) -> $result" }
+        return result
+    }
+
     private fun insertCovariantKeys(
         createFunction: ExplicitCreateFunction,
         key: DependencyKey
     ) {
         val implicitCreateFunction = createFunction.derived()
-        for (implicitKey in keyMapping.map(key)) {
+        val covariantKeys = keyMapping.map(key)
+        log.trace { "Register keys $key: $covariantKeys" }
+        for (implicitKey in covariantKeys) {
             trySet(implicitKey, implicitCreateFunction)
         }
     }

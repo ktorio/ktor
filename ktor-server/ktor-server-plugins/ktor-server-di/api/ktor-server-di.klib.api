@@ -47,15 +47,37 @@ sealed interface io.ktor.server.plugins.di/DependencyConflictResult { // io.ktor
 
         final val function // io.ktor.server.plugins.di/DependencyConflictResult.Replace.function|{}function[0]
             final fun <get-function>(): io.ktor.server.plugins.di/DependencyCreateFunction // io.ktor.server.plugins.di/DependencyConflictResult.Replace.function.<get-function>|<get-function>(){}[0]
+
+        final fun component1(): io.ktor.server.plugins.di/DependencyCreateFunction // io.ktor.server.plugins.di/DependencyConflictResult.Replace.component1|component1(){}[0]
+        final fun copy(io.ktor.server.plugins.di/DependencyCreateFunction = ...): io.ktor.server.plugins.di/DependencyConflictResult.Replace // io.ktor.server.plugins.di/DependencyConflictResult.Replace.copy|copy(io.ktor.server.plugins.di.DependencyCreateFunction){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.server.plugins.di/DependencyConflictResult.Replace.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.ktor.server.plugins.di/DependencyConflictResult.Replace.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.ktor.server.plugins.di/DependencyConflictResult.Replace.toString|toString(){}[0]
     }
 
-    final object Ambiguous : io.ktor.server.plugins.di/DependencyConflictResult // io.ktor.server.plugins.di/DependencyConflictResult.Ambiguous|null[0]
+    final object Ambiguous : io.ktor.server.plugins.di/DependencyConflictResult { // io.ktor.server.plugins.di/DependencyConflictResult.Ambiguous|null[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.server.plugins.di/DependencyConflictResult.Ambiguous.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.ktor.server.plugins.di/DependencyConflictResult.Ambiguous.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.ktor.server.plugins.di/DependencyConflictResult.Ambiguous.toString|toString(){}[0]
+    }
 
-    final object Conflict : io.ktor.server.plugins.di/DependencyConflictResult // io.ktor.server.plugins.di/DependencyConflictResult.Conflict|null[0]
+    final object Conflict : io.ktor.server.plugins.di/DependencyConflictResult { // io.ktor.server.plugins.di/DependencyConflictResult.Conflict|null[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.server.plugins.di/DependencyConflictResult.Conflict.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.ktor.server.plugins.di/DependencyConflictResult.Conflict.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.ktor.server.plugins.di/DependencyConflictResult.Conflict.toString|toString(){}[0]
+    }
 
-    final object KeepNew : io.ktor.server.plugins.di/DependencyConflictResult // io.ktor.server.plugins.di/DependencyConflictResult.KeepNew|null[0]
+    final object KeepNew : io.ktor.server.plugins.di/DependencyConflictResult { // io.ktor.server.plugins.di/DependencyConflictResult.KeepNew|null[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.server.plugins.di/DependencyConflictResult.KeepNew.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.ktor.server.plugins.di/DependencyConflictResult.KeepNew.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.ktor.server.plugins.di/DependencyConflictResult.KeepNew.toString|toString(){}[0]
+    }
 
-    final object KeepPrevious : io.ktor.server.plugins.di/DependencyConflictResult // io.ktor.server.plugins.di/DependencyConflictResult.KeepPrevious|null[0]
+    final object KeepPrevious : io.ktor.server.plugins.di/DependencyConflictResult { // io.ktor.server.plugins.di/DependencyConflictResult.KeepPrevious|null[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.server.plugins.di/DependencyConflictResult.KeepPrevious.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.ktor.server.plugins.di/DependencyConflictResult.KeepPrevious.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.ktor.server.plugins.di/DependencyConflictResult.KeepPrevious.toString|toString(){}[0]
+    }
 }
 
 sealed interface io.ktor.server.plugins.di/DependencyCreateFunction { // io.ktor.server.plugins.di/DependencyCreateFunction|null[0]
@@ -252,7 +274,7 @@ open class io.ktor.server.plugins.di/DependencyReflectionDisabledException : io.
 }
 
 open class io.ktor.server.plugins.di/MapDependencyProvider : io.ktor.server.plugins.di/DependencyProvider { // io.ktor.server.plugins.di/MapDependencyProvider|null[0]
-    constructor <init>(io.ktor.server.plugins.di/DependencyKeyCovariance = ..., io.ktor.server.plugins.di/DependencyConflictPolicy = ..., kotlin/Function1<io.ktor.server.plugins.di/DependencyKey, kotlin/Unit> = ...) // io.ktor.server.plugins.di/MapDependencyProvider.<init>|<init>(io.ktor.server.plugins.di.DependencyKeyCovariance;io.ktor.server.plugins.di.DependencyConflictPolicy;kotlin.Function1<io.ktor.server.plugins.di.DependencyKey,kotlin.Unit>){}[0]
+    constructor <init>(io.ktor.server.plugins.di/DependencyKeyCovariance = ..., io.ktor.server.plugins.di/DependencyConflictPolicy = ..., kotlin/Function1<io.ktor.server.plugins.di/DependencyKey, kotlin/Unit> = ..., io.ktor.util.logging/Logger = ...) // io.ktor.server.plugins.di/MapDependencyProvider.<init>|<init>(io.ktor.server.plugins.di.DependencyKeyCovariance;io.ktor.server.plugins.di.DependencyConflictPolicy;kotlin.Function1<io.ktor.server.plugins.di.DependencyKey,kotlin.Unit>;io.ktor.util.logging.Logger){}[0]
 
     final val conflictPolicy // io.ktor.server.plugins.di/MapDependencyProvider.conflictPolicy|{}conflictPolicy[0]
         final fun <get-conflictPolicy>(): io.ktor.server.plugins.di/DependencyConflictPolicy // io.ktor.server.plugins.di/MapDependencyProvider.conflictPolicy.<get-conflictPolicy>|<get-conflictPolicy>(){}[0]
@@ -280,6 +302,8 @@ final val io.ktor.server.plugins.di/DefaultReflection // io.ktor.server.plugins.
     final fun <get-DefaultReflection>(): io.ktor.server.plugins.di/DependencyReflection // io.ktor.server.plugins.di/DefaultReflection.<get-DefaultReflection>|<get-DefaultReflection>(){}[0]
 final val io.ktor.server.plugins.di/DependencyRegistryKey // io.ktor.server.plugins.di/DependencyRegistryKey|{}DependencyRegistryKey[0]
     final fun <get-DependencyRegistryKey>(): io.ktor.util/AttributeKey<io.ktor.server.plugins.di/DependencyRegistry> // io.ktor.server.plugins.di/DependencyRegistryKey.<get-DependencyRegistryKey>|<get-DependencyRegistryKey>(){}[0]
+final val io.ktor.server.plugins.di/LastEntryWinsPolicy // io.ktor.server.plugins.di/LastEntryWinsPolicy|{}LastEntryWinsPolicy[0]
+    final fun <get-LastEntryWinsPolicy>(): io.ktor.server.plugins.di/DependencyConflictPolicy // io.ktor.server.plugins.di/LastEntryWinsPolicy.<get-LastEntryWinsPolicy>|<get-LastEntryWinsPolicy>(){}[0]
 final val io.ktor.server.plugins.di/Supertypes // io.ktor.server.plugins.di/Supertypes|{}Supertypes[0]
     final fun <get-Supertypes>(): io.ktor.server.plugins.di/DependencyKeyCovariance // io.ktor.server.plugins.di/Supertypes.<get-Supertypes>|<get-Supertypes>(){}[0]
 final val io.ktor.server.plugins.di/Unnamed // io.ktor.server.plugins.di/Unnamed|{}Unnamed[0]
