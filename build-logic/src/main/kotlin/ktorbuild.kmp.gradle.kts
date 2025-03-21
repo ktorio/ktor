@@ -58,13 +58,16 @@ if (targets.hasJsOrWasmJs) {
 @Suppress("UnstableApiUsage")
 if (targets.hasNative) {
     tasks.maybeNamed("linkDebugTestLinuxX64") {
-        onlyIf("run only on Linux") { ktorBuild.os.get().isLinux }
+        val os = ktorBuild.os.get()
+        onlyIf("run only on Linux") { os.isLinux }
     }
     tasks.maybeNamed("linkDebugTestLinuxArm64") {
-        onlyIf("run only on Linux") { ktorBuild.os.get().isLinux }
+        val os = ktorBuild.os.get()
+        onlyIf("run only on Linux") { os.isLinux }
     }
     tasks.maybeNamed("linkDebugTestMingwX64") {
-        onlyIf("run only on Windows") { ktorBuild.os.get().isWindows }
+        val os = ktorBuild.os.get()
+        onlyIf("run only on Windows") { os.isWindows }
     }
 }
 
