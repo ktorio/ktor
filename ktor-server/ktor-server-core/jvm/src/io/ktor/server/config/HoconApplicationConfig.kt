@@ -6,6 +6,8 @@ package io.ktor.server.config
 
 import com.typesafe.config.*
 import java.io.*
+import kotlin.reflect.KClass
+import kotlin.reflect.KType
 
 /**
  * Loads a [Config] from a hocon file.
@@ -67,6 +69,11 @@ public open class HoconApplicationConfig(private val config: Config) : Applicati
     }
 
     override fun config(path: String): ApplicationConfig = HoconApplicationConfig(config.getConfig(path))
+
+    override fun <A> load(path: String, kType: KType): A {
+        val kClass = (kType.classifier as? KClass<A>) ?: error("Unsupported type $kType")
+        return ConfigBeanFactory.create(config.getConfig(path), kClass.java)
+    }
 
     override fun keys(): Set<String> {
         return config.entrySet().map { it.key }.toSet()

@@ -4,6 +4,10 @@
 
 package io.ktor.server.config
 
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.serializer
+import kotlin.reflect.KType
+
 /**
  * Mutable application config backed by a hash map
  *
@@ -81,6 +85,15 @@ public open class MapApplicationConfig : ApplicationConfig {
     }
 
     override fun config(path: String): ApplicationConfig = MapApplicationConfig(map, combine(this.path, path))
+
+    override fun <A> load(path: String, kType: KType): A {
+        val key = combine(this.path, path)
+        val configMap = map.filter { it.key.startsWith("$key.") }
+            .mapKeys { it.key.substringAfter("$key.") }
+
+        val serializer = serializer(kType) as KSerializer<A>
+        return MapDeserializer.DEFAULT.decodeFromMap(serializer, configMap)
+    }
 
     override fun keys(): Set<String> {
         val isTopLevel = path.isEmpty()

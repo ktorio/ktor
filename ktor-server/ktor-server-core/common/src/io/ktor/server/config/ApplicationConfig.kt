@@ -4,6 +4,8 @@
 
 package io.ktor.server.config
 
+import kotlin.reflect.KType
+
 /**
  * Represents an application config node
  *
@@ -34,6 +36,8 @@ public interface ApplicationConfig {
      * @throws ApplicationConfigurationException
      */
     public fun config(path: String): ApplicationConfig
+
+    public fun <A> load(path: String, kType: KType): A
 
     /**
      * Get a list of child nodes for [path] or fail

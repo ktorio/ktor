@@ -4,6 +4,8 @@
 
 package io.ktor.server.config
 
+import kotlin.reflect.KType
+
 /**
  * Merge configuration combining all their keys.
  * If key is not found in one of the configs, search will continue in the next config in the list.
@@ -67,6 +69,12 @@ internal class MergedApplicationConfig(
         if (firstKeys.none { it.startsWith("$path.") }) return second.config(path)
         if (secondKeys.none { it.startsWith("$path.") }) return first.config(path)
         return MergedApplicationConfig(first.config(path), second.config(path))
+    }
+
+    override fun <A> load(path: String, kType: KType): A {
+        if (firstKeys.none { it.startsWith("$path.") }) return second.load(path, kType)
+        if (secondKeys.none { it.startsWith("$path.") }) return first.load(path, kType)
+        return MergedApplicationConfig(first.config(path), second.config(path)).load(path, kType)
     }
 
     override fun configList(path: String): List<ApplicationConfig> {

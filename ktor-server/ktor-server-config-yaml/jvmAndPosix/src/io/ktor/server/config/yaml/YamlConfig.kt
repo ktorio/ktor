@@ -5,7 +5,10 @@
 package io.ktor.server.config.yaml
 
 import io.ktor.server.config.*
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.serializer
 import net.mamoe.yamlkt.*
+import kotlin.reflect.KType
 
 internal const val DEFAULT_YAML_FILENAME = "application.yaml"
 
@@ -89,6 +92,15 @@ public class YamlConfig internal constructor(
             yaml[part] as? YamlMap ?: throw ApplicationConfigurationException("Path $path not found.")
         }
         return YamlConfig(yaml, root)
+    }
+
+    override fun <A> load(path: String, kType: KType): A {
+        val parts = path.split('.')
+        val yaml = parts.fold(yaml) { yaml, part ->
+            yaml[part] as? YamlMap ?: throw ApplicationConfigurationException("Path $path not found.")
+        }
+        val serializer = serializer(kType) as KSerializer<A>
+        return Yaml.decodeFromString(serializer, yaml.toString())
     }
 
     override fun configList(path: String): List<ApplicationConfig> {
