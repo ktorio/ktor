@@ -4,7 +4,11 @@
 
 package io.ktor.server.plugins.di
 
+import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
 import io.ktor.server.application.*
+import io.ktor.server.response.respondText
+import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.reflect.*
 import kotlin.reflect.KClass
@@ -54,10 +58,12 @@ data class PaidWork(val requiredExperience: WorkExperience)
 class DependencyInjectionTest {
 
     @Test
-    fun missing() = testDI {
+    fun missing() {
         assertFailsWith<MissingDependencyException> {
-            val service: GreetingService by dependencies
-            fail("Should fail but found $service")
+            testDI {
+                val service: GreetingService by dependencies
+                fail("Should fail but found $service")
+            }
         }
     }
 
@@ -79,6 +85,28 @@ class DependencyInjectionTest {
     }
 
     @Test
+    fun `fails on server startup`() {
+        assertFailsWith<MissingDependencyException> {
+            testApplication {
+                application {
+                    val service: GreetingService by dependencies
+                    routing {
+                        get("/ok") {
+                            call.respondText("OK")
+                        }
+                        get("/hello") {
+                            call.respondText(service.hello())
+                        }
+                    }
+                }
+
+                val response = client.get("/ok").bodyAsText()
+                fail("Expected to throw on missing dependency but got $response")
+            }
+        }
+    }
+
+    @Test
     fun `last entry wins for tests`() = testApplication {
         application {
             dependencies { provide<GreetingService> { GreetingServiceImpl() } }
@@ -90,15 +118,17 @@ class DependencyInjectionTest {
     }
 
     @Test
-    fun `circular dependencies`() = testDI {
+    fun `circular dependencies`() {
         assertFailsWith<CircularDependencyException> {
-            dependencies {
-                provide<WorkExperience> { WorkExperience(resolve()) }
-                provide<PaidWork> { PaidWork(resolve()) }
-                provide<List<PaidWork>> { listOf(resolve()) }
+            testDI {
+                dependencies {
+                    provide<WorkExperience> { WorkExperience(this.resolve()) }
+                    provide<PaidWork> { PaidWork(this.resolve()) }
+                    provide<List<PaidWork>> { listOf(this.resolve()) }
+                }
+                val eligibleJobs: List<PaidWork> by dependencies
+                fail("This should fail but returned $eligibleJobs")
             }
-            val eligibleJobs: List<PaidWork> by dependencies
-            fail("This should fail but returned $eligibleJobs")
         }
     }
 
@@ -155,7 +185,7 @@ class DependencyInjectionTest {
     fun parameterized() = testDI {
         dependencies {
             provide<GreetingService> { GreetingServiceImpl() }
-            provide<List<GreetingService>> { listOf(resolve(), resolve()) }
+            provide<List<GreetingService>> { listOf(this.resolve(), this.resolve()) }
         }
 
         val services: List<GreetingService> by dependencies
@@ -178,8 +208,8 @@ class DependencyInjectionTest {
             }
             provide<List<Any>>("my-list") {
                 listOf(
-                    resolve<GreetingService>(),
-                    resolve<List<String>>("my-strings"),
+                    this.resolve<GreetingService>(),
+                    this.resolve<List<String>>("my-strings"),
                 )
             }
         }

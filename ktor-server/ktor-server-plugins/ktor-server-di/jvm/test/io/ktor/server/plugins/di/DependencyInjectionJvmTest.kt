@@ -4,19 +4,16 @@
 
 package io.ktor.server.plugins.di
 
-import io.ktor.server.application.Application
-import io.ktor.server.config.MapApplicationConfig
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.server.application.*
+import io.ktor.server.config.*
 import io.ktor.server.testing.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.IllegalCallableAccessException
 import kotlin.reflect.jvm.javaMethod
-import kotlin.test.Ignore
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFails
-import kotlin.test.assertFailsWith
-import kotlin.test.fail
+import kotlin.test.*
 
 class DependencyInjectionJvmTest {
 
@@ -67,9 +64,9 @@ class DependencyInjectionJvmTest {
         application {
             assertFailsWith<CircularDependencyException> {
                 dependencies {
-                    provide<WorkExperience> { WorkExperience(resolve()) }
-                    provide<PaidWork> { PaidWork(resolve()) }
-                    provide<List<PaidWork>> { listOf(resolve()) }
+                    provide<WorkExperience> { WorkExperience(this.resolve()) }
+                    provide<PaidWork> { PaidWork(this.resolve()) }
+                    provide<List<PaidWork>> { listOf(this.resolve()) }
                 }
                 val workExperience: WorkExperience = dependencies.create()
                 fail("This should fail but returned $workExperience")
@@ -108,18 +105,20 @@ class DependencyInjectionJvmTest {
     }
 
     @Test
-    fun `covariant ambiguity`() = testApplication {
-        install(DI) {
-            provider = MapDependencyProvider()
-        }
-        application {
-            dependencies {
-                provide(GreetingServiceImpl::class)
-                provide(BankGreetingService::class)
-            }
-            assertFailsWith<AmbiguousDependencyException> {
-                val service: GreetingService by dependencies
-                fail("Should fail but found $service")
+    fun `covariant ambiguity`() {
+        assertFailsWith<AmbiguousDependencyException> {
+            testApplication {
+                install(DI) {
+                    provider = MapDependencyProvider()
+                }
+                application {
+                    dependencies {
+                        provide(GreetingServiceImpl::class)
+                        provide(BankGreetingService::class)
+                    }
+                    val service: GreetingService by dependencies
+                    fail("Should fail but found $service")
+                }
             }
         }
     }
@@ -188,10 +187,10 @@ class DependencyInjectionJvmTest {
 
     @Test
     fun `install function ref missing args`() {
-        testConfigFile(
-            ::createBankTellerWithArgs.qualifiedName,
-        ) {
-            assertFails {
+        assertFails {
+            testConfigFile(
+                ::createBankTellerWithArgs.qualifiedName,
+            ) {
                 val teller: BankTeller by dependencies
                 fail("Should fail but resolved $teller")
             }
@@ -211,13 +210,13 @@ class DependencyInjectionJvmTest {
 
     @Test
     fun `install from private function fails`() {
-        testConfigFile(
-            ::createBankTellerWithArgs.qualifiedName.replace(
-                ::createBankTellerWithArgs.name,
-                "getBankServicePrivately"
-            ),
-        ) {
-            assertFailsWith<IllegalCallableAccessException> {
+        assertFailsWith<IllegalCallableAccessException> {
+            testConfigFile(
+                ::createBankTellerWithArgs.qualifiedName.replace(
+                    ::createBankTellerWithArgs.name,
+                    "getBankServicePrivately"
+                ),
+            ) {
                 val bank: BankService by dependencies
                 fail("Should fail but resolved $bank")
             }
@@ -276,9 +275,38 @@ class DependencyInjectionJvmTest {
         }
     }
 
-    private inline fun testConfigFile(
+    @Test
+    fun `module parameters`() {
+        testConfigFile(
+            ::createGreetingService.qualifiedName,
+            ::createBankService.qualifiedName,
+            modules = listOf(
+                Application::bankingModule.qualifiedName
+            ),
+            test = {
+                assertEquals(HELLO, client.get("/hello").bodyAsText())
+            }
+        )
+    }
+
+    @Test
+    fun `module parameters missing dependency`() {
+        val failure = assertFailsWith<IllegalArgumentException> {
+            testConfigFile(
+                ::createGreetingService.qualifiedName,
+                modules = listOf(
+                    Application::bankingModule.qualifiedName
+                )
+            )
+        }
+        assertIs<MissingDependencyException>(failure.cause?.cause)
+    }
+
+    private fun testConfigFile(
         vararg references: String,
-        crossinline block: Application.() -> Unit
+        modules: List<String> = emptyList(),
+        test: suspend ApplicationTestBuilder.() -> Unit = {},
+        block: Application.() -> Unit = {}
     ) {
         testApplication {
             environment {
@@ -287,11 +315,18 @@ class DependencyInjectionJvmTest {
                         "ktor.application.dependencies",
                         listOf(*references)
                     )
+                    if (modules.isNotEmpty()) {
+                        put(
+                            "ktor.application.modules",
+                            modules
+                        )
+                    }
                 }
             }
             application {
                 block()
             }
+            test()
         }
     }
 

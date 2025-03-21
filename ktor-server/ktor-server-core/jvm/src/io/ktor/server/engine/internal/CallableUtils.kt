@@ -17,7 +17,8 @@ import kotlin.reflect.jvm.kotlinFunction
 internal fun executeModuleFunction(
     classLoader: ClassLoader,
     fqName: String,
-    application: Application
+    application: Application,
+    moduleInjector: ApplicationModuleInjector
 ) {
     val name = fqName.lastIndexOfAny(".#".toCharArray())
 
@@ -37,7 +38,7 @@ internal fun executeModuleFunction(
 
     staticFunctions.bestFunction()?.let { moduleFunction ->
         if (moduleFunction.parameters.none { it.kind == KParameter.Kind.INSTANCE }) {
-            callFunctionWithInjection(null, moduleFunction, application)
+            callFunctionWithInjection(null, moduleFunction, application, moduleInjector)
             return
         }
     }
@@ -68,8 +69,8 @@ internal fun executeModuleFunction(
     kclass.functions
         .filter { it.name == functionName && it.isApplicableFunction() }
         .bestFunction()?.let { moduleFunction ->
-            val instance = createModuleContainer(kclass, application)
-            callFunctionWithInjection(instance, moduleFunction, application)
+            val instance = createModuleContainer(kclass, application, moduleInjector)
+            callFunctionWithInjection(instance, moduleFunction, application, moduleInjector)
             return
         }
 
@@ -78,7 +79,8 @@ internal fun executeModuleFunction(
 
 private fun createModuleContainer(
     applicationEntryClass: KClass<*>,
-    application: Application
+    application: Application,
+    moduleInjector: ApplicationModuleInjector
 ): Any {
     val objectInstance = applicationEntryClass.objectInstance
     if (objectInstance != null) return objectInstance
@@ -90,38 +92,46 @@ private fun createModuleContainer(
     val constructor = constructors.bestFunction()
         ?: throw RuntimeException("There are no applicable constructors found in class $applicationEntryClass")
 
-    return callFunctionWithInjection(null, constructor, application)
+    return callFunctionWithInjection(null, constructor, application, moduleInjector)
 }
 
 private fun <R> callFunctionWithInjection(
     instance: Any?,
     entryPoint: KFunction<R>,
-    application: Application
+    application: Application,
+    moduleInjector: ApplicationModuleInjector
 ): R {
-    val args = entryPoint.parameters.filterNot { it.isOptional }.associateBy(
-        { it },
-        { parameter ->
-            when {
-                parameter.kind == KParameter.Kind.INSTANCE -> instance
-                isApplicationEnvironment(parameter) -> application.environment
-                isApplication(parameter) -> application
-                parameter.type.toString().contains("Application") -> {
-                    // It is possible that type is okay, but classloader is not
-                    val classLoader = (parameter.type.javaType as? Class<*>)?.classLoader
-                    throw IllegalArgumentException(
-                        "Parameter type ${parameter.type}:{$classLoader} is not supported." +
-                            "Application is loaded as " +
-                            "$ApplicationClassInstance:{${ApplicationClassInstance.classLoader}}"
-                    )
-                }
-
-                else -> throw IllegalArgumentException(
-                    "Parameter type '${parameter.type}' of parameter " +
-                        "'${parameter.name ?: "<receiver>"}' is not supported"
+    val args = entryPoint.parameters.mapNotNull { parameter ->
+        parameter to when {
+            parameter.kind == KParameter.Kind.INSTANCE -> instance
+            isApplicationEnvironment(parameter) -> application.environment
+            isApplication(parameter) -> application
+            parameter.type.toString().contains("Application") -> {
+                // It is possible that type is okay, but classloader is not
+                val classLoader = (parameter.type.javaType as? Class<*>)?.classLoader
+                throw IllegalArgumentException(
+                    "Parameter type ${parameter.type}:{$classLoader} is not supported." +
+                        "Application is loaded as " +
+                        "$ApplicationClassInstance:{${ApplicationClassInstance.classLoader}}"
                 )
             }
+            else -> {
+                val injectedValue = runCatching {
+                    moduleInjector.resolveParameter(application, parameter)
+                }
+                when {
+                    injectedValue.isSuccess -> injectedValue.getOrThrow()
+                    parameter.isOptional -> return@mapNotNull null // skip
+                    parameter.type.isMarkedNullable -> null // value = null
+                    else -> throw IllegalArgumentException(
+                        "Failed to inject parameter `${parameter.name ?: "<receiver>"}: ${parameter.type}` " +
+                            "in module function `$entryPoint`",
+                        injectedValue.exceptionOrNull()
+                    )
+                }
+            }
         }
-    )
+    }.toMap()
 
     try {
         return entryPoint.callBy(args)

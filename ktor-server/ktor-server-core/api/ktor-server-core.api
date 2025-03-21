@@ -60,6 +60,14 @@ public final class io/ktor/server/application/ApplicationKt {
 	public static synthetic fun serverConfig$default (Lio/ktor/server/application/ApplicationEnvironment;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/application/ServerConfig;
 }
 
+public abstract interface class io/ktor/server/application/ApplicationModuleInjector {
+	public static final field Companion Lio/ktor/server/application/ApplicationModuleInjector$Companion;
+	public abstract fun resolveParameter (Lio/ktor/server/application/Application;Lkotlin/reflect/KParameter;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/application/ApplicationModuleInjector$Companion {
+}
+
 public abstract interface class io/ktor/server/application/ApplicationPlugin : io/ktor/server/application/BaseApplicationPlugin {
 }
 

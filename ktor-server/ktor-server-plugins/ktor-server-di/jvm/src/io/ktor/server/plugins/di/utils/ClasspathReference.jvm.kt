@@ -11,8 +11,7 @@ import kotlin.reflect.full.starProjectedType
 import kotlin.reflect.jvm.jvmErasure
 import kotlin.reflect.jvm.kotlinFunction
 
-internal actual fun installReference(
-    application: Application,
+internal actual fun Application.installReference(
     registry: DependencyRegistry,
     reference: ClasspathReference,
 ) {
@@ -49,9 +48,9 @@ internal actual fun installReference(
                             when (param.type) {
                                 // special types, from application
                                 DependencyResolver::class.starProjectedType -> this@set
-                                ApplicationEnvironment::class.starProjectedType -> application.environment
+                                ApplicationEnvironment::class.starProjectedType -> this@installReference.environment
                                 // regular types, from resolver
-                                else -> get<Any>(reflection.toDependencyKey(param))
+                                else -> this.get<Any>(reflection.toDependencyKey(param))
                             }
                         }
                     )

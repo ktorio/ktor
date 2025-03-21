@@ -5,6 +5,7 @@
 package io.ktor.server.plugins.di
 
 import io.ktor.server.application.ApplicationPlugin
+import io.ktor.server.application.ApplicationStarted
 import io.ktor.server.application.PluginBuilder
 import io.ktor.server.application.createApplicationPlugin
 import io.ktor.server.plugins.di.utils.ClasspathReference
@@ -68,18 +69,21 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
             pluginConfig.provider
         }
 
-        application.attributes.put(
-            DependencyRegistryKey,
-            DependencyRegistryImpl(
-                provider,
-                pluginConfig.resolution,
-                pluginConfig.reflection,
-            ).also { registry ->
-                for (reference in configuredDependencyReferences) {
-                    installReference(application, registry, reference)
-                }
-            }
+        var registry = DependencyRegistryImpl(
+            provider,
+            pluginConfig.resolution,
+            pluginConfig.reflection,
         )
+
+        with(application) {
+            for (reference in configuredDependencyReferences) {
+                installReference(registry, reference)
+            }
+            monitor.subscribe(ApplicationStarted) {
+                registry.validate()
+            }
+            attributes.put(DependencyRegistryKey, registry)
+        }
     }
 
 private fun PluginBuilder<*>.isTestEngine(): Boolean =
@@ -97,9 +101,8 @@ public expect val DefaultReflection: DependencyReflection
  * Optionally, this can be used when you do not wish to allow reflection for your project.
  */
 public object NoReflection : DependencyReflection {
-    override fun <T : Any> create(kClass: KClass<T>, init: (DependencyKey) -> Any): T {
-        throw DependencyConstructionException("No dependency reflection available")
-    }
+    override fun <T : Any> create(kClass: KClass<T>, init: (DependencyKey) -> Any): T =
+        throw DependencyInjectionException("A call to create a new instance was attempted, but reflection is disabled")
 }
 
 /**
@@ -176,55 +179,47 @@ public data class DependencyKey(val type: TypeInfo, val name: String? = null) {
 }
 
 /**
+ * Common parent for dependency injection problem.
+ */
+public open class DependencyInjectionException(message: String, cause: Throwable? = null) :
+    IllegalArgumentException(message, cause)
+
+/**
  * Thrown when attempting to resolve a dependency that was not declared.
  */
 public class MissingDependencyException(key: DependencyKey) :
-    IllegalArgumentException("Could not resolve dependency for `$key`")
+    DependencyInjectionException("Could not resolve dependency for `$key`")
 
 /**
  * Thrown when a dependency is declared more than once.
  */
 public class DuplicateDependencyException(key: DependencyKey) :
-    IllegalArgumentException("Attempted to redefine dependency `$key`")
+    DependencyInjectionException("Attempted to redefine dependency `$key`")
 
 /**
  * Thrown when there are two or more implicit dependencies that match the given key.
  */
 public class AmbiguousDependencyException(key: DependencyKey, keys: Collection<DependencyKey>) :
-    IllegalArgumentException("Cannot decide which value for $key. Possible implementations: $keys")
+    DependencyInjectionException("Cannot decide which value for $key. Possible implementations: $keys")
 
 /**
  * Thrown when resolving a given dependency loops back on itself.
  */
 public class CircularDependencyException(internal val keys: Collection<DependencyKey>) :
-    IllegalStateException("Circular dependency found: ${keys.joinToString(" -> ")}")
+    DependencyInjectionException("Circular dependency found: ${keys.joinToString(" -> ")}")
 
 /**
  * Thrown when attempting to provide a dependency AFTER the dependency map is created.
  */
 public class OutOfOrderDependencyException(key: DependencyKey) :
-    IllegalStateException("Attempted to define $key after dependencies were resolved")
-
-/**
- * Thrown when `create` is called for a dependency, and reflection is unable to construct a new object.
- */
-public open class DependencyConstructionException(message: String, cause: Throwable? = null) :
-    IllegalArgumentException(message, cause)
-
-/**
- * Thrown when `create` is called, but reflection is disabled for this server.
- *
- * This will be the default behavior for non-JVM targets until reflection of this kind is supported.
- */
-public open class DependencyReflectionDisabledException() :
-    DependencyConstructionException("A call to create a new instance was attempted, but reflection is disabled")
+    DependencyInjectionException("Attempted to define $key after dependencies were resolved")
 
 /**
  * Thrown when attempting to instantiate an abstract type using reflection.
  */
 public class DependencyAbstractTypeConstructionException(
     qualifiedName: String,
-) : DependencyConstructionException("Cannot instantiate abstract type: $qualifiedName")
+) : DependencyInjectionException("Cannot instantiate abstract type: $qualifiedName")
 
 /**
  * Thrown when a static reference cannot be resolved from the configuration file.
@@ -233,4 +228,4 @@ public class InvalidDependencyReferenceException internal constructor(
     message: String,
     reference: ClasspathReference,
     cause: Throwable? = null
-) : DependencyConstructionException("$message: $reference", cause)
+) : DependencyInjectionException("$message: $reference", cause)
