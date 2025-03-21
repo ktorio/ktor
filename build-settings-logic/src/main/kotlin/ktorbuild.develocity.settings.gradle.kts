@@ -21,9 +21,25 @@ develocity {
     buildScan {
         uploadInBackground = !isCIRun
 
-        // obfuscate NIC since we don't want to expose user real IP (will be relevant without VPN)
+        // These properties should be specified in ~/.gradle/gradle.properties
+        val overriddenUsername = providers.gradleProperty("ktor.develocity.username").orNull.orEmpty().trim()
+        val overriddenHostname = providers.gradleProperty("ktor.develocity.hostname").orNull.orEmpty().trim()
         obfuscation {
-            ipAddresses { addresses -> addresses.map { _ -> "0.0.0.0" } }
+            ipAddresses { listOf("0.0.0.0") }
+            hostname { overriddenHostname.ifEmpty { "concealed" } }
+            username { originalUserName ->
+                when {
+                    isCIRun -> "TeamCity"
+                    overriddenUsername == "<default>" -> originalUserName
+                    overriddenUsername.isNotEmpty() -> overriddenUsername
+
+                    else -> buildString {
+                        append(originalUserName.first())
+                        append("***")
+                        append(originalUserName.last())
+                    }
+                }
+            }
         }
 
         capture {
