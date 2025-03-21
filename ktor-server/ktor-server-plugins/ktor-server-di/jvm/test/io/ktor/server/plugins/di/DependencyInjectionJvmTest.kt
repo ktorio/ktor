@@ -109,6 +109,9 @@ class DependencyInjectionJvmTest {
 
     @Test
     fun `covariant ambiguity`() = testApplication {
+        install(DI) {
+            provider = MapDependencyProvider()
+        }
         application {
             dependencies {
                 provide(GreetingServiceImpl::class)

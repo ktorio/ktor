@@ -47,11 +47,11 @@ public fun interface DependencyConflictPolicy {
  * - `Replace`: Replace the existing dependency with a specific creation function.
  */
 public sealed interface DependencyConflictResult {
-    public object KeepPrevious : DependencyConflictResult
-    public object KeepNew : DependencyConflictResult
-    public object Ambiguous : DependencyConflictResult
-    public object Conflict : DependencyConflictResult
-    public class Replace(public val function: DependencyCreateFunction) : DependencyConflictResult
+    public data object KeepPrevious : DependencyConflictResult
+    public data object KeepNew : DependencyConflictResult
+    public data object Ambiguous : DependencyConflictResult
+    public data object Conflict : DependencyConflictResult
+    public data class Replace(public val function: DependencyCreateFunction) : DependencyConflictResult
 }
 
 /**
@@ -66,5 +66,18 @@ public val DefaultConflictPolicy: DependencyConflictPolicy = DependencyConflictP
         is AmbiguousCreateFunction,
         is ImplicitCreateFunction -> current.ifImplicit { Ambiguous } ?: KeepNew
         is ExplicitCreateFunction -> current.ifImplicit { KeepPrevious } ?: Conflict
+    }
+}
+
+/**
+ * During testing, we simply override previously declared values.
+ * This allows for replacing base implementations with mock values.
+ */
+public val LastEntryWinsPolicy: DependencyConflictPolicy = DependencyConflictPolicy { prev, current ->
+    require(current !is AmbiguousCreateFunction) { "Unexpected ambiguous function supplied" }
+    when (prev) {
+        is AmbiguousCreateFunction,
+        is ImplicitCreateFunction -> KeepNew
+        is ExplicitCreateFunction -> current.ifImplicit { KeepPrevious } ?: KeepNew
     }
 }
