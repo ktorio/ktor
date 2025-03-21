@@ -15,6 +15,7 @@ develocity {
     val startParameter = gradle.startParameter
     val scanJournal = File(settingsDir, "scan-journal.log")
 
+    // Should be in sync with settings.gradle.kts
     server = "https://ge.jetbrains.com"
 
     buildScan {
