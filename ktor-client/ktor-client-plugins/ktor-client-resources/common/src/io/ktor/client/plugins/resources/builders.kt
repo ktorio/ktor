@@ -58,7 +58,7 @@ public suspend inline fun <reified T : Any> HttpClient.post(
 ): HttpResponse {
     val resources = resources()
     return postBuilder {
-        attributes.attributes.putUrlTemplate(resources.resourcesFormat, serializer<T>())
+        attributes.putUrlTemplate(resources.resourcesFormat, serializer<T>())
         href(resources.resourcesFormat, resource, url)
         builder()
     }
