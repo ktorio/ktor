@@ -4,10 +4,12 @@
 
 package io.ktor.server.plugins.di
 
+import io.ktor.server.plugins.di.annotations.Named
 import io.ktor.util.reflect.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
+import kotlin.reflect.full.findAnnotations
 import kotlin.reflect.jvm.jvmErasure
 
 /**
@@ -76,5 +78,8 @@ public open class DependencyReflectionJvm : DependencyReflection {
      * Maps a parameter to a [DependencyKey].
      */
     public open fun toDependencyKey(parameter: KParameter): DependencyKey =
-        DependencyKey(TypeInfo(parameter.type.jvmErasure, parameter.type))
+        DependencyKey(
+            type = TypeInfo(parameter.type.jvmErasure, parameter.type),
+            name = parameter.findAnnotations(Named::class).singleOrNull()?.value?.takeIf { it.isNotBlank() }
+        )
 }
