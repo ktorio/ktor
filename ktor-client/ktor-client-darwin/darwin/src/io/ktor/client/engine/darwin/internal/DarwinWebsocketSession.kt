@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.darwin.internal
@@ -10,15 +10,22 @@ import io.ktor.http.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.core.*
 import io.ktor.websocket.*
-import kotlinx.cinterop.*
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.UnsafeNumber
+import kotlinx.cinterop.convert
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
-import kotlinx.io.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.channels.consumeEach
+import kotlinx.io.readByteArray
 import platform.Foundation.*
-import platform.darwin.*
-import kotlin.coroutines.*
+import platform.darwin.NSInteger
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
-@OptIn(UnsafeNumber::class, ExperimentalCoroutinesApi::class, ExperimentalForeignApi::class)
+@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
 internal class DarwinWebsocketSession(
     callContext: CoroutineContext,
     private val task: NSURLSessionWebSocketTask,
@@ -100,17 +107,21 @@ internal class DarwinWebsocketSession(
                         ) { error ->
                             if (error == null) {
                                 continuation.resume(Unit)
-                            } else continuation.resumeWithException(DarwinHttpRequestException(error))
+                            } else {
+                                continuation.resumeWithException(DarwinHttpRequestException(error))
+                            }
                         }
                     }
                 }
 
                 FrameType.BINARY -> {
-                    suspendCancellableCoroutine<Unit> { continuation ->
+                    suspendCancellableCoroutine { continuation ->
                         task.sendMessage(NSURLSessionWebSocketMessage(frame.data.toNSData())) { error ->
                             if (error == null) {
                                 continuation.resume(Unit)
-                            } else continuation.resumeWithException(DarwinHttpRequestException(error))
+                            } else {
+                                continuation.resumeWithException(DarwinHttpRequestException(error))
+                            }
                         }
                     }
                 }
@@ -153,11 +164,13 @@ internal class DarwinWebsocketSession(
         coroutineContext.cancel()
     }
 
-    fun didOpen() {
+    fun didOpen(protocol: String?) {
+        val headers = if (protocol != null) headersOf(HttpHeaders.SecWebSocketProtocol, protocol) else Headers.Empty
+
         val response = HttpResponseData(
             task.getStatusCode()?.let { HttpStatusCode.fromValue(it) } ?: HttpStatusCode.SwitchingProtocols,
             requestTime,
-            Headers.Empty,
+            headers,
             HttpProtocolVersion.HTTP_1_1,
             this,
             coroutineContext
@@ -173,7 +186,7 @@ internal class DarwinWebsocketSession(
 
         // KTOR-7363 We want to proceed with the request if we get 401 Unauthorized status code
         if (task.getStatusCode() == HttpStatusCode.Unauthorized.value) {
-            didOpen()
+            didOpen(protocol = null)
             socketJob.complete()
             return
         }

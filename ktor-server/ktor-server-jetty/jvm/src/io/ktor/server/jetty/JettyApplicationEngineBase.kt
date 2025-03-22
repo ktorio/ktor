@@ -7,13 +7,16 @@ package io.ktor.server.jetty
 import io.ktor.events.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
-import kotlinx.coroutines.*
-import org.eclipse.jetty.server.*
-import kotlin.time.*
+import kotlinx.coroutines.CompletableJob
+import org.eclipse.jetty.server.Server
+import org.eclipse.jetty.server.ServerConnector
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 /**
  * [ApplicationEngine] base type for running in a standalone Jetty
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.jetty.JettyApplicationEngineBase)
  */
 public open class JettyApplicationEngineBase(
     environment: ApplicationEnvironment,
@@ -28,21 +31,27 @@ public open class JettyApplicationEngineBase(
 
     /**
      * Jetty-specific engine configuration
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.jetty.JettyApplicationEngineBase.Configuration)
      */
     public class Configuration : BaseApplicationEngine.Configuration() {
         /**
          * Property function that will be called during Jetty server initialization
          * with the server instance as receiver.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.jetty.JettyApplicationEngineBase.Configuration.configureServer)
          */
         public var configureServer: Server.() -> Unit = {}
 
         /**
          * The duration of time that a connection can be idle before the connector takes action to close the connection.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.jetty.JettyApplicationEngineBase.Configuration.idleTimeout)
          */
         public var idleTimeout: Duration = 30.seconds
     }
 
-    private var cancellationDeferred: CompletableJob? = null
+    private var cancellationJob: CompletableJob? = null
 
     /**
      * Jetty server instance being configuring and starting
@@ -54,7 +63,7 @@ public open class JettyApplicationEngineBase(
 
     override fun start(wait: Boolean): JettyApplicationEngineBase {
         server.start()
-        cancellationDeferred = stopServerOnCancellation(
+        cancellationJob = stopServerOnCancellation(
             applicationProvider(),
             configuration.shutdownGracePeriod,
             configuration.shutdownTimeout
@@ -74,7 +83,7 @@ public open class JettyApplicationEngineBase(
     }
 
     override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
-        cancellationDeferred?.complete()
+        cancellationJob?.complete()
         monitor.raise(ApplicationStopPreparing, environment)
         server.stopTimeout = timeoutMillis
         server.stop()

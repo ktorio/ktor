@@ -18,9 +18,10 @@ import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import kotlinx.atomicfu.*
+import kotlinx.atomicfu.AtomicRef
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.*
-import kotlin.coroutines.*
+import kotlin.coroutines.CoroutineContext
 
 @OptIn(InternalAPI::class)
 @PublicAPICandidate("2.2.0")
@@ -29,6 +30,8 @@ internal const val CONFIG_KEY_THROW_ON_EXCEPTION = "ktor.test.throwOnException"
 /**
  * A test engine that provides a way to simulate application calls to the existing application module(s)
  * without actual HTTP connection.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationEngine)
  */
 public class TestApplicationEngine(
     environment: ApplicationEnvironment = createTestEnvironment(),
@@ -39,7 +42,7 @@ public class TestApplicationEngine(
 ) : BaseApplicationEngine(environment, monitor, developmentMode, EnginePipeline(developmentMode)), CoroutineScope {
 
     private val testEngineJob = Job(applicationProvider().parentCoroutineContext[Job])
-    private var cancellationDeferred: CompletableJob? = null
+    private var cancellationJob: CompletableJob? = null
 
     override val coroutineContext: CoroutineContext =
         applicationProvider().parentCoroutineContext + testEngineJob + configuration.dispatcher
@@ -49,6 +52,9 @@ public class TestApplicationEngine(
 
     /**
      * An engine configuration for a test application.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationEngine.Configuration)
+     *
      * @property dispatcher to run handlers and interceptors on
      */
     public class Configuration : BaseApplicationEngine.Configuration() {
@@ -75,6 +81,8 @@ public class TestApplicationEngine(
 
     /**
      * An instance of a client engine to be used in [client].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationEngine.engine)
      */
     public val engine: HttpClientEngine = TestHttpClientEngine.create { app = this@TestApplicationEngine }
 
@@ -110,7 +118,7 @@ public class TestApplicationEngine(
 
         val throwOnException = environment.config
             .propertyOrNull(CONFIG_KEY_THROW_ON_EXCEPTION)
-            ?.getString()?.toBoolean() ?: true
+            ?.getString()?.toBoolean() != false
         tryRespondError(
             defaultExceptionStatusCode(cause)
                 ?: if (throwOnException) throw cause else HttpStatusCode.InternalServerError
@@ -144,7 +152,7 @@ public class TestApplicationEngine(
 
     override fun start(wait: Boolean): ApplicationEngine {
         check(testEngineJob.isActive) { "Test engine is already completed" }
-        cancellationDeferred = stopServerOnCancellation(
+        cancellationJob = stopServerOnCancellation(
             applicationProvider(),
             configuration.shutdownGracePeriod,
             configuration.shutdownTimeout
@@ -157,7 +165,7 @@ public class TestApplicationEngine(
 
     override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
         try {
-            cancellationDeferred?.complete()
+            cancellationJob?.complete()
             client.close()
             engine.close()
             monitor.raise(ApplicationStopPreparing, environment)

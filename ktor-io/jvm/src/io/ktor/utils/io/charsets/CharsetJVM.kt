@@ -14,11 +14,15 @@ public actual typealias Charset = java.nio.charset.Charset
 
 /**
  * Find a charset by name.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.charsets.forName)
  */
 public actual fun Charsets.forName(name: String): Charset = Charset.forName(name)
 
 /**
  * Check if a charset is supported by the current platform.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.charsets.isSupported)
  */
 public actual fun Charsets.isSupported(name: String): Boolean = Charset.isSupported(name)
 
@@ -88,7 +92,6 @@ public actual fun CharsetDecoder.decode(input: Source, dst: Appendable, max: Int
 
 public actual typealias Charsets = kotlin.text.Charsets
 
-@Suppress("ACTUAL_WITHOUT_EXPECT")
 public actual open class MalformedInputException
 actual constructor(message: String) : java.nio.charset.MalformedInputException(0) {
     private val _message = message

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.apache5
@@ -9,19 +9,22 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.sse.*
 import io.ktor.client.request.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
-import org.apache.hc.client5.http.config.*
-import org.apache.hc.client5.http.impl.async.*
-import org.apache.hc.client5.http.impl.nio.*
-import org.apache.hc.client5.http.ssl.*
-import org.apache.hc.core5.http.*
-import org.apache.hc.core5.http.ssl.*
-import org.apache.hc.core5.io.*
-import org.apache.hc.core5.reactor.*
-import org.apache.hc.core5.ssl.*
-import org.apache.hc.core5.util.*
-import java.net.*
-import java.util.concurrent.*
+import kotlinx.coroutines.Job
+import org.apache.hc.client5.http.config.ConnectionConfig
+import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient
+import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder
+import org.apache.hc.client5.http.impl.async.HttpAsyncClients
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder
+import org.apache.hc.client5.http.ssl.ClientTlsStrategyBuilder
+import org.apache.hc.core5.http.HttpHost
+import org.apache.hc.core5.http.ssl.TLS
+import org.apache.hc.core5.io.CloseMode
+import org.apache.hc.core5.reactor.IOReactorConfig
+import org.apache.hc.core5.ssl.SSLContexts
+import org.apache.hc.core5.util.Timeout
+import java.net.InetSocketAddress
+import java.net.Proxy
+import java.util.concurrent.TimeUnit
 
 private const val MAX_CONNECTIONS_COUNT = 1000
 private const val IO_THREAD_COUNT_DEFAULT = 4
@@ -89,6 +92,10 @@ internal class Apache5Engine(override val config: Apache5EngineConfig) : HttpCli
                             ClientTlsStrategyBuilder.create()
                                 .setSslContext(config.sslContext ?: SSLContexts.createSystemDefault())
                                 .setTlsVersions(TLS.V_1_3, TLS.V_1_2)
+                                // TODO: Uncomment this line and remove apply after update to v5.5
+                                //  https://github.com/apache/httpcomponents-client/commit/001eff70646c982c8c4a7c8a385d92f42579f2b5
+                                // .setHostVerificationPolicy(config.sslHostnameVerificationPolicy)
+                                .apply { setHostnameVerificationPolicy(config.sslHostnameVerificationPolicy) }
                                 .build()
                         )
                         .setDefaultConnectionConfig(

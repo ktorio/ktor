@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.websocket.cio
@@ -13,6 +13,8 @@ import kotlinx.coroutines.*
 
 /**
  * Creates a raw [ClientWebSocketSession]: no ping-pong and other service messages are used.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.cio.webSocketRawSession)
  */
 public suspend fun HttpClient.webSocketRawSession(
     method: HttpMethod = HttpMethod.Get,
@@ -37,7 +39,9 @@ public suspend fun HttpClient.webSocketRawSession(
                 session.outgoing.invokeOnClose {
                     if (it != null) {
                         sessionCompleted.completeExceptionally(it)
-                    } else sessionCompleted.complete(Unit)
+                    } else {
+                        sessionCompleted.complete(Unit)
+                    }
                 }
                 sessionCompleted.await()
             }
@@ -51,6 +55,8 @@ public suspend fun HttpClient.webSocketRawSession(
 
 /**
  * Creates a raw [ClientWebSocketSession]: no ping-pong and other service messages are used.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.cio.webSocketRaw)
  */
 public suspend fun HttpClient.webSocketRaw(
     method: HttpMethod = HttpMethod.Get,
@@ -78,6 +84,8 @@ public suspend fun HttpClient.webSocketRaw(
 
 /**
  * Creates a raw [ClientWebSocketSession]: no ping-pong and other service messages are used.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.cio.wsRaw)
  */
 public suspend fun HttpClient.wsRaw(
     method: HttpMethod = HttpMethod.Get,
@@ -92,6 +100,8 @@ public suspend fun HttpClient.wsRaw(
 
 /**
  * Create secure raw [ClientWebSocketSession]: no ping-pong and other service messages are used.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.cio.wssRaw)
  */
 public suspend fun HttpClient.wssRaw(
     method: HttpMethod = HttpMethod.Get,

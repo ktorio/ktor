@@ -1,9 +1,12 @@
+/*
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.utils.io.charsets
 
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
 import kotlinx.io.*
-import kotlinx.io.IOException
 
 public expect abstract class Charset {
     public abstract fun newEncoder(): CharsetEncoder
@@ -19,11 +22,15 @@ public expect abstract class Charset {
 
 /**
  * Check if a charset is supported by the current platform.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.charsets.isSupported)
  */
 public expect fun Charsets.isSupported(name: String): Boolean
 
 /**
  * Find a charset by name.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.charsets.forName)
  */
 public expect fun Charsets.forName(name: String): Charset
 
@@ -58,6 +65,8 @@ public expect abstract class CharsetDecoder
 
 /**
  * Decoder's charset it is created for.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.charsets.charset)
  */
 public expect val CharsetDecoder.charset: Charset
 

@@ -416,6 +416,8 @@ final class <#A: io.ktor.server.engine/ApplicationEngine, #B: io.ktor.server.eng
 
     final fun start(kotlin/Boolean = ...): io.ktor.server.engine/EmbeddedServer<#A, #B> // io.ktor.server.engine/EmbeddedServer.start|start(kotlin.Boolean){}[0]
     final fun stop(kotlin/Long = ..., kotlin/Long = ...) // io.ktor.server.engine/EmbeddedServer.stop|stop(kotlin.Long;kotlin.Long){}[0]
+    final suspend fun startSuspend(kotlin/Boolean = ...): io.ktor.server.engine/EmbeddedServer<#A, #B> // io.ktor.server.engine/EmbeddedServer.startSuspend|startSuspend(kotlin.Boolean){}[0]
+    final suspend fun stopSuspend(kotlin/Long = ..., kotlin/Long = ...) // io.ktor.server.engine/EmbeddedServer.stopSuspend|stopSuspend(kotlin.Long;kotlin.Long){}[0]
 }
 
 final class <#A: kotlin/Any, #B: io.ktor.events/EventDefinition<#A>> io.ktor.server.application.hooks/MonitoringEvent : io.ktor.server.application/Hook<kotlin/Function1<#A, kotlin/Unit>> { // io.ktor.server.application.hooks/MonitoringEvent|null[0]
@@ -697,7 +699,7 @@ final class io.ktor.server.plugins/PayloadTooLargeException : io.ktor.server.plu
 }
 
 final class io.ktor.server.plugins/UnsupportedMediaTypeException : io.ktor.server.plugins/ContentTransformationException, kotlinx.coroutines/CopyableThrowable<io.ktor.server.plugins/UnsupportedMediaTypeException> { // io.ktor.server.plugins/UnsupportedMediaTypeException|null[0]
-    constructor <init>(io.ktor.http/ContentType) // io.ktor.server.plugins/UnsupportedMediaTypeException.<init>|<init>(io.ktor.http.ContentType){}[0]
+    constructor <init>(io.ktor.http/ContentType?) // io.ktor.server.plugins/UnsupportedMediaTypeException.<init>|<init>(io.ktor.http.ContentType?){}[0]
 
     final fun createCopy(): io.ktor.server.plugins/UnsupportedMediaTypeException // io.ktor.server.plugins/UnsupportedMediaTypeException.createCopy|createCopy(){}[0]
 }
@@ -1600,9 +1602,6 @@ final object io.ktor.server.routing/TrailingSlashRouteSelector : io.ktor.server.
     final suspend fun evaluate(io.ktor.server.routing/RoutingResolveContext, kotlin/Int): io.ktor.server.routing/RouteSelectorEvaluation // io.ktor.server.routing/TrailingSlashRouteSelector.evaluate|evaluate(io.ktor.server.routing.RoutingResolveContext;kotlin.Int){}[0]
 }
 
-final const val io.ktor.server.request/DEFAULT_FORM_FIELD_MAX_SIZE // io.ktor.server.request/DEFAULT_FORM_FIELD_MAX_SIZE|{}DEFAULT_FORM_FIELD_MAX_SIZE[0]
-    final fun <get-DEFAULT_FORM_FIELD_MAX_SIZE>(): kotlin/Long // io.ktor.server.request/DEFAULT_FORM_FIELD_MAX_SIZE.<get-DEFAULT_FORM_FIELD_MAX_SIZE>|<get-DEFAULT_FORM_FIELD_MAX_SIZE>(){}[0]
-
 final val io.ktor.server.application/ApplicationStarted // io.ktor.server.application/ApplicationStarted|{}ApplicationStarted[0]
     final fun <get-ApplicationStarted>(): io.ktor.events/EventDefinition<io.ktor.server.application/Application> // io.ktor.server.application/ApplicationStarted.<get-ApplicationStarted>|<get-ApplicationStarted>(){}[0]
 final val io.ktor.server.application/ApplicationStarting // io.ktor.server.application/ApplicationStarting|{}ApplicationStarting[0]
@@ -1637,6 +1636,8 @@ final val io.ktor.server.http.content/SuppressionAttribute // io.ktor.server.htt
     final fun <get-SuppressionAttribute>(): io.ktor.util/AttributeKey<kotlin/Boolean> // io.ktor.server.http.content/SuppressionAttribute.<get-SuppressionAttribute>|<get-SuppressionAttribute>(){}[0]
 final val io.ktor.server.http.content/isCompressionSuppressed // io.ktor.server.http.content/isCompressionSuppressed|@io.ktor.server.application.ApplicationCall{}isCompressionSuppressed[0]
     final fun (io.ktor.server.application/ApplicationCall).<get-isCompressionSuppressed>(): kotlin/Boolean // io.ktor.server.http.content/isCompressionSuppressed.<get-isCompressionSuppressed>|<get-isCompressionSuppressed>@io.ktor.server.application.ApplicationCall(){}[0]
+final val io.ktor.server.http.content/isDecompressionSuppressed // io.ktor.server.http.content/isDecompressionSuppressed|@io.ktor.server.application.ApplicationCall{}isDecompressionSuppressed[0]
+    final fun (io.ktor.server.application/ApplicationCall).<get-isDecompressionSuppressed>(): kotlin/Boolean // io.ktor.server.http.content/isDecompressionSuppressed.<get-isDecompressionSuppressed>|<get-isDecompressionSuppressed>@io.ktor.server.application.ApplicationCall(){}[0]
 final val io.ktor.server.logging/mdcProvider // io.ktor.server.logging/mdcProvider|@io.ktor.server.application.Application{}mdcProvider[0]
     final fun (io.ktor.server.application/Application).<get-mdcProvider>(): io.ktor.server.logging/MDCProvider // io.ktor.server.logging/mdcProvider.<get-mdcProvider>|<get-mdcProvider>@io.ktor.server.application.Application(){}[0]
 final val io.ktor.server.plugins/MutableOriginConnectionPointKey // io.ktor.server.plugins/MutableOriginConnectionPointKey|{}MutableOriginConnectionPointKey[0]
@@ -1645,6 +1646,8 @@ final val io.ktor.server.plugins/mutableOriginConnectionPoint // io.ktor.server.
     final fun (io.ktor.server.application/ApplicationCall).<get-mutableOriginConnectionPoint>(): io.ktor.server.plugins/MutableOriginConnectionPoint // io.ktor.server.plugins/mutableOriginConnectionPoint.<get-mutableOriginConnectionPoint>|<get-mutableOriginConnectionPoint>@io.ktor.server.application.ApplicationCall(){}[0]
 final val io.ktor.server.plugins/origin // io.ktor.server.plugins/origin|@io.ktor.server.request.ApplicationRequest{}origin[0]
     final fun (io.ktor.server.request/ApplicationRequest).<get-origin>(): io.ktor.http/RequestConnectionPoint // io.ktor.server.plugins/origin.<get-origin>|<get-origin>@io.ktor.server.request.ApplicationRequest(){}[0]
+final val io.ktor.server.request/DEFAULT_FORM_FIELD_LIMIT // io.ktor.server.request/DEFAULT_FORM_FIELD_LIMIT|{}DEFAULT_FORM_FIELD_LIMIT[0]
+    final fun <get-DEFAULT_FORM_FIELD_LIMIT>(): kotlin/Long // io.ktor.server.request/DEFAULT_FORM_FIELD_LIMIT.<get-DEFAULT_FORM_FIELD_LIMIT>|<get-DEFAULT_FORM_FIELD_LIMIT>(){}[0]
 final val io.ktor.server.request/httpMethod // io.ktor.server.request/httpMethod|@io.ktor.server.request.ApplicationRequest{}httpMethod[0]
     final fun (io.ktor.server.request/ApplicationRequest).<get-httpMethod>(): io.ktor.http/HttpMethod // io.ktor.server.request/httpMethod.<get-httpMethod>|<get-httpMethod>@io.ktor.server.request.ApplicationRequest(){}[0]
 final val io.ktor.server.request/httpVersion // io.ktor.server.request/httpVersion|@io.ktor.server.request.ApplicationRequest{}httpVersion[0]
@@ -1672,6 +1675,7 @@ final fun (io.ktor.http/HeadersBuilder).io.ktor.server.response/contentRange(kot
 final fun (io.ktor.http/URLBuilder.Companion).io.ktor.server.util/createFromCall(io.ktor.server.application/ApplicationCall): io.ktor.http/URLBuilder // io.ktor.server.util/createFromCall|createFromCall@io.ktor.http.URLBuilder.Companion(io.ktor.server.application.ApplicationCall){}[0]
 final fun (io.ktor.server.application/Application).io.ktor.server.routing/routing(kotlin/Function1<io.ktor.server.routing/Routing, kotlin/Unit>): io.ktor.server.routing/RoutingRoot // io.ktor.server.routing/routing|routing@io.ktor.server.application.Application(kotlin.Function1<io.ktor.server.routing.Routing,kotlin.Unit>){}[0]
 final fun (io.ktor.server.application/ApplicationCall).io.ktor.server.http.content/suppressCompression() // io.ktor.server.http.content/suppressCompression|suppressCompression@io.ktor.server.application.ApplicationCall(){}[0]
+final fun (io.ktor.server.application/ApplicationCall).io.ktor.server.http.content/suppressDecompression() // io.ktor.server.http.content/suppressDecompression|suppressDecompression@io.ktor.server.application.ApplicationCall(){}[0]
 final fun (io.ktor.server.application/ApplicationCall).io.ktor.server.http/push(kotlin/Function1<io.ktor.server.response/ResponsePushBuilder, kotlin/Unit>) // io.ktor.server.http/push|push@io.ktor.server.application.ApplicationCall(kotlin.Function1<io.ktor.server.response.ResponsePushBuilder,kotlin.Unit>){}[0]
 final fun (io.ktor.server.application/ApplicationCall).io.ktor.server.http/push(kotlin/String) // io.ktor.server.http/push|push@io.ktor.server.application.ApplicationCall(kotlin.String){}[0]
 final fun (io.ktor.server.application/ApplicationCall).io.ktor.server.http/push(kotlin/String, io.ktor.http/Parameters) // io.ktor.server.http/push|push@io.ktor.server.application.ApplicationCall(kotlin.String;io.ktor.http.Parameters){}[0]
@@ -1816,7 +1820,7 @@ final suspend fun (io.ktor.server.application/ApplicationCall).io.ktor.server.re
 final suspend fun (io.ktor.server.application/ApplicationCall).io.ktor.server.response/respondBytesWriter(io.ktor.http/ContentType? = ..., io.ktor.http/HttpStatusCode? = ..., kotlin/Long? = ..., kotlin.coroutines/SuspendFunction1<io.ktor.utils.io/ByteWriteChannel, kotlin/Unit>) // io.ktor.server.response/respondBytesWriter|respondBytesWriter@io.ktor.server.application.ApplicationCall(io.ktor.http.ContentType?;io.ktor.http.HttpStatusCode?;kotlin.Long?;kotlin.coroutines.SuspendFunction1<io.ktor.utils.io.ByteWriteChannel,kotlin.Unit>){}[0]
 final suspend fun (io.ktor.server.application/ApplicationCall).io.ktor.server.response/respondRedirect(io.ktor.http/Url, kotlin/Boolean = ...) // io.ktor.server.response/respondRedirect|respondRedirect@io.ktor.server.application.ApplicationCall(io.ktor.http.Url;kotlin.Boolean){}[0]
 final suspend fun (io.ktor.server.application/ApplicationCall).io.ktor.server.response/respondRedirect(kotlin/String, kotlin/Boolean = ...) // io.ktor.server.response/respondRedirect|respondRedirect@io.ktor.server.application.ApplicationCall(kotlin.String;kotlin.Boolean){}[0]
-final suspend fun (io.ktor.server.application/ApplicationCall).io.ktor.server.response/respondSource(kotlinx.io/Source, io.ktor.http/ContentType? = ..., io.ktor.http/HttpStatusCode? = ...) // io.ktor.server.response/respondSource|respondSource@io.ktor.server.application.ApplicationCall(kotlinx.io.Source;io.ktor.http.ContentType?;io.ktor.http.HttpStatusCode?){}[0]
+final suspend fun (io.ktor.server.application/ApplicationCall).io.ktor.server.response/respondSource(kotlinx.io/RawSource, io.ktor.http/ContentType? = ..., io.ktor.http/HttpStatusCode? = ..., kotlin/Long? = ...) // io.ktor.server.response/respondSource|respondSource@io.ktor.server.application.ApplicationCall(kotlinx.io.RawSource;io.ktor.http.ContentType?;io.ktor.http.HttpStatusCode?;kotlin.Long?){}[0]
 final suspend fun (io.ktor.server.application/ApplicationCall).io.ktor.server.response/respondText(io.ktor.http/ContentType? = ..., io.ktor.http/HttpStatusCode? = ..., kotlin.coroutines/SuspendFunction0<kotlin/String>) // io.ktor.server.response/respondText|respondText@io.ktor.server.application.ApplicationCall(io.ktor.http.ContentType?;io.ktor.http.HttpStatusCode?;kotlin.coroutines.SuspendFunction0<kotlin.String>){}[0]
 final suspend fun (io.ktor.server.application/ApplicationCall).io.ktor.server.response/respondText(kotlin/String, io.ktor.http/ContentType? = ..., io.ktor.http/HttpStatusCode? = ..., kotlin/Function1<io.ktor.http.content/OutgoingContent, kotlin/Unit> = ...) // io.ktor.server.response/respondText|respondText@io.ktor.server.application.ApplicationCall(kotlin.String;io.ktor.http.ContentType?;io.ktor.http.HttpStatusCode?;kotlin.Function1<io.ktor.http.content.OutgoingContent,kotlin.Unit>){}[0]
 final suspend fun <#A: kotlin/Any> (io.ktor.server.application/ApplicationCall).io.ktor.server.request/receive(kotlin.reflect/KClass<#A>): #A // io.ktor.server.request/receive|receive@io.ktor.server.application.ApplicationCall(kotlin.reflect.KClass<0:0>){0§<kotlin.Any>}[0]

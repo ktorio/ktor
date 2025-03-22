@@ -1,42 +1,56 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
 import io.ktor.network.util.*
-import io.ktor.utils.io.*
-import kotlinx.coroutines.*
+import io.ktor.utils.io.errors.*
+import kotlinx.cinterop.*
+import platform.posix.*
 import kotlin.coroutines.*
 
 internal class TCPSocketNative(
-    private val descriptor: Int,
     private val selector: SelectorManager,
-    val selectable: SelectableNative,
+    descriptor: Int,
     override val remoteAddress: SocketAddress,
-    override val localAddress: SocketAddress,
     parent: CoroutineContext = EmptyCoroutineContext
-) : Socket, CoroutineScope {
-    private val _context: CompletableJob = Job(parent[Job])
+) : NativeSocketImpl(selector, descriptor, parent), Socket {
 
-    override val coroutineContext: CoroutineContext = parent + Dispatchers.Unconfined + _context
+    override val localAddress: SocketAddress
+        get() = getLocalAddress(descriptor).toSocketAddress()
 
-    override val socketContext: Job
-        get() = _context
+    @OptIn(ExperimentalForeignApi::class)
+    internal suspend fun connect(target: NativeSocketAddress): Socket {
+        memScoped {
+            var connectResult = -1
+            target.nativeAddress { address, size ->
+                connectResult = ktor_connect(descriptor, address, size)
+            }
 
-    override fun attachForReading(channel: ByteChannel): WriterJob =
-        attachForReadingImpl(channel, descriptor, selectable, selector)
-
-    override fun attachForWriting(channel: ByteChannel): ReaderJob =
-        attachForWritingImpl(channel, descriptor, selectable, selector)
-
-    override fun close() {
-        _context.complete()
-        _context.invokeOnCompletion {
-            ktor_shutdown(descriptor, ShutdownCommands.Both)
-            // Descriptor is closed by the selector manager
-            selector.notifyClosed(selectable)
+            val error = getSocketError()
+            when {
+                connectResult >= 0 -> {}
+                isWouldBlockError(error) -> {
+                    while (true) {
+                        selector.select(this@TCPSocketNative, SelectInterest.CONNECT)
+                        val result = alloc<IntVar>()
+                        val size = alloc<UIntVar> {
+                            value = sizeOf<IntVar>().convert()
+                        }
+                        ktor_getsockopt(descriptor, SOL_SOCKET, SO_ERROR, result.ptr, size.ptr).check()
+                        val resultValue = result.value.toInt()
+                        when {
+                            resultValue == 0 -> break // connected
+                            isWouldBlockError(resultValue) -> continue
+                            else -> throw PosixException.forSocketError(error = resultValue)
+                        }
+                    }
+                }
+                else -> throw PosixException.forSocketError(error)
+            }
         }
+        return this
     }
 }

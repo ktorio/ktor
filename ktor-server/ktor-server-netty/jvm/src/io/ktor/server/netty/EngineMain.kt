@@ -9,20 +9,36 @@ import io.ktor.server.engine.*
 
 /**
  * Netty engine
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.EngineMain)
  */
 public object EngineMain {
     /**
      * Main function for starting EngineMain with Netty
      * Creates an embedded Netty application with an environment built from command line arguments.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.EngineMain.main)
      */
     @JvmStatic
     public fun main(args: Array<String>) {
+        val server = createServer(args)
+        server.start(true)
+    }
+
+    /**
+     * Creates an instance of the embedded Netty server without starting it.
+     *
+     * @param args Command line arguments for configuring the server.
+     * @return An instance of [EmbeddedServer] with the specified configuration.
+     */
+    public fun createServer(
+        args: Array<String>
+    ): EmbeddedServer<NettyApplicationEngine, NettyApplicationEngine.Configuration> {
         val config = CommandLineConfig(args)
-        val server = EmbeddedServer(config.rootConfig, Netty) {
+        return EmbeddedServer(config.rootConfig, Netty) {
             takeFrom(config.engineConfig)
             loadConfiguration(config.rootConfig.environment.config)
         }
-        server.start(true)
     }
 
     internal fun NettyApplicationEngine.Configuration.loadConfiguration(config: ApplicationConfig) {

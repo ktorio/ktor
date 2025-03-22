@@ -24,6 +24,9 @@ import kotlin.coroutines.*
  * [handle] function is applied to a session and as far as it is a RAW session, you should handle all low-level
  * frames yourself and deal with ping/pongs, timeouts, close frames, frame fragmentation and so on.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.websocket.WebSocketUpgrade)
+ *
  * @param call that is starting web socket session
  * @param protocol web socket negotiated protocol name (optional)
  * @param installExtensions specifies if WebSocket extensions should be installed in current session.
@@ -45,6 +48,9 @@ public class WebSocketUpgrade(
      *
      * [handle] function is applied to a session and as far as it is a RAW session, you should handle all low-level
      * frames yourself and deal with ping/pongs, timeouts, close frames, frame fragmentation and so on.
+     *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.websocket.WebSocketUpgrade.WebSocketUpgrade)
      *
      * @param call that is starting web socket session
      * @param protocol web socket negotiated protocol name (optional)
@@ -125,7 +131,7 @@ public class WebSocketUpgrade(
         }
 
         if (extensionHeaders.isNotEmpty()) {
-            append(HttpHeaders.SecWebSocketExtensions, extensionHeaders.joinToString(";"))
+            append(HttpHeaders.SecWebSocketExtensions, extensionHeaders.joinToString(","))
         }
 
         return extensionsToUse

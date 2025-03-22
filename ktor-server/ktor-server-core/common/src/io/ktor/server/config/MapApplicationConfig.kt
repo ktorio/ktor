@@ -6,6 +6,8 @@ package io.ktor.server.config
 
 /**
  * Mutable application config backed by a hash map
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.MapApplicationConfig)
  */
 public open class MapApplicationConfig : ApplicationConfig {
     /**
@@ -34,6 +36,8 @@ public open class MapApplicationConfig : ApplicationConfig {
 
     /**
      * Set property value
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.MapApplicationConfig.put)
      */
     public fun put(path: String, value: String) {
         map[combine(this.path, path)] = value
@@ -41,6 +45,8 @@ public open class MapApplicationConfig : ApplicationConfig {
 
     /**
      * Put list property value
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.MapApplicationConfig.put)
      */
     public fun put(path: String, values: Iterable<String>) {
         var size = 0

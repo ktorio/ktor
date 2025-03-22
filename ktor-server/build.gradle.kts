@@ -1,19 +1,21 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 description = "Wrapper for ktor-server-core and base plugins"
 
-kotlin.sourceSets {
-    jvmMain {
-        dependencies {
+plugins {
+    id("ktorbuild.project.library")
+}
+
+kotlin {
+    sourceSets {
+        jvmMain.dependencies {
             api(project(":ktor-server:ktor-server-plugins:ktor-server-call-logging"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-default-headers"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-compression"))
         }
-    }
-    commonMain {
-        dependencies {
+        commonMain.dependencies {
             api(project(":ktor-server:ktor-server-core"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-auto-head-response"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-caching-headers"))
@@ -33,8 +35,4 @@ kotlin.sourceSets {
             api(project(":ktor-server:ktor-server-plugins:ktor-server-sessions"))
         }
     }
-}
-
-artifacts {
-    add("testOutput", tasks.named("jarTest"))
 }

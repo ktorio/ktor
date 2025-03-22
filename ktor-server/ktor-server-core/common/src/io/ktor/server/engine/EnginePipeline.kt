@@ -12,28 +12,38 @@ import io.ktor.util.pipeline.*
 /**
  * Application engine pipeline. One usually don't need to install interceptors here unless your are writing
  * your own engine implementation
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.EnginePipeline)
  */
 public class EnginePipeline(
     override val developmentMode: Boolean = false
 ) : Pipeline<Unit, PipelineCall>(Before, Call) {
     /**
      * Pipeline for receiving content
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.EnginePipeline.receivePipeline)
      */
     public val receivePipeline: ApplicationReceivePipeline = ApplicationReceivePipeline(developmentMode)
 
     /**
      * Pipeline for sending content
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.EnginePipeline.sendPipeline)
      */
     public val sendPipeline: ApplicationSendPipeline = ApplicationSendPipeline(developmentMode)
 
     public companion object {
         /**
          * Before call phase
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.EnginePipeline.Companion.Before)
          */
         public val Before: PipelinePhase = PipelinePhase("before")
 
         /**
          * Application call pipeline phase
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.EnginePipeline.Companion.Call)
          */
         public val Call: PipelinePhase = PipelinePhase("call")
     }

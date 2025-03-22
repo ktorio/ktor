@@ -1,20 +1,21 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.tests
 
 import io.ktor.client.call.*
 import io.ktor.client.request.*
-import io.ktor.client.tests.utils.*
+import io.ktor.client.test.base.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class UploadTest : ClientLoader() {
 
     @Test
-    fun testUploadWithByteArrayContent() = clientTests(listOf("Android", "Curl", "Darwin", "DarwinLegacy")) {
+    fun testUploadWithByteArrayContent() = clientTests(except("Android", "Curl", "Darwin", "DarwinLegacy")) {
         test { client ->
             val result = client.post("$TEST_SERVER/upload/content") {
                 setBody(ByteArrayContent(ByteArray(1024)))

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.mock
@@ -14,6 +14,8 @@ import kotlinx.coroutines.*
 
 /**
  * [HttpClientEngine] for writing tests without network.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.mock.MockEngine)
  */
 public class MockEngine(override val config: MockEngineConfig) : HttpClientEngineBase("ktor-mock") {
     override val supportedCapabilities: Set<HttpClientEngineCapability<out Any>> = setOf(
@@ -25,24 +27,28 @@ public class MockEngine(override val config: MockEngineConfig) : HttpClientEngin
     private val mutex = SynchronizedObject()
     private val contextState: CompletableJob = Job()
 
-    private val _requestsHistory: MutableList<HttpRequestData> = mutableListOf()
+    private val _requestHistory: MutableList<HttpRequestData> = mutableListOf()
     private val _responseHistory: MutableList<HttpResponseData> = mutableListOf()
 
     private var invocationCount: Int = 0
 
     init {
-        check(config.requestHandlers.size > 0) {
+        check(config.requestHandlers.isNotEmpty()) {
             "No request handler provided in [MockEngineConfig], please provide at least one."
         }
     }
 
     /**
      * History of executed requests.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.mock.MockEngine.requestHistory)
      */
-    public val requestHistory: List<HttpRequestData> get() = _requestsHistory
+    public val requestHistory: List<HttpRequestData> get() = _requestHistory
 
     /**
      * History of sent responses.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.mock.MockEngine.responseHistory)
      */
     public val responseHistory: List<HttpResponseData> get() = _responseHistory
 
@@ -67,7 +73,7 @@ public class MockEngine(override val config: MockEngineConfig) : HttpClientEngin
         }
 
         synchronized(mutex) {
-            _requestsHistory.add(data)
+            _requestHistory.add(data)
             _responseHistory.add(response)
         }
 
@@ -88,6 +94,8 @@ public class MockEngine(override val config: MockEngineConfig) : HttpClientEngin
 
         /**
          * Create [MockEngine] instance with single request handler.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.mock.MockEngine.Companion.invoke)
          */
         public operator fun invoke(
             handler: suspend MockRequestHandleScope.(HttpRequestData) -> HttpResponseData

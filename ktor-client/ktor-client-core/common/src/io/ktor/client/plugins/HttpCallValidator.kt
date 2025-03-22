@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.plugins
 
@@ -21,6 +21,8 @@ private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.HttpCallValidator"
 
 /**
  * [HttpCallValidator] configuration.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpCallValidatorConfig)
  */
 @KtorDsl
 public class HttpCallValidatorConfig {
@@ -35,6 +37,8 @@ public class HttpCallValidatorConfig {
     /**
      * Add [CallRequestExceptionHandler].
      * Last added handler executes first.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpCallValidatorConfig.handleResponseException)
      */
     public fun handleResponseException(block: CallRequestExceptionHandler) {
         responseExceptionHandlers += RequestExceptionHandlerWrapper(block)
@@ -43,6 +47,8 @@ public class HttpCallValidatorConfig {
     /**
      * Add [CallRequestExceptionHandler].
      * Last added handler executes first.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpCallValidatorConfig.handleResponseExceptionWithRequest)
      */
     public fun handleResponseExceptionWithRequest(block: CallRequestExceptionHandler) {
         responseExceptionHandlers += RequestExceptionHandlerWrapper(block)
@@ -51,6 +57,8 @@ public class HttpCallValidatorConfig {
     /**
      * Add [ResponseValidator].
      * Last added validator executes first.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpCallValidatorConfig.validateResponse)
      */
     public fun validateResponse(block: ResponseValidator) {
         responseValidators += block
@@ -61,23 +69,31 @@ public class HttpCallValidatorConfig {
  * Response validator method.
  *
  * You could throw an exception to fail the response.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.ResponseValidator)
  */
 public typealias ResponseValidator = suspend (response: HttpResponse) -> Unit
 
 /**
  * Response exception handler method.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.CallExceptionHandler)
  */
 public typealias CallExceptionHandler = suspend (cause: Throwable) -> Unit
 
 /**
  * Response exception handler method. [request] is null if
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.CallRequestExceptionHandler)
  */
 public typealias CallRequestExceptionHandler = suspend (cause: Throwable, request: HttpRequest) -> Unit
 
 /**
- * Response validator plugin is used for validate response and handle response exceptions.
+ * The response validator plugin is used for validating an [HttpClient] response and handling response exceptions.
  *
- * See also [Config] for additional details.
+ * For more details, see [HttpCallValidatorConfig].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpCallValidator)
  */
 public val HttpCallValidator: ClientPlugin<HttpCallValidatorConfig> = createClientPlugin(
     "HttpResponseValidator",
@@ -155,7 +171,7 @@ internal object ReceiveError : ClientHook<suspend (HttpRequest, Throwable) -> Th
     }
 }
 
-private fun HttpRequest(builder: HttpRequestBuilder) = object : HttpRequest {
+private fun HttpRequest(builder: HttpRequestBuilder): HttpRequest = object : HttpRequest {
     override val call: HttpClientCall get() = error("Call is not initialized")
     override val method: HttpMethod = builder.method
     override val url: Url = builder.url.build()
@@ -168,13 +184,18 @@ private fun HttpRequest(builder: HttpRequestBuilder) = object : HttpRequest {
 
 /**
  * Install [HttpCallValidator] with [block] configuration.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpResponseValidator)
  */
+@Suppress("FunctionName")
 public fun HttpClientConfig<*>.HttpResponseValidator(block: HttpCallValidatorConfig.() -> Unit) {
     install(HttpCallValidator, block)
 }
 
 /**
  * Terminate [HttpClient.receivePipeline] if status code is not successful (>=300).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.expectSuccess)
  */
 public var HttpRequestBuilder.expectSuccess: Boolean
     get() = attributes.getOrNull(ExpectSuccessAttributeKey) ?: true

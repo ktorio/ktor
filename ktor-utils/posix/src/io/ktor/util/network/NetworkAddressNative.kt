@@ -13,6 +13,9 @@ import kotlinx.atomicfu.*
  *
  * The address will be resolved after construction.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.network.NetworkAddress)
+ *
  * @throws UnresolvedAddressException if the [hostname] cannot be resolved.
  */
 public actual abstract class NetworkAddress(
@@ -27,6 +30,8 @@ public actual abstract class NetworkAddress(
 
     /**
      * Resolve current socket address.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.network.NetworkAddress.toString)
      */
 
     override fun toString(): String = "NetworkAddress[$hostname:$port]"

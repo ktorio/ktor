@@ -6,6 +6,8 @@ package io.ktor.util
 
 /**
  * Escapes the characters in a String using HTML entities
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.escapeHTML)
  */
 public fun String.escapeHTML(): String {
     val text = this@escapeHTML
@@ -29,6 +31,8 @@ public fun String.escapeHTML(): String {
  * Splits the given string into two parts before and after separator.
  *
  * Useful together with destructuring declarations
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.chomp)
  */
 public inline fun String.chomp(
     separator: String,
@@ -43,6 +47,8 @@ public inline fun String.chomp(
 /**
  * Does the same as the regular [toLowerCase] except that locale-specific rules are not applied to ASCII characters
  * so latin characters are converted by the original english rules.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.toLowerCasePreservingASCIIRules)
  */
 public fun String.toLowerCasePreservingASCIIRules(): String {
     val firstIndex = indexOfFirst {
@@ -66,6 +72,8 @@ public fun String.toLowerCasePreservingASCIIRules(): String {
 /**
  * Does the same as the regular [toUpperCase] except that locale-specific rules are not applied to ASCII characters
  * so latin characters are converted by the original english rules.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.toUpperCasePreservingASCIIRules)
  */
 public fun String.toUpperCasePreservingASCIIRules(): String {
     val firstIndex = indexOfFirst {

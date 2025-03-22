@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests
@@ -9,7 +9,7 @@ import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.cookies.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
-import io.ktor.client.tests.utils.*
+import io.ktor.client.test.base.*
 import io.ktor.http.*
 import io.ktor.util.date.*
 import kotlin.test.*
@@ -18,6 +18,8 @@ import kotlin.test.*
  * This test class demonstrates how request cookies behave in a client
  * when expired and redirected by server (session log out);
  * and how [HttpCookies] feature manages request cookies in this context.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.tests.CookiesAndRedirectMockedTest)
  */
 class CookiesAndRedirectMockedTest {
     @Test
@@ -41,6 +43,8 @@ class CookiesAndRedirectMockedTest {
      * the client will ignore (session) cookie expiration from server in a log-out-and-redirect scenario.
      * This kinda makes sense due to [HttpRequestBuilder.cookie] being a fairly simple and direct way to add cookie to request;
      * but this result behaviour may or may not be desirable.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.tests.CookiesAndRedirectMockedTest.testRequestCookieCannotBeExpiredAndIsSentWhenRedirectedWithoutCookiesFeature)
      */
     @Test
     fun testRequestCookieCannotBeExpiredAndIsSentWhenRedirectedWithoutCookiesFeature() = testWithEngine(MockEngine) {
@@ -70,6 +74,8 @@ class CookiesAndRedirectMockedTest {
 
     /**
      * [HttpCookies] feature should respect (additional) request cookies
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.tests.CookiesAndRedirectMockedTest.testRequestCookieIsSentWithCookiesFeature)
      */
     @Test
     fun testRequestCookieIsSentWithCookiesFeature() = testWithEngine(MockEngine) {
@@ -97,6 +103,8 @@ class CookiesAndRedirectMockedTest {
     /**
      * [HttpCookies] feature should manage request cookies and its expiration properly,
      * and not send it in redirection if it's expired by server.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.tests.CookiesAndRedirectMockedTest.testRequestCookieCanBeExpiredAndIsNotSentWhenRedirectedWithCookiesFeature)
      */
     @Test
     fun testRequestCookieCanBeExpiredAndIsNotSentWhenRedirectedWithCookiesFeature() = testWithEngine(MockEngine) {

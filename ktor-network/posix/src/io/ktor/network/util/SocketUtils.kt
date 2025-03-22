@@ -1,6 +1,8 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
+
+@file:Suppress("FunctionName")
 
 package io.ktor.network.util
 
@@ -163,3 +165,5 @@ internal fun PosixException.Companion.forSocketError(
 internal expect fun getSocketError(): Int
 
 internal expect fun isWouldBlockError(error: Int): Boolean
+
+internal expect fun closeSocketDescriptor(descriptor: Int): Int

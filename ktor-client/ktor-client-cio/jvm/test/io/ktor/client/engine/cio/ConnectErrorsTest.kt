@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.cio
@@ -102,7 +102,8 @@ class ConnectErrorsTest {
                             }
                             client.getInputStream().readBytes()
                         }
-                    } catch (_: Exception) { }
+                    } catch (_: Exception) {
+                    }
                 }
                 assertEquals("OK", client.get("http://localhost:${serverSocket.localPort}/").body())
                 thread.join()

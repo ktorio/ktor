@@ -10,7 +10,9 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 
 /**
- * Stop server on job cancellation. The returned deferred need to be completed or cancelled.
+ * Stop server on job cancellation. The returned [CompletableJob] needs to be completed or cancelled.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.stopServerOnCancellation)
  */
 @OptIn(InternalAPI::class)
 public fun ApplicationEngine.stopServerOnCancellation(
@@ -23,27 +25,29 @@ public fun ApplicationEngine.stopServerOnCancellation(
     } ?: Job()
 
 /**
- * Launch a coroutine with [block] body when the parent job is cancelled or a returned deferred is cancelled.
- * It is important to complete or cancel returned deferred
+ * Launch a coroutine with [block] body when either the parent job or the returned job is cancelled.
+ * It is important to complete or cancel the returned [CompletableJob]
  * otherwise the parent job will be unable to complete successfully.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.launchOnCancellation)
  */
 @OptIn(DelicateCoroutinesApi::class)
 @InternalAPI
 public fun Job.launchOnCancellation(block: suspend () -> Unit): CompletableJob {
-    val deferred: CompletableJob = Job(parent = this)
+    val completableJob: CompletableJob = Job(parent = this)
 
-    GlobalScope.launch(this + Dispatchers.IOBridge) {
+    GlobalScope.launch(this + Dispatchers.IOBridge + CoroutineName("cancellation-watcher")) {
         var cancelled = false
         try {
-            deferred.join()
+            completableJob.join()
         } catch (_: Throwable) {
             cancelled = true
         }
 
-        if (cancelled || deferred.isCancelled) {
+        if (cancelled || completableJob.isCancelled) {
             block()
         }
     }
 
-    return deferred
+    return completableJob
 }

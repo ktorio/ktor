@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.utils.io.jvm.javaio
 
 import io.ktor.utils.io.*
@@ -10,13 +14,14 @@ import kotlinx.io.EOFException
 import kotlinx.io.IOException
 import java.io.*
 import java.nio.*
-import java.nio.channels.*
 import kotlin.coroutines.*
 
 /**
  * Open a channel and launch a coroutine to copy bytes from the input stream to the channel.
  * Please note that it may block your async code when started on [Dispatchers.Unconfined]
  * since [InputStream] is blocking on it's nature
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.jvm.javaio.toByteReadChannel)
  */
 @Suppress("UNUSED_PARAMETER")
 public fun InputStream.toByteReadChannel(
@@ -28,6 +33,8 @@ public fun InputStream.toByteReadChannel(
  * Open a channel and launch a coroutine to copy bytes from the input stream to the channel.
  * Please note that it may block your async code when started on [Dispatchers.Unconfined]
  * since [InputStream] is blocking on it's nature
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.jvm.javaio.toByteReadChannel)
  */
 @Suppress("UNUSED_PARAMETER")
 @JvmName("toByteReadChannelWithArrayPool")
@@ -44,7 +51,7 @@ internal class RawSourceChannel(
     private val buffer = Buffer()
 
     override val closedCause: Throwable?
-        get() = closedToken?.cause
+        get() = closedToken?.wrapCause()
 
     override val isClosedForRead: Boolean
         get() = closedToken != null && buffer.exhausted()

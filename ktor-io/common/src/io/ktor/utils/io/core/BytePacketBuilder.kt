@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 @file:Suppress("RedundantModalityModifier")
 
 package io.ktor.utils.io.core
@@ -14,6 +18,7 @@ public typealias BytePacketBuilder = Sink
 @OptIn(InternalIoApi::class)
 public val Sink.size: Int get() = buffer.size.toInt()
 
+@Suppress("FunctionName")
 public fun BytePacketBuilder(): Sink = kotlinx.io.Buffer()
 
 public fun Sink.append(value: CharSequence, startIndex: Int = 0, endIndex: Int = value.length) {

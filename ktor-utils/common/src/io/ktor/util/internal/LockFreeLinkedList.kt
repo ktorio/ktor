@@ -1,18 +1,16 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util.internal
 
+import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.loop
+import kotlin.jvm.JvmField
+
 /*
- * Copyright 2016-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
- *
  * Copied from kotlinx.coroutines
  */
-
-import kotlinx.atomicfu.*
-import kotlin.jvm.*
-import kotlin.native.concurrent.*
 
 private typealias Node = LockFreeLinkedListNode
 
@@ -36,13 +34,25 @@ internal val LIST_EMPTY: Any = Symbol("LIST_EMPTY")
 
 private val REMOVE_PREPARED: Any = Symbol("REMOVE_PREPARED")
 
-/** @suppress **This is unstable API and it is subject to change.** */
+/**
+ * @suppress **This is unstable API and it is subject to change.**
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.internal.RemoveFirstDesc)
+ */
 public typealias RemoveFirstDesc<T> = LockFreeLinkedListNode.RemoveFirstDesc<T>
 
-/** @suppress **This is unstable API and it is subject to change.** */
+/**
+ * @suppress **This is unstable API and it is subject to change.**
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.internal.AddLastDesc)
+ */
 public typealias AddLastDesc<T> = LockFreeLinkedListNode.AddLastDesc<T>
 
-/** @suppress **This is unstable API and it is subject to change.** */
+/**
+ * @suppress **This is unstable API and it is subject to change.**
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.internal.AbstractAtomicDesc)
+ */
 public typealias AbstractAtomicDesc = LockFreeLinkedListNode.AbstractAtomicDesc
 
 private class Symbol(val symbol: String) {
@@ -53,12 +63,17 @@ private class Symbol(val symbol: String) {
  * The most abstract operation that can be in process. Other threads observing an instance of this
  * class in the fields of their object shall invoke [perform] to help.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.internal.OpDescriptor)
+ *
  * @suppress **This is unstable API and it is subject to change.**
  */
 public abstract class OpDescriptor {
     /**
      * Returns `null` is operation was performed successfully or some other
      * object that indicates the failure reason.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.internal.OpDescriptor.perform)
      */
     public abstract fun perform(affected: Any?): Any?
 }
@@ -74,19 +89,22 @@ private val NO_DECISION: Any = Symbol("NO_DECISION")
  * Note: parts of atomic operation must be globally ordered. Otherwise, this implementation will produce
  * `StackOverflowError`.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.internal.AtomicOp)
+ *
  * @suppress **This is unstable API and it is subject to change.**
  */
 public abstract class AtomicOp<in T> : OpDescriptor() {
-    private val _consensus = atomic<Any?>(NO_DECISION)
+    private val consensus = atomic<Any?>(NO_DECISION)
 
-    public val isDecided: Boolean get() = _consensus.value !== NO_DECISION
+    public val isDecided: Boolean get() = consensus.value !== NO_DECISION
 
     public fun tryDecide(decision: Any?): Boolean {
         check(decision !== NO_DECISION)
-        return _consensus.compareAndSet(NO_DECISION, decision)
+        return consensus.compareAndSet(NO_DECISION, decision)
     }
 
-    private fun decide(decision: Any?): Any? = if (tryDecide(decision)) decision else _consensus.value
+    private fun decide(decision: Any?): Any? = if (tryDecide(decision)) decision else consensus.value
 
     public abstract fun prepare(affected: T): Any? // `null` if Ok, or failure reason
 
@@ -95,8 +113,8 @@ public abstract class AtomicOp<in T> : OpDescriptor() {
     // returns `null` on success
     @Suppress("UNCHECKED_CAST")
     public final override fun perform(affected: Any?): Any? {
-        // make decision on status
-        var decision = this._consensus.value
+        // make a decision on status
+        var decision = consensus.value
         if (decision === NO_DECISION) {
             decision = decide(prepare(affected as T))
         }
@@ -108,6 +126,9 @@ public abstract class AtomicOp<in T> : OpDescriptor() {
 
 /**
  * A part of multi-step atomic operation [AtomicOp].
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.internal.AtomicDesc)
  *
  * @suppress **This is unstable API and it is subject to change.**
  */
@@ -133,6 +154,9 @@ public abstract class AtomicDesc {
  *   efficiently linearize them with atomic multi-step head-removal operations. In short,
  *   support for [describeRemoveFirst] operation precludes ability to add items at the beginning.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.internal.LockFreeLinkedListNode)
+ *
  * @suppress **This is unstable API and it is subject to change.**
  */
 @Suppress("LeakingThis")
@@ -145,10 +169,10 @@ public open class LockFreeLinkedListNode {
     private val _prev = atomic<Any>(this)
 
     // lazily cached removed ref to this
-    private val _removedRef = atomic<Removed?>(null)
+    private val removedRef = atomic<Removed?>(null)
 
     private fun removed(): Removed =
-        _removedRef.value ?: Removed(this).also { _removedRef.lazySet(it) }
+        removedRef.value ?: Removed(this).also { removedRef.lazySet(it) }
 
     @PublishedApi
     internal abstract class CondAddOp(
@@ -221,6 +245,8 @@ public open class LockFreeLinkedListNode {
 
     /**
      * Adds last item to this list.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.internal.LockFreeLinkedListNode.addLast)
      */
     public fun addLast(node: Node) {
         while (true) { // lock-free loop on prev.next
@@ -233,6 +259,8 @@ public open class LockFreeLinkedListNode {
 
     /**
      * Adds last item to this list atomically if the [condition] is true.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.internal.LockFreeLinkedListNode.addLastIf)
      */
     public inline fun addLastIf(node: Node, crossinline condition: () -> Boolean): Boolean {
         val condAdd = makeCondAddOp(node, condition)
@@ -253,13 +281,25 @@ public open class LockFreeLinkedListNode {
         }
     }
 
+    /**
+     * Adds the specified [node] at the end of the list atomically if the previous node matches the given [predicate].
+     *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.internal.LockFreeLinkedListNode.addLastIfPrevAndIf)
+     *
+     * @param node the node to be added
+     * @param predicate a function that evaluates the previous node
+     * @param condition an atomic condition that must be `true` for the node to be added
+     * @return `true` if the node was added, `false` otherwise
+     */
     public inline fun addLastIfPrevAndIf(
         node: Node,
-        predicate: (Node) -> Boolean, // prev node predicate
-        crossinline condition: () -> Boolean // atomically checked condition
+        predicate: (Node) -> Boolean,
+        crossinline condition: () -> Boolean,
     ): Boolean {
         val condAdd = makeCondAddOp(node, condition)
-        while (true) { // lock-free loop on prev.next
+        // lock-free loop on prev.next
+        while (true) {
             val prev = prev as Node // sentinel node is never removed, so prev is always defined
             if (!predicate(prev)) return false
             when (prev.tryCondAddNext(node, this, condAdd)) {
@@ -324,6 +364,8 @@ public open class LockFreeLinkedListNode {
      * **Note**: Invocation of this operation does not guarantee that remove was actually complete if result was `false`.
      * In particular, invoking [nextNode].[prevNode] might still return this node even though it is "already removed".
      * Invoke [helpRemove] to make sure that remove was completed.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.internal.LockFreeLinkedListNode.remove)
      */
     public open fun remove(): Boolean {
         while (true) { // lock-free loop on next
@@ -581,8 +623,8 @@ public open class LockFreeLinkedListNode {
 
         final override fun complete(op: AtomicOp<*>, failure: Any?) {
             val success = failure == null
-            val affectedNode = affectedNode ?: run { check(!success); return }
-            val originalNext = originalNext ?: run { check(!success); return }
+            val affectedNode = affectedNode ?: return check(!success)
+            val originalNext = originalNext ?: return check(!success)
             val update = if (success) updatedNext(affectedNode, originalNext) else originalNext
             if (affectedNode._next.compareAndSet(op, update)) {
                 if (success) finishOnSuccess(affectedNode, originalNext)
@@ -773,6 +815,9 @@ internal fun Any.unwrap(): Node = (this as? Removed)?.ref ?: this as Node
 /**
  * Head (sentinel) item of the linked list that is never removed.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.internal.LockFreeLinkedListHead)
+ *
  * @suppress **This is unstable API and it is subject to change.**
  */
 public open class LockFreeLinkedListHead : LockFreeLinkedListNode() {
@@ -780,6 +825,8 @@ public open class LockFreeLinkedListHead : LockFreeLinkedListNode() {
 
     /**
      * Iterates over all elements in this list of a specified type.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.internal.LockFreeLinkedListHead.forEach)
      */
     public inline fun <reified T : Node> forEach(block: (T) -> Unit) {
         var cur: Node = next as Node

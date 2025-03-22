@@ -9,7 +9,11 @@ import kotlin.reflect.*
 @Deprecated("Not used anymore in common code as it was needed only for JVM target.")
 public actual typealias Type = java.lang.reflect.Type
 
-/** Type with substituted generics. */
+/**
+ * Type with substituted generics.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.reflect.reifiedType)
+ */
 @OptIn(ExperimentalStdlibApi::class)
 public val TypeInfo.reifiedType: java.lang.reflect.Type
     // Fallback to a type without generics if we couldn't get KType.
@@ -22,6 +26,8 @@ public fun typeInfoImpl(reifiedType: Type, kClass: KClass<*>, kType: KType?): Ty
 
 /**
  * Check [this] is instance of [type].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.reflect.instanceOf)
  */
 public actual fun Any.instanceOf(type: KClass<*>): Boolean = type.java.isInstance(this)
 

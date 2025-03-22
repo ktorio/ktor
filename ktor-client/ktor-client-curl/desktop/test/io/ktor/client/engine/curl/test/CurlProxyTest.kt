@@ -1,56 +1,50 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.engine.curl.test
 
-import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.engine.curl.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.client.test.base.*
 import io.ktor.http.*
-import io.ktor.utils.io.core.*
-import kotlinx.coroutines.*
-import kotlin.test.*
+import kotlinx.coroutines.runBlocking
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+
+private const val HTTP_PROXY_SERVER: String = TCP_SERVER
+private const val TEST_SERVER_HTTPS = "https://localhost:8089/"
 
 /**
  * This is a temporary tests that should be moved to the general test suite
  * once we support TLS options in client configs to connect to the local test TLS server.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.curl.test.CurlProxyTest)
  */
-class CurlProxyTest {
-    /**
-     * Copied from ktor-client-tests
-     */
-    private val TEST_SERVER: String = "http://127.0.0.1:8080"
-
-    /**
-     * Proxy server url for tests.
-     * Copied from ktor-client-tests
-     */
-    private val HTTP_PROXY_SERVER: String = "http://127.0.0.1:8082"
+class CurlProxyTest : ClientEngineTest<CurlClientEngineConfig>(Curl) {
 
     @Test
-    fun plainHttpTest() {
-        val client = HttpClient(Curl) {
+    fun plainHttpTest() = testClient {
+        config {
             engine {
                 proxy = ProxyBuilder.http(HTTP_PROXY_SERVER)
             }
         }
 
-        client.use {
+        test { client ->
             runBlocking {
-                // replace with once moved to ktor-client-tests
-//                assertEquals("Hello", client.get<String>("$TEST_SERVER/content/hello"))
-                assertEquals("proxy", client.get("http://google.com/").body())
+                assertEquals("proxy", client.get("$TEST_SERVER/content/hello").body())
             }
         }
     }
 
     @Test
-    fun httpsOverTunnelTestSecured() {
-        val client = HttpClient(Curl) {
+    fun httpsOverTunnelTestSecured() = testClient {
+        config {
             engine {
                 forceProxyTunneling = true
                 sslVerify = true
@@ -59,18 +53,16 @@ class CurlProxyTest {
             }
         }
 
-        runBlocking {
-            client.use {
-                assertFailsWith<IllegalStateException> {
-                    client.get("https://localhost:8089/")
-                }
+        test { client ->
+            assertFailsWith<IllegalStateException> {
+                client.get(TEST_SERVER_HTTPS)
             }
         }
     }
 
     @Test
-    fun httpsOverTunnelTest() {
-        val client = HttpClient(Curl) {
+    fun httpsOverTunnelTest() = testClient {
+        config {
             engine {
                 forceProxyTunneling = true
                 sslVerify = false
@@ -79,14 +71,12 @@ class CurlProxyTest {
             }
         }
 
-        runBlocking {
-            client.use {
-                client.get("https://localhost:8089/").let { response ->
-                    assertEquals(HttpStatusCode.OK, response.status)
-                    assertEquals("Hello, TLS!", response.bodyAsText())
-                    assertEquals("text/plain;charset=utf-8", response.headers[HttpHeaders.ContentType])
-                    assertEquals("TLS test server", response.headers["X-Comment"])
-                }
+        test { client ->
+            client.get(TEST_SERVER_HTTPS).let { response ->
+                assertEquals(HttpStatusCode.OK, response.status)
+                assertEquals("Hello, TLS!", response.bodyAsText())
+                assertEquals("text/plain;charset=utf-8", response.headers[HttpHeaders.ContentType])
+                assertEquals("TLS test server", response.headers["X-Comment"])
             }
         }
     }

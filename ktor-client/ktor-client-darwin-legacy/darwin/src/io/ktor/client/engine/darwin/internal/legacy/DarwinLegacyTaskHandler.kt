@@ -4,7 +4,6 @@
 
 package io.ktor.client.engine.darwin.internal.legacy
 
-import io.ktor.client.plugins.sse.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.date.*
@@ -71,7 +70,7 @@ internal class DarwinLegacyTaskHandler(
     @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class, InternalAPI::class)
     fun NSHTTPURLResponse.toResponseData(requestData: HttpRequestData): HttpResponseData {
         val status = HttpStatusCode.fromValue(statusCode.convert())
-        val headers = readHeaders()
+        val headers = readHeaders(requestData.method, requestData.attributes)
         val responseBody: Any = requestData.attributes.getOrNull(ResponseAdapterAttributeKey)
             ?.adapt(requestData, status, headers, body, requestData.body, callContext)
             ?: body

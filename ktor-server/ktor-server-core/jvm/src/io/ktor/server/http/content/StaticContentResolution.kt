@@ -15,6 +15,9 @@ import java.net.*
 import java.util.concurrent.ConcurrentHashMap
 
 /**
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.resolveResource)
+ *
  * @param path is a relative path to the resource
  * @param resourcePackage is a base package the path to be appended to
  * @param mimeResolve is a function that resolves content type by file extension, optional
@@ -71,6 +74,8 @@ internal fun Application.resolveResource(
 /**
  * Attempt to find a local file or a file inside of zip. This is not required but very good to have
  * to improve performance and unnecessary [java.io.InputStream] creation.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.resourceClasspathResource)
  */
 @InternalAPI
 public fun resourceClasspathResource(

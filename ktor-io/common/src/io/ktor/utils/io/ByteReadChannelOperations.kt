@@ -1,8 +1,6 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
-
-@file:Suppress("DEPRECATION")
 
 package io.ktor.utils.io
 
@@ -14,7 +12,6 @@ import kotlinx.io.Buffer
 import kotlinx.io.bytestring.*
 import kotlinx.io.unsafe.*
 import kotlin.coroutines.*
-import kotlin.jvm.*
 import kotlin.math.*
 
 @OptIn(InternalAPI::class)
@@ -25,6 +22,9 @@ public val ByteWriteChannel.availableForWrite: Int
  * Suspends the channel until it is exhausted or gets closed.
  * If the read buffer is empty, it suspends until there are bytes available in the channel.
  * Once the channel is exhausted or closed, this function returns.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.exhausted)
  *
  * @return `true` if the channel is exhausted, `false` if EOF is reached or an error occurred.
  */
@@ -63,10 +63,32 @@ public suspend fun ByteReadChannel.readInt(): Int {
     return readBuffer.readInt()
 }
 
+/**
+ * Reads a 32-bit floating-point value from the current [ByteReadChannel].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readFloat)
+ */
+@OptIn(InternalAPI::class)
+public suspend fun ByteReadChannel.readFloat(): Float {
+    awaitUntilReadable(Float.SIZE_BYTES)
+    return readBuffer.readFloat()
+}
+
 @OptIn(InternalAPI::class)
 public suspend fun ByteReadChannel.readLong(): Long {
     awaitUntilReadable(Long.SIZE_BYTES)
     return readBuffer.readLong()
+}
+
+/**
+ * Reads a 32-bit floating-point value from the current [ByteReadChannel].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readDouble)
+ */
+@OptIn(InternalAPI::class)
+public suspend fun ByteReadChannel.readDouble(): Double {
+    awaitUntilReadable(Double.SIZE_BYTES)
+    return readBuffer.readDouble()
 }
 
 private suspend fun ByteReadChannel.awaitUntilReadable(numberOfBytes: Int) {
@@ -131,6 +153,9 @@ public suspend fun ByteReadChannel.copyAndClose(channel: ByteWriteChannel): Long
 /**
  * Reads a line of UTF-8 characters from the `ByteReadChannel`.
  * It recognizes CR, LF and CRLF as line delimiters.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readUTF8Line)
  *
  * @param max the maximum number of characters to read. Default is [Int.MAX_VALUE].
  * @return a string containing the line read, or null if channel is closed
@@ -223,7 +248,10 @@ public suspend fun ByteReadChannel.readRemaining(max: Long): Source {
 }
 
 /**
- * Reads all available bytes to [dst] buffer and returns immediately or suspends if no bytes available
+ * Reads all available bytes to [buffer] and returns immediately or suspends if no bytes available
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readAvailable)
+ *
  * @return number of bytes were read or `-1` if the channel has been closed
  */
 @OptIn(InternalAPI::class)
@@ -247,6 +275,9 @@ public suspend fun ByteReadChannel.readAvailable(
  * Warning: it is not guaranteed that all of available bytes will be represented as a single byte buffer
  * eg: it could be 4 bytes available for read but the provided byte buffer could have only 2 available bytes:
  * in this case you have to invoke read again (with decreased [min] accordingly).
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readAvailable)
  *
  * @param min amount of bytes available for read, should be positive
  * @param block to be invoked when at least [min] bytes available
@@ -299,7 +330,6 @@ public fun CoroutineScope.reader(
             channel.close(cause)
         } finally {
             nested.join()
-            runCatching { channel.flushAndClose() }
         }
     }.apply {
         invokeOnCompletion {
@@ -309,11 +339,14 @@ public fun CoroutineScope.reader(
         }
     }
 
-    return ReaderJob(channel, job)
+    return ReaderJob(channel.onClose { job.join() }, job)
 }
 
 /**
  * Reads a packet of [packet] bytes from the channel.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readPacket)
  *
  * @throws EOFException if the channel is closed before the packet is fully read.
  */
@@ -357,9 +390,14 @@ public suspend fun ByteReadChannel.discard(max: Long = Long.MAX_VALUE): Long {
     return max - remaining
 }
 
+private const val CR: Byte = '\r'.code.toByte()
+private const val LF: Byte = '\n'.code.toByte()
+
 /**
  * Reads a line of UTF-8 characters to the specified [out] buffer.
  * It recognizes CR, LF and CRLF as a line delimiter.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readUTF8LineTo)
  *
  * @param out the buffer to write the line to
  * @param max the maximum number of characters to read
@@ -367,67 +405,81 @@ public suspend fun ByteReadChannel.discard(max: Long = Long.MAX_VALUE): Long {
  * @return `true` if a new line separator was found or max bytes appended. `false` if no new line separator and no bytes read.
  * @throws TooLongLineException if max is reached before encountering a newline or end of input
  */
-@OptIn(InternalAPI::class, InternalIoApi::class)
+@OptIn(InternalAPI::class)
 public suspend fun ByteReadChannel.readUTF8LineTo(out: Appendable, max: Int = Int.MAX_VALUE): Boolean {
+    return readUTF8LineTo(out, max, lineEnding = LineEndingMode.Any)
+}
+
+/**
+ * Reads a line of UTF-8 characters to the specified [out] buffer.
+ * It recognizes the specified line ending as a line delimiter and throws an exception
+ * if an unexpected line delimiter is found.
+ * By default, all line endings (CR, LF and CRLF) are allowed as a line delimiter.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readUTF8LineTo)
+ *
+ * @param out the buffer to write the line to
+ * @param max the maximum number of characters to read
+ * @param lineEnding the allowed line endings
+ *
+ * @return `true` if a new line separator was found or max bytes appended. `false` if no new line separator and no bytes read.
+ * @throws TooLongLineException if max is reached before encountering a newline or end of input
+ */
+@InternalAPI
+@OptIn(InternalIoApi::class)
+public suspend fun ByteReadChannel.readUTF8LineTo(
+    out: Appendable,
+    max: Int = Int.MAX_VALUE,
+    lineEnding: LineEndingMode = LineEndingMode.Any,
+): Boolean {
     if (readBuffer.exhausted()) awaitContent()
     if (isClosedForRead) return false
 
-    var consumed = 0
-    while (!isClosedForRead) {
-        awaitContent()
-
-        val cr = readBuffer.indexOf('\r'.code.toByte())
-        val lf = readBuffer.indexOf('\n'.code.toByte())
-
-        // No new line separator
-        if (cr == -1L && lf == -1L) {
-            if (max == Int.MAX_VALUE) {
-                val value = readBuffer.readString()
-                out.append(value)
-            } else {
-                val count = minOf(max - consumed, readBuffer.remaining.toInt())
-                consumed += count
-                out.append(readBuffer.readString(count.toLong()))
-
-                if (consumed == max) throw TooLongLineException("Line exceeds limit of $max characters")
-            }
-
-            continue
-        }
-
-        // CRLF fully in buffer
-        if (cr >= 0 && lf == cr + 1) {
-            val count = if (max != Int.MAX_VALUE) cr else minOf(max - consumed, cr.toInt()).toLong()
-            out.append(readBuffer.readString(count))
-            if (count == cr) readBuffer.discard(2)
-            return true
-        }
-
-        // CR in buffer before LF
-        if (cr >= 0 && (lf == -1L || cr < lf)) {
-            val count = if (max != Int.MAX_VALUE) cr else minOf(max - consumed, cr.toInt()).toLong()
-            out.append(readBuffer.readString(count))
-            if (count == cr) readBuffer.discard(1)
-
-            // Check if LF follows CR after awaiting
-            if (readBuffer.exhausted()) awaitContent()
-            if (readBuffer.buffer[0] == '\n'.code.toByte()) {
-                readBuffer.discard(1)
-            }
-
-            return true
-        }
-
-        // LF in buffer before CR
-        if (lf >= 0) {
-            val count = if (max != Int.MAX_VALUE) lf else minOf(max - consumed, lf.toInt()).toLong()
-            out.append(readBuffer.readString(count))
-            if (count == lf) readBuffer.discard(1)
-            return true
+    fun checkLineEndingAllowed(lineEndingToCheck: LineEndingMode) {
+        if (lineEndingToCheck !in lineEnding) {
+            throw IOException("Unexpected line ending $lineEndingToCheck, while expected $lineEnding")
         }
     }
 
-    return true
+    Buffer().use { lineBuffer ->
+        while (!isClosedForRead) {
+            while (!readBuffer.exhausted()) {
+                when (val b = readBuffer.readByte()) {
+                    CR -> {
+                        // Check if LF follows CR after awaiting
+                        if (readBuffer.exhausted()) awaitContent()
+                        if (readBuffer.buffer[0] == LF) {
+                            checkLineEndingAllowed(LineEndingMode.CRLF)
+                            readBuffer.discard(1)
+                        } else {
+                            checkLineEndingAllowed(LineEndingMode.CR)
+                        }
+                        out.append(lineBuffer.readString())
+                        return true
+                    }
+
+                    LF -> {
+                        checkLineEndingAllowed(LineEndingMode.LF)
+                        out.append(lineBuffer.readString())
+                        return true
+                    }
+
+                    else -> lineBuffer.writeByte(b)
+                }
+            }
+            if (lineBuffer.size >= max) {
+                throw TooLongLineException("Line exceeds limit of $max characters")
+            }
+
+            awaitContent()
+        }
+
+        return (lineBuffer.size > 0).also { remaining ->
+            if (remaining) {
+                out.append(lineBuffer.readString())
+            }
+        }
+    }
 }
 
 @OptIn(InternalAPI::class, UnsafeIoApi::class, InternalIoApi::class)
@@ -455,14 +507,16 @@ public val ByteReadChannel.availableForRead: Int
  *
  * Suspension occurs when there are not enough bytes available in the channel.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readFully)
+ *
  * @param out the buffer to write to
  * @param start the index to start writing at
  * @param end the index to write until
  */
 @OptIn(InternalAPI::class)
 public suspend fun ByteReadChannel.readFully(out: ByteArray, start: Int = 0, end: Int = out.size) {
-    if (isClosedForRead) throw EOFException("Channel is already closed")
-
+    if (end > start && isClosedForRead) throw EOFException("Channel is already closed")
     var offset = start
     while (offset < end) {
         if (readBuffer.exhausted()) awaitContent()
@@ -493,6 +547,9 @@ public fun ByteChannel.rethrowCloseCauseIfNeeded() {
  * Reads bytes from the ByteReadChannel until a specified sequence of bytes is encountered or the specified limit is reached.
  *
  * This uses the KMP algorithm for finding the string match using a partial match table.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readUntil)
  *
  * @see [Knuth–Morris–Pratt algorithm](https://en.wikipedia.org/wiki/Knuth%E2%80%93Morris%E2%80%93Pratt_algorithm)
  * @param matchString The sequence of bytes to look for.
@@ -587,6 +644,9 @@ private fun ByteString.toSingleLineString() =
 /**
  * Skips the specified [byteString] in the ByteReadChannel if it is found at the current position.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.skipIfFound)
+ *
  * @param byteString The ByteString to look for and skip if found.
  * @return Returns `true` if the byteString was found and skipped, otherwise returns `false`.
  */
@@ -601,6 +661,9 @@ public suspend fun ByteReadChannel.skipIfFound(byteString: ByteString): Boolean 
 /**
  * Retrieves, but does not consume, up to the specified number of bytes from the current position in this
  * [ByteReadChannel].
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.peek)
  *
  * @param count The number of bytes to peek.
  * @return A [ByteString] containing the bytes that were peeked, or null if unable to peek the specified number of bytes.

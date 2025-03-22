@@ -1,9 +1,10 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
+
 package io.ktor.client.plugins.contentnegotiation.tests
 
-import com.fasterxml.jackson.annotation.*
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.engine.mock.*
@@ -12,6 +13,7 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.client.test.base.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.serialization.*
@@ -25,10 +27,14 @@ import io.ktor.server.websocket.WebSockets
 import io.ktor.utils.io.*
 import io.ktor.websocket.*
 import kotlinx.serialization.*
-import kotlinx.serialization.builtins.*
+import kotlinx.serialization.builtins.ListSerializer
 import kotlin.test.*
 
-/** Base class for [ContentNegotiation] tests. */
+/**
+ * Base class for [ContentNegotiation] tests.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.contentnegotiation.tests.AbstractClientContentNegotiationTest)
+ */
 
 abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
     private val widget = Widget("Foo", 1000, listOf("a", "b", "c"))
@@ -67,6 +73,7 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
     }
 
     protected abstract fun ContentNegotiationConfig.configureContentNegotiation(contentType: ContentType)
+
     protected fun TestClientBuilder<*>.configureClient(
         block: ContentNegotiationConfig.() -> Unit = {}
     ) {
@@ -95,7 +102,8 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
                 Response.serializer(ListSerializer(User.serializer()))
             )
         }
-        get("/users-x") { // route for testing custom content type, namely "application/x-${contentSubtype}"
+        // route for testing custom content type, namely "application/x-${contentSubtype}"
+        get("/users-x") {
             call.respond(
                 """{"ok":true,"result":[{"name":"x","age":10},{"name":"y","age":45}]}""",
                 customContentType,
@@ -174,7 +182,7 @@ abstract class AbstractClientContentNegotiationTest : TestWithKtor() {
         )
 
         test { client ->
-            val cause = kotlin.test.assertFailsWith<JsonConvertException> {
+            val cause = assertFailsWith<JsonConvertException> {
                 client.post {
                     setBody(widget)
                     url(path = "/widget", port = serverPort)

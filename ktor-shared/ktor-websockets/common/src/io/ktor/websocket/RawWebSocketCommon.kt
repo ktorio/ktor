@@ -18,6 +18,9 @@ import kotlin.random.*
 /**
  * Creates a RAW web socket session from connection.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.RawWebSocket)
+ *
  * @param input is a [ByteReadChannel] of connection
  * @param output is a [ByteWriteChannel] of connection
  * @param maxFrameSize is an initial [maxFrameSize] value for [WebSocketSession]
@@ -33,7 +36,7 @@ public expect fun RawWebSocket(
     coroutineContext: CoroutineContext
 ): WebSocketSession
 
-@OptIn(ExperimentalCoroutinesApi::class, InternalAPI::class)
+@OptIn(InternalAPI::class)
 internal class RawWebSocketCommon(
     private val input: ByteReadChannel,
     private val output: ByteWriteChannel,
@@ -55,18 +58,20 @@ internal class RawWebSocketCommon(
 
     private val writerJob = launch(context = CoroutineName("ws-writer"), start = CoroutineStart.ATOMIC) {
         try {
-            mainLoop@ while (true) when (val message = _outgoing.receive()) {
-                is Frame -> {
-                    output.writeFrame(message, masking)
-                    output.flush()
-                    if (message is Frame.Close) break@mainLoop
-                }
+            mainLoop@ while (true) {
+                when (val message = _outgoing.receive()) {
+                    is Frame -> {
+                        output.writeFrame(message, masking)
+                        output.flush()
+                        if (message is Frame.Close) break@mainLoop
+                    }
 
-                is FlushRequest -> {
-                    message.complete()
-                }
+                    is FlushRequest -> {
+                        message.complete()
+                    }
 
-                else -> throw IllegalArgumentException("unknown message $message")
+                    else -> throw IllegalArgumentException("unknown message $message")
+                }
             }
             _outgoing.close()
         } catch (cause: ChannelWriteException) {
@@ -79,9 +84,11 @@ internal class RawWebSocketCommon(
             output.flushAndClose()
         }
 
-        while (true) when (val message = _outgoing.tryReceive().getOrNull() ?: break) {
-            is FlushRequest -> message.complete()
-            else -> {}
+        while (true) {
+            when (val message = _outgoing.tryReceive().getOrNull() ?: break) {
+                is FlushRequest -> message.complete()
+                else -> {}
+            }
         }
     }
 
@@ -160,6 +167,8 @@ private fun Source.mask(maskKey: Int): Source = withMemory(4) { maskMemory ->
 /**
  * Serializes WebSocket [Frame] and writes the bits into the [ByteWriteChannel].
  * If [masking] is true, then data will be masked with random mask
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.writeFrame)
  */
 @InternalAPI // used in tests
 public suspend fun ByteWriteChannel.writeFrame(frame: Frame, masking: Boolean) {
@@ -204,6 +213,9 @@ public suspend fun ByteWriteChannel.writeFrame(frame: Frame, masking: Boolean) {
 
 /**
  * Reads bits from [ByteReadChannel] and converts into a WebSocket [Frame].
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.readFrame)
  *
  * @param maxFrameSize maximum frame size that could be read
  * @param lastOpcode last read opcode

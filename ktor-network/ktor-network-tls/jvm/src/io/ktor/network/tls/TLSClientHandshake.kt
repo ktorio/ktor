@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.network.tls
 
@@ -21,12 +21,14 @@ import javax.crypto.*
 import javax.crypto.spec.*
 import javax.security.auth.x500.*
 import kotlin.coroutines.*
+import kotlin.use
 
 internal class TLSClientHandshake(
     rawInput: ByteReadChannel,
     rawOutput: ByteWriteChannel,
     private val config: TLSConfig,
-    override val coroutineContext: CoroutineContext
+    override val coroutineContext: CoroutineContext,
+    private val closeTask: CompletableJob = Job(),
 ) : CoroutineScope {
     private val digest = Digest()
     private val clientSeed: ByteArray = config.random.generateClientSeed()
@@ -100,34 +102,46 @@ internal class TLSClientHandshake(
         }
     }
 
+    var useCipher = false
+
     @OptIn(ObsoleteCoroutinesApi::class)
     val output: SendChannel<TLSRecord> = actor(CoroutineName("cio-tls-encoder")) {
-        var useCipher = false
+        for (rawRecord in channel) {
+            try {
+                val record = if (useCipher) cipher.encrypt(rawRecord) else rawRecord
+                if (rawRecord.type == TLSRecordType.ChangeCipherSpec) useCipher = true
 
-        try {
-            for (rawRecord in channel) {
+                rawOutput.writeRecord(record)
+            } catch (cause: Throwable) {
+                channel.close(cause)
+                break
+            }
+        }
+    }.apply {
+        invokeOnClose {
+            launch(CoroutineName("cio-tls-closer")) {
                 try {
-                    val record = if (useCipher) cipher.encrypt(rawRecord) else rawRecord
-                    if (rawRecord.type == TLSRecordType.ChangeCipherSpec) useCipher = true
-
+                    val closeRecord = TLSRecord(
+                        TLSRecordType.Alert,
+                        packet = buildPacket {
+                            writeByte(TLSAlertLevel.WARNING.code.toByte())
+                            writeByte(TLSAlertType.CloseNotify.code.toByte())
+                        }
+                    )
+                    val record = if (useCipher) cipher.encrypt(closeRecord) else closeRecord
                     rawOutput.writeRecord(record)
-                } catch (cause: Throwable) {
-                    channel.close(cause)
+                    rawOutput.flushAndClose()
+                } finally {
+                    closeTask.complete()
                 }
             }
-        } finally {
-            rawOutput.writeRecord(
-                TLSRecord(
-                    TLSRecordType.Alert,
-                    packet = buildPacket {
-                        writeByte(TLSAlertLevel.WARNING.code.toByte())
-                        writeByte(TLSAlertType.CloseNotify.code.toByte())
-                    }
-                )
-            )
-
-            rawOutput.flushAndClose()
         }
+    }
+
+    fun close(): Job {
+        input.cancel()
+        output.close()
+        return closeTask
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -388,9 +402,10 @@ internal class TLSClientHandshake(
 
             if (hasHashAndSignInCommon) return@find false
 
-            info.authorities.isEmpty() || candidate.certificateChain
-                .map { X500Principal(it.issuerX500Principal.name) }
-                .any { it in info.authorities }
+            info.authorities.isEmpty() ||
+                candidate.certificateChain
+                    .map { X500Principal(it.issuerX500Principal.name) }
+                    .any { it in info.authorities }
         }
 
         sendHandshakeRecord(TLSHandshakeType.Certificate) {

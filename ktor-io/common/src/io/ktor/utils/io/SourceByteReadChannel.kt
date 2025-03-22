@@ -4,30 +4,32 @@
 
 package io.ktor.utils.io
 
-import io.ktor.utils.io.core.*
-import kotlinx.io.*
-import kotlin.concurrent.*
+import kotlinx.io.IOException
+import kotlinx.io.InternalIoApi
+import kotlinx.io.Source
+import kotlin.concurrent.Volatile
 
 internal class SourceByteReadChannel(private val source: Source) : ByteReadChannel {
     @Volatile
     private var closed: CloseToken? = null
 
     override val closedCause: Throwable?
-        get() = closed?.cause
+        get() = closed?.wrapCause()
 
     override val isClosedForRead: Boolean
         get() = source.exhausted()
 
+    @OptIn(InternalIoApi::class)
     @InternalAPI
     override val readBuffer: Source
         get() {
             closedCause?.let { throw it }
-            return source
+            return source.buffer
         }
 
     override suspend fun awaitContent(min: Int): Boolean {
         closedCause?.let { throw it }
-        return source.remaining >= min
+        return source.request(min.toLong())
     }
 
     override fun cancel(cause: Throwable?) {

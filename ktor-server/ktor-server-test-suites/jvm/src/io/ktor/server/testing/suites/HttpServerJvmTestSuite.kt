@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.testing.suites
@@ -25,6 +25,7 @@ import kotlin.coroutines.*
 import kotlin.test.*
 import kotlin.text.toByteArray
 import kotlin.time.Duration.Companion.seconds
+import kotlin.use
 
 abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
@@ -314,7 +315,6 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
         }
     }
 
-    @OptIn(InternalAPI::class)
     @Test
     open fun testUpgrade() = runTest {
         val completed = CompletableDeferred<Unit>()
@@ -399,14 +399,13 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
             val response = parseResponse(ch)!!
 
             assertEquals(HttpStatusCode.SwitchingProtocols.value, response.status)
-            assertEquals("Upgrade", response.headers[HttpHeaders.Connection]?.toString())
-            assertEquals("up", response.headers[HttpHeaders.Upgrade]?.toString())
+            assertEquals("Upgrade", response.headers[HttpHeaders.Connection].toString())
+            assertEquals("up", response.headers[HttpHeaders.Upgrade].toString())
 
-            (0 until response.headers.size)
-                .map { response.headers.nameAt(it).toString() }
-                .groupBy { it }.forEach { (name, values) ->
-                    assertEquals(1, values.size, "Duplicate header $name")
-                }
+            response.headers.offsets()
+                .map { response.headers.nameAtOffset(it).toString() }
+                .groupBy { it }
+                .forEach { (name, values) -> assertEquals(1, values.size, "Duplicate header $name") }
 
             outputStream.apply {
                 writePacket {
@@ -497,9 +496,13 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
 
     protected fun clearSocketResponses(responses: Sequence<String>) =
         responses.filterNot { line ->
-            line.startsWith("Date") || line.startsWith("Server") ||
-                line.startsWith("Content-") || line.toIntOrNull() != null ||
-                line.isBlank() || line.startsWith("Connection") || line.startsWith("Keep-Alive")
+            line.startsWith("Date") ||
+                line.startsWith("Server") ||
+                line.startsWith("Content-") ||
+                line.toIntOrNull() != null ||
+                line.isBlank() ||
+                line.startsWith("Connection") ||
+                line.startsWith("Keep-Alive")
         }
             .map { it.trim() }
             .joinToString(separator = "\n")

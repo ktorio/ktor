@@ -11,6 +11,8 @@ import kotlinx.io.*
  * This is a **single-reader channel**.
  *
  * Operations on this channel cannot be invoked concurrently.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.ByteReadChannel)
  */
 public interface ByteReadChannel {
 
@@ -24,6 +26,9 @@ public interface ByteReadChannel {
     /**
      * Suspend the channel until it has [min] bytes or gets closed. Throws exception if the channel was closed with an
      * error. If there are bytes available in the channel, this function returns immediately.
+     *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.ByteReadChannel.awaitContent)
      *
      * @return return `false` eof is reached, otherwise `true`.
      */

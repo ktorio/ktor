@@ -24,9 +24,11 @@ import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.test.*
-import kotlin.coroutines.*
+import kotlinx.coroutines.test.runTest
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.coroutineContext
 import kotlin.test.*
+import kotlin.time.Duration.Companion.seconds
 
 class TestApplicationTest {
 
@@ -85,6 +87,19 @@ class TestApplicationTest {
         val response = client.get("a")
         assertEquals("OK", response.bodyAsText())
         assertEquals("value_1", response.headers["response_header"])
+    }
+
+    @Test // KTOR-7682
+    fun testApplicationBlockStartBeforeClientCall() = runTest(timeout = 5.seconds) {
+        val application = TestApplication {
+            serverConfig {
+                parentCoroutineContext = coroutineContext
+            }
+        }
+
+        application.start()
+        application.client.get("/")
+        application.stop()
     }
 
     @Test
@@ -310,17 +325,14 @@ class TestApplicationTest {
     }
 
     @Test
-    fun testExceptionThrowsByDefault() = testApplication {
+    fun testInternalServerError() = testApplication {
         routing {
             get("/boom") {
                 throw IllegalStateException("error")
             }
         }
 
-        val error = assertFailsWith<IllegalStateException> {
-            client.get("/boom")
-        }
-        assertEquals("error", error.message)
+        assertEquals(HttpStatusCode.InternalServerError, client.get("/boom").status)
     }
 
     @Test

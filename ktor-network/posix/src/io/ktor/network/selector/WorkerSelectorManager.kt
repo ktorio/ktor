@@ -1,17 +1,15 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.network.selector
 
 import kotlinx.coroutines.*
+import kotlinx.io.*
 import kotlin.coroutines.*
 
-@OptIn(ExperimentalCoroutinesApi::class)
-internal class WorkerSelectorManager : SelectorManager {
-    @OptIn(DelicateCoroutinesApi::class)
-    private val selectorContext = newSingleThreadContext("WorkerSelectorManager")
-    private val job = Job()
-    override val coroutineContext: CoroutineContext = selectorContext + job
+internal class WorkerSelectorManager(context: CoroutineContext) : SelectorManager {
+    override val coroutineContext: CoroutineContext = context + CoroutineName("selector")
 
     private val selector = SelectorHelper()
 
@@ -30,14 +28,12 @@ internal class WorkerSelectorManager : SelectorManager {
         return suspendCancellableCoroutine { continuation ->
             val selectorState = EventInfo(selectable.descriptor, interest, continuation)
             if (!selector.interest(selectorState)) {
-                continuation.resumeWithException(CancellationException("Selector closed."))
+                continuation.resumeWithException(IOException("Selector closed."))
             }
         }
     }
 
     override fun close() {
         selector.requestTermination()
-        selectorContext.close()
-        job.cancel()
     }
 }

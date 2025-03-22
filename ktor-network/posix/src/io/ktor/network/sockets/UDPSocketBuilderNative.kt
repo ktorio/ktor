@@ -9,8 +9,8 @@ import io.ktor.network.util.*
 import kotlinx.cinterop.*
 import platform.posix.*
 
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
-internal actual fun connectUDP(
+@OptIn(ExperimentalForeignApi::class)
+internal actual suspend fun udpConnect(
     selector: SelectorManager,
     remoteAddress: SocketAddress,
     localAddress: SocketAddress?,
@@ -21,9 +21,8 @@ internal actual fun connectUDP(
     val address = localAddress?.address ?: getAnyLocalAddress()
 
     val descriptor = ktor_socket(address.family.convert(), SOCK_DGRAM, 0).check()
-    val selectable = SelectableNative(descriptor)
 
-    try {
+    buildOrCloseSocket(descriptor) {
         assignOptions(descriptor, options)
         nonBlocking(descriptor)
 
@@ -36,22 +35,16 @@ internal actual fun connectUDP(
         }
 
         return DatagramSocketNative(
-            descriptor = descriptor,
             selector = selector,
-            selectable = selectable,
+            descriptor = descriptor,
             remote = remoteAddress,
             parent = selector.coroutineContext
         )
-    } catch (throwable: Throwable) {
-        ktor_shutdown(descriptor, ShutdownCommands.Both)
-        // Descriptor is closed by the selector manager
-        selector.notifyClosed(selectable)
-        throw throwable
     }
 }
 
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
-internal actual fun bindUDP(
+@OptIn(ExperimentalForeignApi::class)
+internal actual suspend fun udpBind(
     selector: SelectorManager,
     localAddress: SocketAddress?,
     options: SocketOptions.UDPSocketOptions
@@ -61,9 +54,8 @@ internal actual fun bindUDP(
     val address = localAddress?.address ?: getAnyLocalAddress()
 
     val descriptor = ktor_socket(address.family.convert(), SOCK_DGRAM, 0).check()
-    val selectable = SelectableNative(descriptor)
 
-    try {
+    buildOrCloseSocket(descriptor) {
         assignOptions(descriptor, options)
         nonBlocking(descriptor)
 
@@ -72,16 +64,10 @@ internal actual fun bindUDP(
         }
 
         return DatagramSocketNative(
-            descriptor = descriptor,
             selector = selector,
-            selectable = selectable,
+            descriptor = descriptor,
             remote = null,
             parent = selector.coroutineContext
         )
-    } catch (throwable: Throwable) {
-        ktor_shutdown(descriptor, ShutdownCommands.Both)
-        // Descriptor is closed by the selector manager
-        selector.notifyClosed(selectable)
-        throw throwable
     }
 }

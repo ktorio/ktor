@@ -13,6 +13,8 @@ import kotlin.reflect.*
 /**
  * Represents request and connection parameters possibly overridden via https headers.
  * By default, it fallbacks to [ApplicationRequest.local]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.origin)
  */
 
 public val ApplicationRequest.origin: RequestConnectionPoint
@@ -20,6 +22,8 @@ public val ApplicationRequest.origin: RequestConnectionPoint
 
 /**
  * A key to install a mutable [RequestConnectionPoint]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.MutableOriginConnectionPointKey)
  */
 @Deprecated("This API will be redesigned as per https://youtrack.jetbrains.com/issue/KTOR-2657")
 public val MutableOriginConnectionPointKey: AttributeKey<MutableOriginConnectionPoint> =
@@ -31,6 +35,8 @@ public val MutableOriginConnectionPointKey: AttributeKey<MutableOriginConnection
  * and [RequestConnectionPoint.serverPort] overridden by [HttpHeaders.Host] header value.
  * Users can assign new values parsed from [HttpHeaders.Forwarded], [HttpHeaders.XForwardedHost], etc.
  * See [XForwardedHeaders] and [ForwardedHeaders].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.MutableOriginConnectionPoint)
  */
 public class MutableOriginConnectionPoint internal constructor(
     delegate: RequestConnectionPoint
@@ -125,6 +131,8 @@ internal class OriginConnectionPoint(
 
 /**
  * Returns [MutableOriginConnectionPoint] associated with this call
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.mutableOriginConnectionPoint)
  */
 
 public val ApplicationCall.mutableOriginConnectionPoint: MutableOriginConnectionPoint

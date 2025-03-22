@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests
@@ -11,6 +11,7 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
+import io.ktor.client.test.base.*
 import io.ktor.client.tests.utils.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
@@ -18,8 +19,9 @@ import io.ktor.http.content.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import kotlinx.coroutines.*
-import kotlinx.io.*
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.io.readByteArray
 import kotlin.test.*
 import kotlin.time.Duration.Companion.minutes
 
@@ -42,7 +44,7 @@ val testArrays = testSize.map {
     makeArray(it)
 }
 
-class ContentTest : ClientLoader(5 * 60) {
+class ContentTest : ClientLoader() {
 
     @Test
     fun testGetFormData() = clientTests {
@@ -98,7 +100,7 @@ class ContentTest : ClientLoader(5 * 60) {
     }
 
     @Test
-    fun testSendByteReadChannel() = clientTests(listOf("Js")) {
+    fun testSendByteReadChannel() = clientTests(except("Js")) {
         config {
             install(HttpTimeout) {
                 socketTimeoutMillis = 1.minutes.inWholeMilliseconds
@@ -119,7 +121,7 @@ class ContentTest : ClientLoader(5 * 60) {
     }
 
     @Test
-    fun testSendByteWriteChannel() = clientTests(listOf("Js")) {
+    fun testSendByteWriteChannel() = clientTests(except("Js")) {
         config {
             install(HttpTimeout) {
                 socketTimeoutMillis = 1.minutes.inWholeMilliseconds
@@ -145,7 +147,7 @@ class ContentTest : ClientLoader(5 * 60) {
     }
 
     @Test
-    fun testString() = clientTests(listOf("Darwin", "CIO", "DarwinLegacy")) {
+    fun testString() = clientTests(except("Darwin", "CIO", "DarwinLegacy"), retries = 10) {
         test { client ->
             testStrings.forEach { content ->
                 val requestWithBody = client.echo<String>(content)
@@ -175,7 +177,7 @@ class ContentTest : ClientLoader(5 * 60) {
     }
 
     @Test
-    fun testTextContent() = clientTests(listOf("Darwin", "CIO", "DarwinLegacy")) {
+    fun testTextContent() = clientTests(except("Darwin", "CIO", "DarwinLegacy")) {
         test { client ->
             testStrings.forEach { content ->
                 val response = client.echo<String>(TextContent(content, ContentType.Text.Plain))
@@ -347,7 +349,7 @@ class ContentTest : ClientLoader(5 * 60) {
     }
 
     @Test
-    fun testDownloadStreamResponseWithClose() = clientTests(onlyWithEngine = "CIO") {
+    fun testDownloadStreamResponseWithClose() = clientTests(only("CIO")) {
         test { client ->
             client.prepareGet("$TEST_SERVER/content/stream").execute {
             }
@@ -356,7 +358,7 @@ class ContentTest : ClientLoader(5 * 60) {
 
     // NSUrlSession buffers first 512 bytes
     @Test
-    fun testDownloadStream() = clientTests(listOf("Darwin", "DarwinLegacy")) {
+    fun testDownloadStream() = clientTests(except("Darwin", "DarwinLegacy")) {
         test { client ->
             client.prepareGet("$TEST_SERVER/content/stream?delay=100").execute {
                 val channel = it.bodyAsChannel()
@@ -392,6 +394,8 @@ class ContentTest : ClientLoader(5 * 60) {
     /**
      * This is a bit of an edge case where the initial content reader fails to read the response body
      * before a second reader comes in. When this happens, we simply cancel the initial reader.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.tests.ContentTest.testSaveBody)
      */
     @OptIn(InternalAPI::class)
     @Test
@@ -403,16 +407,18 @@ class ContentTest : ClientLoader(5 * 60) {
                 HttpResponseValidator {
                     validateResponse { response ->
                         val channel = response.rawContent
-                        for (i in 0..100)
+                        for (i in 0..100) {
                             assertEquals(expected, channel.readByteArray(expected.length).decodeToString())
+                        }
                     }
                 }
             }.get("$TEST_SERVER/content/big-plain-text").bodyAsText()
 
             val lines = responseText.trim().lines()
             assertEquals(10_000, lines.size, "Should be same number of lines")
-            for ((i, line) in lines.withIndex())
+            for ((i, line) in lines.withIndex()) {
                 assertEquals(expected.trim(), line, "Difference on line $i")
+            }
         }
     }
 

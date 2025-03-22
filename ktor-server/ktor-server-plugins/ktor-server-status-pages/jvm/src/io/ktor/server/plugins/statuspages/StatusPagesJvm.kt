@@ -12,6 +12,9 @@ import io.ktor.util.pipeline.*
 
 /**
  * Register a status page file(s) using [filePattern] for multiple status [code] list
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.statuspages.statusFile)
+ *
  * @param code vararg list of status codes handled by this configuration
  * @param filePattern path to status file with optional `#` character(s) that will be replaced with numeric status code
  */
@@ -30,6 +33,8 @@ public fun StatusPagesConfig.statusFile(vararg code: HttpStatusCode, filePattern
 
 /**
  * Register an exception [handler] for the exception class [klass] and its children
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.statuspages.exception)
  */
 public fun <T : Throwable> StatusPagesConfig.exception(
     klass: Class<T>,

@@ -18,7 +18,10 @@ class CacheTest {
         val timeout = BaseTimeoutCache(
             1000L,
             true,
-            BaseCache<Int, String> { counter.incrementAndGet(); it.toString() }
+            BaseCache<Int, String> {
+                counter.incrementAndGet()
+                it.toString()
+            }
         )
 
         assertEquals("1", timeout.getOrCompute(1))
@@ -33,7 +36,10 @@ class CacheTest {
         val timeout = BaseTimeoutCache(
             10L,
             true,
-            BaseCache<Int, String> { counter.incrementAndGet(); it.toString() }
+            BaseCache<Int, String> {
+                counter.incrementAndGet()
+                it.toString()
+            }
         )
 
         assertEquals("1", timeout.getOrCompute(1))

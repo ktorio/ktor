@@ -7,6 +7,7 @@ package io.ktor.client.plugins.logging
 import io.ktor.utils.io.*
 import kotlin.coroutines.*
 
+@Suppress("FunctionName")
 @InternalAPI
 public actual fun MDCContext(): CoroutineContext.Element = MDCContextElement
 

@@ -23,6 +23,9 @@ import kotlinx.coroutines.*
  * It creates default engine pipeline, provides [application] property and installs default transformations
  * on respond and receive
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.BaseApplicationEngine)
+ *
  * @param environment instance of [ApplicationEnvironment] for this engine
  * @param pipeline pipeline to use with this engine
  */
@@ -35,6 +38,8 @@ public abstract class BaseApplicationEngine(
 
     /**
      * Configuration for the [BaseApplicationEngine].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.BaseApplicationEngine.Configuration)
      */
     public open class Configuration : ApplicationEngine.Configuration()
 
@@ -46,6 +51,7 @@ public abstract class BaseApplicationEngine(
         val pipeline = pipeline
 
         BaseApplicationResponse.setupSendPipeline(pipeline.sendPipeline)
+        BaseApplicationResponse.setupFallbackResponse(pipeline, environment.log)
 
         monitor.subscribe(ApplicationStarting) {
             if (!info.isFirstLoading) {
@@ -58,6 +64,7 @@ public abstract class BaseApplicationEngine(
             it.installDefaultInterceptors()
             it.installDefaultTransformationChecker()
         }
+
         monitor.subscribe(ApplicationStarted) {
             val finishedAt = getTimeMillis()
             val elapsedTimeInSeconds = (finishedAt - info.initializedStartAt) / 1_000.0
@@ -110,7 +117,7 @@ private fun Application.installDefaultTransformationChecker() {
     intercept(ApplicationCallPipeline.Plugins) {
         try {
             proceed()
-        } catch (e: CannotTransformContentToTypeException) {
+        } catch (_: CannotTransformContentToTypeException) {
             call.respond(HttpStatusCode.UnsupportedMediaType)
         }
     }

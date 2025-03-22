@@ -13,7 +13,7 @@ import java.nio.channels.*
 internal class ServerSocketImpl(
     override val channel: ServerSocketChannel,
     val selector: SelectorManager
-) : ServerSocket, Selectable by SelectableBase(channel) {
+) : SelectableBase(), ServerSocket {
     init {
         require(!channel.isBlocking) { "Channel need to be configured as non-blocking." }
     }
@@ -68,9 +68,5 @@ internal class ServerSocketImpl(
         } catch (cause: Throwable) {
             socketContext.completeExceptionally(cause)
         }
-    }
-
-    override fun dispose() {
-        super.dispose()
     }
 }

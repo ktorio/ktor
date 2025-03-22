@@ -8,6 +8,8 @@ import io.ktor.client.engine.*
 
 /**
  * A configuration for the [Curl] client engine.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.curl.CurlClientEngineConfig)
  */
 public class CurlClientEngineConfig : HttpClientEngineConfig() {
     /**
@@ -17,11 +19,15 @@ public class CurlClientEngineConfig : HttpClientEngineConfig() {
 
     /**
      * Sets path to Certificate Authority (CA) bundle using `CURLOPT_CAINFO`.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.curl.CurlClientEngineConfig.caInfo)
      */
     public var caInfo: String? = null
 
     /**
      * Sets directory that holds Certificate Authority (CA) certificates using `CURLOPT_CAPATH`.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.curl.CurlClientEngineConfig.caPath)
      */
     public var caPath: String? = null
 
@@ -31,6 +37,8 @@ public class CurlClientEngineConfig : HttpClientEngineConfig() {
      * Similar to `-k/--insecure` curl option.
      *
      * Setting this property to `false` is recommended only for testing purposes.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.curl.CurlClientEngineConfig.sslVerify)
      */
     public var sslVerify: Boolean = true
 }

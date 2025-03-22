@@ -1,16 +1,18 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.tests
 
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
-import io.ktor.client.tests.utils.*
+import io.ktor.client.test.base.*
 import io.ktor.serialization.kotlinx.json.*
-import kotlinx.serialization.*
-import kotlin.test.*
+import kotlinx.serialization.Polymorphic
+import kotlinx.serialization.Serializable
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class JsonTest : ClientLoader() {
     @Serializable
@@ -20,9 +22,8 @@ class JsonTest : ClientLoader() {
     @Polymorphic
     data class Result<T>(val message: String, val data: T)
 
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
-    fun testUserGenerics() = clientTests(listOf("js")) {
+    fun testUserGenerics() = clientTests(except("Js")) {
         config {
             install(ContentNegotiation) { json() }
         }

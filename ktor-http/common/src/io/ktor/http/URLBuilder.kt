@@ -1,16 +1,21 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.http
 
 /**
  * Select default port value from protocol.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.DEFAULT_PORT)
  */
 public const val DEFAULT_PORT: Int = 0
 
 /**
  * A URL builder with all mutable components
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.URLBuilder)
  *
  * @property protocol URL protocol (scheme)
  * @property host name without port (domain)
@@ -44,7 +49,9 @@ public class URLBuilder(
     public var protocolOrNull: URLProtocol? = protocol
     public var protocol: URLProtocol
         get() = protocolOrNull ?: URLProtocol.HTTP
-        set(value) { protocolOrNull = value }
+        set(value) {
+            protocolOrNull = value
+        }
 
     public var encodedUser: String? = user?.encodeURLParameter()
 
@@ -87,19 +94,22 @@ public class URLBuilder(
 
     /**
      * Build a URL string
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.URLBuilder.buildString)
      */
-    // note: 256 should fit 99.5% of all urls according to http://www.supermind.org/blog/740/average-length-of-a-url-part-2
     public fun buildString(): String {
         applyOrigin()
-        return appendTo(StringBuilder(256)).toString()
+        return appendTo(StringBuilder(INITIAL_CAPACITY)).toString()
     }
 
     override fun toString(): String {
-        return appendTo(StringBuilder(256)).toString()
+        return appendTo(StringBuilder(INITIAL_CAPACITY)).toString()
     }
 
     /**
      * Build a [Url] instance (everything is copied to a new instance)
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.URLBuilder.build)
      */
     public fun build(): Url {
         applyOrigin()
@@ -127,6 +137,12 @@ public class URLBuilder(
     // Required to write external extension function
     public companion object {
         private val originUrl = Url(origin)
+
+        /**
+         * Initial capacity of StringBuilder.
+         * Note: 256 should fit 99.5% of all urls according to http://www.supermind.org/blog/740/average-length-of-a-url-part-2
+         */
+        private const val INITIAL_CAPACITY = 256
     }
 }
 
@@ -146,6 +162,11 @@ private fun <A : Appendable> URLBuilder.appendTo(out: A): A {
 
         "about" -> {
             out.appendAbout(host)
+            return out
+        }
+
+        "tel" -> {
+            out.appendTel(host)
             return out
         }
     }
@@ -183,15 +204,24 @@ private fun Appendable.appendAbout(host: String) {
     append(host)
 }
 
+private fun Appendable.appendTel(host: String) {
+    append(":")
+    append(host)
+}
+
 /**
  * Hostname of current origin.
  *
  * It uses "http://localhost" for all platforms except js.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.origin)
  */
 public expect val URLBuilder.Companion.origin: String
 
 /**
  * Create a copy of this builder. Modifications in a copy is not reflected in the original instance and vise-versa.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.clone)
  */
 public fun URLBuilder.clone(): URLBuilder = URLBuilder().takeFrom(this)
 
@@ -202,6 +232,9 @@ internal val URLBuilder.encodedUserAndPassword: String
 
 /**
  * Adds [segments] to current [encodedPath].
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.appendPathSegments)
  *
  * @param segments path items to append
  * @param encodeSlash `true` to encode the '/' character to allow it to be a part of a path segment;
@@ -218,6 +251,9 @@ public fun URLBuilder.appendPathSegments(segments: List<String>, encodeSlash: Bo
 /**
  * Adds [components] to current [encodedPath]
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.appendPathSegments)
+ *
  * @param components path items to append
  * @param encodeSlash `true` to encode the '/' character to allow it to be a part of a path segment;
  * `false` to use '/' as a separator between path segments.
@@ -228,6 +264,9 @@ public fun URLBuilder.appendPathSegments(vararg components: String, encodeSlash:
 
 /**
  * Replace [components] in the current [encodedPath]. The [path] components will be escaped, except `/` character.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.path)
+ *
  * @param path path items to set
  */
 public fun URLBuilder.path(vararg path: String) {
@@ -236,6 +275,8 @@ public fun URLBuilder.path(vararg path: String) {
 
 /**
  * Adds [segments] to current [encodedPath]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.appendEncodedPathSegments)
  */
 public fun URLBuilder.appendEncodedPathSegments(segments: List<String>): URLBuilder {
     val endsWithSlash =
@@ -253,12 +294,16 @@ public fun URLBuilder.appendEncodedPathSegments(segments: List<String>): URLBuil
 
 /**
  * Adds [components] to current [encodedPath]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.appendEncodedPathSegments)
  */
 public fun URLBuilder.appendEncodedPathSegments(vararg components: String): URLBuilder =
     appendEncodedPathSegments(components.toList())
 
 /**
  * [URLBuilder] authority.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.authority)
  */
 public val URLBuilder.authority: String
     get() = buildString {
@@ -294,6 +339,8 @@ private fun List<String>.joinPath(): String {
 /**
  * Sets the url parts using the specified [scheme], [host], [port] and [path].
  * Pass `null` to keep existing value in the [URLBuilder].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.set)
  */
 public fun URLBuilder.set(
     scheme: String? = null,

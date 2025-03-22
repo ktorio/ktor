@@ -10,8 +10,8 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.errors.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
+import kotlinx.io.IOException
 import platform.posix.*
-import kotlin.coroutines.cancellation.CancellationException
 
 @OptIn(InternalAPI::class, ExperimentalForeignApi::class)
 internal actual class SelectorHelper {
@@ -30,29 +30,14 @@ internal actual class SelectorHelper {
     }
 
     actual fun start(scope: CoroutineScope): Job {
-        val job = scope.launch(CoroutineName("selector")) {
+        return scope.launch {
             selectionLoop()
         }
-
-        job.invokeOnCompletion {
-            cleanup()
-        }
-
-        return job
     }
 
     actual fun requestTermination() {
         interestQueue.close()
-        closeQueue.close()
         wakeupSignal.signal()
-    }
-
-    private fun cleanup() {
-        while (true) {
-            val event = closeQueue.removeFirstOrNull() ?: break
-            closeDescriptor(event)
-        }
-        wakeupSignal.close()
     }
 
     actual fun notifyClosed(descriptor: Int) {
@@ -64,60 +49,110 @@ internal actual class SelectorHelper {
     }
 
     @OptIn(ExperimentalForeignApi::class, InternalAPI::class)
-    private fun selectionLoop() {
+    private suspend fun selectionLoop() {
         val completed = mutableSetOf<EventInfo>()
         val watchSet = mutableSetOf<EventInfo>()
         val closeSet = mutableSetOf<Int>()
 
-        while (!interestQueue.isClosed) {
-            val wsaEvents = fillHandlers(watchSet)
-            val index = memScoped {
-                val length = wsaEvents.size + 1
-                val wsaEventsWithWake = allocArray<CPointerVarOf<COpaquePointer>>(length).apply {
-                    wsaEvents.values.forEachIndexed { index, wsaEvent ->
-                        this[index] = wsaEvent
+        try {
+            while (!interestQueue.isClosed) {
+                val wsaEvents = fillHandlersOrClose(watchSet, completed, closeSet)
+
+                yield()
+
+                val index = memScoped {
+                    val length = wsaEvents.size + 1
+                    val wsaEventsWithWake = allocArray<CPointerVarOf<COpaquePointer>>(length).apply {
+                        wsaEvents.values.forEachIndexed { index, wsaEvent ->
+                            this[index] = wsaEvent
+                        }
+                        this[length - 1] = wakeupSignal.event
                     }
-                    this[length - 1] = wakeupSignal.event
+                    WSAWaitForMultipleEvents(
+                        cEvents = length.convert(),
+                        lphEvents = wsaEventsWithWake,
+                        fWaitAll = 0,
+                        dwTimeout = UInt.MAX_VALUE,
+                        fAlertable = 0
+                    ).toInt().check(posixFunctionName = "WSAWaitForMultipleEvents")
                 }
-                WSAWaitForMultipleEvents(
-                    cEvents = length.convert(),
-                    lphEvents = wsaEventsWithWake,
-                    fWaitAll = 0,
-                    dwTimeout = UInt.MAX_VALUE,
-                    fAlertable = 0
-                ).toInt().check()
+
+                processSelectedEvents(watchSet, completed, index, wsaEvents)
             }
-
-            processSelectedEvents(watchSet, closeSet, completed, index, wsaEvents)
+        } finally {
+            closeQueue.close()
+            wakeupSignal.close()
+            interestQueue.close()
+            while (true) {
+                val event = closeQueue.removeFirstOrNull() ?: break
+                closeSet.add(event)
+            }
+            while (true) {
+                val event = interestQueue.removeFirstOrNull() ?: break
+                watchSet.add(event)
+            }
+            for (descriptor in closeSet) {
+                closeDescriptor(descriptor)
+            }
         }
 
-        val exception = CancellationException("Selector closed")
-        while (!interestQueue.isEmpty) {
-            interestQueue.removeFirstOrNull()?.fail(exception)
-        }
-
-        for (item in watchSet) {
-            item.fail(exception)
+        val exception = IOException("Selector closed")
+        for (event in watchSet) {
+            if (event.descriptor in closeSet) {
+                if (event.interest == SelectInterest.CLOSE) {
+                    event.complete()
+                } else {
+                    event.fail(IOException("Selectable closed"))
+                }
+            } else {
+                event.fail(exception)
+            }
         }
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    private fun fillHandlers(
-        watchSet: MutableSet<EventInfo>
+    private fun fillHandlersOrClose(
+        watchSet: MutableSet<EventInfo>,
+        completed: MutableSet<EventInfo>,
+        closeSet: MutableSet<Int>,
     ): Map<Int, COpaquePointer?> {
+        while (true) {
+            val event = closeQueue.removeFirstOrNull() ?: break
+            closeSet.add(event)
+        }
         while (true) {
             val event = interestQueue.removeFirstOrNull() ?: break
             watchSet.add(event)
         }
 
+        for (descriptor in closeSet) {
+            closeDescriptor(descriptor)
+        }
+
+        for (event in watchSet) {
+            if (event.descriptor in closeSet) {
+                if (event.interest == SelectInterest.CLOSE) {
+                    event.complete()
+                } else {
+                    event.fail(IOException("Selectable closed"))
+                }
+                completed.add(event)
+            }
+        }
+
+        closeSet.clear()
+        watchSet.removeAll(completed)
+        completed.clear()
+
         return watchSet
+            .filter { it.interest != SelectInterest.CLOSE }
             .groupBy { it.descriptor }
             .mapValues { (descriptor, events) ->
                 val wsaEvent = allWsaEvents.computeIfAbsent(descriptor) {
                     WSACreateEvent()
                 }
                 if (wsaEvent == WSA_INVALID_EVENT) {
-                    throw PosixException.forSocketError()
+                    throw PosixException.forSocketError(posixFunctionName = "WSACreateEvent")
                 }
 
                 var lNetworkEvents = events.fold(0) { acc, event ->
@@ -139,50 +174,42 @@ internal actual class SelectorHelper {
     @OptIn(ExperimentalForeignApi::class)
     private fun processSelectedEvents(
         watchSet: MutableSet<EventInfo>,
-        closeSet: MutableSet<Int>,
         completed: MutableSet<EventInfo>,
         wsaIndex: Int,
         wsaEvents: Map<Int, COpaquePointer?>
     ) {
-        while (true) {
-            val event = closeQueue.removeFirstOrNull() ?: break
-            closeSet.add(event)
-        }
+        watchSet
+            .filter { it.interest != SelectInterest.CLOSE }
+            .groupBy { it.descriptor }
+            .forEach { (descriptor, events) ->
+                val wsaEvent = wsaEvents.getValue(descriptor)
 
-        watchSet.forEach { event ->
-            if (event.descriptor in closeSet) {
-                completed.add(event)
-                return@forEach
+                val networkEvents = memScoped {
+                    val networkEvents = alloc<WSANETWORKEVENTS>()
+                    WSAEnumNetworkEvents(descriptor.convert(), wsaEvent, networkEvents.ptr)
+                        .check(posixFunctionName = "WSAEnumNetworkEvents")
+                    networkEvents.lNetworkEvents
+                }
+
+                for (event in events) {
+                    val set = descriptorSetByInterestKind(event)
+
+                    val isClosed = networkEvents and FD_CLOSE != 0
+
+                    if (networkEvents and set == 0 && !isClosed) {
+                        continue
+                    }
+
+                    completed.add(event)
+                    event.complete()
+                }
             }
-            val wsaEvent = wsaEvents.getValue(event.descriptor)
-            val networkEvents = memScoped {
-                val networkEvents = alloc<WSANETWORKEVENTS>()
-                WSAEnumNetworkEvents(event.descriptor.convert(), wsaEvent, networkEvents.ptr).check()
-                networkEvents.lNetworkEvents
-            }
-
-            val set = descriptorSetByInterestKind(event)
-
-            val isClosed = networkEvents and FD_CLOSE != 0
-
-            if (networkEvents and set == 0 && !isClosed) {
-                return@forEach
-            }
-
-            completed.add(event)
-            event.complete()
-        }
 
         // The wake-up signal was added as the last event, so wsaIndex should be 1 higher than
         // the last index of wsaEvents.
         if (wsaIndex == wsaEvents.size) {
             wakeupSignal.check()
         }
-
-        for (descriptor in closeSet) {
-            closeDescriptor(descriptor)
-        }
-        closeSet.clear()
 
         watchSet.removeAll(completed)
         completed.clear()
@@ -195,10 +222,11 @@ internal actual class SelectorHelper {
         SelectInterest.WRITE -> FD_WRITE
         SelectInterest.ACCEPT -> FD_ACCEPT
         SelectInterest.CONNECT -> FD_CONNECT
+        SelectInterest.CLOSE -> error("Close should not be selected")
     }
 
     private fun closeDescriptor(descriptor: Int) {
-        close(descriptor)
+        io.ktor.network.util.closeSocketDescriptor(descriptor)
         allWsaEvents.remove(descriptor)?.let { wsaEvent ->
             WSACloseEvent(wsaEvent)
         }

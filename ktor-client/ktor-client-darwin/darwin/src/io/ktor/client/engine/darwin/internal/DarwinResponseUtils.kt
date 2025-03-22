@@ -6,8 +6,13 @@ package io.ktor.client.engine.darwin.internal
 
 import io.ktor.client.utils.*
 import io.ktor.http.*
+import io.ktor.util.Attributes
+import io.ktor.utils.io.InternalAPI
 import platform.Foundation.*
 
-internal fun NSHTTPURLResponse.readHeaders(): Headers = buildHeaders {
+@OptIn(InternalAPI::class)
+internal fun NSHTTPURLResponse.readHeaders(method: HttpMethod, attributes: Attributes): Headers = buildHeaders {
     allHeaderFields.mapKeys { (key, value) -> append(key as String, value as String) }
+
+    dropCompressionHeaders(method, attributes)
 }

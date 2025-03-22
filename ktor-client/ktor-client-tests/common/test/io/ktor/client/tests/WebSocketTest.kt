@@ -1,27 +1,28 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests
 
 import io.ktor.client.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.api.*
 import io.ktor.client.plugins.auth.*
 import io.ktor.client.plugins.auth.providers.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
-import io.ktor.client.tests.utils.*
+import io.ktor.client.test.base.*
 import io.ktor.http.*
 import io.ktor.serialization.*
-import io.ktor.test.dispatcher.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 import kotlin.time.Duration.Companion.seconds
 
-internal val ENGINES_WITHOUT_WS = listOf("Android", "Apache", "Apache5", "Curl", "DarwinLegacy")
+internal val ENGINES_WITHOUT_WS = listOf("Android", "Apache", "Apache5", "DarwinLegacy")
 
 private const val TEST_SIZE: Int = 100
 
@@ -55,7 +56,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testExceptionIfWebsocketIsNotInstalled() = testSuspend {
+    fun testExceptionIfWebsocketIsNotInstalled() = runTest {
         val client = HttpClient()
         assertFailsWith<IllegalStateException> {
             client.webSocketSession()
@@ -70,7 +71,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testWebsocketSession() = clientTests(ENGINES_WITHOUT_WS) {
+    fun testWebsocketSession() = clientTests(except(ENGINES_WITHOUT_WS)) {
         config {
             install(WebSockets)
         }
@@ -85,7 +86,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testParallelWebsocketSessions() = clientTests(ENGINES_WITHOUT_WS) {
+    fun testParallelWebsocketSessions() = clientTests(except(ENGINES_WITHOUT_WS)) {
         config {
             install(WebSockets)
         }
@@ -115,7 +116,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testWebsocketWithDefaultRequest() = clientTests(ENGINES_WITHOUT_WS + "Js") {
+    fun testWebsocketWithDefaultRequest() = clientTests(except(ENGINES_WITHOUT_WS + "Js")) {
         config {
             install(WebSockets)
             defaultRequest {
@@ -135,7 +136,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testWebsocketSessionWithError() = clientTests(ENGINES_WITHOUT_WS) {
+    fun testWebsocketSessionWithError() = clientTests(except(ENGINES_WITHOUT_WS)) {
         config {
             install(WebSockets)
         }
@@ -146,7 +147,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testExceptionWss() = clientTests(ENGINES_WITHOUT_WS + "Js") {
+    fun testExceptionWss() = clientTests(except(ENGINES_WITHOUT_WS + "Js")) {
         config {
             install(WebSockets)
         }
@@ -161,7 +162,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testWebSocketSerialization() = clientTests(ENGINES_WITHOUT_WS) {
+    fun testWebSocketSerialization() = clientTests(except(ENGINES_WITHOUT_WS)) {
         config {
             WebSockets {
                 contentConverter = customContentConverter
@@ -181,7 +182,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testWebSocketSerializationWithExplicitTypeInfo() = clientTests(ENGINES_WITHOUT_WS) {
+    fun testWebSocketSerializationWithExplicitTypeInfo() = clientTests(except(ENGINES_WITHOUT_WS)) {
         config {
             WebSockets {
                 contentConverter = customContentConverter
@@ -201,7 +202,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testSerializationWithNoConverter() = clientTests(ENGINES_WITHOUT_WS) {
+    fun testSerializationWithNoConverter() = clientTests(except(ENGINES_WITHOUT_WS)) {
         config {
             WebSockets {
             }
@@ -223,13 +224,25 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testRequestTimeoutIsNotApplied() = clientTests(ENGINES_WITHOUT_WS) {
+    fun testTimeoutCapabilityIsSetIgnoringRequestTimeout() = clientTests(except(ENGINES_WITHOUT_WS)) {
+        var requestTimeouts: HttpTimeoutConfig? = null
+        val timeoutsInterceptor = createClientPlugin("TimeoutsInterceptor") {
+            on(Send) { request ->
+                requestTimeouts = request.getCapabilityOrNull(HttpTimeoutCapability)
+                proceed(request)
+            }
+        }
+
         config {
             install(WebSockets)
 
             install(HttpTimeout) {
                 requestTimeoutMillis = 10
+                connectTimeoutMillis = 1001
+                socketTimeoutMillis = 1002
             }
+
+            install(timeoutsInterceptor)
         }
 
         test { client ->
@@ -240,11 +253,16 @@ class WebSocketTest : ClientLoader() {
                 val result = incoming.receive() as Frame.Text
                 assertEquals("test", result.readText())
             }
+
+            val timeouts = assertNotNull(requestTimeouts, "Timeouts capability should be installed")
+            assertNull(timeouts.requestTimeoutMillis, "Request timeout should be ignored")
+            assertEquals(1001, timeouts.connectTimeoutMillis, "Connect timeout should be set")
+            assertEquals(1002, timeouts.socketTimeoutMillis, "Socket timeout should be set")
         }
     }
 
     @Test
-    fun testCountPong() = clientTests(ENGINES_WITHOUT_WS + "Js") {
+    fun testCountPong() = clientTests(except(ENGINES_WITHOUT_WS + "Js")) {
         config {
             install(WebSockets)
         }
@@ -260,7 +278,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testCancellingScope() = clientTests(ENGINES_WITHOUT_WS) {
+    fun testCancellingScope() = clientTests(except(ENGINES_WITHOUT_WS)) {
         config {
             install(WebSockets)
         }
@@ -277,7 +295,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testWebsocketRequiringSubProtocolWithSubProtocol() = clientTests(ENGINES_WITHOUT_WS) {
+    fun testWebsocketRequiringSubProtocolWithSubProtocol() = clientTests(except(ENGINES_WITHOUT_WS)) {
         config {
             install(WebSockets)
         }
@@ -297,7 +315,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testWebsocketRequiringSubProtocolWithoutSubProtocol() = clientTests(ENGINES_WITHOUT_WS) {
+    fun testWebsocketRequiringSubProtocolWithoutSubProtocol() = clientTests(except(ENGINES_WITHOUT_WS)) {
         config {
             install(WebSockets)
         }
@@ -312,7 +330,26 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testIncomingOverflow() = clientTests(ENGINES_WITHOUT_WS) {
+    fun testResponseContainsSecWebsocketProtocolHeader() = clientTests(except(ENGINES_WITHOUT_WS)) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            val session = client.webSocketSession("$TEST_WEBSOCKET_SERVER/websockets/sub-protocol") {
+                header(HttpHeaders.SecWebSocketProtocol, "test-protocol")
+            }
+
+            try {
+                assertEquals(session.call.response.headers[HttpHeaders.SecWebSocketProtocol], "test-protocol")
+            } finally {
+                session.close()
+            }
+        }
+    }
+
+    @Test
+    fun testIncomingOverflow() = clientTests(except(ENGINES_WITHOUT_WS)) {
         config {
             install(WebSockets)
         }
@@ -326,35 +363,32 @@ class WebSocketTest : ClientLoader() {
         }
     }
 
-    @Ignore // TODO KTOR-7088
     @Test
     fun testImmediateReceiveAfterConnect() = clientTests(
-        ENGINES_WITHOUT_WS + "Darwin" + "js" // TODO KTOR-7088
+        except(ENGINES_WITHOUT_WS + "Darwin" + "WinHttp"), // TODO KTOR-7088
     ) {
         config {
             install(WebSockets)
         }
 
         test { client ->
-            withTimeout(10_000) {
-                coroutineScope {
-                    val defs = (1..100).map {
-                        async {
-                            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/headers") {
-                                val frame = withTimeoutOrNull(1.seconds) { incoming.receive() }
-                                assertNotNull(frame)
-                                assertIs<Frame.Text>(frame)
-                            }
+            coroutineScope {
+                val defs = (1..100).map {
+                    async {
+                        client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/headers") {
+                            val frame = withTimeoutOrNull(1.seconds) { incoming.receive() }
+                            assertNotNull(frame)
+                            assertIs<Frame.Text>(frame)
                         }
                     }
-                    defs.awaitAll()
                 }
+                defs.awaitAll()
             }
         }
     }
 
     @Test
-    fun testAuthenticationWithValidRefreshToken() = clientTests(ENGINES_WITHOUT_WS + "Js") {
+    fun testAuthenticationWithValidRefreshToken() = clientTests(except(ENGINES_WITHOUT_WS + "Js" + "WinHttp")) {
         config {
             install(WebSockets)
 
@@ -376,7 +410,10 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testAuthenticationWithValidInitialToken() = clientTests(ENGINES_WITHOUT_WS + "Js" + "Darwin", retries = 5) {
+    fun testAuthenticationWithValidInitialToken() = clientTests(
+        except(ENGINES_WITHOUT_WS + "Js" + "Darwin"),
+        retries = 5
+    ) {
         config {
             install(WebSockets)
 
@@ -397,7 +434,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testAuthenticationWithInvalidToken() = clientTests(ENGINES_WITHOUT_WS + "Js") {
+    fun testAuthenticationWithInvalidToken() = clientTests(except(ENGINES_WITHOUT_WS + "Js" + "WinHttp")) {
         config {
             install(WebSockets)
 

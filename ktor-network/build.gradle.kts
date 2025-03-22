@@ -1,32 +1,33 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
+
+import ktorbuild.createCInterop
 
 description = "Ktor network utilities"
 
+plugins {
+    id("ktorbuild.project.library")
+}
+
 kotlin {
-    createCInterop("network", nixTargets()) {
-        definitionFile = projectDir.resolve("nix/interop/network.def")
-    }
+    createCInterop("network", sourceSet = "nix")
+    createCInterop("un", sourceSet = "androidNative")
+    createCInterop("un", sourceSet = "darwin")
+    createCInterop("afunix", sourceSet = "windows")
 
     sourceSets {
-        jvmAndPosixMain {
-            dependencies {
-                api(project(":ktor-utils"))
-            }
+        commonMain.dependencies {
+            api(project(":ktor-utils"))
         }
 
-        jvmAndPosixTest {
-            dependencies {
-                api(project(":ktor-test-dispatcher"))
-            }
+        commonTest.dependencies {
+            api(project(":ktor-test-dispatcher"))
         }
 
-        jvmTest {
-            dependencies {
-                implementation(project(":ktor-shared:ktor-junit"))
-                implementation(libs.mockk)
-            }
+        jvmTest.dependencies {
+            implementation(project(":ktor-shared:ktor-test-base"))
+            implementation(libs.mockk)
         }
     }
 }

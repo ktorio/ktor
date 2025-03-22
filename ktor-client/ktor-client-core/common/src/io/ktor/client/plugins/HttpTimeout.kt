@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.plugins
 
@@ -24,6 +24,8 @@ private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.HttpTimeout")
 
 /**
  * An [HttpTimeout] extension configuration that is used during installation.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpTimeoutConfig)
  */
 @KtorDsl
 public class HttpTimeoutConfig {
@@ -34,6 +36,8 @@ public class HttpTimeoutConfig {
 
     /**
      * Creates a new instance of [HttpTimeoutConfig].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpTimeoutConfig.HttpTimeoutConfig)
      */
     public constructor(
         requestTimeoutMillis: Long? = null,
@@ -49,6 +53,8 @@ public class HttpTimeoutConfig {
      * Specifies a request timeout in milliseconds.
      * The request timeout is the time period required to process an HTTP call: from sending a request to receiving a
      * response.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpTimeoutConfig.requestTimeoutMillis)
      */
     public var requestTimeoutMillis: Long?
         get() = _requestTimeoutMillis
@@ -59,6 +65,8 @@ public class HttpTimeoutConfig {
     /**
      * Specifies a connection timeout in milliseconds.
      * The connection timeout is the time period in which a client should establish a connection with a server.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpTimeoutConfig.connectTimeoutMillis)
      */
     public var connectTimeoutMillis: Long?
         get() = _connectTimeoutMillis
@@ -69,6 +77,8 @@ public class HttpTimeoutConfig {
     /**
      * Specifies a socket timeout (read and write) in milliseconds.
      * The socket timeout is the maximum time of inactivity between two data packets when exchanging data with a server.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpTimeoutConfig.socketTimeoutMillis)
      */
     public var socketTimeoutMillis: Long?
         get() = _socketTimeoutMillis
@@ -119,8 +129,9 @@ public data object HttpTimeoutCapability : HttpClientEngineCapability<HttpTimeou
  * - __socket timeout__ — a maximum time of inactivity between two data packets when exchanging data with a server.
  *
  * You can learn more from [Timeout](https://ktor.io/docs/timeout.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpTimeout)
  */
-@OptIn(InternalAPI::class)
 public val HttpTimeout: ClientPlugin<HttpTimeoutConfig> = createClientPlugin(
     "HttpTimeout",
     ::HttpTimeoutConfig
@@ -132,20 +143,15 @@ public val HttpTimeout: ClientPlugin<HttpTimeoutConfig> = createClientPlugin(
     /**
      * Utils method that return `true` if at least one timeout is configured (has not null value).
      */
-    fun hasNotNullTimeouts() =
-        requestTimeoutMillis != null || connectTimeoutMillis != null || socketTimeoutMillis != null
+    fun hasNotNullTimeouts(supportsRequestTimeout: Boolean) =
+        (supportsRequestTimeout && requestTimeoutMillis != null) ||
+            connectTimeoutMillis != null ||
+            socketTimeoutMillis != null
 
     on(Send) { request ->
-        val isWebSocket = request.url.protocol.isWebsocket()
-        if (isWebSocket ||
-            request.body is ClientUpgradeContent ||
-            request.body is SSEClientContent
-        ) {
-            return@on proceed(request)
-        }
-
+        val supportsRequestTimeout = request.supportsRequestTimeout
         var configuration = request.getCapabilityOrNull(HttpTimeoutCapability)
-        if (configuration == null && hasNotNullTimeouts()) {
+        if (configuration == null && hasNotNullTimeouts(supportsRequestTimeout)) {
             configuration = HttpTimeoutConfig()
             request.setCapability(HttpTimeoutCapability, configuration)
         }
@@ -153,31 +159,43 @@ public val HttpTimeout: ClientPlugin<HttpTimeoutConfig> = createClientPlugin(
         configuration?.apply {
             this.connectTimeoutMillis = this.connectTimeoutMillis ?: connectTimeoutMillis
             this.socketTimeoutMillis = this.socketTimeoutMillis ?: socketTimeoutMillis
-            this.requestTimeoutMillis = this.requestTimeoutMillis ?: requestTimeoutMillis
 
-            val requestTimeout = this.requestTimeoutMillis
-            if (requestTimeout == null || requestTimeout == HttpTimeoutConfig.INFINITE_TIMEOUT_MS) {
-                return@apply
-            }
-
-            val executionContext = request.executionContext
-            val killer = launch {
-                delay(requestTimeout)
-                val cause = HttpRequestTimeoutException(request)
-                LOGGER.trace("Request timeout: ${request.url}")
-                executionContext.cancel(cause.message!!, cause)
-            }
-
-            request.executionContext.invokeOnCompletion {
-                killer.cancel()
+            if (supportsRequestTimeout) {
+                this.requestTimeoutMillis = this.requestTimeoutMillis ?: requestTimeoutMillis
+                applyRequestTimeout(request, this.requestTimeoutMillis)
             }
         }
         proceed(request)
     }
 }
 
+/** Request timeout shouldn't be applied to WebSocket or SSE connection. */
+@OptIn(InternalAPI::class)
+private val HttpRequestBuilder.supportsRequestTimeout: Boolean
+    get() = !url.protocol.isWebsocket() &&
+        body !is ClientUpgradeContent &&
+        body !is SSEClientContent
+
+private fun CoroutineScope.applyRequestTimeout(request: HttpRequestBuilder, requestTimeout: Long?) {
+    if (requestTimeout == null || requestTimeout == HttpTimeoutConfig.INFINITE_TIMEOUT_MS) return
+
+    val executionContext = request.executionContext
+    val killer = launch(CoroutineName("request-timeout")) {
+        delay(requestTimeout)
+        val cause = HttpRequestTimeoutException(request)
+        LOGGER.trace { "Request timeout: ${request.url}" }
+        executionContext.cancel(cause.message!!, cause)
+    }
+
+    request.executionContext.invokeOnCompletion {
+        killer.cancel()
+    }
+}
+
 /**
  * Adds timeout boundaries to the request. Requires the [HttpTimeout] plugin to be installed.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.timeout)
  */
 public fun HttpRequestBuilder.timeout(block: HttpTimeoutConfig.() -> Unit): Unit =
     setCapability(HttpTimeoutCapability, HttpTimeoutConfig().apply(block))
@@ -186,6 +204,8 @@ public fun HttpRequestBuilder.timeout(block: HttpTimeoutConfig.() -> Unit): Unit
  * This exception is thrown in case the request timeout is exceeded.
  * The request timeout is the time period required to process an HTTP call: from sending a request to receiving
  * a response.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpRequestTimeoutException)
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 public class HttpRequestTimeoutException(
@@ -213,6 +233,8 @@ public class HttpRequestTimeoutException(
 /**
  * This exception is thrown in case the connection timeout is exceeded.
  * It indicates the client took too long to establish a connection with a server.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.ConnectTimeoutException)
  */
 public fun ConnectTimeoutException(
     request: HttpRequestData,
@@ -226,6 +248,8 @@ public fun ConnectTimeoutException(
 /**
  * This exception is thrown in case the connection timeout is exceeded.
  * It indicates the client took too long to establish a connection with a server.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.ConnectTimeoutException)
  */
 public fun ConnectTimeoutException(
     url: String,
@@ -239,6 +263,8 @@ public fun ConnectTimeoutException(
 /**
  * This exception is thrown in case the socket timeout (read or write) is exceeded.
  * It indicates the time between two data packets when exchanging data with a server was too long.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.SocketTimeoutException)
  */
 public fun SocketTimeoutException(
     request: HttpRequestData,
@@ -254,6 +280,8 @@ public fun SocketTimeoutException(
 /**
  * Converts a long timeout in milliseconds to int value. To do that, we need to consider [HttpTimeout.INFINITE_TIMEOUT_MS]
  * as zero and convert timeout value to [Int].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.convertLongTimeoutToIntWithInfiniteAsZero)
  */
 @InternalAPI
 public fun convertLongTimeoutToIntWithInfiniteAsZero(timeout: Long): Int = when {
@@ -266,6 +294,8 @@ public fun convertLongTimeoutToIntWithInfiniteAsZero(timeout: Long): Int = when 
 /**
  * Converts long timeout in milliseconds to long value. To do that, we need to consider [HttpTimeout.INFINITE_TIMEOUT_MS]
  * as zero and convert timeout value to [Int].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.convertLongTimeoutToLongWithInfiniteAsZero)
  */
 @InternalAPI
 public fun convertLongTimeoutToLongWithInfiniteAsZero(timeout: Long): Long = when (timeout) {

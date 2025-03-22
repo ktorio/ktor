@@ -12,22 +12,36 @@ import java.util.*
 // See: https://r8.googlesource.com/r8/+/refs/heads/main/src/main/java/com/android/tools/r8/ir/optimize/ServiceLoaderRewriter.java
 
 /**
- * Loads all implementations of the service [T] using [ServiceLoader.load].
- * @see loadServiceOrNull
+ * Loads implementations of the service [T] using [ServiceLoader.load] and returns them as a sequence.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.reflect.loadServicesAsSequence)
+ *
+ * @see loadServices
  */
 @InternalAPI
-public inline fun <reified T : Any> loadServices(): List<T> = ServiceLoader.load(
+public inline fun <reified T : Any> loadServicesAsSequence(): Sequence<T> = ServiceLoader.load(
     T::class.java,
     T::class.java.classLoader,
-).iterator().asSequence().toList()
+).iterator().asSequence()
+
+/**
+ * Loads all implementations of the service [T] using [ServiceLoader.load].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.reflect.loadServices)
+ *
+ * @see loadServiceOrNull
+ * @see loadServicesAsSequence
+ */
+@InternalAPI
+public inline fun <reified T : Any> loadServices(): List<T> = loadServicesAsSequence<T>().toList()
 
 /**
  * Loads single implementation of the service [T] using [ServiceLoader.load]
  * returns `null` if there are no any implementations.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.reflect.loadServiceOrNull)
+ *
  * @see loadServices
  */
 @InternalAPI
-public inline fun <reified T : Any> loadServiceOrNull(): T? = ServiceLoader.load(
-    T::class.java,
-    T::class.java.classLoader,
-).iterator().asSequence().firstOrNull()
+public inline fun <reified T : Any> loadServiceOrNull(): T? = loadServicesAsSequence<T>().firstOrNull()

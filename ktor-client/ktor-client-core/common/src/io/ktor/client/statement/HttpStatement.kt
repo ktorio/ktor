@@ -24,6 +24,8 @@ import kotlinx.coroutines.*
  * the same request configuration.
  *
  * Example: [Streaming data](https://ktor.io/docs/response.html#streaming)
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.HttpStatement)
  */
 public class HttpStatement(
     private val builder: HttpRequestBuilder,
@@ -41,6 +43,9 @@ public class HttpStatement(
      * or released.
      * The [response] object should not be accessed outside of [block] as it will be canceled upon
      * block completion.
+     *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.HttpStatement.execute)
      *
      * @param block A suspend function that receives the [HttpResponse] for streaming.
      * @return The result of executing [block] with the streaming [response].
@@ -63,6 +68,9 @@ public class HttpStatement(
      *
      * For retrieving a specific data type directly, consider using [body<T>()].
      *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.HttpStatement.execute)
+     *
      * @return [HttpResponse] The complete response with the body loaded into memory.
      */
     public suspend fun execute(): HttpResponse = fetchResponse()
@@ -73,6 +81,9 @@ public class HttpStatement(
      *
      * If [T] represents a streaming type (such as [ByteReadChannel]), it is the caller's responsibility to
      * properly manage the resource, ensuring it is closed when no longer needed.
+     *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.HttpStatement.body)
      *
      * @return The response body transformed to the specified type [T].
      */
@@ -105,6 +116,9 @@ public class HttpStatement(
      * }
      * // Resources are released automatically after block completes
      * ```
+     *
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.HttpStatement.body)
      *
      * @param block A suspend function that handles the streamed [response] of type [T].
      * @return The result of [block] applied to the streaming [response].
@@ -155,7 +169,7 @@ public class HttpStatement(
      * Completes [HttpResponse] and releases resources.
      */
     @PublishedApi
-    @OptIn(InternalAPI::class, InternalCoroutinesApi::class)
+    @OptIn(InternalAPI::class)
     internal suspend fun HttpResponse.cleanup() {
         val job = coroutineContext[Job]!! as CompletableJob
 

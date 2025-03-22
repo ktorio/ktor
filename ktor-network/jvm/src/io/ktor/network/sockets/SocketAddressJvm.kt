@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.network.sockets
@@ -30,6 +30,8 @@ public actual class InetSocketAddress internal constructor(
      * Create a copy of [InetSocketAddress].
      *
      * Note that this may trigger a name service reverse lookup.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.InetSocketAddress.copy)
      */
     public actual fun copy(
         hostname: String,
@@ -56,7 +58,8 @@ public actual class InetSocketAddress internal constructor(
 }
 
 public actual class UnixSocketAddress internal constructor(
-    override val address: java.net.SocketAddress // actually: java.net.UnixDomainSocketAddress
+    // actually: java.net.UnixDomainSocketAddress
+    override val address: java.net.SocketAddress
 ) : SocketAddress() {
 
     init {

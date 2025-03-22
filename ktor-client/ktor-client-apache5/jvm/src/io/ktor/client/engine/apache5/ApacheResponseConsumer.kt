@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.apache5
@@ -7,16 +7,21 @@ package io.ktor.client.engine.apache5
 import io.ktor.client.request.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
-import kotlinx.atomicfu.*
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
-import org.apache.hc.core5.concurrent.*
-import org.apache.hc.core5.http.*
-import org.apache.hc.core5.http.nio.*
-import org.apache.hc.core5.http.protocol.*
-import java.nio.*
-import kotlin.coroutines.*
+import org.apache.hc.core5.concurrent.CallbackContribution
+import org.apache.hc.core5.concurrent.FutureCallback
+import org.apache.hc.core5.http.EntityDetails
+import org.apache.hc.core5.http.Header
+import org.apache.hc.core5.http.HttpResponse
+import org.apache.hc.core5.http.nio.AsyncEntityConsumer
+import org.apache.hc.core5.http.nio.AsyncResponseConsumer
+import org.apache.hc.core5.http.nio.CapacityChannel
+import org.apache.hc.core5.http.protocol.HttpContext
+import java.nio.ByteBuffer
+import kotlin.coroutines.CoroutineContext
 
 private object CloseChannel
 
@@ -28,8 +33,8 @@ internal class BasicResponseConsumer(private val dataConsumer: ApacheResponseCon
     override fun consumeResponse(
         response: HttpResponse,
         entityDetails: EntityDetails?,
-        httpContext: HttpContext,
-        resultCallback: FutureCallback<Unit>
+        context: HttpContext?,
+        resultCallback: FutureCallback<Unit>,
     ) {
         responseDeferred.complete(response)
         if (entityDetails != null) {
@@ -151,7 +156,6 @@ internal class ApacheResponseConsumer(
         responseChannel.cancel(mappedCause)
     }
 
-    @OptIn(InternalAPI::class)
     internal fun close() {
         channel.close()
         consumerJob.complete()

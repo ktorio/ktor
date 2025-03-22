@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.engine.java
 
@@ -9,35 +9,51 @@ import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.client.test.base.*
 import io.ktor.http.*
-import kotlinx.coroutines.*
-import java.net.*
-import java.time.*
+import io.ktor.test.dispatcher.*
+import java.net.InetSocketAddress
+import java.net.Proxy
+import java.time.Instant
 import kotlin.test.*
+import kotlin.time.Duration.Companion.seconds
 
-class JavaEngineTests {
+class JavaEngineTests : ClientEngineTest<JavaHttpConfig>(Java) {
 
     @Test
-    fun testProxy() = runBlocking {
-        val client = HttpClient(Java) {
+    fun testProxy() = testClient {
+        config {
             engine {
                 proxy = Proxy(Proxy.Type.HTTP, InetSocketAddress("localhost", 8082))
             }
         }
 
-        val body = client.get("http://127.0.0.1:8080/")
-            .bodyAsText()
+        test { client ->
+            val body = client.get("http://127.0.0.1:8080/")
+                .bodyAsText()
 
-        assertEquals("proxy", body)
+            assertEquals("proxy", body)
+        }
     }
 
     @Test
-    fun testRequestAfterRecreate() {
-        runBlocking {
-            HttpClient(Java)
-                .close()
+    fun testRequestAfterRecreate() = runTestWithRealTime {
+        HttpClient(Java)
+            .close()
 
-            HttpClient(Java).use { client ->
+        HttpClient(Java).use { client ->
+            val response = client.get("http://www.google.com").body<String>()
+            assertNotNull(response)
+        }
+    }
+
+    @Test
+    fun testSubsequentRequests() = runTestWithRealTime {
+        HttpClient(Java)
+            .close()
+
+        HttpClient(Java).use { client ->
+            repeat(3) {
                 val response = client.get("http://www.google.com").body<String>()
                 assertNotNull(response)
             }
@@ -45,79 +61,70 @@ class JavaEngineTests {
     }
 
     @Test
-    fun testSubsequentRequests() {
-        runBlocking {
-            HttpClient(Java)
-                .close()
-
-            HttpClient(Java).use { client ->
-                repeat(3) {
-                    val response = client.get("http://www.google.com").body<String>()
-                    assertNotNull(response)
-                }
-            }
-        }
-    }
-
-    @Test
-    fun testProtocolVersion() = runBlocking {
-        HttpClient(Java) {
+    fun testProtocolVersion() = testClient {
+        config {
             engine {
                 protocolVersion = java.net.http.HttpClient.Version.HTTP_2
             }
-        }.use { client ->
+        }
+
+        test { client ->
             val response = client.get("https://httpbin.org/get")
             assertEquals(HttpProtocolVersion.HTTP_2_0, response.version)
         }
     }
 
     @Test
-    fun infiniteConnectTimeout() = runBlocking {
-        HttpClient(Java) {
+    fun infiniteConnectTimeout() = testClient(timeout = 1.seconds) {
+        config {
             install(HttpTimeout) {
                 connectTimeoutMillis = Long.MAX_VALUE
             }
-        }.use { client ->
-            val response = withTimeout(1000) { client.get("http://www.google.com") }
+        }
+
+        test { client ->
+            val response = client.get("http://www.google.com")
             assertEquals(HttpStatusCode.OK, response.status)
         }
     }
 
     @Test
-    fun infiniteRequestTimeout() = runBlocking {
-        HttpClient(Java) {
+    fun infiniteRequestTimeout() = testClient(timeout = 1.seconds) {
+        config {
             install(HttpTimeout)
-        }.use { client ->
-            val response = withTimeout(1000) {
-                client.get("http://www.google.com") {
-                    timeout { requestTimeoutMillis = Long.MAX_VALUE }
-                }
+        }
+
+        test { client ->
+            val response = client.get("http://www.google.com") {
+                timeout { requestTimeoutMillis = Long.MAX_VALUE }
             }
             assertEquals(HttpStatusCode.OK, response.status)
         }
     }
 
     @Test
-    fun usualConnectTimeout() = runBlocking {
-        HttpClient(Java) {
+    fun usualConnectTimeout() = testClient(timeout = 1.seconds) {
+        config {
             install(HttpTimeout) {
                 connectTimeoutMillis = 1000
             }
-        }.use { client ->
-            val response = withTimeout(1000) { client.get("http://www.google.com") }
+        }
+
+        test { client ->
+            val response = client.get("http://www.google.com")
             assertEquals(HttpStatusCode.OK, response.status)
         }
     }
 
     @Test
-    fun usualRequestTimeout() = runBlocking {
-        HttpClient(Java) {
+    fun usualRequestTimeout() = testClient(timeout = 1.seconds) {
+        config {
             install(HttpTimeout)
-        }.use { client ->
-            val response = withTimeout(1000) {
-                client.get("http://www.google.com") {
-                    timeout { requestTimeoutMillis = 3000 }
-                }
+        }
+
+        test { client ->
+            val response = client.get("http://www.google.com") {
+                timeout { requestTimeoutMillis = 3000 }
             }
             assertEquals(HttpStatusCode.OK, response.status)
         }

@@ -17,6 +17,8 @@ import io.ktor.http.content.*
  * Otherwise, form parameters are sent in a POST request body.
  *
  * Example: [Form parameters](https://ktor.io/docs/request.html#form_parameters).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.submitForm)
  */
 public suspend inline fun HttpClient.submitForm(
     formParameters: Parameters = Parameters.Empty,
@@ -41,6 +43,8 @@ public suspend inline fun HttpClient.submitForm(
  * Otherwise, form parameters are sent in a POST request body.
  *
  * Example: [Form parameters](https://ktor.io/docs/request.html#form_parameters).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.submitForm)
  */
 public suspend fun HttpClient.submitForm(
     url: String,
@@ -56,6 +60,8 @@ public suspend fun HttpClient.submitForm(
  * Makes a POST request containing form parameters encoded using the `multipart/form-data` format.
  *
  * Example: [Upload a file](https://ktor.io/docs/request.html#upload_file).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.submitFormWithBinaryData)
  */
 public suspend inline fun HttpClient.submitFormWithBinaryData(
     formData: List<PartData>,
@@ -70,6 +76,8 @@ public suspend inline fun HttpClient.submitFormWithBinaryData(
  * Makes a POST request containing form parameters encoded using the `multipart/form-data` format.
  *
  * Example: [Upload a file](https://ktor.io/docs/request.html#upload_file).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.submitFormWithBinaryData)
  */
 public suspend inline fun HttpClient.submitFormWithBinaryData(
     url: String,
@@ -85,6 +93,8 @@ public suspend inline fun HttpClient.submitFormWithBinaryData(
  *
  * If [encodeInQuery] is set to `true`, form parameters are sent as URL parameters using the GET request.
  * Otherwise, form parameters are sent in a POST request body.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.prepareForm)
  */
 public suspend inline fun HttpClient.prepareForm(
     formParameters: Parameters = Parameters.Empty,
@@ -107,6 +117,8 @@ public suspend inline fun HttpClient.prepareForm(
  *
  * If [encodeInQuery] is set to `true`, form parameters are sent as URL parameters using the GET request.
  * Otherwise, form parameters are sent in a POST request body.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.prepareForm)
  */
 public suspend fun HttpClient.prepareForm(
     url: String,
@@ -120,6 +132,8 @@ public suspend fun HttpClient.prepareForm(
 
 /**
  * Prepares a POST request containing form parameters encoded using the `multipart/form-data` format.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.prepareFormWithBinaryData)
  */
 public suspend inline fun HttpClient.prepareFormWithBinaryData(
     formData: List<PartData>,
@@ -132,6 +146,8 @@ public suspend inline fun HttpClient.prepareFormWithBinaryData(
 
 /**
  * Prepares a POST request containing form parameters encoded using the `multipart/form-data` format.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.prepareFormWithBinaryData)
  */
 public suspend inline fun HttpClient.prepareFormWithBinaryData(
     url: String,

@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.server.plugins.defaultheaders
 
@@ -10,11 +10,13 @@ import io.ktor.server.plugins.defaultheaders.DefaultHeadersConfig.*
 import io.ktor.server.response.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
-import kotlinx.atomicfu.*
+import kotlinx.atomicfu.atomic
 
 /**
  * A configuration for the [DefaultHeaders] plugin.
  * Allows you to configure additional default headers.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.defaultheaders.DefaultHeadersConfig)
  */
 @KtorDsl
 public class DefaultHeadersConfig {
@@ -25,31 +27,33 @@ public class DefaultHeadersConfig {
 
     /**
      * Adds a standard header with the specified [name] and [value].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.defaultheaders.DefaultHeadersConfig.header)
      */
     public fun header(name: String, value: String): Unit = headers.append(name, value)
 
     /**
      * Provides a time source. Useful for testing.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.defaultheaders.DefaultHeadersConfig.clock)
      */
     public var clock: Clock = Clock { kotlinx.datetime.Clock.System.now().toEpochMilliseconds() }
 
     /**
      * Utility interface for obtaining timestamp.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.defaultheaders.DefaultHeadersConfig.Clock)
      */
     public fun interface Clock {
         /**
          * Get current timestamp.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.defaultheaders.DefaultHeadersConfig.Clock.now)
          */
         public fun now(): Long
     }
 
-    private val _cachedDateText = atomic("")
-
-    internal var cachedDateText: String
-        get() = _cachedDateText.value
-        set(value) {
-            _cachedDateText.value = value
-        }
+    internal var cachedDateText: String by atomic("")
 }
 
 /**
@@ -64,6 +68,8 @@ public class DefaultHeadersConfig {
  * }
  * ```
  * You can learn more from [Default headers](https://ktor.io/docs/default-headers.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.defaultheaders.DefaultHeaders)
  */
 public val DefaultHeaders: RouteScopedPlugin<DefaultHeadersConfig> = createRouteScopedPlugin(
     "DefaultHeaders",

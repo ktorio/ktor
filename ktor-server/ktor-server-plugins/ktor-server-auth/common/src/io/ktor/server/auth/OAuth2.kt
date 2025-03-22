@@ -270,6 +270,8 @@ private fun decodeContent(content: String, contentType: ContentType): Parameters
  * Implements Resource Owner Password Credentials Grant.
  *
  * Takes [UserPasswordCredential] and validates it using OAuth2 sequence, provides [OAuthAccessTokenResponse.OAuth2] if succeeds.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.verifyWithOAuth2)
  */
 public suspend fun verifyWithOAuth2(
     credential: UserPasswordCredential,
@@ -298,6 +300,8 @@ public suspend fun verifyWithOAuth2(
 
 /**
  * List of OAuth2 request parameters for both peers.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuth2RequestParameters)
  */
 
 public object OAuth2RequestParameters {
@@ -317,6 +321,8 @@ public object OAuth2RequestParameters {
 
 /**
  * List of OAuth2 server response parameters.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuth2ResponseParameters)
  */
 
 public object OAuth2ResponseParameters {
@@ -339,22 +345,31 @@ private fun throwOAuthError(errorCode: String, parameters: Parameters): Nothing 
 
 /**
  * Represents an error during communicating to OAuth2 server.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuth2Exception)
+ *
  * @property errorCode OAuth2 server replied with
  */
 public sealed class OAuth2Exception(message: String, public val errorCode: String?) : Exception(message) {
     /**
      * Thrown when OAuth2 server responds with the "invalid_grant" error.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuth2Exception.InvalidGrant)
      */
     public class InvalidGrant(message: String) : OAuth2Exception(message, "invalid_grant")
 
     /**
      * Thrown when a nonce verification failed.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuth2Exception.InvalidNonce)
      */
     public class InvalidNonce : OAuth2Exception("Nonce verification failed", null)
 
     /**
      * Thrown when an OAuth2 server responds with a successful HTTP status and expected content type that was successfully
      * decoded but the response doesn't contain a error code nor access token.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuth2Exception.MissingAccessToken)
      */
     public class MissingAccessToken : OAuth2Exception(
         "OAuth2 server response is OK neither error nor access token provided",
@@ -363,6 +378,9 @@ public sealed class OAuth2Exception(message: String, public val errorCode: Strin
 
     /**
      * Thrown when an OAuth2 server responds with the "unsupported_grant_type" error.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuth2Exception.UnsupportedGrantType)
+     *
      * @param grantType that was passed to the server
      */
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -379,6 +397,9 @@ public sealed class OAuth2Exception(message: String, public val errorCode: Strin
 
     /**
      * Thrown when an OAuth2 server responds with [errorCode].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuth2Exception.UnknownException)
+     *
      * @param errorCode the OAuth2 server replied with
      */
     @OptIn(ExperimentalCoroutinesApi::class)

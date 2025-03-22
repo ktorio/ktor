@@ -1,21 +1,24 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.tests
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
+import io.ktor.client.test.base.*
 import io.ktor.client.tests.utils.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import io.ktor.utils.io.errors.*
 import kotlinx.io.IOException
-import java.security.*
-import java.security.cert.*
-import javax.net.ssl.*
-import kotlin.test.*
+import java.security.SecureRandom
+import java.security.cert.X509Certificate
+import javax.net.ssl.SSLContext
+import javax.net.ssl.X509TrustManager
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 abstract class HttpsTest<T : HttpClientEngineConfig>(
     private val factory: HttpClientEngineFactory<T>

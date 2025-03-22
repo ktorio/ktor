@@ -10,6 +10,9 @@ private val GMT_TIMEZONE = TimeZone.getTimeZone("GMT")
 
 /**
  * Create new gmt date from the [timestamp].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.date.GMTDate)
+ *
  * @param timestamp is a number of epoch milliseconds (it is `now` by default).
  */
 @Suppress("FunctionName")
@@ -18,6 +21,8 @@ public actual fun GMTDate(timestamp: Long?): GMTDate =
 
 /**
  * Create an instance of [GMTDate] from the specified date/time components
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.date.GMTDate)
  */
 @Suppress("FunctionName")
 public actual fun GMTDate(
@@ -67,10 +72,14 @@ public fun Calendar.toDate(timestamp: Long?): GMTDate {
 
 /**
  * Convert to [Date]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.date.toJvmDate)
  */
 public fun GMTDate.toJvmDate(): Date = Date(timestamp)
 
 /**
  * Gets current system time in milliseconds since certain moment in the past, only delta between two subsequent calls makes sense.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.date.getTimeMillis)
  */
 public actual fun getTimeMillis(): Long = System.currentTimeMillis()

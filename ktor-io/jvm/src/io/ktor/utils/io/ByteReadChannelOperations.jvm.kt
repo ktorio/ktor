@@ -13,6 +13,8 @@ import java.nio.channels.*
 
 /**
  * Creates a channel for reading from the specified byte buffer.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.ByteReadChannel)
  */
 public fun ByteReadChannel(content: ByteBuffer): ByteReadChannel {
     val packet = buildPacket {
@@ -25,6 +27,9 @@ public fun ByteReadChannel(content: ByteBuffer): ByteReadChannel {
 /**
  * Reads bytes from the channel and writes them to the buffer up to its limit.
  * If the channel's read buffer is exhausted, it suspends until there are bytes available.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readAvailable)
  *
  * @param buffer the buffer to write the read bytes into
  * @return the number of bytes read and written to the buffer or -1 if the channel is closed
@@ -50,6 +55,9 @@ public fun ByteString(buffer: ByteBuffer): ByteString {
  * Copy up to [limit] bytes to blocking NIO [channel].
  * Copying to a non-blocking channel requires selection and not supported.
  * It is suspended if no data are available in a byte channel but may block if destination NIO channel blocks.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.copyTo)
  *
  * @return number of bytes copied
  */
@@ -88,9 +96,8 @@ public suspend fun ByteReadChannel.copyTo(channel: WritableByteChannel, limit: L
         }
     }
 
-    while (copied < limit) {
+    while (copied < limit && !isClosedForRead) {
         read(min = 0, consumer = copy)
-        if (isClosedForRead) break
     }
 
     closedCause?.let { throw it }
@@ -130,6 +137,9 @@ public suspend fun ByteReadChannel.readFully(buffer: ByteBuffer) {
  * eg: it could be 4 bytes available for read but the provided byte buffer could have only 2 available bytes:
  * in this case you have to invoke read again (with decreased [min] accordingly).
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readAvailable)
+ *
  * @param min amount of bytes available for read, should be positive
  * @param block to be invoked when at least [min] bytes available
  *
@@ -168,21 +178,22 @@ public fun ByteReadChannel.readAvailable(block: (ByteBuffer) -> Int): Int {
  * it should restore it before return. It is not recommended to access any bytes of the buffer outside of the
  * provided byte range [position(); limit()) as there could be any garbage or incomplete data.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.read)
+ *
  * @param min amount of bytes available for read, should be positive or zero
  * @param consumer to be invoked when at least [min] bytes available for read
+ * @throws EOFException when there are less than [min] bytes available after the channel is closed
  */
 @OptIn(InternalAPI::class)
 public suspend inline fun ByteReadChannel.read(min: Int = 1, noinline consumer: (ByteBuffer) -> Unit) {
     require(min >= 0) { "min should be positive or zero" }
-    if (availableForRead > 0 && availableForRead >= min) {
+    if (min > 0) {
+        if (!awaitContent(min)) {
+            throw EOFException("Not enough bytes available: required $min but $availableForRead available")
+        }
         readBuffer.read(consumer)
-        return
+    } else if (awaitContent()) {
+        readBuffer.read(consumer)
     }
-
-    awaitContent()
-    if (isClosedForRead && min > 0) {
-        throw EOFException("Not enough bytes available: required $min but $availableForRead available")
-    }
-
-    if (availableForRead > 0) readBuffer.read(consumer)
 }

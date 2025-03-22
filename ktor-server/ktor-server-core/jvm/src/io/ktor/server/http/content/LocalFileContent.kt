@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.http.content
@@ -15,6 +15,9 @@ import kotlin.io.path.*
 
 /**
  * OutgoingContent representing a local [file] with a specified [contentType], [expires] date and [caching]
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.LocalFileContent)
  *
  * @param file specifies the File to be served to a client
  */
@@ -43,6 +46,8 @@ public class LocalFileContent(
 
 /**
  * Creates an instance of [LocalFileContent] for a file designated by [relativePath] in a [baseDir]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.LocalFileContent)
  */
 public fun LocalFileContent(
     baseDir: File,
@@ -52,7 +57,10 @@ public fun LocalFileContent(
 
 /**
  * Creates an instance of [LocalPathContent] for a path designated by [relativePath] in a [baseDir]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.LocalFileContent)
  */
+@Suppress("FunctionName")
 @Deprecated(
     "Use LocalPathContent instead",
     ReplaceWith("LocalPathContent(baseDir, relativePath, contentType)", "io.ktor.server.http.content.LocalPathContent")
@@ -65,6 +73,8 @@ public fun LocalFileContent(
 
 /**
  * Creates an instance of [LocalPathContent] for a path designated by [relativePath] in a [baseDir]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.LocalPathContent)
  */
 public fun LocalPathContent(
     baseDir: Path,

@@ -15,18 +15,25 @@ import io.ktor.server.testing.client.*
 import io.ktor.test.dispatcher.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
-import kotlinx.atomicfu.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.test.*
-import kotlin.coroutines.*
+import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.test.TestResult
+import kotlinx.coroutines.withContext
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 /**
  * A client attached to [TestApplication].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.ClientProvider)
  */
 @KtorDsl
 public interface ClientProvider {
     /**
      * Returns a client with the default configuration.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.ClientProvider.client)
+     *
      * @see [testApplication]
      */
     public val client: HttpClient
@@ -43,6 +50,9 @@ public interface ClientProvider {
      *     }
      * }
      * ```
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.ClientProvider.createClient)
+     *
      * @see [testApplication]
      */
     @KtorDsl
@@ -51,30 +61,40 @@ public interface ClientProvider {
 
 /**
  * A configured instance of a test application running locally.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplication)
+ *
  * @see [testApplication]
  */
 public class TestApplication internal constructor(
-    private val builder: ApplicationTestBuilder
-) : ClientProvider by builder {
+    createServer: () -> EmbeddedServer<TestApplicationEngine, TestApplicationEngine.Configuration>,
+    clientProvider: ClientProvider,
+    private val externalServices: ExternalServicesBuilder,
+) : ClientProvider by clientProvider {
 
     internal enum class State {
-        Created, Starting, Started, Stopped
+        Created,
+        Starting,
+        Started,
+        Stopped,
     }
 
     private val state = atomic(State.Created)
 
-    internal val externalApplications by lazy { builder.externalServices.externalApplications }
-    internal val server by lazy { builder.embeddedServer }
+    internal val externalApplications by lazy { externalServices.externalApplications }
+    internal val server by lazy { createServer() }
     private val applicationStarting by lazy { Job(server.engine.coroutineContext[Job]) }
 
     /**
      * Starts this [TestApplication] instance.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplication.start)
      */
     public suspend fun start() {
         if (state.compareAndSet(State.Created, State.Starting)) {
             try {
-                builder.embeddedServer.start()
-                builder.externalServices.externalApplications.values.forEach { it.start() }
+                server.start()
+                externalServices.externalApplications.values.forEach { it.start() }
             } finally {
                 state.value = State.Started
                 applicationStarting.complete()
@@ -87,11 +107,13 @@ public class TestApplication internal constructor(
 
     /**
      * Stops this [TestApplication] instance.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplication.stop)
      */
     public fun stop() {
         state.value = State.Stopped
-        builder.embeddedServer.stop()
-        builder.externalServices.externalApplications.values.forEach { it.stop() }
+        server.stop()
+        externalServices.externalApplications.values.forEach { it.stop() }
         client.close()
     }
 }
@@ -99,20 +121,22 @@ public class TestApplication internal constructor(
 /**
  * Creates an instance of [TestApplication] configured with the builder [block].
  * Make sure to call [TestApplication.stop] after your tests.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplication)
+ *
  * @see [testApplication]
  */
 @KtorDsl
 public fun TestApplication(
     block: TestApplicationBuilder.() -> Unit
 ): TestApplication {
-    val builder = ApplicationTestBuilder()
-    val testApplication = TestApplication(builder)
-    builder.block()
-    return testApplication
+    return ApplicationTestBuilder().apply(block).application
 }
 
 /**
  * Registers mocks for external services.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.ExternalServicesBuilder)
  */
 @KtorDsl
 public class ExternalServicesBuilder internal constructor(private val testApplicationBuilder: TestApplicationBuilder) {
@@ -124,6 +148,9 @@ public class ExternalServicesBuilder internal constructor(private val testApplic
 
     /**
      * Registers a mock for an external service specified by [hosts] and configured with [block].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.ExternalServicesBuilder.hosts)
+     *
      * @see [testApplication]
      */
     @KtorDsl
@@ -144,6 +171,8 @@ public class ExternalServicesBuilder internal constructor(private val testApplic
 
 /**
  * A builder for [TestApplication].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationBuilder)
  */
 @KtorDsl
 public open class TestApplicationBuilder {
@@ -185,6 +214,9 @@ public open class TestApplicationBuilder {
 
     /**
      * Builds mocks for external services using [ExternalServicesBuilder].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationBuilder.externalServices)
+     *
      * @see [testApplication]
      */
     @KtorDsl
@@ -195,39 +227,60 @@ public open class TestApplicationBuilder {
 
     /**
      * Adds a configuration block for the [TestApplicationEngine].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationBuilder.engine)
+     *
      * @see [testApplication]
      */
     @KtorDsl
     public fun engine(block: TestApplicationEngine.Configuration.() -> Unit) {
         checkNotBuilt()
         val oldBuilder = engineConfig
-        engineConfig = { oldBuilder(); block() }
+        engineConfig = {
+            oldBuilder()
+            block()
+        }
     }
 
     /**
      * Adds a configuration block for the [ServerConfig].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationBuilder.serverConfig)
+     *
      * @see [testApplication]
      */
     @KtorDsl
     public fun serverConfig(block: ServerConfigBuilder.() -> Unit) {
         checkNotBuilt()
         val oldBuilder = applicationProperties
-        applicationProperties = { oldBuilder(); block() }
+        applicationProperties = {
+            oldBuilder()
+            block()
+        }
     }
 
     /**
      * Builds an environment using [block].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationBuilder.environment)
+     *
      * @see [testApplication]
      */
     @KtorDsl
     public fun environment(block: ApplicationEnvironmentBuilder.() -> Unit) {
         checkNotBuilt()
         val oldBuilder = environmentBuilder
-        environmentBuilder = { oldBuilder(); block() }
+        environmentBuilder = {
+            oldBuilder()
+            block()
+        }
     }
 
     /**
      * Adds a module to [TestApplication].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationBuilder.application)
+     *
      * @see [testApplication]
      */
     @KtorDsl
@@ -238,6 +291,8 @@ public open class TestApplicationBuilder {
 
     /**
      * Installs a [plugin] into [TestApplication]
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationBuilder.install)
      */
     @Suppress("UNCHECKED_CAST")
     @KtorDsl
@@ -251,6 +306,8 @@ public open class TestApplicationBuilder {
 
     /**
      * Installs routing into [TestApplication]
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationBuilder.routing)
      */
     @KtorDsl
     public fun routing(configuration: Route.() -> Unit) {
@@ -268,13 +325,21 @@ public open class TestApplicationBuilder {
 
 /**
  * A builder for a test that uses [TestApplication].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.ApplicationTestBuilder)
  */
 @KtorDsl
 public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
 
     override val client: HttpClient by lazy { createClient { } }
 
-    internal val application: TestApplication by lazy { TestApplication(this) }
+    internal val application: TestApplication by lazy {
+        TestApplication(
+            createServer = { embeddedServer },
+            clientProvider = this,
+            externalServices = externalServices,
+        )
+    }
 
     /**
      * Starts instance of [TestApplication].
@@ -282,6 +347,8 @@ public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
      * But it's still useful when you need to test your application lifecycle events.
      *
      * After calling this method, no modification of the application is allowed.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.ApplicationTestBuilder.startApplication)
      */
     public suspend fun startApplication() {
         application.start()
@@ -330,6 +397,8 @@ public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
  * [testApplication] loads all modules and properties specified in the configuration file automatically._
  *
  * You can learn more from [Testing](https://ktor.io/docs/testing.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.testApplication)
  */
 @KtorDsl
 public fun testApplication(block: suspend ApplicationTestBuilder.() -> Unit): TestResult {
@@ -367,6 +436,8 @@ public fun testApplication(block: suspend ApplicationTestBuilder.() -> Unit): Te
  * [testApplication] loads all modules and properties specified in the configuration file automatically.
  *
  * You can learn more from [Testing](https://ktor.io/docs/testing.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.testApplication)
  */
 @KtorDsl
 public fun testApplication(

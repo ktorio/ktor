@@ -1,14 +1,17 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.compression
 
 import io.ktor.client.call.*
 import io.ktor.client.request.*
-import io.ktor.client.tests.utils.*
+import io.ktor.client.test.base.*
 import io.ktor.http.*
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertContentEquals
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 private const val TEST_URL = "$TEST_SERVER/compression"
 
@@ -31,8 +34,9 @@ class ContentEncodingTest : ClientLoader() {
         }
     }
 
+    // Note: JS is decompressed before hitting the client, so the response does not appear compressed
     @Test
-    fun testDeflate() = clientTests(listOf("native:CIO")) {
+    fun testDeflate() = clientTests(except("native:CIO", "Js")) {
         config {
             ContentEncoding {
                 deflate()
@@ -48,7 +52,7 @@ class ContentEncodingTest : ClientLoader() {
     }
 
     @Test
-    fun testGZip() = clientTests(listOf("native:CIO")) {
+    fun testGZip() = clientTests(except("native:CIO", "Js")) {
         config {
             ContentEncoding {
                 gzip()
@@ -64,7 +68,7 @@ class ContentEncodingTest : ClientLoader() {
     }
 
     @Test
-    fun testGZipEmpty() = clientTests {
+    fun testGZipEmpty() = clientTests(except("Js")) {
         config {
             ContentEncoding {
                 gzip()
@@ -79,7 +83,7 @@ class ContentEncodingTest : ClientLoader() {
     }
 
     @Test
-    fun testGzipByteArray() = clientTests {
+    fun testGzipByteArray() = clientTests(except("Js")) {
         config {
             ContentEncoding {
                 gzip()
@@ -96,7 +100,7 @@ class ContentEncodingTest : ClientLoader() {
     }
 
     @Test
-    fun testDisableDecompression() = clientTests(listOf("OkHttp")) {
+    fun testDisableDecompression() = clientTests(except("OkHttp", "Js")) {
         config {
             ContentEncoding(mode = ContentEncodingConfig.Mode.CompressRequest) {
                 gzip()
@@ -111,7 +115,7 @@ class ContentEncodingTest : ClientLoader() {
     }
 
     @Test
-    fun testNoEncoding() = clientTests(listOf("OkHttp")) {
+    fun testNoEncoding() = clientTests(except("OkHttp")) {
         config {
             install(ContentEncoding)
         }

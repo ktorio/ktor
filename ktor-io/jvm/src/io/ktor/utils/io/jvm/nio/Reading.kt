@@ -17,6 +17,9 @@ import kotlin.coroutines.*
 /**
  * Converts a [ReadableByteChannel] to a [ByteReadChannel], enabling asynchronous reading of bytes.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.jvm.nio.toByteReadChannel)
+ *
  * @param context the [CoroutineContext] to execute the read operation. Defaults to [Dispatchers.IO].
  * @return a [ByteReadChannel] for reading bytes asynchronously from the given [ReadableByteChannel].
  */
@@ -29,6 +32,9 @@ public fun ReadableByteChannel.toByteReadChannel(
  *
  * This extension function wraps the given [ReadableByteChannel] into a [RawSource],
  * enabling efficient reading of bytes from the channel as a source of data.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.jvm.nio.asSource)
  *
  * @return a [RawSource] representation of the [ReadableByteChannel].
  */

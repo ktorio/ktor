@@ -1,16 +1,21 @@
-apply<test.server.TestServerPlugin>()
+/*
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
-kotlin.sourceSets {
-    jvmMain {
-        dependencies {
+plugins {
+    id("ktorbuild.project.library")
+    id("test-server")
+}
+
+kotlin {
+    sourceSets {
+        jvmMain.dependencies {
             api(project(":ktor-client:ktor-client-core"))
             api(libs.okhttp)
             api(libs.okhttp.sse)
             api(libs.okio)
         }
-    }
-    jvmTest {
-        dependencies {
+        jvmTest.dependencies {
             api(project(":ktor-client:ktor-client-tests"))
         }
     }

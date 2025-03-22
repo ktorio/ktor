@@ -9,11 +9,16 @@ import io.ktor.util.date.*
 
 /**
  * Server's response cookies.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.ResponseCookies)
+ *
  * @see [ApplicationResponse.cookies]
  */
 public class ResponseCookies(private val response: PipelineResponse) {
     /**
      * Gets a cookie from a response's `Set-Cookie` header.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.ResponseCookies.get)
      */
     public operator fun get(name: String): Cookie? = response.headers
         .values("Set-Cookie")
@@ -22,6 +27,8 @@ public class ResponseCookies(private val response: PipelineResponse) {
 
     /**
      * Appends a cookie [item] using the `Set-Cookie` response header.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.ResponseCookies.append)
      */
     public fun append(item: Cookie) {
         response.headers.append("Set-Cookie", renderSetCookieHeader(item))
@@ -29,6 +36,8 @@ public class ResponseCookies(private val response: PipelineResponse) {
 
     /**
      * Appends a cookie using the `Set-Cookie` response header from the specified parameters.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.ResponseCookies.append)
      */
     public fun append(
         name: String,
@@ -60,6 +69,8 @@ public class ResponseCookies(private val response: PipelineResponse) {
 
     /**
      * Appends an already expired cookie. Useful to remove client cookies.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.ResponseCookies.appendExpired)
      */
     @Deprecated(
         "This method doesn't bypass all flags and extensions so it will be removed in future " +

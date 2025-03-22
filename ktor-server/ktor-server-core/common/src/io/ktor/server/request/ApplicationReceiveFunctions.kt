@@ -20,32 +20,42 @@ import kotlin.reflect.*
 private val FORM_FIELD_LIMIT = AttributeKey<Long>("FormFieldLimit")
 
 @PublishedApi
-internal const val DEFAULT_FORM_FIELD_MAX_SIZE: Long = 50 * 1024 * 1024
+internal expect val DEFAULT_FORM_FIELD_LIMIT: Long
 
 /**
  * A pipeline for processing incoming content.
  * When executed, this pipeline starts with an instance of [ByteReadChannel].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.ApplicationReceivePipeline)
  */
 public open class ApplicationReceivePipeline(
     override val developmentMode: Boolean = false
 ) : Pipeline<Any, PipelineCall>(Before, Transform, After) {
     /**
      * Pipeline phases.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.ApplicationReceivePipeline.Phases)
      */
     @Suppress("PublicApiImplicitType")
     public companion object Phases {
         /**
          * Executes before any transformations are made.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.ApplicationReceivePipeline.Phases.Before)
          */
         public val Before: PipelinePhase = PipelinePhase("Before")
 
         /**
          * Executes transformations.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.ApplicationReceivePipeline.Phases.Transform)
          */
         public val Transform: PipelinePhase = PipelinePhase("Transform")
 
         /**
          * Executes after all transformations.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.ApplicationReceivePipeline.Phases.After)
          */
         public val After: PipelinePhase = PipelinePhase("After")
     }
@@ -53,6 +63,9 @@ public open class ApplicationReceivePipeline(
 
 /**
  * Receives content for this request.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.receiveOrNull)
+ *
  * @return instance of [T] received from this call, or `null` if content cannot be transformed to the requested type.
  */
 @Deprecated(
@@ -66,6 +79,9 @@ public suspend inline fun <reified T : Any> ApplicationCall.receiveOrNull(): T? 
 
 /**
  * Receives content for this request.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.receive)
+ *
  * @return instance of [T] received from this call.
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
  */
@@ -74,6 +90,9 @@ public suspend inline fun <reified T : Any> ApplicationCall.receive(): T = recei
 
 /**
  * Receives content for this request.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.receiveNullable)
+ *
  * @return instance of [T] received from this call.
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
  */
@@ -81,6 +100,9 @@ public suspend inline fun <reified T> ApplicationCall.receiveNullable(): T? = re
 
 /**
  * Receives content for this request.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.receive)
+ *
  * @param type instance of `KClass` specifying type to be received.
  * @return instance of [T] received from this call.
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
@@ -92,6 +114,9 @@ public suspend fun <T : Any> ApplicationCall.receive(type: KClass<T>): T {
 
 /**
  * Receives content for this request.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.receive)
+ *
  * @param typeInfo instance specifying type to be received.
  * @return instance of [T] received from this call.
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
@@ -101,6 +126,9 @@ public suspend fun <T> ApplicationCall.receive(typeInfo: TypeInfo): T = receiveN
 
 /**
  * Receives content for this request.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.receiveOrNull)
+ *
  * @param [typeInfo] type to be received.
  * @return instance of [T] received from this call, or `null` if content cannot be transformed to the requested type.
  */
@@ -121,6 +149,9 @@ public suspend fun <T : Any> ApplicationCall.receiveOrNull(typeInfo: TypeInfo): 
 
 /**
  * Receives content for this request.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.receiveOrNull)
+ *
  * @param type instance of `KClass` specifying type to be received.
  * @return instance of [T] received from this call, or `null` if content cannot be transformed to the requested type..
  */
@@ -139,6 +170,9 @@ public suspend fun <T : Any> ApplicationCall.receiveOrNull(type: KClass<T>): T? 
 
 /**
  * Receives incoming content for this call as [String].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.receiveText)
+ *
  * @return text received from this call.
  * @throws BadRequestException when Content-Type header is invalid.
  */
@@ -153,6 +187,9 @@ public suspend inline fun ApplicationCall.receiveText(): String {
 
 /**
  * Receives channel content for this call.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.receiveChannel)
+ *
  * @return instance of [ByteReadChannel] to read incoming bytes for this call.
  * @throws ContentTransformationException when content cannot be transformed to the [ByteReadChannel].
  */
@@ -173,10 +210,12 @@ public suspend inline fun ApplicationCall.receiveChannel(): ByteReadChannel = re
  * ```
  * call.formFieldLimit = limit
  * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.formFieldLimit)
  */
 public var ApplicationCall.formFieldLimit: Long
     get() {
-        return attributes.getOrNull(FORM_FIELD_LIMIT) ?: DEFAULT_FORM_FIELD_MAX_SIZE
+        return attributes.getOrNull(FORM_FIELD_LIMIT) ?: DEFAULT_FORM_FIELD_LIMIT
     }
     set(value) {
         attributes.put(FORM_FIELD_LIMIT, value)
@@ -184,18 +223,26 @@ public var ApplicationCall.formFieldLimit: Long
 
 /**
  * Receives multipart data for this call.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.receiveMultipart)
+ *
  * @return instance of [MultiPartData].
  * @throws ContentTransformationException when content cannot be transformed to the [MultiPartData].
  */
 public suspend inline fun ApplicationCall.receiveMultipart(
-    formFieldLimit: Long = DEFAULT_FORM_FIELD_MAX_SIZE
+    formFieldLimit: Long = -1L
 ): MultiPartData {
-    this.formFieldLimit = formFieldLimit
+    if (formFieldLimit > 0) {
+        this.formFieldLimit = formFieldLimit
+    }
     return receive()
 }
 
 /**
  * Receives form parameters for this call.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.receiveParameters)
+ *
  * @return instance of [Parameters].
  * @throws ContentTransformationException when content cannot be transformed to the [Parameters].
  */
@@ -203,6 +250,8 @@ public suspend inline fun ApplicationCall.receiveParameters(): Parameters = rece
 
 /**
  * Thrown when content cannot be transformed to the desired type.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.ContentTransformationException)
  */
 public typealias ContentTransformationException = io.ktor.server.plugins.ContentTransformationException
 
@@ -219,6 +268,8 @@ internal val DoubleReceivePreventionTokenKey =
 /**
  * Thrown when a request body has already been received.
  * Usually it is caused by double [ApplicationCall.receive] invocation.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.RequestAlreadyConsumedException)
  */
 public class RequestAlreadyConsumedException : IllegalStateException(
     "Request body has already been consumed (received)."

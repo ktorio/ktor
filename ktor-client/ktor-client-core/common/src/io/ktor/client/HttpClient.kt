@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client
 
@@ -323,6 +323,8 @@ import kotlin.coroutines.*
  *
  * By directly setting the engine (e.g., `Apache`, `OkHttp`), you can optimize startup performance
  * by preventing the default service loader mechanism.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClient)
  */
 @KtorDsl
 public expect fun HttpClient(
@@ -634,6 +636,8 @@ public expect fun HttpClient(
  *
  * By directly setting the engine (e.g., `Apache`, `OkHttp`), you can optimize startup performance
  * by preventing the default service loader mechanism.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClient)
  */
 @KtorDsl
 public fun <T : HttpClientEngineConfig> HttpClient(
@@ -958,6 +962,8 @@ public fun <T : HttpClientEngineConfig> HttpClient(
  *
  * By directly setting the engine (e.g., `Apache`, `OkHttp`), you can optimize startup performance
  * by preventing the default service loader mechanism.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClient)
  */
 @KtorDsl
 public fun HttpClient(
@@ -1270,6 +1276,8 @@ public fun HttpClient(
  *
  * By directly setting the engine (e.g., `Apache`, `OkHttp`), you can optimize startup performance
  * by preventing the default service loader mechanism.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClient)
  */
 @OptIn(InternalAPI::class)
 public class HttpClient(
@@ -1294,36 +1302,50 @@ public class HttpClient(
 
     /**
      * A pipeline used for processing all requests sent by this client.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClient.requestPipeline)
      */
     public val requestPipeline: HttpRequestPipeline = HttpRequestPipeline()
 
     /**
      * A pipeline used for processing all responses sent by the server.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClient.responsePipeline)
      */
     public val responsePipeline: HttpResponsePipeline = HttpResponsePipeline()
 
     /**
      * A pipeline used for sending a request.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClient.sendPipeline)
      */
     public val sendPipeline: HttpSendPipeline = HttpSendPipeline()
 
     /**
      * A pipeline used for receiving a request.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClient.receivePipeline)
      */
     public val receivePipeline: HttpReceivePipeline = HttpReceivePipeline()
 
     /**
      * Typed attributes used as a lightweight container for this client.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClient.attributes)
      */
     public val attributes: Attributes = Attributes(concurrent = true)
 
     /**
      * Provides access to the client's engine configuration.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClient.engineConfig)
      */
     public val engineConfig: HttpClientEngineConfig = engine.config
 
     /**
      * Provides access to the events of the client's lifecycle.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClient.monitor)
      */
     public val monitor: Events = Events()
 
@@ -1395,6 +1417,8 @@ public class HttpClient(
 
     /**
      * Checks if the specified [capability] is supported by this client.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClient.isSupported)
      */
     public fun isSupported(capability: HttpClientEngineCapability<*>): Boolean {
         return engine.supportedCapabilities.contains(capability)
@@ -1403,6 +1427,8 @@ public class HttpClient(
     /**
      * Returns a new [HttpClient] by copying this client's configuration
      * and additionally configured by the [block] parameter.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClient.config)
      */
     public fun config(block: HttpClientConfig<*>.() -> Unit): HttpClient = HttpClient(
         engine,
@@ -1439,6 +1465,8 @@ public class HttpClient(
      * client.close()
      * engine.close() // Ensure manually created engine is also closed
      * ```
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClient.close)
      */
     override fun close() {
         val success = closed.compareAndSet(false, true)
@@ -1449,7 +1477,7 @@ public class HttpClient(
             @Suppress("UNCHECKED_CAST")
             val plugin = installedFeatures[key as AttributeKey<Any>]
 
-            if (plugin is Closeable) {
+            if (plugin is AutoCloseable) {
                 plugin.close()
             }
         }

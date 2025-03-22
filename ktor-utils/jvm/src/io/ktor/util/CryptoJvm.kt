@@ -13,6 +13,9 @@ import java.security.*
 
 /**
  * Create a digest function with the specified [algorithm] and [salt] provider.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.getDigestFunction)
+ *
  * @param algorithm digest algorithm name
  * @param salt a function computing a salt for a particular hash input value
  */
@@ -28,12 +31,16 @@ private fun getDigest(text: String, algorithm: String, salt: (String) -> String)
 
 /**
  * Compute SHA-1 hash for the specified [bytes]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.sha1)
  */
 public actual fun sha1(bytes: ByteArray): ByteArray =
     MessageDigest.getInstance("SHA1").digest(bytes)
 
 /**
  * Create [Digest] from specified hash [name].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.Digest)
  */
 public actual fun Digest(name: String): Digest = DigestImpl(MessageDigest.getInstance(name))
 
@@ -52,6 +59,8 @@ private value class DigestImpl(val delegate: MessageDigest) : Digest {
 
 /**
  * Generates a nonce string 16 characters long. Could block if the system's entropy source is empty
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.generateNonce)
  */
 public actual fun generateNonce(): String {
     val nonce = seedChannel.tryReceive().getOrNull()

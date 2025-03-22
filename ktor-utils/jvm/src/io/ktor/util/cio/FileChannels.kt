@@ -1,12 +1,10 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util.cio
 
-import io.ktor.util.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
 import io.ktor.utils.io.jvm.nio.*
 import kotlinx.coroutines.*
 import java.io.*
@@ -19,6 +17,8 @@ import kotlin.coroutines.*
  * your async code and freeze the whole application when runs on a pool that is not intended for blocking operations.
  * This is why [coroutineContext] should have [Dispatchers.IO] or
  * a coroutine dispatcher that is properly configured for blocking IO.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.cio.readChannel)
  */
 public fun File.readChannel(
     start: Long = 0,
@@ -94,6 +94,8 @@ internal suspend fun SeekableByteChannel.writeToScope(
  * your async code and freeze the whole application when runs on a pool that is not intended for blocking operations.
  * This is why [coroutineContext] should have [Dispatchers.IO] or
  * a coroutine dispatcher that is properly configured for blocking IO.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.cio.writeChannel)
  */
 @OptIn(DelicateCoroutinesApi::class)
 public fun File.writeChannel(

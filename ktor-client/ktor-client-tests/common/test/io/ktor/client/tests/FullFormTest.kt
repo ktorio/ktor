@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests
@@ -7,9 +7,11 @@ package io.ktor.client.tests
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
-import io.ktor.client.tests.utils.*
+import io.ktor.client.test.base.*
 import io.ktor.http.*
-import kotlin.test.*
+import kotlin.test.Ignore
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class FullFormTest : ClientLoader() {
     @Test
@@ -68,7 +70,7 @@ class FullFormTest : ClientLoader() {
 
     @Test
     @Ignore
-    fun testCustomUrls() = clientTests(listOf("Darwin", "native:CIO", "DarwinLegacy")) {
+    fun testCustomUrls() = clientTests(except("Darwin", "native:CIO", "DarwinLegacy")) {
         val urls = listOf(
             "https://google.com",
             "https://kotlinlang.org/"

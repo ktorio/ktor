@@ -6,32 +6,45 @@ package io.ktor.websocket
 
 /**
  * A WebSocket frame type.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.FrameType)
+ *
  * @property controlFrame if this is control frame type
  * @property opcode - frame type id that is used to transport it
  */
 public enum class FrameType(public val controlFrame: Boolean, public val opcode: Int) {
     /**
      * A regular application level text frame.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.FrameType.TEXT)
      */
     TEXT(false, 1),
 
     /**
      * A regular application level binary frame.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.FrameType.BINARY)
      */
     BINARY(false, 2),
 
     /**
      * A low level close frame.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.FrameType.CLOSE)
      */
     CLOSE(true, 8),
 
     /**
      * A low level ping frame.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.FrameType.PING)
      */
     PING(true, 9),
 
     /**
      * A low level pong frame.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.FrameType.PONG)
      */
     PONG(true, 0xa);
 
@@ -42,6 +55,9 @@ public enum class FrameType(public val controlFrame: Boolean, public val opcode:
 
         /**
          * Finds [FrameType] instance by numeric [opcode].
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.FrameType.Companion.get)
+         *
          * @return a [FrameType] instance or `null` of the [opcode] value is not valid
          */
         public operator fun get(opcode: Int): FrameType? = if (opcode in 0..maxOpcode) byOpcodeArray[opcode] else null

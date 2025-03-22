@@ -10,11 +10,15 @@ import io.ktor.util.date.*
 
 /**
  * Specifies a key for the VersionList extension property for [OutgoingContent].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.VersionListProperty)
  */
 public val VersionListProperty: AttributeKey<List<Version>> = AttributeKey("VersionList")
 
 /**
  * Gets or sets a list of [Version] instances as an extension property on this content.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.versions)
  */
 public var OutgoingContent.versions: List<Version>
     get() = getProperty(VersionListProperty) ?: emptyList()
@@ -24,15 +28,21 @@ public var OutgoingContent.versions: List<Version>
  * A content version.
  *
  * An example of version is [EntityTagVersion] or [LastModifiedVersion].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.Version)
  */
 public interface Version {
     /**
      * Checks [requestHeaders] against this version and returns [VersionCheckResult].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.Version.check)
      */
     public fun check(requestHeaders: Headers): VersionCheckResult
 
     /**
      * Appends relevant headers to the builder.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.Version.appendHeadersTo)
      */
     public fun appendHeadersTo(builder: HeadersBuilder)
 }
@@ -40,21 +50,30 @@ public interface Version {
 /**
  * Represent the result of the version comparison between content being sent and HTTP request.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.VersionCheckResult)
+ *
  * @param statusCode represents [HttpStatusCode] associated with the result.
  */
 public enum class VersionCheckResult(public val statusCode: HttpStatusCode) {
     /**
      * Indicates that content needs to be sent to recipient.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.VersionCheckResult.OK)
      */
     OK(HttpStatusCode.OK),
 
     /**
      * Indicates that content has not been modified according to headers sent by the client.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.VersionCheckResult.NOT_MODIFIED)
      */
     NOT_MODIFIED(HttpStatusCode.NotModified),
 
     /**
      * One or more conditions given in the request header fields evaluated to false.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.VersionCheckResult.PRECONDITION_FAILED)
      */
     PRECONDITION_FAILED(HttpStatusCode.PreconditionFailed)
 }
@@ -65,12 +84,18 @@ public enum class VersionCheckResult(public val statusCode: HttpStatusCode) {
  *
  * For better accuracy, use ETag instead.
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.LastModifiedVersion)
+ *
  *  @param lastModified of the current content, for example the file's last modified date
  */
 public data class LastModifiedVersion(val lastModified: GMTDate) : Version {
     private val truncatedModificationDate: GMTDate = lastModified.truncateToSeconds()
 
     /**
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.LastModifiedVersion.check)
+     *
      *  @return [VersionCheckResult.OK] if all headers pass or there are no headers in the request,
      *  [VersionCheckResult.NOT_MODIFIED] for `If-Modified-Since`,
      *  [VersionCheckResult.PRECONDITION_FAILED] for `If-Unmodified-Since`
@@ -91,6 +116,8 @@ public data class LastModifiedVersion(val lastModified: GMTDate) : Version {
 
     /**
      * If-Modified-Since logic: all [dates] should be _before_ this date (truncated to seconds).
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.LastModifiedVersion.ifModifiedSince)
      */
     public fun ifModifiedSince(dates: List<GMTDate>): Boolean {
         return dates.any { truncatedModificationDate > it }
@@ -98,6 +125,8 @@ public data class LastModifiedVersion(val lastModified: GMTDate) : Version {
 
     /**
      * If-Unmodified-Since logic: all [dates] should not be before this date (truncated to seconds).
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.LastModifiedVersion.ifUnmodifiedSince)
      */
     public fun ifUnmodifiedSince(dates: List<GMTDate>): Boolean {
         return dates.all { truncatedModificationDate <= it }
@@ -122,6 +151,8 @@ public data class LastModifiedVersion(val lastModified: GMTDate) : Version {
 
 /**
  * Creates an instance of [EntityTagVersion] parsing the [spec] via [EntityTagVersion.parseSingle].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.EntityTagVersion)
  */
 @Suppress("FunctionName", "CONFLICTING_OVERLOADS")
 public fun EntityTagVersion(spec: String): EntityTagVersion {
@@ -133,6 +164,9 @@ public fun EntityTagVersion(spec: String): EntityTagVersion {
  * Depending on the conditions, it produces the return value of enum type [VersionCheckResult].
  *
  * It never handles `If-None-Match: *`  as it is related to non-etag logic (for example, Last modified checks).
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.EntityTagVersion)
  *
  * @param etag - entity tag, for example file's content hash
  * @param weak - whether strong or weak validation should be applied
@@ -174,6 +208,8 @@ public data class EntityTagVersion(val etag: String, val weak: Boolean) : Versio
 
     /**
      * Checks whether two entity-tags match (strong).
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.EntityTagVersion.match)
      */
     public fun match(other: EntityTagVersion): Boolean {
         if (this == STAR || other == STAR) return true
@@ -182,6 +218,8 @@ public data class EntityTagVersion(val etag: String, val weak: Boolean) : Versio
 
     /**
      * Specifies `If-None-Match` logic using the [match] function.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.EntityTagVersion.noneMatch)
      */
     public fun noneMatch(givenNoneMatchEtags: List<EntityTagVersion>): VersionCheckResult {
         if (STAR in givenNoneMatchEtags) return VersionCheckResult.OK
@@ -195,6 +233,8 @@ public data class EntityTagVersion(val etag: String, val weak: Boolean) : Versio
 
     /**
      * Specifies `If-Match` logic using the [match] function.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.EntityTagVersion.match)
      */
     public fun match(givenMatchEtags: List<EntityTagVersion>): VersionCheckResult {
         if (givenMatchEtags.isEmpty()) return VersionCheckResult.OK
@@ -216,11 +256,15 @@ public data class EntityTagVersion(val etag: String, val weak: Boolean) : Versio
     public companion object {
         /**
          * Instance for `*` entity-tag pattern.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.EntityTagVersion.Companion.STAR)
          */
         public val STAR: EntityTagVersion = EntityTagVersion("*", false)
 
         /**
          * Parses headers with a list of entity-tags. Useful for headers such as `If-Match`/`If-None-Match`.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.EntityTagVersion.Companion.parse)
          */
         public fun parse(headerValue: String): List<EntityTagVersion> {
             val rawEntries = parseHeaderValue(headerValue)
@@ -234,6 +278,8 @@ public data class EntityTagVersion(val etag: String, val weak: Boolean) : Versio
 
         /**
          * Parses a single entity-tag or pattern specification.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.EntityTagVersion.Companion.parseSingle)
          */
         public fun parseSingle(value: String): EntityTagVersion {
             if (value == "*") return STAR

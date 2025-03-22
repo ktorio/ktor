@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.auth.providers
@@ -9,25 +9,28 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
-import io.ktor.http.auth.HeaderValueEncoding
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import kotlinx.atomicfu.*
+import kotlinx.atomicfu.atomic
 
 /**
  * Installs the client's [DigestAuthProvider].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.digest)
  */
 public fun AuthConfig.digest(block: DigestAuthConfig.() -> Unit) {
     val config = DigestAuthConfig().apply(block)
     with(config) {
-        this@digest.providers += DigestAuthProvider(_credentials, realm, algorithmName)
+        this@digest.providers += DigestAuthProvider(credentials, realm, algorithmName)
     }
 }
 
 /**
  * A configuration for [DigestAuthProvider].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.DigestAuthConfig)
  */
 @KtorDsl
 public class DigestAuthConfig {
@@ -36,36 +39,46 @@ public class DigestAuthConfig {
 
     /**
      * Required: The username of the basic auth.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.DigestAuthConfig.username)
      */
     @Deprecated("Please use `credentials {}` function instead", level = DeprecationLevel.ERROR)
     public var username: String = ""
 
     /**
      * Required: The password of the basic auth.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.DigestAuthConfig.password)
      */
     @Deprecated("Please use `credentials {}` function instead", level = DeprecationLevel.ERROR)
     public var password: String = ""
 
     /**
      * (Optional) Specifies the realm of the current provider.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.DigestAuthConfig.realm)
      */
     public var realm: String? = null
 
     @Suppress("DEPRECATION_ERROR")
-    internal var _credentials: suspend () -> DigestAuthCredentials? = {
+    internal var credentials: suspend () -> DigestAuthCredentials? = {
         DigestAuthCredentials(username = username, password = password)
     }
 
     /**
      * Allows you to specify authentication credentials.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.DigestAuthConfig.credentials)
      */
     public fun credentials(block: suspend () -> DigestAuthCredentials?) {
-        _credentials = block
+        credentials = block
     }
 }
 
 /**
  * Contains credentials for [DigestAuthProvider].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.DigestAuthCredentials)
  */
 public class DigestAuthCredentials(
     public val username: String,
@@ -76,6 +89,8 @@ public class DigestAuthCredentials(
  * An authentication provider for the Digest HTTP authentication scheme.
  *
  * You can learn more from [Digest authentication](https://ktor.io/docs/digest-client.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.DigestAuthProvider)
  */
 public class DigestAuthProvider(
     private val credentials: suspend () -> DigestAuthCredentials?,
@@ -202,5 +217,22 @@ public class DigestAuthProvider(
     private suspend fun makeDigest(data: String): ByteArray {
         val digest = Digest(algorithmName)
         return digest.build(data.toByteArray(Charsets.UTF_8))
+    }
+
+    /**
+     * Clears the currently stored authentication tokens from the cache.
+     *
+     * This method should be called in the following cases:
+     * - When the credentials have been updated and need to take effect
+     * - When you want to clear sensitive authentication data
+     *
+     * Note: The result of [credentials] invocation is cached internally.
+     * Calling this method will force the next authentication attempt to fetch fresh credentials.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.DigestAuthProvider.clearToken)
+     */
+    @InternalAPI // TODO KTOR-8180: Provide control over tokens to user code
+    public fun clearToken() {
+        tokenHolder.clearToken()
     }
 }

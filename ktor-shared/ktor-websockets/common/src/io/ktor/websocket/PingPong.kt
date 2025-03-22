@@ -6,6 +6,7 @@ package io.ktor.websocket
 
 import io.ktor.util.*
 import io.ktor.util.date.*
+import io.ktor.utils.io.ClosedByteChannelException
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
@@ -100,6 +101,7 @@ internal fun CoroutineScope.pinger(
         } catch (ignore: CancellationException) {
         } catch (ignore: ClosedReceiveChannelException) {
         } catch (ignore: ClosedSendChannelException) {
+        } catch (ignore: ClosedByteChannelException) {
         }
     }
 

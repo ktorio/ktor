@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.server.webjars
 
 import io.ktor.http.*
@@ -16,6 +20,8 @@ import kotlin.time.Duration.Companion.days
 
 /**
  * A configuration for the [Webjars] plugin.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.webjars.WebjarsConfig)
  */
 @KtorDsl
 public class WebjarsConfig {
@@ -26,6 +32,8 @@ public class WebjarsConfig {
 
     /**
      * Specifies a prefix for the path used to serve WebJars assets.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.webjars.WebjarsConfig.path)
      */
     public var path: String = "/webjars/"
         set(value) {
@@ -46,6 +54,8 @@ public class WebjarsConfig {
      * Return `null` from this block to omit the header.
      *
      * Note: for this property to work, you need to install the [ConditionalHeaders] plugin.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.webjars.WebjarsConfig.lastModified)
      */
     public fun lastModified(block: (WebJarInfo) -> GMTDate?) {
         lastModifiedExtractor = block
@@ -57,6 +67,8 @@ public class WebjarsConfig {
      * Return `null` from this block to omit the header.
      *
      * Note: for this property to work, you need to install the [ConditionalHeaders] plugin.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.webjars.WebjarsConfig.etag)
      */
     public fun etag(block: (WebJarInfo) -> String?) {
         etagExtractor = block
@@ -68,6 +80,8 @@ public class WebjarsConfig {
      * Return `null` from this block to omit the header.
      *
      * Note: for this property to work, you need to install the [CachingHeaders] plugin.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.webjars.WebjarsConfig.maxAge)
      */
     public fun maxAge(block: (WebJarInfo) -> Duration?) {
         maxAgeExtractor = block
@@ -79,6 +93,8 @@ public class WebjarsConfig {
  * It allows you to package your assets such as JavaScript and CSS libraries as part of your fat JAR.
  *
  * To learn more, see [Webjars](https://ktor.io/docs/webjars.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.webjars.Webjars)
  */
 public val Webjars: ApplicationPlugin<WebjarsConfig> = createApplicationPlugin("Webjars", ::WebjarsConfig) {
     val webjarsPrefix = pluginConfig.path

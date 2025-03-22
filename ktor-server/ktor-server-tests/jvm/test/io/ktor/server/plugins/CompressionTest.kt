@@ -22,11 +22,16 @@ import io.ktor.server.testing.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
-import kotlinx.coroutines.*
-import kotlinx.io.*
-import java.time.*
-import java.util.zip.*
-import kotlin.coroutines.*
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.io.readByteArray
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.util.zip.GZIPInputStream
+import java.util.zip.Inflater
+import java.util.zip.InflaterInputStream
+import kotlin.coroutines.CoroutineContext
 import kotlin.test.*
 
 class CompressionTest {
@@ -642,24 +647,31 @@ class CompressionTest {
         install(Compression)
         routing {
             post("/identity") {
+                val message = call.receiveText()
                 assertNull(call.request.headers[HttpHeaders.ContentEncoding])
                 assertEquals(listOf("identity"), call.request.appliedDecoders)
-                call.respond(call.receiveText())
+
+                call.respond(message)
             }
             post("/gzip") {
+                val message = call.receiveText()
+
                 assertNull(call.request.headers[HttpHeaders.ContentEncoding])
                 assertEquals(listOf("gzip"), call.request.appliedDecoders)
-                call.respond(call.receiveText())
+
+                call.respond(message)
             }
             post("/deflate") {
+                val message = call.receiveText()
                 assertNull(call.request.headers[HttpHeaders.ContentEncoding])
                 assertEquals(listOf("deflate"), call.request.appliedDecoders)
-                call.respond(call.receiveText())
+                call.respond(message)
             }
             post("/multiple") {
+                val message = call.receiveText()
                 assertNull(call.request.headers[HttpHeaders.ContentEncoding])
                 assertEquals(listOf("identity", "deflate", "gzip"), call.request.appliedDecoders)
-                call.respond(call.receiveText())
+                call.respond(message)
             }
             post("/unknown") {
                 assertEquals("unknown", call.request.headers[HttpHeaders.ContentEncoding])
@@ -754,9 +766,11 @@ class CompressionTest {
         }
         routing {
             post("/gzip") {
-                assertNull(call.request.headers[HttpHeaders.ContentEncoding])
                 val body = call.receive<ByteArray>()
-                assertContentEquals(textToCompressAsBytes, body)
+
+                assertNull(call.request.headers[HttpHeaders.ContentEncoding])
+                assertContentEquals(compressed, body)
+
                 call.respond(textToCompressAsBytes)
             }
         }
@@ -767,6 +781,56 @@ class CompressionTest {
             header(HttpHeaders.AcceptEncoding, "gzip")
         }
         assertContentEquals(textToCompressAsBytes, response.body<ByteArray>())
+    }
+
+    @Test
+    fun testDisableCallEncoding() = testApplication {
+        val compressed = GZip.encode(ByteReadChannel(textToCompressAsBytes)).readRemaining().readByteArray()
+        install(Compression)
+
+        routing {
+            post("/gzip") {
+                call.suppressCompression()
+
+                val body = call.receive<ByteArray>()
+
+                assertEquals("gzip", call.request.appliedDecoders.first())
+                assertNull(call.request.headers[HttpHeaders.ContentEncoding])
+                assertContentEquals(compressed, body)
+
+                call.respond(textToCompressAsBytes)
+            }
+        }
+
+        val response = client.post("/gzip") {
+            setBody(compressed)
+            header(HttpHeaders.ContentEncoding, "gzip")
+            header(HttpHeaders.AcceptEncoding, "gzip")
+        }
+        assertContentEquals(textToCompressAsBytes, response.body<ByteArray>())
+    }
+
+    @Test
+    fun testDisableCallDecoding() = testApplication {
+        val compressed = GZip.encode(ByteReadChannel(textToCompressAsBytes)).readRemaining().readByteArray()
+
+        install(Compression)
+        routing {
+            post("/gzip") {
+                call.suppressDecompression()
+                assertEquals("gzip", call.request.headers[HttpHeaders.ContentEncoding])
+                val body = call.receive<ByteArray>()
+                assertContentEquals(compressed, body)
+                call.respond(textToCompress)
+            }
+        }
+
+        val response = client.post("/gzip") {
+            setBody(compressed)
+            header(HttpHeaders.ContentEncoding, "gzip")
+            header(HttpHeaders.AcceptEncoding, "gzip")
+        }
+        assertContentEquals(compressed, response.body<ByteArray>())
     }
 
     private suspend fun ApplicationTestBuilder.handleAndAssert(

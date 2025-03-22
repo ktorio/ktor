@@ -1,18 +1,17 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests
 
+import io.ktor.client.call.body
 import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
-import io.ktor.client.tests.utils.*
+import io.ktor.client.test.base.*
 import io.ktor.http.*
-import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 import kotlinx.io.IOException
-import kotlin.math.*
 import kotlin.test.*
 
 class HttpRequestRetryTest {
@@ -456,6 +455,31 @@ class HttpRequestRetryTest {
         test { client ->
             val response = client.get {}
             assertEquals(HttpStatusCode.OK, response.status)
+        }
+    }
+
+    @Test
+    fun testResponseBodyCheckIgnoresEmpty() = testWithEngine(MockEngine) {
+        config {
+            engine {
+                addHandler { respondError(HttpStatusCode.Unauthorized, "") }
+            }
+            install(HttpRequestRetry) {
+                retryOnExceptionIf(1) { _, e ->
+                    e.printStackTrace()
+                    true
+                }
+            }
+        }
+
+        test { client ->
+            try {
+                val response = client.get { }
+                assertEquals(HttpStatusCode.Unauthorized, response.status)
+                assertEquals("", response.body())
+            } catch (cause: Throwable) {
+                fail("No exception should be thrown", cause)
+            }
         }
     }
 }

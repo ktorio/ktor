@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.js
@@ -19,14 +19,23 @@ import io.ktor.client.engine.*
  * ```
  *
  * You can learn more about client engines from [Engines](https://ktor.io/docs/http-client-engines.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.js.Js)
  */
 public expect object Js : HttpClientEngineFactory<JsClientEngineConfig>
 
-/** Configuration for the [Js] client. */
+/**
+ * Configuration for the [Js] client.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.js.JsClientEngineConfig)
+ */
 public expect open class JsClientEngineConfig : HttpClientEngineConfig
 
 /**
  * Creates a [Js] client engine.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.js.JsClient)
  */
+@Suppress("FunctionName")
 @JsName("JsClient")
 public fun JsClient(): HttpClientEngineFactory<JsClientEngineConfig> = Js

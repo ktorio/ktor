@@ -1,13 +1,20 @@
-kotlin.sourceSets {
-    jvmAndPosixMain {
-        dependencies {
+/*
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
+plugins {
+    id("ktorbuild.project.library")
+}
+
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
             api(project(":ktor-http"))
             api(project(":ktor-network"))
             api(project(":ktor-utils"))
         }
-    }
-    jvmTest {
-        dependencies {
+        jvmTest.dependencies {
+            api(project(":ktor-shared:ktor-test-base"))
             api(project(":ktor-network:ktor-network-tls:ktor-network-tls-certificates"))
             api(libs.netty.handler)
             api(libs.mockk)

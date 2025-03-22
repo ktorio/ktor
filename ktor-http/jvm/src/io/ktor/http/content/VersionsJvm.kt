@@ -18,6 +18,9 @@ import java.util.*
  * See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.28 and
  *  https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.25
  *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.LastModifiedVersion)
+ *
  *  @param lastModified of the current content, for example file's last modified date
  */
 public fun LastModifiedVersion(lastModified: Date): LastModifiedVersion =

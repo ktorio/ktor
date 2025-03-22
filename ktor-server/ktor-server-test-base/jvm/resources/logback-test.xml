@@ -1,0 +1,22 @@
+<!--
+  ~ Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+  -->
+
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{YYYY-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="ERROR">
+        <appender-ref ref="STDOUT"/>
+    </root>
+
+    <logger name="org.apache.directory.api" level="ERROR"/>
+    <logger name="org.eclipse.jetty" level="ERROR"/>
+    <logger name="org.eclipse.jetty.util.ssl.SslContextFactory" level="ERROR"/>
+    <logger name="io.netty" level="ERROR"/>
+    <logger name="ktor.test" level="ERROR"/>
+
+</configuration>
