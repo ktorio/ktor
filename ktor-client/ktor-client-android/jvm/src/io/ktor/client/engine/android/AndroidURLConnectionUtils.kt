@@ -5,6 +5,7 @@
 package io.ktor.client.engine.android
 
 import android.os.*
+import android.os.ext.SdkExtensions;
 import io.ktor.client.network.sockets.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*

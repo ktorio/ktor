@@ -4,7 +4,9 @@
 
 package io.ktor.client.engine.android
 
+import android.os.Build
 import android.net.http.*
+import androidx.annotation.RequiresExtension
 import java.net.*
 
 @RequiresExtension(extension = Build.VERSION_CODES.S, version = 7)
