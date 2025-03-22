@@ -234,7 +234,7 @@ develocity-commonCustomUserData = { module = "com.gradle:common-custom-user-data
 kotlinter = { module = "org.jmailen.gradle:kotlinter-gradle", version.ref = "kotlinter" }
 gradleDoctor = { module = "com.osacky.doctor:doctor-plugin", version.ref = "gradleDoctor" }
 
-robolectric = { module = "org.robolectric:android-all", version.ref = "robolectric-android" }
+robolectric-android = { module = "org.robolectric:android-all", version.ref = "robolectric-android" }
 
 [plugins]
 
