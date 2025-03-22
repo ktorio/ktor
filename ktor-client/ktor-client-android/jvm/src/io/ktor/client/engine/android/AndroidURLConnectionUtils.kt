@@ -93,4 +93,5 @@ private fun Throwable.isTimeoutException(): Boolean =
 
 internal val isAndroid: Boolean = "Dalvik" == System.getProperty("java.vm.name")
 
-internal fun isAndroid14() = isAndroid && Build.VERSION.SDK_INT >= 34
+internal fun isHttpEngineAvailable() = isAndroid && Build.VERSION.SDK_INT >= 30
+    && SdkExtensions.getExtensionVersion(Build.VERSION_CODES.S) >= 7

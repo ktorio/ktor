@@ -7,7 +7,8 @@ package io.ktor.client.engine.android
 import android.net.http.*
 import java.net.*
 
-internal class Android14HttpEngineFactory(private val config: AndroidEngineConfig) : URLConnectionFactory {
+@RequiresExtension(extension = Build.VERSION_CODES.S, version = 7)
+internal class AndroidNetHttpEngineFactory(private val config: AndroidEngineConfig) : URLConnectionFactory {
     private val engine = buildEngine()
 
     fun buildEngine(): HttpEngine {
@@ -17,6 +18,6 @@ internal class Android14HttpEngineFactory(private val config: AndroidEngineConfi
     }
 
     override operator fun invoke(urlString: String): HttpURLConnection {
-        return engine.openConnection(URL(urlString)) as HttpURLConnection
+        return engine.openConnection(URI.create(urlString).toURL()) as HttpURLConnection
     }
 }

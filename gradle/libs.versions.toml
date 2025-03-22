@@ -80,6 +80,8 @@ develocity = "3.17.6" # Should be compatible with our server: ge.jetbrains.com
 develocity-commonCustomUserData = "2.1"
 gradleDoctor = "0.10.0"
 
+robolectric-android = "15-robolectric-12650502"
+
 [libraries]
 
 kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
@@ -231,6 +233,8 @@ develocity = { module = "com.gradle:develocity-gradle-plugin", version.ref = "de
 develocity-commonCustomUserData = { module = "com.gradle:common-custom-user-data-gradle-plugin", version.ref = "develocity-commonCustomUserData" }
 kotlinter = { module = "org.jmailen.gradle:kotlinter-gradle", version.ref = "kotlinter" }
 gradleDoctor = { module = "com.osacky.doctor:doctor-plugin", version.ref = "gradleDoctor" }
+
+robolectric = { module = "org.robolectric:android-all", version.ref = "robolectric-android" }
 
 [plugins]
 
