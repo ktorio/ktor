@@ -47,7 +47,7 @@ micrometer = "1.14.4"
 jansi = "2.4.1"
 typesafe = "1.4.3"
 
-mockk = "1.13.16"
+mockk = "1.13.17"
 
 java-jwt = "4.5.0"
 
