@@ -33,7 +33,11 @@ public class AndroidClientEngine(override val config: AndroidEngineConfig) : Htt
 
     override val supportedCapabilities: Set<HttpClientEngineCapability<*>> = setOf(HttpTimeoutCapability, SSECapability)
 
-    private val urlFactory = if (config.httpEngineDisabled || !isHttpEngineAvailable() || config.proxy != null || config.context == null) {
+    private val urlFactory = if (config.httpEngineDisabled ||
+        !isHttpEngineAvailable() ||
+        config.proxy != null ||
+        config.context == null
+    ) {
         URLConnectionFactory.StandardURLConnectionFactory(config)
     } else {
         AndroidNetHttpEngineFactory(config)

@@ -5,7 +5,7 @@
 package io.ktor.client.engine.android
 
 import android.os.*
-import android.os.ext.SdkExtensions;
+import android.os.ext.SdkExtensions
 import io.ktor.client.network.sockets.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
@@ -94,5 +94,6 @@ private fun Throwable.isTimeoutException(): Boolean =
 
 internal val isAndroid: Boolean = "Dalvik" == System.getProperty("java.vm.name")
 
-internal fun isHttpEngineAvailable() = isAndroid && Build.VERSION.SDK_INT >= 30
-    && SdkExtensions.getExtensionVersion(Build.VERSION_CODES.S) >= 7
+internal fun isHttpEngineAvailable() = isAndroid &&
+    Build.VERSION.SDK_INT >= 30 &&
+    SdkExtensions.getExtensionVersion(Build.VERSION_CODES.S) >= 7

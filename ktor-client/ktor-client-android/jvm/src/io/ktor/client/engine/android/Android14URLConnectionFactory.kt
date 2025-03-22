@@ -7,7 +7,7 @@ package io.ktor.client.engine.android
 import android.net.http.*
 import java.net.*
 
-//@RequiresExtension(extension = Build.VERSION_CODES.S, version = 7)
+// @RequiresExtension(extension = Build.VERSION_CODES.S, version = 7)
 internal class AndroidNetHttpEngineFactory(private val config: AndroidEngineConfig) : URLConnectionFactory {
     private val engine = buildEngine()
 
