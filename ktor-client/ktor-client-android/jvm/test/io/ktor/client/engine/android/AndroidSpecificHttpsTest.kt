@@ -109,6 +109,11 @@ class AndroidSpecificHttpsTest : TestWithKtor() {
     fun withAndroid14Customisations(): Unit = runBlocking {
         HttpClient(
             Android.config {
+                // Demonstrating options, but ultimately still using URLConnection against localhost
+                sslManager = { conn ->
+                    conn.sslSocketFactory = sslContext.socketFactory
+                }
+
 //                this.context = context
                 httpEngineConfig = {
 //                    val cacheDir =
