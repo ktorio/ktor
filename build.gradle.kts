@@ -258,11 +258,7 @@ fun Project.setupJvmToolchain() {
 }
 
 fun KotlinMultiplatformExtension.setCompilationOptions() {
-    targets.all {
-        compilations.all {
-            configureCompilation()
-        }
-    }
+    compilerOptions.configureCompilation()
 }
 
 fun KotlinMultiplatformExtension.configureSourceSets() {
