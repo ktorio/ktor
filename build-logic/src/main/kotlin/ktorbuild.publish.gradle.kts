@@ -57,7 +57,8 @@ configureSigning()
 
 plugins.withId("ktorbuild.kmp") {
     tasks.withType<AbstractPublishToMaven>().configureEach {
-        onlyIf { isAvailableForPublication(ktorBuild.os.get()) }
+        val os = ktorBuild.os.get()
+        onlyIf { isAvailableForPublication(os) }
     }
 
     registerTargetsPublishTasks(ktorBuild.targets)
