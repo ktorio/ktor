@@ -5,13 +5,7 @@
 import org.jetbrains.kotlin.gradle.dsl.*
 import org.jetbrains.kotlin.gradle.plugin.*
 
-fun KotlinCompilation<KotlinCommonOptions>.configureCompilation() {
-    kotlinOptions {
-        if (platformType == KotlinPlatformType.jvm && !IDEA_ACTIVE) {
-//            allWarningsAsErrors = true
-        }
-
-        freeCompilerArgs += listOf("-opt-in=kotlin.RequiresOptIn")
-        freeCompilerArgs += "-Xexpect-actual-classes"
-    }
+fun KotlinCommonCompilerOptions.configureCompilation() {
+    freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
+    freeCompilerArgs.add("-Xexpect-actual-classes")
 }
