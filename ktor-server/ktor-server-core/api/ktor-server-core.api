@@ -1,5 +1,6 @@
 public final class io/ktor/server/application/Application : io/ktor/server/application/ApplicationCallPipeline, kotlinx/coroutines/CoroutineScope {
 	public final fun dispose ()V
+	public final fun disposeAndJoin (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getEngine ()Lio/ktor/server/engine/ApplicationEngine;
 	public final fun getMonitor ()Lio/ktor/events/Events;

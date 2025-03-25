@@ -31,6 +31,7 @@ public class ShutDownUrl(public val url: String, public val exitCode: Applicatio
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.ShutDownUrl.doShutdown)
      */
+    @OptIn(InternalAPI::class)
     public suspend fun doShutdown(call: ApplicationCall) {
         call.application.log.warn("Shutdown URL was called: server is going down")
         val application = call.application
@@ -42,7 +43,7 @@ public class ShutDownUrl(public val url: String, public val exitCode: Applicatio
             latch.join()
 
             application.monitor.raise(ApplicationStopPreparing, environment)
-            application.dispose()
+            application.disposeAndJoin()
 
             exitProcess(exitCode)
         }
