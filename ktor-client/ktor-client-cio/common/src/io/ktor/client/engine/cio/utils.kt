@@ -16,8 +16,9 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
+import kotlinx.io.EOFException
 import kotlinx.io.IOException
-import kotlin.coroutines.*
+import kotlin.coroutines.CoroutineContext
 
 internal suspend fun writeRequest(
     request: HttpRequestData,
@@ -169,7 +170,9 @@ internal suspend fun readResponse(
     callContext: CoroutineContext
 ): HttpResponseData = withContext(callContext) {
     val rawResponse = parseResponse(input)
-        ?: throw kotlinx.io.EOFException("Failed to parse HTTP response: the server prematurely closed the connection")
+        ?: throw ClosedReadChannelException(
+            EOFException("Failed to parse HTTP response: the server prematurely closed the connection")
+        )
 
     rawResponse.use {
         val status = HttpStatusCode(rawResponse.status, rawResponse.statusText.toString())
@@ -237,7 +240,7 @@ internal suspend fun startTunnel(
         output.flush()
 
         val rawResponse = parseResponse(input)
-            ?: throw kotlinx.io.EOFException("Failed to parse CONNECT response: unexpected EOF")
+            ?: throw ClosedReadChannelException(EOFException("Failed to parse CONNECT response: unexpected EOF"))
         rawResponse.use {
             if (rawResponse.status / 200 != 1) {
                 throw IOException("Can not establish tunnel connection")
