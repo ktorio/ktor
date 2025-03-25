@@ -124,9 +124,9 @@ class DependencyInjectionTest {
         assertFailsWith<CircularDependencyException> {
             testDI {
                 dependencies {
-                    provide<WorkExperience> { WorkExperience(this.resolve()) }
-                    provide<PaidWork> { PaidWork(this.resolve()) }
-                    provide<List<PaidWork>> { listOf(this.resolve()) }
+                    provide<WorkExperience> { WorkExperience(resolve()) }
+                    provide<PaidWork> { PaidWork(resolve()) }
+                    provide<List<PaidWork>> { listOf(resolve()) }
                 }
                 val eligibleJobs: List<PaidWork> by dependencies
                 fail("This should fail but returned $eligibleJobs")
@@ -187,7 +187,7 @@ class DependencyInjectionTest {
     fun parameterized() = runTestDI {
         dependencies {
             provide<GreetingService> { GreetingServiceImpl() }
-            provide<List<GreetingService>> { listOf(this.resolve(), this.resolve()) }
+            provide<List<GreetingService>> { listOf(resolve(), resolve()) }
         }
 
         val services: List<GreetingService> by dependencies
@@ -210,8 +210,8 @@ class DependencyInjectionTest {
             }
             provide<List<Any>>("my-list") {
                 listOf(
-                    this.resolve<GreetingService>(),
-                    this.resolve<List<String>>("my-strings"),
+                    resolve<GreetingService>(),
+                    resolve<List<String>>("my-strings"),
                 )
             }
         }
@@ -294,7 +294,7 @@ class DependencyInjectionTest {
     private suspend fun testDI(
         pluginInstall: DependencyInjectionConfig.() -> Unit = {},
         block: Application.() -> Unit
-    ): Unit = runTestApplication {
+    ) = runTestApplication {
         install(DI) {
             pluginInstall()
             if (!providerChanged) {

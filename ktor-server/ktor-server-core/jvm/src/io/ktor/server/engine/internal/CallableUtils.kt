@@ -18,7 +18,7 @@ internal fun executeModuleFunction(
     classLoader: ClassLoader,
     fqName: String,
     application: Application,
-    moduleInjector: ApplicationModuleInjector
+    moduleInjector: ModuleParametersInjector
 ) {
     val name = fqName.lastIndexOfAny(".#".toCharArray())
 
@@ -80,7 +80,7 @@ internal fun executeModuleFunction(
 private fun createModuleContainer(
     applicationEntryClass: KClass<*>,
     application: Application,
-    moduleInjector: ApplicationModuleInjector
+    moduleInjector: ModuleParametersInjector
 ): Any {
     val objectInstance = applicationEntryClass.objectInstance
     if (objectInstance != null) return objectInstance
@@ -99,7 +99,7 @@ private fun <R> callFunctionWithInjection(
     instance: Any?,
     entryPoint: KFunction<R>,
     application: Application,
-    moduleInjector: ApplicationModuleInjector
+    moduleInjector: ModuleParametersInjector
 ): R {
     val args = entryPoint.parameters.mapNotNull { parameter ->
         parameter to when {

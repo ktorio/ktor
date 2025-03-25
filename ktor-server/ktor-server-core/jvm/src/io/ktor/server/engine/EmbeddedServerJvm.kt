@@ -65,8 +65,8 @@ actual constructor(
         environment.config.propertyOrNull("ktor.application.modules")?.getList().orEmpty()
 
     @OptIn(InternalAPI::class)
-    private val moduleInjector: ApplicationModuleInjector by lazy {
-        loadServiceOrNull() ?: ApplicationModuleInjector.Disabled
+    private val moduleInjector: ModuleParametersInjector by lazy {
+        loadServiceOrNull() ?: ModuleParametersInjector.Disabled
     }
     private val modules by lazy {
         configModulesNames.map(::dynamicModule) +

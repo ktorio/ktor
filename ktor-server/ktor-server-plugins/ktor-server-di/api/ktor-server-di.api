@@ -284,11 +284,6 @@ public final class io/ktor/server/plugins/di/OutOfOrderDependencyException : io/
 	public fun <init> (Lio/ktor/server/plugins/di/DependencyKey;)V
 }
 
-public final class io/ktor/server/plugins/di/PluginModuleInjector : io/ktor/server/application/ApplicationModuleInjector {
-	public fun <init> ()V
-	public fun resolveParameter (Lio/ktor/server/application/Application;Lkotlin/reflect/KParameter;)Ljava/lang/Object;
-}
-
 public final class io/ktor/server/plugins/di/ProcessingDependencyResolver : io/ktor/server/plugins/di/DependencyResolver {
 	public fun <init> (Lio/ktor/server/plugins/di/DependencyReflection;Lio/ktor/server/plugins/di/DependencyProvider;)V
 	public fun get (Lio/ktor/server/plugins/di/DependencyKey;)Ljava/lang/Object;

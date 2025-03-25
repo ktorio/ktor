@@ -48,7 +48,7 @@ internal actual fun Application.installReference(
                             when (param.type) {
                                 // special types, from application
                                 DependencyResolver::class.starProjectedType -> this@set
-                                ApplicationEnvironment::class.starProjectedType -> this@installReference.environment
+                                ApplicationEnvironment::class.starProjectedType -> environment
                                 // regular types, from resolver
                                 else -> this.get<Any>(reflection.toDependencyKey(param))
                             }

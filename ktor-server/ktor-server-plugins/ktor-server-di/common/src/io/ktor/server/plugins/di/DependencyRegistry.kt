@@ -82,6 +82,23 @@ public class DependencyRegistryImpl(
     }
 }
 
+/**
+ * Provides a delegated property for accessing a dependency from a [DependencyRegistry].
+ * This operator function allows property delegation, ensuring the required dependency is
+ * registered and retrievable through the registry.
+ *
+ * Example usage:
+ * ```
+ * val repository: Repository<Message> by dependencies
+ * ```
+ *
+ * @param thisRef The receiver to which the property is being delegated. This parameter
+ * is not used in the actual implementation.
+ * @param prop The property for which the delegate is being requested.
+ * @return A [ReadOnlyProperty] that provides access to the resolved dependency of type [T].
+ * @throws DependencyInjectionException If the dependency required by [prop] is not resolvable
+ * during access.
+ */
 public inline operator fun <reified T> DependencyRegistry.provideDelegate(
     thisRef: Any?,
     prop: KProperty<*>

@@ -20,9 +20,9 @@ import kotlin.reflect.KParameter
  *
  * By default, parameters like `ApplicationEnvironment` are resolved automatically.
  */
-public fun interface ApplicationModuleInjector {
+public fun interface ModuleParametersInjector {
     public companion object {
-        internal val Disabled: ApplicationModuleInjector = ApplicationModuleInjector { _, _ ->
+        internal val Disabled: ModuleParametersInjector = ModuleParametersInjector { _, _ ->
             throw IllegalArgumentException("No module injector configured")
         }
     }

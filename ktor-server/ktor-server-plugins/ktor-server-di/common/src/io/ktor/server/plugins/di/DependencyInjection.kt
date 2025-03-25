@@ -182,7 +182,7 @@ public data class DependencyKey(val type: TypeInfo, val name: String? = null) {
  * Common parent for dependency injection problem.
  */
 public open class DependencyInjectionException(message: String, cause: Throwable? = null) :
-    IllegalArgumentException(message, cause)
+    RuntimeException(message, cause)
 
 /**
  * Thrown when attempting to resolve a dependency that was not declared.

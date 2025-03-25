@@ -5,11 +5,19 @@
 package io.ktor.server.plugins.di
 
 import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationModuleInjector
+import io.ktor.server.application.ModuleParametersInjector
 import kotlin.getValue
 import kotlin.reflect.KParameter
 
-public class PluginModuleInjector : ApplicationModuleInjector {
+/**
+ * Provides a mechanism for injecting application module parameters by resolving them
+ * using the application's dependency reflection and dependency container.
+ *
+ * This implementation utilizes `DependencyReflectionJvm` for converting `KParameter`
+ * instances into dependency keys, which are then used to fetch the corresponding
+ * parameter values from the application's dependency container.
+ */
+internal class PluginModuleParametersInjector : ModuleParametersInjector {
     override fun resolveParameter(
         application: Application,
         parameter: KParameter
@@ -19,7 +27,6 @@ public class PluginModuleInjector : ApplicationModuleInjector {
         val parameterValue by lazy<Any> {
             application.dependencies.get(reflection.toDependencyKey(parameter))
         }
-
         return parameterValue
     }
 }
