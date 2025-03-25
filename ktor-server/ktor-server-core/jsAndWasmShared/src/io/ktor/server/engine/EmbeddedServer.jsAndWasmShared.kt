@@ -8,6 +8,7 @@ import io.ktor.events.*
 import io.ktor.events.EventDefinition
 import io.ktor.server.application.*
 import io.ktor.server.engine.internal.*
+import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.*
 
 public actual class EmbeddedServer<
@@ -44,6 +45,7 @@ actual constructor(
 
     private val modules = rootConfig.modules
 
+    @OptIn(DelicateCoroutinesApi::class)
     private fun prepareToStart() {
         safeRaiseEvent(ApplicationStarting, application)
         try {
@@ -51,7 +53,7 @@ actual constructor(
             monitor.raise(ApplicationStarted, application)
         } catch (cause: Throwable) {
             environment.log.error("Failed to start application.", cause)
-            destroy(application)
+            GlobalScope.launch { destroy(application) }
             throw cause
         }
 
@@ -80,9 +82,10 @@ actual constructor(
         return this
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     public actual fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
         engine.stop(gracePeriodMillis, timeoutMillis)
-        destroy(application)
+        GlobalScope.launch { destroy(application) }
     }
 
     public actual suspend fun stopSuspend(gracePeriodMillis: Long, timeoutMillis: Long) {
@@ -90,10 +93,11 @@ actual constructor(
         destroy(application)
     }
 
-    private fun destroy(application: Application) {
+    @OptIn(InternalAPI::class)
+    private suspend fun destroy(application: Application) {
         safeRaiseEvent(ApplicationStopping, application)
         try {
-            application.dispose()
+            application.disposeAndJoin()
         } catch (e: Throwable) {
             environment.log.error("Failed to destroy application instance.", e)
         }
