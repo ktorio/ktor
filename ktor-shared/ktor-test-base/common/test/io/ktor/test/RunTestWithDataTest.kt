@@ -13,6 +13,9 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
+// We can't make this value too small as tests become flaky
+private val singleTestDuration = 100.milliseconds
+
 class RunTestWithDataTest {
 
     //region Test Cases
@@ -77,8 +80,8 @@ class RunTestWithDataTest {
     @Test
     fun testFailByTimeout() = runTestWithData(
         singleTestCase,
-        timeout = 10.milliseconds,
-        test = { realTimeDelay(1.seconds) },
+        timeout = singleTestDuration,
+        test = { realTimeDelay(singleTestDuration * 2) },
         handleFailures = { assertEquals(1, it.size) },
     )
 
@@ -88,9 +91,9 @@ class RunTestWithDataTest {
         return runTestWithData(
             singleTestCase,
             retries = 2,
-            timeout = 15.milliseconds,
+            timeout = singleTestDuration,
             test = { (_, retry) ->
-                if (retry < 2) realTimeDelay(1.seconds)
+                if (retry < 2) realTimeDelay(singleTestDuration * 2)
                 successfulRetry = retry
             },
             afterAll = { assertEquals(2, successfulRetry) },
@@ -101,9 +104,9 @@ class RunTestWithDataTest {
     fun testRetriesHaveIndependentTimeout() = runTestWithData(
         singleTestCase,
         retries = 1,
-        timeout = 50.milliseconds,
+        timeout = singleTestDuration * 1.75,
         test = { (_, retry) ->
-            realTimeDelay(30.milliseconds)
+            realTimeDelay(singleTestDuration)
             if (retry == 0) fail("Try again, please")
         },
     )
@@ -111,8 +114,8 @@ class RunTestWithDataTest {
     @Test
     fun testDifferentItemsHaveIndependentTimeout() = runTestWithData(
         testCases = 1..2,
-        timeout = 50.milliseconds,
-        test = { realTimeDelay(30.milliseconds) },
+        timeout = singleTestDuration * 1.75,
+        test = { realTimeDelay(singleTestDuration) },
     )
 
     @Test
@@ -121,7 +124,7 @@ class RunTestWithDataTest {
         return runTestWithData(
             testCases = 1..2,
             retries = 0,
-            timeout = 15.milliseconds,
+            timeout = singleTestDuration,
             test = { (item, _) ->
                 if (item == 1) realTimeDelay(1.seconds)
                 successfulItem = item
@@ -141,16 +144,15 @@ class RunTestWithDataTest {
         return runTestWithData(
             testCases = 1..3,
             retries = 1,
-            timeout = 15.milliseconds,
+            timeout = singleTestDuration,
             afterEach = { result ->
                 val status = if (result is TestFailure) "failed: ${result.cause.message}" else "succeeded"
                 executionLog.add("Test ${result.testCase.data}: attempt ${result.testCase.retry} $status")
             },
             test = { (id, retry) ->
-                println("${id}x$retry")
                 when (id) {
                     1 -> if (retry == 0) fail("First attempt failed")
-                    2 -> if (retry == 0) realTimeDelay(1.seconds)
+                    2 -> if (retry == 0) realTimeDelay(singleTestDuration * 2)
                 }
             },
             afterAll = {
@@ -158,7 +160,7 @@ class RunTestWithDataTest {
                     listOf(
                         "Test 1: attempt 0 failed: First attempt failed",
                         "Test 1: attempt 1 succeeded",
-                        "Test 2: attempt 0 failed: After waiting for 15ms, the test body did not run to completion",
+                        "Test 2: attempt 0 failed: After waiting for 100ms, the test body did not run to completion",
                         "Test 2: attempt 1 succeeded",
                         "Test 3: attempt 0 succeeded",
                     ),

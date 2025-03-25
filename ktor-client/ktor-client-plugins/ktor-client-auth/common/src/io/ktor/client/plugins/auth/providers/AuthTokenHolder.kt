@@ -4,12 +4,9 @@
 
 package io.ktor.client.plugins.auth.providers
 
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 import kotlin.concurrent.Volatile
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
@@ -91,12 +88,12 @@ internal class AuthTokenHolder<T>(private val loadTokens: suspend () -> T?) {
      * Resets the cached value.
      */
     @OptIn(DelicateCoroutinesApi::class)
-    internal fun clearToken() {
+    internal fun clearToken(coroutineScope: CoroutineScope = GlobalScope) {
         if (mutex.tryLock()) {
             value = null
             mutex.unlock()
         } else {
-            GlobalScope.launch {
+            coroutineScope.launch {
                 mutex.withLock {
                     value = null
                 }
