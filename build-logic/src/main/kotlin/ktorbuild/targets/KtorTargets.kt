@@ -20,11 +20,8 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
-import org.jetbrains.kotlin.gradle.plugin.KotlinHierarchyBuilder
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
-import org.jetbrains.kotlin.konan.target.KonanTarget
 import javax.inject.Inject
 
 /**
@@ -145,7 +142,7 @@ abstract class KtorTargets internal constructor(
 
                             group("androidNative32") {
                                 withAndroidNativeX86()
-                                withAndroidNativeArm32Fixed()
+                                withAndroidNativeArm32()
                             }
                         }
                     }
@@ -176,21 +173,6 @@ abstract class KtorTargets internal constructor(
 
         /** Returns targets corresponding to the provided [sourceSet]. */
         fun resolveTargets(sourceSet: String): Set<String> = hierarchyTracker.groups[sourceSet] ?: setOf(sourceSet)
-    }
-}
-
-/**
- * Original `withAndroidNativeArm32` has a bug and matches to `X86` actually.
- * TODO: Remove after the bug is fixed
- *  https://youtrack.jetbrains.com/issue/KT-71866/
- */
-@OptIn(ExperimentalKotlinGradlePluginApi::class)
-private fun KotlinHierarchyBuilder.withAndroidNativeArm32Fixed() {
-    if (this is KotlinHierarchyTracker) return withAndroidNativeArm32()
-
-    withCompilations {
-        val target = it.target
-        target is KotlinNativeTarget && target.konanTarget == KonanTarget.ANDROID_ARM32
     }
 }
 

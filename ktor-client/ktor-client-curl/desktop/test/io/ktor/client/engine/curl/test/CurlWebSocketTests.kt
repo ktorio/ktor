@@ -4,27 +4,26 @@
 
 package io.ktor.client.engine.curl.test
 
-import io.ktor.client.*
 import io.ktor.client.engine.curl.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
+import io.ktor.client.test.base.*
 import io.ktor.websocket.*
-import kotlinx.coroutines.*
-import kotlinx.serialization.json.*
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 import kotlin.test.*
 
-class CurlWebSocketTests {
-
-    private val TEST_SERVER: String = "http://127.0.0.1:8080"
-    private val TEST_WEBSOCKET_SERVER: String = "ws://127.0.0.1:8080"
+class CurlWebSocketTests : ClientEngineTest<CurlClientEngineConfig>(Curl) {
 
     @Test
-    fun testEcho() {
-        val client = HttpClient(Curl) {
+    fun testEcho() = testClient {
+        config {
             install(WebSockets)
         }
 
-        runBlocking {
+        test { client ->
             client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
                 send(Frame.Text("Hello, world"))
 
@@ -38,12 +37,12 @@ class CurlWebSocketTests {
 
     @Ignore // TODO: for some reason we doesn't get a response
     @Test
-    fun testEmptyFrame() {
-        val client = HttpClient(Curl) {
+    fun testEmptyFrame() = testClient {
+        config {
             install(WebSockets)
         }
 
-        runBlocking {
+        test { client ->
             client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
                 send(Frame.Text(""))
 
@@ -56,12 +55,12 @@ class CurlWebSocketTests {
     }
 
     @Test
-    fun testWebSocketHeaders() {
-        val client = HttpClient(Curl) {
+    fun testWebSocketHeaders() = testClient {
+        config {
             install(WebSockets)
         }
 
-        runBlocking {
+        test { client ->
             client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/headers") {
                 val actual = incoming.receive()
 
@@ -80,12 +79,12 @@ class CurlWebSocketTests {
     }
 
     @Test
-    fun testParallelSessions() {
-        val client = HttpClient(Curl) {
+    fun testParallelSessions() = testClient {
+        config {
             install(WebSockets)
         }
 
-        runBlocking {
+        test { client ->
             val websocketInitialized = CompletableDeferred<Boolean>()
 
             launch {

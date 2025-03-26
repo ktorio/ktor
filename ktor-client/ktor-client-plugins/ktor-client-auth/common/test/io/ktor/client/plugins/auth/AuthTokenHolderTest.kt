@@ -6,19 +6,22 @@ package io.ktor.client.plugins.auth
 
 import io.ktor.client.plugins.auth.providers.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlin.coroutines.CoroutineContext
 import kotlin.test.*
 
 class AuthTokenHolderTest {
 
+    private val testScope = TestScope()
+
     @Test
-    @OptIn(DelicateCoroutinesApi::class)
-    fun testOnlyOneSetTokenCallComputesBlock() = runTest {
+    fun testOnlyOneSetTokenCallComputesBlock() = testScope.runTest {
         val holder = AuthTokenHolder<Int> { fail() }
 
+        // First job starts immediately, but takes some time to complete its block
         var firstCalled = false
-        val first = GlobalScope.launch(Dispatchers.Unconfined) {
+        val firstJob = launch {
             holder.setToken {
                 firstCalled = true
                 delay(100)
@@ -26,8 +29,9 @@ class AuthTokenHolderTest {
             }
         }
 
+        // Second job starts with delay, but completes quickly
         var secondCalled = false
-        val second = GlobalScope.launch(Dispatchers.Unconfined) {
+        val secondJob = launch {
             delay(50)
             holder.setToken {
                 secondCalled = true
@@ -35,109 +39,96 @@ class AuthTokenHolderTest {
             }
         }
 
-        first.join()
-        second.join()
+        firstJob.join()
+        secondJob.join()
 
-        val token = holder.loadToken()
-        assertEquals(token, 1)
-        assertTrue { firstCalled }
-        assertFalse { secondCalled }
+        assertEquals(1, holder.loadToken())
+        assertTrue(firstCalled, "setToken from the first job should be called")
+        assertFalse(secondCalled, "setToken from the second job should not be called")
     }
 
     @Test
-    @OptIn(DelicateCoroutinesApi::class)
-    fun testLoadTokenWaitsUntilTokenIsLoaded() = runTest {
-        val monitor = Job()
+    fun testLoadTokenWaitsUntilTokenIsLoaded() = testScope.runTest {
+        val loadingCompletionTrigger = Job()
+
         val holder = AuthTokenHolder {
-            monitor.join()
+            loadingCompletionTrigger.join()
             BearerTokens("1", "2")
         }
 
-        val first = GlobalScope.async(Dispatchers.Unconfined) {
-            holder.loadToken()
-        }
+        // Start two concurrent loadToken operations
+        val firstLoadJob = async { holder.loadToken() }
+        val secondLoadJob = async { holder.loadToken() }
 
-        val second = GlobalScope.async(Dispatchers.Unconfined) {
-            holder.loadToken()
-        }
+        // Allow the token loading to complete
+        loadingCompletionTrigger.complete()
 
-        monitor.complete()
-        assertNotNull(first.await())
-        assertNotNull(second.await())
+        val firstResult = firstLoadJob.await()
+        val secondResult = secondLoadJob.await()
+
+        assertNotNull(firstResult)
+        assertNotNull(secondResult)
+        assertEquals(firstResult, secondResult)
     }
 
     @Test
-    @OptIn(DelicateCoroutinesApi::class)
-    fun testClearCalledWhileLoadingTokens() = runTest {
-        val monitor = Job()
+    fun testClearCalledWhileLoadingTokens() = testScope.runTest {
+        val loadStarted = Job()
+        val clearDone = Job()
 
-        var clearTokenCalled = false
         val holder = AuthTokenHolder {
-            // suspend until clearToken is called
-            while (!clearTokenCalled) {
-                delay(10)
-            }
-
-            monitor.join()
+            loadStarted.complete()
+            // Suspend until clearToken is called
+            clearDone.join()
             1
         }
 
-        val first = GlobalScope.async(Dispatchers.Unconfined) {
+        val loadJob = async {
             holder.loadToken()
         }
 
-        val second = GlobalScope.async(Dispatchers.Unconfined) {
-            holder.clearToken()
-            clearTokenCalled = true
-        }
+        // Wait for loading start
+        loadStarted.join()
+        // And then clear the token
+        holder.clearToken(testScope)
+        clearDone.complete()
 
-        monitor.complete()
-        assertEquals(1, first.await())
-        second.await()
-        assertTrue(clearTokenCalled)
+        assertEquals(1, loadJob.await())
         assertNull(holder.get())
     }
 
     @Test
-    @OptIn(DelicateCoroutinesApi::class)
-    fun testClearCalledWhileSettingTokens() = runTest {
-        val monitor = Job()
+    fun testClearCalledWhileSettingTokens() = testScope.runTest {
+        val setTokenStarted = Job()
+        val clearDone = Job()
 
-        var clearTokenCalled = false
         val holder = AuthTokenHolder<Int> {
             fail("loadTokens argument function shouldn't be invoked")
         }
 
-        val first = GlobalScope.async(Dispatchers.Unconfined) {
+        val setTokenJob = async {
             holder.setToken {
-                // suspend until clearToken is called
-                while (!clearTokenCalled) {
-                    delay(10)
-                }
-                monitor.join()
+                setTokenStarted.complete()
+                clearDone.join()
                 1
             }
         }
 
-        val second = GlobalScope.async(Dispatchers.Unconfined) {
-            holder.clearToken()
-            clearTokenCalled = true
-        }
+        setTokenStarted.join()
+        holder.clearToken(testScope)
+        clearDone.complete()
 
-        monitor.complete()
-        assertEquals(1, first.await())
-        second.await()
-        assertTrue(clearTokenCalled)
+        assertEquals(1, setTokenJob.await())
         assertNull(holder.get())
     }
 
     @Test
-    fun testExceptionInLoadTokens() = runTest {
+    fun testExceptionInLoadTokens() = testScope.runTest {
         var firstCall = true
         val holder = AuthTokenHolder {
             if (firstCall) {
                 firstCall = false
-                throw IllegalStateException("First call")
+                throw IllegalStateException("First call failed")
             }
             "token"
         }
@@ -146,7 +137,7 @@ class AuthTokenHolderTest {
     }
 
     @Test
-    fun testExceptionInSetTokens() = runTest {
+    fun testExceptionInSetTokens() = testScope.runTest {
         val holder = AuthTokenHolder<String> {
             fail("loadTokens argument function shouldn't be invoked")
         }
@@ -154,32 +145,31 @@ class AuthTokenHolderTest {
         assertEquals("token", holder.setToken { "token" })
     }
 
-    internal class MyContext(val value: Int) : CoroutineContext.Element {
+    internal class ResultContextElement(val value: Int) : CoroutineContext.Element {
         override val key: CoroutineContext.Key<*>
-            get() = MyContext
+            get() = ResultContextElement
 
-        companion object : CoroutineContext.Key<MyContext>
+        companion object : CoroutineContext.Key<ResultContextElement>
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     @Test
-    fun firstLoadTokenCallComputesBlockAndSetsValue() = runTest {
+    fun firstLoadTokenCallComputesBlockAndSetsValue() = testScope.runTest {
         val holder = AuthTokenHolder {
-            coroutineScope {
-                val context = coroutineContext[MyContext]
-                assertNotNull(context)
-                context.value
-            }
+            val result = assertNotNull(currentCoroutineContext()[ResultContextElement])
+            result.value
         }
-        val first = GlobalScope.async(Dispatchers.Unconfined) {
+
+        // First job starts with a delay
+        val first = async {
             delay(50)
-            withContext(MyContext(1)) {
+            withContext(ResultContextElement(1)) {
                 holder.loadToken()
             }
         }
 
-        val second = GlobalScope.async(Dispatchers.Unconfined) {
-            withContext(MyContext(2)) {
+        // Second job starts immediately
+        val second = async {
+            withContext(ResultContextElement(2)) {
                 holder.loadToken()
             }
         }
@@ -190,46 +180,46 @@ class AuthTokenHolderTest {
         assertEquals(2, holder.loadToken())
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     @Test
-    fun firstSetTokenCallComputesBlockAndSetsValue() = runTest {
+    fun firstSetTokenCallComputesBlockAndSetsValue() = testScope.runTest {
         val holder = AuthTokenHolder<Int> {
-            fail()
+            fail("loadTokens shouldn't be called in this test")
         }
 
-        val first = GlobalScope.async(Dispatchers.Unconfined) {
+        // First job starts with a delay, but completes its block quickly
+        val firstJob = async {
             delay(50)
-            holder.setToken {
-                1
-            }
+            holder.setToken { 1 }
         }
 
-        val second = GlobalScope.async(Dispatchers.Unconfined) {
+        // Second job starts first, but takes longer to complete its block
+        val secondJob = async {
             holder.setToken {
                 delay(100)
                 2
             }
         }
 
-        assertEquals(2, first.await())
-        assertEquals(2, second.await())
+        assertEquals(2, firstJob.await())
+        assertEquals(2, secondJob.await())
+
         assertEquals(2, holder.get())
         assertEquals(2, holder.loadToken())
     }
 
     @Test
-    @OptIn(DelicateCoroutinesApi::class)
-    fun testClearCoroutineResetsCachedValue() = runTest {
+    fun testClearCoroutineResetsCachedValue() = testScope.runTest {
         val holder = AuthTokenHolder {
+            // Simulate loading delay
             delay(200)
             1
         }
 
-        val loadToken = GlobalScope.async(Dispatchers.Unconfined) {
+        val loadTokenLob = async {
             holder.loadToken()
         }
 
-        val setToken = GlobalScope.async(Dispatchers.Unconfined) {
+        val setTokenJob = async {
             delay(50)
             holder.setToken {
                 delay(100)
@@ -237,55 +227,44 @@ class AuthTokenHolderTest {
             }
         }
 
-        val clear = GlobalScope.async(Dispatchers.Unconfined) {
+        val clearJob = launch {
             delay(100)
-            holder.clearToken()
+            holder.clearToken(testScope)
         }
 
-        assertEquals(1, loadToken.await())
-        assertEquals(2, setToken.await())
-        clear.await()
+        assertEquals(1, loadTokenLob.await())
+        assertEquals(2, setTokenJob.await())
+        clearJob.join()
         assertNull(holder.get())
     }
 
     @Test
-    @OptIn(DelicateCoroutinesApi::class)
-    fun lockedSetTokenByLoadTokenSetsValue() = runTest {
+    fun lockedSetTokenByLoadTokenSetsValue() = testScope.runTest {
         val holder = AuthTokenHolder {
             delay(200)
             1
         }
 
-        val loadToken = GlobalScope.async(Dispatchers.Unconfined) {
+        val loadTokenJob = async {
             holder.loadToken()
         }
 
-        val setToken = GlobalScope.async(Dispatchers.Unconfined) {
+        val setTokenJob = async {
             delay(100)
-            holder.setToken {
-                2
-            }
+            holder.setToken { 2 }
         }
 
-        assertEquals(1, loadToken.await())
-        assertEquals(2, setToken.await())
+        assertEquals(1, loadTokenJob.await())
+        assertEquals(2, setTokenJob.await())
         assertEquals(2, holder.loadToken())
     }
 
     @Test
-    @OptIn(DelicateCoroutinesApi::class)
-    fun loadTokensCanBeCalledInSetTokenBlock() = runTest {
-        val holder = AuthTokenHolder {
-            1
-        }
+    fun loadTokensCanBeCalledInSetTokenBlock() = testScope.runTest {
+        val holder = AuthTokenHolder { 1 }
+        val result = holder.setToken { 1 + holder.loadToken()!! }
 
-        val setToken = GlobalScope.async(Dispatchers.Unconfined) {
-            holder.setToken {
-                1 + holder.loadToken()!!
-            }
-        }
-
-        assertEquals(2, setToken.await())
+        assertEquals(2, result)
         assertEquals(2, holder.loadToken())
     }
 }
