@@ -6,6 +6,7 @@ package io.ktor.server.config.yaml
 
 import io.ktor.server.config.*
 import net.mamoe.yamlkt.*
+import kotlin.reflect.KType
 
 internal const val DEFAULT_YAML_FILENAME = "application.yaml"
 
@@ -145,6 +146,35 @@ public class YamlConfig internal constructor(
             }
         }
         check(yaml)
+    }
+
+    private inner class YamlNodeConfigValue(
+        private val key: String,
+        private val node: YamlElement
+    ): SerializableConfigValue {
+        override fun getString(): String =
+            (node as? YamlLiteral)?.content?.let { value ->
+                resolveValue(value, root)
+            } ?: throw ApplicationConfigurationException(
+                "Failed to read property value for key as String: \"$key\""
+            )
+
+        override fun getList(): List<String> =
+            (node as? YamlList)?.content?.let { list ->
+                list.map { element ->
+                    element.asLiteralOrNull()?.content?.let {
+                        resolveValue(it, root)
+                    } ?: throw ApplicationConfigurationException(
+                        "Failed to read element of property key as String: \"$key\""
+                    )
+                }
+            } ?: throw ApplicationConfigurationException(
+                "Failed to read property value for key as List<String>: \"$key\""
+            )
+
+        override fun getAs(type: KType): Any? {
+            TODO("Not yet implemented")
+        }
     }
 
     private class LiteralConfigValue(private val key: String, private val value: String) : ApplicationConfigValue {
