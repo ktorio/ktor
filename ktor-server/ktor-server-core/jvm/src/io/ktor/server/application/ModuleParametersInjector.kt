@@ -9,14 +9,13 @@ import kotlin.reflect.KParameter
 /**
  * Provides values for application module parameters.
  *
- * For example, the module:
+ * For example, the following module will trigger calls to resolve the parameters `param1` and `param2`:
  * ```
  * fun Application.module(param1: String, param2: List<Int>) {
  *     // contents
  * }
  * ```
  *
- * Will trigger calls to resolve the parameters `param1` and `param2`.
  *
  * By default, parameters like `ApplicationEnvironment` are resolved automatically.
  */

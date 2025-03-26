@@ -19,16 +19,16 @@ import kotlin.reflect.KProperty
 public interface DependencyRegistry : DependencyProvider, DependencyResolver {
 
     /**
-     * Indicate that the given dependency is required.
+     * Indicates that the given dependency is required.
      *
      * This is ensured after `validate()` is called.
      */
     public fun require(key: DependencyKey)
 
     /**
-     * Performs resolutions, ensures there are no missing dependencies.
+     * Performs resolutions, ensuring there are no missing dependencies.
      *
-     * @throws DependencyInjectionException When there are invalid references in the configuration
+     * @throws DependencyInjectionException if there are invalid references in the configuration
      */
     public fun validate()
 }
