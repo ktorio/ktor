@@ -28,6 +28,7 @@ public fun interface DependencyResolution {
  * A map of object instances.
  */
 public interface DependencyMap {
+    public fun contains(key: DependencyKey): Boolean
     public fun <T : Any> get(key: DependencyKey): T
     public fun <T : Any> getOrPut(key: DependencyKey, defaultValue: () -> T): T
 }
@@ -51,6 +52,9 @@ public class MapDependencyResolver(
     instances: Map<DependencyKey, Result<Any>>
 ) : DependencyResolver {
     private val map = instances.toMutableMap()
+
+    override fun contains(key: DependencyKey): Boolean =
+        map.contains(key)
 
     override fun <T : Any> get(key: DependencyKey): T =
         (map[key] ?: throw MissingDependencyException(key)).getOrThrow() as T

@@ -169,17 +169,53 @@ public class DependencyInjectionConfig {
 /**
  * Unique key for a dependency.
  */
-public data class DependencyKey(val type: TypeInfo, val name: String? = null) {
+public open class DependencyKey(
+    public val type: TypeInfo,
+    public val name: String? = null
+) {
+
     override fun toString(): String = buildString {
         append(type.kotlinType ?: type.type)
         if (name != null) {
             append("(name = \"$name\")")
         }
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as DependencyKey
+
+        if (type != other.type) return false
+        if (name != other.name) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = type.hashCode()
+        result = 31 * result + (name?.hashCode() ?: 0)
+        return result
+    }
 }
 
 /**
- * Common parent for dependency injection problem.
+ * Dependency key used for resolving properties.
+ */
+public class PropertyKey(type: TypeInfo, name: String) : DependencyKey(type, name) {
+    public val path: String get() = super.name!!
+
+    override fun toString(): String = buildString {
+        append(type.kotlinType ?: type.type)
+        if (name != null) {
+            append("(property = \"$name\")")
+        }
+    }
+}
+
+/**
+ * Common parent for dependency injection problems.
  */
 public open class DependencyInjectionException(message: String, cause: Throwable? = null) :
     RuntimeException(message, cause)
