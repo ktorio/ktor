@@ -270,7 +270,7 @@ final class io.ktor.server.plugins.di/ProcessingDependencyResolver : io.ktor.ser
     final fun resolveAll(): kotlin.collections/Map<io.ktor.server.plugins.di/DependencyKey, kotlin/Result<kotlin/Any>> // io.ktor.server.plugins.di/ProcessingDependencyResolver.resolveAll|resolveAll(){}[0]
 }
 
-open class io.ktor.server.plugins.di/DependencyInjectionException : kotlin/IllegalArgumentException { // io.ktor.server.plugins.di/DependencyInjectionException|null[0]
+open class io.ktor.server.plugins.di/DependencyInjectionException : kotlin/RuntimeException { // io.ktor.server.plugins.di/DependencyInjectionException|null[0]
     constructor <init>(kotlin/String, kotlin/Throwable? = ...) // io.ktor.server.plugins.di/DependencyInjectionException.<init>|<init>(kotlin.String;kotlin.Throwable?){}[0]
 }
 

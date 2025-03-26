@@ -116,7 +116,7 @@ public final class io/ktor/server/plugins/di/DependencyInjectionConfig_jvmKt {
 	public static final fun getDefaultReflection ()Lio/ktor/server/plugins/di/DependencyReflection;
 }
 
-public class io/ktor/server/plugins/di/DependencyInjectionException : java/lang/IllegalArgumentException {
+public class io/ktor/server/plugins/di/DependencyInjectionException : java/lang/RuntimeException {
 	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
