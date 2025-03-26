@@ -82,9 +82,9 @@ public class ResourcesFormat(
         descriptor.elementNames.forEach { name ->
             val index = descriptor.getElementIndex(name)
             val elementDescriptor = descriptor.getElementDescriptor(index)
-            if (!elementDescriptor.isInline && (elementDescriptor.kind is StructureKind.CLASS || elementDescriptor.kind is StructureKind.OBJECT)) {
+            if (!elementDescriptor.isInline && elementDescriptor.kind is StructureKind.CLASS) {
                 collectAllParameters(elementDescriptor, result)
-            } else {
+            } else if (elementDescriptor.kind !is StructureKind.OBJECT) {
                 result.add(Parameter(name, descriptor.isElementOptional(index)))
             }
         }
