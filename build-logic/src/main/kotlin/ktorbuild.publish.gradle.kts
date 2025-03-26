@@ -3,11 +3,10 @@
  */
 
 import ktorbuild.*
+import ktorbuild.internal.*
 import ktorbuild.internal.gradle.findByName
-import ktorbuild.internal.ktorBuild
 import ktorbuild.internal.publish.*
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
-import java.util.concurrent.locks.ReentrantLock
 
 plugins {
     id("maven-publish")
@@ -76,11 +75,9 @@ private fun Project.configureSigning() {
         sign(publishing.publications)
     }
 
-    val gpgAgentLock: ReentrantLock by rootProject.extra { ReentrantLock() }
-
+    // Workaround for https://github.com/gradle/gradle/issues/12167
     tasks.withType<Sign>().configureEach {
-        doFirst { gpgAgentLock.lock() }
-        doLast { gpgAgentLock.unlock() }
+        withLimitedParallelism("gpg-agent", maxParallelTasks = 1)
     }
 }
 
