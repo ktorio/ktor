@@ -13,6 +13,7 @@ plugins {
     id("conventions-dependency-resolution-management")
     id("ktorbuild.develocity")
     id("ktorbuild.configuration-cache")
+    id("ktorbuild.kotlin-user-project")
 }
 
 rootProject.name = "ktor"
