@@ -39,7 +39,7 @@ jackson = "2.18.2"
 
 junit = "5.12.0"
 slf4j = "2.0.16"
-logback = "1.5.16"
+logback = "1.5.18"
 
 dropwizard = "4.2.30"
 micrometer = "1.14.4"
