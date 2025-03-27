@@ -145,7 +145,7 @@ public class HttpStatement(
     @OptIn(InternalAPI::class)
     internal suspend fun fetchStreamingResponse(): HttpResponse = unwrapRequestTimeoutException {
         val builder = HttpRequestBuilder().takeFromWithExecutionContext(builder)
-        builder.skipSavingBody()
+        builder.skipSaveBody()
 
         val call = client.execute(builder)
         return call.response
