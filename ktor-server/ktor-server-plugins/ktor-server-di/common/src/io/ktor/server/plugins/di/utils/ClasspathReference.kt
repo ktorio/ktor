@@ -33,8 +33,7 @@ internal value class ClasspathReference private constructor(val value: String) {
     override fun toString(): String = value
 }
 
-internal expect fun installReference(
-    application: Application,
+internal expect fun Application.installReference(
     registry: DependencyRegistry,
     reference: ClasspathReference,
 )

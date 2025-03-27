@@ -50,12 +50,12 @@ actual constructor(
         safeRaiseEvent(ApplicationStarting, application)
         try {
             modules.forEach { application.it() }
+            monitor.raise(ApplicationStarted, application)
         } catch (cause: Throwable) {
             environment.log.error("Failed to start application.", cause)
             destroy(application)
             throw cause
         }
-        safeRaiseEvent(ApplicationStarted, application)
 
         CoroutineScope(application.coroutineContext).launch {
             engine.resolvedConnectors().forEach {
