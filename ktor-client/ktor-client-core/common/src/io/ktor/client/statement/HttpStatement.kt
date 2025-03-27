@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.statement
 
@@ -158,6 +158,7 @@ public class HttpStatement(
     @OptIn(InternalAPI::class)
     internal suspend fun fetchResponse(): HttpResponse = unwrapRequestTimeoutException {
         val builder = HttpRequestBuilder().takeFromWithExecutionContext(builder)
+
         val call = client.execute(builder)
         val result = call.save().response
         call.response.cleanup()
