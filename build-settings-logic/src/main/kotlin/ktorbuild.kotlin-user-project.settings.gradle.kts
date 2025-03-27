@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.gradle.dsl.*
  *   - `kotlin_repo_url` defines additional repository to be added to the repository list
  *   - `kotlin_language_version` overrides Kotlin language versions
  *   - `kotlin_api_version` overrides Kotlin API version
+ *   - `kotlin_additional_cli_options` additional CLI options for the Kotlin compiler
  *
  * Ktor Train:
  *   All the above properties are applied, and:
@@ -53,6 +54,14 @@ val kotlinApiVersion by lazy {
         .orNull
         ?.also { log("Kotlin API version: ${it.version}") }
 }
+val kotlinAdditionalCliOptions by lazy {
+    val spacesRegex = "\\s+".toRegex()
+    providers.gradleProperty("kotlin_additional_cli_options")
+        .map { it.trim { it == '"' || it.isWhitespace() }.split(spacesRegex).filterNot(String::isEmpty) }
+        .orNull
+        ?.also { log("Kotlin additional CLI options: $it") }
+        .orEmpty()
+}
 
 pluginManagement {
     repositories {
@@ -88,10 +97,28 @@ gradle.afterProject {
                 languageVersion = version
                 log("$path : Set Kotlin LV $version")
             }
+
             kotlinApiVersion?.let { version ->
                 apiVersion = version
                 log("$path : Set Kotlin APIV $version")
             }
+
+            // Unconditionally disable the -Werror option
+            allWarningsAsErrors = false
+
+            val argsToAdd = listOf(
+                // Output reported warnings even in the presence of reported errors
+                "-Xreport-all-warnings",
+                // Output kotlin.git-searchable names of reported diagnostics
+                "-Xrender-internal-diagnostic-names",
+                // Opt into additional warning-reporting compilation checks
+                "-Wextra",
+                // Opt into additional compilation checks hidden from users
+                "-Xuse-fir-experimental-checkers",
+            ) + kotlinAdditionalCliOptions
+
+            freeCompilerArgs.addAll(argsToAdd)
+            log("$path : Added ${argsToAdd.joinToString(" ")}")
         }
     }
 
