@@ -7,7 +7,7 @@ pluginManagement {
 }
 
 plugins {
-    id("conventions-dependency-resolution-management")
+    id("ktorsettings")
 }
 
 dependencyResolutionManagement {
