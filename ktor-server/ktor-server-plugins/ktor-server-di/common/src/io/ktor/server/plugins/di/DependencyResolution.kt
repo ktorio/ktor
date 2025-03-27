@@ -5,7 +5,6 @@
 package io.ktor.server.plugins.di
 
 import io.ktor.util.reflect.*
-import kotlin.getValue
 import kotlin.reflect.KProperty
 
 /**
@@ -67,12 +66,6 @@ public class MapDependencyResolver(
  */
 public fun DependencyResolver.named(key: String) =
     DependencyResolverContext(this, key)
-
-/**
- * Property delegation operator for resolving dependencies.
- */
-public inline operator fun <reified T> DependencyMap.getValue(thisRef: Any?, property: KProperty<*>): T =
-    resolve()
 
 /**
  * Property delegation for [DependencyResolverContext] for use with the `named` shorthand for string qualifiers.
