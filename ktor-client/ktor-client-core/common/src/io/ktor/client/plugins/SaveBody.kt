@@ -8,16 +8,19 @@
 package io.ktor.client.plugins
 
 import io.ktor.client.call.*
+import io.ktor.client.plugins.Messages.PLUGIN_DEPRECATED_MESSAGE
+import io.ktor.client.plugins.Messages.SAVE_BODY_DISABLED_MESSAGE
+import io.ktor.client.plugins.Messages.SAVE_BODY_ENABLED_MESSAGE
+import io.ktor.client.plugins.Messages.SKIP_SAVING_BODY_MESSAGE
 import io.ktor.client.plugins.api.*
-import io.ktor.client.plugins.internal.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import kotlin.jvm.JvmName
 
 private val SKIP_SAVE_BODY = AttributeKey<Unit>("SkipSaveBody")
-
 private val RESPONSE_BODY_SAVED = AttributeKey<Unit>("ResponseBodySaved")
 
 private val LOGGER by lazy { KtorSimpleLogger("io.ktor.client.plugins.SaveBody") }
@@ -50,24 +53,24 @@ internal val SaveBody: ClientPlugin<Unit> = createClientPlugin("SaveBody") {
     }
 }
 
+internal fun HttpRequestBuilder.skipSaveBody() {
+    attributes.put(SKIP_SAVE_BODY, Unit)
+}
+
 /**
  * Configuration for [SaveBodyPlugin]
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.SaveBodyPluginConfig)
  */
+@Deprecated(PLUGIN_DEPRECATED_MESSAGE)
 public class SaveBodyPluginConfig {
     /**
-     * Disables the plugin for all request.
-     *
-     * If you need to disable it only for the specific request, please use [HttpRequestBuilder.skipSavingBody]:
-     * ```kotlin
-     * client.get("http://myurl.com") {
-     *     skipSavingBody()
-     * }
-     * ```
+     * Disables the plugin for all requests.
+     * Note that the body of streaming responses is not saved.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.SaveBodyPluginConfig.disabled)
      */
+    @Deprecated(SAVE_BODY_DISABLED_MESSAGE)
     public var disabled: Boolean = false
 }
 
@@ -92,27 +95,25 @@ public class SaveBodyPluginConfig {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.SaveBodyPlugin)
  */
-@OptIn(InternalAPI::class)
+@Suppress("DEPRECATION")
+@Deprecated(PLUGIN_DEPRECATED_MESSAGE)
 public val SaveBodyPlugin: ClientPlugin<SaveBodyPluginConfig> = createClientPlugin(
     "DoubleReceivePlugin",
     ::SaveBodyPluginConfig
 ) {
-    val disabled: Boolean = this@createClientPlugin.pluginConfig.disabled
-
-    client.receivePipeline.intercept(HttpReceivePipeline.Before) { response ->
-        if (disabled) return@intercept
-
-        val attributes = response.call.attributes
-        if (attributes.contains(SKIP_SAVE_BODY)) return@intercept
-
-        val bodyReplay = ByteChannelReplay(response.rawContent)
-
-        val call = response.call.replaceResponse { bodyReplay.replay() }
-        call.attributes.put(RESPONSE_BODY_SAVED, Unit)
-        proceedWith(call.response)
+    if (pluginConfig.disabled) {
+        LOGGER.warn(SAVE_BODY_DISABLED_MESSAGE)
+    } else {
+        LOGGER.warn(SAVE_BODY_ENABLED_MESSAGE)
     }
 }
 
+/**
+ * Returns `true` if response body is saved and can be read multiple times.
+ * By default, all non-streaming responses are saved.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.isSaved)
+ */
 public val HttpResponse.isSaved: Boolean
     get() = call.attributes.contains(RESPONSE_BODY_SAVED)
 
@@ -130,6 +131,39 @@ public val HttpResponse.isSaved: Boolean
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.skipSavingBody)
  */
+@Deprecated(SKIP_SAVING_BODY_MESSAGE)
+@Suppress("UnusedReceiverParameter")
 public fun HttpRequestBuilder.skipSavingBody() {
-    attributes.put(SKIP_SAVE_BODY, Unit)
+    LOGGER.warn(SKIP_SAVING_BODY_MESSAGE)
+}
+
+@Suppress("ConstPropertyName")
+private object Messages {
+    private const val `use streaming syntax` =
+        "Use client.prepareRequest(...).execute { ... } syntax to prevent saving body in memory."
+    private const val `api will be removed` =
+        "This API is deprecated and will be removed in Ktor 4.0.0"
+    private const val `share use case` =
+        "If you were relying on this functionality, share your use case in comments to this issue: " +
+            "https://youtrack.jetbrains.com/issue/KTOR-8367/"
+
+    const val SAVE_BODY_ENABLED_MESSAGE =
+        "SaveBodyPlugin plugin is deprecated and can be safely removed. " +
+            "Request body is saved in memory by default for all non-streaming responses."
+
+    const val SAVE_BODY_DISABLED_MESSAGE =
+        "It is not possible to disable body saving for all requests anymore. " +
+            `use streaming syntax` + "\n\n" +
+            `api will be removed` + "\n" +
+            `share use case`
+
+    const val PLUGIN_DEPRECATED_MESSAGE =
+        "This plugin is not needed anymore.\n" +
+            `api will be removed`
+
+    const val SKIP_SAVING_BODY_MESSAGE =
+        "Skipping of body saving for a specific request is not allowed anymore.\n" +
+            `use streaming syntax` + "\n\n" +
+            `api will be removed` + "\n" +
+            `share use case`
 }
