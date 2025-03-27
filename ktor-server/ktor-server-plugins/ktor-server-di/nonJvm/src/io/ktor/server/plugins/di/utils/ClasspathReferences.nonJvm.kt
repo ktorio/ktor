@@ -7,8 +7,7 @@ package io.ktor.server.plugins.di.utils
 import io.ktor.server.application.Application
 import io.ktor.server.plugins.di.*
 
-internal actual fun installReference(
-    application: Application,
+internal actual fun Application.installReference(
     registry: DependencyRegistry,
     reference: ClasspathReference
 ): Unit = error("Reflection is not supported on this platform.")

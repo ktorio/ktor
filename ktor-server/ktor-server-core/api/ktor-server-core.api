@@ -129,6 +129,14 @@ public final class io/ktor/server/application/MissingApplicationPluginException 
 	public fun getMessage ()Ljava/lang/String;
 }
 
+public abstract interface class io/ktor/server/application/ModuleParametersInjector {
+	public static final field Companion Lio/ktor/server/application/ModuleParametersInjector$Companion;
+	public abstract fun resolveParameter (Lio/ktor/server/application/Application;Lkotlin/reflect/KParameter;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/application/ModuleParametersInjector$Companion {
+}
+
 public final class io/ktor/server/application/OnCallContext : io/ktor/server/application/CallContext {
 }
 
