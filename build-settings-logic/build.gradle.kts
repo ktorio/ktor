@@ -12,6 +12,7 @@ repositories {
 }
 
 dependencies {
+    implementation(libs.kotlin.gradlePlugin)
     implementation(libs.develocity)
     implementation(libs.develocity.commonCustomUserData)
 }
