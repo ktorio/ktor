@@ -39,7 +39,7 @@ public open class DependencyReflectionJvm : DependencyReflection {
 
         // Throw if we were unable to create a new instance
         return instanceFromConstructors
-            ?: throw DependencyConstructionException(
+            ?: throw DependencyInjectionException(
                 "No suitable constructor for type: ${kClass.qualifiedName}",
                 lastFailure
             )

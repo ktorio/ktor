@@ -5,13 +5,33 @@
 package io.ktor.server.plugins.di
 
 import io.ktor.server.application.*
+import io.ktor.util.reflect.typeInfo
 import io.ktor.utils.io.*
+import kotlin.properties.ReadOnlyProperty
+import kotlin.reflect.KProperty
 
 /**
  * Combined abstraction for dependency provider and resolver.
+ *
+ * This is a stateful type that can verify that all required dependencies can be resolved.
  */
 @KtorDsl
-public interface DependencyRegistry : DependencyProvider, DependencyResolver
+public interface DependencyRegistry : DependencyProvider, DependencyResolver {
+
+    /**
+     * Indicates that the given dependency is required.
+     *
+     * This is ensured after `validate()` is called.
+     */
+    public fun require(key: DependencyKey)
+
+    /**
+     * Performs resolutions, ensuring there are no missing dependencies.
+     *
+     * @throws DependencyInjectionException if there are invalid references in the configuration
+     */
+    public fun validate()
+}
 
 public var Application.dependencies: DependencyRegistry
     get() {
@@ -35,6 +55,7 @@ public class DependencyRegistryImpl(
     public override val reflection: DependencyReflection,
 ) : DependencyRegistry, DependencyProvider by provider {
 
+    private val requiredKeys = mutableSetOf<DependencyKey>()
     private val resolver: Lazy<DependencyResolver> = lazy {
         resolution.resolve(provider, reflection)
     }
@@ -49,6 +70,44 @@ public class DependencyRegistryImpl(
 
     override fun <T : Any> getOrPut(key: DependencyKey, defaultValue: () -> T): T =
         resolver.value.getOrPut(key, defaultValue)
+
+    override fun require(key: DependencyKey) {
+        requiredKeys += key
+    }
+
+    override fun validate() {
+        for (key in requiredKeys) {
+            resolver.value.get<Any>(key)
+        }
+    }
+}
+
+/**
+ * Provides a delegated property for accessing a dependency from a [DependencyRegistry].
+ * This operator function allows property delegation, ensuring the required dependency is
+ * registered and retrievable through the registry.
+ *
+ * Example usage:
+ * ```
+ * val repository: Repository<Message> by dependencies
+ * ```
+ *
+ * @param thisRef The receiver to which the property is being delegated. This parameter
+ * is not used in the actual implementation.
+ * @param prop The property for which the delegate is being requested.
+ * @return A [ReadOnlyProperty] that provides access to the resolved dependency of type [T].
+ * @throws DependencyInjectionException If the dependency required by [prop] is not resolvable
+ * during access.
+ */
+public inline operator fun <reified T> DependencyRegistry.provideDelegate(
+    thisRef: Any?,
+    prop: KProperty<*>
+): ReadOnlyProperty<Any?, T> {
+    val key = DependencyKey(typeInfo<T>())
+        .also(::require)
+    return ReadOnlyProperty { _, _ ->
+        this@provideDelegate.get(key)
+    }
 }
 
 /**
