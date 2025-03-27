@@ -68,6 +68,7 @@ dependencyResolutionManagement {
     versionCatalogs {
         named("libs") {
             kotlinVersion?.let { version("kotlin", it) }
+
             if (buildSnapshotTrain) {
                 checkNotNull(kotlinVersion) {
                     "kotlin_version should be specified when building with build_snapshot_train=true"
@@ -84,12 +85,12 @@ gradle.afterProject {
     extensions.configure<HasConfigurableKotlinCompilerOptions<*>>("kotlin") {
         compilerOptions {
             kotlinLanguageVersion?.let { version ->
-                log("${project.path} : Set Kotlin LV $version")
                 languageVersion = version
+                log("$path : Set Kotlin LV $version")
             }
             kotlinApiVersion?.let { version ->
-                log("${project.path} : Set Kotlin APIV $version")
                 apiVersion = version
+                log("$path : Set Kotlin APIV $version")
             }
         }
     }
