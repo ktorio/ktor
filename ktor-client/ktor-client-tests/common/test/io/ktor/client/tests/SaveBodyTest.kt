@@ -34,27 +34,6 @@ class SaveBodyTest : ClientEngineTest<MockEngineConfig>(MockEngine) {
     }
 
     @Test
-    fun `body is saved for non-streaming response even if deprecated plugin is disabled`() = testClient {
-        config {
-            engine {
-                addHandler {
-                    respondOk("Test")
-                }
-            }
-
-            install(SaveBodyPlugin) {
-                disabled = true
-            }
-        }
-
-        test { client ->
-            val response = client.get("/")
-            assertEquals("Test", response.bodyAsText())
-            assertEquals("Test", response.bodyAsText())
-        }
-    }
-
-    @Test
     fun `body is not saved for streaming response`() = testClient {
         config {
             engine {
@@ -69,6 +48,48 @@ class SaveBodyTest : ClientEngineTest<MockEngineConfig>(MockEngine) {
                 assertEquals("Test", response.bodyAsText())
                 assertFailsWith<DoubleReceiveException> { response.bodyAsText() }
             }
+        }
+    }
+
+    @Test
+    fun `body is saved even if deprecated plugin is disabled`() = testClient {
+        config {
+            engine {
+                addHandler {
+                    respondOk("Test")
+                }
+            }
+
+            @Suppress("DEPRECATION")
+            install(SaveBodyPlugin) {
+                disabled = true
+            }
+        }
+
+        test { client ->
+            val response = client.get("/")
+            assertEquals("Test", response.bodyAsText())
+            assertEquals("Test", response.bodyAsText())
+        }
+    }
+
+    @Test
+    fun `deprecated skipSavingBody doesn't prevent body from being saved`() = testClient {
+        config {
+            engine {
+                addHandler {
+                    respondOk("Test")
+                }
+            }
+        }
+
+        test { client ->
+            val response = client.get {
+                @Suppress("DEPRECATION")
+                skipSavingBody()
+            }
+            assertEquals("Test", response.bodyAsText())
+            assertEquals("Test", response.bodyAsText())
         }
     }
 }

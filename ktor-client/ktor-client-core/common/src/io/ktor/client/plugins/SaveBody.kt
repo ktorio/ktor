@@ -9,15 +9,14 @@ package io.ktor.client.plugins
 
 import io.ktor.client.call.*
 import io.ktor.client.plugins.api.*
-import io.ktor.client.plugins.internal.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import kotlin.jvm.JvmName
 
 private val SKIP_SAVE_BODY = AttributeKey<Unit>("SkipSaveBody")
-
 private val RESPONSE_BODY_SAVED = AttributeKey<Unit>("ResponseBodySaved")
 
 private val LOGGER by lazy { KtorSimpleLogger("io.ktor.client.plugins.SaveBody") }
@@ -44,6 +43,10 @@ internal val SaveBody: ClientPlugin<Unit> = createClientPlugin("SaveBody") {
         attributes.put(RESPONSE_BODY_SAVED, Unit)
         proceedWith(savedResponse)
     }
+}
+
+internal fun HttpRequestBuilder.skipSaveBody() {
+    attributes.put(SKIP_SAVE_BODY, Unit)
 }
 
 /**
@@ -88,27 +91,31 @@ public class SaveBodyPluginConfig {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.SaveBodyPlugin)
  */
-@OptIn(InternalAPI::class)
+@Deprecated("This plugin is not needed anymore.\n$API_REMOVAL_MESSAGE")
 public val SaveBodyPlugin: ClientPlugin<SaveBodyPluginConfig> = createClientPlugin(
     "DoubleReceivePlugin",
     ::SaveBodyPluginConfig
 ) {
-    val disabled: Boolean = this@createClientPlugin.pluginConfig.disabled
-
-    client.receivePipeline.intercept(HttpReceivePipeline.Before) { response ->
-        if (disabled) return@intercept
-
-        val attributes = response.call.attributes
-        if (attributes.contains(SKIP_SAVE_BODY)) return@intercept
-
-        val bodyReplay = ByteChannelReplay(response.rawContent)
-
-        val call = response.call.replaceResponse { bodyReplay.replay() }
-        call.attributes.put(RESPONSE_BODY_SAVED, Unit)
-        proceedWith(call.response)
+    if (pluginConfig.disabled) {
+        LOGGER.warn(
+            "It is not possible to disable body saving for all requests anymore. " +
+                "To disable it for a specific response, handle it as a streaming response.\n" +
+                SHARE_USE_CASE_MESSAGE
+        )
+    } else {
+        LOGGER.warn(
+            "SaveBodyPlugin plugin is deprecated and can be safely removed. " +
+                "Request body is saved in memory by default for all non-streaming responses."
+        )
     }
 }
 
+/**
+ * Returns `true` if response body is saved and can be read multiple times.
+ * By default, all non-streaming responses are saved.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.isSaved)
+ */
 public val HttpResponse.isSaved: Boolean
     get() = call.attributes.contains(RESPONSE_BODY_SAVED)
 
@@ -126,6 +133,17 @@ public val HttpResponse.isSaved: Boolean
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.skipSavingBody)
  */
+@Deprecated(
+    "Skipping of body saving for a specific request is not allowed anymore.\n" +
+        "$SHARE_USE_CASE_MESSAGE\n" +
+        API_REMOVAL_MESSAGE
+)
+@Suppress("UnusedReceiverParameter")
 public fun HttpRequestBuilder.skipSavingBody() {
-    attributes.put(SKIP_SAVE_BODY, Unit)
+    LOGGER.warn("Skipping of body saving for a specific request is not allowed anymore. $SHARE_USE_CASE_MESSAGE")
 }
+
+private const val SHARE_USE_CASE_MESSAGE =
+    "If you were relying on this functionality, share your use case in comments to this issue: " +
+        "https://youtrack.jetbrains.com/issue/KTOR-8367/"
+private const val API_REMOVAL_MESSAGE = "This API is deprecated and will be removed in Ktor 4.0.0"
