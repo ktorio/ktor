@@ -1,3 +1,18 @@
+# 3.1.2
+> Published 27 March 2025
+
+### Improvements
+* Update Kotlin to 2.1.20 ([KTOR-8081](https://youtrack.jetbrains.com/issue/KTOR-8081))
+* Remove empty artifacts from publication ([KTOR-8336](https://youtrack.jetbrains.com/issue/KTOR-8336))
+
+### Bugfixes
+* URL-safe base64 decoding problem ([KTOR-8292](https://youtrack.jetbrains.com/issue/KTOR-8292))
+* Auth: AuthTokenHolder.clearToken executed in the middle of an ongoing token update doesn't actually clear ([KTOR-8312](https://youtrack.jetbrains.com/issue/KTOR-8312))
+* Android: "Array has more than one element" error when starting a server with release build ([KTOR-7298](https://youtrack.jetbrains.com/issue/KTOR-7298))
+* WebSockets: extensions in sec-websocket-extensions header must be separated by comma ([KTOR-6384](https://youtrack.jetbrains.com/issue/KTOR-6384))
+* OkHttp: Cancelling of SSESession.incoming flow doesn't cancel connection ([KTOR-8244]https://youtrack.jetbrains.com/issue/KTOR-8244)
+
+
 # 3.1.1
 > Published 24 February 2025
 
