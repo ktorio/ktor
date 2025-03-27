@@ -10,10 +10,9 @@ pluginManagement {
 
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "0.9.0"
-    id("conventions-dependency-resolution-management")
-    id("ktorbuild.develocity")
-    id("ktorbuild.configuration-cache")
-    id("ktorbuild.kotlin-user-project")
+    id("ktorsettings")
+    id("ktorsettings.develocity")
+    id("ktorsettings.configuration-cache")
 }
 
 rootProject.name = "ktor"
