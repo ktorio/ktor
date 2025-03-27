@@ -2,6 +2,9 @@
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+// Preserve the old class name for binary compatibility
+@file:JvmName("DoubleReceivePluginKt")
+
 package io.ktor.client.plugins
 
 import io.ktor.client.call.*
@@ -11,10 +14,41 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
+import kotlin.jvm.JvmName
 
 private val SKIP_SAVE_BODY = AttributeKey<Unit>("SkipSaveBody")
 
 private val RESPONSE_BODY_SAVED = AttributeKey<Unit>("ResponseBodySaved")
+
+private val LOGGER by lazy { KtorSimpleLogger("io.ktor.client.plugins.SaveBody") }
+
+/**
+ * [SaveBody] saves response body in memory, so it can be read multiple times and resources can be freed up immediately.
+ *
+ * @see HttpClientCall.save
+ */
+@OptIn(InternalAPI::class)
+internal val SaveBody: ClientPlugin<Unit> = createClientPlugin("SaveBody") {
+    client.receivePipeline.intercept(HttpReceivePipeline.Before) { response ->
+        val call = response.call
+        val attributes = call.attributes
+        if (attributes.contains(SKIP_SAVE_BODY)) {
+            LOGGER.trace { "Skipping body saving for ${call.request.url}" }
+            return@intercept
+        }
+
+        val savedResponse = try {
+            LOGGER.trace { "Saving body for ${call.request.url}" }
+            call.save().response
+        } finally {
+            runCatching { response.rawContent.cancel() }
+                .onFailure { LOGGER.debug("Failed to cancel response body", it) }
+        }
+
+        attributes.put(RESPONSE_BODY_SAVED, Unit)
+        proceedWith(savedResponse)
+    }
+}
 
 /**
  * Configuration for [SaveBodyPlugin]
