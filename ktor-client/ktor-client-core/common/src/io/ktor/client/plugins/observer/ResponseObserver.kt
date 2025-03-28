@@ -6,13 +6,14 @@ package io.ktor.client.plugins.observer
 
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.api.*
 import io.ktor.client.statement.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
-import kotlin.coroutines.*
+import kotlinx.coroutines.launch
+import kotlin.coroutines.CoroutineContext
 
 /**
  * [ResponseObserver] callback.
@@ -60,22 +61,31 @@ public val ResponseObserver: ClientPlugin<ResponseObserverConfig> = createClient
     val responseHandler: ResponseHandler = pluginConfig.responseHandler
     val filter: ((HttpClientCall) -> Boolean)? = pluginConfig.filter
 
+    suspend fun launchResponseHandler(response: HttpResponse, cleanup: suspend () -> Unit = {}) {
+        client.launch(getResponseObserverContext()) {
+            runCatching { responseHandler(response) }
+            cleanup()
+        }
+    }
+
     on(AfterReceiveHook) { response ->
         if (filter?.invoke(response.call) == false) return@on
+
+        if (response.isSaved) {
+            launchResponseHandler(response)
+            proceedWith(response)
+            return@on
+        }
 
         val (loggingContent, responseContent) = response.rawContent.split(response)
 
         val newResponse = response.call.wrapWithContent(responseContent).response
         val sideResponse = response.call.wrapWithContent(loggingContent).response
 
-        client.launch(getResponseObserverContext()) {
-            runCatching { responseHandler(sideResponse) }
-
-            val content = sideResponse.rawContent
-            if (!content.isClosedForRead) {
-                runCatching { content.discard() }
-            }
-        }
+        launchResponseHandler(
+            response = sideResponse,
+            cleanup = { runCatching { sideResponse.rawContent.discard() } },
+        )
 
         proceedWith(newResponse)
     }
