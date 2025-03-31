@@ -5,6 +5,7 @@
 package io.ktor.server.plugins.di
 
 import io.ktor.server.application.*
+import io.ktor.server.plugins.di.annotations.Property
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
@@ -56,6 +57,18 @@ internal fun Application.bankingModule(
     routing {
         get("/hello") {
             call.respondText(teller.hello())
+        }
+    }
+}
+
+internal fun dataSource(@Property("database") config: ConnectionConfig, logger: FakeLogger) =
+    DataSourceImpl(config, logger)
+
+internal fun Application.restModule(dataSource: DataSource) {
+    routing {
+        get("/data") {
+            dataSource.connect()
+            call.respond("Connected")
         }
     }
 }

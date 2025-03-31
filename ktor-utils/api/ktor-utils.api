@@ -1050,3 +1050,7 @@ public final class io/ktor/util/reflect/TypeInfoJvmKt {
 	public static final fun typeInfoImpl (Ljava/lang/reflect/Type;Lkotlin/reflect/KClass;Lkotlin/reflect/KType;)Lio/ktor/util/reflect/TypeInfo;
 }
 
+public final class io/ktor/util/reflect/TypeKt {
+	public static final fun serializer (Lio/ktor/util/reflect/TypeInfo;)Lkotlinx/serialization/KSerializer;
+}
+
