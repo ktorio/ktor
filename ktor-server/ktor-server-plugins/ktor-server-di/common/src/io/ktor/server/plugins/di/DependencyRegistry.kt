@@ -5,6 +5,7 @@
 package io.ktor.server.plugins.di
 
 import io.ktor.server.application.*
+import io.ktor.server.plugins.di.MutableDependencyMap.Companion.asResolver
 import io.ktor.util.reflect.typeInfo
 import io.ktor.utils.io.*
 import kotlin.properties.ReadOnlyProperty
@@ -51,19 +52,23 @@ public var Application.dependencies: DependencyRegistry
  */
 public class DependencyRegistryImpl(
     private val provider: DependencyProvider,
+    private val external: DependencyMap,
     private val resolution: DependencyResolution,
     public override val reflection: DependencyReflection,
 ) : DependencyRegistry, DependencyProvider by provider {
 
     private val requiredKeys = mutableSetOf<DependencyKey>()
     private val resolver: Lazy<DependencyResolver> = lazy {
-        resolution.resolve(provider, reflection)
+        resolution.resolve(provider, external, reflection)
     }
 
     override fun <T> set(key: DependencyKey, value: DependencyResolver.() -> T) {
         if (resolver.isInitialized()) throw OutOfOrderDependencyException(key)
         provider.set(key, value)
     }
+
+    override fun contains(key: DependencyKey): Boolean =
+        resolver.value.contains(key)
 
     override fun <T : Any> get(key: DependencyKey): T =
         resolver.value.get(key)
@@ -115,9 +120,15 @@ public inline operator fun <reified T> DependencyRegistry.provideDelegate(
  * [ProcessingDependencyResolver].
  */
 public val DefaultDependencyResolution: DependencyResolution =
-    DependencyResolution { provider, reflection ->
-        val injector = ProcessingDependencyResolver(reflection, provider)
-        MapDependencyResolver(reflection, injector.resolveAll())
+    DependencyResolution { provider, external, reflection ->
+        val injector = ProcessingDependencyResolver(
+            reflection,
+            provider,
+            external,
+        )
+
+        DependencyMapImpl(injector.resolveAll(), external)
+            .asResolver(reflection)
     }
 
 /**
@@ -127,6 +138,7 @@ public val DefaultDependencyResolution: DependencyResolution =
 public class ProcessingDependencyResolver(
     override val reflection: DependencyReflection,
     private val provider: DependencyProvider,
+    private val external: DependencyMap,
 ) : DependencyResolver {
     private val resolved = mutableMapOf<DependencyKey, Result<Any>>()
     private val visited = mutableSetOf<DependencyKey>()
@@ -140,12 +152,15 @@ public class ProcessingDependencyResolver(
         return resolved.toMap()
     }
 
+    override fun contains(key: DependencyKey): Boolean =
+        resolved.contains(key) || provider.declarations.contains(key) || external.contains(key)
+
     override fun <T : Any> get(key: DependencyKey): T =
         resolved.getOrPut(key) {
             if (!visited.add(key)) throw CircularDependencyException(listOf(key))
             try {
                 val createFunction = provider.declarations[key]
-                    ?: throw MissingDependencyException(key)
+                    ?: return@getOrPut getExternal(key) ?: throw MissingDependencyException(key)
                 Result.success(createFunction.create(this))
             } catch (cause: CircularDependencyException) {
                 // Always throw when encountering with circular references,
@@ -162,4 +177,11 @@ public class ProcessingDependencyResolver(
                 defaultValue()
             }
         }.getOrThrow() as T
+
+    private fun getExternal(key: DependencyKey): Result<Any>? =
+        if (external.contains(key)) {
+            Result.success(external.get(key))
+        } else {
+            null
+        }
 }

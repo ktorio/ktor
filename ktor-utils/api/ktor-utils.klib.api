@@ -930,6 +930,7 @@ final fun (io.ktor.util.date/GMTDate).io.ktor.util.date/plus(kotlin.time/Duratio
 final fun (io.ktor.util.date/GMTDate).io.ktor.util.date/plus(kotlin/Long): io.ktor.util.date/GMTDate // io.ktor.util.date/plus|plus@io.ktor.util.date.GMTDate(kotlin.Long){}[0]
 final fun (io.ktor.util.date/GMTDate).io.ktor.util.date/truncateToSeconds(): io.ktor.util.date/GMTDate // io.ktor.util.date/truncateToSeconds|truncateToSeconds@io.ktor.util.date.GMTDate(){}[0]
 final fun (io.ktor.util.logging/Logger).io.ktor.util.logging/error(kotlin/Throwable) // io.ktor.util.logging/error|error@io.ktor.util.logging.Logger(kotlin.Throwable){}[0]
+final fun (io.ktor.util.reflect/TypeInfo).io.ktor.util.reflect/serializer(): kotlinx.serialization/KSerializer<out kotlin/Any?> // io.ktor.util.reflect/serializer|serializer@io.ktor.util.reflect.TypeInfo(){}[0]
 final fun (io.ktor.util/Attributes).io.ktor.util/putAll(io.ktor.util/Attributes) // io.ktor.util/putAll|putAll@io.ktor.util.Attributes(io.ktor.util.Attributes){}[0]
 final fun (io.ktor.util/StringValues).io.ktor.util/filter(kotlin/Boolean = ..., kotlin/Function2<kotlin/String, kotlin/String, kotlin/Boolean>): io.ktor.util/StringValues // io.ktor.util/filter|filter@io.ktor.util.StringValues(kotlin.Boolean;kotlin.Function2<kotlin.String,kotlin.String,kotlin.Boolean>){}[0]
 final fun (io.ktor.util/StringValues).io.ktor.util/flattenEntries(): kotlin.collections/List<kotlin/Pair<kotlin/String, kotlin/String>> // io.ktor.util/flattenEntries|flattenEntries@io.ktor.util.StringValues(){}[0]
