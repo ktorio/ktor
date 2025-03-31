@@ -4,6 +4,10 @@
 
 package io.ktor.util.reflect
 
+import io.ktor.utils.io.InternalAPI
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.serializer
 import kotlin.reflect.*
 
 /**
@@ -63,6 +67,11 @@ public class TypeInfo(
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.reflect.typeInfo)
  */
 public inline fun <reified T> typeInfo(): TypeInfo = TypeInfo(T::class, typeOfOrNull<T>())
+
+@OptIn(InternalSerializationApi::class)
+@InternalAPI
+public fun TypeInfo.serializer(): KSerializer<out Any?> =
+    kotlinType?.let { serializer(it) } ?: type.serializer()
 
 /**
  * Check [this] is instance of [type].

@@ -6,6 +6,7 @@ package io.ktor.tests.config
 
 import com.typesafe.config.*
 import io.ktor.server.config.*
+import kotlinx.serialization.Serializable
 import kotlin.test.*
 
 class HoconConfigTest {
@@ -72,4 +73,45 @@ class HoconConfigTest {
 
         assertEquals(configMap, map)
     }
+
+    @Test
+    fun readSerializableClass() {
+        val content = """
+            auth {
+                hashAlgorithm = SHA-256
+                salt = ktor
+                users = [{
+                    name = test
+                    password = asd
+                }, {
+                    name = other
+                    password = qwe
+                }]
+            }
+        """.trimIndent()
+
+        val config = HoconApplicationConfig(ConfigFactory.parseString(content))
+
+        val securityConfig = config.propertyOrNull("auth")?.getAs<SecurityConfig>()
+        assertNotNull(securityConfig)
+        assertEquals("SHA-256", securityConfig.hashAlgorithm)
+        assertEquals("ktor", securityConfig.salt)
+        assertEquals(
+            listOf(SecurityUser("test", "asd"), SecurityUser("other", "qwe")),
+            securityConfig.users
+        )
+    }
+
+    @Serializable
+    data class SecurityUser(
+        val name: String,
+        val password: String
+    )
+
+    @Serializable
+    data class SecurityConfig(
+        val hashAlgorithm: String,
+        val salt: String,
+        val users: List<SecurityUser>,
+    )
 }
