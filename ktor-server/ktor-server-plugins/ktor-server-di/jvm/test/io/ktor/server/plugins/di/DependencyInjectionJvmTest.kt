@@ -4,8 +4,10 @@
 
 package io.ktor.server.plugins.di
 
+import com.typesafe.config.ConfigFactory
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.ktor.server.testing.*
@@ -302,26 +304,47 @@ class DependencyInjectionJvmTest {
         assertIs<MissingDependencyException>(failure.cause?.cause)
     }
 
+    @Test
+    fun `module parameters from properties`() {
+        testConfigFile(
+            FakeLogger::class.qualifiedName!!,
+            ::dataSource.qualifiedName,
+            modules = listOf(
+                Application::restModule.qualifiedName
+            ),
+            extraConfig = """
+                database {
+                    url="jdbc:h2:mem:test"
+                    username=admin
+                    password=abc123
+                }
+            """.trimIndent(),
+            test = {
+                assertEquals(HttpStatusCode.OK, client.get("/data").status)
+            }
+        )
+    }
+
     private fun testConfigFile(
         vararg references: String,
         modules: List<String> = emptyList(),
+        extraConfig: String = "",
         test: suspend ApplicationTestBuilder.() -> Unit = {},
         block: Application.() -> Unit = {}
     ) {
+        val configText = """
+            ktor {
+                application {
+                    dependencies=${references.map { "\"$it\"" }}
+                    modules=${modules.map { "\"$it\"" }}
+                }
+            }
+        """.trimIndent() + "\n$extraConfig"
+
         testApplication {
             environment {
-                config = MapApplicationConfig().apply {
-                    put(
-                        "ktor.application.dependencies",
-                        listOf(*references)
-                    )
-                    if (modules.isNotEmpty()) {
-                        put(
-                            "ktor.application.modules",
-                            modules
-                        )
-                    }
-                }
+                val parsed = ConfigFactory.parseString(configText)
+                config = HoconApplicationConfig(parsed)
             }
             application {
                 block()

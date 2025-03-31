@@ -8,6 +8,7 @@ description = ""
 
 plugins {
     id("ktorbuild.project.library")
+    id("kotlinx-serialization")
 }
 
 kotlin {
