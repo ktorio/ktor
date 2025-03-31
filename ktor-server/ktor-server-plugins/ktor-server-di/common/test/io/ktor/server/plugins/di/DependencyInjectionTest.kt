@@ -13,6 +13,7 @@ import io.ktor.server.testing.*
 import io.ktor.test.dispatcher.runTestWithRealTime
 import io.ktor.util.reflect.*
 import kotlinx.coroutines.test.TestResult
+import kotlinx.serialization.Serializable
 import kotlin.reflect.KClass
 import kotlin.test.*
 
@@ -56,6 +57,34 @@ internal data class BankTeller(
 data class WorkExperience(val jobs: List<PaidWork>)
 
 data class PaidWork(val requiredExperience: WorkExperience)
+
+@Serializable
+data class ConnectionConfig(
+    val url: String,
+    val username: String,
+    val password: String,
+)
+
+interface DataSource {
+    suspend fun connect()
+}
+
+class FakeLogger {
+    val lines = mutableListOf<String>()
+
+    fun info(message: String) {
+        lines += message
+    }
+}
+
+data class DataSourceImpl(
+    val config: ConnectionConfig,
+    val logger: FakeLogger
+) : DataSource {
+    override suspend fun connect() {
+        logger.info("Connecting to ${config.url}...")
+    }
+}
 
 class DependencyInjectionTest {
 
@@ -269,18 +298,54 @@ class DependencyInjectionTest {
     }
 
     @Test
+    fun `external maps`() = runTestDI({
+        include(dependencyMapOf(DependencyKey(typeInfo<GreetingService>()) to GreetingServiceImpl()))
+    }) {
+        val service: GreetingService by dependencies
+        assertEquals(HELLO, service.hello())
+    }
+
+    @Test
+    fun `external map order precedence`() = runTestDI({
+        include(dependencyMapOf(DependencyKey(typeInfo<GreetingService>()) to GreetingServiceImpl()))
+        include(dependencyMapOf(DependencyKey(typeInfo<GreetingService>()) to BankGreetingService()))
+    }) {
+        val service: GreetingService by dependencies
+        assertEquals(HELLO_CUSTOMER, service.hello())
+    }
+
+    @Test
+    fun `external map declarations precedence`() = runTestDI({
+        include(dependencyMapOf(DependencyKey(typeInfo<GreetingService>()) to GreetingServiceImpl()))
+    }) {
+        dependencies.provide<GreetingService> { BankGreetingService() }
+
+        val service: GreetingService by dependencies
+        assertEquals(HELLO_CUSTOMER, service.hello())
+    }
+
+    @Test
     fun `unnamed key mapping`() = runTestDI({
         provider {
             keyMapping = Unnamed
         }
     }) {
-        dependencies {
-            provide<GreetingService>("bank") { BankGreetingService() }
-        }
+        dependencies.provide<GreetingService>("bank") { BankGreetingService() }
+
         val named: GreetingService by dependencies.named("bank")
         val unnamed: GreetingService by dependencies
         assertEquals(HELLO_CUSTOMER, named.hello())
         assertEquals(HELLO_CUSTOMER, unnamed.hello())
+    }
+
+    private fun dependencyMapOf(vararg entries: Pair<DependencyKey, Any>): DependencyMap {
+        val map = mapOf(*entries)
+        return object : DependencyMap {
+            override fun contains(key: DependencyKey): Boolean =
+                map.containsKey(key)
+            override fun <T : Any> get(key: DependencyKey): T =
+                map.get(key) as T
+        }
     }
 
     private fun runTestDI(
