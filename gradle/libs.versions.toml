@@ -76,8 +76,9 @@ swagger-parser = "2.1.26"
 puppeteer = "21.5.0"
 tomlj = "1.1.1"
 
-develocity = "3.17.6" # Should be compatible with our server: ge.jetbrains.com
-develocity-commonCustomUserData = "2.1"
+# Keep it in sync with build-settings-logic/settings.gradle.kts
+develocity = "3.18.2" # Should be compatible with our server: ge.jetbrains.com
+develocity-commonCustomUserData = "2.2.1"
 gradleDoctor = "0.10.0"
 
 [libraries]
