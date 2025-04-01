@@ -46,7 +46,11 @@ private class CompressedReadChannelResponse(
         Headers.build {
             appendFiltered(original.headers) { name, _ -> !name.equals(HttpHeaders.ContentLength, true) }
             append(HttpHeaders.ContentEncoding, encoder.name)
-            append(HttpHeaders.Vary, original.headers[HttpHeaders.Vary]?.plus(", ${HttpHeaders.AcceptEncoding}") ?: HttpHeaders.AcceptEncoding)
+            append(
+                HttpHeaders.Vary,
+                original.headers[HttpHeaders.Vary]?.plus(", ${HttpHeaders.AcceptEncoding}")
+                    ?: HttpHeaders.AcceptEncoding
+            )
         }
     }
 
@@ -68,7 +72,11 @@ private class CompressedWriteChannelResponse(
         Headers.build {
             appendFiltered(original.headers) { name, _ -> !name.equals(HttpHeaders.ContentLength, true) }
             append(HttpHeaders.ContentEncoding, encoder.name)
-            append(HttpHeaders.Vary, original.headers[HttpHeaders.Vary]?.plus(", ${HttpHeaders.AcceptEncoding}") ?: HttpHeaders.AcceptEncoding)
+            append(
+                HttpHeaders.Vary,
+                original.headers[HttpHeaders.Vary]?.plus(", ${HttpHeaders.AcceptEncoding}")
+                    ?: HttpHeaders.AcceptEncoding
+            )
         }
     }
 

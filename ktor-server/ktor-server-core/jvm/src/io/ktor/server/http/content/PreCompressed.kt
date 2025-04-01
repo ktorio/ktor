@@ -135,8 +135,10 @@ internal suspend fun ApplicationCall.respondStaticFile(
     suppressCompression()
     val compressedFile = File("${requestedFile.absolutePath}.${bestCompressionFit.extension}")
     if (cacheControlValues.isNotEmpty()) response.header(HttpHeaders.CacheControl, cacheControlValues)
-    response.header(HttpHeaders.Vary,
-        response.headers[HttpHeaders.Vary]?.plus(", ${HttpHeaders.AcceptEncoding}") ?: HttpHeaders.AcceptEncoding)
+    response.header(
+        HttpHeaders.Vary,
+        response.headers[HttpHeaders.Vary]?.plus(", ${HttpHeaders.AcceptEncoding}") ?: HttpHeaders.AcceptEncoding
+    )
     modify(requestedFile, this)
     val localFileContent = LocalFileContent(compressedFile, contentType(requestedFile))
     respond(PreCompressedResponse(localFileContent, bestCompressionFit.encoding))
@@ -197,8 +199,10 @@ internal suspend fun ApplicationCall.respondStaticResource(
         suppressCompression()
         val cacheControlValues = cacheControl(bestCompressionFit.url).joinToString(", ")
         if (cacheControlValues.isNotEmpty()) response.header(HttpHeaders.CacheControl, cacheControlValues)
-        response.header(HttpHeaders.Vary,
-            response.headers[HttpHeaders.Vary]?.plus(", ${HttpHeaders.AcceptEncoding}") ?: HttpHeaders.AcceptEncoding)
+        response.header(
+            HttpHeaders.Vary,
+            response.headers[HttpHeaders.Vary]?.plus(", ${HttpHeaders.AcceptEncoding}") ?: HttpHeaders.AcceptEncoding
+        )
         modifier(bestCompressionFit.url, this)
         respond(PreCompressedResponse(bestCompressionFit.content, bestCompressionFit.compression.encoding))
         return
