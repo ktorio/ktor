@@ -6,7 +6,7 @@ package ktorbuild.internal
 
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
-import org.gradle.api.tasks.testing.Test
+import org.gradle.api.tasks.testing.AbstractTestTask
 import org.gradle.kotlin.dsl.withType
 
 fun Project.setupTrain() {
@@ -23,20 +23,26 @@ fun Project.setupTrain() {
 
 // Hacking test tasks, removing stress and flaky tests"
 private fun Project.filterSnapshotTests() {
-    tasks.withType<Test>().configureEach {
-        exclude("**/*ServerSocketTest*")
-        exclude("**/*NettyStressTest*")
-        exclude("**/*CIOMultithreadedTest*")
-        exclude("**/*testBlockingConcurrency*")
-        exclude("**/*testBigFile*")
-        exclude("**/*numberTest*")
-        exclude("**/*testWithPause*")
-        exclude("**/*WebSocketTest*")
-        exclude("**/*PostTest*")
-        exclude("**/*testCustomUrls*")
-        exclude("**/*testStaticServeFromDir*")
-        exclude("**/*testRedirect*")
-        exclude("**/*CIOHttpsTest*")
+    tasks.withType<AbstractTestTask>().configureEach {
+        with(filter) {
+            // Groups
+            excludeTestsMatching("*StressTest")
+
+            // Classes
+            excludeTestsMatching("*.CIOHttpsTest")
+            excludeTestsMatching("*.CIOMultithreadedTest")
+            excludeTestsMatching("*.HttpRedirectTest")
+            excludeTestsMatching("*.PostTest")
+            excludeTestsMatching("*.ServerSocketTest")
+            excludeTestsMatching("*.WebSocketTest")
+
+            // Particular tests
+            excludeTestsMatching("*numberTest")
+            excludeTestsMatching("*testBigFile*")
+            excludeTestsMatching("*testBlockingConcurrency")
+            excludeTestsMatching("*testCustomUrls")
+            excludeTestsMatching("*testStaticServeFromDir")
+        }
     }
 }
 
