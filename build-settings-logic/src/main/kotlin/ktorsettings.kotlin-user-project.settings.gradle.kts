@@ -4,6 +4,8 @@
 
 @file:Suppress("UnstableApiUsage")
 
+import org.gradle.api.tasks.testing.AbstractTestTask
+import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.dsl.*
 
 /*
@@ -151,20 +153,26 @@ private fun RepositoryHandler.kotlinDev() {
 
 /** Hacking test tasks, removing stress and flaky tests */
 private fun Project.filterTests() {
-    tasks.withType<Test>().configureEach {
-        exclude("**/*ServerSocketTest*")
-        exclude("**/*NettyStressTest*")
-        exclude("**/*CIOMultithreadedTest*")
-        exclude("**/*testBlockingConcurrency*")
-        exclude("**/*testBigFile*")
-        exclude("**/*numberTest*")
-        exclude("**/*testWithPause*")
-        exclude("**/*WebSocketTest*")
-        exclude("**/*PostTest*")
-        exclude("**/*testCustomUrls*")
-        exclude("**/*testStaticServeFromDir*")
-        exclude("**/*testRedirect*")
-        exclude("**/*CIOHttpsTest*")
+    tasks.withType<AbstractTestTask>().configureEach {
+        with(filter) {
+            // Groups
+            excludeTestsMatching("*StressTest")
+
+            // Classes
+            excludeTestsMatching("*.CIOHttpsTest")
+            excludeTestsMatching("*.CIOMultithreadedTest")
+            excludeTestsMatching("*.HttpRedirectTest")
+            excludeTestsMatching("*.PostTest")
+            excludeTestsMatching("*.ServerSocketTest")
+            excludeTestsMatching("*.WebSocketTest")
+
+            // Particular tests
+            excludeTestsMatching("*numberTest")
+            excludeTestsMatching("*testBigFile*")
+            excludeTestsMatching("*testBlockingConcurrency")
+            excludeTestsMatching("*testCustomUrls")
+            excludeTestsMatching("*testStaticServeFromDir")
+        }
     }
 }
 
