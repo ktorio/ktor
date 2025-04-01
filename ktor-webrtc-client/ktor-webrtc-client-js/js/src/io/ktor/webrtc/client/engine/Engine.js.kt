@@ -4,6 +4,8 @@
 
 package io.ktor.webrtc.client.engine
 
+import io.ktor.utils.io.InternalAPI
+import io.ktor.webrtc.client.DefaultWebRTCEngine
 import io.ktor.webrtc.client.EmptyWebRTCStatsReport
 import io.ktor.webrtc.client.WebRTCClientEngineFactory
 import io.ktor.webrtc.client.WebRTCConfig
@@ -18,6 +20,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import org.w3c.dom.mediacapture.MediaStream
 import org.w3c.dom.mediacapture.MediaStreamTrack
+import kotlin.js.Promise
 
 public class JsWebRTCEngine(override val config: JsWebRTCEngineConfig) : WebRTCEngineBase("js-webrtc") {
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
@@ -40,8 +43,13 @@ public class JsWebRTCEngine(override val config: JsWebRTCEngineConfig) : WebRTCE
      * @return The WebRTC media track.
      */
     override suspend fun createAudioTrack(): WebRTCMediaTrack {
-        val constraints = js("{ audio: true }")
-        val mediaStream = navigator.mediaDevices.getUserMedia(constraints).await<MediaStream>()
+        val devs = (js("navigator.mediaDevices.enumerateDevices()") as Promise<dynamic>).await()
+        devs.forEach { device -> println(JSON.stringify(device) + "\n") }
+        val constraints = js("{ audio: true, video: true }")
+        val mediaStream = navigator.mediaDevices.getUserMedia(constraints).catch<MediaStream> {
+            console.error("Failed to create audio track: $it")
+            MediaStream()
+        }.await<MediaStream>()
         val audioTrack = mediaStream.getAudioTracks()[0]
         return JsMediaTrack(audioTrack)
     }
@@ -51,9 +59,19 @@ public class JsWebRTCEngine(override val config: JsWebRTCEngineConfig) : WebRTCE
      * @return The WebRTC media track.
      */
     override suspend fun createVideoTrack(): WebRTCMediaTrack {
-        val constraints = js("{ video: true }")
-        val mediaStream = navigator.mediaDevices.getUserMedia(constraints).await<MediaStream>()
-        val videoTrack = mediaStream.getVideoTracks()[0]
+        val devs = (js("navigator.mediaDevices.enumerateDevices()") as Promise<dynamic>).await()
+        devs.forEach { device -> println(JSON.stringify(device) + "\n") }
+        val constraints = js("({ video: { width: 100, height: 100 } })")
+        val mediaStream = navigator.mediaDevices.getUserMedia(constraints).catch<MediaStream> {
+            console.error("Failed to create video track: $it")
+            MediaStream()
+        }.await<MediaStream>()
+        val videoTracks = mediaStream.getVideoTracks()
+        if (videoTracks.isEmpty()) {
+            console.error("No video tracks found in the media stream")
+            throw IllegalStateException("No video device encountered")
+        }
+        val videoTrack = videoTracks[0]
         return JsMediaTrack(videoTrack)
     }
 
@@ -171,7 +189,21 @@ public class JsMediaTrack(
     }
 }
 
+@OptIn(InternalAPI::class)
 public actual object JsWebRTC : WebRTCClientEngineFactory<JsWebRTCEngineConfig> {
+    init {
+        DefaultWebRTCEngine.factory = this
+    }
+
     actual override fun create(block: JsWebRTCEngineConfig.() -> Unit): WebRTCEngine =
         JsWebRTCEngine(JsWebRTCEngineConfig().apply(block))
+}
+
+@Suppress("DEPRECATION")
+@OptIn(ExperimentalStdlibApi::class, ExperimentalJsExport::class, InternalAPI::class)
+@Deprecated("", level = DeprecationLevel.HIDDEN)
+@JsExport
+@EagerInitialization
+public val initHook: dynamic = run {
+    DefaultWebRTCEngine.factory = JsWebRTC
 }

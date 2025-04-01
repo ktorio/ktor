@@ -5,7 +5,6 @@
 package io.ktor.webrtc.test
 
 import io.ktor.webrtc.client.*
-import io.ktor.webrtc.client.engine.JsWebRTC
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
@@ -21,14 +20,15 @@ import kotlin.time.Duration.Companion.seconds
  * Base test class containing common integration tests for WebRTC engines.
  * Subclasses must provide the implementation of [createClient].
  */
-class WasmJsWebRTCEngineIntegrationTest {
+class JsWebRTCEngineIntegrationTest {
     private lateinit var client: WebRTCClient
 
     /**
      * Create the WebRTC engine implementation to be tested.
      */
-    private fun createClient() = WebRTCClient(JsWebRTC) {
-        iceServers = googleIceServer
+    private fun createClient() = WebRTCClient {
+        iceServers = this.iceServers
+        turnServers = this.turnServers
         statsRefreshRate = 1000 // 1 second refresh rate for stats in JS engine
     }
 
@@ -36,8 +36,10 @@ class WasmJsWebRTCEngineIntegrationTest {
      * The STUN and TURN servers to use during testing.
      * Override this in subclasses if needed for specific platform tests.
      */
-    private val googleIceServer = listOf(
-        IceServer(urls  = "stun:stun.l.google.com:19302")
+    private val iceServers: List<String> = listOf("stun:stun.l.google.com:19302")
+
+    private val turnServers: List<IceServer> = listOf(
+        IceServer(urls = "turn:test-turn-server.example.com:3478")
     )
 
     @BeforeTest
@@ -97,7 +99,7 @@ class WasmJsWebRTCEngineIntegrationTest {
         val receivedCandidates = mutableListOf<WebRtcPeerConnection.IceCandidate>()
 
         val job = launch {
-            peerConnection.iceCandidateFlow.take(1).toList(receivedCandidates)
+            peerConnection.iceCandidateFlow.take(5).toList(receivedCandidates)
         }
 
         // Trigger ICE candidate gathering by creating and setting an offer
