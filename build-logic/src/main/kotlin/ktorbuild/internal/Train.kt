@@ -35,6 +35,7 @@ private fun Project.filterSnapshotTests() {
             excludeTestsMatching("*.PostTest")
             excludeTestsMatching("*.ServerSocketTest")
             excludeTestsMatching("*.WebSocketTest")
+            excludeTestsMatching("*.CIOEngineTest")
 
             // Particular tests
             excludeTestsMatching("*numberTest")
@@ -42,6 +43,9 @@ private fun Project.filterSnapshotTests() {
             excludeTestsMatching("*testBlockingConcurrency")
             excludeTestsMatching("*testCustomUrls")
             excludeTestsMatching("*testStaticServeFromDir")
+            excludeTestsMatching("*testAcceptErrorOnImmediateSocketClose")
+            excludeTestsMatching("*testResponseErrorWithInvalidChunkException")
+            excludeTestsMatching("*testEcho")
         }
     }
 }
