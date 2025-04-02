@@ -44,6 +44,7 @@ actual constructor(
     )
 
     private val modules = rootConfig.modules
+    private val serverScope = CoroutineScope(rootConfig.parentCoroutineContext + Dispatchers.Default)
 
     @OptIn(DelicateCoroutinesApi::class)
     private fun prepareToStart() {
@@ -53,7 +54,7 @@ actual constructor(
             monitor.raise(ApplicationStarted, application)
         } catch (cause: Throwable) {
             environment.log.error("Failed to start application.", cause)
-            GlobalScope.launch { destroy(application) }
+            serverScope.launch { destroy(application) }
             throw cause
         }
 
@@ -76,7 +77,7 @@ actual constructor(
 
     @OptIn(DelicateCoroutinesApi::class)
     public actual suspend fun startSuspend(wait: Boolean): EmbeddedServer<TEngine, TConfiguration> {
-        addShutdownHook { GlobalScope.launch { stopSuspend() } }
+        addShutdownHook { serverScope.launch { stopSuspend() } }
         prepareToStart()
         engine.startSuspend(wait)
         return this
@@ -85,7 +86,7 @@ actual constructor(
     @OptIn(DelicateCoroutinesApi::class)
     public actual fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
         engine.stop(gracePeriodMillis, timeoutMillis)
-        GlobalScope.launch { destroy(application) }
+        serverScope.launch { destroy(application) }
     }
 
     public actual suspend fun stopSuspend(gracePeriodMillis: Long, timeoutMillis: Long) {
