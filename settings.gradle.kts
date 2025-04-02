@@ -2,6 +2,8 @@
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+enableFeaturePreview("STABLE_CONFIGURATION_CACHE")
+
 pluginManagement {
     includeBuild("build-settings-logic")
 }
@@ -9,7 +11,8 @@ pluginManagement {
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "0.9.0"
     id("conventions-dependency-resolution-management")
-    id("conventions-develocity")
+    id("ktorbuild.develocity")
+    id("ktorbuild.configuration-cache")
 }
 
 rootProject.name = "ktor"
@@ -54,7 +57,6 @@ include(":ktor-client:ktor-client-jetty-jakarta")
 include(":ktor-client:ktor-client-js")
 include(":ktor-client:ktor-client-mock")
 include(":ktor-client:ktor-client-okhttp")
-include(":ktor-client:ktor-client-plugins")
 include(":ktor-client:ktor-client-plugins:ktor-client-json")
 include(":ktor-client:ktor-client-plugins:ktor-client-json:ktor-client-gson")
 include(":ktor-client:ktor-client-plugins:ktor-client-json:ktor-client-jackson")
@@ -83,6 +85,7 @@ include(":ktor-server:ktor-server-plugins:ktor-server-cors")
 include(":ktor-server:ktor-server-plugins:ktor-server-csrf")
 include(":ktor-server:ktor-server-plugins:ktor-server-data-conversion")
 include(":ktor-server:ktor-server-plugins:ktor-server-default-headers")
+include(":ktor-server:ktor-server-plugins:ktor-server-di")
 include(":ktor-server:ktor-server-plugins:ktor-server-double-receive")
 include(":ktor-server:ktor-server-plugins:ktor-server-forwarded-header")
 include(":ktor-server:ktor-server-plugins:ktor-server-freemarker")
@@ -110,7 +113,6 @@ include(":ktor-server:ktor-server-plugins:ktor-server-openapi")
 include(":ktor-server:ktor-server-plugins:ktor-server-swagger")
 include(":ktor-server:ktor-server-plugins:ktor-server-sse")
 include(":ktor-server:ktor-server-plugins:ktor-server-i18n")
-include(":ktor-server:ktor-server-plugins")
 include(":ktor-http")
 include(":ktor-http:ktor-http-cio")
 include(":ktor-io")
@@ -120,7 +122,6 @@ include(":ktor-network:ktor-network-tls")
 include(":ktor-network:ktor-network-tls:ktor-network-tls-certificates")
 include(":ktor-bom")
 include(":ktor-test-dispatcher")
-include(":ktor-shared")
 include(":ktor-shared:ktor-call-id")
 include(":ktor-shared:ktor-resources")
 include(":ktor-shared:ktor-serialization")
@@ -141,3 +142,4 @@ include(":ktor-shared:ktor-htmx")
 include(":ktor-shared:ktor-htmx:ktor-htmx-html")
 include(":ktor-shared:ktor-test-base")
 include(":ktor-java-modules-test")
+include(":ktor-dokka")

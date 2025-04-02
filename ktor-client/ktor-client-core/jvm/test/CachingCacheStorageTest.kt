@@ -99,7 +99,7 @@ private class InMemoryCacheStorage : CacheStorage {
         findCalledCount++
         val cache = store.computeIfAbsent(url) { mutableSetOf() }
         return cache.find {
-            varyKeys.all { (key, value) -> it.varyKeys[key] == value }
+            varyKeys.all { (key, value) -> it.varyKeys[key] == value } && varyKeys.size == it.varyKeys.size
         }
     }
 

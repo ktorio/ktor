@@ -25,7 +25,7 @@ internal fun Server.initializeServer(
             if (ktorConnector.type == ConnectorType.HTTPS) {
                 addCustomizer(SecureRequestCustomizer())
             }
-        }
+        }.apply(configuration.httpConfiguration)
 
         var alpnAvailable = false
         var alpnConnectionFactory: ALPNServerConnectionFactory?

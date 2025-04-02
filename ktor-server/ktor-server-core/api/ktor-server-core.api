@@ -129,6 +129,14 @@ public final class io/ktor/server/application/MissingApplicationPluginException 
 	public fun getMessage ()Ljava/lang/String;
 }
 
+public abstract interface class io/ktor/server/application/ModuleParametersInjector {
+	public static final field Companion Lio/ktor/server/application/ModuleParametersInjector$Companion;
+	public abstract fun resolveParameter (Lio/ktor/server/application/Application;Lkotlin/reflect/KParameter;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/application/ModuleParametersInjector$Companion {
+}
+
 public final class io/ktor/server/application/OnCallContext : io/ktor/server/application/CallContext {
 }
 
@@ -1687,6 +1695,7 @@ public class io/ktor/server/routing/RoutingNode : io/ktor/server/application/App
 
 public final class io/ktor/server/routing/RoutingNodeKt {
 	public static final fun getAllRoutes (Lio/ktor/server/routing/RoutingNode;)Ljava/util/List;
+	public static final fun getPath (Lio/ktor/server/routing/RoutingNode;)Ljava/lang/String;
 	public static final fun insertPhaseAfter (Lio/ktor/server/routing/Route;Lio/ktor/util/pipeline/PipelinePhase;Lio/ktor/util/pipeline/PipelinePhase;)V
 	public static final fun insertPhaseBefore (Lio/ktor/server/routing/Route;Lio/ktor/util/pipeline/PipelinePhase;Lio/ktor/util/pipeline/PipelinePhase;)V
 	public static final fun intercept (Lio/ktor/server/routing/Route;Lio/ktor/util/pipeline/PipelinePhase;Lkotlin/jvm/functions/Function3;)V

@@ -15,6 +15,10 @@ private const val BASE64_PAD = '='
 
 private val BASE64_INVERSE_ALPHABET = IntArray(256) {
     BASE64_ALPHABET.indexOf(it.toChar())
+}.also {
+    // correctly decode URL-safe Base64
+    it['-'.code] = it['+'.code]
+    it['_'.code] = it['/'.code]
 }
 
 /**
@@ -104,7 +108,7 @@ public fun String.decodeBase64Bytes(): ByteArray = buildPacket {
 public fun Source.decodeBase64Bytes(): Input = buildPacket {
     val data = ByteArray(4)
 
-    while (remaining > 0) {
+    while (!exhausted()) {
         val read = readAvailable(data)
 
         val chunk = data.foldIndexed(0) { index, result, current ->

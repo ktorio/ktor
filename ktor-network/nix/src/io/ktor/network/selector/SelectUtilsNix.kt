@@ -48,7 +48,7 @@ internal actual class SelectorHelper {
     }
 
     actual fun start(scope: CoroutineScope): Job {
-        return scope.launch(CoroutineName("selector")) {
+        return scope.launch {
             selectionLoop()
         }
     }
@@ -67,7 +67,7 @@ internal actual class SelectorHelper {
     }
 
     @OptIn(ExperimentalForeignApi::class, InternalAPI::class)
-    private fun selectionLoop() {
+    private suspend fun selectionLoop() {
         val completed = mutableSetOf<EventInfo>()
         val watchSet = mutableSetOf<EventInfo>()
         val closeSet = mutableSetOf<Int>()
@@ -79,13 +79,13 @@ internal actual class SelectorHelper {
         try {
             while (!interestQueue.isClosed) {
                 watchSet.add(wakeupSignalEvent)
-                var maxDescriptor = fillHandlersOrClose(watchSet, completed, closeSet, readSet, writeSet, errorSet)
-                if (maxDescriptor == 0) continue
+                val maxDescriptor = fillHandlersOrClose(watchSet, completed, closeSet, readSet, writeSet, errorSet)
 
-                maxDescriptor = max(maxDescriptor + 1, wakeupSignalEvent.descriptor + 1)
+                yield()
 
                 try {
-                    selector_pselect(maxDescriptor + 1, readSet, writeSet, errorSet).check()
+                    selector_pselect(maxDescriptor + 1, readSet, writeSet, errorSet)
+                        .check(posixFunctionName = "pselect")
                 } catch (_: PosixException.BadFileDescriptorException) {
                     // Thrown if any of the descriptors was closed.
                     // This means the sets are undefined so do not rely on their contents.

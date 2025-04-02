@@ -2,18 +2,20 @@
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+import ktorbuild.*
 import ktorbuild.targets.javaModuleName
 
 plugins {
+    id("ktorbuild.base")
     id("java-library")
 }
 
 description = "Internal module for checking JPMS compliance"
 
+val jvmProjects = projectsWithTag(ProjectTag.Jvm)
+
 val generateModuleInfo = tasks.register("generateModuleInfo") {
-    val modules = rootProject.subprojects
-        .filter { it.hasJavaModule }
-        .map { it.javaModuleName() }
+    val modules = jvmProjects.mapValue(Project::javaModuleName)
     inputs.property("modules", modules)
 
     val moduleInfoFile = layout.projectDirectory.file("src/main/java/module-info.java")
@@ -25,9 +27,9 @@ val generateModuleInfo = tasks.register("generateModuleInfo") {
                 parentFile.mkdirs()
                 createNewFile()
             }
-            .writer().buffered().use { writer ->
+            .bufferedWriter().use { writer ->
                 writer.write("module io.ktor.test.module {\n")
-                modules.forEach { writer.write("\trequires $it;\n") }
+                modules.get().forEach { writer.write("\trequires $it;\n") }
                 writer.write("}")
             }
     }
@@ -50,11 +52,6 @@ java {
     }
 }
 
-dependencies {
-    rootProject.subprojects
-        .filter { it.hasJavaModule }
-        .forEach { implementation(project(it.path)) }
+configurations.implementation {
+    dependencies.addAllLater(jvmProjects.mapValue(project.dependencies::create))
 }
-
-internal val Project.hasJavaModule: Boolean
-    get() = plugins.hasPlugin("maven-publish") && name != "ktor-bom" && name != "ktor-java-modules-test" && name != "ktor-serialization-kotlinx-xml" && hasJvm

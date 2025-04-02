@@ -4,18 +4,20 @@
 
 description = ""
 
-kotlin.sourceSets {
-    commonMain {
-        dependencies {
+plugins {
+    id("ktorbuild.project.library")
+}
+
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
             api(project(":ktor-client:ktor-client-cio"))
             api(project(":ktor-server:ktor-server-core"))
             api(project(":ktor-client:ktor-client-core"))
             api(project(":ktor-test-dispatcher"))
         }
-    }
 
-    jvmMain {
-        dependencies {
+        jvmMain.dependencies {
             api(project(":ktor-network:ktor-network-tls"))
 
             api(project(":ktor-client:ktor-client-apache"))
@@ -30,10 +32,8 @@ kotlin.sourceSets {
             api(libs.junit)
             implementation(libs.kotlinx.coroutines.debug)
         }
-    }
 
-    jvmTest {
-        dependencies {
+        jvmTest.dependencies {
             api(project(":ktor-server:ktor-server-config-yaml"))
             api(libs.kotlin.test)
         }

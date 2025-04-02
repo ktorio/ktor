@@ -36,6 +36,7 @@ kotlin {
     jvmToolchain(21)
 
     compilerOptions {
+        allWarningsAsErrors = true
         // A workaround for a compiler issue KT-74984
         // TODO: Remove after the issue is fixed
         freeCompilerArgs.add("-Xignore-const-optimization-errors")

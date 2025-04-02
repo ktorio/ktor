@@ -2,19 +2,31 @@
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-import ktorbuild.internal.gradle.*
-import ktorbuild.internal.ktorBuild
-import ktorbuild.maybeNamed
+@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
+
+import ktorbuild.internal.*
+import ktorbuild.internal.gradle.maybeNamed
 import ktorbuild.targets.*
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 plugins {
     id("ktorbuild.base")
     kotlin("multiplatform")
+    id("org.jetbrains.kotlinx.atomicfu")
+    id("ktorbuild.codestyle")
 }
 
 kotlin {
-    @OptIn(ExperimentalKotlinGradlePluginApi::class)
+    explicitApi()
+
+    compilerOptions {
+        progressiveMode = ktorBuild.kotlinLanguageVersion.map { it >= KotlinVersion.DEFAULT }
+        apiVersion = ktorBuild.kotlinApiVersion
+        languageVersion = ktorBuild.kotlinLanguageVersion
+        freeCompilerArgs.addAll("-Xexpect-actual-classes")
+    }
+
     applyHierarchyTemplate(KtorTargets.hierarchyTemplate)
     addTargets(ktorBuild.targets)
 
@@ -46,12 +58,18 @@ if (targets.hasJsOrWasmJs) {
 @Suppress("UnstableApiUsage")
 if (targets.hasNative) {
     tasks.maybeNamed("linkDebugTestLinuxX64") {
-        onlyIf("run only on Linux") { ktorBuild.os.get().isLinux() }
+        val os = ktorBuild.os.get()
+        onlyIf("run only on Linux") { os.isLinux }
     }
     tasks.maybeNamed("linkDebugTestLinuxArm64") {
-        onlyIf("run only on Linux") { ktorBuild.os.get().isLinux() }
+        val os = ktorBuild.os.get()
+        onlyIf("run only on Linux") { os.isLinux }
     }
     tasks.maybeNamed("linkDebugTestMingwX64") {
-        onlyIf("run only on Windows") { ktorBuild.os.get().isWindows() }
+        val os = ktorBuild.os.get()
+        onlyIf("run only on Windows") { os.isWindows }
     }
 }
+
+setupTrain()
+if (ktorBuild.isCI.get()) configureTestTasksOnCi()

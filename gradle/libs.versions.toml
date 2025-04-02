@@ -8,15 +8,15 @@ coroutines = "1.10.1"
 atomicfu = "0.27.0"
 serialization = "1.8.0"
 binaryCompatibilityValidator = "0.17.0"
-dokka = "1.9.20"
+dokka = "2.0.0"
 kover = "0.9.1"
 kotlinter = "5.0.1"
 kotlinx-browser = "0.3"
 
 # Used for test server in buildSrc
-ktor = "3.1.0-eap-1225"
+ktor = "3.2.0-eap-1239"
 
-netty = "4.1.117.Final"
+netty = "4.1.118.Final"
 netty-tcnative = "2.0.70.Final"
 
 jetty = "9.4.57.v20241219"
@@ -37,19 +37,19 @@ json-simple = "1.1.1"
 gson = "2.12.1"
 jackson = "2.18.2"
 
-junit = "5.11.4"
+junit = "5.12.0"
 slf4j = "2.0.16"
 logback = "1.5.16"
 
 dropwizard = "4.2.30"
-micrometer = "1.14.3"
+micrometer = "1.14.4"
 
 jansi = "2.4.1"
 typesafe = "1.4.3"
 
 mockk = "1.13.16"
 
-java-jwt = "4.4.0"
+java-jwt = "4.5.0"
 
 jwks-rsa = "0.22.1"
 mustache = "0.9.14"
@@ -69,15 +69,15 @@ ws = "8.18.0"
 xmlutil = "0.90.3"
 yamlkt = "0.13.0"
 
-swagger-codegen = "3.0.66"
-swagger-codegen-generators = "1.0.55"
+swagger-codegen = "3.0.67"
+swagger-codegen-generators = "1.0.56"
 swagger-parser = "2.1.25"
 
 puppeteer = "21.5.0"
 tomlj = "1.1.1"
 
 develocity = "3.17.6" # Should be compatible with our server: ge.jetbrains.com
-develocity-commonCustomUserData = "2.0.2"
+develocity-commonCustomUserData = "2.1"
 gradleDoctor = "0.10.0"
 
 [libraries]
@@ -127,6 +127,8 @@ kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.
 kotlinx-io-core = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinx-io" }
 
 kotlinx-browser = { module = "org.jetbrains.kotlinx:kotlinx-browser", version.ref = "kotlinx-browser" }
+
+kotlinx-binaryCompatibilityValidator = { module = "org.jetbrains.kotlinx:binary-compatibility-validator", version.ref = "binaryCompatibilityValidator" }
 
 dokka-gradlePlugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
 dokka-plugin-versioning = { module = "org.jetbrains.dokka:versioning-plugin", version.ref = "dokka" }

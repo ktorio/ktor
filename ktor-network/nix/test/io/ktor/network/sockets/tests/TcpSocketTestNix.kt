@@ -26,7 +26,7 @@ class TcpSocketTestNix {
         socket.close()
         selector.close()
 
-        selector.coroutineContext[Job]?.join()
+        socket.awaitClosed()
 
         val isDescriptorValid = fcntl(descriptor, F_GETFL) != -1 || errno != EBADF
         check(!isDescriptorValid) { "Descriptor was not closed" }
@@ -59,7 +59,9 @@ class TcpSocketTestNix {
         server.close()
         selector.close()
 
-        selector.coroutineContext[Job]?.join()
+        serverConnection.awaitClosed()
+        clientConnection.awaitClosed()
+        server.awaitClosed()
 
         val isServerDescriptorValid = fcntl(serverDescriptor, F_GETFL) != -1 || errno != EBADF
         check(!isServerDescriptorValid) { "Server descriptor was not closed" }

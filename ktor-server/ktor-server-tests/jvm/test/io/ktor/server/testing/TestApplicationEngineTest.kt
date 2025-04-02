@@ -92,9 +92,7 @@ class TestApplicationEngineTest {
             assertEquals("The Response", response.body())
         }
 
-        assertFailsWith<IllegalStateException> {
-            client.get("/fail")
-        }
+        assertEquals(HttpStatusCode.InternalServerError, client.get("/fail").status)
     }
 
     @Test

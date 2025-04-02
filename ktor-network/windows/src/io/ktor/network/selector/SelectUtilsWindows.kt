@@ -30,7 +30,7 @@ internal actual class SelectorHelper {
     }
 
     actual fun start(scope: CoroutineScope): Job {
-        return scope.launch(CoroutineName("selector")) {
+        return scope.launch {
             selectionLoop()
         }
     }
@@ -49,7 +49,7 @@ internal actual class SelectorHelper {
     }
 
     @OptIn(ExperimentalForeignApi::class, InternalAPI::class)
-    private fun selectionLoop() {
+    private suspend fun selectionLoop() {
         val completed = mutableSetOf<EventInfo>()
         val watchSet = mutableSetOf<EventInfo>()
         val closeSet = mutableSetOf<Int>()
@@ -57,6 +57,9 @@ internal actual class SelectorHelper {
         try {
             while (!interestQueue.isClosed) {
                 val wsaEvents = fillHandlersOrClose(watchSet, completed, closeSet)
+
+                yield()
+
                 val index = memScoped {
                     val length = wsaEvents.size + 1
                     val wsaEventsWithWake = allocArray<CPointerVarOf<COpaquePointer>>(length).apply {
@@ -71,7 +74,7 @@ internal actual class SelectorHelper {
                         fWaitAll = 0,
                         dwTimeout = UInt.MAX_VALUE,
                         fAlertable = 0
-                    ).toInt().check()
+                    ).toInt().check(posixFunctionName = "WSAWaitForMultipleEvents")
                 }
 
                 processSelectedEvents(watchSet, completed, index, wsaEvents)
@@ -149,7 +152,7 @@ internal actual class SelectorHelper {
                     WSACreateEvent()
                 }
                 if (wsaEvent == WSA_INVALID_EVENT) {
-                    throw PosixException.forSocketError()
+                    throw PosixException.forSocketError(posixFunctionName = "WSACreateEvent")
                 }
 
                 var lNetworkEvents = events.fold(0) { acc, event ->
@@ -183,7 +186,8 @@ internal actual class SelectorHelper {
 
                 val networkEvents = memScoped {
                     val networkEvents = alloc<WSANETWORKEVENTS>()
-                    WSAEnumNetworkEvents(descriptor.convert(), wsaEvent, networkEvents.ptr).check()
+                    WSAEnumNetworkEvents(descriptor.convert(), wsaEvent, networkEvents.ptr)
+                        .check(posixFunctionName = "WSAEnumNetworkEvents")
                     networkEvents.lNetworkEvents
                 }
 

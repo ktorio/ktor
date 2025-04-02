@@ -33,7 +33,7 @@ public class WebSocketExtensionHeader(public val name: String, public val parame
     override fun toString(): String = "$name ${parametersToString()}"
 
     private fun parametersToString(): String =
-        if (parameters.isEmpty()) "" else ", ${parameters.joinToString(",")}"
+        if (parameters.isEmpty()) "" else "; ${parameters.joinToString(";")}"
 }
 
 /**

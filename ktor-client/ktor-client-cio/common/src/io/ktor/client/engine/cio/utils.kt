@@ -16,8 +16,9 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
+import kotlinx.io.EOFException
 import kotlinx.io.IOException
-import kotlin.coroutines.*
+import kotlin.coroutines.CoroutineContext
 
 internal suspend fun writeRequest(
     request: HttpRequestData,
@@ -122,7 +123,7 @@ internal suspend fun writeBody(
     val chunkedJob: EncoderJob? = if (chunked) encodeChunked(output, callContext) else null
     val channel = chunkedJob?.channel ?: output
 
-    val scope = CoroutineScope(callContext + CoroutineName("Request body writer"))
+    val scope = CoroutineScope(callContext + CoroutineName("cio-client-body-writer"))
     scope.launch {
         try {
             processOutgoingContent(request, body, channel)
@@ -169,7 +170,9 @@ internal suspend fun readResponse(
     callContext: CoroutineContext
 ): HttpResponseData = withContext(callContext) {
     val rawResponse = parseResponse(input)
-        ?: throw kotlinx.io.EOFException("Failed to parse HTTP response: the server prematurely closed the connection")
+        ?: throw ClosedReadChannelException(
+            EOFException("Failed to parse HTTP response: the server prematurely closed the connection")
+        )
 
     rawResponse.use {
         val status = HttpStatusCode(rawResponse.status, rawResponse.statusText.toString())
@@ -194,7 +197,7 @@ internal suspend fun readResponse(
             }
 
             else -> {
-                val coroutineScope = CoroutineScope(callContext + CoroutineName("Response"))
+                val coroutineScope = CoroutineScope(callContext + CoroutineName("cio-client-body-reader"))
                 val httpBodyParser = coroutineScope.writer(autoFlush = true) {
                     parseHttpBody(version, contentLength, transferEncoding, connectionType, input, channel)
                 }
@@ -237,7 +240,7 @@ internal suspend fun startTunnel(
         output.flush()
 
         val rawResponse = parseResponse(input)
-            ?: throw kotlinx.io.EOFException("Failed to parse CONNECT response: unexpected EOF")
+            ?: throw ClosedReadChannelException(EOFException("Failed to parse CONNECT response: unexpected EOF"))
         rawResponse.use {
             if (rawResponse.status / 200 != 1) {
                 throw IOException("Can not establish tunnel connection")
@@ -254,9 +257,9 @@ internal suspend fun startTunnel(
 internal fun HttpHeadersMap.toMap(): Map<String, List<String>> {
     val result = mutableMapOf<String, MutableList<String>>()
 
-    for (index in 0 until size) {
-        val key = nameAt(index).toString()
-        val value = valueAt(index).toString()
+    for (offset in offsets()) {
+        val key = nameAtOffset(offset).toString()
+        val value = valueAtOffset(offset).toString()
 
         if (result[key]?.add(value) == null) {
             result[key] = mutableListOf(value)

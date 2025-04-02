@@ -56,9 +56,7 @@ internal fun KFunction<*>.isApplicableFunction(): Boolean {
         }
     }
 
-    return parameters.all {
-        isApplication(it) || isApplicationEnvironment(it) || it.kind == KParameter.Kind.INSTANCE || it.isOptional
-    }
+    return true
 }
 
 internal fun Class<*>.takeIfNotFacade(): KClass<*>? =
