@@ -457,6 +457,7 @@ final class io.ktor.server.application/Application : io.ktor.server.application/
         final fun <set-rootPath>(kotlin/String) // io.ktor.server.application/Application.rootPath.<set-rootPath>|<set-rootPath>(kotlin.String){}[0]
 
     final fun dispose() // io.ktor.server.application/Application.dispose|dispose(){}[0]
+    final suspend fun disposeAndJoin() // io.ktor.server.application/Application.disposeAndJoin|disposeAndJoin(){}[0]
 }
 
 final class io.ktor.server.application/DuplicatePluginException : io.ktor.server.application/DuplicateApplicationPluginException { // io.ktor.server.application/DuplicatePluginException|null[0]

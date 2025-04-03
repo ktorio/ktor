@@ -12,6 +12,7 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelAndJoin
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
@@ -121,13 +122,30 @@ public class Application internal constructor(
     override val coroutineContext: CoroutineContext = parentCoroutineContext + applicationJob
 
     /**
+     * Cancels the application job without waiting for join.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.Application.dispose)
+     */
+    @Deprecated(
+        replaceWith = ReplaceWith("disposeAndJoin()"),
+        level = DeprecationLevel.WARNING,
+        message = "Use disposeAndJoin() instead."
+    )
+    @Suppress("DEPRECATION_ERROR")
+    public fun dispose() {
+        applicationJob.cancel()
+        uninstallAllPlugins()
+    }
+
+    /**
      * Called by [ApplicationEngine] when [Application] is terminated.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.Application.dispose)
      */
+    @InternalAPI
     @Suppress("DEPRECATION_ERROR")
-    public fun dispose() {
-        applicationJob.cancel()
+    public suspend fun disposeAndJoin() {
+        applicationJob.cancelAndJoin()
         uninstallAllPlugins()
     }
 }
