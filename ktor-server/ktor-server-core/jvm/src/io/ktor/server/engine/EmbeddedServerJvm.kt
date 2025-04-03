@@ -18,7 +18,9 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import java.io.File
 import java.net.URL
 import java.net.URLDecoder
@@ -246,16 +248,27 @@ actual constructor(
         if (currentApplication != null) {
             safeRaiseEvent(ApplicationStopping, currentApplication)
             try {
-                currentApplication.dispose()
-                (currentApplicationClassLoader as? OverridingClassLoader)?.close()
+                destroyBlocking(currentApplication, currentApplicationClassLoader)
             } catch (e: Throwable) {
                 environment.log.error("Failed to destroy application instance.", e)
             }
-
             safeRaiseEvent(ApplicationStopped, currentApplication)
         }
         packageWatchKeys.forEach { it.cancel() }
         packageWatchKeys = mutableListOf()
+    }
+
+    @OptIn(InternalAPI::class)
+    private fun destroyBlocking(application: Application, classLoader: ClassLoader?) {
+        try {
+            runBlocking {
+                withTimeout(engineConfig.shutdownTimeout) {
+                    application.disposeAndJoin()
+                }
+            }
+        } finally {
+            (classLoader as? OverridingClassLoader)?.close()
+        }
     }
 
     private fun watchUrls(urls: List<URL>) {
