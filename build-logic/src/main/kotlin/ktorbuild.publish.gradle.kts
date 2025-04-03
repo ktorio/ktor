@@ -57,7 +57,9 @@ configureSigning()
 plugins.withId("ktorbuild.kmp") {
     tasks.withType<AbstractPublishToMaven>().configureEach {
         val os = ktorBuild.os.get()
-        onlyIf { isAvailableForPublication(os) }
+        // Workaround for https://github.com/gradle/gradle/issues/22641
+        val predicate = provider { isAvailableForPublication(publication.name, os) }
+        onlyIf("Available for publication on $os") { predicate.get() }
     }
 
     registerTargetsPublishTasks(ktorBuild.targets)

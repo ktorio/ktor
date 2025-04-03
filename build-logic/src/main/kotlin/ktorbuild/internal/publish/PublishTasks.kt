@@ -27,8 +27,8 @@ private val windowsPublications = KtorTargets.resolveTargets("windows")
 private val darwinPublications = KtorTargets.resolveTargets("darwin")
 private val androidNativePublications = KtorTargets.resolveTargets("androidNative")
 
-internal fun AbstractPublishToMaven.isAvailableForPublication(os: OperatingSystem): Boolean {
-    return when (val name = publication.name) {
+internal fun AbstractPublishToMaven.isAvailableForPublication(publicationName: String, os: OperatingSystem): Boolean {
+    return when (publicationName) {
         in linuxPublications -> os.isLinux
         in windowsPublications -> os.isWindows
         in darwinPublications -> os.isMacOsX
@@ -37,7 +37,7 @@ internal fun AbstractPublishToMaven.isAvailableForPublication(os: OperatingSyste
         in androidNativePublications -> true
 
         else -> {
-            logger.warn("Unknown publication: $name (project ${project.path})")
+            logger.warn("Unknown publication: $publicationName (project ${project.path})")
             false
         }
     }
