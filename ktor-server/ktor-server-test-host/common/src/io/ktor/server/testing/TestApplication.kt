@@ -110,9 +110,9 @@ public class TestApplication internal constructor(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplication.stop)
      */
-    public fun stop() {
+    public suspend fun stop() {
         state.value = State.Stopped
-        server.stop()
+        server.stopSuspend()
         externalServices.externalApplications.values.forEach { it.stop() }
         client.close()
     }
