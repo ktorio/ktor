@@ -5,12 +5,13 @@
 package ktorbuild.internal.publish
 
 import ktorbuild.internal.capitalized
-import ktorbuild.internal.gradle.maybeNamed
 import ktorbuild.targets.KtorTargets
 import org.gradle.api.Project
 import org.gradle.api.publish.maven.tasks.AbstractPublishToMaven
+import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
 import org.gradle.api.publish.plugins.PublishingPlugin
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.kotlin.dsl.withType
 
 private val jvmAndCommonPublications = setOf(
     "jvm",
@@ -59,12 +60,17 @@ internal fun Project.registerTargetsPublishTasks(targets: KtorTargets) = with(ta
     if (hasAndroidNative) registerAggregatingPublishTask("AndroidNative", androidNativePublications)
 }
 
-private fun Project.registerAggregatingPublishTask(name: String, targets: Set<String>) {
+private fun Project.registerAggregatingPublishTask(name: String, publications: Set<String>) {
     tasks.register("publish${name}Publications") {
         group = PublishingPlugin.PUBLISH_TASK_GROUP
-        val targetsTasks = targets.mapNotNull { target ->
-            tasks.maybeNamed("publish${target.capitalized()}PublicationToMavenRepository")
-        }
-        dependsOn(targetsTasks)
+
+        val repositoryName = providers.gradleProperty("repository").orElse(MAVEN_REPO_DEFAULT_NAME)
+        val taskNames = publications
+            .map { "publish${it.capitalized()}PublicationTo${repositoryName.get().capitalized()}Repository" }
+            .toSet()
+
+        dependsOn(tasks.withType<PublishToMavenRepository>().named { it in taskNames })
     }
 }
+
+private const val MAVEN_REPO_DEFAULT_NAME = "maven"
