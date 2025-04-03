@@ -8,6 +8,7 @@ import io.ktor.events.*
 import io.ktor.events.EventDefinition
 import io.ktor.server.application.*
 import io.ktor.server.engine.internal.*
+import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.*
 
 public actual class EmbeddedServer<
@@ -43,7 +44,9 @@ actual constructor(
     )
 
     private val modules = rootConfig.modules
+    private val serverScope = CoroutineScope(rootConfig.parentCoroutineContext + Dispatchers.Default)
 
+    @OptIn(DelicateCoroutinesApi::class)
     private fun prepareToStart() {
         safeRaiseEvent(ApplicationStarting, application)
         try {
@@ -51,7 +54,7 @@ actual constructor(
             monitor.raise(ApplicationStarted, application)
         } catch (cause: Throwable) {
             environment.log.error("Failed to start application.", cause)
-            destroy(application)
+            serverScope.launch { destroy(application) }
             throw cause
         }
 
@@ -74,15 +77,16 @@ actual constructor(
 
     @OptIn(DelicateCoroutinesApi::class)
     public actual suspend fun startSuspend(wait: Boolean): EmbeddedServer<TEngine, TConfiguration> {
-        addShutdownHook { GlobalScope.launch { stopSuspend() } }
+        addShutdownHook { serverScope.launch { stopSuspend() } }
         prepareToStart()
         engine.startSuspend(wait)
         return this
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     public actual fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
         engine.stop(gracePeriodMillis, timeoutMillis)
-        destroy(application)
+        serverScope.launch { destroy(application) }
     }
 
     public actual suspend fun stopSuspend(gracePeriodMillis: Long, timeoutMillis: Long) {
@@ -90,10 +94,11 @@ actual constructor(
         destroy(application)
     }
 
-    private fun destroy(application: Application) {
+    @OptIn(InternalAPI::class)
+    private suspend fun destroy(application: Application) {
         safeRaiseEvent(ApplicationStopping, application)
         try {
-            application.dispose()
+            application.disposeAndJoin()
         } catch (e: Throwable) {
             environment.log.error("Failed to destroy application instance.", e)
         }
