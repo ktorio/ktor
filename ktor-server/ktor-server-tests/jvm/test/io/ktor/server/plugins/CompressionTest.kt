@@ -39,6 +39,19 @@ class CompressionTest {
     private val textToCompressAsBytes = textToCompress.encodeToByteArray()
 
     @Test
+    fun testVaryHeaderPresent() = testApplication {
+        install(Compression)
+
+        routing {
+            get("/") {
+                call.respondText(textToCompress)
+            }
+        }
+
+        handleAndAssert("/", "gzip", "gzip", textToCompress, HttpHeaders.AcceptEncoding)
+    }
+
+    @Test
     fun testCompressionNotSpecified() = testApplication {
         install(Compression)
         routing {
@@ -837,7 +850,8 @@ class CompressionTest {
         url: String,
         acceptHeader: String?,
         expectedEncoding: String?,
-        expectedContent: String
+        expectedContent: String,
+        expectedVary: String? = null,
     ): HttpResponse {
         val response = client.get(url) {
             if (acceptHeader != null) {
@@ -871,6 +885,10 @@ class CompressionTest {
             assertEquals(expectedContent, response.bodyAsText())
             assertNotNull(response.headers[HttpHeaders.ContentLength])
         }
+
+        expectedVary?.let {
+            assertEquals(response.headers[HttpHeaders.Vary], expectedVary)
+        } ?: assertNull(response.headers[HttpHeaders.Vary])
 
         return response
     }
