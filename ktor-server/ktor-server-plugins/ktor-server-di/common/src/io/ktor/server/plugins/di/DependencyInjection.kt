@@ -4,14 +4,10 @@
 
 package io.ktor.server.plugins.di
 
-import io.ktor.server.application.ApplicationPlugin
-import io.ktor.server.application.ApplicationStarted
-import io.ktor.server.application.PluginBuilder
-import io.ktor.server.application.createApplicationPlugin
-import io.ktor.server.plugins.di.utils.ClasspathReference
-import io.ktor.server.plugins.di.utils.installReference
-import io.ktor.util.AttributeKey
-import io.ktor.util.reflect.TypeInfo
+import io.ktor.server.application.*
+import io.ktor.server.plugins.di.utils.*
+import io.ktor.util.*
+import io.ktor.util.reflect.*
 import kotlin.reflect.KClass
 
 /**
@@ -69,8 +65,12 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
             pluginConfig.provider
         }
 
+        val configMap = ConfigurationDependencyMap(application.environment.config)
+        val dependenciesMap = pluginConfig.dependenciesMap?.let { it + configMap } ?: configMap
+
         var registry = DependencyRegistryImpl(
             provider,
+            dependenciesMap,
             pluginConfig.resolution,
             pluginConfig.reflection,
         )
@@ -132,6 +132,30 @@ public class DependencyInjectionConfig {
             providerChanged = true
         }
     public var resolution: DependencyResolution = DefaultDependencyResolution
+    internal var dependenciesMap: DependencyMap? = null
+
+    /**
+     * Include an additional source for dependencies.
+     *
+     * Sources added this way take precedence in the order of inclusion.
+     *
+     * Declared dependencies have precedence over all sources included this way.
+     *
+     * For example:
+     * ```kotlin
+     * install(DI) {
+     *     // Add /dev/null file as baseline fallback
+     *     include(DependencyMapImpl(mapOf(DependencyKey(File::class.typeInfo() to File("/dev/null")))))
+     *     // If File is available in this Koin module, use it instead
+     *     include(KoinDependencies(moduleReference))
+     * }
+     * // This declaration will be used before the included maps
+     * dependencies.provide { File("/opt/output") }
+     * ```
+     */
+    public fun include(map: DependencyMap) {
+        dependenciesMap = if (dependenciesMap == null) map else dependenciesMap!! + map
+    }
 
     /**
      * Convenience function for overriding the different logical aspects of the [DependencyProvider].
@@ -169,17 +193,27 @@ public class DependencyInjectionConfig {
 /**
  * Unique key for a dependency.
  */
-public data class DependencyKey(val type: TypeInfo, val name: String? = null) {
+public data class DependencyKey(
+    public val type: TypeInfo,
+    public val name: String? = null,
+    public val qualifier: Any? = null,
+) {
+
     override fun toString(): String = buildString {
         append(type.kotlinType ?: type.type)
-        if (name != null) {
-            append("(name = \"$name\")")
+        if (name != null || qualifier != null) {
+            if (name != null) {
+                append("name = \"$name\"")
+            }
+            if (qualifier != null) {
+                append("qualifier = \"$qualifier\"")
+            }
         }
     }
 }
 
 /**
- * Common parent for dependency injection problem.
+ * Common parent for dependency injection problems.
  */
 public open class DependencyInjectionException(message: String, cause: Throwable? = null) :
     RuntimeException(message, cause)

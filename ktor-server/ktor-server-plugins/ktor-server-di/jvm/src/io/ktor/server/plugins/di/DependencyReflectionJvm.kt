@@ -4,10 +4,13 @@
 
 package io.ktor.server.plugins.di
 
+import io.ktor.server.plugins.di.annotations.Named
+import io.ktor.server.plugins.di.annotations.Property
 import io.ktor.util.reflect.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
+import kotlin.reflect.full.findAnnotations
 import kotlin.reflect.jvm.jvmErasure
 
 /**
@@ -75,6 +78,17 @@ public open class DependencyReflectionJvm : DependencyReflection {
     /**
      * Maps a parameter to a [DependencyKey].
      */
-    public open fun toDependencyKey(parameter: KParameter): DependencyKey =
-        DependencyKey(TypeInfo(parameter.type.jvmErasure, parameter.type))
+    public open fun toDependencyKey(parameter: KParameter): DependencyKey {
+        val name = parameter.findAnnotations(Named::class).singleOrNull()?.value?.takeIf { it.isNotBlank() }
+        val property = parameter.findAnnotations(Property::class).singleOrNull()?.value?.takeIf { it.isNotBlank() }
+        if (name != null && property != null) {
+            throw DependencyInjectionException("Parameter cannot be annotated with both @Named and @Property")
+        }
+
+        return DependencyKey(
+            type = TypeInfo(parameter.type.jvmErasure, parameter.type),
+            name = name ?: property,
+            qualifier = PropertyQualifier.takeIf { property != null }
+        )
+    }
 }

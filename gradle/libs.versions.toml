@@ -68,6 +68,7 @@ jakarta-servlet = "5.0.0"
 ws = "8.18.0"
 xmlutil = "0.90.3"
 yamlkt = "0.13.0"
+kaml = "0.73.0"
 
 swagger-codegen = "3.0.67"
 swagger-codegen-generators = "1.0.56"
@@ -220,6 +221,7 @@ jakarta-servlet = { module = "jakarta.servlet:jakarta.servlet-api", version.ref 
 
 xmlutil-serialization = { module = "io.github.pdvrieze.xmlutil:serialization", version.ref = "xmlutil" }
 yamlkt-serialization = { module = "net.mamoe.yamlkt:yamlkt", version.ref = "yamlkt" }
+kaml-serialization = { module = "com.charleskorn.kaml:kaml", version.ref = "kaml" }
 
 swagger-codegen = { module = "io.swagger.codegen.v3:swagger-codegen", version.ref = "swagger-codegen" }
 swagger-codegen-generators = { module = "io.swagger.codegen.v3:swagger-codegen-generators", version.ref = "swagger-codegen-generators" }

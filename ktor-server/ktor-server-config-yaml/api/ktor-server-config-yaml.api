@@ -1,4 +1,5 @@
 public final class io/ktor/server/config/yaml/YamlConfig : io/ktor/server/config/ApplicationConfig {
+	public synthetic fun <init> (Lcom/charleskorn/kaml/YamlMap;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun checkEnvironmentVariables ()V
 	public fun config (Ljava/lang/String;)Lio/ktor/server/config/ApplicationConfig;
 	public fun configList (Ljava/lang/String;)Ljava/util/List;
