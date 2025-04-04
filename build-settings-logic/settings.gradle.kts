@@ -3,7 +3,8 @@
  */
 
 plugins {
-    id("com.gradle.develocity") version "3.17.6"
+    // Keep it in sync with libs.versions.toml
+    id("com.gradle.develocity") version "3.18.2"
 }
 
 dependencyResolutionManagement {
