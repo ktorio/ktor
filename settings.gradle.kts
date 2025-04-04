@@ -6,6 +6,15 @@ enableFeaturePreview("STABLE_CONFIGURATION_CACHE")
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
+    // Add repositories required for build-settings-logic
+    repositories {
+        gradlePluginPortal()
+
+        // Should be in sync with ktorsettings.kotlin-user-project
+        val kotlinRepoUrl = providers.gradleProperty("kotlin_repo_url").orNull
+        if (kotlinRepoUrl != null) maven(kotlinRepoUrl) { name = "KotlinDev" }
+    }
+
     includeBuild("build-settings-logic")
 }
 
