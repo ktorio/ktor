@@ -8,6 +8,7 @@ plugins {
 
 dependencies {
     implementation(libs.kotlin.gradlePlugin)
+    implementation(libs.kotlin.serialization)
     implementation(libs.kotlinx.atomicfu.gradlePlugin)
     implementation(libs.kotlinx.binaryCompatibilityValidator)
     implementation(libs.dokka.gradlePlugin)

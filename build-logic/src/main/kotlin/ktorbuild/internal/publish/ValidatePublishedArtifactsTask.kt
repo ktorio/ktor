@@ -4,15 +4,15 @@
 
 package ktorbuild.internal.publish
 
+import ktorbuild.internal.gradle.directoryProvider
+import ktorbuild.internal.gradle.regularFileProvider
 import ktorbuild.internal.publish.TestRepository.locateTestRepository
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Project
-import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.options.Option
@@ -55,9 +55,11 @@ internal abstract class ValidatePublishedArtifactsTask : DefaultTask() {
 
         outputs.cacheIf("Enable cache only when collecting a dump") { dump.get() }
 
-        repositoryDirectory.convention(project.locateTestRepository())
-        artifactsDump.convention(project.rootProject.layout.projectDirectory.file("gradle/artifacts.txt"))
-        packageName.convention(project.rootProject.group.toString())
+        with(project) {
+            repositoryDirectory.convention(directoryProvider { locateTestRepository() })
+            artifactsDump.convention(regularFileProvider { rootDir.resolve("gradle/artifacts.txt") })
+            packageName.convention(rootProject.group.toString())
+        }
         dump.convention(false)
     }
 
@@ -129,6 +131,6 @@ internal object TestRepository {
         }
     }
 
-    fun Project.locateTestRepository(): Provider<Directory> =
-        rootProject.layout.buildDirectory.dir("${NAME}Repository")
+    fun Project.locateTestRepository(): File =
+        rootDir.resolve("build/${ValidatePublishedArtifactsTask.NAME}Repository")
 }

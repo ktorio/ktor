@@ -5,8 +5,7 @@
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class)
 
 import ktorbuild.internal.*
-import ktorbuild.internal.gradle.*
-import ktorbuild.maybeNamed
+import ktorbuild.internal.gradle.maybeNamed
 import ktorbuild.targets.*
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
@@ -59,13 +58,16 @@ if (targets.hasJsOrWasmJs) {
 @Suppress("UnstableApiUsage")
 if (targets.hasNative) {
     tasks.maybeNamed("linkDebugTestLinuxX64") {
-        onlyIf("run only on Linux") { ktorBuild.os.get().isLinux() }
+        val os = ktorBuild.os.get()
+        onlyIf("run only on Linux") { os.isLinux }
     }
     tasks.maybeNamed("linkDebugTestLinuxArm64") {
-        onlyIf("run only on Linux") { ktorBuild.os.get().isLinux() }
+        val os = ktorBuild.os.get()
+        onlyIf("run only on Linux") { os.isLinux }
     }
     tasks.maybeNamed("linkDebugTestMingwX64") {
-        onlyIf("run only on Windows") { ktorBuild.os.get().isWindows() }
+        val os = ktorBuild.os.get()
+        onlyIf("run only on Windows") { os.isWindows }
     }
 }
 

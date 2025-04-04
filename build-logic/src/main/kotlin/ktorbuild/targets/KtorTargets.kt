@@ -2,6 +2,8 @@
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+@file:Suppress("UnstableApiUsage")
+
 package ktorbuild.targets
 
 import ktorbuild.internal.KotlinHierarchyTracker
@@ -9,14 +11,17 @@ import ktorbuild.internal.TrackedKotlinHierarchyTemplate
 import ktorbuild.internal.gradle.ProjectGradleProperties
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.problems.ProblemGroup
+import org.gradle.api.problems.ProblemId
+import org.gradle.api.problems.ProblemReporter
+import org.gradle.api.problems.Problems
 import org.gradle.kotlin.dsl.newInstance
+import org.gradle.kotlin.dsl.support.serviceOf
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
-import org.jetbrains.kotlin.gradle.plugin.KotlinHierarchyBuilder
+import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
-import org.jetbrains.kotlin.konan.target.KonanTarget
 import javax.inject.Inject
 
 /**
@@ -137,7 +142,7 @@ abstract class KtorTargets internal constructor(
 
                             group("androidNative32") {
                                 withAndroidNativeX86()
-                                withAndroidNativeArm32Fixed()
+                                withAndroidNativeArm32()
                             }
                         }
                     }
@@ -168,21 +173,6 @@ abstract class KtorTargets internal constructor(
 
         /** Returns targets corresponding to the provided [sourceSet]. */
         fun resolveTargets(sourceSet: String): Set<String> = hierarchyTracker.groups[sourceSet] ?: setOf(sourceSet)
-    }
-}
-
-/**
- * Original `withAndroidNativeArm32` has a bug and matches to `X86` actually.
- * TODO: Remove after the bug is fixed
- *  https://youtrack.jetbrains.com/issue/KT-71866/
- */
-@OptIn(ExperimentalKotlinGradlePluginApi::class)
-private fun KotlinHierarchyBuilder.withAndroidNativeArm32Fixed() {
-    if (this is KotlinHierarchyTracker) return withAndroidNativeArm32()
-
-    withCompilations {
-        val target = it.target
-        target is KotlinNativeTarget && target.konanTarget == KonanTarget.ANDROID_ARM32
     }
 }
 
@@ -222,7 +212,81 @@ internal fun KotlinMultiplatformExtension.addTargets(targets: KtorTargets) {
     if (targets.isEnabled("mingwX64")) mingwX64()
     if (targets.isEnabled("watchosDeviceArm64")) watchosDeviceArm64()
 
+    freezeSourceSets()
     flattenSourceSetsStructure()
+}
+
+private const val IGNORE_EXTRA_SOURCE_SETS_PROPERTY = "ktor.ignoreExtraSourceSets"
+
+private val ktorProblemGroup = ProblemGroup.create("ktor", "Ktor")
+private val extraSourceSetProblemId = ProblemId.create(
+    "ktor-extra-source-sets",
+    "Extra source sets detected",
+    ktorProblemGroup,
+)
+
+/**
+ * Ensures that no additional source sets have been added after the initial automatic configuration phase.
+ *
+ * By default, it throws an [IllegalStateException] if extra source sets are detected.
+ * When [IGNORE_EXTRA_SOURCE_SETS_PROPERTY] property is set to `true`, extra source sets are ignored instead.
+ */
+private fun KotlinMultiplatformExtension.freezeSourceSets() {
+    val problemReporter = project.serviceOf<Problems>().reporter
+    val ignoreExtraSourceSets = project.providers.gradleProperty(IGNORE_EXTRA_SOURCE_SETS_PROPERTY).orNull.toBoolean()
+    val extraSourceSets = mutableSetOf<KotlinSourceSet>()
+
+    sourceSets.whenObjectAdded { extraSourceSets.add(this) }
+
+    project.afterEvaluate {
+        if (extraSourceSets.isNotEmpty()) {
+            val names = extraSourceSets.map { it.name }.sorted()
+            val context = "Detected extra source sets registered manually: $names (project ${project.path})"
+
+            if (ignoreExtraSourceSets) {
+                problemReporter.reportExtraSourceSetsWarning(context)
+                sourceSets.removeAll(extraSourceSets)
+            } else {
+                throw problemReporter.reportExtraSourceSetsError(context)
+            }
+        }
+    }
+}
+
+private fun ProblemReporter.reportExtraSourceSetsWarning(context: String) = report(extraSourceSetProblemId) {
+    contextualLabel(context)
+    details("Ignoring them because '$IGNORE_EXTRA_SOURCE_SETS_PROPERTY' property is set to 'true'.")
+}
+
+private fun ProblemReporter.reportExtraSourceSetsError(context: String) = throwing(
+    IllegalStateException(extraSourceSetProblemId.displayName),
+    extraSourceSetProblemId,
+) {
+    contextualLabel(context)
+    details(
+        """
+        Ktor automatically registers source sets depending on the present source directories and enabled targets,
+        so manual registration of extra source sets is not allowed. 
+
+        Possible reasons:
+        1. The source sets were registered explicitly using 'kotlin' extension.
+        2. Dependencies for the source sets were declared.
+           Declaring dependencies for a source set implicitly creates it.
+        """.trimIndent()
+    )
+    solution(
+        """
+        Remove manual source set registration.
+        Add source directory or enable the target using 'target.[name]=true' property to register
+        the source set automatically.
+        """.trimIndent()
+    )
+    solution(
+        """
+        The source sets were disabled using 'target.[name]=false' property, but dependencies for them are still declared.
+        If this is intentional, specify '$IGNORE_EXTRA_SOURCE_SETS_PROPERTY=true' property to suppress this error.
+        """.trimIndent()
+    )
 }
 
 /**
