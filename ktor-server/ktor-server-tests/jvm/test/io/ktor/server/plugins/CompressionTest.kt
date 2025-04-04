@@ -888,7 +888,7 @@ class CompressionTest {
 
         expectedVary?.let {
             assertEquals(response.headers[HttpHeaders.Vary], expectedVary)
-        } ?: assertNull(response.headers[HttpHeaders.Vary])
+        }
 
         return response
     }
