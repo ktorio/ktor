@@ -168,11 +168,13 @@ class ResourcesTest {
         test { client ->
             val resource = PathWithOptionalQueryParameter(10, "clyde")
             val clientWithAssertions = client.config {
-                install(createClientPlugin("check resource attribute is set") {
-                    onRequest { call, _ ->
-                        assertSame(resource, call.attributes[RESOURCE])
+                install(
+                    createClientPlugin("check resource attribute is set") {
+                        onRequest { call, _ ->
+                            assertSame(resource, call.attributes[RESOURCE])
+                        }
                     }
-                })
+                )
             }
 
             val response = clientWithAssertions.get(resource)
