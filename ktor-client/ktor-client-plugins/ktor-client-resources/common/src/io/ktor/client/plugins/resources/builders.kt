@@ -9,10 +9,7 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.resources.*
-import io.ktor.resources.serialization.ResourcesFormat
 import io.ktor.util.AttributeKey
-import io.ktor.util.Attributes
-import kotlinx.serialization.*
 import io.ktor.client.request.delete as deleteBuilder
 import io.ktor.client.request.get as getBuilder
 import io.ktor.client.request.head as headBuilder
