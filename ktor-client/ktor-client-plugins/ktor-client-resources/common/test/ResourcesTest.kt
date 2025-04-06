@@ -11,10 +11,9 @@ import io.ktor.client.statement.*
 import io.ktor.client.test.base.*
 import io.ktor.http.*
 import io.ktor.resources.*
-import io.ktor.resources.serialization.ResourcesFormat
-import kotlinx.serialization.serializer
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertSame
 
 class ResourcesTest {
 
@@ -167,34 +166,17 @@ class ResourcesTest {
             }
         }
         test { client ->
+            val resource = PathWithOptionalQueryParameter(10, "clyde")
             val clientWithAssertions = client.config {
-                install(createClientPlugin("check attribute is set") {
+                install(createClientPlugin("check resource attribute is set") {
                     onRequest { call, _ ->
-                        assertEquals(
-                            call.attributes[URL_TEMPLATE],
-                            urlTemplate(ResourcesFormat(), serializer<PathWithOptionalQueryParameter>())
-                        )
+                        assertSame(resource, call.attributes[RESOURCE])
                     }
                 })
             }
-            val response = clientWithAssertions.get(PathWithOptionalQueryParameter(10, "clyde"))
+
+            val response = clientWithAssertions.get(resource)
             assertEquals(response.status, HttpStatusCode.OK)
         }
-    }
-
-    @Test
-    fun testUrlTemplateFromResources() {
-        assertEquals(
-            urlTemplate(ResourcesFormat(), serializer<Path.Child>()),
-            "path/{id}/{method}/child/{path?}?query={query}"
-        )
-    }
-
-    @Test
-    fun testUrlTemplateFromResourcesWithOptionalQueryParameters() {
-        assertEquals(
-            urlTemplate(ResourcesFormat(), serializer<PathWithOptionalQueryParameter>()),
-            "path/{id}?query={query?}"
-        )
     }
 }
