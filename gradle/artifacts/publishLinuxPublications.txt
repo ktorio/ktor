@@ -446,6 +446,16 @@ io.ktor:ktor-server-default-headers-linuxx64/.klib
 io.ktor:ktor-server-default-headers-linuxx64/javadoc.jar
 io.ktor:ktor-server-default-headers-linuxx64/kdoc.jar
 io.ktor:ktor-server-default-headers-linuxx64/sources.jar
+io.ktor:ktor-server-di-linuxarm64/.jar
+io.ktor:ktor-server-di-linuxarm64/.klib
+io.ktor:ktor-server-di-linuxarm64/javadoc.jar
+io.ktor:ktor-server-di-linuxarm64/kdoc.jar
+io.ktor:ktor-server-di-linuxarm64/sources.jar
+io.ktor:ktor-server-di-linuxx64/.jar
+io.ktor:ktor-server-di-linuxx64/.klib
+io.ktor:ktor-server-di-linuxx64/javadoc.jar
+io.ktor:ktor-server-di-linuxx64/kdoc.jar
+io.ktor:ktor-server-di-linuxx64/sources.jar
 io.ktor:ktor-server-double-receive-linuxarm64/.jar
 io.ktor:ktor-server-double-receive-linuxarm64/.klib
 io.ktor:ktor-server-double-receive-linuxarm64/javadoc.jar
