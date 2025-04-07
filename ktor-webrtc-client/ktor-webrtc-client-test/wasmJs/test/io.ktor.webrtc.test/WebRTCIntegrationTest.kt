@@ -37,7 +37,7 @@ class WasmJsWebRTCEngineIntegrationTest {
      * Override this in subclasses if needed for specific platform tests.
      */
     private val googleIceServer = listOf(
-        IceServer(urls  = "stun:stun.l.google.com:19302")
+        IceServer(urls = "stun:stun.l.google.com:19302")
     )
 
     @BeforeTest
@@ -224,21 +224,15 @@ class WasmJsWebRTCEngineIntegrationTest {
     @Test
     fun testSimulateErrorHandling(): TestResult = runTest {
         val peerConnection = client.createPeerConnection()
-
-        try {
-            // Try to add an invalid ICE candidate
+        assertFails {
             val invalidCandidate = WebRtcPeerConnection.IceCandidate(
                 candidate = "invalid candidate string",
                 sdpMid = "0",
                 sdpMLineIndex = 0
             )
             peerConnection.addIceCandidate(invalidCandidate)
-        } catch (e: Exception) {
-            // Expected to fail
-            assertTrue(e.message?.contains("Invalid") == true || e.message?.contains("Error") == true)
-        } finally {
-            peerConnection.close()
         }
+        peerConnection.close()
     }
 
     @Test

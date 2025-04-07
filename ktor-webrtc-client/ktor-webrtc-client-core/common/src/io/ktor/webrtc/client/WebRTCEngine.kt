@@ -4,7 +4,6 @@
 
 package io.ktor.webrtc.client
 
-import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.atomic
@@ -15,6 +14,7 @@ import kotlin.coroutines.CoroutineContext
 
 @KtorDsl
 public open class WebRTCConfig {
+    public var mediaTrackFactory: MediaTrackFactory? = null
     public var dispatcher: CoroutineDispatcher? = null
     public var iceServers: List<IceServer> = emptyList()
     public var turnServers: List<IceServer> = emptyList()
@@ -27,14 +27,48 @@ public data class IceServer(
     val credential: String? = null
 )
 
-public interface WebRTCEngine : CoroutineScope, Closeable {
-    public val dispatcher: CoroutineDispatcher
+public enum class FacingMode {
+    USER,
+    ENVIRONMENT,
+    LEFT,
+    RIGHT;
+}
+
+public enum class ResizeMode {
+    NONE,
+    CROP_AND_SCALE
+}
+
+public data class VideoTrackConstraints(
+    val width: Int? = null,
+    val height: Int? = null,
+    val aspectRatio: Double? = null,
+    val frameRate: Double? = null,
+    val facingMode: FacingMode? = null,
+    val resizeMode: ResizeMode? = null,
+)
+
+public data class AudioTrackConstraints(
+    var volume: Double? = null,
+    var sampleRate: Int? = null,
+    var sampleSize: Int? = null,
+    var echoCancellation: Boolean? = null,
+    var autoGainControl: Boolean? = null,
+    var noiseSuppression: Boolean? = null,
+    var latency: Double? = null,
+    var channelCount: Int? = null,
+)
+
+public interface MediaTrackFactory {
+    public suspend fun createAudioTrack(constraints: AudioTrackConstraints): WebRTCAudioTrack
+    public suspend fun createVideoTrack(constraints: VideoTrackConstraints): WebRTCVideoTrack
+}
+
+public interface WebRTCEngine : CoroutineScope, Closeable, MediaTrackFactory {
     public val config: WebRTCConfig
+    public val dispatcher: CoroutineDispatcher
 
     public suspend fun createPeerConnection(): WebRtcPeerConnection
-
-    public suspend fun createAudioTrack(): WebRTCMediaTrack
-    public suspend fun createVideoTrack(): WebRTCMediaTrack
 }
 
 public abstract class WebRTCEngineBase(private val engineName: String) : WebRTCEngine {
@@ -43,13 +77,14 @@ public abstract class WebRTCEngineBase(private val engineName: String) : WebRTCE
     override val dispatcher: CoroutineDispatcher by lazy { config.dispatcher ?: ioDispatcher() }
 
     override val coroutineContext: CoroutineContext by lazy {
-        SilentSupervisor() + dispatcher + CoroutineName("$engineName-context")
+        dispatcher + CoroutineName("$engineName-context")
+        //SilentSupervisor() + dispatcher + CoroutineName("$engineName-context")
     }
 
     override fun close() {
-        if (!closed.compareAndSet(false, true)) return
-        val requestJob = coroutineContext[Job] as? CompletableJob ?: return
-        requestJob.complete()
+//        if (!closed.compareAndSet(false, true)) return
+//        val requestJob = coroutineContext[Job] as? CompletableJob ?: return
+//        requestJob.complete()
     }
 }
 
@@ -57,7 +92,10 @@ internal expect fun ioDispatcher(): CoroutineDispatcher
 
 public interface WebRtcPeerConnection : Closeable {
     public val iceCandidateFlow: SharedFlow<IceCandidate>
-    public val statsFlow: StateFlow<WebRTCStatsReport>
+    public val statsFlow: StateFlow<List<WebRTCStats>>
+
+    // That could be useful for some scenarios that are not covered yet
+    public fun getNativeConnection(): Any?
 
     public suspend fun createOffer(): SessionDescription
     public suspend fun createAnswer(): SessionDescription
@@ -94,36 +132,15 @@ public sealed class WebRTCMediaStats(
     public val trackId: String,
     public val type: String,
     public val id: String,
+    public val extra: Map<String, Any> = emptyMap()
 )
 
-public class WebRTCVideoSourceStats(
-    timestamp: Long,
-    trackId: String,
-    type: String,
-    id: String,
-    public val width: Int?,
-    public val height: Int?,
-    public val frames: Int?,
-    public val framesPerSecond: Int?,
-) : WebRTCMediaStats(timestamp, trackId, type, id)
-
-public class WebRTCAudioSourceStats(
-    timestamp: Long,
-    trackId: String,
-    type: String,
-    id: String,
-    public val audioLevel: Double?,
-    public val totalAudioEnergy: Double?,
-    public val totalSamplesDuration: Double?,
-) : WebRTCMediaStats(timestamp, trackId, type, id)
-
-public data class WebRTCStatsReport(
+public data class WebRTCStats(
+    val id: String,
+    val type: String,
     val timestamp: Long,
-    val audio: WebRTCAudioSourceStats?,
-    val video: WebRTCVideoSourceStats?
+    val props: Map<String, Any?>,
 )
-
-public val EmptyWebRTCStatsReport: WebRTCStatsReport = WebRTCStatsReport(0L, null, null)
 
 public interface WebRTCMediaSource
 
@@ -146,3 +163,6 @@ public interface WebRTCMediaTrack {
         VIDEO,
     }
 }
+
+public interface WebRTCVideoTrack : WebRTCMediaTrack
+public interface WebRTCAudioTrack : WebRTCMediaTrack

@@ -14,10 +14,28 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.w3c.dom.mediacapture.MediaStream
+import org.w3c.dom.mediacapture.MediaStreamConstraints
 import org.w3c.dom.mediacapture.MediaStreamTrack
 import kotlin.coroutines.CoroutineContext
 
-public class WasmJsWebRTCEngine(override val config: JsWebRTCEngineConfig) : WebRTCEngineBase("ktor-webrtc-wasm-js") {
+public object NavigatorMediaDevices : MediaTrackFactory {
+    override suspend fun createAudioTrack(constraints: AudioTrackConstraints): WebRTCAudioTrack {
+        val streamConstraints = MediaStreamConstraints(audio = constraints.toJS())
+        val mediaStream = navigator.mediaDevices.getUserMedia(streamConstraints).await<MediaStream>()
+        return WasmJsAudioTrack(mediaStream.getAudioTracks()[0]!!)
+    }
+
+    override suspend fun createVideoTrack(constraints: VideoTrackConstraints): WebRTCVideoTrack {
+        val streamConstraints = MediaStreamConstraints(video = constraints.toJS())
+        val mediaStream = navigator.mediaDevices.getUserMedia(streamConstraints).await<MediaStream>()
+        return WasmJsVideoTrack(mediaStream.getVideoTracks()[0]!!)
+    }
+}
+
+public class WasmJsWebRTCEngine(
+    override val config: JsWebRTCEngineConfig,
+    private val mediaTrackFactory: MediaTrackFactory = config.mediaTrackFactory ?: NavigatorMediaDevices
+) : WebRTCEngineBase("ktor-webrtc-wasm-js"), MediaTrackFactory by mediaTrackFactory {
 
     /**
      * Creates a new WebRTC peer connection with the specified configuration.
@@ -30,28 +48,6 @@ public class WasmJsWebRTCEngine(override val config: JsWebRTCEngineConfig) : Web
 
         val peerConnection = RTCPeerConnection(rtcConfig)
         return WasmJsWebRtcPeerConnection(peerConnection, coroutineContext, config.statsRefreshRate)
-    }
-
-    /**
-     * Creates an audio track.
-     * @return The WebRTC media track.
-     */
-    override suspend fun createAudioTrack(): WebRTCMediaTrack {
-        val constraints = audioEnabledConstraints()
-        val mediaStream = navigator.mediaDevices.getUserMedia(constraints).await<MediaStream>()
-        val audioTrack = mediaStream.getAudioTracks()[0]!!
-        return WasmJsMediaTrack(audioTrack)
-    }
-
-    /**
-     * Creates a video track.
-     * @return The WebRTC media track.
-     */
-    override suspend fun createVideoTrack(): WebRTCMediaTrack {
-        val constraints = videoEnabledConstraints()
-        val mediaStream = navigator.mediaDevices.getUserMedia(constraints).await<MediaStream>()
-        val videoTrack = mediaStream.getVideoTracks()[0]!!
-        return WasmJsMediaTrack(videoTrack)
     }
 }
 
@@ -67,8 +63,8 @@ public class WasmJsWebRtcPeerConnection(
     private val _iceCandidateFlow = MutableSharedFlow<WebRtcPeerConnection.IceCandidate>(replay = 0)
     override val iceCandidateFlow: SharedFlow<WebRtcPeerConnection.IceCandidate> = _iceCandidateFlow.asSharedFlow()
 
-    private val _statsFlow = MutableStateFlow<WebRTCStatsReport>(EmptyWebRTCStatsReport)
-    override val statsFlow: StateFlow<WebRTCStatsReport> = _statsFlow.asStateFlow()
+    private val _statsFlow = MutableStateFlow<WebRTCStats>(EmptyWebRTCStatsReport)
+    override val statsFlow: StateFlow<WebRTCStats> = _statsFlow.asStateFlow()
 
     init {
         nativePeerConnection.onicecandidate = { conn: RTCPeerConnection, event: RTCPeerConnectionIceEvent ->
@@ -135,7 +131,7 @@ public class WasmJsWebRtcPeerConnection(
     }
 }
 
-public class WasmJsMediaTrack(
+public abstract class WasmJsMediaTrack(
     internal val nativeTrack: MediaStreamTrack
 ) : WebRTCMediaTrack {
     public override val id: String = nativeTrack.id
@@ -155,6 +151,10 @@ public class WasmJsMediaTrack(
         nativeTrack.stop()
     }
 }
+
+public class WasmJsAudioTrack(nativeTrack: MediaStreamTrack) : WebRTCAudioTrack, WasmJsMediaTrack(nativeTrack)
+
+public class WasmJsVideoTrack(nativeTrack: MediaStreamTrack) : WebRTCVideoTrack, WasmJsMediaTrack(nativeTrack)
 
 @OptIn(InternalAPI::class)
 public actual object JsWebRTC : WebRTCClientEngineFactory<JsWebRTCEngineConfig> {

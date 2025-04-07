@@ -33,35 +33,11 @@ public interface WebRTCClientEngineFactory<out T : WebRTCConfig> {
  * client.close()
  * ```
  */
-public class WebRTCClient(public val engine: WebRTCEngine) {
+public class WebRTCClient(public val engine: WebRTCEngine) : WebRTCEngine by engine {
     /**
      * The underlying WebRTCClientEngine instance.
      */
     public val engineConfig: WebRTCConfig = engine.config
-
-    /**
-     * Creates a new peer connection with optional configuration.
-     *
-     * @return configured peer connection
-     */
-    public suspend fun createPeerConnection(): WebRtcPeerConnection {
-        return engine.createPeerConnection()
-    }
-
-    /**
-     * Creates an audio track.
-     */
-    public suspend fun createAudioTrack(): WebRTCMediaTrack = engine.createAudioTrack()
-
-    /**
-     * Creates a video track.
-     */
-    public suspend fun createVideoTrack(): WebRTCMediaTrack = engine.createVideoTrack()
-
-    /**
-     * Closes this client and releases all allocated resources.
-     */
-    public fun close(): Unit = engine.close()
 }
 
 /**

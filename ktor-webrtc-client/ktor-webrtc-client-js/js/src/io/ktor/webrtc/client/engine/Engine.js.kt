@@ -4,27 +4,37 @@
 
 package io.ktor.webrtc.client.engine
 
-import io.ktor.utils.io.InternalAPI
-import io.ktor.webrtc.client.DefaultWebRTCEngine
-import io.ktor.webrtc.client.EmptyWebRTCStatsReport
-import io.ktor.webrtc.client.WebRTCClientEngineFactory
-import io.ktor.webrtc.client.WebRTCConfig
-import io.ktor.webrtc.client.WebRTCEngine
-import io.ktor.webrtc.client.WebRTCEngineBase
-import io.ktor.webrtc.client.WebRTCMediaTrack
-import io.ktor.webrtc.client.WebRTCStatsReport
-import io.ktor.webrtc.client.WebRtcPeerConnection
+import io.ktor.utils.io.*
+import io.ktor.webrtc.client.*
 import io.ktor.webrtc.client.peer.*
 import io.ktor.webrtc.client.utils.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.await
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
-import org.w3c.dom.mediacapture.MediaStream
+import kotlinx.coroutines.launch
+import org.w3c.dom.mediacapture.MediaStreamConstraints
 import org.w3c.dom.mediacapture.MediaStreamTrack
-import kotlin.js.Promise
+import kotlin.coroutines.CoroutineContext
 
-public class JsWebRTCEngine(override val config: JsWebRTCEngineConfig) : WebRTCEngineBase("js-webrtc") {
-    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+public object NavigatorMediaDevices : MediaTrackFactory {
+    override suspend fun createAudioTrack(constraints: AudioTrackConstraints): WebRTCAudioTrack {
+        val streamConstrains = MediaStreamConstraints(audio = constraints.toJS())
+        val mediaStream = navigator.mediaDevices.getUserMedia(streamConstrains).await()
+        return JsAudioTrack(mediaStream.getAudioTracks()[0])
+    }
 
+    override suspend fun createVideoTrack(constraints: VideoTrackConstraints): WebRTCVideoTrack {
+        val streamConstrains = MediaStreamConstraints(audio = constraints.toJS())
+        val mediaStream = navigator.mediaDevices.getUserMedia(streamConstrains).await()
+        return JsVideoTrack(mediaStream.getVideoTracks()[0])
+    }
+}
+
+public class JsWebRTCEngine(
+    override val config: JsWebRTCEngineConfig,
+    private val mediaTrackFactory: MediaTrackFactory = config.mediaTrackFactory ?: NavigatorMediaDevices
+) : WebRTCEngineBase("js-webrtc"), MediaTrackFactory by mediaTrackFactory {
     /**
      * Creates a new WebRTC peer connection with the specified configuration.
      * @param config The WebRTC configuration.
@@ -32,57 +42,19 @@ public class JsWebRTCEngine(override val config: JsWebRTCEngineConfig) : WebRTCE
      */
     override suspend fun createPeerConnection(): WebRtcPeerConnection {
         val rtcConfig: RTCConfiguration = js("{}")
-        rtcConfig.iceServers = buildIceServers(config).toTypedArray()
+        rtcConfig.iceServers = buildIceServers().toTypedArray()
 
+        println("createPeerConnection: ${JSON.stringify(rtcConfig)}\n")
         val peerConnection = RTCPeerConnection(rtcConfig)
-        return JsWebRtcPeerConnection(peerConnection, scope, config.statsRefreshRate)
+        return JsWebRtcPeerConnection(peerConnection, coroutineContext, config.statsRefreshRate)
     }
 
-    /**
-     * Creates an audio track.
-     * @return The WebRTC media track.
-     */
-    override suspend fun createAudioTrack(): WebRTCMediaTrack {
-        val devs = (js("navigator.mediaDevices.enumerateDevices()") as Promise<dynamic>).await()
-        devs.forEach { device -> println(JSON.stringify(device) + "\n") }
-        val constraints = js("{ audio: true, video: true }")
-        val mediaStream = navigator.mediaDevices.getUserMedia(constraints).catch<MediaStream> {
-            console.error("Failed to create audio track: $it")
-            MediaStream()
-        }.await<MediaStream>()
-        val audioTrack = mediaStream.getAudioTracks()[0]
-        return JsMediaTrack(audioTrack)
-    }
-
-    /**
-     * Creates a video track.
-     * @return The WebRTC media track.
-     */
-    override suspend fun createVideoTrack(): WebRTCMediaTrack {
-        val devs = (js("navigator.mediaDevices.enumerateDevices()") as Promise<dynamic>).await()
-        devs.forEach { device -> println(JSON.stringify(device) + "\n") }
-        val constraints = js("({ video: { width: 100, height: 100 } })")
-        val mediaStream = navigator.mediaDevices.getUserMedia(constraints).catch<MediaStream> {
-            console.error("Failed to create video track: $it")
-            MediaStream()
-        }.await<MediaStream>()
-        val videoTracks = mediaStream.getVideoTracks()
-        if (videoTracks.isEmpty()) {
-            console.error("No video tracks found in the media stream")
-            throw IllegalStateException("No video device encountered")
-        }
-        val videoTrack = videoTracks[0]
-        return JsMediaTrack(videoTrack)
-    }
-
-    /**
-     * Converts the WebRTC configuration to a list of RTCIceServer objects.
-     * @param config The WebRTC configuration.
-     * @return A list of RTCIceServer objects.
-     */
-    private fun buildIceServers(config: WebRTCConfig): List<RTCIceServer> {
-        return config.iceServers.map { iceServer ->
-            js("{ urls: iceServer.urls, username: iceServer.username, credential: iceServer.credential }")
+    private fun buildIceServers() = config.iceServers.map { iceServer ->
+        val rtcIceServer: RTCIceServer = js("{}")
+        rtcIceServer.apply {
+            urls = iceServer.urls
+            username = iceServer.username
+            credential = iceServer.credential
         }
     }
 }
@@ -90,23 +62,22 @@ public class JsWebRTCEngine(override val config: JsWebRTCEngineConfig) : WebRTCE
 /**
  * WebRTC peer connection implementation for a Wasm JavaScript platform.
  * @param nativePeerConnection The native RTCPeerConnection object.
- * @param scope The coroutine scope for this connection.
  */
 public class JsWebRtcPeerConnection(
     private val nativePeerConnection: RTCPeerConnection,
-    private val scope: CoroutineScope,
-    private val statsRefreshRate: Long
-) : WebRtcPeerConnection {
-    private val _iceCandidateFlow = MutableSharedFlow<WebRtcPeerConnection.IceCandidate>(replay = 0)
+    override val coroutineContext: CoroutineContext,
+    private val statsRefreshRate: Long,
+) : CoroutineScope, WebRtcPeerConnection {
+    private val _iceCandidateFlow = MutableSharedFlow<WebRtcPeerConnection.IceCandidate>()
     override val iceCandidateFlow: SharedFlow<WebRtcPeerConnection.IceCandidate> = _iceCandidateFlow.asSharedFlow()
 
-    private val _statsFlow = MutableStateFlow<WebRTCStatsReport>(EmptyWebRTCStatsReport)
-    override val statsFlow: StateFlow<WebRTCStatsReport> = _statsFlow.asStateFlow()
+    private val _statsFlow = MutableStateFlow(listOf<WebRTCStats>())
+    override val statsFlow: StateFlow<List<WebRTCStats>> = _statsFlow.asStateFlow()
 
     init {
-        nativePeerConnection.onicecandidate = { conn: RTCPeerConnection, event: RTCPeerConnectionIceEvent ->
+        nativePeerConnection.onicecandidate = { event: RTCPeerConnectionIceEvent ->
             event.candidate?.let { candidate ->
-                scope.launch {
+                launch {
                     _iceCandidateFlow.emit(
                         WebRtcPeerConnection.IceCandidate(
                             candidate = candidate.candidate,
@@ -116,19 +87,23 @@ public class JsWebRtcPeerConnection(
                     )
                 }
             }
-            Unit
         }
+
+        // TODO: subscribe to connection state changes
 
         // Set up statistics collection
         if (statsRefreshRate > 0) {
-            scope.launch {
+            launch {
                 while (true) {
                     delay(statsRefreshRate)
-                    _statsFlow.emit(nativePeerConnection.getStats().await<RTCStatsReport>().toCommon())
+                    val stats = nativePeerConnection.getStats().await().toCommon()
+                    _statsFlow.emit(stats)
                 }
             }
         }
     }
+
+    override fun getNativeConnection(): Any? = nativePeerConnection
 
     override suspend fun createOffer(): WebRtcPeerConnection.SessionDescription {
         return nativePeerConnection.createOffer().await<RTCSessionDescriptionInit>().toCommon()
@@ -152,9 +127,7 @@ public class JsWebRtcPeerConnection(
 
     override suspend fun addTrack(track: WebRTCMediaTrack) {
         val mediaTrack = (track as JsMediaTrack).nativeTrack
-        val stream = MediaStream()
-        stream.addTrack(mediaTrack)
-        nativePeerConnection.addTrack(mediaTrack, stream)
+        nativePeerConnection.addTrack(mediaTrack)
     }
 
     override suspend fun removeTrack(track: WebRTCMediaTrack) {
@@ -168,8 +141,8 @@ public class JsWebRtcPeerConnection(
     }
 }
 
-public class JsMediaTrack(
-    internal val nativeTrack: MediaStreamTrack
+public abstract class JsMediaTrack(
+    public val nativeTrack: MediaStreamTrack
 ) : WebRTCMediaTrack {
     public override val id: String = nativeTrack.id
     public override val kind: WebRTCMediaTrack.Type = when (nativeTrack.kind) {
@@ -189,6 +162,11 @@ public class JsMediaTrack(
     }
 }
 
+public class JsAudioTrack(nativeTrack: MediaStreamTrack) : WebRTCAudioTrack, JsMediaTrack(nativeTrack)
+
+public class JsVideoTrack(nativeTrack: MediaStreamTrack) : WebRTCVideoTrack, JsMediaTrack(nativeTrack)
+
+
 @OptIn(InternalAPI::class)
 public actual object JsWebRTC : WebRTCClientEngineFactory<JsWebRTCEngineConfig> {
     init {
@@ -197,13 +175,4 @@ public actual object JsWebRTC : WebRTCClientEngineFactory<JsWebRTCEngineConfig> 
 
     actual override fun create(block: JsWebRTCEngineConfig.() -> Unit): WebRTCEngine =
         JsWebRTCEngine(JsWebRTCEngineConfig().apply(block))
-}
-
-@Suppress("DEPRECATION")
-@OptIn(ExperimentalStdlibApi::class, ExperimentalJsExport::class, InternalAPI::class)
-@Deprecated("", level = DeprecationLevel.HIDDEN)
-@JsExport
-@EagerInitialization
-public val initHook: dynamic = run {
-    DefaultWebRTCEngine.factory = JsWebRTC
 }
