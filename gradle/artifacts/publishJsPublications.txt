@@ -342,6 +342,14 @@ io.ktor:ktor-server-default-headers-wasm-js/.klib
 io.ktor:ktor-server-default-headers-wasm-js/javadoc.jar
 io.ktor:ktor-server-default-headers-wasm-js/kdoc.jar
 io.ktor:ktor-server-default-headers-wasm-js/sources.jar
+io.ktor:ktor-server-di-js/.klib
+io.ktor:ktor-server-di-js/javadoc.jar
+io.ktor:ktor-server-di-js/kdoc.jar
+io.ktor:ktor-server-di-js/sources.jar
+io.ktor:ktor-server-di-wasm-js/.klib
+io.ktor:ktor-server-di-wasm-js/javadoc.jar
+io.ktor:ktor-server-di-wasm-js/kdoc.jar
+io.ktor:ktor-server-di-wasm-js/sources.jar
 io.ktor:ktor-server-double-receive-js/.klib
 io.ktor:ktor-server-double-receive-js/javadoc.jar
 io.ktor:ktor-server-double-receive-js/kdoc.jar

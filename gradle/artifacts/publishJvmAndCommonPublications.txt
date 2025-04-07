@@ -377,6 +377,12 @@ io.ktor:ktor-server-default-headers-jvm/sources.jar
 io.ktor:ktor-server-default-headers/.jar
 io.ktor:ktor-server-default-headers/kotlin-tooling-metadata.json
 io.ktor:ktor-server-default-headers/sources.jar
+io.ktor:ktor-server-di-jvm/.jar
+io.ktor:ktor-server-di-jvm/javadoc.jar
+io.ktor:ktor-server-di-jvm/sources.jar
+io.ktor:ktor-server-di/.jar
+io.ktor:ktor-server-di/kotlin-tooling-metadata.json
+io.ktor:ktor-server-di/sources.jar
 io.ktor:ktor-server-double-receive-jvm/.jar
 io.ktor:ktor-server-double-receive-jvm/javadoc.jar
 io.ktor:ktor-server-double-receive-jvm/sources.jar
