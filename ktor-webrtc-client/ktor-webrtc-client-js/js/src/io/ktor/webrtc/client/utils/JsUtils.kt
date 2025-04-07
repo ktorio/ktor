@@ -4,18 +4,58 @@
 
 package io.ktor.webrtc.client.utils
 
-import io.ktor.webrtc.client.WebRTCAudioSourceStats
-import io.ktor.webrtc.client.WebRTCStatsReport
-import io.ktor.webrtc.client.WebRTCVideoSourceStats
-import io.ktor.webrtc.client.WebRtcPeerConnection
-import io.ktor.webrtc.client.peer.RTCAudioStats
-import io.ktor.webrtc.client.peer.RTCIceCandidate
-import io.ktor.webrtc.client.peer.RTCMediaStats
-import io.ktor.webrtc.client.peer.RTCSessionDescription
-import io.ktor.webrtc.client.peer.RTCSessionDescriptionInit
-import io.ktor.webrtc.client.peer.RTCStats
-import io.ktor.webrtc.client.peer.RTCStatsReport
-import io.ktor.webrtc.client.peer.RTCVideoStats
+import io.ktor.webrtc.client.*
+import io.ktor.webrtc.client.engine.*
+import io.ktor.webrtc.client.peer.*
+import kotlinx.browser.document
+import org.w3c.dom.mediacapture.MediaStreamTrack
+import org.w3c.dom.mediacapture.MediaTrackConstraints
+
+public fun dateNow(): Long = js("Date.now()")
+
+public fun makeEmptyObject(): dynamic = js("({})")
+
+public fun AudioTrackConstraints.toJS(): MediaTrackConstraints {
+    return MediaTrackConstraints(
+        volume = volume,
+        latency = latency,
+        sampleRate = sampleRate,
+        sampleSize = sampleSize,
+        echoCancellation = echoCancellation,
+        autoGainControl = autoGainControl,
+        noiseSuppression = noiseSuppression,
+        channelCount = channelCount,
+    )
+}
+
+public fun VideoTrackConstraints.toJS(): MediaTrackConstraints {
+    return MediaTrackConstraints(
+        width = width,
+        height = height,
+        aspectRatio = aspectRatio,
+        facingMode = facingMode?.toJs(),
+        frameRate = frameRate,
+        resizeMode = resizeMode?.toJs(),
+    )
+}
+
+public fun makeDummyAudioStreamTrack(): MediaStreamTrack {
+    val ctx = js("new AudioContext()")
+    val oscillator = ctx.createOscillator()
+    val dst = oscillator.connect(ctx.createMediaStreamDestination())
+    oscillator.start()
+    return dst.stream.getAudioTracks()[0]
+}
+
+public fun makeDummyVideoStreamTrack(width: Int, height: Int): MediaStreamTrack {
+    val canvas: dynamic = document.createElement("canvas")
+    canvas.width = width
+    canvas.height = height
+    val ctx = canvas.getContext("2d")
+    ctx.fillRect(0, 0, width, height)
+    val stream = canvas.captureStream()
+    return stream.getVideoTracks()[0]
+}
 
 public fun RTCSessionDescriptionInit.toCommon(): WebRtcPeerConnection.SessionDescription {
     return WebRtcPeerConnection.SessionDescription(
@@ -31,67 +71,37 @@ public fun RTCSessionDescriptionInit.toCommon(): WebRtcPeerConnection.SessionDes
 }
 
 public fun WebRtcPeerConnection.SessionDescription.toJS(): RTCSessionDescription {
-    return RTCSessionDescription().also {
-        it.type = when (type) {
-            WebRtcPeerConnection.SessionDescriptionType.OFFER -> "offer"
-            WebRtcPeerConnection.SessionDescriptionType.ANSWER -> "answer"
-            WebRtcPeerConnection.SessionDescriptionType.ROLLBACK -> "rollback"
-            WebRtcPeerConnection.SessionDescriptionType.PROVISIONAL_ANSWER -> "pranswer"
-        }
-        it.sdp = sdp
+    val options = makeEmptyObject()
+    options.sdp = sdp
+    options.type = when (type) {
+        WebRtcPeerConnection.SessionDescriptionType.OFFER -> "offer"
+        WebRtcPeerConnection.SessionDescriptionType.ANSWER -> "answer"
+        WebRtcPeerConnection.SessionDescriptionType.ROLLBACK -> "rollback"
+        WebRtcPeerConnection.SessionDescriptionType.PROVISIONAL_ANSWER -> "pranswer"
     }
+    return RTCSessionDescription(options)
 }
 
 public fun WebRtcPeerConnection.IceCandidate.toJS(): RTCIceCandidate {
-    return RTCIceCandidate().also {
-        it.sdpMLineIndex = sdpMLineIndex
-        it.candidate = candidate
-        it.sdpMid = sdpMid
-    }
+    val options = makeEmptyObject()
+    options.sdpMLineIndex = sdpMLineIndex
+    options.candidate = candidate
+    options.sdpMid = sdpMid
+    return RTCIceCandidate(options)
 }
 
+private fun <T> getValues(map: dynamic): Array<T> = js("Array.from(map.values())")
+
+private fun objectToMap(obj: dynamic): Map<String, Any?> = js("new Map(Object.entries(obj))")
 
 @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
-public fun RTCStatsReport.toCommon(): WebRTCStatsReport {
-    val entries: Array<RTCStats> = js("this.values()")
-    var audio: WebRTCAudioSourceStats? = null
-    var video: WebRTCVideoSourceStats? = null
-
-    for (entry in entries) {
-        if (entry.type.toString() != "media-source") {
-            continue
-        }
-        val kind = (entry as RTCMediaStats).kind.toString()
-        if (kind == "audio") {
-            entry as RTCAudioStats
-            audio = WebRTCAudioSourceStats(
-                timestamp = entry.timestamp.toDouble().toLong(),
-                trackId = entry.trackId.toString(),
-                type = "media-source",
-                id = entry.id.toString(),
-                audioLevel = entry.audioLevel?.toDouble(),
-                totalAudioEnergy = entry.totalAudioEnergy?.toDouble(),
-                totalSamplesDuration = entry.totalSamplesDuration?.toDouble(),
-            )
-        } else if (kind == "video") {
-            entry as RTCVideoStats
-            video = WebRTCVideoSourceStats(
-                timestamp = entry.timestamp.toDouble().toLong(),
-                trackId = entry.trackId.toString(),
-                type = "media-source",
-                id = entry.id.toString(),
-                width = entry.width?.toInt(),
-                height = entry.height?.toInt(),
-                frames = entry.frames?.toInt(),
-                framesPerSecond = entry.framesPerSecond?.toInt()
-            )
-        } else {
-            error("Unknown media source kind: $kind")
-        }
-    }
-    return WebRTCStatsReport(
-        timestamp = js("Date.now()"),
-        audio = audio,
-        video = video,
-    )
+public fun RTCStatsReport.toCommon(): List<WebRTCStats> {
+    return getValues<RTCStats>(this).map { entry ->
+        WebRTCStats(
+            timestamp = entry.timestamp.toLong(),
+            type = entry.type,
+            id = entry.id,
+            props = objectToMap(entry)
+        )
+    }.toList()
 }

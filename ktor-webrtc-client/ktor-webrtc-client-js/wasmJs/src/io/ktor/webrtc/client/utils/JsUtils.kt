@@ -4,11 +4,14 @@
 
 package io.ktor.webrtc.client.utils
 
+import io.ktor.webrtc.client.AudioTrackConstraints
 import io.ktor.webrtc.client.IceServer
+import io.ktor.webrtc.client.VideoTrackConstraints
 import io.ktor.webrtc.client.WebRTCAudioSourceStats
-import io.ktor.webrtc.client.WebRTCStatsReport
+import io.ktor.webrtc.client.WebRTCStats
 import io.ktor.webrtc.client.WebRTCVideoSourceStats
 import io.ktor.webrtc.client.WebRtcPeerConnection
+import io.ktor.webrtc.client.engine.toJs
 import io.ktor.webrtc.client.peer.RTCIceCandidate
 import io.ktor.webrtc.client.peer.RTCMediaStats
 import io.ktor.webrtc.client.peer.RTCSessionDescription
@@ -20,6 +23,7 @@ import io.ktor.webrtc.client.peer.RTCStats
 import io.ktor.webrtc.client.peer.RTCVideoStats
 import io.ktor.webrtc.client.peer.ReadonlyMap
 import org.w3c.dom.mediacapture.MediaStreamConstraints
+import org.w3c.dom.mediacapture.MediaTrackConstraints
 import kotlin.js.toInt
 
 public fun <T : JsAny> makeEmptyObject(): T = js("({})")
@@ -29,6 +33,30 @@ public fun audioEnabledConstraints(): MediaStreamConstraints = js("({ audio: tru
 public fun videoEnabledConstraints(): MediaStreamConstraints = js("({ video: true })")
 
 public fun dateNow(): Long = js("Date.now()")
+
+public fun AudioTrackConstraints.toJS(): MediaTrackConstraints {
+    return MediaTrackConstraints(
+        volume = volume?.toJsNumber(),
+        latency = latency?.toJsNumber(),
+        sampleRate = sampleRate?.toJsNumber(),
+        sampleSize = sampleSize?.toJsNumber(),
+        echoCancellation = echoCancellation?.toJsBoolean(),
+        autoGainControl = autoGainControl?.toJsBoolean(),
+        noiseSuppression = noiseSuppression?.toJsBoolean(),
+        channelCount = channelCount?.toJsNumber(),
+    )
+}
+
+public fun VideoTrackConstraints.toJS(): MediaTrackConstraints {
+    return MediaTrackConstraints(
+        width = width?.toJsNumber(),
+        height = height?.toJsNumber(),
+        aspectRatio = aspectRatio?.toJsNumber(),
+        facingMode = facingMode?.toJs()?.toJsString(),
+        frameRate = frameRate?.toJsNumber(),
+        resizeMode = resizeMode?.toJs()?.toJsString(),
+    )
+}
 
 public fun makeIceServerObject(server: IceServer): RTCIceServer {
     return makeEmptyObject<RTCIceServer>().apply {
@@ -78,7 +106,7 @@ public fun WebRtcPeerConnection.IceCandidate.toJS(): RTCIceCandidate {
 }
 
 @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
-public fun RTCStatsReport.toCommon(): WebRTCStatsReport {
+public fun RTCStatsReport.toCommon(): WebRTCStats {
     val entries = arrayFromMapValues<JsString, RTCStats>(this)
     var audio: WebRTCAudioSourceStats? = null
     var video: WebRTCVideoSourceStats? = null
@@ -116,7 +144,7 @@ public fun RTCStatsReport.toCommon(): WebRTCStatsReport {
             error("Unknown media source kind: $kind")
         }
     }
-    return WebRTCStatsReport(
+    return WebRTCStats(
         timestamp = dateNow(),
         audio = audio,
         video = video,

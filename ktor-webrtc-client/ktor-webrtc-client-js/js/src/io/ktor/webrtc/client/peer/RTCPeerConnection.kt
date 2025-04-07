@@ -521,6 +521,8 @@ public external class RTCErrorEvent : Event {
 }
 
 public external class RTCIceCandidate {
+    public constructor(init: RTCIceCandidateInit)
+
     public var candidate: String
     public var component: String /* "rtcp" | "rtp" */
     public var foundation: String?
@@ -592,8 +594,8 @@ public external class RTCPeerConnection(config: RTCConfiguration) : EventTarget 
     public fun getConfiguration(): RTCConfiguration
     public fun setConfiguration(configuration: RTCConfiguration)
     public fun close()
-    public var onicecandidateerror: ((self: RTCPeerConnection, ev: RTCPeerConnectionIceErrorEvent) -> Any)?
-    public var onconnectionstatechange: ((self: RTCPeerConnection, ev: Event) -> Any)?
+    public var onicecandidateerror: ((ev: RTCPeerConnectionIceErrorEvent) -> Unit)?
+    public var onconnectionstatechange: ((ev: Event) -> Unit)?
     public fun getSenders(): Array<RTCRtpSender>
     public fun getReceivers(): Array<RTCRtpReceiver>
     public fun getTransceivers(): Array<RTCRtpTransceiver>
@@ -669,12 +671,12 @@ public external class RTCPeerConnection(config: RTCConfiguration) : EventTarget 
     public var iceGatheringState: String /* "complete" | "gathering" | "new" */
     public var idpErrorInfo: String?
     public var idpLoginUrl: String?
-    public var onicecandidate: ((self: RTCPeerConnection, ev: RTCPeerConnectionIceEvent) -> Any)?
-    public var oniceconnectionstatechange: ((self: RTCPeerConnection, ev: Event) -> Any)?
-    public var onicegatheringstatechange: ((self: RTCPeerConnection, ev: Event) -> Any)?
-    public var onnegotiationneeded: ((self: RTCPeerConnection, ev: Event) -> Any)?
-    public var onsignalingstatechange: ((self: RTCPeerConnection, ev: Event) -> Any)?
-    public var onstatsended: ((self: RTCPeerConnection, ev: RTCStatsEvent) -> Any)?
+    public var onicecandidate: ((ev: RTCPeerConnectionIceEvent) -> Unit)?
+    public var oniceconnectionstatechange: ((ev: Event) -> Any)?
+    public var onicegatheringstatechange: ((ev: Event) -> Any)?
+    public var onnegotiationneeded: ((ev: Event) -> Any)?
+    public var onsignalingstatechange: ((ev: Event) -> Any)?
+    public var onstatsended: ((ev: RTCStatsEvent) -> Any)?
     public var peerIdentity: Promise<RTCIdentityAssertion>
     public fun createAnswer(options: RTCOfferOptions = definedExternally): Promise<RTCSessionDescriptionInit>
     public fun createDataChannel(label: String, dataChannelDict: RTCDataChannelInit = definedExternally): RTCDataChannel
@@ -742,6 +744,8 @@ public external class RTCSctpTransport private constructor() : EventTarget {
 }
 
 public external class RTCSessionDescription {
+    public constructor(description: RTCSessionDescriptionInit)
+
     public var sdp: String
     public var type: String /* "answer" | "offer" | "pranswer" | "rollback" */
     public fun toJSON(): Any
