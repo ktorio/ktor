@@ -55,14 +55,22 @@
     },
     {
       "description": "Do not update Develocity as server may not support a newer version",
-      "matchPackageNames": [
-        "com.gradle:develocity-gradle-plugin*"
+      "matchDepNames": [
+        "com.gradle.develocity",
+        "com.gradle:develocity-gradle-plugin"
+      ],
+      "matchUpdateTypes": [
+        "major",
+        "minor"
       ],
       "enabled": false
     },
     {
       "description": "Automerge non-major releases",
-      "matchUpdateTypes": ["patch", "minor"],
+      "matchUpdateTypes": [
+        "patch",
+        "minor"
+      ],
       "automerge": true
     },
     {
