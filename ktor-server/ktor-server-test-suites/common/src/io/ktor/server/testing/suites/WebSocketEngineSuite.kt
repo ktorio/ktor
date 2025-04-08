@@ -12,6 +12,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.routing.*
 import io.ktor.server.test.base.*
 import io.ktor.server.websocket.*
+import io.ktor.test.dispatcher.runTestWithRealTime
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
@@ -652,7 +653,32 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         checkFrame(second.await())
     }
 
-    private suspend fun Connection.negotiateHttpWebSocket(additionalHeader: List<Pair<String, String>> = emptyList()) {
+    @Test
+    fun testCorruptFrameWithBadOpcode() = runTestWithRealTime {
+        createAndStartServer {
+            application.routing {
+                webSocket("/") {
+                    for (frame in incoming) {
+                        // Echo frames back
+                        outgoing.send(frame)
+                    }
+                }
+            }
+        }
+
+        useSocket {
+            negotiateHttpWebSocket()
+
+            output.writeHex("83 00")
+            output.flush()
+
+            assertCloseFrame(CloseReason.Codes.PROTOCOL_ERROR.code, replyCloseFrame = false)
+        }
+    }
+
+    private suspend fun Connection.negotiateHttpWebSocket(
+        additionalHeader: List<Pair<String, String>> = emptyList(),
+    ) {
         // send upgrade request
         output.apply {
             writeFully(
