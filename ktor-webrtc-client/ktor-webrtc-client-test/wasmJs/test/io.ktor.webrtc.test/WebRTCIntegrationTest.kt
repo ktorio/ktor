@@ -4,41 +4,49 @@
 
 package io.ktor.webrtc.test
 
+import io.ktor.test.dispatcher.runTestWithRealTime
+import io.ktor.test.dispatcher.testSuspend
 import io.ktor.webrtc.client.*
-import io.ktor.webrtc.client.engine.JsWebRTC
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.take
-import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.TestResult
-import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.withTimeout
+import io.ktor.webrtc.client.engine.*
+import io.ktor.webrtc.client.utils.*
+import kotlinx.coroutines.*
 import kotlin.test.*
-import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Duration.Companion.milliseconds
+
+object MockMediaTrackFactory : MediaTrackFactory {
+    override suspend fun createAudioTrack(constraints: AudioTrackConstraints): WebRTCAudioTrack {
+        return WasmJsAudioTrack(makeDummyAudioStreamTrack())
+    }
+
+    override suspend fun createVideoTrack(constraints: VideoTrackConstraints): WebRTCVideoTrack {
+        return WasmJsVideoTrack(makeDummyVideoStreamTrack(100, 100))
+    }
+}
 
 /**
  * Base test class containing common integration tests for WebRTC engines.
  * Subclasses must provide the implementation of [createClient].
  */
-class WasmJsWebRTCEngineIntegrationTest {
+class JsWebRTCEngineIntegrationTest {
     private lateinit var client: WebRTCClient
 
     /**
      * Create the WebRTC engine implementation to be tested.
      */
     private fun createClient() = WebRTCClient(JsWebRTC) {
-        iceServers = googleIceServer
-        statsRefreshRate = 1000 // 1 second refresh rate for stats in JS engine
+        iceServers = this@JsWebRTCEngineIntegrationTest.iceServers
+        turnServers = this@JsWebRTCEngineIntegrationTest.turnServers
+        statsRefreshRate = 100 // 100 ms refresh rate for stats in JS engine
+        mediaTrackFactory = MockMediaTrackFactory
     }
 
     /**
      * The STUN and TURN servers to use during testing.
      * Override this in subclasses if needed for specific platform tests.
      */
-    private val googleIceServer = listOf(
-        IceServer(urls = "stun:stun.l.google.com:19302")
-    )
+    private val iceServers: List<IceServer> = listOf(IceServer(urls = "stun:stun.l.google.com:19302"))
+
+    private val turnServers: List<IceServer> = listOf()
 
     @BeforeTest
     fun setup() {
@@ -51,74 +59,77 @@ class WasmJsWebRTCEngineIntegrationTest {
     }
 
     @Test
-    fun testCreatePeerConnection(): TestResult = runTest {
-        val peerConnection = client.createPeerConnection()
-        assertNotNull(peerConnection, "Peer connection should be created successfully")
-        peerConnection.close()
+    fun testCreatePeerConnection() = testSuspend {
+        client.createPeerConnection().use { peerConnection ->
+            assertNotNull(peerConnection, "Peer connection should be created successfully")
+        }
     }
 
     @Test
-    fun testCreateOffer(): TestResult = runTest {
-        val peerConnection = client.createPeerConnection()
-        val offer = peerConnection.createOffer()
+    fun testCreateOffer() = testSuspend {
+        client.createPeerConnection().use { peerConnection ->
+            val offer = peerConnection.createOffer()
 
-        assertNotNull(offer, "Offer should be created successfully")
-        assertEquals(WebRtcPeerConnection.SessionDescriptionType.OFFER, offer.type)
-        assertTrue(offer.sdp.isNotEmpty(), "SDP should not be empty")
-        assertTrue(offer.sdp.contains("v=0"), "SDP should contain version information")
-
-        peerConnection.close()
+            assertNotNull(offer, "Offer should be created successfully")
+            assertEquals(WebRtcPeerConnection.SessionDescriptionType.OFFER, offer.type)
+            assertTrue(offer.sdp.isNotEmpty(), "SDP should not be empty")
+            assertTrue(offer.sdp.contains("v=0"), "SDP should contain version information")
+        }
     }
 
     @Test
-    fun testCreateAnswer(): TestResult = runTest {
+    fun testCreateAnswer() = testSuspend {
         val offerPeerConnection = client.createPeerConnection()
         val answerPeerConnection = client.createPeerConnection()
 
-        // Create and set offer
-        val offer = offerPeerConnection.createOffer()
-        offerPeerConnection.setLocalDescription(offer)
-        answerPeerConnection.setRemoteDescription(offer)
+        try {
+            // Create and set offer
+            val offer = offerPeerConnection.createOffer()
+            offerPeerConnection.setLocalDescription(offer)
+            answerPeerConnection.setRemoteDescription(offer)
 
-        // Create answer
-        val answer = answerPeerConnection.createAnswer()
+            // Create answer
+            val answer = answerPeerConnection.createAnswer()
 
-        assertNotNull(answer, "Answer should be created successfully")
-        assertEquals(WebRtcPeerConnection.SessionDescriptionType.ANSWER, answer.type)
-        assertTrue(answer.sdp.isNotEmpty(), "SDP should not be empty")
-
-        offerPeerConnection.close()
-        answerPeerConnection.close()
+            assertNotNull(answer, "Answer should be created successfully")
+            assertEquals(WebRtcPeerConnection.SessionDescriptionType.ANSWER, answer.type)
+            assertTrue(answer.sdp.isNotEmpty(), "SDP should not be empty")
+        } finally {
+            offerPeerConnection.close()
+            answerPeerConnection.close()
+        }
     }
 
     @Test
-    fun testIceCandidateCollection(): TestResult = runTest {
-        val peerConnection = client.createPeerConnection()
-        val receivedCandidates = mutableListOf<WebRtcPeerConnection.IceCandidate>()
+    fun testIceCandidateCollection() = testSuspend {
+        withContext(Dispatchers.Default.limitedParallelism(1)) {
+            client.createPeerConnection().use { peerConnection ->
+                val receivedCandidates = mutableListOf<WebRtcPeerConnection.IceCandidate>()
 
-        val job = launch {
-            peerConnection.iceCandidateFlow.take(1).toList(receivedCandidates)
-        }
+                val job = launch {
+                    peerConnection.iceCandidateFlow.collect { receivedCandidates.add(it) }
+                }
 
-        // Trigger ICE candidate gathering by creating and setting an offer
-        val offer = peerConnection.createOffer()
-        peerConnection.setLocalDescription(offer)
+                // Create track
+                val audioTrack = client.createAudioTrack(AudioTrackConstraints())
+                peerConnection.addTrack(audioTrack)
 
-        // Wait for candidates to be collected
-        withTimeout(10.seconds) {
-            while (receivedCandidates.isEmpty()) {
-                delay(100)
+                // Trigger ICE candidate gathering by creating and setting an offer
+                val offer = peerConnection.createOffer()
+                peerConnection.setLocalDescription(offer)
+
+                // Add a delay to give time for ICE candidates to be generated
+                delay(1000)
+                job.cancel()
+
+                assertTrue(receivedCandidates.isNotEmpty(), "Should receive at least one ICE candidate")
             }
         }
-
-        assertTrue(receivedCandidates.isNotEmpty(), "Should receive at least one ICE candidate")
-        job.cancel()
-        peerConnection.close()
     }
 
     @Test
-    fun testCreateAudioTrack(): TestResult = runTest {
-        val audioTrack = client.createAudioTrack()
+    fun testCreateAudioTrack() = testSuspend {
+        val audioTrack = client.createAudioTrack(AudioTrackConstraints())
 
         assertNotNull(audioTrack, "Audio track should be created successfully")
         assertEquals(WebRTCMediaTrack.Type.AUDIO, audioTrack.kind)
@@ -128,8 +139,8 @@ class WasmJsWebRTCEngineIntegrationTest {
     }
 
     @Test
-    fun testCreateVideoTrack(): TestResult = runTest {
-        val videoTrack = client.createVideoTrack()
+    fun testCreateVideoTrack() = testSuspend {
+        val videoTrack = client.createVideoTrack(VideoTrackConstraints())
 
         assertNotNull(videoTrack, "Video track should be created successfully")
         assertEquals(WebRTCMediaTrack.Type.VIDEO, videoTrack.kind)
@@ -139,11 +150,9 @@ class WasmJsWebRTCEngineIntegrationTest {
     }
 
     @Test
-    fun testAddRemoveTrack(): TestResult = runTest {
+    fun testAddRemoveTrack() = testSuspend {
         val peerConnection = client.createPeerConnection()
-        val audioTrack = client.createAudioTrack()
-
-        // Add track
+        val audioTrack = client.createAudioTrack(AudioTrackConstraints())
         peerConnection.addTrack(audioTrack)
 
         // Create offer after adding track
@@ -159,8 +168,8 @@ class WasmJsWebRTCEngineIntegrationTest {
     }
 
     @Test
-    fun testEnableDisableTrack(): TestResult = runTest {
-        val audioTrack = client.createAudioTrack()
+    fun testEnableDisableTrack() = testSuspend {
+        val audioTrack = client.createAudioTrack(AudioTrackConstraints())
         assertTrue(audioTrack.enabled, "Track should be enabled by default")
 
         audioTrack.enable(false)
@@ -173,7 +182,7 @@ class WasmJsWebRTCEngineIntegrationTest {
     }
 
     @Test
-    fun testEstablishPeerConnection(): TestResult = runTest {
+    fun testEstablishPeerConnection() = runTestWithRealTime {
         // Create two peer connections
         val peerConnection1 = client.createPeerConnection()
         val peerConnection2 = client.createPeerConnection()
@@ -190,6 +199,10 @@ class WasmJsWebRTCEngineIntegrationTest {
             peerConnection2.iceCandidateFlow.collect { iceCandidates2.add(it) }
         }
 
+        // Add video tracks for both connections
+        peerConnection1.addTrack(client.createAudioTrack(AudioTrackConstraints()))
+        peerConnection2.addTrack(client.createAudioTrack(AudioTrackConstraints()))
+
         // Create and set offer
         val offer = peerConnection1.createOffer()
         peerConnection1.setLocalDescription(offer)
@@ -201,7 +214,9 @@ class WasmJsWebRTCEngineIntegrationTest {
         peerConnection1.setRemoteDescription(answer)
 
         // Exchange ICE candidates
-        delay(1000) // Wait for some candidates to be generated
+        delay(2000) // Wait for some candidates to be generated
+        job1.cancel()
+        job2.cancel()
 
         iceCandidates1.forEach { candidate ->
             peerConnection2.addIceCandidate(candidate)
@@ -211,19 +226,18 @@ class WasmJsWebRTCEngineIntegrationTest {
             peerConnection1.addIceCandidate(candidate)
         }
 
-        // Allow some time for connection establishment
-        delay(2000)
+        assertEquals(2, iceCandidates1.size, "Peer connection 1 should have received 2 candidates")
+        assertEquals(2, iceCandidates2.size, "Peer connection 2 should have received 2 candidates")
 
         // Cancel collection jobs and clean up
-        job1.cancel()
-        job2.cancel()
         peerConnection1.close()
         peerConnection2.close()
     }
 
     @Test
-    fun testSimulateErrorHandling(): TestResult = runTest {
+    fun testSimulateErrorHandling() = testSuspend {
         val peerConnection = client.createPeerConnection()
+
         assertFails {
             val invalidCandidate = WebRtcPeerConnection.IceCandidate(
                 candidate = "invalid candidate string",
@@ -232,27 +246,40 @@ class WasmJsWebRTCEngineIntegrationTest {
             )
             peerConnection.addIceCandidate(invalidCandidate)
         }
+
         peerConnection.close()
     }
 
     @Test
-    fun testStatsCollection(): TestResult = runTest {
-        val peerConnection = client.createPeerConnection()
-        val audioTrack = client.createAudioTrack()
+    fun testStatsCollection() = runTestWithRealTime {
+        client.createPeerConnection().use { peerConnection ->
+            val audioTrack = client.createAudioTrack(AudioTrackConstraints())
+            peerConnection.addTrack(audioTrack)
 
-        peerConnection.addTrack(audioTrack)
+            val stats = mutableListOf<List<WebRTCStats>>()
 
-        // Wait for stats to be updated
-        delay(1000)
+            val statsCollectionJob = launch {
+                peerConnection.statsFlow.collect { stats.add(it) }
+            }
+            delay(150.milliseconds)
 
-        // Get stats report
-        val report = peerConnection.statsFlow.first()
+            // Wait for stats to be collected
+            statsCollectionJob.cancel()
 
-        assertNotNull(report)
-        assertTrue(report.timestamp > 0)
+            assertEquals(2, stats.size, "Stats should be collected")
+            val (s1, s2) = stats
 
-        // Cleanup
-        audioTrack.stop()
-        peerConnection.close()
+            assertEquals(emptyList<WebRTCStats>(), s1)
+            assertEquals(3, s2.size)
+
+            assertNotNull(s2.firstOrNull { it.type == "peer-connection" })
+
+            val mediaPlayout = s2.first { it.type == "media-playout" }
+            assertEquals(mediaPlayout.id, mediaPlayout.props["id"])
+
+            val mediaSource = s2.first { it.type == "media-source" }
+            assertEquals("audio", mediaSource.props["kind"])
+            audioTrack.stop()
+        }
     }
 }

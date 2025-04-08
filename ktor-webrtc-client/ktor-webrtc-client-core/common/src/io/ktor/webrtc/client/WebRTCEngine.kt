@@ -78,13 +78,14 @@ public abstract class WebRTCEngineBase(private val engineName: String) : WebRTCE
 
     override val coroutineContext: CoroutineContext by lazy {
         dispatcher + CoroutineName("$engineName-context")
-        //SilentSupervisor() + dispatcher + CoroutineName("$engineName-context")
+        // The version from Ktor HttpClient
+        // SilentSupervisor() + dispatcher + CoroutineName("$engineName-context")
     }
 
     override fun close() {
-//        if (!closed.compareAndSet(false, true)) return
-//        val requestJob = coroutineContext[Job] as? CompletableJob ?: return
-//        requestJob.complete()
+        if (!closed.compareAndSet(false, true)) return
+        val requestJob = coroutineContext[Job] as? CompletableJob ?: return
+        requestJob.complete()
     }
 }
 

@@ -744,8 +744,6 @@ public external class RTCSctpTransport private constructor() : EventTarget {
 }
 
 public external class RTCSessionDescription {
-    public constructor(description: RTCSessionDescriptionInit)
-
     public var sdp: String
     public var type: String /* "answer" | "offer" | "pranswer" | "rollback" */
     public fun toJSON(): Any

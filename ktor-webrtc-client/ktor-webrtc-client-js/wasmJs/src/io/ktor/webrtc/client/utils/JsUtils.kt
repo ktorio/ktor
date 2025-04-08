@@ -4,35 +4,13 @@
 
 package io.ktor.webrtc.client.utils
 
-import io.ktor.webrtc.client.AudioTrackConstraints
-import io.ktor.webrtc.client.IceServer
-import io.ktor.webrtc.client.VideoTrackConstraints
-import io.ktor.webrtc.client.WebRTCAudioSourceStats
-import io.ktor.webrtc.client.WebRTCStats
-import io.ktor.webrtc.client.WebRTCVideoSourceStats
-import io.ktor.webrtc.client.WebRtcPeerConnection
-import io.ktor.webrtc.client.engine.toJs
-import io.ktor.webrtc.client.peer.RTCIceCandidate
-import io.ktor.webrtc.client.peer.RTCMediaStats
-import io.ktor.webrtc.client.peer.RTCSessionDescription
-import io.ktor.webrtc.client.peer.RTCSessionDescriptionInit
-import io.ktor.webrtc.client.peer.RTCStatsReport
-import io.ktor.webrtc.client.peer.RTCAudioStats
-import io.ktor.webrtc.client.peer.RTCIceServer
-import io.ktor.webrtc.client.peer.RTCStats
-import io.ktor.webrtc.client.peer.RTCVideoStats
-import io.ktor.webrtc.client.peer.ReadonlyMap
-import org.w3c.dom.mediacapture.MediaStreamConstraints
+import io.ktor.webrtc.client.*
+import io.ktor.webrtc.client.engine.*
+import io.ktor.webrtc.client.peer.*
+import org.w3c.dom.mediacapture.MediaStreamTrack
 import org.w3c.dom.mediacapture.MediaTrackConstraints
-import kotlin.js.toInt
 
 public fun <T : JsAny> makeEmptyObject(): T = js("({})")
-
-public fun audioEnabledConstraints(): MediaStreamConstraints = js("({ audio: true })")
-
-public fun videoEnabledConstraints(): MediaStreamConstraints = js("({ video: true })")
-
-public fun dateNow(): Long = js("Date.now()")
 
 public fun AudioTrackConstraints.toJS(): MediaTrackConstraints {
     return MediaTrackConstraints(
@@ -66,15 +44,34 @@ public fun makeIceServerObject(server: IceServer): RTCIceServer {
     }
 }
 
-internal fun <K : JsAny, V : JsAny> arrayFromMapValues(map: ReadonlyMap<K>): JsArray<V> =
-    js("Array.from(map.values())")
+public fun makeDummyAudioStreamTrack(): MediaStreamTrack = js(
+    """{
+        const ctx = new AudioContext();
+        const oscillator = ctx.createOscillator();
+        const dst = oscillator.connect(ctx.createMediaStreamDestination());
+        oscillator.start();
+        return dst.stream.getAudioTracks()[0];
+    }"""
+)
+
+public fun makeDummyVideoStreamTrack(width: Int, height: Int): MediaStreamTrack = js(
+    """{
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.fillRect(0, 0, width, height);
+        const stream = canvas.captureStream();
+        return stream.getVideoTracks()[0];
+    }"""
+)
 
 internal fun mapIceServers(iceServers: List<IceServer>): JsArray<RTCIceServer> =
     iceServers.map { makeIceServerObject(it) }.toJsArray()
 
 public fun RTCSessionDescriptionInit.toCommon(): WebRtcPeerConnection.SessionDescription {
     return WebRtcPeerConnection.SessionDescription(
-        type = when (type) {
+        type = when (type.toString()) {
             "offer" -> WebRtcPeerConnection.SessionDescriptionType.OFFER
             "answer" -> WebRtcPeerConnection.SessionDescriptionType.ANSWER
             "pranswer" -> WebRtcPeerConnection.SessionDescriptionType.PROVISIONAL_ANSWER
@@ -86,67 +83,60 @@ public fun RTCSessionDescriptionInit.toCommon(): WebRtcPeerConnection.SessionDes
 }
 
 public fun WebRtcPeerConnection.SessionDescription.toJS(): RTCSessionDescription {
-    return RTCSessionDescription().also {
+    // RTCSessionDescription constructor is deprecated.
+    // All methods that accept RTCSessionDescription objects also accept objects with the same properties,
+    // so you can use a plain object instead of creating an RTCSessionDescription instance.
+    return makeEmptyObject<RTCSessionDescription>().also {
         it.type = when (type) {
-            WebRtcPeerConnection.SessionDescriptionType.OFFER -> "offer"
-            WebRtcPeerConnection.SessionDescriptionType.ANSWER -> "answer"
-            WebRtcPeerConnection.SessionDescriptionType.ROLLBACK -> "rollback"
-            WebRtcPeerConnection.SessionDescriptionType.PROVISIONAL_ANSWER -> "pranswer"
+            WebRtcPeerConnection.SessionDescriptionType.OFFER -> "offer".toJsString()
+            WebRtcPeerConnection.SessionDescriptionType.ANSWER -> "answer".toJsString()
+            WebRtcPeerConnection.SessionDescriptionType.ROLLBACK -> "rollback".toJsString()
+            WebRtcPeerConnection.SessionDescriptionType.PROVISIONAL_ANSWER -> "pranswer".toJsString()
         }
-        it.sdp = sdp
+        it.sdp = sdp.toJsString()
     }
 }
 
 public fun WebRtcPeerConnection.IceCandidate.toJS(): RTCIceCandidate {
-    return RTCIceCandidate().also {
-        it.sdpMLineIndex = sdpMLineIndex?.toJsNumber()
-        it.candidate = candidate
-        it.sdpMid = sdpMid
+    val options = makeEmptyObject<RTCIceCandidateInit>()
+    options.sdpMLineIndex = sdpMLineIndex?.toJsNumber()
+    options.candidate = candidate.toJsString()
+    options.sdpMid = sdpMid?.toJsString()
+    return RTCIceCandidate(options)
+}
+
+private fun <T : JsAny> getValues(map: JsAny): JsArray<T> = js("Array.from(map.values())")
+
+private fun entries(obj: JsAny): JsArray<JsArray<JsAny>> = js("Object.entries(obj)")
+
+private fun deserializeJsItem(item: JsAny?): Any? {
+    return when (item) {
+        is JsString -> item.toString()
+        is JsNumber -> item.toInt()
+        is JsBoolean -> item.toBoolean()
+        else -> null
     }
 }
 
-@Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
-public fun RTCStatsReport.toCommon(): WebRTCStats {
-    val entries = arrayFromMapValues<JsString, RTCStats>(this)
-    var audio: WebRTCAudioSourceStats? = null
-    var video: WebRTCVideoSourceStats? = null
-
-    for (i in 0 until entries.length) {
-        val entry = entries[i]
-        if (entry == null || entry.type.toString() != "media-source") {
-            continue
-        }
-        val kind = (entry as RTCMediaStats).kind.toString()
-        if (kind == "audio") {
-            entry as RTCAudioStats
-            audio = WebRTCAudioSourceStats(
-                timestamp = entry.timestamp.toDouble().toLong(),
-                trackId = entry.trackId.toString(),
-                type = "media-source",
-                id = entry.id.toString(),
-                audioLevel = entry.audioLevel?.toDouble(),
-                totalAudioEnergy = entry.totalAudioEnergy?.toDouble(),
-                totalSamplesDuration = entry.totalSamplesDuration?.toDouble(),
-            )
-        } else if (kind == "video") {
-            entry as RTCVideoStats
-            video = WebRTCVideoSourceStats(
-                timestamp = entry.timestamp.toDouble().toLong(),
-                trackId = entry.trackId.toString(),
-                type = "media-source",
-                id = entry.id.toString(),
-                width = entry.width?.toInt(),
-                height = entry.height?.toInt(),
-                frames = entry.frames?.toInt(),
-                framesPerSecond = entry.framesPerSecond?.toInt()
-            )
-        } else {
-            error("Unknown media source kind: $kind")
+private fun kotlinMapFromEntries(obj: JsAny): Map<String, Any> {
+    val map = mutableMapOf<String, Any>()
+    for (entry in entries(obj).toArray()) {
+        val key = entry[0].toString()
+        val value = deserializeJsItem(entry[1]) // maybe throw error?
+        if (value != null) {
+            map[key] = value
         }
     }
-    return WebRTCStats(
-        timestamp = dateNow(),
-        audio = audio,
-        video = video,
-    )
+    return map
+}
+
+public fun RTCStatsReport.toCommon(): List<WebRTCStats> {
+    return getValues<RTCStats>(this).toArray().map { stats ->
+        WebRTCStats(
+            timestamp = stats.timestamp.toDouble().toLong(),
+            type = stats.type.toString(),
+            id = stats.id.toString(),
+            props = kotlinMapFromEntries(stats)
+        )
+    }.toList()
 }

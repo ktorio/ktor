@@ -4,12 +4,12 @@
 
 package io.ktor.webrtc.test
 
+import io.ktor.test.dispatcher.runTestWithRealTime
+import io.ktor.test.dispatcher.testSuspend
 import io.ktor.webrtc.client.*
 import io.ktor.webrtc.client.engine.*
 import io.ktor.webrtc.client.utils.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -21,7 +21,6 @@ object MockMediaTrackFactory : MediaTrackFactory {
     override suspend fun createVideoTrack(constraints: VideoTrackConstraints): WebRTCVideoTrack {
         return JsVideoTrack(makeDummyVideoStreamTrack(100, 100))
     }
-
 }
 
 /**
@@ -30,12 +29,10 @@ object MockMediaTrackFactory : MediaTrackFactory {
  */
 class JsWebRTCEngineIntegrationTest {
     private lateinit var client: WebRTCClient
-    private val scope = TestScope()
 
     /**
      * Create the WebRTC engine implementation to be tested.
      */
-    @OptIn(ExperimentalCoroutinesApi::class)
     private fun createClient() = WebRTCClient(JsWebRTC) {
         iceServers = this@JsWebRTCEngineIntegrationTest.iceServers
         turnServers = this@JsWebRTCEngineIntegrationTest.turnServers
@@ -62,14 +59,14 @@ class JsWebRTCEngineIntegrationTest {
     }
 
     @Test
-    fun testCreatePeerConnection() = runTest {
+    fun testCreatePeerConnection() = testSuspend {
         client.createPeerConnection().use { peerConnection ->
             assertNotNull(peerConnection, "Peer connection should be created successfully")
         }
     }
 
     @Test
-    fun testCreateOffer() = runTest {
+    fun testCreateOffer() = testSuspend {
         client.createPeerConnection().use { peerConnection ->
             val offer = peerConnection.createOffer()
 
@@ -81,7 +78,7 @@ class JsWebRTCEngineIntegrationTest {
     }
 
     @Test
-    fun testCreateAnswer() = runTest {
+    fun testCreateAnswer() = testSuspend {
         val offerPeerConnection = client.createPeerConnection()
         val answerPeerConnection = client.createPeerConnection()
 
@@ -104,7 +101,7 @@ class JsWebRTCEngineIntegrationTest {
     }
 
     @Test
-    fun testIceCandidateCollection() = runTest {
+    fun testIceCandidateCollection() = testSuspend {
         withContext(Dispatchers.Default.limitedParallelism(1)) {
             client.createPeerConnection().use { peerConnection ->
                 val receivedCandidates = mutableListOf<WebRtcPeerConnection.IceCandidate>()
@@ -131,7 +128,7 @@ class JsWebRTCEngineIntegrationTest {
     }
 
     @Test
-    fun testCreateAudioTrack() = runTest {
+    fun testCreateAudioTrack() = testSuspend {
         val audioTrack = client.createAudioTrack(AudioTrackConstraints())
 
         assertNotNull(audioTrack, "Audio track should be created successfully")
@@ -142,7 +139,7 @@ class JsWebRTCEngineIntegrationTest {
     }
 
     @Test
-    fun testCreateVideoTrack() = runTest {
+    fun testCreateVideoTrack() = testSuspend {
         val videoTrack = client.createVideoTrack(VideoTrackConstraints())
 
         assertNotNull(videoTrack, "Video track should be created successfully")
@@ -153,7 +150,7 @@ class JsWebRTCEngineIntegrationTest {
     }
 
     @Test
-    fun testAddRemoveTrack() = runTest {
+    fun testAddRemoveTrack() = testSuspend {
         val peerConnection = client.createPeerConnection()
         val audioTrack = client.createAudioTrack(AudioTrackConstraints())
         peerConnection.addTrack(audioTrack)
@@ -171,7 +168,7 @@ class JsWebRTCEngineIntegrationTest {
     }
 
     @Test
-    fun testEnableDisableTrack() = runTest {
+    fun testEnableDisableTrack() = testSuspend {
         val audioTrack = client.createAudioTrack(AudioTrackConstraints())
         assertTrue(audioTrack.enabled, "Track should be enabled by default")
 
@@ -185,7 +182,7 @@ class JsWebRTCEngineIntegrationTest {
     }
 
     @Test
-    fun testEstablishPeerConnection() = runTest {
+    fun testEstablishPeerConnection() = runTestWithRealTime {
         // Create two peer connections
         val peerConnection1 = client.createPeerConnection()
         val peerConnection2 = client.createPeerConnection()
@@ -217,7 +214,9 @@ class JsWebRTCEngineIntegrationTest {
         peerConnection1.setRemoteDescription(answer)
 
         // Exchange ICE candidates
-        delay(1000) // Wait for some candidates to be generated
+        delay(2000) // Wait for some candidates to be generated
+        job1.cancel()
+        job2.cancel()
 
         iceCandidates1.forEach { candidate ->
             peerConnection2.addIceCandidate(candidate)
@@ -230,15 +229,12 @@ class JsWebRTCEngineIntegrationTest {
         assertEquals(2, iceCandidates1.size, "Peer connection 1 should have received 2 candidates")
         assertEquals(2, iceCandidates2.size, "Peer connection 2 should have received 2 candidates")
 
-        // Cancel collection jobs and clean up
-        job1.cancel()
-        job2.cancel()
         peerConnection1.close()
         peerConnection2.close()
     }
 
     @Test
-    fun testSimulateErrorHandling() = runTest {
+    fun testSimulateErrorHandling() = testSuspend {
         val peerConnection = client.createPeerConnection()
 
         assertFails {
@@ -254,32 +250,35 @@ class JsWebRTCEngineIntegrationTest {
     }
 
     @Test
-    fun testStatsCollection() = runTest {
-        withContext(Dispatchers.Default.limitedParallelism(1)) {
-            client.createPeerConnection().use { peerConnection ->
-                val audioTrack = client.createAudioTrack(AudioTrackConstraints())
-                peerConnection.addTrack(audioTrack)
+    fun testStatsCollection() = runTestWithRealTime {
+        client.createPeerConnection().use { peerConnection ->
+            val audioTrack = client.createAudioTrack(AudioTrackConstraints())
+            peerConnection.addTrack(audioTrack)
 
-                val stats = mutableListOf<List<WebRTCStats>>()
+            val stats = mutableListOf<List<WebRTCStats>>()
 
-                val statsCollectionJob = launch {
-                    peerConnection.statsFlow.collect { stats.add(it) }
-                }
-                delay(150.milliseconds)
-
-                // Wait for stats to be collected
-                statsCollectionJob.cancel()
-
-                assertEquals(2, stats.size, "Stats should be collected")
-                val (s1, s2) = stats
-
-                assertEquals(emptyList<WebRTCStats>(), s1)
-                assertEquals(3, s2.size)
-                assertNotNull(s2.firstOrNull { it.type == "media-playout" })
-                assertNotNull(s2.firstOrNull { it.type == "peer-connection" })
-                assertNotNull(s2.firstOrNull { it.type == "media-source" })
-                audioTrack.stop()
+            val statsCollectionJob = launch {
+                peerConnection.statsFlow.collect { stats.add(it) }
             }
+            delay(150.milliseconds)
+
+            // Wait for stats to be collected
+            statsCollectionJob.cancel()
+
+            assertEquals(2, stats.size, "Stats should be collected")
+            val (s1, s2) = stats
+
+            assertEquals(emptyList<WebRTCStats>(), s1)
+            assertEquals(3, s2.size)
+
+            assertNotNull(s2.firstOrNull { it.type == "peer-connection" })
+
+            val mediaPlayout = s2.first { it.type == "media-playout" }
+            assertEquals(mediaPlayout.id, mediaPlayout.props["id"])
+
+            val mediaSource = s2.first { it.type == "media-source" }
+            assertEquals("audio", mediaSource.props["kind"])
+            audioTrack.stop()
         }
     }
 }

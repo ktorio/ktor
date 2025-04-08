@@ -6,6 +6,7 @@ package io.ktor.webrtc.client.engine
 
 import io.ktor.utils.io.InternalAPI
 import io.ktor.webrtc.client.*
+import io.ktor.webrtc.client.WebRTCStats
 import io.ktor.webrtc.client.peer.*
 import io.ktor.webrtc.client.utils.*
 import kotlinx.coroutines.CoroutineScope
@@ -16,6 +17,7 @@ import kotlinx.coroutines.launch
 import org.w3c.dom.mediacapture.MediaStream
 import org.w3c.dom.mediacapture.MediaStreamConstraints
 import org.w3c.dom.mediacapture.MediaStreamTrack
+import kotlin.collections.List
 import kotlin.coroutines.CoroutineContext
 
 public object NavigatorMediaDevices : MediaTrackFactory {
@@ -63,23 +65,22 @@ public class WasmJsWebRtcPeerConnection(
     private val _iceCandidateFlow = MutableSharedFlow<WebRtcPeerConnection.IceCandidate>(replay = 0)
     override val iceCandidateFlow: SharedFlow<WebRtcPeerConnection.IceCandidate> = _iceCandidateFlow.asSharedFlow()
 
-    private val _statsFlow = MutableStateFlow<WebRTCStats>(EmptyWebRTCStatsReport)
-    override val statsFlow: StateFlow<WebRTCStats> = _statsFlow.asStateFlow()
+    private val _statsFlow = MutableStateFlow<List<WebRTCStats>>(emptyList<WebRTCStats>())
+    override val statsFlow: StateFlow<List<WebRTCStats>> = _statsFlow.asStateFlow()
 
     init {
-        nativePeerConnection.onicecandidate = { conn: RTCPeerConnection, event: RTCPeerConnectionIceEvent ->
-            launch {
-                event.candidate?.let { candidate ->
+        nativePeerConnection.onicecandidate = { event: RTCPeerConnectionIceEvent ->
+            event.candidate?.let { candidate ->
+                launch {
                     _iceCandidateFlow.emit(
                         WebRtcPeerConnection.IceCandidate(
-                            candidate = candidate.candidate,
-                            sdpMid = candidate.sdpMid,
+                            candidate = candidate.candidate.toString(),
+                            sdpMid = candidate.sdpMid?.toString(),
                             sdpMLineIndex = candidate.sdpMLineIndex?.toInt()
                         )
                     )
                 }
             }
-            null
         }
 
         // Set up statistics collection
@@ -87,11 +88,14 @@ public class WasmJsWebRtcPeerConnection(
             launch {
                 while (true) {
                     delay(statsRefreshRate)
-                    _statsFlow.emit(nativePeerConnection.getStats().await<RTCStatsReport>().toCommon())
+                    val stats = nativePeerConnection.getStats().await<RTCStatsReport>()
+                    _statsFlow.emit(stats.toCommon())
                 }
             }
         }
     }
+
+    override fun getNativeConnection(): Any? = nativePeerConnection
 
     override suspend fun createOffer(): WebRtcPeerConnection.SessionDescription {
         return nativePeerConnection.createOffer().await<RTCSessionDescriptionInit>().toCommon()
@@ -158,10 +162,6 @@ public class WasmJsVideoTrack(nativeTrack: MediaStreamTrack) : WebRTCVideoTrack,
 
 @OptIn(InternalAPI::class)
 public actual object JsWebRTC : WebRTCClientEngineFactory<JsWebRTCEngineConfig> {
-    init {
-        DefaultWebRTCEngine.factory = this
-    }
-
     actual override fun create(block: JsWebRTCEngineConfig.() -> Unit): WebRTCEngine =
         WasmJsWebRTCEngine(JsWebRTCEngineConfig().apply(block))
 }
