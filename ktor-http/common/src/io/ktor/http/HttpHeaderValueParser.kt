@@ -238,5 +238,5 @@ private fun String.nextIsSemicolonOrEnd(start: Int): Boolean {
         position += 1
     }
 
-    return position == length || get(position) == ';'
+    return position == length || get(position) == ';' || get(position) == ','
 }
