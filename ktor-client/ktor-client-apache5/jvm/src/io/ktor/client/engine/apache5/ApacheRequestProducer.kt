@@ -47,7 +47,7 @@ internal fun ApacheRequestProducer(
 
     return BasicRequestProducer(
         setupRequest(requestData, config),
-        if (!hasContent && isGetOrHead) {
+        if (!hasContent || isGetOrHead) {
             null
         } else {
             ApacheRequestEntityProducer(requestData, callContext, contentLength, type, isChunked)
