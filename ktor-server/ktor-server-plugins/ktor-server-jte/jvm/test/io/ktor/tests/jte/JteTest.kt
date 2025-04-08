@@ -4,11 +4,11 @@
 
 package io.ktor.tests.jte
 
-import gg.jte.*
+import gg.jte.CodeResolver
+import gg.jte.TemplateEngine
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.http.ContentType
 import io.ktor.http.content.*
 import io.ktor.serialization.*
 import io.ktor.server.application.*
@@ -20,16 +20,13 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
-import java.util.zip.*
+import java.util.zip.GZIPInputStream
 import kotlin.test.*
 import kotlin.text.Charsets
 
-// TODO KTOR-8030: Enable tests after updating JTE
-@Ignore
 class JteTest {
 
     @Test

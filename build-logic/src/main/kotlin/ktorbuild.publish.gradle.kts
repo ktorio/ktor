@@ -2,16 +2,18 @@
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-import ktorbuild.findByName
-import ktorbuild.internal.ktorBuild
+import ktorbuild.*
+import ktorbuild.internal.*
+import ktorbuild.internal.gradle.findByName
 import ktorbuild.internal.publish.*
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
-import java.util.concurrent.locks.ReentrantLock
 
 plugins {
     id("maven-publish")
     id("signing") apply false
 }
+
+addProjectTag(ProjectTag.Published)
 
 publishing {
     publications.configureEach {
@@ -54,7 +56,10 @@ configureSigning()
 
 plugins.withId("ktorbuild.kmp") {
     tasks.withType<AbstractPublishToMaven>().configureEach {
-        onlyIf { isAvailableForPublication(ktorBuild.os.get()) }
+        val os = ktorBuild.os.get()
+        // Workaround for https://github.com/gradle/gradle/issues/22641
+        val predicate = provider { isAvailableForPublication(publication.name, os) }
+        onlyIf("Available for publication on $os") { predicate.get() }
     }
 
     registerTargetsPublishTasks(ktorBuild.targets)
@@ -72,11 +77,9 @@ private fun Project.configureSigning() {
         sign(publishing.publications)
     }
 
-    val gpgAgentLock: ReentrantLock by rootProject.extra { ReentrantLock() }
-
+    // Workaround for https://github.com/gradle/gradle/issues/12167
     tasks.withType<Sign>().configureEach {
-        doFirst { gpgAgentLock.lock() }
-        doLast { gpgAgentLock.unlock() }
+        withLimitedParallelism("gpg-agent", maxParallelTasks = 1)
     }
 }
 

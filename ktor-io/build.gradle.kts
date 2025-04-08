@@ -5,6 +5,7 @@
 import ktorbuild.createCInterop
 
 plugins {
+    id("ktorbuild.project.library")
     alias(libs.plugins.kover)
 }
 
@@ -12,15 +13,11 @@ kotlin {
     createCInterop("mutex", sourceSet = "posix")
 
     sourceSets {
-        commonMain {
-            dependencies {
-                api(libs.kotlinx.io.core)
-            }
+        commonMain.dependencies {
+            api(libs.kotlinx.io.core)
         }
-        commonTest {
-            dependencies {
-                api(project(":ktor-test-dispatcher"))
-            }
+        commonTest.dependencies {
+            api(project(":ktor-test-dispatcher"))
         }
     }
 }
