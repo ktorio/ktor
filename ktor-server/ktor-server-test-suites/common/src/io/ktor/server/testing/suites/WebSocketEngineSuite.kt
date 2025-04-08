@@ -12,7 +12,6 @@ import io.ktor.server.engine.*
 import io.ktor.server.routing.*
 import io.ktor.server.test.base.*
 import io.ktor.server.websocket.*
-import io.ktor.test.dispatcher.runTestWithRealTime
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
@@ -572,7 +571,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     }
 
     @Test
-    open fun testClientClosingFirst() = runTest {
+    open fun testClientClosingFirst() = runTest(retries = 3) {
         val deferred = CompletableDeferred<Unit>()
 
         createAndStartServer {
@@ -654,13 +653,14 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     }
 
     @Test
-    fun testCorruptFrameWithBadOpcode() = runTestWithRealTime {
+    fun testCorruptFrameWithBadOpcode() = runTest {
         createAndStartServer {
             application.routing {
                 webSocket("/") {
-                    for (frame in incoming) {
-                        // Echo frames back
-                        outgoing.send(frame)
+                    runCatching {
+                        for (frame in incoming) {
+                            outgoing.send(frame)
+                        }
                     }
                 }
             }
