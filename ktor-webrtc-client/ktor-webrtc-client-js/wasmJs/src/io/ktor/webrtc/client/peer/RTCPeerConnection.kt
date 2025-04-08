@@ -23,16 +23,16 @@ public external interface RTCConfiguration : JsAny {
     public var iceServers: JsArray<RTCIceServer>?
         get() = definedExternally
         set(value) = definedExternally
-    public var iceTransportPolicy: String? /* "all" | "relay" */
+    public var iceTransportPolicy: JsString? /* "all" | "relay" */
         get() = definedExternally
         set(value) = definedExternally
-    public var bundlePolicy: String? /* "balanced" | "max-bundle" | "max-compat" */
+    public var bundlePolicy: JsString? /* "balanced" | "max-bundle" | "max-compat" */
         get() = definedExternally
         set(value) = definedExternally
-    public var rtcpMuxPolicy: String? /* "negotiate" | "require" */
+    public var rtcpMuxPolicy: JsString? /* "negotiate" | "require" */
         get() = definedExternally
         set(value) = definedExternally
-    public var peerIdentity: String?
+    public var peerIdentity: JsString?
         get() = definedExternally
         set(value) = definedExternally
     public var certificates: JsArray<RTCCertificate>?
@@ -44,7 +44,7 @@ public external interface RTCConfiguration : JsAny {
 }
 
 public external interface RTCDTMFToneChangeEventInit : EventInit {
-    public var tone: String
+    public var tone: JsString
 }
 
 public external interface RTCDataChannelEventInit : EventInit {
@@ -61,7 +61,7 @@ public external interface RTCDataChannelInit : JsAny {
     public var maxRetransmits: JsNumber?
         get() = definedExternally
         set(value) = definedExternally
-    public var protocol: String?
+    public var protocol: JsString?
         get() = definedExternally
         set(value) = definedExternally
     public var negotiated: Boolean?
@@ -70,16 +70,16 @@ public external interface RTCDataChannelInit : JsAny {
     public var id: JsNumber?
         get() = definedExternally
         set(value) = definedExternally
-    public var priority: String? /* "high" | "low" | "medium" | "very-low" */
+    public var priority: JsString? /* "high" | "low" | "medium" | "very-low" */
         get() = definedExternally
         set(value) = definedExternally
 }
 
 public external interface RTCDtlsFingerprint : JsAny {
-    public var algorithm: String?
+    public var algorithm: JsString?
         get() = definedExternally
         set(value) = definedExternally
-    public var value: String?
+    public var value: JsString?
         get() = definedExternally
         set(value) = definedExternally
 }
@@ -89,7 +89,7 @@ public external interface RTCErrorEventInit : EventInit {
 }
 
 public external interface RTCErrorInit : JsAny {
-    public var errorDetail: String /* "data-channel-failure" | "dtls-failure" | "fingerprint-failure" | "hardware-encoder-error" | "hardware-encoder-not-available" | "idp-bad-script-failure" | "idp-execution-failure" | "idp-load-failure" | "idp-need-login" | "idp-timeout" | "idp-tls-failure" | "idp-token-expired" | "idp-token-invalid" | "sctp-failure" | "sdp-syntax-error" */
+    public var errorDetail: JsString /* "data-channel-failure" | "dtls-failure" | "fingerprint-failure" | "hardware-encoder-error" | "hardware-encoder-not-available" | "idp-bad-script-failure" | "idp-execution-failure" | "idp-load-failure" | "idp-need-login" | "idp-timeout" | "idp-tls-failure" | "idp-token-expired" | "idp-token-invalid" | "sctp-failure" | "sdp-syntax-error" */
     public var httpRequestStatusCode: JsNumber?
         get() = definedExternally
         set(value) = definedExternally
@@ -110,13 +110,13 @@ public external interface RTCErrorInit : JsAny {
 public external interface RTCIceCandidateComplete
 
 public external interface RTCIceCandidateDictionary : JsAny {
-    public var foundation: String?
+    public var foundation: JsString?
         get() = definedExternally
         set(value) = definedExternally
-    public var ip: String?
+    public var ip: JsString?
         get() = definedExternally
         set(value) = definedExternally
-    public var msMTurnSessionId: String?
+    public var msMTurnSessionId: JsString?
         get() = definedExternally
         set(value) = definedExternally
     public var port: JsNumber?
@@ -125,34 +125,34 @@ public external interface RTCIceCandidateDictionary : JsAny {
     public var priority: JsNumber?
         get() = definedExternally
         set(value) = definedExternally
-    public var protocol: String? /* "tcp" | "udp" */
+    public var protocol: JsString? /* "tcp" | "udp" */
         get() = definedExternally
         set(value) = definedExternally
-    public var relatedAddress: String?
+    public var relatedAddress: JsString?
         get() = definedExternally
         set(value) = definedExternally
     public var relatedPort: JsNumber?
         get() = definedExternally
         set(value) = definedExternally
-    public var tcpType: String? /* "active" | "passive" | "so" */
+    public var tcpType: JsString? /* "active" | "passive" | "so" */
         get() = definedExternally
         set(value) = definedExternally
-    public var type: String? /* "host" | "prflx" | "relay" | "srflx" */
+    public var type: JsString? /* "host" | "prflx" | "relay" | "srflx" */
         get() = definedExternally
         set(value) = definedExternally
 }
 
 public external interface RTCIceCandidateInit : JsAny {
-    public var candidate: String?
+    public var candidate: JsString?
         get() = definedExternally
         set(value) = definedExternally
     public var sdpMLineIndex: JsNumber?
         get() = definedExternally
         set(value) = definedExternally
-    public var sdpMid: String?
+    public var sdpMid: JsString?
         get() = definedExternally
         set(value) = definedExternally
-    public var usernameFragment: String?
+    public var usernameFragment: JsString?
         get() = definedExternally
         set(value) = definedExternally
 }
@@ -170,22 +170,22 @@ public external interface RTCIceParameters : JsAny {
     public var iceLite: Boolean?
         get() = definedExternally
         set(value) = definedExternally
-    public var password: String?
+    public var password: JsString?
         get() = definedExternally
         set(value) = definedExternally
-    public var usernameFragment: String?
+    public var usernameFragment: JsString?
         get() = definedExternally
         set(value) = definedExternally
 }
 
 public external interface RTCIceServer : JsAny {
-    public var urls: JsAny? /* String | JsArray<String> */
+    public var urls: JsAny? /* JsString | JsArray<JsString> */
         get() = definedExternally
         set(value) = definedExternally
     public var username: JsString?
         get() = definedExternally
         set(value) = definedExternally
-    public var credential: JsAny? /* String? | RTCOAuthCredential? */
+    public var credential: JsAny? /* JsString? | RTCOAuthCredential? */
         get() = definedExternally
         set(value) = definedExternally
     public var credentialType: JsString? /* "oauth" | "password" */
@@ -194,20 +194,20 @@ public external interface RTCIceServer : JsAny {
 }
 
 public external interface RTCIdentityProviderOptions : JsAny {
-    public var peerIdentity: String?
+    public var peerIdentity: JsString?
         get() = definedExternally
         set(value) = definedExternally
-    public var protocol: String?
+    public var protocol: JsString?
         get() = definedExternally
         set(value) = definedExternally
-    public var usernameHint: String?
+    public var usernameHint: JsString?
         get() = definedExternally
         set(value) = definedExternally
 }
 
 public external interface RTCOAuthCredential : JsAny {
-    public var accessToken: String
-    public var macKey: String
+    public var accessToken: JsString
+    public var macKey: JsString
 }
 
 public external interface RTCOfferAnswerOptions : JsAny {
@@ -230,13 +230,13 @@ public external interface RTCOfferOptions : RTCOfferAnswerOptions {
 
 public external interface RTCPeerConnectionIceErrorEventInit : EventInit {
     public var errorCode: JsNumber
-    public var hostCandidate: String?
+    public var hostCandidate: JsString?
         get() = definedExternally
         set(value) = definedExternally
-    public var statusText: String?
+    public var statusText: JsString?
         get() = definedExternally
         set(value) = definedExternally
-    public var url: String?
+    public var url: JsString?
         get() = definedExternally
         set(value) = definedExternally
 }
@@ -245,13 +245,13 @@ public external interface RTCPeerConnectionIceEventInit : EventInit {
     public var candidate: RTCIceCandidate?
         get() = definedExternally
         set(value) = definedExternally
-    public var url: String?
+    public var url: JsString?
         get() = definedExternally
         set(value) = definedExternally
 }
 
 public external interface RTCRtcpParameters : JsAny {
-    public var cname: String?
+    public var cname: JsString?
         get() = definedExternally
         set(value) = definedExternally
     public var reducedSize: Boolean?
@@ -265,22 +265,22 @@ public external interface RTCRtpCapabilities : JsAny {
 }
 
 public external interface RTCRtpCodecCapability : JsAny {
-    public var mimeType: String
+    public var mimeType: JsString
     public var channels: JsNumber?
         get() = definedExternally
         set(value) = definedExternally
     public var clockRate: JsNumber
-    public var sdpFmtpLine: String?
+    public var sdpFmtpLine: JsString?
         get() = definedExternally
         set(value) = definedExternally
 }
 
 public external interface RTCRtpCodecParameters : JsAny {
-    public var mimeType: String
+    public var mimeType: JsString
     public var channels: JsNumber?
         get() = definedExternally
         set(value) = definedExternally
-    public var sdpFmtpLine: String?
+    public var sdpFmtpLine: JsString?
         get() = definedExternally
         set(value) = definedExternally
     public var clockRate: JsNumber
@@ -288,7 +288,7 @@ public external interface RTCRtpCodecParameters : JsAny {
 }
 
 public external interface RTCRtpCodingParameters : JsAny {
-    public var rid: String?
+    public var rid: JsString?
         get() = definedExternally
         set(value) = definedExternally
 }
@@ -317,7 +317,7 @@ public external interface RTCRtpEncodingParameters : RTCRtpCodingParameters {
     public var codecPayloadType: JsNumber?
         get() = definedExternally
         set(value) = definedExternally
-    public var dtx: String? /* "disabled" | "enabled" */
+    public var dtx: JsString? /* "disabled" | "enabled" */
         get() = definedExternally
         set(value) = definedExternally
     public var maxBitrate: JsNumber?
@@ -332,7 +332,7 @@ public external interface RTCRtpEncodingParameters : RTCRtpCodingParameters {
 }
 
 public external interface RTCRtpFecParameters : JsAny {
-    public var mechanism: String?
+    public var mechanism: JsString?
         get() = definedExternally
         set(value) = definedExternally
     public var ssrc: JsNumber?
@@ -341,7 +341,7 @@ public external interface RTCRtpFecParameters : JsAny {
 }
 
 public external interface RTCRtpHeaderExtensionCapability : JsAny {
-    public var uri: String?
+    public var uri: JsString?
         get() = definedExternally
         set(value) = definedExternally
 }
@@ -351,11 +351,11 @@ public external interface RTCRtpHeaderExtensionParameters : JsAny {
         get() = definedExternally
         set(value) = definedExternally
     public var id: JsNumber
-    public var uri: String
+    public var uri: JsString
 }
 
 public external interface RTCRtpParameters : JsAny {
-    public var transactionId: String
+    public var transactionId: JsString
     public var codecs: JsArray<RTCRtpCodecParameters>
     public var headerExtensions: JsArray<RTCRtpHeaderExtensionParameters>
     public var rtcp: RTCRtcpParameters
@@ -372,14 +372,14 @@ public external interface RTCRtpRtxParameters : JsAny {
 }
 
 public external interface RTCRtpSendParameters : RTCRtpParameters {
-    public var degradationPreference: String? /* "balanced" | "maintain-framerate" | "maintain-resolution" */
+    public var degradationPreference: JsString? /* "balanced" | "maintain-framerate" | "maintain-resolution" */
         get() = definedExternally
         set(value) = definedExternally
     public var encodings: JsArray<RTCRtpEncodingParameters>
-    public var priority: String? /* "high" | "low" | "medium" | "very-low" */
+    public var priority: JsString? /* "high" | "low" | "medium" | "very-low" */
         get() = definedExternally
         set(value) = definedExternally
-    public override var transactionId: String
+    public override var transactionId: JsString
 }
 
 public external interface RTCRtpSynchronizationSource : RTCRtpContributingSource {
@@ -389,7 +389,7 @@ public external interface RTCRtpSynchronizationSource : RTCRtpContributingSource
 }
 
 public external interface RTCRtpTransceiverInit : JsAny {
-    public var direction: String? /* "inactive" | "recvonly" | "sendonly" | "sendrecv" | "stopped" */
+    public var direction: JsString? /* "inactive" | "recvonly" | "sendonly" | "sendrecv" | "stopped" */
         get() = definedExternally
         set(value) = definedExternally
     public var streams: JsArray<MediaStream>?
@@ -401,17 +401,17 @@ public external interface RTCRtpTransceiverInit : JsAny {
 }
 
 public external interface RTCSessionDescriptionInit : JsAny {
-    public var sdp: String?
+    public var sdp: JsString?
         get() = definedExternally
         set(value) = definedExternally
-    public var type: String? /* "answer" | "offer" | "pranswer" | "rollback" */
+    public var type: JsString? /* "answer" | "offer" | "pranswer" | "rollback" */
         get() = definedExternally
         set(value) = definedExternally
 }
 
 public external interface RTCStatsReport : ReadonlyMap<JsString> {
     public fun forEach(
-        callbackfn: (value: JsAny, key: String, parent: RTCStatsReport) -> JsUndefined,
+        callbackfn: (value: JsAny, key: JsString, parent: RTCStatsReport) -> JsUndefined,
         thisArg: JsAny = definedExternally
     )
 }
@@ -451,34 +451,34 @@ public external interface RTCTrackEventInit : EventInit {
 
 public external interface RTCCertificate : JsAny {
     public var expires: JsNumber
-    public fun getAlgorithm(): String
+    public fun getAlgorithm(): JsString
     public fun getFingerprints(): JsArray<RTCDtlsFingerprint>
 }
 
 public external class RTCDTMFSender : EventTarget {
     public var canInsertDTMF: Boolean
     public var ontonechange: ((self: RTCDTMFSender, ev: RTCDTMFToneChangeEvent) -> JsAny)?
-    public var toneBuffer: String
-    public fun insertDTMF(tones: String, duration: JsNumber = definedExternally, interToneGap: JsNumber = definedExternally)
+    public var toneBuffer: JsString
+    public fun insertDTMF(tones: JsString, duration: JsNumber = definedExternally, interToneGap: JsNumber = definedExternally)
 }
 
 public external class RTCDTMFToneChangeEvent : Event {
-    public var tone: String
+    public var tone: JsString
 }
 
 public external class RTCDataChannel : EventTarget {
-    public var label: String
+    public var label: JsString
     public var ordered: Boolean
     public var maxPacketLifeTime: JsNumber?
     public var maxRetransmits: JsNumber?
-    public var protocol: String
+    public var protocol: JsString
     public var negotiated: Boolean
     public var id: JsNumber?
-    public var readyState: String /* "closed" | "closing" | "connecting" | "open" */
+    public var readyState: JsString /* "closed" | "closing" | "connecting" | "open" */
     public var bufferedAmount: JsNumber
     public var bufferedAmountLowThreshold: JsNumber
     public fun close()
-    public fun send(data: String)
+    public fun send(data: JsString)
     public fun send(data: Blob)
     public fun send(data: ArrayBuffer)
     public fun send(data: ArrayBufferView)
@@ -486,9 +486,9 @@ public external class RTCDataChannel : EventTarget {
     public var onmessage: ((self: RTCDataChannel, ev: MessageEvent) -> JsAny)?
     public var onbufferedamountlow: ((self: RTCDataChannel, ev: Event) -> JsAny)?
     public var onclose: ((self: RTCDataChannel, ev: Event) -> JsAny)?
-    public var binaryType: String
+    public var binaryType: JsString
     public var onerror: ((self: RTCDataChannel, ev: RTCErrorEvent) -> JsAny)?
-    public var priority: String /* "high" | "low" | "medium" | "very-low" */
+    public var priority: JsString /* "high" | "low" | "medium" | "very-low" */
 }
 
 public external class RTCDataChannelEvent : Event {
@@ -497,18 +497,18 @@ public external class RTCDataChannelEvent : Event {
 
 public external class RTCDtlsTransport : EventTarget {
     public var iceTransport: RTCIceTransport
-    public var state: String /* "closed" | "connected" | "connecting" | "failed" | "new" */
+    public var state: JsString /* "closed" | "connected" | "connecting" | "failed" | "new" */
     public fun getRemoteCertificates(): JsArray<ArrayBuffer>
     public var onerror: ((self: RTCDtlsTransport, ev: RTCErrorEvent) -> JsAny)?
     public var onstatechange: ((self: RTCDtlsTransport, ev: Event) -> JsAny)?
 }
 
 public external class RTCDtlsTransportStateChangedEvent : Event {
-    public var state: String /* "closed" | "connected" | "connecting" | "failed" | "new" */
+    public var state: JsString /* "closed" | "connected" | "connecting" | "failed" | "new" */
 }
 
 public external class RTCError : DOMException {
-    public var errorDetail: String /* "data-channel-failure" | "dtls-failure" | "fingerprint-failure" | "hardware-encoder-error" | "hardware-encoder-not-available" | "idp-bad-script-failure" | "idp-execution-failure" | "idp-load-failure" | "idp-need-login" | "idp-timeout" | "idp-tls-failure" | "idp-token-expired" | "idp-token-invalid" | "sctp-failure" | "sdp-syntax-error" */
+    public var errorDetail: JsString /* "data-channel-failure" | "dtls-failure" | "fingerprint-failure" | "hardware-encoder-error" | "hardware-encoder-not-available" | "idp-bad-script-failure" | "idp-execution-failure" | "idp-load-failure" | "idp-need-login" | "idp-timeout" | "idp-tls-failure" | "idp-token-expired" | "idp-token-invalid" | "sctp-failure" | "sdp-syntax-error" */
     public var httpRequestStatusCode: JsNumber?
     public var receivedAlert: JsNumber?
     public var sctpCauseCode: JsNumber?
@@ -521,19 +521,21 @@ public external class RTCErrorEvent : Event {
 }
 
 public external class RTCIceCandidate : JsAny {
-    public var candidate: String
-    public var component: String /* "rtcp" | "rtp" */
-    public var foundation: String?
+    public constructor(init: RTCIceCandidateInit)
+
+    public var candidate: JsString
+    public var component: JsString /* "rtcp" | "rtp" */
+    public var foundation: JsString?
     public var port: JsNumber?
     public var priority: JsNumber?
-    public var protocol: String /* "tcp" | "udp" */
-    public var relatedAddress: String?
+    public var protocol: JsString /* "tcp" | "udp" */
+    public var relatedAddress: JsString?
     public var relatedPort: JsNumber?
     public var sdpMLineIndex: JsNumber?
-    public var sdpMid: String?
-    public var tcpType: String /* "active" | "passive" | "so" */
-    public var type: String /* "host" | "prflx" | "relay" | "srflx" */
-    public var usernameFragment: String?
+    public var sdpMid: JsString?
+    public var tcpType: JsString /* "active" | "passive" | "so" */
+    public var type: JsString /* "host" | "prflx" | "relay" | "srflx" */
+    public var usernameFragment: JsString?
     public fun toJSON(): RTCIceCandidateInit
 }
 
@@ -548,8 +550,8 @@ public external class RTCIceGathererEvent : Event {
 }
 
 public external class RTCIceTransport : EventTarget {
-    public var role: String /* "controlled" | "controlling" | "unknown" */
-    public var gatheringState: String /* "complete" | "gathering" | "new" */
+    public var role: JsString /* "controlled" | "controlling" | "unknown" */
+    public var gatheringState: JsString /* "complete" | "gathering" | "new" */
     public fun getLocalCandidates(): JsArray<RTCIceCandidate>
     public fun getRemoteCandidates(): JsArray<RTCIceCandidate>
     public fun getLocalParameters(): RTCIceParameters?
@@ -558,17 +560,17 @@ public external class RTCIceTransport : EventTarget {
     public var onstatechange: ((self: RTCIceTransport, ev: Event) -> JsAny)?
     public var ongatheringstatechange: ((self: RTCIceTransport, ev: Event) -> JsAny)?
     public var onselectedcandidatepairchange: ((self: RTCIceTransport, ev: Event) -> JsAny)?
-    public var component: String /* "rtcp" | "rtp" */
-    public var state: String /* "checking" | "closed" | "completed" | "connected" | "disconnected" | "failed" | "new" */
+    public var component: JsString /* "rtcp" | "rtp" */
+    public var state: JsString /* "checking" | "closed" | "completed" | "connected" | "disconnected" | "failed" | "new" */
 }
 
 public external class RTCIceTransportStateChangedEvent : Event {
-    public var state: String /* "checking" | "closed" | "completed" | "connected" | "disconnected" | "failed" | "new" */
+    public var state: JsString /* "checking" | "closed" | "completed" | "connected" | "disconnected" | "failed" | "new" */
 }
 
 public external class RTCIdentityAssertion : JsAny {
-    public var idp: String
-    public var name: String
+    public var idp: JsString
+    public var name: JsString
 }
 
 public external class RTCPeerConnection(config: RTCConfiguration) : EventTarget {
@@ -587,13 +589,13 @@ public external class RTCPeerConnection(config: RTCConfiguration) : EventTarget 
     public fun addIceCandidate(candidate: RTCIceCandidateInit = definedExternally): Promise<JsUndefined>
     public fun addIceCandidate(): Promise<JsUndefined>
     public fun addIceCandidate(candidate: RTCIceCandidate = definedExternally): Promise<JsUndefined>
-    public var signalingState: String /* "closed" | "have-local-offer" | "have-local-pranswer" | "have-remote-offer" | "have-remote-pranswer" | "stable" */
-    public var connectionState: String /* "closed" | "connected" | "connecting" | "disconnected" | "failed" | "new" */
+    public var signalingState: JsString /* "closed" | "have-local-offer" | "have-local-pranswer" | "have-remote-offer" | "have-remote-pranswer" | "stable" */
+    public var connectionState: JsString /* "closed" | "connected" | "connecting" | "disconnected" | "failed" | "new" */
     public fun getConfiguration(): RTCConfiguration
     public fun setConfiguration(configuration: RTCConfiguration)
     public fun close()
-    public var onicecandidateerror: ((self: RTCPeerConnection, ev: RTCPeerConnectionIceErrorEvent) -> JsAny)?
-    public var onconnectionstatechange: ((self: RTCPeerConnection, ev: Event) -> JsAny)?
+    public var onicecandidateerror: ((self: RTCPeerConnection, ev: RTCPeerConnectionIceErrorEvent) -> Unit)?
+    public var onconnectionstatechange: ((self: RTCPeerConnection, ev: Event) -> Unit)?
     public fun getSenders(): JsArray<RTCRtpSender>
     public fun getReceivers(): JsArray<RTCRtpReceiver>
     public fun getTransceivers(): JsArray<RTCRtpTransceiver>
@@ -605,16 +607,16 @@ public external class RTCPeerConnection(config: RTCConfiguration) : EventTarget 
     ): RTCRtpTransceiver
 
     public fun addTransceiver(trackOrKind: MediaStreamTrack): RTCRtpTransceiver
-    public fun addTransceiver(trackOrKind: String, init: RTCRtpTransceiverInit = definedExternally): RTCRtpTransceiver
-    public fun addTransceiver(trackOrKind: String): RTCRtpTransceiver
+    public fun addTransceiver(trackOrKind: JsString, init: RTCRtpTransceiverInit = definedExternally): RTCRtpTransceiver
+    public fun addTransceiver(trackOrKind: JsString): RTCRtpTransceiver
     public var ontrack: ((self: RTCPeerConnection, ev: RTCTrackEvent) -> JsAny)?
     public var sctp: RTCSctpTransport?
     public fun createDataChannel(
-        label: String?,
+        label: JsString?,
         dataChannelDict: RTCDataChannelInit = definedExternally
     ): RTCDataChannel
 
-    public fun createDataChannel(label: String?): RTCDataChannel
+    public fun createDataChannel(label: JsString?): RTCDataChannel
     public var ondatachannel: ((self: RTCPeerConnection, ev: RTCDataChannelEvent) -> JsAny)?
     public fun getStats(selector: MediaStreamTrack? = definedExternally): Promise<RTCStatsReport>
     public fun getStats(): Promise<RTCStatsReport>
@@ -665,33 +667,33 @@ public external class RTCPeerConnection(config: RTCConfiguration) : EventTarget 
     ): Promise<JsUndefined>
 
     public var canTrickleIceCandidates: Boolean?
-    public var iceConnectionState: String /* "checking" | "closed" | "completed" | "connected" | "disconnected" | "failed" | "new" */
-    public var iceGatheringState: String /* "complete" | "gathering" | "new" */
-    public var idpErrorInfo: String?
-    public var idpLoginUrl: String?
-    public var onicecandidate: ((self: RTCPeerConnection, ev: RTCPeerConnectionIceEvent) -> JsAny?)?
-    public var oniceconnectionstatechange: ((self: RTCPeerConnection, ev: Event) -> JsAny)?
-    public var onicegatheringstatechange: ((self: RTCPeerConnection, ev: Event) -> JsAny)?
-    public var onnegotiationneeded: ((self: RTCPeerConnection, ev: Event) -> JsAny)?
-    public var onsignalingstatechange: ((self: RTCPeerConnection, ev: Event) -> JsAny)?
-    public var onstatsended: ((self: RTCPeerConnection, ev: RTCStatsEvent) -> JsAny)?
+    public var iceConnectionState: JsString /* "checking" | "closed" | "completed" | "connected" | "disconnected" | "failed" | "new" */
+    public var iceGatheringState: JsString /* "complete" | "gathering" | "new" */
+    public var idpErrorInfo: JsString?
+    public var idpLoginUrl: JsString?
+    public var onicecandidate: ((ev: RTCPeerConnectionIceEvent) -> Unit)?
+    public var oniceconnectionstatechange: ((ev: Event) -> Unit)?
+    public var onicegatheringstatechange: ((ev: Event) -> Unit)?
+    public var onnegotiationneeded: ((ev: Event) -> Unit)?
+    public var onsignalingstatechange: ((ev: Event) -> Unit)?
+    public var onstatsended: ((ev: RTCStatsEvent) -> Unit)?
     public var peerIdentity: Promise<RTCIdentityAssertion>
     public fun createAnswer(options: RTCOfferOptions = definedExternally): Promise<RTCSessionDescriptionInit>
-    public fun createDataChannel(label: String, dataChannelDict: RTCDataChannelInit = definedExternally): RTCDataChannel
-    public fun createDataChannel(label: String): RTCDataChannel
+    public fun createDataChannel(label: JsString, dataChannelDict: RTCDataChannelInit = definedExternally): RTCDataChannel
+    public fun createDataChannel(label: JsString): RTCDataChannel
     public fun getIdentityAssertion(): Promise<JsString>
-    public fun setIdentityProvider(provider: String, options: RTCIdentityProviderOptions = definedExternally)
+    public fun setIdentityProvider(provider: JsString, options: RTCIdentityProviderOptions = definedExternally)
 }
 
 public external class RTCPeerConnectionIceErrorEvent : Event {
-    public var hostCandidate: String
-    public var url: String
+    public var hostCandidate: JsString
+    public var url: JsString
     public var errorCode: JsNumber
-    public var errorText: String
+    public var errorText: JsString
 }
 
 public external class RTCPeerConnectionIceEvent : Event {
-    public var url: String?
+    public var url: JsString?
     public var candidate: RTCIceCandidate?
 }
 
@@ -721,15 +723,15 @@ public external interface RTCRtpSender : JsAny {
 }
 
 public external interface RTCRtpTransceiver : JsAny {
-    public var mid: String?
+    public var mid: JsString?
     public var sender: RTCRtpSender
     public var receiver: RTCRtpReceiver
     public var stopped: Boolean
-    public var direction: String /* "inactive" | "recvonly" | "sendonly" | "sendrecv" | "stopped" */
-    public fun setDirection(direction: String /* "inactive" | "recvonly" | "sendonly" | "sendrecv" | "stopped" */)
+    public var direction: JsString /* "inactive" | "recvonly" | "sendonly" | "sendrecv" | "stopped" */
+    public fun setDirection(direction: JsString /* "inactive" | "recvonly" | "sendonly" | "sendrecv" | "stopped" */)
     public fun stop()
     public fun setCodecPreferences(codecs: JsArray<RTCRtpCodecCapability>)
-    public var currentDirection: String /* "inactive" | "recvonly" | "sendonly" | "sendrecv" | "stopped" */
+    public var currentDirection: JsString /* "inactive" | "recvonly" | "sendonly" | "sendrecv" | "stopped" */
 }
 
 public external class RTCSctpTransport private constructor() : EventTarget {
@@ -737,12 +739,12 @@ public external class RTCSctpTransport private constructor() : EventTarget {
     public var maxMessageSize: JsNumber
     public var maxChannels: JsNumber?
     public var onstatechange: ((self: RTCSctpTransport, ev: Event) -> JsAny)?
-    public var state: String /* "closed" | "connected" | "connecting" */
+    public var state: JsString /* "closed" | "connected" | "connecting" */
 }
 
-public external class RTCSessionDescription {
-    public var sdp: String
-    public var type: String /* "answer" | "offer" | "pranswer" | "rollback" */
+public external class RTCSessionDescription : JsAny {
+    public var sdp: JsString
+    public var type: JsString /* "answer" | "offer" | "pranswer" | "rollback" */
     public fun toJSON(): JsAny
 }
 
@@ -763,7 +765,7 @@ public external class RTCTrackEvent : Event {
 
 public external interface RTCPeerConnectionStatic : JsAny {
     public var defaultIceServers: JsArray<RTCIceServer>
-    public fun generateCertificate(keygenAlgorithm: String): Promise<RTCCertificate>
+    public fun generateCertificate(keygenAlgorithm: JsString): Promise<RTCCertificate>
 }
 
 public typealias RTCPeerConnectionErrorCallback = (error: DOMException) -> Unit

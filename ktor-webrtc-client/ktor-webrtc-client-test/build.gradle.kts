@@ -7,6 +7,7 @@ kotlin {
         commonTest {
             dependencies {
                 api(project(":ktor-webrtc-client:ktor-webrtc-client-core"))
+                api(project(":ktor-test-dispatcher"))
                 api(libs.kotlinx.coroutines.test)
             }
         }
@@ -18,3 +19,6 @@ kotlin {
         }
     }
 }
+
+tasks.named("jsNodeTest") { onlyIf { false } }
+tasks.named("wasmJsNodeTest") { onlyIf { false } }

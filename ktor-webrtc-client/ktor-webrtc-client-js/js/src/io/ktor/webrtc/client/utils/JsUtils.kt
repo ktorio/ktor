@@ -10,8 +10,8 @@ import io.ktor.webrtc.client.peer.*
 import kotlinx.browser.document
 import org.w3c.dom.mediacapture.MediaStreamTrack
 import org.w3c.dom.mediacapture.MediaTrackConstraints
-
-public fun dateNow(): Long = js("Date.now()")
+import kotlin.js.collections.JsMap
+import kotlin.js.collections.toMap
 
 public fun makeEmptyObject(): dynamic = js("({})")
 
@@ -71,6 +71,9 @@ public fun RTCSessionDescriptionInit.toCommon(): WebRtcPeerConnection.SessionDes
 }
 
 public fun WebRtcPeerConnection.SessionDescription.toJS(): RTCSessionDescription {
+    // RTCSessionDescription constructor is deprecated.
+    // All methods that accept RTCSessionDescription objects also accept objects with the same properties,
+    // so you can use a plain object instead of creating an RTCSessionDescription instance.
     val options = makeEmptyObject()
     options.sdp = sdp
     options.type = when (type) {
@@ -79,7 +82,7 @@ public fun WebRtcPeerConnection.SessionDescription.toJS(): RTCSessionDescription
         WebRtcPeerConnection.SessionDescriptionType.ROLLBACK -> "rollback"
         WebRtcPeerConnection.SessionDescriptionType.PROVISIONAL_ANSWER -> "pranswer"
     }
-    return RTCSessionDescription(options)
+    return options
 }
 
 public fun WebRtcPeerConnection.IceCandidate.toJS(): RTCIceCandidate {
@@ -92,8 +95,10 @@ public fun WebRtcPeerConnection.IceCandidate.toJS(): RTCIceCandidate {
 
 private fun <T> getValues(map: dynamic): Array<T> = js("Array.from(map.values())")
 
-private fun objectToMap(obj: dynamic): Map<String, Any?> = js("new Map(Object.entries(obj))")
+@OptIn(ExperimentalJsCollectionsApi::class)
+private fun objectToMap(obj: dynamic): JsMap<String, Any?> = js("new Map(Object.entries(obj))")
 
+@OptIn(ExperimentalJsCollectionsApi::class)
 @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
 public fun RTCStatsReport.toCommon(): List<WebRTCStats> {
     return getValues<RTCStats>(this).map { entry ->
@@ -101,7 +106,7 @@ public fun RTCStatsReport.toCommon(): List<WebRTCStats> {
             timestamp = entry.timestamp.toLong(),
             type = entry.type,
             id = entry.id,
-            props = objectToMap(entry)
+            props = objectToMap(entry).toMap()
         )
     }.toList()
 }

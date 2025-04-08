@@ -44,7 +44,6 @@ public class JsWebRTCEngine(
         val rtcConfig: RTCConfiguration = js("{}")
         rtcConfig.iceServers = buildIceServers().toTypedArray()
 
-        println("createPeerConnection: ${JSON.stringify(rtcConfig)}\n")
         val peerConnection = RTCPeerConnection(rtcConfig)
         return JsWebRtcPeerConnection(peerConnection, coroutineContext, config.statsRefreshRate)
     }
@@ -169,10 +168,6 @@ public class JsVideoTrack(nativeTrack: MediaStreamTrack) : WebRTCVideoTrack, JsM
 
 @OptIn(InternalAPI::class)
 public actual object JsWebRTC : WebRTCClientEngineFactory<JsWebRTCEngineConfig> {
-    init {
-        DefaultWebRTCEngine.factory = this
-    }
-
     actual override fun create(block: JsWebRTCEngineConfig.() -> Unit): WebRTCEngine =
         JsWebRTCEngine(JsWebRTCEngineConfig().apply(block))
 }
