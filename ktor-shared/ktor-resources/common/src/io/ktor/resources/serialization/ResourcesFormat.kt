@@ -84,7 +84,7 @@ public class ResourcesFormat(
             val elementDescriptor = descriptor.getElementDescriptor(index)
             if (!elementDescriptor.isInline && elementDescriptor.kind is StructureKind.CLASS) {
                 collectAllParameters(elementDescriptor, result)
-            } else {
+            } else if (elementDescriptor.kind !is StructureKind.OBJECT) {
                 result.add(Parameter(name, descriptor.isElementOptional(index)))
             }
         }
