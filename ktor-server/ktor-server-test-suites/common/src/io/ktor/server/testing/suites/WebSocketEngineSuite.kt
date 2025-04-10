@@ -570,6 +570,28 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
     }
 
+
+    @Test
+    fun testServerClosingAbruptly() = runTest {
+        val server = createAndStartServer {
+            webSocket("/") {
+                awaitCancellation()
+            }
+        }
+
+        assertFailsWith<EOFException> {
+            useSocket {
+                negotiateHttpWebSocket()
+
+                server.stop(100, 1000)
+
+                input.readFrame(Long.MAX_VALUE, 0)
+
+                fail("Coroutine should be cancelled from disconnect")
+            }
+        }
+    }
+
     @Test
     open fun testClientClosingFirst() = runTest(retries = 3) {
         val deferred = CompletableDeferred<Unit>()
