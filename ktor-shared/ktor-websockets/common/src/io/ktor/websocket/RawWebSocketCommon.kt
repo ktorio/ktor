@@ -231,7 +231,7 @@ public suspend fun ByteReadChannel.readFrame(maxFrameSize: Long, lastOpcode: Int
         throw ProtocolViolationException("Can't continue finished frames")
     }
     val opcode = if (rawOpcode == 0) lastOpcode else rawOpcode
-    val frameType = FrameType[opcode] ?: throw IllegalStateException("Unsupported opcode: $opcode")
+    val frameType = FrameType[opcode] ?: throw ProtocolViolationException("Unsupported opcode: $opcode")
     if (rawOpcode != 0 && lastOpcode != 0 && !frameType.controlFrame) {
         // trying to intermix data frames
         throw ProtocolViolationException("Can't start new data frame before finishing previous one")
