@@ -213,7 +213,7 @@ private fun parseHeaderValueParameterValueQuoted(value: String, start: Int): Pai
         val currentChar = value[position]
 
         when {
-            currentChar == '"' && value.nextIsSemicolonOrEnd(position) -> {
+            currentChar == '"' && value.nextIsDelimiterOrEnd(position) -> {
                 return position + 1 to builder.toString()
             }
 
@@ -232,7 +232,7 @@ private fun parseHeaderValueParameterValueQuoted(value: String, start: Int): Pai
     return position to '"' + builder.toString()
 }
 
-private fun String.nextIsSemicolonOrEnd(start: Int): Boolean {
+private fun String.nextIsDelimiterOrEnd(start: Int): Boolean {
     var position = start + 1
     loop@ while (position < length && get(position) == ' ') {
         position += 1
