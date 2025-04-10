@@ -185,10 +185,6 @@ public class NettyApplicationEngine(
         }
     }
 
-    private val nettyDispatcher: CoroutineDispatcher by lazy {
-        NettyDispatcher
-    }
-
     private val workerDispatcher by lazy {
         workerEventGroup.asCoroutineDispatcher()
     }
@@ -200,11 +196,6 @@ public class NettyApplicationEngine(
         configuration.connectors.map(::createBootstrap)
     }
 
-    private val userContext = applicationProvider().parentCoroutineContext +
-        nettyDispatcher +
-        NettyApplicationCallHandler.CallHandlerCoroutineName +
-        DefaultUncaughtExceptionHandler(environment.log)
-
     private fun createBootstrap(connector: EngineConnectorConfig): ServerBootstrap {
         return customBootstrap.clone().apply {
             if (config().group() == null && config().childGroup() == null) {
@@ -214,6 +205,10 @@ public class NettyApplicationEngine(
             if (config().channelFactory() == null) {
                 channel(getChannelClass().java)
             }
+
+            val userContext = applicationProvider().coroutineContext +
+                NettyApplicationCallHandler.CallHandlerCoroutineName +
+                DefaultUncaughtExceptionHandler(environment.log)
 
             childHandler(
                 NettyChannelInitializer(

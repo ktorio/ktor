@@ -1005,9 +1005,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
         // Verify both jobs are canceled
         assertTrue(applicationJob.isCancelled, "Application job should be canceled")
-
-        // KTOR-8338 Coroutines launched from RoutingContext are not canceled upon server shutdown
-        // assertTrue(routingJob.isCancelled, "Routing job should be canceled")
+        assertTrue(routingJob.isCancelled, "Routing job should be canceled")
     }
 }
 
