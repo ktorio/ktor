@@ -200,6 +200,23 @@ class CommonHeadersTest {
     }
 
     @Test
+    fun parsingQuotedParamsWorks() {
+        assertEquals(
+            listOf(
+                HeaderValue("", listOf(HeaderValueParam("k", "v"), HeaderValueParam("k2", "v2"))),
+            ),
+            parseHeaderValue("k=\"v\";k2=\"v2\"", parametersOnly = true)
+        )
+        assertEquals(
+            listOf(
+                HeaderValue("", listOf(HeaderValueParam("k", "v"))),
+                HeaderValue("", listOf(HeaderValueParam("k2", "v2")))
+            ),
+            parseHeaderValue("k=\"v\",k2=\"v2\"", parametersOnly = true)
+        )
+    }
+
+    @Test
     fun testRenderSimple() {
         assertEquals("file", ContentDisposition.File.toString())
     }
