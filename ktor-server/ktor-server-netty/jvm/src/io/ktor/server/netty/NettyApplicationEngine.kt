@@ -23,7 +23,6 @@ import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.handler.codec.http.HttpObjectDecoder
 import io.netty.handler.codec.http.HttpServerCodec
 import kotlinx.coroutines.CompletableJob
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.asCoroutineDispatcher
 import java.net.BindException
 import java.util.concurrent.TimeUnit
