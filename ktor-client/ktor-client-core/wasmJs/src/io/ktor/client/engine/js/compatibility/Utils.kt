@@ -18,15 +18,19 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.js.Promise
 
+@Suppress("DEPRECATION")
 @OptIn(InternalCoroutinesApi::class)
 internal suspend fun commonFetch(
     input: String,
     init: RequestInit,
+    requestConfig: RequestInit.() -> Unit,
     config: JsClientEngineConfig,
     callJob: Job,
 ): org.w3c.fetch.Response = suspendCancellableCoroutine { continuation ->
     val controller = AbortController()
     init.signal = controller.signal
+    config.requestInit(init)
+    requestConfig(init)
 
     callJob.invokeOnCompletion(onCancelling = true) { controller.abort() }
 
