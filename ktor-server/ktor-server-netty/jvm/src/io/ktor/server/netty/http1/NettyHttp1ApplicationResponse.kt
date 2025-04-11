@@ -100,18 +100,22 @@ internal class NettyHttp1ApplicationResponse(
             }
         }
 
-        val job = upgrade.upgrade(upgradedReadChannel, upgradedWriteChannel, engineContext, userAppContext)
+        val job = upgrade.upgrade(
+            upgradedReadChannel,
+            upgradedWriteChannel,
+            engineContext,
+            userAppContext
+        )
 
         job.invokeOnCompletion {
             upgradedWriteChannel.close()
             bodyHandler.close()
             upgradedReadChannel.cancel(it)
+            context.channel().close()
         }
 
         (call as NettyApplicationCall).responseWriteJob.join()
         job.join()
-
-        context.channel().close()
     }
 
     private fun setChunked(message: HttpResponse) {
