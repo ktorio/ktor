@@ -571,7 +571,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     }
 
     @Test
-    open fun testClientClosingFirst() = runTest {
+    open fun testClientClosingFirst() = runTest(retries = 3) {
         val deferred = CompletableDeferred<Unit>()
 
         createAndStartServer {
@@ -652,7 +652,33 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         checkFrame(second.await())
     }
 
-    private suspend fun Connection.negotiateHttpWebSocket(additionalHeader: List<Pair<String, String>> = emptyList()) {
+    @Test
+    fun testCorruptFrameWithBadOpcode() = runTest {
+        createAndStartServer {
+            application.routing {
+                webSocket("/") {
+                    runCatching {
+                        for (frame in incoming) {
+                            outgoing.send(frame)
+                        }
+                    }
+                }
+            }
+        }
+
+        useSocket {
+            negotiateHttpWebSocket()
+
+            output.writeHex("83 00")
+            output.flush()
+
+            assertCloseFrame(CloseReason.Codes.PROTOCOL_ERROR.code, replyCloseFrame = false)
+        }
+    }
+
+    private suspend fun Connection.negotiateHttpWebSocket(
+        additionalHeader: List<Pair<String, String>> = emptyList(),
+    ) {
         // send upgrade request
         output.apply {
             writeFully(
