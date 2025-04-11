@@ -23,7 +23,7 @@ public fun HttpClientCall.wrapWithContent(content: ByteReadChannel): HttpClientC
 }
 
 /**
- * Wrap existing [HttpClientCall] with new [content].
+ * Wrap existing [HttpClientCall] with new content produced by the given [block].
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.observer.wrapWithContent)
  */
@@ -38,6 +38,16 @@ public fun HttpClientCall.wrapWithContent(block: () -> ByteReadChannel): HttpCli
  */
 public fun HttpClientCall.wrap(content: ByteReadChannel, headers: Headers): HttpClientCall {
     return DelegatedCall(client, content, this, headers)
+}
+
+/**
+ * Wrap existing [HttpClientCall] with new [headers] and content produced by the given [block].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.observer.wrap)
+ */
+@InternalAPI
+public fun HttpClientCall.wrap(headers: Headers, block: () -> ByteReadChannel): HttpClientCall {
+    return DelegatedCall(client, block, this, headers)
 }
 
 internal class DelegatedCall(
