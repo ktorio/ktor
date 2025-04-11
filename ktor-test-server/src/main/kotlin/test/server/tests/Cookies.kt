@@ -16,6 +16,8 @@ fun Application.cookiesTest() {
             get {
                 val cookie = Cookie("hello-cookie", "my-awesome-value", domain = "127.0.0.1")
                 call.response.cookies.append(cookie)
+                call.response.headers.append(HttpHeaders.AccessControlAllowCredentials, "true")
+                call.response.headers.append(HttpHeaders.AccessControlAllowOrigin, "*")
 
                 call.respond("Done")
             }
