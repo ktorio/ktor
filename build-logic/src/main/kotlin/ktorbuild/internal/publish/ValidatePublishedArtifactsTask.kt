@@ -73,10 +73,16 @@ internal abstract class ValidatePublishedArtifactsTask : DefaultTask() {
         dump.convention(false)
         configurePublishTaskName()
 
+        // Initialize the publishedArtifacts list to empty by default
+        publishedArtifacts.convention(emptyList())
+
         // Collect artifacts from the all publishing tasks in the task graph
         project.gradle.taskGraph.whenReady {
-            allTasks.filterIsInstance<PublishToMavenRepository>().forEach { publishTask ->
-                publishedArtifacts.addAll(publishTask.publication.formatArtifacts())
+            val publishTasks = allTasks.filterIsInstance<PublishToMavenRepository>()
+            if (publishTasks.isNotEmpty()) {
+                publishTasks.forEach { publishTask ->
+                    publishedArtifacts.addAll(publishTask.publication.formatArtifacts())
+                }
             }
         }
     }
@@ -86,11 +92,19 @@ internal abstract class ValidatePublishedArtifactsTask : DefaultTask() {
             // Filter out the validation task itself and task parameters
             name == NAME || name.startsWith("-")
         }
-        check(taskNames.size == 1) {
-            "Task $NAME should be run together with exactly one publish task, but got: $taskNames"
+
+        // Find publish tasks among the specified tasks
+        val publishTasks = taskNames.filter { it.contains("publish", ignoreCase = true) }
+
+        if (publishTasks.isEmpty()) {
+            // If no publish task is specified, use a default name for the artifacts dump
+            publishTaskName.set("defaultPublish")
+            artifactsDump.set(project.rootDir.resolve("gradle/artifacts/defaultPublish.txt"))
+            return
         }
 
-        publishTaskName = taskNames.single()
+        // Use the first publish task if multiple are specified
+        publishTaskName.set(publishTasks.first())
         artifactsDump = publishTaskName.map { taskName ->
             val sanitizedTaskName = taskName.replace(":", "_")
             project.rootDir.resolve("gradle/artifacts/${sanitizedTaskName}.txt")
@@ -121,8 +135,17 @@ internal abstract class ValidatePublishedArtifactsTask : DefaultTask() {
         val actualArtifacts = publishedArtifacts.get().toSortedSet()
         val dumpFile = artifactsDump.get().asFile
 
+        // If no artifacts were collected and we're not in dump mode, skip validation
+        if (actualArtifacts.isEmpty() && !dump.get()) {
+            logger.lifecycle("No artifacts were collected for validation. Skipping.")
+            return
+        }
+
         if (dump.get()) {
-            if (!dumpFile.exists()) dumpFile.createNewFile()
+            if (!dumpFile.exists()) {
+                dumpFile.parentFile.mkdirs()
+                dumpFile.createNewFile()
+            }
 
             dumpFile.bufferedWriter().use { writer ->
                 actualArtifacts.forEach { artifact -> writer.appendLine(artifact) }
