@@ -40,14 +40,16 @@ internal fun ApacheRequestProducer(
         }
     }
 
-    val isGetOrHead = requestData.method == HttpMethod.Get || requestData.method == HttpMethod.Head
+    val isGetOrHeadOrOptions = requestData.method == HttpMethod.Get ||
+        requestData.method == HttpMethod.Head ||
+        requestData.method == HttpMethod.Options
     val hasContent = requestData.body !is OutgoingContent.NoContent
     val contentLength = length?.toLong() ?: -1
-    val isChunked = contentLength == -1L && !isGetOrHead && hasContent
+    val isChunked = contentLength == -1L && !isGetOrHeadOrOptions && hasContent
 
     return BasicRequestProducer(
         setupRequest(requestData, config),
-        if (!hasContent || isGetOrHead) {
+        if (!hasContent && isGetOrHeadOrOptions) {
             null
         } else {
             ApacheRequestEntityProducer(requestData, callContext, contentLength, type, isChunked)
