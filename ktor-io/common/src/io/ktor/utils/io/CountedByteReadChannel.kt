@@ -36,15 +36,27 @@ public class CountedByteReadChannel(public val delegate: ByteReadChannel) : Byte
     @InternalAPI
     override val readBuffer: Buffer
         get() {
-            updateConsumed()
-            val appended = buffer.transferFrom(delegate.readBuffer)
-            initial += appended
+            transferFromDelegate()
             return buffer
         }
 
     @OptIn(InternalAPI::class)
     override suspend fun awaitContent(min: Int): Boolean {
-        return readBuffer.size >= min || delegate.awaitContent(min)
+        if (readBuffer.size >= min) {
+            return true
+        }
+        if (delegate.awaitContent(min)) {
+            transferFromDelegate()
+            return true
+        }
+        return false
+    }
+
+    @OptIn(InternalAPI::class)
+    private fun transferFromDelegate() {
+        updateConsumed()
+        val appended = buffer.transferFrom(delegate.readBuffer)
+        initial += appended
     }
 
     override fun cancel(cause: Throwable?) {

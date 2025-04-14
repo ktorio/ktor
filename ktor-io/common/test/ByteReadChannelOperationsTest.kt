@@ -8,11 +8,10 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
-import kotlinx.io.IOException
-import kotlinx.io.InternalIoApi
+import kotlinx.io.*
 import kotlinx.io.bytestring.ByteString
 import kotlinx.io.bytestring.encodeToByteString
-import kotlinx.io.writeString
+import kotlin.random.Random
 import kotlin.test.*
 import kotlin.time.Duration.Companion.seconds
 
@@ -230,6 +229,23 @@ class ByteReadChannelOperationsTest {
         assertFailsWith<IOException> {
             input.readUntil("note".encodeToByteString(), ByteChannel())
         }
+    }
+
+    @Test
+    fun readUntilLargeRandom() = runTest {
+        val delimiter = "a".repeat(100).encodeToByteString()
+        val randomData = writer {
+            val buffer = ByteArray(1024)
+            repeat(1024) {
+                Random.nextBytes(buffer)
+                channel.writeByteArray(buffer)
+            }
+        }
+        val randomBytes = writer {
+            randomData.channel.readUntil(delimiter, channel, ignoreMissing = true)
+        }.channel
+
+        assertEquals(1024 * 1024, randomBytes.discard())
     }
 
     @Test

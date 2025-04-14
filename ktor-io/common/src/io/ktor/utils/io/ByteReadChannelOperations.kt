@@ -40,15 +40,11 @@ public suspend fun ByteReadChannel.toByteArray(): ByteArray {
 
 @OptIn(InternalAPI::class)
 public suspend fun ByteReadChannel.readByte(): Byte {
-    if (readBuffer.exhausted()) {
-        awaitContent()
-    }
-
-    if (readBuffer.exhausted()) {
+    val currentBuffer = readBuffer
+    if (currentBuffer.exhausted() && !awaitContent()) {
         throw EOFException("Not enough data available")
     }
-
-    return readBuffer.readByte()
+    return currentBuffer.readByte()
 }
 
 @OptIn(InternalAPI::class)
@@ -92,11 +88,9 @@ public suspend fun ByteReadChannel.readDouble(): Double {
 }
 
 private suspend fun ByteReadChannel.awaitUntilReadable(numberOfBytes: Int) {
-    while (availableForRead < numberOfBytes && awaitContent(numberOfBytes)) {
-        yield()
+    if (!awaitContent(numberOfBytes)) {
+        throw EOFException("Not enough data available")
     }
-
-    if (availableForRead < numberOfBytes) throw EOFException("Not enough data available")
 }
 
 @OptIn(InternalAPI::class)
@@ -559,6 +553,7 @@ public fun ByteChannel.rethrowCloseCauseIfNeeded() {
  * @return The number of bytes read, not including the search string.
  * @throws IOException If the limit is exceeded or the byteString is not found and ignoreMissing is false.
  */
+@OptIn(InternalAPI::class)
 public suspend fun ByteReadChannel.readUntil(
     matchString: ByteString,
     writeChannel: ByteWriteChannel,
@@ -568,53 +563,92 @@ public suspend fun ByteReadChannel.readUntil(
     check(matchString.size > 0) {
         "Empty match string not permitted for readUntil"
     }
+
     val partialMatchTable = buildPartialMatchTable(matchString)
-    var matchIndex = 0
-    val matchBuffer = ByteArray(matchString.size)
+    val partialMatchBuffer = Buffer()
+    val input = readBuffer
     var rc = 0L
+    var matchIndex = 0
 
-    suspend fun appendPartialMatch() {
-        writeChannel.writeFully(matchBuffer, 0, matchIndex)
-        rc += matchIndex
-        matchIndex = 0
-    }
-
-    fun resetPartialMatch(byte: Byte) {
-        while (matchIndex > 0 && byte != matchString[matchIndex]) {
-            matchIndex = partialMatchTable[matchIndex - 1]
+    fun checkBounds(extra: Long) {
+        if (rc + extra > limit) {
+            throw IOException(
+                "Limit of $limit bytes exceeded " +
+                    "while searching for \"${matchString.toSingleLineString()}\""
+            )
         }
     }
 
-    while (!isClosedForRead) {
-        val byte = readByte()
-
-        if (matchIndex > 0 && byte != matchString[matchIndex]) {
-            appendPartialMatch()
-            resetPartialMatch(byte)
-        }
-
-        if (byte == matchString[matchIndex]) {
-            matchBuffer[matchIndex] = byte
-            if (++matchIndex == matchString.size) {
-                return rc
+    // Quick scan for first byte
+    suspend fun advanceToNextMatch() {
+        while (!input.exhausted() || awaitContent()) {
+            val nextMatch = input.indexOf(matchString[0])
+            when {
+                nextMatch == -1L -> {
+                    checkBounds((input as Buffer).size)
+                    rc += input.transferTo(writeChannel.writeBuffer)
+                }
+                else -> {
+                    checkBounds(nextMatch)
+                    rc += input.readAtMostTo(writeChannel.writeBuffer as Buffer, nextMatch)
+                    return
+                }
             }
-        } else {
-            writeChannel.writeByte(byte)
-            rc++
-        }
-
-        if (rc > limit) {
-            throw IOException("Limit of $limit bytes exceeded while scanning for \"${matchString.decodeToString()}\"")
         }
     }
 
-    if (ignoreMissing) {
-        appendPartialMatch()
+    // Slow sequential check for potential match
+    suspend fun readCompleteMatch(): Boolean {
+        while (!input.exhausted() || awaitContent()) {
+            val byte = input.readByte()
+
+            if (matchIndex > 0 && byte != matchString[matchIndex]) {
+                // update match index from our table
+                val oldMatchIndex = matchIndex
+                while (matchIndex > 0 && byte != matchString[matchIndex]) {
+                    matchIndex = partialMatchTable[matchIndex - 1]
+                }
+                // write the discarded partial match
+                val retained = (oldMatchIndex - matchIndex).toLong()
+                checkBounds(retained)
+                rc += partialMatchBuffer.readAtMostTo(
+                    writeChannel.writeBuffer as Buffer,
+                    retained
+                )
+                // no longer matching, scan for next match
+                if (matchIndex == 0 && byte != matchString[matchIndex]) {
+                    writeChannel.writeByte(byte)
+                    rc++
+                    return false
+                }
+            }
+
+            // return if complete match, else add to partial buffer
+            if (++matchIndex == matchString.size) {
+                return true
+            }
+            partialMatchBuffer.writeByte(byte)
+        }
+        return false
+    }
+
+    while (!input.exhausted() || awaitContent()) {
+        advanceToNextMatch()
         writeChannel.flush()
-        return rc
+
+        if (readCompleteMatch()) {
+            return rc
+        }
     }
 
-    throw IOException("Expected \"${matchString.toSingleLineString()}\" but encountered end of input")
+    if (!ignoreMissing) {
+        throw IOException("Expected \"${matchString.toSingleLineString()}\" but encountered end of input")
+    }
+
+    // Write remaining and return
+    rc += partialMatchBuffer.transferTo(writeChannel.writeBuffer)
+    writeChannel.flush()
+    return rc
 }
 
 /**
