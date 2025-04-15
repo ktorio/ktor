@@ -397,7 +397,7 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
-    fun testMaxAge() = clientTests {
+    fun testMaxAge() = clientTests(slow = true) {
         val publicStorage = CacheStorage.Unlimited()
         val privateStorage = CacheStorage.Unlimited()
         config {
@@ -504,7 +504,7 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
-    fun testMaxStale() = clientTests {
+    fun testMaxStale() = clientTests(slow = true) {
         val publicStorage = CacheStorage.Unlimited()
         val privateStorage = CacheStorage.Unlimited()
         config {
@@ -635,7 +635,7 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
-    fun testExpires() = clientTests {
+    fun testExpires() = clientTests(slow = true) {
         val publicStorage = CacheStorage.Unlimited()
         val privateStorage = CacheStorage.Unlimited()
         config {

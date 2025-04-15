@@ -20,6 +20,7 @@ expect abstract class BaseTest() {
     fun runTest(
         timeout: Duration = 60.seconds,
         retries: Int = DEFAULT_RETRIES,
+        slow: Boolean = false,
         block: suspend CoroutineScope.() -> Unit
     ): TestResult
 }

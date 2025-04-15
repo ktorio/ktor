@@ -12,6 +12,7 @@ kotlin {
     sourceSets {
         commonTest.dependencies {
             implementation(project(":ktor-server:ktor-server-plugins:ktor-server-double-receive"))
+            implementation(project(":ktor-shared:ktor-test-base"))
         }
     }
 }

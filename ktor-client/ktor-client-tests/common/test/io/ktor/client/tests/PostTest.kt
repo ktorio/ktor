@@ -26,14 +26,24 @@ class PostTest : ClientLoader() {
     }
 
     @Test
-    fun testHugePost() = clientTests(except("Js", "Darwin", "CIO", "Curl", "DarwinLegacy", "WinHttp")) {
+    fun testHugePost() = clientTests(
+        except(
+            "Js",
+            "Darwin",
+            "CIO",
+            "Curl",
+            "DarwinLegacy",
+            "WinHttp"
+        ),
+        slow = true
+    ) {
         test { client ->
             client.postHelper(makeString(32 * 1024 * 1024))
         }
     }
 
     @Test
-    fun testWithPause() = clientTests(except("Js", "Darwin", "CIO", "DarwinLegacy")) {
+    fun testWithPause() = clientTests(except("Js", "Darwin", "CIO", "DarwinLegacy"), slow = true) {
         config {
             install(HttpTimeout) {
                 socketTimeoutMillis = 1.minutes.inWholeMilliseconds

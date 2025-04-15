@@ -49,15 +49,22 @@ actual abstract class BaseTest actual constructor() {
     actual fun runTest(
         timeout: Duration,
         retries: Int,
+        slow: Boolean,
         block: suspend CoroutineScope.() -> Unit
-    ): TestResult = retryTest(retries) { retry ->
-        runTestWithRealTime(CoroutineName("test-$testName"), timeout) {
-            if (retry > 0) println("[Retry $retry/$retries]")
-            beforeTest()
-            try {
-                block()
-            } finally {
-                afterTest()
+    ): TestResult {
+        if (slow && !includeSlowTests()) {
+            return runTest {}
+        }
+
+        return retryTest(retries) { retry ->
+            runTestWithRealTime(CoroutineName("test-$testName"), timeout) {
+                if (retry > 0) println("[Retry $retry/$retries]")
+                beforeTest()
+                try {
+                    block()
+                } finally {
+                    afterTest()
+                }
             }
         }
     }

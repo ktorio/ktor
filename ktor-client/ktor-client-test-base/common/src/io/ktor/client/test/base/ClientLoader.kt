@@ -33,6 +33,7 @@ abstract class ClientLoader(private val timeout: Duration = 1.minutes) {
     fun clientTests(
         rule: EngineSelectionRule = EngineSelectionRule { true },
         retries: Int = 1,
+        slow: Boolean = false,
         timeout: Duration = this.timeout,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
     ): TestResult {
@@ -44,6 +45,7 @@ abstract class ClientLoader(private val timeout: Duration = 1.minutes) {
             selectedEngines,
             timeout = timeout,
             retries = retries,
+            slow = slow,
             afterEach = { result -> reporter.testResult(result, retries) },
             afterAll = {
                 reporter.skippedEngines(skippedEngines)

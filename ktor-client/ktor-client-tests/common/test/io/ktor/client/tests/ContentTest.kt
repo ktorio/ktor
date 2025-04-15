@@ -65,7 +65,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testByteArray() = clientTests {
+    fun testByteArray() = clientTests(slow = true) {
         test { client ->
             testArrays.forEach { content ->
                 val response = client.echo<ByteArray>(content)
@@ -161,7 +161,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testEmptyContent() = clientTests {
+    fun testEmptyContent() = clientTests(slow = true) {
         val size = 0
         val content = makeString(size)
         repeatCount = 200
@@ -177,7 +177,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testTextContent() = clientTests(except("Darwin", "CIO", "DarwinLegacy")) {
+    fun testTextContent() = clientTests(except("Darwin", "CIO", "DarwinLegacy"), slow = true) {
         test { client ->
             testStrings.forEach { content ->
                 val response = client.echo<String>(TextContent(content, ContentType.Text.Plain))

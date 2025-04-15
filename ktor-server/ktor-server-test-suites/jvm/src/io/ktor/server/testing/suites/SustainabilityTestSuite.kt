@@ -315,7 +315,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
     }
 
     @Test
-    fun testRepeatRequest() = runTest {
+    fun testRepeatRequest() = runTest(slow = true) {
         createAndStartServer {
             get("/") {
                 call.respond("OK ${call.request.queryParameters["i"]}")
@@ -395,7 +395,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
     @OptIn(InternalAPI::class)
     @Test
-    fun testBigFile() = runTest {
+    fun testBigFile() = runTest(slow = true) {
         val file = File("build/large-file.dat")
         val rnd = Random()
 
@@ -424,7 +424,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
     }
 
     @Test
-    fun testBigFileHttpUrlConnection() = runTest {
+    fun testBigFileHttpUrlConnection() = runTest(slow = true) {
         val file = File("build/large-file.dat")
         val rnd = Random()
 
@@ -459,7 +459,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
     }
 
     @Test
-    open fun testBlockingDeadlock() = runTest {
+    open fun testBlockingDeadlock() = runTest(slow = true) {
         createAndStartServer {
             get("/") {
                 call.respondTextWriter(ContentType.Text.Plain.withCharset(Charsets.ISO_8859_1)) {

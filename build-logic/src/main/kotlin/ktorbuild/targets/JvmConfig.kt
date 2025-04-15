@@ -59,6 +59,12 @@ private fun Project.configureTests() {
         useJUnitPlatform()
         configureJavaToolchain(ktorBuild.jvmToolchain, ktorBuild.jvmTestToolchain)
     }
+
+    tasks.register<Test>("fullTest") {
+        group = "verification"
+        environment("INCLUDE_SLOW", "true")
+        useJUnitPlatform()
+    }
 }
 
 private fun Project.configureJarManifest() {

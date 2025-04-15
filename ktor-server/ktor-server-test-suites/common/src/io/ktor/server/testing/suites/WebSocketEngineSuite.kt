@@ -122,7 +122,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     }
 
     @Test
-    fun testWebSocketDisconnectDuringDowntime() = runTest {
+    fun testWebSocketDisconnectDuringDowntime() = runTest(slow = true) {
         val closeReasonJob = Job()
         val contextJob = Job()
 
@@ -509,7 +509,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     }
 
     @Test
-    fun testALotOfFrames() = runTest {
+    fun testALotOfFrames() = runTest(slow = true) {
         val expectedCount = 100000L
 
         createAndStartServer {

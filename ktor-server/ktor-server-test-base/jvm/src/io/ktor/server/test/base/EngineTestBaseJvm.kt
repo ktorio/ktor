@@ -7,7 +7,6 @@ package io.ktor.server.test.base
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
 import io.ktor.client.engine.cio.*
-import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*

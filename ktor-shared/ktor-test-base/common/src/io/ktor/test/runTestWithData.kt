@@ -104,6 +104,7 @@ fun <T> runTestWithData(
     context: CoroutineContext = EmptyCoroutineContext,
     timeout: Duration = 1.minutes,
     retries: Int = 1,
+    slow: Boolean = false,
     afterEach: (TestExecutionResult<T>) -> Unit = {},
     handleFailures: (List<TestFailure<T>>) -> Unit = ::defaultAggregatedError,
     afterAll: () -> Unit = {},
@@ -111,6 +112,9 @@ fun <T> runTestWithData(
 ): TestResult {
     val timeSource = TimeSource.Monotonic
     var start: TimeMark? = null
+    if (slow && !includeSlowTests()) {
+        return runTest {}
+    }
 
     val failures = mutableListOf<TestFailure<T>>()
     return runTestForEach(testCases) { data ->

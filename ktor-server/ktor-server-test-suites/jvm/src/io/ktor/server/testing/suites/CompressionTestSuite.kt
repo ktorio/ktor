@@ -106,7 +106,7 @@ abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfiguration 
     }
 
     @Test
-    fun testCompressionWriteToLarge() = runTest {
+    fun testCompressionWriteToLarge() = runTest(slow = true) {
         val count = 655350
         fun Appendable.produceText() {
             for (i in 1..count) {

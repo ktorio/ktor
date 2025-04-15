@@ -156,7 +156,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun testSseSessionUnknownHostError() = clientTests {
+    fun testSseSessionUnknownHostError() = clientTests(slow = true) {
         config {
             install(SSE)
         }
@@ -699,7 +699,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun testMaxRetries() = clientTests(except("OkHttp")) {
+    fun testMaxRetries() = clientTests(except("OkHttp"), slow = true) {
         config {
             install(SSE) {
                 reconnectionTime = 500.milliseconds

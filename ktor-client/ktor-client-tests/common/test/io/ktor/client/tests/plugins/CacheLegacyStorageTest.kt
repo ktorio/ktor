@@ -377,7 +377,7 @@ class CacheLegacyStorageTest : ClientLoader() {
     }
 
     @Test
-    fun testMaxStale() = clientTests {
+    fun testMaxStale() = clientTests(slow = true) {
         val publicStorage = HttpCacheStorage.Unlimited()
         val privateStorage = HttpCacheStorage.Unlimited()
         config {
@@ -508,7 +508,7 @@ class CacheLegacyStorageTest : ClientLoader() {
     }
 
     @Test
-    fun testExpires() = clientTests {
+    fun testExpires() = clientTests(slow = true) {
         val publicStorage = HttpCacheStorage.Unlimited()
         val privateStorage = HttpCacheStorage.Unlimited()
         config {

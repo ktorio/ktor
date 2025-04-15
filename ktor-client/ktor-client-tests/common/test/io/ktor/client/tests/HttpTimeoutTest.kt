@@ -234,7 +234,8 @@ class HttpTimeoutTest : ClientLoader() {
 
     @Test
     fun testGetRequestTimeoutWithSeparateReceivePerRequestAttributes() = clientTests(
-        except("Js", "Curl", "Darwin", "DarwinLegacy")
+        except("Js", "Curl", "Darwin", "DarwinLegacy"),
+        slow = true
     ) {
         config {
             install(HttpTimeout)
@@ -254,7 +255,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testGetAfterTimeout() = clientTests(except("Curl", "Js", "Darwin", "DarwinLegacy")) {
+    fun testGetAfterTimeout() = clientTests(except("Curl", "Js", "Darwin", "DarwinLegacy"), slow = true) {
         config {
             install(HttpTimeout)
         }
@@ -446,7 +447,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testSocketTimeoutRead() = clientTests(except("Js", "native:CIO", "Curl", "Java")) {
+    fun testSocketTimeoutRead() = clientTests(except("Js", "native:CIO", "Curl", "Java"), slow = true) {
         config {
             install(HttpTimeout) { socketTimeoutMillis = 1000 }
         }
