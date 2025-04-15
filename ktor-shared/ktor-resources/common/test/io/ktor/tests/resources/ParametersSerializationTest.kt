@@ -5,6 +5,7 @@
 package io.ktor.tests.resources
 
 import io.ktor.http.*
+import io.ktor.resources.Resource
 import io.ktor.resources.serialization.*
 import kotlinx.serialization.*
 import kotlin.test.*
@@ -173,5 +174,16 @@ class ParametersSerializationTest {
         assertEquals(2.0F, encoded["floatValue"]!!.toFloat())
         assertEquals("c", encoded["charValue"])
         assertEquals("value", encoded["stringValue"])
+    }
+
+    @Resource("v1")
+    private data object V1 {
+        @Resource("api")
+        data class Api(val parent: V1)
+    }
+
+    @Test
+    fun testQueryParamsDoNotContainsObjectParent() {
+        assertEquals(emptySet(), resourcesFormat.encodeToQueryParameters(serializer = serializer<V1.Api>()))
     }
 }
