@@ -180,7 +180,9 @@ abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) :
         val client = HttpClient(factory)
 
         runBlocking {
-            client.options("http://localhost:$serverPort/hello")
+            client.options("http://localhost:$serverPort/hello").apply {
+                assertEquals(HttpStatusCode.OK, status)
+            }
         }
     }
 
