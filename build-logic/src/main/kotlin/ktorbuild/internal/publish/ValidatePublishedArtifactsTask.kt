@@ -4,30 +4,47 @@
 
 package ktorbuild.internal.publish
 
-import ktorbuild.internal.gradle.directoryProvider
-import ktorbuild.internal.gradle.regularFileProvider
-import ktorbuild.internal.publish.TestRepository.locateTestRepository
+import ktorbuild.internal.gradle.maybeNamed
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Project
-import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
-import org.gradle.api.publish.PublishingExtension
-import org.gradle.api.tasks.*
+import org.gradle.api.provider.Provider
+import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.options.Option
-import org.gradle.kotlin.dsl.configure
+import org.gradle.kotlin.dsl.assign
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import java.io.File
 
 /**
  * Task that verifies the list of published artifacts matches the expected artifacts.
+ * Should be used together with exactly one publishing task.
+ *
+ * Examples:
+ * ```
+ * // Validate JS artifacts
+ * ./gradlew validatePublishedArtifacts publishJsPublications
+ *
+ * // Save dump of JVM and common artifacts
+ * ./gradlew validatePublishedArtifacts --dump publishJvmAndCommonPublications
+ *
+ * // Run validation against single project
+ * ./gradlew validatePublishedArtifacts :ktor-io:publishJvmAndCommonPublications
+ *
+ * // Dump artifacts locally (switched publishing repository to MavenLocal)
+ * ./gradlew validatePublishedArtifacts --dump publishJvmAndCommonPublications -Prepository=MavenLocal
+ * ```
  *
  * The expected artifact list is stored in a [artifactsDump], and this task ensures
- * consistency between the expected and the actual artifacts found in the [repositoryDirectory].
- *
- * By default, `artifactsDump` is located at `<rootProject>/gradle/artifacts.txt` and [TestRepository] location is used
- * as a `repositoryDirectory`.
+ * consistency between the expected and the actual artifacts published by the task.
+ * `artifactsDump` for the task is located at `<rootProject>/gradle/artifacts/<taskName>.txt`.
  *
  * Initially cherry-picked from kotlinx.coroutines build scripts
  * See: https://github.com/Kotlin/kotlinx.serialization/blob/v1.8.0/buildSrc/src/main/kotlin/publishing-check-conventions.gradle.kts
@@ -35,46 +52,100 @@ import java.io.File
 @Suppress("LeakingThis")
 internal abstract class ValidatePublishedArtifactsTask : DefaultTask() {
 
-    @get:InputDirectory
-    @get:PathSensitive(PathSensitivity.RELATIVE)
-    abstract val repositoryDirectory: DirectoryProperty
-
-    @get:Input
-    abstract val packageName: Property<String>
-
     @get:Option(option = DUMP_OPTION, description = "Dumps the list of published artifacts to a file")
     @get:Input
     abstract val dump: Property<Boolean>
 
+    @get:Input
+    protected abstract val publishedArtifacts: ListProperty<String>
+
+    @get:Internal
+    protected abstract val publishTaskName: Property<String>
+
     @get:OutputFile
-    abstract val artifactsDump: RegularFileProperty
+    protected abstract val artifactsDump: RegularFileProperty
 
     init {
         group = LifecycleBasePlugin.VERIFICATION_GROUP
         description = "Checks that the list of published artifacts matches the expected one"
 
-        outputs.cacheIf("Enable cache only when collecting a dump") { dump.get() }
-
-        with(project) {
-            repositoryDirectory.convention(directoryProvider { locateTestRepository() })
-            artifactsDump.convention(regularFileProvider { rootDir.resolve("gradle/artifacts.txt") })
-            packageName.convention(rootProject.group.toString())
-        }
+        outputs.cacheIf("Isn't worth caching") { false }
         dump.convention(false)
+        configurePublishTaskName()
+
+        // Initialize the publishedArtifacts list to empty by default
+        publishedArtifacts.convention(emptyList())
+
+        // Collect artifacts from the all publishing tasks in the task graph
+        project.gradle.taskGraph.whenReady {
+            val publishTasks = allTasks.filterIsInstance<PublishToMavenRepository>()
+            if (publishTasks.isNotEmpty()) {
+                publishTasks.forEach { publishTask ->
+                    publishedArtifacts.addAll(publishTask.publication.formatArtifacts())
+                }
+            }
+        }
+    }
+
+    private fun configurePublishTaskName() {
+        val taskNames = project.gradle.startParameter.taskNames.filterNot { name ->
+            // Filter out the validation task itself and task parameters
+            name == NAME || name.startsWith("-")
+        }
+
+        // Find publish tasks among the specified tasks
+        val publishTasks = taskNames.filter { it.contains("publish", ignoreCase = true) }
+
+        if (publishTasks.isEmpty()) {
+            // If no publish task is specified, use a default name for the artifacts dump
+            publishTaskName.set("defaultPublish")
+            artifactsDump.set(project.rootDir.resolve("gradle/artifacts/defaultPublish.txt"))
+            return
+        }
+
+        // Use the first publish task if multiple are specified
+        publishTaskName.set(publishTasks.first())
+        artifactsDump = publishTaskName.map { taskName ->
+            val sanitizedTaskName = taskName.replace(":", "_")
+            project.rootDir.resolve("gradle/artifacts/${sanitizedTaskName}.txt")
+        }
+    }
+
+    fun dependsOn(publishedProjects: Provider<List<Project>>) = with(project) {
+        // Handle the case when an absolute task path is specified
+        val taskName = publishTaskName.get()
+        if (taskName.startsWith(":")) {
+            val publishTask = tasks.getByPath(taskName)
+            dependsOn(publishTask)
+            return
+        }
+
+        publishedProjects.get().forEach { project ->
+            val task = project.tasks.maybeNamed(taskName)
+            if (task != null) {
+                dependsOn(task)
+            }
+        }
     }
 
     @TaskAction
-    fun validate() {
-        val packagePath = packageName.get().replace(".", "/")
-        val actualArtifacts = repositoryDirectory.get().asFile
-            .resolve(packagePath)
-            .list()
-            ?.toSortedSet()
-            .orEmpty()
+    fun runValidation() {
+        publishedArtifacts.finalizeValue()
+
+        val actualArtifacts = publishedArtifacts.get().toSortedSet()
         val dumpFile = artifactsDump.get().asFile
 
+        // If no artifacts were collected and we're not in dump mode, skip validation
+        if (actualArtifacts.isEmpty() && !dump.get()) {
+            logger.lifecycle("No artifacts were collected for validation. Skipping.")
+            return
+        }
+
         if (dump.get()) {
-            if (!dumpFile.exists()) dumpFile.createNewFile()
+            if (!dumpFile.exists()) {
+                dumpFile.parentFile.mkdirs()
+                dumpFile.createNewFile()
+            }
 
             dumpFile.bufferedWriter().use { writer ->
                 actualArtifacts.forEach { artifact -> writer.appendLine(artifact) }
@@ -117,20 +188,6 @@ internal abstract class ValidatePublishedArtifactsTask : DefaultTask() {
     }
 }
 
-internal object TestRepository {
-    const val NAME = "test"
-
-    fun Project.configureTestRepository() {
-        extensions.configure<PublishingExtension> {
-            repositories {
-                maven {
-                    name = NAME
-                    setUrl(locateTestRepository())
-                }
-            }
-        }
-    }
-
-    fun Project.locateTestRepository(): File =
-        rootDir.resolve("build/${ValidatePublishedArtifactsTask.NAME}Repository")
-}
+private fun MavenPublication.formatArtifacts(): List<String> =
+    artifacts.map { "${groupId}:${artifactId}/${it.classifier.orEmpty()}.${it.extension}" }
+        .ifEmpty { listOf("$groupId:$artifactId") }
