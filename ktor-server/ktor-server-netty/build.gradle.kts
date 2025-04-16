@@ -6,6 +6,10 @@ import org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest
 
 description = ""
 
+plugins {
+    id("ktorbuild.project.library")
+}
+
 val enableAlpnProp = project.hasProperty("enableAlpn")
 val osName = System.getProperty("os.name").lowercase()
 val nativeClassifier: String? = if (enableAlpnProp) {
@@ -19,9 +23,9 @@ val nativeClassifier: String? = if (enableAlpnProp) {
     null
 }
 
-kotlin.sourceSets {
-    jvmMain {
-        dependencies {
+kotlin {
+    sourceSets {
+        jvmMain.dependencies {
             api(project(":ktor-server:ktor-server-core"))
 
             api(libs.netty.codec.http2)
@@ -33,9 +37,7 @@ kotlin.sourceSets {
                 api(libs.netty.tcnative.boringssl.static)
             }
         }
-    }
-    jvmTest {
-        dependencies {
+        jvmTest.dependencies {
             api(project(":ktor-server:ktor-server-test-base"))
             api(project(":ktor-server:ktor-server-test-suites"))
             api(project(":ktor-server:ktor-server-core"))

@@ -88,7 +88,7 @@ public class HttpTimeoutConfig {
 
     private fun checkTimeoutValue(value: Long?): Long? {
         require(value == null || value > 0) {
-            "Only positive timeout values are allowed, for infinite timeout use HttpTimeout.INFINITE_TIMEOUT_MS"
+            "Only positive timeout values are allowed, for infinite timeout use HttpTimeoutConfig.INFINITE_TIMEOUT_MS"
         }
         return value
     }
@@ -278,7 +278,7 @@ public fun SocketTimeoutException(
 )
 
 /**
- * Converts a long timeout in milliseconds to int value. To do that, we need to consider [HttpTimeout.INFINITE_TIMEOUT_MS]
+ * Converts a long timeout in milliseconds to int value. To do that, we need to consider [HttpTimeoutConfig.INFINITE_TIMEOUT_MS]
  * as zero and convert timeout value to [Int].
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.convertLongTimeoutToIntWithInfiniteAsZero)
@@ -292,8 +292,8 @@ public fun convertLongTimeoutToIntWithInfiniteAsZero(timeout: Long): Int = when 
 }
 
 /**
- * Converts long timeout in milliseconds to long value. To do that, we need to consider [HttpTimeout.INFINITE_TIMEOUT_MS]
- * as zero and convert timeout value to [Int].
+ * Converts long timeout in milliseconds to long value. To do that, we need to consider [HttpTimeoutConfig.INFINITE_TIMEOUT_MS]
+ * as zero and convert timeout value to [Long].
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.convertLongTimeoutToLongWithInfiniteAsZero)
  */

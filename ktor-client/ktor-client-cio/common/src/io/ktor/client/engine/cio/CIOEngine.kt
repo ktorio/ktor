@@ -66,7 +66,6 @@ internal class CIOEngine(
                 requestJob.join()
             } finally {
                 selector.close()
-                selector.coroutineContext[Job]!!.join()
             }
         }
     }

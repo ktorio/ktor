@@ -1,32 +1,32 @@
+/*
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
+import ktorbuild.*
+
 plugins {
+    id("ktorbuild.base")
     id("java-platform")
     id("maven-publish")
 }
 
-the<PublishingExtension>().publications {
+publishing.publications {
     create<MavenPublication>("maven") {
         from(components.findByName("javaPlatform"))
     }
 }
 
-val name = project.name
+// Should be applied after publications were configured
+apply(plugin = "ktorbuild.publish")
 
-dependencies {
-    constraints {
-        rootProject.subprojects.forEach subprojects@{
-            if (!it.plugins.hasPlugin("maven-publish") || it.name == name) return@subprojects
-            it.the<PublishingExtension>().publications.forEach { publication ->
-                if (publication !is MavenPublication) return@forEach
-
-                val artifactId = publication.artifactId
-                if (artifactId.endsWith("-metadata") || artifactId.endsWith("-kotlinMultiplatform")) {
-                    return@forEach
-                }
-
-                api("${publication.groupId}:${publication.artifactId}:${publication.version}")
-            }
-        }
+val allPublications = projectsWithTag(ProjectTag.Library)
+    .flatMapValue { libraryProject ->
+        libraryProject.publishing.publications
+            .filterIsInstance<MavenPublication>()
+            .filterNot { it.artifactId.endsWith("-metadata") || it.artifactId.endsWith("-kotlinMultiplatform") }
+            .map { libraryProject.dependencies.constraints.create("${it.groupId}:${it.artifactId}:${it.version}") }
     }
-}
 
-configurePublication()
+configurations.api {
+    dependencyConstraints.addAllLater(allPublications)
+}

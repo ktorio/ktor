@@ -244,7 +244,7 @@ class MicrometerMetricsTests {
             this.first().run {
                 assertTag("throwable", "n/a")
                 assertTag("status", "404")
-                assertTag("route", "/uri")
+                assertTag("route", "n/a")
                 assertTag("method", "GET")
                 assertTag("address", "localhost:80")
             }

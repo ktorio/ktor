@@ -4,16 +4,18 @@
 
 description = "Wrapper for ktor-server-core and base plugins"
 
-kotlin.sourceSets {
-    jvmMain {
-        dependencies {
+plugins {
+    id("ktorbuild.project.library")
+}
+
+kotlin {
+    sourceSets {
+        jvmMain.dependencies {
             api(project(":ktor-server:ktor-server-plugins:ktor-server-call-logging"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-default-headers"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-compression"))
         }
-    }
-    commonMain {
-        dependencies {
+        commonMain.dependencies {
             api(project(":ktor-server:ktor-server-core"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-auto-head-response"))
             api(project(":ktor-server:ktor-server-plugins:ktor-server-caching-headers"))

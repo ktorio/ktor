@@ -96,7 +96,7 @@ public class WebSockets internal constructor(
     private fun addNegotiatedProtocols(context: HttpRequestBuilder, protocols: List<WebSocketExtensionHeader>) {
         if (protocols.isEmpty()) return
 
-        val headerValue = protocols.joinToString(";")
+        val headerValue = protocols.joinToString(",")
         context.header(HttpHeaders.SecWebSocketExtensions, headerValue)
     }
 

@@ -15,6 +15,10 @@ private const val BASE64_PAD = '='
 
 private val BASE64_INVERSE_ALPHABET = IntArray(256) {
     BASE64_ALPHABET.indexOf(it.toChar())
+}.also {
+    // correctly decode URL-safe Base64
+    it['-'.code] = it['+'.code]
+    it['_'.code] = it['/'.code]
 }
 
 /**

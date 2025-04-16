@@ -1,3 +1,39 @@
+# 3.1.2
+> Published 27 March 2025
+
+### Improvements
+* Update Kotlin to 2.1.20 ([KTOR-8081](https://youtrack.jetbrains.com/issue/KTOR-8081))
+* Remove empty artifacts from publication ([KTOR-8336](https://youtrack.jetbrains.com/issue/KTOR-8336))
+
+### Bugfixes
+* URL-safe base64 decoding problem ([KTOR-8292](https://youtrack.jetbrains.com/issue/KTOR-8292))
+* Auth: AuthTokenHolder.clearToken executed in the middle of an ongoing token update doesn't actually clear ([KTOR-8312](https://youtrack.jetbrains.com/issue/KTOR-8312))
+* Android: "Array has more than one element" error when starting a server with release build ([KTOR-7298](https://youtrack.jetbrains.com/issue/KTOR-7298))
+* WebSockets: extensions in sec-websocket-extensions header must be separated by comma ([KTOR-6384](https://youtrack.jetbrains.com/issue/KTOR-6384))
+* OkHttp: Cancelling of SSESession.incoming flow doesn't cancel connection ([KTOR-8244](https://youtrack.jetbrains.com/issue/KTOR-8244))
+
+
+# 3.1.1
+> Published 24 February 2025
+
+### Improvements
+* Logging: messages are printed per line with OkHttp logger format ([KTOR-8218](https://youtrack.jetbrains.com/issue/KTOR-8218))
+* WebSocket and SSE don't respect connection timeout set in the HttpTimeout plugin ([KTOR-8206](https://youtrack.jetbrains.com/issue/KTOR-8206))
+
+### Bugfixes
+* formData: implementation of copying Source is broken ([KTOR-8210](https://youtrack.jetbrains.com/issue/KTOR-8210))
+* Race condition when writing to a buffer leads to NPE inside CIOReaderKt.readFrom ([KTOR-8105](https://youtrack.jetbrains.com/issue/KTOR-8105))
+* TLS client: IOException while writing to a closed TLS socket since 3.0.0 ([KTOR-7860](https://youtrack.jetbrains.com/issue/KTOR-7860))
+* Exception thrown in onCallRespond makes the client wait for response indefinitely ([KTOR-7139](https://youtrack.jetbrains.com/issue/KTOR-7139))
+* HttpCache: Cache isn't updated when Vary header for 304 response matches but not equal to Vary for 200 response ([KTOR-7104](https://youtrack.jetbrains.com/issue/KTOR-7104))
+* OOM on SourceByteReadChannel for large input ([KTOR-8190](https://youtrack.jetbrains.com/issue/KTOR-8190))
+* ArrayIndexOutOfBounds kotlinx-io ([KTOR-8096](https://youtrack.jetbrains.com/issue/KTOR-8096))
+* NPE in readBuffer ([KTOR-8086](https://youtrack.jetbrains.com/issue/KTOR-8086))
+* JS/WASM fails with "IllegalStateException: Content-Length mismatch" on requesting gzipped content ([KTOR-7934](https://youtrack.jetbrains.com/issue/KTOR-7934))
+* Resources: a / route isn't resolved when there is a sibling `staticResources` ([KTOR-6671](https://youtrack.jetbrains.com/issue/KTOR-6671))
+* Server accepts \r without a following \n as a valid line terminator in chunked transfer encoding ([KTOR-8015](https://youtrack.jetbrains.com/issue/KTOR-8015))
+
+
 # 3.1.0
 > Published 11 February 2025
 
