@@ -5,13 +5,19 @@
 package io.ktor.utils.io.jvm.javaio
 
 import io.ktor.utils.io.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
+import kotlinx.io.IOException
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 @OptIn(InternalAPI::class)
 class ChannelOutputStreamTest {
@@ -205,21 +211,6 @@ class ChannelOutputStreamTest {
     }
 
     @Test
-    fun testProcessingJobInitialization() = runTest {
-        val channel = ByteChannel()
-        val outputStream = ChannelOutputStream(channel)
-
-        // Verify that no processing job is created until first write
-        outputStream.write(42)
-
-        // Job should now exist and be active
-        outputStream.flush()
-
-        assertEquals(42, channel.readByte().toInt() and 0xff)
-        outputStream.close()
-    }
-
-    @Test
     fun testMultipleCloseCallsAreIdempotent() = runTest {
         val channel = ByteChannel()
         val outputStream = ChannelOutputStream(channel)
@@ -234,4 +225,80 @@ class ChannelOutputStreamTest {
         assertEquals(42, channel.readByte().toInt() and 0xff)
     }
 
+    @Test
+    fun testWritesAreStreamedWithoutExplicitFlush() = runTest {
+        val channel = ByteChannel()
+        val outputStream = ChannelOutputStream(channel)
+        val data = ByteArray(16 * 1024) { it.toByte() }
+
+        // Exceeds the internal flush threshold, so it must reach the channel
+        // even though neither flush() nor close() is called
+        outputStream.write(data)
+
+        val result = ByteArray(data.size)
+        channel.readFully(result)
+        assertContentEquals(data, result)
+        outputStream.close()
+    }
+
+    @Test
+    fun testCloseDeliversBufferedDataWhenFlushQueueIsFull() = runTest {
+        val channel = ByteChannel()
+        val outputStream = ChannelOutputStream(channel)
+        val big = ByteArray(1024 * 1024)
+        val chunk = ByteArray(128) { (it + 1).toByte() }
+        val queuedChunks = 64
+
+        val writer = launch(Dispatchers.IO) {
+            // Parks the flush job on channel backpressure, then fills the hand-off queue
+            outputStream.write(big)
+            repeat(queuedChunks) {
+                outputStream.write(chunk)
+                outputStream.flush()
+            }
+            // Stays in the local buffer; closeSuspend must deliver it despite the full queue
+            outputStream.write(chunk)
+            outputStream.closeSuspend()
+        }
+
+        val result = ByteArray(big.size + (queuedChunks + 1) * chunk.size)
+        channel.readFully(result)
+        writer.join()
+
+        assertContentEquals(chunk, result.copyOfRange(result.size - chunk.size, result.size))
+    }
+
+    @Test
+    fun testWriteFailureIsRethrownFromCloseSuspend() = runTest {
+        val channel = ByteChannel()
+        val outputStream = ChannelOutputStream(channel)
+
+        // Exceeds the channel capacity, so the flush job parks in flush() until failed
+        outputStream.write(ByteArray(2 * 1024 * 1024) { 1 })
+        channel.cancel(IOException("failed"))
+
+        val exception = assertFailsWith<IOException> {
+            outputStream.closeSuspend()
+        }
+        assertTrue(
+            generateSequence(exception as Throwable) { it.cause }.any { it.message == "failed" },
+            "Expected the original failure in the cause chain, got: $exception",
+        )
+    }
+
+    @Test
+    fun testCancellingParentContextFailsTheStream() = runTest {
+        val parent = Job()
+        val channel = ByteChannel()
+        val outputStream = ChannelOutputStream(channel, parent)
+
+        // Exceeds the channel capacity, so the flush job parks in flush() until cancelled
+        outputStream.write(ByteArray(2 * 1024 * 1024) { 1 })
+        parent.cancel()
+
+        assertFailsWith<CancellationException> {
+            outputStream.closeSuspend()
+        }
+        assertTrue(channel.isClosedForWrite)
+    }
 }

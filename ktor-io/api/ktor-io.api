@@ -585,6 +585,16 @@ public final class io/ktor/utils/io/jvm/javaio/BlockingKt {
 	public static final fun toOutputStream (Lio/ktor/utils/io/ByteWriteChannel;)Ljava/io/OutputStream;
 }
 
+public class io/ktor/utils/io/jvm/javaio/ChannelOutputStream : java/io/OutputStream {
+	public fun <init> (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;)V
+	public synthetic fun <init> (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun close ()V
+	public final fun closeSuspend (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun flush ()V
+	public fun write (I)V
+	public fun write ([BII)V
+}
+
 public final class io/ktor/utils/io/jvm/javaio/ReadingKt {
 	public static final fun toByteReadChannel (Ljava/io/InputStream;Lkotlin/coroutines/CoroutineContext;Lio/ktor/utils/io/pool/ObjectPool;)Lio/ktor/utils/io/ByteReadChannel;
 	public static synthetic fun toByteReadChannel$default (Ljava/io/InputStream;Lkotlin/coroutines/CoroutineContext;Lio/ktor/utils/io/pool/ObjectPool;ILjava/lang/Object;)Lio/ktor/utils/io/ByteReadChannel;
