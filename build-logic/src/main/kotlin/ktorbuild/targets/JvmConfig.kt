@@ -44,6 +44,9 @@ private fun Project.configureTests() {
         maxHeapSize = "2g"
         exclude("**/*StressTest*")
         useJUnitPlatform()
+        develocity.predictiveTestSelection {
+            enabled = true
+        }
         configureJavaToolchain(ktorBuild.jvmToolchain, ktorBuild.jvmTestToolchain)
     }
 
@@ -57,6 +60,9 @@ private fun Project.configureTests() {
         systemProperty("enable.stress.tests", "true")
         include("**/*StressTest*")
         useJUnitPlatform()
+        develocity.predictiveTestSelection {
+            enabled = true
+        }
         configureJavaToolchain(ktorBuild.jvmToolchain, ktorBuild.jvmTestToolchain)
     }
 }
