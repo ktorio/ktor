@@ -7,7 +7,9 @@ package io.ktor.http.content
 import io.ktor.http.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
+import kotlinx.coroutines.Dispatchers
 import java.io.OutputStream
+import kotlin.coroutines.CoroutineContext
 
 /**
  * [OutgoingContent] to respond with [OutputStream].
@@ -19,27 +21,17 @@ public class OutputStreamContent(
     private val body: suspend OutputStream.() -> Unit,
     override val contentType: ContentType,
     override val status: HttpStatusCode? = null,
-    override val contentLength: Long? = null
+    override val contentLength: Long? = null,
+    private val coroutineContext: CoroutineContext = Dispatchers.IO,
 ) : OutgoingContent.WriteChannelContent() {
 
+    @OptIn(InternalAPI::class)
     override suspend fun writeTo(channel: ByteWriteChannel) {
-        channel.withBlockingOutputStream(block = body)
-    }
-
-    /**
-     * Writes the content body directly to the given [stream], bypassing the [ByteWriteChannel] intermediary.
-     *
-     * Engine implementations that have access to a native blocking [OutputStream] (e.g. servlet engines
-     * backed by a thread-per-request model) should call this method instead of [writeTo(ByteWriteChannel)]
-     * to avoid dispatching to [kotlinx.coroutines.Dispatchers.IO] and the `runBlocking` bridge inside
-     * [ByteWriteChannel.toOutputStream].
-     *
-     * The caller is responsible for closing the [stream] after this method returns.
-     *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.OutputStreamContent.writeTo)
-     */
-    @InternalAPI
-    public suspend fun writeTo(stream: OutputStream) {
-        stream.body()
+        val outputStream = ChannelOutputStream(channel, coroutineContext)
+        try {
+            outputStream.body()
+        } finally {
+            outputStream.closeSuspend()
+        }
     }
 }
