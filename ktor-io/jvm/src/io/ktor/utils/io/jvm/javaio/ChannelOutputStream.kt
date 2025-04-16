@@ -17,8 +17,8 @@ import kotlin.coroutines.CoroutineContext
 public open class ChannelOutputStream(
     private val channel: ByteWriteChannel,
     coroutineContext: CoroutineContext = Dispatchers.IO,
-): OutputStream() {
-    private val scope = CoroutineScope(coroutineContext + SupervisorJob())
+) : OutputStream() {
+    private val scope = CoroutineScope(coroutineContext)
     private var buffer = Buffer()
     private val flushes = Channel<Buffer>(Channel.BUFFERED)
     private val flushJob = scope.launch {
@@ -28,7 +28,6 @@ public open class ChannelOutputStream(
                 channel.flush()
             }
         } catch (throwable: Throwable) {
-            channel.close(throwable)
             flushes.close(throwable)
         }
     }
@@ -44,8 +43,9 @@ public open class ChannelOutputStream(
     }
 
     override fun flush() {
-        if (channel.isClosedForWrite || flushes.isClosedForSend)
+        if (channel.isClosedForWrite || flushes.isClosedForSend) {
             throw channel.closedCause ?: ClosedWriteChannelException()
+        }
         if (flushes.trySend(buffer).isFailure) {
             runBlocking(scope.coroutineContext) {
                 flushes.send(buffer)
@@ -67,8 +67,8 @@ public open class ChannelOutputStream(
     }
 
     private fun assertNotClosed() {
-        if (flushes.isClosedForSend || channel.isClosedForWrite)
+        if (flushes.isClosedForSend || channel.isClosedForWrite) {
             throw channel.closedCause ?: ClosedWriteChannelException()
+        }
     }
-
 }

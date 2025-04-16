@@ -83,15 +83,20 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             }
         }
 
-        withUrl("/respondWrite") {
-            assertEquals(HttpStatusCode.OK.value, status.value)
-            while (true) {
-                val exception = collected.poll(timeout.inWholeSeconds, TimeUnit.SECONDS)
-                if (exception is ExpectedException) {
-                    assertEquals(message, exception.message)
-                    break
+        try {
+            withUrl("/respondWrite") {
+                assertEquals(HttpStatusCode.OK.value, status.value)
+
+                while (true) {
+                    val exception = collected.poll(timeout.inWholeSeconds, TimeUnit.SECONDS)
+                    if (exception is ExpectedException) {
+                        assertEquals(message, exception.message)
+                        break
+                    }
                 }
             }
+        } catch (e: ClosedReadChannelException) {
+            // expected
         }
     }
 

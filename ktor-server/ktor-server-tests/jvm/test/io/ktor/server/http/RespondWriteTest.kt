@@ -6,12 +6,13 @@ package io.ktor.server.http
 
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.utils.io.ClosedByteChannelException
 import kotlinx.coroutines.*
+import org.junit.jupiter.api.assertInstanceOf
 import java.util.concurrent.*
 import kotlin.test.*
 
@@ -39,9 +40,10 @@ class RespondWriteTest {
             }
         }
 
-        val response = client.get("/")
-        assertEquals(HttpStatusCode.OK, response.status)
-        assertEquals("", response.bodyAsText())
+        val closed = assertFailsWith<ClosedByteChannelException> {
+            client.get("/")
+        }
+        assertInstanceOf<IllegalStateException>(closed.rootCause)
     }
 
     @Test
@@ -81,8 +83,17 @@ class RespondWriteTest {
             }
         }
 
-        val response = client.get("/")
-        assertEquals(HttpStatusCode.OK, response.status)
-        assertEquals("OK", response.bodyAsText())
+        val closed = assertFailsWith<ClosedByteChannelException> {
+            client.get("/")
+        }
+        assertInstanceOf<IllegalStateException>(closed.rootCause)
+    }
+
+    val Throwable.rootCause: Throwable get() {
+        var current = this
+        while (true) {
+            val cause = current.cause ?: return current
+            current = cause
+        }
     }
 }

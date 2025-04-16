@@ -797,6 +797,9 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
                     var count = 0
                     while (!readingStarted) {
                         write(++count)
+                        if (count % 100 == 0) {
+                            flush()
+                        }
                         assertFalse(count > 10_000_000)
                     }
                 }

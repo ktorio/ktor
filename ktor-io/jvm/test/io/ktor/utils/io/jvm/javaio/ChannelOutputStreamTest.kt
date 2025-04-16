@@ -233,5 +233,4 @@ class ChannelOutputStreamTest {
 
         assertEquals(42, channel.readByte().toInt() and 0xff)
     }
-
 }
