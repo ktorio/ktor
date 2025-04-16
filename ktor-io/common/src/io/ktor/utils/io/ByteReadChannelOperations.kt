@@ -560,120 +560,13 @@ public suspend fun ByteReadChannel.readUntil(
     limit: Long = Long.MAX_VALUE,
     ignoreMissing: Boolean = false,
 ): Long {
-    check(matchString.size > 0) {
-        "Empty match string not permitted for readUntil"
-    }
-
-    val partialMatchTable = buildPartialMatchTable(matchString)
-    val partialMatchBuffer = Buffer()
-    val input = readBuffer
-    var rc = 0L
-    var matchIndex = 0
-
-    fun checkBounds(extra: Long) {
-        if (rc + extra > limit) {
-            throw IOException(
-                "Limit of $limit bytes exceeded " +
-                    "while searching for \"${matchString.toSingleLineString()}\""
-            )
-        }
-    }
-
-    // Quick scan for first byte
-    suspend fun advanceToNextMatch() {
-        while (!input.exhausted() || awaitContent()) {
-            val nextMatch = input.indexOf(matchString[0])
-            when {
-                nextMatch == -1L -> {
-                    checkBounds((input as Buffer).size)
-                    rc += input.transferTo(writeChannel.writeBuffer)
-                }
-                else -> {
-                    checkBounds(nextMatch)
-                    rc += input.readAtMostTo(writeChannel.writeBuffer as Buffer, nextMatch)
-                    return
-                }
-            }
-        }
-    }
-
-    // Slow sequential check for potential match
-    suspend fun readCompleteMatch(): Boolean {
-        while (!input.exhausted() || awaitContent()) {
-            val byte = input.readByte()
-
-            if (matchIndex > 0 && byte != matchString[matchIndex]) {
-                // update match index from our table
-                val oldMatchIndex = matchIndex
-                while (matchIndex > 0 && byte != matchString[matchIndex]) {
-                    matchIndex = partialMatchTable[matchIndex - 1]
-                }
-                // write the discarded partial match
-                val retained = (oldMatchIndex - matchIndex).toLong()
-                checkBounds(retained)
-                rc += partialMatchBuffer.readAtMostTo(
-                    writeChannel.writeBuffer as Buffer,
-                    retained
-                )
-                // no longer matching, scan for next match
-                if (matchIndex == 0 && byte != matchString[matchIndex]) {
-                    writeChannel.writeByte(byte)
-                    rc++
-                    return false
-                }
-            }
-
-            // return if complete match, else add to partial buffer
-            if (++matchIndex == matchString.size) {
-                return true
-            }
-            partialMatchBuffer.writeByte(byte)
-        }
-        return false
-    }
-
-    while (!input.exhausted() || awaitContent()) {
-        advanceToNextMatch()
-        writeChannel.flush()
-
-        if (readCompleteMatch()) {
-            return rc
-        }
-    }
-
-    if (!ignoreMissing) {
-        throw IOException("Expected \"${matchString.toSingleLineString()}\" but encountered end of input")
-    }
-
-    // Write remaining and return
-    rc += partialMatchBuffer.transferTo(writeChannel.writeBuffer)
-    writeChannel.flush()
-    return rc
+    return ByteChannelScanner(
+        channel = this,
+        matchString = matchString,
+        writeChannel = writeChannel,
+        limit = limit,
+    ).findNext(ignoreMissing)
 }
-
-/**
- * Helper function to build the partial match table (also known as "longest prefix suffix" table)
- */
-private fun buildPartialMatchTable(byteString: ByteString): IntArray {
-    val table = IntArray(byteString.size)
-    var j = 0
-
-    for (i in 1 until byteString.size) {
-        while (j > 0 && byteString[i] != byteString[j]) {
-            j = table[j - 1]
-        }
-        if (byteString[i] == byteString[j]) {
-            j++
-        }
-        table[i] = j
-    }
-
-    return table
-}
-
-// Used in formatting errors
-private fun ByteString.toSingleLineString() =
-    decodeToString().replace("\n", "\\n")
 
 /**
  * Skips the specified [byteString] in the ByteReadChannel if it is found at the current position.
