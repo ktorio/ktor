@@ -129,8 +129,10 @@ internal class ApacheRequestProducer(
                 else -> builder.addHeader(key, value)
             }
         }
+        val isGetOrHeadOrOptions = method == HttpMethod.Get || method == HttpMethod.Head || method == HttpMethod.Options
+        val hasContent = body !is OutgoingContent.NoContent
 
-        if ((method != HttpMethod.Get && method != HttpMethod.Head) || body !is OutgoingContent.NoContent) {
+        if (!isGetOrHeadOrOptions || hasContent) {
             builder.entity = BasicHttpEntity().apply {
                 val lengthResult = length
                 if (lengthResult.isNullOrBlank()) {

@@ -175,5 +175,16 @@ abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) :
         assertTrue(newClient.attributes.contains(anotherCustomPluginKey), "no other custom plugin installed")
     }
 
+    @Test
+    fun testOptionsRequest() {
+        val client = HttpClient(factory)
+
+        runBlocking {
+            client.options("http://localhost:$serverPort/hello").apply {
+                assertEquals(HttpStatusCode.OK, status)
+            }
+        }
+    }
+
     private class SendException : RuntimeException("Error on write")
 }
