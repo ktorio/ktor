@@ -680,6 +680,8 @@ final class io.ktor.server.plugins/MutableOriginConnectionPoint : io.ktor.http/R
     final var version // io.ktor.server.plugins/MutableOriginConnectionPoint.version|{}version[0]
         final fun <get-version>(): kotlin/String // io.ktor.server.plugins/MutableOriginConnectionPoint.version.<get-version>|<get-version>(){}[0]
         final fun <set-version>(kotlin/String) // io.ktor.server.plugins/MutableOriginConnectionPoint.version.<set-version>|<set-version>(kotlin.String){}[0]
+
+    final fun toString(): kotlin/String // io.ktor.server.plugins/MutableOriginConnectionPoint.toString|toString(){}[0]
 }
 
 final class io.ktor.server.plugins/NotFoundException : kotlin/Exception { // io.ktor.server.plugins/NotFoundException|null[0]

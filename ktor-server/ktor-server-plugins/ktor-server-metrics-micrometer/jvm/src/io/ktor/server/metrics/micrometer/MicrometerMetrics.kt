@@ -66,13 +66,13 @@ public class MicrometerMetricsConfig {
 
     /**
      * Specifies if requests for non-existent routes should
-     * contain a request path or fallback to common `n/a` value. `true` by default.
+     * contain a request path or fallback to common `n/a` value. `false` by default.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.metrics.micrometer.MicrometerMetricsConfig.distinctNotRegisteredRoutes)
      *
      * @see [MicrometerMetrics]
      */
-    public var distinctNotRegisteredRoutes: Boolean = true
+    public var distinctNotRegisteredRoutes: Boolean = false
 
     /**
      * Allows you to configure a set of metrics for monitoring the JVM.
