@@ -18,6 +18,9 @@ import kotlinx.io.*
  */
 public interface ByteWriteChannel {
 
+    public val autoFlush: Boolean
+        get() = false
+
     public val isClosedForWrite: Boolean
 
     public val closedCause: Throwable?
@@ -58,5 +61,5 @@ public fun ByteWriteChannel.cancel() {
 public suspend fun ByteWriteChannel.flushIfNeeded() {
     rethrowCloseCauseIfNeeded()
 
-    if ((this as? ByteChannel)?.autoFlush == true || writeBuffer.size >= CHANNEL_MAX_SIZE) flush()
+    if (this.autoFlush == true || writeBuffer.size >= CHANNEL_MAX_SIZE) flush()
 }
