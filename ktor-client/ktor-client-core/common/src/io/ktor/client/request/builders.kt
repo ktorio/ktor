@@ -383,6 +383,7 @@ public suspend inline fun HttpClient.put(block: HttpRequestBuilder.() -> Unit): 
     builder.method = HttpMethod.Put
     return request(builder.apply(block))
 }
+
 /**
  * Executes an [HttpClient]'s DELETE request with the parameters configured in [block].
  *
@@ -421,6 +422,7 @@ public suspend inline fun HttpClient.patch(block: HttpRequestBuilder.() -> Unit)
     builder.method = HttpMethod.Patch
     return request(builder.apply(block))
 }
+
 /**
  * Executes an [HttpClient]'s HEAD request with the parameters configured in [block].
  *

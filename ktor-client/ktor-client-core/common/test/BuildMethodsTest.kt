@@ -99,7 +99,7 @@ class BuildMethodsTest {
             assertEquals(HttpMethod.Delete, method)
         }
 
-        client.prepareDelete ("/") {
+        client.prepareDelete("/") {
             assertEquals(HttpMethod.Delete, method)
         }.execute()
 
@@ -127,7 +127,7 @@ class BuildMethodsTest {
             assertEquals(HttpMethod.Options, method)
         }
 
-        client.prepareOptions ("/") {
+        client.prepareOptions("/") {
             assertEquals(HttpMethod.Options, method)
         }.execute()
 
@@ -155,7 +155,7 @@ class BuildMethodsTest {
             assertEquals(HttpMethod.Patch, method)
         }
 
-        client.preparePatch ("/") {
+        client.preparePatch("/") {
             assertEquals(HttpMethod.Patch, method)
         }.execute()
 
@@ -183,7 +183,7 @@ class BuildMethodsTest {
             assertEquals(HttpMethod.Head, method)
         }
 
-        client.prepareHead ("/") {
+        client.prepareHead("/") {
             assertEquals(HttpMethod.Head, method)
         }.execute()
 
@@ -211,7 +211,7 @@ class BuildMethodsTest {
             assertEquals(HttpMethod.Get, method)
         }
 
-        client.prepareGet ("/") {
+        client.prepareGet("/") {
             assertEquals(HttpMethod.Get, method)
         }.execute()
 
