@@ -157,7 +157,7 @@ class ByteReadChannelOperationsTest {
 
     @Test
     fun readUntilEmpty() = runTest {
-        assertFailsWith<IllegalStateException> {
+        assertFailsWith<IllegalArgumentException> {
             "test".toByteChannel().readUntil(ByteString(), ByteChannel())
         }
     }
