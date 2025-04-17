@@ -9,7 +9,6 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
-import org.fusesource.jansi.*
 import org.slf4j.*
 import org.slf4j.event.*
 
@@ -26,6 +25,8 @@ public class CallLoggingConfig {
     internal var formatCall: (ApplicationCall) -> String = ::defaultFormat
     internal var isColorsEnabled: Boolean = true
     internal var ignoreStaticContent: Boolean = false
+
+    private val isAnsiSupported: Boolean = supportsAnsi()
 
     /**
      * Specifies a logging level for the [CallLogging] plugin.
@@ -121,43 +122,69 @@ public class CallLoggingConfig {
             HttpStatusCode.Found -> "${colored(status as HttpStatusCode)}: " +
                 "${call.request.toLogStringWithColors()} -> ${call.response.headers[HttpHeaders.Location]}"
 
-            "Unhandled" -> "${colored(status, Ansi.Color.RED)}: ${call.request.toLogStringWithColors()}"
+            "Unhandled" -> "${colored(status, RED_COLOR)}: ${call.request.toLogStringWithColors()}"
             else -> "${colored(status as HttpStatusCode)}: ${call.request.toLogStringWithColors()}"
         }
 
     internal fun ApplicationRequest.toLogStringWithColors(): String =
-        "${colored(httpMethod.value, Ansi.Color.CYAN)} - ${path()} in ${call.processingTimeMillis(clock)}ms"
+        "${colored(httpMethod.value, CYAN_COLOR)} - ${path()} in ${call.processingTimeMillis(clock)}ms"
 
     private fun colored(status: HttpStatusCode): String {
-        try {
-            if (isColorsEnabled && !AnsiConsole.isInstalled()) {
-                AnsiConsole.systemInstall()
-            }
-        } catch (cause: Throwable) {
-            isColorsEnabled = false // ignore colors if console was not installed
-        }
-
         return when (status) {
             HttpStatusCode.Found, HttpStatusCode.OK, HttpStatusCode.Accepted, HttpStatusCode.Created -> colored(
                 status,
-                Ansi.Color.GREEN
+                GREEN_COLOR
             )
 
             HttpStatusCode.Continue, HttpStatusCode.Processing, HttpStatusCode.PartialContent,
             HttpStatusCode.NotModified, HttpStatusCode.UseProxy, HttpStatusCode.UpgradeRequired,
-            HttpStatusCode.NoContent -> colored(
-                status,
-                Ansi.Color.YELLOW
-            )
+            HttpStatusCode.NoContent -> colored(status, YELLOW_COLOR)
 
-            else -> colored(status, Ansi.Color.RED)
+            else -> colored(status, RED_COLOR)
         }
     }
 
-    private fun colored(value: Any, color: Ansi.Color): String =
-        if (isColorsEnabled) {
-            Ansi.ansi().fg(color).a(value).reset().toString()
+    private fun colored(value: Any, color: Color): String =
+        if (isColorsEnabled && isAnsiSupported) {
+            "\u001b[${color}m" + value.toString() + "\u001b[0m"
         } else {
             value.toString() // ignore color
         }
+}
+
+private typealias Color = Int
+
+private const val RED_COLOR = 31
+private const val GREEN_COLOR = 32
+private const val YELLOW_COLOR = 33
+private const val CYAN_COLOR = 36
+
+private fun supportsAnsi(): Boolean {
+    // TODO: Redirection to a file considers it a terminal
+    if (System.getProperty("os.name").startsWith("Windows")) {
+        val osVersion = System.getProperty("os.version")
+
+        if (osVersion != null) {
+            var major = 0
+            for (c in osVersion) {
+                if (c in '0'..'9') {
+                    major = major * 10 + (c.code - '0'.code)
+                } else {
+                    break
+                }
+            }
+
+            return major >= 10
+        } else {
+            return false
+        }
+    }
+
+    if (System.getenv("COLORTERM") != null) {
+        return true
+    }
+
+    val term = System.getenv("TERM")
+    return term != null && (term.contains("color") || term.contains("xterm")
+        || term.contains("screen") || term.contains("tmux"))
 }

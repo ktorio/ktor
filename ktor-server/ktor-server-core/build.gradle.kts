@@ -27,7 +27,7 @@ kotlin {
 
         jvmMain.dependencies {
             api(libs.typesafe.config)
-            implementation(libs.jansi)
+//            implementation(libs.jansi)
         }
 
         commonTest.dependencies {

@@ -11,7 +11,7 @@ plugins {
 kotlin {
     sourceSets {
         jvmMain.dependencies {
-            implementation(libs.jansi)
+//            implementation(libs.jansi)
             implementation(libs.kotlinx.coroutines.slf4j)
         }
 
