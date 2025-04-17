@@ -17,6 +17,7 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest
+import com.gradle.develocity.agent.gradle.test.PredictiveTestSelectionProfile
 
 internal fun Project.configureJvm() {
     addProjectTag(ProjectTag.Jvm)
@@ -46,6 +47,7 @@ private fun Project.configureTests() {
         useJUnitPlatform()
         develocity.predictiveTestSelection {
             enabled = true
+            profile = PredictiveTestSelectionProfile.FAST
         }
         configureJavaToolchain(ktorBuild.jvmToolchain, ktorBuild.jvmTestToolchain)
     }
@@ -62,6 +64,7 @@ private fun Project.configureTests() {
         useJUnitPlatform()
         develocity.predictiveTestSelection {
             enabled = true
+            profile = PredictiveTestSelectionProfile.FAST
         }
         configureJavaToolchain(ktorBuild.jvmToolchain, ktorBuild.jvmTestToolchain)
     }
