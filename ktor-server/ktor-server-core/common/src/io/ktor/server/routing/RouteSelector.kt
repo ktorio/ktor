@@ -184,6 +184,14 @@ public sealed class RouteSelectorEvaluation(
             RouteSelectorEvaluation.Failure(qualityFailedParameter, HttpStatusCode.BadRequest)
 
         /**
+         * Routing evaluation failed to succeed on Accept header.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RouteSelectorEvaluation.Companion.FailedAcceptHeader)
+         */
+        public val FailedAcceptHeader: RouteSelectorEvaluation.Failure =
+            RouteSelectorEvaluation.Failure(qualityFailedParameter, HttpStatusCode.NotAcceptable)
+
+        /**
          * Routing evaluation succeeded for a missing optional value.
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RouteSelectorEvaluation.Companion.Missing)
@@ -707,7 +715,7 @@ public data class HttpMultiAcceptRouteSelector(
                 return RouteSelectorEvaluation.Success(header.quality)
             }
 
-            return RouteSelectorEvaluation.FailedParameter
+            return RouteSelectorEvaluation.FailedAcceptHeader
         } catch (failedToParse: BadContentTypeFormatException) {
             throw BadRequestException("Illegal Accept header format: $acceptHeaderContent", failedToParse)
         }

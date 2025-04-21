@@ -255,7 +255,7 @@ class RoutingProcessingTest {
             client.get("/image") {
                 header(HttpHeaders.Accept, ContentType.Text.Plain)
             }.let {
-                assertEquals(HttpStatusCode.BadRequest, it.status)
+                assertEquals(HttpStatusCode.NotAcceptable, it.status)
             }
         }
     }
@@ -546,7 +546,7 @@ class RoutingProcessingTest {
         client.get("/") {
             header(HttpHeaders.Accept, "text/html")
         }.let {
-            assertEquals(HttpStatusCode.BadRequest, it.status)
+            assertEquals(HttpStatusCode.NotAcceptable, it.status)
         }
 
         client.get("/") {
@@ -1032,6 +1032,25 @@ class RoutingProcessingTest {
         client.post("/").let { response ->
             assertEquals(HttpStatusCode.NotFound, response.status)
             assertEquals("", response.bodyAsText())
+        }
+    }
+
+    @Test
+    fun testRoutingAcceptContentUnknownValue() = testApplication {
+        routing {
+            accept(ContentType.Text.Html) {
+                get {
+                    call.respondText("Hello World!")
+                }
+            }
+        }
+        on("making request with accept header text/plain") {
+            val result = client.get("/") {
+                header(HttpHeaders.Accept, "text/plain")
+            }
+            it("should return 406 Not Acceptable") {
+                assertEquals(HttpStatusCode.NotAcceptable, result.status)
+            }
         }
     }
 
