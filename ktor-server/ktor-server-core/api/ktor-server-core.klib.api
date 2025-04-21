@@ -1492,6 +1492,8 @@ sealed class io.ktor.server.routing/RouteSelectorEvaluation { // io.ktor.server.
             final fun <get-ConstantPath>(): io.ktor.server.routing/RouteSelectorEvaluation // io.ktor.server.routing/RouteSelectorEvaluation.Companion.ConstantPath.<get-ConstantPath>|<get-ConstantPath>(){}[0]
         final val Failed // io.ktor.server.routing/RouteSelectorEvaluation.Companion.Failed|{}Failed[0]
             final fun <get-Failed>(): io.ktor.server.routing/RouteSelectorEvaluation.Failure // io.ktor.server.routing/RouteSelectorEvaluation.Companion.Failed.<get-Failed>|<get-Failed>(){}[0]
+        final val FailedAcceptHeader // io.ktor.server.routing/RouteSelectorEvaluation.Companion.FailedAcceptHeader|{}FailedAcceptHeader[0]
+            final fun <get-FailedAcceptHeader>(): io.ktor.server.routing/RouteSelectorEvaluation.Failure // io.ktor.server.routing/RouteSelectorEvaluation.Companion.FailedAcceptHeader.<get-FailedAcceptHeader>|<get-FailedAcceptHeader>(){}[0]
         final val FailedMethod // io.ktor.server.routing/RouteSelectorEvaluation.Companion.FailedMethod|{}FailedMethod[0]
             final fun <get-FailedMethod>(): io.ktor.server.routing/RouteSelectorEvaluation.Failure // io.ktor.server.routing/RouteSelectorEvaluation.Companion.FailedMethod.<get-FailedMethod>|<get-FailedMethod>(){}[0]
         final val FailedParameter // io.ktor.server.routing/RouteSelectorEvaluation.Companion.FailedParameter|{}FailedParameter[0]
