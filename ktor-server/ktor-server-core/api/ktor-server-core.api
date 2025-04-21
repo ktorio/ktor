@@ -1590,6 +1590,7 @@ public final class io/ktor/server/routing/RouteSelectorEvaluation$Companion {
 	public final fun getConstant ()Lio/ktor/server/routing/RouteSelectorEvaluation;
 	public final fun getConstantPath ()Lio/ktor/server/routing/RouteSelectorEvaluation;
 	public final fun getFailed ()Lio/ktor/server/routing/RouteSelectorEvaluation$Failure;
+	public final fun getFailedAcceptHeader ()Lio/ktor/server/routing/RouteSelectorEvaluation$Failure;
 	public final fun getFailedMethod ()Lio/ktor/server/routing/RouteSelectorEvaluation$Failure;
 	public final fun getFailedParameter ()Lio/ktor/server/routing/RouteSelectorEvaluation$Failure;
 	public final fun getFailedPath ()Lio/ktor/server/routing/RouteSelectorEvaluation$Failure;
