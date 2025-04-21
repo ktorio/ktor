@@ -43,6 +43,9 @@ abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) :
                 val text = call.receiveText()
                 call.respondText(text)
             }
+            options("/hello") {
+                call.respond(HttpStatusCode.OK)
+            }
 
             route("/sse") {
                 val messages = Channel<String>()
