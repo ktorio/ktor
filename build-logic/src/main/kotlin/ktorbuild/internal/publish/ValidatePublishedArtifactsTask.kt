@@ -21,6 +21,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.options.Option
 import org.gradle.kotlin.dsl.assign
 import org.gradle.language.base.plugins.LifecycleBasePlugin
+import org.gradle.work.DisableCachingByDefault
 import java.io.File
 
 /**
@@ -50,6 +51,7 @@ import java.io.File
  * See: https://github.com/Kotlin/kotlinx.serialization/blob/v1.8.0/buildSrc/src/main/kotlin/publishing-check-conventions.gradle.kts
  */
 @Suppress("LeakingThis")
+@DisableCachingByDefault(because = "Isn't worth caching")
 internal abstract class ValidatePublishedArtifactsTask : DefaultTask() {
 
     @get:Option(option = DUMP_OPTION, description = "Dumps the list of published artifacts to a file")
@@ -69,51 +71,45 @@ internal abstract class ValidatePublishedArtifactsTask : DefaultTask() {
         group = LifecycleBasePlugin.VERIFICATION_GROUP
         description = "Checks that the list of published artifacts matches the expected one"
 
-        outputs.cacheIf("Isn't worth caching") { false }
         dump.convention(false)
-        configurePublishTaskName()
 
-        // Initialize the publishedArtifacts list to empty by default
-        publishedArtifacts.convention(emptyList())
-
-        // Collect artifacts from the all publishing tasks in the task graph
-        project.gradle.taskGraph.whenReady {
-            val publishTasks = allTasks.filterIsInstance<PublishToMavenRepository>()
-            if (publishTasks.isNotEmpty()) {
-                publishTasks.forEach { publishTask ->
+        val publishTaskNameConfigured = configurePublishTaskName()
+        if (publishTaskNameConfigured) {
+            // Collect artifacts from the all publishing tasks in the task graph
+            project.gradle.taskGraph.whenReady {
+                allTasks.filterIsInstance<PublishToMavenRepository>().forEach { publishTask ->
                     publishedArtifacts.addAll(publishTask.publication.formatArtifacts())
                 }
             }
         }
+
+        onlyIf("Publish task name configured") { publishTaskNameConfigured }
     }
 
-    private fun configurePublishTaskName() {
+    private fun configurePublishTaskName(): Boolean {
         val taskNames = project.gradle.startParameter.taskNames.filterNot { name ->
             // Filter out the validation task itself and task parameters
             name == NAME || name.startsWith("-")
         }
-
-        // Find publish tasks among the specified tasks
-        val publishTasks = taskNames.filter { it.contains("publish", ignoreCase = true) }
-
-        if (publishTasks.isEmpty()) {
-            // If no publish task is specified, use a default name for the artifacts dump
-            publishTaskName.set("defaultPublish")
-            artifactsDump.set(project.rootDir.resolve("gradle/artifacts/defaultPublish.txt"))
-            return
+        if (taskNames.size != 1) {
+            logger.warn("Task $NAME should be run together with exactly one publish task, but got: $taskNames")
+            return false
         }
 
-        // Use the first publish task if multiple are specified
-        publishTaskName.set(publishTasks.first())
+        publishTaskName = taskNames.single()
         artifactsDump = publishTaskName.map { taskName ->
             val sanitizedTaskName = taskName.replace(":", "_")
             project.rootDir.resolve("gradle/artifacts/${sanitizedTaskName}.txt")
         }
+        return true
     }
 
     fun dependsOn(publishedProjects: Provider<List<Project>>) = with(project) {
+        // publishTaskName won't be set if the task is used improperly and should be skipped
+        // In this case we can't (and shouldn't) configure the task dependencies
+        val taskName = publishTaskName.orNull ?: return
+
         // Handle the case when an absolute task path is specified
-        val taskName = publishTaskName.get()
         if (taskName.startsWith(":")) {
             val publishTask = tasks.getByPath(taskName)
             dependsOn(publishTask)
@@ -134,12 +130,6 @@ internal abstract class ValidatePublishedArtifactsTask : DefaultTask() {
 
         val actualArtifacts = publishedArtifacts.get().toSortedSet()
         val dumpFile = artifactsDump.get().asFile
-
-        // If no artifacts were collected and we're not in dump mode, skip validation
-        if (actualArtifacts.isEmpty() && !dump.get()) {
-            logger.lifecycle("No artifacts were collected for validation. Skipping.")
-            return
-        }
 
         if (dump.get()) {
             if (!dumpFile.exists()) {
