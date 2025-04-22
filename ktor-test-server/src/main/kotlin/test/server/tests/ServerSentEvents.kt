@@ -153,6 +153,9 @@ internal fun Application.serverSentEvents() {
             get("no-content") {
                 call.respond(HttpStatusCode.NoContent)
             }
+            get("no-events") {
+                call.respondBytesWriter(ContentType.Text.EventStream) {}
+            }
             get("no-content-after-reconnection") {
                 val count = call.parameters["count"]?.toInt() ?: 0
                 val lastEventId = call.request.header("Last-Event-ID")
