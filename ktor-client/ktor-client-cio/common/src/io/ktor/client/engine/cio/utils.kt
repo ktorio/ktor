@@ -65,8 +65,10 @@ internal suspend fun writeHeaders(
             builder.headerLine(HttpHeaders.Host, host)
         }
 
+        val isGetOrHeadOrOptions = method == HttpMethod.Get || method == HttpMethod.Head || method == HttpMethod.Options
+        val hasContent = body !is OutgoingContent.NoContent
         if (contentLength != null) {
-            if ((method != HttpMethod.Get && method != HttpMethod.Head) || body !is OutgoingContent.NoContent) {
+            if (!isGetOrHeadOrOptions || hasContent) {
                 builder.headerLine(HttpHeaders.ContentLength, contentLength)
             }
         }
