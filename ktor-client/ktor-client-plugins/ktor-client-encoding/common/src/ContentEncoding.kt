@@ -1,12 +1,12 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.compression
 
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.plugins.api.*
-import io.ktor.client.plugins.observer.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -170,7 +170,7 @@ public val ContentEncoding: ClientPlugin<ContentEncodingConfig> = createClientPl
             }
         }
         response.call.attributes.put(DecompressionListAttribute, encodings)
-        return response.call.wrap(headers) { response.decodeContent(selectedEncoders) }.response
+        return response.call.replaceResponse(headers) { decodeContent(selectedEncoders) }.response
     }
 
     onRequest { request, _ ->
