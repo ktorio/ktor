@@ -23,7 +23,7 @@ public fun HttpClientCall.wrapWithContent(content: ByteReadChannel): HttpClientC
 }
 
 /**
- * Wrap existing [HttpClientCall] with new [content].
+ * Wrap existing [HttpClientCall] with new content produced by the given [block].
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.observer.wrapWithContent)
  */
@@ -38,6 +38,25 @@ public fun HttpClientCall.wrapWithContent(block: () -> ByteReadChannel): HttpCli
  */
 public fun HttpClientCall.wrap(content: ByteReadChannel, headers: Headers): HttpClientCall {
     return DelegatedCall(client, content, this, headers)
+}
+
+/**
+ * Wrap existing [HttpClientCall] with new [headers] and content produced by the given [block].
+ * The [block] will be called each time the response content is requested.
+ *
+ * ```
+ * // Example: Content decompression. See ContentEncoding implementation for full example
+ * val originalContent = originalCall.response.content
+ * val decodedCall = originalCall.wrap(headersOf("Content-Encoding", "identity")) {
+ *     decodeGzip(originalContent) // returns a new ByteReadChannel with decoded content
+ * }
+ * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.observer.wrap)
+ */
+@InternalAPI
+public fun HttpClientCall.wrap(headers: Headers, block: () -> ByteReadChannel): HttpClientCall {
+    return DelegatedCall(client, block, this, headers)
 }
 
 internal class DelegatedCall(
@@ -72,13 +91,6 @@ internal class DelegatedResponse(
     private val origin: HttpResponse,
     override val headers: Headers = origin.headers
 ) : HttpResponse() {
-
-    constructor(
-        call: HttpClientCall,
-        content: ByteReadChannel,
-        origin: HttpResponse,
-        headers: Headers = origin.headers
-    ) : this(call, { content }, origin, headers)
 
     override val rawContent: ByteReadChannel get() = block()
 
