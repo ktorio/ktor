@@ -50,21 +50,3 @@ public fun <T : WebRTCConfig> WebRTCClient(
     factory: WebRTCClientEngineFactory<T>,
     block: WebRTCConfig.() -> Unit = {}
 ): WebRTCClient = WebRTCClient(factory.create(block))
-
-/**
- * Creates a [WebRTCClient] with a default engine selected from the available implementations.
- *
- * @param block configuration block for the client
- */
-@OptIn(InternalAPI::class)
-@KtorDsl
-public fun WebRTCClient(block: WebRTCConfig.() -> Unit = {}): WebRTCClient {
-    val factory = DefaultWebRTCEngine.factory ?: error("WebRTC client engine is not specified.")
-    return WebRTCClient(factory.create(block))
-}
-
-
-@InternalAPI
-public object DefaultWebRTCEngine {
-    public var factory: WebRTCClientEngineFactory<WebRTCConfig>? = null
-}

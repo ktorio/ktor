@@ -31,6 +31,7 @@ pluginManagement {
         fun RepositoryHandler.() {
             google {
                 content {
+                    includeGroupAndSubgroups("androidx")
                     includeGroupAndSubgroups("com.google")
                     includeGroupAndSubgroups("com.android")
                 }
