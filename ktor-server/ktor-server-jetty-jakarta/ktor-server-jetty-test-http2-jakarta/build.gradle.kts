@@ -8,12 +8,10 @@ plugins {
     id("ktorbuild.project.internal")
 }
 
-ktorBuild {
+kotlin {
     // The minimal JVM version required for Jetty 10+
     jvmToolchain(11)
-}
 
-kotlin {
     sourceSets {
         jvmTest.dependencies {
             api(project(":ktor-server:ktor-server-test-base"))
