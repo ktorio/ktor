@@ -7,9 +7,11 @@ package io.ktor.client.tests
 import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.api.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.test.base.*
+import io.ktor.utils.io.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -88,6 +90,33 @@ class SaveBodyTest : ClientEngineTest<MockEngineConfig>(MockEngine) {
                 @Suppress("DEPRECATION")
                 skipSavingBody()
             }
+            assertEquals("Test", response.bodyAsText())
+            assertEquals("Test", response.bodyAsText())
+        }
+    }
+
+    @OptIn(InternalAPI::class)
+    @Test
+    fun `wrongly implemented plugin shouldn't affect the resulting response replayability`() = testClient {
+        config {
+            engine {
+                addHandler {
+                    respondOk("Test")
+                }
+            }
+
+            val makeBodyNonReplayable = createClientPlugin("MakeBodyNonReplayable") {
+                client.receivePipeline.intercept(HttpReceivePipeline.State) { response ->
+                    val content = response.rawContent
+                    val newResponse = response.call.replaceResponse { content }.response
+                    proceedWith(newResponse)
+                }
+            }
+            install(makeBodyNonReplayable)
+        }
+
+        test { client ->
+            val response = client.get("/")
             assertEquals("Test", response.bodyAsText())
             assertEquals("Test", response.bodyAsText())
         }

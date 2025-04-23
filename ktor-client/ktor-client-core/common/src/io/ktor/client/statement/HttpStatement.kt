@@ -160,6 +160,8 @@ public class HttpStatement(
         val builder = HttpRequestBuilder().takeFromWithExecutionContext(builder)
 
         val call = client.execute(builder)
+        // Save the body again to make sure that it is replayable after pipeline execution
+        // We need this because wrongly implemented plugins could make response body non-replayable
         val result = call.save().response
         call.response.cleanup()
 
