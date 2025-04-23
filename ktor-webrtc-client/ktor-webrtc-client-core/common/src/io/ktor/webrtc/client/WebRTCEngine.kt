@@ -16,52 +16,14 @@ import kotlin.coroutines.CoroutineContext
 public open class WebRTCConfig {
     public var mediaTrackFactory: MediaTrackFactory? = null
     public var dispatcher: CoroutineDispatcher? = null
-    public var iceServers: List<IceServer> = emptyList()
-    public var turnServers: List<IceServer> = emptyList()
+    public var iceServers: List<WebRTC.IceServer> = emptyList()
+    public var turnServers: List<WebRTC.IceServer> = emptyList()
     public var statsRefreshRate: Long = -1
 }
 
-public data class IceServer(
-    val urls: String,
-    val username: String? = null,
-    val credential: String? = null
-)
-
-public enum class FacingMode {
-    USER,
-    ENVIRONMENT,
-    LEFT,
-    RIGHT;
-}
-
-public enum class ResizeMode {
-    NONE,
-    CROP_AND_SCALE
-}
-
-public data class VideoTrackConstraints(
-    val width: Int? = null,
-    val height: Int? = null,
-    val aspectRatio: Double? = null,
-    val frameRate: Double? = null,
-    val facingMode: FacingMode? = null,
-    val resizeMode: ResizeMode? = null,
-)
-
-public data class AudioTrackConstraints(
-    var volume: Double? = null,
-    var sampleRate: Int? = null,
-    var sampleSize: Int? = null,
-    var echoCancellation: Boolean? = null,
-    var autoGainControl: Boolean? = null,
-    var noiseSuppression: Boolean? = null,
-    var latency: Double? = null,
-    var channelCount: Int? = null,
-)
-
 public interface MediaTrackFactory {
-    public suspend fun createAudioTrack(constraints: AudioTrackConstraints): WebRTCAudioTrack
-    public suspend fun createVideoTrack(constraints: VideoTrackConstraints): WebRTCVideoTrack
+    public suspend fun createAudioTrack(constraints: WebRTCMedia.AudioTrackConstraints): WebRTCMedia.AudioTrack
+    public suspend fun createVideoTrack(constraints: WebRTCMedia.VideoTrackConstraints): WebRTCMedia.VideoTrack
 }
 
 public interface WebRTCEngine : CoroutineScope, Closeable, MediaTrackFactory {
@@ -83,7 +45,7 @@ public abstract class WebRTCEngineBase(private val engineName: String) : WebRTCE
     }
 
     override fun close() {
-        if (!closed.compareAndSet(false, true)) return
+        if (!closed.compareAndSet(expect = false, update = true)) return
         val requestJob = coroutineContext[Job] as? CompletableJob ?: return
         requestJob.complete()
     }
@@ -92,78 +54,22 @@ public abstract class WebRTCEngineBase(private val engineName: String) : WebRTCE
 internal expect fun ioDispatcher(): CoroutineDispatcher
 
 public interface WebRtcPeerConnection : Closeable {
-    public val iceCandidateFlow: SharedFlow<IceCandidate>
-    public val statsFlow: StateFlow<List<WebRTCStats>>
+    public val iceCandidateFlow: SharedFlow<WebRTC.IceCandidate>
+    public val statsFlow: StateFlow<List<WebRTC.Stats>>
 
     // That could be useful for some scenarios that are not covered yet
-    public fun getNativeConnection(): Any?
+    public fun getNativeConnection(): Any
 
-    public suspend fun createOffer(): SessionDescription
-    public suspend fun createAnswer(): SessionDescription
+    public suspend fun createOffer(): WebRTC.SessionDescription
+    public suspend fun createAnswer(): WebRTC.SessionDescription
 
-    public suspend fun setLocalDescription(description: SessionDescription)
-    public suspend fun setRemoteDescription(description: SessionDescription)
+    public suspend fun setLocalDescription(description: WebRTC.SessionDescription)
+    public suspend fun setRemoteDescription(description: WebRTC.SessionDescription)
 
-    public suspend fun addIceCandidate(candidate: IceCandidate)
+    public suspend fun addIceCandidate(candidate: WebRTC.IceCandidate)
 
-    public suspend fun addTrack(track: WebRTCMediaTrack)
-    public suspend fun removeTrack(track: WebRTCMediaTrack)
+    public suspend fun addTrack(track: WebRTCMedia.Track): WebRTC.RtpSender
 
-    public data class IceCandidate(
-        public val candidate: String,
-        public val sdpMid: String?,
-        public val sdpMLineIndex: Int?
-    )
-
-    public data class SessionDescription(
-        val type: SessionDescriptionType,
-        val sdp: String
-    )
-
-    public enum class SessionDescriptionType {
-        OFFER,
-        ANSWER,
-        PROVISIONAL_ANSWER,
-        ROLLBACK
-    }
+    public suspend fun removeTrack(sender: WebRTC.RtpSender)
+    public suspend fun removeTrack(track: WebRTCMedia.Track)
 }
-
-public sealed class WebRTCMediaStats(
-    public val timestamp: Long,
-    public val trackId: String,
-    public val type: String,
-    public val id: String,
-    public val extra: Map<String, Any> = emptyMap()
-)
-
-public data class WebRTCStats(
-    val id: String,
-    val type: String,
-    val timestamp: Long,
-    val props: Map<String, Any?>,
-)
-
-public interface WebRTCMediaSource
-
-public interface WebRTCAudioSource : WebRTCMediaSource
-
-public interface WebRTCVideoSource : WebRTCMediaSource {
-    public val isScreencast: Boolean
-}
-
-public interface WebRTCMediaTrack {
-    public val id: String
-    public val kind: Type
-    public val enabled: Boolean
-
-    public fun enable(enabled: Boolean)
-    public fun stop()
-
-    public enum class Type {
-        AUDIO,
-        VIDEO,
-    }
-}
-
-public interface WebRTCVideoTrack : WebRTCMediaTrack
-public interface WebRTCAudioTrack : WebRTCMediaTrack

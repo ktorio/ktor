@@ -2,6 +2,10 @@
 
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
+plugins {
+    id("ktorbuild.project.library")
+}
+
 kotlin {
     sourceSets {
         jsAndWasmSharedMain {
@@ -11,7 +15,6 @@ kotlin {
         }
 
         wasmJs {
-            browser()
             compilerOptions {
                 freeCompilerArgs.add("-Xwasm-attach-js-exception")
             }

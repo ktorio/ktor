@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
+import org.jetbrains.kotlin.gradle.plugin.sources.android.androidSourceSetInfoOrNull
 import javax.inject.Inject
 
 /**
@@ -76,6 +77,7 @@ abstract class KtorTargets internal constructor(
     val hasJvm: Boolean get() = isEnabled("jvm")
     val hasJs: Boolean get() = isEnabled("js")
     val hasWasmJs: Boolean get() = isEnabled("wasmJs")
+    val hasAndroidJvm: Boolean get() = isEnabled("android")
 
     val hasJsOrWasmJs: Boolean get() = hasJs || hasWasmJs
     val hasNative: Boolean get() = resolveTargets("posix").any(::isEnabled)
@@ -168,6 +170,10 @@ abstract class KtorTargets internal constructor(
                     group("posix")
                     group("jsAndWasmShared")
                 }
+
+                group("android") {
+                    withAndroidTarget()
+                }
             }
         }
 
@@ -178,6 +184,10 @@ abstract class KtorTargets internal constructor(
 
 internal fun KotlinMultiplatformExtension.addTargets(targets: KtorTargets) {
     if (targets.hasJvm) jvm()
+
+    if (targets.hasAndroidJvm && project.pluginManager.hasPlugin("com.android.library")) {
+        androidTarget()
+    }
 
     if (targets.hasJs) js { addSubTargets(targets) }
     @OptIn(ExperimentalWasmDsl::class)
@@ -212,7 +222,9 @@ internal fun KotlinMultiplatformExtension.addTargets(targets: KtorTargets) {
     if (targets.isEnabled("mingwX64")) mingwX64()
     if (targets.isEnabled("watchosDeviceArm64")) watchosDeviceArm64()
 
-    freezeSourceSets()
+    //if (!targets.hasAndroidJvm || !project.pluginManager.hasPlugin("com.android.library")) {
+        freezeSourceSets()
+    //}
     flattenSourceSetsStructure()
 }
 
@@ -231,6 +243,7 @@ private val extraSourceSetProblemId = ProblemId.create(
  * By default, it throws an [IllegalStateException] if extra source sets are detected.
  * When [IGNORE_EXTRA_SOURCE_SETS_PROPERTY] property is set to `true`, extra source sets are ignored instead.
  */
+@OptIn(ExperimentalKotlinGradlePluginApi::class)
 private fun KotlinMultiplatformExtension.freezeSourceSets() {
     val problemReporter = project.serviceOf<Problems>().reporter
     val ignoreExtraSourceSets = project.providers.gradleProperty(IGNORE_EXTRA_SOURCE_SETS_PROPERTY).orNull.toBoolean()
@@ -239,13 +252,15 @@ private fun KotlinMultiplatformExtension.freezeSourceSets() {
     sourceSets.whenObjectAdded { extraSourceSets.add(this) }
 
     project.afterEvaluate {
-        if (extraSourceSets.isNotEmpty()) {
-            val names = extraSourceSets.map { it.name }.sorted()
+        // Android source sets are ignored because they are added after project evaluation.
+        val filteredSourceSets = extraSourceSets.filter { it.androidSourceSetInfoOrNull == null }
+        if (filteredSourceSets.isNotEmpty()) {
+            val names = filteredSourceSets.map { it.name }.sorted()
             val context = "Detected extra source sets registered manually: $names (project ${project.path})"
 
             if (ignoreExtraSourceSets) {
                 problemReporter.reportExtraSourceSetsWarning(context)
-                sourceSets.removeAll(extraSourceSets)
+                sourceSets.removeAll(filteredSourceSets)
             } else {
                 throw problemReporter.reportExtraSourceSetsError(context)
             }

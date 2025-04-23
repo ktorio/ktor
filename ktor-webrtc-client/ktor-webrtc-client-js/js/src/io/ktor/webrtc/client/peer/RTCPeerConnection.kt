@@ -520,9 +520,7 @@ public external class RTCErrorEvent : Event {
     public var error: RTCError
 }
 
-public external class RTCIceCandidate {
-    public constructor(init: RTCIceCandidateInit)
-
+public external class RTCIceCandidate public constructor(init: RTCIceCandidateInit) {
     public var candidate: String
     public var component: String /* "rtcp" | "rtp" */
     public var foundation: String?

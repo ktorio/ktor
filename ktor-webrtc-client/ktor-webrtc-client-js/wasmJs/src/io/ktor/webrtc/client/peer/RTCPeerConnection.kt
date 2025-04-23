@@ -456,7 +456,7 @@ public external interface RTCCertificate : JsAny {
 }
 
 public external class RTCDTMFSender : EventTarget {
-    public var canInsertDTMF: Boolean
+    public var canInsertDTMF: JsBoolean
     public var ontonechange: ((self: RTCDTMFSender, ev: RTCDTMFToneChangeEvent) -> JsAny)?
     public var toneBuffer: JsString
     public fun insertDTMF(tones: JsString, duration: JsNumber = definedExternally, interToneGap: JsNumber = definedExternally)
@@ -531,8 +531,8 @@ public external class RTCIceCandidate : JsAny {
     public var protocol: JsString /* "tcp" | "udp" */
     public var relatedAddress: JsString?
     public var relatedPort: JsNumber?
-    public var sdpMLineIndex: JsNumber?
-    public var sdpMid: JsString?
+    public var sdpMLineIndex: JsNumber
+    public var sdpMid: JsString
     public var tcpType: JsString /* "active" | "passive" | "so" */
     public var type: JsString /* "host" | "prflx" | "relay" | "srflx" */
     public var usernameFragment: JsString?

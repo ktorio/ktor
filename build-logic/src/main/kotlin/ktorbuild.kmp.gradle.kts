@@ -33,9 +33,11 @@ kotlin {
     // Specify JVM toolchain later to prevent it from being evaluated before it was configured.
     // TODO: Remove `afterEvaluate` when the BCV issue triggering JVM toolchain evaluation is fixed
     //   https://github.com/Kotlin/binary-compatibility-validator/issues/286
-    afterEvaluate {
-        jvmToolchain {
-            languageVersion = ktorBuild.jvmToolchain
+    if (!ktorBuild.targets.hasAndroidJvm || !plugins.hasPlugin("com.android.library")) {
+        afterEvaluate {
+            jvmToolchain {
+                languageVersion = ktorBuild.jvmToolchain
+            }
         }
     }
 }
@@ -46,6 +48,15 @@ configureCommon()
 if (targets.hasJvm) configureJvm()
 if (targets.hasJs) configureJs()
 if (targets.hasWasmJs) configureWasmJs()
+//if (targets.hasAndroidJvm && plugins.hasPlugin("com.android.library")) {
+////    kotlin {
+////        sourceSets {
+////            androidMain
+////            androidUnitTest
+////            androidInstrumentedTest
+////        }
+////    }
+//}
 
 if (targets.hasJsOrWasmJs) {
     tasks.configureEach {

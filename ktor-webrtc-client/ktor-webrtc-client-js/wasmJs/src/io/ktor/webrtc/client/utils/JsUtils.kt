@@ -10,9 +10,16 @@ import io.ktor.webrtc.client.peer.*
 import org.w3c.dom.mediacapture.MediaStreamTrack
 import org.w3c.dom.mediacapture.MediaTrackConstraints
 
-public fun <T : JsAny> makeEmptyObject(): T = js("({})")
+// any js block should be located in a separate function
+public fun emptyObject(): JsAny = js("({})")
 
-public fun AudioTrackConstraints.toJS(): MediaTrackConstraints {
+public inline fun <T : JsAny> jsObject(init: T.() -> Unit): T {
+    val obj = emptyObject().unsafeCast<T>()
+    init(obj)
+    return obj
+}
+
+public fun WebRTCMedia.AudioTrackConstraints.toJS(): MediaTrackConstraints {
     return MediaTrackConstraints(
         volume = volume?.toJsNumber(),
         latency = latency?.toJsNumber(),
@@ -25,7 +32,7 @@ public fun AudioTrackConstraints.toJS(): MediaTrackConstraints {
     )
 }
 
-public fun VideoTrackConstraints.toJS(): MediaTrackConstraints {
+public fun WebRTCMedia.VideoTrackConstraints.toJS(): MediaTrackConstraints {
     return MediaTrackConstraints(
         width = width?.toJsNumber(),
         height = height?.toJsNumber(),
@@ -36,12 +43,10 @@ public fun VideoTrackConstraints.toJS(): MediaTrackConstraints {
     )
 }
 
-public fun makeIceServerObject(server: IceServer): RTCIceServer {
-    return makeEmptyObject<RTCIceServer>().apply {
-        urls = server.urls.toJsString()
-        username = server.username?.toJsString()
-        credential = server.credential?.toJsString()
-    }
+public fun makeIceServerObject(server: WebRTC.IceServer): RTCIceServer = jsObject {
+    urls = server.urls.toJsString()
+    username = server.username?.toJsString()
+    credential = server.credential?.toJsString()
 }
 
 public fun makeDummyAudioStreamTrack(): MediaStreamTrack = js(
@@ -66,42 +71,43 @@ public fun makeDummyVideoStreamTrack(width: Int, height: Int): MediaStreamTrack 
     }"""
 )
 
-internal fun mapIceServers(iceServers: List<IceServer>): JsArray<RTCIceServer> =
+internal fun mapIceServers(iceServers: List<WebRTC.IceServer>): JsArray<RTCIceServer> =
     iceServers.map { makeIceServerObject(it) }.toJsArray()
 
-public fun RTCSessionDescriptionInit.toCommon(): WebRtcPeerConnection.SessionDescription {
-    return WebRtcPeerConnection.SessionDescription(
+public fun RTCSessionDescriptionInit.toCommon(): WebRTC.SessionDescription {
+    return WebRTC.SessionDescription(
         type = when (type.toString()) {
-            "offer" -> WebRtcPeerConnection.SessionDescriptionType.OFFER
-            "answer" -> WebRtcPeerConnection.SessionDescriptionType.ANSWER
-            "pranswer" -> WebRtcPeerConnection.SessionDescriptionType.PROVISIONAL_ANSWER
-            "rollback" -> WebRtcPeerConnection.SessionDescriptionType.ROLLBACK
-            else -> WebRtcPeerConnection.SessionDescriptionType.OFFER
+            "offer" -> WebRTC.SessionDescriptionType.OFFER
+            "answer" -> WebRTC.SessionDescriptionType.ANSWER
+            "rollback" -> WebRTC.SessionDescriptionType.ROLLBACK
+            "pranswer" -> WebRTC.SessionDescriptionType.PROVISIONAL_ANSWER
+            else -> WebRTC.SessionDescriptionType.OFFER
         },
         sdp = sdp.toString()
     )
 }
 
-public fun WebRtcPeerConnection.SessionDescription.toJS(): RTCSessionDescription {
+public fun WebRTC.SessionDescription.toJS(): RTCSessionDescription {
     // RTCSessionDescription constructor is deprecated.
     // All methods that accept RTCSessionDescription objects also accept objects with the same properties,
     // so you can use a plain object instead of creating an RTCSessionDescription instance.
-    return makeEmptyObject<RTCSessionDescription>().also {
-        it.type = when (type) {
-            WebRtcPeerConnection.SessionDescriptionType.OFFER -> "offer".toJsString()
-            WebRtcPeerConnection.SessionDescriptionType.ANSWER -> "answer".toJsString()
-            WebRtcPeerConnection.SessionDescriptionType.ROLLBACK -> "rollback".toJsString()
-            WebRtcPeerConnection.SessionDescriptionType.PROVISIONAL_ANSWER -> "pranswer".toJsString()
+    return jsObject {
+        type = when (this@toJS.type) {
+            WebRTC.SessionDescriptionType.OFFER -> "offer".toJsString()
+            WebRTC.SessionDescriptionType.ANSWER -> "answer".toJsString()
+            WebRTC.SessionDescriptionType.ROLLBACK -> "rollback".toJsString()
+            WebRTC.SessionDescriptionType.PROVISIONAL_ANSWER -> "pranswer".toJsString()
         }
-        it.sdp = sdp.toJsString()
+        sdp = this@toJS.sdp.toJsString()
     }
 }
 
-public fun WebRtcPeerConnection.IceCandidate.toJS(): RTCIceCandidate {
-    val options = makeEmptyObject<RTCIceCandidateInit>()
-    options.sdpMLineIndex = sdpMLineIndex?.toJsNumber()
-    options.candidate = candidate.toJsString()
-    options.sdpMid = sdpMid?.toJsString()
+public fun WebRTC.IceCandidate.toJS(): RTCIceCandidate {
+    val options = jsObject<RTCIceCandidateInit> {
+        sdpMLineIndex = this@toJS.sdpMLineIndex.toJsNumber()
+        candidate = this@toJS.candidate.toJsString()
+        sdpMid = this@toJS.sdpMid.toJsString()
+    }
     return RTCIceCandidate(options)
 }
 
@@ -130,9 +136,9 @@ private fun kotlinMapFromEntries(obj: JsAny): Map<String, Any> {
     return map
 }
 
-public fun RTCStatsReport.toCommon(): List<WebRTCStats> {
+public fun RTCStatsReport.toCommon(): List<WebRTC.Stats> {
     return getValues<RTCStats>(this).toArray().map { stats ->
-        WebRTCStats(
+        WebRTC.Stats(
             timestamp = stats.timestamp.toDouble().toLong(),
             type = stats.type.toString(),
             id = stats.id.toString(),
