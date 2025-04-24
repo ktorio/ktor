@@ -184,7 +184,7 @@ public class DependencyInjectionConfig {
      *                      By default, this throws a `DuplicateDependencyException`.
      */
     public data class ProviderScope(
-        public var keyMapping: DependencyKeyCovariance = Supertypes,
+        public var keyMapping: DependencyKeyCovariance = Supertypes * Nullables,
         public var conflictPolicy: DependencyConflictPolicy = DefaultConflictPolicy,
         public var onConflict: (DependencyKey) -> Unit = { throw DuplicateDependencyException(it) }
     )
