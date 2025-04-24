@@ -4,8 +4,10 @@
 
 package io.ktor.server.plugins.di.utils
 
+import io.ktor.server.plugins.di.DependencyKey
 import io.ktor.util.reflect.TypeInfo
 import io.ktor.utils.io.InternalAPI
+import kotlin.reflect.KType
 
 /**
  * Returns a list of all supertypes and implemented interfaces, recursively iterating up the tree.
@@ -15,3 +17,9 @@ import io.ktor.utils.io.InternalAPI
  */
 @InternalAPI
 public expect fun TypeInfo.hierarchy(): List<TypeInfo>
+
+/**
+ * Provides the nullable version of the provided KType, or null if this is already nullable.
+ */
+@InternalAPI
+public expect fun KType.toNullable(): KType?

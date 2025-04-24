@@ -15,3 +15,4 @@ import io.ktor.utils.io.InternalAPI
 @InternalAPI
 public actual fun TypeInfo.hierarchy(): List<TypeInfo> =
     emptyList()
+

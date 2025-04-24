@@ -70,10 +70,10 @@ public class DependencyRegistryImpl(
     override fun contains(key: DependencyKey): Boolean =
         resolver.value.contains(key)
 
-    override fun <T : Any> get(key: DependencyKey): T =
+    override fun <T> get(key: DependencyKey): T =
         resolver.value.get(key)
 
-    override fun <T : Any> getOrPut(key: DependencyKey, defaultValue: () -> T): T =
+    override fun <T> getOrPut(key: DependencyKey, defaultValue: () -> T): T =
         resolver.value.getOrPut(key, defaultValue)
 
     override fun require(key: DependencyKey) {
@@ -140,14 +140,14 @@ public class ProcessingDependencyResolver(
     private val provider: DependencyProvider,
     private val external: DependencyMap,
 ) : DependencyResolver {
-    private val resolved = mutableMapOf<DependencyKey, Result<Any>>()
+    private val resolved = mutableMapOf<DependencyKey, Result<*>>()
     private val visited = mutableSetOf<DependencyKey>()
 
-    public fun resolveAll(): Map<DependencyKey, Result<Any>> {
+    public fun resolveAll(): Map<DependencyKey, Result<*>> {
         if (resolved.isNotEmpty()) return resolved.toMap()
 
         for (key in provider.declarations.keys) {
-            get<Any>(key)
+            get<Any?>(key)
         }
         return resolved.toMap()
     }
@@ -155,7 +155,7 @@ public class ProcessingDependencyResolver(
     override fun contains(key: DependencyKey): Boolean =
         resolved.contains(key) || provider.declarations.contains(key) || external.contains(key)
 
-    override fun <T : Any> get(key: DependencyKey): T =
+    override fun <T> get(key: DependencyKey): T =
         resolved.getOrPut(key) {
             if (!visited.add(key)) throw CircularDependencyException(listOf(key))
             try {
@@ -171,7 +171,7 @@ public class ProcessingDependencyResolver(
             }
         }.getOrThrow() as T
 
-    override fun <T : Any> getOrPut(key: DependencyKey, defaultValue: () -> T): T =
+    override fun <T> getOrPut(key: DependencyKey, defaultValue: () -> T): T =
         resolved.getOrPut(key) {
             runCatching {
                 defaultValue()
