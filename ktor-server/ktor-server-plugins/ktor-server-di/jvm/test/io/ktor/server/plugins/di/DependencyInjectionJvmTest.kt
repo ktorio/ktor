@@ -11,6 +11,10 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.ktor.server.testing.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
+import java.util.function.Consumer
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.IllegalCallableAccessException
@@ -127,7 +131,7 @@ class DependencyInjectionJvmTest {
 
     @Test
     fun `parameterized covariant types`() = testApplication {
-        var mySet = HashSet<String>()
+        val mySet = HashSet<String>()
 
         application {
             dependencies {
@@ -136,6 +140,18 @@ class DependencyInjectionJvmTest {
             assertEquals(mySet, dependencies.resolve())
             assertEquals(mySet, dependencies.resolve<Set<String>>())
             assertEquals(mySet, dependencies.resolve<Collection<String>>())
+            assertNull(dependencies.resolve<List<String>?>())
+        }
+    }
+
+    @Test
+    fun `covariant nullables`() = testApplication {
+        application {
+            dependencies {
+                provide<Int> { 123 }
+            }
+            assertEquals(123, dependencies.resolve<Number?>())
+            assertEquals(null, dependencies.resolve<String?>())
         }
     }
 

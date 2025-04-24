@@ -5,7 +5,7 @@
 package io.ktor.server.plugins.di.utils
 
 import io.ktor.util.reflect.*
-import io.ktor.utils.io.InternalAPI
+import io.ktor.utils.io.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.KTypeProjection
@@ -23,6 +23,14 @@ public actual fun TypeInfo.hierarchy(): List<TypeInfo> {
     val supertypes = kotlinType?.hierarchy() ?: type.supertypes
     return supertypes.mapNotNull { it.toTypeInfo() }
 }
+
+@InternalAPI
+public actual fun KType.toNullable(): KType? =
+    if (isMarkedNullable) null else classifier?.createType(
+        arguments = arguments,
+        nullable = true,
+        annotations = annotations
+    )
 
 private fun KType.toTypeInfo(): TypeInfo? =
     (classifier as? KClass<*>)?.let {

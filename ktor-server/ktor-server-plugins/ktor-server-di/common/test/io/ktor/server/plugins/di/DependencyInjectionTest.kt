@@ -229,8 +229,19 @@ class DependencyInjectionTest {
     }
 
     @Test
+    fun nullables() = runTestDI {
+        dependencies {
+            provide<BankTeller?> { null }
+            provide<BankService> { BankServiceImpl() }
+        }
+        assertNull(dependencies.resolve<GreetingService?>())
+        assertNull(dependencies.resolve<BankTeller?>())
+        assertNotNull(dependencies.resolve<BankService?>())
+    }
+
+    @Test
     fun arguments() = runTestDI {
-        var expectedStringList = listOf("one", "two")
+        val expectedStringList = listOf("one", "two")
 
         dependencies {
             provide<GreetingService> { GreetingServiceImpl() }
@@ -338,13 +349,14 @@ class DependencyInjectionTest {
         assertEquals(HELLO_CUSTOMER, unnamed.hello())
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun dependencyMapOf(vararg entries: Pair<DependencyKey, Any>): DependencyMap {
         val map = mapOf(*entries)
         return object : DependencyMap {
             override fun contains(key: DependencyKey): Boolean =
                 map.containsKey(key)
-            override fun <T : Any> get(key: DependencyKey): T =
-                map.get(key) as T
+            override fun <T> get(key: DependencyKey): T =
+                map[key] as T
         }
     }
 

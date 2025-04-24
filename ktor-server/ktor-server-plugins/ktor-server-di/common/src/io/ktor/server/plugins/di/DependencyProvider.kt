@@ -140,7 +140,7 @@ public fun <T> DependencyCreateFunction.ifImplicit(block: (ImplicitCreateFunctio
  */
 @Suppress("UNCHECKED_CAST")
 public open class MapDependencyProvider(
-    public val keyMapping: DependencyKeyCovariance = Supertypes,
+    public val keyMapping: DependencyKeyCovariance = Supertypes * Nullables,
     public val conflictPolicy: DependencyConflictPolicy = DefaultConflictPolicy,
     public val onConflict: (DependencyKey) -> Unit = { throw DuplicateDependencyException(it) },
     private val log: Logger = KtorSimpleLogger("io.ktor.server.plugins.di.MapDependencyProvider"),
