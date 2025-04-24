@@ -5,6 +5,8 @@
 package io.ktor.server.plugins.di
 
 import io.ktor.server.plugins.di.utils.hierarchy
+import io.ktor.server.plugins.di.utils.toNullable
+import io.ktor.util.reflect.TypeInfo
 import io.ktor.utils.io.InternalAPI
 
 /**
@@ -35,6 +37,22 @@ public val Supertypes: DependencyKeyCovariance =
 public val Unnamed: DependencyKeyCovariance =
     DependencyKeyCovariance { key ->
         key.name?.let { listOf(key.copy(name = null)) } ?: emptyList()
+    }
+
+/**
+ * A predefined implementation of [DependencyKeyCovariance] that creates a covariant dependency key
+ * based on the given key. It generates a list containing a single dependency key with a new
+ * [TypeInfo] that retains the same type and Kotlin type as the original key.
+ *
+ * The primary purpose of this value is to facilitate support for nullable types or variant type
+ * mappings within dependency injection.
+ */
+@OptIn(InternalAPI::class)
+public val Nullables: DependencyKeyCovariance =
+    DependencyKeyCovariance { key ->
+        val nullableVariant = key.type.kotlinType?.toNullable()
+            ?: return@DependencyKeyCovariance listOf(key)
+        listOf(key, key.copy(type = TypeInfo(key.type.type, nullableVariant)))
     }
 
 /**

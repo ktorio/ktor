@@ -47,7 +47,7 @@ public interface DependencyMap {
          */
         public val EMPTY: DependencyMap = object : DependencyMap {
             override fun contains(key: DependencyKey): Boolean = false
-            override fun <T : Any> get(key: DependencyKey): T {
+            override fun <T> get(key: DependencyKey): T {
                 throw MissingDependencyException(key)
             }
         }
@@ -68,7 +68,7 @@ public interface DependencyMap {
      * @return the instance of the dependency associated with the given key
      * @throws MissingDependencyException if no dependency is associated with the given key
      */
-    public fun <T : Any> get(key: DependencyKey): T
+    public fun <T> get(key: DependencyKey): T
 }
 
 /**
@@ -99,7 +99,7 @@ public interface MutableDependencyMap : DependencyMap {
      * @param defaultValue a lambda function that provides a default value to store and return if the key is not found.
      * @return the value associated with the key, either retrieved from the existing association or newly computed and stored.
      */
-    public fun <T : Any> getOrPut(key: DependencyKey, defaultValue: () -> T): T
+    public fun <T> getOrPut(key: DependencyKey, defaultValue: () -> T): T
 }
 
 /**
@@ -121,7 +121,7 @@ public interface DependencyResolver : MutableDependencyMap {
  */
 @Suppress("UNCHECKED_CAST")
 public class DependencyMapImpl(
-    instances: Map<DependencyKey, Result<Any>>,
+    instances: Map<DependencyKey, Result<*>>,
     private val external: DependencyMap = DependencyMap.EMPTY,
 ) : MutableDependencyMap {
     private val map = instances.toMutableMap()
@@ -129,11 +129,16 @@ public class DependencyMapImpl(
     override fun contains(key: DependencyKey): Boolean =
         map.containsKey(key) || external.contains(key)
 
-    override fun <T : Any> get(key: DependencyKey): T =
-        (map[key] ?: getExternal(key) ?: throw MissingDependencyException(key)).getOrThrow() as T
+    override fun <T> get(key: DependencyKey): T =
+        (map[key] ?: getExternal(key))?.getOrThrow() as? T
+            ?: key.getNullOrThrow()
 
-    override fun <T : Any> getOrPut(key: DependencyKey, defaultValue: () -> T): T =
+    override fun <T> getOrPut(key: DependencyKey, defaultValue: () -> T): T =
         map.getOrPut(key) { runCatching(defaultValue) }.getOrThrow() as T
+
+    private fun <T> DependencyKey.getNullOrThrow(): T =
+        if (type.kotlinType?.isMarkedNullable == true) null as T
+        else throw MissingDependencyException(this)
 
     private fun getExternal(key: DependencyKey): Result<Any>? =
         if (external.contains(key)) {
@@ -175,7 +180,7 @@ internal class MergedDependencyMap(
     override fun contains(key: DependencyKey): Boolean =
         right.contains(key) || left.contains(key)
 
-    override fun <T : Any> get(key: DependencyKey): T =
+    override fun <T> get(key: DependencyKey): T =
         if (right.contains(key)) {
             right.get(key)
         } else {
@@ -198,7 +203,7 @@ public class ConfigurationDependencyMap(
     override fun contains(key: DependencyKey): Boolean =
         key.qualifier == PropertyQualifier && key.name != null && config.propertyOrNull(key.name) != null
 
-    override fun <T : Any> get(key: DependencyKey): T =
+    override fun <T> get(key: DependencyKey): T =
         if (key.qualifier != PropertyQualifier || key.name == null) {
             throw MissingDependencyException(key)
         } else {
