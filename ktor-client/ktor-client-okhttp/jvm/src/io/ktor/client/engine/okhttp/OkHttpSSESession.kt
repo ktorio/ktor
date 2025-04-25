@@ -7,13 +7,13 @@ package io.ktor.client.engine.okhttp
 import io.ktor.client.plugins.sse.*
 import io.ktor.http.*
 import io.ktor.sse.*
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.onFailure
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.flow.onCompletion
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -22,18 +22,39 @@ import okhttp3.sse.EventSourceListener
 import okhttp3.sse.EventSources
 import kotlin.coroutines.CoroutineContext
 
-internal class OkHttpSSESession(
-    engine: OkHttpClient,
+internal class OkHttpSSESession private constructor(
+    factory: EventSource.Factory,
     engineRequest: Request,
     override val coroutineContext: CoroutineContext,
 ) : SSESession, EventSourceListener() {
-    private val serverSentEventsSource = EventSources.createFactory(engine).newEventSource(engineRequest, this)
+
+    constructor(
+        engine: OkHttpClient,
+        engineRequest: Request,
+        callContext: CoroutineContext,
+    ) : this(
+        factory = EventSources.createFactory(engine),
+        engineRequest = engineRequest,
+        coroutineContext = callContext + Job() + CoroutineName("OkHttpSSESession"),
+    )
+
+    private val serverSentEventsSource = factory.newEventSource(engineRequest, this)
 
     internal val originResponse: CompletableDeferred<Response> = CompletableDeferred()
 
     private val _incoming = Channel<ServerSentEvent>(8)
 
     override val incoming: Flow<ServerSentEvent> = _incoming.consumeAsFlow()
+        .onCompletion { cause ->
+            // Use onCompletion operator to handle CancellationExceptions which occur in downstream flow.
+            if (cause is CancellationException) close()
+        }
+
+    init {
+        coroutineContext.job.invokeOnCompletion {
+            close()
+        }
+    }
 
     override fun onOpen(eventSource: EventSource, response: Response) {
         originResponse.complete(response)
@@ -62,11 +83,15 @@ internal class OkHttpSSESession(
             originResponse.completeExceptionally(error)
         }
 
-        _incoming.close()
-        serverSentEventsSource.cancel()
+        close()
     }
 
     override fun onClosed(eventSource: EventSource) {
+        close()
+    }
+
+    private fun close() {
+        coroutineContext.cancel()
         _incoming.close()
         serverSentEventsSource.cancel()
     }
