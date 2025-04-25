@@ -47,12 +47,12 @@ internal class OkHttpSSESession private constructor(
     override val incoming: Flow<ServerSentEvent> = _incoming.consumeAsFlow()
         .onCompletion { cause ->
             // Use onCompletion operator to handle CancellationExceptions which occur in downstream flow.
-            if (cause is CancellationException) close()
+            if (cause is CancellationException) close(cause = null)
         }
 
     init {
         coroutineContext.job.invokeOnCompletion {
-            close()
+            close(cause = null)
         }
     }
 
@@ -73,6 +73,7 @@ internal class OkHttpSSESession private constructor(
             (statusCode != HttpStatusCode.OK.value || contentType != ContentType.Text.EventStream.toString())
         ) {
             originResponse.complete(response)
+            close(cause = null)
         } else {
             val error = t?.let {
                 SSEClientException(
@@ -81,19 +82,19 @@ internal class OkHttpSSESession private constructor(
                 )
             } ?: mapException(response)
             originResponse.completeExceptionally(error)
+            close(cause = error)
         }
-
-        close()
     }
 
     override fun onClosed(eventSource: EventSource) {
-        close()
+        close(cause = null)
     }
 
-    private fun close() {
-        coroutineContext.cancel()
-        _incoming.close()
+    private fun close(cause: Throwable?) {
+        _incoming.close(cause)
         serverSentEventsSource.cancel()
+        // Cancel context last so 'invokeOnCompletion' doesn't override 'cause' for closing '_incoming'.
+        coroutineContext.cancel()
     }
 
     private fun mapException(response: Response?): SSEClientException {
