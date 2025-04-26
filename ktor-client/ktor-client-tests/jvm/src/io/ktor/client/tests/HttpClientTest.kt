@@ -43,6 +43,9 @@ abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) :
                 val text = call.receiveText()
                 call.respondText(text)
             }
+            options("/hello") {
+                call.respond(HttpStatusCode.OK)
+            }
 
             route("/sse") {
                 val messages = Channel<String>()
@@ -173,6 +176,17 @@ abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) :
 
         // check the new custom plugin is there too
         assertTrue(newClient.attributes.contains(anotherCustomPluginKey), "no other custom plugin installed")
+    }
+
+    @Test
+    fun testOptionsRequest() {
+        val client = HttpClient(factory)
+
+        runBlocking {
+            client.options("http://localhost:$serverPort/hello").apply {
+                assertEquals(HttpStatusCode.OK, status)
+            }
+        }
     }
 
     private class SendException : RuntimeException("Error on write")

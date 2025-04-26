@@ -4,6 +4,7 @@
 
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class)
 
+import ktorbuild.KtorBuildExtension
 import ktorbuild.internal.*
 import ktorbuild.internal.gradle.maybeNamed
 import ktorbuild.targets.*
@@ -18,6 +19,7 @@ plugins {
 }
 
 kotlin {
+    jvmToolchain(KtorBuildExtension.DEFAULT_JDK)
     explicitApi()
 
     compilerOptions {
@@ -29,17 +31,6 @@ kotlin {
 
     applyHierarchyTemplate(KtorTargets.hierarchyTemplate)
     addTargets(ktorBuild.targets)
-
-    // Specify JVM toolchain later to prevent it from being evaluated before it was configured.
-    // TODO: Remove `afterEvaluate` when the BCV issue triggering JVM toolchain evaluation is fixed
-    //   https://github.com/Kotlin/binary-compatibility-validator/issues/286
-    if (!ktorBuild.targets.hasAndroidJvm || !plugins.hasPlugin("com.android.library")) {
-        afterEvaluate {
-            jvmToolchain {
-                languageVersion = ktorBuild.jvmToolchain
-            }
-        }
-    }
 }
 
 val targets = ktorBuild.targets
@@ -48,15 +39,6 @@ configureCommon()
 if (targets.hasJvm) configureJvm()
 if (targets.hasJs) configureJs()
 if (targets.hasWasmJs) configureWasmJs()
-//if (targets.hasAndroidJvm && plugins.hasPlugin("com.android.library")) {
-////    kotlin {
-////        sourceSets {
-////            androidMain
-////            androidUnitTest
-////            androidInstrumentedTest
-////        }
-////    }
-//}
 
 if (targets.hasJsOrWasmJs) {
     tasks.configureEach {

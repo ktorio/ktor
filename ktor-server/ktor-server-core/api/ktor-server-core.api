@@ -964,6 +964,7 @@ public final class io/ktor/server/plugins/MutableOriginConnectionPoint : io/ktor
 	public fun setServerPort (I)V
 	public fun setUri (Ljava/lang/String;)V
 	public fun setVersion (Ljava/lang/String;)V
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/ktor/server/plugins/NotFoundException : java/lang/Exception {

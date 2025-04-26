@@ -8,12 +8,10 @@ plugins {
     id("ktorbuild.project.library")
 }
 
-ktorBuild {
+kotlin {
     // The minimal JVM version required for Jetty 10+
     jvmToolchain(11)
-}
 
-kotlin {
     sourceSets {
         jvmMain.dependencies {
             api(project(":ktor-client:ktor-client-core"))

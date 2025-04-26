@@ -8,11 +8,9 @@ plugins {
     id("ktorbuild.project.library")
 }
 
-ktorBuild {
-    jvmToolchain(11)
-}
-
 kotlin {
+    jvmToolchain(11)
+
     sourceSets {
         jvmMain.dependencies {
             api(project(":ktor-server:ktor-server-core"))

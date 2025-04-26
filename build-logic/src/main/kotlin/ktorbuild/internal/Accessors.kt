@@ -6,6 +6,7 @@ package ktorbuild.internal
 
 import ktorbuild.KtorBuildExtension
 import org.gradle.api.Project
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.kotlin.dsl.getByType
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
@@ -15,6 +16,8 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
  */
 
 internal val Project.ktorBuild: KtorBuildExtension get() = extensions.getByType()
+
+internal val Project.java: JavaPluginExtension get() = extensions.getByType()
 
 internal fun Project.kotlin(configure: KotlinMultiplatformExtension.() -> Unit) =
     extensions.configure("kotlin", configure)
