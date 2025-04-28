@@ -15,7 +15,7 @@ dependencies {
     implementation(libs.develocity)
     implementation(libs.gradleDoctor)
     implementation(libs.kotlinter)
-    implementation("com.android.tools.build:gradle:8.9.0")
+    implementation(libs.android.gradlePlugin)
 
     // A hack to make version catalogs accessible from buildSrc sources
     // https://github.com/gradle/gradle/issues/15383#issuecomment-779893192
