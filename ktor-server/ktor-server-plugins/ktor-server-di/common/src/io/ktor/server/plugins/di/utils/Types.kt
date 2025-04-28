@@ -4,22 +4,33 @@
 
 package io.ktor.server.plugins.di.utils
 
-import io.ktor.server.plugins.di.DependencyKey
-import io.ktor.util.reflect.TypeInfo
-import io.ktor.utils.io.InternalAPI
-import kotlin.reflect.KType
+import io.ktor.util.reflect.*
+import io.ktor.utils.io.*
 
 /**
- * Returns a list of all supertypes and implemented interfaces, recursively iterating up the tree.
+ * Returns all types of the hierarchy, starting with the given type.
  *
- * When type parameters are encountered, they will be automatically substituted with the concrete values supplied to
- * the root [TypeInfo], if available.
+ * When type arguments are encountered, they are included in parent type arguments, so
+ * for example, `Collection<Element>` is included for the root type `ArrayList<Element>`.
  */
 @InternalAPI
-public expect fun TypeInfo.hierarchy(): List<TypeInfo>
+public expect fun TypeInfo.hierarchy(): Sequence<TypeInfo>
 
 /**
- * Provides the nullable version of the provided KType, or null if this is already nullable.
+ * Converts the current [TypeInfo] into a nullable type representation.
+ * If the type is already nullable, returns null.
+ *
+ * @return A new [TypeInfo] instance with a nullable type, or null if the type is already nullable.
  */
 @InternalAPI
-public expect fun KType.toNullable(): KType?
+public expect fun TypeInfo.toNullable(): TypeInfo?
+
+/**
+ * Returns a list of the given base implementation for covariant type arguments.
+ *
+ * For example, supertype bounds with the `out` keyword will return matching supertypes for the type arguments.
+ *
+ * @return A list of [TypeInfo] representing the base type with covariant type arguments.
+ */
+@InternalAPI
+public expect fun TypeInfo.typeParametersHierarchy(): Sequence<TypeInfo>

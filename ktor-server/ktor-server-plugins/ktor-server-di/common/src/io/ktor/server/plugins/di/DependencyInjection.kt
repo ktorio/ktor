@@ -184,7 +184,7 @@ public class DependencyInjectionConfig {
      *                      By default, this throws a `DuplicateDependencyException`.
      */
     public data class ProviderScope(
-        public var keyMapping: DependencyKeyCovariance = Supertypes * Nullables,
+        public var keyMapping: DependencyKeyCovariance = DefaultKeyCovariance,
         public var conflictPolicy: DependencyConflictPolicy = DefaultConflictPolicy,
         public var onConflict: (DependencyKey) -> Unit = { throw DuplicateDependencyException(it) }
     )
@@ -201,21 +201,25 @@ public data class DependencyKey(
 
     override fun toString(): String = buildString {
         append(type.kotlinType ?: type.type)
-        if (name != null || qualifier != null) {
-            if (name != null) {
-                append("name = \"$name\"")
-            }
-            if (qualifier != null) {
-                append("qualifier = \"$qualifier\"")
-            }
+        if (name != null) {
+            append("(\"$name\")")
         }
     }
 }
 
 /**
+ * Determines if the type associated with a `DependencyKey` is nullable.
+ *
+ * This function checks whether the `kotlinType` property of the `type` in the `DependencyKey`
+ * is marked as nullable. If there is no `kotlinType`, it will return `false`.
+ */
+public fun DependencyKey.isNullable(): Boolean =
+    type.kotlinType?.isMarkedNullable == true
+
+/**
  * Common parent for dependency injection problems.
  */
-public open class DependencyInjectionException(message: String, cause: Throwable? = null) :
+public open class DependencyInjectionException(message: String? = null, cause: Throwable? = null) :
     RuntimeException(message, cause)
 
 /**

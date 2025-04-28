@@ -62,10 +62,12 @@ public sealed interface DependencyConflictResult {
  */
 public val DefaultConflictPolicy: DependencyConflictPolicy = DependencyConflictPolicy { prev, current ->
     require(current !is AmbiguousCreateFunction) { "Unexpected ambiguous function supplied" }
-    when (prev) {
-        is AmbiguousCreateFunction,
-        is ImplicitCreateFunction -> current.ifImplicit { Ambiguous } ?: KeepNew
-        is ExplicitCreateFunction -> current.ifImplicit { KeepPrevious } ?: Conflict
+    val diff = current.distance() - prev.distance()
+    when {
+        diff < 0 -> KeepNew
+        diff > 0 || current == prev -> KeepPrevious
+        prev is ExplicitCreateFunction -> Conflict
+        else -> Ambiguous
     }
 }
 
@@ -80,4 +82,10 @@ public val LastEntryWinsPolicy: DependencyConflictPolicy = DependencyConflictPol
         is ImplicitCreateFunction -> KeepNew
         is ExplicitCreateFunction -> current.ifImplicit { KeepPrevious } ?: KeepNew
     }
+}
+
+private fun DependencyCreateFunction.distance(): Int = when (this) {
+    is ExplicitCreateFunction -> -1
+    is ImplicitCreateFunction -> distance
+    is AmbiguousCreateFunction -> functions.first().distance()
 }

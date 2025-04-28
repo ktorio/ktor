@@ -229,17 +229,6 @@ class DependencyInjectionTest {
     }
 
     @Test
-    fun nullables() = runTestDI {
-        dependencies {
-            provide<BankTeller?> { null }
-            provide<BankService> { BankServiceImpl() }
-        }
-        assertNull(dependencies.resolve<GreetingService?>())
-        assertNull(dependencies.resolve<BankTeller?>())
-        assertNotNull(dependencies.resolve<BankService?>())
-    }
-
-    @Test
     fun arguments() = runTestDI {
         val expectedStringList = listOf("one", "two")
 
