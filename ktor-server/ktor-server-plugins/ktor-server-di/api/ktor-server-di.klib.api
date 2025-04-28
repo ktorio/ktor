@@ -25,7 +25,7 @@ abstract fun interface io.ktor.server.plugins.di/DependencyConflictPolicy { // i
 }
 
 abstract fun interface io.ktor.server.plugins.di/DependencyKeyCovariance { // io.ktor.server.plugins.di/DependencyKeyCovariance|null[0]
-    abstract fun map(io.ktor.server.plugins.di/DependencyKey): kotlin.collections/List<io.ktor.server.plugins.di/DependencyKey> // io.ktor.server.plugins.di/DependencyKeyCovariance.map|map(io.ktor.server.plugins.di.DependencyKey){}[0]
+    abstract fun map(io.ktor.server.plugins.di/DependencyKey, kotlin/Int): kotlin.sequences/Sequence<kotlin/Pair<io.ktor.server.plugins.di/DependencyKey, kotlin/Int>> // io.ktor.server.plugins.di/DependencyKeyCovariance.map|map(io.ktor.server.plugins.di.DependencyKey;kotlin.Int){}[0]
 }
 
 abstract fun interface io.ktor.server.plugins.di/DependencyResolution { // io.ktor.server.plugins.di/DependencyResolution|null[0]
@@ -33,7 +33,7 @@ abstract fun interface io.ktor.server.plugins.di/DependencyResolution { // io.kt
 }
 
 abstract interface io.ktor.server.plugins.di/DependencyMap { // io.ktor.server.plugins.di/DependencyMap|null[0]
-    abstract fun <#A1: kotlin/Any> get(io.ktor.server.plugins.di/DependencyKey): #A1 // io.ktor.server.plugins.di/DependencyMap.get|get(io.ktor.server.plugins.di.DependencyKey){0§<kotlin.Any>}[0]
+    abstract fun <#A1: kotlin/Any?> get(io.ktor.server.plugins.di/DependencyKey): #A1 // io.ktor.server.plugins.di/DependencyMap.get|get(io.ktor.server.plugins.di.DependencyKey){0§<kotlin.Any?>}[0]
     abstract fun contains(io.ktor.server.plugins.di/DependencyKey): kotlin/Boolean // io.ktor.server.plugins.di/DependencyMap.contains|contains(io.ktor.server.plugins.di.DependencyKey){}[0]
 
     final object Companion { // io.ktor.server.plugins.di/DependencyMap.Companion|null[0]
@@ -64,7 +64,7 @@ abstract interface io.ktor.server.plugins.di/DependencyResolver : io.ktor.server
 }
 
 abstract interface io.ktor.server.plugins.di/MutableDependencyMap : io.ktor.server.plugins.di/DependencyMap { // io.ktor.server.plugins.di/MutableDependencyMap|null[0]
-    abstract fun <#A1: kotlin/Any> getOrPut(io.ktor.server.plugins.di/DependencyKey, kotlin/Function0<#A1>): #A1 // io.ktor.server.plugins.di/MutableDependencyMap.getOrPut|getOrPut(io.ktor.server.plugins.di.DependencyKey;kotlin.Function0<0:0>){0§<kotlin.Any>}[0]
+    abstract fun <#A1: kotlin/Any?> getOrPut(io.ktor.server.plugins.di/DependencyKey, kotlin/Function0<#A1>): #A1 // io.ktor.server.plugins.di/MutableDependencyMap.getOrPut|getOrPut(io.ktor.server.plugins.di.DependencyKey;kotlin.Function0<0:0>){0§<kotlin.Any?>}[0]
 
     final object Companion { // io.ktor.server.plugins.di/MutableDependencyMap.Companion|null[0]
         final fun (io.ktor.server.plugins.di/MutableDependencyMap).asResolver(io.ktor.server.plugins.di/DependencyReflection): io.ktor.server.plugins.di/DependencyResolver // io.ktor.server.plugins.di/MutableDependencyMap.Companion.asResolver|asResolver@io.ktor.server.plugins.di.MutableDependencyMap(io.ktor.server.plugins.di.DependencyReflection){}[0]
@@ -119,7 +119,6 @@ sealed interface io.ktor.server.plugins.di/DependencyCreateFunction { // io.ktor
 
 final class io.ktor.server.plugins.di/AmbiguousCreateFunction : io.ktor.server.plugins.di/DependencyCreateFunction { // io.ktor.server.plugins.di/AmbiguousCreateFunction|null[0]
     constructor <init>(io.ktor.server.plugins.di/DependencyKey, kotlin.collections/Set<io.ktor.server.plugins.di/DependencyCreateFunction>) // io.ktor.server.plugins.di/AmbiguousCreateFunction.<init>|<init>(io.ktor.server.plugins.di.DependencyKey;kotlin.collections.Set<io.ktor.server.plugins.di.DependencyCreateFunction>){}[0]
-    constructor <init>(io.ktor.server.plugins.di/DependencyKey, kotlin/Array<out io.ktor.server.plugins.di/DependencyCreateFunction>...) // io.ktor.server.plugins.di/AmbiguousCreateFunction.<init>|<init>(io.ktor.server.plugins.di.DependencyKey;kotlin.Array<out|io.ktor.server.plugins.di.DependencyCreateFunction>...){}[0]
 
     final val functions // io.ktor.server.plugins.di/AmbiguousCreateFunction.functions|{}functions[0]
         final fun <get-functions>(): kotlin.collections/Set<io.ktor.server.plugins.di/DependencyCreateFunction> // io.ktor.server.plugins.di/AmbiguousCreateFunction.functions.<get-functions>|<get-functions>(){}[0]
@@ -133,6 +132,10 @@ final class io.ktor.server.plugins.di/AmbiguousCreateFunction : io.ktor.server.p
     final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.server.plugins.di/AmbiguousCreateFunction.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // io.ktor.server.plugins.di/AmbiguousCreateFunction.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // io.ktor.server.plugins.di/AmbiguousCreateFunction.toString|toString(){}[0]
+
+    final object Companion { // io.ktor.server.plugins.di/AmbiguousCreateFunction.Companion|null[0]
+        final fun of(io.ktor.server.plugins.di/DependencyKey, kotlin/Array<out io.ktor.server.plugins.di/DependencyCreateFunction>...): io.ktor.server.plugins.di/DependencyCreateFunction // io.ktor.server.plugins.di/AmbiguousCreateFunction.Companion.of|of(io.ktor.server.plugins.di.DependencyKey;kotlin.Array<out|io.ktor.server.plugins.di.DependencyCreateFunction>...){}[0]
+    }
 }
 
 final class io.ktor.server.plugins.di/AmbiguousDependencyException : io.ktor.server.plugins.di/DependencyInjectionException { // io.ktor.server.plugins.di/AmbiguousDependencyException|null[0]
@@ -146,7 +149,7 @@ final class io.ktor.server.plugins.di/CircularDependencyException : io.ktor.serv
 final class io.ktor.server.plugins.di/ConfigurationDependencyMap : io.ktor.server.plugins.di/DependencyMap { // io.ktor.server.plugins.di/ConfigurationDependencyMap|null[0]
     constructor <init>(io.ktor.server.config/ApplicationConfig) // io.ktor.server.plugins.di/ConfigurationDependencyMap.<init>|<init>(io.ktor.server.config.ApplicationConfig){}[0]
 
-    final fun <#A1: kotlin/Any> get(io.ktor.server.plugins.di/DependencyKey): #A1 // io.ktor.server.plugins.di/ConfigurationDependencyMap.get|get(io.ktor.server.plugins.di.DependencyKey){0§<kotlin.Any>}[0]
+    final fun <#A1: kotlin/Any?> get(io.ktor.server.plugins.di/DependencyKey): #A1 // io.ktor.server.plugins.di/ConfigurationDependencyMap.get|get(io.ktor.server.plugins.di.DependencyKey){0§<kotlin.Any?>}[0]
     final fun contains(io.ktor.server.plugins.di/DependencyKey): kotlin/Boolean // io.ktor.server.plugins.di/ConfigurationDependencyMap.contains|contains(io.ktor.server.plugins.di.DependencyKey){}[0]
 }
 
@@ -213,10 +216,10 @@ final class io.ktor.server.plugins.di/DependencyKey { // io.ktor.server.plugins.
 }
 
 final class io.ktor.server.plugins.di/DependencyMapImpl : io.ktor.server.plugins.di/MutableDependencyMap { // io.ktor.server.plugins.di/DependencyMapImpl|null[0]
-    constructor <init>(kotlin.collections/Map<io.ktor.server.plugins.di/DependencyKey, kotlin/Result<kotlin/Any>>, io.ktor.server.plugins.di/DependencyMap = ...) // io.ktor.server.plugins.di/DependencyMapImpl.<init>|<init>(kotlin.collections.Map<io.ktor.server.plugins.di.DependencyKey,kotlin.Result<kotlin.Any>>;io.ktor.server.plugins.di.DependencyMap){}[0]
+    constructor <init>(kotlin.collections/Map<io.ktor.server.plugins.di/DependencyKey, kotlin/Result<*>>, io.ktor.server.plugins.di/DependencyMap = ...) // io.ktor.server.plugins.di/DependencyMapImpl.<init>|<init>(kotlin.collections.Map<io.ktor.server.plugins.di.DependencyKey,kotlin.Result<*>>;io.ktor.server.plugins.di.DependencyMap){}[0]
 
-    final fun <#A1: kotlin/Any> get(io.ktor.server.plugins.di/DependencyKey): #A1 // io.ktor.server.plugins.di/DependencyMapImpl.get|get(io.ktor.server.plugins.di.DependencyKey){0§<kotlin.Any>}[0]
-    final fun <#A1: kotlin/Any> getOrPut(io.ktor.server.plugins.di/DependencyKey, kotlin/Function0<#A1>): #A1 // io.ktor.server.plugins.di/DependencyMapImpl.getOrPut|getOrPut(io.ktor.server.plugins.di.DependencyKey;kotlin.Function0<0:0>){0§<kotlin.Any>}[0]
+    final fun <#A1: kotlin/Any?> get(io.ktor.server.plugins.di/DependencyKey): #A1 // io.ktor.server.plugins.di/DependencyMapImpl.get|get(io.ktor.server.plugins.di.DependencyKey){0§<kotlin.Any?>}[0]
+    final fun <#A1: kotlin/Any?> getOrPut(io.ktor.server.plugins.di/DependencyKey, kotlin/Function0<#A1>): #A1 // io.ktor.server.plugins.di/DependencyMapImpl.getOrPut|getOrPut(io.ktor.server.plugins.di.DependencyKey;kotlin.Function0<0:0>){0§<kotlin.Any?>}[0]
     final fun contains(io.ktor.server.plugins.di/DependencyKey): kotlin/Boolean // io.ktor.server.plugins.di/DependencyMapImpl.contains|contains(io.ktor.server.plugins.di.DependencyKey){}[0]
 }
 
@@ -237,8 +240,8 @@ final class io.ktor.server.plugins.di/DependencyRegistryImpl : io.ktor.server.pl
     final val reflection // io.ktor.server.plugins.di/DependencyRegistryImpl.reflection|{}reflection[0]
         final fun <get-reflection>(): io.ktor.server.plugins.di/DependencyReflection // io.ktor.server.plugins.di/DependencyRegistryImpl.reflection.<get-reflection>|<get-reflection>(){}[0]
 
-    final fun <#A1: kotlin/Any> get(io.ktor.server.plugins.di/DependencyKey): #A1 // io.ktor.server.plugins.di/DependencyRegistryImpl.get|get(io.ktor.server.plugins.di.DependencyKey){0§<kotlin.Any>}[0]
-    final fun <#A1: kotlin/Any> getOrPut(io.ktor.server.plugins.di/DependencyKey, kotlin/Function0<#A1>): #A1 // io.ktor.server.plugins.di/DependencyRegistryImpl.getOrPut|getOrPut(io.ktor.server.plugins.di.DependencyKey;kotlin.Function0<0:0>){0§<kotlin.Any>}[0]
+    final fun <#A1: kotlin/Any?> get(io.ktor.server.plugins.di/DependencyKey): #A1 // io.ktor.server.plugins.di/DependencyRegistryImpl.get|get(io.ktor.server.plugins.di.DependencyKey){0§<kotlin.Any?>}[0]
+    final fun <#A1: kotlin/Any?> getOrPut(io.ktor.server.plugins.di/DependencyKey, kotlin/Function0<#A1>): #A1 // io.ktor.server.plugins.di/DependencyRegistryImpl.getOrPut|getOrPut(io.ktor.server.plugins.di.DependencyKey;kotlin.Function0<0:0>){0§<kotlin.Any?>}[0]
     final fun <#A1: kotlin/Any?> set(io.ktor.server.plugins.di/DependencyKey, kotlin/Function1<io.ktor.server.plugins.di/DependencyResolver, #A1>) // io.ktor.server.plugins.di/DependencyRegistryImpl.set|set(io.ktor.server.plugins.di.DependencyKey;kotlin.Function1<io.ktor.server.plugins.di.DependencyResolver,0:0>){0§<kotlin.Any?>}[0]
     final fun contains(io.ktor.server.plugins.di/DependencyKey): kotlin/Boolean // io.ktor.server.plugins.di/DependencyRegistryImpl.contains|contains(io.ktor.server.plugins.di.DependencyKey){}[0]
     final fun require(io.ktor.server.plugins.di/DependencyKey) // io.ktor.server.plugins.di/DependencyRegistryImpl.require|require(io.ktor.server.plugins.di.DependencyKey){}[0]
@@ -272,18 +275,22 @@ final class io.ktor.server.plugins.di/ExplicitCreateFunction : io.ktor.server.pl
         final fun <get-key>(): io.ktor.server.plugins.di/DependencyKey // io.ktor.server.plugins.di/ExplicitCreateFunction.key.<get-key>|<get-key>(){}[0]
 
     final fun create(io.ktor.server.plugins.di/DependencyResolver): kotlin/Any // io.ktor.server.plugins.di/ExplicitCreateFunction.create|create(io.ktor.server.plugins.di.DependencyResolver){}[0]
-    final fun derived(): io.ktor.server.plugins.di/ImplicitCreateFunction // io.ktor.server.plugins.di/ExplicitCreateFunction.derived|derived(){}[0]
+    final fun derived(kotlin/Int): io.ktor.server.plugins.di/ImplicitCreateFunction // io.ktor.server.plugins.di/ExplicitCreateFunction.derived|derived(kotlin.Int){}[0]
 }
 
 final class io.ktor.server.plugins.di/ImplicitCreateFunction : io.ktor.server.plugins.di/DependencyCreateFunction { // io.ktor.server.plugins.di/ImplicitCreateFunction|null[0]
-    constructor <init>(io.ktor.server.plugins.di/ExplicitCreateFunction) // io.ktor.server.plugins.di/ImplicitCreateFunction.<init>|<init>(io.ktor.server.plugins.di.ExplicitCreateFunction){}[0]
+    constructor <init>(io.ktor.server.plugins.di/ExplicitCreateFunction, kotlin/Int) // io.ktor.server.plugins.di/ImplicitCreateFunction.<init>|<init>(io.ktor.server.plugins.di.ExplicitCreateFunction;kotlin.Int){}[0]
 
+    final val distance // io.ktor.server.plugins.di/ImplicitCreateFunction.distance|{}distance[0]
+        final fun <get-distance>(): kotlin/Int // io.ktor.server.plugins.di/ImplicitCreateFunction.distance.<get-distance>|<get-distance>(){}[0]
     final val key // io.ktor.server.plugins.di/ImplicitCreateFunction.key|{}key[0]
         final fun <get-key>(): io.ktor.server.plugins.di/DependencyKey // io.ktor.server.plugins.di/ImplicitCreateFunction.key.<get-key>|<get-key>(){}[0]
     final val origin // io.ktor.server.plugins.di/ImplicitCreateFunction.origin|{}origin[0]
         final fun <get-origin>(): io.ktor.server.plugins.di/ExplicitCreateFunction // io.ktor.server.plugins.di/ImplicitCreateFunction.origin.<get-origin>|<get-origin>(){}[0]
 
     final fun create(io.ktor.server.plugins.di/DependencyResolver): kotlin/Any // io.ktor.server.plugins.di/ImplicitCreateFunction.create|create(io.ktor.server.plugins.di.DependencyResolver){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.server.plugins.di/ImplicitCreateFunction.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.ktor.server.plugins.di/ImplicitCreateFunction.hashCode|hashCode(){}[0]
 }
 
 final class io.ktor.server.plugins.di/InvalidDependencyReferenceException : io.ktor.server.plugins.di/DependencyInjectionException // io.ktor.server.plugins.di/InvalidDependencyReferenceException|null[0]
@@ -302,14 +309,14 @@ final class io.ktor.server.plugins.di/ProcessingDependencyResolver : io.ktor.ser
     final val reflection // io.ktor.server.plugins.di/ProcessingDependencyResolver.reflection|{}reflection[0]
         final fun <get-reflection>(): io.ktor.server.plugins.di/DependencyReflection // io.ktor.server.plugins.di/ProcessingDependencyResolver.reflection.<get-reflection>|<get-reflection>(){}[0]
 
-    final fun <#A1: kotlin/Any> get(io.ktor.server.plugins.di/DependencyKey): #A1 // io.ktor.server.plugins.di/ProcessingDependencyResolver.get|get(io.ktor.server.plugins.di.DependencyKey){0§<kotlin.Any>}[0]
-    final fun <#A1: kotlin/Any> getOrPut(io.ktor.server.plugins.di/DependencyKey, kotlin/Function0<#A1>): #A1 // io.ktor.server.plugins.di/ProcessingDependencyResolver.getOrPut|getOrPut(io.ktor.server.plugins.di.DependencyKey;kotlin.Function0<0:0>){0§<kotlin.Any>}[0]
+    final fun <#A1: kotlin/Any?> get(io.ktor.server.plugins.di/DependencyKey): #A1 // io.ktor.server.plugins.di/ProcessingDependencyResolver.get|get(io.ktor.server.plugins.di.DependencyKey){0§<kotlin.Any?>}[0]
+    final fun <#A1: kotlin/Any?> getOrPut(io.ktor.server.plugins.di/DependencyKey, kotlin/Function0<#A1>): #A1 // io.ktor.server.plugins.di/ProcessingDependencyResolver.getOrPut|getOrPut(io.ktor.server.plugins.di.DependencyKey;kotlin.Function0<0:0>){0§<kotlin.Any?>}[0]
     final fun contains(io.ktor.server.plugins.di/DependencyKey): kotlin/Boolean // io.ktor.server.plugins.di/ProcessingDependencyResolver.contains|contains(io.ktor.server.plugins.di.DependencyKey){}[0]
-    final fun resolveAll(): kotlin.collections/Map<io.ktor.server.plugins.di/DependencyKey, kotlin/Result<kotlin/Any>> // io.ktor.server.plugins.di/ProcessingDependencyResolver.resolveAll|resolveAll(){}[0]
+    final fun resolveAll(): kotlin.collections/Map<io.ktor.server.plugins.di/DependencyKey, kotlin/Result<*>> // io.ktor.server.plugins.di/ProcessingDependencyResolver.resolveAll|resolveAll(){}[0]
 }
 
 open class io.ktor.server.plugins.di/DependencyInjectionException : kotlin/RuntimeException { // io.ktor.server.plugins.di/DependencyInjectionException|null[0]
-    constructor <init>(kotlin/String, kotlin/Throwable? = ...) // io.ktor.server.plugins.di/DependencyInjectionException.<init>|<init>(kotlin.String;kotlin.Throwable?){}[0]
+    constructor <init>(kotlin/String? = ..., kotlin/Throwable? = ...) // io.ktor.server.plugins.di/DependencyInjectionException.<init>|<init>(kotlin.String?;kotlin.Throwable?){}[0]
 }
 
 open class io.ktor.server.plugins.di/MapDependencyProvider : io.ktor.server.plugins.di/DependencyProvider { // io.ktor.server.plugins.di/MapDependencyProvider|null[0]
@@ -343,12 +350,18 @@ final val io.ktor.server.plugins.di/DefaultConflictPolicy // io.ktor.server.plug
     final fun <get-DefaultConflictPolicy>(): io.ktor.server.plugins.di/DependencyConflictPolicy // io.ktor.server.plugins.di/DefaultConflictPolicy.<get-DefaultConflictPolicy>|<get-DefaultConflictPolicy>(){}[0]
 final val io.ktor.server.plugins.di/DefaultDependencyResolution // io.ktor.server.plugins.di/DefaultDependencyResolution|{}DefaultDependencyResolution[0]
     final fun <get-DefaultDependencyResolution>(): io.ktor.server.plugins.di/DependencyResolution // io.ktor.server.plugins.di/DefaultDependencyResolution.<get-DefaultDependencyResolution>|<get-DefaultDependencyResolution>(){}[0]
+final val io.ktor.server.plugins.di/DefaultKeyCovariance // io.ktor.server.plugins.di/DefaultKeyCovariance|{}DefaultKeyCovariance[0]
+    final fun <get-DefaultKeyCovariance>(): io.ktor.server.plugins.di/DependencyKeyCovariance // io.ktor.server.plugins.di/DefaultKeyCovariance.<get-DefaultKeyCovariance>|<get-DefaultKeyCovariance>(){}[0]
 final val io.ktor.server.plugins.di/DefaultReflection // io.ktor.server.plugins.di/DefaultReflection|{}DefaultReflection[0]
     final fun <get-DefaultReflection>(): io.ktor.server.plugins.di/DependencyReflection // io.ktor.server.plugins.di/DefaultReflection.<get-DefaultReflection>|<get-DefaultReflection>(){}[0]
 final val io.ktor.server.plugins.di/DependencyRegistryKey // io.ktor.server.plugins.di/DependencyRegistryKey|{}DependencyRegistryKey[0]
     final fun <get-DependencyRegistryKey>(): io.ktor.util/AttributeKey<io.ktor.server.plugins.di/DependencyRegistry> // io.ktor.server.plugins.di/DependencyRegistryKey.<get-DependencyRegistryKey>|<get-DependencyRegistryKey>(){}[0]
 final val io.ktor.server.plugins.di/LastEntryWinsPolicy // io.ktor.server.plugins.di/LastEntryWinsPolicy|{}LastEntryWinsPolicy[0]
     final fun <get-LastEntryWinsPolicy>(): io.ktor.server.plugins.di/DependencyConflictPolicy // io.ktor.server.plugins.di/LastEntryWinsPolicy.<get-LastEntryWinsPolicy>|<get-LastEntryWinsPolicy>(){}[0]
+final val io.ktor.server.plugins.di/Nullables // io.ktor.server.plugins.di/Nullables|{}Nullables[0]
+    final fun <get-Nullables>(): io.ktor.server.plugins.di/DependencyKeyCovariance // io.ktor.server.plugins.di/Nullables.<get-Nullables>|<get-Nullables>(){}[0]
+final val io.ktor.server.plugins.di/OutTypeArgumentsSupertypes // io.ktor.server.plugins.di/OutTypeArgumentsSupertypes|{}OutTypeArgumentsSupertypes[0]
+    final fun <get-OutTypeArgumentsSupertypes>(): io.ktor.server.plugins.di/DependencyKeyCovariance // io.ktor.server.plugins.di/OutTypeArgumentsSupertypes.<get-OutTypeArgumentsSupertypes>|<get-OutTypeArgumentsSupertypes>(){}[0]
 final val io.ktor.server.plugins.di/Supertypes // io.ktor.server.plugins.di/Supertypes|{}Supertypes[0]
     final fun <get-Supertypes>(): io.ktor.server.plugins.di/DependencyKeyCovariance // io.ktor.server.plugins.di/Supertypes.<get-Supertypes>|<get-Supertypes>(){}[0]
 final val io.ktor.server.plugins.di/Unnamed // io.ktor.server.plugins.di/Unnamed|{}Unnamed[0]
@@ -358,12 +371,15 @@ final var io.ktor.server.plugins.di/dependencies // io.ktor.server.plugins.di/de
     final fun (io.ktor.server.application/Application).<get-dependencies>(): io.ktor.server.plugins.di/DependencyRegistry // io.ktor.server.plugins.di/dependencies.<get-dependencies>|<get-dependencies>@io.ktor.server.application.Application(){}[0]
     final fun (io.ktor.server.application/Application).<set-dependencies>(io.ktor.server.plugins.di/DependencyRegistry) // io.ktor.server.plugins.di/dependencies.<set-dependencies>|<set-dependencies>@io.ktor.server.application.Application(io.ktor.server.plugins.di.DependencyRegistry){}[0]
 
+final fun (io.ktor.server.plugins.di/DependencyKey).io.ktor.server.plugins.di/isNullable(): kotlin/Boolean // io.ktor.server.plugins.di/isNullable|isNullable@io.ktor.server.plugins.di.DependencyKey(){}[0]
 final fun (io.ktor.server.plugins.di/DependencyKeyCovariance).io.ktor.server.plugins.di/plus(io.ktor.server.plugins.di/DependencyKeyCovariance): io.ktor.server.plugins.di/DependencyKeyCovariance // io.ktor.server.plugins.di/plus|plus@io.ktor.server.plugins.di.DependencyKeyCovariance(io.ktor.server.plugins.di.DependencyKeyCovariance){}[0]
 final fun (io.ktor.server.plugins.di/DependencyKeyCovariance).io.ktor.server.plugins.di/times(io.ktor.server.plugins.di/DependencyKeyCovariance): io.ktor.server.plugins.di/DependencyKeyCovariance // io.ktor.server.plugins.di/times|times@io.ktor.server.plugins.di.DependencyKeyCovariance(io.ktor.server.plugins.di.DependencyKeyCovariance){}[0]
 final fun (io.ktor.server.plugins.di/DependencyMap).io.ktor.server.plugins.di/plus(io.ktor.server.plugins.di/DependencyMap): io.ktor.server.plugins.di/DependencyMap // io.ktor.server.plugins.di/plus|plus@io.ktor.server.plugins.di.DependencyMap(io.ktor.server.plugins.di.DependencyMap){}[0]
 final fun (io.ktor.server.plugins.di/DependencyProvider).io.ktor.server.plugins.di/invoke(kotlin/Function1<io.ktor.server.plugins.di/DependencyProviderContext, kotlin/Unit>) // io.ktor.server.plugins.di/invoke|invoke@io.ktor.server.plugins.di.DependencyProvider(kotlin.Function1<io.ktor.server.plugins.di.DependencyProviderContext,kotlin.Unit>){}[0]
 final fun (io.ktor.server.plugins.di/DependencyResolver).io.ktor.server.plugins.di/named(kotlin/String): io.ktor.server.plugins.di/DependencyResolverContext // io.ktor.server.plugins.di/named|named@io.ktor.server.plugins.di.DependencyResolver(kotlin.String){}[0]
-final fun (io.ktor.util.reflect/TypeInfo).io.ktor.server.plugins.di.utils/hierarchy(): kotlin.collections/List<io.ktor.util.reflect/TypeInfo> // io.ktor.server.plugins.di.utils/hierarchy|hierarchy@io.ktor.util.reflect.TypeInfo(){}[0]
+final fun (io.ktor.util.reflect/TypeInfo).io.ktor.server.plugins.di.utils/hierarchy(): kotlin.sequences/Sequence<io.ktor.util.reflect/TypeInfo> // io.ktor.server.plugins.di.utils/hierarchy|hierarchy@io.ktor.util.reflect.TypeInfo(){}[0]
+final fun (io.ktor.util.reflect/TypeInfo).io.ktor.server.plugins.di.utils/toNullable(): io.ktor.util.reflect/TypeInfo? // io.ktor.server.plugins.di.utils/toNullable|toNullable@io.ktor.util.reflect.TypeInfo(){}[0]
+final fun (io.ktor.util.reflect/TypeInfo).io.ktor.server.plugins.di.utils/typeParametersHierarchy(): kotlin.sequences/Sequence<io.ktor.util.reflect/TypeInfo> // io.ktor.server.plugins.di.utils/typeParametersHierarchy|typeParametersHierarchy@io.ktor.util.reflect.TypeInfo(){}[0]
 final fun <#A: kotlin/Any?> (io.ktor.server.plugins.di/DependencyCreateFunction).io.ktor.server.plugins.di/ifImplicit(kotlin/Function1<io.ktor.server.plugins.di/ImplicitCreateFunction, #A>): #A? // io.ktor.server.plugins.di/ifImplicit|ifImplicit@io.ktor.server.plugins.di.DependencyCreateFunction(kotlin.Function1<io.ktor.server.plugins.di.ImplicitCreateFunction,0:0>){0§<kotlin.Any?>}[0]
 final fun <#A: kotlin/Any?> (io.ktor.server.plugins.di/DependencyMap).io.ktor.server.plugins.di/getOrNull(io.ktor.server.plugins.di/DependencyKey): #A? // io.ktor.server.plugins.di/getOrNull|getOrNull@io.ktor.server.plugins.di.DependencyMap(io.ktor.server.plugins.di.DependencyKey){0§<kotlin.Any?>}[0]
 final inline fun <#A: reified kotlin/Any> (io.ktor.server.plugins.di/DependencyProvider).io.ktor.server.plugins.di/provide(kotlin.reflect/KClass<out #A>) // io.ktor.server.plugins.di/provide|provide@io.ktor.server.plugins.di.DependencyProvider(kotlin.reflect.KClass<out|0:0>){0§<kotlin.Any>}[0]
