@@ -146,9 +146,8 @@ public class ProcessingDependencyResolver(
     public fun resolveAll(): Map<DependencyKey, Result<*>> {
         if (resolved.isNotEmpty()) return resolved.toMap()
 
-        for (key in provider.declarations.keys) {
-            get<Any?>(key)
-        }
+        provider.declarations.keys.forEach(::resolveKey)
+
         return resolved.toMap()
     }
 
@@ -156,20 +155,7 @@ public class ProcessingDependencyResolver(
         resolved.contains(key) || provider.declarations.contains(key) || external.contains(key)
 
     override fun <T> get(key: DependencyKey): T =
-        resolved.getOrPut(key) {
-            if (!visited.add(key)) throw CircularDependencyException(listOf(key))
-            try {
-                val createFunction = provider.declarations[key]
-                    ?: return@getOrPut getExternal(key) ?: throw MissingDependencyException(key)
-                Result.success(createFunction.create(this))
-            } catch (cause: CircularDependencyException) {
-                // Always throw when encountering with circular references,
-                // capturing each key in the stack allows for better debugging
-                throw CircularDependencyException(listOf(key) + cause.keys)
-            } catch (cause: Throwable) {
-                Result.failure(cause)
-            }
-        }.getOrThrow() as T
+        resolveKey(key).getOrThrow() as T
 
     override fun <T> getOrPut(key: DependencyKey, defaultValue: () -> T): T =
         resolved.getOrPut(key) {
@@ -177,6 +163,25 @@ public class ProcessingDependencyResolver(
                 defaultValue()
             }
         }.getOrThrow() as T
+
+    private fun resolveKey(key: DependencyKey): Result<*> =
+        resolved.getOrPut(key) {
+            if (!visited.add(key)) throw CircularDependencyException(listOf(key))
+            try {
+                val createFunction = provider.declarations[key]
+                    ?: return@getOrPut getExternal(key)
+                        ?: throw MissingDependencyException(key)
+                Result.success(createFunction.create(this))
+            } catch (cause: CircularDependencyException) {
+                // Always throw when encountering with circular references,
+                // capturing each key in the stack allows for better debugging
+                throw CircularDependencyException(listOf(key) + cause.keys)
+            } catch (cause: DependencyInjectionException) {
+                Result.failure(cause)
+            } catch (cause: Throwable) {
+                Result.failure(DependencyInjectionException("Failed to instantiate `$key`", cause))
+            }
+        }
 
     private fun getExternal(key: DependencyKey): Result<Any>? =
         if (external.contains(key)) {

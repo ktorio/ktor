@@ -11,41 +11,36 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.ktor.server.testing.*
+import io.ktor.test.dispatcher.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
-import java.util.function.Consumer
+import kotlinx.coroutines.test.TestResult
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
-import kotlin.reflect.full.IllegalCallableAccessException
 import kotlin.reflect.jvm.javaMethod
 import kotlin.test.*
 
 class DependencyInjectionJvmTest {
 
     @Test
-    fun `provide class reference`() = testApplication {
-        application {
-            dependencies {
-                provide(GreetingServiceImpl::class)
-            }
-
-            val service: GreetingService by dependencies
-            assertEquals(HELLO, service.hello())
+    fun `provide class reference`() = runTestDI {
+        dependencies {
+            provide(GreetingServiceImpl::class)
         }
+
+        val service: GreetingService by dependencies
+        assertEquals(HELLO, service.hello())
     }
 
     @Test
-    fun `resolve class reference`() = testApplication {
-        application {
-            assertEquals(HELLO, dependencies.create<GreetingServiceImpl>().hello())
-        }
+    fun `resolve class reference`() = runTestDI {
+        assertEquals(HELLO, dependencies.create<GreetingServiceImpl>().hello())
     }
 
     @Test
-    fun `constructor caching`() = testApplication {
+    fun `constructor caching`() {
         var calls = 0
-        install(DI) {
+        runTestDI({
             reflection = object : DependencyReflectionJvm() {
                 override fun <T : Any> create(
                     kClass: KClass<T>,
@@ -55,8 +50,7 @@ class DependencyInjectionJvmTest {
                     return super.create(kClass, init)
                 }
             }
-        }
-        application {
+        }) {
             assertEquals(0, calls)
             repeat(10) {
                 assertEquals(HELLO, dependencies.create<GreetingServiceImpl>().hello())
@@ -66,48 +60,42 @@ class DependencyInjectionJvmTest {
     }
 
     @Test
-    fun `circular references from create`() = testApplication {
-        application {
-            assertFailsWith<CircularDependencyException> {
-                dependencies {
-                    provide<WorkExperience> { WorkExperience(this.resolve()) }
-                    provide<PaidWork> { PaidWork(this.resolve()) }
-                    provide<List<PaidWork>> { listOf(this.resolve()) }
-                }
-                val workExperience: WorkExperience = dependencies.create()
-                fail("This should fail but returned $workExperience")
-            }
+    fun `circular references from create`() = runTestDI {
+        dependencies {
+            provide<WorkExperience> { WorkExperience(this.resolve()) }
+            provide<PaidWork> { PaidWork(this.resolve()) }
+            provide<List<PaidWork>> { listOf(this.resolve()) }
+        }
+
+        assertFailsWith<CircularDependencyException> {
+            dependencies.create<WorkExperience>()
         }
     }
 
     @Test
-    fun `simple argument`() = testApplication {
+    fun `simple argument`() = runTestDI {
         data class Guess(val number: Int)
 
-        application {
-            dependencies {
-                provide { 42 }
-            }
-
-            val guess: Guess = dependencies.create()
-            assertEquals(42, guess.number)
+        dependencies {
+            provide { 42 }
         }
+
+        val guess: Guess = dependencies.create()
+        assertEquals(42, guess.number)
     }
 
     @Test
-    fun `multiple arguments`() = testApplication {
-        application {
-            dependencies {
-                provide<BankService> { BankServiceImpl() }
-                provide<GreetingService> { BankGreetingService() }
-                provide(BankTeller::class)
-            }
-            val bankTeller: BankTeller by dependencies
-            bankTeller.deposit(100)
-            bankTeller.withdraw(50)
-            assertEquals(50, bankTeller.balance())
-            assertEquals("Hello, customer!", bankTeller.hello())
+    fun `multiple arguments`() = runTestDI {
+        dependencies {
+            provide<BankService> { BankServiceImpl() }
+            provide<GreetingService> { BankGreetingService() }
+            provide(BankTeller::class)
         }
+        val bankTeller: BankTeller by dependencies
+        bankTeller.deposit(100)
+        bankTeller.withdraw(50)
+        assertEquals(50, bankTeller.balance())
+        assertEquals("Hello, customer!", bankTeller.hello())
     }
 
     @Test
@@ -130,29 +118,52 @@ class DependencyInjectionJvmTest {
     }
 
     @Test
-    fun `parameterized covariant types`() = testApplication {
-        val mySet = HashSet<String>()
-
-        application {
-            dependencies {
-                provide { mySet }
-            }
-            assertEquals(mySet, dependencies.resolve())
-            assertEquals(mySet, dependencies.resolve<Set<String>>())
-            assertEquals(mySet, dependencies.resolve<Collection<String>>())
-            assertNull(dependencies.resolve<List<String>?>())
+    fun nullables() = runTestDI {
+        dependencies {
+            provide<BankTeller?> { null }
+            provide<BankService> { BankServiceImpl() }
         }
+        assertNull(dependencies.resolve<GreetingService?>())
+        assertNull(dependencies.resolve<BankTeller?>())
+        assertNotNull(dependencies.resolve<BankService?>(), "direct inference should be preferred")
     }
 
     @Test
-    fun `covariant nullables`() = testApplication {
-        application {
-            dependencies {
-                provide<Int> { 123 }
-            }
-            assertEquals(123, dependencies.resolve<Number?>())
-            assertEquals(null, dependencies.resolve<String?>())
+    fun `parameterized covariant base types`() = runTestDI {
+        val mySet = HashSet<String>()
+
+        dependencies {
+            provide { mySet }
         }
+        assertEquals(mySet, dependencies.resolve())
+        assertEquals(mySet, dependencies.resolve<Set<String>>())
+        assertEquals(mySet, dependencies.resolve<Collection<String>>())
+        assertNull(dependencies.resolve<List<String>?>())
+    }
+
+    @Test
+    fun `parameterized covariant argument supertypes`() = runTestDI {
+        val mySet = HashSet<String>()
+
+        dependencies {
+            provide { mySet }
+            provide<() -> String> { { mySet.iterator().next() } }
+        }
+        // `out` bounds should match supertypes
+        assertEquals(mySet, dependencies.resolve<Collection<CharSequence>>())
+        // return types in lambdas accept supertypes
+        assertNotNull(dependencies.resolve<() -> CharSequence>())
+        // strict bounds should not match
+        assertNull(dependencies.resolve<MutableSet<CharSequence>?>())
+    }
+
+    @Test
+    fun `covariant nullables`() = runTestDI {
+        dependencies {
+            provide<Int> { 123 }
+        }
+        assertEquals(123, dependencies.resolve<Number?>())
+        assertEquals(null, dependencies.resolve<String?>())
     }
 
     @Test
@@ -161,6 +172,25 @@ class DependencyInjectionJvmTest {
             val service: GreetingService by dependencies
             assertEquals(HELLO, service.hello())
         }
+    }
+
+    /**
+     * [KTOR-8439 Handle type parameter subtype covariance](https://youtrack.jetbrains.com/issue/KTOR-8439/Dependency-injection-handle-type-parameter-subtype-covariance)
+     *     We'll need to implement some resolution-side covariance handling for this kind of feature.
+     */
+    @Ignore
+    @Test
+    fun `parameterized covariant argument subtypes`() = runTestDI {
+        val myChannel = Channel<CharSequence>()
+
+        dependencies {
+            provide { myChannel }
+            provide<(CharSequence) -> Unit> { { myChannel.trySend(it) } }
+        }
+        // `in` bounds should match subtypes
+        assertEquals(myChannel, dependencies.resolve<SendChannel<String>>())
+        // parameters in lambdas accept subtypes
+        assertNotNull(dependencies.resolve<(String) -> Boolean>())
     }
 
     /**
@@ -228,7 +258,7 @@ class DependencyInjectionJvmTest {
 
     @Test
     fun `install from private function fails`() {
-        assertFailsWith<IllegalCallableAccessException> {
+        assertFailsWith<DependencyInjectionException> {
             testConfigFile(
                 ::createBankTellerWithArgs.qualifiedName.replace(
                     ::createBankTellerWithArgs.name,
@@ -339,6 +369,29 @@ class DependencyInjectionJvmTest {
                 assertEquals(HttpStatusCode.OK, client.get("/data").status)
             }
         )
+    }
+
+    private fun runTestDI(
+        pluginInstall: DependencyInjectionConfig.() -> Unit = {},
+        block: Application.() -> Unit
+    ): TestResult = runTestWithRealTime {
+        testDI(pluginInstall, block)
+    }
+
+    // Use default DI configuration (not test mode)
+    private suspend fun testDI(
+        pluginInstall: DependencyInjectionConfig.() -> Unit = {},
+        block: Application.() -> Unit
+    ) = runTestApplication {
+        install(DI) {
+            pluginInstall()
+            if (!providerChanged) {
+                provider = MapDependencyProvider()
+            }
+        }
+        application {
+            block()
+        }
     }
 
     private fun testConfigFile(

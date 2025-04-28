@@ -129,16 +129,18 @@ public class DependencyMapImpl(
     override fun contains(key: DependencyKey): Boolean =
         map.containsKey(key) || external.contains(key)
 
-    override fun <T> get(key: DependencyKey): T =
-        (map[key] ?: getExternal(key))?.getOrThrow() as? T
-            ?: key.getNullOrThrow()
+    override fun <T> get(key: DependencyKey): T {
+        val result = map[key] ?: getExternal(key)
+        val actual = result?.getOrThrow()
+        return when {
+            actual != null -> actual as T
+            key.isNullable() -> null as T
+            else -> throw MissingDependencyException(key)
+        }
+    }
 
     override fun <T> getOrPut(key: DependencyKey, defaultValue: () -> T): T =
         map.getOrPut(key) { runCatching(defaultValue) }.getOrThrow() as T
-
-    private fun <T> DependencyKey.getNullOrThrow(): T =
-        if (type.kotlinType?.isMarkedNullable == true) null as T
-        else throw MissingDependencyException(this)
 
     private fun getExternal(key: DependencyKey): Result<Any>? =
         if (external.contains(key)) {
