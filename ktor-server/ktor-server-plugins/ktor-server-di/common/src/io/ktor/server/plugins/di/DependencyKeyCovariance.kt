@@ -6,25 +6,34 @@ package io.ktor.server.plugins.di
 
 import io.ktor.server.plugins.di.utils.hierarchy
 import io.ktor.server.plugins.di.utils.toNullable
+import io.ktor.server.plugins.di.utils.typeParametersHierarchy
 import io.ktor.util.reflect.TypeInfo
 import io.ktor.utils.io.InternalAPI
 
 /**
  * Functional interface for mapping a dependency key to its covariant types.
  *
- * For example, `ArrayList<String> -> [List<String>, Collection<String>]`
+ * For example, `ArrayList<String> -> [ArrayList<String>, List<String>, Collection<String>]`
  */
 public fun interface DependencyKeyCovariance {
-    public fun map(key: DependencyKey): List<DependencyKey>
+    public fun map(key: DependencyKey, distance: Int): Sequence<KeyMatch>
 }
+
+internal typealias KeyMatch = Pair<DependencyKey, Int>
+
+internal val KeyMatch.key: DependencyKey get() = first
+internal val KeyMatch.distance: Int get() = second
 
 /**
  * Standard covariance mapping for matching dependency keys to supertypes and implemented interfaces.
  */
 @OptIn(InternalAPI::class)
 public val Supertypes: DependencyKeyCovariance =
-    DependencyKeyCovariance { key ->
-        key.type.hierarchy().map { DependencyKey(it, key.name) }
+    DependencyKeyCovariance { key, start ->
+        var distance = start
+        key.type.hierarchy().map {
+            DependencyKey(it, key.name) to distance++
+        }
     }
 
 /**
@@ -35,8 +44,13 @@ public val Supertypes: DependencyKeyCovariance =
  * This logic is not enabled by default.
  */
 public val Unnamed: DependencyKeyCovariance =
-    DependencyKeyCovariance { key ->
-        key.name?.let { listOf(key.copy(name = null)) } ?: emptyList()
+    DependencyKeyCovariance { key, distance ->
+        sequence {
+            yield(key to distance)
+            key.name?.let {
+                yield(key.copy(name = null) to distance.inc())
+            }
+        }
     }
 
 /**
@@ -49,10 +63,27 @@ public val Unnamed: DependencyKeyCovariance =
  */
 @OptIn(InternalAPI::class)
 public val Nullables: DependencyKeyCovariance =
-    DependencyKeyCovariance { key ->
-        val nullableVariant = key.type.kotlinType?.toNullable()
-            ?: return@DependencyKeyCovariance listOf(key)
-        listOf(key, key.copy(type = TypeInfo(key.type.type, nullableVariant)))
+    DependencyKeyCovariance { key, distance ->
+        sequence {
+            yield(key to distance)
+            key.type.toNullable()?.let { nullableVariant ->
+                yield(key.copy(type = nullableVariant) to distance.inc())
+            }
+        }
+    }
+
+/**
+ * A [DependencyKeyCovariance] that generates supertypes for out type arguments of parameterized types.
+ *
+ * For example, `Pair<String, Int>` yields `Pair<CharSequence, Number>`
+ */
+@OptIn(InternalAPI::class)
+public val OutTypeArgumentsSupertypes: DependencyKeyCovariance =
+    DependencyKeyCovariance { key, distance ->
+        var distance = distance
+        key.type.typeParametersHierarchy().map {
+            DependencyKey(it, key.name) to distance++
+        }
     }
 
 /**
@@ -65,8 +96,12 @@ public val Nullables: DependencyKeyCovariance =
  * Supertypes * Unnamed
  * ```
  */
-public operator fun DependencyKeyCovariance.times(other: DependencyKeyCovariance) =
-    DependencyKeyCovariance { key -> this.map(key).flatMap(other::map) }
+public operator fun DependencyKeyCovariance.times(other: DependencyKeyCovariance): DependencyKeyCovariance =
+    DependencyKeyCovariance { key, distance ->
+        this@times.map(key, distance).flatMap { match ->
+            other.map(match.key, match.distance)
+        }
+    }
 
 /**
  * Helper operator function for combining covariance logic.
@@ -78,5 +113,18 @@ public operator fun DependencyKeyCovariance.times(other: DependencyKeyCovariance
  * Supertypes + Unnamed
  * ```
  */
-public operator fun DependencyKeyCovariance.plus(other: DependencyKeyCovariance) =
-    DependencyKeyCovariance { key -> this.map(key) + other.map(key) }
+public operator fun DependencyKeyCovariance.plus(other: DependencyKeyCovariance): DependencyKeyCovariance =
+    DependencyKeyCovariance { key, distance ->
+        sequence {
+            yieldAll(this@plus.map(key, distance))
+            yieldAll(other.map(key, distance))
+        }
+    }
+
+/**
+ * The default covariance logic for dependency keys.
+ *
+ * Where applicable, this supports super type, nullable, and type argument supertypes.
+ */
+public val DefaultKeyCovariance: DependencyKeyCovariance =
+    Supertypes * Nullables * OutTypeArgumentsSupertypes

@@ -71,21 +71,43 @@ public class ExplicitCreateFunction(
     override fun create(resolver: DependencyResolver): Any =
         cached ?: init(resolver).also { cached = it }
 
-    public fun derived(): ImplicitCreateFunction =
-        ImplicitCreateFunction(this)
+    public fun derived(distance: Int): ImplicitCreateFunction =
+        ImplicitCreateFunction(this, distance)
 }
 
 /**
  * Represents an implicitly registered dependency creation function that delegates to its explicit parent.
  *
  * @property origin The instance of [ExplicitCreateFunction] that this class delegates creation logic to.
+ * @property distance The distance from the original key.
  */
-public class ImplicitCreateFunction(public val origin: ExplicitCreateFunction) : DependencyCreateFunction {
+public class ImplicitCreateFunction(
+    public val origin: ExplicitCreateFunction,
+    public val distance: Int,
+) : DependencyCreateFunction {
     override val key: DependencyKey
         get() = origin.key
 
     override fun create(resolver: DependencyResolver): Any =
         origin.create(resolver)
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as ImplicitCreateFunction
+
+        if (distance != other.distance) return false
+        if (origin != other.origin) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = distance
+        result = 31 * result + origin.hashCode()
+        return result
+    }
 }
 
 /**
@@ -95,19 +117,40 @@ public class ImplicitCreateFunction(public val origin: ExplicitCreateFunction) :
  * @property key The key for the dependency that caused the ambiguity.
  * @property keys A set of possible matching keys that caused the ambiguity.
  *
- * @throws AmbiguousDependencyException Always thrown when attempting to create a dependency
+ * @throws AmbiguousException Always thrown when attempting to create a dependency
  * through the [create] method.
  */
 public data class AmbiguousCreateFunction(
     public override val key: DependencyKey,
     val functions: Set<DependencyCreateFunction>
 ) : DependencyCreateFunction {
-    init {
-        require(functions.isNotEmpty()) { "Functions must not be empty" }
+    public companion object {
+        /**
+         * Instantiate a new AmbiguousCreateFunction, if the provided functions are unique.
+         *
+         * This also will flatten any provided `AmbiguousCreateFunction`s.
+         *
+         * @param key The associated dependency key.
+         * @param functions The functions to include in the resulting function.
+         */
+        public fun of(
+            key: DependencyKey,
+            vararg functions: DependencyCreateFunction
+        ): DependencyCreateFunction {
+            val functions = buildSet {
+                for (function in functions) {
+                    when (function) {
+                        is AmbiguousCreateFunction -> addAll(function.functions)
+                        else -> add(function)
+                    }
+                }
+            }
+            return functions.singleOrNull() ?: AmbiguousCreateFunction(key, functions)
+        }
     }
-
-    public constructor(key: DependencyKey, vararg functions: DependencyCreateFunction) :
-        this(key, functions.flatMap { (it as? AmbiguousCreateFunction)?.functions ?: setOf(it) }.toSet())
+    init {
+        require(functions.size > 1) { "More than one function must be provided" }
+    }
 
     override fun create(resolver: DependencyResolver): Any =
         throw AmbiguousDependencyException(key, functions.map { it.key })
@@ -140,7 +183,7 @@ public fun <T> DependencyCreateFunction.ifImplicit(block: (ImplicitCreateFunctio
  */
 @Suppress("UNCHECKED_CAST")
 public open class MapDependencyProvider(
-    public val keyMapping: DependencyKeyCovariance = Supertypes * Nullables,
+    public val keyMapping: DependencyKeyCovariance = DefaultKeyCovariance,
     public val conflictPolicy: DependencyConflictPolicy = DefaultConflictPolicy,
     public val onConflict: (DependencyKey) -> Unit = { throw DuplicateDependencyException(it) },
     private val log: Logger = KtorSimpleLogger("io.ktor.server.plugins.di.MapDependencyProvider"),
@@ -161,7 +204,7 @@ public open class MapDependencyProvider(
             null -> map[key] = newFunction
             else -> {
                 map[key] = when (val result = resolveConflict(previous, newFunction)) {
-                    Ambiguous -> AmbiguousCreateFunction(key, previous, newFunction)
+                    Ambiguous -> AmbiguousCreateFunction.of(key, previous, newFunction)
                     Conflict -> throw DuplicateDependencyException(key)
                     KeepNew -> newFunction
                     KeepPrevious -> previous
@@ -184,11 +227,10 @@ public open class MapDependencyProvider(
         createFunction: ExplicitCreateFunction,
         key: DependencyKey
     ) {
-        val implicitCreateFunction = createFunction.derived()
-        val covariantKeys = keyMapping.map(key)
-        log.trace { "Register keys $key: $covariantKeys" }
-        for (implicitKey in covariantKeys) {
-            trySet(implicitKey, implicitCreateFunction)
+        val covariantKeys = keyMapping.map(key, 0).toList()
+        log.trace { "Inferred keys $key: $covariantKeys" }
+        for ((key, distance) in covariantKeys) {
+            trySet(key, createFunction.derived(distance))
         }
     }
 }

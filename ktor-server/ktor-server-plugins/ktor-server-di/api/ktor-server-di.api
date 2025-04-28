@@ -1,6 +1,6 @@
 public final class io/ktor/server/plugins/di/AmbiguousCreateFunction : io/ktor/server/plugins/di/DependencyCreateFunction {
+	public static final field Companion Lio/ktor/server/plugins/di/AmbiguousCreateFunction$Companion;
 	public fun <init> (Lio/ktor/server/plugins/di/DependencyKey;Ljava/util/Set;)V
-	public fun <init> (Lio/ktor/server/plugins/di/DependencyKey;[Lio/ktor/server/plugins/di/DependencyCreateFunction;)V
 	public final fun component1 ()Lio/ktor/server/plugins/di/DependencyKey;
 	public final fun component2 ()Ljava/util/Set;
 	public final fun copy (Lio/ktor/server/plugins/di/DependencyKey;Ljava/util/Set;)Lio/ktor/server/plugins/di/AmbiguousCreateFunction;
@@ -11,6 +11,10 @@ public final class io/ktor/server/plugins/di/AmbiguousCreateFunction : io/ktor/s
 	public fun getKey ()Lio/ktor/server/plugins/di/DependencyKey;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/plugins/di/AmbiguousCreateFunction$Companion {
+	public final fun of (Lio/ktor/server/plugins/di/DependencyKey;[Lio/ktor/server/plugins/di/DependencyCreateFunction;)Lio/ktor/server/plugins/di/DependencyCreateFunction;
 }
 
 public final class io/ktor/server/plugins/di/AmbiguousDependencyException : io/ktor/server/plugins/di/DependencyInjectionException {
@@ -124,6 +128,7 @@ public final class io/ktor/server/plugins/di/DependencyInjectionConfig_jvmKt {
 }
 
 public class io/ktor/server/plugins/di/DependencyInjectionException : java/lang/RuntimeException {
+	public fun <init> ()V
 	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
@@ -131,6 +136,7 @@ public class io/ktor/server/plugins/di/DependencyInjectionException : java/lang/
 public final class io/ktor/server/plugins/di/DependencyInjectionKt {
 	public static final fun getDI ()Lio/ktor/server/application/ApplicationPlugin;
 	public static final fun getDependencyRegistryKey ()Lio/ktor/util/AttributeKey;
+	public static final fun isNullable (Lio/ktor/server/plugins/di/DependencyKey;)Z
 }
 
 public final class io/ktor/server/plugins/di/DependencyKey {
@@ -150,10 +156,13 @@ public final class io/ktor/server/plugins/di/DependencyKey {
 }
 
 public abstract interface class io/ktor/server/plugins/di/DependencyKeyCovariance {
-	public abstract fun map (Lio/ktor/server/plugins/di/DependencyKey;)Ljava/util/List;
+	public abstract fun map (Lio/ktor/server/plugins/di/DependencyKey;I)Lkotlin/sequences/Sequence;
 }
 
 public final class io/ktor/server/plugins/di/DependencyKeyCovarianceKt {
+	public static final fun getDefaultKeyCovariance ()Lio/ktor/server/plugins/di/DependencyKeyCovariance;
+	public static final fun getNullables ()Lio/ktor/server/plugins/di/DependencyKeyCovariance;
+	public static final fun getOutTypeArgumentsSupertypes ()Lio/ktor/server/plugins/di/DependencyKeyCovariance;
 	public static final fun getSupertypes ()Lio/ktor/server/plugins/di/DependencyKeyCovariance;
 	public static final fun getUnnamed ()Lio/ktor/server/plugins/di/DependencyKeyCovariance;
 	public static final fun plus (Lio/ktor/server/plugins/di/DependencyKeyCovariance;Lio/ktor/server/plugins/di/DependencyKeyCovariance;)Lio/ktor/server/plugins/di/DependencyKeyCovariance;
@@ -263,15 +272,18 @@ public final class io/ktor/server/plugins/di/DuplicateDependencyException : io/k
 public final class io/ktor/server/plugins/di/ExplicitCreateFunction : io/ktor/server/plugins/di/DependencyCreateFunction {
 	public fun <init> (Lio/ktor/server/plugins/di/DependencyKey;Lkotlin/jvm/functions/Function1;)V
 	public fun create (Lio/ktor/server/plugins/di/DependencyResolver;)Ljava/lang/Object;
-	public final fun derived ()Lio/ktor/server/plugins/di/ImplicitCreateFunction;
+	public final fun derived (I)Lio/ktor/server/plugins/di/ImplicitCreateFunction;
 	public fun getKey ()Lio/ktor/server/plugins/di/DependencyKey;
 }
 
 public final class io/ktor/server/plugins/di/ImplicitCreateFunction : io/ktor/server/plugins/di/DependencyCreateFunction {
-	public fun <init> (Lio/ktor/server/plugins/di/ExplicitCreateFunction;)V
+	public fun <init> (Lio/ktor/server/plugins/di/ExplicitCreateFunction;I)V
 	public fun create (Lio/ktor/server/plugins/di/DependencyResolver;)Ljava/lang/Object;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDistance ()I
 	public fun getKey ()Lio/ktor/server/plugins/di/DependencyKey;
 	public final fun getOrigin ()Lio/ktor/server/plugins/di/ExplicitCreateFunction;
+	public fun hashCode ()I
 }
 
 public final class io/ktor/server/plugins/di/InvalidDependencyReferenceException : io/ktor/server/plugins/di/DependencyInjectionException {
@@ -336,6 +348,10 @@ public abstract interface annotation class io/ktor/server/plugins/di/annotations
 }
 
 public final class io/ktor/server/plugins/di/utils/Types_jvmKt {
-	public static final fun hierarchy (Lio/ktor/util/reflect/TypeInfo;)Ljava/util/List;
+	public static final fun hasTypeParameters (Lio/ktor/util/reflect/TypeInfo;Lkotlin/jvm/functions/Function1;)Z
+	public static synthetic fun hasTypeParameters$default (Lio/ktor/util/reflect/TypeInfo;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Z
+	public static final fun hierarchy (Lio/ktor/util/reflect/TypeInfo;)Lkotlin/sequences/Sequence;
+	public static final fun toNullable (Lio/ktor/util/reflect/TypeInfo;)Lio/ktor/util/reflect/TypeInfo;
+	public static final fun typeParametersHierarchy (Lio/ktor/util/reflect/TypeInfo;)Lkotlin/sequences/Sequence;
 }
 
