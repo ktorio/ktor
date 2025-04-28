@@ -1,5 +1,7 @@
 [versions]
 
+android-gradle-plugin = "8.9.2"
+androidx = "1.6.2"
 kotlin = "2.1.20"
 kotlinx-html = "0.12.0"
 kotlinx-datetime = "0.6.2"
@@ -83,9 +85,13 @@ tomlj = "1.1.1"
 develocity = "3.18.2" # Should be compatible with our server: ge.jetbrains.com
 develocity-commonCustomUserData = "2.2.1"
 gradleDoctor = "0.10.0"
-core = "1.16.0"
 
 [libraries]
+
+android-gradlePlugin = { module = "com.android.tools.build:gradle", version.ref = "android-gradle-plugin" }
+androidx-core = { module = "androidx.test:core", version.ref = "androidx" }
+androidx-rules = { module = "androidx.test:rules", version.ref = "androidx" }
+androidx-runner = { module = "androidx.test:runner", version.ref = "androidx" }
 
 kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
@@ -238,7 +244,6 @@ develocity = { module = "com.gradle:develocity-gradle-plugin", version.ref = "de
 develocity-commonCustomUserData = { module = "com.gradle:common-custom-user-data-gradle-plugin", version.ref = "develocity-commonCustomUserData" }
 kotlinter = { module = "org.jmailen.gradle:kotlinter-gradle", version.ref = "kotlinter" }
 gradleDoctor = { module = "com.osacky.doctor:doctor-plugin", version.ref = "gradleDoctor" }
-core = { group = "androidx.core", name = "core", version.ref = "core" }
 
 [plugins]
 
