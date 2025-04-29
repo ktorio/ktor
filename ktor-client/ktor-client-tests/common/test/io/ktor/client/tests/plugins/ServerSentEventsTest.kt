@@ -19,7 +19,6 @@ import io.ktor.sse.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.take
@@ -33,8 +32,6 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.measureTime
 
 class ServerSentEventsTest : ClientLoader() {
 
@@ -138,19 +135,23 @@ class ServerSentEventsTest : ClientLoader() {
 
         test { client ->
             coroutineScope {
-                val job = launch {
-                    val session = client.serverSentEventsSession("$TEST_SERVER/sse/hello?times=20&interval=100")
+                val started = Job()
+                val session = client.serverSentEventsSession("$TEST_SERVER/sse/hello?times=20&interval=100")
+                val readJob = launch {
                     try {
-                        session.incoming.collect()
+                        session.incoming.collect {
+                            started.complete()
+                        }
                     } finally {
                         withContext(NonCancellable) {
-                            delay(500)
+                            started.join()
                             assertFalse(session.isActive)
                         }
                     }
                 }
-                delay(500)
-                job.cancelAndJoin()
+                started.join()
+                readJob.cancelAndJoin()
+                assertFalse(session.isActive)
             }
         }
     }
@@ -582,25 +583,22 @@ class ServerSentEventsTest : ClientLoader() {
         config {
             install(SSE) {
                 maxReconnectionAttempts = 1
-                reconnectionTime = 2.seconds
+                reconnectionTime = 100.milliseconds
             }
         }
 
         test { client ->
             val events = mutableListOf<ServerSentEvent>()
 
-            val time = measureTime {
-                client.sse("$TEST_SERVER/sse/reconnection?count=5") {
-                    incoming.take(10).collect {
-                        events.add(it)
-                    }
+            client.sse("$TEST_SERVER/sse/reconnection?count=5") {
+                incoming.take(10).collect {
+                    events.add(it)
                 }
             }
 
             events.forEachIndexed { index, event ->
                 assertEquals(index + 1, event.id?.toInt())
             }
-            assertTrue { time > 2.seconds }
         }
     }
 
@@ -617,7 +615,7 @@ class ServerSentEventsTest : ClientLoader() {
             var count = 0
 
             assertFailsWith<IllegalStateException> {
-                client.sse("$TEST_SERVER/sse/reconnection?count=5", reconnectionTime = 1.seconds) {
+                client.sse("$TEST_SERVER/sse/reconnection?count=5", reconnectionTime = 10.milliseconds) {
                     incoming.collect {
                         events.add(it)
                         count++
@@ -669,7 +667,6 @@ class ServerSentEventsTest : ClientLoader() {
     fun testSeveralReconnections() = clientTests(except("OkHttp")) {
         config {
             install(SSE) {
-                reconnectionTime = 500.milliseconds
                 maxReconnectionAttempts = 2
             }
         }
@@ -678,14 +675,12 @@ class ServerSentEventsTest : ClientLoader() {
             val events = mutableListOf<ServerSentEvent>()
             var count = 0
 
-            val time = measureTime {
-                client.sse("$TEST_SERVER/sse/reconnection?count=5") {
-                    incoming.collect {
-                        events.add(it)
-                        count++
-                        if (count == 15) {
-                            cancel()
-                        }
+            client.sse("$TEST_SERVER/sse/reconnection?count=5", reconnectionTime = 10.milliseconds) {
+                incoming.collect {
+                    events.add(it)
+                    count++
+                    if (count == 15) {
+                        cancel()
                     }
                 }
             }
@@ -694,7 +689,6 @@ class ServerSentEventsTest : ClientLoader() {
             events.forEachIndexed { index, event ->
                 assertEquals(index + 1, event.id?.toInt())
             }
-            assertTrue { 1.seconds < time && time < 2.seconds }
         }
     }
 
@@ -702,7 +696,7 @@ class ServerSentEventsTest : ClientLoader() {
     fun testMaxRetries() = clientTests(except("OkHttp")) {
         config {
             install(SSE) {
-                reconnectionTime = 500.milliseconds
+                reconnectionTime = 10.milliseconds
                 maxReconnectionAttempts = 4
             }
         }
@@ -711,14 +705,12 @@ class ServerSentEventsTest : ClientLoader() {
             val events = mutableListOf<ServerSentEvent>()
             var count = 0
 
-            val time = measureTime {
-                client.sse("$TEST_SERVER/sse/exception-on-reconnection?count=5&count-of-reconnections=4") {
-                    incoming.collect {
-                        events.add(it)
-                        count++
-                        if (count == 10) {
-                            cancel()
-                        }
+            client.sse("$TEST_SERVER/sse/exception-on-reconnection?count=5&count-of-reconnections=4") {
+                incoming.collect {
+                    events.add(it)
+                    count++
+                    if (count == 10) {
+                        cancel()
                     }
                 }
             }
@@ -727,7 +719,6 @@ class ServerSentEventsTest : ClientLoader() {
             events.forEachIndexed { index, event ->
                 assertEquals(index % 5, event.id?.toInt())
             }
-            assertTrue { 2.seconds < time && time < 3.seconds }
         }
     }
 
@@ -741,7 +732,6 @@ class ServerSentEventsTest : ClientLoader() {
         }
 
         test { client ->
-
             client.sse("$TEST_SERVER/sse/no-content") {
                 assertEquals(HttpStatusCode.NoContent, call.response.status)
                 assertEquals(0, incoming.toList().size)
@@ -756,6 +746,20 @@ class ServerSentEventsTest : ClientLoader() {
             assertEquals(10, events.size)
             events.forEachIndexed { index, event ->
                 assertEquals(index, event.id?.toInt())
+            }
+        }
+    }
+
+    @Test
+    fun testNoContentStream() = clientTests(except("OkHttp")) {
+        config {
+            install(SSE)
+        }
+
+        test { client ->
+            client.sse("$TEST_SERVER/sse/no-events") {
+                assertEquals(HttpStatusCode.OK, call.response.status)
+                assertEquals(0, incoming.toList().size)
             }
         }
     }

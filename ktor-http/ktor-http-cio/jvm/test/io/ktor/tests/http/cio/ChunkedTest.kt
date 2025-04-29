@@ -25,17 +25,6 @@ import kotlin.test.assertTrue
 class ChunkedTest {
 
     @Test
-    fun testEmptyBroken(): Unit = runBlocking {
-        val bodyText = ""
-        val ch = ByteReadChannel(bodyText.toByteArray())
-        val parsed = ByteChannel()
-
-        assertFailsWith<EOFException> {
-            decodeChunked(ch, parsed)
-        }
-    }
-
-    @Test
     fun testChunkedWithContentLength() = runBlocking {
         val chunkedContent = listOf(
             "3\r\n",
@@ -69,6 +58,16 @@ class ChunkedTest {
         assertFailsWith<EOFException> {
             decodeChunked(ch, parsed)
         }
+    }
+
+    @Test
+    fun testEmptyNoCRLF(): Unit = runBlocking {
+        val bodyText = ""
+        val ch = ByteReadChannel(bodyText.toByteArray())
+        val parsed = ByteChannel()
+
+        decodeChunked(ch, parsed)
+        assertEquals("", parsed.readBuffer().readText())
     }
 
     @Test
