@@ -15,6 +15,8 @@ public object WebRTC {
         FAILED,
         DISCONNECTED,
         CLOSED;
+
+        public fun isSuccessful(): Boolean = this == COMPLETED || this == CONNECTED
     }
 
     public data class Stats(
