@@ -13,7 +13,7 @@ private val ctx: Context get() = InstrumentationRegistry.getInstrumentation().ta
 
 actual fun createTestWebRTCClient(): WebRTCClient {
     return WebRTCClient(AndroidWebRTC) {
-        iceServers = listOf(WebRTC.IceServer(urls = "stun:stun.l.google.com:19302"))
+        iceServers = listOf()
         turnServers = listOf()
         statsRefreshRate = 100 // 100 ms refresh rate
         mediaTrackFactory = AndroidMediaDevices(ctx)

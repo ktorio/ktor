@@ -7,7 +7,7 @@ package io.ktor.client.webrtc
 import MockMediaTrackFactory
 
 actual fun createTestWebRTCClient(): WebRTCClient = WebRTCClient(JsWebRTC) {
-    iceServers = listOf(WebRTC.IceServer(urls = "stun:stun.l.google.com:19302"))
+    iceServers = listOf()
     turnServers = listOf()
     statsRefreshRate = 100
     mediaTrackFactory = MockMediaTrackFactory

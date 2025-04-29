@@ -222,9 +222,7 @@ internal fun KotlinMultiplatformExtension.addTargets(targets: KtorTargets) {
     if (targets.isEnabled("mingwX64")) mingwX64()
     if (targets.isEnabled("watchosDeviceArm64")) watchosDeviceArm64()
 
-    //if (!targets.hasAndroidJvm || !project.pluginManager.hasPlugin("com.android.library")) {
-        freezeSourceSets()
-    //}
+    freezeSourceSets()
     flattenSourceSetsStructure()
 }
 
