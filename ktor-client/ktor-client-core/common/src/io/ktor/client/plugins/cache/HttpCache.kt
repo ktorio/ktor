@@ -344,7 +344,7 @@ public class HttpCache private constructor(
     ): CachedResponseData? = when {
         varyKeys.isNotEmpty() -> {
             val cache = storage.find(url, varyKeys)
-            if (varyKeys.size != cache.varyKeys.size) {
+            if (cache != null && cache.varyKeys.size != varyKeys.size) {
                 LOGGER.info { "Vary header size differs! This is an issue according to the Vary header specs (https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Vary). " +
                     "However, we will return the best matching cache as it is not your fault. Report the server you communicate with to fix it." }
             }
