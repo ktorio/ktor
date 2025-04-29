@@ -79,7 +79,7 @@ public object WebRTC {
         DISABLED,
         MAINTAIN_FRAMERATE,
         MAINTAIN_RESOLUTION,
-        BALANCED;
+        BALANCED
     }
 
     public interface RtpSender {
@@ -146,7 +146,7 @@ public object WebRTCMedia {
         USER,
         ENVIRONMENT,
         LEFT,
-        RIGHT;
+        RIGHT
     }
 
     public enum class ResizeMode {
@@ -159,4 +159,3 @@ public object WebRTCMedia {
 
     public class DeviceException(message: String?, cause: Throwable? = null) : RuntimeException(message, cause)
 }
-

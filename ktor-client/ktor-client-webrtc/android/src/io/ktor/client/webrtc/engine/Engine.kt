@@ -81,13 +81,15 @@ public class AndroidWebRtcPeerConnection(
 
     init {
         // Set up statistics collection
-        if (statsRefreshRate > 0) launch {
-            while (true) {
-                delay(statsRefreshRate)
-                val stats = suspendCoroutine { cont ->
-                    peerConnection.getStats { cont.resume(it.toCommon()) }
+        if (statsRefreshRate > 0) {
+            launch {
+                while (true) {
+                    delay(statsRefreshRate)
+                    val stats = suspendCoroutine { cont ->
+                        peerConnection.getStats { cont.resume(it.toCommon()) }
+                    }
+                    _statsFlow.emit(stats)
                 }
-                _statsFlow.emit(stats)
             }
         }
     }
@@ -169,10 +171,13 @@ public class AndroidWebRtcPeerConnection(
             candidate.candidate,
         )
         suspendCoroutine { cont ->
-            peerConnection.addIceCandidate(iceCandidate, object : AddIceObserver {
-                override fun onAddSuccess() = cont.resume(Unit)
-                override fun onAddFailure(error: String?) = cont.resumeWithException(WebRTC.IceException(error))
-            })
+            peerConnection.addIceCandidate(
+                iceCandidate,
+                object : AddIceObserver {
+                    override fun onAddSuccess() = cont.resume(Unit)
+                    override fun onAddFailure(error: String?) = cont.resumeWithException(WebRTC.IceException(error))
+                }
+            )
         }
     }
 

@@ -19,7 +19,8 @@ public fun WebRTC.SessionDescription.toNative(): SessionDescription {
             WebRTC.SessionDescriptionType.ANSWER -> SessionDescription.Type.ANSWER
             WebRTC.SessionDescriptionType.ROLLBACK -> SessionDescription.Type.ROLLBACK
             WebRTC.SessionDescriptionType.PROVISIONAL_ANSWER -> SessionDescription.Type.PRANSWER
-        }, sdp
+        },
+        sdp
     )
 }
 
@@ -72,4 +73,3 @@ public fun Continuation<Unit>.resumeAfterSdpSet(): SdpObserver {
         override fun onSetFailure(error: String?) = resumeWithException(WebRTC.SdpException(error))
     }
 }
-

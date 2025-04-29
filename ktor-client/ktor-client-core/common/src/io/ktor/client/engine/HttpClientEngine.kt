@@ -121,7 +121,7 @@ public interface HttpClientEngine : CoroutineScope, Closeable {
      */
     @InternalAPI
     public suspend fun execute(data: HttpRequestData): HttpResponseData
-    
+
     /**
      * Installs the engine into an [HttpClient].
      *
