@@ -46,7 +46,6 @@ public class AndroidAudioTrack(nativeTrack: MediaStreamTrack) : WebRTCMedia.Audi
 
 public class AndroidVideoTrack(nativeTrack: MediaStreamTrack) : WebRTCMedia.VideoTrack, AndroidMediaTrack(nativeTrack)
 
-
 public class AndroidRtpSender(public val nativeRtpSender: RtpSender) : WebRTC.RtpSender {
     override val dtmf: WebRTC.DtmfSender?
         get() = nativeRtpSender.dtmf()?.let { AndroidDtmfServer(it) }

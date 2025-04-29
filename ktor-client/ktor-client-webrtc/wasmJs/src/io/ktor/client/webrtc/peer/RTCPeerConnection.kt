@@ -459,7 +459,11 @@ public external class RTCDTMFSender : EventTarget {
     public var canInsertDTMF: JsBoolean
     public var ontonechange: ((self: RTCDTMFSender, ev: RTCDTMFToneChangeEvent) -> JsAny)?
     public var toneBuffer: JsString
-    public fun insertDTMF(tones: JsString, duration: JsNumber = definedExternally, interToneGap: JsNumber = definedExternally)
+    public fun insertDTMF(
+        tones: JsString,
+        duration: JsNumber = definedExternally,
+        interToneGap: JsNumber = definedExternally
+    )
 }
 
 public external class RTCDTMFToneChangeEvent : Event {
@@ -679,7 +683,10 @@ public external class RTCPeerConnection(config: RTCConfiguration) : EventTarget 
     public var onstatsended: ((ev: RTCStatsEvent) -> Unit)?
     public var peerIdentity: Promise<RTCIdentityAssertion>
     public fun createAnswer(options: RTCOfferOptions = definedExternally): Promise<RTCSessionDescriptionInit>
-    public fun createDataChannel(label: JsString, dataChannelDict: RTCDataChannelInit = definedExternally): RTCDataChannel
+    public fun createDataChannel(
+        label: JsString,
+        dataChannelDict: RTCDataChannelInit = definedExternally
+    ): RTCDataChannel
     public fun createDataChannel(label: JsString): RTCDataChannel
     public fun getIdentityAssertion(): Promise<JsString>
     public fun setIdentityProvider(provider: JsString, options: RTCIdentityProviderOptions = definedExternally)

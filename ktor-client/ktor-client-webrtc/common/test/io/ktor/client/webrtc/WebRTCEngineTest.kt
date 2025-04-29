@@ -12,9 +12,9 @@ import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
-import kotlin.test.Test
-import kotlin.test.BeforeTest
 import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
+import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
@@ -187,7 +187,6 @@ class WebRTCEngineTest {
             val collectConnectionState1Job = launch { pc1.iceConnectionStateFlow.collect { connectionState1.send(it) } }
             val collectConnectionState2Job = launch { pc2.iceConnectionStateFlow.collect { connectionState2.send(it) } }
 
-
             // Add audio tracks for both connections
             pc1.addTrack(client.createAudioTrack(WebRTCMedia.AudioTrackConstraints()))
             pc2.addTrack(client.createAudioTrack(WebRTCMedia.AudioTrackConstraints()))
@@ -228,7 +227,9 @@ class WebRTCEngineTest {
     fun testInvalidIceCandidate() = testConnection { pc ->
         assertFailsWith<WebRTC.IceException> {
             val invalidCandidate = WebRTC.IceCandidate(
-                candidate = "invalid candidate string", sdpMid = "0", sdpMLineIndex = 0
+                candidate = "invalid candidate string",
+                sdpMid = "0",
+                sdpMLineIndex = 0
             )
             pc.addIceCandidate(invalidCandidate)
         }

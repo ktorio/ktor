@@ -46,8 +46,11 @@ public class AndroidMediaDevices(private val context: Context) : MediaTrackFacto
     private fun findCameraId(constraints: WebRTCMedia.VideoTrackConstraints): String? {
         val targetFrontCamera = constraints.facingMode != WebRTCMedia.FacingMode.ENVIRONMENT
         return cameraEnumerator.deviceNames.firstOrNull { id ->
-            if (targetFrontCamera) cameraEnumerator.isFrontFacing(id)
-            else cameraEnumerator.isBackFacing(id)
+            if (targetFrontCamera) {
+                cameraEnumerator.isFrontFacing(id)
+            } else {
+                cameraEnumerator.isBackFacing(id)
+            }
         }
     }
 
@@ -81,13 +84,19 @@ public class AndroidMediaDevices(private val context: Context) : MediaTrackFacto
 
     override suspend fun createAudioTrack(constraints: WebRTCMedia.AudioTrackConstraints): WebRTCMedia.AudioTrack {
         if (constraints.latency != null) {
-            throw NotImplementedError("Latency is not supported yet for Android. You can provide custom MediaTrackFactory")
+            throw NotImplementedError(
+                "Latency is not supported yet for Android. You can provide custom MediaTrackFactory"
+            )
         }
         if (constraints.channelCount != null) {
-            throw NotImplementedError("Channel count is not supported yet for Android. You can provide custom MediaTrackFactory")
+            throw NotImplementedError(
+                "Channel count is not supported yet for Android. You can provide custom MediaTrackFactory"
+            )
         }
         if (constraints.sampleSize != null) {
-            throw NotImplementedError("Sample size is not supported yet for Android. You can provide custom MediaTrackFactory")
+            throw NotImplementedError(
+                "Sample size is not supported yet for Android. You can provide custom MediaTrackFactory"
+            )
         }
         assertPermission(Manifest.permission.RECORD_AUDIO)
 
@@ -97,11 +106,14 @@ public class AndroidMediaDevices(private val context: Context) : MediaTrackFacto
         mc.add("googNoiseSuppression" to (constraints.noiseSuppression ?: true))
 
         val mediaConstraints = MediaConstraints().apply {
-            mandatory.addAll(mc.map {
-                MediaConstraints.KeyValuePair(
-                    it.first, it.second.toString()
-                )
-            })
+            mandatory.addAll(
+                mc.map {
+                    MediaConstraints.KeyValuePair(
+                        it.first,
+                        it.second.toString()
+                    )
+                }
+            )
         }
         val id = "android-webrtc-audio-${UUID.randomUUID()}"
         val src = peerConnectionFactory.createAudioSource(mediaConstraints)
@@ -139,7 +151,8 @@ public class AndroidMediaDevices(private val context: Context) : MediaTrackFacto
             }
             val videoCapturer = cameraEnumerator.createCapturer(cameraId, eventsHandler)
             val surfaceTextureHelper = SurfaceTextureHelper.create(
-                "SurfaceTextureHelperThread", eglBaseContext
+                "SurfaceTextureHelperThread",
+                eglBaseContext
             )
             videoSource = peerConnectionFactory.createVideoSource(false).apply {
                 videoCapturer.initialize(surfaceTextureHelper, context, capturerObserver)
@@ -150,7 +163,9 @@ public class AndroidMediaDevices(private val context: Context) : MediaTrackFacto
 
     override suspend fun createVideoTrack(constraints: WebRTCMedia.VideoTrackConstraints): WebRTCMedia.VideoTrack {
         if (constraints.resizeMode != null) {
-            throw NotImplementedError("Resize mode is not supported yet for Android. You can provide custom MediaTrackFactory")
+            throw NotImplementedError(
+                "Resize mode is not supported yet for Android. You can provide custom MediaTrackFactory"
+            )
         }
         assertPermission(Manifest.permission.CAMERA)
 
