@@ -203,7 +203,7 @@ class WebRTCEngineTest {
             pc1.setRemoteDescription(answer)
 
             fun connectionEstablished(): Boolean =
-                pc1.iceConnectionStateFlow.value == WebRTC.IceConnectionState.CONNECTED && pc2.iceConnectionStateFlow.value == WebRTC.IceConnectionState.CONNECTED
+                pc1.iceConnectionStateFlow.value.isSuccessful() && pc2.iceConnectionStateFlow.value.isSuccessful()
 
             withTimeout(5000) {
                 // Exchange ICE candidates
