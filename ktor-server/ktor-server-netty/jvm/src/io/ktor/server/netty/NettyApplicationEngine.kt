@@ -23,7 +23,6 @@ import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.handler.codec.http.HttpObjectDecoder
 import io.netty.handler.codec.http.HttpServerCodec
 import kotlinx.coroutines.CompletableJob
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.asCoroutineDispatcher
 import java.net.BindException
 import java.util.concurrent.TimeUnit
@@ -185,10 +184,6 @@ public class NettyApplicationEngine(
         }
     }
 
-    private val nettyDispatcher: CoroutineDispatcher by lazy {
-        NettyDispatcher
-    }
-
     private val workerDispatcher by lazy {
         workerEventGroup.asCoroutineDispatcher()
     }
@@ -200,11 +195,6 @@ public class NettyApplicationEngine(
         configuration.connectors.map(::createBootstrap)
     }
 
-    private val userContext = applicationProvider().parentCoroutineContext +
-        nettyDispatcher +
-        NettyApplicationCallHandler.CallHandlerCoroutineName +
-        DefaultUncaughtExceptionHandler(environment.log)
-
     private fun createBootstrap(connector: EngineConnectorConfig): ServerBootstrap {
         return customBootstrap.clone().apply {
             if (config().group() == null && config().childGroup() == null) {
@@ -214,6 +204,10 @@ public class NettyApplicationEngine(
             if (config().channelFactory() == null) {
                 channel(getChannelClass().java)
             }
+
+            val userContext = applicationProvider().coroutineContext +
+                NettyApplicationCallHandler.CallHandlerCoroutineName +
+                DefaultUncaughtExceptionHandler(environment.log)
 
             childHandler(
                 NettyChannelInitializer(
