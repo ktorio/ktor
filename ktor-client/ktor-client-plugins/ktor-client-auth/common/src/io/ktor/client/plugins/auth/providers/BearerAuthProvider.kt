@@ -151,7 +151,9 @@ public class BearerAuthProvider(
             if (contains(HttpHeaders.Authorization)) {
                 remove(HttpHeaders.Authorization)
             }
-            append(HttpHeaders.Authorization, tokenValue)
+            if (request.attributes.contains(AuthCircuitBreaker).not()) {
+                append(HttpHeaders.Authorization, tokenValue)
+            }
         }
     }
 

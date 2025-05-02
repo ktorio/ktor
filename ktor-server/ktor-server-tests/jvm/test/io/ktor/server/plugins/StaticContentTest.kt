@@ -31,7 +31,26 @@ class StaticContentTest {
             .map { File(it, "io/ktor/server") }
             .first(File::exists)
 
-    private operator fun File.get(relativePath: String) = File(this, relativePath)
+    @Test
+    fun testVaryHeaderWithPreCompressedStaticResources() = testApplication {
+        routing {
+            staticResources("static", "public") {
+                preCompressed(CompressedFileType.BROTLI)
+            }
+        }
+
+        client.get("static/nested/file-nested.txt").let { response ->
+            assertNull(response.headers[HttpHeaders.Vary])
+        }
+
+        client.get("static/nested/file-nested.txt") {
+            headers {
+                append(HttpHeaders.AcceptEncoding, "br")
+            }
+        }.let { response ->
+            assertEquals(HttpHeaders.AcceptEncoding, response.headers[HttpHeaders.Vary])
+        }
+    }
 
     @Test
     fun testStaticContentBuilder() = testApplication {

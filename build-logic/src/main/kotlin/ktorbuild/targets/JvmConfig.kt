@@ -6,6 +6,7 @@ package ktorbuild.targets
 
 import ktorbuild.ProjectTag
 import ktorbuild.addProjectTag
+import ktorbuild.internal.java
 import ktorbuild.internal.kotlin
 import ktorbuild.internal.ktorBuild
 import ktorbuild.internal.libs
@@ -44,7 +45,7 @@ private fun Project.configureTests() {
         maxHeapSize = "2g"
         exclude("**/*StressTest*")
         useJUnitPlatform()
-        configureJavaToolchain(ktorBuild.jvmToolchain, ktorBuild.jvmTestToolchain)
+        configureJavaToolchain(java.toolchain.languageVersion, ktorBuild.jvmTestToolchain)
     }
 
     tasks.register<Test>("stressTest") {
@@ -57,7 +58,7 @@ private fun Project.configureTests() {
         systemProperty("enable.stress.tests", "true")
         include("**/*StressTest*")
         useJUnitPlatform()
-        configureJavaToolchain(ktorBuild.jvmToolchain, ktorBuild.jvmTestToolchain)
+        configureJavaToolchain(java.toolchain.languageVersion, ktorBuild.jvmTestToolchain)
     }
 }
 

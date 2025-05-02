@@ -610,6 +610,8 @@ private fun Route.staticContentRoute(
 ) = createChild(object : RouteSelector() {
     override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation =
         RouteSelectorEvaluation.Success(quality = RouteSelectorEvaluation.qualityTailcard)
+
+    override fun toString() = "(staticContent)"
 }).apply {
     route(remotePath) {
         route("{$pathParameterName...}") {

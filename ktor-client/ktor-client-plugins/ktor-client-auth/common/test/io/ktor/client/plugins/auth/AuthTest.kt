@@ -765,4 +765,40 @@ class AuthTest : ClientLoader() {
             }
         }
     }
+
+    @Test
+    fun testBearerAuthWithCircuitBreaker() = testWithEngine(MockEngine) {
+        config {
+            install(Auth) {
+                bearer {
+                    loadTokens { BearerTokens("invalid", null) }
+                }
+            }
+            engine {
+                addHandler { request ->
+                    val authHeader = request.headers[HttpHeaders.Authorization]
+                    if (authHeader == null) {
+                        // no header - this is expected for refresh token requests
+                        respond("OK", HttpStatusCode.OK)
+                    } else {
+                        // header is invalid throw unauthorized
+                        respond("No Auth Header", HttpStatusCode.Unauthorized)
+                    }
+                }
+            }
+        }
+
+        test { client ->
+            // Test without circuit breaker - should add auth header with invalid token
+            val response1 = client.get("/")
+            assertEquals(HttpStatusCode.Unauthorized, response1.status)
+
+            // Test with circuit breaker - should not add auth header
+            val response2 = client.get("/") {
+                // add AuthCircuitBreaker like any refresh token request would have
+                attributes.put(AuthCircuitBreaker, Unit)
+            }
+            assertEquals(HttpStatusCode.OK, response2.status)
+        }
+    }
 }

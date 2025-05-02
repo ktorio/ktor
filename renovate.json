@@ -59,11 +59,18 @@
         "com.gradle.develocity",
         "com.gradle:develocity-gradle-plugin"
       ],
+      "matchUpdateTypes": [
+        "major",
+        "minor"
+      ],
       "enabled": false
     },
     {
       "description": "Automerge non-major releases",
-      "matchUpdateTypes": ["patch", "minor"],
+      "matchUpdateTypes": [
+        "patch",
+        "minor"
+      ],
       "automerge": true
     },
     {

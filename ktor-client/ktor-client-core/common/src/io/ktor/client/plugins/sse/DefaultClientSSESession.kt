@@ -45,7 +45,7 @@ public class DefaultClientSSESession(
         // we have an outer while to obtain new input
         while (this@DefaultClientSSESession.coroutineContext.isActive) {
             while (this@DefaultClientSSESession.coroutineContext.isActive) {
-                val event = input.parseEvent() ?: break
+                val event = input.tryParseEvent() ?: break
 
                 if (event.isCommentsEvent() && !showCommentEvents) continue
                 if (event.isRetryEvent() && !showRetryEvents) continue
@@ -139,6 +139,14 @@ public class DefaultClientSSESession(
         coroutineContext.cancel()
         input.cancel()
     }
+
+    private suspend fun ByteReadChannel.tryParseEvent(): ServerSentEvent? =
+        try {
+            parseEvent()
+        } catch (_: ClosedByteChannelException) {
+            // this is expected when the server disconnects
+            null
+        }
 
     private suspend fun ByteReadChannel.parseEvent(): ServerSentEvent? {
         val data = StringBuilder()
