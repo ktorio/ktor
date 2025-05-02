@@ -93,4 +93,4 @@ public fun ApplicationCall.i18n(@PropertyKey(resourceBundle = BUNDLE_KEY) key: S
     return value
 }
 
-internal const val BUNDLE_KEY = "messages/messages"
+internal const val BUNDLE_KEY = "messages.messages"
