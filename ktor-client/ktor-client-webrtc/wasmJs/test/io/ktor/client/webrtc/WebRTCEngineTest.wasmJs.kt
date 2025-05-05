@@ -4,8 +4,6 @@
 
 package io.ktor.client.webrtc
 
-import MockMediaTrackFactory
-
 actual fun createTestWebRTCClient(): WebRTCClient = WebRTCClient(JsWebRTC) {
     iceServers = listOf()
     turnServers = listOf()

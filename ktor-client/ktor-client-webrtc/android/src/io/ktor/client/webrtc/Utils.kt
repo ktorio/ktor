@@ -4,6 +4,7 @@
 
 package io.ktor.client.webrtc
 
+import org.webrtc.IceCandidate
 import org.webrtc.PeerConnection
 import org.webrtc.RTCStatsReport
 import org.webrtc.SdpObserver
@@ -55,6 +56,12 @@ public fun RTCStatsReport.toCommon(): List<WebRTC.Stats> = statsMap.values.map {
         it.members
     )
 }
+
+public fun IceCandidate.toCommon(): WebRTC.IceCandidate = WebRTC.IceCandidate(
+    candidate = sdp,
+    sdpMid = sdpMid,
+    sdpMLineIndex = sdpMLineIndex
+)
 
 public fun Continuation<SessionDescription>.resumeAfterSdpCreate(): SdpObserver {
     return object : SdpObserver {

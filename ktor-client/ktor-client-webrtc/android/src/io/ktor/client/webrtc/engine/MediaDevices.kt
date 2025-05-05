@@ -11,6 +11,7 @@ import android.os.Build
 import io.ktor.client.webrtc.*
 import io.ktor.client.webrtc.peer.AndroidAudioTrack
 import io.ktor.client.webrtc.peer.AndroidVideoTrack
+import kotlinx.coroutines.suspendCancellableCoroutine
 import org.webrtc.Camera2Enumerator
 import org.webrtc.CameraVideoCapturer.CameraEventsHandler
 import org.webrtc.DefaultVideoDecoderFactory
@@ -26,7 +27,6 @@ import org.webrtc.audio.JavaAudioDeviceModule
 import java.util.*
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
 import kotlin.math.min
 
 public class AndroidMediaDevices(private val context: Context) : MediaTrackFactory {
@@ -131,20 +131,20 @@ public class AndroidMediaDevices(private val context: Context) : MediaTrackFacto
         val videoHeight = constraints.height ?: format.height
         val videoFrameRate = constraints.frameRate ?: min(format.framerate.max, 60)
 
-        return suspendCoroutine { cont ->
+        return suspendCancellableCoroutine { cont ->
             var videoSource: VideoSource? = null
             val eventsHandler = object : CameraEventsHandler {
                 override fun onCameraError(err: String?) {
-                    cont.resumeWithException(WebRTCMedia.DeviceException(err ?: "Camera error"))
+                    if (cont.isActive) cont.resumeWithException(WebRTCMedia.DeviceException(err ?: "Camera error"))
                 }
                 override fun onCameraDisconnected() {
-                    cont.resumeWithException(WebRTCMedia.DeviceException("Camera disconnected"))
+                    if (cont.isActive) cont.resumeWithException(WebRTCMedia.DeviceException("Camera disconnected"))
                 }
                 override fun onCameraClosed() {
-                    cont.resumeWithException(WebRTCMedia.DeviceException("Camera closed"))
+                    if (cont.isActive) cont.resumeWithException(WebRTCMedia.DeviceException("Camera closed"))
                 }
                 override fun onFirstFrameAvailable() {
-                    cont.resume(requireNotNull(videoSource))
+                    if (cont.isActive) cont.resume(requireNotNull(videoSource))
                 }
                 override fun onCameraOpening(cameraId: String?) = Unit
                 override fun onCameraFreezed(p0: String?) = Unit

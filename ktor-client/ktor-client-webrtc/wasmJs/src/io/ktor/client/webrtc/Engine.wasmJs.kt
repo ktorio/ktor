@@ -4,32 +4,15 @@
 
 package io.ktor.client.webrtc
 
-import io.ktor.client.webrtc.peer.JsUndefined
-import io.ktor.client.webrtc.peer.RTCConfiguration
-import io.ktor.client.webrtc.peer.RTCDTMFSender
-import io.ktor.client.webrtc.peer.RTCPeerConnection
-import io.ktor.client.webrtc.peer.RTCPeerConnectionIceEvent
-import io.ktor.client.webrtc.peer.RTCRtcpParameters
-import io.ktor.client.webrtc.peer.RTCRtpCodecParameters
-import io.ktor.client.webrtc.peer.RTCRtpEncodingParameters
-import io.ktor.client.webrtc.peer.RTCRtpSendParameters
-import io.ktor.client.webrtc.peer.RTCRtpSender
-import io.ktor.client.webrtc.peer.RTCSessionDescriptionInit
-import io.ktor.client.webrtc.peer.RTCStatsReport
-import io.ktor.client.webrtc.peer.navigator
-import io.ktor.client.webrtc.utils.jsObject
-import io.ktor.client.webrtc.utils.mapIceServers
-import io.ktor.client.webrtc.utils.toCommon
-import io.ktor.client.webrtc.utils.toJS
+import io.ktor.client.webrtc.peer.*
+import io.ktor.client.webrtc.utils.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.await
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.w3c.dom.mediacapture.MediaStream
 import org.w3c.dom.mediacapture.MediaStreamConstraints
 import org.w3c.dom.mediacapture.MediaStreamTrack
-import kotlin.collections.List
 import kotlin.coroutines.CoroutineContext
 
 private inline fun <T> withPermissionException(mediaType: String, block: () -> T): T {
@@ -48,14 +31,14 @@ public object NavigatorMediaDevices : MediaTrackFactory {
         withPermissionException("audio") {
             val streamConstrains = MediaStreamConstraints(audio = constraints.toJS())
             val mediaStream = navigator.mediaDevices.getUserMedia(streamConstrains).await<MediaStream>()
-            return WasmJsAudioTrack(mediaStream.getAudioTracks()[0]!!)
+            return WasmJsAudioTrack(mediaStream.getAudioTracks()[0]!!, mediaStream)
         }
 
     override suspend fun createVideoTrack(constraints: WebRTCMedia.VideoTrackConstraints): WebRTCMedia.VideoTrack =
         withPermissionException("video") {
             val streamConstrains = MediaStreamConstraints(audio = constraints.toJS())
             val mediaStream = navigator.mediaDevices.getUserMedia(streamConstrains).await<MediaStream>()
-            return WasmJsVideoTrack(mediaStream.getVideoTracks()[0]!!)
+            return WasmJsVideoTrack(mediaStream.getVideoTracks()[0]!!, mediaStream)
         }
 }
 
@@ -84,26 +67,27 @@ public class WasmJsWebRtcPeerConnection(
     private val nativePeerConnection: RTCPeerConnection,
     override val coroutineContext: CoroutineContext,
     private val statsRefreshRate: Long,
-) : WebRtcPeerConnection, CoroutineScope {
-    private val _iceCandidateFlow = MutableSharedFlow<WebRTC.IceCandidate>(replay = 0)
-    override val iceCandidateFlow: SharedFlow<WebRTC.IceCandidate> = _iceCandidateFlow.asSharedFlow()
-
-    private val _iceConnectionStateFlow = MutableStateFlow(WebRTC.IceConnectionState.NEW)
-    override val iceConnectionStateFlow: StateFlow<WebRTC.IceConnectionState> = _iceConnectionStateFlow.asStateFlow()
-
-    private val _statsFlow = MutableStateFlow(emptyList<WebRTC.Stats>())
-    override val statsFlow: StateFlow<List<WebRTC.Stats>> = _statsFlow.asStateFlow()
-
+) : WebRtcPeerConnection(), CoroutineScope {
     init {
         nativePeerConnection.onicecandidate = { event: RTCPeerConnectionIceEvent ->
             event.candidate?.let { candidate ->
-                launch { _iceCandidateFlow.emit(candidate.toCommon()) }
+                launch { iceCandidates.emit(candidate.toCommon()) }
             }
         }
 
         nativePeerConnection.oniceconnectionstatechange = {
             val newState = nativePeerConnection.iceConnectionState.toString().toIceConnectionState()
-            launch { _iceConnectionStateFlow.emit(newState) }
+            launch { currentIceConnectionState.emit(newState) }
+        }
+
+        nativePeerConnection.ontrack = { event: RTCTrackEvent ->
+            val stream = event.streams[0]
+            stream?.onremovetrack = { e ->
+                launch { remoteTracks.emit(Remove(WasmJsMediaTrack.from(e.track, stream!!))) }
+            }
+            launch {
+                remoteTracks.emit(Add(WasmJsMediaTrack.from(event.track, stream ?: MediaStream())))
+            }
         }
 
         // Set up statistics collection
@@ -112,7 +96,7 @@ public class WasmJsWebRtcPeerConnection(
                 while (true) {
                     delay(statsRefreshRate)
                     val stats = nativePeerConnection.getStats().await<RTCStatsReport>()
-                    _statsFlow.emit(stats.toCommon())
+                    currentStats.emit(stats.toCommon())
                 }
             }
         }
@@ -165,7 +149,8 @@ public class WasmJsWebRtcPeerConnection(
 }
 
 public abstract class WasmJsMediaTrack(
-    internal val nativeTrack: MediaStreamTrack
+    public val nativeTrack: MediaStreamTrack,
+    public val nativeStream: MediaStream
 ) : WebRTCMedia.Track {
     public override val id: String = nativeTrack.id
     public override val kind: WebRTCMedia.TrackType = nativeTrack.kind.toTrackKind()
@@ -176,29 +161,33 @@ public abstract class WasmJsMediaTrack(
         nativeTrack.enabled = enabled
     }
 
+    override fun getNative(): Any = nativeTrack
+
     override fun close() {
         nativeTrack.stop()
     }
 
     public companion object {
-        public fun from(nativeTrack: MediaStreamTrack): WasmJsMediaTrack = when (nativeTrack.kind.toTrackKind()) {
-            WebRTCMedia.TrackType.AUDIO -> WasmJsAudioTrack(nativeTrack)
-            WebRTCMedia.TrackType.VIDEO -> WasmJsVideoTrack(nativeTrack)
+        public fun from(nativeTrack: MediaStreamTrack, nativeStream: MediaStream): WasmJsMediaTrack = when (nativeTrack.kind.toTrackKind()) {
+            WebRTCMedia.TrackType.AUDIO -> WasmJsAudioTrack(nativeTrack, nativeStream)
+            WebRTCMedia.TrackType.VIDEO -> WasmJsVideoTrack(nativeTrack, nativeStream)
         }
     }
 }
 
-public class WasmJsAudioTrack(nativeTrack: MediaStreamTrack) : WebRTCMedia.AudioTrack, WasmJsMediaTrack(nativeTrack)
+public class WasmJsAudioTrack(nativeTrack: MediaStreamTrack, nativeStream: MediaStream)
+    : WebRTCMedia.AudioTrack, WasmJsMediaTrack(nativeTrack, nativeStream)
 
-public class WasmJsVideoTrack(nativeTrack: MediaStreamTrack) : WebRTCMedia.VideoTrack, WasmJsMediaTrack(nativeTrack)
+public class WasmJsVideoTrack(nativeTrack: MediaStreamTrack, nativeStream: MediaStream)
+    : WebRTCMedia.VideoTrack, WasmJsMediaTrack(nativeTrack, nativeStream)
 
 public class WasmJsRtpSender(public val nativeSender: RTCRtpSender) : WebRTC.RtpSender {
     override val dtmf: WebRTC.DtmfSender? get() = nativeSender.dtmf?.let { WasmJsDtmfSender(it) }
 
     override val track: WebRTCMedia.Track?
-        get() = nativeSender.track?.let {
-            WasmJsMediaTrack.from(it)
-        }
+        get() = nativeSender.track?.let { WasmJsMediaTrack.from(it, MediaStream()) }
+
+    override fun getNative(): Any = nativeSender
 
     override suspend fun replaceTrack(withTrack: WebRTCMedia.Track?) {
         nativeSender.replaceTrack((withTrack as? WasmJsMediaTrack)?.nativeTrack)
@@ -216,11 +205,13 @@ public class WasmJsRtpSender(public val nativeSender: RTCRtpSender) : WebRTC.Rtp
     }
 }
 
-public class WasmJsDtmfSender(public val nativeSender: RTCDTMFSender) : WebRTC.DtmfSender {
+public class WasmJsDtmfSender(private val nativeSender: RTCDTMFSender) : WebRTC.DtmfSender {
     override val toneBuffer: String
         get() = nativeSender.toneBuffer.toString()
     override val canInsertDTMF: Boolean
         get() = nativeSender.canInsertDTMF.toBoolean()
+
+    override fun getNative(): Any = nativeSender
 
     override fun insertDTMF(tones: String, duration: Int, interToneGap: Int) {
         nativeSender.insertDTMF(tones.toJsString(), duration.toJsNumber(), interToneGap.toJsNumber())

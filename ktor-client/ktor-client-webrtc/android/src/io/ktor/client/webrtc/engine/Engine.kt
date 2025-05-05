@@ -6,16 +6,9 @@ package io.ktor.client.webrtc.engine
 
 import android.content.Context
 import io.ktor.client.webrtc.*
-import io.ktor.client.webrtc.peer.AndroidMediaTrack
-import io.ktor.client.webrtc.peer.AndroidRtpSender
+import io.ktor.client.webrtc.peer.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.webrtc.AddIceObserver
 import org.webrtc.DataChannel
@@ -26,6 +19,7 @@ import org.webrtc.PeerConnection
 import org.webrtc.PeerConnection.Observer
 import org.webrtc.PeerConnection.RTCConfiguration
 import org.webrtc.PeerConnectionFactory
+import org.webrtc.RtpReceiver
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -65,19 +59,10 @@ public class AndroidWebRTCEngine(
 public class AndroidWebRtcPeerConnection(
     override val coroutineContext: CoroutineContext,
     private val statsRefreshRate: Long,
-) : CoroutineScope, WebRtcPeerConnection {
+) : CoroutineScope, WebRtcPeerConnection() {
     private lateinit var peerConnection: PeerConnection
 
     private val rtpSenders = arrayListOf<AndroidRtpSender>()
-
-    private val _iceCandidateFlow = MutableSharedFlow<WebRTC.IceCandidate>()
-    override val iceCandidateFlow: SharedFlow<WebRTC.IceCandidate> = _iceCandidateFlow.asSharedFlow()
-
-    private val _statsFlow = MutableStateFlow(listOf<WebRTC.Stats>())
-    override val statsFlow: StateFlow<List<WebRTC.Stats>> = _statsFlow.asStateFlow()
-
-    private val _iceConnectionStateFlow = MutableStateFlow(WebRTC.IceConnectionState.NEW)
-    override val iceConnectionStateFlow: StateFlow<WebRTC.IceConnectionState> = _iceConnectionStateFlow.asStateFlow()
 
     init {
         // Set up statistics collection
@@ -88,7 +73,7 @@ public class AndroidWebRtcPeerConnection(
                     val stats = suspendCoroutine { cont ->
                         peerConnection.getStats { cont.resume(it.toCommon()) }
                     }
-                    _statsFlow.emit(stats)
+                    currentStats.emit(stats)
                 }
             }
         }
@@ -109,33 +94,40 @@ public class AndroidWebRtcPeerConnection(
 
     private fun createObserver() = object : Observer {
         override fun onIceCandidate(candidate: IceCandidate?) {
-            if (candidate == null) {
-                return
-            }
+            if (candidate == null) return
             launch {
-                _iceCandidateFlow.emit(
-                    WebRTC.IceCandidate(
-                        candidate = candidate.sdp,
-                        sdpMid = candidate.sdpMid,
-                        sdpMLineIndex = candidate.sdpMLineIndex
-                    )
-                )
+                iceCandidates.emit(candidate.toCommon())
             }
         }
+        override fun onIceCandidatesRemoved(candidates: Array<out IceCandidate>?) = Unit
 
-        override fun onSignalingChange(newState: PeerConnection.SignalingState?) {}
         override fun onIceConnectionChange(newState: PeerConnection.IceConnectionState?) {
             val commonState = newState.toCommon() ?: return
-            launch { _iceConnectionStateFlow.emit(commonState) }
+            launch { currentIceConnectionState.emit(commonState) }
         }
 
-        override fun onIceConnectionReceivingChange(receiving: Boolean) {}
-        override fun onIceGatheringChange(newState: PeerConnection.IceGatheringState?) {}
-        override fun onIceCandidatesRemoved(candidates: Array<out IceCandidate>?) {}
-        override fun onAddStream(stream: MediaStream?) {}
-        override fun onRemoveStream(stream: MediaStream?) {}
+        override fun onAddTrack(receiver: RtpReceiver?, mediaStreams: Array<out MediaStream>?) {
+            if (receiver == null || mediaStreams == null) return
+            launch {
+                receiver.track()?.let { t -> remoteTracks.emit(Add(AndroidVideoTrack(t)))  }
+            }
+        }
+
+        override fun onRemoveTrack(receiver: RtpReceiver?) {
+            if (receiver == null) return
+            launch {
+                receiver.track()?.let { t -> remoteTracks.emit(Remove(AndroidVideoTrack(t)))  }
+            }
+        }
+
+        override fun onSignalingChange(newState: PeerConnection.SignalingState?) = Unit
+        override fun onIceConnectionReceivingChange(receiving: Boolean) = Unit
+        override fun onIceGatheringChange(newState: PeerConnection.IceGatheringState?) = Unit
+        override fun onAddStream(p0: MediaStream?) = Unit
+        override fun onRemoveStream(p0: MediaStream?) = Unit
+
         override fun onDataChannel(dataChannel: DataChannel?) {}
-        override fun onRenegotiationNeeded() {}
+        override fun onRenegotiationNeeded() = println("Renegotiation needed")
     }
 
     override suspend fun createOffer(): WebRTC.SessionDescription {

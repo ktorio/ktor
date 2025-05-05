@@ -2,7 +2,8 @@
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-import io.ktor.client.webrtc.*
+package io.ktor.client.webrtc
+
 import io.ktor.client.webrtc.peer.*
 import kotlinx.browser.document
 import org.w3c.dom.CanvasRenderingContext2D
@@ -12,7 +13,7 @@ actual fun makeDummyAudioStreamTrack(): WebRTCMedia.AudioTrack {
     val oscillator = ctx.createOscillator()
     val dst = oscillator.connect(ctx.createMediaStreamDestination())
     oscillator.start()
-    return JsAudioTrack(dst.stream.getAudioTracks()[0])
+    return JsAudioTrack(dst.stream.getAudioTracks()[0], dst.stream)
 }
 
 actual fun makeDummyVideoStreamTrack(width: Int, height: Int): WebRTCMedia.VideoTrack {
@@ -22,5 +23,5 @@ actual fun makeDummyVideoStreamTrack(width: Int, height: Int): WebRTCMedia.Video
     val ctx = canvas.getContext("2d") as CanvasRenderingContext2D
     ctx.fillRect(0.0, 0.0, width.toDouble(), height.toDouble())
     val stream = canvas.captureStream()
-    return JsVideoTrack(stream.getVideoTracks()[0])
+    return JsVideoTrack(stream.getVideoTracks()[0], stream)
 }

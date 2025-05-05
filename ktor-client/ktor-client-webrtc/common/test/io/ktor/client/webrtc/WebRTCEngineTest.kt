@@ -4,7 +4,7 @@
 
 package io.ktor.client.webrtc
 
-import io.ktor.test.dispatcher.runTestWithRealTime
+import io.ktor.test.dispatcher.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
@@ -171,6 +171,18 @@ class WebRTCEngineTest {
         audioTrack.close()
     }
 
+    private suspend fun negotiate(pc1: WebRtcPeerConnection, pc2: WebRtcPeerConnection) {
+        // Create and set offer
+        val offer = pc1.createOffer()
+        pc1.setLocalDescription(offer)
+        pc2.setRemoteDescription(offer)
+
+        // Create and set answer
+        val answer = pc2.createAnswer()
+        pc2.setLocalDescription(answer)
+        pc1.setRemoteDescription(answer)
+    }
+
     @Test
     fun testEstablishPeerConnection() = testConnection(realtime = true) { pc1 ->
         client.createPeerConnection().use { pc2 ->
@@ -191,15 +203,7 @@ class WebRTCEngineTest {
             pc1.addTrack(client.createAudioTrack(WebRTCMedia.AudioTrackConstraints()))
             pc2.addTrack(client.createAudioTrack(WebRTCMedia.AudioTrackConstraints()))
 
-            // Create and set offer
-            val offer = pc1.createOffer()
-            pc1.setLocalDescription(offer)
-            pc2.setRemoteDescription(offer)
-
-            // Create and set answer
-            val answer = pc2.createAnswer()
-            pc2.setLocalDescription(answer)
-            pc1.setRemoteDescription(answer)
+            negotiate(pc1, pc2)
 
             fun connectionEstablished(): Boolean =
                 pc1.iceConnectionStateFlow.value.isSuccessful() && pc2.iceConnectionStateFlow.value.isSuccessful()
@@ -273,5 +277,48 @@ class WebRTCEngineTest {
 
         statsCollectionJob.cancel()
         audioTrack.close()
+    }
+
+    @Test
+    fun receiveRemoteTracks() = testConnection(realtime = true) { pc1 ->
+        client.createPeerConnection().use { pc2 ->
+            val remoteTracks1 = Channel<Operation<WebRTCMedia.Track>>(Channel.UNLIMITED)
+            val remoteTracks2 = Channel<Operation<WebRTCMedia.Track>>(Channel.UNLIMITED)
+
+            val collectTracks1Job = launch { pc1.remoteTracksFlow.collect { remoteTracks1.send(it) } }
+            val collectTracks2Job = launch { pc2.remoteTracksFlow.collect { remoteTracks2.send(it) } }
+
+            pc1.addTrack(client.createAudioTrack(WebRTCMedia.AudioTrackConstraints()))
+            pc1.addTrack(client.createVideoTrack(WebRTCMedia.VideoTrackConstraints()))
+
+            val audioSender = pc2.addTrack(client.createAudioTrack(WebRTCMedia.AudioTrackConstraints()))
+            pc2.addTrack(client.createVideoTrack(WebRTCMedia.VideoTrackConstraints()))
+
+            negotiate(pc1, pc2)
+
+            // Check if remote tracks are emitted
+            withTimeout(5000) {
+                for (remoteTracks in listOf(remoteTracks1, remoteTracks2)) {
+                    val tracks = arrayOf(remoteTracks.receive(), remoteTracks.receive())
+                    assertTrue(tracks.all { it is Add })
+                    assertEquals(1, tracks.filter { it.item.kind === WebRTCMedia.TrackType.AUDIO }.size)
+                    assertEquals(1, tracks.filter { it.item.kind === WebRTCMedia.TrackType.VIDEO }.size)
+                }
+            }
+
+            // remove audio track at pc2, needs renegotiation to work
+            pc2.removeTrack(audioSender)
+            negotiate(pc1, pc2)
+
+            // Check if remote track is removed
+            withTimeout(5000) {
+                val removedTrack = remoteTracks1.receive()
+                assertTrue(removedTrack is Remove)
+                assertEquals(WebRTCMedia.TrackType.AUDIO, removedTrack.item.kind)
+            }
+
+            collectTracks1Job.cancel()
+            collectTracks2Job.cancel()
+        }
     }
 }
