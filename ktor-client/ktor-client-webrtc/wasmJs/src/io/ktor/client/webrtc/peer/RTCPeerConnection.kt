@@ -613,7 +613,7 @@ public external class RTCPeerConnection(config: RTCConfiguration) : EventTarget 
     public fun addTransceiver(trackOrKind: MediaStreamTrack): RTCRtpTransceiver
     public fun addTransceiver(trackOrKind: JsString, init: RTCRtpTransceiverInit = definedExternally): RTCRtpTransceiver
     public fun addTransceiver(trackOrKind: JsString): RTCRtpTransceiver
-    public var ontrack: ((self: RTCPeerConnection, ev: RTCTrackEvent) -> JsAny)?
+    public var ontrack: ((ev: RTCTrackEvent) -> Unit)?
     public var sctp: RTCSctpTransport?
     public fun createDataChannel(
         label: JsString?,

@@ -608,7 +608,7 @@ public external class RTCPeerConnection(config: RTCConfiguration) : EventTarget 
     public fun addTransceiver(trackOrKind: MediaStreamTrack): RTCRtpTransceiver
     public fun addTransceiver(trackOrKind: String, init: RTCRtpTransceiverInit = definedExternally): RTCRtpTransceiver
     public fun addTransceiver(trackOrKind: String): RTCRtpTransceiver
-    public var ontrack: ((self: RTCPeerConnection, ev: RTCTrackEvent) -> Any)?
+    public var ontrack: ((ev: RTCTrackEvent) -> Any)?
     public var sctp: RTCSctpTransport?
     public fun createDataChannel(
         label: String?,

@@ -4,6 +4,4 @@
 
 package io.ktor.client.webrtc
 
-import MockMediaTrackFactory
-
 actual fun grantPermissions(audio: Boolean, video: Boolean) = MockMediaTrackFactory.grantPermissions(audio, video)

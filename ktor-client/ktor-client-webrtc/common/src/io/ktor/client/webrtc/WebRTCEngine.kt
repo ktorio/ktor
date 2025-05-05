@@ -7,8 +7,12 @@ package io.ktor.client.webrtc
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlin.coroutines.CoroutineContext
 
 @KtorDsl
@@ -44,26 +48,39 @@ public abstract class WebRTCEngineBase(private val engineName: String) : WebRTCE
 
 internal expect fun ioDispatcher(): CoroutineDispatcher
 
-public interface WebRtcPeerConnection : Closeable {
-    public val iceCandidateFlow: SharedFlow<WebRTC.IceCandidate>
-    public val statsFlow: StateFlow<List<WebRTC.Stats>>
-    public val iceConnectionStateFlow: StateFlow<WebRTC.IceConnectionState>
+public sealed class Operation<T>(public val item: T)
+
+public class Add<T>(item: T) : Operation<T>(item)
+public class Remove<T>(item: T) : Operation<T>(item)
+
+public abstract class WebRtcPeerConnection : Closeable {
+    protected val currentStats: MutableStateFlow<List<WebRTC.Stats>> = MutableStateFlow(listOf())
+    public val statsFlow: StateFlow<List<WebRTC.Stats>> = currentStats.asStateFlow()
+
+    protected val iceCandidates: MutableSharedFlow<WebRTC.IceCandidate> = MutableSharedFlow()
+    public val iceCandidateFlow: SharedFlow<WebRTC.IceCandidate> = iceCandidates.asSharedFlow()
+
+    protected val currentIceConnectionState: MutableStateFlow<WebRTC.IceConnectionState> = MutableStateFlow(WebRTC.IceConnectionState.NEW)
+    public val iceConnectionStateFlow: StateFlow<WebRTC.IceConnectionState> = currentIceConnectionState.asStateFlow()
+
+    protected val remoteTracks: MutableSharedFlow<Operation<WebRTCMedia.Track>> = MutableSharedFlow()
+    public val remoteTracksFlow: SharedFlow<Operation<WebRTCMedia.Track>> = remoteTracks.asSharedFlow()
 
     /**
      * Could be useful for some scenarios that are not covered yet
      */
-    public fun getNativeConnection(): Any
+    public abstract fun getNativeConnection(): Any
 
-    public suspend fun createOffer(): WebRTC.SessionDescription
-    public suspend fun createAnswer(): WebRTC.SessionDescription
+    public abstract suspend fun createOffer(): WebRTC.SessionDescription
+    public abstract suspend fun createAnswer(): WebRTC.SessionDescription
 
-    public suspend fun setLocalDescription(description: WebRTC.SessionDescription)
-    public suspend fun setRemoteDescription(description: WebRTC.SessionDescription)
+    public abstract suspend fun setLocalDescription(description: WebRTC.SessionDescription)
+    public abstract suspend fun setRemoteDescription(description: WebRTC.SessionDescription)
 
-    public suspend fun addIceCandidate(candidate: WebRTC.IceCandidate)
+    public abstract suspend fun addIceCandidate(candidate: WebRTC.IceCandidate)
 
-    public suspend fun addTrack(track: WebRTCMedia.Track): WebRTC.RtpSender
+    public abstract suspend fun addTrack(track: WebRTCMedia.Track): WebRTC.RtpSender
 
-    public suspend fun removeTrack(sender: WebRTC.RtpSender)
-    public suspend fun removeTrack(track: WebRTCMedia.Track)
+    public abstract suspend fun removeTrack(sender: WebRTC.RtpSender)
+    public abstract suspend fun removeTrack(track: WebRTCMedia.Track)
 }

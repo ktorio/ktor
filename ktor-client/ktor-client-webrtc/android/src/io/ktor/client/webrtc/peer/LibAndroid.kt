@@ -24,6 +24,8 @@ public abstract class AndroidMediaTrack(
         nativeTrack.setEnabled(enabled)
     }
 
+    override fun getNative(): Any = nativeTrack
+
     override fun close(): Unit = nativeTrack.dispose()
 
     public companion object {
@@ -53,6 +55,8 @@ public class AndroidRtpSender(public val nativeRtpSender: RtpSender) : WebRTC.Rt
     override val track: WebRTCMedia.Track?
         get() = nativeRtpSender.track()?.let { AndroidMediaTrack.from(it) }
 
+    override fun getNative(): Any = nativeRtpSender
+
     override suspend fun replaceTrack(withTrack: WebRTCMedia.Track?) {
         nativeRtpSender.setTrack((withTrack as? AndroidMediaTrack)?.nativeTrack, false)
     }
@@ -72,6 +76,8 @@ public class AndroidDtmfServer(private val nativeRtpSender: DtmfSender) : WebRTC
 
     override val canInsertDTMF: Boolean
         get() = nativeRtpSender.canInsertDtmf()
+
+    override fun getNative(): Any = nativeRtpSender
 
     override fun insertDTMF(tones: String, duration: Int, interToneGap: Int) {
         nativeRtpSender.insertDtmf(tones, duration, interToneGap)

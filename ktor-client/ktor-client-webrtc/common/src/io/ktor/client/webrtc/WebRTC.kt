@@ -56,6 +56,7 @@ public object WebRTC {
     public interface DtmfSender {
         public val toneBuffer: String
         public val canInsertDTMF: Boolean
+        public fun getNative(): Any
         public fun insertDTMF(tones: String, duration: Int, interToneGap: Int)
     }
 
@@ -86,6 +87,7 @@ public object WebRTC {
         public val dtmf: DtmfSender?
         public val track: WebRTCMedia.Track?
 
+        public fun getNative(): Any
         public suspend fun replaceTrack(withTrack: WebRTCMedia.Track?)
         public suspend fun getParameters(): RtpParameters
         public suspend fun setParameters(parameters: RtpParameters)
@@ -131,6 +133,8 @@ public object WebRTCMedia {
         public val enabled: Boolean
 
         public fun enable(enabled: Boolean)
+        public fun getNative(): Any
+
         override fun close()
     }
 

@@ -1,4 +1,4 @@
-import io.ktor.client.webrtc.*
+package io.ktor.client.webrtc
 
 object MockMediaTrackFactory : MediaTrackFactory {
     private var allowVideo = false
