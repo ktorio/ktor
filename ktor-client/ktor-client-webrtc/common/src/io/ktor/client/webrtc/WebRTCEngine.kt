@@ -60,7 +60,8 @@ public abstract class WebRtcPeerConnection : Closeable {
     protected val iceCandidates: MutableSharedFlow<WebRTC.IceCandidate> = MutableSharedFlow()
     public val iceCandidateFlow: SharedFlow<WebRTC.IceCandidate> = iceCandidates.asSharedFlow()
 
-    protected val currentIceConnectionState: MutableStateFlow<WebRTC.IceConnectionState> = MutableStateFlow(WebRTC.IceConnectionState.NEW)
+    protected val currentIceConnectionState: MutableStateFlow<WebRTC.IceConnectionState> =
+        MutableStateFlow(WebRTC.IceConnectionState.NEW)
     public val iceConnectionStateFlow: StateFlow<WebRTC.IceConnectionState> = currentIceConnectionState.asStateFlow()
 
     protected val remoteTracks: MutableSharedFlow<Operation<WebRTCMedia.Track>> = MutableSharedFlow()

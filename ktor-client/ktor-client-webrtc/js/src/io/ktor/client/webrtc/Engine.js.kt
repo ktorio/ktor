@@ -177,18 +177,21 @@ public abstract class JsMediaTrack(
     }
 
     public companion object {
-        public fun from(nativeTrack: MediaStreamTrack, nativeStream: MediaStream): JsMediaTrack = when (nativeTrack.kind.toTrackKind()) {
+        public fun from(
+            nativeTrack: MediaStreamTrack,
+            nativeStream: MediaStream
+        ): JsMediaTrack = when (nativeTrack.kind.toTrackKind()) {
             WebRTCMedia.TrackType.AUDIO -> JsAudioTrack(nativeTrack, nativeStream)
             WebRTCMedia.TrackType.VIDEO -> JsVideoTrack(nativeTrack, nativeStream)
         }
     }
 }
 
-public class JsAudioTrack(nativeTrack: MediaStreamTrack, nativeStream: MediaStream)
-    : WebRTCMedia.AudioTrack, JsMediaTrack(nativeTrack, nativeStream)
+public class JsAudioTrack(nativeTrack: MediaStreamTrack, nativeStream: MediaStream) :
+    WebRTCMedia.AudioTrack, JsMediaTrack(nativeTrack, nativeStream)
 
-public class JsVideoTrack(nativeTrack: MediaStreamTrack, nativeStream: MediaStream)
-    : WebRTCMedia.VideoTrack, JsMediaTrack(nativeTrack, nativeStream)
+public class JsVideoTrack(nativeTrack: MediaStreamTrack, nativeStream: MediaStream) :
+    WebRTCMedia.VideoTrack, JsMediaTrack(nativeTrack, nativeStream)
 
 public class JsRtpSender(public val nativeSender: RTCRtpSender) : WebRTC.RtpSender {
     override val dtmf: WebRTC.DtmfSender? get() = nativeSender.dtmf?.let { JsDtmfSender(it) }
