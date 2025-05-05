@@ -109,14 +109,14 @@ public class AndroidWebRtcPeerConnection(
         override fun onAddTrack(receiver: RtpReceiver?, mediaStreams: Array<out MediaStream>?) {
             if (receiver == null || mediaStreams == null) return
             launch {
-                receiver.track()?.let { t -> remoteTracks.emit(Add(AndroidVideoTrack(t)))  }
+                receiver.track()?.let { t -> remoteTracks.emit(Add(AndroidVideoTrack(t))) }
             }
         }
 
         override fun onRemoveTrack(receiver: RtpReceiver?) {
             if (receiver == null) return
             launch {
-                receiver.track()?.let { t -> remoteTracks.emit(Remove(AndroidVideoTrack(t)))  }
+                receiver.track()?.let { t -> remoteTracks.emit(Remove(AndroidVideoTrack(t))) }
             }
         }
 
