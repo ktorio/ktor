@@ -13,7 +13,7 @@ build
 !.idea/icon.svg
 out
 *.iml
-.vscode
+.vscode`
 
 *.versionsBackup
 *.releaseBackup
@@ -42,3 +42,5 @@ gradle-user-home
 .kotlin
 
 scan-journal.log
+
+**/.claude/settings.local.json
