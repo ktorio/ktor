@@ -4,16 +4,20 @@
 
 package io.ktor.network.tls.certificates
 
-import io.mockk.*
-import java.time.*
-import java.util.*
+import io.mockk.every
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZoneOffset
 
 internal val nowInTests = Instant.parse("2022-10-20T10:00:00Z")
 
 /**
- * Mocks time-related classes so "now" is always equal to the given [instant] during tests.
+ * Mocks time-related classes so "now" is always equal to the given [fixedTime] during tests.
  *
- * This includes mocking default [Clock]s, [Instant.now], and [Date]s constructed via the no-arg constructor.
+ * This includes mocking default [Clock]s and [Instant.now].
  */
 internal fun fixCurrentTimeTo(fixedTime: Instant) {
     mockkStatic(Clock::class)
@@ -22,8 +26,9 @@ internal fun fixCurrentTimeTo(fixedTime: Instant) {
 
     mockkStatic(Instant::class)
     every { Instant.now() } returns fixedTime
+}
 
-    mockkConstructor(Date::class)
-    every { constructedWith<Date>().time } returns fixedTime.toEpochMilli()
-    every { constructedWith<Date>().toInstant() } returns fixedTime
+internal fun unmockCurrentTime() {
+    unmockkStatic(Clock::class)
+    unmockkStatic(Instant::class)
 }

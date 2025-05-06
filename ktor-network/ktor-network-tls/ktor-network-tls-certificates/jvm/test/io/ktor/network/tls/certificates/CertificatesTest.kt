@@ -8,6 +8,7 @@ import io.ktor.network.tls.extensions.*
 import java.io.File
 import java.time.temporal.ChronoUnit
 import javax.security.auth.x500.X500Principal
+import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -20,6 +21,11 @@ class CertificatesTest {
     @BeforeTest
     fun fixCurrentTime() {
         fixCurrentTimeTo(nowInTests)
+    }
+
+    @AfterTest
+    fun restoreCurrentTime() {
+        unmockCurrentTime()
     }
 
     @Test
