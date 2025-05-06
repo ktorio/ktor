@@ -1,13 +1,13 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins
 
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.content.*
 import io.ktor.client.plugins.api.*
-import io.ktor.client.plugins.observer.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.utils.*
@@ -71,7 +71,7 @@ internal object AfterRenderHook : ClientHook<suspend (HttpRequestBuilder, Outgoi
 @OptIn(InternalAPI::class)
 internal fun HttpResponse.withObservableDownload(listener: ProgressListener): HttpResponse {
     val observableByteChannel = rawContent.observable(coroutineContext, contentLength(), listener)
-    return call.wrapWithContent(observableByteChannel).response
+    return call.replaceResponse { observableByteChannel }.response
 }
 
 /**

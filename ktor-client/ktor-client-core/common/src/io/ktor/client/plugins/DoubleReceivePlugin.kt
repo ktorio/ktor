@@ -1,12 +1,12 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins
 
+import io.ktor.client.call.*
 import io.ktor.client.plugins.api.*
 import io.ktor.client.plugins.internal.*
-import io.ktor.client.plugins.observer.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.util.*
@@ -73,7 +73,7 @@ public val SaveBodyPlugin: ClientPlugin<SaveBodyPluginConfig> = createClientPlug
 
         val bodyReplay = ByteChannelReplay(response.rawContent)
 
-        val call = response.call.wrapWithContent { bodyReplay.replay() }
+        val call = response.call.replaceResponse { bodyReplay.replay() }
         call.attributes.put(RESPONSE_BODY_SAVED, Unit)
         proceedWith(call.response)
     }
