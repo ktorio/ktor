@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.plugins.observer
 
@@ -75,8 +75,8 @@ public val ResponseObserver: ClientPlugin<ResponseObserverConfig> = createClient
 
         val (loggingContent, responseContent) = response.rawContent.split(response)
 
-        val newResponse = response.call.wrapWithContent(responseContent).response
-        val sideResponse = response.call.wrapWithContent(loggingContent).response
+        val newResponse = response.call.replaceResponse { responseContent }.response
+        val sideResponse = response.call.replaceResponse { loggingContent }.response
 
         // Launch responseHandler in parallel as we don't want to wait for its finish for streaming responses
         client.launch(getResponseObserverContext()) {
