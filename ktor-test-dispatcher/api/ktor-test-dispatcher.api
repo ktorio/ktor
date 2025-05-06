@@ -1,0 +1,10 @@
+public final class io/ktor/test/dispatcher/TestCommonKt {
+	public static final fun runTestWithRealTime-8Mi8wO0 (Lkotlin/coroutines/CoroutineContext;JLkotlin/jvm/functions/Function2;)V
+	public static synthetic fun runTestWithRealTime-8Mi8wO0$default (Lkotlin/coroutines/CoroutineContext;JLkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
+}
+
+public final class io/ktor/test/dispatcher/TestJvmKt {
+	public static final fun testSuspend (Lkotlin/coroutines/CoroutineContext;JLkotlin/jvm/functions/Function2;)V
+	public static synthetic fun testSuspend$default (Lkotlin/coroutines/CoroutineContext;JLkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
+}
+
