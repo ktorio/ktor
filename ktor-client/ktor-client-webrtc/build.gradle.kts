@@ -17,6 +17,10 @@ plugins {
 kotlin {
     jvmToolchain(17)
 
+    androidTarget {
+        publishLibraryVariants("release")
+    }
+
     sourceSets {
         commonMain.dependencies {
             api(project(":ktor-io"))
