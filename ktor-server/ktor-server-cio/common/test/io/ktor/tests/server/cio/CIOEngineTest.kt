@@ -4,25 +4,72 @@
 
 package io.ktor.tests.server.cio
 
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.url
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.server.cio.*
+import io.ktor.server.engine.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.suites.*
 import io.ktor.utils.io.*
-import kotlin.test.*
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
 
     init {
         enableHttp2 = false
         enableSsl = false
+    }
+    @Test
+    fun testGracefulShutdown() = runTest {
+        val server = embeddedServer(CIO, applicationEnvironment(), {
+            connector {
+                port = this@CIOHttpServerTest.port
+                host = TEST_SERVER_HOST
+            }
+        }) {
+            routing {
+                get("/") {
+                    delay(100)
+                    call.respond("OK")
+                }
+            }
+        }
+        server.startSuspend()
+        val body = CompletableDeferred<String?>()
+        launch {
+            val gotBody = runCatching {
+                HttpClient (io.ktor.client.engine.cio.CIO).use { client ->
+                    client.get { url(port = port, path = "/") }.body<String>()
+                }
+            }.getOrNull()
+            body.complete(gotBody)
+        }
+        launch {
+            delay(20)
+            server.stopSuspend(
+                gracePeriodMillis = 10_000,
+                timeoutMillis = 20_000,
+            )
+        }
+        launch {
+            assertEquals("OK", body.await())
+        }
     }
 
     @Test

@@ -40,6 +40,7 @@ public fun CoroutineScope.httpServer(
 
     val selector = SelectorManager(coroutineContext)
     val timeout = settings.connectionIdleTimeoutSeconds.seconds
+    val rootConnectionJob = SupervisorJob(serverJob)
 
     val acceptJob = launch(serverJob + CoroutineName("accept-${settings.port}")) {
         aSocket(selector).tcp().bind(settings.host, settings.port) {
@@ -52,7 +53,7 @@ public fun CoroutineScope.httpServer(
 
             val connectionScope = CoroutineScope(
                 coroutineContext +
-                    SupervisorJob(serverJob) +
+                    rootConnectionJob +
                     exceptionHandler +
                     CoroutineName("request")
             )
@@ -85,9 +86,10 @@ public fun CoroutineScope.httpServer(
             } catch (closed: ClosedChannelException) {
                 coroutineContext.cancel()
             } finally {
+                rootConnectionJob.complete()
+                rootConnectionJob.join()
                 server.close()
                 server.awaitClosed()
-                connectionScope.coroutineContext.cancel()
             }
         }
     }
