@@ -9,11 +9,11 @@ plugins {
 kotlin {
     sourceSets {
         jsMain.dependencies {
-            api(project(":ktor-client:ktor-client-core"))
+            api(project(":ktor-client-core"))
         }
 
         wasmJsMain.dependencies {
-            api(project(":ktor-client:ktor-client-core"))
+            api(project(":ktor-client-core"))
         }
     }
 }

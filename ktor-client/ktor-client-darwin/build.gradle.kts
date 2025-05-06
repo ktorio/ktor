@@ -10,13 +10,13 @@ plugins {
 kotlin {
     sourceSets {
         darwinMain.dependencies {
-            api(project(":ktor-client:ktor-client-core"))
-            api(project(":ktor-network:ktor-network-tls"))
+            api(project(":ktor-client-core"))
+            api(project(":ktor-network-tls"))
         }
         darwinTest.dependencies {
-            api(project(":ktor-client:ktor-client-tests"))
-            api(project(":ktor-client:ktor-client-plugins:ktor-client-logging"))
-            api(project(":ktor-client:ktor-client-plugins:ktor-client-json"))
+            api(project(":ktor-client-tests"))
+            api(project(":ktor-client-logging"))
+            api(project(":ktor-client-json"))
         }
     }
 }

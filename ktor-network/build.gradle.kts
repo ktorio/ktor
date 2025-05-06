@@ -26,7 +26,7 @@ kotlin {
         }
 
         jvmTest.dependencies {
-            implementation(project(":ktor-shared:ktor-test-base"))
+            implementation(project(":ktor-test-base"))
             implementation(libs.mockk)
         }
     }

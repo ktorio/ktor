@@ -11,17 +11,17 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            api(project(":ktor-shared:ktor-websockets"))
-            api(project(":ktor-shared:ktor-websocket-serialization"))
+            api(project(":ktor-websockets"))
+            api(project(":ktor-websocket-serialization"))
         }
 
         commonTest.dependencies {
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-content-negotiation"))
-            api(project(":ktor-client:ktor-client-plugins:ktor-client-websockets"))
+            api(project(":ktor-server-content-negotiation"))
+            api(project(":ktor-client-websockets"))
         }
 
         jvmTest.dependencies {
-            implementation(project(":ktor-shared:ktor-test-base"))
+            implementation(project(":ktor-test-base"))
         }
     }
 }

@@ -11,10 +11,10 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            api(project(":ktor-shared:ktor-call-id"))
+            api(project(":ktor-call-id"))
         }
         jvmMain.dependencies {
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-call-logging"))
+            api(project(":ktor-server-call-logging"))
         }
     }
 }

@@ -9,7 +9,7 @@ plugins {
 kotlin {
     sourceSets {
         jvmMain.dependencies {
-            api(project(":ktor-network:ktor-network-tls"))
+            api(project(":ktor-network-tls"))
         }
         jvmTest.dependencies {
             implementation(libs.mockk)

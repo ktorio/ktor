@@ -11,7 +11,7 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-conditional-headers"))
+            api(project(":ktor-server-conditional-headers"))
         }
     }
 }

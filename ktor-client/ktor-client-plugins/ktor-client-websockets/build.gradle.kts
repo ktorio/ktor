@@ -9,7 +9,7 @@ plugins {
 kotlin {
     sourceSets {
         commonTest.dependencies {
-            api(project(":ktor-client:ktor-client-plugins:ktor-client-logging"))
+            api(project(":ktor-client-logging"))
         }
     }
 }

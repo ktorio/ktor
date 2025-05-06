@@ -12,10 +12,10 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(project(":ktor-http"))
-            api(project(":ktor-http:ktor-http-cio"))
-            api(project(":ktor-shared:ktor-events"))
-            api(project(":ktor-shared:ktor-websocket-serialization"))
-            api(project(":ktor-shared:ktor-sse"))
+            api(project(":ktor-http-cio"))
+            api(project(":ktor-events"))
+            api(project(":ktor-websocket-serialization"))
+            api(project(":ktor-sse"))
         }
 
         jvmMain.dependencies {
@@ -32,8 +32,8 @@ kotlin {
 
         commonTest.dependencies {
             api(project(":ktor-test-dispatcher"))
-            api(project(":ktor-client:ktor-client-mock"))
-            api(project(":ktor-server:ktor-server-test-host"))
+            api(project(":ktor-client-mock"))
+            api(project(":ktor-server-test-host"))
         }
     }
 }

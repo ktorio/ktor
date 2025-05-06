@@ -10,10 +10,8 @@ plugins {
 
 kotlin {
     sourceSets {
-        jvmTest {
-            dependencies {
-                implementation(project(":ktor-server:ktor-server-plugins:ktor-server-status-pages"))
-            }
+        jvmTest.dependencies {
+            implementation(project(":ktor-server-status-pages"))
         }
     }
 }

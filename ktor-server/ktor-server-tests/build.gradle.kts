@@ -13,13 +13,13 @@ kotlin {
     sourceSets {
         commonTest.dependencies {
             api(project(":ktor-server"))
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-rate-limit"))
-            api(project(":ktor-server:ktor-server-test-host"))
+            api(project(":ktor-server-rate-limit"))
+            api(project(":ktor-server-test-host"))
         }
         jvmTest.dependencies {
             implementation(libs.jansi)
-            implementation(project(":ktor-client:ktor-client-plugins:ktor-client-encoding"))
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-sse"))
+            implementation(project(":ktor-client-encoding"))
+            api(project(":ktor-server-sse"))
         }
     }
 }

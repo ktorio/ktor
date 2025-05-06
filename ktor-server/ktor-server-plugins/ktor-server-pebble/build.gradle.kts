@@ -12,9 +12,9 @@ kotlin {
             api(libs.pebble)
         }
         jvmTest.dependencies {
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-conditional-headers"))
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-compression"))
-            implementation(project(":ktor-server:ktor-server-plugins:ktor-server-content-negotiation"))
+            api(project(":ktor-server-conditional-headers"))
+            api(project(":ktor-server-compression"))
+            implementation(project(":ktor-server-content-negotiation"))
         }
     }
 }
