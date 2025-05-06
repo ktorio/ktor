@@ -1,10 +1,10 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+import io.ktor.client.call.*
 import io.ktor.client.plugins.api.*
 import io.ktor.client.plugins.cache.*
-import io.ktor.client.plugins.observer.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -141,9 +141,9 @@ class HttpCacheTest {
         fun createBodyTransformingPlugin(name: String, transform: (String) -> String) = createClientPlugin(name) {
             client.receivePipeline.intercept(HttpReceivePipeline.State) { response ->
                 val content = transform(response.bodyAsText())
-                val newResponse = response.call.wrap(
-                    content = ByteReadChannel(content),
+                val newResponse = response.call.replaceResponse(
                     headers = Headers.build { append(HttpHeaders.ContentLength, content.length.toString()) },
+                    content = { ByteReadChannel(content) }
                 ).response
                 proceedWith(newResponse)
             }
