@@ -107,6 +107,14 @@ public interface MutableDependencyMap : DependencyMap {
  */
 public interface DependencyResolver : MutableDependencyMap {
     public val reflection: DependencyReflection
+
+    /**
+     * Decorates the dependency resolver with a qualified name for the expected type.
+     *
+     * Useful with delegation when used like: `val connection by dependencies.named("postgres")`
+     */
+    public fun named(key: String): DependencyResolverContext =
+        DependencyResolverContext(this, key)
 }
 
 /**
@@ -151,20 +159,6 @@ public class DependencyMapImpl(
 }
 
 /**
- * Retrieves the dependency associated with the given key from the dependency map, or returns `null` if no dependency
- * is associated with the key.
- *
- * @param key the unique key that identifies the dependency to retrieve
- * @return the dependency instance associated with the given key, or `null` if the key is not present
- */
-public fun <T> DependencyMap.getOrNull(key: DependencyKey): T? =
-    if (contains(key)) {
-        get(key)
-    } else {
-        null
-    }
-
-/**
  * Combines two `DependencyMap`s into one.
  *
  * Where keys are common, precedence is given to the right-hand argument.
@@ -174,6 +168,12 @@ public fun <T> DependencyMap.getOrNull(key: DependencyKey): T? =
  */
 public operator fun DependencyMap.plus(right: DependencyMap): DependencyMap =
     MergedDependencyMap(this, right)
+
+/**
+ * Get the dependency from the map for the key represented by the type (and optionally, with the given name).
+ */
+public inline fun <reified T> DependencyMap.resolve(key: String? = null): T =
+    get(DependencyKey(typeInfo<T>(), key))
 
 internal class MergedDependencyMap(
     private val left: DependencyMap,
@@ -215,29 +215,21 @@ public class ConfigurationDependencyMap(
 }
 
 /**
- * Decorates the dependency resolver with a qualified name for the expected type.
- *
- * Useful with delegation when used like: `val connection by dependencies.named("postgres")`
- */
-public fun DependencyResolver.named(key: String) =
-    DependencyResolverContext(this, key)
-
-/**
- * Property delegation for [DependencyResolverContext] for use with the `named` shorthand for string qualifiers.
- */
-public inline operator fun <reified T> DependencyResolverContext.getValue(thisRef: Any?, property: KProperty<*>): T =
-    resolver.resolve(key)
-
-/**
  * Context for property delegation with chaining (i.e., `dependencies.named("foo")`)
  */
 public data class DependencyResolverContext(
     val resolver: DependencyResolver,
-    val key: String,
-)
+    val name: String,
+) {
+    /**
+     * Property delegation for [DependencyResolverContext] for use with the `named` shorthand for string qualifiers.
+     */
+    public inline operator fun <reified T> getValue(thisRef: Any?, property: KProperty<*>): T =
+        resolver.resolve(name)
 
-/**
- * Get the dependency from the map for the key represented by the type (and optionally, with the given name).
- */
-public inline fun <reified T> DependencyMap.resolve(key: String? = null): T =
-    get(DependencyKey(typeInfo<T>(), key))
+    /**
+     * Get the dependency from the map for the key represented by the type (and optionally, with the given name).
+     */
+    public inline fun <reified T> DependencyMap.resolve(key: String? = null): T =
+        get(DependencyKey(typeInfo<T>(), key))
+}
