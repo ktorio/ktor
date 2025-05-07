@@ -71,12 +71,8 @@ internal class AuthTokenHolder<T>(private val loadTokens: suspend () -> T?) {
 
         return mutex.withLock {
             if (prevValue == value || lockedByLoad) { // Raced first
-                val newValue = withContext(coroutineContext + setTokenMarker) {
+                value = withContext(coroutineContext + setTokenMarker) {
                     block()
-                }
-
-                if (newValue != null) {
-                    value = newValue
                 }
             }
 
