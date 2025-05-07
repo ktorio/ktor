@@ -18,6 +18,7 @@ public expect interface Logger {
 }
 
 public expect val Logger.isTraceEnabled: Boolean
+public expect val Logger.isDebugEnabled: Boolean
 
 /**
  * Logs an error from an [exception] using its message
@@ -35,4 +36,13 @@ public fun Logger.error(exception: Throwable) {
  */
 public inline fun Logger.trace(message: () -> String) {
     if (isTraceEnabled) trace(message())
+}
+
+/**
+ * Check `isDebugEnabled` flag before logging to save some memory allocations.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.logging.debug)
+ */
+public inline fun Logger.debug(message: () -> String) {
+    if (isDebugEnabled) debug(message())
 }

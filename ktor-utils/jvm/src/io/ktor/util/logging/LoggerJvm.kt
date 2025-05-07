@@ -7,3 +7,4 @@ package io.ktor.util.logging
 public actual typealias Logger = org.slf4j.Logger
 
 public actual val Logger.isTraceEnabled: Boolean get() = isTraceEnabled
+public actual val Logger.isDebugEnabled: Boolean get() = isDebugEnabled

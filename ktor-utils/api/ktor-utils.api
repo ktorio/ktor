@@ -19,12 +19,14 @@ public abstract interface class io/ktor/util/Attributes {
 	public abstract fun getOrNull (Lio/ktor/util/AttributeKey;)Ljava/lang/Object;
 	public abstract fun put (Lio/ktor/util/AttributeKey;Ljava/lang/Object;)V
 	public abstract fun remove (Lio/ktor/util/AttributeKey;)V
+	public abstract fun set (Lio/ktor/util/AttributeKey;Ljava/lang/Object;)V
 	public abstract fun take (Lio/ktor/util/AttributeKey;)Ljava/lang/Object;
 	public abstract fun takeOrNull (Lio/ktor/util/AttributeKey;)Ljava/lang/Object;
 }
 
 public final class io/ktor/util/Attributes$DefaultImpls {
 	public static fun get (Lio/ktor/util/Attributes;Lio/ktor/util/AttributeKey;)Ljava/lang/Object;
+	public static fun set (Lio/ktor/util/Attributes;Lio/ktor/util/AttributeKey;Ljava/lang/Object;)V
 	public static fun take (Lio/ktor/util/Attributes;Lio/ktor/util/AttributeKey;)Ljava/lang/Object;
 	public static fun takeOrNull (Lio/ktor/util/Attributes;Lio/ktor/util/AttributeKey;)Ljava/lang/Object;
 }
@@ -972,10 +974,12 @@ public final class io/ktor/util/logging/KtorSimpleLoggerJvmKt {
 }
 
 public final class io/ktor/util/logging/LoggerJvmKt {
+	public static final fun isDebugEnabled (Lorg/slf4j/Logger;)Z
 	public static final fun isTraceEnabled (Lorg/slf4j/Logger;)Z
 }
 
 public final class io/ktor/util/logging/LoggerKt {
+	public static final fun debug (Lorg/slf4j/Logger;Lkotlin/jvm/functions/Function0;)V
 	public static final fun error (Lorg/slf4j/Logger;Ljava/lang/Throwable;)V
 	public static final fun trace (Lorg/slf4j/Logger;Lkotlin/jvm/functions/Function0;)V
 }
