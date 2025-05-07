@@ -35,6 +35,7 @@ class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApp
         enableHttp2 = false
         enableSsl = false
     }
+
     @Test
     fun testGracefulShutdown() = runTest {
         val server = embeddedServer(CIO, applicationEnvironment(), {
@@ -54,7 +55,7 @@ class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApp
         val body = CompletableDeferred<String?>()
         launch {
             val gotBody = runCatching {
-                HttpClient (io.ktor.client.engine.cio.CIO).use { client ->
+                HttpClient(io.ktor.client.engine.cio.CIO).use { client ->
                     client.get { url(port = port, path = "/") }.body<String>()
                 }
             }.getOrNull()
@@ -67,9 +68,7 @@ class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApp
                 timeoutMillis = 20_000,
             )
         }
-        launch {
-            assertEquals("OK", body.await())
-        }
+        assertEquals("OK", body.await())
     }
 
     @Test

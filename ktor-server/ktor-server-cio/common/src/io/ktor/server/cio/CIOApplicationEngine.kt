@@ -229,9 +229,7 @@ public class CIOApplicationEngine(
             withContext(userDispatcher) {
                 monitor.raise(ApplicationStopPreparing, environment)
             }
-            connectors.forEach{
-                it.rootServerJob.join()
-            }
+            connectors.map { it.rootServerJob }.joinAll()
         }
     }
 }

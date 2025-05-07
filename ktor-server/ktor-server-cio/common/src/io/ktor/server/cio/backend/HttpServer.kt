@@ -12,7 +12,7 @@ import io.ktor.server.engine.internal.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
-import kotlinx.io.*
+import kotlinx.io.IOException
 import kotlin.time.Duration.Companion.seconds
 
 private val LOGGER = KtorSimpleLogger("io.ktor.server.cio.HttpServer")
@@ -86,9 +86,9 @@ public fun CoroutineScope.httpServer(
             } catch (closed: ClosedChannelException) {
                 coroutineContext.cancel()
             } finally {
+                server.close()
                 rootConnectionJob.complete()
                 rootConnectionJob.join()
-                server.close()
                 server.awaitClosed()
             }
         }
