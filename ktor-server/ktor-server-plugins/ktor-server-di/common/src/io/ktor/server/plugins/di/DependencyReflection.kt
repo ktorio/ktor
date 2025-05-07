@@ -32,7 +32,7 @@ public interface DependencyReflection {
  * @param T The type of the dependency to be provided.
  * @param kClass The `KClass` representing the type of the dependency to be created or resolved.
  */
-public inline fun <reified T : Any> DependencyProvider.provide(kClass: KClass<out T>) =
+public inline fun <reified T : Any> DependencyProvider.provide(kClass: KClass<out T>): Unit =
     provide { create(kClass) }
 
 /**
@@ -53,5 +53,5 @@ public inline fun <reified T : Any> DependencyResolver.create(): T =
  * @param kClass The class reference representing the type of object to create or retrieve.
  * @return An instance of the specified type [T].
  */
-public inline fun <reified T : Any> DependencyResolver.create(kClass: KClass<out T>) =
+public inline fun <reified T : Any> DependencyResolver.create(kClass: KClass<out T>): T =
     getOrPut(DependencyKey(typeInfo<T>())) { reflection.create(kClass, ::get) }

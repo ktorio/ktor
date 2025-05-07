@@ -219,7 +219,7 @@ public class ConfigurationDependencyMap(
  *
  * Useful with delegation when used like: `val connection by dependencies.named("postgres")`
  */
-public fun DependencyResolver.named(key: String) =
+public fun DependencyResolver.named(key: String): DependencyResolverContext =
     DependencyResolverContext(this, key)
 
 /**
