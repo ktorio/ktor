@@ -306,28 +306,4 @@ class TCPSocketTest {
             socket.awaitClosed()
         }
     }
-
-    @Test
-    fun testAutoFlush() = testSockets { selector ->
-        val tcp = aSocket(selector).tcp()
-        val server: ServerSocket = tcp.bind("127.0.0.1", port = 0)
-
-        val serverConnectionPromise = async {
-            server.accept()
-        }
-
-        val clientConnection = tcp.connect("127.0.0.1", port = server.port)
-        val serverConnection = serverConnectionPromise.await()
-        val serverInput = serverConnection.openReadChannel()
-
-        val writeChannel = clientConnection.openWriteChannel(autoFlush = true)
-        writeChannel.writeStringUtf8("Hello, world\n")
-        val message = serverInput.readUTF8Line()
-        assertEquals("Hello, world", message)
-
-        val countedWriteChannel = CountedByteWriteChannel(writeChannel)
-        countedWriteChannel.writeStringUtf8("Hello again\n")
-        val message2 = serverInput.readUTF8Line()
-        assertEquals("Hello again", message2)
-    }
 }

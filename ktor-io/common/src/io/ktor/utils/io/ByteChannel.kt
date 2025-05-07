@@ -23,7 +23,7 @@ internal const val CHANNEL_MAX_SIZE: Int = 1024 * 1024
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.ByteChannel)
  */
-public class ByteChannel(public override val autoFlush: Boolean = false) : ByteReadChannel, BufferedByteWriteChannel {
+public class ByteChannel(public val autoFlush: Boolean = false) : ByteReadChannel, BufferedByteWriteChannel {
     private val flushBuffer: Buffer = Buffer()
 
     @Volatile

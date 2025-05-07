@@ -14,9 +14,6 @@ public class CountedByteWriteChannel(private val delegate: ByteWriteChannel) : B
     private var initial = delegate.writeBuffer.size
     private var flushedCount = 0
 
-    public override val autoFlush: Boolean
-        get() = delegate.autoFlush
-
     @OptIn(InternalAPI::class)
     public val totalBytesWritten: Long get() = (flushedCount + writeBuffer.size - initial).toLong()
 
