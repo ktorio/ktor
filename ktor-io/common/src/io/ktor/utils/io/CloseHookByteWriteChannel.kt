@@ -20,9 +20,6 @@ internal class CloseHookByteWriteChannel(
     private val delegate: ByteWriteChannel,
     private val onClose: suspend () -> Unit
 ) : ByteWriteChannel by delegate {
-    override val autoFlush: Boolean
-        get() = delegate.autoFlush
-
     override suspend fun flushAndClose() {
         delegate.flushAndClose()
         onClose()
