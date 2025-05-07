@@ -42,3 +42,5 @@ gradle-user-home
 .kotlin
 
 scan-journal.log
+
+**/.claude/settings.local.json
