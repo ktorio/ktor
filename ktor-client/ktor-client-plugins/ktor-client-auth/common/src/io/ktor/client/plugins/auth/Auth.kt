@@ -7,6 +7,7 @@ package io.ktor.client.plugins.auth
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.api.*
+import io.ktor.client.plugins.auth.providers.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -86,6 +87,8 @@ public val Auth: ClientPlugin<AuthConfig> = createClientPlugin("Auth", ::AuthCon
     val providers = pluginConfig.providers.toList()
 
     client.attributes.put(AuthProvidersKey, providers)
+
+    client.attributes.put(TokenStorageFactory.TokenStorageAttributeKey, mutableMapOf())
 
     val tokenVersions = ConcurrentMap<AuthProvider, AtomicCounter>()
     val tokenVersionsAttributeKey =
@@ -202,11 +205,20 @@ public fun HttpClientConfig<*>.Auth(block: AuthConfig.() -> Unit) {
     install(Auth, block)
 }
 
-@PublishedApi
-internal val AuthProvidersKey: AttributeKey<List<AuthProvider>> = AttributeKey("AuthProviders")
+/**
+ * The AuthProvider of the specified type if it exists.
+ *
+ * @param T The type of AuthProvider to find
+ * @return The first matching AuthProvider of the specified type, or null if none found
+ */
+public inline fun <reified T : AuthProvider> HttpClient.authProvider(): T? =
+    authProviders.filterIsInstance<T>().singleOrNull()
 
+/**
+ * List of auth providers registered with this client.
+ */
 public val HttpClient.authProviders: List<AuthProvider>
     get() = attributes.getOrNull(AuthProvidersKey) ?: emptyList()
 
-public inline fun <reified T : AuthProvider> HttpClient.authProvider(): T? =
-    authProviders.filterIsInstance<T>().singleOrNull()
+@PublishedApi
+internal val AuthProvidersKey: AttributeKey<List<AuthProvider>> = AttributeKey("AuthProviders")

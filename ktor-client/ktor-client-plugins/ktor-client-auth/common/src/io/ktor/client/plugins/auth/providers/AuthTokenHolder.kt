@@ -11,6 +11,13 @@ import kotlin.concurrent.Volatile
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 
+/**
+ * @deprecated Use TokenStorage interface instead.
+ */
+@Deprecated(
+    "Use TokenStorage interface instead",
+    ReplaceWith("CachingTokenStorage(loadTokens)", "io.ktor.client.plugins.auth.providers.CachingTokenStorage")
+)
 internal class AuthTokenHolder<T>(private val loadTokens: suspend () -> T?) {
 
     @Volatile private var value: T? = null

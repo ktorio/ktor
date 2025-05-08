@@ -22,7 +22,7 @@ import io.ktor.utils.io.core.*
 @KtorDsl
 public fun AuthConfig.basic(block: BasicAuthConfig.() -> Unit) {
     with(BasicAuthConfig().apply(block)) {
-        this@basic.providers.add(BasicAuthProvider(credentials, realm, _sendWithoutRequest))
+        this@basic.providers.add(BasicAuthProvider(credentials, realm, _sendWithoutRequest, tokenStorage))
     }
 }
 
@@ -33,6 +33,8 @@ public fun AuthConfig.basic(block: BasicAuthConfig.() -> Unit) {
  */
 @KtorDsl
 public class BasicAuthConfig {
+    internal var tokenStorage: TokenStorage<BasicAuthCredentials>? = null
+
     /**
      * Required: The username of the basic auth.
      *
@@ -89,6 +91,27 @@ public class BasicAuthConfig {
     public fun credentials(block: suspend () -> BasicAuthCredentials?) {
         credentials = block
     }
+
+    /**
+     * Provides a custom token storage implementation.
+     * This allows for complete control over how credentials are stored, cached, and managed.
+     *
+     * Example usage:
+     * ```kotlin
+     * basic {
+     *     // Use a custom token storage implementation
+     *     tokenStorage(customStorage)
+     *     // Or use built-in implementations
+     *     tokenStorage(TokenStorageFactory.withCache { myCredentialsProvider() })
+     *     tokenStorage(TokenStorageFactory.nonCaching { myCredentialsProvider() })
+     * }
+     * ```
+     *
+     * @param storage a custom token storage implementation
+     */
+    public fun tokenStorage(storage: TokenStorage<BasicAuthCredentials>) {
+        tokenStorage = storage
+    }
 }
 
 /**
@@ -112,7 +135,8 @@ public class BasicAuthCredentials(
 public class BasicAuthProvider(
     private val credentials: suspend () -> BasicAuthCredentials?,
     private val realm: String? = null,
-    private val sendWithoutRequestCallback: (HttpRequestBuilder) -> Boolean = { false }
+    private val sendWithoutRequestCallback: (HttpRequestBuilder) -> Boolean = { false },
+    private val customTokenStorage: TokenStorage<BasicAuthCredentials>? = null
 ) : AuthProvider {
 
     @Deprecated("Consider using constructor with credentials provider instead", level = DeprecationLevel.ERROR)
@@ -127,7 +151,8 @@ public class BasicAuthProvider(
         sendWithoutRequestCallback = { sendWithoutRequest }
     )
 
-    private val tokensHolder = AuthTokenHolder(credentials)
+    private val tokenStorage: TokenStorage<BasicAuthCredentials> =
+        customTokenStorage ?: TokenStorageFactory.withCache(credentials)
 
     @Suppress("OverridingDeprecatedMember")
     @Deprecated("Please use sendWithoutRequest function instead", level = DeprecationLevel.ERROR)
@@ -154,12 +179,12 @@ public class BasicAuthProvider(
     }
 
     override suspend fun addRequestHeaders(request: HttpRequestBuilder, authHeader: HttpAuthHeader?) {
-        val credentials = tokensHolder.loadToken() ?: return
+        val credentials = tokenStorage.loadToken() ?: return
         request.headers[HttpHeaders.Authorization] = constructBasicAuthValue(credentials)
     }
 
     override suspend fun refreshToken(response: HttpResponse): Boolean {
-        tokensHolder.setToken(credentials)
+        tokenStorage.updateToken(credentials)
         return true
     }
 
@@ -176,9 +201,8 @@ public class BasicAuthProvider(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.BasicAuthProvider.clearToken)
      */
-    @InternalAPI // TODO KTOR-8180: Provide control over tokens to user code
-    public fun clearToken() {
-        tokensHolder.clearToken()
+    public suspend fun clearToken() {
+        tokenStorage.clearToken()
     }
 }
 

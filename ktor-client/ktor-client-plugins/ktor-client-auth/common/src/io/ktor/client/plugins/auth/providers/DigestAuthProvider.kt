@@ -123,7 +123,7 @@ public class DigestAuthProvider(
 
     private val requestCounter = atomic(0)
 
-    private val tokenHolder = AuthTokenHolder(credentials)
+    private val tokenStorage = TokenStorageFactory.withCache(credentials)
 
     override fun sendWithoutRequest(request: HttpRequestBuilder): Boolean = false
 
@@ -171,7 +171,7 @@ public class DigestAuthProvider(
             (auth as? HttpAuthHeader.Parameterized)?.parameter("realm")
         }
 
-        val credentials = tokenHolder.loadToken() ?: return
+        val credentials = tokenStorage.loadToken() ?: return
         val credential = makeDigest("${credentials.username}:$realm:${credentials.password}")
 
         val start = hex(credential)
@@ -208,7 +208,7 @@ public class DigestAuthProvider(
     }
 
     override suspend fun refreshToken(response: HttpResponse): Boolean {
-        tokenHolder.setToken(credentials)
+        tokenStorage.updateToken(credentials)
         return true
     }
 
@@ -231,8 +231,7 @@ public class DigestAuthProvider(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.DigestAuthProvider.clearToken)
      */
-    @InternalAPI // TODO KTOR-8180: Provide control over tokens to user code
-    public fun clearToken() {
-        tokenHolder.clearToken()
+    public suspend fun clearToken() {
+        tokenStorage.clearToken()
     }
 }
