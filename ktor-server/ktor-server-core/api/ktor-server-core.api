@@ -98,6 +98,7 @@ public final class io/ktor/server/application/CreatePluginUtilsKt {
 }
 
 public final class io/ktor/server/application/DefaultApplicationEventsKt {
+	public static final fun getApplicationModulesLoaded ()Lio/ktor/events/EventDefinition;
 	public static final fun getApplicationStarted ()Lio/ktor/events/EventDefinition;
 	public static final fun getApplicationStarting ()Lio/ktor/events/EventDefinition;
 	public static final fun getApplicationStopPreparing ()Lio/ktor/events/EventDefinition;

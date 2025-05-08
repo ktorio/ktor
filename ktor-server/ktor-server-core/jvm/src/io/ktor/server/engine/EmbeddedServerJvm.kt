@@ -393,6 +393,7 @@ actual constructor(
             modules.forEach { module -> module(newInstance, currentClassLoader) }
         }
 
+        monitor.raise(ApplicationModulesLoaded, newInstance)
         monitor.raise(ApplicationStarted, newInstance)
 
         return newInstance

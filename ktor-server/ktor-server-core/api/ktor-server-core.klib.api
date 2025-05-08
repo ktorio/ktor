@@ -1611,6 +1611,8 @@ final object io.ktor.server.routing/TrailingSlashRouteSelector : io.ktor.server.
     final suspend fun evaluate(io.ktor.server.routing/RoutingResolveContext, kotlin/Int): io.ktor.server.routing/RouteSelectorEvaluation // io.ktor.server.routing/TrailingSlashRouteSelector.evaluate|evaluate(io.ktor.server.routing.RoutingResolveContext;kotlin.Int){}[0]
 }
 
+final val io.ktor.server.application/ApplicationModulesLoaded // io.ktor.server.application/ApplicationModulesLoaded|{}ApplicationModulesLoaded[0]
+    final fun <get-ApplicationModulesLoaded>(): io.ktor.events/EventDefinition<io.ktor.server.application/Application> // io.ktor.server.application/ApplicationModulesLoaded.<get-ApplicationModulesLoaded>|<get-ApplicationModulesLoaded>(){}[0]
 final val io.ktor.server.application/ApplicationStarted // io.ktor.server.application/ApplicationStarted|{}ApplicationStarted[0]
     final fun <get-ApplicationStarted>(): io.ktor.events/EventDefinition<io.ktor.server.application/Application> // io.ktor.server.application/ApplicationStarted.<get-ApplicationStarted>|<get-ApplicationStarted>(){}[0]
 final val io.ktor.server.application/ApplicationStarting // io.ktor.server.application/ApplicationStarting|{}ApplicationStarting[0]
