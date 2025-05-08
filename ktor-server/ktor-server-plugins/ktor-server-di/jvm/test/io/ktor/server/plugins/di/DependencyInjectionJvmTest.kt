@@ -62,9 +62,9 @@ class DependencyInjectionJvmTest {
     @Test
     fun `circular references from create`() = runTestDI {
         dependencies {
-            provide<WorkExperience> { WorkExperience(this.resolve()) }
-            provide<PaidWork> { PaidWork(this.resolve()) }
-            provide<List<PaidWork>> { listOf(this.resolve()) }
+            provide<WorkExperience> { WorkExperience(resolve()) }
+            provide<PaidWork> { PaidWork(resolve()) }
+            provide<List<PaidWork>> { listOf(resolve()) }
         }
 
         assertFailsWith<CircularDependencyException> {
@@ -226,7 +226,7 @@ class DependencyInjectionJvmTest {
         testConfigFile(
             ::createGreetingService.qualifiedName,
             ::createBankService.qualifiedName,
-            DependencyResolver::createBankTellerNoArgs.qualifiedName,
+            DependencyRegistry::createBankTellerNoArgs.qualifiedName,
         ) {
             val teller: BankTeller by dependencies
             assertEquals(HELLO, teller.hello())

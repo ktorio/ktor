@@ -45,6 +45,16 @@ public interface DependencyProvider {
 }
 
 /**
+ * Basic call for providing a dependency, like `provide<Service> { ServiceImpl() }`.
+ */
+public inline fun <reified T> DependencyProvider.provide(
+    name: String? = null,
+    noinline provide: DependencyResolver.() -> T
+) {
+    set(DependencyKey(typeInfo<T>(), name), provide)
+}
+
+/**
  * Wraps the logic for creating a new instance of a dependency.
  *
  * Concrete types of this sealed interface are used to include some metadata regarding how they were registered.
@@ -234,28 +244,3 @@ public open class MapDependencyProvider(
         }
     }
 }
-
-/**
- * DSL helper for declaring dependencies with `dependencies {}` block.
- */
-@KtorDsl
-public operator fun DependencyProvider.invoke(action: DependencyProviderContext.() -> Unit) {
-    DependencyProviderContext(this).action()
-}
-
-/**
- * Builder context for providing dependencies.
- */
-@KtorDsl
-public class DependencyProviderContext(
-    private val delegate: DependencyProvider
-) : DependencyProvider by delegate
-
-/**
- * Basic call for providing a dependency, like `provide<Service> { ServiceImpl() }`.
- */
-public inline fun <reified T> DependencyProvider.provide(
-    name: String? = null,
-    noinline provide: DependencyResolver.() -> T
-) =
-    set(DependencyKey(typeInfo<T>(), name), provide)
