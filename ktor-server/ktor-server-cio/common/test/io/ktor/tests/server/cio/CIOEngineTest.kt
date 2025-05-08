@@ -4,18 +4,13 @@
 
 package io.ktor.tests.server.cio
 
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.request.get
-import io.ktor.client.request.header
-import io.ktor.client.request.url
+import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.server.cio.*
-import io.ktor.server.engine.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -38,28 +33,17 @@ class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApp
 
     @Test
     fun testGracefulShutdown() = runTest {
-        val server = embeddedServer(CIO, applicationEnvironment(), {
-            connector {
-                port = this@CIOHttpServerTest.port
-                host = TEST_SERVER_HOST
-            }
-        }) {
-            routing {
-                get("/") {
-                    delay(100)
-                    call.respond("OK")
-                }
+        val server = createAndStartServer {
+            get("/") {
+                delay(100)
+                call.respond("OK")
             }
         }
-        server.startSuspend()
         val body = CompletableDeferred<String?>()
         launch {
-            val gotBody = runCatching {
-                HttpClient(io.ktor.client.engine.cio.CIO).use { client ->
-                    client.get { url(port = port, path = "/") }.body<String>()
-                }
-            }.getOrNull()
-            body.complete(gotBody)
+            withUrl("/") {
+                body.complete(bodyAsText())
+            }
         }
         launch {
             delay(20)
