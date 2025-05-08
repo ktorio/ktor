@@ -371,6 +371,20 @@ class DependencyInjectionJvmTest {
         )
     }
 
+    @Test
+    fun `resolve flexible and nullable types`() = runTestDI {
+        fun getString(): String? = "hello"
+
+        dependencies {
+            provide { System.out }
+            provide { getString() }
+        }
+        val out: java.io.PrintStream by dependencies
+        val string: String by dependencies
+        assertEquals(System.out, out)
+        assertEquals("hello", string)
+    }
+
     private fun runTestDI(
         pluginInstall: DependencyInjectionConfig.() -> Unit = {},
         block: Application.() -> Unit

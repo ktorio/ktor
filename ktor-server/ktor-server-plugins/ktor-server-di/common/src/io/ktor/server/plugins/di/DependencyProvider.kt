@@ -49,7 +49,7 @@ public interface DependencyProvider {
  */
 public inline fun <reified T> DependencyProvider.provide(
     name: String? = null,
-    noinline provide: DependencyResolver.() -> T
+    noinline provide: DependencyResolver.() -> T?
 ) {
     set(DependencyKey(typeInfo<T>(), name), provide)
 }
