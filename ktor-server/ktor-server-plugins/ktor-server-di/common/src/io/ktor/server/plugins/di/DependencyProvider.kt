@@ -50,7 +50,9 @@ public interface DependencyProvider {
 public inline fun <reified T> DependencyProvider.provide(
     name: String? = null,
     noinline provide: DependencyResolver.() -> T
-): Unit = set(DependencyKey(typeInfo<T>(), name), provide)
+) {
+    set(DependencyKey(typeInfo<T>(), name), provide)
+}
 
 /**
  * Wraps the logic for creating a new instance of a dependency.

@@ -115,16 +115,16 @@ public class DependencyRegistry(
      * @param T The type of the dependency to be provided.
      * @param kClass The `KClass` representing the type of the dependency to be created or resolved.
      */
-    public inline fun <reified T : Any> DependencyProvider.provide(kClass: KClass<out T>): Unit =
+    public inline fun <reified T : Any> DependencyProvider.provide(kClass: KClass<out T>) {
         provide<T> { create(kClass) }
+    }
 
     /**
      * Basic call for providing a dependency, like `provide<Service> { ServiceImpl() }`.
      */
-    public inline fun <reified T> provide(
-        name: String? = null,
-        noinline provide: DependencyResolver.() -> T
-    ): Unit = set(DependencyKey(typeInfo<T>(), name), provide)
+    public inline fun <reified T> provide(name: String? = null, noinline provide: DependencyResolver.() -> T) {
+        set(DependencyKey(typeInfo<T>(), name), provide)
+    }
 }
 
 /**
