@@ -7,7 +7,7 @@ package io.ktor.server.cio.backend
 import io.ktor.network.sockets.*
 import io.ktor.util.network.*
 
-internal actual fun SocketAddress.toNetworkAddress(): NetworkAddress {
+internal actual fun SocketAddress.toNetworkAddress(): NetworkAddress? {
     check(this is InetSocketAddress) { "Expected inet socket address" }
     return NetworkAddress(hostname, port)
 }

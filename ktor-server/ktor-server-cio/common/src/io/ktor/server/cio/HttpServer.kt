@@ -32,9 +32,32 @@ public class HttpServer(
  * @property connectionIdleTimeoutSeconds time to live for IDLE connections
  * @property reuseAddress allow the server to bind to an address that is already in use
  */
-public data class HttpServerSettings(
-    val host: String = "0.0.0.0",
-    val port: Int = 8080,
-    val connectionIdleTimeoutSeconds: Long = 45,
-    val reuseAddress: Boolean = false
+public open class HttpServerSettings(
+    public val host: String = "0.0.0.0",
+    public val port: Int = 8080,
+    public val connectionIdleTimeoutSeconds: Long = 45,
+    public val reuseAddress: Boolean = false
+) {
+    override fun toString(): String = "HttpServerSettings($host:$port)"
+}
+
+/**
+ * Represents the settings for a Unix-based HTTP server.
+ *
+ * This class extends [HttpServerSettings] and overrides the `host` and `port`
+ * properties to configure a Unix socket-based server. The server listens only on a
+ * local interface and does not use a traditional TCP port. The Unix domain socket
+ * path is specified by the [socketPath] parameter.
+ *
+ * @property socketPath the path to the Unix domain socket file used for the server communication.
+ */
+public class UnixHttpServerSettings(
+    public val socketPath: String,
+    connectionIdleTimeoutSeconds: Long,
+    reuseAddress: Boolean
+) : HttpServerSettings(
+    host = "127.0.0.1",
+    port = -1,
+    reuseAddress = true,
+    connectionIdleTimeoutSeconds = connectionIdleTimeoutSeconds
 )

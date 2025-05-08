@@ -36,23 +36,40 @@ public final class io/ktor/server/cio/HttpServer {
 	public final fun getServerSocket ()Lkotlinx/coroutines/Deferred;
 }
 
-public final class io/ktor/server/cio/HttpServerSettings {
+public class io/ktor/server/cio/HttpServerSettings {
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/String;IJZ)V
 	public synthetic fun <init> (Ljava/lang/String;IJZILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun component2 ()I
-	public final fun component3 ()J
-	public final fun component4 ()Z
-	public final fun copy (Ljava/lang/String;IJZ)Lio/ktor/server/cio/HttpServerSettings;
-	public static synthetic fun copy$default (Lio/ktor/server/cio/HttpServerSettings;Ljava/lang/String;IJZILjava/lang/Object;)Lio/ktor/server/cio/HttpServerSettings;
-	public fun equals (Ljava/lang/Object;)Z
 	public final fun getConnectionIdleTimeoutSeconds ()J
 	public final fun getHost ()Ljava/lang/String;
 	public final fun getPort ()I
 	public final fun getReuseAddress ()Z
-	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/cio/UnixHttpServerSettings : io/ktor/server/cio/HttpServerSettings {
+	public fun <init> (Ljava/lang/String;JZ)V
+	public final fun getSocketPath ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/cio/UnixSocketConnectorBuilder : io/ktor/server/engine/EngineConnectorBuilder, io/ktor/server/cio/UnixSocketConnectorConfig {
+	public fun <init> ()V
+	public fun getHost ()Ljava/lang/String;
+	public fun getPort ()I
+	public fun getSocketPath ()Ljava/lang/String;
+	public fun setHost (Ljava/lang/String;)V
+	public fun setPort (I)V
+	public fun setSocketPath (Ljava/lang/String;)V
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class io/ktor/server/cio/UnixSocketConnectorConfig : io/ktor/server/engine/EngineConnectorConfig {
+	public abstract fun getSocketPath ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/cio/UnixSocketConnectorConfigKt {
+	public static final fun unixConnector (Lio/ktor/server/engine/ApplicationEngine$Configuration;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun unixConnector$default (Lio/ktor/server/engine/ApplicationEngine$Configuration;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 }
 
 public final class io/ktor/server/cio/backend/HttpServerKt {
