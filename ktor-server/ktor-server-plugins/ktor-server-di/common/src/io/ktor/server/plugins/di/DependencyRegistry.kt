@@ -122,7 +122,7 @@ public class DependencyRegistry(
     /**
      * Basic call for providing a dependency, like `provide<Service> { ServiceImpl() }`.
      */
-    public inline fun <reified T> provide(name: String? = null, noinline provide: DependencyResolver.() -> T) {
+    public inline fun <reified T> provide(name: String? = null, noinline provide: DependencyResolver.() -> T?) {
         set(DependencyKey(typeInfo<T>(), name), provide)
     }
 }
