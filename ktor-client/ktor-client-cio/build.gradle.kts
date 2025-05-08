@@ -12,17 +12,17 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            api(project(":ktor-client-core"))
-            api(project(":ktor-http-cio"))
-            api(project(":ktor-websockets"))
-            api(project(":ktor-network-tls"))
+            api(projects.ktorClientCore)
+            api(projects.ktorHttpCio)
+            api(projects.ktorWebsockets)
+            api(projects.ktorNetworkTls)
         }
         commonTest.dependencies {
-            api(project(":ktor-client-tests"))
+            api(projects.ktorClientTests)
         }
         jvmTest.dependencies {
-            api(project(":ktor-network-tls-certificates"))
-            api(project(":ktor-test-base"))
+            api(projects.ktorNetworkTlsCertificates)
+            api(projects.ktorTestBase)
             implementation(libs.mockk)
         }
     }

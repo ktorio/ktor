@@ -13,63 +13,63 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            api(project(":ktor-client-test-base"))
-            api(project(":ktor-client-mock"))
+            api(projects.ktorClientTestBase)
+            api(projects.ktorClientMock)
         }
         commonTest.dependencies {
-            api(project(":ktor-client-json"))
-            api(project(":ktor-client-serialization"))
-            api(project(":ktor-client-logging"))
-            api(project(":ktor-client-auth"))
-            api(project(":ktor-client-encoding"))
-            api(project(":ktor-client-content-negotiation"))
-            api(project(":ktor-client-json"))
-            api(project(":ktor-client-serialization"))
-            api(project(":ktor-serialization-kotlinx"))
-            api(project(":ktor-serialization-kotlinx-json"))
+            api(projects.ktorClientJson)
+            api(projects.ktorClientSerialization)
+            api(projects.ktorClientLogging)
+            api(projects.ktorClientAuth)
+            api(projects.ktorClientEncoding)
+            api(projects.ktorClientContentNegotiation)
+            api(projects.ktorClientJson)
+            api(projects.ktorClientSerialization)
+            api(projects.ktorSerializationKotlinx)
+            api(projects.ktorSerializationKotlinxJson)
         }
         jvmMain.dependencies {
             api(libs.kotlinx.serialization.json)
-            api(project(":ktor-network-tls-certificates"))
-            api(project(":ktor-server"))
-            api(project(":ktor-server-cio"))
-            api(project(":ktor-server-netty"))
-            api(project(":ktor-server-auth"))
-            api(project(":ktor-server-websockets"))
-            api(project(":ktor-serialization-kotlinx"))
+            api(projects.ktorNetworkTlsCertificates)
+            api(projects.ktorServer)
+            api(projects.ktorServerCio)
+            api(projects.ktorServerNetty)
+            api(projects.ktorServerAuth)
+            api(projects.ktorServerWebsockets)
+            api(projects.ktorSerializationKotlinx)
             api(libs.logback.classic)
         }
 
         jvmTest.dependencies {
-            api(project(":ktor-client-apache"))
-            api(project(":ktor-client-apache5"))
-            runtimeOnly(project(":ktor-client-android"))
-            runtimeOnly(project(":ktor-client-okhttp"))
-            runtimeOnly(project(":ktor-client-java"))
-            implementation(project(":ktor-client-logging"))
+            api(projects.ktorClientApache)
+            api(projects.ktorClientApache5)
+            runtimeOnly(projects.ktorClientAndroid)
+            runtimeOnly(projects.ktorClientOkhttp)
+            runtimeOnly(projects.ktorClientJava)
+            implementation(projects.ktorClientLogging)
             implementation(libs.kotlinx.coroutines.slf4j)
             implementation(libs.junit)
         }
 
         commonTest.dependencies {
-            api(project(":ktor-client-cio"))
+            api(projects.ktorClientCio)
         }
 
         jsTest.dependencies {
-            api(project(":ktor-client-js"))
+            api(projects.ktorClientJs)
         }
 
         desktopTest.dependencies {
-            api(project(":ktor-client-curl"))
+            api(projects.ktorClientCurl)
         }
 
         darwinTest.dependencies {
-                api(project(":ktor-client-darwin"))
-                api(project(":ktor-client-darwin-legacy"))
+                api(projects.ktorClientDarwin)
+                api(projects.ktorClientDarwinLegacy)
         }
 
         windowsTest.dependencies {
-                api(project(":ktor-client-winhttp"))
+                api(projects.ktorClientWinhttp)
         }
     }
 }

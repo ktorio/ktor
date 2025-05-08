@@ -9,12 +9,12 @@ plugins {
 kotlin {
     sourceSets {
         jvmMain.dependencies {
-            api(project(":ktor-client-json"))
+            api(projects.ktorClientJson)
             api(libs.gson)
         }
         jvmTest.dependencies {
-            api(project(":ktor-client-cio"))
-            api(project(":ktor-serialization-gson"))
+            api(projects.ktorClientCio)
+            api(projects.ktorSerializationGson)
         }
     }
 }

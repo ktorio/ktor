@@ -16,8 +16,8 @@ kotlin {
         }
 
         jvmTest.dependencies {
-            implementation(project(":ktor-server-call-id"))
-            implementation(project(":ktor-server-status-pages"))
+            implementation(projects.ktorServerCallId)
+            implementation(projects.ktorServerStatusPages)
         }
     }
 }

@@ -13,9 +13,9 @@ kotlin {
             api(libs.velocity.tools)
         }
         jvmTest.dependencies {
-            api(project(":ktor-server-conditional-headers"))
-            api(project(":ktor-server-compression"))
-            implementation(project(":ktor-server-content-negotiation"))
+            api(projects.ktorServerConditionalHeaders)
+            api(projects.ktorServerCompression)
+            implementation(projects.ktorServerContentNegotiation)
         }
     }
 }

@@ -12,7 +12,7 @@ kotlin {
             api(libs.kotlinx.html)
         }
         commonTest.dependencies {
-            api(project(":ktor-server-status-pages"))
+            api(projects.ktorServerStatusPages)
         }
     }
 }

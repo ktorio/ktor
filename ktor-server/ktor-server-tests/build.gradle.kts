@@ -12,14 +12,14 @@ plugins {
 kotlin {
     sourceSets {
         commonTest.dependencies {
-            api(project(":ktor-server"))
-            api(project(":ktor-server-rate-limit"))
-            api(project(":ktor-server-test-host"))
+            api(projects.ktorServer)
+            api(projects.ktorServerRateLimit)
+            api(projects.ktorServerTestHost)
         }
         jvmTest.dependencies {
             implementation(libs.jansi)
-            implementation(project(":ktor-client-encoding"))
-            api(project(":ktor-server-sse"))
+            implementation(projects.ktorClientEncoding)
+            api(projects.ktorServerSse)
         }
     }
 }

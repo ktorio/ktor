@@ -11,7 +11,7 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            api(project(":ktor-server-core"))
+            api(projects.ktorServerCore)
         }
     }
 }

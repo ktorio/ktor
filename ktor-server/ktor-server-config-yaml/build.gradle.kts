@@ -10,7 +10,7 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            api(project(":ktor-server-core"))
+            api(projects.ktorServerCore)
             // KTOR-8386 Remove in next major release
             api(libs.yamlkt.serialization)
             implementation(libs.kaml.serialization)

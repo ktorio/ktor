@@ -18,15 +18,15 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            api(project(":ktor-utils"))
+            api(projects.ktorUtils)
         }
 
         commonTest.dependencies {
-            api(project(":ktor-test-dispatcher"))
+            api(projects.ktorTestDispatcher)
         }
 
         jvmTest.dependencies {
-            implementation(project(":ktor-test-base"))
+            implementation(projects.ktorTestBase)
             implementation(libs.mockk)
         }
     }

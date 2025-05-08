@@ -11,7 +11,7 @@ plugins {
 kotlin {
     sourceSets {
         jvmTest.dependencies {
-            implementation(project(":ktor-server-status-pages"))
+            implementation(projects.ktorServerStatusPages)
         }
     }
 }

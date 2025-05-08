@@ -12,14 +12,14 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            api(project(":ktor-serialization-kotlinx"))
+            api(projects.ktorSerializationKotlinx)
             api(libs.kotlinx.serialization.protobuf)
         }
         jvmTest.dependencies {
-            api(project(":ktor-client-content-negotiation-tests"))
+            api(projects.ktorClientContentNegotiationTests)
         }
         commonTest.dependencies {
-            api(project(":ktor-serialization-kotlinx-tests"))
+            api(projects.ktorSerializationKotlinxTests)
         }
     }
 }

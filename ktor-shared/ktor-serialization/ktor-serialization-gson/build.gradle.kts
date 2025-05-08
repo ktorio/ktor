@@ -11,14 +11,14 @@ plugins {
 kotlin {
     sourceSets {
         jvmMain.dependencies {
-            api(project(":ktor-serialization"))
+            api(projects.ktorSerialization)
             api(libs.gson)
         }
         jvmTest.dependencies {
-            api(project(":ktor-server-test-host"))
-            api(project(":ktor-client-tests"))
-            api(project(":ktor-client-content-negotiation-tests"))
-            api(project(":ktor-serialization-tests"))
+            api(projects.ktorServerTestHost)
+            api(projects.ktorClientTests)
+            api(projects.ktorClientContentNegotiationTests)
+            api(projects.ktorSerializationTests)
 
             api(libs.logback.classic)
         }

@@ -11,20 +11,20 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(project(":ktor-server-forwarded-header"))
-            implementation(project(":ktor-server-auto-head-response"))
-            implementation(project(":ktor-server-status-pages"))
-            implementation(project(":ktor-server-hsts"))
-            implementation(project(":ktor-server-websockets"))
-            api(project(":ktor-server-test-base"))
+            implementation(projects.ktorServerForwardedHeader)
+            implementation(projects.ktorServerAutoHeadResponse)
+            implementation(projects.ktorServerStatusPages)
+            implementation(projects.ktorServerHsts)
+            implementation(projects.ktorServerWebsockets)
+            api(projects.ktorServerTestBase)
         }
 
         jvmMain.dependencies {
-            implementation(project(":ktor-server-compression"))
-            implementation(project(":ktor-server-partial-content"))
-            implementation(project(":ktor-server-conditional-headers"))
-            implementation(project(":ktor-server-default-headers"))
-            implementation(project(":ktor-server-request-validation"))
+            implementation(projects.ktorServerCompression)
+            implementation(projects.ktorServerPartialContent)
+            implementation(projects.ktorServerConditionalHeaders)
+            implementation(projects.ktorServerDefaultHeaders)
+            implementation(projects.ktorServerRequestValidation)
         }
     }
 }

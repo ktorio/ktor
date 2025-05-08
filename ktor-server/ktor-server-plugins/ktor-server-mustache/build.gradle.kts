@@ -12,9 +12,9 @@ kotlin {
             api(libs.mustache)
         }
         jvmTest.dependencies {
-            api(project(":ktor-server-compression"))
-            api(project(":ktor-server-conditional-headers"))
-            implementation(project(":ktor-server-content-negotiation"))
+            api(projects.ktorServerCompression)
+            api(projects.ktorServerConditionalHeaders)
+            implementation(projects.ktorServerContentNegotiation)
         }
     }
 }

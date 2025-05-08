@@ -10,11 +10,11 @@ kotlin {
     sourceSets {
         jvmMain.dependencies {
             api(libs.micrometer)
-            implementation(project(":ktor-server-core"))
+            implementation(projects.ktorServerCore)
         }
         jvmTest.dependencies {
-            implementation(project(":ktor-server-metrics"))
-            implementation(project(":ktor-server-auth"))
+            implementation(projects.ktorServerMetrics)
+            implementation(projects.ktorServerAuth)
         }
     }
 }

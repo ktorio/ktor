@@ -15,13 +15,13 @@ kotlin {
 
     sourceSets {
         windowsMain.dependencies {
-            api(project(":ktor-client-core"))
-            api(project(":ktor-http-cio"))
+            api(projects.ktorClientCore)
+            api(projects.ktorHttpCio)
         }
         windowsTest.dependencies {
-            implementation(project(":ktor-client-test-base"))
-            api(project(":ktor-client-logging"))
-            api(project(":ktor-client-json"))
+            implementation(projects.ktorClientTestBase)
+            api(projects.ktorClientLogging)
+            api(projects.ktorClientJson)
         }
     }
 }

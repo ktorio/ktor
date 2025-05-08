@@ -9,12 +9,12 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            api(project(":ktor-htmx"))
-            implementation(project(":ktor-utils"))
+            api(projects.ktorHtmx)
+            implementation(projects.ktorUtils)
         }
         commonTest.dependencies {
-            implementation(project(":ktor-server-html-builder"))
-            implementation(project(":ktor-htmx-html"))
+            implementation(projects.ktorServerHtmlBuilder)
+            implementation(projects.ktorHtmxHtml)
         }
     }
 }

@@ -11,16 +11,16 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            api(project(":ktor-server-test-host"))
-            api(project(":ktor-test-base"))
+            api(projects.ktorServerTestHost)
+            api(projects.ktorTestBase)
         }
 
         jvmMain.dependencies {
-            api(project(":ktor-network-tls"))
+            api(projects.ktorNetworkTls)
 
-            api(project(":ktor-client-apache"))
-            api(project(":ktor-network-tls-certificates"))
-            api(project(":ktor-server-call-logging"))
+            api(projects.ktorClientApache)
+            api(projects.ktorNetworkTlsCertificates)
+            api(projects.ktorServerCallLogging)
 
             api(libs.logback.classic)
         }
