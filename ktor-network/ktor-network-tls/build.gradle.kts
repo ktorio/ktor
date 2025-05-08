@@ -14,8 +14,8 @@ kotlin {
             api(project(":ktor-utils"))
         }
         jvmTest.dependencies {
-            api(project(":ktor-shared:ktor-test-base"))
-            api(project(":ktor-network:ktor-network-tls:ktor-network-tls-certificates"))
+            api(project(":ktor-test-base"))
+            api(project(":ktor-network-tls-certificates"))
             api(libs.netty.handler)
             api(libs.mockk)
         }

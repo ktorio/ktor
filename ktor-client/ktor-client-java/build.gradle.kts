@@ -13,11 +13,11 @@ kotlin {
 
     sourceSets {
         jvmMain.dependencies {
-            api(project(":ktor-client:ktor-client-core"))
+            api(project(":ktor-client-core"))
             implementation(libs.kotlinx.coroutines.jdk8)
         }
         jvmTest.dependencies {
-            api(project(":ktor-client:ktor-client-tests"))
+            api(project(":ktor-client-tests"))
         }
     }
 }

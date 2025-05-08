@@ -18,10 +18,10 @@ kotlin {
         commonMain.dependencies {
             api(project(":ktor-utils"))
             api(project(":ktor-http"))
-            api(project(":ktor-shared:ktor-serialization"))
-            api(project(":ktor-shared:ktor-events"))
-            api(project(":ktor-http:ktor-http-cio"))
-            api(project(":ktor-shared:ktor-websockets"))
+            api(project(":ktor-serialization"))
+            api(project(":ktor-events"))
+            api(project(":ktor-http-cio"))
+            api(project(":ktor-websockets"))
 
             api(libs.kotlin.reflect)
         }
@@ -32,13 +32,13 @@ kotlin {
         }
 
         commonTest.dependencies {
-            api(project(":ktor-server:ktor-server-test-host"))
+            api(project(":ktor-server-test-host"))
         }
 
         jvmTest.dependencies {
-            implementation(project(":ktor-server:ktor-server-config-yaml"))
-            implementation(project(":ktor-server:ktor-server-test-base"))
-            implementation(project(":ktor-server:ktor-server-test-suites"))
+            implementation(project(":ktor-server-config-yaml"))
+            implementation(project(":ktor-server-test-base"))
+            implementation(project(":ktor-server-test-suites"))
 
             implementation(libs.mockk)
         }

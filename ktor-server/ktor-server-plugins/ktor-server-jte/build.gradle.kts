@@ -15,11 +15,11 @@ kotlin {
             api(libs.jte)
         }
         jvmTest.dependencies {
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-status-pages"))
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-compression"))
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-conditional-headers"))
+            api(project(":ktor-server-status-pages"))
+            api(project(":ktor-server-compression"))
+            api(project(":ktor-server-conditional-headers"))
             api(libs.jte.kotlin)
-            implementation(project(":ktor-server:ktor-server-plugins:ktor-server-content-negotiation"))
+            implementation(project(":ktor-server-content-negotiation"))
         }
     }
 }

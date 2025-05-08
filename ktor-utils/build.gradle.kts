@@ -32,7 +32,7 @@ kotlin {
             api(project(":ktor-test-dispatcher"))
         }
         jvmTest.dependencies {
-            implementation(project(":ktor-shared:ktor-test-base"))
+            implementation(project(":ktor-test-base"))
         }
     }
 }

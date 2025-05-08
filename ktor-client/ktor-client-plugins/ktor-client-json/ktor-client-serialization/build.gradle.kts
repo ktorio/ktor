@@ -11,7 +11,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(libs.kotlinx.serialization.json)
-            api(project(":ktor-client:ktor-client-plugins:ktor-client-json"))
+            api(project(":ktor-client-json"))
         }
     }
 }

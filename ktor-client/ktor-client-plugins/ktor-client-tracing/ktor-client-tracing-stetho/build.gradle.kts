@@ -20,8 +20,8 @@ kotlin {
         val androidMain by getting {
             kotlin.srcDir("android/src")
             dependencies {
-                implementation(project(":ktor-client:ktor-client-plugins:ktor-client-tracing"))
-                implementation(project(":ktor-client:ktor-client-core"))
+                implementation(project(":ktor-client-tracing"))
+                implementation(project(":ktor-client-core"))
                 implementation("com.facebook.stetho:stetho:$android_stetho_version")
             }
         }
@@ -29,7 +29,7 @@ kotlin {
         val androidTest by getting {
             kotlin.srcDir("android/test")
             dependencies {
-                implementation(project(":ktor-client:ktor-client-cio"))
+                implementation(project(":ktor-client-cio"))
                 implementation(libs.kotlin.test.junit5)
                 implementation("org.mockito:mockito-core:5.17.0")
             }

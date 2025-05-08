@@ -12,7 +12,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(libs.kotlinx.html)
-            api(project(":ktor-shared:ktor-htmx"))
+            api(project(":ktor-htmx"))
             implementation(project(":ktor-utils"))
         }
     }

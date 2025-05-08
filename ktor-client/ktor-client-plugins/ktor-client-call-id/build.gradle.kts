@@ -11,11 +11,11 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            api(project(":ktor-shared:ktor-call-id"))
+            api(project(":ktor-call-id"))
         }
         commonTest.dependencies {
-            api(project(":ktor-server:ktor-server-test-host"))
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-call-id"))
+            api(project(":ktor-server-test-host"))
+            api(project(":ktor-server-call-id"))
         }
     }
 }

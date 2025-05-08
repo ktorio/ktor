@@ -13,11 +13,11 @@ kotlin {
     sourceSets {
         jvmMain.dependencies {
             api(libs.kotlin.test.junit5)
-            api(project(":ktor-client:ktor-client-plugins:ktor-client-content-negotiation"))
-            api(project(":ktor-server:ktor-server-cio"))
-            api(project(":ktor-client:ktor-client-cio"))
-            api(project(":ktor-client:ktor-client-tests"))
-            api(project(":ktor-server:ktor-server-test-host"))
+            api(project(":ktor-client-content-negotiation"))
+            api(project(":ktor-server-cio"))
+            api(project(":ktor-client-cio"))
+            api(project(":ktor-client-tests"))
+            api(project(":ktor-server-test-host"))
             api(libs.jackson.annotations)
             api(libs.logback.classic)
         }

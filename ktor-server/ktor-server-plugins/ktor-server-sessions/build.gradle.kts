@@ -16,7 +16,7 @@ kotlin {
             api(libs.kotlinx.serialization.json)
         }
         jvmTest.dependencies {
-            implementation(project(":ktor-server:ktor-server-netty"))
+            implementation(project(":ktor-server-netty"))
         }
     }
 }
