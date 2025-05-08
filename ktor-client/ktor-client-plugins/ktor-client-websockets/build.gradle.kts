@@ -4,6 +4,7 @@
 
 plugins {
     id("ktorbuild.project.client-plugin")
+    id("test-server")
 }
 
 kotlin {
