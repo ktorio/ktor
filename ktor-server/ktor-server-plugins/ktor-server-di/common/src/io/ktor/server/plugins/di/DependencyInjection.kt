@@ -79,7 +79,7 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
             for (reference in configuredDependencyReferences) {
                 installReference(registry, reference)
             }
-            monitor.subscribe(ApplicationStarted) {
+            monitor.subscribe(ApplicationModulesLoaded) {
                 registry.validate()
             }
             attributes.put(DependencyRegistryKey, registry)

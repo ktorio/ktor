@@ -51,6 +51,7 @@ actual constructor(
         safeRaiseEvent(ApplicationStarting, application)
         try {
             modules.forEach { application.it() }
+            monitor.raise(ApplicationModulesLoaded, application)
             monitor.raise(ApplicationStarted, application)
         } catch (cause: Throwable) {
             environment.log.error("Failed to start application.", cause)
