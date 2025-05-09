@@ -9,53 +9,29 @@ import io.ktor.server.plugins.di.MutableDependencyMap.Companion.asResolver
 import io.ktor.util.reflect.typeInfo
 import io.ktor.utils.io.*
 import kotlin.properties.ReadOnlyProperty
+import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
 /**
- * Combined abstraction for dependency provider and resolver.
+ * A central registry for managing and resolving dependencies within a dependency injection context.
  *
- * This is a stateful type that can verify that all required dependencies can be resolved.
+ * The `DependencyRegistry` class acts as both a `DependencyProvider` and a `DependencyResolver`.
+ * It facilitates the registration of dependencies through a `DependencyProvider` as well as the resolution
+ * and validation of dependencies using the provided resolver mechanism. This registry also supports
+ * reflective creation of instances and type-safe access to registered dependencies.
+ *
+ * @param provider The internal provider responsible for managing dependency initializers.
+ * @param external A map of externally provided dependencies that can be used during resolution.
+ * @param resolution The resolution mechanism used to create new instances of the `DependencyResolver`.
+ * @param reflection A reflection implementation that supports dynamic instantiation of classes.
  */
 @KtorDsl
-public interface DependencyRegistry : DependencyProvider, DependencyResolver {
-
-    /**
-     * Indicates that the given dependency is required.
-     *
-     * This is ensured after `validate()` is called.
-     */
-    public fun require(key: DependencyKey)
-
-    /**
-     * Performs resolutions, ensuring there are no missing dependencies.
-     *
-     * @throws DependencyInjectionException if there are invalid references in the configuration
-     */
-    public fun validate()
-}
-
-public var Application.dependencies: DependencyRegistry
-    get() {
-        if (!attributes.contains(DependencyRegistryKey)) {
-            install(DI)
-        }
-        return attributes[DependencyRegistryKey]
-    }
-    set(value) {
-        attributes.put(DependencyRegistryKey, value)
-    }
-
-/**
- * Basic implementation of [DependencyRegistry], which is a façade of [DependencyProvider] and a late-initialized
- * [DependencyResolver].  The resolver is available after the first call to a get function is made, which triggers the
- * [DependencyResolution] process to populate the instances.
- */
-public class DependencyRegistryImpl(
+public class DependencyRegistry(
     private val provider: DependencyProvider,
     private val external: DependencyMap,
     private val resolution: DependencyResolution,
     public override val reflection: DependencyReflection,
-) : DependencyRegistry, DependencyProvider by provider {
+) : DependencyProvider by provider, DependencyResolver {
 
     private val requiredKeys = mutableSetOf<DependencyKey>()
     private val resolver: Lazy<DependencyResolver> = lazy {
@@ -76,44 +52,98 @@ public class DependencyRegistryImpl(
     override fun <T> getOrPut(key: DependencyKey, defaultValue: () -> T): T =
         resolver.value.getOrPut(key, defaultValue)
 
-    override fun require(key: DependencyKey) {
+    /**
+     * Indicates that the given dependency is required.
+     *
+     * This is ensured after `validate()` is called.
+     */
+    public fun require(key: DependencyKey) {
         requiredKeys += key
     }
 
-    override fun validate() {
+    /**
+     * Performs resolutions, ensuring there are no missing dependencies.
+     *
+     * @throws DependencyInjectionException if there are invalid references in the configuration
+     */
+    public fun validate() {
         for (key in requiredKeys) {
             resolver.value.get<Any>(key)
         }
     }
+
+    /**
+     * Get the dependency from the map for the key represented by the type (and optionally, with the given name).
+     */
+    public inline fun <reified T> resolve(key: String? = null): T =
+        get(DependencyKey(typeInfo<T>(), key))
+
+    /**
+     * Provides a delegated property for accessing a dependency from a [DependencyRegistry].
+     * This operator function allows property delegation, ensuring the required dependency is
+     * registered and retrievable through the registry.
+     *
+     * Example usage:
+     * ```
+     * val repository: Repository<Message> by dependencies
+     * ```
+     *
+     * @param thisRef The receiver to which the property is being delegated. This parameter
+     * is not used in the actual implementation.
+     * @param prop The property for which the delegate is being requested.
+     * @return A [ReadOnlyProperty] that provides access to the resolved dependency of type [T].
+     * @throws DependencyInjectionException If the dependency required by [prop] is not resolvable
+     * during access.
+     */
+    public inline operator fun <reified T> provideDelegate(
+        thisRef: Any?,
+        prop: KProperty<*>
+    ): ReadOnlyProperty<Any?, T> {
+        val key = DependencyKey(typeInfo<T>())
+            .also(::require)
+        return ReadOnlyProperty { _, _ ->
+            get(key)
+        }
+    }
+
+    /**
+     * Provides an instance of the dependency associated with the specified [kClass].
+     *
+     * Uses the `create` method from the `DependencyResolver` to resolve and instantiate a dependency
+     * of type [T] specified by the given [kClass].
+     *
+     * @param T The type of the dependency to be provided.
+     * @param kClass The `KClass` representing the type of the dependency to be created or resolved.
+     */
+    public inline fun <reified T : Any> DependencyProvider.provide(kClass: KClass<out T>) {
+        provide<T> { create(kClass) }
+    }
+
+    /**
+     * Basic call for providing a dependency, like `provide<Service> { ServiceImpl() }`.
+     */
+    public inline fun <reified T> provide(name: String? = null, noinline provide: DependencyResolver.() -> T?) {
+        set(DependencyKey(typeInfo<T>(), name), provide)
+    }
 }
 
 /**
- * Provides a delegated property for accessing a dependency from a [DependencyRegistry].
- * This operator function allows property delegation, ensuring the required dependency is
- * registered and retrievable through the registry.
- *
- * Example usage:
- * ```
- * val repository: Repository<Message> by dependencies
- * ```
- *
- * @param thisRef The receiver to which the property is being delegated. This parameter
- * is not used in the actual implementation.
- * @param prop The property for which the delegate is being requested.
- * @return A [ReadOnlyProperty] that provides access to the resolved dependency of type [T].
- * @throws DependencyInjectionException If the dependency required by [prop] is not resolvable
- * during access.
+ * DSL helper for declaring dependencies with `dependencies {}` block.
  */
-public inline operator fun <reified T> DependencyRegistry.provideDelegate(
-    thisRef: Any?,
-    prop: KProperty<*>
-): ReadOnlyProperty<Any?, T> {
-    val key = DependencyKey(typeInfo<T>())
-        .also(::require)
-    return ReadOnlyProperty { _, _ ->
-        this@provideDelegate.get(key)
+@KtorDsl
+public fun <T> Application.dependencies(action: DependencyRegistry.() -> T): T =
+    dependencies.action()
+
+public var Application.dependencies: DependencyRegistry
+    get() {
+        if (!attributes.contains(DependencyRegistryKey)) {
+            install(DI)
+        }
+        return attributes[DependencyRegistryKey]
     }
-}
+    set(value) {
+        attributes.put(DependencyRegistryKey, value)
+    }
 
 /**
  * Standard [DependencyResolution] implementation, which populates a map of instances using

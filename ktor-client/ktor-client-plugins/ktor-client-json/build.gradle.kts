@@ -13,10 +13,10 @@ plugins {
 kotlin {
     sourceSets {
         commonTest.dependencies {
-            api(project(":ktor-client:ktor-client-plugins:ktor-client-json:ktor-client-serialization"))
+            api(projects.ktorClientSerialization)
         }
         jvmTest.dependencies {
-            api(project(":ktor-client:ktor-client-plugins:ktor-client-json:ktor-client-gson"))
+            api(projects.ktorClientGson)
         }
     }
 }

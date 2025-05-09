@@ -6,4 +6,5 @@ description = "Ktor client Byte Order Mark support"
 
 plugins {
     id("ktorbuild.project.client-plugin")
+    id("test-server")
 }

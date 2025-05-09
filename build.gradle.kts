@@ -4,7 +4,6 @@
 
 plugins {
     id("ktorbuild.doctor")
-    id("ktorbuild.compatibility")
     id("ktorbuild.publish.verifier")
 }
 
