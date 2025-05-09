@@ -12,20 +12,15 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            api(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx"))
+            api(projects.ktorSerializationKotlinx)
             api(libs.kotlinx.serialization.json)
             api(libs.kotlinx.serialization.json.io)
         }
         jvmTest.dependencies {
-            @Suppress("ktlint:standard:max-line-length")
-            api(
-                project(
-                    ":ktor-client:ktor-client-plugins:ktor-client-content-negotiation:ktor-client-content-negotiation-tests"
-                )
-            )
+            api(projects.ktorClientContentNegotiationTests)
         }
         commonTest.dependencies {
-            api(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx:ktor-serialization-kotlinx-tests"))
+            api(projects.ktorSerializationKotlinxTests)
         }
     }
 }

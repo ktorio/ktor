@@ -1,0 +1,20 @@
+// Klib ABI Dump
+// Targets: [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, js, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, wasmJs, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
+// Alias: native => [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <io.ktor:ktor-test-dispatcher>
+// Targets: [native]
+final fun io.ktor.test.dispatcher/runTestWithRealTime(kotlin.coroutines/CoroutineContext = ..., kotlin.time/Duration = ..., kotlin.coroutines/SuspendFunction1<kotlinx.coroutines/CoroutineScope, kotlin/Unit>) // io.ktor.test.dispatcher/runTestWithRealTime|runTestWithRealTime(kotlin.coroutines.CoroutineContext;kotlin.time.Duration;kotlin.coroutines.SuspendFunction1<kotlinx.coroutines.CoroutineScope,kotlin.Unit>){}[0]
+
+// Targets: [native]
+final fun io.ktor.test.dispatcher/testSuspend(kotlin.coroutines/CoroutineContext = ..., kotlin/Long = ..., kotlin.coroutines/SuspendFunction1<kotlinx.coroutines/CoroutineScope, kotlin/Unit>) // io.ktor.test.dispatcher/testSuspend|testSuspend(kotlin.coroutines.CoroutineContext;kotlin.Long;kotlin.coroutines.SuspendFunction1<kotlinx.coroutines.CoroutineScope,kotlin.Unit>){}[0]
+
+// Targets: [js, wasmJs]
+final fun io.ktor.test.dispatcher/runTestWithRealTime(kotlin.coroutines/CoroutineContext = ..., kotlin.time/Duration = ..., kotlin.coroutines/SuspendFunction1<kotlinx.coroutines/CoroutineScope, kotlin/Unit>): kotlinx.coroutines.test.internal/JsPromiseInterfaceForTesting // io.ktor.test.dispatcher/runTestWithRealTime|runTestWithRealTime(kotlin.coroutines.CoroutineContext;kotlin.time.Duration;kotlin.coroutines.SuspendFunction1<kotlinx.coroutines.CoroutineScope,kotlin.Unit>){}[0]
+
+// Targets: [js, wasmJs]
+final fun io.ktor.test.dispatcher/testSuspend(kotlin.coroutines/CoroutineContext = ..., kotlin/Long = ..., kotlin.coroutines/SuspendFunction1<kotlinx.coroutines/CoroutineScope, kotlin/Unit>): kotlinx.coroutines.test.internal/JsPromiseInterfaceForTesting // io.ktor.test.dispatcher/testSuspend|testSuspend(kotlin.coroutines.CoroutineContext;kotlin.Long;kotlin.coroutines.SuspendFunction1<kotlinx.coroutines.CoroutineScope,kotlin.Unit>){}[0]

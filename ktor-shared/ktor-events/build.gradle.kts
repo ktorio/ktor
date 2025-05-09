@@ -9,7 +9,7 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            api(project(":ktor-utils"))
+            api(projects.ktorUtils)
         }
     }
 }

@@ -7,6 +7,7 @@ package io.ktor.server.plugins.di
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.server.application.*
+import io.ktor.server.plugins.di.dependencies
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
@@ -261,7 +262,7 @@ class DependencyInjectionTest {
     fun `custom provider`() = testApplication {
         val assignmentKeys = mutableListOf<DependencyKey>()
         install(DI) {
-            var delegate = MapDependencyProvider()
+            val delegate = MapDependencyProvider()
             provider = object : DependencyProvider by delegate {
                 override fun <T> set(
                     key: DependencyKey,

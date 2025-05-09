@@ -5,6 +5,7 @@
 package io.ktor.server.plugins.di.utils
 
 import io.ktor.server.application.*
+import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.plugins.di.*
 import io.ktor.util.reflect.*
 import kotlin.reflect.full.starProjectedType
@@ -47,10 +48,14 @@ internal actual fun Application.installReference(
                         reflection.mapParameters(function.parameters) { param ->
                             when (param.type) {
                                 // special types, from application
+                                DependencyRegistry::class.starProjectedType -> registry
+                                DependencyMap::class.starProjectedType,
                                 DependencyResolver::class.starProjectedType -> this@set
+                                Application::class.starProjectedType -> this@installReference
                                 ApplicationEnvironment::class.starProjectedType -> environment
+                                ApplicationConfig::class.starProjectedType -> environment.config
                                 // regular types, from resolver
-                                else -> this.get<Any>(reflection.toDependencyKey(param))
+                                else -> this.get(reflection.toDependencyKey(param))
                             }
                         }
                     )

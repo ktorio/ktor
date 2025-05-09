@@ -8,6 +8,7 @@ plugins {
     id("ktorbuild.kmp")
     id("ktorbuild.dokka")
     id("ktorbuild.publish")
+    id("ktorbuild.compatibility")
 }
 
 addProjectTag(ProjectTag.Library)

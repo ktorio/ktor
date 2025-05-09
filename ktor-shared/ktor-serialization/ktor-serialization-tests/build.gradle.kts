@@ -10,8 +10,8 @@ plugins {
 kotlin {
     sourceSets {
         jvmMain.dependencies {
-            api(project(":ktor-server:ktor-server-test-host"))
-            api(project(":ktor-client:ktor-client-plugins:ktor-client-content-negotiation:ktor-client-content-negotiation-tests"))
+            api(projects.ktorServerTestHost)
+            api(projects.ktorClientContentNegotiationTests)
 
             api(libs.logback.classic)
         }

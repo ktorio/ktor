@@ -12,7 +12,7 @@ kotlin {
             api(libs.kotlinx.coroutines.test)
         }
         posixMain.dependencies {
-            implementation(project(":ktor-utils"))
+            implementation(projects.ktorUtils)
         }
     }
 }

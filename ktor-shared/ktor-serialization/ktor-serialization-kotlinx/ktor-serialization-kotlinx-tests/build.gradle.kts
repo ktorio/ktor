@@ -11,11 +11,11 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(kotlin("test-annotations-common"))
-            api(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx"))
-            api(project(":ktor-client:ktor-client-tests"))
+            api(projects.ktorSerializationKotlinx)
+            api(projects.ktorClientTests)
         }
         jvmMain.dependencies {
-            api(project(":ktor-shared:ktor-serialization:ktor-serialization-tests"))
+            api(projects.ktorSerializationTests)
 
             api(libs.logback.classic)
         }

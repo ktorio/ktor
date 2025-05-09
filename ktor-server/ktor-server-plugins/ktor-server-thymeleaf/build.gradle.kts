@@ -12,9 +12,9 @@ kotlin {
             api(libs.thymeleaf)
         }
         jvmTest.dependencies {
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-conditional-headers"))
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-compression"))
-            implementation(project(":ktor-server:ktor-server-plugins:ktor-server-content-negotiation"))
+            api(projects.ktorServerConditionalHeaders)
+            api(projects.ktorServerCompression)
+            implementation(projects.ktorServerContentNegotiation)
         }
     }
 }

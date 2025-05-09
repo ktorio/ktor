@@ -11,22 +11,22 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            api(project(":ktor-client:ktor-client-cio"))
-            api(project(":ktor-server:ktor-server-core"))
-            api(project(":ktor-client:ktor-client-core"))
-            api(project(":ktor-test-dispatcher"))
+            api(projects.ktorClientCio)
+            api(projects.ktorServerCore)
+            api(projects.ktorClientCore)
+            api(projects.ktorTestDispatcher)
         }
 
         jvmMain.dependencies {
-            api(project(":ktor-network:ktor-network-tls"))
+            api(projects.ktorNetworkTls)
 
-            api(project(":ktor-client:ktor-client-apache"))
-            api(project(":ktor-network:ktor-network-tls:ktor-network-tls-certificates"))
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-call-logging"))
+            api(projects.ktorClientApache)
+            api(projects.ktorNetworkTlsCertificates)
+            api(projects.ktorServerCallLogging)
 
             // Not ideal, but prevents an additional artifact, and this is usually just included for testing,
             // so shouldn"t increase the size of the final artifact.
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-websockets"))
+            api(projects.ktorServerWebsockets)
 
             api(libs.kotlin.test)
             api(libs.junit)
@@ -34,7 +34,7 @@ kotlin {
         }
 
         jvmTest.dependencies {
-            api(project(":ktor-server:ktor-server-config-yaml"))
+            api(projects.ktorServerConfigYaml)
             api(libs.kotlin.test)
         }
     }

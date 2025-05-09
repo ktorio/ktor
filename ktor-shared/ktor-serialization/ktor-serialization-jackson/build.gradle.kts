@@ -11,15 +11,15 @@ plugins {
 kotlin {
     sourceSets {
         jvmMain.dependencies {
-            api(project(":ktor-shared:ktor-serialization"))
+            api(projects.ktorSerialization)
             api(libs.jackson.databind)
             api(libs.jackson.module.kotlin)
         }
         jvmTest.dependencies {
-            api(project(":ktor-server:ktor-server-test-host"))
-            api(project(":ktor-client:ktor-client-tests"))
-            api(project(":ktor-client:ktor-client-plugins:ktor-client-content-negotiation:ktor-client-content-negotiation-tests"))
-            api(project(":ktor-shared:ktor-serialization:ktor-serialization-tests"))
+            api(projects.ktorServerTestHost)
+            api(projects.ktorClientTests)
+            api(projects.ktorClientContentNegotiationTests)
+            api(projects.ktorSerializationTests)
 
             api(libs.logback.classic)
             api(libs.jackson.dataformat.smile)
