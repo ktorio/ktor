@@ -9,7 +9,7 @@ plugins {
 kotlin {
     sourceSets {
         jvmMain.dependencies {
-            api(project(":ktor-server-auth"))
+            api(projects.ktorServerAuth)
         }
         jvmTest.dependencies {
             api(libs.apacheds.server)

@@ -12,7 +12,7 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            api(project(":ktor-resources"))
+            api(projects.ktorResources)
             api(libs.kotlinx.serialization.core)
         }
     }

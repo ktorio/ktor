@@ -11,12 +11,12 @@ plugins {
 kotlin {
     sourceSets {
         jvmMain.dependencies {
-            api(project(":ktor-server-core"))
+            api(projects.ktorServerCore)
             compileOnly(libs.javax.servlet)
         }
 
         jvmTest.dependencies {
-            api(project(":ktor-server-config-yaml"))
+            api(projects.ktorServerConfigYaml)
             implementation(libs.mockk)
             implementation(libs.javax.servlet)
         }

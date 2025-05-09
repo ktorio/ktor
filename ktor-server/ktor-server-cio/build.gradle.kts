@@ -11,15 +11,15 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            api(project(":ktor-server-core"))
-            api(project(":ktor-http-cio"))
-            api(project(":ktor-websockets"))
-            api(project(":ktor-network"))
+            api(projects.ktorServerCore)
+            api(projects.ktorHttpCio)
+            api(projects.ktorWebsockets)
+            api(projects.ktorNetwork)
         }
         commonTest.dependencies {
-            api(project(":ktor-client-cio"))
-            api(project(":ktor-server-test-suites"))
-            api(project(":ktor-server-test-base"))
+            api(projects.ktorClientCio)
+            api(projects.ktorServerTestSuites)
+            api(projects.ktorServerTestBase)
         }
     }
 }

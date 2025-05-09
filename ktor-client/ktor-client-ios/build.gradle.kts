@@ -9,7 +9,7 @@ plugins {
 kotlin {
     sourceSets {
         darwinMain.dependencies {
-            api(project(":ktor-client-darwin"))
+            api(projects.ktorClientDarwin)
         }
     }
 }

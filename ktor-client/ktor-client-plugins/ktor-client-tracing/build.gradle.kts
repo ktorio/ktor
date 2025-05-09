@@ -9,10 +9,10 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            api(project(":ktor-client-core"))
+            api(projects.ktorClientCore)
         }
         jvmTest.dependencies {
-            implementation(project(":ktor-client-cio"))
+            implementation(projects.ktorClientCio)
         }
     }
 }

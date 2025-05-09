@@ -11,11 +11,11 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            api(project(":ktor-http"))
-            api(project(":ktor-http-cio"))
-            api(project(":ktor-events"))
-            api(project(":ktor-websocket-serialization"))
-            api(project(":ktor-sse"))
+            api(projects.ktorHttp)
+            api(projects.ktorHttpCio)
+            api(projects.ktorEvents)
+            api(projects.ktorWebsocketSerialization)
+            api(projects.ktorSse)
         }
 
         jvmMain.dependencies {
@@ -31,9 +31,9 @@ kotlin {
         }
 
         commonTest.dependencies {
-            api(project(":ktor-test-dispatcher"))
-            api(project(":ktor-client-mock"))
-            api(project(":ktor-server-test-host"))
+            api(projects.ktorTestDispatcher)
+            api(projects.ktorClientMock)
+            api(projects.ktorServerTestHost)
         }
     }
 }

@@ -12,11 +12,11 @@ plugins {
 kotlin {
     sourceSets {
         jvmMain.dependencies {
-            api(project(":ktor-client-core"))
+            api(projects.ktorClientCore)
             api(libs.apache.httpasyncclient)
         }
         jvmTest.dependencies {
-            api(project(":ktor-client-tests"))
+            api(projects.ktorClientTests)
         }
     }
 }

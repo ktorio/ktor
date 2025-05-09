@@ -9,7 +9,7 @@ plugins {
 kotlin {
     sourceSets {
         jvmMain.dependencies {
-            implementation(project(":ktor-server-html-builder"))
+            implementation(projects.ktorServerHtmlBuilder)
         }
     }
 }

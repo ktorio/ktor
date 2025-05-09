@@ -13,12 +13,12 @@ kotlin {
             api(libs.kotlinx.coroutines.slf4j)
         }
         commonTest.dependencies {
-            api(project(":ktor-client-mock"))
-            api(project(":ktor-client-content-negotiation"))
+            api(projects.ktorClientMock)
+            api(projects.ktorClientContentNegotiation)
         }
         jvmTest.dependencies {
-            api(project(":ktor-serialization-jackson"))
-            api(project(":ktor-client-encoding"))
+            api(projects.ktorSerializationJackson)
+            api(projects.ktorClientEncoding)
         }
     }
 }

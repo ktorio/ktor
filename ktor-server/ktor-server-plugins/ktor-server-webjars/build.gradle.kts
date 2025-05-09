@@ -14,8 +14,8 @@ kotlin {
             api(libs.webjars.locator)
         }
         jvmTest.dependencies {
-            api(project(":ktor-server-conditional-headers"))
-            api(project(":ktor-server-caching-headers"))
+            api(projects.ktorServerConditionalHeaders)
+            api(projects.ktorServerCachingHeaders)
             api(libs.webjars.jquery)
         }
     }

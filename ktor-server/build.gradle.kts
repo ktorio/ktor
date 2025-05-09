@@ -11,28 +11,28 @@ plugins {
 kotlin {
     sourceSets {
         jvmMain.dependencies {
-            api(project(":ktor-server-call-logging"))
-            api(project(":ktor-server-default-headers"))
-            api(project(":ktor-server-compression"))
+            api(projects.ktorServerCallLogging)
+            api(projects.ktorServerDefaultHeaders)
+            api(projects.ktorServerCompression)
         }
         commonMain.dependencies {
-            api(project(":ktor-server-core"))
-            api(project(":ktor-server-auto-head-response"))
-            api(project(":ktor-server-caching-headers"))
-            api(project(":ktor-server-conditional-headers"))
-            api(project(":ktor-server-content-negotiation"))
-            api(project(":ktor-server-call-id"))
-            api(project(":ktor-server-cors"))
-            api(project(":ktor-server-csrf"))
-            api(project(":ktor-server-data-conversion"))
-            api(project(":ktor-server-double-receive"))
-            api(project(":ktor-server-forwarded-header"))
-            api(project(":ktor-server-hsts"))
-            api(project(":ktor-server-http-redirect"))
-            api(project(":ktor-server-partial-content"))
-            api(project(":ktor-server-status-pages"))
-            api(project(":ktor-server-method-override"))
-            api(project(":ktor-server-sessions"))
+            api(projects.ktorServerCore)
+            api(projects.ktorServerAutoHeadResponse)
+            api(projects.ktorServerCachingHeaders)
+            api(projects.ktorServerConditionalHeaders)
+            api(projects.ktorServerContentNegotiation)
+            api(projects.ktorServerCallId)
+            api(projects.ktorServerCors)
+            api(projects.ktorServerCsrf)
+            api(projects.ktorServerDataConversion)
+            api(projects.ktorServerDoubleReceive)
+            api(projects.ktorServerForwardedHeader)
+            api(projects.ktorServerHsts)
+            api(projects.ktorServerHttpRedirect)
+            api(projects.ktorServerPartialContent)
+            api(projects.ktorServerStatusPages)
+            api(projects.ktorServerMethodOverride)
+            api(projects.ktorServerSessions)
         }
     }
 }
