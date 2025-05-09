@@ -30,6 +30,8 @@ class CIOUnixSocketServerTest {
 
     @Test
     fun testUnixSocketEcho() = runBlocking {
+        if (!UnixSocketAddress.isSupported()) return@runBlocking
+
         val tempDir = File(System.getProperty("java.io.tmpdir"))
         val socketFile = File(tempDir, "ktor-unix-socket-test-${System.currentTimeMillis()}.sock")
         if (socketFile.exists()) {
