@@ -74,7 +74,7 @@ class MockEngineTests {
     data class User(val name: String)
 
     @Test
-    fun testWithContentNegotationPlugin() = runBlocking {
+    fun testWithContentNegotiationPlugin() = runBlocking {
         val client = HttpClient(
             MockEngine { request ->
                 val bodyBytes = (request.body as OutgoingContent.ByteArrayContent).bytes()

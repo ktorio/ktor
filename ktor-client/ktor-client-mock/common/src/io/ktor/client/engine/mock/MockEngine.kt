@@ -116,9 +116,7 @@ public class MockEngine(
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.mock.MockEngine.Companion.invoke)
          */
-        public operator fun invoke(
-            handler: suspend MockRequestHandleScope.(HttpRequestData) -> HttpResponseData
-        ): MockEngine = MockEngine(
+        public operator fun invoke(handler: MockRequestHandler): MockEngine = MockEngine(
             MockEngineConfig().apply {
                 requestHandlers.add(handler)
             }
