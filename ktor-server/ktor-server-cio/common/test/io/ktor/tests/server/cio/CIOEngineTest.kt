@@ -4,7 +4,7 @@
 
 package io.ktor.tests.server.cio
 
-import io.ktor.client.request.header
+import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
@@ -16,13 +16,43 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.suites.*
 import io.ktor.utils.io.*
-import kotlin.test.*
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
 
     init {
         enableHttp2 = false
         enableSsl = false
+    }
+
+    @Test
+    fun testGracefulShutdown() = runTest {
+        val server = createAndStartServer {
+            get("/") {
+                delay(100)
+                call.respond("OK")
+            }
+        }
+        val body = CompletableDeferred<String?>()
+        launch {
+            withUrl("/") {
+                body.complete(bodyAsText())
+            }
+        }
+        launch {
+            delay(20)
+            server.stopSuspend(
+                gracePeriodMillis = 10_000,
+                timeoutMillis = 20_000,
+            )
+        }
+        assertEquals("OK", body.await())
     }
 
     @Test

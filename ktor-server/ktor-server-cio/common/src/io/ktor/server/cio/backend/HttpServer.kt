@@ -12,7 +12,7 @@ import io.ktor.server.engine.internal.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
-import kotlinx.io.*
+import kotlinx.io.IOException
 import kotlin.time.Duration.Companion.seconds
 
 private val LOGGER = KtorSimpleLogger("io.ktor.server.cio.HttpServer")
@@ -40,6 +40,7 @@ public fun CoroutineScope.httpServer(
 
     val selector = SelectorManager(coroutineContext)
     val timeout = settings.connectionIdleTimeoutSeconds.seconds
+    val rootConnectionJob = SupervisorJob(serverJob)
 
     val acceptJob = launch(serverJob + CoroutineName("accept-${settings.port}")) {
         aSocket(selector).tcp().bind(settings.host, settings.port) {
@@ -52,7 +53,7 @@ public fun CoroutineScope.httpServer(
 
             val connectionScope = CoroutineScope(
                 coroutineContext +
-                    SupervisorJob(serverJob) +
+                    rootConnectionJob +
                     exceptionHandler +
                     CoroutineName("request")
             )
@@ -86,8 +87,9 @@ public fun CoroutineScope.httpServer(
                 coroutineContext.cancel()
             } finally {
                 server.close()
+                rootConnectionJob.complete()
+                rootConnectionJob.join()
                 server.awaitClosed()
-                connectionScope.coroutineContext.cancel()
             }
         }
     }
