@@ -103,17 +103,19 @@ public actual class UnixSocketAddress internal constructor(
 
     public actual override fun toString(): String = address.toString()
 
-    private companion object {
+    public companion object {
         private val unixDomainSocketAddressClass = try {
             Class.forName(UNIX_DOMAIN_SOCKET_ADDRESS_CLASS)
         } catch (exception: ClassNotFoundException) {
             null
         }
 
-        private fun checkSupportForUnixDomainSockets(): Class<*> {
+        internal fun checkSupportForUnixDomainSockets(): Class<*> {
             return unixDomainSocketAddressClass
                 ?: error("Unix domain sockets are unsupported before Java 16.")
         }
+
+        public fun isSupported(): Boolean = unixDomainSocketAddressClass != null
     }
 }
 

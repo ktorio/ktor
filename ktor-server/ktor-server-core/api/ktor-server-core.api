@@ -568,6 +568,7 @@ public final class io/ktor/server/engine/ConnectorType {
 public final class io/ktor/server/engine/ConnectorType$Companion {
 	public final fun getHTTP ()Lio/ktor/server/engine/ConnectorType;
 	public final fun getHTTPS ()Lio/ktor/server/engine/ConnectorType;
+	public final fun getUNIX ()Lio/ktor/server/engine/ConnectorType;
 }
 
 public final class io/ktor/server/engine/DefaultEnginePipelineKt {

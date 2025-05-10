@@ -15,7 +15,7 @@ import io.ktor.server.response.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
-import kotlin.concurrent.*
+import kotlin.concurrent.Volatile
 
 /**
  * Engine that based on CIO backend
@@ -106,6 +106,27 @@ public class CIOApplicationEngine(
 
     override fun stop(gracePeriodMillis: Long, timeoutMillis: Long): Unit = runBlockingBridge {
         stopSuspend(gracePeriodMillis, timeoutMillis)
+    }
+
+    private fun CoroutineScope.startConnector(connectorSpec: EngineConnectorConfig): HttpServer {
+        val settings = when (connectorSpec) {
+            is UnixSocketConnectorConfig -> UnixHttpServerSettings(
+                socketPath = connectorSpec.socketPath,
+                connectionIdleTimeoutSeconds = configuration.connectionIdleTimeoutSeconds.toLong(),
+                reuseAddress = configuration.reuseAddress
+            )
+
+            else -> HttpServerSettings(
+                host = connectorSpec.host,
+                port = connectorSpec.port,
+                connectionIdleTimeoutSeconds = configuration.connectionIdleTimeoutSeconds.toLong(),
+                reuseAddress = configuration.reuseAddress
+            )
+        }
+
+        return httpServer(settings) { request ->
+            handleRequest(request)
+        }
     }
 
     private fun CoroutineScope.startConnector(host: String, port: Int): HttpServer {
@@ -203,13 +224,15 @@ public class CIOApplicationEngine(
                 }
 
                 val connectorsAndServers = configuration.connectors.map { connectorSpec ->
-                    connectorSpec to startConnector(connectorSpec.host, connectorSpec.port)
+                    connectorSpec to startConnector(connectorSpec)
                 }
                 connectors.addAll(connectorsAndServers.map { it.second })
 
                 val resolvedConnectors = connectorsAndServers
                     .map { (connector, server) -> connector to server.serverSocket.await() }
-                    .map { (connector, socket) -> connector.withPort(socket.localAddress.port) }
+                    .map { (connector, socket) ->
+                        socket.localAddress.port?.let { connector.withPort(it) } ?: connector
+                    }
                 cioConnectors.complete(resolvedConnectors)
             } catch (cause: Throwable) {
                 connectors.forEach { it.rootServerJob.cancel() }

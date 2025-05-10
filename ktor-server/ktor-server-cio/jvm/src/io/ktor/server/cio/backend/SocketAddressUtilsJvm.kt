@@ -7,7 +7,7 @@ package io.ktor.server.cio.backend
 import io.ktor.network.sockets.*
 import io.ktor.util.network.*
 
-internal actual fun SocketAddress.toNetworkAddress(): NetworkAddress {
+internal actual fun SocketAddress.toNetworkAddress(): NetworkAddress? {
     // Do not read the hostname here because that may trigger a name service reverse lookup.
-    return toJavaAddress() as? java.net.InetSocketAddress ?: error("Expected inet socket address")
+    return toJavaAddress() as? java.net.InetSocketAddress
 }
