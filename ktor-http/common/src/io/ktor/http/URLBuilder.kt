@@ -161,12 +161,17 @@ private fun <A : Appendable> URLBuilder.appendTo(out: A): A {
         }
 
         "about" -> {
-            out.appendAbout(host)
+            out.appendPayload(host)
             return out
         }
 
         "tel" -> {
-            out.appendTel(host)
+            out.appendPayload(host)
+            return out
+        }
+
+        "data" -> {
+            out.appendPayload(host)
             return out
         }
     }
@@ -199,12 +204,7 @@ private fun Appendable.appendFile(host: String, encodedPath: String) {
     append(encodedPath)
 }
 
-private fun Appendable.appendAbout(host: String) {
-    append(":")
-    append(host)
-}
-
-private fun Appendable.appendTel(host: String) {
+private fun Appendable.appendPayload(host: String) {
     append(":")
     append(host)
 }
