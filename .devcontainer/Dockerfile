@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM eclipse-temurin:21.0.6_7-jdk-noble AS dev
+FROM eclipse-temurin:21.0.7_6-jdk-noble AS dev
 
 ARG USERNAME=developer
 ARG USER_UID=1001
