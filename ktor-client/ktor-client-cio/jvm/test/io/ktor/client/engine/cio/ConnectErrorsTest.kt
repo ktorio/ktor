@@ -169,9 +169,9 @@ class ConnectErrorsTest {
                             }
                         }
                     }
-                    runCatching(prematureDisconnect)
-                    runCatching(prematureDisconnect)
-                    runCatching(respondCorrectly)
+                    prematureDisconnect()
+                    prematureDisconnect()
+                    respondCorrectly()
                 }
 
                 val response = client.get("http://localhost:${serverSocket.localPort}/")
