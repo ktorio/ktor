@@ -8,6 +8,7 @@
 // Library unique name: <io.ktor:ktor-client-mock>
 final class io.ktor.client.engine.mock/MockEngine : io.ktor.client.engine/HttpClientEngineBase { // io.ktor.client.engine.mock/MockEngine|null[0]
     constructor <init>(io.ktor.client.engine.mock/MockEngineConfig) // io.ktor.client.engine.mock/MockEngine.<init>|<init>(io.ktor.client.engine.mock.MockEngineConfig){}[0]
+    constructor <init>(io.ktor.client.engine.mock/MockEngineConfig, kotlin/Boolean) // io.ktor.client.engine.mock/MockEngine.<init>|<init>(io.ktor.client.engine.mock.MockEngineConfig;kotlin.Boolean){}[0]
 
     final val config // io.ktor.client.engine.mock/MockEngine.config|{}config[0]
         final fun <get-config>(): io.ktor.client.engine.mock/MockEngineConfig // io.ktor.client.engine.mock/MockEngine.config.<get-config>|<get-config>(){}[0]
@@ -19,10 +20,13 @@ final class io.ktor.client.engine.mock/MockEngine : io.ktor.client.engine/HttpCl
         final fun <get-supportedCapabilities>(): kotlin.collections/Set<io.ktor.client.engine/HttpClientEngineCapability<out kotlin/Any>> // io.ktor.client.engine.mock/MockEngine.supportedCapabilities.<get-supportedCapabilities>|<get-supportedCapabilities>(){}[0]
 
     final fun close() // io.ktor.client.engine.mock/MockEngine.close|close(){}[0]
+    final fun enqueue(kotlin.coroutines/SuspendFunction2<io.ktor.client.engine.mock/MockRequestHandleScope, io.ktor.client.request/HttpRequestData, io.ktor.client.request/HttpResponseData>): kotlin/Boolean // io.ktor.client.engine.mock/MockEngine.enqueue|enqueue(kotlin.coroutines.SuspendFunction2<io.ktor.client.engine.mock.MockRequestHandleScope,io.ktor.client.request.HttpRequestData,io.ktor.client.request.HttpResponseData>){}[0]
+    final fun plusAssign(kotlin.coroutines/SuspendFunction2<io.ktor.client.engine.mock/MockRequestHandleScope, io.ktor.client.request/HttpRequestData, io.ktor.client.request/HttpResponseData>) // io.ktor.client.engine.mock/MockEngine.plusAssign|plusAssign(kotlin.coroutines.SuspendFunction2<io.ktor.client.engine.mock.MockRequestHandleScope,io.ktor.client.request.HttpRequestData,io.ktor.client.request.HttpResponseData>){}[0]
     final suspend fun execute(io.ktor.client.request/HttpRequestData): io.ktor.client.request/HttpResponseData // io.ktor.client.engine.mock/MockEngine.execute|execute(io.ktor.client.request.HttpRequestData){}[0]
 
     final object Companion : io.ktor.client.engine/HttpClientEngineFactory<io.ktor.client.engine.mock/MockEngineConfig> { // io.ktor.client.engine.mock/MockEngine.Companion|null[0]
         final fun create(kotlin/Function1<io.ktor.client.engine.mock/MockEngineConfig, kotlin/Unit>): io.ktor.client.engine/HttpClientEngine // io.ktor.client.engine.mock/MockEngine.Companion.create|create(kotlin.Function1<io.ktor.client.engine.mock.MockEngineConfig,kotlin.Unit>){}[0]
+        final fun empty(): io.ktor.client.engine.mock/MockEngine // io.ktor.client.engine.mock/MockEngine.Companion.empty|empty(){}[0]
         final fun invoke(kotlin.coroutines/SuspendFunction2<io.ktor.client.engine.mock/MockRequestHandleScope, io.ktor.client.request/HttpRequestData, io.ktor.client.request/HttpResponseData>): io.ktor.client.engine.mock/MockEngine // io.ktor.client.engine.mock/MockEngine.Companion.invoke|invoke(kotlin.coroutines.SuspendFunction2<io.ktor.client.engine.mock.MockRequestHandleScope,io.ktor.client.request.HttpRequestData,io.ktor.client.request.HttpResponseData>){}[0]
     }
 }

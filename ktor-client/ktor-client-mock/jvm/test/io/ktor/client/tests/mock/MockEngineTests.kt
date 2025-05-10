@@ -92,5 +92,25 @@ class MockEngineTests {
         assertEquals("{\"name\":\"admin\"}", response)
     }
 
+    @Test
+    fun testEmptyEngineWithManualQueueing(): Unit = runBlocking {
+        val engine = MockEngine.empty()
+        assertTrue(engine.config.requestHandlers.isEmpty())
+
+        val client = HttpClient(engine)
+
+        engine += { respondOk("hello") }
+        val response1 = client.get { url("http://127.0.0.1/normal-request") }
+        assertEquals("hello", response1.body<String>())
+
+        engine += { respondError(HttpStatusCode.BadRequest) }
+        val response2 = client.get { url("http://127.0.0.1/failed-request") }
+        assertEquals(HttpStatusCode.BadRequest, response2.status)
+
+        assertFailsWith<IllegalStateException> {
+            client.get { url("http://127.0.0.1/no-more-handlers-registered") }
+        }
+    }
+
     private fun testBlocking(callback: suspend () -> Unit): Unit = run { runBlocking { callback() } }
 }
