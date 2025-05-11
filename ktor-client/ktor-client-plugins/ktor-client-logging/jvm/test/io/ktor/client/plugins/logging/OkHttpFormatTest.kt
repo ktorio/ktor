@@ -27,6 +27,8 @@ import io.ktor.utils.io.writeFully
 import io.ktor.utils.io.writeStringUtf8
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.yield
 import kotlinx.io.readByteArray
 import org.junit.jupiter.api.BeforeEach
 import java.net.UnknownHostException
@@ -74,13 +76,17 @@ class OkHttpFormatTest {
             return this
         }
 
-        fun assertNoMoreLogs(): LogRecorder {
+        suspend fun assertNoMoreLogs(timeoutMs: Long = 2000): LogRecorder {
             val linesToWait = asserts.size - loggedLines.size
 
             assertTrue(message = "There are ${linesToWait.absoluteValue} more logs, expected none") { linesToWait >= 0 }
 
             if (linesToWait > 0) {
-                // wait with timeout
+                withTimeout(timeoutMs) {
+                    while (asserts.size > loggedLines.size) {
+                        yield()
+                    }
+                }
             }
 
             for ((i, assert) in asserts.withIndex()) {
@@ -1231,35 +1237,40 @@ class OkHttpFormatTest {
             .assertNoMoreLogs()
     }
 
-//    @Test
-//    fun cachedSimple() = runTest {
-//        HttpClient(MockEngine) {
-//            install(HttpCache)
-//
-//            install(Logging) {
-//                level = LogLevel.INFO
-//                logger = log
-//                format = LoggingFormat.OkHttp
-//            }
-//
-//            engine {
-//                addHandler {
-//                    respond("cached response", HttpStatusCode.OK, Headers.build {
-//                        append(HttpHeaders.CacheControl, "max-age=180, public")
-//                    })
-//                }
-//            }
-//        }.use { client ->
-//            client.get("/")
-//            client.get("/")
-//
-//            log.assertLogEqual("--> GET /")
-//                .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
-//                .assertLogEqual("--> GET /")
-//                .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
-//                .assertNoMoreLogs()
-//        }
-//    }
+    @Test
+    fun cachedInfoGet() = testWithCache(LogLevel.INFO, handle = { respondWithCache() }) { client ->
+        client.get("/")
+        client.get("/")
+
+        log.assertLogEqual("--> GET /")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("--> GET /")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertNoMoreLogs()
+    }
+
+    @Test
+    fun cachedGetInfoWarn() = testWithCache(LogLevel.INFO, handle = { respondWithCache(maxAge = 0) }) { client ->
+        client.get("/")
+        client.get("/") {
+            header(HttpHeaders.CacheControl, "max-stale=1000")
+        }
+
+        log.assertLogEqual("--> GET /")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("--> GET /")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertNoMoreLogs()
+    }
+
+    private fun MockRequestHandleScope.respondWithCache(maxAge: Long = 180): HttpResponseData {
+        return respond(
+            "cached response",
+            headers = Headers.build {
+                append(HttpHeaders.CacheControl,"max-age=$maxAge, public")
+            }
+        )
+    }
 
     private fun MockRequestHandleScope.respondWithLength(): HttpResponseData {
         return respond(
@@ -1327,6 +1338,29 @@ class OkHttpFormatTest {
         test: suspend (HttpClient) -> Unit
     ) = runTest {
         HttpClient(MockEngine) {
+            install(Logging) {
+                level = lvl
+                logger = log
+                format = LoggingFormat.OkHttp
+            }
+
+            engine {
+                addHandler(handle)
+            }
+        }.use { client ->
+            test(client)
+        }
+    }
+
+    private fun testWithCache(
+        lvl: LogLevel,
+        handle: MockRequestHandler,
+        test: suspend (HttpClient) -> Unit
+    ) = runTest {
+        HttpClient(MockEngine) {
+            install(HttpCache) {
+
+            }
             install(Logging) {
                 level = lvl
                 logger = log
