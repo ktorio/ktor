@@ -8,6 +8,7 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.api.*
+import io.ktor.client.plugins.cache.HttpCache.Companion.HttpResponseFromCache
 import io.ktor.client.plugins.observer.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -526,6 +527,27 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
     fun logResponseException(log: StringBuilder, request: HttpRequest, cause: Throwable) {
         if (!level.info) return
         log.append("RESPONSE ${request.url} failed with exception: $cause")
+    }
+
+    // TODO: Think on how to unsubscribe if needed
+    client.monitor.subscribe(HttpResponseFromCache) { response ->
+        val request = response.request
+
+        client.launch {
+            val requestLogLines = mutableListOf<String>()
+            logRequestOkHttpFormat(HttpRequestBuilder().takeFrom(request), requestLogLines)
+
+            if (requestLogLines.isNotEmpty()) {
+                logger.log(requestLogLines.joinToString(separator = "\n"))
+            }
+
+            val responseLogLines = mutableListOf<String>()
+            logResponseOkHttpFormat(response, responseLogLines)
+
+            if (requestLogLines.isNotEmpty()) {
+                logger.log(responseLogLines.joinToString(separator = "\n"))
+            }
+        }
     }
 
     on(SendHook) { request ->

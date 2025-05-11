@@ -7,6 +7,7 @@ package io.ktor.client.plugins.logging
 import io.ktor.client.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.HttpResponseValidator
+import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.compression.ContentEncoding
 import io.ktor.client.request.*
 import io.ktor.client.statement.bodyAsBytes
@@ -30,6 +31,7 @@ import kotlinx.io.readByteArray
 import org.junit.jupiter.api.BeforeEach
 import java.net.UnknownHostException
 import kotlin.coroutines.CoroutineContext
+import kotlin.math.absoluteValue
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -39,33 +41,55 @@ import kotlin.test.assertTrue
 class OkHttpFormatTest {
     class LogRecorder : Logger {
         private val loggedLines = mutableListOf<String>()
-        private var currentLine = 0
+//        private var currentLine = 0
+        private val asserts = mutableListOf<(String) -> Unit>()
+
         override fun log(message: String) {
             loggedLines.addAll(message.split('\n'))
         }
 
         fun assertLogEqual(msg: String): LogRecorder {
-            assertTrue(message = "No more logs to check") { currentLine < loggedLines.size }
-            assertEquals(msg, loggedLines[currentLine])
-            currentLine++
+//            assertTrue(message = "No more logs to check") { currentLine < loggedLines.size }
+//            assertEquals(msg, loggedLines[currentLine])
+            asserts.add { line ->
+                assertEquals(msg, line)
+            }
+//            currentLine++
             return this
         }
 
         fun assertLogMatch(regex: Regex): LogRecorder {
-            assertTrue(message = "No more logs to check") { currentLine < loggedLines.size }
-            assertTrue(message = "Regex '$regex' doesn't match '${loggedLines[currentLine]}'") {
-                regex.matches(
-                    loggedLines[currentLine]
-                )
+//            assertTrue(message = "No more logs to check") { currentLine < loggedLines.size }
+//            assertTrue(message = "Regex '$regex' doesn't match '${loggedLines[currentLine]}'") {
+//                regex.matches(
+//                    loggedLines[currentLine]
+//                )
+//            }
+            asserts.add { line ->
+                assertTrue(message = "Regex '$regex' doesn't match '$line'") {
+                    regex.matches(line)
+                }
             }
-            currentLine++
+//            currentLine++
             return this
         }
 
         fun assertNoMoreLogs(): LogRecorder {
-            assertTrue(
-                message = "There are ${loggedLines.size - currentLine} more logs, expected none"
-            ) { currentLine >= loggedLines.size }
+            val linesToWait = asserts.size - loggedLines.size
+
+            assertTrue(message = "There are ${linesToWait.absoluteValue} more logs, expected none") { linesToWait >= 0 }
+
+            if (linesToWait > 0) {
+                // wait with timeout
+            }
+
+            for ((i, assert) in asserts.withIndex()) {
+                assert(loggedLines[i])
+            }
+
+//            assertTrue(
+//                message = "There are ${loggedLines.size - currentLine} more logs, expected none"
+//            ) { currentLine >= loggedLines.size }
             return this
         }
     }
@@ -1206,6 +1230,36 @@ class OkHttpFormatTest {
             .assertLogEqual("<-- END HTTP")
             .assertNoMoreLogs()
     }
+
+//    @Test
+//    fun cachedSimple() = runTest {
+//        HttpClient(MockEngine) {
+//            install(HttpCache)
+//
+//            install(Logging) {
+//                level = LogLevel.INFO
+//                logger = log
+//                format = LoggingFormat.OkHttp
+//            }
+//
+//            engine {
+//                addHandler {
+//                    respond("cached response", HttpStatusCode.OK, Headers.build {
+//                        append(HttpHeaders.CacheControl, "max-age=180, public")
+//                    })
+//                }
+//            }
+//        }.use { client ->
+//            client.get("/")
+//            client.get("/")
+//
+//            log.assertLogEqual("--> GET /")
+//                .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+//                .assertLogEqual("--> GET /")
+//                .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+//                .assertNoMoreLogs()
+//        }
+//    }
 
     private fun MockRequestHandleScope.respondWithLength(): HttpResponseData {
         return respond(
