@@ -17,7 +17,7 @@ import kotlinx.coroutines.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.mock.MockEngine)
  */
-public class MockEngine(
+public open class MockEngine internal constructor(
     override val config: MockEngineConfig,
     throwIfEmptyConfig: Boolean
 ) : HttpClientEngineBase("ktor-mock") {
@@ -96,15 +96,31 @@ public class MockEngine(
     }
 
     /**
-     * Appends a new [MockRequestHandler], to be called/removed after any previous handlers have been consumed.
+     * Create a [MockEngine] with an empty [MockEngineConfig] - meaning no request handlers are registered by
+     * default. This means that you need to separately call [enqueue] to add one or more handlers before making any
+     * requests.
+     *
+     * Most useful if you want to create an [io.ktor.client.HttpClient] instance before your test begins, and need
+     * to specify behaviour on a per-test basis.
      */
-    public fun enqueue(handler: MockRequestHandler): Boolean = config.requestHandlers.add(handler)
+    public class Queue(
+        override val config: MockEngineConfig = MockEngineConfig().apply {
+            // Every time a handler is called, it gets disposed. So make sure enough handlers are registered for
+            // requests you intend to make!
+            reuseHandlers = false
+        },
+    ) : MockEngine(config, throwIfEmptyConfig = false) {
+        /**
+         * Appends a new [MockRequestHandler], to be called/removed after any previous handlers have been consumed.
+         */
+        public fun enqueue(handler: MockRequestHandler): Boolean = config.requestHandlers.add(handler)
 
-    /**
-     * Just a syntactic shortcut to [enqueue].
-     */
-    public operator fun plusAssign(handler: MockRequestHandler) {
-        enqueue(handler)
+        /**
+         * Just a syntactic shortcut to [enqueue].
+         */
+        public operator fun plusAssign(handler: MockRequestHandler) {
+            enqueue(handler)
+        }
     }
 
     public companion object : HttpClientEngineFactory<MockEngineConfig> {
@@ -121,22 +137,5 @@ public class MockEngine(
                 requestHandlers.add(handler)
             }
         )
-
-        /**
-         * Create a [MockEngine] with an empty [MockEngineConfig] - meaning no request handlers are registered by
-         * default. This means that you need to separately call [enqueue] to add one or more handlers before making any
-         * requests.
-         *
-         * Most useful if you want to create an [io.ktor.client.HttpClient] instance before your test begins, and need
-         * to specify behaviour on a per-test basis.
-         */
-        public fun empty(): MockEngine {
-            val config = MockEngineConfig().apply {
-                // Every time a handler is called, it gets disposed. So make sure enough handlers are registered for
-                // requests you intend to make!
-                reuseHandlers = false
-            }
-            return MockEngine(config, throwIfEmptyConfig = false)
-        }
     }
 }
