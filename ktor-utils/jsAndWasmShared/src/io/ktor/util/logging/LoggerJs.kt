@@ -28,5 +28,5 @@ public actual interface Logger {
     public actual fun trace(message: String, cause: Throwable)
 }
 
-public actual val Logger.isTraceEnabled: Boolean
-    get() = true
+public actual val Logger.isTraceEnabled: Boolean get() = level <= LogLevel.TRACE
+public actual val Logger.isDebugEnabled: Boolean get() = level <= LogLevel.DEBUG

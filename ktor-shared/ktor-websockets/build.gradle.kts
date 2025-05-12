@@ -9,8 +9,8 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            api(project(":ktor-utils"))
-            api(project(":ktor-http"))
+            api(projects.ktorUtils)
+            api(projects.ktorHttp)
         }
     }
 }

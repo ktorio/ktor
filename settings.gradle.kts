@@ -3,13 +3,14 @@
  */
 
 enableFeaturePreview("STABLE_CONFIGURATION_CACHE")
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
     includeBuild("build-settings-logic")
 }
 
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "0.9.0"
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.10.0"
     id("conventions-dependency-resolution-management")
     id("ktorbuild.develocity")
     id("ktorbuild.configuration-cache")
@@ -20,123 +21,220 @@ rootProject.name = "ktor"
 includeBuild("build-logic")
 includeBuild("ktor-test-server")
 
-include(":ktor-server")
-include(":ktor-server:ktor-server-core")
-include(":ktor-server:ktor-server-config-yaml")
-include(":ktor-server:ktor-server-tests")
-include(":ktor-server:ktor-server-host-common")
-include(":ktor-server:ktor-server-test-host")
-include(":ktor-server:ktor-server-test-base")
-include(":ktor-server:ktor-server-test-suites")
-include(":ktor-server:ktor-server-jetty")
-include(":ktor-server:ktor-server-jetty:ktor-server-jetty-test-http2")
-include(":ktor-server:ktor-server-jetty-jakarta")
-include(":ktor-server:ktor-server-jetty-jakarta:ktor-server-jetty-test-http2-jakarta")
-include(":ktor-server:ktor-server-servlet")
-include(":ktor-server:ktor-server-servlet-jakarta")
-include(":ktor-server:ktor-server-tomcat")
-include(":ktor-server:ktor-server-tomcat-jakarta")
-include(":ktor-server:ktor-server-netty")
-include(":ktor-server:ktor-server-cio")
-include(":ktor-client")
-include(":ktor-client:ktor-client-core")
-include(":ktor-client:ktor-client-test-base")
-include(":ktor-client:ktor-client-tests")
-include(":ktor-client:ktor-client-apache")
-include(":ktor-client:ktor-client-apache5")
-include(":ktor-client:ktor-client-android")
-include(":ktor-client:ktor-client-cio")
-include(":ktor-client:ktor-client-curl")
-include(":ktor-client:ktor-client-ios")
-include(":ktor-client:ktor-client-darwin")
-include(":ktor-client:ktor-client-darwin-legacy")
-include(":ktor-client:ktor-client-winhttp")
-include(":ktor-client:ktor-client-java")
-include(":ktor-client:ktor-client-jetty")
-include(":ktor-client:ktor-client-jetty-jakarta")
-include(":ktor-client:ktor-client-js")
-include(":ktor-client:ktor-client-mock")
-include(":ktor-client:ktor-client-okhttp")
-include(":ktor-client:ktor-client-plugins:ktor-client-json")
-include(":ktor-client:ktor-client-plugins:ktor-client-json:ktor-client-gson")
-include(":ktor-client:ktor-client-plugins:ktor-client-json:ktor-client-jackson")
-include(":ktor-client:ktor-client-plugins:ktor-client-json:ktor-client-serialization")
-include(":ktor-client:ktor-client-plugins:ktor-client-auth")
-include(":ktor-client:ktor-client-plugins:ktor-client-call-id")
-include(":ktor-client:ktor-client-plugins:ktor-client-logging")
-include(":ktor-client:ktor-client-plugins:ktor-client-encoding")
-include(":ktor-client:ktor-client-plugins:ktor-client-websockets")
-include(":ktor-client:ktor-client-plugins:ktor-client-content-negotiation")
-include(":ktor-client:ktor-client-plugins:ktor-client-content-negotiation:ktor-client-content-negotiation-tests")
-include(":ktor-client:ktor-client-plugins:ktor-client-resources")
-include(":ktor-client:ktor-client-plugins:ktor-client-bom-remover")
-include(":ktor-client:ktor-client-webrtc")
-include(":ktor-server:ktor-server-plugins:ktor-server-auth")
-include(":ktor-server:ktor-server-plugins:ktor-server-auth-jwt")
-include(":ktor-server:ktor-server-plugins:ktor-server-auth-ldap")
-include(":ktor-server:ktor-server-plugins:ktor-server-auto-head-response")
-include(":ktor-server:ktor-server-plugins:ktor-server-body-limit")
-include(":ktor-server:ktor-server-plugins:ktor-server-caching-headers")
-include(":ktor-server:ktor-server-plugins:ktor-server-call-id")
-include(":ktor-server:ktor-server-plugins:ktor-server-call-logging")
-include(":ktor-server:ktor-server-plugins:ktor-server-compression")
-include(":ktor-server:ktor-server-plugins:ktor-server-conditional-headers")
-include(":ktor-server:ktor-server-plugins:ktor-server-content-negotiation")
-include(":ktor-server:ktor-server-plugins:ktor-server-cors")
-include(":ktor-server:ktor-server-plugins:ktor-server-csrf")
-include(":ktor-server:ktor-server-plugins:ktor-server-data-conversion")
-include(":ktor-server:ktor-server-plugins:ktor-server-default-headers")
-include(":ktor-server:ktor-server-plugins:ktor-server-double-receive")
-include(":ktor-server:ktor-server-plugins:ktor-server-forwarded-header")
-include(":ktor-server:ktor-server-plugins:ktor-server-freemarker")
-include(":ktor-server:ktor-server-plugins:ktor-server-hsts")
-include(":ktor-server:ktor-server-plugins:ktor-server-html-builder")
-include(":ktor-server:ktor-server-plugins:ktor-server-http-redirect")
-include(":ktor-server:ktor-server-plugins:ktor-server-jte")
-include(":ktor-server:ktor-server-plugins:ktor-server-metrics")
-include(":ktor-server:ktor-server-plugins:ktor-server-metrics-micrometer")
-include(":ktor-server:ktor-server-plugins:ktor-server-mustache")
-include(":ktor-server:ktor-server-plugins:ktor-server-partial-content")
-include(":ktor-server:ktor-server-plugins:ktor-server-pebble")
-include(":ktor-server:ktor-server-plugins:ktor-server-rate-limit")
-include(":ktor-server:ktor-server-plugins:ktor-server-request-validation")
-include(":ktor-server:ktor-server-plugins:ktor-server-resources")
-include(":ktor-server:ktor-server-plugins:ktor-server-sessions")
-include(":ktor-server:ktor-server-plugins:ktor-server-status-pages")
-include(":ktor-server:ktor-server-plugins:ktor-server-thymeleaf")
-include(":ktor-server:ktor-server-plugins:ktor-server-velocity")
-include(":ktor-server:ktor-server-plugins:ktor-server-webjars")
-include(":ktor-server:ktor-server-plugins:ktor-server-websockets")
-include(":ktor-server:ktor-server-plugins:ktor-server-method-override")
-include(":ktor-server:ktor-server-plugins:ktor-server-openapi")
-include(":ktor-server:ktor-server-plugins:ktor-server-swagger")
-include(":ktor-server:ktor-server-plugins:ktor-server-sse")
-include(":ktor-server:ktor-server-plugins:ktor-server-i18n")
-include(":ktor-http")
-include(":ktor-http:ktor-http-cio")
-include(":ktor-io")
-include(":ktor-utils")
-include(":ktor-network")
-include(":ktor-network:ktor-network-tls")
-include(":ktor-network:ktor-network-tls:ktor-network-tls-certificates")
-include(":ktor-bom")
-include(":ktor-test-dispatcher")
-include(":ktor-shared:ktor-call-id")
-include(":ktor-shared:ktor-resources")
-include(":ktor-shared:ktor-serialization")
-include(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx")
-include(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx:ktor-serialization-kotlinx-tests")
-include(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx:ktor-serialization-kotlinx-json")
-include(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx:ktor-serialization-kotlinx-cbor")
-include(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx:ktor-serialization-kotlinx-xml")
-include(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx:ktor-serialization-kotlinx-protobuf")
-include(":ktor-shared:ktor-serialization:ktor-serialization-gson")
-include(":ktor-shared:ktor-serialization:ktor-serialization-jackson")
-include(":ktor-shared:ktor-serialization:ktor-serialization-tests")
-include(":ktor-shared:ktor-events")
-include(":ktor-shared:ktor-websocket-serialization")
-include(":ktor-shared:ktor-websockets")
-include(":ktor-shared:ktor-sse")
-include(":ktor-shared:ktor-test-base")
-include(":ktor-java-modules-test")
-include(":ktor-dokka")
+// Project declarations go here.
+// We use custom DSL instead of the default `include(":project:path")` function.
+// - Use 'unaryPlus' operator to declare a project
+// - Use 'including' keyword to declare nested projects
+// - Declare projects in 'server', 'client' or 'shared' blocks when possible
+projects {
+    server {
+        +"ktor-server-core"
+        +"ktor-server-config-yaml"
+        +"ktor-server-host-common"
+        +"ktor-server-jetty" including {
+            +"ktor-server-jetty-test-http2"
+        }
+        +"ktor-server-jetty-jakarta" including {
+            +"ktor-server-jetty-test-http2-jakarta"
+        }
+        +"ktor-server-servlet"
+        +"ktor-server-servlet-jakarta"
+        +"ktor-server-tomcat"
+        +"ktor-server-tomcat-jakarta"
+        +"ktor-server-netty"
+        +"ktor-server-cio"
+
+        +"ktor-server-test-host"
+        +"ktor-server-test-base"
+        +"ktor-server-test-suites"
+        +"ktor-server-tests"
+
+        nested("ktor-server-plugins") {
+            +"ktor-server-auth"
+            +"ktor-server-auth-jwt"
+            +"ktor-server-auth-ldap"
+            +"ktor-server-auto-head-response"
+            +"ktor-server-body-limit"
+            +"ktor-server-caching-headers"
+            +"ktor-server-call-id"
+            +"ktor-server-call-logging"
+            +"ktor-server-compression"
+            +"ktor-server-conditional-headers"
+            +"ktor-server-content-negotiation"
+            +"ktor-server-cors"
+            +"ktor-server-csrf"
+            +"ktor-server-data-conversion"
+            +"ktor-server-default-headers"
+            +"ktor-server-di"
+            +"ktor-server-double-receive"
+            +"ktor-server-forwarded-header"
+            +"ktor-server-freemarker"
+            +"ktor-server-hsts"
+            +"ktor-server-html-builder"
+            +"ktor-server-htmx"
+            +"ktor-server-http-redirect"
+            +"ktor-server-i18n"
+            +"ktor-server-jte"
+            +"ktor-server-method-override"
+            +"ktor-server-metrics"
+            +"ktor-server-metrics-micrometer"
+            +"ktor-server-mustache"
+            +"ktor-server-openapi"
+            +"ktor-server-partial-content"
+            +"ktor-server-pebble"
+            +"ktor-server-rate-limit"
+            +"ktor-server-request-validation"
+            +"ktor-server-resources"
+            +"ktor-server-sessions"
+            +"ktor-server-sse"
+            +"ktor-server-status-pages"
+            +"ktor-server-swagger"
+            +"ktor-server-thymeleaf"
+            +"ktor-server-velocity"
+            +"ktor-server-webjars"
+            +"ktor-server-websockets"
+        }
+    }
+
+    client {
+        +"ktor-client-core"
+        +"ktor-client-apache"
+        +"ktor-client-apache5"
+        +"ktor-client-android"
+        +"ktor-client-cio"
+        +"ktor-client-curl"
+        +"ktor-client-ios"
+        +"ktor-client-darwin"
+        +"ktor-client-darwin-legacy"
+        +"ktor-client-winhttp"
+        +"ktor-client-java"
+        +"ktor-client-jetty"
+        +"ktor-client-jetty-jakarta"
+        +"ktor-client-js"
+        +"ktor-client-mock"
+        +"ktor-client-okhttp"
+
+        +"ktor-client-test-base"
+        +"ktor-client-tests"
+
+        +"ktor-client-webrtc"
+
+        nested("ktor-client-plugins") {
+            +"ktor-client-auth"
+            +"ktor-client-bom-remover"
+            +"ktor-client-call-id"
+            +"ktor-client-content-negotiation" including {
+                +"ktor-client-content-negotiation-tests"
+            }
+            +"ktor-client-encoding"
+            +"ktor-client-json" including {
+                +"ktor-client-gson"
+                +"ktor-client-jackson"
+                +"ktor-client-serialization"
+            }
+            +"ktor-client-logging"
+            +"ktor-client-resources"
+            +"ktor-client-websockets"
+        }
+    }
+
+    shared {
+        +"ktor-call-id"
+        +"ktor-events"
+        +"ktor-resources"
+        +"ktor-serialization" including {
+            +"ktor-serialization-kotlinx" including {
+                +"ktor-serialization-kotlinx-json"
+                +"ktor-serialization-kotlinx-cbor"
+                +"ktor-serialization-kotlinx-xml"
+                +"ktor-serialization-kotlinx-protobuf"
+                +"ktor-serialization-kotlinx-tests"
+            }
+            +"ktor-serialization-gson"
+            +"ktor-serialization-jackson"
+            +"ktor-serialization-tests"
+        }
+        +"ktor-sse"
+        +"ktor-htmx" including {
+            +"ktor-htmx-html"
+        }
+        +"ktor-websocket-serialization"
+        +"ktor-websockets"
+        +"ktor-test-base"
+    }
+
+    +"ktor-network" including {
+        +"ktor-network-tls" including {
+            +"ktor-network-tls-certificates"
+        }
+    }
+
+    +"ktor-http" including {
+        +"ktor-http-cio"
+    }
+
+    +"ktor-io"
+    +"ktor-utils"
+    +"ktor-bom"
+    +"ktor-test-dispatcher"
+    +"ktor-java-modules-test"
+    +"ktor-dokka"
+}
+
+// region Project hierarchy DSL
+@DslMarker
+annotation class ProjectDsl
+
+@ProjectDsl
+sealed class ProjectScope(private val settings: Settings) {
+
+    /** Declares subproject in the current project scope. */
+    operator fun String.unaryPlus(): ProjectScope {
+        val projectName = this@unaryPlus
+        val projectPath = subprojectPath(projectName)
+
+        settings.include(projectName)
+        settings.project(":$projectName").projectDir = settings.settingsDir.resolve(projectPath)
+        return NestedProjectScope(settings, projectPath)
+    }
+
+    /**
+     * Adds one more level of nesting to the projects declared in the [nested] lambda.
+     * The group directory is not considered as a Gradle project.
+     */
+    fun nested(groupName: String, nested: ProjectScope.() -> Unit) {
+        NestedProjectScope(settings, subprojectPath(groupName)).nested()
+    }
+
+    abstract fun subprojectPath(projectName: String): String
+}
+
+class RootProjectScope(settings: Settings) : ProjectScope(settings) {
+    override fun subprojectPath(projectName: String) = projectName
+}
+
+class NestedProjectScope(settings: Settings, private val basePath: String) : ProjectScope(settings) {
+    override fun subprojectPath(projectName: String): String = "$basePath/$projectName"
+}
+
+/**
+ * Adds projects declared in the [nested] function to [this] project scope.
+ * Should be used in combination with functions returning [ProjectScope].
+ * For example:
+ * ```
+ * projects {
+ *     +"foo" including {
+ *         +"bar"
+ *     }
+ * }
+ * ```
+ */
+infix fun ProjectScope.including(nested: ProjectScope.() -> Unit) = nested()
+
+fun Settings.projects(nested: RootProjectScope.() -> Unit) = RootProjectScope(this).nested()
+
+/** Declares projects related to server implementation. */
+fun RootProjectScope.server(nested: ProjectScope.() -> Unit) = +"ktor-server" including nested
+fun RootProjectScope.client(nested: ProjectScope.() -> Unit) = +"ktor-client" including nested
+fun RootProjectScope.shared(nested: ProjectScope.() -> Unit) = nested("ktor-shared", nested)
+// endregion

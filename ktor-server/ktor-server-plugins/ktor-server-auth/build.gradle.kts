@@ -12,13 +12,13 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            api(project(":ktor-client:ktor-client-core"))
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-sessions"))
+            api(projects.ktorClientCore)
+            api(projects.ktorServerSessions)
             api(libs.kotlinx.serialization.json)
         }
         jvmTest.dependencies {
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-content-negotiation"))
-            api(project(":ktor-shared:ktor-serialization:ktor-serialization-jackson"))
+            api(projects.ktorServerContentNegotiation)
+            api(projects.ktorSerializationJackson)
         }
     }
 }

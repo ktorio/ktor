@@ -75,6 +75,21 @@ final enum class io.ktor.util.logging/LogLevel : kotlin/Enum<io.ktor.util.loggin
     enum entry NONE // io.ktor.util.logging/LogLevel.NONE|null[0]
 }
 
+abstract interface io.ktor.util.collections/StringMap { // io.ktor.util.collections/StringMap|null[0]
+    abstract fun get(kotlin/String): kotlin/String? // io.ktor.util.collections/StringMap.get|get(kotlin.String){}[0]
+    abstract fun remove(kotlin/String): kotlin/String? // io.ktor.util.collections/StringMap.remove|remove(kotlin.String){}[0]
+    abstract fun set(kotlin/String, kotlin/String) // io.ktor.util.collections/StringMap.set|set(kotlin.String;kotlin.String){}[0]
+}
+
+abstract interface io.ktor.util.collections/StringMapDelegate : io.ktor.util.collections/StringMap { // io.ktor.util.collections/StringMapDelegate|null[0]
+    abstract val map // io.ktor.util.collections/StringMapDelegate.map|{}map[0]
+        abstract fun <get-map>(): kotlin.collections/MutableMap<kotlin/String, kotlin/String> // io.ktor.util.collections/StringMapDelegate.map.<get-map>|<get-map>(){}[0]
+
+    open fun get(kotlin/String): kotlin/String? // io.ktor.util.collections/StringMapDelegate.get|get(kotlin.String){}[0]
+    open fun remove(kotlin/String): kotlin/String? // io.ktor.util.collections/StringMapDelegate.remove|remove(kotlin.String){}[0]
+    open fun set(kotlin/String, kotlin/String) // io.ktor.util.collections/StringMapDelegate.set|set(kotlin.String;kotlin.String){}[0]
+}
+
 abstract interface io.ktor.util.converters/ConversionService { // io.ktor.util.converters/ConversionService|null[0]
     abstract fun fromValues(kotlin.collections/List<kotlin/String>, io.ktor.util.reflect/TypeInfo): kotlin/Any? // io.ktor.util.converters/ConversionService.fromValues|fromValues(kotlin.collections.List<kotlin.String>;io.ktor.util.reflect.TypeInfo){}[0]
     abstract fun toValues(kotlin/Any?): kotlin.collections/List<kotlin/String> // io.ktor.util.converters/ConversionService.toValues|toValues(kotlin.Any?){}[0]
@@ -106,6 +121,7 @@ abstract interface io.ktor.util/Attributes { // io.ktor.util/Attributes|null[0]
     abstract fun <#A1: kotlin/Any> remove(io.ktor.util/AttributeKey<#A1>) // io.ktor.util/Attributes.remove|remove(io.ktor.util.AttributeKey<0:0>){0§<kotlin.Any>}[0]
     abstract fun contains(io.ktor.util/AttributeKey<*>): kotlin/Boolean // io.ktor.util/Attributes.contains|contains(io.ktor.util.AttributeKey<*>){}[0]
     open fun <#A1: kotlin/Any> get(io.ktor.util/AttributeKey<#A1>): #A1 // io.ktor.util/Attributes.get|get(io.ktor.util.AttributeKey<0:0>){0§<kotlin.Any>}[0]
+    open fun <#A1: kotlin/Any> set(io.ktor.util/AttributeKey<#A1>, #A1) // io.ktor.util/Attributes.set|set(io.ktor.util.AttributeKey<0:0>;0:0){0§<kotlin.Any>}[0]
     open fun <#A1: kotlin/Any> take(io.ktor.util/AttributeKey<#A1>): #A1 // io.ktor.util/Attributes.take|take(io.ktor.util.AttributeKey<0:0>){0§<kotlin.Any>}[0]
     open fun <#A1: kotlin/Any> takeOrNull(io.ktor.util/AttributeKey<#A1>): #A1? // io.ktor.util/Attributes.takeOrNull|takeOrNull(io.ktor.util.AttributeKey<0:0>){0§<kotlin.Any>}[0]
 }
@@ -291,6 +307,10 @@ final class <#A: kotlin/Any?, #B: kotlin/Any?> io.ktor.util.collections/Concurre
     final fun remove(#A): #B? // io.ktor.util.collections/ConcurrentMap.remove|remove(1:0){}[0]
     final fun remove(#A, #B): kotlin/Boolean // io.ktor.util.collections/ConcurrentMap.remove|remove(1:0;1:1){}[0]
     final fun toString(): kotlin/String // io.ktor.util.collections/ConcurrentMap.toString|toString(){}[0]
+}
+
+final class <#A: kotlin/Any?> io.ktor.util.collections/SerializedMapValue { // io.ktor.util.collections/SerializedMapValue|null[0]
+    constructor <init>(kotlin/String, kotlin/Function1<#A, kotlin/String>, kotlin/Function1<kotlin/String, #A>) // io.ktor.util.collections/SerializedMapValue.<init>|<init>(kotlin.String;kotlin.Function1<1:0,kotlin.String>;kotlin.Function1<kotlin.String,1:0>){}[0]
 }
 
 final class io.ktor.util.cio/ChannelReadException : io.ktor.util.cio/ChannelIOException { // io.ktor.util.cio/ChannelReadException|null[0]
@@ -886,6 +906,8 @@ final val io.ktor.util.internal/CONDITION_FALSE // io.ktor.util.internal/CONDITI
     final fun <get-CONDITION_FALSE>(): kotlin/Any // io.ktor.util.internal/CONDITION_FALSE.<get-CONDITION_FALSE>|<get-CONDITION_FALSE>(){}[0]
 final val io.ktor.util.internal/LIST_EMPTY // io.ktor.util.internal/LIST_EMPTY|{}LIST_EMPTY[0]
     final fun <get-LIST_EMPTY>(): kotlin/Any // io.ktor.util.internal/LIST_EMPTY.<get-LIST_EMPTY>|<get-LIST_EMPTY>(){}[0]
+final val io.ktor.util.logging/isDebugEnabled // io.ktor.util.logging/isDebugEnabled|@io.ktor.util.logging.Logger{}isDebugEnabled[0]
+    final fun (io.ktor.util.logging/Logger).<get-isDebugEnabled>(): kotlin/Boolean // io.ktor.util.logging/isDebugEnabled.<get-isDebugEnabled>|<get-isDebugEnabled>@io.ktor.util.logging.Logger(){}[0]
 final val io.ktor.util.logging/isTraceEnabled // io.ktor.util.logging/isTraceEnabled|@io.ktor.util.logging.Logger{}isTraceEnabled[0]
     final fun (io.ktor.util.logging/Logger).<get-isTraceEnabled>(): kotlin/Boolean // io.ktor.util.logging/isTraceEnabled.<get-isTraceEnabled>|<get-isTraceEnabled>@io.ktor.util.logging.Logger(){}[0]
 final val io.ktor.util.network/address // io.ktor.util.network/address|@io.ktor.util.network.NetworkAddress{}address[0]
@@ -911,6 +933,7 @@ final fun (io.ktor.util.date/GMTDate).io.ktor.util.date/plus(kotlin.time/Duratio
 final fun (io.ktor.util.date/GMTDate).io.ktor.util.date/plus(kotlin/Long): io.ktor.util.date/GMTDate // io.ktor.util.date/plus|plus@io.ktor.util.date.GMTDate(kotlin.Long){}[0]
 final fun (io.ktor.util.date/GMTDate).io.ktor.util.date/truncateToSeconds(): io.ktor.util.date/GMTDate // io.ktor.util.date/truncateToSeconds|truncateToSeconds@io.ktor.util.date.GMTDate(){}[0]
 final fun (io.ktor.util.logging/Logger).io.ktor.util.logging/error(kotlin/Throwable) // io.ktor.util.logging/error|error@io.ktor.util.logging.Logger(kotlin.Throwable){}[0]
+final fun (io.ktor.util.reflect/TypeInfo).io.ktor.util.reflect/serializer(): kotlinx.serialization/KSerializer<out kotlin/Any?> // io.ktor.util.reflect/serializer|serializer@io.ktor.util.reflect.TypeInfo(){}[0]
 final fun (io.ktor.util/Attributes).io.ktor.util/putAll(io.ktor.util/Attributes) // io.ktor.util/putAll|putAll@io.ktor.util.Attributes(io.ktor.util.Attributes){}[0]
 final fun (io.ktor.util/StringValues).io.ktor.util/filter(kotlin/Boolean = ..., kotlin/Function2<kotlin/String, kotlin/String, kotlin/Boolean>): io.ktor.util/StringValues // io.ktor.util/filter|filter@io.ktor.util.StringValues(kotlin.Boolean;kotlin.Function2<kotlin.String,kotlin.String,kotlin.Boolean>){}[0]
 final fun (io.ktor.util/StringValues).io.ktor.util/flattenEntries(): kotlin.collections/List<kotlin/Pair<kotlin/String, kotlin/String>> // io.ktor.util/flattenEntries|flattenEntries@io.ktor.util.StringValues(){}[0]
@@ -928,6 +951,9 @@ final fun (kotlin/Any).io.ktor.util.reflect/instanceOf(kotlin.reflect/KClass<*>)
 final fun (kotlin/ByteArray).io.ktor.util/encodeBase64(): kotlin/String // io.ktor.util/encodeBase64|encodeBase64@kotlin.ByteArray(){}[0]
 final fun (kotlin/ByteArray).io.ktor.util/readShort(kotlin/Int): kotlin/Short // io.ktor.util/readShort|readShort@kotlin.ByteArray(kotlin.Int){}[0]
 final fun (kotlin/Char).io.ktor.util/isLowerCase(): kotlin/Boolean // io.ktor.util/isLowerCase|isLowerCase@kotlin.Char(){}[0]
+final fun (kotlin/String).io.ktor.util.collections/asBoolean(): io.ktor.util.collections/SerializedMapValue<kotlin/Boolean> // io.ktor.util.collections/asBoolean|asBoolean@kotlin.String(){}[0]
+final fun (kotlin/String).io.ktor.util.collections/getValue(io.ktor.util.collections/StringMap, kotlin.reflect/KProperty<*>): kotlin/String? // io.ktor.util.collections/getValue|getValue@kotlin.String(io.ktor.util.collections.StringMap;kotlin.reflect.KProperty<*>){}[0]
+final fun (kotlin/String).io.ktor.util.collections/setValue(io.ktor.util.collections/StringMap, kotlin.reflect/KProperty<*>, kotlin/String?) // io.ktor.util.collections/setValue|setValue@kotlin.String(io.ktor.util.collections.StringMap;kotlin.reflect.KProperty<*>;kotlin.String?){}[0]
 final fun (kotlin/String).io.ktor.util/decodeBase64Bytes(): kotlin/ByteArray // io.ktor.util/decodeBase64Bytes|decodeBase64Bytes@kotlin.String(){}[0]
 final fun (kotlin/String).io.ktor.util/decodeBase64String(): kotlin/String // io.ktor.util/decodeBase64String|decodeBase64String@kotlin.String(){}[0]
 final fun (kotlin/String).io.ktor.util/encodeBase64(): kotlin/String // io.ktor.util/encodeBase64|encodeBase64@kotlin.String(){}[0]
@@ -942,6 +968,8 @@ final fun (kotlinx.io/Source).io.ktor.util/encodeBase64(): kotlin/String // io.k
 final fun <#A: kotlin/Any, #B: kotlin/Any> io.ktor.util.collections/sharedMap(kotlin/Int = ...): kotlin.collections/MutableMap<#A, #B> // io.ktor.util.collections/sharedMap|sharedMap(kotlin.Int){0§<kotlin.Any>;1§<kotlin.Any>}[0]
 final fun <#A: kotlin/Any> io.ktor.util.collections/ConcurrentSet(): kotlin.collections/MutableSet<#A> // io.ktor.util.collections/ConcurrentSet|ConcurrentSet(){0§<kotlin.Any>}[0]
 final fun <#A: kotlin/Any> io.ktor.util/caseInsensitiveMap(): kotlin.collections/MutableMap<kotlin/String, #A> // io.ktor.util/caseInsensitiveMap|caseInsensitiveMap(){0§<kotlin.Any>}[0]
+final fun <#A: kotlin/Any?> (io.ktor.util.collections/SerializedMapValue<#A>).io.ktor.util.collections/getValue(io.ktor.util.collections/StringMap, kotlin.reflect/KProperty<*>): #A? // io.ktor.util.collections/getValue|getValue@io.ktor.util.collections.SerializedMapValue<0:0>(io.ktor.util.collections.StringMap;kotlin.reflect.KProperty<*>){0§<kotlin.Any?>}[0]
+final fun <#A: kotlin/Any?> (io.ktor.util.collections/SerializedMapValue<#A>).io.ktor.util.collections/setValue(io.ktor.util.collections/StringMap, kotlin.reflect/KProperty<*>, #A?) // io.ktor.util.collections/setValue|setValue@io.ktor.util.collections.SerializedMapValue<0:0>(io.ktor.util.collections.StringMap;kotlin.reflect.KProperty<*>;0:0?){0§<kotlin.Any?>}[0]
 final fun <#A: kotlin/Any?> (kotlin.collections/Set<#A>).io.ktor.util/unmodifiable(): kotlin.collections/Set<#A> // io.ktor.util/unmodifiable|unmodifiable@kotlin.collections.Set<0:0>(){0§<kotlin.Any?>}[0]
 final fun <#A: kotlin/Any?> io.ktor.util.collections/sharedList(): kotlin.collections/MutableList<#A> // io.ktor.util.collections/sharedList|sharedList(){0§<kotlin.Any?>}[0]
 final fun <#A: kotlin/Any?> io.ktor.util.collections/sharedListOf(kotlin/Array<out #A>...): kotlin.collections/MutableList<#A> // io.ktor.util.collections/sharedListOf|sharedListOf(kotlin.Array<out|0:0>...){0§<kotlin.Any?>}[0]
@@ -963,6 +991,7 @@ final fun io.ktor.util/valuesOf(kotlin.collections/Map<kotlin/String, kotlin.col
 final fun io.ktor.util/valuesOf(kotlin/Array<out kotlin/Pair<kotlin/String, kotlin.collections/List<kotlin/String>>>..., kotlin/Boolean = ...): io.ktor.util/StringValues // io.ktor.util/valuesOf|valuesOf(kotlin.Array<out|kotlin.Pair<kotlin.String,kotlin.collections.List<kotlin.String>>>...;kotlin.Boolean){}[0]
 final fun io.ktor.util/valuesOf(kotlin/String, kotlin.collections/List<kotlin/String>, kotlin/Boolean = ...): io.ktor.util/StringValues // io.ktor.util/valuesOf|valuesOf(kotlin.String;kotlin.collections.List<kotlin.String>;kotlin.Boolean){}[0]
 final fun io.ktor.util/valuesOf(kotlin/String, kotlin/String, kotlin/Boolean = ...): io.ktor.util/StringValues // io.ktor.util/valuesOf|valuesOf(kotlin.String;kotlin.String;kotlin.Boolean){}[0]
+final inline fun (io.ktor.util.logging/Logger).io.ktor.util.logging/debug(kotlin/Function0<kotlin/String>) // io.ktor.util.logging/debug|debug@io.ktor.util.logging.Logger(kotlin.Function0<kotlin.String>){}[0]
 final inline fun (io.ktor.util.logging/Logger).io.ktor.util.logging/trace(kotlin/Function0<kotlin/String>) // io.ktor.util.logging/trace|trace@io.ktor.util.logging.Logger(kotlin.Function0<kotlin.String>){}[0]
 final inline fun (io.ktor.utils.io/ByteWriteChannel).io.ktor.util.cio/use(kotlin/Function1<io.ktor.utils.io/ByteWriteChannel, kotlin/Unit>) // io.ktor.util.cio/use|use@io.ktor.utils.io.ByteWriteChannel(kotlin.Function1<io.ktor.utils.io.ByteWriteChannel,kotlin.Unit>){}[0]
 final inline fun (kotlin/String).io.ktor.util/chomp(kotlin/String, kotlin/Function0<kotlin/Pair<kotlin/String, kotlin/String>>): kotlin/Pair<kotlin/String, kotlin/String> // io.ktor.util/chomp|chomp@kotlin.String(kotlin.String;kotlin.Function0<kotlin.Pair<kotlin.String,kotlin.String>>){}[0]

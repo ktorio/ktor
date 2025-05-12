@@ -5,6 +5,10 @@
 package io.ktor.server.config
 
 import com.typesafe.config.*
+import io.ktor.util.reflect.TypeInfo
+import io.ktor.util.reflect.serializer
+import io.ktor.utils.io.InternalAPI
+import kotlinx.serialization.serializer
 import java.io.*
 
 /**
@@ -66,7 +70,8 @@ public open class HoconApplicationConfig(private val config: Config) : Applicati
         return config.getConfigList(path).map { HoconApplicationConfig(it) }
     }
 
-    override fun config(path: String): ApplicationConfig = HoconApplicationConfig(config.getConfig(path))
+    override fun config(path: String): ApplicationConfig =
+        HoconApplicationConfig(config.getConfig(path))
 
     override fun keys(): Set<String> {
         return config.entrySet().map { it.key }.toSet()
@@ -76,9 +81,15 @@ public open class HoconApplicationConfig(private val config: Config) : Applicati
         return config.root().unwrapped()
     }
 
-    private class HoconApplicationConfigValue(val config: Config, val path: String) : ApplicationConfigValue {
+    private class HoconApplicationConfigValue(val config: Config, val path: String) : SerializableConfigValue {
         override fun getString(): String = config.getString(path)
         override fun getList(): List<String> = config.getStringList(path)
+
+        @OptIn(InternalAPI::class)
+        override fun getAs(type: TypeInfo): Any? {
+            return type.serializer()
+                .deserialize(HoconDecoder(config, path))
+        }
     }
 }
 

@@ -11,25 +11,25 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            api(project(":ktor-client:ktor-client-core"))
+            api(project(":ktor-client-core"))
         }
         commonTest.dependencies {
-            implementation(project(":ktor-client:ktor-client-tests"))
+            implementation(project(":ktor-client-tests"))
         }
 
         if (ktorBuild.targets.hasJvm) {
             jvmTest.dependencies {
-                runtimeOnly(project(":ktor-client:ktor-client-okhttp"))
-                runtimeOnly(project(":ktor-client:ktor-client-apache"))
-                runtimeOnly(project(":ktor-client:ktor-client-cio"))
-                runtimeOnly(project(":ktor-client:ktor-client-android"))
-                runtimeOnly(project(":ktor-client:ktor-client-java"))
+                runtimeOnly(project(":ktor-client-okhttp"))
+                runtimeOnly(project(":ktor-client-apache"))
+                runtimeOnly(project(":ktor-client-cio"))
+                runtimeOnly(project(":ktor-client-android"))
+                runtimeOnly(project(":ktor-client-java"))
             }
         }
 
         if (ktorBuild.targets.hasJs) {
             jsTest.dependencies {
-                runtimeOnly(project(":ktor-client:ktor-client-js"))
+                runtimeOnly(project(":ktor-client-js"))
             }
         }
     }

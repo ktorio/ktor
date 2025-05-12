@@ -8,6 +8,7 @@ description = ""
 
 plugins {
     id("ktorbuild.project.library")
+    id("kotlinx-serialization")
 }
 
 kotlin {
@@ -15,12 +16,12 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            api(project(":ktor-utils"))
-            api(project(":ktor-http"))
-            api(project(":ktor-shared:ktor-serialization"))
-            api(project(":ktor-shared:ktor-events"))
-            api(project(":ktor-http:ktor-http-cio"))
-            api(project(":ktor-shared:ktor-websockets"))
+            api(projects.ktorUtils)
+            api(projects.ktorHttp)
+            api(projects.ktorSerialization)
+            api(projects.ktorEvents)
+            api(projects.ktorHttpCio)
+            api(projects.ktorWebsockets)
 
             api(libs.kotlin.reflect)
         }
@@ -31,13 +32,13 @@ kotlin {
         }
 
         commonTest.dependencies {
-            api(project(":ktor-server:ktor-server-test-host"))
+            api(projects.ktorServerTestHost)
         }
 
         jvmTest.dependencies {
-            implementation(project(":ktor-server:ktor-server-config-yaml"))
-            implementation(project(":ktor-server:ktor-server-test-base"))
-            implementation(project(":ktor-server:ktor-server-test-suites"))
+            implementation(projects.ktorServerConfigYaml)
+            implementation(projects.ktorServerTestBase)
+            implementation(projects.ktorServerTestSuites)
 
             implementation(libs.mockk)
         }
