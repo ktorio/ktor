@@ -93,8 +93,8 @@ class MockEngineTests {
     }
 
     @Test
-    fun testEmptyEngineWithManualQueueing(): Unit = runBlocking {
-        val engine = MockEngine.empty()
+    fun testEngineWithManualQueueing(): Unit = runBlocking {
+        val engine = MockEngine.Queue()
         assertTrue(engine.config.requestHandlers.isEmpty())
 
         val client = HttpClient(engine)
