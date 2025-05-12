@@ -80,10 +80,48 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
                 installReference(registry, reference)
             }
             monitor.subscribe(ApplicationModulesLoaded) {
-                registry.validate()
+                val exceptions = mutableListOf<Pair<DependencyKey, Throwable>>()
+                for ((key, source) in registry.requirements) {
+                    try {
+                        registry.get<Any>(key)
+                    } catch (e: Throwable) {
+                        environment.log.error("Cannot resolve $key\n${source.externalTrace()}")
+                        exceptions += key to e
+                    }
+                }
+                when (exceptions.size) {
+                    0 -> environment.log.debug("All dependencies resolved successfully")
+                    else -> {
+                        environment.log.error(
+                            buildString {
+                                append("Dependency resolution failed:")
+                                append(
+                                    exceptions.joinToString("\n", "\n") { (key, e) ->
+                                        "  - $key: ${formatError(e)}"
+                                    }
+                                )
+                            }
+                        )
+                        throw DependencyInjectionException(
+                            "Some dependencies could not be resolved; check logs for details"
+                        )
+                    }
+                }
             }
+            monitor.subscribe(ApplicationStopped) {
+            }
+
             attributes.put(DependencyRegistryKey, registry)
         }
+    }
+
+private fun formatError(e: Throwable): String =
+    when (e) {
+        is MissingDependencyException -> "Missing declaration"
+        is CircularDependencyException -> "Circular dependency: ${e.keys.joinToString(" -> ")}"
+        is DuplicateDependencyException -> "Conflicting declaration"
+        is AmbiguousDependencyException -> "Ambiguous dependency: ${e.keys.joinToString(", ")}"
+        else -> e.message ?: ("Unknown error" + e.stackTraceToString().let { "\n$it" })
     }
 
 private fun PluginBuilder<*>.isTestEngine(): Boolean =
@@ -207,6 +245,14 @@ public data class DependencyKey(
 }
 
 /**
+ * Convenience function for `DependencyKey(typeInfo<T>(), name, qualifier)`.
+ */
+public inline fun <reified T> dependencyKey(
+    name: String? = null,
+    qualifier: Any? = null,
+): DependencyKey = DependencyKey(typeInfo<T>(), name, qualifier)
+
+/**
  * Determines if the type associated with a `DependencyKey` is nullable.
  *
  * This function checks whether the `kotlinType` property of the `type` in the `DependencyKey`
@@ -236,7 +282,7 @@ public class DuplicateDependencyException(key: DependencyKey) :
 /**
  * Thrown when there are two or more implicit dependencies that match the given key.
  */
-public class AmbiguousDependencyException(key: DependencyKey, keys: Collection<DependencyKey>) :
+public class AmbiguousDependencyException(key: DependencyKey, internal val keys: Collection<DependencyKey>) :
     DependencyInjectionException("Cannot decide which value for $key. Possible implementations: $keys")
 
 /**

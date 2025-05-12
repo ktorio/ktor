@@ -6,7 +6,6 @@ package io.ktor.server.plugins.di
 
 import io.ktor.server.application.*
 import io.ktor.server.plugins.di.MutableDependencyMap.Companion.asResolver
-import io.ktor.util.reflect.typeInfo
 import io.ktor.utils.io.*
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
@@ -33,7 +32,7 @@ public class DependencyRegistry(
     public override val reflection: DependencyReflection,
 ) : DependencyProvider by provider, DependencyResolver {
 
-    private val requiredKeys = mutableSetOf<DependencyKey>()
+    internal val requirements = mutableMapOf<DependencyKey, Throwable>()
     private val resolver: Lazy<DependencyResolver> = lazy {
         resolution.resolve(provider, external, reflection)
     }
@@ -58,7 +57,7 @@ public class DependencyRegistry(
      * This is ensured after `validate()` is called.
      */
     public fun require(key: DependencyKey) {
-        requiredKeys += key
+        requirements += key to DependencyInjectionException()
     }
 
     /**
@@ -67,8 +66,12 @@ public class DependencyRegistry(
      * @throws DependencyInjectionException if there are invalid references in the configuration
      */
     public fun validate() {
-        for (key in requiredKeys) {
-            resolver.value.get<Any>(key)
+        for ((key, ex) in requirements) {
+            try {
+                resolver.value.get<Any>(key)
+            } catch (_: Throwable) {
+                throw ex
+            }
         }
     }
 
@@ -76,7 +79,7 @@ public class DependencyRegistry(
      * Get the dependency from the map for the key represented by the type (and optionally, with the given name).
      */
     public inline fun <reified T> resolve(key: String? = null): T =
-        get(DependencyKey(typeInfo<T>(), key))
+        get(dependencyKey<T>(key))
 
     /**
      * Provides a delegated property for accessing a dependency from a [DependencyRegistry].
@@ -99,7 +102,7 @@ public class DependencyRegistry(
         thisRef: Any?,
         prop: KProperty<*>
     ): ReadOnlyProperty<Any?, T> {
-        val key = DependencyKey(typeInfo<T>())
+        val key = dependencyKey<T>()
             .also(::require)
         return ReadOnlyProperty { _, _ ->
             get(key)
@@ -123,7 +126,7 @@ public class DependencyRegistry(
      * Basic call for providing a dependency, like `provide<Service> { ServiceImpl() }`.
      */
     public inline fun <reified T> provide(name: String? = null, noinline provide: DependencyResolver.() -> T?) {
-        set(DependencyKey(typeInfo<T>(), name), provide)
+        set(dependencyKey<T>(name), provide)
     }
 }
 

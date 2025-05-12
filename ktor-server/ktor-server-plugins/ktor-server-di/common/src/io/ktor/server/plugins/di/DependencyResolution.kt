@@ -173,7 +173,7 @@ public operator fun DependencyMap.plus(right: DependencyMap): DependencyMap =
  * Get the dependency from the map for the key represented by the type (and optionally, with the given name).
  */
 public inline fun <reified T> DependencyMap.resolve(key: String? = null): T =
-    get(DependencyKey(typeInfo<T>(), key))
+    get(dependencyKey<T>(key))
 
 internal class MergedDependencyMap(
     private val left: DependencyMap,
@@ -231,5 +231,5 @@ public data class DependencyResolverContext(
      * Get the dependency from the map for the key represented by the type (and optionally, with the given name).
      */
     public inline fun <reified T> DependencyMap.resolve(key: String? = null): T =
-        get(DependencyKey(typeInfo<T>(), key))
+        get(dependencyKey<T>(key))
 }
