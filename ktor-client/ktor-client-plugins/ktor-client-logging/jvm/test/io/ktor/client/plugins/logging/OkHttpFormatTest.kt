@@ -26,6 +26,9 @@ import io.ktor.utils.io.readText
 import io.ktor.utils.io.writeFully
 import io.ktor.utils.io.writeStringUtf8
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.yield
@@ -76,14 +79,17 @@ class OkHttpFormatTest {
             return this
         }
 
-        suspend fun assertNoMoreLogs(timeoutMs: Long = 2000): LogRecorder {
+        suspend fun assertNoMoreLogs(timeoutMs: Long = 2000): LogRecorder = coroutineScope {
             val linesToWait = asserts.size - loggedLines.size
 
             assertTrue(message = "There are ${linesToWait.absoluteValue} more logs, expected none") { linesToWait >= 0 }
 
             if (linesToWait > 0) {
+                println("Waiting for $linesToWait more logs...")
                 withTimeout(timeoutMs) {
                     while (asserts.size > loggedLines.size) {
+                        delay(10)
+                        ensureActive()
                         yield()
                     }
                 }
@@ -96,7 +102,7 @@ class OkHttpFormatTest {
 //            assertTrue(
 //                message = "There are ${loggedLines.size - currentLine} more logs, expected none"
 //            ) { currentLine >= loggedLines.size }
-            return this
+            this@LogRecorder
         }
     }
 
@@ -1238,37 +1244,124 @@ class OkHttpFormatTest {
     }
 
     @Test
-    fun cachedInfoGet() = testWithCache(LogLevel.INFO, handle = { respondWithCache() }) { client ->
+    fun cachedBasicGet() = testWithCache(LogLevel.INFO, handle = { respondWithCache() }) { client ->
         client.get("/")
         client.get("/")
 
         log.assertLogEqual("--> GET /")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 0-byte body\)"""))
             .assertLogEqual("--> GET /")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
     }
 
     @Test
-    fun cachedGetInfoWarn() = testWithCache(LogLevel.INFO, handle = { respondWithCache(maxAge = 0) }) { client ->
+    fun cachedBasicGetWarn() = testWithCache(LogLevel.INFO, handle = { respondWithCache(maxAge = 0) }) { client ->
         client.get("/")
         client.get("/") {
             header(HttpHeaders.CacheControl, "max-stale=1000")
         }
 
         log.assertLogEqual("--> GET /")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 0-byte body\)"""))
             .assertLogEqual("--> GET /")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
     }
 
-    private fun MockRequestHandleScope.respondWithCache(maxAge: Long = 180): HttpResponseData {
+    @Test
+    fun cachedGetHeaders() = testWithCache(LogLevel.HEADERS, handle = { respondWithCache() }) { client ->
+        client.get("/")
+        client.get("/")
+
+        log.assertLogEqual("--> GET /")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("--> END GET")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("Cache-Control: max-age=180, public")
+            .assertLogEqual("Content-Length: 0")
+            .assertLogEqual("<-- END HTTP")
+            .assertLogEqual("--> GET /")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("--> END GET")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("Cache-Control: max-age=180, public")
+            .assertLogEqual("Content-Length: 0")
+            .assertLogEqual("<-- END HTTP")
+            .assertNoMoreLogs()
+    }
+
+    @Test
+    fun cachedGetHeadersWarn() = testWithCache(LogLevel.HEADERS, handle = { respondWithCache(maxAge = 0) }) { client ->
+        client.get("/")
+        client.get("/") {
+            header(HttpHeaders.CacheControl, "max-stale=1000")
+        }
+
+        log.assertLogEqual("--> GET /")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("--> END GET")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("Cache-Control: max-age=0, public")
+            .assertLogEqual("Content-Length: 0")
+            .assertLogEqual("<-- END HTTP")
+            .assertLogEqual("--> GET /")
+            .assertLogEqual("Cache-Control: max-stale=1000")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("--> END GET")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("Cache-Control: max-age=0, public")
+            .assertLogEqual("Content-Length: 0")
+            .assertLogEqual("Warning: 110")
+            .assertLogEqual("<-- END HTTP")
+            .assertNoMoreLogs()
+    }
+
+    @Test
+    // Should the response.isSaved return true???
+    fun cachedBody() = testWithCache(LogLevel.BODY, handle = { respondWithCache("cache") }) { client ->
+        client.get("/")
+        client.get("/")
+
+        log.assertLogEqual("--> GET /")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("--> END GET")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("Cache-Control: max-age=180, public")
+            .assertLogEqual("Content-Length: 5")
+            .assertLogEqual("")
+            .assertLogEqual("cache")
+            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 5-byte body\)"""))
+//            .assertLogEqual("<-- END HTTP")
+//            .assertLogEqual("<-- END HTTP")
+//            .assertLogEqual("<-- END HTTP")
+//            .assertLogEqual("<-- END HTTP")
+            .assertLogEqual("--> GET /")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("--> END GET")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+//            .assertLogEqual("Cache-Control: max-age=180, public")
+//            .assertLogEqual("Content-Length: 5")
+//            .assertLogEqual("")
+//            .assertLogEqual("hello!")
+//            .assertLogEqual("<-- END HTTP")
+            .assertNoMoreLogs()
+    }
+
+    private fun MockRequestHandleScope.respondWithCache(content: String = "", maxAge: Long = 180): HttpResponseData {
         return respond(
-            "cached response",
+            content,
             headers = Headers.build {
                 append(HttpHeaders.CacheControl,"max-age=$maxAge, public")
-            }
+                append(HttpHeaders.ContentLength,content.length.toString())
+            },
+            status = HttpStatusCode.OK
         )
     }
 
