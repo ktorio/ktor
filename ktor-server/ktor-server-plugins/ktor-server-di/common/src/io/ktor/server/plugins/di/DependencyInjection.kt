@@ -243,7 +243,7 @@ public data class DependencyKey(
 /**
  * Convenience function for `DependencyKey(typeInfo<T>(), name, qualifier)`.
  */
-public inline fun <reified T> dependencyKey(
+public inline fun <reified T> DependencyKey(
     name: String? = null,
     qualifier: Any? = null,
 ): DependencyKey = DependencyKey(typeInfo<T>(), name, qualifier)

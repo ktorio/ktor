@@ -9,7 +9,6 @@ import io.ktor.server.plugins.di.DependencyConflictResult.Conflict
 import io.ktor.server.plugins.di.DependencyConflictResult.KeepNew
 import io.ktor.server.plugins.di.DependencyConflictResult.KeepPrevious
 import io.ktor.server.plugins.di.DependencyConflictResult.Replace
-import io.ktor.server.plugins.di.utils.externalTraceLine
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.Logger
 import io.ktor.util.logging.debug
@@ -51,7 +50,7 @@ public inline fun <reified T> DependencyProvider.provide(
     name: String? = null,
     noinline provide: DependencyResolver.() -> T?
 ) {
-    set(dependencyKey<T>(name), provide)
+    set(DependencyKey<T>(name), provide)
 }
 
 /**
@@ -198,6 +197,9 @@ public open class MapDependencyProvider(
     public val onConflict: (DependencyKey) -> Unit = { throw DuplicateDependencyException(it) },
     private val log: Logger = KtorSimpleLogger("io.ktor.server.plugins.di.MapDependencyProvider"),
 ) : DependencyProvider {
+    private companion object {
+        private const val COVARIANT_LOG_LIMIT = 8
+    }
     private val map = mutableMapOf<DependencyKey, DependencyCreateFunction>()
 
     override val declarations: Map<DependencyKey, DependencyCreateFunction>
@@ -205,7 +207,7 @@ public open class MapDependencyProvider(
 
     override fun <T> set(key: DependencyKey, value: DependencyResolver.() -> T) {
         val create = ExplicitCreateFunction(key, value as DependencyResolver.() -> Any)
-        log.debug { "Provided $key ${RuntimeException().externalTraceLine()}" }
+        log.debug { "Provided $key ${DependencyReference().externalTraceLine()}" }
         trySet(key, create)
         insertCovariantKeys(create, key)
     }
@@ -246,8 +248,8 @@ public open class MapDependencyProvider(
     }
 
     private fun formatKeys(keys: List<KeyMatch>): String =
-        if (keys.size > 8) {
-            keys.take(8).joinToString { it.key.toString() } + ", ..."
+        if (keys.size > COVARIANT_LOG_LIMIT) {
+            keys.take(COVARIANT_LOG_LIMIT).joinToString { it.key.toString() } + ", ..."
         } else {
             keys.joinToString { it.key.toString() }
         }

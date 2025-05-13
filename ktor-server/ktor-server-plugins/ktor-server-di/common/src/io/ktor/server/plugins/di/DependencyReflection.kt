@@ -41,4 +41,4 @@ public inline fun <reified T : Any> DependencyResolver.create(): T =
  * @return An instance of the specified type [T].
  */
 public inline fun <reified T : Any> DependencyResolver.create(kClass: KClass<out T>): T =
-    getOrPut(dependencyKey<T>()) { reflection.create(kClass, ::get) }
+    getOrPut(DependencyKey<T>()) { reflection.create(kClass, ::get) }

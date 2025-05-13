@@ -6,7 +6,6 @@ package io.ktor.server.plugins.di
 
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.SerializableConfigValue
-import io.ktor.util.reflect.*
 import kotlin.reflect.KProperty
 
 /**
@@ -173,7 +172,7 @@ public operator fun DependencyMap.plus(right: DependencyMap): DependencyMap =
  * Get the dependency from the map for the key represented by the type (and optionally, with the given name).
  */
 public inline fun <reified T> DependencyMap.resolve(key: String? = null): T =
-    get(dependencyKey<T>(key))
+    get(DependencyKey<T>(key))
 
 internal class MergedDependencyMap(
     private val left: DependencyMap,
@@ -231,5 +230,5 @@ public data class DependencyResolverContext(
      * Get the dependency from the map for the key represented by the type (and optionally, with the given name).
      */
     public inline fun <reified T> DependencyMap.resolve(key: String? = null): T =
-        get(dependencyKey<T>(key))
+        get(DependencyKey<T>(key))
 }

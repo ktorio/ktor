@@ -32,7 +32,7 @@ public class DependencyRegistry(
     public override val reflection: DependencyReflection,
 ) : DependencyProvider by provider, DependencyResolver {
 
-    internal val requirements = mutableMapOf<DependencyKey, Throwable>()
+    internal val requirements = mutableMapOf<DependencyKey, DependencyReference>()
     private val resolver: Lazy<DependencyResolver> = lazy {
         resolution.resolve(provider, external, reflection)
     }
@@ -54,17 +54,17 @@ public class DependencyRegistry(
     /**
      * Indicates that the given dependency is required.
      *
-     * This is ensured after `validate()` is called.
+     * The DI plugin enforces this at startup.
      */
     public fun require(key: DependencyKey) {
-        requirements += key to DependencyInjectionException()
+        requirements += key to DependencyReference()
     }
 
     /**
      * Get the dependency from the map for the key represented by the type (and optionally, with the given name).
      */
     public inline fun <reified T> resolve(key: String? = null): T =
-        get(dependencyKey<T>(key))
+        get(DependencyKey<T>(key))
 
     /**
      * Provides a delegated property for accessing a dependency from a [DependencyRegistry].
@@ -87,7 +87,7 @@ public class DependencyRegistry(
         thisRef: Any?,
         prop: KProperty<*>
     ): ReadOnlyProperty<Any?, T> {
-        val key = dependencyKey<T>()
+        val key = DependencyKey<T>()
             .also(::require)
         return ReadOnlyProperty { _, _ ->
             get(key)
@@ -111,7 +111,7 @@ public class DependencyRegistry(
      * Basic call for providing a dependency, like `provide<Service> { ServiceImpl() }`.
      */
     public inline fun <reified T> provide(name: String? = null, noinline provide: DependencyResolver.() -> T?) {
-        set(dependencyKey<T>(name), provide)
+        set(DependencyKey<T>(name), provide)
     }
 }
 
@@ -207,4 +207,26 @@ public class ProcessingDependencyResolver(
         } else {
             null
         }
+}
+
+/**
+ * Used for tracing references to dependency keys in the application.
+ *
+ * Both called for lazy `resolve` access and `provide` for easier debugging.
+ */
+internal class DependencyReference : Throwable() {
+
+    /**
+     * Gets the first external API line from the stack trace.
+     */
+    fun externalTraceLine(): String =
+        externalTrace().substringBefore('\n').trim()
+
+    /**
+     * Get the stack trace string from the point of the first external API frame.
+     */
+    fun externalTrace(): String =
+        stackTraceToString()
+            .substringAfterLast("io.ktor.server.plugins.di")
+            .substringAfter('\n')
 }
