@@ -4,7 +4,6 @@
 
 package io.ktor.server.plugins.di
 
-import io.ktor.util.reflect.*
 import kotlin.reflect.KClass
 
 /**
@@ -42,4 +41,4 @@ public inline fun <reified T : Any> DependencyResolver.create(): T =
  * @return An instance of the specified type [T].
  */
 public inline fun <reified T : Any> DependencyResolver.create(kClass: KClass<out T>): T =
-    getOrPut(DependencyKey(typeInfo<T>())) { reflection.create(kClass, ::get) }
+    getOrPut(DependencyKey<T>()) { reflection.create(kClass, ::get) }

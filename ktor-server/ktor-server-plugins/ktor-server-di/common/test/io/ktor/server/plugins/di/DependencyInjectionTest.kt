@@ -7,13 +7,11 @@ package io.ktor.server.plugins.di
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.server.application.*
-import io.ktor.server.plugins.di.dependencies
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.test.dispatcher.runTestWithRealTime
 import io.ktor.util.logging.Logger
-import io.ktor.util.reflect.*
 import kotlinx.coroutines.test.TestResult
 import kotlinx.serialization.Serializable
 import kotlin.reflect.KClass
@@ -120,16 +118,23 @@ class DependencyInjectionTest {
     @Test
     fun `fails on server startup`() = runTestWithRealTime {
         val infoLogs = mutableListOf<String>()
-        assertFailsWith<MissingDependencyException> {
+        val errorLogs = mutableListOf<String>()
+        assertFailsWith<DependencyInjectionException> {
             runTestApplication {
                 environment {
                     log = object : Logger by log {
                         override fun info(message: String) {
                             infoLogs += message
                         }
+                        override fun error(message: String) {
+                            errorLogs += message
+                        }
                     }
                 }
                 application {
+                    dependencies {
+                        provide<BankService> { BankServiceImpl() }
+                    }
                     val service: GreetingService by dependencies
                     routing {
                         get("/ok") {
@@ -150,6 +155,12 @@ class DependencyInjectionTest {
                 "Application started" in message
             }
         )
+        assertEquals(2, errorLogs.size)
+        val (missing, summary) = errorLogs
+        val missingKey = DependencyKey<GreetingService>()
+        assertContains(missing, "Cannot resolve $missingKey")
+        assertContains(summary, "Dependency resolution failed")
+        assertContains(summary, "$missingKey: Missing declaration")
     }
 
     @Test
@@ -291,7 +302,7 @@ class DependencyInjectionTest {
             dependencies {
                 provide<GreetingService> { GreetingServiceImpl() }
             }
-            assertEquals(listOf(DependencyKey(typeInfo<GreetingService>())), assignmentKeys)
+            assertEquals(listOf(DependencyKey<GreetingService>()), assignmentKeys)
         }
     }
 
@@ -314,7 +325,7 @@ class DependencyInjectionTest {
 
     @Test
     fun `external maps`() = runTestDI({
-        include(dependencyMapOf(DependencyKey(typeInfo<GreetingService>()) to GreetingServiceImpl()))
+        include(dependencyMapOf(DependencyKey<GreetingService>() to GreetingServiceImpl()))
     }) {
         val service: GreetingService by dependencies
         assertEquals(HELLO, service.hello())
@@ -322,8 +333,8 @@ class DependencyInjectionTest {
 
     @Test
     fun `external map order precedence`() = runTestDI({
-        include(dependencyMapOf(DependencyKey(typeInfo<GreetingService>()) to GreetingServiceImpl()))
-        include(dependencyMapOf(DependencyKey(typeInfo<GreetingService>()) to BankGreetingService()))
+        include(dependencyMapOf(DependencyKey<GreetingService>() to GreetingServiceImpl()))
+        include(dependencyMapOf(DependencyKey<GreetingService>() to BankGreetingService()))
     }) {
         val service: GreetingService by dependencies
         assertEquals(HELLO_CUSTOMER, service.hello())
@@ -331,7 +342,7 @@ class DependencyInjectionTest {
 
     @Test
     fun `external map declarations precedence`() = runTestDI({
-        include(dependencyMapOf(DependencyKey(typeInfo<GreetingService>()) to GreetingServiceImpl()))
+        include(dependencyMapOf(DependencyKey<GreetingService>() to GreetingServiceImpl()))
     }) {
         dependencies.provide<GreetingService> { BankGreetingService() }
 

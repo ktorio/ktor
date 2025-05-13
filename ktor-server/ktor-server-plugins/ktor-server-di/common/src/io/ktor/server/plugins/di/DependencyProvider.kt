@@ -11,9 +11,8 @@ import io.ktor.server.plugins.di.DependencyConflictResult.KeepPrevious
 import io.ktor.server.plugins.di.DependencyConflictResult.Replace
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.Logger
+import io.ktor.util.logging.debug
 import io.ktor.util.logging.trace
-import io.ktor.util.reflect.*
-import io.ktor.utils.io.*
 
 /**
  * Represents a provider for managing dependencies in a dependency injection mechanism.
@@ -51,7 +50,7 @@ public inline fun <reified T> DependencyProvider.provide(
     name: String? = null,
     noinline provide: DependencyResolver.() -> T?
 ) {
-    set(DependencyKey(typeInfo<T>(), name), provide)
+    set(DependencyKey<T>(name), provide)
 }
 
 /**
@@ -198,6 +197,9 @@ public open class MapDependencyProvider(
     public val onConflict: (DependencyKey) -> Unit = { throw DuplicateDependencyException(it) },
     private val log: Logger = KtorSimpleLogger("io.ktor.server.plugins.di.MapDependencyProvider"),
 ) : DependencyProvider {
+    private companion object {
+        private const val COVARIANT_LOG_LIMIT = 8
+    }
     private val map = mutableMapOf<DependencyKey, DependencyCreateFunction>()
 
     override val declarations: Map<DependencyKey, DependencyCreateFunction>
@@ -205,6 +207,7 @@ public open class MapDependencyProvider(
 
     override fun <T> set(key: DependencyKey, value: DependencyResolver.() -> T) {
         val create = ExplicitCreateFunction(key, value as DependencyResolver.() -> Any)
+        log.debug { "Provided $key ${DependencyReference().externalTraceLine()}" }
         trySet(key, create)
         insertCovariantKeys(create, key)
     }
@@ -238,9 +241,16 @@ public open class MapDependencyProvider(
         key: DependencyKey
     ) {
         val covariantKeys = keyMapping.map(key, 0).toList()
-        log.trace { "Inferred keys $key: $covariantKeys" }
+        log.trace { "Covariant keys: ${formatKeys(covariantKeys)}" }
         for ((key, distance) in covariantKeys) {
             trySet(key, createFunction.derived(distance))
         }
     }
+
+    private fun formatKeys(keys: List<KeyMatch>): String =
+        if (keys.size > COVARIANT_LOG_LIMIT) {
+            keys.take(COVARIANT_LOG_LIMIT).joinToString { it.key.toString() } + ", ..."
+        } else {
+            keys.joinToString { it.key.toString() }
+        }
 }
