@@ -89,16 +89,18 @@ class OkHttpFormatTest {
                     }
                 }
 
-                if (asserts.size < loggedLines.size) {
-                    fail("There are ${loggedLines.size - asserts.size} more logs than asserts")
-                }
-
-                if (asserts.size > loggedLines.size) {
-                    fail("There are ${asserts.size - loggedLines.size} more asserts than logs")
-                }
-
                 for ((i, assert) in asserts.withIndex()) {
-                    assert(loggedLines[i])
+                    if (i < loggedLines.size) {
+                        assert(loggedLines[i])
+                    }
+                }
+
+                if (asserts.size != loggedLines.size) {
+                    fail("Expected number of asserts ${asserts.size} to be equal to log lines count ${loggedLines.size}:\n${
+                        loggedLines.joinToString(
+                            "\n"
+                        )
+                    }")
                 }
 
                 return this@LogRecorder
@@ -1348,6 +1350,37 @@ class OkHttpFormatTest {
             .assertLogEqual("")
             .assertLogEqual("cache")
             .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 5-byte body\)"""))
+            .assertNoMoreLogs()
+    }
+
+    @Test
+    fun cachedBodyWarn() = testWithCache(LogLevel.BODY, handle = { respondWithCache("cache", maxAge = 0) }) { client ->
+        client.get("/")
+        client.get("/") {
+            header(HttpHeaders.CacheControl, "max-stale=1000")
+        }
+
+        log.assertLogEqual("--> GET /")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("--> END GET")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("Cache-Control: max-age=0, public")
+            .assertLogEqual("Content-Length: 5")
+            .assertLogEqual("")
+            .assertLogEqual("cache")
+            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 5-byte body\)"""))
+            .assertLogEqual("--> GET /")
+            .assertLogEqual("Cache-Control: max-stale=1000")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("--> END GET")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("Cache-Control: max-age=0, public")
+            .assertLogEqual("Content-Length: 5")
+            .assertLogEqual("Warning: 110")
+            .assertLogEqual("")
+            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, unknown-byte body\)"""))
             .assertNoMoreLogs()
     }
 

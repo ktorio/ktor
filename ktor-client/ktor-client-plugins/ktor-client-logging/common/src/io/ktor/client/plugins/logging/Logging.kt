@@ -344,6 +344,12 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
 
     suspend fun logResponseBody(response: HttpResponse, body: ByteReadChannel, logLines: MutableList<String>) {
         logLines.add("")
+        val duration = response.responseTime.timestamp - response.requestTime.timestamp
+
+        if (body.isClosedForRead) {
+            logLines.add("<-- END HTTP (${duration}ms, unknown-byte body)")
+            return
+        }
 
         val (isBinary, size, newBody) = detectIfBinary(
             body,
@@ -351,7 +357,6 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
             response.contentType(),
             response.headers
         )
-        val duration = response.responseTime.timestamp - response.requestTime.timestamp
 
         if (size == 0L) {
             logLines.add("<-- END HTTP (${duration}ms, $size-byte body)")
@@ -440,18 +445,23 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
             return response
         }
 
-        val context = if (response.coroutineContext.isActive) { // the job of cached response is completed
-            response
+        if (response.rawContent.isClosedForRead) {
+            logResponseBody(response, response.rawContent, logLines)
+            return response
         } else {
-            client
+            val context = if (response.coroutineContext.isActive) { // the job of cached response is completed
+                response
+            } else {
+                client
+            }
+
+            val (origChannel, newChannel) = response.rawContent.split(context)
+
+            logResponseBody(response, newChannel, logLines)
+
+            val call = response.call.replaceResponse { origChannel }
+            return call.response
         }
-
-        val (origChannel, newChannel) = response.rawContent.split(context)
-
-        logResponseBody(response, newChannel, logLines)
-
-        val call = response.call.replaceResponse { origChannel }
-        return call.response
     }
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -550,7 +560,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
             val responseLogLines = mutableListOf<String>()
             logResponseOkHttpFormat(response, responseLogLines)
 
-            if (requestLogLines.isNotEmpty()) {
+            if (responseLogLines.isNotEmpty()) {
                 logger.log(responseLogLines.joinToString(separator = "\n"))
             }
         }
