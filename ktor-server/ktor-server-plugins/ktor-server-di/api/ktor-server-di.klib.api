@@ -157,6 +157,9 @@ final class io.ktor.server.plugins.di/DependencyAbstractTypeConstructionExceptio
 final class io.ktor.server.plugins.di/DependencyInjectionConfig { // io.ktor.server.plugins.di/DependencyInjectionConfig|null[0]
     constructor <init>() // io.ktor.server.plugins.di/DependencyInjectionConfig.<init>|<init>(){}[0]
 
+    final var onShutdown // io.ktor.server.plugins.di/DependencyInjectionConfig.onShutdown|{}onShutdown[0]
+        final fun <get-onShutdown>(): kotlin/Function2<io.ktor.server.plugins.di/DependencyKey, kotlin/Any?, kotlin/Unit> // io.ktor.server.plugins.di/DependencyInjectionConfig.onShutdown.<get-onShutdown>|<get-onShutdown>(){}[0]
+        final fun <set-onShutdown>(kotlin/Function2<io.ktor.server.plugins.di/DependencyKey, kotlin/Any?, kotlin/Unit>) // io.ktor.server.plugins.di/DependencyInjectionConfig.onShutdown.<set-onShutdown>|<set-onShutdown>(kotlin.Function2<io.ktor.server.plugins.di.DependencyKey,kotlin.Any?,kotlin.Unit>){}[0]
     final var provider // io.ktor.server.plugins.di/DependencyInjectionConfig.provider|{}provider[0]
         final fun <get-provider>(): io.ktor.server.plugins.di/DependencyProvider // io.ktor.server.plugins.di/DependencyInjectionConfig.provider.<get-provider>|<get-provider>(){}[0]
         final fun <set-provider>(io.ktor.server.plugins.di/DependencyProvider) // io.ktor.server.plugins.di/DependencyInjectionConfig.provider.<set-provider>|<set-provider>(io.ktor.server.plugins.di.DependencyProvider){}[0]
@@ -231,12 +234,25 @@ final class io.ktor.server.plugins.di/DependencyRegistry : io.ktor.server.plugin
     final fun <#A1: kotlin/Any?> get(io.ktor.server.plugins.di/DependencyKey): #A1 // io.ktor.server.plugins.di/DependencyRegistry.get|get(io.ktor.server.plugins.di.DependencyKey){0§<kotlin.Any?>}[0]
     final fun <#A1: kotlin/Any?> getOrPut(io.ktor.server.plugins.di/DependencyKey, kotlin/Function0<#A1>): #A1 // io.ktor.server.plugins.di/DependencyRegistry.getOrPut|getOrPut(io.ktor.server.plugins.di.DependencyKey;kotlin.Function0<0:0>){0§<kotlin.Any?>}[0]
     final fun <#A1: kotlin/Any?> set(io.ktor.server.plugins.di/DependencyKey, kotlin/Function1<io.ktor.server.plugins.di/DependencyResolver, #A1>) // io.ktor.server.plugins.di/DependencyRegistry.set|set(io.ktor.server.plugins.di.DependencyKey;kotlin.Function1<io.ktor.server.plugins.di.DependencyResolver,0:0>){0§<kotlin.Any?>}[0]
+    final fun cleanup(io.ktor.server.plugins.di/DependencyKey, kotlin/Function1<kotlin/Any?, kotlin/Unit>) // io.ktor.server.plugins.di/DependencyRegistry.cleanup|cleanup(io.ktor.server.plugins.di.DependencyKey;kotlin.Function1<kotlin.Any?,kotlin.Unit>){}[0]
     final fun contains(io.ktor.server.plugins.di/DependencyKey): kotlin/Boolean // io.ktor.server.plugins.di/DependencyRegistry.contains|contains(io.ktor.server.plugins.di.DependencyKey){}[0]
     final fun require(io.ktor.server.plugins.di/DependencyKey) // io.ktor.server.plugins.di/DependencyRegistry.require|require(io.ktor.server.plugins.di.DependencyKey){}[0]
     final inline fun <#A1: reified kotlin/Any> (io.ktor.server.plugins.di/DependencyProvider).provide(kotlin.reflect/KClass<out #A1>) // io.ktor.server.plugins.di/DependencyRegistry.provide|provide@io.ktor.server.plugins.di.DependencyProvider(kotlin.reflect.KClass<out|0:0>){0§<kotlin.Any>}[0]
-    final inline fun <#A1: reified kotlin/Any?> provide(kotlin/String? = ..., noinline kotlin/Function1<io.ktor.server.plugins.di/DependencyResolver, #A1?>) // io.ktor.server.plugins.di/DependencyRegistry.provide|provide(kotlin.String?;kotlin.Function1<io.ktor.server.plugins.di.DependencyResolver,0:0?>){0§<kotlin.Any?>}[0]
+    final inline fun <#A1: reified kotlin/Any?> cleanup(kotlin/String? = ..., noinline kotlin/Function1<#A1, kotlin/Unit>): io.ktor.server.plugins.di/DependencyRegistry.KeyContext<#A1> // io.ktor.server.plugins.di/DependencyRegistry.cleanup|cleanup(kotlin.String?;kotlin.Function1<0:0,kotlin.Unit>){0§<kotlin.Any?>}[0]
+    final inline fun <#A1: reified kotlin/Any?> key(kotlin/String? = ..., noinline kotlin/Function1<io.ktor.server.plugins.di/DependencyRegistry.KeyContext<#A1>, kotlin/Unit>): io.ktor.server.plugins.di/DependencyRegistry.KeyContext<#A1> // io.ktor.server.plugins.di/DependencyRegistry.key|key(kotlin.String?;kotlin.Function1<io.ktor.server.plugins.di.DependencyRegistry.KeyContext<0:0>,kotlin.Unit>){0§<kotlin.Any?>}[0]
+    final inline fun <#A1: reified kotlin/Any?> provide(kotlin/String? = ..., noinline kotlin/Function1<io.ktor.server.plugins.di/DependencyResolver, #A1?>): io.ktor.server.plugins.di/DependencyRegistry.KeyContext<#A1> // io.ktor.server.plugins.di/DependencyRegistry.provide|provide(kotlin.String?;kotlin.Function1<io.ktor.server.plugins.di.DependencyResolver,0:0?>){0§<kotlin.Any?>}[0]
     final inline fun <#A1: reified kotlin/Any?> provideDelegate(kotlin/Any?, kotlin.reflect/KProperty<*>): kotlin.properties/ReadOnlyProperty<kotlin/Any?, #A1> // io.ktor.server.plugins.di/DependencyRegistry.provideDelegate|provideDelegate(kotlin.Any?;kotlin.reflect.KProperty<*>){0§<kotlin.Any?>}[0]
     final inline fun <#A1: reified kotlin/Any?> resolve(kotlin/String? = ...): #A1 // io.ktor.server.plugins.di/DependencyRegistry.resolve|resolve(kotlin.String?){0§<kotlin.Any?>}[0]
+
+    final inner class <#A1: kotlin/Any?> KeyContext { // io.ktor.server.plugins.di/DependencyRegistry.KeyContext|null[0]
+        constructor <init>(io.ktor.server.plugins.di/DependencyKey) // io.ktor.server.plugins.di/DependencyRegistry.KeyContext.<init>|<init>(io.ktor.server.plugins.di.DependencyKey){}[0]
+
+        final val key // io.ktor.server.plugins.di/DependencyRegistry.KeyContext.key|{}key[0]
+            final fun <get-key>(): io.ktor.server.plugins.di/DependencyKey // io.ktor.server.plugins.di/DependencyRegistry.KeyContext.key.<get-key>|<get-key>(){}[0]
+
+        final fun cleanup(kotlin/Function1<#A1, kotlin/Unit>) // io.ktor.server.plugins.di/DependencyRegistry.KeyContext.cleanup|cleanup(kotlin.Function1<1:0,kotlin.Unit>){}[0]
+        final fun provide(kotlin/Function1<io.ktor.server.plugins.di/DependencyResolver, #A1?>) // io.ktor.server.plugins.di/DependencyRegistry.KeyContext.provide|provide(kotlin.Function1<io.ktor.server.plugins.di.DependencyResolver,1:0?>){}[0]
+    }
 }
 
 final class io.ktor.server.plugins.di/DependencyResolverContext { // io.ktor.server.plugins.di/DependencyResolverContext|null[0]
