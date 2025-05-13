@@ -95,11 +95,9 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
                         environment.log.error(
                             buildString {
                                 append("Dependency resolution failed:")
-                                append(
-                                    exceptions.joinToString("\n", "\n") { (key, e) ->
-                                        "  - $key: ${formatError(e)}"
-                                    }
-                                )
+                                exceptions.forEach { (key, e) ->
+                                    append("\n  - $key: ${formatError(e)}")
+                                }
                             }
                         )
                         throw DependencyInjectionException(
