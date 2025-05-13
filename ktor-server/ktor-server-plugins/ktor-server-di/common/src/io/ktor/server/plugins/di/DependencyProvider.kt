@@ -4,15 +4,11 @@
 
 package io.ktor.server.plugins.di
 
-import io.ktor.server.plugins.di.DependencyConflictResult.Ambiguous
-import io.ktor.server.plugins.di.DependencyConflictResult.Conflict
-import io.ktor.server.plugins.di.DependencyConflictResult.KeepNew
-import io.ktor.server.plugins.di.DependencyConflictResult.KeepPrevious
-import io.ktor.server.plugins.di.DependencyConflictResult.Replace
-import io.ktor.util.logging.KtorSimpleLogger
-import io.ktor.util.logging.Logger
-import io.ktor.util.logging.debug
-import io.ktor.util.logging.trace
+import io.ktor.server.plugins.di.DependencyConflictResult.*
+import io.ktor.util.logging.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Represents a provider for managing dependencies in a dependency injection mechanism.
@@ -189,14 +185,23 @@ public fun <T> DependencyCreateFunction.ifImplicit(block: (ImplicitCreateFunctio
  *                       for the same dependency key.
  * @param onConflict A callback that is invoked when a conflict is encountered during registration.
  *                   By default, this throws a `DuplicateDependencyException`.
+ * @param coroutineContext The coroutine context used for asynchronous dependency resolution.
+ *                         By default, this uses a single-threaded dispatcher to avoid concurrency problems.
+ * @param log A logger used for logging dependency resolution events.
+ *            By default, this uses a `KtorSimpleLogger` with the name "io.ktor.server.plugins.di.MapDependencyProvider".
+ *
+ * @see DependencyKeyCovariance
+ * @see DependencyConflictPolicy
+ * @see DependencyResolver
  */
 @Suppress("UNCHECKED_CAST")
 public open class MapDependencyProvider(
     public val keyMapping: DependencyKeyCovariance = DefaultKeyCovariance,
     public val conflictPolicy: DependencyConflictPolicy = DefaultConflictPolicy,
     public val onConflict: (DependencyKey) -> Unit = { throw DuplicateDependencyException(it) },
+    public override val coroutineContext: CoroutineContext = Dispatchers.Default.limitedParallelism(1),
     private val log: Logger = KtorSimpleLogger("io.ktor.server.plugins.di.MapDependencyProvider"),
-) : DependencyProvider {
+) : DependencyProvider, CoroutineScope {
     private companion object {
         private const val COVARIANT_LOG_LIMIT = 8
     }
