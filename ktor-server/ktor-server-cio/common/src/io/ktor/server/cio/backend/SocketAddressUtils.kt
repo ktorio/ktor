@@ -7,10 +7,7 @@ package io.ktor.server.cio.backend
 import io.ktor.network.sockets.*
 import io.ktor.util.network.*
 
-internal val SocketAddress.port: Int
-    get() {
-        val inetAddress = this as? InetSocketAddress ?: error("Expected inet socket address")
-        return inetAddress.port
-    }
+internal val SocketAddress.port: Int?
+    get() = (this as? InetSocketAddress)?.port
 
-internal expect fun SocketAddress.toNetworkAddress(): NetworkAddress
+internal expect fun SocketAddress.toNetworkAddress(): NetworkAddress?
