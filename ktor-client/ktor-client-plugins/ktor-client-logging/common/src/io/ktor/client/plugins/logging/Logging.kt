@@ -440,7 +440,13 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
             return response
         }
 
-        val (origChannel, newChannel) = response.rawContent.split(response)
+        val context = if (response.coroutineContext.isActive) { // the job of cached response is completed
+            response
+        } else {
+            client
+        }
+
+        val (origChannel, newChannel) = response.rawContent.split(context)
 
         logResponseBody(response, newChannel, logLines)
 

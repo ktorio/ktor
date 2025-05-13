@@ -85,7 +85,6 @@ class OkHttpFormatTest {
             assertTrue(message = "There are ${linesToWait.absoluteValue} more logs, expected none") { linesToWait >= 0 }
 
             if (linesToWait > 0) {
-                println("Waiting for $linesToWait more logs...")
                 withTimeout(timeoutMs) {
                     while (asserts.size > loggedLines.size) {
                         delay(10)
@@ -94,6 +93,8 @@ class OkHttpFormatTest {
                     }
                 }
             }
+
+            assertEquals(asserts.size, loggedLines.size)
 
             for ((i, assert) in asserts.withIndex()) {
                 assert(loggedLines[i])
@@ -1322,7 +1323,6 @@ class OkHttpFormatTest {
     }
 
     @Test
-    // Should the response.isSaved return true???
     fun cachedBody() = testWithCache(LogLevel.BODY, handle = { respondWithCache("cache") }) { client ->
         client.get("/")
         client.get("/")
@@ -1337,20 +1337,16 @@ class OkHttpFormatTest {
             .assertLogEqual("")
             .assertLogEqual("cache")
             .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 5-byte body\)"""))
-//            .assertLogEqual("<-- END HTTP")
-//            .assertLogEqual("<-- END HTTP")
-//            .assertLogEqual("<-- END HTTP")
-//            .assertLogEqual("<-- END HTTP")
             .assertLogEqual("--> GET /")
             .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
             .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
-//            .assertLogEqual("Cache-Control: max-age=180, public")
-//            .assertLogEqual("Content-Length: 5")
-//            .assertLogEqual("")
-//            .assertLogEqual("hello!")
-//            .assertLogEqual("<-- END HTTP")
+            .assertLogEqual("Cache-Control: max-age=180, public")
+            .assertLogEqual("Content-Length: 5")
+            .assertLogEqual("")
+            .assertLogEqual("cache")
+            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 5-byte body\)"""))
             .assertNoMoreLogs()
     }
 
