@@ -6,6 +6,8 @@ package io.ktor.server.plugins.di.utils
 
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.Job
+import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.KTypeParameter
@@ -147,6 +149,9 @@ private val ignoredSupertypes = setOf(
     java.lang.Comparable::class,
     Enum::class,
     java.lang.Enum::class,
+    Job::class,
+    CoroutineContext::class,
+    CoroutineContext.Element::class,
     Object::class,
     // Add more general types here as needed
 )
