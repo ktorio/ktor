@@ -11,7 +11,6 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.http.content.*
-import io.ktor.network.sockets.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.http.content.*
@@ -244,21 +243,6 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                 call.body<String>()
             }
         }
-    }
-
-    @Test
-    fun testApplicationScopeCancellation() = runTest {
-        var job: Job? = null
-
-        createAndStartServer {
-            job = application.launch {
-                delay(10000000L)
-            }
-        }
-
-        server!!.stop(1, 10, TimeUnit.SECONDS)
-        assertNotNull(job)
-        assertTrue(job!!.isCancelled)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -977,6 +961,51 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             assertNotNull(loggedException)
             loggedException = null
         }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    open fun testJobsAreCancelledOnShutdown() = runTest {
+        var applicationJob: Job? = null
+        var routingJob: Job? = null
+        val jobsStartedLatch = CountDownLatch(2)
+
+        suspend fun waitForever() {
+            jobsStartedLatch.countDown()
+            delay(Long.MAX_VALUE) // Hang until canceled
+        }
+
+        val server = createAndStartServer {
+            // Launch a coroutine in the application context
+            applicationJob = application.launch { waitForever() }
+
+            // Configure a route that launches a coroutine in the routing context
+            get("/launch-job") {
+                routingJob = call.launch { waitForever() }
+                call.respondText("Job launched")
+            }
+        }
+
+        // Trigger the route to start the routing job
+        withUrl("/launch-job") {
+            assertEquals("Job launched", call.body<String>())
+        }
+
+        // Wait for both jobs to start
+        assertTrue(jobsStartedLatch.await(5, TimeUnit.SECONDS), "Jobs did not start within timeout")
+
+        // Verify both jobs are active
+        assertNotNull(applicationJob, "Application job should not be null")
+        assertNotNull(routingJob, "Routing job should not be null")
+        assertTrue(applicationJob.isActive, "Application job should be active")
+        assertTrue(routingJob.isActive, "Routing job should be active")
+
+        // Stop the server
+        server.stop(1, 10, TimeUnit.SECONDS)
+
+        // Verify both jobs are canceled
+        assertTrue(applicationJob.isCancelled, "Application job should be canceled")
+        assertTrue(routingJob.isCancelled, "Routing job should be canceled")
     }
 }
 

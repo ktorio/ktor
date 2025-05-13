@@ -12,7 +12,7 @@ kotlin {
 
     sourceSets {
         jvmMain.dependencies {
-            implementation(project(":ktor-server:ktor-server-plugins:ktor-server-html-builder"))
+            implementation(projects.ktorServerHtmlBuilder)
 
             implementation(libs.swagger.codegen)
             implementation(libs.swagger.codegen.generators)

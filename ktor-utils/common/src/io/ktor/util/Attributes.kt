@@ -98,6 +98,15 @@ public interface Attributes {
     public fun <T : Any> put(key: AttributeKey<T>, value: T)
 
     /**
+     * Creates or changes an attribute with the specified [key] using [value]
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.Attributes.set)
+     */
+    public operator fun <T : Any> set(key: AttributeKey<T>, value: T) {
+        put(key, value)
+    }
+
+    /**
      * Removes an attribute with the specified [key]
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.Attributes.remove)

@@ -1,5 +1,6 @@
 public final class io/ktor/server/application/Application : io/ktor/server/application/ApplicationCallPipeline, kotlinx/coroutines/CoroutineScope {
 	public final fun dispose ()V
+	public final fun disposeAndJoin (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getEngine ()Lio/ktor/server/engine/ApplicationEngine;
 	public final fun getMonitor ()Lio/ktor/events/Events;
@@ -97,6 +98,7 @@ public final class io/ktor/server/application/CreatePluginUtilsKt {
 }
 
 public final class io/ktor/server/application/DefaultApplicationEventsKt {
+	public static final fun getApplicationModulesLoaded ()Lio/ktor/events/EventDefinition;
 	public static final fun getApplicationStarted ()Lio/ktor/events/EventDefinition;
 	public static final fun getApplicationStarting ()Lio/ktor/events/EventDefinition;
 	public static final fun getApplicationStopPreparing ()Lio/ktor/events/EventDefinition;
@@ -127,6 +129,14 @@ public final class io/ktor/server/application/MissingApplicationPluginException 
 	public synthetic fun createCopy ()Ljava/lang/Throwable;
 	public final fun getKey ()Lio/ktor/util/AttributeKey;
 	public fun getMessage ()Ljava/lang/String;
+}
+
+public abstract interface class io/ktor/server/application/ModuleParametersInjector {
+	public static final field Companion Lio/ktor/server/application/ModuleParametersInjector$Companion;
+	public abstract fun resolveParameter (Lio/ktor/server/application/Application;Lkotlin/reflect/KParameter;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/application/ModuleParametersInjector$Companion {
 }
 
 public final class io/ktor/server/application/OnCallContext : io/ktor/server/application/CallContext {
@@ -357,6 +367,10 @@ public final class io/ktor/server/config/MergedApplicationConfigKt {
 	public static final fun merge (Ljava/util/List;)Lio/ktor/server/config/ApplicationConfig;
 	public static final fun mergeWith (Lio/ktor/server/config/ApplicationConfig;Lio/ktor/server/config/ApplicationConfig;)Lio/ktor/server/config/ApplicationConfig;
 	public static final fun withFallback (Lio/ktor/server/config/ApplicationConfig;Lio/ktor/server/config/ApplicationConfig;)Lio/ktor/server/config/ApplicationConfig;
+}
+
+public abstract interface class io/ktor/server/config/SerializableConfigValue : io/ktor/server/config/ApplicationConfigValue {
+	public abstract fun getAs (Lio/ktor/util/reflect/TypeInfo;)Ljava/lang/Object;
 }
 
 public abstract interface class io/ktor/server/engine/ApplicationEngine {
@@ -1577,6 +1591,7 @@ public final class io/ktor/server/routing/RouteSelectorEvaluation$Companion {
 	public final fun getConstant ()Lio/ktor/server/routing/RouteSelectorEvaluation;
 	public final fun getConstantPath ()Lio/ktor/server/routing/RouteSelectorEvaluation;
 	public final fun getFailed ()Lio/ktor/server/routing/RouteSelectorEvaluation$Failure;
+	public final fun getFailedAcceptHeader ()Lio/ktor/server/routing/RouteSelectorEvaluation$Failure;
 	public final fun getFailedMethod ()Lio/ktor/server/routing/RouteSelectorEvaluation$Failure;
 	public final fun getFailedParameter ()Lio/ktor/server/routing/RouteSelectorEvaluation$Failure;
 	public final fun getFailedPath ()Lio/ktor/server/routing/RouteSelectorEvaluation$Failure;
@@ -1688,6 +1703,7 @@ public class io/ktor/server/routing/RoutingNode : io/ktor/server/application/App
 
 public final class io/ktor/server/routing/RoutingNodeKt {
 	public static final fun getAllRoutes (Lio/ktor/server/routing/RoutingNode;)Ljava/util/List;
+	public static final fun getPath (Lio/ktor/server/routing/RoutingNode;)Ljava/lang/String;
 	public static final fun insertPhaseAfter (Lio/ktor/server/routing/Route;Lio/ktor/util/pipeline/PipelinePhase;Lio/ktor/util/pipeline/PipelinePhase;)V
 	public static final fun insertPhaseBefore (Lio/ktor/server/routing/Route;Lio/ktor/util/pipeline/PipelinePhase;Lio/ktor/util/pipeline/PipelinePhase;)V
 	public static final fun intercept (Lio/ktor/server/routing/Route;Lio/ktor/util/pipeline/PipelinePhase;Lkotlin/jvm/functions/Function3;)V

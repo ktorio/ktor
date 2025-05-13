@@ -13,13 +13,13 @@ kotlin {
 
     sourceSets {
         jvmMain.dependencies {
-            api(project(":ktor-server:ktor-server-core"))
+            api(projects.ktorServerCore)
 
             compileOnly(libs.jakarta.servlet)
         }
 
         jvmTest.dependencies {
-            api(project(":ktor-server:ktor-server-config-yaml"))
+            api(projects.ktorServerConfigYaml)
             implementation(libs.mockk)
             implementation(libs.jakarta.servlet)
         }

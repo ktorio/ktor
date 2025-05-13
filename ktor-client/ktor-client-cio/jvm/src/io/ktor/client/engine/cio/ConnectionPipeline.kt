@@ -15,12 +15,12 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.sync.*
-import kotlinx.io.*
-import java.nio.channels.*
-import kotlin.coroutines.*
+import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.io.EOFException
+import java.nio.channels.ClosedChannelException
+import kotlin.coroutines.CoroutineContext
 import io.ktor.utils.io.ByteChannel as KtorByteChannel
 
 internal actual class ConnectionPipeline actual constructor(
@@ -73,7 +73,9 @@ internal actual class ConnectionPipeline actual constructor(
                 requestLimit.release()
                 try {
                     val rawResponse = parseResponse(networkInput)
-                        ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")
+                        ?: throw ClosedReadChannelException(
+                            EOFException("Failed to parse HTTP response: unexpected EOF")
+                        )
 
                     val callContext = task.context
                     val callJob = callContext[Job]!!

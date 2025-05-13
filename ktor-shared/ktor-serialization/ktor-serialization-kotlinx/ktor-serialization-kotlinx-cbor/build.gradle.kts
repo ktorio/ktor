@@ -12,12 +12,12 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            api(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx"))
+            api(projects.ktorSerializationKotlinx)
             api(libs.kotlinx.serialization.cbor)
         }
         commonTest.dependencies {
             api(libs.kotlinx.serialization.json)
-            api(project(":ktor-shared:ktor-serialization:ktor-serialization-kotlinx:ktor-serialization-kotlinx-tests"))
+            api(projects.ktorSerializationKotlinxTests)
         }
     }
 }

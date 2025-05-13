@@ -19,12 +19,14 @@ public abstract interface class io/ktor/util/Attributes {
 	public abstract fun getOrNull (Lio/ktor/util/AttributeKey;)Ljava/lang/Object;
 	public abstract fun put (Lio/ktor/util/AttributeKey;Ljava/lang/Object;)V
 	public abstract fun remove (Lio/ktor/util/AttributeKey;)V
+	public abstract fun set (Lio/ktor/util/AttributeKey;Ljava/lang/Object;)V
 	public abstract fun take (Lio/ktor/util/AttributeKey;)Ljava/lang/Object;
 	public abstract fun takeOrNull (Lio/ktor/util/AttributeKey;)Ljava/lang/Object;
 }
 
 public final class io/ktor/util/Attributes$DefaultImpls {
 	public static fun get (Lio/ktor/util/Attributes;Lio/ktor/util/AttributeKey;)Ljava/lang/Object;
+	public static fun set (Lio/ktor/util/Attributes;Lio/ktor/util/AttributeKey;Ljava/lang/Object;)V
 	public static fun take (Lio/ktor/util/Attributes;Lio/ktor/util/AttributeKey;)Ljava/lang/Object;
 	public static fun takeOrNull (Lio/ktor/util/Attributes;Lio/ktor/util/AttributeKey;)Ljava/lang/Object;
 }
@@ -587,6 +589,37 @@ public final class io/ktor/util/collections/CopyOnWriteHashMap {
 	public final fun set (Ljava/lang/Object;Ljava/lang/Object;)V
 }
 
+public final class io/ktor/util/collections/MapDelegatesKt {
+	public static final fun asBoolean (Ljava/lang/String;)Lio/ktor/util/collections/SerializedMapValue;
+	public static final fun getValue (Lio/ktor/util/collections/SerializedMapValue;Lio/ktor/util/collections/StringMap;Lkotlin/reflect/KProperty;)Ljava/lang/Object;
+	public static final fun getValue (Ljava/lang/String;Lio/ktor/util/collections/StringMap;Lkotlin/reflect/KProperty;)Ljava/lang/String;
+	public static final fun setValue (Lio/ktor/util/collections/SerializedMapValue;Lio/ktor/util/collections/StringMap;Lkotlin/reflect/KProperty;Ljava/lang/Object;)V
+	public static final fun setValue (Ljava/lang/String;Lio/ktor/util/collections/StringMap;Lkotlin/reflect/KProperty;Ljava/lang/String;)V
+}
+
+public final class io/ktor/util/collections/SerializedMapValue {
+	public fun <init> (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+}
+
+public abstract interface class io/ktor/util/collections/StringMap {
+	public abstract fun get (Ljava/lang/String;)Ljava/lang/String;
+	public abstract fun remove (Ljava/lang/String;)Ljava/lang/String;
+	public abstract fun set (Ljava/lang/String;Ljava/lang/String;)V
+}
+
+public abstract interface class io/ktor/util/collections/StringMapDelegate : io/ktor/util/collections/StringMap {
+	public abstract fun get (Ljava/lang/String;)Ljava/lang/String;
+	public abstract fun getMap ()Ljava/util/Map;
+	public abstract fun remove (Ljava/lang/String;)Ljava/lang/String;
+	public abstract fun set (Ljava/lang/String;Ljava/lang/String;)V
+}
+
+public final class io/ktor/util/collections/StringMapDelegate$DefaultImpls {
+	public static fun get (Lio/ktor/util/collections/StringMapDelegate;Ljava/lang/String;)Ljava/lang/String;
+	public static fun remove (Lio/ktor/util/collections/StringMapDelegate;Ljava/lang/String;)Ljava/lang/String;
+	public static fun set (Lio/ktor/util/collections/StringMapDelegate;Ljava/lang/String;Ljava/lang/String;)V
+}
+
 public abstract interface class io/ktor/util/converters/ConversionService {
 	public abstract fun fromValues (Ljava/util/List;Lio/ktor/util/reflect/TypeInfo;)Ljava/lang/Object;
 	public abstract fun toValues (Ljava/lang/Object;)Ljava/util/List;
@@ -941,10 +974,12 @@ public final class io/ktor/util/logging/KtorSimpleLoggerJvmKt {
 }
 
 public final class io/ktor/util/logging/LoggerJvmKt {
+	public static final fun isDebugEnabled (Lorg/slf4j/Logger;)Z
 	public static final fun isTraceEnabled (Lorg/slf4j/Logger;)Z
 }
 
 public final class io/ktor/util/logging/LoggerKt {
+	public static final fun debug (Lorg/slf4j/Logger;Lkotlin/jvm/functions/Function0;)V
 	public static final fun error (Lorg/slf4j/Logger;Ljava/lang/Throwable;)V
 	public static final fun trace (Lorg/slf4j/Logger;Lkotlin/jvm/functions/Function0;)V
 }
@@ -1017,5 +1052,9 @@ public final class io/ktor/util/reflect/TypeInfoJvmKt {
 	public static final fun getReifiedType (Lio/ktor/util/reflect/TypeInfo;)Ljava/lang/reflect/Type;
 	public static final fun instanceOf (Ljava/lang/Object;Lkotlin/reflect/KClass;)Z
 	public static final fun typeInfoImpl (Ljava/lang/reflect/Type;Lkotlin/reflect/KClass;Lkotlin/reflect/KType;)Lio/ktor/util/reflect/TypeInfo;
+}
+
+public final class io/ktor/util/reflect/TypeKt {
+	public static final fun serializer (Lio/ktor/util/reflect/TypeInfo;)Lkotlinx/serialization/KSerializer;
 }
 

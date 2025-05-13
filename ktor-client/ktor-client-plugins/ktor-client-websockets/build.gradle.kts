@@ -4,12 +4,13 @@
 
 plugins {
     id("ktorbuild.project.client-plugin")
+    id("test-server")
 }
 
 kotlin {
     sourceSets {
         commonTest.dependencies {
-            api(project(":ktor-client:ktor-client-plugins:ktor-client-logging"))
+            api(projects.ktorClientLogging)
         }
     }
 }

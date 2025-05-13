@@ -767,6 +767,33 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
+    fun noRequestsMadeAfterFailureRefresh() = clientTests {
+        config {
+            install(Auth) {
+                bearer {
+                    refreshTokens { null }
+                    loadTokens { BearerTokens("invalid", "") }
+                }
+            }
+        }
+
+        test { client ->
+            val requests = mutableListOf<HttpRequestBuilder>()
+            client.plugin(HttpSend).intercept { request ->
+                requests.add(request)
+                execute(request)
+            }
+
+            client.prepareGet("$TEST_SERVER/auth/bearer/test-refresh").execute {
+                assertEquals(HttpStatusCode.Unauthorized, it.status)
+            }
+
+            assertEquals(1, requests.size)
+            assertEquals("Bearer invalid", requests[0].headers[HttpHeaders.Authorization])
+        }
+    }
+
+    @Test
     fun testBearerAuthWithCircuitBreaker() = testWithEngine(MockEngine) {
         config {
             install(Auth) {
