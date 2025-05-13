@@ -26,15 +26,12 @@ import io.ktor.utils.io.readText
 import io.ktor.utils.io.writeFully
 import io.ktor.utils.io.writeStringUtf8
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.withTimeout
-import kotlinx.coroutines.yield
 import kotlinx.io.readByteArray
 import org.junit.jupiter.api.BeforeEach
 import java.net.UnknownHostException
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.ReentrantLock
 import kotlin.coroutines.CoroutineContext
 import kotlin.math.absoluteValue
 import kotlin.test.Test
@@ -42,68 +39,72 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
+import kotlin.test.fail
 
 class OkHttpFormatTest {
     class LogRecorder : Logger {
         private val loggedLines = mutableListOf<String>()
-//        private var currentLine = 0
         private val asserts = mutableListOf<(String) -> Unit>()
 
+        private val lock = ReentrantLock()
+        private val linesMatchAsserts = lock.newCondition()
+
         override fun log(message: String) {
-            loggedLines.addAll(message.split('\n'))
+            lock.lock()
+            try {
+                loggedLines.addAll(message.split('\n'))
+                linesMatchAsserts.signal()
+            } finally {
+                lock.unlock()
+            }
         }
 
         fun assertLogEqual(msg: String): LogRecorder {
-//            assertTrue(message = "No more logs to check") { currentLine < loggedLines.size }
-//            assertEquals(msg, loggedLines[currentLine])
             asserts.add { line ->
                 assertEquals(msg, line)
             }
-//            currentLine++
             return this
         }
 
         fun assertLogMatch(regex: Regex): LogRecorder {
-//            assertTrue(message = "No more logs to check") { currentLine < loggedLines.size }
-//            assertTrue(message = "Regex '$regex' doesn't match '${loggedLines[currentLine]}'") {
-//                regex.matches(
-//                    loggedLines[currentLine]
-//                )
-//            }
             asserts.add { line ->
                 assertTrue(message = "Regex '$regex' doesn't match '$line'") {
                     regex.matches(line)
                 }
             }
-//            currentLine++
             return this
         }
 
-        suspend fun assertNoMoreLogs(timeoutMs: Long = 2000): LogRecorder = coroutineScope {
-            val linesToWait = asserts.size - loggedLines.size
+        fun assertNoMoreLogs(timeoutMs: Long = 1000): LogRecorder {
+            lock.lock()
+            try {
+                val diff = asserts.size - loggedLines.size
 
-            assertTrue(message = "There are ${linesToWait.absoluteValue} more logs, expected none") { linesToWait >= 0 }
+                assertTrue(message = "There are ${diff.absoluteValue} more logs than asserts") { diff >= 0 }
 
-            if (linesToWait > 0) {
-                withTimeout(timeoutMs) {
-                    while (asserts.size > loggedLines.size) {
-                        delay(10)
-                        ensureActive()
-                        yield()
+                if (diff > 0) {
+                    var elapsed = false
+                    while(asserts.size > loggedLines.size && !elapsed) {
+                        elapsed = !linesMatchAsserts.await(timeoutMs, TimeUnit.MILLISECONDS)
                     }
                 }
+
+                if (asserts.size < loggedLines.size) {
+                    fail("There are ${loggedLines.size - asserts.size} more logs than asserts")
+                }
+
+                if (asserts.size > loggedLines.size) {
+                    fail("There are ${asserts.size - loggedLines.size} more asserts than logs")
+                }
+
+                for ((i, assert) in asserts.withIndex()) {
+                    assert(loggedLines[i])
+                }
+
+                return this@LogRecorder
+            } finally {
+                lock.unlock()
             }
-
-            assertEquals(asserts.size, loggedLines.size)
-
-            for ((i, assert) in asserts.withIndex()) {
-                assert(loggedLines[i])
-            }
-
-//            assertTrue(
-//                message = "There are ${loggedLines.size - currentLine} more logs, expected none"
-//            ) { currentLine >= loggedLines.size }
-            this@LogRecorder
         }
     }
 
