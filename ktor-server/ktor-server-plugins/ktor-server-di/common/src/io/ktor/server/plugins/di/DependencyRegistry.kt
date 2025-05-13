@@ -61,21 +61,6 @@ public class DependencyRegistry(
     }
 
     /**
-     * Performs resolutions, ensuring there are no missing dependencies.
-     *
-     * @throws DependencyInjectionException if there are invalid references in the configuration
-     */
-    public fun validate() {
-        for ((key, ex) in requirements) {
-            try {
-                resolver.value.get<Any>(key)
-            } catch (_: Throwable) {
-                throw ex
-            }
-        }
-    }
-
-    /**
      * Get the dependency from the map for the key represented by the type (and optionally, with the given name).
      */
     public inline fun <reified T> resolve(key: String? = null): T =

@@ -218,7 +218,6 @@ public final class io/ktor/server/plugins/di/DependencyRegistry : io/ktor/server
 	public fun named (Ljava/lang/String;)Lio/ktor/server/plugins/di/DependencyResolverContext;
 	public final fun require (Lio/ktor/server/plugins/di/DependencyKey;)V
 	public fun set (Lio/ktor/server/plugins/di/DependencyKey;Lkotlin/jvm/functions/Function1;)V
-	public final fun validate ()V
 }
 
 public final class io/ktor/server/plugins/di/DependencyRegistryKt {

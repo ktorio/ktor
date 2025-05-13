@@ -108,8 +108,6 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
                     }
                 }
             }
-            monitor.subscribe(ApplicationStopped) {
-            }
 
             attributes.put(DependencyRegistryKey, registry)
         }
