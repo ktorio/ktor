@@ -29,13 +29,16 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.math.min
 
-public class AndroidMediaDevices(private val context: Context) : MediaTrackFactory {
+public class AndroidMediaDevices(
+    private val context: Context,
+    eglBase: EglBase = EglBase.create()
+) : MediaTrackFactory {
 
-    private val eglBaseContext: EglBase.Context = EglBase.create().eglBaseContext
+    private val eglBaseContext: EglBase.Context = eglBase.eglBaseContext
+
     private val videoDecoderFactory by lazy {
         DefaultVideoDecoderFactory(eglBaseContext)
     }
-
     private val videoEncoderFactory by lazy {
         val hardwareEncoder = HardwareVideoEncoderFactory(eglBaseContext, true, true)
         SimulcastVideoEncoderFactory(hardwareEncoder, SoftwareVideoEncoderFactory())

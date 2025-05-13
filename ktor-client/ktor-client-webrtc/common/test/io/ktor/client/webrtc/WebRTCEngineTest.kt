@@ -5,21 +5,17 @@
 package io.ktor.client.webrtc
 
 import io.ktor.test.dispatcher.*
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 // Create different WebRTC engine implementation to be tested for every platform.
 expect fun createTestWebRTCClient(): WebRTCClient
@@ -183,21 +179,67 @@ class WebRTCEngineTest {
         pc1.setRemoteDescription(answer)
     }
 
+    private fun CoroutineScope.setupIceExchange(
+        pc1: WebRtcPeerConnection,
+        pc2: WebRtcPeerConnection,
+        jobs: MutableList<Job> = mutableListOf()
+    ) {
+        // Collect ICE candidates from both peers
+        val iceCandidates1 = Channel<WebRTC.IceCandidate>(Channel.UNLIMITED)
+        val iceCandidates2 = Channel<WebRTC.IceCandidate>(Channel.UNLIMITED)
+
+        val iceExchangeJobs = arrayOf(
+            launch { pc1.iceCandidateFlow.collect { iceCandidates1.send(it) } },
+            launch { pc2.iceCandidateFlow.collect { iceCandidates2.send(it) } },
+            launch {
+                for (candidate in iceCandidates1) {
+                    pc2.addIceCandidate(candidate)
+                }
+            },
+            launch {
+                for (candidate in iceCandidates2) {
+                    pc1.addIceCandidate(candidate)
+                }
+            }
+        )
+        jobs.addAll(iceExchangeJobs)
+    }
+
+    private fun <T> StateFlow<T>.collectAsConflatedChannel(scope: CoroutineScope, jobs: MutableList<Job>): Channel<T> {
+        val channel = Channel<T>(Channel.CONFLATED)
+        jobs.add(scope.launch { collect { channel.send(it) } })
+        return channel
+    }
+
     @Test
     fun testEstablishPeerConnection() = testConnection(realtime = true) { pc1 ->
         client.createPeerConnection().use { pc2 ->
-            // Collect ICE candidates from both peers
-            val iceCandidates1 = Channel<WebRTC.IceCandidate>(Channel.UNLIMITED)
-            val iceCandidates2 = Channel<WebRTC.IceCandidate>(Channel.UNLIMITED)
+            val cnt = atomic(0)
+            val negotiationNeededCnt = Channel<Int>(Channel.CONFLATED)
+            pc1.onNegotiationNeeded { launch { negotiationNeededCnt.send(cnt.incrementAndGet()) } }
+            pc2.onNegotiationNeeded { launch { negotiationNeededCnt.send(cnt.incrementAndGet()) } }
 
-            val connectionState1 = Channel<WebRTC.IceConnectionState>(Channel.CONFLATED)
-            val connectionState2 = Channel<WebRTC.IceConnectionState>(Channel.CONFLATED)
+            val jobs = mutableListOf<Job>()
 
-            val collectIceCandidates1Job = launch { pc1.iceCandidateFlow.collect { iceCandidates1.send(it) } }
-            val collectIceCandidates2Job = launch { pc2.iceCandidateFlow.collect { iceCandidates2.send(it) } }
+            val iceConnectionState1 = pc1.iceConnectionStateFlow.collectAsConflatedChannel(this, jobs)
+            val iceConnectionState2 = pc2.iceConnectionStateFlow.collectAsConflatedChannel(this, jobs)
+            val iceGatheringState1 = pc1.iceGatheringStateFlow.collectAsConflatedChannel(this, jobs)
+            val iceGatheringState2 = pc2.iceGatheringStateFlow.collectAsConflatedChannel(this, jobs)
+            val connectionState1 = pc1.connectionStateFlow.collectAsConflatedChannel(this, jobs)
+            val connectionState2 = pc2.connectionStateFlow.collectAsConflatedChannel(this, jobs)
+            val signalingState1 = pc1.signalingStateFlow.collectAsConflatedChannel(this, jobs)
+            val signalingState2 = pc2.signalingStateFlow.collectAsConflatedChannel(this, jobs)
 
-            val collectConnectionState1Job = launch { pc1.iceConnectionStateFlow.collect { connectionState1.send(it) } }
-            val collectConnectionState2Job = launch { pc2.iceConnectionStateFlow.collect { connectionState2.send(it) } }
+            assertEquals(WebRTC.IceConnectionState.NEW, iceConnectionState1.receive())
+            assertEquals(WebRTC.IceConnectionState.NEW, iceConnectionState2.receive())
+            assertEquals(WebRTC.SignalingState.CLOSED, signalingState1.receive())
+            assertEquals(WebRTC.SignalingState.CLOSED, signalingState2.receive())
+            assertEquals(WebRTC.ConnectionState.NEW, connectionState1.receive())
+            assertEquals(WebRTC.ConnectionState.NEW, connectionState2.receive())
+            assertEquals(WebRTC.IceGatheringState.NEW, iceGatheringState1.receive())
+            assertEquals(WebRTC.IceGatheringState.NEW, iceGatheringState2.receive())
+
+            setupIceExchange(pc1, pc2, jobs)
 
             // Add audio tracks for both connections
             pc1.addTrack(client.createAudioTrack(WebRTCMedia.AudioTrackConstraints()))
@@ -206,24 +248,41 @@ class WebRTCEngineTest {
             negotiate(pc1, pc2)
 
             fun connectionEstablished(): Boolean =
-                pc1.iceConnectionStateFlow.value.isSuccessful() && pc2.iceConnectionStateFlow.value.isSuccessful()
+                pc1.iceConnectionStateFlow.value.isSuccessful() &&
+                    pc2.iceConnectionStateFlow.value.isSuccessful() &&
+                    pc1.signalingStateFlow.value == WebRTC.SignalingState.STABLE &&
+                    pc2.signalingStateFlow.value == WebRTC.SignalingState.STABLE &&
+                    pc1.iceGatheringStateFlow.value == WebRTC.IceGatheringState.COMPLETE &&
+                    pc2.iceGatheringStateFlow.value == WebRTC.IceGatheringState.COMPLETE
 
             withTimeout(5000) {
                 // Exchange ICE candidates
                 while (!connectionEstablished()) {
                     select {
-                        iceCandidates1.onReceiveCatching { pc2.addIceCandidate(it.getOrThrow()) }
-                        iceCandidates2.onReceiveCatching { pc1.addIceCandidate(it.getOrThrow()) }
-                        connectionState1.onReceiveCatching { it.getOrThrow() }
-                        connectionState2.onReceiveCatching { it.getOrThrow() }
+                        iceConnectionState1.onReceiveCatching { it.getOrThrow() }
+                        iceConnectionState2.onReceiveCatching { it.getOrThrow() }
+                        signalingState1.onReceiveCatching { it.getOrThrow() }
+                        signalingState2.onReceiveCatching { it.getOrThrow() }
+                        iceGatheringState1.onReceiveCatching { it.getOrThrow() }
+                        iceGatheringState2.onReceiveCatching { it.getOrThrow() }
                     }
                 }
             }
 
-            collectIceCandidates1Job.cancel()
-            collectIceCandidates2Job.cancel()
-            collectConnectionState1Job.cancel()
-            collectConnectionState2Job.cancel()
+            val validConnectionStates = listOf(WebRTC.ConnectionState.CONNECTED, WebRTC.ConnectionState.CONNECTING)
+            assertContains(validConnectionStates, connectionState1.receive())
+            assertContains(validConnectionStates, connectionState2.receive())
+
+            assertEquals(2, negotiationNeededCnt.receive())
+            pc1.restartIce()
+
+            withTimeout(5000) {
+                while (cnt.value < 3) {
+                    negotiationNeededCnt.receive()
+                }
+            }
+
+            jobs.forEach { it.cancel() }
         }
     }
 
@@ -280,45 +339,52 @@ class WebRTCEngineTest {
     }
 
     @Test
-    fun receiveRemoteTracks() = testConnection(realtime = true) { pc1 ->
-        client.createPeerConnection().use { pc2 ->
-            val remoteTracks1 = Channel<Operation<WebRTCMedia.Track>>(Channel.UNLIMITED)
-            val remoteTracks2 = Channel<Operation<WebRTCMedia.Track>>(Channel.UNLIMITED)
+    fun receiveRemoteTracks() = runTestWithPermissions(realTime = true) {
+        client.createPeerConnection().use { pc1 ->
+            client.createPeerConnection().use { pc2 ->
+                val negotiationNeededCnt = atomic(0)
+                pc1.onNegotiationNeeded { negotiationNeededCnt.incrementAndGet() }
+                pc2.onNegotiationNeeded { negotiationNeededCnt.incrementAndGet() }
 
-            val collectTracks1Job = launch { pc1.remoteTracksFlow.collect { remoteTracks1.send(it) } }
-            val collectTracks2Job = launch { pc2.remoteTracksFlow.collect { remoteTracks2.send(it) } }
+                val remoteTracks1 = Channel<Operation<WebRTCMedia.Track>>(Channel.UNLIMITED)
+                val remoteTracks2 = Channel<Operation<WebRTCMedia.Track>>(Channel.UNLIMITED)
 
-            pc1.addTrack(client.createAudioTrack(WebRTCMedia.AudioTrackConstraints()))
-            pc1.addTrack(client.createVideoTrack(WebRTCMedia.VideoTrackConstraints()))
+                val collectTracks1Job = launch { pc1.remoteTracksFlow.collect { remoteTracks1.send(it) } }
+                val collectTracks2Job = launch { pc2.remoteTracksFlow.collect { remoteTracks2.send(it) } }
 
-            val audioSender = pc2.addTrack(client.createAudioTrack(WebRTCMedia.AudioTrackConstraints()))
-            pc2.addTrack(client.createVideoTrack(WebRTCMedia.VideoTrackConstraints()))
+                pc1.addTrack(client.createAudioTrack(WebRTCMedia.AudioTrackConstraints()))
+                pc1.addTrack(client.createVideoTrack(WebRTCMedia.VideoTrackConstraints()))
 
-            negotiate(pc1, pc2)
+                val audioSender = pc2.addTrack(client.createAudioTrack(WebRTCMedia.AudioTrackConstraints()))
+                pc2.addTrack(client.createVideoTrack(WebRTCMedia.VideoTrackConstraints()))
 
-            // Check if remote tracks are emitted
-            withTimeout(5000) {
-                for (remoteTracks in listOf(remoteTracks1, remoteTracks2)) {
-                    val tracks = arrayOf(remoteTracks.receive(), remoteTracks.receive())
-                    assertTrue(tracks.all { it is Add })
-                    assertEquals(1, tracks.filter { it.item.kind === WebRTCMedia.TrackType.AUDIO }.size)
-                    assertEquals(1, tracks.filter { it.item.kind === WebRTCMedia.TrackType.VIDEO }.size)
+                negotiate(pc1, pc2)
+
+                // Check if remote tracks are emitted
+                withTimeout(5000) {
+                    for (remoteTracks in listOf(remoteTracks1, remoteTracks2)) {
+                        val tracks = arrayOf(remoteTracks.receive(), remoteTracks.receive())
+                        assertTrue(tracks.all { it is Add })
+                        assertEquals(1, tracks.filter { it.item.kind === WebRTCMedia.TrackType.AUDIO }.size)
+                        assertEquals(1, tracks.filter { it.item.kind === WebRTCMedia.TrackType.VIDEO }.size)
+                    }
                 }
+
+                // remove audio track at pc2, needs renegotiation to work
+                assertTrue(negotiationNeededCnt.value >= 2)
+                pc2.removeTrack(audioSender)
+                negotiate(pc1, pc2)
+
+                // Check if the remote track is removed
+                withTimeout(5000) {
+                    val removedTrack = remoteTracks1.receive()
+                    assertTrue(removedTrack is Remove)
+                    assertEquals(WebRTCMedia.TrackType.AUDIO, removedTrack.item.kind)
+                }
+
+                collectTracks1Job.cancel()
+                collectTracks2Job.cancel()
             }
-
-            // remove audio track at pc2, needs renegotiation to work
-            pc2.removeTrack(audioSender)
-            negotiate(pc1, pc2)
-
-            // Check if remote track is removed
-            withTimeout(5000) {
-                val removedTrack = remoteTracks1.receive()
-                assertTrue(removedTrack is Remove)
-                assertEquals(WebRTCMedia.TrackType.AUDIO, removedTrack.item.kind)
-            }
-
-            collectTracks1Job.cancel()
-            collectTracks2Job.cancel()
         }
     }
 }

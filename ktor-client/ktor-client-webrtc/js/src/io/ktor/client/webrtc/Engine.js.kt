@@ -74,7 +74,7 @@ public class JsWebRTCEngine(
 public class JsWebRtcPeerConnection(
     private val nativePeerConnection: RTCPeerConnection,
     override val coroutineContext: CoroutineContext,
-    private val statsRefreshRate: Long,
+    private val statsRefreshRate: Long
 ) : CoroutineScope, WebRtcPeerConnection() {
     init {
         nativePeerConnection.onicecandidate = { event: RTCPeerConnectionIceEvent ->
@@ -87,6 +87,18 @@ public class JsWebRtcPeerConnection(
             val newState = nativePeerConnection.iceConnectionState.toIceConnectionState()
             launch { currentIceConnectionState.emit(newState) }
         }
+        nativePeerConnection.onconnectionstatechange = {
+            val newState = nativePeerConnection.connectionState.toConnectionState()
+            launch { currentConnectionState.emit(newState) }
+        }
+        nativePeerConnection.onicegatheringstatechange = {
+            val newState = nativePeerConnection.iceGatheringState.toIceGatheringState()
+            launch { currentIceGatheringState.emit(newState) }
+        }
+        nativePeerConnection.onsignalingstatechange = {
+            val newState = nativePeerConnection.signalingState.toSignalingState()
+            launch { currentSignalingState.emit(newState) }
+        }
 
         nativePeerConnection.ontrack = { event: RTCTrackEvent ->
             val stream = event.streams.getOrNull(0)
@@ -96,6 +108,10 @@ public class JsWebRtcPeerConnection(
             launch {
                 remoteTracks.emit(Add(JsMediaTrack.from(event.track, stream ?: MediaStream())))
             }
+        }
+
+        nativePeerConnection.onnegotiationneeded = {
+            negotiationNeededCallback()
         }
 
         // Set up statistics collection
@@ -153,6 +169,10 @@ public class JsWebRtcPeerConnection(
 
     override fun close() {
         nativePeerConnection.close()
+    }
+
+    override fun restartIce() {
+        nativePeerConnection.restartIce()
     }
 }
 

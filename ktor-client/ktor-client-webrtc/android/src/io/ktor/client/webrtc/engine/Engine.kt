@@ -99,12 +99,8 @@ public class AndroidWebRtcPeerConnection(
                 iceCandidates.emit(candidate.toCommon())
             }
         }
-        override fun onIceCandidatesRemoved(candidates: Array<out IceCandidate>?) = Unit
 
-        override fun onIceConnectionChange(newState: PeerConnection.IceConnectionState?) {
-            val commonState = newState.toCommon() ?: return
-            launch { currentIceConnectionState.emit(commonState) }
-        }
+        override fun onIceCandidatesRemoved(candidates: Array<out IceCandidate>?) = Unit
 
         override fun onAddTrack(receiver: RtpReceiver?, mediaStreams: Array<out MediaStream>?) {
             if (receiver == null || mediaStreams == null) return
@@ -120,14 +116,28 @@ public class AndroidWebRtcPeerConnection(
             }
         }
 
-        override fun onSignalingChange(newState: PeerConnection.SignalingState?) = Unit
+        override fun onIceConnectionChange(newState: PeerConnection.IceConnectionState?) {
+            val commonState = newState.toCommon() ?: return
+            launch { currentIceConnectionState.emit(commonState) }
+        }
+        override fun onConnectionChange(newState: PeerConnection.PeerConnectionState?) {
+            val commonState = newState.toCommon() ?: return
+            launch { currentConnectionState.emit(commonState) }
+        }
+        override fun onSignalingChange(newState: PeerConnection.SignalingState?) {
+            val commonState = newState.toCommon() ?: return
+            launch { currentSignalingState.emit(commonState) }
+        }
+        override fun onIceGatheringChange(newState: PeerConnection.IceGatheringState?) {
+            val commonState = newState.toCommon() ?: return
+            launch { currentIceGatheringState.emit(commonState) }
+        }
         override fun onIceConnectionReceivingChange(receiving: Boolean) = Unit
-        override fun onIceGatheringChange(newState: PeerConnection.IceGatheringState?) = Unit
+        override fun onRenegotiationNeeded(): Unit = negotiationNeededCallback()
+
         override fun onAddStream(p0: MediaStream?) = Unit
         override fun onRemoveStream(p0: MediaStream?) = Unit
-
-        override fun onDataChannel(dataChannel: DataChannel?) {}
-        override fun onRenegotiationNeeded() = println("Renegotiation needed")
+        override fun onDataChannel(dataChannel: DataChannel?) = Unit
     }
 
     override suspend fun createOffer(): WebRTC.SessionDescription {
@@ -189,6 +199,10 @@ public class AndroidWebRtcPeerConnection(
     override suspend fun removeTrack(sender: WebRTC.RtpSender) {
         val rtpSender = sender as? AndroidRtpSender ?: error("Sender should extend AndroidRtpSender")
         peerConnection.removeTrack(rtpSender.nativeRtpSender)
+    }
+
+    override fun restartIce() {
+        peerConnection.restartIce()
     }
 
     override fun close() {

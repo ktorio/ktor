@@ -90,7 +90,8 @@ public external interface RTCErrorEventInit : EventInit {
 }
 
 public external interface RTCErrorInit {
-    public var errorDetail: String /* "data-channel-failure" | "dtls-failure" | "fingerprint-failure" | "hardware-encoder-error" | "hardware-encoder-not-available" | "idp-bad-script-failure" | "idp-execution-failure" | "idp-load-failure" | "idp-need-login" | "idp-timeout" | "idp-tls-failure" | "idp-token-expired" | "idp-token-invalid" | "sctp-failure" | "sdp-syntax-error" */
+    /* "data-channel-failure" | "dtls-failure" | "fingerprint-failure" | "hardware-encoder-error" | "hardware-encoder-not-available" | "idp-bad-script-failure" | "idp-execution-failure" | "idp-load-failure" | "idp-need-login" | "idp-timeout" | "idp-tls-failure" | "idp-token-expired" | "idp-token-invalid" | "sctp-failure" | "sdp-syntax-error" */
+    public var errorDetail: String
     public var httpRequestStatusCode: Number?
         get() = definedExternally
         set(value) = definedExternally
@@ -509,7 +510,8 @@ public external class RTCDtlsTransportStateChangedEvent : Event {
 }
 
 public external class RTCError : DOMException {
-    public var errorDetail: String /* "data-channel-failure" | "dtls-failure" | "fingerprint-failure" | "hardware-encoder-error" | "hardware-encoder-not-available" | "idp-bad-script-failure" | "idp-execution-failure" | "idp-load-failure" | "idp-need-login" | "idp-timeout" | "idp-tls-failure" | "idp-token-expired" | "idp-token-invalid" | "sctp-failure" | "sdp-syntax-error" */
+    /* "data-channel-failure" | "dtls-failure" | "fingerprint-failure" | "hardware-encoder-error" | "hardware-encoder-not-available" | "idp-bad-script-failure" | "idp-execution-failure" | "idp-load-failure" | "idp-need-login" | "idp-timeout" | "idp-tls-failure" | "idp-token-expired" | "idp-token-invalid" | "sctp-failure" | "sdp-syntax-error" */
+    public var errorDetail: String
     public var httpRequestStatusCode: Number?
     public var receivedAlert: Number?
     public var sctpCauseCode: Number?
@@ -588,7 +590,9 @@ public external class RTCPeerConnection(config: RTCConfiguration) : EventTarget 
     public fun addIceCandidate(candidate: RTCIceCandidateInit = definedExternally): Promise<Unit>
     public fun addIceCandidate(): Promise<Unit>
     public fun addIceCandidate(candidate: RTCIceCandidate = definedExternally): Promise<Unit>
-    public var signalingState: String /* "closed" | "have-local-offer" | "have-local-pranswer" | "have-remote-offer" | "have-remote-pranswer" | "stable" */
+
+    /* "closed" | "have-local-offer" | "have-local-pranswer" | "have-remote-offer" | "have-remote-pranswer" | "stable" */
+    public var signalingState: String
     public var connectionState: String /* "closed" | "connected" | "connecting" | "disconnected" | "failed" | "new" */
     public fun getConfiguration(): RTCConfiguration
     public fun setConfiguration(configuration: RTCConfiguration)
@@ -666,7 +670,9 @@ public external class RTCPeerConnection(config: RTCConfiguration) : EventTarget 
     ): Promise<Unit>
 
     public var canTrickleIceCandidates: Boolean?
-    public var iceConnectionState: String /* "checking" | "closed" | "completed" | "connected" | "disconnected" | "failed" | "new" */
+
+    /* "checking" | "closed" | "completed" | "connected" | "disconnected" | "failed" | "new" */
+    public var iceConnectionState: String
     public var iceGatheringState: String /* "complete" | "gathering" | "new" */
     public var idpErrorInfo: String?
     public var idpLoginUrl: String?
@@ -682,6 +688,7 @@ public external class RTCPeerConnection(config: RTCConfiguration) : EventTarget 
     public fun createDataChannel(label: String): RTCDataChannel
     public fun getIdentityAssertion(): Promise<String>
     public fun setIdentityProvider(provider: String, options: RTCIdentityProviderOptions = definedExternally)
+    public fun restartIce()
 }
 
 public external class RTCPeerConnectionIceErrorEvent : Event {
@@ -727,7 +734,7 @@ public external interface RTCRtpTransceiver {
     public var receiver: RTCRtpReceiver
     public var stopped: Boolean
     public var direction: String /* "inactive" | "recvonly" | "sendonly" | "sendrecv" | "stopped" */
-    public fun setDirection(direction: String /* "inactive" | "recvonly" | "sendonly" | "sendrecv" | "stopped" */)
+    public fun setDirection(direction: String) /* "inactive" | "recvonly" | "sendonly" | "sendrecv" | "stopped" */
     public fun stop()
     public fun setCodecPreferences(codecs: Array<RTCRtpCodecCapability>)
     public fun setCodecPreferences(codecs: Iterable<RTCRtpCodecCapability>)

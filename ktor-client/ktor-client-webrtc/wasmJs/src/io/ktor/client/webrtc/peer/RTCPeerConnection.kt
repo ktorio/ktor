@@ -89,7 +89,8 @@ public external interface RTCErrorEventInit : EventInit {
 }
 
 public external interface RTCErrorInit : JsAny {
-    public var errorDetail: JsString /* "data-channel-failure" | "dtls-failure" | "fingerprint-failure" | "hardware-encoder-error" | "hardware-encoder-not-available" | "idp-bad-script-failure" | "idp-execution-failure" | "idp-load-failure" | "idp-need-login" | "idp-timeout" | "idp-tls-failure" | "idp-token-expired" | "idp-token-invalid" | "sctp-failure" | "sdp-syntax-error" */
+    /* "data-channel-failure" | "dtls-failure" | "fingerprint-failure" | "hardware-encoder-error" | "hardware-encoder-not-available" | "idp-bad-script-failure" | "idp-execution-failure" | "idp-load-failure" | "idp-need-login" | "idp-timeout" | "idp-tls-failure" | "idp-token-expired" | "idp-token-invalid" | "sctp-failure" | "sdp-syntax-error" */
+    public var errorDetail: JsString
     public var httpRequestStatusCode: JsNumber?
         get() = definedExternally
         set(value) = definedExternally
@@ -512,7 +513,8 @@ public external class RTCDtlsTransportStateChangedEvent : Event {
 }
 
 public external class RTCError : DOMException {
-    public var errorDetail: JsString /* "data-channel-failure" | "dtls-failure" | "fingerprint-failure" | "hardware-encoder-error" | "hardware-encoder-not-available" | "idp-bad-script-failure" | "idp-execution-failure" | "idp-load-failure" | "idp-need-login" | "idp-timeout" | "idp-tls-failure" | "idp-token-expired" | "idp-token-invalid" | "sctp-failure" | "sdp-syntax-error" */
+    /* "data-channel-failure" | "dtls-failure" | "fingerprint-failure" | "hardware-encoder-error" | "hardware-encoder-not-available" | "idp-bad-script-failure" | "idp-execution-failure" | "idp-load-failure" | "idp-need-login" | "idp-timeout" | "idp-tls-failure" | "idp-token-expired" | "idp-token-invalid" | "sctp-failure" | "sdp-syntax-error" */
+    public var errorDetail: JsString
     public var httpRequestStatusCode: JsNumber?
     public var receivedAlert: JsNumber?
     public var sctpCauseCode: JsNumber?
@@ -564,12 +566,17 @@ public external class RTCIceTransport : EventTarget {
     public var onstatechange: ((self: RTCIceTransport, ev: Event) -> JsAny)?
     public var ongatheringstatechange: ((self: RTCIceTransport, ev: Event) -> JsAny)?
     public var onselectedcandidatepairchange: ((self: RTCIceTransport, ev: Event) -> JsAny)?
-    public var component: JsString /* "rtcp" | "rtp" */
-    public var state: JsString /* "checking" | "closed" | "completed" | "connected" | "disconnected" | "failed" | "new" */
+
+    /* "rtcp" | "rtp" */
+    public var component: JsString
+
+    /* "checking" | "closed" | "completed" | "connected" | "disconnected" | "failed" | "new" */
+    public var state: JsString
 }
 
 public external class RTCIceTransportStateChangedEvent : Event {
-    public var state: JsString /* "checking" | "closed" | "completed" | "connected" | "disconnected" | "failed" | "new" */
+    /* "checking" | "closed" | "completed" | "connected" | "disconnected" | "failed" | "new" */
+    public var state: JsString
 }
 
 public external class RTCIdentityAssertion : JsAny {
@@ -593,13 +600,17 @@ public external class RTCPeerConnection(config: RTCConfiguration) : EventTarget 
     public fun addIceCandidate(candidate: RTCIceCandidateInit = definedExternally): Promise<JsUndefined>
     public fun addIceCandidate(): Promise<JsUndefined>
     public fun addIceCandidate(candidate: RTCIceCandidate = definedExternally): Promise<JsUndefined>
-    public var signalingState: JsString /* "closed" | "have-local-offer" | "have-local-pranswer" | "have-remote-offer" | "have-remote-pranswer" | "stable" */
-    public var connectionState: JsString /* "closed" | "connected" | "connecting" | "disconnected" | "failed" | "new" */
+
+    /* "closed" | "have-local-offer" | "have-local-pranswer" | "have-remote-offer" | "have-remote-pranswer" | "stable" */
+    public var signalingState: JsString
+
+    /* "closed" | "connected" | "connecting" | "disconnected" | "failed" | "new" */
+    public var connectionState: JsString
     public fun getConfiguration(): RTCConfiguration
     public fun setConfiguration(configuration: RTCConfiguration)
     public fun close()
     public var onicecandidateerror: ((self: RTCPeerConnection, ev: RTCPeerConnectionIceErrorEvent) -> Unit)?
-    public var onconnectionstatechange: ((self: RTCPeerConnection, ev: Event) -> Unit)?
+    public var onconnectionstatechange: ((ev: Event) -> Unit)?
     public fun getSenders(): JsArray<RTCRtpSender>
     public fun getReceivers(): JsArray<RTCRtpReceiver>
     public fun getTransceivers(): JsArray<RTCRtpTransceiver>
@@ -671,8 +682,12 @@ public external class RTCPeerConnection(config: RTCConfiguration) : EventTarget 
     ): Promise<JsUndefined>
 
     public var canTrickleIceCandidates: Boolean?
-    public var iceConnectionState: JsString /* "checking" | "closed" | "completed" | "connected" | "disconnected" | "failed" | "new" */
-    public var iceGatheringState: JsString /* "complete" | "gathering" | "new" */
+
+    /* "checking" | "closed" | "completed" | "connected" | "disconnected" | "failed" | "new" */
+    public var iceConnectionState: JsString
+
+    /* "complete" | "gathering" | "new" */
+    public var iceGatheringState: JsString
     public var idpErrorInfo: JsString?
     public var idpLoginUrl: JsString?
     public var onicecandidate: ((ev: RTCPeerConnectionIceEvent) -> Unit)?
@@ -690,6 +705,7 @@ public external class RTCPeerConnection(config: RTCConfiguration) : EventTarget 
     public fun createDataChannel(label: JsString): RTCDataChannel
     public fun getIdentityAssertion(): Promise<JsString>
     public fun setIdentityProvider(provider: JsString, options: RTCIdentityProviderOptions = definedExternally)
+    public fun restartIce()
 }
 
 public external class RTCPeerConnectionIceErrorEvent : Event {
@@ -734,8 +750,12 @@ public external interface RTCRtpTransceiver : JsAny {
     public var sender: RTCRtpSender
     public var receiver: RTCRtpReceiver
     public var stopped: Boolean
-    public var direction: JsString /* "inactive" | "recvonly" | "sendonly" | "sendrecv" | "stopped" */
-    public fun setDirection(direction: JsString /* "inactive" | "recvonly" | "sendonly" | "sendrecv" | "stopped" */)
+
+    /* "inactive" | "recvonly" | "sendonly" | "sendrecv" | "stopped" */
+    public var direction: JsString
+
+    /* "inactive" | "recvonly" | "sendonly" | "sendrecv" | "stopped" */
+    public fun setDirection(direction: JsString)
     public fun stop()
     public fun setCodecPreferences(codecs: JsArray<RTCRtpCodecCapability>)
     public var currentDirection: JsString /* "inactive" | "recvonly" | "sendonly" | "sendrecv" | "stopped" */

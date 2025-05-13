@@ -21,6 +21,9 @@ public final class io/ktor/client/webrtc/UtilsKt {
 	public static final fun resumeAfterSdpSet (Lkotlin/coroutines/Continuation;)Lorg/webrtc/SdpObserver;
 	public static final fun toCommon (Lorg/webrtc/IceCandidate;)Lio/ktor/client/webrtc/WebRTC$IceCandidate;
 	public static final fun toCommon (Lorg/webrtc/PeerConnection$IceConnectionState;)Lio/ktor/client/webrtc/WebRTC$IceConnectionState;
+	public static final fun toCommon (Lorg/webrtc/PeerConnection$IceGatheringState;)Lio/ktor/client/webrtc/WebRTC$IceGatheringState;
+	public static final fun toCommon (Lorg/webrtc/PeerConnection$PeerConnectionState;)Lio/ktor/client/webrtc/WebRTC$ConnectionState;
+	public static final fun toCommon (Lorg/webrtc/PeerConnection$SignalingState;)Lio/ktor/client/webrtc/WebRTC$SignalingState;
 	public static final fun toCommon (Lorg/webrtc/RTCStatsReport;)Ljava/util/List;
 	public static final fun toCommon (Lorg/webrtc/SessionDescription;)Lio/ktor/client/webrtc/WebRTC$SessionDescription;
 	public static final fun toNative (Lio/ktor/client/webrtc/WebRTC$SessionDescription;)Lorg/webrtc/SessionDescription;
@@ -28,6 +31,18 @@ public final class io/ktor/client/webrtc/UtilsKt {
 
 public final class io/ktor/client/webrtc/WebRTC {
 	public static final field INSTANCE Lio/ktor/client/webrtc/WebRTC;
+}
+
+public final class io/ktor/client/webrtc/WebRTC$ConnectionState : java/lang/Enum {
+	public static final field CLOSED Lio/ktor/client/webrtc/WebRTC$ConnectionState;
+	public static final field CONNECTED Lio/ktor/client/webrtc/WebRTC$ConnectionState;
+	public static final field CONNECTING Lio/ktor/client/webrtc/WebRTC$ConnectionState;
+	public static final field DISCONNECTED Lio/ktor/client/webrtc/WebRTC$ConnectionState;
+	public static final field FAILED Lio/ktor/client/webrtc/WebRTC$ConnectionState;
+	public static final field NEW Lio/ktor/client/webrtc/WebRTC$ConnectionState;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/ktor/client/webrtc/WebRTC$ConnectionState;
+	public static fun values ()[Lio/ktor/client/webrtc/WebRTC$ConnectionState;
 }
 
 public final class io/ktor/client/webrtc/WebRTC$DegradationPreference : java/lang/Enum {
@@ -94,6 +109,15 @@ public final class io/ktor/client/webrtc/WebRTC$IceConnectionState : java/lang/E
 public final class io/ktor/client/webrtc/WebRTC$IceException : java/lang/RuntimeException {
 	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class io/ktor/client/webrtc/WebRTC$IceGatheringState : java/lang/Enum {
+	public static final field COMPLETE Lio/ktor/client/webrtc/WebRTC$IceGatheringState;
+	public static final field GATHERING Lio/ktor/client/webrtc/WebRTC$IceGatheringState;
+	public static final field NEW Lio/ktor/client/webrtc/WebRTC$IceGatheringState;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/ktor/client/webrtc/WebRTC$IceGatheringState;
+	public static fun values ()[Lio/ktor/client/webrtc/WebRTC$IceGatheringState;
 }
 
 public final class io/ktor/client/webrtc/WebRTC$IceServer {
@@ -191,6 +215,18 @@ public final class io/ktor/client/webrtc/WebRTC$SessionDescriptionType : java/la
 
 public final class io/ktor/client/webrtc/WebRTC$SessionDescriptionType$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/client/webrtc/WebRTC$SignalingState : java/lang/Enum {
+	public static final field CLOSED Lio/ktor/client/webrtc/WebRTC$SignalingState;
+	public static final field HAVE_LOCAL_OFFER Lio/ktor/client/webrtc/WebRTC$SignalingState;
+	public static final field HAVE_LOCAL_PROVISIONAL_ANSWER Lio/ktor/client/webrtc/WebRTC$SignalingState;
+	public static final field HAVE_REMOTE_OFFER Lio/ktor/client/webrtc/WebRTC$SignalingState;
+	public static final field HAVE_REMOTE_PROVISIONAL_ANSWER Lio/ktor/client/webrtc/WebRTC$SignalingState;
+	public static final field STABLE Lio/ktor/client/webrtc/WebRTC$SignalingState;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/ktor/client/webrtc/WebRTC$SignalingState;
+	public static fun values ()[Lio/ktor/client/webrtc/WebRTC$SignalingState;
 }
 
 public final class io/ktor/client/webrtc/WebRTC$Stats {
@@ -391,23 +427,34 @@ public abstract class io/ktor/client/webrtc/WebRtcPeerConnection : java/io/Close
 	public abstract fun addTrack (Lio/ktor/client/webrtc/WebRTCMedia$Track;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun createAnswer (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun createOffer (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getConnectionStateFlow ()Lkotlinx/coroutines/flow/StateFlow;
+	protected final fun getCurrentConnectionState ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	protected final fun getCurrentIceConnectionState ()Lkotlinx/coroutines/flow/MutableStateFlow;
+	protected final fun getCurrentIceGatheringState ()Lkotlinx/coroutines/flow/MutableStateFlow;
+	protected final fun getCurrentSignalingState ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	protected final fun getCurrentStats ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public final fun getIceCandidateFlow ()Lkotlinx/coroutines/flow/SharedFlow;
 	protected final fun getIceCandidates ()Lkotlinx/coroutines/flow/MutableSharedFlow;
 	public final fun getIceConnectionStateFlow ()Lkotlinx/coroutines/flow/StateFlow;
+	public final fun getIceGatheringStateFlow ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getNativeConnection ()Ljava/lang/Object;
+	protected final fun getNegotiationNeededCallback ()Lkotlin/jvm/functions/Function0;
 	protected final fun getRemoteTracks ()Lkotlinx/coroutines/flow/MutableSharedFlow;
 	public final fun getRemoteTracksFlow ()Lkotlinx/coroutines/flow/SharedFlow;
+	public final fun getSignalingStateFlow ()Lkotlinx/coroutines/flow/StateFlow;
 	public final fun getStatsFlow ()Lkotlinx/coroutines/flow/StateFlow;
+	public final fun onNegotiationNeeded (Lkotlin/jvm/functions/Function0;)V
 	public abstract fun removeTrack (Lio/ktor/client/webrtc/WebRTC$RtpSender;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun removeTrack (Lio/ktor/client/webrtc/WebRTCMedia$Track;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun restartIce ()V
 	public abstract fun setLocalDescription (Lio/ktor/client/webrtc/WebRTC$SessionDescription;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	protected final fun setNegotiationNeededCallback (Lkotlin/jvm/functions/Function0;)V
 	public abstract fun setRemoteDescription (Lio/ktor/client/webrtc/WebRTC$SessionDescription;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/client/webrtc/engine/AndroidMediaDevices : io/ktor/client/webrtc/MediaTrackFactory {
-	public fun <init> (Landroid/content/Context;)V
+	public fun <init> (Landroid/content/Context;Lorg/webrtc/EglBase;)V
+	public synthetic fun <init> (Landroid/content/Context;Lorg/webrtc/EglBase;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun createAudioTrack (Lio/ktor/client/webrtc/WebRTCMedia$AudioTrackConstraints;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun createVideoTrack (Lio/ktor/client/webrtc/WebRTCMedia$VideoTrackConstraints;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getPeerConnectionFactory ()Lorg/webrtc/PeerConnectionFactory;
@@ -449,6 +496,7 @@ public final class io/ktor/client/webrtc/engine/AndroidWebRtcPeerConnection : io
 	public final fun initialize (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/webrtc/engine/AndroidWebRtcPeerConnection;
 	public fun removeTrack (Lio/ktor/client/webrtc/WebRTC$RtpSender;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun removeTrack (Lio/ktor/client/webrtc/WebRTCMedia$Track;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun restartIce ()V
 	public fun setLocalDescription (Lio/ktor/client/webrtc/WebRTC$SessionDescription;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun setRemoteDescription (Lio/ktor/client/webrtc/WebRTC$SessionDescription;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }

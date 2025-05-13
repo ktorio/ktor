@@ -38,8 +38,34 @@ public fun String?.toIceConnectionState(): WebRTC.IceConnectionState = when (thi
     "failed" -> WebRTC.IceConnectionState.FAILED
     "disconnected" -> WebRTC.IceConnectionState.DISCONNECTED
     "closed" -> WebRTC.IceConnectionState.CLOSED
-    null -> WebRTC.IceConnectionState.NEW
     else -> error("Unknown ice connection state: $this")
+}
+
+public fun String?.toConnectionState(): WebRTC.ConnectionState = when (this) {
+    "new" -> WebRTC.ConnectionState.NEW
+    "connecting" -> WebRTC.ConnectionState.CONNECTING
+    "connected" -> WebRTC.ConnectionState.CONNECTED
+    "disconnected" -> WebRTC.ConnectionState.DISCONNECTED
+    "closed" -> WebRTC.ConnectionState.CLOSED
+    "failed" -> WebRTC.ConnectionState.FAILED
+    else -> error("Unknown connection state: $this")
+}
+
+public fun String?.toIceGatheringState(): WebRTC.IceGatheringState = when (this) {
+    "new" -> WebRTC.IceGatheringState.NEW
+    "gathering" -> WebRTC.IceGatheringState.GATHERING
+    "complete" -> WebRTC.IceGatheringState.COMPLETE
+    else -> error("Unknown ice gathering state: $this")
+}
+
+public fun String?.toSignalingState(): WebRTC.SignalingState = when (this) {
+    "stable" -> WebRTC.SignalingState.STABLE
+    "have-local-offer" -> WebRTC.SignalingState.HAVE_LOCAL_OFFER
+    "have-remote-offer" -> WebRTC.SignalingState.HAVE_REMOTE_OFFER
+    "have-local-pranswer" -> WebRTC.SignalingState.HAVE_LOCAL_PROVISIONAL_ANSWER
+    "have-remote-pranswer" -> WebRTC.SignalingState.HAVE_REMOTE_PROVISIONAL_ANSWER
+    "closed" -> WebRTC.SignalingState.CLOSED
+    else -> error("Unknown signaling state: $this")
 }
 
 internal inline fun <T> withSdpException(message: String, block: () -> T): T {

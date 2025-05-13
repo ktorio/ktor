@@ -64,8 +64,22 @@ public abstract class WebRtcPeerConnection : Closeable {
         MutableStateFlow(WebRTC.IceConnectionState.NEW)
     public val iceConnectionStateFlow: StateFlow<WebRTC.IceConnectionState> = currentIceConnectionState.asStateFlow()
 
+    protected val currentConnectionState: MutableStateFlow<WebRTC.ConnectionState> =
+        MutableStateFlow(WebRTC.ConnectionState.NEW)
+    public val connectionStateFlow: StateFlow<WebRTC.ConnectionState> = currentConnectionState.asStateFlow()
+
+    protected val currentIceGatheringState: MutableStateFlow<WebRTC.IceGatheringState> =
+        MutableStateFlow(WebRTC.IceGatheringState.NEW)
+    public val iceGatheringStateFlow: StateFlow<WebRTC.IceGatheringState> = currentIceGatheringState.asStateFlow()
+
+    protected val currentSignalingState: MutableStateFlow<WebRTC.SignalingState> =
+        MutableStateFlow(WebRTC.SignalingState.CLOSED)
+    public val signalingStateFlow: StateFlow<WebRTC.SignalingState> = currentSignalingState.asStateFlow()
+
     protected val remoteTracks: MutableSharedFlow<Operation<WebRTCMedia.Track>> = MutableSharedFlow()
     public val remoteTracksFlow: SharedFlow<Operation<WebRTCMedia.Track>> = remoteTracks.asSharedFlow()
+
+    protected var negotiationNeededCallback: () -> Unit = {}
 
     /**
      * Could be useful for some scenarios that are not covered yet
@@ -84,4 +98,9 @@ public abstract class WebRtcPeerConnection : Closeable {
 
     public abstract suspend fun removeTrack(sender: WebRTC.RtpSender)
     public abstract suspend fun removeTrack(track: WebRTCMedia.Track)
+    public abstract fun restartIce()
+
+    public fun onNegotiationNeeded(callback: () -> Unit) {
+        negotiationNeededCallback = callback
+    }
 }

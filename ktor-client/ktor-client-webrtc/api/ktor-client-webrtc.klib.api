@@ -38,8 +38,16 @@ abstract class io.ktor.client.webrtc/WebRTCEngineBase : io.ktor.client.webrtc/We
 abstract class io.ktor.client.webrtc/WebRtcPeerConnection : io.ktor.utils.io.core/Closeable { // io.ktor.client.webrtc/WebRtcPeerConnection|null[0]
     constructor <init>() // io.ktor.client.webrtc/WebRtcPeerConnection.<init>|<init>(){}[0]
 
+    final val connectionStateFlow // io.ktor.client.webrtc/WebRtcPeerConnection.connectionStateFlow|{}connectionStateFlow[0]
+        final fun <get-connectionStateFlow>(): kotlinx.coroutines.flow/StateFlow<io.ktor.client.webrtc/WebRTC.ConnectionState> // io.ktor.client.webrtc/WebRtcPeerConnection.connectionStateFlow.<get-connectionStateFlow>|<get-connectionStateFlow>(){}[0]
+    final val currentConnectionState // io.ktor.client.webrtc/WebRtcPeerConnection.currentConnectionState|{}currentConnectionState[0]
+        final fun <get-currentConnectionState>(): kotlinx.coroutines.flow/MutableStateFlow<io.ktor.client.webrtc/WebRTC.ConnectionState> // io.ktor.client.webrtc/WebRtcPeerConnection.currentConnectionState.<get-currentConnectionState>|<get-currentConnectionState>(){}[0]
     final val currentIceConnectionState // io.ktor.client.webrtc/WebRtcPeerConnection.currentIceConnectionState|{}currentIceConnectionState[0]
         final fun <get-currentIceConnectionState>(): kotlinx.coroutines.flow/MutableStateFlow<io.ktor.client.webrtc/WebRTC.IceConnectionState> // io.ktor.client.webrtc/WebRtcPeerConnection.currentIceConnectionState.<get-currentIceConnectionState>|<get-currentIceConnectionState>(){}[0]
+    final val currentIceGatheringState // io.ktor.client.webrtc/WebRtcPeerConnection.currentIceGatheringState|{}currentIceGatheringState[0]
+        final fun <get-currentIceGatheringState>(): kotlinx.coroutines.flow/MutableStateFlow<io.ktor.client.webrtc/WebRTC.IceGatheringState> // io.ktor.client.webrtc/WebRtcPeerConnection.currentIceGatheringState.<get-currentIceGatheringState>|<get-currentIceGatheringState>(){}[0]
+    final val currentSignalingState // io.ktor.client.webrtc/WebRtcPeerConnection.currentSignalingState|{}currentSignalingState[0]
+        final fun <get-currentSignalingState>(): kotlinx.coroutines.flow/MutableStateFlow<io.ktor.client.webrtc/WebRTC.SignalingState> // io.ktor.client.webrtc/WebRtcPeerConnection.currentSignalingState.<get-currentSignalingState>|<get-currentSignalingState>(){}[0]
     final val currentStats // io.ktor.client.webrtc/WebRtcPeerConnection.currentStats|{}currentStats[0]
         final fun <get-currentStats>(): kotlinx.coroutines.flow/MutableStateFlow<kotlin.collections/List<io.ktor.client.webrtc/WebRTC.Stats>> // io.ktor.client.webrtc/WebRtcPeerConnection.currentStats.<get-currentStats>|<get-currentStats>(){}[0]
     final val iceCandidateFlow // io.ktor.client.webrtc/WebRtcPeerConnection.iceCandidateFlow|{}iceCandidateFlow[0]
@@ -48,14 +56,23 @@ abstract class io.ktor.client.webrtc/WebRtcPeerConnection : io.ktor.utils.io.cor
         final fun <get-iceCandidates>(): kotlinx.coroutines.flow/MutableSharedFlow<io.ktor.client.webrtc/WebRTC.IceCandidate> // io.ktor.client.webrtc/WebRtcPeerConnection.iceCandidates.<get-iceCandidates>|<get-iceCandidates>(){}[0]
     final val iceConnectionStateFlow // io.ktor.client.webrtc/WebRtcPeerConnection.iceConnectionStateFlow|{}iceConnectionStateFlow[0]
         final fun <get-iceConnectionStateFlow>(): kotlinx.coroutines.flow/StateFlow<io.ktor.client.webrtc/WebRTC.IceConnectionState> // io.ktor.client.webrtc/WebRtcPeerConnection.iceConnectionStateFlow.<get-iceConnectionStateFlow>|<get-iceConnectionStateFlow>(){}[0]
+    final val iceGatheringStateFlow // io.ktor.client.webrtc/WebRtcPeerConnection.iceGatheringStateFlow|{}iceGatheringStateFlow[0]
+        final fun <get-iceGatheringStateFlow>(): kotlinx.coroutines.flow/StateFlow<io.ktor.client.webrtc/WebRTC.IceGatheringState> // io.ktor.client.webrtc/WebRtcPeerConnection.iceGatheringStateFlow.<get-iceGatheringStateFlow>|<get-iceGatheringStateFlow>(){}[0]
     final val remoteTracks // io.ktor.client.webrtc/WebRtcPeerConnection.remoteTracks|{}remoteTracks[0]
         final fun <get-remoteTracks>(): kotlinx.coroutines.flow/MutableSharedFlow<io.ktor.client.webrtc/Operation<io.ktor.client.webrtc/WebRTCMedia.Track>> // io.ktor.client.webrtc/WebRtcPeerConnection.remoteTracks.<get-remoteTracks>|<get-remoteTracks>(){}[0]
     final val remoteTracksFlow // io.ktor.client.webrtc/WebRtcPeerConnection.remoteTracksFlow|{}remoteTracksFlow[0]
         final fun <get-remoteTracksFlow>(): kotlinx.coroutines.flow/SharedFlow<io.ktor.client.webrtc/Operation<io.ktor.client.webrtc/WebRTCMedia.Track>> // io.ktor.client.webrtc/WebRtcPeerConnection.remoteTracksFlow.<get-remoteTracksFlow>|<get-remoteTracksFlow>(){}[0]
+    final val signalingStateFlow // io.ktor.client.webrtc/WebRtcPeerConnection.signalingStateFlow|{}signalingStateFlow[0]
+        final fun <get-signalingStateFlow>(): kotlinx.coroutines.flow/StateFlow<io.ktor.client.webrtc/WebRTC.SignalingState> // io.ktor.client.webrtc/WebRtcPeerConnection.signalingStateFlow.<get-signalingStateFlow>|<get-signalingStateFlow>(){}[0]
     final val statsFlow // io.ktor.client.webrtc/WebRtcPeerConnection.statsFlow|{}statsFlow[0]
         final fun <get-statsFlow>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/List<io.ktor.client.webrtc/WebRTC.Stats>> // io.ktor.client.webrtc/WebRtcPeerConnection.statsFlow.<get-statsFlow>|<get-statsFlow>(){}[0]
 
+    final var negotiationNeededCallback // io.ktor.client.webrtc/WebRtcPeerConnection.negotiationNeededCallback|{}negotiationNeededCallback[0]
+        final fun <get-negotiationNeededCallback>(): kotlin/Function0<kotlin/Unit> // io.ktor.client.webrtc/WebRtcPeerConnection.negotiationNeededCallback.<get-negotiationNeededCallback>|<get-negotiationNeededCallback>(){}[0]
+        final fun <set-negotiationNeededCallback>(kotlin/Function0<kotlin/Unit>) // io.ktor.client.webrtc/WebRtcPeerConnection.negotiationNeededCallback.<set-negotiationNeededCallback>|<set-negotiationNeededCallback>(kotlin.Function0<kotlin.Unit>){}[0]
+
     abstract fun getNativeConnection(): kotlin/Any // io.ktor.client.webrtc/WebRtcPeerConnection.getNativeConnection|getNativeConnection(){}[0]
+    abstract fun restartIce() // io.ktor.client.webrtc/WebRtcPeerConnection.restartIce|restartIce(){}[0]
     abstract suspend fun addIceCandidate(io.ktor.client.webrtc/WebRTC.IceCandidate) // io.ktor.client.webrtc/WebRtcPeerConnection.addIceCandidate|addIceCandidate(io.ktor.client.webrtc.WebRTC.IceCandidate){}[0]
     abstract suspend fun addTrack(io.ktor.client.webrtc/WebRTCMedia.Track): io.ktor.client.webrtc/WebRTC.RtpSender // io.ktor.client.webrtc/WebRtcPeerConnection.addTrack|addTrack(io.ktor.client.webrtc.WebRTCMedia.Track){}[0]
     abstract suspend fun createAnswer(): io.ktor.client.webrtc/WebRTC.SessionDescription // io.ktor.client.webrtc/WebRtcPeerConnection.createAnswer|createAnswer(){}[0]
@@ -64,6 +81,7 @@ abstract class io.ktor.client.webrtc/WebRtcPeerConnection : io.ktor.utils.io.cor
     abstract suspend fun removeTrack(io.ktor.client.webrtc/WebRTCMedia.Track) // io.ktor.client.webrtc/WebRtcPeerConnection.removeTrack|removeTrack(io.ktor.client.webrtc.WebRTCMedia.Track){}[0]
     abstract suspend fun setLocalDescription(io.ktor.client.webrtc/WebRTC.SessionDescription) // io.ktor.client.webrtc/WebRtcPeerConnection.setLocalDescription|setLocalDescription(io.ktor.client.webrtc.WebRTC.SessionDescription){}[0]
     abstract suspend fun setRemoteDescription(io.ktor.client.webrtc/WebRTC.SessionDescription) // io.ktor.client.webrtc/WebRtcPeerConnection.setRemoteDescription|setRemoteDescription(io.ktor.client.webrtc.WebRTC.SessionDescription){}[0]
+    final fun onNegotiationNeeded(kotlin/Function0<kotlin/Unit>) // io.ktor.client.webrtc/WebRtcPeerConnection.onNegotiationNeeded|onNegotiationNeeded(kotlin.Function0<kotlin.Unit>){}[0]
 }
 
 final class <#A: kotlin/Any?> io.ktor.client.webrtc/Add : io.ktor.client.webrtc/Operation<#A> { // io.ktor.client.webrtc/Add|null[0]
@@ -120,6 +138,21 @@ sealed class <#A: kotlin/Any?> io.ktor.client.webrtc/Operation { // io.ktor.clie
 }
 
 final object io.ktor.client.webrtc/WebRTC { // io.ktor.client.webrtc/WebRTC|null[0]
+    final enum class ConnectionState : kotlin/Enum<io.ktor.client.webrtc/WebRTC.ConnectionState> { // io.ktor.client.webrtc/WebRTC.ConnectionState|null[0]
+        enum entry CLOSED // io.ktor.client.webrtc/WebRTC.ConnectionState.CLOSED|null[0]
+        enum entry CONNECTED // io.ktor.client.webrtc/WebRTC.ConnectionState.CONNECTED|null[0]
+        enum entry CONNECTING // io.ktor.client.webrtc/WebRTC.ConnectionState.CONNECTING|null[0]
+        enum entry DISCONNECTED // io.ktor.client.webrtc/WebRTC.ConnectionState.DISCONNECTED|null[0]
+        enum entry FAILED // io.ktor.client.webrtc/WebRTC.ConnectionState.FAILED|null[0]
+        enum entry NEW // io.ktor.client.webrtc/WebRTC.ConnectionState.NEW|null[0]
+
+        final val entries // io.ktor.client.webrtc/WebRTC.ConnectionState.entries|#static{}entries[0]
+            final fun <get-entries>(): kotlin.enums/EnumEntries<io.ktor.client.webrtc/WebRTC.ConnectionState> // io.ktor.client.webrtc/WebRTC.ConnectionState.entries.<get-entries>|<get-entries>#static(){}[0]
+
+        final fun valueOf(kotlin/String): io.ktor.client.webrtc/WebRTC.ConnectionState // io.ktor.client.webrtc/WebRTC.ConnectionState.valueOf|valueOf#static(kotlin.String){}[0]
+        final fun values(): kotlin/Array<io.ktor.client.webrtc/WebRTC.ConnectionState> // io.ktor.client.webrtc/WebRTC.ConnectionState.values|values#static(){}[0]
+    }
+
     final enum class DegradationPreference : kotlin/Enum<io.ktor.client.webrtc/WebRTC.DegradationPreference> { // io.ktor.client.webrtc/WebRTC.DegradationPreference|null[0]
         enum entry BALANCED // io.ktor.client.webrtc/WebRTC.DegradationPreference.BALANCED|null[0]
         enum entry DISABLED // io.ktor.client.webrtc/WebRTC.DegradationPreference.DISABLED|null[0]
@@ -150,6 +183,18 @@ final object io.ktor.client.webrtc/WebRTC { // io.ktor.client.webrtc/WebRTC|null
         final fun values(): kotlin/Array<io.ktor.client.webrtc/WebRTC.IceConnectionState> // io.ktor.client.webrtc/WebRTC.IceConnectionState.values|values#static(){}[0]
     }
 
+    final enum class IceGatheringState : kotlin/Enum<io.ktor.client.webrtc/WebRTC.IceGatheringState> { // io.ktor.client.webrtc/WebRTC.IceGatheringState|null[0]
+        enum entry COMPLETE // io.ktor.client.webrtc/WebRTC.IceGatheringState.COMPLETE|null[0]
+        enum entry GATHERING // io.ktor.client.webrtc/WebRTC.IceGatheringState.GATHERING|null[0]
+        enum entry NEW // io.ktor.client.webrtc/WebRTC.IceGatheringState.NEW|null[0]
+
+        final val entries // io.ktor.client.webrtc/WebRTC.IceGatheringState.entries|#static{}entries[0]
+            final fun <get-entries>(): kotlin.enums/EnumEntries<io.ktor.client.webrtc/WebRTC.IceGatheringState> // io.ktor.client.webrtc/WebRTC.IceGatheringState.entries.<get-entries>|<get-entries>#static(){}[0]
+
+        final fun valueOf(kotlin/String): io.ktor.client.webrtc/WebRTC.IceGatheringState // io.ktor.client.webrtc/WebRTC.IceGatheringState.valueOf|valueOf#static(kotlin.String){}[0]
+        final fun values(): kotlin/Array<io.ktor.client.webrtc/WebRTC.IceGatheringState> // io.ktor.client.webrtc/WebRTC.IceGatheringState.values|values#static(){}[0]
+    }
+
     final enum class SessionDescriptionType : kotlin/Enum<io.ktor.client.webrtc/WebRTC.SessionDescriptionType> { // io.ktor.client.webrtc/WebRTC.SessionDescriptionType|null[0]
         enum entry ANSWER // io.ktor.client.webrtc/WebRTC.SessionDescriptionType.ANSWER|null[0]
         enum entry OFFER // io.ktor.client.webrtc/WebRTC.SessionDescriptionType.OFFER|null[0]
@@ -166,6 +211,21 @@ final object io.ktor.client.webrtc/WebRTC { // io.ktor.client.webrtc/WebRTC|null
             final fun serializer(): kotlinx.serialization/KSerializer<io.ktor.client.webrtc/WebRTC.SessionDescriptionType> // io.ktor.client.webrtc/WebRTC.SessionDescriptionType.Companion.serializer|serializer(){}[0]
             final fun serializer(kotlin/Array<out kotlinx.serialization/KSerializer<*>>...): kotlinx.serialization/KSerializer<*> // io.ktor.client.webrtc/WebRTC.SessionDescriptionType.Companion.serializer|serializer(kotlin.Array<out|kotlinx.serialization.KSerializer<*>>...){}[0]
         }
+    }
+
+    final enum class SignalingState : kotlin/Enum<io.ktor.client.webrtc/WebRTC.SignalingState> { // io.ktor.client.webrtc/WebRTC.SignalingState|null[0]
+        enum entry CLOSED // io.ktor.client.webrtc/WebRTC.SignalingState.CLOSED|null[0]
+        enum entry HAVE_LOCAL_OFFER // io.ktor.client.webrtc/WebRTC.SignalingState.HAVE_LOCAL_OFFER|null[0]
+        enum entry HAVE_LOCAL_PROVISIONAL_ANSWER // io.ktor.client.webrtc/WebRTC.SignalingState.HAVE_LOCAL_PROVISIONAL_ANSWER|null[0]
+        enum entry HAVE_REMOTE_OFFER // io.ktor.client.webrtc/WebRTC.SignalingState.HAVE_REMOTE_OFFER|null[0]
+        enum entry HAVE_REMOTE_PROVISIONAL_ANSWER // io.ktor.client.webrtc/WebRTC.SignalingState.HAVE_REMOTE_PROVISIONAL_ANSWER|null[0]
+        enum entry STABLE // io.ktor.client.webrtc/WebRTC.SignalingState.STABLE|null[0]
+
+        final val entries // io.ktor.client.webrtc/WebRTC.SignalingState.entries|#static{}entries[0]
+            final fun <get-entries>(): kotlin.enums/EnumEntries<io.ktor.client.webrtc/WebRTC.SignalingState> // io.ktor.client.webrtc/WebRTC.SignalingState.entries.<get-entries>|<get-entries>#static(){}[0]
+
+        final fun valueOf(kotlin/String): io.ktor.client.webrtc/WebRTC.SignalingState // io.ktor.client.webrtc/WebRTC.SignalingState.valueOf|valueOf#static(kotlin.String){}[0]
+        final fun values(): kotlin/Array<io.ktor.client.webrtc/WebRTC.SignalingState> // io.ktor.client.webrtc/WebRTC.SignalingState.values|values#static(){}[0]
     }
 
     abstract interface DtmfSender { // io.ktor.client.webrtc/WebRTC.DtmfSender|null[0]
@@ -1519,17 +1579,8 @@ final class io.ktor.client.webrtc.peer/RTCPeerConnection : org.w3c.dom.events/Ev
         final fun <get-localDescription>(): io.ktor.client.webrtc.peer/RTCSessionDescription? // io.ktor.client.webrtc.peer/RTCPeerConnection.localDescription.<get-localDescription>|<get-localDescription>(){}[0]
         final fun <set-localDescription>(io.ktor.client.webrtc.peer/RTCSessionDescription?) // io.ktor.client.webrtc.peer/RTCPeerConnection.localDescription.<set-localDescription>|<set-localDescription>(io.ktor.client.webrtc.peer.RTCSessionDescription?){}[0]
     final var onconnectionstatechange // io.ktor.client.webrtc.peer/RTCPeerConnection.onconnectionstatechange|{}onconnectionstatechange[0]
-        // Targets: [js]
         final fun <get-onconnectionstatechange>(): kotlin/Function1<org.w3c.dom.events/Event, kotlin/Unit>? // io.ktor.client.webrtc.peer/RTCPeerConnection.onconnectionstatechange.<get-onconnectionstatechange>|<get-onconnectionstatechange>(){}[0]
-
-        // Targets: [js]
         final fun <set-onconnectionstatechange>(kotlin/Function1<org.w3c.dom.events/Event, kotlin/Unit>?) // io.ktor.client.webrtc.peer/RTCPeerConnection.onconnectionstatechange.<set-onconnectionstatechange>|<set-onconnectionstatechange>(kotlin.Function1<org.w3c.dom.events.Event,kotlin.Unit>?){}[0]
-
-        // Targets: [wasmJs]
-        final fun <get-onconnectionstatechange>(): kotlin/Function2<io.ktor.client.webrtc.peer/RTCPeerConnection, org.w3c.dom.events/Event, kotlin/Unit>? // io.ktor.client.webrtc.peer/RTCPeerConnection.onconnectionstatechange.<get-onconnectionstatechange>|<get-onconnectionstatechange>(){}[0]
-
-        // Targets: [wasmJs]
-        final fun <set-onconnectionstatechange>(kotlin/Function2<io.ktor.client.webrtc.peer/RTCPeerConnection, org.w3c.dom.events/Event, kotlin/Unit>?) // io.ktor.client.webrtc.peer/RTCPeerConnection.onconnectionstatechange.<set-onconnectionstatechange>|<set-onconnectionstatechange>(kotlin.Function2<io.ktor.client.webrtc.peer.RTCPeerConnection,org.w3c.dom.events.Event,kotlin.Unit>?){}[0]
     final var ondatachannel // io.ktor.client.webrtc.peer/RTCPeerConnection.ondatachannel|{}ondatachannel[0]
         // Targets: [js]
         final fun <get-ondatachannel>(): kotlin/Function2<io.ktor.client.webrtc.peer/RTCPeerConnection, io.ktor.client.webrtc.peer/RTCDataChannelEvent, kotlin/Any>? // io.ktor.client.webrtc.peer/RTCPeerConnection.ondatachannel.<get-ondatachannel>|<get-ondatachannel>(){}[0]
@@ -1670,6 +1721,7 @@ final class io.ktor.client.webrtc.peer/RTCPeerConnection : org.w3c.dom.events/Ev
     final fun getStats(): kotlin.js/Promise<io.ktor.client.webrtc.peer/RTCStatsReport> // io.ktor.client.webrtc.peer/RTCPeerConnection.getStats|getStats(){}[0]
     final fun getStats(org.w3c.dom.mediacapture/MediaStreamTrack? = ...): kotlin.js/Promise<io.ktor.client.webrtc.peer/RTCStatsReport> // io.ktor.client.webrtc.peer/RTCPeerConnection.getStats|getStats(org.w3c.dom.mediacapture.MediaStreamTrack?){}[0]
     final fun removeTrack(io.ktor.client.webrtc.peer/RTCRtpSender) // io.ktor.client.webrtc.peer/RTCPeerConnection.removeTrack|removeTrack(io.ktor.client.webrtc.peer.RTCRtpSender){}[0]
+    final fun restartIce() // io.ktor.client.webrtc.peer/RTCPeerConnection.restartIce|restartIce(){}[0]
     final fun setConfiguration(io.ktor.client.webrtc.peer/RTCConfiguration) // io.ktor.client.webrtc.peer/RTCPeerConnection.setConfiguration|setConfiguration(io.ktor.client.webrtc.peer.RTCConfiguration){}[0]
 
     // Targets: [js]
@@ -2394,10 +2446,19 @@ final fun (io.ktor.client.webrtc/WebRTCMedia.VideoTrackConstraints).io.ktor.clie
 final fun (kotlin/String).io.ktor.client.webrtc/toTrackKind(): io.ktor.client.webrtc/WebRTCMedia.TrackType // io.ktor.client.webrtc/toTrackKind|toTrackKind@kotlin.String(){}[0]
 
 // Targets: [js, wasmJs]
+final fun (kotlin/String?).io.ktor.client.webrtc/toConnectionState(): io.ktor.client.webrtc/WebRTC.ConnectionState // io.ktor.client.webrtc/toConnectionState|toConnectionState@kotlin.String?(){}[0]
+
+// Targets: [js, wasmJs]
 final fun (kotlin/String?).io.ktor.client.webrtc/toDegradationPreference(): io.ktor.client.webrtc/WebRTC.DegradationPreference // io.ktor.client.webrtc/toDegradationPreference|toDegradationPreference@kotlin.String?(){}[0]
 
 // Targets: [js, wasmJs]
 final fun (kotlin/String?).io.ktor.client.webrtc/toIceConnectionState(): io.ktor.client.webrtc/WebRTC.IceConnectionState // io.ktor.client.webrtc/toIceConnectionState|toIceConnectionState@kotlin.String?(){}[0]
+
+// Targets: [js, wasmJs]
+final fun (kotlin/String?).io.ktor.client.webrtc/toIceGatheringState(): io.ktor.client.webrtc/WebRTC.IceGatheringState // io.ktor.client.webrtc/toIceGatheringState|toIceGatheringState@kotlin.String?(){}[0]
+
+// Targets: [js, wasmJs]
+final fun (kotlin/String?).io.ktor.client.webrtc/toSignalingState(): io.ktor.client.webrtc/WebRTC.SignalingState // io.ktor.client.webrtc/toSignalingState|toSignalingState@kotlin.String?(){}[0]
 
 // Targets: [js]
 abstract interface <#A: kotlin/Any?> io.ktor.client.webrtc.peer/ReadonlyMap { // io.ktor.client.webrtc.peer/ReadonlyMap|null[0]
@@ -3086,6 +3147,7 @@ final class io.ktor.client.webrtc/JsWebRtcPeerConnection : io.ktor.client.webrtc
 
     final fun close() // io.ktor.client.webrtc/JsWebRtcPeerConnection.close|close(){}[0]
     final fun getNativeConnection(): kotlin/Any // io.ktor.client.webrtc/JsWebRtcPeerConnection.getNativeConnection|getNativeConnection(){}[0]
+    final fun restartIce() // io.ktor.client.webrtc/JsWebRtcPeerConnection.restartIce|restartIce(){}[0]
     final suspend fun addIceCandidate(io.ktor.client.webrtc/WebRTC.IceCandidate) // io.ktor.client.webrtc/JsWebRtcPeerConnection.addIceCandidate|addIceCandidate(io.ktor.client.webrtc.WebRTC.IceCandidate){}[0]
     final suspend fun addTrack(io.ktor.client.webrtc/WebRTCMedia.Track): io.ktor.client.webrtc/WebRTC.RtpSender // io.ktor.client.webrtc/JsWebRtcPeerConnection.addTrack|addTrack(io.ktor.client.webrtc.WebRTCMedia.Track){}[0]
     final suspend fun createAnswer(): io.ktor.client.webrtc/WebRTC.SessionDescription // io.ktor.client.webrtc/JsWebRtcPeerConnection.createAnswer|createAnswer(){}[0]
@@ -3752,6 +3814,7 @@ final class io.ktor.client.webrtc/WasmJsWebRtcPeerConnection : io.ktor.client.we
 
     final fun close() // io.ktor.client.webrtc/WasmJsWebRtcPeerConnection.close|close(){}[0]
     final fun getNativeConnection(): kotlin/Any // io.ktor.client.webrtc/WasmJsWebRtcPeerConnection.getNativeConnection|getNativeConnection(){}[0]
+    final fun restartIce() // io.ktor.client.webrtc/WasmJsWebRtcPeerConnection.restartIce|restartIce(){}[0]
     final suspend fun addIceCandidate(io.ktor.client.webrtc/WebRTC.IceCandidate) // io.ktor.client.webrtc/WasmJsWebRtcPeerConnection.addIceCandidate|addIceCandidate(io.ktor.client.webrtc.WebRTC.IceCandidate){}[0]
     final suspend fun addTrack(io.ktor.client.webrtc/WebRTCMedia.Track): io.ktor.client.webrtc/WebRTC.RtpSender // io.ktor.client.webrtc/WasmJsWebRtcPeerConnection.addTrack|addTrack(io.ktor.client.webrtc.WebRTCMedia.Track){}[0]
     final suspend fun createAnswer(): io.ktor.client.webrtc/WebRTC.SessionDescription // io.ktor.client.webrtc/WasmJsWebRtcPeerConnection.createAnswer|createAnswer(){}[0]

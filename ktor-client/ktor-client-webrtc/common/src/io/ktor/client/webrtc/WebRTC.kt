@@ -19,6 +19,30 @@ public object WebRTC {
         public fun isSuccessful(): Boolean = this == COMPLETED || this == CONNECTED
     }
 
+    public enum class IceGatheringState {
+        NEW,
+        GATHERING,
+        COMPLETE
+    }
+
+    public enum class ConnectionState {
+        NEW,
+        CONNECTING,
+        CONNECTED,
+        DISCONNECTED,
+        FAILED,
+        CLOSED
+    }
+
+    public enum class SignalingState {
+        STABLE,
+        CLOSED,
+        HAVE_LOCAL_OFFER,
+        HAVE_LOCAL_PROVISIONAL_ANSWER,
+        HAVE_REMOTE_OFFER,
+        HAVE_REMOTE_PROVISIONAL_ANSWER,
+    }
+
     public data class Stats(
         val id: String,
         val type: String,

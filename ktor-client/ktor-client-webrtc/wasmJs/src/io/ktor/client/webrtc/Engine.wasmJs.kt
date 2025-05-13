@@ -66,7 +66,7 @@ public class WasmJsWebRTCEngine(
 public class WasmJsWebRtcPeerConnection(
     private val nativePeerConnection: RTCPeerConnection,
     override val coroutineContext: CoroutineContext,
-    private val statsRefreshRate: Long,
+    private val statsRefreshRate: Long
 ) : WebRtcPeerConnection(), CoroutineScope {
     init {
         nativePeerConnection.onicecandidate = { event: RTCPeerConnectionIceEvent ->
@@ -79,6 +79,18 @@ public class WasmJsWebRtcPeerConnection(
             val newState = nativePeerConnection.iceConnectionState.toString().toIceConnectionState()
             launch { currentIceConnectionState.emit(newState) }
         }
+        nativePeerConnection.onconnectionstatechange = {
+            val newState = nativePeerConnection.connectionState.toString().toConnectionState()
+            launch { currentConnectionState.emit(newState) }
+        }
+        nativePeerConnection.onsignalingstatechange = {
+            val newState = nativePeerConnection.signalingState.toString().toSignalingState()
+            launch { currentSignalingState.emit(newState) }
+        }
+        nativePeerConnection.onicegatheringstatechange = {
+            val newState = nativePeerConnection.iceGatheringState.toString().toIceGatheringState()
+            launch { currentIceGatheringState.emit(newState) }
+        }
 
         nativePeerConnection.ontrack = { event: RTCTrackEvent ->
             val stream = event.streams[0]
@@ -88,6 +100,10 @@ public class WasmJsWebRtcPeerConnection(
             launch {
                 remoteTracks.emit(Add(WasmJsMediaTrack.from(event.track, stream ?: MediaStream())))
             }
+        }
+
+        nativePeerConnection.onnegotiationneeded = {
+            negotiationNeededCallback()
         }
 
         // Set up statistics collection
@@ -139,12 +155,16 @@ public class WasmJsWebRtcPeerConnection(
         sender?.let { nativePeerConnection.removeTrack(it) }
     }
 
-    override fun close() {
-        nativePeerConnection.close()
-    }
-
     override suspend fun removeTrack(sender: WebRTC.RtpSender) {
         return nativePeerConnection.removeTrack((sender as WasmJsRtpSender).nativeSender)
+    }
+
+    override fun restartIce() {
+        nativePeerConnection.restartIce()
+    }
+
+    override fun close() {
+        nativePeerConnection.close()
     }
 }
 

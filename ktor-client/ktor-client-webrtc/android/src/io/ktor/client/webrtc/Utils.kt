@@ -36,6 +36,33 @@ public fun PeerConnection.IceConnectionState?.toCommon(): WebRTC.IceConnectionSt
     else -> null
 }
 
+public fun PeerConnection.PeerConnectionState?.toCommon(): WebRTC.ConnectionState? = when (this) {
+    PeerConnection.PeerConnectionState.NEW -> WebRTC.ConnectionState.NEW
+    PeerConnection.PeerConnectionState.CLOSED -> WebRTC.ConnectionState.CLOSED
+    PeerConnection.PeerConnectionState.CONNECTED -> WebRTC.ConnectionState.CONNECTED
+    PeerConnection.PeerConnectionState.DISCONNECTED -> WebRTC.ConnectionState.DISCONNECTED
+    PeerConnection.PeerConnectionState.FAILED -> WebRTC.ConnectionState.FAILED
+    PeerConnection.PeerConnectionState.CONNECTING -> WebRTC.ConnectionState.CONNECTING
+    else -> null
+}
+
+public fun PeerConnection.SignalingState?.toCommon(): WebRTC.SignalingState? = when (this) {
+    PeerConnection.SignalingState.STABLE -> WebRTC.SignalingState.STABLE
+    PeerConnection.SignalingState.CLOSED -> WebRTC.SignalingState.CLOSED
+    PeerConnection.SignalingState.HAVE_LOCAL_OFFER -> WebRTC.SignalingState.HAVE_LOCAL_OFFER
+    PeerConnection.SignalingState.HAVE_LOCAL_PRANSWER -> WebRTC.SignalingState.HAVE_LOCAL_PROVISIONAL_ANSWER
+    PeerConnection.SignalingState.HAVE_REMOTE_OFFER -> WebRTC.SignalingState.HAVE_REMOTE_OFFER
+    PeerConnection.SignalingState.HAVE_REMOTE_PRANSWER -> WebRTC.SignalingState.HAVE_REMOTE_PROVISIONAL_ANSWER
+    else -> null
+}
+
+public fun PeerConnection.IceGatheringState?.toCommon(): WebRTC.IceGatheringState? = when (this) {
+    PeerConnection.IceGatheringState.NEW -> WebRTC.IceGatheringState.NEW
+    PeerConnection.IceGatheringState.COMPLETE -> WebRTC.IceGatheringState.COMPLETE
+    PeerConnection.IceGatheringState.GATHERING -> WebRTC.IceGatheringState.GATHERING
+    else -> null
+}
+
 public fun SessionDescription.toCommon(): WebRTC.SessionDescription {
     return WebRTC.SessionDescription(
         when (requireNotNull(type)) {
