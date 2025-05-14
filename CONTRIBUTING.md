@@ -36,7 +36,13 @@ for other platforms, the corresponding tests for these should also be run. To se
 
 `./gradlew tasks`
 
-For Ktor to build correctly, a series of additional libraries/tools need to be installed, based on the operating
+If targeting macOS and/or iOS, install `Xcode` and `Xcode command line tools` on macOS.
+
+<details>
+<summary>Requirements for Ktor before 3.1.0</summary>
+
+For versions of Ktor before 3.1.0 to build correctly,
+a series of additional libraries/tools need to be installed, based on the operating
 system you use for development:
 
 **Linux**
@@ -57,12 +63,12 @@ Run the following commands:
 brew install curl ncurses
 ```
 
-If targeting macOS and/or iOS, install `Xcode` and `Xcode command line tools` on macOS.
-
 **Windows**
 
 For development on Windows, it is recommended to use [Cygwin](http://cygwin.com/) which will provide the necessary
 libraries such as `libncurses`.
+
+</details>
 
 #### Referencing artifacts locally
 
