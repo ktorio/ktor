@@ -10,6 +10,37 @@ public actual class InetSocketAddress actual constructor(
     public actual val hostname: String,
     public actual val port: Int
 ) : SocketAddress() {
+    public actual fun address(): ByteArray? {
+        val maybeIPv4 = hostname.contains('.')
+        val maybeIPv6 = hostname.contains(':')
+
+        if (maybeIPv4) {
+            try {
+                val octets = hostname.split('.', limit = 4).map { it.toInt().toByte() }
+                return List(4) { octets.getOrElse(it) { 0 } }.toByteArray()
+            } catch (_: Throwable) {}
+        }
+
+        if (maybeIPv6) {
+            try {
+                val groups = hostname.split(':', limit = 8)
+                val emptyGroups = 8 - groups.count { it.isNotEmpty() }
+
+                val bytes = groups.flatMap {
+                    if (it.isEmpty()) {
+                        List(emptyGroups * 2) { 0 }
+                    } else {
+                        val int = it.toInt(16)
+                        listOf((int shr 8).toByte(), int.toByte())
+                    }
+                }
+                return List(16) { bytes.getOrElse(it) { 0 } }.toByteArray()
+            } catch (_: Throwable) {}
+        }
+
+        return null
+    }
+
     /**
      * Create a copy of [InetSocketAddress].
      *

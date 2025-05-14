@@ -48,6 +48,8 @@ public expect class InetSocketAddress(
      */
     public val port: Int
 
+    public fun address(): ByteArray?
+
     /**
      * The hostname of the socket address.
      *
