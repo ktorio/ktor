@@ -33,6 +33,7 @@ public class DependencyRegistry(
 ) : DependencyProvider by provider, DependencyResolver {
 
     internal val requirements = mutableMapOf<DependencyKey, DependencyReference>()
+    internal val shutdownHooks = mutableMapOf<DependencyKey, (Any?) -> Unit>()
     private val resolver: Lazy<DependencyResolver> = lazy {
         resolution.resolve(provider, external, reflection)
     }
@@ -107,11 +108,41 @@ public class DependencyRegistry(
         provide<T> { create(kClass) }
     }
 
+    public inline fun <reified T> key(name: String? = null, noinline handler: KeyContext<T>.() -> Unit): KeyContext<T> =
+        KeyContext<T>(DependencyKey<T>(name)).also(handler)
+
     /**
      * Basic call for providing a dependency, like `provide<Service> { ServiceImpl() }`.
      */
-    public inline fun <reified T> provide(name: String? = null, noinline provide: DependencyResolver.() -> T?) {
-        set(DependencyKey<T>(name), provide)
+    public inline fun <reified T> provide(
+        name: String? = null,
+        noinline provide: DependencyResolver.() -> T?
+    ): KeyContext<T> =
+        key<T>(name) { provide(provide) }
+
+    public inline fun <reified T> cleanup(name: String? = null, noinline cleanup: (T) -> Unit): KeyContext<T> =
+        key<T>(name) { cleanup(cleanup) }
+
+    public fun cleanup(key: DependencyKey, cleanup: (Any?) -> Unit) {
+        require(!shutdownHooks.contains(key)) {
+            "Shutdown hook already registered for $this"
+        }
+        shutdownHooks[key] = cleanup
+    }
+
+    /**
+     * DSL class for performing multiple actions for the given key and type.
+     */
+    @KtorDsl
+    public inner class KeyContext<T>(public val key: DependencyKey) {
+        public infix fun provide(provide: DependencyResolver.() -> T?) {
+            this@DependencyRegistry.set(key, provide)
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        public infix fun cleanup(cleanup: (T) -> Unit) {
+            this@DependencyRegistry.cleanup(key) { cleanup(it as T) }
+        }
     }
 }
 

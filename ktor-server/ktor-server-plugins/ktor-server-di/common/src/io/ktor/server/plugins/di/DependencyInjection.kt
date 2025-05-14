@@ -67,6 +67,7 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
 
         val configMap = ConfigurationDependencyMap(application.environment.config)
         val dependenciesMap = pluginConfig.dependenciesMap?.let { it + configMap } ?: configMap
+        val onShutdown = pluginConfig.onShutdown
 
         var registry = DependencyRegistry(
             provider,
@@ -103,6 +104,17 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
                         throw DependencyInjectionException(
                             "Some dependencies could not be resolved; check logs for details"
                         )
+                    }
+                }
+            }
+            monitor.subscribe(ApplicationStopped) {
+                for (key in registry.declarations.keys.reversed()) {
+                    try {
+                        val instance = registry.get<Any?>(key)
+                        registry.shutdownHooks[key]?.invoke(instance)
+                        onShutdown(key, instance)
+                    } catch (e: Throwable) {
+                        environment.log.error("Exception during cleanup for $key; continuing", e)
                     }
                 }
             }
@@ -151,6 +163,8 @@ public object NoReflection : DependencyReflection {
  *                    Defaults to a `MapDependencyProvider`.
  * @property resolution Defines the strategy for resolving dependencies.
  *                      Defaults to `DefaultDependencyResolution`.
+ * @property onShutdown A callback invoked when the application stops.
+ *                      Defaults to closing all instances of `AutoCloseable`
  *
  * @see DependencyReflection
  * @see DependencyProvider
@@ -159,13 +173,19 @@ public object NoReflection : DependencyReflection {
  */
 public class DependencyInjectionConfig {
     internal var providerChanged = false
+
     public var reflection: DependencyReflection = DefaultReflection
+
     public var provider: DependencyProvider = MapDependencyProvider()
         set(value) {
             field = value
             providerChanged = true
         }
+
     public var resolution: DependencyResolution = DefaultDependencyResolution
+    public var onShutdown: (DependencyKey, Any?) -> Unit = { _, instance ->
+        (instance as? AutoCloseable)?.close()
+    }
     internal var dependenciesMap: DependencyMap? = null
 
     /**
