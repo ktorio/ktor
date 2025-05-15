@@ -112,7 +112,8 @@ public class CIOApplicationEngine(
         return when (connectorSpec) {
             is UnixSocketConnectorConfig -> {
                 val settings = UnixSocketServerSettings(
-                    socketPath = connectorSpec.socketPath
+                    socketPath = connectorSpec.socketPath,
+                    connectionIdleTimeoutSeconds = configuration.connectionIdleTimeoutSeconds.toLong(),
                 )
 
                 unixSocketServer(settings) { request ->
