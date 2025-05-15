@@ -4,9 +4,10 @@
 
 package io.ktor.server.config.yaml
 
+import com.charleskorn.kaml.Yaml
+import com.charleskorn.kaml.YamlMap
 import io.ktor.server.config.*
-import net.mamoe.yamlkt.Yaml
-import net.mamoe.yamlkt.YamlMap
+import kotlinx.serialization.decodeFromString
 import kotlin.test.*
 import kotlin.test.Test
 
@@ -46,9 +47,8 @@ class YamlConfigTestJvm {
             ktor:
                 property: "${'$'}test.property"
             """.trimIndent()
-            val yaml = Yaml.decodeYamlFromString(content)
-            val config = YamlConfig(yaml as YamlMap)
-            config.checkEnvironmentVariables()
+            val yaml = Yaml.default.decodeFromString<YamlMap>(content)
+            val config = YamlConfig.from(yaml)
 
             val value = config.property("ktor.property").getString()
             assertEquals("systemValue", value)

@@ -1367,6 +1367,7 @@ final var io.ktor.client.request/port // io.ktor.client.request/port|@io.ktor.cl
     final fun (io.ktor.client.request/HttpRequestBuilder).<get-port>(): kotlin/Int // io.ktor.client.request/port.<get-port>|<get-port>@io.ktor.client.request.HttpRequestBuilder(){}[0]
     final fun (io.ktor.client.request/HttpRequestBuilder).<set-port>(kotlin/Int) // io.ktor.client.request/port.<set-port>|<set-port>@io.ktor.client.request.HttpRequestBuilder(kotlin.Int){}[0]
 
+final fun (io.ktor.client.call/HttpClientCall).io.ktor.client.call/replaceResponse(io.ktor.http/Headers = ..., kotlin/Function1<io.ktor.client.statement/HttpResponse, io.ktor.utils.io/ByteReadChannel>): io.ktor.client.call/HttpClientCall // io.ktor.client.call/replaceResponse|replaceResponse@io.ktor.client.call.HttpClientCall(io.ktor.http.Headers;kotlin.Function1<io.ktor.client.statement.HttpResponse,io.ktor.utils.io.ByteReadChannel>){}[0]
 final fun (io.ktor.client.call/HttpClientCall).io.ktor.client.plugins.observer/wrap(io.ktor.utils.io/ByteReadChannel, io.ktor.http/Headers): io.ktor.client.call/HttpClientCall // io.ktor.client.plugins.observer/wrap|wrap@io.ktor.client.call.HttpClientCall(io.ktor.utils.io.ByteReadChannel;io.ktor.http.Headers){}[0]
 final fun (io.ktor.client.call/HttpClientCall).io.ktor.client.plugins.observer/wrapWithContent(io.ktor.utils.io/ByteReadChannel): io.ktor.client.call/HttpClientCall // io.ktor.client.plugins.observer/wrapWithContent|wrapWithContent@io.ktor.client.call.HttpClientCall(io.ktor.utils.io.ByteReadChannel){}[0]
 final fun (io.ktor.client.call/HttpClientCall).io.ktor.client.plugins.observer/wrapWithContent(kotlin/Function0<io.ktor.utils.io/ByteReadChannel>): io.ktor.client.call/HttpClientCall // io.ktor.client.plugins.observer/wrapWithContent|wrapWithContent@io.ktor.client.call.HttpClientCall(kotlin.Function0<io.ktor.utils.io.ByteReadChannel>){}[0]
@@ -1833,6 +1834,8 @@ open class io.ktor.client.engine.js/JsClientEngineConfig : io.ktor.client.engine
 
         // Targets: [wasmJs]
         final fun <set-nodeOptions>(kotlin.js/JsAny) // io.ktor.client.engine.js/JsClientEngineConfig.nodeOptions.<set-nodeOptions>|<set-nodeOptions>(kotlin.js.JsAny){}[0]
+
+    final fun configureRequest(kotlin/Function1<io.ktor.client.fetch/RequestInit, kotlin/Unit>) // io.ktor.client.engine.js/JsClientEngineConfig.configureRequest|configureRequest(kotlin.Function1<io.ktor.client.fetch.RequestInit,kotlin.Unit>){}[0]
 }
 
 // Targets: [js, wasmJs]
@@ -1842,6 +1845,9 @@ final object io.ktor.client.engine.js/Js : io.ktor.client.engine/HttpClientEngin
     final fun hashCode(): kotlin/Int // io.ktor.client.engine.js/Js.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // io.ktor.client.engine.js/Js.toString|toString(){}[0]
 }
+
+// Targets: [js, wasmJs]
+final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client/fetchOptions(kotlin/Function1<io.ktor.client.fetch/RequestInit, kotlin/Unit>) // io.ktor.client/fetchOptions|fetchOptions@io.ktor.client.request.HttpRequestBuilder(kotlin.Function1<io.ktor.client.fetch.RequestInit,kotlin.Unit>){}[0]
 
 // Targets: [js, wasmJs]
 final fun io.ktor.client.engine.js/JsClient(): io.ktor.client.engine/HttpClientEngineFactory<io.ktor.client.engine.js/JsClientEngineConfig> // io.ktor.client.engine.js/JsClient|JsClient(){}[0]

@@ -50,6 +50,11 @@ public final class io/ktor/client/HttpClientKt {
 	public static synthetic fun HttpClient$default (Lio/ktor/client/engine/HttpClientEngineFactory;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/client/HttpClient;
 }
 
+public final class io/ktor/client/call/DelegatedCallKt {
+	public static final fun replaceResponse (Lio/ktor/client/call/HttpClientCall;Lio/ktor/http/Headers;Lkotlin/jvm/functions/Function1;)Lio/ktor/client/call/HttpClientCall;
+	public static synthetic fun replaceResponse$default (Lio/ktor/client/call/HttpClientCall;Lio/ktor/http/Headers;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/client/call/HttpClientCall;
+}
+
 public final class io/ktor/client/call/DoubleReceiveException : java/lang/IllegalStateException {
 	public fun <init> (Lio/ktor/client/call/HttpClientCall;)V
 	public fun getMessage ()Ljava/lang/String;

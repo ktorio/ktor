@@ -12,12 +12,15 @@ import io.ktor.server.engine.internal.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
+import io.ktor.util.reflect.loadServiceOrNull
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import java.io.File
 import java.net.URL
 import java.net.URLDecoder
@@ -63,6 +66,10 @@ actual constructor(
     private val configModulesNames: List<String> =
         environment.config.propertyOrNull("ktor.application.modules")?.getList().orEmpty()
 
+    @OptIn(InternalAPI::class)
+    private val moduleInjector: ModuleParametersInjector by lazy {
+        loadServiceOrNull() ?: ModuleParametersInjector.Disabled
+    }
     private val modules by lazy {
         configModulesNames.map(::dynamicModule) +
             rootConfig.modules.map { module -> module.toDynamicModuleOrNull() ?: module.wrapWithDynamicModule() }
@@ -225,7 +232,11 @@ actual constructor(
     }
 
     private fun safeRaiseEvent(event: EventDefinition<Application>, application: Application) {
-        monitor.raiseCatching(event, application)
+        try {
+            monitor.raise(event, application)
+        } catch (cause: Throwable) {
+            environment.log.debug("One or more of the handlers thrown an exception", cause)
+        }
     }
 
     private fun destroyApplication() {
@@ -237,16 +248,27 @@ actual constructor(
         if (currentApplication != null) {
             safeRaiseEvent(ApplicationStopping, currentApplication)
             try {
-                currentApplication.dispose()
-                (currentApplicationClassLoader as? OverridingClassLoader)?.close()
+                destroyBlocking(currentApplication, currentApplicationClassLoader)
             } catch (e: Throwable) {
                 environment.log.error("Failed to destroy application instance.", e)
             }
-
             safeRaiseEvent(ApplicationStopped, currentApplication)
         }
         packageWatchKeys.forEach { it.cancel() }
         packageWatchKeys = mutableListOf()
+    }
+
+    @OptIn(InternalAPI::class)
+    private fun destroyBlocking(application: Application, classLoader: ClassLoader?) {
+        try {
+            runBlocking {
+                withTimeout(engineConfig.shutdownTimeout) {
+                    application.disposeAndJoin()
+                }
+            }
+        } finally {
+            (classLoader as? OverridingClassLoader)?.close()
+        }
     }
 
     private fun watchUrls(urls: List<URL>) {
@@ -371,7 +393,9 @@ actual constructor(
             modules.forEach { module -> module(newInstance, currentClassLoader) }
         }
 
-        safeRaiseEvent(ApplicationStarted, newInstance)
+        monitor.raise(ApplicationModulesLoaded, newInstance)
+        monitor.raise(ApplicationStarted, newInstance)
+
         return newInstance
     }
 
@@ -419,7 +443,7 @@ actual constructor(
 
     private fun launchModuleByName(name: String, currentClassLoader: ClassLoader, newInstance: Application) {
         avoidingDoubleStartupFor(name) {
-            executeModuleFunction(currentClassLoader, name, newInstance)
+            executeModuleFunction(currentClassLoader, name, newInstance, moduleInjector)
         }
     }
 

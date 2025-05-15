@@ -224,12 +224,12 @@ public class CIOApplicationEngine(
             // stopping
             connectors.forEach {
                 it.acceptJob.cancel()
-                it.rootServerJob.cancel()
             }
 
             withContext(userDispatcher) {
                 monitor.raise(ApplicationStopPreparing, environment)
             }
+            connectors.map { it.rootServerJob }.joinAll()
         }
     }
 }

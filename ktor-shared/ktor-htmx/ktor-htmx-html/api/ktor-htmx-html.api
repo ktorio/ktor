@@ -1,0 +1,51 @@
+public final class io/ktor/htmx/html/HxAttributes : io/ktor/util/collections/StringMapDelegate {
+	public fun <init> (Lkotlinx/html/impl/DelegatingMap;)V
+	public fun get (Ljava/lang/String;)Ljava/lang/String;
+	public final fun getGet ()Ljava/lang/String;
+	public synthetic fun getMap ()Ljava/util/Map;
+	public fun getMap ()Lkotlinx/html/impl/DelegatingMap;
+	public final fun getOn-6sA4otk ()Ljava/util/Map;
+	public final fun getPost ()Ljava/lang/String;
+	public final fun getPushUrl ()Ljava/lang/String;
+	public final fun getSelect ()Ljava/lang/String;
+	public final fun getSelectOob ()Ljava/lang/String;
+	public final fun getSwap ()Ljava/lang/String;
+	public final fun getSwapOob ()Ljava/lang/String;
+	public final fun getTarget ()Ljava/lang/String;
+	public final fun getTrigger ()Ljava/lang/String;
+	public final fun getVals ()Ljava/lang/String;
+	public final fun on (Ljava/lang/String;Ljava/lang/String;)V
+	public fun remove (Ljava/lang/String;)Ljava/lang/String;
+	public fun set (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun setGet (Ljava/lang/String;)V
+	public final fun setPost (Ljava/lang/String;)V
+	public final fun setPushUrl (Ljava/lang/String;)V
+	public final fun setSelect (Ljava/lang/String;)V
+	public final fun setSelectOob (Ljava/lang/String;)V
+	public final fun setSwap (Ljava/lang/String;)V
+	public final fun setSwapOob (Ljava/lang/String;)V
+	public final fun setTarget (Ljava/lang/String;)V
+	public final fun setTrigger (Ljava/lang/String;)V
+	public final fun setVals (Ljava/lang/String;)V
+}
+
+public final class io/ktor/htmx/html/HxAttributes$On {
+	public static final synthetic fun box-impl (Ljava/util/Map;)Lio/ktor/htmx/html/HxAttributes$On;
+	public static fun constructor-impl (Ljava/util/Map;)Ljava/util/Map;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Ljava/util/Map;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/util/Map;Ljava/util/Map;)Z
+	public static final fun get-impl (Ljava/util/Map;Ljava/lang/String;)Ljava/lang/String;
+	public fun hashCode ()I
+	public static fun hashCode-impl (Ljava/util/Map;)I
+	public static final fun set-impl (Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;)V
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Ljava/util/Map;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/util/Map;
+}
+
+public final class io/ktor/htmx/html/HxAttributesKt {
+	public static final fun getHx (Lkotlinx/html/impl/DelegatingMap;)Lio/ktor/htmx/html/HxAttributes;
+	public static final fun hx (Lkotlinx/html/impl/DelegatingMap;Lkotlin/jvm/functions/Function1;)V
+}
+

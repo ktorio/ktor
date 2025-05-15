@@ -7,3 +7,11 @@ description = "I18n support to Ktor"
 plugins {
     id("ktorbuild.project.server-plugin")
 }
+
+kotlin {
+    sourceSets {
+        jvmTest.dependencies {
+            implementation(projects.ktorServerStatusPages)
+        }
+    }
+}

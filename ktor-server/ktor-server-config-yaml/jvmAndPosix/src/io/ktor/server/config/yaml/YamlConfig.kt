@@ -4,8 +4,10 @@
 
 package io.ktor.server.config.yaml
 
+import com.charleskorn.kaml.*
 import io.ktor.server.config.*
-import net.mamoe.yamlkt.*
+import io.ktor.util.reflect.*
+import io.ktor.utils.io.*
 
 internal const val DEFAULT_YAML_FILENAME = "application.yaml"
 
@@ -24,7 +26,7 @@ public class YamlConfigLoader : ConfigLoader {
      * @return configuration or null if the path is not found or a configuration format is not supported.
      */
     override fun load(path: String?): ApplicationConfig? {
-        return YamlConfig(path)?.apply { checkEnvironmentVariables() }
+        return YamlConfig(path)
     }
 }
 
@@ -44,18 +46,13 @@ public expect fun YamlConfig(path: String?): YamlConfig?
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.yaml.YamlConfig)
  */
-public class YamlConfig internal constructor(
-    private val yaml: YamlMap
-) : ApplicationConfig {
-
-    private var root: YamlConfig = this
-
-    internal constructor(
-        yaml: YamlMap,
-        root: YamlConfig
-    ) : this(yaml) {
-        this.root = root
+public class YamlConfig private constructor(yamlMap: YamlMap) : ApplicationConfig {
+    internal companion object {
+        internal fun from(yaml: YamlMap): YamlConfig =
+            YamlConfig(yaml.swapEnvironmentVariables())
     }
+    private val rootNode: YamlMap = yamlMap
+    private val format: Yaml = Yaml.default
 
     override fun property(path: String): ApplicationConfigValue {
         return propertyOrNull(path) ?: throw ApplicationConfigurationException("Path $path not found.")
@@ -63,107 +60,143 @@ public class YamlConfig internal constructor(
 
     override fun propertyOrNull(path: String): ApplicationConfigValue? {
         val parts = path.split('.')
-        val yaml = parts.dropLast(1).fold(yaml) { yaml, part -> yaml[part] as? YamlMap ?: return null }
-        val value = yaml[parts.last()] ?: return null
-        return when (value) {
-            is YamlNull -> null
-            is YamlLiteral -> resolveValue(value.content, root)?.let { LiteralConfigValue(key = path, value = it) }
-
-            is YamlList -> {
-                val values = value.content.map { element ->
-                    element.asLiteralOrNull()?.content?.let { resolveValue(it, root) }
-                        ?: throw ApplicationConfigurationException("Value at path $path can not be resolved.")
-                }
-                ListConfigValue(key = path, values = values)
-            }
-
-            else -> throw ApplicationConfigurationException(
-                "Expected primitive or list at path $path, but was ${value::class}"
-            )
+        val yaml = parts.dropLast(1).fold(rootNode) { yaml, part ->
+            yaml[part] as? YamlMap ?: return null
         }
+        val value: YamlNode = yaml[parts.last()] ?: return null
+        if (value is YamlNull) return null
+        if (value is YamlScalar && resolveReference(rootNode, value.content) == null) return null
+
+        return YamlNodeConfigValue(path, value)
     }
 
     override fun config(path: String): ApplicationConfig {
         val parts = path.split('.')
-        val yaml = parts.fold(yaml) { yaml, part ->
+        val yaml = parts.fold(rootNode) { yaml, part ->
             yaml[part] as? YamlMap ?: throw ApplicationConfigurationException("Path $path not found.")
         }
-        return YamlConfig(yaml, root)
+        return YamlConfig(yaml)
     }
 
     override fun configList(path: String): List<ApplicationConfig> {
         val parts = path.split('.')
-        val yaml = parts.dropLast(1).fold(yaml) { yaml, part ->
+        val yaml = parts.dropLast(1).fold(rootNode) { yaml, part ->
             yaml[part] as? YamlMap ?: throw ApplicationConfigurationException("Path $path not found.")
         }
         val value = yaml[parts.last()] as? YamlList ?: throw ApplicationConfigurationException("Path $path not found.")
-        return value.map {
+        return value.items.map {
             YamlConfig(
                 it as? YamlMap
                     ?: throw ApplicationConfigurationException("Property $path is not a list of maps."),
-                root
             )
         }
     }
 
     override fun keys(): Set<String> {
         fun keys(yaml: YamlMap): Set<String> {
-            return yaml.keys.map { it.content as String }
-                .flatMap { key ->
-                    when (val value = yaml[key]) {
-                        is YamlMap -> keys(value).map { "$key.$it" }
-                        else -> listOf(key)
+            return yaml.entries.entries
+                .flatMap { (key, value) ->
+                    when (value) {
+                        is YamlMap -> keys(value).map { "${key.content}.$it" }
+                        else -> listOf(key.content)
                     }
                 }
                 .toSet()
         }
-        return keys(yaml)
+        return keys(rootNode)
     }
 
     public override fun toMap(): Map<String, Any?> {
-        fun toPrimitive(yaml: YamlElement?): Any? = when (yaml) {
-            is YamlLiteral -> resolveValue(yaml.content, root)
-            is YamlMap -> yaml.keys.associate { it.content as String to toPrimitive(yaml[it]) }
-            is YamlList -> yaml.content.map { toPrimitive(it) }
-            YamlNull -> null
-            null -> null
+        fun toPrimitive(yaml: YamlNode?): Any? = when (yaml) {
+            is YamlScalar -> resolveReference(rootNode, yaml.content)
+            is YamlMap -> yaml.entries.entries.associate { (key, value) ->
+                key.content to toPrimitive(value)
+            }
+            is YamlList -> yaml.items.map { toPrimitive(it) }
+            is YamlNull -> null
+            else -> null
         }
 
-        val primitive = toPrimitive(yaml)
+        val primitive = toPrimitive(rootNode)
         @Suppress("UNCHECKED_CAST")
         return primitive as? Map<String, Any?> ?: error("Top level element is not a map")
     }
 
+    @Deprecated("Redundant; handled automatically")
     public fun checkEnvironmentVariables() {
-        fun check(element: YamlElement?) {
+        fun check(element: YamlNode?) {
             when (element) {
-                is YamlLiteral -> resolveValue(element.content, root)
-                YamlNull -> return
-                is YamlMap -> element.forEach { entry -> check(entry.value) }
-                is YamlList -> element.forEach { check(it) }
-                null -> return
+                is YamlScalar -> resolveReference(rootNode, element.content)
+                is YamlMap -> element.entries.forEach { entry -> check(entry.value) }
+                is YamlList -> element.items.forEach { check(it) }
+                else -> return
             }
         }
-        check(yaml)
+        check(rootNode)
     }
 
-    private class LiteralConfigValue(private val key: String, private val value: String) : ApplicationConfigValue {
-        override fun getString(): String = value
+    private inner class YamlNodeConfigValue(
+        private val key: String,
+        private val node: YamlNode
+    ) : SerializableConfigValue {
+        override fun getString(): String =
+            (node as? YamlScalar)?.content?.let { value ->
+                resolveReference(rootNode, value)
+            } ?: throw ApplicationConfigurationException(
+                "Failed to read property value for key as String: \"$key\""
+            )
 
         override fun getList(): List<String> =
-            throw ApplicationConfigurationException("Property $key is not a list of primitives.")
-    }
+            (node as? YamlList)?.items?.let { list ->
+                list.map { element ->
+                    resolveReference(rootNode, element.yamlScalar.content)
+                        ?: throw ApplicationConfigurationException(
+                            "Failed to read element of property key as String: \"$key\""
+                        )
+                }
+            } ?: throw ApplicationConfigurationException(
+                "Failed to read property value for key as List<String>: \"$key\""
+            )
 
-    private class ListConfigValue(private val key: String, private val values: List<String>) : ApplicationConfigValue {
-        override fun getString(): String =
-            throw ApplicationConfigurationException("Property $key doesn't exist or not a primitive.")
-
-        override fun getList(): List<String> = values
+        @OptIn(InternalAPI::class)
+        override fun getAs(type: TypeInfo): Any? {
+            return format.decodeFromYamlNode(type.serializer(), node)
+        }
     }
 }
 
-private fun resolveValue(value: String, root: YamlConfig): String? {
-    val isEnvVariable = value.startsWith("\$")
+private fun YamlMap.swapEnvironmentVariables(): YamlMap {
+    val rootNode = this
+
+    fun YamlNode.replace(): YamlNode =
+        when (this) {
+            is YamlList -> YamlList(items.map { it.replace() }, path)
+            is YamlMap -> YamlMap(entries.mapValues { it.value.replace() }, path)
+            is YamlScalar -> resolveReferences(rootNode)
+            is YamlNull,
+            is YamlTaggedNode -> this
+        }
+
+    return replace() as YamlMap
+}
+
+private fun YamlMap.deepReference(path: String): YamlNode? {
+    val parts = path.split('.')
+    val yaml = parts.dropLast(1).fold(this) { yaml, part ->
+        yaml[part] as? YamlMap ?: return null
+    }
+    val value: YamlNode = yaml[parts.last()] ?: return null
+
+    return value
+}
+
+private fun YamlScalar.resolveReferences(rootNode: YamlMap): YamlNode =
+    resolveReference(rootNode, content)
+        ?.let { YamlScalar(it, path) }
+        ?: YamlNull(path)
+
+private fun resolveReference(rootNode: YamlMap, value: String): String? {
+    val isEnvVariable = value.startsWith("$")
     if (!isEnvVariable) return value
     val keyWithDefault = value.drop(1)
     val separatorIndex = keyWithDefault.indexOf(':')
@@ -173,9 +206,9 @@ private fun resolveValue(value: String, root: YamlConfig): String? {
         return getSystemPropertyOrEnvironmentVariable(key) ?: keyWithDefault.substring(separatorIndex + 1)
     }
 
-    val selfReference = root.propertyOrNull(keyWithDefault)
-    if (selfReference != null) {
-        return selfReference.getString()
+    val selfReference = rootNode.deepReference(keyWithDefault)
+    if (selfReference is YamlScalar) {
+        return selfReference.content
     }
 
     val isOptional = keyWithDefault.first() == '?'

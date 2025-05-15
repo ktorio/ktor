@@ -11,7 +11,7 @@ plugins {
 kotlin {
     sourceSets {
         commonTest.dependencies {
-            implementation(project(":ktor-server:ktor-server-plugins:ktor-server-call-id"))
+            implementation(projects.ktorServerCallId)
         }
     }
 }
