@@ -153,12 +153,21 @@ public data class AmbiguousCreateFunction(
             return functions.singleOrNull() ?: AmbiguousCreateFunction(key, functions)
         }
     }
+
     init {
         require(functions.size > 1) { "More than one function must be provided" }
     }
 
+    public fun clarify(predicate: (DependencyKey) -> Boolean): DependencyCreateFunction? =
+        functions.singleOrNull { predicate(it.key) }
+
+    public val implementations: List<DependencyKey> get() = functions.map { it.key }
+
     override fun create(resolver: DependencyResolver): Any =
-        throw AmbiguousDependencyException(key, functions.map { it.key })
+        throw AmbiguousDependencyException(this)
+
+    public fun keyString(): String =
+        "$key: ${implementations.joinToString()}"
 }
 
 /**

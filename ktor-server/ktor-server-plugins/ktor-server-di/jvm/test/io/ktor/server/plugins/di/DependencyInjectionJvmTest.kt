@@ -144,13 +144,16 @@ class DependencyInjectionJvmTest {
     @Test
     fun `parameterized covariant argument supertypes`() = runTestDI {
         val mySet = HashSet<String>()
+        val myMap = mutableMapOf("hello" to GreetingServiceImpl())
 
         dependencies {
             provide { mySet }
+            provide { myMap }
             provide<() -> String> { { mySet.iterator().next() } }
         }
         // `out` bounds should match supertypes
         assertEquals(mySet, dependencies.resolve<Collection<CharSequence>>())
+        assertEquals(myMap, dependencies.resolve<Map<String, GreetingService>>())
         // return types in lambdas accept supertypes
         assertNotNull(dependencies.resolve<() -> CharSequence>())
         // strict bounds should not match
@@ -193,12 +196,6 @@ class DependencyInjectionJvmTest {
         assertNotNull(dependencies.resolve<(String) -> Boolean>())
     }
 
-    /**
-     * [KTOR-8322 Handle delegate pattern](https://youtrack.jetbrains.com/issue/KTOR-8322/Dependency-injection-handle-delegate-pattern)
-     *     When declaring two classes that share an interface via delegation,
-     *     we should resolve the ambiguity automatically.
-     */
-    @Ignore
     @Test
     fun `install class ref with args from config`() {
         testConfigFile(

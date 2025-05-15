@@ -178,8 +178,14 @@ public inline fun <reified T> DependencyMap.resolve(key: String? = null): T =
 /**
  * Resolve a `Deferred<T>` dependency and await its result.
  */
-public suspend inline fun <reified T> DependencyMap.resolveAwait(key: String? = null): T =
-    resolve<Deferred<T>>(key).await()
+public suspend inline fun <reified T> DependencyMap.resolveAwait(key: String? = null): T {
+    val syncKey = DependencyKey<T>()
+    return if (contains(syncKey)) {
+        resolve(key)
+    } else {
+        resolve<Deferred<T>>(key).await()
+    }
+}
 
 internal class MergedDependencyMap(
     private val left: DependencyMap,
