@@ -46,6 +46,12 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
         startIndex += schemeLength + 1
     }
 
+    // Special handling for data URLs
+    if (protocol.name == "data") {
+        host = urlString.substring(startIndex, endIndex)
+        return this
+    }
+
     // Auth & Host
     val slashCount = count(urlString, startIndex, endIndex, '/')
     startIndex += slashCount

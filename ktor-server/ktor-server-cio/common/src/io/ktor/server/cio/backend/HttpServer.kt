@@ -40,6 +40,7 @@ public fun CoroutineScope.httpServer(
 
     val selector = SelectorManager(coroutineContext)
     val timeout = settings.connectionIdleTimeoutSeconds.seconds
+    val rootConnectionJob = SupervisorJob(serverJob)
 
     val acceptJob = launch(serverJob + CoroutineName("accept-$settings")) {
         val serverSocket = aSocket(selector).tcp().bind(settings.host, settings.port) {
@@ -54,7 +55,7 @@ public fun CoroutineScope.httpServer(
 
             val connectionScope = CoroutineScope(
                 coroutineContext +
-                    SupervisorJob(serverJob) +
+                    rootConnectionJob +
                     exceptionHandler +
                     CoroutineName("request")
             )
@@ -90,8 +91,9 @@ public fun CoroutineScope.httpServer(
                 coroutineContext.cancel()
             } finally {
                 server.close()
+                rootConnectionJob.complete()
+                rootConnectionJob.join()
                 server.awaitClosed()
-                connectionScope.coroutineContext.cancel()
             }
         }
     }

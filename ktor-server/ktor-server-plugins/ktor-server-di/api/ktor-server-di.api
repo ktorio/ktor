@@ -93,11 +93,13 @@ public abstract interface class io/ktor/server/plugins/di/DependencyCreateFuncti
 
 public final class io/ktor/server/plugins/di/DependencyInjectionConfig {
 	public fun <init> ()V
+	public final fun getOnShutdown ()Lkotlin/jvm/functions/Function2;
 	public final fun getProvider ()Lio/ktor/server/plugins/di/DependencyProvider;
 	public final fun getReflection ()Lio/ktor/server/plugins/di/DependencyReflection;
 	public final fun getResolution ()Lio/ktor/server/plugins/di/DependencyResolution;
 	public final fun include (Lio/ktor/server/plugins/di/DependencyMap;)V
 	public final fun provider (Lkotlin/jvm/functions/Function1;)V
+	public final fun setOnShutdown (Lkotlin/jvm/functions/Function2;)V
 	public final fun setProvider (Lio/ktor/server/plugins/di/DependencyProvider;)V
 	public final fun setReflection (Lio/ktor/server/plugins/di/DependencyReflection;)V
 	public final fun setResolution (Lio/ktor/server/plugins/di/DependencyResolution;)V
@@ -210,6 +212,7 @@ public class io/ktor/server/plugins/di/DependencyReflectionJvm : io/ktor/server/
 
 public final class io/ktor/server/plugins/di/DependencyRegistry : io/ktor/server/plugins/di/DependencyProvider, io/ktor/server/plugins/di/DependencyResolver {
 	public fun <init> (Lio/ktor/server/plugins/di/DependencyProvider;Lio/ktor/server/plugins/di/DependencyMap;Lio/ktor/server/plugins/di/DependencyResolution;Lio/ktor/server/plugins/di/DependencyReflection;)V
+	public final fun cleanup (Lio/ktor/server/plugins/di/DependencyKey;Lkotlin/jvm/functions/Function1;)V
 	public fun contains (Lio/ktor/server/plugins/di/DependencyKey;)Z
 	public fun get (Lio/ktor/server/plugins/di/DependencyKey;)Ljava/lang/Object;
 	public fun getDeclarations ()Ljava/util/Map;
@@ -218,6 +221,13 @@ public final class io/ktor/server/plugins/di/DependencyRegistry : io/ktor/server
 	public fun named (Ljava/lang/String;)Lio/ktor/server/plugins/di/DependencyResolverContext;
 	public final fun require (Lio/ktor/server/plugins/di/DependencyKey;)V
 	public fun set (Lio/ktor/server/plugins/di/DependencyKey;Lkotlin/jvm/functions/Function1;)V
+}
+
+public final class io/ktor/server/plugins/di/DependencyRegistry$KeyContext {
+	public fun <init> (Lio/ktor/server/plugins/di/DependencyRegistry;Lio/ktor/server/plugins/di/DependencyKey;)V
+	public final fun cleanup (Lkotlin/jvm/functions/Function1;)V
+	public final fun getKey ()Lio/ktor/server/plugins/di/DependencyKey;
+	public final fun provide (Lkotlin/jvm/functions/Function1;)V
 }
 
 public final class io/ktor/server/plugins/di/DependencyRegistryKt {

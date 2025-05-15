@@ -18,11 +18,6 @@ with some of the [low hanging fruit](https://youtrack.jetbrains.com/issues?q=%23
 
 ### Building the project
 
-> [!IMPORTANT]
-> This project requires JDK 21.
-> Make sure you have JDK 21 installed before attempting to build the project.
-> If you use IntelliJ IDEA, you should also select JDK 21 in **"Project Structure" > "Project" > "SDK"**
-
 Ktor is built with Gradle. Given it is multiplatform, you can build Ktor for the JVM, Native, and JavaScript.
 
 To build the projects and produce the corresponding artifacts, use
@@ -36,7 +31,23 @@ for other platforms, the corresponding tests for these should also be run. To se
 
 `./gradlew tasks`
 
-For Ktor to build correctly, a series of additional libraries/tools need to be installed, based on the operating
+#### System requirements
+
+The project requires JDK 21.
+Make sure you have it installed before attempting to build the project.
+If you use IntelliJ IDEA, you should also select JDK 21 in **"Project Structure" > "Project" > "SDK"**
+
+Up to 12 GB of free RAM is required to build the project.
+This amount can be reduced by decreasing the `Xmx` value in `gradle.properties`.
+Read the comments in `gradle.properties` for more details.
+
+If targeting macOS and/or iOS, install `Xcode` and `Xcode command line tools` on macOS.
+
+<details>
+<summary>Requirements for Ktor before 3.1.0</summary>
+
+For versions of Ktor before 3.1.0 to build correctly,
+a series of additional libraries/tools need to be installed, based on the operating
 system you use for development:
 
 **Linux**
@@ -57,12 +68,12 @@ Run the following commands:
 brew install curl ncurses
 ```
 
-If targeting macOS and/or iOS, install `Xcode` and `Xcode command line tools` on macOS.
-
 **Windows**
 
 For development on Windows, it is recommended to use [Cygwin](http://cygwin.com/) which will provide the necessary
 libraries such as `libncurses`.
+
+</details>
 
 #### Referencing artifacts locally
 

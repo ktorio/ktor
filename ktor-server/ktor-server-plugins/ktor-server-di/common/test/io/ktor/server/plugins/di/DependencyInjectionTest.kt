@@ -13,6 +13,7 @@ import io.ktor.server.testing.*
 import io.ktor.test.dispatcher.runTestWithRealTime
 import io.ktor.util.logging.Logger
 import kotlinx.coroutines.test.TestResult
+import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.Serializable
 import kotlin.reflect.KClass
 import kotlin.test.*
@@ -57,6 +58,10 @@ internal data class BankTeller(
 data class WorkExperience(val jobs: List<PaidWork>)
 
 data class PaidWork(val requiredExperience: WorkExperience)
+
+interface Closer {
+    fun closeMe()
+}
 
 @Serializable
 data class ConnectionConfig(
@@ -116,7 +121,7 @@ class DependencyInjectionTest {
     }
 
     @Test
-    fun `fails on server startup`() = runTestWithRealTime {
+    fun `fails on server startup`() = runTest {
         val infoLogs = mutableListOf<String>()
         val errorLogs = mutableListOf<String>()
         assertFailsWith<DependencyInjectionException> {
@@ -362,6 +367,48 @@ class DependencyInjectionTest {
         val unnamed: GreetingService by dependencies
         assertEquals(HELLO_CUSTOMER, named.hello())
         assertEquals(HELLO_CUSTOMER, unnamed.hello())
+    }
+
+    @Test
+    fun cleanup() = runTest {
+        val closed = mutableSetOf<Any>()
+        val closer1 = object : Closer {
+            override fun closeMe() {
+                closed += this
+            }
+        }
+        val closer2 = object : Closer {
+            override fun closeMe() {
+                closed += this
+            }
+        }
+        val autoCloseable = object : AutoCloseable {
+            override fun close() {
+                closed += this
+            }
+        }
+
+        runTestApplication {
+            application {
+                dependencies {
+                    provide<AutoCloseable> { autoCloseable }
+                    provide<Closer> { closer1 } cleanup { it.closeMe() }
+
+                    key<Closer>("second") {
+                        provide { closer2 }
+                        cleanup { it.closeMe() }
+                    }
+                }
+                val closer: Closer by dependencies
+                assertEquals(closer1, closer)
+            }
+        }
+
+        assertEquals(
+            listOf(closer2, closer1, autoCloseable),
+            closed.toList(),
+            "Expected all dependencies to be closed in the correct order"
+        )
     }
 
     @Suppress("UNCHECKED_CAST")
