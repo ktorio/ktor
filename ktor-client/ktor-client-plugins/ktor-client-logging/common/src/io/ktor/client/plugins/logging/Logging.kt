@@ -25,6 +25,13 @@ import kotlinx.io.Buffer
 
 private val ClientCallLogger = AttributeKey<HttpClientCallLogger>("CallLogger")
 private val DisableLogging = AttributeKey<Unit>("DisableLogging")
+private val RequestLogJob = AttributeKey<Job>("RequestLogJob")
+private val LogCompleted = AttributeKey<CompletableDeferred<Unit>>("LogCompleted")
+
+internal suspend fun HttpResponse.awaitLogs(): HttpResponse {
+    call.attributes.getOrNull(LogCompleted)?.await()
+    return this
+}
 
 public enum class LoggingFormat {
     Default,
@@ -115,10 +122,10 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
 
     fun shouldBeLogged(request: HttpRequestBuilder): Boolean = filters.isEmpty() || filters.any { it(request) }
 
-    fun isNone(): Boolean = level == LogLevel.NONE
-    fun isInfo(): Boolean = level == LogLevel.INFO
-    fun isHeaders(): Boolean = level == LogLevel.HEADERS
-    fun isBody(): Boolean = level == LogLevel.BODY || level == LogLevel.ALL
+    fun isNoneLevel(): Boolean = level == LogLevel.NONE
+    fun isInfoLevel(): Boolean = level == LogLevel.INFO
+    fun isHeadersLevel(): Boolean = level == LogLevel.HEADERS
+    fun isBodyLevel(): Boolean = level == LogLevel.BODY || level == LogLevel.ALL
 
     /**
      * Detects if the body is a binary data
@@ -222,12 +229,11 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         headers: Headers,
         logLines: MutableList<String>,
         process: (ByteReadChannel) -> ByteReadChannel = { it }
-    ): OutgoingContent? {
-        return when (content) {
+    ) {
+        when (content) {
             is OutgoingContent.ByteArrayContent -> {
                 val bytes = content.bytes()
                 logRequestBody(content, bytes.size.toLong(), headers, method, logLines, ByteReadChannel(bytes))
-                null
             }
 
             is OutgoingContent.ContentWrapper -> {
@@ -236,37 +242,36 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
 
             is OutgoingContent.NoContent -> {
                 logLines.add("--> END ${method.value}")
-                null
             }
 
             is OutgoingContent.ProtocolUpgrade -> {
                 logLines.add("--> END ${method.value}")
-                null
             }
 
             is OutgoingContent.ReadChannelContent -> {
-                val (origChannel, newChannel) = content.readFrom().split(client)
-                logRequestBody(content, content.contentLength, headers, method, logLines, newChannel)
-                LoggedContent(content, origChannel)
+                logRequestBody(content, content.contentLength, headers, method, logLines, content.readFrom())
             }
 
             is OutgoingContent.WriteChannelContent -> {
-                val channel = ByteChannel()
-
-                client.launch {
-                    content.writeTo(channel)
-                    channel.close()
-                }
-
-                val (origChannel, newChannel) = channel.split(client)
-                logRequestBody(content, content.contentLength, headers, method, logLines, newChannel)
-                LoggedContent(content, origChannel)
+                // Shouldn't fall here
             }
+//            is OutgoingContent.WriteChannelContent -> {
+//                val channel = ByteChannel()
+//
+//                client.launch {
+//                    content.writeTo(channel)
+//                    channel.close()
+//                }
+//
+//                val (origChannel, newChannel) = channel.split(client)
+//                logRequestBody(content, content.contentLength, headers, method, logLines, newChannel)
+//                LoggedContent(content, origChannel)
+//            }
         }
     }
 
-    suspend fun logRequestOkHttpFormat(request: HttpRequestBuilder, logLines: MutableList<String>): OutgoingContent? {
-        if (isNone()) return null
+    suspend fun logRequestOkHttpFormat(request: HttpRequestBuilder, logLines: MutableList<String>) {
+        if (isNoneLevel()) return
 
         val uri = URLBuilder().takeFrom(request.url).build().pathQuery()
         val body = request.body
@@ -290,11 +295,11 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         val startLine = when {
             (request.method == HttpMethod.Get) ||
                 (request.method == HttpMethod.Head) ||
-                ((isHeaders() || isBody()) && contentLength != null) ||
-                (isHeaders() && contentLength == null) ||
+                ((isHeadersLevel() || isBodyLevel()) && contentLength != null) ||
+                (isHeadersLevel() && contentLength == null) ||
                 headers.contains(HttpHeaders.ContentEncoding) -> "--> ${request.method.value} $uri"
 
-            isInfo() && contentLength != null -> "--> ${request.method.value} $uri ($contentLength-byte body)"
+            isInfoLevel() && contentLength != null -> "--> ${request.method.value} $uri ($contentLength-byte body)"
 
             body is OutgoingContent.WriteChannelContent ||
                 body is OutgoingContent.ReadChannelContent -> "--> ${request.method.value} $uri (unknown-byte body)"
@@ -307,8 +312,8 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
 
         logLines.add(startLine)
 
-        if (!isHeaders() && !isBody()) {
-            return null
+        if (!isHeadersLevel() && !isBodyLevel()) {
+            return
         }
 
         for ((name, values) in headers.entries()) {
@@ -319,27 +324,25 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
             }
         }
 
-        if (!isBody() || request.method == HttpMethod.Get || request.method == HttpMethod.Head) {
+        if (!isBodyLevel() || request.method == HttpMethod.Get || request.method == HttpMethod.Head) {
             logLines.add("--> END ${request.method.value}")
-            return null
+            return
         }
 
-        logLines.add("")
-
-        if (body !is OutgoingContent) {
-            logLines.add("--> END ${request.method.value}")
-            return null
-        }
-
-        val newContent = if (request.headers[HttpHeaders.ContentEncoding] == "gzip") {
-            logOutgoingContent(body, request.method, headers, logLines) { channel ->
-                GZipEncoder.decode(channel)
-            }
-        } else {
-            logOutgoingContent(body, request.method, headers, logLines)
-        }
-
-        return newContent
+//        logLines.add("")
+//
+//        if (body !is OutgoingContent) {
+//            logLines.add("--> END ${request.method.value}")
+//            return
+//        }
+//
+//        if (request.headers[HttpHeaders.ContentEncoding] == "gzip") {
+//            logOutgoingContent(body, request.method, headers, logLines) { channel ->
+//                GZipEncoder.decode(channel)
+//            }
+//        } else {
+//            logOutgoingContent(body, request.method, headers, logLines)
+//        }
     }
 
     suspend fun logResponseBody(response: HttpResponse, body: ByteReadChannel, logLines: MutableList<String>) {
@@ -388,7 +391,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
     }
 
     suspend fun logResponseOkHttpFormat(response: HttpResponse, logLines: MutableList<String>): HttpResponse {
-        if (isNone()) return response
+        if (isNoneLevel()) return response
 
         val contentLength = response.headers[HttpHeaders.ContentLength]?.toLongOrNull()
         val request = response.request
@@ -396,15 +399,15 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
 
         val startLine = when {
             response.headers[HttpHeaders.TransferEncoding] == "chunked" &&
-                (isInfo() || isHeaders()) ->
+                (isInfoLevel() || isHeadersLevel()) ->
                 "<-- ${response.status} ${request.url.pathQuery()} (${duration}ms, unknown-byte body)"
 
-            isInfo() && contentLength != null ->
+            isInfoLevel() && contentLength != null ->
                 "<-- ${response.status} ${request.url.pathQuery()} (${duration}ms, $contentLength-byte body)"
 
-            isBody() ||
-                (isInfo() && contentLength == null) ||
-                (isHeaders() && contentLength != null) ||
+            isBodyLevel() ||
+                (isInfoLevel() && contentLength == null) ||
+                (isHeadersLevel() && contentLength != null) ||
                 (response.headers[HttpHeaders.ContentEncoding] == "gzip") ->
                 "<-- ${response.status} ${request.url.pathQuery()} (${duration}ms)"
 
@@ -413,7 +416,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
 
         logLines.add(startLine)
 
-        if (!isHeaders() && !isBody()) {
+        if (!isHeadersLevel() && !isBodyLevel()) {
             return response
         }
 
@@ -425,7 +428,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
             }
         }
 
-        if (!isBody()) {
+        if (!isBodyLevel()) {
             logLines.add("<-- END HTTP")
             return response
         }
@@ -545,7 +548,6 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         log.append("RESPONSE ${request.url} failed with exception: $cause")
     }
 
-    // TODO: Think on how to unsubscribe if needed
     client.monitor.subscribe(HttpResponseFromCache) { response ->
         val request = response.request
 
@@ -573,12 +575,130 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         }
 
         if (okHttpFormat) {
-            val requestLogLines = mutableListOf<String>()
-            val content = logRequestOkHttpFormat(request, requestLogLines)
+            request.attributes.put(LogCompleted, CompletableDeferred())
+            val body = request.body
+            var bodyToLog: ByteReadChannel? = null
+            val content = if (isBodyLevel() && request.method != HttpMethod.Get && request.method != HttpMethod.Head && body is OutgoingContent) {
+                val body = if (body is OutgoingContent.ContentWrapper) {
+                    body.delegate()
+                } else {
+                    body
+                }
 
-            if (requestLogLines.size > 0) {
-                logger.log(requestLogLines.joinToString(separator = "\n"))
+                when (body) {
+                    is OutgoingContent.ReadChannelContent -> {
+                        val (origChannel, newChannel) = body.readFrom().split(client)
+                        bodyToLog = newChannel
+                        LoggedContent(body, origChannel)
+                    }
+
+                    is OutgoingContent.WriteChannelContent -> {
+                        val channel = ByteChannel()
+
+                        client.launch {
+                            body.writeTo(channel)
+                            channel.close()
+                        }
+
+                        val (origChannel, newChannel) = channel.split(client)
+                        bodyToLog = newChannel
+                        LoggedContent(body, origChannel)
+                    }
+                    is OutgoingContent.ByteArrayContent -> {
+                        bodyToLog = ByteReadChannel(body.bytes())
+                    }
+
+                    is OutgoingContent.ContentWrapper -> {
+                        // Already unwrapped
+                    }
+
+                    is OutgoingContent.NoContent -> {
+                        bodyToLog = ByteReadChannel.Empty
+                    }
+
+                    is OutgoingContent.ProtocolUpgrade -> {
+                        bodyToLog = ByteReadChannel.Empty
+                    }
+                }
+            } else {
+                null
             }
+
+            val logJob = client.launch {
+                val requestLogLines = mutableListOf<String>()
+
+                if (!isNoneLevel()) {
+                    val uri = URLBuilder().takeFrom(request.url).build().pathQuery()
+                    val body = request.body
+                    val headers = HeadersBuilder().apply {
+                        if (body is OutgoingContent &&
+                            request.method != HttpMethod.Get &&
+                            request.method != HttpMethod.Head &&
+                            body !is EmptyContent
+                        ) {
+                            body.contentType?.let {
+                                appendIfNameAbsent(HttpHeaders.ContentType, it.toString())
+                            }
+                            body.contentLength?.let {
+                                appendIfNameAbsent(HttpHeaders.ContentLength, it.toString())
+                            }
+                        }
+                        appendAll(request.headers)
+                    }.build()
+
+                    val contentLength = headers[HttpHeaders.ContentLength]?.toLongOrNull()
+                    val startLine = when {
+                        (request.method == HttpMethod.Get) ||
+                            (request.method == HttpMethod.Head) ||
+                            ((isHeadersLevel() || isBodyLevel()) && contentLength != null) ||
+                            (isHeadersLevel() && contentLength == null) ||
+                            headers.contains(HttpHeaders.ContentEncoding) -> "--> ${request.method.value} $uri"
+
+                        isInfoLevel() && contentLength != null -> "--> ${request.method.value} $uri ($contentLength-byte body)"
+
+                        body is OutgoingContent.WriteChannelContent ||
+                            body is OutgoingContent.ReadChannelContent -> "--> ${request.method.value} $uri (unknown-byte body)"
+
+                        else -> {
+                            val size = computeRequestBodySize(request.body)
+                            "--> ${request.method.value} $uri ($size-byte body)"
+                        }
+                    }
+
+                    requestLogLines.add(startLine)
+
+                    if (isHeadersLevel() || isBodyLevel()) {
+                        for ((name, values) in headers.entries()) {
+                            if (sanitizedHeaders.find { sh -> sh.predicate(name) } == null) {
+                                requestLogLines.add("$name: ${values.joinToString(separator = ", ")}")
+                            } else {
+                                requestLogLines.add("$name: ██")
+                            }
+                        }
+
+                        if (isBodyLevel() && body is OutgoingContent && isBodyLevel() && request.method != HttpMethod.Get && request.method != HttpMethod.Head && bodyToLog != null) {
+                            requestLogLines.add("")
+                            logRequestBody(body, contentLength, headers, request.method, requestLogLines, bodyToLog)
+                        } else {
+                            requestLogLines.add("--> END ${request.method.value}")
+                        }
+                    }
+                }
+
+                if (requestLogLines.isNotEmpty()) {
+                    logger.log(requestLogLines.joinToString(separator = "\n"))
+                }
+            }
+
+            request.attributes.put(RequestLogJob, logJob)
+
+
+//            val requestLogLines = mutableListOf<String>()
+//            val content = logRequestOkHttpFormat(request, requestLogLines)
+//
+//            if (requestLogLines.isNotEmpty()) {
+//                logger.log(requestLogLines.joinToString(separator = "\n"))
+//            }
 
             try {
                 if (content != null) {
@@ -614,9 +734,13 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
             val responseLogLines = mutableListOf<String>()
             val newResponse = logResponseOkHttpFormat(response, responseLogLines)
 
-            if (responseLogLines.size > 0) {
+            if (responseLogLines.isNotEmpty()) {
+                val requestLogJob = response.call.attributes.getOrNull(RequestLogJob)
+                requestLogJob?.join()
                 logger.log(responseLogLines.joinToString(separator = "\n"))
             }
+
+            response.call.attributes.getOrNull(LogCompleted)?.complete(Unit)
 
             if (newResponse != response) {
                 proceedWith(newResponse)
