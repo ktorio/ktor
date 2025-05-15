@@ -184,10 +184,10 @@ class DependencyInjectionTest {
     }
 
     @Test
-    fun `last entry wins for tests`() = testApplication {
+    fun `first entry wins on conflicts when testing`() = testApplication {
         application {
-            dependencies { provide<GreetingService> { GreetingServiceImpl() } }
             dependencies { provide<GreetingService> { BankGreetingService() } }
+            dependencies { provide<GreetingService> { GreetingServiceImpl() } }
 
             val service: GreetingService by dependencies
             assertEquals(HELLO_CUSTOMER, service.hello())
@@ -256,6 +256,18 @@ class DependencyInjectionTest {
 
         val service: () -> GreetingService by dependencies
         assertEquals(HELLO, service().hello())
+    }
+
+    @Test
+    fun `function references`() = runTestDI {
+        dependencies {
+            provide<GreetingService>(::GreetingServiceImpl)
+            provide<BankService>(::BankServiceImpl)
+            provide(::BankTeller)
+        }
+
+        val service: BankTeller by dependencies
+        assertEquals(HELLO, service.hello())
     }
 
     @Test
@@ -385,6 +397,57 @@ class DependencyInjectionTest {
         resolutionChannel.close()
         val resolutions = resolutionChannel.consumeAsFlow().toList()
         assertEquals(listOf("bank", "greeting", "teller"), resolutions)
+    }
+
+    @Test
+    fun `async lambda arguments`() = testApplication(Dispatchers.Unconfined) {
+        val greeter = GreetingServiceImpl()
+        val bank = BankServiceImpl()
+
+        val fetchGreetingService: suspend () -> GreetingService = {
+            delay(100)
+            greeter
+        }
+        val fetchBankService: suspend () -> BankService = {
+            delay(50)
+            bank
+        }
+
+        application {
+            dependencies {
+                provideAsync<GreetingService>(fetchGreetingService)
+                provideAsync<BankService>(fetchBankService)
+                provideAsync(::BankTeller)
+            }
+            val bankService: Deferred<BankService> by dependencies
+            routing {
+                get("/hello") {
+                    val service: GreetingService = dependencies.resolveAwait()
+                    call.respondText(service.hello())
+                }
+                get("/balance") {
+                    val service: BankService = bankService.await()
+                    call.respondText(service.balance().toString())
+                }
+                get("/bank-teller") {
+                    val service: BankTeller = dependencies.resolveAwait()
+                    call.respondText("${service.hello()}, your balance is ${service.balance()}")
+                }
+            }
+        }
+        val responses = Array<HttpResponse?>(3) { null }
+        coroutineScope {
+            listOf("/hello", "/balance", "/bank-teller").mapIndexed { index, url ->
+                launch {
+                    responses[index] = client.get(url)
+                }
+            }.joinAll()
+        }
+        val (helloResponse, balanceResponse, bankTellerResponse) = responses.map { it!!.bodyAsText() }
+
+        assertEquals(greeter.hello(), helloResponse)
+        assertEquals(bank.balance().toString(), balanceResponse)
+        assertEquals("${greeter.hello()}, your balance is ${bank.balance()}", bankTellerResponse)
     }
 
     @Test
