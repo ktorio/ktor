@@ -235,7 +235,14 @@ public class ProcessingDependencyResolver(
         resolved.contains(key) || provider.declarations.contains(key) || external.contains(key)
 
     override fun <T> get(key: DependencyKey): T =
-        resolveKey(key).getOrThrow() as T
+        try {
+            resolveKey(key).getOrThrow() as T
+        } catch (e: AmbiguousDependencyException) {
+            // During resolution, we can recover from ambiguous dependencies.
+            // This often occurs with delegates.
+            val fallback = e.function.clarify { it in resolved } ?: throw e
+            fallback.create(this) as T
+        }
 
     override fun <T> getOrPut(key: DependencyKey, defaultValue: () -> T): T =
         resolved.getOrPut(key) {
