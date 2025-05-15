@@ -582,6 +582,8 @@ final class io.ktor.server.engine/ConnectorType { // io.ktor.server.engine/Conne
             final fun <get-HTTP>(): io.ktor.server.engine/ConnectorType // io.ktor.server.engine/ConnectorType.Companion.HTTP.<get-HTTP>|<get-HTTP>(){}[0]
         final val HTTPS // io.ktor.server.engine/ConnectorType.Companion.HTTPS|{}HTTPS[0]
             final fun <get-HTTPS>(): io.ktor.server.engine/ConnectorType // io.ktor.server.engine/ConnectorType.Companion.HTTPS.<get-HTTPS>|<get-HTTPS>(){}[0]
+        final val UNIX // io.ktor.server.engine/ConnectorType.Companion.UNIX|{}UNIX[0]
+            final fun <get-UNIX>(): io.ktor.server.engine/ConnectorType // io.ktor.server.engine/ConnectorType.Companion.UNIX.<get-UNIX>|<get-UNIX>(){}[0]
     }
 }
 

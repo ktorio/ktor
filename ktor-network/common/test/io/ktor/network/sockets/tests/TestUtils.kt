@@ -25,8 +25,6 @@ internal fun testSockets(
     }
 }
 
-internal expect fun Any.supportsUnixDomainSockets(): Boolean
-
 internal expect fun Throwable.isPosixException(): Boolean
 
 @OptIn(ExperimentalUuidApi::class)
