@@ -14,9 +14,12 @@ import io.ktor.events.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import kotlinx.atomicfu.*
-import kotlinx.coroutines.*
-import kotlin.coroutines.*
+import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.CompletableJob
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlin.coroutines.CoroutineContext
 
 /**
  * A multiplatform asynchronous HTTP client that allows you to make requests, handle responses,
@@ -1372,7 +1375,7 @@ public class HttpClient(
         with(userConfig) {
             config.install(HttpRequestLifecycle)
             config.install(BodyProgress)
-            config.install(SaveBodyPlugin)
+            config.install(SaveBody)
 
             if (useDefaultTransformers) {
                 config.install("DefaultTransformers") { defaultTransformers() }
