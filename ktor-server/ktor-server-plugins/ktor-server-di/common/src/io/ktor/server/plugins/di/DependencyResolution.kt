@@ -6,6 +6,7 @@ package io.ktor.server.plugins.di
 
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.SerializableConfigValue
+import kotlinx.coroutines.Deferred
 import kotlin.reflect.KProperty
 
 /**
@@ -173,6 +174,12 @@ public operator fun DependencyMap.plus(right: DependencyMap): DependencyMap =
  */
 public inline fun <reified T> DependencyMap.resolve(key: String? = null): T =
     get(DependencyKey<T>(key))
+
+/**
+ * Resolve a `Deferred<T>` dependency and await its result.
+ */
+public suspend inline fun <reified T> DependencyMap.resolveAwait(key: String? = null): T =
+    resolve<Deferred<T>>(key).await()
 
 internal class MergedDependencyMap(
     private val left: DependencyMap,

@@ -7,6 +7,10 @@ package io.ktor.server.plugins.di
 import io.ktor.server.application.*
 import io.ktor.server.plugins.di.MutableDependencyMap.Companion.asResolver
 import io.ktor.utils.io.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlin.coroutines.CoroutineContext
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
@@ -30,7 +34,8 @@ public class DependencyRegistry(
     private val external: DependencyMap,
     private val resolution: DependencyResolution,
     public override val reflection: DependencyReflection,
-) : DependencyProvider by provider, DependencyResolver {
+    public override val coroutineContext: CoroutineContext,
+) : DependencyProvider by provider, DependencyResolver, CoroutineScope {
 
     internal val requirements = mutableMapOf<DependencyKey, DependencyReference>()
     internal val shutdownHooks = mutableMapOf<DependencyKey, (Any?) -> Unit>()
@@ -104,12 +109,38 @@ public class DependencyRegistry(
      * @param T The type of the dependency to be provided.
      * @param kClass The `KClass` representing the type of the dependency to be created or resolved.
      */
-    public inline fun <reified T : Any> DependencyProvider.provide(kClass: KClass<out T>) {
+    public inline fun <reified T : Any> provide(kClass: KClass<out T>): KeyContext<T> =
         provide<T> { create(kClass) }
-    }
 
+    /**
+     * Creates a new `KeyContext` for the specified type [T] and an optional name.
+     * The given [handler] is invoked on the created `KeyContext`, allowing configuration
+     * such as defining a provider or cleanup logic for the dependency.
+     *
+     * @param T The type of the dependency being handled.
+     * @param name An optional name associated with the dependency. Defaults to `null` if not provided.
+     * @param handler A lambda that defines the actions to be performed on the created `KeyContext`.
+     * @return A `KeyContext` instance representing the defined key and its associated actions.
+     */
     public inline fun <reified T> key(name: String? = null, noinline handler: KeyContext<T>.() -> Unit): KeyContext<T> =
         KeyContext<T>(DependencyKey<T>(name)).also(handler)
+
+    /**
+     * Provide a deferred dependency for the given type using the provided suspend function.
+     *
+     * Shorthand for `provide<Deferred<T>> { async { suspendFunction() } }`
+     */
+    public inline fun <reified T> provideAsync(
+        name: String? = null,
+        noinline provide: suspend DependencyResolver.() -> T?
+    ): KeyContext<Deferred<T>> =
+        provide<Deferred<T>>(name) {
+            async {
+                provide() ?: throw DependencyInjectionException(
+                    "Null result for async declaration: ${DependencyKey<T>(name)}"
+                )
+            }
+        }
 
     /**
      * Basic call for providing a dependency, like `provide<Service> { ServiceImpl() }`.
@@ -258,6 +289,6 @@ internal class DependencyReference : Throwable() {
      */
     fun externalTrace(): String =
         stackTraceToString()
-            .substringAfterLast("io.ktor.server.plugins.di")
+            .substringAfterLast("io.ktor")
             .substringAfter('\n')
 }

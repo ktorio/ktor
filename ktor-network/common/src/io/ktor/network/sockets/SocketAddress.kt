@@ -114,4 +114,13 @@ public expect class UnixSocketAddress(
     override fun equals(other: Any?): Boolean
     override fun hashCode(): Int
     override fun toString(): String
+
+    public companion object {
+        /**
+         * Checks if Unix domain sockets are supported on the current platform.
+         *
+         * @return `true` if Unix domain sockets are supported, `false` otherwise.
+         */
+        public fun isSupported(): Boolean
+    }
 }

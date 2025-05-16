@@ -13,9 +13,11 @@ import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.io.IOException
+import kotlinx.io.files.Path
+import kotlinx.io.files.SystemFileSystem
 import kotlin.time.Duration.Companion.seconds
 
-private val LOGGER = KtorSimpleLogger("io.ktor.server.cio.HttpServer")
+private val LOGGER = KtorSimpleLogger("io.ktor.server.cio.backend.UnixSocketServer")
 
 /**
  * Start an http server with [settings] invoking [handler] for every request
@@ -23,8 +25,8 @@ private val LOGGER = KtorSimpleLogger("io.ktor.server.cio.HttpServer")
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.cio.backend.httpServer)
  */
 @OptIn(InternalAPI::class)
-public fun CoroutineScope.httpServer(
-    settings: HttpServerSettings,
+public fun CoroutineScope.unixSocketServer(
+    settings: UnixSocketServerSettings,
     handler: HttpRequestHandler
 ): HttpServer {
     val socket = CompletableDeferred<ServerSocket>()
@@ -40,12 +42,14 @@ public fun CoroutineScope.httpServer(
 
     val selector = SelectorManager(coroutineContext)
     val timeout = settings.connectionIdleTimeoutSeconds.seconds
-    val rootConnectionJob = SupervisorJob(serverJob)
 
     val acceptJob = launch(serverJob + CoroutineName("accept-$settings")) {
-        val serverSocket = aSocket(selector).tcp().bind(settings.host, settings.port) {
-            reuseAddress = settings.reuseAddress
+        val socketFile = Path(settings.socketPath)
+        if (SystemFileSystem.exists(socketFile)) {
+            SystemFileSystem.delete(socketFile)
         }
+
+        val serverSocket = aSocket(selector).tcp().bind(UnixSocketAddress(settings.socketPath))
 
         serverSocket.use { server ->
             socket.complete(server)
@@ -55,7 +59,7 @@ public fun CoroutineScope.httpServer(
 
             val connectionScope = CoroutineScope(
                 coroutineContext +
-                    rootConnectionJob +
+                    SupervisorJob(serverJob) +
                     exceptionHandler +
                     CoroutineName("request")
             )
@@ -91,9 +95,8 @@ public fun CoroutineScope.httpServer(
                 coroutineContext.cancel()
             } finally {
                 server.close()
-                rootConnectionJob.complete()
-                rootConnectionJob.join()
                 server.awaitClosed()
+                connectionScope.coroutineContext.cancel()
             }
         }
     }

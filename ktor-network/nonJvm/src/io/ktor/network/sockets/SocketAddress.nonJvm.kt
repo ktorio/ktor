@@ -119,4 +119,15 @@ public actual class UnixSocketAddress actual constructor(
     public actual fun copy(path: String): UnixSocketAddress {
         return UnixSocketAddress(path)
     }
+
+    public actual companion object {
+        /**
+         * Checks if Unix domain sockets are supported on the current platform.
+         *
+         * @return `true` if Unix domain sockets are supported, `false` otherwise.
+         */
+        public actual fun isSupported(): Boolean = isUnixSocketSupported()
+    }
 }
+
+internal expect fun isUnixSocketSupported(): Boolean
