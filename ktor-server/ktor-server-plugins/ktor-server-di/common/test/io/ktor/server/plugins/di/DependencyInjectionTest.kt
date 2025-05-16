@@ -5,6 +5,7 @@
 package io.ktor.server.plugins.di
 
 import io.ktor.client.request.get
+import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.server.application.*
 import io.ktor.server.response.respondText
@@ -12,6 +13,20 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.test.dispatcher.runTestWithRealTime
 import io.ktor.util.logging.Logger
+import io.ktor.utils.io.CancellationException
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.Serializable
@@ -308,6 +323,101 @@ class DependencyInjectionTest {
                 provide<GreetingService> { GreetingServiceImpl() }
             }
             assertEquals(listOf(DependencyKey<GreetingService>()), assignmentKeys)
+        }
+    }
+
+    @Test
+    fun `async support`() = testApplication(Dispatchers.Unconfined) {
+        val greeter = GreetingServiceImpl()
+        val bank = BankServiceImpl()
+        val resolutionChannel = Channel<String>(3)
+
+        application {
+            dependencies {
+                provideAsync<GreetingService> {
+                    delay(100)
+                    greeter.also {
+                        resolutionChannel.trySend("greeting").getOrThrow()
+                    }
+                }
+                provideAsync<BankService> {
+                    delay(50)
+                    bank.also {
+                        resolutionChannel.trySend("bank").getOrThrow()
+                    }
+                }
+                provideAsync<BankTeller> {
+                    BankTeller(resolveAwait(), resolveAwait()).also {
+                        resolutionChannel.trySend("teller").getOrThrow()
+                    }
+                }
+            }
+            val bankService: Deferred<BankService> by dependencies
+            routing {
+                get("/hello") {
+                    val service: GreetingService = dependencies.resolveAwait()
+                    call.respondText(service.hello())
+                }
+                get("/balance") {
+                    val service: BankService = bankService.await()
+                    call.respondText(service.balance().toString())
+                }
+                get("/bank-teller") {
+                    val service: BankTeller = dependencies.resolveAwait()
+                    call.respondText("${service.hello()}, your balance is ${service.balance()}")
+                }
+            }
+        }
+        val responses = Array<HttpResponse?>(3) { null }
+        coroutineScope {
+            listOf("/hello", "/balance", "/bank-teller").mapIndexed { index, url ->
+                launch {
+                    responses[index] = client.get(url)
+                }
+            }.joinAll()
+        }
+        val (helloResponse, balanceResponse, bankTellerResponse) = responses.map { it!!.bodyAsText() }
+
+        assertEquals(greeter.hello(), helloResponse)
+        assertEquals(bank.balance().toString(), balanceResponse)
+        assertEquals("${greeter.hello()}, your balance is ${bank.balance()}", bankTellerResponse)
+
+        resolutionChannel.close()
+        val resolutions = resolutionChannel.consumeAsFlow().toList()
+        assertEquals(listOf("bank", "greeting", "teller"), resolutions)
+    }
+
+    @Test
+    fun `async shutdown`() = runTest {
+        val registryDeferred = CompletableDeferred<DependencyRegistry>()
+        val application = launch {
+            runTestApplication(coroutineContext) {
+                application {
+                    dependencies {
+                        provideAsync<GreetingService> {
+                            awaitCancellation()
+                        }
+                    }
+                    routing {
+                        get("/hello") {
+                            call.launch {
+                                delay(50)
+                                registryDeferred.complete(dependencies)
+                            }
+                            val service: GreetingService = dependencies.resolveAwait()
+                            call.respondText(service.hello())
+                        }
+                    }
+                }
+                val greeting = client.get("/hello").bodyAsText()
+                fail("Should not reach here, but got $greeting")
+            }
+        }
+        val registry = registryDeferred.await()
+        application.cancelAndJoin()
+        assertFalse(registry.isActive)
+        assertFailsWith<CancellationException> {
+            registry.resolveAwait<GreetingService>()
         }
     }
 

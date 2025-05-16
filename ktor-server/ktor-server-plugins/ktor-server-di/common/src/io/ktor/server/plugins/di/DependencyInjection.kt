@@ -8,6 +8,8 @@ import io.ktor.server.application.*
 import io.ktor.server.plugins.di.utils.*
 import io.ktor.util.*
 import io.ktor.util.reflect.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlin.reflect.KClass
 
 /**
@@ -74,6 +76,7 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
             dependenciesMap,
             pluginConfig.resolution,
             pluginConfig.reflection,
+            application.coroutineContext + Dispatchers.Default.limitedParallelism(1),
         )
 
         with(application) {
@@ -84,7 +87,7 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
                 val exceptions = mutableListOf<Pair<DependencyKey, Throwable>>()
                 for ((key, source) in registry.requirements) {
                     try {
-                        registry.get<Any>(key)
+                        registry.get<Any?>(key)
                     } catch (e: Throwable) {
                         environment.log.error("Cannot resolve $key\n${source.externalTrace()}")
                         exceptions += key to e
@@ -117,6 +120,7 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
                         environment.log.error("Exception during cleanup for $key; continuing", e)
                     }
                 }
+                registry.cancel()
             }
 
             attributes.put(DependencyRegistryKey, registry)

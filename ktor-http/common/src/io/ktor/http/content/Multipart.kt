@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.PartData)
  *
- * @property dispose to be invoked when this part is no longed needed
+ * @property dispose to be invoked when this part is no longer needed
  * @property headers of this part, could be inaccurate on some engines
  */
 public sealed class PartData(public val dispose: () -> Unit, public val headers: Headers) {
