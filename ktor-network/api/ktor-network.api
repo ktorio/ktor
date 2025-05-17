@@ -192,6 +192,7 @@ public final class io/ktor/network/sockets/DatagramWriteChannel$DefaultImpls {
 
 public final class io/ktor/network/sockets/InetSocketAddress : io/ktor/network/sockets/SocketAddress {
 	public fun <init> (Ljava/lang/String;I)V
+	public final fun address ()[B
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()I
 	public final fun copy (Ljava/lang/String;I)Lio/ktor/network/sockets/InetSocketAddress;

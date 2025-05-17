@@ -49,6 +49,16 @@ public expect class InetSocketAddress(
     public val port: Int
 
     /**
+     * Returns the raw IP address bytes of this socket address.
+     *
+     * The returned array is 4 bytes for IPv4 addresses and 16 bytes for IPv6 addresses.
+     * Returns null if the address cannot be resolved or is not a valid IP address.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.InetSocketAddress.address)
+     */
+    public fun address(): ByteArray?
+
+    /**
      * The hostname of the socket address.
      *
      * Note that this may trigger a name service reverse lookup.
