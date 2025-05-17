@@ -698,6 +698,207 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
+    fun testDisableTokenCaching() = testWithEngine(MockEngine) {
+        var loadCount = 0
+        config {
+            install(Auth) {
+                bearer {
+                    loadTokens {
+                        loadCount++
+                        BearerTokens("valid-token", "refresh-token")
+                    }
+                    // Disable token caching
+                    cacheTokens = false
+                }
+            }
+
+            engine {
+                addHandler { request ->
+                    val token = request.headers[HttpHeaders.Authorization]?.removePrefix("Bearer ")
+                    if (token == "valid-token") {
+                        respond("OK", HttpStatusCode.OK)
+                    } else {
+                        respond("Unauthorized", HttpStatusCode.Unauthorized)
+                    }
+                }
+            }
+        }
+
+        test { client ->
+            loadCount = 0
+
+            // First request should call loadTokens
+            val response1 = client.get("/")
+            assertEquals(HttpStatusCode.OK, response1.status)
+            assertEquals(1, loadCount)
+
+            // Second request should call loadTokens again since caching is disabled
+            val response2 = client.get("/")
+            assertEquals(HttpStatusCode.OK, response2.status)
+            assertEquals(2, loadCount)
+
+            // Third request should call loadTokens once more
+            val response3 = client.get("/")
+            assertEquals(HttpStatusCode.OK, response3.status)
+            assertEquals(3, loadCount)
+        }
+    }
+
+    @Test
+    fun testRefreshWithCachingDisabled() = testWithEngine(MockEngine) {
+        var loadCount = 0
+        var refreshCount = 0
+
+        // Storage of the current token to mimic Firebase token cache
+        var tokenCache = "initial-token"
+
+        config {
+            install(Auth) {
+                bearer {
+                    loadTokens {
+                        loadCount++
+                        // Return token from cache
+                        println("loadTokens called (#$loadCount) - returning $tokenCache")
+                        BearerTokens(tokenCache, "refresh")
+                    }
+                    refreshTokens {
+                        refreshCount++
+                        // Update token in cache
+                        val newToken = "refreshed-token-$refreshCount"
+                        tokenCache = newToken
+                        println("refreshTokens called (#$refreshCount) - updating cache to $newToken")
+                        BearerTokens(newToken, "refresh")
+                    }
+                    // Disable token caching
+                    cacheTokens = false
+                }
+            }
+
+            engine {
+                addHandler { request ->
+                    val token = request.headers[HttpHeaders.Authorization]?.removePrefix("Bearer ")
+                    println("Received request with token: ${token ?: "none"}")
+
+                    if (token == "initial-token") {
+                        // Initial token is rejected
+                        println("Returning 401 for initial-token")
+                        respond(
+                            "Unauthorized",
+                            HttpStatusCode.Unauthorized,
+                            headers = headersOf(HttpHeaders.WWWAuthenticate, "Bearer")
+                        )
+                    } else if (token?.startsWith("refreshed-token") == true) {
+                        // Refreshed tokens are accepted
+                        println("Returning 200 for refreshed token: $token")
+                        respond("OK", HttpStatusCode.OK)
+                    } else {
+                        println("Returning 401 for unexpected token: $token")
+                        respond(
+                            "No token",
+                            HttpStatusCode.Unauthorized,
+                            headers = headersOf(HttpHeaders.WWWAuthenticate, "Bearer")
+                        )
+                    }
+                }
+            }
+        }
+
+        test { client ->
+            loadCount = 0
+            refreshCount = 0
+
+            // Token is loaded from cache first, then refreshed during the 401 scenario
+            val response1 = client.get("/first")
+
+            // Wait a moment to ensure processing completes
+            delay(100)
+
+            // The retry should use the refreshed token from our cache
+            assertEquals(HttpStatusCode.OK, response1.status)
+
+            // Verify refresh was called once
+            assertEquals(1, refreshCount, "Expected refresh to be called once")
+
+            // Second request should use the fresh token from our external cache
+            val response2 = client.get("/second")
+            assertEquals(HttpStatusCode.OK, response2.status)
+
+            // Loadtokens should be called at least twice - once for each request
+            assertTrue(loadCount >= 2, "Expected loadTokens to be called at least twice")
+
+            // No additional refresh needed for second request since our cache has the valid token
+            assertEquals(1, refreshCount, "No additional refresh needed for second request")
+        }
+    }
+
+    @Test
+    fun testRefreshWithCachingEnabled() = testWithEngine(MockEngine) {
+        var loadCount = 0
+        var refreshCount = 0
+
+        config {
+            install(Auth) {
+                bearer {
+                    loadTokens {
+                        loadCount++
+                        // Always return the same token from loadTokens
+                        BearerTokens("initial-token", "refresh")
+                    }
+                    refreshTokens {
+                        refreshCount++
+                        // Return a different token from refreshTokens
+                        BearerTokens("refreshed-token-$refreshCount", "refresh")
+                    }
+                    // Enable token caching (default)
+                    cacheTokens = true
+                }
+            }
+
+            engine {
+                addHandler { request ->
+                    val token = request.headers[HttpHeaders.Authorization]?.removePrefix("Bearer ")
+                    if (token == "initial-token") {
+                        // Initial token is rejected
+                        respond(
+                            "Unauthorized",
+                            HttpStatusCode.Unauthorized,
+                            headers = headersOf(HttpHeaders.WWWAuthenticate, "Bearer")
+                        )
+                    } else if (token?.startsWith("refreshed-token") == true) {
+                        // Refreshed tokens are accepted
+                        respond("OK", HttpStatusCode.OK)
+                    } else {
+                        respond("No token", HttpStatusCode.Unauthorized)
+                    }
+                }
+            }
+        }
+
+        test { client ->
+            loadCount = 0
+            refreshCount = 0
+
+            // First request:
+            // 1. loadTokens called -> returns "initial-token"
+            // 2. Request with "initial-token" gets 401
+            // 3. refreshTokens called -> returns "refreshed-token-1"
+            // 4. Request with "refreshed-token-1" succeeds
+            val response1 = client.get("/")
+            assertEquals(HttpStatusCode.OK, response1.status)
+            assertEquals(1, loadCount)
+            assertEquals(1, refreshCount)
+
+            // Second request:
+            // Since caching is enabled, it uses the cached "refreshed-token-1" directly
+            // No 401 response, no refresh needed
+            val response2 = client.get("/")
+            assertEquals(HttpStatusCode.OK, response2.status)
+            assertEquals(1, loadCount) // Not called again because caching is enabled
+            assertEquals(1, refreshCount) // No refresh needed
+        }
+    }
+
+    @Test
     fun testMultipleChallengesInHeader() = clientTests {
         config {
             install(Auth) {

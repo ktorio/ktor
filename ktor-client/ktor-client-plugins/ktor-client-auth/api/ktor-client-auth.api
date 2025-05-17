@@ -41,6 +41,7 @@ public final class io/ktor/client/plugins/auth/providers/BasicAuthConfig {
 	public final fun setRealm (Ljava/lang/String;)V
 	public final fun setSendWithoutRequest (Z)V
 	public final fun setUsername (Ljava/lang/String;)V
+	public final fun tokenStorage (Lio/ktor/client/plugins/auth/providers/TokenStorage;)V
 }
 
 public final class io/ktor/client/plugins/auth/providers/BasicAuthCredentials {
@@ -52,10 +53,10 @@ public final class io/ktor/client/plugins/auth/providers/BasicAuthCredentials {
 public final class io/ktor/client/plugins/auth/providers/BasicAuthProvider : io/ktor/client/plugins/auth/AuthProvider {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun <init> (Lkotlin/jvm/functions/Function1;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
-	public synthetic fun <init> (Lkotlin/jvm/functions/Function1;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lkotlin/jvm/functions/Function1;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lio/ktor/client/plugins/auth/providers/TokenStorage;)V
+	public synthetic fun <init> (Lkotlin/jvm/functions/Function1;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lio/ktor/client/plugins/auth/providers/TokenStorage;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun addRequestHeaders (Lio/ktor/client/request/HttpRequestBuilder;Lio/ktor/http/auth/HttpAuthHeader;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun clearToken ()V
+	public final fun clearToken (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getSendWithoutRequest ()Z
 	public fun isApplicable (Lio/ktor/http/auth/HttpAuthHeader;)Z
 	public fun refreshToken (Lio/ktor/client/statement/HttpResponse;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -68,18 +69,21 @@ public final class io/ktor/client/plugins/auth/providers/BasicAuthProviderKt {
 
 public final class io/ktor/client/plugins/auth/providers/BearerAuthConfig {
 	public fun <init> ()V
+	public final fun getCacheTokens ()Z
 	public final fun getRealm ()Ljava/lang/String;
 	public final fun loadTokens (Lkotlin/jvm/functions/Function1;)V
 	public final fun refreshTokens (Lkotlin/jvm/functions/Function2;)V
 	public final fun sendWithoutRequest (Lkotlin/jvm/functions/Function1;)V
+	public final fun setCacheTokens (Z)V
 	public final fun setRealm (Ljava/lang/String;)V
+	public final fun tokenStorage (Lio/ktor/client/plugins/auth/providers/TokenStorage;)V
 }
 
 public final class io/ktor/client/plugins/auth/providers/BearerAuthProvider : io/ktor/client/plugins/auth/AuthProvider {
-	public fun <init> (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Ljava/lang/String;)V
-	public synthetic fun <init> (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Ljava/lang/String;ZLio/ktor/client/plugins/auth/providers/TokenStorage;)V
+	public synthetic fun <init> (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Ljava/lang/String;ZLio/ktor/client/plugins/auth/providers/TokenStorage;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun addRequestHeaders (Lio/ktor/client/request/HttpRequestBuilder;Lio/ktor/http/auth/HttpAuthHeader;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun clearToken ()V
+	public final fun clearToken (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getSendWithoutRequest ()Z
 	public fun isApplicable (Lio/ktor/http/auth/HttpAuthHeader;)Z
 	public fun refreshToken (Lio/ktor/client/statement/HttpResponse;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -94,6 +98,18 @@ public final class io/ktor/client/plugins/auth/providers/BearerTokens {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
 	public final fun getAccessToken ()Ljava/lang/String;
 	public final fun getRefreshToken ()Ljava/lang/String;
+}
+
+public final class io/ktor/client/plugins/auth/providers/CachingTokenStorage : io/ktor/client/plugins/auth/providers/DefaultTokenStorage {
+	public fun <init> (Lkotlin/jvm/functions/Function1;)V
+	public fun clearToken (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getCurrentToken ()Ljava/lang/Object;
+	public fun loadToken (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun updateToken (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class io/ktor/client/plugins/auth/providers/DefaultTokenStorage : io/ktor/client/plugins/auth/providers/TokenStorage {
+	public abstract fun getCurrentToken ()Ljava/lang/Object;
 }
 
 public final class io/ktor/client/plugins/auth/providers/DigestAuthConfig {
@@ -121,7 +137,7 @@ public final class io/ktor/client/plugins/auth/providers/DigestAuthProvider : io
 	public fun <init> (Lkotlin/jvm/functions/Function1;Ljava/lang/String;Ljava/lang/String;)V
 	public synthetic fun <init> (Lkotlin/jvm/functions/Function1;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun addRequestHeaders (Lio/ktor/client/request/HttpRequestBuilder;Lio/ktor/http/auth/HttpAuthHeader;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun clearToken ()V
+	public final fun clearToken (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getAlgorithmName ()Ljava/lang/String;
 	public final fun getRealm ()Ljava/lang/String;
 	public fun getSendWithoutRequest ()Z
@@ -134,11 +150,36 @@ public final class io/ktor/client/plugins/auth/providers/DigestAuthProviderKt {
 	public static final fun digest (Lio/ktor/client/plugins/auth/AuthConfig;Lkotlin/jvm/functions/Function1;)V
 }
 
+public final class io/ktor/client/plugins/auth/providers/NonCachingTokenStorage : io/ktor/client/plugins/auth/providers/TokenStorage {
+	public fun <init> (Lkotlin/jvm/functions/Function1;)V
+	public fun clearToken (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun loadToken (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun updateToken (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public final class io/ktor/client/plugins/auth/providers/RefreshTokensParams {
 	public fun <init> (Lio/ktor/client/HttpClient;Lio/ktor/client/statement/HttpResponse;Lio/ktor/client/plugins/auth/providers/BearerTokens;)V
 	public final fun getClient ()Lio/ktor/client/HttpClient;
 	public final fun getOldTokens ()Lio/ktor/client/plugins/auth/providers/BearerTokens;
 	public final fun getResponse ()Lio/ktor/client/statement/HttpResponse;
 	public final fun markAsRefreshTokenRequest (Lio/ktor/client/request/HttpRequestBuilder;)V
+}
+
+public abstract interface class io/ktor/client/plugins/auth/providers/TokenStorage {
+	public abstract fun clearToken (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun loadToken (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun updateToken (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/client/plugins/auth/providers/TokenStorageFactory {
+	public static final field INSTANCE Lio/ktor/client/plugins/auth/providers/TokenStorageFactory;
+	public final fun getTokenStorageAttributeKey ()Lio/ktor/util/AttributeKey;
+	public final fun nonCaching (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/plugins/auth/providers/TokenStorage;
+	public final fun withCache (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/plugins/auth/providers/DefaultTokenStorage;
+}
+
+public final class io/ktor/client/plugins/auth/providers/TokenStorageKt {
+	public static final fun getTokenStorage (Lio/ktor/client/HttpClient;Ljava/lang/String;)Lio/ktor/client/plugins/auth/providers/TokenStorage;
+	public static final fun registerTokenStorage (Lio/ktor/client/HttpClient;Ljava/lang/String;Lio/ktor/client/plugins/auth/providers/TokenStorage;)V
 }
 
