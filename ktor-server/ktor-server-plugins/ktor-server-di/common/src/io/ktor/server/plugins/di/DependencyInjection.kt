@@ -62,7 +62,7 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
                 .orEmpty()
 
         val provider = if (isTestEngine() && !pluginConfig.providerChanged) {
-            MapDependencyProvider(conflictPolicy = LastEntryWinsPolicy)
+            MapDependencyProvider(conflictPolicy = IgnoreConflicts)
         } else {
             pluginConfig.provider
         }
@@ -117,7 +117,7 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
                         registry.shutdownHooks[key]?.invoke(instance)
                         onShutdown(key, instance)
                     } catch (e: Throwable) {
-                        environment.log.error("Exception during cleanup for $key; continuing", e)
+                        environment.log.warn("Exception during cleanup for $key; continuing", e)
                     }
                 }
                 registry.cancel()
@@ -132,7 +132,7 @@ private fun formatError(e: Throwable): String =
         is MissingDependencyException -> "Missing declaration"
         is CircularDependencyException -> "Circular dependency: ${e.keys.joinToString(" -> ")}"
         is DuplicateDependencyException -> "Conflicting declaration"
-        is AmbiguousDependencyException -> "Ambiguous dependency: ${e.keys.joinToString(", ")}"
+        is AmbiguousDependencyException -> "Ambiguous dependency for ${e.function.keyString()}"
         else -> e.message ?: ("Unknown error" + e.stackTraceToString().let { "\n$it" })
     }
 
@@ -302,8 +302,11 @@ public class DuplicateDependencyException(key: DependencyKey) :
 /**
  * Thrown when there are two or more implicit dependencies that match the given key.
  */
-public class AmbiguousDependencyException(key: DependencyKey, internal val keys: Collection<DependencyKey>) :
-    DependencyInjectionException("Cannot decide which value for $key. Possible implementations: $keys")
+public class AmbiguousDependencyException(
+    public val function: AmbiguousCreateFunction
+) : DependencyInjectionException(
+    "Cannot decide which value for ${function.key}: ${function.implementations}"
+)
 
 /**
  * Thrown when resolving a given dependency loops back on itself.

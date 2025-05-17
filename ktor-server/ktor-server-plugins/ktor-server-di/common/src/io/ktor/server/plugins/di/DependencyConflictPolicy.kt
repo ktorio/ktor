@@ -72,15 +72,13 @@ public val DefaultConflictPolicy: DependencyConflictPolicy = DependencyConflictP
 }
 
 /**
- * During testing, we simply override previously declared values.
+ * During testing, we ignore conflicts.
  * This allows for replacing base implementations with mock values.
  */
-public val LastEntryWinsPolicy: DependencyConflictPolicy = DependencyConflictPolicy { prev, current ->
-    require(current !is AmbiguousCreateFunction) { "Unexpected ambiguous function supplied" }
-    when (prev) {
-        is AmbiguousCreateFunction,
-        is ImplicitCreateFunction -> KeepNew
-        is ExplicitCreateFunction -> current.ifImplicit { KeepPrevious } ?: KeepNew
+public val IgnoreConflicts: DependencyConflictPolicy = DependencyConflictPolicy { prev, current ->
+    when (val result = DefaultConflictPolicy.resolve(prev, current)) {
+        is Conflict -> KeepPrevious
+        else -> result
     }
 }
 
