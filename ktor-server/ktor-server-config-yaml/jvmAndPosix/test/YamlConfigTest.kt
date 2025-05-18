@@ -294,6 +294,37 @@ class YamlConfigTest {
         )
     }
 
+    @Test
+    fun mergedConversion() {
+        val yamlText = """
+            auth:
+                hashAlgorithm: SHA-256
+                salt: ktor
+                users:
+                    - name: test
+                      password: asd
+        """.trimIndent()
+        val mapEntries = listOf(
+            "auth.salt" to "SALT&PEPPA",
+            "deployment.port" to "8080",
+            "deployment.host" to "localhost",
+        )
+
+        val yaml = Yaml.default.decodeFromString<YamlMap>(yamlText)
+        val yamlConfig = YamlConfig.from(yaml)
+        val mapConfig = MapApplicationConfig(mapEntries)
+
+        val mergedConfig = yamlConfig.mergeWith(mapConfig)
+        assertEquals(
+            SecurityConfig("SHA-256", "SALT&PEPPA", listOf(SecurityUser("test", "asd"))),
+            mergedConfig.property("auth").getAs()
+        )
+        assertEquals(
+            DeploymentConfig("localhost", 8080),
+            mergedConfig.property("deployment").getAs()
+        )
+    }
+
     @Serializable
     data class SecurityUser(
         val name: String,
@@ -305,5 +336,11 @@ class YamlConfigTest {
         val hashAlgorithm: String,
         val salt: String,
         val users: List<SecurityUser>,
+    )
+
+    @Serializable
+    data class DeploymentConfig(
+        val host: String,
+        val port: Int,
     )
 }
