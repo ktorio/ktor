@@ -7,6 +7,7 @@ package io.ktor.server.config
 import io.ktor.server.application.Application
 import io.ktor.util.reflect.TypeInfo
 import io.ktor.util.reflect.typeInfo
+import kotlin.reflect.typeOf
 
 /**
  * Represents an application config node
@@ -77,6 +78,20 @@ public interface ApplicationConfig {
  */
 public interface ApplicationConfigValue {
     /**
+     * Represents the type of the application configuration value.
+     *
+     * The `kind` property indicates the structure or nature of the application configuration value,
+     * which can assist in its processing or resolution. This property corresponds to the [Type] enum,
+     * which defines the following possible values:
+     * - `Single`: A single configuration value.
+     * - `List`: A collection of multiple values.
+     * - `Object`: A structured or nested configuration object.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.ApplicationConfigValue.kind)
+     */
+    public val type: Type
+
+    /**
      * Get property string value
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.ApplicationConfigValue.getString)
@@ -89,14 +104,40 @@ public interface ApplicationConfigValue {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.ApplicationConfigValue.getList)
      */
     public fun getList(): List<String>
-}
 
-/**
- * Represents an application config value that can be converted to an arbitrary type through
- * a serialization or parsing mechanism.
- */
-public interface SerializableConfigValue : ApplicationConfigValue {
+    /**
+     * Ge property as a map
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.ApplicationConfigValue.getMap)
+     */
+    public fun getMap(): Map<String, Any?>
+
+    /**
+     * Convert the property to an arbitrary type using deserialization.
+     *
+     * @param type the desired type of the return value provided by `typeInfo<T>()`
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.ApplicationConfigValue.getAs)
+     */
     public fun getAs(type: TypeInfo): Any?
+
+    /**
+     * Represents the type of application configuration value.
+     *
+     * `Kind` enum outlines the structure or behavior of the config value, aiding in its resolution or manipulation.
+     *
+     * - `Single`: Indicates a single value.
+     * - `List`: Represents multiple values in list form.
+     * - `Object`: Represents a structured or nested configuration object.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.ApplicationConfig.Kind)
+     */
+    public enum class Type {
+        NULL,
+        SINGLE,
+        LIST,
+        OBJECT
+    }
 }
 
 /**
@@ -117,8 +158,8 @@ public inline fun <reified E> Application.propertyOrNull(key: String): E? =
 public inline fun <reified E> ApplicationConfigValue.getAs(): E =
     if (E::class == String::class) {
         getString() as E
-    } else if (this !is SerializableConfigValue) {
-        throw UnsupportedOperationException("Configuration implementation does not support deserialization")
+    } else if (typeOf<E>() == typeOf<List<String>>()) {
+        getList() as E
     } else {
         getAs(typeInfo<E>()) as E
     }
