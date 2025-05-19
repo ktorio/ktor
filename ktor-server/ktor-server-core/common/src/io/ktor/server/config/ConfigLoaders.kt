@@ -26,6 +26,25 @@ public interface ConfigLoader {
 
     public companion object {
         /**
+         * Loads application configurations from the specified configuration paths.
+         *
+         * If no paths are provided, a default configuration is loaded.
+         * If a single path is provided, the configuration from the given path is loaded.
+         * If multiple paths are provided, the configurations are merged in sequence.
+         *
+         * @param configPaths A variable number of configuration file paths to load.
+         * @return An [ApplicationConfig] instance representing the loaded configuration(s).
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.ConfigLoader.Companion.loadAll)
+         */
+        public fun loadAll(vararg configPaths: String): ApplicationConfig =
+            when (configPaths.size) {
+                0 -> load()
+                1 -> load(configPaths.single())
+                else -> configPaths.map(::load).reduce(ApplicationConfig::mergeWith)
+            }
+
+        /**
          * Find and load a configuration file to [ApplicationConfig].
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.ConfigLoader.Companion.load)

@@ -106,7 +106,7 @@ public interface ApplicationConfigValue {
     public fun getList(): List<String>
 
     /**
-     * Ge property as a map
+     * Get property as a map
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.ApplicationConfigValue.getMap)
      */
@@ -124,11 +124,12 @@ public interface ApplicationConfigValue {
     /**
      * Represents the type of application configuration value.
      *
-     * `Kind` enum outlines the structure or behavior of the config value, aiding in its resolution or manipulation.
+     * `Type` enum outlines the structure or behavior of the config value, aiding in its resolution or manipulation.
      *
-     * - `Single`: Indicates a single value.
-     * - `List`: Represents multiple values in list form.
-     * - `Object`: Represents a structured or nested configuration object.
+     * - `NULL`: Indicates an absence of value.
+     * - `SINGLE`: Indicates a single value.
+     * - `LIST`: Represents multiple values in list form.
+     * - `OBJECT`: Represents a structured or nested configuration object.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.ApplicationConfig.Kind)
      */

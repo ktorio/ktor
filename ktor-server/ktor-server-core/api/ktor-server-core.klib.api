@@ -117,6 +117,7 @@ abstract interface io.ktor.server.config/ConfigLoader { // io.ktor.server.config
 
     final object Companion { // io.ktor.server.config/ConfigLoader.Companion|null[0]
         final fun load(kotlin/String? = ...): io.ktor.server.config/ApplicationConfig // io.ktor.server.config/ConfigLoader.Companion.load|load(kotlin.String?){}[0]
+        final fun loadAll(kotlin/Array<out kotlin/String>...): io.ktor.server.config/ApplicationConfig // io.ktor.server.config/ConfigLoader.Companion.loadAll|loadAll(kotlin.Array<out|kotlin.String>...){}[0]
     }
 }
 
@@ -1295,7 +1296,7 @@ open class io.ktor.server.application/DuplicateApplicationPluginException : kotl
 
 open class io.ktor.server.config/MapApplicationConfig : io.ktor.server.config/ApplicationConfig { // io.ktor.server.config/MapApplicationConfig|null[0]
     constructor <init>() // io.ktor.server.config/MapApplicationConfig.<init>|<init>(){}[0]
-    constructor <init>(kotlin.collections/List<kotlin/Pair<kotlin/String, kotlin/String>>) // io.ktor.server.config/MapApplicationConfig.<init>|<init>(kotlin.collections.List<kotlin.Pair<kotlin.String,kotlin.String>>){}[0]
+    constructor <init>(kotlin.collections/Collection<kotlin/Pair<kotlin/String, kotlin/String>>) // io.ktor.server.config/MapApplicationConfig.<init>|<init>(kotlin.collections.Collection<kotlin.Pair<kotlin.String,kotlin.String>>){}[0]
     constructor <init>(kotlin/Array<out kotlin/Pair<kotlin/String, kotlin/String>>...) // io.ktor.server.config/MapApplicationConfig.<init>|<init>(kotlin.Array<out|kotlin.Pair<kotlin.String,kotlin.String>>...){}[0]
 
     final val map // io.ktor.server.config/MapApplicationConfig.map|{}map[0]
@@ -1703,6 +1704,8 @@ final fun (io.ktor.server.config/ApplicationConfig).io.ktor.server.config/tryGet
 final fun (io.ktor.server.config/ApplicationConfig).io.ktor.server.config/withFallback(io.ktor.server.config/ApplicationConfig): io.ktor.server.config/ApplicationConfig // io.ktor.server.config/withFallback|withFallback@io.ktor.server.config.ApplicationConfig(io.ktor.server.config.ApplicationConfig){}[0]
 final fun (io.ktor.server.engine/ApplicationEngine).io.ktor.server.engine/stopServerOnCancellation(io.ktor.server.application/Application, kotlin/Long = ..., kotlin/Long = ...): kotlinx.coroutines/CompletableJob // io.ktor.server.engine/stopServerOnCancellation|stopServerOnCancellation@io.ktor.server.engine.ApplicationEngine(io.ktor.server.application.Application;kotlin.Long;kotlin.Long){}[0]
 final fun (io.ktor.server.engine/ApplicationEngine.Configuration).io.ktor.server.engine/loadCommonConfiguration(io.ktor.server.config/ApplicationConfig) // io.ktor.server.engine/loadCommonConfiguration|loadCommonConfiguration@io.ktor.server.engine.ApplicationEngine.Configuration(io.ktor.server.config.ApplicationConfig){}[0]
+final fun (io.ktor.server.engine/ApplicationEnvironmentBuilder).io.ktor.server.engine/configure(kotlin/Array<out io.ktor.server.config/ApplicationConfig>...) // io.ktor.server.engine/configure|configure@io.ktor.server.engine.ApplicationEnvironmentBuilder(kotlin.Array<out|io.ktor.server.config.ApplicationConfig>...){}[0]
+final fun (io.ktor.server.engine/ApplicationEnvironmentBuilder).io.ktor.server.engine/configure(kotlin/Array<out kotlin/String>...) // io.ktor.server.engine/configure|configure@io.ktor.server.engine.ApplicationEnvironmentBuilder(kotlin.Array<out|kotlin.String>...){}[0]
 final fun (io.ktor.server.engine/EmbeddedServer<*, *>).io.ktor.server.engine/addShutdownHook(kotlin/Function0<kotlin/Unit>) // io.ktor.server.engine/addShutdownHook|addShutdownHook@io.ktor.server.engine.EmbeddedServer<*,*>(kotlin.Function0<kotlin.Unit>){}[0]
 final fun (io.ktor.server.engine/EngineConnectorConfig).io.ktor.server.engine/withPort(kotlin/Int): io.ktor.server.engine/EngineConnectorConfig // io.ktor.server.engine/withPort|withPort@io.ktor.server.engine.EngineConnectorConfig(kotlin.Int){}[0]
 final fun (io.ktor.server.request/ApplicationReceivePipeline).io.ktor.server.engine/installDefaultTransformations() // io.ktor.server.engine/installDefaultTransformations|installDefaultTransformations@io.ktor.server.request.ApplicationReceivePipeline(){}[0]
