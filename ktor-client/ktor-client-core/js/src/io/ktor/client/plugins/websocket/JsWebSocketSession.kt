@@ -49,6 +49,23 @@ internal class JsWebSocketSession(
     init {
         websocket.binaryType = BinaryType.ARRAYBUFFER
 
+        // Start a heartbeat to keep the connection alive
+        // This is needed because JS WebSocket API doesn't support ping/pong frames
+        launch {
+            while (true) {
+                delay(30000) // Send a heartbeat every 30 seconds
+                try {
+                    // Send an empty text frame as a heartbeat
+                    if (!_outgoing.isClosedForSend) {
+                        _outgoing.send(Frame.Text(""))
+                    }
+                } catch (_: Throwable) {
+                    // Ignore errors, the connection might be closed
+                    break
+                }
+            }
+        }
+
         websocket.addEventListener(
             "message",
             callback = {
@@ -117,7 +134,17 @@ internal class JsWebSocketSession(
                             websocket.close(code, reason)
                         }
                     }
-                    FrameType.PING, FrameType.PONG -> {
+                    FrameType.PING -> {
+                        // Respond to PING with a PONG containing the same data
+                        // For binary data, we need to send it as an ArrayBuffer
+                        val source = it.data as Int8Array
+                        val frameData = source.buffer.slice(
+                            source.byteOffset,
+                            source.byteOffset + source.byteLength
+                        )
+                        websocket.send(frameData)
+                    }
+                    FrameType.PONG -> {
                         // ignore
                     }
                 }
