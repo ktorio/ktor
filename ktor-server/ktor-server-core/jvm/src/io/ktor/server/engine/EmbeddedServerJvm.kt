@@ -337,7 +337,7 @@ actual constructor(
             engine.resolvedConnectors().forEach {
                 val host = escapeHostname(it.host)
                 environment.log.info(
-                    "Responding at ${it.type.name.lowercase()}:$it"
+                    "Responding at ${it.type.name.lowercase()}://$host:${it.port}"
                 )
             }
         }
