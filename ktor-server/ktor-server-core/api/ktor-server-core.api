@@ -325,6 +325,7 @@ public abstract interface class io/ktor/server/config/ConfigLoader {
 public final class io/ktor/server/config/ConfigLoader$Companion {
 	public final fun load (Ljava/lang/String;)Lio/ktor/server/config/ApplicationConfig;
 	public static synthetic fun load$default (Lio/ktor/server/config/ConfigLoader$Companion;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/server/config/ApplicationConfig;
+	public final fun loadAll ([Ljava/lang/String;)Lio/ktor/server/config/ApplicationConfig;
 }
 
 public final class io/ktor/server/config/ConfigLoadersJvmKt {
@@ -354,7 +355,7 @@ public final class io/ktor/server/config/HoconConfigLoader : io/ktor/server/conf
 
 public class io/ktor/server/config/MapApplicationConfig : io/ktor/server/config/ApplicationConfig {
 	public fun <init> ()V
-	public fun <init> (Ljava/util/List;)V
+	public fun <init> (Ljava/util/Collection;)V
 	public fun <init> ([Lkotlin/Pair;)V
 	public fun config (Ljava/lang/String;)Lio/ktor/server/config/ApplicationConfig;
 	public fun configList (Ljava/lang/String;)Ljava/util/List;
@@ -433,6 +434,8 @@ public final class io/ktor/server/engine/ApplicationEnvironmentBuilder {
 public final class io/ktor/server/engine/ApplicationEnvironmentBuilderKt {
 	public static final fun applicationEnvironment (Lkotlin/jvm/functions/Function1;)Lio/ktor/server/application/ApplicationEnvironment;
 	public static synthetic fun applicationEnvironment$default (Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/application/ApplicationEnvironment;
+	public static final fun configure (Lio/ktor/server/engine/ApplicationEnvironmentBuilder;[Lio/ktor/server/config/ApplicationConfig;)V
+	public static final fun configure (Lio/ktor/server/engine/ApplicationEnvironmentBuilder;[Ljava/lang/String;)V
 }
 
 public abstract class io/ktor/server/engine/BaseApplicationCall : io/ktor/server/application/PipelineCall {
