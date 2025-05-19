@@ -9,6 +9,7 @@ import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
@@ -77,7 +78,7 @@ class WebRTCEngineTest {
     }
 
     @Test
-    fun testCreateAnswer() = testConnection { offerPeerConnection ->
+    fun testCreateAnswer() = testConnection(realtime = true) { offerPeerConnection ->
         client.createPeerConnection().use { answerPeerConnection ->
             // Create and set offer
             val offer = offerPeerConnection.createOffer()
@@ -90,6 +91,10 @@ class WebRTCEngineTest {
             assertNotNull(answer, "Answer should be created successfully")
             assertEquals(WebRTC.SessionDescriptionType.ANSWER, answer.type)
             assertTrue(answer.sdp.isNotEmpty(), "SDP should not be empty")
+
+            delay(1000)
+            assertEquals(offer, offerPeerConnection.localDescription)
+            assertEquals(offer, answerPeerConnection.remoteDescription)
         }
     }
 
@@ -308,6 +313,8 @@ class WebRTCEngineTest {
             val remote = WebRTC.SessionDescription(WebRTC.SessionDescriptionType.ANSWER, "invalid description")
             pc.setLocalDescription(remote)
         }
+        assertEquals(null, pc.localDescription)
+        assertEquals(null, pc.remoteDescription)
     }
 
     @Test

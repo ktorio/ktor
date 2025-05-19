@@ -124,12 +124,18 @@ public class WasmJsWebRtcPeerConnection(
 
     override fun getNativeConnection(): Any = nativePeerConnection
 
+    override val localDescription: WebRTC.SessionDescription?
+        get() = nativePeerConnection.localDescription?.toCommon()
+
+    override val remoteDescription: WebRTC.SessionDescription?
+        get() = nativePeerConnection.remoteDescription?.toCommon()
+
     override suspend fun createOffer(): WebRTC.SessionDescription = withSdpException("Failed to create offer") {
-        return nativePeerConnection.createOffer().await<RTCSessionDescriptionInit>().toCommon()
+        return nativePeerConnection.createOffer().await<RTCSessionDescription>().toCommon()
     }
 
     override suspend fun createAnswer(): WebRTC.SessionDescription = withSdpException("Failed to create answer") {
-        return nativePeerConnection.createAnswer().await<RTCSessionDescriptionInit>().toCommon()
+        return nativePeerConnection.createAnswer().await<RTCSessionDescription>().toCommon()
     }
 
     override suspend fun setLocalDescription(description: WebRTC.SessionDescription): Unit =

@@ -154,6 +154,12 @@ public class AndroidWebRtcPeerConnection(
         override fun onDataChannel(dataChannel: DataChannel?) = Unit
     }
 
+    override val localDescription: WebRTC.SessionDescription?
+        get() = peerConnection.localDescription?.toCommon()
+
+    override val remoteDescription: WebRTC.SessionDescription?
+        get() = peerConnection.remoteDescription?.toCommon()
+
     override suspend fun createOffer(): WebRTC.SessionDescription {
         val offer = suspendCoroutine { cont ->
             peerConnection.createOffer(cont.resumeAfterSdpCreate(), offerConstraints())

@@ -132,6 +132,12 @@ public class JsWebRtcPeerConnection(
 
     override fun getNativeConnection(): Any = nativePeerConnection
 
+    override val localDescription: WebRTC.SessionDescription?
+        get() = nativePeerConnection.localDescription?.toCommon()
+
+    override val remoteDescription: WebRTC.SessionDescription?
+        get() = nativePeerConnection.remoteDescription?.toCommon()
+
     override suspend fun createOffer(): WebRTC.SessionDescription = withSdpException("Failed to create offer") {
         return nativePeerConnection.createOffer().await().toCommon()
     }

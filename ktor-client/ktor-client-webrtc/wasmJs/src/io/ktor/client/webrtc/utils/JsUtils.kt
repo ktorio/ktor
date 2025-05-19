@@ -9,7 +9,6 @@ import io.ktor.client.webrtc.peer.RTCIceCandidate
 import io.ktor.client.webrtc.peer.RTCIceCandidateInit
 import io.ktor.client.webrtc.peer.RTCIceServer
 import io.ktor.client.webrtc.peer.RTCSessionDescription
-import io.ktor.client.webrtc.peer.RTCSessionDescriptionInit
 import io.ktor.client.webrtc.peer.RTCStats
 import io.ktor.client.webrtc.peer.RTCStatsReport
 import org.w3c.dom.mediacapture.MediaTrackConstraints
@@ -56,16 +55,10 @@ public fun makeIceServerObject(server: WebRTC.IceServer): RTCIceServer = jsObjec
 internal fun mapIceServers(iceServers: List<WebRTC.IceServer>): JsArray<RTCIceServer> =
     iceServers.map { makeIceServerObject(it) }.toJsArray()
 
-public fun RTCSessionDescriptionInit.toCommon(): WebRTC.SessionDescription {
+public fun RTCSessionDescription.toCommon(): WebRTC.SessionDescription {
     return WebRTC.SessionDescription(
-        type = when (type.toString()) {
-            "offer" -> WebRTC.SessionDescriptionType.OFFER
-            "answer" -> WebRTC.SessionDescriptionType.ANSWER
-            "rollback" -> WebRTC.SessionDescriptionType.ROLLBACK
-            "pranswer" -> WebRTC.SessionDescriptionType.PROVISIONAL_ANSWER
-            else -> WebRTC.SessionDescriptionType.OFFER
-        },
-        sdp = sdp.toString()
+        sdp = sdp.toString(),
+        type = type.toString().toSdpDescriptionType(),
     )
 }
 
@@ -74,13 +67,8 @@ public fun WebRTC.SessionDescription.toJS(): RTCSessionDescription {
     // All methods that accept RTCSessionDescription objects also accept objects with the same properties,
     // so you can use a plain object instead of creating an RTCSessionDescription instance.
     return jsObject {
-        type = when (this@toJS.type) {
-            WebRTC.SessionDescriptionType.OFFER -> "offer".toJsString()
-            WebRTC.SessionDescriptionType.ANSWER -> "answer".toJsString()
-            WebRTC.SessionDescriptionType.ROLLBACK -> "rollback".toJsString()
-            WebRTC.SessionDescriptionType.PROVISIONAL_ANSWER -> "pranswer".toJsString()
-        }
         sdp = this@toJS.sdp.toJsString()
+        type = this@toJS.type.toJs().toJsString()
     }
 }
 

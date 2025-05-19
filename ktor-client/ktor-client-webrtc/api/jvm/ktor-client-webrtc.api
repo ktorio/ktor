@@ -457,8 +457,10 @@ public abstract class io/ktor/client/webrtc/WebRtcPeerConnection : java/io/Close
 	protected final fun getIceCandidates ()Lkotlinx/coroutines/flow/MutableSharedFlow;
 	public final fun getIceConnectionStateFlow ()Lkotlinx/coroutines/flow/StateFlow;
 	public final fun getIceGatheringStateFlow ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getLocalDescription ()Lio/ktor/client/webrtc/WebRTC$SessionDescription;
 	public abstract fun getNativeConnection ()Ljava/lang/Object;
 	protected final fun getNegotiationNeededCallback ()Lkotlin/jvm/functions/Function0;
+	public abstract fun getRemoteDescription ()Lio/ktor/client/webrtc/WebRTC$SessionDescription;
 	protected final fun getRemoteTracks ()Lkotlinx/coroutines/flow/MutableSharedFlow;
 	public final fun getRemoteTracksFlow ()Lkotlinx/coroutines/flow/SharedFlow;
 	public final fun getSignalingStateFlow ()Lkotlinx/coroutines/flow/StateFlow;

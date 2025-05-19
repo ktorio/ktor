@@ -32,10 +32,25 @@ public fun WebRTC.IceTransportPolicy.toJs(): String = when (this) {
     WebRTC.IceTransportPolicy.RELAY -> "relay"
 }
 
+public fun WebRTC.SessionDescriptionType.toJs(): String = when (this) {
+    WebRTC.SessionDescriptionType.OFFER -> "offer"
+    WebRTC.SessionDescriptionType.ANSWER -> "answer"
+    WebRTC.SessionDescriptionType.ROLLBACK -> "rollback"
+    WebRTC.SessionDescriptionType.PROVISIONAL_ANSWER -> "pranswer"
+}
+
 public fun String.toTrackKind(): WebRTCMedia.TrackType = when (this) {
     "audio" -> WebRTCMedia.TrackType.AUDIO
     "video" -> WebRTCMedia.TrackType.VIDEO
     else -> error("Unknown media track kind: $this")
+}
+
+public fun String.toSdpDescriptionType(): WebRTC.SessionDescriptionType = when (this) {
+    "offer" -> WebRTC.SessionDescriptionType.OFFER
+    "answer" -> WebRTC.SessionDescriptionType.ANSWER
+    "pranswer" -> WebRTC.SessionDescriptionType.PROVISIONAL_ANSWER
+    "rollback" -> WebRTC.SessionDescriptionType.ROLLBACK
+    else -> error("Unknown SDP description type: $this")
 }
 
 public fun String?.toDegradationPreference(): WebRTC.DegradationPreference = when (this) {

@@ -575,10 +575,10 @@ public external class RTCIdentityAssertion {
 }
 
 public external class RTCPeerConnection(config: RTCConfiguration) : EventTarget {
-    public fun createOffer(options: RTCOfferOptions = definedExternally): Promise<RTCSessionDescriptionInit>
-    public fun createOffer(): Promise<RTCSessionDescriptionInit>
-    public fun createAnswer(options: RTCAnswerOptions = definedExternally): Promise<RTCSessionDescriptionInit>
-    public fun createAnswer(): Promise<RTCSessionDescriptionInit>
+    public fun createOffer(options: RTCOfferOptions = definedExternally): Promise<RTCSessionDescription>
+    public fun createOffer(): Promise<RTCSessionDescription>
+    public fun createAnswer(options: RTCAnswerOptions = definedExternally): Promise<RTCSessionDescription>
+    public fun createAnswer(): Promise<RTCSessionDescription>
     public fun setLocalDescription(description: RTCSessionDescription): Promise<Unit>
     public var localDescription: RTCSessionDescription?
     public var currentLocalDescription: RTCSessionDescription?

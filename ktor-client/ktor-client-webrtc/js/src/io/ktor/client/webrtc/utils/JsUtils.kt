@@ -40,32 +40,18 @@ public fun WebRTCMedia.VideoTrackConstraints.toJS(): MediaTrackConstraints {
     )
 }
 
-public fun RTCSessionDescriptionInit.toCommon(): WebRTC.SessionDescription {
-    return WebRTC.SessionDescription(
-        type = when (type) {
-            "offer" -> WebRTC.SessionDescriptionType.OFFER
-            "answer" -> WebRTC.SessionDescriptionType.ANSWER
-            "pranswer" -> WebRTC.SessionDescriptionType.PROVISIONAL_ANSWER
-            "rollback" -> WebRTC.SessionDescriptionType.ROLLBACK
-            else -> WebRTC.SessionDescriptionType.OFFER
-        },
-        sdp = sdp.toString()
-    )
-}
+public fun RTCSessionDescription.toCommon(): WebRTC.SessionDescription = WebRTC.SessionDescription(
+    sdp = sdp,
+    type = type.toSdpDescriptionType(),
+)
 
 public fun WebRTC.SessionDescription.toJS(): RTCSessionDescription {
     // RTCSessionDescription constructor is deprecated.
     // All methods that accept RTCSessionDescription objects also accept objects with the same properties,
     // so you can use a plain object instead of creating an RTCSessionDescription instance.
-    val common = this
     return jsObject {
-        sdp = common.sdp
-        type = when (common.type) {
-            WebRTC.SessionDescriptionType.OFFER -> "offer"
-            WebRTC.SessionDescriptionType.ANSWER -> "answer"
-            WebRTC.SessionDescriptionType.ROLLBACK -> "rollback"
-            WebRTC.SessionDescriptionType.PROVISIONAL_ANSWER -> "pranswer"
-        }
+        sdp = this@toJS.sdp
+        type = this@toJS.type.toJs()
     }
 }
 

@@ -38,6 +38,10 @@ abstract class io.ktor.client.webrtc/WebRTCEngineBase : io.ktor.client.webrtc/We
 abstract class io.ktor.client.webrtc/WebRtcPeerConnection : io.ktor.utils.io.core/Closeable { // io.ktor.client.webrtc/WebRtcPeerConnection|null[0]
     constructor <init>() // io.ktor.client.webrtc/WebRtcPeerConnection.<init>|<init>(){}[0]
 
+    abstract val localDescription // io.ktor.client.webrtc/WebRtcPeerConnection.localDescription|{}localDescription[0]
+        abstract fun <get-localDescription>(): io.ktor.client.webrtc/WebRTC.SessionDescription? // io.ktor.client.webrtc/WebRtcPeerConnection.localDescription.<get-localDescription>|<get-localDescription>(){}[0]
+    abstract val remoteDescription // io.ktor.client.webrtc/WebRtcPeerConnection.remoteDescription|{}remoteDescription[0]
+        abstract fun <get-remoteDescription>(): io.ktor.client.webrtc/WebRTC.SessionDescription? // io.ktor.client.webrtc/WebRtcPeerConnection.remoteDescription.<get-remoteDescription>|<get-remoteDescription>(){}[0]
     final val connectionStateFlow // io.ktor.client.webrtc/WebRtcPeerConnection.connectionStateFlow|{}connectionStateFlow[0]
         final fun <get-connectionStateFlow>(): kotlinx.coroutines.flow/StateFlow<io.ktor.client.webrtc/WebRTC.ConnectionState> // io.ktor.client.webrtc/WebRtcPeerConnection.connectionStateFlow.<get-connectionStateFlow>|<get-connectionStateFlow>(){}[0]
     final val currentConnectionState // io.ktor.client.webrtc/WebRtcPeerConnection.currentConnectionState|{}currentConnectionState[0]
@@ -1758,11 +1762,7 @@ final class io.ktor.client.webrtc.peer/RTCPeerConnection : org.w3c.dom.events/Ev
     final fun addTransceiver(org.w3c.dom.mediacapture/MediaStreamTrack): io.ktor.client.webrtc.peer/RTCRtpTransceiver // io.ktor.client.webrtc.peer/RTCPeerConnection.addTransceiver|addTransceiver(org.w3c.dom.mediacapture.MediaStreamTrack){}[0]
     final fun addTransceiver(org.w3c.dom.mediacapture/MediaStreamTrack, io.ktor.client.webrtc.peer/RTCRtpTransceiverInit = ...): io.ktor.client.webrtc.peer/RTCRtpTransceiver // io.ktor.client.webrtc.peer/RTCPeerConnection.addTransceiver|addTransceiver(org.w3c.dom.mediacapture.MediaStreamTrack;io.ktor.client.webrtc.peer.RTCRtpTransceiverInit){}[0]
     final fun close() // io.ktor.client.webrtc.peer/RTCPeerConnection.close|close(){}[0]
-    final fun createAnswer(): kotlin.js/Promise<io.ktor.client.webrtc.peer/RTCSessionDescriptionInit> // io.ktor.client.webrtc.peer/RTCPeerConnection.createAnswer|createAnswer(){}[0]
-    final fun createAnswer(io.ktor.client.webrtc.peer/RTCAnswerOptions = ...): kotlin.js/Promise<io.ktor.client.webrtc.peer/RTCSessionDescriptionInit> // io.ktor.client.webrtc.peer/RTCPeerConnection.createAnswer|createAnswer(io.ktor.client.webrtc.peer.RTCAnswerOptions){}[0]
     final fun createAnswer(io.ktor.client.webrtc.peer/RTCOfferOptions = ...): kotlin.js/Promise<io.ktor.client.webrtc.peer/RTCSessionDescriptionInit> // io.ktor.client.webrtc.peer/RTCPeerConnection.createAnswer|createAnswer(io.ktor.client.webrtc.peer.RTCOfferOptions){}[0]
-    final fun createOffer(): kotlin.js/Promise<io.ktor.client.webrtc.peer/RTCSessionDescriptionInit> // io.ktor.client.webrtc.peer/RTCPeerConnection.createOffer|createOffer(){}[0]
-    final fun createOffer(io.ktor.client.webrtc.peer/RTCOfferOptions = ...): kotlin.js/Promise<io.ktor.client.webrtc.peer/RTCSessionDescriptionInit> // io.ktor.client.webrtc.peer/RTCPeerConnection.createOffer|createOffer(io.ktor.client.webrtc.peer.RTCOfferOptions){}[0]
     final fun getConfiguration(): io.ktor.client.webrtc.peer/RTCConfiguration // io.ktor.client.webrtc.peer/RTCPeerConnection.getConfiguration|getConfiguration(){}[0]
     final fun getStats(): kotlin.js/Promise<io.ktor.client.webrtc.peer/RTCStatsReport> // io.ktor.client.webrtc.peer/RTCPeerConnection.getStats|getStats(){}[0]
     final fun getStats(org.w3c.dom.mediacapture/MediaStreamTrack? = ...): kotlin.js/Promise<io.ktor.client.webrtc.peer/RTCStatsReport> // io.ktor.client.webrtc.peer/RTCPeerConnection.getStats|getStats(org.w3c.dom.mediacapture.MediaStreamTrack?){}[0]
@@ -1792,6 +1792,12 @@ final class io.ktor.client.webrtc.peer/RTCPeerConnection : org.w3c.dom.events/Ev
     final fun addTransceiver(kotlin/String, io.ktor.client.webrtc.peer/RTCRtpTransceiverInit = ...): io.ktor.client.webrtc.peer/RTCRtpTransceiver // io.ktor.client.webrtc.peer/RTCPeerConnection.addTransceiver|addTransceiver(kotlin.String;io.ktor.client.webrtc.peer.RTCRtpTransceiverInit){}[0]
 
     // Targets: [js]
+    final fun createAnswer(): kotlin.js/Promise<io.ktor.client.webrtc.peer/RTCSessionDescription> // io.ktor.client.webrtc.peer/RTCPeerConnection.createAnswer|createAnswer(){}[0]
+
+    // Targets: [js]
+    final fun createAnswer(io.ktor.client.webrtc.peer/RTCAnswerOptions = ...): kotlin.js/Promise<io.ktor.client.webrtc.peer/RTCSessionDescription> // io.ktor.client.webrtc.peer/RTCPeerConnection.createAnswer|createAnswer(io.ktor.client.webrtc.peer.RTCAnswerOptions){}[0]
+
+    // Targets: [js]
     final fun createAnswer(kotlin/Function1<io.ktor.client.webrtc.peer/RTCSessionDescriptionInit, kotlin/Unit>, kotlin/Function1<io.ktor.client.webrtc.peer/DOMException, kotlin/Unit>): kotlin.js/Promise<kotlin/Unit> // io.ktor.client.webrtc.peer/RTCPeerConnection.createAnswer|createAnswer(kotlin.Function1<io.ktor.client.webrtc.peer.RTCSessionDescriptionInit,kotlin.Unit>;kotlin.Function1<io.ktor.client.webrtc.peer.DOMException,kotlin.Unit>){}[0]
 
     // Targets: [js]
@@ -1805,6 +1811,12 @@ final class io.ktor.client.webrtc.peer/RTCPeerConnection : org.w3c.dom.events/Ev
 
     // Targets: [js]
     final fun createDataChannel(kotlin/String?, io.ktor.client.webrtc.peer/RTCDataChannelInit = ...): io.ktor.client.webrtc.peer/RTCDataChannel // io.ktor.client.webrtc.peer/RTCPeerConnection.createDataChannel|createDataChannel(kotlin.String?;io.ktor.client.webrtc.peer.RTCDataChannelInit){}[0]
+
+    // Targets: [js]
+    final fun createOffer(): kotlin.js/Promise<io.ktor.client.webrtc.peer/RTCSessionDescription> // io.ktor.client.webrtc.peer/RTCPeerConnection.createOffer|createOffer(){}[0]
+
+    // Targets: [js]
+    final fun createOffer(io.ktor.client.webrtc.peer/RTCOfferOptions = ...): kotlin.js/Promise<io.ktor.client.webrtc.peer/RTCSessionDescription> // io.ktor.client.webrtc.peer/RTCPeerConnection.createOffer|createOffer(io.ktor.client.webrtc.peer.RTCOfferOptions){}[0]
 
     // Targets: [js]
     final fun createOffer(kotlin/Function1<io.ktor.client.webrtc.peer/RTCSessionDescriptionInit, kotlin/Unit>, kotlin/Function1<io.ktor.client.webrtc.peer/DOMException, kotlin/Unit>): kotlin.js/Promise<kotlin/Unit> // io.ktor.client.webrtc.peer/RTCPeerConnection.createOffer|createOffer(kotlin.Function1<io.ktor.client.webrtc.peer.RTCSessionDescriptionInit,kotlin.Unit>;kotlin.Function1<io.ktor.client.webrtc.peer.DOMException,kotlin.Unit>){}[0]
@@ -1864,6 +1876,12 @@ final class io.ktor.client.webrtc.peer/RTCPeerConnection : org.w3c.dom.events/Ev
     final fun addTransceiver(kotlin.js/JsString, io.ktor.client.webrtc.peer/RTCRtpTransceiverInit = ...): io.ktor.client.webrtc.peer/RTCRtpTransceiver // io.ktor.client.webrtc.peer/RTCPeerConnection.addTransceiver|addTransceiver(kotlin.js.JsString;io.ktor.client.webrtc.peer.RTCRtpTransceiverInit){}[0]
 
     // Targets: [wasmJs]
+    final fun createAnswer(): kotlin.js/Promise<io.ktor.client.webrtc.peer/RTCSessionDescriptionInit> // io.ktor.client.webrtc.peer/RTCPeerConnection.createAnswer|createAnswer(){}[0]
+
+    // Targets: [wasmJs]
+    final fun createAnswer(io.ktor.client.webrtc.peer/RTCAnswerOptions = ...): kotlin.js/Promise<io.ktor.client.webrtc.peer/RTCSessionDescriptionInit> // io.ktor.client.webrtc.peer/RTCPeerConnection.createAnswer|createAnswer(io.ktor.client.webrtc.peer.RTCAnswerOptions){}[0]
+
+    // Targets: [wasmJs]
     final fun createAnswer(kotlin/Function1<io.ktor.client.webrtc.peer/RTCSessionDescriptionInit, kotlin/Unit>, kotlin/Function1<io.ktor.client.webrtc.peer/DOMException, kotlin/Unit>): kotlin.js/Promise<kotlin.js/JsAny?> // io.ktor.client.webrtc.peer/RTCPeerConnection.createAnswer|createAnswer(kotlin.Function1<io.ktor.client.webrtc.peer.RTCSessionDescriptionInit,kotlin.Unit>;kotlin.Function1<io.ktor.client.webrtc.peer.DOMException,kotlin.Unit>){}[0]
 
     // Targets: [wasmJs]
@@ -1877,6 +1895,12 @@ final class io.ktor.client.webrtc.peer/RTCPeerConnection : org.w3c.dom.events/Ev
 
     // Targets: [wasmJs]
     final fun createDataChannel(kotlin.js/JsString?, io.ktor.client.webrtc.peer/RTCDataChannelInit = ...): io.ktor.client.webrtc.peer/RTCDataChannel // io.ktor.client.webrtc.peer/RTCPeerConnection.createDataChannel|createDataChannel(kotlin.js.JsString?;io.ktor.client.webrtc.peer.RTCDataChannelInit){}[0]
+
+    // Targets: [wasmJs]
+    final fun createOffer(): kotlin.js/Promise<io.ktor.client.webrtc.peer/RTCSessionDescriptionInit> // io.ktor.client.webrtc.peer/RTCPeerConnection.createOffer|createOffer(){}[0]
+
+    // Targets: [wasmJs]
+    final fun createOffer(io.ktor.client.webrtc.peer/RTCOfferOptions = ...): kotlin.js/Promise<io.ktor.client.webrtc.peer/RTCSessionDescriptionInit> // io.ktor.client.webrtc.peer/RTCPeerConnection.createOffer|createOffer(io.ktor.client.webrtc.peer.RTCOfferOptions){}[0]
 
     // Targets: [wasmJs]
     final fun createOffer(kotlin/Function1<io.ktor.client.webrtc.peer/RTCSessionDescriptionInit, kotlin/Unit>, kotlin/Function1<io.ktor.client.webrtc.peer/DOMException, kotlin/Unit>): kotlin.js/Promise<kotlin.js/JsAny?> // io.ktor.client.webrtc.peer/RTCPeerConnection.createOffer|createOffer(kotlin.Function1<io.ktor.client.webrtc.peer.RTCSessionDescriptionInit,kotlin.Unit>;kotlin.Function1<io.ktor.client.webrtc.peer.DOMException,kotlin.Unit>){}[0]
@@ -2465,7 +2489,7 @@ final val io.ktor.client.webrtc.peer/navigator // io.ktor.client.webrtc.peer/nav
 final fun (io.ktor.client.webrtc.peer/RTCIceCandidate).io.ktor.client.webrtc.utils/toCommon(): io.ktor.client.webrtc/WebRTC.IceCandidate // io.ktor.client.webrtc.utils/toCommon|toCommon@io.ktor.client.webrtc.peer.RTCIceCandidate(){}[0]
 
 // Targets: [js, wasmJs]
-final fun (io.ktor.client.webrtc.peer/RTCSessionDescriptionInit).io.ktor.client.webrtc.utils/toCommon(): io.ktor.client.webrtc/WebRTC.SessionDescription // io.ktor.client.webrtc.utils/toCommon|toCommon@io.ktor.client.webrtc.peer.RTCSessionDescriptionInit(){}[0]
+final fun (io.ktor.client.webrtc.peer/RTCSessionDescription).io.ktor.client.webrtc.utils/toCommon(): io.ktor.client.webrtc/WebRTC.SessionDescription // io.ktor.client.webrtc.utils/toCommon|toCommon@io.ktor.client.webrtc.peer.RTCSessionDescription(){}[0]
 
 // Targets: [js, wasmJs]
 final fun (io.ktor.client.webrtc.peer/RTCStatsReport).io.ktor.client.webrtc.utils/toCommon(): kotlin.collections/List<io.ktor.client.webrtc/WebRTC.Stats> // io.ktor.client.webrtc.utils/toCommon|toCommon@io.ktor.client.webrtc.peer.RTCStatsReport(){}[0]
@@ -2486,6 +2510,9 @@ final fun (io.ktor.client.webrtc/WebRTC.RTCPMuxPolicy).io.ktor.client.webrtc/toJ
 final fun (io.ktor.client.webrtc/WebRTC.SessionDescription).io.ktor.client.webrtc.utils/toJS(): io.ktor.client.webrtc.peer/RTCSessionDescription // io.ktor.client.webrtc.utils/toJS|toJS@io.ktor.client.webrtc.WebRTC.SessionDescription(){}[0]
 
 // Targets: [js, wasmJs]
+final fun (io.ktor.client.webrtc/WebRTC.SessionDescriptionType).io.ktor.client.webrtc/toJs(): kotlin/String // io.ktor.client.webrtc/toJs|toJs@io.ktor.client.webrtc.WebRTC.SessionDescriptionType(){}[0]
+
+// Targets: [js, wasmJs]
 final fun (io.ktor.client.webrtc/WebRTCMedia.AudioTrackConstraints).io.ktor.client.webrtc.utils/toJS(): org.w3c.dom.mediacapture/MediaTrackConstraints // io.ktor.client.webrtc.utils/toJS|toJS@io.ktor.client.webrtc.WebRTCMedia.AudioTrackConstraints(){}[0]
 
 // Targets: [js, wasmJs]
@@ -2496,6 +2523,9 @@ final fun (io.ktor.client.webrtc/WebRTCMedia.ResizeMode).io.ktor.client.webrtc/t
 
 // Targets: [js, wasmJs]
 final fun (io.ktor.client.webrtc/WebRTCMedia.VideoTrackConstraints).io.ktor.client.webrtc.utils/toJS(): org.w3c.dom.mediacapture/MediaTrackConstraints // io.ktor.client.webrtc.utils/toJS|toJS@io.ktor.client.webrtc.WebRTCMedia.VideoTrackConstraints(){}[0]
+
+// Targets: [js, wasmJs]
+final fun (kotlin/String).io.ktor.client.webrtc/toSdpDescriptionType(): io.ktor.client.webrtc/WebRTC.SessionDescriptionType // io.ktor.client.webrtc/toSdpDescriptionType|toSdpDescriptionType@kotlin.String(){}[0]
 
 // Targets: [js, wasmJs]
 final fun (kotlin/String).io.ktor.client.webrtc/toTrackKind(): io.ktor.client.webrtc/WebRTCMedia.TrackType // io.ktor.client.webrtc/toTrackKind|toTrackKind@kotlin.String(){}[0]
@@ -3199,6 +3229,10 @@ final class io.ktor.client.webrtc/JsWebRtcPeerConnection : io.ktor.client.webrtc
 
     final val coroutineContext // io.ktor.client.webrtc/JsWebRtcPeerConnection.coroutineContext|{}coroutineContext[0]
         final fun <get-coroutineContext>(): kotlin.coroutines/CoroutineContext // io.ktor.client.webrtc/JsWebRtcPeerConnection.coroutineContext.<get-coroutineContext>|<get-coroutineContext>(){}[0]
+    final val localDescription // io.ktor.client.webrtc/JsWebRtcPeerConnection.localDescription|{}localDescription[0]
+        final fun <get-localDescription>(): io.ktor.client.webrtc/WebRTC.SessionDescription? // io.ktor.client.webrtc/JsWebRtcPeerConnection.localDescription.<get-localDescription>|<get-localDescription>(){}[0]
+    final val remoteDescription // io.ktor.client.webrtc/JsWebRtcPeerConnection.remoteDescription|{}remoteDescription[0]
+        final fun <get-remoteDescription>(): io.ktor.client.webrtc/WebRTC.SessionDescription? // io.ktor.client.webrtc/JsWebRtcPeerConnection.remoteDescription.<get-remoteDescription>|<get-remoteDescription>(){}[0]
 
     final fun close() // io.ktor.client.webrtc/JsWebRtcPeerConnection.close|close(){}[0]
     final fun getNativeConnection(): kotlin/Any // io.ktor.client.webrtc/JsWebRtcPeerConnection.getNativeConnection|getNativeConnection(){}[0]
@@ -3866,6 +3900,10 @@ final class io.ktor.client.webrtc/WasmJsWebRtcPeerConnection : io.ktor.client.we
 
     final val coroutineContext // io.ktor.client.webrtc/WasmJsWebRtcPeerConnection.coroutineContext|{}coroutineContext[0]
         final fun <get-coroutineContext>(): kotlin.coroutines/CoroutineContext // io.ktor.client.webrtc/WasmJsWebRtcPeerConnection.coroutineContext.<get-coroutineContext>|<get-coroutineContext>(){}[0]
+    final val localDescription // io.ktor.client.webrtc/WasmJsWebRtcPeerConnection.localDescription|{}localDescription[0]
+        final fun <get-localDescription>(): io.ktor.client.webrtc/WebRTC.SessionDescription? // io.ktor.client.webrtc/WasmJsWebRtcPeerConnection.localDescription.<get-localDescription>|<get-localDescription>(){}[0]
+    final val remoteDescription // io.ktor.client.webrtc/WasmJsWebRtcPeerConnection.remoteDescription|{}remoteDescription[0]
+        final fun <get-remoteDescription>(): io.ktor.client.webrtc/WebRTC.SessionDescription? // io.ktor.client.webrtc/WasmJsWebRtcPeerConnection.remoteDescription.<get-remoteDescription>|<get-remoteDescription>(){}[0]
 
     final fun close() // io.ktor.client.webrtc/WasmJsWebRtcPeerConnection.close|close(){}[0]
     final fun getNativeConnection(): kotlin/Any // io.ktor.client.webrtc/WasmJsWebRtcPeerConnection.getNativeConnection|getNativeConnection(){}[0]

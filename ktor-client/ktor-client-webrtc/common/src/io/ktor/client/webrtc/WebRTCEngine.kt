@@ -83,6 +83,9 @@ public abstract class WebRtcPeerConnection : Closeable {
     protected val remoteTracks: MutableSharedFlow<Operation<WebRTCMedia.Track>> = MutableSharedFlow()
     public val remoteTracksFlow: SharedFlow<Operation<WebRTCMedia.Track>> = remoteTracks.asSharedFlow()
 
+    public abstract val localDescription: WebRTC.SessionDescription?
+    public abstract val remoteDescription: WebRTC.SessionDescription?
+
     protected var negotiationNeededCallback: () -> Unit = {}
 
     /**
