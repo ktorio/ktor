@@ -66,6 +66,12 @@ plugins.withId("ktorbuild.kmp") {
     configureJavadocArtifact()
 }
 
+pluginManager.withPlugin("java-platform") {
+    publishing.publications.register<MavenPublication>("maven") {
+        from(components["javaPlatform"])
+    }
+}
+
 private fun Project.configureSigning() {
     extra["signing.gnupg.keyName"] = (System.getenv("SIGN_KEY_ID") ?: return)
     extra["signing.gnupg.passphrase"] = (System.getenv("SIGN_KEY_PASSPHRASE") ?: return)
