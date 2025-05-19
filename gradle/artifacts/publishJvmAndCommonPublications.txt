@@ -623,6 +623,7 @@ io.ktor:ktor-utils-jvm/sources.jar
 io.ktor:ktor-utils/.jar
 io.ktor:ktor-utils/kotlin-tooling-metadata.json
 io.ktor:ktor-utils/sources.jar
+io.ktor:ktor-version-catalog/.toml
 io.ktor:ktor-websocket-serialization-jvm/.jar
 io.ktor:ktor-websocket-serialization-jvm/javadoc.jar
 io.ktor:ktor-websocket-serialization-jvm/sources.jar
