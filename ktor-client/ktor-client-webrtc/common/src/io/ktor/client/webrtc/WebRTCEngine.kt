@@ -22,6 +22,10 @@ public open class WebRTCConfig {
     public var iceServers: List<WebRTC.IceServer> = emptyList()
     public var turnServers: List<WebRTC.IceServer> = emptyList()
     public var statsRefreshRate: Long = -1
+    public var iceCandidatePoolSize: Int = 0
+    public var bundlePolicy: WebRTC.BundlePolicy = WebRTC.BundlePolicy.BALANCED
+    public var rtcpMuxPolicy: WebRTC.RTCPMuxPolicy = WebRTC.RTCPMuxPolicy.NEGOTIATE
+    public var iceTransportPolicy: WebRTC.IceTransportPolicy = WebRTC.IceTransportPolicy.ALL
 }
 
 public interface MediaTrackFactory {

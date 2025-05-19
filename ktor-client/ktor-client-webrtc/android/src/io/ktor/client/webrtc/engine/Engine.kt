@@ -43,13 +43,23 @@ public class AndroidWebRTCEngine(
         return factory
     }
 
-    override suspend fun createPeerConnection(): WebRtcPeerConnection {
-        val rtcConfig = RTCConfiguration(
-            config.iceServers.map {
-                PeerConnection.IceServer.builder(it.urls).createIceServer()
-            }
-        ).apply { sdpSemantics = PeerConnection.SdpSemantics.UNIFIED_PLAN }
+    private fun WebRTC.IceServer.toNative(): PeerConnection.IceServer {
+        return PeerConnection.IceServer
+            .builder(urls)
+            .setUsername(username)
+            .setPassword(credential)
+            .createIceServer()
+    }
 
+    override suspend fun createPeerConnection(): WebRtcPeerConnection {
+        val iceServers = (config.iceServers + config.turnServers).map { it.toNative() }
+        val rtcConfig = RTCConfiguration(iceServers).apply {
+            bundlePolicy = config.bundlePolicy.toNative()
+            rtcpMuxPolicy = config.rtcpMuxPolicy.toNative()
+            iceCandidatePoolSize = config.iceCandidatePoolSize
+            sdpSemantics = PeerConnection.SdpSemantics.UNIFIED_PLAN
+            iceTransportsType = config.iceTransportPolicy.toNative()
+        }
         return AndroidWebRtcPeerConnection(coroutineContext, config.statsRefreshRate).initialize { observer ->
             getLocalFactory().createPeerConnection(rtcConfig, observer)
         }
@@ -120,18 +130,22 @@ public class AndroidWebRtcPeerConnection(
             val commonState = newState.toCommon() ?: return
             launch { currentIceConnectionState.emit(commonState) }
         }
+
         override fun onConnectionChange(newState: PeerConnection.PeerConnectionState?) {
             val commonState = newState.toCommon() ?: return
             launch { currentConnectionState.emit(commonState) }
         }
+
         override fun onSignalingChange(newState: PeerConnection.SignalingState?) {
             val commonState = newState.toCommon() ?: return
             launch { currentSignalingState.emit(commonState) }
         }
+
         override fun onIceGatheringChange(newState: PeerConnection.IceGatheringState?) {
             val commonState = newState.toCommon() ?: return
             launch { currentIceGatheringState.emit(commonState) }
         }
+
         override fun onIceConnectionReceivingChange(receiving: Boolean) = Unit
         override fun onRenegotiationNeeded(): Unit = negotiationNeededCallback()
 

@@ -66,8 +66,11 @@ public class AndroidMediaDevices(
         }
 
     public val peerConnectionFactory: PeerConnectionFactory by lazy {
-        PeerConnectionFactory.builder().setVideoDecoderFactory(videoDecoderFactory)
-            .setVideoEncoderFactory(videoEncoderFactory).setAudioDeviceModule(audioDeviceModule)
+        PeerConnectionFactory
+            .builder()
+            .setVideoDecoderFactory(videoDecoderFactory)
+            .setVideoEncoderFactory(videoEncoderFactory)
+            .setAudioDeviceModule(audioDeviceModule)
             .createPeerConnectionFactory()
     }
 

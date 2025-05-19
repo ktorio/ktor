@@ -25,6 +25,22 @@ public fun WebRTC.SessionDescription.toNative(): SessionDescription {
     )
 }
 
+public fun WebRTC.BundlePolicy.toNative(): PeerConnection.BundlePolicy = when (this) {
+    WebRTC.BundlePolicy.BALANCED -> PeerConnection.BundlePolicy.BALANCED
+    WebRTC.BundlePolicy.MAX_BUNDLE -> PeerConnection.BundlePolicy.MAXBUNDLE
+    WebRTC.BundlePolicy.MAX_COMPAT -> PeerConnection.BundlePolicy.MAXCOMPAT
+}
+
+public fun WebRTC.IceTransportPolicy.toNative(): PeerConnection.IceTransportsType = when (this) {
+    WebRTC.IceTransportPolicy.ALL -> PeerConnection.IceTransportsType.ALL
+    WebRTC.IceTransportPolicy.RELAY -> PeerConnection.IceTransportsType.RELAY
+}
+
+public fun WebRTC.RTCPMuxPolicy.toNative(): PeerConnection.RtcpMuxPolicy = when (this) {
+    WebRTC.RTCPMuxPolicy.NEGOTIATE -> PeerConnection.RtcpMuxPolicy.NEGOTIATE
+    WebRTC.RTCPMuxPolicy.REQUIRE -> PeerConnection.RtcpMuxPolicy.REQUIRE
+}
+
 public fun PeerConnection.IceConnectionState?.toCommon(): WebRTC.IceConnectionState? = when (this) {
     PeerConnection.IceConnectionState.NEW -> WebRTC.IceConnectionState.NEW
     PeerConnection.IceConnectionState.FAILED -> WebRTC.IceConnectionState.FAILED

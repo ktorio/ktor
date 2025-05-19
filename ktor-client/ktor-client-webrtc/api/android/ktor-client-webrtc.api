@@ -26,11 +26,23 @@ public final class io/ktor/client/webrtc/UtilsKt {
 	public static final fun toCommon (Lorg/webrtc/PeerConnection$SignalingState;)Lio/ktor/client/webrtc/WebRTC$SignalingState;
 	public static final fun toCommon (Lorg/webrtc/RTCStatsReport;)Ljava/util/List;
 	public static final fun toCommon (Lorg/webrtc/SessionDescription;)Lio/ktor/client/webrtc/WebRTC$SessionDescription;
+	public static final fun toNative (Lio/ktor/client/webrtc/WebRTC$BundlePolicy;)Lorg/webrtc/PeerConnection$BundlePolicy;
+	public static final fun toNative (Lio/ktor/client/webrtc/WebRTC$IceTransportPolicy;)Lorg/webrtc/PeerConnection$IceTransportsType;
+	public static final fun toNative (Lio/ktor/client/webrtc/WebRTC$RTCPMuxPolicy;)Lorg/webrtc/PeerConnection$RtcpMuxPolicy;
 	public static final fun toNative (Lio/ktor/client/webrtc/WebRTC$SessionDescription;)Lorg/webrtc/SessionDescription;
 }
 
 public final class io/ktor/client/webrtc/WebRTC {
 	public static final field INSTANCE Lio/ktor/client/webrtc/WebRTC;
+}
+
+public final class io/ktor/client/webrtc/WebRTC$BundlePolicy : java/lang/Enum {
+	public static final field BALANCED Lio/ktor/client/webrtc/WebRTC$BundlePolicy;
+	public static final field MAX_BUNDLE Lio/ktor/client/webrtc/WebRTC$BundlePolicy;
+	public static final field MAX_COMPAT Lio/ktor/client/webrtc/WebRTC$BundlePolicy;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/ktor/client/webrtc/WebRTC$BundlePolicy;
+	public static fun values ()[Lio/ktor/client/webrtc/WebRTC$BundlePolicy;
 }
 
 public final class io/ktor/client/webrtc/WebRTC$ConnectionState : java/lang/Enum {
@@ -134,6 +146,22 @@ public final class io/ktor/client/webrtc/WebRTC$IceServer {
 	public final fun getUsername ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/client/webrtc/WebRTC$IceTransportPolicy : java/lang/Enum {
+	public static final field ALL Lio/ktor/client/webrtc/WebRTC$IceTransportPolicy;
+	public static final field RELAY Lio/ktor/client/webrtc/WebRTC$IceTransportPolicy;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/ktor/client/webrtc/WebRTC$IceTransportPolicy;
+	public static fun values ()[Lio/ktor/client/webrtc/WebRTC$IceTransportPolicy;
+}
+
+public final class io/ktor/client/webrtc/WebRTC$RTCPMuxPolicy : java/lang/Enum {
+	public static final field NEGOTIATE Lio/ktor/client/webrtc/WebRTC$RTCPMuxPolicy;
+	public static final field REQUIRE Lio/ktor/client/webrtc/WebRTC$RTCPMuxPolicy;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/ktor/client/webrtc/WebRTC$RTCPMuxPolicy;
+	public static fun values ()[Lio/ktor/client/webrtc/WebRTC$RTCPMuxPolicy;
 }
 
 public final class io/ktor/client/webrtc/WebRTC$RtpHeaderExtensionParameters {
@@ -274,14 +302,22 @@ public final class io/ktor/client/webrtc/WebRTCClientKt {
 
 public class io/ktor/client/webrtc/WebRTCConfig {
 	public fun <init> ()V
+	public final fun getBundlePolicy ()Lio/ktor/client/webrtc/WebRTC$BundlePolicy;
 	public final fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
+	public final fun getIceCandidatePoolSize ()I
 	public final fun getIceServers ()Ljava/util/List;
+	public final fun getIceTransportPolicy ()Lio/ktor/client/webrtc/WebRTC$IceTransportPolicy;
 	public final fun getMediaTrackFactory ()Lio/ktor/client/webrtc/MediaTrackFactory;
+	public final fun getRtcpMuxPolicy ()Lio/ktor/client/webrtc/WebRTC$RTCPMuxPolicy;
 	public final fun getStatsRefreshRate ()J
 	public final fun getTurnServers ()Ljava/util/List;
+	public final fun setBundlePolicy (Lio/ktor/client/webrtc/WebRTC$BundlePolicy;)V
 	public final fun setDispatcher (Lkotlinx/coroutines/CoroutineDispatcher;)V
+	public final fun setIceCandidatePoolSize (I)V
 	public final fun setIceServers (Ljava/util/List;)V
+	public final fun setIceTransportPolicy (Lio/ktor/client/webrtc/WebRTC$IceTransportPolicy;)V
 	public final fun setMediaTrackFactory (Lio/ktor/client/webrtc/MediaTrackFactory;)V
+	public final fun setRtcpMuxPolicy (Lio/ktor/client/webrtc/WebRTC$RTCPMuxPolicy;)V
 	public final fun setStatsRefreshRate (J)V
 	public final fun setTurnServers (Ljava/util/List;)V
 }

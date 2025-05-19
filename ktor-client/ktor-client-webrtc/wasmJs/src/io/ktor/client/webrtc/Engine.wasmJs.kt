@@ -52,6 +52,10 @@ public class WasmJsWebRTCEngine(
      */
     override suspend fun createPeerConnection(): WebRtcPeerConnection {
         val rtcConfig = jsObject<RTCConfiguration> {
+            bundlePolicy = config.bundlePolicy.toJs().toJsString()
+            rtcpMuxPolicy = config.rtcpMuxPolicy.toJs().toJsString()
+            iceCandidatePoolSize = config.iceCandidatePoolSize.toJsNumber()
+            iceTransportPolicy = config.iceTransportPolicy.toJs().toJsString()
             iceServers = mapIceServers(config.iceServers + config.turnServers)
         }
         val peerConnection = RTCPeerConnection(rtcConfig)

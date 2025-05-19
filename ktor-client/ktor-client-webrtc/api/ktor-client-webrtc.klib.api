@@ -115,15 +115,27 @@ final class io.ktor.client.webrtc/WebRTCClient : io.ktor.client.webrtc/WebRTCEng
 open class io.ktor.client.webrtc/WebRTCConfig { // io.ktor.client.webrtc/WebRTCConfig|null[0]
     constructor <init>() // io.ktor.client.webrtc/WebRTCConfig.<init>|<init>(){}[0]
 
+    final var bundlePolicy // io.ktor.client.webrtc/WebRTCConfig.bundlePolicy|{}bundlePolicy[0]
+        final fun <get-bundlePolicy>(): io.ktor.client.webrtc/WebRTC.BundlePolicy // io.ktor.client.webrtc/WebRTCConfig.bundlePolicy.<get-bundlePolicy>|<get-bundlePolicy>(){}[0]
+        final fun <set-bundlePolicy>(io.ktor.client.webrtc/WebRTC.BundlePolicy) // io.ktor.client.webrtc/WebRTCConfig.bundlePolicy.<set-bundlePolicy>|<set-bundlePolicy>(io.ktor.client.webrtc.WebRTC.BundlePolicy){}[0]
     final var dispatcher // io.ktor.client.webrtc/WebRTCConfig.dispatcher|{}dispatcher[0]
         final fun <get-dispatcher>(): kotlinx.coroutines/CoroutineDispatcher? // io.ktor.client.webrtc/WebRTCConfig.dispatcher.<get-dispatcher>|<get-dispatcher>(){}[0]
         final fun <set-dispatcher>(kotlinx.coroutines/CoroutineDispatcher?) // io.ktor.client.webrtc/WebRTCConfig.dispatcher.<set-dispatcher>|<set-dispatcher>(kotlinx.coroutines.CoroutineDispatcher?){}[0]
+    final var iceCandidatePoolSize // io.ktor.client.webrtc/WebRTCConfig.iceCandidatePoolSize|{}iceCandidatePoolSize[0]
+        final fun <get-iceCandidatePoolSize>(): kotlin/Int // io.ktor.client.webrtc/WebRTCConfig.iceCandidatePoolSize.<get-iceCandidatePoolSize>|<get-iceCandidatePoolSize>(){}[0]
+        final fun <set-iceCandidatePoolSize>(kotlin/Int) // io.ktor.client.webrtc/WebRTCConfig.iceCandidatePoolSize.<set-iceCandidatePoolSize>|<set-iceCandidatePoolSize>(kotlin.Int){}[0]
     final var iceServers // io.ktor.client.webrtc/WebRTCConfig.iceServers|{}iceServers[0]
         final fun <get-iceServers>(): kotlin.collections/List<io.ktor.client.webrtc/WebRTC.IceServer> // io.ktor.client.webrtc/WebRTCConfig.iceServers.<get-iceServers>|<get-iceServers>(){}[0]
         final fun <set-iceServers>(kotlin.collections/List<io.ktor.client.webrtc/WebRTC.IceServer>) // io.ktor.client.webrtc/WebRTCConfig.iceServers.<set-iceServers>|<set-iceServers>(kotlin.collections.List<io.ktor.client.webrtc.WebRTC.IceServer>){}[0]
+    final var iceTransportPolicy // io.ktor.client.webrtc/WebRTCConfig.iceTransportPolicy|{}iceTransportPolicy[0]
+        final fun <get-iceTransportPolicy>(): io.ktor.client.webrtc/WebRTC.IceTransportPolicy // io.ktor.client.webrtc/WebRTCConfig.iceTransportPolicy.<get-iceTransportPolicy>|<get-iceTransportPolicy>(){}[0]
+        final fun <set-iceTransportPolicy>(io.ktor.client.webrtc/WebRTC.IceTransportPolicy) // io.ktor.client.webrtc/WebRTCConfig.iceTransportPolicy.<set-iceTransportPolicy>|<set-iceTransportPolicy>(io.ktor.client.webrtc.WebRTC.IceTransportPolicy){}[0]
     final var mediaTrackFactory // io.ktor.client.webrtc/WebRTCConfig.mediaTrackFactory|{}mediaTrackFactory[0]
         final fun <get-mediaTrackFactory>(): io.ktor.client.webrtc/MediaTrackFactory? // io.ktor.client.webrtc/WebRTCConfig.mediaTrackFactory.<get-mediaTrackFactory>|<get-mediaTrackFactory>(){}[0]
         final fun <set-mediaTrackFactory>(io.ktor.client.webrtc/MediaTrackFactory?) // io.ktor.client.webrtc/WebRTCConfig.mediaTrackFactory.<set-mediaTrackFactory>|<set-mediaTrackFactory>(io.ktor.client.webrtc.MediaTrackFactory?){}[0]
+    final var rtcpMuxPolicy // io.ktor.client.webrtc/WebRTCConfig.rtcpMuxPolicy|{}rtcpMuxPolicy[0]
+        final fun <get-rtcpMuxPolicy>(): io.ktor.client.webrtc/WebRTC.RTCPMuxPolicy // io.ktor.client.webrtc/WebRTCConfig.rtcpMuxPolicy.<get-rtcpMuxPolicy>|<get-rtcpMuxPolicy>(){}[0]
+        final fun <set-rtcpMuxPolicy>(io.ktor.client.webrtc/WebRTC.RTCPMuxPolicy) // io.ktor.client.webrtc/WebRTCConfig.rtcpMuxPolicy.<set-rtcpMuxPolicy>|<set-rtcpMuxPolicy>(io.ktor.client.webrtc.WebRTC.RTCPMuxPolicy){}[0]
     final var statsRefreshRate // io.ktor.client.webrtc/WebRTCConfig.statsRefreshRate|{}statsRefreshRate[0]
         final fun <get-statsRefreshRate>(): kotlin/Long // io.ktor.client.webrtc/WebRTCConfig.statsRefreshRate.<get-statsRefreshRate>|<get-statsRefreshRate>(){}[0]
         final fun <set-statsRefreshRate>(kotlin/Long) // io.ktor.client.webrtc/WebRTCConfig.statsRefreshRate.<set-statsRefreshRate>|<set-statsRefreshRate>(kotlin.Long){}[0]
@@ -138,6 +150,18 @@ sealed class <#A: kotlin/Any?> io.ktor.client.webrtc/Operation { // io.ktor.clie
 }
 
 final object io.ktor.client.webrtc/WebRTC { // io.ktor.client.webrtc/WebRTC|null[0]
+    final enum class BundlePolicy : kotlin/Enum<io.ktor.client.webrtc/WebRTC.BundlePolicy> { // io.ktor.client.webrtc/WebRTC.BundlePolicy|null[0]
+        enum entry BALANCED // io.ktor.client.webrtc/WebRTC.BundlePolicy.BALANCED|null[0]
+        enum entry MAX_BUNDLE // io.ktor.client.webrtc/WebRTC.BundlePolicy.MAX_BUNDLE|null[0]
+        enum entry MAX_COMPAT // io.ktor.client.webrtc/WebRTC.BundlePolicy.MAX_COMPAT|null[0]
+
+        final val entries // io.ktor.client.webrtc/WebRTC.BundlePolicy.entries|#static{}entries[0]
+            final fun <get-entries>(): kotlin.enums/EnumEntries<io.ktor.client.webrtc/WebRTC.BundlePolicy> // io.ktor.client.webrtc/WebRTC.BundlePolicy.entries.<get-entries>|<get-entries>#static(){}[0]
+
+        final fun valueOf(kotlin/String): io.ktor.client.webrtc/WebRTC.BundlePolicy // io.ktor.client.webrtc/WebRTC.BundlePolicy.valueOf|valueOf#static(kotlin.String){}[0]
+        final fun values(): kotlin/Array<io.ktor.client.webrtc/WebRTC.BundlePolicy> // io.ktor.client.webrtc/WebRTC.BundlePolicy.values|values#static(){}[0]
+    }
+
     final enum class ConnectionState : kotlin/Enum<io.ktor.client.webrtc/WebRTC.ConnectionState> { // io.ktor.client.webrtc/WebRTC.ConnectionState|null[0]
         enum entry CLOSED // io.ktor.client.webrtc/WebRTC.ConnectionState.CLOSED|null[0]
         enum entry CONNECTED // io.ktor.client.webrtc/WebRTC.ConnectionState.CONNECTED|null[0]
@@ -193,6 +217,28 @@ final object io.ktor.client.webrtc/WebRTC { // io.ktor.client.webrtc/WebRTC|null
 
         final fun valueOf(kotlin/String): io.ktor.client.webrtc/WebRTC.IceGatheringState // io.ktor.client.webrtc/WebRTC.IceGatheringState.valueOf|valueOf#static(kotlin.String){}[0]
         final fun values(): kotlin/Array<io.ktor.client.webrtc/WebRTC.IceGatheringState> // io.ktor.client.webrtc/WebRTC.IceGatheringState.values|values#static(){}[0]
+    }
+
+    final enum class IceTransportPolicy : kotlin/Enum<io.ktor.client.webrtc/WebRTC.IceTransportPolicy> { // io.ktor.client.webrtc/WebRTC.IceTransportPolicy|null[0]
+        enum entry ALL // io.ktor.client.webrtc/WebRTC.IceTransportPolicy.ALL|null[0]
+        enum entry RELAY // io.ktor.client.webrtc/WebRTC.IceTransportPolicy.RELAY|null[0]
+
+        final val entries // io.ktor.client.webrtc/WebRTC.IceTransportPolicy.entries|#static{}entries[0]
+            final fun <get-entries>(): kotlin.enums/EnumEntries<io.ktor.client.webrtc/WebRTC.IceTransportPolicy> // io.ktor.client.webrtc/WebRTC.IceTransportPolicy.entries.<get-entries>|<get-entries>#static(){}[0]
+
+        final fun valueOf(kotlin/String): io.ktor.client.webrtc/WebRTC.IceTransportPolicy // io.ktor.client.webrtc/WebRTC.IceTransportPolicy.valueOf|valueOf#static(kotlin.String){}[0]
+        final fun values(): kotlin/Array<io.ktor.client.webrtc/WebRTC.IceTransportPolicy> // io.ktor.client.webrtc/WebRTC.IceTransportPolicy.values|values#static(){}[0]
+    }
+
+    final enum class RTCPMuxPolicy : kotlin/Enum<io.ktor.client.webrtc/WebRTC.RTCPMuxPolicy> { // io.ktor.client.webrtc/WebRTC.RTCPMuxPolicy|null[0]
+        enum entry NEGOTIATE // io.ktor.client.webrtc/WebRTC.RTCPMuxPolicy.NEGOTIATE|null[0]
+        enum entry REQUIRE // io.ktor.client.webrtc/WebRTC.RTCPMuxPolicy.REQUIRE|null[0]
+
+        final val entries // io.ktor.client.webrtc/WebRTC.RTCPMuxPolicy.entries|#static{}entries[0]
+            final fun <get-entries>(): kotlin.enums/EnumEntries<io.ktor.client.webrtc/WebRTC.RTCPMuxPolicy> // io.ktor.client.webrtc/WebRTC.RTCPMuxPolicy.entries.<get-entries>|<get-entries>#static(){}[0]
+
+        final fun valueOf(kotlin/String): io.ktor.client.webrtc/WebRTC.RTCPMuxPolicy // io.ktor.client.webrtc/WebRTC.RTCPMuxPolicy.valueOf|valueOf#static(kotlin.String){}[0]
+        final fun values(): kotlin/Array<io.ktor.client.webrtc/WebRTC.RTCPMuxPolicy> // io.ktor.client.webrtc/WebRTC.RTCPMuxPolicy.values|values#static(){}[0]
     }
 
     final enum class SessionDescriptionType : kotlin/Enum<io.ktor.client.webrtc/WebRTC.SessionDescriptionType> { // io.ktor.client.webrtc/WebRTC.SessionDescriptionType|null[0]
@@ -2425,7 +2471,16 @@ final fun (io.ktor.client.webrtc.peer/RTCSessionDescriptionInit).io.ktor.client.
 final fun (io.ktor.client.webrtc.peer/RTCStatsReport).io.ktor.client.webrtc.utils/toCommon(): kotlin.collections/List<io.ktor.client.webrtc/WebRTC.Stats> // io.ktor.client.webrtc.utils/toCommon|toCommon@io.ktor.client.webrtc.peer.RTCStatsReport(){}[0]
 
 // Targets: [js, wasmJs]
+final fun (io.ktor.client.webrtc/WebRTC.BundlePolicy).io.ktor.client.webrtc/toJs(): kotlin/String // io.ktor.client.webrtc/toJs|toJs@io.ktor.client.webrtc.WebRTC.BundlePolicy(){}[0]
+
+// Targets: [js, wasmJs]
 final fun (io.ktor.client.webrtc/WebRTC.IceCandidate).io.ktor.client.webrtc.utils/toJS(): io.ktor.client.webrtc.peer/RTCIceCandidate // io.ktor.client.webrtc.utils/toJS|toJS@io.ktor.client.webrtc.WebRTC.IceCandidate(){}[0]
+
+// Targets: [js, wasmJs]
+final fun (io.ktor.client.webrtc/WebRTC.IceTransportPolicy).io.ktor.client.webrtc/toJs(): kotlin/String // io.ktor.client.webrtc/toJs|toJs@io.ktor.client.webrtc.WebRTC.IceTransportPolicy(){}[0]
+
+// Targets: [js, wasmJs]
+final fun (io.ktor.client.webrtc/WebRTC.RTCPMuxPolicy).io.ktor.client.webrtc/toJs(): kotlin/String // io.ktor.client.webrtc/toJs|toJs@io.ktor.client.webrtc.WebRTC.RTCPMuxPolicy(){}[0]
 
 // Targets: [js, wasmJs]
 final fun (io.ktor.client.webrtc/WebRTC.SessionDescription).io.ktor.client.webrtc.utils/toJS(): io.ktor.client.webrtc.peer/RTCSessionDescription // io.ktor.client.webrtc.utils/toJS|toJS@io.ktor.client.webrtc.WebRTC.SessionDescription(){}[0]

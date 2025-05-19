@@ -56,6 +56,22 @@ public object WebRTC {
         val credential: String? = null
     )
 
+    public enum class BundlePolicy {
+        MAX_BUNDLE,
+        BALANCED,
+        MAX_COMPAT
+    }
+
+    public enum class IceTransportPolicy {
+        ALL,
+        RELAY
+    }
+
+    public enum class RTCPMuxPolicy {
+        NEGOTIATE,
+        REQUIRE
+    }
+
     @Serializable
     public data class IceCandidate(
         public val candidate: String,

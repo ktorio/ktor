@@ -16,6 +16,22 @@ public fun WebRTCMedia.ResizeMode.toJs(): String = when (this) {
     WebRTCMedia.ResizeMode.CROP_AND_SCALE -> "crop-and-scale"
 }
 
+public fun WebRTC.BundlePolicy.toJs(): String = when (this) {
+    WebRTC.BundlePolicy.BALANCED -> "balanced"
+    WebRTC.BundlePolicy.MAX_BUNDLE -> "max-bundle"
+    WebRTC.BundlePolicy.MAX_COMPAT -> "max-compat"
+}
+
+public fun WebRTC.RTCPMuxPolicy.toJs(): String = when (this) {
+    WebRTC.RTCPMuxPolicy.NEGOTIATE -> "negotiate"
+    WebRTC.RTCPMuxPolicy.REQUIRE -> "require"
+}
+
+public fun WebRTC.IceTransportPolicy.toJs(): String = when (this) {
+    WebRTC.IceTransportPolicy.ALL -> "all"
+    WebRTC.IceTransportPolicy.RELAY -> "relay"
+}
+
 public fun String.toTrackKind(): WebRTCMedia.TrackType = when (this) {
     "audio" -> WebRTCMedia.TrackType.AUDIO
     "video" -> WebRTCMedia.TrackType.VIDEO

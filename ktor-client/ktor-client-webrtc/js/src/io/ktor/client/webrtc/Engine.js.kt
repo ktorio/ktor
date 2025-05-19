@@ -52,13 +52,17 @@ public class JsWebRTCEngine(
      */
     override suspend fun createPeerConnection(): WebRtcPeerConnection {
         val rtcConfig = jsObject<RTCConfiguration> {
+            bundlePolicy = config.bundlePolicy.toJs()
+            rtcpMuxPolicy = config.rtcpMuxPolicy.toJs()
             iceServers = buildIceServers().toTypedArray()
+            iceCandidatePoolSize = config.iceCandidatePoolSize
+            iceTransportPolicy = config.iceTransportPolicy.toJs()
         }
         val peerConnection = RTCPeerConnection(rtcConfig)
         return JsWebRtcPeerConnection(peerConnection, coroutineContext, config.statsRefreshRate)
     }
 
-    private fun buildIceServers() = config.iceServers.map { iceServer ->
+    private fun buildIceServers() = (config.iceServers + config.turnServers).map { iceServer ->
         jsObject<RTCIceServer> {
             urls = iceServer.urls
             username = iceServer.username
