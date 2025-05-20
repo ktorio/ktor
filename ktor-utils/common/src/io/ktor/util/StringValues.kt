@@ -118,7 +118,7 @@ public interface StringValuesBuilder {
     public fun appendAll(params: Map<String, String>): Unit =
         params.forEach { (key, value) -> append(key, value) }
 
-    public fun appendAll(params: Map<String, Iterable<String>>): Unit =
+    public fun appendAllIterable(params: Map<String, Iterable<String>>): Unit =
         params.forEach { (key, value) -> appendAll(key, value) }
 
     public fun appendMissing(stringValues: StringValues)
