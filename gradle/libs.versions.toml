@@ -74,6 +74,8 @@ swagger-codegen = "3.0.68"
 swagger-codegen-generators = "1.0.56"
 swagger-parser = "2.1.27"
 
+consul-api = "1.4.5"
+
 puppeteer = "21.5.0"
 tomlj = "1.1.1"
 
@@ -229,6 +231,8 @@ swagger-codegen-generators = { module = "io.swagger.codegen.v3:swagger-codegen-g
 swagger-parser = { module = "io.swagger.parser.v3:swagger-parser", version.ref = "swagger-parser" }
 
 tomlj = { module = "org.tomlj:tomlj", version.ref = "tomlj" }
+
+consul-api = { module = "com.ecwid.consul:consul-api", version.ref = "consul-api" }
 
 develocity = { module = "com.gradle:develocity-gradle-plugin", version.ref = "develocity" }
 develocity-commonCustomUserData = { module = "com.gradle:common-custom-user-data-gradle-plugin", version.ref = "develocity-commonCustomUserData" }

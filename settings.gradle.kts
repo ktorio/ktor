@@ -85,6 +85,9 @@ projects {
             +"ktor-server-rate-limit"
             +"ktor-server-request-validation"
             +"ktor-server-resources"
+            +"ktor-server-service-discovery" including {
+                +"ktor-server-service-discovery-consul"
+            }
             +"ktor-server-sessions"
             +"ktor-server-sse"
             +"ktor-server-status-pages"
@@ -133,6 +136,9 @@ projects {
             +"ktor-client-logging"
             +"ktor-client-resources"
             +"ktor-client-websockets"
+            +"ktor-client-service-discovery" including {
+                +"ktor-client-service-discovery-consul"
+            }
         }
     }
 
@@ -159,6 +165,9 @@ projects {
         +"ktor-websocket-serialization"
         +"ktor-websockets"
         +"ktor-test-base"
+        +"ktor-service-discovery" including {
+            +"ktor-service-discovery-consul"
+        }
     }
 
     +"ktor-network" including {
