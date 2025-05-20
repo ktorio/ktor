@@ -27,6 +27,17 @@ internal abstract class AbstractMapConfigDecoder(
     override fun decodeChar(): Char = decodeString().single()
     override fun decodeByte(): Byte = decodeString().toByte()
     override fun decodeShort(): Short = decodeString().toShort()
+    override fun decodeEnum(enumDescriptor: SerialDescriptor): Int =
+        enumDescriptor.getElementIndex(decodeString())
+
+    protected fun beginStructure(descriptor: SerialDescriptor, path: String): CompositeDecoder {
+        val kind = descriptor.kind as? StructureKind ?: error("Expected structure but found ${descriptor.kind}")
+        return when (kind) {
+            StructureKind.LIST -> ListMapConfigDecoder(map, path, map.listSize(path), serializersModule)
+            StructureKind.MAP -> SubMapConfigDecoder(map, path, serializersModule)
+            else -> MapConfigDecoder(map, path, serializersModule)
+        }
+    }
 }
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -59,17 +70,8 @@ internal class MapConfigDecoder(
     override fun decodeString(): String = map[currentPath]
         ?: throw SerializationException("Property $currentPath not found")
 
-    override fun decodeEnum(enumDescriptor: SerialDescriptor): Int =
-        enumDescriptor.getElementIndex(decodeString())
-
-    override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
-        val kind = descriptor.kind as StructureKind
-        return when (kind) {
-            StructureKind.LIST -> ListMapConfigDecoder(map, currentPath, map.listSize(currentPath), serializersModule)
-            StructureKind.MAP -> SubMapConfigDecoder(map, currentPath, serializersModule)
-            else -> MapConfigDecoder(map, currentPath, serializersModule)
-        }
-    }
+    override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder =
+        beginStructure(descriptor, currentPath)
 }
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -90,18 +92,8 @@ private class ListMapConfigDecoder(
         return map[key] ?: throw SerializationException("Missing list element at \"$key\"")
     }
 
-    override fun decodeEnum(enumDescriptor: SerialDescriptor): Int =
-        enumDescriptor.getElementIndex(decodeString())
-
-    override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
-        val currentKey = "$path.${index - 1}"
-        val kind = descriptor.kind as StructureKind
-        return when (kind) {
-            StructureKind.LIST -> ListMapConfigDecoder(map, currentKey, map.listSize(currentKey), serializersModule)
-            StructureKind.MAP -> SubMapConfigDecoder(map, currentKey, serializersModule)
-            else -> MapConfigDecoder(map, currentKey, serializersModule)
-        }
-    }
+    override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder =
+        beginStructure(descriptor, "$path.${index - 1}")
 }
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -141,15 +133,8 @@ private class SubMapConfigDecoder(
         }
     }
 
-    override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
-        val key = "$path.$currentKey"
-        val kind = descriptor.kind as StructureKind
-        return when (kind) {
-            StructureKind.LIST -> ListMapConfigDecoder(map, key, map.listSize(key), serializersModule)
-            StructureKind.MAP -> SubMapConfigDecoder(map, key, serializersModule)
-            else -> MapConfigDecoder(map, key, serializersModule)
-        }
-    }
+    override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder =
+        beginStructure(descriptor, "$path.$currentKey")
 }
 
 private fun Map<String, String>.listSize(path: String): Int =

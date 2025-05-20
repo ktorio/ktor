@@ -7,7 +7,6 @@ package io.ktor.server.config
 import io.ktor.server.application.Application
 import io.ktor.util.reflect.TypeInfo
 import io.ktor.util.reflect.typeInfo
-import kotlin.reflect.typeOf
 
 /**
  * Represents an application config node
@@ -157,12 +156,11 @@ public inline fun <reified E> Application.propertyOrNull(key: String): E? =
  * Converts the application config value to the given type parameter.
  */
 public inline fun <reified E> ApplicationConfigValue.getAs(): E =
-    if (E::class == String::class) {
-        getString() as E
-    } else if (typeOf<E>() == typeOf<List<String>>()) {
-        getList() as E
-    } else {
-        getAs(typeInfo<E>()) as E
+    when (val typeInfo = typeInfo<E>()) {
+        typeInfo<String>() -> getString() as E
+        typeInfo<List<String>>() -> getList() as E
+        typeInfo<Map<String, Any?>>() -> getMap() as E
+        else -> getAs(typeInfo) as E
     }
 
 /**
