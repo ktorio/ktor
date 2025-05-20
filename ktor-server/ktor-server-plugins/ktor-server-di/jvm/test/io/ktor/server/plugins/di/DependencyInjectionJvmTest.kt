@@ -20,6 +20,23 @@ import kotlin.reflect.KFunction
 import kotlin.reflect.jvm.javaMethod
 import kotlin.test.*
 
+interface Identifiable<ID> {
+    val id: ID
+}
+interface Repository<E : Identifiable<ID>, ID> : ReadOnlyRepository<E, ID>
+class ListRepository<E : Identifiable<ID>, ID>(
+    val list: List<E>
+) : Repository<E, ID> {
+    override fun getAll(): List<E> = list
+}
+interface ReadOnlyRepository<out E : Identifiable<ID>, ID> {
+    fun getAll(): List<E>
+}
+interface User : Identifiable<Long> {
+    val name: String
+}
+data class FullUser(override val id: Long, override val name: String, val email: String) : User
+
 class DependencyInjectionJvmTest {
 
     @Test
@@ -380,6 +397,23 @@ class DependencyInjectionJvmTest {
         val string: String by dependencies
         assertEquals(System.out, out)
         assertEquals("hello", string)
+    }
+
+    @Test
+    fun `resolve type parameter hierarchy with boundaries`() = runTestDI {
+        val joey = FullUser(1L, "Joey", "joey.bloggs@joey.blog")
+        dependencies {
+            provide { ListRepository(listOf(joey)) }
+        }
+
+        assertEquals(
+            listOf(joey),
+            dependencies.resolve<ReadOnlyRepository<User, Long>>().getAll()
+        )
+        assertEquals(
+            listOf(joey),
+            dependencies.resolve<ReadOnlyRepository<Identifiable<Long>, Long>>().getAll()
+        )
     }
 
     private fun runTestDI(
