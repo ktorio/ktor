@@ -113,8 +113,15 @@ public interface StringValuesBuilder {
     public operator fun get(name: String): String?
     public fun append(name: String, value: String)
     public fun appendAll(stringValues: StringValues)
-    public fun appendMissing(stringValues: StringValues)
     public fun appendAll(name: String, values: Iterable<String>)
+
+    public fun appendAll(params: Map<String, String>): Unit =
+        params.forEach { (key, value) -> append(key, value) }
+
+    public fun appendAll(params: Map<String, Iterable<String>>): Unit =
+        params.forEach { (key, value) -> appendAll(key, value) }
+
+    public fun appendMissing(stringValues: StringValues)
     public fun appendMissing(name: String, values: Iterable<String>)
     public fun remove(name: String)
     public fun removeKeysWithNoEntries()
