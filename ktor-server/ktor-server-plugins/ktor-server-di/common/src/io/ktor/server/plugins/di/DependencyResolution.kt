@@ -5,7 +5,6 @@
 package io.ktor.server.plugins.di
 
 import io.ktor.server.config.ApplicationConfig
-import io.ktor.server.config.SerializableConfigValue
 import kotlinx.coroutines.Deferred
 import kotlin.reflect.KProperty
 
@@ -221,7 +220,7 @@ public class ConfigurationDependencyMap(
         if (key.qualifier != PropertyQualifier || key.name == null) {
             throw MissingDependencyException(key)
         } else {
-            (config.propertyOrNull(key.name) as? SerializableConfigValue)?.getAs(key.type) as? T
+            config.propertyOrNull(key.name)?.getAs(key.type) as? T
                 ?: throw MissingDependencyException(key)
         }
 }

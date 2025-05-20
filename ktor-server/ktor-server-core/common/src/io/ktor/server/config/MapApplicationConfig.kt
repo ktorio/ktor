@@ -4,12 +4,51 @@
 
 package io.ktor.server.config
 
+import io.ktor.util.reflect.TypeInfo
+import io.ktor.util.reflect.serializer
+import io.ktor.utils.io.InternalAPI
+import kotlin.collections.component1
+import kotlin.collections.component2
+
 /**
  * Mutable application config backed by a hash map
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.MapApplicationConfig)
  */
 public open class MapApplicationConfig : ApplicationConfig {
+    internal companion object {
+        @Suppress("UNCHECKED_CAST")
+        internal fun Map<String, Any?>.flatten(prefix: String = ""): Sequence<Pair<String, String>> {
+            return sequence {
+                for ((key, value) in entries) {
+                    val path = combine(prefix, key)
+                    when (value) {
+                        null -> continue
+                        is List<*> -> yieldAll(value.flatten(path))
+                        is Map<*, *> -> yieldAll((value as Map<String, Any?>).flatten(path))
+                        else -> yield(path to value.toString())
+                    }
+                }
+            }
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        internal fun List<Any?>.flatten(prefix: String): Sequence<Pair<String, String>> {
+            return sequence {
+                for (i in indices) {
+                    val path = combine(prefix, i)
+                    when (val element = get(i)) {
+                        null -> continue
+                        is List<*> -> yieldAll(element.flatten(path))
+                        is Map<*, *> -> yieldAll((element as Map<String, Any?>).flatten(path))
+                        else -> yield(path to element.toString())
+                    }
+                }
+                yield(combine(prefix, "size") to size.toString())
+            }
+        }
+    }
+
     /**
      * A backing map for this config
      */
@@ -20,15 +59,17 @@ public open class MapApplicationConfig : ApplicationConfig {
      */
     protected val path: String
 
-    private constructor(map: MutableMap<String, String>, path: String) {
+    internal constructor(map: MutableMap<String, String>, path: String = "") {
         this.map = map
         this.path = path
     }
 
-    public constructor(values: List<Pair<String, String>>) : this(values.toMap().toMutableMap(), "") {
+    public constructor(values: Collection<Pair<String, String>>) : this(values.toMap().toMutableMap(), "") {
         val listElements = mutableMapOf<String, Int>()
         values.forEach { findListElements(it.first, listElements) }
-        listElements.forEach { (listProperty, size) -> this.map["$listProperty.size"] = "$size" }
+        listElements.forEach { (listProperty, size) ->
+            this.map["$listProperty.size"] = "$size"
+        }
     }
 
     public constructor(vararg values: Pair<String, String>) : this(mutableMapOf(*values), "")
@@ -65,7 +106,8 @@ public open class MapApplicationConfig : ApplicationConfig {
 
     override fun configList(path: String): List<ApplicationConfig> {
         val key = combine(this.path, path)
-        val size = map[combine(key, "size")] ?: throw ApplicationConfigurationException("Property $key.size not found.")
+        val size = map[combine(key, "size")]
+            ?: throw ApplicationConfigurationException("Property $key.size not found.")
         return (0 until size.toInt()).map {
             MapApplicationConfig(map, combine(key, it.toString()))
         }
@@ -73,10 +115,10 @@ public open class MapApplicationConfig : ApplicationConfig {
 
     override fun propertyOrNull(path: String): ApplicationConfigValue? {
         val key = combine(this.path, path)
-        return if (!map.containsKey(key) && !map.containsKey(combine(key, "size"))) {
-            null
-        } else {
+        return if (map.containsPrefix(key)) {
             MapApplicationConfigValue(map, key)
+        } else {
+            null
         }
     }
 
@@ -111,32 +153,51 @@ public open class MapApplicationConfig : ApplicationConfig {
                 map.containsKey(path) -> key to map[path]
                 map.containsKey(combine(path, "size")) -> when {
                     map.containsKey(combine(path, "0")) -> key to property(path).getList()
-                    else -> key to configList(path).map { it.toMap() }
+                    else -> key to configList(key).map { it.toMap() }
                 }
                 else -> key to config(key).toMap()
             }
         }
     }
+}
 
-    /**
-     * A config value implementation backed by this config's map
-     * @property map is usually owner's backing map
-     * @property path to this value
-     */
-    protected class MapApplicationConfigValue(
-        public val map: Map<String, String>,
-        public val path: String
-    ) : ApplicationConfigValue {
-        override fun getString(): String = map[path]!!
-        override fun getList(): List<String> {
-            val size =
-                map[combine(path, "size")] ?: throw ApplicationConfigurationException("Property $path.size not found.")
-            return (0 until size.toInt()).map { map[combine(path, it.toString())]!! }
+/**
+ * A config value implementation backed by this config's map
+ * @property map is usually owner's backing map
+ * @property path to this value
+ */
+internal class MapApplicationConfigValue(
+    private val map: MutableMap<String, String>,
+    private val path: String
+) : ApplicationConfigValue {
+    override val type: ApplicationConfigValue.Type by lazy {
+        when {
+            map.containsKey(path) -> ApplicationConfigValue.Type.SINGLE
+            map[combine(path, "size")] != null -> ApplicationConfigValue.Type.LIST
+            map.containsPrefix(path) -> ApplicationConfigValue.Type.OBJECT
+            else -> ApplicationConfigValue.Type.NULL
         }
+    }
+    override fun getString(): String = map[path]!!
+    override fun getList(): List<String> {
+        val size =
+            map[combine(path, "size")] ?: throw ApplicationConfigurationException("Property $path.size not found.")
+        return (0 until size.toInt()).map { map[combine(path, it.toString())]!! }
+    }
+
+    override fun getMap(): Map<String, Any?> {
+        return MapApplicationConfig(map, path).toMap()
+    }
+
+    @OptIn(InternalAPI::class)
+    override fun getAs(type: TypeInfo): Any? {
+        return type.serializer()
+            .deserialize(MapConfigDecoder(map, path))
     }
 }
 
-private fun combine(root: String, relative: String): String = if (root.isEmpty()) relative else "$root.$relative"
+private fun combine(root: String, relative: Any): String =
+    if (root.isEmpty()) relative.toString() else "$root.$relative"
 
 private fun findListElements(input: String, listElements: MutableMap<String, Int>) {
     var pointBegin = input.indexOf('.')
@@ -144,7 +205,7 @@ private fun findListElements(input: String, listElements: MutableMap<String, Int
         val pointEnd = input.indexOf('.', pointBegin + 1).let { if (it == -1) input.length else it }
 
         input.substring(pointBegin + 1, pointEnd).toIntOrNull()?.let { pos ->
-            val element = input.substring(0, pointBegin)
+            val element = input.take(pointBegin)
             val newSize = pos + 1
             listElements[element] = listElements[element]?.let { maxOf(it, newSize) } ?: newSize
         }
