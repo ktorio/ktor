@@ -46,7 +46,8 @@ class MapDecoderTest {
     @Serializable
     data class EnumConfig(
         val enum: TestEnum,
-        val enumList: List<TestEnum>
+        val enumList: List<TestEnum>,
+        val enumMap: Map<String, TestEnum>
     )
 
     @Test
@@ -162,7 +163,9 @@ class MapDecoderTest {
             "enumList.size" to "3",
             "enumList.0" to "ONE",
             "enumList.1" to "TWO",
-            "enumList.2" to "THREE"
+            "enumList.2" to "THREE",
+            "enumMap.first" to "ONE",
+            "enumMap.second" to "TWO",
         )
 
         val decoder = MapConfigDecoder(map)
@@ -170,6 +173,7 @@ class MapDecoderTest {
 
         assertEquals(TestEnum.TWO, config.enum)
         assertEquals(listOf(TestEnum.ONE, TestEnum.TWO, TestEnum.THREE), config.enumList)
+        assertEquals(mapOf("first" to TestEnum.ONE, "second" to TestEnum.TWO), config.enumMap)
     }
 
     @Test

@@ -9,8 +9,7 @@ import io.ktor.server.config.*
 import kotlinx.serialization.Serializable
 import kotlin.test.*
 
-class
-HoconConfigTest {
+class HoconConfigTest {
 
     @Test
     fun testKeysTopLevelHoconConfig() {
