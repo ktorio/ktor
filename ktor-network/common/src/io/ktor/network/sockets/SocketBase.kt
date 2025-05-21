@@ -22,6 +22,9 @@ internal abstract class SocketBase(
 
     private val writerJob = atomic<WriterJob?>(null)
 
+    // Declare the lambda as a class field because of KTOR-8525
+    private val channelCompletionHandler: (Throwable?) -> Unit = { checkChannels() }
+
     override val socketContext: CompletableJob = Job(parent[Job])
 
     override val coroutineContext: CoroutineContext
@@ -85,9 +88,7 @@ internal abstract class SocketBase(
 
         channel.attachJob(j)
 
-        j.invokeOnCompletion {
-            checkChannels()
-        }
+        j.invokeOnCompletion(channelCompletionHandler)
 
         return j
     }
