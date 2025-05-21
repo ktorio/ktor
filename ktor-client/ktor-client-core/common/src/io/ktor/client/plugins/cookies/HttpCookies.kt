@@ -53,7 +53,9 @@ public class HttpCookies internal constructor(
             val url = builder.url.clone().build()
             val cookies = headers[HttpHeaders.Cookie]?.let { cookieHeader ->
                 LOGGER.trace("Saving cookie $cookieHeader for ${builder.url}")
-                parseClientCookiesHeader(cookieHeader).map { (name, encodedValue) -> Cookie(name, encodedValue) }
+                parseClientCookiesHeader(cookieHeader).map { (name, encodedValue) ->
+                    Cookie(name, encodedValue, encoding = CookieEncoding.RAW)
+                }
             }
             cookies?.forEach { storage.addCookie(url, it) }
         }
