@@ -92,6 +92,8 @@ internal class SessionSerializerReflection<T : Any>(
 
                         KParameter.Kind.VALUE ->
                             coerceType(it.type, deserializeValue(it.type.jvmErasure, bundle[it.name!!]!!))
+
+                        else -> error("Constructors cannot have context parameters")
                     }
                 }
             )
