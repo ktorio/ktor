@@ -142,7 +142,8 @@ public final class io/ktor/utils/io/ByteWriteChannelOperationsKt {
 	public static final fun cancel (Lio/ktor/utils/io/ChannelJob;)V
 	public static final fun close (Lio/ktor/utils/io/ByteWriteChannel;Ljava/lang/Throwable;)V
 	public static final fun getCancellationException (Lio/ktor/utils/io/ChannelJob;)Ljava/util/concurrent/CancellationException;
-	public static final fun invokeOnCompletion (Lio/ktor/utils/io/ChannelJob;Lkotlin/jvm/functions/Function0;)V
+	public static final synthetic fun invokeOnCompletion (Lio/ktor/utils/io/ChannelJob;Lkotlin/jvm/functions/Function0;)V
+	public static final fun invokeOnCompletion (Lio/ktor/utils/io/ChannelJob;Lkotlin/jvm/functions/Function1;)Lkotlinx/coroutines/DisposableHandle;
 	public static final fun isCancelled (Lio/ktor/utils/io/ChannelJob;)Z
 	public static final fun isCompleted (Lio/ktor/utils/io/ChannelJob;)Z
 	public static final fun join (Lio/ktor/utils/io/ChannelJob;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;

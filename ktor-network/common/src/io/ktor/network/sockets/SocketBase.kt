@@ -6,10 +6,11 @@ package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
 import io.ktor.utils.io.*
-import kotlinx.atomicfu.*
+import kotlinx.atomicfu.AtomicRef
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.*
-import kotlinx.io.*
-import kotlin.coroutines.*
+import kotlinx.io.IOException
+import kotlin.coroutines.CoroutineContext
 
 internal abstract class SocketBase(
     parent: CoroutineContext
@@ -19,8 +20,10 @@ internal abstract class SocketBase(
     private val actualCloseFlag = atomic(false)
 
     private val readerJob = atomic<ReaderJob?>(null)
-
     private val writerJob = atomic<WriterJob?>(null)
+
+    // Declare the lambda as a class field because of KTOR-8525
+    private val channelCompletionHandler: (Throwable?) -> Unit = { checkChannels() }
 
     override val socketContext: CompletableJob = Job(parent[Job])
 
@@ -33,7 +36,7 @@ internal abstract class SocketBase(
 
     @OptIn(InternalAPI::class)
     override fun close() {
-        if (!closeFlag.compareAndSet(false, true)) return
+        if (!closeFlag.compareAndSet(expect = false, update = true)) return
 
         launch(CoroutineName("socket-close")) {
             readerJob.value?.flushAndClose()
@@ -43,15 +46,11 @@ internal abstract class SocketBase(
     }
 
     final override fun attachForReading(channel: ByteChannel): WriterJob {
-        return attachFor("reading", channel, writerJob) {
-            attachForReadingImpl(channel)
-        }
+        return attachFor("reading", channel, writerJob, ::attachForReadingImpl)
     }
 
     final override fun attachForWriting(channel: ByteChannel): ReaderJob {
-        return attachFor("writing", channel, readerJob) {
-            attachForWritingImpl(channel)
-        }
+        return attachFor("writing", channel, readerJob, ::attachForWritingImpl)
     }
 
     abstract fun attachForReadingImpl(channel: ByteChannel): WriterJob
@@ -61,7 +60,7 @@ internal abstract class SocketBase(
         name: String,
         channel: ByteChannel,
         ref: AtomicRef<J?>,
-        producer: () -> J
+        producer: (ByteChannel) -> J,
     ): J {
         if (closeFlag.value) {
             val e = IOException("Socket closed")
@@ -69,7 +68,7 @@ internal abstract class SocketBase(
             throw e
         }
 
-        val j = producer()
+        val j = producer(channel)
 
         if (!ref.compareAndSet(null, j)) {
             val e = IllegalStateException("$name channel has already been set")
@@ -85,9 +84,7 @@ internal abstract class SocketBase(
 
         channel.attachJob(j)
 
-        j.invokeOnCompletion {
-            checkChannels()
-        }
+        j.invokeOnCompletion(channelCompletionHandler)
 
         return j
     }
@@ -96,7 +93,7 @@ internal abstract class SocketBase(
 
     private fun checkChannels() {
         if (closeFlag.value && readerJob.completedOrNotStarted && writerJob.completedOrNotStarted) {
-            if (!actualCloseFlag.compareAndSet(false, true)) return
+            if (!actualCloseFlag.compareAndSet(expect = false, update = true)) return
 
             val e1 = readerJob.exception
             val e2 = writerJob.exception
