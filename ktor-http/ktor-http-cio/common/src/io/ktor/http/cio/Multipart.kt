@@ -111,8 +111,18 @@ private suspend fun parsePartHeadersImpl(input: ByteReadChannel): HttpHeadersMap
     val builder = CharArrayBuilder()
 
     try {
-        return parseHeaders(input, builder)
-            ?: throw EOFException("Failed to parse multipart headers: unexpected end of stream")
+        try {
+            return parseHeaders(input, builder)
+                ?: throw EOFException("Failed to parse multipart headers: unexpected end of stream")
+        } catch (e: ParserException) {
+            // Check if this is our special case for multipart boundary
+            if (e.message?.startsWith("Multipart boundary detected:") == true) {
+                // This is a boundary line, not a header
+                // Return empty headers to signal that this is not a valid part
+                return HttpHeadersMap(builder)
+            }
+            throw e
+        }
     } catch (t: Throwable) {
         builder.release()
         throw t

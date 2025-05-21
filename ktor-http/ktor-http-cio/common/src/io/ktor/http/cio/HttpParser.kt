@@ -306,7 +306,16 @@ internal fun parseHeaderValue(text: CharArrayBuilder, range: MutableRange) {
 }
 
 private fun noColonFound(text: CharSequence, range: MutableRange): Nothing {
-    throw ParserException("No colon in HTTP header in ${text.substring(range.start, range.end)} in builder: \n$text")
+    val headerText = text.substring(range.start, range.end)
+
+    // Check if this might be a multipart boundary line (starts with -- and might end with --)
+    if (headerText.startsWith("--") && (headerText.endsWith("--") || headerText.isEmpty())) {
+        // This is likely a multipart boundary line, not a header
+        // We'll throw a specific exception that can be caught and handled by the multipart parser
+        throw ParserException("Multipart boundary detected: $headerText")
+    }
+
+    throw ParserException("No colon in HTTP header in $headerText in builder: \n$text")
 }
 
 private fun characterIsNotAllowed(text: CharSequence, ch: Char): Nothing =
