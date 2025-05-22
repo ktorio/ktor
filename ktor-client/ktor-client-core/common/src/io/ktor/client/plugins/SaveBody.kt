@@ -140,29 +140,29 @@ public fun HttpRequestBuilder.skipSavingBody() {
 @Suppress("ConstPropertyName")
 private object Messages {
     private const val `use streaming syntax` =
-        "Use client.prepareRequest(...).execute { ... } syntax to prevent saving body in memory."
+        "Use client.prepareRequest(...).execute { ... } syntax to prevent saving the body in memory."
     private const val `api will be removed` =
         "This API is deprecated and will be removed in Ktor 4.0.0"
     private const val `share use case` =
-        "If you were relying on this functionality, share your use case in comments to this issue: " +
+        "If you were relying on this functionality, share your use case by commenting on this issue: " +
             "https://youtrack.jetbrains.com/issue/KTOR-8367/"
 
     const val SAVE_BODY_ENABLED_MESSAGE =
-        "SaveBodyPlugin plugin is deprecated and can be safely removed. " +
-            "Request body is saved in memory by default for all non-streaming responses."
+        "The SaveBodyPlugin plugin is deprecated and can be safely removed. " +
+            "Request bodies are now saved in memory by default for all non-streaming responses."
 
     const val SAVE_BODY_DISABLED_MESSAGE =
-        "It is not possible to disable body saving for all requests anymore. " +
+        "It is no longer possible to disable body saving for all requests. " +
             `use streaming syntax` + "\n\n" +
             `api will be removed` + "\n" +
             `share use case`
 
     const val PLUGIN_DEPRECATED_MESSAGE =
-        "This plugin is not needed anymore.\n" +
+        "This plugin is no longer needed.\n" +
             `api will be removed`
 
     const val SKIP_SAVING_BODY_MESSAGE =
-        "Skipping of body saving for a specific request is not allowed anymore.\n" +
+        "Skipping of body saving for a specific request is no longer allowed.\n" +
             `use streaming syntax` + "\n\n" +
             `api will be removed` + "\n" +
             `share use case`
