@@ -113,16 +113,16 @@ public class AndroidWebRtcPeerConnection(
         override fun onIceCandidatesRemoved(candidates: Array<out IceCandidate>?) = Unit
 
         override fun onAddTrack(receiver: RtpReceiver?, mediaStreams: Array<out MediaStream>?) {
-            if (receiver == null || mediaStreams == null) return
+            if (receiver == null) return
             launch {
-                receiver.track()?.let { t -> remoteTracks.emit(Add(AndroidVideoTrack(t))) }
+                receiver.track()?.let { remoteTracks.emit(Add(AndroidMediaTrack.from(it))) }
             }
         }
 
         override fun onRemoveTrack(receiver: RtpReceiver?) {
             if (receiver == null) return
             launch {
-                receiver.track()?.let { t -> remoteTracks.emit(Remove(AndroidVideoTrack(t))) }
+                receiver.track()?.let { remoteTracks.emit(Remove(AndroidMediaTrack.from(it))) }
             }
         }
 

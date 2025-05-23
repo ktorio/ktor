@@ -76,7 +76,8 @@ public class AndroidMediaDevices(
 
     init {
         PeerConnectionFactory.initialize(
-            PeerConnectionFactory.InitializationOptions.builder(context)
+            PeerConnectionFactory.InitializationOptions
+                .builder(context)
                 .createInitializationOptions()
         )
     }
@@ -120,16 +121,19 @@ public class AndroidMediaDevices(
                     )
                 }
             )
+            optional.add(MediaConstraints.KeyValuePair("DtlsSrtpKeyAgreement", "true"))
         }
         val id = "android-webrtc-audio-${UUID.randomUUID()}"
         val src = peerConnectionFactory.createAudioSource(mediaConstraints)
         val nativeTrack = peerConnectionFactory.createAudioTrack(id, src).apply {
             setVolume(constraints.volume ?: 1.0)
         }
-        return AndroidAudioTrack(nativeTrack)
+        return AndroidAudioTrack(nativeTrack) {
+            src.dispose()
+        }
     }
 
-    private suspend fun makeVideoSource(constraints: WebRTCMedia.VideoTrackConstraints): VideoSource {
+    private suspend fun makeVideoSource(constraints: WebRTCMedia.VideoTrackConstraints): Pair<VideoSource, () -> Unit> {
         val cameraId = findCameraId(constraints) ?: error("No camera found for such constraints")
         val format = cameraEnumerator.getSupportedFormats(cameraId)!![0]
 
@@ -139,19 +143,26 @@ public class AndroidMediaDevices(
 
         return suspendCancellableCoroutine { cont ->
             var videoSource: VideoSource? = null
+            var onDispose = {}
             val eventsHandler = object : CameraEventsHandler {
                 override fun onCameraError(err: String?) {
+                    onDispose()
                     if (cont.isActive) cont.resumeWithException(WebRTCMedia.DeviceException(err ?: "Camera error"))
                 }
+
                 override fun onCameraDisconnected() {
+                    onDispose()
                     if (cont.isActive) cont.resumeWithException(WebRTCMedia.DeviceException("Camera disconnected"))
                 }
+
                 override fun onCameraClosed() {
                     if (cont.isActive) cont.resumeWithException(WebRTCMedia.DeviceException("Camera closed"))
                 }
+
                 override fun onFirstFrameAvailable() {
-                    if (cont.isActive) cont.resume(requireNotNull(videoSource))
+                    if (cont.isActive) cont.resume(requireNotNull(videoSource) to onDispose)
                 }
+
                 override fun onCameraOpening(cameraId: String?) = Unit
                 override fun onCameraFreezed(p0: String?) = Unit
             }
@@ -160,6 +171,12 @@ public class AndroidMediaDevices(
                 "SurfaceTextureHelperThread",
                 eglBaseContext
             )
+            onDispose = {
+                videoCapturer.stopCapture()
+                videoCapturer.dispose()
+                surfaceTextureHelper.dispose()
+                videoSource?.dispose()
+            }
             videoSource = peerConnectionFactory.createVideoSource(false).apply {
                 videoCapturer.initialize(surfaceTextureHelper, context, capturerObserver)
                 videoCapturer.startCapture(videoWidth, videoHeight, videoFrameRate)
@@ -175,9 +192,9 @@ public class AndroidMediaDevices(
         }
         assertPermission(Manifest.permission.CAMERA)
 
-        val src = makeVideoSource(constraints)
+        val (src, onDispose) = makeVideoSource(constraints)
         val id = "android-webrtc-video-${UUID.randomUUID()}"
         val nativeTrack = peerConnectionFactory.createVideoTrack(id, src)
-        return AndroidVideoTrack(nativeTrack)
+        return AndroidVideoTrack(nativeTrack) { onDispose() }
     }
 }

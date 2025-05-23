@@ -542,7 +542,8 @@ public final class io/ktor/client/webrtc/engine/AndroidWebRtcPeerConnection : io
 }
 
 public final class io/ktor/client/webrtc/peer/AndroidAudioTrack : io/ktor/client/webrtc/peer/AndroidMediaTrack, io/ktor/client/webrtc/WebRTCMedia$AudioTrack {
-	public fun <init> (Lorg/webrtc/MediaStreamTrack;)V
+	public fun <init> (Lorg/webrtc/MediaStreamTrack;Lkotlin/jvm/functions/Function0;)V
+	public synthetic fun <init> (Lorg/webrtc/MediaStreamTrack;Lkotlin/jvm/functions/Function0;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
 public final class io/ktor/client/webrtc/peer/AndroidDtmfServer : io/ktor/client/webrtc/WebRTC$DtmfSender {
@@ -555,7 +556,7 @@ public final class io/ktor/client/webrtc/peer/AndroidDtmfServer : io/ktor/client
 
 public abstract class io/ktor/client/webrtc/peer/AndroidMediaTrack : io/ktor/client/webrtc/WebRTCMedia$Track {
 	public static final field Companion Lio/ktor/client/webrtc/peer/AndroidMediaTrack$Companion;
-	public fun <init> (Lorg/webrtc/MediaStreamTrack;)V
+	public fun <init> (Lorg/webrtc/MediaStreamTrack;Lkotlin/jvm/functions/Function0;)V
 	public fun close ()V
 	public fun enable (Z)V
 	public fun getEnabled ()Z
@@ -595,6 +596,7 @@ public final class io/ktor/client/webrtc/peer/AndroidRtpSender : io/ktor/client/
 }
 
 public final class io/ktor/client/webrtc/peer/AndroidVideoTrack : io/ktor/client/webrtc/peer/AndroidMediaTrack, io/ktor/client/webrtc/WebRTCMedia$VideoTrack {
-	public fun <init> (Lorg/webrtc/MediaStreamTrack;)V
+	public fun <init> (Lorg/webrtc/MediaStreamTrack;Lkotlin/jvm/functions/Function0;)V
+	public synthetic fun <init> (Lorg/webrtc/MediaStreamTrack;Lkotlin/jvm/functions/Function0;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 

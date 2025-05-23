@@ -11,7 +11,8 @@ import org.webrtc.RtpParameters
 import org.webrtc.RtpSender
 
 public abstract class AndroidMediaTrack(
-    public val nativeTrack: MediaStreamTrack
+    public val nativeTrack: MediaStreamTrack,
+    private val onDispose: (() -> Unit)?
 ) : WebRTCMedia.Track {
     public override val id: String = nativeTrack.id()
 
@@ -26,7 +27,10 @@ public abstract class AndroidMediaTrack(
 
     override fun getNative(): Any = nativeTrack
 
-    override fun close(): Unit = nativeTrack.dispose()
+    override fun close() {
+        onDispose?.invoke()
+        nativeTrack.dispose()
+    }
 
     public companion object {
         private fun kindOf(nativeTrack: MediaStreamTrack): WebRTCMedia.TrackType {
@@ -44,9 +48,11 @@ public abstract class AndroidMediaTrack(
     }
 }
 
-public class AndroidAudioTrack(nativeTrack: MediaStreamTrack) : WebRTCMedia.AudioTrack, AndroidMediaTrack(nativeTrack)
+public class AndroidAudioTrack(nativeTrack: MediaStreamTrack, onDispose: (() -> Unit)? = null) : WebRTCMedia.AudioTrack,
+    AndroidMediaTrack(nativeTrack, onDispose)
 
-public class AndroidVideoTrack(nativeTrack: MediaStreamTrack) : WebRTCMedia.VideoTrack, AndroidMediaTrack(nativeTrack)
+public class AndroidVideoTrack(nativeTrack: MediaStreamTrack, onDispose: (() -> Unit)? = null) : WebRTCMedia.VideoTrack,
+    AndroidMediaTrack(nativeTrack, onDispose)
 
 public class AndroidRtpSender(public val nativeRtpSender: RtpSender) : WebRTC.RtpSender {
     override val dtmf: WebRTC.DtmfSender?
