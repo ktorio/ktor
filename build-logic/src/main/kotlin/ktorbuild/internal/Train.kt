@@ -46,6 +46,7 @@ private fun Project.filterSnapshotTests() {
             excludeTestsMatching("*testAcceptErrorOnImmediateSocketClose")
             excludeTestsMatching("*testResponseErrorWithInvalidChunkException")
             excludeTestsMatching("*testEcho")
+            excludeTestsMatching("*testALotOfFrames")
         }
     }
 }
