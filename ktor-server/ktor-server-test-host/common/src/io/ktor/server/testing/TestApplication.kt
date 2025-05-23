@@ -30,7 +30,7 @@ import kotlin.coroutines.EmptyCoroutineContext
 @KtorDsl
 public interface ClientProvider {
     /**
-     * Returns a client with the default configuration.
+     * Returns the current client attached to the test application instance.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.ClientProvider.client)
      *
@@ -373,7 +373,17 @@ public open class TestApplicationBuilder {
 @KtorDsl
 public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
 
-    override val client: HttpClient by lazy { createClient { } }
+    private var _client: HttpClient? = null
+    override var client: HttpClient
+        get() {
+            if (_client == null) {
+                _client = createClient { }
+            }
+            return _client!!
+        }
+        set(value) {
+            _client = value
+        }
 
     internal val application: TestApplication by lazy {
         TestApplication(
