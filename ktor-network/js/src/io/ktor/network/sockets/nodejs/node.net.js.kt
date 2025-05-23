@@ -10,6 +10,8 @@ import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Int8Array
 import kotlin.js.Promise
 
+internal actual external interface ExternalAny
+
 internal actual suspend fun loadNodeNet(): NodeNet = nodeNetPromise.await()
     ?: throw UnsupportedOperationException("Module node:net is not available. Please verify that you are using Node.js")
 
