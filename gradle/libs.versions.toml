@@ -10,7 +10,7 @@ serialization = "1.8.1"
 binaryCompatibilityValidator = "0.17.0"
 dokka = "2.0.0"
 kover = "0.9.1"
-kotlinter = "5.0.2"
+kotlinter = "5.1.0"
 kotlinx-browser = "0.3"
 
 # Used for test server in buildSrc
