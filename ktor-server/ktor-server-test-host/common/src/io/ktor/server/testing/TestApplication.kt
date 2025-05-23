@@ -30,7 +30,8 @@ import kotlin.coroutines.EmptyCoroutineContext
 @KtorDsl
 public interface ClientProvider {
     /**
-     * Returns a client with the default configuration.
+     * A client with the default configuration.
+     * This property is mutable, so you can set your own configured client instance.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.ClientProvider.client)
      *

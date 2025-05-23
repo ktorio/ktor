@@ -8,8 +8,9 @@
 
 // Library unique name: <io.ktor:ktor-server-test-host>
 abstract interface io.ktor.server.testing/ClientProvider { // io.ktor.server.testing/ClientProvider|null[0]
-    abstract val client // io.ktor.server.testing/ClientProvider.client|{}client[0]
+    abstract var client // io.ktor.server.testing/ClientProvider.client|{}client[0]
         abstract fun <get-client>(): io.ktor.client/HttpClient // io.ktor.server.testing/ClientProvider.client.<get-client>|<get-client>(){}[0]
+        abstract fun <set-client>(io.ktor.client/HttpClient) // io.ktor.server.testing/ClientProvider.client.<set-client>|<set-client>(io.ktor.client.HttpClient){}[0]
 
     abstract fun createClient(kotlin/Function1<io.ktor.client/HttpClientConfig<out io.ktor.client.engine/HttpClientEngineConfig>, kotlin/Unit>): io.ktor.client/HttpClient // io.ktor.server.testing/ClientProvider.createClient|createClient(kotlin.Function1<io.ktor.client.HttpClientConfig<out|io.ktor.client.engine.HttpClientEngineConfig>,kotlin.Unit>){}[0]
 }
@@ -47,8 +48,9 @@ final class io.ktor.server.testing.client/TestHttpClientEngine : io.ktor.client.
 final class io.ktor.server.testing/ApplicationTestBuilder : io.ktor.server.testing/ClientProvider, io.ktor.server.testing/TestApplicationBuilder { // io.ktor.server.testing/ApplicationTestBuilder|null[0]
     constructor <init>() // io.ktor.server.testing/ApplicationTestBuilder.<init>|<init>(){}[0]
 
-    final val client // io.ktor.server.testing/ApplicationTestBuilder.client|{}client[0]
+    final var client // io.ktor.server.testing/ApplicationTestBuilder.client|{}client[0]
         final fun <get-client>(): io.ktor.client/HttpClient // io.ktor.server.testing/ApplicationTestBuilder.client.<get-client>|<get-client>(){}[0]
+        final fun <set-client>(io.ktor.client/HttpClient) // io.ktor.server.testing/ApplicationTestBuilder.client.<set-client>|<set-client>(io.ktor.client.HttpClient){}[0]
 
     final fun createClient(kotlin/Function1<io.ktor.client/HttpClientConfig<out io.ktor.client.engine/HttpClientEngineConfig>, kotlin/Unit>): io.ktor.client/HttpClient // io.ktor.server.testing/ApplicationTestBuilder.createClient|createClient(kotlin.Function1<io.ktor.client.HttpClientConfig<out|io.ktor.client.engine.HttpClientEngineConfig>,kotlin.Unit>){}[0]
     final suspend fun startApplication() // io.ktor.server.testing/ApplicationTestBuilder.startApplication|startApplication(){}[0]
@@ -59,8 +61,9 @@ final class io.ktor.server.testing/ExternalServicesBuilder { // io.ktor.server.t
 }
 
 final class io.ktor.server.testing/TestApplication : io.ktor.server.testing/ClientProvider { // io.ktor.server.testing/TestApplication|null[0]
-    final val client // io.ktor.server.testing/TestApplication.client|{}client[0]
+    final var client // io.ktor.server.testing/TestApplication.client|{}client[0]
         final fun <get-client>(): io.ktor.client/HttpClient // io.ktor.server.testing/TestApplication.client.<get-client>|<get-client>(){}[0]
+        final fun <set-client>(io.ktor.client/HttpClient) // io.ktor.server.testing/TestApplication.client.<set-client>|<set-client>(io.ktor.client.HttpClient){}[0]
 
     final fun createClient(kotlin/Function1<io.ktor.client/HttpClientConfig<out io.ktor.client.engine/HttpClientEngineConfig>, kotlin/Unit>): io.ktor.client/HttpClient // io.ktor.server.testing/TestApplication.createClient|createClient(kotlin.Function1<io.ktor.client.HttpClientConfig<out|io.ktor.client.engine.HttpClientEngineConfig>,kotlin.Unit>){}[0]
     final suspend fun start() // io.ktor.server.testing/TestApplication.start|start(){}[0]
