@@ -25,6 +25,8 @@ private val nodeNet: NodeNet by lazy {
 )
 private external fun loadNodeNetModule(): JsAny?
 
+internal actual typealias ExternalAny = JsAny
+
 internal actual fun TcpCreateConnectionOptions(
     block: TcpCreateConnectionOptions.() -> Unit
 ): TcpCreateConnectionOptions = createObject(block)
