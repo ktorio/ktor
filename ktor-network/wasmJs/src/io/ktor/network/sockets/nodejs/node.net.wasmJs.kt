@@ -9,6 +9,8 @@ import org.khronos.webgl.*
 
 internal actual fun nodeNet(): NodeNet? = js("eval('require')('node:net')")
 
+internal actual typealias ExternalAny = JsAny
+
 internal actual fun TcpCreateConnectionOptions(
     block: TcpCreateConnectionOptions.() -> Unit
 ): TcpCreateConnectionOptions = createObject(block)
