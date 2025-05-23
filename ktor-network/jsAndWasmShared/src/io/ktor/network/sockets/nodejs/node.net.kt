@@ -6,20 +6,22 @@ package io.ktor.network.sockets.nodejs
 
 import io.ktor.network.sockets.*
 
+internal expect interface ExternalAny
+
 // js.Error
-internal external interface JsError {
+internal external interface JsError : ExternalAny {
     val message: String?
 }
 
 internal expect fun JsError.toThrowable(): Throwable
 internal expect fun Throwable.toJsError(): JsError?
 
-internal external interface JsBuffer // Int8Array
+internal external interface JsBuffer : ExternalAny // Int8Array
 
 internal expect fun ByteArray.toJsBuffer(fromIndex: Int, toIndex: Int): JsBuffer
 internal expect fun JsBuffer.toByteArray(): ByteArray
 
-internal external interface NodeNet {
+internal external interface NodeNet : ExternalAny {
     fun createConnection(options: CreateConnectionOptions): Socket
     fun createServer(options: CreateServerOptions): Server
 }
@@ -56,7 +58,7 @@ internal fun CreateConnectionOptions(
     }
 }
 
-internal external interface CreateConnectionOptions {
+internal external interface CreateConnectionOptions : ExternalAny {
     var timeout: Int?
     var allowHalfOpen: Boolean?
 }
@@ -85,7 +87,7 @@ internal external interface IpcCreateConnectionOptions : CreateConnectionOptions
 }
 
 @Suppress("ktlint:standard:value-parameter-comment")
-internal external interface Socket {
+internal external interface Socket : ExternalAny {
     val localAddress: String
     val localPort: Int
 
@@ -116,14 +118,14 @@ internal expect fun CreateServerOptions(
     block: CreateServerOptions.() -> Unit
 ): CreateServerOptions
 
-internal external interface CreateServerOptions {
+internal external interface CreateServerOptions : ExternalAny {
     var allowHalfOpen: Boolean?
     var keepAlive: Boolean?
     var noDelay: Boolean?
 }
 
 @Suppress("ktlint:standard:value-parameter-comment")
-internal external interface Server {
+internal external interface Server : ExternalAny {
     fun address(): ServerLocalAddressInfo?
     fun listen(options: ServerListenOptions)
 
@@ -162,13 +164,13 @@ internal expect fun ServerListenOptions(
     block: ServerListenOptions.() -> Unit
 ): ServerListenOptions
 
-internal external interface ServerListenOptions {
+internal external interface ServerListenOptions : ExternalAny {
     var port: Int?
     var host: String?
     var path: String?
 }
 
-internal external interface ServerLocalAddressInfo
+internal external interface ServerLocalAddressInfo : ExternalAny
 
 internal external interface TcpServerLocalAddressInfo : ServerLocalAddressInfo {
     val address: String
