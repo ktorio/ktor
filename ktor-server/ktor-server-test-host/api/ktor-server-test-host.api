@@ -2,12 +2,14 @@ public final class io/ktor/server/testing/ApplicationTestBuilder : io/ktor/serve
 	public fun <init> ()V
 	public fun createClient (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/HttpClient;
 	public fun getClient ()Lio/ktor/client/HttpClient;
+	public fun setClient (Lio/ktor/client/HttpClient;)V
 	public final fun startApplication (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class io/ktor/server/testing/ClientProvider {
 	public abstract fun createClient (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/HttpClient;
 	public abstract fun getClient ()Lio/ktor/client/HttpClient;
+	public abstract fun setClient (Lio/ktor/client/HttpClient;)V
 }
 
 public class io/ktor/server/testing/ExpectedTestException : java/lang/Throwable {
@@ -29,6 +31,7 @@ public final class io/ktor/server/testing/On {
 public final class io/ktor/server/testing/TestApplication : io/ktor/server/testing/ClientProvider {
 	public fun createClient (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/HttpClient;
 	public fun getClient ()Lio/ktor/client/HttpClient;
+	public fun setClient (Lio/ktor/client/HttpClient;)V
 	public final fun start (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun stop (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }

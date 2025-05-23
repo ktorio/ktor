@@ -30,13 +30,14 @@ import kotlin.coroutines.EmptyCoroutineContext
 @KtorDsl
 public interface ClientProvider {
     /**
-     * Returns a client with the default configuration.
+     * A client with the default configuration.
+     * This property is mutable, so you can set your own configured client instance.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.ClientProvider.client)
      *
      * @see [testApplication]
      */
-    public val client: HttpClient
+    public var client: HttpClient
 
     /**
      * Creates a client with a custom configuration.
@@ -360,7 +361,17 @@ public open class TestApplicationBuilder {
 @KtorDsl
 public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
 
-    override val client: HttpClient by lazy { createClient { } }
+    private var _client: HttpClient? = null
+    override var client: HttpClient
+        get() {
+            if (_client == null) {
+                _client = createClient { }
+            }
+            return _client!!
+        }
+        set(value) {
+            _client = value
+        }
 
     internal val application: TestApplication by lazy {
         TestApplication(
