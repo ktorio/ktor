@@ -7,6 +7,8 @@ package io.ktor.network.sockets.nodejs
 import io.ktor.network.sockets.*
 import org.khronos.webgl.*
 
+internal actual external interface ExternalAny
+
 internal actual fun nodeNet(): NodeNet? = js("eval('require')('node:net')").unsafeCast<NodeNet?>()
 
 internal actual fun TcpCreateConnectionOptions(
