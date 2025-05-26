@@ -17,6 +17,9 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import java.time.*
 import java.util.concurrent.*
 import kotlin.math.*
@@ -83,7 +86,7 @@ class OAuth1aSignatureTest {
 }
 
 class OAuth1aFlowTest {
-    private var testClient: HttpClient? = null
+    private var testClient: Deferred<HttpClient>? = null
 
     @BeforeTest
     fun createServer() {
@@ -167,9 +170,10 @@ class OAuth1aFlowTest {
         )
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @AfterTest
     fun destroyServer() {
-        testClient?.close()
+        testClient?.getCompleted()?.close()
         testClient = null
     }
 
@@ -271,14 +275,16 @@ class OAuth1aFlowTest {
         }
     }
 
-    private fun ApplicationTestBuilder.configureServer(
+    private suspend fun ApplicationTestBuilder.configureServer(
         redirectUrl: String = "http://localhost/login?redirected=true",
         mutateSettings: OAuthServerSettings.OAuth1aServerSettings.() ->
         OAuthServerSettings.OAuth1aServerSettings = { this }
     ) {
+        val testClient = testClient!!.await()
+
         install(Authentication) {
             oauth {
-                client = testClient!!
+                client = testClient
                 providerLookup = { settings.mutateSettings() }
                 urlProvider = { redirectUrl }
             }
@@ -331,7 +337,7 @@ private interface TestingOAuthServer {
     ): OAuthAccessTokenResponse.OAuth1a
 }
 
-private fun createOAuthServer(server: TestingOAuthServer): HttpClient {
+private fun createOAuthServer(server: TestingOAuthServer): Deferred<HttpClient> {
     val environment = createTestEnvironment {}
     val props = serverConfig(environment) {
         module {
@@ -447,10 +453,13 @@ private fun createOAuthServer(server: TestingOAuthServer): HttpClient {
             }
         }
     }
-    val embeddedServer = EmbeddedServer(props, TestEngine)
-    embeddedServer.start(wait = false)
-    return embeddedServer.engine.client.config {
-        expectSuccess = false
+    return EmbeddedServer(props, TestEngine).let { server ->
+        server.application.async {
+            server.startSuspend()
+            server.engine.client.config {
+                expectSuccess = false
+            }
+        }
     }
 }
 

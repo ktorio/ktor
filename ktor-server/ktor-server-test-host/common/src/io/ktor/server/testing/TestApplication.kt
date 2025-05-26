@@ -93,7 +93,7 @@ public class TestApplication internal constructor(
     public suspend fun start() {
         if (state.compareAndSet(State.Created, State.Starting)) {
             try {
-                server.start()
+                server.startSuspend()
                 externalServices.externalApplications.values.forEach { it.start() }
             } finally {
                 state.value = State.Started
@@ -180,7 +180,7 @@ public open class TestApplicationBuilder {
     private var built = false
 
     internal val externalServices = ExternalServicesBuilder(this)
-    internal val applicationModules = mutableListOf<Application.() -> Unit>()
+    internal val applicationModules = mutableListOf<suspend Application.() -> Unit>()
     internal var engineConfig: TestApplicationEngine.Configuration.() -> Unit = {}
     internal var environmentBuilder: ApplicationEnvironmentBuilder.() -> Unit = {}
     internal var applicationProperties: ServerConfigBuilder.() -> Unit = {}
@@ -284,7 +284,7 @@ public open class TestApplicationBuilder {
      * @see [testApplication]
      */
     @KtorDsl
-    public fun application(block: Application.() -> Unit) {
+    public fun application(block: suspend Application.() -> Unit) {
         checkNotBuilt()
         applicationModules.add(block)
     }

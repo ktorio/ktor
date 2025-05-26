@@ -25,13 +25,16 @@ import kotlin.test.*
 class EmbeddedServerReloadingTests {
 
     @Test
-    fun `top level extension function as module function`() {
+    fun `top level extension functions as module function`() {
         val environment = applicationEnvironment {
             config = HoconApplicationConfig(
                 ConfigFactory.parseMap(
                     mapOf(
                         "ktor.deployment.environment" to "test",
-                        "ktor.application.modules" to listOf(Application::topLevelExtensionFunction.fqName)
+                        "ktor.application.modules" to listOf(
+                            Application::topLevelExtensionFunction.fqName,
+                            Application::topLevelSuspendExtensionFunction.fqName,
+                        )
                     )
                 )
             )
@@ -45,6 +48,7 @@ class EmbeddedServerReloadingTests {
         val application = server.application
         assertNotNull(application)
         assertEquals("topLevelExtensionFunction", application.attributes[TestKey])
+        assertEquals("topLevelSuspendExtensionFunction", application.attributes[TestKey2])
         server.stop()
     }
 
@@ -507,6 +511,7 @@ class EmbeddedServerReloadingTests {
 
     companion object {
         val TestKey = AttributeKey<String>("test-key")
+        val TestKey2 = AttributeKey<String>("test-key2")
 
         private val KFunction<*>.fqName: String
             get() = javaMethod!!.declaringClass.name + "." + name
@@ -632,6 +637,10 @@ fun EmbeddedServer<*, *>.start() = start(wait = false)
 
 fun Application.topLevelExtensionFunction() {
     attributes.put(EmbeddedServerReloadingTests.TestKey, "topLevelExtensionFunction")
+}
+
+suspend fun Application.topLevelSuspendExtensionFunction() {
+    attributes.put(EmbeddedServerReloadingTests.TestKey2, "topLevelSuspendExtensionFunction")
 }
 
 fun topLevelFunction(app: Application) {

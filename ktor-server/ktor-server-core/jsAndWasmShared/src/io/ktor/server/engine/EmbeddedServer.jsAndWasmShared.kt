@@ -47,10 +47,12 @@ actual constructor(
     private val serverScope = CoroutineScope(rootConfig.parentCoroutineContext + Dispatchers.Default)
 
     @OptIn(DelicateCoroutinesApi::class)
-    private fun prepareToStart() {
+    private suspend fun prepareToStart() {
         safeRaiseEvent(ApplicationStarting, application)
         try {
-            modules.forEach { application.it() }
+            for (module in modules) {
+                application.module()
+            }
             monitor.raise(ApplicationModulesLoaded, application)
             monitor.raise(ApplicationStarted, application)
         } catch (cause: Throwable) {
@@ -70,10 +72,7 @@ actual constructor(
     }
 
     public actual fun start(wait: Boolean): EmbeddedServer<TEngine, TConfiguration> {
-        addShutdownHook { stop() }
-        prepareToStart()
-        engine.start(wait)
-        return this
+        error("Blocking start() is not available on this platform; use startSuspend() instead")
     }
 
     @OptIn(DelicateCoroutinesApi::class)
