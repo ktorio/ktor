@@ -588,7 +588,7 @@ final object io.ktor.client.webrtc/WebRTCMedia { // io.ktor.client.webrtc/WebRTC
     }
 }
 
-final fun <#A: io.ktor.client.webrtc/WebRTCConfig> io.ktor.client.webrtc/WebRTCClient(io.ktor.client.webrtc/WebRTCClientEngineFactory<#A>, kotlin/Function1<io.ktor.client.webrtc/WebRTCConfig, kotlin/Unit> = ...): io.ktor.client.webrtc/WebRTCClient // io.ktor.client.webrtc/WebRTCClient|WebRTCClient(io.ktor.client.webrtc.WebRTCClientEngineFactory<0:0>;kotlin.Function1<io.ktor.client.webrtc.WebRTCConfig,kotlin.Unit>){0§<io.ktor.client.webrtc.WebRTCConfig>}[0]
+final fun <#A: io.ktor.client.webrtc/WebRTCConfig> io.ktor.client.webrtc/WebRTCClient(io.ktor.client.webrtc/WebRTCClientEngineFactory<#A>, kotlin/Function1<#A, kotlin/Unit> = ...): io.ktor.client.webrtc/WebRTCClient // io.ktor.client.webrtc/WebRTCClient|WebRTCClient(io.ktor.client.webrtc.WebRTCClientEngineFactory<0:0>;kotlin.Function1<0:0,kotlin.Unit>){0§<io.ktor.client.webrtc.WebRTCConfig>}[0]
 
 // Targets: [js, wasmJs]
 abstract interface io.ktor.client.webrtc.peer/Navigator { // io.ktor.client.webrtc.peer/Navigator|null[0]

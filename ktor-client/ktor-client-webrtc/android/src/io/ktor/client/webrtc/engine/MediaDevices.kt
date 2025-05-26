@@ -15,12 +15,10 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import org.webrtc.Camera2Enumerator
 import org.webrtc.CameraVideoCapturer.CameraEventsHandler
 import org.webrtc.DefaultVideoDecoderFactory
+import org.webrtc.DefaultVideoEncoderFactory
 import org.webrtc.EglBase
-import org.webrtc.HardwareVideoEncoderFactory
 import org.webrtc.MediaConstraints
 import org.webrtc.PeerConnectionFactory
-import org.webrtc.SimulcastVideoEncoderFactory
-import org.webrtc.SoftwareVideoEncoderFactory
 import org.webrtc.SurfaceTextureHelper
 import org.webrtc.VideoSource
 import org.webrtc.audio.JavaAudioDeviceModule
@@ -40,8 +38,7 @@ public class AndroidMediaDevices(
         DefaultVideoDecoderFactory(eglBaseContext)
     }
     private val videoEncoderFactory by lazy {
-        val hardwareEncoder = HardwareVideoEncoderFactory(eglBaseContext, true, true)
-        SimulcastVideoEncoderFactory(hardwareEncoder, SoftwareVideoEncoderFactory())
+        DefaultVideoEncoderFactory(eglBaseContext, true, true)
     }
 
     private val cameraEnumerator = Camera2Enumerator(context)

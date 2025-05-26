@@ -48,5 +48,5 @@ public class WebRTCClient(public val engine: WebRTCEngine) : WebRTCEngine by eng
 @KtorDsl
 public fun <T : WebRTCConfig> WebRTCClient(
     factory: WebRTCClientEngineFactory<T>,
-    block: WebRTCConfig.() -> Unit = {}
+    block: T.() -> Unit = {}
 ): WebRTCClient = WebRTCClient(factory.create(block))
