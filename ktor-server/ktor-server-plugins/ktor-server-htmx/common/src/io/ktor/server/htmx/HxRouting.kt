@@ -12,13 +12,13 @@ import kotlin.jvm.JvmInline
 /**
  * Property for scoping routes to HTMX (e.g., `hx.get { ... }`
  */
-@ExperimentalHtmxApi
+@ExperimentalKtorApi
 public val Route.hx: HxRoute get() = HxRoute.wrap(this)
 
 /**
  * Scope child routes to apply when `HX-Request` header is supplied.
  */
-@ExperimentalHtmxApi
+@ExperimentalKtorApi
 public fun Route.hx(configuration: HxRoute.() -> Unit): Route = with(HxRoute.wrap(this)) {
     header(HxRequestHeaders.Request, "true") {
         configuration()
@@ -28,7 +28,7 @@ public fun Route.hx(configuration: HxRoute.() -> Unit): Route = with(HxRoute.wra
 /**
  * Provides custom routes based on common HTMX headers.
  */
-@ExperimentalHtmxApi
+@ExperimentalKtorApi
 @KtorDsl
 @JvmInline
 public value class HxRoute internal constructor(private val route: Route) : Route by route {

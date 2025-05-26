@@ -9,6 +9,10 @@
 // - Show declarations: true
 
 // Library unique name: <io.ktor:ktor-io>
+open annotation class io.ktor.utils.io/ExperimentalKtorApi : kotlin/Annotation { // io.ktor.utils.io/ExperimentalKtorApi|null[0]
+    constructor <init>() // io.ktor.utils.io/ExperimentalKtorApi.<init>|<init>(){}[0]
+}
+
 open annotation class io.ktor.utils.io/InternalAPI : kotlin/Annotation { // io.ktor.utils.io/InternalAPI|null[0]
     constructor <init>() // io.ktor.utils.io/InternalAPI.<init>|<init>(){}[0]
 }

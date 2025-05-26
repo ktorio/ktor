@@ -6,10 +6,6 @@
 // - Show declarations: true
 
 // Library unique name: <io.ktor:ktor-htmx>
-open annotation class io.ktor.htmx/ExperimentalHtmxApi : kotlin/Annotation { // io.ktor.htmx/ExperimentalHtmxApi|null[0]
-    constructor <init>() // io.ktor.htmx/ExperimentalHtmxApi.<init>|<init>(){}[0]
-}
-
 final object io.ktor.htmx/HxAttributeKeys { // io.ktor.htmx/HxAttributeKeys|null[0]
     final const val Boost // io.ktor.htmx/HxAttributeKeys.Boost|{}Boost[0]
         final fun <get-Boost>(): kotlin/String // io.ktor.htmx/HxAttributeKeys.Boost.<get-Boost>|<get-Boost>(){}[0]
