@@ -240,6 +240,14 @@ public class HttpCache private constructor(
                         plugin.findAndRefresh(response.call.request, response) ?: throw InvalidCacheStateException(
                             response.call.request.url
                         )
+                    if (responseFromCache.varyKeys().size != response.varyKeys().size) {
+                        LOGGER.warn(
+                            "Vary header mismatch on cached response for ${response.call.request.url}. " +
+                                "Received 304 Not Modified with Vary: ${response.varyKeys()} but cached response has Vary: ${responseFromCache.varyKeys()}. " +
+                                "According to RFC 7232 §4.1 and RFC 9111 §4.1, the server must include the full Vary header in 304 responses. " +
+                                "Falling back to missing cache logic. Consider reporting this issue to the server maintainers."
+                        )
+                    }
 
                     scope.monitor.raise(HttpResponseFromCache, responseFromCache)
                     proceedWith(responseFromCache)
@@ -329,10 +337,8 @@ public class HttpCache private constructor(
             else -> publicStorageNew
         }
 
-        val varyKeysFrom304 = response.varyKeys()
-        val cache = findResponse(storage, varyKeysFrom304, url, request) ?: return null
-        val newVaryKeys = varyKeysFrom304.ifEmpty { cache.varyKeys }
-        storage.store(request.url, cache.copy(newVaryKeys, response.cacheExpires(isSharedClient)))
+        val cache = findResponse(storage, response.varyKeys(), url, request) ?: return null
+        storage.store(request.url, cache.copy(cache.varyKeys, response.cacheExpires(isSharedClient)))
         return cache.createResponse(request.call.client, request, response.coroutineContext)
     }
 
@@ -343,12 +349,7 @@ public class HttpCache private constructor(
         request: HttpRequest
     ): CachedResponseData? = when {
         varyKeys.isNotEmpty() -> {
-            val cache = storage.find(url, varyKeys)
-            if (cache != null && cache.varyKeys.size != varyKeys.size) {
-                LOGGER.info("Vary header size differs! This is an issue according to the Vary header specs (https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Vary). " +
-                    "However, we will return the best matching cache as it is not your fault. Report the server you communicate with to fix it.")
-            }
-            cache
+            storage.find(url, varyKeys)
         }
 
         else -> {
