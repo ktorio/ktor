@@ -9,8 +9,8 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.locks.*
 import kotlinx.cinterop.*
-import kotlinx.coroutines.*
-import kotlinx.io.*
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.io.readByteArray
 import libcurl.*
 
 private class RequestHolder @OptIn(ExperimentalForeignApi::class) constructor(
@@ -130,27 +130,22 @@ internal class CurlMultiApiHandler : Closeable {
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    internal fun perform() {
+    internal fun perform(transfersRunning: IntVarOf<Int>) {
         if (activeHandles.isEmpty()) return
 
-        memScoped {
-            val transfersRunning = alloc<IntVar>()
-            do {
-                synchronized(easyHandlesToUnpauseLock) {
-                    var handle = easyHandlesToUnpause.removeFirstOrNull()
-                    while (handle != null) {
-                        curl_easy_pause(handle, CURLPAUSE_CONT)
-                        handle = easyHandlesToUnpause.removeFirstOrNull()
-                    }
-                }
-                curl_multi_perform(multiHandle, transfersRunning.ptr).verify()
-                if (transfersRunning.value != 0) {
-                    curl_multi_poll(multiHandle, null, 0.toUInt(), 10000, null).verify()
-                }
-                if (transfersRunning.value < activeHandles.size) {
-                    handleCompleted()
-                }
-            } while (transfersRunning.value != 0)
+        synchronized(easyHandlesToUnpauseLock) {
+            var handle = easyHandlesToUnpause.removeFirstOrNull()
+            while (handle != null) {
+                curl_easy_pause(handle, CURLPAUSE_CONT)
+                handle = easyHandlesToUnpause.removeFirstOrNull()
+            }
+        }
+        curl_multi_perform(multiHandle, transfersRunning.ptr).verify()
+        if (transfersRunning.value != 0) {
+            curl_multi_poll(multiHandle, null, 0.toUInt(), 100, null).verify()
+        }
+        if (transfersRunning.value < activeHandles.size) {
+            handleCompleted()
         }
     }
 
