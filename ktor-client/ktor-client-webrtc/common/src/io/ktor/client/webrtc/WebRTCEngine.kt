@@ -19,13 +19,19 @@ import kotlin.coroutines.CoroutineContext
 public open class WebRTCConfig {
     public var mediaTrackFactory: MediaTrackFactory? = null
     public var dispatcher: CoroutineDispatcher? = null
+
     public var iceServers: List<WebRTC.IceServer> = emptyList()
     public var turnServers: List<WebRTC.IceServer> = emptyList()
+
     public var statsRefreshRate: Long = -1
     public var iceCandidatePoolSize: Int = 0
+
     public var bundlePolicy: WebRTC.BundlePolicy = WebRTC.BundlePolicy.BALANCED
     public var rtcpMuxPolicy: WebRTC.RTCPMuxPolicy = WebRTC.RTCPMuxPolicy.NEGOTIATE
     public var iceTransportPolicy: WebRTC.IceTransportPolicy = WebRTC.IceTransportPolicy.ALL
+
+    public var remoteTracksReplay: Int = 10
+    public var iceCandidatesReplay: Int = 20 // Usually enough for most use cases
 }
 
 public interface MediaTrackFactory {
@@ -57,11 +63,11 @@ public sealed class Operation<T>(public val item: T)
 public class Add<T>(item: T) : Operation<T>(item)
 public class Remove<T>(item: T) : Operation<T>(item)
 
-public abstract class WebRtcPeerConnection : Closeable {
+public abstract class WebRtcPeerConnection(iceCandidatesReplay: Int, remoteTracksReplay: Int) : Closeable {
     protected val currentStats: MutableStateFlow<List<WebRTC.Stats>> = MutableStateFlow(listOf())
     public val statsFlow: StateFlow<List<WebRTC.Stats>> = currentStats.asStateFlow()
 
-    protected val iceCandidates: MutableSharedFlow<WebRTC.IceCandidate> = MutableSharedFlow()
+    protected val iceCandidates: MutableSharedFlow<WebRTC.IceCandidate> = MutableSharedFlow(iceCandidatesReplay)
     public val iceCandidateFlow: SharedFlow<WebRTC.IceCandidate> = iceCandidates.asSharedFlow()
 
     protected val currentIceConnectionState: MutableStateFlow<WebRTC.IceConnectionState> =
@@ -80,7 +86,7 @@ public abstract class WebRtcPeerConnection : Closeable {
         MutableStateFlow(WebRTC.SignalingState.CLOSED)
     public val signalingStateFlow: StateFlow<WebRTC.SignalingState> = currentSignalingState.asStateFlow()
 
-    protected val remoteTracks: MutableSharedFlow<Operation<WebRTCMedia.Track>> = MutableSharedFlow()
+    protected val remoteTracks: MutableSharedFlow<Operation<WebRTCMedia.Track>> = MutableSharedFlow(remoteTracksReplay)
     public val remoteTracksFlow: SharedFlow<Operation<WebRTCMedia.Track>> = remoteTracks.asSharedFlow()
 
     public abstract val localDescription: WebRTC.SessionDescription?

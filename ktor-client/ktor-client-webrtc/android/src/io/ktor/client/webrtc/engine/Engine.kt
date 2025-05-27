@@ -60,7 +60,12 @@ public class AndroidWebRTCEngine(
             sdpSemantics = PeerConnection.SdpSemantics.UNIFIED_PLAN
             iceTransportsType = config.iceTransportPolicy.toNative()
         }
-        return AndroidWebRtcPeerConnection(coroutineContext, config.statsRefreshRate).initialize { observer ->
+        return AndroidWebRtcPeerConnection(
+            coroutineContext,
+            config.statsRefreshRate,
+            config.iceCandidatesReplay,
+            config.remoteTracksReplay
+        ).initialize { observer ->
             getLocalFactory().createPeerConnection(rtcConfig, observer)
         }
     }
@@ -69,7 +74,9 @@ public class AndroidWebRTCEngine(
 public class AndroidWebRtcPeerConnection(
     override val coroutineContext: CoroutineContext,
     private val statsRefreshRate: Long,
-) : CoroutineScope, WebRtcPeerConnection() {
+    iceCandidatesReplay: Int,
+    remoteTracksReplay: Int
+) : CoroutineScope, WebRtcPeerConnection(iceCandidatesReplay, remoteTracksReplay) {
     private lateinit var peerConnection: PeerConnection
 
     private val rtpSenders = arrayListOf<AndroidRtpSender>()

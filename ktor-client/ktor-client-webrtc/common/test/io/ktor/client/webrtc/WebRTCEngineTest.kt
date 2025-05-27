@@ -377,6 +377,16 @@ class WebRTCEngineTest {
                     }
                 }
 
+                // assert that remote tracks are replayed
+                val remoteTracks3 = Channel<Operation<WebRTCMedia.Track>>(Channel.UNLIMITED)
+                val collectTracks3Job = launch { pc2.remoteTracksFlow.collect { remoteTracks3.send(it) } }
+                withTimeout(5000) {
+                    val tracks = arrayOf(remoteTracks3.receive(), remoteTracks3.receive())
+                    assertTrue(tracks.all { it is Add })
+                    assertEquals(1, tracks.filter { it.item.kind === WebRTCMedia.TrackType.AUDIO }.size)
+                    assertEquals(1, tracks.filter { it.item.kind === WebRTCMedia.TrackType.VIDEO }.size)
+                }
+
                 // remove audio track at pc2, needs renegotiation to work
                 assertTrue(negotiationNeededCnt.value >= 2)
                 pc2.removeTrack(audioSender)
@@ -391,6 +401,7 @@ class WebRTCEngineTest {
 
                 collectTracks1Job.cancel()
                 collectTracks2Job.cancel()
+                collectTracks3Job.cancel()
             }
         }
     }

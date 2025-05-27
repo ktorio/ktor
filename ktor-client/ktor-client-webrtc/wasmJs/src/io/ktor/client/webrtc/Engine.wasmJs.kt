@@ -59,7 +59,13 @@ public class WasmJsWebRTCEngine(
             iceServers = mapIceServers(config.iceServers + config.turnServers)
         }
         val peerConnection = RTCPeerConnection(rtcConfig)
-        return WasmJsWebRtcPeerConnection(peerConnection, coroutineContext, config.statsRefreshRate)
+        return WasmJsWebRtcPeerConnection(
+            peerConnection,
+            coroutineContext,
+            config.statsRefreshRate,
+            config.iceCandidatesReplay,
+            config.remoteTracksReplay
+        )
     }
 }
 
@@ -70,8 +76,10 @@ public class WasmJsWebRTCEngine(
 public class WasmJsWebRtcPeerConnection(
     private val nativePeerConnection: RTCPeerConnection,
     override val coroutineContext: CoroutineContext,
-    private val statsRefreshRate: Long
-) : WebRtcPeerConnection(), CoroutineScope {
+    private val statsRefreshRate: Long,
+    iceCandidatesReplay: Int,
+    remoteTracksReplay: Int
+) : CoroutineScope, WebRtcPeerConnection(iceCandidatesReplay, remoteTracksReplay) {
     init {
         nativePeerConnection.onicecandidate = { event: RTCPeerConnectionIceEvent ->
             event.candidate?.let { candidate ->

@@ -289,18 +289,22 @@ public class io/ktor/client/webrtc/WebRTCConfig {
 	public final fun getBundlePolicy ()Lio/ktor/client/webrtc/WebRTC$BundlePolicy;
 	public final fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
 	public final fun getIceCandidatePoolSize ()I
+	public final fun getIceCandidatesReplay ()I
 	public final fun getIceServers ()Ljava/util/List;
 	public final fun getIceTransportPolicy ()Lio/ktor/client/webrtc/WebRTC$IceTransportPolicy;
 	public final fun getMediaTrackFactory ()Lio/ktor/client/webrtc/MediaTrackFactory;
+	public final fun getRemoteTracksReplay ()I
 	public final fun getRtcpMuxPolicy ()Lio/ktor/client/webrtc/WebRTC$RTCPMuxPolicy;
 	public final fun getStatsRefreshRate ()J
 	public final fun getTurnServers ()Ljava/util/List;
 	public final fun setBundlePolicy (Lio/ktor/client/webrtc/WebRTC$BundlePolicy;)V
 	public final fun setDispatcher (Lkotlinx/coroutines/CoroutineDispatcher;)V
 	public final fun setIceCandidatePoolSize (I)V
+	public final fun setIceCandidatesReplay (I)V
 	public final fun setIceServers (Ljava/util/List;)V
 	public final fun setIceTransportPolicy (Lio/ktor/client/webrtc/WebRTC$IceTransportPolicy;)V
 	public final fun setMediaTrackFactory (Lio/ktor/client/webrtc/MediaTrackFactory;)V
+	public final fun setRemoteTracksReplay (I)V
 	public final fun setRtcpMuxPolicy (Lio/ktor/client/webrtc/WebRTC$RTCPMuxPolicy;)V
 	public final fun setStatsRefreshRate (J)V
 	public final fun setTurnServers (Ljava/util/List;)V
@@ -442,7 +446,7 @@ public final class io/ktor/client/webrtc/WebRTCMedia$VideoTrackConstraints {
 }
 
 public abstract class io/ktor/client/webrtc/WebRtcPeerConnection : java/io/Closeable {
-	public fun <init> ()V
+	public fun <init> (II)V
 	public abstract fun addIceCandidate (Lio/ktor/client/webrtc/WebRTC$IceCandidate;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun addTrack (Lio/ktor/client/webrtc/WebRTCMedia$Track;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun createAnswer (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
