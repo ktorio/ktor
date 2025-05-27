@@ -186,6 +186,7 @@ projects {
     +"ktor-test-dispatcher"
     +"ktor-java-modules-test"
     +"ktor-dokka"
+    +"ktor-version-catalog"
 }
 
 // region Project hierarchy DSL

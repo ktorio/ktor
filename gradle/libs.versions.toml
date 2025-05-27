@@ -10,14 +10,14 @@ serialization = "1.8.1"
 binaryCompatibilityValidator = "0.17.0"
 dokka = "2.0.0"
 kover = "0.9.1"
-kotlinter = "5.0.2"
+kotlinter = "5.1.0"
 kotlinx-browser = "0.3"
 
 # Used for test server in buildSrc
 ktor = "3.2.0-eap-1264"
 
 netty = "4.1.119.Final"
-netty-tcnative = "2.0.71.Final"
+netty-tcnative = "2.0.72.Final"
 
 jetty = "9.4.57.v20241219"
 jetty-jakarta = "11.0.25"
