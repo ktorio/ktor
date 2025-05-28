@@ -22,6 +22,9 @@ import io.ktor.server.testing.*
 import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 import kotlin.test.*
@@ -154,7 +157,9 @@ class OAuth2Test {
     )
 
     val failures = ArrayList<Throwable>()
-    fun Application.module(settings: OAuthServerSettings.OAuth2ServerSettings = DefaultSettings) {
+    suspend fun Application.module(settings: OAuthServerSettings.OAuth2ServerSettings = DefaultSettings) {
+        val testClient = testClient.await()
+
         install(Authentication) {
             oauth("login") {
                 client = testClient
@@ -190,9 +195,10 @@ class OAuth2Test {
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @AfterTest
     fun tearDown() {
-        testClient.close()
+        testClient.getCompleted().close()
     }
 
     @Test
@@ -609,7 +615,7 @@ internal interface OAuth2Server {
     ): OAuthAccessTokenResponse.OAuth2
 }
 
-internal fun createOAuth2Server(server: OAuth2Server): HttpClient {
+internal fun createOAuth2Server(server: OAuth2Server): Deferred<HttpClient> {
     val environment = createTestEnvironment {}
     val props = serverConfig(environment) {
         module {
@@ -683,10 +689,13 @@ internal fun createOAuth2Server(server: OAuth2Server): HttpClient {
             }
         }
     }
-    val embeddedServer = EmbeddedServer(props, TestEngine)
-    embeddedServer.start()
-    return embeddedServer.engine.client.config {
-        expectSuccess = false
+    return EmbeddedServer(props, TestEngine).let { server ->
+        server.application.async {
+            server.startSuspend()
+            server.engine.client.config {
+                expectSuccess = false
+            }
+        }
     }
 }
 
