@@ -243,9 +243,12 @@ public class HttpCache private constructor(
                     if (responseFromCache.varyKeys().size != response.varyKeys().size) {
                         LOGGER.warn(
                             "Vary header mismatch on cached response for ${response.call.request.url}. " +
-                                "Received 304 Not Modified with Vary: ${response.varyKeys()} but cached response has Vary: ${responseFromCache.varyKeys()}. " +
-                                "According to RFC 7232 §4.1 and RFC 9111 §4.1, the server must include the full Vary header in 304 responses. " +
-                                "Falling back to missing cache logic. Consider reporting this issue to the server maintainers."
+                                "Received 304 Not Modified with Vary: ${response.varyKeys()} " +
+                                "but cached response has Vary: ${responseFromCache.varyKeys()}. " +
+                                "According to RFC 7232 §4.1 and RFC 9111 §4.1, " +
+                                "the server must include the full Vary header in 304 responses. " +
+                                "Falling back to missing cache logic. " +
+                                "Consider reporting this issue to the server maintainers."
                         )
                     }
 
