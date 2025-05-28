@@ -19,7 +19,7 @@ public actual class InetSocketAddress internal constructor(
 
     public actual val port: Int get() = address.port
 
-    public actual fun address(): ByteArray? = address.address?.address
+    public actual fun resolveAddress(): ByteArray? = address.address?.address
 
     public actual constructor(hostname: String, port: Int) :
         this(java.net.InetSocketAddress(hostname, port))
