@@ -8,6 +8,8 @@ import io.ktor.server.application.*
 import io.ktor.server.plugins.di.utils.*
 import io.ktor.util.*
 import io.ktor.util.reflect.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlin.reflect.KClass
 
 /**
@@ -60,19 +62,21 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
                 .orEmpty()
 
         val provider = if (isTestEngine() && !pluginConfig.providerChanged) {
-            MapDependencyProvider(conflictPolicy = LastEntryWinsPolicy)
+            MapDependencyProvider(conflictPolicy = IgnoreConflicts)
         } else {
             pluginConfig.provider
         }
 
         val configMap = ConfigurationDependencyMap(application.environment.config)
         val dependenciesMap = pluginConfig.dependenciesMap?.let { it + configMap } ?: configMap
+        val onShutdown = pluginConfig.onShutdown
 
         var registry = DependencyRegistry(
             provider,
             dependenciesMap,
             pluginConfig.resolution,
             pluginConfig.reflection,
+            application.coroutineContext + Dispatchers.Default.limitedParallelism(1),
         )
 
         with(application) {
@@ -80,10 +84,56 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
                 installReference(registry, reference)
             }
             monitor.subscribe(ApplicationModulesLoaded) {
-                registry.validate()
+                val exceptions = mutableListOf<Pair<DependencyKey, Throwable>>()
+                for ((key, source) in registry.requirements) {
+                    try {
+                        registry.get<Any?>(key)
+                    } catch (e: Throwable) {
+                        environment.log.error("Cannot resolve $key\n${source.externalTrace()}")
+                        exceptions += key to e
+                    }
+                }
+                when (exceptions.size) {
+                    0 -> environment.log.debug("All dependencies resolved successfully")
+                    else -> {
+                        environment.log.error(
+                            buildString {
+                                append("Dependency resolution failed:")
+                                exceptions.forEach { (key, e) ->
+                                    append("\n  - $key: ${formatError(e)}")
+                                }
+                            }
+                        )
+                        throw DependencyInjectionException(
+                            "Some dependencies could not be resolved; check logs for details"
+                        )
+                    }
+                }
             }
+            monitor.subscribe(ApplicationStopped) {
+                for (key in registry.declarations.keys.reversed()) {
+                    try {
+                        val instance = registry.get<Any?>(key)
+                        registry.shutdownHooks[key]?.invoke(instance)
+                        onShutdown(key, instance)
+                    } catch (e: Throwable) {
+                        environment.log.warn("Exception during cleanup for $key; continuing", e)
+                    }
+                }
+                registry.cancel()
+            }
+
             attributes.put(DependencyRegistryKey, registry)
         }
+    }
+
+private fun formatError(e: Throwable): String =
+    when (e) {
+        is MissingDependencyException -> "Missing declaration"
+        is CircularDependencyException -> "Circular dependency: ${e.keys.joinToString(" -> ")}"
+        is DuplicateDependencyException -> "Conflicting declaration"
+        is AmbiguousDependencyException -> "Ambiguous dependency for ${e.function.keyString()}"
+        else -> e.message ?: ("Unknown error" + e.stackTraceToString().let { "\n$it" })
     }
 
 private fun PluginBuilder<*>.isTestEngine(): Boolean =
@@ -117,6 +167,8 @@ public object NoReflection : DependencyReflection {
  *                    Defaults to a `MapDependencyProvider`.
  * @property resolution Defines the strategy for resolving dependencies.
  *                      Defaults to `DefaultDependencyResolution`.
+ * @property onShutdown A callback invoked when the application stops.
+ *                      Defaults to closing all instances of `AutoCloseable`
  *
  * @see DependencyReflection
  * @see DependencyProvider
@@ -125,13 +177,19 @@ public object NoReflection : DependencyReflection {
  */
 public class DependencyInjectionConfig {
     internal var providerChanged = false
+
     public var reflection: DependencyReflection = DefaultReflection
+
     public var provider: DependencyProvider = MapDependencyProvider()
         set(value) {
             field = value
             providerChanged = true
         }
+
     public var resolution: DependencyResolution = DefaultDependencyResolution
+    public var onShutdown: (DependencyKey, Any?) -> Unit = { _, instance ->
+        (instance as? AutoCloseable)?.close()
+    }
     internal var dependenciesMap: DependencyMap? = null
 
     /**
@@ -207,6 +265,14 @@ public data class DependencyKey(
 }
 
 /**
+ * Convenience function for `DependencyKey(typeInfo<T>(), name, qualifier)`.
+ */
+public inline fun <reified T> DependencyKey(
+    name: String? = null,
+    qualifier: Any? = null,
+): DependencyKey = DependencyKey(typeInfo<T>(), name, qualifier)
+
+/**
  * Determines if the type associated with a `DependencyKey` is nullable.
  *
  * This function checks whether the `kotlinType` property of the `type` in the `DependencyKey`
@@ -236,8 +302,11 @@ public class DuplicateDependencyException(key: DependencyKey) :
 /**
  * Thrown when there are two or more implicit dependencies that match the given key.
  */
-public class AmbiguousDependencyException(key: DependencyKey, keys: Collection<DependencyKey>) :
-    DependencyInjectionException("Cannot decide which value for $key. Possible implementations: $keys")
+public class AmbiguousDependencyException(
+    public val function: AmbiguousCreateFunction
+) : DependencyInjectionException(
+    "Cannot decide which value for ${function.key}: ${function.implementations}"
+)
 
 /**
  * Thrown when resolving a given dependency loops back on itself.

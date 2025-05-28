@@ -12,7 +12,6 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.kotlin.dsl.newInstance
-import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import javax.inject.Inject
 
 abstract class KtorBuildExtension private constructor(
@@ -49,26 +48,6 @@ abstract class KtorBuildExtension private constructor(
             .orElse(providers.provider { JavaVersion.current().majorVersion })
             .map(JavaLanguageVersion::of)
 
-    /**
-     * The Kotlin API version Ktor should be compatible with.
-     *
-     * DON'T change the property name as it is used in Kotlin Libraries train.
-     */
-    val kotlinApiVersion: Provider<KotlinVersion> =
-        providers.gradleProperty("kotlin_api_version")
-            .map(KotlinVersion::fromVersion)
-            .orElse(DEFAULT_KOTLIN_API_VERSION)
-
-    /**
-     * The Kotlin Language version Ktor should be compatible with.
-     *
-     * DON'T change the property name as it is used in Kotlin Libraries train.
-     */
-    val kotlinLanguageVersion: Provider<KotlinVersion> =
-        providers.gradleProperty("kotlin_language_version")
-            .map(KotlinVersion::fromVersion)
-            .orElse(DEFAULT_KOTLIN_LANGUAGE_VERSION)
-
     /** Host operating system. */
     val os: Provider<OperatingSystem> = providers.provider { OperatingSystem.current() }
 
@@ -77,11 +56,5 @@ abstract class KtorBuildExtension private constructor(
 
         /** The default (minimal) JDK version used for building the project. */
         const val DEFAULT_JDK = 8
-
-        /** The default (minimal) Kotlin version used as an API version. */
-        private val DEFAULT_KOTLIN_API_VERSION = KotlinVersion.KOTLIN_2_0
-
-        /** The default Kotlin version used as a Language version. */
-        private val DEFAULT_KOTLIN_LANGUAGE_VERSION = KotlinVersion.KOTLIN_2_1
     }
 }

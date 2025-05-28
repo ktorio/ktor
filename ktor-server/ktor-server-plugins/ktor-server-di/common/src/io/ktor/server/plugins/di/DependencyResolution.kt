@@ -5,8 +5,7 @@
 package io.ktor.server.plugins.di
 
 import io.ktor.server.config.ApplicationConfig
-import io.ktor.server.config.SerializableConfigValue
-import io.ktor.util.reflect.*
+import kotlinx.coroutines.Deferred
 import kotlin.reflect.KProperty
 
 /**
@@ -173,7 +172,19 @@ public operator fun DependencyMap.plus(right: DependencyMap): DependencyMap =
  * Get the dependency from the map for the key represented by the type (and optionally, with the given name).
  */
 public inline fun <reified T> DependencyMap.resolve(key: String? = null): T =
-    get(DependencyKey(typeInfo<T>(), key))
+    get(DependencyKey<T>(key))
+
+/**
+ * Resolve a `Deferred<T>` dependency and await its result.
+ */
+public suspend inline fun <reified T> DependencyMap.resolveAwait(key: String? = null): T {
+    val syncKey = DependencyKey<T>()
+    return if (contains(syncKey)) {
+        resolve(key)
+    } else {
+        resolve<Deferred<T>>(key).await()
+    }
+}
 
 internal class MergedDependencyMap(
     private val left: DependencyMap,
@@ -209,7 +220,7 @@ public class ConfigurationDependencyMap(
         if (key.qualifier != PropertyQualifier || key.name == null) {
             throw MissingDependencyException(key)
         } else {
-            (config.propertyOrNull(key.name) as? SerializableConfigValue)?.getAs(key.type) as? T
+            config.propertyOrNull(key.name)?.getAs(key.type) as? T
                 ?: throw MissingDependencyException(key)
         }
 }
@@ -231,5 +242,5 @@ public data class DependencyResolverContext(
      * Get the dependency from the map for the key represented by the type (and optionally, with the given name).
      */
     public inline fun <reified T> DependencyMap.resolve(key: String? = null): T =
-        get(DependencyKey(typeInfo<T>(), key))
+        get(DependencyKey<T>(key))
 }

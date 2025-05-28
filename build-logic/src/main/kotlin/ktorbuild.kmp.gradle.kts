@@ -23,9 +23,9 @@ kotlin {
     explicitApi()
 
     compilerOptions {
-        progressiveMode = ktorBuild.kotlinLanguageVersion.map { it >= KotlinVersion.DEFAULT }
-        apiVersion = ktorBuild.kotlinApiVersion
-        languageVersion = ktorBuild.kotlinLanguageVersion
+        apiVersion = KotlinVersion.KOTLIN_2_0
+        languageVersion = KotlinVersion.KOTLIN_2_1
+        progressiveMode = languageVersion.map { it >= KotlinVersion.DEFAULT }
         freeCompilerArgs.addAll("-Xexpect-actual-classes")
     }
 
@@ -73,5 +73,4 @@ if (targets.hasNative) {
     }
 }
 
-setupTrain()
 if (ktorBuild.isCI.get()) configureTestTasksOnCi()

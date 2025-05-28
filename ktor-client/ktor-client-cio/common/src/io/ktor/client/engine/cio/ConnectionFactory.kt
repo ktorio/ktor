@@ -15,10 +15,10 @@ internal class ConnectionFactory(
     private val addressConnectionsLimit: Int
 ) {
     private val limit = Semaphore(connectionsLimit)
-    private val addressLimit = ConcurrentMap<InetSocketAddress, Semaphore>()
+    private val addressLimit = ConcurrentMap<SocketAddress, Semaphore>()
 
     suspend fun connect(
-        address: InetSocketAddress,
+        address: SocketAddress,
         configuration: SocketOptions.TCPClientSocketOptions.() -> Unit = {}
     ): Socket {
         limit.acquire()
@@ -39,8 +39,8 @@ internal class ConnectionFactory(
         }
     }
 
-    fun release(address: InetSocketAddress) {
-        addressLimit[address]!!.release()
+    fun release(address: SocketAddress) {
+        addressLimit[address]?.release()
         limit.release()
     }
 }

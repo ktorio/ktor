@@ -6,8 +6,11 @@ package io.ktor.server.plugins.di
 
 import io.ktor.server.application.*
 import io.ktor.server.plugins.di.MutableDependencyMap.Companion.asResolver
-import io.ktor.util.reflect.typeInfo
 import io.ktor.utils.io.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlin.coroutines.CoroutineContext
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
@@ -31,9 +34,11 @@ public class DependencyRegistry(
     private val external: DependencyMap,
     private val resolution: DependencyResolution,
     public override val reflection: DependencyReflection,
-) : DependencyProvider by provider, DependencyResolver {
+    public override val coroutineContext: CoroutineContext,
+) : DependencyProvider by provider, DependencyResolver, CoroutineScope {
 
-    private val requiredKeys = mutableSetOf<DependencyKey>()
+    internal val requirements = mutableMapOf<DependencyKey, DependencyReference>()
+    internal val shutdownHooks = mutableMapOf<DependencyKey, (Any?) -> Unit>()
     private val resolver: Lazy<DependencyResolver> = lazy {
         resolution.resolve(provider, external, reflection)
     }
@@ -55,28 +60,17 @@ public class DependencyRegistry(
     /**
      * Indicates that the given dependency is required.
      *
-     * This is ensured after `validate()` is called.
+     * The DI plugin enforces this at startup.
      */
     public fun require(key: DependencyKey) {
-        requiredKeys += key
-    }
-
-    /**
-     * Performs resolutions, ensuring there are no missing dependencies.
-     *
-     * @throws DependencyInjectionException if there are invalid references in the configuration
-     */
-    public fun validate() {
-        for (key in requiredKeys) {
-            resolver.value.get<Any>(key)
-        }
+        requirements += key to DependencyReference()
     }
 
     /**
      * Get the dependency from the map for the key represented by the type (and optionally, with the given name).
      */
     public inline fun <reified T> resolve(key: String? = null): T =
-        get(DependencyKey(typeInfo<T>(), key))
+        get(DependencyKey<T>(key))
 
     /**
      * Provides a delegated property for accessing a dependency from a [DependencyRegistry].
@@ -99,7 +93,7 @@ public class DependencyRegistry(
         thisRef: Any?,
         prop: KProperty<*>
     ): ReadOnlyProperty<Any?, T> {
-        val key = DependencyKey(typeInfo<T>())
+        val key = DependencyKey<T>()
             .also(::require)
         return ReadOnlyProperty { _, _ ->
             get(key)
@@ -115,15 +109,71 @@ public class DependencyRegistry(
      * @param T The type of the dependency to be provided.
      * @param kClass The `KClass` representing the type of the dependency to be created or resolved.
      */
-    public inline fun <reified T : Any> DependencyProvider.provide(kClass: KClass<out T>) {
+    public inline fun <reified T : Any> provide(kClass: KClass<out T>): KeyContext<T> =
         provide<T> { create(kClass) }
-    }
+
+    /**
+     * Creates a new `KeyContext` for the specified type [T] and an optional name.
+     * The given [handler] is invoked on the created `KeyContext`, allowing configuration
+     * such as defining a provider or cleanup logic for the dependency.
+     *
+     * @param T The type of the dependency being handled.
+     * @param name An optional name associated with the dependency. Defaults to `null` if not provided.
+     * @param handler A lambda that defines the actions to be performed on the created `KeyContext`.
+     * @return A `KeyContext` instance representing the defined key and its associated actions.
+     */
+    public inline fun <reified T> key(name: String? = null, noinline handler: KeyContext<T>.() -> Unit): KeyContext<T> =
+        KeyContext<T>(DependencyKey<T>(name)).also(handler)
+
+    /**
+     * Provide a deferred dependency for the given type using the provided suspend function.
+     *
+     * Shorthand for `provide<Deferred<T>> { async { suspendFunction() } }`
+     */
+    public inline fun <reified T> provideAsync(
+        name: String? = null,
+        noinline provide: suspend DependencyResolver.() -> T?
+    ): KeyContext<Deferred<T>> =
+        provide<Deferred<T>>(name) {
+            async {
+                provide() ?: throw DependencyInjectionException(
+                    "Null result for async declaration: ${DependencyKey<T>(name)}"
+                )
+            }
+        }
 
     /**
      * Basic call for providing a dependency, like `provide<Service> { ServiceImpl() }`.
      */
-    public inline fun <reified T> provide(name: String? = null, noinline provide: DependencyResolver.() -> T?) {
-        set(DependencyKey(typeInfo<T>(), name), provide)
+    public inline fun <reified T> provide(
+        name: String? = null,
+        noinline provide: DependencyResolver.() -> T?
+    ): KeyContext<T> =
+        key<T>(name) { provide(provide) }
+
+    public inline fun <reified T> cleanup(name: String? = null, noinline cleanup: (T) -> Unit): KeyContext<T> =
+        key<T>(name) { cleanup(cleanup) }
+
+    public fun cleanup(key: DependencyKey, cleanup: (Any?) -> Unit) {
+        require(!shutdownHooks.contains(key)) {
+            "Shutdown hook already registered for $this"
+        }
+        shutdownHooks[key] = cleanup
+    }
+
+    /**
+     * DSL class for performing multiple actions for the given key and type.
+     */
+    @KtorDsl
+    public inner class KeyContext<T>(public val key: DependencyKey) {
+        public infix fun provide(provide: DependencyResolver.() -> T?) {
+            this@DependencyRegistry.set(key, provide)
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        public infix fun cleanup(cleanup: (T) -> Unit) {
+            this@DependencyRegistry.cleanup(key) { cleanup(it as T) }
+        }
     }
 }
 
@@ -185,7 +235,14 @@ public class ProcessingDependencyResolver(
         resolved.contains(key) || provider.declarations.contains(key) || external.contains(key)
 
     override fun <T> get(key: DependencyKey): T =
-        resolveKey(key).getOrThrow() as T
+        try {
+            resolveKey(key).getOrThrow() as T
+        } catch (e: AmbiguousDependencyException) {
+            // During resolution, we can recover from ambiguous dependencies.
+            // This often occurs with delegates.
+            val fallback = e.function.clarify { it in resolved } ?: throw e
+            fallback.create(this) as T
+        }
 
     override fun <T> getOrPut(key: DependencyKey, defaultValue: () -> T): T =
         resolved.getOrPut(key) {
@@ -219,4 +276,26 @@ public class ProcessingDependencyResolver(
         } else {
             null
         }
+}
+
+/**
+ * Used for tracing references to dependency keys in the application.
+ *
+ * Both called for lazy `resolve` access and `provide` for easier debugging.
+ */
+internal class DependencyReference : Throwable() {
+
+    /**
+     * Gets the first external API line from the stack trace.
+     */
+    fun externalTraceLine(): String =
+        externalTrace().substringBefore('\n').trim()
+
+    /**
+     * Get the stack trace string from the point of the first external API frame.
+     */
+    fun externalTrace(): String =
+        stackTraceToString()
+            .substringAfterLast("io.ktor")
+            .substringAfter('\n')
 }

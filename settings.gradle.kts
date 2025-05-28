@@ -6,14 +6,23 @@ enableFeaturePreview("STABLE_CONFIGURATION_CACHE")
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
+    // Add repositories required for build-settings-logic
+    repositories {
+        gradlePluginPortal()
+
+        // Should be in sync with ktorsettings.kotlin-user-project
+        val kotlinRepoUrl = providers.gradleProperty("kotlin_repo_url").orNull
+        if (kotlinRepoUrl != null) maven(kotlinRepoUrl) { name = "KotlinDev" }
+    }
+
     includeBuild("build-settings-logic")
 }
 
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "0.10.0"
-    id("conventions-dependency-resolution-management")
-    id("ktorbuild.develocity")
-    id("ktorbuild.configuration-cache")
+    id("ktorsettings")
+    id("ktorsettings.develocity")
+    id("ktorsettings.configuration-cache")
 }
 
 rootProject.name = "ktor"
@@ -179,6 +188,7 @@ projects {
     +"ktor-test-dispatcher"
     +"ktor-java-modules-test"
     +"ktor-dokka"
+    +"ktor-version-catalog"
 }
 
 // region Project hierarchy DSL

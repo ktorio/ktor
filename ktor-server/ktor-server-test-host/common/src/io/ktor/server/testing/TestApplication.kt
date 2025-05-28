@@ -315,6 +315,35 @@ public open class TestApplicationBuilder {
         applicationModules.add { routing(configuration) }
     }
 
+    /**
+     * Configures the application environment using the provided configuration file paths.
+     *
+     * If no paths are provided, the default configuration is loaded.
+     * If one path is provided, the corresponding configuration file is loaded.
+     * If multiple paths are provided, the configurations are merged in the given order.
+     *
+     * @param configPaths Optional paths to configuration files.
+     */
+    @KtorDsl
+    public fun configure(
+        vararg configPaths: String,
+        overrides: (MutableMap<String, String>.() -> Unit)? = null
+    ) {
+        checkNotBuilt()
+        environment {
+            if (overrides == null) {
+                configure(*configPaths)
+            } else {
+                val fileConfigs = ConfigLoader.loadAll(*configPaths)
+                val overrideEntries = mutableMapOf<String, String>()
+                    .apply(overrides)
+                    .entries.map { it.toPair() }
+                val mapConfig = MapApplicationConfig(overrideEntries)
+                config = fileConfigs.mergeWith(mapConfig)
+            }
+        }
+    }
+
     private fun checkNotBuilt() {
         check(!built) {
             "The test application has already been built. Make sure you configure the application " +

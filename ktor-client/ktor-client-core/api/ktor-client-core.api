@@ -1300,6 +1300,22 @@ public final class io/ktor/client/request/SSEClientResponseAdapter : io/ktor/cli
 	public fun adapt (Lio/ktor/client/request/HttpRequestData;Lio/ktor/http/HttpStatusCode;Lio/ktor/http/Headers;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/http/content/OutgoingContent;Lkotlin/coroutines/CoroutineContext;)Ljava/lang/Object;
 }
 
+public final class io/ktor/client/request/UnixSocketCapability : io/ktor/client/engine/HttpClientEngineCapability {
+	public static final field INSTANCE Lio/ktor/client/request/UnixSocketCapability;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/client/request/UnixSocketSettings {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun getPath ()Ljava/lang/String;
+}
+
+public final class io/ktor/client/request/UnixSockets_jvmAndPosixKt {
+	public static final fun unixSocket (Lio/ktor/client/request/HttpRequestBuilder;Ljava/lang/String;)V
+}
+
 public final class io/ktor/client/request/UtilsKt {
 	public static final fun accept (Lio/ktor/http/HttpMessageBuilder;Lio/ktor/http/ContentType;)V
 	public static final fun basicAuth (Lio/ktor/http/HttpMessageBuilder;Ljava/lang/String;Ljava/lang/String;)V

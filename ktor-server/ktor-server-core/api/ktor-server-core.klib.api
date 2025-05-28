@@ -90,8 +90,26 @@ abstract interface io.ktor.server.config/ApplicationConfig { // io.ktor.server.c
 }
 
 abstract interface io.ktor.server.config/ApplicationConfigValue { // io.ktor.server.config/ApplicationConfigValue|null[0]
+    abstract val type // io.ktor.server.config/ApplicationConfigValue.type|{}type[0]
+        abstract fun <get-type>(): io.ktor.server.config/ApplicationConfigValue.Type // io.ktor.server.config/ApplicationConfigValue.type.<get-type>|<get-type>(){}[0]
+
+    abstract fun getAs(io.ktor.util.reflect/TypeInfo): kotlin/Any? // io.ktor.server.config/ApplicationConfigValue.getAs|getAs(io.ktor.util.reflect.TypeInfo){}[0]
     abstract fun getList(): kotlin.collections/List<kotlin/String> // io.ktor.server.config/ApplicationConfigValue.getList|getList(){}[0]
+    abstract fun getMap(): kotlin.collections/Map<kotlin/String, kotlin/Any?> // io.ktor.server.config/ApplicationConfigValue.getMap|getMap(){}[0]
     abstract fun getString(): kotlin/String // io.ktor.server.config/ApplicationConfigValue.getString|getString(){}[0]
+
+    final enum class Type : kotlin/Enum<io.ktor.server.config/ApplicationConfigValue.Type> { // io.ktor.server.config/ApplicationConfigValue.Type|null[0]
+        enum entry LIST // io.ktor.server.config/ApplicationConfigValue.Type.LIST|null[0]
+        enum entry NULL // io.ktor.server.config/ApplicationConfigValue.Type.NULL|null[0]
+        enum entry OBJECT // io.ktor.server.config/ApplicationConfigValue.Type.OBJECT|null[0]
+        enum entry SINGLE // io.ktor.server.config/ApplicationConfigValue.Type.SINGLE|null[0]
+
+        final val entries // io.ktor.server.config/ApplicationConfigValue.Type.entries|#static{}entries[0]
+            final fun <get-entries>(): kotlin.enums/EnumEntries<io.ktor.server.config/ApplicationConfigValue.Type> // io.ktor.server.config/ApplicationConfigValue.Type.entries.<get-entries>|<get-entries>#static(){}[0]
+
+        final fun valueOf(kotlin/String): io.ktor.server.config/ApplicationConfigValue.Type // io.ktor.server.config/ApplicationConfigValue.Type.valueOf|valueOf#static(kotlin.String){}[0]
+        final fun values(): kotlin/Array<io.ktor.server.config/ApplicationConfigValue.Type> // io.ktor.server.config/ApplicationConfigValue.Type.values|values#static(){}[0]
+    }
 }
 
 abstract interface io.ktor.server.config/ConfigLoader { // io.ktor.server.config/ConfigLoader|null[0]
@@ -99,11 +117,8 @@ abstract interface io.ktor.server.config/ConfigLoader { // io.ktor.server.config
 
     final object Companion { // io.ktor.server.config/ConfigLoader.Companion|null[0]
         final fun load(kotlin/String? = ...): io.ktor.server.config/ApplicationConfig // io.ktor.server.config/ConfigLoader.Companion.load|load(kotlin.String?){}[0]
+        final fun loadAll(kotlin/Array<out kotlin/String>...): io.ktor.server.config/ApplicationConfig // io.ktor.server.config/ConfigLoader.Companion.loadAll|loadAll(kotlin.Array<out|kotlin.String>...){}[0]
     }
-}
-
-abstract interface io.ktor.server.config/SerializableConfigValue : io.ktor.server.config/ApplicationConfigValue { // io.ktor.server.config/SerializableConfigValue|null[0]
-    abstract fun getAs(io.ktor.util.reflect/TypeInfo): kotlin/Any? // io.ktor.server.config/SerializableConfigValue.getAs|getAs(io.ktor.util.reflect.TypeInfo){}[0]
 }
 
 abstract interface io.ktor.server.engine/ApplicationEngine { // io.ktor.server.engine/ApplicationEngine|null[0]
@@ -582,6 +597,8 @@ final class io.ktor.server.engine/ConnectorType { // io.ktor.server.engine/Conne
             final fun <get-HTTP>(): io.ktor.server.engine/ConnectorType // io.ktor.server.engine/ConnectorType.Companion.HTTP.<get-HTTP>|<get-HTTP>(){}[0]
         final val HTTPS // io.ktor.server.engine/ConnectorType.Companion.HTTPS|{}HTTPS[0]
             final fun <get-HTTPS>(): io.ktor.server.engine/ConnectorType // io.ktor.server.engine/ConnectorType.Companion.HTTPS.<get-HTTPS>|<get-HTTPS>(){}[0]
+        final val UNIX // io.ktor.server.engine/ConnectorType.Companion.UNIX|{}UNIX[0]
+            final fun <get-UNIX>(): io.ktor.server.engine/ConnectorType // io.ktor.server.engine/ConnectorType.Companion.UNIX.<get-UNIX>|<get-UNIX>(){}[0]
     }
 }
 
@@ -1279,7 +1296,7 @@ open class io.ktor.server.application/DuplicateApplicationPluginException : kotl
 
 open class io.ktor.server.config/MapApplicationConfig : io.ktor.server.config/ApplicationConfig { // io.ktor.server.config/MapApplicationConfig|null[0]
     constructor <init>() // io.ktor.server.config/MapApplicationConfig.<init>|<init>(){}[0]
-    constructor <init>(kotlin.collections/List<kotlin/Pair<kotlin/String, kotlin/String>>) // io.ktor.server.config/MapApplicationConfig.<init>|<init>(kotlin.collections.List<kotlin.Pair<kotlin.String,kotlin.String>>){}[0]
+    constructor <init>(kotlin.collections/Collection<kotlin/Pair<kotlin/String, kotlin/String>>) // io.ktor.server.config/MapApplicationConfig.<init>|<init>(kotlin.collections.Collection<kotlin.Pair<kotlin.String,kotlin.String>>){}[0]
     constructor <init>(kotlin/Array<out kotlin/Pair<kotlin/String, kotlin/String>>...) // io.ktor.server.config/MapApplicationConfig.<init>|<init>(kotlin.Array<out|kotlin.Pair<kotlin.String,kotlin.String>>...){}[0]
 
     final val map // io.ktor.server.config/MapApplicationConfig.map|{}map[0]
@@ -1295,18 +1312,6 @@ open class io.ktor.server.config/MapApplicationConfig : io.ktor.server.config/Ap
     open fun property(kotlin/String): io.ktor.server.config/ApplicationConfigValue // io.ktor.server.config/MapApplicationConfig.property|property(kotlin.String){}[0]
     open fun propertyOrNull(kotlin/String): io.ktor.server.config/ApplicationConfigValue? // io.ktor.server.config/MapApplicationConfig.propertyOrNull|propertyOrNull(kotlin.String){}[0]
     open fun toMap(): kotlin.collections/Map<kotlin/String, kotlin/Any?> // io.ktor.server.config/MapApplicationConfig.toMap|toMap(){}[0]
-
-    final class MapApplicationConfigValue : io.ktor.server.config/ApplicationConfigValue { // io.ktor.server.config/MapApplicationConfig.MapApplicationConfigValue|null[0]
-        constructor <init>(kotlin.collections/Map<kotlin/String, kotlin/String>, kotlin/String) // io.ktor.server.config/MapApplicationConfig.MapApplicationConfigValue.<init>|<init>(kotlin.collections.Map<kotlin.String,kotlin.String>;kotlin.String){}[0]
-
-        final val map // io.ktor.server.config/MapApplicationConfig.MapApplicationConfigValue.map|{}map[0]
-            final fun <get-map>(): kotlin.collections/Map<kotlin/String, kotlin/String> // io.ktor.server.config/MapApplicationConfig.MapApplicationConfigValue.map.<get-map>|<get-map>(){}[0]
-        final val path // io.ktor.server.config/MapApplicationConfig.MapApplicationConfigValue.path|{}path[0]
-            final fun <get-path>(): kotlin/String // io.ktor.server.config/MapApplicationConfig.MapApplicationConfigValue.path.<get-path>|<get-path>(){}[0]
-
-        final fun getList(): kotlin.collections/List<kotlin/String> // io.ktor.server.config/MapApplicationConfig.MapApplicationConfigValue.getList|getList(){}[0]
-        final fun getString(): kotlin/String // io.ktor.server.config/MapApplicationConfig.MapApplicationConfigValue.getString|getString(){}[0]
-    }
 }
 
 open class io.ktor.server.engine.internal/ClosedChannelException : kotlinx.io/IOException { // io.ktor.server.engine.internal/ClosedChannelException|null[0]
@@ -1699,6 +1704,8 @@ final fun (io.ktor.server.config/ApplicationConfig).io.ktor.server.config/tryGet
 final fun (io.ktor.server.config/ApplicationConfig).io.ktor.server.config/withFallback(io.ktor.server.config/ApplicationConfig): io.ktor.server.config/ApplicationConfig // io.ktor.server.config/withFallback|withFallback@io.ktor.server.config.ApplicationConfig(io.ktor.server.config.ApplicationConfig){}[0]
 final fun (io.ktor.server.engine/ApplicationEngine).io.ktor.server.engine/stopServerOnCancellation(io.ktor.server.application/Application, kotlin/Long = ..., kotlin/Long = ...): kotlinx.coroutines/CompletableJob // io.ktor.server.engine/stopServerOnCancellation|stopServerOnCancellation@io.ktor.server.engine.ApplicationEngine(io.ktor.server.application.Application;kotlin.Long;kotlin.Long){}[0]
 final fun (io.ktor.server.engine/ApplicationEngine.Configuration).io.ktor.server.engine/loadCommonConfiguration(io.ktor.server.config/ApplicationConfig) // io.ktor.server.engine/loadCommonConfiguration|loadCommonConfiguration@io.ktor.server.engine.ApplicationEngine.Configuration(io.ktor.server.config.ApplicationConfig){}[0]
+final fun (io.ktor.server.engine/ApplicationEnvironmentBuilder).io.ktor.server.engine/configure(kotlin/Array<out io.ktor.server.config/ApplicationConfig>...) // io.ktor.server.engine/configure|configure@io.ktor.server.engine.ApplicationEnvironmentBuilder(kotlin.Array<out|io.ktor.server.config.ApplicationConfig>...){}[0]
+final fun (io.ktor.server.engine/ApplicationEnvironmentBuilder).io.ktor.server.engine/configure(kotlin/Array<out kotlin/String>...) // io.ktor.server.engine/configure|configure@io.ktor.server.engine.ApplicationEnvironmentBuilder(kotlin.Array<out|kotlin.String>...){}[0]
 final fun (io.ktor.server.engine/EmbeddedServer<*, *>).io.ktor.server.engine/addShutdownHook(kotlin/Function0<kotlin/Unit>) // io.ktor.server.engine/addShutdownHook|addShutdownHook@io.ktor.server.engine.EmbeddedServer<*,*>(kotlin.Function0<kotlin.Unit>){}[0]
 final fun (io.ktor.server.engine/EngineConnectorConfig).io.ktor.server.engine/withPort(kotlin/Int): io.ktor.server.engine/EngineConnectorConfig // io.ktor.server.engine/withPort|withPort@io.ktor.server.engine.EngineConnectorConfig(kotlin.Int){}[0]
 final fun (io.ktor.server.request/ApplicationReceivePipeline).io.ktor.server.engine/installDefaultTransformations() // io.ktor.server.engine/installDefaultTransformations|installDefaultTransformations@io.ktor.server.request.ApplicationReceivePipeline(){}[0]

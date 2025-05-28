@@ -1,6 +1,7 @@
 public final class io/ktor/server/plugins/di/AmbiguousCreateFunction : io/ktor/server/plugins/di/DependencyCreateFunction {
 	public static final field Companion Lio/ktor/server/plugins/di/AmbiguousCreateFunction$Companion;
 	public fun <init> (Lio/ktor/server/plugins/di/DependencyKey;Ljava/util/Set;)V
+	public final fun clarify (Lkotlin/jvm/functions/Function1;)Lio/ktor/server/plugins/di/DependencyCreateFunction;
 	public final fun component1 ()Lio/ktor/server/plugins/di/DependencyKey;
 	public final fun component2 ()Ljava/util/Set;
 	public final fun copy (Lio/ktor/server/plugins/di/DependencyKey;Ljava/util/Set;)Lio/ktor/server/plugins/di/AmbiguousCreateFunction;
@@ -8,8 +9,10 @@ public final class io/ktor/server/plugins/di/AmbiguousCreateFunction : io/ktor/s
 	public fun create (Lio/ktor/server/plugins/di/DependencyResolver;)Ljava/lang/Object;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getFunctions ()Ljava/util/Set;
+	public final fun getImplementations ()Ljava/util/List;
 	public fun getKey ()Lio/ktor/server/plugins/di/DependencyKey;
 	public fun hashCode ()I
+	public final fun keyString ()Ljava/lang/String;
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -18,7 +21,8 @@ public final class io/ktor/server/plugins/di/AmbiguousCreateFunction$Companion {
 }
 
 public final class io/ktor/server/plugins/di/AmbiguousDependencyException : io/ktor/server/plugins/di/DependencyInjectionException {
-	public fun <init> (Lio/ktor/server/plugins/di/DependencyKey;Ljava/util/Collection;)V
+	public fun <init> (Lio/ktor/server/plugins/di/AmbiguousCreateFunction;)V
+	public final fun getFunction ()Lio/ktor/server/plugins/di/AmbiguousCreateFunction;
 }
 
 public final class io/ktor/server/plugins/di/CircularDependencyException : io/ktor/server/plugins/di/DependencyInjectionException {
@@ -41,7 +45,7 @@ public abstract interface class io/ktor/server/plugins/di/DependencyConflictPoli
 
 public final class io/ktor/server/plugins/di/DependencyConflictPolicyKt {
 	public static final fun getDefaultConflictPolicy ()Lio/ktor/server/plugins/di/DependencyConflictPolicy;
-	public static final fun getLastEntryWinsPolicy ()Lio/ktor/server/plugins/di/DependencyConflictPolicy;
+	public static final fun getIgnoreConflicts ()Lio/ktor/server/plugins/di/DependencyConflictPolicy;
 }
 
 public abstract interface class io/ktor/server/plugins/di/DependencyConflictResult {
@@ -93,11 +97,13 @@ public abstract interface class io/ktor/server/plugins/di/DependencyCreateFuncti
 
 public final class io/ktor/server/plugins/di/DependencyInjectionConfig {
 	public fun <init> ()V
+	public final fun getOnShutdown ()Lkotlin/jvm/functions/Function2;
 	public final fun getProvider ()Lio/ktor/server/plugins/di/DependencyProvider;
 	public final fun getReflection ()Lio/ktor/server/plugins/di/DependencyReflection;
 	public final fun getResolution ()Lio/ktor/server/plugins/di/DependencyResolution;
 	public final fun include (Lio/ktor/server/plugins/di/DependencyMap;)V
 	public final fun provider (Lkotlin/jvm/functions/Function1;)V
+	public final fun setOnShutdown (Lkotlin/jvm/functions/Function2;)V
 	public final fun setProvider (Lio/ktor/server/plugins/di/DependencyProvider;)V
 	public final fun setReflection (Lio/ktor/server/plugins/di/DependencyReflection;)V
 	public final fun setResolution (Lio/ktor/server/plugins/di/DependencyResolution;)V
@@ -208,17 +214,25 @@ public class io/ktor/server/plugins/di/DependencyReflectionJvm : io/ktor/server/
 	public fun toDependencyKey (Lkotlin/reflect/KParameter;)Lio/ktor/server/plugins/di/DependencyKey;
 }
 
-public final class io/ktor/server/plugins/di/DependencyRegistry : io/ktor/server/plugins/di/DependencyProvider, io/ktor/server/plugins/di/DependencyResolver {
-	public fun <init> (Lio/ktor/server/plugins/di/DependencyProvider;Lio/ktor/server/plugins/di/DependencyMap;Lio/ktor/server/plugins/di/DependencyResolution;Lio/ktor/server/plugins/di/DependencyReflection;)V
+public final class io/ktor/server/plugins/di/DependencyRegistry : io/ktor/server/plugins/di/DependencyProvider, io/ktor/server/plugins/di/DependencyResolver, kotlinx/coroutines/CoroutineScope {
+	public fun <init> (Lio/ktor/server/plugins/di/DependencyProvider;Lio/ktor/server/plugins/di/DependencyMap;Lio/ktor/server/plugins/di/DependencyResolution;Lio/ktor/server/plugins/di/DependencyReflection;Lkotlin/coroutines/CoroutineContext;)V
+	public final fun cleanup (Lio/ktor/server/plugins/di/DependencyKey;Lkotlin/jvm/functions/Function1;)V
 	public fun contains (Lio/ktor/server/plugins/di/DependencyKey;)Z
 	public fun get (Lio/ktor/server/plugins/di/DependencyKey;)Ljava/lang/Object;
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public fun getDeclarations ()Ljava/util/Map;
 	public fun getOrPut (Lio/ktor/server/plugins/di/DependencyKey;Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
 	public fun getReflection ()Lio/ktor/server/plugins/di/DependencyReflection;
 	public fun named (Ljava/lang/String;)Lio/ktor/server/plugins/di/DependencyResolverContext;
 	public final fun require (Lio/ktor/server/plugins/di/DependencyKey;)V
 	public fun set (Lio/ktor/server/plugins/di/DependencyKey;Lkotlin/jvm/functions/Function1;)V
-	public final fun validate ()V
+}
+
+public final class io/ktor/server/plugins/di/DependencyRegistry$KeyContext {
+	public fun <init> (Lio/ktor/server/plugins/di/DependencyRegistry;Lio/ktor/server/plugins/di/DependencyKey;)V
+	public final fun cleanup (Lkotlin/jvm/functions/Function1;)V
+	public final fun getKey ()Lio/ktor/server/plugins/di/DependencyKey;
+	public final fun provide (Lkotlin/jvm/functions/Function1;)V
 }
 
 public final class io/ktor/server/plugins/di/DependencyRegistryKt {
@@ -283,11 +297,12 @@ public final class io/ktor/server/plugins/di/InvalidDependencyReferenceException
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
-public class io/ktor/server/plugins/di/MapDependencyProvider : io/ktor/server/plugins/di/DependencyProvider {
+public class io/ktor/server/plugins/di/MapDependencyProvider : io/ktor/server/plugins/di/DependencyProvider, kotlinx/coroutines/CoroutineScope {
 	public fun <init> ()V
-	public fun <init> (Lio/ktor/server/plugins/di/DependencyKeyCovariance;Lio/ktor/server/plugins/di/DependencyConflictPolicy;Lkotlin/jvm/functions/Function1;Lorg/slf4j/Logger;)V
-	public synthetic fun <init> (Lio/ktor/server/plugins/di/DependencyKeyCovariance;Lio/ktor/server/plugins/di/DependencyConflictPolicy;Lkotlin/jvm/functions/Function1;Lorg/slf4j/Logger;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lio/ktor/server/plugins/di/DependencyKeyCovariance;Lio/ktor/server/plugins/di/DependencyConflictPolicy;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/CoroutineContext;Lorg/slf4j/Logger;)V
+	public synthetic fun <init> (Lio/ktor/server/plugins/di/DependencyKeyCovariance;Lio/ktor/server/plugins/di/DependencyConflictPolicy;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/CoroutineContext;Lorg/slf4j/Logger;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getConflictPolicy ()Lio/ktor/server/plugins/di/DependencyConflictPolicy;
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public fun getDeclarations ()Ljava/util/Map;
 	public final fun getKeyMapping ()Lio/ktor/server/plugins/di/DependencyKeyCovariance;
 	public final fun getOnConflict ()Lkotlin/jvm/functions/Function1;

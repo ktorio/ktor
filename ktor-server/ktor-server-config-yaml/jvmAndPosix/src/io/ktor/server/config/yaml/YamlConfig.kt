@@ -50,6 +50,14 @@ public class YamlConfig private constructor(yamlMap: YamlMap) : ApplicationConfi
     internal companion object {
         internal fun from(yaml: YamlMap): YamlConfig =
             YamlConfig(yaml.swapEnvironmentVariables())
+
+        private fun YamlNode.asConfigValueType(): ApplicationConfigValue.Type = when (this) {
+            is YamlNull -> ApplicationConfigValue.Type.NULL
+            is YamlScalar -> ApplicationConfigValue.Type.SINGLE
+            is YamlList -> ApplicationConfigValue.Type.LIST
+            is YamlMap -> ApplicationConfigValue.Type.OBJECT
+            is YamlTaggedNode -> innerNode.asConfigValueType()
+        }
     }
     private val rootNode: YamlMap = yamlMap
     private val format: Yaml = Yaml.default
@@ -107,17 +115,7 @@ public class YamlConfig private constructor(yamlMap: YamlMap) : ApplicationConfi
     }
 
     public override fun toMap(): Map<String, Any?> {
-        fun toPrimitive(yaml: YamlNode?): Any? = when (yaml) {
-            is YamlScalar -> resolveReference(rootNode, yaml.content)
-            is YamlMap -> yaml.entries.entries.associate { (key, value) ->
-                key.content to toPrimitive(value)
-            }
-            is YamlList -> yaml.items.map { toPrimitive(it) }
-            is YamlNull -> null
-            else -> null
-        }
-
-        val primitive = toPrimitive(rootNode)
+        val primitive = toPrimitive(rootNode, rootNode)
         @Suppress("UNCHECKED_CAST")
         return primitive as? Map<String, Any?> ?: error("Top level element is not a map")
     }
@@ -138,7 +136,11 @@ public class YamlConfig private constructor(yamlMap: YamlMap) : ApplicationConfi
     private inner class YamlNodeConfigValue(
         private val key: String,
         private val node: YamlNode
-    ) : SerializableConfigValue {
+    ) : ApplicationConfigValue {
+
+        override val type: ApplicationConfigValue.Type
+            get() = node.asConfigValueType()
+
         override fun getString(): String =
             (node as? YamlScalar)?.content?.let { value ->
                 resolveReference(rootNode, value)
@@ -157,6 +159,11 @@ public class YamlConfig private constructor(yamlMap: YamlMap) : ApplicationConfi
             } ?: throw ApplicationConfigurationException(
                 "Failed to read property value for key as List<String>: \"$key\""
             )
+
+        @Suppress("UNCHECKED_CAST")
+        override fun getMap(): Map<String, Any?> =
+            toPrimitive(rootNode, node) as? Map<String, Any?>
+                ?: error("Expected map at $key but found ${type.name}")
 
         @OptIn(InternalAPI::class)
         override fun getAs(type: TypeInfo): Any? {
@@ -220,6 +227,17 @@ private fun resolveReference(rootNode: YamlMap, value: String): String? {
             "Required environment variable \"$key\" not found and no default value is present"
         )
     }
+}
+
+private fun toPrimitive(rootNode: YamlMap, yaml: YamlNode?): Any? = when (yaml) {
+    is YamlScalar -> resolveReference(rootNode, yaml.content)
+    is YamlMap -> yaml.entries.entries.associate { (key, value) ->
+        key.content to toPrimitive(rootNode, value)
+    }
+    is YamlList -> yaml.items.map { toPrimitive(rootNode, it) }
+    is YamlNull -> null
+    is YamlTaggedNode -> toPrimitive(rootNode, yaml.innerNode)
+    null -> null
 }
 
 internal expect fun getSystemPropertyOrEnvironmentVariable(key: String): String?

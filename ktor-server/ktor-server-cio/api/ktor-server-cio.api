@@ -55,6 +55,29 @@ public final class io/ktor/server/cio/HttpServerSettings {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class io/ktor/server/cio/UnixSocketConnectorBuilder : io/ktor/server/engine/EngineConnectorBuilder, io/ktor/server/cio/UnixSocketConnectorConfig {
+	public fun <init> ()V
+	public fun getSocketPath ()Ljava/lang/String;
+	public fun setSocketPath (Ljava/lang/String;)V
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class io/ktor/server/cio/UnixSocketConnectorConfig : io/ktor/server/engine/EngineConnectorConfig {
+	public abstract fun getSocketPath ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/cio/UnixSocketConnectorConfigKt {
+	public static final fun unixConnector (Lio/ktor/server/engine/ApplicationEngine$Configuration;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun unixConnector$default (Lio/ktor/server/engine/ApplicationEngine$Configuration;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+}
+
+public final class io/ktor/server/cio/UnixSocketServerSettings {
+	public fun <init> (Ljava/lang/String;J)V
+	public synthetic fun <init> (Ljava/lang/String;JILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getConnectionIdleTimeoutSeconds ()J
+	public final fun getSocketPath ()Ljava/lang/String;
+}
+
 public final class io/ktor/server/cio/backend/HttpServerKt {
 	public static final fun httpServer (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/server/cio/HttpServerSettings;Lkotlin/jvm/functions/Function3;)Lio/ktor/server/cio/HttpServer;
 }
@@ -79,5 +102,9 @@ public final class io/ktor/server/cio/backend/ServerRequestScope : kotlinx/corou
 	public final fun getRemoteAddress ()Ljava/net/SocketAddress;
 	public final fun getUpgraded ()Lkotlinx/coroutines/CompletableDeferred;
 	public final fun withContext (Lkotlin/coroutines/CoroutineContext;)Lio/ktor/server/cio/backend/ServerRequestScope;
+}
+
+public final class io/ktor/server/cio/backend/UnixSocketServerKt {
+	public static final fun unixSocketServer (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/server/cio/UnixSocketServerSettings;Lkotlin/jvm/functions/Function3;)Lio/ktor/server/cio/HttpServer;
 }
 
