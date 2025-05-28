@@ -283,6 +283,19 @@ public open class TestApplicationBuilder {
      *
      * @see [testApplication]
      */
+    @Deprecated("Use the suspend argument variant", level = DeprecationLevel.HIDDEN)
+    public fun application(block: Application.() -> Unit) {
+        checkNotBuilt()
+        applicationModules.add(block)
+    }
+
+    /**
+     * Adds a module to [TestApplication].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationBuilder.application)
+     *
+     * @see [testApplication]
+     */
     @KtorDsl
     public fun application(block: suspend Application.() -> Unit) {
         checkNotBuilt()

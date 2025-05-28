@@ -71,6 +71,11 @@ actual constructor(
         }
     }
 
+    @Deprecated(
+        "Some platforms may not support blocking. Use startSuspend() instead.",
+        replaceWith = ReplaceWith("startSuspend(wait)"),
+        level = DeprecationLevel.WARNING
+    )
     public actual fun start(wait: Boolean): EmbeddedServer<TEngine, TConfiguration> {
         error("Blocking start() is not available on this platform; use startSuspend() instead")
     }
