@@ -130,12 +130,12 @@ final class io.ktor.network.sockets/InetSocketAddress : io.ktor.network.sockets/
     final val port // io.ktor.network.sockets/InetSocketAddress.port|{}port[0]
         final fun <get-port>(): kotlin/Int // io.ktor.network.sockets/InetSocketAddress.port.<get-port>|<get-port>(){}[0]
 
-    final fun address(): kotlin/ByteArray? // io.ktor.network.sockets/InetSocketAddress.address|address(){}[0]
     final fun component1(): kotlin/String // io.ktor.network.sockets/InetSocketAddress.component1|component1(){}[0]
     final fun component2(): kotlin/Int // io.ktor.network.sockets/InetSocketAddress.component2|component2(){}[0]
     final fun copy(kotlin/String = ..., kotlin/Int = ...): io.ktor.network.sockets/InetSocketAddress // io.ktor.network.sockets/InetSocketAddress.copy|copy(kotlin.String;kotlin.Int){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.network.sockets/InetSocketAddress.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // io.ktor.network.sockets/InetSocketAddress.hashCode|hashCode(){}[0]
+    final fun resolveAddress(): kotlin/ByteArray? // io.ktor.network.sockets/InetSocketAddress.resolveAddress|resolveAddress(){}[0]
     final fun toString(): kotlin/String // io.ktor.network.sockets/InetSocketAddress.toString|toString(){}[0]
 }
 
