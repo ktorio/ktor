@@ -26,9 +26,7 @@ internal fun parseIPv4String(ipString: String): ByteArray? {
             o.toUByte().toByte()
         }
 
-        List(4) { i ->
-            octets.getOrElse(i) { 0 }
-        }.toByteArray()
+        ByteArray(4) { octets.getOrElse(it) { 0 } }
     } catch (_: Throwable) {
         null
     }
@@ -47,7 +45,8 @@ internal fun parseIPv6String(ipString: String): ByteArray? {
                 listOf((int shr 8).toByte(), int.toByte())
             }
         }
-        List(16) { i -> bytes.getOrElse(i) { 0 } }.toByteArray()
+
+        ByteArray(16) { bytes.getOrElse(it) { 0 } }
     } catch (_: Throwable) {
         null
     }
