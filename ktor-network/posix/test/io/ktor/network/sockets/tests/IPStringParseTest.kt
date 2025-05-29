@@ -64,7 +64,11 @@ class IPStringParseTest {
             "0:0:1",
             "not an IPv6 string",
             "255.255.255.255",
-            "-1::0"
+            "-1::0",
+            ":::",
+            "",
+            "12345::1",
+            "g::1",
         )
 
         valid.forEach {
