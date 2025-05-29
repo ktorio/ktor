@@ -268,6 +268,20 @@ class TestApplicationTest {
     }
 
     @Test
+    fun testAccessApplicationInstance() = testApplication {
+        lateinit var configuredApplication: Application
+
+        application { configuredApplication = this }
+        startApplication()
+
+        assertSame(
+            configuredApplication,
+            application,
+            "Application instance should be the same as the one provided to `application` block"
+        )
+    }
+
+    @Test
     fun testClientConfiguration() = testApplication {
         application {
             routing {

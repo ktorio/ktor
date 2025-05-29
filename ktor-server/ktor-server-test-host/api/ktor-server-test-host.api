@@ -1,6 +1,7 @@
 public final class io/ktor/server/testing/ApplicationTestBuilder : io/ktor/server/testing/TestApplicationBuilder, io/ktor/server/testing/ClientProvider {
 	public fun <init> ()V
 	public fun createClient (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/HttpClient;
+	public final fun getApplication ()Lio/ktor/server/application/Application;
 	public fun getClient ()Lio/ktor/client/HttpClient;
 	public fun setClient (Lio/ktor/client/HttpClient;)V
 	public final fun startApplication (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -29,6 +30,7 @@ public final class io/ktor/server/testing/On {
 
 public final class io/ktor/server/testing/TestApplication : io/ktor/server/testing/ClientProvider {
 	public fun createClient (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/HttpClient;
+	public final fun getApplication ()Lio/ktor/server/application/Application;
 	public fun getClient ()Lio/ktor/client/HttpClient;
 	public final fun start (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun stop (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
