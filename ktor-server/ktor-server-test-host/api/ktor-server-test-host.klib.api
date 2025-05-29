@@ -47,8 +47,9 @@ final class io.ktor.server.testing.client/TestHttpClientEngine : io.ktor.client.
 final class io.ktor.server.testing/ApplicationTestBuilder : io.ktor.server.testing/ClientProvider, io.ktor.server.testing/TestApplicationBuilder { // io.ktor.server.testing/ApplicationTestBuilder|null[0]
     constructor <init>() // io.ktor.server.testing/ApplicationTestBuilder.<init>|<init>(){}[0]
 
-    final val client // io.ktor.server.testing/ApplicationTestBuilder.client|{}client[0]
+    final var client // io.ktor.server.testing/ApplicationTestBuilder.client|{}client[0]
         final fun <get-client>(): io.ktor.client/HttpClient // io.ktor.server.testing/ApplicationTestBuilder.client.<get-client>|<get-client>(){}[0]
+        final fun <set-client>(io.ktor.client/HttpClient) // io.ktor.server.testing/ApplicationTestBuilder.client.<set-client>|<set-client>(io.ktor.client.HttpClient){}[0]
 
     final fun createClient(kotlin/Function1<io.ktor.client/HttpClientConfig<out io.ktor.client.engine/HttpClientEngineConfig>, kotlin/Unit>): io.ktor.client/HttpClient // io.ktor.server.testing/ApplicationTestBuilder.createClient|createClient(kotlin.Function1<io.ktor.client.HttpClientConfig<out|io.ktor.client.engine.HttpClientEngineConfig>,kotlin.Unit>){}[0]
     final suspend fun startApplication() // io.ktor.server.testing/ApplicationTestBuilder.startApplication|startApplication(){}[0]

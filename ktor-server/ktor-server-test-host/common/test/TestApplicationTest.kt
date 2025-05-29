@@ -268,6 +268,26 @@ class TestApplicationTest {
     }
 
     @Test
+    fun testClientConfiguration() = testApplication {
+        application {
+            routing {
+                get("/hello") {
+                    call.respondText("Hello, World!")
+                }
+            }
+        }
+
+        val originalClient = client
+        client = createClient { }
+
+        assertNotSame(originalClient, client, "Client should be changed")
+
+        val response = client.get("/hello")
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("Hello, World!", response.bodyAsText())
+    }
+
+    @Test
     fun testMultipleParallelRequests() = testApplication {
         routing {
             get("/") {
