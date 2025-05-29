@@ -1,6 +1,6 @@
 [versions]
 
-android-gradle-plugin = "8.10.0"
+android-gradle-plugin = "8.9.2"
 androidx = "1.6.1"
 kotlin = "2.1.21"
 kotlinx-html = "0.12.0"

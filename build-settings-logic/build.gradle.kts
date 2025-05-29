@@ -14,6 +14,7 @@ plugins {
 
 dependencies {
     implementation(libs.kotlin.gradlePlugin)
+    implementation(libs.android.gradlePlugin)
     implementation(libs.develocity)
     implementation(libs.develocity.commonCustomUserData)
 }
