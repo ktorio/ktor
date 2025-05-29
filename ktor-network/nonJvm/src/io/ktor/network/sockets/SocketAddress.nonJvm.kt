@@ -10,6 +10,10 @@ public actual class InetSocketAddress actual constructor(
     public actual val hostname: String,
     public actual val port: Int
 ) : SocketAddress() {
+    public actual fun resolveAddress(): ByteArray? {
+        return platformResolveAddress()
+    }
+
     /**
      * Create a copy of [InetSocketAddress].
      *
@@ -100,3 +104,5 @@ public actual class UnixSocketAddress actual constructor(
 }
 
 internal expect fun isUnixSocketSupported(): Boolean
+
+internal expect fun InetSocketAddress.platformResolveAddress(): ByteArray?
