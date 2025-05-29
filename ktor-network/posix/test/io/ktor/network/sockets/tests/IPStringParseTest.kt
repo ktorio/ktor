@@ -4,12 +4,10 @@
 
 package io.ktor.network.sockets.tests
 
-import io.ktor.network.util.parseIPv4String
-import io.ktor.network.util.parseIPv6String
+import io.ktor.network.util.*
 import kotlin.test.Test
-import kotlin.test.assertEquals
+import kotlin.test.assertContentEquals
 import kotlin.test.assertNull
-import kotlin.toString
 
 class IPStringParseTest {
     @Test
@@ -30,7 +28,7 @@ class IPStringParseTest {
 
         valid.forEach {
             val parsed = parseIPv4String(it.first)
-            assertEquals(parsed.toString(), it.second.toString())
+            assertContentEquals(parsed, it.second)
         }
 
         invalid.forEach {
@@ -71,7 +69,7 @@ class IPStringParseTest {
 
         valid.forEach {
             val parsed = parseIPv6String(it.first)
-            assertEquals(parsed.toString(), it.second.toString())
+            assertContentEquals(parsed, it.second)
         }
 
         invalid.forEach {
