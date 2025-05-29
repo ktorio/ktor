@@ -45,7 +45,7 @@ class UnixSocketTest {
 
         val client = HttpClient(io.ktor.client.engine.cio.CIO)
         try {
-            server.start(wait = false)
+            server.startSuspend(wait = false)
             delay(1000)
 
             val response = client.get("http://localhost/") {

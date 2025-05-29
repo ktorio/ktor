@@ -6,10 +6,12 @@ package io.ktor.server.engine
 
 import io.ktor.events.*
 import io.ktor.server.application.*
-import io.ktor.server.engine.internal.*
 import io.ktor.util.logging.*
-import kotlinx.coroutines.*
-import kotlin.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 /**
  * Represents an embedded server that hosts an application.
@@ -85,6 +87,7 @@ public interface ApplicationEngineFactory<
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.embeddedServer)
  */
 @OptIn(DelicateCoroutinesApi::class)
+@Deprecated("Replaced with suspend function parameter", level = DeprecationLevel.HIDDEN)
 public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> embeddedServer(
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
     port: Int = 80,
@@ -99,7 +102,23 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.embeddedServer)
  */
+@OptIn(DelicateCoroutinesApi::class)
+public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> embeddedServer(
+    factory: ApplicationEngineFactory<TEngine, TConfiguration>,
+    port: Int = 80,
+    host: String = "0.0.0.0",
+    watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH),
+    module: suspend Application.() -> Unit
+): EmbeddedServer<TEngine, TConfiguration> =
+    GlobalScope.embeddedServer(factory, port, host, watchPaths, module = module)
+
+/**
+ * Creates an embedded server with the given [factory], listening on [host]:[port].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.embeddedServer)
+ */
 @Suppress("ktlint:standard:max-line-length")
+@Deprecated("Replaced with suspend function parameter", level = DeprecationLevel.HIDDEN)
 public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> CoroutineScope.embeddedServer(
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
     port: Int = 80,
@@ -124,11 +143,41 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
 }
 
 /**
+ * Creates an embedded server with the given [factory], listening on [host]:[port].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.embeddedServer)
+ */
+@Suppress("ktlint:standard:max-line-length")
+public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> CoroutineScope.embeddedServer(
+    factory: ApplicationEngineFactory<TEngine, TConfiguration>,
+    port: Int = 80,
+    host: String = "0.0.0.0",
+    watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH),
+    parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
+    module: suspend Application.() -> Unit
+): EmbeddedServer<TEngine, TConfiguration> {
+    val connectors: Array<EngineConnectorConfig> = arrayOf(
+        EngineConnectorBuilder().apply {
+            this.port = port
+            this.host = host
+        }
+    )
+    return embeddedServer(
+        factory = factory,
+        connectors = connectors,
+        watchPaths = watchPaths,
+        parentCoroutineContext = parentCoroutineContext,
+        module = module
+    )
+}
+
+/**
  * Creates an embedded server with the given [factory], listening on given [connectors].
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.embeddedServer)
  */
 @Suppress("ktlint:standard:max-line-length")
+@Deprecated("Replaced with suspend function parameter", level = DeprecationLevel.HIDDEN)
 public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> CoroutineScope.embeddedServer(
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
     vararg connectors: EngineConnectorConfig = arrayOf(),
@@ -152,6 +201,52 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
 }
 
 /**
+ * Creates an embedded server with the given [factory], listening on given [connectors].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.embeddedServer)
+ */
+@Suppress("ktlint:standard:max-line-length")
+public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> CoroutineScope.embeddedServer(
+    factory: ApplicationEngineFactory<TEngine, TConfiguration>,
+    vararg connectors: EngineConnectorConfig = arrayOf(),
+    watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH),
+    parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
+    module: suspend Application.() -> Unit
+): EmbeddedServer<TEngine, TConfiguration> {
+    val environment = applicationEnvironment {
+        this.log = KtorSimpleLogger("io.ktor.server.Application")
+    }
+    val applicationProperties = serverConfig(environment) {
+        this.parentCoroutineContext = coroutineContext + parentCoroutineContext
+        this.watchPaths = watchPaths
+        this.module(module)
+    }
+    val config: TConfiguration.() -> Unit = {
+        this.connectors.addAll(connectors)
+    }
+
+    return embeddedServer(factory, applicationProperties, config)
+}
+
+/**
+ * Creates an embedded server with the given [factory], [environment] and [configure] script.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.embeddedServer)
+ */
+@Deprecated("Replaced with suspend function parameter", level = DeprecationLevel.HIDDEN)
+public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> embeddedServer(
+    factory: ApplicationEngineFactory<TEngine, TConfiguration>,
+    environment: ApplicationEnvironment = applicationEnvironment(),
+    configure: TConfiguration.() -> Unit = {},
+    module: Application.() -> Unit = {}
+): EmbeddedServer<TEngine, TConfiguration> {
+    val applicationProperties = serverConfig(environment) {
+        module(body = module)
+    }
+    return embeddedServer(factory, applicationProperties, configure)
+}
+
+/**
  * Creates an embedded server with the given [factory], [environment] and [configure] script.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.embeddedServer)
@@ -160,7 +255,7 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
     environment: ApplicationEnvironment = applicationEnvironment(),
     configure: TConfiguration.() -> Unit = {},
-    module: Application.() -> Unit = {}
+    module: suspend Application.() -> Unit = {}
 ): EmbeddedServer<TEngine, TConfiguration> {
     val applicationProperties = serverConfig(environment) {
         module(body = module)

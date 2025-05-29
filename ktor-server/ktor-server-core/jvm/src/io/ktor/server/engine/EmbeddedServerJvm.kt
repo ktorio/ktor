@@ -33,8 +33,8 @@ import kotlin.concurrent.getOrSet
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 
-private typealias ApplicationModule = Application.() -> Unit
-private typealias DynamicApplicationModule = Application.(ClassLoader) -> Unit
+private typealias ApplicationModule = suspend Application.() -> Unit
+private typealias DynamicApplicationModule = suspend Application.(ClassLoader) -> Unit
 
 public actual class EmbeddedServer<
     TEngine : ApplicationEngine,
@@ -447,9 +447,11 @@ actual constructor(
         }
     }
 
-    private fun avoidingDoubleStartup(block: () -> Unit) {
+    private fun avoidingDoubleStartup(block: suspend () -> Unit) {
         try {
-            block()
+            runBlocking {
+                block()
+            }
         } finally {
             currentStartupModules.get()?.let {
                 if (it.isEmpty()) {
