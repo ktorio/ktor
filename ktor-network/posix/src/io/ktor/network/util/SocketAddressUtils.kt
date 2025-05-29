@@ -53,7 +53,9 @@ internal fun parseIPv6String(ipString: String): ByteArray? {
         }
 
         groups.flatMap {
-            val int = it.toInt(16)
+            val int = if (it.matches(Regex("^[0-9a-fA-f]+$"))) {
+                it.toInt(16)
+            } else { return null }
             listOf((int shr 8).toByte(), int.toByte())
         }.toByteArray()
     } catch (_: Throwable) {

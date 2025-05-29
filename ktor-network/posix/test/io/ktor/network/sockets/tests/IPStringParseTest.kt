@@ -33,7 +33,7 @@ class IPStringParseTest {
 
         invalid.forEach {
             val parsed = parseIPv4String(it)
-            assertNull(parsed)
+            assertNull(parsed, "Original: $it, Parsed: ${parsed.contentToString()}")
         }
     }
 
@@ -74,7 +74,7 @@ class IPStringParseTest {
 
         invalid.forEach {
             val parsed = parseIPv6String(it)
-            assertNull(parsed)
+            assertNull(parsed, "Original: $it, Parsed: ${parsed.contentToString()}")
         }
     }
 }
