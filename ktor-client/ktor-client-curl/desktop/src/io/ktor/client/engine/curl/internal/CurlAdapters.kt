@@ -4,7 +4,6 @@
 
 package io.ktor.client.engine.curl.internal
 
-import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
@@ -78,8 +77,9 @@ internal fun EasyHandle.getInfo(info: CURLINFO, optionValue: CPointer<*>) {
 internal fun HttpRequestData.headersToCurl(): CPointer<curl_slist> {
     var result: CPointer<curl_slist>? = null
 
-    mergeHeaders(headers, body) { key, value ->
-        if (isUpgradeRequest() && DISALLOWED_WEBSOCKET_HEADERS.contains(key)) return@mergeHeaders
+    val isUpgradeRequest = isUpgradeRequest()
+    forEachHeader { key, value ->
+        if (isUpgradeRequest && key in DISALLOWED_WEBSOCKET_HEADERS) return@forEachHeader
         val header = "$key: $value"
         result = curl_slist_append(result, header)
     }

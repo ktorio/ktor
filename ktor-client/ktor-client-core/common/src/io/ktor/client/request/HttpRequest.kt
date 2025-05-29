@@ -250,6 +250,25 @@ public class HttpRequestData @InternalAPI constructor(
 }
 
 /**
+ * Merges request [headers] and [body] headers according to [OutgoingContent] properties
+ * and calls [block] for each header.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forEachHeader)
+ *
+ * @see mergeHeaders
+ */
+@InternalAPI
+public inline fun HttpRequestData.forEachHeader(
+    crossinline block: (key: String, value: String) -> Unit
+) {
+    val skipContentLengthHeader = !method.supportsRequestBody && body.isEmpty()
+    mergeHeaders(headers, body) { key, value ->
+        if (skipContentLengthHeader && key == HttpHeaders.ContentLength) return@mergeHeaders
+        block(key, value)
+    }
+}
+
+/**
  * Data prepared for [HttpResponse].
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.HttpResponseData)

@@ -109,8 +109,9 @@ class ClientHeadersTest : ClientLoader() {
         }
     }
 
+    // Fails on Java before 19 because of https://bugs.openjdk.org/browse/JDK-8283544
     @Test
-    fun testRequestHasContentLength() = clientTests(except("Java", "Curl", "Js", "Darwin", "DarwinLegacy", "WinHttp")) {
+    fun testRequestHasContentLength() = clientTests(except("Java")) {
         test { client ->
             val get = client.get("$TEST_SERVER/headers").bodyAsText()
             assertEquals("", get)
