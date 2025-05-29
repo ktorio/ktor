@@ -22,11 +22,11 @@ internal fun SocketAddress.resolve(): List<NativeSocketAddress> = when (this) {
 
 internal fun parseIPv4String(ipString: String): ByteArray? {
     return try {
-        val octets = ipString.split('.', limit = 4).map { o ->
-            o.toUByte().toByte()
+        val octets = ipString.split('.').also {
+            require(it.size == 4) { "Invalid IPv4 string: $ipString" }
         }
 
-        ByteArray(4) { octets.getOrElse(it) { 0 } }
+        octets.map { it.toUByte().toByte() }.toByteArray()
     } catch (_: Throwable) {
         null
     }
@@ -34,19 +34,28 @@ internal fun parseIPv4String(ipString: String): ByteArray? {
 
 internal fun parseIPv6String(ipString: String): ByteArray? {
     return try {
-        val groups = ipString.split(':', limit = 8)
-        val emptyGroups = 8 - groups.count { g -> g.isNotEmpty() }
+        val groups = if ("::" in ipString) {
+            val parts = ipString.split("::", limit = 2)
 
-        val bytes = groups.flatMap { g ->
-            if (g.isEmpty()) {
-                List(emptyGroups * 2) { 0 }
-            } else {
-                val int = g.toInt(16)
-                listOf((int shr 8).toByte(), int.toByte())
+            val groups = Pair(
+                if (parts[0].isNotEmpty()) parts[0].split(':') else emptyList(),
+                if (parts.size > 1 && parts[1].isNotEmpty()) parts[1].split(':') else emptyList()
+            )
+
+            val totalGroups = groups.first.size + groups.second.size
+            val emptyGroups = 8 - totalGroups
+
+            groups.first + List(emptyGroups) { "0" } + groups.second
+        } else {
+            ipString.split(':').also {
+                require(it.size == 8) { "Invalid IPv6 string: $ipString" }
             }
         }
 
-        ByteArray(16) { bytes.getOrElse(it) { 0 } }
+        groups.flatMap {
+            val int = it.toInt(16)
+            listOf((int shr 8).toByte(), int.toByte())
+        }.toByteArray()
     } catch (_: Throwable) {
         null
     }
