@@ -47,6 +47,9 @@ final class io.ktor.server.testing.client/TestHttpClientEngine : io.ktor.client.
 final class io.ktor.server.testing/ApplicationTestBuilder : io.ktor.server.testing/ClientProvider, io.ktor.server.testing/TestApplicationBuilder { // io.ktor.server.testing/ApplicationTestBuilder|null[0]
     constructor <init>() // io.ktor.server.testing/ApplicationTestBuilder.<init>|<init>(){}[0]
 
+    final val application // io.ktor.server.testing/ApplicationTestBuilder.application|{}application[0]
+        final fun <get-application>(): io.ktor.server.application/Application // io.ktor.server.testing/ApplicationTestBuilder.application.<get-application>|<get-application>(){}[0]
+
     final var client // io.ktor.server.testing/ApplicationTestBuilder.client|{}client[0]
         final fun <get-client>(): io.ktor.client/HttpClient // io.ktor.server.testing/ApplicationTestBuilder.client.<get-client>|<get-client>(){}[0]
         final fun <set-client>(io.ktor.client/HttpClient) // io.ktor.server.testing/ApplicationTestBuilder.client.<set-client>|<set-client>(io.ktor.client.HttpClient){}[0]
@@ -60,6 +63,8 @@ final class io.ktor.server.testing/ExternalServicesBuilder { // io.ktor.server.t
 }
 
 final class io.ktor.server.testing/TestApplication : io.ktor.server.testing/ClientProvider { // io.ktor.server.testing/TestApplication|null[0]
+    final val application // io.ktor.server.testing/TestApplication.application|{}application[0]
+        final fun <get-application>(): io.ktor.server.application/Application // io.ktor.server.testing/TestApplication.application.<get-application>|<get-application>(){}[0]
     final val client // io.ktor.server.testing/TestApplication.client|{}client[0]
         final fun <get-client>(): io.ktor.client/HttpClient // io.ktor.server.testing/TestApplication.client.<get-client>|<get-client>(){}[0]
 

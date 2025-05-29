@@ -85,6 +85,9 @@ public class TestApplication internal constructor(
     internal val server by lazy { createServer() }
     private val applicationStarting by lazy { Job(server.engine.coroutineContext[Job]) }
 
+    /** Returns an instance of [Application] behind this test application. */
+    public val application: Application get() = server.application
+
     /**
      * Starts this [TestApplication] instance.
      *
@@ -130,7 +133,7 @@ public class TestApplication internal constructor(
 public fun TestApplication(
     block: TestApplicationBuilder.() -> Unit
 ): TestApplication {
-    return ApplicationTestBuilder().apply(block).application
+    return ApplicationTestBuilder().apply(block).testApplication
 }
 
 /**
@@ -385,13 +388,22 @@ public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
             _client = value
         }
 
-    internal val application: TestApplication by lazy {
+    internal val testApplication: TestApplication by lazy {
         TestApplication(
             createServer = { embeddedServer },
             clientProvider = this,
             externalServices = externalServices,
         )
     }
+
+    /**
+     * Returns an instance of [Application] used in this test.
+     * This application might be not started if used before [startApplication] was called,
+     * or any client request was made.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.ApplicationTestBuilder.application)
+     */
+    public val application: Application get() = testApplication.application
 
     /**
      * Starts instance of [TestApplication].
@@ -403,7 +415,7 @@ public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.ApplicationTestBuilder.startApplication)
      */
     public suspend fun startApplication() {
-        application.start()
+        testApplication.start()
     }
 
     @KtorDsl
@@ -412,7 +424,7 @@ public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
     ): HttpClient = HttpClient(DelegatingTestClientEngine) {
         engine {
             parentJob = this@ApplicationTestBuilder.job
-            testApplicationProvder = this@ApplicationTestBuilder::application
+            testApplicationProvder = this@ApplicationTestBuilder::testApplication
         }
         block()
     }
@@ -515,7 +527,7 @@ public suspend fun runTestApplication(
         }
         withContext(parentCoroutineContext) { block() }
     }
-    val testApplication = builder.application
+    val testApplication = builder.testApplication
     testApplication.start()
     testApplication.stop()
 }
