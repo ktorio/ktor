@@ -644,6 +644,10 @@ public final class io/ktor/http/HttpMethod$Companion {
 	public final fun parse (Ljava/lang/String;)Lio/ktor/http/HttpMethod;
 }
 
+public final class io/ktor/http/HttpMethodKt {
+	public static final fun getSupportsRequestBody (Lio/ktor/http/HttpMethod;)Z
+}
+
 public final class io/ktor/http/HttpProtocolVersion {
 	public static final field Companion Lio/ktor/http/HttpProtocolVersion$Companion;
 	public fun <init> (Ljava/lang/String;II)V
