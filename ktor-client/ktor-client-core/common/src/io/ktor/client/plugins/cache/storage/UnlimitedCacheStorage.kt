@@ -53,8 +53,7 @@ internal class UnlimitedStorage : CacheStorage {
 
     override suspend fun remove(url: Url, varyKeys: Map<String, String>) {
         store[url]?.removeAll { entry ->
-            varyKeys.all { (key, value) -> entry.varyKeys[key] == value }
-                && varyKeys.size == entry.varyKeys.size
+            varyKeys.all { (key, value) -> entry.varyKeys[key] == value } && varyKeys.size == entry.varyKeys.size
         }
     }
 
