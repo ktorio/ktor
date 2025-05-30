@@ -1679,6 +1679,8 @@ final val io.ktor.server.routing/application // io.ktor.server.routing/applicati
     final fun (io.ktor.server.routing/Route).<get-application>(): io.ktor.server.application/Application // io.ktor.server.routing/application.<get-application>|<get-application>@io.ktor.server.routing.Route(){}[0]
 final val io.ktor.server.routing/path // io.ktor.server.routing/path|@io.ktor.server.routing.RoutingNode{}path[0]
     final fun (io.ktor.server.routing/RoutingNode).<get-path>(): kotlin/String // io.ktor.server.routing/path.<get-path>|<get-path>@io.ktor.server.routing.RoutingNode(){}[0]
+final val io.ktor.server.routing/routingRoot // io.ktor.server.routing/routingRoot|@io.ktor.server.application.Application{}routingRoot[0]
+    final fun (io.ktor.server.application/Application).<get-routingRoot>(): io.ktor.server.routing/RoutingNode // io.ktor.server.routing/routingRoot.<get-routingRoot>|<get-routingRoot>@io.ktor.server.application.Application(){}[0]
 
 final var io.ktor.server.application/receiveType // io.ktor.server.application/receiveType|@io.ktor.server.application.ApplicationCall{}receiveType[0]
     final fun (io.ktor.server.application/ApplicationCall).<get-receiveType>(): io.ktor.util.reflect/TypeInfo // io.ktor.server.application/receiveType.<get-receiveType>|<get-receiveType>@io.ktor.server.application.ApplicationCall(){}[0]
