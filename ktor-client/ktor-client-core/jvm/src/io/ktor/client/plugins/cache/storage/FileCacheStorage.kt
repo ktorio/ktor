@@ -57,6 +57,16 @@ internal class CachingCacheStorage(
         }
         return store.getValue(url)
     }
+
+    override suspend fun remove(url: Url, varyKeys: Map<String, String>): Unit {
+        delegate.remove(url, varyKeys)
+        store[url] = delegate.findAll(url)
+    }
+
+    override suspend fun removeAll(url: Url): Unit {
+        delegate.removeAll(url)
+        store.remove(url)
+    }
 }
 
 private class FileCacheStorage(
@@ -85,6 +95,17 @@ private class FileCacheStorage(
         return data.find {
             varyKeys.all { (key, value) -> it.varyKeys[key] == value }
         }
+    }
+
+    override suspend fun remove(url: Url, varyKeys: Map<String, String>): Unit = withContext(dispatcher) {
+        val urlHex = key(url)
+        val caches = readCache(urlHex).filterNot { it.varyKeys == varyKeys }
+        writeCache(urlHex, caches)
+    }
+
+    override suspend fun removeAll(url: Url) {
+        val urlHex = key(url)
+        deleteCache(urlHex)
     }
 
     private fun key(url: Url) = hex(MessageDigest.getInstance("SHA-256").digest(url.toString().encodeToByteArray()))
@@ -130,6 +151,16 @@ private class FileCacheStorage(
             } catch (cause: Exception) {
                 LOGGER.trace("Exception during cache lookup in a file: ${cause.stackTraceToString()}")
                 return emptySet()
+            }
+        }
+    }
+
+    private suspend fun deleteCache(urlHex: String) = coroutineScope {
+        val mutex = mutexes.computeIfAbsent(urlHex) { Mutex() }
+        mutex.withLock {
+            val file = File(directory, urlHex)
+            if (file.exists()) {
+                file.delete()
             }
         }
     }
