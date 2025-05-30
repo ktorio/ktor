@@ -59,6 +59,7 @@ private val REQUESTS_WITHOUT_BODY = setOf(
     HttpMethod.Get,
     HttpMethod.Head,
     HttpMethod.Options,
+    HttpMethod("TRACE"),
 )
 
 /**
