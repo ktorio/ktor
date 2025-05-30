@@ -5,10 +5,10 @@
 import io.ktor.client.plugins.cache.storage.*
 import io.ktor.http.*
 import io.ktor.util.date.*
+import java.io.*
 import kotlinx.coroutines.*
 import kotlin.io.path.*
 import kotlin.test.*
-import java.io.*
 
 class FileStorageTest {
     private lateinit var tempDirectory: File
