@@ -39,6 +39,15 @@ configureCommon()
 if (targets.hasJvm) configureJvm()
 if (targets.hasJs) configureJs()
 if (targets.hasWasmJs) configureWasmJs()
+//if (targets.hasAndroidJvm && plugins.hasPlugin("com.android.library")) {
+////    kotlin {
+////        sourceSets {
+////            androidMain
+////            androidUnitTest
+////            androidInstrumentedTest
+////        }
+////    }
+//}
 
 if (targets.hasJsOrWasmJs) {
     tasks.configureEach {

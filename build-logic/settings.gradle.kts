@@ -5,6 +5,7 @@
 pluginManagement {
     // Add repositories required for build-settings-logic
     repositories {
+        google()
         gradlePluginPortal()
 
         // Should be in sync with ktorsettings.kotlin-user-project
@@ -23,7 +24,9 @@ dependencyResolutionManagement {
     // Additional repositories for build-logic
     @Suppress("UnstableApiUsage")
     repositories {
+        mavenCentral()
         gradlePluginPortal()
+        google()
     }
 }
 
