@@ -158,7 +158,7 @@ public fun Route.swaggerUI(
       });
     }
 })();
-                    """.trimIndent()
+                            """.trimIndent()
                         }
                     }
                 }
