@@ -159,8 +159,12 @@ private class FileCacheStorage(
         val mutex = mutexes.computeIfAbsent(urlHex) { Mutex() }
         mutex.withLock {
             val file = File(directory, urlHex)
-            if (file.exists()) {
+            if (!file.exists()) return
+
+            try {
                 file.delete()
+            } catch (cause: Exception) {
+                LOGGER.trace("Exception during cache deletion in a file: ${cause.stackTraceToString()}")
             }
         }
     }
