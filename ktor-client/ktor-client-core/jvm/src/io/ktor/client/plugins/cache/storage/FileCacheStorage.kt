@@ -97,7 +97,7 @@ private class FileCacheStorage(
         }
     }
 
-    override suspend fun remove(url: Url, varyKeys: Map<String, String>): Unit = withContext(dispatcher) {
+    override suspend fun remove(url: Url, varyKeys: Map<String, String>) {
         val urlHex = key(url)
         val caches = readCache(urlHex).filterNot { it.varyKeys == varyKeys }
         writeCache(urlHex, caches)
@@ -155,7 +155,7 @@ private class FileCacheStorage(
         }
     }
 
-    private suspend fun deleteCache(urlHex: String) = coroutineScope {
+    private suspend fun deleteCache(urlHex: String) {
         val mutex = mutexes.computeIfAbsent(urlHex) { Mutex() }
         mutex.withLock {
             val file = File(directory, urlHex)
