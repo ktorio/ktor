@@ -142,10 +142,9 @@ private class InMemoryCacheStorage : CacheStorage {
 
     override suspend fun remove(url: Url, varyKeys: Map<String, String>) {
         removeCalledCount++
-        val data = store[url] ?: return
-
-        store[url] = data.filterNotTo(mutableSetOf()) {
-            varyKeys.all { (key, value) -> it.varyKeys[key] == value } && varyKeys.size == it.varyKeys.size
+        store[url]?.removeAll { entry ->
+            varyKeys.all { (key, value) -> entry.varyKeys[key] == value }
+                && varyKeys.size == entry.varyKeys.size
         }
     }
 
