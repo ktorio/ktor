@@ -73,7 +73,7 @@ internal suspend fun PipelineContext<HttpResponse, Unit>.interceptReceiveLegacy(
                     "but cached response has Vary: ${responseFromCache.varyKeys()}. " +
                     "According to RFC 7232 §4.1 and RFC 9111 §4.1, " +
                     "the server must include the full Vary header in 304 responses. " +
-                    "Falling back to missing cache logic. " +
+                    "Proceeding with cached response despite mismatch. " +
                     "Consider reporting this issue to the server maintainers."
             )
         }
