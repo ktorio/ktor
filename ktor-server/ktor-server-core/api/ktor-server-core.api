@@ -1698,6 +1698,10 @@ public final class io/ktor/server/routing/RoutingContext {
 	public final fun getCall ()Lio/ktor/server/routing/RoutingCall;
 }
 
+public final class io/ktor/server/routing/RoutingIntrospectionKt {
+	public static final fun getRoutingRoot (Lio/ktor/server/application/Application;)Lio/ktor/server/routing/RoutingNode;
+}
+
 public class io/ktor/server/routing/RoutingNode : io/ktor/server/application/ApplicationCallPipeline, io/ktor/server/routing/Route {
 	public fun <init> (Lio/ktor/server/routing/RoutingNode;Lio/ktor/server/routing/RouteSelector;ZLio/ktor/server/application/ApplicationEnvironment;)V
 	public synthetic fun <init> (Lio/ktor/server/routing/RoutingNode;Lio/ktor/server/routing/RouteSelector;ZLio/ktor/server/application/ApplicationEnvironment;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
