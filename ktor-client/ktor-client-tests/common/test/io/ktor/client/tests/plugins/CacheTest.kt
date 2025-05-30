@@ -846,15 +846,14 @@ class CacheTest : ClientLoader() {
         }
 
         test { client ->
-            client.get("$TEST_SERVER/cache/different-vary") {
+            val url = "$TEST_SERVER/cache/different-vary"
+            val first = client.get(url) {
                 header("200", "true")
-                header("Set-Vary", "X-Requested-With,Accept-Encoding")
             }
-            assertFailsWith<InvalidCacheStateException> {
-                client.get("$TEST_SERVER/cache/different-vary") {
-                    header("Set-Vary", "X-Requested-With")
-                }
-            }
+            val second = client.get(url)
+
+            assertEquals(first.bodyAsText(), second.bodyAsText())
+            assertEquals(storage.findAll(Url("$TEST_SERVER/cache/different-vary")).size, 1)
         }
     }
 
