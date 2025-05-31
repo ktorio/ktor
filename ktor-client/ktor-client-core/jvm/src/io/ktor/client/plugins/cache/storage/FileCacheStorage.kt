@@ -122,7 +122,10 @@ private class FileCacheStorage(
         return mutex.withLock { readCacheUnsafe(urlHex) }
     }
 
-    private suspend inline fun updateCache(urlHex: String, transform: (Set<CachedResponseData>) -> List<CachedResponseData>) {
+    private suspend inline fun updateCache(
+        urlHex: String,
+        transform: (Set<CachedResponseData>) -> List<CachedResponseData>
+    ) {
         val mutex = mutexes.computeIfAbsent(urlHex) { Mutex() }
         mutex.withLock {
             val caches = readCacheUnsafe(urlHex)
