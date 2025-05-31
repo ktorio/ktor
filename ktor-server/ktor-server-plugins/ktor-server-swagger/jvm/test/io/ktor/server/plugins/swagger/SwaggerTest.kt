@@ -199,7 +199,7 @@ class SwaggerTest {
     }
 
     @Test
-    fun testSwaggerFromResources2() = testApplication {
+    fun testSwaggerServesOauthRedirectPage() = testApplication {
         routing {
             swaggerUI("swagger")
         }
