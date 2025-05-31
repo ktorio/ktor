@@ -5,7 +5,7 @@
 import io.ktor.client.plugins.cache.storage.*
 import io.ktor.http.*
 import io.ktor.util.date.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.test.*
 import kotlin.io.path.*
 import kotlin.test.*
 import java.io.*
@@ -24,7 +24,7 @@ class FileStorageTest {
     }
 
     @Test
-    fun testFindAll(): Unit = runBlocking {
+    fun testFindAll() = runTest {
         val storage = FileStorage(tempDirectory)
 
         storage.store(Url("http://example.com"), data())
@@ -34,7 +34,7 @@ class FileStorageTest {
     }
 
     @Test
-    fun testFind(): Unit = runBlocking {
+    fun testFind() = runTest {
         val storage = FileStorage(tempDirectory)
 
         storage.store(Url("http://example.com"), data())
@@ -44,7 +44,7 @@ class FileStorageTest {
     }
 
     @Test
-    fun testStore(): Unit = runBlocking {
+    fun testStore() = runTest {
         val storage = FileStorage(tempDirectory)
         storage.store(Url("http://example.com"), data())
 
@@ -56,7 +56,7 @@ class FileStorageTest {
     }
 
     @Test
-    fun testRemove(): Unit = runBlocking {
+    fun testRemove() = runTest {
         val storage = FileStorage(tempDirectory)
         storage.store(Url("http://example.com"), data())
         storage.store(Url("http://example.com"), data(mapOf("key" to "value")))
@@ -69,7 +69,7 @@ class FileStorageTest {
     }
 
     @Test
-    fun testRemoveAll(): Unit = runBlocking {
+    fun testRemoveAll() = runTest {
         val storage = FileStorage(tempDirectory)
         storage.store(Url("http://example.com"), data())
         storage.store(Url("http://example.com"), data(mapOf("key" to "value")))
