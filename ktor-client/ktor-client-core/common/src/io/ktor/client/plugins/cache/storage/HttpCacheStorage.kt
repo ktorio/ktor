@@ -100,7 +100,7 @@ public interface CacheStorage {
     public suspend fun findAll(url: Url): Set<CachedResponseData>
 
     /**
-     * Remove entry in cache storage with additional [varyKeys].
+     * Remove from cache storage the entry matching [url] with additional [varyKeys].
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cache.storage.CacheStorage.remove)
      */
