@@ -9,6 +9,7 @@ import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.collections.*
 import io.ktor.util.date.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*
@@ -57,6 +58,16 @@ internal class CachingCacheStorage(
         }
         return store.getValue(url)
     }
+
+    override suspend fun remove(url: Url, varyKeys: Map<String, String>) {
+        delegate.remove(url, varyKeys)
+        store[url] = delegate.findAll(url)
+    }
+
+    override suspend fun removeAll(url: Url) {
+        delegate.removeAll(url)
+        store.remove(url)
+    }
 }
 
 private class FileCacheStorage(
@@ -87,50 +98,91 @@ private class FileCacheStorage(
         }
     }
 
+    override suspend fun remove(url: Url, varyKeys: Map<String, String>) {
+        val urlHex = key(url)
+        updateCache(urlHex) { caches ->
+            caches.filterNot { it.varyKeys == varyKeys }
+        }
+    }
+
+    override suspend fun removeAll(url: Url) {
+        val urlHex = key(url)
+        deleteCache(urlHex)
+    }
+
     private fun key(url: Url) = hex(MessageDigest.getInstance("SHA-256").digest(url.toString().encodeToByteArray()))
 
-    private suspend fun writeCache(urlHex: String, caches: List<CachedResponseData>) = coroutineScope {
+    private suspend fun writeCache(urlHex: String, caches: List<CachedResponseData>) {
         val mutex = mutexes.computeIfAbsent(urlHex) { Mutex() }
-        mutex.withLock {
-            val channel = ByteChannel()
-            try {
-                File(directory, urlHex).outputStream().buffered().use { output ->
-                    launch {
-                        channel.writeInt(caches.size)
-                        for (cache in caches) {
-                            writeCache(channel, cache)
-                        }
-                        channel.close()
-                    }
-                    channel.copyTo(output)
-                }
-            } catch (cause: Exception) {
-                LOGGER.trace("Exception during saving a cache to a file: ${cause.stackTraceToString()}")
-            }
-        }
+        mutex.withLock { writeCacheUnsafe(urlHex, caches) }
     }
 
     private suspend fun readCache(urlHex: String): Set<CachedResponseData> {
         val mutex = mutexes.computeIfAbsent(urlHex) { Mutex() }
+        return mutex.withLock { readCacheUnsafe(urlHex) }
+    }
+
+    private suspend inline fun updateCache(
+        urlHex: String,
+        transform: (Set<CachedResponseData>) -> List<CachedResponseData>
+    ) {
+        val mutex = mutexes.computeIfAbsent(urlHex) { Mutex() }
+        mutex.withLock {
+            val caches = readCacheUnsafe(urlHex)
+            writeCacheUnsafe(urlHex, transform(caches))
+        }
+    }
+
+    private suspend fun deleteCache(urlHex: String) {
+        val mutex = mutexes.computeIfAbsent(urlHex) { Mutex() }
         mutex.withLock {
             val file = File(directory, urlHex)
-            if (!file.exists()) return emptySet()
+            if (!file.exists()) return
 
             try {
-                file.inputStream().buffered().use {
-                    val channel = it.toByteReadChannel()
-                    val requestsCount = channel.readInt()
-                    val caches = mutableSetOf<CachedResponseData>()
-                    for (i in 0 until requestsCount) {
-                        caches.add(readCache(channel))
-                    }
-                    channel.discard()
-                    return caches
-                }
+                file.delete()
             } catch (cause: Exception) {
-                LOGGER.trace("Exception during cache lookup in a file: ${cause.stackTraceToString()}")
-                return emptySet()
+                LOGGER.trace { "Exception during cache deletion in a file: ${cause.stackTraceToString()}" }
             }
+        }
+    }
+
+    private suspend fun writeCacheUnsafe(urlHex: String, caches: List<CachedResponseData>) = coroutineScope {
+        val channel = ByteChannel()
+        try {
+            File(directory, urlHex).outputStream().buffered().use { output ->
+                launch {
+                    channel.writeInt(caches.size)
+                    for (cache in caches) {
+                        writeCache(channel, cache)
+                    }
+                    channel.close()
+                }
+                channel.copyTo(output)
+            }
+        } catch (cause: Exception) {
+            LOGGER.trace { "Exception during saving a cache to a file: ${cause.stackTraceToString()}" }
+        }
+    }
+
+    private suspend fun readCacheUnsafe(urlHex: String): Set<CachedResponseData> {
+        val file = File(directory, urlHex)
+        if (!file.exists()) return emptySet()
+
+        try {
+            file.inputStream().buffered().use {
+                val channel = it.toByteReadChannel()
+                val requestsCount = channel.readInt()
+                val caches = mutableSetOf<CachedResponseData>()
+                for (i in 0 until requestsCount) {
+                    caches.add(readCache(channel))
+                }
+                channel.discard()
+                return caches
+            }
+        } catch (cause: Exception) {
+            LOGGER.trace { "Exception during cache lookup in a file: ${cause.stackTraceToString()}" }
+            return emptySet()
         }
     }
 

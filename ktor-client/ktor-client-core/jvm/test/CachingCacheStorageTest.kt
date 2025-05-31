@@ -71,6 +71,35 @@ class CachingCacheStorageTest {
         assertNotNull(storage.find(Url("http://example.com"), mapOf("key" to "value")))
     }
 
+    @Test
+    fun testRemoveUpdatesCaching(): Unit = runBlocking {
+        val delegate = InMemoryCacheStorage()
+        delegate.store(Url("http://example.com"), data())
+        delegate.store(Url("http://example.com"), data(mapOf("key" to "value")))
+
+        val storage = CachingCacheStorage(delegate)
+        assertEquals(2, storage.findAll(Url("http://example.com")).size)
+
+        storage.remove(Url("http://example.com"), mapOf("key" to "value"))
+        assertEquals(1, storage.findAll(Url("http://example.com")).size)
+        assertNull(storage.find(Url("http://example.com"), mapOf("key" to "value")))
+        assertEquals(1, delegate.removeCalledCount)
+    }
+
+    @Test
+    fun testRemoveAllUpdatesCaching(): Unit = runBlocking {
+        val delegate = InMemoryCacheStorage()
+        delegate.store(Url("http://example.com"), data())
+        delegate.store(Url("http://example.com"), data(mapOf("key" to "value")))
+
+        val storage = CachingCacheStorage(delegate)
+        assertEquals(2, storage.findAll(Url("http://example.com")).size)
+
+        storage.removeAll(Url("http://example.com"))
+        assertEquals(0, storage.findAll(Url("http://example.com")).size)
+        assertEquals(1, delegate.removeAllCalledCount)
+    }
+
     private fun data(varyKeys: Map<String, String> = emptyMap()) = CachedResponseData(
         Url("http://example.com"),
         HttpStatusCode.OK,
@@ -89,6 +118,8 @@ private class InMemoryCacheStorage : CacheStorage {
     private val store = mutableMapOf<Url, MutableSet<CachedResponseData>>()
     var findCalledCount = 0
     var findAllCalledCount = 0
+    var removeCalledCount = 0
+    var removeAllCalledCount = 0
 
     override suspend fun store(url: Url, data: CachedResponseData) {
         val cache = store.computeIfAbsent(url) { mutableSetOf() }
@@ -107,5 +138,17 @@ private class InMemoryCacheStorage : CacheStorage {
         findAllCalledCount++
         val cache = store.computeIfAbsent(url) { mutableSetOf() }
         return cache.toSet()
+    }
+
+    override suspend fun remove(url: Url, varyKeys: Map<String, String>) {
+        removeCalledCount++
+        store[url]?.removeAll { entry ->
+            varyKeys.all { (key, value) -> entry.varyKeys[key] == value } && varyKeys.size == entry.varyKeys.size
+        }
+    }
+
+    override suspend fun removeAll(url: Url) {
+        removeAllCalledCount++
+        store.remove(url)
     }
 }

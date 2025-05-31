@@ -12,11 +12,9 @@ import io.ktor.client.plugins.cache.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 /**
@@ -100,6 +98,20 @@ public interface CacheStorage {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cache.storage.CacheStorage.findAll)
      */
     public suspend fun findAll(url: Url): Set<CachedResponseData>
+
+    /**
+     * Remove from cache storage the entry matching [url] with additional [varyKeys].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cache.storage.CacheStorage.remove)
+     */
+    public suspend fun remove(url: Url, varyKeys: Map<String, String>)
+
+    /**
+     * Remove all matched [HttpCacheEntry] for [url].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cache.storage.CacheStorage.removeAll)
+     */
+    public suspend fun removeAll(url: Url)
 
     public companion object {
         /**
