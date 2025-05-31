@@ -66,6 +66,17 @@ internal suspend fun PipelineContext<HttpResponse, Unit>.interceptReceiveLegacy(
     if (response.status == HttpStatusCode.NotModified) {
         val responseFromCache = plugin.findAndRefresh(response.call.request, response)
             ?: throw InvalidCacheStateException(response.call.request.url)
+        if (responseFromCache.varyKeys().size != response.varyKeys().size) {
+            LOGGER.warn(
+                "Vary header mismatch on cached response for ${response.call.request.url}. " +
+                    "Received 304 Not Modified with Vary: ${response.varyKeys()} " +
+                    "but cached response has Vary: ${responseFromCache.varyKeys()}. " +
+                    "According to RFC 7232 §4.1 and RFC 9111 §4.1, " +
+                    "the server must include the full Vary header in 304 responses. " +
+                    "Proceeding with cached response despite mismatch. " +
+                    "Consider reporting this issue to the server maintainers."
+            )
+        }
 
         scope.monitor.raise(HttpCache.HttpResponseFromCache, responseFromCache)
         proceedWith(responseFromCache)
@@ -116,10 +127,11 @@ private fun HttpCache.findAndRefresh(request: HttpRequest, response: HttpRespons
 
     val storage = if (CacheControl.PRIVATE in cacheControl) privateStorage else publicStorage
 
-    val varyKeysFrom304 = response.varyKeys()
-    val cache = findResponse(storage, varyKeysFrom304, url, request) ?: return null
-    val newVaryKeys = varyKeysFrom304.ifEmpty { cache.varyKeys }
-    storage.store(url, HttpCacheEntry(response.cacheExpires(isSharedClient), newVaryKeys, cache.response, cache.body))
+    val cache = findResponse(storage, response.varyKeys(), url, request) ?: return null
+    storage.store(
+        url,
+        HttpCacheEntry(response.cacheExpires(isSharedClient), cache.varyKeys, cache.response, cache.body)
+    )
     return cache.produceResponse()
 }
 

@@ -4,11 +4,10 @@
 
 package io.ktor.client.engine.darwin.internal
 
-import io.ktor.client.engine.*
 import io.ktor.client.engine.darwin.*
 import io.ktor.client.request.*
 import io.ktor.utils.io.*
-import kotlinx.cinterop.*
+import kotlinx.cinterop.UnsafeNumber
 import platform.Foundation.*
 
 @OptIn(InternalAPI::class, UnsafeNumber::class)
@@ -24,9 +23,7 @@ internal suspend fun HttpRequestData.toNSUrlRequest(): NSMutableURLRequest {
             }
         }
 
-        mergeHeaders(headers, body) { key, value ->
-            setValue(value, key)
-        }
+        forEachHeader { key, value -> setValue(value, key) }
 
         setCachePolicy(NSURLRequestReloadIgnoringCacheData)
         setHTTPMethod(method.value)

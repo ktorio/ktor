@@ -6,17 +6,18 @@ package io.ktor.client.engine.js
 
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.engine.*
-import io.ktor.client.fetch.RequestInit
+import io.ktor.client.fetch.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.content.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
-import kotlinx.coroutines.*
-import kotlinx.io.*
-import org.w3c.fetch.*
-import kotlin.coroutines.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.io.readByteArray
+import org.w3c.fetch.FOLLOW
+import org.w3c.fetch.MANUAL
+import org.w3c.fetch.RequestRedirect
+import kotlin.coroutines.CoroutineContext
 
 @OptIn(InternalAPI::class)
 internal suspend fun HttpRequestData.toRaw(
@@ -24,9 +25,7 @@ internal suspend fun HttpRequestData.toRaw(
     callContext: CoroutineContext
 ): RequestInit {
     val jsHeaders = makeJsObject<JsAny>().also { obj ->
-        mergeHeaders(this@toRaw.headers, this@toRaw.body) { key, value ->
-            obj[key] = value
-        }
+        forEachHeader { key, value -> obj[key] = value }
     }
 
     val bodyBytes: ByteArray? = getBodyBytes(body, callContext)
