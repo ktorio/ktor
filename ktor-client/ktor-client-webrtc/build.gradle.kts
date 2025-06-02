@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 description = "Ktor WebRTC client"
 
 plugins {
-    id("com.android.library")
+    id("com.android.kotlin.multiplatform.library")
     id("kotlinx-serialization")
     id("ktorbuild.project.library")
 }
@@ -17,8 +17,10 @@ plugins {
 kotlin {
     jvmToolchain(17)
 
-    androidTarget {
-        publishLibraryVariants("release")
+    androidLibrary {
+        namespace = "io.ktor.client.webrtc"
+        compileSdk = 35
+        minSdk = 28
     }
 
     sourceSets {
@@ -28,20 +30,15 @@ kotlin {
         }
 
         commonTest.dependencies {
+            // using `atomicfu` as a library, but not a plugin
+            // because its plugin is not compatible with Android KMP plugin
+            implementation(libs.kotlinx.atomicfu)
             implementation(libs.kotlin.test)
             implementation(project(":ktor-test-dispatcher"))
         }
 
-        androidMain {
-            dependencies {
-                implementation(libs.stream.webrtc.android)
-            }
-        }
-
-        androidInstrumentedTest.dependencies {
-            implementation(libs.androidx.core)
-            implementation(libs.androidx.runner)
-            implementation(libs.androidx.rules)
+        androidMain.dependencies {
+            implementation(libs.stream.webrtc.android)
         }
 
         wasmJs {
@@ -49,42 +46,5 @@ kotlin {
                 freeCompilerArgs.add("-Xwasm-attach-js-exception")
             }
         }
-
-        val commonTest by getting
-        val androidInstrumentedTest by getting {
-            dependsOn(commonTest)
-        }
     }
 }
-
-android {
-    namespace = "io.ktor.client.webrtc"
-    compileSdk = 35
-
-    defaultConfig {
-        minSdk = 28
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
-    packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
-    }
-    buildTypes {
-        getByName("release") {
-            isMinifyEnabled = false
-        }
-    }
-    testOptions {
-        targetSdk = 35
-    }
-
-    sourceSets {
-        getByName("main") {
-            manifest.srcFile("./AndroidManifest.xml")
-        }
-    }
-}
-
-tasks.named("jsNodeTest") { onlyIf { false } }
-tasks.named("wasmJsNodeTest") { onlyIf { false } }

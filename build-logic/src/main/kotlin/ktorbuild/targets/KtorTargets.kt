@@ -6,6 +6,7 @@
 
 package ktorbuild.targets
 
+import com.android.build.api.dsl.androidLibrary
 import ktorbuild.internal.KotlinHierarchyTracker
 import ktorbuild.internal.TrackedKotlinHierarchyTemplate
 import ktorbuild.internal.gradle.ProjectGradleProperties
@@ -22,7 +23,6 @@ import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
-import org.jetbrains.kotlin.gradle.plugin.sources.android.androidSourceSetInfoOrNull
 import javax.inject.Inject
 
 /**
@@ -49,6 +49,12 @@ import javax.inject.Inject
  * # Disable specific sub-targets
  * target.js.browser=false
  * target.wasmJs.browser=false
+ * ```
+ *
+ * Android JVM tests could be also configured
+ * ```properties
+ * target.android.unitTest=false
+ * target.android.deviceTest=false
  * ```
  *
  * See the full list of targets and target groups in [KtorTargets.hierarchyTemplate].
@@ -171,9 +177,7 @@ abstract class KtorTargets internal constructor(
                     group("jsAndWasmShared")
                 }
 
-                group("android") {
-                    withAndroidTarget()
-                }
+                withAndroidTarget()
             }
         }
 
@@ -182,11 +186,11 @@ abstract class KtorTargets internal constructor(
     }
 }
 
-internal fun KotlinMultiplatformExtension.addTargets(targets: KtorTargets) {
+internal fun KotlinMultiplatformExtension.addTargets(targets: KtorTargets, isCI: Boolean) {
     if (targets.hasJvm) jvm()
-
-    if (targets.hasAndroidJvm && project.pluginManager.hasPlugin("com.android.library")) {
-        androidTarget()
+    if (targets.hasAndroidJvm && project.hasAndroidPlugin()) {
+        // device tests are not configured on the CI yet
+        androidLibrary { addTests(targets, allowDeviceTest = !isCI) }
     }
 
     if (targets.hasJs) js { addSubTargets(targets) }
@@ -241,7 +245,6 @@ private val extraSourceSetProblemId = ProblemId.create(
  * By default, it throws an [IllegalStateException] if extra source sets are detected.
  * When [IGNORE_EXTRA_SOURCE_SETS_PROPERTY] property is set to `true`, extra source sets are ignored instead.
  */
-@OptIn(ExperimentalKotlinGradlePluginApi::class)
 private fun KotlinMultiplatformExtension.freezeSourceSets() {
     val problemReporter = project.serviceOf<Problems>().reporter
     val ignoreExtraSourceSets = project.providers.gradleProperty(IGNORE_EXTRA_SOURCE_SETS_PROPERTY).orNull.toBoolean()
@@ -250,15 +253,13 @@ private fun KotlinMultiplatformExtension.freezeSourceSets() {
     sourceSets.whenObjectAdded { extraSourceSets.add(this) }
 
     project.afterEvaluate {
-        // Android source sets are ignored because they are added after project evaluation.
-        val filteredSourceSets = extraSourceSets.filter { it.androidSourceSetInfoOrNull == null }
-        if (filteredSourceSets.isNotEmpty()) {
-            val names = filteredSourceSets.map { it.name }.sorted()
+        if (extraSourceSets.isNotEmpty()) {
+            val names = extraSourceSets.map { it.name }.sorted()
             val context = "Detected extra source sets registered manually: $names (project ${project.path})"
 
             if (ignoreExtraSourceSets) {
                 problemReporter.reportExtraSourceSetsWarning(context)
-                sourceSets.removeAll(filteredSourceSets)
+                sourceSets.removeAll(extraSourceSets)
             } else {
                 throw problemReporter.reportExtraSourceSetsError(context)
             }

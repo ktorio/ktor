@@ -24,9 +24,7 @@ dependencyResolutionManagement {
     // Additional repositories for build-logic
     @Suppress("UnstableApiUsage")
     repositories {
-        mavenCentral()
         gradlePluginPortal()
-        google()
     }
 }
 

@@ -1,6 +1,6 @@
 [versions]
 
-android-gradle-plugin = "8.9.2"
+android-kmp-plugin = "8.9.2"
 androidx = "1.6.1"
 kotlin = "2.1.21"
 kotlinx-html = "0.12.0"
@@ -85,12 +85,14 @@ tomlj = "1.1.1"
 develocity = "3.18.2" # Should be compatible with our server: ge.jetbrains.com
 develocity-commonCustomUserData = "2.2.1"
 gradleDoctor = "0.10.0"
+kotlinVersion = "2.1.21"
+agp = "8.9.2"
+junitVersion = "1.1.5"
 
 [libraries]
 
-android-gradlePlugin = { module = "com.android.tools.build:gradle", version.ref = "android-gradle-plugin" }
+android-kmp-library = { module = "com.android.kotlin.multiplatform.library:com.android.kotlin.multiplatform.library.gradle.plugin", version.ref = "android-kmp-plugin" }
 androidx-core = { module = "androidx.test:core", version.ref = "androidx" }
-androidx-rules = { module = "androidx.test:rules", version.ref = "androidx" }
 androidx-runner = { module = "androidx.test:runner", version.ref = "androidx" }
 
 kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
