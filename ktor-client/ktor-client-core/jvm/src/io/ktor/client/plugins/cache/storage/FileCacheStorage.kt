@@ -113,11 +113,6 @@ private class FileCacheStorage(
 
     private fun key(url: Url) = hex(MessageDigest.getInstance("SHA-256").digest(url.toString().encodeToByteArray()))
 
-    private suspend fun writeCache(urlHex: String, caches: List<CachedResponseData>) {
-        val mutex = mutexes.computeIfAbsent(urlHex) { Mutex() }
-        mutex.withLock { writeCacheUnsafe(urlHex, caches) }
-    }
-
     private suspend fun readCache(urlHex: String): Set<CachedResponseData> {
         val mutex = mutexes.computeIfAbsent(urlHex) { Mutex() }
         return mutex.withLock { readCacheUnsafe(urlHex) }
@@ -138,7 +133,7 @@ private class FileCacheStorage(
         val mutex = mutexes.computeIfAbsent(urlHex) { Mutex() }
         mutex.withLock {
             val file = File(directory, urlHex)
-            if (!file.exists()) return
+            if (!file.exists()) return@withLock
 
             try {
                 file.delete()
