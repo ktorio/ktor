@@ -14,12 +14,15 @@ import io.ktor.http.content.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
-import kotlinx.coroutines.*
-import java.io.*
-import java.net.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import java.io.OutputStream
+import java.net.HttpURLConnection
+import java.net.URL
+import java.net.URLConnection
 import java.util.*
-import javax.net.ssl.*
-import kotlin.coroutines.*
+import javax.net.ssl.HttpsURLConnection
+import kotlin.coroutines.CoroutineContext
 
 private val METHODS_WITHOUT_BODY = listOf(HttpMethod.Get, HttpMethod.Head)
 
@@ -57,9 +60,7 @@ public class AndroidClientEngine(override val config: AndroidEngineConfig) : Htt
             useCaches = false
             instanceFollowRedirects = false
 
-            mergeHeaders(data.headers, outgoingContent) { key: String, value: String ->
-                addRequestProperty(key, value)
-            }
+            data.forEachHeader(::addRequestProperty)
 
             config.requestConfig(this)
 
@@ -111,7 +112,6 @@ public class AndroidClientEngine(override val config: AndroidEngineConfig) : Htt
 }
 
 @OptIn(DelicateCoroutinesApi::class)
-@Suppress("BlockingMethodInNonBlockingContext", "DEPRECATION")
 internal suspend fun OutgoingContent.writeTo(
     stream: OutputStream,
     callContext: CoroutineContext

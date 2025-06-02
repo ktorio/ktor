@@ -253,7 +253,7 @@ class ConnectErrorsTest {
             }
 
             try {
-                server.start(wait = false)
+                server.startSuspend(wait = false)
 
                 val message = client.get { url(scheme = "https", path = "/", port = serverPort) }.body<String>()
                 assertEquals("OK", message)

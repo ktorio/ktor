@@ -379,6 +379,7 @@ class LoggingTest : ClientLoader() {
             "???-> connection: close",
             "-> Content-Type: text/plain; charset=UTF-8",
             "-> Transfer-Encoding: chunked",
+            "-> Vary: Accept-Encoding",
             "BODY Content-Type: text/plain; charset=UTF-8",
             "BODY START",
             "???[response body omitted]",
