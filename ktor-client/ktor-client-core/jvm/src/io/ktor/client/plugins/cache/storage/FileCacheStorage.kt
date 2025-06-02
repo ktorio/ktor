@@ -83,8 +83,9 @@ private class FileCacheStorage(
 
     override suspend fun store(url: Url, data: CachedResponseData): Unit = withContext(dispatcher) {
         val urlHex = key(url)
-        val caches = readCache(urlHex).filterNot { it.varyKeys == data.varyKeys } + data
-        writeCache(urlHex, caches)
+        updateCache(urlHex) { caches ->
+            caches.filterNot { it.varyKeys == data.varyKeys } + data
+        }
     }
 
     override suspend fun findAll(url: Url): Set<CachedResponseData> {
