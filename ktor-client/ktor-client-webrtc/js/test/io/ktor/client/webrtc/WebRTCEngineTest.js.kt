@@ -4,10 +4,9 @@
 
 package io.ktor.client.webrtc
 
-actual fun createTestWebRTCClient(): WebRTCClient {
-    TODO("Not yet implemented")
-}
-
-actual fun grantPermissions(audio: Boolean, video: Boolean) {
-    TODO("Not yet implemented")
+actual fun createTestWebRTCClient(): WebRTCClient = WebRTCClient(JsWebRTC) {
+    iceServers = listOf()
+    turnServers = listOf()
+    statsRefreshRate = 100
+    mediaTrackFactory = MockMediaTrackFactory
 }
