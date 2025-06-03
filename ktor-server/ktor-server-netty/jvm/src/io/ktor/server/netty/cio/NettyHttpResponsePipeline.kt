@@ -71,6 +71,9 @@ internal class NettyHttpResponsePipeline(
             respondWithFailure(call, actualException)
         } finally {
             call.responseWriteJob.cancel()
+            if (call.response.isInfoOrNoContentStatus()) {
+                call.response.sendCompleted.complete(Unit)
+            }
         }
     }
 
