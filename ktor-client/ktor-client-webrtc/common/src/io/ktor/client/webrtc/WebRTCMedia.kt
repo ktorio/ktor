@@ -20,7 +20,7 @@ public object WebRTCMedia {
      * @property frameRate The frame rate of the video.
      * @property aspectRatio The aspect ratio of the video.
      * @property facingMode The camera-facing mode.
-     * @property resizeMode The resize mode for the video.
+     * @property resizeMode The resize mode for the video. Not supported for Android.
      *
      * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints">MDN MediaTrackConstraints</a>
      */
@@ -38,12 +38,12 @@ public object WebRTCMedia {
      *
      * @property volume The volume of the audio.
      * @property sampleRate The sample rate of the audio in Hz.
-     * @property sampleSize The sample size of the audio in bits.
+     * @property sampleSize The sample size of the audio in bits. Not supported for Android.
      * @property echoCancellation Whether echo cancellation is enabled.
      * @property autoGainControl Whether automatic gain control is enabled.
      * @property noiseSuppression Whether noise suppression is enabled.
-     * @property latency The latency of the audio in seconds.
-     * @property channelCount The number of audio channels.
+     * @property latency The latency of the audio in seconds. Not supported for Android.
+     * @property channelCount The number of audio channels. Not supported for Android.
      *
      * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints">MDN MediaTrackConstraints</a>
      */

@@ -8,6 +8,7 @@ import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 description = "Ktor WebRTC client"
 
 plugins {
+    id("com.android.kotlin.multiplatform.library")
     id("kotlinx-serialization")
     id("ktorbuild.project.library")
 }
@@ -15,8 +16,17 @@ plugins {
 kotlin {
     jvmToolchain(17)
 
+    androidLibrary {
+        namespace = "io.ktor.client.webrtc"
+        compileSdk = 35
+        minSdk = 28
+    }
+
     sourceSets {
         commonMain.dependencies {
+            // using `atomicfu` as a library, but not a plugin
+            // because its plugin is not compatible with Android KMP plugin
+            implementation(libs.kotlinx.atomicfu)
             api(project(":ktor-io"))
             api(project(":ktor-utils"))
         }
@@ -30,6 +40,10 @@ kotlin {
             compilerOptions {
                 freeCompilerArgs.add("-Xwasm-attach-js-exception")
             }
+        }
+
+        androidMain.dependencies {
+            implementation(libs.stream.webrtc.android)
         }
     }
 }
