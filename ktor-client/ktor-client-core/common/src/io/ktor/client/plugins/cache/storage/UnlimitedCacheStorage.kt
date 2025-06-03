@@ -50,4 +50,14 @@ internal class UnlimitedStorage : CacheStorage {
     }
 
     override suspend fun findAll(url: Url): Set<CachedResponseData> = store[url] ?: emptySet()
+
+    override suspend fun remove(url: Url, varyKeys: Map<String, String>) {
+        store[url]?.removeAll { entry ->
+            varyKeys.all { (key, value) -> entry.varyKeys[key] == value } && varyKeys.size == entry.varyKeys.size
+        }
+    }
+
+    override suspend fun removeAll(url: Url) {
+        store.remove(url)
+    }
 }
