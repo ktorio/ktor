@@ -4,6 +4,4 @@
 
 package io.ktor.network.sockets.tests
 
-internal actual fun Throwable.isPosixException(): Boolean = false
-
-actual fun initSocketsIfNeeded() {}
+actual fun initSocketsIfNeeded() = io.ktor.network.util.initSocketsIfNeeded()
