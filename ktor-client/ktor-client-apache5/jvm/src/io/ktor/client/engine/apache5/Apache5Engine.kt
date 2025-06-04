@@ -92,11 +92,8 @@ internal class Apache5Engine(override val config: Apache5EngineConfig) : HttpCli
                             ClientTlsStrategyBuilder.create()
                                 .setSslContext(config.sslContext ?: SSLContexts.createSystemDefault())
                                 .setTlsVersions(TLS.V_1_3, TLS.V_1_2)
-                                // TODO: Uncomment this line and remove apply after update to v5.5
-                                //  https://github.com/apache/httpcomponents-client/commit/001eff70646c982c8c4a7c8a385d92f42579f2b5
-                                // .setHostVerificationPolicy(config.sslHostnameVerificationPolicy)
-                                .apply { setHostnameVerificationPolicy(config.sslHostnameVerificationPolicy) }
-                                .build()
+                                .setHostVerificationPolicy(config.sslHostnameVerificationPolicy)
+                                .buildAsync()
                         )
                         .setDefaultConnectionConfig(
                             ConnectionConfig.custom()
