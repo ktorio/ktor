@@ -143,6 +143,10 @@ public val ChannelJob.isCancelled: Boolean get() = job.isCancelled
 @OptIn(InternalCoroutinesApi::class)
 public fun ChannelJob.getCancellationException(): CancellationException = job.getCancellationException()
 
+public fun ChannelJob.invokeOnCompletion(block: (cause: Throwable?) -> Unit): DisposableHandle =
+    job.invokeOnCompletion(block)
+
+@Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
 public fun ChannelJob.invokeOnCompletion(block: () -> Unit) {
     job.invokeOnCompletion { block() }
 }

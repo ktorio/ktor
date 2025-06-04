@@ -193,11 +193,7 @@ private fun HttpRequestData.convertToOkHttpRequest(callContext: CoroutineContext
     with(builder) {
         url(url.toString())
 
-        mergeHeaders(headers, body) { key, value ->
-            if (key == HttpHeaders.ContentLength) return@mergeHeaders
-
-            addHeader(key, value)
-        }
+        forEachHeader(::addHeader)
 
         val bodyBytes = if (HttpMethod.permitsRequestBody(method.value)) {
             body.convertToOkHttpBody(callContext)

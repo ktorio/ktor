@@ -647,6 +647,8 @@ public abstract interface class io/ktor/client/plugins/cache/storage/CacheStorag
 	public static final field Companion Lio/ktor/client/plugins/cache/storage/CacheStorage$Companion;
 	public abstract fun find (Lio/ktor/http/Url;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun findAll (Lio/ktor/http/Url;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun remove (Lio/ktor/http/Url;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun removeAll (Lio/ktor/http/Url;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun store (Lio/ktor/http/Url;Lio/ktor/client/plugins/cache/storage/CachedResponseData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
@@ -1227,6 +1229,7 @@ public final class io/ktor/client/request/HttpRequestJvmKt {
 }
 
 public final class io/ktor/client/request/HttpRequestKt {
+	public static final fun forEachHeader (Lio/ktor/client/request/HttpRequestData;Lkotlin/jvm/functions/Function2;)V
 	public static final fun getResponseAdapterAttributeKey ()Lio/ktor/util/AttributeKey;
 	public static final fun headers (Lio/ktor/http/HttpMessageBuilder;Lkotlin/jvm/functions/Function1;)Lio/ktor/http/HeadersBuilder;
 	public static final fun invoke (Lio/ktor/client/request/HttpRequestBuilder$Companion;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/client/request/HttpRequestBuilder;

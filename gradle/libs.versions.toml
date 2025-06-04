@@ -10,14 +10,14 @@ serialization = "1.8.1"
 binaryCompatibilityValidator = "0.17.0"
 dokka = "2.0.0"
 kover = "0.9.1"
-kotlinter = "5.0.2"
+kotlinter = "5.1.0"
 kotlinx-browser = "0.3"
 
 # Used for test server in buildSrc
-ktor = "3.2.0-eap-1264"
+ktor = "3.2.0-eap-1336"
 
-netty = "4.1.119.Final"
-netty-tcnative = "2.0.71.Final"
+netty = "4.2.1.Final"
+netty-tcnative = "2.0.72.Final"
 
 jetty = "9.4.57.v20241219"
 jetty-jakarta = "11.0.25"
@@ -28,10 +28,10 @@ tomcat = "9.0.105"
 tomcat-jakarta = "10.1.40"
 
 apache = "4.1.5"
-apache5 = "5.4.4"
+apache5 = "5.5"
 apacheds = "2.0.0.AM27"
 okhttp = "4.12.0"
-okio = "3.11.0"
+okio = "3.12.0"
 
 json-simple = "1.1.1"
 gson = "2.13.1"

@@ -268,6 +268,40 @@ class TestApplicationTest {
     }
 
     @Test
+    fun testAccessApplicationInstance() = testApplication {
+        lateinit var configuredApplication: Application
+
+        application { configuredApplication = this }
+        startApplication()
+
+        assertSame(
+            configuredApplication,
+            application,
+            "Application instance should be the same as the one provided to `application` block"
+        )
+    }
+
+    @Test
+    fun testClientConfiguration() = testApplication {
+        application {
+            routing {
+                get("/hello") {
+                    call.respondText("Hello, World!")
+                }
+            }
+        }
+
+        val originalClient = client
+        client = createClient { }
+
+        assertNotSame(originalClient, client, "Client should be changed")
+
+        val response = client.get("/hello")
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("Hello, World!", response.bodyAsText())
+    }
+
+    @Test
     fun testMultipleParallelRequests() = testApplication {
         routing {
             get("/") {

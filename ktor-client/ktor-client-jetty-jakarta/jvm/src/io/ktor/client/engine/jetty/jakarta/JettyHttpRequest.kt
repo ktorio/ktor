@@ -5,7 +5,6 @@
 package io.ktor.client.engine.jetty.jakarta
 
 import io.ktor.client.call.*
-import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
@@ -14,15 +13,23 @@ import io.ktor.util.cio.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.*
-import kotlinx.coroutines.*
-import org.eclipse.jetty.http.*
-import org.eclipse.jetty.http2.api.*
-import org.eclipse.jetty.http2.client.*
-import org.eclipse.jetty.http2.frames.*
-import org.eclipse.jetty.util.*
-import java.net.*
-import java.nio.*
-import kotlin.coroutines.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import org.eclipse.jetty.http.HostPortHttpField
+import org.eclipse.jetty.http.HttpFields
+import org.eclipse.jetty.http.HttpVersion
+import org.eclipse.jetty.http.MetaData
+import org.eclipse.jetty.http2.api.Session
+import org.eclipse.jetty.http2.client.HTTP2Client
+import org.eclipse.jetty.http2.client.HTTP2ClientSession
+import org.eclipse.jetty.http2.frames.HeadersFrame
+import org.eclipse.jetty.http2.frames.SettingsFrame
+import org.eclipse.jetty.util.Callback
+import java.net.InetSocketAddress
+import java.nio.ByteBuffer
+import kotlin.coroutines.CoroutineContext
 
 internal suspend fun HttpRequestData.executeRequest(
     client: HTTP2Client,
@@ -69,10 +76,7 @@ internal suspend fun HTTP2Client.connect(
 @OptIn(InternalAPI::class)
 private fun HttpRequestData.prepareHeadersFrame(): HeadersFrame {
     val rawHeaders = HttpFields.build()
-
-    mergeHeaders(headers, body) { name, value ->
-        rawHeaders.add(name, value)
-    }
+    forEachHeader(rawHeaders::add)
 
     val meta = MetaData.Request(
         method.value,
