@@ -263,6 +263,9 @@ public final class io/ktor/utils/io/DeprecationKt {
 	public static final fun release (Lkotlinx/io/Sink;)V
 }
 
+public abstract interface annotation class io/ktor/utils/io/ExperimentalKtorApi : java/lang/annotation/Annotation {
+}
+
 public abstract interface annotation class io/ktor/utils/io/InternalAPI : java/lang/annotation/Annotation {
 }
 

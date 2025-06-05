@@ -11,6 +11,7 @@ import io.ktor.server.html.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.utils.io.ExperimentalKtorApi
 import kotlinx.html.body
 import kotlinx.html.h1
 import kotlin.test.Test
@@ -18,7 +19,7 @@ import kotlin.test.assertEquals
 
 class HxRoutingTest {
 
-    @OptIn(ExperimentalHtmxApi::class)
+    @OptIn(ExperimentalKtorApi::class)
     @Test
     fun routing() = testApplication {
         val responseTemplate: (String) -> String = { header ->
