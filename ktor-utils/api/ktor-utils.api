@@ -392,6 +392,11 @@ public abstract interface class io/ktor/util/StringValuesBuilder {
 	public abstract fun set (Ljava/lang/String;Ljava/lang/String;)V
 }
 
+public final class io/ktor/util/StringValuesBuilder$DefaultImpls {
+	public static fun appendAll (Lio/ktor/util/StringValuesBuilder;Ljava/util/Map;)V
+	public static fun appendAllIterable (Lio/ktor/util/StringValuesBuilder;Ljava/util/Map;)V
+}
+
 public class io/ktor/util/StringValuesBuilderImpl : io/ktor/util/StringValuesBuilder {
 	public fun <init> ()V
 	public fun <init> (ZI)V
@@ -441,6 +446,10 @@ public class io/ktor/util/StringValuesImpl : io/ktor/util/StringValues {
 
 public final class io/ktor/util/StringValuesKt {
 	public static final fun appendAll (Lio/ktor/util/StringValuesBuilder;Lio/ktor/util/StringValuesBuilder;)Lio/ktor/util/StringValuesBuilder;
+	public static final fun appendAll (Lio/ktor/util/StringValuesBuilder;[Lkotlin/Pair;)Lio/ktor/util/StringValuesBuilder;
+	public static final fun appendAllIterable (Lio/ktor/util/StringValuesBuilder;[Lkotlin/Pair;)Lio/ktor/util/StringValuesBuilder;
+	public static final fun appendAllIterableWithMap (Lio/ktor/util/StringValuesBuilder;Ljava/util/Map;)Lio/ktor/util/StringValuesBuilder;
+	public static final fun appendAllIterableWithMapList (Lio/ktor/util/StringValuesBuilder;Ljava/util/Map;)Lio/ktor/util/StringValuesBuilder;
 	public static final fun appendFiltered (Lio/ktor/util/StringValuesBuilder;Lio/ktor/util/StringValues;ZLkotlin/jvm/functions/Function2;)V
 	public static synthetic fun appendFiltered$default (Lio/ktor/util/StringValuesBuilder;Lio/ktor/util/StringValues;ZLkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
 	public static final fun appendIfNameAbsent (Lio/ktor/util/StringValuesBuilder;Ljava/lang/String;Ljava/lang/String;)Lio/ktor/util/StringValuesBuilder;

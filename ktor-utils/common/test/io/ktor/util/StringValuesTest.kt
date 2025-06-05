@@ -116,4 +116,27 @@ class StringValuesTest {
         assertFalse { map.contains("kEy1", "value2") }
         assertFalse { map.contains("kEy1", "value3") }
     }
+
+    @Test
+    fun appendAllExtensions() {
+        val map = StringValues.build(true) {
+            appendAll("foo" to "bar")
+            appendAll("baz" to listOf("bar", "bor"))
+            appendAll(mapOf("rar" to listOf("boo", "too")))
+            appendAll(mapOf("goo" to "boo", "doo" to "dah"))
+        }
+
+        assertTrue { map.contains("foo") }
+        assertTrue { map.contains("foo", "bar") }
+        assertTrue { map.contains("baz") }
+        assertTrue { map.contains("baz", "bar") }
+        assertTrue { map.contains("baz", "bor") }
+        assertEquals(listOf("bar", "bor"), map.getAll("baz"))
+        assertTrue { map.contains("rar") }
+        assertTrue { map.contains("rar", "boo") }
+        assertTrue { map.contains("rar", "too") }
+        assertEquals(listOf("boo", "too"), map.getAll("rar"))
+        assertTrue { map.contains("goo", "boo") }
+        assertTrue { map.contains("doo", "dah") }
+    }
 }
