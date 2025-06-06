@@ -7,12 +7,12 @@ package io.ktor.client.webrtc
 import kotlinx.serialization.Serializable
 
 /**
- * An object containing WebRTC protocol entities and abstractions.
- * Provides the core types and interfaces needed for WebRTC peer-to-peer communication.
+ * An object containing WebRtc protocol entities and abstractions.
+ * Provides the core types and interfaces needed for WebRtc peer-to-peer communication.
  *
- * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API">MDN WebRTC API</a>
+ * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/WebRtc_API">MDN WebRtc API</a>
  */
-public object WebRTC {
+public object WebRtc {
     /**
      * Represents the state of the ICE connection.
      *
@@ -70,7 +70,7 @@ public object WebRTC {
     }
 
     /**
-     * Represents statistics about the WebRTC connection.
+     * Represents statistics about the WebRtc connection.
      *
      * @property id The unique identifier for this statistics object.
      * @property type The type of the statistics object.
@@ -87,7 +87,7 @@ public object WebRTC {
     )
 
     /**
-     * Represents an ICE server configuration for WebRTC connections.
+     * Represents an ICE server configuration for WebRtc connections.
      *
      * @property urls The URL(s) of the ICE server.
      * @property username Optional username for the ICE server.
@@ -133,7 +133,7 @@ public object WebRTC {
     }
 
     /**
-     * Represents an ICE candidate in the WebRTC connection process.
+     * Represents an ICE candidate in the WebRtc connection process.
      *
      * @property candidate The ICE candidate string in SDP format.
      * @property sdpMid The media stream identifier for the candidate.
@@ -149,7 +149,7 @@ public object WebRTC {
     )
 
     /**
-     * Represents a session description in the WebRTC connection process.
+     * Represents a session description in the WebRtc connection process.
      *
      * @property type The type of the session description.
      * @property sdp The SDP (Session Description Protocol) string.
@@ -163,7 +163,7 @@ public object WebRTC {
     )
 
     /**
-     * Represents the type of session description in the WebRTC connection process.
+     * Represents the type of session description in the WebRtc connection process.
      *
      * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/RTCSessionDescription">MDN RTCSessionDescription</a>
      */
@@ -186,8 +186,12 @@ public object WebRTC {
     public interface DtmfSender {
         public val toneBuffer: String
         public val canInsertDTMF: Boolean
-        public fun getNative(): Any
         public fun insertDTMF(tones: String, duration: Int, interToneGap: Int)
+
+        /**
+         * @return Native platform-specific object representing this DtmfSender.
+         */
+        public fun <T> getNative(): T
     }
 
     /**
@@ -249,12 +253,16 @@ public object WebRTC {
      */
     public interface RtpSender {
         public val dtmf: DtmfSender?
-        public val track: WebRTCMedia.Track?
+        public val track: WebRtcMedia.Track?
 
-        public fun getNative(): Any
-        public suspend fun replaceTrack(withTrack: WebRTCMedia.Track?)
+        public suspend fun replaceTrack(withTrack: WebRtcMedia.Track?)
         public suspend fun getParameters(): RtpParameters
         public suspend fun setParameters(parameters: RtpParameters)
+
+        /**
+         * @return Native platform-specific object representing this DtmfSender.
+         */
+        public fun <T> getNative(): T
     }
 
     /**

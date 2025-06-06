@@ -20,4 +20,6 @@ internal object DisabledStorage : CacheStorage {
     override suspend fun store(url: Url, data: CachedResponseData) {}
     override suspend fun find(url: Url, varyKeys: Map<String, String>): CachedResponseData? = null
     override suspend fun findAll(url: Url): Set<CachedResponseData> = emptySet()
+    override suspend fun remove(url: Url, varyKeys: Map<String, String>) {}
+    override suspend fun removeAll(url: Url) {}
 }

@@ -13,10 +13,10 @@ import kotlinx.coroutines.launch
 import org.w3c.dom.mediacapture.MediaStream
 import kotlin.coroutines.CoroutineContext
 
-public class JsWebRTCEngine(
-    override val config: JsWebRTCEngineConfig,
+public class JsWebRtcEngine(
+    override val config: JsWebRtcEngineConfig,
     private val mediaTrackFactory: MediaTrackFactory = config.mediaTrackFactory ?: NavigatorMediaDevices
-) : WebRTCEngineBase("js-webrtc"), MediaTrackFactory by mediaTrackFactory {
+) : WebRtcEngineBase("js-webrtc"), MediaTrackFactory by mediaTrackFactory {
 
     override suspend fun createPeerConnection(): WebRtcPeerConnection {
         val rtcConfig = jsObject<RTCConfiguration> {
@@ -36,7 +36,7 @@ public class JsWebRTCEngine(
         )
     }
 
-    private fun buildIceServers() = (config.iceServers + config.turnServers).map { iceServer ->
+    private fun buildIceServers() = config.iceServers.map { iceServer ->
         jsObject<RTCIceServer> {
             urls = iceServer.urls
             username = iceServer.username
@@ -46,7 +46,7 @@ public class JsWebRTCEngine(
 }
 
 /**
- * WebRTC peer connection implementation for JavaScript platform.
+ * WebRtc peer connection implementation for JavaScript platform.
  * @param nativePeerConnection The native RTCPeerConnection object.
  */
 public class JsWebRtcPeerConnection(
@@ -59,34 +59,36 @@ public class JsWebRtcPeerConnection(
     init {
         nativePeerConnection.onicecandidate = { event: RTCPeerConnectionIceEvent ->
             event.candidate?.let { candidate ->
-                launch { iceCandidates.emit(candidate.toCommon()) }
+                launch { iceCandidatesFlow.emit(candidate.toCommon()) }
             }
         }
 
         nativePeerConnection.oniceconnectionstatechange = {
             val newState = nativePeerConnection.iceConnectionState.toIceConnectionState()
-            launch { currentIceConnectionState.emit(newState) }
+            launch { iceConnectionStateFlow.emit(newState) }
         }
         nativePeerConnection.onconnectionstatechange = {
             val newState = nativePeerConnection.connectionState.toConnectionState()
-            launch { currentConnectionState.emit(newState) }
+            launch { connectionStateFlow.emit(newState) }
         }
         nativePeerConnection.onicegatheringstatechange = {
             val newState = nativePeerConnection.iceGatheringState.toIceGatheringState()
-            launch { currentIceGatheringState.emit(newState) }
+            launch { iceGatheringStateFlow.emit(newState) }
         }
         nativePeerConnection.onsignalingstatechange = {
             val newState = nativePeerConnection.signalingState.toSignalingState()
-            launch { currentSignalingState.emit(newState) }
+            launch { signalingStateFlow.emit(newState) }
         }
 
         nativePeerConnection.ontrack = { event: RTCTrackEvent ->
             val stream = event.streams.getOrNull(0)
             stream?.onremovetrack = { e ->
-                launch { remoteTracks.emit(Remove(JsMediaTrack.from(e.track, stream))) }
+                val removeEvent = TrackEvent.Remove(JsMediaTrack.from(e.track, stream))
+                launch { trackEventsFlow.emit(removeEvent) }
             }
             launch {
-                remoteTracks.emit(Add(JsMediaTrack.from(event.track, stream ?: MediaStream())))
+                val addEvent = TrackEvent.Add(JsMediaTrack.from(event.track, stream ?: MediaStream()))
+                trackEventsFlow.emit(addEvent)
             }
         }
 
@@ -100,55 +102,55 @@ public class JsWebRtcPeerConnection(
                 while (true) {
                     delay(statsRefreshRate)
                     val stats = nativePeerConnection.getStats().await().toCommon()
-                    currentStats.emit(stats)
+                    statsFlow.emit(stats)
                 }
             }
         }
     }
 
-    override fun getNativeConnection(): Any = nativePeerConnection
+    override fun <T> getNativeConnection(): T = nativePeerConnection as? T ?: error("Invalid connection type")
 
-    override val localDescription: WebRTC.SessionDescription?
+    override val localDescription: WebRtc.SessionDescription?
         get() = nativePeerConnection.localDescription?.toCommon()
 
-    override val remoteDescription: WebRTC.SessionDescription?
+    override val remoteDescription: WebRtc.SessionDescription?
         get() = nativePeerConnection.remoteDescription?.toCommon()
 
-    override suspend fun createOffer(): WebRTC.SessionDescription = withSdpException("Failed to create offer") {
+    override suspend fun createOffer(): WebRtc.SessionDescription = withSdpException("Failed to create offer") {
         return nativePeerConnection.createOffer().await().toCommon()
     }
 
-    override suspend fun createAnswer(): WebRTC.SessionDescription = withSdpException("Failed to create answer") {
+    override suspend fun createAnswer(): WebRtc.SessionDescription = withSdpException("Failed to create answer") {
         return nativePeerConnection.createAnswer().await().toCommon()
     }
 
-    override suspend fun setLocalDescription(description: WebRTC.SessionDescription): Unit =
+    override suspend fun setLocalDescription(description: WebRtc.SessionDescription): Unit =
         withSdpException("Failed to set local description") {
             nativePeerConnection.setLocalDescription(description.toJS()).await()
         }
 
-    override suspend fun setRemoteDescription(description: WebRTC.SessionDescription): Unit =
+    override suspend fun setRemoteDescription(description: WebRtc.SessionDescription): Unit =
         withSdpException("Failed to set remote description") {
             nativePeerConnection.setRemoteDescription(description.toJS()).await()
         }
 
-    override suspend fun addIceCandidate(candidate: WebRTC.IceCandidate): Unit =
+    override suspend fun addIceCandidate(candidate: WebRtc.IceCandidate): Unit =
         withIceException("Failed to add ICE candidate") {
             nativePeerConnection.addIceCandidate(candidate.toJS()).await()
         }
 
-    override suspend fun addTrack(track: WebRTCMedia.Track): WebRTC.RtpSender {
+    override suspend fun addTrack(track: WebRtcMedia.Track): WebRtc.RtpSender {
         val mediaTrack = (track as JsMediaTrack).nativeTrack
         return JsRtpSender(nativePeerConnection.addTrack(mediaTrack, track.nativeStream))
     }
 
-    override suspend fun removeTrack(track: WebRTCMedia.Track) {
+    override suspend fun removeTrack(track: WebRtcMedia.Track) {
         val mediaTrack = (track as JsMediaTrack).nativeTrack
         val sender = nativePeerConnection.getSenders().find { it.track == mediaTrack }
         sender?.let { nativePeerConnection.removeTrack(it) }
     }
 
-    override suspend fun removeTrack(sender: WebRTC.RtpSender) {
+    override suspend fun removeTrack(sender: WebRtc.RtpSender) {
         val rtpSender = (sender as JsRtpSender).nativeSender
         nativePeerConnection.removeTrack(rtpSender)
     }
@@ -162,7 +164,7 @@ public class JsWebRtcPeerConnection(
     }
 }
 
-public actual object JsWebRTC : WebRTCClientEngineFactory<JsWebRTCEngineConfig> {
-    actual override fun create(block: JsWebRTCEngineConfig.() -> Unit): WebRTCEngine =
-        JsWebRTCEngine(JsWebRTCEngineConfig().apply(block))
+public actual object JsWebRtc : WebRtcClientEngineFactory<JsWebRtcEngineConfig> {
+    actual override fun create(block: JsWebRtcEngineConfig.() -> Unit): WebRtcEngine =
+        JsWebRtcEngine(JsWebRtcEngineConfig().apply(block))
 }
