@@ -15,7 +15,7 @@ internal fun createGreetingService(): GreetingService =
 internal fun createBankService(): BankService =
     BankServiceImpl()
 
-internal fun DependencyRegistry.createBankTellerNoArgs(): BankTeller =
+internal suspend fun DependencyRegistry.createBankTellerNoArgs(): BankTeller =
     BankTeller(resolve(), resolve())
 
 internal fun createBankTellerWithArgs(
@@ -23,7 +23,7 @@ internal fun createBankTellerWithArgs(
     bankService: BankService
 ): BankTeller = BankTeller(greetingService, bankService)
 
-internal fun createBankTellerWithLogging(
+internal suspend fun createBankTellerWithLogging(
     environment: ApplicationEnvironment,
     registry: DependencyRegistry,
 ): BankTeller {

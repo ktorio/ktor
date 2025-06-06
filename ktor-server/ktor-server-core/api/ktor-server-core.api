@@ -99,6 +99,7 @@ public final class io/ktor/server/application/CreatePluginUtilsKt {
 
 public final class io/ktor/server/application/DefaultApplicationEventsKt {
 	public static final fun getApplicationModulesLoaded ()Lio/ktor/events/EventDefinition;
+	public static final fun getApplicationModulesLoading ()Lio/ktor/events/EventDefinition;
 	public static final fun getApplicationStarted ()Lio/ktor/events/EventDefinition;
 	public static final fun getApplicationStarting ()Lio/ktor/events/EventDefinition;
 	public static final fun getApplicationStopPreparing ()Lio/ktor/events/EventDefinition;
@@ -133,7 +134,7 @@ public final class io/ktor/server/application/MissingApplicationPluginException 
 
 public abstract interface class io/ktor/server/application/ModuleParametersInjector {
 	public static final field Companion Lio/ktor/server/application/ModuleParametersInjector$Companion;
-	public abstract fun resolveParameter (Lio/ktor/server/application/Application;Lkotlin/reflect/KParameter;)Ljava/lang/Object;
+	public abstract fun resolveParameter (Lio/ktor/server/application/Application;Lkotlin/reflect/KParameter;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/application/ModuleParametersInjector$Companion {
