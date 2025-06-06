@@ -12,7 +12,6 @@ import io.ktor.client.statement.*
 import io.ktor.client.test.base.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
-import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withTimeout
@@ -20,6 +19,8 @@ import kotlinx.io.IOException
 import kotlin.test.*
 
 private const val TEST_URL = "$TEST_SERVER/timeout"
+
+private val ENGINES_WITHOUT_SOCKET_TIMEOUT = listOf("Java", "Curl", "Js")
 
 class HttpTimeoutTest : ClientLoader() {
     @Test
@@ -118,14 +119,14 @@ class HttpTimeoutTest : ClientLoader() {
     fun testGetWithCancellation() = clientTests {
         config {
             install(HttpTimeout) {
-                requestTimeoutMillis = 5000
+                requestTimeoutMillis = 1000
             }
 
             test { client ->
                 val requestBuilder = HttpRequestBuilder().apply {
                     method = HttpMethod.Get
                     url("$TEST_URL/with-stream")
-                    parameter("delay", 7000)
+                    parameter("delay", 2000)
                 }
 
                 client.prepareRequest(requestBuilder).body<ByteReadChannel>().cancel()
@@ -171,11 +172,8 @@ class HttpTimeoutTest : ClientLoader() {
 
     @Test
     fun testGetWithSeparateReceive() = clientTests {
-//      https://youtrack.jetbrains.com/issue/KTOR-7847/Investigate-Flaky-timeout-tests-on-linuxX64
-        if (PlatformUtils.IS_NATIVE) return@clientTests
-
         config {
-            install(HttpTimeout) { requestTimeoutMillis = 2000 }
+            install(HttpTimeout) { requestTimeoutMillis = 1000 }
         }
 
         test { client ->
@@ -191,9 +189,6 @@ class HttpTimeoutTest : ClientLoader() {
 
     @Test
     fun testGetWithSeparateReceivePerRequestAttributes() = clientTests {
-//      https://youtrack.jetbrains.com/issue/KTOR-7847/Investigate-Flaky-timeout-tests-on-linuxX64
-        if (PlatformUtils.IS_NATIVE) return@clientTests
-
         config {
             install(HttpTimeout)
         }
@@ -213,11 +208,8 @@ class HttpTimeoutTest : ClientLoader() {
 
     @Test
     fun testGetRequestTimeoutWithSeparateReceive() = clientTests(except("Js"), retries = 5) {
-//      https://youtrack.jetbrains.com/issue/KTOR-7847/Investigate-Flaky-timeout-tests-on-linuxX64
-        if (PlatformUtils.IS_NATIVE) return@clientTests
-
         config {
-            install(HttpTimeout) { requestTimeoutMillis = 2000 }
+            install(HttpTimeout) { requestTimeoutMillis = 1000 }
         }
 
         test { client ->
@@ -234,7 +226,7 @@ class HttpTimeoutTest : ClientLoader() {
 
     @Test
     fun testGetRequestTimeoutWithSeparateReceivePerRequestAttributes() = clientTests(
-        except("Js", "Curl", "Darwin", "DarwinLegacy")
+        except("Js", "Darwin", "DarwinLegacy")
     ) {
         config {
             install(HttpTimeout)
@@ -254,7 +246,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testGetAfterTimeout() = clientTests(except("Curl", "Js", "Darwin", "DarwinLegacy")) {
+    fun testGetAfterTimeout() = clientTests(except("Js", "Darwin", "DarwinLegacy")) {
         config {
             install(HttpTimeout)
         }
@@ -268,7 +260,7 @@ class HttpTimeoutTest : ClientLoader() {
                 response.readUTF8Line()
             }
             val result = client.get("$TEST_URL/with-delay?delay=1") {
-                timeout { requestTimeoutMillis = 10000 }
+                timeout { requestTimeoutMillis = 1000 }
             }.bodyAsText()
             assertEquals("Text", result)
         }
@@ -276,9 +268,6 @@ class HttpTimeoutTest : ClientLoader() {
 
     @Test
     fun testGetStream() = clientTests(retries = 10) {
-//        https://youtrack.jetbrains.com/issue/KTOR-7847/Investigate-Flaky-timeout-tests-on-linuxX64
-        if (PlatformUtils.IS_NATIVE) return@clientTests
-
         config {
             install(HttpTimeout) { requestTimeoutMillis = 1000 }
         }
@@ -325,12 +314,10 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     // Js can't configure test timeout in browser
-    // Fix https://youtrack.jetbrains.com/issue/KTOR-7885
-    @Ignore
     @Test
     fun testRedirect() = clientTests(except("Js"), retries = 5) {
         config {
-            install(HttpTimeout) { requestTimeoutMillis = 10000 }
+            install(HttpTimeout) { requestTimeoutMillis = 1000 }
         }
 
         test { client ->
@@ -446,7 +433,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testSocketTimeoutRead() = clientTests(except("Js", "native:CIO", "Curl", "Java")) {
+    fun testSocketTimeoutRead() = clientTests(except(ENGINES_WITHOUT_SOCKET_TIMEOUT, "native:CIO")) {
         config {
             install(HttpTimeout) { socketTimeoutMillis = 1000 }
         }
@@ -462,7 +449,7 @@ class HttpTimeoutTest : ClientLoader() {
 
     @Test
     fun testSocketTimeoutReadPerRequestAttributes() = clientTests(
-        except("Js", "native:CIO", "Curl", "Java", "Apache5")
+        except(ENGINES_WITHOUT_SOCKET_TIMEOUT, "native:CIO", "Apache5")
     ) {
         config {
             install(HttpTimeout)
@@ -481,7 +468,7 @@ class HttpTimeoutTest : ClientLoader() {
 
     @Test
     fun testSocketTimeoutWriteFailOnWrite() = clientTests(
-        except("Js", "Android", "native:CIO", "web:CIO", "Curl", "Java", "WinHttp")
+        except(ENGINES_WITHOUT_SOCKET_TIMEOUT, "Android", "native:CIO", "web:CIO", "WinHttp")
     ) {
         config {
             install(HttpTimeout) { socketTimeoutMillis = 500 }
@@ -496,7 +483,7 @@ class HttpTimeoutTest : ClientLoader() {
 
     @Test
     fun testSocketTimeoutWriteFailOnWritePerRequestAttributes() = clientTests(
-        except("Js", "Android", "Apache5", "native:CIO", "web:CIO", "Curl", "Java", "WinHttp")
+        except(ENGINES_WITHOUT_SOCKET_TIMEOUT, "Android", "Apache5", "native:CIO", "web:CIO", "WinHttp")
     ) {
         config {
             install(HttpTimeout)
