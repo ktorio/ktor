@@ -14,8 +14,15 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 plugins {
     id("ktorbuild.base")
     kotlin("multiplatform")
-    id("org.jetbrains.kotlinx.atomicfu")
     id("ktorbuild.codestyle")
+}
+
+// atomicfu gradle plugin is not compatible with Android KMP plugin
+// see https://github.com/Kotlin/kotlinx-atomicfu/issues/511
+if (!project.hasAndroidPlugin()) {
+    plugins {
+        id("org.jetbrains.kotlinx.atomicfu")
+    }
 }
 
 kotlin {
@@ -30,7 +37,7 @@ kotlin {
     }
 
     applyHierarchyTemplate(KtorTargets.hierarchyTemplate)
-    addTargets(ktorBuild.targets)
+    addTargets(ktorBuild.targets, ktorBuild.isCI.get())
 }
 
 val targets = ktorBuild.targets
@@ -39,6 +46,7 @@ configureCommon()
 if (targets.hasJvm) configureJvm()
 if (targets.hasJs) configureJs()
 if (targets.hasWasmJs) configureWasmJs()
+if (targets.hasAndroidJvm && project.hasAndroidPlugin()) configureAndroidJvm()
 
 if (targets.hasJsOrWasmJs) {
     tasks.configureEach {

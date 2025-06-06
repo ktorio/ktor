@@ -6,6 +6,7 @@
 
 package ktorbuild.targets
 
+import com.android.build.api.dsl.androidLibrary
 import ktorbuild.internal.KotlinHierarchyTracker
 import ktorbuild.internal.TrackedKotlinHierarchyTemplate
 import ktorbuild.internal.gradle.ProjectGradleProperties
@@ -50,6 +51,12 @@ import javax.inject.Inject
  * target.wasmJs.browser=false
  * ```
  *
+ * Android JVM tests could be also configured
+ * ```properties
+ * target.android.unitTest=false
+ * target.android.deviceTest=false
+ * ```
+ *
  * See the full list of targets and target groups in [KtorTargets.hierarchyTemplate].
  */
 abstract class KtorTargets internal constructor(
@@ -76,6 +83,7 @@ abstract class KtorTargets internal constructor(
     val hasJvm: Boolean get() = isEnabled("jvm")
     val hasJs: Boolean get() = isEnabled("js")
     val hasWasmJs: Boolean get() = isEnabled("wasmJs")
+    val hasAndroidJvm: Boolean get() = isEnabled("android")
 
     val hasJsOrWasmJs: Boolean get() = hasJs || hasWasmJs
     val hasNative: Boolean get() = resolveTargets("posix").any(::isEnabled)
@@ -168,6 +176,8 @@ abstract class KtorTargets internal constructor(
                     group("posix")
                     group("jsAndWasmShared")
                 }
+
+                withAndroidTarget()
             }
         }
 
@@ -176,8 +186,12 @@ abstract class KtorTargets internal constructor(
     }
 }
 
-internal fun KotlinMultiplatformExtension.addTargets(targets: KtorTargets) {
+internal fun KotlinMultiplatformExtension.addTargets(targets: KtorTargets, isCI: Boolean) {
     if (targets.hasJvm) jvm()
+    if (targets.hasAndroidJvm && project.hasAndroidPlugin()) {
+        // device tests are not configured on the CI yet
+        androidLibrary { addTests(targets, allowDeviceTest = !isCI) }
+    }
 
     if (targets.hasJs) js { addSubTargets(targets) }
     @OptIn(ExperimentalWasmDsl::class)
