@@ -17,10 +17,12 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.yield
 import java.io.File
 import java.net.URL
 import java.net.URLDecoder
@@ -32,6 +34,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.getOrSet
 import kotlin.concurrent.read
 import kotlin.concurrent.write
+import kotlin.time.Duration.Companion.seconds
 
 private typealias ApplicationModule = suspend Application.() -> Unit
 private typealias DynamicApplicationModule = suspend Application.(ClassLoader) -> Unit
@@ -390,7 +393,23 @@ actual constructor(
         safeRaiseEvent(ApplicationStarting, newInstance)
 
         avoidingDoubleStartup {
-            modules.forEach { module -> module(newInstance, currentClassLoader) }
+            // TODO only if concurrent startup is specified
+            withContext(application.coroutineContext + Dispatchers.Default.limitedParallelism(1)) {
+                val jobs = modules.map { module ->
+                    launch {
+                        module(newInstance, currentClassLoader)
+                    }
+                }.toMutableList()
+
+                jobs += launch {
+                    yield()
+                    monitor.raise(ApplicationModulesLoading, newInstance)
+                }
+
+                withTimeout(5.seconds) {
+                    jobs.joinAll()
+                }
+            }
         }
 
         monitor.raise(ApplicationModulesLoaded, newInstance)
@@ -441,7 +460,7 @@ actual constructor(
         return { module() }
     }
 
-    private fun launchModuleByName(name: String, currentClassLoader: ClassLoader, newInstance: Application) {
+    private suspend fun launchModuleByName(name: String, currentClassLoader: ClassLoader, newInstance: Application) {
         avoidingDoubleStartupFor(name) {
             executeModuleFunction(currentClassLoader, name, newInstance, moduleInjector)
         }
@@ -461,7 +480,7 @@ actual constructor(
         }
     }
 
-    private fun avoidingDoubleStartupFor(fqName: String, block: () -> Unit) {
+    private suspend fun avoidingDoubleStartupFor(fqName: String, block: suspend () -> Unit) {
         val modules = currentStartupModules.getOrSet { ArrayList(1) }
         check(!modules.contains(fqName)) {
             "Module startup is already in progress for function $fqName (recursive module startup from module main?)"
