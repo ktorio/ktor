@@ -126,6 +126,8 @@ projects {
         +"ktor-client-test-base"
         +"ktor-client-tests"
 
+        +"ktor-client-webrtc"
+
         nested("ktor-client-plugins") {
             +"ktor-client-auth"
             +"ktor-client-bom-remover"
