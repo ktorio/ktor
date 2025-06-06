@@ -4,10 +4,10 @@
 
 package io.ktor.utils.io.errors
 
-import kotlinx.cinterop.*
-import kotlinx.io.*
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.toKString
 import platform.posix.*
-import kotlin.native.concurrent.*
 
 private val KnownPosixErrors = mapOf(
     EBADF to "EBADF",
@@ -78,7 +78,7 @@ public sealed class PosixException(public val errno: Int, message: String) : Exc
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.errors.PosixException.Companion.forErrno)
          *
-         * @param errno error code returned by [posix.platform.errno]
+         * @param errno error code returned by [platform.posix.errno]
          * @param posixFunctionName optional function name to be included to the exception message
          * @return an instance of [PosixException] or it's subtype
          */
