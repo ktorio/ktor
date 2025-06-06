@@ -62,6 +62,8 @@ abstract interface io.ktor.client.engine/HttpClientEngine : io.ktor.utils.io.cor
 abstract interface io.ktor.client.plugins.cache.storage/CacheStorage { // io.ktor.client.plugins.cache.storage/CacheStorage|null[0]
     abstract suspend fun find(io.ktor.http/Url, kotlin.collections/Map<kotlin/String, kotlin/String>): io.ktor.client.plugins.cache.storage/CachedResponseData? // io.ktor.client.plugins.cache.storage/CacheStorage.find|find(io.ktor.http.Url;kotlin.collections.Map<kotlin.String,kotlin.String>){}[0]
     abstract suspend fun findAll(io.ktor.http/Url): kotlin.collections/Set<io.ktor.client.plugins.cache.storage/CachedResponseData> // io.ktor.client.plugins.cache.storage/CacheStorage.findAll|findAll(io.ktor.http.Url){}[0]
+    abstract suspend fun remove(io.ktor.http/Url, kotlin.collections/Map<kotlin/String, kotlin/String>) // io.ktor.client.plugins.cache.storage/CacheStorage.remove|remove(io.ktor.http.Url;kotlin.collections.Map<kotlin.String,kotlin.String>){}[0]
+    abstract suspend fun removeAll(io.ktor.http/Url) // io.ktor.client.plugins.cache.storage/CacheStorage.removeAll|removeAll(io.ktor.http.Url){}[0]
     abstract suspend fun store(io.ktor.http/Url, io.ktor.client.plugins.cache.storage/CachedResponseData) // io.ktor.client.plugins.cache.storage/CacheStorage.store|store(io.ktor.http.Url;io.ktor.client.plugins.cache.storage.CachedResponseData){}[0]
 
     final object Companion { // io.ktor.client.plugins.cache.storage/CacheStorage.Companion|null[0]

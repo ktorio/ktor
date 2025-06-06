@@ -24,7 +24,7 @@ public inline fun <T : JsAny> jsObject(init: T.() -> Unit): T {
     return obj
 }
 
-public fun WebRTCMedia.AudioTrackConstraints.toJS(): MediaTrackConstraints {
+public fun WebRtcMedia.AudioTrackConstraints.toJS(): MediaTrackConstraints {
     return MediaTrackConstraints(
         volume = volume?.toJsNumber(),
         latency = latency?.toJsNumber(),
@@ -37,7 +37,7 @@ public fun WebRTCMedia.AudioTrackConstraints.toJS(): MediaTrackConstraints {
     )
 }
 
-public fun WebRTCMedia.VideoTrackConstraints.toJS(): MediaTrackConstraints {
+public fun WebRtcMedia.VideoTrackConstraints.toJS(): MediaTrackConstraints {
     return MediaTrackConstraints(
         width = width?.toJsNumber(),
         height = height?.toJsNumber(),
@@ -48,23 +48,23 @@ public fun WebRTCMedia.VideoTrackConstraints.toJS(): MediaTrackConstraints {
     )
 }
 
-public fun makeIceServerObject(server: WebRTC.IceServer): RTCIceServer = jsObject {
+public fun makeIceServerObject(server: WebRtc.IceServer): RTCIceServer = jsObject {
     urls = server.urls.toJsString()
     username = server.username?.toJsString()
     credential = server.credential?.toJsString()
 }
 
-internal fun mapIceServers(iceServers: List<WebRTC.IceServer>): JsArray<RTCIceServer> =
+internal fun mapIceServers(iceServers: List<WebRtc.IceServer>): JsArray<RTCIceServer> =
     iceServers.map { makeIceServerObject(it) }.toJsArray()
 
-public fun RTCSessionDescription.toCommon(): WebRTC.SessionDescription {
-    return WebRTC.SessionDescription(
+public fun RTCSessionDescription.toCommon(): WebRtc.SessionDescription {
+    return WebRtc.SessionDescription(
         sdp = sdp.toString(),
         type = type.toString().toSdpDescriptionType(),
     )
 }
 
-public fun WebRTC.SessionDescription.toJS(): RTCSessionDescription {
+public fun WebRtc.SessionDescription.toJS(): RTCSessionDescription {
     // RTCSessionDescription constructor is deprecated.
     // All methods that accept RTCSessionDescription objects also accept objects with the same properties,
     // so you can use a plain object instead of creating an RTCSessionDescription instance.
@@ -74,13 +74,13 @@ public fun WebRTC.SessionDescription.toJS(): RTCSessionDescription {
     }
 }
 
-public fun RTCIceCandidate.toCommon(): WebRTC.IceCandidate = WebRTC.IceCandidate(
+public fun RTCIceCandidate.toCommon(): WebRtc.IceCandidate = WebRtc.IceCandidate(
     candidate = candidate.toString(),
     sdpMid = sdpMid.toString(),
     sdpMLineIndex = sdpMLineIndex.toInt()
 )
 
-public fun WebRTC.IceCandidate.toJS(): RTCIceCandidate {
+public fun WebRtc.IceCandidate.toJS(): RTCIceCandidate {
     val options = jsObject<RTCIceCandidateInit> {
         sdpMLineIndex = this@toJS.sdpMLineIndex.toJsNumber()
         candidate = this@toJS.candidate.toJsString()
@@ -115,12 +115,12 @@ private fun kotlinMapFromEntries(obj: JsAny): Map<String, Any> {
 }
 
 /**
- * Converts a browser RTCStatsReport to a list of common WebRTC.Stats objects.
+ * Converts a browser RTCStatsReport to a list of common WebRtc.Stats objects.
  * Extracts values from the report map and converts each entry to the common format.
  */
-public fun RTCStatsReport.toCommon(): List<WebRTC.Stats> {
+public fun RTCStatsReport.toCommon(): List<WebRtc.Stats> {
     return getValues<RTCStats>(this).toArray().map { stats ->
-        WebRTC.Stats(
+        WebRtc.Stats(
             timestamp = stats.timestamp.toDouble().toLong(),
             type = stats.type.toString(),
             id = stats.id.toString(),

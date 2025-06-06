@@ -43,8 +43,8 @@ public class AndroidMediaDevices(
 
     private val cameraEnumerator = Camera2Enumerator(context)
 
-    private fun findCameraId(constraints: WebRTCMedia.VideoTrackConstraints): String? {
-        val targetFrontCamera = constraints.facingMode != WebRTCMedia.FacingMode.ENVIRONMENT
+    private fun findCameraId(constraints: WebRtcMedia.VideoTrackConstraints): String? {
+        val targetFrontCamera = constraints.facingMode != WebRtcMedia.FacingMode.ENVIRONMENT
         return cameraEnumerator.deviceNames.firstOrNull { id ->
             if (targetFrontCamera) {
                 cameraEnumerator.isFrontFacing(id)
@@ -82,11 +82,11 @@ public class AndroidMediaDevices(
     private fun assertPermission(permission: String) {
         val status = context.checkCallingOrSelfPermission(permission)
         if (status != PackageManager.PERMISSION_GRANTED) {
-            throw WebRTCMedia.PermissionException(permission)
+            throw WebRtcMedia.PermissionException(permission)
         }
     }
 
-    override suspend fun createAudioTrack(constraints: WebRTCMedia.AudioTrackConstraints): WebRTCMedia.AudioTrack {
+    override suspend fun createAudioTrack(constraints: WebRtcMedia.AudioTrackConstraints): WebRtcMedia.AudioTrack {
         if (constraints.latency != null) {
             throw NotImplementedError(
                 "Latency is not supported yet for Android. You can provide custom MediaTrackFactory"
@@ -130,7 +130,7 @@ public class AndroidMediaDevices(
         }
     }
 
-    private suspend fun makeVideoSource(constraints: WebRTCMedia.VideoTrackConstraints): Pair<VideoSource, () -> Unit> {
+    private suspend fun makeVideoSource(constraints: WebRtcMedia.VideoTrackConstraints): Pair<VideoSource, () -> Unit> {
         val cameraId = findCameraId(constraints) ?: error("No camera found for such constraints")
         val format = cameraEnumerator.getSupportedFormats(cameraId)!![0]
 
@@ -144,16 +144,16 @@ public class AndroidMediaDevices(
             val eventsHandler = object : CameraEventsHandler {
                 override fun onCameraError(err: String?) {
                     onDispose()
-                    if (cont.isActive) cont.resumeWithException(WebRTCMedia.DeviceException(err ?: "Camera error"))
+                    if (cont.isActive) cont.resumeWithException(WebRtcMedia.DeviceException(err ?: "Camera error"))
                 }
 
                 override fun onCameraDisconnected() {
                     onDispose()
-                    if (cont.isActive) cont.resumeWithException(WebRTCMedia.DeviceException("Camera disconnected"))
+                    if (cont.isActive) cont.resumeWithException(WebRtcMedia.DeviceException("Camera disconnected"))
                 }
 
                 override fun onCameraClosed() {
-                    if (cont.isActive) cont.resumeWithException(WebRTCMedia.DeviceException("Camera closed"))
+                    if (cont.isActive) cont.resumeWithException(WebRtcMedia.DeviceException("Camera closed"))
                 }
 
                 override fun onFirstFrameAvailable() {
@@ -182,7 +182,7 @@ public class AndroidMediaDevices(
         }
     }
 
-    override suspend fun createVideoTrack(constraints: WebRTCMedia.VideoTrackConstraints): WebRTCMedia.VideoTrack {
+    override suspend fun createVideoTrack(constraints: WebRtcMedia.VideoTrackConstraints): WebRtcMedia.VideoTrack {
         if (constraints.resizeMode != null) {
             throw NotImplementedError(
                 "Resize mode is not supported yet for Android. You can provide custom MediaTrackFactory"

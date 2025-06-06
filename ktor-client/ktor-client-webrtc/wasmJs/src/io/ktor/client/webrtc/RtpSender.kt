@@ -14,63 +14,63 @@ import io.ktor.client.webrtc.browser.RTCRtpSender
 import kotlinx.coroutines.await
 import org.w3c.dom.mediacapture.MediaStream
 
-public class WasmJsRtpSender(public val nativeSender: RTCRtpSender) : WebRTC.RtpSender {
-    override val dtmf: WebRTC.DtmfSender? get() = nativeSender.dtmf?.let { WasmJsDtmfSender(it) }
+public class WasmJsRtpSender(public val nativeSender: RTCRtpSender) : WebRtc.RtpSender {
+    override val dtmf: WebRtc.DtmfSender? get() = nativeSender.dtmf?.let { WasmJsDtmfSender(it) }
 
-    override val track: WebRTCMedia.Track?
+    override val track: WebRtcMedia.Track?
         get() = nativeSender.track?.let { WasmJsMediaTrack.from(it, MediaStream()) }
 
-    override fun getNative(): Any = nativeSender
+    override fun <T> getNative(): T = nativeSender as? T ?: error("T should be RTCRtpSender")
 
-    override suspend fun replaceTrack(withTrack: WebRTCMedia.Track?) {
+    override suspend fun replaceTrack(withTrack: WebRtcMedia.Track?) {
         nativeSender.replaceTrack((withTrack as? WasmJsMediaTrack)?.nativeTrack)
     }
 
-    override suspend fun getParameters(): WebRTC.RtpParameters {
+    override suspend fun getParameters(): WebRtc.RtpParameters {
         val params = nativeSender.getParameters()?.unsafeCast<RTCRtpSendParameters>() ?: error("Params are undefined")
         return WasmJsRtpParameters(params)
     }
 
-    override suspend fun setParameters(parameters: WebRTC.RtpParameters) {
+    override suspend fun setParameters(parameters: WebRtc.RtpParameters) {
         if (parameters is WasmJsRtpParameters) {
             nativeSender.setParameters(parameters.nativeRtpParameters).await<JsUndefined>()
         }
     }
 }
 
-public class WasmJsDtmfSender(private val nativeSender: RTCDTMFSender) : WebRTC.DtmfSender {
+public class WasmJsDtmfSender(private val nativeSender: RTCDTMFSender) : WebRtc.DtmfSender {
     override val toneBuffer: String
         get() = nativeSender.toneBuffer.toString()
     override val canInsertDTMF: Boolean
         get() = nativeSender.canInsertDTMF.toBoolean()
 
-    override fun getNative(): Any = nativeSender
+    override fun <T> getNative(): T = nativeSender as? T ?: error("T should be RTCDTMFSender")
 
     override fun insertDTMF(tones: String, duration: Int, interToneGap: Int) {
         nativeSender.insertDTMF(tones.toJsString(), duration.toJsNumber(), interToneGap.toJsNumber())
     }
 }
 
-public class WasmJsRtpParameters(public val nativeRtpParameters: RTCRtpSendParameters) : WebRTC.RtpParameters {
+public class WasmJsRtpParameters(public val nativeRtpParameters: RTCRtpSendParameters) : WebRtc.RtpParameters {
     override val transactionId: String = nativeRtpParameters.transactionId.toString()
     override val encodings: Iterable<RTCRtpEncodingParameters> = nativeRtpParameters.encodings.toArray().asIterable()
     override val codecs: Iterable<RTCRtpCodecParameters> = nativeRtpParameters.codecs.toArray().asIterable()
     override val rtcp: RTCRtcpParameters = nativeRtpParameters.rtcp
 
-    override val headerExtensions: List<WebRTC.RtpHeaderExtensionParameters>
+    override val headerExtensions: List<WebRtc.RtpHeaderExtensionParameters>
         get() = nativeRtpParameters.headerExtensions.toArray().map {
-            WebRTC.RtpHeaderExtensionParameters(
+            WebRtc.RtpHeaderExtensionParameters(
                 it.id.toInt(),
                 it.uri.toString(),
                 it.encrypted ?: false
             )
         }
 
-    override val degradationPreference: WebRTC.DegradationPreference
+    override val degradationPreference: WebRtc.DegradationPreference
         get() = nativeRtpParameters.degradationPreference?.toString().toDegradationPreference()
 }
 
-public actual object JsWebRTC : WebRTCClientEngineFactory<JsWebRTCEngineConfig> {
-    actual override fun create(block: JsWebRTCEngineConfig.() -> Unit): WebRTCEngine =
-        WasmJsWebRTCEngine(JsWebRTCEngineConfig().apply(block))
+public actual object JsWebRtc : WebRtcClientEngineFactory<JsWebRtcEngineConfig> {
+    actual override fun create(block: JsWebRtcEngineConfig.() -> Unit): WebRtcEngine =
+        WasmJsWebRtcEngine(JsWebRtcEngineConfig().apply(block))
 }

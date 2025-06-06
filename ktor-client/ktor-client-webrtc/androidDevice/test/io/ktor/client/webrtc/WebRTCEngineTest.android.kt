@@ -10,10 +10,9 @@ import androidx.test.platform.app.InstrumentationRegistry
 
 private val ctx: Context get() = InstrumentationRegistry.getInstrumentation().targetContext
 
-actual fun createTestWebRTCClient(): WebRTCClient {
-    return WebRTCClient(AndroidWebRTC) {
+actual fun createTestWebRtcClient(): WebRtcClient {
+    return WebRtcClient(AndroidWebRtc) {
         iceServers = listOf()
-        turnServers = listOf()
         statsRefreshRate = 100 // 100 ms refresh rate
         mediaTrackFactory = AndroidMediaDevices(ctx)
     }

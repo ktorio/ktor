@@ -5,7 +5,7 @@
 
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
-description = "Ktor WebRTC client"
+description = "Ktor WebRtc client"
 
 plugins {
     id("com.android.kotlin.multiplatform.library")
@@ -28,7 +28,7 @@ kotlin {
             // because its plugin is not compatible with Android KMP plugin
             implementation(libs.kotlinx.atomicfu)
             api(project(":ktor-io"))
-            api(project(":ktor-utils"))
+            api(libs.kotlinx.serialization.core)
         }
 
         commonTest.dependencies {

@@ -5,9 +5,7 @@
 package io.ktor.client.webrtc
 
 import android.content.Context
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.webrtc.AddIceObserver
@@ -25,25 +23,23 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-internal actual fun ioDispatcher(): CoroutineDispatcher = Dispatchers.IO
-
-public class AndroidWebRTCEngineConfig : WebRTCConfig() {
+public class AndroidWebRtcEngineConfig : WebRtcConfig() {
     /**
      * Android application context needed to create media tracks.
      * */
     public lateinit var context: Context
 
     /**
-     * In Android WebRTC implementation PeerConnectionFactory is coupled with the MediaTrackFactory, so if you provide a
+     * In Android WebRtc implementation PeerConnectionFactory is coupled with the MediaTrackFactory, so if you provide a
      * custom MediaTrackFactory, you should specify PeerConnectionFactory to initialize a PeerConnection.
      * */
     public var rtcFactory: PeerConnectionFactory? = null
 }
 
-public class AndroidWebRTCEngine(
-    override val config: AndroidWebRTCEngineConfig,
+public class AndroidWebRtcEngine(
+    override val config: AndroidWebRtcEngineConfig,
     private val mediaTrackFactory: MediaTrackFactory = config.mediaTrackFactory ?: AndroidMediaDevices(config.context)
-) : WebRTCEngineBase("android-webrtc"), MediaTrackFactory by mediaTrackFactory {
+) : WebRtcEngineBase("android-webrtc"), MediaTrackFactory by mediaTrackFactory {
 
     private fun getLocalFactory(): PeerConnectionFactory {
         val factory = config.rtcFactory ?: (mediaTrackFactory as? AndroidMediaDevices)?.peerConnectionFactory
@@ -53,7 +49,7 @@ public class AndroidWebRTCEngine(
         return factory
     }
 
-    private fun WebRTC.IceServer.toNative(): PeerConnection.IceServer {
+    private fun WebRtc.IceServer.toNative(): PeerConnection.IceServer {
         return PeerConnection.IceServer
             .builder(urls)
             .setUsername(username ?: "") // will throw if null
@@ -62,7 +58,7 @@ public class AndroidWebRTCEngine(
     }
 
     override suspend fun createPeerConnection(): WebRtcPeerConnection {
-        val iceServers = (config.iceServers + config.turnServers).map { it.toNative() }
+        val iceServers = config.iceServers.map { it.toNative() }
         val rtcConfig = RTCConfiguration(iceServers).apply {
             bundlePolicy = config.bundlePolicy.toNative()
             rtcpMuxPolicy = config.rtcpMuxPolicy.toNative()
@@ -104,7 +100,7 @@ public class AndroidWebRtcPeerConnection(
                     val stats = suspendCoroutine { cont ->
                         peerConnection.getStats { cont.resume(it.toCommon()) }
                     }
-                    currentStats.emit(stats)
+                    statsFlow.emit(stats)
                 }
             }
         }
@@ -112,8 +108,8 @@ public class AndroidWebRtcPeerConnection(
         return this
     }
 
-    private val hasVideo get() = rtpSenders.any { it.track?.kind == WebRTCMedia.TrackType.VIDEO }
-    private val hasAudio get() = rtpSenders.any { it.track?.kind == WebRTCMedia.TrackType.AUDIO }
+    private val hasVideo get() = rtpSenders.any { it.track?.kind == WebRtcMedia.TrackType.VIDEO }
+    private val hasAudio get() = rtpSenders.any { it.track?.kind == WebRtcMedia.TrackType.AUDIO }
 
     private fun offerConstraints() = MediaConstraints().apply {
         if (hasAudio) mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true"))
@@ -124,7 +120,7 @@ public class AndroidWebRtcPeerConnection(
         override fun onIceCandidate(candidate: IceCandidate?) {
             if (candidate == null) return
             launch {
-                iceCandidates.emit(candidate.toCommon())
+                iceCandidatesFlow.emit(candidate.toCommon())
             }
         }
 
@@ -133,35 +129,41 @@ public class AndroidWebRtcPeerConnection(
         override fun onAddTrack(receiver: RtpReceiver?, mediaStreams: Array<out MediaStream>?) {
             if (receiver == null) return
             launch {
-                receiver.track()?.let { remoteTracks.emit(Add(AndroidMediaTrack.from(it))) }
+                receiver.track()?.let {
+                    val addEvent = TrackEvent.Add(AndroidMediaTrack.from(it))
+                    trackEventsFlow.emit(addEvent)
+                }
             }
         }
 
         override fun onRemoveTrack(receiver: RtpReceiver?) {
             if (receiver == null) return
             launch {
-                receiver.track()?.let { remoteTracks.emit(Remove(AndroidMediaTrack.from(it))) }
+                receiver.track()?.let {
+                    val removeEvent = TrackEvent.Remove(AndroidMediaTrack.from(it))
+                    trackEventsFlow.emit(removeEvent)
+                }
             }
         }
 
         override fun onIceConnectionChange(newState: PeerConnection.IceConnectionState?) {
             val commonState = newState.toCommon() ?: return
-            launch { currentIceConnectionState.emit(commonState) }
+            launch { iceConnectionStateFlow.emit(commonState) }
         }
 
         override fun onConnectionChange(newState: PeerConnection.PeerConnectionState?) {
             val commonState = newState.toCommon() ?: return
-            launch { currentConnectionState.emit(commonState) }
+            launch { connectionStateFlow.emit(commonState) }
         }
 
         override fun onSignalingChange(newState: PeerConnection.SignalingState?) {
             val commonState = newState.toCommon() ?: return
-            launch { currentSignalingState.emit(commonState) }
+            launch { signalingStateFlow.emit(commonState) }
         }
 
         override fun onIceGatheringChange(newState: PeerConnection.IceGatheringState?) {
             val commonState = newState.toCommon() ?: return
-            launch { currentIceGatheringState.emit(commonState) }
+            launch { iceGatheringStateFlow.emit(commonState) }
         }
 
         override fun onIceConnectionReceivingChange(receiving: Boolean) = Unit
@@ -175,39 +177,39 @@ public class AndroidWebRtcPeerConnection(
         override fun onDataChannel(dataChannel: DataChannel?) = Unit
     }
 
-    override val localDescription: WebRTC.SessionDescription?
+    override val localDescription: WebRtc.SessionDescription?
         get() = peerConnection.localDescription?.toCommon()
 
-    override val remoteDescription: WebRTC.SessionDescription?
+    override val remoteDescription: WebRtc.SessionDescription?
         get() = peerConnection.remoteDescription?.toCommon()
 
-    override suspend fun createOffer(): WebRTC.SessionDescription {
+    override suspend fun createOffer(): WebRtc.SessionDescription {
         val offer = suspendCoroutine { cont ->
             peerConnection.createOffer(cont.resumeAfterSdpCreate(), offerConstraints())
         }
         return offer.toCommon()
     }
 
-    override suspend fun createAnswer(): WebRTC.SessionDescription {
+    override suspend fun createAnswer(): WebRtc.SessionDescription {
         val answer = suspendCoroutine { cont ->
             peerConnection.createAnswer(cont.resumeAfterSdpCreate(), offerConstraints())
         }
         return answer.toCommon()
     }
 
-    override suspend fun setLocalDescription(description: WebRTC.SessionDescription) {
+    override suspend fun setLocalDescription(description: WebRtc.SessionDescription) {
         suspendCoroutine { cont ->
             peerConnection.setLocalDescription(cont.resumeAfterSdpSet(), description.toNative())
         }
     }
 
-    override suspend fun setRemoteDescription(description: WebRTC.SessionDescription) {
+    override suspend fun setRemoteDescription(description: WebRtc.SessionDescription) {
         suspendCoroutine { cont ->
             peerConnection.setRemoteDescription(cont.resumeAfterSdpSet(), description.toNative())
         }
     }
 
-    override suspend fun addIceCandidate(candidate: WebRTC.IceCandidate) {
+    override suspend fun addIceCandidate(candidate: WebRtc.IceCandidate) {
         val iceCandidate = IceCandidate(
             candidate.sdpMid,
             candidate.sdpMLineIndex,
@@ -218,26 +220,26 @@ public class AndroidWebRtcPeerConnection(
                 iceCandidate,
                 object : AddIceObserver {
                     override fun onAddSuccess() = cont.resume(Unit)
-                    override fun onAddFailure(error: String?) = cont.resumeWithException(WebRTC.IceException(error))
+                    override fun onAddFailure(error: String?) = cont.resumeWithException(WebRtc.IceException(error))
                 }
             )
         }
     }
 
-    override suspend fun addTrack(track: WebRTCMedia.Track): WebRTC.RtpSender {
+    override suspend fun addTrack(track: WebRtcMedia.Track): WebRtc.RtpSender {
         val mediaTrack = track as? AndroidMediaTrack ?: error("Track should extend AndroidMediaTrack")
         val newSender = AndroidRtpSender(peerConnection.addTrack(mediaTrack.nativeTrack))
         rtpSenders.add(newSender)
         return newSender
     }
 
-    override suspend fun removeTrack(track: WebRTCMedia.Track) {
+    override suspend fun removeTrack(track: WebRtcMedia.Track) {
         val mediaTrack = track as? AndroidMediaTrack ?: error("Track should extend AndroidMediaTrack")
         val sender = rtpSenders.firstOrNull { it.track?.id == mediaTrack.id } ?: return
         peerConnection.removeTrack(sender.nativeRtpSender)
     }
 
-    override suspend fun removeTrack(sender: WebRTC.RtpSender) {
+    override suspend fun removeTrack(sender: WebRtc.RtpSender) {
         val rtpSender = sender as? AndroidRtpSender ?: error("Sender should extend AndroidRtpSender")
         peerConnection.removeTrack(rtpSender.nativeRtpSender)
     }
@@ -250,10 +252,10 @@ public class AndroidWebRtcPeerConnection(
         peerConnection.close()
     }
 
-    override fun getNativeConnection(): Any = peerConnection
+    override fun <T> getNativeConnection(): T = peerConnection as? T ?: error("T should be org.webrtc.PeerConnection")
 }
 
-public object AndroidWebRTC : WebRTCClientEngineFactory<AndroidWebRTCEngineConfig> {
-    override fun create(block: AndroidWebRTCEngineConfig.() -> Unit): WebRTCEngine =
-        AndroidWebRTCEngine(AndroidWebRTCEngineConfig().apply(block))
+public object AndroidWebRtc : WebRtcClientEngineFactory<AndroidWebRtcEngineConfig> {
+    override fun create(block: AndroidWebRtcEngineConfig.() -> Unit): WebRtcEngine =
+        AndroidWebRtcEngine(AndroidWebRtcEngineConfig().apply(block))
 }

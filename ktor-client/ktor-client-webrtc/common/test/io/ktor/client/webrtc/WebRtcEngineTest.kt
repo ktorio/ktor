@@ -18,8 +18,8 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
 import kotlin.test.*
 
-// Create different WebRTC engine implementation to be tested for every platform.
-expect fun createTestWebRTCClient(): WebRTCClient
+// Create different WebRtc engine implementation to be tested for every platform.
+expect fun createTestWebRtcClient(): WebRtcClient
 
 // Grant permissions to use audio and video media devices
 expect fun grantPermissions(audio: Boolean = true, video: Boolean = true)
@@ -39,9 +39,9 @@ inline fun runTestWithPermissions(
     return testResult
 }
 
-class WebRTCEngineTest {
+class WebRtcEngineTest {
 
-    private lateinit var client: WebRTCClient
+    private lateinit var client: WebRtcClient
 
     private inline fun testConnection(
         realtime: Boolean = false,
@@ -54,7 +54,7 @@ class WebRTCEngineTest {
 
     @BeforeTest
     fun setup() {
-        client = createTestWebRTCClient()
+        client = createTestWebRtcClient()
     }
 
     @AfterTest
@@ -72,7 +72,7 @@ class WebRTCEngineTest {
         val offer = peerConnection.createOffer()
 
         assertNotNull(offer, "Offer should be created successfully")
-        assertEquals(WebRTC.SessionDescriptionType.OFFER, offer.type)
+        assertEquals(WebRtc.SessionDescriptionType.OFFER, offer.type)
         assertTrue(offer.sdp.isNotEmpty(), "SDP should not be empty")
         assertTrue(offer.sdp.contains("v=0"), "SDP should contain version information")
     }
@@ -89,7 +89,7 @@ class WebRTCEngineTest {
             val answer = answerPeerConnection.createAnswer()
 
             assertNotNull(answer, "Answer should be created successfully")
-            assertEquals(WebRTC.SessionDescriptionType.ANSWER, answer.type)
+            assertEquals(WebRtc.SessionDescriptionType.ANSWER, answer.type)
             assertTrue(answer.sdp.isNotEmpty(), "SDP should not be empty")
 
             delay(1000)
@@ -100,14 +100,14 @@ class WebRTCEngineTest {
 
     @Test
     fun testIceCandidateCollection() = testConnection(realtime = true) { peerConnection ->
-        val receivedCandidates = Channel<WebRTC.IceCandidate>(1)
+        val receivedCandidates = Channel<WebRtc.IceCandidate>(1)
 
         val job = launch {
-            peerConnection.iceCandidateFlow.collect { receivedCandidates.trySend(it) }
+            peerConnection.iceCandidates.collect { receivedCandidates.trySend(it) }
         }
 
         // Create track
-        val audioTrack = client.createAudioTrack(WebRTCMedia.AudioTrackConstraints())
+        val audioTrack = client.createAudioTrack(WebRtcMedia.AudioTrackConstraints())
         peerConnection.addTrack(audioTrack)
 
         // Trigger ICE candidate gathering by creating and setting an offer
@@ -122,10 +122,10 @@ class WebRTCEngineTest {
 
     @Test
     fun testCreateAudioTrack() = runTestWithPermissions {
-        val audioTrack = client.createAudioTrack(WebRTCMedia.AudioTrackConstraints())
+        val audioTrack = client.createAudioTrack(WebRtcMedia.AudioTrackConstraints())
 
         assertNotNull(audioTrack, "Audio track should be created successfully")
-        assertEquals(WebRTCMedia.TrackType.AUDIO, audioTrack.kind)
+        assertEquals(WebRtcMedia.TrackType.AUDIO, audioTrack.kind)
         assertTrue(audioTrack.enabled, "Audio track should be enabled by default")
 
         audioTrack.close()
@@ -133,10 +133,10 @@ class WebRTCEngineTest {
 
     @Test
     fun testCreateVideoTrack() = runTestWithPermissions {
-        val videoTrack = client.createVideoTrack(WebRTCMedia.VideoTrackConstraints())
+        val videoTrack = client.createVideoTrack(WebRtcMedia.VideoTrackConstraints())
 
         assertNotNull(videoTrack, "Video track should be created successfully")
-        assertEquals(WebRTCMedia.TrackType.VIDEO, videoTrack.kind)
+        assertEquals(WebRtcMedia.TrackType.VIDEO, videoTrack.kind)
         assertTrue(videoTrack.enabled, "Video track should be enabled by default")
 
         videoTrack.close()
@@ -144,7 +144,7 @@ class WebRTCEngineTest {
 
     @Test
     fun testAddRemoveTrack() = testConnection { pc ->
-        val audioTrack = client.createAudioTrack(WebRTCMedia.AudioTrackConstraints())
+        val audioTrack = client.createAudioTrack(WebRtcMedia.AudioTrackConstraints())
         val sender = pc.addTrack(audioTrack)
 
         // Create offer after adding track
@@ -160,7 +160,7 @@ class WebRTCEngineTest {
 
     @Test
     fun testEnableDisableTrack() = runTestWithPermissions {
-        val audioTrack = client.createAudioTrack(WebRTCMedia.AudioTrackConstraints())
+        val audioTrack = client.createAudioTrack(WebRtcMedia.AudioTrackConstraints())
         assertTrue(audioTrack.enabled, "Track should be enabled by default")
 
         audioTrack.enable(false)
@@ -190,12 +190,12 @@ class WebRTCEngineTest {
         jobs: MutableList<Job> = mutableListOf()
     ) {
         // Collect ICE candidates from both peers
-        val iceCandidates1 = Channel<WebRTC.IceCandidate>(Channel.UNLIMITED)
-        val iceCandidates2 = Channel<WebRTC.IceCandidate>(Channel.UNLIMITED)
+        val iceCandidates1 = Channel<WebRtc.IceCandidate>(Channel.UNLIMITED)
+        val iceCandidates2 = Channel<WebRtc.IceCandidate>(Channel.UNLIMITED)
 
         val iceExchangeJobs = arrayOf(
-            launch { pc1.iceCandidateFlow.collect { iceCandidates1.send(it) } },
-            launch { pc2.iceCandidateFlow.collect { iceCandidates2.send(it) } },
+            launch { pc1.iceCandidates.collect { iceCandidates1.send(it) } },
+            launch { pc2.iceCandidates.collect { iceCandidates2.send(it) } },
             launch {
                 for (candidate in iceCandidates1) {
                     pc2.addIceCandidate(candidate)
@@ -226,39 +226,39 @@ class WebRTCEngineTest {
 
             val jobs = mutableListOf<Job>()
 
-            val iceConnectionState1 = pc1.iceConnectionStateFlow.collectAsConflatedChannel(this, jobs)
-            val iceConnectionState2 = pc2.iceConnectionStateFlow.collectAsConflatedChannel(this, jobs)
-            val iceGatheringState1 = pc1.iceGatheringStateFlow.collectAsConflatedChannel(this, jobs)
-            val iceGatheringState2 = pc2.iceGatheringStateFlow.collectAsConflatedChannel(this, jobs)
-            val connectionState1 = pc1.connectionStateFlow.collectAsConflatedChannel(this, jobs)
-            val connectionState2 = pc2.connectionStateFlow.collectAsConflatedChannel(this, jobs)
-            val signalingState1 = pc1.signalingStateFlow.collectAsConflatedChannel(this, jobs)
-            val signalingState2 = pc2.signalingStateFlow.collectAsConflatedChannel(this, jobs)
+            val iceConnectionState1 = pc1.iceConnectionState.collectAsConflatedChannel(this, jobs)
+            val iceConnectionState2 = pc2.iceConnectionState.collectAsConflatedChannel(this, jobs)
+            val iceGatheringState1 = pc1.iceGatheringState.collectAsConflatedChannel(this, jobs)
+            val iceGatheringState2 = pc2.iceGatheringState.collectAsConflatedChannel(this, jobs)
+            val connectionState1 = pc1.state.collectAsConflatedChannel(this, jobs)
+            val connectionState2 = pc2.state.collectAsConflatedChannel(this, jobs)
+            val signalingState1 = pc1.signalingState.collectAsConflatedChannel(this, jobs)
+            val signalingState2 = pc2.signalingState.collectAsConflatedChannel(this, jobs)
 
-            assertEquals(WebRTC.IceConnectionState.NEW, iceConnectionState1.receive())
-            assertEquals(WebRTC.IceConnectionState.NEW, iceConnectionState2.receive())
-            assertEquals(WebRTC.SignalingState.CLOSED, signalingState1.receive())
-            assertEquals(WebRTC.SignalingState.CLOSED, signalingState2.receive())
-            assertEquals(WebRTC.ConnectionState.NEW, connectionState1.receive())
-            assertEquals(WebRTC.ConnectionState.NEW, connectionState2.receive())
-            assertEquals(WebRTC.IceGatheringState.NEW, iceGatheringState1.receive())
-            assertEquals(WebRTC.IceGatheringState.NEW, iceGatheringState2.receive())
+            assertEquals(WebRtc.IceConnectionState.NEW, iceConnectionState1.receive())
+            assertEquals(WebRtc.IceConnectionState.NEW, iceConnectionState2.receive())
+            assertEquals(WebRtc.SignalingState.STABLE, signalingState1.receive())
+            assertEquals(WebRtc.SignalingState.STABLE, signalingState2.receive())
+            assertEquals(WebRtc.ConnectionState.NEW, connectionState1.receive())
+            assertEquals(WebRtc.ConnectionState.NEW, connectionState2.receive())
+            assertEquals(WebRtc.IceGatheringState.NEW, iceGatheringState1.receive())
+            assertEquals(WebRtc.IceGatheringState.NEW, iceGatheringState2.receive())
 
             setupIceExchange(pc1, pc2, jobs)
 
             // Add audio tracks for both connections
-            pc1.addTrack(client.createAudioTrack(WebRTCMedia.AudioTrackConstraints()))
-            pc2.addTrack(client.createAudioTrack(WebRTCMedia.AudioTrackConstraints()))
+            pc1.addTrack(client.createAudioTrack(WebRtcMedia.AudioTrackConstraints()))
+            pc2.addTrack(client.createAudioTrack(WebRtcMedia.AudioTrackConstraints()))
 
             negotiate(pc1, pc2)
 
             fun connectionEstablished(): Boolean =
-                pc1.iceConnectionStateFlow.value.isSuccessful() &&
-                    pc2.iceConnectionStateFlow.value.isSuccessful() &&
-                    pc1.signalingStateFlow.value == WebRTC.SignalingState.STABLE &&
-                    pc2.signalingStateFlow.value == WebRTC.SignalingState.STABLE &&
-                    pc1.iceGatheringStateFlow.value == WebRTC.IceGatheringState.COMPLETE &&
-                    pc2.iceGatheringStateFlow.value == WebRTC.IceGatheringState.COMPLETE
+                pc1.iceConnectionState.value.isSuccessful() &&
+                    pc2.iceConnectionState.value.isSuccessful() &&
+                    pc1.signalingState.value == WebRtc.SignalingState.STABLE &&
+                    pc2.signalingState.value == WebRtc.SignalingState.STABLE &&
+                    pc1.iceGatheringState.value == WebRtc.IceGatheringState.COMPLETE &&
+                    pc2.iceGatheringState.value == WebRtc.IceGatheringState.COMPLETE
 
             withTimeout(5000) {
                 // Exchange ICE candidates
@@ -274,7 +274,7 @@ class WebRTCEngineTest {
                 }
             }
 
-            val validConnectionStates = listOf(WebRTC.ConnectionState.CONNECTED, WebRTC.ConnectionState.CONNECTING)
+            val validConnectionStates = listOf(WebRtc.ConnectionState.CONNECTED, WebRtc.ConnectionState.CONNECTING)
             assertContains(validConnectionStates, connectionState1.receive())
             assertContains(validConnectionStates, connectionState2.receive())
 
@@ -293,8 +293,8 @@ class WebRTCEngineTest {
 
     @Test
     fun testInvalidIceCandidate() = testConnection { pc ->
-        assertFailsWith<WebRTC.IceException> {
-            val invalidCandidate = WebRTC.IceCandidate(
+        assertFailsWith<WebRtc.IceException> {
+            val invalidCandidate = WebRtc.IceCandidate(
                 candidate = "invalid candidate string",
                 sdpMid = "0",
                 sdpMLineIndex = 0
@@ -305,12 +305,12 @@ class WebRTCEngineTest {
 
     @Test
     fun testInvalidDescription() = testConnection { pc ->
-        assertFailsWith<WebRTC.SdpException> {
-            val remote = WebRTC.SessionDescription(WebRTC.SessionDescriptionType.OFFER, "invalid description")
+        assertFailsWith<WebRtc.SdpException> {
+            val remote = WebRtc.SessionDescription(WebRtc.SessionDescriptionType.OFFER, "invalid description")
             pc.setRemoteDescription(remote)
         }
-        assertFailsWith<WebRTC.SdpException> {
-            val remote = WebRTC.SessionDescription(WebRTC.SessionDescriptionType.ANSWER, "invalid description")
+        assertFailsWith<WebRtc.SdpException> {
+            val remote = WebRtc.SessionDescription(WebRtc.SessionDescriptionType.ANSWER, "invalid description")
             pc.setLocalDescription(remote)
         }
         assertEquals(null, pc.localDescription)
@@ -319,13 +319,13 @@ class WebRTCEngineTest {
 
     @Test
     fun testStatsCollection() = testConnection(realtime = true) { peerConnection ->
-        val audioTrack = client.createAudioTrack(WebRTCMedia.AudioTrackConstraints())
+        val audioTrack = client.createAudioTrack(WebRtcMedia.AudioTrackConstraints())
         peerConnection.addTrack(audioTrack)
 
-        val stats = Channel<List<WebRTC.Stats>>()
+        val stats = Channel<List<WebRtc.Stats>>()
 
         val statsCollectionJob = launch {
-            peerConnection.statsFlow.collect { stats.trySend(it) }
+            peerConnection.stats.collect { stats.trySend(it) }
         }
 
         withTimeout(5000) {
@@ -353,17 +353,17 @@ class WebRTCEngineTest {
                 pc1.onNegotiationNeeded { negotiationNeededCnt.incrementAndGet() }
                 pc2.onNegotiationNeeded { negotiationNeededCnt.incrementAndGet() }
 
-                val remoteTracks1 = Channel<Operation<WebRTCMedia.Track>>(Channel.UNLIMITED)
-                val remoteTracks2 = Channel<Operation<WebRTCMedia.Track>>(Channel.UNLIMITED)
+                val remoteTracks1 = Channel<TrackEvent>(Channel.UNLIMITED)
+                val remoteTracks2 = Channel<TrackEvent>(Channel.UNLIMITED)
 
-                val collectTracks1Job = launch { pc1.remoteTracksFlow.collect { remoteTracks1.send(it) } }
-                val collectTracks2Job = launch { pc2.remoteTracksFlow.collect { remoteTracks2.send(it) } }
+                val collectTracks1Job = launch { pc1.trackEvents.collect { remoteTracks1.send(it) } }
+                val collectTracks2Job = launch { pc2.trackEvents.collect { remoteTracks2.send(it) } }
 
-                pc1.addTrack(client.createAudioTrack(WebRTCMedia.AudioTrackConstraints()))
-                pc1.addTrack(client.createVideoTrack(WebRTCMedia.VideoTrackConstraints()))
+                pc1.addTrack(client.createAudioTrack(WebRtcMedia.AudioTrackConstraints()))
+                pc1.addTrack(client.createVideoTrack(WebRtcMedia.VideoTrackConstraints()))
 
-                val audioSender = pc2.addTrack(client.createAudioTrack(WebRTCMedia.AudioTrackConstraints()))
-                pc2.addTrack(client.createVideoTrack(WebRTCMedia.VideoTrackConstraints()))
+                val audioSender = pc2.addTrack(client.createAudioTrack(WebRtcMedia.AudioTrackConstraints()))
+                pc2.addTrack(client.createVideoTrack(WebRtcMedia.VideoTrackConstraints()))
 
                 negotiate(pc1, pc2)
 
@@ -371,20 +371,20 @@ class WebRTCEngineTest {
                 withTimeout(5000) {
                     for (remoteTracks in listOf(remoteTracks1, remoteTracks2)) {
                         val tracks = arrayOf(remoteTracks.receive(), remoteTracks.receive())
-                        assertTrue(tracks.all { it is Add })
-                        assertEquals(1, tracks.filter { it.item.kind === WebRTCMedia.TrackType.AUDIO }.size)
-                        assertEquals(1, tracks.filter { it.item.kind === WebRTCMedia.TrackType.VIDEO }.size)
+                        assertTrue(tracks.all { it is TrackEvent.Add })
+                        assertEquals(1, tracks.filter { it.track.kind === WebRtcMedia.TrackType.AUDIO }.size)
+                        assertEquals(1, tracks.filter { it.track.kind === WebRtcMedia.TrackType.VIDEO }.size)
                     }
                 }
 
                 // assert that remote tracks are replayed
-                val remoteTracks3 = Channel<Operation<WebRTCMedia.Track>>(Channel.UNLIMITED)
-                val collectTracks3Job = launch { pc2.remoteTracksFlow.collect { remoteTracks3.send(it) } }
+                val remoteTracks3 = Channel<TrackEvent>(Channel.UNLIMITED)
+                val collectTracks3Job = launch { pc2.trackEvents.collect { remoteTracks3.send(it) } }
                 withTimeout(5000) {
                     val tracks = arrayOf(remoteTracks3.receive(), remoteTracks3.receive())
-                    assertTrue(tracks.all { it is Add })
-                    assertEquals(1, tracks.filter { it.item.kind === WebRTCMedia.TrackType.AUDIO }.size)
-                    assertEquals(1, tracks.filter { it.item.kind === WebRTCMedia.TrackType.VIDEO }.size)
+                    assertTrue(tracks.all { it is TrackEvent.Add })
+                    assertEquals(1, tracks.filter { it.track.kind === WebRtcMedia.TrackType.AUDIO }.size)
+                    assertEquals(1, tracks.filter { it.track.kind === WebRtcMedia.TrackType.VIDEO }.size)
                 }
 
                 // remove audio track at pc2, needs renegotiation to work
@@ -395,8 +395,8 @@ class WebRTCEngineTest {
                 // Check if the remote track is removed
                 withTimeout(5000) {
                     val removedTrack = remoteTracks1.receive()
-                    assertTrue(removedTrack is Remove)
-                    assertEquals(WebRTCMedia.TrackType.AUDIO, removedTrack.item.kind)
+                    assertTrue(removedTrack is TrackEvent.Remove)
+                    assertEquals(WebRtcMedia.TrackType.AUDIO, removedTrack.track.kind)
                 }
 
                 collectTracks1Job.cancel()

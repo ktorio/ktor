@@ -16,14 +16,14 @@ import org.w3c.dom.mediacapture.MediaStreamTrack
  * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices">MDN MediaDevices</a>
  **/
 public object NavigatorMediaDevices : MediaTrackFactory {
-    override suspend fun createAudioTrack(constraints: WebRTCMedia.AudioTrackConstraints): WebRTCMedia.AudioTrack =
+    override suspend fun createAudioTrack(constraints: WebRtcMedia.AudioTrackConstraints): WebRtcMedia.AudioTrack =
         withPermissionException("audio") {
             val streamConstrains = MediaStreamConstraints(audio = constraints.toJS())
             val mediaStream = navigator.mediaDevices.getUserMedia(streamConstrains).await<MediaStream>()
             return WasmJsAudioTrack(mediaStream.getAudioTracks()[0]!!, mediaStream)
         }
 
-    override suspend fun createVideoTrack(constraints: WebRTCMedia.VideoTrackConstraints): WebRTCMedia.VideoTrack =
+    override suspend fun createVideoTrack(constraints: WebRtcMedia.VideoTrackConstraints): WebRtcMedia.VideoTrack =
         withPermissionException("video") {
             val streamConstrains = MediaStreamConstraints(audio = constraints.toJS())
             val mediaStream = navigator.mediaDevices.getUserMedia(streamConstrains).await<MediaStream>()
@@ -37,9 +37,9 @@ public object NavigatorMediaDevices : MediaTrackFactory {
 public abstract class WasmJsMediaTrack(
     public val nativeTrack: MediaStreamTrack,
     public val nativeStream: MediaStream
-) : WebRTCMedia.Track {
+) : WebRtcMedia.Track {
     public override val id: String = nativeTrack.id
-    public override val kind: WebRTCMedia.TrackType = nativeTrack.kind.toTrackKind()
+    public override val kind: WebRtcMedia.TrackType = nativeTrack.kind.toTrackKind()
     public override val enabled: Boolean
         get() = nativeTrack.enabled
 
@@ -47,7 +47,7 @@ public abstract class WasmJsMediaTrack(
         nativeTrack.enabled = enabled
     }
 
-    override fun getNative(): Any = nativeTrack
+    override fun <T> getNative(): T = nativeTrack as? T ?: error("T should be MediaStreamTrack")
 
     override fun close() {
         nativeTrack.stop()
@@ -58,14 +58,14 @@ public abstract class WasmJsMediaTrack(
             nativeTrack: MediaStreamTrack,
             nativeStream: MediaStream
         ): WasmJsMediaTrack = when (nativeTrack.kind.toTrackKind()) {
-            WebRTCMedia.TrackType.AUDIO -> WasmJsAudioTrack(nativeTrack, nativeStream)
-            WebRTCMedia.TrackType.VIDEO -> WasmJsVideoTrack(nativeTrack, nativeStream)
+            WebRtcMedia.TrackType.AUDIO -> WasmJsAudioTrack(nativeTrack, nativeStream)
+            WebRtcMedia.TrackType.VIDEO -> WasmJsVideoTrack(nativeTrack, nativeStream)
         }
     }
 }
 
 public class WasmJsAudioTrack(nativeTrack: MediaStreamTrack, nativeStream: MediaStream) :
-    WebRTCMedia.AudioTrack, WasmJsMediaTrack(nativeTrack, nativeStream)
+    WebRtcMedia.AudioTrack, WasmJsMediaTrack(nativeTrack, nativeStream)
 
 public class WasmJsVideoTrack(nativeTrack: MediaStreamTrack, nativeStream: MediaStream) :
-    WebRTCMedia.VideoTrack, WasmJsMediaTrack(nativeTrack, nativeStream)
+    WebRtcMedia.VideoTrack, WasmJsMediaTrack(nativeTrack, nativeStream)
