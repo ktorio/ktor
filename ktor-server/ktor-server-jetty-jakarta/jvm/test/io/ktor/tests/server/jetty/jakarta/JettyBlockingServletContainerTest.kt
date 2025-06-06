@@ -28,8 +28,9 @@ class JettyBlockingServletContainerHttpServerJvmTest :
         Servlet(async = false)
     ) {
 
-    @Ignore
+
     override fun testUpgrade() {
+        super.testUpgrade()
     }
 
     @Ignore
