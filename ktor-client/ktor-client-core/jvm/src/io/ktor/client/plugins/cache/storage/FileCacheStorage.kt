@@ -88,25 +88,25 @@ private class FileCacheStorage(
         }
     }
 
-    override suspend fun findAll(url: Url): Set<CachedResponseData> {
-        return readCache(key(url)).toSet()
+    override suspend fun findAll(url: Url): Set<CachedResponseData> = withContext(dispatcher) {
+        readCache(key(url)).toSet()
     }
 
-    override suspend fun find(url: Url, varyKeys: Map<String, String>): CachedResponseData? {
+    override suspend fun find(url: Url, varyKeys: Map<String, String>): CachedResponseData? = withContext(dispatcher) {
         val data = readCache(key(url))
-        return data.find {
+        data.find {
             varyKeys.all { (key, value) -> it.varyKeys[key] == value }
         }
     }
 
-    override suspend fun remove(url: Url, varyKeys: Map<String, String>) {
+    override suspend fun remove(url: Url, varyKeys: Map<String, String>) = withContext(dispatcher) {
         val urlHex = key(url)
         updateCache(urlHex) { caches ->
             caches.filterNot { it.varyKeys == varyKeys }
         }
     }
 
-    override suspend fun removeAll(url: Url) {
+    override suspend fun removeAll(url: Url) = withContext(dispatcher) {
         val urlHex = key(url)
         deleteCache(urlHex)
     }
