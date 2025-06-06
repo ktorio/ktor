@@ -8,7 +8,7 @@ import io.ktor.client.webrtc.browser.*
 import kotlinx.browser.document
 import org.w3c.dom.CanvasRenderingContext2D
 
-actual fun makeDummyAudioStreamTrack(): WebRTCMedia.AudioTrack {
+actual fun makeDummyAudioStreamTrack(): WebRtcMedia.AudioTrack {
     val ctx = AudioContext()
     val oscillator = ctx.createOscillator()
     val dst = oscillator.connect(ctx.createMediaStreamDestination())
@@ -16,7 +16,7 @@ actual fun makeDummyAudioStreamTrack(): WebRTCMedia.AudioTrack {
     return JsAudioTrack(dst.stream.getAudioTracks()[0], dst.stream)
 }
 
-actual fun makeDummyVideoStreamTrack(width: Int, height: Int): WebRTCMedia.VideoTrack {
+actual fun makeDummyVideoStreamTrack(width: Int, height: Int): WebRtcMedia.VideoTrack {
     val canvas = document.createElement("canvas") as HTMLCanvasElement
     canvas.width = width
     canvas.height = height

@@ -782,7 +782,7 @@ public typealias RTCPeerConnectionErrorCallback = (error: DOMException) -> Unit
 public typealias RTCSessionDescriptionCallback = (description: RTCSessionDescriptionInit) -> Unit
 
 /**
- * Simplified AudioContext interface for WebRTC testing
+ * Simplified AudioContext interface for WebRtc testing
  */
 public external class AudioContext {
     public fun createOscillator(): OscillatorNode

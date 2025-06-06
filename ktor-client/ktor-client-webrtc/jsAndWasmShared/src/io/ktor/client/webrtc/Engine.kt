@@ -6,11 +6,11 @@ package io.ktor.client.webrtc
 
 public external interface JsPeerConnectionConfig
 
-public class JsWebRTCEngineConfig : WebRTCConfig()
+public class JsWebRtcEngineConfig : WebRtcConfig()
 
 /**
- * Common WebRTC Engine factory interface for JS and WasmJS targets.
+ * Common WebRtc Engine factory interface for JS and WasmJS targets.
  **/
-public expect object JsWebRTC : WebRTCClientEngineFactory<JsWebRTCEngineConfig> {
-    override fun create(block: JsWebRTCEngineConfig.() -> Unit): WebRTCEngine
+public expect object JsWebRtc : WebRtcClientEngineFactory<JsWebRtcEngineConfig> {
+    override fun create(block: JsWebRtcEngineConfig.() -> Unit): WebRtcEngine
 }
