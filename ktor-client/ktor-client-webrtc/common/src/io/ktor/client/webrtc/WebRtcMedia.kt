@@ -7,10 +7,10 @@ package io.ktor.client.webrtc
 /**
  * An object containing Media Capture abstractions.
  * Media Capturing is platform- and implementation-specific,
- * so here we encapsulate only the essential parts for the WebRTC communication.
+ * so here we encapsulate only the essential parts for the WebRtc communication.
  * The links describe the standard browser API, though some platforms could have different behaviors.
  */
-public object WebRTCMedia {
+public object WebRtcMedia {
 
     /**
      * Constraints for video tracks.
@@ -48,14 +48,14 @@ public object WebRTCMedia {
      * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints">MDN MediaTrackConstraints</a>
      */
     public data class AudioTrackConstraints(
-        var volume: Double? = null,
-        var sampleRate: Int? = null,
-        var sampleSize: Int? = null,
-        var echoCancellation: Boolean? = null,
-        var autoGainControl: Boolean? = null,
-        var noiseSuppression: Boolean? = null,
-        var latency: Double? = null,
-        var channelCount: Int? = null,
+        val volume: Double? = null,
+        val sampleRate: Int? = null,
+        val sampleSize: Int? = null,
+        val echoCancellation: Boolean? = null,
+        val autoGainControl: Boolean? = null,
+        val noiseSuppression: Boolean? = null,
+        val latency: Double? = null,
+        val channelCount: Int? = null,
     )
 
     /**
@@ -78,9 +78,9 @@ public object WebRTCMedia {
         public fun enable(enabled: Boolean)
 
         /**
-         * Gets the native platform-specific object representing this track.
+         * @return Native platform-specific object representing this track.
          */
-        public fun getNative(): Any
+        public fun <T> getNative(): T
     }
 
     /**
