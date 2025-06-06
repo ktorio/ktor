@@ -116,3 +116,14 @@ internal inline fun <T> withIceException(message: String, block: () -> T): T {
         throw WebRtc.IceException(message, e)
     }
 }
+
+internal inline fun <T> withPermissionException(mediaType: String, block: () -> T): T {
+    try {
+        return block()
+    } catch (e: Throwable) {
+        if (e.message?.contains("Permission denied") == true) {
+            throw WebRtcMedia.PermissionException(mediaType)
+        }
+        throw e
+    }
+}
