@@ -2,9 +2,9 @@
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.client.webrtc
+package io.ktor.utils.io
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 
-internal actual fun ioDispatcher(): CoroutineDispatcher = Dispatchers.Default
+public actual fun ioDispatcher(): CoroutineDispatcher = Dispatchers.Default

@@ -4,7 +4,7 @@
 
 package io.ktor.client.webrtc
 
-actual fun createTestWebRTCClient(): WebRTCClient {
+actual fun createTestWebRtcClient(): WebRtcClient {
     TODO("Not yet implemented")
 }
 
