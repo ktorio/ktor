@@ -112,11 +112,11 @@ class NettySpecificTest {
                         call.respond(HttpStatusCode.NoContent)
                     }
 
-                    get("no-content-channel-writer") {
+                    get("/no-content-channel-writer") {
                         call.respondBytesWriter(status = HttpStatusCode.NoContent) {}
                     }
 
-                    get("no-content-read-channel") {
+                    get("/no-content-read-channel") {
                         call.respond(object : OutgoingContent.ReadChannelContent() {
                             override val status: HttpStatusCode = HttpStatusCode.NoContent
                             override fun readFrom(): ByteReadChannel = ByteReadChannel.Empty
@@ -127,11 +127,11 @@ class NettySpecificTest {
                         call.respond(earlyHints)
                     }
 
-                    get("info-channel-writer") {
+                    get("/info-channel-writer") {
                         call.respondBytesWriter(status = earlyHints) {}
                     }
 
-                    get("info-read-channel") {
+                    get("/info-read-channel") {
                         call.respond(object : OutgoingContent.ReadChannelContent() {
                             override val status: HttpStatusCode = earlyHints
                             override fun readFrom(): ByteReadChannel = ByteReadChannel.Empty
