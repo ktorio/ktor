@@ -29,7 +29,7 @@ public fun interface ModuleParametersInjector {
     /**
      * Given the [Application] instance as context, resolves the expected value of the provided [KParameter].
      */
-    public fun resolveParameter(
+    public suspend fun resolveParameter(
         application: Application,
         parameter: KParameter
     ): Any?

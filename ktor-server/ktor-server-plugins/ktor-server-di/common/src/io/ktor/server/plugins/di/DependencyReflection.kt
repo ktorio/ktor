@@ -19,7 +19,7 @@ public interface DependencyReflection {
      *             using a `DependencyKey`.
      * @return A new instance of the specified class.
      */
-    public fun <T : Any> create(kClass: KClass<T>, init: (DependencyKey) -> Any): T
+    public suspend fun <T : Any> create(kClass: KClass<T>, init: suspend (DependencyKey) -> Any): T
 }
 
 /**
@@ -29,8 +29,8 @@ public interface DependencyReflection {
  *
  * @return An instance of the type [T].
  */
-public inline fun <reified T : Any> DependencyResolver.create(): T =
-    create(T::class)
+public suspend inline fun <reified T : Any> DependencyResolver.create(): T =
+    reflection.create(T::class, ::get)
 
 /**
  * Creates or retrieves an instance of the specified type [T] from the [DependencyResolver].
@@ -40,5 +40,5 @@ public inline fun <reified T : Any> DependencyResolver.create(): T =
  * @param kClass The class reference representing the type of object to create or retrieve.
  * @return An instance of the specified type [T].
  */
-public inline fun <reified T : Any> DependencyResolver.create(kClass: KClass<out T>): T =
-    getOrPut(DependencyKey<T>()) { reflection.create(kClass, ::get) }
+public suspend inline fun <reified T : Any> DependencyResolver.create(kClass: KClass<out T>): T =
+    reflection.create(kClass, ::get)

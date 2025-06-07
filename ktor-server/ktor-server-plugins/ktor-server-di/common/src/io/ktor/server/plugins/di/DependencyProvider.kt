@@ -6,8 +6,7 @@ package io.ktor.server.plugins.di
 
 import io.ktor.server.plugins.di.DependencyConflictResult.*
 import io.ktor.util.logging.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -24,19 +23,7 @@ public interface DependencyProvider {
      * @param value The initialization script for the type
      * @throws DuplicateDependencyException If the `key` is already registered in the provider.
      */
-    public fun <T> set(key: DependencyKey, value: DependencyResolver.() -> T)
-
-    /**
-     * A map containing registered dependency creation functions indexed by their unique dependency keys.
-     *
-     * This property holds the mapping between `DependencyKey` and `DependencyCreateFunction`.
-     * Each entry associates a unique key that represents a type (and optionally, a name) with
-     * a corresponding function responsible for creating the dependency instance.
-     *
-     * This is used internally by the dependency injection mechanism to retrieve or resolve dependencies
-     * dynamically during runtime based on the registered initializers.
-     */
-    public val declarations: Map<DependencyKey, DependencyCreateFunction>
+    public fun <T> set(key: DependencyKey, value: suspend DependencyResolver.() -> T)
 }
 
 /**
@@ -50,152 +37,24 @@ public inline fun <reified T> DependencyProvider.provide(
 }
 
 /**
- * Wraps the logic for creating a new instance of a dependency.
- *
- * Concrete types of this sealed interface are used to include some metadata regarding how they were registered.
- */
-public sealed interface DependencyCreateFunction {
-    public val key: DependencyKey
-    public fun create(resolver: DependencyResolver): Any
-}
-
-/**
- * An explicit dependency creation function for directly registered types.
- *
- * This includes caching of the instance value so resolved covariant keys do not trigger the creation multiple times.
- *
- * @property key The unique identifier of the dependency associated with this creation function.
- * @property init A lambda that implements the creation logic for the dependency.
- */
-public class ExplicitCreateFunction(
-    public override val key: DependencyKey,
-    private val init: DependencyResolver.() -> Any
-) : DependencyCreateFunction {
-    private var cached: Any? = null
-
-    override fun create(resolver: DependencyResolver): Any =
-        cached ?: init(resolver).also { cached = it }
-
-    public fun derived(distance: Int): ImplicitCreateFunction =
-        ImplicitCreateFunction(this, distance)
-}
-
-/**
- * Represents an implicitly registered dependency creation function that delegates to its explicit parent.
- *
- * @property origin The instance of [ExplicitCreateFunction] that this class delegates creation logic to.
- * @property distance The distance from the original key.
- */
-public class ImplicitCreateFunction(
-    public val origin: ExplicitCreateFunction,
-    public val distance: Int,
-) : DependencyCreateFunction {
-    override val key: DependencyKey
-        get() = origin.key
-
-    override fun create(resolver: DependencyResolver): Any =
-        origin.create(resolver)
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other == null || this::class != other::class) return false
-
-        other as ImplicitCreateFunction
-
-        if (distance != other.distance) return false
-        if (origin != other.origin) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = distance
-        result = 31 * result + origin.hashCode()
-        return result
-    }
-}
-
-/**
- * Represents a specific implementation of [DependencyCreateFunction] that throws an exception
- * when there are multiple dependencies matching the given key, leading to an ambiguity.
- *
- * @property key The key for the dependency that caused the ambiguity.
- * @property keys A set of possible matching keys that caused the ambiguity.
- *
- * @throws AmbiguousException Always thrown when attempting to create a dependency
- * through the [create] method.
- */
-public data class AmbiguousCreateFunction(
-    public override val key: DependencyKey,
-    val functions: Set<DependencyCreateFunction>
-) : DependencyCreateFunction {
-    public companion object {
-        /**
-         * Instantiate a new AmbiguousCreateFunction, if the provided functions are unique.
-         *
-         * This also will flatten any provided `AmbiguousCreateFunction`s.
-         *
-         * @param key The associated dependency key.
-         * @param functions The functions to include in the resulting function.
-         */
-        public fun of(
-            key: DependencyKey,
-            vararg functions: DependencyCreateFunction
-        ): DependencyCreateFunction {
-            val functions = buildSet {
-                for (function in functions) {
-                    when (function) {
-                        is AmbiguousCreateFunction -> addAll(function.functions)
-                        else -> add(function)
-                    }
-                }
-            }
-            return functions.singleOrNull() ?: AmbiguousCreateFunction(key, functions)
-        }
-    }
-
-    init {
-        require(functions.size > 1) { "More than one function must be provided" }
-    }
-
-    public fun clarify(predicate: (DependencyKey) -> Boolean): DependencyCreateFunction? =
-        functions.singleOrNull { predicate(it.key) }
-
-    public val implementations: List<DependencyKey> get() = functions.map { it.key }
-
-    override fun create(resolver: DependencyResolver): Any =
-        throw AmbiguousDependencyException(this)
-
-    public fun keyString(): String =
-        "$key: ${implementations.joinToString()}"
-}
-
-/**
- * Executes the given block of code with the current instance if it is of type [ImplicitCreateFunction].
- *
- * @param block A lambda to be invoked if the current instance is of type [ImplicitCreateFunction].
- *              The lambda receives the instance as its argument.
- * @return The result of the lambda if the current instance is of type [ImplicitCreateFunction],
- *         or `null` if the current instance is not of the expected type.
- */
-public fun <T> DependencyCreateFunction.ifImplicit(block: (ImplicitCreateFunction) -> T): T? =
-    if (this is ImplicitCreateFunction) block(this) else null
-
-/**
  * A dependency provider implementation that uses a map to store and manage dependencies.
  *
  * This class is designed to facilitate registration and resolution of dependencies within
  * a dependency injection system. It supports covariance through custom key mapping logic
  * and resolves conflicts according to a specified policy.
  *
+ * @param map A map containing the initial dependency values.
+ *            By default, this is an empty map.
+ * @param resolver A dependency resolver used for resolving dependencies.
+ *                 By default, this uses a `MapDependencyResolver`.
  * @param keyMapping A mapping function that supports covariance by generating related keys for a dependency key.
  *                   For example, it may map a concrete type to its supertypes or related interfaces.
  * @param conflictPolicy A policy for handling conflicts when multiple initializers are registered
  *                       for the same dependency key.
  * @param onConflict A callback that is invoked when a conflict is encountered during registration.
  *                   By default, this throws a `DuplicateDependencyException`.
- * @param coroutineContext The coroutine context used for asynchronous dependency resolution.
- *                         By default, this uses a single-threaded dispatcher to avoid concurrency problems.
+ * @param coroutineScope The coroutine scope used for asynchronous dependency resolution.
+ *                       By default, this uses the global scope.
  * @param log A logger used for logging dependency resolution events.
  *            By default, this uses a `KtorSimpleLogger` with the name "io.ktor.server.plugins.di.MapDependencyProvider".
  *
@@ -204,46 +63,42 @@ public fun <T> DependencyCreateFunction.ifImplicit(block: (ImplicitCreateFunctio
  * @see DependencyResolver
  */
 @Suppress("UNCHECKED_CAST")
-public open class MapDependencyProvider(
-    public val keyMapping: DependencyKeyCovariance = DefaultKeyCovariance,
-    public val conflictPolicy: DependencyConflictPolicy = DefaultConflictPolicy,
-    public val onConflict: (DependencyKey) -> Unit = { throw DuplicateDependencyException(it) },
-    public override val coroutineContext: CoroutineContext = Dispatchers.Default.limitedParallelism(1),
+internal class MapDependencyProvider(
+    private val map: DependencyInitializerMap,
+    private val keyMapping: DependencyKeyCovariance,
+    private val conflictPolicy: DependencyConflictPolicy,
+    private val onConflict: (DependencyKey) -> Nothing,
     private val log: Logger = KtorSimpleLogger("io.ktor.server.plugins.di.MapDependencyProvider"),
-) : DependencyProvider, CoroutineScope {
+) : DependencyProvider {
     private companion object {
         private const val COVARIANT_LOG_LIMIT = 8
     }
-    private val map = mutableMapOf<DependencyKey, DependencyCreateFunction>()
 
-    override val declarations: Map<DependencyKey, DependencyCreateFunction>
-        get() = map
-
-    override fun <T> set(key: DependencyKey, value: DependencyResolver.() -> T) {
-        val create = ExplicitCreateFunction(key, value as DependencyResolver.() -> Any)
+    override fun <T> set(key: DependencyKey, value: suspend DependencyResolver.() -> T) {
+        val create = DependencyInitializer.Explicit(key, value)
         log.debug { "Provided $key ${DependencyReference().externalTraceLine()}" }
         trySet(key, create)
         insertCovariantKeys(create, key)
     }
 
-    private fun trySet(key: DependencyKey, newFunction: DependencyCreateFunction) {
-        when (val previous = map[key]) {
-            null -> map[key] = newFunction
-            else -> {
-                map[key] = when (val result = resolveConflict(previous, newFunction)) {
-                    Ambiguous -> AmbiguousCreateFunction.of(key, previous, newFunction)
-                    Conflict -> throw DuplicateDependencyException(key)
-                    KeepNew -> newFunction
-                    KeepPrevious -> previous
-                    is Replace -> result.function
-                }
+    private fun trySet(key: DependencyKey, newFunction: DependencyInitializer) {
+        map[key] = when (val previous = map[key]) {
+            null -> newFunction
+            is DependencyInitializer.Missing -> newFunction.also(previous::provide)
+            else -> when (val result = resolveConflict(previous, newFunction)) {
+                Ambiguous ->
+                    DependencyInitializer.Ambiguous.of(key, previous, newFunction)
+                Conflict -> onConflict(key)
+                KeepNew -> newFunction
+                KeepPrevious -> previous
+                is Replace -> result.function
             }
         }
     }
 
     private fun resolveConflict(
-        previous: DependencyCreateFunction,
-        newFunction: DependencyCreateFunction
+        previous: DependencyInitializer,
+        newFunction: DependencyInitializer
     ): DependencyConflictResult {
         val result = conflictPolicy.resolve(previous, newFunction)
         log.trace { "Conflicting keys: (${previous.key}, ${newFunction.key}) -> $result" }
@@ -251,7 +106,7 @@ public open class MapDependencyProvider(
     }
 
     private fun insertCovariantKeys(
-        createFunction: ExplicitCreateFunction,
+        createFunction: DependencyInitializer.Explicit,
         key: DependencyKey
     ) {
         val covariantKeys = keyMapping.map(key, 0).toList()
@@ -267,4 +122,59 @@ public open class MapDependencyProvider(
         } else {
             keys.joinToString { it.key.toString() }
         }
+}
+
+/**
+ * During initialization, we wrap every call with a safe resolver that prevents circular references.
+ *
+ * This is done by keeping track of the keys that are currently being resolved,
+ * and throwing a `CircularDependencyException` if a cycle is detected.
+ *
+ * @param delegate The original resolver to be wrapped.
+ * @param findOrigin A function that returns the original key for a given dependency key.
+ * @param pending The set of keys that have already been resolved.
+ *                This is used to track circular dependencies.
+ */
+internal class SafeResolver(
+    val delegate: DependencyResolver,
+    val pending: Set<DependencyKey>,
+) : DependencyResolver {
+    override val reflection: DependencyReflection
+        get() = delegate.reflection
+    override val coroutineContext: CoroutineContext
+        get() = delegate.coroutineContext
+
+    operator fun plus(key: DependencyKey) =
+        SafeResolver(delegate, pending + key)
+
+    override fun contains(key: DependencyKey): Boolean =
+        delegate.contains(key)
+
+    override fun getInitializer(key: DependencyKey): DependencyInitializer {
+        return try {
+            delegate.getInitializer(key)
+        } catch (cause: CircularDependencyException) {
+            throw CircularDependencyException(listOf(key) + cause.keys)
+        }.also(::assertNoCycle)
+    }
+
+    override suspend fun <T> getOrPut(
+        key: DependencyKey,
+        defaultValue: suspend () -> T
+    ): T {
+        if (delegate.contains(key)) {
+            assertNoCycle(delegate.getInitializer(key))
+        }
+        try {
+            return delegate.getOrPut(key, defaultValue)
+        } catch (cause: CircularDependencyException) {
+            throw CircularDependencyException(listOf(key) + cause.keys)
+        }
+    }
+
+    private fun assertNoCycle(init: DependencyInitializer) {
+        if (init.originKey in pending) {
+            throw CircularDependencyException(listOf(init.key))
+        }
+    }
 }

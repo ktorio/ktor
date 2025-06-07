@@ -1,28 +1,6 @@
-public final class io/ktor/server/plugins/di/AmbiguousCreateFunction : io/ktor/server/plugins/di/DependencyCreateFunction {
-	public static final field Companion Lio/ktor/server/plugins/di/AmbiguousCreateFunction$Companion;
-	public fun <init> (Lio/ktor/server/plugins/di/DependencyKey;Ljava/util/Set;)V
-	public final fun clarify (Lkotlin/jvm/functions/Function1;)Lio/ktor/server/plugins/di/DependencyCreateFunction;
-	public final fun component1 ()Lio/ktor/server/plugins/di/DependencyKey;
-	public final fun component2 ()Ljava/util/Set;
-	public final fun copy (Lio/ktor/server/plugins/di/DependencyKey;Ljava/util/Set;)Lio/ktor/server/plugins/di/AmbiguousCreateFunction;
-	public static synthetic fun copy$default (Lio/ktor/server/plugins/di/AmbiguousCreateFunction;Lio/ktor/server/plugins/di/DependencyKey;Ljava/util/Set;ILjava/lang/Object;)Lio/ktor/server/plugins/di/AmbiguousCreateFunction;
-	public fun create (Lio/ktor/server/plugins/di/DependencyResolver;)Ljava/lang/Object;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getFunctions ()Ljava/util/Set;
-	public final fun getImplementations ()Ljava/util/List;
-	public fun getKey ()Lio/ktor/server/plugins/di/DependencyKey;
-	public fun hashCode ()I
-	public final fun keyString ()Ljava/lang/String;
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class io/ktor/server/plugins/di/AmbiguousCreateFunction$Companion {
-	public final fun of (Lio/ktor/server/plugins/di/DependencyKey;[Lio/ktor/server/plugins/di/DependencyCreateFunction;)Lio/ktor/server/plugins/di/DependencyCreateFunction;
-}
-
 public final class io/ktor/server/plugins/di/AmbiguousDependencyException : io/ktor/server/plugins/di/DependencyInjectionException {
-	public fun <init> (Lio/ktor/server/plugins/di/AmbiguousCreateFunction;)V
-	public final fun getFunction ()Lio/ktor/server/plugins/di/AmbiguousCreateFunction;
+	public fun <init> (Lio/ktor/server/plugins/di/DependencyInitializer$Ambiguous;)V
+	public final fun getFunction ()Lio/ktor/server/plugins/di/DependencyInitializer$Ambiguous;
 }
 
 public final class io/ktor/server/plugins/di/CircularDependencyException : io/ktor/server/plugins/di/DependencyInjectionException {
@@ -32,7 +10,7 @@ public final class io/ktor/server/plugins/di/CircularDependencyException : io/kt
 public final class io/ktor/server/plugins/di/ConfigurationDependencyMap : io/ktor/server/plugins/di/DependencyMap {
 	public fun <init> (Lio/ktor/server/config/ApplicationConfig;)V
 	public fun contains (Lio/ktor/server/plugins/di/DependencyKey;)Z
-	public fun get (Lio/ktor/server/plugins/di/DependencyKey;)Ljava/lang/Object;
+	public fun getInitializer (Lio/ktor/server/plugins/di/DependencyKey;)Lio/ktor/server/plugins/di/DependencyInitializer;
 }
 
 public final class io/ktor/server/plugins/di/DependencyAbstractTypeConstructionException : io/ktor/server/plugins/di/DependencyInjectionException {
@@ -40,7 +18,7 @@ public final class io/ktor/server/plugins/di/DependencyAbstractTypeConstructionE
 }
 
 public abstract interface class io/ktor/server/plugins/di/DependencyConflictPolicy {
-	public abstract fun resolve (Lio/ktor/server/plugins/di/DependencyCreateFunction;Lio/ktor/server/plugins/di/DependencyCreateFunction;)Lio/ktor/server/plugins/di/DependencyConflictResult;
+	public abstract fun resolve (Lio/ktor/server/plugins/di/DependencyInitializer;Lio/ktor/server/plugins/di/DependencyInitializer;)Lio/ktor/server/plugins/di/DependencyConflictResult;
 }
 
 public final class io/ktor/server/plugins/di/DependencyConflictPolicyKt {
@@ -80,53 +58,128 @@ public final class io/ktor/server/plugins/di/DependencyConflictResult$KeepPrevio
 }
 
 public final class io/ktor/server/plugins/di/DependencyConflictResult$Replace : io/ktor/server/plugins/di/DependencyConflictResult {
-	public fun <init> (Lio/ktor/server/plugins/di/DependencyCreateFunction;)V
-	public final fun component1 ()Lio/ktor/server/plugins/di/DependencyCreateFunction;
-	public final fun copy (Lio/ktor/server/plugins/di/DependencyCreateFunction;)Lio/ktor/server/plugins/di/DependencyConflictResult$Replace;
-	public static synthetic fun copy$default (Lio/ktor/server/plugins/di/DependencyConflictResult$Replace;Lio/ktor/server/plugins/di/DependencyCreateFunction;ILjava/lang/Object;)Lio/ktor/server/plugins/di/DependencyConflictResult$Replace;
+	public fun <init> (Lio/ktor/server/plugins/di/DependencyInitializer;)V
+	public final fun component1 ()Lio/ktor/server/plugins/di/DependencyInitializer;
+	public final fun copy (Lio/ktor/server/plugins/di/DependencyInitializer;)Lio/ktor/server/plugins/di/DependencyConflictResult$Replace;
+	public static synthetic fun copy$default (Lio/ktor/server/plugins/di/DependencyConflictResult$Replace;Lio/ktor/server/plugins/di/DependencyInitializer;ILjava/lang/Object;)Lio/ktor/server/plugins/di/DependencyConflictResult$Replace;
 	public fun equals (Ljava/lang/Object;)Z
-	public final fun getFunction ()Lio/ktor/server/plugins/di/DependencyCreateFunction;
+	public final fun getFunction ()Lio/ktor/server/plugins/di/DependencyInitializer;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public abstract interface class io/ktor/server/plugins/di/DependencyCreateFunction {
-	public abstract fun create (Lio/ktor/server/plugins/di/DependencyResolver;)Ljava/lang/Object;
+public abstract interface class io/ktor/server/plugins/di/DependencyInitializer {
 	public abstract fun getKey ()Lio/ktor/server/plugins/di/DependencyKey;
+	public abstract fun getOriginKey ()Lio/ktor/server/plugins/di/DependencyKey;
+	public abstract fun resolve (Lio/ktor/server/plugins/di/DependencyResolver;)Lkotlinx/coroutines/Deferred;
+}
+
+public final class io/ktor/server/plugins/di/DependencyInitializer$Ambiguous : io/ktor/server/plugins/di/DependencyInitializer {
+	public static final field Companion Lio/ktor/server/plugins/di/DependencyInitializer$Ambiguous$Companion;
+	public fun <init> (Lio/ktor/server/plugins/di/DependencyKey;Ljava/util/Set;)V
+	public final fun clarify (Lkotlin/jvm/functions/Function1;)Lio/ktor/server/plugins/di/DependencyInitializer;
+	public final fun component1 ()Lio/ktor/server/plugins/di/DependencyKey;
+	public final fun component2 ()Ljava/util/Set;
+	public final fun copy (Lio/ktor/server/plugins/di/DependencyKey;Ljava/util/Set;)Lio/ktor/server/plugins/di/DependencyInitializer$Ambiguous;
+	public static synthetic fun copy$default (Lio/ktor/server/plugins/di/DependencyInitializer$Ambiguous;Lio/ktor/server/plugins/di/DependencyKey;Ljava/util/Set;ILjava/lang/Object;)Lio/ktor/server/plugins/di/DependencyInitializer$Ambiguous;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFunctions ()Ljava/util/Set;
+	public final fun getImplementations ()Ljava/util/List;
+	public fun getKey ()Lio/ktor/server/plugins/di/DependencyKey;
+	public fun getOriginKey ()Lio/ktor/server/plugins/di/DependencyKey;
+	public fun hashCode ()I
+	public final fun keyString ()Ljava/lang/String;
+	public fun resolve (Lio/ktor/server/plugins/di/DependencyResolver;)Lkotlinx/coroutines/Deferred;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/plugins/di/DependencyInitializer$Ambiguous$Companion {
+	public final fun of (Lio/ktor/server/plugins/di/DependencyKey;[Lio/ktor/server/plugins/di/DependencyInitializer;)Lio/ktor/server/plugins/di/DependencyInitializer;
+}
+
+public final class io/ktor/server/plugins/di/DependencyInitializer$DefaultImpls {
+	public static fun getOriginKey (Lio/ktor/server/plugins/di/DependencyInitializer;)Lio/ktor/server/plugins/di/DependencyKey;
+}
+
+public final class io/ktor/server/plugins/di/DependencyInitializer$Explicit : io/ktor/server/plugins/di/DependencyInitializer {
+	public fun <init> (Lio/ktor/server/plugins/di/DependencyKey;Lkotlin/jvm/functions/Function2;)V
+	public final fun derived (I)Lio/ktor/server/plugins/di/DependencyInitializer$Implicit;
+	public fun getKey ()Lio/ktor/server/plugins/di/DependencyKey;
+	public fun getOriginKey ()Lio/ktor/server/plugins/di/DependencyKey;
+	public fun resolve (Lio/ktor/server/plugins/di/DependencyResolver;)Lkotlinx/coroutines/Deferred;
+}
+
+public final class io/ktor/server/plugins/di/DependencyInitializer$Implicit : io/ktor/server/plugins/di/DependencyInitializer {
+	public fun <init> (Lio/ktor/server/plugins/di/DependencyInitializer$Explicit;I)V
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDistance ()I
+	public fun getKey ()Lio/ktor/server/plugins/di/DependencyKey;
+	public final fun getOrigin ()Lio/ktor/server/plugins/di/DependencyInitializer$Explicit;
+	public fun getOriginKey ()Lio/ktor/server/plugins/di/DependencyKey;
+	public fun hashCode ()I
+	public fun resolve (Lio/ktor/server/plugins/di/DependencyResolver;)Lkotlinx/coroutines/Deferred;
+}
+
+public final class io/ktor/server/plugins/di/DependencyInitializer$Missing : io/ktor/server/plugins/di/DependencyInitializer {
+	public fun <init> (Lio/ktor/server/plugins/di/DependencyKey;Lio/ktor/server/plugins/di/DependencyResolver;)V
+	public fun getKey ()Lio/ktor/server/plugins/di/DependencyKey;
+	public fun getOriginKey ()Lio/ktor/server/plugins/di/DependencyKey;
+	public final fun provide (Lio/ktor/server/plugins/di/DependencyInitializer;)V
+	public fun resolve (Lio/ktor/server/plugins/di/DependencyResolver;)Lkotlinx/coroutines/Deferred;
+	public final fun throwMissing ()V
+}
+
+public final class io/ktor/server/plugins/di/DependencyInitializer$Null : io/ktor/server/plugins/di/DependencyInitializer {
+	public fun <init> (Lio/ktor/server/plugins/di/DependencyKey;)V
+	public final fun component1 ()Lio/ktor/server/plugins/di/DependencyKey;
+	public final fun copy (Lio/ktor/server/plugins/di/DependencyKey;)Lio/ktor/server/plugins/di/DependencyInitializer$Null;
+	public static synthetic fun copy$default (Lio/ktor/server/plugins/di/DependencyInitializer$Null;Lio/ktor/server/plugins/di/DependencyKey;ILjava/lang/Object;)Lio/ktor/server/plugins/di/DependencyInitializer$Null;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getKey ()Lio/ktor/server/plugins/di/DependencyKey;
+	public fun getOriginKey ()Lio/ktor/server/plugins/di/DependencyKey;
+	public fun hashCode ()I
+	public fun resolve (Lio/ktor/server/plugins/di/DependencyResolver;)Lkotlinx/coroutines/Deferred;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/plugins/di/DependencyInitializer$Value : io/ktor/server/plugins/di/DependencyInitializer {
+	public fun <init> (Lio/ktor/server/plugins/di/DependencyKey;Ljava/lang/Object;)V
+	public final fun component1 ()Lio/ktor/server/plugins/di/DependencyKey;
+	public final fun component2 ()Ljava/lang/Object;
+	public final fun copy (Lio/ktor/server/plugins/di/DependencyKey;Ljava/lang/Object;)Lio/ktor/server/plugins/di/DependencyInitializer$Value;
+	public static synthetic fun copy$default (Lio/ktor/server/plugins/di/DependencyInitializer$Value;Lio/ktor/server/plugins/di/DependencyKey;Ljava/lang/Object;ILjava/lang/Object;)Lio/ktor/server/plugins/di/DependencyInitializer$Value;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getKey ()Lio/ktor/server/plugins/di/DependencyKey;
+	public fun getOriginKey ()Lio/ktor/server/plugins/di/DependencyKey;
+	public final fun getValue ()Ljava/lang/Object;
+	public fun hashCode ()I
+	public fun resolve (Lio/ktor/server/plugins/di/DependencyResolver;)Lkotlinx/coroutines/Deferred;
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/ktor/server/plugins/di/DependencyInjectionConfig {
 	public fun <init> ()V
-	public final fun getOnShutdown ()Lkotlin/jvm/functions/Function2;
-	public final fun getProvider ()Lio/ktor/server/plugins/di/DependencyProvider;
-	public final fun getReflection ()Lio/ktor/server/plugins/di/DependencyReflection;
-	public final fun getResolution ()Lio/ktor/server/plugins/di/DependencyResolution;
-	public final fun include (Lio/ktor/server/plugins/di/DependencyMap;)V
-	public final fun provider (Lkotlin/jvm/functions/Function1;)V
-	public final fun setOnShutdown (Lkotlin/jvm/functions/Function2;)V
-	public final fun setProvider (Lio/ktor/server/plugins/di/DependencyProvider;)V
-	public final fun setReflection (Lio/ktor/server/plugins/di/DependencyReflection;)V
-	public final fun setResolution (Lio/ktor/server/plugins/di/DependencyResolution;)V
-}
-
-public final class io/ktor/server/plugins/di/DependencyInjectionConfig$ProviderScope {
-	public fun <init> ()V
-	public fun <init> (Lio/ktor/server/plugins/di/DependencyKeyCovariance;Lio/ktor/server/plugins/di/DependencyConflictPolicy;Lkotlin/jvm/functions/Function1;)V
-	public synthetic fun <init> (Lio/ktor/server/plugins/di/DependencyKeyCovariance;Lio/ktor/server/plugins/di/DependencyConflictPolicy;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Lio/ktor/server/plugins/di/DependencyKeyCovariance;
-	public final fun component2 ()Lio/ktor/server/plugins/di/DependencyConflictPolicy;
-	public final fun component3 ()Lkotlin/jvm/functions/Function1;
-	public final fun copy (Lio/ktor/server/plugins/di/DependencyKeyCovariance;Lio/ktor/server/plugins/di/DependencyConflictPolicy;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/plugins/di/DependencyInjectionConfig$ProviderScope;
-	public static synthetic fun copy$default (Lio/ktor/server/plugins/di/DependencyInjectionConfig$ProviderScope;Lio/ktor/server/plugins/di/DependencyKeyCovariance;Lio/ktor/server/plugins/di/DependencyConflictPolicy;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/plugins/di/DependencyInjectionConfig$ProviderScope;
-	public fun equals (Ljava/lang/Object;)Z
 	public final fun getConflictPolicy ()Lio/ktor/server/plugins/di/DependencyConflictPolicy;
 	public final fun getKeyMapping ()Lio/ktor/server/plugins/di/DependencyKeyCovariance;
 	public final fun getOnConflict ()Lkotlin/jvm/functions/Function1;
-	public fun hashCode ()I
+	public final fun getOnMissing ()Lio/ktor/server/plugins/di/DependencyInjectionConfig$OnMissing;
+	public final fun getOnShutdown ()Lkotlin/jvm/functions/Function2;
+	public final fun getReflection ()Lio/ktor/server/plugins/di/DependencyReflection;
+	public final fun include (Lio/ktor/server/plugins/di/DependencyMap;)V
 	public final fun setConflictPolicy (Lio/ktor/server/plugins/di/DependencyConflictPolicy;)V
 	public final fun setKeyMapping (Lio/ktor/server/plugins/di/DependencyKeyCovariance;)V
 	public final fun setOnConflict (Lkotlin/jvm/functions/Function1;)V
-	public fun toString ()Ljava/lang/String;
+	public final fun setOnMissing (Lio/ktor/server/plugins/di/DependencyInjectionConfig$OnMissing;)V
+	public final fun setOnShutdown (Lkotlin/jvm/functions/Function2;)V
+	public final fun setReflection (Lio/ktor/server/plugins/di/DependencyReflection;)V
+}
+
+public final class io/ktor/server/plugins/di/DependencyInjectionConfig$OnMissing : java/lang/Enum {
+	public static final field Fail Lio/ktor/server/plugins/di/DependencyInjectionConfig$OnMissing;
+	public static final field Suspend Lio/ktor/server/plugins/di/DependencyInjectionConfig$OnMissing;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/ktor/server/plugins/di/DependencyInjectionConfig$OnMissing;
+	public static fun values ()[Lio/ktor/server/plugins/di/DependencyInjectionConfig$OnMissing;
 }
 
 public final class io/ktor/server/plugins/di/DependencyInjectionConfig_jvmKt {
@@ -178,84 +231,87 @@ public final class io/ktor/server/plugins/di/DependencyKeyCovarianceKt {
 public abstract interface class io/ktor/server/plugins/di/DependencyMap {
 	public static final field Companion Lio/ktor/server/plugins/di/DependencyMap$Companion;
 	public abstract fun contains (Lio/ktor/server/plugins/di/DependencyKey;)Z
-	public abstract fun get (Lio/ktor/server/plugins/di/DependencyKey;)Ljava/lang/Object;
+	public abstract fun getInitializer (Lio/ktor/server/plugins/di/DependencyKey;)Lio/ktor/server/plugins/di/DependencyInitializer;
 }
 
 public final class io/ktor/server/plugins/di/DependencyMap$Companion {
+	public final fun fromLookup (Lkotlin/jvm/functions/Function1;)Lio/ktor/server/plugins/di/DependencyMap;
+	public final fun fromMap (Ljava/util/Map;)Lio/ktor/server/plugins/di/DependencyMap;
 	public final fun getEMPTY ()Lio/ktor/server/plugins/di/DependencyMap;
 }
 
-public final class io/ktor/server/plugins/di/DependencyMapImpl : io/ktor/server/plugins/di/MutableDependencyMap {
-	public fun <init> (Ljava/util/Map;Lio/ktor/server/plugins/di/DependencyMap;)V
-	public synthetic fun <init> (Ljava/util/Map;Lio/ktor/server/plugins/di/DependencyMap;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun contains (Lio/ktor/server/plugins/di/DependencyKey;)Z
-	public fun get (Lio/ktor/server/plugins/di/DependencyKey;)Ljava/lang/Object;
-	public fun getOrPut (Lio/ktor/server/plugins/di/DependencyKey;Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
+public abstract interface class io/ktor/server/plugins/di/DependencyMapExtension {
+	public abstract fun get (Lio/ktor/server/application/Application;)Lio/ktor/server/plugins/di/DependencyMap;
 }
 
 public abstract interface class io/ktor/server/plugins/di/DependencyProvider {
-	public abstract fun getDeclarations ()Ljava/util/Map;
-	public abstract fun set (Lio/ktor/server/plugins/di/DependencyKey;Lkotlin/jvm/functions/Function1;)V
-}
-
-public final class io/ktor/server/plugins/di/DependencyProviderKt {
-	public static final fun ifImplicit (Lio/ktor/server/plugins/di/DependencyCreateFunction;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public abstract fun set (Lio/ktor/server/plugins/di/DependencyKey;Lkotlin/jvm/functions/Function2;)V
 }
 
 public abstract interface class io/ktor/server/plugins/di/DependencyReflection {
-	public abstract fun create (Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public abstract fun create (Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public class io/ktor/server/plugins/di/DependencyReflectionJvm : io/ktor/server/plugins/di/DependencyReflection {
 	public fun <init> ()V
-	public fun create (Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public fun create (Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun findConstructors (Lkotlin/reflect/KClass;)Ljava/util/Collection;
-	public fun mapParameters (Ljava/util/List;Lkotlin/jvm/functions/Function1;)Ljava/util/Map;
+	public final fun mapParameters (Ljava/util/List;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun toDependencyKey (Lkotlin/reflect/KParameter;)Lio/ktor/server/plugins/di/DependencyKey;
 }
 
-public final class io/ktor/server/plugins/di/DependencyRegistry : io/ktor/server/plugins/di/DependencyProvider, io/ktor/server/plugins/di/DependencyResolver, kotlinx/coroutines/CoroutineScope {
-	public fun <init> (Lio/ktor/server/plugins/di/DependencyProvider;Lio/ktor/server/plugins/di/DependencyMap;Lio/ktor/server/plugins/di/DependencyResolution;Lio/ktor/server/plugins/di/DependencyReflection;Lkotlin/coroutines/CoroutineContext;)V
+public final class io/ktor/server/plugins/di/DependencyRegistry : io/ktor/server/plugins/di/DependencyProvider, io/ktor/server/plugins/di/DependencyResolver {
+	public fun <init> (Lio/ktor/server/plugins/di/DependencyResolver;Lio/ktor/server/plugins/di/DependencyProvider;)V
 	public final fun cleanup (Lio/ktor/server/plugins/di/DependencyKey;Lkotlin/jvm/functions/Function1;)V
 	public fun contains (Lio/ktor/server/plugins/di/DependencyKey;)Z
-	public fun get (Lio/ktor/server/plugins/di/DependencyKey;)Ljava/lang/Object;
+	public fun get (Lio/ktor/server/plugins/di/DependencyKey;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
-	public fun getDeclarations ()Ljava/util/Map;
-	public fun getOrPut (Lio/ktor/server/plugins/di/DependencyKey;Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
+	public fun getDeferred (Lio/ktor/server/plugins/di/DependencyKey;)Lkotlinx/coroutines/Deferred;
+	public fun getInitializer (Lio/ktor/server/plugins/di/DependencyKey;)Lio/ktor/server/plugins/di/DependencyInitializer;
+	public fun getOrPut (Lio/ktor/server/plugins/di/DependencyKey;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getProvider ()Lio/ktor/server/plugins/di/DependencyProvider;
 	public fun getReflection ()Lio/ktor/server/plugins/di/DependencyReflection;
+	public final fun getResolver ()Lio/ktor/server/plugins/di/DependencyResolver;
 	public fun named (Ljava/lang/String;)Lio/ktor/server/plugins/di/DependencyResolverContext;
 	public final fun require (Lio/ktor/server/plugins/di/DependencyKey;)V
-	public fun set (Lio/ktor/server/plugins/di/DependencyKey;Lkotlin/jvm/functions/Function1;)V
+	public fun set (Lio/ktor/server/plugins/di/DependencyKey;Lkotlin/jvm/functions/Function2;)V
 }
 
 public final class io/ktor/server/plugins/di/DependencyRegistry$KeyContext {
 	public fun <init> (Lio/ktor/server/plugins/di/DependencyRegistry;Lio/ktor/server/plugins/di/DependencyKey;)V
 	public final fun cleanup (Lkotlin/jvm/functions/Function1;)V
 	public final fun getKey ()Lio/ktor/server/plugins/di/DependencyKey;
-	public final fun provide (Lkotlin/jvm/functions/Function1;)V
+	public final fun provide (Lkotlin/jvm/functions/Function2;)V
 }
 
 public final class io/ktor/server/plugins/di/DependencyRegistryKt {
 	public static final fun dependencies (Lio/ktor/server/application/Application;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
-	public static final fun getDefaultDependencyResolution ()Lio/ktor/server/plugins/di/DependencyResolution;
 	public static final fun getDependencies (Lio/ktor/server/application/Application;)Lio/ktor/server/plugins/di/DependencyRegistry;
 	public static final fun setDependencies (Lio/ktor/server/application/Application;Lio/ktor/server/plugins/di/DependencyRegistry;)V
 }
 
 public abstract interface class io/ktor/server/plugins/di/DependencyResolution {
-	public abstract fun resolve (Lio/ktor/server/plugins/di/DependencyProvider;Lio/ktor/server/plugins/di/DependencyMap;Lio/ktor/server/plugins/di/DependencyReflection;)Lio/ktor/server/plugins/di/DependencyResolver;
+	public abstract fun resolve (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/server/plugins/di/DependencyProvider;Lio/ktor/server/plugins/di/DependencyMap;Lio/ktor/server/plugins/di/DependencyReflection;)Lio/ktor/server/plugins/di/DependencyResolver;
 }
 
 public final class io/ktor/server/plugins/di/DependencyResolutionKt {
 	public static final fun plus (Lio/ktor/server/plugins/di/DependencyMap;Lio/ktor/server/plugins/di/DependencyMap;)Lio/ktor/server/plugins/di/DependencyMap;
 }
 
-public abstract interface class io/ktor/server/plugins/di/DependencyResolver : io/ktor/server/plugins/di/MutableDependencyMap {
+public final class io/ktor/server/plugins/di/DependencyResolution_jvmKt {
+	public static final fun getBlocking (Lio/ktor/server/plugins/di/DependencyResolver;Lio/ktor/server/plugins/di/DependencyKey;)Ljava/lang/Object;
+}
+
+public abstract interface class io/ktor/server/plugins/di/DependencyResolver : io/ktor/server/plugins/di/MutableDependencyMap, kotlinx/coroutines/CoroutineScope {
+	public abstract fun get (Lio/ktor/server/plugins/di/DependencyKey;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getDeferred (Lio/ktor/server/plugins/di/DependencyKey;)Lkotlinx/coroutines/Deferred;
 	public abstract fun getReflection ()Lio/ktor/server/plugins/di/DependencyReflection;
 	public abstract fun named (Ljava/lang/String;)Lio/ktor/server/plugins/di/DependencyResolverContext;
 }
 
 public final class io/ktor/server/plugins/di/DependencyResolver$DefaultImpls {
+	public static fun get (Lio/ktor/server/plugins/di/DependencyResolver;Lio/ktor/server/plugins/di/DependencyKey;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun getDeferred (Lio/ktor/server/plugins/di/DependencyResolver;Lio/ktor/server/plugins/di/DependencyKey;)Lkotlinx/coroutines/Deferred;
 	public static fun named (Lio/ktor/server/plugins/di/DependencyResolver;Ljava/lang/String;)Lio/ktor/server/plugins/di/DependencyResolverContext;
 }
 
@@ -276,37 +332,22 @@ public final class io/ktor/server/plugins/di/DuplicateDependencyException : io/k
 	public fun <init> (Lio/ktor/server/plugins/di/DependencyKey;)V
 }
 
-public final class io/ktor/server/plugins/di/ExplicitCreateFunction : io/ktor/server/plugins/di/DependencyCreateFunction {
-	public fun <init> (Lio/ktor/server/plugins/di/DependencyKey;Lkotlin/jvm/functions/Function1;)V
-	public fun create (Lio/ktor/server/plugins/di/DependencyResolver;)Ljava/lang/Object;
-	public final fun derived (I)Lio/ktor/server/plugins/di/ImplicitCreateFunction;
-	public fun getKey ()Lio/ktor/server/plugins/di/DependencyKey;
-}
-
-public final class io/ktor/server/plugins/di/ImplicitCreateFunction : io/ktor/server/plugins/di/DependencyCreateFunction {
-	public fun <init> (Lio/ktor/server/plugins/di/ExplicitCreateFunction;I)V
-	public fun create (Lio/ktor/server/plugins/di/DependencyResolver;)Ljava/lang/Object;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getDistance ()I
-	public fun getKey ()Lio/ktor/server/plugins/di/DependencyKey;
-	public final fun getOrigin ()Lio/ktor/server/plugins/di/ExplicitCreateFunction;
-	public fun hashCode ()I
-}
-
 public final class io/ktor/server/plugins/di/InvalidDependencyReferenceException : io/ktor/server/plugins/di/DependencyInjectionException {
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
-public class io/ktor/server/plugins/di/MapDependencyProvider : io/ktor/server/plugins/di/DependencyProvider, kotlinx/coroutines/CoroutineScope {
-	public fun <init> ()V
-	public fun <init> (Lio/ktor/server/plugins/di/DependencyKeyCovariance;Lio/ktor/server/plugins/di/DependencyConflictPolicy;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/CoroutineContext;Lorg/slf4j/Logger;)V
-	public synthetic fun <init> (Lio/ktor/server/plugins/di/DependencyKeyCovariance;Lio/ktor/server/plugins/di/DependencyConflictPolicy;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/CoroutineContext;Lorg/slf4j/Logger;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun getConflictPolicy ()Lio/ktor/server/plugins/di/DependencyConflictPolicy;
+public final class io/ktor/server/plugins/di/MapDependencyResolver : io/ktor/server/plugins/di/DependencyResolver {
+	public fun <init> (Ljava/util/Map;Lio/ktor/server/plugins/di/DependencyMap;Lio/ktor/server/plugins/di/DependencyReflection;ZLkotlin/coroutines/CoroutineContext;)V
+	public synthetic fun <init> (Ljava/util/Map;Lio/ktor/server/plugins/di/DependencyMap;Lio/ktor/server/plugins/di/DependencyReflection;ZLkotlin/coroutines/CoroutineContext;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun contains (Lio/ktor/server/plugins/di/DependencyKey;)Z
+	public fun get (Lio/ktor/server/plugins/di/DependencyKey;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
-	public fun getDeclarations ()Ljava/util/Map;
-	public final fun getKeyMapping ()Lio/ktor/server/plugins/di/DependencyKeyCovariance;
-	public final fun getOnConflict ()Lkotlin/jvm/functions/Function1;
-	public fun set (Lio/ktor/server/plugins/di/DependencyKey;Lkotlin/jvm/functions/Function1;)V
+	public fun getDeferred (Lio/ktor/server/plugins/di/DependencyKey;)Lkotlinx/coroutines/Deferred;
+	public fun getInitializer (Lio/ktor/server/plugins/di/DependencyKey;)Lio/ktor/server/plugins/di/DependencyInitializer;
+	public fun getOrPut (Lio/ktor/server/plugins/di/DependencyKey;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getReflection ()Lio/ktor/server/plugins/di/DependencyReflection;
+	public fun named (Ljava/lang/String;)Lio/ktor/server/plugins/di/DependencyResolverContext;
+	public final fun stopWaiting ()V
 }
 
 public final class io/ktor/server/plugins/di/MissingDependencyException : io/ktor/server/plugins/di/DependencyInjectionException {
@@ -314,31 +355,16 @@ public final class io/ktor/server/plugins/di/MissingDependencyException : io/kto
 }
 
 public abstract interface class io/ktor/server/plugins/di/MutableDependencyMap : io/ktor/server/plugins/di/DependencyMap {
-	public static final field Companion Lio/ktor/server/plugins/di/MutableDependencyMap$Companion;
-	public abstract fun getOrPut (Lio/ktor/server/plugins/di/DependencyKey;Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
-}
-
-public final class io/ktor/server/plugins/di/MutableDependencyMap$Companion {
-	public final fun asResolver (Lio/ktor/server/plugins/di/MutableDependencyMap;Lio/ktor/server/plugins/di/DependencyReflection;)Lio/ktor/server/plugins/di/DependencyResolver;
+	public abstract fun getOrPut (Lio/ktor/server/plugins/di/DependencyKey;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/plugins/di/NoReflection : io/ktor/server/plugins/di/DependencyReflection {
 	public static final field INSTANCE Lio/ktor/server/plugins/di/NoReflection;
-	public fun create (Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public fun create (Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/plugins/di/OutOfOrderDependencyException : io/ktor/server/plugins/di/DependencyInjectionException {
 	public fun <init> (Lio/ktor/server/plugins/di/DependencyKey;)V
-}
-
-public final class io/ktor/server/plugins/di/ProcessingDependencyResolver : io/ktor/server/plugins/di/DependencyResolver {
-	public fun <init> (Lio/ktor/server/plugins/di/DependencyReflection;Lio/ktor/server/plugins/di/DependencyProvider;Lio/ktor/server/plugins/di/DependencyMap;)V
-	public fun contains (Lio/ktor/server/plugins/di/DependencyKey;)Z
-	public fun get (Lio/ktor/server/plugins/di/DependencyKey;)Ljava/lang/Object;
-	public fun getOrPut (Lio/ktor/server/plugins/di/DependencyKey;Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
-	public fun getReflection ()Lio/ktor/server/plugins/di/DependencyReflection;
-	public fun named (Ljava/lang/String;)Lio/ktor/server/plugins/di/DependencyResolverContext;
-	public final fun resolveAll ()Ljava/util/Map;
 }
 
 public final class io/ktor/server/plugins/di/PropertyQualifier {
