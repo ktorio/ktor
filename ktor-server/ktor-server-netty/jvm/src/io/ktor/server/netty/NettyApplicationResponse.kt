@@ -72,15 +72,18 @@ public abstract class NettyApplicationResponse(
 
     internal fun isInfoOrNoContentStatus(): Boolean {
         val status = status()
-        if (status == null) return false
-
-        return status == HttpStatusCode.NoContent || (status.value >= 100 && status.value < 200)
+        return (status != null) && (status == HttpStatusCode.NoContent || (status.value >= 100 && status.value < 200))
     }
 
     override suspend fun responseChannel(): ByteWriteChannel {
         val channel = ByteChannel()
         val chunked = headers[HttpHeaders.TransferEncoding] == "chunked"
         sendResponse(chunked, content = channel)
+
+        if (isInfoOrNoContentStatus()) {
+            sendCompleted.await()
+        }
+
         return channel
     }
 
