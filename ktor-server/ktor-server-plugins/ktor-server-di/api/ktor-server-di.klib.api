@@ -248,9 +248,6 @@ final class io.ktor.server.plugins.di/DependencyInjectionConfig { // io.ktor.ser
     final var onConflict // io.ktor.server.plugins.di/DependencyInjectionConfig.onConflict|{}onConflict[0]
         final fun <get-onConflict>(): kotlin/Function1<io.ktor.server.plugins.di/DependencyKey, kotlin/Nothing> // io.ktor.server.plugins.di/DependencyInjectionConfig.onConflict.<get-onConflict>|<get-onConflict>(){}[0]
         final fun <set-onConflict>(kotlin/Function1<io.ktor.server.plugins.di/DependencyKey, kotlin/Nothing>) // io.ktor.server.plugins.di/DependencyInjectionConfig.onConflict.<set-onConflict>|<set-onConflict>(kotlin.Function1<io.ktor.server.plugins.di.DependencyKey,kotlin.Nothing>){}[0]
-    final var onMissing // io.ktor.server.plugins.di/DependencyInjectionConfig.onMissing|{}onMissing[0]
-        final fun <get-onMissing>(): io.ktor.server.plugins.di/DependencyInjectionConfig.OnMissing? // io.ktor.server.plugins.di/DependencyInjectionConfig.onMissing.<get-onMissing>|<get-onMissing>(){}[0]
-        final fun <set-onMissing>(io.ktor.server.plugins.di/DependencyInjectionConfig.OnMissing?) // io.ktor.server.plugins.di/DependencyInjectionConfig.onMissing.<set-onMissing>|<set-onMissing>(io.ktor.server.plugins.di.DependencyInjectionConfig.OnMissing?){}[0]
     final var onShutdown // io.ktor.server.plugins.di/DependencyInjectionConfig.onShutdown|{}onShutdown[0]
         final fun <get-onShutdown>(): kotlin/Function2<io.ktor.server.plugins.di/DependencyKey, kotlin/Any?, kotlin/Unit> // io.ktor.server.plugins.di/DependencyInjectionConfig.onShutdown.<get-onShutdown>|<get-onShutdown>(){}[0]
         final fun <set-onShutdown>(kotlin/Function2<io.ktor.server.plugins.di/DependencyKey, kotlin/Any?, kotlin/Unit>) // io.ktor.server.plugins.di/DependencyInjectionConfig.onShutdown.<set-onShutdown>|<set-onShutdown>(kotlin.Function2<io.ktor.server.plugins.di.DependencyKey,kotlin.Any?,kotlin.Unit>){}[0]
@@ -259,17 +256,6 @@ final class io.ktor.server.plugins.di/DependencyInjectionConfig { // io.ktor.ser
         final fun <set-reflection>(io.ktor.server.plugins.di/DependencyReflection) // io.ktor.server.plugins.di/DependencyInjectionConfig.reflection.<set-reflection>|<set-reflection>(io.ktor.server.plugins.di.DependencyReflection){}[0]
 
     final fun include(io.ktor.server.plugins.di/DependencyMap) // io.ktor.server.plugins.di/DependencyInjectionConfig.include|include(io.ktor.server.plugins.di.DependencyMap){}[0]
-
-    final enum class OnMissing : kotlin/Enum<io.ktor.server.plugins.di/DependencyInjectionConfig.OnMissing> { // io.ktor.server.plugins.di/DependencyInjectionConfig.OnMissing|null[0]
-        enum entry Fail // io.ktor.server.plugins.di/DependencyInjectionConfig.OnMissing.Fail|null[0]
-        enum entry Suspend // io.ktor.server.plugins.di/DependencyInjectionConfig.OnMissing.Suspend|null[0]
-
-        final val entries // io.ktor.server.plugins.di/DependencyInjectionConfig.OnMissing.entries|#static{}entries[0]
-            final fun <get-entries>(): kotlin.enums/EnumEntries<io.ktor.server.plugins.di/DependencyInjectionConfig.OnMissing> // io.ktor.server.plugins.di/DependencyInjectionConfig.OnMissing.entries.<get-entries>|<get-entries>#static(){}[0]
-
-        final fun valueOf(kotlin/String): io.ktor.server.plugins.di/DependencyInjectionConfig.OnMissing // io.ktor.server.plugins.di/DependencyInjectionConfig.OnMissing.valueOf|valueOf#static(kotlin.String){}[0]
-        final fun values(): kotlin/Array<io.ktor.server.plugins.di/DependencyInjectionConfig.OnMissing> // io.ktor.server.plugins.di/DependencyInjectionConfig.OnMissing.values|values#static(){}[0]
-    }
 }
 
 final class io.ktor.server.plugins.di/DependencyKey { // io.ktor.server.plugins.di/DependencyKey|null[0]
@@ -355,8 +341,8 @@ final class io.ktor.server.plugins.di/DuplicateDependencyException : io.ktor.ser
 
 final class io.ktor.server.plugins.di/InvalidDependencyReferenceException : io.ktor.server.plugins.di/DependencyInjectionException // io.ktor.server.plugins.di/InvalidDependencyReferenceException|null[0]
 
-final class io.ktor.server.plugins.di/MapDependencyResolver : io.ktor.server.plugins.di/DependencyResolver { // io.ktor.server.plugins.di/MapDependencyResolver|null[0]
-    constructor <init>(kotlin.collections/MutableMap<io.ktor.server.plugins.di/DependencyKey, io.ktor.server.plugins.di/DependencyInitializer>, io.ktor.server.plugins.di/DependencyMap, io.ktor.server.plugins.di/DependencyReflection, kotlin/Boolean = ..., kotlin.coroutines/CoroutineContext) // io.ktor.server.plugins.di/MapDependencyResolver.<init>|<init>(kotlin.collections.MutableMap<io.ktor.server.plugins.di.DependencyKey,io.ktor.server.plugins.di.DependencyInitializer>;io.ktor.server.plugins.di.DependencyMap;io.ktor.server.plugins.di.DependencyReflection;kotlin.Boolean;kotlin.coroutines.CoroutineContext){}[0]
+final class io.ktor.server.plugins.di/MapDependencyResolver : io.ktor.server.plugins.di/DependencyResolver, kotlinx.coroutines/CoroutineScope { // io.ktor.server.plugins.di/MapDependencyResolver|null[0]
+    constructor <init>(kotlin.collections/MutableMap<io.ktor.server.plugins.di/DependencyKey, io.ktor.server.plugins.di/DependencyInitializer>, io.ktor.server.plugins.di/DependencyMap, io.ktor.server.plugins.di/DependencyReflection, kotlin/Boolean = ..., kotlinx.coroutines/CoroutineScope) // io.ktor.server.plugins.di/MapDependencyResolver.<init>|<init>(kotlin.collections.MutableMap<io.ktor.server.plugins.di.DependencyKey,io.ktor.server.plugins.di.DependencyInitializer>;io.ktor.server.plugins.di.DependencyMap;io.ktor.server.plugins.di.DependencyReflection;kotlin.Boolean;kotlinx.coroutines.CoroutineScope){}[0]
 
     final val coroutineContext // io.ktor.server.plugins.di/MapDependencyResolver.coroutineContext|{}coroutineContext[0]
         final fun <get-coroutineContext>(): kotlin.coroutines/CoroutineContext // io.ktor.server.plugins.di/MapDependencyResolver.coroutineContext.<get-coroutineContext>|<get-coroutineContext>(){}[0]

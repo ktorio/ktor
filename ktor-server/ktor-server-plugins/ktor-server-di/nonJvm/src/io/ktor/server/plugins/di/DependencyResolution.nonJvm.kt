@@ -14,6 +14,8 @@ internal actual fun loadMapExtensions(): List<DependencyMapExtension> =
 
 /**
  * Blocking is unavailable for other platforms, so we instead attempt to get the completed value.
+ *
+ * If the dependency is not ready, [MissingDependencyException] is thrown.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 public actual fun <T> DependencyResolver.getBlocking(key: DependencyKey): T {
