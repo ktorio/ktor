@@ -8,10 +8,10 @@ import io.ktor.server.application.*
 import io.ktor.server.plugins.di.utils.*
 import io.ktor.util.*
 import io.ktor.util.reflect.*
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
 import kotlin.reflect.KClass
 
 /**
@@ -58,13 +58,12 @@ import kotlin.reflect.KClass
 @OptIn(ExperimentalCoroutinesApi::class)
 public val DI: ApplicationPlugin<DependencyInjectionConfig> =
     createApplicationPlugin("DI", ::DependencyInjectionConfig) {
+        val startupMode = environment.startupMode
         val configuredDependencyReferences =
             environment.config.propertyOrNull("ktor.application.dependencies")
                 ?.getList()
                 ?.map { ClasspathReference(it) }
                 .orEmpty()
-        val startupMode =
-            environment.config.propertyOrNull("ktor.application.startup")?.getString()
 
         val configMap = ConfigurationDependencyMap(application.environment.config)
         var extensionMap = pluginConfig.dependenciesMap?.let { it + configMap } ?: configMap
@@ -73,27 +72,20 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
         }
         val onShutdown = pluginConfig.onShutdown
 
-        val exceptionHandler = CoroutineExceptionHandler { context, e ->
-            environment.log.error("Error encountered during dependency resolution", e)
-        }
-        val coroutineContext =
-            application.coroutineContext +
-                CoroutineName("dependency-injection-tasks") +
-                Dispatchers.Default.limitedParallelism(1) +
-                exceptionHandler
+        val coroutineScope =
+            CoroutineScope(
+                application.coroutineContext +
+                    CoroutineName("dependency-injection")
+            )
         val map: DependencyInitializerMap = mutableMapOf()
         val reflection = pluginConfig.reflection
-        val useSuspend = when (pluginConfig.onMissing) {
-            DependencyInjectionConfig.OnMissing.Suspend -> true
-            DependencyInjectionConfig.OnMissing.Fail -> false
-            else -> startupMode?.equals("concurrent", ignoreCase = true) ?: false
-        }
+        val useSuspend = startupMode == ApplicationStartupMode.CONCURRENT
         val resolver = MapDependencyResolver(
             map,
             extensionMap,
             reflection,
             useSuspend,
-            coroutineContext,
+            coroutineScope,
         )
         val conflictPolicy = pluginConfig.conflictPolicy
             ?: if (isTestEngine()) IgnoreConflicts else DefaultConflictPolicy
@@ -110,7 +102,7 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
             for (reference in configuredDependencyReferences) {
                 installReference(registry, reference)
             }
-            // If suspended on startup, consumers will now fail with missing
+            // Interrupt any consumers waiting for a provider
             monitor.subscribe(ApplicationModulesLoading) {
                 resolver.stopWaiting()
             }
@@ -143,6 +135,8 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
                 }
             }
             monitor.subscribe(ApplicationStopped) {
+                coroutineScope.cancel("Application stopped")
+
                 for (key in map.keys.reversed()) {
                     try {
                         val instance = registry.getDeferred<Any?>(key).tryGetCompleted() ?: continue
@@ -202,23 +196,18 @@ public object NoReflection : DependencyReflection {
  *                          Defaults to `DefaultConflictPolicy` in normal mode or `IgnoreConflicts` in test mode.
  * @property onConflict A callback invoked when a duplicate dependency is detected.
  *                      Defaults to throwing a `DuplicateDependencyException`.
- * @property onMissing Determines behavior when a dependency is not found.
- *                     When set to `Suspend`, resolution will wait for later declarations.
- *                     When set to `Fail`, missing dependencies immediately fail.
  * @property onShutdown A callback invoked when the application stops.
  *                      Defaults to closing all instances of `AutoCloseable`.
  *
  * @see DependencyReflection
  * @see DependencyKeyCovariance
  * @see DependencyConflictPolicy
- * @see OnMissing
  */
 public class DependencyInjectionConfig {
     public var reflection: DependencyReflection = DefaultReflection
     public var keyMapping: DependencyKeyCovariance = DefaultKeyCovariance
     public var conflictPolicy: DependencyConflictPolicy? = null
     public var onConflict: (DependencyKey) -> Nothing = { throw DuplicateDependencyException(it) }
-    public var onMissing: OnMissing? = null
 
     public var onShutdown: (DependencyKey, Any?) -> Unit = { _, instance ->
         (instance as? AutoCloseable)?.close()
@@ -246,11 +235,6 @@ public class DependencyInjectionConfig {
      */
     public fun include(map: DependencyMap) {
         dependenciesMap = if (dependenciesMap == null) map else dependenciesMap!! + map
-    }
-
-    public enum class OnMissing {
-        Suspend,
-        Fail
     }
 }
 

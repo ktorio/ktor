@@ -7,7 +7,6 @@ package io.ktor.server.plugins.di
 import io.ktor.server.config.ApplicationConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
-import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KProperty
 
 /**
@@ -135,11 +134,13 @@ public class MapDependencyResolver(
     private val extension: DependencyMap,
     override val reflection: DependencyReflection,
     private var waitForValues: Boolean = false,
-    override val coroutineContext: CoroutineContext,
-) : DependencyResolver {
+    private val coroutineScope: CoroutineScope,
+) : DependencyResolver, CoroutineScope by coroutineScope {
 
     /**
      * Updates the waitForValues flag so that future consumers will fail immediately when no initializer is found.
+     *
+     * This is called during application startup when all modules have either suspended or completed.
      */
     public fun stopWaiting() {
         waitForValues = false
