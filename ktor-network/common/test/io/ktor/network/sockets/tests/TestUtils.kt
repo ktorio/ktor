@@ -35,3 +35,5 @@ internal fun createTempFilePath(basename: String): String {
 internal fun removeFile(path: String) {
     SystemFileSystem.delete(Path(path), mustExist = false)
 }
+
+internal expect fun initSocketsIfNeeded()
