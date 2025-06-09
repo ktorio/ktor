@@ -338,7 +338,15 @@ class YamlConfigTest {
 
         val expectedSecurity = SecurityConfig("SHA-256", "SALT&PEPPA", listOf(SecurityUser("test", "asd")))
         val expectedDeployment = DeploymentConfig("localhost", 8080)
-        val expectedDatabase = DatabaseConfig("org.postgresql.Driver", "jdbc:postgresql://localhost:5432/ktor", "ktor", "ktor", "public", 2)
+        val expectedDatabase =
+            DatabaseConfig(
+                "org.postgresql.Driver",
+                "jdbc:postgresql://localhost:5432/ktor",
+                "ktor",
+                "ktor",
+                "public",
+                2
+            )
 
         assertEquals(
             expectedSecurity,

@@ -142,7 +142,7 @@ private fun Map<String, String>.listSize(path: String): Int =
 
 internal fun Map<String, String>.containsPrefix(prefix: String): Boolean =
     prefix.isEmpty() ||
-    containsKey(prefix) ||
+        containsKey(prefix) ||
         containsKey("$prefix.size") ||
         keys.any {
             it.startsWith(prefix) &&
