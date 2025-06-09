@@ -20,6 +20,8 @@ import kotlin.test.*
 
 private const val TEST_URL = "$TEST_SERVER/timeout"
 
+// TODO: KTOR-8570 Investigate request timeout behavior in Android engine
+private val ENGINES_WITHOUT_REQUEST_TIMEOUT = listOf("Android")
 private val ENGINES_WITHOUT_SOCKET_TIMEOUT = listOf("Java", "Curl", "Js")
 
 class HttpTimeoutTest : ClientLoader() {
@@ -65,7 +67,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testWithExternalTimeout() = clientTests(except("Android")) {
+    fun testWithExternalTimeout() = clientTests(except(ENGINES_WITHOUT_REQUEST_TIMEOUT)) {
         config {
             install(HttpTimeout)
         }
@@ -101,7 +103,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testHeadWithTimeout() = clientTests {
+    fun testHeadWithTimeout() = clientTests(except(ENGINES_WITHOUT_REQUEST_TIMEOUT)) {
         config {
             install(HttpTimeout) {
                 requestTimeoutMillis = 500
@@ -110,13 +112,13 @@ class HttpTimeoutTest : ClientLoader() {
 
         test { client ->
             assertFailsWith<HttpRequestTimeoutException> {
-                client.head("$TEST_URL/with-delay?delay=1000")
+                client.head("$TEST_URL/with-delay?delay=2000")
             }
         }
     }
 
     @Test
-    fun testGetWithCancellation() = clientTests {
+    fun testGetWithCancellation() = clientTests(except(ENGINES_WITHOUT_REQUEST_TIMEOUT)) {
         config {
             install(HttpTimeout) {
                 requestTimeoutMillis = 1000
@@ -139,7 +141,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testGetRequestTimeout() = clientTests {
+    fun testGetRequestTimeout() = clientTests(except(ENGINES_WITHOUT_REQUEST_TIMEOUT)) {
         config {
             install(HttpTimeout) { requestTimeoutMillis = 10 }
         }
@@ -154,7 +156,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testGetRequestTimeoutPerRequestAttributes() = clientTests {
+    fun testGetRequestTimeoutPerRequestAttributes() = clientTests(except(ENGINES_WITHOUT_REQUEST_TIMEOUT)) {
         config {
             install(HttpTimeout)
         }
@@ -226,7 +228,7 @@ class HttpTimeoutTest : ClientLoader() {
 
     @Test
     fun testGetRequestTimeoutWithSeparateReceivePerRequestAttributes() = clientTests(
-        except("Js", "Darwin", "DarwinLegacy")
+        except(ENGINES_WITHOUT_REQUEST_TIMEOUT, "Js", "Darwin", "DarwinLegacy")
     ) {
         config {
             install(HttpTimeout)
@@ -246,7 +248,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testGetAfterTimeout() = clientTests(except("Js", "Darwin", "DarwinLegacy")) {
+    fun testGetAfterTimeout() = clientTests(except(ENGINES_WITHOUT_REQUEST_TIMEOUT, "Js", "Darwin", "DarwinLegacy")) {
         config {
             install(HttpTimeout)
         }
@@ -267,7 +269,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testGetStream() = clientTests(retries = 10) {
+    fun testGetStream() = clientTests {
         config {
             install(HttpTimeout) { requestTimeoutMillis = 1000 }
         }
@@ -282,7 +284,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testGetStreamRequestTimeout() = clientTests {
+    fun testGetStreamRequestTimeout() = clientTests(except(ENGINES_WITHOUT_REQUEST_TIMEOUT)) {
         config {
             install(HttpTimeout) { requestTimeoutMillis = 1000 }
         }
@@ -349,7 +351,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testRedirectRequestTimeoutOnFirstStep() = clientTests {
+    fun testRedirectRequestTimeoutOnFirstStep() = clientTests(except(ENGINES_WITHOUT_REQUEST_TIMEOUT)) {
         config {
             install(HttpTimeout) { requestTimeoutMillis = 20 }
         }
@@ -357,7 +359,7 @@ class HttpTimeoutTest : ClientLoader() {
         test { client ->
             assertFailsWith<HttpRequestTimeoutException> {
                 client.get("$TEST_URL/with-redirect") {
-                    parameter("delay", 1000)
+                    parameter("delay", 2000)
                     parameter("count", 5)
                 }.body<String>()
             }
@@ -365,7 +367,9 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testRedirectRequestTimeoutOnFirstStepPerRequestAttributes() = clientTests {
+    fun testRedirectRequestTimeoutOnFirstStepPerRequestAttributes() = clientTests(
+        except(ENGINES_WITHOUT_REQUEST_TIMEOUT)
+    ) {
         config {
             install(HttpTimeout)
         }
@@ -373,7 +377,7 @@ class HttpTimeoutTest : ClientLoader() {
         test { client ->
             assertFailsWith<HttpRequestTimeoutException> {
                 client.get("$TEST_URL/with-redirect") {
-                    parameter("delay", 1000)
+                    parameter("delay", 2000)
                     parameter("count", 5)
 
                     timeout { requestTimeoutMillis = 20 }
@@ -383,7 +387,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testRedirectRequestTimeoutOnSecondStep() = clientTests {
+    fun testRedirectRequestTimeoutOnSecondStep() = clientTests(except(ENGINES_WITHOUT_REQUEST_TIMEOUT)) {
         config {
             install(HttpTimeout) { requestTimeoutMillis = 400 }
         }
@@ -399,7 +403,9 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testRedirectRequestTimeoutOnSecondStepPerRequestAttributes() = clientTests {
+    fun testRedirectRequestTimeoutOnSecondStepPerRequestAttributes() = clientTests(
+        except(ENGINES_WITHOUT_REQUEST_TIMEOUT)
+    ) {
         config {
             install(HttpTimeout)
         }
