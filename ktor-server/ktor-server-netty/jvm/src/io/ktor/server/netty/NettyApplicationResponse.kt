@@ -11,7 +11,6 @@ import io.ktor.server.engine.*
 import io.ktor.utils.io.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
-import kotlinx.coroutines.CompletableDeferred
 import java.util.concurrent.CancellationException
 import kotlin.coroutines.*
 
@@ -33,8 +32,6 @@ public abstract class NettyApplicationResponse(
     protected var responseMessageSent: Boolean = false
 
     internal var responseChannel: ByteReadChannel = ByteReadChannel.Empty
-
-    internal val sendCompleted: CompletableDeferred<Unit> by lazy { CompletableDeferred() }
 
     override suspend fun respondOutgoingContent(content: OutgoingContent) {
         try {
@@ -66,7 +63,9 @@ public abstract class NettyApplicationResponse(
         responseMessageSent = true
 
         if (isInfoOrNoContentStatus()) {
-            sendCompleted.await()
+            if (call is NettyApplicationCall) {
+                (call as NettyApplicationCall).responseWriteJob.join()
+            }
         }
     }
 
@@ -81,7 +80,9 @@ public abstract class NettyApplicationResponse(
         sendResponse(chunked, content = channel)
 
         if (isInfoOrNoContentStatus()) {
-            sendCompleted.await()
+            if (call is NettyApplicationCall) {
+                (call as NettyApplicationCall).responseWriteJob.join()
+            }
         }
 
         return channel
