@@ -827,12 +827,6 @@ public final class io/ktor/http/Parameters$DefaultImpls {
 public abstract interface class io/ktor/http/ParametersBuilder : io/ktor/util/StringValuesBuilder {
 	public abstract fun build ()Lio/ktor/http/Parameters;
 }
-
-public final class io/ktor/http/ParametersBuilder$DefaultImpls {
-	public static fun appendAll (Lio/ktor/http/ParametersBuilder;Ljava/util/Map;)V
-	public static fun appendAllIterable (Lio/ktor/http/ParametersBuilder;Ljava/util/Map;)V
-}
-
 public final class io/ktor/http/ParametersBuilderImpl : io/ktor/util/StringValuesBuilderImpl, io/ktor/http/ParametersBuilder {
 	public fun <init> ()V
 	public fun <init> (I)V
