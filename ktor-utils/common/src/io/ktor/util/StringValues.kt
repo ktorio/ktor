@@ -497,7 +497,7 @@ public fun StringValuesBuilder.appendAll(vararg values: Pair<String, Iterable<St
  * @param values the map containing key-value pairs to append where values are [Iterable] of strings
  * @return this builder instance
  */
-@JvmName("appendAllIterableWithMap")
+@JvmName("appendAllIterable")
 public fun StringValuesBuilder.appendAll(values: Map<String, Iterable<String>>): StringValuesBuilder = apply {
     values.forEach { (key, value) -> appendAll(key, value) }
 }
@@ -510,7 +510,6 @@ public fun StringValuesBuilder.appendAll(values: Map<String, Iterable<String>>):
  * @param values the map containing key-value pairs to append
  * @return this builder instance
  */
-@JvmName("appendAllIterableWithMapList")
 public fun StringValuesBuilder.appendAll(values: Map<String, String>): StringValuesBuilder = apply {
     values.forEach { (key, value) -> append(key, value) }
 }
