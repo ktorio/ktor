@@ -4,10 +4,14 @@
 
 package io.ktor.server.application
 
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
+
 /**
  * Shorthand value for `ktor.application.modules` configuration list entries.
  */
-public val ApplicationEnvironment.moduleConfigReferences: List<String> get() =
+internal val ApplicationEnvironment.moduleConfigReferences: List<String> get() =
     config.propertyOrNull("ktor.application.modules")?.getList().orEmpty()
 
 /**
@@ -23,7 +27,7 @@ public val ApplicationEnvironment.startupMode: ApplicationStartupMode get() =
 /**
  * Configuration for the timeout on loading modules.  Defaults to 10 seconds.
  */
-public val ApplicationEnvironment.startupTimeout: Long get() =
+public val ApplicationEnvironment.startupTimeout: Duration get() =
     config.propertyOrNull("ktor.application.startupTimeoutMillis")?.getString()?.toLong()?.milliseconds ?: 10.seconds
 
 /**
