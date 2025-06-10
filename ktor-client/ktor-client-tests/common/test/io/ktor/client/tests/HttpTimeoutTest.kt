@@ -17,6 +17,7 @@ import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withTimeout
 import kotlinx.io.IOException
 import kotlin.test.*
+import kotlin.time.Duration.Companion.seconds
 
 private const val TEST_URL = "$TEST_SERVER/timeout"
 
@@ -24,7 +25,7 @@ private const val TEST_URL = "$TEST_SERVER/timeout"
 private val ENGINES_WITHOUT_REQUEST_TIMEOUT = listOf("Android")
 private val ENGINES_WITHOUT_SOCKET_TIMEOUT = listOf("Java", "Curl", "Js")
 
-class HttpTimeoutTest : ClientLoader() {
+class HttpTimeoutTest : ClientLoader(timeout = 3.seconds) {
     @Test
     fun testGet() = clientTests {
         config {
@@ -239,7 +240,7 @@ class HttpTimeoutTest : ClientLoader() {
                 method = HttpMethod.Get
                 parameter("delay", 10000)
 
-                timeout { requestTimeoutMillis = 2000 }
+                timeout { requestTimeoutMillis = 1000 }
             }.body<ByteReadChannel>()
             assertFailsWith<CancellationException> {
                 response.readUTF8Line()
