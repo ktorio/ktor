@@ -205,7 +205,13 @@ private fun YamlScalar.resolveReferences(rootNode: YamlMap): YamlNode =
 private fun resolveReference(rootNode: YamlMap, value: String): String? {
     val isEnvVariable = value.startsWith("$")
     if (!isEnvVariable) return value
-    val keyWithDefault = value.drop(1)
+
+    val keyWithDefault = if (value.startsWith("\${") && value.endsWith("}")) {
+        value.substring(2, value.length - 1)
+    } else {
+        value.drop(1)
+    }
+
     val separatorIndex = keyWithDefault.indexOf(':')
 
     if (separatorIndex != -1) {
