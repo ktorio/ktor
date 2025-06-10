@@ -24,7 +24,7 @@ public val ApplicationEnvironment.startupMode: ApplicationStartupMode get() =
  * Configuration for the timeout on loading modules.  Defaults to 10 seconds.
  */
 public val ApplicationEnvironment.startupTimeout: Long get() =
-    config.propertyOrNull("ktor.application.startupTimeoutMillis")?.getString()?.toLong() ?: 10_000
+    config.propertyOrNull("ktor.application.startupTimeoutMillis")?.getString()?.toLong()?.milliseconds ?: 10.seconds
 
 /**
  * Pre-defined methods for loading modules on server startup.
