@@ -42,7 +42,7 @@ public expect fun YamlConfig(path: String?): YamlConfig?
 
 /**
  * Implements [ApplicationConfig] by loading a configuration from a YAML file.
- * Values can reference to environment variables with `$ENV_VAR` or `"$ENV_VAR:default_value"` syntax.
+ * Values can reference to environment variables with `$ENV_VAR`, `${ENV_VAR}`, or `"$ENV_VAR:default_value"` syntax.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.yaml.YamlConfig)
  */
