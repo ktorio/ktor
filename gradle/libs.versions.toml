@@ -10,7 +10,7 @@ serialization = "1.8.1"
 binaryCompatibilityValidator = "0.17.0"
 dokka = "2.0.0"
 kover = "0.9.1"
-kotlinter = "5.1.0"
+kotlinter = "5.1.1"
 kotlinx-browser = "0.3"
 
 # Used for test server in buildSrc
@@ -37,7 +37,7 @@ json-simple = "1.1.1"
 gson = "2.13.1"
 jackson = "2.19.0"
 
-junit = "5.12.2"
+junit = "5.13.1"
 slf4j = "2.0.17"
 logback = "1.5.18"
 
@@ -78,9 +78,9 @@ puppeteer = "21.5.0"
 tomlj = "1.1.1"
 
 # Keep it in sync with build-settings-logic/settings.gradle.kts
-develocity = "3.18.2" # Should be compatible with our server: ge.jetbrains.com
-develocity-commonCustomUserData = "2.2.1"
-gradleDoctor = "0.10.0"
+develocity = "3.19.2" # Should be compatible with our server: ge.jetbrains.com
+develocity-commonCustomUserData = "2.3"
+gradleDoctor = "0.11.0"
 
 [libraries]
 
