@@ -62,16 +62,7 @@ public abstract class NettyApplicationResponse(
         responseReady.setSuccess()
         responseMessageSent = true
 
-        if (isInfoOrNoContentStatus()) {
-            if (call is NettyApplicationCall) {
-                (call as NettyApplicationCall).responseWriteJob.join()
-            }
-        }
-    }
-
-    internal fun isInfoOrNoContentStatus(): Boolean {
-        val status = status()
-        return (status != null) && (status == HttpStatusCode.NoContent || (status.value >= 100 && status.value < 200))
+        awaitProcessingResponseIfInfoOrNoContent()
     }
 
     override suspend fun responseChannel(): ByteWriteChannel {
@@ -79,13 +70,26 @@ public abstract class NettyApplicationResponse(
         val chunked = headers[HttpHeaders.TransferEncoding] == "chunked"
         sendResponse(chunked, content = channel)
 
-        if (isInfoOrNoContentStatus()) {
-            if (call is NettyApplicationCall) {
+        awaitProcessingResponseIfInfoOrNoContent()
+
+        return channel
+    }
+
+    /**
+     * Await the [NettyApplicationCall.responseWriteJob] to complete if the response status is informational or 204.
+     * Netty discards certain headers of such responses, so we have to wait for Netty to finish that,
+     * in order to avoid the race condition.
+     */
+    private suspend fun awaitProcessingResponseIfInfoOrNoContent() {
+        val status = status()
+
+        if (status != null) {
+            val infoOrNoContent = status == HttpStatusCode.NoContent || (status.value >= 100 && status.value < 200)
+
+            if (infoOrNoContent && call is NettyApplicationCall) {
                 (call as NettyApplicationCall).responseWriteJob.join()
             }
         }
-
-        return channel
     }
 
     override suspend fun respondNoContent(content: OutgoingContent.NoContent) {
