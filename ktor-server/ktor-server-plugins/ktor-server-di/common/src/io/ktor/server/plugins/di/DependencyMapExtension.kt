@@ -12,7 +12,7 @@ import io.ktor.server.application.Application
  * This can be used for supplying services through external means via a service locator for 3rd party libraries.
  *
  * To do this, you must include a file in your resources under:
- * META-INF/services/io.ktor.server.application.ModuleParametersInjector
+ * META-INF/services/io.ktor.server.plugins.di.DependencyMapExtension
  *
  * The file should contain the full name of the implementing class.
  *
