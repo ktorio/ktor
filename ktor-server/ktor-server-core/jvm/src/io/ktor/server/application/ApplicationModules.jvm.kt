@@ -29,6 +29,10 @@ internal fun interface ApplicationModuleLoader {
 }
 
 internal val LoadSequentially = ApplicationModuleLoader { application, classLoader, modules ->
+    // triggered immediately since all module functions are blocking
+    application.monitor.raise(ApplicationModulesLoading, application)
+
+    // load each module in sequence
     for (module in modules) {
         module(application, classLoader)
     }
