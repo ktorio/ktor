@@ -12,6 +12,7 @@ import kotlinx.cinterop.*
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.io.readByteArray
 import libcurl.*
+import platform.posix.getenv
 
 @OptIn(ExperimentalForeignApi::class)
 private class RequestHolder(
@@ -132,7 +133,7 @@ internal class CurlMultiApiHandler : Closeable {
         }
         curl_multi_perform(multiHandle, transfersRunning.ptr).verify()
         if (transfersRunning.value != 0) {
-            curl_multi_poll(multiHandle, null, 0.toUInt(), 100, null).verify()
+            curl_multi_poll(multiHandle, null, 0.toUInt(), pollTimeout, null).verify()
         }
         if (transfersRunning.value < activeHandles.size) {
             handleCompleted()
@@ -339,5 +340,10 @@ internal class CurlMultiApiHandler : Closeable {
     private fun cleanupEasyHandle(easyHandle: EasyHandle) {
         curl_multi_remove_handle(multiHandle, easyHandle).verify()
         curl_easy_cleanup(easyHandle)
+    }
+
+    private companion object {
+        private const val DEFAULT_POLL_TIMEOUT_MS = 100
+        val pollTimeout by lazy { getenv("KTOR_CURL_POLL_TIMEOUT")?.toKString()?.toInt() ?: DEFAULT_POLL_TIMEOUT_MS }
     }
 }
