@@ -4,8 +4,16 @@
 
 package io.ktor.server.plugins.cors.routing
 
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.*
 import io.ktor.server.plugins.cors.*
+import io.ktor.server.response.respond
+import io.ktor.server.routing.RouteSelector
+import io.ktor.server.routing.RouteSelectorEvaluation
+import io.ktor.server.routing.RoutingResolveContext
+import io.ktor.server.routing.get
+import io.ktor.server.routing.options
+import io.ktor.server.routing.route
 
 /**
  * A plugin that allows you to configure handling cross-origin requests.
@@ -23,6 +31,22 @@ import io.ktor.server.plugins.cors.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.routing.CORS)
  */
+private const val optionsParam = "static-options-param"
+
 public val CORS: RouteScopedPlugin<CORSConfig> = createRouteScopedPlugin("CORS", ::CORSConfig) {
+//    println(route)
+//    route?.createChild(object : RouteSelector() {
+//        override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation =
+//            RouteSelectorEvaluation.Success(quality = RouteSelectorEvaluation.qualityTailcard)
+//
+//        override fun toString() = "(CORS Options)"
+//    })?.apply {
+//        route("{$optionsParam...}") {
+//            options {
+//                call.respond(HttpStatusCode.OK)
+//            }
+//        }
+//    }
+
     buildPlugin()
 }
