@@ -127,6 +127,20 @@ class YamlConfigTest {
     }
 
     @Test
+    fun testEnvVarCurlyBraces() {
+        val content = """
+            ktor:
+                variable: ${'$'}{PATH}
+        """.trimIndent()
+        val yaml = Yaml.default.decodeFromString<YamlMap>(content)
+        val config = YamlConfig.from(yaml)
+
+        val value = config.property("ktor.variable").getString()
+        assertTrue(value.isNotEmpty())
+        assertFalse(value.contains("PATH"))
+    }
+
+    @Test
     fun testMissingEnvironmentVariable() {
         val content = """
             ktor:
@@ -139,6 +153,23 @@ class YamlConfigTest {
     }
 
     @Test
+    fun testMissingEnvVarCurlyBraces() {
+        val content = """
+            ktor:
+                variable: ${'$'}{NON_EXISTING}
+        """.trimIndent()
+        val yaml = Yaml.default.decodeFromString<YamlMap>(content)
+        val cause = assertFailsWith<ApplicationConfigurationException> {
+            YamlConfig.from(yaml)
+        }
+
+        assertEquals(
+            "Required environment variable \"NON_EXISTING\" not found and no default value is present",
+            cause.message
+        )
+    }
+
+    @Test
     fun testSelfReference() {
         val content = """
             value:
@@ -147,6 +178,24 @@ class YamlConfigTest {
             config:
               database:
                 value: ${'$'}value.my
+        """.trimIndent()
+        val yaml = Yaml.default.decodeFromString<YamlMap>(content)
+        val config = YamlConfig.from(yaml)
+
+        assertEquals("My value", config.property("config.database.value").getString())
+        assertEquals("My value", config.config("config").property("database.value").getString())
+        assertEquals("My value", config.config("config.database").property("value").getString())
+    }
+
+    @Test
+    fun testSelfRefCurlyBraces() {
+        val content = """
+            value:
+              my: "My value"
+            
+            config:
+              database:
+                value: ${'$'}{value.my}
         """.trimIndent()
         val yaml = Yaml.default.decodeFromString<YamlMap>(content)
         val config = YamlConfig.from(yaml)
@@ -173,6 +222,27 @@ class YamlConfigTest {
     }
 
     @Test
+    fun testSelfRefMissingCurlyBraces() {
+        val content = """
+            value:
+              my: "My value"
+            
+            config:
+              database:
+                value: ${'$'}{value.missing}
+        """.trimIndent()
+        val yaml = Yaml.default.decodeFromString<YamlMap>(content)
+        val cause = assertFailsWith<ApplicationConfigurationException> {
+            YamlConfig.from(yaml)
+        }
+
+        assertEquals(
+            "Required environment variable \"value.missing\" not found and no default value is present",
+            cause.message
+        )
+    }
+
+    @Test
     fun testMissingEnvironmentVariableWithDefault() {
         val content = """
             ktor:
@@ -181,6 +251,17 @@ class YamlConfigTest {
         val yaml = Yaml.default.decodeFromString<YamlMap>(content)
         val config = YamlConfig.from(yaml)
         assertEquals("DEFAULT_VALUE", config.property("ktor.variable").getString())
+    }
+
+    @Test
+    fun testMissingEnvVarWithDefaultCurlyBraces() {
+        val content = """
+            ktor:
+                variable: "${'$'}{NON_EXISTING:DEFAULT}"
+        """.trimIndent()
+        val yaml = Yaml.default.decodeFromString<YamlMap>(content)
+        val config = YamlConfig.from(yaml)
+        assertEquals("DEFAULT", config.property("ktor.variable").getString())
     }
 
     @Test
@@ -195,10 +276,35 @@ class YamlConfigTest {
     }
 
     @Test
+    fun testOptionalMissingEnvVarCurlyBraces() {
+        val content = """
+            ktor:
+                variable: "${'$'}{?NON_EXISTING_VARIABLE}"
+        """.trimIndent()
+        val yaml = Yaml.default.decodeFromString<YamlMap>(content)
+        val config = YamlConfig.from(yaml)
+        assertNull(config.propertyOrNull("ktor.variable"))
+    }
+
+    @Test
     fun testOptionalExistingEnvironmentVariable() {
         val content = """
             ktor:
                 variable: "${'$'}?PATH"
+        """.trimIndent()
+        val yaml = Yaml.default.decodeFromString<YamlMap>(content)
+        val config = YamlConfig.from(yaml)
+
+        val value = config.property("ktor.variable").getString()
+        assertTrue(value.isNotEmpty())
+        assertFalse(value.contains("PATH"))
+    }
+
+    @Test
+    fun testOptionalExistingEnvVarCurlyBraces() {
+        val content = """
+            ktor:
+                variable: "${'$'}{?PATH}"
         """.trimIndent()
         val yaml = Yaml.default.decodeFromString<YamlMap>(content)
         val config = YamlConfig.from(yaml)
@@ -221,6 +327,40 @@ class YamlConfigTest {
         assertTrue(value.isNotEmpty())
         assertFalse(value.contains("PATH"))
         assertFalse(value.contains("DEFAULT_VALUE"))
+    }
+
+    @Test
+    fun testExistingEnvVarWithDefaultCurlyBraces() {
+        val content = """
+            ktor:
+                variable: "${'$'}{PATH:DEFAULT_VALUE}"
+        """.trimIndent()
+        val yaml = Yaml.default.decodeFromString<YamlMap>(content)
+        val config = YamlConfig.from(yaml)
+
+        val value = config.property("ktor.variable").getString()
+        assertTrue(value.isNotEmpty())
+        assertFalse(value.contains("PATH"))
+        assertFalse(value.contains("DEFAULT_VALUE"))
+    }
+
+    @Test
+    fun testMalformedVarCurlyBraces() {
+        val content = """
+            ktor:
+                variable: "${'$'}{some_name"
+        """.trimIndent()
+
+        val yaml = Yaml.default.decodeFromString<YamlMap>(content)
+
+        val cause = assertFailsWith<ApplicationConfigurationException> {
+            YamlConfig.from(yaml)
+        }
+
+        assertEquals(
+            "Required environment variable \"{some_name\" not found and no default value is present",
+            cause.message
+        )
     }
 
     @Test

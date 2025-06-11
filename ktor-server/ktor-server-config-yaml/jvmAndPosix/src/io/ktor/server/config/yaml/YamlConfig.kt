@@ -42,7 +42,7 @@ public expect fun YamlConfig(path: String?): YamlConfig?
 
 /**
  * Implements [ApplicationConfig] by loading a configuration from a YAML file.
- * Values can reference to environment variables with `$ENV_VAR` or `"$ENV_VAR:default_value"` syntax.
+ * Values can reference to environment variables with `$ENV_VAR`, `${ENV_VAR}`, or `"$ENV_VAR:default_value"` syntax.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.yaml.YamlConfig)
  */
@@ -205,7 +205,13 @@ private fun YamlScalar.resolveReferences(rootNode: YamlMap): YamlNode =
 private fun resolveReference(rootNode: YamlMap, value: String): String? {
     val isEnvVariable = value.startsWith("$")
     if (!isEnvVariable) return value
-    val keyWithDefault = value.drop(1)
+
+    val keyWithDefault = if (value.startsWith("\${") && value.endsWith("}")) {
+        value.substring(2, value.length - 1)
+    } else {
+        value.drop(1)
+    }
+
     val separatorIndex = keyWithDefault.indexOf(':')
 
     if (separatorIndex != -1) {
