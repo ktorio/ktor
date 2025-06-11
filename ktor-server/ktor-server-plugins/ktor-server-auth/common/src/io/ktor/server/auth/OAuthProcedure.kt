@@ -31,8 +31,6 @@ public class OAuthAuthenticationProvider internal constructor(config: Config) : 
     internal val client: HttpClient = config.client
     internal val providerLookup: suspend ApplicationCall.() -> OAuthServerSettings? = config.providerLookup
     internal val urlProvider: suspend ApplicationCall.(OAuthServerSettings) -> String = config.urlProvider
-//    internal val providerLookup: ApplicationCall.() -> OAuthServerSettings? = config.providerLookup
-//    internal val urlProvider: ApplicationCall.(OAuthServerSettings) -> String = config.urlProvider
 
     override suspend fun onAuthenticate(context: AuthenticationContext) {
         if (PlatformUtils.IS_JVM) oauth1a(name, context)
@@ -58,7 +56,6 @@ public class OAuthAuthenticationProvider internal constructor(config: Config) : 
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthAuthenticationProvider.Config.providerLookup)
          */
         public lateinit var providerLookup: suspend ApplicationCall.() -> OAuthServerSettings?
-//        public lateinit var providerLookup: ApplicationCall.() -> OAuthServerSettings?
 
         /**
          * Specifies a redirect route that is opened when authorization is completed.
@@ -66,7 +63,6 @@ public class OAuthAuthenticationProvider internal constructor(config: Config) : 
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthAuthenticationProvider.Config.urlProvider)
          */
         public lateinit var urlProvider: suspend ApplicationCall.(OAuthServerSettings) -> String
-//        public lateinit var urlProvider: ApplicationCall.(OAuthServerSettings) -> String
 
         internal fun build() = OAuthAuthenticationProvider(this)
     }
