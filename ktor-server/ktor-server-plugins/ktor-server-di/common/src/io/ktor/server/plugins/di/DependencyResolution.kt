@@ -5,6 +5,7 @@
 package io.ktor.server.plugins.di
 
 import io.ktor.server.config.ApplicationConfig
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlin.reflect.KProperty
 
@@ -23,7 +24,7 @@ public fun interface DependencyResolution {
      *                   instances.
      * @return A new instance of `DependencyResolver` configured with the provided arguments
      */
-    public fun resolve(
+    public fun CoroutineScope.resolve(
         provider: DependencyProvider,
         external: DependencyMap,
         reflection: DependencyReflection,
@@ -46,9 +47,18 @@ public interface DependencyMap {
          */
         public val EMPTY: DependencyMap = object : DependencyMap {
             override fun contains(key: DependencyKey): Boolean = false
-            override fun <T> get(key: DependencyKey): T {
+            override fun getInitializer(key: DependencyKey): DependencyInitializer =
                 throw MissingDependencyException(key)
-            }
+        }
+
+        public fun fromMap(map: Map<DependencyKey, Any>): DependencyMap =
+            fromLookup(map::get)
+
+        @Suppress("UNCHECKED_CAST")
+        public fun fromLookup(resolve: (DependencyKey) -> Any?): DependencyMap = object : DependencyMap {
+            override fun contains(key: DependencyKey): Boolean = resolve(key) != null
+            override fun getInitializer(key: DependencyKey): DependencyInitializer =
+                DependencyInitializer.Value(key, resolve(key))
         }
     }
 
@@ -60,36 +70,24 @@ public interface DependencyMap {
      */
     public fun contains(key: DependencyKey): Boolean
 
-    /**
-     * Retrieves an instance of the dependency associated with the given key from the dependency map.
-     *
-     * @param key the unique key that identifies the dependency to retrieve
-     * @return the instance of the dependency associated with the given key
-     * @throws MissingDependencyException if no dependency is associated with the given key
-     */
-    public fun <T> get(key: DependencyKey): T
+    public fun getInitializer(key: DependencyKey): DependencyInitializer
 }
+
+/**
+ * Get an item from the dependency map synchronously.
+ *
+ * Unavailable on WASM / JS targets.
+ *
+ * @param key the unique key that identifies the dependency to retrieve
+ * @return the instance of the dependency associated with the given key
+ * @throws MissingDependencyException if no dependency is associated with the given key
+ */
+public expect fun <T> DependencyResolver.getBlocking(key: DependencyKey): T
 
 /**
  * A mutable extension of [DependencyMap] that allows for adding and retrieving dependencies.
  */
 public interface MutableDependencyMap : DependencyMap {
-    public companion object {
-        /**
-         * Converts a [DependencyMap] into a [DependencyResolver], combining the functionality of both.
-         *
-         * @param reflection an instance of [DependencyReflection] that provides the ability to create new instances
-         *                   of dependencies using class references and initialization logic.
-         * @return a new instance of [DependencyResolver] that combines the map behavior of [DependencyMap] with
-         *         the instance creation and reflection capabilities of [DependencyReflection].
-         */
-        public fun MutableDependencyMap.asResolver(reflection: DependencyReflection): DependencyResolver =
-            this as? DependencyResolver ?: object : MutableDependencyMap by this, DependencyResolver {
-                override val reflection: DependencyReflection
-                    get() = reflection
-            }
-    }
-
     /**
      * Retrieves the value associated with the specified key if it exists. If the key does not already have an associated
      * value, the result of invoking the [defaultValue] function will be stored and returned as the value for the given key.
@@ -98,13 +96,13 @@ public interface MutableDependencyMap : DependencyMap {
      * @param defaultValue a lambda function that provides a default value to store and return if the key is not found.
      * @return the value associated with the key, either retrieved from the existing association or newly computed and stored.
      */
-    public fun <T> getOrPut(key: DependencyKey, defaultValue: () -> T): T
+    public suspend fun <T> getOrPut(key: DependencyKey, defaultValue: suspend () -> T): T
 }
 
 /**
  * Extends [DependencyMap] with reflection, allowing for the automatic injection of types.
  */
-public interface DependencyResolver : MutableDependencyMap {
+public interface DependencyResolver : MutableDependencyMap, CoroutineScope {
     public val reflection: DependencyReflection
 
     /**
@@ -114,46 +112,83 @@ public interface DependencyResolver : MutableDependencyMap {
      */
     public fun named(key: String): DependencyResolverContext =
         DependencyResolverContext(this, key)
+
+    @Suppress("UNCHECKED_CAST")
+    public fun <T> getDeferred(key: DependencyKey): Deferred<T> =
+        getInitializer(key).resolve(this) as Deferred<T>
+
+    /**
+     * Retrieves an instance of the dependency associated with the given key from the dependency map.
+     *
+     * @param key the unique key that identifies the dependency to retrieve
+     * @return the instance of the dependency associated with the given key
+     * @throws MissingDependencyException if no dependency is associated with the given key
+     */
+    public suspend fun <T> get(key: DependencyKey): T =
+        getDeferred<T>(key).await()
 }
 
-/**
- * A default implementation of the [MutableDependencyMap] interface.
- *
- * It includes the basic operations by delegating to an internal [MutableMap],
- * and also supports an external fallback when no key is present.
- *
- * @constructor Creates a new instance of [DependencyMapImpl].
- * @param instances an initial map of dependencies, with keys as [DependencyKey] and values as [Result] wrapping the dependencies.
- * @param external an optional [DependencyMap] that serves as an external source for dependencies not found in the internal map.
- */
 @Suppress("UNCHECKED_CAST")
-public class DependencyMapImpl(
-    instances: Map<DependencyKey, Result<*>>,
-    private val external: DependencyMap = DependencyMap.EMPTY,
-) : MutableDependencyMap {
-    private val map = instances.toMutableMap()
+public class MapDependencyResolver(
+    private val map: DependencyInitializerMap,
+    private val extension: DependencyMap,
+    override val reflection: DependencyReflection,
+    private var waitForValues: Boolean = false,
+    private val coroutineScope: CoroutineScope,
+) : DependencyResolver, CoroutineScope by coroutineScope {
 
-    override fun contains(key: DependencyKey): Boolean =
-        map.containsKey(key) || external.contains(key)
+    /**
+     * Updates the waitForValues flag so that future consumers will fail immediately when no initializer is found.
+     *
+     * This is called during application startup when all modules have either suspended or completed.
+     */
+    public fun stopWaiting() {
+        waitForValues = false
 
-    override fun <T> get(key: DependencyKey): T {
-        val result = map[key] ?: getExternal(key)
-        val actual = result?.getOrThrow()
-        return when {
-            actual != null -> actual as T
-            key.isNullable() -> null as T
-            else -> throw MissingDependencyException(key)
+        // Cancel all pending deferred values
+        map.values.filterIsInstance<DependencyInitializer.Missing>().forEach { placeholder ->
+            placeholder.throwMissing()
         }
     }
 
-    override fun <T> getOrPut(key: DependencyKey, defaultValue: () -> T): T =
-        map.getOrPut(key) { runCatching(defaultValue) }.getOrThrow() as T
+    override fun contains(key: DependencyKey): Boolean =
+        map.isProvided(key) || extension.contains(key)
 
-    private fun getExternal(key: DependencyKey): Result<Any>? =
-        if (external.contains(key)) {
-            Result.success(external.get(key))
+    override fun getInitializer(key: DependencyKey): DependencyInitializer =
+        map[key]
+            ?: tryExternal(key)
+            ?: tryNullable(key)
+            ?: onMissing(key)
+
+    override suspend fun <T> getOrPut(key: DependencyKey, defaultValue: suspend () -> T): T {
+        val deferred = map.getOrPut(key) {
+            DependencyInitializer.Explicit(key) {
+                defaultValue()
+            }
+        }.resolve(this)
+
+        return deferred.await() as T
+    }
+
+    private fun tryExternal(key: DependencyKey): DependencyInitializer? =
+        if (extension.contains(key)) {
+            extension.getInitializer(key)
         } else {
             null
+        }
+
+    private fun tryNullable(key: DependencyKey): DependencyInitializer? =
+        if (key.isNullable()) {
+            DependencyInitializer.Null(key)
+        } else {
+            null
+        }
+
+    private fun onMissing(key: DependencyKey): DependencyInitializer =
+        if (waitForValues) {
+            map.getOrPut(key) { DependencyInitializer.Missing(key, this) }
+        } else {
+            throw MissingDependencyException(key)
         }
 }
 
@@ -171,20 +206,8 @@ public operator fun DependencyMap.plus(right: DependencyMap): DependencyMap =
 /**
  * Get the dependency from the map for the key represented by the type (and optionally, with the given name).
  */
-public inline fun <reified T> DependencyMap.resolve(key: String? = null): T =
+public suspend inline fun <reified T> DependencyResolver.resolve(key: String? = null): T =
     get(DependencyKey<T>(key))
-
-/**
- * Resolve a `Deferred<T>` dependency and await its result.
- */
-public suspend inline fun <reified T> DependencyMap.resolveAwait(key: String? = null): T {
-    val syncKey = DependencyKey<T>()
-    return if (contains(syncKey)) {
-        resolve(key)
-    } else {
-        resolve<Deferred<T>>(key).await()
-    }
-}
 
 internal class MergedDependencyMap(
     private val left: DependencyMap,
@@ -193,12 +216,13 @@ internal class MergedDependencyMap(
     override fun contains(key: DependencyKey): Boolean =
         right.contains(key) || left.contains(key)
 
-    override fun <T> get(key: DependencyKey): T =
-        if (right.contains(key)) {
-            right.get(key)
+    override fun getInitializer(key: DependencyKey): DependencyInitializer {
+        return if (right.contains(key)) {
+            right.getInitializer(key)
         } else {
-            left.get(key)
+            left.getInitializer(key)
         }
+    }
 }
 
 /**
@@ -216,11 +240,14 @@ public class ConfigurationDependencyMap(
     override fun contains(key: DependencyKey): Boolean =
         key.qualifier == PropertyQualifier && key.name != null && config.propertyOrNull(key.name) != null
 
-    override fun <T> get(key: DependencyKey): T =
+    override fun getInitializer(key: DependencyKey): DependencyInitializer =
+        DependencyInitializer.Value(key, getPropertyValue(key))
+
+    private fun getPropertyValue(key: DependencyKey): Any? =
         if (key.qualifier != PropertyQualifier || key.name == null) {
             throw MissingDependencyException(key)
         } else {
-            config.propertyOrNull(key.name)?.getAs(key.type) as? T
+            config.propertyOrNull(key.name)?.getAs(key.type)
                 ?: throw MissingDependencyException(key)
         }
 }
@@ -236,11 +263,11 @@ public data class DependencyResolverContext(
      * Property delegation for [DependencyResolverContext] for use with the `named` shorthand for string qualifiers.
      */
     public inline operator fun <reified T> getValue(thisRef: Any?, property: KProperty<*>): T =
-        resolver.resolve(name)
+        resolver.getBlocking(DependencyKey<T>(name))
 
     /**
      * Get the dependency from the map for the key represented by the type (and optionally, with the given name).
      */
-    public inline fun <reified T> DependencyMap.resolve(key: String? = null): T =
+    public suspend inline fun <reified T> DependencyResolver.resolve(key: String? = null): T =
         get(DependencyKey<T>(key))
 }

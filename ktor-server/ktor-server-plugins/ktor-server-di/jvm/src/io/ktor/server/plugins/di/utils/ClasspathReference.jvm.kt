@@ -8,6 +8,7 @@ import io.ktor.server.application.*
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.plugins.di.*
 import io.ktor.util.reflect.*
+import kotlin.reflect.full.callSuspendBy
 import kotlin.reflect.full.starProjectedType
 import kotlin.reflect.jvm.jvmErasure
 import kotlin.reflect.jvm.kotlinFunction
@@ -23,7 +24,7 @@ internal actual fun Application.installReference(
     if (clazz.name == reference.value) {
         // If this is a class reference,
         // treat it as a `create(Object::class)` call
-        var kotlinType = clazz.kotlin
+        val kotlinType = clazz.kotlin
         val classTypeInfo = TypeInfo(kotlinType, kotlinType.starProjectedType)
 
         registry.set(DependencyKey(classTypeInfo)) {
@@ -44,7 +45,7 @@ internal actual fun Application.installReference(
             var lastError: Throwable? = null
             for (function in functionCandidates) {
                 try {
-                    return@set function.callBy(
+                    return@set function.callSuspendBy(
                         reflection.mapParameters(function.parameters) { param ->
                             when (param.type) {
                                 // special types, from application
@@ -55,7 +56,7 @@ internal actual fun Application.installReference(
                                 ApplicationEnvironment::class.starProjectedType -> environment
                                 ApplicationConfig::class.starProjectedType -> environment.config
                                 // regular types, from resolver
-                                else -> this.get(reflection.toDependencyKey(param))
+                                else -> get(reflection.toDependencyKey(param))
                             }
                         }
                     )
@@ -63,7 +64,7 @@ internal actual fun Application.installReference(
                     lastError = cause
                 }
             }
-            throw lastError!!
+            throw DependencyInjectionException("Failed to invoke classpath reference $reference", lastError!!)
         }
     }
 }
