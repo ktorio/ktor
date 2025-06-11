@@ -30,7 +30,7 @@ public fun interface DependencyConflictPolicy {
      *
      * @see DependencyConflictResult
      */
-    public fun resolve(prev: DependencyCreateFunction, current: DependencyCreateFunction): DependencyConflictResult
+    public fun resolve(prev: DependencyInitializer, current: DependencyInitializer): DependencyConflictResult
 }
 
 /**
@@ -51,7 +51,7 @@ public sealed interface DependencyConflictResult {
     public data object KeepNew : DependencyConflictResult
     public data object Ambiguous : DependencyConflictResult
     public data object Conflict : DependencyConflictResult
-    public data class Replace(public val function: DependencyCreateFunction) : DependencyConflictResult
+    public data class Replace(public val function: DependencyInitializer) : DependencyConflictResult
 }
 
 /**
@@ -61,12 +61,12 @@ public sealed interface DependencyConflictResult {
  * When there are multiple declarations that match the same implicit keys, then an ambiguous exception is thrown.
  */
 public val DefaultConflictPolicy: DependencyConflictPolicy = DependencyConflictPolicy { prev, current ->
-    require(current !is AmbiguousCreateFunction) { "Unexpected ambiguous function supplied" }
+    require(current !is DependencyInitializer.Ambiguous) { "Unexpected ambiguous function supplied" }
     val diff = current.distance() - prev.distance()
     when {
         diff < 0 -> KeepNew
         diff > 0 || current == prev -> KeepPrevious
-        prev is ExplicitCreateFunction -> Conflict
+        prev is DependencyInitializer.Explicit -> Conflict
         else -> Ambiguous
     }
 }
@@ -82,8 +82,11 @@ public val IgnoreConflicts: DependencyConflictPolicy = DependencyConflictPolicy 
     }
 }
 
-private fun DependencyCreateFunction.distance(): Int = when (this) {
-    is ExplicitCreateFunction -> -1
-    is ImplicitCreateFunction -> distance
-    is AmbiguousCreateFunction -> functions.first().distance()
+private fun DependencyInitializer.distance(): Int = when (this) {
+    is DependencyInitializer.Explicit,
+    is DependencyInitializer.Value -> -1
+    is DependencyInitializer.Implicit -> distance
+    is DependencyInitializer.Ambiguous -> functions.minOf { it.distance() }
+    is DependencyInitializer.Missing,
+    is DependencyInitializer.Null -> Int.MAX_VALUE
 }
