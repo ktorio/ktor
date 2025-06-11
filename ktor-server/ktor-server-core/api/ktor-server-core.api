@@ -61,6 +61,11 @@ public final class io/ktor/server/application/ApplicationKt {
 	public static synthetic fun serverConfig$default (Lio/ktor/server/application/ApplicationEnvironment;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/application/ServerConfig;
 }
 
+public final class io/ktor/server/application/ApplicationModulesKt {
+	public static final fun getStartupMode (Lio/ktor/server/application/ApplicationEnvironment;)Lio/ktor/server/application/ApplicationStartupMode;
+	public static final fun getStartupTimeout (Lio/ktor/server/application/ApplicationEnvironment;)J
+}
+
 public abstract interface class io/ktor/server/application/ApplicationPlugin : io/ktor/server/application/BaseApplicationPlugin {
 }
 
@@ -75,6 +80,14 @@ public final class io/ktor/server/application/ApplicationPluginKt {
 	public static final fun uninstall (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/server/application/Plugin;)V
 	public static final fun uninstallAllPlugins (Lio/ktor/util/pipeline/Pipeline;)V
 	public static final fun uninstallPlugin (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/util/AttributeKey;)V
+}
+
+public final class io/ktor/server/application/ApplicationStartupMode : java/lang/Enum {
+	public static final field CONCURRENT Lio/ktor/server/application/ApplicationStartupMode;
+	public static final field SEQUENTIAL Lio/ktor/server/application/ApplicationStartupMode;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/ktor/server/application/ApplicationStartupMode;
+	public static fun values ()[Lio/ktor/server/application/ApplicationStartupMode;
 }
 
 public abstract interface class io/ktor/server/application/BaseApplicationPlugin : io/ktor/server/application/Plugin {
@@ -99,6 +112,7 @@ public final class io/ktor/server/application/CreatePluginUtilsKt {
 
 public final class io/ktor/server/application/DefaultApplicationEventsKt {
 	public static final fun getApplicationModulesLoaded ()Lio/ktor/events/EventDefinition;
+	public static final fun getApplicationModulesLoading ()Lio/ktor/events/EventDefinition;
 	public static final fun getApplicationStarted ()Lio/ktor/events/EventDefinition;
 	public static final fun getApplicationStarting ()Lio/ktor/events/EventDefinition;
 	public static final fun getApplicationStopPreparing ()Lio/ktor/events/EventDefinition;
@@ -133,7 +147,7 @@ public final class io/ktor/server/application/MissingApplicationPluginException 
 
 public abstract interface class io/ktor/server/application/ModuleParametersInjector {
 	public static final field Companion Lio/ktor/server/application/ModuleParametersInjector$Companion;
-	public abstract fun resolveParameter (Lio/ktor/server/application/Application;Lkotlin/reflect/KParameter;)Ljava/lang/Object;
+	public abstract fun resolveParameter (Lio/ktor/server/application/Application;Lkotlin/reflect/KParameter;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/application/ModuleParametersInjector$Companion {

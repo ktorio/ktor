@@ -10,6 +10,7 @@ import io.ktor.util.reflect.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
+import kotlin.reflect.full.callSuspendBy
 import kotlin.reflect.full.findAnnotations
 import kotlin.reflect.jvm.jvmErasure
 
@@ -19,7 +20,7 @@ import kotlin.reflect.jvm.jvmErasure
  */
 public open class DependencyReflectionJvm : DependencyReflection {
 
-    override fun <T : Any> create(kClass: KClass<T>, init: (DependencyKey) -> Any): T {
+    override suspend fun <T : Any> create(kClass: KClass<T>, init: suspend (DependencyKey) -> Any): T {
         if (kClass.isAbstract || kClass.java.isInterface) {
             throw DependencyAbstractTypeConstructionException(kClass.qualifiedName ?: "<unknown>")
         }
@@ -30,7 +31,7 @@ public open class DependencyReflectionJvm : DependencyReflection {
         // Try to create using available constructors
         val instanceFromConstructors = constructors.firstNotNullOfOrNull { constructor ->
             runCatching {
-                constructor.callBy(
+                constructor.callSuspendBy(
                     mapParameters(constructor.parameters) { param ->
                         init(toDependencyKey(param))
                     }
@@ -55,27 +56,6 @@ public open class DependencyReflectionJvm : DependencyReflection {
         kClass.constructors
 
     /**
-     * Resolves the list of parameters from the provided resolve function.
-     *
-     * When optional or nullable, failures to retrieve the values are ignored.
-     */
-    public open fun mapParameters(
-        parameters: List<KParameter>,
-        resolve: (KParameter) -> Any?
-    ): Map<KParameter, Any?> =
-        parameters.mapNotNull { parameter ->
-            parameter to try {
-                resolve(parameter)
-            } catch (cause: Exception) {
-                when {
-                    parameter.isOptional -> return@mapNotNull null // ignore
-                    parameter.type.isMarkedNullable -> null // let value = null
-                    else -> throw cause
-                }
-            }
-        }.toMap()
-
-    /**
      * Maps a parameter to a [DependencyKey].
      */
     public open fun toDependencyKey(parameter: KParameter): DependencyKey {
@@ -91,4 +71,25 @@ public open class DependencyReflectionJvm : DependencyReflection {
             qualifier = PropertyQualifier.takeIf { property != null }
         )
     }
+
+    /**
+     * Resolves the list of parameters from the provided resolve function.
+     *
+     * When optional or nullable, failures to retrieve the values are ignored.
+     */
+    public suspend inline fun mapParameters(
+        parameters: List<KParameter>,
+        resolve: suspend (KParameter) -> Any?
+    ): Map<KParameter, Any?> =
+        parameters.mapNotNull { parameter ->
+            parameter to try {
+                resolve(parameter)
+            } catch (cause: Exception) {
+                when {
+                    parameter.isOptional -> return@mapNotNull null // ignore
+                    parameter.type.isMarkedNullable -> null // let value = null
+                    else -> throw cause
+                }
+            }
+        }.toMap()
 }
