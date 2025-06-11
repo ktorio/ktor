@@ -1,6 +1,3 @@
-public abstract interface annotation class io/ktor/htmx/ExperimentalHtmxApi : java/lang/annotation/Annotation {
-}
-
 public final class io/ktor/htmx/HxAttributeKeys {
 	public static final field Boost Ljava/lang/String;
 	public static final field Confirm Ljava/lang/String;
