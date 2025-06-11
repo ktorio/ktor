@@ -19,6 +19,7 @@ kotlin {
                 api(projects.ktorServerServletJakarta)
                 api(libs.jetty.server.jakarta)
                 api(libs.jetty.servlets.jakarta)
+                api(libs.jetty.servlet.websocket.jakarta)
                 api(libs.jakarta.servlet)
                 api(libs.jetty.alpn.server.jakarta)
                 api(libs.jetty.alpn.java.server.jakarta)
@@ -32,6 +33,7 @@ kotlin {
             api(projects.ktorServerTestSuites)
 
             api(libs.jetty.servlet.jakarta)
+            api(libs.jetty.servlet.websocket.jakarta)
         }
     }
 }

@@ -2,17 +2,21 @@
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.server.jetty.internal
+package io.ktor.server.jetty.jakarta.internal
 
 import io.ktor.http.content.*
-import io.ktor.server.servlet.*
+import io.ktor.server.servlet.jakarta.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
-import org.eclipse.jetty.io.*
-import org.eclipse.jetty.server.*
-import java.util.concurrent.*
-import javax.servlet.http.*
-import kotlin.coroutines.*
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
+import org.eclipse.jetty.io.AbstractEndPoint
+import org.eclipse.jetty.io.Connection
+import java.util.concurrent.TimeUnit
+import kotlin.coroutines.CoroutineContext
 
 @InternalAPI
 public object JettyUpgradeImpl : ServletUpgrade {
@@ -25,11 +29,12 @@ public object JettyUpgradeImpl : ServletUpgrade {
         userContext: CoroutineContext
     ) {
         // Jetty doesn't support Servlet API's upgrade, so we have to implement our own
+        val request = servletRequest as org.eclipse.jetty.ee10.servlet.ServletApiRequest
 
-        val connection = servletRequest.getAttribute(HttpConnection::class.qualifiedName) as Connection
+        val connection = request.request.connectionMetaData as Connection
         val endPoint = connection.endPoint
 
-        // for upgraded connections IDLE timeout should be significantly increased
+        // for upgraded connections, IDLE timeout should be significantly increased
         endPoint.idleTimeout = TimeUnit.MINUTES.toMillis(60L)
 
         withContext(engineContext + CoroutineName("upgrade-scope")) {
@@ -40,7 +45,7 @@ public object JettyUpgradeImpl : ServletUpgrade {
                     val writer = endPointWriter(endPoint)
                     val outputChannel = writer.channel
 
-                    servletRequest.setAttribute(HttpConnection.UPGRADE_CONNECTION_ATTRIBUTE, reader)
+                    // servletRequest.setAttribute(HttpConnection.UPGRADE_CONNECTION_ATTRIBUTE, reader)
                     if (endPoint is AbstractEndPoint) {
                         endPoint.upgrade(reader)
                     }
