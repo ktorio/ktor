@@ -5,6 +5,7 @@
 package io.ktor.client.engine
 
 import io.ktor.util.*
+import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
@@ -61,5 +62,3 @@ public abstract class HttpClientEngineBase(private val engineName: String) : Htt
  */
 public class ClientEngineClosedException(override val cause: Throwable? = null) :
     IllegalStateException("Client already closed")
-
-internal expect fun ioDispatcher(): CoroutineDispatcher
