@@ -7,7 +7,6 @@ package io.ktor.tests.server.jetty.jakarta
 import io.ktor.server.jetty.jakarta.*
 import io.ktor.server.testing.suites.*
 import kotlin.test.Ignore
-import kotlin.test.Test
 
 class JettyCompressionTest :
     CompressionTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
@@ -18,7 +17,6 @@ class JettyJakartaContentTest : ContentTestSuite<JettyApplicationEngine, JettyAp
 
 class JettyHttpServerCommonTest :
     HttpServerCommonTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty) {
-    @Test
     override fun testFlushingHeaders() {
         // no op
     }

@@ -27,6 +27,11 @@ class JettyAsyncServletContainerHttpServerJvmTest :
     HttpServerJvmTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(
         Servlet(async = true)
     ) {
+    @Test
+    override fun testUpgrade() {
+        super.testUpgrade()
+    }
+
     @Ignore
     override fun testPipelining() {
     }
