@@ -78,3 +78,5 @@ class CIOPluginsTest : ServerPluginsTestSuite<CIOApplicationEngine, CIOApplicati
         enableSsl = false
     }
 }
+
+class CIOHooksTest : HooksTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO)

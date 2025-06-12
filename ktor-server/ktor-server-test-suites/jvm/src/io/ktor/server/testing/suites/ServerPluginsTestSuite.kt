@@ -4,11 +4,8 @@
 
 package io.ktor.server.testing.suites
 
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.*
-import io.ktor.server.application.hooks.ResponseSent
 import io.ktor.server.engine.*
-import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -93,31 +90,6 @@ abstract class ServerPluginsTestSuite<TEngine : ApplicationEngine, TConfiguratio
                     checker()
                 }
             }
-        }
-    }
-
-    @Test
-    fun test() = runTest {
-        var responseSentCalled = false
-        createAndStartServer {
-            install(createRouteScopedPlugin("Plugin") {
-                on(ResponseSent) {
-                    responseSentCalled = true
-                }
-            })
-
-            get("/") {
-                throw BadRequestException("Bad Request")
-            }
-            get("/") {
-                val data = call.receive<String>()
-                call.respondText("response: $data")
-            }
-        }
-
-        withUrl("/") {
-            assertEquals(HttpStatusCode.BadRequest, status)
-            assertTrue(responseSentCalled, message = "ResponseSent was not called")
         }
     }
 }
