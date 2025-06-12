@@ -263,8 +263,10 @@ public final class io/ktor/client/plugins/DefaultRequest$DefaultRequestBuilder :
 	public final fun getPort ()I
 	public final fun getUrl ()Lio/ktor/http/URLBuilder;
 	public final fun setAttributes (Lkotlin/jvm/functions/Function1;)V
+	public final fun setCapability (Lio/ktor/client/engine/HttpClientEngineCapability;Ljava/lang/Object;)V
 	public final fun setHost (Ljava/lang/String;)V
 	public final fun setPort (I)V
+	public final fun unixSocket (Ljava/lang/String;)V
 	public final fun url (Ljava/lang/String;)V
 	public final fun url (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public final fun url (Lkotlin/jvm/functions/Function1;)V
