@@ -23,9 +23,7 @@ import io.ktor.server.testing.*
 import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 import kotlin.test.*
@@ -288,6 +286,81 @@ class OAuth2Test {
         assertNotNull(query[OAuth2RequestParameters.State])
         assertEquals("http://localhost/login", query[OAuth2RequestParameters.RedirectUri])
         assertEquals("value1", query["custom"])
+    }
+
+    @Test
+    fun testRedirectWithMultipleProviders() = testApplication {
+        val testClient = testClient.await()
+
+        suspend fun resolveProvider(providerId: String): OAuthServerSettings.OAuth2ServerSettings {
+            delay(5)
+            return when (providerId) {
+                "provider1" -> OAuthServerSettings.OAuth2ServerSettings(
+                    name = "provider1-oauth2",
+                    authorizeUrl = "http://provider1-com/authorize",
+                    accessTokenUrl = "http://provider1-com/access_token",
+                    clientId = "clientId1",
+                    clientSecret = "clientSecret1",
+                    requestMethod = HttpMethod.Post
+                )
+
+                "provider2" -> OAuthServerSettings.OAuth2ServerSettings(
+                    name = "provider2-oauth2",
+                    authorizeUrl = "http://provider2-com/authorize",
+                    accessTokenUrl = "http://provider2-com/access_token",
+                    clientId = "clientId1",
+                    clientSecret = "clientSecret1",
+                    requestMethod = HttpMethod.Post
+                )
+
+                else -> error("Unsupported provider ID: $providerId")
+            }
+        }
+
+        install(Authentication) {
+            oauth("login") {
+                client = testClient
+                providerLookup = {
+                    val providerId = parameters["provider"] ?: error("Missing provider ID")
+                    resolveProvider(providerId)
+                }
+                urlProvider = {
+                    delay(5)
+                    "http://localhost/login/${parameters["provider"]}"
+                }
+            }
+        }
+
+        routing {
+            authenticate("login") {
+                get("/login/{provider}") {
+                    val providerId = call.parameters["provider"] ?: return@get call.respond(HttpStatusCode.BadRequest)
+                    call.respondText("OAuth config applied for provider: $providerId")
+                }
+            }
+        }
+
+        coroutineScope {
+            repeat(50) { index ->
+                launch {
+                    val provider = if (index % 2 == 0) "provider1" else "provider2"
+                    val result = noRedirectsClient().get("/login/$provider")
+                    assertEquals(HttpStatusCode.Found, result.status)
+                    val url = Url(
+                        result.headers[HttpHeaders.Location]
+                            ?: throw IllegalStateException("No location header in the response")
+                    )
+                    assertEquals("/authorize", url.encodedPath)
+                    assertEquals("$provider-com", url.host)
+
+                    val query = url.parameters
+                    assertEquals("$provider-id", query[OAuth2RequestParameters.ClientId])
+                    assertEquals("code", query[OAuth2RequestParameters.ResponseType])
+                    assertNotNull(query[OAuth2RequestParameters.State])
+                    assertEquals("http://localhost/login/$provider", query[OAuth2RequestParameters.RedirectUri])
+                }
+            }
+        }
     }
 
     @Test
