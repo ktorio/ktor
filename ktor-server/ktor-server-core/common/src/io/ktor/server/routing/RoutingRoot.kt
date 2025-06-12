@@ -7,6 +7,7 @@ package io.ktor.server.routing
 import io.ktor.events.EventDefinition
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.engine.handleFailure
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
@@ -103,6 +104,8 @@ public class RoutingRoot(
         application.monitor.raise(RoutingCallStarted, routingCall)
         try {
             routingCallPipeline.execute(routingApplicationCall)
+        } catch (cause: Throwable) {
+            handleFailure(routingCall, cause)
         } finally {
             application.monitor.raise(RoutingCallFinished, routingCall)
         }

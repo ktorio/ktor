@@ -5,7 +5,9 @@
 package io.ktor.server.application
 
 import io.ktor.client.request.*
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.hooks.*
+import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
@@ -184,5 +186,24 @@ class HooksTest {
         assertOutput("/1", listOf(1))
         assertOutput("/2", listOf(2))
         assertOutput("/3", emptyList())
+    }
+
+    @Test
+    fun testResponseSentBlockCalledOnException() = testApplication {
+        var responseSentCalled = false
+        routing {
+            install(createRouteScopedPlugin("Plugin") {
+                on(ResponseSent) {
+                    responseSentCalled = true
+                }
+            })
+
+            get("/") {
+                throw BadRequestException("Bad Request")
+            }
+        }
+
+        assertEquals(HttpStatusCode.BadRequest, client.get("/").status)
+        assertTrue(responseSentCalled, message = "ResponseSent was not called")
     }
 }
