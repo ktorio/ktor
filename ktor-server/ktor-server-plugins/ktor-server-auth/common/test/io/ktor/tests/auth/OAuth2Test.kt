@@ -299,8 +299,8 @@ class OAuth2Test {
                     name = "provider1-oauth2",
                     authorizeUrl = "http://provider1-com/authorize",
                     accessTokenUrl = "http://provider1-com/access_token",
-                    clientId = "clientId1",
-                    clientSecret = "clientSecret1",
+                    clientId = "provider1-id",
+                    clientSecret = "provider1-secret",
                     requestMethod = HttpMethod.Post
                 )
 
@@ -308,8 +308,8 @@ class OAuth2Test {
                     name = "provider2-oauth2",
                     authorizeUrl = "http://provider2-com/authorize",
                     accessTokenUrl = "http://provider2-com/access_token",
-                    clientId = "clientId1",
-                    clientSecret = "clientSecret1",
+                    clientId = "provider2-id",
+                    clientSecret = "provider2-secret",
                     requestMethod = HttpMethod.Post
                 )
 
