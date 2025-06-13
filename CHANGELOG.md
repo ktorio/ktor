@@ -2,22 +2,13 @@
 > Published 12 June 2025
 
 ### Features
-* DI: Support for async dependencies ([KTOR-8494](https://youtrack.jetbrains.com/issue/KTOR-8494))
-* DI lambda overloads ([KTOR-8479](https://youtrack.jetbrains.com/issue/KTOR-8479))
-* Dependency injection - handle delegate pattern ([KTOR-8322](https://youtrack.jetbrains.com/issue/KTOR-8322))
-* Dependency injection named argument annotation ([KTOR-8321](https://youtrack.jetbrains.com/issue/KTOR-8321))
-* Dependency injection - type parameter covariance supertypes ([KTOR-8434](https://youtrack.jetbrains.com/issue/KTOR-8434))
-* Optional dependencies and nullable type support ([KTOR-8305](https://youtrack.jetbrains.com/issue/KTOR-8305))
-* Dependency keys for configuration items ([KTOR-8323](https://youtrack.jetbrains.com/issue/KTOR-8323))
-* Dependency injection tooling for tests ([KTOR-8306](https://youtrack.jetbrains.com/issue/KTOR-8306))
-* Dependency injection - cleanup support ([KTOR-8447](https://youtrack.jetbrains.com/issue/KTOR-8447))
+* Dependency injection Ktor extension ([KTOR-8267](https://youtrack.jetbrains.com/issue/KTOR-8267))
 * Support Version Catalog ([KTOR-8162](https://youtrack.jetbrains.com/issue/KTOR-8162))
 * Unix domain socket support at the Ktor Engine level ([KTOR-4766](https://youtrack.jetbrains.com/issue/KTOR-4766))
 * Allow suspend Ktor modules ([KTOR-8005](https://youtrack.jetbrains.com/issue/KTOR-8005))
 * Ability to use browser cookie storage ([KTOR-539](https://youtrack.jetbrains.com/issue/KTOR-539))
 * Configuration file deserialization ([KTOR-7874](https://youtrack.jetbrains.com/issue/KTOR-7874))
 * HttpCache: Support evicting/clearing cache ([KTOR-6653](https://youtrack.jetbrains.com/issue/KTOR-6653))
-* Dependency injection via application module parameters ([KTOR-8310](https://youtrack.jetbrains.com/issue/KTOR-8310))
 * File configuration for dependencies ([KTOR-8304](https://youtrack.jetbrains.com/issue/KTOR-8304))
 
 ### Improvements
@@ -25,10 +16,6 @@
 * Linux curl engine doesn't work for simultaneous websocket and http request ([KTOR-8259](https://youtrack.jetbrains.com/issue/KTOR-8259))
 * ktor-network produces ProGuard warning ([KTOR-8525](https://youtrack.jetbrains.com/issue/KTOR-8525))
 * More overloads for StringValuesBuilder.appendAll ([KTOR-8573](https://youtrack.jetbrains.com/issue/KTOR-8573))
-* DI validation occurs after "application started" message ([KTOR-8476](https://youtrack.jetbrains.com/issue/KTOR-8476))
-* DI provide lambda type fails for java function returns ([KTOR-8477](https://youtrack.jetbrains.com/issue/KTOR-8477))
-* Dependency injection - reduce extension reliance for the sake of UX ([KTOR-8446](https://youtrack.jetbrains.com/issue/KTOR-8446))
-* DI type parameter with bounds not inferred ([KTOR-8511](https://youtrack.jetbrains.com/issue/KTOR-8511))
 * HttpClientCall: Deprecate `wrapWithContent` and `wrap` ([KTOR-8378](https://youtrack.jetbrains.com/issue/KTOR-8378))
 * Add a way to create an `ApplicationCall` for testing ([KTOR-7607](https://youtrack.jetbrains.com/issue/KTOR-7607))
 * Configuration access API improvements ([KTOR-8185](https://youtrack.jetbrains.com/issue/KTOR-8185))
@@ -37,7 +24,6 @@
 * Support accessing resolved IP address on an instance of `io.ktor.network.sockets.InetSocketAddress` ([KTOR-8490](https://youtrack.jetbrains.com/issue/KTOR-8490))
 * Deprecate SaveBodyPlugin in favor of HttpClientCall.save ([KTOR-8367](https://youtrack.jetbrains.com/issue/KTOR-8367))
 * Obscure log message on server startup ([KTOR-8519](https://youtrack.jetbrains.com/issue/KTOR-8519))
-* Dependency injection exceptions traceability ([KTOR-8330](https://youtrack.jetbrains.com/issue/KTOR-8330))
 * Routing: `accept` should return 406 if the `Accept` header isn't matched ([KTOR-8416](https://youtrack.jetbrains.com/issue/KTOR-8416))
 * Dependencies should be validated on startup ([KTOR-8329](https://youtrack.jetbrains.com/issue/KTOR-8329))
 * MicrometerMetrics: the `route` label can exceed length limit ([KTOR-7274](https://youtrack.jetbrains.com/issue/KTOR-7274))
