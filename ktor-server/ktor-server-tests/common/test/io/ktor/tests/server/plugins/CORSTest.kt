@@ -111,7 +111,7 @@ class CORSTest {
     fun testSimpleRequestSubrouteInstall() = testApplication {
         routing {
             route("/1") {
-                install(CORS) {
+                cors {
                     allowHost("my-host")
                 }
                 get {
@@ -131,6 +131,13 @@ class CORSTest {
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals("http://my-host", response.headers[HttpHeaders.AccessControlAllowOrigin])
             assertEquals("OK", response.bodyAsText())
+        }
+
+        client.options("/1") {
+            header(HttpHeaders.Origin, "http://my-host")
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("http://my-host", response.headers[HttpHeaders.AccessControlAllowOrigin])
         }
 
         client.get("/1") {

@@ -184,7 +184,7 @@ private fun checkOrigin(
     else -> OriginCheckResult.OK
 }
 
-private suspend fun ApplicationCall.respondPreflight(
+internal suspend fun ApplicationCall.respondPreflight(
     origin: String,
     methodsListHeaderValue: String,
     headersList: List<String>,

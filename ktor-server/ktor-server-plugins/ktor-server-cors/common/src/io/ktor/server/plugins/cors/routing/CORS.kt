@@ -25,6 +25,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.interceptCreateChild
 import io.ktor.server.routing.options
 import io.ktor.server.routing.route
+import io.ktor.util.toLowerCasePreservingASCIIRules
 import io.ktor.utils.io.InternalAPI
 
 /**
@@ -43,16 +44,33 @@ import io.ktor.utils.io.InternalAPI
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.routing.CORS)
  */
-private const val optionsParam = "static-options-param"
-
 public val CORS: RouteScopedPlugin<CORSConfig> = createRouteScopedPlugin("CORS", ::CORSConfig) {
     buildPlugin()
 }
 
 @OptIn(InternalAPI::class)
-public fun Route.cors(configure: CORSConfig.() -> Unit) {
+public fun Route.cors(configure: CORSConfig.() -> Unit = {}) {
     val thisRoute = this
-    val config = CORSConfig().apply(configure)
+
+    val pluginConfig = CORSConfig().apply(configure)
+
+    val allowsAnyHost: Boolean = "*" in pluginConfig.hosts
+    val allowCredentials: Boolean = pluginConfig.allowCredentials
+    val methods: Set<HttpMethod> = HashSet(pluginConfig.methods + CORSConfig.CorsDefaultMethods)
+    val allowNonSimpleContentTypes: Boolean = pluginConfig.allowNonSimpleContentTypes
+    val allHeaders: Set<String> =
+        (pluginConfig.headers + CORSConfig.CorsSimpleRequestHeaders).let { headers ->
+            if (pluginConfig.allowNonSimpleContentTypes) headers else headers.minus(HttpHeaders.ContentType)
+        }
+    val headerPredicates: List<(String) -> Boolean> = pluginConfig.headerPredicates
+    val headersList = pluginConfig.headers.filterNot { it in CORSConfig.CorsSimpleRequestHeaders }
+        .let { if (allowNonSimpleContentTypes) it + HttpHeaders.ContentType else it }
+    val allHeadersSet: Set<String> = allHeaders.map { it.toLowerCasePreservingASCIIRules() }.toSet()
+    val methodsListHeaderValue = methods.filterNot { it in CORSConfig.CorsDefaultMethods }
+        .map { it.value }
+        .sorted()
+        .joinToString(", ")
+    val maxAgeHeaderValue = pluginConfig.maxAgeInSeconds.let { if (it > 0) it.toString() else null }
 
     application.interceptCreateChild { parentRoute, newRoute ->
         val selector = newRoute.selector
@@ -77,86 +95,9 @@ public fun Route.cors(configure: CORSConfig.() -> Unit) {
 
                 if (isInner) {
                     parentRoute.options {
-                        val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull() ?: return@onCall
+                        val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull()
 
-                        val checkOrigin = checkOrigin(
-                            origin,
-                            call.request.origin,
-                            allowSameOrigin,
-                            allowsAnyHost,
-                            hostsNormalized,
-                            hostsWithWildcard,
-                            originPredicates
-                        )
-                        when (checkOrigin) {
-                            OriginCheckResult.OK -> {
-                            }
-
-                            OriginCheckResult.SkipCORS -> return@onCall
-                            OriginCheckResult.Failed -> {
-                                LOGGER.trace("Respond forbidden ${call.request.uri}: origin doesn't match ${call.request.origin}")
-                                call.respondCorsFailed()
-                                return@onCall
-                            }
-                        }
-
-                        call.respondPreflight(
-                            origin,
-                            methodsListHeaderValue,
-                            headersList,
-                            methods,
-                            allowsAnyHost,
-                            allowCredentials,
-                            maxAgeHeaderValue,
-                            headerPredicates,
-                            allHeadersSet
-                        )
-
-
-                        if (!call.response.isCommitted) {
-
-                        }
-
-                        if (!allowsAnyHost || allowCredentials) {
-                            call.corsVary()
-                        }
-
-                        val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull() ?: return@onCall
-
-                        val checkOrigin = checkOrigin(
-                            origin,
-                            call.request.origin,
-                            allowSameOrigin,
-                            allowsAnyHost,
-                            hostsNormalized,
-                            hostsWithWildcard,
-                            originPredicates
-                        )
-                        when (checkOrigin) {
-                            OriginCheckResult.OK -> {
-                            }
-
-                            OriginCheckResult.SkipCORS -> return@onCall
-                            OriginCheckResult.Failed -> {
-                                LOGGER.trace("Respond forbidden ${call.request.uri}: origin doesn't match ${call.request.origin}")
-                                call.respondCorsFailed()
-                                return@onCall
-                            }
-                        }
-
-                        if (!allowNonSimpleContentTypes) {
-                            val contentType = call.request.header(HttpHeaders.ContentType)?.let { ContentType.parse(it) }
-                            if (contentType != null) {
-                                if (contentType.withoutParameters() !in CORSConfig.CorsSimpleContentTypes) {
-                                    LOGGER.trace("Respond forbidden ${call.request.uri}: Content-Type isn't allowed $contentType")
-                                    call.respondCorsFailed()
-                                    return@onCall
-                                }
-                            }
-                        }
-
-                        if (call.request.httpMethod == HttpMethod.Options) {
-                            LOGGER.trace("Respond preflight on OPTIONS for ${call.request.uri}")
+                        if (origin != null) {
                             call.respondPreflight(
                                 origin,
                                 methodsListHeaderValue,
@@ -168,7 +109,6 @@ public fun Route.cors(configure: CORSConfig.() -> Unit) {
                                 headerPredicates,
                                 allHeadersSet
                             )
-                            return@onCall
                         }
                     }
                 }
