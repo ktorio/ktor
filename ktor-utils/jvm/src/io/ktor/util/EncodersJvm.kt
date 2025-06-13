@@ -67,6 +67,26 @@ public val GZip: Encoder = object : Encoder {
         inflate(source, coroutineContext = coroutineContext)
 }
 
+public val Zstd: Encoder = object : Encoder {
+    override fun encode(source: ByteReadChannel, coroutineContext: CoroutineContext): ByteReadChannel =
+        source.encoded(coroutineContext = coroutineContext)
+
+    override fun encode(
+        source: ByteWriteChannel,
+        coroutineContext: CoroutineContext
+    ): ByteWriteChannel {
+        TODO("Not yet implemented")
+    }
+
+    override fun decode(
+        source: ByteReadChannel,
+        coroutineContext: CoroutineContext
+    ): ByteReadChannel {
+        TODO("Not yet implemented")
+    }
+
+}
+
 @OptIn(DelicateCoroutinesApi::class)
 private fun inflate(
     source: ByteReadChannel,
