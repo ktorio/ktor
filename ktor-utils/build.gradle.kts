@@ -27,6 +27,7 @@ kotlin {
         commonMain.dependencies {
             api(projects.ktorIo)
             api(libs.kotlinx.serialization.core)
+            api(libs.zstd.jni)
         }
         commonTest.dependencies {
             api(projects.ktorTestDispatcher)
