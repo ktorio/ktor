@@ -57,6 +57,13 @@ public open class RoutingNode(
         if (existingEntry == null) {
             val entry = RoutingNode(this, selector, developmentMode, environment)
             childList.add(entry)
+
+            val callbacks = application.attributes.getOrNull(createChildCallbacksKey) ?: listOf()
+
+            for (cb in callbacks) {
+                cb(this, entry)
+            }
+
             return entry
         }
         return existingEntry
@@ -145,6 +152,14 @@ public open class RoutingNode(
     }
 }
 
+@InternalAPI
+public fun Application.interceptCreateChild(cb: (RoutingNode, RoutingNode) -> Unit) {
+    val callbacks = attributes.getOrNull(createChildCallbacksKey) ?: listOf()
+    attributes.put(createChildCallbacksKey, callbacks.plus(cb))
+}
+
+private val createChildCallbacksKey: AttributeKey<List<(RoutingNode, RoutingNode) -> Unit>> = AttributeKey("CreateChildCallbacks")
+
 /**
  * A client's request that can be handled in [RoutingRoot].
  * To learn how to handle incoming requests, see [Handling requests](https://ktor.io/docs/requests.html).
@@ -208,8 +223,8 @@ public class RoutingResponse internal constructor(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RoutingCall)
  *
- * @see [io.ktor.server.request.ApplicationRequest]
- * @see [io.ktor.server.response.ApplicationResponse]
+ * @see [ApplicationRequest]
+ * @see [ApplicationResponse]
  */
 public class RoutingCall internal constructor(
     /**
