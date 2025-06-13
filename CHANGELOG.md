@@ -25,7 +25,6 @@
 * Deprecate SaveBodyPlugin in favor of HttpClientCall.save ([KTOR-8367](https://youtrack.jetbrains.com/issue/KTOR-8367))
 * Obscure log message on server startup ([KTOR-8519](https://youtrack.jetbrains.com/issue/KTOR-8519))
 * Routing: `accept` should return 406 if the `Accept` header isn't matched ([KTOR-8416](https://youtrack.jetbrains.com/issue/KTOR-8416))
-* Dependencies should be validated on startup ([KTOR-8329](https://youtrack.jetbrains.com/issue/KTOR-8329))
 * MicrometerMetrics: the `route` label can exceed length limit ([KTOR-7274](https://youtrack.jetbrains.com/issue/KTOR-7274))
 * Micrometer: Make route label configurable ([KTOR-8183](https://youtrack.jetbrains.com/issue/KTOR-8183))
 * Add more common ContentType values ([KTOR-7108](https://youtrack.jetbrains.com/issue/KTOR-7108))
