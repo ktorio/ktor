@@ -67,6 +67,11 @@ public val GZip: Encoder = object : Encoder {
         inflate(source, coroutineContext = coroutineContext)
 }
 
+/**
+ * Implementation of Zstd [Encoder].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.Zstd)
+ */
 public val Zstd: Encoder = object : Encoder {
     override fun encode(source: ByteReadChannel, coroutineContext: CoroutineContext): ByteReadChannel =
         source.encoded(coroutineContext = coroutineContext)

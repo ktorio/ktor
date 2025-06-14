@@ -21,6 +21,11 @@ import kotlinx.coroutines.GlobalScope
 import java.nio.ByteBuffer
 import kotlin.coroutines.CoroutineContext
 
+/**
+ * Launch a coroutine on [coroutineContext] that does zstd compression.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.encoded)
+ */
 @OptIn(DelicateCoroutinesApi::class)
 public fun ByteReadChannel.encoded(
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
@@ -29,6 +34,11 @@ public fun ByteReadChannel.encoded(
     this@encoded.encodeTo(channel, pool)
 }.channel
 
+/**
+ * Launch a coroutine on [coroutineContext] that does zstd decompression.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.decoded)
+ */
 @OptIn(DelicateCoroutinesApi::class)
 public fun ByteReadChannel.decoded(
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
@@ -45,13 +55,15 @@ private suspend fun ByteReadChannel.decodeTo(
     val buf = pool.borrow()
 
     try {
-        while (true) {
-            val decompressedBytes = zstdStream.read(buf.array())
-            if (decompressedBytes <= 0) break
+        var decompressedBytesCount: Int
+        do {
+            decompressedBytesCount = zstdStream.read(buf.array())
 
-            buf.limit(decompressedBytes)
-            destination.writeFully(buf)
-        }
+            if (decompressedBytesCount > 0) {
+                buf.limit(decompressedBytesCount)
+                destination.writeFully(buf)
+            }
+        } while (decompressedBytesCount > 0)
     } finally {
         zstdStream.close()
         pool.recycle(buf)
