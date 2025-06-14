@@ -172,6 +172,10 @@ public fun CompressionConfig.gzip(block: CompressionEncoderBuilder.() -> Unit = 
     encoder(GZipEncoder, block)
 }
 
+public fun CompressionConfig.zstd(block: CompressionEncoderBuilder.() -> Unit = {}) {
+    encoder(ZstdEncoder, block)
+}
+
 /**
  * Appends the `deflate` encoder with the [block] configuration and the 0.9 priority.
  *

@@ -4,15 +4,17 @@
 
 package io.ktor.util
 
+import com.github.luben.zstd.ZstdInputStream
 import com.github.luben.zstd.ZstdOutputStream
 import io.ktor.util.cio.KtorDefaultPool
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.ByteWriteChannel
+import io.ktor.utils.io.jvm.javaio.toInputStream
 import io.ktor.utils.io.jvm.javaio.toOutputStream
 import io.ktor.utils.io.pool.ObjectPool
 import io.ktor.utils.io.readAvailable
+import io.ktor.utils.io.writeFully
 import io.ktor.utils.io.writer
-import jdk.internal.net.http.common.Log.channel
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -26,6 +28,35 @@ public fun ByteReadChannel.encoded(
 ): ByteReadChannel = GlobalScope.writer(coroutineContext, autoFlush = true) {
     this@encoded.encodeTo(channel, pool)
 }.channel
+
+@OptIn(DelicateCoroutinesApi::class)
+public fun ByteReadChannel.decoded(
+    pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
+    coroutineContext: CoroutineContext = Dispatchers.Unconfined
+): ByteReadChannel = GlobalScope.writer(coroutineContext) {
+    this@decoded.decodeTo(channel, pool)
+}.channel
+
+private suspend fun ByteReadChannel.decodeTo(
+    destination: ByteWriteChannel,
+    pool: ObjectPool<ByteBuffer> = KtorDefaultPool
+) {
+    val zstdStream = ZstdInputStream(toInputStream())
+    val buf = pool.borrow()
+
+    try {
+        while (true) {
+            val decompressedBytes = zstdStream.read(buf.array())
+            if (decompressedBytes <= 0) break
+
+            buf.limit(decompressedBytes)
+            destination.writeFully(buf)
+        }
+    } finally {
+        zstdStream.close()
+        pool.recycle(buf)
+    }
+}
 
 private suspend fun ByteReadChannel.encodeTo(
     destination: ByteWriteChannel,
@@ -41,11 +72,10 @@ private suspend fun ByteReadChannel.encodeTo(
             buf.flip()
 
             zstdSteam.write(buf.array(), buf.position(), buf.remaining())
-            buf.position(buf.limit())
         }
-
-        zstdSteam.flush()
     } finally {
+        zstdSteam.flush()
+        zstdSteam.close()
         pool.recycle(buf)
     }
 }

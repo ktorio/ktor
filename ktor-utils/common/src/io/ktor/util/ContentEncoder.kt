@@ -76,6 +76,25 @@ public expect object DeflateEncoder : ContentEncoder {
     ): ByteReadChannel
 }
 
+public expect object ZstdEncoder : ContentEncoder {
+    override val name: String
+
+    override fun encode(
+        source: ByteReadChannel,
+        coroutineContext: CoroutineContext
+    ): ByteReadChannel
+
+    override fun encode(
+        source: ByteWriteChannel,
+        coroutineContext: CoroutineContext
+    ): ByteWriteChannel
+
+    override fun decode(
+        source: ByteReadChannel,
+        coroutineContext: CoroutineContext
+    ): ByteReadChannel
+}
+
 /**
  * Implementation of [ContentEncoder] using identity algorithm
  *
