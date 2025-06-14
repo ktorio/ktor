@@ -83,12 +83,8 @@ public val Zstd: Encoder = object : Encoder {
     override fun encode(source: ByteReadChannel, coroutineContext: CoroutineContext): ByteReadChannel =
         source.encoded(coroutineContext = coroutineContext)
 
-    override fun encode(
-        source: ByteWriteChannel,
-        coroutineContext: CoroutineContext
-    ): ByteWriteChannel {
-        TODO("Not yet implemented")
-    }
+    override fun encode(source: ByteWriteChannel, coroutineContext: CoroutineContext): ByteWriteChannel =
+        source.encoded(coroutineContext = coroutineContext)
 
     override fun decode(
         source: ByteReadChannel,
