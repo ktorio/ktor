@@ -173,6 +173,11 @@ public fun CompressionConfig.gzip(block: CompressionEncoderBuilder.() -> Unit = 
     encoder(GZipEncoder, block)
 }
 
+/**
+ * Appends the 'zstd' encode with [block] configuration.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.compression.zstd)
+ */
 public fun CompressionConfig.zstd(block: CompressionEncoderBuilder.() -> Unit = {}) {
     encoder(ZstdEncoder, block)
 }

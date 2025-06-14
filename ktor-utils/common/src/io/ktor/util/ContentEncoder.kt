@@ -76,6 +76,11 @@ public expect object DeflateEncoder : ContentEncoder {
     ): ByteReadChannel
 }
 
+/**
+ * Implementation of [ContentEncoder] using zstd algorithm
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.ZstdEncoder)
+ */
 public expect object ZstdEncoder : ContentEncoder {
     override val name: String
 
