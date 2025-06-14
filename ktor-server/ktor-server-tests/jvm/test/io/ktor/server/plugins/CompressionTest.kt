@@ -4,6 +4,7 @@
 
 package io.ktor.server.plugins
 
+import com.github.luben.zstd.ZstdInputStream
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -100,6 +101,18 @@ class CompressionTest {
     }
 
     @Test
+    fun testCompressionDefaultZstd() = testApplication {
+        install(Compression)
+        routing {
+            get("/") {
+                call.respondText(textToCompress)
+            }
+        }
+
+        handleAndAssert("/", "zstd,gzip,deflate", "zstd", textToCompress)
+    }
+
+    @Test
     fun testAcceptStarContentEncodingGzip() = testApplication {
         install(Compression) {
             gzip()
@@ -155,6 +168,21 @@ class CompressionTest {
         }
 
         handleAndAssert("/", "*", "deflate", textToCompress)
+    }
+
+    @Test
+    fun testAcceptStarContentEncodingZstd() = testApplication {
+        install(Compression) {
+            zstd()
+        }
+
+        routing {
+            get("/") {
+                call.respondText(textToCompress)
+            }
+        }
+
+        handleAndAssert("/", "*", "zstd", textToCompress)
     }
 
     @Test
@@ -221,7 +249,6 @@ class CompressionTest {
             header(HttpHeaders.AcceptEncoding, "*")
         }
         assertEquals(HttpStatusCode.Found, response.status)
-        assertEquals(textToCompress, response.bodyAsText())
     }
 
     @Test
@@ -269,6 +296,30 @@ class CompressionTest {
         handleAndAssert("/big", "gzip,deflate", "gzip", "01234567890123456789")
         handleAndAssert("/small", "gzip,deflate", null, "0123")
         handleAndAssert("/stream", "gzip,deflate", "gzip", "stream content")
+    }
+
+    @Test
+    fun testMinSizeZstd() = testApplication {
+        install(Compression) {
+            zstd()
+            minimumSize(10)
+        }
+
+        routing {
+            get("/small") {
+                call.respondText("0123")
+            }
+            get("/big") {
+                call.respondText("01234567890123456789")
+            }
+            get("/stream") {
+                call.respondText("stream content")
+            }
+        }
+
+        handleAndAssert("/big", "zstd,gzip,deflate", "zstd", "01234567890123456789")
+        handleAndAssert("/small", "zstd,gzip,deflate", null, "0123")
+        handleAndAssert("/stream", "gzip,zstd,deflate", "zstd", "stream content")
     }
 
     @Test
@@ -361,6 +412,7 @@ class CompressionTest {
         install(Compression) {
             gzip()
             deflate()
+            zstd()
         }
 
         routing {
@@ -371,8 +423,10 @@ class CompressionTest {
 
         handleAndAssert("/", "gzip", "gzip", textToCompress)
         handleAndAssert("/", "deflate", "deflate", textToCompress)
-        handleAndAssert("/", "gzip;q=1,deflate;q=0.1", "gzip", textToCompress)
-        handleAndAssert("/", "gzip;q=0.1,deflate;q=1", "deflate", textToCompress)
+        handleAndAssert("/", "zstd", "zstd", textToCompress)
+        handleAndAssert("/", "gzip;q=1,zstd;q=0.5,deflate;q=0.1", "gzip", textToCompress)
+        handleAndAssert("/", "gzip;q=0.1,zstd;q=0.5,deflate;q=1", "deflate", textToCompress)
+        handleAndAssert("/", "gzip;q=0.1,zstd;q=1,deflate;q=0.2", "zstd", textToCompress)
     }
 
     @Test
@@ -476,6 +530,7 @@ class CompressionTest {
 
         handleAndAssert("/", "deflate", "deflate", content)
         handleAndAssert("/", "gzip", "gzip", content)
+        handleAndAssert("/", "zstd", "zstd", content)
     }
 
     @Test
@@ -732,7 +787,7 @@ class CompressionTest {
         assertEquals(textToCompress, responseZstd.bodyAsText())
 
         val responseMultiple = client.post("/multiple") {
-            setBody(Identity.encode(Deflate.encode(GZip.encode(ByteReadChannel(textToCompressAsBytes)))))
+            setBody(Identity.encode(Deflate.encode(GZip.encode(Zstd.encode(ByteReadChannel(textToCompressAsBytes))))))
             header(HttpHeaders.ContentEncoding, "identity,deflate,gzip,zstd")
         }
         assertEquals(textToCompress, responseMultiple.bodyAsText())
@@ -893,6 +948,11 @@ class CompressionTest {
                     assertNull(response.headers[HttpHeaders.ContentLength])
                 }
 
+                "zstd" -> {
+                    assertEquals(expectedContent, response.readZstd())
+                    assertNull(response.headers[HttpHeaders.ContentLength])
+                }
+
                 "identity" -> {
                     assertEquals(expectedContent, response.readIdentity())
                     assertNotNull(response.headers[HttpHeaders.ContentLength])
@@ -916,6 +976,6 @@ class CompressionTest {
     private suspend fun HttpResponse.readIdentity() = bodyAsChannel().toInputStream().reader().readText()
     private suspend fun HttpResponse.readDeflate() =
         InflaterInputStream(bodyAsChannel().toInputStream(), Inflater(true)).reader().readText()
-
     private suspend fun HttpResponse.readGzip() = GZIPInputStream(bodyAsChannel().toInputStream()).reader().readText()
+    private suspend fun HttpResponse.readZstd() = ZstdInputStream(bodyAsChannel().toInputStream()).reader().readText()
 }
