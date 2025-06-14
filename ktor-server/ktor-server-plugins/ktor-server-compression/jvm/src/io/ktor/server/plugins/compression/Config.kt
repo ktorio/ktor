@@ -101,6 +101,7 @@ public class CompressionConfig : ConditionsHolderBuilder {
         gzip()
         deflate()
         identity()
+        zstd()
     }
 
     /**

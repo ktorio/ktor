@@ -697,7 +697,7 @@ class CompressionTest {
             post("/multiple") {
                 val message = call.receiveText()
                 assertNull(call.request.headers[HttpHeaders.ContentEncoding])
-                assertEquals(listOf("identity", "deflate", "gzip"), call.request.appliedDecoders)
+                assertEquals(listOf("identity", "deflate", "gzip", "zstd"), call.request.appliedDecoders)
                 call.respond(message)
             }
             post("/unknown") {
@@ -733,7 +733,7 @@ class CompressionTest {
 
         val responseMultiple = client.post("/multiple") {
             setBody(Identity.encode(Deflate.encode(GZip.encode(ByteReadChannel(textToCompressAsBytes)))))
-            header(HttpHeaders.ContentEncoding, "identity,deflate,gzip")
+            header(HttpHeaders.ContentEncoding, "identity,deflate,gzip,zstd")
         }
         assertEquals(textToCompress, responseMultiple.bodyAsText())
 
