@@ -656,6 +656,14 @@ class CompressionTest {
     }
 
     @Test
+    fun basicZstdEncodeDecodeTest() = testApplication {
+        val compressed = Zstd.encode(ByteReadChannel(textToCompressAsBytes))
+        val decompressed = Zstd.decode(compressed)
+
+        assertEquals(textToCompress, String(decompressed.toByteArray()))
+    }
+
+    @Test
     fun testDecoding() = testApplication {
         install(Compression)
         routing {
@@ -678,6 +686,12 @@ class CompressionTest {
                 val message = call.receiveText()
                 assertNull(call.request.headers[HttpHeaders.ContentEncoding])
                 assertEquals(listOf("deflate"), call.request.appliedDecoders)
+                call.respond(message)
+            }
+            post("/zstd") {
+                val message = call.receiveText()
+                assertNull(call.request.headers[HttpHeaders.ContentEncoding])
+                assertEquals(listOf("zstd"), call.request.appliedDecoders)
                 call.respond(message)
             }
             post("/multiple") {
@@ -710,6 +724,12 @@ class CompressionTest {
             header(HttpHeaders.ContentEncoding, "deflate")
         }
         assertEquals(textToCompress, responseDeflate.bodyAsText())
+
+        val responseZstd = client.post("/zstd") {
+            setBody(Zstd.encode(ByteReadChannel(textToCompressAsBytes)))
+            header(HttpHeaders.ContentEncoding, "zstd")
+        }
+        assertEquals(textToCompress, responseZstd.bodyAsText())
 
         val responseMultiple = client.post("/multiple") {
             setBody(Identity.encode(Deflate.encode(GZip.encode(ByteReadChannel(textToCompressAsBytes)))))
