@@ -71,6 +71,7 @@ private suspend fun ByteReadChannel.decodeTo(
     try {
         var decompressedBytesCount: Int
         do {
+            buf.clear()
             decompressedBytesCount = zstdStream.read(buf.array())
 
             if (decompressedBytesCount > 0) {
