@@ -74,7 +74,7 @@ private suspend fun ByteReadChannel.encodeTo(
     destination: ByteWriteChannel,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ) {
-    val zstdSteam = ZstdOutputStream(destination.toOutputStream())
+    val zstdStream = ZstdOutputStream(destination.toOutputStream())
     val buf = pool.borrow()
 
     try {
@@ -83,11 +83,11 @@ private suspend fun ByteReadChannel.encodeTo(
             if (readAvailable(buf) <= 0) continue
             buf.flip()
 
-            zstdSteam.write(buf.array(), buf.position(), buf.remaining())
+            zstdStream.write(buf.array(), buf.position(), buf.remaining())
         }
     } finally {
-        zstdSteam.flush()
-        zstdSteam.close()
+        zstdStream.flush()
+        zstdStream.close()
         pool.recycle(buf)
     }
 }
