@@ -81,10 +81,7 @@ public val Zstd: Encoder = object : Encoder {
     override fun decode(
         source: ByteReadChannel,
         coroutineContext: CoroutineContext
-    ): ByteReadChannel {
-        TODO("Not yet implemented")
-    }
-
+    ): ByteReadChannel = source.decoded(coroutineContext = coroutineContext)
 }
 
 @OptIn(DelicateCoroutinesApi::class)

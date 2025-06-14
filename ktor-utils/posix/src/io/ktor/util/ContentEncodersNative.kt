@@ -21,3 +21,7 @@ public actual object GZipEncoder : ContentEncoder, Encoder by Identity {
 public actual object DeflateEncoder : ContentEncoder, Encoder by Identity {
     actual override val name: String = "deflate"
 }
+
+public actual object ZstdEncoder : ContentEncoder, Encoder by Identity {
+    actual override val name: String = "zstd"
+}
