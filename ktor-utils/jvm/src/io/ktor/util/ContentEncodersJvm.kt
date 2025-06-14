@@ -22,6 +22,11 @@ public actual object DeflateEncoder : ContentEncoder, Encoder by Deflate {
     actual override val name: String = "deflate"
 }
 
+/**
+ * Implementation of [ContentEncoder] using zstd algorithm
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.ZstdEncoder)
+ */
 public actual object ZstdEncoder : ContentEncoder, Encoder by Zstd {
     actual override val name: String = "zstd"
 }
