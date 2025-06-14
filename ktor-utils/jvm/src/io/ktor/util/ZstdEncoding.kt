@@ -13,6 +13,7 @@ import io.ktor.utils.io.jvm.javaio.toInputStream
 import io.ktor.utils.io.jvm.javaio.toOutputStream
 import io.ktor.utils.io.pool.ObjectPool
 import io.ktor.utils.io.readAvailable
+import io.ktor.utils.io.reader
 import io.ktor.utils.io.writeFully
 import io.ktor.utils.io.writer
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -32,6 +33,19 @@ public fun ByteReadChannel.encoded(
     coroutineContext: CoroutineContext = Dispatchers.Unconfined
 ): ByteReadChannel = GlobalScope.writer(coroutineContext, autoFlush = true) {
     this@encoded.encodeTo(channel, pool)
+}.channel
+
+/**
+ * Launch a coroutine on [coroutineContext] that does zstd compression.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.encoded)
+ */
+@OptIn(DelicateCoroutinesApi::class)
+public fun ByteWriteChannel.encoded(
+    pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
+    coroutineContext: CoroutineContext = Dispatchers.Unconfined
+): ByteWriteChannel = GlobalScope.reader(coroutineContext, autoFlush = true) {
+    channel.encodeTo(this@encoded, pool)
 }.channel
 
 /**
