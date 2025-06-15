@@ -72,11 +72,11 @@ public final class io/ktor/server/plugins/compression/ConfigKt {
 	public static final fun excludeContentType (Lio/ktor/server/plugins/compression/ConditionsHolderBuilder;[Lio/ktor/http/ContentType;)V
 	public static final fun gzip (Lio/ktor/server/plugins/compression/CompressionConfig;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun gzip$default (Lio/ktor/server/plugins/compression/CompressionConfig;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
-	public static final fun zstd (Lio/ktor/server/plugins/compression/CompressionConfig;Lkotlin/jvm/functions/Function1;)V
-	public static synthetic fun zstd$default (Lio/ktor/server/plugins/compression/CompressionConfig;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public static final fun identity (Lio/ktor/server/plugins/compression/CompressionConfig;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun identity$default (Lio/ktor/server/plugins/compression/CompressionConfig;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public static final fun matchContentType (Lio/ktor/server/plugins/compression/ConditionsHolderBuilder;[Lio/ktor/http/ContentType;)V
 	public static final fun minimumSize (Lio/ktor/server/plugins/compression/ConditionsHolderBuilder;J)V
+	public static final fun zstd (Lio/ktor/server/plugins/compression/CompressionConfig;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun zstd$default (Lio/ktor/server/plugins/compression/CompressionConfig;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 }
 
