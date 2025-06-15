@@ -310,7 +310,7 @@ class DependencyInjectionTest {
     fun `async support`() = testApplication(Dispatchers.Unconfined) {
         val greeter = GreetingServiceImpl()
         val bank = BankServiceImpl()
-        val resolutionChannel = Channel<String>(3)
+        val resolutionChannel = Channel<String>(Channel.UNLIMITED)
 
         application {
             dependencies {
