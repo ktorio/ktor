@@ -43,22 +43,22 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
     val allowSameOrigin: Boolean = pluginConfig.allowSameOrigin
     val allowsAnyHost: Boolean = "*" in pluginConfig.hosts
     val allowCredentials: Boolean = pluginConfig.allowCredentials
-    val allHeaders: Set<String> =
-        (pluginConfig.headers + CORSConfig.CorsSimpleRequestHeaders).let { headers ->
-            if (pluginConfig.allowNonSimpleContentTypes) headers else headers.minus(HttpHeaders.ContentType)
-        }
+//    val allHeaders: Set<String> =
+//        (pluginConfig.headers + CORSConfig.CorsSimpleRequestHeaders).let { headers ->
+//            if (pluginConfig.allowNonSimpleContentTypes) headers else headers.minus(HttpHeaders.ContentType)
+//        }
     val originPredicates: List<(String) -> Boolean> = pluginConfig.originPredicates
-    val headerPredicates: List<(String) -> Boolean> = pluginConfig.headerPredicates
+//    val headerPredicates: List<(String) -> Boolean> = pluginConfig.headerPredicates
     val methods: Set<HttpMethod> = HashSet(pluginConfig.methods + CORSConfig.CorsDefaultMethods)
-    val allHeadersSet: Set<String> = allHeaders.map { it.toLowerCasePreservingASCIIRules() }.toSet()
+//    val allHeadersSet: Set<String> = allHeaders.map { it.toLowerCasePreservingASCIIRules() }.toSet()
     val allowNonSimpleContentTypes: Boolean = pluginConfig.allowNonSimpleContentTypes
-    val headersList = pluginConfig.headers.filterNot { it in CORSConfig.CorsSimpleRequestHeaders }
-        .let { if (allowNonSimpleContentTypes) it + HttpHeaders.ContentType else it }
-    val methodsListHeaderValue = methods.filterNot { it in CORSConfig.CorsDefaultMethods }
-        .map { it.value }
-        .sorted()
-        .joinToString(", ")
-    val maxAgeHeaderValue = pluginConfig.maxAgeInSeconds.let { if (it > 0) it.toString() else null }
+//    val headersList = pluginConfig.headers.filterNot { it in CORSConfig.CorsSimpleRequestHeaders }
+//        .let { if (allowNonSimpleContentTypes) it + HttpHeaders.ContentType else it }
+//    val methodsListHeaderValue = methods.filterNot { it in CORSConfig.CorsDefaultMethods }
+//        .map { it.value }
+//        .sorted()
+//        .joinToString(", ")
+//    val maxAgeHeaderValue = pluginConfig.maxAgeInSeconds.let { if (it > 0) it.toString() else null }
     val exposedHeaders = when {
         pluginConfig.exposedHeaders.isNotEmpty() -> pluginConfig.exposedHeaders.sorted().joinToString(", ")
         else -> null
@@ -83,7 +83,7 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
      * a plugin installation.
      */
     onCall { call ->
-        if (call.response.isCommitted) {
+        if (call.response.isCommitted || call.request.httpMethod == HttpMethod.Options) {
             return@onCall
         }
 
@@ -156,13 +156,13 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
     }
 }
 
-private enum class OriginCheckResult {
+internal enum class OriginCheckResult {
     OK,
     SkipCORS,
     Failed,
 }
 
-private fun checkOrigin(
+internal fun checkOrigin(
     origin: String,
     point: RequestConnectionPoint,
     allowSameOrigin: Boolean,

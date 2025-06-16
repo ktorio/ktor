@@ -47,6 +47,9 @@ public open class RoutingNode(
 
     internal val handlers = mutableListOf<RoutingHandler>()
 
+    internal val childCreationNotifications = mutableListOf<RoutingNode>()
+    internal val childCreationCallbacks = mutableListOf<(RoutingNode, RoutingNode) -> Unit>()
+
     /**
      * Creates a child node in this node with a given [selector] or returns an existing one with the same selector.
      *
@@ -58,15 +61,49 @@ public open class RoutingNode(
             val entry = RoutingNode(this, selector, developmentMode, environment)
             childList.add(entry)
 
-            val callbacks = application.attributes.getOrNull(createChildCallbacksKey) ?: listOf()
+            if (selector is HttpMethodRouteSelector && selector.method == HttpMethod.Options) { // TODO: Remove this hack
 
-            for (cb in callbacks) {
-                cb(this, entry)
+            } else {
+                childCreationNotifications.add(entry)
+                var parent: RoutingNode? = this
+                while (parent != null) {
+                    for (callback in parent.childCreationCallbacks) {
+                        callback(this, entry)
+                    }
+
+                    parent = parent.parent
+                }
             }
+
+
+
+//            val callbacks = application.attributes.getOrNull(createChildCallbacksKey) ?: listOf()
+//
+//            for (cb in callbacks) {
+//                cb(this, entry)
+//            }
 
             return entry
         }
         return existingEntry
+    }
+
+    @InternalAPI
+    public fun interceptChildCreation(interceptor: (RoutingNode, RoutingNode) -> Unit) {
+        childCreationCallbacks.add(interceptor)
+
+        fun execNotifications(node: RoutingNode?) {
+            if (node != null) {
+                for (childNode in node.childList) {
+                    for (notifyNode in childNode.childCreationNotifications) {
+                        interceptor(childNode, notifyNode)
+                    }
+                    execNotifications(childNode)
+                }
+            }
+        }
+
+        execNotifications(this)
     }
 
     /**
@@ -152,13 +189,13 @@ public open class RoutingNode(
     }
 }
 
-@InternalAPI
-public fun Application.interceptCreateChild(cb: (RoutingNode, RoutingNode) -> Unit) {
-    val callbacks = attributes.getOrNull(createChildCallbacksKey) ?: listOf()
-    attributes.put(createChildCallbacksKey, callbacks.plus(cb))
-}
-
-private val createChildCallbacksKey: AttributeKey<List<(RoutingNode, RoutingNode) -> Unit>> = AttributeKey("CreateChildCallbacks")
+//@InternalAPI
+//public fun Application.interceptCreateChild(cb: (RoutingNode, RoutingNode) -> Unit) {
+//    val callbacks = attributes.getOrNull(createChildCallbacksKey) ?: listOf()
+//    attributes.put(createChildCallbacksKey, callbacks.plus(cb))
+//}
+//
+//private val createChildCallbacksKey: AttributeKey<List<(RoutingNode, RoutingNode) -> Unit>> = AttributeKey("CreateChildCallbacks")
 
 /**
  * A client's request that can be handled in [RoutingRoot].
