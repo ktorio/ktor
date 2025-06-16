@@ -69,6 +69,7 @@ private suspend fun ByteReadChannel.decodeTo(
 
     try {
         while (!isClosedForRead) {
+            inputBuf.clear()
             val bytesRead = readAvailable(inputBuf)
             if (bytesRead <= 0) continue
 
