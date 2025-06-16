@@ -20,7 +20,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-abstract class HooksTestSuite <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
+abstract class HooksTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
 
@@ -32,11 +32,13 @@ abstract class HooksTestSuite <TEngine : ApplicationEngine, TConfiguration : App
     fun responseSentBlockCalledOnException() = runTest {
         var responseSentCalled = false
         createAndStartServer {
-            install(createRouteScopedPlugin("Plugin") {
-                on(ResponseSent) {
-                    responseSentCalled = true
+            install(
+                createRouteScopedPlugin("Plugin") {
+                    on(ResponseSent) {
+                        responseSentCalled = true
+                    }
                 }
-            })
+            )
 
             get("/") {
                 throw BadRequestException("Bad Request")
