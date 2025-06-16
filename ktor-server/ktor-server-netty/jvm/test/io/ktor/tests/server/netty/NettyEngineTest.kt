@@ -151,4 +151,3 @@ class NettyServerPluginsTest : ServerPluginsTestSuite<NettyApplicationEngine, Ne
 }
 
 class NettyHooksTest : HooksTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty)
-

@@ -79,4 +79,9 @@ class CIOPluginsTest : ServerPluginsTestSuite<CIOApplicationEngine, CIOApplicati
     }
 }
 
-class CIOHooksTest : HooksTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO)
+class CIOHooksTest : HooksTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
+    init {
+        enableHttp2 = false
+        enableSsl = false
+    }
+}
