@@ -55,15 +55,13 @@ public open class RoutingNode(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RoutingNode.createChild)
      */
-    public override fun createChild(selector: RouteSelector): RoutingNode {
+    public override fun createChild(selector: RouteSelector, notify: Boolean): RoutingNode {
         val existingEntry = childList.firstOrNull { it.selector == selector }
         if (existingEntry == null) {
             val entry = RoutingNode(this, selector, developmentMode, environment)
             childList.add(entry)
 
-            if (selector is HttpMethodRouteSelector && selector.method == HttpMethod.Options) { // TODO: Remove this hack
-
-            } else {
+            if (notify) {
                 childCreationNotifications.add(entry)
                 var parent: RoutingNode? = this
                 while (parent != null) {
@@ -74,8 +72,6 @@ public open class RoutingNode(
                     parent = parent.parent
                 }
             }
-
-
 
 //            val callbacks = application.attributes.getOrNull(createChildCallbacksKey) ?: listOf()
 //
@@ -339,7 +335,7 @@ public interface Route {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.Route.createChild)
      */
-    public fun createChild(selector: RouteSelector): Route
+    public fun createChild(selector: RouteSelector, notify: Boolean = true): Route
 
     /**
      * Gets a plugin instance for this pipeline, or fails with [MissingApplicationPluginException]

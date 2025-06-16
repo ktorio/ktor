@@ -11,12 +11,10 @@ import io.ktor.server.application.*
 import io.ktor.server.plugins.cors.*
 import io.ktor.server.plugins.origin
 import io.ktor.server.request.header
-import io.ktor.server.request.uri
 import io.ktor.server.routing.HttpMethodRouteSelector
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.RoutingNode
 import io.ktor.server.routing.RoutingRoot
-import io.ktor.server.routing.options
 import io.ktor.util.toLowerCasePreservingASCIIRules
 import io.ktor.utils.io.InternalAPI
 
@@ -113,14 +111,13 @@ public fun Application.cors(configure: CORSConfig.() -> Unit = {}) {
                     }
 
                     if (isInner) {
-                        parentNode.options {
-//                            val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull()
-
+                        val selector = HttpMethodRouteSelector(HttpMethod.Options)
+                        parentNode.createChild(selector, notify = false).handle {
                             if (!allowsAnyHost || allowCredentials) {
                                 call.corsVary()
                             }
 
-                            val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull() ?: return@options
+                            val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull() ?: return@handle
 
                             val checkOrigin = checkOrigin(
                                 origin,
@@ -135,11 +132,11 @@ public fun Application.cors(configure: CORSConfig.() -> Unit = {}) {
                                 OriginCheckResult.OK -> {
                                 }
 
-                                OriginCheckResult.SkipCORS -> return@options
+                                OriginCheckResult.SkipCORS -> return@handle
                                 OriginCheckResult.Failed -> {
 //                                    LOGGER.trace("Respond forbidden ${call.request.uri}: origin doesn't match ${call.request.origin}")
                                     call.respondCorsFailed()
-                                    return@options
+                                    return@handle
                                 }
                             }
 
@@ -149,7 +146,7 @@ public fun Application.cors(configure: CORSConfig.() -> Unit = {}) {
                                     if (contentType.withoutParameters() !in CORSConfig.CorsSimpleContentTypes) {
 //                                        LOGGER.trace("Respond forbidden ${call.request.uri}: Content-Type isn't allowed $contentType")
                                         call.respondCorsFailed()
-                                        return@options
+                                        return@handle
                                     }
                                 }
                             }
@@ -166,7 +163,13 @@ public fun Application.cors(configure: CORSConfig.() -> Unit = {}) {
                                 allHeadersSet
                             )
                         }
-                    }
+                        }
+
+//                        parentNode.options {
+//                            val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull()
+
+
+//                    }
                 }
             }
         }
@@ -240,14 +243,13 @@ public fun Route.cors(configure: CORSConfig.() -> Unit = {}) {
                 }
 
                 if (isInner) {
-                    parentNode.options {
-//                            val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull()
-
+                    val selector = HttpMethodRouteSelector(HttpMethod.Options)
+                    parentNode.createChild(selector, notify = false).handle {
                         if (!allowsAnyHost || allowCredentials) {
                             call.corsVary()
                         }
 
-                        val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull() ?: return@options
+                        val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull() ?: return@handle
 
                         val checkOrigin = checkOrigin(
                             origin,
@@ -262,11 +264,11 @@ public fun Route.cors(configure: CORSConfig.() -> Unit = {}) {
                             OriginCheckResult.OK -> {
                             }
 
-                            OriginCheckResult.SkipCORS -> return@options
+                            OriginCheckResult.SkipCORS -> return@handle
                             OriginCheckResult.Failed -> {
 //                                    LOGGER.trace("Respond forbidden ${call.request.uri}: origin doesn't match ${call.request.origin}")
                                 call.respondCorsFailed()
-                                return@options
+                                return@handle
                             }
                         }
 
@@ -276,7 +278,7 @@ public fun Route.cors(configure: CORSConfig.() -> Unit = {}) {
                                 if (contentType.withoutParameters() !in CORSConfig.CorsSimpleContentTypes) {
 //                                        LOGGER.trace("Respond forbidden ${call.request.uri}: Content-Type isn't allowed $contentType")
                                     call.respondCorsFailed()
-                                    return@options
+                                    return@handle
                                 }
                             }
                         }
@@ -293,6 +295,11 @@ public fun Route.cors(configure: CORSConfig.() -> Unit = {}) {
                             allHeadersSet
                         )
                     }
+//                        parentNode.options {
+//                            val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull()
+
+
+//                    }
                 }
             }
         }
