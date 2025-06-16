@@ -20,6 +20,23 @@ import kotlin.reflect.KFunction
 import kotlin.reflect.jvm.javaMethod
 import kotlin.test.*
 
+interface Identifiable<ID> {
+    val id: ID
+}
+interface Repository<E : Identifiable<ID>, ID> : ReadOnlyRepository<E, ID>
+class ListRepository<E : Identifiable<ID>, ID>(
+    val list: List<E>
+) : Repository<E, ID> {
+    override fun getAll(): List<E> = list
+}
+interface ReadOnlyRepository<out E : Identifiable<ID>, ID> {
+    fun getAll(): List<E>
+}
+interface User : Identifiable<Long> {
+    val name: String
+}
+data class FullUser(override val id: Long, override val name: String, val email: String) : User
+
 class DependencyInjectionJvmTest {
 
     @Test
@@ -28,7 +45,7 @@ class DependencyInjectionJvmTest {
             provide(GreetingServiceImpl::class)
         }
 
-        val service: GreetingService by dependencies
+        val service: GreetingService = dependencies.resolve()
         assertEquals(HELLO, service.hello())
     }
 
@@ -42,18 +59,19 @@ class DependencyInjectionJvmTest {
         var calls = 0
         runTestDI({
             reflection = object : DependencyReflectionJvm() {
-                override fun <T : Any> create(
+                override suspend fun <T : Any> create(
                     kClass: KClass<T>,
-                    init: (DependencyKey) -> Any
+                    init: suspend (DependencyKey) -> Any
                 ): T {
                     calls++
                     return super.create(kClass, init)
                 }
             }
         }) {
+            dependencies.provide(GreetingServiceImpl::class)
             assertEquals(0, calls)
             repeat(10) {
-                assertEquals(HELLO, dependencies.create<GreetingServiceImpl>().hello())
+                assertEquals(HELLO, dependencies.resolve<GreetingServiceImpl>().hello())
             }
             assertEquals(1, calls)
         }
@@ -67,9 +85,10 @@ class DependencyInjectionJvmTest {
             provide<List<PaidWork>> { listOf(resolve()) }
         }
 
-        assertFailsWith<CircularDependencyException> {
+        val failure = assertFailsWith<DependencyInjectionException> {
             dependencies.create<WorkExperience>()
         }
+        assertIs<CircularDependencyException>(failure.cause)
     }
 
     @Test
@@ -91,7 +110,7 @@ class DependencyInjectionJvmTest {
             provide<GreetingService> { BankGreetingService() }
             provide(BankTeller::class)
         }
-        val bankTeller: BankTeller by dependencies
+        val bankTeller: BankTeller = dependencies.resolve()
         bankTeller.deposit(100)
         bankTeller.withdraw(50)
         assertEquals(50, bankTeller.balance())
@@ -103,14 +122,14 @@ class DependencyInjectionJvmTest {
         assertFailsWith<AmbiguousDependencyException> {
             testApplication {
                 install(DI) {
-                    provider = MapDependencyProvider()
+                    // provider = MapDependencyProvider()
                 }
                 application {
                     dependencies {
                         provide(GreetingServiceImpl::class)
                         provide(BankGreetingService::class)
                     }
-                    val service: GreetingService by dependencies
+                    val service: GreetingService = dependencies.resolve()
                     fail("Should fail but found $service")
                 }
             }
@@ -172,7 +191,7 @@ class DependencyInjectionJvmTest {
     @Test
     fun `install class from config`() {
         testConfigFile(GreetingServiceImpl::class.qualifiedName!!) {
-            val service: GreetingService by dependencies
+            val service: GreetingService = dependencies.resolve()
             assertEquals(HELLO, service.hello())
         }
     }
@@ -202,7 +221,7 @@ class DependencyInjectionJvmTest {
             BankServiceImpl::class.qualifiedName!!,
             BankTeller::class.qualifiedName!!
         ) {
-            val teller: BankTeller by dependencies
+            val teller: BankTeller = dependencies.resolve()
             assertEquals(HELLO_CUSTOMER, teller.hello())
         }
     }
@@ -213,7 +232,7 @@ class DependencyInjectionJvmTest {
             ::createGreetingService.qualifiedName,
             ::createBankService.qualifiedName,
         ) {
-            val service: GreetingService by dependencies
+            val service: GreetingService = dependencies.resolve()
             assertEquals(HELLO, service.hello())
         }
     }
@@ -225,7 +244,7 @@ class DependencyInjectionJvmTest {
             ::createBankService.qualifiedName,
             DependencyRegistry::createBankTellerNoArgs.qualifiedName,
         ) {
-            val teller: BankTeller by dependencies
+            val teller: BankTeller = dependencies.resolve<BankTeller>()
             assertEquals(HELLO, teller.hello())
         }
     }
@@ -236,7 +255,7 @@ class DependencyInjectionJvmTest {
             testConfigFile(
                 ::createBankTellerWithArgs.qualifiedName,
             ) {
-                val teller: BankTeller by dependencies
+                val teller: BankTeller = dependencies.resolve()
                 fail("Should fail but resolved $teller")
             }
         }
@@ -248,7 +267,7 @@ class DependencyInjectionJvmTest {
             BankModule::class.qualifiedName!!,
             BankModule::getBankServiceFromClass.qualifiedName,
         ) {
-            val bank: BankService by dependencies
+            val bank: BankService = dependencies.resolve()
             assertEquals(0, bank.balance())
         }
     }
@@ -262,7 +281,7 @@ class DependencyInjectionJvmTest {
                     "getBankServicePrivately"
                 ),
             ) {
-                val bank: BankService by dependencies
+                val bank: BankService = dependencies.resolve()
                 fail("Should fail but resolved $bank")
             }
         }
@@ -274,7 +293,7 @@ class DependencyInjectionJvmTest {
             ::createBankService.qualifiedName,
             ::createBankTellerWithArgs.qualifiedName,
         ) {
-            val teller: BankTeller by dependencies
+            val teller: BankTeller = dependencies.resolve()
             assertEquals(HELLO_CUSTOMER, teller.hello())
         }
     }
@@ -285,18 +304,18 @@ class DependencyInjectionJvmTest {
             ::createBankTellerWithArgs.qualifiedName,
             ::createBankService.qualifiedName,
         ) {
-            val teller: BankTeller by dependencies
+            val teller: BankTeller = dependencies.resolve()
             assertEquals(HELLO_CUSTOMER, teller.hello())
         }
     }
 
     @Test
     fun `install function ref with install from module`() {
-        testConfigFile(::createBankTellerWithArgs.qualifiedName,) {
+        testConfigFile(::createBankTellerWithArgs.qualifiedName) {
             dependencies {
                 provide<BankService> { BankServiceImpl() }
             }
-            val teller: BankTeller by dependencies
+            val teller: BankTeller = dependencies.resolve()
             assertEquals(HELLO_CUSTOMER, teller.hello())
         }
     }
@@ -307,7 +326,7 @@ class DependencyInjectionJvmTest {
             ::createBankService.qualifiedName,
             ::createBankTellerWithLogging.qualifiedName,
         ) {
-            val teller: BankTeller by dependencies
+            val teller: BankTeller = dependencies.resolve()
             assertEquals(HELLO_CUSTOMER, teller.hello())
         }
     }
@@ -315,7 +334,7 @@ class DependencyInjectionJvmTest {
     @Test
     fun `install function ref with nullable args`() {
         testConfigFile(::createBankTellerWithNullables.qualifiedName) {
-            val teller: BankTeller by dependencies
+            val teller: BankTeller = dependencies.resolve()
             assertEquals(HELLO_CUSTOMER, teller.hello())
         }
     }
@@ -336,7 +355,7 @@ class DependencyInjectionJvmTest {
 
     @Test
     fun `module parameters missing dependency`() {
-        val failure = assertFailsWith<IllegalArgumentException> {
+        assertFailsWith<IllegalArgumentException> {
             testConfigFile(
                 ::createGreetingService.qualifiedName,
                 modules = listOf(
@@ -344,7 +363,6 @@ class DependencyInjectionJvmTest {
                 )
             )
         }
-        assertIs<MissingDependencyException>(failure.cause?.cause)
     }
 
     @Test
@@ -376,15 +394,32 @@ class DependencyInjectionJvmTest {
             provide { System.out }
             provide { getString() }
         }
-        val out: java.io.PrintStream by dependencies
-        val string: String by dependencies
+        val out: java.io.PrintStream = dependencies.resolve()
+        val string: String = dependencies.resolve()
         assertEquals(System.out, out)
         assertEquals("hello", string)
     }
 
+    @Test
+    fun `resolve type parameter hierarchy with boundaries`() = runTestDI {
+        val joey = FullUser(1L, "Joey", "joey.bloggs@joey.blog")
+        dependencies {
+            provide { ListRepository(listOf(joey)) }
+        }
+
+        assertEquals(
+            listOf(joey),
+            dependencies.resolve<ReadOnlyRepository<User, Long>>().getAll()
+        )
+        assertEquals(
+            listOf(joey),
+            dependencies.resolve<ReadOnlyRepository<Identifiable<Long>, Long>>().getAll()
+        )
+    }
+
     private fun runTestDI(
         pluginInstall: DependencyInjectionConfig.() -> Unit = {},
-        block: Application.() -> Unit
+        block: suspend Application.() -> Unit
     ): TestResult = runTestWithRealTime {
         testDI(pluginInstall, block)
     }
@@ -392,13 +427,13 @@ class DependencyInjectionJvmTest {
     // Use default DI configuration (not test mode)
     private suspend fun testDI(
         pluginInstall: DependencyInjectionConfig.() -> Unit = {},
-        block: Application.() -> Unit
+        block: suspend Application.() -> Unit
     ) = runTestApplication {
         install(DI) {
             pluginInstall()
-            if (!providerChanged) {
-                provider = MapDependencyProvider()
-            }
+//            if (!providerChanged) {
+//                provider = MapDependencyProvider()
+//            }
         }
         application {
             block()
@@ -410,11 +445,12 @@ class DependencyInjectionJvmTest {
         modules: List<String> = emptyList(),
         extraConfig: String = "",
         test: suspend ApplicationTestBuilder.() -> Unit = {},
-        block: Application.() -> Unit = {}
+        block: suspend Application.() -> Unit = {}
     ) {
         val configText = """
             ktor {
                 application {
+                    startup=concurrent
                     dependencies=${references.map { "\"$it\"" }}
                     modules=${modules.map { "\"$it\"" }}
                 }

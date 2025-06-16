@@ -120,8 +120,8 @@ internal fun Application.cacheTestServer() {
             }
             get("/different-vary") {
                 if (call.request.headers.contains("200")) {
-                    call.response.header("Vary", "X-Requested-With,Accept-Encoding")
-                    call.respond(HttpStatusCode.OK)
+                    call.response.header("Vary", "X-Requested-With, Accept-Encoding")
+                    call.respondText { "Ok" }
                 } else {
                     call.response.header("Vary", "X-Requested-With")
                     call.respond(HttpStatusCode.NotModified)

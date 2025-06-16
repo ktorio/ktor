@@ -169,9 +169,9 @@ class ConnectErrorsTest {
                             }
                         }
                     }
-                    runCatching(prematureDisconnect)
-                    runCatching(prematureDisconnect)
-                    runCatching(respondCorrectly)
+                    prematureDisconnect()
+                    prematureDisconnect()
+                    respondCorrectly()
                 }
 
                 val response = client.get("http://localhost:${serverSocket.localPort}/")
@@ -253,7 +253,7 @@ class ConnectErrorsTest {
             }
 
             try {
-                server.start(wait = false)
+                server.startSuspend(wait = false)
 
                 val message = client.get { url(scheme = "https", path = "/", port = serverPort) }.body<String>()
                 assertEquals("OK", message)

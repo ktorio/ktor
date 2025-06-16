@@ -201,6 +201,7 @@ public final class io/ktor/network/sockets/InetSocketAddress : io/ktor/network/s
 	public final fun getHostname ()Ljava/lang/String;
 	public final fun getPort ()I
 	public fun hashCode ()I
+	public final fun resolveAddress ()[B
 	public fun toString ()Ljava/lang/String;
 }
 

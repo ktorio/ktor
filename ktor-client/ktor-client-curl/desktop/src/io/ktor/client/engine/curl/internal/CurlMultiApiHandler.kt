@@ -9,41 +9,36 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.locks.*
 import kotlinx.cinterop.*
-import kotlinx.coroutines.*
-import kotlinx.io.*
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.io.readByteArray
 import libcurl.*
+import platform.posix.getenv
 
-private class RequestHolder @OptIn(ExperimentalForeignApi::class) constructor(
+@OptIn(ExperimentalForeignApi::class)
+private class RequestHolder(
     val responseCompletable: CompletableDeferred<CurlSuccess>,
     val requestWrapper: StableRef<CurlRequestBodyData>,
     val responseWrapper: StableRef<CurlResponseBodyData>,
 ) {
-    @OptIn(ExperimentalForeignApi::class)
     fun dispose() {
         requestWrapper.dispose()
         responseWrapper.dispose()
     }
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalAPI::class, ExperimentalForeignApi::class)
 internal class CurlMultiApiHandler : Closeable {
-    @OptIn(ExperimentalForeignApi::class)
     private val activeHandles = mutableMapOf<EasyHandle, RequestHolder>()
-
-    @OptIn(ExperimentalForeignApi::class)
     private val cancelledHandles = mutableSetOf<Pair<EasyHandle, Throwable>>()
 
-    @OptIn(ExperimentalForeignApi::class)
     private val multiHandle: MultiHandle = curl_multi_init()
         ?: throw RuntimeException("Could not initialize curl multi handle")
 
     private val easyHandlesToUnpauseLock = SynchronizedObject()
-
-    @OptIn(ExperimentalForeignApi::class)
     private val easyHandlesToUnpause = mutableListOf<EasyHandle>()
 
-    @OptIn(ExperimentalForeignApi::class)
     override fun close() {
+        if (activeHandles.isNotEmpty()) handleCompleted()
         for ((handle, holder) in activeHandles) {
             cleanupEasyHandle(handle)
             holder.dispose()
@@ -53,7 +48,6 @@ internal class CurlMultiApiHandler : Closeable {
         curl_multi_cleanup(multiHandle).verify()
     }
 
-    @OptIn(ExperimentalForeignApi::class)
     fun scheduleRequest(request: CurlRequestData, deferred: CompletableDeferred<CurlSuccess>): EasyHandle {
         val easyHandle = curl_easy_init()
             ?: error("Could not initialize an easy handle")
@@ -123,41 +117,31 @@ internal class CurlMultiApiHandler : Closeable {
         return easyHandle
     }
 
-    @OptIn(ExperimentalForeignApi::class)
     internal fun cancelRequest(easyHandle: EasyHandle, cause: Throwable) {
         cancelledHandles += Pair(easyHandle, cause)
-        curl_multi_remove_handle(multiHandle, easyHandle).verify()
     }
 
-    @OptIn(ExperimentalForeignApi::class)
-    internal fun perform() {
+    internal fun perform(transfersRunning: IntVarOf<Int>) {
         if (activeHandles.isEmpty()) return
 
-        memScoped {
-            val transfersRunning = alloc<IntVar>()
-            do {
-                synchronized(easyHandlesToUnpauseLock) {
-                    var handle = easyHandlesToUnpause.removeFirstOrNull()
-                    while (handle != null) {
-                        curl_easy_pause(handle, CURLPAUSE_CONT)
-                        handle = easyHandlesToUnpause.removeFirstOrNull()
-                    }
-                }
-                curl_multi_perform(multiHandle, transfersRunning.ptr).verify()
-                if (transfersRunning.value != 0) {
-                    curl_multi_poll(multiHandle, null, 0.toUInt(), 10000, null).verify()
-                }
-                if (transfersRunning.value < activeHandles.size) {
-                    handleCompleted()
-                }
-            } while (transfersRunning.value != 0)
+        synchronized(easyHandlesToUnpauseLock) {
+            var handle = easyHandlesToUnpause.removeFirstOrNull()
+            while (handle != null) {
+                curl_easy_pause(handle, CURLPAUSE_CONT)
+                handle = easyHandlesToUnpause.removeFirstOrNull()
+            }
+        }
+        curl_multi_perform(multiHandle, transfersRunning.ptr).verify()
+        if (transfersRunning.value != 0) {
+            curl_multi_poll(multiHandle, null, 0.toUInt(), pollTimeout, null).verify()
+        }
+        if (transfersRunning.value < activeHandles.size) {
+            handleCompleted()
         }
     }
 
-    @OptIn(ExperimentalForeignApi::class)
     internal fun hasHandlers(): Boolean = activeHandles.isNotEmpty()
 
-    @OptIn(ExperimentalForeignApi::class)
     private fun setupMethod(
         easyHandle: EasyHandle,
         method: String,
@@ -181,7 +165,6 @@ internal class CurlMultiApiHandler : Closeable {
         }
     }
 
-    @OptIn(ExperimentalForeignApi::class)
     private fun setupUploadContent(easyHandle: EasyHandle, request: CurlRequestData): COpaquePointer {
         val requestPointer = CurlRequestBodyData(
             body = request.content,
@@ -199,7 +182,6 @@ internal class CurlMultiApiHandler : Closeable {
         return requestPointer
     }
 
-    @OptIn(ExperimentalForeignApi::class)
     private fun handleCompleted() {
         for (cancellation in cancelledHandles) {
             val cancelled = processCancelledEasyHandle(cancellation.first, cancellation.second)
@@ -236,7 +218,6 @@ internal class CurlMultiApiHandler : Closeable {
         }
     }
 
-    @OptIn(ExperimentalForeignApi::class)
     private fun processCancelledEasyHandle(easyHandle: EasyHandle, cause: Throwable): CurlFail = memScoped {
         try {
             val responseDataRef = alloc<COpaquePointerVar>()
@@ -253,7 +234,6 @@ internal class CurlMultiApiHandler : Closeable {
         }
     }
 
-    @OptIn(ExperimentalForeignApi::class)
     private fun processCompletedEasyHandle(
         message: CURLMSG?,
         easyHandle: EasyHandle,
@@ -281,7 +261,6 @@ internal class CurlMultiApiHandler : Closeable {
         }
     }
 
-    @OptIn(ExperimentalForeignApi::class)
     private fun collectFailedResponse(
         message: CURLMSG?,
         request: CurlRequestData,
@@ -319,7 +298,6 @@ internal class CurlMultiApiHandler : Closeable {
         )
     }
 
-    @OptIn(ExperimentalForeignApi::class)
     private fun collectSuccessResponse(easyHandle: EasyHandle): CurlSuccess? = memScoped {
         val responseDataRef = alloc<COpaquePointerVar>()
         val httpProtocolVersion = alloc<LongVar>()
@@ -348,12 +326,10 @@ internal class CurlMultiApiHandler : Closeable {
         }
     }
 
-    @OptIn(ExperimentalForeignApi::class)
     fun wakeup() {
         curl_multi_wakeup(multiHandle)
     }
 
-    @OptIn(ExperimentalForeignApi::class)
     private fun unpauseEasyHandle(easyHandle: EasyHandle) {
         synchronized(easyHandlesToUnpauseLock) {
             easyHandlesToUnpause.add(easyHandle)
@@ -361,9 +337,13 @@ internal class CurlMultiApiHandler : Closeable {
         curl_multi_wakeup(multiHandle)
     }
 
-    @OptIn(ExperimentalForeignApi::class)
     private fun cleanupEasyHandle(easyHandle: EasyHandle) {
         curl_multi_remove_handle(multiHandle, easyHandle).verify()
         curl_easy_cleanup(easyHandle)
+    }
+
+    private companion object {
+        private const val DEFAULT_POLL_TIMEOUT_MS = 100
+        val pollTimeout by lazy { getenv("KTOR_CURL_POLL_TIMEOUT")?.toKString()?.toInt() ?: DEFAULT_POLL_TIMEOUT_MS }
     }
 }

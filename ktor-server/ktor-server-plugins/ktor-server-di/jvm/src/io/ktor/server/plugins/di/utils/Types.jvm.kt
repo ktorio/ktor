@@ -15,6 +15,7 @@ import kotlin.reflect.KTypeProjection
 import kotlin.reflect.KVariance
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.isSupertypeOf
+import kotlin.reflect.full.starProjectedType
 
 /**
  * Returns all types of the hierarchy, starting with the given type.
@@ -98,21 +99,18 @@ public fun TypeInfo.hasTypeParameters(predicate: (KTypeParameter) -> Boolean = {
 }
 
 private fun TypeInfo.parameterSupertypes(): Map<Int, List<KType>> {
+    val kotlinType = kotlinType!!
     val typeParams = type.typeParameters
     return buildMap {
-        for ((index, argument) in kotlinType!!.arguments.withIndex()) {
+        for ((index, argument) in kotlinType.arguments.withIndex()) {
             val typeParameter = typeParams[index]
             if (typeParameter.variance != KVariance.OUT) continue
             val argumentType = argument.type ?: continue
+            val validSuperTypes = argumentType.hierarchy()
+                .filter { it.isInBoundsOf(typeParameter) }
+                .toList()
 
-            put(
-                index,
-                argumentType.hierarchy().filter { supertype ->
-                    typeParameter.upperBounds.all {
-                        it == supertype || it.isSupertypeOf(supertype)
-                    }
-                }.toList()
-            )
+            put(index, validSuperTypes)
         }
     }
 }
@@ -137,6 +135,12 @@ private fun KType.toTypeInfo(): TypeInfo? =
             type = classifier as KClass<*>,
             kotlinType = this
         )
+    }
+
+private fun KType.isInBoundsOf(typeParameter: KTypeParameter): Boolean =
+    typeParameter.upperBounds.all { upperBound ->
+        val genericUpperBound = (upperBound.classifier as? KClass<*>)?.starProjectedType ?: upperBound
+        genericUpperBound == this || genericUpperBound.isSupertypeOf(this)
     }
 
 // List of generic classes to exclude from results

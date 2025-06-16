@@ -7,17 +7,8 @@ import ktorbuild.*
 plugins {
     id("ktorbuild.base")
     id("java-platform")
-    id("maven-publish")
+    id("ktorbuild.publish")
 }
-
-publishing.publications {
-    create<MavenPublication>("maven") {
-        from(components.findByName("javaPlatform"))
-    }
-}
-
-// Should be applied after publications were configured
-apply(plugin = "ktorbuild.publish")
 
 val allPublications = projectsWithTag(ProjectTag.Library)
     .flatMapValue { libraryProject ->

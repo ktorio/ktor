@@ -1669,6 +1669,8 @@ final val io.ktor.http/origin // io.ktor.http/origin|@io.ktor.http.URLBuilder.Co
     final fun (io.ktor.http/URLBuilder.Companion).<get-origin>(): kotlin/String // io.ktor.http/origin.<get-origin>|<get-origin>@io.ktor.http.URLBuilder.Companion(){}[0]
 final val io.ktor.http/protocolWithAuthority // io.ktor.http/protocolWithAuthority|@io.ktor.http.Url{}protocolWithAuthority[0]
     final fun (io.ktor.http/Url).<get-protocolWithAuthority>(): kotlin/String // io.ktor.http/protocolWithAuthority.<get-protocolWithAuthority>|<get-protocolWithAuthority>@io.ktor.http.Url(){}[0]
+final val io.ktor.http/supportsRequestBody // io.ktor.http/supportsRequestBody|@io.ktor.http.HttpMethod{}supportsRequestBody[0]
+    final fun (io.ktor.http/HttpMethod).<get-supportsRequestBody>(): kotlin/Boolean // io.ktor.http/supportsRequestBody.<get-supportsRequestBody>|<get-supportsRequestBody>@io.ktor.http.HttpMethod(){}[0]
 
 final var io.ktor.http.content/caching // io.ktor.http.content/caching|@io.ktor.http.content.OutgoingContent{}caching[0]
     final fun (io.ktor.http.content/OutgoingContent).<get-caching>(): io.ktor.http.content/CachingOptions? // io.ktor.http.content/caching.<get-caching>|<get-caching>@io.ktor.http.content.OutgoingContent(){}[0]

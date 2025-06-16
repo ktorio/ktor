@@ -25,7 +25,7 @@ public class ServerConfigBuilder(
     public val environment: ApplicationEnvironment
 ) {
 
-    internal val modules: MutableList<Application.() -> Unit> = mutableListOf()
+    internal val modules: MutableList<suspend Application.() -> Unit> = mutableListOf()
 
     /**
      * Paths to wait for application reload.
@@ -60,7 +60,17 @@ public class ServerConfigBuilder(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ServerConfigBuilder.module)
      */
+    @Deprecated("Replaced with suspend function parameter", level = DeprecationLevel.HIDDEN)
     public fun module(body: Application.() -> Unit) {
+        modules.add(body)
+    }
+
+    /**
+     * Installs an application module.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ServerConfigBuilder.module)
+     */
+    public fun module(body: suspend Application.() -> Unit) {
         modules.add(body)
     }
 
@@ -76,7 +86,7 @@ public class ServerConfigBuilder(
  */
 public class ServerConfig internal constructor(
     public val environment: ApplicationEnvironment,
-    internal val modules: List<Application.() -> Unit>,
+    internal val modules: List<suspend Application.() -> Unit>,
     internal val watchPaths: List<String>,
     public val rootPath: String,
     public val developmentMode: Boolean = PlatformUtils.IS_DEVELOPMENT_MODE,

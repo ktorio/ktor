@@ -24,6 +24,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlin.test.fail
 
 @OptIn(DelicateCoroutinesApi::class)
 class LoggingTest : ClientLoader() {
@@ -379,6 +380,7 @@ class LoggingTest : ClientLoader() {
             "???-> connection: close",
             "-> Content-Type: text/plain; charset=UTF-8",
             "-> Transfer-Encoding: chunked",
+            "-> Vary: Accept-Encoding",
             "BODY Content-Type: text/plain; charset=UTF-8",
             "BODY START",
             "???[response body omitted]",
@@ -553,6 +555,46 @@ class LoggingTest : ClientLoader() {
 
         after {
             testLogger.verify()
+        }
+    }
+
+    @Test
+    fun testBinaryDecodingWithOkHttpFormat() = clientTests(except("web:Js")) {
+        val lines = mutableListOf<String>()
+        config {
+            Logging {
+                logger = object : Logger {
+                    override fun log(message: String) {
+                        lines.addAll(message.split("\n"))
+                    }
+                }
+                level = LogLevel.BODY
+                format = LoggingFormat.OkHttp
+            }
+        }
+
+        test { client ->
+            client.get("$TEST_SERVER/content/binary")
+        }
+
+        after {
+            val iter = lines.iterator()
+
+            assertEquals("--> GET /content/binary", iter.next())
+            assertEquals("Accept-Charset: UTF-8", iter.next())
+            assertEquals("Accept: */*", iter.next())
+            assertEquals("--> END GET", iter.next())
+            assertMatch(Regex("<-- 200 OK /content/binary \\(\\d+ms\\)"), iter.next())
+
+            val lastLine = lines.find { it.startsWith("<-- END HTTP") }
+            assertNotNull(lastLine)
+            assertMatch(Regex("<-- END HTTP \\(\\d+ms, binary 8-byte body omitted\\)"), lastLine)
+        }
+    }
+
+    private fun assertMatch(regex: Regex, actual: String) {
+        if (!regex.matches(actual)) {
+            fail("Regex $regex doesn't match $actual")
         }
     }
 }

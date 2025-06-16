@@ -4,6 +4,8 @@
 
 package io.ktor.http
 
+import io.ktor.utils.io.*
+
 /**
  * Represents an HTTP method (verb)
  *
@@ -14,7 +16,7 @@ package io.ktor.http
 public data class HttpMethod(val value: String) {
     override fun toString(): String = value
 
-    @Suppress("KDocMissingDocumentation", "PublicApiImplicitType")
+    @Suppress("KDocMissingDocumentation")
     public companion object {
         public val Get: HttpMethod = HttpMethod("GET")
         public val Post: HttpMethod = HttpMethod("POST")
@@ -52,3 +54,17 @@ public data class HttpMethod(val value: String) {
         public val DefaultMethods: List<HttpMethod> = listOf(Get, Post, Put, Patch, Delete, Head, Options)
     }
 }
+
+private val REQUESTS_WITHOUT_BODY = setOf(
+    HttpMethod.Get,
+    HttpMethod.Head,
+    HttpMethod.Options,
+    HttpMethod("TRACE"),
+)
+
+/**
+ * Returns `true` if this request method can have a request body.
+ */
+@InternalAPI
+public val HttpMethod.supportsRequestBody: Boolean
+    get() = this !in REQUESTS_WITHOUT_BODY

@@ -9,6 +9,10 @@
 // - Show declarations: true
 
 // Library unique name: <io.ktor:ktor-io>
+open annotation class io.ktor.utils.io/ExperimentalKtorApi : kotlin/Annotation { // io.ktor.utils.io/ExperimentalKtorApi|null[0]
+    constructor <init>() // io.ktor.utils.io/ExperimentalKtorApi.<init>|<init>(){}[0]
+}
+
 open annotation class io.ktor.utils.io/InternalAPI : kotlin/Annotation { // io.ktor.utils.io/InternalAPI|null[0]
     constructor <init>() // io.ktor.utils.io/InternalAPI.<init>|<init>(){}[0]
 }
@@ -402,6 +406,7 @@ final fun (io.ktor.utils.io/ByteWriteChannel).io.ktor.utils.io/rethrowCloseCause
 final fun (io.ktor.utils.io/ChannelJob).io.ktor.utils.io/cancel() // io.ktor.utils.io/cancel|cancel@io.ktor.utils.io.ChannelJob(){}[0]
 final fun (io.ktor.utils.io/ChannelJob).io.ktor.utils.io/getCancellationException(): kotlin.coroutines.cancellation/CancellationException // io.ktor.utils.io/getCancellationException|getCancellationException@io.ktor.utils.io.ChannelJob(){}[0]
 final fun (io.ktor.utils.io/ChannelJob).io.ktor.utils.io/invokeOnCompletion(kotlin/Function0<kotlin/Unit>) // io.ktor.utils.io/invokeOnCompletion|invokeOnCompletion@io.ktor.utils.io.ChannelJob(kotlin.Function0<kotlin.Unit>){}[0]
+final fun (io.ktor.utils.io/ChannelJob).io.ktor.utils.io/invokeOnCompletion(kotlin/Function1<kotlin/Throwable?, kotlin/Unit>): kotlinx.coroutines/DisposableHandle // io.ktor.utils.io/invokeOnCompletion|invokeOnCompletion@io.ktor.utils.io.ChannelJob(kotlin.Function1<kotlin.Throwable?,kotlin.Unit>){}[0]
 final fun (kotlin/ByteArray).io.ktor.utils.io.core/storeIntAt(kotlin/Int, kotlin/Int) // io.ktor.utils.io.core/storeIntAt|storeIntAt@kotlin.ByteArray(kotlin.Int;kotlin.Int){}[0]
 final fun (kotlin/Double).io.ktor.utils.io.bits/reverseByteOrder(): kotlin/Double // io.ktor.utils.io.bits/reverseByteOrder|reverseByteOrder@kotlin.Double(){}[0]
 final fun (kotlin/Float).io.ktor.utils.io.bits/reverseByteOrder(): kotlin/Float // io.ktor.utils.io.bits/reverseByteOrder|reverseByteOrder@kotlin.Float(){}[0]

@@ -4,6 +4,7 @@
 
 package io.ktor.server.config
 
+import io.ktor.server.config.ApplicationConfigValue.Type.*
 import io.ktor.server.config.MapApplicationConfig.Companion.flatten
 
 /**
@@ -30,9 +31,12 @@ public fun List<ApplicationConfig>.merge(): ApplicationConfig {
  *
  * @see [withFallback]
  */
-public fun ApplicationConfig.mergeWith(other: ApplicationConfig): ApplicationConfig {
-    return MergedApplicationConfig(other, this)
-}
+public fun ApplicationConfig.mergeWith(other: ApplicationConfig): ApplicationConfig =
+    when {
+        keys().isEmpty() -> other
+        other.keys().isEmpty() -> this
+        else -> MergedApplicationConfig(other, this)
+    }
 
 /**
  * Merge configuration combining all their keys.
@@ -105,12 +109,14 @@ internal class MergedApplicationConfig(
     private fun merge(
         first: ApplicationConfigValue?,
         second: ApplicationConfigValue?,
-    ): ApplicationConfigValue? = when {
-        first == null -> second
-        second == null -> first
-        first.type != ApplicationConfigValue.Type.OBJECT ||
-            second.type != ApplicationConfigValue.Type.OBJECT -> first
-        else -> mergeMapConfigValues(first, second)
+    ): ApplicationConfigValue? {
+        val value = when {
+            first == null -> second
+            second == null -> first
+            first.type != OBJECT || second.type != OBJECT -> first
+            else -> mergeMapConfigValues(first, second)
+        }
+        return value
     }
 
     /**

@@ -19,7 +19,7 @@ pluginManagement {
 }
 
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "0.10.0"
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
     id("ktorsettings")
     id("ktorsettings.develocity")
     id("ktorsettings.configuration-cache")
@@ -186,6 +186,7 @@ projects {
     +"ktor-test-dispatcher"
     +"ktor-java-modules-test"
     +"ktor-dokka"
+    +"ktor-version-catalog"
 }
 
 // region Project hierarchy DSL
