@@ -125,21 +125,21 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
             }
         }
 
-        if (call.request.httpMethod == HttpMethod.Options) {
-            LOGGER.trace("Respond preflight on OPTIONS for ${call.request.uri}")
-            call.respondPreflight(
-                origin,
-                methodsListHeaderValue,
-                headersList,
-                methods,
-                allowsAnyHost,
-                allowCredentials,
-                maxAgeHeaderValue,
-                headerPredicates,
-                allHeadersSet
-            )
-            return@onCall
-        }
+//        if (call.request.httpMethod == HttpMethod.Options) {
+//            LOGGER.trace("Respond preflight on OPTIONS for ${call.request.uri}")
+//            call.respondPreflight(
+//                origin,
+//                methodsListHeaderValue,
+//                headersList,
+//                methods,
+//                allowsAnyHost,
+//                allowCredentials,
+//                maxAgeHeaderValue,
+//                headerPredicates,
+//                allHeadersSet
+//            )
+//            return@onCall
+//        }
 
         if (!call.corsCheckCurrentMethod(methods)) {
             LOGGER.trace("Respond forbidden ${call.request.uri}: method doesn't match ${call.request.httpMethod}")
