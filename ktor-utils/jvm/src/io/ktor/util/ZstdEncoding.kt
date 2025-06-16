@@ -4,13 +4,11 @@
 
 package io.ktor.util
 
-import com.github.luben.zstd.ZstdInputStream
-import com.github.luben.zstd.ZstdOutputStream
+import com.github.luben.zstd.ZstdCompressCtx
+import com.github.luben.zstd.ZstdDecompressCtx
 import io.ktor.util.cio.KtorDefaultPool
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.ByteWriteChannel
-import io.ktor.utils.io.jvm.javaio.toInputStream
-import io.ktor.utils.io.jvm.javaio.toOutputStream
 import io.ktor.utils.io.pool.ObjectPool
 import io.ktor.utils.io.readAvailable
 import io.ktor.utils.io.reader
@@ -65,23 +63,26 @@ private suspend fun ByteReadChannel.decodeTo(
     destination: ByteWriteChannel,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ) {
-    val zstdStream = ZstdInputStream(toInputStream())
-    val buf = pool.borrow()
+    val inputBuf = pool.borrow()
+    val outputBuf = pool.borrow()
+    val ctx = ZstdDecompressCtx()
 
     try {
-        var decompressedBytesCount: Int
-        do {
-            buf.clear()
-            decompressedBytesCount = zstdStream.read(buf.array())
+        while (!isClosedForRead) {
+            val bytesRead = readAvailable(inputBuf)
+            if (bytesRead <= 0) continue
 
-            if (decompressedBytesCount > 0) {
-                buf.limit(decompressedBytesCount)
-                destination.writeFully(buf)
-            }
-        } while (decompressedBytesCount > 0)
+            val decompressedSize = ctx.decompressByteArray(
+                outputBuf.array(), 0, outputBuf.capacity(),
+                inputBuf.array(), 0, bytesRead
+            )
+
+            destination.writeFully(outputBuf.array(), 0, decompressedSize)
+        }
     } finally {
-        zstdStream.close()
-        pool.recycle(buf)
+        ctx.close()
+        pool.recycle(inputBuf)
+        pool.recycle(outputBuf)
     }
 }
 
@@ -89,20 +90,26 @@ private suspend fun ByteReadChannel.encodeTo(
     destination: ByteWriteChannel,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ) {
-    val zstdStream = ZstdOutputStream(destination.toOutputStream())
-    val buf = pool.borrow()
+    val inputBuf = pool.borrow()
+    val outputBuf = pool.borrow();
+    val ctx = ZstdCompressCtx()
 
     try {
         while (!isClosedForRead) {
-            buf.clear()
-            if (readAvailable(buf) <= 0) continue
-            buf.flip()
+            inputBuf.clear()
+            val bytesRead = readAvailable(inputBuf)
+            if (bytesRead <= 0) continue
 
-            zstdStream.write(buf.array(), buf.position(), buf.remaining())
+            val compressedSize = ctx.compressByteArray(
+                outputBuf.array(), 0, outputBuf.capacity(),
+                inputBuf.array(), 0, bytesRead
+            )
+
+            destination.writeFully(outputBuf.array(), 0, compressedSize)
         }
     } finally {
-        zstdStream.flush()
-        zstdStream.close()
-        pool.recycle(buf)
+        ctx.close()
+        pool.recycle(inputBuf)
+        pool.recycle(outputBuf)
     }
 }
