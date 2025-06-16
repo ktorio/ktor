@@ -7,6 +7,7 @@ package io.ktor.server.application
 import io.ktor.client.request.*
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.hooks.*
+import io.ktor.server.config.MapApplicationConfig
 import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -189,7 +190,7 @@ class HooksTest {
     }
 
     @Test
-    fun testResponseSentBlockCalledOnException() = testApplication {
+    fun testResponseSentBlockCalledOnBadRequestException() = testApplication {
         var responseSentCalled = false
         routing {
             install(createRouteScopedPlugin("Plugin") {
@@ -204,6 +205,29 @@ class HooksTest {
         }
 
         assertEquals(HttpStatusCode.BadRequest, client.get("/").status)
+        assertTrue(responseSentCalled, message = "ResponseSent was not called")
+    }
+
+    @Test
+    fun testResponseSentBlockCalledOnException() = testApplication {
+        environment {
+            config = MapApplicationConfig("ktor.test.throwOnException" to "false")
+        }
+
+        var responseSentCalled = false
+        routing {
+            install(createRouteScopedPlugin("Plugin") {
+                on(ResponseSent) {
+                    responseSentCalled = true
+                }
+            })
+
+            get("/") {
+                throw IllegalStateException("Error")
+            }
+        }
+
+        assertEquals(HttpStatusCode.InternalServerError, client.get("/").status)
         assertTrue(responseSentCalled, message = "ResponseSent was not called")
     }
 }

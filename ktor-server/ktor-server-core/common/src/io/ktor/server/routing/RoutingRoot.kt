@@ -7,7 +7,6 @@ package io.ktor.server.routing
 import io.ktor.events.EventDefinition
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.engine.handleFailure
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
@@ -105,7 +104,8 @@ public class RoutingRoot(
         try {
             routingCallPipeline.execute(routingApplicationCall)
         } catch (cause: Throwable) {
-            handleFailure(routingCall, cause)
+            routingCall.attributes.put(routingCallKey, routingCall)
+            throw cause
         } finally {
             application.monitor.raise(RoutingCallFinished, routingCall)
         }
@@ -182,3 +182,5 @@ public val Route.application: Application
 @KtorDsl
 public fun Application.routing(configuration: Routing.() -> Unit): RoutingRoot =
     pluginOrNull(RoutingRoot)?.apply(configuration) ?: install(RoutingRoot, configuration)
+
+internal val routingCallKey = AttributeKey<RoutingCall>("RoutingHandler")
