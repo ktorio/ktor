@@ -12,6 +12,7 @@ import io.ktor.server.routing.HttpMethodRouteSelector
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.RoutingNode
+import io.ktor.server.routing.RoutingRoot
 import io.ktor.server.routing.application
 import io.ktor.server.routing.interceptCreateChild
 import io.ktor.server.routing.options
@@ -47,6 +48,7 @@ private val privateCORS: RouteScopedPlugin<CORSConfig> = createRouteScopedPlugin
     buildPlugin()
 }
 
+@OptIn(InternalAPI::class)
 public fun Application.cors(configure: CORSConfig.() -> Unit = {}) {
     // Intercept the create child the same way but use the Routing (node) to create options for all routes
     // The rest logic should be the same
@@ -54,6 +56,8 @@ public fun Application.cors(configure: CORSConfig.() -> Unit = {}) {
     // TODO: Think of child routes created earlier
 
 //    val thisRoute = plugin(Routing) as RoutingNode
+
+    val thisRoute = plugin(RoutingRoot)
 
     val pluginConfig = CORSConfig().apply(configure)
 
