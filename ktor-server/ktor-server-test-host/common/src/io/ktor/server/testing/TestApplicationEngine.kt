@@ -125,7 +125,8 @@ public class TestApplicationEngine(
         val throwOnException = environment.config
             .propertyOrNull(CONFIG_KEY_THROW_ON_EXCEPTION)
             ?.getString()?.toBoolean() != false
-        tryRespondError( call,
+        tryRespondError(
+            call,
             defaultExceptionStatusCode(cause)
                 ?: if (throwOnException) throw cause else HttpStatusCode.InternalServerError
         )

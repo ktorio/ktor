@@ -193,11 +193,13 @@ class HooksTest {
     fun testResponseSentBlockCalledOnBadRequestException() = testApplication {
         var responseSentCalled = false
         routing {
-            install(createRouteScopedPlugin("Plugin") {
-                on(ResponseSent) {
-                    responseSentCalled = true
+            install(
+                createRouteScopedPlugin("Plugin") {
+                    on(ResponseSent) {
+                        responseSentCalled = true
+                    }
                 }
-            })
+            )
 
             get("/") {
                 throw BadRequestException("Bad Request")
@@ -216,11 +218,13 @@ class HooksTest {
 
         var responseSentCalled = false
         routing {
-            install(createRouteScopedPlugin("Plugin") {
-                on(ResponseSent) {
-                    responseSentCalled = true
+            install(
+                createRouteScopedPlugin("Plugin") {
+                    on(ResponseSent) {
+                        responseSentCalled = true
+                    }
                 }
-            })
+            )
 
             get("/") {
                 throw IllegalStateException("Error")
