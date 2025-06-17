@@ -1460,7 +1460,7 @@ class CORSTest {
                     call.respond("OK")
                 }
 
-                // TODO: Fix: Added after notificationk
+                // TODO: Fix: Added after notification
                 options {
                     call.respond("OPTIONS")
                 }

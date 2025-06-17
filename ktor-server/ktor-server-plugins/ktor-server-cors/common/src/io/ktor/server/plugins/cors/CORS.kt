@@ -183,7 +183,6 @@ private fun configureRoutesAndInstallPlugin(pipeline: ApplicationCallPipeline, r
     pipeline.install(corsPlugin, configure)
 }
 
-
 internal fun PluginBuilder<CORSConfig>.buildPlugin() {
     val allowSameOrigin: Boolean = pluginConfig.allowSameOrigin
     val allowsAnyHost: Boolean = "*" in pluginConfig.hosts
