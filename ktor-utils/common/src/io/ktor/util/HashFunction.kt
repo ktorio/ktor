@@ -18,6 +18,9 @@ private infix fun Int.leftRotate(bitCount: Int): Int {
     return (this shl bitCount) or (this ushr (32 - bitCount))
 }
 
+@Suppress("NOTHING_TO_INLINE") // Syntactic sugar
+private infix fun Byte.and(other: Int): Int = toInt() and other
+
 internal class Sha1 : HashFunction {
     private var messageLength = 0L
     private val unprocessed = ByteArray(64)
@@ -419,9 +422,6 @@ internal class Sha256 : HashFunction {
     }
 
     companion object {
-        @Suppress("NOTHING_TO_INLINE") // Syntactic sugar
-        private inline infix fun Byte.and(other: Int): Int = toInt() and other
-
         private val k = intArrayOf(
             1116352408, 1899447441, -1245643825, -373957723, 961987163, 1508970993, -1841331548,
             -1424204075, -670586216, 310598401, 607225278, 1426881987, 1925078388, -2132889090,
