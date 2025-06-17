@@ -10,7 +10,7 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
 import io.ktor.server.plugins.cors.CORSConfig
-import io.ktor.server.plugins.cors.routing.*
+import io.ktor.server.plugins.cors.cors
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
@@ -18,10 +18,9 @@ import kotlinx.coroutines.test.*
 import kotlin.test.*
 
 class CORSTest {
-
     private fun ApplicationTestBuilder.cors(configure: CORSConfig.() -> Unit = {}) {
         application {
-            cors(configure)
+            this.cors(configure)
         }
     }
 

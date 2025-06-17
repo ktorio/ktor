@@ -7,10 +7,16 @@ package io.ktor.server.plugins.cors
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
+import io.ktor.server.plugins.cors.routing.corsPlugin
 import io.ktor.server.request.*
 import io.ktor.server.response.*
+import io.ktor.server.routing.HttpMethodRouteSelector
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.RoutingNode
+import io.ktor.server.routing.RoutingRoot
 import io.ktor.util.*
 import io.ktor.util.logging.*
+import io.ktor.utils.io.InternalAPI
 
 private val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.cors.CORS")
 
@@ -39,26 +45,152 @@ public val CORS: ApplicationPlugin<CORSConfig> = createApplicationPlugin("CORS",
     buildPlugin()
 }
 
+@OptIn(InternalAPI::class)
+public fun Application.cors(configure: CORSConfig.() -> Unit = {}) {
+    monitor.subscribe(ApplicationStarted) {
+        val route = pluginOrNull(RoutingRoot)
+        configureRoutesAndInstallPlugin(this, route, configure)
+    }
+}
+
+@OptIn(InternalAPI::class)
+public fun Route.cors(configure: CORSConfig.() -> Unit = {}) {
+    val node = this as RoutingNode
+    configureRoutesAndInstallPlugin(node, node, configure)
+}
+
+@OptIn(InternalAPI::class)
+private fun configureRoutesAndInstallPlugin(pipeline: ApplicationCallPipeline, route: RoutingNode?, configure: CORSConfig.() -> Unit) {
+    val pluginConfig = CORSConfig().apply(configure)
+
+    val methods: Set<HttpMethod> = HashSet(pluginConfig.methods + CORSConfig.CorsDefaultMethods)
+    val allowNonSimpleContentTypes: Boolean = pluginConfig.allowNonSimpleContentTypes
+    val allHeaders: Set<String> =
+        (pluginConfig.headers + CORSConfig.CorsSimpleRequestHeaders).let { headers ->
+            if (pluginConfig.allowNonSimpleContentTypes) headers else headers.minus(HttpHeaders.ContentType)
+        }
+    val headersList = pluginConfig.headers.filterNot { it in CORSConfig.CorsSimpleRequestHeaders }
+        .let { if (allowNonSimpleContentTypes) it + HttpHeaders.ContentType else it }
+    val allHeadersSet: Set<String> = allHeaders.map { it.toLowerCasePreservingASCIIRules() }.toSet()
+    val methodsListHeaderValue = methods.filterNot { it in CORSConfig.CorsDefaultMethods }
+        .map { it.value }
+        .sorted()
+        .joinToString(", ")
+
+    val hostsNormalized = HashSet(
+        pluginConfig.hosts
+            .filterNot { it.contains('*') }
+            .map { normalizeOrigin(it) }
+    )
+    val hostsWithWildcard = HashSet(
+        pluginConfig.hosts
+            .filter { it.contains('*') }
+            .map {
+                val normalizedOrigin = normalizeOrigin(it)
+                val (prefix, suffix) = normalizedOrigin.split('*')
+                prefix to suffix
+            }
+    )
+
+    route?.interceptChildCreation { parentNode, childNode ->
+        val selector = childNode.selector
+        if (selector is HttpMethodRouteSelector && selector.method != HttpMethod.Options) {
+            val optionsRoute = parentNode.children.find {
+                val selector = it.selector
+                selector is HttpMethodRouteSelector && selector.method == HttpMethod.Options
+            }
+
+            if (optionsRoute == null) {
+                var parent: Route? = parentNode
+                var isInner = false
+
+                while (parent != null) {
+                    if (parent == route) {
+                        isInner = true
+                        break
+                    }
+
+                    parent = parent.parent
+                }
+
+                if (isInner) {
+                    val selector = HttpMethodRouteSelector(HttpMethod.Options)
+                    parentNode.createChild(selector, notify = false).handle {
+                        val allowsAnyHost: Boolean = "*" in pluginConfig.hosts
+
+                        if (!allowsAnyHost || pluginConfig.allowCredentials) {
+                            call.corsVary()
+                        }
+
+                        val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull()
+
+                        if (origin != null) {
+                            val checkOrigin = checkOrigin(
+                                origin,
+                                call.request.origin,
+                                pluginConfig.allowSameOrigin,
+                                allowsAnyHost,
+                                hostsNormalized,
+                                hostsWithWildcard,
+                                pluginConfig.originPredicates
+                            )
+
+                            when (checkOrigin) {
+                                OriginCheckResult.OK -> {
+                                    var simpleTypesCheckFailed = false
+                                    if (!pluginConfig.allowNonSimpleContentTypes) {
+                                        val contentType = call.request.header(HttpHeaders.ContentType)?.let { ContentType.parse(it) }
+                                        if (contentType != null) {
+                                            if (contentType.withoutParameters() !in CORSConfig.CorsSimpleContentTypes) {
+                                                LOGGER.trace("Respond forbidden ${call.request.uri}: Content-Type isn't allowed $contentType")
+                                                simpleTypesCheckFailed = true
+                                            }
+                                        }
+                                    }
+
+                                    if (!simpleTypesCheckFailed) {
+                                        val maxAgeHeaderValue = pluginConfig.maxAgeInSeconds.let { if (it > 0) it.toString() else null }
+
+                                        call.respondPreflight(
+                                            origin,
+                                            methodsListHeaderValue,
+                                            headersList,
+                                            methods,
+                                            allowsAnyHost,
+                                            pluginConfig.allowCredentials,
+                                            maxAgeHeaderValue,
+                                            pluginConfig.headerPredicates,
+                                            allHeadersSet
+                                        )
+                                    } else {
+                                        call.respondCorsFailed()
+                                    }
+                                }
+
+                                OriginCheckResult.SkipCORS -> {}
+                                OriginCheckResult.Failed -> {
+                                    LOGGER.trace("Respond forbidden ${call.request.uri}: origin doesn't match ${call.request.origin}")
+                                    call.respondCorsFailed()
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    pipeline.install(corsPlugin, configure)
+}
+
+
 internal fun PluginBuilder<CORSConfig>.buildPlugin() {
     val allowSameOrigin: Boolean = pluginConfig.allowSameOrigin
     val allowsAnyHost: Boolean = "*" in pluginConfig.hosts
     val allowCredentials: Boolean = pluginConfig.allowCredentials
-//    val allHeaders: Set<String> =
-//        (pluginConfig.headers + CORSConfig.CorsSimpleRequestHeaders).let { headers ->
-//            if (pluginConfig.allowNonSimpleContentTypes) headers else headers.minus(HttpHeaders.ContentType)
-//        }
     val originPredicates: List<(String) -> Boolean> = pluginConfig.originPredicates
-//    val headerPredicates: List<(String) -> Boolean> = pluginConfig.headerPredicates
     val methods: Set<HttpMethod> = HashSet(pluginConfig.methods + CORSConfig.CorsDefaultMethods)
-//    val allHeadersSet: Set<String> = allHeaders.map { it.toLowerCasePreservingASCIIRules() }.toSet()
     val allowNonSimpleContentTypes: Boolean = pluginConfig.allowNonSimpleContentTypes
-//    val headersList = pluginConfig.headers.filterNot { it in CORSConfig.CorsSimpleRequestHeaders }
-//        .let { if (allowNonSimpleContentTypes) it + HttpHeaders.ContentType else it }
-//    val methodsListHeaderValue = methods.filterNot { it in CORSConfig.CorsDefaultMethods }
-//        .map { it.value }
-//        .sorted()
-//        .joinToString(", ")
-//    val maxAgeHeaderValue = pluginConfig.maxAgeInSeconds.let { if (it > 0) it.toString() else null }
     val exposedHeaders = when {
         pluginConfig.exposedHeaders.isNotEmpty() -> pluginConfig.exposedHeaders.sorted().joinToString(", ")
         else -> null
@@ -124,22 +256,6 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
                 }
             }
         }
-
-//        if (call.request.httpMethod == HttpMethod.Options) {
-//            LOGGER.trace("Respond preflight on OPTIONS for ${call.request.uri}")
-//            call.respondPreflight(
-//                origin,
-//                methodsListHeaderValue,
-//                headersList,
-//                methods,
-//                allowsAnyHost,
-//                allowCredentials,
-//                maxAgeHeaderValue,
-//                headerPredicates,
-//                allHeadersSet
-//            )
-//            return@onCall
-//        }
 
         if (!call.corsCheckCurrentMethod(methods)) {
             LOGGER.trace("Respond forbidden ${call.request.uri}: method doesn't match ${call.request.httpMethod}")
