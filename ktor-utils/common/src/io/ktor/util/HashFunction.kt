@@ -219,19 +219,19 @@ internal class Sha256 : HashFunction {
     override fun update(
         input: ByteArray,
         offset: Int,
-        byteCount: Int,
+        length: Int,
     ) {
-        messageLength += byteCount
+        messageLength += length
         var pos = offset
-        val limit = pos + byteCount
+        val limit = pos + length
         val unprocessed = this.unprocessed
         val unprocessedLimit = this.unprocessedLimit
 
         if (unprocessedLimit > 0) {
-            if (unprocessedLimit + byteCount < 64) {
+            if (unprocessedLimit + length < 64) {
                 // Not enough bytes for a chunk.
                 input.copyInto(unprocessed, unprocessedLimit, pos, limit)
-                this.unprocessedLimit = unprocessedLimit + byteCount
+                this.unprocessedLimit = unprocessedLimit + length
                 return
             }
 
