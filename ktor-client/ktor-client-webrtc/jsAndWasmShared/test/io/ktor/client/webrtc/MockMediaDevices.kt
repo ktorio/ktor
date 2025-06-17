@@ -1,5 +1,12 @@
 package io.ktor.client.webrtc
 
+import io.ktor.client.webrtc.media.*
+import web.audio.AudioContext
+import web.audio.MediaStreamAudioDestinationNode
+import web.canvas.CanvasRenderingContext2D
+import web.dom.document
+import web.html.HTMLCanvasElement
+
 object MockMediaTrackFactory : MediaTrackFactory {
     private var allowVideo = false
     private var allowAudio = false
@@ -21,7 +28,27 @@ object MockMediaTrackFactory : MediaTrackFactory {
 }
 
 // Record silence as an audio track
-expect fun makeDummyAudioStreamTrack(): WebRtcMedia.AudioTrack
+fun makeDummyAudioStreamTrack(): WebRtcMedia.AudioTrack {
+    val ctx = AudioContext()
+    val oscillator = ctx.createOscillator()
+
+    val dst = oscillator.connect(ctx.createMediaStreamDestination()) as MediaStreamAudioDestinationNode
+    oscillator.start()
+
+    val track = dst.stream.getAudioTracks()[0] ?: error("Failed to create an audio track")
+    return JsAudioTrack(track)
+}
 
 // Capture canvas as a video track
-expect fun makeDummyVideoStreamTrack(width: Int, height: Int): WebRtcMedia.VideoTrack
+fun makeDummyVideoStreamTrack(width: Int, height: Int): WebRtcMedia.VideoTrack {
+    val canvas = (document.createElement("canvas") as HTMLCanvasElement)
+    canvas.width = width
+    canvas.height = height
+
+    val ctx = canvas.getContext(CanvasRenderingContext2D.ID) ?: error("Failed to create a canvas context")
+    ctx.fillRect(0.0, 0.0, width.toDouble(), height.toDouble())
+
+    val stream = canvas.captureStream()
+    val track = stream.getVideoTracks()[0] ?: error("Failed to create a video track")
+    return JsVideoTrack(track)
+}

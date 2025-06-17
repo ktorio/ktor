@@ -76,11 +76,6 @@ public object WebRtcMedia {
          * Enables or disables the track.
          */
         public fun enable(enabled: Boolean)
-
-        /**
-         * @return Native platform-specific object representing this track.
-         */
-        public fun <T> getNative(): T
     }
 
     /**
@@ -154,4 +149,12 @@ public object WebRtcMedia {
      * Exception thrown when there is an issue with a media device.
      */
     public class DeviceException(message: String?, cause: Throwable? = null) : RuntimeException(message, cause)
+}
+
+/**
+ * Factory interface for creating audio and video media tracks.
+ */
+public interface MediaTrackFactory {
+    public suspend fun createAudioTrack(constraints: WebRtcMedia.AudioTrackConstraints): WebRtcMedia.AudioTrack
+    public suspend fun createVideoTrack(constraints: WebRtcMedia.VideoTrackConstraints): WebRtcMedia.VideoTrack
 }

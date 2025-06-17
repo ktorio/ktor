@@ -187,11 +187,6 @@ public object WebRtc {
         public val toneBuffer: String
         public val canInsertDTMF: Boolean
         public fun insertDTMF(tones: String, duration: Int, interToneGap: Int)
-
-        /**
-         * @return Native platform-specific object representing this DtmfSender.
-         */
-        public fun <T> getNative(): T
     }
 
     /**
@@ -258,11 +253,6 @@ public object WebRtc {
         public suspend fun replaceTrack(withTrack: WebRtcMedia.Track?)
         public suspend fun getParameters(): RtpParameters
         public suspend fun setParameters(parameters: RtpParameters)
-
-        /**
-         * @return Native platform-specific object representing this DtmfSender.
-         */
-        public fun <T> getNative(): T
     }
 
     /**

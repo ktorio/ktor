@@ -4,4 +4,12 @@
 
 package io.ktor.client.webrtc
 
+actual fun createTestWebRtcClient(): WebRtcClient = WebRtcClient(JsWebRtc) {
+    mediaTrackFactory = MockMediaTrackFactory
+    defaultConnectionConfig = {
+        iceServers = listOf()
+        statsRefreshRate = 100
+    }
+}
+
 actual fun grantPermissions(audio: Boolean, video: Boolean) = MockMediaTrackFactory.grantPermissions(audio, video)

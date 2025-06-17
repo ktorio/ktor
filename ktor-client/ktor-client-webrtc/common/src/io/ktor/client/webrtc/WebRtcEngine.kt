@@ -18,10 +18,7 @@ public const val WEBRTC_STATISTICS_DISABLED: Long = -1
  * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/RTCPeerConnection#configuration">MDN RTCPeerConnection config</a>
  */
 @KtorDsl
-public open class WebRtcConfig {
-    public var mediaTrackFactory: MediaTrackFactory? = null
-    public var dispatcher: CoroutineDispatcher? = null
-
+public open class WebRtcConnectionConfig {
     public var iceServers: List<WebRtc.IceServer> = emptyList()
 
     /**
@@ -33,7 +30,7 @@ public open class WebRtcConfig {
 
     public var iceCandidatePoolSize: Int = 0
     public var bundlePolicy: WebRtc.BundlePolicy = WebRtc.BundlePolicy.BALANCED
-    public var rtcpMuxPolicy: WebRtc.RTCPMuxPolicy = WebRtc.RTCPMuxPolicy.NEGOTIATE
+    public var rtcpMuxPolicy: WebRtc.RTCPMuxPolicy = WebRtc.RTCPMuxPolicy.REQUIRE
     public var iceTransportPolicy: WebRtc.IceTransportPolicy = WebRtc.IceTransportPolicy.ALL
 
     /**
@@ -42,17 +39,19 @@ public open class WebRtcConfig {
     public var remoteTracksReplay: Int = 10
 
     /**
-     * Replay for the shared flow of ICE candidates. Defaults to 10.
+     * Replay for the shared flow of ICE candidates. Defaults to 20.
      * */
     public var iceCandidatesReplay: Int = 20
 }
 
 /**
- * Factory interface for creating audio and video media tracks.
+ * Configuration for the WebRtc client.
  */
-public interface MediaTrackFactory {
-    public suspend fun createAudioTrack(constraints: WebRtcMedia.AudioTrackConstraints): WebRtcMedia.AudioTrack
-    public suspend fun createVideoTrack(constraints: WebRtcMedia.VideoTrackConstraints): WebRtcMedia.VideoTrack
+@KtorDsl
+public open class WebRtcConfig {
+    public var dispatcher: CoroutineDispatcher? = null
+    public var mediaTrackFactory: MediaTrackFactory? = null
+    public var defaultConnectionConfig: (WebRtcConnectionConfig.() -> Unit) = {}
 }
 
 /**
@@ -65,9 +64,10 @@ public interface WebRtcEngine : CoroutineScope, Closeable, MediaTrackFactory {
     public val config: WebRtcConfig
 
     /**
-     * Creates a new peer connection with the configured settings.
+     * Creates a new peer connection with the configured settings. If no configuration is provided,
+     * the default configuration from [WebRtcConfig.defaultConnectionConfig] will be used.
      */
-    public suspend fun createPeerConnection(): WebRtcPeerConnection
+    public suspend fun createPeerConnection(connectionConfig: WebRtcConnectionConfig? = null): WebRtcPeerConnection
 }
 
 /**
