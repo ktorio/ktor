@@ -8,19 +8,33 @@ import io.ktor.utils.io.*
 
 /**
  * A multiplatform asynchronous WebRtc client for establishing peer-to-peer connections, managing media tracks.
+ *
+ * This client provides a high-level API for WebRTC communication, delegating actual implementation
+ * to platform-specific engines. It supports creating peer connections, managing media tracks,
+ * and handling WebRTC signaling.
  */
 public class WebRtcClient(engine: WebRtcEngine) : WebRtcEngine by engine
 
-public interface WebRtcClientEngineFactory<out T : WebRtcConfig> {
-    public fun create(block: T.() -> Unit = {}): WebRtcEngine
+/**
+ * Client engine factory interface, used in engine implementations.
+ *
+ * Platform-specific WebRTC implementations provide their own factory implementing this interface,
+ * allowing the creation of appropriate WebRtcEngine instances with platform-specific configurations.
+ *
+ * @param T expected engine-specific configuration class that extends WebRtcConfig
+ */
+public fun interface WebRtcClientEngineFactory<out T : WebRtcConfig> {
+    public fun create(block: T.() -> Unit): WebRtcEngine
 }
 
 /**
  * Creates a [WebRtcClient] with a specified engine.
  * ```kotlin
- * val rtcClient = WebRtcClient(AndroidWebRtc) {
- *     iceServers = listOf(WebRtc.IceServer(urls = "stun:stun.l.google.com:19302"))
- *     statsRefreshRate = 10_000
+ * val client = WebRtcClient(JsWebRtc) {
+ *     defaultConnectionConfig = {
+ *         iceServers = listOf(WebRtc.IceServer("stun:stun.l.google.com:19302"))
+ *         statsRefreshRate = 100
+ *     }
  * }
  * ```
  *

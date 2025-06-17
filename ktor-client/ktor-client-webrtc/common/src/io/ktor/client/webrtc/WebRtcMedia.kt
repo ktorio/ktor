@@ -22,7 +22,7 @@ public object WebRtcMedia {
      * @property facingMode The camera-facing mode.
      * @property resizeMode The resize mode for the video.
      *
-     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints">MDN MediaTrackConstraints</a>
+     * @see [MDN MediaTrackConstraints](https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints)
      */
     public data class VideoTrackConstraints(
         val width: Int? = null,
@@ -45,7 +45,7 @@ public object WebRtcMedia {
      * @property latency The latency of the audio in seconds.
      * @property channelCount The number of audio channels.
      *
-     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints">MDN MediaTrackConstraints</a>
+     * @see [MDN MediaTrackConstraints](https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints)
      */
     public data class AudioTrackConstraints(
         val volume: Double? = null,
@@ -65,7 +65,7 @@ public object WebRtcMedia {
      * @property kind The type of the track (audio or video).
      * @property enabled Whether the track is enabled.
      *
-     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack">MDN MediaStreamTrack</a>
+     * @see [MDN MediaStreamTrack](https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack)
      */
     public interface Track : AutoCloseable {
         public val id: String
@@ -76,17 +76,12 @@ public object WebRtcMedia {
          * Enables or disables the track.
          */
         public fun enable(enabled: Boolean)
-
-        /**
-         * @return Native platform-specific object representing this track.
-         */
-        public fun <T> getNative(): T
     }
 
     /**
      * Enum representing the type of media track.
      *
-     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack/kind">MDN MediaStreamTrack.kind</a>
+     * @see [MDN MediaStreamTrack.kind](https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack/kind)
      */
     public enum class TrackType {
         AUDIO,
@@ -96,21 +91,21 @@ public object WebRtcMedia {
     /**
      * Interface representing a video track.
      *
-     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack">MDN MediaStreamTrack</a>
+     * @see [MDN MediaStreamTrack](https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack)
      */
     public interface VideoTrack : Track
 
     /**
      * Interface representing an audio track.
      *
-     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack">MDN MediaStreamTrack</a>
+     * @see [MDN MediaStreamTrack](https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack)
      */
     public interface AudioTrack : Track
 
     /**
      * Enum representing the facing mode of a camera.
      *
-     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints/facingMode">MDN facingMode</a>
+     * @see [MDN facingMode](https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints/facingMode)
      */
     public enum class FacingMode {
         /**
@@ -137,7 +132,7 @@ public object WebRtcMedia {
     /**
      * Enum representing the resize mode for video tracks.
      *
-     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints/resizeMode">MDN resizeMode</a>
+     * @see [MDN resizeMode](https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints/resizeMode)
      */
     public enum class ResizeMode {
         NONE,
@@ -146,12 +141,29 @@ public object WebRtcMedia {
 
     /**
      * Exception thrown when media permissions are not granted.
+     *
+     * This exception is typically thrown when the application cannot access microphone,
+     * camera, or other media devices due to missing user permissions.
      */
     public class PermissionException(mediaType: String?) :
         RuntimeException("You should grant $mediaType permission for this operation to work.")
 
     /**
      * Exception thrown when there is an issue with a media device.
+     *
+     * This exception indicates problems with initializing, accessing, or using media devices
+     * such as cameras or microphones, typically due to hardware or driver issues rather than permissions.
      */
     public class DeviceException(message: String?, cause: Throwable? = null) : RuntimeException(message, cause)
+}
+
+/**
+ * Factory interface for creating audio and video media tracks.
+ *
+ * This interface abstracts the platform-specific details of creating media tracks,
+ * allowing clients to request audio and video tracks without dealing with platform differences.
+ */
+public interface MediaTrackFactory {
+    public suspend fun createAudioTrack(constraints: WebRtcMedia.AudioTrackConstraints): WebRtcMedia.AudioTrack
+    public suspend fun createVideoTrack(constraints: WebRtcMedia.VideoTrackConstraints): WebRtcMedia.VideoTrack
 }

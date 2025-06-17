@@ -219,12 +219,16 @@ class WebRtcEngineTest {
     @Test
     fun testEstablishPeerConnection() = testConnection(realtime = true) { pc1 ->
         client.createPeerConnection().use { pc2 ->
+            val jobs = mutableListOf<Job>()
+
             val cnt = atomic(0)
             val negotiationNeededCnt = Channel<Int>(Channel.CONFLATED)
-            pc1.onNegotiationNeeded { launch { negotiationNeededCnt.send(cnt.incrementAndGet()) } }
-            pc2.onNegotiationNeeded { launch { negotiationNeededCnt.send(cnt.incrementAndGet()) } }
-
-            val jobs = mutableListOf<Job>()
+            launch {
+                pc1.negotiationNeeded.collect { negotiationNeededCnt.send(cnt.incrementAndGet()) }
+            }.also { jobs.add(it) }
+            launch {
+                pc2.negotiationNeeded.collect { negotiationNeededCnt.send(cnt.incrementAndGet()) }
+            }.also { jobs.add(it) }
 
             val iceConnectionState1 = pc1.iceConnectionState.collectAsConflatedChannel(this, jobs)
             val iceConnectionState2 = pc2.iceConnectionState.collectAsConflatedChannel(this, jobs)
@@ -350,8 +354,12 @@ class WebRtcEngineTest {
         client.createPeerConnection().use { pc1 ->
             client.createPeerConnection().use { pc2 ->
                 val negotiationNeededCnt = atomic(0)
-                pc1.onNegotiationNeeded { negotiationNeededCnt.incrementAndGet() }
-                pc2.onNegotiationNeeded { negotiationNeededCnt.incrementAndGet() }
+                val collectNegotiationEventsJob1 = launch {
+                    pc1.negotiationNeeded.collect { negotiationNeededCnt.incrementAndGet() }
+                }
+                val collectNegotiationEventsJob2 = launch {
+                    pc2.negotiationNeeded.collect { negotiationNeededCnt.incrementAndGet() }
+                }
 
                 val remoteTracks1 = Channel<TrackEvent>(Channel.UNLIMITED)
                 val remoteTracks2 = Channel<TrackEvent>(Channel.UNLIMITED)
@@ -402,6 +410,8 @@ class WebRtcEngineTest {
                 collectTracks1Job.cancel()
                 collectTracks2Job.cancel()
                 collectTracks3Job.cancel()
+                collectNegotiationEventsJob1.cancel()
+                collectNegotiationEventsJob2.cancel()
             }
         }
     }

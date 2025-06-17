@@ -6,8 +6,8 @@
 // - Show declarations: true
 
 // Library unique name: <io.ktor:ktor-client-webrtc>
-abstract interface <#A: out io.ktor.client.webrtc/WebRtcConfig> io.ktor.client.webrtc/WebRtcClientEngineFactory { // io.ktor.client.webrtc/WebRtcClientEngineFactory|null[0]
-    abstract fun create(kotlin/Function1<#A, kotlin/Unit> = ...): io.ktor.client.webrtc/WebRtcEngine // io.ktor.client.webrtc/WebRtcClientEngineFactory.create|create(kotlin.Function1<1:0,kotlin.Unit>){}[0]
+abstract fun interface <#A: out io.ktor.client.webrtc/WebRtcConfig> io.ktor.client.webrtc/WebRtcClientEngineFactory { // io.ktor.client.webrtc/WebRtcClientEngineFactory|null[0]
+    abstract fun create(kotlin/Function1<#A, kotlin/Unit>): io.ktor.client.webrtc/WebRtcEngine // io.ktor.client.webrtc/WebRtcClientEngineFactory.create|create(kotlin.Function1<1:0,kotlin.Unit>){}[0]
 }
 
 abstract interface io.ktor.client.webrtc/MediaTrackFactory { // io.ktor.client.webrtc/MediaTrackFactory|null[0]
@@ -15,11 +15,30 @@ abstract interface io.ktor.client.webrtc/MediaTrackFactory { // io.ktor.client.w
     abstract suspend fun createVideoTrack(io.ktor.client.webrtc/WebRtcMedia.VideoTrackConstraints): io.ktor.client.webrtc/WebRtcMedia.VideoTrack // io.ktor.client.webrtc/MediaTrackFactory.createVideoTrack|createVideoTrack(io.ktor.client.webrtc.WebRtcMedia.VideoTrackConstraints){}[0]
 }
 
+abstract interface io.ktor.client.webrtc/WebRtcConnectionEvents { // io.ktor.client.webrtc/WebRtcConnectionEvents|null[0]
+    abstract val iceCandidates // io.ktor.client.webrtc/WebRtcConnectionEvents.iceCandidates|{}iceCandidates[0]
+        abstract fun <get-iceCandidates>(): kotlinx.coroutines.flow/SharedFlow<io.ktor.client.webrtc/WebRtc.IceCandidate> // io.ktor.client.webrtc/WebRtcConnectionEvents.iceCandidates.<get-iceCandidates>|<get-iceCandidates>(){}[0]
+    abstract val iceConnectionState // io.ktor.client.webrtc/WebRtcConnectionEvents.iceConnectionState|{}iceConnectionState[0]
+        abstract fun <get-iceConnectionState>(): kotlinx.coroutines.flow/StateFlow<io.ktor.client.webrtc/WebRtc.IceConnectionState> // io.ktor.client.webrtc/WebRtcConnectionEvents.iceConnectionState.<get-iceConnectionState>|<get-iceConnectionState>(){}[0]
+    abstract val iceGatheringState // io.ktor.client.webrtc/WebRtcConnectionEvents.iceGatheringState|{}iceGatheringState[0]
+        abstract fun <get-iceGatheringState>(): kotlinx.coroutines.flow/StateFlow<io.ktor.client.webrtc/WebRtc.IceGatheringState> // io.ktor.client.webrtc/WebRtcConnectionEvents.iceGatheringState.<get-iceGatheringState>|<get-iceGatheringState>(){}[0]
+    abstract val negotiationNeeded // io.ktor.client.webrtc/WebRtcConnectionEvents.negotiationNeeded|{}negotiationNeeded[0]
+        abstract fun <get-negotiationNeeded>(): kotlinx.coroutines.flow/SharedFlow<kotlin/Unit> // io.ktor.client.webrtc/WebRtcConnectionEvents.negotiationNeeded.<get-negotiationNeeded>|<get-negotiationNeeded>(){}[0]
+    abstract val signalingState // io.ktor.client.webrtc/WebRtcConnectionEvents.signalingState|{}signalingState[0]
+        abstract fun <get-signalingState>(): kotlinx.coroutines.flow/StateFlow<io.ktor.client.webrtc/WebRtc.SignalingState> // io.ktor.client.webrtc/WebRtcConnectionEvents.signalingState.<get-signalingState>|<get-signalingState>(){}[0]
+    abstract val state // io.ktor.client.webrtc/WebRtcConnectionEvents.state|{}state[0]
+        abstract fun <get-state>(): kotlinx.coroutines.flow/StateFlow<io.ktor.client.webrtc/WebRtc.ConnectionState> // io.ktor.client.webrtc/WebRtcConnectionEvents.state.<get-state>|<get-state>(){}[0]
+    abstract val stats // io.ktor.client.webrtc/WebRtcConnectionEvents.stats|{}stats[0]
+        abstract fun <get-stats>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/List<io.ktor.client.webrtc/WebRtc.Stats>> // io.ktor.client.webrtc/WebRtcConnectionEvents.stats.<get-stats>|<get-stats>(){}[0]
+    abstract val trackEvents // io.ktor.client.webrtc/WebRtcConnectionEvents.trackEvents|{}trackEvents[0]
+        abstract fun <get-trackEvents>(): kotlinx.coroutines.flow/SharedFlow<io.ktor.client.webrtc/TrackEvent> // io.ktor.client.webrtc/WebRtcConnectionEvents.trackEvents.<get-trackEvents>|<get-trackEvents>(){}[0]
+}
+
 abstract interface io.ktor.client.webrtc/WebRtcEngine : io.ktor.client.webrtc/MediaTrackFactory, io.ktor.utils.io.core/Closeable, kotlinx.coroutines/CoroutineScope { // io.ktor.client.webrtc/WebRtcEngine|null[0]
     abstract val config // io.ktor.client.webrtc/WebRtcEngine.config|{}config[0]
         abstract fun <get-config>(): io.ktor.client.webrtc/WebRtcConfig // io.ktor.client.webrtc/WebRtcEngine.config.<get-config>|<get-config>(){}[0]
 
-    abstract suspend fun createPeerConnection(): io.ktor.client.webrtc/WebRtcPeerConnection // io.ktor.client.webrtc/WebRtcEngine.createPeerConnection|createPeerConnection(){}[0]
+    abstract suspend fun createPeerConnection(io.ktor.client.webrtc/WebRtcConnectionConfig? = ...): io.ktor.client.webrtc/WebRtcPeerConnection // io.ktor.client.webrtc/WebRtcEngine.createPeerConnection|createPeerConnection(io.ktor.client.webrtc.WebRtcConnectionConfig?){}[0]
 }
 
 sealed interface io.ktor.client.webrtc/TrackEvent { // io.ktor.client.webrtc/TrackEvent|null[0]
@@ -50,57 +69,42 @@ abstract class io.ktor.client.webrtc/WebRtcEngineBase : io.ktor.client.webrtc/We
     open fun close() // io.ktor.client.webrtc/WebRtcEngineBase.close|close(){}[0]
 }
 
-abstract class io.ktor.client.webrtc/WebRtcPeerConnection : io.ktor.utils.io.core/Closeable { // io.ktor.client.webrtc/WebRtcPeerConnection|null[0]
-    constructor <init>(kotlin/Int, kotlin/Int) // io.ktor.client.webrtc/WebRtcPeerConnection.<init>|<init>(kotlin.Int;kotlin.Int){}[0]
+abstract class io.ktor.client.webrtc/WebRtcPeerConnection : io.ktor.client.webrtc/WebRtcConnectionEvents, io.ktor.utils.io.core/Closeable, kotlinx.coroutines/CoroutineScope { // io.ktor.client.webrtc/WebRtcPeerConnection|null[0]
+    constructor <init>(kotlin.coroutines/CoroutineContext, io.ktor.client.webrtc/WebRtcConnectionConfig) // io.ktor.client.webrtc/WebRtcPeerConnection.<init>|<init>(kotlin.coroutines.CoroutineContext;io.ktor.client.webrtc.WebRtcConnectionConfig){}[0]
 
     abstract val localDescription // io.ktor.client.webrtc/WebRtcPeerConnection.localDescription|{}localDescription[0]
         abstract fun <get-localDescription>(): io.ktor.client.webrtc/WebRtc.SessionDescription? // io.ktor.client.webrtc/WebRtcPeerConnection.localDescription.<get-localDescription>|<get-localDescription>(){}[0]
     abstract val remoteDescription // io.ktor.client.webrtc/WebRtcPeerConnection.remoteDescription|{}remoteDescription[0]
         abstract fun <get-remoteDescription>(): io.ktor.client.webrtc/WebRtc.SessionDescription? // io.ktor.client.webrtc/WebRtcPeerConnection.remoteDescription.<get-remoteDescription>|<get-remoteDescription>(){}[0]
-    final val connectionStateFlow // io.ktor.client.webrtc/WebRtcPeerConnection.connectionStateFlow|{}connectionStateFlow[0]
-        final fun <get-connectionStateFlow>(): kotlinx.coroutines.flow/MutableStateFlow<io.ktor.client.webrtc/WebRtc.ConnectionState> // io.ktor.client.webrtc/WebRtcPeerConnection.connectionStateFlow.<get-connectionStateFlow>|<get-connectionStateFlow>(){}[0]
-    final val iceCandidates // io.ktor.client.webrtc/WebRtcPeerConnection.iceCandidates|{}iceCandidates[0]
-        final fun <get-iceCandidates>(): kotlinx.coroutines.flow/SharedFlow<io.ktor.client.webrtc/WebRtc.IceCandidate> // io.ktor.client.webrtc/WebRtcPeerConnection.iceCandidates.<get-iceCandidates>|<get-iceCandidates>(){}[0]
-    final val iceCandidatesFlow // io.ktor.client.webrtc/WebRtcPeerConnection.iceCandidatesFlow|{}iceCandidatesFlow[0]
-        final fun <get-iceCandidatesFlow>(): kotlinx.coroutines.flow/MutableSharedFlow<io.ktor.client.webrtc/WebRtc.IceCandidate> // io.ktor.client.webrtc/WebRtcPeerConnection.iceCandidatesFlow.<get-iceCandidatesFlow>|<get-iceCandidatesFlow>(){}[0]
-    final val iceConnectionState // io.ktor.client.webrtc/WebRtcPeerConnection.iceConnectionState|{}iceConnectionState[0]
-        final fun <get-iceConnectionState>(): kotlinx.coroutines.flow/StateFlow<io.ktor.client.webrtc/WebRtc.IceConnectionState> // io.ktor.client.webrtc/WebRtcPeerConnection.iceConnectionState.<get-iceConnectionState>|<get-iceConnectionState>(){}[0]
-    final val iceConnectionStateFlow // io.ktor.client.webrtc/WebRtcPeerConnection.iceConnectionStateFlow|{}iceConnectionStateFlow[0]
-        final fun <get-iceConnectionStateFlow>(): kotlinx.coroutines.flow/MutableStateFlow<io.ktor.client.webrtc/WebRtc.IceConnectionState> // io.ktor.client.webrtc/WebRtcPeerConnection.iceConnectionStateFlow.<get-iceConnectionStateFlow>|<get-iceConnectionStateFlow>(){}[0]
-    final val iceGatheringState // io.ktor.client.webrtc/WebRtcPeerConnection.iceGatheringState|{}iceGatheringState[0]
-        final fun <get-iceGatheringState>(): kotlinx.coroutines.flow/StateFlow<io.ktor.client.webrtc/WebRtc.IceGatheringState> // io.ktor.client.webrtc/WebRtcPeerConnection.iceGatheringState.<get-iceGatheringState>|<get-iceGatheringState>(){}[0]
-    final val iceGatheringStateFlow // io.ktor.client.webrtc/WebRtcPeerConnection.iceGatheringStateFlow|{}iceGatheringStateFlow[0]
-        final fun <get-iceGatheringStateFlow>(): kotlinx.coroutines.flow/MutableStateFlow<io.ktor.client.webrtc/WebRtc.IceGatheringState> // io.ktor.client.webrtc/WebRtcPeerConnection.iceGatheringStateFlow.<get-iceGatheringStateFlow>|<get-iceGatheringStateFlow>(){}[0]
-    final val signalingState // io.ktor.client.webrtc/WebRtcPeerConnection.signalingState|{}signalingState[0]
-        final fun <get-signalingState>(): kotlinx.coroutines.flow/StateFlow<io.ktor.client.webrtc/WebRtc.SignalingState> // io.ktor.client.webrtc/WebRtcPeerConnection.signalingState.<get-signalingState>|<get-signalingState>(){}[0]
-    final val signalingStateFlow // io.ktor.client.webrtc/WebRtcPeerConnection.signalingStateFlow|{}signalingStateFlow[0]
-        final fun <get-signalingStateFlow>(): kotlinx.coroutines.flow/MutableStateFlow<io.ktor.client.webrtc/WebRtc.SignalingState> // io.ktor.client.webrtc/WebRtcPeerConnection.signalingStateFlow.<get-signalingStateFlow>|<get-signalingStateFlow>(){}[0]
-    final val state // io.ktor.client.webrtc/WebRtcPeerConnection.state|{}state[0]
-        final fun <get-state>(): kotlinx.coroutines.flow/StateFlow<io.ktor.client.webrtc/WebRtc.ConnectionState> // io.ktor.client.webrtc/WebRtcPeerConnection.state.<get-state>|<get-state>(){}[0]
-    final val stats // io.ktor.client.webrtc/WebRtcPeerConnection.stats|{}stats[0]
-        final fun <get-stats>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/List<io.ktor.client.webrtc/WebRtc.Stats>> // io.ktor.client.webrtc/WebRtcPeerConnection.stats.<get-stats>|<get-stats>(){}[0]
-    final val statsFlow // io.ktor.client.webrtc/WebRtcPeerConnection.statsFlow|{}statsFlow[0]
-        final fun <get-statsFlow>(): kotlinx.coroutines.flow/MutableStateFlow<kotlin.collections/List<io.ktor.client.webrtc/WebRtc.Stats>> // io.ktor.client.webrtc/WebRtcPeerConnection.statsFlow.<get-statsFlow>|<get-statsFlow>(){}[0]
-    final val trackEvents // io.ktor.client.webrtc/WebRtcPeerConnection.trackEvents|{}trackEvents[0]
-        final fun <get-trackEvents>(): kotlinx.coroutines.flow/SharedFlow<io.ktor.client.webrtc/TrackEvent> // io.ktor.client.webrtc/WebRtcPeerConnection.trackEvents.<get-trackEvents>|<get-trackEvents>(){}[0]
-    final val trackEventsFlow // io.ktor.client.webrtc/WebRtcPeerConnection.trackEventsFlow|{}trackEventsFlow[0]
-        final fun <get-trackEventsFlow>(): kotlinx.coroutines.flow/MutableSharedFlow<io.ktor.client.webrtc/TrackEvent> // io.ktor.client.webrtc/WebRtcPeerConnection.trackEventsFlow.<get-trackEventsFlow>|<get-trackEventsFlow>(){}[0]
+    open val coroutineContext // io.ktor.client.webrtc/WebRtcPeerConnection.coroutineContext|{}coroutineContext[0]
+        open fun <get-coroutineContext>(): kotlin.coroutines/CoroutineContext // io.ktor.client.webrtc/WebRtcPeerConnection.coroutineContext.<get-coroutineContext>|<get-coroutineContext>(){}[0]
+    open val iceCandidates // io.ktor.client.webrtc/WebRtcPeerConnection.iceCandidates|{}iceCandidates[0]
+        open fun <get-iceCandidates>(): kotlinx.coroutines.flow/SharedFlow<io.ktor.client.webrtc/WebRtc.IceCandidate> // io.ktor.client.webrtc/WebRtcPeerConnection.iceCandidates.<get-iceCandidates>|<get-iceCandidates>(){}[0]
+    open val iceConnectionState // io.ktor.client.webrtc/WebRtcPeerConnection.iceConnectionState|{}iceConnectionState[0]
+        open fun <get-iceConnectionState>(): kotlinx.coroutines.flow/StateFlow<io.ktor.client.webrtc/WebRtc.IceConnectionState> // io.ktor.client.webrtc/WebRtcPeerConnection.iceConnectionState.<get-iceConnectionState>|<get-iceConnectionState>(){}[0]
+    open val iceGatheringState // io.ktor.client.webrtc/WebRtcPeerConnection.iceGatheringState|{}iceGatheringState[0]
+        open fun <get-iceGatheringState>(): kotlinx.coroutines.flow/StateFlow<io.ktor.client.webrtc/WebRtc.IceGatheringState> // io.ktor.client.webrtc/WebRtcPeerConnection.iceGatheringState.<get-iceGatheringState>|<get-iceGatheringState>(){}[0]
+    open val negotiationNeeded // io.ktor.client.webrtc/WebRtcPeerConnection.negotiationNeeded|{}negotiationNeeded[0]
+        open fun <get-negotiationNeeded>(): kotlinx.coroutines.flow/SharedFlow<kotlin/Unit> // io.ktor.client.webrtc/WebRtcPeerConnection.negotiationNeeded.<get-negotiationNeeded>|<get-negotiationNeeded>(){}[0]
+    open val signalingState // io.ktor.client.webrtc/WebRtcPeerConnection.signalingState|{}signalingState[0]
+        open fun <get-signalingState>(): kotlinx.coroutines.flow/StateFlow<io.ktor.client.webrtc/WebRtc.SignalingState> // io.ktor.client.webrtc/WebRtcPeerConnection.signalingState.<get-signalingState>|<get-signalingState>(){}[0]
+    open val state // io.ktor.client.webrtc/WebRtcPeerConnection.state|{}state[0]
+        open fun <get-state>(): kotlinx.coroutines.flow/StateFlow<io.ktor.client.webrtc/WebRtc.ConnectionState> // io.ktor.client.webrtc/WebRtcPeerConnection.state.<get-state>|<get-state>(){}[0]
+    open val stats // io.ktor.client.webrtc/WebRtcPeerConnection.stats|{}stats[0]
+        open fun <get-stats>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/List<io.ktor.client.webrtc/WebRtc.Stats>> // io.ktor.client.webrtc/WebRtcPeerConnection.stats.<get-stats>|<get-stats>(){}[0]
+    open val trackEvents // io.ktor.client.webrtc/WebRtcPeerConnection.trackEvents|{}trackEvents[0]
+        open fun <get-trackEvents>(): kotlinx.coroutines.flow/SharedFlow<io.ktor.client.webrtc/TrackEvent> // io.ktor.client.webrtc/WebRtcPeerConnection.trackEvents.<get-trackEvents>|<get-trackEvents>(){}[0]
 
-    final var negotiationNeededCallback // io.ktor.client.webrtc/WebRtcPeerConnection.negotiationNeededCallback|{}negotiationNeededCallback[0]
-        final fun <get-negotiationNeededCallback>(): kotlin/Function0<kotlin/Unit> // io.ktor.client.webrtc/WebRtcPeerConnection.negotiationNeededCallback.<get-negotiationNeededCallback>|<get-negotiationNeededCallback>(){}[0]
-        final fun <set-negotiationNeededCallback>(kotlin/Function0<kotlin/Unit>) // io.ktor.client.webrtc/WebRtcPeerConnection.negotiationNeededCallback.<set-negotiationNeededCallback>|<set-negotiationNeededCallback>(kotlin.Function0<kotlin.Unit>){}[0]
-
-    abstract fun <#A1: kotlin/Any?> getNativeConnection(): #A1 // io.ktor.client.webrtc/WebRtcPeerConnection.getNativeConnection|getNativeConnection(){0§<kotlin.Any?>}[0]
     abstract fun restartIce() // io.ktor.client.webrtc/WebRtcPeerConnection.restartIce|restartIce(){}[0]
     abstract suspend fun addIceCandidate(io.ktor.client.webrtc/WebRtc.IceCandidate) // io.ktor.client.webrtc/WebRtcPeerConnection.addIceCandidate|addIceCandidate(io.ktor.client.webrtc.WebRtc.IceCandidate){}[0]
     abstract suspend fun addTrack(io.ktor.client.webrtc/WebRtcMedia.Track): io.ktor.client.webrtc/WebRtc.RtpSender // io.ktor.client.webrtc/WebRtcPeerConnection.addTrack|addTrack(io.ktor.client.webrtc.WebRtcMedia.Track){}[0]
     abstract suspend fun createAnswer(): io.ktor.client.webrtc/WebRtc.SessionDescription // io.ktor.client.webrtc/WebRtcPeerConnection.createAnswer|createAnswer(){}[0]
     abstract suspend fun createOffer(): io.ktor.client.webrtc/WebRtc.SessionDescription // io.ktor.client.webrtc/WebRtcPeerConnection.createOffer|createOffer(){}[0]
+    abstract suspend fun getStatistics(): kotlin.collections/List<io.ktor.client.webrtc/WebRtc.Stats> // io.ktor.client.webrtc/WebRtcPeerConnection.getStatistics|getStatistics(){}[0]
     abstract suspend fun removeTrack(io.ktor.client.webrtc/WebRtc.RtpSender) // io.ktor.client.webrtc/WebRtcPeerConnection.removeTrack|removeTrack(io.ktor.client.webrtc.WebRtc.RtpSender){}[0]
     abstract suspend fun removeTrack(io.ktor.client.webrtc/WebRtcMedia.Track) // io.ktor.client.webrtc/WebRtcPeerConnection.removeTrack|removeTrack(io.ktor.client.webrtc.WebRtcMedia.Track){}[0]
     abstract suspend fun setLocalDescription(io.ktor.client.webrtc/WebRtc.SessionDescription) // io.ktor.client.webrtc/WebRtcPeerConnection.setLocalDescription|setLocalDescription(io.ktor.client.webrtc.WebRtc.SessionDescription){}[0]
     abstract suspend fun setRemoteDescription(io.ktor.client.webrtc/WebRtc.SessionDescription) // io.ktor.client.webrtc/WebRtcPeerConnection.setRemoteDescription|setRemoteDescription(io.ktor.client.webrtc.WebRtc.SessionDescription){}[0]
-    final fun onNegotiationNeeded(kotlin/Function0<kotlin/Unit>) // io.ktor.client.webrtc/WebRtcPeerConnection.onNegotiationNeeded|onNegotiationNeeded(kotlin.Function0<kotlin.Unit>){}[0]
 }
 
 final class io.ktor.client.webrtc/WebRtcClient : io.ktor.client.webrtc/WebRtcEngine { // io.ktor.client.webrtc/WebRtcClient|null[0]
@@ -113,7 +117,7 @@ final class io.ktor.client.webrtc/WebRtcClient : io.ktor.client.webrtc/WebRtcEng
 
     final fun close() // io.ktor.client.webrtc/WebRtcClient.close|close(){}[0]
     final suspend fun createAudioTrack(io.ktor.client.webrtc/WebRtcMedia.AudioTrackConstraints): io.ktor.client.webrtc/WebRtcMedia.AudioTrack // io.ktor.client.webrtc/WebRtcClient.createAudioTrack|createAudioTrack(io.ktor.client.webrtc.WebRtcMedia.AudioTrackConstraints){}[0]
-    final suspend fun createPeerConnection(): io.ktor.client.webrtc/WebRtcPeerConnection // io.ktor.client.webrtc/WebRtcClient.createPeerConnection|createPeerConnection(){}[0]
+    final suspend fun createPeerConnection(io.ktor.client.webrtc/WebRtcConnectionConfig?): io.ktor.client.webrtc/WebRtcPeerConnection // io.ktor.client.webrtc/WebRtcClient.createPeerConnection|createPeerConnection(io.ktor.client.webrtc.WebRtcConnectionConfig?){}[0]
     final suspend fun createVideoTrack(io.ktor.client.webrtc/WebRtcMedia.VideoTrackConstraints): io.ktor.client.webrtc/WebRtcMedia.VideoTrack // io.ktor.client.webrtc/WebRtcClient.createVideoTrack|createVideoTrack(io.ktor.client.webrtc.WebRtcMedia.VideoTrackConstraints){}[0]
 }
 
@@ -124,36 +128,44 @@ final class io.ktor.client.webrtc/WebRtcEngineClosedException : kotlin.coroutine
 open class io.ktor.client.webrtc/WebRtcConfig { // io.ktor.client.webrtc/WebRtcConfig|null[0]
     constructor <init>() // io.ktor.client.webrtc/WebRtcConfig.<init>|<init>(){}[0]
 
-    final var bundlePolicy // io.ktor.client.webrtc/WebRtcConfig.bundlePolicy|{}bundlePolicy[0]
-        final fun <get-bundlePolicy>(): io.ktor.client.webrtc/WebRtc.BundlePolicy // io.ktor.client.webrtc/WebRtcConfig.bundlePolicy.<get-bundlePolicy>|<get-bundlePolicy>(){}[0]
-        final fun <set-bundlePolicy>(io.ktor.client.webrtc/WebRtc.BundlePolicy) // io.ktor.client.webrtc/WebRtcConfig.bundlePolicy.<set-bundlePolicy>|<set-bundlePolicy>(io.ktor.client.webrtc.WebRtc.BundlePolicy){}[0]
+    final var defaultConnectionConfig // io.ktor.client.webrtc/WebRtcConfig.defaultConnectionConfig|{}defaultConnectionConfig[0]
+        final fun <get-defaultConnectionConfig>(): kotlin/Function1<io.ktor.client.webrtc/WebRtcConnectionConfig, kotlin/Unit> // io.ktor.client.webrtc/WebRtcConfig.defaultConnectionConfig.<get-defaultConnectionConfig>|<get-defaultConnectionConfig>(){}[0]
+        final fun <set-defaultConnectionConfig>(kotlin/Function1<io.ktor.client.webrtc/WebRtcConnectionConfig, kotlin/Unit>) // io.ktor.client.webrtc/WebRtcConfig.defaultConnectionConfig.<set-defaultConnectionConfig>|<set-defaultConnectionConfig>(kotlin.Function1<io.ktor.client.webrtc.WebRtcConnectionConfig,kotlin.Unit>){}[0]
     final var dispatcher // io.ktor.client.webrtc/WebRtcConfig.dispatcher|{}dispatcher[0]
         final fun <get-dispatcher>(): kotlinx.coroutines/CoroutineDispatcher? // io.ktor.client.webrtc/WebRtcConfig.dispatcher.<get-dispatcher>|<get-dispatcher>(){}[0]
         final fun <set-dispatcher>(kotlinx.coroutines/CoroutineDispatcher?) // io.ktor.client.webrtc/WebRtcConfig.dispatcher.<set-dispatcher>|<set-dispatcher>(kotlinx.coroutines.CoroutineDispatcher?){}[0]
-    final var iceCandidatePoolSize // io.ktor.client.webrtc/WebRtcConfig.iceCandidatePoolSize|{}iceCandidatePoolSize[0]
-        final fun <get-iceCandidatePoolSize>(): kotlin/Int // io.ktor.client.webrtc/WebRtcConfig.iceCandidatePoolSize.<get-iceCandidatePoolSize>|<get-iceCandidatePoolSize>(){}[0]
-        final fun <set-iceCandidatePoolSize>(kotlin/Int) // io.ktor.client.webrtc/WebRtcConfig.iceCandidatePoolSize.<set-iceCandidatePoolSize>|<set-iceCandidatePoolSize>(kotlin.Int){}[0]
-    final var iceCandidatesReplay // io.ktor.client.webrtc/WebRtcConfig.iceCandidatesReplay|{}iceCandidatesReplay[0]
-        final fun <get-iceCandidatesReplay>(): kotlin/Int // io.ktor.client.webrtc/WebRtcConfig.iceCandidatesReplay.<get-iceCandidatesReplay>|<get-iceCandidatesReplay>(){}[0]
-        final fun <set-iceCandidatesReplay>(kotlin/Int) // io.ktor.client.webrtc/WebRtcConfig.iceCandidatesReplay.<set-iceCandidatesReplay>|<set-iceCandidatesReplay>(kotlin.Int){}[0]
-    final var iceServers // io.ktor.client.webrtc/WebRtcConfig.iceServers|{}iceServers[0]
-        final fun <get-iceServers>(): kotlin.collections/List<io.ktor.client.webrtc/WebRtc.IceServer> // io.ktor.client.webrtc/WebRtcConfig.iceServers.<get-iceServers>|<get-iceServers>(){}[0]
-        final fun <set-iceServers>(kotlin.collections/List<io.ktor.client.webrtc/WebRtc.IceServer>) // io.ktor.client.webrtc/WebRtcConfig.iceServers.<set-iceServers>|<set-iceServers>(kotlin.collections.List<io.ktor.client.webrtc.WebRtc.IceServer>){}[0]
-    final var iceTransportPolicy // io.ktor.client.webrtc/WebRtcConfig.iceTransportPolicy|{}iceTransportPolicy[0]
-        final fun <get-iceTransportPolicy>(): io.ktor.client.webrtc/WebRtc.IceTransportPolicy // io.ktor.client.webrtc/WebRtcConfig.iceTransportPolicy.<get-iceTransportPolicy>|<get-iceTransportPolicy>(){}[0]
-        final fun <set-iceTransportPolicy>(io.ktor.client.webrtc/WebRtc.IceTransportPolicy) // io.ktor.client.webrtc/WebRtcConfig.iceTransportPolicy.<set-iceTransportPolicy>|<set-iceTransportPolicy>(io.ktor.client.webrtc.WebRtc.IceTransportPolicy){}[0]
     final var mediaTrackFactory // io.ktor.client.webrtc/WebRtcConfig.mediaTrackFactory|{}mediaTrackFactory[0]
         final fun <get-mediaTrackFactory>(): io.ktor.client.webrtc/MediaTrackFactory? // io.ktor.client.webrtc/WebRtcConfig.mediaTrackFactory.<get-mediaTrackFactory>|<get-mediaTrackFactory>(){}[0]
         final fun <set-mediaTrackFactory>(io.ktor.client.webrtc/MediaTrackFactory?) // io.ktor.client.webrtc/WebRtcConfig.mediaTrackFactory.<set-mediaTrackFactory>|<set-mediaTrackFactory>(io.ktor.client.webrtc.MediaTrackFactory?){}[0]
-    final var remoteTracksReplay // io.ktor.client.webrtc/WebRtcConfig.remoteTracksReplay|{}remoteTracksReplay[0]
-        final fun <get-remoteTracksReplay>(): kotlin/Int // io.ktor.client.webrtc/WebRtcConfig.remoteTracksReplay.<get-remoteTracksReplay>|<get-remoteTracksReplay>(){}[0]
-        final fun <set-remoteTracksReplay>(kotlin/Int) // io.ktor.client.webrtc/WebRtcConfig.remoteTracksReplay.<set-remoteTracksReplay>|<set-remoteTracksReplay>(kotlin.Int){}[0]
-    final var rtcpMuxPolicy // io.ktor.client.webrtc/WebRtcConfig.rtcpMuxPolicy|{}rtcpMuxPolicy[0]
-        final fun <get-rtcpMuxPolicy>(): io.ktor.client.webrtc/WebRtc.RTCPMuxPolicy // io.ktor.client.webrtc/WebRtcConfig.rtcpMuxPolicy.<get-rtcpMuxPolicy>|<get-rtcpMuxPolicy>(){}[0]
-        final fun <set-rtcpMuxPolicy>(io.ktor.client.webrtc/WebRtc.RTCPMuxPolicy) // io.ktor.client.webrtc/WebRtcConfig.rtcpMuxPolicy.<set-rtcpMuxPolicy>|<set-rtcpMuxPolicy>(io.ktor.client.webrtc.WebRtc.RTCPMuxPolicy){}[0]
-    final var statsRefreshRate // io.ktor.client.webrtc/WebRtcConfig.statsRefreshRate|{}statsRefreshRate[0]
-        final fun <get-statsRefreshRate>(): kotlin/Long // io.ktor.client.webrtc/WebRtcConfig.statsRefreshRate.<get-statsRefreshRate>|<get-statsRefreshRate>(){}[0]
-        final fun <set-statsRefreshRate>(kotlin/Long) // io.ktor.client.webrtc/WebRtcConfig.statsRefreshRate.<set-statsRefreshRate>|<set-statsRefreshRate>(kotlin.Long){}[0]
+}
+
+open class io.ktor.client.webrtc/WebRtcConnectionConfig { // io.ktor.client.webrtc/WebRtcConnectionConfig|null[0]
+    constructor <init>() // io.ktor.client.webrtc/WebRtcConnectionConfig.<init>|<init>(){}[0]
+
+    final var bundlePolicy // io.ktor.client.webrtc/WebRtcConnectionConfig.bundlePolicy|{}bundlePolicy[0]
+        final fun <get-bundlePolicy>(): io.ktor.client.webrtc/WebRtc.BundlePolicy // io.ktor.client.webrtc/WebRtcConnectionConfig.bundlePolicy.<get-bundlePolicy>|<get-bundlePolicy>(){}[0]
+        final fun <set-bundlePolicy>(io.ktor.client.webrtc/WebRtc.BundlePolicy) // io.ktor.client.webrtc/WebRtcConnectionConfig.bundlePolicy.<set-bundlePolicy>|<set-bundlePolicy>(io.ktor.client.webrtc.WebRtc.BundlePolicy){}[0]
+    final var iceCandidatePoolSize // io.ktor.client.webrtc/WebRtcConnectionConfig.iceCandidatePoolSize|{}iceCandidatePoolSize[0]
+        final fun <get-iceCandidatePoolSize>(): kotlin/Int // io.ktor.client.webrtc/WebRtcConnectionConfig.iceCandidatePoolSize.<get-iceCandidatePoolSize>|<get-iceCandidatePoolSize>(){}[0]
+        final fun <set-iceCandidatePoolSize>(kotlin/Int) // io.ktor.client.webrtc/WebRtcConnectionConfig.iceCandidatePoolSize.<set-iceCandidatePoolSize>|<set-iceCandidatePoolSize>(kotlin.Int){}[0]
+    final var iceCandidatesReplay // io.ktor.client.webrtc/WebRtcConnectionConfig.iceCandidatesReplay|{}iceCandidatesReplay[0]
+        final fun <get-iceCandidatesReplay>(): kotlin/Int // io.ktor.client.webrtc/WebRtcConnectionConfig.iceCandidatesReplay.<get-iceCandidatesReplay>|<get-iceCandidatesReplay>(){}[0]
+        final fun <set-iceCandidatesReplay>(kotlin/Int) // io.ktor.client.webrtc/WebRtcConnectionConfig.iceCandidatesReplay.<set-iceCandidatesReplay>|<set-iceCandidatesReplay>(kotlin.Int){}[0]
+    final var iceServers // io.ktor.client.webrtc/WebRtcConnectionConfig.iceServers|{}iceServers[0]
+        final fun <get-iceServers>(): kotlin.collections/List<io.ktor.client.webrtc/WebRtc.IceServer> // io.ktor.client.webrtc/WebRtcConnectionConfig.iceServers.<get-iceServers>|<get-iceServers>(){}[0]
+        final fun <set-iceServers>(kotlin.collections/List<io.ktor.client.webrtc/WebRtc.IceServer>) // io.ktor.client.webrtc/WebRtcConnectionConfig.iceServers.<set-iceServers>|<set-iceServers>(kotlin.collections.List<io.ktor.client.webrtc.WebRtc.IceServer>){}[0]
+    final var iceTransportPolicy // io.ktor.client.webrtc/WebRtcConnectionConfig.iceTransportPolicy|{}iceTransportPolicy[0]
+        final fun <get-iceTransportPolicy>(): io.ktor.client.webrtc/WebRtc.IceTransportPolicy // io.ktor.client.webrtc/WebRtcConnectionConfig.iceTransportPolicy.<get-iceTransportPolicy>|<get-iceTransportPolicy>(){}[0]
+        final fun <set-iceTransportPolicy>(io.ktor.client.webrtc/WebRtc.IceTransportPolicy) // io.ktor.client.webrtc/WebRtcConnectionConfig.iceTransportPolicy.<set-iceTransportPolicy>|<set-iceTransportPolicy>(io.ktor.client.webrtc.WebRtc.IceTransportPolicy){}[0]
+    final var remoteTracksReplay // io.ktor.client.webrtc/WebRtcConnectionConfig.remoteTracksReplay|{}remoteTracksReplay[0]
+        final fun <get-remoteTracksReplay>(): kotlin/Int // io.ktor.client.webrtc/WebRtcConnectionConfig.remoteTracksReplay.<get-remoteTracksReplay>|<get-remoteTracksReplay>(){}[0]
+        final fun <set-remoteTracksReplay>(kotlin/Int) // io.ktor.client.webrtc/WebRtcConnectionConfig.remoteTracksReplay.<set-remoteTracksReplay>|<set-remoteTracksReplay>(kotlin.Int){}[0]
+    final var rtcpMuxPolicy // io.ktor.client.webrtc/WebRtcConnectionConfig.rtcpMuxPolicy|{}rtcpMuxPolicy[0]
+        final fun <get-rtcpMuxPolicy>(): io.ktor.client.webrtc/WebRtc.RtcpMuxPolicy // io.ktor.client.webrtc/WebRtcConnectionConfig.rtcpMuxPolicy.<get-rtcpMuxPolicy>|<get-rtcpMuxPolicy>(){}[0]
+        final fun <set-rtcpMuxPolicy>(io.ktor.client.webrtc/WebRtc.RtcpMuxPolicy) // io.ktor.client.webrtc/WebRtcConnectionConfig.rtcpMuxPolicy.<set-rtcpMuxPolicy>|<set-rtcpMuxPolicy>(io.ktor.client.webrtc.WebRtc.RtcpMuxPolicy){}[0]
+    final var statsRefreshRate // io.ktor.client.webrtc/WebRtcConnectionConfig.statsRefreshRate|{}statsRefreshRate[0]
+        final fun <get-statsRefreshRate>(): kotlin/Long // io.ktor.client.webrtc/WebRtcConnectionConfig.statsRefreshRate.<get-statsRefreshRate>|<get-statsRefreshRate>(){}[0]
+        final fun <set-statsRefreshRate>(kotlin/Long) // io.ktor.client.webrtc/WebRtcConnectionConfig.statsRefreshRate.<set-statsRefreshRate>|<set-statsRefreshRate>(kotlin.Long){}[0]
 }
 
 final object io.ktor.client.webrtc/WebRtc { // io.ktor.client.webrtc/WebRtc|null[0]
@@ -237,15 +249,15 @@ final object io.ktor.client.webrtc/WebRtc { // io.ktor.client.webrtc/WebRtc|null
         final fun values(): kotlin/Array<io.ktor.client.webrtc/WebRtc.IceTransportPolicy> // io.ktor.client.webrtc/WebRtc.IceTransportPolicy.values|values#static(){}[0]
     }
 
-    final enum class RTCPMuxPolicy : kotlin/Enum<io.ktor.client.webrtc/WebRtc.RTCPMuxPolicy> { // io.ktor.client.webrtc/WebRtc.RTCPMuxPolicy|null[0]
-        enum entry NEGOTIATE // io.ktor.client.webrtc/WebRtc.RTCPMuxPolicy.NEGOTIATE|null[0]
-        enum entry REQUIRE // io.ktor.client.webrtc/WebRtc.RTCPMuxPolicy.REQUIRE|null[0]
+    final enum class RtcpMuxPolicy : kotlin/Enum<io.ktor.client.webrtc/WebRtc.RtcpMuxPolicy> { // io.ktor.client.webrtc/WebRtc.RtcpMuxPolicy|null[0]
+        enum entry NEGOTIATE // io.ktor.client.webrtc/WebRtc.RtcpMuxPolicy.NEGOTIATE|null[0]
+        enum entry REQUIRE // io.ktor.client.webrtc/WebRtc.RtcpMuxPolicy.REQUIRE|null[0]
 
-        final val entries // io.ktor.client.webrtc/WebRtc.RTCPMuxPolicy.entries|#static{}entries[0]
-            final fun <get-entries>(): kotlin.enums/EnumEntries<io.ktor.client.webrtc/WebRtc.RTCPMuxPolicy> // io.ktor.client.webrtc/WebRtc.RTCPMuxPolicy.entries.<get-entries>|<get-entries>#static(){}[0]
+        final val entries // io.ktor.client.webrtc/WebRtc.RtcpMuxPolicy.entries|#static{}entries[0]
+            final fun <get-entries>(): kotlin.enums/EnumEntries<io.ktor.client.webrtc/WebRtc.RtcpMuxPolicy> // io.ktor.client.webrtc/WebRtc.RtcpMuxPolicy.entries.<get-entries>|<get-entries>#static(){}[0]
 
-        final fun valueOf(kotlin/String): io.ktor.client.webrtc/WebRtc.RTCPMuxPolicy // io.ktor.client.webrtc/WebRtc.RTCPMuxPolicy.valueOf|valueOf#static(kotlin.String){}[0]
-        final fun values(): kotlin/Array<io.ktor.client.webrtc/WebRtc.RTCPMuxPolicy> // io.ktor.client.webrtc/WebRtc.RTCPMuxPolicy.values|values#static(){}[0]
+        final fun valueOf(kotlin/String): io.ktor.client.webrtc/WebRtc.RtcpMuxPolicy // io.ktor.client.webrtc/WebRtc.RtcpMuxPolicy.valueOf|valueOf#static(kotlin.String){}[0]
+        final fun values(): kotlin/Array<io.ktor.client.webrtc/WebRtc.RtcpMuxPolicy> // io.ktor.client.webrtc/WebRtc.RtcpMuxPolicy.values|values#static(){}[0]
     }
 
     final enum class SessionDescriptionType : kotlin/Enum<io.ktor.client.webrtc/WebRtc.SessionDescriptionType> { // io.ktor.client.webrtc/WebRtc.SessionDescriptionType|null[0]
@@ -282,13 +294,12 @@ final object io.ktor.client.webrtc/WebRtc { // io.ktor.client.webrtc/WebRtc|null
     }
 
     abstract interface DtmfSender { // io.ktor.client.webrtc/WebRtc.DtmfSender|null[0]
-        abstract val canInsertDTMF // io.ktor.client.webrtc/WebRtc.DtmfSender.canInsertDTMF|{}canInsertDTMF[0]
-            abstract fun <get-canInsertDTMF>(): kotlin/Boolean // io.ktor.client.webrtc/WebRtc.DtmfSender.canInsertDTMF.<get-canInsertDTMF>|<get-canInsertDTMF>(){}[0]
+        abstract val canInsertDtmf // io.ktor.client.webrtc/WebRtc.DtmfSender.canInsertDtmf|{}canInsertDtmf[0]
+            abstract fun <get-canInsertDtmf>(): kotlin/Boolean // io.ktor.client.webrtc/WebRtc.DtmfSender.canInsertDtmf.<get-canInsertDtmf>|<get-canInsertDtmf>(){}[0]
         abstract val toneBuffer // io.ktor.client.webrtc/WebRtc.DtmfSender.toneBuffer|{}toneBuffer[0]
             abstract fun <get-toneBuffer>(): kotlin/String // io.ktor.client.webrtc/WebRtc.DtmfSender.toneBuffer.<get-toneBuffer>|<get-toneBuffer>(){}[0]
 
-        abstract fun <#A2: kotlin/Any?> getNative(): #A2 // io.ktor.client.webrtc/WebRtc.DtmfSender.getNative|getNative(){0§<kotlin.Any?>}[0]
-        abstract fun insertDTMF(kotlin/String, kotlin/Int, kotlin/Int) // io.ktor.client.webrtc/WebRtc.DtmfSender.insertDTMF|insertDTMF(kotlin.String;kotlin.Int;kotlin.Int){}[0]
+        abstract fun insertDtmf(kotlin/String, kotlin/Int, kotlin/Int) // io.ktor.client.webrtc/WebRtc.DtmfSender.insertDtmf|insertDtmf(kotlin.String;kotlin.Int;kotlin.Int){}[0]
     }
 
     abstract interface RtpParameters { // io.ktor.client.webrtc/WebRtc.RtpParameters|null[0]
@@ -312,7 +323,6 @@ final object io.ktor.client.webrtc/WebRtc { // io.ktor.client.webrtc/WebRtc|null
         abstract val track // io.ktor.client.webrtc/WebRtc.RtpSender.track|{}track[0]
             abstract fun <get-track>(): io.ktor.client.webrtc/WebRtcMedia.Track? // io.ktor.client.webrtc/WebRtc.RtpSender.track.<get-track>|<get-track>(){}[0]
 
-        abstract fun <#A2: kotlin/Any?> getNative(): #A2 // io.ktor.client.webrtc/WebRtc.RtpSender.getNative|getNative(){0§<kotlin.Any?>}[0]
         abstract suspend fun getParameters(): io.ktor.client.webrtc/WebRtc.RtpParameters // io.ktor.client.webrtc/WebRtc.RtpSender.getParameters|getParameters(){}[0]
         abstract suspend fun replaceTrack(io.ktor.client.webrtc/WebRtcMedia.Track?) // io.ktor.client.webrtc/WebRtc.RtpSender.replaceTrack|replaceTrack(io.ktor.client.webrtc.WebRtcMedia.Track?){}[0]
         abstract suspend fun setParameters(io.ktor.client.webrtc/WebRtc.RtpParameters) // io.ktor.client.webrtc/WebRtc.RtpSender.setParameters|setParameters(io.ktor.client.webrtc.WebRtc.RtpParameters){}[0]
@@ -496,7 +506,6 @@ final object io.ktor.client.webrtc/WebRtcMedia { // io.ktor.client.webrtc/WebRtc
         abstract val kind // io.ktor.client.webrtc/WebRtcMedia.Track.kind|{}kind[0]
             abstract fun <get-kind>(): io.ktor.client.webrtc/WebRtcMedia.TrackType // io.ktor.client.webrtc/WebRtcMedia.Track.kind.<get-kind>|<get-kind>(){}[0]
 
-        abstract fun <#A2: kotlin/Any?> getNative(): #A2 // io.ktor.client.webrtc/WebRtcMedia.Track.getNative|getNative(){0§<kotlin.Any?>}[0]
         abstract fun enable(kotlin/Boolean) // io.ktor.client.webrtc/WebRtcMedia.Track.enable|enable(kotlin.Boolean){}[0]
     }
 
