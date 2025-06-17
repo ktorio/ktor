@@ -73,4 +73,4 @@ private fun Project.registerAggregatingPublishTask(name: String, publications: S
     }
 }
 
-private const val MAVEN_REPO_DEFAULT_NAME = "maven"
+private const val MAVEN_REPO_DEFAULT_NAME = "mavenCentral"
