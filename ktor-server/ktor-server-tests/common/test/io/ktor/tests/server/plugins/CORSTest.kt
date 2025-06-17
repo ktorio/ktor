@@ -11,6 +11,7 @@ import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
 import io.ktor.server.plugins.cors.CORSConfig
 import io.ktor.server.plugins.cors.cors
+import io.ktor.server.request.httpMethod
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
@@ -1288,5 +1289,190 @@ class CORSTest {
                 header(HttpHeaders.Origin, "http://host.org")
             }.status
         )
+    }
+
+    @Test
+    fun preflightCorsAfter() = testApplication {
+        routing {
+            get("/test") {
+                call.respond("OK")
+            }
+        }
+
+        cors {
+            allowHost("example.com")
+        }
+
+        val response = client.options("/test") {
+            header(HttpHeaders.Origin, "https://example.com")
+            header(HttpHeaders.AccessControlRequestMethod, "GET")
+        }
+
+        assertEquals(response.status, HttpStatusCode.OK)
+        assertEquals(HttpHeaders.Origin, response.headers[HttpHeaders.Vary])
+        assertEquals("https://example.com", response.headers[HttpHeaders.AccessControlAllowOrigin])
+    }
+
+    @Test
+    fun preflightRoutingCorsAfter() = testApplication {
+        routing {
+            get("/test") {
+                call.respond("OK")
+            }
+
+            cors {
+                allowHost("example.com")
+            }
+        }
+
+        val response = client.options("/test") {
+            header(HttpHeaders.Origin, "https://example.com")
+            header(HttpHeaders.AccessControlRequestMethod, "GET")
+        }
+
+        assertEquals(response.status, HttpStatusCode.OK)
+        assertEquals(HttpHeaders.Origin, response.headers[HttpHeaders.Vary])
+        assertEquals("https://example.com", response.headers[HttpHeaders.AccessControlAllowOrigin])
+    }
+
+    @Test
+    fun preflightRoutingNested() = testApplication {
+        routing {
+            cors {
+                allowHost("example.com")
+            }
+
+            route("/sub") {
+                cors {
+                    allowHost("another.com")
+                }
+
+                get {
+                    call.respond("OK")
+                }
+            }
+
+            get {
+                call.respond("OK")
+            }
+        }
+
+        client.options("/sub") {
+            header(HttpHeaders.Origin, "https://another.com")
+            header(HttpHeaders.AccessControlRequestMethod, "GET")
+        }.let { response ->
+            assertEquals(response.status, HttpStatusCode.OK)
+            assertEquals(HttpHeaders.Origin, response.headers[HttpHeaders.Vary])
+            assertEquals("https://another.com", response.headers[HttpHeaders.AccessControlAllowOrigin])
+        }
+
+        client.options("/sub") {
+            header(HttpHeaders.Origin, "https://example.com")
+            header(HttpHeaders.AccessControlRequestMethod, "GET")
+        }.let { response ->
+            assertEquals(response.status, HttpStatusCode.Forbidden)
+        }
+
+        client.options("/") {
+            header(HttpHeaders.Origin, "https://example.com")
+            header(HttpHeaders.AccessControlRequestMethod, "GET")
+        }.let { response ->
+            assertEquals(response.status, HttpStatusCode.OK)
+            assertEquals(HttpHeaders.Origin, response.headers[HttpHeaders.Vary])
+            assertEquals("https://example.com", response.headers[HttpHeaders.AccessControlAllowOrigin])
+        }
+
+        client.options("/") {
+            header(HttpHeaders.Origin, "https://another.com")
+            header(HttpHeaders.AccessControlRequestMethod, "GET")
+        }.let { response ->
+            assertEquals(response.status, HttpStatusCode.Forbidden)
+        }
+    }
+
+    @Test
+    fun preflightNoRouting() = testApplication {
+        application {
+            intercept(ApplicationCallPipeline.Call) {
+                if (context.request.httpMethod == HttpMethod.Get) {
+                    call.respondText("OK")
+                }
+            }
+        }
+
+        cors {
+            allowHost("example.com")
+        }
+
+        client.options("/") {
+            header(HttpHeaders.Origin, "https://example.com")
+            header(HttpHeaders.AccessControlRequestMethod, "GET")
+        }.let { response ->
+            assertEquals(response.status, HttpStatusCode.NotFound)
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Origin, "https://example.com")
+        }.let { response ->
+            assertEquals(response.status, HttpStatusCode.OK)
+            assertEquals(response.bodyAsText(), "OK")
+            assertEquals(HttpHeaders.Origin, response.headers[HttpHeaders.Vary])
+            assertEquals("https://example.com", response.headers[HttpHeaders.AccessControlAllowOrigin])
+        }
+    }
+
+    @Test
+    fun preflightHasOptionsRoute() = testApplication {
+        routing {
+            route("/test") {
+                get {
+                    call.respond("OK")
+                }
+
+                options {
+                    call.respond("OPTIONS")
+                }
+            }
+        }
+
+        cors {
+            allowHost("example.com")
+        }
+
+        client.options("/test") {
+            header(HttpHeaders.Origin, "https://example.com")
+            header(HttpHeaders.AccessControlRequestMethod, "GET")
+        }.let { response ->
+            assertEquals(response.status, HttpStatusCode.OK)
+            assertEquals("OPTIONS", response.bodyAsText())
+        }
+    }
+
+    @Test
+    fun preflightRoutingHasOptionsRoute() = testApplication {
+        routing {
+            route("/test") {
+                cors {
+                    allowHost("example.com")
+                }
+
+                get {
+                    call.respond("OK")
+                }
+
+                // TODO: Fix: Added after notificationk
+                options {
+                    call.respond("OPTIONS")
+                }
+            }
+        }
+
+        client.options("/test") {
+            header(HttpHeaders.Origin, "https://example.com")
+            header(HttpHeaders.AccessControlRequestMethod, "GET")
+        }.let { response ->
+            assertEquals(response.status, HttpStatusCode.OK)
+            assertEquals("OPTIONS", response.bodyAsText())
+        }
     }
 }

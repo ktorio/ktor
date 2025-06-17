@@ -142,7 +142,7 @@ private fun configureRoutesAndInstallPlugin(pipeline: ApplicationCallPipeline, r
                                         val contentType = call.request.header(HttpHeaders.ContentType)?.let { ContentType.parse(it) }
                                         if (contentType != null) {
                                             if (contentType.withoutParameters() !in CORSConfig.CorsSimpleContentTypes) {
-                                                LOGGER.trace("Respond forbidden ${call.request.uri}: Content-Type isn't allowed $contentType")
+                                                LOGGER.trace { "Respond forbidden ${call.request.uri}: Content-Type isn't allowed $contentType" }
                                                 simpleTypesCheckFailed = true
                                             }
                                         }
@@ -169,7 +169,7 @@ private fun configureRoutesAndInstallPlugin(pipeline: ApplicationCallPipeline, r
 
                                 OriginCheckResult.SkipCORS -> {}
                                 OriginCheckResult.Failed -> {
-                                    LOGGER.trace("Respond forbidden ${call.request.uri}: origin doesn't match ${call.request.origin}")
+                                    LOGGER.trace { "Respond forbidden ${call.request.uri}: origin doesn't match ${call.request.origin}" }
                                     call.respondCorsFailed()
                                 }
                             }
