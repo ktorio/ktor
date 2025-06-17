@@ -23,6 +23,16 @@ import io.ktor.server.plugins.cors.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.routing.CORS)
  */
+
+@Deprecated(
+    message = "???",
+    level = DeprecationLevel.ERROR,
+    replaceWith = ReplaceWith("CORS", "io.ktor.server.plugins.cors.routing.CORS")
+)
 public val CORS: RouteScopedPlugin<CORSConfig> = createRouteScopedPlugin("CORS", ::CORSConfig) {
+    buildPlugin()
+}
+
+internal val commonCORS: RouteScopedPlugin<CORSConfig> = createRouteScopedPlugin("CORS", ::CORSConfig) {
     buildPlugin()
 }
