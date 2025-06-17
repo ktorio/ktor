@@ -259,12 +259,12 @@ internal class Sha256 : HashFunction {
     private fun processChunk(input: ByteArray, pos: Int) {
         val words = this.words
 
-        var pos = pos
+        var cPos = pos
         for (w in 0 until 16) {
-            words[w] = ((input[pos++] and 0xff) shl 24) or
-                ((input[pos++] and 0xff) shl 16) or
-                ((input[pos++] and 0xff) shl 8) or
-                ((input[pos++] and 0xff))
+            words[w] = ((input[cPos++] and 0xff) shl 24) or
+                ((input[cPos++] and 0xff) shl 16) or
+                ((input[cPos++] and 0xff) shl 8) or
+                ((input[cPos++] and 0xff))
         }
 
         for (w in 16 until 64) {
