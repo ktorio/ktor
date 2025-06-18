@@ -26,7 +26,7 @@ import io.ktor.server.plugins.cors.*
 
 @Deprecated(
     message = "The plugin installation has been moved to the Route.cors method",
-    level = DeprecationLevel.ERROR,
+    level = DeprecationLevel.WARNING,
 )
 public val CORS: RouteScopedPlugin<CORSConfig> = createRouteScopedPlugin("CORS", ::CORSConfig) {
     buildPlugin()
