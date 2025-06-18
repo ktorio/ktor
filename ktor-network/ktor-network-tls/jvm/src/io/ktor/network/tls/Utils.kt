@@ -17,7 +17,7 @@ internal value class Digest(val state: Sink) : Closeable {
 
     fun update(packet: Source) {
         synchronized(state) {
-            if (packet.exhausted()) return
+            if (packet.exhausted()) return@synchronized
             state.writePacket(packet.copy())
         }
     }
