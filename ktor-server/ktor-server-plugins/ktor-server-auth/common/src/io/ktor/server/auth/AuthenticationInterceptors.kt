@@ -76,14 +76,14 @@ public val AuthenticationInterceptors: RouteScopedPlugin<RouteAuthenticationConf
         var newBody: Any = body
 
         val isFormEncoded = call.request.contentType().withoutParameters() == ContentType.Application.FormUrlEncoded
-        if (call.attributes.contains(cacheOauthFormReceiveKey) && isFormEncoded) {
+        if (call.attributes.contains(cacheOAuthFormReceiveKey) && isFormEncoded) {
             if (body is ByteReadChannel) {
                 try {
                     val array = body.readRemaining().readByteArray()
                     call.attributes.put(formCacheKey, array)
                     newBody = ByteReadChannel(array)
                 } finally {
-                    call.attributes.remove(cacheOauthFormReceiveKey)
+                    call.attributes.remove(cacheOAuthFormReceiveKey)
                 }
             }
         } else {
@@ -156,7 +156,7 @@ public val AuthenticationInterceptors: RouteScopedPlugin<RouteAuthenticationConf
     }
 }
 
-internal val cacheOauthFormReceiveKey = AttributeKey<Unit>("OauthFormReceiveKey")
+internal val cacheOAuthFormReceiveKey = AttributeKey<Unit>("OauthFormReceiveKey")
 
 private val formCacheKey = AttributeKey<ByteArray>("AuthFormCacheKey")
 
