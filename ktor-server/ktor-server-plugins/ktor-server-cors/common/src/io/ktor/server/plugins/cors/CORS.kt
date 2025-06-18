@@ -78,60 +78,21 @@ public fun Route.cors(configure: CORSConfig.() -> Unit = {}) {
     val allHeadersSet: Set<String> = allHeaders.map { it.toLowerCasePreservingASCIIRules() }.toSet()
 
     options("{cors-options-wildcard...}") {
-        // TODO: Code duplication
-        if (!allowsAnyHost || pluginConfig.allowCredentials) {
-            call.corsVary()
-        }
-
         val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull()
 
-        if (origin != null) {
-            val checkOrigin = checkOrigin(
-                origin,
-                call.request.origin,
-                pluginConfig.allowSameOrigin,
+        if (checkOriginAndContentType(call, pluginConfig, origin, hostsNormalized, hostsWithWildcard)) {
+            LOGGER.trace { "Respond preflight on OPTIONS for ${call.request.uri}" }
+            call.respondPreflight(
+                origin!!,
+                methodsListHeaderValue,
+                headersList,
+                methods,
                 allowsAnyHost,
-                hostsNormalized,
-                hostsWithWildcard,
-                pluginConfig.originPredicates
+                pluginConfig.allowCredentials,
+                pluginConfig.maxAgeInSeconds.let { if (it > 0) it.toString() else null },
+                pluginConfig.headerPredicates,
+                allHeadersSet
             )
-            when (checkOrigin) {
-                OriginCheckResult.OK -> {
-                    var contentTypeCheckFailed = false
-                    if (!pluginConfig.allowNonSimpleContentTypes) {
-                        val contentType = call.request.header(HttpHeaders.ContentType)?.let { ContentType.parse(it) }
-                        if (contentType != null) {
-                            if (contentType.withoutParameters() !in CORSConfig.CorsSimpleContentTypes) {
-                                LOGGER.trace { "Respond forbidden ${call.request.uri}: Content-Type isn't allowed $contentType" }
-                                contentTypeCheckFailed = true
-                            }
-                        }
-                    }
-
-                    if (contentTypeCheckFailed) {
-                        call.respondCorsFailed()
-                    } else {
-                        LOGGER.trace { "Respond preflight on OPTIONS for ${call.request.uri}" }
-                        call.respondPreflight(
-                            origin,
-                            methodsListHeaderValue,
-                            headersList,
-                            methods,
-                            allowsAnyHost,
-                            pluginConfig.allowCredentials,
-                            pluginConfig.maxAgeInSeconds.let { if (it > 0) it.toString() else null },
-                            pluginConfig.headerPredicates,
-                            allHeadersSet
-                        )
-                    }
-                }
-
-                OriginCheckResult.SkipCORS -> {}
-                OriginCheckResult.Failed -> {
-                    LOGGER.trace { "Respond forbidden ${call.request.uri}: origin doesn't match ${call.request.origin}" }
-                    call.respondCorsFailed()
-                }
-            }
         }
     }
 
@@ -139,14 +100,12 @@ public fun Route.cors(configure: CORSConfig.() -> Unit = {}) {
 }
 
 internal fun PluginBuilder<CORSConfig>.buildPlugin() {
-    val allowSameOrigin: Boolean = pluginConfig.allowSameOrigin
     val allowsAnyHost: Boolean = "*" in pluginConfig.hosts
     val allowCredentials: Boolean = pluginConfig.allowCredentials
     val allHeaders: Set<String> =
         (pluginConfig.headers + CORSConfig.CorsSimpleRequestHeaders).let { headers ->
             if (pluginConfig.allowNonSimpleContentTypes) headers else headers.minus(HttpHeaders.ContentType)
         }
-    val originPredicates: List<(String) -> Boolean> = pluginConfig.originPredicates
     val headerPredicates: List<(String) -> Boolean> = pluginConfig.headerPredicates
     val methods: Set<HttpMethod> = HashSet(pluginConfig.methods + CORSConfig.CorsDefaultMethods)
     val allHeadersSet: Set<String> = allHeaders.map { it.toLowerCasePreservingASCIIRules() }.toSet()
@@ -186,42 +145,10 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
             return@onCall
         }
 
-        if (!allowsAnyHost || allowCredentials) {
-            call.corsVary()
-        }
-
         val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull() ?: return@onCall
 
-        val checkOrigin = checkOrigin(
-            origin,
-            call.request.origin,
-            allowSameOrigin,
-            allowsAnyHost,
-            hostsNormalized,
-            hostsWithWildcard,
-            originPredicates
-        )
-        when (checkOrigin) {
-            OriginCheckResult.OK -> {
-            }
-
-            OriginCheckResult.SkipCORS -> return@onCall
-            OriginCheckResult.Failed -> {
-                LOGGER.trace("Respond forbidden ${call.request.uri}: origin doesn't match ${call.request.origin}")
-                call.respondCorsFailed()
-                return@onCall
-            }
-        }
-
-        if (!allowNonSimpleContentTypes) {
-            val contentType = call.request.header(HttpHeaders.ContentType)?.let { ContentType.parse(it) }
-            if (contentType != null) {
-                if (contentType.withoutParameters() !in CORSConfig.CorsSimpleContentTypes) {
-                    LOGGER.trace("Respond forbidden ${call.request.uri}: Content-Type isn't allowed $contentType")
-                    call.respondCorsFailed()
-                    return@onCall
-                }
-            }
+        if (!checkOriginAndContentType(call, pluginConfig, origin, hostsNormalized, hostsWithWildcard)) {
+            return@onCall
         }
 
         if (call.request.httpMethod == HttpMethod.Options) {
@@ -253,6 +180,62 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
             call.response.header(HttpHeaders.AccessControlExposeHeaders, exposedHeaders)
         }
     }
+}
+
+/**
+ * @return true, if the checks are successful, otherwise false
+ */
+private suspend fun checkOriginAndContentType(
+    call: ApplicationCall,
+    config: CORSConfig,
+    origin: String?,
+    hostsNormalized: Set<String>,
+    hostsWithWildcard: Set<Pair<String, String>>,
+): Boolean {
+    val allowsAnyHost = "*" in config.hosts
+    if (!allowsAnyHost || config.allowCredentials) {
+        call.corsVary()
+    }
+    var success = true
+
+    if (origin != null) {
+        val checkOrigin = checkOrigin(
+            origin,
+            call.request.origin,
+            config.allowSameOrigin,
+            allowsAnyHost,
+            hostsNormalized,
+            hostsWithWildcard,
+            config.originPredicates
+        )
+        when (checkOrigin) {
+            OriginCheckResult.OK -> {
+                if (!config.allowNonSimpleContentTypes) {
+                    val contentType = call.request.header(HttpHeaders.ContentType)?.let { ContentType.parse(it) }
+                    if (contentType != null) {
+                        if (contentType.withoutParameters() !in CORSConfig.CorsSimpleContentTypes) {
+                            LOGGER.trace { "Respond forbidden ${call.request.uri}: Content-Type isn't allowed $contentType" }
+                            call.respondCorsFailed()
+                            success = false
+                        }
+                    }
+                }
+            }
+
+            OriginCheckResult.SkipCORS -> {
+                success = false
+            }
+            OriginCheckResult.Failed -> {
+                LOGGER.trace { "Respond forbidden ${call.request.uri}: origin doesn't match ${call.request.origin}" }
+                call.respondCorsFailed()
+                success = false
+            }
+        }
+    } else {
+        success = false
+    }
+
+    return success
 }
 
 private enum class OriginCheckResult {
