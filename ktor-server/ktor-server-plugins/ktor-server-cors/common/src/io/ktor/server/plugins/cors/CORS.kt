@@ -41,10 +41,25 @@ public val CORS: ApplicationPlugin<CORSConfig> = createApplicationPlugin("CORS",
     buildPlugin()
 }
 
+/**
+ * Installs the CORS plugin.
+ *
+ * You can learn more from [CORS](https://ktor.io/docs/cors.html).
+ */
 public fun Application.cors(configure: CORSConfig.() -> Unit = {}) {
     install(commonCORS, configure)
 }
 
+/**
+ * Installs the **Cross-Origin Resource Sharing (CORS)** plugin into a [Route].
+ *
+ * The plugin applies its configuration recursively to all child routes. The closest parent
+ * route's CORS configuration takes precedence.
+ *
+ * It differs from the [io.ktor.server.plugins.cors.routing.CORS] with an ability to handle preflight requests.
+ *
+ * You can learn more from [CORS](https://ktor.io/docs/cors.html).
+ */
 public fun Route.cors(configure: CORSConfig.() -> Unit = {}) {
     val pluginConfig = CORSConfig().apply(configure)
     val allowsAnyHost: Boolean = "*" in pluginConfig.hosts
