@@ -581,7 +581,7 @@ class OAuth2Test {
     }
 
     @Test
-    fun formRequestBodyCanBeReceivedFromTheHandler() = testApplication {
+    fun formRequestBodyCanBeReceivedInRouteHandler() = testApplication {
         application {
             install(Authentication) {
                 oauth {
