@@ -11,6 +11,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
+import io.ktor.http.content.TextContent
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.engine.*
@@ -577,6 +578,44 @@ class OAuth2Test {
         val state1 = request1Auth["state"]!!
         val response1 = client.get("/login?code=$code1&state=$state1")
         assertEquals("some-url", response1.bodyAsText())
+    }
+
+    @Test
+    fun formRequestBodyCanBeReceivedFromTheHandler() = testApplication {
+        application {
+            install(Authentication) {
+                oauth {
+                    urlProvider = { "http://localhost:8080/callback" }
+                    providerLookup = {
+                        OAuthServerSettings.OAuth2ServerSettings(
+                            name = "dummy",
+                            authorizeUrl = "localhost",
+                            accessTokenUrl = "localhost",
+                            clientId = "clientId",
+                            clientSecret = "clientSecret"
+                        )
+                    }
+                    client = this@testApplication.client
+                }
+            }
+
+            routing {
+                route("/oauth") {
+                    authenticate(optional = true) {
+                        post {
+                            call.respond(call.receiveText())
+                        }
+                    }
+                }
+            }
+        }
+
+        client.post("/oauth") {
+            setBody(TextContent(listOf("foo" to "bar").formUrlEncode(), ContentType.Application.FormUrlEncoded))
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("foo=bar", response.bodyAsText())
+        }
     }
 
     private fun assertFailures() {
