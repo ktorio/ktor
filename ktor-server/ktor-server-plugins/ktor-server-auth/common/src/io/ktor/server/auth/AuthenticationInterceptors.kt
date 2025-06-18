@@ -4,6 +4,7 @@
 
 package io.ktor.server.auth
 
+import io.ktor.http.ContentType
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -12,6 +13,7 @@ import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
+import kotlinx.io.readByteArray
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.server.auth.Authentication")
 
@@ -69,6 +71,32 @@ public val AuthenticationInterceptors: RouteScopedPlugin<RouteAuthenticationConf
         .findProviders(providers) { it == AuthenticationStrategy.Optional } -
         requiredProviders - firstSuccessfulProviders
 
+    // To cache the request body which can be consumed by the OAuth2 callback handler
+    on(ReceiveBytes) { call, body ->
+        var newBody: Any = body
+
+        val isFormEncoded = call.request.contentType().withoutParameters() == ContentType.Application.FormUrlEncoded
+        if (call.attributes.contains(cacheOauthFormReceiveKey) && isFormEncoded) {
+            if (body is ByteReadChannel) {
+                try {
+                    val array = body.readRemaining().readByteArray()
+                    call.attributes.put(formCacheKey, array)
+                    newBody = ByteReadChannel(array)
+                } finally {
+                    call.attributes.remove(cacheOauthFormReceiveKey)
+                }
+            }
+        } else {
+            val cache = call.attributes.getOrNull(formCacheKey)
+
+            if (cache != null) {
+                newBody = ByteReadChannel(cache)
+            }
+        }
+
+        newBody
+    }
+
     on(AuthenticationHook) { call ->
         if (call.isHandled) return@on
 
@@ -125,6 +153,22 @@ public val AuthenticationInterceptors: RouteScopedPlugin<RouteAuthenticationConf
         }
 
         authenticationContext.executeChallenges(call)
+    }
+}
+
+internal val cacheOauthFormReceiveKey = AttributeKey<Unit>("OauthFormReceiveKey")
+
+private val formCacheKey = AttributeKey<ByteArray>("AuthFormCacheKey")
+
+private object ReceiveBytes : Hook<suspend (ApplicationCall, Any) -> Any> {
+    override fun install(
+        pipeline: ApplicationCallPipeline,
+        handler: suspend (ApplicationCall, Any) -> Any
+    ) {
+        pipeline.receivePipeline.intercept(ApplicationReceivePipeline.Before) {
+            val body = handler(call, it)
+            proceedWith(body)
+        }
     }
 }
 
