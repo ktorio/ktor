@@ -34,9 +34,8 @@ private val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.cors.CORS")
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORS)
  */
 @Deprecated(
-    message = "This plugin was moved to io.ktor.server.plugins.cors.routing",
+    message = "The plugin installation has been moved to the Application.cors method",
     level = DeprecationLevel.ERROR,
-    replaceWith = ReplaceWith("CORS", "io.ktor.server.plugins.cors.routing.CORS")
 )
 public val CORS: ApplicationPlugin<CORSConfig> = createApplicationPlugin("CORS", ::CORSConfig) {
     buildPlugin()
