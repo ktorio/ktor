@@ -42,7 +42,7 @@ public val CORS: ApplicationPlugin<CORSConfig> = createApplicationPlugin("CORS",
 }
 
 /**
- * Installs the CORS plugin.
+ * Installs the **Cross-Origin Resource Sharing (CORS)** plugin.
  *
  * You can learn more from [CORS](https://ktor.io/docs/cors.html).
  */
