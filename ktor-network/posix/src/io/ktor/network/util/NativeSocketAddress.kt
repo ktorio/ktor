@@ -5,8 +5,10 @@
 package io.ktor.network.util
 
 import io.ktor.network.sockets.*
-import kotlinx.cinterop.*
-import platform.posix.*
+import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.convert
+import platform.posix.sockaddr
 
 /**
  * Represents a native socket address.
@@ -23,18 +25,21 @@ internal abstract class NativeInetSocketAddress(
     family: UByte,
     val port: Int
 ) : NativeSocketAddress(family) {
-    internal abstract val ipString: String
+    abstract val rawAddressBytes: ByteArray
+    abstract val ipString: String
 }
 
 internal expect class NativeIPv4SocketAddress : NativeInetSocketAddress {
     @OptIn(ExperimentalForeignApi::class)
     override fun nativeAddress(block: (address: CPointer<sockaddr>, size: UInt) -> Unit)
+    override val rawAddressBytes: ByteArray
     override val ipString: String
 }
 
 internal expect class NativeIPv6SocketAddress : NativeInetSocketAddress {
     @OptIn(ExperimentalForeignApi::class)
     override fun nativeAddress(block: (address: CPointer<sockaddr>, size: UInt) -> Unit)
+    override val rawAddressBytes: ByteArray
     override val ipString: String
 }
 

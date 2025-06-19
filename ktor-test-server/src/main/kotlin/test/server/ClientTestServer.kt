@@ -31,6 +31,7 @@ internal fun Application.tests() {
     }
 
     authTestServer()
+    echoTest()
     encodingTestServer()
     serializationTestServer()
     cacheTestServer()

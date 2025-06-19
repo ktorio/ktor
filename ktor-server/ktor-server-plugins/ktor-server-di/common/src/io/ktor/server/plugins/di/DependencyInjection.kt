@@ -8,7 +8,9 @@ import io.ktor.server.application.*
 import io.ktor.server.plugins.di.utils.*
 import io.ktor.util.*
 import io.ktor.util.reflect.*
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlin.reflect.KClass
 
@@ -53,41 +55,63 @@ import kotlin.reflect.KClass
  *
  * Alternatively, they can be supplied automatically through parameters.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 public val DI: ApplicationPlugin<DependencyInjectionConfig> =
     createApplicationPlugin("DI", ::DependencyInjectionConfig) {
+        val startupMode = environment.startupMode
         val configuredDependencyReferences =
             environment.config.propertyOrNull("ktor.application.dependencies")
                 ?.getList()
                 ?.map { ClasspathReference(it) }
                 .orEmpty()
 
-        val provider = if (isTestEngine() && !pluginConfig.providerChanged) {
-            MapDependencyProvider(conflictPolicy = IgnoreConflicts)
-        } else {
-            pluginConfig.provider
-        }
-
         val configMap = ConfigurationDependencyMap(application.environment.config)
-        val dependenciesMap = pluginConfig.dependenciesMap?.let { it + configMap } ?: configMap
+        var extensionMap = pluginConfig.dependenciesMap?.let { it + configMap } ?: configMap
+        for (extension in loadMapExtensions()) {
+            extensionMap += extension.get(application)
+        }
         val onShutdown = pluginConfig.onShutdown
 
-        var registry = DependencyRegistry(
-            provider,
-            dependenciesMap,
-            pluginConfig.resolution,
-            pluginConfig.reflection,
-            application.coroutineContext + Dispatchers.Default.limitedParallelism(1),
+        val coroutineScope =
+            CoroutineScope(
+                application.coroutineContext +
+                    CoroutineName("dependency-injection")
+            )
+        val map: DependencyInitializerMap = mutableMapOf()
+        val reflection = pluginConfig.reflection
+        val useSuspend = startupMode == ApplicationStartupMode.CONCURRENT
+        val resolver = MapDependencyResolver(
+            map,
+            extensionMap,
+            reflection,
+            useSuspend,
+            coroutineScope,
         )
+        val conflictPolicy = pluginConfig.conflictPolicy
+            ?: if (isTestEngine()) IgnoreConflicts else DefaultConflictPolicy
+        val provider = MapDependencyProvider(
+            map = map,
+            keyMapping = pluginConfig.keyMapping,
+            conflictPolicy = conflictPolicy,
+            onConflict = pluginConfig.onConflict,
+        )
+        var registry = DependencyRegistry(resolver, provider)
 
         with(application) {
+            // First, we install all references from the configuration file
             for (reference in configuredDependencyReferences) {
                 installReference(registry, reference)
             }
+            // Interrupt any consumers waiting for a provider
+            monitor.subscribe(ApplicationModulesLoading) {
+                resolver.stopWaiting()
+            }
+            // Validate any lazy-loaded dependencies before starting the server
             monitor.subscribe(ApplicationModulesLoaded) {
                 val exceptions = mutableListOf<Pair<DependencyKey, Throwable>>()
                 for ((key, source) in registry.requirements) {
                     try {
-                        registry.get<Any?>(key)
+                        registry.getBlocking<Any?>(key)
                     } catch (e: Throwable) {
                         environment.log.error("Cannot resolve $key\n${source.externalTrace()}")
                         exceptions += key to e
@@ -111,16 +135,17 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
                 }
             }
             monitor.subscribe(ApplicationStopped) {
-                for (key in registry.declarations.keys.reversed()) {
+                coroutineScope.cancel("Application stopped")
+
+                for (key in map.keys.reversed()) {
                     try {
-                        val instance = registry.get<Any?>(key)
+                        val instance = registry.getDeferred<Any?>(key).tryGetCompleted() ?: continue
                         registry.shutdownHooks[key]?.invoke(instance)
                         onShutdown(key, instance)
                     } catch (e: Throwable) {
                         environment.log.warn("Exception during cleanup for $key; continuing", e)
                     }
                 }
-                registry.cancel()
             }
 
             attributes.put(DependencyRegistryKey, registry)
@@ -144,6 +169,8 @@ public val DependencyRegistryKey: AttributeKey<DependencyRegistry> =
 
 public expect val DefaultReflection: DependencyReflection
 
+internal expect fun loadMapExtensions(): List<DependencyMapExtension>
+
 /**
  * Automatically failing implementation of [DependencyReflection] that is used by default
  * when unsupported on the current platform.
@@ -151,7 +178,7 @@ public expect val DefaultReflection: DependencyReflection
  * Optionally, this can be used when you do not wish to allow reflection for your project.
  */
 public object NoReflection : DependencyReflection {
-    override fun <T : Any> create(kClass: KClass<T>, init: (DependencyKey) -> Any): T =
+    override suspend fun <T : Any> create(kClass: KClass<T>, init: suspend (DependencyKey) -> Any): T =
         throw DependencyInjectionException("A call to create a new instance was attempted, but reflection is disabled")
 }
 
@@ -159,34 +186,29 @@ public object NoReflection : DependencyReflection {
  * Configuration class for dependency injection settings and behavior customization.
  *
  * This class allows customization of the reflection mechanism, the dependency provider,
- * and the resolution strategy used within the dependency injection framework.
+ * and various behaviors of the dependency injection framework.
  *
  * @property reflection Specifies the mechanism used to create new instances of dependencies via reflection.
  *                      Defaults to `DefaultReflection`.
- * @property provider Manages the registration of dependency initializers.
- *                    Defaults to a `MapDependencyProvider`.
- * @property resolution Defines the strategy for resolving dependencies.
- *                      Defaults to `DefaultDependencyResolution`.
+ * @property keyMapping Defines how type covariance is handled when resolving dependencies.
+ *                      Defaults to `DefaultKeyCovariance`.
+ * @property conflictPolicy Determines how conflicts between dependency declarations are handled.
+ *                          Defaults to `DefaultConflictPolicy` in normal mode or `IgnoreConflicts` in test mode.
+ * @property onConflict A callback invoked when a duplicate dependency is detected.
+ *                      Defaults to throwing a `DuplicateDependencyException`.
  * @property onShutdown A callback invoked when the application stops.
- *                      Defaults to closing all instances of `AutoCloseable`
+ *                      Defaults to closing all instances of `AutoCloseable`.
  *
  * @see DependencyReflection
- * @see DependencyProvider
- * @see DependencyResolution
- * @see MapDependencyProvider
+ * @see DependencyKeyCovariance
+ * @see DependencyConflictPolicy
  */
 public class DependencyInjectionConfig {
-    internal var providerChanged = false
-
     public var reflection: DependencyReflection = DefaultReflection
+    public var keyMapping: DependencyKeyCovariance = DefaultKeyCovariance
+    public var conflictPolicy: DependencyConflictPolicy? = null
+    public var onConflict: (DependencyKey) -> Nothing = { throw DuplicateDependencyException(it) }
 
-    public var provider: DependencyProvider = MapDependencyProvider()
-        set(value) {
-            field = value
-            providerChanged = true
-        }
-
-    public var resolution: DependencyResolution = DefaultDependencyResolution
     public var onShutdown: (DependencyKey, Any?) -> Unit = { _, instance ->
         (instance as? AutoCloseable)?.close()
     }
@@ -214,38 +236,6 @@ public class DependencyInjectionConfig {
     public fun include(map: DependencyMap) {
         dependenciesMap = if (dependenciesMap == null) map else dependenciesMap!! + map
     }
-
-    /**
-     * Convenience function for overriding the different logical aspects of the [DependencyProvider].
-     *
-     * This is shorthand for reassigning the `provider` variable with a new [MapDependencyProvider] with custom fields.
-     *
-     * @see ProviderScope
-     */
-    public fun provider(config: ProviderScope.() -> Unit) {
-        provider = ProviderScope().apply(config).let { (keyMapping, conflictPolicy, onConflict) ->
-            MapDependencyProvider(keyMapping, conflictPolicy, onConflict)
-        }
-    }
-
-    /**
-     * Configuration scope for customizing dependency injection behavior, used to specify key mapping,
-     * conflict resolution strategies, and conflict handling mechanisms.
-     *
-     * @property keyMapping Specifies the mapping strategy used to handle covariance between dependency keys.
-     *                      Defaults to `Supertypes`, which maps dependency keys to their covariant types.
-     * @property conflictPolicy Defines the policy used to determine how conflicts between dependencies with
-     *                          the same key are resolved.
-     *                          Defaults to `DefaultConflictPolicy`.
-     * @property onConflict Specifies a handler invoked when a dependency conflict scenario arises due
-     *                      to multiple definitions for the same dependency key.
-     *                      By default, this throws a `DuplicateDependencyException`.
-     */
-    public data class ProviderScope(
-        public var keyMapping: DependencyKeyCovariance = DefaultKeyCovariance,
-        public var conflictPolicy: DependencyConflictPolicy = DefaultConflictPolicy,
-        public var onConflict: (DependencyKey) -> Unit = { throw DuplicateDependencyException(it) }
-    )
 }
 
 /**
@@ -303,7 +293,7 @@ public class DuplicateDependencyException(key: DependencyKey) :
  * Thrown when there are two or more implicit dependencies that match the given key.
  */
 public class AmbiguousDependencyException(
-    public val function: AmbiguousCreateFunction
+    public val function: DependencyInitializer.Ambiguous
 ) : DependencyInjectionException(
     "Cannot decide which value for ${function.key}: ${function.implementations}"
 )

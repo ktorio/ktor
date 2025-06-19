@@ -10,11 +10,12 @@ import java.lang.reflect.Modifier
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
+import kotlin.reflect.full.callSuspendBy
 import kotlin.reflect.full.functions
 import kotlin.reflect.jvm.javaType
 import kotlin.reflect.jvm.kotlinFunction
 
-internal fun executeModuleFunction(
+internal suspend fun executeModuleFunction(
     classLoader: ClassLoader,
     fqName: String,
     application: Application,
@@ -77,7 +78,7 @@ internal fun executeModuleFunction(
     throw ClassNotFoundException("Module function cannot be found for the fully qualified name '$fqName'")
 }
 
-private fun createModuleContainer(
+private suspend fun createModuleContainer(
     applicationEntryClass: KClass<*>,
     application: Application,
     moduleInjector: ModuleParametersInjector
@@ -95,7 +96,7 @@ private fun createModuleContainer(
     return callFunctionWithInjection(null, constructor, application, moduleInjector)
 }
 
-private fun <R> callFunctionWithInjection(
+private suspend fun <R> callFunctionWithInjection(
     instance: Any?,
     entryPoint: KFunction<R>,
     application: Application,
@@ -134,7 +135,7 @@ private fun <R> callFunctionWithInjection(
     }.toMap()
 
     try {
-        return entryPoint.callBy(args)
+        return entryPoint.callSuspendBy(args)
     } catch (cause: InvocationTargetException) {
         throw cause.cause ?: cause
     }

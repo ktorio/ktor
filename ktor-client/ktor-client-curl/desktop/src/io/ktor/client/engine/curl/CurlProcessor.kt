@@ -7,11 +7,14 @@ package io.ktor.client.engine.curl
 import io.ktor.client.engine.curl.internal.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
-import kotlinx.atomicfu.*
-import kotlinx.cinterop.*
+import kotlinx.atomicfu.atomic
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.IntVar
+import kotlinx.cinterop.alloc
+import kotlinx.cinterop.memScoped
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
-import kotlin.coroutines.*
+import kotlinx.coroutines.channels.Channel
+import kotlin.coroutines.CoroutineContext
 
 internal class RequestContainer(
     val requestData: CurlRequestData,
@@ -48,13 +51,16 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
         return result.await()
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
+    @OptIn(DelicateCoroutinesApi::class, ExperimentalForeignApi::class)
     private fun runEventLoop() {
         curlScope.launch {
-            val api = curlApi!!
-            while (!requestQueue.isClosedForReceive) {
-                drainRequestQueue(api)
-                api.perform()
+            memScoped {
+                val transfersRunning = alloc<IntVar>()
+                val api = curlApi!!
+                while (!requestQueue.isClosedForReceive) {
+                    drainRequestQueue(api)
+                    api.perform(transfersRunning)
+                }
             }
         }
     }
