@@ -27,7 +27,7 @@ public val DefaultProtoBuf: ProtoBuf = ProtoBuf {
  * Registers the `application/protobuf` (or another specified [contentType]) content type
  * to the [ContentNegotiation] plugin using kotlinx.serialization.
  *
- * You can learn more from [Content negotiation and serialization](https://ktor.io/docs/serialization.html).
+ * You can learn more from the corresponding [client](https://ktor.io/docs/client-serialization.html#register_protobuf) and [server](https://ktor.io/docs/server-serialization.html#register_protobuf) documentation.
  *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.kotlinx.protobuf.protobuf)
