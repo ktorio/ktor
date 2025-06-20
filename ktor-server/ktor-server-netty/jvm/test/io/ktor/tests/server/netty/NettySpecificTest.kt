@@ -11,6 +11,10 @@ import io.ktor.client.request.get
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.OutgoingContent
+import io.ktor.network.selector.SelectorManager
+import io.ktor.network.sockets.aSocket
+import io.ktor.network.sockets.openReadChannel
+import io.ktor.network.sockets.openWriteChannel
 import io.ktor.server.application.*
 import io.ktor.server.application.hooks.ResponseSent
 import io.ktor.server.engine.*
@@ -20,11 +24,15 @@ import io.ktor.server.response.respondBytesWriter
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.readUTF8Line
+import io.ktor.utils.io.writeStringUtf8
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeout
 import java.net.*
 import java.util.concurrent.*
 import kotlin.test.*
@@ -164,6 +172,60 @@ class NettySpecificTest {
                 assertEquals(earlyHints, client.get("/info").status)
                 assertEquals(earlyHints, client.get("/info-channel-writer").status)
                 assertEquals(earlyHints, client.get("/info-read-channel").status)
+            }
+        } finally {
+            serverJob.cancel()
+        }
+    }
+
+    @Test
+    fun badRequestOnInvalidQueryString() = runBlocking {
+        val appStarted = CompletableDeferred<Application>()
+
+        val serverJob = launch(Dispatchers.IO) {
+            val server = embeddedServer(Netty, port = 0) {
+                routing {
+                    get {
+                        call.request.queryParameters.entries()
+                    }
+                }
+            }
+
+            server.monitor.subscribe(ApplicationStarted) { app ->
+                appStarted.complete(app)
+            }
+
+            server.start(wait = true)
+        }
+
+        val serverApp = appStarted.await()
+        val connector = serverApp.engine.resolvedConnectors()[0]
+
+        try {
+            SelectorManager().use { manager ->
+                aSocket(manager).tcp().connect(connector.host, connector.port).use { socket ->
+                    val writeChannel = socket.openWriteChannel()
+                    val readChannel = socket.openReadChannel()
+
+                    writeChannel.writeStringUtf8("GET /?%s% HTTP/1.1\r\n")
+                    writeChannel.writeStringUtf8("Host: ${connector.host}:${connector.port}\r\n")
+                    writeChannel.writeStringUtf8("Connection: close\r\n\r\n")
+                    writeChannel.flush()
+
+                    withTimeout(5000) {
+                        readChannel.awaitContent()
+
+                        val responseLines = mutableListOf<String>()
+                        assertFalse(readChannel.isClosedForRead)
+                        while (!readChannel.isClosedForRead) {
+                            val line = readChannel.readUTF8Line() ?: break
+                            responseLines.add(line)
+                        }
+
+                        assertTrue(responseLines.isNotEmpty())
+                        assertEquals("HTTP/1.1 400 Bad Request", responseLines.first())
+                    }
+                }
             }
         } finally {
             serverJob.cancel()
