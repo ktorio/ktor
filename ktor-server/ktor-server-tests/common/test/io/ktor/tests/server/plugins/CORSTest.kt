@@ -1579,4 +1579,24 @@ class CORSTest {
             assertNull(response.headers[HttpHeaders.AccessControlAllowOrigin])
         }
     }
+
+    @Test
+    fun routeInsideCorsPluginConfig() = testApplication {
+        routing {
+            cors {
+                route("/abc") {
+                    get {
+                        call.respond("OK")
+                    }
+                }
+            }
+        }
+
+        client.options("/abc") {
+            header(HttpHeaders.Origin, "https://example.com")
+            header(HttpHeaders.AccessControlRequestMethod, "GET")
+        }.let { response ->
+            assertEquals(response.status, HttpStatusCode.Forbidden)
+        }
+    }
 }
