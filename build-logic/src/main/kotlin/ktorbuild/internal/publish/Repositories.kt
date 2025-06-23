@@ -5,19 +5,13 @@
 package ktorbuild.internal.publish
 
 import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.kotlin.dsl.maven
 
 internal fun RepositoryHandler.addTargetRepositoryIfConfigured() {
-    val repositoryId = System.getenv("REPOSITORY_ID").orEmpty()
-    val publishingUrl = if (repositoryId.isNotBlank()) {
-        println("Set publishing to repository $repositoryId")
-        "https://oss.sonatype.org/service/local/staging/deployByRepositoryId/$repositoryId"
-    } else {
-        System.getenv("PUBLISHING_URL")
-    }
-    if (publishingUrl == null) return
+    val publishingUrl = System.getenv("PUBLISHING_URL") ?: return
 
-    maven {
-        setUrl(publishingUrl)
+    maven(url = publishingUrl) {
+        name = System.getenv("REPOSITORY_NAME") ?: "maven"
         credentials {
             username = System.getenv("PUBLISHING_USER")
             password = System.getenv("PUBLISHING_PASSWORD")
