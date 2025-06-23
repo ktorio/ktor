@@ -107,23 +107,23 @@ private suspend fun <R> callFunctionWithInjection(
             parameter.kind == KParameter.Kind.INSTANCE -> instance
             isApplicationEnvironment(parameter) -> application.environment
             isApplication(parameter) -> application
-            parameter.type.toString().contains("Application") -> {
-                // It is possible that type is okay, but classloader is not
-                val classLoader = (parameter.type.javaType as? Class<*>)?.classLoader
-                throw IllegalArgumentException(
-                    "Parameter type ${parameter.type}:{$classLoader} is not supported." +
-                        "Application is loaded as " +
-                        "$ApplicationClassInstance:{${ApplicationClassInstance.classLoader}}"
-                )
-            }
+
             else -> {
-                val injectedValue = runCatching {
-                    moduleInjector.resolveParameter(application, parameter)
-                }
+                val injectedValue = runCatching { moduleInjector.resolveParameter(application, parameter) }
                 when {
                     injectedValue.isSuccess -> injectedValue.getOrThrow()
                     parameter.isOptional -> return@mapNotNull null // skip
                     parameter.type.isMarkedNullable -> null // value = null
+                    // This check should go last
+                    parameter.type.toString().contains("Application") -> {
+                        // It is possible that type is okay, but classloader is not
+                        val classLoader = (parameter.type.javaType as? Class<*>)?.classLoader
+                        throw IllegalArgumentException(
+                            "Parameter type ${parameter.type}:{$classLoader} is not supported. " +
+                                "Application is loaded as " +
+                                "$ApplicationClassInstance:{${ApplicationClassInstance.classLoader}}"
+                        )
+                    }
                     else -> throw IllegalArgumentException(
                         "Failed to inject parameter `${parameter.name ?: "<receiver>"}: ${parameter.type}` " +
                             "in module function `$entryPoint`",
