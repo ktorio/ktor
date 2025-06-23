@@ -33,9 +33,9 @@ internal suspend fun executeModuleFunction(
         ?: throw ReloadingException("Module function cannot be found for the fully qualified name '$fqName'")
 
     val staticFunctions = clazz.methods
-        .filter { it.name == functionName && Modifier.isStatic(it.modifiers) }
+        .filter { Modifier.isStatic(it.modifiers) }
         .mapNotNull { it.kotlinFunction }
-        .filter { it.isApplicableFunction() }
+        .filter { it.name == functionName && it.isApplicableFunction() }
 
     staticFunctions.bestFunction()?.let { moduleFunction ->
         if (moduleFunction.parameters.none { it.kind == KParameter.Kind.INSTANCE }) {

@@ -398,6 +398,7 @@ class EmbeddedServerReloadingTests {
                         "ktor.application.modules" to listOf(
                             Application::defaultArgBoolean.fqName,
                             Application::defaultArgContainingApplicationWord.fqName,
+                            Application::defaultArgInline.fqName,
                         )
                     )
                 )
@@ -415,6 +416,7 @@ class EmbeddedServerReloadingTests {
             setOf(
                 "defaultArgBoolean",
                 "defaultArgContainingApplicationWord",
+                "defaultArgInline",
             ),
             application.loadedModules,
         )
@@ -678,6 +680,13 @@ fun Application.defaultArgBoolean(testing: Boolean = false) {
 
 fun Application.defaultArgContainingApplicationWord(configure: Application.() -> Unit = {}) {
     addLoadedModule("defaultArgContainingApplicationWord")
+}
+
+@JvmInline
+value class InstanceId(val value: String)
+
+fun Application.defaultArgInline(id: InstanceId = InstanceId("default")) {
+    addLoadedModule("defaultArgInline")
 }
 
 @JvmOverloads
