@@ -94,18 +94,19 @@ internal class WebRtcConnectionEventsEmitter(
 ) : CoroutineScope, WebRtcConnectionEvents {
 
     // Private mutable flows
-    val iceCandidatesFlow: MutableSharedFlow<WebRtc.IceCandidate> = MutableSharedFlow(config.iceCandidatesReplay)
-    val iceConnectionStateFlow: MutableStateFlow<WebRtc.IceConnectionState> =
+    private val iceCandidatesFlow: MutableSharedFlow<WebRtc.IceCandidate> =
+        MutableSharedFlow(config.iceCandidatesReplay)
+    private val iceConnectionStateFlow: MutableStateFlow<WebRtc.IceConnectionState> =
         MutableStateFlow(WebRtc.IceConnectionState.NEW)
-    val connectionStateFlow: MutableStateFlow<WebRtc.ConnectionState> =
+    private val connectionStateFlow: MutableStateFlow<WebRtc.ConnectionState> =
         MutableStateFlow(WebRtc.ConnectionState.NEW)
-    val iceGatheringStateFlow: MutableStateFlow<WebRtc.IceGatheringState> =
+    private val iceGatheringStateFlow: MutableStateFlow<WebRtc.IceGatheringState> =
         MutableStateFlow(WebRtc.IceGatheringState.NEW)
-    val signalingStateFlow: MutableStateFlow<WebRtc.SignalingState> =
+    private val signalingStateFlow: MutableStateFlow<WebRtc.SignalingState> =
         MutableStateFlow(WebRtc.SignalingState.STABLE)
-    val trackEventsFlow: MutableSharedFlow<TrackEvent> = MutableSharedFlow(config.remoteTracksReplay)
-    val statsFlow: MutableStateFlow<List<WebRtc.Stats>> = MutableStateFlow(listOf())
-    val negotiationNeededFlow: MutableSharedFlow<Unit> = MutableSharedFlow()
+    private val trackEventsFlow: MutableSharedFlow<TrackEvent> = MutableSharedFlow(config.remoteTracksReplay)
+    private val statsFlow: MutableStateFlow<List<WebRtc.Stats>> = MutableStateFlow(listOf())
+    private val negotiationNeededFlow: MutableSharedFlow<Unit> = MutableSharedFlow()
 
     // Public flows
     override val stats: StateFlow<List<WebRtc.Stats>> = statsFlow.asStateFlow()
