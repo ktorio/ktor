@@ -157,8 +157,16 @@ internal class DefaultWebSocketSessionImpl(
 
         _extensions.addAll(negotiatedExtensions)
         runOrCancelPinger()
-        runIncomingProcessor(ponger(outgoing))
-        runOutgoingProcessor()
+
+        val incomingJob = runIncomingProcessor(ponger(outgoing))
+        val outgoingJob = runOutgoingProcessor()
+
+        launch {
+            incomingJob.join()
+            outgoingJob.join()
+
+            context.cancel()
+        }
     }
 
     /**
@@ -297,6 +305,7 @@ internal class DefaultWebSocketSessionImpl(
     private suspend fun sendCloseSequence(reason: CloseReason?, exception: Throwable? = null) {
         if (!tryClose()) return
         LOGGER.trace { "Sending Close Sequence for session $this with reason $reason and exception $exception" }
+        // don't cancel because sendCloseSequence is invoked inside a child coroutine of this context
         context.complete()
 
         val reasonToSend = reason ?: CloseReason(CloseReason.Codes.NORMAL, "")
