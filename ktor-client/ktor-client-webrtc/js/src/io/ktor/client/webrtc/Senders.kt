@@ -3,27 +3,19 @@
  */
 package io.ktor.client.webrtc
 
-import io.ktor.client.webrtc.browser.RTCDTMFSender
-import io.ktor.client.webrtc.browser.RTCRtcpParameters
-import io.ktor.client.webrtc.browser.RTCRtpCodecParameters
-import io.ktor.client.webrtc.browser.RTCRtpEncodingParameters
-import io.ktor.client.webrtc.browser.RTCRtpSendParameters
-import io.ktor.client.webrtc.browser.RTCRtpSender
+import io.ktor.client.webrtc.browser.*
 import kotlinx.coroutines.await
-import org.w3c.dom.mediacapture.MediaStream
 
-public class JsRtpSender(public val nativeSender: RTCRtpSender) : WebRtc.RtpSender {
+/**
+ * Wrapper for RTCRtpSender.
+ */
+public class JsRtpSender(internal val nativeSender: RTCRtpSender) : WebRtc.RtpSender {
     override val dtmf: WebRtc.DtmfSender? get() = nativeSender.dtmf?.let { JsDtmfSender(it) }
 
     override val track: WebRtcMedia.Track?
         get() = nativeSender.track?.let {
-            JsMediaTrack.from(
-                it,
-                MediaStream()
-            )
+            JsMediaTrack.from(it)
         }
-
-    override fun <T> getNative(): T = nativeSender as? T ?: error("T should be RTCRtpSender")
 
     override suspend fun replaceTrack(withTrack: WebRtcMedia.Track?) {
         nativeSender.replaceTrack((withTrack as? JsMediaTrack)?.nativeTrack)
@@ -38,20 +30,24 @@ public class JsRtpSender(public val nativeSender: RTCRtpSender) : WebRtc.RtpSend
     }
 }
 
-public class JsDtmfSender(private val nativeSender: RTCDTMFSender) : WebRtc.DtmfSender {
+/**
+ * Wrapper for RTCRtpSender.
+ */
+public class JsDtmfSender(internal val nativeSender: RTCDTMFSender) : WebRtc.DtmfSender {
     override val toneBuffer: String
         get() = nativeSender.toneBuffer
-    override val canInsertDTMF: Boolean
+    override val canInsertDtmf: Boolean
         get() = nativeSender.canInsertDTMF
 
-    override fun <T> getNative(): T = nativeSender as? T ?: error("T should be RTCDTMFSender")
-
-    override fun insertDTMF(tones: String, duration: Int, interToneGap: Int) {
+    override fun insertDtmf(tones: String, duration: Int, interToneGap: Int) {
         nativeSender.insertDTMF(tones, duration, interToneGap)
     }
 }
 
-public class JsRtpParameters(public val nativeRtpParameters: RTCRtpSendParameters) : WebRtc.RtpParameters {
+/**
+ * Wrapper for RTCRtpSendParameters.
+ */
+public class JsRtpParameters(internal val nativeRtpParameters: RTCRtpSendParameters) : WebRtc.RtpParameters {
     override val transactionId: String = nativeRtpParameters.transactionId
     override val encodings: Iterable<RTCRtpEncodingParameters> = nativeRtpParameters.encodings.asIterable()
     override val codecs: Iterable<RTCRtpCodecParameters> = nativeRtpParameters.codecs.asIterable()
@@ -68,4 +64,28 @@ public class JsRtpParameters(public val nativeRtpParameters: RTCRtpSendParameter
 
     override val degradationPreference: WebRtc.DegradationPreference
         get() = nativeRtpParameters.degradationPreference.toDegradationPreference()
+}
+
+/**
+ * Returns implementation of the rtp sender that is used under the hood. Use it with caution.
+ */
+public fun WebRtc.RtpSender.getNative(): RTCRtpSender {
+    val sender = this as? JsRtpSender ?: error("Wrong sender implementation.")
+    return sender.nativeSender
+}
+
+/**
+ * Returns implementation of the dtmf sender that is used under the hood. Use it with caution.
+ */
+public fun WebRtc.DtmfSender.getNative(): RTCDTMFSender {
+    val sender = this as? JsDtmfSender ?: error("Wrong sender implementation.")
+    return sender.nativeSender
+}
+
+/**
+ * Returns implementation of the rtp parameters that is used under the hood. Use it with caution.
+ */
+public fun WebRtc.RtpParameters.getNative(): RTCRtpSendParameters {
+    val parameters = this as? JsRtpParameters ?: error("Wrong parameters implementation.")
+    return parameters.nativeRtpParameters
 }
