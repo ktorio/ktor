@@ -5,22 +5,10 @@
 package io.ktor.client.webrtc
 
 import io.ktor.client.webrtc.browser.navigator
-import io.ktor.client.webrtc.utils.toJS
+import io.ktor.client.webrtc.utils.toJs
 import kotlinx.coroutines.await
-import org.w3c.dom.mediacapture.MediaStream
 import org.w3c.dom.mediacapture.MediaStreamConstraints
 import org.w3c.dom.mediacapture.MediaStreamTrack
-
-private inline fun <T> withPermissionException(mediaType: String, block: () -> T): T {
-    try {
-        return block()
-    } catch (e: Throwable) {
-        if (e.message?.contains("Permission denied") == true) {
-            throw WebRtcMedia.PermissionException(mediaType)
-        }
-        throw e
-    }
-}
 
 /**
  * MediaTrackFactory based on browser Navigator MediaDevices.
@@ -29,16 +17,16 @@ private inline fun <T> withPermissionException(mediaType: String, block: () -> T
 public object NavigatorMediaDevices : MediaTrackFactory {
     override suspend fun createAudioTrack(constraints: WebRtcMedia.AudioTrackConstraints): WebRtcMedia.AudioTrack =
         withPermissionException("audio") {
-            val streamConstrains = MediaStreamConstraints(audio = constraints.toJS())
+            val streamConstrains = MediaStreamConstraints(audio = constraints.toJs())
             val mediaStream = navigator.mediaDevices.getUserMedia(streamConstrains).await()
-            return JsAudioTrack(mediaStream.getAudioTracks()[0], mediaStream)
+            return JsAudioTrack(mediaStream.getAudioTracks()[0])
         }
 
     override suspend fun createVideoTrack(constraints: WebRtcMedia.VideoTrackConstraints): WebRtcMedia.VideoTrack =
         withPermissionException("video") {
-            val streamConstrains = MediaStreamConstraints(audio = constraints.toJS())
+            val streamConstrains = MediaStreamConstraints(video = constraints.toJs())
             val mediaStream = navigator.mediaDevices.getUserMedia(streamConstrains).await()
-            return JsVideoTrack(mediaStream.getVideoTracks()[0], mediaStream)
+            return JsVideoTrack(mediaStream.getVideoTracks()[0])
         }
 }
 
@@ -46,8 +34,7 @@ public object NavigatorMediaDevices : MediaTrackFactory {
  * Wrapper for MediaStreamTrack.
  **/
 public abstract class JsMediaTrack(
-    public val nativeTrack: MediaStreamTrack,
-    public val nativeStream: MediaStream
+    internal val nativeTrack: MediaStreamTrack
 ) : WebRtcMedia.Track {
     public override val id: String = nativeTrack.id
     public override val kind: WebRtcMedia.TrackType = nativeTrack.kind.toTrackKind()
@@ -59,25 +46,26 @@ public abstract class JsMediaTrack(
         nativeTrack.enabled = enabled
     }
 
-    override fun <T> getNative(): T = nativeTrack as? T ?: error("T should be MediaStreamTrack")
-
     override fun close() {
         nativeTrack.stop()
     }
 
     public companion object {
-        public fun from(
-            nativeTrack: MediaStreamTrack,
-            nativeStream: MediaStream
-        ): JsMediaTrack = when (nativeTrack.kind.toTrackKind()) {
-            WebRtcMedia.TrackType.AUDIO -> JsAudioTrack(nativeTrack, nativeStream)
-            WebRtcMedia.TrackType.VIDEO -> JsVideoTrack(nativeTrack, nativeStream)
-        }
+        public fun from(nativeTrack: MediaStreamTrack): JsMediaTrack =
+            when (nativeTrack.kind.toTrackKind()) {
+                WebRtcMedia.TrackType.AUDIO -> JsAudioTrack(nativeTrack)
+                WebRtcMedia.TrackType.VIDEO -> JsVideoTrack(nativeTrack)
+            }
     }
 }
 
-public class JsAudioTrack(nativeTrack: MediaStreamTrack, nativeStream: MediaStream) :
-    WebRtcMedia.AudioTrack, JsMediaTrack(nativeTrack, nativeStream)
+public class JsAudioTrack(nativeTrack: MediaStreamTrack) :
+    WebRtcMedia.AudioTrack, JsMediaTrack(nativeTrack)
 
-public class JsVideoTrack(nativeTrack: MediaStreamTrack, nativeStream: MediaStream) :
-    WebRtcMedia.VideoTrack, JsMediaTrack(nativeTrack, nativeStream)
+public class JsVideoTrack(nativeTrack: MediaStreamTrack) :
+    WebRtcMedia.VideoTrack, JsMediaTrack(nativeTrack)
+
+public fun WebRtcMedia.Track.getNative(): MediaStreamTrack {
+    val track = this as? JsMediaTrack ?: error("Wrong track implementation.")
+    return track.nativeTrack
+}

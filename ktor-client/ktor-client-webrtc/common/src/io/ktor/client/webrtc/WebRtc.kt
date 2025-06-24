@@ -10,13 +10,13 @@ import kotlinx.serialization.Serializable
  * An object containing WebRtc protocol entities and abstractions.
  * Provides the core types and interfaces needed for WebRtc peer-to-peer communication.
  *
- * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/WebRtc_API">MDN WebRtc API</a>
+ * @see [MDN WebRtc API](https://developer.mozilla.org/en-US/docs/Web/API/WebRtc_API)
  */
 public object WebRtc {
     /**
      * Represents the state of the ICE connection.
      *
-     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/iceConnectionState">MDN iceConnectionState</a>
+     * @see [MDN iceConnectionState](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/iceConnectionState)
      */
     public enum class IceConnectionState {
         NEW,
@@ -33,7 +33,7 @@ public object WebRtc {
     /**
      * Represents the state of the ICE gathering process.
      *
-     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/iceGatheringState">MDN iceGatheringState</a>
+     * @see [MDN iceGatheringState](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/iceGatheringState)
      */
     public enum class IceGatheringState {
         NEW,
@@ -44,7 +44,7 @@ public object WebRtc {
     /**
      * Represents the state of the peer connection.
      *
-     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/connectionState">MDN connectionState</a>
+     * @see [MDN connectionState](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/connectionState)
      */
     public enum class ConnectionState {
         NEW,
@@ -58,7 +58,7 @@ public object WebRtc {
     /**
      * Represents the signaling state of the peer connection.
      *
-     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/signalingState">MDN signalingState</a>
+     * @see [MDN signalingState](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/signalingState)
      */
     public enum class SignalingState {
         STABLE,
@@ -77,7 +77,7 @@ public object WebRtc {
      * @property timestamp The timestamp when these statistics were collected.
      * @property props Additional properties specific to the statistics type.
      *
-     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/RTCStats">MDN RTCStats</a>
+     * @see [MDN RTCStats](https://developer.mozilla.org/en-US/docs/Web/API/RTCStats)
      */
     public data class Stats(
         val id: String,
@@ -93,7 +93,7 @@ public object WebRtc {
      * @property username Optional username for the ICE server.
      * @property credential Optional credential for the ICE server.
      *
-     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/RTCIceServer">MDN RTCIceServer</a>
+     * @see [MDN RTCIceServer](https://developer.mozilla.org/en-US/docs/Web/API/RTCIceServer)
      */
     public data class IceServer(
         val urls: String,
@@ -104,7 +104,7 @@ public object WebRtc {
     /**
      * Represents the bundle policy for media negotiation.
      *
-     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/RTCConfiguration/bundlePolicy">MDN bundlePolicy</a>
+     * @see [MDN bundlePolicy](https://developer.mozilla.org/en-US/docs/Web/API/RTCConfiguration/bundlePolicy)
      */
     public enum class BundlePolicy {
         MAX_BUNDLE,
@@ -115,7 +115,7 @@ public object WebRtc {
     /**
      * Represents the ICE candidate policy for the connection.
      *
-     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/RTCConfiguration/iceTransportPolicy">MDN iceTransportPolicy</a>
+     * @see [MDN iceTransportPolicy](https://developer.mozilla.org/en-US/docs/Web/API/RTCConfiguration/iceTransportPolicy)
      */
     public enum class IceTransportPolicy {
         ALL,
@@ -125,9 +125,9 @@ public object WebRtc {
     /**
      * Represents the RTCP mux policy for the connection.
      *
-     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/RTCConfiguration/rtcpMuxPolicy">MDN rtcpMuxPolicy</a>
+     * @see [MDN rtcpMuxPolicy](https://developer.mozilla.org/en-US/docs/Web/API/RTCConfiguration/rtcpMuxPolicy)
      */
-    public enum class RTCPMuxPolicy {
+    public enum class RtcpMuxPolicy {
         NEGOTIATE,
         REQUIRE
     }
@@ -139,7 +139,7 @@ public object WebRtc {
      * @property sdpMid The media stream identifier for the candidate.
      * @property sdpMLineIndex The index of the media description in the SDP.
      *
-     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/RTCIceCandidate">MDN RTCIceCandidate</a>
+     * @see [MDN RTCIceCandidate](https://developer.mozilla.org/en-US/docs/Web/API/RTCIceCandidate)
      */
     @Serializable
     public data class IceCandidate(
@@ -154,7 +154,7 @@ public object WebRtc {
      * @property type The type of the session description.
      * @property sdp The SDP (Session Description Protocol) string.
      *
-     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/RTCSessionDescription">MDN RTCSessionDescription</a>
+     * @see [MDN RTCSessionDescription](https://developer.mozilla.org/en-US/docs/Web/API/RTCSessionDescription)
      */
     @Serializable
     public data class SessionDescription(
@@ -165,7 +165,7 @@ public object WebRtc {
     /**
      * Represents the type of session description in the WebRtc connection process.
      *
-     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/RTCSessionDescription">MDN RTCSessionDescription</a>
+     * @see [MDN RTCSessionDescription](https://developer.mozilla.org/en-US/docs/Web/API/RTCSessionDescription)
      */
     @Serializable
     public enum class SessionDescriptionType {
@@ -179,19 +179,14 @@ public object WebRtc {
      * Interface for sending DTMF (Dual-Tone Multi-Frequency) tones.
      *
      * @property toneBuffer The tone buffer containing the tones to be played.
-     * @property canInsertDTMF Whether DTMF tones can be inserted.
+     * @property canInsertDtmf Whether DTMF tones can be inserted.
      *
-     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/RTCDTMFSender">MDN RTCDTMFSender</a>
+     * @see [MDN RTCDTMFSender](https://developer.mozilla.org/en-US/docs/Web/API/RTCDTMFSender)
      */
     public interface DtmfSender {
         public val toneBuffer: String
-        public val canInsertDTMF: Boolean
-        public fun insertDTMF(tones: String, duration: Int, interToneGap: Int)
-
-        /**
-         * @return Native platform-specific object representing this DtmfSender.
-         */
-        public fun <T> getNative(): T
+        public val canInsertDtmf: Boolean
+        public fun insertDtmf(tones: String, duration: Int, interToneGap: Int)
     }
 
     /**
@@ -201,7 +196,7 @@ public object WebRtc {
      * @property uri The URI of the header extension.
      * @property encrypted Whether the header extension is encrypted.
      *
-     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpHeaderExtension">MDN RTCRtpHeaderExtension</a>
+     * @see [MDN RTCRtpHeaderExtension](https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpHeaderExtension)
      */
     public data class RtpHeaderExtensionParameters(
         val id: Int,
@@ -219,7 +214,7 @@ public object WebRtc {
      * @property degradationPreference The degradation preference for the media quality.
      * @property encodings The encoding parameters for the media.
      *
-     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpParameters">MDN RTCRtpParameters</a>
+     * @see [MDN RTCRtpParameters](https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpParameters)
      */
     public interface RtpParameters {
         public val transactionId: String
@@ -234,7 +229,7 @@ public object WebRtc {
     /**
      * Represents the degradation preference for media quality when bandwidth is constrained.
      *
-     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpParameters/degradationPreference">MDN degradationPreference</a>
+     * @see [MDN degradationPreference](https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpParameters/degradationPreference)
      */
     public enum class DegradationPreference {
         DISABLED,
@@ -249,7 +244,7 @@ public object WebRtc {
      * @property dtmf The DTMF sender associated with this RTP sender.
      * @property track The media track being sent.
      *
-     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpSender">MDN RTCRtpSender</a>
+     * @see [MDN RTCRtpSender](https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpSender)
      */
     public interface RtpSender {
         public val dtmf: DtmfSender?
@@ -258,20 +253,17 @@ public object WebRtc {
         public suspend fun replaceTrack(withTrack: WebRtcMedia.Track?)
         public suspend fun getParameters(): RtpParameters
         public suspend fun setParameters(parameters: RtpParameters)
-
-        /**
-         * @return Native platform-specific object representing this DtmfSender.
-         */
-        public fun <T> getNative(): T
     }
 
     /**
-     * Exception thrown when there is an issue with Session Description Protocol (SDP) processing.
+     * This exception indicates problems with creating, parsing, or validating SDP descriptions
+     * during the WebRTC connection establishment process.
      */
     public class SdpException(message: String?, cause: Throwable? = null) : RuntimeException(message, cause)
 
     /**
-     * Exception thrown when there is an issue with Interactive Connectivity Establishment (ICE) processing.
+     * This exception indicates problems with ICE candidates gathering, processing, or connectivity
+     * during the WebRTC peer connection establishment.
      */
     public class IceException(message: String?, cause: Throwable? = null) : RuntimeException(message, cause)
 }

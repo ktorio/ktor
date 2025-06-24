@@ -13,7 +13,7 @@ actual fun makeDummyAudioStreamTrack(): WebRtcMedia.AudioTrack {
     val oscillator = ctx.createOscillator()
     val dst = oscillator.connect(ctx.createMediaStreamDestination())
     oscillator.start()
-    return JsAudioTrack(dst.stream.getAudioTracks()[0], dst.stream)
+    return JsAudioTrack(dst.stream.getAudioTracks()[0])
 }
 
 actual fun makeDummyVideoStreamTrack(width: Int, height: Int): WebRtcMedia.VideoTrack {
@@ -23,5 +23,5 @@ actual fun makeDummyVideoStreamTrack(width: Int, height: Int): WebRtcMedia.Video
     val ctx = canvas.getContext("2d") as CanvasRenderingContext2D
     ctx.fillRect(0.0, 0.0, width.toDouble(), height.toDouble())
     val stream = canvas.captureStream()
-    return JsVideoTrack(stream.getVideoTracks()[0], stream)
+    return JsVideoTrack(stream.getVideoTracks()[0])
 }

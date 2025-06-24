@@ -4,8 +4,8 @@
 
 package io.ktor.client.webrtc
 
-import io.ktor.client.webrtc.browser.*
-import io.ktor.client.webrtc.utils.*
+import io.ktor.client.webrtc.browser.navigator
+import io.ktor.client.webrtc.utils.toJs
 import kotlinx.coroutines.await
 import org.w3c.dom.mediacapture.MediaStream
 import org.w3c.dom.mediacapture.MediaStreamConstraints
@@ -18,16 +18,16 @@ import org.w3c.dom.mediacapture.MediaStreamTrack
 public object NavigatorMediaDevices : MediaTrackFactory {
     override suspend fun createAudioTrack(constraints: WebRtcMedia.AudioTrackConstraints): WebRtcMedia.AudioTrack =
         withPermissionException("audio") {
-            val streamConstrains = MediaStreamConstraints(audio = constraints.toJS())
+            val streamConstrains = MediaStreamConstraints(audio = constraints.toJs())
             val mediaStream = navigator.mediaDevices.getUserMedia(streamConstrains).await<MediaStream>()
-            return WasmJsAudioTrack(mediaStream.getAudioTracks()[0]!!, mediaStream)
+            return WasmJsAudioTrack(mediaStream.getAudioTracks().toArray()[0])
         }
 
     override suspend fun createVideoTrack(constraints: WebRtcMedia.VideoTrackConstraints): WebRtcMedia.VideoTrack =
         withPermissionException("video") {
-            val streamConstrains = MediaStreamConstraints(audio = constraints.toJS())
+            val streamConstrains = MediaStreamConstraints(video = constraints.toJs())
             val mediaStream = navigator.mediaDevices.getUserMedia(streamConstrains).await<MediaStream>()
-            return WasmJsVideoTrack(mediaStream.getVideoTracks()[0]!!, mediaStream)
+            return WasmJsVideoTrack(mediaStream.getVideoTracks().toArray()[0])
         }
 }
 
@@ -35,11 +35,11 @@ public object NavigatorMediaDevices : MediaTrackFactory {
  * Wrapper for MediaStreamTrack.
  **/
 public abstract class WasmJsMediaTrack(
-    public val nativeTrack: MediaStreamTrack,
-    public val nativeStream: MediaStream
+    internal val nativeTrack: MediaStreamTrack
 ) : WebRtcMedia.Track {
     public override val id: String = nativeTrack.id
     public override val kind: WebRtcMedia.TrackType = nativeTrack.kind.toTrackKind()
+
     public override val enabled: Boolean
         get() = nativeTrack.enabled
 
@@ -47,25 +47,26 @@ public abstract class WasmJsMediaTrack(
         nativeTrack.enabled = enabled
     }
 
-    override fun <T> getNative(): T = nativeTrack as? T ?: error("T should be MediaStreamTrack")
-
     override fun close() {
         nativeTrack.stop()
     }
 
     public companion object {
-        public fun from(
-            nativeTrack: MediaStreamTrack,
-            nativeStream: MediaStream
-        ): WasmJsMediaTrack = when (nativeTrack.kind.toTrackKind()) {
-            WebRtcMedia.TrackType.AUDIO -> WasmJsAudioTrack(nativeTrack, nativeStream)
-            WebRtcMedia.TrackType.VIDEO -> WasmJsVideoTrack(nativeTrack, nativeStream)
-        }
+        public fun from(nativeTrack: MediaStreamTrack): WasmJsMediaTrack =
+            when (nativeTrack.kind.toTrackKind()) {
+                WebRtcMedia.TrackType.AUDIO -> WasmJsAudioTrack(nativeTrack)
+                WebRtcMedia.TrackType.VIDEO -> WasmJsVideoTrack(nativeTrack)
+            }
     }
 }
 
-public class WasmJsAudioTrack(nativeTrack: MediaStreamTrack, nativeStream: MediaStream) :
-    WebRtcMedia.AudioTrack, WasmJsMediaTrack(nativeTrack, nativeStream)
+public class WasmJsAudioTrack(nativeTrack: MediaStreamTrack) :
+    WebRtcMedia.AudioTrack, WasmJsMediaTrack(nativeTrack)
 
-public class WasmJsVideoTrack(nativeTrack: MediaStreamTrack, nativeStream: MediaStream) :
-    WebRtcMedia.VideoTrack, WasmJsMediaTrack(nativeTrack, nativeStream)
+public class WasmJsVideoTrack(nativeTrack: MediaStreamTrack) :
+    WebRtcMedia.VideoTrack, WasmJsMediaTrack(nativeTrack)
+
+public fun WebRtcMedia.Track.getNative(): MediaStreamTrack {
+    val track = this as? WasmJsMediaTrack ?: error("Wrong track implementation.")
+    return track.nativeTrack
+}

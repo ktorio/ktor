@@ -15,14 +15,14 @@ public class JsWebRtcEngine(
     override suspend fun createPeerConnection(connectionConfig: WebRtcConnectionConfig?): WebRtcPeerConnection {
         val config = connectionConfig ?: WebRtcConnectionConfig().apply(config.defaultConnectionConfig)
         val rtcConfig = jsObject<RTCConfiguration> {
-            bundlePolicy = config.bundlePolicy.toJs()
-            rtcpMuxPolicy = config.rtcpMuxPolicy.toJs()
-            iceCandidatePoolSize = config.iceCandidatePoolSize
-            iceTransportPolicy = config.iceTransportPolicy.toJs()
-            iceServers = config.iceServers.map { it.toJs() }.toTypedArray()
+            bundlePolicy = config.bundlePolicy.toJs().toJsString()
+            rtcpMuxPolicy = config.rtcpMuxPolicy.toJs().toJsString()
+            iceCandidatePoolSize = config.iceCandidatePoolSize.toJsNumber()
+            iceTransportPolicy = config.iceTransportPolicy.toJs().toJsString()
+            iceServers = config.iceServers.map { it.toJs() }.toJsArray()
         }
         val peerConnection = RTCPeerConnection(rtcConfig)
-        return JsWebRtcPeerConnection(
+        return WasmJsWebRtcPeerConnection(
             peerConnection,
             coroutineContext,
             config
