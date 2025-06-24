@@ -7,7 +7,9 @@ package io.ktor.server.application
 import io.ktor.events.*
 import io.ktor.server.config.*
 import io.ktor.util.logging.*
-import kotlin.coroutines.*
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.ContinuationInterceptor
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Represents an environment in which [Application] runs
@@ -65,8 +67,7 @@ internal actual class ApplicationRootConfigBridge actual constructor(
 }
 
 private object ClassLoaderAwareContinuationInterceptor : ContinuationInterceptor {
-    override val key: CoroutineContext.Key<*> =
-        object : CoroutineContext.Key<ClassLoaderAwareContinuationInterceptor> {}
+    override val key: CoroutineContext.Key<*> = ContinuationInterceptor.Key
 
     override fun <T> interceptContinuation(continuation: Continuation<T>): Continuation<T> {
         val classLoader = Thread.currentThread().contextClassLoader
