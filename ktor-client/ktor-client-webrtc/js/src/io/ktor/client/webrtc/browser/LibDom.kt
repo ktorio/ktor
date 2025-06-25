@@ -25,7 +25,7 @@ public external interface ReadonlyMap<K> {
 
     public fun <V> get(key: K): V?
     public fun has(key: K): Boolean
-    public var size: Number
+    public val size: Number
 }
 
 public external interface Navigator {
