@@ -41,7 +41,7 @@ public open class RoutingNode(
      */
     public val children: List<RoutingNode> get() = childList
 
-    internal val childList: MutableList<RoutingNode> = mutableListOf()
+    private val childList: MutableList<RoutingNode> = mutableListOf()
 
     private var cachedPipeline: ApplicationCallPipeline? = null
 

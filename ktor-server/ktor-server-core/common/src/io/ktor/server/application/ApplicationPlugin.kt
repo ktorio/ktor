@@ -168,10 +168,8 @@ private fun <B : Any, F : Any> RoutingNode.installIntoRoute(
     val installed = plugin.install(fakePipeline, configure)
     pluginRegistry.put(plugin.key, installed)
 
-    if (fakePipeline.children.isNotEmpty()) { // We need to transfer nodes added into the fake pipeline
-        for (child in fakePipeline.children) {
-            copyChildrenRecursively(child)
-        }
+    for (child in fakePipeline.children) { // We need to transfer nodes added into the fake pipeline
+        copyChildrenRecursively(child)
     }
 
     mergePhases(fakePipeline)
