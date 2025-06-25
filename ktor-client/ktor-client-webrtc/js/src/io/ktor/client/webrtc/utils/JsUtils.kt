@@ -20,27 +20,27 @@ internal inline fun <T : Any> jsObject(init: T.() -> Unit): T {
 }
 
 internal fun WebRtcMedia.AudioTrackConstraints.toJs(): MediaTrackConstraints {
-    return MediaTrackConstraints(
-        volume = volume,
-        latency = latency,
-        sampleRate = sampleRate,
-        sampleSize = sampleSize,
-        echoCancellation = echoCancellation,
-        autoGainControl = autoGainControl,
-        noiseSuppression = noiseSuppression,
-        channelCount = channelCount,
-    )
+    return jsObject {
+        volume = this@toJs.volume
+        latency = this@toJs.latency
+        sampleRate = this@toJs.sampleRate
+        sampleSize = this@toJs.sampleSize
+        echoCancellation = this@toJs.echoCancellation
+        autoGainControl = this@toJs.autoGainControl
+        noiseSuppression = this@toJs.noiseSuppression
+        channelCount = this@toJs.channelCount
+    }
 }
 
 internal fun WebRtcMedia.VideoTrackConstraints.toJs(): MediaTrackConstraints {
-    return MediaTrackConstraints(
-        width = width,
-        height = height,
-        aspectRatio = aspectRatio,
-        facingMode = facingMode?.toJs(),
-        frameRate = frameRate,
-        resizeMode = resizeMode?.toJs(),
-    )
+    return jsObject {
+        width = this@toJs.width
+        height = this@toJs.height
+        aspectRatio = this@toJs.aspectRatio
+        facingMode = this@toJs.facingMode?.toJs()
+        frameRate = this@toJs.frameRate
+        resizeMode = this@toJs.resizeMode?.toJs()
+    }
 }
 
 /**

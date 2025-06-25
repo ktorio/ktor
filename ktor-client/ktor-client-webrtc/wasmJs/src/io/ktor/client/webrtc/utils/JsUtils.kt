@@ -25,27 +25,27 @@ internal inline fun <T : JsAny> jsObject(init: T.() -> Unit): T {
 }
 
 internal fun WebRtcMedia.AudioTrackConstraints.toJs(): MediaTrackConstraints {
-    return MediaTrackConstraints(
-        volume = volume?.toJsNumber(),
-        latency = latency?.toJsNumber(),
-        sampleRate = sampleRate?.toJsNumber(),
-        sampleSize = sampleSize?.toJsNumber(),
-        echoCancellation = echoCancellation?.toJsBoolean(),
-        autoGainControl = autoGainControl?.toJsBoolean(),
-        noiseSuppression = noiseSuppression?.toJsBoolean(),
-        channelCount = channelCount?.toJsNumber(),
-    )
+    return jsObject {
+        volume = this@toJs.volume?.toJsNumber()
+        latency = this@toJs.latency?.toJsNumber()
+        sampleRate = this@toJs.sampleRate?.toJsNumber()
+        sampleSize = this@toJs.sampleSize?.toJsNumber()
+        echoCancellation = this@toJs.echoCancellation?.toJsBoolean()
+        autoGainControl = this@toJs.autoGainControl?.toJsBoolean()
+        noiseSuppression = this@toJs.noiseSuppression?.toJsBoolean()
+        channelCount = this@toJs.channelCount?.toJsNumber()
+    }
 }
 
 internal fun WebRtcMedia.VideoTrackConstraints.toJs(): MediaTrackConstraints {
-    return MediaTrackConstraints(
-        width = width?.toJsNumber(),
-        height = height?.toJsNumber(),
-        aspectRatio = aspectRatio?.toJsNumber(),
-        facingMode = facingMode?.toJs()?.toJsString(),
-        frameRate = frameRate?.toJsNumber(),
-        resizeMode = resizeMode?.toJs()?.toJsString(),
-    )
+    return jsObject {
+        width = this@toJs.width?.toJsNumber()
+        height = this@toJs.height?.toJsNumber()
+        aspectRatio = this@toJs.aspectRatio?.toJsNumber()
+        facingMode = this@toJs.facingMode?.toJs()?.toJsString()
+        frameRate = this@toJs.frameRate?.toJsNumber()
+        resizeMode = this@toJs.resizeMode?.toJs()?.toJsString()
+    }
 }
 
 internal fun WebRtc.IceServer.toJs(): RTCIceServer = jsObject {
