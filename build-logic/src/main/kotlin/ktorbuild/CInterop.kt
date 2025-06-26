@@ -9,6 +9,7 @@ import org.gradle.kotlin.dsl.assign
 import org.gradle.kotlin.dsl.getValue
 import org.gradle.kotlin.dsl.provideDelegate
 import org.gradle.kotlin.dsl.withType
+import org.jetbrains.dokka.gradle.tasks.DokkaGeneratePublicationTask
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.mpp.DefaultCInteropSettings
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
@@ -68,5 +69,10 @@ fun KotlinMultiplatformExtension.createCInterop(
     // Disable configuration cache for compile[target]MainKotlinMetadata tasks
     project.tasks.withType<KotlinNativeCompile>()
         .named { it.endsWith("MainKotlinMetadata") }
+        .configureEach { notCompatibleWithConfigurationCache("Workaround for KT-76147") }
+
+    // The problem with compile*MainKotlinMetadata tasks also affects Dokka tasks
+    project.tasks.withType<DokkaGeneratePublicationTask>()
+        .named { it == "dokkaGeneratePublicationHtml" }
         .configureEach { notCompatibleWithConfigurationCache("Workaround for KT-76147") }
 }
