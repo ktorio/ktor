@@ -281,7 +281,7 @@ class TCPSocketTest {
                     socket.awaitClosed()
                 }
             } catch (cause: TimeoutCancellationException) {
-                fail("Dead lock while closing server socket", cause)
+                fail("Dead lock while closing a socket", cause)
             }
         }
 
