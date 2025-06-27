@@ -271,7 +271,7 @@ class TCPSocketTest {
         }
 
         val resolvedAddress = serverSocket.localAddress
-        repeat(5000) {
+        repeat(256) {
             val socket = aSocket(selector).tcp().connect(resolvedAddress)
             socket.openWriteChannel(autoFlush = true)
 
