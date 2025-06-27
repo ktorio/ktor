@@ -9,8 +9,8 @@ import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
 import io.ktor.utils.io.*
-import org.thymeleaf.TemplateEngine
-import org.thymeleaf.context.Context
+import org.thymeleaf.*
+import org.thymeleaf.context.*
 import java.util.*
 
 /**
