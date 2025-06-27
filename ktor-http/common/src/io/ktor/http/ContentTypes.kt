@@ -251,10 +251,18 @@ public class ContentType private constructor(
         public const val TYPE: String = "image"
 
         public val Any: ContentType = ContentType(TYPE, "*")
+        public val APNG: ContentType = ContentType(TYPE, "apng")
+        public val AVIF: ContentType = ContentType(TYPE, "avif")
+        public val BMP: ContentType = ContentType(TYPE, "bmp")
         public val GIF: ContentType = ContentType(TYPE, "gif")
+        public val HEIC: ContentType = ContentType(TYPE, "heic")
+        public val HEIF: ContentType = ContentType(TYPE, "heif")
         public val JPEG: ContentType = ContentType(TYPE, "jpeg")
+        public val JXL: ContentType = ContentType(TYPE, "jxl")
         public val PNG: ContentType = ContentType(TYPE, "png")
         public val SVG: ContentType = ContentType(TYPE, "svg+xml")
+        public val TIFF: ContentType = ContentType(TYPE, "tiff")
+        public val WEBP: ContentType = ContentType(TYPE, "webp")
         public val XIcon: ContentType = ContentType(TYPE, "x-icon")
 
         /** Checks that the given [contentType] has type `image/`. */
