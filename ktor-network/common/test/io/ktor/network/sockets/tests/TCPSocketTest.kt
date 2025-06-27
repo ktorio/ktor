@@ -4,6 +4,7 @@
 
 package io.ktor.network.sockets.tests
 
+import io.ktor.network.selector.SelectorManager
 import io.ktor.network.sockets.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
@@ -255,5 +256,36 @@ class TCPSocketTest {
             socket.close()
             socket.awaitClosed()
         }
+    }
+
+    @Test
+    fun testAwaitClosedDoesNotDeadLock() = testSockets { selector ->
+        val address = InetSocketAddress("127.0.0.1", 0)
+        val serverSocket = aSocket(SelectorManager(Dispatchers.Default)).tcp().bind(address)
+
+        val serverJob = launch {
+            while (isActive) {
+                ensureActive()
+                serverSocket.accept()
+            }
+        }
+
+        val resolvedAddress = serverSocket.localAddress
+        repeat(256) {
+            val socket = aSocket(selector).tcp().connect(resolvedAddress)
+            socket.openWriteChannel(autoFlush = true)
+
+            try {
+                withTimeout(500) {
+                    socket.close()
+                    socket.awaitClosed()
+                }
+            } catch (cause: TimeoutCancellationException) {
+                fail("Dead lock while closing a socket", cause)
+            }
+        }
+
+        serverJob.cancelAndJoin()
+        serverSocket.close()
     }
 }
