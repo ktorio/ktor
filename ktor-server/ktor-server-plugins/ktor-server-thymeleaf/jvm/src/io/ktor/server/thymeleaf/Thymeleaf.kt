@@ -9,8 +9,8 @@ import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
 import io.ktor.utils.io.*
-import org.thymeleaf.*
-import org.thymeleaf.context.*
+import org.thymeleaf.TemplateEngine
+import org.thymeleaf.context.Context
 import java.util.*
 
 /**
@@ -28,7 +28,7 @@ import java.util.*
  */
 public class ThymeleafContent(
     public val template: String,
-    public val model: Map<String, Any>,
+    public val model: Map<String, Any?>,
     public val etag: String? = null,
     public val contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8),
     public val locale: Locale = Locale.getDefault(),
