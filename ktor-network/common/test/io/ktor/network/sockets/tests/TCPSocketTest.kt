@@ -261,7 +261,7 @@ class TCPSocketTest {
     @Test
     fun testAwaitClosedDoesNotDeadLock() = testSockets { selector ->
         val address = InetSocketAddress("127.0.0.1", 0)
-        val serverSocket =  aSocket(SelectorManager(Dispatchers.Default)).tcp().bind(address)
+        val serverSocket = aSocket(SelectorManager(Dispatchers.Default)).tcp().bind(address)
 
         val serverJob = launch {
             while (isActive) {
