@@ -286,5 +286,6 @@ class TCPSocketTest {
         }
 
         serverJob.cancelAndJoin()
+        serverSocket.close()
     }
 }
