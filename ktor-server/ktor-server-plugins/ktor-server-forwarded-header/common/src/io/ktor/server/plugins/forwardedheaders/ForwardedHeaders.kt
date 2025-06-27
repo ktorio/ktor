@@ -178,7 +178,7 @@ public val ForwardedHeaders: ApplicationPlugin<ForwardedHeadersConfig> = createA
     ::ForwardedHeadersConfig
 ) {
     fun parseForwardedValue(value: HeaderValue): ForwardedHeaderValue {
-        val map = value.params.associateByTo(HashMap(), { it.name }, { it.value })
+        val map = value.params.associateByTo(HashMap(), { it.name.lowercase() }, { it.value })
 
         return ForwardedHeaderValue(
             map.remove("host"),
