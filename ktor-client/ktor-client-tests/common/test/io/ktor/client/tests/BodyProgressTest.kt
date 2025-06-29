@@ -144,7 +144,7 @@ class BodyProgressTest : ClientLoader() {
                         get() = bodySize.toLong()
                     override fun readFrom(): ByteReadChannel = ByteReadChannel(ByteArray(bodySize))
                 })
-                onUpload { _, _ ->  }
+                onUpload { _, _ -> }
             }
 
             assertEquals(bodySize.toString(), response.bodyAsText())
