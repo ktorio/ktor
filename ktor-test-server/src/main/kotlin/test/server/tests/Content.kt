@@ -48,6 +48,15 @@ internal fun Application.contentTestServer() {
                     }
                 )
             }
+
+            post("/pseudo-auth") {
+                if (call.request.headers.contains("respond")) {
+                    val content = call.request.receiveChannel().toByteArray()
+                    call.respond(content.size.toString())
+                } else {
+                    call.respond(HttpStatusCode.Forbidden)
+                }
+            }
             post("/echo") {
                 val content = call.request.receiveChannel().toByteArray()
                 call.respond(content)
