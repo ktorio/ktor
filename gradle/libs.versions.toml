@@ -68,7 +68,7 @@ jakarta-servlet = "5.0.0"
 ws = "8.18.0"
 xmlutil = "0.91.1"
 yamlkt = "0.13.0"
-kaml = "0.77.1"
+kaml = "0.83.0"
 
 swagger-codegen = "3.0.68"
 swagger-codegen-generators = "1.0.56"
