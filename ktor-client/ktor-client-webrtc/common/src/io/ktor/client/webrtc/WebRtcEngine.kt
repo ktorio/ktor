@@ -9,19 +9,20 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
 
+/**
+ * Constant that indicates to WebRTCConnection that there should be no automatic statistics collection.
+ * E.g., [WebRtcPeerConnection.stats] flow will not emit any events.
+ */
 public const val WEBRTC_STATISTICS_DISABLED: Long = -1
 
 /**
  * Configuration for WebRtc connections.
  *
  * Provides settings for ICE servers, policies, and other parameters needed for WebRtc connections.
- * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/RTCPeerConnection#configuration">MDN RTCPeerConnection config</a>
+ * @see [MDN RTCPeerConnection config](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/RTCPeerConnection#configuration)
  */
 @KtorDsl
-public open class WebRtcConfig {
-    public var mediaTrackFactory: MediaTrackFactory? = null
-    public var dispatcher: CoroutineDispatcher? = null
-
+public open class WebRtcConnectionConfig {
     public var iceServers: List<WebRtc.IceServer> = emptyList()
 
     /**
@@ -31,9 +32,29 @@ public open class WebRtcConfig {
      * */
     public var statsRefreshRate: Long = WEBRTC_STATISTICS_DISABLED
 
+    /**
+     * The size of the prefetched ICE candidate pool.
+     * In some cases, this could speed up the connection establishment process.
+     * Defaults to 0 (meaning no candidate prefetching will occur).
+     */
     public var iceCandidatePoolSize: Int = 0
+
+    /**
+     * Specifies how to handle negotiation of candidates when the remote peer is not compatible with the SDP BUNDLE standard.
+     * Defaults to [WebRtc.BundlePolicy.BALANCED].
+     */
     public var bundlePolicy: WebRtc.BundlePolicy = WebRtc.BundlePolicy.BALANCED
-    public var rtcpMuxPolicy: WebRtc.RTCPMuxPolicy = WebRtc.RTCPMuxPolicy.NEGOTIATE
+
+    /**
+     * A string which specifies the RTCP mux policy to use when gathering ICE candidates to support non-multiplexed RTCP.
+     * Defaults to [WebRtc.RtcpMuxPolicy.REQUIRE].
+     */
+    public var rtcpMuxPolicy: WebRtc.RtcpMuxPolicy = WebRtc.RtcpMuxPolicy.REQUIRE
+
+    /**
+     * Specifies the ICE transport policy to use when gathering ICE candidates.
+     * Defaults to [WebRtc.IceTransportPolicy.ALL].
+     */
     public var iceTransportPolicy: WebRtc.IceTransportPolicy = WebRtc.IceTransportPolicy.ALL
 
     /**
@@ -42,17 +63,36 @@ public open class WebRtcConfig {
     public var remoteTracksReplay: Int = 10
 
     /**
-     * Replay for the shared flow of ICE candidates. Defaults to 10.
+     * Replay for the shared flow of ICE candidates. Defaults to 20.
      * */
     public var iceCandidatesReplay: Int = 20
 }
 
 /**
- * Factory interface for creating audio and video media tracks.
+ * Configuration for the WebRtc client.
+ *
+ * Provides settings for the WebRtc engine, including the dispatcher to use for coroutines,
+ * the media track factory, and default connection configuration.
  */
-public interface MediaTrackFactory {
-    public suspend fun createAudioTrack(constraints: WebRtcMedia.AudioTrackConstraints): WebRtcMedia.AudioTrack
-    public suspend fun createVideoTrack(constraints: WebRtcMedia.VideoTrackConstraints): WebRtcMedia.VideoTrack
+@KtorDsl
+public open class WebRtcConfig {
+    /**
+     * Dispatcher that will be used for coroutines in the background (e.g., emit events).
+     * Defaults to [Dispatchers.IO] if available, or [Dispatchers.Default].
+     */
+    public var dispatcher: CoroutineDispatcher? = null
+
+    /**
+     * Media track factory that will be used to create media tracks.
+     * The specific engine chooses the default implementation.
+     */
+    public var mediaTrackFactory: MediaTrackFactory? = null
+
+    /**
+     * Default configuration for the [WebRtcPeerConnection] which is used
+     * if no extra config is specified when creating the connection.
+     */
+    public var defaultConnectionConfig: (WebRtcConnectionConfig.() -> Unit) = {}
 }
 
 /**
@@ -65,9 +105,10 @@ public interface WebRtcEngine : CoroutineScope, Closeable, MediaTrackFactory {
     public val config: WebRtcConfig
 
     /**
-     * Creates a new peer connection with the configured settings.
+     * Creates a new peer connection with the configured settings. If no configuration is provided,
+     * the default configuration from [WebRtcConfig.defaultConnectionConfig] will be used.
      */
-    public suspend fun createPeerConnection(): WebRtcPeerConnection
+    public suspend fun createPeerConnection(connectionConfig: WebRtcConnectionConfig? = null): WebRtcPeerConnection
 }
 
 /**
@@ -84,13 +125,13 @@ public class WebRtcEngineClosedException :
  * @param engineName Name identifier for the engine, used in coroutine naming.
  */
 public abstract class WebRtcEngineBase(private val engineName: String) : WebRtcEngine {
+    private val job = SupervisorJob()
+    private val scope = CoroutineScope(job + CoroutineName("$engineName-context"))
 
-    override val coroutineContext: CoroutineContext by lazy {
-        val dispatcher = config.dispatcher ?: ioDispatcher()
-        dispatcher + CoroutineName("$engineName-context")
-    }
+    override val coroutineContext: CoroutineContext
+        get() = scope.coroutineContext + (config.dispatcher ?: ioDispatcher())
 
     override fun close() {
-        coroutineContext.cancel(WebRtcEngineClosedException())
+        job.cancel(WebRtcEngineClosedException())
     }
 }

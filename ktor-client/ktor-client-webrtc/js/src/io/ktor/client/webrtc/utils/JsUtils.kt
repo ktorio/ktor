@@ -13,72 +13,79 @@ import kotlin.js.collections.toMap
 /**
  * Creates a JavaScript object with the given type and initializes it.
  */
-public inline fun <T : Any> jsObject(init: T.() -> Unit): T {
+internal inline fun <T : Any> jsObject(init: T.() -> Unit): T {
     val obj = js("{}").unsafeCast<T>()
     init(obj)
     return obj
 }
 
-public fun WebRtcMedia.AudioTrackConstraints.toJS(): MediaTrackConstraints {
-    return MediaTrackConstraints(
-        volume = volume,
-        latency = latency,
-        sampleRate = sampleRate,
-        sampleSize = sampleSize,
-        echoCancellation = echoCancellation,
-        autoGainControl = autoGainControl,
-        noiseSuppression = noiseSuppression,
-        channelCount = channelCount,
-    )
+internal fun WebRtcMedia.AudioTrackConstraints.toJs(): MediaTrackConstraints {
+    return jsObject {
+        volume = this@toJs.volume
+        latency = this@toJs.latency
+        sampleRate = this@toJs.sampleRate
+        sampleSize = this@toJs.sampleSize
+        echoCancellation = this@toJs.echoCancellation
+        autoGainControl = this@toJs.autoGainControl
+        noiseSuppression = this@toJs.noiseSuppression
+        channelCount = this@toJs.channelCount
+    }
 }
 
-public fun WebRtcMedia.VideoTrackConstraints.toJS(): MediaTrackConstraints {
-    return MediaTrackConstraints(
-        width = width,
-        height = height,
-        aspectRatio = aspectRatio,
-        facingMode = facingMode?.toJs(),
-        frameRate = frameRate,
-        resizeMode = resizeMode?.toJs(),
-    )
+internal fun WebRtcMedia.VideoTrackConstraints.toJs(): MediaTrackConstraints {
+    return jsObject {
+        width = this@toJs.width
+        height = this@toJs.height
+        aspectRatio = this@toJs.aspectRatio
+        facingMode = this@toJs.facingMode?.toJs()
+        frameRate = this@toJs.frameRate
+        resizeMode = this@toJs.resizeMode?.toJs()
+    }
 }
 
 /**
  * Converts a browser RTCSessionDescription to the common WebRtc.SessionDescription model.
  */
-public fun RTCSessionDescription.toCommon(): WebRtc.SessionDescription = WebRtc.SessionDescription(
+internal fun RTCSessionDescription.toKtor(): WebRtc.SessionDescription = WebRtc.SessionDescription(
     sdp = sdp,
     type = type.toSdpDescriptionType(),
 )
 
-public fun WebRtc.SessionDescription.toJS(): RTCSessionDescription {
+internal fun WebRtc.SessionDescription.toJs(): RTCSessionDescription {
     // RTCSessionDescription constructor is deprecated.
     // All methods that accept RTCSessionDescription objects also accept objects with the same properties,
     // so you can use a plain object instead of creating an RTCSessionDescription instance.
     return jsObject {
-        sdp = this@toJS.sdp
-        type = this@toJS.type.toJs()
+        sdp = this@toJs.sdp
+        type = this@toJs.type.toJs()
     }
 }
 
-public fun RTCIceCandidate.toCommon(): WebRtc.IceCandidate = WebRtc.IceCandidate(
+internal fun RTCIceCandidate.toKtor(): WebRtc.IceCandidate = WebRtc.IceCandidate(
     candidate = candidate,
     sdpMid = sdpMid!!,
     sdpMLineIndex = sdpMLineIndex?.toInt()!!
 )
 
-public fun WebRtc.IceCandidate.toJS(): RTCIceCandidate {
+internal fun WebRtc.IceCandidate.toJs(): RTCIceCandidate {
     val options = jsObject<RTCIceCandidateInit> {
-        sdpMLineIndex = this@toJS.sdpMLineIndex
-        candidate = this@toJS.candidate
-        sdpMid = this@toJS.sdpMid
+        sdpMLineIndex = this@toJs.sdpMLineIndex
+        candidate = this@toJs.candidate
+        sdpMid = this@toJs.sdpMid
     }
     return RTCIceCandidate(options)
+}
+
+internal fun WebRtc.IceServer.toJs(): RTCIceServer = jsObject {
+    urls = this@toJs.urls
+    username = this@toJs.username
+    credential = this@toJs.credential
 }
 
 /**
  * Extracts values from a JavaScript map-like object into an array.
  */
+@Suppress("UNUSED_PARAMETER")
 private fun <T> getValues(map: dynamic): Array<T> = js("Array.from(map.values())")
 
 /**
@@ -92,7 +99,7 @@ private fun objectToMap(obj: dynamic): JsMap<String, Any?> = js("new Map(Object.
  * Extracts values from the report map and converts each entry to the common format.
  */
 @OptIn(ExperimentalJsCollectionsApi::class)
-public fun RTCStatsReport.toCommon(): List<WebRtc.Stats> {
+internal fun RTCStatsReport.toKtor(): List<WebRtc.Stats> {
     return getValues<RTCStats>(this).map { entry ->
         WebRtc.Stats(
             timestamp = entry.timestamp.toLong(),

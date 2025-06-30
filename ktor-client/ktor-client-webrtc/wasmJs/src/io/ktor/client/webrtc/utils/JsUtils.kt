@@ -18,79 +18,78 @@ public fun emptyObject(): JsAny = js("({})")
 /**
  * Creates a JavaScript object with the given type and initializes it.
  */
-public inline fun <T : JsAny> jsObject(init: T.() -> Unit): T {
+internal inline fun <T : JsAny> jsObject(init: T.() -> Unit): T {
     val obj = emptyObject().unsafeCast<T>()
     init(obj)
     return obj
 }
 
-public fun WebRtcMedia.AudioTrackConstraints.toJS(): MediaTrackConstraints {
-    return MediaTrackConstraints(
-        volume = volume?.toJsNumber(),
-        latency = latency?.toJsNumber(),
-        sampleRate = sampleRate?.toJsNumber(),
-        sampleSize = sampleSize?.toJsNumber(),
-        echoCancellation = echoCancellation?.toJsBoolean(),
-        autoGainControl = autoGainControl?.toJsBoolean(),
-        noiseSuppression = noiseSuppression?.toJsBoolean(),
-        channelCount = channelCount?.toJsNumber(),
-    )
+internal fun WebRtcMedia.AudioTrackConstraints.toJs(): MediaTrackConstraints {
+    return jsObject {
+        volume = this@toJs.volume?.toJsNumber()
+        latency = this@toJs.latency?.toJsNumber()
+        sampleRate = this@toJs.sampleRate?.toJsNumber()
+        sampleSize = this@toJs.sampleSize?.toJsNumber()
+        echoCancellation = this@toJs.echoCancellation?.toJsBoolean()
+        autoGainControl = this@toJs.autoGainControl?.toJsBoolean()
+        noiseSuppression = this@toJs.noiseSuppression?.toJsBoolean()
+        channelCount = this@toJs.channelCount?.toJsNumber()
+    }
 }
 
-public fun WebRtcMedia.VideoTrackConstraints.toJS(): MediaTrackConstraints {
-    return MediaTrackConstraints(
-        width = width?.toJsNumber(),
-        height = height?.toJsNumber(),
-        aspectRatio = aspectRatio?.toJsNumber(),
-        facingMode = facingMode?.toJs()?.toJsString(),
-        frameRate = frameRate?.toJsNumber(),
-        resizeMode = resizeMode?.toJs()?.toJsString(),
-    )
+internal fun WebRtcMedia.VideoTrackConstraints.toJs(): MediaTrackConstraints {
+    return jsObject {
+        width = this@toJs.width?.toJsNumber()
+        height = this@toJs.height?.toJsNumber()
+        aspectRatio = this@toJs.aspectRatio?.toJsNumber()
+        facingMode = this@toJs.facingMode?.toJs()?.toJsString()
+        frameRate = this@toJs.frameRate?.toJsNumber()
+        resizeMode = this@toJs.resizeMode?.toJs()?.toJsString()
+    }
 }
 
-public fun makeIceServerObject(server: WebRtc.IceServer): RTCIceServer = jsObject {
-    urls = server.urls.toJsString()
-    username = server.username?.toJsString()
-    credential = server.credential?.toJsString()
+internal fun WebRtc.IceServer.toJs(): RTCIceServer = jsObject {
+    urls = this@toJs.urls.toJsString()
+    username = this@toJs.username?.toJsString()
+    credential = this@toJs.credential?.toJsString()
 }
 
-internal fun mapIceServers(iceServers: List<WebRtc.IceServer>): JsArray<RTCIceServer> =
-    iceServers.map { makeIceServerObject(it) }.toJsArray()
-
-public fun RTCSessionDescription.toCommon(): WebRtc.SessionDescription {
+internal fun RTCSessionDescription.toKtor(): WebRtc.SessionDescription {
     return WebRtc.SessionDescription(
         sdp = sdp.toString(),
         type = type.toString().toSdpDescriptionType(),
     )
 }
 
-public fun WebRtc.SessionDescription.toJS(): RTCSessionDescription {
+internal fun WebRtc.SessionDescription.toJs(): RTCSessionDescription {
     // RTCSessionDescription constructor is deprecated.
     // All methods that accept RTCSessionDescription objects also accept objects with the same properties,
     // so you can use a plain object instead of creating an RTCSessionDescription instance.
     return jsObject {
-        sdp = this@toJS.sdp.toJsString()
-        type = this@toJS.type.toJs().toJsString()
+        sdp = this@toJs.sdp.toJsString()
+        type = this@toJs.type.toJs().toJsString()
     }
 }
 
-public fun RTCIceCandidate.toCommon(): WebRtc.IceCandidate = WebRtc.IceCandidate(
+internal fun RTCIceCandidate.toKtor(): WebRtc.IceCandidate = WebRtc.IceCandidate(
     candidate = candidate.toString(),
     sdpMid = sdpMid.toString(),
     sdpMLineIndex = sdpMLineIndex.toInt()
 )
 
-public fun WebRtc.IceCandidate.toJS(): RTCIceCandidate {
+public fun WebRtc.IceCandidate.toJs(): RTCIceCandidate {
     val options = jsObject<RTCIceCandidateInit> {
-        sdpMLineIndex = this@toJS.sdpMLineIndex.toJsNumber()
-        candidate = this@toJS.candidate.toJsString()
-        sdpMid = this@toJS.sdpMid.toJsString()
+        sdpMLineIndex = this@toJs.sdpMLineIndex.toJsNumber()
+        candidate = this@toJs.candidate.toJsString()
+        sdpMid = this@toJs.sdpMid.toJsString()
     }
     return RTCIceCandidate(options)
 }
 
+@Suppress("UNUSED_VARIABLE")
 private fun <T : JsAny> getValues(map: JsAny): JsArray<T> = js("Array.from(map.values())")
 
+@Suppress("UNUSED_VARIABLE")
 private fun entries(obj: JsAny): JsArray<JsArray<JsAny>> = js("Object.entries(obj)")
 
 private fun deserializeJsItem(item: JsAny?): Any? {
@@ -118,7 +117,7 @@ private fun kotlinMapFromEntries(obj: JsAny): Map<String, Any> {
  * Converts a browser RTCStatsReport to a list of common WebRtc.Stats objects.
  * Extracts values from the report map and converts each entry to the common format.
  */
-public fun RTCStatsReport.toCommon(): List<WebRtc.Stats> {
+public fun RTCStatsReport.toKtor(): List<WebRtc.Stats> {
     return getValues<RTCStats>(this).toArray().map { stats ->
         WebRtc.Stats(
             timestamp = stats.timestamp.toDouble().toLong(),

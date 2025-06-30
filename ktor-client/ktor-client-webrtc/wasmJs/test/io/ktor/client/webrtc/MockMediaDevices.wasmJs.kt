@@ -30,7 +30,7 @@ fun makeDummyVideoStream(width: Int, height: Int): MediaStream = js(
 
 actual fun makeDummyAudioStreamTrack(): WebRtcMedia.AudioTrack {
     val stream = makeDummyAudioStream()
-    return WasmJsAudioTrack(stream.getAudioTracks()[0]!!, stream)
+    return WasmJsAudioTrack(stream.getAudioTracks()[0]!!)
 }
 
 actual fun makeDummyVideoStreamTrack(
@@ -38,5 +38,5 @@ actual fun makeDummyVideoStreamTrack(
     height: Int
 ): WebRtcMedia.VideoTrack {
     val stream = makeDummyVideoStream(width, height)
-    return WasmJsVideoTrack(stream.getVideoTracks()[0]!!, stream)
+    return WasmJsVideoTrack(stream.getVideoTracks()[0]!!)
 }
