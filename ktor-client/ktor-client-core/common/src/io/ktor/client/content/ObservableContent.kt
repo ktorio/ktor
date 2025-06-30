@@ -42,8 +42,6 @@ internal class ObservableContent(
     private val listener: ProgressListener
 ) : OutgoingContent.ReadChannelContent() {
 
-    private val content: ByteReadChannel = getContent(delegate)
-
     @OptIn(DelicateCoroutinesApi::class)
     private fun getContent(delegate: OutgoingContent): ByteReadChannel = when (delegate) {
         is ContentWrapper -> getContent(delegate.delegate())
@@ -68,5 +66,5 @@ internal class ObservableContent(
     override fun <T : Any> getProperty(key: AttributeKey<T>): T? = delegate.getProperty(key)
     override fun <T : Any> setProperty(key: AttributeKey<T>, value: T?): Unit = delegate.setProperty(key, value)
 
-    override fun readFrom(): ByteReadChannel = content.observable(callContext, contentLength, listener)
+    override fun readFrom(): ByteReadChannel = getContent(delegate).observable(callContext, contentLength, listener)
 }

@@ -303,7 +303,10 @@ public class ReaderJob internal constructor(
     @InternalAPI
     public suspend fun flushAndClose() {
         job.cancelChildren()
-        job.children.forEach { it.join() }
+        job.children.forEach {
+            it.cancel() // Children may appear at this point so we cancel them before joining
+            it.join()
+        }
         channel.flushAndClose()
     }
 }
