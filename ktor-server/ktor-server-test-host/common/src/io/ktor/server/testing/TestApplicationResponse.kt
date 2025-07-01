@@ -10,6 +10,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.testing.internal.*
+import io.ktor.util.cio.ChannelWriteException
 import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
@@ -50,6 +51,8 @@ public class TestApplicationResponse(
     private var responseChannel: ByteReadChannel? = null
 
     private var responseJob: Job? = null
+
+    internal val writeContentChannel = atomic<ByteChannel?>(null)
 
     /**
      * Get completed when a response channel is assigned.
@@ -106,6 +109,34 @@ public class TestApplicationResponse(
     override suspend fun respondOutgoingContent(content: OutgoingContent) {
         super.respondOutgoingContent(content)
         responseChannelDeferred.completeExceptionally(IllegalStateException("No response channel assigned"))
+    }
+
+    override suspend fun respondWriteChannelContent(content: OutgoingContent.WriteChannelContent) {
+        val resultChannel = ByteChannel()
+
+        val readerJob = scope.reader {
+            val counted = channel.counted()
+            val readJob = launch {
+                counted.copyAndClose(resultChannel)
+            }
+            coroutineScope {
+                configureSocketTimeoutIfNeeded(timeoutAttributes, readJob) { counted.totalBytesRead }
+            }
+        }
+
+        writeContentChannel.compareAndSet(null, resultChannel)
+
+        scope.launch {
+            withContext(Dispatchers.IOBridge) {
+                try {
+                    content.writeTo(readerJob.channel)
+                } catch (closed: ClosedWriteChannelException) {
+                    throw ChannelWriteException(exception = closed)
+                } finally {
+                    resultChannel.flushAndClose()
+                }
+            }
+        }
     }
 
     /**

@@ -24,6 +24,7 @@ import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.test.runTest
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
@@ -485,6 +486,44 @@ class TestApplicationTest {
     fun configuration_file_is_not_loaded_automatically() = testApplication {
         application {
             assertNull(environment.config.propertyOrNull("test.property"))
+        }
+    }
+
+    @Test
+    fun testStreamingResponse() = testApplication {
+        val messages = Channel<String>(1)
+        val scope = CoroutineScope(coroutineContext)
+
+        scope.launch {
+            assertEquals("Test 0", messages.receive())
+            assertEquals("[Client] Test 0", messages.receive())
+            assertEquals("Test 1", messages.receive())
+            assertEquals("[Client] Test 1", messages.receive())
+            assertEquals("Test 2", messages.receive())
+            assertEquals("[Client] Test 2", messages.receive())
+        }
+
+        routing {
+            get("/") {
+                call.respondBytesWriter {
+                    repeat(3) {
+                        val msg = "Test $it"
+                        writeStringUtf8(msg + "\n")
+                        flush()
+                        messages.send(msg)
+                        delay(50)
+                    }
+                }
+            }
+        }
+
+        client.prepareGet("/").execute { response ->
+            val channel = response.bodyAsChannel()
+
+            while (!channel.isClosedForRead) {
+                val msg = channel.readUTF8Line() ?: break
+                messages.send("[Client] $msg")
+            }
         }
     }
 
