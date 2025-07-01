@@ -27,6 +27,7 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.seconds
 
 private val DOUBLE_TEST_ARRAY = ByteArray(16 * 1025) { 1 }
 private val TEST_ARRAY = ByteArray(8 * 1025) { 1 }
@@ -116,6 +117,37 @@ class BodyProgressTest : ClientLoader() {
             }
             assertContentEquals(DOUBLE_TEST_ARRAY, response.body())
             assertTrue(invokedCount > 2)
+        }
+    }
+
+    @OptIn(InternalAPI::class)
+    @Test
+    fun testRequestBodyRemainReusableWhenObserving() = clientTests(except("web:*"), timeout = 5.seconds) {
+        test { client ->
+            client.plugin(HttpSend).intercept { request ->
+                val call = execute(request)
+
+                if (call.response.status != HttpStatusCode.OK) {
+                    val builder = HttpRequestBuilder()
+                    builder.takeFromWithExecutionContext(request)
+                    builder.header("respond", "true")
+                    execute(builder)
+                } else {
+                    call
+                }
+            }
+
+            val bodySize = 10 * 1024
+            val response: HttpResponse = client.post("$TEST_SERVER/content/pseudo-auth") {
+                setBody(object : OutgoingContent.ReadChannelContent() {
+                    override val contentLength: Long?
+                        get() = bodySize.toLong()
+                    override fun readFrom(): ByteReadChannel = ByteReadChannel(ByteArray(bodySize))
+                })
+                onUpload { _, _ -> }
+            }
+
+            assertEquals(bodySize.toString(), response.bodyAsText())
         }
     }
 
