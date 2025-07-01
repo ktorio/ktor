@@ -19,7 +19,7 @@ mavenPublishing {
     // - on CI: always
     // - locally: only if credentials are present
     if (ktorBuild.isCI.get() || providers.gradleProperty("mavenCentralUsername").isPresent) {
-        publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+        publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, automaticRelease = true)
     }
     configureSigning(this)
 
