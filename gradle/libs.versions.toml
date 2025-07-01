@@ -70,7 +70,7 @@ yamlkt = "0.13.0"
 kaml = "0.77.1"
 
 swagger-codegen = "3.0.71"
-swagger-codegen-generators = "1.0.56"
+swagger-codegen-generators = "1.0.57"
 swagger-parser = "2.1.30"
 
 puppeteer = "21.5.0"
