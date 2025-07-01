@@ -16,7 +16,7 @@ import java.util.*
  */
 public suspend fun ApplicationCall.respondTemplate(
     template: String,
-    model: Map<String, Any> = emptyMap(),
+    model: Map<String, Any?> = emptyMap(),
     etag: String? = null,
     contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8),
     locale: Locale = Locale.getDefault(),
