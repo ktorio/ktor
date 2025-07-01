@@ -10,6 +10,7 @@ import ktorbuild.internal.gradle.maybeNamed
 import ktorbuild.targets.*
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 
 plugins {
     id("ktorbuild.base")
@@ -62,6 +63,13 @@ if (targets.hasNative) {
         val os = ktorBuild.os.get()
         onlyIf("run only on Windows") { os.isWindows }
     }
+
+    // A workaround for KT-70915
+    tasks.withType<KotlinNativeLink>()
+        .configureEach { withLimitedParallelism("native-link", maxParallelTasks = 1) }
+    // A workaround for KT-77609
+    tasks.matching { it::class.simpleName?.startsWith("CInteropCommonizerTask") == true }
+        .configureEach { withLimitedParallelism("cinterop-commonizer", maxParallelTasks = 1) }
 }
 
 if (ktorBuild.isCI.get()) configureTestTasksOnCi()
