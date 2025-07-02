@@ -52,7 +52,7 @@ public class TestApplicationResponse(
 
     private var responseJob: Job? = null
 
-    internal val writeContentChannel = atomic<ByteChannel?>(null)
+    internal val writeContentChannel = atomic<ByteReadChannel?>(null)
 
     /**
      * Get completed when a response channel is assigned.
@@ -112,31 +112,50 @@ public class TestApplicationResponse(
     }
 
     override suspend fun respondWriteChannelContent(content: OutgoingContent.WriteChannelContent) {
-        val resultChannel = ByteChannel()
-
-        val readerJob = scope.reader {
-            val counted = channel.counted()
-            val readJob = launch {
-                counted.copyAndClose(resultChannel)
-            }
-            coroutineScope {
-                configureSocketTimeoutIfNeeded(timeoutAttributes, readJob) { counted.totalBytesRead }
-            }
-        }
-
-        writeContentChannel.compareAndSet(null, resultChannel)
-
-        scope.launch {
-            withContext(Dispatchers.IOBridge) {
-                try {
-                    content.writeTo(readerJob.channel)
-                } catch (closed: ClosedWriteChannelException) {
-                    throw ChannelWriteException(exception = closed)
-                } finally {
-                    resultChannel.flushAndClose()
+        val writerJob = scope.writer {
+            try {
+                withContext(Dispatchers.IOBridge) {
+                    content.writeTo(channel)
                 }
+            } catch (closed: ClosedWriteChannelException) {
+                throw ChannelWriteException(exception = closed)
             }
         }
+
+        writeContentChannel.compareAndSet(null, writerJob.channel)
+
+        val counted = writerJob.channel.counted()
+
+        configureSocketTimeoutIfNeeded(timeoutAttributes, writerJob.job) { counted.totalBytesRead }
+
+//        val resultChannel = ByteChannel()
+//
+//        val readerJob = scope.reader {
+//            val counted = channel.counted()
+//            val readJob = launch {
+//                counted.copyAndClose(resultChannel)
+//            }
+//            coroutineScope {
+//                configureSocketTimeoutIfNeeded(timeoutAttributes, readJob) { counted.totalBytesRead }
+//            }
+//        }
+//
+//        writeContentChannel.compareAndSet(null, resultChannel)
+//
+//        scope.launch {
+//            withContext(Dispatchers.IOBridge) {
+//                try {
+//                    println("Writing $content")
+//                    content.writeTo(readerJob.channel)
+//                } catch (closed: ClosedWriteChannelException) {
+//                    throw ChannelWriteException(exception = closed)
+//                } finally {
+//                    println("Writing finished")
+//                    println("Reader job completed ${readerJob.isCompleted}")
+//                    resultChannel.flushAndClose()
+//                }
+//            }
+//        }
     }
 
     /**
