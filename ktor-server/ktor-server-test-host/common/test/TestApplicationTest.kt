@@ -5,7 +5,6 @@
 package io.ktor.tests.server.testing
 
 import io.ktor.client.*
-import io.ktor.client.network.sockets.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -466,9 +465,10 @@ class TestApplicationTest {
         }
 
         if (expectException) {
-            assertFailsWith<SocketTimeoutException> {
+            val cause = assertFailsWith<ClosedByteChannelException> {
                 clientWithTimeout.get("/")
             }
+            assertEquals("Socket timeout elapsed", cause.message)
         } else {
             clientWithTimeout.get("/").apply {
                 assertEquals(HttpStatusCode.OK, status)

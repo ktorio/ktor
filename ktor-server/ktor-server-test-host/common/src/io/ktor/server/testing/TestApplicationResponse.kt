@@ -6,6 +6,7 @@ package io.ktor.server.testing
 
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.network.sockets.SocketTimeoutException
 import io.ktor.server.engine.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -113,49 +114,39 @@ public class TestApplicationResponse(
 
     override suspend fun respondWriteChannelContent(content: OutgoingContent.WriteChannelContent) {
         val writerJob = scope.writer {
+            val counted = channel.counted()
+            val job = coroutineContext.job
+
+            val socketTimeoutMillis = timeoutAttributes?.socketTimeoutMillis
+            if (socketTimeoutMillis != null) {
+                val killJob = launch {
+                    var cur = counted.totalBytesWritten
+                    while (job.isActive) {
+                        delay(socketTimeoutMillis)
+                        val next = counted.totalBytesWritten
+                        if (cur == next) {
+                            counted.cancel(SocketTimeoutException("Socket timeout elapsed"))
+                        }
+                        cur = next
+                    }
+                }
+                job.invokeOnCompletion {
+                    killJob.cancel()
+                }
+            }
+
             try {
                 withContext(Dispatchers.IOBridge) {
-                    content.writeTo(channel)
+                    content.writeTo(counted)
                 }
             } catch (closed: ClosedWriteChannelException) {
                 throw ChannelWriteException(exception = closed)
+            } finally {
+                channel.flushAndClose()
             }
         }
 
         writeContentChannel.compareAndSet(null, writerJob.channel)
-
-        val counted = writerJob.channel.counted()
-
-        configureSocketTimeoutIfNeeded(timeoutAttributes, writerJob.job) { counted.totalBytesRead }
-
-//        val resultChannel = ByteChannel()
-//
-//        val readerJob = scope.reader {
-//            val counted = channel.counted()
-//            val readJob = launch {
-//                counted.copyAndClose(resultChannel)
-//            }
-//            coroutineScope {
-//                configureSocketTimeoutIfNeeded(timeoutAttributes, readJob) { counted.totalBytesRead }
-//            }
-//        }
-//
-//        writeContentChannel.compareAndSet(null, resultChannel)
-//
-//        scope.launch {
-//            withContext(Dispatchers.IOBridge) {
-//                try {
-//                    println("Writing $content")
-//                    content.writeTo(readerJob.channel)
-//                } catch (closed: ClosedWriteChannelException) {
-//                    throw ChannelWriteException(exception = closed)
-//                } finally {
-//                    println("Writing finished")
-//                    println("Reader job completed ${readerJob.isCompleted}")
-//                    resultChannel.flushAndClose()
-//                }
-//            }
-//        }
     }
 
     /**
