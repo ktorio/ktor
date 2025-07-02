@@ -2,7 +2,6 @@
 
 kotlin = "2.1.21"
 kotlinx-html = "0.12.0"
-kotlinx-datetime = "0.6.2"
 kotlinx-io = "0.7.0"
 coroutines = "1.10.2"
 atomicfu = "0.27.0"
@@ -124,8 +123,6 @@ kotlinx-serialization-cbor = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 kotlinx-serialization-protobuf = { module = "org.jetbrains.kotlinx:kotlinx-serialization-protobuf", version.ref = "serialization" }
 
 kotlinx-html = { module = "org.jetbrains.kotlinx:kotlinx-html", version.ref = "kotlinx-html" }
-
-kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 
 kotlinx-io-core = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinx-io" }
 
