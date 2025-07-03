@@ -15,12 +15,7 @@ plugins {
 addProjectTag(ProjectTag.Published)
 
 mavenPublishing {
-    // Configure the Maven Central repository:
-    // - on CI: always
-    // - locally: only if credentials are present
-    if (ktorBuild.isCI.get() || providers.gradleProperty("mavenCentralUsername").isPresent) {
-        publishToMavenCentral(automaticRelease = true)
-    }
+    if (shouldPublishToMavenCentral()) publishToMavenCentral(automaticRelease = true)
     configureSigning(this)
 
     pom {
