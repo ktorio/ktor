@@ -46,7 +46,7 @@ internal class CIOEngine(
 
     override val coroutineContext: CoroutineContext
 
-    private val proxy: ProxyConfig? = if (config.proxy?.type == ProxyType.HTTP) {
+    internal val proxy: ProxyConfig? = if (config.proxy?.type == ProxyType.HTTP) {
         config.proxy
     } else {
         discoverHttpProxy()

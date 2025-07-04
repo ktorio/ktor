@@ -14,7 +14,7 @@ internal actual fun discoverHttpProxy(): ProxyConfig? {
     try {
         // For Android
         val host = System.getProperty("http.proxyHost")
-        val port = System.getProperty("http.proxyPort").toIntOrNull() ?: 80
+        val port = System.getProperty("http.proxyPort")?.toIntOrNull() ?: 0
 
         if (host != null && host.isNotEmpty()) {
             proxy = Proxy(Proxy.Type.HTTP, InetSocketAddress(host, port))
