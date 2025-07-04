@@ -50,7 +50,7 @@ internal class CIOEngine(
         ProxyType.SOCKS,
         null -> null
 
-        ProxyType.HTTP -> config.proxy
+        ProxyType.HTTP -> discoverHttpProxy() ?: config.proxy
         else -> throw IllegalStateException("CIO engine does not currently support $type proxies.")
     }
 
