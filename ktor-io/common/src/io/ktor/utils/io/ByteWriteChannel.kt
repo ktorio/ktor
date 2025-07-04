@@ -5,7 +5,8 @@
 package io.ktor.utils.io
 
 import io.ktor.utils.io.core.*
-import kotlinx.io.*
+import kotlinx.io.IOException
+import kotlinx.io.Sink
 
 /**
  * Channel for asynchronous writing of sequences of bytes.
@@ -17,6 +18,9 @@ import kotlinx.io.*
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.ByteWriteChannel)
  */
 public interface ByteWriteChannel {
+
+    public val autoFlush: Boolean
+        get() = false
 
     public val isClosedForWrite: Boolean
 
@@ -58,5 +62,5 @@ public fun ByteWriteChannel.cancel() {
 public suspend fun ByteWriteChannel.flushIfNeeded() {
     rethrowCloseCauseIfNeeded()
 
-    if ((this as? ByteChannel)?.autoFlush == true || writeBuffer.size >= CHANNEL_MAX_SIZE) flush()
+    if (autoFlush || writeBuffer.size >= CHANNEL_MAX_SIZE) flush()
 }
