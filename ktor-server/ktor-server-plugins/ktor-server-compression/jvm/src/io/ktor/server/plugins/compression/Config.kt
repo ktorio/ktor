@@ -101,6 +101,7 @@ public class CompressionConfig : ConditionsHolderBuilder {
         gzip()
         deflate()
         identity()
+        zstd()
     }
 
     /**
@@ -170,6 +171,15 @@ public class CompressionEncoderBuilder internal constructor(
  */
 public fun CompressionConfig.gzip(block: CompressionEncoderBuilder.() -> Unit = {}) {
     encoder(GZipEncoder, block)
+}
+
+/**
+ * Appends the 'zstd' encoder with [block] configuration.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.compression.zstd)
+ */
+public fun CompressionConfig.zstd(block: CompressionEncoderBuilder.() -> Unit = {}) {
+    encoder(ZstdEncoder, block)
 }
 
 /**
