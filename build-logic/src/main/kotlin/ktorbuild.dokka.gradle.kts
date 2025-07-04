@@ -3,6 +3,8 @@
  */
 @file:Suppress("UnstableApiUsage")
 
+import ktorbuild.internal.*
+import org.jetbrains.dokka.gradle.tasks.DokkaGeneratePublicationTask
 import java.time.Year
 
 plugins {
@@ -22,5 +24,12 @@ dokka {
             customAssets.from(layout.settingsDirectory.file("ktor-dokka/assets/logo-icon.svg"))
             footerMessage = "© ${Year.now()} JetBrains s.r.o and contributors. Apache License 2.0"
         }
+    }
+}
+
+tasks.withType<DokkaGeneratePublicationTask>().configureEach {
+    // Reduce memory consumption on CI
+    if (ktorBuild.isCI.get()) {
+        withLimitedParallelism("dokka", maxParallelTasks = 2)
     }
 }

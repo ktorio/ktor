@@ -2,7 +2,7 @@
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-import com.vanniktech.maven.publish.*
+import com.vanniktech.maven.publish.MavenPublishBaseExtension
 import ktorbuild.*
 import ktorbuild.internal.*
 import ktorbuild.internal.publish.*
@@ -15,12 +15,7 @@ plugins {
 addProjectTag(ProjectTag.Published)
 
 mavenPublishing {
-    // Configure the Maven Central repository:
-    // - on CI: always
-    // - locally: only if credentials are present
-    if (ktorBuild.isCI.get() || providers.gradleProperty("mavenCentralUsername").isPresent) {
-        publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
-    }
+    if (shouldPublishToMavenCentral()) publishToMavenCentral(automaticRelease = true)
     configureSigning(this)
 
     pom {

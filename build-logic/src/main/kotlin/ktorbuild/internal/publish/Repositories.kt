@@ -4,8 +4,16 @@
 
 package ktorbuild.internal.publish
 
+import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.kotlin.dsl.maven
+
+/**
+ * Configure the Maven Central repository only if credentials are present
+ */
+internal fun Project.shouldPublishToMavenCentral(): Boolean =
+    providers.gradleProperty("mavenCentralUsername").isPresent &&
+        providers.gradleProperty("mavenCentralPassword").isPresent
 
 internal fun RepositoryHandler.addTargetRepositoryIfConfigured() {
     val publishingUrl = System.getenv("PUBLISHING_URL") ?: return

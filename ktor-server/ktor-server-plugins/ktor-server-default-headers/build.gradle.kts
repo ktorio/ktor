@@ -2,6 +2,7 @@
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import java.time.Year
 
 description = ""
@@ -11,10 +12,10 @@ plugins {
 }
 
 kotlin {
-    sourceSets {
-        commonMain.dependencies {
-            api(libs.kotlinx.datetime)
-        }
+    compilerOptions {
+        // For now set API version 2.1 only for this module
+        // TODO KTOR-8637: Update API level for the whole project
+        apiVersion = KotlinVersion.KOTLIN_2_1
     }
 }
 

@@ -66,20 +66,27 @@ private fun Project.registerAggregatingPublishTask(name: String, publications: S
     tasks.register("publish${name}Publications") {
         group = PublishingPlugin.PUBLISH_TASK_GROUP
 
-        val repositoryName = provider {
-            publishing.repositories
-                .map { it.name }
-                .singleOrNull { it != MAVEN_REPO_DEFAULT_NAME } ?: MAVEN_REPO_DEFAULT_NAME
+        val taskNames = provider {
+            val repositoryName = publishing.inferRepositoryName().capitalized()
+            publications
+                .map { "publish${it.capitalized()}PublicationTo${repositoryName}Repository" }
+                .toSet()
         }
-        val taskNames = publications
-            .map { "publish${it.capitalized()}PublicationTo${repositoryName.get().capitalized()}Repository" }
-            .toSet()
 
-        dependsOn(tasks.withType<PublishToMavenRepository>().named { it in taskNames })
+        dependsOn(tasks.withType<PublishToMavenRepository>().named { it in taskNames.get() })
     }
+}
+
+private fun PublishingExtension.inferRepositoryName(): String {
+    val repositoryNames = repositories.map { it.name }.filter { it != MAVEN_REPO_DEFAULT_NAME }
+    check(repositoryNames.size <= 1) {
+        "Publishing repository can't be inferred. Multiple repositories are defined: $repositoryNames"
+    }
+
+    return repositoryNames.singleOrNull() ?: MAVEN_REPO_DEFAULT_NAME
 }
 
 private val Project.publishing: PublishingExtension
     get() = the()
 
-private const val MAVEN_REPO_DEFAULT_NAME = "mavenLocal"
+private const val MAVEN_REPO_DEFAULT_NAME = "MavenLocal"
