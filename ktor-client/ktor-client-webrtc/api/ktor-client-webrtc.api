@@ -1,38 +1,8 @@
-public final class io/ktor/client/webrtc/AndroidAudioTrack : io/ktor/client/webrtc/AndroidMediaTrack, io/ktor/client/webrtc/WebRtcMedia$AudioTrack {
-	public fun <init> (Lorg/webrtc/MediaStreamTrack;Lkotlin/jvm/functions/Function0;)V
-	public synthetic fun <init> (Lorg/webrtc/MediaStreamTrack;Lkotlin/jvm/functions/Function0;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-}
-
-public final class io/ktor/client/webrtc/AndroidDtmfServer : io/ktor/client/webrtc/WebRtc$DtmfSender {
+public final class io/ktor/client/webrtc/AndroidDtmfSender : io/ktor/client/webrtc/WebRtc$DtmfSender {
 	public fun <init> (Lorg/webrtc/DtmfSender;)V
-	public fun getCanInsertDTMF ()Z
-	public fun getNative ()Ljava/lang/Object;
+	public fun getCanInsertDtmf ()Z
 	public fun getToneBuffer ()Ljava/lang/String;
-	public fun insertDTMF (Ljava/lang/String;II)V
-}
-
-public final class io/ktor/client/webrtc/AndroidMediaDevices : io/ktor/client/webrtc/MediaTrackFactory {
-	public fun <init> (Landroid/content/Context;Lorg/webrtc/EglBase;)V
-	public synthetic fun <init> (Landroid/content/Context;Lorg/webrtc/EglBase;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun createAudioTrack (Lio/ktor/client/webrtc/WebRtcMedia$AudioTrackConstraints;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun createVideoTrack (Lio/ktor/client/webrtc/WebRtcMedia$VideoTrackConstraints;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun getPeerConnectionFactory ()Lorg/webrtc/PeerConnectionFactory;
-}
-
-public abstract class io/ktor/client/webrtc/AndroidMediaTrack : io/ktor/client/webrtc/WebRtcMedia$Track {
-	public static final field Companion Lio/ktor/client/webrtc/AndroidMediaTrack$Companion;
-	public fun <init> (Lorg/webrtc/MediaStreamTrack;Lkotlin/jvm/functions/Function0;)V
-	public fun close ()V
-	public fun enable (Z)V
-	public fun getEnabled ()Z
-	public fun getId ()Ljava/lang/String;
-	public fun getKind ()Lio/ktor/client/webrtc/WebRtcMedia$TrackType;
-	public fun getNative ()Ljava/lang/Object;
-	public final fun getNativeTrack ()Lorg/webrtc/MediaStreamTrack;
-}
-
-public final class io/ktor/client/webrtc/AndroidMediaTrack$Companion {
-	public final fun from (Lorg/webrtc/MediaStreamTrack;)Lio/ktor/client/webrtc/AndroidMediaTrack;
+	public fun insertDtmf (Ljava/lang/String;II)V
 }
 
 public final class io/ktor/client/webrtc/AndroidRtpParameters : io/ktor/client/webrtc/WebRtc$RtpParameters {
@@ -44,7 +14,6 @@ public final class io/ktor/client/webrtc/AndroidRtpParameters : io/ktor/client/w
 	public fun getEncodings ()Ljava/util/List;
 	public synthetic fun getHeaderExtensions ()Ljava/lang/Iterable;
 	public fun getHeaderExtensions ()Ljava/util/List;
-	public final fun getNativeRtpParameters ()Lorg/webrtc/RtpParameters;
 	public fun getRtcp ()Ljava/lang/Object;
 	public fun getTransactionId ()Ljava/lang/String;
 }
@@ -52,17 +21,10 @@ public final class io/ktor/client/webrtc/AndroidRtpParameters : io/ktor/client/w
 public final class io/ktor/client/webrtc/AndroidRtpSender : io/ktor/client/webrtc/WebRtc$RtpSender {
 	public fun <init> (Lorg/webrtc/RtpSender;)V
 	public fun getDtmf ()Lio/ktor/client/webrtc/WebRtc$DtmfSender;
-	public fun getNative ()Ljava/lang/Object;
-	public final fun getNativeRtpSender ()Lorg/webrtc/RtpSender;
 	public fun getParameters (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getTrack ()Lio/ktor/client/webrtc/WebRtcMedia$Track;
 	public fun replaceTrack (Lio/ktor/client/webrtc/WebRtcMedia$Track;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun setParameters (Lio/ktor/client/webrtc/WebRtc$RtpParameters;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class io/ktor/client/webrtc/AndroidVideoTrack : io/ktor/client/webrtc/AndroidMediaTrack, io/ktor/client/webrtc/WebRtcMedia$VideoTrack {
-	public fun <init> (Lorg/webrtc/MediaStreamTrack;Lkotlin/jvm/functions/Function0;)V
-	public synthetic fun <init> (Lorg/webrtc/MediaStreamTrack;Lkotlin/jvm/functions/Function0;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
 public final class io/ktor/client/webrtc/AndroidWebRtc : io/ktor/client/webrtc/WebRtcClientEngineFactory {
@@ -74,7 +36,7 @@ public final class io/ktor/client/webrtc/AndroidWebRtcEngine : io/ktor/client/we
 	public fun <init> (Lio/ktor/client/webrtc/AndroidWebRtcEngineConfig;Lio/ktor/client/webrtc/MediaTrackFactory;)V
 	public synthetic fun <init> (Lio/ktor/client/webrtc/AndroidWebRtcEngineConfig;Lio/ktor/client/webrtc/MediaTrackFactory;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun createAudioTrack (Lio/ktor/client/webrtc/WebRtcMedia$AudioTrackConstraints;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun createPeerConnection (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun createPeerConnection (Lio/ktor/client/webrtc/WebRtcConnectionConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun createVideoTrack (Lio/ktor/client/webrtc/WebRtcMedia$VideoTrackConstraints;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getConfig ()Lio/ktor/client/webrtc/AndroidWebRtcEngineConfig;
 	public synthetic fun getConfig ()Lio/ktor/client/webrtc/WebRtcConfig;
@@ -89,17 +51,16 @@ public final class io/ktor/client/webrtc/AndroidWebRtcEngineConfig : io/ktor/cli
 	public final fun setRtcFactory (Lorg/webrtc/PeerConnectionFactory;)V
 }
 
-public final class io/ktor/client/webrtc/AndroidWebRtcPeerConnection : io/ktor/client/webrtc/WebRtcPeerConnection, kotlinx/coroutines/CoroutineScope {
-	public fun <init> (Lkotlin/coroutines/CoroutineContext;JII)V
+public final class io/ktor/client/webrtc/AndroidWebRtcPeerConnection : io/ktor/client/webrtc/WebRtcPeerConnection {
+	public fun <init> (Lkotlin/coroutines/CoroutineContext;Lio/ktor/client/webrtc/WebRtcConnectionConfig;)V
 	public fun addIceCandidate (Lio/ktor/client/webrtc/WebRtc$IceCandidate;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun addTrack (Lio/ktor/client/webrtc/WebRtcMedia$Track;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun close ()V
 	public fun createAnswer (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun createOffer (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public fun getLocalDescription ()Lio/ktor/client/webrtc/WebRtc$SessionDescription;
-	public fun getNativeConnection ()Ljava/lang/Object;
 	public fun getRemoteDescription ()Lio/ktor/client/webrtc/WebRtc$SessionDescription;
+	public fun getStatistics (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun initialize (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/webrtc/AndroidWebRtcPeerConnection;
 	public fun removeTrack (Lio/ktor/client/webrtc/WebRtc$RtpSender;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun removeTrack (Lio/ktor/client/webrtc/WebRtcMedia$Track;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -111,6 +72,12 @@ public final class io/ktor/client/webrtc/AndroidWebRtcPeerConnection : io/ktor/c
 public abstract interface class io/ktor/client/webrtc/MediaTrackFactory {
 	public abstract fun createAudioTrack (Lio/ktor/client/webrtc/WebRtcMedia$AudioTrackConstraints;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun createVideoTrack (Lio/ktor/client/webrtc/WebRtcMedia$VideoTrackConstraints;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/client/webrtc/SendersKt {
+	public static final fun getNative (Lio/ktor/client/webrtc/WebRtc$DtmfSender;)Lorg/webrtc/DtmfSender;
+	public static final fun getNative (Lio/ktor/client/webrtc/WebRtc$RtpParameters;)Lorg/webrtc/RtpParameters;
+	public static final fun getNative (Lio/ktor/client/webrtc/WebRtc$RtpSender;)Lorg/webrtc/RtpSender;
 }
 
 public abstract interface class io/ktor/client/webrtc/TrackEvent {
@@ -125,22 +92,6 @@ public final class io/ktor/client/webrtc/TrackEvent$Add : io/ktor/client/webrtc/
 public final class io/ktor/client/webrtc/TrackEvent$Remove : io/ktor/client/webrtc/TrackEvent {
 	public fun <init> (Lio/ktor/client/webrtc/WebRtcMedia$Track;)V
 	public fun getTrack ()Lio/ktor/client/webrtc/WebRtcMedia$Track;
-}
-
-public final class io/ktor/client/webrtc/UtilsKt {
-	public static final fun resumeAfterSdpCreate (Lkotlin/coroutines/Continuation;)Lorg/webrtc/SdpObserver;
-	public static final fun resumeAfterSdpSet (Lkotlin/coroutines/Continuation;)Lorg/webrtc/SdpObserver;
-	public static final fun toCommon (Lorg/webrtc/IceCandidate;)Lio/ktor/client/webrtc/WebRtc$IceCandidate;
-	public static final fun toCommon (Lorg/webrtc/PeerConnection$IceConnectionState;)Lio/ktor/client/webrtc/WebRtc$IceConnectionState;
-	public static final fun toCommon (Lorg/webrtc/PeerConnection$IceGatheringState;)Lio/ktor/client/webrtc/WebRtc$IceGatheringState;
-	public static final fun toCommon (Lorg/webrtc/PeerConnection$PeerConnectionState;)Lio/ktor/client/webrtc/WebRtc$ConnectionState;
-	public static final fun toCommon (Lorg/webrtc/PeerConnection$SignalingState;)Lio/ktor/client/webrtc/WebRtc$SignalingState;
-	public static final fun toCommon (Lorg/webrtc/RTCStatsReport;)Ljava/util/List;
-	public static final fun toCommon (Lorg/webrtc/SessionDescription;)Lio/ktor/client/webrtc/WebRtc$SessionDescription;
-	public static final fun toNative (Lio/ktor/client/webrtc/WebRtc$BundlePolicy;)Lorg/webrtc/PeerConnection$BundlePolicy;
-	public static final fun toNative (Lio/ktor/client/webrtc/WebRtc$IceTransportPolicy;)Lorg/webrtc/PeerConnection$IceTransportsType;
-	public static final fun toNative (Lio/ktor/client/webrtc/WebRtc$RTCPMuxPolicy;)Lorg/webrtc/PeerConnection$RtcpMuxPolicy;
-	public static final fun toNative (Lio/ktor/client/webrtc/WebRtc$SessionDescription;)Lorg/webrtc/SessionDescription;
 }
 
 public final class io/ktor/client/webrtc/WebRtc {
@@ -179,10 +130,9 @@ public final class io/ktor/client/webrtc/WebRtc$DegradationPreference : java/lan
 }
 
 public abstract interface class io/ktor/client/webrtc/WebRtc$DtmfSender {
-	public abstract fun getCanInsertDTMF ()Z
-	public abstract fun getNative ()Ljava/lang/Object;
+	public abstract fun getCanInsertDtmf ()Z
 	public abstract fun getToneBuffer ()Ljava/lang/String;
-	public abstract fun insertDTMF (Ljava/lang/String;II)V
+	public abstract fun insertDtmf (Ljava/lang/String;II)V
 }
 
 public final class io/ktor/client/webrtc/WebRtc$IceCandidate {
@@ -267,12 +217,12 @@ public final class io/ktor/client/webrtc/WebRtc$IceTransportPolicy : java/lang/E
 	public static fun values ()[Lio/ktor/client/webrtc/WebRtc$IceTransportPolicy;
 }
 
-public final class io/ktor/client/webrtc/WebRtc$RTCPMuxPolicy : java/lang/Enum {
-	public static final field NEGOTIATE Lio/ktor/client/webrtc/WebRtc$RTCPMuxPolicy;
-	public static final field REQUIRE Lio/ktor/client/webrtc/WebRtc$RTCPMuxPolicy;
+public final class io/ktor/client/webrtc/WebRtc$RtcpMuxPolicy : java/lang/Enum {
+	public static final field NEGOTIATE Lio/ktor/client/webrtc/WebRtc$RtcpMuxPolicy;
+	public static final field REQUIRE Lio/ktor/client/webrtc/WebRtc$RtcpMuxPolicy;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
-	public static fun valueOf (Ljava/lang/String;)Lio/ktor/client/webrtc/WebRtc$RTCPMuxPolicy;
-	public static fun values ()[Lio/ktor/client/webrtc/WebRtc$RTCPMuxPolicy;
+	public static fun valueOf (Ljava/lang/String;)Lio/ktor/client/webrtc/WebRtc$RtcpMuxPolicy;
+	public static fun values ()[Lio/ktor/client/webrtc/WebRtc$RtcpMuxPolicy;
 }
 
 public final class io/ktor/client/webrtc/WebRtc$RtpHeaderExtensionParameters {
@@ -301,7 +251,6 @@ public abstract interface class io/ktor/client/webrtc/WebRtc$RtpParameters {
 
 public abstract interface class io/ktor/client/webrtc/WebRtc$RtpSender {
 	public abstract fun getDtmf ()Lio/ktor/client/webrtc/WebRtc$DtmfSender;
-	public abstract fun getNative ()Ljava/lang/Object;
 	public abstract fun getParameters (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getTrack ()Lio/ktor/client/webrtc/WebRtcMedia$Track;
 	public abstract fun replaceTrack (Lio/ktor/client/webrtc/WebRtcMedia$Track;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -389,7 +338,7 @@ public final class io/ktor/client/webrtc/WebRtcClient : io/ktor/client/webrtc/We
 	public fun <init> (Lio/ktor/client/webrtc/WebRtcEngine;)V
 	public fun close ()V
 	public fun createAudioTrack (Lio/ktor/client/webrtc/WebRtcMedia$AudioTrackConstraints;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun createPeerConnection (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun createPeerConnection (Lio/ktor/client/webrtc/WebRtcConnectionConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun createVideoTrack (Lio/ktor/client/webrtc/WebRtcMedia$VideoTrackConstraints;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getConfig ()Lio/ktor/client/webrtc/WebRtcConfig;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
@@ -399,10 +348,6 @@ public abstract interface class io/ktor/client/webrtc/WebRtcClientEngineFactory 
 	public abstract fun create (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/webrtc/WebRtcEngine;
 }
 
-public final class io/ktor/client/webrtc/WebRtcClientEngineFactory$DefaultImpls {
-	public static synthetic fun create$default (Lio/ktor/client/webrtc/WebRtcClientEngineFactory;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/client/webrtc/WebRtcEngine;
-}
-
 public final class io/ktor/client/webrtc/WebRtcClientKt {
 	public static final fun WebRtcClient (Lio/ktor/client/webrtc/WebRtcClientEngineFactory;Lkotlin/jvm/functions/Function1;)Lio/ktor/client/webrtc/WebRtcClient;
 	public static synthetic fun WebRtcClient$default (Lio/ktor/client/webrtc/WebRtcClientEngineFactory;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/client/webrtc/WebRtcClient;
@@ -410,31 +355,52 @@ public final class io/ktor/client/webrtc/WebRtcClientKt {
 
 public class io/ktor/client/webrtc/WebRtcConfig {
 	public fun <init> ()V
-	public final fun getBundlePolicy ()Lio/ktor/client/webrtc/WebRtc$BundlePolicy;
+	public final fun getDefaultConnectionConfig ()Lkotlin/jvm/functions/Function1;
 	public final fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
+	public final fun getMediaTrackFactory ()Lio/ktor/client/webrtc/MediaTrackFactory;
+	public final fun setDefaultConnectionConfig (Lkotlin/jvm/functions/Function1;)V
+	public final fun setDispatcher (Lkotlinx/coroutines/CoroutineDispatcher;)V
+	public final fun setMediaTrackFactory (Lio/ktor/client/webrtc/MediaTrackFactory;)V
+}
+
+public class io/ktor/client/webrtc/WebRtcConnectionConfig {
+	public fun <init> ()V
+	public final fun getBundlePolicy ()Lio/ktor/client/webrtc/WebRtc$BundlePolicy;
 	public final fun getIceCandidatePoolSize ()I
 	public final fun getIceCandidatesReplay ()I
 	public final fun getIceServers ()Ljava/util/List;
 	public final fun getIceTransportPolicy ()Lio/ktor/client/webrtc/WebRtc$IceTransportPolicy;
-	public final fun getMediaTrackFactory ()Lio/ktor/client/webrtc/MediaTrackFactory;
 	public final fun getRemoteTracksReplay ()I
-	public final fun getRtcpMuxPolicy ()Lio/ktor/client/webrtc/WebRtc$RTCPMuxPolicy;
+	public final fun getRtcpMuxPolicy ()Lio/ktor/client/webrtc/WebRtc$RtcpMuxPolicy;
 	public final fun getStatsRefreshRate ()J
 	public final fun setBundlePolicy (Lio/ktor/client/webrtc/WebRtc$BundlePolicy;)V
-	public final fun setDispatcher (Lkotlinx/coroutines/CoroutineDispatcher;)V
 	public final fun setIceCandidatePoolSize (I)V
 	public final fun setIceCandidatesReplay (I)V
 	public final fun setIceServers (Ljava/util/List;)V
 	public final fun setIceTransportPolicy (Lio/ktor/client/webrtc/WebRtc$IceTransportPolicy;)V
-	public final fun setMediaTrackFactory (Lio/ktor/client/webrtc/MediaTrackFactory;)V
 	public final fun setRemoteTracksReplay (I)V
-	public final fun setRtcpMuxPolicy (Lio/ktor/client/webrtc/WebRtc$RTCPMuxPolicy;)V
+	public final fun setRtcpMuxPolicy (Lio/ktor/client/webrtc/WebRtc$RtcpMuxPolicy;)V
 	public final fun setStatsRefreshRate (J)V
 }
 
+public abstract interface class io/ktor/client/webrtc/WebRtcConnectionEvents {
+	public abstract fun getIceCandidates ()Lkotlinx/coroutines/flow/SharedFlow;
+	public abstract fun getIceConnectionState ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getIceGatheringState ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getNegotiationNeeded ()Lkotlinx/coroutines/flow/SharedFlow;
+	public abstract fun getSignalingState ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getState ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getStats ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getTrackEvents ()Lkotlinx/coroutines/flow/SharedFlow;
+}
+
 public abstract interface class io/ktor/client/webrtc/WebRtcEngine : io/ktor/client/webrtc/MediaTrackFactory, java/io/Closeable, kotlinx/coroutines/CoroutineScope {
-	public abstract fun createPeerConnection (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun createPeerConnection (Lio/ktor/client/webrtc/WebRtcConnectionConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getConfig ()Lio/ktor/client/webrtc/WebRtcConfig;
+}
+
+public final class io/ktor/client/webrtc/WebRtcEngine$DefaultImpls {
+	public static synthetic fun createPeerConnection$default (Lio/ktor/client/webrtc/WebRtcEngine;Lio/ktor/client/webrtc/WebRtcConnectionConfig;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public abstract class io/ktor/client/webrtc/WebRtcEngineBase : io/ktor/client/webrtc/WebRtcEngine {
@@ -517,7 +483,6 @@ public abstract interface class io/ktor/client/webrtc/WebRtcMedia$Track : java/l
 	public abstract fun getEnabled ()Z
 	public abstract fun getId ()Ljava/lang/String;
 	public abstract fun getKind ()Lio/ktor/client/webrtc/WebRtcMedia$TrackType;
-	public abstract fun getNative ()Ljava/lang/Object;
 }
 
 public final class io/ktor/client/webrtc/WebRtcMedia$TrackType : java/lang/Enum {
@@ -554,36 +519,64 @@ public final class io/ktor/client/webrtc/WebRtcMedia$VideoTrackConstraints {
 	public fun toString ()Ljava/lang/String;
 }
 
-public abstract class io/ktor/client/webrtc/WebRtcPeerConnection : java/io/Closeable {
-	public fun <init> (II)V
+public abstract class io/ktor/client/webrtc/WebRtcPeerConnection : io/ktor/client/webrtc/WebRtcConnectionEvents, java/io/Closeable, kotlinx/coroutines/CoroutineScope {
+	public fun <init> (Lkotlin/coroutines/CoroutineContext;Lio/ktor/client/webrtc/WebRtcConnectionConfig;)V
 	public abstract fun addIceCandidate (Lio/ktor/client/webrtc/WebRtc$IceCandidate;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun addTrack (Lio/ktor/client/webrtc/WebRtcMedia$Track;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun createAnswer (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun createOffer (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	protected final fun getConnectionStateFlow ()Lkotlinx/coroutines/flow/MutableStateFlow;
-	public final fun getIceCandidates ()Lkotlinx/coroutines/flow/SharedFlow;
-	protected final fun getIceCandidatesFlow ()Lkotlinx/coroutines/flow/MutableSharedFlow;
-	public final fun getIceConnectionState ()Lkotlinx/coroutines/flow/StateFlow;
-	protected final fun getIceConnectionStateFlow ()Lkotlinx/coroutines/flow/MutableStateFlow;
-	public final fun getIceGatheringState ()Lkotlinx/coroutines/flow/StateFlow;
-	protected final fun getIceGatheringStateFlow ()Lkotlinx/coroutines/flow/MutableStateFlow;
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public fun getIceCandidates ()Lkotlinx/coroutines/flow/SharedFlow;
+	public fun getIceConnectionState ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getIceGatheringState ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getLocalDescription ()Lio/ktor/client/webrtc/WebRtc$SessionDescription;
-	public abstract fun getNativeConnection ()Ljava/lang/Object;
-	protected final fun getNegotiationNeededCallback ()Lkotlin/jvm/functions/Function0;
+	public fun getNegotiationNeeded ()Lkotlinx/coroutines/flow/SharedFlow;
 	public abstract fun getRemoteDescription ()Lio/ktor/client/webrtc/WebRtc$SessionDescription;
-	public final fun getSignalingState ()Lkotlinx/coroutines/flow/StateFlow;
-	protected final fun getSignalingStateFlow ()Lkotlinx/coroutines/flow/MutableStateFlow;
-	public final fun getState ()Lkotlinx/coroutines/flow/StateFlow;
-	public final fun getStats ()Lkotlinx/coroutines/flow/StateFlow;
-	protected final fun getStatsFlow ()Lkotlinx/coroutines/flow/MutableStateFlow;
-	public final fun getTrackEvents ()Lkotlinx/coroutines/flow/SharedFlow;
-	protected final fun getTrackEventsFlow ()Lkotlinx/coroutines/flow/MutableSharedFlow;
-	public final fun onNegotiationNeeded (Lkotlin/jvm/functions/Function0;)V
+	public fun getSignalingState ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getState ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getStatistics (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getStats ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getTrackEvents ()Lkotlinx/coroutines/flow/SharedFlow;
 	public abstract fun removeTrack (Lio/ktor/client/webrtc/WebRtc$RtpSender;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun removeTrack (Lio/ktor/client/webrtc/WebRtcMedia$Track;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun restartIce ()V
 	public abstract fun setLocalDescription (Lio/ktor/client/webrtc/WebRtc$SessionDescription;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	protected final fun setNegotiationNeededCallback (Lkotlin/jvm/functions/Function0;)V
 	public abstract fun setRemoteDescription (Lio/ktor/client/webrtc/WebRtc$SessionDescription;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/client/webrtc/media/AndroidAudioTrack : io/ktor/client/webrtc/media/AndroidMediaTrack, io/ktor/client/webrtc/WebRtcMedia$AudioTrack {
+	public fun <init> (Lorg/webrtc/MediaStreamTrack;Lkotlin/jvm/functions/Function0;)V
+	public synthetic fun <init> (Lorg/webrtc/MediaStreamTrack;Lkotlin/jvm/functions/Function0;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class io/ktor/client/webrtc/media/AndroidMediaDevices : io/ktor/client/webrtc/MediaTrackFactory {
+	public fun <init> (Landroid/content/Context;Lorg/webrtc/EglBase;)V
+	public synthetic fun <init> (Landroid/content/Context;Lorg/webrtc/EglBase;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun createAudioTrack (Lio/ktor/client/webrtc/WebRtcMedia$AudioTrackConstraints;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun createVideoTrack (Lio/ktor/client/webrtc/WebRtcMedia$VideoTrackConstraints;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getPeerConnectionFactory ()Lorg/webrtc/PeerConnectionFactory;
+}
+
+public abstract class io/ktor/client/webrtc/media/AndroidMediaTrack : io/ktor/client/webrtc/WebRtcMedia$Track {
+	public static final field Companion Lio/ktor/client/webrtc/media/AndroidMediaTrack$Companion;
+	public fun <init> (Lorg/webrtc/MediaStreamTrack;Lkotlin/jvm/functions/Function0;)V
+	public fun close ()V
+	public fun enable (Z)V
+	public fun getEnabled ()Z
+	public fun getId ()Ljava/lang/String;
+	public fun getKind ()Lio/ktor/client/webrtc/WebRtcMedia$TrackType;
+}
+
+public final class io/ktor/client/webrtc/media/AndroidMediaTrack$Companion {
+	public final fun from (Lorg/webrtc/MediaStreamTrack;)Lio/ktor/client/webrtc/media/AndroidMediaTrack;
+}
+
+public final class io/ktor/client/webrtc/media/AndroidVideoTrack : io/ktor/client/webrtc/media/AndroidMediaTrack, io/ktor/client/webrtc/WebRtcMedia$VideoTrack {
+	public fun <init> (Lorg/webrtc/MediaStreamTrack;Lkotlin/jvm/functions/Function0;)V
+	public synthetic fun <init> (Lorg/webrtc/MediaStreamTrack;Lkotlin/jvm/functions/Function0;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class io/ktor/client/webrtc/media/MediaTrackKt {
+	public static final fun getNative (Lio/ktor/client/webrtc/WebRtcMedia$Track;)Lorg/webrtc/MediaStreamTrack;
 }
 

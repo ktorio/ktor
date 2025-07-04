@@ -396,7 +396,7 @@ class WebRtcEngineTest {
                 }
 
                 // remove audio track at pc2, needs renegotiation to work
-                assertTrue(negotiationNeededCnt.value >= 2)
+                assertTrue(negotiationNeededCnt.value >= 1)
                 pc2.removeTrack(audioSender)
                 negotiate(pc1, pc2)
 

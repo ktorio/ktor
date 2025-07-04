@@ -2,12 +2,14 @@
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.client.webrtc
+package io.ktor.client.webrtc.media
 
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import io.ktor.client.webrtc.MediaTrackFactory
+import io.ktor.client.webrtc.WebRtcMedia
 import kotlinx.coroutines.suspendCancellableCoroutine
 import org.webrtc.Camera2Enumerator
 import org.webrtc.CameraVideoCapturer.CameraEventsHandler
@@ -105,9 +107,9 @@ public class AndroidMediaDevices(
         assertPermission(Manifest.permission.RECORD_AUDIO)
 
         val mc = arrayListOf<Pair<String, Boolean>>()
-        mc.add("googEchoCancellation" to (constraints.echoCancellation ?: true))
-        mc.add("googAutoGainControl" to (constraints.autoGainControl ?: true))
-        mc.add("googNoiseSuppression" to (constraints.noiseSuppression ?: true))
+        mc.add("googEchoCancellation" to (constraints.echoCancellation != false))
+        mc.add("googAutoGainControl" to (constraints.autoGainControl != false))
+        mc.add("googNoiseSuppression" to (constraints.noiseSuppression != false))
 
         val mediaConstraints = MediaConstraints().apply {
             mandatory.addAll(

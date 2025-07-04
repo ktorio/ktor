@@ -13,7 +13,7 @@ import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-public fun WebRtc.SessionDescription.toNative(): SessionDescription {
+internal fun WebRtc.SessionDescription.toNative(): SessionDescription {
     return SessionDescription(
         when (type) {
             WebRtc.SessionDescriptionType.OFFER -> SessionDescription.Type.OFFER
@@ -25,23 +25,23 @@ public fun WebRtc.SessionDescription.toNative(): SessionDescription {
     )
 }
 
-public fun WebRtc.BundlePolicy.toNative(): PeerConnection.BundlePolicy = when (this) {
+internal fun WebRtc.BundlePolicy.toNative(): PeerConnection.BundlePolicy = when (this) {
     WebRtc.BundlePolicy.BALANCED -> PeerConnection.BundlePolicy.BALANCED
     WebRtc.BundlePolicy.MAX_BUNDLE -> PeerConnection.BundlePolicy.MAXBUNDLE
     WebRtc.BundlePolicy.MAX_COMPAT -> PeerConnection.BundlePolicy.MAXCOMPAT
 }
 
-public fun WebRtc.IceTransportPolicy.toNative(): PeerConnection.IceTransportsType = when (this) {
+internal fun WebRtc.IceTransportPolicy.toNative(): PeerConnection.IceTransportsType = when (this) {
     WebRtc.IceTransportPolicy.ALL -> PeerConnection.IceTransportsType.ALL
     WebRtc.IceTransportPolicy.RELAY -> PeerConnection.IceTransportsType.RELAY
 }
 
-public fun WebRtc.RTCPMuxPolicy.toNative(): PeerConnection.RtcpMuxPolicy = when (this) {
-    WebRtc.RTCPMuxPolicy.NEGOTIATE -> PeerConnection.RtcpMuxPolicy.NEGOTIATE
-    WebRtc.RTCPMuxPolicy.REQUIRE -> PeerConnection.RtcpMuxPolicy.REQUIRE
+internal fun WebRtc.RtcpMuxPolicy.toNative(): PeerConnection.RtcpMuxPolicy = when (this) {
+    WebRtc.RtcpMuxPolicy.NEGOTIATE -> PeerConnection.RtcpMuxPolicy.NEGOTIATE
+    WebRtc.RtcpMuxPolicy.REQUIRE -> PeerConnection.RtcpMuxPolicy.REQUIRE
 }
 
-public fun PeerConnection.IceConnectionState?.toCommon(): WebRtc.IceConnectionState? = when (this) {
+internal fun PeerConnection.IceConnectionState?.toCommon(): WebRtc.IceConnectionState? = when (this) {
     PeerConnection.IceConnectionState.NEW -> WebRtc.IceConnectionState.NEW
     PeerConnection.IceConnectionState.FAILED -> WebRtc.IceConnectionState.FAILED
     PeerConnection.IceConnectionState.CLOSED -> WebRtc.IceConnectionState.CLOSED
@@ -52,7 +52,7 @@ public fun PeerConnection.IceConnectionState?.toCommon(): WebRtc.IceConnectionSt
     else -> null
 }
 
-public fun PeerConnection.PeerConnectionState?.toCommon(): WebRtc.ConnectionState? = when (this) {
+internal fun PeerConnection.PeerConnectionState?.toCommon(): WebRtc.ConnectionState? = when (this) {
     PeerConnection.PeerConnectionState.NEW -> WebRtc.ConnectionState.NEW
     PeerConnection.PeerConnectionState.CLOSED -> WebRtc.ConnectionState.CLOSED
     PeerConnection.PeerConnectionState.CONNECTED -> WebRtc.ConnectionState.CONNECTED
@@ -62,7 +62,7 @@ public fun PeerConnection.PeerConnectionState?.toCommon(): WebRtc.ConnectionStat
     else -> null
 }
 
-public fun PeerConnection.SignalingState?.toCommon(): WebRtc.SignalingState? = when (this) {
+internal fun PeerConnection.SignalingState?.toCommon(): WebRtc.SignalingState? = when (this) {
     PeerConnection.SignalingState.STABLE -> WebRtc.SignalingState.STABLE
     PeerConnection.SignalingState.CLOSED -> WebRtc.SignalingState.CLOSED
     PeerConnection.SignalingState.HAVE_LOCAL_OFFER -> WebRtc.SignalingState.HAVE_LOCAL_OFFER
@@ -72,14 +72,14 @@ public fun PeerConnection.SignalingState?.toCommon(): WebRtc.SignalingState? = w
     else -> null
 }
 
-public fun PeerConnection.IceGatheringState?.toCommon(): WebRtc.IceGatheringState? = when (this) {
+internal fun PeerConnection.IceGatheringState?.toCommon(): WebRtc.IceGatheringState? = when (this) {
     PeerConnection.IceGatheringState.NEW -> WebRtc.IceGatheringState.NEW
     PeerConnection.IceGatheringState.COMPLETE -> WebRtc.IceGatheringState.COMPLETE
     PeerConnection.IceGatheringState.GATHERING -> WebRtc.IceGatheringState.GATHERING
     else -> null
 }
 
-public fun SessionDescription.toCommon(): WebRtc.SessionDescription {
+internal fun SessionDescription.toCommon(): WebRtc.SessionDescription {
     return WebRtc.SessionDescription(
         when (requireNotNull(type)) {
             SessionDescription.Type.OFFER -> WebRtc.SessionDescriptionType.OFFER
@@ -91,7 +91,7 @@ public fun SessionDescription.toCommon(): WebRtc.SessionDescription {
     )
 }
 
-public fun RTCStatsReport.toCommon(): List<WebRtc.Stats> = statsMap.values.map {
+internal fun RTCStatsReport.toCommon(): List<WebRtc.Stats> = statsMap.values.map {
     WebRtc.Stats(
         it.id,
         it.type,
@@ -100,13 +100,13 @@ public fun RTCStatsReport.toCommon(): List<WebRtc.Stats> = statsMap.values.map {
     )
 }
 
-public fun IceCandidate.toCommon(): WebRtc.IceCandidate = WebRtc.IceCandidate(
+internal fun IceCandidate.toCommon(): WebRtc.IceCandidate = WebRtc.IceCandidate(
     candidate = sdp,
     sdpMid = sdpMid,
     sdpMLineIndex = sdpMLineIndex
 )
 
-public fun Continuation<SessionDescription>.resumeAfterSdpCreate(): SdpObserver {
+internal fun Continuation<SessionDescription>.resumeAfterSdpCreate(): SdpObserver {
     return object : SdpObserver {
         override fun onCreateSuccess(sdp: SessionDescription?) = resume(requireNotNull(sdp))
         override fun onCreateFailure(error: String?) = resumeWithException(WebRtc.SdpException(error))
@@ -115,7 +115,7 @@ public fun Continuation<SessionDescription>.resumeAfterSdpCreate(): SdpObserver 
     }
 }
 
-public fun Continuation<Unit>.resumeAfterSdpSet(): SdpObserver {
+internal fun Continuation<Unit>.resumeAfterSdpSet(): SdpObserver {
     return object : SdpObserver {
         override fun onCreateSuccess(sdp: SessionDescription?) {}
         override fun onCreateFailure(error: String?) {}

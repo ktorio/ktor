@@ -7,14 +7,17 @@ package io.ktor.client.webrtc
 import android.Manifest
 import android.content.Context
 import androidx.test.platform.app.InstrumentationRegistry
+import io.ktor.client.webrtc.media.AndroidMediaDevices
 
 private val ctx: Context get() = InstrumentationRegistry.getInstrumentation().targetContext
 
 actual fun createTestWebRtcClient(): WebRtcClient {
     return WebRtcClient(AndroidWebRtc) {
-        iceServers = listOf()
-        statsRefreshRate = 100 // 100 ms refresh rate
         mediaTrackFactory = AndroidMediaDevices(ctx)
+        defaultConnectionConfig = {
+            iceServers = listOf()
+            statsRefreshRate = 100 // 100 ms refresh rate
+        }
     }
 }
 
