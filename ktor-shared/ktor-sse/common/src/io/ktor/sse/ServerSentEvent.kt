@@ -79,10 +79,13 @@ public data class TypedServerSentEvent<T>(
         eventToString(data?.let { serializer(it) }, event, id, retry, comments)
 }
 
+/**
+ * Serialize event to string representation according to the [spec](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#event_stream_format)
+ */
 private fun eventToString(data: String?, event: String?, id: String?, retry: Long?, comments: String?): String {
     return buildString {
-        appendField("data", data)
         appendField("event", event)
+        appendField("data", data)
         appendField("id", id)
         appendField("retry", retry)
         appendField("", comments)
