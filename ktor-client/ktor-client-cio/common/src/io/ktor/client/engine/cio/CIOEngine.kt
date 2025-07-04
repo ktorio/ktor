@@ -46,12 +46,10 @@ internal class CIOEngine(
 
     override val coroutineContext: CoroutineContext
 
-    private val proxy: ProxyConfig? = when (val type = config.proxy?.type) {
-        ProxyType.SOCKS,
-        null -> null
-
-        ProxyType.HTTP -> discoverHttpProxy() ?: config.proxy
-        else -> throw IllegalStateException("CIO engine does not currently support $type proxies.")
+    private val proxy: ProxyConfig? = if (config.proxy?.type == ProxyType.HTTP) {
+        config.proxy
+    } else {
+        discoverHttpProxy()
     }
 
     init {
