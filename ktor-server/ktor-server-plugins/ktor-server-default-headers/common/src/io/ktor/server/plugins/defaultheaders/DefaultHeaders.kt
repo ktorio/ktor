@@ -6,11 +6,11 @@ package io.ktor.server.plugins.defaultheaders
 
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.plugins.defaultheaders.DefaultHeadersConfig.*
 import io.ktor.server.response.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlinx.atomicfu.atomic
+import kotlin.time.ExperimentalTime
 
 /**
  * A configuration for the [DefaultHeaders] plugin.
@@ -37,7 +37,8 @@ public class DefaultHeadersConfig {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.defaultheaders.DefaultHeadersConfig.clock)
      */
-    public var clock: Clock = Clock { kotlinx.datetime.Clock.System.now().toEpochMilliseconds() }
+    @OptIn(ExperimentalTime::class)
+    public var clock: Clock = Clock { kotlin.time.Clock.System.now().toEpochMilliseconds() }
 
     /**
      * Utility interface for obtaining timestamp.

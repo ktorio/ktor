@@ -368,7 +368,10 @@ public suspend inline fun HttpClient.get(block: HttpRequestBuilder.() -> Unit): 
 public suspend inline fun HttpClient.post(block: HttpRequestBuilder.() -> Unit): HttpResponse {
     val builder = HttpRequestBuilder()
     builder.method = HttpMethod.Post
-    return request(builder.apply(block))
+    builder.block()
+    builder.method = HttpMethod.Post
+
+    return request(builder)
 }
 
 /**
@@ -381,7 +384,10 @@ public suspend inline fun HttpClient.post(block: HttpRequestBuilder.() -> Unit):
 public suspend inline fun HttpClient.put(block: HttpRequestBuilder.() -> Unit): HttpResponse {
     val builder = HttpRequestBuilder()
     builder.method = HttpMethod.Put
-    return request(builder.apply(block))
+    builder.block()
+    builder.method = HttpMethod.Put
+
+    return request(builder)
 }
 
 /**
@@ -394,7 +400,10 @@ public suspend inline fun HttpClient.put(block: HttpRequestBuilder.() -> Unit): 
 public suspend inline fun HttpClient.delete(block: HttpRequestBuilder.() -> Unit): HttpResponse {
     val builder = HttpRequestBuilder()
     builder.method = HttpMethod.Delete
-    return request(builder.apply(block))
+    builder.block()
+    builder.method = HttpMethod.Delete
+
+    return request(builder)
 }
 
 /**
@@ -407,7 +416,10 @@ public suspend inline fun HttpClient.delete(block: HttpRequestBuilder.() -> Unit
 public suspend inline fun HttpClient.options(block: HttpRequestBuilder.() -> Unit): HttpResponse {
     val builder = HttpRequestBuilder()
     builder.method = HttpMethod.Options
-    return request(builder.apply(block))
+    builder.block()
+    builder.method = HttpMethod.Options
+
+    return request(builder)
 }
 
 /**
@@ -420,7 +432,10 @@ public suspend inline fun HttpClient.options(block: HttpRequestBuilder.() -> Uni
 public suspend inline fun HttpClient.patch(block: HttpRequestBuilder.() -> Unit): HttpResponse {
     val builder = HttpRequestBuilder()
     builder.method = HttpMethod.Patch
-    return request(builder.apply(block))
+    builder.block()
+    builder.method = HttpMethod.Patch
+
+    return request(builder)
 }
 
 /**
@@ -433,7 +448,10 @@ public suspend inline fun HttpClient.patch(block: HttpRequestBuilder.() -> Unit)
 public suspend inline fun HttpClient.head(block: HttpRequestBuilder.() -> Unit): HttpResponse {
     val builder = HttpRequestBuilder()
     builder.method = HttpMethod.Head
-    return request(builder.apply(block))
+    builder.block()
+    builder.method = HttpMethod.Head
+
+    return request(builder)
 }
 
 /**
