@@ -1,3 +1,25 @@
+# 3.2.1
+> Published 3 July 2025
+
+### Improvements
+* Replace kotlinx.datetime APIs with kotlin.time ([KTOR-8635](https://youtrack.jetbrains.com/issue/KTOR-8635))
+* Thymeleaf: null values in template model ([KTOR-8559](https://youtrack.jetbrains.com/issue/KTOR-8559))
+* Publish Javadoc as a maven artifact ([KTOR-3962](https://youtrack.jetbrains.com/issue/KTOR-3962))
+* Netty: Invalid hex byte with malformed query string ([KTOR-2934](https://youtrack.jetbrains.com/issue/KTOR-2934))
+
+### Bugfixes
+* "Space characters in SimpleName" error when executing R8 mergeExtDex task with 3.2.0 ([KTOR-8583](https://youtrack.jetbrains.com/issue/KTOR-8583))
+* ForwardedHeaders: the plugin does not handle parameters case-insensitively ([KTOR-8622](https://youtrack.jetbrains.com/issue/KTOR-8622))
+* Potential race condition in `socket.awaitClosed` (hangs indefinitely) since 3.2.0 ([KTOR-8618](https://youtrack.jetbrains.com/issue/KTOR-8618))
+* Module parameter type Application.() -> kotlin.Unit is not supported in 3.2.0 ([KTOR-8602](https://youtrack.jetbrains.com/issue/KTOR-8602))
+* OkHttp: java.net.ProtocolException when sending MultiPartFormDataContent with onUpload ([KTOR-6790](https://youtrack.jetbrains.com/issue/KTOR-6790))
+* OAuth2 authentication provider breaks form-urlencoded POST requests when receiving request body ([KTOR-4420](https://youtrack.jetbrains.com/issue/KTOR-4420))
+* 404 for a link in KDoc for io.ktor.server.plugins.contentnegotiation.ContentNegotiation ([KTOR-8597](https://youtrack.jetbrains.com/issue/KTOR-8597))
+* Ktor fails to boot with default jvminline argument ([KTOR-8608](https://youtrack.jetbrains.com/issue/KTOR-8608))
+* Flow invariant is violated since 3.2.0 ([KTOR-8606](https://youtrack.jetbrains.com/issue/KTOR-8606))
+* ResponseSent hook handler of the plugin installed into a route isn't executed when an exception is thrown from the route ([KTOR-6794](https://youtrack.jetbrains.com/issue/KTOR-6794))
+
+
 # 3.2.0
 > Published 12 June 2025
 
