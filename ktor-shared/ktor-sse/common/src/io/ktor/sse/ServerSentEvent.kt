@@ -80,7 +80,8 @@ public data class TypedServerSentEvent<T>(
 }
 
 /**
- * Serialize event to string representation according to the [spec](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#event_stream_format)
+ * Serialize [event](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#event_stream_format)
+ * to a string representation
  */
 private fun eventToString(data: String?, event: String?, id: String?, retry: Long?, comments: String?): String {
     return buildString {
