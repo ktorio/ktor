@@ -167,8 +167,8 @@ public final class io/ktor/server/application/OnCallRespondContext : io/ktor/ser
 public abstract interface class io/ktor/server/application/PipelineCall : io/ktor/server/application/ApplicationCall {
 	public abstract fun getRequest ()Lio/ktor/server/request/PipelineRequest;
 	public abstract fun getResponse ()Lio/ktor/server/response/PipelineResponse;
-	public abstract fun receiveNullable (Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun respond (Ljava/lang/Object;Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun receiveNullable (Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun respond (Ljava/lang/Object;Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/application/PipelineCall$DefaultImpls {
@@ -394,9 +394,13 @@ public abstract interface class io/ktor/server/engine/ApplicationEngine {
 	public abstract fun getEnvironment ()Lio/ktor/server/application/ApplicationEnvironment;
 	public abstract fun resolvedConnectors (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun start (Z)Lio/ktor/server/engine/ApplicationEngine;
-	public abstract fun startSuspend (ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun start$default (Lio/ktor/server/engine/ApplicationEngine;ZILjava/lang/Object;)Lio/ktor/server/engine/ApplicationEngine;
+	public fun startSuspend (ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun startSuspend$default (Lio/ktor/server/engine/ApplicationEngine;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun stop (JJ)V
-	public abstract fun stopSuspend (JJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun stop$default (Lio/ktor/server/engine/ApplicationEngine;JJILjava/lang/Object;)V
+	public fun stopSuspend (JJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun stopSuspend$default (Lio/ktor/server/engine/ApplicationEngine;JJLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public class io/ktor/server/engine/ApplicationEngine$Configuration {
@@ -1589,6 +1593,7 @@ public abstract interface class io/ktor/server/routing/Route {
 	public abstract fun getParent ()Lio/ktor/server/routing/Route;
 	public abstract fun handle (Lkotlin/jvm/functions/Function2;)V
 	public abstract fun install (Lio/ktor/server/application/Plugin;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public static synthetic fun install$default (Lio/ktor/server/routing/Route;Lio/ktor/server/application/Plugin;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun plugin (Lio/ktor/server/application/Plugin;)Ljava/lang/Object;
 }
 
