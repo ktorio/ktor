@@ -343,8 +343,12 @@ internal class WinHttpRequest(
         val dwSize = alloc<UIntVar> {
             value = UINT_SIZE
         }
-        WinHttpQueryOption(hRequest, WINHTTP_OPTION_HTTP_PROTOCOL_USED, flags.ptr, dwSize.ptr) != 0 &&
-            (flags.value.convert<Int>() and WINHTTP_PROTOCOL_FLAG_HTTP2) != 0
+        if (WinHttpQueryOption(hRequest, WINHTTP_OPTION_HTTP_PROTOCOL_USED, flags.ptr, dwSize.ptr) != 0) {
+            if ((flags.value.convert<Int>() and WINHTTP_PROTOCOL_FLAG_HTTP2) != 0) {
+                return@memScoped true
+            }
+        }
+        false
     }
 
     private fun closeRequest() {
