@@ -24,3 +24,8 @@ internal fun Project.resolveVersion(): String {
         else -> projectVersion
     }
 }
+
+private val stableVersionRegex = Regex("""^\d+\.\d+\.\d+$""")
+
+/** Checks whether the given [version] stable or not. */
+internal fun isStableVersion(version: String) = version matches stableVersionRegex
