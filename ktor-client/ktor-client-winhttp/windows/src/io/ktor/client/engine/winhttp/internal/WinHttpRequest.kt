@@ -335,7 +335,7 @@ internal class WinHttpRequest(
         }
         if (WinHttpQueryOption(hRequest, WINHTTP_OPTION_HTTP_PROTOCOL_USED, flags.ptr, dwSize.ptr) != 0) {
             if ((flags.value.convert<Int>() and WINHTTP_PROTOCOL_FLAG_HTTP2) != 0) {
-                return true
+                return@memScoped true
             }
         }
         false
