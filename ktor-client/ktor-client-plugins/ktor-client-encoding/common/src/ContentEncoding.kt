@@ -15,7 +15,6 @@ import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.CoroutineScope
 
 private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.compression.ContentEncoding")
 
@@ -295,6 +294,5 @@ public fun HttpRequestBuilder.compress(contentEncoderNames: List<String>) {
  */
 public val HttpResponse.appliedDecoders: List<String>
     get() = call.attributes.getOrNull(DecompressionListAttribute) ?: emptyList()
-
 
 internal expect fun shouldDecode(response: HttpResponse): Boolean
