@@ -11,26 +11,27 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.test.base.*
 import io.ktor.http.*
-import java.nio.file.Files
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
+import kotlinx.io.files.*
+import kotlin.test.*
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 class FileCacheTest : ClientLoader() {
-    private val publicStorage = FileStorage(Files.createTempDirectory("cache-test-public").toFile())
-    private val privateStorage = FileStorage(Files.createTempDirectory("cache-test-private").toFile())
+    private val tmpDirPath = temporaryDirectoryPath()
+    private val publicStorage = FileStorage(SystemFileSystem, Path(tmpDirPath, "cache-test-public"))
+    private val privateStorage = FileStorage(SystemFileSystem, Path(tmpDirPath, "cache-test-private"))
 
     @Test
     fun testVaryHeader() = clientTests(except("Js")) {
         config {
-            install(HttpCache) {
+            install(HttpCache.Companion) {
                 publicStorage(this@FileCacheTest.publicStorage)
                 privateStorage(this@FileCacheTest.privateStorage)
             }
         }
 
         test { client ->
-            val url = Url("$TEST_SERVER/cache/vary")
+            val url = Url("${TEST_SERVER}/cache/vary")
 
             // first header value from Vary
             val first = client.get(url) {
@@ -81,7 +82,7 @@ class FileCacheTest : ClientLoader() {
     @Test
     fun testReuseCacheStorage() = clientTests(except("Js")) {
         config {
-            install(HttpCache) {
+            install(HttpCache.Companion) {
                 publicStorage(this@FileCacheTest.publicStorage)
                 privateStorage(this@FileCacheTest.privateStorage)
             }
@@ -90,48 +91,66 @@ class FileCacheTest : ClientLoader() {
         test { client ->
             val client1 = client.config { }
             val client2 = client.config { }
-            val url = Url("$TEST_SERVER/cache/etag-304")
+            val url = Url("${TEST_SERVER}/cache/etag-304")
 
             val first = client1.get(url)
             val second = client2.get(url)
 
-            assertEquals(HttpStatusCode.OK, first.status)
-            assertEquals(HttpStatusCode.OK, second.status)
+            assertEquals(HttpStatusCode.Companion.OK, first.status)
+            assertEquals(HttpStatusCode.Companion.OK, second.status)
             assertEquals(first.body<String>(), second.body<String>())
         }
     }
 
     @Test
-    fun testLongPath() = clientTests {
+    fun testLongPath() = clientTests(except("Js")) {
         config {
-            install(HttpCache) {
+            install(HttpCache.Companion) {
                 publicStorage(this@FileCacheTest.publicStorage)
             }
         }
 
         test { client ->
-            val response = client.get("$TEST_SERVER/cache/cache_${"a".repeat(3000)}").body<String>()
+            val response = client.get("${TEST_SERVER}/cache/cache_${"a".repeat(3000)}").body<String>()
             assertEquals("abc", response)
         }
     }
 
     @Test
-    fun testSkipCacheIfException() = clientTests {
-        val file = Files.createTempDirectory("cache-test-public-deleted").toFile()
-        val publicStorage = FileStorage(file)
+    fun testSkipCacheIfException() = clientTests(except("Js")) {
+        val path = Path(SystemTemporaryDirectory, "cache-test-public-deleted")
+        val publicStorage = FileStorage(SystemFileSystem, path)
         config {
-            install(HttpCache) {
+            install(HttpCache.Companion) {
                 publicStorage(publicStorage)
             }
         }
         test { client ->
-            val first = client.get(Url("$TEST_SERVER/cache/public")).bodyAsText()
+            val first = client.get(Url("${TEST_SERVER}/cache/public")).bodyAsText()
             assertEquals("public", first)
 
-            file.deleteRecursively()
+            SystemFileSystem.deleteRecursively(path)
 
-            val second = client.get("$TEST_SERVER/cache/cache_${"a".repeat(3000)}")
+            val second = client.get("${TEST_SERVER}/cache/cache_${"a".repeat(3000)}")
             assertEquals("abc", second.bodyAsText())
+        }
+    }
+
+    companion object {
+        @OptIn(ExperimentalUuidApi::class)
+        private fun temporaryDirectoryPath(): Path {
+            return Path(SystemTemporaryDirectory, Uuid.random().toString())
+        }
+
+        private fun FileSystem.deleteRecursively(directory: Path) {
+            for (subPath in list(directory)) {
+                if (metadataOrNull(subPath)?.isDirectory == true) {
+                    deleteRecursively(subPath)
+                } else {
+                    delete(subPath)
+                }
+            }
+            delete(directory)
         }
     }
 }
