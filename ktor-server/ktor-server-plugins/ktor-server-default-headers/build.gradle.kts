@@ -17,6 +17,13 @@ kotlin {
         // TODO KTOR-8637: Update API level for the whole project
         apiVersion = KotlinVersion.KOTLIN_2_1
     }
+
+    sourceSets {
+        commonMain.dependencies {
+            // TODO KTOR-8657: Remove kotlinx-datetime from ktor-server-default-headers dependencies
+            api(libs.kotlinx.datetime)
+        }
+    }
 }
 
 val generateKtorVersionFile by tasks.registering {
