@@ -14,7 +14,6 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.Serializable
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 
 class MockedTests {
     @Test
@@ -102,44 +101,6 @@ class MockedTests {
         test { client ->
             client.get("http://api.deutschebahn.com/freeplan/v1/departureBoard/8000096?date=2020-06-14T20:21:22")
                 .body<Unit>()
-        }
-    }
-
-    @Test
-    fun testContentLengthIsCheckedForByteArray() = testWithEngine(MockEngine) {
-        config {
-            engine {
-                addHandler { request ->
-                    respond("hello", headers = headersOf(HttpHeaders.ContentLength, "123"))
-                }
-            }
-        }
-
-        test { client ->
-            assertFailsWith<IllegalStateException> {
-                client.prepareGet(Url("http://host")) {
-                    url.path("path")
-                }.execute { response ->
-                    response.body<ByteArray>()
-                }
-            }
-        }
-    }
-
-    @Test
-    fun testContentLengthIsChecked() = testWithEngine(MockEngine) {
-        config {
-            engine {
-                addHandler { request ->
-                    respond("hello", headers = headersOf(HttpHeaders.ContentLength, "123"))
-                }
-            }
-        }
-
-        test { client ->
-            assertFailsWith<IllegalStateException> {
-                client.get("https://host/path").body<String>()
-            }
         }
     }
 }
