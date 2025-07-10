@@ -11,12 +11,16 @@ import kotlin.jvm.JvmInline
 
 /**
  * Property for scoping routes to HTMX (e.g., `hx.get { ... }`
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.htmx.hx)
  */
 @ExperimentalKtorApi
 public val Route.hx: HxRoute get() = HxRoute.wrap(this)
 
 /**
  * Scope child routes to apply when `HX-Request` header is supplied.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.htmx.hx)
  */
 @ExperimentalKtorApi
 public fun Route.hx(configuration: HxRoute.() -> Unit): Route = with(HxRoute.wrap(this)) {
@@ -27,6 +31,8 @@ public fun Route.hx(configuration: HxRoute.() -> Unit): Route = with(HxRoute.wra
 
 /**
  * Provides custom routes based on common HTMX headers.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.htmx.HxRoute)
  */
 @ExperimentalKtorApi
 @KtorDsl
@@ -39,6 +45,8 @@ public value class HxRoute internal constructor(private val route: Route) : Rout
 
     /**
      * Sub-routes only apply to a specific HX-Target header.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.htmx.HxRoute.target)
      */
     public fun target(expectedTarget: String, body: Route.() -> Unit): Route {
         return header(HxRequestHeaders.Target, expectedTarget, body)
@@ -46,6 +54,8 @@ public value class HxRoute internal constructor(private val route: Route) : Rout
 
     /**
      * Sub-routes only apply to a specific HX-Trigger header.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.htmx.HxRoute.trigger)
      */
     public fun trigger(expectedTrigger: String, body: Route.() -> Unit): Route =
         header(HxRequestHeaders.Trigger, expectedTrigger, body)

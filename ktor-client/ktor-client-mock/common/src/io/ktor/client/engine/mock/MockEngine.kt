@@ -9,8 +9,11 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.utils.io.*
-import kotlinx.atomicfu.locks.*
-import kotlinx.coroutines.*
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
+import kotlinx.coroutines.CompletableJob
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.withContext
 
 /**
  * [HttpClientEngine] for writing tests without network.
@@ -102,6 +105,8 @@ public open class MockEngine internal constructor(
      *
      * Most useful if you want to create an [io.ktor.client.HttpClient] instance before your test begins, and need
      * to specify behaviour on a per-test basis.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.mock.MockEngine.Queue)
      */
     public class Queue(
         override val config: MockEngineConfig = MockEngineConfig().apply {
@@ -112,11 +117,15 @@ public open class MockEngine internal constructor(
     ) : MockEngine(config, throwIfEmptyConfig = false) {
         /**
          * Appends a new [MockRequestHandler], to be called/removed after any previous handlers have been consumed.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.mock.MockEngine.Queue.enqueue)
          */
         public fun enqueue(handler: MockRequestHandler): Boolean = config.requestHandlers.add(handler)
 
         /**
          * Just a syntactic shortcut to [enqueue].
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.mock.MockEngine.Queue.plusAssign)
          */
         public operator fun plusAssign(handler: MockRequestHandler) {
             enqueue(handler)

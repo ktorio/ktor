@@ -47,6 +47,8 @@ public open class JettyApplicationEngineBase(
         /**
          * Property function that will be called during Jetty server initialization with the http configuration instance
          * that is passed to the managed connectors as a receiver.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.jetty.JettyApplicationEngineBase.Configuration.httpConfiguration)
          */
         public var httpConfiguration: HttpConfiguration.() -> Unit = {}
 

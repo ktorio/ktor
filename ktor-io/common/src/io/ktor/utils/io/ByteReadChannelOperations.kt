@@ -9,10 +9,11 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.io.*
 import kotlinx.io.Buffer
-import kotlinx.io.bytestring.*
-import kotlinx.io.unsafe.*
-import kotlin.coroutines.*
-import kotlin.math.*
+import kotlinx.io.bytestring.ByteString
+import kotlinx.io.unsafe.UnsafeBufferOperations
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.math.min
 
 @OptIn(InternalAPI::class)
 public val ByteWriteChannel.availableForWrite: Int
@@ -299,6 +300,8 @@ public class ReaderJob internal constructor(
     /**
      * To avoid the risk of concurrent write operations, we cancel the nested job before
      * performing `flushAndClose` on the [ByteWriteChannel].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.ReaderJob.flushAndClose)
      */
     @InternalAPI
     public suspend fun flushAndClose() {

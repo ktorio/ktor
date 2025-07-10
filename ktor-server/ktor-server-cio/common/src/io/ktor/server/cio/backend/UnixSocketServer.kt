@@ -22,7 +22,7 @@ private val LOGGER = KtorSimpleLogger("io.ktor.server.cio.backend.UnixSocketServ
 /**
  * Start an http server with [settings] invoking [handler] for every request
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.cio.backend.httpServer)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.cio.backend.unixSocketServer)
  */
 @OptIn(InternalAPI::class)
 public fun CoroutineScope.unixSocketServer(
