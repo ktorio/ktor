@@ -74,7 +74,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testLogLevelAll() = clientTests(except("native:CIO", "web:Js")) {
+    fun testLogLevelAll() = clientTests(except("native:CIO")) {
         val logger = TestLogger(
             "REQUEST: http://localhost:8080/logging",
             "METHOD: GET",
@@ -144,7 +144,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testLogPostBody() = clientTests(except("native:CIO", "web:Js")) {
+    fun testLogPostBody() = clientTests(except("native:CIO")) {
         val testLogger = TestLogger(
             "REQUEST: http://localhost:8080/logging",
             "METHOD: POST",
@@ -200,7 +200,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testLogPostMalformedUtf8Body() = clientTests(except("native:CIO", "web:Js")) {
+    fun testLogPostMalformedUtf8Body() = clientTests(except("native:CIO")) {
         val testLogger = TestLogger(
             "REQUEST: http://localhost:8080/logging/non-utf",
             "METHOD: POST",
@@ -256,7 +256,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testRequestAndResponseBody() = clientTests(except("native:CIO", "web:Js")) {
+    fun testRequestAndResponseBody() = clientTests(except("native:CIO")) {
         val testLogger = TestLogger(
             "REQUEST: http://127.0.0.1:8080/content/echo",
             "METHOD: POST",
@@ -306,7 +306,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testRequestContentTypeInLog() = clientTests(except("Darwin", "native:CIO", "DarwinLegacy", "web:Js")) {
+    fun testRequestContentTypeInLog() = clientTests(except("Darwin", "native:CIO", "DarwinLegacy")) {
         val testLogger = TestLogger(
             "REQUEST: http://127.0.0.1:8080/content/echo",
             "METHOD: POST",
