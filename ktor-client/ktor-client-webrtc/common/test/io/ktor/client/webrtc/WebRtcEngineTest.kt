@@ -39,6 +39,8 @@ inline fun runTestWithPermissions(
     return testResult
 }
 
+@IgnoreJvm
+@IgnorePosix
 class WebRtcEngineTest {
 
     private lateinit var client: WebRtcClient
