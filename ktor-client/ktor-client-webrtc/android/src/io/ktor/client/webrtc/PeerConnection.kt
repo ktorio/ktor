@@ -4,16 +4,10 @@
 
 package io.ktor.client.webrtc
 
-import io.ktor.client.webrtc.media.AndroidMediaTrack
+import io.ktor.client.webrtc.media.*
 import kotlinx.coroutines.launch
-import org.webrtc.AddIceObserver
-import org.webrtc.DataChannel
-import org.webrtc.IceCandidate
-import org.webrtc.MediaConstraints
-import org.webrtc.MediaStream
-import org.webrtc.PeerConnection
+import org.webrtc.*
 import org.webrtc.PeerConnection.Observer
-import org.webrtc.RtpReceiver
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -37,7 +31,10 @@ public class AndroidWebRtcPeerConnection(
 
     // helper method to break a dependency cycle (PeerConnection -> PeerConnectionFactory -> Observer)
     public fun initialize(block: (Observer) -> PeerConnection?): AndroidWebRtcPeerConnection {
-        return this.also { peerConnection = requireNotNull(block(createObserver())) }
+        peerConnection = block(createObserver()) ?: error(
+            "Failed to create peer connection. On the Android platform it is usually caused by invalid configuration. For instance, missing turn server username."
+        )
+        return this
     }
 
     private val hasVideo get() = rtpSenders.any { it.track?.kind == WebRtcMedia.TrackType.VIDEO }
