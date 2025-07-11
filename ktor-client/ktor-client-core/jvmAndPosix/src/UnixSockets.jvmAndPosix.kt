@@ -13,6 +13,8 @@ import io.ktor.utils.io.*
  *    unixSocket("/var/run/docker.sock")
  * }
  * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.unixSocket)
  */
 @OptIn(InternalAPI::class)
 public fun HttpRequestBuilder.unixSocket(path: String) {

@@ -19,6 +19,8 @@ import kotlin.reflect.KProperty
  * and validation of dependencies using the provided resolver mechanism. This registry also supports
  * reflective creation of instances and type-safe access to registered dependencies.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyRegistry)
+ *
  * @param resolver The delegate resolver for finding registered dependencies.
  * @param provider The delegate provider responsible for registering new dependencies..
  * @param reflection A reflection implementation that supports dynamic instantiation of classes.
@@ -44,12 +46,16 @@ public class DependencyRegistry(
 
     /**
      * Get the dependency from the map for the key represented by the type (and optionally, with the given name).
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyRegistry.resolve)
      */
     public suspend inline fun <reified T> resolve(key: String? = null): T =
         get(DependencyKey<T>(key))
 
     /**
      * Get a deferred dependency from the map for the key represented by the type (and optionally, with the given name).
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyRegistry.resolveDeferred)
      */
     public inline fun <reified T> resolveDeferred(key: String? = null): Deferred<T> =
         getDeferred(DependencyKey<T>(key))
@@ -58,6 +64,8 @@ public class DependencyRegistry(
      * Indicates that the given dependency is required.
      *
      * The DI plugin enforces this at startup.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyRegistry.require)
      */
     public fun require(key: DependencyKey) {
         requirements += key to DependencyReference()
@@ -72,6 +80,8 @@ public class DependencyRegistry(
      * ```
      * val repository: Repository<Message> by dependencies
      * ```
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyRegistry.provideDelegate)
      *
      * @param thisRef The receiver to which the property is being delegated. This parameter
      * is not used in the actual implementation.
@@ -97,6 +107,8 @@ public class DependencyRegistry(
      * Uses the `create` method from the `DependencyResolver` to resolve and instantiate a dependency
      * of type [T] specified by the given [kClass].
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyRegistry.provide)
+     *
      * @param T The type of the dependency to be provided.
      * @param kClass The `KClass` representing the type of the dependency to be created or resolved.
      */
@@ -108,6 +120,8 @@ public class DependencyRegistry(
      * The given [handler] is invoked on the created `KeyContext`, allowing configuration
      * such as defining a provider or cleanup logic for the dependency.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyRegistry.key)
+     *
      * @param T The type of the dependency being handled.
      * @param name An optional name associated with the dependency. Defaults to `null` if not provided.
      * @param handler A lambda that defines the actions to be performed on the created `KeyContext`.
@@ -118,6 +132,8 @@ public class DependencyRegistry(
 
     /**
      * Basic call for providing a dependency, like `provide<Service> { ServiceImpl() }`.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyRegistry.provide)
      */
     public inline fun <reified T> provide(
         name: String? = null,
@@ -137,6 +153,8 @@ public class DependencyRegistry(
 
     /**
      * DSL class for performing multiple actions for the given key and type.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyRegistry.KeyContext)
      */
     @KtorDsl
     public inner class KeyContext<T>(public val key: DependencyKey) {
@@ -153,6 +171,8 @@ public class DependencyRegistry(
 
 /**
  * DSL helper for declaring dependencies with `dependencies {}` block.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.dependencies)
  */
 @KtorDsl
 public fun <T> Application.dependencies(action: DependencyRegistry.() -> T): T =
