@@ -5,7 +5,9 @@
 package io.ktor.client.webrtc.media
 
 import io.ktor.client.webrtc.*
+import org.webrtc.AudioTrack
 import org.webrtc.MediaStreamTrack
+import org.webrtc.VideoTrack
 
 /**
  * Wrapper for org.webrtc.MediaStreamTrack.
@@ -53,9 +55,17 @@ public class AndroidVideoTrack(nativeTrack: MediaStreamTrack, onDispose: (() -> 
     AndroidMediaTrack(nativeTrack, onDispose)
 
 /**
- * Returns implementation of the native media stream track used under the hood. Use it with caution.
+ * Returns implementation of the native video stream track used under the hood. Use it with caution.
  */
-public fun WebRtcMedia.Track.getNative(): MediaStreamTrack {
+public fun WebRtcMedia.VideoTrack.getNative(): VideoTrack {
     val track = this as? AndroidMediaTrack ?: error("Wrong track implementation.")
-    return track.nativeTrack
+    return track.nativeTrack as VideoTrack
+}
+
+/**
+ * Returns implementation of the native audio stream track used under the hood. Use it with caution.
+ */
+public fun WebRtcMedia.AudioTrack.getNative(): AudioTrack {
+    val track = this as? AndroidMediaTrack ?: error("Wrong track implementation.")
+    return track.nativeTrack as AudioTrack
 }

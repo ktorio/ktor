@@ -577,6 +577,7 @@ public final class io/ktor/client/webrtc/media/AndroidVideoTrack : io/ktor/clien
 }
 
 public final class io/ktor/client/webrtc/media/MediaTrackKt {
-	public static final fun getNative (Lio/ktor/client/webrtc/WebRtcMedia$Track;)Lorg/webrtc/MediaStreamTrack;
+	public static final fun getNative (Lio/ktor/client/webrtc/WebRtcMedia$AudioTrack;)Lorg/webrtc/AudioTrack;
+	public static final fun getNative (Lio/ktor/client/webrtc/WebRtcMedia$VideoTrack;)Lorg/webrtc/VideoTrack;
 }
 
