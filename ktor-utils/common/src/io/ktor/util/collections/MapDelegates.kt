@@ -4,7 +4,7 @@
 
 package io.ktor.util.collections
 
-import io.ktor.utils.io.InternalAPI
+import io.ktor.utils.io.*
 import kotlin.reflect.KProperty
 
 @InternalAPI
@@ -25,6 +25,8 @@ public interface StringMapDelegate : StringMap {
 
 /**
  * Simplifies property access delegation for string maps when using a string constant.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.collections.getValue)
  */
 @InternalAPI
 public operator fun String.getValue(thisRef: StringMap, property: KProperty<*>): String? =
@@ -32,6 +34,8 @@ public operator fun String.getValue(thisRef: StringMap, property: KProperty<*>):
 
 /**
  * Simplifies property assignment delegation for string maps when using a string constant.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.collections.setValue)
  */
 @InternalAPI
 public operator fun String.setValue(thisRef: StringMap, property: KProperty<*>, value: String?) {
@@ -44,6 +48,8 @@ public operator fun String.setValue(thisRef: StringMap, property: KProperty<*>, 
 
 /**
  * Simplifies property access delegation for HxAttributes when setting attribute values from a string constant.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.collections.getValue)
  */
 @InternalAPI
 public operator fun <T> SerializedMapValue<T>.getValue(thisRef: StringMap, property: KProperty<*>): T? =
@@ -51,6 +57,8 @@ public operator fun <T> SerializedMapValue<T>.getValue(thisRef: StringMap, prope
 
 /**
  * Simplifies property assignment delegation for HxAttributes when setting attribute values from a string constant.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.collections.setValue)
  */
 @InternalAPI
 public operator fun <T> SerializedMapValue<T>.setValue(thisRef: StringMap, property: KProperty<*>, value: T?) {
@@ -63,6 +71,8 @@ public operator fun <T> SerializedMapValue<T>.setValue(thisRef: StringMap, prope
 
 /**
  * Treat the map key properties as a [Boolean]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.collections.asBoolean)
  */
 @InternalAPI
 public fun String.asBoolean(): SerializedMapValue<Boolean> =
@@ -70,6 +80,8 @@ public fun String.asBoolean(): SerializedMapValue<Boolean> =
 
 /**
  * Simple type for handling serialization with [StringMap] delegation.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.collections.SerializedMapValue)
  */
 @InternalAPI
 public class SerializedMapValue<T>(

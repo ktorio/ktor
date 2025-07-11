@@ -12,7 +12,7 @@ import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
-import kotlin.coroutines.*
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Describes a node in a routing tree.
@@ -352,7 +352,7 @@ private fun RoutingNode.getAllRoutes(endpoints: MutableList<RoutingNode>) {
 /**
  * String representation of the path matched by this route.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RoutingNode.path)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.path)
  */
 public val RoutingNode.path: String
     get() = path()

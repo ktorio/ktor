@@ -25,7 +25,7 @@ public val ApplicationStarting: EventDefinition<Application> = EventDefinition()
  *
  * It is used for parallel loading of dependencies.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationModulesLoaded)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationModulesLoading)
  */
 public val ApplicationModulesLoading: EventDefinition<Application> = EventDefinition()
 

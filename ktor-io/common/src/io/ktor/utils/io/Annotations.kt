@@ -61,6 +61,8 @@ public annotation class KtorExperimentalAPI
  * Any usage of a declaration annotated with `@ExperimentalKtorApi` must be accepted either by
  * annotating that usage with the [OptIn] annotation, e.g. `@OptIn(ExperimentalStdlibApi::class)`,
  * or by using the compiler argument `-opt-in=kotlin.ExperimentalKtorApi`.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.ExperimentalKtorApi)
  */
 @RequiresOptIn(
     level = RequiresOptIn.Level.WARNING,
