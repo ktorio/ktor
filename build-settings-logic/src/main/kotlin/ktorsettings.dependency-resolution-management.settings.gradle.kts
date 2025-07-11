@@ -30,6 +30,7 @@ dependencyResolutionManagement {
 private fun RepositoryHandler.configureRepositories() {
     google {
         content {
+            includeGroupAndSubgroups("androidx")
             includeGroupAndSubgroups("com.google")
             includeGroupAndSubgroups("com.android")
         }
