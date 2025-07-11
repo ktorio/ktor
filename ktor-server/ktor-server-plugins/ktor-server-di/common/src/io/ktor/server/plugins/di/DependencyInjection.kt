@@ -54,6 +54,8 @@ import kotlin.reflect.KClass
  * ```
  *
  * Alternatively, they can be supplied automatically through parameters.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DI)
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 public val DI: ApplicationPlugin<DependencyInjectionConfig> =
@@ -176,6 +178,8 @@ internal expect fun loadMapExtensions(): List<DependencyMapExtension>
  * when unsupported on the current platform.
  *
  * Optionally, this can be used when you do not wish to allow reflection for your project.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.NoReflection)
  */
 public object NoReflection : DependencyReflection {
     override suspend fun <T : Any> create(kClass: KClass<T>, init: suspend (DependencyKey) -> Any): T =
@@ -187,6 +191,8 @@ public object NoReflection : DependencyReflection {
  *
  * This class allows customization of the reflection mechanism, the dependency provider,
  * and various behaviors of the dependency injection framework.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyInjectionConfig)
  *
  * @property reflection Specifies the mechanism used to create new instances of dependencies via reflection.
  *                      Defaults to `DefaultReflection`.
@@ -232,6 +238,8 @@ public class DependencyInjectionConfig {
      * // This declaration will be used before the included maps
      * dependencies.provide { File("/opt/output") }
      * ```
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyInjectionConfig.include)
      */
     public fun include(map: DependencyMap) {
         dependenciesMap = if (dependenciesMap == null) map else dependenciesMap!! + map
@@ -240,6 +248,8 @@ public class DependencyInjectionConfig {
 
 /**
  * Unique key for a dependency.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyKey)
  */
 public data class DependencyKey(
     public val type: TypeInfo,
@@ -256,6 +266,8 @@ public data class DependencyKey(
 
 /**
  * Convenience function for `DependencyKey(typeInfo<T>(), name, qualifier)`.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyKey)
  */
 public inline fun <reified T> DependencyKey(
     name: String? = null,
@@ -267,30 +279,40 @@ public inline fun <reified T> DependencyKey(
  *
  * This function checks whether the `kotlinType` property of the `type` in the `DependencyKey`
  * is marked as nullable. If there is no `kotlinType`, it will return `false`.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.isNullable)
  */
 public fun DependencyKey.isNullable(): Boolean =
     type.kotlinType?.isMarkedNullable == true
 
 /**
  * Common parent for dependency injection problems.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyInjectionException)
  */
 public open class DependencyInjectionException(message: String? = null, cause: Throwable? = null) :
     RuntimeException(message, cause)
 
 /**
  * Thrown when attempting to resolve a dependency that was not declared.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.MissingDependencyException)
  */
 public class MissingDependencyException(key: DependencyKey) :
     DependencyInjectionException("Could not resolve dependency for `$key`")
 
 /**
  * Thrown when a dependency is declared more than once.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DuplicateDependencyException)
  */
 public class DuplicateDependencyException(key: DependencyKey) :
     DependencyInjectionException("Attempted to redefine dependency `$key`")
 
 /**
  * Thrown when there are two or more implicit dependencies that match the given key.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.AmbiguousDependencyException)
  */
 public class AmbiguousDependencyException(
     public val function: DependencyInitializer.Ambiguous
@@ -300,18 +322,24 @@ public class AmbiguousDependencyException(
 
 /**
  * Thrown when resolving a given dependency loops back on itself.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.CircularDependencyException)
  */
 public class CircularDependencyException(internal val keys: Collection<DependencyKey>) :
     DependencyInjectionException("Circular dependency found: ${keys.joinToString(" -> ")}")
 
 /**
  * Thrown when attempting to provide a dependency AFTER the dependency map is created.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.OutOfOrderDependencyException)
  */
 public class OutOfOrderDependencyException(key: DependencyKey) :
     DependencyInjectionException("Attempted to define $key after dependencies were resolved")
 
 /**
  * Thrown when attempting to instantiate an abstract type using reflection.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyAbstractTypeConstructionException)
  */
 public class DependencyAbstractTypeConstructionException(
     qualifiedName: String,
@@ -319,6 +347,8 @@ public class DependencyAbstractTypeConstructionException(
 
 /**
  * Thrown when a static reference cannot be resolved from the configuration file.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.InvalidDependencyReferenceException)
  */
 public class InvalidDependencyReferenceException internal constructor(
     message: String,

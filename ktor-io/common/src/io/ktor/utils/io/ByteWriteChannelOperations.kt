@@ -106,6 +106,8 @@ public suspend fun ByteWriteChannel.writePacket(copy: Buffer) {
 /**
  * Writes the entire source contents to the [ByteChannel].
  * Prevents memory exhaustion by waiting for buffer to flush.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.writePacket)
  */
 @OptIn(InternalAPI::class)
 public suspend fun ByteWriteChannel.writePacket(source: Source) {
