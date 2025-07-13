@@ -79,12 +79,12 @@ private val InflateWriterCoroutineName = CoroutineName("encoder-inflate-writer")
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.Zstd)
  */
-public val Zstd: Encoder = object : Encoder {
+public class Zstd(private val compressionLevel: Int = 3) : Encoder {
     override fun encode(source: ByteReadChannel, coroutineContext: CoroutineContext): ByteReadChannel =
-        source.encoded(coroutineContext = coroutineContext)
+        source.encoded(coroutineContext = coroutineContext, compressionLevel = compressionLevel)
 
     override fun encode(source: ByteWriteChannel, coroutineContext: CoroutineContext): ByteWriteChannel =
-        source.encoded(coroutineContext = coroutineContext)
+        source.encoded(coroutineContext = coroutineContext, compressionLevel = compressionLevel)
 
     override fun decode(
         source: ByteReadChannel,

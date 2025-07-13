@@ -4,6 +4,10 @@
 
 package io.ktor.util
 
+import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.ByteWriteChannel
+import kotlin.coroutines.CoroutineContext
+
 /**
  * Implementation of [ContentEncoder] using gzip algorithm
  *
@@ -27,6 +31,23 @@ public actual object DeflateEncoder : ContentEncoder, Encoder by Deflate {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.ZstdEncoder)
  */
-public actual object ZstdEncoder : ContentEncoder, Encoder by Zstd {
+public actual object ZstdEncoder : ContentEncoder, Encoder {
     actual override val name: String = "zstd"
+    public actual var compressionLevel: Int = 3
+    private var encoder: Encoder = Zstd(compressionLevel)
+
+    actual override fun encode(
+        source: ByteReadChannel,
+        coroutineContext: CoroutineContext
+    ): ByteReadChannel = encoder.encode(source, coroutineContext)
+
+    actual override fun encode(
+        source: ByteWriteChannel,
+        coroutineContext: CoroutineContext
+    ): ByteWriteChannel = encoder.encode(source, coroutineContext)
+
+    actual override fun decode(
+        source: ByteReadChannel,
+        coroutineContext: CoroutineContext
+    ): ByteReadChannel = encoder.decode(source, coroutineContext)
 }

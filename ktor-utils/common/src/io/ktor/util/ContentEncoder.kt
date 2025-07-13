@@ -83,6 +83,7 @@ public expect object DeflateEncoder : ContentEncoder {
  */
 public expect object ZstdEncoder : ContentEncoder {
     override val name: String
+    public var compressionLevel: Int
 
     override fun encode(
         source: ByteReadChannel,
