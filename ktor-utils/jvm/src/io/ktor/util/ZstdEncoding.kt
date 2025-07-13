@@ -28,9 +28,10 @@ import kotlin.coroutines.CoroutineContext
 @OptIn(DelicateCoroutinesApi::class)
 public fun ByteReadChannel.encoded(
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
-    coroutineContext: CoroutineContext = Dispatchers.Unconfined
+    coroutineContext: CoroutineContext = Dispatchers.Unconfined,
+    compressionLevel: Int,
 ): ByteReadChannel = GlobalScope.writer(coroutineContext, autoFlush = true) {
-    this@encoded.encodeTo(channel, pool)
+    this@encoded.encodeTo(channel, pool, compressionLevel)
 }.channel
 
 /**
@@ -41,9 +42,10 @@ public fun ByteReadChannel.encoded(
 @OptIn(DelicateCoroutinesApi::class)
 public fun ByteWriteChannel.encoded(
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
-    coroutineContext: CoroutineContext = Dispatchers.Unconfined
+    coroutineContext: CoroutineContext = Dispatchers.Unconfined,
+    compressionLevel: Int,
 ): ByteWriteChannel = GlobalScope.reader(coroutineContext, autoFlush = true) {
-    channel.encodeTo(this@encoded, pool)
+    channel.encodeTo(this@encoded, pool, compressionLevel)
 }.channel
 
 /**
@@ -89,11 +91,12 @@ private suspend fun ByteReadChannel.decodeTo(
 
 private suspend fun ByteReadChannel.encodeTo(
     destination: ByteWriteChannel,
-    pool: ObjectPool<ByteBuffer> = KtorDefaultPool
+    pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
+    compressionLevel: Int,
 ) {
     val inputBuf = pool.borrow()
     val outputBuf = pool.borrow();
-    val ctx = ZstdCompressCtx()
+    val ctx = ZstdCompressCtx().apply { setLevel(compressionLevel) }
 
     try {
         while (!isClosedForRead) {

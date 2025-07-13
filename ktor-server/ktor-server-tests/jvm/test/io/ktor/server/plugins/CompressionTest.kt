@@ -364,6 +364,23 @@ class CompressionTest {
     }
 
     @Test
+    fun testCompressionLevelZstd() = testApplication {
+        install(Compression) {
+            zstd {
+                compressionLevel = 20
+            }
+        }
+
+        routing {
+            get("/") {
+                call.respondText(textToCompress)
+            }
+        }
+
+        handleAndAssert("/", "zstd", "zstd", textToCompress)
+    }
+
+    @Test
     fun testEncoderPriority1() = testApplication {
         install(Compression) {
             gzip {
@@ -712,10 +729,19 @@ class CompressionTest {
 
     @Test
     fun basicZstdEncodeDecodeTest() = testApplication {
-        val compressed = Zstd.encode(ByteReadChannel(textToCompressAsBytes))
-        val decompressed = Zstd.decode(compressed)
+        Zstd().let { defaultCompressionLevelZstd ->
+            val compressed = defaultCompressionLevelZstd.encode(ByteReadChannel(textToCompressAsBytes))
+            val decompressed = defaultCompressionLevelZstd.decode(compressed)
 
-        assertEquals(textToCompress, String(decompressed.toByteArray()))
+            assertEquals(textToCompress, String(decompressed.toByteArray()))
+        }
+
+        Zstd(compressionLevel = 10).let { customCompressionLevelZstd ->
+            val compressed = customCompressionLevelZstd.encode(ByteReadChannel(textToCompressAsBytes))
+            val decompressed = customCompressionLevelZstd.decode(compressed)
+
+            assertEquals(textToCompress, String(decompressed.toByteArray()))
+        }
     }
 
     @Test
@@ -781,13 +807,13 @@ class CompressionTest {
         assertEquals(textToCompress, responseDeflate.bodyAsText())
 
         val responseZstd = client.post("/zstd") {
-            setBody(Zstd.encode(ByteReadChannel(textToCompressAsBytes)))
+            setBody(Zstd().encode(ByteReadChannel(textToCompressAsBytes)))
             header(HttpHeaders.ContentEncoding, "zstd")
         }
         assertEquals(textToCompress, responseZstd.bodyAsText())
 
         val responseMultiple = client.post("/multiple") {
-            setBody(Identity.encode(Deflate.encode(GZip.encode(Zstd.encode(ByteReadChannel(textToCompressAsBytes))))))
+            setBody(Identity.encode(Deflate.encode(GZip.encode(Zstd().encode(ByteReadChannel(textToCompressAsBytes))))))
             header(HttpHeaders.ContentEncoding, "identity,deflate,gzip,zstd")
         }
         assertEquals(textToCompress, responseMultiple.bodyAsText())
