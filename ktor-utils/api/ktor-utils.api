@@ -511,7 +511,6 @@ public final class io/ktor/util/ZstdEncoder : io/ktor/util/ContentEncoder, io/kt
 	public final fun getCompressionLevel ()I
 	public fun getName ()Ljava/lang/String;
 	public fun predictCompressedLength (J)Ljava/lang/Long;
-	public final fun setCompressionLevel (I)V
 }
 
 public final class io/ktor/util/ZstdEncodingKt {

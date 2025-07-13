@@ -33,7 +33,7 @@ public actual object DeflateEncoder : ContentEncoder, Encoder by Deflate {
  */
 public actual object ZstdEncoder : ContentEncoder, Encoder {
     actual override val name: String = "zstd"
-    public actual var compressionLevel: Int = 3
+    public actual val compressionLevel: Int = 3
     private var encoder: Encoder = Zstd(compressionLevel)
 
     actual override fun encode(
