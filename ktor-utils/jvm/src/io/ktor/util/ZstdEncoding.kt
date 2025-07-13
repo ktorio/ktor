@@ -76,8 +76,12 @@ private suspend fun ByteReadChannel.decodeTo(
             if (bytesRead <= 0) continue
 
             val decompressedSize = ctx.decompressByteArray(
-                outputBuf.array(), 0, outputBuf.capacity(),
-                inputBuf.array(), 0, bytesRead
+                outputBuf.array(),
+                0,
+                outputBuf.capacity(),
+                inputBuf.array(),
+                0,
+                bytesRead
             )
 
             destination.writeFully(outputBuf.array(), 0, decompressedSize)
@@ -95,7 +99,7 @@ private suspend fun ByteReadChannel.encodeTo(
     compressionLevel: Int,
 ) {
     val inputBuf = pool.borrow()
-    val outputBuf = pool.borrow();
+    val outputBuf = pool.borrow()
     val ctx = ZstdCompressCtx().apply { setLevel(compressionLevel) }
 
     try {
@@ -105,8 +109,12 @@ private suspend fun ByteReadChannel.encodeTo(
             if (bytesRead <= 0) continue
 
             val compressedSize = ctx.compressByteArray(
-                outputBuf.array(), 0, outputBuf.capacity(),
-                inputBuf.array(), 0, bytesRead
+                outputBuf.array(),
+                0,
+                outputBuf.capacity(),
+                inputBuf.array(),
+                0,
+                bytesRead
             )
 
             destination.writeFully(outputBuf.array(), 0, compressedSize)
