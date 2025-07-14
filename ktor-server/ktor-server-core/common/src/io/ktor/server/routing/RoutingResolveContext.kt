@@ -98,14 +98,32 @@ public class RoutingResolveContext(
         return resolveResult
     }
 
+    private suspend fun handle(node: RoutingNode, segmentIndex: Int) {
+        val evaluation = node.selector.evaluate(this, segmentIndex)
+
+        if (evaluation is RouteSelectorEvaluation.Success) {
+            if (segmentIndex == segments.size && node.handlers.isNotEmpty()) {
+                println("Found $node")
+                // Matched route with at least one handler
+            } else {
+                for (childIndex in 0..node.children.lastIndex) {
+                    val child = node.children[childIndex]
+                    handle(child, segmentIndex + evaluation.segmentIncrement)
+                }
+            }
+        }
+    }
+
     private suspend fun handleRoute(
         entry: RoutingNode,
         segmentIndex: Int,
         trait: ArrayList<RoutingResolveResult.Success>,
         matchedQuality: Double
     ): Double {
+        handle(entry, segmentIndex)
         val evaluation = entry.selector.evaluate(this, segmentIndex)
 
+        // If failed to evaluate -> return min quality
         if (evaluation is RouteSelectorEvaluation.Failure) {
             trace?.skip(
                 entry,
@@ -120,6 +138,7 @@ public class RoutingResolveContext(
 
         check(evaluation is RouteSelectorEvaluation.Success)
 
+        // If quality is less than best matched -> return min quality
         if (evaluation.quality != RouteSelectorEvaluation.qualityTransparent &&
             evaluation.quality < matchedQuality
         ) {
@@ -134,6 +153,7 @@ public class RoutingResolveContext(
         val result = RoutingResolveResult.Success(entry, evaluation.parameters, evaluation.quality)
         val newIndex = segmentIndex + evaluation.segmentIncrement
 
+        // If no children and more segments to check -> return min quality
         if (entry.children.isEmpty() && newIndex != segments.size) {
             trace?.skip(
                 entry,
@@ -150,6 +170,7 @@ public class RoutingResolveContext(
         val hasHandlers = entry.handlers.isNotEmpty()
         var bestSucceedChildQuality: Double = MIN_QUALITY
 
+        // If the last segment index and has handlers (Success)
         if (hasHandlers && newIndex == segments.size) {
             if (resolveResult.isEmpty() || isBetterResolve(trait)) {
                 bestSucceedChildQuality = evaluation.quality
