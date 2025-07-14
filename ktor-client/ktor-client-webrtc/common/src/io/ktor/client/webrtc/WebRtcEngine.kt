@@ -59,12 +59,17 @@ public open class WebRtcConnectionConfig {
 
     /**
      * Replay for the shared flow of operations on remote tracks (additions, removals). Defaults to 10.
-     * */
+     */
     public var remoteTracksReplay: Int = 10
 
     /**
+     * Replay for the shared flow of data channels events in the connection. Defaults to 10.
+     */
+    public var dataChannelEventsReplay: Int = 10
+
+    /**
      * Replay for the shared flow of ICE candidates. Defaults to 20.
-     * */
+     */
     public var iceCandidatesReplay: Int = 20
 }
 

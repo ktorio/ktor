@@ -5,7 +5,6 @@
 package io.ktor.client.webrtc
 
 import io.ktor.client.webrtc.media.*
-import kotlinx.coroutines.launch
 import org.webrtc.*
 import org.webrtc.PeerConnection.Observer
 import kotlin.coroutines.CoroutineContext
@@ -55,19 +54,15 @@ public class AndroidWebRtcPeerConnection(
 
         override fun onAddTrack(receiver: RtpReceiver?, mediaStreams: Array<out MediaStream>?) {
             if (receiver == null) return
-            launch {
-                receiver.track()?.let {
-                    events.emitAddTrack(AndroidMediaTrack.from(it))
-                }
+            receiver.track()?.let {
+                events.emitAddTrack(AndroidMediaTrack.from(it))
             }
         }
 
         override fun onRemoveTrack(receiver: RtpReceiver?) {
             if (receiver == null) return
-            launch {
-                receiver.track()?.let {
-                    events.emitRemoveTrack(AndroidMediaTrack.from(it))
-                }
+            receiver.track()?.let {
+                events.emitRemoveTrack(AndroidMediaTrack.from(it))
             }
         }
 
@@ -120,6 +115,13 @@ public class AndroidWebRtcPeerConnection(
             peerConnection.createAnswer(cont.resumeAfterSdpCreate(), offerConstraints())
         }
         return answer.toCommon()
+    }
+
+    override suspend fun createDataChannel(
+        label: String,
+        options: WebRtcDataChannelOptions.() -> Unit
+    ): WebRtcDataChannel {
+        TODO("Not yet implemented")
     }
 
     override suspend fun setLocalDescription(description: WebRtc.SessionDescription) {

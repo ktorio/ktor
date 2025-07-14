@@ -70,6 +70,13 @@ public class WasmJsWebRtcPeerConnection(
         return nativePeerConnection.createAnswer().await<RTCSessionDescription>().toKtor()
     }
 
+    override suspend fun createDataChannel(
+        label: String,
+        options: WebRtcDataChannelOptions.() -> Unit
+    ): WebRtcDataChannel {
+        TODO("Not yet implemented")
+    }
+
     override suspend fun setLocalDescription(description: WebRtc.SessionDescription): Unit =
         withSdpException("Failed to set local description") {
             nativePeerConnection.setLocalDescription(description.toJs()).await()

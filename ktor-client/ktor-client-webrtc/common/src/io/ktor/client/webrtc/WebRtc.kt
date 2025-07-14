@@ -256,6 +256,18 @@ public object WebRtc {
     }
 
     /**
+     * Represents the current state of a WebRTC data channel.
+     *
+     * @see [MDN RTCDataChannel.readyState](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/readyState)
+     */
+    public enum class DataChannelState {
+        CONNECTING,
+        OPEN,
+        CLOSING,
+        CLOSED
+    }
+
+    /**
      * This exception indicates problems with creating, parsing, or validating SDP descriptions
      * during the WebRTC connection establishment process.
      */
