@@ -7,6 +7,7 @@ package io.ktor.server.plugins.di
 import kotlinx.atomicfu.AtomicRef
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 
@@ -36,16 +37,23 @@ public sealed interface DependencyInitializer {
         public override val key: DependencyKey,
         private val init: suspend DependencyResolver.() -> Any?
     ) : DependencyInitializer {
-        private var deferred: Deferred<Any?>? = null
+        private val deferred: AtomicRef<Deferred<Any?>?> = atomic(null)
 
         override fun resolve(resolver: DependencyResolver): Deferred<Any?> {
-            if (deferred == null) {
-                deferred = resolver.withCycleDetection {
-                    async { init() }
+            return deferred.value ?: run {
+                val newValue = resolver.lazyAsyncInit()
+                if (deferred.compareAndSet(null, newValue)) {
+                    newValue
+                } else {
+                    deferred.value!!
                 }
             }
-            return deferred!!
         }
+
+        private fun DependencyResolver.lazyAsyncInit(): Deferred<Any?> =
+            withCycleDetection {
+                async(start = CoroutineStart.LAZY) { init() }
+            }
 
         private fun <T> DependencyResolver.withCycleDetection(resolve: DependencyResolver.() -> T): T {
             val safeWrapper = when (this) {
