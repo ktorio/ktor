@@ -136,6 +136,8 @@ abstract class io.ktor.client.webrtc/WebRtcPeerConnection : io.ktor.client.webrt
         abstract fun <get-remoteDescription>(): io.ktor.client.webrtc/WebRtc.SessionDescription? // io.ktor.client.webrtc/WebRtcPeerConnection.remoteDescription.<get-remoteDescription>|<get-remoteDescription>(){}[0]
     final val coroutineScope // io.ktor.client.webrtc/WebRtcPeerConnection.coroutineScope|{}coroutineScope[0]
         final fun <get-coroutineScope>(): kotlinx.coroutines/CoroutineScope // io.ktor.client.webrtc/WebRtcPeerConnection.coroutineScope.<get-coroutineScope>|<get-coroutineScope>(){}[0]
+    final val events // io.ktor.client.webrtc/WebRtcPeerConnection.events|{}events[0]
+        final fun <get-events>(): io.ktor.client.webrtc/WebRtcConnectionEventsEmitter // io.ktor.client.webrtc/WebRtcPeerConnection.events.<get-events>|<get-events>(){}[0]
     open val dataChannelEvents // io.ktor.client.webrtc/WebRtcPeerConnection.dataChannelEvents|{}dataChannelEvents[0]
         open fun <get-dataChannelEvents>(): kotlinx.coroutines.flow/SharedFlow<io.ktor.client.webrtc/DataChannelEvent> // io.ktor.client.webrtc/WebRtcPeerConnection.dataChannelEvents.<get-dataChannelEvents>|<get-dataChannelEvents>(){}[0]
     open val iceCandidates // io.ktor.client.webrtc/WebRtcPeerConnection.iceCandidates|{}iceCandidates[0]
@@ -166,6 +168,7 @@ abstract class io.ktor.client.webrtc/WebRtcPeerConnection : io.ktor.client.webrt
     abstract suspend fun removeTrack(io.ktor.client.webrtc/WebRtcMedia.Track) // io.ktor.client.webrtc/WebRtcPeerConnection.removeTrack|removeTrack(io.ktor.client.webrtc.WebRtcMedia.Track){}[0]
     abstract suspend fun setLocalDescription(io.ktor.client.webrtc/WebRtc.SessionDescription) // io.ktor.client.webrtc/WebRtcPeerConnection.setLocalDescription|setLocalDescription(io.ktor.client.webrtc.WebRtc.SessionDescription){}[0]
     abstract suspend fun setRemoteDescription(io.ktor.client.webrtc/WebRtc.SessionDescription) // io.ktor.client.webrtc/WebRtcPeerConnection.setRemoteDescription|setRemoteDescription(io.ktor.client.webrtc.WebRtc.SessionDescription){}[0]
+    final suspend fun awaitIceGatheringComplete() // io.ktor.client.webrtc/WebRtcPeerConnection.awaitIceGatheringComplete|awaitIceGatheringComplete(){}[0]
     open fun close() // io.ktor.client.webrtc/WebRtcPeerConnection.close|close(){}[0]
 }
 
@@ -196,6 +199,40 @@ final class io.ktor.client.webrtc/WebRtcClient : io.ktor.client.webrtc/WebRtcEng
     final suspend fun createPeerConnection(kotlin/Function1<io.ktor.client.webrtc/WebRtcConnectionConfig, kotlin/Unit>): io.ktor.client.webrtc/WebRtcPeerConnection // io.ktor.client.webrtc/WebRtcClient.createPeerConnection|createPeerConnection(kotlin.Function1<io.ktor.client.webrtc.WebRtcConnectionConfig,kotlin.Unit>){}[0]
     final suspend fun createVideoTrack(io.ktor.client.webrtc/WebRtcMedia.VideoTrackConstraints): io.ktor.client.webrtc/WebRtcMedia.VideoTrack // io.ktor.client.webrtc/WebRtcClient.createVideoTrack|createVideoTrack(io.ktor.client.webrtc.WebRtcMedia.VideoTrackConstraints){}[0]
     final suspend fun createVideoTrack(kotlin/Function1<io.ktor.client.webrtc/WebRtcMedia.VideoTrackConstraints, kotlin/Unit>): io.ktor.client.webrtc/WebRtcMedia.VideoTrack // io.ktor.client.webrtc/WebRtcClient.createVideoTrack|createVideoTrack(kotlin.Function1<io.ktor.client.webrtc.WebRtcMedia.VideoTrackConstraints,kotlin.Unit>){}[0]
+}
+
+final class io.ktor.client.webrtc/WebRtcConnectionEventsEmitter : io.ktor.client.webrtc/WebRtcConnectionEvents { // io.ktor.client.webrtc/WebRtcConnectionEventsEmitter|null[0]
+    constructor <init>(io.ktor.client.webrtc/WebRtcConnectionConfig) // io.ktor.client.webrtc/WebRtcConnectionEventsEmitter.<init>|<init>(io.ktor.client.webrtc.WebRtcConnectionConfig){}[0]
+
+    final val dataChannelEvents // io.ktor.client.webrtc/WebRtcConnectionEventsEmitter.dataChannelEvents|{}dataChannelEvents[0]
+        final fun <get-dataChannelEvents>(): kotlinx.coroutines.flow/SharedFlow<io.ktor.client.webrtc/DataChannelEvent> // io.ktor.client.webrtc/WebRtcConnectionEventsEmitter.dataChannelEvents.<get-dataChannelEvents>|<get-dataChannelEvents>(){}[0]
+    final val iceCandidates // io.ktor.client.webrtc/WebRtcConnectionEventsEmitter.iceCandidates|{}iceCandidates[0]
+        final fun <get-iceCandidates>(): kotlinx.coroutines.flow/SharedFlow<io.ktor.client.webrtc/WebRtc.IceCandidate> // io.ktor.client.webrtc/WebRtcConnectionEventsEmitter.iceCandidates.<get-iceCandidates>|<get-iceCandidates>(){}[0]
+    final val iceConnectionState // io.ktor.client.webrtc/WebRtcConnectionEventsEmitter.iceConnectionState|{}iceConnectionState[0]
+        final fun <get-iceConnectionState>(): kotlinx.coroutines.flow/StateFlow<io.ktor.client.webrtc/WebRtc.IceConnectionState> // io.ktor.client.webrtc/WebRtcConnectionEventsEmitter.iceConnectionState.<get-iceConnectionState>|<get-iceConnectionState>(){}[0]
+    final val iceGatheringState // io.ktor.client.webrtc/WebRtcConnectionEventsEmitter.iceGatheringState|{}iceGatheringState[0]
+        final fun <get-iceGatheringState>(): kotlinx.coroutines.flow/StateFlow<io.ktor.client.webrtc/WebRtc.IceGatheringState> // io.ktor.client.webrtc/WebRtcConnectionEventsEmitter.iceGatheringState.<get-iceGatheringState>|<get-iceGatheringState>(){}[0]
+    final val negotiationNeeded // io.ktor.client.webrtc/WebRtcConnectionEventsEmitter.negotiationNeeded|{}negotiationNeeded[0]
+        final fun <get-negotiationNeeded>(): kotlinx.coroutines.flow/SharedFlow<kotlin/Unit> // io.ktor.client.webrtc/WebRtcConnectionEventsEmitter.negotiationNeeded.<get-negotiationNeeded>|<get-negotiationNeeded>(){}[0]
+    final val signalingState // io.ktor.client.webrtc/WebRtcConnectionEventsEmitter.signalingState|{}signalingState[0]
+        final fun <get-signalingState>(): kotlinx.coroutines.flow/StateFlow<io.ktor.client.webrtc/WebRtc.SignalingState> // io.ktor.client.webrtc/WebRtcConnectionEventsEmitter.signalingState.<get-signalingState>|<get-signalingState>(){}[0]
+    final val state // io.ktor.client.webrtc/WebRtcConnectionEventsEmitter.state|{}state[0]
+        final fun <get-state>(): kotlinx.coroutines.flow/StateFlow<io.ktor.client.webrtc/WebRtc.ConnectionState> // io.ktor.client.webrtc/WebRtcConnectionEventsEmitter.state.<get-state>|<get-state>(){}[0]
+    final val stats // io.ktor.client.webrtc/WebRtcConnectionEventsEmitter.stats|{}stats[0]
+        final fun <get-stats>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/List<io.ktor.client.webrtc/WebRtc.Stats>> // io.ktor.client.webrtc/WebRtcConnectionEventsEmitter.stats.<get-stats>|<get-stats>(){}[0]
+    final val trackEvents // io.ktor.client.webrtc/WebRtcConnectionEventsEmitter.trackEvents|{}trackEvents[0]
+        final fun <get-trackEvents>(): kotlinx.coroutines.flow/SharedFlow<io.ktor.client.webrtc/TrackEvent> // io.ktor.client.webrtc/WebRtcConnectionEventsEmitter.trackEvents.<get-trackEvents>|<get-trackEvents>(){}[0]
+
+    final fun emitAddTrack(io.ktor.client.webrtc/WebRtcMedia.Track) // io.ktor.client.webrtc/WebRtcConnectionEventsEmitter.emitAddTrack|emitAddTrack(io.ktor.client.webrtc.WebRtcMedia.Track){}[0]
+    final fun emitConnectionStateChange(io.ktor.client.webrtc/WebRtc.ConnectionState) // io.ktor.client.webrtc/WebRtcConnectionEventsEmitter.emitConnectionStateChange|emitConnectionStateChange(io.ktor.client.webrtc.WebRtc.ConnectionState){}[0]
+    final fun emitDataChannelEvent(io.ktor.client.webrtc/DataChannelEvent) // io.ktor.client.webrtc/WebRtcConnectionEventsEmitter.emitDataChannelEvent|emitDataChannelEvent(io.ktor.client.webrtc.DataChannelEvent){}[0]
+    final fun emitIceCandidate(io.ktor.client.webrtc/WebRtc.IceCandidate) // io.ktor.client.webrtc/WebRtcConnectionEventsEmitter.emitIceCandidate|emitIceCandidate(io.ktor.client.webrtc.WebRtc.IceCandidate){}[0]
+    final fun emitIceConnectionStateChange(io.ktor.client.webrtc/WebRtc.IceConnectionState) // io.ktor.client.webrtc/WebRtcConnectionEventsEmitter.emitIceConnectionStateChange|emitIceConnectionStateChange(io.ktor.client.webrtc.WebRtc.IceConnectionState){}[0]
+    final fun emitIceGatheringStateChange(io.ktor.client.webrtc/WebRtc.IceGatheringState) // io.ktor.client.webrtc/WebRtcConnectionEventsEmitter.emitIceGatheringStateChange|emitIceGatheringStateChange(io.ktor.client.webrtc.WebRtc.IceGatheringState){}[0]
+    final fun emitNegotiationNeeded() // io.ktor.client.webrtc/WebRtcConnectionEventsEmitter.emitNegotiationNeeded|emitNegotiationNeeded(){}[0]
+    final fun emitRemoveTrack(io.ktor.client.webrtc/WebRtcMedia.Track) // io.ktor.client.webrtc/WebRtcConnectionEventsEmitter.emitRemoveTrack|emitRemoveTrack(io.ktor.client.webrtc.WebRtcMedia.Track){}[0]
+    final fun emitSignalingStateChange(io.ktor.client.webrtc/WebRtc.SignalingState) // io.ktor.client.webrtc/WebRtcConnectionEventsEmitter.emitSignalingStateChange|emitSignalingStateChange(io.ktor.client.webrtc.WebRtc.SignalingState){}[0]
+    final fun emitStats(kotlin.collections/List<io.ktor.client.webrtc/WebRtc.Stats>) // io.ktor.client.webrtc/WebRtcConnectionEventsEmitter.emitStats|emitStats(kotlin.collections.List<io.ktor.client.webrtc.WebRtc.Stats>){}[0]
 }
 
 final class io.ktor.client.webrtc/WebRtcDataChannelOptions { // io.ktor.client.webrtc/WebRtcDataChannelOptions|null[0]
@@ -424,7 +461,7 @@ final object io.ktor.client.webrtc/WebRtc { // io.ktor.client.webrtc/WebRtc|null
         abstract val state // io.ktor.client.webrtc/WebRtc.DataChannel.state|{}state[0]
             abstract fun <get-state>(): io.ktor.client.webrtc/WebRtc.DataChannel.State // io.ktor.client.webrtc/WebRtc.DataChannel.state.<get-state>|<get-state>(){}[0]
 
-        abstract fun close() // io.ktor.client.webrtc/WebRtc.DataChannel.close|close(){}[0]
+        abstract fun closeTransport() // io.ktor.client.webrtc/WebRtc.DataChannel.closeTransport|closeTransport(){}[0]
         abstract fun send(kotlin/ByteArray) // io.ktor.client.webrtc/WebRtc.DataChannel.send|send(kotlin.ByteArray){}[0]
         abstract fun send(kotlin/String) // io.ktor.client.webrtc/WebRtc.DataChannel.send|send(kotlin.String){}[0]
         abstract fun setBufferedAmountLowThreshold(kotlin/Long) // io.ktor.client.webrtc/WebRtc.DataChannel.setBufferedAmountLowThreshold|setBufferedAmountLowThreshold(kotlin.Long){}[0]
@@ -434,6 +471,7 @@ final object io.ktor.client.webrtc/WebRtc { // io.ktor.client.webrtc/WebRtc|null
         abstract suspend fun receive(): io.ktor.client.webrtc/WebRtc.DataChannel.Message // io.ktor.client.webrtc/WebRtc.DataChannel.receive|receive(){}[0]
         abstract suspend fun receiveBinary(): kotlin/ByteArray // io.ktor.client.webrtc/WebRtc.DataChannel.receiveBinary|receiveBinary(){}[0]
         abstract suspend fun receiveText(): kotlin/String // io.ktor.client.webrtc/WebRtc.DataChannel.receiveText|receiveText(){}[0]
+        open fun close() // io.ktor.client.webrtc/WebRtc.DataChannel.close|close(){}[0]
 
         final enum class State : kotlin/Enum<io.ktor.client.webrtc/WebRtc.DataChannel.State> { // io.ktor.client.webrtc/WebRtc.DataChannel.State|null[0]
             enum entry CLOSED // io.ktor.client.webrtc/WebRtc.DataChannel.State.CLOSED|null[0]
@@ -866,7 +904,7 @@ final class io.ktor.client.webrtc/JsWebRtcDataChannel : io.ktor.client.webrtc/We
     final val state // io.ktor.client.webrtc/JsWebRtcDataChannel.state|{}state[0]
         final fun <get-state>(): io.ktor.client.webrtc/WebRtc.DataChannel.State // io.ktor.client.webrtc/JsWebRtcDataChannel.state.<get-state>|<get-state>(){}[0]
 
-    final fun close() // io.ktor.client.webrtc/JsWebRtcDataChannel.close|close(){}[0]
+    final fun closeTransport() // io.ktor.client.webrtc/JsWebRtcDataChannel.closeTransport|closeTransport(){}[0]
     final fun send(kotlin/ByteArray) // io.ktor.client.webrtc/JsWebRtcDataChannel.send|send(kotlin.ByteArray){}[0]
     final fun send(kotlin/String) // io.ktor.client.webrtc/JsWebRtcDataChannel.send|send(kotlin.String){}[0]
     final fun setBufferedAmountLowThreshold(kotlin/Long) // io.ktor.client.webrtc/JsWebRtcDataChannel.setBufferedAmountLowThreshold|setBufferedAmountLowThreshold(kotlin.Long){}[0]

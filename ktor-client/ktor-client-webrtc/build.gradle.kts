@@ -5,7 +5,7 @@
 
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
-description = "Ktor WebRtc client"
+description = "Ktor WebRTC Client"
 
 plugins {
     id("com.android.kotlin.multiplatform.library")

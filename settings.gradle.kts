@@ -127,7 +127,9 @@ projects {
         +"ktor-client-test-base"
         +"ktor-client-tests"
 
-        +"ktor-client-webrtc"
+        +"ktor-client-webrtc" including {
+            +"ktor-client-webrtc-rs"
+        }
 
         nested("ktor-client-plugins") {
             +"ktor-client-auth"
