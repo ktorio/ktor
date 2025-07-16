@@ -31,5 +31,4 @@ public actual object DeflateEncoder : ContentEncoder, Encoder by Identity {
  */
 public actual object ZstdEncoder : ContentEncoder, Encoder by Identity {
     actual override val name: String = "zstd"
-    public actual val compressionLevel: Int = 3
 }
