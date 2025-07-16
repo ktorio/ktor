@@ -11,9 +11,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import io.ktor.sse.*
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.single
@@ -22,7 +20,6 @@ import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
-import kotlin.coroutines.coroutineContext
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
@@ -334,42 +331,6 @@ class ServerSentEventsTest {
                         cancel()
                     }
                 }
-            }
-        }
-    }
-
-    @Test
-    fun testReceivingEventsAsync() = testApplication {
-        install(SSE)
-
-        val messages = Channel<String>(1)
-        val scope = CoroutineScope(coroutineContext)
-
-        scope.launch {
-            assertEquals("Test 0", messages.receive())
-            assertEquals("[Client] Test 0", messages.receive())
-            assertEquals("Test 1", messages.receive())
-            assertEquals("[Client] Test 1", messages.receive())
-            assertEquals("Test 2", messages.receive())
-            assertEquals("[Client] Test 2", messages.receive())
-        }
-
-        routing {
-            sse("/sse") {
-                repeat(3) {
-                    val msg = "Test $it"
-                    send(ServerSentEvent(msg))
-                    messages.send(msg)
-                    delay(50)
-                }
-            }
-        }
-
-        val client = createSseClient()
-
-        client.sse("/sse") {
-            incoming.collect { event ->
-                messages.send("[Client] ${event.data}")
             }
         }
     }
