@@ -17,7 +17,9 @@ internal actual fun getKtorEnvironmentProperties(): List<Pair<String, String>> =
 
 internal actual fun getEnvironmentProperty(key: String): String? = js("process ? process.env[key] : null")
 
-internal actual fun setEnvironmentProperty(key: String, value: String): Unit = js("process ? process.env[key] = value : null")
+internal actual fun setEnvironmentProperty(key: String, value: String): Unit = js(
+    "process ? process.env[key] = value : null"
+)
 
 internal actual fun clearEnvironmentProperty(key: String): Unit = js("process ? delete process.env[key] : null")
 
