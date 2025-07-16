@@ -751,8 +751,10 @@ public final class io/ktor/server/engine/ShutDownUrl$Companion {
 
 public final class io/ktor/server/engine/ShutDownUrl$Config {
 	public fun <init> ()V
+	public final fun getExit ()Lkotlin/jvm/functions/Function1;
 	public final fun getExitCodeSupplier ()Lkotlin/jvm/functions/Function1;
 	public final fun getShutDownUrl ()Ljava/lang/String;
+	public final fun setExit (Lkotlin/jvm/functions/Function1;)V
 	public final fun setExitCodeSupplier (Lkotlin/jvm/functions/Function1;)V
 	public final fun setShutDownUrl (Ljava/lang/String;)V
 }
