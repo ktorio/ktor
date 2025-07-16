@@ -894,8 +894,6 @@ final object io.ktor.util/PlatformUtils { // io.ktor.util/PlatformUtils|null[0]
 }
 
 final object io.ktor.util/ZstdEncoder : io.ktor.util/ContentEncoder, io.ktor.util/Encoder { // io.ktor.util/ZstdEncoder|null[0]
-    final val compressionLevel // io.ktor.util/ZstdEncoder.compressionLevel|{}compressionLevel[0]
-        final fun <get-compressionLevel>(): kotlin/Int // io.ktor.util/ZstdEncoder.compressionLevel.<get-compressionLevel>|<get-compressionLevel>(){}[0]
     final val name // io.ktor.util/ZstdEncoder.name|{}name[0]
         final fun <get-name>(): kotlin/String // io.ktor.util/ZstdEncoder.name.<get-name>|<get-name>(){}[0]
 

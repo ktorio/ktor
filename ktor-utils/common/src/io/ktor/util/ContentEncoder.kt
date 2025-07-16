@@ -81,9 +81,8 @@ public expect object DeflateEncoder : ContentEncoder {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.ZstdEncoder)
  */
-public expect object ZstdEncoder : ContentEncoder {
+public expect class ZstdEncoder : ContentEncoder {
     override val name: String
-    public val compressionLevel: Int
 
     override fun encode(
         source: ByteReadChannel,
