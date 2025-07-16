@@ -34,7 +34,6 @@ public class DataChannelReceiveOptions {
     public var onUndeliveredElement: ((WebRtcDataChannel.Message) -> Unit)? = null
 }
 
-
 /**
  * Configuration options for creating a WebRTC data channel.
  *
@@ -277,7 +276,7 @@ public abstract class WebRtcDataChannel private constructor(
 
     /**
      * Receives a binary message from the data channel.
-     * 
+     *
      * This method suspends until a binary message is available. If the next message
      * in the channel is a text message instead of binary data, this method will throw
      * an error.
@@ -289,7 +288,7 @@ public abstract class WebRtcDataChannel private constructor(
 
     /**
      * Receives a text message from the data channel.
-     * 
+     *
      * This method suspends until a text message is available. If the next message
      * in the channel is binary data instead of text, this method will throw an error.
      */
@@ -308,7 +307,7 @@ public abstract class WebRtcDataChannel private constructor(
 
     /**
      * Closes the data channel and releases its resources.
-     * 
+     *
      * After calling a channel will start a closing process:
      * - The channel state will transition to [WebRtc.DataChannelState.CLOSED]
      * - No more messages can be sent through this channel

@@ -50,9 +50,11 @@ class WebRtcDataChannelTest {
         jobs: MutableList<Job>
     ): Channel<DataChannelEvent> {
         val dataChannelEvents = Channel<DataChannelEvent>(Channel.UNLIMITED)
-        jobs.add(launch {
-            pc.dataChannelEvents.collect { dataChannelEvents.send(it) }
-        })
+        jobs.add(
+            launch {
+                pc.dataChannelEvents.collect { dataChannelEvents.send(it) }
+            }
+        )
         return dataChannelEvents
     }
 
@@ -242,8 +244,10 @@ class WebRtcDataChannelTest {
 
         // Verify the event
         assertEquals(dataChannel1, bufferedAmountLowEvent.channel)
-        assertTrue(dataChannel1.bufferedAmount <= threshold, 
-            "Buffered amount should be below threshold when event is fired")
+        assertTrue(
+            dataChannel1.bufferedAmount <= threshold,
+            "Buffered amount should be below threshold when event is fired"
+        )
 
         // Clean up
         dataChannel1.close()

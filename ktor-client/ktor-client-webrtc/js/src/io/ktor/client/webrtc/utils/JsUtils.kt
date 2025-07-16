@@ -6,7 +6,13 @@ package io.ktor.client.webrtc.utils
 
 import io.ktor.client.webrtc.*
 import io.ktor.client.webrtc.browser.*
+import org.khronos.webgl.ArrayBuffer
+import org.khronos.webgl.Uint8Array
+import org.khronos.webgl.get
+import org.khronos.webgl.set
 import org.w3c.dom.mediacapture.MediaTrackConstraints
+import org.w3c.files.Blob
+import kotlin.js.Promise
 import kotlin.js.collections.JsMap
 import kotlin.js.collections.toMap
 
@@ -109,3 +115,37 @@ internal fun RTCStatsReport.toKtor(): List<WebRtc.Stats> {
         )
     }.toList()
 }
+
+internal fun WebRtcDataChannelOptions.toJs() = jsObject<RTCDataChannelInit> {
+    id = this@toJs.id
+    ordered = this@toJs.ordered
+    protocol = this@toJs.protocol
+    negotiated = this@toJs.negotiated
+    if (this@toJs.maxRetransmits != null) { // null is also considered as a value, should leave undefined
+        maxRetransmits = this@toJs.maxRetransmits
+    }
+    if (this@toJs.maxPacketLifeTime != null) { // null is also considered as a value, should leave undefined
+        maxPacketLifeTime = this@toJs.maxPacketLifeTime?.inWholeMilliseconds
+    }
+}
+
+internal fun ByteArray.toJs(): Uint8Array {
+    val buffer = Uint8Array(size)
+    for (i in 0 until size) {
+        buffer[i] = this[i]
+    }
+    return buffer
+}
+
+internal fun ArrayBuffer.toKotlin(): ByteArray {
+    val view = Uint8Array(this)
+    val buffer = ByteArray(view.byteLength)
+    for (i in 0 until view.byteLength) {
+        buffer[i] = view[i]
+    }
+    return buffer
+}
+
+// Should be removed when `kotlin-wrappers` are introduced
+@Suppress("WRONG_EXTERNAL_DECLARATION")
+internal external fun Blob.asArrayBuffer(): Promise<ArrayBuffer>
