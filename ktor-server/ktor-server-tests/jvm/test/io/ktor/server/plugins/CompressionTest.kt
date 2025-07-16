@@ -729,7 +729,7 @@ class CompressionTest {
 
     @Test
     fun basicZstdEncodeDecodeTest() = testApplication {
-        Zstd().let { defaultCompressionLevelZstd ->
+        Zstd(compressionLevel = 3).let { defaultCompressionLevelZstd ->
             val compressed = defaultCompressionLevelZstd.encode(ByteReadChannel(textToCompressAsBytes))
             val decompressed = defaultCompressionLevelZstd.decode(compressed)
 
@@ -807,13 +807,13 @@ class CompressionTest {
         assertEquals(textToCompress, responseDeflate.bodyAsText())
 
         val responseZstd = client.post("/zstd") {
-            setBody(Zstd().encode(ByteReadChannel(textToCompressAsBytes)))
+            setBody(Zstd(compressionLevel = 3).encode(ByteReadChannel(textToCompressAsBytes)))
             header(HttpHeaders.ContentEncoding, "zstd")
         }
         assertEquals(textToCompress, responseZstd.bodyAsText())
 
         val responseMultiple = client.post("/multiple") {
-            setBody(Identity.encode(Deflate.encode(GZip.encode(Zstd().encode(ByteReadChannel(textToCompressAsBytes))))))
+            setBody(Identity.encode(Deflate.encode(GZip.encode(Zstd(compressionLevel = 3).encode(ByteReadChannel(textToCompressAsBytes))))))
             header(HttpHeaders.ContentEncoding, "identity,deflate,gzip,zstd")
         }
         assertEquals(textToCompress, responseMultiple.bodyAsText())
