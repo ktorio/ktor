@@ -115,7 +115,7 @@ public class ShutDownUrl(
         /**
          * Internal config item for testing shutdown.
          */
-        internal var exit: (Int) -> Unit = ::exitProcess
+        public var exit: (Int) -> Unit = ::exitProcess
     }
 
     public companion object {
