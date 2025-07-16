@@ -7,6 +7,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.test.runTest
 import kotlinx.io.EOFException
 import org.junit.jupiter.api.assertThrows
+import java.nio.ByteBuffer
 import kotlin.test.*
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.seconds
@@ -114,6 +115,25 @@ class ByteReadChannelOperationsJvmTest {
             channel.read(2) {
                 fail("There is only one byte in the channel")
             }
+        }
+    }
+
+    @Test
+    fun readFullyFromEmptyThrows() = runTest {
+        val channel = ByteChannel()
+        channel.close()
+        assertThrows<EOFException> {
+            channel.readFully(ByteBuffer.allocate(1))
+        }
+    }
+
+    @Test
+    fun readFullyFromSmallerThanOutputThrows() = runTest {
+        val channel = ByteChannel()
+        channel.writeByte(1)
+        channel.close()
+        assertThrows<EOFException> {
+            channel.readFully(ByteBuffer.allocate(2))
         }
     }
 }
