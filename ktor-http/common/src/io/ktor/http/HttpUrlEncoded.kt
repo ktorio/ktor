@@ -11,7 +11,7 @@ import io.ktor.utils.io.charsets.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.parseUrlEncodedParameters)
  */
-public fun String.parseUrlEncodedParameters(defaultEncoding: Charset = Charsets.UTF_8, limit: Int = 1000): Parameters {
+public fun String.parseUrlEncodedParameters(defaultEncoding: Charset = Charsets.UTF_8, limit: Int = 1000, plusIsSpace: Boolean = false): Parameters {
     val parameters: List<Pair<String, String>> =
         split("&", limit = limit).map { it.substringBefore("=") to it.substringAfter("=", "") }
     val encoding: String =
@@ -21,8 +21,8 @@ public fun String.parseUrlEncodedParameters(defaultEncoding: Charset = Charsets.
     return Parameters.build {
         parameters.forEach { (key, value) ->
             append(
-                key.decodeURLQueryComponent(charset = charset),
-                value.decodeURLQueryComponent(charset = charset)
+                key.decodeURLQueryComponent(charset = charset, plusIsSpace = plusIsSpace),
+                value.decodeURLQueryComponent(charset = charset, plusIsSpace = plusIsSpace)
             )
         }
     }
