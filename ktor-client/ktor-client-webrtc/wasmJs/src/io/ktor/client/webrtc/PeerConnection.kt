@@ -53,6 +53,11 @@ public class WasmJsWebRtcPeerConnection(
             events.emitAddTrack(track)
         }
 
+        nativePeerConnection.ondatachannel = { event: RTCDataChannelEvent ->
+            val channel = WasmJsWebRtcDataChannel(event.channel, WebRtcDataChannelOptions())
+            channel.setupEvents(events)
+        }
+
         nativePeerConnection.onnegotiationneeded = { events.emitNegotiationNeeded() }
     }
 
@@ -74,7 +79,9 @@ public class WasmJsWebRtcPeerConnection(
         label: String,
         options: WebRtcDataChannelOptions.() -> Unit
     ): WebRtcDataChannel {
-        TODO("Not yet implemented")
+        val options = WebRtcDataChannelOptions().apply(options)
+        val nativeChannel = nativePeerConnection.createDataChannel(label.toJsString(), options.toJs())
+        return WasmJsWebRtcDataChannel(nativeChannel, options).also { it.setupEvents(events) }
     }
 
     override suspend fun setLocalDescription(description: WebRtc.SessionDescription): Unit =

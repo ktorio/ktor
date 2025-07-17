@@ -10,27 +10,27 @@ import org.khronos.webgl.ArrayBuffer
 import org.w3c.files.Blob
 
 /**
- * WebRtc data channel implementation for the JavaScript platform.
+ * WebRtc data channel implementation for the Wasm platform.
  */
-public class JsWebRtcDataChannel(
+public class WasmJsWebRtcDataChannel(
     internal val nativeChannel: RTCDataChannel,
     options: WebRtcDataChannelOptions
 ) : WebRtcDataChannel(options) {
 
     override val id: Int
-        get() = nativeChannel.id.toInt()
+        get() = nativeChannel.id?.toInt() ?: 0
 
     override val label: String
-        get() = nativeChannel.label
+        get() = nativeChannel.label.toString()
 
     override val state: WebRtc.DataChannelState
-        get() = nativeChannel.readyState.toDataChannelState()
+        get() = nativeChannel.readyState.toString().toDataChannelState()
 
     override val bufferedAmount: Long
-        get() = nativeChannel.bufferedAmount.toLong()
+        get() = nativeChannel.bufferedAmount.toDouble().toLong()
 
     override val bufferedAmountLowThreshold: Long
-        get() = nativeChannel.bufferedAmountLowThreshold.toLong()
+        get() = nativeChannel.bufferedAmountLowThreshold.toDouble().toLong()
 
     override val maxPacketLifeTime: Int?
         get() = nativeChannel.maxPacketLifeTime?.toInt()
@@ -45,14 +45,14 @@ public class JsWebRtcDataChannel(
         get() = nativeChannel.ordered
 
     override val protocol: String
-        get() = nativeChannel.protocol
+        get() = nativeChannel.protocol.toString()
 
-    override fun send(text: String): Unit = nativeChannel.send(text)
+    override fun send(text: String): Unit = nativeChannel.send(text.toJsString())
 
     override fun send(bytes: ByteArray): Unit = nativeChannel.send(bytes.toJs())
 
     override fun setBufferedAmountLowThreshold(threshold: Long) {
-        nativeChannel.bufferedAmountLowThreshold = threshold
+        nativeChannel.bufferedAmountLowThreshold = threshold.toInt().toJsNumber()
     }
 
     override fun close() {
@@ -70,17 +70,18 @@ public class JsWebRtcDataChannel(
 
         nativeChannel.onmessage = { e ->
             when {
-                e.data is String -> {
-                    emitMessage(Message.Text(e.data as String))
+                e.data is JsString -> {
+                    emitMessage(Message.Text(e.data.toString()))
                 }
 
-                nativeChannel.binaryType == "arraybuffer" -> {
+                nativeChannel.binaryType.toString() == "arraybuffer" -> {
                     emitMessage(Message.Binary((e.data as ArrayBuffer).toKotlin()))
                 }
 
-                nativeChannel.binaryType == "blob" -> {
+                nativeChannel.binaryType.toString() == "blob" -> {
                     (e.data as Blob).asArrayBuffer().then {
                         emitMessage(Message.Binary(it.toKotlin()))
+                        0.toJsNumber() // make Wasm compiler happy
                     }
                 }
 
@@ -94,7 +95,7 @@ public class JsWebRtcDataChannel(
         }
 
         nativeChannel.onerror = { e ->
-            eventsEmitter.emitDataChannelEvent(DataChannelEvent.Error(this, e.error.message))
+            eventsEmitter.emitDataChannelEvent(DataChannelEvent.Error(this, e.error.message.toString()))
         }
     }
 }
@@ -103,6 +104,6 @@ public class JsWebRtcDataChannel(
  * Returns implementation of the data channel that is used under the hood. Use it with caution.
  */
 public fun WebRtcDataChannel.getNative(): RTCDataChannel {
-    val channel = (this as? JsWebRtcDataChannel) ?: error("Wrong data channel implementation.")
+    val channel = (this as? WasmJsWebRtcDataChannel) ?: error("Wrong data channel implementation.")
     return channel.nativeChannel
 }
