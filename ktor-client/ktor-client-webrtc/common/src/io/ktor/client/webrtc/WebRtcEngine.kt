@@ -5,9 +5,9 @@
 package io.ktor.client.webrtc
 
 import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 /**
  * Constant that indicates to WebRTCConnection that there should be no automatic statistics collection.
@@ -28,7 +28,9 @@ public open class WebRtcConnectionConfig {
     /**
      * Refresh rate of [WebRtc.Stats] in ms.
      * Value less than or equal to zero means there will be no statistics collected.
-     * Defaults to NO_WEBRTC_STATISTICS (-1).
+     * All exceptions thrown during a statistics collection will be ignored.
+     * You can provide a custom [coroutinesContext] with [CoroutineExceptionHandler] to handle such exceptions.
+     * Defaults to [WEBRTC_STATISTICS_DISABLED].
      * */
     public var statsRefreshRate: Long = WEBRTC_STATISTICS_DISABLED
 
@@ -71,6 +73,12 @@ public open class WebRtcConnectionConfig {
      * Replay for the shared flow of ICE candidates. Defaults to 20.
      */
     public var iceCandidatesReplay: Int = 20
+
+    /**
+     * Custom coroutine context that would be used in the connection for statistics collection or other
+     * background tasks. Defaults to [EmptyCoroutineContext].
+     */
+    public var coroutinesContext: CoroutineContext = EmptyCoroutineContext
 }
 
 /**
@@ -106,14 +114,23 @@ public open class WebRtcConfig {
  * Provides the ability to create peer connections and media tracks.
  * Implementations of this interface handle the platform-specific WebRtc operations.
  */
-public interface WebRtcEngine : CoroutineScope, Closeable, MediaTrackFactory {
+public interface WebRtcEngine : AutoCloseable, MediaTrackFactory {
     public val config: WebRtcConfig
+
+    /**
+     * Creates a new peer connection with the configured settings.
+     */
+    public suspend fun createPeerConnection(config: WebRtcConnectionConfig): WebRtcPeerConnection
 
     /**
      * Creates a new peer connection with the configured settings. If no configuration is provided,
      * the default configuration from [WebRtcConfig.defaultConnectionConfig] will be used.
      */
-    public suspend fun createPeerConnection(connectionConfig: WebRtcConnectionConfig? = null): WebRtcPeerConnection
+    public suspend fun createPeerConnection(
+        config: (WebRtcConnectionConfig.() -> Unit) = this.config.defaultConnectionConfig
+    ): WebRtcPeerConnection {
+        return createPeerConnection(WebRtcConnectionConfig().apply(config))
+    }
 }
 
 /**
@@ -133,8 +150,9 @@ public abstract class WebRtcEngineBase(private val engineName: String) : WebRtcE
     private val job = SupervisorJob()
     private val scope = CoroutineScope(job + CoroutineName("$engineName-context"))
 
-    override val coroutineContext: CoroutineContext
-        get() = scope.coroutineContext + (config.dispatcher ?: ioDispatcher())
+    protected fun createConnectionContext(userProvidedContext: CoroutineContext): CoroutineContext {
+        return scope.coroutineContext + (config.dispatcher ?: ioDispatcher()) + userProvidedContext
+    }
 
     override fun close() {
         job.cancel(WebRtcEngineClosedException())

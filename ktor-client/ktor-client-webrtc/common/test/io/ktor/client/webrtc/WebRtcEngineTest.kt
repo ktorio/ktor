@@ -6,15 +6,13 @@ package io.ktor.client.webrtc
 
 import io.ktor.test.dispatcher.*
 import kotlinx.atomicfu.atomic
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.withTimeout
+import kotlin.coroutines.CoroutineContext
 import kotlin.test.*
 
 // Create different WebRtc engine implementation to be tested for every platform.
@@ -424,5 +422,36 @@ class WebRtcEngineTest {
                 collectNegotiationEventsJob2.cancel()
             }
         }
+    }
+
+    @Test
+    fun testCustomExceptionHandling() = runTestWithRealTime {
+        class TestConnection(context: CoroutineContext, config: WebRtcConnectionConfig) :
+            MockWebRtcConnection(context, config) {
+            override suspend fun getStatistics(): List<WebRtc.Stats> {
+                throw IllegalStateException("Ktor is awesome!")
+            }
+        }
+
+        val mockEngine = object : MockWebRtcEngine() {
+            override suspend fun createPeerConnection(config: WebRtcConnectionConfig): WebRtcPeerConnection =
+                TestConnection(createConnectionContext(config.coroutinesContext), config)
+        }
+
+        val channel = Channel<Throwable>(Channel.CONFLATED)
+        val exceptionHandler = CoroutineExceptionHandler { _, e -> channel.trySend(e) }
+
+        val client = WebRtcClient(mockEngine)
+        val connection = client.createPeerConnection {
+            coroutinesContext = exceptionHandler
+            statsRefreshRate = 10
+        }
+
+        withTimeout(1000) {
+            val exception = channel.receive()
+            assertEquals("Ktor is awesome!", exception.message)
+        }
+
+        connection.close()
     }
 }

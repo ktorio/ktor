@@ -161,7 +161,7 @@ private fun Channel(options: DataChannelReceiveOptions): Channel<WebRtcDataChann
  */
 public abstract class WebRtcDataChannel private constructor(
     private val receiveChannel: Channel<Message>,
-) : AutoCloseable, ReceiveChannel<WebRtcDataChannel.Message> by receiveChannel {
+) : AutoCloseable {
 
     public constructor(options: WebRtcDataChannelOptions) : this(
         receiveChannel = Channel(
@@ -179,6 +179,28 @@ public abstract class WebRtcDataChannel private constructor(
     public sealed interface Message {
         public class Text(public val data: String) : Message
         public class Binary(public val data: ByteArray) : Message
+
+        /**
+         * Returns the text content of the message if it's a text message, otherwise returns null.
+         */
+        public fun textOrNull(): String? = (this as? Text)?.data
+
+        /**
+         * Returns the binary content of the message if it's a binary message, otherwise returns null.
+         */
+        public fun binaryOrNull(): ByteArray? = (this as? Binary)?.data
+
+        /**
+         * Returns the text content of the message if it's a text message, otherwise throws an exception.
+         */
+        public fun textOrException(): String =
+            (this as? Text ?: error("Received a binary instead of string data.")).data
+
+        /**
+         * Returns the binary content of the message if it's a binary message, otherwise throws an exception.
+         */
+        public fun binaryOrException(): ByteArray =
+            (this as? Binary ?: error("Received a string instead of binary data.")).data
     }
 
     /**
@@ -256,6 +278,10 @@ public abstract class WebRtcDataChannel private constructor(
      */
     public abstract val protocol: String
 
+    /**
+     * Sets the threshold for the buffered amount of data below which the buffer is considered to be "low."
+     * When the buffered amount falls to or below this value, a [DataChannelEvent.BufferedAmountLow] event is fired.
+     */
     public abstract fun setBufferedAmountLowThreshold(threshold: Long)
 
     /**
@@ -275,16 +301,20 @@ public abstract class WebRtcDataChannel private constructor(
     public abstract fun send(bytes: ByteArray)
 
     /**
+     * Suspends until a message is available in the data channel and returns it.
+     *
+     * This method will suspend the current coroutine until a message is received.
+     * The message can be either text or binary data.
+     */
+    public suspend fun receive(): Message = receiveChannel.receive()
+
+    /**
      * Receives a binary message from the data channel.
      *
      * This method suspends until a binary message is available. If the next message
-     * in the channel is a text message instead of binary data, this method will throw
-     * an error.
+     * in the channel is a text message instead of binary data, this method will throw an error.
      */
-    public suspend fun receiveBinary(): ByteArray {
-        val binary = receive() as? Message.Binary ?: error("Received a string instead of binary data.")
-        return binary.data
-    }
+    public suspend fun receiveBinary(): ByteArray = receive().binaryOrException()
 
     /**
      * Receives a text message from the data channel.
@@ -292,10 +322,33 @@ public abstract class WebRtcDataChannel private constructor(
      * This method suspends until a text message is available. If the next message
      * in the channel is binary data instead of text, this method will throw an error.
      */
-    public suspend fun receiveText(): String {
-        val text = receive() as? Message.Text ?: error("Received a binary instead of string data.")
-        return text.data
-    }
+    public suspend fun receiveText(): String = receive().textOrException()
+
+    /**
+     * Immediately returns a message from the data channel or null if no message is available.
+     *
+     * This method does not suspend and returns immediately. If a message is available,
+     * it is returned; otherwise, null is returned.
+     */
+    public fun tryReceive(): Message? = receiveChannel.tryReceive().getOrNull()
+
+    /**
+     * Immediately returns binary data from the data channel or null if no binary message is available.
+     *
+     * This method does not suspend and returns immediately. If a binary message is available,
+     * its data is returned; otherwise, null is returned. If the next message is a text message,
+     * null is returned.
+     */
+    public fun tryReceiveBinary(): ByteArray? = tryReceive()?.binaryOrNull()
+
+    /**
+     * Immediately returns text data from the data channel or null if no text message is available.
+     *
+     * This method does not suspend and returns immediately. If a text message is available,
+     * its content is returned; otherwise, null is returned. If the next message is a binary message,
+     * null is returned.
+     */
+    public fun tryReceiveText(): String? = tryReceive()?.textOrNull()
 
     protected fun emitMessage(message: Message): ChannelResult<Unit> {
         return receiveChannel.trySend(message)

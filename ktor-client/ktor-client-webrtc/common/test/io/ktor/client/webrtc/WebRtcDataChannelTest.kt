@@ -104,6 +104,10 @@ class WebRtcDataChannelTest {
         assertEquals(WebRtc.DataChannelState.OPEN, dataChannel1.state)
         assertEquals(WebRtc.DataChannelState.OPEN, dataChannel2.state)
 
+        assertEquals(null, dataChannel2.tryReceive())
+        assertEquals(null, dataChannel1.tryReceiveText())
+        assertEquals(null, dataChannel2.tryReceiveBinary())
+
         // Test text message communication
         val testMessage = "Hello from pc1!"
         dataChannel1.send(testMessage)
@@ -209,6 +213,8 @@ class WebRtcDataChannelTest {
 
         assertFails { dataChannel1.send("Hello") }
         assertFails { dataChannel2.send("Hello") }
+        assertFails { dataChannel1.receive() }
+        assertEquals(null, dataChannel2.tryReceive())
     }
 
     @Test
@@ -225,7 +231,7 @@ class WebRtcDataChannelTest {
         val threshold = 1000L
         dataChannel1.setBufferedAmountLowThreshold(threshold)
 
-        val largeData = ByteArray(5000) { it.toByte() }
+        val largeData = List(1000) { it.toByte() }.toByteArray()
         repeat(10) {
             dataChannel1.send(largeData)
         }

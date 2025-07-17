@@ -12,8 +12,7 @@ public class JsWebRtcEngine(
     private val mediaTrackFactory: MediaTrackFactory = config.mediaTrackFactory ?: NavigatorMediaDevices
 ) : WebRtcEngineBase("js-webrtc"), MediaTrackFactory by mediaTrackFactory {
 
-    override suspend fun createPeerConnection(connectionConfig: WebRtcConnectionConfig?): WebRtcPeerConnection {
-        val config = connectionConfig ?: WebRtcConnectionConfig().apply(config.defaultConnectionConfig)
+    override suspend fun createPeerConnection(config: WebRtcConnectionConfig): WebRtcPeerConnection {
         val rtcConfig = jsObject<RTCConfiguration> {
             bundlePolicy = config.bundlePolicy.toJs()
             rtcpMuxPolicy = config.rtcpMuxPolicy.toJs()
@@ -24,7 +23,7 @@ public class JsWebRtcEngine(
         val peerConnection = RTCPeerConnection(rtcConfig)
         return JsWebRtcPeerConnection(
             peerConnection,
-            coroutineContext,
+            createConnectionContext(config.coroutinesContext),
             config
         )
     }
