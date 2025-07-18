@@ -24,7 +24,6 @@ class CIOProxyTest {
             val proxy = engine.proxy
             assertNotNull(proxy)
             assertEquals(proxy.address(), InetSocketAddress("127.0.0.1", 1234))
-
         } finally {
             System.clearProperty("http.proxyHost")
             System.clearProperty("http.proxyPort")
@@ -37,14 +36,15 @@ class CIOProxyTest {
             System.setProperty("http.proxyHost", "127.0.0.1")
             System.setProperty("http.proxyPort", "1234")
 
-            val engine = CIOEngine(CIOEngineConfig().apply {
-                proxy = ProxyBuilder.http(Url("http://127.0.0.2:8888"))
-            })
+            val engine = CIOEngine(
+                CIOEngineConfig().apply {
+                    proxy = ProxyBuilder.http(Url("http://127.0.0.2:8888"))
+                }
+            )
 
             val proxy = engine.proxy
             assertNotNull(proxy)
             assertEquals(proxy.address(), InetSocketAddress("127.0.0.2", 8888))
-
         } finally {
             System.clearProperty("http.proxyHost")
             System.clearProperty("http.proxyPort")
