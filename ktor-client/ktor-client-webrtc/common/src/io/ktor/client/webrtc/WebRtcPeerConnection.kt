@@ -17,10 +17,9 @@ import kotlin.coroutines.CoroutineContext
  * @see [MDN RTCPeerConnection](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection)
  */
 public abstract class WebRtcPeerConnection private constructor(
-    internal val events: WebRtcConnectionEventsEmitter
+    internal val events: WebRtcConnectionEventsEmitter,
+    protected val coroutineScope: CoroutineScope
 ) : Closeable, WebRtcConnectionEvents by events {
-
-    private var statsRefreshScope: CoroutineScope? = null
 
     /**
      * @param coroutineContext Coroutine context to fetch statistics and emit events.
@@ -29,15 +28,13 @@ public abstract class WebRtcPeerConnection private constructor(
     public constructor(
         coroutineContext: CoroutineContext,
         config: WebRtcConnectionConfig
-    ) : this(events = WebRtcConnectionEventsEmitter(config)) {
+    ) : this(events = WebRtcConnectionEventsEmitter(config), coroutineScope = CoroutineScope(coroutineContext)) {
         // Start fetching statistics
         if (config.statsRefreshRate > 0) {
-            statsRefreshScope = CoroutineScope(coroutineContext).apply {
-                launch {
-                    while (true) {
-                        delay(config.statsRefreshRate)
-                        events.emitStats(getStatistics())
-                    }
+            coroutineScope.launch {
+                while (true) {
+                    delay(config.statsRefreshRate)
+                    events.emitStats(getStatistics())
                 }
             }
         }
@@ -122,6 +119,6 @@ public abstract class WebRtcPeerConnection private constructor(
     public abstract suspend fun getStatistics(): List<WebRtc.Stats>
 
     override fun close() {
-        this.statsRefreshScope?.cancel()
+        coroutineScope.cancel()
     }
 }

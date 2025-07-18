@@ -339,7 +339,7 @@ public class io/ktor/client/webrtc/WebRtcConfig {
 public class io/ktor/client/webrtc/WebRtcConnectionConfig {
 	public fun <init> ()V
 	public final fun getBundlePolicy ()Lio/ktor/client/webrtc/WebRtc$BundlePolicy;
-	public final fun getCoroutinesContext ()Lkotlin/coroutines/CoroutineContext;
+	public final fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getDataChannelEventsReplay ()I
 	public final fun getIceCandidatePoolSize ()I
 	public final fun getIceCandidatesReplay ()I
@@ -349,7 +349,7 @@ public class io/ktor/client/webrtc/WebRtcConnectionConfig {
 	public final fun getRtcpMuxPolicy ()Lio/ktor/client/webrtc/WebRtc$RtcpMuxPolicy;
 	public final fun getStatsRefreshRate ()J
 	public final fun setBundlePolicy (Lio/ktor/client/webrtc/WebRtc$BundlePolicy;)V
-	public final fun setCoroutinesContext (Lkotlin/coroutines/CoroutineContext;)V
+	public final fun setCoroutineContext (Lkotlin/coroutines/CoroutineContext;)V
 	public final fun setDataChannelEventsReplay (I)V
 	public final fun setIceCandidatePoolSize (I)V
 	public final fun setIceCandidatesReplay (I)V
@@ -585,6 +585,7 @@ public abstract class io/ktor/client/webrtc/WebRtcPeerConnection : io/ktor/clien
 	public abstract fun createDataChannel (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun createDataChannel$default (Lio/ktor/client/webrtc/WebRtcPeerConnection;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun createOffer (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	protected final fun getCoroutineScope ()Lkotlinx/coroutines/CoroutineScope;
 	public fun getDataChannelEvents ()Lkotlinx/coroutines/flow/SharedFlow;
 	public fun getIceCandidates ()Lkotlinx/coroutines/flow/SharedFlow;
 	public fun getIceConnectionState ()Lkotlinx/coroutines/flow/StateFlow;

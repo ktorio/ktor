@@ -435,7 +435,7 @@ class WebRtcEngineTest {
 
         val mockEngine = object : MockWebRtcEngine() {
             override suspend fun createPeerConnection(config: WebRtcConnectionConfig): WebRtcPeerConnection =
-                TestConnection(createConnectionContext(config.coroutinesContext), config)
+                TestConnection(createConnectionContext(config.coroutineContext), config)
         }
 
         val channel = Channel<Throwable>(Channel.CONFLATED)
@@ -443,7 +443,7 @@ class WebRtcEngineTest {
 
         val client = WebRtcClient(mockEngine)
         val connection = client.createPeerConnection {
-            coroutinesContext = exceptionHandler
+            coroutineContext = exceptionHandler
             statsRefreshRate = 10
         }
 

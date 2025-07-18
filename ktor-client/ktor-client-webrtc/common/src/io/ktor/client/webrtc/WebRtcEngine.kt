@@ -29,7 +29,7 @@ public open class WebRtcConnectionConfig {
      * Refresh rate of [WebRtc.Stats] in ms.
      * Value less than or equal to zero means there will be no statistics collected.
      * All exceptions thrown during a statistics collection will be ignored.
-     * You can provide a custom [coroutinesContext] with [CoroutineExceptionHandler] to handle such exceptions.
+     * You can provide a custom [coroutineContext] with [CoroutineExceptionHandler] to handle such exceptions.
      * Defaults to [WEBRTC_STATISTICS_DISABLED].
      * */
     public var statsRefreshRate: Long = WEBRTC_STATISTICS_DISABLED
@@ -78,7 +78,7 @@ public open class WebRtcConnectionConfig {
      * Custom coroutine context that would be used in the connection for statistics collection or other
      * background tasks. Defaults to [EmptyCoroutineContext].
      */
-    public var coroutinesContext: CoroutineContext = EmptyCoroutineContext
+    public var coroutineContext: CoroutineContext = EmptyCoroutineContext
 }
 
 /**

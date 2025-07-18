@@ -23,7 +23,7 @@ public class JsWebRtcEngine(
         val peerConnection = RTCPeerConnection(rtcConfig)
         return JsWebRtcPeerConnection(
             peerConnection,
-            createConnectionContext(config.coroutinesContext),
+            createConnectionContext(config.coroutineContext),
             config
         )
     }

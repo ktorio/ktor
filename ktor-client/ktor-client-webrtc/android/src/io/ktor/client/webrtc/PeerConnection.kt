@@ -5,6 +5,8 @@
 package io.ktor.client.webrtc
 
 import io.ktor.client.webrtc.media.*
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.launch
 import org.webrtc.*
 import org.webrtc.PeerConnection.Observer
 import kotlin.coroutines.CoroutineContext
@@ -25,7 +27,7 @@ public class AndroidWebRtcPeerConnection(
         if (this::peerConnection.isInitialized.not()) {
             cont.resume(emptyList())
         }
-        peerConnection.getStats { cont.resume(it.toCommon()) }
+        peerConnection.getStats { cont.resume(it.toKtor()) }
     }
 
     // helper method to break a dependency cycle (PeerConnection -> PeerConnectionFactory -> Observer)
@@ -44,84 +46,120 @@ public class AndroidWebRtcPeerConnection(
         if (hasVideo) mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true"))
     }
 
+    private inline fun runInConnectionScope(crossinline block: () -> Unit) {
+        // Runs a `block` in the coroutine of the peer connection not to lose possible exceptions.
+        // We are already running on the special thread, so extra dispatching is not required.
+        // Moreover, dispatching the coroutine on another thread could break the internal `org.webrtc` logic.
+        // For instance, it silently breaks registering a data channel observer.
+        coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) { block() }
+    }
+
     private fun createObserver() = object : Observer {
-        override fun onIceCandidate(candidate: IceCandidate?) {
-            if (candidate == null) return
-            events.emitIceCandidate(candidate.toCommon())
+        override fun onIceCandidate(candidate: IceCandidate?) = runInConnectionScope {
+            if (candidate == null) return@runInConnectionScope
+            events.emitIceCandidate(candidate.toKtor())
         }
 
         override fun onIceCandidatesRemoved(candidates: Array<out IceCandidate>?) = Unit
 
-        override fun onAddTrack(receiver: RtpReceiver?, mediaStreams: Array<out MediaStream>?) {
-            if (receiver == null) return
+        override fun onAddTrack(receiver: RtpReceiver?, mediaStreams: Array<out MediaStream>?) = runInConnectionScope {
+            if (receiver == null) return@runInConnectionScope
             receiver.track()?.let {
                 events.emitAddTrack(AndroidMediaTrack.from(it))
             }
         }
 
-        override fun onRemoveTrack(receiver: RtpReceiver?) {
-            if (receiver == null) return
+        override fun onRemoveTrack(receiver: RtpReceiver?) = runInConnectionScope {
+            if (receiver == null) return@runInConnectionScope
             receiver.track()?.let {
                 events.emitRemoveTrack(AndroidMediaTrack.from(it))
             }
         }
 
-        override fun onIceConnectionChange(newState: PeerConnection.IceConnectionState?) {
-            val commonState = newState.toCommon() ?: return
+        override fun onIceConnectionChange(newState: PeerConnection.IceConnectionState?) = runInConnectionScope {
+            val commonState = newState.toKtor() ?: return@runInConnectionScope
             events.emitIceConnectionStateChange(commonState)
         }
 
-        override fun onConnectionChange(newState: PeerConnection.PeerConnectionState?) {
-            val commonState = newState.toCommon() ?: return
+        override fun onConnectionChange(newState: PeerConnection.PeerConnectionState?) = runInConnectionScope {
+            val commonState = newState.toKtor() ?: return@runInConnectionScope
             events.emitConnectionStateChange(commonState)
         }
 
-        override fun onSignalingChange(newState: PeerConnection.SignalingState?) {
-            val commonState = newState.toCommon() ?: return
+        override fun onSignalingChange(newState: PeerConnection.SignalingState?) = runInConnectionScope {
+            val commonState = newState.toKtor() ?: return@runInConnectionScope
             events.emitSignalingStateChange(commonState)
         }
 
-        override fun onIceGatheringChange(newState: PeerConnection.IceGatheringState?) {
-            val commonState = newState.toCommon() ?: return
+        override fun onIceGatheringChange(newState: PeerConnection.IceGatheringState?) = runInConnectionScope {
+            val commonState = newState.toKtor() ?: return@runInConnectionScope
             events.emitIceGatheringStateChange(commonState)
         }
 
         override fun onIceConnectionReceivingChange(receiving: Boolean) = Unit
-        override fun onRenegotiationNeeded(): Unit = events.emitNegotiationNeeded()
+        override fun onRenegotiationNeeded() = runInConnectionScope {
+            events.emitNegotiationNeeded()
+        }
 
         // we omit streams and operate with tracks instead
         override fun onAddStream(p0: MediaStream?) = Unit
         override fun onRemoveStream(p0: MediaStream?) = Unit
 
-        // #TODO: implement data channels
-        override fun onDataChannel(dataChannel: DataChannel?) = Unit
+        override fun onDataChannel(dataChannel: DataChannel?) = runInConnectionScope {
+            if (dataChannel == null) return@runInConnectionScope
+            val channel = AndroidWebRtcDataChannel(
+                nativeChannel = dataChannel,
+                channelInit = null,
+                coroutineScope = coroutineScope,
+                options = WebRtcDataChannelOptions()
+            )
+            channel.setupEvents(events)
+        }
     }
 
     override val localDescription: WebRtc.SessionDescription?
-        get() = peerConnection.localDescription?.toCommon()
+        get() = peerConnection.localDescription?.toKtor()
 
     override val remoteDescription: WebRtc.SessionDescription?
-        get() = peerConnection.remoteDescription?.toCommon()
+        get() = peerConnection.remoteDescription?.toKtor()
 
     override suspend fun createOffer(): WebRtc.SessionDescription {
         val offer = suspendCoroutine { cont ->
             peerConnection.createOffer(cont.resumeAfterSdpCreate(), offerConstraints())
         }
-        return offer.toCommon()
+        return offer.toKtor()
     }
 
     override suspend fun createAnswer(): WebRtc.SessionDescription {
         val answer = suspendCoroutine { cont ->
             peerConnection.createAnswer(cont.resumeAfterSdpCreate(), offerConstraints())
         }
-        return answer.toCommon()
+        return answer.toKtor()
     }
 
     override suspend fun createDataChannel(
         label: String,
         options: WebRtcDataChannelOptions.() -> Unit
     ): WebRtcDataChannel {
-        TODO("Not yet implemented")
+        val options = WebRtcDataChannelOptions().apply(options)
+        val channelInit = DataChannel.Init().apply {
+            if (options.id != null) {
+                id = options.id!!
+            }
+            if (options.maxRetransmits != null) {
+                maxRetransmits = options.maxRetransmits!!
+            }
+            if (options.maxPacketLifeTime != null) {
+                maxRetransmitTimeMs = options.maxPacketLifeTime?.inWholeMilliseconds?.toInt()!!
+            }
+            ordered = options.ordered
+            protocol = options.protocol
+            negotiated = options.negotiated
+        }
+        val nativeChannel = peerConnection.createDataChannel(label, channelInit)
+        return AndroidWebRtcDataChannel(nativeChannel, channelInit, coroutineScope, options).apply {
+            setupEvents(events)
+        }
     }
 
     override suspend fun setLocalDescription(description: WebRtc.SessionDescription) {
