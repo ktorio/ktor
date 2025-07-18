@@ -477,7 +477,7 @@ public external class RTCDataChannel : EventTarget {
     public var maxRetransmits: Number?
     public var protocol: String
     public var negotiated: Boolean
-    public var id: Number?
+    public var id: Number
     public var readyState: String /* "closed" | "closing" | "connecting" | "open" */
     public var bufferedAmount: Number
     public var bufferedAmountLowThreshold: Number
@@ -486,12 +486,12 @@ public external class RTCDataChannel : EventTarget {
     public fun send(data: Blob)
     public fun send(data: ArrayBuffer)
     public fun send(data: ArrayBufferView)
-    public var onopen: ((self: RTCDataChannel, ev: Event) -> Any)?
-    public var onmessage: ((self: RTCDataChannel, ev: MessageEvent) -> Any)?
-    public var onbufferedamountlow: ((self: RTCDataChannel, ev: Event) -> Any)?
-    public var onclose: ((self: RTCDataChannel, ev: Event) -> Any)?
+    public var onopen: ((ev: Event) -> Any)?
+    public var onmessage: ((ev: MessageEvent) -> Any)?
+    public var onbufferedamountlow: ((ev: Event) -> Any)?
+    public var onclose: ((ev: Event) -> Any)?
     public var binaryType: String
-    public var onerror: ((self: RTCDataChannel, ev: RTCErrorEvent) -> Any)?
+    public var onerror: ((ev: RTCErrorEvent) -> Any)?
     public var priority: String /* "high" | "low" | "medium" | "very-low" */
 }
 
@@ -622,7 +622,7 @@ public external class RTCPeerConnection(config: RTCConfiguration) : EventTarget 
     ): RTCDataChannel
 
     public fun createDataChannel(label: String?): RTCDataChannel
-    public var ondatachannel: ((self: RTCPeerConnection, ev: RTCDataChannelEvent) -> Any)?
+    public var ondatachannel: ((ev: RTCDataChannelEvent) -> Any)?
     public fun getStats(selector: MediaStreamTrack? = definedExternally): Promise<RTCStatsReport>
     public fun getStats(): Promise<RTCStatsReport>
     public fun createOffer(
