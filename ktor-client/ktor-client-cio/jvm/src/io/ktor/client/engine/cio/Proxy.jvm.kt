@@ -19,7 +19,8 @@ internal actual fun discoverHttpProxy(): ProxyConfig? {
         if (host != null && host.isNotEmpty()) {
             proxy = Proxy(Proxy.Type.HTTP, InetSocketAddress(host, port))
         }
-    } catch (_: SecurityException) {}
+    } catch (_: SecurityException) {
+    }
 
     return proxy
 }
