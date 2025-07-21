@@ -63,7 +63,7 @@ class WebRtcDataChannelTest {
     private suspend fun waitForChannel(events: Channel<DataChannelEvent>) = withTimeout(5000) {
         val event = events.receive()
         assertTrue(event is DataChannelEvent.Open, "Expected DataChannelEvent.Open, got $event")
-        assertEquals(WebRtc.DataChannelState.OPEN, event.channel.state)
+        assertEquals(WebRtc.DataChannel.State.OPEN, event.channel.state)
         event.channel
     }
 
@@ -79,7 +79,7 @@ class WebRtcDataChannelTest {
             error("Expected DataChannelEvent.Closed")
         }
         assertEquals(this, closeEvent.channel)
-        assertEquals(WebRtc.DataChannelState.CLOSED, state)
+        assertEquals(WebRtc.DataChannel.State.CLOSED, state)
     }
 
     @Test
@@ -90,7 +90,7 @@ class WebRtcDataChannelTest {
         val dataChannel1 = pc1.createDataChannel("test-channel") {
             protocol = "test-protocol"
         }
-        assertEquals(WebRtc.DataChannelState.CONNECTING, dataChannel1.state)
+        assertEquals(WebRtc.DataChannel.State.CONNECTING, dataChannel1.state)
 
         connect(pc1, pc2, jobs)
 
@@ -105,8 +105,8 @@ class WebRtcDataChannelTest {
         assertEquals("test-protocol", dataChannel1.protocol)
         // Protocol is not available on Android yet :(
         // assertEquals("test-protocol", dataChannel2.protocol)
-        assertEquals(WebRtc.DataChannelState.OPEN, dataChannel1.state)
-        assertEquals(WebRtc.DataChannelState.OPEN, dataChannel2.state)
+        assertEquals(WebRtc.DataChannel.State.OPEN, dataChannel1.state)
+        assertEquals(WebRtc.DataChannel.State.OPEN, dataChannel2.state)
 
         assertEquals(null, dataChannel2.tryReceive())
         assertEquals(null, dataChannel1.tryReceiveText())
@@ -118,7 +118,7 @@ class WebRtcDataChannelTest {
 
         val receivedMessage = withTimeout(5000) {
             val message = dataChannel2.receive()
-            assertTrue(message is WebRtcDataChannel.Message.Text, "Expected string message")
+            assertTrue(message is WebRtc.DataChannel.Message.Text, "Expected string message")
             message.data
         }
         assertEquals(testMessage, receivedMessage)
@@ -129,7 +129,7 @@ class WebRtcDataChannelTest {
 
         val receivedBinaryMessage = withTimeout(5000) {
             val message = dataChannel1.receive()
-            assertTrue(message is WebRtcDataChannel.Message.Binary)
+            assertTrue(message is WebRtc.DataChannel.Message.Binary)
             message.data
         }
         assertContentEquals(testBinaryData, receivedBinaryMessage)

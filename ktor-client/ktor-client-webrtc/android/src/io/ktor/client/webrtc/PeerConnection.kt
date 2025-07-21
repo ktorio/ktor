@@ -111,7 +111,7 @@ public class AndroidWebRtcPeerConnection(
                 nativeChannel = dataChannel,
                 channelInit = null,
                 coroutineScope = coroutineScope,
-                options = WebRtcDataChannelOptions()
+                receiveOptions = DataChannelReceiveOptions()
             )
             channel.setupEvents(events)
         }
@@ -157,7 +157,8 @@ public class AndroidWebRtcPeerConnection(
             negotiated = options.negotiated
         }
         val nativeChannel = peerConnection.createDataChannel(label, channelInit)
-        return AndroidWebRtcDataChannel(nativeChannel, channelInit, coroutineScope, options).apply {
+        val receiveOptions = DataChannelReceiveOptions().apply(options.receiveOptions)
+        return AndroidWebRtcDataChannel(nativeChannel, channelInit, coroutineScope, receiveOptions).apply {
             setupEvents(events)
         }
     }

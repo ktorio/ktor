@@ -101,11 +101,11 @@ internal fun String?.toSignalingState(): WebRtc.SignalingState = when (this) {
     else -> error("Unknown signaling state: $this")
 }
 
-internal fun String?.toDataChannelState(): WebRtc.DataChannelState = when (this) {
-    "connecting" -> WebRtc.DataChannelState.CONNECTING
-    "open" -> WebRtc.DataChannelState.OPEN
-    "closing" -> WebRtc.DataChannelState.CLOSING
-    "closed" -> WebRtc.DataChannelState.CLOSED
+internal fun String?.toDataChannelState(): WebRtc.DataChannel.State = when (this) {
+    "connecting" -> WebRtc.DataChannel.State.CONNECTING
+    "open" -> WebRtc.DataChannel.State.OPEN
+    "closing" -> WebRtc.DataChannel.State.CLOSING
+    "closed" -> WebRtc.DataChannel.State.CLOSED
     else -> error("Unknown data channel state: $this")
 }
 

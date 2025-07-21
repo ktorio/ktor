@@ -105,63 +105,17 @@ sealed interface io.ktor.client.webrtc/TrackEvent { // io.ktor.client.webrtc/Tra
     }
 }
 
-abstract class io.ktor.client.webrtc/WebRtcDataChannel : kotlin/AutoCloseable { // io.ktor.client.webrtc/WebRtcDataChannel|null[0]
-    constructor <init>(io.ktor.client.webrtc/WebRtcDataChannelOptions) // io.ktor.client.webrtc/WebRtcDataChannel.<init>|<init>(io.ktor.client.webrtc.WebRtcDataChannelOptions){}[0]
+abstract class io.ktor.client.webrtc/WebRtcDataChannel : io.ktor.client.webrtc/WebRtc.DataChannel { // io.ktor.client.webrtc/WebRtcDataChannel|null[0]
+    constructor <init>(io.ktor.client.webrtc/DataChannelReceiveOptions) // io.ktor.client.webrtc/WebRtcDataChannel.<init>|<init>(io.ktor.client.webrtc.DataChannelReceiveOptions){}[0]
 
-    abstract val bufferedAmount // io.ktor.client.webrtc/WebRtcDataChannel.bufferedAmount|{}bufferedAmount[0]
-        abstract fun <get-bufferedAmount>(): kotlin/Long // io.ktor.client.webrtc/WebRtcDataChannel.bufferedAmount.<get-bufferedAmount>|<get-bufferedAmount>(){}[0]
-    abstract val bufferedAmountLowThreshold // io.ktor.client.webrtc/WebRtcDataChannel.bufferedAmountLowThreshold|{}bufferedAmountLowThreshold[0]
-        abstract fun <get-bufferedAmountLowThreshold>(): kotlin/Long // io.ktor.client.webrtc/WebRtcDataChannel.bufferedAmountLowThreshold.<get-bufferedAmountLowThreshold>|<get-bufferedAmountLowThreshold>(){}[0]
-    abstract val id // io.ktor.client.webrtc/WebRtcDataChannel.id|{}id[0]
-        abstract fun <get-id>(): kotlin/Int // io.ktor.client.webrtc/WebRtcDataChannel.id.<get-id>|<get-id>(){}[0]
-    abstract val label // io.ktor.client.webrtc/WebRtcDataChannel.label|{}label[0]
-        abstract fun <get-label>(): kotlin/String // io.ktor.client.webrtc/WebRtcDataChannel.label.<get-label>|<get-label>(){}[0]
-    abstract val maxPacketLifeTime // io.ktor.client.webrtc/WebRtcDataChannel.maxPacketLifeTime|{}maxPacketLifeTime[0]
-        abstract fun <get-maxPacketLifeTime>(): kotlin/Int? // io.ktor.client.webrtc/WebRtcDataChannel.maxPacketLifeTime.<get-maxPacketLifeTime>|<get-maxPacketLifeTime>(){}[0]
-    abstract val maxRetransmits // io.ktor.client.webrtc/WebRtcDataChannel.maxRetransmits|{}maxRetransmits[0]
-        abstract fun <get-maxRetransmits>(): kotlin/Int? // io.ktor.client.webrtc/WebRtcDataChannel.maxRetransmits.<get-maxRetransmits>|<get-maxRetransmits>(){}[0]
-    abstract val negotiated // io.ktor.client.webrtc/WebRtcDataChannel.negotiated|{}negotiated[0]
-        abstract fun <get-negotiated>(): kotlin/Boolean // io.ktor.client.webrtc/WebRtcDataChannel.negotiated.<get-negotiated>|<get-negotiated>(){}[0]
-    abstract val ordered // io.ktor.client.webrtc/WebRtcDataChannel.ordered|{}ordered[0]
-        abstract fun <get-ordered>(): kotlin/Boolean // io.ktor.client.webrtc/WebRtcDataChannel.ordered.<get-ordered>|<get-ordered>(){}[0]
-    abstract val protocol // io.ktor.client.webrtc/WebRtcDataChannel.protocol|{}protocol[0]
-        abstract fun <get-protocol>(): kotlin/String // io.ktor.client.webrtc/WebRtcDataChannel.protocol.<get-protocol>|<get-protocol>(){}[0]
-    abstract val state // io.ktor.client.webrtc/WebRtcDataChannel.state|{}state[0]
-        abstract fun <get-state>(): io.ktor.client.webrtc/WebRtc.DataChannelState // io.ktor.client.webrtc/WebRtcDataChannel.state.<get-state>|<get-state>(){}[0]
-
-    abstract fun close() // io.ktor.client.webrtc/WebRtcDataChannel.close|close(){}[0]
-    abstract fun send(kotlin/ByteArray) // io.ktor.client.webrtc/WebRtcDataChannel.send|send(kotlin.ByteArray){}[0]
-    abstract fun send(kotlin/String) // io.ktor.client.webrtc/WebRtcDataChannel.send|send(kotlin.String){}[0]
-    abstract fun setBufferedAmountLowThreshold(kotlin/Long) // io.ktor.client.webrtc/WebRtcDataChannel.setBufferedAmountLowThreshold|setBufferedAmountLowThreshold(kotlin.Long){}[0]
-    final fun emitMessage(io.ktor.client.webrtc/WebRtcDataChannel.Message): kotlinx.coroutines.channels/ChannelResult<kotlin/Unit> // io.ktor.client.webrtc/WebRtcDataChannel.emitMessage|emitMessage(io.ktor.client.webrtc.WebRtcDataChannel.Message){}[0]
+    final fun emitMessage(io.ktor.client.webrtc/WebRtc.DataChannel.Message): kotlinx.coroutines.channels/ChannelResult<kotlin/Unit> // io.ktor.client.webrtc/WebRtcDataChannel.emitMessage|emitMessage(io.ktor.client.webrtc.WebRtc.DataChannel.Message){}[0]
     final fun stopReceivingMessages() // io.ktor.client.webrtc/WebRtcDataChannel.stopReceivingMessages|stopReceivingMessages(){}[0]
-    final fun tryReceive(): io.ktor.client.webrtc/WebRtcDataChannel.Message? // io.ktor.client.webrtc/WebRtcDataChannel.tryReceive|tryReceive(){}[0]
-    final fun tryReceiveBinary(): kotlin/ByteArray? // io.ktor.client.webrtc/WebRtcDataChannel.tryReceiveBinary|tryReceiveBinary(){}[0]
-    final fun tryReceiveText(): kotlin/String? // io.ktor.client.webrtc/WebRtcDataChannel.tryReceiveText|tryReceiveText(){}[0]
-    final suspend fun receive(): io.ktor.client.webrtc/WebRtcDataChannel.Message // io.ktor.client.webrtc/WebRtcDataChannel.receive|receive(){}[0]
-    final suspend fun receiveBinary(): kotlin/ByteArray // io.ktor.client.webrtc/WebRtcDataChannel.receiveBinary|receiveBinary(){}[0]
-    final suspend fun receiveText(): kotlin/String // io.ktor.client.webrtc/WebRtcDataChannel.receiveText|receiveText(){}[0]
-
-    sealed interface Message { // io.ktor.client.webrtc/WebRtcDataChannel.Message|null[0]
-        open fun binaryOrException(): kotlin/ByteArray // io.ktor.client.webrtc/WebRtcDataChannel.Message.binaryOrException|binaryOrException(){}[0]
-        open fun binaryOrNull(): kotlin/ByteArray? // io.ktor.client.webrtc/WebRtcDataChannel.Message.binaryOrNull|binaryOrNull(){}[0]
-        open fun textOrException(): kotlin/String // io.ktor.client.webrtc/WebRtcDataChannel.Message.textOrException|textOrException(){}[0]
-        open fun textOrNull(): kotlin/String? // io.ktor.client.webrtc/WebRtcDataChannel.Message.textOrNull|textOrNull(){}[0]
-
-        final class Binary : io.ktor.client.webrtc/WebRtcDataChannel.Message { // io.ktor.client.webrtc/WebRtcDataChannel.Message.Binary|null[0]
-            constructor <init>(kotlin/ByteArray) // io.ktor.client.webrtc/WebRtcDataChannel.Message.Binary.<init>|<init>(kotlin.ByteArray){}[0]
-
-            final val data // io.ktor.client.webrtc/WebRtcDataChannel.Message.Binary.data|{}data[0]
-                final fun <get-data>(): kotlin/ByteArray // io.ktor.client.webrtc/WebRtcDataChannel.Message.Binary.data.<get-data>|<get-data>(){}[0]
-        }
-
-        final class Text : io.ktor.client.webrtc/WebRtcDataChannel.Message { // io.ktor.client.webrtc/WebRtcDataChannel.Message.Text|null[0]
-            constructor <init>(kotlin/String) // io.ktor.client.webrtc/WebRtcDataChannel.Message.Text.<init>|<init>(kotlin.String){}[0]
-
-            final val data // io.ktor.client.webrtc/WebRtcDataChannel.Message.Text.data|{}data[0]
-                final fun <get-data>(): kotlin/String // io.ktor.client.webrtc/WebRtcDataChannel.Message.Text.data.<get-data>|<get-data>(){}[0]
-        }
-    }
+    open fun tryReceive(): io.ktor.client.webrtc/WebRtc.DataChannel.Message? // io.ktor.client.webrtc/WebRtcDataChannel.tryReceive|tryReceive(){}[0]
+    open fun tryReceiveBinary(): kotlin/ByteArray? // io.ktor.client.webrtc/WebRtcDataChannel.tryReceiveBinary|tryReceiveBinary(){}[0]
+    open fun tryReceiveText(): kotlin/String? // io.ktor.client.webrtc/WebRtcDataChannel.tryReceiveText|tryReceiveText(){}[0]
+    open suspend fun receive(): io.ktor.client.webrtc/WebRtc.DataChannel.Message // io.ktor.client.webrtc/WebRtcDataChannel.receive|receive(){}[0]
+    open suspend fun receiveBinary(): kotlin/ByteArray // io.ktor.client.webrtc/WebRtcDataChannel.receiveBinary|receiveBinary(){}[0]
+    open suspend fun receiveText(): kotlin/String // io.ktor.client.webrtc/WebRtcDataChannel.receiveText|receiveText(){}[0]
 }
 
 abstract class io.ktor.client.webrtc/WebRtcEngineBase : io.ktor.client.webrtc/WebRtcEngine { // io.ktor.client.webrtc/WebRtcEngineBase|null[0]
@@ -223,8 +177,8 @@ final class io.ktor.client.webrtc/DataChannelReceiveOptions { // io.ktor.client.
         final fun <get-onBufferOverflow>(): kotlinx.coroutines.channels/BufferOverflow // io.ktor.client.webrtc/DataChannelReceiveOptions.onBufferOverflow.<get-onBufferOverflow>|<get-onBufferOverflow>(){}[0]
         final fun <set-onBufferOverflow>(kotlinx.coroutines.channels/BufferOverflow) // io.ktor.client.webrtc/DataChannelReceiveOptions.onBufferOverflow.<set-onBufferOverflow>|<set-onBufferOverflow>(kotlinx.coroutines.channels.BufferOverflow){}[0]
     final var onUndeliveredElement // io.ktor.client.webrtc/DataChannelReceiveOptions.onUndeliveredElement|{}onUndeliveredElement[0]
-        final fun <get-onUndeliveredElement>(): kotlin/Function1<io.ktor.client.webrtc/WebRtcDataChannel.Message, kotlin/Unit>? // io.ktor.client.webrtc/DataChannelReceiveOptions.onUndeliveredElement.<get-onUndeliveredElement>|<get-onUndeliveredElement>(){}[0]
-        final fun <set-onUndeliveredElement>(kotlin/Function1<io.ktor.client.webrtc/WebRtcDataChannel.Message, kotlin/Unit>?) // io.ktor.client.webrtc/DataChannelReceiveOptions.onUndeliveredElement.<set-onUndeliveredElement>|<set-onUndeliveredElement>(kotlin.Function1<io.ktor.client.webrtc.WebRtcDataChannel.Message,kotlin.Unit>?){}[0]
+        final fun <get-onUndeliveredElement>(): kotlin/Function1<io.ktor.client.webrtc/WebRtc.DataChannel.Message, kotlin/Unit>? // io.ktor.client.webrtc/DataChannelReceiveOptions.onUndeliveredElement.<get-onUndeliveredElement>|<get-onUndeliveredElement>(){}[0]
+        final fun <set-onUndeliveredElement>(kotlin/Function1<io.ktor.client.webrtc/WebRtc.DataChannel.Message, kotlin/Unit>?) // io.ktor.client.webrtc/DataChannelReceiveOptions.onUndeliveredElement.<set-onUndeliveredElement>|<set-onUndeliveredElement>(kotlin.Function1<io.ktor.client.webrtc.WebRtc.DataChannel.Message,kotlin.Unit>?){}[0]
 }
 
 final class io.ktor.client.webrtc/WebRtcClient : io.ktor.client.webrtc/WebRtcEngine { // io.ktor.client.webrtc/WebRtcClient|null[0]
@@ -347,19 +301,6 @@ final object io.ktor.client.webrtc/WebRtc { // io.ktor.client.webrtc/WebRtc|null
         final fun values(): kotlin/Array<io.ktor.client.webrtc/WebRtc.ConnectionState> // io.ktor.client.webrtc/WebRtc.ConnectionState.values|values#static(){}[0]
     }
 
-    final enum class DataChannelState : kotlin/Enum<io.ktor.client.webrtc/WebRtc.DataChannelState> { // io.ktor.client.webrtc/WebRtc.DataChannelState|null[0]
-        enum entry CLOSED // io.ktor.client.webrtc/WebRtc.DataChannelState.CLOSED|null[0]
-        enum entry CLOSING // io.ktor.client.webrtc/WebRtc.DataChannelState.CLOSING|null[0]
-        enum entry CONNECTING // io.ktor.client.webrtc/WebRtc.DataChannelState.CONNECTING|null[0]
-        enum entry OPEN // io.ktor.client.webrtc/WebRtc.DataChannelState.OPEN|null[0]
-
-        final val entries // io.ktor.client.webrtc/WebRtc.DataChannelState.entries|#static{}entries[0]
-            final fun <get-entries>(): kotlin.enums/EnumEntries<io.ktor.client.webrtc/WebRtc.DataChannelState> // io.ktor.client.webrtc/WebRtc.DataChannelState.entries.<get-entries>|<get-entries>#static(){}[0]
-
-        final fun valueOf(kotlin/String): io.ktor.client.webrtc/WebRtc.DataChannelState // io.ktor.client.webrtc/WebRtc.DataChannelState.valueOf|valueOf#static(kotlin.String){}[0]
-        final fun values(): kotlin/Array<io.ktor.client.webrtc/WebRtc.DataChannelState> // io.ktor.client.webrtc/WebRtc.DataChannelState.values|values#static(){}[0]
-    }
-
     final enum class DegradationPreference : kotlin/Enum<io.ktor.client.webrtc/WebRtc.DegradationPreference> { // io.ktor.client.webrtc/WebRtc.DegradationPreference|null[0]
         enum entry BALANCED // io.ktor.client.webrtc/WebRtc.DegradationPreference.BALANCED|null[0]
         enum entry DISABLED // io.ktor.client.webrtc/WebRtc.DegradationPreference.DISABLED|null[0]
@@ -455,6 +396,75 @@ final object io.ktor.client.webrtc/WebRtc { // io.ktor.client.webrtc/WebRtc|null
 
         final fun valueOf(kotlin/String): io.ktor.client.webrtc/WebRtc.SignalingState // io.ktor.client.webrtc/WebRtc.SignalingState.valueOf|valueOf#static(kotlin.String){}[0]
         final fun values(): kotlin/Array<io.ktor.client.webrtc/WebRtc.SignalingState> // io.ktor.client.webrtc/WebRtc.SignalingState.values|values#static(){}[0]
+    }
+
+    abstract interface DataChannel : kotlin/AutoCloseable { // io.ktor.client.webrtc/WebRtc.DataChannel|null[0]
+        abstract val bufferedAmount // io.ktor.client.webrtc/WebRtc.DataChannel.bufferedAmount|{}bufferedAmount[0]
+            abstract fun <get-bufferedAmount>(): kotlin/Long // io.ktor.client.webrtc/WebRtc.DataChannel.bufferedAmount.<get-bufferedAmount>|<get-bufferedAmount>(){}[0]
+        abstract val bufferedAmountLowThreshold // io.ktor.client.webrtc/WebRtc.DataChannel.bufferedAmountLowThreshold|{}bufferedAmountLowThreshold[0]
+            abstract fun <get-bufferedAmountLowThreshold>(): kotlin/Long // io.ktor.client.webrtc/WebRtc.DataChannel.bufferedAmountLowThreshold.<get-bufferedAmountLowThreshold>|<get-bufferedAmountLowThreshold>(){}[0]
+        abstract val id // io.ktor.client.webrtc/WebRtc.DataChannel.id|{}id[0]
+            abstract fun <get-id>(): kotlin/Int // io.ktor.client.webrtc/WebRtc.DataChannel.id.<get-id>|<get-id>(){}[0]
+        abstract val label // io.ktor.client.webrtc/WebRtc.DataChannel.label|{}label[0]
+            abstract fun <get-label>(): kotlin/String // io.ktor.client.webrtc/WebRtc.DataChannel.label.<get-label>|<get-label>(){}[0]
+        abstract val maxPacketLifeTime // io.ktor.client.webrtc/WebRtc.DataChannel.maxPacketLifeTime|{}maxPacketLifeTime[0]
+            abstract fun <get-maxPacketLifeTime>(): kotlin/Int? // io.ktor.client.webrtc/WebRtc.DataChannel.maxPacketLifeTime.<get-maxPacketLifeTime>|<get-maxPacketLifeTime>(){}[0]
+        abstract val maxRetransmits // io.ktor.client.webrtc/WebRtc.DataChannel.maxRetransmits|{}maxRetransmits[0]
+            abstract fun <get-maxRetransmits>(): kotlin/Int? // io.ktor.client.webrtc/WebRtc.DataChannel.maxRetransmits.<get-maxRetransmits>|<get-maxRetransmits>(){}[0]
+        abstract val negotiated // io.ktor.client.webrtc/WebRtc.DataChannel.negotiated|{}negotiated[0]
+            abstract fun <get-negotiated>(): kotlin/Boolean // io.ktor.client.webrtc/WebRtc.DataChannel.negotiated.<get-negotiated>|<get-negotiated>(){}[0]
+        abstract val ordered // io.ktor.client.webrtc/WebRtc.DataChannel.ordered|{}ordered[0]
+            abstract fun <get-ordered>(): kotlin/Boolean // io.ktor.client.webrtc/WebRtc.DataChannel.ordered.<get-ordered>|<get-ordered>(){}[0]
+        abstract val protocol // io.ktor.client.webrtc/WebRtc.DataChannel.protocol|{}protocol[0]
+            abstract fun <get-protocol>(): kotlin/String // io.ktor.client.webrtc/WebRtc.DataChannel.protocol.<get-protocol>|<get-protocol>(){}[0]
+        abstract val state // io.ktor.client.webrtc/WebRtc.DataChannel.state|{}state[0]
+            abstract fun <get-state>(): io.ktor.client.webrtc/WebRtc.DataChannel.State // io.ktor.client.webrtc/WebRtc.DataChannel.state.<get-state>|<get-state>(){}[0]
+
+        abstract fun close() // io.ktor.client.webrtc/WebRtc.DataChannel.close|close(){}[0]
+        abstract fun send(kotlin/ByteArray) // io.ktor.client.webrtc/WebRtc.DataChannel.send|send(kotlin.ByteArray){}[0]
+        abstract fun send(kotlin/String) // io.ktor.client.webrtc/WebRtc.DataChannel.send|send(kotlin.String){}[0]
+        abstract fun setBufferedAmountLowThreshold(kotlin/Long) // io.ktor.client.webrtc/WebRtc.DataChannel.setBufferedAmountLowThreshold|setBufferedAmountLowThreshold(kotlin.Long){}[0]
+        abstract fun tryReceive(): io.ktor.client.webrtc/WebRtc.DataChannel.Message? // io.ktor.client.webrtc/WebRtc.DataChannel.tryReceive|tryReceive(){}[0]
+        abstract fun tryReceiveBinary(): kotlin/ByteArray? // io.ktor.client.webrtc/WebRtc.DataChannel.tryReceiveBinary|tryReceiveBinary(){}[0]
+        abstract fun tryReceiveText(): kotlin/String? // io.ktor.client.webrtc/WebRtc.DataChannel.tryReceiveText|tryReceiveText(){}[0]
+        abstract suspend fun receive(): io.ktor.client.webrtc/WebRtc.DataChannel.Message // io.ktor.client.webrtc/WebRtc.DataChannel.receive|receive(){}[0]
+        abstract suspend fun receiveBinary(): kotlin/ByteArray // io.ktor.client.webrtc/WebRtc.DataChannel.receiveBinary|receiveBinary(){}[0]
+        abstract suspend fun receiveText(): kotlin/String // io.ktor.client.webrtc/WebRtc.DataChannel.receiveText|receiveText(){}[0]
+
+        final enum class State : kotlin/Enum<io.ktor.client.webrtc/WebRtc.DataChannel.State> { // io.ktor.client.webrtc/WebRtc.DataChannel.State|null[0]
+            enum entry CLOSED // io.ktor.client.webrtc/WebRtc.DataChannel.State.CLOSED|null[0]
+            enum entry CLOSING // io.ktor.client.webrtc/WebRtc.DataChannel.State.CLOSING|null[0]
+            enum entry CONNECTING // io.ktor.client.webrtc/WebRtc.DataChannel.State.CONNECTING|null[0]
+            enum entry OPEN // io.ktor.client.webrtc/WebRtc.DataChannel.State.OPEN|null[0]
+
+            final val entries // io.ktor.client.webrtc/WebRtc.DataChannel.State.entries|#static{}entries[0]
+                final fun <get-entries>(): kotlin.enums/EnumEntries<io.ktor.client.webrtc/WebRtc.DataChannel.State> // io.ktor.client.webrtc/WebRtc.DataChannel.State.entries.<get-entries>|<get-entries>#static(){}[0]
+
+            final fun canSend(): kotlin/Boolean // io.ktor.client.webrtc/WebRtc.DataChannel.State.canSend|canSend(){}[0]
+            final fun valueOf(kotlin/String): io.ktor.client.webrtc/WebRtc.DataChannel.State // io.ktor.client.webrtc/WebRtc.DataChannel.State.valueOf|valueOf#static(kotlin.String){}[0]
+            final fun values(): kotlin/Array<io.ktor.client.webrtc/WebRtc.DataChannel.State> // io.ktor.client.webrtc/WebRtc.DataChannel.State.values|values#static(){}[0]
+        }
+
+        sealed interface Message { // io.ktor.client.webrtc/WebRtc.DataChannel.Message|null[0]
+            open fun binaryOrNull(): kotlin/ByteArray? // io.ktor.client.webrtc/WebRtc.DataChannel.Message.binaryOrNull|binaryOrNull(){}[0]
+            open fun binaryOrThrow(): kotlin/ByteArray // io.ktor.client.webrtc/WebRtc.DataChannel.Message.binaryOrThrow|binaryOrThrow(){}[0]
+            open fun textOrNull(): kotlin/String? // io.ktor.client.webrtc/WebRtc.DataChannel.Message.textOrNull|textOrNull(){}[0]
+            open fun textOrThrow(): kotlin/String // io.ktor.client.webrtc/WebRtc.DataChannel.Message.textOrThrow|textOrThrow(){}[0]
+
+            final class Binary : io.ktor.client.webrtc/WebRtc.DataChannel.Message { // io.ktor.client.webrtc/WebRtc.DataChannel.Message.Binary|null[0]
+                constructor <init>(kotlin/ByteArray) // io.ktor.client.webrtc/WebRtc.DataChannel.Message.Binary.<init>|<init>(kotlin.ByteArray){}[0]
+
+                final val data // io.ktor.client.webrtc/WebRtc.DataChannel.Message.Binary.data|{}data[0]
+                    final fun <get-data>(): kotlin/ByteArray // io.ktor.client.webrtc/WebRtc.DataChannel.Message.Binary.data.<get-data>|<get-data>(){}[0]
+            }
+
+            final class Text : io.ktor.client.webrtc/WebRtc.DataChannel.Message { // io.ktor.client.webrtc/WebRtc.DataChannel.Message.Text|null[0]
+                constructor <init>(kotlin/String) // io.ktor.client.webrtc/WebRtc.DataChannel.Message.Text.<init>|<init>(kotlin.String){}[0]
+
+                final val data // io.ktor.client.webrtc/WebRtc.DataChannel.Message.Text.data|{}data[0]
+                    final fun <get-data>(): kotlin/String // io.ktor.client.webrtc/WebRtc.DataChannel.Message.Text.data.<get-data>|<get-data>(){}[0]
+            }
+        }
     }
 
     abstract interface DtmfSender { // io.ktor.client.webrtc/WebRtc.DtmfSender|null[0]
@@ -3076,7 +3086,7 @@ final class io.ktor.client.webrtc/JsVideoTrack : io.ktor.client.webrtc/JsMediaTr
 
 // Targets: [js]
 final class io.ktor.client.webrtc/JsWebRtcDataChannel : io.ktor.client.webrtc/WebRtcDataChannel { // io.ktor.client.webrtc/JsWebRtcDataChannel|null[0]
-    constructor <init>(io.ktor.client.webrtc.browser/RTCDataChannel, io.ktor.client.webrtc/WebRtcDataChannelOptions) // io.ktor.client.webrtc/JsWebRtcDataChannel.<init>|<init>(io.ktor.client.webrtc.browser.RTCDataChannel;io.ktor.client.webrtc.WebRtcDataChannelOptions){}[0]
+    constructor <init>(io.ktor.client.webrtc.browser/RTCDataChannel, io.ktor.client.webrtc/DataChannelReceiveOptions) // io.ktor.client.webrtc/JsWebRtcDataChannel.<init>|<init>(io.ktor.client.webrtc.browser.RTCDataChannel;io.ktor.client.webrtc.DataChannelReceiveOptions){}[0]
 
     final val bufferedAmount // io.ktor.client.webrtc/JsWebRtcDataChannel.bufferedAmount|{}bufferedAmount[0]
         final fun <get-bufferedAmount>(): kotlin/Long // io.ktor.client.webrtc/JsWebRtcDataChannel.bufferedAmount.<get-bufferedAmount>|<get-bufferedAmount>(){}[0]
@@ -3097,7 +3107,7 @@ final class io.ktor.client.webrtc/JsWebRtcDataChannel : io.ktor.client.webrtc/We
     final val protocol // io.ktor.client.webrtc/JsWebRtcDataChannel.protocol|{}protocol[0]
         final fun <get-protocol>(): kotlin/String // io.ktor.client.webrtc/JsWebRtcDataChannel.protocol.<get-protocol>|<get-protocol>(){}[0]
     final val state // io.ktor.client.webrtc/JsWebRtcDataChannel.state|{}state[0]
-        final fun <get-state>(): io.ktor.client.webrtc/WebRtc.DataChannelState // io.ktor.client.webrtc/JsWebRtcDataChannel.state.<get-state>|<get-state>(){}[0]
+        final fun <get-state>(): io.ktor.client.webrtc/WebRtc.DataChannel.State // io.ktor.client.webrtc/JsWebRtcDataChannel.state.<get-state>|<get-state>(){}[0]
 
     final fun close() // io.ktor.client.webrtc/JsWebRtcDataChannel.close|close(){}[0]
     final fun send(kotlin/ByteArray) // io.ktor.client.webrtc/JsWebRtcDataChannel.send|send(kotlin.ByteArray){}[0]
@@ -3750,7 +3760,7 @@ final class io.ktor.client.webrtc/WasmJsVideoTrack : io.ktor.client.webrtc/WasmJ
 
 // Targets: [wasmJs]
 final class io.ktor.client.webrtc/WasmJsWebRtcDataChannel : io.ktor.client.webrtc/WebRtcDataChannel { // io.ktor.client.webrtc/WasmJsWebRtcDataChannel|null[0]
-    constructor <init>(io.ktor.client.webrtc.browser/RTCDataChannel, io.ktor.client.webrtc/WebRtcDataChannelOptions) // io.ktor.client.webrtc/WasmJsWebRtcDataChannel.<init>|<init>(io.ktor.client.webrtc.browser.RTCDataChannel;io.ktor.client.webrtc.WebRtcDataChannelOptions){}[0]
+    constructor <init>(io.ktor.client.webrtc.browser/RTCDataChannel, io.ktor.client.webrtc/DataChannelReceiveOptions) // io.ktor.client.webrtc/WasmJsWebRtcDataChannel.<init>|<init>(io.ktor.client.webrtc.browser.RTCDataChannel;io.ktor.client.webrtc.DataChannelReceiveOptions){}[0]
 
     final val bufferedAmount // io.ktor.client.webrtc/WasmJsWebRtcDataChannel.bufferedAmount|{}bufferedAmount[0]
         final fun <get-bufferedAmount>(): kotlin/Long // io.ktor.client.webrtc/WasmJsWebRtcDataChannel.bufferedAmount.<get-bufferedAmount>|<get-bufferedAmount>(){}[0]
@@ -3771,7 +3781,7 @@ final class io.ktor.client.webrtc/WasmJsWebRtcDataChannel : io.ktor.client.webrt
     final val protocol // io.ktor.client.webrtc/WasmJsWebRtcDataChannel.protocol|{}protocol[0]
         final fun <get-protocol>(): kotlin/String // io.ktor.client.webrtc/WasmJsWebRtcDataChannel.protocol.<get-protocol>|<get-protocol>(){}[0]
     final val state // io.ktor.client.webrtc/WasmJsWebRtcDataChannel.state|{}state[0]
-        final fun <get-state>(): io.ktor.client.webrtc/WebRtc.DataChannelState // io.ktor.client.webrtc/WasmJsWebRtcDataChannel.state.<get-state>|<get-state>(){}[0]
+        final fun <get-state>(): io.ktor.client.webrtc/WebRtc.DataChannel.State // io.ktor.client.webrtc/WasmJsWebRtcDataChannel.state.<get-state>|<get-state>(){}[0]
 
     final fun close() // io.ktor.client.webrtc/WasmJsWebRtcDataChannel.close|close(){}[0]
     final fun send(kotlin/ByteArray) // io.ktor.client.webrtc/WasmJsWebRtcDataChannel.send|send(kotlin.ByteArray){}[0]

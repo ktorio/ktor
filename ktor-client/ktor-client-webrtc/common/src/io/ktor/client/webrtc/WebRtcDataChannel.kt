@@ -31,7 +31,7 @@ public class DataChannelReceiveOptions {
      * An optional callback that is invoked when an element couldn't be delivered to its destination.
      * This can happen when the channel is closed or when an element is dropped due to buffer overflow.
      */
-    public var onUndeliveredElement: ((WebRtcDataChannel.Message) -> Unit)? = null
+    public var onUndeliveredElement: ((WebRtc.DataChannel.Message) -> Unit)? = null
 }
 
 /**
@@ -145,7 +145,7 @@ public sealed interface DataChannelEvent {
     public class Error(override val channel: WebRtcDataChannel, public val reason: String) : DataChannelEvent
 }
 
-private fun Channel(options: DataChannelReceiveOptions): Channel<WebRtcDataChannel.Message> {
+private fun Channel(options: DataChannelReceiveOptions): Channel<WebRtc.DataChannel.Message> {
     return Channel(
         capacity = options.capacity,
         onBufferOverflow = options.onBufferOverflow,
@@ -160,213 +160,30 @@ private fun Channel(options: DataChannelReceiveOptions): Channel<WebRtcDataChann
  * @see [MDN RTCDataChannel](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel)
  */
 public abstract class WebRtcDataChannel private constructor(
-    private val receiveChannel: Channel<Message>,
-) : AutoCloseable {
+    private val receiveChannel: Channel<WebRtc.DataChannel.Message>,
+) : WebRtc.DataChannel {
 
-    public constructor(options: WebRtcDataChannelOptions) : this(
-        receiveChannel = Channel(
-            options = DataChannelReceiveOptions().apply(options.receiveOptions)
-        ),
+    public constructor(receiveOptions: DataChannelReceiveOptions) : this(
+        receiveChannel = Channel(options = receiveOptions)
     )
 
-    /**
-     * Represents a message that can be received through a WebRTC data channel.
-     * The message can contain either string data or binary data.
-     *
-     * @see [MDN RTCDataChannel.send()](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/send)
-     * @see [MDN message event](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/message_event)
-     */
-    public sealed interface Message {
-        public class Text(public val data: String) : Message
-        public class Binary(public val data: ByteArray) : Message
+    override suspend fun receive(): WebRtc.DataChannel.Message = receiveChannel.receive()
 
-        /**
-         * Returns the text content of the message if it's a text message, otherwise returns null.
-         */
-        public fun textOrNull(): String? = (this as? Text)?.data
+    override suspend fun receiveBinary(): ByteArray = receive().binaryOrThrow()
 
-        /**
-         * Returns the binary content of the message if it's a binary message, otherwise returns null.
-         */
-        public fun binaryOrNull(): ByteArray? = (this as? Binary)?.data
+    override suspend fun receiveText(): String = receive().textOrThrow()
 
-        /**
-         * Returns the text content of the message if it's a text message, otherwise throws an exception.
-         */
-        public fun textOrException(): String =
-            (this as? Text ?: error("Received a binary instead of string data.")).data
+    override fun tryReceive(): WebRtc.DataChannel.Message? = receiveChannel.tryReceive().getOrNull()
 
-        /**
-         * Returns the binary content of the message if it's a binary message, otherwise throws an exception.
-         */
-        public fun binaryOrException(): ByteArray =
-            (this as? Binary ?: error("Received a string instead of binary data.")).data
-    }
+    override fun tryReceiveBinary(): ByteArray? = tryReceive()?.binaryOrNull()
 
-    /**
-     * An ID number (between 0 and 65,534) which uniquely identifies the data channel.
-     *
-     * @see [MDN RTCDataChannel.id](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/id)
-     */
-    public abstract val id: Int
+    override fun tryReceiveText(): String? = tryReceive()?.textOrNull()
 
-    /**
-     * A string containing a name describing the data channel.
-     *
-     * @see [MDN RTCDataChannel.label](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/label)
-     */
-    public abstract val label: String
-
-    /**
-     * A state of the data channel's underlying data connection.
-     *
-     * @see [MDN RTCDataChannel.readyState](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/readyState)
-     */
-    public abstract val state: WebRtc.DataChannelState
-
-    /**
-     * A number of bytes of data currently queued to be sent over the data channel.
-     *
-     * @see [MDN RTCDataChannel.bufferedAmount](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/bufferedAmount)
-     */
-    public abstract val bufferedAmount: Long
-
-    /**
-     * A number of queued outgoing data bytes below which the buffer is considered to be "low."
-     * When the number of buffered outgoing bytes, as indicated by the bufferedAmount property,
-     * falls to or below this value, a [DataChannelEvent.BufferedAmountLow] event is fired.
-     * The default value is 0.
-     *
-     * @see [MDN RTCDataChannel.bufferedAmountLowThreshold](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/bufferedAmountLowThreshold)
-     */
-    public abstract val bufferedAmountLowThreshold: Long
-
-    /**
-     * The maximum number of milliseconds that attempts to transfer a message may take in unreliable mode.
-     *
-     * @see [MDN RTCDataChannel.maxPacketLifeTime](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/maxPacketLifeTime)
-     */
-    public abstract val maxPacketLifeTime: Int?
-
-    /**
-     * The maximum number of times the user agent should attempt to retransmit a message
-     * which fails the first time in unreliable mode.
-     *
-     * @see [MDN RTCDataChannel.maxRetransmits](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/maxRetransmits)
-     */
-    public abstract val maxRetransmits: Int?
-
-    /**
-     * Indicates whether the data channel was negotiated by the application or the WebRTC layer.
-     *
-     * @see [MDN RTCDataChannel.negotiated](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/negotiated)
-     */
-    public abstract val negotiated: Boolean
-
-    /**
-     * Indicates whether messages sent on the data channel are required to arrive at their destination
-     * in the same order in which they were sent, or if they're allowed to arrive out-of-order.
-     *
-     * @see [MDN RTCDataChannel.ordered](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/ordered)
-     */
-    public abstract val ordered: Boolean
-
-    /**
-     * The name of the sub-protocol being used on the data channel, if any; otherwise, the empty string.
-     *
-     * @see [MDN RTCDataChannel.protocol](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/protocol)
-     */
-    public abstract val protocol: String
-
-    /**
-     * Sets the threshold for the buffered amount of data below which the buffer is considered to be "low."
-     * When the buffered amount falls to or below this value, a [DataChannelEvent.BufferedAmountLow] event is fired.
-     */
-    public abstract fun setBufferedAmountLowThreshold(threshold: Long)
-
-    /**
-     * Sends a text message through the data channel.
-     *
-     * @param text The text message to send.
-     * @see [MDN RTCDataChannel.send()](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/send)
-     */
-    public abstract fun send(text: String)
-
-    /**
-     * Sends binary data through the data channel.
-     *
-     * @param bytes The binary data to send.
-     * @see [MDN RTCDataChannel.send()](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/send)
-     */
-    public abstract fun send(bytes: ByteArray)
-
-    /**
-     * Suspends until a message is available in the data channel and returns it.
-     *
-     * This method will suspend the current coroutine until a message is received.
-     * The message can be either text or binary data.
-     */
-    public suspend fun receive(): Message = receiveChannel.receive()
-
-    /**
-     * Receives a binary message from the data channel.
-     *
-     * This method suspends until a binary message is available. If the next message
-     * in the channel is a text message instead of binary data, this method will throw an error.
-     */
-    public suspend fun receiveBinary(): ByteArray = receive().binaryOrException()
-
-    /**
-     * Receives a text message from the data channel.
-     *
-     * This method suspends until a text message is available. If the next message
-     * in the channel is binary data instead of text, this method will throw an error.
-     */
-    public suspend fun receiveText(): String = receive().textOrException()
-
-    /**
-     * Immediately returns a message from the data channel or null if no message is available.
-     *
-     * This method does not suspend and returns immediately. If a message is available,
-     * it is returned; otherwise, null is returned.
-     */
-    public fun tryReceive(): Message? = receiveChannel.tryReceive().getOrNull()
-
-    /**
-     * Immediately returns binary data from the data channel or null if no binary message is available.
-     *
-     * This method does not suspend and returns immediately. If a binary message is available,
-     * its data is returned; otherwise, null is returned. If the next message is a text message,
-     * null is returned.
-     */
-    public fun tryReceiveBinary(): ByteArray? = tryReceive()?.binaryOrNull()
-
-    /**
-     * Immediately returns text data from the data channel or null if no text message is available.
-     *
-     * This method does not suspend and returns immediately. If a text message is available,
-     * its content is returned; otherwise, null is returned. If the next message is a binary message,
-     * null is returned.
-     */
-    public fun tryReceiveText(): String? = tryReceive()?.textOrNull()
-
-    protected fun emitMessage(message: Message): ChannelResult<Unit> {
+    protected fun emitMessage(message: WebRtc.DataChannel.Message): ChannelResult<Unit> {
         return receiveChannel.trySend(message)
     }
 
     protected fun stopReceivingMessages() {
         receiveChannel.close()
     }
-
-    /**
-     * Closes the data channel and releases its resources.
-     *
-     * After calling a channel will start a closing process:
-     * - The channel state will transition to [WebRtc.DataChannelState.CLOSED]
-     * - No more messages can be sent through this channel
-     * - The underlying message receiving channel will be closed
-     * - Any pending send operations may fail
-     * - A [DataChannelEvent.Closed] event will be emitted
-     */
-    abstract override fun close()
 }

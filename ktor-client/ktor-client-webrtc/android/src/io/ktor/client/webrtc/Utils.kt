@@ -75,11 +75,11 @@ internal fun PeerConnection.IceGatheringState?.toKtor(): WebRtc.IceGatheringStat
     else -> null
 }
 
-internal fun DataChannel.State.toKtor(): WebRtc.DataChannelState = when (this) {
-    DataChannel.State.CONNECTING -> WebRtc.DataChannelState.CONNECTING
-    DataChannel.State.OPEN -> WebRtc.DataChannelState.OPEN
-    DataChannel.State.CLOSING -> WebRtc.DataChannelState.CLOSING
-    DataChannel.State.CLOSED -> WebRtc.DataChannelState.CLOSED
+internal fun DataChannel.State.toKtor(): WebRtc.DataChannel.State = when (this) {
+    DataChannel.State.CONNECTING -> WebRtc.DataChannel.State.CONNECTING
+    DataChannel.State.OPEN -> WebRtc.DataChannel.State.OPEN
+    DataChannel.State.CLOSING -> WebRtc.DataChannel.State.CLOSING
+    DataChannel.State.CLOSED -> WebRtc.DataChannel.State.CLOSED
 }
 
 internal fun SessionDescription.toKtor(): WebRtc.SessionDescription {

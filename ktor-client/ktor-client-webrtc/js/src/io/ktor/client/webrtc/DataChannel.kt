@@ -14,8 +14,8 @@ import org.w3c.files.Blob
  */
 public class JsWebRtcDataChannel(
     internal val nativeChannel: RTCDataChannel,
-    options: WebRtcDataChannelOptions
-) : WebRtcDataChannel(options) {
+    receiveOptions: DataChannelReceiveOptions
+) : WebRtcDataChannel(receiveOptions) {
 
     override val id: Int
         get() = nativeChannel.id.toInt()
@@ -23,7 +23,7 @@ public class JsWebRtcDataChannel(
     override val label: String
         get() = nativeChannel.label
 
-    override val state: WebRtc.DataChannelState
+    override val state: WebRtc.DataChannel.State
         get() = nativeChannel.readyState.toDataChannelState()
 
     override val bufferedAmount: Long
@@ -71,16 +71,16 @@ public class JsWebRtcDataChannel(
         nativeChannel.onmessage = { e ->
             when {
                 e.data is String -> {
-                    emitMessage(Message.Text(e.data as String))
+                    emitMessage(WebRtc.DataChannel.Message.Text(e.data as String))
                 }
 
                 nativeChannel.binaryType == "arraybuffer" -> {
-                    emitMessage(Message.Binary((e.data as ArrayBuffer).toKotlin()))
+                    emitMessage(WebRtc.DataChannel.Message.Binary((e.data as ArrayBuffer).toKotlin()))
                 }
 
                 nativeChannel.binaryType == "blob" -> {
                     (e.data as Blob).asArrayBuffer().then {
-                        emitMessage(Message.Binary(it.toKotlin()))
+                        emitMessage(WebRtc.DataChannel.Message.Binary(it.toKotlin()))
                     }
                 }
 

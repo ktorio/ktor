@@ -54,7 +54,7 @@ public class JsWebRtcPeerConnection(
         }
 
         nativePeerConnection.ondatachannel = { event: RTCDataChannelEvent ->
-            val channel = JsWebRtcDataChannel(event.channel, WebRtcDataChannelOptions())
+            val channel = JsWebRtcDataChannel(event.channel, DataChannelReceiveOptions())
             channel.setupEvents(events)
         }
 
@@ -80,8 +80,9 @@ public class JsWebRtcPeerConnection(
         options: WebRtcDataChannelOptions.() -> Unit
     ): WebRtcDataChannel {
         val options = WebRtcDataChannelOptions().apply(options)
+        val receiveOptions = DataChannelReceiveOptions().apply(options.receiveOptions)
         val nativeChannel = nativePeerConnection.createDataChannel(label, options.toJs())
-        return JsWebRtcDataChannel(nativeChannel, options).also { it.setupEvents(events) }
+        return JsWebRtcDataChannel(nativeChannel, receiveOptions).also { it.setupEvents(events) }
     }
 
     override suspend fun setLocalDescription(description: WebRtc.SessionDescription): Unit =
