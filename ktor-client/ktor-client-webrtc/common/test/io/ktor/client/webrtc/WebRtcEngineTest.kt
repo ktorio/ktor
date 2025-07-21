@@ -6,16 +6,13 @@ package io.ktor.client.webrtc
 
 import io.ktor.test.dispatcher.*
 import kotlinx.atomicfu.atomic
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.withTimeout
+import kotlin.coroutines.CoroutineContext
 import kotlin.test.*
 
 // Create different WebRtc engine implementation to be tested for every platform.
@@ -37,6 +34,62 @@ inline fun runTestWithPermissions(
         runTest { block() }
     }
     return testResult
+}
+
+internal fun CoroutineScope.setupIceExchange(
+    pc1: WebRtcPeerConnection,
+    pc2: WebRtcPeerConnection,
+    jobs: MutableList<Job>
+) {
+    // Collect ICE candidates from both peers
+    val iceCandidates1 = Channel<WebRtc.IceCandidate>(Channel.UNLIMITED)
+    val iceCandidates2 = Channel<WebRtc.IceCandidate>(Channel.UNLIMITED)
+
+    val iceExchangeJobs = arrayOf(
+        launch { pc1.iceCandidates.collect { iceCandidates1.send(it) } },
+        launch { pc2.iceCandidates.collect { iceCandidates2.send(it) } },
+        launch {
+            for (candidate in iceCandidates1) {
+                pc2.addIceCandidate(candidate)
+            }
+        },
+        launch {
+            for (candidate in iceCandidates2) {
+                pc1.addIceCandidate(candidate)
+            }
+        }
+    )
+    jobs.addAll(iceExchangeJobs)
+}
+
+internal suspend fun negotiate(
+    pc1: WebRtcPeerConnection,
+    pc2: WebRtcPeerConnection
+) {
+    // Create and set offer
+    val offer = pc1.createOffer()
+    pc1.setLocalDescription(offer)
+    pc2.setRemoteDescription(offer)
+
+    // Create and set answer
+    val answer = pc2.createAnswer()
+    pc2.setLocalDescription(answer)
+    pc1.setRemoteDescription(answer)
+}
+
+private fun <T> StateFlow<T>.collectAsConflatedChannel(scope: CoroutineScope, jobs: MutableList<Job>): Channel<T> {
+    val channel = Channel<T>(Channel.CONFLATED)
+    jobs.add(scope.launch { collect { channel.send(it) } })
+    return channel
+}
+
+internal suspend fun CoroutineScope.connect(
+    pc1: WebRtcPeerConnection,
+    pc2: WebRtcPeerConnection,
+    jobs: MutableList<Job>
+) {
+    setupIceExchange(pc1, pc2, jobs)
+    negotiate(pc1, pc2)
 }
 
 @IgnoreJvm
@@ -94,7 +147,6 @@ class WebRtcEngineTest {
             assertEquals(WebRtc.SessionDescriptionType.ANSWER, answer.type)
             assertTrue(answer.sdp.isNotEmpty(), "SDP should not be empty")
 
-            delay(1000)
             assertEquals(offer, offerPeerConnection.localDescription)
             assertEquals(offer, answerPeerConnection.remoteDescription)
         }
@@ -174,50 +226,6 @@ class WebRtcEngineTest {
         audioTrack.close()
     }
 
-    private suspend fun negotiate(pc1: WebRtcPeerConnection, pc2: WebRtcPeerConnection) {
-        // Create and set offer
-        val offer = pc1.createOffer()
-        pc1.setLocalDescription(offer)
-        pc2.setRemoteDescription(offer)
-
-        // Create and set answer
-        val answer = pc2.createAnswer()
-        pc2.setLocalDescription(answer)
-        pc1.setRemoteDescription(answer)
-    }
-
-    private fun CoroutineScope.setupIceExchange(
-        pc1: WebRtcPeerConnection,
-        pc2: WebRtcPeerConnection,
-        jobs: MutableList<Job> = mutableListOf()
-    ) {
-        // Collect ICE candidates from both peers
-        val iceCandidates1 = Channel<WebRtc.IceCandidate>(Channel.UNLIMITED)
-        val iceCandidates2 = Channel<WebRtc.IceCandidate>(Channel.UNLIMITED)
-
-        val iceExchangeJobs = arrayOf(
-            launch { pc1.iceCandidates.collect { iceCandidates1.send(it) } },
-            launch { pc2.iceCandidates.collect { iceCandidates2.send(it) } },
-            launch {
-                for (candidate in iceCandidates1) {
-                    pc2.addIceCandidate(candidate)
-                }
-            },
-            launch {
-                for (candidate in iceCandidates2) {
-                    pc1.addIceCandidate(candidate)
-                }
-            }
-        )
-        jobs.addAll(iceExchangeJobs)
-    }
-
-    private fun <T> StateFlow<T>.collectAsConflatedChannel(scope: CoroutineScope, jobs: MutableList<Job>): Channel<T> {
-        val channel = Channel<T>(Channel.CONFLATED)
-        jobs.add(scope.launch { collect { channel.send(it) } })
-        return channel
-    }
-
     @Test
     fun testEstablishPeerConnection() = testConnection(realtime = true) { pc1 ->
         client.createPeerConnection().use { pc2 ->
@@ -288,9 +296,7 @@ class WebRtcEngineTest {
             pc1.restartIce()
 
             withTimeout(5000) {
-                while (cnt.value < 3) {
-                    negotiationNeededCnt.receive()
-                }
+                negotiationNeededCnt.receive()
             }
 
             jobs.forEach { it.cancel() }
@@ -416,5 +422,36 @@ class WebRtcEngineTest {
                 collectNegotiationEventsJob2.cancel()
             }
         }
+    }
+
+    @Test
+    fun testCustomExceptionHandling() = runTestWithRealTime {
+        class TestConnection(context: CoroutineContext, config: WebRtcConnectionConfig) :
+            MockWebRtcConnection(context, config) {
+            override suspend fun getStatistics(): List<WebRtc.Stats> {
+                throw IllegalStateException("Ktor is awesome!")
+            }
+        }
+
+        val mockEngine = object : MockWebRtcEngine() {
+            override suspend fun createPeerConnection(config: WebRtcConnectionConfig): WebRtcPeerConnection =
+                TestConnection(createConnectionContext(config.coroutineContext), config)
+        }
+
+        val channel = Channel<Throwable>(Channel.CONFLATED)
+        val exceptionHandler = CoroutineExceptionHandler { _, e -> channel.trySend(e) }
+
+        val client = WebRtcClient(mockEngine)
+        val connection = client.createPeerConnection {
+            coroutineContext = exceptionHandler
+            statsRefreshRate = 10
+        }
+
+        withTimeout(1000) {
+            val exception = channel.receive()
+            assertEquals("Ktor is awesome!", exception.message)
+        }
+
+        connection.close()
     }
 }

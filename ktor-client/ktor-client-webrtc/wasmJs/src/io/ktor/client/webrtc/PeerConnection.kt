@@ -53,6 +53,11 @@ public class WasmJsWebRtcPeerConnection(
             events.emitAddTrack(track)
         }
 
+        nativePeerConnection.ondatachannel = { event: RTCDataChannelEvent ->
+            val channel = WasmJsWebRtcDataChannel(event.channel, DataChannelReceiveOptions())
+            channel.setupEvents(events)
+        }
+
         nativePeerConnection.onnegotiationneeded = { events.emitNegotiationNeeded() }
     }
 
@@ -68,6 +73,16 @@ public class WasmJsWebRtcPeerConnection(
 
     override suspend fun createAnswer(): WebRtc.SessionDescription = withSdpException("Failed to create answer") {
         return nativePeerConnection.createAnswer().await<RTCSessionDescription>().toKtor()
+    }
+
+    override suspend fun createDataChannel(
+        label: String,
+        options: WebRtcDataChannelOptions.() -> Unit
+    ): WebRtcDataChannel {
+        val options = WebRtcDataChannelOptions().apply(options)
+        val receiveOptions = DataChannelReceiveOptions().apply(options.receiveOptions)
+        val nativeChannel = nativePeerConnection.createDataChannel(label.toJsString(), options.toJs())
+        return WasmJsWebRtcDataChannel(nativeChannel, receiveOptions).also { it.setupEvents(events) }
     }
 
     override suspend fun setLocalDescription(description: WebRtc.SessionDescription): Unit =

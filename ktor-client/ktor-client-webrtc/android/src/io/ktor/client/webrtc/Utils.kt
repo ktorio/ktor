@@ -4,11 +4,7 @@
 
 package io.ktor.client.webrtc
 
-import org.webrtc.IceCandidate
-import org.webrtc.PeerConnection
-import org.webrtc.RTCStatsReport
-import org.webrtc.SdpObserver
-import org.webrtc.SessionDescription
+import org.webrtc.*
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -41,7 +37,7 @@ internal fun WebRtc.RtcpMuxPolicy.toNative(): PeerConnection.RtcpMuxPolicy = whe
     WebRtc.RtcpMuxPolicy.REQUIRE -> PeerConnection.RtcpMuxPolicy.REQUIRE
 }
 
-internal fun PeerConnection.IceConnectionState?.toCommon(): WebRtc.IceConnectionState? = when (this) {
+internal fun PeerConnection.IceConnectionState?.toKtor(): WebRtc.IceConnectionState? = when (this) {
     PeerConnection.IceConnectionState.NEW -> WebRtc.IceConnectionState.NEW
     PeerConnection.IceConnectionState.FAILED -> WebRtc.IceConnectionState.FAILED
     PeerConnection.IceConnectionState.CLOSED -> WebRtc.IceConnectionState.CLOSED
@@ -52,7 +48,7 @@ internal fun PeerConnection.IceConnectionState?.toCommon(): WebRtc.IceConnection
     else -> null
 }
 
-internal fun PeerConnection.PeerConnectionState?.toCommon(): WebRtc.ConnectionState? = when (this) {
+internal fun PeerConnection.PeerConnectionState?.toKtor(): WebRtc.ConnectionState? = when (this) {
     PeerConnection.PeerConnectionState.NEW -> WebRtc.ConnectionState.NEW
     PeerConnection.PeerConnectionState.CLOSED -> WebRtc.ConnectionState.CLOSED
     PeerConnection.PeerConnectionState.CONNECTED -> WebRtc.ConnectionState.CONNECTED
@@ -62,7 +58,7 @@ internal fun PeerConnection.PeerConnectionState?.toCommon(): WebRtc.ConnectionSt
     else -> null
 }
 
-internal fun PeerConnection.SignalingState?.toCommon(): WebRtc.SignalingState? = when (this) {
+internal fun PeerConnection.SignalingState?.toKtor(): WebRtc.SignalingState? = when (this) {
     PeerConnection.SignalingState.STABLE -> WebRtc.SignalingState.STABLE
     PeerConnection.SignalingState.CLOSED -> WebRtc.SignalingState.CLOSED
     PeerConnection.SignalingState.HAVE_LOCAL_OFFER -> WebRtc.SignalingState.HAVE_LOCAL_OFFER
@@ -72,14 +68,21 @@ internal fun PeerConnection.SignalingState?.toCommon(): WebRtc.SignalingState? =
     else -> null
 }
 
-internal fun PeerConnection.IceGatheringState?.toCommon(): WebRtc.IceGatheringState? = when (this) {
+internal fun PeerConnection.IceGatheringState?.toKtor(): WebRtc.IceGatheringState? = when (this) {
     PeerConnection.IceGatheringState.NEW -> WebRtc.IceGatheringState.NEW
     PeerConnection.IceGatheringState.COMPLETE -> WebRtc.IceGatheringState.COMPLETE
     PeerConnection.IceGatheringState.GATHERING -> WebRtc.IceGatheringState.GATHERING
     else -> null
 }
 
-internal fun SessionDescription.toCommon(): WebRtc.SessionDescription {
+internal fun DataChannel.State.toKtor(): WebRtc.DataChannel.State = when (this) {
+    DataChannel.State.CONNECTING -> WebRtc.DataChannel.State.CONNECTING
+    DataChannel.State.OPEN -> WebRtc.DataChannel.State.OPEN
+    DataChannel.State.CLOSING -> WebRtc.DataChannel.State.CLOSING
+    DataChannel.State.CLOSED -> WebRtc.DataChannel.State.CLOSED
+}
+
+internal fun SessionDescription.toKtor(): WebRtc.SessionDescription {
     return WebRtc.SessionDescription(
         when (requireNotNull(type)) {
             SessionDescription.Type.OFFER -> WebRtc.SessionDescriptionType.OFFER
@@ -91,7 +94,7 @@ internal fun SessionDescription.toCommon(): WebRtc.SessionDescription {
     )
 }
 
-internal fun RTCStatsReport.toCommon(): List<WebRtc.Stats> = statsMap.values.map {
+internal fun RTCStatsReport.toKtor(): List<WebRtc.Stats> = statsMap.values.map {
     WebRtc.Stats(
         it.id,
         it.type,
@@ -100,7 +103,7 @@ internal fun RTCStatsReport.toCommon(): List<WebRtc.Stats> = statsMap.values.map
     )
 }
 
-internal fun IceCandidate.toCommon(): WebRtc.IceCandidate = WebRtc.IceCandidate(
+internal fun IceCandidate.toKtor(): WebRtc.IceCandidate = WebRtc.IceCandidate(
     candidate = sdp,
     sdpMid = sdpMid,
     sdpMLineIndex = sdpMLineIndex
