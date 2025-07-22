@@ -53,7 +53,7 @@ private val _crypto: Crypto by lazy { // lazy because otherwise it's untestable 
     }
 }
 
-private external class Crypto {
+private external interface Crypto {
     val subtle: SubtleCrypto
 
     fun getRandomValues(array: Int8Array)
@@ -61,7 +61,7 @@ private external class Crypto {
     fun randomFillSync(array: Int8Array)
 }
 
-private external class SubtleCrypto {
+private external interface SubtleCrypto {
     fun digest(algoName: String, buffer: Int8Array): Promise<ArrayBuffer>
 }
 
