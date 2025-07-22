@@ -37,11 +37,11 @@ internal actual fun ByteArray.toJsBuffer(fromIndex: Int, toIndex: Int): JsBuffer
     repeat(array.length) { index ->
         array[index] = this[fromIndex + index]
     }
-    return justCast(array)
+    return array.unsafeCast<JsBuffer>()
 }
 
 internal actual fun JsBuffer.toByteArray(): ByteArray {
-    val array = Int8Array(justCast<ArrayBuffer>(this))
+    val array = Int8Array(this.unsafeCast<ArrayBuffer>())
     val bytes = ByteArray(array.length)
 
     repeat(array.length) { index ->
@@ -51,8 +51,8 @@ internal actual fun JsBuffer.toByteArray(): ByteArray {
 }
 
 internal actual fun ServerLocalAddressInfo.toSocketAddress(): SocketAddress {
-    if (jsTypeOf(justCast(this)) == "string") return UnixSocketAddress(justCast<JsString>(this).toString())
-    val info = justCast<TcpServerLocalAddressInfo>(this)
+    if (jsTypeOf(this.unsafeCast<JsAny>()) == "string") return UnixSocketAddress(this.unsafeCast<JsString>().toString())
+    val info = this.unsafeCast<TcpServerLocalAddressInfo>()
     return InetSocketAddress(info.address, info.port)
 }
 
@@ -61,7 +61,3 @@ private fun jsTypeOf(obj: JsAny): String = js("(typeof obj)")
 private fun createJsObject(): JsAny = js("({})")
 
 private fun <T : JsAny> createObject(block: T.() -> Unit): T = createJsObject().unsafeCast<T>().apply(block)
-
-// overcomes the issue that expect declarations are not extending `JsAny`
-@Suppress("UNCHECKED_CAST")
-private fun <T> justCast(obj: Any): T = obj as T
