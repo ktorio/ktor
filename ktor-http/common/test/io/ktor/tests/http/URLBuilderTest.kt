@@ -271,7 +271,7 @@ internal class URLBuilderTest {
             pathSegments = listOf("id+test&test~test#test")
         }.buildString()
 
-        assertEquals("http://ktor.io/id+test&test~test%23test", url)
+        assertEquals("http://ktor.io/id%2Btest&test~test%23test", url)
     }
 
     @Test
