@@ -5,6 +5,7 @@
 package io.ktor.client.engine.darwin.internal
 
 import io.ktor.client.engine.darwin.*
+import io.ktor.client.plugins.websocket.WEBSOCKETS_KEY
 import io.ktor.client.request.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
@@ -32,6 +33,9 @@ internal class DarwinSession(
         val (task, response) = if (request.isUpgradeRequest()) {
             val task = session.webSocketTaskWithRequest(nativeRequest)
             val response = delegate.read(task, callContext)
+            val maxFrameSize = request.attributes[WEBSOCKETS_KEY].maxFrameSize
+            task.setMaximumMessageSize(maxFrameSize / 10)
+
             task to response
         } else {
             val task = session.dataTaskWithRequest(nativeRequest)
