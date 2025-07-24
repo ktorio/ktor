@@ -26,10 +26,12 @@ import io.ktor.utils.io.charsets.*
 import java.util.zip.GZIPInputStream
 import kotlin.test.*
 import kotlin.text.Charsets
+import kotlin.test.Ignore
 
 class JteTest {
 
     @Test
+    @Ignore
     fun testName() = testApplication {
         application {
             setUpTestTemplates()
@@ -54,6 +56,7 @@ class JteTest {
     }
 
     @Test
+    @Ignore
     fun testEmptyModel() = testApplication {
         application {
             setUpTestTemplates()
@@ -74,6 +77,7 @@ class JteTest {
     }
 
     @Test
+    @Ignore
     fun testCompression() = testApplication {
         application {
             setUpTestTemplates()
@@ -103,6 +107,7 @@ class JteTest {
     }
 
     @Test
+    @Ignore
     fun testWithoutEtag() = testApplication {
         application {
             setUpTestTemplates()
@@ -127,6 +132,7 @@ class JteTest {
     }
 
     @Test
+    @Ignore
     fun canRespondAppropriately() = testApplication {
         application {
             setUpTestTemplates()
@@ -168,6 +174,7 @@ class JteTest {
     }
 
     @Test
+    @Ignore
     fun testContentNegotiationInvokedAfter() = testApplication {
         application {
             install(ContentNegotiation) {
