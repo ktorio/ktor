@@ -111,8 +111,10 @@ internal class CIOEngine(
         val port: Int
         val protocol: URLProtocol = url.protocol
 
-        if (proxy != null) {
-            val proxyAddress = proxy.resolveAddress()
+        val actualProxy = proxy ?: lookupGlobalProxy(url)
+
+        if (actualProxy != null) {
+            val proxyAddress = actualProxy.resolveAddress()
             host = proxyAddress.hostname
             port = proxyAddress.port
         } else {
@@ -127,7 +129,7 @@ internal class CIOEngine(
             Endpoint(
                 host,
                 port,
-                proxy,
+                actualProxy,
                 secure,
                 config,
                 connectionFactory,
