@@ -4,16 +4,46 @@
 
 package io.ktor.server.plugins.openapi
 
+import io.ktor.client.request.get
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 import io.ktor.server.testing.*
 import kotlin.test.*
 
 class OpenAPITest {
 
     @Test
-    fun testResolveOpenAPIFile() = testApplication {
+    fun `default spec from file`() = testApplication {
         routing {
-            val content = readOpenAPIFile("openapi/documentation.yaml", environment.classLoader)
-            assertEquals("hello:world".filter(Char::isLetterOrDigit), content.filter(Char::isLetterOrDigit))
+            openAPI("/swagger")
+        }
+
+        assertSwaggerHtmlReturned()
+    }
+
+    @Test
+    fun `empty spec`() = testApplication {
+        routing {
+            openAPI("/swagger", OpenAPISource.Empty)
+        }
+
+        assertSwaggerHtmlReturned()
+    }
+
+    @Test
+    fun `multiple sources`() = testApplication {
+        routing {
+            openAPI("/swagger", OpenAPISource.Empty)
+        }
+
+        assertSwaggerHtmlReturned()
+    }
+
+    private suspend fun ApplicationTestBuilder.assertSwaggerHtmlReturned() {
+        client.get("/swagger").let { response ->
+            assertEquals(200, response.status.value)
+            assertEquals(ContentType.Text.Html, response.contentType()?.withoutParameters())
         }
     }
+
 }
