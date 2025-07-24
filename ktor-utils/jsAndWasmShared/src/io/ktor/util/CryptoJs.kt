@@ -63,3 +63,10 @@ private external class SubtleCrypto {
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.sha1)
  */
 public actual fun sha1(bytes: ByteArray): ByteArray = Sha1().digest(bytes)
+
+/**
+ * Compute SHA-256 hash for the specified [bytes]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.sha1)
+ */
+public actual fun sha256(bytes: ByteArray): ByteArray = Sha256().digest(bytes)
