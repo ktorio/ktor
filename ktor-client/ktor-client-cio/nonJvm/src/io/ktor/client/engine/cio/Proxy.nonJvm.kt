@@ -5,5 +5,6 @@
 package io.ktor.client.engine.cio
 
 import io.ktor.client.engine.ProxyConfig
+import io.ktor.http.Url
 
-internal actual fun discoverHttpProxy(): ProxyConfig? = null
+internal actual fun lookupGlobalProxy(url: Url): ProxyConfig? = null
