@@ -5,22 +5,16 @@
 package io.ktor.client.engine.cio
 
 import io.ktor.client.engine.ProxyConfig
-import java.net.InetSocketAddress
-import java.net.Proxy
+import io.ktor.http.Url
+import io.ktor.http.toURI
+import java.net.ProxySelector
 
-internal actual fun discoverHttpProxy(): ProxyConfig? {
-    var proxy: Proxy? = null
+internal actual fun lookupGlobalProxy(url: Url): ProxyConfig? {
+    val proxies = ProxySelector.getDefault().select(url.toURI())
 
-    try {
-        // For Android
-        val host = System.getProperty("http.proxyHost")
-        val port = System.getProperty("http.proxyPort")?.toIntOrNull() ?: 0
-
-        if (host != null && host.isNotEmpty()) {
-            proxy = Proxy(Proxy.Type.HTTP, InetSocketAddress(host, port))
-        }
-    } catch (_: SecurityException) {
+    return if (proxies.isNotEmpty()) {
+        proxies.first()
+    } else {
+        null
     }
-
-    return proxy
 }

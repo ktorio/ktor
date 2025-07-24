@@ -46,10 +46,12 @@ internal class CIOEngine(
 
     override val coroutineContext: CoroutineContext
 
-    internal val proxy: ProxyConfig? = if (config.proxy?.type == ProxyType.HTTP) {
-        config.proxy
-    } else {
-        discoverHttpProxy()
+    private val proxy: ProxyConfig? = when (val type = config.proxy?.type) {
+        ProxyType.SOCKS,
+        null -> null
+
+        ProxyType.HTTP -> config.proxy
+        else -> throw IllegalStateException("CIO engine does not currently support $type proxies.")
     }
 
     init {
@@ -109,8 +111,10 @@ internal class CIOEngine(
         val port: Int
         val protocol: URLProtocol = url.protocol
 
-        if (proxy != null) {
-            val proxyAddress = proxy.resolveAddress()
+        val actualProxy = proxy ?: lookupGlobalProxy(url)
+
+        if (actualProxy != null) {
+            val proxyAddress = actualProxy.resolveAddress()
             host = proxyAddress.hostname
             port = proxyAddress.port
         } else {
@@ -125,7 +129,7 @@ internal class CIOEngine(
             Endpoint(
                 host,
                 port,
-                proxy,
+                actualProxy,
                 secure,
                 config,
                 connectionFactory,
