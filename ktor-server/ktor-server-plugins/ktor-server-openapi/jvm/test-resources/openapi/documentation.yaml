@@ -1,2 +1,11 @@
-hello:
-  world
+openapi: 3.0.0
+info:
+  title: Sample API
+  version: 1.0.0
+paths:
+  /items:
+    get:
+      summary: Retrieve a list of items
+      responses:
+        '200':
+          description: A list of items
