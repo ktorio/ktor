@@ -97,6 +97,8 @@ public actual class UnixSocketAddress actual constructor(
         /**
          * Checks if Unix domain sockets are supported on the current platform.
          *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.UnixSocketAddress.Companion.isSupported)
+         *
          * @return `true` if Unix domain sockets are supported, `false` otherwise.
          */
         public actual fun isSupported(): Boolean = isUnixSocketSupported()

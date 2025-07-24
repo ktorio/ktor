@@ -467,7 +467,7 @@ public fun StringValuesBuilder.appendIfNameAndValueAbsent(name: String, value: S
 /**
  * Appends multiple key-value pairs to this builder
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.StringValuesBuilder.appendAll)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.appendAll)
  *
  * @param values the key-value pairs to append
  * @return this builder instance
@@ -479,7 +479,7 @@ public fun StringValuesBuilder.appendAll(vararg values: Pair<String, String>): S
 /**
  * Appends multiple key-value pairs where values are [Iterable] to this builder
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.StringValuesBuilder.appendAll)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.appendAll)
  *
  * @param values the key-value pairs to append where values are [Iterable] of strings
  * @return this builder instance
@@ -492,7 +492,7 @@ public fun StringValuesBuilder.appendAll(vararg values: Pair<String, Iterable<St
 /**
  * Appends multiple key-value pairs from a [Map] where values are [Iterable] to this builder
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.StringValuesBuilder.appendAll)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.appendAll)
  *
  * @param values the map containing key-value pairs to append where values are [Iterable] of strings
  * @return this builder instance
@@ -505,7 +505,7 @@ public fun StringValuesBuilder.appendAll(values: Map<String, Iterable<String>>):
 /**
  * Appends multiple key-value pairs from a [Map] to this builder
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.StringValuesBuilder.appendAll)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.appendAll)
  *
  * @param values the map containing key-value pairs to append
  * @return this builder instance

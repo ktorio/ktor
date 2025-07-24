@@ -6,10 +6,12 @@
 
 package io.ktor.server.plugins.di
 
-import io.ktor.utils.io.KtorDsl
+import io.ktor.utils.io.*
 
 /**
  * Registers a dependency provider that takes no parameters and returns a value of type [E].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.provide)
  *
  * @param E The type of dependency to be provided
  * @param function A function that creates and returns an instance of [E]
@@ -24,6 +26,8 @@ import io.ktor.utils.io.KtorDsl
 /**
  * Registers a dependency provider that takes one input parameter and returns a value of type [E].
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.provide)
+ *
  * @param E The type of dependency to be provided
  * @param I1 The type of the first input parameter
  * @param function A function that takes one parameter of type [I1] and returns an instance of [E]
@@ -35,6 +39,8 @@ import io.ktor.utils.io.KtorDsl
 
 /**
  * Registers a dependency provider that takes two input parameters and returns a value of type [E].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.provide)
  *
  * @param E The type of dependency to be provided
  * @param I1 The type of the first input parameter
@@ -49,6 +55,8 @@ import io.ktor.utils.io.KtorDsl
 /**
  * Registers a dependency provider that takes three input parameters and returns a value of type [E].
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.provide)
+ *
  * @param E The type of dependency to be provided
  * @param I1 The type of the first input parameter
  * @param I2 The type of the second input parameter
@@ -62,6 +70,8 @@ import io.ktor.utils.io.KtorDsl
 
 /**
  * Registers a dependency provider that takes four input parameters and returns a value of type [E].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.provide)
  *
  * @param E The type of dependency to be provided
  * @param I1 The type of the first input parameter
@@ -78,6 +88,8 @@ import io.ktor.utils.io.KtorDsl
 /**
  * Registers a dependency provider that takes five input parameters and returns a value of type [E].
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.provide)
+ *
  * @param E The type of dependency to be provided
  * @param I1 The type of the first input parameter
  * @param I2 The type of the second input parameter
@@ -93,6 +105,8 @@ import io.ktor.utils.io.KtorDsl
 
 /**
  * Registers a dependency provider that takes six input parameters and returns a value of type [E].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.provide)
  *
  * @param E The type of dependency to be provided
  * @param I1 The type of the first input parameter

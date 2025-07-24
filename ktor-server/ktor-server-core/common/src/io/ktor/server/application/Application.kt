@@ -150,7 +150,7 @@ public class Application internal constructor(
     /**
      * Called by [ApplicationEngine] when [Application] is terminated.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.Application.dispose)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.Application.disposeAndJoin)
      */
     @InternalAPI
     @Suppress("DEPRECATION_ERROR")

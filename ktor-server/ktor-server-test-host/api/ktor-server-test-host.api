@@ -119,6 +119,8 @@ public final class io/ktor/server/testing/TestApplicationRequest : io/ktor/serve
 }
 
 public final class io/ktor/server/testing/TestApplicationResponse : io/ktor/server/engine/BaseApplicationResponse, kotlinx/coroutines/CoroutineScope {
+	public static final synthetic field writeContentChannel$FU$internal Ljava/util/concurrent/atomic/AtomicReferenceFieldUpdater;
+	public synthetic field writeContentChannel$internal Ljava/lang/Object;
 	public fun <init> (Lio/ktor/server/testing/TestApplicationCall;Z)V
 	public synthetic fun <init> (Lio/ktor/server/testing/TestApplicationCall;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun contentChannel ()Lio/ktor/utils/io/ByteReadChannel;

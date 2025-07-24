@@ -168,6 +168,12 @@ abstract class KtorTargets internal constructor(
                     group("posix")
                     group("jsAndWasmShared")
                 }
+
+                group("nonDarwinPosix") {
+                    group("windows")
+                    group("linux")
+                    group("androidNative")
+                }
             }
         }
 
