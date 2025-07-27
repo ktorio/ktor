@@ -33,7 +33,7 @@ private val initHook = init()
 @Suppress("ktlint:standard:function-naming")
 public actual fun YamlConfig(path: String?): YamlConfig? {
     val resolvedPath = when {
-        path != null && path.endsWith(".yaml") -> path
+        path != null && (path.endsWith(".yaml") || path.endsWith(".yml")) -> path
         path == null && access(DEFAULT_YAML_FILENAME, F_OK) == 0 -> DEFAULT_YAML_FILENAME
         else -> null
     } ?: return null

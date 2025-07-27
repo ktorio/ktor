@@ -22,8 +22,16 @@ class YamlConfigTestJvm {
     }
 
     @Test
-    fun testLoadCustomConfig() {
+    fun testLoadCustomConfigWithYamlSuffix() {
         val path = YamlConfigTestJvm::class.java.classLoader.getResource("application-custom.yaml").toURI().path
+        val config = YamlConfig(path)!!
+        assertEquals("2345", config.property("ktor.deployment.port").getString())
+        assertEquals(listOf("c", "d", "e"), config.property("ktor.auth.users").getList())
+    }
+
+    @Test
+    fun testLoadCustomConfigWithYmlSuffix() {
+        val path = YamlConfigTestJvm::class.java.classLoader.getResource("application-custom.yml").toURI().path
         val config = YamlConfig(path)!!
         assertEquals("2345", config.property("ktor.deployment.port").getString())
         assertEquals(listOf("c", "d", "e"), config.property("ktor.auth.users").getList())
