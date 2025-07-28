@@ -166,4 +166,14 @@ public object WebRtcMedia {
 public interface MediaTrackFactory {
     public suspend fun createAudioTrack(constraints: WebRtcMedia.AudioTrackConstraints): WebRtcMedia.AudioTrack
     public suspend fun createVideoTrack(constraints: WebRtcMedia.VideoTrackConstraints): WebRtcMedia.VideoTrack
+
+    public suspend fun createAudioTrack(
+        constraints: WebRtcMedia.AudioTrackConstraints.() -> Unit = {}
+    ): WebRtcMedia.AudioTrack =
+        createAudioTrack(constraints = WebRtcMedia.AudioTrackConstraints().apply(constraints))
+
+    public suspend fun createVideoTrack(
+        constraints: WebRtcMedia.VideoTrackConstraints.() -> Unit = {}
+    ): WebRtcMedia.VideoTrack =
+        createVideoTrack(constraints = WebRtcMedia.VideoTrackConstraints().apply(constraints))
 }

@@ -2,11 +2,12 @@
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.client.webrtc
+package io.ktor.client.webrtc.utils
 
 import android.Manifest
 import android.content.Context
 import androidx.test.platform.app.InstrumentationRegistry
+import io.ktor.client.webrtc.*
 import io.ktor.client.webrtc.media.AndroidMediaDevices
 
 private val ctx: Context get() = InstrumentationRegistry.getInstrumentation().targetContext

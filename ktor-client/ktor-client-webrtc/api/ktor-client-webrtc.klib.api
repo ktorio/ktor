@@ -13,6 +13,8 @@ abstract fun interface <#A: out io.ktor.client.webrtc/WebRtcConfig> io.ktor.clie
 abstract interface io.ktor.client.webrtc/MediaTrackFactory { // io.ktor.client.webrtc/MediaTrackFactory|null[0]
     abstract suspend fun createAudioTrack(io.ktor.client.webrtc/WebRtcMedia.AudioTrackConstraints): io.ktor.client.webrtc/WebRtcMedia.AudioTrack // io.ktor.client.webrtc/MediaTrackFactory.createAudioTrack|createAudioTrack(io.ktor.client.webrtc.WebRtcMedia.AudioTrackConstraints){}[0]
     abstract suspend fun createVideoTrack(io.ktor.client.webrtc/WebRtcMedia.VideoTrackConstraints): io.ktor.client.webrtc/WebRtcMedia.VideoTrack // io.ktor.client.webrtc/MediaTrackFactory.createVideoTrack|createVideoTrack(io.ktor.client.webrtc.WebRtcMedia.VideoTrackConstraints){}[0]
+    open suspend fun createAudioTrack(kotlin/Function1<io.ktor.client.webrtc/WebRtcMedia.AudioTrackConstraints, kotlin/Unit> = ...): io.ktor.client.webrtc/WebRtcMedia.AudioTrack // io.ktor.client.webrtc/MediaTrackFactory.createAudioTrack|createAudioTrack(kotlin.Function1<io.ktor.client.webrtc.WebRtcMedia.AudioTrackConstraints,kotlin.Unit>){}[0]
+    open suspend fun createVideoTrack(kotlin/Function1<io.ktor.client.webrtc/WebRtcMedia.VideoTrackConstraints, kotlin/Unit> = ...): io.ktor.client.webrtc/WebRtcMedia.VideoTrack // io.ktor.client.webrtc/MediaTrackFactory.createVideoTrack|createVideoTrack(kotlin.Function1<io.ktor.client.webrtc.WebRtcMedia.VideoTrackConstraints,kotlin.Unit>){}[0]
 }
 
 abstract interface io.ktor.client.webrtc/WebRtcConnectionEvents { // io.ktor.client.webrtc/WebRtcConnectionEvents|null[0]
@@ -189,9 +191,11 @@ final class io.ktor.client.webrtc/WebRtcClient : io.ktor.client.webrtc/WebRtcEng
 
     final fun close() // io.ktor.client.webrtc/WebRtcClient.close|close(){}[0]
     final suspend fun createAudioTrack(io.ktor.client.webrtc/WebRtcMedia.AudioTrackConstraints): io.ktor.client.webrtc/WebRtcMedia.AudioTrack // io.ktor.client.webrtc/WebRtcClient.createAudioTrack|createAudioTrack(io.ktor.client.webrtc.WebRtcMedia.AudioTrackConstraints){}[0]
+    final suspend fun createAudioTrack(kotlin/Function1<io.ktor.client.webrtc/WebRtcMedia.AudioTrackConstraints, kotlin/Unit>): io.ktor.client.webrtc/WebRtcMedia.AudioTrack // io.ktor.client.webrtc/WebRtcClient.createAudioTrack|createAudioTrack(kotlin.Function1<io.ktor.client.webrtc.WebRtcMedia.AudioTrackConstraints,kotlin.Unit>){}[0]
     final suspend fun createPeerConnection(io.ktor.client.webrtc/WebRtcConnectionConfig): io.ktor.client.webrtc/WebRtcPeerConnection // io.ktor.client.webrtc/WebRtcClient.createPeerConnection|createPeerConnection(io.ktor.client.webrtc.WebRtcConnectionConfig){}[0]
     final suspend fun createPeerConnection(kotlin/Function1<io.ktor.client.webrtc/WebRtcConnectionConfig, kotlin/Unit>): io.ktor.client.webrtc/WebRtcPeerConnection // io.ktor.client.webrtc/WebRtcClient.createPeerConnection|createPeerConnection(kotlin.Function1<io.ktor.client.webrtc.WebRtcConnectionConfig,kotlin.Unit>){}[0]
     final suspend fun createVideoTrack(io.ktor.client.webrtc/WebRtcMedia.VideoTrackConstraints): io.ktor.client.webrtc/WebRtcMedia.VideoTrack // io.ktor.client.webrtc/WebRtcClient.createVideoTrack|createVideoTrack(io.ktor.client.webrtc.WebRtcMedia.VideoTrackConstraints){}[0]
+    final suspend fun createVideoTrack(kotlin/Function1<io.ktor.client.webrtc/WebRtcMedia.VideoTrackConstraints, kotlin/Unit>): io.ktor.client.webrtc/WebRtcMedia.VideoTrack // io.ktor.client.webrtc/WebRtcClient.createVideoTrack|createVideoTrack(kotlin.Function1<io.ktor.client.webrtc.WebRtcMedia.VideoTrackConstraints,kotlin.Unit>){}[0]
 }
 
 final class io.ktor.client.webrtc/WebRtcDataChannelOptions { // io.ktor.client.webrtc/WebRtcDataChannelOptions|null[0]
@@ -2302,8 +2306,10 @@ final class io.ktor.client.webrtc/JsWebRtcEngine : io.ktor.client.webrtc/MediaTr
         final fun <get-config>(): io.ktor.client.webrtc/JsWebRtcEngineConfig // io.ktor.client.webrtc/JsWebRtcEngine.config.<get-config>|<get-config>(){}[0]
 
     final suspend fun createAudioTrack(io.ktor.client.webrtc/WebRtcMedia.AudioTrackConstraints): io.ktor.client.webrtc/WebRtcMedia.AudioTrack // io.ktor.client.webrtc/JsWebRtcEngine.createAudioTrack|createAudioTrack(io.ktor.client.webrtc.WebRtcMedia.AudioTrackConstraints){}[0]
+    final suspend fun createAudioTrack(kotlin/Function1<io.ktor.client.webrtc/WebRtcMedia.AudioTrackConstraints, kotlin/Unit>): io.ktor.client.webrtc/WebRtcMedia.AudioTrack // io.ktor.client.webrtc/JsWebRtcEngine.createAudioTrack|createAudioTrack(kotlin.Function1<io.ktor.client.webrtc.WebRtcMedia.AudioTrackConstraints,kotlin.Unit>){}[0]
     final suspend fun createPeerConnection(io.ktor.client.webrtc/WebRtcConnectionConfig): io.ktor.client.webrtc/WebRtcPeerConnection // io.ktor.client.webrtc/JsWebRtcEngine.createPeerConnection|createPeerConnection(io.ktor.client.webrtc.WebRtcConnectionConfig){}[0]
     final suspend fun createVideoTrack(io.ktor.client.webrtc/WebRtcMedia.VideoTrackConstraints): io.ktor.client.webrtc/WebRtcMedia.VideoTrack // io.ktor.client.webrtc/JsWebRtcEngine.createVideoTrack|createVideoTrack(io.ktor.client.webrtc.WebRtcMedia.VideoTrackConstraints){}[0]
+    final suspend fun createVideoTrack(kotlin/Function1<io.ktor.client.webrtc/WebRtcMedia.VideoTrackConstraints, kotlin/Unit>): io.ktor.client.webrtc/WebRtcMedia.VideoTrack // io.ktor.client.webrtc/JsWebRtcEngine.createVideoTrack|createVideoTrack(kotlin.Function1<io.ktor.client.webrtc.WebRtcMedia.VideoTrackConstraints,kotlin.Unit>){}[0]
 }
 
 // Targets: [js, wasmJs]
