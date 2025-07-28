@@ -7,7 +7,6 @@ kotlinx-io = "0.8.0"
 coroutines = "1.10.2"
 atomicfu = "0.29.0"
 serialization = "1.9.0"
-binaryCompatibilityValidator = "0.18.0"
 dokka = "2.0.0"
 kover = "0.9.1"
 kotlinter = "5.1.1"
@@ -131,8 +130,6 @@ kotlinx-io-core = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.re
 
 kotlinx-browser = { module = "org.jetbrains.kotlinx:kotlinx-browser", version.ref = "kotlinx-browser" }
 
-kotlinx-binaryCompatibilityValidator = { module = "org.jetbrains.kotlinx:binary-compatibility-validator", version.ref = "binaryCompatibilityValidator" }
-
 dokka-gradlePlugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
 dokka-plugin-versioning = { module = "org.jetbrains.dokka:versioning-plugin", version.ref = "dokka" }
 
@@ -239,7 +236,6 @@ mavenPublishing = { module = "com.vanniktech:gradle-maven-publish-plugin", versi
 
 [plugins]
 
-binaryCompatibilityValidator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "binaryCompatibilityValidator" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 
 doctor = { id = "com.osacky.doctor", version.ref = "gradleDoctor" }
