@@ -527,6 +527,45 @@ class TestApplicationTest {
         }
     }
 
+@Test
+fun testValidHandlerContextWhenStreaming() = testApplication {
+    val scope = CoroutineScope(Dispatchers.Default)
+
+    routing {
+        get {
+            val context = coroutineContext
+            scope.launch {
+                assertEquals("request", context[CoroutineName]?.name)
+            }
+        }
+
+        get("/stream") {
+            call.respondBytesWriter {
+                val context = coroutineContext
+                scope.launch {
+                    assertEquals("request", context[CoroutineName]?.name)
+                }
+
+                repeat(3) {
+                    val msg = "Test $it"
+                    writeStringUtf8(msg + "\n")
+                    flush()
+                }
+            }
+        }
+    }
+
+    client.get("/")
+
+    client.prepareGet("/stream").execute { response ->
+        val channel = response.bodyAsChannel()
+
+        while (!channel.isClosedForRead) {
+            channel.readUTF8Line() ?: break
+        }
+    }
+}
+
     class MyElement(val data: String) : CoroutineContext.Element {
         override val key: CoroutineContext.Key<*>
             get() = MyElement
