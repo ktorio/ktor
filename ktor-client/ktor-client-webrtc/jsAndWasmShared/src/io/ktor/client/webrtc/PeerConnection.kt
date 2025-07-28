@@ -4,75 +4,77 @@
 
 package io.ktor.client.webrtc
 
-import io.ktor.client.webrtc.browser.*
-import io.ktor.client.webrtc.utils.*
-import kotlinx.coroutines.await
-import org.w3c.dom.mediacapture.MediaStream
+import web.mediastreams.MediaStream
+import web.rtc.*
 import kotlin.coroutines.CoroutineContext
 
 /**
  * WebRtc peer connection implementation for JavaScript platform.
- * @param nativePeerConnection The native RTCPeerConnection object.
+ * @param connection The native RTCPeerConnection object.
  */
 public class JsWebRtcPeerConnection(
-    internal val nativePeerConnection: RTCPeerConnection,
+    internal val connection: RTCPeerConnection,
     coroutineContext: CoroutineContext,
     config: WebRtcConnectionConfig
 ) : WebRtcPeerConnection(coroutineContext, config) {
+
     init {
-        nativePeerConnection.onicecandidate = { event: RTCPeerConnectionIceEvent ->
+        connection.onicecandidate = eventHandler(coroutineScope) { event ->
             event.candidate?.let { events.emitIceCandidate(it.toKtor()) }
         }
 
-        nativePeerConnection.oniceconnectionstatechange = {
-            val newState = nativePeerConnection.iceConnectionState.toIceConnectionState()
+        connection.oniceconnectionstatechange = eventHandler(coroutineScope) {
+            val newState = connection.iceConnectionState.toKtor()
             events.emitIceConnectionStateChange(newState)
         }
-        nativePeerConnection.onconnectionstatechange = {
-            val newState = nativePeerConnection.connectionState.toConnectionState()
+        connection.onconnectionstatechange = eventHandler(coroutineScope) {
+            val newState = connection.connectionState.toKtor()
             events.emitConnectionStateChange(newState)
         }
-        nativePeerConnection.onicegatheringstatechange = {
-            val newState = nativePeerConnection.iceGatheringState.toIceGatheringState()
+        connection.onicegatheringstatechange = eventHandler(coroutineScope) {
+            val newState = connection.iceGatheringState.toKtor()
             events.emitIceGatheringStateChange(newState)
         }
-        nativePeerConnection.onsignalingstatechange = {
-            val newState = nativePeerConnection.signalingState.toSignalingState()
+        connection.onsignalingstatechange = eventHandler(coroutineScope) {
+            val newState = connection.signalingState.toKtor()
             events.emitSignalingStateChange(newState)
         }
 
-        nativePeerConnection.ontrack = { event: RTCTrackEvent ->
+        connection.ontrack = eventHandler(coroutineScope) { event: RTCTrackEvent ->
             val track = JsMediaTrack.from(event.track)
-            for (stream in event.streams) {
-                stream.onremovetrack = { e ->
+
+            // If the other peer also uses Ktor WebRTC Client, then `event.streams` should contain only this track.
+            for (stream in event.streams.toArray()) {
+                stream.onremovetrack = eventHandler(coroutineScope) { e ->
                     if (e.track.id == event.track.id) {
                         events.emitRemoveTrack(track)
                     }
                 }
             }
+
             events.emitAddTrack(track)
         }
 
-        nativePeerConnection.ondatachannel = { event: RTCDataChannelEvent ->
-            val channel = JsWebRtcDataChannel(event.channel, DataChannelReceiveOptions())
+        connection.ondatachannel = eventHandler(coroutineScope) { event: RTCDataChannelEvent ->
+            val channel = JsWebRtcDataChannel(event.channel, coroutineScope, DataChannelReceiveOptions())
             channel.setupEvents(events)
         }
 
-        nativePeerConnection.onnegotiationneeded = { events.emitNegotiationNeeded() }
+        connection.onnegotiationneeded = eventHandler(coroutineScope) { events.emitNegotiationNeeded() }
     }
 
     override val localDescription: WebRtc.SessionDescription?
-        get() = nativePeerConnection.localDescription?.toKtor()
+        get() = connection.localDescription?.toKtor()
 
     override val remoteDescription: WebRtc.SessionDescription?
-        get() = nativePeerConnection.remoteDescription?.toKtor()
+        get() = connection.remoteDescription?.toKtor()
 
     override suspend fun createOffer(): WebRtc.SessionDescription = withSdpException("Failed to create offer") {
-        return nativePeerConnection.createOffer().await().toKtor()
+        return connection.createOffer().toKtor()
     }
 
     override suspend fun createAnswer(): WebRtc.SessionDescription = withSdpException("Failed to create answer") {
-        return nativePeerConnection.createAnswer().await().toKtor()
+        return connection.createAnswer().toKtor()
     }
 
     override suspend fun createDataChannel(
@@ -81,55 +83,60 @@ public class JsWebRtcPeerConnection(
     ): WebRtcDataChannel {
         val options = WebRtcDataChannelOptions().apply(options)
         val receiveOptions = DataChannelReceiveOptions().apply(options.receiveOptions)
-        val nativeChannel = nativePeerConnection.createDataChannel(label, options.toJs())
-        return JsWebRtcDataChannel(nativeChannel, receiveOptions).also { it.setupEvents(events) }
+        val nativeChannel = connection.createDataChannel(label, options.toJs())
+        return JsWebRtcDataChannel(nativeChannel, coroutineScope, receiveOptions).also { it.setupEvents(events) }
     }
 
     override suspend fun setLocalDescription(description: WebRtc.SessionDescription): Unit =
         withSdpException("Failed to set local description") {
-            nativePeerConnection.setLocalDescription(description.toJs()).await()
+            connection.setLocalDescription(description.toJsLocal())
         }
 
     override suspend fun setRemoteDescription(description: WebRtc.SessionDescription): Unit =
         withSdpException("Failed to set remote description") {
-            nativePeerConnection.setRemoteDescription(description.toJs()).await()
+            connection.setRemoteDescription(description.toJs())
         }
 
     override suspend fun addIceCandidate(candidate: WebRtc.IceCandidate): Unit =
         withIceException("Failed to add ICE candidate") {
-            nativePeerConnection.addIceCandidate(candidate.toJs()).await()
+            connection.addIceCandidate(candidate.toJs())
         }
 
     override suspend fun addTrack(track: WebRtcMedia.Track): WebRtc.RtpSender {
         val mediaTrack = (track as JsMediaTrack).nativeTrack
-        return JsRtpSender(nativePeerConnection.addTrack(mediaTrack, MediaStream()))
+        // New MediaStream will be populated with this track and included in the `RTCPeerConnection.ontrack`
+        // event received by another peer, so it can listen for track removal.
+        return JsRtpSender(connection.addTrack(mediaTrack, MediaStream()))
     }
 
     override suspend fun removeTrack(track: WebRtcMedia.Track) {
         val mediaTrack = (track as JsMediaTrack).nativeTrack
-        val sender = nativePeerConnection.getSenders().find { it.track == mediaTrack }
-        sender?.let { nativePeerConnection.removeTrack(it) }
+        val sender = connection.getSenders().toArray().find { it.track?.id == mediaTrack.id }
+        sender?.let { connection.removeTrack(it) }
     }
 
     override suspend fun removeTrack(sender: WebRtc.RtpSender) {
         val rtpSender = (sender as JsRtpSender).nativeSender
-        nativePeerConnection.removeTrack(rtpSender)
+        connection.removeTrack(rtpSender)
     }
 
     override fun restartIce() {
-        nativePeerConnection.restartIce()
+        connection.restartIce()
     }
 
     override suspend fun getStatistics(): List<WebRtc.Stats> {
-        return nativePeerConnection.getStats().await().toKtor()
+        return connection.getStats().toKtor()
     }
 
     override fun close() {
-        nativePeerConnection.close()
+        connection.close()
     }
 }
 
+/**
+ * Returns implementation of the peer connection that is used under the hood. Use it with caution.
+ */
 public fun WebRtcPeerConnection.getNative(): RTCPeerConnection {
     val connection = this as? JsWebRtcPeerConnection ?: error("Wrong peer connection implementation.")
-    return connection.nativePeerConnection
+    return connection.connection
 }

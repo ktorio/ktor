@@ -2,7 +2,7 @@
 
 android-kmp-plugin = "8.9.2"
 androidx = "1.6.1"
-kotlin = "2.1.21"
+kotlin = "2.2.0"
 kotlinx-html = "0.12.0"
 kotlinx-datetime = "0.6.2"
 kotlinx-io = "0.7.0"

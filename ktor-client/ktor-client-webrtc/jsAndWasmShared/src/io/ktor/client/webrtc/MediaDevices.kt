@@ -4,11 +4,23 @@
 
 package io.ktor.client.webrtc
 
-import io.ktor.client.webrtc.browser.navigator
-import io.ktor.client.webrtc.utils.toJs
-import kotlinx.coroutines.await
-import org.w3c.dom.mediacapture.MediaStreamConstraints
-import org.w3c.dom.mediacapture.MediaStreamTrack
+import js.objects.unsafeJso
+import web.mediadevices.getUserMedia
+import web.mediastreams.MediaStreamConstraints
+import web.mediastreams.MediaStreamTrack
+import web.mediastreams.MediaTrackConstraints
+import web.navigator.navigator
+import kotlin.js.undefined
+
+private fun makeStreamConstraints(
+    audio: MediaTrackConstraints? = undefined,
+    video: MediaTrackConstraints? = undefined
+): MediaStreamConstraints {
+    return unsafeJso {
+        this.audio = audio
+        this.video = video
+    }
+}
 
 /**
  * MediaTrackFactory based on browser Navigator MediaDevices.
@@ -17,16 +29,30 @@ import org.w3c.dom.mediacapture.MediaStreamTrack
 public object NavigatorMediaDevices : MediaTrackFactory {
     override suspend fun createAudioTrack(constraints: WebRtcMedia.AudioTrackConstraints): WebRtcMedia.AudioTrack =
         withPermissionException("audio") {
-            val streamConstrains = MediaStreamConstraints(audio = constraints.toJs())
-            val mediaStream = navigator.mediaDevices.getUserMedia(streamConstrains).await()
-            return JsAudioTrack(mediaStream.getAudioTracks()[0])
+            val streamConstrains = makeStreamConstraints(audio = constraints.toJs())
+            val mediaStream = navigator.mediaDevices.getUserMedia(streamConstrains)
+            val tracks = mediaStream.getAudioTracks().toArray()
+            if (tracks.isEmpty()) {
+                throw WebRtcMedia.DeviceException("Failed to create an audio track.")
+            }
+            if (tracks.size > 1) {
+                println("Warning: more than one audio track created")
+            }
+            JsAudioTrack(tracks[0])
         }
 
     override suspend fun createVideoTrack(constraints: WebRtcMedia.VideoTrackConstraints): WebRtcMedia.VideoTrack =
         withPermissionException("video") {
-            val streamConstrains = MediaStreamConstraints(video = constraints.toJs())
-            val mediaStream = navigator.mediaDevices.getUserMedia(streamConstrains).await()
-            return JsVideoTrack(mediaStream.getVideoTracks()[0])
+            val streamConstrains = makeStreamConstraints(video = constraints.toJs())
+            val mediaStream = navigator.mediaDevices.getUserMedia(streamConstrains)
+            val tracks = mediaStream.getVideoTracks().toArray()
+            if (tracks.isEmpty()) {
+                throw WebRtcMedia.DeviceException("Failed to create a video track.")
+            }
+            if (tracks.size > 1) {
+                println("Warning: more than one video track created.")
+            }
+            return JsVideoTrack(tracks[0])
         }
 }
 

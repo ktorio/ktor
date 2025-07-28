@@ -4,16 +4,15 @@
 
 package io.ktor.client.webrtc
 
-import io.ktor.client.webrtc.browser.DOMException
-import io.ktor.test.dispatcher.runTestWithRealTime
 import kotlinx.coroutines.test.runTest
+import web.errors.DOMException
+import web.errors.NotFoundError
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import kotlin.test.assertFails
 
-class WasmJsWebRtcMediaTest {
+class JsWebRtcMediaTest {
 
     private lateinit var client: WebRtcClient
 
@@ -27,25 +26,13 @@ class WasmJsWebRtcMediaTest {
         client.close()
     }
 
-    private suspend inline fun assertThrows(jsExceptionName: String, crossinline block: suspend () -> Unit) {
-        try {
-            block()
-            assertTrue(false, "Expected exception $jsExceptionName not thrown")
-        } catch (e: JsException) {
-            val jsException = (e.thrownValue) as DOMException
-            assertEquals(jsExceptionName, jsException.name.toString())
-        }
-    }
-
-    private val notFoundError = "NotFoundError"
-
     @Test
-    fun testCreateAudioTrackConstraints() = runTestWithRealTime {
+    fun testCreateAudioTrackConstraints() = runTest {
         // Assert that constraints are mapped correctly, though ChromeHeadless does not have any media devices
-        assertThrows(notFoundError) {
+        assertFails(DOMException.NotFoundError.toString()) {
             client.createAudioTrack(WebRtcMedia.AudioTrackConstraints())
         }
-        assertThrows(notFoundError) {
+        assertFails(DOMException.NotFoundError.toString()) {
             client.createAudioTrack(
                 WebRtcMedia.AudioTrackConstraints(
                     autoGainControl = true,
@@ -63,10 +50,10 @@ class WasmJsWebRtcMediaTest {
     @Test
     fun testCreateVideoTrack() = runTest {
         // Assert that constraints are mapped correctly, though ChromeHeadless does not have any media devices
-        assertThrows(notFoundError) {
+        assertFails(DOMException.NotFoundError.toString()) {
             client.createVideoTrack(WebRtcMedia.VideoTrackConstraints())
         }
-        assertThrows(notFoundError) {
+        assertFails(DOMException.NotFoundError.toString()) {
             client.createVideoTrack(
                 WebRtcMedia.VideoTrackConstraints(
                     width = 100,

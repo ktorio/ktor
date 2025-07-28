@@ -3,8 +3,14 @@
  */
 package io.ktor.client.webrtc
 
-import io.ktor.client.webrtc.browser.*
-import kotlinx.coroutines.await
+import web.rtc.RTCDTMFSender
+import web.rtc.RTCRtcpParameters
+import web.rtc.RTCRtpCodecParameters
+import web.rtc.RTCRtpEncodingParameters
+import web.rtc.RTCRtpSendParameters
+import web.rtc.RTCRtpSender
+import web.rtc.replaceTrack
+import web.rtc.setParameters
 
 /**
  * Wrapper for RTCRtpSender.
@@ -22,11 +28,11 @@ public class JsRtpSender(internal val nativeSender: RTCRtpSender) : WebRtc.RtpSe
     }
 
     override suspend fun getParameters(): WebRtc.RtpParameters {
-        return JsRtpParameters(nativeSender.getParameters().unsafeCast<RTCRtpSendParameters>())
+        return JsRtpParameters(nativeSender.getParameters())
     }
 
     override suspend fun setParameters(parameters: WebRtc.RtpParameters) {
-        (parameters as? JsRtpParameters)?.let { nativeSender.setParameters(it.nativeRtpParameters).await() }
+        (parameters as? JsRtpParameters)?.let { nativeSender.setParameters(it.nativeRtpParameters) }
     }
 }
 
@@ -49,12 +55,12 @@ public class JsDtmfSender(internal val nativeSender: RTCDTMFSender) : WebRtc.Dtm
  */
 public class JsRtpParameters(internal val nativeRtpParameters: RTCRtpSendParameters) : WebRtc.RtpParameters {
     override val transactionId: String = nativeRtpParameters.transactionId
-    override val encodings: Iterable<RTCRtpEncodingParameters> = nativeRtpParameters.encodings.asIterable()
-    override val codecs: Iterable<RTCRtpCodecParameters> = nativeRtpParameters.codecs.asIterable()
+    override val encodings: Iterable<RTCRtpEncodingParameters> = nativeRtpParameters.encodings.toArray().asIterable()
+    override val codecs: Iterable<RTCRtpCodecParameters> = nativeRtpParameters.codecs.toArray().asIterable()
     override val rtcp: RTCRtcpParameters = nativeRtpParameters.rtcp
 
     override val headerExtensions: List<WebRtc.RtpHeaderExtensionParameters>
-        get() = nativeRtpParameters.headerExtensions.map {
+        get() = nativeRtpParameters.headerExtensions.toArray().map {
             WebRtc.RtpHeaderExtensionParameters(
                 it.id.toInt(),
                 it.uri,
@@ -63,7 +69,7 @@ public class JsRtpParameters(internal val nativeRtpParameters: RTCRtpSendParamet
         }
 
     override val degradationPreference: WebRtc.DegradationPreference
-        get() = nativeRtpParameters.degradationPreference.toDegradationPreference()
+        get() = nativeRtpParameters.degradationPreference.toKtor()
 }
 
 /**

@@ -189,7 +189,7 @@ public final class io/ktor/client/webrtc/WebRtc$IceCandidate {
 	public fun toString ()Ljava/lang/String;
 }
 
-public synthetic class io/ktor/client/webrtc/WebRtc$IceCandidate$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+public final synthetic class io/ktor/client/webrtc/WebRtc$IceCandidate$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
 	public static final field INSTANCE Lio/ktor/client/webrtc/WebRtc$IceCandidate$$serializer;
 	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
 	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/client/webrtc/WebRtc$IceCandidate;
@@ -197,6 +197,7 @@ public synthetic class io/ktor/client/webrtc/WebRtc$IceCandidate$$serializer : k
 	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
 	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/client/webrtc/WebRtc$IceCandidate;)V
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
 }
 
 public final class io/ktor/client/webrtc/WebRtc$IceCandidate$Companion {
@@ -314,7 +315,7 @@ public final class io/ktor/client/webrtc/WebRtc$SessionDescription {
 	public fun toString ()Ljava/lang/String;
 }
 
-public synthetic class io/ktor/client/webrtc/WebRtc$SessionDescription$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+public final synthetic class io/ktor/client/webrtc/WebRtc$SessionDescription$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
 	public static final field INSTANCE Lio/ktor/client/webrtc/WebRtc$SessionDescription$$serializer;
 	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
 	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/client/webrtc/WebRtc$SessionDescription;
@@ -322,6 +323,7 @@ public synthetic class io/ktor/client/webrtc/WebRtc$SessionDescription$$serializ
 	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
 	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/client/webrtc/WebRtc$SessionDescription;)V
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
 }
 
 public final class io/ktor/client/webrtc/WebRtc$SessionDescription$Companion {
