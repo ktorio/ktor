@@ -4,11 +4,8 @@
 
 package io.ktor.client.webrtc
 
-import io.ktor.client.webrtc.browser.RTCPeerConnection
-import io.ktor.client.webrtc.browser.RTCPeerConnectionIceEvent
-import io.ktor.client.webrtc.browser.RTCTrackEvent
-import io.ktor.client.webrtc.utils.toJs
-import io.ktor.client.webrtc.utils.toKtor
+import io.ktor.client.webrtc.browser.*
+import io.ktor.client.webrtc.utils.*
 import kotlinx.coroutines.await
 import org.w3c.dom.mediacapture.MediaStream
 import kotlin.coroutines.CoroutineContext
@@ -56,6 +53,11 @@ public class JsWebRtcPeerConnection(
             events.emitAddTrack(track)
         }
 
+        nativePeerConnection.ondatachannel = { event: RTCDataChannelEvent ->
+            val channel = JsWebRtcDataChannel(event.channel, DataChannelReceiveOptions())
+            channel.setupEvents(events)
+        }
+
         nativePeerConnection.onnegotiationneeded = { events.emitNegotiationNeeded() }
     }
 
@@ -71,6 +73,16 @@ public class JsWebRtcPeerConnection(
 
     override suspend fun createAnswer(): WebRtc.SessionDescription = withSdpException("Failed to create answer") {
         return nativePeerConnection.createAnswer().await().toKtor()
+    }
+
+    override suspend fun createDataChannel(
+        label: String,
+        options: WebRtcDataChannelOptions.() -> Unit
+    ): WebRtcDataChannel {
+        val options = WebRtcDataChannelOptions().apply(options)
+        val receiveOptions = DataChannelReceiveOptions().apply(options.receiveOptions)
+        val nativeChannel = nativePeerConnection.createDataChannel(label, options.toJs())
+        return JsWebRtcDataChannel(nativeChannel, receiveOptions).also { it.setupEvents(events) }
     }
 
     override suspend fun setLocalDescription(description: WebRtc.SessionDescription): Unit =

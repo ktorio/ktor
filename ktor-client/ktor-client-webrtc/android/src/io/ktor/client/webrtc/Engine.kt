@@ -44,8 +44,7 @@ public class AndroidWebRtcEngine(
             .createIceServer()
     }
 
-    override suspend fun createPeerConnection(connectionConfig: WebRtcConnectionConfig?): WebRtcPeerConnection {
-        val config = connectionConfig ?: WebRtcConnectionConfig().apply(config.defaultConnectionConfig)
+    override suspend fun createPeerConnection(config: WebRtcConnectionConfig): WebRtcPeerConnection {
         val iceServers = config.iceServers.map { it.toNative() }
         val rtcConfig = RTCConfiguration(iceServers).apply {
             bundlePolicy = config.bundlePolicy.toNative()
@@ -55,6 +54,7 @@ public class AndroidWebRtcEngine(
             iceTransportsType = config.iceTransportPolicy.toNative()
         }
 
+        val coroutineContext = createConnectionContext(config.coroutineContext)
         return AndroidWebRtcPeerConnection(coroutineContext, config).initialize { observer ->
             getLocalFactory().createPeerConnection(rtcConfig, observer)
         }
