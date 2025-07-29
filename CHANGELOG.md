@@ -1,3 +1,35 @@
+# 3.2.3
+> Published 29 July 2025
+
+### Improvements
+* Server only accepts `yaml` as the configuration file suffix ([KTOR-8712](https://youtrack.jetbrains.com/issue/KTOR-8712))
+* JS / WASM error when process global is undefined ([KTOR-8686](https://youtrack.jetbrains.com/issue/KTOR-8686))
+* DI async duplicate resolution ([KTOR-8681](https://youtrack.jetbrains.com/issue/KTOR-8681))
+
+### Bugfixes
+* CIO: Expect 100-continue response is missing a final `\r\n` ([KTOR-8687](https://youtrack.jetbrains.com/issue/KTOR-8687))
+* Intermittent "ParserException: No colon in HTTP header" when parsing multipart request ([KTOR-8523](https://youtrack.jetbrains.com/issue/KTOR-8523))
+* Infinite loop in ByteReadChannel.readFully ([KTOR-8682](https://youtrack.jetbrains.com/issue/KTOR-8682))
+* ShutDownUrl: The server cannot shut down since 3.2.0 ([KTOR-8674](https://youtrack.jetbrains.com/issue/KTOR-8674))
+
+
+# 3.2.2
+> Published 14 July 2025
+
+### Improvements
+* SSE: Change the order of SSE field serialization: put `event` before `data` ([KTOR-8627](https://youtrack.jetbrains.com/issue/KTOR-8627))
+
+### Bugfixes
+* CORS: server replies with the 405 status code on a preflight request when the plugin is installed in a route ([KTOR-4499](https://youtrack.jetbrains.com/issue/KTOR-4499))
+* Darwin: The Content-Encoding header is removed since 3.0.3 ([KTOR-8526](https://youtrack.jetbrains.com/issue/KTOR-8526))
+* JS/WASM: response doesn't contain the Content-Length header in a browser ([KTOR-8377](https://youtrack.jetbrains.com/issue/KTOR-8377))
+* StatusPages: response headers of OutgoingContent aren't available in the status handlers ([KTOR-8232](https://youtrack.jetbrains.com/issue/KTOR-8232))
+* testApplication: The `client.sse()` acts like a REST call and not a stream in test environment ([KTOR-7910](https://youtrack.jetbrains.com/issue/KTOR-7910))
+* Config deserialization - default properties problem ([KTOR-8654](https://youtrack.jetbrains.com/issue/KTOR-8654))
+* kotlinx.datetime is not available transitively in 3.2.1 ([KTOR-8656](https://youtrack.jetbrains.com/issue/KTOR-8656))
+* Request builder block overrides HTTP method in specific request builders (get, post, etc) ([KTOR-8636](https://youtrack.jetbrains.com/issue/KTOR-8636))
+
+
 # 3.2.1
 > Published 3 July 2025
 

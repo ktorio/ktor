@@ -20,7 +20,7 @@ import java.io.File
 public actual fun YamlConfig(path: String?): YamlConfig? {
     val resolvedPath = when {
         path == null -> DEFAULT_YAML_FILENAME
-        path.endsWith(".yaml") -> path
+        path.endsWith(".yaml") || path.endsWith(".yml") -> path
         else -> return null
     }
     val resource = Thread.currentThread().contextClassLoader.getResource(resolvedPath)

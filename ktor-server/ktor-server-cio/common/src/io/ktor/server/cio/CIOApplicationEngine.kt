@@ -120,6 +120,7 @@ public class CIOApplicationEngine(
                     handleRequest(request)
                 }
             }
+
             else -> {
                 val settings = HttpServerSettings(
                     host = connectorSpec.host,
@@ -136,7 +137,7 @@ public class CIOApplicationEngine(
     }
 
     private fun addHandlerForExpectedHeader(output: ByteWriteChannel, call: CIOApplicationCall) {
-        val continueResponse = "HTTP/1.1 100 Continue\r\n"
+        val continueResponse = "HTTP/1.1 100 Continue$CRLF$CRLF"
         val expectHeaderValue = "100-continue"
 
         val expectedHeaderPhase = PipelinePhase("ExpectedHeaderPhase")
@@ -249,3 +250,5 @@ public class CIOApplicationEngine(
         }
     }
 }
+
+private const val CRLF = "\r\n"

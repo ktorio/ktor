@@ -109,7 +109,6 @@ private suspend fun parsePreambleImpl(
  */
 private suspend fun parsePartHeadersImpl(input: ByteReadChannel): HttpHeadersMap {
     val builder = CharArrayBuilder()
-
     try {
         return parseHeaders(input, builder)
             ?: throw EOFException("Failed to parse multipart headers: unexpected end of stream")
@@ -214,6 +213,11 @@ private fun CoroutineScope.parseMultipart(
 
     while (!countedInput.isClosedForRead && !countedInput.skipIfFound(PrefixString)) {
         countedInput.skipIfFound(CrLf)
+
+        // empty contents, no headers
+        if (countedInput.skipIfFound(firstBoundary)) {
+            continue
+        }
 
         val body = ByteChannel()
         val headers = CompletableDeferred<HttpHeadersMap>()

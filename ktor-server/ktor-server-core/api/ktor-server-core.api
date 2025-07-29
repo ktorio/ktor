@@ -737,8 +737,10 @@ public abstract interface class io/ktor/server/engine/EngineSSLConnectorConfig :
 
 public final class io/ktor/server/engine/ShutDownUrl {
 	public static final field Companion Lio/ktor/server/engine/ShutDownUrl$Companion;
-	public fun <init> (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public fun <init> (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun doShutdown (Lio/ktor/server/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getExit ()Lkotlin/jvm/functions/Function1;
 	public final fun getExitCode ()Lkotlin/jvm/functions/Function1;
 	public final fun getUrl ()Ljava/lang/String;
 }
@@ -749,8 +751,10 @@ public final class io/ktor/server/engine/ShutDownUrl$Companion {
 
 public final class io/ktor/server/engine/ShutDownUrl$Config {
 	public fun <init> ()V
+	public final fun getExit ()Lkotlin/jvm/functions/Function1;
 	public final fun getExitCodeSupplier ()Lkotlin/jvm/functions/Function1;
 	public final fun getShutDownUrl ()Ljava/lang/String;
+	public final fun setExit (Lkotlin/jvm/functions/Function1;)V
 	public final fun setExitCodeSupplier (Lkotlin/jvm/functions/Function1;)V
 	public final fun setShutDownUrl (Ljava/lang/String;)V
 }
