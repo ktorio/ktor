@@ -217,11 +217,19 @@ public final class io/ktor/http/ContentType$Image {
 	public static final field TYPE Ljava/lang/String;
 	public final fun contains (Lio/ktor/http/ContentType;)Z
 	public final fun contains (Ljava/lang/String;)Z
+	public final fun getAPNG ()Lio/ktor/http/ContentType;
+	public final fun getAVIF ()Lio/ktor/http/ContentType;
 	public final fun getAny ()Lio/ktor/http/ContentType;
+	public final fun getBMP ()Lio/ktor/http/ContentType;
 	public final fun getGIF ()Lio/ktor/http/ContentType;
+	public final fun getHEIC ()Lio/ktor/http/ContentType;
+	public final fun getHEIF ()Lio/ktor/http/ContentType;
 	public final fun getJPEG ()Lio/ktor/http/ContentType;
+	public final fun getJXL ()Lio/ktor/http/ContentType;
 	public final fun getPNG ()Lio/ktor/http/ContentType;
 	public final fun getSVG ()Lio/ktor/http/ContentType;
+	public final fun getTIFF ()Lio/ktor/http/ContentType;
+	public final fun getWEBP ()Lio/ktor/http/ContentType;
 	public final fun getXIcon ()Lio/ktor/http/ContentType;
 }
 
