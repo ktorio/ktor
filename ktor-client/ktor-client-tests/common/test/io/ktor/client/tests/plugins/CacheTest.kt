@@ -902,13 +902,11 @@ class CacheTest : ClientLoader() {
                 header(HttpHeaders.AcceptLanguage, "en-US")
                 header("Count", count++)
             }.bodyAsText()
-            println(publicStorage.findAll(url).size)
 
             val response2 = client.get(url) {
                 header(HttpHeaders.AcceptLanguage, "en-US")
                 header("Count", count++)
             }.bodyAsText()
-            println(publicStorage.findAll(url).size)
 
             val response3 = client.get(url) {
                 headers {
@@ -917,7 +915,6 @@ class CacheTest : ClientLoader() {
                     header("Count", count++)
                 }
             }.bodyAsText()
-            println(publicStorage.findAll(url).size)
 
             assertEquals("1", response1)
             assertEquals("2", response2)
