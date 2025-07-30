@@ -31,7 +31,7 @@ internal actual fun lookupGlobalProxy(url: Url): ProxyConfig? {
         if (proxies.size == 1 && proxy.type() == Proxy.Type.DIRECT) {
             null
         } else {
-            proxies.first()
+            proxy
         }
     } else {
         null
