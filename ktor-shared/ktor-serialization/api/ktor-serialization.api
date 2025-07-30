@@ -1,5 +1,6 @@
 public abstract interface class io/ktor/serialization/Configuration {
 	public abstract fun register (Lio/ktor/http/ContentType;Lio/ktor/serialization/ContentConverter;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun register$default (Lio/ktor/serialization/Configuration;Lio/ktor/http/ContentType;Lio/ktor/serialization/ContentConverter;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 }
 
 public final class io/ktor/serialization/Configuration$DefaultImpls {
@@ -37,7 +38,7 @@ public class io/ktor/serialization/WebsocketContentConvertException : io/ktor/se
 public abstract interface class io/ktor/serialization/WebsocketContentConverter {
 	public abstract fun deserialize (Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Lio/ktor/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun isApplicable (Lio/ktor/websocket/Frame;)Z
-	public abstract fun serialize (Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun serialize (Ljava/nio/charset/Charset;Lio/ktor/util/reflect/TypeInfo;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/serialization/WebsocketContentConverter$DefaultImpls {

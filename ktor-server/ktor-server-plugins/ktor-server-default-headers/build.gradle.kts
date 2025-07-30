@@ -2,7 +2,6 @@
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import java.time.Year
 
 description = ""
@@ -12,12 +11,6 @@ plugins {
 }
 
 kotlin {
-    compilerOptions {
-        // For now set API version 2.1 only for this module
-        // TODO KTOR-8637: Update API level for the whole project
-        apiVersion = KotlinVersion.KOTLIN_2_1
-    }
-
     sourceSets {
         commonMain.dependencies {
             // TODO KTOR-8657: Remove kotlinx-datetime from ktor-server-default-headers dependencies
