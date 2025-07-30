@@ -195,7 +195,7 @@ private fun Route.copyChildrenRecursively(child: RoutingNode) {
     }
 }
 
-private fun <B : Any, F : Any, TSubject: Any, TContext: Any, P : Pipeline<TSubject, TContext>> P.addAllInterceptors(
+private fun <B : Any, F : Any, TSubject : Any, TContext : Any, P : Pipeline<TSubject, TContext>> P.addAllInterceptors(
     fakePipeline: P,
     plugin: BaseRouteScopedPlugin<B, F>,
     pluginInstance: F
