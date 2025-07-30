@@ -857,6 +857,32 @@ class CacheTest : ClientLoader() {
         }
     }
 
+    @Test
+    fun testVaryHeader() = clientTests {
+        val publicStorage = CacheStorage.Unlimited()
+        val privateStorage = CacheStorage.Unlimited()
+        config {
+            install(HttpCache) {
+                publicStorage(publicStorage)
+                privateStorage(privateStorage)
+            }
+        }
+
+        test { client ->
+            val url = Url("$TEST_SERVER/cache/vary-header")
+
+            client.get(url) {
+                header("Accept", "application/json")
+            }
+            client.get(url) {
+                header("Accept", "application/json")
+                header("Accept", "application/cbor")
+            }
+
+            assertEquals(2, publicStorage.findAll(url).size)
+        }
+    }
+
     /**
      * Does delay and ensures that the [GMTDate] measurements report at least
      * the specified number of [milliseconds].

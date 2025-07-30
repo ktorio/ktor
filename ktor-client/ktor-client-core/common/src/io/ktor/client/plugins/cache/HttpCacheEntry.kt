@@ -58,7 +58,7 @@ internal fun HttpResponse.varyKeys(): Map<String, String> {
     val requestHeaders = call.request.headers
 
     for (key in validationKeys) {
-        result[key] = requestHeaders[key] ?: ""
+       result[key] = requestHeaders.getAll(key)?.joinToString(",") ?: ""
     }
 
     return result

@@ -127,6 +127,10 @@ internal fun Application.cacheTestServer() {
                     call.respond(HttpStatusCode.NotModified)
                 }
             }
+            get("/vary-header") {
+                call.response.header("Vary", "Accept")
+                call.respondText { "OK" }
+            }
         }
     }
 }
