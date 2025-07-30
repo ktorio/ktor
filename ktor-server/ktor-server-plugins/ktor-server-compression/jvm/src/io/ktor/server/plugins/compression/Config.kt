@@ -192,8 +192,7 @@ public fun CompressionConfig.gzip(block: CompressionEncoderBuilder.() -> Unit = 
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.compression.zstd)
  */
 public fun CompressionConfig.zstd(block: CompressionEncoderBuilder.() -> Unit = {}) {
-    val compressionLevel = CompressionEncoderBuilder(ZstdEncoder()).compressionLevel
-
+    val compressionLevel = CompressionEncoderBuilder(ZstdEncoder()).block().compressionLevel
     encoder(ZstdEncoder(compressionLevel), block)
 }
 
