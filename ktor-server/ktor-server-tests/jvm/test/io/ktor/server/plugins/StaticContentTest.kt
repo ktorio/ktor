@@ -206,6 +206,77 @@ class StaticContentTest {
     }
 
     @Test
+    fun testFallback() = testApplication {
+        routing {
+            staticFiles("staticFiles", basedir) {
+                setFallback("staticFiles", "plugins", "PartialContentTest.kt")
+            }
+            staticResources("staticResources", "public") {
+                setFallback("staticResources", "nested", "file-nested.txt")
+            }
+            staticFileSystem("staticFileSystem", "jvm/test-resources/public") {
+                setFallback("staticFileSystem", "nested", "file-nested.txt")
+            }
+
+            staticFiles("staticFilesWithValidDefault", basedir) {
+                default("/plugins/PartialContentTest.kt")
+                fallback { _, _ ->
+                    error("This should not be called because valid default is set")
+                }
+            }
+            staticFiles("staticFilesWithInvalidDefault", basedir) {
+                default("invalid-file.kt")
+                fallback { _, call ->
+                    call.respondRedirect("/staticFilesWithInvalidDefault/http/ApplicationRequestContentTestJvm.kt")
+                }
+            }
+        }
+
+        testFallback("staticFiles", "plugins", "PartialContentTest.kt", "class PartialContentTest {")
+        testFallback("staticResources", "nested", "file-nested.txt", "file-nested.txt")
+        testFallback("staticFileSystem", "nested", "file-nested.txt", "file-nested.txt")
+
+        val validDefault = client.get("staticFilesWithValidDefault/plugins/default.kt")
+        assertEquals(HttpStatusCode.OK, validDefault.status)
+        assertTrue(validDefault.bodyAsText().contains("class PartialContentTest {"))
+
+        val invalidDefault = client.get("staticFilesWithInvalidDefault/plugins/default.kt")
+        assertEquals(HttpStatusCode.OK, invalidDefault.status)
+        assertTrue(invalidDefault.bodyAsText().contains("class ApplicationRequestContentTest {"))
+    }
+
+    private fun <T : Any> StaticContentConfig<T>.setFallback(remotePath: String, path: String, file: String) {
+        fallback { requestedPath, call ->
+            if (requestedPath.endsWith(".pdf")) {
+                call.respondRedirect("/$remotePath/$path/$file")
+            } else if (requestedPath.endsWith(".zip")) {
+                call.respondRedirect(file)
+            }
+        }
+    }
+
+    private suspend fun ApplicationTestBuilder.testFallback(
+        remotePath: String,
+        path: String,
+        file: String,
+        body: String
+    ) {
+        val noFallback = client.get("$remotePath/$path/$file")
+        assertEquals(HttpStatusCode.OK, noFallback.status)
+        assertTrue(noFallback.bodyAsText().contains(body))
+
+        val fallbackPdf = client.get("$remotePath/NoSuchFile.pdf")
+        assertEquals(HttpStatusCode.OK, fallbackPdf.status)
+        assertTrue(fallbackPdf.bodyAsText().contains(body))
+
+        val fallbackZip = client.get("$remotePath/$path/NoSuchFile.zip")
+        assertEquals(HttpStatusCode.OK, fallbackZip.status)
+        assertTrue(fallbackZip.bodyAsText().contains(body))
+
+        assertEquals(HttpStatusCode.NotFound, client.get("$remotePath/NoSuchFile").status)
+    }
+
+    @Test
     fun testStaticFilesExtensions() = testApplication {
         routing {
             staticFiles("static", basedir) {
@@ -691,7 +762,12 @@ class StaticContentTest {
     fun testStaticResourcesModifier() = testApplication {
         routing {
             staticResources("static", "public") {
-                modify { url, call -> call.response.headers.append(HttpHeaders.ETag, url.path.substringAfterLast('/')) }
+                modify { url, call ->
+                    call.response.headers.append(
+                        HttpHeaders.ETag,
+                        url.path.substringAfterLast('/')
+                    )
+                }
             }
         }
 
