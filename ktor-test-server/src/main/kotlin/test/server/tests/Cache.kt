@@ -131,6 +131,24 @@ internal fun Application.cacheTestServer() {
                 call.response.header("Vary", "Accept")
                 call.respondText { "OK" }
             }
+
+            get("/vary-header-case-sensitive") {
+                when (call.request.headers["Count"]?.toIntOrNull() ?: 0) {
+                    1 -> {
+                        call.response.header(HttpHeaders.CacheControl, "max-age=0")
+                        call.response.header(HttpHeaders.Vary, "Accept-Language")
+                        call.respond("1")
+                    }
+
+                    2 -> {
+                        call.response.header(HttpHeaders.CacheControl, "max-age=0")
+                        call.response.header(HttpHeaders.Vary, "accept-language")
+                        call.respond("2")
+                    }
+
+                    else -> error("Should not be invoked")
+                }
+            }
         }
     }
 }

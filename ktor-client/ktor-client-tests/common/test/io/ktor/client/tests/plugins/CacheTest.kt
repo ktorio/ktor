@@ -883,6 +883,48 @@ class CacheTest : ClientLoader() {
         }
     }
 
+    @Test
+    fun testCaseSensitiveInVary() = clientTests {
+        val publicStorage = CacheStorage.Unlimited()
+        val privateStorage = CacheStorage.Unlimited()
+        config {
+            install(HttpCache) {
+                publicStorage(publicStorage)
+                privateStorage(privateStorage)
+            }
+        }
+
+        test { client ->
+            val url = Url("$TEST_SERVER/cache/vary-header-case-sensitive")
+
+            var count = 1
+            val response1 = client.get(url) {
+                header(HttpHeaders.AcceptLanguage, "en-US")
+                header("Count", count++)
+            }.bodyAsText()
+            println(publicStorage.findAll(url).size)
+
+            val response2 = client.get(url) {
+                header(HttpHeaders.AcceptLanguage, "en-US")
+                header("Count", count++)
+            }.bodyAsText()
+            println(publicStorage.findAll(url).size)
+
+            val response3 = client.get(url) {
+                headers {
+                    append(HttpHeaders.CacheControl, "only-if-cached, max-stale=10000")
+                    append(HttpHeaders.AcceptLanguage, "en-US")
+                    header("Count", count++)
+                }
+            }.bodyAsText()
+            println(publicStorage.findAll(url).size)
+
+            assertEquals("1", response1)
+            assertEquals("2", response2)
+            assertEquals("2", response3)
+        }
+    }
+
     /**
      * Does delay and ensures that the [GMTDate] measurements report at least
      * the specified number of [milliseconds].

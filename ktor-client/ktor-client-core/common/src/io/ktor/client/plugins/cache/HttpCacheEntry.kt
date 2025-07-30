@@ -10,8 +10,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
-import kotlinx.io.*
-import kotlin.collections.*
+import kotlinx.io.readByteArray
 
 @OptIn(InternalAPI::class)
 internal suspend fun HttpCacheEntry(isShared: Boolean, response: HttpResponse): HttpCacheEntry {
@@ -58,7 +57,7 @@ internal fun HttpResponse.varyKeys(): Map<String, String> {
     val requestHeaders = call.request.headers
 
     for (key in validationKeys) {
-       result[key] = requestHeaders.getAll(key)?.joinToString(",") ?: ""
+        result[key.lowercase()] = requestHeaders.getAll(key)?.joinToString(",") ?: ""
     }
 
     return result
