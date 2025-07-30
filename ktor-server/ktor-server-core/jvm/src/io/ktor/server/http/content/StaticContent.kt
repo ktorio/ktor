@@ -114,7 +114,6 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
         this.defaultPath = path
     }
 
-
     /**
      * Configures custom fallback behavior when a requested static resource is not found.
      *
