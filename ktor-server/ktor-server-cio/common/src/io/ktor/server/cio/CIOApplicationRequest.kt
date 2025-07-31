@@ -25,7 +25,9 @@ internal class CIOApplicationRequest(
 
     override var engineHeaders: Headers = CIOHeaders(request.headers)
 
-    override val queryParameters: Parameters by lazy { encodeParameters(rawQueryParameters).withEmptyStringForValuelessKeys() }
+    override val queryParameters: Parameters by lazy {
+        encodeParameters(rawQueryParameters).withEmptyStringForValuelessKeys()
+    }
 
     override val rawQueryParameters: Parameters by lazy {
         val uri = request.uri.toString()

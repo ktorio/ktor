@@ -15,7 +15,6 @@ import org.eclipse.jetty.io.EndPoint
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.coroutineContext
 
 internal class JettyWebsocketConnection(
     private val endpoint: EndPoint,
@@ -33,7 +32,7 @@ internal class JettyWebsocketConnection(
             connection: JettyWebsocketConnection,
             userContext: CoroutineContext
         ) {
-            withContext(coroutineContext + CoroutineName("ws-upgrade")) {
+            withContext(currentCoroutineContext() + CoroutineName("ws-upgrade")) {
                 connection.use { connection ->
                     connection.endpoint.upgrade(connection)
                     try {
@@ -121,10 +120,8 @@ internal class JettyWebsocketConnection(
     }
 
     override fun onClose(cause: Throwable?) {
-        runBlocking {
-            inputJob.cancel()
-            outputJob.cancel()
-        }
+        inputJob.cancel()
+        outputJob.cancel()
         super.onClose(cause)
     }
 
