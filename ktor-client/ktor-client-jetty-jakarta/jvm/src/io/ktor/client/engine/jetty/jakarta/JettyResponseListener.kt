@@ -56,6 +56,7 @@ internal class JettyResponseListener(
         promise: Promise<Boolean?>?
     ) {
         channel.close(x)
+        promise?.succeeded(true)
     }
 
     override fun onReset(

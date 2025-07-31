@@ -87,7 +87,6 @@ public class JettyApplicationCall(
             val queryString = request.httpURI.query ?: return@lazy Parameters.Empty
             parseQueryString(queryString, decode = false)
         }
-
     }
 
     @InternalAPI
@@ -173,11 +172,15 @@ public class JettyApplicationCall(
         }
 
         override suspend fun respondFromBytes(bytes: ByteArray) {
-            response.write(true, ByteBuffer.wrap(bytes), Callback.NOOP)
+            suspendCancellableCoroutine { continuation ->
+                response.write(true, ByteBuffer.wrap(bytes), continuation.asCallback())
+            }
         }
 
         override suspend fun respondNoContent(content: OutgoingContent.NoContent) {
-            response.write(true, emptyBuffer, Callback.NOOP)
+            suspendCancellableCoroutine { continuation ->
+                response.write(true, emptyBuffer, continuation.asCallback())
+            }
         }
 
         override suspend fun responseChannel(): ByteWriteChannel =

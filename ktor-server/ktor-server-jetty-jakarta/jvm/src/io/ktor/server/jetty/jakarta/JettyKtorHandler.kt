@@ -44,8 +44,9 @@ internal class JettyKtorHandler(
     private val dispatcher = executor.asCoroutineDispatcher()
 
     private val handlerJob = SupervisorJob(applicationProvider().parentCoroutineContext[Job])
-    private val coroutineScope: CoroutineScope get() =
+    private val coroutineScope: CoroutineScope by lazy {
         applicationProvider() + handlerJob + DefaultUncaughtExceptionHandler(environment.log)
+    }
 
     override fun destroy() {
         try {
