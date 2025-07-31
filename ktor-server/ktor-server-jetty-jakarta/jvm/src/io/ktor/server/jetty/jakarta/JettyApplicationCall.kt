@@ -10,6 +10,7 @@ import io.ktor.http.Parameters
 import io.ktor.http.RequestConnectionPoint
 import io.ktor.http.content.OutgoingContent
 import io.ktor.http.parseQueryString
+import io.ktor.http.withEmptyStringForValuelessKeys
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.jakarta.JettyWebsocketConnection.Companion.upgradeAndAwait
@@ -60,7 +61,7 @@ public class JettyApplicationCall(
 
     @InternalAPI
     public inner class JettyApplicationRequest(request: Request) : BaseApplicationRequest(this) {
-        private var upgraded: Boolean = false
+        internal var upgraded: Boolean = false
         private val requestBodyChannel: ByteReadChannel by lazy {
             if (upgraded) return@lazy ByteReadChannel.Empty
             call.bodyReader(request, call.application.log, idleTimeout).channel
@@ -79,6 +80,7 @@ public class JettyApplicationCall(
 
         override val queryParameters: Parameters by lazy {
             encodeParameters(rawQueryParameters)
+                .withEmptyStringForValuelessKeys()
         }
 
         override val rawQueryParameters: Parameters by lazy(LazyThreadSafetyMode.NONE) {
@@ -86,9 +88,6 @@ public class JettyApplicationCall(
             parseQueryString(queryString, decode = false)
         }
 
-        internal fun upgraded() {
-            upgraded = true
-        }
     }
 
     @InternalAPI
@@ -145,7 +144,7 @@ public class JettyApplicationCall(
         override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
             // 1. Mark request / response as complete
             completed = true
-            request.upgraded()
+            request.upgraded = true
 
             // 2. Close body writing job
             if (responseBodyJob.isInitialized()) {
