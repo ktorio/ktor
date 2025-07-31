@@ -44,8 +44,9 @@ internal class JettyKtorHandler(
     private val dispatcher = executor.asCoroutineDispatcher()
 
     private val handlerJob = SupervisorJob(applicationProvider().parentCoroutineContext[Job])
-    private val coroutineScope: CoroutineScope get() =
+    private val coroutineScope: CoroutineScope by lazy {
         applicationProvider() + handlerJob + DefaultUncaughtExceptionHandler(environment.log)
+    }
 
     override fun destroy() {
         try {
@@ -78,13 +79,12 @@ internal class JettyKtorHandler(
                     callback.succeeded()
                 } catch (cancelled: CancellationException) {
                     Response.writeError(request, response, callback, HttpStatus.GONE_410, cancelled.message, cancelled)
-                    callback.failed(cancelled)
                 } catch (channelFailed: ChannelIOException) {
                     callback.failed(channelFailed)
                 } catch (error: Throwable) {
-                    try {
-                        logError(call, error)
-                        if (!response.isCommitted) {
+                    logError(call, error)
+                    if (!response.isCommitted) {
+                        try {
                             Response.writeError(
                                 request,
                                 response,
@@ -93,8 +93,10 @@ internal class JettyKtorHandler(
                                 error.message,
                                 error
                             )
+                        } catch (_: Throwable) {
+                            callback.failed(error)
                         }
-                    } finally {
+                    } else {
                         callback.failed(error)
                     }
                 }

@@ -31,7 +31,7 @@ public object JettyUpgradeImpl : ServletUpgrade {
         // Jetty doesn't support Servlet API's upgrade, so we have to implement our own
         val request = servletRequest as org.eclipse.jetty.ee10.servlet.ServletApiRequest
 
-        val connection = request.request.connectionMetaData as Connection
+        val connection = request.request.connectionMetaData.connection
         val endPoint = connection.endPoint
 
         // for upgraded connections, IDLE timeout should be significantly increased
@@ -45,7 +45,6 @@ public object JettyUpgradeImpl : ServletUpgrade {
                     val writer = endPointWriter(endPoint)
                     val outputChannel = writer.channel
 
-                    // servletRequest.setAttribute(HttpConnection.UPGRADE_CONNECTION_ATTRIBUTE, reader)
                     if (endPoint is AbstractEndPoint) {
                         endPoint.upgrade(reader)
                     }
@@ -53,14 +52,14 @@ public object JettyUpgradeImpl : ServletUpgrade {
                         inputChannel,
                         outputChannel,
                         coroutineContext,
-                        coroutineContext + userContext
+                        userContext + coroutineContext
                     )
 
-                    upgradeJob.invokeOnCompletion {
-                        inputChannel.cancel()
-                        @Suppress("DEPRECATION")
-                        outputChannel.close()
-                        cancel()
+                    try {
+                        upgradeJob.join()
+                    } catch (cause: Throwable) {
+                        inputChannel.cancel(cause)
+                        outputChannel.cancel(cause)
                     }
                 }
             }

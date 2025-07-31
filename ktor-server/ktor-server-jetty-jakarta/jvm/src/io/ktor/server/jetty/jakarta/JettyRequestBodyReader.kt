@@ -20,7 +20,7 @@ import kotlin.time.Duration
 internal fun CoroutineScope.bodyReader(request: Request, log: Logger, idleTimeout: Duration?): WriterJob =
     writer(CoroutineName("jetty-request-reader")) {
         val contentLength = if (request.headers.contains(HttpHeaders.ContentLength)) {
-            request.headers.get(HttpHeaders.ContentLength)?.toLong()
+            request.headers.get(HttpHeaders.ContentLength)?.toLongOrNull()
         } else {
             null
         }

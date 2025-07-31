@@ -10,6 +10,7 @@ import io.ktor.http.Parameters
 import io.ktor.http.RequestConnectionPoint
 import io.ktor.http.content.OutgoingContent
 import io.ktor.http.parseQueryString
+import io.ktor.http.withEmptyStringForValuelessKeys
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.jakarta.JettyWebsocketConnection.Companion.upgradeAndAwait
@@ -60,7 +61,8 @@ public class JettyApplicationCall(
 
     @InternalAPI
     public inner class JettyApplicationRequest(request: Request) : BaseApplicationRequest(this) {
-        private var upgraded: Boolean = false
+        internal var upgraded: Boolean = false
+
         private val requestBodyChannel: ByteReadChannel by lazy {
             if (upgraded) return@lazy ByteReadChannel.Empty
             call.bodyReader(request, call.application.log, idleTimeout).channel
@@ -77,17 +79,15 @@ public class JettyApplicationCall(
 
         override val local: RequestConnectionPoint = JettyConnectionPoint(request)
 
+        @OptIn(InternalAPI::class)
         override val queryParameters: Parameters by lazy {
             encodeParameters(rawQueryParameters)
+                .withEmptyStringForValuelessKeys()
         }
 
         override val rawQueryParameters: Parameters by lazy(LazyThreadSafetyMode.NONE) {
             val queryString = request.httpURI.query ?: return@lazy Parameters.Empty
             parseQueryString(queryString, decode = false)
-        }
-
-        internal fun upgraded() {
-            upgraded = true
         }
     }
 
@@ -117,7 +117,9 @@ public class JettyApplicationCall(
 
                 try {
                     if (!response.isCommitted) {
-                        response.write(true, emptyBuffer, Callback.NOOP)
+                        suspendCancellableCoroutine { continuation ->
+                            response.write(true, emptyBuffer, continuation.asCallback())
+                        }
                     }
                 } catch (cause: Throwable) {
                     throw ChannelWriteException(exception = cause)
@@ -145,7 +147,7 @@ public class JettyApplicationCall(
         override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
             // 1. Mark request / response as complete
             completed = true
-            request.upgraded()
+            request.upgraded = true
 
             // 2. Close body writing job
             if (responseBodyJob.isInitialized()) {
@@ -174,11 +176,15 @@ public class JettyApplicationCall(
         }
 
         override suspend fun respondFromBytes(bytes: ByteArray) {
-            response.write(true, ByteBuffer.wrap(bytes), Callback.NOOP)
+            suspendCancellableCoroutine { continuation ->
+                response.write(true, ByteBuffer.wrap(bytes), continuation.asCallback())
+            }
         }
 
         override suspend fun respondNoContent(content: OutgoingContent.NoContent) {
-            response.write(true, emptyBuffer, Callback.NOOP)
+            suspendCancellableCoroutine { continuation ->
+                response.write(true, emptyBuffer, continuation.asCallback())
+            }
         }
 
         override suspend fun responseChannel(): ByteWriteChannel =

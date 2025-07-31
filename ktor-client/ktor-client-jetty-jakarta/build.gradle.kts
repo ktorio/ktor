@@ -10,7 +10,7 @@ plugins {
 
 kotlin {
     // The minimal JVM version required for Jetty 10+
-    jvmToolchain(11)
+    jvmToolchain(17)
 
     sourceSets {
         jvmMain.dependencies {

@@ -65,3 +65,8 @@ public final class io/ktor/server/jetty/jakarta/JettyApplicationEngineBase$Confi
 	public final fun setIdleTimeout-LRDsOJo (J)V
 }
 
+public final class io/ktor/server/jetty/jakarta/internal/JettyUpgradeImpl : io/ktor/server/servlet/jakarta/ServletUpgrade {
+	public static final field INSTANCE Lio/ktor/server/jetty/jakarta/internal/JettyUpgradeImpl;
+	public fun performUpgrade (Lio/ktor/http/content/OutgoingContent$ProtocolUpgrade;Ljakarta/servlet/http/HttpServletRequest;Ljakarta/servlet/http/HttpServletResponse;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+

@@ -33,30 +33,28 @@ public object JettyUpgradeImpl : ServletUpgrade {
         endPoint.idleTimeout = TimeUnit.MINUTES.toMillis(60L)
 
         withContext(engineContext + CoroutineName("upgrade-scope")) {
-            connection.use { connection ->
-                coroutineScope {
-                    val inputChannel = ByteChannel(autoFlush = true)
-                    val reader = EndPointReader(endPoint, coroutineContext, inputChannel)
-                    val writer = endPointWriter(endPoint)
-                    val outputChannel = writer.channel
+            coroutineScope {
+                val inputChannel = ByteChannel(autoFlush = true)
+                val reader = EndPointReader(endPoint, coroutineContext, inputChannel)
+                val writer = endPointWriter(endPoint)
+                val outputChannel = writer.channel
 
-                    servletRequest.setAttribute(HttpConnection.UPGRADE_CONNECTION_ATTRIBUTE, reader)
-                    if (endPoint is AbstractEndPoint) {
-                        endPoint.upgrade(reader)
-                    }
-                    val upgradeJob = upgrade.upgrade(
-                        inputChannel,
-                        outputChannel,
-                        coroutineContext,
-                        coroutineContext + userContext
-                    )
+                servletRequest.setAttribute(HttpConnection.UPGRADE_CONNECTION_ATTRIBUTE, reader)
+                if (endPoint is AbstractEndPoint) {
+                    endPoint.upgrade(reader)
+                }
+                val upgradeJob = upgrade.upgrade(
+                    inputChannel,
+                    outputChannel,
+                    coroutineContext,
+                    coroutineContext + userContext
+                )
 
-                    upgradeJob.invokeOnCompletion {
-                        inputChannel.cancel()
-                        @Suppress("DEPRECATION")
-                        outputChannel.close()
-                        cancel()
-                    }
+                upgradeJob.invokeOnCompletion {
+                    inputChannel.cancel()
+                    @Suppress("DEPRECATION")
+                    outputChannel.close()
+                    cancel()
                 }
             }
         }

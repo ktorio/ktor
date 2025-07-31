@@ -661,7 +661,6 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
 
                     part.dispose()
                 }
-
                 call.respondText(response.toString())
             }
         }
@@ -773,12 +772,11 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
         }
     }
 
-    // TODO fix
     @Test
     fun testAccessingQueryParameterWithoutValue() = runTest {
         createAndStartServer {
             get("/") {
-                call.respondText(call.request.queryParameters["auto"] ?: "")
+                call.respondText(call.request.queryParameters["auto"].toString())
             }
         }
 
