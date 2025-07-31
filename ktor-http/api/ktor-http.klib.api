@@ -793,6 +793,8 @@ final class io.ktor.http/HttpProtocolVersion { // io.ktor.http/HttpProtocolVersi
             final fun <get-HTTP_1_1>(): io.ktor.http/HttpProtocolVersion // io.ktor.http/HttpProtocolVersion.Companion.HTTP_1_1.<get-HTTP_1_1>|<get-HTTP_1_1>(){}[0]
         final val HTTP_2_0 // io.ktor.http/HttpProtocolVersion.Companion.HTTP_2_0|{}HTTP_2_0[0]
             final fun <get-HTTP_2_0>(): io.ktor.http/HttpProtocolVersion // io.ktor.http/HttpProtocolVersion.Companion.HTTP_2_0.<get-HTTP_2_0>|<get-HTTP_2_0>(){}[0]
+        final val HTTP_3_0 // io.ktor.http/HttpProtocolVersion.Companion.HTTP_3_0|{}HTTP_3_0[0]
+            final fun <get-HTTP_3_0>(): io.ktor.http/HttpProtocolVersion // io.ktor.http/HttpProtocolVersion.Companion.HTTP_3_0.<get-HTTP_3_0>|<get-HTTP_3_0>(){}[0]
         final val QUIC // io.ktor.http/HttpProtocolVersion.Companion.QUIC|{}QUIC[0]
             final fun <get-QUIC>(): io.ktor.http/HttpProtocolVersion // io.ktor.http/HttpProtocolVersion.Companion.QUIC.<get-QUIC>|<get-QUIC>(){}[0]
         final val SPDY_3 // io.ktor.http/HttpProtocolVersion.Companion.SPDY_3|{}SPDY_3[0]
