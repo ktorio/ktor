@@ -765,7 +765,6 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
             }
         } catch (cause: Throwable) {
             // expected
-            cause.printStackTrace()
         }
     }
 
