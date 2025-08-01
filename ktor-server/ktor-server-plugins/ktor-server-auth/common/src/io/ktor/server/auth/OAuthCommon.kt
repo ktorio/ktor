@@ -7,6 +7,7 @@ package io.ktor.server.auth
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.request.ApplicationRequest
 import io.ktor.util.*
 
 /**
@@ -84,7 +85,7 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
 
         public val nonceManager: NonceManager = GenerateOnlyNonceManager,
 
-        public val authorizeUrlInterceptor: URLBuilder.() -> Unit = {},
+        public val authorizeUrlInterceptor: URLBuilder.(ApplicationRequest) -> Unit = {},
         public val passParamsInURL: Boolean = false,
         public val extraAuthParameters: List<Pair<String, String>> = emptyList(),
         public val extraTokenParameters: List<Pair<String, String>> = emptyList(),
