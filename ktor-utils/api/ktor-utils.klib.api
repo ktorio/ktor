@@ -893,6 +893,15 @@ final object io.ktor.util/PlatformUtils { // io.ktor.util/PlatformUtils|null[0]
         final fun <get-IS_WASM_JS>(): kotlin/Boolean // io.ktor.util/PlatformUtils.IS_WASM_JS.<get-IS_WASM_JS>|<get-IS_WASM_JS>(){}[0]
 }
 
+final object io.ktor.util/ZstdEncoder : io.ktor.util/ContentEncoder, io.ktor.util/Encoder { // io.ktor.util/ZstdEncoder|null[0]
+    final val name // io.ktor.util/ZstdEncoder.name|{}name[0]
+        final fun <get-name>(): kotlin/String // io.ktor.util/ZstdEncoder.name.<get-name>|<get-name>(){}[0]
+
+    final fun decode(io.ktor.utils.io/ByteReadChannel, kotlin.coroutines/CoroutineContext): io.ktor.utils.io/ByteReadChannel // io.ktor.util/ZstdEncoder.decode|decode(io.ktor.utils.io.ByteReadChannel;kotlin.coroutines.CoroutineContext){}[0]
+    final fun encode(io.ktor.utils.io/ByteReadChannel, kotlin.coroutines/CoroutineContext): io.ktor.utils.io/ByteReadChannel // io.ktor.util/ZstdEncoder.encode|encode(io.ktor.utils.io.ByteReadChannel;kotlin.coroutines.CoroutineContext){}[0]
+    final fun encode(io.ktor.utils.io/ByteWriteChannel, kotlin.coroutines/CoroutineContext): io.ktor.utils.io/ByteWriteChannel // io.ktor.util/ZstdEncoder.encode|encode(io.ktor.utils.io.ByteWriteChannel;kotlin.coroutines.CoroutineContext){}[0]
+}
+
 final const val io.ktor.util.internal/FAILURE // io.ktor.util.internal/FAILURE|{}FAILURE[0]
     final fun <get-FAILURE>(): kotlin/Int // io.ktor.util.internal/FAILURE.<get-FAILURE>|<get-FAILURE>(){}[0]
 final const val io.ktor.util.internal/SUCCESS // io.ktor.util.internal/SUCCESS|{}SUCCESS[0]
