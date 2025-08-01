@@ -19,6 +19,9 @@ import io.ktor.websocket.*
 
 private val REQUEST_EXTENSIONS_KEY = AttributeKey<List<WebSocketExtension<*>>>("Websocket extensions")
 
+@InternalAPI
+public val WEBSOCKETS_KEY: AttributeKey<WebSockets> = AttributeKey<WebSockets>("Websocket plugin config")
+
 internal val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.websocket.WebSockets")
 
 /**
@@ -184,6 +187,7 @@ public class WebSockets internal constructor(
                 if (extensionsSupported) {
                     plugin.installExtensions(context)
                 }
+                context.attributes[WEBSOCKETS_KEY] = plugin
 
                 proceedWith(WebSocketContent())
             }
