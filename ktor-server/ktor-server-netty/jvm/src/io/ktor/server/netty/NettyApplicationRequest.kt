@@ -7,11 +7,13 @@ package io.ktor.server.netty
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
+import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.request.*
 import io.ktor.utils.io.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import kotlinx.coroutines.*
+import java.lang.IllegalArgumentException
 import kotlin.coroutines.*
 
 public abstract class NettyApplicationRequest(
@@ -26,10 +28,18 @@ public abstract class NettyApplicationRequest(
     public final override val queryParameters: Parameters = object : Parameters {
         private val decoder = QueryStringDecoder(uri, HttpConstants.DEFAULT_CHARSET, true, 1024, true)
         override val caseInsensitiveName: Boolean get() = true
-        override fun getAll(name: String) = decoder.parameters()[name]
-        override fun names() = decoder.parameters().keys
-        override fun entries() = decoder.parameters().entries
-        override fun isEmpty() = decoder.parameters().isEmpty()
+        override fun getAll(name: String) = decodeParams()[name]
+        override fun names() = decodeParams().keys
+        override fun entries() = decodeParams().entries
+        override fun isEmpty() = decodeParams().isEmpty()
+
+        private fun decodeParams(): Map<String, List<String>> {
+            try {
+                return decoder.parameters()
+            } catch (cause: IllegalArgumentException) {
+                throw BadRequestException("Unable to decode query parameters", cause = cause)
+            }
+        }
     }
 
     override val rawQueryParameters: Parameters by lazy(LazyThreadSafetyMode.NONE) {

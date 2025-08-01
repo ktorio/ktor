@@ -38,9 +38,6 @@ import java.io.File
  *
  * // Run validation against single project
  * ./gradlew validatePublishedArtifacts :ktor-io:publishJvmAndCommonPublications
- *
- * // Dump artifacts locally (switched publishing repository to MavenLocal)
- * ./gradlew validatePublishedArtifacts --dump publishJvmAndCommonPublications -Prepository=MavenLocal
  * ```
  *
  * The expected artifact list is stored in a [artifactsDump], and this task ensures

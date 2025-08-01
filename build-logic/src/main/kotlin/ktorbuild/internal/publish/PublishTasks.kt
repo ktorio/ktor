@@ -7,10 +7,12 @@ package ktorbuild.internal.publish
 import ktorbuild.internal.capitalized
 import ktorbuild.targets.KtorTargets
 import org.gradle.api.Project
+import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.tasks.AbstractPublishToMaven
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
 import org.gradle.api.publish.plugins.PublishingPlugin
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.kotlin.dsl.the
 import org.gradle.kotlin.dsl.withType
 
 private val jvmAndCommonPublications = setOf(
@@ -65,13 +67,27 @@ private fun Project.registerAggregatingPublishTask(name: String, publications: S
     tasks.register("publish${name}Publications") {
         group = PublishingPlugin.PUBLISH_TASK_GROUP
 
-        val repositoryName = providers.gradleProperty("repository").orElse(MAVEN_REPO_DEFAULT_NAME)
-        val taskNames = publications
-            .map { "publish${it.capitalized()}PublicationTo${repositoryName.get().capitalized()}Repository" }
-            .toSet()
+        val taskNames = provider {
+            val repositoryName = publishing.inferRepositoryName().capitalized()
+            publications
+                .map { "publish${it.capitalized()}PublicationTo${repositoryName}Repository" }
+                .toSet()
+        }
 
-        dependsOn(tasks.withType<PublishToMavenRepository>().named { it in taskNames })
+        dependsOn(tasks.withType<PublishToMavenRepository>().named { it in taskNames.get() })
     }
 }
 
-private const val MAVEN_REPO_DEFAULT_NAME = "maven"
+private fun PublishingExtension.inferRepositoryName(): String {
+    val repositoryNames = repositories.map { it.name }.filter { it != MAVEN_REPO_DEFAULT_NAME }
+    check(repositoryNames.size <= 1) {
+        "Publishing repository can't be inferred. Multiple repositories are defined: $repositoryNames"
+    }
+
+    return repositoryNames.singleOrNull() ?: MAVEN_REPO_DEFAULT_NAME
+}
+
+private val Project.publishing: PublishingExtension
+    get() = the()
+
+private const val MAVEN_REPO_DEFAULT_NAME = "MavenLocal"

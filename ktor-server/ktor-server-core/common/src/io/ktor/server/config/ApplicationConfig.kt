@@ -4,9 +4,8 @@
 
 package io.ktor.server.config
 
-import io.ktor.server.application.Application
-import io.ktor.util.reflect.TypeInfo
-import io.ktor.util.reflect.typeInfo
+import io.ktor.server.application.*
+import io.ktor.util.reflect.*
 
 /**
  * Represents an application config node
@@ -86,7 +85,7 @@ public interface ApplicationConfigValue {
      * - `List`: A collection of multiple values.
      * - `Object`: A structured or nested configuration object.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.ApplicationConfigValue.kind)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.ApplicationConfigValue.type)
      */
     public val type: Type
 
@@ -130,7 +129,7 @@ public interface ApplicationConfigValue {
      * - `LIST`: Represents multiple values in list form.
      * - `OBJECT`: Represents a structured or nested configuration object.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.ApplicationConfig.Kind)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.ApplicationConfigValue.Type)
      */
     public enum class Type {
         NULL,
@@ -142,18 +141,24 @@ public interface ApplicationConfigValue {
 
 /**
  * Convenience function for accessing properties using serialization.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.property)
  */
 public inline fun <reified E> Application.property(key: String): E =
     environment.config.property(key).getAs()
 
 /**
  * Convenience function for accessing properties using serialization.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.propertyOrNull)
  */
 public inline fun <reified E> Application.propertyOrNull(key: String): E? =
     environment.config.propertyOrNull(key)?.getAs()
 
 /**
  * Converts the application config value to the given type parameter.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.getAs)
  */
 public inline fun <reified E> ApplicationConfigValue.getAs(): E =
     when (val typeInfo = typeInfo<E>()) {

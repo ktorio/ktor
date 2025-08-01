@@ -19,7 +19,18 @@ import io.ktor.events.EventDefinition
 public val ApplicationStarting: EventDefinition<Application> = EventDefinition()
 
 /**
- * Event definition that is fired after `ApplicationStarting` hooks, and before `ApplicationStarted`.
+ * Event definition that is fired after `ApplicationStarting` hooks, and before `ApplicationModulesLoaded`.
+ *
+ * This is triggered after all modules have begun loading.
+ *
+ * It is used for parallel loading of dependencies.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationModulesLoading)
+ */
+public val ApplicationModulesLoading: EventDefinition<Application> = EventDefinition()
+
+/**
+ * Event definition that is fired after `ApplicationModulesLoading` hooks, and before `ApplicationStarted`.
  *
  * Hooks registered for this event can interrupt the application startup if needed by throwing exceptions.
  *

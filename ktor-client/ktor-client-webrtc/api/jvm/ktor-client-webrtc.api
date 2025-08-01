@@ -106,10 +106,10 @@ public abstract interface class io/ktor/client/webrtc/WebRtc$DataChannel : java/
 }
 
 public abstract interface class io/ktor/client/webrtc/WebRtc$DataChannel$Message {
-	public abstract fun binaryOrNull ()[B
-	public abstract fun binaryOrThrow ()[B
-	public abstract fun textOrNull ()Ljava/lang/String;
-	public abstract fun textOrThrow ()Ljava/lang/String;
+	public fun binaryOrNull ()[B
+	public fun binaryOrThrow ()[B
+	public fun textOrNull ()Ljava/lang/String;
+	public fun textOrThrow ()Ljava/lang/String;
 }
 
 public final class io/ktor/client/webrtc/WebRtc$DataChannel$Message$Binary : io/ktor/client/webrtc/WebRtc$DataChannel$Message {
@@ -180,7 +180,7 @@ public final class io/ktor/client/webrtc/WebRtc$IceCandidate {
 	public fun toString ()Ljava/lang/String;
 }
 
-public synthetic class io/ktor/client/webrtc/WebRtc$IceCandidate$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+public final synthetic class io/ktor/client/webrtc/WebRtc$IceCandidate$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
 	public static final field INSTANCE Lio/ktor/client/webrtc/WebRtc$IceCandidate$$serializer;
 	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
 	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/client/webrtc/WebRtc$IceCandidate;
@@ -188,6 +188,7 @@ public synthetic class io/ktor/client/webrtc/WebRtc$IceCandidate$$serializer : k
 	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
 	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/client/webrtc/WebRtc$IceCandidate;)V
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
 }
 
 public final class io/ktor/client/webrtc/WebRtc$IceCandidate$Companion {
@@ -305,7 +306,7 @@ public final class io/ktor/client/webrtc/WebRtc$SessionDescription {
 	public fun toString ()Ljava/lang/String;
 }
 
-public synthetic class io/ktor/client/webrtc/WebRtc$SessionDescription$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+public final synthetic class io/ktor/client/webrtc/WebRtc$SessionDescription$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
 	public static final field INSTANCE Lio/ktor/client/webrtc/WebRtc$SessionDescription$$serializer;
 	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
 	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/client/webrtc/WebRtc$SessionDescription;
@@ -313,6 +314,7 @@ public synthetic class io/ktor/client/webrtc/WebRtc$SessionDescription$$serializ
 	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
 	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/client/webrtc/WebRtc$SessionDescription;)V
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
 }
 
 public final class io/ktor/client/webrtc/WebRtc$SessionDescription$Companion {
@@ -460,7 +462,8 @@ public final class io/ktor/client/webrtc/WebRtcDataChannelOptions {
 
 public abstract interface class io/ktor/client/webrtc/WebRtcEngine : io/ktor/client/webrtc/MediaTrackFactory, java/lang/AutoCloseable {
 	public abstract fun createPeerConnection (Lio/ktor/client/webrtc/WebRtcConnectionConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun createPeerConnection (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun createPeerConnection (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun createPeerConnection$default (Lio/ktor/client/webrtc/WebRtcEngine;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun getConfig ()Lio/ktor/client/webrtc/WebRtcConfig;
 }
 

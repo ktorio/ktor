@@ -103,6 +103,9 @@ public class RoutingRoot(
         application.monitor.raise(RoutingCallStarted, routingCall)
         try {
             routingCallPipeline.execute(routingApplicationCall)
+        } catch (cause: Throwable) {
+            routingCall.attributes.put(routingCallKey, routingCall)
+            throw cause
         } finally {
             application.monitor.raise(RoutingCallFinished, routingCall)
         }
@@ -179,3 +182,5 @@ public val Route.application: Application
 @KtorDsl
 public fun Application.routing(configuration: Routing.() -> Unit): RoutingRoot =
     pluginOrNull(RoutingRoot)?.apply(configuration) ?: install(RoutingRoot, configuration)
+
+internal val routingCallKey = AttributeKey<RoutingCall>("RoutingHandler")

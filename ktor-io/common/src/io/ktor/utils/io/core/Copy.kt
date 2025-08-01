@@ -9,7 +9,7 @@ import kotlinx.io.*
 /**
  * Copy all bytes to the [output].
  * Depending on actual input and output implementation it could be zero-copy or copy byte per byte.
- * All regular types such as [ByteReadPacket], [BytePacketBuilder], [Input] and [Output]
+ * All regular types such as [ByteReadPacket], [BytePacketBuilder], [Input] and [kotlinx.io.Sink]
  * are always optimized so no bytes will be copied.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.core.copyTo)

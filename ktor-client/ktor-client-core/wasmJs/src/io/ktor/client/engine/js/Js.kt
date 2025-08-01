@@ -5,7 +5,7 @@
 package io.ktor.client.engine.js
 
 import io.ktor.client.engine.*
-import io.ktor.client.fetch.RequestInit
+import io.ktor.client.fetch.*
 import io.ktor.client.utils.*
 import io.ktor.utils.io.*
 
@@ -41,6 +41,8 @@ public actual open class JsClientEngineConfig : HttpClientEngineConfig() {
     /**
      * Provides access to the underlying fetch options of the engine.
      * It allows setting credentials, cache, mode, redirect, referrer, integrity, keepalive, signal, window.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.js.JsClientEngineConfig.configureRequest)
      */
     public fun configureRequest(block: RequestInit.() -> Unit) {
         requestInit = block

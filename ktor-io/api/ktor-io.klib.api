@@ -9,6 +9,10 @@
 // - Show declarations: true
 
 // Library unique name: <io.ktor:ktor-io>
+open annotation class io.ktor.utils.io/ExperimentalKtorApi : kotlin/Annotation { // io.ktor.utils.io/ExperimentalKtorApi|null[0]
+    constructor <init>() // io.ktor.utils.io/ExperimentalKtorApi.<init>|<init>(){}[0]
+}
+
 open annotation class io.ktor.utils.io/InternalAPI : kotlin/Annotation { // io.ktor.utils.io/InternalAPI|null[0]
     constructor <init>() // io.ktor.utils.io/InternalAPI.<init>|<init>(){}[0]
 }
@@ -91,6 +95,8 @@ abstract interface io.ktor.utils.io/ByteWriteChannel { // io.ktor.utils.io/ByteW
         abstract fun <get-isClosedForWrite>(): kotlin/Boolean // io.ktor.utils.io/ByteWriteChannel.isClosedForWrite.<get-isClosedForWrite>|<get-isClosedForWrite>(){}[0]
     abstract val writeBuffer // io.ktor.utils.io/ByteWriteChannel.writeBuffer|{}writeBuffer[0]
         abstract fun <get-writeBuffer>(): kotlinx.io/Sink // io.ktor.utils.io/ByteWriteChannel.writeBuffer.<get-writeBuffer>|<get-writeBuffer>(){}[0]
+    open val autoFlush // io.ktor.utils.io/ByteWriteChannel.autoFlush|{}autoFlush[0]
+        open fun <get-autoFlush>(): kotlin/Boolean // io.ktor.utils.io/ByteWriteChannel.autoFlush.<get-autoFlush>|<get-autoFlush>(){}[0]
 
     abstract fun cancel(kotlin/Throwable?) // io.ktor.utils.io/ByteWriteChannel.cancel|cancel(kotlin.Throwable?){}[0]
     abstract suspend fun flush() // io.ktor.utils.io/ByteWriteChannel.flush|flush(){}[0]
@@ -251,6 +257,8 @@ final class io.ktor.utils.io/CountedByteReadChannel : io.ktor.utils.io/ByteReadC
 final class io.ktor.utils.io/CountedByteWriteChannel : io.ktor.utils.io/ByteWriteChannel { // io.ktor.utils.io/CountedByteWriteChannel|null[0]
     constructor <init>(io.ktor.utils.io/ByteWriteChannel) // io.ktor.utils.io/CountedByteWriteChannel.<init>|<init>(io.ktor.utils.io.ByteWriteChannel){}[0]
 
+    final val autoFlush // io.ktor.utils.io/CountedByteWriteChannel.autoFlush|{}autoFlush[0]
+        final fun <get-autoFlush>(): kotlin/Boolean // io.ktor.utils.io/CountedByteWriteChannel.autoFlush.<get-autoFlush>|<get-autoFlush>(){}[0]
     final val closedCause // io.ktor.utils.io/CountedByteWriteChannel.closedCause|{}closedCause[0]
         final fun <get-closedCause>(): kotlin/Throwable? // io.ktor.utils.io/CountedByteWriteChannel.closedCause.<get-closedCause>|<get-closedCause>(){}[0]
     final val isClosedForWrite // io.ktor.utils.io/CountedByteWriteChannel.isClosedForWrite|{}isClosedForWrite[0]

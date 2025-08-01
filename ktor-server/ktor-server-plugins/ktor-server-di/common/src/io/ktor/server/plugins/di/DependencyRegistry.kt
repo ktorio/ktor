@@ -5,12 +5,8 @@
 package io.ktor.server.plugins.di
 
 import io.ktor.server.application.*
-import io.ktor.server.plugins.di.MutableDependencyMap.Companion.asResolver
 import io.ktor.utils.io.*
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
-import kotlin.coroutines.CoroutineContext
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
@@ -23,54 +19,57 @@ import kotlin.reflect.KProperty
  * and validation of dependencies using the provided resolver mechanism. This registry also supports
  * reflective creation of instances and type-safe access to registered dependencies.
  *
- * @param provider The internal provider responsible for managing dependency initializers.
- * @param external A map of externally provided dependencies that can be used during resolution.
- * @param resolution The resolution mechanism used to create new instances of the `DependencyResolver`.
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyRegistry)
+ *
+ * @param resolver The delegate resolver for finding registered dependencies.
+ * @param provider The delegate provider responsible for registering new dependencies..
  * @param reflection A reflection implementation that supports dynamic instantiation of classes.
  */
 @KtorDsl
 public class DependencyRegistry(
-    private val provider: DependencyProvider,
-    private val external: DependencyMap,
-    private val resolution: DependencyResolution,
-    public override val reflection: DependencyReflection,
-    public override val coroutineContext: CoroutineContext,
-) : DependencyProvider by provider, DependencyResolver, CoroutineScope {
-
+    public val resolver: DependencyResolver,
+    public val provider: DependencyProvider,
+) : DependencyProvider by provider, DependencyResolver by resolver {
+    /**
+     * A map of required dependencies to be validated during startup.
+     *
+     * Used for lazily retrieved values.
+     */
     internal val requirements = mutableMapOf<DependencyKey, DependencyReference>()
+
+    /**
+     * A map of shutdown hooks to be executed during shutdown.
+     *
+     * Supplied by the "cleanup" function.
+     */
     internal val shutdownHooks = mutableMapOf<DependencyKey, (Any?) -> Unit>()
-    private val resolver: Lazy<DependencyResolver> = lazy {
-        resolution.resolve(provider, external, reflection)
-    }
 
-    override fun <T> set(key: DependencyKey, value: DependencyResolver.() -> T) {
-        if (resolver.isInitialized()) throw OutOfOrderDependencyException(key)
-        provider.set(key, value)
-    }
+    /**
+     * Get the dependency from the map for the key represented by the type (and optionally, with the given name).
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyRegistry.resolve)
+     */
+    public suspend inline fun <reified T> resolve(key: String? = null): T =
+        get(DependencyKey<T>(key))
 
-    override fun contains(key: DependencyKey): Boolean =
-        resolver.value.contains(key)
-
-    override fun <T> get(key: DependencyKey): T =
-        resolver.value.get(key)
-
-    override fun <T> getOrPut(key: DependencyKey, defaultValue: () -> T): T =
-        resolver.value.getOrPut(key, defaultValue)
+    /**
+     * Get a deferred dependency from the map for the key represented by the type (and optionally, with the given name).
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyRegistry.resolveDeferred)
+     */
+    public inline fun <reified T> resolveDeferred(key: String? = null): Deferred<T> =
+        getDeferred(DependencyKey<T>(key))
 
     /**
      * Indicates that the given dependency is required.
      *
      * The DI plugin enforces this at startup.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyRegistry.require)
      */
     public fun require(key: DependencyKey) {
         requirements += key to DependencyReference()
     }
-
-    /**
-     * Get the dependency from the map for the key represented by the type (and optionally, with the given name).
-     */
-    public inline fun <reified T> resolve(key: String? = null): T =
-        get(DependencyKey<T>(key))
 
     /**
      * Provides a delegated property for accessing a dependency from a [DependencyRegistry].
@@ -81,6 +80,8 @@ public class DependencyRegistry(
      * ```
      * val repository: Repository<Message> by dependencies
      * ```
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyRegistry.provideDelegate)
      *
      * @param thisRef The receiver to which the property is being delegated. This parameter
      * is not used in the actual implementation.
@@ -96,7 +97,7 @@ public class DependencyRegistry(
         val key = DependencyKey<T>()
             .also(::require)
         return ReadOnlyProperty { _, _ ->
-            get(key)
+            getBlocking(key)
         }
     }
 
@@ -105,6 +106,8 @@ public class DependencyRegistry(
      *
      * Uses the `create` method from the `DependencyResolver` to resolve and instantiate a dependency
      * of type [T] specified by the given [kClass].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyRegistry.provide)
      *
      * @param T The type of the dependency to be provided.
      * @param kClass The `KClass` representing the type of the dependency to be created or resolved.
@@ -117,6 +120,8 @@ public class DependencyRegistry(
      * The given [handler] is invoked on the created `KeyContext`, allowing configuration
      * such as defining a provider or cleanup logic for the dependency.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyRegistry.key)
+     *
      * @param T The type of the dependency being handled.
      * @param name An optional name associated with the dependency. Defaults to `null` if not provided.
      * @param handler A lambda that defines the actions to be performed on the created `KeyContext`.
@@ -126,28 +131,13 @@ public class DependencyRegistry(
         KeyContext<T>(DependencyKey<T>(name)).also(handler)
 
     /**
-     * Provide a deferred dependency for the given type using the provided suspend function.
-     *
-     * Shorthand for `provide<Deferred<T>> { async { suspendFunction() } }`
-     */
-    public inline fun <reified T> provideAsync(
-        name: String? = null,
-        noinline provide: suspend DependencyResolver.() -> T?
-    ): KeyContext<Deferred<T>> =
-        provide<Deferred<T>>(name) {
-            async {
-                provide() ?: throw DependencyInjectionException(
-                    "Null result for async declaration: ${DependencyKey<T>(name)}"
-                )
-            }
-        }
-
-    /**
      * Basic call for providing a dependency, like `provide<Service> { ServiceImpl() }`.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyRegistry.provide)
      */
     public inline fun <reified T> provide(
         name: String? = null,
-        noinline provide: DependencyResolver.() -> T?
+        noinline provide: suspend DependencyResolver.() -> T?
     ): KeyContext<T> =
         key<T>(name) { provide(provide) }
 
@@ -163,10 +153,12 @@ public class DependencyRegistry(
 
     /**
      * DSL class for performing multiple actions for the given key and type.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyRegistry.KeyContext)
      */
     @KtorDsl
     public inner class KeyContext<T>(public val key: DependencyKey) {
-        public infix fun provide(provide: DependencyResolver.() -> T?) {
+        public infix fun provide(provide: suspend DependencyResolver.() -> T?) {
             this@DependencyRegistry.set(key, provide)
         }
 
@@ -179,6 +171,8 @@ public class DependencyRegistry(
 
 /**
  * DSL helper for declaring dependencies with `dependencies {}` block.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.dependencies)
  */
 @KtorDsl
 public fun <T> Application.dependencies(action: DependencyRegistry.() -> T): T =
@@ -194,89 +188,6 @@ public var Application.dependencies: DependencyRegistry
     set(value) {
         attributes.put(DependencyRegistryKey, value)
     }
-
-/**
- * Standard [DependencyResolution] implementation, which populates a map of instances using
- * [ProcessingDependencyResolver].
- */
-public val DefaultDependencyResolution: DependencyResolution =
-    DependencyResolution { provider, external, reflection ->
-        val injector = ProcessingDependencyResolver(
-            reflection,
-            provider,
-            external,
-        )
-
-        DependencyMapImpl(injector.resolveAll(), external)
-            .asResolver(reflection)
-    }
-
-/**
- * A short-lived resolver for populating a map of instances.
- */
-@Suppress("UNCHECKED_CAST")
-public class ProcessingDependencyResolver(
-    override val reflection: DependencyReflection,
-    private val provider: DependencyProvider,
-    private val external: DependencyMap,
-) : DependencyResolver {
-    private val resolved = mutableMapOf<DependencyKey, Result<*>>()
-    private val visited = mutableSetOf<DependencyKey>()
-
-    public fun resolveAll(): Map<DependencyKey, Result<*>> {
-        if (resolved.isNotEmpty()) return resolved.toMap()
-
-        provider.declarations.keys.forEach(::resolveKey)
-
-        return resolved.toMap()
-    }
-
-    override fun contains(key: DependencyKey): Boolean =
-        resolved.contains(key) || provider.declarations.contains(key) || external.contains(key)
-
-    override fun <T> get(key: DependencyKey): T =
-        try {
-            resolveKey(key).getOrThrow() as T
-        } catch (e: AmbiguousDependencyException) {
-            // During resolution, we can recover from ambiguous dependencies.
-            // This often occurs with delegates.
-            val fallback = e.function.clarify { it in resolved } ?: throw e
-            fallback.create(this) as T
-        }
-
-    override fun <T> getOrPut(key: DependencyKey, defaultValue: () -> T): T =
-        resolved.getOrPut(key) {
-            runCatching {
-                defaultValue()
-            }
-        }.getOrThrow() as T
-
-    private fun resolveKey(key: DependencyKey): Result<*> =
-        resolved.getOrPut(key) {
-            if (!visited.add(key)) throw CircularDependencyException(listOf(key))
-            try {
-                val createFunction = provider.declarations[key]
-                    ?: return@getOrPut getExternal(key)
-                        ?: throw MissingDependencyException(key)
-                Result.success(createFunction.create(this))
-            } catch (cause: CircularDependencyException) {
-                // Always throw when encountering with circular references,
-                // capturing each key in the stack allows for better debugging
-                throw CircularDependencyException(listOf(key) + cause.keys)
-            } catch (cause: DependencyInjectionException) {
-                Result.failure(cause)
-            } catch (cause: Throwable) {
-                Result.failure(DependencyInjectionException("Failed to instantiate `$key`", cause))
-            }
-        }
-
-    private fun getExternal(key: DependencyKey): Result<Any>? =
-        if (external.contains(key)) {
-            Result.success(external.get(key))
-        } else {
-            null
-        }
-}
 
 /**
  * Used for tracing references to dependency keys in the application.

@@ -270,6 +270,30 @@ class ThymeleafTest {
         assertEquals("<div><p>Hello, first fragment</p></div>", response.bodyAsText())
     }
 
+    @Test
+    fun testNullValueInModel() = testApplication {
+        application {
+            setUpThymeleafStringTemplate()
+            install(ConditionalHeaders)
+
+            routing {
+                val model = mapOf("id" to 1, "title" to null)
+
+                get("/") {
+                    call.respondTemplate(STRING_TEMPLATE, model)
+                }
+            }
+        }
+
+        val response = client.get("/")
+        assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), response.contentType())
+
+        val content = response.bodyAsText().lines()
+        assertEquals(2, content.size)
+        assertEquals("<p>Hello, 1</p>", content[0])
+        assertEquals("<h1></h1>", content[1])
+    }
+
     private fun Application.setUpThymeleafStringTemplate() {
         install(Thymeleaf) {
             setTemplateResolver(StringTemplateResolver())

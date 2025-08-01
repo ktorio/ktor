@@ -6,8 +6,11 @@ package io.ktor.network.sockets
 
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import kotlinx.coroutines.*
-import kotlinx.io.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DisposableHandle
+import kotlinx.coroutines.InternalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.io.IOException
 
 /**
  * Base type for all async sockets
@@ -174,6 +177,8 @@ public interface ServerSocket : ASocket, ABoundSocket, Acceptable<Socket>
 
 /**
  * The port number of the current server.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.port)
  *
  * @throws UnsupportedOperationException if the local socket address does not support a port.
  */
