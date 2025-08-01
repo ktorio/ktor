@@ -42,3 +42,6 @@ class JettyEngineServerPluginsTest :
         enableSsl = false
     }
 }
+
+class JettyEngineHooksTest :
+    HooksTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)

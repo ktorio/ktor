@@ -28,7 +28,7 @@ import java.util.*
  */
 public class ThymeleafContent(
     public val template: String,
-    public val model: Map<String, Any>,
+    public val model: Map<String, Any?>,
     public val etag: String? = null,
     public val contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8),
     public val locale: Locale = Locale.getDefault(),

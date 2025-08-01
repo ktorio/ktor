@@ -50,6 +50,14 @@ class MapDecoderTest {
         val enumMap: Map<String, TestEnum>
     )
 
+    @Serializable
+    data class Address(
+        val streetName: String,
+        val postalCode: String,
+        val unitNumber: String? = null,
+        val municipality: String,
+    )
+
     @Test
     fun testSimpleTypes() {
         val map = mapOf(
@@ -205,5 +213,20 @@ class MapDecoderTest {
         assertFailsWith<NumberFormatException> {
             SimpleConfig.serializer().deserialize(decoder)
         }
+    }
+
+    @Test
+    fun testOptionals() {
+        val map = mapOf(
+            "streetName" to "Test street",
+            "postalCode" to "12345",
+            "municipality" to "Test municipality"
+        )
+        val decoder = MapConfigDecoder(map)
+        val config = Address.serializer().deserialize(decoder)
+        assertEquals("Test street", config.streetName)
+        assertEquals("12345", config.postalCode)
+        assertEquals("Test municipality", config.municipality)
+        assertEquals(null, config.unitNumber)
     }
 }

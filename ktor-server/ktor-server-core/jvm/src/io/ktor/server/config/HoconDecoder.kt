@@ -30,6 +30,8 @@ internal open class HoconDecoder(
         return if (config.hasPath(fullPath)) {
             currentPath = fullPath
             newIndex
+        } else if (descriptor.isElementOptional(newIndex)) {
+            decodeElementIndex(descriptor)
         } else {
             CompositeDecoder.DECODE_DONE
         }

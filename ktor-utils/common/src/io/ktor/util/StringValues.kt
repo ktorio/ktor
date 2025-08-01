@@ -4,6 +4,8 @@
 
 package io.ktor.util
 
+import kotlin.jvm.JvmName
+
 /**
  * Provides data structure for associating a [String] with a [List] of Strings
  *
@@ -113,8 +115,8 @@ public interface StringValuesBuilder {
     public operator fun get(name: String): String?
     public fun append(name: String, value: String)
     public fun appendAll(stringValues: StringValues)
-    public fun appendMissing(stringValues: StringValues)
     public fun appendAll(name: String, values: Iterable<String>)
+    public fun appendMissing(stringValues: StringValues)
     public fun appendMissing(name: String, values: Iterable<String>)
     public fun remove(name: String)
     public fun removeKeysWithNoEntries()
@@ -460,6 +462,56 @@ public fun StringValuesBuilder.appendIfNameAbsent(name: String, value: String): 
 public fun StringValuesBuilder.appendIfNameAndValueAbsent(name: String, value: String): StringValuesBuilder = apply {
     if (contains(name, value)) return@apply
     append(name, value)
+}
+
+/**
+ * Appends multiple key-value pairs to this builder
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.appendAll)
+ *
+ * @param values the key-value pairs to append
+ * @return this builder instance
+ */
+public fun StringValuesBuilder.appendAll(vararg values: Pair<String, String>): StringValuesBuilder = apply {
+    values.forEach { (key, value) -> append(key, value) }
+}
+
+/**
+ * Appends multiple key-value pairs where values are [Iterable] to this builder
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.appendAll)
+ *
+ * @param values the key-value pairs to append where values are [Iterable] of strings
+ * @return this builder instance
+ */
+@JvmName("appendAllIterable")
+public fun StringValuesBuilder.appendAll(vararg values: Pair<String, Iterable<String>>): StringValuesBuilder = apply {
+    values.forEach { (key, value) -> appendAll(key, value) }
+}
+
+/**
+ * Appends multiple key-value pairs from a [Map] where values are [Iterable] to this builder
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.appendAll)
+ *
+ * @param values the map containing key-value pairs to append where values are [Iterable] of strings
+ * @return this builder instance
+ */
+@JvmName("appendAllIterable")
+public fun StringValuesBuilder.appendAll(values: Map<String, Iterable<String>>): StringValuesBuilder = apply {
+    values.forEach { (key, value) -> appendAll(key, value) }
+}
+
+/**
+ * Appends multiple key-value pairs from a [Map] to this builder
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.appendAll)
+ *
+ * @param values the map containing key-value pairs to append
+ * @return this builder instance
+ */
+public fun StringValuesBuilder.appendAll(values: Map<String, String>): StringValuesBuilder = apply {
+    values.forEach { (key, value) -> append(key, value) }
 }
 
 private fun entriesEquals(a: Set<Map.Entry<String, List<String>>>, b: Set<Map.Entry<String, List<String>>>): Boolean {

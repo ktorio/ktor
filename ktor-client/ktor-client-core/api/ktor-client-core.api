@@ -141,8 +141,8 @@ public abstract interface class io/ktor/client/engine/HttpClientEngine : java/io
 	public abstract fun execute (Lio/ktor/client/request/HttpRequestData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getConfig ()Lio/ktor/client/engine/HttpClientEngineConfig;
 	public abstract fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
-	public abstract fun getSupportedCapabilities ()Ljava/util/Set;
-	public abstract fun install (Lio/ktor/client/HttpClient;)V
+	public fun getSupportedCapabilities ()Ljava/util/Set;
+	public fun install (Lio/ktor/client/HttpClient;)V
 }
 
 public final class io/ktor/client/engine/HttpClientEngine$DefaultImpls {
@@ -180,6 +180,7 @@ public class io/ktor/client/engine/HttpClientEngineConfig {
 
 public abstract interface class io/ktor/client/engine/HttpClientEngineFactory {
 	public abstract fun create (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/engine/HttpClientEngine;
+	public static synthetic fun create$default (Lio/ktor/client/engine/HttpClientEngineFactory;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/client/engine/HttpClientEngine;
 }
 
 public final class io/ktor/client/engine/HttpClientEngineFactory$DefaultImpls {
@@ -263,8 +264,10 @@ public final class io/ktor/client/plugins/DefaultRequest$DefaultRequestBuilder :
 	public final fun getPort ()I
 	public final fun getUrl ()Lio/ktor/http/URLBuilder;
 	public final fun setAttributes (Lkotlin/jvm/functions/Function1;)V
+	public final fun setCapability (Lio/ktor/client/engine/HttpClientEngineCapability;Ljava/lang/Object;)V
 	public final fun setHost (Ljava/lang/String;)V
 	public final fun setPort (I)V
+	public final fun unixSocket (Ljava/lang/String;)V
 	public final fun url (Ljava/lang/String;)V
 	public final fun url (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public final fun url (Lkotlin/jvm/functions/Function1;)V
@@ -315,6 +318,7 @@ public abstract interface class io/ktor/client/plugins/HttpClientPlugin {
 	public abstract fun getKey ()Lio/ktor/util/AttributeKey;
 	public abstract fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
 	public abstract fun prepare (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public static synthetic fun prepare$default (Lio/ktor/client/plugins/HttpClientPlugin;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class io/ktor/client/plugins/HttpClientPlugin$DefaultImpls {
@@ -1177,7 +1181,7 @@ public abstract interface class io/ktor/client/request/HttpRequest : io/ktor/htt
 	public abstract fun getAttributes ()Lio/ktor/util/Attributes;
 	public abstract fun getCall ()Lio/ktor/client/call/HttpClientCall;
 	public abstract fun getContent ()Lio/ktor/http/content/OutgoingContent;
-	public abstract fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public abstract fun getMethod ()Lio/ktor/http/HttpMethod;
 	public abstract fun getUrl ()Lio/ktor/http/Url;
 }

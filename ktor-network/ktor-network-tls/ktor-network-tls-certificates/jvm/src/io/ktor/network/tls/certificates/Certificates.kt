@@ -7,20 +7,26 @@ package io.ktor.network.tls.certificates
 import io.ktor.network.tls.*
 import io.ktor.network.tls.extensions.*
 import io.ktor.utils.io.core.*
-import kotlinx.io.*
-import java.io.*
-import java.math.*
-import java.net.*
+import kotlinx.io.Sink
+import kotlinx.io.readByteArray
+import kotlinx.io.writeUByte
+import java.io.File
+import java.math.BigInteger
+import java.net.Inet4Address
+import java.net.InetAddress
 import java.security.*
-import java.security.cert.*
 import java.security.cert.Certificate
-import java.time.*
-import java.time.format.*
-import javax.net.ssl.*
-import javax.security.auth.x500.*
-import kotlin.time.*
+import java.security.cert.CertificateFactory
+import java.security.cert.X509Certificate
+import java.time.Instant
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import javax.net.ssl.TrustManager
+import javax.net.ssl.TrustManagerFactory
+import javax.security.auth.x500.X500Principal
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
+import kotlin.time.toJavaDuration
 import kotlin.use
 
 internal val DEFAULT_PRINCIPAL = X500Principal("CN=localhost, OU=Kotlin, O=JetBrains, C=RU")

@@ -318,7 +318,7 @@ public final class io/ktor/http/Cookie : java/io/Serializable {
 	public fun toString ()Ljava/lang/String;
 }
 
-public synthetic class io/ktor/http/Cookie$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+public final synthetic class io/ktor/http/Cookie$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
 	public static final field INSTANCE Lio/ktor/http/Cookie$$serializer;
 	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
 	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/http/Cookie;
@@ -326,6 +326,7 @@ public synthetic class io/ktor/http/Cookie$$serializer : kotlinx/serialization/i
 	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
 	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/http/Cookie;)V
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
 }
 
 public final class io/ktor/http/Cookie$Companion {

@@ -148,7 +148,7 @@ public class JacksonConverter(
 /**
  * Registers the `application/json` content type to the [ContentNegotiation] plugin using Jackson.
  *
- * You can learn more from [Content negotiation and serialization](https://ktor.io/docs/serialization.html).
+ * You can learn more from the corresponding [client](https://ktor.io/docs/client-serialization.html#-3bcvpz_158) and [server](https://ktor.io/docs/server-serialization.html#-230zkf_175) documentation.
  *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.jackson.jackson)

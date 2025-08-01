@@ -12,6 +12,7 @@ kotlin {
     sourceSets {
         commonTest.dependencies {
             implementation(projects.ktorServerCallId)
+            implementation(projects.ktorServerAuth)
         }
     }
 }

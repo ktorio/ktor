@@ -10,6 +10,8 @@ package io.ktor.server.plugins.di.annotations
  *
  * This is used for the declaration when applied to a type for function, or to the
  * resolution when applied to a parameter.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.annotations.Named)
  */
 @Retention(AnnotationRetention.RUNTIME)
 @Target(

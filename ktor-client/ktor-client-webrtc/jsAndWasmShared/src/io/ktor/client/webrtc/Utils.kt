@@ -101,6 +101,14 @@ internal fun String?.toSignalingState(): WebRtc.SignalingState = when (this) {
     else -> error("Unknown signaling state: $this")
 }
 
+internal fun String?.toDataChannelState(): WebRtc.DataChannel.State = when (this) {
+    "connecting" -> WebRtc.DataChannel.State.CONNECTING
+    "open" -> WebRtc.DataChannel.State.OPEN
+    "closing" -> WebRtc.DataChannel.State.CLOSING
+    "closed" -> WebRtc.DataChannel.State.CLOSED
+    else -> error("Unknown data channel state: $this")
+}
+
 internal inline fun <T> withPermissionException(mediaType: String, block: () -> T): T {
     try {
         return block()

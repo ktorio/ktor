@@ -489,12 +489,12 @@ public external class RTCDataChannel : EventTarget {
     public fun send(data: Blob)
     public fun send(data: ArrayBuffer)
     public fun send(data: ArrayBufferView)
-    public var onopen: ((self: RTCDataChannel, ev: Event) -> JsAny)?
-    public var onmessage: ((self: RTCDataChannel, ev: MessageEvent) -> JsAny)?
-    public var onbufferedamountlow: ((self: RTCDataChannel, ev: Event) -> JsAny)?
-    public var onclose: ((self: RTCDataChannel, ev: Event) -> JsAny)?
+    public var onopen: ((ev: Event) -> Unit)?
+    public var onmessage: ((ev: MessageEvent) -> Unit)?
+    public var onbufferedamountlow: ((ev: Event) -> Unit)?
+    public var onclose: ((ev: Event) -> Unit)?
     public var binaryType: JsString
-    public var onerror: ((self: RTCDataChannel, ev: RTCErrorEvent) -> JsAny)?
+    public var onerror: ((ev: RTCErrorEvent) -> Unit)?
     public var priority: JsString /* "high" | "low" | "medium" | "very-low" */
 }
 
@@ -634,7 +634,7 @@ public external class RTCPeerConnection(config: RTCConfiguration) : EventTarget 
     ): RTCDataChannel
 
     public fun createDataChannel(label: JsString?): RTCDataChannel
-    public var ondatachannel: ((self: RTCPeerConnection, ev: RTCDataChannelEvent) -> JsAny)?
+    public var ondatachannel: ((ev: RTCDataChannelEvent) -> Unit)?
     public fun getStats(selector: MediaStreamTrack? = definedExternally): Promise<RTCStatsReport>
     public fun getStats(): Promise<RTCStatsReport>
     public fun createOffer(

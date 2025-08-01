@@ -11,6 +11,7 @@ import io.ktor.server.engine.*
 import io.ktor.utils.io.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
+import java.util.concurrent.CancellationException
 import kotlin.coroutines.*
 
 public abstract class NettyApplicationResponse(
@@ -60,13 +61,35 @@ public abstract class NettyApplicationResponse(
         responseMessage = message
         responseReady.setSuccess()
         responseMessageSent = true
+
+        awaitProcessingResponseIfInfoOrNoContent()
     }
 
     override suspend fun responseChannel(): ByteWriteChannel {
         val channel = ByteChannel()
         val chunked = headers[HttpHeaders.TransferEncoding] == "chunked"
         sendResponse(chunked, content = channel)
+
+        awaitProcessingResponseIfInfoOrNoContent()
+
         return channel
+    }
+
+    /**
+     * Await the [NettyApplicationCall.responseWriteJob] to complete if the response status is informational or 204.
+     * Netty discards certain headers of such responses, so we have to wait for Netty to finish that,
+     * in order to avoid the race condition.
+     */
+    private suspend fun awaitProcessingResponseIfInfoOrNoContent() {
+        val status = status()
+
+        if (status != null) {
+            val infoOrNoContent = status == HttpStatusCode.NoContent || (status.value >= 100 && status.value < 200)
+
+            if (infoOrNoContent && call is NettyApplicationCall) {
+                (call as NettyApplicationCall).responseWriteJob.join()
+            }
+        }
     }
 
     override suspend fun respondNoContent(content: OutgoingContent.NoContent) {
@@ -122,7 +145,7 @@ public abstract class NettyApplicationResponse(
     public fun cancel() {
         if (!responseMessageSent) {
             responseChannel = ByteReadChannel.Empty
-            responseReady.setFailure(java.util.concurrent.CancellationException("Response was cancelled"))
+            responseReady.setFailure(CancellationException("Response was cancelled"))
             responseMessageSent = true
         }
     }

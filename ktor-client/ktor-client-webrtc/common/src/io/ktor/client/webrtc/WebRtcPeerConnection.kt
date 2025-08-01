@@ -4,8 +4,9 @@
 
 package io.ktor.client.webrtc
 
-import io.ktor.utils.io.core.Closeable
+import io.ktor.utils.io.core.*
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
@@ -16,9 +17,9 @@ import kotlin.coroutines.CoroutineContext
  * @see [MDN RTCPeerConnection](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection)
  */
 public abstract class WebRtcPeerConnection private constructor(
-    override val coroutineContext: CoroutineContext,
-    internal val events: WebRtcConnectionEventsEmitter
-) : CoroutineScope, Closeable, WebRtcConnectionEvents by events {
+    internal val events: WebRtcConnectionEventsEmitter,
+    protected val coroutineScope: CoroutineScope
+) : Closeable, WebRtcConnectionEvents by events {
 
     /**
      * @param coroutineContext Coroutine context to fetch statistics and emit events.
@@ -27,10 +28,10 @@ public abstract class WebRtcPeerConnection private constructor(
     public constructor(
         coroutineContext: CoroutineContext,
         config: WebRtcConnectionConfig
-    ) : this(coroutineContext, events = WebRtcConnectionEventsEmitter(coroutineContext, config)) {
+    ) : this(events = WebRtcConnectionEventsEmitter(config), coroutineScope = CoroutineScope(coroutineContext)) {
         // Start fetching statistics
         if (config.statsRefreshRate > 0) {
-            launch {
+            coroutineScope.launch {
                 while (true) {
                     delay(config.statsRefreshRate)
                     events.emitStats(getStatistics())
@@ -62,6 +63,11 @@ public abstract class WebRtcPeerConnection private constructor(
      * @return The session description representing the answer.
      */
     public abstract suspend fun createAnswer(): WebRtc.SessionDescription
+
+    public abstract suspend fun createDataChannel(
+        label: String,
+        options: (WebRtcDataChannelOptions.() -> Unit) = {}
+    ): WebRtcDataChannel
 
     /**
      * Sets the local session description.
@@ -111,4 +117,8 @@ public abstract class WebRtcPeerConnection private constructor(
      * Returns data providing statistics about the overall connection.
      */
     public abstract suspend fun getStatistics(): List<WebRtc.Stats>
+
+    override fun close() {
+        coroutineScope.cancel()
+    }
 }

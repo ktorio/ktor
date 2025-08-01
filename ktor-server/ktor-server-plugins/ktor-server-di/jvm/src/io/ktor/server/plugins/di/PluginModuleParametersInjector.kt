@@ -4,9 +4,7 @@
 
 package io.ktor.server.plugins.di
 
-import io.ktor.server.application.Application
-import io.ktor.server.application.ModuleParametersInjector
-import kotlin.getValue
+import io.ktor.server.application.*
 import kotlin.reflect.KParameter
 
 /**
@@ -18,15 +16,13 @@ import kotlin.reflect.KParameter
  * parameter values from the application's dependency container.
  */
 internal class PluginModuleParametersInjector : ModuleParametersInjector {
-    override fun resolveParameter(
+    override suspend fun resolveParameter(
         application: Application,
         parameter: KParameter
     ): Any? {
-        val reflection = application.dependencies.reflection as? DependencyReflectionJvm
-            ?: DependencyReflectionJvm()
-        val parameterValue by lazy<Any> {
-            application.dependencies.get(reflection.toDependencyKey(parameter))
-        }
-        return parameterValue
+        val dependencies = application.dependencies
+        val reflection = dependencies.reflection as? DependencyReflectionJvm ?: DependencyReflectionJvm()
+        val key = reflection.toDependencyKey(parameter).also(dependencies::require)
+        return dependencies.get(key)
     }
 }

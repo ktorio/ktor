@@ -24,8 +24,6 @@ import java.util.*
 import javax.net.ssl.HttpsURLConnection
 import kotlin.coroutines.CoroutineContext
 
-private val METHODS_WITHOUT_BODY = listOf(HttpMethod.Get, HttpMethod.Head)
-
 /**
  * An Android client engine.
  *
@@ -64,7 +62,7 @@ public class AndroidClientEngine(override val config: AndroidEngineConfig) : Htt
 
             config.requestConfig(this)
 
-            if (data.method in METHODS_WITHOUT_BODY) {
+            if (!data.method.supportsRequestBody) {
                 if (outgoingContent.isEmpty()) {
                     return@apply
                 }

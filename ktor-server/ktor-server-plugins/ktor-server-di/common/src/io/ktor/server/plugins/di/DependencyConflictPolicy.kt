@@ -4,16 +4,15 @@
 
 package io.ktor.server.plugins.di
 
-import io.ktor.server.plugins.di.DependencyConflictResult.Ambiguous
-import io.ktor.server.plugins.di.DependencyConflictResult.Conflict
-import io.ktor.server.plugins.di.DependencyConflictResult.KeepNew
-import io.ktor.server.plugins.di.DependencyConflictResult.KeepPrevious
+import io.ktor.server.plugins.di.DependencyConflictResult.*
 
 /**
  * Defines a policy for resolving conflicts between two dependency creation functions.
  *
  * This mechanism is used to manage dependency resolutions in scenarios where multiple
  * initializers are registered for the same dependency key.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyConflictPolicy)
  */
 public fun interface DependencyConflictPolicy {
 
@@ -24,13 +23,15 @@ public fun interface DependencyConflictPolicy {
      * the conflict between the previously registered dependency creation function
      * and the currently provided one.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyConflictPolicy.resolve)
+     *
      * @param prev The previously registered dependency creation function.
      * @param current The newly provided dependency creation function.
      * @return The result of the conflict resolution, encapsulated in a `DependencyConflictResult`.
      *
      * @see DependencyConflictResult
      */
-    public fun resolve(prev: DependencyCreateFunction, current: DependencyCreateFunction): DependencyConflictResult
+    public fun resolve(prev: DependencyInitializer, current: DependencyInitializer): DependencyConflictResult
 }
 
 /**
@@ -45,13 +46,15 @@ public fun interface DependencyConflictPolicy {
  * - `Ambiguous`: Mark the conflict as ambiguous and unresolved.
  * - `Conflict`: Indicate a detected irreconcilable conflict that cannot be resolved.
  * - `Replace`: Replace the existing dependency with a specific creation function.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyConflictResult)
  */
 public sealed interface DependencyConflictResult {
     public data object KeepPrevious : DependencyConflictResult
     public data object KeepNew : DependencyConflictResult
     public data object Ambiguous : DependencyConflictResult
     public data object Conflict : DependencyConflictResult
-    public data class Replace(public val function: DependencyCreateFunction) : DependencyConflictResult
+    public data class Replace(public val function: DependencyInitializer) : DependencyConflictResult
 }
 
 /**
@@ -59,14 +62,16 @@ public sealed interface DependencyConflictResult {
  *
  * When two declarations are made for the same type, a duplicate exception is thrown.
  * When there are multiple declarations that match the same implicit keys, then an ambiguous exception is thrown.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DefaultConflictPolicy)
  */
 public val DefaultConflictPolicy: DependencyConflictPolicy = DependencyConflictPolicy { prev, current ->
-    require(current !is AmbiguousCreateFunction) { "Unexpected ambiguous function supplied" }
+    require(current !is DependencyInitializer.Ambiguous) { "Unexpected ambiguous function supplied" }
     val diff = current.distance() - prev.distance()
     when {
         diff < 0 -> KeepNew
         diff > 0 || current == prev -> KeepPrevious
-        prev is ExplicitCreateFunction -> Conflict
+        prev is DependencyInitializer.Explicit -> Conflict
         else -> Ambiguous
     }
 }
@@ -74,6 +79,8 @@ public val DefaultConflictPolicy: DependencyConflictPolicy = DependencyConflictP
 /**
  * During testing, we ignore conflicts.
  * This allows for replacing base implementations with mock values.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.IgnoreConflicts)
  */
 public val IgnoreConflicts: DependencyConflictPolicy = DependencyConflictPolicy { prev, current ->
     when (val result = DefaultConflictPolicy.resolve(prev, current)) {
@@ -82,8 +89,11 @@ public val IgnoreConflicts: DependencyConflictPolicy = DependencyConflictPolicy 
     }
 }
 
-private fun DependencyCreateFunction.distance(): Int = when (this) {
-    is ExplicitCreateFunction -> -1
-    is ImplicitCreateFunction -> distance
-    is AmbiguousCreateFunction -> functions.first().distance()
+private fun DependencyInitializer.distance(): Int = when (this) {
+    is DependencyInitializer.Explicit,
+    is DependencyInitializer.Value -> -1
+    is DependencyInitializer.Implicit -> distance
+    is DependencyInitializer.Ambiguous -> functions.minOf { it.distance() }
+    is DependencyInitializer.Missing,
+    is DependencyInitializer.Null -> Int.MAX_VALUE
 }

@@ -1,4 +1,4 @@
-public final class io/ktor/client/engine/mock/MockEngine : io/ktor/client/engine/HttpClientEngineBase {
+public class io/ktor/client/engine/mock/MockEngine : io/ktor/client/engine/HttpClientEngineBase {
 	public static final field Companion Lio/ktor/client/engine/mock/MockEngine$Companion;
 	public fun <init> (Lio/ktor/client/engine/mock/MockEngineConfig;)V
 	public fun close ()V
@@ -13,6 +13,16 @@ public final class io/ktor/client/engine/mock/MockEngine : io/ktor/client/engine
 public final class io/ktor/client/engine/mock/MockEngine$Companion : io/ktor/client/engine/HttpClientEngineFactory {
 	public fun create (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/engine/HttpClientEngine;
 	public final fun invoke (Lkotlin/jvm/functions/Function3;)Lio/ktor/client/engine/mock/MockEngine;
+}
+
+public final class io/ktor/client/engine/mock/MockEngine$Queue : io/ktor/client/engine/mock/MockEngine {
+	public fun <init> ()V
+	public fun <init> (Lio/ktor/client/engine/mock/MockEngineConfig;)V
+	public synthetic fun <init> (Lio/ktor/client/engine/mock/MockEngineConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun enqueue (Lkotlin/jvm/functions/Function3;)Z
+	public synthetic fun getConfig ()Lio/ktor/client/engine/HttpClientEngineConfig;
+	public fun getConfig ()Lio/ktor/client/engine/mock/MockEngineConfig;
+	public final fun plusAssign (Lkotlin/jvm/functions/Function3;)V
 }
 
 public final class io/ktor/client/engine/mock/MockEngineConfig : io/ktor/client/engine/HttpClientEngineConfig {
