@@ -36,6 +36,10 @@ kotlin {
             implementation(project(":ktor-test-dispatcher"))
         }
 
+        jsAndWasmSharedMain.dependencies {
+            implementation(kotlinWrappers.browser)
+        }
+
         wasmJs {
             compilerOptions {
                 freeCompilerArgs.add("-Xwasm-attach-js-exception")

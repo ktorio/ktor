@@ -24,6 +24,10 @@ dependencyResolutionManagement {
 
             downgradeTestDependencies()
         }
+
+        create("kotlinWrappers") {
+            from("org.jetbrains.kotlin-wrappers:kotlin-wrappers-catalog:2025.7.10")
+        }
     }
 }
 

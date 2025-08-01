@@ -4,6 +4,8 @@
 
 package io.ktor.client.webrtc
 
+import web.rtc.RTCPeerConnection
+
 public external interface JsPeerConnectionConfig
 
 public class JsWebRtcEngineConfig : WebRtcConfig()
@@ -11,6 +13,19 @@ public class JsWebRtcEngineConfig : WebRtcConfig()
 /**
  * Common WebRtc Engine factory interface for JS and WasmJS targets.
  **/
-public expect object JsWebRtc : WebRtcClientEngineFactory<JsWebRtcEngineConfig> {
-    override fun create(block: JsWebRtcEngineConfig.() -> Unit): WebRtcEngine
+public object JsWebRtc : WebRtcClientEngineFactory<JsWebRtcEngineConfig> {
+    override fun create(block: JsWebRtcEngineConfig.() -> Unit): WebRtcEngine =
+        JsWebRtcEngine(JsWebRtcEngineConfig().apply(block))
+}
+
+public class JsWebRtcEngine(
+    override val config: JsWebRtcEngineConfig,
+    private val mediaTrackFactory: MediaTrackFactory = config.mediaTrackFactory ?: NavigatorMediaDevices
+) : WebRtcEngineBase("js-webrtc"), MediaTrackFactory by mediaTrackFactory {
+
+    override suspend fun createPeerConnection(config: WebRtcConnectionConfig): WebRtcPeerConnection {
+        val nativePeerConnection = RTCPeerConnection(configuration = config.toJs())
+        val coroutineContext = createConnectionContext(userProvidedContext = config.coroutineContext)
+        return JsWebRtcPeerConnection(nativePeerConnection, coroutineContext, config)
+    }
 }
