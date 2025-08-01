@@ -108,24 +108,31 @@ public class TestApplicationEngine(
             try {
                 call.application.execute(call)
             } catch (cause: Throwable) {
-                handleTestFailure(cause)
+                @Suppress("INVISIBLE_REFERENCE")
+                val routeCall = call.attributes.getOrNull(io.ktor.server.routing.routingCallKey)
+                if (routeCall != null) {
+                    handleTestFailure(routeCall, cause)
+                } else {
+                    handleTestFailure(call, cause)
+                }
             }
         }
     }
 
-    private suspend fun PipelineContext<Unit, PipelineCall>.handleTestFailure(cause: Throwable) {
+    private suspend fun handleTestFailure(call: ApplicationCall, cause: Throwable) {
         logError(call, cause)
 
         val throwOnException = environment.config
             .propertyOrNull(CONFIG_KEY_THROW_ON_EXCEPTION)
             ?.getString()?.toBoolean() != false
         tryRespondError(
+            call,
             defaultExceptionStatusCode(cause)
                 ?: if (throwOnException) throw cause else HttpStatusCode.InternalServerError
         )
     }
 
-    private suspend fun PipelineContext<Unit, PipelineCall>.tryRespondError(statusCode: HttpStatusCode) {
+    private suspend fun tryRespondError(call: ApplicationCall, statusCode: HttpStatusCode) {
         try {
             call.respond(statusCode)
         } catch (ignore: BaseApplicationResponse.ResponseAlreadySentException) {

@@ -3,7 +3,6 @@
  */
 
 import ktorbuild.*
-import java.time.Year
 
 plugins {
     id("ktorbuild.base")
@@ -17,11 +16,6 @@ dokka {
     moduleName = "Ktor"
 
     pluginsConfiguration {
-        html {
-            customAssets.from("assets/logo-icon.svg")
-            footerMessage = "© ${Year.now()} JetBrains s.r.o and contributors. Apache License 2.0"
-        }
-
         versioning {
             version = projectVersion
             if (dokkaVersionsDirectory != null) olderVersionsDir = dokkaVersionsDirectory

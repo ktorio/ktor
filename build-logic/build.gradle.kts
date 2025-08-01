@@ -15,6 +15,7 @@ dependencies {
     implementation(libs.develocity)
     implementation(libs.gradleDoctor)
     implementation(libs.kotlinter)
+    implementation(libs.mavenPublishing)
     implementation(libs.android.kmp.library)
 
     // A hack to make version catalogs accessible from buildSrc sources

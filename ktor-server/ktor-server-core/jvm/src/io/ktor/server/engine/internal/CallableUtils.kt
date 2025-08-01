@@ -10,11 +10,12 @@ import java.lang.reflect.Modifier
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
+import kotlin.reflect.full.callSuspendBy
 import kotlin.reflect.full.functions
 import kotlin.reflect.jvm.javaType
 import kotlin.reflect.jvm.kotlinFunction
 
-internal fun executeModuleFunction(
+internal suspend fun executeModuleFunction(
     classLoader: ClassLoader,
     fqName: String,
     application: Application,
@@ -32,9 +33,9 @@ internal fun executeModuleFunction(
         ?: throw ReloadingException("Module function cannot be found for the fully qualified name '$fqName'")
 
     val staticFunctions = clazz.methods
-        .filter { it.name == functionName && Modifier.isStatic(it.modifiers) }
+        .filter { Modifier.isStatic(it.modifiers) }
         .mapNotNull { it.kotlinFunction }
-        .filter { it.isApplicableFunction() }
+        .filter { it.name == functionName && it.isApplicableFunction() }
 
     staticFunctions.bestFunction()?.let { moduleFunction ->
         if (moduleFunction.parameters.none { it.kind == KParameter.Kind.INSTANCE }) {
@@ -77,7 +78,7 @@ internal fun executeModuleFunction(
     throw ClassNotFoundException("Module function cannot be found for the fully qualified name '$fqName'")
 }
 
-private fun createModuleContainer(
+private suspend fun createModuleContainer(
     applicationEntryClass: KClass<*>,
     application: Application,
     moduleInjector: ModuleParametersInjector
@@ -95,7 +96,7 @@ private fun createModuleContainer(
     return callFunctionWithInjection(null, constructor, application, moduleInjector)
 }
 
-private fun <R> callFunctionWithInjection(
+private suspend fun <R> callFunctionWithInjection(
     instance: Any?,
     entryPoint: KFunction<R>,
     application: Application,
@@ -106,23 +107,23 @@ private fun <R> callFunctionWithInjection(
             parameter.kind == KParameter.Kind.INSTANCE -> instance
             isApplicationEnvironment(parameter) -> application.environment
             isApplication(parameter) -> application
-            parameter.type.toString().contains("Application") -> {
-                // It is possible that type is okay, but classloader is not
-                val classLoader = (parameter.type.javaType as? Class<*>)?.classLoader
-                throw IllegalArgumentException(
-                    "Parameter type ${parameter.type}:{$classLoader} is not supported." +
-                        "Application is loaded as " +
-                        "$ApplicationClassInstance:{${ApplicationClassInstance.classLoader}}"
-                )
-            }
+
             else -> {
-                val injectedValue = runCatching {
-                    moduleInjector.resolveParameter(application, parameter)
-                }
+                val injectedValue = runCatching { moduleInjector.resolveParameter(application, parameter) }
                 when {
                     injectedValue.isSuccess -> injectedValue.getOrThrow()
                     parameter.isOptional -> return@mapNotNull null // skip
                     parameter.type.isMarkedNullable -> null // value = null
+                    // This check should go last
+                    parameter.type.toString().contains("Application") -> {
+                        // It is possible that type is okay, but classloader is not
+                        val classLoader = (parameter.type.javaType as? Class<*>)?.classLoader
+                        throw IllegalArgumentException(
+                            "Parameter type ${parameter.type}:{$classLoader} is not supported. " +
+                                "Application is loaded as " +
+                                "$ApplicationClassInstance:{${ApplicationClassInstance.classLoader}}"
+                        )
+                    }
                     else -> throw IllegalArgumentException(
                         "Failed to inject parameter `${parameter.name ?: "<receiver>"}: ${parameter.type}` " +
                             "in module function `$entryPoint`",
@@ -134,7 +135,7 @@ private fun <R> callFunctionWithInjection(
     }.toMap()
 
     try {
-        return entryPoint.callBy(args)
+        return entryPoint.callSuspendBy(args)
     } catch (cause: InvocationTargetException) {
         throw cause.cause ?: cause
     }

@@ -11,7 +11,6 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinHierarchyBuilder
 import org.jetbrains.kotlin.gradle.plugin.KotlinHierarchyTemplate
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
-import org.jetbrains.kotlin.konan.target.REMOVED_TARGET_MESSAGE
 
 private typealias GroupedSourceSets = MutableMap<String, MutableSet<String>>
 
@@ -112,7 +111,7 @@ private class KotlinHierarchyTrackerImpl(
     }
     //endregion
 
-    //region Actual targets
+    //region Targets
     override fun withJs() = addTarget("js")
     override fun withJvm() = addTarget("jvm")
 
@@ -120,7 +119,6 @@ private class KotlinHierarchyTrackerImpl(
     override fun withWasm() = withWasmJs()
     override fun withWasmJs() = addTarget("wasmJs")
     override fun withWasmWasi() = addTarget("wasmWasi")
-
     override fun withAndroidTarget() = addTarget("android")
     override fun withAndroidNativeX64() = addTarget("androidNativeX64")
     override fun withAndroidNativeX86() = addTarget("androidNativeX86")

@@ -26,7 +26,10 @@ private val Logger: Logger = KtorSimpleLogger("io.ktor.auth.oauth")
 
 internal suspend fun ApplicationCall.oauth2HandleCallback(): OAuthCallback? {
     val params = when (request.contentType()) {
-        ContentType.Application.FormUrlEncoded -> receiveParameters()
+        ContentType.Application.FormUrlEncoded -> {
+            attributes.put(cacheOAuthFormReceiveKey, Unit)
+            receiveParameters()
+        }
         else -> parameters
     }
     val code = params[OAuth2RequestParameters.Code]

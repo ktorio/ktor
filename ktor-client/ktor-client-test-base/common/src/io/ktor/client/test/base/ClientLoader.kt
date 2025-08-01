@@ -115,6 +115,14 @@ abstract class ClientLoader(private val timeout: Duration = 1.minutes) {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.test.base.ClientLoader.except)
      */
+    fun except(engineList: List<String>, vararg engines: String): EngineSelectionRule =
+        except(engineList + engines.asList())
+
+    /**
+     * Excludes the specified [engines] from test execution.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.test.base.ClientLoader.except)
+     */
     fun except(engines: List<String>): EngineSelectionRule {
         val skipPatterns = engines.map(EnginePattern::parse)
         return EngineSelectionRule { engineName -> skipPatterns.none { it.matches(engineName) } }

@@ -51,6 +51,8 @@ public fun Source.readAvailable(out: kotlinx.io.Buffer): Int {
 
 /**
  * Returns a copy of the current buffer attached to this Source.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.core.copy)
  */
 @Deprecated(
     "Use peek() or buffer.copy() instead, depending on your use case.",

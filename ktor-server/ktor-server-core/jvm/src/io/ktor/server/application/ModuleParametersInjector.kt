@@ -16,8 +16,9 @@ import kotlin.reflect.KParameter
  * }
  * ```
  *
- *
  * By default, parameters like `ApplicationEnvironment` are resolved automatically.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ModuleParametersInjector)
  */
 public fun interface ModuleParametersInjector {
     public companion object {
@@ -28,8 +29,10 @@ public fun interface ModuleParametersInjector {
 
     /**
      * Given the [Application] instance as context, resolves the expected value of the provided [KParameter].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ModuleParametersInjector.resolveParameter)
      */
-    public fun resolveParameter(
+    public suspend fun resolveParameter(
         application: Application,
         parameter: KParameter
     ): Any?

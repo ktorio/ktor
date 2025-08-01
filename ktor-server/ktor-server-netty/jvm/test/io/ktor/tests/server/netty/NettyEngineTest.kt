@@ -149,3 +149,5 @@ class NettyServerPluginsTest : ServerPluginsTestSuite<NettyApplicationEngine, Ne
         enableHttp2 = false
     }
 }
+
+class NettyHooksTest : HooksTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty)

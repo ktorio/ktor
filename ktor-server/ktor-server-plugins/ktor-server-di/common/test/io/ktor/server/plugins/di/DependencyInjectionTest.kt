@@ -24,7 +24,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestResult
@@ -112,23 +111,16 @@ class DependencyInjectionTest {
     fun missing() = runTestWithRealTime {
         assertFailsWith<MissingDependencyException> {
             testDI {
-                val service: GreetingService by dependencies
+                val service: GreetingService = dependencies.resolve()
                 fail("Should fail but found $service")
             }
         }
     }
 
     @Test
-    fun `resolution out of order`() = runTestDI {
-        assertFailsWith<OutOfOrderDependencyException> {
-            dependencies { provide<GreetingService> { GreetingServiceImpl() } }
-            assertNotNull(dependencies.resolve<GreetingService>())
-            dependencies { provide<String> { "Hello" } }
-        }
-    }
-
-    @Test
-    fun `conflicting declarations`() = runTestDI {
+    fun `conflicting declarations`() = runTestDI({
+        conflictPolicy = DefaultConflictPolicy
+    }) {
         assertFailsWith<DuplicateDependencyException> {
             dependencies { provide<GreetingService> { GreetingServiceImpl() } }
             dependencies { provide<GreetingService> { BankGreetingService() } }
@@ -189,7 +181,7 @@ class DependencyInjectionTest {
             dependencies { provide<GreetingService> { BankGreetingService() } }
             dependencies { provide<GreetingService> { GreetingServiceImpl() } }
 
-            val service: GreetingService by dependencies
+            val service: GreetingService = dependencies.resolve()
             assertEquals(HELLO_CUSTOMER, service.hello())
         }
     }
@@ -203,7 +195,7 @@ class DependencyInjectionTest {
                     provide<PaidWork> { PaidWork(resolve()) }
                     provide<List<PaidWork>> { listOf(resolve()) }
                 }
-                val eligibleJobs: List<PaidWork> by dependencies
+                val eligibleJobs: List<PaidWork> = dependencies.resolve()
                 fail("This should fail but returned $eligibleJobs")
             }
         }
@@ -215,7 +207,7 @@ class DependencyInjectionTest {
             provide<GreetingService> { GreetingServiceImpl() }
         }
 
-        val service: GreetingService by dependencies
+        val service: GreetingService = dependencies.resolve()
         assertEquals(HELLO, service.hello())
     }
 
@@ -229,8 +221,7 @@ class DependencyInjectionTest {
             }
         }
 
-        val delegatedService: GreetingService by dependencies
-        assertEquals(0, callCount, "Delegated properties should be lazily resolved")
+        val delegatedService: GreetingService = dependencies.resolve()
         assertEquals(HELLO, delegatedService.hello())
         assertEquals(1, callCount)
         assertEquals(HELLO, dependencies.resolve<GreetingService>().hello())
@@ -244,7 +235,7 @@ class DependencyInjectionTest {
             provide<GreetingService>(name = "test") { GreetingServiceImpl() }
         }
 
-        val service: GreetingService by dependencies.named("test")
+        val service: GreetingService = dependencies.resolve("test")
         assertEquals(HELLO, service.hello())
     }
 
@@ -254,7 +245,7 @@ class DependencyInjectionTest {
             provide<() -> GreetingService> { { GreetingServiceImpl() } }
         }
 
-        val service: () -> GreetingService by dependencies
+        val service: () -> GreetingService = dependencies.resolve()
         assertEquals(HELLO, service().hello())
     }
 
@@ -266,7 +257,7 @@ class DependencyInjectionTest {
             provide(::BankTeller)
         }
 
-        val service: BankTeller by dependencies
+        val service: BankTeller = dependencies.resolve()
         assertEquals(HELLO, service.hello())
     }
 
@@ -277,7 +268,7 @@ class DependencyInjectionTest {
             provide<List<GreetingService>> { listOf(resolve(), resolve()) }
         }
 
-        val services: List<GreetingService> by dependencies
+        val services: List<GreetingService> = dependencies.resolve()
         for (service in services) {
             assertEquals(HELLO, service.hello())
             assertFailsWith<MissingDependencyException> {
@@ -303,9 +294,9 @@ class DependencyInjectionTest {
             }
         }
 
-        val service: GreetingService by dependencies
-        val stringList: List<String> by dependencies.named("my-strings")
-        val anyList: List<Any> by dependencies.named("my-list")
+        val service: GreetingService = dependencies.resolve()
+        val stringList: List<String> = dependencies.resolve("my-strings")
+        val anyList: List<Any> = dependencies.resolve("my-list")
 
         assertEquals(HELLO, service.hello())
         assertEquals(expectedStringList, stringList)
@@ -316,58 +307,35 @@ class DependencyInjectionTest {
     }
 
     @Test
-    fun `custom provider`() = testApplication {
-        val assignmentKeys = mutableListOf<DependencyKey>()
-        install(DI) {
-            val delegate = MapDependencyProvider()
-            provider = object : DependencyProvider by delegate {
-                override fun <T> set(
-                    key: DependencyKey,
-                    value: DependencyResolver.() -> T
-                ) {
-                    assignmentKeys += key
-                    delegate.set(key, value)
-                }
-            }
-        }
-        application {
-            dependencies {
-                provide<GreetingService> { GreetingServiceImpl() }
-            }
-            assertEquals(listOf(DependencyKey<GreetingService>()), assignmentKeys)
-        }
-    }
-
-    @Test
     fun `async support`() = testApplication(Dispatchers.Unconfined) {
         val greeter = GreetingServiceImpl()
         val bank = BankServiceImpl()
-        val resolutionChannel = Channel<String>(3)
+        val resolutionChannel = Channel<String>(Channel.UNLIMITED)
 
         application {
             dependencies {
-                provideAsync<GreetingService> {
+                provide<GreetingService> {
                     delay(100)
                     greeter.also {
                         resolutionChannel.trySend("greeting").getOrThrow()
                     }
                 }
-                provideAsync<BankService> {
+                provide<BankService> {
                     delay(50)
                     bank.also {
                         resolutionChannel.trySend("bank").getOrThrow()
                     }
                 }
-                provideAsync<BankTeller> {
-                    BankTeller(resolveAwait(), resolveAwait()).also {
+                provide<BankTeller> {
+                    BankTeller(resolve(), resolve()).also {
                         resolutionChannel.trySend("teller").getOrThrow()
                     }
                 }
             }
-            val bankService: Deferred<BankService> by dependencies
+            val bankService: Deferred<BankService> = dependencies.resolveDeferred()
             routing {
                 get("/hello") {
-                    val service: GreetingService = dependencies.resolveAwait()
+                    val service: GreetingService = dependencies.resolve()
                     call.respondText(service.hello())
                 }
                 get("/balance") {
@@ -375,7 +343,7 @@ class DependencyInjectionTest {
                     call.respondText(service.balance().toString())
                 }
                 get("/bank-teller") {
-                    val service: BankTeller = dependencies.resolveAwait()
+                    val service: BankTeller = dependencies.resolve()
                     call.respondText("${service.hello()}, your balance is ${service.balance()}")
                 }
             }
@@ -415,14 +383,14 @@ class DependencyInjectionTest {
 
         application {
             dependencies {
-                provideAsync<GreetingService>(fetchGreetingService)
-                provideAsync<BankService>(fetchBankService)
-                provideAsync(::BankTeller)
+                provide<GreetingService>(fetchGreetingService)
+                provide<BankService>(fetchBankService)
+                provide(::BankTeller)
             }
-            val bankService: Deferred<BankService> by dependencies
+            val bankService: Deferred<BankService> = dependencies.resolveDeferred()
             routing {
                 get("/hello") {
-                    val service: GreetingService = dependencies.resolveAwait()
+                    val service: GreetingService = dependencies.resolve()
                     call.respondText(service.hello())
                 }
                 get("/balance") {
@@ -430,7 +398,7 @@ class DependencyInjectionTest {
                     call.respondText(service.balance().toString())
                 }
                 get("/bank-teller") {
-                    val service: BankTeller = dependencies.resolveAwait()
+                    val service: BankTeller = dependencies.resolve()
                     call.respondText("${service.hello()}, your balance is ${service.balance()}")
                 }
             }
@@ -457,7 +425,7 @@ class DependencyInjectionTest {
             runTestApplication(coroutineContext) {
                 application {
                     dependencies {
-                        provideAsync<GreetingService> {
+                        provide<GreetingService> {
                             awaitCancellation()
                         }
                     }
@@ -467,7 +435,7 @@ class DependencyInjectionTest {
                                 delay(50)
                                 registryDeferred.complete(dependencies)
                             }
-                            val service: GreetingService = dependencies.resolveAwait()
+                            val service: GreetingService = dependencies.resolve()
                             call.respondText(service.hello())
                         }
                     }
@@ -478,9 +446,8 @@ class DependencyInjectionTest {
         }
         val registry = registryDeferred.await()
         application.cancelAndJoin()
-        assertFalse(registry.isActive)
         assertFailsWith<CancellationException> {
-            registry.resolveAwait<GreetingService>()
+            registry.resolve<GreetingService>()
         }
     }
 
@@ -488,9 +455,9 @@ class DependencyInjectionTest {
     @Test
     fun `custom reflection`() = runTestDI({
         reflection = object : DependencyReflection {
-            override fun <T : Any> create(
+            override suspend fun <T : Any> create(
                 kClass: KClass<T>,
-                init: (DependencyKey) -> Any
+                init: suspend (DependencyKey) -> Any
             ): T = when (kClass) {
                 GreetingService::class -> GreetingServiceImpl() as T
                 else -> fail("Unexpected class $kClass")
@@ -505,7 +472,7 @@ class DependencyInjectionTest {
     fun `external maps`() = runTestDI({
         include(dependencyMapOf(DependencyKey<GreetingService>() to GreetingServiceImpl()))
     }) {
-        val service: GreetingService by dependencies
+        val service: GreetingService = dependencies.resolve()
         assertEquals(HELLO, service.hello())
     }
 
@@ -514,7 +481,7 @@ class DependencyInjectionTest {
         include(dependencyMapOf(DependencyKey<GreetingService>() to GreetingServiceImpl()))
         include(dependencyMapOf(DependencyKey<GreetingService>() to BankGreetingService()))
     }) {
-        val service: GreetingService by dependencies
+        val service: GreetingService = dependencies.resolve()
         assertEquals(HELLO_CUSTOMER, service.hello())
     }
 
@@ -524,20 +491,18 @@ class DependencyInjectionTest {
     }) {
         dependencies.provide<GreetingService> { BankGreetingService() }
 
-        val service: GreetingService by dependencies
+        val service: GreetingService = dependencies.resolve()
         assertEquals(HELLO_CUSTOMER, service.hello())
     }
 
     @Test
     fun `unnamed key mapping`() = runTestDI({
-        provider {
-            keyMapping = Unnamed
-        }
+        keyMapping = Unnamed
     }) {
         dependencies.provide<GreetingService>("bank") { BankGreetingService() }
 
-        val named: GreetingService by dependencies.named("bank")
-        val unnamed: GreetingService by dependencies
+        val named: GreetingService = dependencies.resolve("bank")
+        val unnamed: GreetingService = dependencies.resolve()
         assertEquals(HELLO_CUSTOMER, named.hello())
         assertEquals(HELLO_CUSTOMER, unnamed.hello())
     }
@@ -567,13 +532,24 @@ class DependencyInjectionTest {
                     provide<AutoCloseable> { autoCloseable }
                     provide<Closer> { closer1 } cleanup { it.closeMe() }
 
-                    key<Closer>("second") {
+                    key<Closer>("skipped") {
+                        provide {
+                            object : Closer {
+                                override fun closeMe() {
+                                    closed += this
+                                }
+                            }
+                        }
+                        cleanup { it.closeMe() }
+                    }
+                    key<Closer>("other") {
                         provide { closer2 }
                         cleanup { it.closeMe() }
                     }
                 }
-                val closer: Closer by dependencies
-                assertEquals(closer1, closer)
+                assertEquals(closer1, dependencies.resolve<Closer>())
+                assertEquals(closer2, dependencies.resolve<Closer>("other"))
+                assertEquals(autoCloseable, dependencies.resolve<AutoCloseable>())
             }
         }
 
@@ -585,19 +561,12 @@ class DependencyInjectionTest {
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun dependencyMapOf(vararg entries: Pair<DependencyKey, Any>): DependencyMap {
-        val map = mapOf(*entries)
-        return object : DependencyMap {
-            override fun contains(key: DependencyKey): Boolean =
-                map.containsKey(key)
-            override fun <T> get(key: DependencyKey): T =
-                map[key] as T
-        }
-    }
+    private fun dependencyMapOf(vararg entries: Pair<DependencyKey, Any>): DependencyMap =
+        DependencyMap.fromMap(mapOf(*entries))
 
     private fun runTestDI(
         pluginInstall: DependencyInjectionConfig.() -> Unit = {},
-        block: Application.() -> Unit
+        block: suspend Application.() -> Unit
     ): TestResult = runTestWithRealTime {
         testDI(pluginInstall, block)
     }
@@ -605,13 +574,10 @@ class DependencyInjectionTest {
     // Use default DI configuration (not test mode)
     private suspend fun testDI(
         pluginInstall: DependencyInjectionConfig.() -> Unit = {},
-        block: Application.() -> Unit
+        block: suspend Application.() -> Unit
     ) = runTestApplication {
         install(DI) {
             pluginInstall()
-            if (!providerChanged) {
-                provider = MapDependencyProvider()
-            }
         }
         application {
             block()

@@ -59,10 +59,13 @@ private val REQUESTS_WITHOUT_BODY = setOf(
     HttpMethod.Get,
     HttpMethod.Head,
     HttpMethod.Options,
+    HttpMethod("TRACE"),
 )
 
 /**
  * Returns `true` if this request method can have a request body.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.supportsRequestBody)
  */
 @InternalAPI
 public val HttpMethod.supportsRequestBody: Boolean

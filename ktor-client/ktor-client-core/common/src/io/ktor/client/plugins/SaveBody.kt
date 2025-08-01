@@ -137,13 +137,12 @@ public fun HttpRequestBuilder.skipSavingBody() {
     LOGGER.warn(SKIP_SAVING_BODY_MESSAGE)
 }
 
-@Suppress("ConstPropertyName")
 private object Messages {
-    private const val `use streaming syntax` =
+    private const val USE_STREAMING_SYNTAX =
         "Use client.prepareRequest(...).execute { ... } syntax to prevent saving the body in memory."
-    private const val `api will be removed` =
+    private const val API_WILL_BE_REMOVED =
         "This API is deprecated and will be removed in Ktor 4.0.0"
-    private const val `share use case` =
+    private const val SHARE_USE_CASE =
         "If you were relying on this functionality, share your use case by commenting on this issue: " +
             "https://youtrack.jetbrains.com/issue/KTOR-8367/"
 
@@ -153,17 +152,17 @@ private object Messages {
 
     const val SAVE_BODY_DISABLED_MESSAGE =
         "It is no longer possible to disable body saving for all requests. " +
-            `use streaming syntax` + "\n\n" +
-            `api will be removed` + "\n" +
-            `share use case`
+            USE_STREAMING_SYNTAX + "\n\n" +
+            API_WILL_BE_REMOVED + "\n" +
+            SHARE_USE_CASE
 
     const val PLUGIN_DEPRECATED_MESSAGE =
         "This plugin is no longer needed.\n" +
-            `api will be removed`
+            API_WILL_BE_REMOVED
 
     const val SKIP_SAVING_BODY_MESSAGE =
         "Skipping of body saving for a specific request is no longer allowed.\n" +
-            `use streaming syntax` + "\n\n" +
-            `api will be removed` + "\n" +
-            `share use case`
+            USE_STREAMING_SYNTAX + "\n\n" +
+            API_WILL_BE_REMOVED + "\n" +
+            SHARE_USE_CASE
 }

@@ -5,6 +5,7 @@
 package io.ktor.client.plugins
 
 import io.ktor.client.*
+import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.*
@@ -230,6 +231,16 @@ public class DefaultRequest private constructor(private val block: DefaultReques
          */
         public fun setAttributes(block: Attributes.() -> Unit) {
             attributes.apply(block)
+        }
+
+        public fun <T : Any> setCapability(key: HttpClientEngineCapability<T>, capability: T) {
+            val capabilities = attributes.computeIfAbsent(ENGINE_CAPABILITIES_KEY) { mutableMapOf() }
+            capabilities[key] = capability
+        }
+
+        @OptIn(InternalAPI::class)
+        public fun unixSocket(path: String) {
+            setCapability(UnixSocketCapability, UnixSocketSettings(path))
         }
     }
 }

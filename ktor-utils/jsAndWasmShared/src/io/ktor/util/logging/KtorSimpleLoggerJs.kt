@@ -6,7 +6,7 @@ package io.ktor.util.logging
 
 import io.ktor.util.*
 
-private fun getKtorLogLevel(): String? = js("process.env.KTOR_LOG_LEVEL")
+private fun getKtorLogLevel(): String? = js("process ? process.env.KTOR_LOG_LEVEL : null")
 
 @Suppress("FunctionName")
 public actual fun KtorSimpleLogger(name: String): Logger = object : Logger {

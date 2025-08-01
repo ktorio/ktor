@@ -40,9 +40,11 @@ public final class io/ktor/client/webrtc/DataChannelReceiveOptions {
 
 public abstract interface class io/ktor/client/webrtc/MediaTrackFactory {
 	public abstract fun createAudioTrack (Lio/ktor/client/webrtc/WebRtcMedia$AudioTrackConstraints;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun createAudioTrack (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun createAudioTrack (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun createAudioTrack$default (Lio/ktor/client/webrtc/MediaTrackFactory;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun createVideoTrack (Lio/ktor/client/webrtc/WebRtcMedia$VideoTrackConstraints;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun createVideoTrack (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun createVideoTrack (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun createVideoTrack$default (Lio/ktor/client/webrtc/MediaTrackFactory;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class io/ktor/client/webrtc/MediaTrackFactory$DefaultImpls {
@@ -115,10 +117,10 @@ public abstract interface class io/ktor/client/webrtc/WebRtc$DataChannel : java/
 }
 
 public abstract interface class io/ktor/client/webrtc/WebRtc$DataChannel$Message {
-	public abstract fun binaryOrNull ()[B
-	public abstract fun binaryOrThrow ()[B
-	public abstract fun textOrNull ()Ljava/lang/String;
-	public abstract fun textOrThrow ()Ljava/lang/String;
+	public fun binaryOrNull ()[B
+	public fun binaryOrThrow ()[B
+	public fun textOrNull ()Ljava/lang/String;
+	public fun textOrThrow ()Ljava/lang/String;
 }
 
 public final class io/ktor/client/webrtc/WebRtc$DataChannel$Message$Binary : io/ktor/client/webrtc/WebRtc$DataChannel$Message {
@@ -473,7 +475,8 @@ public final class io/ktor/client/webrtc/WebRtcDataChannelOptions {
 
 public abstract interface class io/ktor/client/webrtc/WebRtcEngine : io/ktor/client/webrtc/MediaTrackFactory, java/lang/AutoCloseable {
 	public abstract fun createPeerConnection (Lio/ktor/client/webrtc/WebRtcConnectionConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun createPeerConnection (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun createPeerConnection (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun createPeerConnection$default (Lio/ktor/client/webrtc/WebRtcEngine;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun getConfig ()Lio/ktor/client/webrtc/WebRtcConfig;
 }
 

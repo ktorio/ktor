@@ -24,6 +24,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlin.test.fail
 
 @OptIn(DelicateCoroutinesApi::class)
 class LoggingTest : ClientLoader() {
@@ -73,7 +74,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testLogLevelAll() = clientTests(except("native:CIO", "web:Js")) {
+    fun testLogLevelAll() = clientTests(except("native:CIO")) {
         val logger = TestLogger(
             "REQUEST: http://localhost:8080/logging",
             "METHOD: GET",
@@ -143,7 +144,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testLogPostBody() = clientTests(except("native:CIO", "web:Js")) {
+    fun testLogPostBody() = clientTests(except("native:CIO")) {
         val testLogger = TestLogger(
             "REQUEST: http://localhost:8080/logging",
             "METHOD: POST",
@@ -199,7 +200,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testLogPostMalformedUtf8Body() = clientTests(except("native:CIO", "web:Js")) {
+    fun testLogPostMalformedUtf8Body() = clientTests(except("native:CIO")) {
         val testLogger = TestLogger(
             "REQUEST: http://localhost:8080/logging/non-utf",
             "METHOD: POST",
@@ -255,7 +256,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testRequestAndResponseBody() = clientTests(except("native:CIO", "web:Js")) {
+    fun testRequestAndResponseBody() = clientTests(except("native:CIO")) {
         val testLogger = TestLogger(
             "REQUEST: http://127.0.0.1:8080/content/echo",
             "METHOD: POST",
@@ -305,7 +306,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testRequestContentTypeInLog() = clientTests(except("Darwin", "native:CIO", "DarwinLegacy", "web:Js")) {
+    fun testRequestContentTypeInLog() = clientTests(except("Darwin", "native:CIO", "DarwinLegacy")) {
         val testLogger = TestLogger(
             "REQUEST: http://127.0.0.1:8080/content/echo",
             "METHOD: POST",
@@ -554,6 +555,46 @@ class LoggingTest : ClientLoader() {
 
         after {
             testLogger.verify()
+        }
+    }
+
+    @Test
+    fun testBinaryDecodingWithOkHttpFormat() = clientTests(except("web:Js")) {
+        val lines = mutableListOf<String>()
+        config {
+            Logging {
+                logger = object : Logger {
+                    override fun log(message: String) {
+                        lines.addAll(message.split("\n"))
+                    }
+                }
+                level = LogLevel.BODY
+                format = LoggingFormat.OkHttp
+            }
+        }
+
+        test { client ->
+            client.get("$TEST_SERVER/content/binary")
+        }
+
+        after {
+            val iter = lines.iterator()
+
+            assertEquals("--> GET /content/binary", iter.next())
+            assertEquals("Accept-Charset: UTF-8", iter.next())
+            assertEquals("Accept: */*", iter.next())
+            assertEquals("--> END GET", iter.next())
+            assertMatch(Regex("<-- 200 OK /content/binary \\(\\d+ms\\)"), iter.next())
+
+            val lastLine = lines.find { it.startsWith("<-- END HTTP") }
+            assertNotNull(lastLine)
+            assertMatch(Regex("<-- END HTTP \\(\\d+ms, binary 8-byte body omitted\\)"), lastLine)
+        }
+    }
+
+    private fun assertMatch(regex: Regex, actual: String) {
+        if (!regex.matches(actual)) {
+            fail("Regex $regex doesn't match $actual")
         }
     }
 }
