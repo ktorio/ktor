@@ -18,6 +18,8 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import kotlin.reflect.*
 
+// https://datatracker.ietf.org/doc/html/rfc6839
+private val supportedSuffixTypes = setOf("json", "ber", "der", "fastinfoset", "wbxml", "zip", "xml")
 private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.contentnegotiation.ContentNegotiation")
 
 internal val DefaultCommonIgnoredTypes: Set<KClass<*>> = setOf(
@@ -73,11 +75,7 @@ public class ContentNegotiationConfig : Configuration {
         converter: T,
         configuration: T.() -> Unit
     ) {
-        val matcher = when {
-            contentType.match(ContentType.Application.Json) -> JsonContentTypeMatcher
-            else -> defaultMatcher(contentType)
-        }
-        register(contentType, converter, matcher, configuration)
+        register(contentType, converter, defaultMatcher(contentType), configuration)
     }
 
     /**
@@ -150,7 +148,17 @@ public class ContentNegotiationConfig : Configuration {
     }
 
     private fun defaultMatcher(pattern: ContentType): ContentTypeMatcher = object : ContentTypeMatcher {
-        override fun contains(contentType: ContentType): Boolean = contentType.match(pattern)
+        override fun contains(contentType: ContentType): Boolean {
+            if (contentType.match(pattern)) {
+                return true
+            }
+
+            val value = contentType.withoutParameters().toString()
+
+            return value.startsWith(pattern.contentType) &&
+                value.endsWith("+${pattern.contentSubtype}", ignoreCase = true) &&
+                pattern.contentSubtype in supportedSuffixTypes
+        }
     }
 }
 
