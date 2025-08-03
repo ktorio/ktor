@@ -8,20 +8,40 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.http1.*
 import io.ktor.server.netty.http2.*
-import io.netty.channel.*
+import io.netty.channel.ChannelHandlerContext
+import io.netty.channel.ChannelInitializer
+import io.netty.channel.ChannelPipeline
+import io.netty.channel.SimpleChannelInboundHandler
 import io.netty.channel.socket.SocketChannel
-import io.netty.handler.codec.http.*
-import io.netty.handler.codec.http2.*
-import io.netty.handler.ssl.*
-import io.netty.handler.timeout.*
-import io.netty.util.concurrent.*
-import kotlinx.coroutines.*
-import java.io.*
-import java.nio.channels.*
-import java.security.*
-import java.security.cert.*
-import javax.net.ssl.*
-import kotlin.coroutines.*
+import io.netty.handler.codec.http.HttpMessage
+import io.netty.handler.codec.http.HttpServerCodec
+import io.netty.handler.codec.http.HttpServerExpectContinueHandler
+import io.netty.handler.codec.http.HttpServerUpgradeHandler
+import io.netty.handler.codec.http2.CleartextHttp2ServerUpgradeHandler
+import io.netty.handler.codec.http2.Http2CodecUtil
+import io.netty.handler.codec.http2.Http2MultiplexCodecBuilder
+import io.netty.handler.codec.http2.Http2SecurityUtil
+import io.netty.handler.codec.http2.Http2ServerUpgradeCodec
+import io.netty.handler.ssl.ApplicationProtocolConfig
+import io.netty.handler.ssl.ApplicationProtocolNames
+import io.netty.handler.ssl.ApplicationProtocolNegotiationHandler
+import io.netty.handler.ssl.SslContext
+import io.netty.handler.ssl.SslContextBuilder
+import io.netty.handler.ssl.SslHandler
+import io.netty.handler.ssl.SslProvider
+import io.netty.handler.ssl.SupportedCipherSuiteFilter
+import io.netty.handler.timeout.ReadTimeoutException
+import io.netty.handler.timeout.ReadTimeoutHandler
+import io.netty.handler.timeout.WriteTimeoutHandler
+import io.netty.util.concurrent.EventExecutorGroup
+import kotlinx.coroutines.cancel
+import java.io.FileInputStream
+import java.nio.channels.ClosedChannelException
+import java.security.KeyStore
+import java.security.PrivateKey
+import java.security.cert.X509Certificate
+import javax.net.ssl.TrustManagerFactory
+import kotlin.coroutines.CoroutineContext
 
 /**
  * A [ChannelInitializer] implementation that sets up the default ktor channel pipeline
@@ -101,7 +121,11 @@ public class NettyChannelInitializer(
                     configurePipeline(this, ApplicationProtocolNames.HTTP_1_1)
                 }
             } else {
-                configurePipeline(this, ApplicationProtocolNames.HTTP_1_1)
+                if (enableHttp2) {
+                    configurePipeline(this, Http2CodecUtil.HTTP_UPGRADE_PROTOCOL_NAME.toString())
+                } else {
+                    configurePipeline(this, ApplicationProtocolNames.HTTP_1_1)
+                }
             }
         }
     }
@@ -118,6 +142,69 @@ public class NettyChannelInitializer(
                 )
 
                 pipeline.addLast(Http2MultiplexCodecBuilder.forServer(handler).build())
+                pipeline.channel().closeFuture().addListener {
+                    handler.cancel()
+                }
+                channelPipelineConfig(pipeline)
+            }
+
+            Http2CodecUtil.HTTP_UPGRADE_PROTOCOL_NAME.toString() -> {
+                val handler = NettyHttp2Handler(
+                    enginePipeline,
+                    applicationProvider(),
+                    callEventGroup,
+                    userContext,
+                    runningLimit
+                )
+
+                val multiplexHandler = Http2MultiplexCodecBuilder.forServer(handler).build()
+
+                val codec = httpServerCodec()
+
+                val upgradeHandler = HttpServerUpgradeHandler(codec) {
+                    Http2ServerUpgradeCodec(multiplexHandler)
+                }
+
+                val cleartextHttp2ServerUpgradeHandler = CleartextHttp2ServerUpgradeHandler(
+                    codec,
+                    upgradeHandler,
+                    multiplexHandler
+                )
+
+                pipeline.addLast("cleartextUpgradeHandler", cleartextHttp2ServerUpgradeHandler)
+
+                pipeline.addLast(object : SimpleChannelInboundHandler<HttpMessage>() {
+                    @Throws(Exception::class)
+                    override fun channelRead0(ctx: ChannelHandlerContext, msg: HttpMessage) {
+                        val pipe = ctx.pipeline()
+
+                        val http1handler = NettyHttp1Handler(
+                            applicationProvider,
+                            enginePipeline,
+                            environment,
+                            callEventGroup,
+                            engineContext,
+                            userContext,
+                            runningLimit
+                        )
+
+                        if (requestReadTimeout > 0) {
+                            pipe.addAfter(ctx.name(), "readTimeout", KtorReadTimeoutHandler(requestReadTimeout))
+                            pipe.addAfter("readTimeout", "continue", HttpServerExpectContinueHandler())
+                        } else {
+                            pipe.addAfter(ctx.name(), "continue", HttpServerExpectContinueHandler())
+                        }
+                        pipe.addAfter("continue", "timeout", WriteTimeoutHandler(responseWriteTimeout))
+                        pipe.addAfter("timeout", "http1", http1handler)
+
+                        pipe.remove(upgradeHandler)
+                        pipe.remove(ctx.name())
+
+                        ctx.fireChannelActive()
+                        ctx.fireChannelRead(msg)
+                    }
+                })
+
                 pipeline.channel().closeFuture().addListener {
                     handler.cancel()
                 }
