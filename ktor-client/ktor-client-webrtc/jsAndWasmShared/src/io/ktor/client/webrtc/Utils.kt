@@ -4,121 +4,25 @@
 
 package io.ktor.client.webrtc
 
-// Common utils for the web platform
+import js.array.JsArray
+import js.buffer.ArrayBuffer
+import js.core.JsAny
+import js.core.JsPrimitives.toByte
+import js.core.JsPrimitives.toJsByte
+import js.typedarrays.Int8Array
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.launch
+import web.errors.DOMException
+import web.errors.NotAllowedError
+import web.errors.SecurityError
+import web.events.Event
+import web.events.EventHandler
+import web.events.EventTarget
+import web.events.HasTargets
 
-internal fun WebRtcMedia.FacingMode.toJs(): String = when (this) {
-    WebRtcMedia.FacingMode.USER -> "user"
-    WebRtcMedia.FacingMode.LEFT -> "left"
-    WebRtcMedia.FacingMode.RIGHT -> "right"
-    WebRtcMedia.FacingMode.ENVIRONMENT -> "environment"
-}
-
-internal fun WebRtcMedia.ResizeMode.toJs(): String = when (this) {
-    WebRtcMedia.ResizeMode.NONE -> "none"
-    WebRtcMedia.ResizeMode.CROP_AND_SCALE -> "crop-and-scale"
-}
-
-internal fun WebRtc.BundlePolicy.toJs(): String = when (this) {
-    WebRtc.BundlePolicy.BALANCED -> "balanced"
-    WebRtc.BundlePolicy.MAX_BUNDLE -> "max-bundle"
-    WebRtc.BundlePolicy.MAX_COMPAT -> "max-compat"
-}
-
-internal fun WebRtc.RtcpMuxPolicy.toJs(): String = when (this) {
-    WebRtc.RtcpMuxPolicy.NEGOTIATE -> "negotiate"
-    WebRtc.RtcpMuxPolicy.REQUIRE -> "require"
-}
-
-internal fun WebRtc.IceTransportPolicy.toJs(): String = when (this) {
-    WebRtc.IceTransportPolicy.ALL -> "all"
-    WebRtc.IceTransportPolicy.RELAY -> "relay"
-}
-
-internal fun WebRtc.SessionDescriptionType.toJs(): String = when (this) {
-    WebRtc.SessionDescriptionType.OFFER -> "offer"
-    WebRtc.SessionDescriptionType.ANSWER -> "answer"
-    WebRtc.SessionDescriptionType.ROLLBACK -> "rollback"
-    WebRtc.SessionDescriptionType.PROVISIONAL_ANSWER -> "pranswer"
-}
-
-internal fun String.toTrackKind(): WebRtcMedia.TrackType = when (this) {
-    "audio" -> WebRtcMedia.TrackType.AUDIO
-    "video" -> WebRtcMedia.TrackType.VIDEO
-    else -> error("Unknown media track kind: $this")
-}
-
-internal fun String.toSdpDescriptionType(): WebRtc.SessionDescriptionType = when (this) {
-    "offer" -> WebRtc.SessionDescriptionType.OFFER
-    "answer" -> WebRtc.SessionDescriptionType.ANSWER
-    "pranswer" -> WebRtc.SessionDescriptionType.PROVISIONAL_ANSWER
-    "rollback" -> WebRtc.SessionDescriptionType.ROLLBACK
-    else -> error("Unknown SDP description type: $this")
-}
-
-internal fun String?.toDegradationPreference(): WebRtc.DegradationPreference = when (this) {
-    "maintain-resolution" -> WebRtc.DegradationPreference.MAINTAIN_RESOLUTION
-    "maintain-framerate" -> WebRtc.DegradationPreference.MAINTAIN_FRAMERATE
-    "balanced" -> WebRtc.DegradationPreference.BALANCED
-    null -> WebRtc.DegradationPreference.DISABLED
-    else -> error("Unknown degradation type: $this")
-}
-
-internal fun String?.toIceConnectionState(): WebRtc.IceConnectionState = when (this) {
-    "new" -> WebRtc.IceConnectionState.NEW
-    "checking" -> WebRtc.IceConnectionState.CHECKING
-    "connected" -> WebRtc.IceConnectionState.CONNECTED
-    "completed" -> WebRtc.IceConnectionState.COMPLETED
-    "failed" -> WebRtc.IceConnectionState.FAILED
-    "disconnected" -> WebRtc.IceConnectionState.DISCONNECTED
-    "closed" -> WebRtc.IceConnectionState.CLOSED
-    else -> error("Unknown ice connection state: $this")
-}
-
-internal fun String?.toConnectionState(): WebRtc.ConnectionState = when (this) {
-    "new" -> WebRtc.ConnectionState.NEW
-    "connecting" -> WebRtc.ConnectionState.CONNECTING
-    "connected" -> WebRtc.ConnectionState.CONNECTED
-    "disconnected" -> WebRtc.ConnectionState.DISCONNECTED
-    "closed" -> WebRtc.ConnectionState.CLOSED
-    "failed" -> WebRtc.ConnectionState.FAILED
-    else -> error("Unknown connection state: $this")
-}
-
-internal fun String?.toIceGatheringState(): WebRtc.IceGatheringState = when (this) {
-    "new" -> WebRtc.IceGatheringState.NEW
-    "gathering" -> WebRtc.IceGatheringState.GATHERING
-    "complete" -> WebRtc.IceGatheringState.COMPLETE
-    else -> error("Unknown ice gathering state: $this")
-}
-
-internal fun String?.toSignalingState(): WebRtc.SignalingState = when (this) {
-    "stable" -> WebRtc.SignalingState.STABLE
-    "have-local-offer" -> WebRtc.SignalingState.HAVE_LOCAL_OFFER
-    "have-remote-offer" -> WebRtc.SignalingState.HAVE_REMOTE_OFFER
-    "have-local-pranswer" -> WebRtc.SignalingState.HAVE_LOCAL_PROVISIONAL_ANSWER
-    "have-remote-pranswer" -> WebRtc.SignalingState.HAVE_REMOTE_PROVISIONAL_ANSWER
-    "closed" -> WebRtc.SignalingState.CLOSED
-    else -> error("Unknown signaling state: $this")
-}
-
-internal fun String?.toDataChannelState(): WebRtc.DataChannel.State = when (this) {
-    "connecting" -> WebRtc.DataChannel.State.CONNECTING
-    "open" -> WebRtc.DataChannel.State.OPEN
-    "closing" -> WebRtc.DataChannel.State.CLOSING
-    "closed" -> WebRtc.DataChannel.State.CLOSED
-    else -> error("Unknown data channel state: $this")
-}
-
-internal inline fun <T> withPermissionException(mediaType: String, block: () -> T): T {
-    try {
-        return block()
-    } catch (e: Throwable) {
-        if (e.message?.contains("Permission denied") == true) {
-            throw WebRtcMedia.PermissionException(mediaType)
-        }
-        throw e
-    }
-}
+internal expect fun <T : JsAny?> JsArray<T>.toArray(): Array<T>
+internal expect fun <T : JsAny?> List<T>.toJs(): JsArray<T>
 
 internal inline fun <T> withSdpException(message: String, block: () -> T): T {
     try {
@@ -135,3 +39,43 @@ internal inline fun <T> withIceException(message: String, block: () -> T): T {
         throw WebRtc.IceException(message, e)
     }
 }
+
+internal expect fun Throwable.asDomException(): DOMException?
+
+internal inline fun <T> withPermissionException(mediaType: String, block: () -> T): T {
+    try {
+        return block()
+    } catch (e: Throwable) {
+        val errorName = e.asDomException()?.name
+        // If the user didn't allow using a media device, it should throw NotAllowedError.
+        // Older versions of the specification used SecurityError for this instead.
+        if (errorName == DOMException.NotAllowedError || errorName == DOMException.SecurityError) {
+            throw WebRtcMedia.PermissionException(mediaType)
+        }
+        throw e
+    }
+}
+
+internal fun ByteArray.toArrayBuffer(): ArrayBuffer {
+    val array = Int8Array<ArrayBuffer>(size)
+    repeat(size) { i ->
+        array[i] = this[i].toJsByte()
+    }
+    return array.buffer
+}
+
+internal fun ArrayBuffer.toByteArray(): ByteArray {
+    val arr = Int8Array(this)
+    return ByteArray(byteLength) { arr[it].toByte() }
+}
+
+// A helper to run the event handler in the coroutine scope
+@Suppress("BOUNDS_NOT_ALLOWED_IF_BOUNDED_BY_TYPE_PARAMETER")
+internal fun <E : Event, C : EventTarget, T : EventTarget, D> eventHandler(
+    coroutineScope: CoroutineScope,
+    handler: suspend (D) -> Unit
+) where D : E, D : HasTargets<C, T> =
+    EventHandler<E, C, T, D> { event ->
+        // There is no need for extra dispatching, keep the concurrency structured.
+        coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) { handler(event) }
+    }

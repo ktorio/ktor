@@ -54,8 +54,10 @@ public final class io/ktor/client/webrtc/AndroidWebRtcEngine : io/ktor/client/we
 	public fun <init> (Lio/ktor/client/webrtc/AndroidWebRtcEngineConfig;Lio/ktor/client/webrtc/MediaTrackFactory;)V
 	public synthetic fun <init> (Lio/ktor/client/webrtc/AndroidWebRtcEngineConfig;Lio/ktor/client/webrtc/MediaTrackFactory;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun createAudioTrack (Lio/ktor/client/webrtc/WebRtcMedia$AudioTrackConstraints;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun createAudioTrack (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun createPeerConnection (Lio/ktor/client/webrtc/WebRtcConnectionConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun createVideoTrack (Lio/ktor/client/webrtc/WebRtcMedia$VideoTrackConstraints;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun createVideoTrack (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getConfig ()Lio/ktor/client/webrtc/AndroidWebRtcEngineConfig;
 	public synthetic fun getConfig ()Lio/ktor/client/webrtc/WebRtcConfig;
 }
@@ -134,7 +136,18 @@ public final class io/ktor/client/webrtc/DataChannelReceiveOptions {
 
 public abstract interface class io/ktor/client/webrtc/MediaTrackFactory {
 	public abstract fun createAudioTrack (Lio/ktor/client/webrtc/WebRtcMedia$AudioTrackConstraints;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun createAudioTrack (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun createAudioTrack$default (Lio/ktor/client/webrtc/MediaTrackFactory;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun createVideoTrack (Lio/ktor/client/webrtc/WebRtcMedia$VideoTrackConstraints;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun createVideoTrack (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun createVideoTrack$default (Lio/ktor/client/webrtc/MediaTrackFactory;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class io/ktor/client/webrtc/MediaTrackFactory$DefaultImpls {
+	public static fun createAudioTrack (Lio/ktor/client/webrtc/MediaTrackFactory;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun createAudioTrack$default (Lio/ktor/client/webrtc/MediaTrackFactory;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static fun createVideoTrack (Lio/ktor/client/webrtc/MediaTrackFactory;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun createVideoTrack$default (Lio/ktor/client/webrtc/MediaTrackFactory;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class io/ktor/client/webrtc/SendersKt {
@@ -469,9 +482,11 @@ public final class io/ktor/client/webrtc/WebRtcClient : io/ktor/client/webrtc/We
 	public fun <init> (Lio/ktor/client/webrtc/WebRtcEngine;)V
 	public fun close ()V
 	public fun createAudioTrack (Lio/ktor/client/webrtc/WebRtcMedia$AudioTrackConstraints;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun createAudioTrack (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun createPeerConnection (Lio/ktor/client/webrtc/WebRtcConnectionConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun createPeerConnection (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun createVideoTrack (Lio/ktor/client/webrtc/WebRtcMedia$VideoTrackConstraints;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun createVideoTrack (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getConfig ()Lio/ktor/client/webrtc/WebRtcConfig;
 }
 
@@ -568,15 +583,19 @@ public abstract interface class io/ktor/client/webrtc/WebRtcEngine : io/ktor/cli
 }
 
 public final class io/ktor/client/webrtc/WebRtcEngine$DefaultImpls {
+	public static fun createAudioTrack (Lio/ktor/client/webrtc/WebRtcEngine;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static fun createPeerConnection (Lio/ktor/client/webrtc/WebRtcEngine;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun createPeerConnection$default (Lio/ktor/client/webrtc/WebRtcEngine;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static fun createVideoTrack (Lio/ktor/client/webrtc/WebRtcEngine;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract class io/ktor/client/webrtc/WebRtcEngineBase : io/ktor/client/webrtc/WebRtcEngine {
 	public fun <init> (Ljava/lang/String;)V
 	public fun close ()V
+	public fun createAudioTrack (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected final fun createConnectionContext (Lkotlin/coroutines/CoroutineContext;)Lkotlin/coroutines/CoroutineContext;
 	public fun createPeerConnection (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun createVideoTrack (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/client/webrtc/WebRtcEngineClosedException : java/util/concurrent/CancellationException {
@@ -727,7 +746,9 @@ public final class io/ktor/client/webrtc/media/AndroidMediaDevices : io/ktor/cli
 	public fun <init> (Landroid/content/Context;Lorg/webrtc/EglBase;)V
 	public synthetic fun <init> (Landroid/content/Context;Lorg/webrtc/EglBase;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun createAudioTrack (Lio/ktor/client/webrtc/WebRtcMedia$AudioTrackConstraints;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun createAudioTrack (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun createVideoTrack (Lio/ktor/client/webrtc/WebRtcMedia$VideoTrackConstraints;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun createVideoTrack (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getPeerConnectionFactory ()Lorg/webrtc/PeerConnectionFactory;
 }
 

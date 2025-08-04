@@ -4,10 +4,10 @@
 
 package io.ktor.client.webrtc
 
+import io.ktor.client.webrtc.utils.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
@@ -34,30 +34,13 @@ class WebRtcDataChannelTest {
         realtime: Boolean = true,
         crossinline block: suspend CoroutineScope.(WebRtcPeerConnection, WebRtcPeerConnection, MutableList<Job>) -> Unit
     ): TestResult {
-        return runTestWithPermissions(audio = false, video = false, realtime) {
+        return runTestWithPermissions(audio = false, video = false, realtime) { jobs ->
             client.createPeerConnection().use { pc1 ->
                 client.createPeerConnection().use { pc2 ->
-                    withTimeout(5000) {
-                        val jobs = mutableListOf<Job>()
-                        block(pc1, pc2, jobs)
-                        jobs.forEach { it.cancel() }
-                    }
+                    block(pc1, pc2, jobs)
                 }
             }
         }
-    }
-
-    private fun CoroutineScope.listenForChanelEvents(
-        pc: WebRtcPeerConnection,
-        jobs: MutableList<Job>
-    ): Channel<DataChannelEvent> {
-        val dataChannelEvents = Channel<DataChannelEvent>(Channel.UNLIMITED)
-        jobs.add(
-            launch {
-                pc.dataChannelEvents.collect { dataChannelEvents.send(it) }
-            }
-        )
-        return dataChannelEvents
     }
 
     private suspend fun waitForChannel(events: Channel<DataChannelEvent>) = withTimeout(5000) {
@@ -84,7 +67,7 @@ class WebRtcDataChannelTest {
 
     @Test
     fun testDataChannelCommunication() = testDataChannel { pc1, pc2, jobs ->
-        val dataChannelEvents = listenForChanelEvents(pc2, jobs)
+        val dataChannelEvents = pc2.dataChannelEvents.collectToChannel(this, jobs)
 
         // Create data channel on pc1
         val dataChannel1 = pc1.createDataChannel("test-channel") {
@@ -180,7 +163,7 @@ class WebRtcDataChannelTest {
 
     @Test
     fun testDataChannelSendManyMessages() = testDataChannel { pc1, pc2, jobs ->
-        val dataChannelEvents = listenForChanelEvents(pc2, jobs)
+        val dataChannelEvents = pc2.dataChannelEvents.collectToChannel(this, jobs)
         val dataChannel1 = pc1.createDataChannel("multi-message-test")
         connect(pc1, pc2, jobs)
 
@@ -204,8 +187,8 @@ class WebRtcDataChannelTest {
     fun testDataChannelCloseHandling() = testDataChannel { pc1, pc2, jobs ->
         val dataChannel1 = pc1.createDataChannel("close-test")
 
-        val dataChannelEvents1 = listenForChanelEvents(pc1, jobs)
-        val dataChannelEvents2 = listenForChanelEvents(pc2, jobs)
+        val dataChannelEvents1 = pc1.dataChannelEvents.collectToChannel(this, jobs)
+        val dataChannelEvents2 = pc2.dataChannelEvents.collectToChannel(this, jobs)
 
         connect(pc1, pc2, jobs)
 
@@ -224,8 +207,8 @@ class WebRtcDataChannelTest {
 
     @Test
     fun testDataChannelBufferedAmountLowEvent() = testDataChannel { pc1, pc2, jobs ->
-        val dataChannelEvents1 = listenForChanelEvents(pc1, jobs)
-        val dataChannelEvents2 = listenForChanelEvents(pc2, jobs)
+        val dataChannelEvents1 = pc1.dataChannelEvents.collectToChannel(this, jobs)
+        val dataChannelEvents2 = pc2.dataChannelEvents.collectToChannel(this, jobs)
 
         // Create data channel on pc1
         val dataChannel1 = pc1.createDataChannel("buffered-amount-test")
