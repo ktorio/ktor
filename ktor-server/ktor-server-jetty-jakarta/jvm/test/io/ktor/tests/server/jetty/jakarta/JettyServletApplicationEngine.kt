@@ -9,8 +9,11 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.jakarta.*
 import io.ktor.server.servlet.jakarta.*
-import jakarta.servlet.*
-import org.eclipse.jetty.servlet.*
+import jakarta.servlet.MultipartConfigElement
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler
+import org.eclipse.jetty.ee10.servlet.ServletHandler
+import org.eclipse.jetty.ee10.servlet.ServletHolder
+import org.eclipse.jetty.ee10.servlet.ServletMapping
 
 /**
  * The factory and engine are only suitable for testing. You shouldn't use it for production code.
@@ -51,29 +54,28 @@ internal class JettyServletApplicationEngine(
     async: Boolean
 ) : JettyApplicationEngineBase(environment, monitor, developmentMode, configuration, applicationProvider) {
     init {
-        server.handler = ServletContextHandler().apply {
-            classLoader = environment.classLoader
+        server.handler = ServletContextHandler().apply<ServletContextHandler> {
+            this.classLoader = environment.classLoader
             setAttribute(ServletApplicationEngine.EnvironmentAttributeKey, environment)
             setAttribute(ServletApplicationEngine.ApplicationAttributeKey, applicationProvider)
             setAttribute(ServletApplicationEngine.ApplicationEnginePipelineAttributeKey, pipeline)
 
             insertHandler(
-                ServletHandler().apply {
-                    val holder = ServletHolder(
-                        "ktor-servlet",
-                        ServletApplicationEngine::class.java
-                    ).apply {
-                        isAsyncSupported = async
-                        registration.setLoadOnStartup(1)
-                        registration.setMultipartConfig(MultipartConfigElement(System.getProperty("java.io.tmpdir")))
-                        registration.setAsyncSupported(async)
-                    }
-
-                    addServlet(holder)
+                ServletHandler().apply<ServletHandler> {
+                    addServlet(
+                        ServletHolder("ktor-servlet", ServletApplicationEngine::class.java).apply<ServletHolder> {
+                            this.isAsyncSupported = async
+                            this.registration.setLoadOnStartup(1)
+                            this.registration.setMultipartConfig(
+                                MultipartConfigElement(System.getProperty("java.io.tmpdir"))
+                            )
+                            this.registration.setAsyncSupported(async)
+                        }
+                    )
                     addServletMapping(
-                        ServletMapping().apply {
-                            pathSpecs = arrayOf("*.", "/*")
-                            servletName = "ktor-servlet"
+                        ServletMapping().apply<ServletMapping> {
+                            this.pathSpecs = arrayOf<String>("*.", "/*")
+                            this.servletName = "ktor-servlet"
                         }
                     )
                 }
