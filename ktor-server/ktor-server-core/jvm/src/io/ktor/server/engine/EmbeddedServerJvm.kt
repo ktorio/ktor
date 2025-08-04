@@ -12,15 +12,10 @@ import io.ktor.server.engine.internal.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
-import io.ktor.util.reflect.loadServiceOrNull
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.*
 import java.io.File
 import java.net.URL
 import java.net.URLDecoder
@@ -34,7 +29,6 @@ import kotlin.concurrent.read
 import kotlin.concurrent.write
 
 private typealias ApplicationModule = suspend Application.() -> Unit
-private typealias DynamicApplicationModule = suspend Application.(ClassLoader) -> Unit
 
 public actual class EmbeddedServer<
     TEngine : ApplicationEngine,
@@ -63,15 +57,12 @@ actual constructor(
     private val configuredWatchPath = environment.config.propertyOrNull("ktor.deployment.watch")?.getList().orEmpty()
     private val watchPatterns: List<String> = configuredWatchPath + rootConfig.watchPaths
 
-    private val configModulesNames: List<String> =
-        environment.config.propertyOrNull("ktor.application.modules")?.getList().orEmpty()
-
     @OptIn(InternalAPI::class)
     private val moduleInjector: ModuleParametersInjector by lazy {
         loadServiceOrNull() ?: ModuleParametersInjector.Disabled
     }
     private val modules by lazy {
-        configModulesNames.map(::dynamicModule) +
+        environment.moduleConfigReferences.map(::dynamicModule) +
             rootConfig.modules.map { module -> module.toDynamicModuleOrNull() ?: module.wrapWithDynamicModule() }
     }
 
@@ -390,7 +381,13 @@ actual constructor(
         safeRaiseEvent(ApplicationStarting, newInstance)
 
         avoidingDoubleStartup {
-            modules.forEach { module -> module(newInstance, currentClassLoader) }
+            withTimeout(environment.startupTimeout) {
+                environment.moduleLoader.loadModules(
+                    newInstance,
+                    currentClassLoader,
+                    modules,
+                )
+            }
         }
 
         monitor.raise(ApplicationModulesLoaded, newInstance)
@@ -400,10 +397,10 @@ actual constructor(
     }
 
     private fun dynamicModule(name: String): DynamicApplicationModule {
-        return { classLoader ->
+        return DynamicApplicationModule(name, { classLoader ->
             val application = this
             launchModuleByName(name, classLoader, application)
-        }
+        })
     }
 
     private fun ApplicationModule.toDynamicModuleOrNull(): DynamicApplicationModule? {
@@ -422,7 +419,7 @@ actual constructor(
             }
             .getOrElse { return null }
 
-        return { classLoader ->
+        return DynamicApplicationModule(name) { classLoader ->
             val application = this
             try {
                 launchModuleByName(name, classLoader, application)
@@ -438,10 +435,10 @@ actual constructor(
 
     private fun ApplicationModule.wrapWithDynamicModule(): DynamicApplicationModule {
         val module = this
-        return { module() }
+        return DynamicApplicationModule { module() }
     }
 
-    private fun launchModuleByName(name: String, currentClassLoader: ClassLoader, newInstance: Application) {
+    private suspend fun launchModuleByName(name: String, currentClassLoader: ClassLoader, newInstance: Application) {
         avoidingDoubleStartupFor(name) {
             executeModuleFunction(currentClassLoader, name, newInstance, moduleInjector)
         }
@@ -461,7 +458,7 @@ actual constructor(
         }
     }
 
-    private fun avoidingDoubleStartupFor(fqName: String, block: () -> Unit) {
+    private suspend fun avoidingDoubleStartupFor(fqName: String, block: suspend () -> Unit) {
         val modules = currentStartupModules.getOrSet { ArrayList(1) }
         check(!modules.contains(fqName)) {
             "Module startup is already in progress for function $fqName (recursive module startup from module main?)"

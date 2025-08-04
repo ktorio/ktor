@@ -10,12 +10,20 @@ import ktorbuild.internal.gradle.maybeNamed
 import ktorbuild.targets.*
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 
 plugins {
     id("ktorbuild.base")
     kotlin("multiplatform")
-    id("org.jetbrains.kotlinx.atomicfu")
     id("ktorbuild.codestyle")
+}
+
+// atomicfu gradle plugin is not compatible with Android KMP plugin
+// see https://github.com/Kotlin/kotlinx-atomicfu/issues/511
+if (!project.hasAndroidPlugin()) {
+    plugins {
+        id("org.jetbrains.kotlinx.atomicfu")
+    }
 }
 
 kotlin {
@@ -23,14 +31,14 @@ kotlin {
     explicitApi()
 
     compilerOptions {
-        apiVersion = KotlinVersion.KOTLIN_2_0
-        languageVersion = KotlinVersion.KOTLIN_2_1
+        apiVersion = KotlinVersion.KOTLIN_2_2
+        languageVersion = KotlinVersion.KOTLIN_2_2
         progressiveMode = languageVersion.map { it >= KotlinVersion.DEFAULT }
         freeCompilerArgs.addAll("-Xexpect-actual-classes")
     }
 
     applyHierarchyTemplate(KtorTargets.hierarchyTemplate)
-    addTargets(ktorBuild.targets)
+    addTargets(ktorBuild.targets, ktorBuild.isCI.get())
 }
 
 val targets = ktorBuild.targets
@@ -39,6 +47,7 @@ configureCommon()
 if (targets.hasJvm) configureJvm()
 if (targets.hasJs) configureJs()
 if (targets.hasWasmJs) configureWasmJs()
+if (targets.hasAndroidJvm && project.hasAndroidPlugin()) configureAndroidJvm()
 
 if (targets.hasJsOrWasmJs) {
     tasks.configureEach {
@@ -62,6 +71,13 @@ if (targets.hasNative) {
         val os = ktorBuild.os.get()
         onlyIf("run only on Windows") { os.isWindows }
     }
+
+    // A workaround for KT-70915
+    tasks.withType<KotlinNativeLink>()
+        .configureEach { withLimitedParallelism("native-link", maxParallelTasks = 1) }
+    // A workaround for KT-77609
+    tasks.matching { it::class.simpleName?.startsWith("CInteropCommonizerTask") == true }
+        .configureEach { withLimitedParallelism("cinterop-commonizer", maxParallelTasks = 1) }
 }
 
 if (ktorBuild.isCI.get()) configureTestTasksOnCi()

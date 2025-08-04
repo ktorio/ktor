@@ -55,7 +55,7 @@ internal class JsWebSocketSession(
                 val event = it.unsafeCast<MessageEvent>()
 
                 val frame: Frame = when (val data = event.data) {
-                    is ArrayBuffer -> Frame.Binary(false, Int8Array(data).unsafeCast<ByteArray>())
+                    is ArrayBuffer -> Frame.Binary(true, Int8Array(data).unsafeCast<ByteArray>())
                     is String -> Frame.Text(data)
                     else -> {
                         val error = IllegalStateException("Unknown frame type: ${event.type}")

@@ -68,6 +68,12 @@ public val StatusPages: ApplicationPlugin<StatusPagesConfig> = createApplication
             return@on
         }
 
+        content.headers.entries().forEach { (key, values) ->
+            values.forEach { value ->
+                call.response.headers.append(key, value)
+            }
+        }
+
         call.attributes.put(statusPageMarker, Unit)
         try {
             LOGGER.trace("Executing $handler for status code $status for call: ${call.request.uri}")

@@ -151,17 +151,25 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         }
 
         val buffer = Buffer().apply { writeFully(firstChunk, 0, firstReadSize) }
-        val firstChunkText = charset.newDecoder().decode(buffer, firstReadSize)
 
-        var lastCharIndex = -1
-        for (ch in firstChunkText) {
-            lastCharIndex += 1
+        val firstChunkText = try {
+            charset.newDecoder().decode(buffer)
+        } catch (_: MalformedInputException) {
+            isBinary = true
+            ""
         }
 
-        for ((i, ch) in firstChunkText.withIndex()) {
-            if (ch == '\ufffd' && i != lastCharIndex) {
-                isBinary = true
-                break
+        if (!isBinary) {
+            var lastCharIndex = -1
+            for (ch in firstChunkText) {
+                lastCharIndex += 1
+            }
+
+            for ((i, ch) in firstChunkText.withIndex()) {
+                if (ch == '\ufffd' && i != lastCharIndex) {
+                    isBinary = true
+                    break
+                }
             }
         }
 

@@ -127,6 +127,20 @@ class YamlConfigTest {
     }
 
     @Test
+    fun testEnvVarCurlyBraces() {
+        val content = """
+            ktor:
+                variable: ${'$'}{PATH}
+        """.trimIndent()
+        val yaml = Yaml.default.decodeFromString<YamlMap>(content)
+        val config = YamlConfig.from(yaml)
+
+        val value = config.property("ktor.variable").getString()
+        assertTrue(value.isNotEmpty())
+        assertFalse(value.contains("PATH"))
+    }
+
+    @Test
     fun testMissingEnvironmentVariable() {
         val content = """
             ktor:
@@ -139,6 +153,23 @@ class YamlConfigTest {
     }
 
     @Test
+    fun testMissingEnvVarCurlyBraces() {
+        val content = """
+            ktor:
+                variable: ${'$'}{NON_EXISTING}
+        """.trimIndent()
+        val yaml = Yaml.default.decodeFromString<YamlMap>(content)
+        val cause = assertFailsWith<ApplicationConfigurationException> {
+            YamlConfig.from(yaml)
+        }
+
+        assertEquals(
+            "Required environment variable \"NON_EXISTING\" not found and no default value is present",
+            cause.message
+        )
+    }
+
+    @Test
     fun testSelfReference() {
         val content = """
             value:
@@ -147,6 +178,24 @@ class YamlConfigTest {
             config:
               database:
                 value: ${'$'}value.my
+        """.trimIndent()
+        val yaml = Yaml.default.decodeFromString<YamlMap>(content)
+        val config = YamlConfig.from(yaml)
+
+        assertEquals("My value", config.property("config.database.value").getString())
+        assertEquals("My value", config.config("config").property("database.value").getString())
+        assertEquals("My value", config.config("config.database").property("value").getString())
+    }
+
+    @Test
+    fun testSelfRefCurlyBraces() {
+        val content = """
+            value:
+              my: "My value"
+            
+            config:
+              database:
+                value: ${'$'}{value.my}
         """.trimIndent()
         val yaml = Yaml.default.decodeFromString<YamlMap>(content)
         val config = YamlConfig.from(yaml)
@@ -173,6 +222,27 @@ class YamlConfigTest {
     }
 
     @Test
+    fun testSelfRefMissingCurlyBraces() {
+        val content = """
+            value:
+              my: "My value"
+            
+            config:
+              database:
+                value: ${'$'}{value.missing}
+        """.trimIndent()
+        val yaml = Yaml.default.decodeFromString<YamlMap>(content)
+        val cause = assertFailsWith<ApplicationConfigurationException> {
+            YamlConfig.from(yaml)
+        }
+
+        assertEquals(
+            "Required environment variable \"value.missing\" not found and no default value is present",
+            cause.message
+        )
+    }
+
+    @Test
     fun testMissingEnvironmentVariableWithDefault() {
         val content = """
             ktor:
@@ -181,6 +251,17 @@ class YamlConfigTest {
         val yaml = Yaml.default.decodeFromString<YamlMap>(content)
         val config = YamlConfig.from(yaml)
         assertEquals("DEFAULT_VALUE", config.property("ktor.variable").getString())
+    }
+
+    @Test
+    fun testMissingEnvVarWithDefaultCurlyBraces() {
+        val content = """
+            ktor:
+                variable: "${'$'}{NON_EXISTING:DEFAULT}"
+        """.trimIndent()
+        val yaml = Yaml.default.decodeFromString<YamlMap>(content)
+        val config = YamlConfig.from(yaml)
+        assertEquals("DEFAULT", config.property("ktor.variable").getString())
     }
 
     @Test
@@ -195,10 +276,35 @@ class YamlConfigTest {
     }
 
     @Test
+    fun testOptionalMissingEnvVarCurlyBraces() {
+        val content = """
+            ktor:
+                variable: "${'$'}{?NON_EXISTING_VARIABLE}"
+        """.trimIndent()
+        val yaml = Yaml.default.decodeFromString<YamlMap>(content)
+        val config = YamlConfig.from(yaml)
+        assertNull(config.propertyOrNull("ktor.variable"))
+    }
+
+    @Test
     fun testOptionalExistingEnvironmentVariable() {
         val content = """
             ktor:
                 variable: "${'$'}?PATH"
+        """.trimIndent()
+        val yaml = Yaml.default.decodeFromString<YamlMap>(content)
+        val config = YamlConfig.from(yaml)
+
+        val value = config.property("ktor.variable").getString()
+        assertTrue(value.isNotEmpty())
+        assertFalse(value.contains("PATH"))
+    }
+
+    @Test
+    fun testOptionalExistingEnvVarCurlyBraces() {
+        val content = """
+            ktor:
+                variable: "${'$'}{?PATH}"
         """.trimIndent()
         val yaml = Yaml.default.decodeFromString<YamlMap>(content)
         val config = YamlConfig.from(yaml)
@@ -221,6 +327,40 @@ class YamlConfigTest {
         assertTrue(value.isNotEmpty())
         assertFalse(value.contains("PATH"))
         assertFalse(value.contains("DEFAULT_VALUE"))
+    }
+
+    @Test
+    fun testExistingEnvVarWithDefaultCurlyBraces() {
+        val content = """
+            ktor:
+                variable: "${'$'}{PATH:DEFAULT_VALUE}"
+        """.trimIndent()
+        val yaml = Yaml.default.decodeFromString<YamlMap>(content)
+        val config = YamlConfig.from(yaml)
+
+        val value = config.property("ktor.variable").getString()
+        assertTrue(value.isNotEmpty())
+        assertFalse(value.contains("PATH"))
+        assertFalse(value.contains("DEFAULT_VALUE"))
+    }
+
+    @Test
+    fun testMalformedVarCurlyBraces() {
+        val content = """
+            ktor:
+                variable: "${'$'}{some_name"
+        """.trimIndent()
+
+        val yaml = Yaml.default.decodeFromString<YamlMap>(content)
+
+        val cause = assertFailsWith<ApplicationConfigurationException> {
+            YamlConfig.from(yaml)
+        }
+
+        assertEquals(
+            "Required environment variable \"{some_name\" not found and no default value is present",
+            cause.message
+        )
     }
 
     @Test
@@ -296,32 +436,73 @@ class YamlConfigTest {
 
     @Test
     fun mergedConversion() {
-        val yamlText = """
-            auth:
-                hashAlgorithm: SHA-256
-                salt: ktor
-                users:
-                    - name: test
-                      password: asd
+        val authYamlText = """
+            app:
+                auth:
+                    hashAlgorithm: SHA-256
+                    salt: ktor
+                    users:
+                        - name: test
+                          password: asd
         """.trimIndent()
+
+        val dbYamlText = """
+            app:
+                database:
+                    driver: org.postgresql.Driver
+                    url: jdbc:postgresql://localhost:5432/ktor
+                    user: ktor
+                    password: ktor
+                    schema: public
+                    maxPoolSize: 3
+                    transactionIsolation: TRANSACTION_REPEATABLE_READ
+                    useServerPrepStmts: true
+                    cachePrepStmts: true
+        """.trimIndent()
+
         val mapEntries = listOf(
-            "auth.salt" to "SALT&PEPPA",
-            "deployment.port" to "8080",
-            "deployment.host" to "localhost",
+            "app.auth.salt" to "SALT&PEPPA",
+            "app.deployment.port" to "8080",
+            "app.deployment.host" to "localhost",
+            "app.database.maxPoolSize" to "2",
+            "app.database.cachePrepStmts" to "true",
+            "app.database.prepStmtCacheSize" to "250",
         )
 
-        val yaml = Yaml.default.decodeFromString<YamlMap>(yamlText)
-        val yamlConfig = YamlConfig.from(yaml)
+        val authYamlConfig = YamlConfig.from(Yaml.default.decodeFromString<YamlMap>(authYamlText))
+        val dbYamlConfig = YamlConfig.from(Yaml.default.decodeFromString<YamlMap>(dbYamlText))
         val mapConfig = MapApplicationConfig(mapEntries)
 
-        val mergedConfig = yamlConfig.mergeWith(mapConfig)
+        val yamlMerged = authYamlConfig.mergeWith(dbYamlConfig)
+        val mergedConfig = yamlMerged.mergeWith(mapConfig)
+
+        val expectedSecurity = SecurityConfig("SHA-256", "SALT&PEPPA", listOf(SecurityUser("test", "asd")))
+        val expectedDeployment = DeploymentConfig("localhost", 8080)
+        val expectedDatabase =
+            DatabaseConfig(
+                "org.postgresql.Driver",
+                "jdbc:postgresql://localhost:5432/ktor",
+                "ktor",
+                "ktor",
+                "public",
+                2
+            )
+
         assertEquals(
-            SecurityConfig("SHA-256", "SALT&PEPPA", listOf(SecurityUser("test", "asd"))),
-            mergedConfig.property("auth").getAs()
+            expectedSecurity,
+            mergedConfig.property("app.auth").getAs()
         )
         assertEquals(
-            DeploymentConfig("localhost", 8080),
-            mergedConfig.property("deployment").getAs()
+            expectedDeployment,
+            mergedConfig.property("app.deployment").getAs()
+        )
+        assertEquals(
+            expectedDatabase,
+            mergedConfig.property("app.database").getAs()
+        )
+        assertEquals(
+            AppConfig(expectedDeployment, expectedSecurity, expectedDatabase),
+            mergedConfig.property("app").getAs()
         )
     }
 
@@ -329,6 +510,13 @@ class YamlConfigTest {
     data class SecurityUser(
         val name: String,
         val password: String
+    )
+
+    @Serializable
+    data class AppConfig(
+        val deployment: DeploymentConfig,
+        val auth: SecurityConfig,
+        val database: DatabaseConfig,
     )
 
     @Serializable
@@ -342,5 +530,15 @@ class YamlConfigTest {
     data class DeploymentConfig(
         val host: String,
         val port: Int,
+    )
+
+    @Serializable
+    data class DatabaseConfig(
+        val driver: String,
+        val url: String,
+        val user: String,
+        val password: String,
+        val schema: String,
+        val maxPoolSize: Int,
     )
 }
