@@ -24,7 +24,9 @@ class OpenAPITest {
     @Test
     fun `empty spec`() = testApplication {
         routing {
-            openAPI("/swagger", OpenAPISource.Empty)
+            openAPI("/swagger") {
+                source = OpenAPISource.Empty
+            }
         }
 
         assertSwaggerHtmlReturned()
@@ -33,7 +35,9 @@ class OpenAPITest {
     @Test
     fun `multiple sources`() = testApplication {
         routing {
-            openAPI("/swagger", OpenAPISource.Empty)
+            openAPI("/swagger") {
+                source = OpenAPISource.Empty
+            }
         }
 
         assertSwaggerHtmlReturned()
@@ -45,5 +49,4 @@ class OpenAPITest {
             assertEquals(ContentType.Text.Html, response.contentType()?.withoutParameters())
         }
     }
-
 }

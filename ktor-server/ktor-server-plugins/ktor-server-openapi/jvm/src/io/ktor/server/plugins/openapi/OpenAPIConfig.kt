@@ -15,6 +15,18 @@ import io.swagger.v3.parser.core.models.*
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.openapi.OpenAPIConfig)
  */
 public class OpenAPIConfig {
+    internal companion object {
+        internal const val DEFAULT_LOCATION = "openapi/documentation.yaml"
+        internal const val GENERATED_LOCATION = "openapi/generated-api.json"
+    }
+
+    /**
+     * Defines the specification source.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.openapi.OpenAPIConfig.source)
+     */
+    public var source: OpenAPISource = OpenAPISource(DEFAULT_LOCATION, GENERATED_LOCATION)
+
     /**
      * Specifies a parser used to parse OpenAPI.
      *

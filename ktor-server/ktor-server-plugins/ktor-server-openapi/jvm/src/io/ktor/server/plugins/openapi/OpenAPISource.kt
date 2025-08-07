@@ -53,6 +53,15 @@ public fun interface OpenAPISource {
         Merged.of(listOf(this, other))
 
     /**
+     * Maps the current instance of OpenAPI using the provided mapping function.
+     *
+     * @param mapping A function that takes an [OpenAPI] instance and returns a transformed copy.
+     * @return A new [OpenAPISource].[Adapter] instance that uses the transformed OpenAPI.
+     */
+    public fun map(mapping: (OpenAPI) -> OpenAPI): OpenAPISource =
+        Adapter(this, mapping)
+
+    /**
      * Represents an OpenAPI source that reads and parses OpenAPI documentation from a file or resource path.
      *
      * The file can either be located in the application resources or on the file system.
@@ -98,7 +107,7 @@ public fun interface OpenAPISource {
         }
     }
 
-    public class Merged internal constructor(public val sources: List<OpenAPISource>): OpenAPISource {
+    public class Merged internal constructor(public val sources: List<OpenAPISource>) : OpenAPISource {
         public companion object {
             public fun of(sources: List<OpenAPISource>): Merged =
                 Merged(sources.flatMap { (it as? Merged)?.sources ?: listOf(it) })
@@ -132,10 +141,8 @@ public fun interface OpenAPISource {
     public class Adapter internal constructor(
         private val source: OpenAPISource,
         private val function: (OpenAPI) -> OpenAPI
-    ): OpenAPISource {
+    ) : OpenAPISource {
         override suspend fun provide(context: OpenAPIReadContext): OpenAPI =
             function(source.provide(context))
-
     }
-
 }

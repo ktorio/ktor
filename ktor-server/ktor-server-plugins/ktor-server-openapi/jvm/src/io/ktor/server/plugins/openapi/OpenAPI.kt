@@ -29,11 +29,11 @@ public fun Route.openAPI(
     swaggerFile: String,
     block: OpenAPIConfig.() -> Unit = {}
 ) {
-    openAPI(path, OpenAPISource.File(swaggerFile), block)
+    openAPI(path) {
+        source = OpenAPISource.File(swaggerFile)
+        block()
+    }
 }
-
-private const val DEFAULT_LOCATION = "openapi/documentation.yaml"
-private const val GENERATED_LOCATION = "openapi/generated.yaml"
 
 /**
  * Creates a `get` endpoint at [path] with documentation rendered from the OpenAPI file.
@@ -48,7 +48,6 @@ private const val GENERATED_LOCATION = "openapi/generated.yaml"
  */
 public fun Route.openAPI(
     path: String,
-    source: OpenAPISource = OpenAPISource(DEFAULT_LOCATION),
     block: OpenAPIConfig.() -> Unit = {}
 ) {
     val config = OpenAPIConfig()

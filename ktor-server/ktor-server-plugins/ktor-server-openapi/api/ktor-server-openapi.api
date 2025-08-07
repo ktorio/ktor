@@ -5,15 +5,83 @@ public final class io/ktor/server/plugins/openapi/OpenAPIConfig {
 	public final fun getOptions ()Lio/swagger/v3/parser/core/models/ParseOptions;
 	public final fun getOpts ()Lio/swagger/codegen/v3/ClientOptInput;
 	public final fun getParser ()Lio/swagger/parser/OpenAPIParser;
+	public final fun getSource ()Lio/ktor/server/plugins/openapi/OpenAPISource;
 	public final fun setCodegen (Lio/swagger/codegen/v3/CodegenConfig;)V
 	public final fun setGenerator (Lio/swagger/codegen/v3/Generator;)V
 	public final fun setOptions (Lio/swagger/v3/parser/core/models/ParseOptions;)V
 	public final fun setOpts (Lio/swagger/codegen/v3/ClientOptInput;)V
 	public final fun setParser (Lio/swagger/parser/OpenAPIParser;)V
+	public final fun setSource (Lio/ktor/server/plugins/openapi/OpenAPISource;)V
 }
 
 public final class io/ktor/server/plugins/openapi/OpenAPIKt {
 	public static final fun openAPI (Lio/ktor/server/routing/Route;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public static final fun openAPI (Lio/ktor/server/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun openAPI$default (Lio/ktor/server/routing/Route;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static synthetic fun openAPI$default (Lio/ktor/server/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+}
+
+public final class io/ktor/server/plugins/openapi/OpenAPIReadContext {
+	public fun <init> (Lio/ktor/server/plugins/openapi/OpenAPIConfig;Lio/ktor/server/application/ApplicationEnvironment;)V
+	public final fun component1 ()Lio/ktor/server/plugins/openapi/OpenAPIConfig;
+	public final fun component2 ()Lio/ktor/server/application/ApplicationEnvironment;
+	public final fun copy (Lio/ktor/server/plugins/openapi/OpenAPIConfig;Lio/ktor/server/application/ApplicationEnvironment;)Lio/ktor/server/plugins/openapi/OpenAPIReadContext;
+	public static synthetic fun copy$default (Lio/ktor/server/plugins/openapi/OpenAPIReadContext;Lio/ktor/server/plugins/openapi/OpenAPIConfig;Lio/ktor/server/application/ApplicationEnvironment;ILjava/lang/Object;)Lio/ktor/server/plugins/openapi/OpenAPIReadContext;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getClassLoader ()Ljava/lang/ClassLoader;
+	public final fun getConfig ()Lio/ktor/server/plugins/openapi/OpenAPIConfig;
+	public final fun getEnvironment ()Lio/ktor/server/application/ApplicationEnvironment;
+	public final fun getParser ()Lio/swagger/parser/OpenAPIParser;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class io/ktor/server/plugins/openapi/OpenAPISource {
+	public static final field Companion Lio/ktor/server/plugins/openapi/OpenAPISource$Companion;
+	public abstract fun map (Lkotlin/jvm/functions/Function1;)Lio/ktor/server/plugins/openapi/OpenAPISource;
+	public abstract fun plus (Lio/ktor/server/plugins/openapi/OpenAPISource;)Lio/ktor/server/plugins/openapi/OpenAPISource;
+	public abstract fun provide (Lio/ktor/server/plugins/openapi/OpenAPIReadContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/plugins/openapi/OpenAPISource$Adapter : io/ktor/server/plugins/openapi/OpenAPISource {
+	public fun map (Lkotlin/jvm/functions/Function1;)Lio/ktor/server/plugins/openapi/OpenAPISource;
+	public fun plus (Lio/ktor/server/plugins/openapi/OpenAPISource;)Lio/ktor/server/plugins/openapi/OpenAPISource;
+	public fun provide (Lio/ktor/server/plugins/openapi/OpenAPIReadContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/plugins/openapi/OpenAPISource$Companion {
+	public final fun getEmpty ()Lio/ktor/server/plugins/openapi/OpenAPISource;
+}
+
+public final class io/ktor/server/plugins/openapi/OpenAPISource$DefaultImpls {
+	public static fun map (Lio/ktor/server/plugins/openapi/OpenAPISource;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/plugins/openapi/OpenAPISource;
+	public static fun plus (Lio/ktor/server/plugins/openapi/OpenAPISource;Lio/ktor/server/plugins/openapi/OpenAPISource;)Lio/ktor/server/plugins/openapi/OpenAPISource;
+}
+
+public final class io/ktor/server/plugins/openapi/OpenAPISource$File : io/ktor/server/plugins/openapi/OpenAPISource {
+	public fun map (Lkotlin/jvm/functions/Function1;)Lio/ktor/server/plugins/openapi/OpenAPISource;
+	public fun plus (Lio/ktor/server/plugins/openapi/OpenAPISource;)Lio/ktor/server/plugins/openapi/OpenAPISource;
+	public fun provide (Lio/ktor/server/plugins/openapi/OpenAPIReadContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/plugins/openapi/OpenAPISource$Merged : io/ktor/server/plugins/openapi/OpenAPISource {
+	public static final field Companion Lio/ktor/server/plugins/openapi/OpenAPISource$Merged$Companion;
+	public final fun getSources ()Ljava/util/List;
+	public fun map (Lkotlin/jvm/functions/Function1;)Lio/ktor/server/plugins/openapi/OpenAPISource;
+	public fun plus (Lio/ktor/server/plugins/openapi/OpenAPISource;)Lio/ktor/server/plugins/openapi/OpenAPISource;
+	public fun provide (Lio/ktor/server/plugins/openapi/OpenAPIReadContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/plugins/openapi/OpenAPISource$Merged$Companion {
+	public final fun of (Ljava/util/List;)Lio/ktor/server/plugins/openapi/OpenAPISource$Merged;
+}
+
+public final class io/ktor/server/plugins/openapi/OpenAPISourceKt {
+	public static final fun OpenAPISource ([Ljava/lang/String;)Lio/ktor/server/plugins/openapi/OpenAPISource;
+}
+
+public final class io/ktor/server/plugins/openapi/OpenAPITransformUtilsKt {
+	public static final fun copy (Lio/swagger/v3/oas/models/OpenAPI;Lio/swagger/v3/oas/models/info/Info;Lio/swagger/v3/oas/models/ExternalDocumentation;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lio/swagger/v3/oas/models/Paths;Lio/swagger/v3/oas/models/Components;Ljava/util/Map;)Lio/swagger/v3/oas/models/OpenAPI;
+	public static synthetic fun copy$default (Lio/swagger/v3/oas/models/OpenAPI;Lio/swagger/v3/oas/models/info/Info;Lio/swagger/v3/oas/models/ExternalDocumentation;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lio/swagger/v3/oas/models/Paths;Lio/swagger/v3/oas/models/Components;Ljava/util/Map;ILjava/lang/Object;)Lio/swagger/v3/oas/models/OpenAPI;
 }
 
