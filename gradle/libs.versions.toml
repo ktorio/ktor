@@ -45,7 +45,7 @@ dropwizard = "4.2.33"
 micrometer = "1.15.1"
 
 jansi = "2.4.2"
-typesafe = "1.4.3"
+typesafe = "1.4.4"
 
 mockk = "1.14.4"
 
