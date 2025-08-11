@@ -449,6 +449,8 @@ public fun Route.preCompressed(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.staticRootFolder)
  */
+@Deprecated("This property only used in deprecated functions `files`, `file` and `default`. " +
+    "Please use `staticFiles` or `staticResources` instead")
 public var Route.staticRootFolder: File?
     get() = attributes.getOrNull(staticRootFolderKey) ?: parent?.staticRootFolder
     set(value) {
