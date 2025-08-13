@@ -54,6 +54,8 @@ public fun Route.openAPI(
     File("docs").mkdirs()
     application.launch {
         with(config) {
+            block(this)
+
             val spec = source.provide(OpenAPIReadContext(config, environment)).apply {
                 // Generator NPE's if these are missing
                 info = info ?: Info()
@@ -65,8 +67,6 @@ public fun Route.openAPI(
                 opts(ClientOpts())
                 openAPI(spec)
             }
-
-            block(this)
 
             generator.opts(opts)
             generator.generate()
