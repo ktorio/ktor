@@ -1,3 +1,18 @@
+# 3.2.3
+> Published 29 July 2025
+
+### Improvements
+* Server only accepts `yaml` as the configuration file suffix ([KTOR-8712](https://youtrack.jetbrains.com/issue/KTOR-8712))
+* JS / WASM error when process global is undefined ([KTOR-8686](https://youtrack.jetbrains.com/issue/KTOR-8686))
+* DI async duplicate resolution ([KTOR-8681](https://youtrack.jetbrains.com/issue/KTOR-8681))
+
+### Bugfixes
+* CIO: Expect 100-continue response is missing a final `\r\n` ([KTOR-8687](https://youtrack.jetbrains.com/issue/KTOR-8687))
+* Intermittent "ParserException: No colon in HTTP header" when parsing multipart request ([KTOR-8523](https://youtrack.jetbrains.com/issue/KTOR-8523))
+* Infinite loop in ByteReadChannel.readFully ([KTOR-8682](https://youtrack.jetbrains.com/issue/KTOR-8682))
+* ShutDownUrl: The server cannot shut down since 3.2.0 ([KTOR-8674](https://youtrack.jetbrains.com/issue/KTOR-8674))
+
+
 # 3.2.2
 > Published 14 July 2025
 
