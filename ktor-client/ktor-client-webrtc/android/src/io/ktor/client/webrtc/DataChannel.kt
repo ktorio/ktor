@@ -73,6 +73,11 @@ public class AndroidWebRtcDataChannel(
     }
 
     override fun closeTransport() {
+        nativeChannel.close()
+    }
+
+    override fun close() {
+        super.close()
         nativeChannel.dispose()
     }
 
@@ -116,7 +121,7 @@ public class AndroidWebRtcDataChannel(
 
             override fun onBufferedAmountChange(previousAmount: Long) {
                 coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) {
-                    if (bufferedAmountLowThreshold in (bufferedAmount + 1)..<previousAmount) {
+                    if (bufferedAmountLowThreshold !in bufferedAmount..<previousAmount) {
                         return@launch
                     }
                     val event = DataChannelEvent.BufferedAmountLow(this@AndroidWebRtcDataChannel)

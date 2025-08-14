@@ -216,16 +216,16 @@ class WebRtcDataChannelTest {
         val threshold = 1000L
         dataChannel1.setBufferedAmountLowThreshold(threshold)
 
-        val largeData = List(1000) { it.toByte() }.toByteArray()
-        repeat(10) {
-            dataChannel1.send(largeData)
-        }
+        val largeData = List(1111) { it.toByte() }.toByteArray()
+        dataChannel1.send(largeData)
 
         // Now wait for the BufferedAmountLow event
         val bufferedAmountLowEvent = withTimeout(5000) {
             while (true) {
                 val event = dataChannelEvents1.receive()
                 if (event is DataChannelEvent.BufferedAmountLow) {
+                    // assert there was only one event fired
+                    assertTrue(dataChannelEvents1.tryReceive().isFailure)
                     return@withTimeout event
                 }
             }

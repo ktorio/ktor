@@ -120,6 +120,10 @@ impl DataChannel {
         self.inner.buffered_amount().await as u64
     }
 
+    pub async fn buffered_amount_low_threshold(&self) -> u64 {
+        self.inner.buffered_amount_low_threshold().await as u64
+    }
+
     pub async fn set_buffered_amount_low_threshold(&self, threshold: u64) {
         self.inner
             .set_buffered_amount_low_threshold(threshold as usize)

@@ -35,8 +35,8 @@ public class RustWebRtcDataChannel(
     override val bufferedAmount: Long
         get() = runBlocking { inner.bufferedAmount().toLong() }
 
-    override var bufferedAmountLowThreshold: Long = 0
-        private set
+    override val bufferedAmountLowThreshold: Long
+        get() = runBlocking { inner.bufferedAmountLowThreshold().toLong() }
 
     override val maxPacketLifeTime: Int?
         get() = inner.maxPacketLifetime()?.toInt()
@@ -61,8 +61,8 @@ public class RustWebRtcDataChannel(
         inner.send(bytes)
     }
 
-    override fun setBufferedAmountLowThreshold(threshold: Long) {
-        bufferedAmountLowThreshold = threshold
+    override fun setBufferedAmountLowThreshold(threshold: Long): Unit = runBlocking {
+        inner.setBufferedAmountLowThreshold(threshold.toULong())
     }
 
     override fun closeTransport(): Unit = runBlocking {
