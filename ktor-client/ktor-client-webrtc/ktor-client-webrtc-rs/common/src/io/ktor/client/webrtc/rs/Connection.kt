@@ -121,9 +121,8 @@ public class RustWebRtcConnection(
     }
 
     override suspend fun removeTrack(track: WebRtcMedia.Track) {
-        throw UnsupportedOperationException(
-            "Removing track by track is not supported by WebRTC.rs. Please use removeTrack(sender: RtpSender)"
-        )
+        val track = track as? RustMediaTrack ?: error("Wrong track implementation.")
+        return inner.removeTrack(track.inner)
     }
 
     override fun restartIce(): Unit = runBlocking {

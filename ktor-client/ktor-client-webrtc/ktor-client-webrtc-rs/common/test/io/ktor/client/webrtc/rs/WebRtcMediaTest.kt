@@ -142,14 +142,21 @@ class WebRtcMediaTest {
 
             // remove audio track at pc2, needs renegotiation to work
             pc2.removeTrack(audioSender)
+            pc1.removeTrack(videoTrack1)
             negotiate(pc1, pc2)
 
             readJobs.joinAll() // ensure all reads are completed
 
             // Check if the remote track is removed
-            val removedTrack = remoteTracks1.receive()
-            assertTrue(removedTrack is TrackEvent.Remove)
-            assertEquals(WebRtcMedia.TrackType.AUDIO, removedTrack.track.kind)
+            val removeAudioEvent = remoteTracks1.receive()
+            assertTrue(removeAudioEvent is TrackEvent.Remove)
+            assertEquals(audioTrack2.id, removeAudioEvent.track.id)
+            assertEquals(WebRtcMedia.TrackType.AUDIO, removeAudioEvent.track.kind)
+
+            val removeVideoEvent = remoteTracks2.receive()
+            assertTrue(removeVideoEvent is TrackEvent.Remove)
+            assertEquals(videoTrack1.id, removeVideoEvent.track.id)
+            assertEquals(WebRtcMedia.TrackType.VIDEO, removeVideoEvent.track.kind)
         }
     }
 }

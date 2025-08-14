@@ -132,6 +132,23 @@ impl PeerConnection {
         Ok(RtpSender::new(sender, track))
     }
 
+    pub async fn remove_track(&self, track: Arc<MediaStreamTrack>) -> Result<(), RtcError> {
+        let senders = self.inner.get_senders().await;
+        for sender in senders {
+            if let Some(sender_track) = sender.track().await {
+                if sender_track.id() != track.id() {
+                    continue;
+                }
+                return self
+                    .inner
+                    .remove_track(&sender)
+                    .await
+                    .map_err(|e| RemoveTrackError(e.to_string()));
+            }
+        }
+        Err(RemoveTrackError("Track not found".to_string()))
+    }
+
     pub async fn remove_track_by_sender(&self, sender: Arc<RtpSender>) -> Result<(), RtcError> {
         self.inner
             .remove_track(&sender.inner)
