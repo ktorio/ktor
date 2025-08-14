@@ -38,6 +38,14 @@ public actual fun sha1(bytes: ByteArray): ByteArray =
     MessageDigest.getInstance("SHA1").digest(bytes)
 
 /**
+ * Compute SHA-256 hash for the specified [bytes]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.sha1)
+ */
+public actual fun sha256(bytes: ByteArray): ByteArray =
+    MessageDigest.getInstance("SHA-256").digest(bytes)
+
+/**
  * Create [Digest] from specified hash [name].
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.Digest)
