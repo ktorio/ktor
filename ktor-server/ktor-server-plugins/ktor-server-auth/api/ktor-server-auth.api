@@ -469,11 +469,13 @@ public final class io/ktor/server/auth/OAuthServerSettings$OAuth1aServerSettings
 public final class io/ktor/server/auth/OAuthServerSettings$OAuth2ServerSettings : io/ktor/server/auth/OAuthServerSettings {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/HttpMethod;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ZLio/ktor/util/NonceManager;Lkotlin/jvm/functions/Function1;ZLjava/util/List;Ljava/util/List;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function3;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/HttpMethod;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ZLio/ktor/util/NonceManager;Lkotlin/jvm/functions/Function1;ZLjava/util/List;Ljava/util/List;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function3;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/HttpMethod;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ZLio/ktor/util/NonceManager;Lkotlin/jvm/functions/Function2;ZLjava/util/List;Ljava/util/List;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function3;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/HttpMethod;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ZLio/ktor/util/NonceManager;Lkotlin/jvm/functions/Function2;ZLjava/util/List;Ljava/util/List;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function3;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getAccessTokenInterceptor ()Lkotlin/jvm/functions/Function1;
 	public final fun getAccessTokenRequiresBasicAuth ()Z
 	public final fun getAccessTokenUrl ()Ljava/lang/String;
 	public final fun getAuthorizeUrl ()Ljava/lang/String;
-	public final fun getAuthorizeUrlInterceptor ()Lkotlin/jvm/functions/Function1;
+	public final fun getAuthorizeUrlInterceptor ()Lkotlin/jvm/functions/Function2;
 	public final fun getClientId ()Ljava/lang/String;
 	public final fun getClientSecret ()Ljava/lang/String;
 	public final fun getDefaultScopes ()Ljava/util/List;

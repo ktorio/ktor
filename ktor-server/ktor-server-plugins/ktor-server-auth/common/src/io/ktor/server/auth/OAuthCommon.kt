@@ -77,21 +77,56 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
         public val authorizeUrl: String,
         public val accessTokenUrl: String,
         public val requestMethod: HttpMethod = HttpMethod.Get,
-
         public val clientId: String,
         public val clientSecret: String,
         public val defaultScopes: List<String> = emptyList(),
         public val accessTokenRequiresBasicAuth: Boolean = false,
-
         public val nonceManager: NonceManager = GenerateOnlyNonceManager,
-
         public val authorizeUrlInterceptor: URLBuilder.(ApplicationRequest) -> Unit = {},
         public val passParamsInURL: Boolean = false,
         public val extraAuthParameters: List<Pair<String, String>> = emptyList(),
         public val extraTokenParameters: List<Pair<String, String>> = emptyList(),
         public val accessTokenInterceptor: HttpRequestBuilder.() -> Unit = {},
         public val onStateCreated: suspend (call: ApplicationCall, state: String) -> Unit = { _, _ -> }
-    ) : OAuthServerSettings(name, OAuthVersion.V20)
+    ) : OAuthServerSettings(name, OAuthVersion.V20) {
+
+        /**
+         * Constructor that accepts the old style authorizeUrlInterceptor for backward compatibility
+         */
+        public constructor(
+            name: String,
+            authorizeUrl: String,
+            accessTokenUrl: String,
+            requestMethod: HttpMethod = HttpMethod.Get,
+            clientId: String,
+            clientSecret: String,
+            defaultScopes: List<String> = emptyList(),
+            accessTokenRequiresBasicAuth: Boolean = false,
+            nonceManager: NonceManager = GenerateOnlyNonceManager,
+            authorizeUrlInterceptor: URLBuilder.() -> Unit = {},
+            passParamsInURL: Boolean = false,
+            extraAuthParameters: List<Pair<String, String>> = emptyList(),
+            extraTokenParameters: List<Pair<String, String>> = emptyList(),
+            accessTokenInterceptor: HttpRequestBuilder.() -> Unit = {},
+            onStateCreated: suspend (call: ApplicationCall, state: String) -> Unit = { _, _ -> }
+        ) : this(
+            name,
+            authorizeUrl,
+            accessTokenUrl,
+            requestMethod,
+            clientId,
+            clientSecret,
+            defaultScopes,
+            accessTokenRequiresBasicAuth,
+            nonceManager,
+            { request: ApplicationRequest -> authorizeUrlInterceptor() },
+            passParamsInURL,
+            extraAuthParameters,
+            extraTokenParameters,
+            accessTokenInterceptor,
+            onStateCreated
+        )
+    }
 }
 
 /**
