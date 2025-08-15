@@ -2,27 +2,26 @@
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.client.webrtc
+package io.ktor.client.webrtc.rs
 
-import io.ktor.client.webrtc.utils.*
+import io.ktor.client.webrtc.*
+import io.ktor.client.webrtc.rs.utils.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
 
-@IgnoreJvm
-@IgnorePosix
 class WebRtcDataChannelTest {
-
     private lateinit var client: WebRtcClient
 
     @BeforeTest
     fun setup() {
-        client = createTestWebRtcClient()
+        client = WebRtcClient(RustWebRtc) {
+            mediaTrackFactory = MockMediaDevices()
+        }
     }
 
     @AfterTest
@@ -33,8 +32,8 @@ class WebRtcDataChannelTest {
     private inline fun testDataChannel(
         realtime: Boolean = true,
         crossinline block: suspend CoroutineScope.(WebRtcPeerConnection, WebRtcPeerConnection, MutableList<Job>) -> Unit
-    ): TestResult {
-        return runTestWithPermissions(audio = false, video = false, realtime) { jobs ->
+    ) {
+        return runTestWithTimeout(realtime) { jobs ->
             client.createPeerConnection().use { pc1 ->
                 client.createPeerConnection().use { pc2 ->
                     block(pc1, pc2, jobs)
@@ -75,19 +74,18 @@ class WebRtcDataChannelTest {
         }
         assertEquals(WebRtc.DataChannel.State.CONNECTING, dataChannel1.state)
 
-        connect(pc1, pc2, jobs)
+        negotiate(pc1, pc2)
 
         val dataChannel2 = waitForChannel(dataChannelEvents)
 
         // Verify data channel properties
         assertTrue(dataChannel1.ordered)
-        // Ordered is not available on Android yet :(
-        // assertTrue(dataChannel2.ordered)
+        assertTrue(dataChannel2.ordered)
         assertEquals("test-channel", dataChannel1.label)
         assertEquals("test-channel", dataChannel2.label)
         assertEquals("test-protocol", dataChannel1.protocol)
-        // Protocol is not available on Android yet :(
-        // assertEquals("test-protocol", dataChannel2.protocol)
+
+        assertEquals("test-protocol", dataChannel2.protocol)
         assertEquals(WebRtc.DataChannel.State.OPEN, dataChannel1.state)
         assertEquals(WebRtc.DataChannel.State.OPEN, dataChannel2.state)
 
@@ -128,7 +126,7 @@ class WebRtcDataChannelTest {
         assertEquals("Message from pc2", msg2)
 
         // Test channel closing
-        dataChannel1.closeTransport()
+        dataChannel1.close()
         dataChannel2.waitForClose(dataChannelEvents)
     }
 
@@ -164,7 +162,7 @@ class WebRtcDataChannelTest {
     fun testDataChannelSendManyMessages() = testDataChannel { pc1, pc2, jobs ->
         val dataChannelEvents = pc2.dataChannelEvents.collectToChannel(this, jobs)
         val dataChannel1 = pc1.createDataChannel("multi-message-test")
-        connect(pc1, pc2, jobs)
+        negotiate(pc1, pc2)
 
         val dataChannel2 = waitForChannel(dataChannelEvents)
 
@@ -189,7 +187,7 @@ class WebRtcDataChannelTest {
         val dataChannelEvents1 = pc1.dataChannelEvents.collectToChannel(this, jobs)
         val dataChannelEvents2 = pc2.dataChannelEvents.collectToChannel(this, jobs)
 
-        connect(pc1, pc2, jobs)
+        negotiate(pc1, pc2)
 
         val dataChannel2 = waitForChannel(dataChannelEvents2)
 
@@ -211,7 +209,7 @@ class WebRtcDataChannelTest {
 
         // Create data channel on pc1
         val dataChannel1 = pc1.createDataChannel("buffered-amount-test")
-        connect(pc1, pc2, jobs)
+        negotiate(pc1, pc2)
 
         val dataChannel2 = waitForChannel(dataChannelEvents2)
 
@@ -243,7 +241,7 @@ class WebRtcDataChannelTest {
         )
 
         // Clean up
-        dataChannel1.closeTransport()
+        dataChannel1.close()
         dataChannel2.waitForClose(dataChannelEvents2)
     }
 }
