@@ -14,8 +14,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
-import org.junit.jupiter.api.assertNotNull
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 fun assertSdpEquivalent(expected: WebRtc.SessionDescription, actual: WebRtc.SessionDescription?) {

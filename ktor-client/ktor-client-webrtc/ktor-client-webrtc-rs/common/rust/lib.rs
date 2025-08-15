@@ -8,19 +8,19 @@ use crate::connection::PeerConnection;
 use crate::rtc::RtcError::CreateConnectionError;
 use crate::rtc::{BundlePolicy, ConnectionConfig, IceTransportPolicy, RtcError, RtcpMuxPolicy};
 use std::sync::Arc;
-use webrtc::Error;
-use webrtc::api::APIBuilder;
 use webrtc::api::interceptor_registry::register_default_interceptors;
 use webrtc::api::media_engine::MediaEngine;
+use webrtc::api::APIBuilder;
 use webrtc::ice_transport::ice_server::RTCIceServer;
 use webrtc::interceptor::registry::Registry;
 use webrtc::peer_connection::configuration::RTCConfiguration;
 use webrtc::peer_connection::policy::bundle_policy::RTCBundlePolicy;
 use webrtc::peer_connection::policy::ice_transport_policy::RTCIceTransportPolicy;
 use webrtc::peer_connection::policy::rtcp_mux_policy::RTCRtcpMuxPolicy;
-use webrtc::rtp_transceiver::RTCRtpTransceiverInit;
 use webrtc::rtp_transceiver::rtp_codec::RTPCodecType;
 use webrtc::rtp_transceiver::rtp_transceiver_direction::RTCRtpTransceiverDirection;
+use webrtc::rtp_transceiver::RTCRtpTransceiverInit;
+use webrtc::Error;
 
 fn with_create_connection_error(e: Error) -> RtcError {
     CreateConnectionError(e.to_string())
@@ -28,13 +28,10 @@ fn with_create_connection_error(e: Error) -> RtcError {
 
 #[uniffi::export]
 fn enable_logging() {
-    if let Err(e) = tracing_subscriber::fmt::try_init() {
-        println!("{}", e);
-        return;
-    }
-    unsafe {
-        std::env::set_var("RUST_LOG", "webrtc=trace");
-    }
+    use tracing_subscriber::{fmt, EnvFilter};
+    let env_filter =
+        EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("webrtc=trace"));
+    let _ = fmt().with_env_filter(env_filter).try_init(); // ignore AlreadyInit errors
 }
 
 #[uniffi::export(async_runtime = "tokio")]

@@ -36,6 +36,7 @@ pub trait PeerConnectionObserver: Send + Sync + Debug {
     fn on_track(&self, track: Arc<MediaStreamTrack>);
     fn on_remove_track(&self, track: Arc<MediaStreamTrack>);
     fn on_negotiation_needed(&self);
+    fn on_error(&self, error: RtcError);
 }
 
 #[uniffi::export(async_runtime = "tokio")]
@@ -215,14 +216,20 @@ impl PeerConnection {
         let observer = Arc::clone(&observer_ref);
         self.inner
             .on_track(Box::new(move |remote_track, _, transceiver| {
-                let track = Arc::new(MediaStreamTrack::from_remote(remote_track.clone()));
+                let track = match MediaStreamTrack::from_remote(remote_track.clone()) {
+                    Ok(track) => Arc::new(track),
+                    Err(e) => {
+                        observer.on_error(e);
+                        return Box::pin(async {});
+                    }
+                };
                 let track_ref = Arc::clone(&track);
                 let observer_ref = Arc::clone(&observer);
 
                 remote_track.onmute(move || {
                     // We do not fire onmute events for now, but add a handler here to
-                    // listen for the track direction change, which is not very clear.
-                    // But checking track states right after renegotiation has asynchronous issues
+                    // listen for the track direction change, which is rather WebRTC.rs library constraint.
+                    // Checking track states right after renegotiation has asynchronous issues
                     // because the track state is not updated immediately.
                     let can_receive = match transceiver.current_direction() {
                         RTCRtpTransceiverDirection::Sendonly => false,

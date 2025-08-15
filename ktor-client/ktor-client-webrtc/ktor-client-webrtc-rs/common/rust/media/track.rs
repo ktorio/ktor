@@ -8,9 +8,9 @@ use crate::rtc::RtcError;
 use crate::rtc::RtcError::MediaTrackError;
 use arc_swap::ArcSwap;
 use std::sync::Arc;
-use std::sync::atomic::Ordering;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
-use uniffi::deps::bytes::Bytes;
+use bytes::Bytes;
 use webrtc::api::media_engine::{MIME_TYPE_H264, MIME_TYPE_OPUS, MIME_TYPE_VP8};
 use webrtc::media::Sample;
 use webrtc::rtp_transceiver::rtp_codec::RTCRtpCodecCapability;
@@ -19,37 +19,44 @@ use webrtc::track::track_local::track_local_static_sample::TrackLocalStaticSampl
 use webrtc::track::track_remote::TrackRemote;
 
 impl MediaStreamTrack {
-    pub fn from_local(track: Arc<TrackLocalStaticSample>) -> Self {
-        let kind = if track.codec().mime_type.starts_with("audio/") {
-            MediaKind::Audio
+    fn kind_of(mime_type: &String) -> Result<MediaKind, RtcError> {
+        if mime_type.starts_with("audio/") {
+            Ok(MediaKind::Audio)
+        } else if mime_type.starts_with("video/") {
+            Ok(MediaKind::Video)
         } else {
-            MediaKind::Video
-        };
-        MediaStreamTrack {
-            kind,
-            enabled: true.into(),
+            Err(MediaTrackError(format!(
+                "Received unknown track kind {}",
+                mime_type
+            )))
+        }
+    }
+
+    pub fn from_local(track: Arc<TrackLocalStaticSample>) -> Result<Self, RtcError> {
+        Ok(MediaStreamTrack {
             id: track.id().to_string(),
+            enabled: AtomicBool::new(true),
+            kind: MediaStreamTrack::kind_of(&track.codec().mime_type)?,
             inner: MediaStreamTrackInner::LocalSample(track),
-            sink: ArcSwap::new(MediaStreamSink::empty().into()),
-        }
+            sink: ArcSwap::new(Arc::new(MediaStreamSink::empty())),
+        })
     }
 
-    pub fn from_remote(track: Arc<TrackRemote>) -> MediaStreamTrack {
-        let kind = if track.codec().capability.mime_type.starts_with("audio/") {
-            MediaKind::Audio
-        } else {
-            MediaKind::Video
-        };
-        MediaStreamTrack {
-            kind,
-            enabled: true.into(),
+    pub fn from_remote(track: Arc<TrackRemote>) -> Result<Self, RtcError> {
+        Ok(MediaStreamTrack {
             id: track.id().to_string(),
-            inner: MediaStreamTrackInner::Remote(track),
+            enabled: AtomicBool::new(true),
             sink: ArcSwap::new(MediaStreamSink::empty().into()),
-        }
+            kind: MediaStreamTrack::kind_of(&track.codec().capability.mime_type)?,
+            inner: MediaStreamTrackInner::Remote(track),
+        })
     }
 
-    fn with_capability(capability: RTCRtpCodecCapability, track_id: &str, stream_id: &str) -> Self {
+    fn with_capability(
+        capability: RTCRtpCodecCapability,
+        track_id: &str,
+        stream_id: &str,
+    ) -> Result<Self, RtcError> {
         let track = Arc::new(TrackLocalStaticSample::new(
             capability,
             track_id.to_owned(),
@@ -70,7 +77,7 @@ impl MediaStreamTrack {
     }
 
     pub fn as_local_trait(&self) -> Result<Arc<dyn TrackLocal + Send + Sync>, RtcError> {
-        Ok(self.as_local()? as Arc<dyn TrackLocal + Send + Sync>)
+        Ok(self.as_local()?)
     }
 
     /// Get underlying TrackRemote
@@ -112,9 +119,7 @@ pub fn create_video_track(
             )));
         }
     };
-    Ok(MediaStreamTrack::with_capability(
-        capability, track_id, stream_id,
-    ))
+    MediaStreamTrack::with_capability(capability, track_id, stream_id)
 }
 
 #[uniffi::export]
@@ -138,9 +143,7 @@ pub fn create_audio_track(
             )));
         }
     };
-    Ok(MediaStreamTrack::with_capability(
-        capability, track_id, stream_id,
-    ))
+    MediaStreamTrack::with_capability(capability, track_id, stream_id)
 }
 
 #[uniffi::export(async_runtime = "tokio")]
@@ -207,7 +210,7 @@ impl MediaStreamTrack {
             .map_err(|e| MediaTrackError(e.to_string()))
     }
 
-    pub async fn set_sink(&self, sink: Arc<MediaStreamSink>) {
+    pub fn set_sink(&self, sink: Arc<MediaStreamSink>) {
         self.sink.store(sink)
     }
 

@@ -70,7 +70,7 @@ internal fun SignalingState.toKtor() = when (this) {
     SignalingState.HAVE_LOCAL_OFFER -> WebRtc.SignalingState.HAVE_LOCAL_OFFER
     SignalingState.HAVE_REMOTE_OFFER -> WebRtc.SignalingState.HAVE_REMOTE_OFFER
     SignalingState.HAVE_LOCAL_PROVISIONAL_ANSWER -> WebRtc.SignalingState.HAVE_LOCAL_PROVISIONAL_ANSWER
-    SignalingState.HAVE_REMOTE_PROVISIONAL_ANSWER -> WebRtc.SignalingState.HAVE_LOCAL_PROVISIONAL_ANSWER
+    SignalingState.HAVE_REMOTE_PROVISIONAL_ANSWER -> WebRtc.SignalingState.HAVE_REMOTE_PROVISIONAL_ANSWER
 }
 
 internal fun DataChannelState.toKtor() = when (this) {
@@ -91,7 +91,7 @@ internal suspend inline fun withSdpException(crossinline block: suspend () -> Un
     try {
         block()
     } catch (e: RtcException.SdpException) {
-        throw WebRtc.SdpException(e.v1, e.cause)
+        throw WebRtc.SdpException(e.v1, e)
     }
 }
 
@@ -99,6 +99,6 @@ internal suspend inline fun withIceException(crossinline block: suspend () -> Un
     try {
         block()
     } catch (e: RtcException.IceException) {
-        throw WebRtc.IceException(e.v1, e.cause)
+        throw WebRtc.IceException(e.v1, e)
     }
 }

@@ -3,12 +3,12 @@
  */
 use crate::rtc::RtcError;
 use crate::rtc::RtcError::DataChannelError;
+use bytes::Bytes;
 use std::fmt::Debug;
 use std::sync::Arc;
-use uniffi::deps::bytes::Bytes;
-use webrtc::data_channel::RTCDataChannel;
 use webrtc::data_channel::data_channel_init::RTCDataChannelInit;
 use webrtc::data_channel::data_channel_state::RTCDataChannelState;
+use webrtc::data_channel::RTCDataChannel;
 
 #[derive(uniffi::Enum)]
 pub enum DataChannelState {

@@ -5,6 +5,7 @@
 package io.ktor.client.webrtc.rs
 
 import io.ktor.client.webrtc.*
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
 import uniffi.ktor_client_webrtc.*
 import kotlin.coroutines.CoroutineContext
@@ -57,6 +58,10 @@ public class RustWebRtcConnection(
             override fun onNegotiationNeeded() {
                 events.emitNegotiationNeeded()
             }
+
+            override fun onError(error: RtcException) {
+                coroutineScope.cancel("Peer connection error: ${error.message}")
+            }
         })
     }
 
@@ -83,7 +88,7 @@ public class RustWebRtcConnection(
         val options = WebRtcDataChannelOptions().apply(options)
         val channelInit = DataChannelInit(
             negotiated = when (options.negotiated) {
-                true -> options.id!!.toUShort()
+                true -> options.id?.toUShort() ?: error("Data channel id is required for negotiated channel.")
                 false -> null
             },
             ordered = options.ordered,

@@ -18,7 +18,10 @@ public class RustRtpSender(internal val inner: RtpSender) : WebRtc.RtpSender {
         }
 
     override suspend fun replaceTrack(withTrack: WebRtcMedia.Track?) {
-        inner.setTrack((withTrack as? RustMediaTrack)?.inner)
+        if (withTrack != null && withTrack !is RustMediaTrack) {
+            error("Wrong track implementation. Expected RustMediaTrack.")
+        }
+        inner.setTrack(withTrack?.inner)
     }
 
     override suspend fun getParameters(): WebRtc.RtpParameters {
@@ -45,13 +48,8 @@ public class RustRtpParameters(internal val inner: RtpParameters) : WebRtc.RtpPa
             )
         }
 
-    override val degradationPreference: WebRtc.DegradationPreference
-        get() = when (inner.degradationPreference) {
-            DegradationPreference.BALANCED -> WebRtc.DegradationPreference.BALANCED
-            DegradationPreference.MAINTAIN_FRAMERATE -> WebRtc.DegradationPreference.MAINTAIN_FRAMERATE
-            DegradationPreference.MAINTAIN_RESOLUTION -> WebRtc.DegradationPreference.MAINTAIN_RESOLUTION
-            DegradationPreference.DISABLED -> WebRtc.DegradationPreference.DISABLED
-        }
+    // There is no degradation preference in WebRTC.rs
+    override val degradationPreference: WebRtc.DegradationPreference = WebRtc.DegradationPreference.DISABLED
 }
 
 /**

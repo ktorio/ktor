@@ -32,11 +32,20 @@ impl RtpSender {
         self.track.load_full()
     }
 
-    pub async fn set_track(&self, track: Option<Arc<MediaStreamTrack>>) -> Result<(), RtcError> {
+    pub async fn set_track(
+        &self,
+        media_track: Option<Arc<MediaStreamTrack>>,
+    ) -> Result<(), RtcError> {
+        let track = match &media_track {
+            Some(t) => Some(t.as_local_trait()?),
+            None => None,
+        };
         self.inner
-            .replace_track(track.map(|t| t.as_local_trait().unwrap()))
+            .replace_track(track)
             .await
-            .map_err(|e| MediaTrackError(e.to_string()))
+            .map_err(|e| MediaTrackError(e.to_string()))?;
+        self.track.swap(media_track);
+        Ok(())
     }
 
     pub async fn get_parameters(&self) -> RtpParameters {
@@ -49,7 +58,6 @@ pub struct RtpParameters {
     pub encodings: Vec<RtpEncodingParameters>,
     pub header_extensions: Vec<RtpHeaderExtensionParameters>,
     pub codecs: Vec<RtpCodecParameters>,
-    pub degradation_preference: DegradationPreference,
 }
 
 impl RtpParameters {
@@ -72,7 +80,6 @@ impl RtpParameters {
                 .into_iter()
                 .map(RtpCodecParameters::from_native)
                 .collect(),
-            degradation_preference: DegradationPreference::Balanced, // Default value
         }
     }
 }
@@ -132,12 +139,4 @@ impl RtpCodecParameters {
             sdp_fmtp_line: params.capability.sdp_fmtp_line,
         }
     }
-}
-
-#[derive(uniffi::Enum, Clone)]
-pub enum DegradationPreference {
-    Balanced,
-    MaintainFramerate,
-    MaintainResolution,
-    Disabled,
 }

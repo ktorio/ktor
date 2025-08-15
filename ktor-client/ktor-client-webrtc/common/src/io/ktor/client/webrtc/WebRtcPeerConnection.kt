@@ -8,7 +8,6 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
@@ -121,12 +120,7 @@ public abstract class WebRtcPeerConnection private constructor(
     public abstract suspend fun getStatistics(): List<WebRtc.Stats>
 
     public suspend fun awaitIceGatheringComplete() {
-        if (iceGatheringState.value == WebRtc.IceGatheringState.COMPLETE) {
-            return
-        }
-        iceGatheringState
-            .filter { it == WebRtc.IceGatheringState.COMPLETE }
-            .first() // Suspends until the first "COMPLETE" is emitted
+        iceGatheringState.first { it == WebRtc.IceGatheringState.COMPLETE }
     }
 
     override fun close() {

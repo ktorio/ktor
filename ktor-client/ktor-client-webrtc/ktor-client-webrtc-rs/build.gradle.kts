@@ -14,7 +14,11 @@ plugins {
 }
 
 uniffi {
-    generateFromLibrary()
+    generateFromLibrary {
+        namespace = "ktor_client_webrtc"
+        // variant = gobley.gradle.Variant.Release is not supported yet for macOS on arm
+    }
+    formatCode = true
 }
 
 cargo {
@@ -34,7 +38,7 @@ kotlin {
 
         commonTest.dependencies {
             implementation(libs.kotlin.test)
-            implementation(project(":ktor-test-dispatcher"))
+            implementation(projects.ktorTestDispatcher)
         }
     }
 }

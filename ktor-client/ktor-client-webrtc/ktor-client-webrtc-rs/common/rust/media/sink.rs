@@ -154,7 +154,7 @@ impl MediaStreamTrack {
     ) -> Result<Arc<MediaStreamSink>, RtcError> {
         let writer_impl = InMemoryWriter::new(handler.clone());
         let ogg_writer =
-            OggWriter::new(writer_impl, 4800, 2).map_err(|e| MediaTrackError(e.to_string()))?;
+            OggWriter::new(writer_impl, 48000, 2).map_err(|e| MediaTrackError(e.to_string()))?;
         let writer = Arc::new(Mutex::new(ogg_writer));
         Ok(Arc::new(MediaStreamSink::new(writer)))
     }

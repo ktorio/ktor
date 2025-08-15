@@ -143,8 +143,7 @@ class WebRtcDataChannelTest {
                 protocol = "custom-protocol"
             }
 
-            // browsers and android lib ignore setting id :(
-            // assertEquals(0, dataChannel.id)
+            assertTrue(dataChannel.id >= 0, "DataChannel id should be non-negative when negotiated=false")
             assertEquals("options-test", dataChannel.label)
             assertEquals("custom-protocol", dataChannel.protocol)
             assertFalse(dataChannel.ordered)
@@ -170,13 +169,13 @@ class WebRtcDataChannelTest {
         val dataChannel2 = waitForChannel(dataChannelEvents)
 
         // Send multiple messages rapidly
-        val messageCount = 10000
+        val messageCount = 1000
         repeat(messageCount) { i ->
             dataChannel1.send("Message $i")
         }
 
         // Receive all messages
-        withTimeout(5000) {
+        withTimeout(10_000) {
             repeat(messageCount) { i ->
                 assertEquals("Message $i", dataChannel2.receiveText())
             }

@@ -11,8 +11,9 @@ webrtc = "0.13.0"
 thiserror = "2.0.12"
 arc-swap = "1.7.1"
 serde_json = "1.0.141"
-tracing-subscriber = "0.3.19"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
+bytes = "1.10.1"
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "staticlib"]
 path = "common/rust/lib.rs"
