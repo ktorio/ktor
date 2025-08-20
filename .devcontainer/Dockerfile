@@ -9,6 +9,8 @@ ARG USER_GID=$USER_UID
 # Use Bash in "strict mode" to run scripts
 SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 
+COPY chrome-dependencies.txt /tmp/chrome-dependencies.txt
+
 RUN <<EOT
   # Add Adoptium repository to download Eclipse Temurin JDK
   # https://adoptium.net/installation/linux/#_deb_installation_on_debian_or_ubuntu
@@ -22,14 +24,11 @@ RUN <<EOT
   apt-get install --yes --no-install-recommends \
     git util-linux openssh-server \
     ca-certificates curl fonts-liberation \
-    libasound2t64 libatk-bridge2.0-0 libatk1.0-0 libc6 libcairo2 libcups2 libcurl4 libcurl4-gnutls-dev \
-    libdbus-1-3 libexpat1 libfontconfig1 libgbm1 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libncurses6 libnspr4 \
-    libnss3 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 \
-    libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 lsb-release \
+    $(grep --invert-match '^#' /tmp/chrome-dependencies.txt | tr '\n' ' ') \
     temurin-8-jdk temurin-11-jdk temurin-17-jdk \
     zip unzip wget xdg-utils sudo
   apt-get clean
-  rm -rf /var/lib/apt/lists/*
+  rm -rf /var/lib/apt/lists/* /tmp/chrome-dependencies.txt
 EOT
 
 # Create a non-root user
@@ -74,6 +73,20 @@ RUN <<EOT
   echo "Node $(node --version)"
   echo "NPM $(npm --version)"
   echo "Yarn $(yarn --version)"
+EOT
+
+# Install Chrome
+ENV CHROME_BIN="$local_bin/chrome"
+
+RUN <<EOT
+  source $NVM_DIR/nvm.sh
+  browsers_dir="$HOME/.cache/browsers"
+
+  npx @puppeteer/browsers install chrome@stable --path "$browsers_dir"
+
+  # Make Chrome binary visible for Karma
+  chrome_bin_path=$(npx @puppeteer/browsers list --path "$browsers_dir" | head -n1 | sed 's/.* //')
+  ln -s "$chrome_bin_path" "$CHROME_BIN"
 EOT
 
 # Change shell back to bash from jshell

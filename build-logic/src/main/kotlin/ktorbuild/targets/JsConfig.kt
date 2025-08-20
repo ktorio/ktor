@@ -58,6 +58,7 @@ internal fun Project.configureJs() {
 
         sourceSets {
             jsTest.dependencies {
+                // Puppeteer is used to install Chrome for tests
                 implementation(npm("puppeteer", libs.versions.puppeteer.get()))
             }
         }
@@ -74,6 +75,7 @@ internal fun Project.configureWasmJs() {
                 implementation(libs.kotlinx.browser)
             }
             wasmJsTest.dependencies {
+                // Puppeteer is used to install Chrome for tests
                 implementation(npm("puppeteer", libs.versions.puppeteer.get()))
             }
         }
@@ -106,11 +108,15 @@ fun Project.configureYarn() {
 
 private fun BaseYarnRootEnvSpec.configure() {
     if (isKtorDevEnvironment) download = false
-    // Don't ignore scripts as we want Chrome to be installed automatically with puppeteer.
-    ignoreScripts = false
+    // Don't ignore scripts if we want Chrome to be installed automatically with puppeteer.
+    if (shouldDownloadBrowser) ignoreScripts = false
 }
 
 // KTOR_DEV is set to `true` in the docker image used to build Ktor.
 // This image has Node.js and Yarn bundled so this flag disables downloading of them.
 private val isKtorDevEnvironment: Boolean
     get() = System.getenv("KTOR_DEV") == "true"
+
+// If CHROME_BIN is undefined, puppeteer will install Chrome automatically
+private val shouldDownloadBrowser: Boolean
+    get() = System.getenv("CHROME_BIN") == null
