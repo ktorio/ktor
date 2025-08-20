@@ -42,6 +42,8 @@ if (targets.hasJs) configureJs()
 if (targets.hasWasmJs) configureWasmJs()
 
 if (targets.hasJsOrWasmJs) {
+    configureNodeJs()
+
     tasks.configureEach {
         if (name == "compileJsAndWasmSharedMainKotlinMetadata") enabled = false
     }
