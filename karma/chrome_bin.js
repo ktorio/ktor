@@ -27,4 +27,7 @@ config.set({
     }
 });
 
-process.env.CHROME_BIN = require('puppeteer').executablePath();
+// CHROME_BIN might be already defined, otherwise use puppeteer to get the path
+if (!process.env.CHROME_BIN) {
+    process.env.CHROME_BIN = require('puppeteer').executablePath();
+}
