@@ -1,7 +1,16 @@
 {
   "build": {
-    "dockerfile": "./Dockerfile"
+    "dockerfile": "./Dockerfile",
+    // Change `target` to `dev-android` if Android SDK is needed.
+    "target": "dev",
+    "options": [
+      // See an explanation for this option in the Dockerfile
+      "--platform=linux/amd64"
+    ]
   },
+  "runArgs": [
+    "--platform=linux/amd64"
+  ],
   "postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}",
   // Set `remoteUser` to `root` to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root
   "remoteUser": "developer"
