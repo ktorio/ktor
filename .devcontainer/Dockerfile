@@ -99,7 +99,7 @@ FROM dev AS dev-android
 # Specify build tools version.
 # Use the latest available version by default.
 # https://developer.android.com/tools/releases/build-tools
-ARG build_tools="35.0.0"
+ARG build_tools="36.0.0"
 ENV ANDROID_BUILD_TOOLS_VERSION=$build_tools
 
 # Define Android environment variables
@@ -111,10 +111,10 @@ ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin"
 ENV PATH="$PATH:$ANDROID_HOME/platform-tools"
 ENV PATH="$PATH:$ANDROID_HOME/build-tools/$ANDROID_BUILD_TOOLS_VERSION"
 
-# Commandline Tools revisions: https://dl.google.com/android/repository/repository2-3.xml
+# Commandline Tools revisions: https://dl.google.com/android/repository/repository2-3.xml (search for "cmdline-tools;latest")
 # NOTE: Remember to update cmdline-tools-package.xml on commandlinetools update.
-ARG commandlinetools_url=https://dl.google.com/android/repository/commandlinetools-linux-12266719_latest.zip
-ARG commandlinetools_sha1=47e61d3bb57b5e907a74f225a767a767a8b4d7a5
+ARG commandlinetools_url=https://dl.google.com/android/repository/commandlinetools-linux-13114758_latest.zip
+ARG commandlinetools_sha1=5fdcc763663eefb86a5b8879697aa6088b041e70
 
 WORKDIR $ANDROID_HOME
 RUN <<EOF
