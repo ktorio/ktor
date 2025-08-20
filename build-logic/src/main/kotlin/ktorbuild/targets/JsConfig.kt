@@ -9,17 +9,21 @@ import ktorbuild.internal.gradle.maybeNamed
 import ktorbuild.internal.kotlin
 import ktorbuild.internal.libs
 import org.gradle.api.Project
-import org.gradle.kotlin.dsl.assign
 import org.gradle.kotlin.dsl.invoke
 import org.gradle.kotlin.dsl.the
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsSubTargetDsl
 import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsTargetDsl
+import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsEnvSpec
+import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsPlugin
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootEnvSpec
+import org.jetbrains.kotlin.gradle.targets.wasm.nodejs.WasmNodeJsEnvSpec
+import org.jetbrains.kotlin.gradle.targets.wasm.nodejs.WasmNodeJsPlugin
 import org.jetbrains.kotlin.gradle.targets.wasm.yarn.WasmYarnPlugin
 import org.jetbrains.kotlin.gradle.targets.wasm.yarn.WasmYarnRootEnvSpec
+import org.jetbrains.kotlin.gradle.targets.web.nodejs.BaseNodeJsEnvSpec
 import org.jetbrains.kotlin.gradle.targets.web.yarn.BaseYarnRootEnvSpec
 
 internal fun KotlinJsTargetDsl.addSubTargets(targets: KtorTargets) {
@@ -86,12 +90,27 @@ internal fun Project.configureJsTestTasks(target: String) {
     tasks.maybeNamed("${target}BrowserTest") { onlyIf { false } }
 }
 
+fun Project.configureNodeJs() {
+    plugins.withType<NodeJsPlugin> { the<NodeJsEnvSpec>().configure() }
+    plugins.withType<WasmNodeJsPlugin> { the<WasmNodeJsEnvSpec>().configure() }
+}
+
+private fun BaseNodeJsEnvSpec.configure() {
+    if (isKtorDevEnvironment) download = false
+}
+
 fun Project.configureYarn() {
     plugins.withType<YarnPlugin> { the<YarnRootEnvSpec>().configure() }
     plugins.withType<WasmYarnPlugin> { the<WasmYarnRootEnvSpec>().configure() }
 }
 
 private fun BaseYarnRootEnvSpec.configure() {
+    if (isKtorDevEnvironment) download = false
     // Don't ignore scripts as we want Chrome to be installed automatically with puppeteer.
     ignoreScripts = false
 }
+
+// KTOR_DEV is set to `true` in the docker image used to build Ktor.
+// This image has Node.js and Yarn bundled so this flag disables downloading of them.
+private val isKtorDevEnvironment: Boolean
+    get() = System.getenv("KTOR_DEV") == "true"

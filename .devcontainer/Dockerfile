@@ -7,7 +7,7 @@ ARG USER_UID=1001
 ARG USER_GID=$USER_UID
 
 # Use Bash in "strict mode" to run scripts
-SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
+SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 
 RUN <<EOT
   # Add Adoptium repository to download Eclipse Temurin JDK
@@ -26,14 +26,13 @@ RUN <<EOT
     libdbus-1-3 libexpat1 libfontconfig1 libgbm1 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libncurses6 libnspr4 \
     libnss3 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 \
     libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 lsb-release \
-    nodejs npm \
     temurin-8-jdk temurin-11-jdk temurin-17-jdk \
     zip unzip wget xdg-utils sudo
   apt-get clean
   rm -rf /var/lib/apt/lists/*
 EOT
 
-# Create non-root user
+# Create a non-root user
 RUN <<EOT
   groupadd --gid $USER_GID $USERNAME
   useradd --uid $USER_UID --gid $USER_GID --create-home $USERNAME
@@ -46,6 +45,36 @@ USER $USERNAME
 ENV HOME=/home/$USERNAME \
     SHELL=/bin/bash
 WORKDIR $HOME
+
+# Common variables
+ENV KTOR_DEV="true"
+ARG local_bin="$HOME/.local/bin"
+ENV PATH="$local_bin:$PATH"
+
+# Install Node.js
+ARG node_version="22"
+ARG nvm_version="0.40.3"
+ENV NVM_DIR="$HOME/.nvm"
+
+RUN <<EOT
+  # Install NVM
+  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v$nvm_version/install.sh | bash
+  source $NVM_DIR/nvm.sh
+
+  # Install Node and Yarn Classic
+  nvm install "$node_version"
+  npm install -g yarn
+
+  # Make Node.js binaries available without "source $NVM_DIR/nvm.sh"
+  # This should be done *after* installation of Yarn
+  mkdir --parents "$local_bin"
+  ln -s "$NVM_BIN"/* "$local_bin"
+
+  # Print versions
+  echo "Node $(node --version)"
+  echo "NPM $(npm --version)"
+  echo "Yarn $(yarn --version)"
+EOT
 
 # Change shell back to bash from jshell
 CMD ["/bin/bash"]
