@@ -1,6 +1,10 @@
 # syntax=docker/dockerfile:1
+# check=skip=FromPlatformFlagConstDisallowed
 
-FROM eclipse-temurin:21.0.7_6-jdk-noble AS dev
+# Enforce linux/amd64 platform because of two reasons:
+# 1. Chrome doesn't provide arm64 binaries for Linux (https://issues.chromium.org/issues/374811603)
+# 2. Kotlin/Native doesn't support linux/arm64 as a host platform (KT-36871)
+FROM --platform=linux/amd64 eclipse-temurin:21.0.7_6-jdk-noble AS dev
 
 ARG USERNAME=developer
 ARG USER_UID=1001
