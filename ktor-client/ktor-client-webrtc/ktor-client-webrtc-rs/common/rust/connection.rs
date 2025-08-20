@@ -237,7 +237,7 @@ impl PeerConnection {
                         _ => true,
                     };
                     if !can_receive {
-                        observer_ref.on_remove_track(track_ref.clone());
+                        observer_ref.on_remove_track(Arc::clone(&track_ref));
                     }
                     Box::pin(async {})
                 });

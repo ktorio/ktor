@@ -9,6 +9,7 @@ import io.ktor.client.webrtc.rs.utils.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
 import kotlin.test.*
@@ -32,7 +33,7 @@ class WebRtcDataChannelTest {
     private inline fun testDataChannel(
         realtime: Boolean = true,
         crossinline block: suspend CoroutineScope.(WebRtcPeerConnection, WebRtcPeerConnection, MutableList<Job>) -> Unit
-    ) {
+    ): TestResult {
         return runTestWithTimeout(realtime) { jobs ->
             client.createPeerConnection().use { pc1 ->
                 client.createPeerConnection().use { pc2 ->

@@ -103,7 +103,7 @@ public class RustWebRtcDataChannel(
             override fun onMessage(message: DataChannelMessage) = runInScope {
                 // This coroutine should start immediately because the protocol relies on the message order
                 val message = when (message.isString) {
-                    true -> WebRtc.DataChannel.Message.Text(data = message.data.toString(Charsets.UTF_8))
+                    true -> WebRtc.DataChannel.Message.Text(data = message.data.decodeToString())
                     false -> WebRtc.DataChannel.Message.Binary(data = message.data)
                 }
                 emitMessage(message)

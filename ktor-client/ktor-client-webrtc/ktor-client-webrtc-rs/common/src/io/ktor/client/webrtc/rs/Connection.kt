@@ -48,11 +48,21 @@ public class RustWebRtcConnection(
             }
 
             override fun onTrack(track: MediaStreamTrack) {
-                events.emitAddTrack(RustMediaTrack.from(track))
+                events.emitAddTrack(
+                    RustMediaTrack.from(
+                        nativeTrack = track,
+                        coroutineScope = coroutineScope
+                    )
+                )
             }
 
             override fun onRemoveTrack(track: MediaStreamTrack) {
-                events.emitRemoveTrack(RustMediaTrack.from(track))
+                events.emitRemoveTrack(
+                    RustMediaTrack.from(
+                        nativeTrack = track,
+                        coroutineScope = coroutineScope
+                    )
+                )
             }
 
             override fun onNegotiationNeeded() {

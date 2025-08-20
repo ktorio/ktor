@@ -997,6 +997,7 @@ name = "ktor-client-webrtc"
 version = "0.1.0"
 dependencies = [
  "arc-swap",
+ "async-trait",
  "bytes",
  "serde_json",
  "thiserror 2.0.12",
@@ -1004,6 +1005,7 @@ dependencies = [
  "tracing-subscriber",
  "uniffi",
  "webrtc",
+ "webrtc-media",
 ]
 
 [[package]]

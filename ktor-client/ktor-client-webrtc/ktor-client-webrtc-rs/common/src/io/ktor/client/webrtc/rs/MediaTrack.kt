@@ -5,7 +5,11 @@
 package io.ktor.client.webrtc.rs
 
 import io.ktor.client.webrtc.*
-import uniffi.ktor_client_webrtc.MediaKind
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import uniffi.ktor_client_webrtc.MediaCodec
+import uniffi.ktor_client_webrtc.MediaHandler
 import uniffi.ktor_client_webrtc.MediaStreamTrack
 
 /**
@@ -13,10 +17,15 @@ import uniffi.ktor_client_webrtc.MediaStreamTrack
  **/
 public abstract class RustMediaTrack(
     internal val inner: MediaStreamTrack,
+    private val coroutineScope: CoroutineScope?,
 ) : WebRtcMedia.Track {
-    public override val id: String = inner.id()
+    private var readRtpJob: Job? = null
 
-    public override val kind: WebRtcMedia.TrackType = kindOf(inner)
+    public override val id: String
+        get() = inner.id()
+
+    public override val kind: WebRtcMedia.TrackType
+        get() = kindOf(inner)
 
     public override val enabled: Boolean
         get() = inner.enabled()
@@ -25,28 +34,51 @@ public abstract class RustMediaTrack(
         inner.setEnabled(enabled)
     }
 
+    public fun setMediaHandler(handler: MediaHandler, startReadingRtp: Boolean) {
+        inner.setSink(inner.createSink(handler))
+        if (startReadingRtp) {
+            require(coroutineScope != null) {
+                "Coroutine scope is required to read RTP for track $id"
+            }
+            readRtpJob = coroutineScope.launch { inner.readAll() }
+        }
+    }
+
     override fun close() {
+        if (readRtpJob?.isActive == true) {
+            readRtpJob?.cancel()
+        }
         inner.destroy()
     }
 
     public companion object {
         private fun kindOf(nativeTrack: MediaStreamTrack): WebRtcMedia.TrackType {
-            return when (nativeTrack.kind()) {
-                MediaKind.AUDIO -> WebRtcMedia.TrackType.AUDIO
-                MediaKind.VIDEO -> WebRtcMedia.TrackType.VIDEO
+            return when (nativeTrack.codec()) {
+                MediaCodec.VIDEO_VP8 -> WebRtcMedia.TrackType.VIDEO
+                MediaCodec.VIDEO_H264 -> WebRtcMedia.TrackType.VIDEO
+                MediaCodec.AUDIO_OPUS -> WebRtcMedia.TrackType.AUDIO
             }
         }
 
-        public fun from(nativeTrack: MediaStreamTrack): RustMediaTrack = when (kindOf(nativeTrack)) {
-            WebRtcMedia.TrackType.AUDIO -> RustAudioTrack(nativeTrack)
-            WebRtcMedia.TrackType.VIDEO -> RustVideoTrack(nativeTrack)
+        public fun from(
+            nativeTrack: MediaStreamTrack,
+            coroutineScope: CoroutineScope?,
+        ): RustMediaTrack = when (kindOf(nativeTrack)) {
+            WebRtcMedia.TrackType.AUDIO -> RustAudioTrack(nativeTrack, coroutineScope)
+            WebRtcMedia.TrackType.VIDEO -> RustVideoTrack(nativeTrack, coroutineScope)
         }
     }
 }
 
-public class RustAudioTrack(nativeTrack: MediaStreamTrack) : WebRtcMedia.AudioTrack, RustMediaTrack(nativeTrack)
+public class RustAudioTrack(
+    nativeTrack: MediaStreamTrack,
+    coroutineScope: CoroutineScope?,
+) : WebRtcMedia.AudioTrack, RustMediaTrack(nativeTrack, coroutineScope)
 
-public class RustVideoTrack(nativeTrack: MediaStreamTrack) : WebRtcMedia.VideoTrack, RustMediaTrack(nativeTrack)
+public class RustVideoTrack(
+    nativeTrack: MediaStreamTrack,
+    coroutineScope: CoroutineScope?,
+) : WebRtcMedia.VideoTrack, RustMediaTrack(nativeTrack, coroutineScope)
 
 /**
  * Returns implementation of the native video stream track used under the hood. Use it with caution.

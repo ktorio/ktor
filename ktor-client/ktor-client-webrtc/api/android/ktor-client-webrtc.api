@@ -34,6 +34,7 @@ public final class io/ktor/client/webrtc/AndroidWebRtc : io/ktor/client/webrtc/W
 
 public final class io/ktor/client/webrtc/AndroidWebRtcDataChannel : io/ktor/client/webrtc/WebRtcDataChannel {
 	public fun <init> (Lorg/webrtc/DataChannel;Lorg/webrtc/DataChannel$Init;Lkotlinx/coroutines/CoroutineScope;Lio/ktor/client/webrtc/DataChannelReceiveOptions;)V
+	public fun close ()V
 	public fun closeTransport ()V
 	public fun getBufferedAmount ()J
 	public fun getBufferedAmountLowThreshold ()J

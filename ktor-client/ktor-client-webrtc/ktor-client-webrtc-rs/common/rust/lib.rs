@@ -65,17 +65,17 @@ async fn make_peer_connection(config: ConnectionConfig) -> Result<Arc<PeerConnec
     };
 
     // Create a MediaEngine object to configure the supported codec
-    let mut m = MediaEngine::default();
-    m.register_default_codecs()
+    let mut media_engine = MediaEngine::default();
+    media_engine.register_default_codecs()
         .map_err(with_create_connection_error)?;
 
     // Use the default set of Interceptors
-    let registry = register_default_interceptors(Registry::new(), &mut m)
+    let registry = register_default_interceptors(Registry::new(), &mut media_engine)
         .map_err(with_create_connection_error)?;
 
     // Create the API object with the MediaEngine
     let api = APIBuilder::new()
-        .with_media_engine(m)
+        .with_media_engine(media_engine)
         .with_interceptor_registry(registry)
         .build();
 

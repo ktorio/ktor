@@ -4,32 +4,59 @@
 mod sink;
 mod track;
 
-use arc_swap::ArcSwap;
+use crate::media::MediaCodec::{AudioOpus, VideoH264, VideoVP8};
+use crate::rtc::RtcError;
+use crate::rtc::RtcError::MediaTrackError;
+use arc_swap::ArcSwapOption;
+use async_trait::async_trait;
 use std::fmt::Debug;
-use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
+use std::sync::Arc;
 use std::time::{Duration, SystemTime};
 use tokio::sync::Mutex;
+use webrtc::media::io::sample_builder::SampleBuilder;
+use webrtc::rtp::packet::Packet;
+use webrtc::rtp::packetizer::Depacketizer;
 use webrtc::track::track_local::track_local_static_sample::TrackLocalStaticSample;
 use webrtc::track::track_remote::TrackRemote;
 
-#[derive(uniffi::Enum, Clone, Debug)]
-pub enum MediaKind {
-    Audio,
-    Video,
+// The same as webrtc_media::io::Writer, but async
+#[async_trait]
+pub trait AsyncWriter: Send + Sync {
+    // Add the content of an RTP packet to the media
+    async fn write_rtp(&self, pkt: Packet) -> Result<(), RtcError>;
+    // close the media
+    // Note: close implementation must be idempotent
+    fn close(&self) -> bool;
+}
+
+// Wrapper for AsyncWriter to be used as a field in MediaStreamTrack
+// It is needed to be able to pass it to the Kotlin side
+// MediaStreamTrack can't be generic, so we need to use a wrapper for the sink
+#[derive(uniffi::Object)]
+pub struct MediaStreamSinkWrapper {
+    sink: Arc<dyn AsyncWriter>,
 }
 
 #[derive(uniffi::Object)]
 pub struct MediaStreamTrack {
     id: String,
-    kind: MediaKind,
+    clock_rate: u32,
+    codec: MediaCodec,
     enabled: AtomicBool,
+    read_mutex: Mutex<()>,
     inner: MediaStreamTrackInner,
-    sink: ArcSwap<MediaStreamSink>,
+    sink_wrapper: ArcSwapOption<MediaStreamSinkWrapper>,
+}
+
+pub struct MediaStreamSink<T: Depacketizer + Send + Sync> {
+    sample_builder: Arc<Mutex<SampleBuilder<T>>>,
+    handler: Arc<dyn MediaHandler>,
+    closed: AtomicBool,
 }
 
 #[derive(uniffi::Record)]
-pub struct TrackSample {
+pub struct MediaSample {
     pub data: Vec<u8>,
     pub timestamp: SystemTime,
     pub duration: Duration,
@@ -38,29 +65,12 @@ pub struct TrackSample {
     pub prev_padding_packets: u16,
 }
 
-#[derive(uniffi::Object)]
-pub struct MediaStreamSink {
-    writer: Option<Arc<Mutex<dyn webrtc::media::io::Writer + Send + Sync>>>,
-}
-
 #[uniffi::export(with_foreign)]
-pub trait MediaSinkHandler: Send + Sync + Debug {
+pub trait MediaHandler: Send + Sync + Debug {
     /// Called when parsed media data is available
-    fn on_media_data(&self, data: Vec<u8>);
+    fn on_next_sample(&self, sample: MediaSample);
     /// Called when the sink is closed
     fn on_close(&self);
-}
-
-impl MediaStreamSink {
-    pub fn empty() -> Self {
-        Self { writer: None }
-    }
-
-    pub fn new(writer: Arc<Mutex<dyn webrtc::media::io::Writer + Send + Sync>>) -> Self {
-        Self {
-            writer: Some(writer),
-        }
-    }
 }
 
 enum MediaStreamTrackInner {
@@ -68,9 +78,23 @@ enum MediaStreamTrackInner {
     Remote(Arc<TrackRemote>),
 }
 
-#[derive(uniffi::Enum, Debug)]
-pub enum CodecMimeType {
+#[derive(uniffi::Enum, Debug, Clone)]
+pub enum MediaCodec {
     VideoVP8,
     VideoH264,
     AudioOpus,
+}
+
+impl MediaCodec {
+    fn from(mime_type: &str) -> Result<Self, RtcError> {
+        match mime_type {
+            "video/VP8" => Ok(VideoVP8),
+            "video/H264" => Ok(VideoH264),
+            "audio/opus" => Ok(AudioOpus),
+            _ => Err(MediaTrackError(format!(
+                "Received unknown track codec {}",
+                mime_type
+            ))),
+        }
+    }
 }

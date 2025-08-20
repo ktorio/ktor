@@ -13,6 +13,8 @@ arc-swap = "1.7.1"
 serde_json = "1.0.141"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 bytes = "1.10.1"
+async-trait = "0.1.88"
+webrtc-media = "0.10.0"
 
 [lib]
 crate-type = ["cdylib", "staticlib"]

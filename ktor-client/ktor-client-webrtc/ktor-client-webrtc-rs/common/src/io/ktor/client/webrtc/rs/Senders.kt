@@ -14,7 +14,7 @@ public class RustRtpSender(internal val inner: RtpSender) : WebRtc.RtpSender {
 
     override val track: WebRtcMedia.Track?
         get() = runBlocking {
-            inner.track()?.let { RustMediaTrack.from(nativeTrack = it) }
+            inner.track()?.let { RustMediaTrack.from(nativeTrack = it, coroutineScope = null) }
         }
 
     override suspend fun replaceTrack(withTrack: WebRtcMedia.Track?) {

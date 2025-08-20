@@ -256,7 +256,11 @@ private fun KotlinMultiplatformExtension.freezeSourceSets() {
     val ignoreExtraSourceSets = project.providers.gradleProperty(IGNORE_EXTRA_SOURCE_SETS_PROPERTY).orNull.toBoolean()
     val extraSourceSets = mutableSetOf<KotlinSourceSet>()
 
-    sourceSets.whenObjectAdded { extraSourceSets.add(this) }
+    sourceSets.whenObjectAdded {
+        if (!name.startsWith("android")) { // support android gradle plugin
+            extraSourceSets.add(this)
+        }
+    }
 
     project.afterEvaluate {
         if (extraSourceSets.isNotEmpty()) {
