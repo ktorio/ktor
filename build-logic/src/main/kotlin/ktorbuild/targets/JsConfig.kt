@@ -9,6 +9,8 @@ import ktorbuild.internal.gradle.maybeNamed
 import ktorbuild.internal.kotlin
 import ktorbuild.internal.libs
 import org.gradle.api.Project
+import org.gradle.api.provider.Provider
+import org.gradle.kotlin.dsl.assign
 import org.gradle.kotlin.dsl.invoke
 import org.gradle.kotlin.dsl.the
 import org.gradle.kotlin.dsl.withType
@@ -93,11 +95,16 @@ internal fun Project.configureJsTestTasks(target: String) {
 }
 
 fun Project.configureNodeJs() {
-    plugins.withType<NodeJsPlugin> { the<NodeJsEnvSpec>().configure() }
-    plugins.withType<WasmNodeJsPlugin> { the<WasmNodeJsEnvSpec>().configure() }
+    @Suppress("UnstableApiUsage")
+    val nvmrc = project.layout.settingsDirectory.file(".nvmrc")
+    val nodeVersion = provider { nvmrc.asFile.readText().trim() }
+
+    plugins.withType<NodeJsPlugin> { the<NodeJsEnvSpec>().configure(nodeVersion) }
+    plugins.withType<WasmNodeJsPlugin> { the<WasmNodeJsEnvSpec>().configure(nodeVersion) }
 }
 
-private fun BaseNodeJsEnvSpec.configure() {
+private fun BaseNodeJsEnvSpec.configure(nodeVersion: Provider<String>) {
+    version = nodeVersion
     if (isKtorDevEnvironment) download = false
 }
 
