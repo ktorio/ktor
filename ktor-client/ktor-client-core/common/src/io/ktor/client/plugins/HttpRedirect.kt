@@ -61,24 +61,28 @@ public val HttpRedirect: ClientPlugin<HttpRedirectConfig> = createClientPlugin(
         allowHttpsDowngrade: Boolean,
         client: HttpClient
     ): HttpClientCall {
-        if (!origin.response.status.isRedirect()) return origin
-
         var call = origin
         var requestBuilder = context
         val originProtocol = origin.request.url.protocol
         val originAuthority = origin.request.url.authority
 
         while (true) {
-            client.monitor.raise(HttpResponseRedirectEvent, call.response)
+            if (!call.response.status.isRedirect()) return call
 
             val location = call.response.headers[HttpHeaders.Location]
+
+            if (location == null) {
+                LOGGER.trace("Received redirect response with no location header for request ${context.url}")
+                return call
+            }
+
+            client.monitor.raise(HttpResponseRedirectEvent, call.response)
             LOGGER.trace("Received redirect response to $location for request ${context.url}")
 
             requestBuilder = HttpRequestBuilder().apply {
                 takeFromWithExecutionContext(requestBuilder)
                 url.parameters.clear()
-
-                location?.let { url.takeFrom(it) }
+                url.takeFrom(location)
 
                 /**
                  * Disallow redirect with a security downgrade.
@@ -95,7 +99,6 @@ public val HttpRedirect: ClientPlugin<HttpRedirectConfig> = createClientPlugin(
             }
 
             call = proceed(requestBuilder)
-            if (!call.response.status.isRedirect()) return call
         }
     }
 
