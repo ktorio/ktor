@@ -65,7 +65,7 @@ jte = "3.2.1"
 javax-servlet = "4.0.1"
 jakarta-servlet = "5.0.0"
 
-ws = "8.18.0"
+ws = "8.18.3"
 xmlutil = "0.91.1"
 yamlkt = "0.13.0"
 kaml = "0.77.1"
@@ -74,7 +74,7 @@ swagger-codegen = "3.0.71"
 swagger-codegen-generators = "1.0.57"
 swagger-parser = "2.1.30"
 
-puppeteer = "21.5.0"
+puppeteer = "24.16.1"
 tomlj = "1.1.1"
 
 # Keep it in sync with build-settings-logic/settings.gradle.kts
