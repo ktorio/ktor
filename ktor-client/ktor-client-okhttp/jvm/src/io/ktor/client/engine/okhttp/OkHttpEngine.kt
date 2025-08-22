@@ -20,9 +20,10 @@ import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.internal.http.HttpMethod
-import okio.*
-import java.util.concurrent.*
-import kotlin.coroutines.*
+import okio.BufferedSource
+import okio.use
+import java.util.concurrent.TimeUnit
+import kotlin.coroutines.CoroutineContext
 
 @OptIn(InternalAPI::class, DelicateCoroutinesApi::class)
 public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("ktor-okhttp") {
@@ -40,13 +41,13 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
     private val clientCache = createLRUCache(::createOkHttpClient, {}, config.clientCacheSize)
 
     init {
-        val parent = super.coroutineContext[Job]!!
+        val parent = super.coroutineContext.job
         requestsJob = SilentSupervisor(parent)
         coroutineContext = super.coroutineContext + requestsJob
 
         GlobalScope.launch(super.coroutineContext, start = CoroutineStart.ATOMIC) {
             try {
-                requestsJob[Job]!!.join()
+                requestsJob.job.join()
             } finally {
                 clientCache.forEach { (_, client) ->
                     client.connectionPool.evictAll()
@@ -118,9 +119,9 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
         val response = engine.execute(engineRequest, requestData, callContext)
 
         val body = response.body
-        callContext[Job]!!.invokeOnCompletion { body?.close() }
+        callContext.job.invokeOnCompletion { body.close() }
 
-        val responseContent = body?.source()?.toChannel(callContext, requestData) ?: ByteReadChannel.Empty
+        val responseContent = body.source().toChannel(callContext, requestData)
         return buildResponseData(response, requestTime, responseContent, callContext)
     }
 
@@ -223,10 +224,7 @@ internal fun OutgoingContent.convertToOkHttpBody(callContext: CoroutineContext):
     is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(this)
 }
 
-/**
- * Update [OkHttpClient.Builder] setting timeout configuration taken from
- * [HttpTimeout.HttpTimeoutCapabilityConfiguration].
- */
+/** Update [OkHttpClient.Builder] setting timeout configuration taken from [HttpTimeoutConfig]. */
 @OptIn(InternalAPI::class)
 private fun OkHttpClient.Builder.setupTimeoutAttributes(
     timeoutAttributes: HttpTimeoutConfig
