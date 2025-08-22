@@ -11,21 +11,22 @@ public final class io/ktor/client/webrtc/rs/MediaTrackKt {
 }
 
 public final class io/ktor/client/webrtc/rs/RustAudioTrack : io/ktor/client/webrtc/rs/RustMediaTrack, io/ktor/client/webrtc/WebRtcMedia$AudioTrack {
-	public fun <init> (Luniffi/ktor_client_webrtc/MediaStreamTrack;)V
+	public fun <init> (Luniffi/ktor_client_webrtc/MediaStreamTrack;Lkotlinx/coroutines/CoroutineScope;)V
 }
 
 public abstract class io/ktor/client/webrtc/rs/RustMediaTrack : io/ktor/client/webrtc/WebRtcMedia$Track {
 	public static final field Companion Lio/ktor/client/webrtc/rs/RustMediaTrack$Companion;
-	public fun <init> (Luniffi/ktor_client_webrtc/MediaStreamTrack;)V
+	public fun <init> (Luniffi/ktor_client_webrtc/MediaStreamTrack;Lkotlinx/coroutines/CoroutineScope;)V
 	public fun close ()V
 	public fun enable (Z)V
 	public fun getEnabled ()Z
 	public fun getId ()Ljava/lang/String;
 	public fun getKind ()Lio/ktor/client/webrtc/WebRtcMedia$TrackType;
+	public final fun setMediaHandler (Luniffi/ktor_client_webrtc/MediaHandler;Z)V
 }
 
 public final class io/ktor/client/webrtc/rs/RustMediaTrack$Companion {
-	public final fun from (Luniffi/ktor_client_webrtc/MediaStreamTrack;)Lio/ktor/client/webrtc/rs/RustMediaTrack;
+	public final fun from (Luniffi/ktor_client_webrtc/MediaStreamTrack;Lkotlinx/coroutines/CoroutineScope;)Lio/ktor/client/webrtc/rs/RustMediaTrack;
 }
 
 public final class io/ktor/client/webrtc/rs/RustRtpParameters : io/ktor/client/webrtc/WebRtc$RtpParameters {
@@ -51,7 +52,7 @@ public final class io/ktor/client/webrtc/rs/RustRtpSender : io/ktor/client/webrt
 }
 
 public final class io/ktor/client/webrtc/rs/RustVideoTrack : io/ktor/client/webrtc/rs/RustMediaTrack, io/ktor/client/webrtc/WebRtcMedia$VideoTrack {
-	public fun <init> (Luniffi/ktor_client_webrtc/MediaStreamTrack;)V
+	public fun <init> (Luniffi/ktor_client_webrtc/MediaStreamTrack;Lkotlinx/coroutines/CoroutineScope;)V
 }
 
 public final class io/ktor/client/webrtc/rs/RustWebRtc : io/ktor/client/webrtc/WebRtcClientEngineFactory {
@@ -154,7 +155,6 @@ public final class uniffi/ktor_client_webrtc/ByteBuffer {
 	public fun toString ()Ljava/lang/String;
 	public static fun toString-impl (Ljava/nio/ByteBuffer;)Ljava/lang/String;
 	public final synthetic fun unbox-impl ()Ljava/nio/ByteBuffer;
-	public static final fun writeUtf8-impl (Ljava/nio/ByteBuffer;Ljava/lang/String;)V
 }
 
 public final class uniffi/ktor_client_webrtc/CodecMimeType : java/lang/Enum {
@@ -222,6 +222,7 @@ public class uniffi/ktor_client_webrtc/DataChannel : uniffi/ktor_client_webrtc/D
 	public fun <init> (Lcom/sun/jna/Pointer;)V
 	public fun <init> (Luniffi/ktor_client_webrtc/NoPointer;)V
 	public fun bufferedAmount-I7RO_PI (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun bufferedAmountLowThreshold-I7RO_PI (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun close ()V
 	public fun closeChannel (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun destroy ()V
@@ -276,6 +277,7 @@ public final class uniffi/ktor_client_webrtc/DataChannelInit$Companion {
 public abstract interface class uniffi/ktor_client_webrtc/DataChannelInterface {
 	public static final field Companion Luniffi/ktor_client_webrtc/DataChannelInterface$Companion;
 	public abstract fun bufferedAmount-I7RO_PI (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun bufferedAmountLowThreshold-I7RO_PI (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun closeChannel (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun id-Mh2AYeg ()S
 	public abstract fun label ()Ljava/lang/String;
@@ -527,6 +529,26 @@ public final class uniffi/ktor_client_webrtc/FfiConverterOptionalString : uniffi
 	public fun read-XRN9uNY (Ljava/nio/ByteBuffer;)Ljava/lang/String;
 	public synthetic fun write-lgv_6XA (Ljava/lang/Object;Ljava/nio/ByteBuffer;)V
 	public fun write-lgv_6XA (Ljava/lang/String;Ljava/nio/ByteBuffer;)V
+}
+
+public final class uniffi/ktor_client_webrtc/FfiConverterOptionalTypeMediaStreamSinkWrapper : uniffi/ktor_client_webrtc/FfiConverterRustBuffer {
+	public static final field INSTANCE Luniffi/ktor_client_webrtc/FfiConverterOptionalTypeMediaStreamSinkWrapper;
+	public synthetic fun allocationSize-I7RO_PI (Ljava/lang/Object;)J
+	public fun allocationSize-I7RO_PI (Luniffi/ktor_client_webrtc/MediaStreamSinkWrapper;)J
+	public synthetic fun lift (Ljava/lang/Object;)Ljava/lang/Object;
+	public synthetic fun lift (Luniffi/ktor_client_webrtc/RustBufferStruct$ByValue;)Ljava/lang/Object;
+	public fun lift (Luniffi/ktor_client_webrtc/RustBufferStruct$ByValue;)Luniffi/ktor_client_webrtc/MediaStreamSinkWrapper;
+	public synthetic fun liftFromRustBuffer (Luniffi/ktor_client_webrtc/RustBufferStruct$ByValue;)Ljava/lang/Object;
+	public fun liftFromRustBuffer (Luniffi/ktor_client_webrtc/RustBufferStruct$ByValue;)Luniffi/ktor_client_webrtc/MediaStreamSinkWrapper;
+	public synthetic fun lower (Ljava/lang/Object;)Ljava/lang/Object;
+	public synthetic fun lower (Ljava/lang/Object;)Luniffi/ktor_client_webrtc/RustBufferStruct$ByValue;
+	public fun lower (Luniffi/ktor_client_webrtc/MediaStreamSinkWrapper;)Luniffi/ktor_client_webrtc/RustBufferStruct$ByValue;
+	public synthetic fun lowerIntoRustBuffer (Ljava/lang/Object;)Luniffi/ktor_client_webrtc/RustBufferStruct$ByValue;
+	public fun lowerIntoRustBuffer (Luniffi/ktor_client_webrtc/MediaStreamSinkWrapper;)Luniffi/ktor_client_webrtc/RustBufferStruct$ByValue;
+	public synthetic fun read-XRN9uNY (Ljava/nio/ByteBuffer;)Ljava/lang/Object;
+	public fun read-XRN9uNY (Ljava/nio/ByteBuffer;)Luniffi/ktor_client_webrtc/MediaStreamSinkWrapper;
+	public synthetic fun write-lgv_6XA (Ljava/lang/Object;Ljava/nio/ByteBuffer;)V
+	public fun write-lgv_6XA (Luniffi/ktor_client_webrtc/MediaStreamSinkWrapper;Ljava/nio/ByteBuffer;)V
 }
 
 public final class uniffi/ktor_client_webrtc/FfiConverterOptionalTypeMediaStreamTrack : uniffi/ktor_client_webrtc/FfiConverterRustBuffer {
@@ -1057,6 +1079,44 @@ public final class uniffi/ktor_client_webrtc/FfiConverterTypeIceTransportPolicy 
 	public fun write-lgv_6XA (Luniffi/ktor_client_webrtc/IceTransportPolicy;Ljava/nio/ByteBuffer;)V
 }
 
+public final class uniffi/ktor_client_webrtc/FfiConverterTypeMediaCodec : uniffi/ktor_client_webrtc/FfiConverterRustBuffer {
+	public static final field INSTANCE Luniffi/ktor_client_webrtc/FfiConverterTypeMediaCodec;
+	public synthetic fun allocationSize-I7RO_PI (Ljava/lang/Object;)J
+	public fun allocationSize-I7RO_PI (Luniffi/ktor_client_webrtc/MediaCodec;)J
+	public synthetic fun lift (Ljava/lang/Object;)Ljava/lang/Object;
+	public synthetic fun lift (Luniffi/ktor_client_webrtc/RustBufferStruct$ByValue;)Ljava/lang/Object;
+	public fun lift (Luniffi/ktor_client_webrtc/RustBufferStruct$ByValue;)Luniffi/ktor_client_webrtc/MediaCodec;
+	public synthetic fun liftFromRustBuffer (Luniffi/ktor_client_webrtc/RustBufferStruct$ByValue;)Ljava/lang/Object;
+	public fun liftFromRustBuffer (Luniffi/ktor_client_webrtc/RustBufferStruct$ByValue;)Luniffi/ktor_client_webrtc/MediaCodec;
+	public synthetic fun lower (Ljava/lang/Object;)Ljava/lang/Object;
+	public synthetic fun lower (Ljava/lang/Object;)Luniffi/ktor_client_webrtc/RustBufferStruct$ByValue;
+	public fun lower (Luniffi/ktor_client_webrtc/MediaCodec;)Luniffi/ktor_client_webrtc/RustBufferStruct$ByValue;
+	public synthetic fun lowerIntoRustBuffer (Ljava/lang/Object;)Luniffi/ktor_client_webrtc/RustBufferStruct$ByValue;
+	public fun lowerIntoRustBuffer (Luniffi/ktor_client_webrtc/MediaCodec;)Luniffi/ktor_client_webrtc/RustBufferStruct$ByValue;
+	public synthetic fun read-XRN9uNY (Ljava/nio/ByteBuffer;)Ljava/lang/Object;
+	public fun read-XRN9uNY (Ljava/nio/ByteBuffer;)Luniffi/ktor_client_webrtc/MediaCodec;
+	public synthetic fun write-lgv_6XA (Ljava/lang/Object;Ljava/nio/ByteBuffer;)V
+	public fun write-lgv_6XA (Luniffi/ktor_client_webrtc/MediaCodec;Ljava/nio/ByteBuffer;)V
+}
+
+public final class uniffi/ktor_client_webrtc/FfiConverterTypeMediaHandler : uniffi/ktor_client_webrtc/FfiConverter {
+	public static final field INSTANCE Luniffi/ktor_client_webrtc/FfiConverterTypeMediaHandler;
+	public synthetic fun allocationSize-I7RO_PI (Ljava/lang/Object;)J
+	public fun allocationSize-I7RO_PI (Luniffi/ktor_client_webrtc/MediaHandler;)J
+	public fun lift (Lcom/sun/jna/Pointer;)Luniffi/ktor_client_webrtc/MediaHandler;
+	public synthetic fun lift (Ljava/lang/Object;)Ljava/lang/Object;
+	public synthetic fun liftFromRustBuffer (Luniffi/ktor_client_webrtc/RustBufferStruct$ByValue;)Ljava/lang/Object;
+	public fun liftFromRustBuffer (Luniffi/ktor_client_webrtc/RustBufferStruct$ByValue;)Luniffi/ktor_client_webrtc/MediaHandler;
+	public synthetic fun lower (Ljava/lang/Object;)Ljava/lang/Object;
+	public fun lower (Luniffi/ktor_client_webrtc/MediaHandler;)Lcom/sun/jna/Pointer;
+	public synthetic fun lowerIntoRustBuffer (Ljava/lang/Object;)Luniffi/ktor_client_webrtc/RustBufferStruct$ByValue;
+	public fun lowerIntoRustBuffer (Luniffi/ktor_client_webrtc/MediaHandler;)Luniffi/ktor_client_webrtc/RustBufferStruct$ByValue;
+	public synthetic fun read-XRN9uNY (Ljava/nio/ByteBuffer;)Ljava/lang/Object;
+	public fun read-XRN9uNY (Ljava/nio/ByteBuffer;)Luniffi/ktor_client_webrtc/MediaHandler;
+	public synthetic fun write-lgv_6XA (Ljava/lang/Object;Ljava/nio/ByteBuffer;)V
+	public fun write-lgv_6XA (Luniffi/ktor_client_webrtc/MediaHandler;Ljava/nio/ByteBuffer;)V
+}
+
 public final class uniffi/ktor_client_webrtc/FfiConverterTypeMediaKind : uniffi/ktor_client_webrtc/FfiConverterRustBuffer {
 	public static final field INSTANCE Luniffi/ktor_client_webrtc/FfiConverterTypeMediaKind;
 	public synthetic fun allocationSize-I7RO_PI (Ljava/lang/Object;)J
@@ -1075,6 +1135,26 @@ public final class uniffi/ktor_client_webrtc/FfiConverterTypeMediaKind : uniffi/
 	public fun read-XRN9uNY (Ljava/nio/ByteBuffer;)Luniffi/ktor_client_webrtc/MediaKind;
 	public synthetic fun write-lgv_6XA (Ljava/lang/Object;Ljava/nio/ByteBuffer;)V
 	public fun write-lgv_6XA (Luniffi/ktor_client_webrtc/MediaKind;Ljava/nio/ByteBuffer;)V
+}
+
+public final class uniffi/ktor_client_webrtc/FfiConverterTypeMediaSample : uniffi/ktor_client_webrtc/FfiConverterRustBuffer {
+	public static final field INSTANCE Luniffi/ktor_client_webrtc/FfiConverterTypeMediaSample;
+	public synthetic fun allocationSize-I7RO_PI (Ljava/lang/Object;)J
+	public fun allocationSize-I7RO_PI (Luniffi/ktor_client_webrtc/MediaSample;)J
+	public synthetic fun lift (Ljava/lang/Object;)Ljava/lang/Object;
+	public synthetic fun lift (Luniffi/ktor_client_webrtc/RustBufferStruct$ByValue;)Ljava/lang/Object;
+	public fun lift (Luniffi/ktor_client_webrtc/RustBufferStruct$ByValue;)Luniffi/ktor_client_webrtc/MediaSample;
+	public synthetic fun liftFromRustBuffer (Luniffi/ktor_client_webrtc/RustBufferStruct$ByValue;)Ljava/lang/Object;
+	public fun liftFromRustBuffer (Luniffi/ktor_client_webrtc/RustBufferStruct$ByValue;)Luniffi/ktor_client_webrtc/MediaSample;
+	public synthetic fun lower (Ljava/lang/Object;)Ljava/lang/Object;
+	public synthetic fun lower (Ljava/lang/Object;)Luniffi/ktor_client_webrtc/RustBufferStruct$ByValue;
+	public fun lower (Luniffi/ktor_client_webrtc/MediaSample;)Luniffi/ktor_client_webrtc/RustBufferStruct$ByValue;
+	public synthetic fun lowerIntoRustBuffer (Ljava/lang/Object;)Luniffi/ktor_client_webrtc/RustBufferStruct$ByValue;
+	public fun lowerIntoRustBuffer (Luniffi/ktor_client_webrtc/MediaSample;)Luniffi/ktor_client_webrtc/RustBufferStruct$ByValue;
+	public synthetic fun read-XRN9uNY (Ljava/nio/ByteBuffer;)Ljava/lang/Object;
+	public fun read-XRN9uNY (Ljava/nio/ByteBuffer;)Luniffi/ktor_client_webrtc/MediaSample;
+	public synthetic fun write-lgv_6XA (Ljava/lang/Object;Ljava/nio/ByteBuffer;)V
+	public fun write-lgv_6XA (Luniffi/ktor_client_webrtc/MediaSample;Ljava/nio/ByteBuffer;)V
 }
 
 public final class uniffi/ktor_client_webrtc/FfiConverterTypeMediaSinkHandler : uniffi/ktor_client_webrtc/FfiConverter {
@@ -1111,6 +1191,24 @@ public final class uniffi/ktor_client_webrtc/FfiConverterTypeMediaStreamSink : u
 	public fun read-XRN9uNY (Ljava/nio/ByteBuffer;)Luniffi/ktor_client_webrtc/MediaStreamSink;
 	public synthetic fun write-lgv_6XA (Ljava/lang/Object;Ljava/nio/ByteBuffer;)V
 	public fun write-lgv_6XA (Luniffi/ktor_client_webrtc/MediaStreamSink;Ljava/nio/ByteBuffer;)V
+}
+
+public final class uniffi/ktor_client_webrtc/FfiConverterTypeMediaStreamSinkWrapper : uniffi/ktor_client_webrtc/FfiConverter {
+	public static final field INSTANCE Luniffi/ktor_client_webrtc/FfiConverterTypeMediaStreamSinkWrapper;
+	public synthetic fun allocationSize-I7RO_PI (Ljava/lang/Object;)J
+	public fun allocationSize-I7RO_PI (Luniffi/ktor_client_webrtc/MediaStreamSinkWrapper;)J
+	public fun lift (Lcom/sun/jna/Pointer;)Luniffi/ktor_client_webrtc/MediaStreamSinkWrapper;
+	public synthetic fun lift (Ljava/lang/Object;)Ljava/lang/Object;
+	public synthetic fun liftFromRustBuffer (Luniffi/ktor_client_webrtc/RustBufferStruct$ByValue;)Ljava/lang/Object;
+	public fun liftFromRustBuffer (Luniffi/ktor_client_webrtc/RustBufferStruct$ByValue;)Luniffi/ktor_client_webrtc/MediaStreamSinkWrapper;
+	public synthetic fun lower (Ljava/lang/Object;)Ljava/lang/Object;
+	public fun lower (Luniffi/ktor_client_webrtc/MediaStreamSinkWrapper;)Lcom/sun/jna/Pointer;
+	public synthetic fun lowerIntoRustBuffer (Ljava/lang/Object;)Luniffi/ktor_client_webrtc/RustBufferStruct$ByValue;
+	public fun lowerIntoRustBuffer (Luniffi/ktor_client_webrtc/MediaStreamSinkWrapper;)Luniffi/ktor_client_webrtc/RustBufferStruct$ByValue;
+	public synthetic fun read-XRN9uNY (Ljava/nio/ByteBuffer;)Ljava/lang/Object;
+	public fun read-XRN9uNY (Ljava/nio/ByteBuffer;)Luniffi/ktor_client_webrtc/MediaStreamSinkWrapper;
+	public synthetic fun write-lgv_6XA (Ljava/lang/Object;Ljava/nio/ByteBuffer;)V
+	public fun write-lgv_6XA (Luniffi/ktor_client_webrtc/MediaStreamSinkWrapper;Ljava/nio/ByteBuffer;)V
 }
 
 public final class uniffi/ktor_client_webrtc/FfiConverterTypeMediaStreamTrack : uniffi/ktor_client_webrtc/FfiConverter {
@@ -1572,12 +1670,51 @@ public final class uniffi/ktor_client_webrtc/Ktor_client_webrtc_commonKt {
 }
 
 public final class uniffi/ktor_client_webrtc/Ktor_client_webrtc_jvmKt {
-	public static final fun createAudioTrack (Luniffi/ktor_client_webrtc/CodecMimeType;Ljava/lang/String;Ljava/lang/String;)Luniffi/ktor_client_webrtc/MediaStreamTrack;
-	public static final fun createVideoTrack (Luniffi/ktor_client_webrtc/CodecMimeType;Ljava/lang/String;Ljava/lang/String;)Luniffi/ktor_client_webrtc/MediaStreamTrack;
+	public static final fun createAudioOpusTrack (Ljava/lang/String;Ljava/lang/String;)Luniffi/ktor_client_webrtc/MediaStreamTrack;
+	public static final fun createVideoH264Track (Ljava/lang/String;Ljava/lang/String;)Luniffi/ktor_client_webrtc/MediaStreamTrack;
+	public static final fun createVideoVp8Track (Ljava/lang/String;Ljava/lang/String;)Luniffi/ktor_client_webrtc/MediaStreamTrack;
 	public static final fun enableLogging ()V
 	public static final fun makePeerConnection (Luniffi/ktor_client_webrtc/ConnectionConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun setValue (Luniffi/ktor_client_webrtc/RustBufferStruct;Luniffi/ktor_client_webrtc/RustBufferStruct$ByValue;)V
 	public static final fun uniffiEnsureInitialized ()V
+}
+
+public final class uniffi/ktor_client_webrtc/MediaCodec : java/lang/Enum {
+	public static final field AUDIO_OPUS Luniffi/ktor_client_webrtc/MediaCodec;
+	public static final field Companion Luniffi/ktor_client_webrtc/MediaCodec$Companion;
+	public static final field VIDEO_H264 Luniffi/ktor_client_webrtc/MediaCodec;
+	public static final field VIDEO_VP8 Luniffi/ktor_client_webrtc/MediaCodec;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Luniffi/ktor_client_webrtc/MediaCodec;
+	public static fun values ()[Luniffi/ktor_client_webrtc/MediaCodec;
+}
+
+public final class uniffi/ktor_client_webrtc/MediaCodec$Companion {
+}
+
+public abstract interface class uniffi/ktor_client_webrtc/MediaHandler {
+	public static final field Companion Luniffi/ktor_client_webrtc/MediaHandler$Companion;
+	public abstract fun onClose ()V
+	public abstract fun onNextSample (Luniffi/ktor_client_webrtc/MediaSample;)V
+}
+
+public final class uniffi/ktor_client_webrtc/MediaHandler$Companion {
+}
+
+public class uniffi/ktor_client_webrtc/MediaHandlerImpl : uniffi/ktor_client_webrtc/Disposable, uniffi/ktor_client_webrtc/MediaHandler {
+	public static final field Companion Luniffi/ktor_client_webrtc/MediaHandlerImpl$Companion;
+	public fun <init> (Lcom/sun/jna/Pointer;)V
+	public fun <init> (Luniffi/ktor_client_webrtc/NoPointer;)V
+	public fun close ()V
+	public fun destroy ()V
+	protected final fun getCleanable ()Luniffi/ktor_client_webrtc/UniffiCleaner$Cleanable;
+	protected final fun getPointer ()Lcom/sun/jna/Pointer;
+	public fun onClose ()V
+	public fun onNextSample (Luniffi/ktor_client_webrtc/MediaSample;)V
+	public final fun uniffiClonePointer ()Lcom/sun/jna/Pointer;
+}
+
+public final class uniffi/ktor_client_webrtc/MediaHandlerImpl$Companion {
 }
 
 public final class uniffi/ktor_client_webrtc/MediaKind : java/lang/Enum {
@@ -1592,10 +1729,41 @@ public final class uniffi/ktor_client_webrtc/MediaKind : java/lang/Enum {
 public final class uniffi/ktor_client_webrtc/MediaKind$Companion {
 }
 
+public final class uniffi/ktor_client_webrtc/MediaSample {
+	public static final field Companion Luniffi/ktor_client_webrtc/MediaSample$Companion;
+	public synthetic fun <init> ([BLkotlinx/datetime/Instant;JISSLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()[B
+	public final fun component2 ()Lkotlinx/datetime/Instant;
+	public final fun component3-UwyO8pc ()J
+	public final fun component4-pVg5ArA ()I
+	public final fun component5-Mh2AYeg ()S
+	public final fun component6-Mh2AYeg ()S
+	public final fun copy-g5HexKo ([BLkotlinx/datetime/Instant;JISS)Luniffi/ktor_client_webrtc/MediaSample;
+	public static synthetic fun copy-g5HexKo$default (Luniffi/ktor_client_webrtc/MediaSample;[BLkotlinx/datetime/Instant;JISSILjava/lang/Object;)Luniffi/ktor_client_webrtc/MediaSample;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getData ()[B
+	public final fun getDuration-UwyO8pc ()J
+	public final fun getPacketTimestamp-pVg5ArA ()I
+	public final fun getPrevDroppedPackets-Mh2AYeg ()S
+	public final fun getPrevPaddingPackets-Mh2AYeg ()S
+	public final fun getTimestamp ()Lkotlinx/datetime/Instant;
+	public fun hashCode ()I
+	public final fun setData ([B)V
+	public final fun setDuration-LRDsOJo (J)V
+	public final fun setPacketTimestamp-WZ4Q5Ns (I)V
+	public final fun setPrevDroppedPackets-xj2QHRw (S)V
+	public final fun setPrevPaddingPackets-xj2QHRw (S)V
+	public final fun setTimestamp (Lkotlinx/datetime/Instant;)V
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class uniffi/ktor_client_webrtc/MediaSample$Companion {
+}
+
 public abstract interface class uniffi/ktor_client_webrtc/MediaSinkHandler {
 	public static final field Companion Luniffi/ktor_client_webrtc/MediaSinkHandler$Companion;
 	public abstract fun onClose ()V
-	public abstract fun onMediaData ([B)V
+	public abstract fun onSample (Luniffi/ktor_client_webrtc/TrackSample;)V
 }
 
 public final class uniffi/ktor_client_webrtc/MediaSinkHandler$Companion {
@@ -1610,7 +1778,7 @@ public class uniffi/ktor_client_webrtc/MediaSinkHandlerImpl : uniffi/ktor_client
 	protected final fun getCleanable ()Luniffi/ktor_client_webrtc/UniffiCleaner$Cleanable;
 	protected final fun getPointer ()Lcom/sun/jna/Pointer;
 	public fun onClose ()V
-	public fun onMediaData ([B)V
+	public fun onSample (Luniffi/ktor_client_webrtc/TrackSample;)V
 	public final fun uniffiClonePointer ()Lcom/sun/jna/Pointer;
 }
 
@@ -1638,30 +1806,49 @@ public abstract interface class uniffi/ktor_client_webrtc/MediaStreamSinkInterfa
 public final class uniffi/ktor_client_webrtc/MediaStreamSinkInterface$Companion {
 }
 
+public class uniffi/ktor_client_webrtc/MediaStreamSinkWrapper : uniffi/ktor_client_webrtc/Disposable, uniffi/ktor_client_webrtc/MediaStreamSinkWrapperInterface {
+	public static final field Companion Luniffi/ktor_client_webrtc/MediaStreamSinkWrapper$Companion;
+	public fun <init> (Lcom/sun/jna/Pointer;)V
+	public fun <init> (Luniffi/ktor_client_webrtc/NoPointer;)V
+	public fun close ()V
+	public fun destroy ()V
+	protected final fun getCleanable ()Luniffi/ktor_client_webrtc/UniffiCleaner$Cleanable;
+	protected final fun getPointer ()Lcom/sun/jna/Pointer;
+	public final fun uniffiClonePointer ()Lcom/sun/jna/Pointer;
+}
+
+public final class uniffi/ktor_client_webrtc/MediaStreamSinkWrapper$Companion {
+}
+
+public abstract interface class uniffi/ktor_client_webrtc/MediaStreamSinkWrapperInterface {
+	public static final field Companion Luniffi/ktor_client_webrtc/MediaStreamSinkWrapperInterface$Companion;
+}
+
+public final class uniffi/ktor_client_webrtc/MediaStreamSinkWrapperInterface$Companion {
+}
+
 public class uniffi/ktor_client_webrtc/MediaStreamTrack : uniffi/ktor_client_webrtc/Disposable, uniffi/ktor_client_webrtc/MediaStreamTrackInterface {
 	public static final field Companion Luniffi/ktor_client_webrtc/MediaStreamTrack$Companion;
 	public fun <init> (Lcom/sun/jna/Pointer;)V
 	public fun <init> (Luniffi/ktor_client_webrtc/NoPointer;)V
+	public fun clockRate-pVg5ArA ()I
 	public fun close ()V
-	public fun createH264VideoSink (Luniffi/ktor_client_webrtc/MediaSinkHandler;)Luniffi/ktor_client_webrtc/MediaStreamSink;
-	public fun createOpusAudioSink (Luniffi/ktor_client_webrtc/MediaSinkHandler;)Luniffi/ktor_client_webrtc/MediaStreamSink;
-	public fun createSink (Luniffi/ktor_client_webrtc/MediaSinkHandler;)Luniffi/ktor_client_webrtc/MediaStreamSink;
-	public fun createVp8VideoSink (Luniffi/ktor_client_webrtc/MediaSinkHandler;)Luniffi/ktor_client_webrtc/MediaStreamSink;
+	public fun codec ()Luniffi/ktor_client_webrtc/MediaCodec;
+	public fun createSink (Luniffi/ktor_client_webrtc/MediaHandler;)Luniffi/ktor_client_webrtc/MediaStreamSinkWrapper;
 	public fun destroy ()V
 	public fun enabled ()Z
 	protected final fun getCleanable ()Luniffi/ktor_client_webrtc/UniffiCleaner$Cleanable;
 	protected final fun getPointer ()Lcom/sun/jna/Pointer;
+	public fun hasSink (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun id ()Ljava/lang/String;
 	public fun isLocal ()Z
 	public fun isRemote ()Z
-	public fun kind ()Luniffi/ktor_client_webrtc/MediaKind;
 	public fun readAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun readRtp (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun setEnabled (Z)V
-	public fun setSink (Luniffi/ktor_client_webrtc/MediaStreamSink;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun setSink (Luniffi/ktor_client_webrtc/MediaStreamSinkWrapper;)V
 	public final fun uniffiClonePointer ()Lcom/sun/jna/Pointer;
 	public fun writeData-8Mi8wO0 ([BJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun writeSample (Luniffi/ktor_client_webrtc/TrackSample;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class uniffi/ktor_client_webrtc/MediaStreamTrack$Companion {
@@ -1669,21 +1856,19 @@ public final class uniffi/ktor_client_webrtc/MediaStreamTrack$Companion {
 
 public abstract interface class uniffi/ktor_client_webrtc/MediaStreamTrackInterface {
 	public static final field Companion Luniffi/ktor_client_webrtc/MediaStreamTrackInterface$Companion;
-	public abstract fun createH264VideoSink (Luniffi/ktor_client_webrtc/MediaSinkHandler;)Luniffi/ktor_client_webrtc/MediaStreamSink;
-	public abstract fun createOpusAudioSink (Luniffi/ktor_client_webrtc/MediaSinkHandler;)Luniffi/ktor_client_webrtc/MediaStreamSink;
-	public abstract fun createSink (Luniffi/ktor_client_webrtc/MediaSinkHandler;)Luniffi/ktor_client_webrtc/MediaStreamSink;
-	public abstract fun createVp8VideoSink (Luniffi/ktor_client_webrtc/MediaSinkHandler;)Luniffi/ktor_client_webrtc/MediaStreamSink;
+	public abstract fun clockRate-pVg5ArA ()I
+	public abstract fun codec ()Luniffi/ktor_client_webrtc/MediaCodec;
+	public abstract fun createSink (Luniffi/ktor_client_webrtc/MediaHandler;)Luniffi/ktor_client_webrtc/MediaStreamSinkWrapper;
 	public abstract fun enabled ()Z
+	public abstract fun hasSink (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun id ()Ljava/lang/String;
 	public abstract fun isLocal ()Z
 	public abstract fun isRemote ()Z
-	public abstract fun kind ()Luniffi/ktor_client_webrtc/MediaKind;
 	public abstract fun readAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun readRtp (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun setEnabled (Z)V
-	public abstract fun setSink (Luniffi/ktor_client_webrtc/MediaStreamSink;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun setSink (Luniffi/ktor_client_webrtc/MediaStreamSinkWrapper;)V
 	public abstract fun writeData-8Mi8wO0 ([BJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun writeSample (Luniffi/ktor_client_webrtc/TrackSample;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class uniffi/ktor_client_webrtc/MediaStreamTrackInterface$Companion {
@@ -1710,6 +1895,7 @@ public class uniffi/ktor_client_webrtc/PeerConnection : uniffi/ktor_client_webrt
 	public fun getRemoteDescription (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getStatistics (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun registerObserver (Luniffi/ktor_client_webrtc/PeerConnectionObserver;)V
+	public fun removeTrack (Luniffi/ktor_client_webrtc/MediaStreamTrack;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun removeTrackBySender (Luniffi/ktor_client_webrtc/RtpSender;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun restartIce (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun setLocalDescription (Luniffi/ktor_client_webrtc/SessionDescription;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -1731,6 +1917,7 @@ public abstract interface class uniffi/ktor_client_webrtc/PeerConnectionInterfac
 	public abstract fun getRemoteDescription (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getStatistics (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun registerObserver (Luniffi/ktor_client_webrtc/PeerConnectionObserver;)V
+	public abstract fun removeTrack (Luniffi/ktor_client_webrtc/MediaStreamTrack;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun removeTrackBySender (Luniffi/ktor_client_webrtc/RtpSender;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun restartIce (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun setLocalDescription (Luniffi/ktor_client_webrtc/SessionDescription;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -1744,6 +1931,7 @@ public abstract interface class uniffi/ktor_client_webrtc/PeerConnectionObserver
 	public static final field Companion Luniffi/ktor_client_webrtc/PeerConnectionObserver$Companion;
 	public abstract fun onConnectionStateChange (Luniffi/ktor_client_webrtc/ConnectionState;)V
 	public abstract fun onDataChannel (Luniffi/ktor_client_webrtc/DataChannel;)V
+	public abstract fun onError (Luniffi/ktor_client_webrtc/RtcException;)V
 	public abstract fun onIceCandidate (Luniffi/ktor_client_webrtc/IceCandidate;)V
 	public abstract fun onIceConnectionStateChange (Luniffi/ktor_client_webrtc/IceConnectionState;)V
 	public abstract fun onIceGatheringStateChange (Luniffi/ktor_client_webrtc/IceGatheringState;)V
@@ -1766,6 +1954,7 @@ public class uniffi/ktor_client_webrtc/PeerConnectionObserverImpl : uniffi/ktor_
 	protected final fun getPointer ()Lcom/sun/jna/Pointer;
 	public fun onConnectionStateChange (Luniffi/ktor_client_webrtc/ConnectionState;)V
 	public fun onDataChannel (Luniffi/ktor_client_webrtc/DataChannel;)V
+	public fun onError (Luniffi/ktor_client_webrtc/RtcException;)V
 	public fun onIceCandidate (Luniffi/ktor_client_webrtc/IceCandidate;)V
 	public fun onIceConnectionStateChange (Luniffi/ktor_client_webrtc/IceConnectionState;)V
 	public fun onIceGatheringStateChange (Luniffi/ktor_client_webrtc/IceGatheringState;)V
@@ -1941,21 +2130,18 @@ public final class uniffi/ktor_client_webrtc/RtpHeaderExtensionParameters$Compan
 
 public final class uniffi/ktor_client_webrtc/RtpParameters {
 	public static final field Companion Luniffi/ktor_client_webrtc/RtpParameters$Companion;
-	public fun <init> (Ljava/util/List;Ljava/util/List;Ljava/util/List;Luniffi/ktor_client_webrtc/DegradationPreference;)V
+	public fun <init> (Ljava/util/List;Ljava/util/List;Ljava/util/List;)V
 	public final fun component1 ()Ljava/util/List;
 	public final fun component2 ()Ljava/util/List;
 	public final fun component3 ()Ljava/util/List;
-	public final fun component4 ()Luniffi/ktor_client_webrtc/DegradationPreference;
-	public final fun copy (Ljava/util/List;Ljava/util/List;Ljava/util/List;Luniffi/ktor_client_webrtc/DegradationPreference;)Luniffi/ktor_client_webrtc/RtpParameters;
-	public static synthetic fun copy$default (Luniffi/ktor_client_webrtc/RtpParameters;Ljava/util/List;Ljava/util/List;Ljava/util/List;Luniffi/ktor_client_webrtc/DegradationPreference;ILjava/lang/Object;)Luniffi/ktor_client_webrtc/RtpParameters;
+	public final fun copy (Ljava/util/List;Ljava/util/List;Ljava/util/List;)Luniffi/ktor_client_webrtc/RtpParameters;
+	public static synthetic fun copy$default (Luniffi/ktor_client_webrtc/RtpParameters;Ljava/util/List;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Luniffi/ktor_client_webrtc/RtpParameters;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getCodecs ()Ljava/util/List;
-	public final fun getDegradationPreference ()Luniffi/ktor_client_webrtc/DegradationPreference;
 	public final fun getEncodings ()Ljava/util/List;
 	public final fun getHeaderExtensions ()Ljava/util/List;
 	public fun hashCode ()I
 	public final fun setCodecs (Ljava/util/List;)V
-	public final fun setDegradationPreference (Luniffi/ktor_client_webrtc/DegradationPreference;)V
 	public final fun setEncodings (Ljava/util/List;)V
 	public final fun setHeaderExtensions (Ljava/util/List;)V
 	public fun toString ()Ljava/lang/String;
