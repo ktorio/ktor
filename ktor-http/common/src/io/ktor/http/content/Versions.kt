@@ -175,10 +175,13 @@ public fun EntityTagVersion(spec: String): EntityTagVersion {
  * [VersionCheckResult.PRECONDITION_FAILED] for failed If-Match
  */
 public data class EntityTagVersion(val etag: String, val weak: Boolean) : Version {
-    private val normalized: String = when {
-        etag == "*" -> etag
-        etag.startsWith("\"") -> etag
-        else -> etag.quote()
+    private val normalized: String = run {
+        val value = when {
+            etag == "*" -> etag
+            etag.startsWith("\"") -> etag
+            else -> etag.quote()
+        }
+        if (weak) "W/$value" else value
     }
 
     init {
