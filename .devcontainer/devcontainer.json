@@ -1,14 +1,7 @@
 {
-  "build": {
-    "dockerfile": "./Dockerfile",
-    // Change `target` to `dev-android` if Android SDK is needed.
-    "target": "dev",
-    "options": [
-      // See an explanation for this option in the Dockerfile
-      "--platform=linux/amd64"
-    ]
-  },
+  "image": "ghcr.io/ktorio/devcontainer:latest",
   "runArgs": [
+    // See an explanation for this option in the Dockerfile
     "--platform=linux/amd64"
   ],
   "postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}",
