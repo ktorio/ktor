@@ -113,10 +113,6 @@ gradle.afterProject {
                 "-Xreport-all-warnings",
                 // Output kotlin.git-searchable names of reported diagnostics
                 "-Xrender-internal-diagnostic-names",
-                // Opt into additional warning-reporting compilation checks
-                "-Wextra",
-                // Opt into additional compilation checks hidden from users
-                "-Xuse-fir-experimental-checkers",
             ) + kotlinAdditionalCliOptions
 
             freeCompilerArgs.addAll(argsToAdd)

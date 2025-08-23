@@ -31,7 +31,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Run relevant tests with `./gradlew jvmTest` to verify functionality
 - Run `./gradlew lintKotlin` and fix all linting issues before giving control back to the user
 - Use `./gradlew formatKotlin` to automatically fix formatting issues
-- Run `./gradlew apiDump` after making API changes to update API signature files
+- Run `./gradlew updateLegacyAbi` after making ABI changes to update ABI signature files
 - CRITICAL: Never return control to the user without ensuring code compiles, tests pass, and ALL linting issues are fixed
 - Start with JVM-only implementation and tests unless the user specifically requests otherwise
 - Focus on core functionality first before expanding to other platforms (JS, Native)
@@ -43,10 +43,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Error handling follows Kotlin conventions with specific Ktor exceptions
 
 ## API Compatibility
-- Binary compatibility is enforced using the binary-compatibility-validator plugin
+- Binary compatibility is enforced using Kotlin Gradle Plugin ABI validation
 - All public API changes must be tracked in the `/api/` directories
-- Run `./gradlew apiDump` to update all API signature files after making API changes
-- Module-specific API dumps: `./gradlew :module-name:apiDump`
-- Platform-specific dumps: `./gradlew jvmApiDump` or `./gradlew klibApiDump`
+- Validate ABI: `./gradlew checkLegacyAbi`
+- Update ABI dumps: `./gradlew updateLegacyAbi` (module-specific: `./gradlew :module-name:updateLegacyAbi`)
 - API changes must be intentional and well-documented
 - Breaking changes are only allowed in major version releases
