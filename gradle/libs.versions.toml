@@ -65,7 +65,7 @@ javax-servlet = "4.0.1"
 jakarta-servlet = "5.0.0"
 
 ws = "8.18.3"
-xmlutil = "0.91.1"
+xmlutil = "0.91.2"
 yamlkt = "0.13.0"
 kaml = "0.77.1"
 
