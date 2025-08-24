@@ -61,7 +61,8 @@ public class NettyChannelInitializer(
     private val requestReadTimeout: Int,
     private val httpServerCodec: () -> HttpServerCodec,
     private val channelPipelineConfig: ChannelPipeline.() -> Unit,
-    private val enableHttp2: Boolean
+    private val enableHttp2: Boolean,
+    private val enableH2c: Boolean
 ) : ChannelInitializer<SocketChannel>() {
     private var sslContext: SslContext? = null
 
@@ -103,6 +104,12 @@ public class NettyChannelInitializer(
 
     override fun initChannel(ch: SocketChannel) {
         with(ch.pipeline()) {
+            if (enableHttp2 && enableH2c) {
+                configurePipeline(this, Http2CodecUtil.HTTP_UPGRADE_PROTOCOL_NAME.toString())
+
+                return
+            }
+
             if (connector is EngineSSLConnectorConfig) {
                 val sslEngine = sslContext!!.newEngine(ch.alloc()).apply {
                     if (connector.hasTrustStore()) {
@@ -121,11 +128,7 @@ public class NettyChannelInitializer(
                     configurePipeline(this, ApplicationProtocolNames.HTTP_1_1)
                 }
             } else {
-                if (enableHttp2) {
-                    configurePipeline(this, Http2CodecUtil.HTTP_UPGRADE_PROTOCOL_NAME.toString())
-                } else {
-                    configurePipeline(this, ApplicationProtocolNames.HTTP_1_1)
-                }
+                configurePipeline(this, ApplicationProtocolNames.HTTP_1_1)
             }
         }
     }

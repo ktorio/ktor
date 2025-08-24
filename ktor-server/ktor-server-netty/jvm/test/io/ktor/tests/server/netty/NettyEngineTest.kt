@@ -176,6 +176,10 @@ class NettyH2cEnabledTest :
         port = 8994
     }
 
+    override fun configure(configuration: NettyApplicationEngine.Configuration) {
+        configuration.enableH2c = true
+    }
+
     class Http2Frame(
         val frameType: Byte,
         val flags: Http2Flags,
