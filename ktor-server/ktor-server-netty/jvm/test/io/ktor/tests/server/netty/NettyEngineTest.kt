@@ -290,7 +290,6 @@ class NettyH2cEnabledTest :
 
         assertEquals(Http2FrameTypes.DATA, http2Frame.frameType)
         assertEquals(STREAM_ID, http2Frame.streamId)
-        assertTrue(http2Frame.flags.ack())
         assertTrue(http2Frame.flags.endOfStream())
         assertEquals(BODY, data)
     }
@@ -311,7 +310,6 @@ class NettyH2cEnabledTest :
             payload = encodedHeaders,
             type = Http2FrameTypes.HEADERS,
             flags = Http2Flags()
-                .ack(true)
                 .endOfHeaders(true)
                 .endOfStream(true),
             streamId = STREAM_ID
