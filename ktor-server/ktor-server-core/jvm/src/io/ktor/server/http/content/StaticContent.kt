@@ -198,7 +198,6 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
         lastModifiedExtractor = block
     }
 
-
     /**
      * Configures [HttpHeaders.ETag] for requested content.
      * For files, [Resource] is a requested [File].
@@ -211,7 +210,6 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
     public fun etag(block: (Resource) -> EntityTagVersion?) {
         etagExtractor = block
     }
-
 
     /**
      * Configures resources that should not be served.
@@ -492,8 +490,10 @@ public fun Route.preCompressed(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.staticRootFolder)
  */
-@Deprecated("This property only used in deprecated functions `files`, `file` and `default`. " +
-    "Please use `staticFiles` or `staticResources` instead")
+@Deprecated(
+    "This property only used in deprecated functions `files`, `file` and `default`. " +
+        "Please use `staticFiles` or `staticResources` instead"
+)
 public var Route.staticRootFolder: File?
     get() = attributes.getOrNull(staticRootFolderKey) ?: parent?.staticRootFolder
     set(value) {
@@ -805,16 +805,43 @@ private suspend fun ApplicationCall.respondStaticPath(
 
     val isDirectory = requestedPath.isDirectory()
     if (index != null && isDirectory) {
-        respondStaticPath(fileSystem, requestedPath.resolve(index), compressedTypes, contentType, cacheControl, modify, lastModified, etag)
+        respondStaticPath(
+            fileSystem,
+            requestedPath.resolve(index),
+            compressedTypes,
+            contentType,
+            cacheControl,
+            modify,
+            lastModified,
+            etag
+        )
     } else if (!isDirectory) {
         if (checkExclude(requestedPath)) return
 
-        respondStaticPath(fileSystem, requestedPath, compressedTypes, contentType, cacheControl, modify, lastModified, etag)
+        respondStaticPath(
+            fileSystem,
+            requestedPath,
+            compressedTypes,
+            contentType,
+            cacheControl,
+            modify,
+            lastModified,
+            etag
+        )
         if (isHandled) return
         for (extension in extensions) {
             val pathWithExtension = fileSystem.getPath("${requestedPath.pathString}.$extension")
             if (checkExclude(pathWithExtension)) return
-            respondStaticPath(fileSystem, pathWithExtension, compressedTypes, contentType, cacheControl, modify, lastModified, etag)
+            respondStaticPath(
+                fileSystem,
+                pathWithExtension,
+                compressedTypes,
+                contentType,
+                cacheControl,
+                modify,
+                lastModified,
+                etag
+            )
             if (isHandled) return
         }
     }

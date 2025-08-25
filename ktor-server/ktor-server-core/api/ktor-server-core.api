@@ -809,6 +809,11 @@ public final class io/ktor/server/http/content/DefaultTransformKt {
 	public static final fun transformDefaultContent (Lio/ktor/server/application/ApplicationCall;Ljava/lang/Object;)Lio/ktor/http/content/OutgoingContent;
 }
 
+public final class io/ktor/server/http/content/EntityTagMode {
+	public static final field INSTANCE Lio/ktor/server/http/content/EntityTagMode;
+	public final fun getStrongSha256 ()Lkotlin/jvm/functions/Function1;
+}
+
 public abstract interface class io/ktor/server/http/content/FileSystemPaths {
 	public static final field Companion Lio/ktor/server/http/content/FileSystemPaths$Companion;
 	public abstract fun getPath (Ljava/lang/String;[Ljava/lang/String;)Ljava/nio/file/Path;
@@ -900,9 +905,11 @@ public final class io/ktor/server/http/content/StaticContentConfig {
 	public final fun contentType (Lkotlin/jvm/functions/Function1;)V
 	public final fun default (Ljava/lang/String;)V
 	public final fun enableAutoHeadResponse ()V
+	public final fun etag (Lkotlin/jvm/functions/Function1;)V
 	public final fun exclude (Lkotlin/jvm/functions/Function1;)V
 	public final fun extensions ([Ljava/lang/String;)V
 	public final fun fallback (Lkotlin/jvm/functions/Function3;)V
+	public final fun lastModified (Lkotlin/jvm/functions/Function1;)V
 	public final fun modify (Lkotlin/jvm/functions/Function3;)V
 	public final fun preCompressed ([Lio/ktor/server/http/content/CompressedFileType;)V
 }

@@ -1483,10 +1483,10 @@ class StaticContentTest {
             }
         }
 
-        testCustomEtagAndLastModified("staticFiles/plugins/PartialContentTest.kt",etag, date)
-        testCustomEtagAndLastModified("staticResources/nested/file-nested.txt",etag, date)
-        testCustomEtagAndLastModified("staticFileSystem/nested/file-nested.txt",etag, date)
-        testCustomEtagAndLastModified("staticZip/nested/file-nested.txt",etag, date)
+        testCustomEtagAndLastModified("staticFiles/plugins/PartialContentTest.kt", etag, date)
+        testCustomEtagAndLastModified("staticResources/nested/file-nested.txt", etag, date)
+        testCustomEtagAndLastModified("staticFileSystem/nested/file-nested.txt", etag, date)
+        testCustomEtagAndLastModified("staticZip/nested/file-nested.txt", etag, date)
 
         // precompressed
         testCustomEtagAndLastModified("staticFilesPrecompressed/file.txt", etag, date, "br")

@@ -5,12 +5,11 @@
 package io.ktor.server.http.content
 
 import io.ktor.http.content.*
-import kotlinx.io.files.Path
 import java.io.File
 import java.io.InputStream
 import java.net.URL
 import java.nio.file.Files
-import java.nio.file.Paths
+import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
 import java.security.MessageDigest
 import java.util.concurrent.ConcurrentHashMap
@@ -63,15 +62,20 @@ public object EntityTagMode {
         }
 
         is Path -> {
-            val path = Paths.get(resource.toString())
+            val path = resource.toAbsolutePath()
             val attrs = Files.readAttributes(path, BasicFileAttributes::class.java)
-            "S:P:${path.toAbsolutePath()}:${attrs.lastModifiedTime().toMillis()}:${attrs.size()}" to {
+            "S:P:$path:${attrs.lastModifiedTime().toMillis()}:${attrs.size()}" to {
                 Files.newInputStream(path)
             }
         }
 
         is URL -> {
-            "S:U:${resource.toExternalForm()}" to { resource.openStream() }
+            val meta = runCatching {
+                val conn = resource.openConnection()
+                (conn.lastModified.takeIf { it > 0 }?.toString() ?: "") +
+                    ":" + (conn.contentLengthLong.takeIf { it >= 0 }?.toString() ?: "")
+            }.getOrDefault("")
+            "S:U:${resource.toExternalForm()}:$meta" to { resource.openStream() }
         }
 
         else -> throw IllegalArgumentException("Unsupported resource type: ${resource::class}")
