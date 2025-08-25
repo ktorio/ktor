@@ -50,7 +50,7 @@ mockk = "1.14.5"
 
 java-jwt = "4.5.0"
 
-jwks-rsa = "0.22.2"
+jwks-rsa = "0.23.0"
 mustache = "0.9.14"
 freemarker = "2.3.34"
 pebble = "3.2.4"
