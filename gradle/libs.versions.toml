@@ -80,7 +80,7 @@ tomlj = "1.1.1"
 develocity = "3.19.2" # Should be compatible with our server: ge.jetbrains.com
 develocity-commonCustomUserData = "2.3"
 gradleDoctor = "0.12.0"
-mavenPublishing = "0.33.0"
+mavenPublishing = "0.34.0"
 
 [libraries]
 
