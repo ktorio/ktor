@@ -85,7 +85,11 @@ public class TestApplication internal constructor(
     internal val server by lazy { createServer() }
     private val applicationStarting by lazy { Job(server.engine.coroutineContext[Job]) }
 
-    /** Returns an instance of [Application] behind this test application. */
+    /**
+     * Returns an instance of [Application] behind this test application.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplication.application)
+     */
     public val application: Application get() = server.application
 
     /**
@@ -337,6 +341,8 @@ public open class TestApplicationBuilder {
      * If no paths are provided, the default configuration is loaded.
      * If one path is provided, the corresponding configuration file is loaded.
      * If multiple paths are provided, the configurations are merged in the given order.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationBuilder.configure)
      *
      * @param configPaths Optional paths to configuration files.
      */

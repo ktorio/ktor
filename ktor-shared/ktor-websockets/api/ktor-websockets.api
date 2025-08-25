@@ -45,6 +45,7 @@ public abstract interface class io/ktor/websocket/DefaultWebSocketSession : io/k
 	public abstract fun setPingIntervalMillis (J)V
 	public abstract fun setTimeoutMillis (J)V
 	public abstract fun start (Ljava/util/List;)V
+	public static synthetic fun start$default (Lio/ktor/websocket/DefaultWebSocketSession;Ljava/util/List;ILjava/lang/Object;)V
 }
 
 public final class io/ktor/websocket/DefaultWebSocketSession$DefaultImpls {
@@ -299,7 +300,7 @@ public abstract interface class io/ktor/websocket/WebSocketSession : kotlinx/cor
 	public abstract fun getMasking ()Z
 	public abstract fun getMaxFrameSize ()J
 	public abstract fun getOutgoing ()Lkotlinx/coroutines/channels/SendChannel;
-	public abstract fun send (Lio/ktor/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun send (Lio/ktor/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun setMasking (Z)V
 	public abstract fun setMaxFrameSize (J)V
 	public abstract fun terminate ()V

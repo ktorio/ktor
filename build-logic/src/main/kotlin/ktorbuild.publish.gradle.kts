@@ -2,49 +2,49 @@
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+import com.vanniktech.maven.publish.MavenPublishBaseExtension
 import ktorbuild.*
 import ktorbuild.internal.*
-import ktorbuild.internal.gradle.findByName
 import ktorbuild.internal.publish.*
-import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
 plugins {
-    id("maven-publish")
+    id("com.vanniktech.maven.publish")
     id("signing") apply false
 }
 
 addProjectTag(ProjectTag.Published)
 
-publishing {
-    publications.configureEach {
-        if (this !is MavenPublication) return@configureEach
+mavenPublishing {
+    if (shouldPublishToMavenCentral()) publishToMavenCentral(automaticRelease = true)
+    configureSigning(this)
 
-        pom {
-            name = project.name
-            description = project.description.orEmpty()
-                .ifEmpty { "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort." }
-            url = "https://github.com/ktorio/ktor"
-            licenses {
-                license {
-                    name = "The Apache Software License, Version 2.0"
-                    url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
-                    distribution = "repo"
-                }
-            }
-            developers {
-                developer {
-                    id = "JetBrains"
-                    name = "Jetbrains Team"
-                    organization = "JetBrains"
-                    organizationUrl = "https://www.jetbrains.com"
-                }
-            }
-            scm {
-                url = "https://github.com/ktorio/ktor.git"
+    pom {
+        name = project.name
+        description = project.description.orEmpty()
+            .ifEmpty { "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort." }
+        url = "https://github.com/ktorio/ktor"
+        licenses {
+            license {
+                name = "The Apache Software License, Version 2.0"
+                url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+                distribution = "repo"
             }
         }
+        developers {
+            developer {
+                id = "JetBrains"
+                name = "Jetbrains Team"
+                organization = "JetBrains"
+                organizationUrl = "https://www.jetbrains.com"
+            }
+        }
+        scm {
+            url = "https://github.com/ktorio/ktor.git"
+        }
     }
+}
 
+publishing {
     repositories {
         addTargetRepositoryIfConfigured()
         mavenLocal()
@@ -52,7 +52,6 @@ publishing {
 }
 
 registerCommonPublishTask()
-configureSigning()
 
 plugins.withId("ktorbuild.kmp") {
     tasks.withType<AbstractPublishToMaven>().configureEach {
@@ -63,60 +62,17 @@ plugins.withId("ktorbuild.kmp") {
     }
 
     registerTargetsPublishTasks(ktorBuild.targets)
-    configureJavadocArtifact()
 }
 
-pluginManager.withPlugin("java-platform") {
-    publishing.publications.register<MavenPublication>("maven") {
-        from(components["javaPlatform"])
-    }
-}
-
-pluginManager.withPlugin("version-catalog") {
-    publishing.publications.register<MavenPublication>("maven") {
-        from(components["versionCatalog"])
-    }
-}
-
-private fun Project.configureSigning() {
+private fun Project.configureSigning(mavenPublishing: MavenPublishBaseExtension) {
     extra["signing.gnupg.keyName"] = (System.getenv("SIGN_KEY_ID") ?: return)
     extra["signing.gnupg.passphrase"] = (System.getenv("SIGN_KEY_PASSPHRASE") ?: return)
 
-    apply(plugin = "signing")
-
-    signing {
-        useGpgCmd()
-        sign(publishing.publications)
-    }
+    mavenPublishing.signAllPublications()
+    signing.useGpgCmd()
 
     // Workaround for https://github.com/gradle/gradle/issues/12167
     tasks.withType<Sign>().configureEach {
         withLimitedParallelism("gpg-agent", maxParallelTasks = 1)
     }
-}
-
-private fun Project.configureJavadocArtifact() {
-    val emptyJar = tasks.register<Jar>("emptyJar") {
-        archiveAppendix = "empty"
-    }
-
-    publishing {
-        for (target in the<KotlinMultiplatformExtension>().targets) {
-            val publication = publications.findByName<MavenPublication>(target.name) ?: continue
-
-            publication.artifact(emptyJar) { classifier = "javadoc" }
-            if (target.platformType.name != "jvm") {
-                publication.artifact(emptyJar) { classifier = "kdoc" }
-            }
-
-            if (target.platformType.name == "native") {
-                publication.artifact(emptyJar)
-            }
-        }
-    }
-
-    // We share emptyJar artifact between all publications, so all publish tasks should be run after all sign tasks.
-    // Otherwise, Gradle will throw an error like:
-    //   Task ':publishX' uses output of task ':signY' without declaring an explicit or implicit dependency.
-    tasks.withType<AbstractPublishToMaven>().configureEach { mustRunAfter(tasks.withType<Sign>()) }
 }

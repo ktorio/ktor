@@ -10,6 +10,17 @@ open annotation class io.ktor.server.response/UseHttp2Push : kotlin/Annotation {
     constructor <init>() // io.ktor.server.response/UseHttp2Push.<init>|<init>(){}[0]
 }
 
+final enum class io.ktor.server.application/ApplicationStartupMode : kotlin/Enum<io.ktor.server.application/ApplicationStartupMode> { // io.ktor.server.application/ApplicationStartupMode|null[0]
+    enum entry CONCURRENT // io.ktor.server.application/ApplicationStartupMode.CONCURRENT|null[0]
+    enum entry SEQUENTIAL // io.ktor.server.application/ApplicationStartupMode.SEQUENTIAL|null[0]
+
+    final val entries // io.ktor.server.application/ApplicationStartupMode.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<io.ktor.server.application/ApplicationStartupMode> // io.ktor.server.application/ApplicationStartupMode.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): io.ktor.server.application/ApplicationStartupMode // io.ktor.server.application/ApplicationStartupMode.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<io.ktor.server.application/ApplicationStartupMode> // io.ktor.server.application/ApplicationStartupMode.values|values#static(){}[0]
+}
+
 final enum class io.ktor.server.routing/RoutingPathSegmentKind : kotlin/Enum<io.ktor.server.routing/RoutingPathSegmentKind> { // io.ktor.server.routing/RoutingPathSegmentKind|null[0]
     enum entry Constant // io.ktor.server.routing/RoutingPathSegmentKind.Constant|null[0]
     enum entry Parameter // io.ktor.server.routing/RoutingPathSegmentKind.Parameter|null[0]
@@ -1619,6 +1630,8 @@ final object io.ktor.server.routing/TrailingSlashRouteSelector : io.ktor.server.
 
 final val io.ktor.server.application/ApplicationModulesLoaded // io.ktor.server.application/ApplicationModulesLoaded|{}ApplicationModulesLoaded[0]
     final fun <get-ApplicationModulesLoaded>(): io.ktor.events/EventDefinition<io.ktor.server.application/Application> // io.ktor.server.application/ApplicationModulesLoaded.<get-ApplicationModulesLoaded>|<get-ApplicationModulesLoaded>(){}[0]
+final val io.ktor.server.application/ApplicationModulesLoading // io.ktor.server.application/ApplicationModulesLoading|{}ApplicationModulesLoading[0]
+    final fun <get-ApplicationModulesLoading>(): io.ktor.events/EventDefinition<io.ktor.server.application/Application> // io.ktor.server.application/ApplicationModulesLoading.<get-ApplicationModulesLoading>|<get-ApplicationModulesLoading>(){}[0]
 final val io.ktor.server.application/ApplicationStarted // io.ktor.server.application/ApplicationStarted|{}ApplicationStarted[0]
     final fun <get-ApplicationStarted>(): io.ktor.events/EventDefinition<io.ktor.server.application/Application> // io.ktor.server.application/ApplicationStarted.<get-ApplicationStarted>|<get-ApplicationStarted>(){}[0]
 final val io.ktor.server.application/ApplicationStarting // io.ktor.server.application/ApplicationStarting|{}ApplicationStarting[0]
@@ -1647,6 +1660,10 @@ final val io.ktor.server.application/pluginRegistry // io.ktor.server.applicatio
     final fun <#A1: io.ktor.util.pipeline/Pipeline<*, io.ktor.server.application/PipelineCall>> (#A1).<get-pluginRegistry>(): io.ktor.util/Attributes // io.ktor.server.application/pluginRegistry.<get-pluginRegistry>|<get-pluginRegistry>@0:0(){0§<io.ktor.util.pipeline.Pipeline<*,io.ktor.server.application.PipelineCall>>}[0]
 final val io.ktor.server.application/port // io.ktor.server.application/port|@io.ktor.server.config.ApplicationConfig{}port[0]
     final fun (io.ktor.server.config/ApplicationConfig).<get-port>(): kotlin/Int // io.ktor.server.application/port.<get-port>|<get-port>@io.ktor.server.config.ApplicationConfig(){}[0]
+final val io.ktor.server.application/startupMode // io.ktor.server.application/startupMode|@io.ktor.server.application.ApplicationEnvironment{}startupMode[0]
+    final fun (io.ktor.server.application/ApplicationEnvironment).<get-startupMode>(): io.ktor.server.application/ApplicationStartupMode // io.ktor.server.application/startupMode.<get-startupMode>|<get-startupMode>@io.ktor.server.application.ApplicationEnvironment(){}[0]
+final val io.ktor.server.application/startupTimeout // io.ktor.server.application/startupTimeout|@io.ktor.server.application.ApplicationEnvironment{}startupTimeout[0]
+    final fun (io.ktor.server.application/ApplicationEnvironment).<get-startupTimeout>(): kotlin.time/Duration // io.ktor.server.application/startupTimeout.<get-startupTimeout>|<get-startupTimeout>@io.ktor.server.application.ApplicationEnvironment(){}[0]
 final val io.ktor.server.config/configLoaders // io.ktor.server.config/configLoaders|{}configLoaders[0]
     final fun <get-configLoaders>(): kotlin.collections/List<io.ktor.server.config/ConfigLoader> // io.ktor.server.config/configLoaders.<get-configLoaders>|<get-configLoaders>(){}[0]
 final val io.ktor.server.http.content/SuppressionAttribute // io.ktor.server.http.content/SuppressionAttribute|{}SuppressionAttribute[0]

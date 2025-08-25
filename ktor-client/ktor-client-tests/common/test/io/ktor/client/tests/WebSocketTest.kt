@@ -11,6 +11,7 @@ import io.ktor.client.plugins.auth.*
 import io.ktor.client.plugins.auth.providers.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.client.test.base.*
 import io.ktor.http.*
 import io.ktor.serialization.*
@@ -451,6 +452,23 @@ class WebSocketTest : ClientLoader() {
                 client.webSocket("$TEST_WEBSOCKET_SERVER/auth/websocket") {}
             }
             client.close()
+        }
+    }
+
+    @Test
+    fun testHttpDuringWebSocketConnection() = clientTests(except(ENGINES_WITHOUT_WS)) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                val response = client.get("$TEST_SERVER/content/hello")
+                send(response.bodyAsText())
+
+                val frame = incoming.receive() as Frame.Text
+                assertEquals("hello", frame.readText())
+            }
         }
     }
 }

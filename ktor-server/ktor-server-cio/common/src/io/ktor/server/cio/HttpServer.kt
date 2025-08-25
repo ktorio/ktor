@@ -43,6 +43,8 @@ public data class HttpServerSettings(
 /**
  * Represents the settings for a Unix-based HTTP server.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.cio.UnixSocketServerSettings)
+ *
  * @property connectionIdleTimeoutSeconds time to live for IDLE connections
  * @property socketPath the path to the Unix domain socket file used for the server communication.
  */

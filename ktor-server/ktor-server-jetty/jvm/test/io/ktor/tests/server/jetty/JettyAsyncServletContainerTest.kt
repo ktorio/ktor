@@ -48,3 +48,6 @@ class JettyAsyncServerPluginsTest :
         enableSsl = false
     }
 }
+
+class JettyAsyncServletContainerHooksTest :
+    HooksTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = true))

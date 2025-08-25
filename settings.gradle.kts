@@ -8,6 +8,7 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 pluginManagement {
     // Add repositories required for build-settings-logic
     repositories {
+        google()
         gradlePluginPortal()
 
         // Should be in sync with ktorsettings.kotlin-user-project
@@ -19,7 +20,7 @@ pluginManagement {
 }
 
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "0.10.0"
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
     id("ktorsettings")
     id("ktorsettings.develocity")
     id("ktorsettings.configuration-cache")
