@@ -9,7 +9,7 @@ atomicfu = "0.29.0"
 serialization = "1.9.0"
 dokka = "2.0.0"
 kover = "0.9.1"
-kotlinter = "5.1.1"
+kotlinter = "5.2.0"
 kotlinx-browser = "0.3.1"
 
 # Used for test server in buildSrc
