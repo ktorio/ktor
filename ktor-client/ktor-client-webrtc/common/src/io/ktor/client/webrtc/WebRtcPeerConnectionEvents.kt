@@ -86,7 +86,7 @@ public interface WebRtcConnectionEvents {
  * This class maintains the mutable flows and provides methods to emit events
  * from platform-specific WebRTC implementations.
  */
-internal class WebRtcConnectionEventsEmitter(
+public class WebRtcConnectionEventsEmitter(
     config: WebRtcConnectionConfig
 ) : WebRtcConnectionEvents {
 
@@ -121,43 +121,43 @@ internal class WebRtcConnectionEventsEmitter(
     // Helper functions to emit events in WebRtcConnection implementations,
     // So it doesn't have to extend CoroutineScope and run `launch`
 
-    fun emitIceCandidate(candidate: WebRtc.IceCandidate) {
+    public fun emitIceCandidate(candidate: WebRtc.IceCandidate) {
         iceCandidatesFlow.tryEmit(candidate)
     }
 
-    fun emitStats(stats: List<WebRtc.Stats>) {
+    public fun emitStats(stats: List<WebRtc.Stats>) {
         statsFlow.tryEmit(stats)
     }
 
-    fun emitNegotiationNeeded() {
+    public fun emitNegotiationNeeded() {
         negotiationNeededFlow.tryEmit(Unit)
     }
 
-    fun emitIceConnectionStateChange(state: WebRtc.IceConnectionState) {
+    public fun emitIceConnectionStateChange(state: WebRtc.IceConnectionState) {
         iceConnectionStateFlow.tryEmit(state)
     }
 
-    fun emitConnectionStateChange(state: WebRtc.ConnectionState) {
+    public fun emitConnectionStateChange(state: WebRtc.ConnectionState) {
         connectionStateFlow.tryEmit(state)
     }
 
-    fun emitIceGatheringStateChange(state: WebRtc.IceGatheringState) {
+    public fun emitIceGatheringStateChange(state: WebRtc.IceGatheringState) {
         iceGatheringStateFlow.tryEmit(state)
     }
 
-    fun emitSignalingStateChange(state: WebRtc.SignalingState) {
+    public fun emitSignalingStateChange(state: WebRtc.SignalingState) {
         signalingStateFlow.tryEmit(state)
     }
 
-    fun emitAddTrack(track: WebRtcMedia.Track) {
+    public fun emitAddTrack(track: WebRtcMedia.Track) {
         trackEventsFlow.tryEmit(TrackEvent.Add(track))
     }
 
-    fun emitRemoveTrack(track: WebRtcMedia.Track) {
+    public fun emitRemoveTrack(track: WebRtcMedia.Track) {
         trackEventsFlow.tryEmit(TrackEvent.Remove(track))
     }
 
-    fun emitDataChannelEvent(event: DataChannelEvent) {
+    public fun emitDataChannelEvent(event: DataChannelEvent) {
         dataChannelEventsFlow.tryEmit(event)
     }
 }

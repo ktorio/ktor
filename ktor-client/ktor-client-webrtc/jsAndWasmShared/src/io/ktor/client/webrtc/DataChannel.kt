@@ -26,7 +26,7 @@ public class JsWebRtcDataChannel(
 ) : WebRtcDataChannel(receiveOptions) {
 
     override val id: Int
-        get() = channel.id?.toInt() ?: -1
+        get() = channel.id?.toInt() ?: 0
 
     override val label: String
         get() = channel.label
@@ -63,7 +63,7 @@ public class JsWebRtcDataChannel(
         channel.bufferedAmountLowThreshold = threshold.toInt()
     }
 
-    override fun close() {
+    override fun closeTransport() {
         channel.close()
     }
 

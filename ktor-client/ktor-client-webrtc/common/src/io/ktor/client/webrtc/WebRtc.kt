@@ -458,16 +458,25 @@ public object WebRtc {
         public fun tryReceiveText(): String?
 
         /**
-         * Closes the data channel and releases its resources.
+         * Closes the data channel transport. The underlying message receiving channel will be closed.
          *
          * After calling a channel will start a closing process:
-         * - The channel state will transition to [WebRtc.DataChannelState.CLOSED]
+         * - The channel state will transition to [WebRtc.DataChannel.State.CLOSED]
          * - No more messages can be sent through this channel
          * - The underlying message receiving channel will be closed
          * - Any pending send operations may fail
          * - A [DataChannelEvent.Closed] event will be emitted
          */
-        override fun close()
+        public fun closeTransport()
+
+        /**
+         * Closes the data channel and releases all associated resources.
+         * Automatically invokes `closeTransport`.
+         * Accessing the channel after this operation could throw an exception.
+         */
+        override fun close() {
+            closeTransport()
+        }
     }
 
     /**
