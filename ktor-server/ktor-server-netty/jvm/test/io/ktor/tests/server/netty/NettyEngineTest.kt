@@ -34,7 +34,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-
 class NettyCompressionTest : CompressionTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
     init {
         enableSsl = true
@@ -293,7 +292,6 @@ class NettyH2cEnabledTest :
         assertTrue(http2Frame.flags.endOfStream())
         assertEquals(BODY, data)
     }
-
 
     private fun http2HeadersFrame(): ByteArray {
         val headers = DefaultHttp2Headers().also {
