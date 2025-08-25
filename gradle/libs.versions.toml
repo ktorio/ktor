@@ -79,7 +79,7 @@ tomlj = "1.1.1"
 # Keep it in sync with build-settings-logic/settings.gradle.kts
 develocity = "3.19.2" # Should be compatible with our server: ge.jetbrains.com
 develocity-commonCustomUserData = "2.3"
-gradleDoctor = "0.11.0"
+gradleDoctor = "0.12.0"
 mavenPublishing = "0.33.0"
 
 [libraries]
