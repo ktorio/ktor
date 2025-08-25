@@ -10,7 +10,7 @@ serialization = "1.9.0"
 dokka = "2.0.0"
 kover = "0.9.1"
 kotlinter = "5.1.1"
-kotlinx-browser = "0.3"
+kotlinx-browser = "0.3.1"
 
 # Used for test server in buildSrc
 ktor = "3.3.0-eap-1398"
