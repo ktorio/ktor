@@ -8,6 +8,7 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 
@@ -17,7 +18,7 @@ import kotlin.coroutines.CoroutineContext
  * @see [MDN RTCPeerConnection](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection)
  */
 public abstract class WebRtcPeerConnection private constructor(
-    internal val events: WebRtcConnectionEventsEmitter,
+    protected val events: WebRtcConnectionEventsEmitter,
     protected val coroutineScope: CoroutineScope
 ) : Closeable, WebRtcConnectionEvents by events {
 
@@ -117,6 +118,10 @@ public abstract class WebRtcPeerConnection private constructor(
      * Returns data providing statistics about the overall connection.
      */
     public abstract suspend fun getStatistics(): List<WebRtc.Stats>
+
+    public suspend fun awaitIceGatheringComplete() {
+        iceGatheringState.first { it == WebRtc.IceGatheringState.COMPLETE }
+    }
 
     override fun close() {
         coroutineScope.cancel()

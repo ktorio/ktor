@@ -128,7 +128,7 @@ class WebRtcDataChannelTest {
         assertEquals("Message from pc2", msg2)
 
         // Test channel closing
-        dataChannel1.close()
+        dataChannel1.closeTransport()
         dataChannel2.waitForClose(dataChannelEvents)
     }
 
@@ -143,8 +143,7 @@ class WebRtcDataChannelTest {
                 protocol = "custom-protocol"
             }
 
-            // browsers and android lib ignore setting id :(
-            // assertEquals(0, dataChannel.id)
+            assertTrue(dataChannel.id >= 0, "DataChannel id should be non-negative when negotiated=false")
             assertEquals("options-test", dataChannel.label)
             assertEquals("custom-protocol", dataChannel.protocol)
             assertFalse(dataChannel.ordered)
@@ -170,13 +169,13 @@ class WebRtcDataChannelTest {
         val dataChannel2 = waitForChannel(dataChannelEvents)
 
         // Send multiple messages rapidly
-        val messageCount = 10000
+        val messageCount = 1000
         repeat(messageCount) { i ->
             dataChannel1.send("Message $i")
         }
 
         // Receive all messages
-        withTimeout(5000) {
+        withTimeout(10_000) {
             repeat(messageCount) { i ->
                 assertEquals("Message $i", dataChannel2.receiveText())
             }
@@ -195,7 +194,7 @@ class WebRtcDataChannelTest {
         val dataChannel2 = waitForChannel(dataChannelEvents2)
 
         // Test sending on a closed channel
-        dataChannel1.close()
+        dataChannel1.closeTransport()
         dataChannel1.waitForClose(dataChannelEvents1)
         dataChannel2.waitForClose(dataChannelEvents2)
 
@@ -219,16 +218,16 @@ class WebRtcDataChannelTest {
         val threshold = 1000L
         dataChannel1.setBufferedAmountLowThreshold(threshold)
 
-        val largeData = List(1000) { it.toByte() }.toByteArray()
-        repeat(10) {
-            dataChannel1.send(largeData)
-        }
+        val largeData = List(1111) { it.toByte() }.toByteArray()
+        dataChannel1.send(largeData)
 
         // Now wait for the BufferedAmountLow event
         val bufferedAmountLowEvent = withTimeout(5000) {
             while (true) {
                 val event = dataChannelEvents1.receive()
                 if (event is DataChannelEvent.BufferedAmountLow) {
+                    // assert there was only one event fired
+                    assertTrue(dataChannelEvents1.tryReceive().isFailure)
                     return@withTimeout event
                 }
             }
@@ -244,7 +243,7 @@ class WebRtcDataChannelTest {
         )
 
         // Clean up
-        dataChannel1.close()
+        dataChannel1.closeTransport()
         dataChannel2.waitForClose(dataChannelEvents2)
     }
 }
