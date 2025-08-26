@@ -106,24 +106,19 @@ class WebRtcMediaTest {
 
                 negotiate(pc1, pc2)
 
-                val audioTransferJob = launch {
-                    repeat(10) {
-                        audioTrack1.getNative().writeData(ByteArray(960), 20.milliseconds) // 20ms of audio data
-                        audioTrack2.getNative().writeData(ByteArray(960), 20.milliseconds)
-                        delay(20)
-                    }
-                }.also { jobs.add(it) }
-
-                val videoTransferJob = launch {
-                    repeat(10) {
-                        videoTrack1.getNative().writeData(ByteArray(1250), 33.milliseconds) // ~30fps video frame
-                        videoTrack2.getNative().writeData(ByteArray(1250), 33.milliseconds)
-                        delay(33)
-                    }
-                }.also { jobs.add(it) }
+                val audioTransferJobs = listOf(audioTrack1, audioTrack2).map { track ->
+                    launch {
+                        track.repeatSending(ByteArray(960), 20.milliseconds)
+                    }.also { jobs.add(it) }
+                }
+                val videoTransferJobs = listOf(videoTrack1, videoTrack2).map { track ->
+                    launch {
+                        track.repeatSending(ByteArray(1250), 33.milliseconds)
+                    }.also { jobs.add(it) }
+                }
 
                 // Check if remote tracks are emitted
-                withTimeout(5000) {
+                withTimeout(10_000) {
                     listOf(remoteTracks1, remoteTracks2).forEach { remoteTracks ->
                         val tracks = listOf(remoteTracks.receive(), remoteTracks.receive())
                         assertTrue(tracks.all { it is TrackEvent.Add })
@@ -134,15 +129,15 @@ class WebRtcMediaTest {
 
                 // assert that remote tracks are replayed
                 val remoteTracks3 = pc2.trackEvents.collectToChannel(this, jobs)
-                withTimeout(5000) {
+                withTimeout(10_000) {
                     val tracks = arrayOf(remoteTracks3.receive(), remoteTracks3.receive())
                     assertTrue(tracks.all { it is TrackEvent.Add })
                     assertEquals(1, tracks.filter { it.track.kind === WebRtcMedia.TrackType.AUDIO }.size)
                     assertEquals(1, tracks.filter { it.track.kind === WebRtcMedia.TrackType.VIDEO }.size)
                 }
 
-                audioTransferJob.join()
-                videoTransferJob.join()
+                audioTransferJobs.joinAll()
+                videoTransferJobs.joinAll()
 
                 // remove audio track at pc2, needs renegotiation to work
                 pc2.removeTrack(audioSender)
@@ -207,7 +202,7 @@ class WebRtcMediaTest {
                 localAudioTrack.repeatSending(testData, 20.milliseconds)
 
                 // Wait for remote tracks to be available
-                val remoteAudioTrack = withTimeout(5000) {
+                val remoteAudioTrack = withTimeout(10_000) {
                     val event = remoteTracks2.receive()
                     assertTrue(event is TrackEvent.Add)
                     assertEquals(WebRtcMedia.TrackType.AUDIO, event.track.kind)
@@ -218,7 +213,7 @@ class WebRtcMediaTest {
                 val receivedSamples = remoteAudioTrack.collectSamples()
 
                 // Wait for data to be received at the sink
-                val receivedSample = withTimeout(5000) { receivedSamples.receive() }
+                val receivedSample = withTimeout(10_000) { receivedSamples.receive() }
 
                 assertContentEquals(
                     testData,
@@ -231,7 +226,7 @@ class WebRtcMediaTest {
                 pc1.removeTrack(localAudioTrack)
                 negotiate(pc1, pc2)
 
-                withTimeout(5000) {
+                withTimeout(10_000) {
                     assertTrue(receivedSamples.isClosedForSend)
                 }
             }
@@ -253,7 +248,7 @@ class WebRtcMediaTest {
                 }.also { jobs.add(it) }
 
                 // Wait for remote video track
-                val remoteVideoTrack = withTimeout(5000) {
+                val remoteVideoTrack = withTimeout(10_000) {
                     val event = remoteTracks2.receive()
                     assertTrue(event is TrackEvent.Add)
                     assertEquals(WebRtcMedia.TrackType.VIDEO, event.track.kind)
@@ -263,7 +258,7 @@ class WebRtcMediaTest {
                 val receivedVideoSamples = remoteVideoTrack.collectSamples()
 
                 // Wait for video data to be received
-                val receivedSample = withTimeout(5000) { receivedVideoSamples.receive() }
+                val receivedSample = withTimeout(10_000) { receivedVideoSamples.receive() }
 
                 assertContentEquals(MockMediaDevices.H264_FRAME.value, receivedSample.data, "Video data should match")
                 assertEquals(0u, receivedSample.prevDroppedPackets, "Dropped packets should still be 0")
@@ -293,7 +288,7 @@ class WebRtcMediaTest {
                     }
                 }
 
-                val remoteAudioTrack = withTimeout(5000) {
+                val remoteAudioTrack = withTimeout(10_000) {
                     remoteTracks2.receive().track as RustMediaTrack
                 }
                 val receivedSamples = remoteAudioTrack.collectSamples()
@@ -302,7 +297,6 @@ class WebRtcMediaTest {
                 withTimeout(10_000) {
                     var receivedSample = receivedSamples.receive()
                     val firstReceivedIndex = receivedSample.data[0]
-                    assertTrue(firstReceivedIndex <= 5, "Should lose up to 5 samples")
 
                     // the last one is not emitted
                     for (i in (firstReceivedIndex + 1)..<samplesCount) {

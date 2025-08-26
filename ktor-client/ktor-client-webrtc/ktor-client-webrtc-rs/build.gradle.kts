@@ -56,7 +56,9 @@ tasks.named { it.startsWith("cargoBuildLinux") || it.startsWith("cinteropRustLin
 }
 
 // Windows
-tasks.named { it.startsWith("cargoBuildMingw") || it.startsWith("cinteropRustMingw") }.configureEach {
+tasks.named {
+    it.startsWith("cargoBuildMingw", ignoreCase = true) || it.startsWith("cinteropRustMingw", ignoreCase = true)
+}.configureEach {
     onlyIf { GobleyHost.Platform.Windows.isCurrent }
 }
 
