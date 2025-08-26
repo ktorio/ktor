@@ -130,8 +130,9 @@ projects {
         +"ktor-client-webrtc" including {
             // Include `ktor-client-webrtc-rs` if rust compilation is enabled in `gradle.properties` for local builds
             // or if the `RUST_COMPILATION` environment variable is set to `true` for the CI.
-            val compileRust = providers.gradleProperty("ktorbuild.rustCompilation").orNull.toBoolean() ||
-                System.getenv("RUST_COMPILATION").toBoolean()
+            val compileRust = providers.environmentVariable("KTOR_RUST_COMPILATION")
+                .orElse(providers.gradleProperty("ktorbuild.rustCompilation"))
+                .orNull.toBoolean()
             if (compileRust) {
                 +"ktor-client-webrtc-rs" // requires `cargo` to be installed
             }
