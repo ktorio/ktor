@@ -226,7 +226,6 @@ public open class TestApplicationBuilder {
      *
      * @see [testApplication]
      */
-    @KtorDsl
     public fun externalServices(block: ExternalServicesBuilder.() -> Unit) {
         checkNotBuilt()
         externalServices.block()
@@ -239,7 +238,6 @@ public open class TestApplicationBuilder {
      *
      * @see [testApplication]
      */
-    @KtorDsl
     public fun engine(block: TestApplicationEngine.Configuration.() -> Unit) {
         checkNotBuilt()
         val oldBuilder = engineConfig
@@ -272,7 +270,6 @@ public open class TestApplicationBuilder {
      *
      * @see [testApplication]
      */
-    @KtorDsl
     public fun environment(block: ApplicationEnvironmentBuilder.() -> Unit) {
         checkNotBuilt()
         val oldBuilder = environmentBuilder
@@ -302,7 +299,6 @@ public open class TestApplicationBuilder {
      *
      * @see [testApplication]
      */
-    @KtorDsl
     public fun application(block: suspend Application.() -> Unit) {
         checkNotBuilt()
         applicationModules.add(block)
@@ -327,7 +323,6 @@ public open class TestApplicationBuilder {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationBuilder.routing)
      */
-    @KtorDsl
     public fun routing(configuration: Route.() -> Unit) {
         checkNotBuilt()
         applicationModules.add { routing(configuration) }
@@ -467,7 +462,6 @@ public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.testApplication)
  */
-@KtorDsl
 public fun testApplication(block: suspend ApplicationTestBuilder.() -> Unit): TestResult {
     return testApplication(EmptyCoroutineContext, block)
 }
@@ -506,7 +500,6 @@ public fun testApplication(block: suspend ApplicationTestBuilder.() -> Unit): Te
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.testApplication)
  */
-@KtorDsl
 public fun testApplication(
     parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
     block: suspend ApplicationTestBuilder.() -> Unit
@@ -516,7 +509,6 @@ public fun testApplication(
 
 // allows running multiple servers during one test
 // not really needed outside ktor probably
-@KtorDsl
 public suspend fun runTestApplication(
     parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
     block: suspend ApplicationTestBuilder.() -> Unit
