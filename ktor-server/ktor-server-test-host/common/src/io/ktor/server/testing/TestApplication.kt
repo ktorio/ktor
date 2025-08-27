@@ -203,8 +203,8 @@ public open class TestApplicationBuilder {
             }
         }
         serverConfig(environment) {
-            applicationModules.forEach { module(it) }
-            parentCoroutineContext += job
+            this@TestApplicationBuilder.applicationModules.forEach { module(it) }
+            parentCoroutineContext += this@TestApplicationBuilder.job
             watchPaths = emptyList()
             developmentMode = true
             this@TestApplicationBuilder.applicationProperties(this)
@@ -256,7 +256,6 @@ public open class TestApplicationBuilder {
      *
      * @see [testApplication]
      */
-    @KtorDsl
     public fun serverConfig(block: ServerConfigBuilder.() -> Unit) {
         checkNotBuilt()
         val oldBuilder = applicationProperties
@@ -315,10 +314,9 @@ public open class TestApplicationBuilder {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationBuilder.install)
      */
     @Suppress("UNCHECKED_CAST")
-    @KtorDsl
     public fun <P : Pipeline<*, PipelineCall>, B : Any, F : Any> install(
         plugin: Plugin<P, B, F>,
-        configure: B.() -> Unit = {}
+        configure: @KtorDsl B.() -> Unit = {}
     ) {
         checkNotBuilt()
         applicationModules.add { install(plugin as Plugin<ApplicationCallPipeline, B, F>, configure) }
@@ -346,10 +344,9 @@ public open class TestApplicationBuilder {
      *
      * @param configPaths Optional paths to configuration files.
      */
-    @KtorDsl
     public fun configure(
         vararg configPaths: String,
-        overrides: (MutableMap<String, String>.() -> Unit)? = null
+        overrides: (@KtorDsl MutableMap<String, String>.() -> Unit)? = null
     ) {
         checkNotBuilt()
         environment {
