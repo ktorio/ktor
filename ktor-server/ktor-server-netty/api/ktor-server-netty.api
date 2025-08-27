@@ -83,6 +83,7 @@ public final class io/ktor/server/netty/NettyApplicationEngine$Configuration : i
 	public fun <init> ()V
 	public final fun getChannelPipelineConfig ()Lkotlin/jvm/functions/Function1;
 	public final fun getConfigureBootstrap ()Lkotlin/jvm/functions/Function1;
+	public final fun getEnableH2c ()Z
 	public final fun getEnableHttp2 ()Z
 	public final fun getHttpServerCodec ()Lkotlin/jvm/functions/Function0;
 	public final fun getMaxChunkSize ()I
@@ -95,6 +96,7 @@ public final class io/ktor/server/netty/NettyApplicationEngine$Configuration : i
 	public final fun getTcpKeepAlive ()Z
 	public final fun setChannelPipelineConfig (Lkotlin/jvm/functions/Function1;)V
 	public final fun setConfigureBootstrap (Lkotlin/jvm/functions/Function1;)V
+	public final fun setEnableH2c (Z)V
 	public final fun setEnableHttp2 (Z)V
 	public final fun setHttpServerCodec (Lkotlin/jvm/functions/Function0;)V
 	public final fun setMaxChunkSize (I)V
@@ -158,7 +160,7 @@ public final class io/ktor/server/netty/NettyApplicationResponse$Companion {
 
 public final class io/ktor/server/netty/NettyChannelInitializer : io/netty/channel/ChannelInitializer {
 	public static final field Companion Lio/ktor/server/netty/NettyChannelInitializer$Companion;
-	public fun <init> (Lkotlin/jvm/functions/Function0;Lio/ktor/server/engine/EnginePipeline;Lio/ktor/server/application/ApplicationEnvironment;Lio/netty/util/concurrent/EventExecutorGroup;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/engine/EngineConnectorConfig;IIILkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Z)V
+	public fun <init> (Lkotlin/jvm/functions/Function0;Lio/ktor/server/engine/EnginePipeline;Lio/ktor/server/application/ApplicationEnvironment;Lio/netty/util/concurrent/EventExecutorGroup;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/engine/EngineConnectorConfig;IIILkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;ZZ)V
 	public synthetic fun initChannel (Lio/netty/channel/Channel;)V
 }
 
