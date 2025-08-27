@@ -1695,6 +1695,8 @@ final val io.ktor.server.routing/RoutingFailureStatusCode // io.ktor.server.rout
     final fun <get-RoutingFailureStatusCode>(): io.ktor.util/AttributeKey<io.ktor.http/HttpStatusCode> // io.ktor.server.routing/RoutingFailureStatusCode.<get-RoutingFailureStatusCode>|<get-RoutingFailureStatusCode>(){}[0]
 final val io.ktor.server.routing/application // io.ktor.server.routing/application|@io.ktor.server.routing.Route{}application[0]
     final fun (io.ktor.server.routing/Route).<get-application>(): io.ktor.server.application/Application // io.ktor.server.routing/application.<get-application>|<get-application>@io.ktor.server.routing.Route(){}[0]
+final val io.ktor.server.routing/application // io.ktor.server.routing/application|@io.ktor.server.routing.RoutingContext{}application[0]
+    final fun (io.ktor.server.routing/RoutingContext).<get-application>(): io.ktor.server.application/Application // io.ktor.server.routing/application.<get-application>|<get-application>@io.ktor.server.routing.RoutingContext(){}[0]
 final val io.ktor.server.routing/path // io.ktor.server.routing/path|@io.ktor.server.routing.RoutingNode{}path[0]
     final fun (io.ktor.server.routing/RoutingNode).<get-path>(): kotlin/String // io.ktor.server.routing/path.<get-path>|<get-path>@io.ktor.server.routing.RoutingNode(){}[0]
 final val io.ktor.server.routing/routingRoot // io.ktor.server.routing/routingRoot|@io.ktor.server.application.Application{}routingRoot[0]

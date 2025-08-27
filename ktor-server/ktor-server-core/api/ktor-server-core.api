@@ -1756,6 +1756,7 @@ public class io/ktor/server/routing/RoutingNode : io/ktor/server/application/App
 
 public final class io/ktor/server/routing/RoutingNodeKt {
 	public static final fun getAllRoutes (Lio/ktor/server/routing/RoutingNode;)Ljava/util/List;
+	public static final fun getApplication (Lio/ktor/server/routing/RoutingContext;)Lio/ktor/server/application/Application;
 	public static final fun getPath (Lio/ktor/server/routing/RoutingNode;)Ljava/lang/String;
 	public static final fun insertPhaseAfter (Lio/ktor/server/routing/Route;Lio/ktor/util/pipeline/PipelinePhase;Lio/ktor/util/pipeline/PipelinePhase;)V
 	public static final fun insertPhaseBefore (Lio/ktor/server/routing/Route;Lio/ktor/util/pipeline/PipelinePhase;Lio/ktor/util/pipeline/PipelinePhase;)V
