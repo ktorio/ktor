@@ -23,11 +23,7 @@ public val Route.hx: HxRoute get() = HxRoute.wrap(this)
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.htmx.hx)
  */
 @ExperimentalKtorApi
-public fun Route.hx(configuration: HxRoute.() -> Unit): Route = with(HxRoute.wrap(this)) {
-    header(HxRequestHeaders.Request, "true") {
-        configuration()
-    }
-}
+public fun Route.hx(configuration: HxRoute.() -> Unit): Route = hx.apply(configuration)
 
 /**
  * Provides custom routes based on common HTMX headers.
@@ -35,7 +31,6 @@ public fun Route.hx(configuration: HxRoute.() -> Unit): Route = with(HxRoute.wra
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.htmx.HxRoute)
  */
 @ExperimentalKtorApi
-@KtorDsl
 @JvmInline
 public value class HxRoute internal constructor(private val route: Route) : Route by route {
     internal companion object {
