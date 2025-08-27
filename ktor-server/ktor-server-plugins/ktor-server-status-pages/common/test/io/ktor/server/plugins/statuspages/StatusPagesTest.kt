@@ -293,10 +293,10 @@ class StatusPagesTest {
 
             routing {
                 get("/fail") {
-                    async { throw AsyncFailedException() }.await()
+                    call.async { throw AsyncFailedException() }.await()
                 }
                 get("/cancel") {
-                    val j = launch {
+                    val j = call.launch {
                         delay(1000000L)
                     }
                     j.cancel()
