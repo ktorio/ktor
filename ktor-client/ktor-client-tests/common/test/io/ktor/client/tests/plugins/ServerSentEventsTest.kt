@@ -763,4 +763,195 @@ class ServerSentEventsTest : ClientLoader() {
             }
         }
     }
+
+    @Test
+    fun `test response body with BodyPolicy-All`() = clientTests(except("OkHttp")) {
+        config {
+            install(SSE) {
+                bodySnapshotPolicy = BodySnapshotPolicy.All
+            }
+        }
+
+        val expected = listOf(
+            "event: hello 0",
+            "data: hello",
+            "data: from server",
+            "id: 0",
+            ""
+        ).joinToString("\r\n")
+
+        test { client ->
+            try {
+                client.sse("$TEST_SERVER/sse/hello") {
+                    incoming.collect { it }
+                    throw IllegalStateException("exception")
+                }
+            } catch (e: SSEClientException) {
+                checkBody(expected, e.response?.bodyAsText())
+            }
+        }
+    }
+
+    @Test
+    fun `test local BodyPolicy wins`() = clientTests(except("OkHttp")) {
+        config {
+            install(SSE) {
+                bodySnapshotPolicy = BodySnapshotPolicy.All
+            }
+        }
+
+        test { client ->
+            try {
+                client.sse(urlString = "$TEST_SERVER/sse/hello", bodySnapshotPolicy = BodySnapshotPolicy.Off) {
+                    incoming.collect { it }
+                    throw IllegalStateException("exception")
+                }
+            } catch (e: SSEClientException) {
+                assertTrue { e.response!!.bodyAsText().isEmpty() }
+            }
+        }
+    }
+
+    @Test
+    fun `test response body with BodyPolicy-LastLines`() = clientTests(except("OkHttp")) {
+        config {
+            install(SSE)
+        }
+
+        val expected = listOf(
+            "event: hello 0",
+            "data: hello",
+            "data: from server",
+            "id: 0",
+            ""
+        ).joinToString("\r\n")
+
+        val count = 3
+        test { client ->
+            try {
+                client.sse(
+                    urlString = "$TEST_SERVER/sse/hello",
+                    bodySnapshotPolicy = BodySnapshotPolicy.LastLines(count)
+                ) {
+                    incoming.collect { it }
+                    throw IllegalStateException("exception")
+                }
+            } catch (e: SSEClientException) {
+                checkBody(expected, e.response?.bodyAsText(), count)
+            }
+        }
+    }
+
+    @Test
+    fun `test response body with BodyPolicy-LastEvent`() = clientTests(except("OkHttp")) {
+        config {
+            install(SSE)
+        }
+
+        val expected = listOf(
+            "event: hello 99",
+            "data: hello",
+            "data: from server",
+            "id: 99",
+            ""
+        ).joinToString("\r\n")
+
+        test { client ->
+            try {
+                client.sse(
+                    urlString = "$TEST_SERVER/sse/hello?times=100",
+                    bodySnapshotPolicy = BodySnapshotPolicy.LastEvent
+                ) {
+                    incoming.collect { it }
+                    throw IllegalStateException("exception")
+                }
+            } catch (e: SSEClientException) {
+                checkBody(expected, e.response?.bodyAsText())
+            }
+        }
+    }
+
+    @Test
+    fun `test response body with BodyPolicy-LastEvents`() = clientTests(except("OkHttp")) {
+        config {
+            install(SSE)
+        }
+
+        test { client ->
+            try {
+                client.sse(
+                    urlString = "$TEST_SERVER/sse/hello?times=100",
+                    bodySnapshotPolicy = BodySnapshotPolicy.LastEvents(2)
+                ) {
+                    incoming.collect { it }
+                    throw IllegalStateException("exception")
+                }
+            } catch (e: SSEClientException) {
+                val expected = listOf(
+                    "event: hello 98",
+                    "data: hello",
+                    "data: from server",
+                    "id: 98",
+                    "",
+                    "event: hello 99",
+                    "data: hello",
+                    "data: from server",
+                    "id: 99",
+                    ""
+                ).joinToString("\r\n")
+                checkBody(expected, e.response?.bodyAsText())
+            }
+        }
+    }
+
+    @Test
+    fun `test body contains only proceeded data`() = clientTests(except("OkHttp")) {
+        config {
+            install(SSE)
+        }
+
+        test { client ->
+            try {
+                client.sse(urlString = "$TEST_SERVER/sse/hello", bodySnapshotPolicy = BodySnapshotPolicy.All) {
+                    throw IllegalStateException("exception")
+                }
+            } catch (e: SSEClientException) {
+                assertTrue { e.response!!.bodyAsText().isEmpty() }
+            }
+        }
+    }
+
+    @Test
+    fun `test full response body in exception on non-200 status`() = clientTests(except("OkHttp")) {
+        config {
+            install(SSE)
+        }
+
+        test { client ->
+            try {
+                client.sse(urlString = "$TEST_SERVER/sse/error", bodySnapshotPolicy = BodySnapshotPolicy.All) { }
+            } catch (e: SSEClientException) {
+                assertEquals("Expected status code 200 but was 500", e.message)
+                assertEquals(e.response!!.bodyAsText(), "Server error")
+            }
+        }
+    }
+
+    private fun checkBody(expected: String, actual: String?, count: Int? = null) {
+        assertNotNull(actual)
+        val expectedLines = expected.split("\r\n").let { lines ->
+            count?.let { lines.takeLast(count) } ?: lines
+        }
+        val actualLines = actual.split("\r\n").let { lines ->
+            count?.let { lines.takeLast(count) } ?: lines
+        }
+        assertEquals(
+            expectedLines.size,
+            actualLines.size,
+            "Number of lines differs, expected ${expectedLines.size}, actual ${actualLines.size}"
+        )
+        expectedLines.forEachIndexed { index, line ->
+            assertEquals(line, actualLines[index], "Line #$index differs")
+        }
+    }
 }

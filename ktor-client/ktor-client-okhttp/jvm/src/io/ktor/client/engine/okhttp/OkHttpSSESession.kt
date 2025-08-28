@@ -7,6 +7,7 @@ package io.ktor.client.engine.okhttp
 import io.ktor.client.plugins.sse.*
 import io.ktor.http.*
 import io.ktor.sse.*
+import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.onFailure
@@ -37,6 +38,9 @@ internal class OkHttpSSESession private constructor(
         engineRequest = engineRequest,
         coroutineContext = callContext + Job() + CoroutineName("OkHttpSSESession"),
     )
+
+    @InternalAPI
+    override fun bodySnapshot(): ByteArray = ByteArray(0)
 
     private val serverSentEventsSource = factory.newEventSource(engineRequest, this)
 

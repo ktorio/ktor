@@ -7,8 +7,9 @@ package io.ktor.client.plugins.sse
 import io.ktor.client.call.*
 import io.ktor.sse.*
 import io.ktor.util.reflect.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import io.ktor.utils.io.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
 
 /**
  * A session for handling Server-Sent Events (SSE) from a server.
@@ -28,12 +29,12 @@ import kotlinx.coroutines.flow.*
  * and [the SSE specification](https://html.spec.whatwg.org/multipage/server-sent-events.html).
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.SSESession)
-*/
+ */
 public interface SSESession : CoroutineScope {
     /**
      * An incoming Server-Sent Events (SSE) flow.
      *
-     * Each [ServerSentEvent] can contain following fields:
+     * Each [ServerSentEvent] can contain the following fields:
      * - [ServerSentEvent.data] data field of the event.
      * - [ServerSentEvent.event] string identifying the type of event.
      * - [ServerSentEvent.id] event ID.
@@ -43,6 +44,12 @@ public interface SSESession : CoroutineScope {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.SSESession.incoming)
      */
     public val incoming: Flow<ServerSentEvent>
+
+    /**
+     * Returns a diagnostic snapshot of the SSE stream that has already been consumed by this session up to the moment of the call.
+     */
+    @InternalAPI
+    public fun bodySnapshot(): ByteArray
 }
 
 /**
@@ -79,9 +86,9 @@ public interface SSESessionWithDeserialization : CoroutineScope {
     /**
      * An incoming Server-Sent Events (SSE) flow.
      *
-     * Each [TypedServerSentEvent] can contain following fields:
+     * Each [TypedServerSentEvent] can contain the following fields:
      * - [TypedServerSentEvent.data] data field of the event. It can be deserialized into an object
-     *   of desired type using the [deserialize] function
+     *   of a desired type using the [deserialize] function
      * - [TypedServerSentEvent.event] string identifying the type of event.
      * - [TypedServerSentEvent.id] event ID.
      * - [TypedServerSentEvent.retry] reconnection time, in milliseconds to wait before reconnecting.
@@ -97,6 +104,12 @@ public interface SSESessionWithDeserialization : CoroutineScope {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.SSESessionWithDeserialization.deserializer)
      */
     public val deserializer: (TypeInfo, String) -> Any?
+
+    /**
+     * Returns a diagnostic snapshot of the SSE stream that has already been consumed by this session up to the moment of the call.
+     */
+    @InternalAPI
+    public fun bodySnapshot(): ByteArray
 }
 
 /**

@@ -171,6 +171,9 @@ internal fun Application.serverSentEvents() {
                     call.respond(HttpStatusCode.NoContent)
                 }
             }
+            get("/error") {
+                call.respond(HttpStatusCode.InternalServerError, "Server error")
+            }
         }
     }
 }
