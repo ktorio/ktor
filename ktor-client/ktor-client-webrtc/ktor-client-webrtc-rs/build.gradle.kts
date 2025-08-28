@@ -46,6 +46,16 @@ kotlin {
             implementation(projects.ktorTestDispatcher)
         }
     }
+
+    val overrideKonanProperties = providers.environmentVariable("KTOR_OVERRIDE_KONAN_PROPERTIES").orNull
+
+    if (overrideKonanProperties != null && GobleyHost.Platform.Linux.isCurrent) {
+        linuxX64 {
+            compilerOptions {
+                freeCompilerArgs.addAll("-Xoverride-konan-properties=$overrideKonanProperties")
+            }
+        }
+    }
 }
 
 // disable cross-compilation
