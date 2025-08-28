@@ -16,7 +16,6 @@ import org.eclipse.jetty.util.ssl.SslContextFactory
 internal fun Server.initializeServer(
     configuration: JettyApplicationEngineBase.Configuration
 ) {
-    configuration.configureServer(this)
     configuration.connectors.map { ktorConnector ->
         val httpConfig = HttpConfiguration().apply {
             sendServerVersion = false
@@ -100,4 +99,6 @@ internal fun Server.initializeServer(
             idleTimeout = configuration.idleTimeout.inWholeMilliseconds
         }
     }.forEach { this.addConnector(it) }
+
+    configuration.configureServer(this)
 }

@@ -27,7 +27,8 @@ internal fun CoroutineScope.bodyReader(request: Request, log: Logger, idleTimeou
 
         var bytesRead = 0L
         while (true) {
-            when (val chunk = request.read()) {
+            val chunk = request.read()
+            when (chunk) {
                 // nothing available, wait for more content
                 null -> {
                     withTimeout(idleTimeout ?: Duration.INFINITE) {

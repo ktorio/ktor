@@ -62,6 +62,7 @@ public class JettyApplicationCall(
     @InternalAPI
     public inner class JettyApplicationRequest(request: Request) : BaseApplicationRequest(this) {
         internal var upgraded: Boolean = false
+
         private val requestBodyChannel: ByteReadChannel by lazy {
             if (upgraded) return@lazy ByteReadChannel.Empty
             call.bodyReader(request, call.application.log, idleTimeout).channel
@@ -115,7 +116,9 @@ public class JettyApplicationCall(
 
                 try {
                     if (!response.isCommitted) {
-                        response.write(true, emptyBuffer, Callback.NOOP)
+                        suspendCancellableCoroutine { continuation ->
+                            response.write(true, emptyBuffer, continuation.asCallback())
+                        }
                     }
                 } catch (cause: Throwable) {
                     throw ChannelWriteException(exception = cause)

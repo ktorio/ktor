@@ -661,7 +661,6 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
 
                     part.dispose()
                 }
-
                 call.respondText(response.toString())
             }
         }

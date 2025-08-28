@@ -24,6 +24,15 @@ public class JettyEngineConfig : HttpClientEngineConfig() {
     public var sslContextFactory: SslContextFactory.Client = SslContextFactory.Client()
 
     /**
+     * Binary-compatibility bridge for callers expecting the base-type setter.
+     */
+    public fun setSslContextFactory(factory: SslContextFactory) {
+        val client = factory as? SslContextFactory.Client
+            ?: error("Jetty client engine requires SslContextFactory.Client")
+        this.sslContextFactory = client
+    }
+
+    /**
      * Specifies the size of cache that keeps recently used [JettyHttp2Engine] instances.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.jetty.jakarta.JettyEngineConfig.clientCacheSize)
