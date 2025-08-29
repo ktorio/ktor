@@ -30,7 +30,7 @@ public class DefaultClientSSESession(
     private val showRetryEvents = content.showRetryEvents
     private val maxReconnectionAttempts = content.maxReconnectionAttempts
     private var needToReconnect = maxReconnectionAttempts > 0
-    private var bodyBuffer: BodyBuffer = content.sseBufferPolicy.toBodyBuffer()
+    private var bodyBuffer: BodyBuffer = content.bufferPolicy.toBodyBuffer()
 
     private val initialRequest = content.initialRequest
 

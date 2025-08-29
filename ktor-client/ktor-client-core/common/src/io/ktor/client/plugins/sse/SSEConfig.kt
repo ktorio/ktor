@@ -70,18 +70,17 @@ public class SSEConfig {
      *   thrown inside your `client.sse { ... }` block). It does not affect "handshake" failures
      *   (non-2xx status or non-`text/event-stream`); those are handled separately.
      * - The buffer reflects only what has already been consumed by the SSE parser at the moment of failure.
-     * - You can override the global policy per call via the `sseBufferPolicy` parameter of `client.sse(...)`.
+     * - You can override the global policy per call via the `bufferPolicy` parameter of `client.sse(...)`.
      *
      * Usage:
      * ```
      * install(SSE) {
-     *     sseBufferPolicy = SSEBufferPolicy.LastEvents(5)
+     *     bufferPolicy = SSEBufferPolicy.LastEvents(5)
      * }
      *
      * try {
      *     client.sse("https://example.com/sse") {
      *         incoming.collect { /* ... */ }
-     *         throw IllegalStateException("boom")
      *     }
      * } catch (e: SSEClientException) {
      *     val text = e.response?.bodyAsText() // contains the last 5 events received
@@ -89,7 +88,7 @@ public class SSEConfig {
      * }
      * ```
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.SSEConfig.sseBufferPolicy)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.SSEConfig.bufferPolicy)
      */
-    public var sseBufferPolicy: SSEBufferPolicy = SSEBufferPolicy.Off
+    public var bufferPolicy: SSEBufferPolicy = SSEBufferPolicy.Off
 }

@@ -768,7 +768,7 @@ class ServerSentEventsTest : ClientLoader() {
     fun `test response body with BufferPolicy-All`() = clientTests(except("OkHttp")) {
         config {
             install(SSE) {
-                sseBufferPolicy = SSEBufferPolicy.All
+                bufferPolicy = SSEBufferPolicy.All
             }
         }
 
@@ -796,13 +796,15 @@ class ServerSentEventsTest : ClientLoader() {
     fun `test local BufferPolicy wins`() = clientTests(except("OkHttp")) {
         config {
             install(SSE) {
-                sseBufferPolicy = SSEBufferPolicy.All
+                bufferPolicy = SSEBufferPolicy.All
             }
         }
 
         test { client ->
             try {
-                client.sse(urlString = "$TEST_SERVER/sse/hello", sseBufferPolicy = SSEBufferPolicy.Off) {
+                client.sse(urlString = "$TEST_SERVER/sse/hello", {
+                    bufferPolicy(SSEBufferPolicy.Off)
+                }) {
                     incoming.collect { it }
                     throw IllegalStateException("exception")
                 }
@@ -831,7 +833,9 @@ class ServerSentEventsTest : ClientLoader() {
             try {
                 client.sse(
                     urlString = "$TEST_SERVER/sse/hello",
-                    sseBufferPolicy = SSEBufferPolicy.LastLines(count)
+                    {
+                        bufferPolicy(SSEBufferPolicy.LastLines(count))
+                    }
                 ) {
                     incoming.collect { it }
                     throw IllegalStateException("exception")
@@ -860,7 +864,9 @@ class ServerSentEventsTest : ClientLoader() {
             try {
                 client.sse(
                     urlString = "$TEST_SERVER/sse/hello?times=100",
-                    sseBufferPolicy = SSEBufferPolicy.LastEvent
+                    {
+                        bufferPolicy(SSEBufferPolicy.LastEvent)
+                    }
                 ) {
                     incoming.collect { it }
                     throw IllegalStateException("exception")
@@ -881,7 +887,9 @@ class ServerSentEventsTest : ClientLoader() {
             try {
                 client.sse(
                     urlString = "$TEST_SERVER/sse/hello?times=100",
-                    sseBufferPolicy = SSEBufferPolicy.LastEvents(2)
+                    {
+                        bufferPolicy(SSEBufferPolicy.LastEvents(2))
+                    }
                 ) {
                     incoming.collect { it }
                     throw IllegalStateException("exception")
@@ -912,7 +920,9 @@ class ServerSentEventsTest : ClientLoader() {
 
         test { client ->
             try {
-                client.sse(urlString = "$TEST_SERVER/sse/hello", sseBufferPolicy = SSEBufferPolicy.All) {
+                client.sse(urlString = "$TEST_SERVER/sse/hello", {
+                    bufferPolicy(SSEBufferPolicy.All)
+                }) {
                     throw IllegalStateException("exception")
                 }
             } catch (e: SSEClientException) {
@@ -929,7 +939,7 @@ class ServerSentEventsTest : ClientLoader() {
 
         test { client ->
             try {
-                client.sse(urlString = "$TEST_SERVER/sse/error", sseBufferPolicy = SSEBufferPolicy.All) { }
+                client.sse(urlString = "$TEST_SERVER/sse/error", { bufferPolicy(SSEBufferPolicy.All) }) { }
             } catch (e: SSEClientException) {
                 assertEquals("Expected status code 200 but was 500", e.message)
                 assertEquals(e.response!!.bodyAsText(), "Server error")

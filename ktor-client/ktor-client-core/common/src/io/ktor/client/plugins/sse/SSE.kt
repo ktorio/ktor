@@ -87,7 +87,7 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
     val showCommentEvents = pluginConfig.showCommentEvents
     val showRetryEvents = pluginConfig.showRetryEvents
     val maxReconnectionAttempts = pluginConfig.maxReconnectionAttempts
-    val sseBufferPolicy = pluginConfig.sseBufferPolicy
+    val bufferPolicy = pluginConfig.bufferPolicy
 
     on(AfterRender) { request, content ->
         if (getAttributeValue(request, sseRequestAttr) != true) {
@@ -109,7 +109,7 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
             localShowCommentEvents ?: showCommentEvents,
             localShowRetryEvents ?: showRetryEvents,
             maxReconnectionAttempts,
-            localSseBufferPolicy ?: sseBufferPolicy,
+            localSseBufferPolicy ?: bufferPolicy,
             currentCoroutineContext(),
             request,
             content
