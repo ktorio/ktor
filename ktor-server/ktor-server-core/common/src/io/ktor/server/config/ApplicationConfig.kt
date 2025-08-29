@@ -153,7 +153,7 @@ public inline fun <reified E> Application.property(key: String): E =
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.propertyOrNull)
  */
 public inline fun <reified E> Application.propertyOrNull(key: String): E? =
-    environment.config.propertyOrNull(key)?.getAs()
+    environment.config.propertyOrNull(key)?.getAs<E>()
 
 /**
  * Converts the application config value to the given type parameter.
