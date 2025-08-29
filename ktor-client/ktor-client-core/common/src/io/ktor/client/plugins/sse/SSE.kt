@@ -5,7 +5,7 @@
 package io.ktor.client.plugins.sse
 
 import io.ktor.client.*
-import io.ktor.client.call.save
+import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.api.*
 import io.ktor.client.request.*
@@ -87,7 +87,7 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
     val showCommentEvents = pluginConfig.showCommentEvents
     val showRetryEvents = pluginConfig.showRetryEvents
     val maxReconnectionAttempts = pluginConfig.maxReconnectionAttempts
-    val bodyPolicy = pluginConfig.bodySnapshotPolicy
+    val sseBufferPolicy = pluginConfig.sseBufferPolicy
 
     on(AfterRender) { request, content ->
         if (getAttributeValue(request, sseRequestAttr) != true) {
@@ -99,7 +99,7 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
         val localReconnectionTime = getAttributeValue(request, reconnectionTimeAttr)
         val localShowCommentEvents = getAttributeValue(request, showCommentEventsAttr)
         val localShowRetryEvents = getAttributeValue(request, showRetryEventsAttr)
-        val localBodyPolicy = getAttributeValue(request, bodySnapshotPolicyAttr)
+        val localSseBufferPolicy = getAttributeValue(request, sseBufferPolicyAttr)
 
         request.attributes.put(ResponseAdapterAttributeKey, SSEClientResponseAdapter())
         request.attributes.put(SSEClientForReconnectionAttr, client)
@@ -109,7 +109,7 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
             localShowCommentEvents ?: showCommentEvents,
             localShowRetryEvents ?: showRetryEvents,
             maxReconnectionAttempts,
-            localBodyPolicy ?: bodyPolicy,
+            localSseBufferPolicy ?: sseBufferPolicy,
             currentCoroutineContext(),
             request,
             content
@@ -147,7 +147,8 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
                     override val deserializer: (TypeInfo, String) -> Any? = deserializer
 
                     override val coroutineContext: CoroutineContext = session.coroutineContext
-                    override fun bodySnapshot(): ByteArray = session.bodySnapshot()
+
+                    override fun bodyBuffer(): ByteArray = session.bodyBuffer()
                 }
             )
         } ?: ClientSSESession(context, session)
@@ -212,6 +213,6 @@ internal suspend fun checkResponse(response: HttpResponse) {
 
 internal suspend fun HttpResponse.saved(): HttpResponse {
     val savedCall = call.save()
-    savedCall.attributes.remove(sseRequestAttr)
+    savedCall.request.attributes.remove(sseRequestAttr)
     return savedCall.response
 }

@@ -24,7 +24,7 @@ internal val reconnectionTimeAttr = AttributeKey<Duration>("SSEReconnectionTime"
 internal val showCommentEventsAttr = AttributeKey<Boolean>("SSEShowCommentEvents")
 internal val showRetryEventsAttr = AttributeKey<Boolean>("SSEShowRetryEvents")
 internal val deserializerAttr = AttributeKey<(TypeInfo, String) -> Any?>("SSEDeserializer")
-internal val bodySnapshotPolicyAttr = AttributeKey<BodySnapshotPolicy>("BodyPolicy")
+internal val sseBufferPolicyAttr = AttributeKey<SSEBufferPolicy>("sseBufferPolicy")
 
 /**
  * Installs the [SSE] plugin using the [config] as configuration.
@@ -35,7 +35,7 @@ internal val bodySnapshotPolicyAttr = AttributeKey<BodySnapshotPolicy>("BodyPoli
  *     SSE {
  *         showCommentEvents()
  *         showRetryEvents()
- *         bodyPolicy = BodyPolicy.LastEvents(10)
+ *         sseBufferPolicy = SSEBufferPolicy.LastEvent
  *     }
  * }
  * ```
@@ -60,7 +60,7 @@ public fun HttpClientConfig<*>.SSE(config: SSEConfig.() -> Unit) {
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param bodySnapshotPolicy Controls how the plugin captures a diagnostic snapshot of the SSE stream that has already been processed
+ * @param sseBufferPolicy Controls how the plugin buffers already-processed SSE stream data for diagnostics.
  *
  * Example of usage:
  * ```kotlin
@@ -78,9 +78,9 @@ public suspend fun HttpClient.serverSentEventsSession(
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
-    bodySnapshotPolicy: BodySnapshotPolicy? = null,
+    sseBufferPolicy: SSEBufferPolicy? = null,
     block: HttpRequestBuilder.() -> Unit
-): ClientSSESession = processSession(reconnectionTime, showCommentEvents, showRetryEvents, bodySnapshotPolicy, block) {}
+): ClientSSESession = processSession(reconnectionTime, showCommentEvents, showRetryEvents, sseBufferPolicy, block) {}
 
 /**
  * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server.
@@ -91,7 +91,7 @@ public suspend fun HttpClient.serverSentEventsSession(
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param bodySnapshotPolicy Controls how the plugin captures a diagnostic snapshot of the SSE stream that has already been processed
+ * @param sseBufferPolicy Controls how the plugin buffers already-processed SSE stream data for diagnostics.
  *
  * Example of usage:
  * ```kotlin
@@ -113,13 +113,13 @@ public suspend fun HttpClient.serverSentEventsSession(
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
-    bodySnapshotPolicy: BodySnapshotPolicy? = null,
+    sseBufferPolicy: SSEBufferPolicy? = null,
     block: HttpRequestBuilder.() -> Unit = {}
 ): ClientSSESession = serverSentEventsSession(
     reconnectionTime,
     showCommentEvents,
     showRetryEvents,
-    bodySnapshotPolicy
+    sseBufferPolicy
 ) {
     url(scheme, host, port, path)
     block()
@@ -134,7 +134,7 @@ public suspend fun HttpClient.serverSentEventsSession(
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param bodySnapshotPolicy Controls how the plugin captures a diagnostic snapshot of the SSE stream that has already been processed
+ * @param sseBufferPolicy Controls how the plugin buffers already-processed SSE stream data for diagnostics.
  *
  * Example of usage:
  * ```kotlin
@@ -153,13 +153,13 @@ public suspend fun HttpClient.serverSentEventsSession(
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
-    bodySnapshotPolicy: BodySnapshotPolicy? = null,
+    sseBufferPolicy: SSEBufferPolicy? = null,
     block: HttpRequestBuilder.() -> Unit = {}
 ): ClientSSESession = serverSentEventsSession(
     reconnectionTime,
     showCommentEvents,
     showRetryEvents,
-    bodySnapshotPolicy
+    sseBufferPolicy
 ) {
     url.takeFrom(urlString)
     block()
@@ -174,7 +174,7 @@ public suspend fun HttpClient.serverSentEventsSession(
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param bodySnapshotPolicy Controls how the plugin captures a diagnostic snapshot of the SSE stream that has already been processed
+ * @param sseBufferPolicy Controls how the plugin buffers already-processed SSE stream data for diagnostics.
  *
  * Example of usage:
  * ```kotlin
@@ -193,17 +193,17 @@ public suspend fun HttpClient.serverSentEvents(
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
-    bodySnapshotPolicy: BodySnapshotPolicy? = null,
+    sseBufferPolicy: SSEBufferPolicy? = null,
     block: suspend ClientSSESession.() -> Unit
 ) {
     val session =
-        serverSentEventsSession(reconnectionTime, showCommentEvents, showRetryEvents, bodySnapshotPolicy, request)
+        serverSentEventsSession(reconnectionTime, showCommentEvents, showRetryEvents, sseBufferPolicy, request)
     try {
         block(session)
     } catch (cause: CancellationException) {
         throw cause
     } catch (cause: Throwable) {
-        throw mapToSSEException(session.call, session.bodySnapshot(), cause)
+        throw mapToSSEException(session.call, session.bodyBuffer(), cause)
     } finally {
         session.cancel()
     }
@@ -218,7 +218,7 @@ public suspend fun HttpClient.serverSentEvents(
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param bodySnapshotPolicy Controls how the plugin captures a diagnostic snapshot of the SSE stream that has already been processed
+ * @param sseBufferPolicy Controls how the plugin buffers already-processed SSE stream data for diagnostics.
  *
  * Example of usage:
  * ```kotlin
@@ -239,7 +239,7 @@ public suspend fun HttpClient.serverSentEvents(
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
-    bodySnapshotPolicy: BodySnapshotPolicy? = null,
+    sseBufferPolicy: SSEBufferPolicy? = null,
     request: HttpRequestBuilder.() -> Unit = {},
     block: suspend ClientSSESession.() -> Unit
 ) {
@@ -251,7 +251,7 @@ public suspend fun HttpClient.serverSentEvents(
         reconnectionTime,
         showCommentEvents,
         showRetryEvents,
-        bodySnapshotPolicy,
+        sseBufferPolicy,
         block
     )
 }
@@ -265,7 +265,7 @@ public suspend fun HttpClient.serverSentEvents(
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param bodySnapshotPolicy Controls how the plugin captures a diagnostic snapshot of the SSE stream that has already been processed
+ * @param sseBufferPolicy Controls how the plugin buffers already-processed SSE stream data for diagnostics.
  *
  * Example of usage:
  * ```kotlin
@@ -283,7 +283,7 @@ public suspend fun HttpClient.serverSentEvents(
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
-    bodySnapshotPolicy: BodySnapshotPolicy? = null,
+    sseBufferPolicy: SSEBufferPolicy? = null,
     request: HttpRequestBuilder.() -> Unit = {},
     block: suspend ClientSSESession.() -> Unit
 ) {
@@ -295,7 +295,7 @@ public suspend fun HttpClient.serverSentEvents(
         reconnectionTime,
         showCommentEvents,
         showRetryEvents,
-        bodySnapshotPolicy,
+        sseBufferPolicy,
         block
     )
 }
@@ -309,7 +309,7 @@ public suspend fun HttpClient.serverSentEvents(
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param bodySnapshotPolicy Controls how the plugin captures a diagnostic snapshot of the SSE stream that has already been processed
+ * @param sseBufferPolicy Controls how the plugin buffers already-processed SSE stream data for diagnostics.
  *
  * Example of usage:
  * ```kotlin
@@ -327,13 +327,13 @@ public suspend fun HttpClient.sseSession(
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
-    bodySnapshotPolicy: BodySnapshotPolicy? = null,
+    sseBufferPolicy: SSEBufferPolicy? = null,
     block: HttpRequestBuilder.() -> Unit
 ): ClientSSESession = serverSentEventsSession(
     reconnectionTime,
     showCommentEvents,
     showRetryEvents,
-    bodySnapshotPolicy,
+    sseBufferPolicy,
     block
 )
 
@@ -346,7 +346,7 @@ public suspend fun HttpClient.sseSession(
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param bodySnapshotPolicy Controls how the plugin captures a diagnostic snapshot of the SSE stream that has already been processed
+ * @param sseBufferPolicy Controls how the plugin buffers already-processed SSE stream data for diagnostics.
  *
  * Example of usage:
  * ```kotlin
@@ -368,7 +368,7 @@ public suspend fun HttpClient.sseSession(
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
-    bodySnapshotPolicy: BodySnapshotPolicy? = null,
+    sseBufferPolicy: SSEBufferPolicy? = null,
     block: HttpRequestBuilder.() -> Unit = {}
 ): ClientSSESession =
     serverSentEventsSession(
@@ -379,7 +379,7 @@ public suspend fun HttpClient.sseSession(
         reconnectionTime,
         showCommentEvents,
         showRetryEvents,
-        bodySnapshotPolicy,
+        sseBufferPolicy,
         block
     )
 
@@ -392,7 +392,7 @@ public suspend fun HttpClient.sseSession(
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param bodySnapshotPolicy Controls how the plugin captures a diagnostic snapshot of the SSE stream that has already been processed
+ * @param sseBufferPolicy Controls how the plugin buffers already-processed SSE stream data for diagnostics.
  *
  * Example of usage:
  * ```kotlin
@@ -411,10 +411,10 @@ public suspend fun HttpClient.sseSession(
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
-    bodySnapshotPolicy: BodySnapshotPolicy? = null,
+    sseBufferPolicy: SSEBufferPolicy? = null,
     block: HttpRequestBuilder.() -> Unit = {}
 ): ClientSSESession =
-    serverSentEventsSession(urlString, reconnectionTime, showCommentEvents, showRetryEvents, bodySnapshotPolicy, block)
+    serverSentEventsSession(urlString, reconnectionTime, showCommentEvents, showRetryEvents, sseBufferPolicy, block)
 
 /**
  * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server and performs [block].
@@ -425,7 +425,7 @@ public suspend fun HttpClient.sseSession(
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param bodySnapshotPolicy Controls how the plugin captures a diagnostic snapshot of the SSE stream that has already been processed
+ * @param sseBufferPolicy Controls how the plugin buffers already-processed SSE stream data for diagnostics.
  *
  * Example of usage:
  * ```kotlin
@@ -443,9 +443,9 @@ public suspend fun HttpClient.sse(
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
-    bodySnapshotPolicy: BodySnapshotPolicy? = null,
+    sseBufferPolicy: SSEBufferPolicy? = null,
     block: suspend ClientSSESession.() -> Unit
-): Unit = serverSentEvents(request, reconnectionTime, showCommentEvents, showRetryEvents, bodySnapshotPolicy, block)
+): Unit = serverSentEvents(request, reconnectionTime, showCommentEvents, showRetryEvents, sseBufferPolicy, block)
 
 /**
  * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server and performs [block].
@@ -456,7 +456,7 @@ public suspend fun HttpClient.sse(
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param bodySnapshotPolicy Controls how the plugin captures a diagnostic snapshot of the SSE stream that has already been processed
+ * @param sseBufferPolicy Controls how the plugin buffers already-processed SSE stream data for diagnostics.
  *
  * Example of usage:
  * ```kotlin
@@ -478,7 +478,7 @@ public suspend fun HttpClient.sse(
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
-    bodySnapshotPolicy: BodySnapshotPolicy? = null,
+    sseBufferPolicy: SSEBufferPolicy? = null,
     block: suspend ClientSSESession.() -> Unit
 ): Unit =
     serverSentEvents(
@@ -489,7 +489,7 @@ public suspend fun HttpClient.sse(
         reconnectionTime,
         showCommentEvents,
         showRetryEvents,
-        bodySnapshotPolicy,
+        sseBufferPolicy,
         request,
         block
     )
@@ -503,7 +503,7 @@ public suspend fun HttpClient.sse(
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param bodySnapshotPolicy Controls how the plugin captures a diagnostic snapshot of the SSE stream that has already been processed
+ * @param sseBufferPolicy Controls how the plugin buffers already-processed SSE stream data for diagnostics.
  *
  * Example of usage:
  * ```kotlin
@@ -522,14 +522,14 @@ public suspend fun HttpClient.sse(
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
-    bodySnapshotPolicy: BodySnapshotPolicy? = null,
+    sseBufferPolicy: SSEBufferPolicy? = null,
     block: suspend ClientSSESession.() -> Unit
 ): Unit = serverSentEvents(
     urlString,
     reconnectionTime,
     showCommentEvents,
     showRetryEvents,
-    bodySnapshotPolicy,
+    sseBufferPolicy,
     request,
     block
 )
@@ -548,7 +548,7 @@ public suspend fun HttpClient.sse(
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param bodySnapshotPolicy Controls how the plugin captures a diagnostic snapshot of the SSE stream that has already been processed
+ * @param sseBufferPolicy Controls how the plugin buffers already-processed SSE stream data for diagnostics.
  *
  * Example of usage:
  * ```kotlin
@@ -577,10 +577,10 @@ public suspend fun HttpClient.serverSentEventsSession(
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
-    bodySnapshotPolicy: BodySnapshotPolicy? = null,
+    sseBufferPolicy: SSEBufferPolicy? = null,
     block: HttpRequestBuilder.() -> Unit
 ): ClientSSESessionWithDeserialization =
-    processSession(reconnectionTime, showCommentEvents, showRetryEvents, bodySnapshotPolicy, block) {
+    processSession(reconnectionTime, showCommentEvents, showRetryEvents, sseBufferPolicy, block) {
         addAttribute(
             deserializerAttr,
             deserialize
@@ -599,7 +599,7 @@ public suspend fun HttpClient.serverSentEventsSession(
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param bodySnapshotPolicy Controls how the plugin captures a diagnostic snapshot of the SSE stream that has already been processed
+ * @param sseBufferPolicy Controls how the plugin buffers already-processed SSE stream data for diagnostics.
  *
  * Example of usage:
  * ```kotlin
@@ -632,10 +632,10 @@ public suspend fun HttpClient.serverSentEventsSession(
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
-    bodySnapshotPolicy: BodySnapshotPolicy? = null,
+    sseBufferPolicy: SSEBufferPolicy? = null,
     block: HttpRequestBuilder.() -> Unit = {}
 ): ClientSSESessionWithDeserialization =
-    serverSentEventsSession(deserialize, reconnectionTime, showCommentEvents, showRetryEvents, bodySnapshotPolicy) {
+    serverSentEventsSession(deserialize, reconnectionTime, showCommentEvents, showRetryEvents, sseBufferPolicy) {
         url(scheme, host, port, path)
         block()
     }
@@ -652,7 +652,7 @@ public suspend fun HttpClient.serverSentEventsSession(
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param bodySnapshotPolicy Controls how the plugin captures a diagnostic snapshot of the SSE stream that has already been processed
+ * @param sseBufferPolicy Controls how the plugin buffers already-processed SSE stream data for diagnostics.
  *
  * Example of usage:
  * ```kotlin
@@ -682,10 +682,10 @@ public suspend fun HttpClient.serverSentEventsSession(
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
-    bodySnapshotPolicy: BodySnapshotPolicy? = null,
+    sseBufferPolicy: SSEBufferPolicy? = null,
     block: HttpRequestBuilder.() -> Unit = {}
 ): ClientSSESessionWithDeserialization =
-    serverSentEventsSession(deserialize, reconnectionTime, showCommentEvents, showRetryEvents, bodySnapshotPolicy) {
+    serverSentEventsSession(deserialize, reconnectionTime, showCommentEvents, showRetryEvents, sseBufferPolicy) {
         url.takeFrom(urlString)
         block()
     }
@@ -702,7 +702,7 @@ public suspend fun HttpClient.serverSentEventsSession(
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param bodySnapshotPolicy Controls how the plugin captures a diagnostic snapshot of the SSE stream that has already been processed
+ * @param sseBufferPolicy Controls how the plugin buffers already-processed SSE stream data for diagnostics.
  *
  * Example of usage:
  * ```kotlin
@@ -733,7 +733,7 @@ public suspend fun HttpClient.serverSentEvents(
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
-    bodySnapshotPolicy: BodySnapshotPolicy? = null,
+    sseBufferPolicy: SSEBufferPolicy? = null,
     block: suspend ClientSSESessionWithDeserialization.() -> Unit
 ) {
     val session =
@@ -742,7 +742,7 @@ public suspend fun HttpClient.serverSentEvents(
             reconnectionTime,
             showCommentEvents,
             showRetryEvents,
-            bodySnapshotPolicy,
+            sseBufferPolicy,
             request
         )
     try {
@@ -750,7 +750,7 @@ public suspend fun HttpClient.serverSentEvents(
     } catch (cause: CancellationException) {
         throw cause
     } catch (cause: Throwable) {
-        throw mapToSSEException(session.call, session.bodySnapshot(), cause)
+        throw mapToSSEException(session.call, session.bodyBuffer(), cause)
     } finally {
         session.cancel()
     }
@@ -768,7 +768,7 @@ public suspend fun HttpClient.serverSentEvents(
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param bodySnapshotPolicy Controls how the plugin captures a diagnostic snapshot of the SSE stream that has already been processed
+ * @param sseBufferPolicy Controls how the plugin buffers already-processed SSE stream data for diagnostics.
  *
  * Example of usage:
  * ```kotlin
@@ -801,7 +801,7 @@ public suspend fun HttpClient.serverSentEvents(
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
-    bodySnapshotPolicy: BodySnapshotPolicy? = null,
+    sseBufferPolicy: SSEBufferPolicy? = null,
     request: HttpRequestBuilder.() -> Unit = {},
     block: suspend ClientSSESessionWithDeserialization.() -> Unit
 ) {
@@ -814,7 +814,7 @@ public suspend fun HttpClient.serverSentEvents(
         reconnectionTime,
         showCommentEvents,
         showRetryEvents,
-        bodySnapshotPolicy,
+        sseBufferPolicy,
         block
     )
 }
@@ -831,7 +831,7 @@ public suspend fun HttpClient.serverSentEvents(
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param bodySnapshotPolicy Controls how the plugin captures a diagnostic snapshot of the SSE stream that has already been processed
+ * @param sseBufferPolicy Controls how the plugin buffers already-processed SSE stream data for diagnostics.
  *
  * Example of usage:
  * ```kotlin
@@ -861,7 +861,7 @@ public suspend fun HttpClient.serverSentEvents(
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
-    bodySnapshotPolicy: BodySnapshotPolicy? = null,
+    sseBufferPolicy: SSEBufferPolicy? = null,
     request: HttpRequestBuilder.() -> Unit = {},
     block: suspend ClientSSESessionWithDeserialization.() -> Unit
 ) {
@@ -874,7 +874,7 @@ public suspend fun HttpClient.serverSentEvents(
         reconnectionTime,
         showCommentEvents,
         showRetryEvents,
-        bodySnapshotPolicy,
+        sseBufferPolicy,
         block
     )
 }
@@ -891,7 +891,7 @@ public suspend fun HttpClient.serverSentEvents(
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param bodySnapshotPolicy Controls how the plugin captures a diagnostic snapshot of the SSE stream that has already been processed
+ * @param sseBufferPolicy Controls how the plugin buffers already-processed SSE stream data for diagnostics.
  *
  * Example of usage:
  * ```kotlin
@@ -920,7 +920,7 @@ public suspend fun HttpClient.sseSession(
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
-    bodySnapshotPolicy: BodySnapshotPolicy? = null,
+    sseBufferPolicy: SSEBufferPolicy? = null,
     block: HttpRequestBuilder.() -> Unit
 ): ClientSSESessionWithDeserialization =
     serverSentEventsSession(
@@ -928,7 +928,7 @@ public suspend fun HttpClient.sseSession(
         reconnectionTime,
         showCommentEvents,
         showRetryEvents,
-        bodySnapshotPolicy,
+        sseBufferPolicy,
         block
     )
 
@@ -944,7 +944,7 @@ public suspend fun HttpClient.sseSession(
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param bodySnapshotPolicy Controls how the plugin captures a diagnostic snapshot of the SSE stream that has already been processed
+ * @param sseBufferPolicy Controls how the plugin buffers already-processed SSE stream data for diagnostics.
  *
  * Example of usage:
  * ```kotlin
@@ -977,7 +977,7 @@ public suspend fun HttpClient.sseSession(
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
-    bodySnapshotPolicy: BodySnapshotPolicy? = null,
+    sseBufferPolicy: SSEBufferPolicy? = null,
     block: HttpRequestBuilder.() -> Unit = {}
 ): ClientSSESessionWithDeserialization = serverSentEventsSession(
     scheme,
@@ -988,7 +988,7 @@ public suspend fun HttpClient.sseSession(
     reconnectionTime,
     showCommentEvents,
     showRetryEvents,
-    bodySnapshotPolicy,
+    sseBufferPolicy,
     block
 )
 
@@ -1004,7 +1004,7 @@ public suspend fun HttpClient.sseSession(
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param bodySnapshotPolicy Controls how the plugin captures a diagnostic snapshot of the SSE stream that has already been processed
+ * @param sseBufferPolicy Controls how the plugin buffers already-processed SSE stream data for diagnostics.
  *
  * Example of usage:
  * ```kotlin
@@ -1034,7 +1034,7 @@ public suspend fun HttpClient.sseSession(
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
-    bodySnapshotPolicy: BodySnapshotPolicy? = null,
+    sseBufferPolicy: SSEBufferPolicy? = null,
     block: HttpRequestBuilder.() -> Unit = {}
 ): ClientSSESessionWithDeserialization =
     serverSentEventsSession(
@@ -1043,7 +1043,7 @@ public suspend fun HttpClient.sseSession(
         reconnectionTime,
         showCommentEvents,
         showRetryEvents,
-        bodySnapshotPolicy,
+        sseBufferPolicy,
         block
     )
 
@@ -1059,7 +1059,7 @@ public suspend fun HttpClient.sseSession(
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param bodySnapshotPolicy Controls how the plugin captures a diagnostic snapshot of the SSE stream that has already been processed
+ * @param sseBufferPolicy Controls how the plugin buffers already-processed SSE stream data for diagnostics.
  *
  * Example of usage:
  * ```kotlin
@@ -1089,7 +1089,7 @@ public suspend fun HttpClient.sse(
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
-    bodySnapshotPolicy: BodySnapshotPolicy? = null,
+    sseBufferPolicy: SSEBufferPolicy? = null,
     block: suspend ClientSSESessionWithDeserialization.() -> Unit
 ): Unit =
     serverSentEvents(
@@ -1098,7 +1098,7 @@ public suspend fun HttpClient.sse(
         reconnectionTime,
         showCommentEvents,
         showRetryEvents,
-        bodySnapshotPolicy,
+        sseBufferPolicy,
         block
     )
 
@@ -1114,7 +1114,7 @@ public suspend fun HttpClient.sse(
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param bodySnapshotPolicy Controls how the plugin captures a diagnostic snapshot of the SSE stream that has already been processed
+ * @param sseBufferPolicy Controls how the plugin buffers already-processed SSE stream data for diagnostics.
  *
  * Example of usage:
  * ```kotlin
@@ -1148,7 +1148,7 @@ public suspend fun HttpClient.sse(
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
-    bodySnapshotPolicy: BodySnapshotPolicy? = null,
+    sseBufferPolicy: SSEBufferPolicy? = null,
     block: suspend ClientSSESessionWithDeserialization.() -> Unit
 ): Unit = serverSentEvents(
     scheme,
@@ -1159,7 +1159,7 @@ public suspend fun HttpClient.sse(
     reconnectionTime,
     showCommentEvents,
     showRetryEvents,
-    bodySnapshotPolicy,
+    sseBufferPolicy,
     request,
     block
 )
@@ -1176,7 +1176,7 @@ public suspend fun HttpClient.sse(
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param bodySnapshotPolicy Controls how the plugin captures a diagnostic snapshot of the SSE stream that has already been processed
+ * @param sseBufferPolicy Controls how the plugin buffers already-processed SSE stream data for diagnostics.
  *
  * Example of usage:
  * ```kotlin
@@ -1207,7 +1207,7 @@ public suspend fun HttpClient.sse(
     reconnectionTime: Duration? = null,
     showCommentEvents: Boolean? = null,
     showRetryEvents: Boolean? = null,
-    bodySnapshotPolicy: BodySnapshotPolicy? = null,
+    sseBufferPolicy: SSEBufferPolicy? = null,
     block: suspend ClientSSESessionWithDeserialization.() -> Unit
 ): Unit = serverSentEvents(
     urlString,
@@ -1215,7 +1215,7 @@ public suspend fun HttpClient.sse(
     reconnectionTime,
     showCommentEvents,
     showRetryEvents,
-    bodySnapshotPolicy,
+    sseBufferPolicy,
     request,
     block
 )
@@ -1224,7 +1224,7 @@ private suspend inline fun <reified T> HttpClient.processSession(
     reconnectionTime: Duration?,
     showCommentEvents: Boolean?,
     showRetryEvents: Boolean?,
-    bodySnapshotPolicy: BodySnapshotPolicy?,
+    sseBufferPolicy: SSEBufferPolicy?,
     block: HttpRequestBuilder.() -> Unit,
     additionalAttributes: HttpRequestBuilder.() -> Unit
 ): T {
@@ -1237,7 +1237,7 @@ private suspend inline fun <reified T> HttpClient.processSession(
         addAttribute(reconnectionTimeAttr, reconnectionTime)
         addAttribute(showCommentEventsAttr, showCommentEvents)
         addAttribute(showRetryEventsAttr, showRetryEvents)
-        addAttribute(bodySnapshotPolicyAttr, bodySnapshotPolicy)
+        addAttribute(sseBufferPolicyAttr, sseBufferPolicy)
         additionalAttributes()
     }
     @Suppress("SuspendFunctionOnCoroutineScope")

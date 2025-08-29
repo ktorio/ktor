@@ -40,7 +40,7 @@ internal class OkHttpSSESession private constructor(
     )
 
     @InternalAPI
-    override fun bodySnapshot(): ByteArray = ByteArray(0)
+    override fun bodyBuffer(): ByteArray = ByteArray(0)
 
     private val serverSentEventsSource = factory.newEventSource(engineRequest, this)
 

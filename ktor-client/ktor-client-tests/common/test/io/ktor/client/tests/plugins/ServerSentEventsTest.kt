@@ -765,10 +765,10 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun `test response body with BodyPolicy-All`() = clientTests(except("OkHttp")) {
+    fun `test response body with BufferPolicy-All`() = clientTests(except("OkHttp")) {
         config {
             install(SSE) {
-                bodySnapshotPolicy = BodySnapshotPolicy.All
+                sseBufferPolicy = SSEBufferPolicy.All
             }
         }
 
@@ -793,16 +793,16 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun `test local BodyPolicy wins`() = clientTests(except("OkHttp")) {
+    fun `test local BufferPolicy wins`() = clientTests(except("OkHttp")) {
         config {
             install(SSE) {
-                bodySnapshotPolicy = BodySnapshotPolicy.All
+                sseBufferPolicy = SSEBufferPolicy.All
             }
         }
 
         test { client ->
             try {
-                client.sse(urlString = "$TEST_SERVER/sse/hello", bodySnapshotPolicy = BodySnapshotPolicy.Off) {
+                client.sse(urlString = "$TEST_SERVER/sse/hello", sseBufferPolicy = SSEBufferPolicy.Off) {
                     incoming.collect { it }
                     throw IllegalStateException("exception")
                 }
@@ -813,7 +813,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun `test response body with BodyPolicy-LastLines`() = clientTests(except("OkHttp")) {
+    fun `test response body with BufferPolicy-LastLines`() = clientTests(except("OkHttp")) {
         config {
             install(SSE)
         }
@@ -831,7 +831,7 @@ class ServerSentEventsTest : ClientLoader() {
             try {
                 client.sse(
                     urlString = "$TEST_SERVER/sse/hello",
-                    bodySnapshotPolicy = BodySnapshotPolicy.LastLines(count)
+                    sseBufferPolicy = SSEBufferPolicy.LastLines(count)
                 ) {
                     incoming.collect { it }
                     throw IllegalStateException("exception")
@@ -843,7 +843,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun `test response body with BodyPolicy-LastEvent`() = clientTests(except("OkHttp")) {
+    fun `test response body with BufferPolicy-LastEvent`() = clientTests(except("OkHttp")) {
         config {
             install(SSE)
         }
@@ -860,7 +860,7 @@ class ServerSentEventsTest : ClientLoader() {
             try {
                 client.sse(
                     urlString = "$TEST_SERVER/sse/hello?times=100",
-                    bodySnapshotPolicy = BodySnapshotPolicy.LastEvent
+                    sseBufferPolicy = SSEBufferPolicy.LastEvent
                 ) {
                     incoming.collect { it }
                     throw IllegalStateException("exception")
@@ -872,7 +872,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun `test response body with BodyPolicy-LastEvents`() = clientTests(except("OkHttp")) {
+    fun `test response body with BufferPolicy-LastEvents`() = clientTests(except("OkHttp")) {
         config {
             install(SSE)
         }
@@ -881,7 +881,7 @@ class ServerSentEventsTest : ClientLoader() {
             try {
                 client.sse(
                     urlString = "$TEST_SERVER/sse/hello?times=100",
-                    bodySnapshotPolicy = BodySnapshotPolicy.LastEvents(2)
+                    sseBufferPolicy = SSEBufferPolicy.LastEvents(2)
                 ) {
                     incoming.collect { it }
                     throw IllegalStateException("exception")
@@ -912,7 +912,7 @@ class ServerSentEventsTest : ClientLoader() {
 
         test { client ->
             try {
-                client.sse(urlString = "$TEST_SERVER/sse/hello", bodySnapshotPolicy = BodySnapshotPolicy.All) {
+                client.sse(urlString = "$TEST_SERVER/sse/hello", sseBufferPolicy = SSEBufferPolicy.All) {
                     throw IllegalStateException("exception")
                 }
             } catch (e: SSEClientException) {
@@ -929,7 +929,7 @@ class ServerSentEventsTest : ClientLoader() {
 
         test { client ->
             try {
-                client.sse(urlString = "$TEST_SERVER/sse/error", bodySnapshotPolicy = BodySnapshotPolicy.All) { }
+                client.sse(urlString = "$TEST_SERVER/sse/error", sseBufferPolicy = SSEBufferPolicy.All) { }
             } catch (e: SSEClientException) {
                 assertEquals("Expected status code 200 but was 500", e.message)
                 assertEquals(e.response!!.bodyAsText(), "Server error")

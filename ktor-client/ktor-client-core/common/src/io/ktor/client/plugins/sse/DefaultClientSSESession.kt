@@ -30,22 +30,13 @@ public class DefaultClientSSESession(
     private val showRetryEvents = content.showRetryEvents
     private val maxReconnectionAttempts = content.maxReconnectionAttempts
     private var needToReconnect = maxReconnectionAttempts > 0
-    private var bodySnapshot: BodySnapshot? = when (val policy = content.bodySnapshotPolicy) {
-        is BodySnapshotPolicy.Off -> null
-        is BodySnapshotPolicy.LastEvent -> EventsBodySnapshot(1)
-        is BodySnapshotPolicy.LastEvents -> EventsBodySnapshot(policy.count)
-        is BodySnapshotPolicy.LastLines -> LinesBodySnapshot(policy.count)
-        is BodySnapshotPolicy.All -> LinesBodySnapshot(Int.MAX_VALUE)
-        else -> {
-            throw IllegalStateException("Unexpected bodyPolicy: $policy")
-        }
-    }
+    private var bodyBuffer: BodyBuffer = content.sseBufferPolicy.toBodyBuffer()
 
     private val initialRequest = content.initialRequest
 
     private val clientForReconnection = initialRequest.attributes[SSEClientForReconnectionAttr]
 
-    override fun bodySnapshot(): ByteArray = bodySnapshot?.getSnapshot() ?: ByteArray(0)
+    override fun bodyBuffer(): ByteArray = bodyBuffer.toByteArray()
 
     public constructor(
         content: SSEClientContent,
@@ -62,7 +53,7 @@ public class DefaultClientSSESession(
                 if (event.isCommentsEvent() && !showCommentEvents) continue
                 if (event.isRetryEvent() && !showRetryEvents) continue
 
-                bodySnapshot?.appendEvent(event)
+                bodyBuffer.appendEvent(event)
                 emit(event)
             }
 
@@ -232,7 +223,7 @@ public class DefaultClientSSESession(
 
     private suspend fun ByteReadChannel.readUTF8LineWithSave(): String? {
         val line = readUTF8Line() ?: return null
-        bodySnapshot?.appendLine(line)
+        bodyBuffer.appendLine(line)
         return line
     }
 

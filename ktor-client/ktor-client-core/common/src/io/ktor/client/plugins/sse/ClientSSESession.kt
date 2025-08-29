@@ -46,10 +46,10 @@ public interface SSESession : CoroutineScope {
     public val incoming: Flow<ServerSentEvent>
 
     /**
-     * Returns a diagnostic snapshot of the SSE stream that has already been consumed by this session up to the moment of the call.
+     * Returns a diagnostic buffer of SSE data that has already been processed by this session.
      */
     @InternalAPI
-    public fun bodySnapshot(): ByteArray
+    public fun bodyBuffer(): ByteArray = EMPTY
 }
 
 /**
@@ -106,10 +106,10 @@ public interface SSESessionWithDeserialization : CoroutineScope {
     public val deserializer: (TypeInfo, String) -> Any?
 
     /**
-     * Returns a diagnostic snapshot of the SSE stream that has already been consumed by this session up to the moment of the call.
+     * Returns a diagnostic buffer of SSE data that has already been processed by this session.
      */
     @InternalAPI
-    public fun bodySnapshot(): ByteArray
+    public fun bodyBuffer(): ByteArray = EMPTY
 }
 
 /**
