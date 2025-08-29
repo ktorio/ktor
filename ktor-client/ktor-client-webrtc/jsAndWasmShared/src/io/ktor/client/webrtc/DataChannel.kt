@@ -63,7 +63,9 @@ public class JsWebRtcDataChannel(
         channel.bufferedAmountLowThreshold = threshold.toInt()
     }
 
-    override fun closeTransport(): Unit = channel.close()
+    override fun closeTransport() {
+        channel.close()
+    }
 
     internal fun setupEvents(eventsEmitter: WebRtcConnectionEventsEmitter) {
         channel.onopen = eventHandler(coroutineScope) {

@@ -474,7 +474,9 @@ public object WebRtc {
          * Automatically invokes `closeTransport`.
          * Accessing the channel after this operation could throw an exception.
          */
-        override fun close(): Unit = closeTransport()
+        override fun close() {
+            closeTransport()
+        }
     }
 
     /**
