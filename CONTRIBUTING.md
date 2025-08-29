@@ -92,6 +92,18 @@ To import into IntelliJ IDEA, just open up the `Ktor` project folder. IntelliJ I
 that it is a Gradle project and import it. It's important that you make sure that all building and test operations
 are delegated to Gradle under [Gradle Settings](https://www.jetbrains.com/help/idea/gradle-settings.html).
 
+#### Working with Rust-based Modules Locally
+
+The `ktor-client-webrtc-rs` module utilizes Rust components internally. To develop with this module in your local environment, you'll need to complete the following setup steps:
+
+**Prerequisites:**
+- Install Rust and Cargo on your system
+- Configure your build environment by adding `ktorbuild.rustCompilation=true` to your global `gradle.properties` file
+  > ⚠️ **Important:** This setting should remain local to your development environment—do not commit this change to version control
+
+**Additional Dependencies:**
+Depending on your target platforms, you may need to install additional dependencies for Rust cross-compilation. For comprehensive guidance on cross-compilation requirements and troubleshooting, refer to the [Gobley cross-compilation documentation](https://gobley.dev/docs/cross-compilation-tips).
+
 ### Pull Requests
 
 Contributions are made using Github [pull requests](https://help.github.com/en/articles/about-pull-requests):
