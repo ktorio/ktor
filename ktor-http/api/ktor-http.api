@@ -874,6 +874,7 @@ public final class io/ktor/http/ParametersSingleImpl : io/ktor/util/StringValues
 public final class io/ktor/http/QueryKt {
 	public static final fun parseQueryString (Ljava/lang/String;IIZ)Lio/ktor/http/Parameters;
 	public static synthetic fun parseQueryString$default (Ljava/lang/String;IIZILjava/lang/Object;)Lio/ktor/http/Parameters;
+	public static final fun withEmptyStringForValuelessKeys (Lio/ktor/http/Parameters;)Lio/ktor/http/Parameters;
 }
 
 public final class io/ktor/http/RangeUnits : java/lang/Enum {

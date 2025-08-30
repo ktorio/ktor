@@ -661,7 +661,6 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
 
                     part.dispose()
                 }
-
                 call.respondText(response.toString())
             }
         }
@@ -782,6 +781,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
         }
 
         withUrl("/?auto") {
+            assertEquals(200, status.value)
             assertEquals("", bodyAsText())
         }
     }

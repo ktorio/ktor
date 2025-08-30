@@ -5,8 +5,8 @@
 package io.ktor.client.engine.jetty.jakarta
 
 import io.ktor.client.engine.*
-import org.eclipse.jetty.http2.client.*
-import org.eclipse.jetty.util.ssl.*
+import org.eclipse.jetty.http2.client.HTTP2Client
+import org.eclipse.jetty.util.ssl.SslContextFactory
 
 /**
  * A configuration for the [Jetty] client engine.
@@ -21,7 +21,16 @@ public class JettyEngineConfig : HttpClientEngineConfig() {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.jetty.jakarta.JettyEngineConfig.sslContextFactory)
      */
-    public var sslContextFactory: SslContextFactory = SslContextFactory.Client()
+    public var sslContextFactory: SslContextFactory.Client = SslContextFactory.Client()
+
+    /**
+     * Binary-compatibility bridge for callers expecting the base-type setter.
+     */
+    public fun setSslContextFactory(factory: SslContextFactory) {
+        val client = factory as? SslContextFactory.Client
+            ?: error("Jetty client engine requires SslContextFactory.Client")
+        this.sslContextFactory = client
+    }
 
     /**
      * Specifies the size of cache that keeps recently used [JettyHttp2Engine] instances.

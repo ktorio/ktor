@@ -17,8 +17,7 @@ kotlin {
             api(projects.ktorClientCore)
 
             api(libs.jetty.http2.client.jakarta)
-            api(libs.jetty.alpn.openjdk8.client)
-            api(libs.jetty.alpn.java.client)
+            api(libs.jetty.alpn.java.client.jakarta)
         }
         commonTest.dependencies {
             api(projects.ktorClientTests)

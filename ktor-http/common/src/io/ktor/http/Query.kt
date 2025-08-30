@@ -94,3 +94,23 @@ private fun trimStart(start: Int, end: Int, query: CharSequence): Int {
     while (spaceIndex < end && query[spaceIndex].isWhitespace()) spaceIndex++
     return spaceIndex
 }
+
+/**
+ * Converts parameters to query parameters by fixing the [Parameters.get] method
+ * to make it return an empty string for the parameters without value (e.g., `?empty`)
+ */
+public fun Parameters.withEmptyStringForValuelessKeys(): Parameters {
+    val parameters = this
+    return object : Parameters {
+        override fun get(name: String): String? {
+            val values = getAll(name) ?: return null
+            return if (values.isEmpty()) "" else values.first()
+        }
+        override val caseInsensitiveName: Boolean
+            get() = parameters.caseInsensitiveName
+        override fun getAll(name: String): List<String>? = parameters.getAll(name)
+        override fun names(): Set<String> = parameters.names()
+        override fun entries(): Set<Map.Entry<String, List<String>>> = parameters.entries()
+        override fun isEmpty(): Boolean = parameters.isEmpty()
+    }
+}
