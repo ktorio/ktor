@@ -62,7 +62,7 @@ public class NettyChannelInitializer(
     private val httpServerCodec: () -> HttpServerCodec,
     private val channelPipelineConfig: ChannelPipeline.() -> Unit,
     private val enableHttp2: Boolean,
-    private val enableH2c: Boolean
+    private val enableH2c: Boolean = false
 ) : ChannelInitializer<SocketChannel>() {
     private var sslContext: SslContext? = null
 

@@ -166,13 +166,25 @@ class NettyServerPluginsTest : ServerPluginsTestSuite<NettyApplicationEngine, Ne
 
 class NettyHooksTest : HooksTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty)
 
+class NettyH2cServerJvmTest :
+    HttpServerJvmTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
+
+    init {
+        enableSsl = false
+        enableHttp2 = true
+    }
+
+    override fun configure(configuration: NettyApplicationEngine.Configuration) {
+        configuration.enableH2c = true
+    }
+}
+
 class NettyH2cEnabledTest :
     EngineTestBase<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
 
     init {
         enableSsl = false
         enableHttp2 = true
-        port = 8994
     }
 
     override fun configure(configuration: NettyApplicationEngine.Configuration) {
