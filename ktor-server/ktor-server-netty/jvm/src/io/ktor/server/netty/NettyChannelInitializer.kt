@@ -62,9 +62,49 @@ public class NettyChannelInitializer(
     private val httpServerCodec: () -> HttpServerCodec,
     private val channelPipelineConfig: ChannelPipeline.() -> Unit,
     private val enableHttp2: Boolean,
-    private val enableH2c: Boolean = false
+    private val enableH2c: Boolean
 ) : ChannelInitializer<SocketChannel>() {
     private var sslContext: SslContext? = null
+
+    @Deprecated(
+        message = "Use main constructor",
+        replaceWith = ReplaceWith(
+            "NettyChannelInitializer(" +
+                "getRequestBodySizeEstimator, enginePipeline, environment, callEventGroup, " +
+                "userContext, engineContext, connector, maxInitialLineLength, maxHeaderSize, " +
+                "maxChunkSize, httpServerCodec, channelPipelineConfig, enableHttp2, enableH2c)"
+        )
+    )
+    public constructor(
+        applicationProvider: () -> Application,
+        enginePipeline: EnginePipeline,
+        environment: ApplicationEnvironment,
+        callEventGroup: EventExecutorGroup,
+        engineContext: CoroutineContext,
+        userContext: CoroutineContext,
+        connector: EngineConnectorConfig,
+        runningLimit: Int,
+        responseWriteTimeout: Int,
+        requestReadTimeout: Int,
+        httpServerCodec: () -> HttpServerCodec,
+        channelPipelineConfig: ChannelPipeline.() -> Unit,
+        enableHttp2: Boolean,
+    ) : this(
+        applicationProvider = applicationProvider,
+        enginePipeline = enginePipeline,
+        environment = environment,
+        callEventGroup = callEventGroup,
+        engineContext = engineContext,
+        userContext = userContext,
+        connector = connector,
+        runningLimit = runningLimit,
+        responseWriteTimeout = responseWriteTimeout,
+        requestReadTimeout = requestReadTimeout,
+        httpServerCodec = httpServerCodec,
+        channelPipelineConfig = channelPipelineConfig,
+        enableHttp2 = enableHttp2,
+        enableH2c = false
+    )
 
     init {
         if (connector is EngineSSLConnectorConfig) {
