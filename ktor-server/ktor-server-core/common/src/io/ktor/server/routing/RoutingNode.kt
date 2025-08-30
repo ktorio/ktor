@@ -254,9 +254,16 @@ public class RoutingCall internal constructor(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RoutingContext)
  */
+@KtorDsl
 public class RoutingContext(
     public val call: RoutingCall
 )
+
+/**
+ * Shortcut to get an [Application] for this [RoutingContext].
+ */
+public val RoutingContext.application: Application
+    get() = call.application
 
 /**
  * A function that handles a [RoutingCall].
@@ -270,6 +277,7 @@ public typealias RoutingHandler = suspend RoutingContext.() -> Unit
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.Route)
  */
+@KtorDsl
 public interface Route {
     public val environment: ApplicationEnvironment
     public val attributes: Attributes
