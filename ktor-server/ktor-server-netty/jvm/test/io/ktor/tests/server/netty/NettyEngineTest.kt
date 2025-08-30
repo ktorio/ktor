@@ -216,13 +216,12 @@ class NettyH2cEnabledTest :
             writer.writeStringUtf8("\r\n")
             writer.flush()
 
-            val buffer = ByteArray(1024)
-            val length = reader.readAvailable(buffer)
-            val response = buffer.decodeToString(0, 0 + length)
+            val response = reader.readHttp1Headers()
+            val responseLower = response.lowercase()
 
-            assertTrue(response.contains("HTTP/1.1 101 Switching Protocols"))
-            assertTrue(response.contains("connection: upgrade"))
-            assertTrue(response.contains("upgrade: h2c"))
+            assertTrue(response.startsWith("HTTP/1.1 101"))
+            assertTrue(responseLower.contains("connection: upgrade"))
+            assertTrue(responseLower.contains("upgrade: h2c"))
         }
     }
 
@@ -233,7 +232,7 @@ class NettyH2cEnabledTest :
             writer.writeHttp2ConnectionPreface()
 
             // send settings frame
-            writer.writeByteArray(http2SettingsFrame(ack = false))
+            writer.writeFully(http2SettingsFrame(ack = false))
             writer.flush()
 
             // read server settings
@@ -246,11 +245,11 @@ class NettyH2cEnabledTest :
             assertTrue(http2ServerAckFrame.flags.ack())
 
             // send settings ack frame
-            writer.writeByteArray(http2SettingsFrame(ack = true))
+            writer.writeFully(http2SettingsFrame(ack = true))
             writer.flush()
 
             // send headers frame
-            writer.writeByteArray(http2HeadersFrame())
+            writer.writeFully(http2HeadersFrame())
             writer.flush()
 
             reader.readHeaderFrame()
@@ -371,5 +370,19 @@ class NettyH2cEnabledTest :
         }
 
         server.stop()
+    }
+
+    private suspend fun ByteReadChannel.readHttp1Headers(maxBytes: Int = 8192): String {
+        val buf = ByteArray(maxBytes)
+        var total = 0
+        while (true) {
+            val n = readAvailable(buf, total, buf.size - total)
+            if (n == -1) error("Connection closed before headers complete")
+            total += n
+            val s = buf.decodeToString(0, total)
+            val end = s.indexOf("\r\n\r\n")
+            if (end >= 0) return s.substring(0, end + 4)
+            require(total < maxBytes) { "HTTP/1.1 headers exceed $maxBytes bytes" }
+        }
     }
 }
