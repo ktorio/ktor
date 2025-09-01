@@ -5,6 +5,7 @@
 package io.ktor.client.plugins.sse
 
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.api.*
 import io.ktor.client.request.*
@@ -86,6 +87,7 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
     val showCommentEvents = pluginConfig.showCommentEvents
     val showRetryEvents = pluginConfig.showRetryEvents
     val maxReconnectionAttempts = pluginConfig.maxReconnectionAttempts
+    val bufferPolicy = pluginConfig.bufferPolicy
 
     on(AfterRender) { request, content ->
         if (getAttributeValue(request, sseRequestAttr) != true) {
@@ -97,6 +99,7 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
         val localReconnectionTime = getAttributeValue(request, reconnectionTimeAttr)
         val localShowCommentEvents = getAttributeValue(request, showCommentEventsAttr)
         val localShowRetryEvents = getAttributeValue(request, showRetryEventsAttr)
+        val localSseBufferPolicy = getAttributeValue(request, sseBufferPolicyAttr)
 
         request.attributes.put(ResponseAdapterAttributeKey, SSEClientResponseAdapter())
         request.attributes.put(SSEClientForReconnectionAttr, client)
@@ -106,6 +109,7 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
             localShowCommentEvents ?: showCommentEvents,
             localShowRetryEvents ?: showRetryEvents,
             maxReconnectionAttempts,
+            localSseBufferPolicy ?: bufferPolicy,
             currentCoroutineContext(),
             request,
             content
@@ -123,7 +127,7 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
         checkResponse(response)
         if (session !is SSESession) {
             throw SSEClientException(
-                response,
+                response.saved(),
                 message = "Expected ${SSESession::class.simpleName} content but was $session"
             )
         }
@@ -143,6 +147,8 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
                     override val deserializer: (TypeInfo, String) -> Any? = deserializer
 
                     override val coroutineContext: CoroutineContext = session.coroutineContext
+
+                    override fun bodyBuffer(): ByteArray = session.bodyBuffer()
                 }
             )
         } ?: ClientSSESession(context, session)
@@ -182,7 +188,7 @@ private object AfterRender : ClientHook<suspend (HttpRequestBuilder, OutgoingCon
 internal val SSEClientForReconnectionAttr: AttributeKey<HttpClient> = AttributeKey("SSEClientForReconnection")
 internal val SSEReconnectionRequestAttr = AttributeKey<Boolean>("SSEReconnectionRequestAttr")
 
-internal fun checkResponse(response: HttpResponse) {
+internal suspend fun checkResponse(response: HttpResponse) {
     val status = response.status
     val contentType = response.contentType()
 
@@ -193,14 +199,20 @@ internal fun checkResponse(response: HttpResponse) {
 
     if (status != HttpStatusCode.OK) {
         throw SSEClientException(
-            response,
+            response.saved(),
             message = "Expected status code ${HttpStatusCode.OK.value} but was ${status.value}"
         )
     }
     if (contentType?.withoutParameters() != ContentType.Text.EventStream) {
         throw SSEClientException(
-            response,
+            response.saved(),
             message = "Expected Content-Type ${ContentType.Text.EventStream} but was $contentType"
         )
     }
+}
+
+internal suspend fun HttpResponse.saved(): HttpResponse {
+    val savedCall = call.save()
+    savedCall.request.attributes.remove(sseRequestAttr)
+    return savedCall.response
 }

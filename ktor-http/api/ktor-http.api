@@ -536,6 +536,7 @@ public final class io/ktor/http/HttpHeaders {
 	public final fun getIfRange ()Ljava/lang/String;
 	public final fun getIfScheduleTagMatch ()Ljava/lang/String;
 	public final fun getIfUnmodifiedSince ()Ljava/lang/String;
+	public final fun getLastEventID ()Ljava/lang/String;
 	public final fun getLastModified ()Ljava/lang/String;
 	public final fun getLink ()Ljava/lang/String;
 	public final fun getLocation ()Ljava/lang/String;
