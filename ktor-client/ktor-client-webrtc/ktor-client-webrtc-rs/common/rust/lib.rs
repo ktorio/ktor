@@ -28,10 +28,8 @@ fn with_create_connection_error(e: Error) -> RtcError {
 
 #[uniffi::export]
 fn enable_logging() {
-    use tracing_subscriber::{fmt, EnvFilter};
-    let env_filter =
-        EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("webrtc=trace"));
-    let _ = fmt().with_env_filter(env_filter).try_init(); // ignore AlreadyInit errors
+    use tracing_subscriber::{fmt};
+    let _ = fmt().try_init(); // ignore AlreadyInit errors
 }
 
 #[uniffi::export(async_runtime = "tokio")]

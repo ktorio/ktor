@@ -227,12 +227,7 @@ impl MediaStreamTrack {
                         wrapper.sink.write_rtp(rtp_packet).await?;
                     }
                 }
-                Err(_) => {
-                    if let Some(wrapper) = self.sink_wrapper.load_full() {
-                        wrapper.sink.close();
-                    }
-                    return Ok(());
-                }
+                Err(_) => return Ok(()),
             }
         }
     }

@@ -23,12 +23,11 @@ public object RustWebRtc : WebRtcClientEngineFactory<WebRtcConfig> {
  * This is a simplified implementation that will be expanded once the UniFfi bindings are generated.
  */
 public class RustWebRtcEngine(
-    override val config: WebRtcConfig,
-    private val mediaTrackFactory: MediaTrackFactory = config.mediaTrackFactory
-        ?: error(
-            "There are no default media track factory when using the common engine. Please provide one in the config."
-        )
-) : WebRtcEngineBase("webrtc-rs"),
+    config: WebRtcConfig,
+    private val mediaTrackFactory: MediaTrackFactory = config.mediaTrackFactory ?: error(
+        "There are no default media track factory when using the common engine. Please provide one in the config."
+    )
+) : WebRtcEngineBase("webrtc-rs", config),
     MediaTrackFactory by mediaTrackFactory {
 
     override suspend fun createPeerConnection(config: WebRtcConnectionConfig): WebRtcPeerConnection {
@@ -53,7 +52,7 @@ public class RustWebRtcEngine(
             }
         )
         val nativeConnection = makePeerConnection(nativeConfig)
-        val coroutineContext = createConnectionContext(userProvidedContext = config.coroutineContext)
+        val coroutineContext = createConnectionContext(config.exceptionHandler)
         return RustWebRtcConnection(nativeConnection, coroutineContext, config)
     }
 }

@@ -8,7 +8,8 @@ import io.ktor.client.webrtc.*
 import io.ktor.client.webrtc.rs.utils.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.test.TestResult
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import uniffi.ktor_client_webrtc.MediaHandler
 import uniffi.ktor_client_webrtc.MediaSample
 import uniffi.ktor_client_webrtc.createVideoH264Track
@@ -20,11 +21,14 @@ class WebRtcMediaTest {
 
     private lateinit var client: WebRtcClient
 
+    val audioDuration = 20.milliseconds
+    val videoDuration = 33.milliseconds
+
     private fun testConnection(
         realtime: Boolean = false,
         block: suspend CoroutineScope.(WebRtcPeerConnection, MutableList<Job>) -> Unit
-    ): TestResult {
-        return runTestWithTimeout(realtime) { jobs ->
+    ) {
+        runTestWithTimeout(realtime) { jobs ->
             client.createPeerConnection().use { block(it, jobs) }
         }
     }
@@ -33,6 +37,10 @@ class WebRtcMediaTest {
     fun setup() {
         client = WebRtcClient(RustWebRtc) {
             mediaTrackFactory = MockMediaDevices()
+            defaultConnectionConfig = {
+                // propagate any background exceptions to the test
+                exceptionHandler = CoroutineExceptionHandler { _, e -> throw e }
+            }
         }
     }
 
@@ -106,15 +114,18 @@ class WebRtcMediaTest {
 
                 negotiate(pc1, pc2)
 
+                val allTracksReceived = MutableStateFlow(false)
+                val audioData = ByteArray(960)
+                val videoData = ByteArray(1250)
                 val audioTransferJobs = listOf(audioTrack1, audioTrack2).map { track ->
-                    launch {
-                        track.repeatSending(ByteArray(960), 20.milliseconds)
-                    }.also { jobs.add(it) }
+                    jobs.launchIn(scope = this) {
+                        track.repeatSending(audioData, audioDuration, until = allTracksReceived)
+                    }
                 }
                 val videoTransferJobs = listOf(videoTrack1, videoTrack2).map { track ->
-                    launch {
-                        track.repeatSending(ByteArray(1250), 33.milliseconds)
-                    }.also { jobs.add(it) }
+                    jobs.launchIn(scope = this) {
+                        track.repeatSending(videoData, videoDuration, until = allTracksReceived)
+                    }
                 }
 
                 // Check if remote tracks are emitted
@@ -126,6 +137,7 @@ class WebRtcMediaTest {
                         assertEquals(1, tracks.filter { it.track.kind === WebRtcMedia.TrackType.VIDEO }.size)
                     }
                 }
+                allTracksReceived.value = true
 
                 // assert that remote tracks are replayed
                 val remoteTracks3 = pc2.trackEvents.collectToChannel(this, jobs)
@@ -170,25 +182,23 @@ class WebRtcMediaTest {
                 override fun onNextSample(sample: MediaSample) {
                     receivedSamples.trySend(sample)
                 }
-
-                override fun onClose() {
-                    receivedSamples.close()
-                }
             },
-            startReadingRtp = true
+            readPacketsInBackground = true
         )
         return receivedSamples
     }
 
-    private suspend fun WebRtcMedia.Track.repeatSending(data: ByteArray, duration: Duration) {
-        repeat(10) {
-            // Write sample to local track (this will be sent over RTP)
-            getNative().writeData(data, duration)
-            delay(duration)
+    private suspend fun WebRtcMedia.Track.repeatSending(
+        data: ByteArray,
+        interval: Duration,
+        until: StateFlow<Boolean>
+    ) {
+        while (!until.value) {
+            getNative().writeData(data, duration = interval)
+            delay(duration = interval)
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testMediaSinkDataTransfer() = testConnection(realtime = true) { pc1, jobs ->
         client.createPeerConnection().use { pc2 ->
@@ -199,7 +209,10 @@ class WebRtcMediaTest {
                 negotiate(pc1, pc2)
 
                 val testData = ByteArray(8) { it.toByte() }
-                localAudioTrack.repeatSending(testData, 20.milliseconds)
+                val frameReceived = MutableStateFlow(false)
+                jobs.launchIn(scope = this) {
+                    localAudioTrack.repeatSending(testData, audioDuration, until = frameReceived)
+                }
 
                 // Wait for remote tracks to be available
                 val remoteAudioTrack = withTimeout(10_000) {
@@ -214,6 +227,7 @@ class WebRtcMediaTest {
 
                 // Wait for data to be received at the sink
                 val receivedSample = withTimeout(10_000) { receivedSamples.receive() }
+                frameReceived.value = true
 
                 assertContentEquals(
                     testData,
@@ -222,13 +236,6 @@ class WebRtcMediaTest {
                 )
                 assertEquals(0u, receivedSample.prevDroppedPackets)
                 assertEquals(0u, receivedSample.prevPaddingPackets)
-
-                pc1.removeTrack(localAudioTrack)
-                negotiate(pc1, pc2)
-
-                withTimeout(10_000) {
-                    assertTrue(receivedSamples.isClosedForSend)
-                }
             }
         }
     }
@@ -243,9 +250,14 @@ class WebRtcMediaTest {
                 pc1.addTrack(localVideoTrack)
                 negotiate(pc1, pc2)
 
-                launch {
-                    localVideoTrack.repeatSending(MockMediaDevices.H264_FRAME.value, 33.milliseconds)
-                }.also { jobs.add(it) }
+                val frameReceived = MutableStateFlow(false)
+                jobs.launchIn(scope = this) {
+                    localVideoTrack.repeatSending(
+                        data = MockMediaDevices.H264_FRAME.value,
+                        interval = videoDuration,
+                        until = frameReceived
+                    )
+                }
 
                 // Wait for remote video track
                 val remoteVideoTrack = withTimeout(10_000) {
@@ -259,8 +271,13 @@ class WebRtcMediaTest {
 
                 // Wait for video data to be received
                 val receivedSample = withTimeout(10_000) { receivedVideoSamples.receive() }
+                frameReceived.value = true
 
-                assertContentEquals(MockMediaDevices.H264_FRAME.value, receivedSample.data, "Video data should match")
+                assertContentEquals(
+                    MockMediaDevices.H264_FRAME.value,
+                    receivedSample.data,
+                    "Video data should match"
+                )
                 assertEquals(0u, receivedSample.prevDroppedPackets, "Dropped packets should still be 0")
                 assertEquals(0u, receivedSample.prevPaddingPackets, "Padding packets should still be 0")
             }
@@ -275,33 +292,37 @@ class WebRtcMediaTest {
                 pc1.addTrack(localAudioTrack)
                 negotiate(pc1, pc2)
 
-                // Start data transmission, so the other peer emits `on_add_track` event
-                // Only after that, we can set a sink on the track.
-                // Before the sink is set, a couple of samples could be lost (usually 2-3).
-                val samplesCount = 10
-                launch {
-                    repeat(samplesCount) { index ->
-                        localAudioTrack
-                            .getNative()
-                            .writeData(ByteArray(8) { (index + 1).toByte() }, 20.milliseconds)
-                        delay(20.milliseconds)
-                    }
+                val sinkAdded = MutableStateFlow(false)
+                jobs.launchIn(scope = this) {
+                    val zeroBytes = ByteArray(8) { 0 }
+                    localAudioTrack.repeatSending(zeroBytes, audioDuration, sinkAdded)
                 }
 
                 val remoteAudioTrack = withTimeout(10_000) {
                     remoteTracks2.receive().track as RustMediaTrack
                 }
                 val receivedSamples = remoteAudioTrack.collectSamples()
+                sinkAdded.value = true
+
+                val samplesIds = 1..10
+                jobs.launchIn(scope = this) {
+                    for (id in samplesIds) {
+                        val data = ByteArray(id) { id.toByte() }
+                        localAudioTrack.getNative().writeData(data, audioDuration)
+                        delay(audioDuration)
+                    }
+                }
 
                 // Wait for all samples to be received
                 withTimeout(10_000) {
-                    var receivedSample = receivedSamples.receive()
-                    val firstReceivedIndex = receivedSample.data[0]
+                    do {
+                        val sample = receivedSamples.receive() // skip initial samples
+                    } while (sample.data[0].toInt() != samplesIds.first)
 
-                    // the last one is not emitted
-                    for (i in (firstReceivedIndex + 1)..<samplesCount) {
-                        receivedSample = receivedSamples.receive()
-                        assertTrue(receivedSample.data.all { it == i.toByte() })
+                    // the last one is not emitted because of WebRTC internal buffering
+                    for (i in samplesIds.first + 1 until samplesIds.last) {
+                        val sample = receivedSamples.receive()
+                        assertTrue(sample.data.all { it.toInt() == i })
                     }
                 }
             }

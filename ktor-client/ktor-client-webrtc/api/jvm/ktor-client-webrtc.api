@@ -38,6 +38,16 @@ public final class io/ktor/client/webrtc/DataChannelReceiveOptions {
 	public final fun setOnUndeliveredElement (Lkotlin/jvm/functions/Function1;)V
 }
 
+public final class io/ktor/client/webrtc/DefaultExceptionHandler : kotlinx/coroutines/CoroutineExceptionHandler {
+	public fun <init> (Ljava/lang/String;)V
+	public fun fold (Ljava/lang/Object;Lkotlin/jvm/functions/Function2;)Ljava/lang/Object;
+	public fun get (Lkotlin/coroutines/CoroutineContext$Key;)Lkotlin/coroutines/CoroutineContext$Element;
+	public fun getKey ()Lkotlin/coroutines/CoroutineContext$Key;
+	public fun handleException (Lkotlin/coroutines/CoroutineContext;Ljava/lang/Throwable;)V
+	public fun minusKey (Lkotlin/coroutines/CoroutineContext$Key;)Lkotlin/coroutines/CoroutineContext;
+	public fun plus (Lkotlin/coroutines/CoroutineContext;)Lkotlin/coroutines/CoroutineContext;
+}
+
 public abstract interface class io/ktor/client/webrtc/MediaTrackFactory {
 	public abstract fun createAudioTrack (Lio/ktor/client/webrtc/WebRtcMedia$AudioTrackConstraints;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun createAudioTrack (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -415,8 +425,8 @@ public class io/ktor/client/webrtc/WebRtcConfig {
 public class io/ktor/client/webrtc/WebRtcConnectionConfig {
 	public fun <init> ()V
 	public final fun getBundlePolicy ()Lio/ktor/client/webrtc/WebRtc$BundlePolicy;
-	public final fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getDataChannelEventsReplay ()I
+	public final fun getExceptionHandler ()Lkotlinx/coroutines/CoroutineExceptionHandler;
 	public final fun getIceCandidatePoolSize ()I
 	public final fun getIceCandidatesReplay ()I
 	public final fun getIceServers ()Ljava/util/List;
@@ -425,8 +435,8 @@ public class io/ktor/client/webrtc/WebRtcConnectionConfig {
 	public final fun getRtcpMuxPolicy ()Lio/ktor/client/webrtc/WebRtc$RtcpMuxPolicy;
 	public final fun getStatsRefreshRate ()J
 	public final fun setBundlePolicy (Lio/ktor/client/webrtc/WebRtc$BundlePolicy;)V
-	public final fun setCoroutineContext (Lkotlin/coroutines/CoroutineContext;)V
 	public final fun setDataChannelEventsReplay (I)V
+	public final fun setExceptionHandler (Lkotlinx/coroutines/CoroutineExceptionHandler;)V
 	public final fun setIceCandidatePoolSize (I)V
 	public final fun setIceCandidatesReplay (I)V
 	public final fun setIceServers (Ljava/util/List;)V
@@ -517,12 +527,13 @@ public final class io/ktor/client/webrtc/WebRtcEngine$DefaultImpls {
 }
 
 public abstract class io/ktor/client/webrtc/WebRtcEngineBase : io/ktor/client/webrtc/WebRtcEngine {
-	public fun <init> (Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Lio/ktor/client/webrtc/WebRtcConfig;)V
 	public fun close ()V
 	public fun createAudioTrack (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	protected final fun createConnectionContext (Lkotlin/coroutines/CoroutineContext;)Lkotlin/coroutines/CoroutineContext;
+	protected final fun createConnectionContext (Lkotlinx/coroutines/CoroutineExceptionHandler;)Lkotlin/coroutines/CoroutineContext;
 	public fun createPeerConnection (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun createVideoTrack (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getConfig ()Lio/ktor/client/webrtc/WebRtcConfig;
 }
 
 public final class io/ktor/client/webrtc/WebRtcEngineClosedException : java/util/concurrent/CancellationException {

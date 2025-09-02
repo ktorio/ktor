@@ -12,7 +12,6 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
 import kotlin.test.assertEquals
@@ -40,11 +39,11 @@ fun assertSdpEquivalent(expected: WebRtc.SessionDescription, actual: WebRtc.Sess
 fun runTestWithTimeout(
     realTime: Boolean = false,
     block: suspend CoroutineScope.(MutableList<Job>) -> Unit
-): TestResult {
+) {
     // List to collect all jobs launched during the test to gracefully cancel
     // them in batch so no job will be hanging which lead to timeout on the js target.
     val jobs = mutableListOf<Job>()
-    return when {
+    when {
         realTime -> runTestWithRealTime {
             withTimeout(10_0000) {
                 try {
@@ -112,3 +111,9 @@ fun <T> StateFlow<T>.collectToChannel(
     scope: CoroutineScope,
     jobs: MutableList<Job>
 ): Channel<T> = collectToChannel(scope, jobs, Channel.CONFLATED)
+
+fun MutableList<Job>.launchIn(scope: CoroutineScope, block: suspend () -> Unit): Job {
+    val job = scope.launch { block() }
+    add(job)
+    return job
+}

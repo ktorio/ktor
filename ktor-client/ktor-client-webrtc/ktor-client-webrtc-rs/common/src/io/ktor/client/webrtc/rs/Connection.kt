@@ -5,7 +5,9 @@
 package io.ktor.client.webrtc.rs
 
 import io.ktor.client.webrtc.*
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import uniffi.ktor_client_webrtc.*
 import kotlin.coroutines.CoroutineContext
@@ -16,29 +18,35 @@ public class RustWebRtcConnection(
     config: WebRtcConnectionConfig
 ) : WebRtcPeerConnection(coroutineContext, config) {
 
+    private fun runInConnectionScope(block: suspend () -> Unit) {
+        coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) {
+            block()
+        }
+    }
+
     init {
         inner.registerObserver(object : PeerConnectionObserver {
-            override fun onConnectionStateChange(state: ConnectionState) {
+            override fun onConnectionStateChange(state: ConnectionState) = runInConnectionScope {
                 events.emitConnectionStateChange(state.toKtor())
             }
 
-            override fun onIceConnectionStateChange(state: IceConnectionState) {
+            override fun onIceConnectionStateChange(state: IceConnectionState) = runInConnectionScope {
                 events.emitIceConnectionStateChange(state.toKtor())
             }
 
-            override fun onIceGatheringStateChange(state: IceGatheringState) {
+            override fun onIceGatheringStateChange(state: IceGatheringState) = runInConnectionScope {
                 events.emitIceGatheringStateChange(state.toKtor())
             }
 
-            override fun onSignalingStateChange(state: SignalingState) {
+            override fun onSignalingStateChange(state: SignalingState) = runInConnectionScope {
                 events.emitSignalingStateChange(state.toKtor())
             }
 
-            override fun onIceCandidate(candidate: IceCandidate) {
+            override fun onIceCandidate(candidate: IceCandidate) = runInConnectionScope {
                 events.emitIceCandidate(candidate.toKtor())
             }
 
-            override fun onDataChannel(channel: DataChannel) {
+            override fun onDataChannel(channel: DataChannel) = runInConnectionScope {
                 val channel = RustWebRtcDataChannel(
                     inner = channel,
                     coroutineScope = coroutineScope,
@@ -47,29 +55,21 @@ public class RustWebRtcConnection(
                 channel.setupEvents(events)
             }
 
-            override fun onTrack(track: MediaStreamTrack) {
-                events.emitAddTrack(
-                    RustMediaTrack.from(
-                        nativeTrack = track,
-                        coroutineScope = coroutineScope
-                    )
-                )
+            override fun onTrack(track: MediaStreamTrack) = runInConnectionScope {
+                val mediaTrack = RustMediaTrack.from(nativeTrack = track, coroutineScope)
+                events.emitAddTrack(mediaTrack)
             }
 
-            override fun onRemoveTrack(track: MediaStreamTrack) {
-                events.emitRemoveTrack(
-                    RustMediaTrack.from(
-                        nativeTrack = track,
-                        coroutineScope = coroutineScope
-                    )
-                )
+            override fun onRemoveTrack(track: MediaStreamTrack) = runInConnectionScope {
+                val mediaTrack = RustMediaTrack.from(nativeTrack = track, coroutineScope)
+                events.emitRemoveTrack(mediaTrack)
             }
 
-            override fun onNegotiationNeeded() {
+            override fun onNegotiationNeeded() = runInConnectionScope {
                 events.emitNegotiationNeeded()
             }
 
-            override fun onError(error: RtcException) {
+            override fun onError(error: RtcException) = runInConnectionScope {
                 coroutineScope.cancel("Peer connection error: ${error.message}")
             }
         })

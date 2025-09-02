@@ -213,7 +213,6 @@ abstract interface uniffi.ktor_client_webrtc/Disposable : kotlin/AutoCloseable {
 }
 
 abstract interface uniffi.ktor_client_webrtc/MediaHandler { // uniffi.ktor_client_webrtc/MediaHandler|null[0]
-    abstract fun onClose() // uniffi.ktor_client_webrtc/MediaHandler.onClose|onClose(){}[0]
     abstract fun onNextSample(uniffi.ktor_client_webrtc/MediaSample) // uniffi.ktor_client_webrtc/MediaHandler.onNextSample|onNextSample(uniffi.ktor_client_webrtc.MediaSample){}[0]
 
     final object Companion // uniffi.ktor_client_webrtc/MediaHandler.Companion|null[0]
@@ -415,9 +414,6 @@ final class io.ktor.client.webrtc.rs/RustWebRtcDataChannel : io.ktor.client.webr
 
 final class io.ktor.client.webrtc.rs/RustWebRtcEngine : io.ktor.client.webrtc/MediaTrackFactory, io.ktor.client.webrtc/WebRtcEngineBase { // io.ktor.client.webrtc.rs/RustWebRtcEngine|null[0]
     constructor <init>(io.ktor.client.webrtc/WebRtcConfig, io.ktor.client.webrtc/MediaTrackFactory = ...) // io.ktor.client.webrtc.rs/RustWebRtcEngine.<init>|<init>(io.ktor.client.webrtc.WebRtcConfig;io.ktor.client.webrtc.MediaTrackFactory){}[0]
-
-    final val config // io.ktor.client.webrtc.rs/RustWebRtcEngine.config|{}config[0]
-        final fun <get-config>(): io.ktor.client.webrtc/WebRtcConfig // io.ktor.client.webrtc.rs/RustWebRtcEngine.config.<get-config>|<get-config>(){}[0]
 
     final suspend fun createAudioTrack(io.ktor.client.webrtc/WebRtcMedia.AudioTrackConstraints): io.ktor.client.webrtc/WebRtcMedia.AudioTrack // io.ktor.client.webrtc.rs/RustWebRtcEngine.createAudioTrack|createAudioTrack(io.ktor.client.webrtc.WebRtcMedia.AudioTrackConstraints){}[0]
     final suspend fun createAudioTrack(kotlin/Function1<io.ktor.client.webrtc/WebRtcMedia.AudioTrackConstraints, kotlin/Unit>): io.ktor.client.webrtc/WebRtcMedia.AudioTrack // io.ktor.client.webrtc.rs/RustWebRtcEngine.createAudioTrack|createAudioTrack(kotlin.Function1<io.ktor.client.webrtc.WebRtcMedia.AudioTrackConstraints,kotlin.Unit>){}[0]
@@ -843,7 +839,6 @@ open class uniffi.ktor_client_webrtc/MediaHandlerImpl : uniffi.ktor_client_webrt
     final fun uniffiClonePointer(): kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed> // uniffi.ktor_client_webrtc/MediaHandlerImpl.uniffiClonePointer|uniffiClonePointer(){}[0]
     open fun close() // uniffi.ktor_client_webrtc/MediaHandlerImpl.close|close(){}[0]
     open fun destroy() // uniffi.ktor_client_webrtc/MediaHandlerImpl.destroy|destroy(){}[0]
-    open fun onClose() // uniffi.ktor_client_webrtc/MediaHandlerImpl.onClose|onClose(){}[0]
     open fun onNextSample(uniffi.ktor_client_webrtc/MediaSample) // uniffi.ktor_client_webrtc/MediaHandlerImpl.onNextSample|onNextSample(uniffi.ktor_client_webrtc.MediaSample){}[0]
 
     final object Companion // uniffi.ktor_client_webrtc/MediaHandlerImpl.Companion|null[0]

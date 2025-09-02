@@ -20,6 +20,8 @@ public class DefaultExceptionHandler(private val name: String) : CoroutineExcept
             return
         }
         val coroutineName = context[CoroutineName] ?: context.toString()
-        println("[ERROR] ($name): Unhandled exception caught for $coroutineName. Cause: ${exception.stackTraceToString()}")
+        println(
+            "[ERROR] ($name): Unhandled exception caught for $coroutineName. Cause: ${exception.stackTraceToString()}"
+        )
     }
 }

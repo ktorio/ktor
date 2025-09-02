@@ -105,7 +105,6 @@ public final class io/ktor/client/webrtc/rs/RustWebRtcEngine : io/ktor/client/we
 	public fun createPeerConnection (Lio/ktor/client/webrtc/WebRtcConnectionConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun createVideoTrack (Lio/ktor/client/webrtc/WebRtcMedia$VideoTrackConstraints;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun createVideoTrack (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getConfig ()Lio/ktor/client/webrtc/WebRtcConfig;
 }
 
 public final class io/ktor/client/webrtc/rs/SendersKt {
@@ -1551,7 +1550,6 @@ public final class uniffi/ktor_client_webrtc/MediaCodec$Companion {
 
 public abstract interface class uniffi/ktor_client_webrtc/MediaHandler {
 	public static final field Companion Luniffi/ktor_client_webrtc/MediaHandler$Companion;
-	public abstract fun onClose ()V
 	public abstract fun onNextSample (Luniffi/ktor_client_webrtc/MediaSample;)V
 }
 
@@ -1566,7 +1564,6 @@ public class uniffi/ktor_client_webrtc/MediaHandlerImpl : uniffi/ktor_client_web
 	public fun destroy ()V
 	protected final fun getCleanable ()Luniffi/ktor_client_webrtc/UniffiCleaner$Cleanable;
 	protected final fun getPointer ()Lcom/sun/jna/Pointer;
-	public fun onClose ()V
 	public fun onNextSample (Luniffi/ktor_client_webrtc/MediaSample;)V
 	public final fun uniffiClonePointer ()Lcom/sun/jna/Pointer;
 }

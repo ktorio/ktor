@@ -34,9 +34,9 @@ public abstract class RustMediaTrack(
         inner.setEnabled(enabled)
     }
 
-    public fun setMediaHandler(handler: MediaHandler, startReadingRtp: Boolean) {
+    public fun setMediaHandler(handler: MediaHandler, readPacketsInBackground: Boolean) {
         inner.setSink(inner.createSink(handler))
-        if (startReadingRtp) {
+        if (readPacketsInBackground) {
             require(coroutineScope != null) {
                 "Coroutine scope is required to read RTP for track $id"
             }

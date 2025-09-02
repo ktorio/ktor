@@ -3,13 +3,12 @@
  */
 
 use crate::media::{
-    AsyncWriter, MediaCodec, MediaHandler, MediaStreamSink, MediaStreamSinkWrapper,
-    MediaStreamTrack, MediaSample,
+    AsyncWriter, MediaCodec, MediaHandler, MediaSample, MediaStreamSink,
+    MediaStreamSinkWrapper, MediaStreamTrack,
 };
 use crate::rtc::RtcError;
 use async_trait::async_trait;
 use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, Ordering};
 use tokio::sync::Mutex;
 use webrtc::rtp::codecs::h264::H264Packet;
 use webrtc::rtp::codecs::opus::OpusPacket;
@@ -33,7 +32,6 @@ impl<T: Depacketizer + Send + Sync> MediaStreamSink<T> {
         let sample_builder = SampleBuilder::new(max_late, depacketizer, sample_rate);
         Self {
             sample_builder: Arc::new(Mutex::new(sample_builder)),
-            closed: AtomicBool::new(false),
             handler,
         }
     }
@@ -59,24 +57,6 @@ impl<T: Depacketizer + Send + Sync> AsyncWriter for MediaStreamSink<T> {
         }
 
         Ok(())
-    }
-
-    fn close(&self) -> bool {
-        if self
-            .closed
-            .compare_exchange(false, true, Ordering::SeqCst, Ordering::Acquire)
-            .is_ok()
-        {
-            self.handler.on_close();
-            return true;
-        }
-        false
-    }
-}
-
-impl<T: Depacketizer + Send + Sync> Drop for MediaStreamSink<T> {
-    fn drop(&mut self) {
-        self.handler.on_close()
     }
 }
 

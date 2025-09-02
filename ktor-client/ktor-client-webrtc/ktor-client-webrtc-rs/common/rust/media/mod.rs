@@ -10,8 +10,8 @@ use crate::rtc::RtcError::MediaTrackError;
 use arc_swap::ArcSwapOption;
 use async_trait::async_trait;
 use std::fmt::Debug;
-use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
+use std::sync::atomic::AtomicBool;
 use std::time::{Duration, SystemTime};
 use tokio::sync::Mutex;
 use webrtc::media::io::sample_builder::SampleBuilder;
@@ -25,9 +25,6 @@ use webrtc::track::track_remote::TrackRemote;
 pub trait AsyncWriter: Send + Sync {
     // Add the content of an RTP packet to the media
     async fn write_rtp(&self, pkt: Packet) -> Result<(), RtcError>;
-    // close the media
-    // Note: close implementation must be idempotent
-    fn close(&self) -> bool;
 }
 
 // Wrapper for AsyncWriter to be used as a field in MediaStreamTrack
@@ -52,7 +49,6 @@ pub struct MediaStreamTrack {
 pub struct MediaStreamSink<T: Depacketizer + Send + Sync> {
     sample_builder: Arc<Mutex<SampleBuilder<T>>>,
     handler: Arc<dyn MediaHandler>,
-    closed: AtomicBool,
 }
 
 #[derive(uniffi::Record)]
@@ -69,8 +65,6 @@ pub struct MediaSample {
 pub trait MediaHandler: Send + Sync + Debug {
     /// Called when parsed media data is available
     fn on_next_sample(&self, sample: MediaSample);
-    /// Called when the sink is closed
-    fn on_close(&self);
 }
 
 enum MediaStreamTrackInner {
