@@ -31,9 +31,7 @@ open class MockWebRtcConnection(context: CoroutineContext, config: WebRtcConnect
     override suspend fun getStatistics(): List<WebRtc.Stats> = TODO()
 }
 
-open class MockWebRtcEngine : WebRtcEngineBase("mock-engine") {
-    override val config: WebRtcConfig = WebRtcConfig()
-
+open class MockWebRtcEngine : WebRtcEngineBase("mock-engine", WebRtcConfig()) {
     override suspend fun createPeerConnection(config: WebRtcConnectionConfig): WebRtcPeerConnection = TODO()
 
     override suspend fun createAudioTrack(constraints: WebRtcMedia.AudioTrackConstraints): WebRtcMedia.AudioTrack =

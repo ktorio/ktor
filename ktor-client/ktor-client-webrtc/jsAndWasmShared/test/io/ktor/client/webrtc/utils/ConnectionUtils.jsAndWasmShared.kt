@@ -13,7 +13,7 @@ actual fun createTestWebRtcClient(): WebRtcClient = WebRtcClient(JsWebRtc) {
         iceServers = listOf()
         statsRefreshRate = 100
         // propagate exceptions to the test scope
-        coroutineContext = CoroutineExceptionHandler { _, e -> throw e }
+        exceptionHandler = CoroutineExceptionHandler { _, e -> throw e }
     }
 }
 
