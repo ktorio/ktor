@@ -1507,7 +1507,7 @@ class StaticContentTest {
             }
         }
         assertEquals(HttpStatusCode.OK, response.status)
-        val etag = response.headers[HttpHeaders.ETag] ?: error("no ETag")
+        val etag = response.headers[HttpHeaders.ETag] ?: fail("no ETag")
         assertEquals(expectedEtag.quote(), etag)
         assertEquals(expectedDate.toHttpDate(), response.headers[HttpHeaders.LastModified])
     }
