@@ -16,7 +16,6 @@ import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Response
 import org.eclipse.jetty.util.Callback
 import java.util.concurrent.*
-import java.util.concurrent.CancellationException
 import java.util.concurrent.atomic.AtomicLong
 
 private val JettyCallHandlerCoroutineName = CoroutineName("jetty-call-handler")
@@ -44,9 +43,8 @@ internal class JettyKtorHandler(
     private val dispatcher = executor.asCoroutineDispatcher()
 
     private val handlerJob = SupervisorJob(applicationProvider().parentCoroutineContext[Job])
-    private val coroutineScope: CoroutineScope by lazy {
+    private val coroutineScope: CoroutineScope =
         applicationProvider() + handlerJob + DefaultUncaughtExceptionHandler(environment.log)
-    }
 
     override fun destroy() {
         try {
@@ -77,7 +75,7 @@ internal class JettyKtorHandler(
                 try {
                     pipeline.execute(call)
                     callback.succeeded()
-                } catch (cancelled: CancellationException) {
+                } catch (cancelled: kotlinx.coroutines.CancellationException) {
                     Response.writeError(request, response, callback, HttpStatus.GONE_410, cancelled.message, cancelled)
                 } catch (channelFailed: ChannelIOException) {
                     callback.failed(channelFailed)

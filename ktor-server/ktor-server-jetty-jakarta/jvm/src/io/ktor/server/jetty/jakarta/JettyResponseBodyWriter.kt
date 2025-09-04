@@ -5,15 +5,31 @@
 package io.ktor.server.jetty.jakarta
 
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.io.IOException
 import org.eclipse.jetty.server.Response
 import org.eclipse.jetty.util.Callback
-import kotlin.time.Duration
+import org.eclipse.jetty.util.thread.Invocable
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.resume
 
-internal fun CoroutineScope.bodyWriter(response: Response, idleTimeout: Duration?): ReaderJob =
+internal fun CoroutineScope.bodyWriter(response: Response): ReaderJob =
     reader(CoroutineName("jetty-response-writer")) {
         var count = 0
         val buffer = bufferPool.borrow()
+        var continuation: Continuation<Unit>? = null
+        val callback = object : Callback {
+            override fun succeeded() {
+                continuation?.resume(Unit)
+            }
+            override fun failed(x: Throwable?) {
+                channel.cancel(x ?: IOException("Failed to write body"))
+            }
+            override fun getInvocationType(): Invocable.InvocationType? =
+                Invocable.InvocationType.NON_BLOCKING
+        }
         try {
             while (true) {
                 when (val current = channel.readAvailable(buffer)) {
@@ -21,15 +37,14 @@ internal fun CoroutineScope.bodyWriter(response: Response, idleTimeout: Duration
                     0 -> continue
                     else -> count += current
                 }
-
-                withTimeout(idleTimeout ?: Duration.INFINITE) {
-                    suspendCancellableCoroutine { continuation ->
-                        response.write(
-                            channel.isClosedForRead,
-                            buffer.flip(),
-                            continuation.asCallback()
-                        )
-                    }
+                // Suspend till write completes, only 1 write at a time allowed
+                suspendCancellableCoroutine { cont ->
+                    continuation = cont
+                    response.write(
+                        channel.isClosedForRead,
+                        buffer.flip(),
+                        callback
+                    )
                 }
                 buffer.compact()
             }

@@ -9,35 +9,35 @@ import io.ktor.utils.io.*
 import org.eclipse.jetty.server.Request
 
 internal class JettyConnectionPoint(
-    request: Request
+    private val request: Request
 ) : RequestConnectionPoint {
     @Deprecated("Use localHost or serverHost instead")
-    override val host: String = request.httpURI.host
+    override val host: String get() = request.httpURI.host
 
-    override val localAddress: String = Request.getLocalAddr(request)
+    override val localAddress: String get() = Request.getLocalAddr(request)
 
-    override val localHost: String = Request.getServerName(request)
+    override val localHost: String get() = Request.getServerName(request)
 
-    override val localPort: Int = Request.getLocalPort(request)
+    override val localPort: Int get() = Request.getLocalPort(request)
 
-    override val method: HttpMethod = HttpMethod.parse(request.method)
+    override val method: HttpMethod get() = HttpMethod.parse(request.method)
 
     @Deprecated("Use localPort or serverPort instead")
-    override val port: Int = request.httpURI.port
+    override val port: Int get() = request.httpURI.port
 
-    override val remoteAddress: String = Request.getRemoteAddr(request)
+    override val remoteAddress: String get() = Request.getRemoteAddr(request)
 
-    override val remoteHost: String = Request.getServerName(request)
+    override val remoteHost: String get() = Request.getServerName(request)
 
-    override val remotePort: Int = Request.getRemotePort(request)
+    override val remotePort: Int get() = Request.getRemotePort(request)
 
-    override val scheme: String = request.httpURI.scheme
+    override val scheme: String get() = request.httpURI.scheme
 
-    override val serverHost: String = Request.getServerName(request)
+    override val serverHost: String get() = Request.getServerName(request)
 
-    override val serverPort: Int = Request.getServerPort(request)
+    override val serverPort: Int get() = Request.getServerPort(request)
 
-    override val uri: String = request.httpURI.pathQuery
+    override val uri: String get() = request.httpURI.pathQuery
 
-    override val version: String = request.connectionMetaData.httpVersion.asString()
+    override val version: String get() = request.connectionMetaData.httpVersion.asString()
 }

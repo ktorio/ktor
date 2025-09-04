@@ -445,7 +445,6 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         }
     }
 
-    @Ignore
     @Test
     open fun testBlockingDeadlock() = runTest {
         createAndStartServer {

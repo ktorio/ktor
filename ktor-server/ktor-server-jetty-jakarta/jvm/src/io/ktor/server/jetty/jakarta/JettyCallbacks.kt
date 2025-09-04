@@ -7,6 +7,7 @@ package io.ktor.server.jetty.jakarta
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.io.IOException
 import org.eclipse.jetty.util.Callback
+import org.eclipse.jetty.util.thread.Invocable
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
@@ -20,4 +21,6 @@ internal fun CancellableContinuation<Unit>.asCallback(): Callback = object : Cal
     override fun succeeded() {
         resume(Unit)
     }
+    override fun getInvocationType(): Invocable.InvocationType? =
+        Invocable.InvocationType.NON_BLOCKING
 }

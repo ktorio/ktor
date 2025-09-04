@@ -27,7 +27,6 @@ import kotlinx.io.InternalIoApi
 import org.eclipse.jetty.io.EndPoint
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Response
-import org.eclipse.jetty.util.Callback
 import java.nio.ByteBuffer
 import java.util.concurrent.Executor
 import kotlin.coroutines.CoroutineContext
@@ -129,7 +128,7 @@ public class JettyApplicationCall(
 
         @OptIn(InternalCoroutinesApi::class, InternalIoApi::class)
         private val responseBodyJob: Lazy<ReaderJob> = lazy {
-            call.bodyWriter(response, idleTimeout)
+            call.bodyWriter(response)
         }
 
         override val headers: ResponseHeaders = object : ResponseHeaders() {
