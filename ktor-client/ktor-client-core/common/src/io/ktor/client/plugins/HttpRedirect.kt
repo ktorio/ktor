@@ -73,7 +73,9 @@ public val HttpRedirect: ClientPlugin<HttpRedirectConfig> = createClientPlugin(
             val location = call.response.headers[HttpHeaders.Location]
 
             if (location == null) {
-                LOGGER.warn("Location header missing from redirect response ${call.request.url}; returning response as is")
+                LOGGER.warn(
+                    "Location header missing from redirect response ${call.request.url}; returning response as is"
+                )
                 return call
             }
 
