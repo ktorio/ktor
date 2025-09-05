@@ -54,28 +54,28 @@ internal class JettyServletApplicationEngine(
     async: Boolean
 ) : JettyApplicationEngineBase(environment, monitor, developmentMode, configuration, applicationProvider) {
     init {
-        server.handler = ServletContextHandler().apply<ServletContextHandler> {
-            this.classLoader = environment.classLoader
+        server.handler = ServletContextHandler().apply {
+            classLoader = environment.classLoader
             setAttribute(ServletApplicationEngine.EnvironmentAttributeKey, environment)
             setAttribute(ServletApplicationEngine.ApplicationAttributeKey, applicationProvider)
             setAttribute(ServletApplicationEngine.ApplicationEnginePipelineAttributeKey, pipeline)
 
             insertHandler(
-                ServletHandler().apply<ServletHandler> {
+                ServletHandler().apply {
                     addServlet(
                         ServletHolder("ktor-servlet", ServletApplicationEngine::class.java).apply<ServletHolder> {
-                            this.isAsyncSupported = async
-                            this.registration.setLoadOnStartup(1)
-                            this.registration.setMultipartConfig(
+                            isAsyncSupported = async
+                            registration.setLoadOnStartup(1)
+                            registration.setMultipartConfig(
                                 MultipartConfigElement(System.getProperty("java.io.tmpdir"))
                             )
-                            this.registration.setAsyncSupported(async)
+                            registration.setAsyncSupported(async)
                         }
                     )
                     addServletMapping(
                         ServletMapping().apply<ServletMapping> {
-                            this.pathSpecs = arrayOf<String>("*.", "/*")
-                            this.servletName = "ktor-servlet"
+                            pathSpecs = arrayOf<String>("*.", "/*")
+                            servletName = "ktor-servlet"
                         }
                     )
                 }

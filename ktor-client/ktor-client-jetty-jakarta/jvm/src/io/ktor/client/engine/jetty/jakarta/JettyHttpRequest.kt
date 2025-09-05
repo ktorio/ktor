@@ -21,6 +21,7 @@ import org.eclipse.jetty.http2.client.internal.HTTP2ClientSession
 import org.eclipse.jetty.http2.frames.*
 import org.eclipse.jetty.io.Transport
 import org.eclipse.jetty.util.*
+import org.eclipse.jetty.util.ssl.SslContextFactory
 import java.net.*
 import java.nio.*
 import kotlin.coroutines.*
@@ -67,7 +68,7 @@ internal suspend fun HTTP2Client.connect(
 ): Session = withPromise { promise: Promise<Session> ->
     connect(
         Transport.TCP_IP,
-        config.sslContextFactory,
+        config.sslContextFactory as SslContextFactory.Client?,
         InetSocketAddress(url.host, url.port),
         NoopListener,
         promise,

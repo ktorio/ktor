@@ -9,7 +9,7 @@ plugins {
 }
 
 kotlin {
-    // The minimal JVM version required for Jetty 10+
+    // The minimal JVM version required for Jetty 12+
     jvmToolchain(17)
 
     sourceSets {

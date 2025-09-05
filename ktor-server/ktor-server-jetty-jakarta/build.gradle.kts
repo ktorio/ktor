@@ -13,18 +13,16 @@ kotlin {
     jvmToolchain(17)
 
     sourceSets {
-        jvmMain {
-            dependencies {
-                api(projects.ktorServerCore)
-                api(projects.ktorServerServletJakarta)
-                api(libs.jetty.server.jakarta)
-                api(libs.jetty.servlets.jakarta)
-                api(libs.jetty.servlet.websocket.jakarta)
-                api(libs.jakarta.servlet)
-                api(libs.jetty.alpn.server.jakarta)
-                api(libs.jetty.alpn.java.server.jakarta)
-                api(libs.jetty.http2.server.jakarta)
-            }
+        jvmMain.dependencies {
+            api(projects.ktorServerCore)
+            api(projects.ktorServerServletJakarta)
+            api(libs.jetty.server.jakarta)
+            api(libs.jetty.servlets.jakarta)
+            api(libs.jetty.servlet.websocket.jakarta)
+            api(libs.jakarta.servlet)
+            api(libs.jetty.alpn.server.jakarta)
+            api(libs.jetty.alpn.java.server.jakarta)
+            api(libs.jetty.http2.server.jakarta)
         }
         jvmTest.dependencies {
             api(libs.kotlin.test.junit5)

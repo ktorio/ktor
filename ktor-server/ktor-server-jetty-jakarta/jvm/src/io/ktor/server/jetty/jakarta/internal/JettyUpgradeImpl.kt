@@ -13,6 +13,7 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
+import org.eclipse.jetty.ee10.servlet.ServletApiRequest
 import org.eclipse.jetty.io.AbstractEndPoint
 import org.eclipse.jetty.io.Connection
 import java.util.concurrent.TimeUnit
@@ -29,7 +30,7 @@ public object JettyUpgradeImpl : ServletUpgrade {
         userContext: CoroutineContext
     ) {
         // Jetty doesn't support Servlet API's upgrade, so we have to implement our own
-        val request = servletRequest as org.eclipse.jetty.ee10.servlet.ServletApiRequest
+        val request = servletRequest as ServletApiRequest
 
         val connection = request.request.connectionMetaData.connection
         val endPoint = connection.endPoint
