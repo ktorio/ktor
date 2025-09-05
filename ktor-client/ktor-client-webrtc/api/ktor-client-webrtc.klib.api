@@ -121,9 +121,12 @@ abstract class io.ktor.client.webrtc/WebRtcDataChannel : io.ktor.client.webrtc/W
 }
 
 abstract class io.ktor.client.webrtc/WebRtcEngineBase : io.ktor.client.webrtc/WebRtcEngine { // io.ktor.client.webrtc/WebRtcEngineBase|null[0]
-    constructor <init>(kotlin/String) // io.ktor.client.webrtc/WebRtcEngineBase.<init>|<init>(kotlin.String){}[0]
+    constructor <init>(kotlin/String, io.ktor.client.webrtc/WebRtcConfig) // io.ktor.client.webrtc/WebRtcEngineBase.<init>|<init>(kotlin.String;io.ktor.client.webrtc.WebRtcConfig){}[0]
 
-    final fun createConnectionContext(kotlin.coroutines/CoroutineContext): kotlin.coroutines/CoroutineContext // io.ktor.client.webrtc/WebRtcEngineBase.createConnectionContext|createConnectionContext(kotlin.coroutines.CoroutineContext){}[0]
+    open val config // io.ktor.client.webrtc/WebRtcEngineBase.config|{}config[0]
+        open fun <get-config>(): io.ktor.client.webrtc/WebRtcConfig // io.ktor.client.webrtc/WebRtcEngineBase.config.<get-config>|<get-config>(){}[0]
+
+    final fun createConnectionContext(kotlinx.coroutines/CoroutineExceptionHandler?): kotlin.coroutines/CoroutineContext // io.ktor.client.webrtc/WebRtcEngineBase.createConnectionContext|createConnectionContext(kotlinx.coroutines.CoroutineExceptionHandler?){}[0]
     open fun close() // io.ktor.client.webrtc/WebRtcEngineBase.close|close(){}[0]
 }
 
@@ -184,6 +187,15 @@ final class io.ktor.client.webrtc/DataChannelReceiveOptions { // io.ktor.client.
     final var onUndeliveredElement // io.ktor.client.webrtc/DataChannelReceiveOptions.onUndeliveredElement|{}onUndeliveredElement[0]
         final fun <get-onUndeliveredElement>(): kotlin/Function1<io.ktor.client.webrtc/WebRtc.DataChannel.Message, kotlin/Unit>? // io.ktor.client.webrtc/DataChannelReceiveOptions.onUndeliveredElement.<get-onUndeliveredElement>|<get-onUndeliveredElement>(){}[0]
         final fun <set-onUndeliveredElement>(kotlin/Function1<io.ktor.client.webrtc/WebRtc.DataChannel.Message, kotlin/Unit>?) // io.ktor.client.webrtc/DataChannelReceiveOptions.onUndeliveredElement.<set-onUndeliveredElement>|<set-onUndeliveredElement>(kotlin.Function1<io.ktor.client.webrtc.WebRtc.DataChannel.Message,kotlin.Unit>?){}[0]
+}
+
+final class io.ktor.client.webrtc/DefaultExceptionHandler : kotlinx.coroutines/CoroutineExceptionHandler { // io.ktor.client.webrtc/DefaultExceptionHandler|null[0]
+    constructor <init>(kotlin/String) // io.ktor.client.webrtc/DefaultExceptionHandler.<init>|<init>(kotlin.String){}[0]
+
+    final val key // io.ktor.client.webrtc/DefaultExceptionHandler.key|{}key[0]
+        final fun <get-key>(): kotlin.coroutines/CoroutineContext.Key<*> // io.ktor.client.webrtc/DefaultExceptionHandler.key.<get-key>|<get-key>(){}[0]
+
+    final fun handleException(kotlin.coroutines/CoroutineContext, kotlin/Throwable) // io.ktor.client.webrtc/DefaultExceptionHandler.handleException|handleException(kotlin.coroutines.CoroutineContext;kotlin.Throwable){}[0]
 }
 
 final class io.ktor.client.webrtc/WebRtcClient : io.ktor.client.webrtc/WebRtcEngine { // io.ktor.client.webrtc/WebRtcClient|null[0]
@@ -285,12 +297,12 @@ open class io.ktor.client.webrtc/WebRtcConnectionConfig { // io.ktor.client.webr
     final var bundlePolicy // io.ktor.client.webrtc/WebRtcConnectionConfig.bundlePolicy|{}bundlePolicy[0]
         final fun <get-bundlePolicy>(): io.ktor.client.webrtc/WebRtc.BundlePolicy // io.ktor.client.webrtc/WebRtcConnectionConfig.bundlePolicy.<get-bundlePolicy>|<get-bundlePolicy>(){}[0]
         final fun <set-bundlePolicy>(io.ktor.client.webrtc/WebRtc.BundlePolicy) // io.ktor.client.webrtc/WebRtcConnectionConfig.bundlePolicy.<set-bundlePolicy>|<set-bundlePolicy>(io.ktor.client.webrtc.WebRtc.BundlePolicy){}[0]
-    final var coroutineContext // io.ktor.client.webrtc/WebRtcConnectionConfig.coroutineContext|{}coroutineContext[0]
-        final fun <get-coroutineContext>(): kotlin.coroutines/CoroutineContext // io.ktor.client.webrtc/WebRtcConnectionConfig.coroutineContext.<get-coroutineContext>|<get-coroutineContext>(){}[0]
-        final fun <set-coroutineContext>(kotlin.coroutines/CoroutineContext) // io.ktor.client.webrtc/WebRtcConnectionConfig.coroutineContext.<set-coroutineContext>|<set-coroutineContext>(kotlin.coroutines.CoroutineContext){}[0]
     final var dataChannelEventsReplay // io.ktor.client.webrtc/WebRtcConnectionConfig.dataChannelEventsReplay|{}dataChannelEventsReplay[0]
         final fun <get-dataChannelEventsReplay>(): kotlin/Int // io.ktor.client.webrtc/WebRtcConnectionConfig.dataChannelEventsReplay.<get-dataChannelEventsReplay>|<get-dataChannelEventsReplay>(){}[0]
         final fun <set-dataChannelEventsReplay>(kotlin/Int) // io.ktor.client.webrtc/WebRtcConnectionConfig.dataChannelEventsReplay.<set-dataChannelEventsReplay>|<set-dataChannelEventsReplay>(kotlin.Int){}[0]
+    final var exceptionHandler // io.ktor.client.webrtc/WebRtcConnectionConfig.exceptionHandler|{}exceptionHandler[0]
+        final fun <get-exceptionHandler>(): kotlinx.coroutines/CoroutineExceptionHandler? // io.ktor.client.webrtc/WebRtcConnectionConfig.exceptionHandler.<get-exceptionHandler>|<get-exceptionHandler>(){}[0]
+        final fun <set-exceptionHandler>(kotlinx.coroutines/CoroutineExceptionHandler?) // io.ktor.client.webrtc/WebRtcConnectionConfig.exceptionHandler.<set-exceptionHandler>|<set-exceptionHandler>(kotlinx.coroutines.CoroutineExceptionHandler?){}[0]
     final var iceCandidatePoolSize // io.ktor.client.webrtc/WebRtcConnectionConfig.iceCandidatePoolSize|{}iceCandidatePoolSize[0]
         final fun <get-iceCandidatePoolSize>(): kotlin/Int // io.ktor.client.webrtc/WebRtcConnectionConfig.iceCandidatePoolSize.<get-iceCandidatePoolSize>|<get-iceCandidatePoolSize>(){}[0]
         final fun <set-iceCandidatePoolSize>(kotlin/Int) // io.ktor.client.webrtc/WebRtcConnectionConfig.iceCandidatePoolSize.<set-iceCandidatePoolSize>|<set-iceCandidatePoolSize>(kotlin.Int){}[0]
@@ -913,9 +925,6 @@ final class io.ktor.client.webrtc/JsWebRtcDataChannel : io.ktor.client.webrtc/We
 // Targets: [js, wasmJs]
 final class io.ktor.client.webrtc/JsWebRtcEngine : io.ktor.client.webrtc/MediaTrackFactory, io.ktor.client.webrtc/WebRtcEngineBase { // io.ktor.client.webrtc/JsWebRtcEngine|null[0]
     constructor <init>(io.ktor.client.webrtc/JsWebRtcEngineConfig, io.ktor.client.webrtc/MediaTrackFactory = ...) // io.ktor.client.webrtc/JsWebRtcEngine.<init>|<init>(io.ktor.client.webrtc.JsWebRtcEngineConfig;io.ktor.client.webrtc.MediaTrackFactory){}[0]
-
-    final val config // io.ktor.client.webrtc/JsWebRtcEngine.config|{}config[0]
-        final fun <get-config>(): io.ktor.client.webrtc/JsWebRtcEngineConfig // io.ktor.client.webrtc/JsWebRtcEngine.config.<get-config>|<get-config>(){}[0]
 
     final suspend fun createAudioTrack(io.ktor.client.webrtc/WebRtcMedia.AudioTrackConstraints): io.ktor.client.webrtc/WebRtcMedia.AudioTrack // io.ktor.client.webrtc/JsWebRtcEngine.createAudioTrack|createAudioTrack(io.ktor.client.webrtc.WebRtcMedia.AudioTrackConstraints){}[0]
     final suspend fun createAudioTrack(kotlin/Function1<io.ktor.client.webrtc/WebRtcMedia.AudioTrackConstraints, kotlin/Unit>): io.ktor.client.webrtc/WebRtcMedia.AudioTrack // io.ktor.client.webrtc/JsWebRtcEngine.createAudioTrack|createAudioTrack(kotlin.Function1<io.ktor.client.webrtc.WebRtcMedia.AudioTrackConstraints,kotlin.Unit>){}[0]

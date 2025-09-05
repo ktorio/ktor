@@ -14,7 +14,7 @@ public class AndroidWebRtcEngineConfig : WebRtcConfig() {
     /**
      * Android application context needed to create media tracks.
      * */
-    public lateinit var context: Context
+    public var context: Context? = null
 
     /**
      * In Android WebRtc implementation PeerConnectionFactory is coupled with the MediaTrackFactory, so if you provide a
@@ -25,8 +25,10 @@ public class AndroidWebRtcEngineConfig : WebRtcConfig() {
 
 public class AndroidWebRtcEngine(
     override val config: AndroidWebRtcEngineConfig,
-    private val mediaTrackFactory: MediaTrackFactory = config.mediaTrackFactory ?: AndroidMediaDevices(config.context)
-) : WebRtcEngineBase("android-webrtc"), MediaTrackFactory by mediaTrackFactory {
+    private val mediaTrackFactory: MediaTrackFactory = config.mediaTrackFactory
+        ?: AndroidMediaDevices(config.context ?: error("Context is required for AndroidWebRtcEngine"))
+) : WebRtcEngineBase("android-webrtc", config),
+    MediaTrackFactory by mediaTrackFactory {
 
     private fun getLocalFactory(): PeerConnectionFactory {
         val factory = config.rtcFactory ?: (mediaTrackFactory as? AndroidMediaDevices)?.peerConnectionFactory
@@ -54,7 +56,7 @@ public class AndroidWebRtcEngine(
             iceTransportsType = config.iceTransportPolicy.toNative()
         }
 
-        val coroutineContext = createConnectionContext(config.coroutineContext)
+        val coroutineContext = createConnectionContext(config.exceptionHandler)
         return AndroidWebRtcPeerConnection(coroutineContext, config).initialize { observer ->
             getLocalFactory().createPeerConnection(rtcConfig, observer)
         }

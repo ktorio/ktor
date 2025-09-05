@@ -19,13 +19,14 @@ public object JsWebRtc : WebRtcClientEngineFactory<JsWebRtcEngineConfig> {
 }
 
 public class JsWebRtcEngine(
-    override val config: JsWebRtcEngineConfig,
+    config: JsWebRtcEngineConfig,
     private val mediaTrackFactory: MediaTrackFactory = config.mediaTrackFactory ?: NavigatorMediaDevices
-) : WebRtcEngineBase("js-webrtc"), MediaTrackFactory by mediaTrackFactory {
+) : WebRtcEngineBase("js-webrtc", config),
+    MediaTrackFactory by mediaTrackFactory {
 
     override suspend fun createPeerConnection(config: WebRtcConnectionConfig): WebRtcPeerConnection {
         val nativePeerConnection = RTCPeerConnection(configuration = config.toJs())
-        val coroutineContext = createConnectionContext(userProvidedContext = config.coroutineContext)
+        val coroutineContext = createConnectionContext(config.exceptionHandler)
         return JsWebRtcPeerConnection(nativePeerConnection, coroutineContext, config)
     }
 }

@@ -6,8 +6,8 @@ package io.ktor.client.webrtc
 
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 
 /**
  * Constant that indicates to WebRTCConnection that there should be no automatic statistics collection.
@@ -28,10 +28,9 @@ public open class WebRtcConnectionConfig {
     /**
      * Refresh rate of [WebRtc.Stats] in ms.
      * Value less than or equal to zero means there will be no statistics collected.
-     * All exceptions thrown during a statistics collection will be ignored.
-     * You can provide a custom [coroutineContext] with [CoroutineExceptionHandler] to handle such exceptions.
+     * You can provide a custom [exceptionHandler] to handle exceptions during a statistics collection.
      * Defaults to [WEBRTC_STATISTICS_DISABLED].
-     * */
+     */
     public var statsRefreshRate: Long = WEBRTC_STATISTICS_DISABLED
 
     /**
@@ -75,10 +74,10 @@ public open class WebRtcConnectionConfig {
     public var iceCandidatesReplay: Int = 20
 
     /**
-     * Custom coroutine context that would be used in the connection for statistics collection or other
-     * background tasks. Defaults to [EmptyCoroutineContext].
+     * Custom coroutine exception handler that will be used to catch background exceptions (e.g., during a statistics
+     * collection, emitting events). If no handler is provided [DefaultExceptionHandler] is used.
      */
-    public var coroutineContext: CoroutineContext = EmptyCoroutineContext
+    public var exceptionHandler: CoroutineExceptionHandler? = null
 }
 
 /**
@@ -136,8 +135,7 @@ public interface WebRtcEngine : AutoCloseable, MediaTrackFactory {
 /**
  * Exception used as a cancellation cause when WebRtcEngine coroutine context is closed.
  */
-public class WebRtcEngineClosedException :
-    kotlinx.coroutines.CancellationException("WebRtc engine is closed.")
+public class WebRtcEngineClosedException : CancellationException("WebRtc engine is closed.")
 
 /**
  * Base implementation of the WebRtcEngine interface.
@@ -146,15 +144,26 @@ public class WebRtcEngineClosedException :
  *
  * @param engineName Name identifier for the engine, used in coroutine naming.
  */
-public abstract class WebRtcEngineBase(private val engineName: String) : WebRtcEngine {
-    private val job = SupervisorJob()
-    private val scope = CoroutineScope(job + CoroutineName("$engineName-context"))
+public abstract class WebRtcEngineBase(
+    private val engineName: String,
+    configuration: WebRtcConfig
+) : WebRtcEngine {
+    private val parentJob = SupervisorJob()
+    override val config: WebRtcConfig = configuration
+    private val dispatcher = configuration.dispatcher ?: ioDispatcher()
+    private val defaultExceptionHandler = DefaultExceptionHandler("io.ktor.client.webrtc")
+    private val engineContext = parentJob + CoroutineName("$engineName-context") + dispatcher
 
-    protected fun createConnectionContext(userProvidedContext: CoroutineContext): CoroutineContext {
-        return scope.coroutineContext + (config.dispatcher ?: ioDispatcher()) + userProvidedContext
+    /**
+     * Creates a new coroutine context for the new connection based on engine context and provided exception handler.
+     * Every connection scope is independent of the other connection scopes.
+     * All child coroutines of the connection scope are also independent of each other.
+     */
+    protected fun createConnectionContext(exceptionHandler: CoroutineExceptionHandler?): CoroutineContext {
+        return engineContext + SupervisorJob(parentJob) + (exceptionHandler ?: defaultExceptionHandler)
     }
 
     override fun close() {
-        job.cancel(WebRtcEngineClosedException())
+        parentJob.cancel(WebRtcEngineClosedException())
     }
 }
