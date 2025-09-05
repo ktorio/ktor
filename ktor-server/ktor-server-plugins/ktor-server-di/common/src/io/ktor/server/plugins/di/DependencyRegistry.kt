@@ -174,7 +174,6 @@ public class DependencyRegistry(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.dependencies)
  */
-@KtorDsl
 public fun <T> Application.dependencies(action: DependencyRegistry.() -> T): T =
     dependencies.action()
 

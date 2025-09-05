@@ -9,6 +9,7 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.servlet.*
+import io.ktor.utils.io.*
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CompletableJob
 import org.apache.catalina.connector.Connector
@@ -48,7 +49,7 @@ public class TomcatApplicationEngine(
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.tomcat.TomcatApplicationEngine.Configuration.configureTomcat)
          */
-        public var configureTomcat: Tomcat.() -> Unit = {}
+        public var configureTomcat: (@KtorDsl Tomcat).() -> Unit = {}
     }
 
     private val tempDirectory by lazy { Files.createTempDirectory("ktor-server-tomcat-") }

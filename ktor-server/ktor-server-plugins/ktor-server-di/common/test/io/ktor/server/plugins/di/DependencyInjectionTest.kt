@@ -4,28 +4,19 @@
 
 package io.ktor.server.plugins.di
 
-import io.ktor.client.request.get
-import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.bodyAsText
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.server.application.*
-import io.ktor.server.response.respondText
+import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import io.ktor.test.dispatcher.runTestWithRealTime
-import io.ktor.util.logging.Logger
+import io.ktor.test.dispatcher.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.CancellationException
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.awaitCancellation
-import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.joinAll
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.Serializable
@@ -335,7 +326,7 @@ class DependencyInjectionTest {
             val bankService: Deferred<BankService> = dependencies.resolveDeferred()
             routing {
                 get("/hello") {
-                    val service: GreetingService = dependencies.resolve()
+                    val service: GreetingService = application.dependencies.resolve()
                     call.respondText(service.hello())
                 }
                 get("/balance") {
@@ -343,7 +334,7 @@ class DependencyInjectionTest {
                     call.respondText(service.balance().toString())
                 }
                 get("/bank-teller") {
-                    val service: BankTeller = dependencies.resolve()
+                    val service: BankTeller = application.dependencies.resolve()
                     call.respondText("${service.hello()}, your balance is ${service.balance()}")
                 }
             }
@@ -390,7 +381,7 @@ class DependencyInjectionTest {
             val bankService: Deferred<BankService> = dependencies.resolveDeferred()
             routing {
                 get("/hello") {
-                    val service: GreetingService = dependencies.resolve()
+                    val service: GreetingService = application.dependencies.resolve()
                     call.respondText(service.hello())
                 }
                 get("/balance") {
@@ -398,7 +389,7 @@ class DependencyInjectionTest {
                     call.respondText(service.balance().toString())
                 }
                 get("/bank-teller") {
-                    val service: BankTeller = dependencies.resolve()
+                    val service: BankTeller = application.dependencies.resolve()
                     call.respondText("${service.hello()}, your balance is ${service.balance()}")
                 }
             }
@@ -429,13 +420,14 @@ class DependencyInjectionTest {
                             awaitCancellation()
                         }
                     }
+
                     routing {
                         get("/hello") {
                             call.launch {
                                 delay(50)
-                                registryDeferred.complete(dependencies)
+                                registryDeferred.complete(application.dependencies)
                             }
-                            val service: GreetingService = dependencies.resolve()
+                            val service: GreetingService = application.dependencies.resolve()
                             call.respondText(service.hello())
                         }
                     }

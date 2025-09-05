@@ -12,8 +12,9 @@ import io.ktor.server.plugins.callid.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import kotlin.coroutines.*
-import kotlin.test.*
+import kotlinx.coroutines.currentCoroutineContext
+import kotlin.test.Test
+import kotlin.test.assertEquals
 import io.ktor.server.plugins.callid.CallId as ServerCallId
 
 class CallIdTest {
@@ -37,7 +38,7 @@ class CallIdTest {
         }
 
         val response = client.get("/1").bodyAsText()
-        assertEquals(response, "call-id-1:call-id-1:call-id-1")
+        assertEquals("call-id-1:call-id-1:call-id-1", response)
     }
 
     @Test
@@ -63,7 +64,7 @@ class CallIdTest {
         }
 
         val response = client.get("/1").bodyAsText()
-        assertEquals(response, "call-id-client-0:call-id-client-0:call-id-client-0")
+        assertEquals("call-id-client-0:call-id-client-0:call-id-client-0", response)
     }
 
     @Test
@@ -90,7 +91,7 @@ class CallIdTest {
         }
 
         val response = client.get("/1").bodyAsText()
-        assertEquals(response, "call-id-client-1:call-id-client-1:call-id-client-1")
+        assertEquals("call-id-client-1:call-id-client-1:call-id-client-1", response)
     }
 
     @Test
@@ -116,12 +117,13 @@ class CallIdTest {
         }
 
         val response = client.get("/1").bodyAsText()
-        assertEquals(response, "null:call-id-1")
+        assertEquals("null:call-id-1", response)
     }
 
     private suspend fun RoutingContext.respondWithCallId() {
         val callIdFromCall = call.callId ?: error("No call id in call")
-        val callIdFromContext = coroutineContext[KtorCallIdContextElement]?.callId ?: error("No call id in context")
+        val callIdFromContext = currentCoroutineContext()[KtorCallIdContextElement]?.callId
+            ?: error("No call id in context")
         val callIdFromHeader = call.request.headers[HttpHeaders.XRequestId] ?: error("No call id in header")
         call.respond("$callIdFromCall:$callIdFromContext:$callIdFromHeader")
     }
