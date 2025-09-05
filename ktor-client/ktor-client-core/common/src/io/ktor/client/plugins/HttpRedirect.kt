@@ -63,10 +63,11 @@ public val HttpRedirect: ClientPlugin<HttpRedirectConfig> = createClientPlugin(
     ): HttpClientCall {
         var call = origin
         var requestBuilder = context
-        val originProtocol = origin.request.url.protocol
-        val originAuthority = origin.request.url.authority
 
         while (true) {
+            // Protocol/authority of the current hop
+            val previousProtocol = call.request.url.protocol
+            val previousAuthority = call.request.url.authority
             if (!call.response.status.isRedirect()) return call
 
             val location = call.response.headers[HttpHeaders.Location]
@@ -77,7 +78,7 @@ public val HttpRedirect: ClientPlugin<HttpRedirectConfig> = createClientPlugin(
             }
 
             client.monitor.raise(HttpResponseRedirectEvent, call.response)
-            LOGGER.trace("Received redirect response to $location for request ${context.url}")
+            LOGGER.trace("Received redirect response to $location for request ${call.request.url}")
 
             requestBuilder = HttpRequestBuilder().apply {
                 takeFromWithExecutionContext(requestBuilder)
@@ -87,14 +88,17 @@ public val HttpRedirect: ClientPlugin<HttpRedirectConfig> = createClientPlugin(
                 /**
                  * Disallow redirect with a security downgrade.
                  */
-                if (!allowHttpsDowngrade && originProtocol.isSecure() && !url.protocol.isSecure()) {
-                    LOGGER.trace("Can not redirect ${context.url} because of security downgrade")
+                if (!allowHttpsDowngrade && previousProtocol.isSecure() && !url.protocol.isSecure()) {
+                    LOGGER.trace("Blocked redirect from ${call.request.url} to $location due to HTTPS downgrade")
                     return call
                 }
 
-                if (originAuthority != url.authority) {
+                if (previousAuthority != url.authority) {
                     headers.remove(HttpHeaders.Authorization)
-                    LOGGER.trace("Removing Authorization header from redirect for ${context.url}")
+                    LOGGER.trace(
+                        "Removing Authorization header for cross-authority redirect: " +
+                            "$previousAuthority -> ${url.buildString()}"
+                    )
                 }
             }
 
