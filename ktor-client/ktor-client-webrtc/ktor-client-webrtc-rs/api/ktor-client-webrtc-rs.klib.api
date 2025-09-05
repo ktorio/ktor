@@ -1,0 +1,1458 @@
+// Klib ABI Dump
+// Targets: [iosArm64, iosSimulatorArm64, iosX64, linuxArm64, linuxX64, macosArm64, mingwX64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <io.ktor:ktor-client-webrtc-rs>
+final enum class uniffi.ktor_client_webrtc/BundlePolicy : kotlin/Enum<uniffi.ktor_client_webrtc/BundlePolicy> { // uniffi.ktor_client_webrtc/BundlePolicy|null[0]
+    enum entry BALANCED // uniffi.ktor_client_webrtc/BundlePolicy.BALANCED|null[0]
+    enum entry MAX_BUNDLE // uniffi.ktor_client_webrtc/BundlePolicy.MAX_BUNDLE|null[0]
+    enum entry MAX_COMPAT // uniffi.ktor_client_webrtc/BundlePolicy.MAX_COMPAT|null[0]
+
+    final val entries // uniffi.ktor_client_webrtc/BundlePolicy.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<uniffi.ktor_client_webrtc/BundlePolicy> // uniffi.ktor_client_webrtc/BundlePolicy.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): uniffi.ktor_client_webrtc/BundlePolicy // uniffi.ktor_client_webrtc/BundlePolicy.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<uniffi.ktor_client_webrtc/BundlePolicy> // uniffi.ktor_client_webrtc/BundlePolicy.values|values#static(){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/BundlePolicy.Companion|null[0]
+}
+
+final enum class uniffi.ktor_client_webrtc/ConnectionState : kotlin/Enum<uniffi.ktor_client_webrtc/ConnectionState> { // uniffi.ktor_client_webrtc/ConnectionState|null[0]
+    enum entry CLOSED // uniffi.ktor_client_webrtc/ConnectionState.CLOSED|null[0]
+    enum entry CONNECTED // uniffi.ktor_client_webrtc/ConnectionState.CONNECTED|null[0]
+    enum entry CONNECTING // uniffi.ktor_client_webrtc/ConnectionState.CONNECTING|null[0]
+    enum entry DISCONNECTED // uniffi.ktor_client_webrtc/ConnectionState.DISCONNECTED|null[0]
+    enum entry FAILED // uniffi.ktor_client_webrtc/ConnectionState.FAILED|null[0]
+    enum entry NEW // uniffi.ktor_client_webrtc/ConnectionState.NEW|null[0]
+
+    final val entries // uniffi.ktor_client_webrtc/ConnectionState.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<uniffi.ktor_client_webrtc/ConnectionState> // uniffi.ktor_client_webrtc/ConnectionState.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): uniffi.ktor_client_webrtc/ConnectionState // uniffi.ktor_client_webrtc/ConnectionState.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<uniffi.ktor_client_webrtc/ConnectionState> // uniffi.ktor_client_webrtc/ConnectionState.values|values#static(){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/ConnectionState.Companion|null[0]
+}
+
+final enum class uniffi.ktor_client_webrtc/DataChannelState : kotlin/Enum<uniffi.ktor_client_webrtc/DataChannelState> { // uniffi.ktor_client_webrtc/DataChannelState|null[0]
+    enum entry CLOSED // uniffi.ktor_client_webrtc/DataChannelState.CLOSED|null[0]
+    enum entry CLOSING // uniffi.ktor_client_webrtc/DataChannelState.CLOSING|null[0]
+    enum entry CONNECTING // uniffi.ktor_client_webrtc/DataChannelState.CONNECTING|null[0]
+    enum entry OPEN // uniffi.ktor_client_webrtc/DataChannelState.OPEN|null[0]
+
+    final val entries // uniffi.ktor_client_webrtc/DataChannelState.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<uniffi.ktor_client_webrtc/DataChannelState> // uniffi.ktor_client_webrtc/DataChannelState.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): uniffi.ktor_client_webrtc/DataChannelState // uniffi.ktor_client_webrtc/DataChannelState.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<uniffi.ktor_client_webrtc/DataChannelState> // uniffi.ktor_client_webrtc/DataChannelState.values|values#static(){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/DataChannelState.Companion|null[0]
+}
+
+final enum class uniffi.ktor_client_webrtc/IceConnectionState : kotlin/Enum<uniffi.ktor_client_webrtc/IceConnectionState> { // uniffi.ktor_client_webrtc/IceConnectionState|null[0]
+    enum entry CHECKING // uniffi.ktor_client_webrtc/IceConnectionState.CHECKING|null[0]
+    enum entry CLOSED // uniffi.ktor_client_webrtc/IceConnectionState.CLOSED|null[0]
+    enum entry COMPLETED // uniffi.ktor_client_webrtc/IceConnectionState.COMPLETED|null[0]
+    enum entry CONNECTED // uniffi.ktor_client_webrtc/IceConnectionState.CONNECTED|null[0]
+    enum entry DISCONNECTED // uniffi.ktor_client_webrtc/IceConnectionState.DISCONNECTED|null[0]
+    enum entry FAILED // uniffi.ktor_client_webrtc/IceConnectionState.FAILED|null[0]
+    enum entry NEW // uniffi.ktor_client_webrtc/IceConnectionState.NEW|null[0]
+
+    final val entries // uniffi.ktor_client_webrtc/IceConnectionState.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<uniffi.ktor_client_webrtc/IceConnectionState> // uniffi.ktor_client_webrtc/IceConnectionState.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): uniffi.ktor_client_webrtc/IceConnectionState // uniffi.ktor_client_webrtc/IceConnectionState.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<uniffi.ktor_client_webrtc/IceConnectionState> // uniffi.ktor_client_webrtc/IceConnectionState.values|values#static(){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/IceConnectionState.Companion|null[0]
+}
+
+final enum class uniffi.ktor_client_webrtc/IceGatheringState : kotlin/Enum<uniffi.ktor_client_webrtc/IceGatheringState> { // uniffi.ktor_client_webrtc/IceGatheringState|null[0]
+    enum entry COMPLETE // uniffi.ktor_client_webrtc/IceGatheringState.COMPLETE|null[0]
+    enum entry GATHERING // uniffi.ktor_client_webrtc/IceGatheringState.GATHERING|null[0]
+    enum entry NEW // uniffi.ktor_client_webrtc/IceGatheringState.NEW|null[0]
+
+    final val entries // uniffi.ktor_client_webrtc/IceGatheringState.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<uniffi.ktor_client_webrtc/IceGatheringState> // uniffi.ktor_client_webrtc/IceGatheringState.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): uniffi.ktor_client_webrtc/IceGatheringState // uniffi.ktor_client_webrtc/IceGatheringState.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<uniffi.ktor_client_webrtc/IceGatheringState> // uniffi.ktor_client_webrtc/IceGatheringState.values|values#static(){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/IceGatheringState.Companion|null[0]
+}
+
+final enum class uniffi.ktor_client_webrtc/IceTransportPolicy : kotlin/Enum<uniffi.ktor_client_webrtc/IceTransportPolicy> { // uniffi.ktor_client_webrtc/IceTransportPolicy|null[0]
+    enum entry ALL // uniffi.ktor_client_webrtc/IceTransportPolicy.ALL|null[0]
+    enum entry RELAY // uniffi.ktor_client_webrtc/IceTransportPolicy.RELAY|null[0]
+
+    final val entries // uniffi.ktor_client_webrtc/IceTransportPolicy.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<uniffi.ktor_client_webrtc/IceTransportPolicy> // uniffi.ktor_client_webrtc/IceTransportPolicy.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): uniffi.ktor_client_webrtc/IceTransportPolicy // uniffi.ktor_client_webrtc/IceTransportPolicy.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<uniffi.ktor_client_webrtc/IceTransportPolicy> // uniffi.ktor_client_webrtc/IceTransportPolicy.values|values#static(){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/IceTransportPolicy.Companion|null[0]
+}
+
+final enum class uniffi.ktor_client_webrtc/MediaCodec : kotlin/Enum<uniffi.ktor_client_webrtc/MediaCodec> { // uniffi.ktor_client_webrtc/MediaCodec|null[0]
+    enum entry AUDIO_OPUS // uniffi.ktor_client_webrtc/MediaCodec.AUDIO_OPUS|null[0]
+    enum entry VIDEO_H264 // uniffi.ktor_client_webrtc/MediaCodec.VIDEO_H264|null[0]
+    enum entry VIDEO_VP8 // uniffi.ktor_client_webrtc/MediaCodec.VIDEO_VP8|null[0]
+
+    final val entries // uniffi.ktor_client_webrtc/MediaCodec.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<uniffi.ktor_client_webrtc/MediaCodec> // uniffi.ktor_client_webrtc/MediaCodec.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): uniffi.ktor_client_webrtc/MediaCodec // uniffi.ktor_client_webrtc/MediaCodec.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<uniffi.ktor_client_webrtc/MediaCodec> // uniffi.ktor_client_webrtc/MediaCodec.values|values#static(){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/MediaCodec.Companion|null[0]
+}
+
+final enum class uniffi.ktor_client_webrtc/RtcpMuxPolicy : kotlin/Enum<uniffi.ktor_client_webrtc/RtcpMuxPolicy> { // uniffi.ktor_client_webrtc/RtcpMuxPolicy|null[0]
+    enum entry NEGOTIATE // uniffi.ktor_client_webrtc/RtcpMuxPolicy.NEGOTIATE|null[0]
+    enum entry REQUIRE // uniffi.ktor_client_webrtc/RtcpMuxPolicy.REQUIRE|null[0]
+
+    final val entries // uniffi.ktor_client_webrtc/RtcpMuxPolicy.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<uniffi.ktor_client_webrtc/RtcpMuxPolicy> // uniffi.ktor_client_webrtc/RtcpMuxPolicy.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): uniffi.ktor_client_webrtc/RtcpMuxPolicy // uniffi.ktor_client_webrtc/RtcpMuxPolicy.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<uniffi.ktor_client_webrtc/RtcpMuxPolicy> // uniffi.ktor_client_webrtc/RtcpMuxPolicy.values|values#static(){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/RtcpMuxPolicy.Companion|null[0]
+}
+
+final enum class uniffi.ktor_client_webrtc/SessionDescriptionType : kotlin/Enum<uniffi.ktor_client_webrtc/SessionDescriptionType> { // uniffi.ktor_client_webrtc/SessionDescriptionType|null[0]
+    enum entry ANSWER // uniffi.ktor_client_webrtc/SessionDescriptionType.ANSWER|null[0]
+    enum entry OFFER // uniffi.ktor_client_webrtc/SessionDescriptionType.OFFER|null[0]
+    enum entry PROVISIONAL_ANSWER // uniffi.ktor_client_webrtc/SessionDescriptionType.PROVISIONAL_ANSWER|null[0]
+    enum entry ROLLBACK // uniffi.ktor_client_webrtc/SessionDescriptionType.ROLLBACK|null[0]
+
+    final val entries // uniffi.ktor_client_webrtc/SessionDescriptionType.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<uniffi.ktor_client_webrtc/SessionDescriptionType> // uniffi.ktor_client_webrtc/SessionDescriptionType.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): uniffi.ktor_client_webrtc/SessionDescriptionType // uniffi.ktor_client_webrtc/SessionDescriptionType.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<uniffi.ktor_client_webrtc/SessionDescriptionType> // uniffi.ktor_client_webrtc/SessionDescriptionType.values|values#static(){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/SessionDescriptionType.Companion|null[0]
+}
+
+final enum class uniffi.ktor_client_webrtc/SignalingState : kotlin/Enum<uniffi.ktor_client_webrtc/SignalingState> { // uniffi.ktor_client_webrtc/SignalingState|null[0]
+    enum entry CLOSED // uniffi.ktor_client_webrtc/SignalingState.CLOSED|null[0]
+    enum entry HAVE_LOCAL_OFFER // uniffi.ktor_client_webrtc/SignalingState.HAVE_LOCAL_OFFER|null[0]
+    enum entry HAVE_LOCAL_PROVISIONAL_ANSWER // uniffi.ktor_client_webrtc/SignalingState.HAVE_LOCAL_PROVISIONAL_ANSWER|null[0]
+    enum entry HAVE_REMOTE_OFFER // uniffi.ktor_client_webrtc/SignalingState.HAVE_REMOTE_OFFER|null[0]
+    enum entry HAVE_REMOTE_PROVISIONAL_ANSWER // uniffi.ktor_client_webrtc/SignalingState.HAVE_REMOTE_PROVISIONAL_ANSWER|null[0]
+    enum entry STABLE // uniffi.ktor_client_webrtc/SignalingState.STABLE|null[0]
+
+    final val entries // uniffi.ktor_client_webrtc/SignalingState.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<uniffi.ktor_client_webrtc/SignalingState> // uniffi.ktor_client_webrtc/SignalingState.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): uniffi.ktor_client_webrtc/SignalingState // uniffi.ktor_client_webrtc/SignalingState.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<uniffi.ktor_client_webrtc/SignalingState> // uniffi.ktor_client_webrtc/SignalingState.values|values#static(){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/SignalingState.Companion|null[0]
+}
+
+abstract interface <#A: kotlin/Any?, #B: kotlin/Any?> uniffi.ktor_client_webrtc/FfiConverter { // uniffi.ktor_client_webrtc/FfiConverter|null[0]
+    abstract fun allocationSize(#A): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverter.allocationSize|allocationSize(1:0){}[0]
+    abstract fun lift(#B): #A // uniffi.ktor_client_webrtc/FfiConverter.lift|lift(1:1){}[0]
+    abstract fun lower(#A): #B // uniffi.ktor_client_webrtc/FfiConverter.lower|lower(1:0){}[0]
+    abstract fun read(uniffi.ktor_client_webrtc/ByteBuffer): #A // uniffi.ktor_client_webrtc/FfiConverter.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    abstract fun write(#A, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverter.write|write(1:0;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    open fun liftFromRustBuffer(kotlinx.cinterop/CValue<ktor_client_webrtc.cinterop/RustBuffer>): #A // uniffi.ktor_client_webrtc/FfiConverter.liftFromRustBuffer|liftFromRustBuffer(kotlinx.cinterop.CValue<ktor_client_webrtc.cinterop.RustBuffer>){}[0]
+    open fun lowerIntoRustBuffer(#A): kotlinx.cinterop/CValue<ktor_client_webrtc.cinterop/RustBuffer> // uniffi.ktor_client_webrtc/FfiConverter.lowerIntoRustBuffer|lowerIntoRustBuffer(1:0){}[0]
+}
+
+abstract interface <#A: kotlin/Any?> uniffi.ktor_client_webrtc/FfiConverterRustBuffer : uniffi.ktor_client_webrtc/FfiConverter<#A, kotlinx.cinterop/CValue<ktor_client_webrtc.cinterop/RustBuffer>> { // uniffi.ktor_client_webrtc/FfiConverterRustBuffer|null[0]
+    open fun lift(kotlinx.cinterop/CValue<ktor_client_webrtc.cinterop/RustBuffer>): #A // uniffi.ktor_client_webrtc/FfiConverterRustBuffer.lift|lift(kotlinx.cinterop.CValue<ktor_client_webrtc.cinterop.RustBuffer>){}[0]
+    open fun lower(#A): kotlinx.cinterop/CValue<ktor_client_webrtc.cinterop/RustBuffer> // uniffi.ktor_client_webrtc/FfiConverterRustBuffer.lower|lower(1:0){}[0]
+}
+
+abstract interface <#A: kotlin/Any?> uniffi.ktor_client_webrtc/UniffiRustCallStatusErrorHandler { // uniffi.ktor_client_webrtc/UniffiRustCallStatusErrorHandler|null[0]
+    abstract fun lift(kotlinx.cinterop/CValue<ktor_client_webrtc.cinterop/RustBuffer>): #A // uniffi.ktor_client_webrtc/UniffiRustCallStatusErrorHandler.lift|lift(kotlinx.cinterop.CValue<ktor_client_webrtc.cinterop.RustBuffer>){}[0]
+}
+
+abstract interface uniffi.ktor_client_webrtc/DataChannelInterface { // uniffi.ktor_client_webrtc/DataChannelInterface|null[0]
+    abstract fun id(): kotlin/UShort // uniffi.ktor_client_webrtc/DataChannelInterface.id|id(){}[0]
+    abstract fun label(): kotlin/String // uniffi.ktor_client_webrtc/DataChannelInterface.label|label(){}[0]
+    abstract fun maxPacketLifetime(): kotlin/UShort? // uniffi.ktor_client_webrtc/DataChannelInterface.maxPacketLifetime|maxPacketLifetime(){}[0]
+    abstract fun maxRetransmits(): kotlin/UShort? // uniffi.ktor_client_webrtc/DataChannelInterface.maxRetransmits|maxRetransmits(){}[0]
+    abstract fun negotiated(): kotlin/Boolean // uniffi.ktor_client_webrtc/DataChannelInterface.negotiated|negotiated(){}[0]
+    abstract fun ordered(): kotlin/Boolean // uniffi.ktor_client_webrtc/DataChannelInterface.ordered|ordered(){}[0]
+    abstract fun protocol(): kotlin/String // uniffi.ktor_client_webrtc/DataChannelInterface.protocol|protocol(){}[0]
+    abstract fun state(): uniffi.ktor_client_webrtc/DataChannelState // uniffi.ktor_client_webrtc/DataChannelInterface.state|state(){}[0]
+    abstract suspend fun bufferedAmount(): kotlin/ULong // uniffi.ktor_client_webrtc/DataChannelInterface.bufferedAmount|bufferedAmount(){}[0]
+    abstract suspend fun bufferedAmountLowThreshold(): kotlin/ULong // uniffi.ktor_client_webrtc/DataChannelInterface.bufferedAmountLowThreshold|bufferedAmountLowThreshold(){}[0]
+    abstract suspend fun closeChannel() // uniffi.ktor_client_webrtc/DataChannelInterface.closeChannel|closeChannel(){}[0]
+    abstract suspend fun registerObserver(uniffi.ktor_client_webrtc/DataChannelObserver) // uniffi.ktor_client_webrtc/DataChannelInterface.registerObserver|registerObserver(uniffi.ktor_client_webrtc.DataChannelObserver){}[0]
+    abstract suspend fun send(kotlin/ByteArray): kotlin/ULong // uniffi.ktor_client_webrtc/DataChannelInterface.send|send(kotlin.ByteArray){}[0]
+    abstract suspend fun sendText(kotlin/String): kotlin/ULong // uniffi.ktor_client_webrtc/DataChannelInterface.sendText|sendText(kotlin.String){}[0]
+    abstract suspend fun setBufferedAmountLowThreshold(kotlin/ULong) // uniffi.ktor_client_webrtc/DataChannelInterface.setBufferedAmountLowThreshold|setBufferedAmountLowThreshold(kotlin.ULong){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/DataChannelInterface.Companion|null[0]
+}
+
+abstract interface uniffi.ktor_client_webrtc/DataChannelObserver { // uniffi.ktor_client_webrtc/DataChannelObserver|null[0]
+    abstract fun onBufferedAmountLow() // uniffi.ktor_client_webrtc/DataChannelObserver.onBufferedAmountLow|onBufferedAmountLow(){}[0]
+    abstract fun onClose() // uniffi.ktor_client_webrtc/DataChannelObserver.onClose|onClose(){}[0]
+    abstract fun onError(uniffi.ktor_client_webrtc/RtcException) // uniffi.ktor_client_webrtc/DataChannelObserver.onError|onError(uniffi.ktor_client_webrtc.RtcException){}[0]
+    abstract fun onMessage(uniffi.ktor_client_webrtc/DataChannelMessage) // uniffi.ktor_client_webrtc/DataChannelObserver.onMessage|onMessage(uniffi.ktor_client_webrtc.DataChannelMessage){}[0]
+    abstract fun onOpen() // uniffi.ktor_client_webrtc/DataChannelObserver.onOpen|onOpen(){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/DataChannelObserver.Companion|null[0]
+}
+
+abstract interface uniffi.ktor_client_webrtc/Disposable : kotlin/AutoCloseable { // uniffi.ktor_client_webrtc/Disposable|null[0]
+    abstract fun destroy() // uniffi.ktor_client_webrtc/Disposable.destroy|destroy(){}[0]
+    open fun close() // uniffi.ktor_client_webrtc/Disposable.close|close(){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/Disposable.Companion|null[0]
+}
+
+abstract interface uniffi.ktor_client_webrtc/MediaHandler { // uniffi.ktor_client_webrtc/MediaHandler|null[0]
+    abstract fun onNextSample(uniffi.ktor_client_webrtc/MediaSample) // uniffi.ktor_client_webrtc/MediaHandler.onNextSample|onNextSample(uniffi.ktor_client_webrtc.MediaSample){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/MediaHandler.Companion|null[0]
+}
+
+abstract interface uniffi.ktor_client_webrtc/MediaStreamSinkWrapperInterface { // uniffi.ktor_client_webrtc/MediaStreamSinkWrapperInterface|null[0]
+    final object Companion // uniffi.ktor_client_webrtc/MediaStreamSinkWrapperInterface.Companion|null[0]
+}
+
+abstract interface uniffi.ktor_client_webrtc/MediaStreamTrackInterface { // uniffi.ktor_client_webrtc/MediaStreamTrackInterface|null[0]
+    abstract fun clockRate(): kotlin/UInt // uniffi.ktor_client_webrtc/MediaStreamTrackInterface.clockRate|clockRate(){}[0]
+    abstract fun codec(): uniffi.ktor_client_webrtc/MediaCodec // uniffi.ktor_client_webrtc/MediaStreamTrackInterface.codec|codec(){}[0]
+    abstract fun createSink(uniffi.ktor_client_webrtc/MediaHandler): uniffi.ktor_client_webrtc/MediaStreamSinkWrapper // uniffi.ktor_client_webrtc/MediaStreamTrackInterface.createSink|createSink(uniffi.ktor_client_webrtc.MediaHandler){}[0]
+    abstract fun enabled(): kotlin/Boolean // uniffi.ktor_client_webrtc/MediaStreamTrackInterface.enabled|enabled(){}[0]
+    abstract fun id(): kotlin/String // uniffi.ktor_client_webrtc/MediaStreamTrackInterface.id|id(){}[0]
+    abstract fun isLocal(): kotlin/Boolean // uniffi.ktor_client_webrtc/MediaStreamTrackInterface.isLocal|isLocal(){}[0]
+    abstract fun isRemote(): kotlin/Boolean // uniffi.ktor_client_webrtc/MediaStreamTrackInterface.isRemote|isRemote(){}[0]
+    abstract fun setEnabled(kotlin/Boolean) // uniffi.ktor_client_webrtc/MediaStreamTrackInterface.setEnabled|setEnabled(kotlin.Boolean){}[0]
+    abstract fun setSink(uniffi.ktor_client_webrtc/MediaStreamSinkWrapper?) // uniffi.ktor_client_webrtc/MediaStreamTrackInterface.setSink|setSink(uniffi.ktor_client_webrtc.MediaStreamSinkWrapper?){}[0]
+    abstract suspend fun hasSink(): kotlin/Boolean // uniffi.ktor_client_webrtc/MediaStreamTrackInterface.hasSink|hasSink(){}[0]
+    abstract suspend fun readAll() // uniffi.ktor_client_webrtc/MediaStreamTrackInterface.readAll|readAll(){}[0]
+    abstract suspend fun readRtp() // uniffi.ktor_client_webrtc/MediaStreamTrackInterface.readRtp|readRtp(){}[0]
+    abstract suspend fun writeData(kotlin/ByteArray, kotlin.time/Duration) // uniffi.ktor_client_webrtc/MediaStreamTrackInterface.writeData|writeData(kotlin.ByteArray;kotlin.time.Duration){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/MediaStreamTrackInterface.Companion|null[0]
+}
+
+abstract interface uniffi.ktor_client_webrtc/PeerConnectionInterface { // uniffi.ktor_client_webrtc/PeerConnectionInterface|null[0]
+    abstract fun registerObserver(uniffi.ktor_client_webrtc/PeerConnectionObserver) // uniffi.ktor_client_webrtc/PeerConnectionInterface.registerObserver|registerObserver(uniffi.ktor_client_webrtc.PeerConnectionObserver){}[0]
+    abstract suspend fun addIceCandidate(uniffi.ktor_client_webrtc/IceCandidate) // uniffi.ktor_client_webrtc/PeerConnectionInterface.addIceCandidate|addIceCandidate(uniffi.ktor_client_webrtc.IceCandidate){}[0]
+    abstract suspend fun addTrack(uniffi.ktor_client_webrtc/MediaStreamTrack): uniffi.ktor_client_webrtc/RtpSender // uniffi.ktor_client_webrtc/PeerConnectionInterface.addTrack|addTrack(uniffi.ktor_client_webrtc.MediaStreamTrack){}[0]
+    abstract suspend fun createAnswer(): uniffi.ktor_client_webrtc/SessionDescription // uniffi.ktor_client_webrtc/PeerConnectionInterface.createAnswer|createAnswer(){}[0]
+    abstract suspend fun createDataChannel(kotlin/String, uniffi.ktor_client_webrtc/DataChannelInit): uniffi.ktor_client_webrtc/DataChannel // uniffi.ktor_client_webrtc/PeerConnectionInterface.createDataChannel|createDataChannel(kotlin.String;uniffi.ktor_client_webrtc.DataChannelInit){}[0]
+    abstract suspend fun createOffer(): uniffi.ktor_client_webrtc/SessionDescription // uniffi.ktor_client_webrtc/PeerConnectionInterface.createOffer|createOffer(){}[0]
+    abstract suspend fun getLocalDescription(): uniffi.ktor_client_webrtc/SessionDescription? // uniffi.ktor_client_webrtc/PeerConnectionInterface.getLocalDescription|getLocalDescription(){}[0]
+    abstract suspend fun getRemoteDescription(): uniffi.ktor_client_webrtc/SessionDescription? // uniffi.ktor_client_webrtc/PeerConnectionInterface.getRemoteDescription|getRemoteDescription(){}[0]
+    abstract suspend fun getStatistics(): kotlin.collections/List<uniffi.ktor_client_webrtc/Stats> // uniffi.ktor_client_webrtc/PeerConnectionInterface.getStatistics|getStatistics(){}[0]
+    abstract suspend fun removeTrack(uniffi.ktor_client_webrtc/MediaStreamTrack) // uniffi.ktor_client_webrtc/PeerConnectionInterface.removeTrack|removeTrack(uniffi.ktor_client_webrtc.MediaStreamTrack){}[0]
+    abstract suspend fun removeTrackBySender(uniffi.ktor_client_webrtc/RtpSender) // uniffi.ktor_client_webrtc/PeerConnectionInterface.removeTrackBySender|removeTrackBySender(uniffi.ktor_client_webrtc.RtpSender){}[0]
+    abstract suspend fun restartIce() // uniffi.ktor_client_webrtc/PeerConnectionInterface.restartIce|restartIce(){}[0]
+    abstract suspend fun setLocalDescription(uniffi.ktor_client_webrtc/SessionDescription) // uniffi.ktor_client_webrtc/PeerConnectionInterface.setLocalDescription|setLocalDescription(uniffi.ktor_client_webrtc.SessionDescription){}[0]
+    abstract suspend fun setRemoteDescription(uniffi.ktor_client_webrtc/SessionDescription) // uniffi.ktor_client_webrtc/PeerConnectionInterface.setRemoteDescription|setRemoteDescription(uniffi.ktor_client_webrtc.SessionDescription){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/PeerConnectionInterface.Companion|null[0]
+}
+
+abstract interface uniffi.ktor_client_webrtc/PeerConnectionObserver { // uniffi.ktor_client_webrtc/PeerConnectionObserver|null[0]
+    abstract fun onConnectionStateChange(uniffi.ktor_client_webrtc/ConnectionState) // uniffi.ktor_client_webrtc/PeerConnectionObserver.onConnectionStateChange|onConnectionStateChange(uniffi.ktor_client_webrtc.ConnectionState){}[0]
+    abstract fun onDataChannel(uniffi.ktor_client_webrtc/DataChannel) // uniffi.ktor_client_webrtc/PeerConnectionObserver.onDataChannel|onDataChannel(uniffi.ktor_client_webrtc.DataChannel){}[0]
+    abstract fun onError(uniffi.ktor_client_webrtc/RtcException) // uniffi.ktor_client_webrtc/PeerConnectionObserver.onError|onError(uniffi.ktor_client_webrtc.RtcException){}[0]
+    abstract fun onIceCandidate(uniffi.ktor_client_webrtc/IceCandidate) // uniffi.ktor_client_webrtc/PeerConnectionObserver.onIceCandidate|onIceCandidate(uniffi.ktor_client_webrtc.IceCandidate){}[0]
+    abstract fun onIceConnectionStateChange(uniffi.ktor_client_webrtc/IceConnectionState) // uniffi.ktor_client_webrtc/PeerConnectionObserver.onIceConnectionStateChange|onIceConnectionStateChange(uniffi.ktor_client_webrtc.IceConnectionState){}[0]
+    abstract fun onIceGatheringStateChange(uniffi.ktor_client_webrtc/IceGatheringState) // uniffi.ktor_client_webrtc/PeerConnectionObserver.onIceGatheringStateChange|onIceGatheringStateChange(uniffi.ktor_client_webrtc.IceGatheringState){}[0]
+    abstract fun onNegotiationNeeded() // uniffi.ktor_client_webrtc/PeerConnectionObserver.onNegotiationNeeded|onNegotiationNeeded(){}[0]
+    abstract fun onRemoveTrack(uniffi.ktor_client_webrtc/MediaStreamTrack) // uniffi.ktor_client_webrtc/PeerConnectionObserver.onRemoveTrack|onRemoveTrack(uniffi.ktor_client_webrtc.MediaStreamTrack){}[0]
+    abstract fun onSignalingStateChange(uniffi.ktor_client_webrtc/SignalingState) // uniffi.ktor_client_webrtc/PeerConnectionObserver.onSignalingStateChange|onSignalingStateChange(uniffi.ktor_client_webrtc.SignalingState){}[0]
+    abstract fun onTrack(uniffi.ktor_client_webrtc/MediaStreamTrack) // uniffi.ktor_client_webrtc/PeerConnectionObserver.onTrack|onTrack(uniffi.ktor_client_webrtc.MediaStreamTrack){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/PeerConnectionObserver.Companion|null[0]
+}
+
+abstract interface uniffi.ktor_client_webrtc/RtpSenderInterface { // uniffi.ktor_client_webrtc/RtpSenderInterface|null[0]
+    abstract suspend fun getParameters(): uniffi.ktor_client_webrtc/RtpParameters // uniffi.ktor_client_webrtc/RtpSenderInterface.getParameters|getParameters(){}[0]
+    abstract suspend fun setTrack(uniffi.ktor_client_webrtc/MediaStreamTrack?) // uniffi.ktor_client_webrtc/RtpSenderInterface.setTrack|setTrack(uniffi.ktor_client_webrtc.MediaStreamTrack?){}[0]
+    abstract suspend fun track(): uniffi.ktor_client_webrtc/MediaStreamTrack? // uniffi.ktor_client_webrtc/RtpSenderInterface.track|track(){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/RtpSenderInterface.Companion|null[0]
+}
+
+abstract interface uniffi.ktor_client_webrtc/UniffiCleaner { // uniffi.ktor_client_webrtc/UniffiCleaner|null[0]
+    abstract fun register(kotlin/Any, uniffi.ktor_client_webrtc/Disposable): uniffi.ktor_client_webrtc/UniffiCleaner.Cleanable // uniffi.ktor_client_webrtc/UniffiCleaner.register|register(kotlin.Any;uniffi.ktor_client_webrtc.Disposable){}[0]
+
+    abstract interface Cleanable { // uniffi.ktor_client_webrtc/UniffiCleaner.Cleanable|null[0]
+        abstract fun clean() // uniffi.ktor_client_webrtc/UniffiCleaner.Cleanable.clean|clean(){}[0]
+    }
+
+    final object Companion // uniffi.ktor_client_webrtc/UniffiCleaner.Companion|null[0]
+}
+
+abstract class <#A: kotlin/Any> uniffi.ktor_client_webrtc/FfiConverterCallbackInterface : uniffi.ktor_client_webrtc/FfiConverter<#A, kotlin/Long> { // uniffi.ktor_client_webrtc/FfiConverterCallbackInterface|null[0]
+    constructor <init>() // uniffi.ktor_client_webrtc/FfiConverterCallbackInterface.<init>|<init>(){}[0]
+
+    open fun allocationSize(#A): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterCallbackInterface.allocationSize|allocationSize(1:0){}[0]
+    open fun lift(kotlin/Long): #A // uniffi.ktor_client_webrtc/FfiConverterCallbackInterface.lift|lift(kotlin.Long){}[0]
+    open fun lower(#A): kotlin/Long // uniffi.ktor_client_webrtc/FfiConverterCallbackInterface.lower|lower(1:0){}[0]
+    open fun read(uniffi.ktor_client_webrtc/ByteBuffer): #A // uniffi.ktor_client_webrtc/FfiConverterCallbackInterface.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    open fun write(#A, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterCallbackInterface.write|write(1:0;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+abstract class io.ktor.client.webrtc.rs/RustMediaTrack : io.ktor.client.webrtc/WebRtcMedia.Track { // io.ktor.client.webrtc.rs/RustMediaTrack|null[0]
+    constructor <init>(uniffi.ktor_client_webrtc/MediaStreamTrack, kotlinx.coroutines/CoroutineScope?) // io.ktor.client.webrtc.rs/RustMediaTrack.<init>|<init>(uniffi.ktor_client_webrtc.MediaStreamTrack;kotlinx.coroutines.CoroutineScope?){}[0]
+
+    open val enabled // io.ktor.client.webrtc.rs/RustMediaTrack.enabled|{}enabled[0]
+        open fun <get-enabled>(): kotlin/Boolean // io.ktor.client.webrtc.rs/RustMediaTrack.enabled.<get-enabled>|<get-enabled>(){}[0]
+    open val id // io.ktor.client.webrtc.rs/RustMediaTrack.id|{}id[0]
+        open fun <get-id>(): kotlin/String // io.ktor.client.webrtc.rs/RustMediaTrack.id.<get-id>|<get-id>(){}[0]
+    open val kind // io.ktor.client.webrtc.rs/RustMediaTrack.kind|{}kind[0]
+        open fun <get-kind>(): io.ktor.client.webrtc/WebRtcMedia.TrackType // io.ktor.client.webrtc.rs/RustMediaTrack.kind.<get-kind>|<get-kind>(){}[0]
+
+    final fun setMediaHandler(uniffi.ktor_client_webrtc/MediaHandler, kotlin/Boolean) // io.ktor.client.webrtc.rs/RustMediaTrack.setMediaHandler|setMediaHandler(uniffi.ktor_client_webrtc.MediaHandler;kotlin.Boolean){}[0]
+    open fun close() // io.ktor.client.webrtc.rs/RustMediaTrack.close|close(){}[0]
+    open fun enable(kotlin/Boolean) // io.ktor.client.webrtc.rs/RustMediaTrack.enable|enable(kotlin.Boolean){}[0]
+
+    final object Companion { // io.ktor.client.webrtc.rs/RustMediaTrack.Companion|null[0]
+        final fun from(uniffi.ktor_client_webrtc/MediaStreamTrack, kotlinx.coroutines/CoroutineScope?): io.ktor.client.webrtc.rs/RustMediaTrack // io.ktor.client.webrtc.rs/RustMediaTrack.Companion.from|from(uniffi.ktor_client_webrtc.MediaStreamTrack;kotlinx.coroutines.CoroutineScope?){}[0]
+    }
+}
+
+final class io.ktor.client.webrtc.rs/RustAudioTrack : io.ktor.client.webrtc.rs/RustMediaTrack, io.ktor.client.webrtc/WebRtcMedia.AudioTrack { // io.ktor.client.webrtc.rs/RustAudioTrack|null[0]
+    constructor <init>(uniffi.ktor_client_webrtc/MediaStreamTrack, kotlinx.coroutines/CoroutineScope?) // io.ktor.client.webrtc.rs/RustAudioTrack.<init>|<init>(uniffi.ktor_client_webrtc.MediaStreamTrack;kotlinx.coroutines.CoroutineScope?){}[0]
+}
+
+final class io.ktor.client.webrtc.rs/RustRtpParameters : io.ktor.client.webrtc/WebRtc.RtpParameters { // io.ktor.client.webrtc.rs/RustRtpParameters|null[0]
+    constructor <init>(uniffi.ktor_client_webrtc/RtpParameters) // io.ktor.client.webrtc.rs/RustRtpParameters.<init>|<init>(uniffi.ktor_client_webrtc.RtpParameters){}[0]
+
+    final val codecs // io.ktor.client.webrtc.rs/RustRtpParameters.codecs|{}codecs[0]
+        final fun <get-codecs>(): kotlin.collections/List<uniffi.ktor_client_webrtc/RtpCodecParameters> // io.ktor.client.webrtc.rs/RustRtpParameters.codecs.<get-codecs>|<get-codecs>(){}[0]
+    final val degradationPreference // io.ktor.client.webrtc.rs/RustRtpParameters.degradationPreference|{}degradationPreference[0]
+        final fun <get-degradationPreference>(): io.ktor.client.webrtc/WebRtc.DegradationPreference // io.ktor.client.webrtc.rs/RustRtpParameters.degradationPreference.<get-degradationPreference>|<get-degradationPreference>(){}[0]
+    final val encodings // io.ktor.client.webrtc.rs/RustRtpParameters.encodings|{}encodings[0]
+        final fun <get-encodings>(): kotlin.collections/List<uniffi.ktor_client_webrtc/RtpEncodingParameters> // io.ktor.client.webrtc.rs/RustRtpParameters.encodings.<get-encodings>|<get-encodings>(){}[0]
+    final val headerExtensions // io.ktor.client.webrtc.rs/RustRtpParameters.headerExtensions|{}headerExtensions[0]
+        final fun <get-headerExtensions>(): kotlin.collections/List<io.ktor.client.webrtc/WebRtc.RtpHeaderExtensionParameters> // io.ktor.client.webrtc.rs/RustRtpParameters.headerExtensions.<get-headerExtensions>|<get-headerExtensions>(){}[0]
+    final val rtcp // io.ktor.client.webrtc.rs/RustRtpParameters.rtcp|{}rtcp[0]
+        final fun <get-rtcp>(): kotlin/Any // io.ktor.client.webrtc.rs/RustRtpParameters.rtcp.<get-rtcp>|<get-rtcp>(){}[0]
+    final val transactionId // io.ktor.client.webrtc.rs/RustRtpParameters.transactionId|{}transactionId[0]
+        final fun <get-transactionId>(): kotlin/String // io.ktor.client.webrtc.rs/RustRtpParameters.transactionId.<get-transactionId>|<get-transactionId>(){}[0]
+}
+
+final class io.ktor.client.webrtc.rs/RustRtpSender : io.ktor.client.webrtc/WebRtc.RtpSender { // io.ktor.client.webrtc.rs/RustRtpSender|null[0]
+    constructor <init>(uniffi.ktor_client_webrtc/RtpSender) // io.ktor.client.webrtc.rs/RustRtpSender.<init>|<init>(uniffi.ktor_client_webrtc.RtpSender){}[0]
+
+    final val dtmf // io.ktor.client.webrtc.rs/RustRtpSender.dtmf|{}dtmf[0]
+        final fun <get-dtmf>(): io.ktor.client.webrtc/WebRtc.DtmfSender? // io.ktor.client.webrtc.rs/RustRtpSender.dtmf.<get-dtmf>|<get-dtmf>(){}[0]
+    final val track // io.ktor.client.webrtc.rs/RustRtpSender.track|{}track[0]
+        final fun <get-track>(): io.ktor.client.webrtc/WebRtcMedia.Track? // io.ktor.client.webrtc.rs/RustRtpSender.track.<get-track>|<get-track>(){}[0]
+
+    final suspend fun getParameters(): io.ktor.client.webrtc/WebRtc.RtpParameters // io.ktor.client.webrtc.rs/RustRtpSender.getParameters|getParameters(){}[0]
+    final suspend fun replaceTrack(io.ktor.client.webrtc/WebRtcMedia.Track?) // io.ktor.client.webrtc.rs/RustRtpSender.replaceTrack|replaceTrack(io.ktor.client.webrtc.WebRtcMedia.Track?){}[0]
+    final suspend fun setParameters(io.ktor.client.webrtc/WebRtc.RtpParameters) // io.ktor.client.webrtc.rs/RustRtpSender.setParameters|setParameters(io.ktor.client.webrtc.WebRtc.RtpParameters){}[0]
+}
+
+final class io.ktor.client.webrtc.rs/RustVideoTrack : io.ktor.client.webrtc.rs/RustMediaTrack, io.ktor.client.webrtc/WebRtcMedia.VideoTrack { // io.ktor.client.webrtc.rs/RustVideoTrack|null[0]
+    constructor <init>(uniffi.ktor_client_webrtc/MediaStreamTrack, kotlinx.coroutines/CoroutineScope?) // io.ktor.client.webrtc.rs/RustVideoTrack.<init>|<init>(uniffi.ktor_client_webrtc.MediaStreamTrack;kotlinx.coroutines.CoroutineScope?){}[0]
+}
+
+final class io.ktor.client.webrtc.rs/RustWebRtcConnection : io.ktor.client.webrtc/WebRtcPeerConnection { // io.ktor.client.webrtc.rs/RustWebRtcConnection|null[0]
+    constructor <init>(uniffi.ktor_client_webrtc/PeerConnection, kotlin.coroutines/CoroutineContext, io.ktor.client.webrtc/WebRtcConnectionConfig) // io.ktor.client.webrtc.rs/RustWebRtcConnection.<init>|<init>(uniffi.ktor_client_webrtc.PeerConnection;kotlin.coroutines.CoroutineContext;io.ktor.client.webrtc.WebRtcConnectionConfig){}[0]
+
+    final val localDescription // io.ktor.client.webrtc.rs/RustWebRtcConnection.localDescription|{}localDescription[0]
+        final fun <get-localDescription>(): io.ktor.client.webrtc/WebRtc.SessionDescription? // io.ktor.client.webrtc.rs/RustWebRtcConnection.localDescription.<get-localDescription>|<get-localDescription>(){}[0]
+    final val remoteDescription // io.ktor.client.webrtc.rs/RustWebRtcConnection.remoteDescription|{}remoteDescription[0]
+        final fun <get-remoteDescription>(): io.ktor.client.webrtc/WebRtc.SessionDescription? // io.ktor.client.webrtc.rs/RustWebRtcConnection.remoteDescription.<get-remoteDescription>|<get-remoteDescription>(){}[0]
+
+    final fun close() // io.ktor.client.webrtc.rs/RustWebRtcConnection.close|close(){}[0]
+    final fun restartIce() // io.ktor.client.webrtc.rs/RustWebRtcConnection.restartIce|restartIce(){}[0]
+    final suspend fun addIceCandidate(io.ktor.client.webrtc/WebRtc.IceCandidate) // io.ktor.client.webrtc.rs/RustWebRtcConnection.addIceCandidate|addIceCandidate(io.ktor.client.webrtc.WebRtc.IceCandidate){}[0]
+    final suspend fun addTrack(io.ktor.client.webrtc/WebRtcMedia.Track): io.ktor.client.webrtc/WebRtc.RtpSender // io.ktor.client.webrtc.rs/RustWebRtcConnection.addTrack|addTrack(io.ktor.client.webrtc.WebRtcMedia.Track){}[0]
+    final suspend fun createAnswer(): io.ktor.client.webrtc/WebRtc.SessionDescription // io.ktor.client.webrtc.rs/RustWebRtcConnection.createAnswer|createAnswer(){}[0]
+    final suspend fun createDataChannel(kotlin/String, kotlin/Function1<io.ktor.client.webrtc/WebRtcDataChannelOptions, kotlin/Unit>): io.ktor.client.webrtc/WebRtcDataChannel // io.ktor.client.webrtc.rs/RustWebRtcConnection.createDataChannel|createDataChannel(kotlin.String;kotlin.Function1<io.ktor.client.webrtc.WebRtcDataChannelOptions,kotlin.Unit>){}[0]
+    final suspend fun createOffer(): io.ktor.client.webrtc/WebRtc.SessionDescription // io.ktor.client.webrtc.rs/RustWebRtcConnection.createOffer|createOffer(){}[0]
+    final suspend fun getStatistics(): kotlin.collections/List<io.ktor.client.webrtc/WebRtc.Stats> // io.ktor.client.webrtc.rs/RustWebRtcConnection.getStatistics|getStatistics(){}[0]
+    final suspend fun removeTrack(io.ktor.client.webrtc/WebRtc.RtpSender) // io.ktor.client.webrtc.rs/RustWebRtcConnection.removeTrack|removeTrack(io.ktor.client.webrtc.WebRtc.RtpSender){}[0]
+    final suspend fun removeTrack(io.ktor.client.webrtc/WebRtcMedia.Track) // io.ktor.client.webrtc.rs/RustWebRtcConnection.removeTrack|removeTrack(io.ktor.client.webrtc.WebRtcMedia.Track){}[0]
+    final suspend fun setLocalDescription(io.ktor.client.webrtc/WebRtc.SessionDescription) // io.ktor.client.webrtc.rs/RustWebRtcConnection.setLocalDescription|setLocalDescription(io.ktor.client.webrtc.WebRtc.SessionDescription){}[0]
+    final suspend fun setRemoteDescription(io.ktor.client.webrtc/WebRtc.SessionDescription) // io.ktor.client.webrtc.rs/RustWebRtcConnection.setRemoteDescription|setRemoteDescription(io.ktor.client.webrtc.WebRtc.SessionDescription){}[0]
+}
+
+final class io.ktor.client.webrtc.rs/RustWebRtcDataChannel : io.ktor.client.webrtc/WebRtcDataChannel { // io.ktor.client.webrtc.rs/RustWebRtcDataChannel|null[0]
+    constructor <init>(uniffi.ktor_client_webrtc/DataChannel, kotlinx.coroutines/CoroutineScope, io.ktor.client.webrtc/DataChannelReceiveOptions) // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.<init>|<init>(uniffi.ktor_client_webrtc.DataChannel;kotlinx.coroutines.CoroutineScope;io.ktor.client.webrtc.DataChannelReceiveOptions){}[0]
+
+    final val bufferedAmount // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.bufferedAmount|{}bufferedAmount[0]
+        final fun <get-bufferedAmount>(): kotlin/Long // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.bufferedAmount.<get-bufferedAmount>|<get-bufferedAmount>(){}[0]
+    final val bufferedAmountLowThreshold // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.bufferedAmountLowThreshold|{}bufferedAmountLowThreshold[0]
+        final fun <get-bufferedAmountLowThreshold>(): kotlin/Long // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.bufferedAmountLowThreshold.<get-bufferedAmountLowThreshold>|<get-bufferedAmountLowThreshold>(){}[0]
+    final val id // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.id|{}id[0]
+        final fun <get-id>(): kotlin/Int // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.id.<get-id>|<get-id>(){}[0]
+    final val label // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.label|{}label[0]
+        final fun <get-label>(): kotlin/String // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.label.<get-label>|<get-label>(){}[0]
+    final val maxPacketLifeTime // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.maxPacketLifeTime|{}maxPacketLifeTime[0]
+        final fun <get-maxPacketLifeTime>(): kotlin/Int? // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.maxPacketLifeTime.<get-maxPacketLifeTime>|<get-maxPacketLifeTime>(){}[0]
+    final val maxRetransmits // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.maxRetransmits|{}maxRetransmits[0]
+        final fun <get-maxRetransmits>(): kotlin/Int? // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.maxRetransmits.<get-maxRetransmits>|<get-maxRetransmits>(){}[0]
+    final val negotiated // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.negotiated|{}negotiated[0]
+        final fun <get-negotiated>(): kotlin/Boolean // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.negotiated.<get-negotiated>|<get-negotiated>(){}[0]
+    final val ordered // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.ordered|{}ordered[0]
+        final fun <get-ordered>(): kotlin/Boolean // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.ordered.<get-ordered>|<get-ordered>(){}[0]
+    final val protocol // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.protocol|{}protocol[0]
+        final fun <get-protocol>(): kotlin/String // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.protocol.<get-protocol>|<get-protocol>(){}[0]
+    final val state // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.state|{}state[0]
+        final fun <get-state>(): io.ktor.client.webrtc/WebRtc.DataChannel.State // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.state.<get-state>|<get-state>(){}[0]
+
+    final fun close() // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.close|close(){}[0]
+    final fun closeTransport() // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.closeTransport|closeTransport(){}[0]
+    final fun send(kotlin/ByteArray) // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.send|send(kotlin.ByteArray){}[0]
+    final fun send(kotlin/String) // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.send|send(kotlin.String){}[0]
+    final fun setBufferedAmountLowThreshold(kotlin/Long) // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.setBufferedAmountLowThreshold|setBufferedAmountLowThreshold(kotlin.Long){}[0]
+}
+
+final class io.ktor.client.webrtc.rs/RustWebRtcEngine : io.ktor.client.webrtc/MediaTrackFactory, io.ktor.client.webrtc/WebRtcEngineBase { // io.ktor.client.webrtc.rs/RustWebRtcEngine|null[0]
+    constructor <init>(io.ktor.client.webrtc/WebRtcConfig, io.ktor.client.webrtc/MediaTrackFactory = ...) // io.ktor.client.webrtc.rs/RustWebRtcEngine.<init>|<init>(io.ktor.client.webrtc.WebRtcConfig;io.ktor.client.webrtc.MediaTrackFactory){}[0]
+
+    final suspend fun createAudioTrack(io.ktor.client.webrtc/WebRtcMedia.AudioTrackConstraints): io.ktor.client.webrtc/WebRtcMedia.AudioTrack // io.ktor.client.webrtc.rs/RustWebRtcEngine.createAudioTrack|createAudioTrack(io.ktor.client.webrtc.WebRtcMedia.AudioTrackConstraints){}[0]
+    final suspend fun createAudioTrack(kotlin/Function1<io.ktor.client.webrtc/WebRtcMedia.AudioTrackConstraints, kotlin/Unit>): io.ktor.client.webrtc/WebRtcMedia.AudioTrack // io.ktor.client.webrtc.rs/RustWebRtcEngine.createAudioTrack|createAudioTrack(kotlin.Function1<io.ktor.client.webrtc.WebRtcMedia.AudioTrackConstraints,kotlin.Unit>){}[0]
+    final suspend fun createPeerConnection(io.ktor.client.webrtc/WebRtcConnectionConfig): io.ktor.client.webrtc/WebRtcPeerConnection // io.ktor.client.webrtc.rs/RustWebRtcEngine.createPeerConnection|createPeerConnection(io.ktor.client.webrtc.WebRtcConnectionConfig){}[0]
+    final suspend fun createVideoTrack(io.ktor.client.webrtc/WebRtcMedia.VideoTrackConstraints): io.ktor.client.webrtc/WebRtcMedia.VideoTrack // io.ktor.client.webrtc.rs/RustWebRtcEngine.createVideoTrack|createVideoTrack(io.ktor.client.webrtc.WebRtcMedia.VideoTrackConstraints){}[0]
+    final suspend fun createVideoTrack(kotlin/Function1<io.ktor.client.webrtc/WebRtcMedia.VideoTrackConstraints, kotlin/Unit>): io.ktor.client.webrtc/WebRtcMedia.VideoTrack // io.ktor.client.webrtc.rs/RustWebRtcEngine.createVideoTrack|createVideoTrack(kotlin.Function1<io.ktor.client.webrtc.WebRtcMedia.VideoTrackConstraints,kotlin.Unit>){}[0]
+}
+
+final class uniffi.ktor_client_webrtc/ByteBuffer { // uniffi.ktor_client_webrtc/ByteBuffer|null[0]
+    constructor <init>(kotlinx.cinterop/CPointer<kotlinx.cinterop/ByteVarOf<kotlin/Byte>>, kotlin/Int, kotlin/Int = ...) // uniffi.ktor_client_webrtc/ByteBuffer.<init>|<init>(kotlinx.cinterop.CPointer<kotlinx.cinterop.ByteVarOf<kotlin.Byte>>;kotlin.Int;kotlin.Int){}[0]
+
+    final fun get(): kotlin/Byte // uniffi.ktor_client_webrtc/ByteBuffer.get|get(){}[0]
+    final fun get(kotlin/Int): kotlin/ByteArray // uniffi.ktor_client_webrtc/ByteBuffer.get|get(kotlin.Int){}[0]
+    final fun getDouble(): kotlin/Double // uniffi.ktor_client_webrtc/ByteBuffer.getDouble|getDouble(){}[0]
+    final fun getFloat(): kotlin/Float // uniffi.ktor_client_webrtc/ByteBuffer.getFloat|getFloat(){}[0]
+    final fun getInt(): kotlin/Int // uniffi.ktor_client_webrtc/ByteBuffer.getInt|getInt(){}[0]
+    final fun getLong(): kotlin/Long // uniffi.ktor_client_webrtc/ByteBuffer.getLong|getLong(){}[0]
+    final fun getShort(): kotlin/Short // uniffi.ktor_client_webrtc/ByteBuffer.getShort|getShort(){}[0]
+    final fun hasRemaining(): kotlin/Boolean // uniffi.ktor_client_webrtc/ByteBuffer.hasRemaining|hasRemaining(){}[0]
+    final fun position(): kotlin/Int // uniffi.ktor_client_webrtc/ByteBuffer.position|position(){}[0]
+    final fun put(kotlin/Byte) // uniffi.ktor_client_webrtc/ByteBuffer.put|put(kotlin.Byte){}[0]
+    final fun put(kotlin/ByteArray) // uniffi.ktor_client_webrtc/ByteBuffer.put|put(kotlin.ByteArray){}[0]
+    final fun putDouble(kotlin/Double) // uniffi.ktor_client_webrtc/ByteBuffer.putDouble|putDouble(kotlin.Double){}[0]
+    final fun putFloat(kotlin/Float) // uniffi.ktor_client_webrtc/ByteBuffer.putFloat|putFloat(kotlin.Float){}[0]
+    final fun putInt(kotlin/Int) // uniffi.ktor_client_webrtc/ByteBuffer.putInt|putInt(kotlin.Int){}[0]
+    final fun putLong(kotlin/Long) // uniffi.ktor_client_webrtc/ByteBuffer.putLong|putLong(kotlin.Long){}[0]
+    final fun putShort(kotlin/Short) // uniffi.ktor_client_webrtc/ByteBuffer.putShort|putShort(kotlin.Short){}[0]
+}
+
+final class uniffi.ktor_client_webrtc/ConnectionConfig { // uniffi.ktor_client_webrtc/ConnectionConfig|null[0]
+    constructor <init>(kotlin.collections/List<uniffi.ktor_client_webrtc/IceServer>, kotlin/UByte, uniffi.ktor_client_webrtc/BundlePolicy, uniffi.ktor_client_webrtc/RtcpMuxPolicy, uniffi.ktor_client_webrtc/IceTransportPolicy, kotlin/Boolean) // uniffi.ktor_client_webrtc/ConnectionConfig.<init>|<init>(kotlin.collections.List<uniffi.ktor_client_webrtc.IceServer>;kotlin.UByte;uniffi.ktor_client_webrtc.BundlePolicy;uniffi.ktor_client_webrtc.RtcpMuxPolicy;uniffi.ktor_client_webrtc.IceTransportPolicy;kotlin.Boolean){}[0]
+
+    final var addDefaultTransceivers // uniffi.ktor_client_webrtc/ConnectionConfig.addDefaultTransceivers|{}addDefaultTransceivers[0]
+        final fun <get-addDefaultTransceivers>(): kotlin/Boolean // uniffi.ktor_client_webrtc/ConnectionConfig.addDefaultTransceivers.<get-addDefaultTransceivers>|<get-addDefaultTransceivers>(){}[0]
+        final fun <set-addDefaultTransceivers>(kotlin/Boolean) // uniffi.ktor_client_webrtc/ConnectionConfig.addDefaultTransceivers.<set-addDefaultTransceivers>|<set-addDefaultTransceivers>(kotlin.Boolean){}[0]
+    final var bundlePolicy // uniffi.ktor_client_webrtc/ConnectionConfig.bundlePolicy|{}bundlePolicy[0]
+        final fun <get-bundlePolicy>(): uniffi.ktor_client_webrtc/BundlePolicy // uniffi.ktor_client_webrtc/ConnectionConfig.bundlePolicy.<get-bundlePolicy>|<get-bundlePolicy>(){}[0]
+        final fun <set-bundlePolicy>(uniffi.ktor_client_webrtc/BundlePolicy) // uniffi.ktor_client_webrtc/ConnectionConfig.bundlePolicy.<set-bundlePolicy>|<set-bundlePolicy>(uniffi.ktor_client_webrtc.BundlePolicy){}[0]
+    final var iceCandidatePoolSize // uniffi.ktor_client_webrtc/ConnectionConfig.iceCandidatePoolSize|{}iceCandidatePoolSize[0]
+        final fun <get-iceCandidatePoolSize>(): kotlin/UByte // uniffi.ktor_client_webrtc/ConnectionConfig.iceCandidatePoolSize.<get-iceCandidatePoolSize>|<get-iceCandidatePoolSize>(){}[0]
+        final fun <set-iceCandidatePoolSize>(kotlin/UByte) // uniffi.ktor_client_webrtc/ConnectionConfig.iceCandidatePoolSize.<set-iceCandidatePoolSize>|<set-iceCandidatePoolSize>(kotlin.UByte){}[0]
+    final var iceServers // uniffi.ktor_client_webrtc/ConnectionConfig.iceServers|{}iceServers[0]
+        final fun <get-iceServers>(): kotlin.collections/List<uniffi.ktor_client_webrtc/IceServer> // uniffi.ktor_client_webrtc/ConnectionConfig.iceServers.<get-iceServers>|<get-iceServers>(){}[0]
+        final fun <set-iceServers>(kotlin.collections/List<uniffi.ktor_client_webrtc/IceServer>) // uniffi.ktor_client_webrtc/ConnectionConfig.iceServers.<set-iceServers>|<set-iceServers>(kotlin.collections.List<uniffi.ktor_client_webrtc.IceServer>){}[0]
+    final var iceTransportPolicy // uniffi.ktor_client_webrtc/ConnectionConfig.iceTransportPolicy|{}iceTransportPolicy[0]
+        final fun <get-iceTransportPolicy>(): uniffi.ktor_client_webrtc/IceTransportPolicy // uniffi.ktor_client_webrtc/ConnectionConfig.iceTransportPolicy.<get-iceTransportPolicy>|<get-iceTransportPolicy>(){}[0]
+        final fun <set-iceTransportPolicy>(uniffi.ktor_client_webrtc/IceTransportPolicy) // uniffi.ktor_client_webrtc/ConnectionConfig.iceTransportPolicy.<set-iceTransportPolicy>|<set-iceTransportPolicy>(uniffi.ktor_client_webrtc.IceTransportPolicy){}[0]
+    final var rtcpMuxPolicy // uniffi.ktor_client_webrtc/ConnectionConfig.rtcpMuxPolicy|{}rtcpMuxPolicy[0]
+        final fun <get-rtcpMuxPolicy>(): uniffi.ktor_client_webrtc/RtcpMuxPolicy // uniffi.ktor_client_webrtc/ConnectionConfig.rtcpMuxPolicy.<get-rtcpMuxPolicy>|<get-rtcpMuxPolicy>(){}[0]
+        final fun <set-rtcpMuxPolicy>(uniffi.ktor_client_webrtc/RtcpMuxPolicy) // uniffi.ktor_client_webrtc/ConnectionConfig.rtcpMuxPolicy.<set-rtcpMuxPolicy>|<set-rtcpMuxPolicy>(uniffi.ktor_client_webrtc.RtcpMuxPolicy){}[0]
+
+    final fun component1(): kotlin.collections/List<uniffi.ktor_client_webrtc/IceServer> // uniffi.ktor_client_webrtc/ConnectionConfig.component1|component1(){}[0]
+    final fun component2(): kotlin/UByte // uniffi.ktor_client_webrtc/ConnectionConfig.component2|component2(){}[0]
+    final fun component3(): uniffi.ktor_client_webrtc/BundlePolicy // uniffi.ktor_client_webrtc/ConnectionConfig.component3|component3(){}[0]
+    final fun component4(): uniffi.ktor_client_webrtc/RtcpMuxPolicy // uniffi.ktor_client_webrtc/ConnectionConfig.component4|component4(){}[0]
+    final fun component5(): uniffi.ktor_client_webrtc/IceTransportPolicy // uniffi.ktor_client_webrtc/ConnectionConfig.component5|component5(){}[0]
+    final fun component6(): kotlin/Boolean // uniffi.ktor_client_webrtc/ConnectionConfig.component6|component6(){}[0]
+    final fun copy(kotlin.collections/List<uniffi.ktor_client_webrtc/IceServer> = ..., kotlin/UByte = ..., uniffi.ktor_client_webrtc/BundlePolicy = ..., uniffi.ktor_client_webrtc/RtcpMuxPolicy = ..., uniffi.ktor_client_webrtc/IceTransportPolicy = ..., kotlin/Boolean = ...): uniffi.ktor_client_webrtc/ConnectionConfig // uniffi.ktor_client_webrtc/ConnectionConfig.copy|copy(kotlin.collections.List<uniffi.ktor_client_webrtc.IceServer>;kotlin.UByte;uniffi.ktor_client_webrtc.BundlePolicy;uniffi.ktor_client_webrtc.RtcpMuxPolicy;uniffi.ktor_client_webrtc.IceTransportPolicy;kotlin.Boolean){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // uniffi.ktor_client_webrtc/ConnectionConfig.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // uniffi.ktor_client_webrtc/ConnectionConfig.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // uniffi.ktor_client_webrtc/ConnectionConfig.toString|toString(){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/ConnectionConfig.Companion|null[0]
+}
+
+final class uniffi.ktor_client_webrtc/DataChannelInit { // uniffi.ktor_client_webrtc/DataChannelInit|null[0]
+    constructor <init>(kotlin/Boolean?, kotlin/UShort?, kotlin/UShort?, kotlin/String?, kotlin/UShort?) // uniffi.ktor_client_webrtc/DataChannelInit.<init>|<init>(kotlin.Boolean?;kotlin.UShort?;kotlin.UShort?;kotlin.String?;kotlin.UShort?){}[0]
+
+    final var maxPacketLifeTime // uniffi.ktor_client_webrtc/DataChannelInit.maxPacketLifeTime|{}maxPacketLifeTime[0]
+        final fun <get-maxPacketLifeTime>(): kotlin/UShort? // uniffi.ktor_client_webrtc/DataChannelInit.maxPacketLifeTime.<get-maxPacketLifeTime>|<get-maxPacketLifeTime>(){}[0]
+        final fun <set-maxPacketLifeTime>(kotlin/UShort?) // uniffi.ktor_client_webrtc/DataChannelInit.maxPacketLifeTime.<set-maxPacketLifeTime>|<set-maxPacketLifeTime>(kotlin.UShort?){}[0]
+    final var maxRetransmits // uniffi.ktor_client_webrtc/DataChannelInit.maxRetransmits|{}maxRetransmits[0]
+        final fun <get-maxRetransmits>(): kotlin/UShort? // uniffi.ktor_client_webrtc/DataChannelInit.maxRetransmits.<get-maxRetransmits>|<get-maxRetransmits>(){}[0]
+        final fun <set-maxRetransmits>(kotlin/UShort?) // uniffi.ktor_client_webrtc/DataChannelInit.maxRetransmits.<set-maxRetransmits>|<set-maxRetransmits>(kotlin.UShort?){}[0]
+    final var negotiated // uniffi.ktor_client_webrtc/DataChannelInit.negotiated|{}negotiated[0]
+        final fun <get-negotiated>(): kotlin/UShort? // uniffi.ktor_client_webrtc/DataChannelInit.negotiated.<get-negotiated>|<get-negotiated>(){}[0]
+        final fun <set-negotiated>(kotlin/UShort?) // uniffi.ktor_client_webrtc/DataChannelInit.negotiated.<set-negotiated>|<set-negotiated>(kotlin.UShort?){}[0]
+    final var ordered // uniffi.ktor_client_webrtc/DataChannelInit.ordered|{}ordered[0]
+        final fun <get-ordered>(): kotlin/Boolean? // uniffi.ktor_client_webrtc/DataChannelInit.ordered.<get-ordered>|<get-ordered>(){}[0]
+        final fun <set-ordered>(kotlin/Boolean?) // uniffi.ktor_client_webrtc/DataChannelInit.ordered.<set-ordered>|<set-ordered>(kotlin.Boolean?){}[0]
+    final var protocol // uniffi.ktor_client_webrtc/DataChannelInit.protocol|{}protocol[0]
+        final fun <get-protocol>(): kotlin/String? // uniffi.ktor_client_webrtc/DataChannelInit.protocol.<get-protocol>|<get-protocol>(){}[0]
+        final fun <set-protocol>(kotlin/String?) // uniffi.ktor_client_webrtc/DataChannelInit.protocol.<set-protocol>|<set-protocol>(kotlin.String?){}[0]
+
+    final fun component1(): kotlin/Boolean? // uniffi.ktor_client_webrtc/DataChannelInit.component1|component1(){}[0]
+    final fun component2(): kotlin/UShort? // uniffi.ktor_client_webrtc/DataChannelInit.component2|component2(){}[0]
+    final fun component3(): kotlin/UShort? // uniffi.ktor_client_webrtc/DataChannelInit.component3|component3(){}[0]
+    final fun component4(): kotlin/String? // uniffi.ktor_client_webrtc/DataChannelInit.component4|component4(){}[0]
+    final fun component5(): kotlin/UShort? // uniffi.ktor_client_webrtc/DataChannelInit.component5|component5(){}[0]
+    final fun copy(kotlin/Boolean? = ..., kotlin/UShort? = ..., kotlin/UShort? = ..., kotlin/String? = ..., kotlin/UShort? = ...): uniffi.ktor_client_webrtc/DataChannelInit // uniffi.ktor_client_webrtc/DataChannelInit.copy|copy(kotlin.Boolean?;kotlin.UShort?;kotlin.UShort?;kotlin.String?;kotlin.UShort?){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // uniffi.ktor_client_webrtc/DataChannelInit.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // uniffi.ktor_client_webrtc/DataChannelInit.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // uniffi.ktor_client_webrtc/DataChannelInit.toString|toString(){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/DataChannelInit.Companion|null[0]
+}
+
+final class uniffi.ktor_client_webrtc/DataChannelMessage { // uniffi.ktor_client_webrtc/DataChannelMessage|null[0]
+    constructor <init>(kotlin/Boolean, kotlin/ByteArray) // uniffi.ktor_client_webrtc/DataChannelMessage.<init>|<init>(kotlin.Boolean;kotlin.ByteArray){}[0]
+
+    final var data // uniffi.ktor_client_webrtc/DataChannelMessage.data|{}data[0]
+        final fun <get-data>(): kotlin/ByteArray // uniffi.ktor_client_webrtc/DataChannelMessage.data.<get-data>|<get-data>(){}[0]
+        final fun <set-data>(kotlin/ByteArray) // uniffi.ktor_client_webrtc/DataChannelMessage.data.<set-data>|<set-data>(kotlin.ByteArray){}[0]
+    final var isString // uniffi.ktor_client_webrtc/DataChannelMessage.isString|{}isString[0]
+        final fun <get-isString>(): kotlin/Boolean // uniffi.ktor_client_webrtc/DataChannelMessage.isString.<get-isString>|<get-isString>(){}[0]
+        final fun <set-isString>(kotlin/Boolean) // uniffi.ktor_client_webrtc/DataChannelMessage.isString.<set-isString>|<set-isString>(kotlin.Boolean){}[0]
+
+    final fun component1(): kotlin/Boolean // uniffi.ktor_client_webrtc/DataChannelMessage.component1|component1(){}[0]
+    final fun component2(): kotlin/ByteArray // uniffi.ktor_client_webrtc/DataChannelMessage.component2|component2(){}[0]
+    final fun copy(kotlin/Boolean = ..., kotlin/ByteArray = ...): uniffi.ktor_client_webrtc/DataChannelMessage // uniffi.ktor_client_webrtc/DataChannelMessage.copy|copy(kotlin.Boolean;kotlin.ByteArray){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // uniffi.ktor_client_webrtc/DataChannelMessage.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // uniffi.ktor_client_webrtc/DataChannelMessage.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // uniffi.ktor_client_webrtc/DataChannelMessage.toString|toString(){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/DataChannelMessage.Companion|null[0]
+}
+
+final class uniffi.ktor_client_webrtc/IceCandidate { // uniffi.ktor_client_webrtc/IceCandidate|null[0]
+    constructor <init>(kotlin/String, kotlin/String?, kotlin/UShort?) // uniffi.ktor_client_webrtc/IceCandidate.<init>|<init>(kotlin.String;kotlin.String?;kotlin.UShort?){}[0]
+
+    final var candidate // uniffi.ktor_client_webrtc/IceCandidate.candidate|{}candidate[0]
+        final fun <get-candidate>(): kotlin/String // uniffi.ktor_client_webrtc/IceCandidate.candidate.<get-candidate>|<get-candidate>(){}[0]
+        final fun <set-candidate>(kotlin/String) // uniffi.ktor_client_webrtc/IceCandidate.candidate.<set-candidate>|<set-candidate>(kotlin.String){}[0]
+    final var sdpMid // uniffi.ktor_client_webrtc/IceCandidate.sdpMid|{}sdpMid[0]
+        final fun <get-sdpMid>(): kotlin/String? // uniffi.ktor_client_webrtc/IceCandidate.sdpMid.<get-sdpMid>|<get-sdpMid>(){}[0]
+        final fun <set-sdpMid>(kotlin/String?) // uniffi.ktor_client_webrtc/IceCandidate.sdpMid.<set-sdpMid>|<set-sdpMid>(kotlin.String?){}[0]
+    final var sdpMlineIndex // uniffi.ktor_client_webrtc/IceCandidate.sdpMlineIndex|{}sdpMlineIndex[0]
+        final fun <get-sdpMlineIndex>(): kotlin/UShort? // uniffi.ktor_client_webrtc/IceCandidate.sdpMlineIndex.<get-sdpMlineIndex>|<get-sdpMlineIndex>(){}[0]
+        final fun <set-sdpMlineIndex>(kotlin/UShort?) // uniffi.ktor_client_webrtc/IceCandidate.sdpMlineIndex.<set-sdpMlineIndex>|<set-sdpMlineIndex>(kotlin.UShort?){}[0]
+
+    final fun component1(): kotlin/String // uniffi.ktor_client_webrtc/IceCandidate.component1|component1(){}[0]
+    final fun component2(): kotlin/String? // uniffi.ktor_client_webrtc/IceCandidate.component2|component2(){}[0]
+    final fun component3(): kotlin/UShort? // uniffi.ktor_client_webrtc/IceCandidate.component3|component3(){}[0]
+    final fun copy(kotlin/String = ..., kotlin/String? = ..., kotlin/UShort? = ...): uniffi.ktor_client_webrtc/IceCandidate // uniffi.ktor_client_webrtc/IceCandidate.copy|copy(kotlin.String;kotlin.String?;kotlin.UShort?){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // uniffi.ktor_client_webrtc/IceCandidate.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // uniffi.ktor_client_webrtc/IceCandidate.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // uniffi.ktor_client_webrtc/IceCandidate.toString|toString(){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/IceCandidate.Companion|null[0]
+}
+
+final class uniffi.ktor_client_webrtc/IceServer { // uniffi.ktor_client_webrtc/IceServer|null[0]
+    constructor <init>(kotlin.collections/List<kotlin/String>, kotlin/String, kotlin/String) // uniffi.ktor_client_webrtc/IceServer.<init>|<init>(kotlin.collections.List<kotlin.String>;kotlin.String;kotlin.String){}[0]
+
+    final var credential // uniffi.ktor_client_webrtc/IceServer.credential|{}credential[0]
+        final fun <get-credential>(): kotlin/String // uniffi.ktor_client_webrtc/IceServer.credential.<get-credential>|<get-credential>(){}[0]
+        final fun <set-credential>(kotlin/String) // uniffi.ktor_client_webrtc/IceServer.credential.<set-credential>|<set-credential>(kotlin.String){}[0]
+    final var urls // uniffi.ktor_client_webrtc/IceServer.urls|{}urls[0]
+        final fun <get-urls>(): kotlin.collections/List<kotlin/String> // uniffi.ktor_client_webrtc/IceServer.urls.<get-urls>|<get-urls>(){}[0]
+        final fun <set-urls>(kotlin.collections/List<kotlin/String>) // uniffi.ktor_client_webrtc/IceServer.urls.<set-urls>|<set-urls>(kotlin.collections.List<kotlin.String>){}[0]
+    final var username // uniffi.ktor_client_webrtc/IceServer.username|{}username[0]
+        final fun <get-username>(): kotlin/String // uniffi.ktor_client_webrtc/IceServer.username.<get-username>|<get-username>(){}[0]
+        final fun <set-username>(kotlin/String) // uniffi.ktor_client_webrtc/IceServer.username.<set-username>|<set-username>(kotlin.String){}[0]
+
+    final fun component1(): kotlin.collections/List<kotlin/String> // uniffi.ktor_client_webrtc/IceServer.component1|component1(){}[0]
+    final fun component2(): kotlin/String // uniffi.ktor_client_webrtc/IceServer.component2|component2(){}[0]
+    final fun component3(): kotlin/String // uniffi.ktor_client_webrtc/IceServer.component3|component3(){}[0]
+    final fun copy(kotlin.collections/List<kotlin/String> = ..., kotlin/String = ..., kotlin/String = ...): uniffi.ktor_client_webrtc/IceServer // uniffi.ktor_client_webrtc/IceServer.copy|copy(kotlin.collections.List<kotlin.String>;kotlin.String;kotlin.String){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // uniffi.ktor_client_webrtc/IceServer.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // uniffi.ktor_client_webrtc/IceServer.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // uniffi.ktor_client_webrtc/IceServer.toString|toString(){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/IceServer.Companion|null[0]
+}
+
+final class uniffi.ktor_client_webrtc/InternalException : kotlin/Exception { // uniffi.ktor_client_webrtc/InternalException|null[0]
+    constructor <init>(kotlin/String) // uniffi.ktor_client_webrtc/InternalException.<init>|<init>(kotlin.String){}[0]
+}
+
+final class uniffi.ktor_client_webrtc/MediaSample { // uniffi.ktor_client_webrtc/MediaSample|null[0]
+    constructor <init>(kotlin/ByteArray, kotlinx.datetime/Instant, kotlin.time/Duration, kotlin/UInt, kotlin/UShort, kotlin/UShort) // uniffi.ktor_client_webrtc/MediaSample.<init>|<init>(kotlin.ByteArray;kotlinx.datetime.Instant;kotlin.time.Duration;kotlin.UInt;kotlin.UShort;kotlin.UShort){}[0]
+
+    final var data // uniffi.ktor_client_webrtc/MediaSample.data|{}data[0]
+        final fun <get-data>(): kotlin/ByteArray // uniffi.ktor_client_webrtc/MediaSample.data.<get-data>|<get-data>(){}[0]
+        final fun <set-data>(kotlin/ByteArray) // uniffi.ktor_client_webrtc/MediaSample.data.<set-data>|<set-data>(kotlin.ByteArray){}[0]
+    final var duration // uniffi.ktor_client_webrtc/MediaSample.duration|{}duration[0]
+        final fun <get-duration>(): kotlin.time/Duration // uniffi.ktor_client_webrtc/MediaSample.duration.<get-duration>|<get-duration>(){}[0]
+        final fun <set-duration>(kotlin.time/Duration) // uniffi.ktor_client_webrtc/MediaSample.duration.<set-duration>|<set-duration>(kotlin.time.Duration){}[0]
+    final var packetTimestamp // uniffi.ktor_client_webrtc/MediaSample.packetTimestamp|{}packetTimestamp[0]
+        final fun <get-packetTimestamp>(): kotlin/UInt // uniffi.ktor_client_webrtc/MediaSample.packetTimestamp.<get-packetTimestamp>|<get-packetTimestamp>(){}[0]
+        final fun <set-packetTimestamp>(kotlin/UInt) // uniffi.ktor_client_webrtc/MediaSample.packetTimestamp.<set-packetTimestamp>|<set-packetTimestamp>(kotlin.UInt){}[0]
+    final var prevDroppedPackets // uniffi.ktor_client_webrtc/MediaSample.prevDroppedPackets|{}prevDroppedPackets[0]
+        final fun <get-prevDroppedPackets>(): kotlin/UShort // uniffi.ktor_client_webrtc/MediaSample.prevDroppedPackets.<get-prevDroppedPackets>|<get-prevDroppedPackets>(){}[0]
+        final fun <set-prevDroppedPackets>(kotlin/UShort) // uniffi.ktor_client_webrtc/MediaSample.prevDroppedPackets.<set-prevDroppedPackets>|<set-prevDroppedPackets>(kotlin.UShort){}[0]
+    final var prevPaddingPackets // uniffi.ktor_client_webrtc/MediaSample.prevPaddingPackets|{}prevPaddingPackets[0]
+        final fun <get-prevPaddingPackets>(): kotlin/UShort // uniffi.ktor_client_webrtc/MediaSample.prevPaddingPackets.<get-prevPaddingPackets>|<get-prevPaddingPackets>(){}[0]
+        final fun <set-prevPaddingPackets>(kotlin/UShort) // uniffi.ktor_client_webrtc/MediaSample.prevPaddingPackets.<set-prevPaddingPackets>|<set-prevPaddingPackets>(kotlin.UShort){}[0]
+    final var timestamp // uniffi.ktor_client_webrtc/MediaSample.timestamp|{}timestamp[0]
+        final fun <get-timestamp>(): kotlinx.datetime/Instant // uniffi.ktor_client_webrtc/MediaSample.timestamp.<get-timestamp>|<get-timestamp>(){}[0]
+        final fun <set-timestamp>(kotlinx.datetime/Instant) // uniffi.ktor_client_webrtc/MediaSample.timestamp.<set-timestamp>|<set-timestamp>(kotlinx.datetime.Instant){}[0]
+
+    final fun component1(): kotlin/ByteArray // uniffi.ktor_client_webrtc/MediaSample.component1|component1(){}[0]
+    final fun component2(): kotlinx.datetime/Instant // uniffi.ktor_client_webrtc/MediaSample.component2|component2(){}[0]
+    final fun component3(): kotlin.time/Duration // uniffi.ktor_client_webrtc/MediaSample.component3|component3(){}[0]
+    final fun component4(): kotlin/UInt // uniffi.ktor_client_webrtc/MediaSample.component4|component4(){}[0]
+    final fun component5(): kotlin/UShort // uniffi.ktor_client_webrtc/MediaSample.component5|component5(){}[0]
+    final fun component6(): kotlin/UShort // uniffi.ktor_client_webrtc/MediaSample.component6|component6(){}[0]
+    final fun copy(kotlin/ByteArray = ..., kotlinx.datetime/Instant = ..., kotlin.time/Duration = ..., kotlin/UInt = ..., kotlin/UShort = ..., kotlin/UShort = ...): uniffi.ktor_client_webrtc/MediaSample // uniffi.ktor_client_webrtc/MediaSample.copy|copy(kotlin.ByteArray;kotlinx.datetime.Instant;kotlin.time.Duration;kotlin.UInt;kotlin.UShort;kotlin.UShort){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // uniffi.ktor_client_webrtc/MediaSample.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // uniffi.ktor_client_webrtc/MediaSample.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // uniffi.ktor_client_webrtc/MediaSample.toString|toString(){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/MediaSample.Companion|null[0]
+}
+
+final class uniffi.ktor_client_webrtc/RtpCodecParameters { // uniffi.ktor_client_webrtc/RtpCodecParameters|null[0]
+    constructor <init>(kotlin/UByte, kotlin/String, kotlin/UInt, kotlin/UShort, kotlin/String) // uniffi.ktor_client_webrtc/RtpCodecParameters.<init>|<init>(kotlin.UByte;kotlin.String;kotlin.UInt;kotlin.UShort;kotlin.String){}[0]
+
+    final var channels // uniffi.ktor_client_webrtc/RtpCodecParameters.channels|{}channels[0]
+        final fun <get-channels>(): kotlin/UShort // uniffi.ktor_client_webrtc/RtpCodecParameters.channels.<get-channels>|<get-channels>(){}[0]
+        final fun <set-channels>(kotlin/UShort) // uniffi.ktor_client_webrtc/RtpCodecParameters.channels.<set-channels>|<set-channels>(kotlin.UShort){}[0]
+    final var clockRate // uniffi.ktor_client_webrtc/RtpCodecParameters.clockRate|{}clockRate[0]
+        final fun <get-clockRate>(): kotlin/UInt // uniffi.ktor_client_webrtc/RtpCodecParameters.clockRate.<get-clockRate>|<get-clockRate>(){}[0]
+        final fun <set-clockRate>(kotlin/UInt) // uniffi.ktor_client_webrtc/RtpCodecParameters.clockRate.<set-clockRate>|<set-clockRate>(kotlin.UInt){}[0]
+    final var mimeType // uniffi.ktor_client_webrtc/RtpCodecParameters.mimeType|{}mimeType[0]
+        final fun <get-mimeType>(): kotlin/String // uniffi.ktor_client_webrtc/RtpCodecParameters.mimeType.<get-mimeType>|<get-mimeType>(){}[0]
+        final fun <set-mimeType>(kotlin/String) // uniffi.ktor_client_webrtc/RtpCodecParameters.mimeType.<set-mimeType>|<set-mimeType>(kotlin.String){}[0]
+    final var payloadType // uniffi.ktor_client_webrtc/RtpCodecParameters.payloadType|{}payloadType[0]
+        final fun <get-payloadType>(): kotlin/UByte // uniffi.ktor_client_webrtc/RtpCodecParameters.payloadType.<get-payloadType>|<get-payloadType>(){}[0]
+        final fun <set-payloadType>(kotlin/UByte) // uniffi.ktor_client_webrtc/RtpCodecParameters.payloadType.<set-payloadType>|<set-payloadType>(kotlin.UByte){}[0]
+    final var sdpFmtpLine // uniffi.ktor_client_webrtc/RtpCodecParameters.sdpFmtpLine|{}sdpFmtpLine[0]
+        final fun <get-sdpFmtpLine>(): kotlin/String // uniffi.ktor_client_webrtc/RtpCodecParameters.sdpFmtpLine.<get-sdpFmtpLine>|<get-sdpFmtpLine>(){}[0]
+        final fun <set-sdpFmtpLine>(kotlin/String) // uniffi.ktor_client_webrtc/RtpCodecParameters.sdpFmtpLine.<set-sdpFmtpLine>|<set-sdpFmtpLine>(kotlin.String){}[0]
+
+    final fun component1(): kotlin/UByte // uniffi.ktor_client_webrtc/RtpCodecParameters.component1|component1(){}[0]
+    final fun component2(): kotlin/String // uniffi.ktor_client_webrtc/RtpCodecParameters.component2|component2(){}[0]
+    final fun component3(): kotlin/UInt // uniffi.ktor_client_webrtc/RtpCodecParameters.component3|component3(){}[0]
+    final fun component4(): kotlin/UShort // uniffi.ktor_client_webrtc/RtpCodecParameters.component4|component4(){}[0]
+    final fun component5(): kotlin/String // uniffi.ktor_client_webrtc/RtpCodecParameters.component5|component5(){}[0]
+    final fun copy(kotlin/UByte = ..., kotlin/String = ..., kotlin/UInt = ..., kotlin/UShort = ..., kotlin/String = ...): uniffi.ktor_client_webrtc/RtpCodecParameters // uniffi.ktor_client_webrtc/RtpCodecParameters.copy|copy(kotlin.UByte;kotlin.String;kotlin.UInt;kotlin.UShort;kotlin.String){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // uniffi.ktor_client_webrtc/RtpCodecParameters.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // uniffi.ktor_client_webrtc/RtpCodecParameters.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // uniffi.ktor_client_webrtc/RtpCodecParameters.toString|toString(){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/RtpCodecParameters.Companion|null[0]
+}
+
+final class uniffi.ktor_client_webrtc/RtpEncodingParameters { // uniffi.ktor_client_webrtc/RtpEncodingParameters|null[0]
+    constructor <init>(kotlin/String, kotlin/UInt, kotlin/UByte, kotlin/UInt) // uniffi.ktor_client_webrtc/RtpEncodingParameters.<init>|<init>(kotlin.String;kotlin.UInt;kotlin.UByte;kotlin.UInt){}[0]
+
+    final var payloadType // uniffi.ktor_client_webrtc/RtpEncodingParameters.payloadType|{}payloadType[0]
+        final fun <get-payloadType>(): kotlin/UByte // uniffi.ktor_client_webrtc/RtpEncodingParameters.payloadType.<get-payloadType>|<get-payloadType>(){}[0]
+        final fun <set-payloadType>(kotlin/UByte) // uniffi.ktor_client_webrtc/RtpEncodingParameters.payloadType.<set-payloadType>|<set-payloadType>(kotlin.UByte){}[0]
+    final var rid // uniffi.ktor_client_webrtc/RtpEncodingParameters.rid|{}rid[0]
+        final fun <get-rid>(): kotlin/String // uniffi.ktor_client_webrtc/RtpEncodingParameters.rid.<get-rid>|<get-rid>(){}[0]
+        final fun <set-rid>(kotlin/String) // uniffi.ktor_client_webrtc/RtpEncodingParameters.rid.<set-rid>|<set-rid>(kotlin.String){}[0]
+    final var rtx // uniffi.ktor_client_webrtc/RtpEncodingParameters.rtx|{}rtx[0]
+        final fun <get-rtx>(): kotlin/UInt // uniffi.ktor_client_webrtc/RtpEncodingParameters.rtx.<get-rtx>|<get-rtx>(){}[0]
+        final fun <set-rtx>(kotlin/UInt) // uniffi.ktor_client_webrtc/RtpEncodingParameters.rtx.<set-rtx>|<set-rtx>(kotlin.UInt){}[0]
+    final var ssrc // uniffi.ktor_client_webrtc/RtpEncodingParameters.ssrc|{}ssrc[0]
+        final fun <get-ssrc>(): kotlin/UInt // uniffi.ktor_client_webrtc/RtpEncodingParameters.ssrc.<get-ssrc>|<get-ssrc>(){}[0]
+        final fun <set-ssrc>(kotlin/UInt) // uniffi.ktor_client_webrtc/RtpEncodingParameters.ssrc.<set-ssrc>|<set-ssrc>(kotlin.UInt){}[0]
+
+    final fun component1(): kotlin/String // uniffi.ktor_client_webrtc/RtpEncodingParameters.component1|component1(){}[0]
+    final fun component2(): kotlin/UInt // uniffi.ktor_client_webrtc/RtpEncodingParameters.component2|component2(){}[0]
+    final fun component3(): kotlin/UByte // uniffi.ktor_client_webrtc/RtpEncodingParameters.component3|component3(){}[0]
+    final fun component4(): kotlin/UInt // uniffi.ktor_client_webrtc/RtpEncodingParameters.component4|component4(){}[0]
+    final fun copy(kotlin/String = ..., kotlin/UInt = ..., kotlin/UByte = ..., kotlin/UInt = ...): uniffi.ktor_client_webrtc/RtpEncodingParameters // uniffi.ktor_client_webrtc/RtpEncodingParameters.copy|copy(kotlin.String;kotlin.UInt;kotlin.UByte;kotlin.UInt){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // uniffi.ktor_client_webrtc/RtpEncodingParameters.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // uniffi.ktor_client_webrtc/RtpEncodingParameters.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // uniffi.ktor_client_webrtc/RtpEncodingParameters.toString|toString(){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/RtpEncodingParameters.Companion|null[0]
+}
+
+final class uniffi.ktor_client_webrtc/RtpHeaderExtensionParameters { // uniffi.ktor_client_webrtc/RtpHeaderExtensionParameters|null[0]
+    constructor <init>(kotlin/Long, kotlin/String, kotlin/Boolean) // uniffi.ktor_client_webrtc/RtpHeaderExtensionParameters.<init>|<init>(kotlin.Long;kotlin.String;kotlin.Boolean){}[0]
+
+    final var encrypted // uniffi.ktor_client_webrtc/RtpHeaderExtensionParameters.encrypted|{}encrypted[0]
+        final fun <get-encrypted>(): kotlin/Boolean // uniffi.ktor_client_webrtc/RtpHeaderExtensionParameters.encrypted.<get-encrypted>|<get-encrypted>(){}[0]
+        final fun <set-encrypted>(kotlin/Boolean) // uniffi.ktor_client_webrtc/RtpHeaderExtensionParameters.encrypted.<set-encrypted>|<set-encrypted>(kotlin.Boolean){}[0]
+    final var id // uniffi.ktor_client_webrtc/RtpHeaderExtensionParameters.id|{}id[0]
+        final fun <get-id>(): kotlin/Long // uniffi.ktor_client_webrtc/RtpHeaderExtensionParameters.id.<get-id>|<get-id>(){}[0]
+        final fun <set-id>(kotlin/Long) // uniffi.ktor_client_webrtc/RtpHeaderExtensionParameters.id.<set-id>|<set-id>(kotlin.Long){}[0]
+    final var uri // uniffi.ktor_client_webrtc/RtpHeaderExtensionParameters.uri|{}uri[0]
+        final fun <get-uri>(): kotlin/String // uniffi.ktor_client_webrtc/RtpHeaderExtensionParameters.uri.<get-uri>|<get-uri>(){}[0]
+        final fun <set-uri>(kotlin/String) // uniffi.ktor_client_webrtc/RtpHeaderExtensionParameters.uri.<set-uri>|<set-uri>(kotlin.String){}[0]
+
+    final fun component1(): kotlin/Long // uniffi.ktor_client_webrtc/RtpHeaderExtensionParameters.component1|component1(){}[0]
+    final fun component2(): kotlin/String // uniffi.ktor_client_webrtc/RtpHeaderExtensionParameters.component2|component2(){}[0]
+    final fun component3(): kotlin/Boolean // uniffi.ktor_client_webrtc/RtpHeaderExtensionParameters.component3|component3(){}[0]
+    final fun copy(kotlin/Long = ..., kotlin/String = ..., kotlin/Boolean = ...): uniffi.ktor_client_webrtc/RtpHeaderExtensionParameters // uniffi.ktor_client_webrtc/RtpHeaderExtensionParameters.copy|copy(kotlin.Long;kotlin.String;kotlin.Boolean){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // uniffi.ktor_client_webrtc/RtpHeaderExtensionParameters.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // uniffi.ktor_client_webrtc/RtpHeaderExtensionParameters.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // uniffi.ktor_client_webrtc/RtpHeaderExtensionParameters.toString|toString(){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/RtpHeaderExtensionParameters.Companion|null[0]
+}
+
+final class uniffi.ktor_client_webrtc/RtpParameters { // uniffi.ktor_client_webrtc/RtpParameters|null[0]
+    constructor <init>(kotlin.collections/List<uniffi.ktor_client_webrtc/RtpEncodingParameters>, kotlin.collections/List<uniffi.ktor_client_webrtc/RtpHeaderExtensionParameters>, kotlin.collections/List<uniffi.ktor_client_webrtc/RtpCodecParameters>) // uniffi.ktor_client_webrtc/RtpParameters.<init>|<init>(kotlin.collections.List<uniffi.ktor_client_webrtc.RtpEncodingParameters>;kotlin.collections.List<uniffi.ktor_client_webrtc.RtpHeaderExtensionParameters>;kotlin.collections.List<uniffi.ktor_client_webrtc.RtpCodecParameters>){}[0]
+
+    final var codecs // uniffi.ktor_client_webrtc/RtpParameters.codecs|{}codecs[0]
+        final fun <get-codecs>(): kotlin.collections/List<uniffi.ktor_client_webrtc/RtpCodecParameters> // uniffi.ktor_client_webrtc/RtpParameters.codecs.<get-codecs>|<get-codecs>(){}[0]
+        final fun <set-codecs>(kotlin.collections/List<uniffi.ktor_client_webrtc/RtpCodecParameters>) // uniffi.ktor_client_webrtc/RtpParameters.codecs.<set-codecs>|<set-codecs>(kotlin.collections.List<uniffi.ktor_client_webrtc.RtpCodecParameters>){}[0]
+    final var encodings // uniffi.ktor_client_webrtc/RtpParameters.encodings|{}encodings[0]
+        final fun <get-encodings>(): kotlin.collections/List<uniffi.ktor_client_webrtc/RtpEncodingParameters> // uniffi.ktor_client_webrtc/RtpParameters.encodings.<get-encodings>|<get-encodings>(){}[0]
+        final fun <set-encodings>(kotlin.collections/List<uniffi.ktor_client_webrtc/RtpEncodingParameters>) // uniffi.ktor_client_webrtc/RtpParameters.encodings.<set-encodings>|<set-encodings>(kotlin.collections.List<uniffi.ktor_client_webrtc.RtpEncodingParameters>){}[0]
+    final var headerExtensions // uniffi.ktor_client_webrtc/RtpParameters.headerExtensions|{}headerExtensions[0]
+        final fun <get-headerExtensions>(): kotlin.collections/List<uniffi.ktor_client_webrtc/RtpHeaderExtensionParameters> // uniffi.ktor_client_webrtc/RtpParameters.headerExtensions.<get-headerExtensions>|<get-headerExtensions>(){}[0]
+        final fun <set-headerExtensions>(kotlin.collections/List<uniffi.ktor_client_webrtc/RtpHeaderExtensionParameters>) // uniffi.ktor_client_webrtc/RtpParameters.headerExtensions.<set-headerExtensions>|<set-headerExtensions>(kotlin.collections.List<uniffi.ktor_client_webrtc.RtpHeaderExtensionParameters>){}[0]
+
+    final fun component1(): kotlin.collections/List<uniffi.ktor_client_webrtc/RtpEncodingParameters> // uniffi.ktor_client_webrtc/RtpParameters.component1|component1(){}[0]
+    final fun component2(): kotlin.collections/List<uniffi.ktor_client_webrtc/RtpHeaderExtensionParameters> // uniffi.ktor_client_webrtc/RtpParameters.component2|component2(){}[0]
+    final fun component3(): kotlin.collections/List<uniffi.ktor_client_webrtc/RtpCodecParameters> // uniffi.ktor_client_webrtc/RtpParameters.component3|component3(){}[0]
+    final fun copy(kotlin.collections/List<uniffi.ktor_client_webrtc/RtpEncodingParameters> = ..., kotlin.collections/List<uniffi.ktor_client_webrtc/RtpHeaderExtensionParameters> = ..., kotlin.collections/List<uniffi.ktor_client_webrtc/RtpCodecParameters> = ...): uniffi.ktor_client_webrtc/RtpParameters // uniffi.ktor_client_webrtc/RtpParameters.copy|copy(kotlin.collections.List<uniffi.ktor_client_webrtc.RtpEncodingParameters>;kotlin.collections.List<uniffi.ktor_client_webrtc.RtpHeaderExtensionParameters>;kotlin.collections.List<uniffi.ktor_client_webrtc.RtpCodecParameters>){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // uniffi.ktor_client_webrtc/RtpParameters.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // uniffi.ktor_client_webrtc/RtpParameters.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // uniffi.ktor_client_webrtc/RtpParameters.toString|toString(){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/RtpParameters.Companion|null[0]
+}
+
+final class uniffi.ktor_client_webrtc/SessionDescription { // uniffi.ktor_client_webrtc/SessionDescription|null[0]
+    constructor <init>(uniffi.ktor_client_webrtc/SessionDescriptionType, kotlin/String) // uniffi.ktor_client_webrtc/SessionDescription.<init>|<init>(uniffi.ktor_client_webrtc.SessionDescriptionType;kotlin.String){}[0]
+
+    final var sdp // uniffi.ktor_client_webrtc/SessionDescription.sdp|{}sdp[0]
+        final fun <get-sdp>(): kotlin/String // uniffi.ktor_client_webrtc/SessionDescription.sdp.<get-sdp>|<get-sdp>(){}[0]
+        final fun <set-sdp>(kotlin/String) // uniffi.ktor_client_webrtc/SessionDescription.sdp.<set-sdp>|<set-sdp>(kotlin.String){}[0]
+    final var sdpType // uniffi.ktor_client_webrtc/SessionDescription.sdpType|{}sdpType[0]
+        final fun <get-sdpType>(): uniffi.ktor_client_webrtc/SessionDescriptionType // uniffi.ktor_client_webrtc/SessionDescription.sdpType.<get-sdpType>|<get-sdpType>(){}[0]
+        final fun <set-sdpType>(uniffi.ktor_client_webrtc/SessionDescriptionType) // uniffi.ktor_client_webrtc/SessionDescription.sdpType.<set-sdpType>|<set-sdpType>(uniffi.ktor_client_webrtc.SessionDescriptionType){}[0]
+
+    final fun component1(): uniffi.ktor_client_webrtc/SessionDescriptionType // uniffi.ktor_client_webrtc/SessionDescription.component1|component1(){}[0]
+    final fun component2(): kotlin/String // uniffi.ktor_client_webrtc/SessionDescription.component2|component2(){}[0]
+    final fun copy(uniffi.ktor_client_webrtc/SessionDescriptionType = ..., kotlin/String = ...): uniffi.ktor_client_webrtc/SessionDescription // uniffi.ktor_client_webrtc/SessionDescription.copy|copy(uniffi.ktor_client_webrtc.SessionDescriptionType;kotlin.String){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // uniffi.ktor_client_webrtc/SessionDescription.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // uniffi.ktor_client_webrtc/SessionDescription.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // uniffi.ktor_client_webrtc/SessionDescription.toString|toString(){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/SessionDescription.Companion|null[0]
+}
+
+final class uniffi.ktor_client_webrtc/Stats { // uniffi.ktor_client_webrtc/Stats|null[0]
+    constructor <init>(kotlin/String, kotlin/ULong, kotlin/String, kotlin/String) // uniffi.ktor_client_webrtc/Stats.<init>|<init>(kotlin.String;kotlin.ULong;kotlin.String;kotlin.String){}[0]
+
+    final var id // uniffi.ktor_client_webrtc/Stats.id|{}id[0]
+        final fun <get-id>(): kotlin/String // uniffi.ktor_client_webrtc/Stats.id.<get-id>|<get-id>(){}[0]
+        final fun <set-id>(kotlin/String) // uniffi.ktor_client_webrtc/Stats.id.<set-id>|<set-id>(kotlin.String){}[0]
+    final var props // uniffi.ktor_client_webrtc/Stats.props|{}props[0]
+        final fun <get-props>(): kotlin/String // uniffi.ktor_client_webrtc/Stats.props.<get-props>|<get-props>(){}[0]
+        final fun <set-props>(kotlin/String) // uniffi.ktor_client_webrtc/Stats.props.<set-props>|<set-props>(kotlin.String){}[0]
+    final var timestamp // uniffi.ktor_client_webrtc/Stats.timestamp|{}timestamp[0]
+        final fun <get-timestamp>(): kotlin/ULong // uniffi.ktor_client_webrtc/Stats.timestamp.<get-timestamp>|<get-timestamp>(){}[0]
+        final fun <set-timestamp>(kotlin/ULong) // uniffi.ktor_client_webrtc/Stats.timestamp.<set-timestamp>|<set-timestamp>(kotlin.ULong){}[0]
+    final var type // uniffi.ktor_client_webrtc/Stats.type|{}type[0]
+        final fun <get-type>(): kotlin/String // uniffi.ktor_client_webrtc/Stats.type.<get-type>|<get-type>(){}[0]
+        final fun <set-type>(kotlin/String) // uniffi.ktor_client_webrtc/Stats.type.<set-type>|<set-type>(kotlin.String){}[0]
+
+    final fun component1(): kotlin/String // uniffi.ktor_client_webrtc/Stats.component1|component1(){}[0]
+    final fun component2(): kotlin/ULong // uniffi.ktor_client_webrtc/Stats.component2|component2(){}[0]
+    final fun component3(): kotlin/String // uniffi.ktor_client_webrtc/Stats.component3|component3(){}[0]
+    final fun component4(): kotlin/String // uniffi.ktor_client_webrtc/Stats.component4|component4(){}[0]
+    final fun copy(kotlin/String = ..., kotlin/ULong = ..., kotlin/String = ..., kotlin/String = ...): uniffi.ktor_client_webrtc/Stats // uniffi.ktor_client_webrtc/Stats.copy|copy(kotlin.String;kotlin.ULong;kotlin.String;kotlin.String){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // uniffi.ktor_client_webrtc/Stats.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // uniffi.ktor_client_webrtc/Stats.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // uniffi.ktor_client_webrtc/Stats.toString|toString(){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/Stats.Companion|null[0]
+}
+
+open class uniffi.ktor_client_webrtc/DataChannel : uniffi.ktor_client_webrtc/DataChannelInterface, uniffi.ktor_client_webrtc/Disposable { // uniffi.ktor_client_webrtc/DataChannel|null[0]
+    constructor <init>(kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>) // uniffi.ktor_client_webrtc/DataChannel.<init>|<init>(kotlinx.cinterop.CPointer<out|kotlinx.cinterop.CPointed>){}[0]
+    constructor <init>(uniffi.ktor_client_webrtc/NoPointer) // uniffi.ktor_client_webrtc/DataChannel.<init>|<init>(uniffi.ktor_client_webrtc.NoPointer){}[0]
+
+    final val cleanable // uniffi.ktor_client_webrtc/DataChannel.cleanable|{}cleanable[0]
+        final fun <get-cleanable>(): uniffi.ktor_client_webrtc/UniffiCleaner.Cleanable // uniffi.ktor_client_webrtc/DataChannel.cleanable.<get-cleanable>|<get-cleanable>(){}[0]
+    final val pointer // uniffi.ktor_client_webrtc/DataChannel.pointer|{}pointer[0]
+        final fun <get-pointer>(): kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>? // uniffi.ktor_client_webrtc/DataChannel.pointer.<get-pointer>|<get-pointer>(){}[0]
+
+    final fun uniffiClonePointer(): kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed> // uniffi.ktor_client_webrtc/DataChannel.uniffiClonePointer|uniffiClonePointer(){}[0]
+    open fun close() // uniffi.ktor_client_webrtc/DataChannel.close|close(){}[0]
+    open fun destroy() // uniffi.ktor_client_webrtc/DataChannel.destroy|destroy(){}[0]
+    open fun id(): kotlin/UShort // uniffi.ktor_client_webrtc/DataChannel.id|id(){}[0]
+    open fun label(): kotlin/String // uniffi.ktor_client_webrtc/DataChannel.label|label(){}[0]
+    open fun maxPacketLifetime(): kotlin/UShort? // uniffi.ktor_client_webrtc/DataChannel.maxPacketLifetime|maxPacketLifetime(){}[0]
+    open fun maxRetransmits(): kotlin/UShort? // uniffi.ktor_client_webrtc/DataChannel.maxRetransmits|maxRetransmits(){}[0]
+    open fun negotiated(): kotlin/Boolean // uniffi.ktor_client_webrtc/DataChannel.negotiated|negotiated(){}[0]
+    open fun ordered(): kotlin/Boolean // uniffi.ktor_client_webrtc/DataChannel.ordered|ordered(){}[0]
+    open fun protocol(): kotlin/String // uniffi.ktor_client_webrtc/DataChannel.protocol|protocol(){}[0]
+    open fun state(): uniffi.ktor_client_webrtc/DataChannelState // uniffi.ktor_client_webrtc/DataChannel.state|state(){}[0]
+    open suspend fun bufferedAmount(): kotlin/ULong // uniffi.ktor_client_webrtc/DataChannel.bufferedAmount|bufferedAmount(){}[0]
+    open suspend fun bufferedAmountLowThreshold(): kotlin/ULong // uniffi.ktor_client_webrtc/DataChannel.bufferedAmountLowThreshold|bufferedAmountLowThreshold(){}[0]
+    open suspend fun closeChannel() // uniffi.ktor_client_webrtc/DataChannel.closeChannel|closeChannel(){}[0]
+    open suspend fun registerObserver(uniffi.ktor_client_webrtc/DataChannelObserver) // uniffi.ktor_client_webrtc/DataChannel.registerObserver|registerObserver(uniffi.ktor_client_webrtc.DataChannelObserver){}[0]
+    open suspend fun send(kotlin/ByteArray): kotlin/ULong // uniffi.ktor_client_webrtc/DataChannel.send|send(kotlin.ByteArray){}[0]
+    open suspend fun sendText(kotlin/String): kotlin/ULong // uniffi.ktor_client_webrtc/DataChannel.sendText|sendText(kotlin.String){}[0]
+    open suspend fun setBufferedAmountLowThreshold(kotlin/ULong) // uniffi.ktor_client_webrtc/DataChannel.setBufferedAmountLowThreshold|setBufferedAmountLowThreshold(kotlin.ULong){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/DataChannel.Companion|null[0]
+}
+
+open class uniffi.ktor_client_webrtc/DataChannelObserverImpl : uniffi.ktor_client_webrtc/DataChannelObserver, uniffi.ktor_client_webrtc/Disposable { // uniffi.ktor_client_webrtc/DataChannelObserverImpl|null[0]
+    constructor <init>(kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>) // uniffi.ktor_client_webrtc/DataChannelObserverImpl.<init>|<init>(kotlinx.cinterop.CPointer<out|kotlinx.cinterop.CPointed>){}[0]
+    constructor <init>(uniffi.ktor_client_webrtc/NoPointer) // uniffi.ktor_client_webrtc/DataChannelObserverImpl.<init>|<init>(uniffi.ktor_client_webrtc.NoPointer){}[0]
+
+    final val cleanable // uniffi.ktor_client_webrtc/DataChannelObserverImpl.cleanable|{}cleanable[0]
+        final fun <get-cleanable>(): uniffi.ktor_client_webrtc/UniffiCleaner.Cleanable // uniffi.ktor_client_webrtc/DataChannelObserverImpl.cleanable.<get-cleanable>|<get-cleanable>(){}[0]
+    final val pointer // uniffi.ktor_client_webrtc/DataChannelObserverImpl.pointer|{}pointer[0]
+        final fun <get-pointer>(): kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>? // uniffi.ktor_client_webrtc/DataChannelObserverImpl.pointer.<get-pointer>|<get-pointer>(){}[0]
+
+    final fun uniffiClonePointer(): kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed> // uniffi.ktor_client_webrtc/DataChannelObserverImpl.uniffiClonePointer|uniffiClonePointer(){}[0]
+    open fun close() // uniffi.ktor_client_webrtc/DataChannelObserverImpl.close|close(){}[0]
+    open fun destroy() // uniffi.ktor_client_webrtc/DataChannelObserverImpl.destroy|destroy(){}[0]
+    open fun onBufferedAmountLow() // uniffi.ktor_client_webrtc/DataChannelObserverImpl.onBufferedAmountLow|onBufferedAmountLow(){}[0]
+    open fun onClose() // uniffi.ktor_client_webrtc/DataChannelObserverImpl.onClose|onClose(){}[0]
+    open fun onError(uniffi.ktor_client_webrtc/RtcException) // uniffi.ktor_client_webrtc/DataChannelObserverImpl.onError|onError(uniffi.ktor_client_webrtc.RtcException){}[0]
+    open fun onMessage(uniffi.ktor_client_webrtc/DataChannelMessage) // uniffi.ktor_client_webrtc/DataChannelObserverImpl.onMessage|onMessage(uniffi.ktor_client_webrtc.DataChannelMessage){}[0]
+    open fun onOpen() // uniffi.ktor_client_webrtc/DataChannelObserverImpl.onOpen|onOpen(){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/DataChannelObserverImpl.Companion|null[0]
+}
+
+open class uniffi.ktor_client_webrtc/MediaHandlerImpl : uniffi.ktor_client_webrtc/Disposable, uniffi.ktor_client_webrtc/MediaHandler { // uniffi.ktor_client_webrtc/MediaHandlerImpl|null[0]
+    constructor <init>(kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>) // uniffi.ktor_client_webrtc/MediaHandlerImpl.<init>|<init>(kotlinx.cinterop.CPointer<out|kotlinx.cinterop.CPointed>){}[0]
+    constructor <init>(uniffi.ktor_client_webrtc/NoPointer) // uniffi.ktor_client_webrtc/MediaHandlerImpl.<init>|<init>(uniffi.ktor_client_webrtc.NoPointer){}[0]
+
+    final val cleanable // uniffi.ktor_client_webrtc/MediaHandlerImpl.cleanable|{}cleanable[0]
+        final fun <get-cleanable>(): uniffi.ktor_client_webrtc/UniffiCleaner.Cleanable // uniffi.ktor_client_webrtc/MediaHandlerImpl.cleanable.<get-cleanable>|<get-cleanable>(){}[0]
+    final val pointer // uniffi.ktor_client_webrtc/MediaHandlerImpl.pointer|{}pointer[0]
+        final fun <get-pointer>(): kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>? // uniffi.ktor_client_webrtc/MediaHandlerImpl.pointer.<get-pointer>|<get-pointer>(){}[0]
+
+    final fun uniffiClonePointer(): kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed> // uniffi.ktor_client_webrtc/MediaHandlerImpl.uniffiClonePointer|uniffiClonePointer(){}[0]
+    open fun close() // uniffi.ktor_client_webrtc/MediaHandlerImpl.close|close(){}[0]
+    open fun destroy() // uniffi.ktor_client_webrtc/MediaHandlerImpl.destroy|destroy(){}[0]
+    open fun onNextSample(uniffi.ktor_client_webrtc/MediaSample) // uniffi.ktor_client_webrtc/MediaHandlerImpl.onNextSample|onNextSample(uniffi.ktor_client_webrtc.MediaSample){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/MediaHandlerImpl.Companion|null[0]
+}
+
+open class uniffi.ktor_client_webrtc/MediaStreamSinkWrapper : uniffi.ktor_client_webrtc/Disposable, uniffi.ktor_client_webrtc/MediaStreamSinkWrapperInterface { // uniffi.ktor_client_webrtc/MediaStreamSinkWrapper|null[0]
+    constructor <init>(kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>) // uniffi.ktor_client_webrtc/MediaStreamSinkWrapper.<init>|<init>(kotlinx.cinterop.CPointer<out|kotlinx.cinterop.CPointed>){}[0]
+    constructor <init>(uniffi.ktor_client_webrtc/NoPointer) // uniffi.ktor_client_webrtc/MediaStreamSinkWrapper.<init>|<init>(uniffi.ktor_client_webrtc.NoPointer){}[0]
+
+    final val cleanable // uniffi.ktor_client_webrtc/MediaStreamSinkWrapper.cleanable|{}cleanable[0]
+        final fun <get-cleanable>(): uniffi.ktor_client_webrtc/UniffiCleaner.Cleanable // uniffi.ktor_client_webrtc/MediaStreamSinkWrapper.cleanable.<get-cleanable>|<get-cleanable>(){}[0]
+    final val pointer // uniffi.ktor_client_webrtc/MediaStreamSinkWrapper.pointer|{}pointer[0]
+        final fun <get-pointer>(): kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>? // uniffi.ktor_client_webrtc/MediaStreamSinkWrapper.pointer.<get-pointer>|<get-pointer>(){}[0]
+
+    final fun uniffiClonePointer(): kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed> // uniffi.ktor_client_webrtc/MediaStreamSinkWrapper.uniffiClonePointer|uniffiClonePointer(){}[0]
+    open fun close() // uniffi.ktor_client_webrtc/MediaStreamSinkWrapper.close|close(){}[0]
+    open fun destroy() // uniffi.ktor_client_webrtc/MediaStreamSinkWrapper.destroy|destroy(){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/MediaStreamSinkWrapper.Companion|null[0]
+}
+
+open class uniffi.ktor_client_webrtc/MediaStreamTrack : uniffi.ktor_client_webrtc/Disposable, uniffi.ktor_client_webrtc/MediaStreamTrackInterface { // uniffi.ktor_client_webrtc/MediaStreamTrack|null[0]
+    constructor <init>(kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>) // uniffi.ktor_client_webrtc/MediaStreamTrack.<init>|<init>(kotlinx.cinterop.CPointer<out|kotlinx.cinterop.CPointed>){}[0]
+    constructor <init>(uniffi.ktor_client_webrtc/NoPointer) // uniffi.ktor_client_webrtc/MediaStreamTrack.<init>|<init>(uniffi.ktor_client_webrtc.NoPointer){}[0]
+
+    final val cleanable // uniffi.ktor_client_webrtc/MediaStreamTrack.cleanable|{}cleanable[0]
+        final fun <get-cleanable>(): uniffi.ktor_client_webrtc/UniffiCleaner.Cleanable // uniffi.ktor_client_webrtc/MediaStreamTrack.cleanable.<get-cleanable>|<get-cleanable>(){}[0]
+    final val pointer // uniffi.ktor_client_webrtc/MediaStreamTrack.pointer|{}pointer[0]
+        final fun <get-pointer>(): kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>? // uniffi.ktor_client_webrtc/MediaStreamTrack.pointer.<get-pointer>|<get-pointer>(){}[0]
+
+    final fun uniffiClonePointer(): kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed> // uniffi.ktor_client_webrtc/MediaStreamTrack.uniffiClonePointer|uniffiClonePointer(){}[0]
+    open fun clockRate(): kotlin/UInt // uniffi.ktor_client_webrtc/MediaStreamTrack.clockRate|clockRate(){}[0]
+    open fun close() // uniffi.ktor_client_webrtc/MediaStreamTrack.close|close(){}[0]
+    open fun codec(): uniffi.ktor_client_webrtc/MediaCodec // uniffi.ktor_client_webrtc/MediaStreamTrack.codec|codec(){}[0]
+    open fun createSink(uniffi.ktor_client_webrtc/MediaHandler): uniffi.ktor_client_webrtc/MediaStreamSinkWrapper // uniffi.ktor_client_webrtc/MediaStreamTrack.createSink|createSink(uniffi.ktor_client_webrtc.MediaHandler){}[0]
+    open fun destroy() // uniffi.ktor_client_webrtc/MediaStreamTrack.destroy|destroy(){}[0]
+    open fun enabled(): kotlin/Boolean // uniffi.ktor_client_webrtc/MediaStreamTrack.enabled|enabled(){}[0]
+    open fun id(): kotlin/String // uniffi.ktor_client_webrtc/MediaStreamTrack.id|id(){}[0]
+    open fun isLocal(): kotlin/Boolean // uniffi.ktor_client_webrtc/MediaStreamTrack.isLocal|isLocal(){}[0]
+    open fun isRemote(): kotlin/Boolean // uniffi.ktor_client_webrtc/MediaStreamTrack.isRemote|isRemote(){}[0]
+    open fun setEnabled(kotlin/Boolean) // uniffi.ktor_client_webrtc/MediaStreamTrack.setEnabled|setEnabled(kotlin.Boolean){}[0]
+    open fun setSink(uniffi.ktor_client_webrtc/MediaStreamSinkWrapper?) // uniffi.ktor_client_webrtc/MediaStreamTrack.setSink|setSink(uniffi.ktor_client_webrtc.MediaStreamSinkWrapper?){}[0]
+    open suspend fun hasSink(): kotlin/Boolean // uniffi.ktor_client_webrtc/MediaStreamTrack.hasSink|hasSink(){}[0]
+    open suspend fun readAll() // uniffi.ktor_client_webrtc/MediaStreamTrack.readAll|readAll(){}[0]
+    open suspend fun readRtp() // uniffi.ktor_client_webrtc/MediaStreamTrack.readRtp|readRtp(){}[0]
+    open suspend fun writeData(kotlin/ByteArray, kotlin.time/Duration) // uniffi.ktor_client_webrtc/MediaStreamTrack.writeData|writeData(kotlin.ByteArray;kotlin.time.Duration){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/MediaStreamTrack.Companion|null[0]
+}
+
+open class uniffi.ktor_client_webrtc/PeerConnection : uniffi.ktor_client_webrtc/Disposable, uniffi.ktor_client_webrtc/PeerConnectionInterface { // uniffi.ktor_client_webrtc/PeerConnection|null[0]
+    constructor <init>(kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>) // uniffi.ktor_client_webrtc/PeerConnection.<init>|<init>(kotlinx.cinterop.CPointer<out|kotlinx.cinterop.CPointed>){}[0]
+    constructor <init>(uniffi.ktor_client_webrtc/NoPointer) // uniffi.ktor_client_webrtc/PeerConnection.<init>|<init>(uniffi.ktor_client_webrtc.NoPointer){}[0]
+
+    final val cleanable // uniffi.ktor_client_webrtc/PeerConnection.cleanable|{}cleanable[0]
+        final fun <get-cleanable>(): uniffi.ktor_client_webrtc/UniffiCleaner.Cleanable // uniffi.ktor_client_webrtc/PeerConnection.cleanable.<get-cleanable>|<get-cleanable>(){}[0]
+    final val pointer // uniffi.ktor_client_webrtc/PeerConnection.pointer|{}pointer[0]
+        final fun <get-pointer>(): kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>? // uniffi.ktor_client_webrtc/PeerConnection.pointer.<get-pointer>|<get-pointer>(){}[0]
+
+    final fun uniffiClonePointer(): kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed> // uniffi.ktor_client_webrtc/PeerConnection.uniffiClonePointer|uniffiClonePointer(){}[0]
+    open fun close() // uniffi.ktor_client_webrtc/PeerConnection.close|close(){}[0]
+    open fun destroy() // uniffi.ktor_client_webrtc/PeerConnection.destroy|destroy(){}[0]
+    open fun registerObserver(uniffi.ktor_client_webrtc/PeerConnectionObserver) // uniffi.ktor_client_webrtc/PeerConnection.registerObserver|registerObserver(uniffi.ktor_client_webrtc.PeerConnectionObserver){}[0]
+    open suspend fun addIceCandidate(uniffi.ktor_client_webrtc/IceCandidate) // uniffi.ktor_client_webrtc/PeerConnection.addIceCandidate|addIceCandidate(uniffi.ktor_client_webrtc.IceCandidate){}[0]
+    open suspend fun addTrack(uniffi.ktor_client_webrtc/MediaStreamTrack): uniffi.ktor_client_webrtc/RtpSender // uniffi.ktor_client_webrtc/PeerConnection.addTrack|addTrack(uniffi.ktor_client_webrtc.MediaStreamTrack){}[0]
+    open suspend fun createAnswer(): uniffi.ktor_client_webrtc/SessionDescription // uniffi.ktor_client_webrtc/PeerConnection.createAnswer|createAnswer(){}[0]
+    open suspend fun createDataChannel(kotlin/String, uniffi.ktor_client_webrtc/DataChannelInit): uniffi.ktor_client_webrtc/DataChannel // uniffi.ktor_client_webrtc/PeerConnection.createDataChannel|createDataChannel(kotlin.String;uniffi.ktor_client_webrtc.DataChannelInit){}[0]
+    open suspend fun createOffer(): uniffi.ktor_client_webrtc/SessionDescription // uniffi.ktor_client_webrtc/PeerConnection.createOffer|createOffer(){}[0]
+    open suspend fun getLocalDescription(): uniffi.ktor_client_webrtc/SessionDescription? // uniffi.ktor_client_webrtc/PeerConnection.getLocalDescription|getLocalDescription(){}[0]
+    open suspend fun getRemoteDescription(): uniffi.ktor_client_webrtc/SessionDescription? // uniffi.ktor_client_webrtc/PeerConnection.getRemoteDescription|getRemoteDescription(){}[0]
+    open suspend fun getStatistics(): kotlin.collections/List<uniffi.ktor_client_webrtc/Stats> // uniffi.ktor_client_webrtc/PeerConnection.getStatistics|getStatistics(){}[0]
+    open suspend fun removeTrack(uniffi.ktor_client_webrtc/MediaStreamTrack) // uniffi.ktor_client_webrtc/PeerConnection.removeTrack|removeTrack(uniffi.ktor_client_webrtc.MediaStreamTrack){}[0]
+    open suspend fun removeTrackBySender(uniffi.ktor_client_webrtc/RtpSender) // uniffi.ktor_client_webrtc/PeerConnection.removeTrackBySender|removeTrackBySender(uniffi.ktor_client_webrtc.RtpSender){}[0]
+    open suspend fun restartIce() // uniffi.ktor_client_webrtc/PeerConnection.restartIce|restartIce(){}[0]
+    open suspend fun setLocalDescription(uniffi.ktor_client_webrtc/SessionDescription) // uniffi.ktor_client_webrtc/PeerConnection.setLocalDescription|setLocalDescription(uniffi.ktor_client_webrtc.SessionDescription){}[0]
+    open suspend fun setRemoteDescription(uniffi.ktor_client_webrtc/SessionDescription) // uniffi.ktor_client_webrtc/PeerConnection.setRemoteDescription|setRemoteDescription(uniffi.ktor_client_webrtc.SessionDescription){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/PeerConnection.Companion|null[0]
+}
+
+open class uniffi.ktor_client_webrtc/PeerConnectionObserverImpl : uniffi.ktor_client_webrtc/Disposable, uniffi.ktor_client_webrtc/PeerConnectionObserver { // uniffi.ktor_client_webrtc/PeerConnectionObserverImpl|null[0]
+    constructor <init>(kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>) // uniffi.ktor_client_webrtc/PeerConnectionObserverImpl.<init>|<init>(kotlinx.cinterop.CPointer<out|kotlinx.cinterop.CPointed>){}[0]
+    constructor <init>(uniffi.ktor_client_webrtc/NoPointer) // uniffi.ktor_client_webrtc/PeerConnectionObserverImpl.<init>|<init>(uniffi.ktor_client_webrtc.NoPointer){}[0]
+
+    final val cleanable // uniffi.ktor_client_webrtc/PeerConnectionObserverImpl.cleanable|{}cleanable[0]
+        final fun <get-cleanable>(): uniffi.ktor_client_webrtc/UniffiCleaner.Cleanable // uniffi.ktor_client_webrtc/PeerConnectionObserverImpl.cleanable.<get-cleanable>|<get-cleanable>(){}[0]
+    final val pointer // uniffi.ktor_client_webrtc/PeerConnectionObserverImpl.pointer|{}pointer[0]
+        final fun <get-pointer>(): kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>? // uniffi.ktor_client_webrtc/PeerConnectionObserverImpl.pointer.<get-pointer>|<get-pointer>(){}[0]
+
+    final fun uniffiClonePointer(): kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed> // uniffi.ktor_client_webrtc/PeerConnectionObserverImpl.uniffiClonePointer|uniffiClonePointer(){}[0]
+    open fun close() // uniffi.ktor_client_webrtc/PeerConnectionObserverImpl.close|close(){}[0]
+    open fun destroy() // uniffi.ktor_client_webrtc/PeerConnectionObserverImpl.destroy|destroy(){}[0]
+    open fun onConnectionStateChange(uniffi.ktor_client_webrtc/ConnectionState) // uniffi.ktor_client_webrtc/PeerConnectionObserverImpl.onConnectionStateChange|onConnectionStateChange(uniffi.ktor_client_webrtc.ConnectionState){}[0]
+    open fun onDataChannel(uniffi.ktor_client_webrtc/DataChannel) // uniffi.ktor_client_webrtc/PeerConnectionObserverImpl.onDataChannel|onDataChannel(uniffi.ktor_client_webrtc.DataChannel){}[0]
+    open fun onError(uniffi.ktor_client_webrtc/RtcException) // uniffi.ktor_client_webrtc/PeerConnectionObserverImpl.onError|onError(uniffi.ktor_client_webrtc.RtcException){}[0]
+    open fun onIceCandidate(uniffi.ktor_client_webrtc/IceCandidate) // uniffi.ktor_client_webrtc/PeerConnectionObserverImpl.onIceCandidate|onIceCandidate(uniffi.ktor_client_webrtc.IceCandidate){}[0]
+    open fun onIceConnectionStateChange(uniffi.ktor_client_webrtc/IceConnectionState) // uniffi.ktor_client_webrtc/PeerConnectionObserverImpl.onIceConnectionStateChange|onIceConnectionStateChange(uniffi.ktor_client_webrtc.IceConnectionState){}[0]
+    open fun onIceGatheringStateChange(uniffi.ktor_client_webrtc/IceGatheringState) // uniffi.ktor_client_webrtc/PeerConnectionObserverImpl.onIceGatheringStateChange|onIceGatheringStateChange(uniffi.ktor_client_webrtc.IceGatheringState){}[0]
+    open fun onNegotiationNeeded() // uniffi.ktor_client_webrtc/PeerConnectionObserverImpl.onNegotiationNeeded|onNegotiationNeeded(){}[0]
+    open fun onRemoveTrack(uniffi.ktor_client_webrtc/MediaStreamTrack) // uniffi.ktor_client_webrtc/PeerConnectionObserverImpl.onRemoveTrack|onRemoveTrack(uniffi.ktor_client_webrtc.MediaStreamTrack){}[0]
+    open fun onSignalingStateChange(uniffi.ktor_client_webrtc/SignalingState) // uniffi.ktor_client_webrtc/PeerConnectionObserverImpl.onSignalingStateChange|onSignalingStateChange(uniffi.ktor_client_webrtc.SignalingState){}[0]
+    open fun onTrack(uniffi.ktor_client_webrtc/MediaStreamTrack) // uniffi.ktor_client_webrtc/PeerConnectionObserverImpl.onTrack|onTrack(uniffi.ktor_client_webrtc.MediaStreamTrack){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/PeerConnectionObserverImpl.Companion|null[0]
+}
+
+open class uniffi.ktor_client_webrtc/RtpSender : uniffi.ktor_client_webrtc/Disposable, uniffi.ktor_client_webrtc/RtpSenderInterface { // uniffi.ktor_client_webrtc/RtpSender|null[0]
+    constructor <init>(kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>) // uniffi.ktor_client_webrtc/RtpSender.<init>|<init>(kotlinx.cinterop.CPointer<out|kotlinx.cinterop.CPointed>){}[0]
+    constructor <init>(uniffi.ktor_client_webrtc/NoPointer) // uniffi.ktor_client_webrtc/RtpSender.<init>|<init>(uniffi.ktor_client_webrtc.NoPointer){}[0]
+
+    final val cleanable // uniffi.ktor_client_webrtc/RtpSender.cleanable|{}cleanable[0]
+        final fun <get-cleanable>(): uniffi.ktor_client_webrtc/UniffiCleaner.Cleanable // uniffi.ktor_client_webrtc/RtpSender.cleanable.<get-cleanable>|<get-cleanable>(){}[0]
+    final val pointer // uniffi.ktor_client_webrtc/RtpSender.pointer|{}pointer[0]
+        final fun <get-pointer>(): kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>? // uniffi.ktor_client_webrtc/RtpSender.pointer.<get-pointer>|<get-pointer>(){}[0]
+
+    final fun uniffiClonePointer(): kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed> // uniffi.ktor_client_webrtc/RtpSender.uniffiClonePointer|uniffiClonePointer(){}[0]
+    open fun close() // uniffi.ktor_client_webrtc/RtpSender.close|close(){}[0]
+    open fun destroy() // uniffi.ktor_client_webrtc/RtpSender.destroy|destroy(){}[0]
+    open suspend fun getParameters(): uniffi.ktor_client_webrtc/RtpParameters // uniffi.ktor_client_webrtc/RtpSender.getParameters|getParameters(){}[0]
+    open suspend fun setTrack(uniffi.ktor_client_webrtc/MediaStreamTrack?) // uniffi.ktor_client_webrtc/RtpSender.setTrack|setTrack(uniffi.ktor_client_webrtc.MediaStreamTrack?){}[0]
+    open suspend fun track(): uniffi.ktor_client_webrtc/MediaStreamTrack? // uniffi.ktor_client_webrtc/RtpSender.track|track(){}[0]
+
+    final object Companion // uniffi.ktor_client_webrtc/RtpSender.Companion|null[0]
+}
+
+sealed class uniffi.ktor_client_webrtc/RtcException : kotlin/Exception { // uniffi.ktor_client_webrtc/RtcException|null[0]
+    final class AddTrackException : uniffi.ktor_client_webrtc/RtcException { // uniffi.ktor_client_webrtc/RtcException.AddTrackException|null[0]
+        constructor <init>(kotlin/String) // uniffi.ktor_client_webrtc/RtcException.AddTrackException.<init>|<init>(kotlin.String){}[0]
+
+        final val message // uniffi.ktor_client_webrtc/RtcException.AddTrackException.message|{}message[0]
+            final fun <get-message>(): kotlin/String // uniffi.ktor_client_webrtc/RtcException.AddTrackException.message.<get-message>|<get-message>(){}[0]
+        final val v1 // uniffi.ktor_client_webrtc/RtcException.AddTrackException.v1|{}v1[0]
+            final fun <get-v1>(): kotlin/String // uniffi.ktor_client_webrtc/RtcException.AddTrackException.v1.<get-v1>|<get-v1>(){}[0]
+    }
+
+    final class CreateConnectionException : uniffi.ktor_client_webrtc/RtcException { // uniffi.ktor_client_webrtc/RtcException.CreateConnectionException|null[0]
+        constructor <init>(kotlin/String) // uniffi.ktor_client_webrtc/RtcException.CreateConnectionException.<init>|<init>(kotlin.String){}[0]
+
+        final val message // uniffi.ktor_client_webrtc/RtcException.CreateConnectionException.message|{}message[0]
+            final fun <get-message>(): kotlin/String // uniffi.ktor_client_webrtc/RtcException.CreateConnectionException.message.<get-message>|<get-message>(){}[0]
+        final val v1 // uniffi.ktor_client_webrtc/RtcException.CreateConnectionException.v1|{}v1[0]
+            final fun <get-v1>(): kotlin/String // uniffi.ktor_client_webrtc/RtcException.CreateConnectionException.v1.<get-v1>|<get-v1>(){}[0]
+    }
+
+    final class DataChannelException : uniffi.ktor_client_webrtc/RtcException { // uniffi.ktor_client_webrtc/RtcException.DataChannelException|null[0]
+        constructor <init>(kotlin/String) // uniffi.ktor_client_webrtc/RtcException.DataChannelException.<init>|<init>(kotlin.String){}[0]
+
+        final val message // uniffi.ktor_client_webrtc/RtcException.DataChannelException.message|{}message[0]
+            final fun <get-message>(): kotlin/String // uniffi.ktor_client_webrtc/RtcException.DataChannelException.message.<get-message>|<get-message>(){}[0]
+        final val v1 // uniffi.ktor_client_webrtc/RtcException.DataChannelException.v1|{}v1[0]
+            final fun <get-v1>(): kotlin/String // uniffi.ktor_client_webrtc/RtcException.DataChannelException.v1.<get-v1>|<get-v1>(){}[0]
+    }
+
+    final class DtmfNotSupported : uniffi.ktor_client_webrtc/RtcException { // uniffi.ktor_client_webrtc/RtcException.DtmfNotSupported|null[0]
+        constructor <init>() // uniffi.ktor_client_webrtc/RtcException.DtmfNotSupported.<init>|<init>(){}[0]
+
+        final val message // uniffi.ktor_client_webrtc/RtcException.DtmfNotSupported.message|{}message[0]
+            final fun <get-message>(): kotlin/String // uniffi.ktor_client_webrtc/RtcException.DtmfNotSupported.message.<get-message>|<get-message>(){}[0]
+    }
+
+    final class FeatureNotSupported : uniffi.ktor_client_webrtc/RtcException { // uniffi.ktor_client_webrtc/RtcException.FeatureNotSupported|null[0]
+        constructor <init>() // uniffi.ktor_client_webrtc/RtcException.FeatureNotSupported.<init>|<init>(){}[0]
+
+        final val message // uniffi.ktor_client_webrtc/RtcException.FeatureNotSupported.message|{}message[0]
+            final fun <get-message>(): kotlin/String // uniffi.ktor_client_webrtc/RtcException.FeatureNotSupported.message.<get-message>|<get-message>(){}[0]
+    }
+
+    final class IceException : uniffi.ktor_client_webrtc/RtcException { // uniffi.ktor_client_webrtc/RtcException.IceException|null[0]
+        constructor <init>(kotlin/String) // uniffi.ktor_client_webrtc/RtcException.IceException.<init>|<init>(kotlin.String){}[0]
+
+        final val message // uniffi.ktor_client_webrtc/RtcException.IceException.message|{}message[0]
+            final fun <get-message>(): kotlin/String // uniffi.ktor_client_webrtc/RtcException.IceException.message.<get-message>|<get-message>(){}[0]
+        final val v1 // uniffi.ktor_client_webrtc/RtcException.IceException.v1|{}v1[0]
+            final fun <get-v1>(): kotlin/String // uniffi.ktor_client_webrtc/RtcException.IceException.v1.<get-v1>|<get-v1>(){}[0]
+    }
+
+    final class MediaTrackException : uniffi.ktor_client_webrtc/RtcException { // uniffi.ktor_client_webrtc/RtcException.MediaTrackException|null[0]
+        constructor <init>(kotlin/String) // uniffi.ktor_client_webrtc/RtcException.MediaTrackException.<init>|<init>(kotlin.String){}[0]
+
+        final val message // uniffi.ktor_client_webrtc/RtcException.MediaTrackException.message|{}message[0]
+            final fun <get-message>(): kotlin/String // uniffi.ktor_client_webrtc/RtcException.MediaTrackException.message.<get-message>|<get-message>(){}[0]
+        final val v1 // uniffi.ktor_client_webrtc/RtcException.MediaTrackException.v1|{}v1[0]
+            final fun <get-v1>(): kotlin/String // uniffi.ktor_client_webrtc/RtcException.MediaTrackException.v1.<get-v1>|<get-v1>(){}[0]
+    }
+
+    final class MediaTrackTypeException : uniffi.ktor_client_webrtc/RtcException { // uniffi.ktor_client_webrtc/RtcException.MediaTrackTypeException|null[0]
+        constructor <init>(kotlin/String) // uniffi.ktor_client_webrtc/RtcException.MediaTrackTypeException.<init>|<init>(kotlin.String){}[0]
+
+        final val message // uniffi.ktor_client_webrtc/RtcException.MediaTrackTypeException.message|{}message[0]
+            final fun <get-message>(): kotlin/String // uniffi.ktor_client_webrtc/RtcException.MediaTrackTypeException.message.<get-message>|<get-message>(){}[0]
+        final val v1 // uniffi.ktor_client_webrtc/RtcException.MediaTrackTypeException.v1|{}v1[0]
+            final fun <get-v1>(): kotlin/String // uniffi.ktor_client_webrtc/RtcException.MediaTrackTypeException.v1.<get-v1>|<get-v1>(){}[0]
+    }
+
+    final class RemoveTrackException : uniffi.ktor_client_webrtc/RtcException { // uniffi.ktor_client_webrtc/RtcException.RemoveTrackException|null[0]
+        constructor <init>(kotlin/String) // uniffi.ktor_client_webrtc/RtcException.RemoveTrackException.<init>|<init>(kotlin.String){}[0]
+
+        final val message // uniffi.ktor_client_webrtc/RtcException.RemoveTrackException.message|{}message[0]
+            final fun <get-message>(): kotlin/String // uniffi.ktor_client_webrtc/RtcException.RemoveTrackException.message.<get-message>|<get-message>(){}[0]
+        final val v1 // uniffi.ktor_client_webrtc/RtcException.RemoveTrackException.v1|{}v1[0]
+            final fun <get-v1>(): kotlin/String // uniffi.ktor_client_webrtc/RtcException.RemoveTrackException.v1.<get-v1>|<get-v1>(){}[0]
+    }
+
+    final class SdpException : uniffi.ktor_client_webrtc/RtcException { // uniffi.ktor_client_webrtc/RtcException.SdpException|null[0]
+        constructor <init>(kotlin/String) // uniffi.ktor_client_webrtc/RtcException.SdpException.<init>|<init>(kotlin.String){}[0]
+
+        final val message // uniffi.ktor_client_webrtc/RtcException.SdpException.message|{}message[0]
+            final fun <get-message>(): kotlin/String // uniffi.ktor_client_webrtc/RtcException.SdpException.message.<get-message>|<get-message>(){}[0]
+        final val v1 // uniffi.ktor_client_webrtc/RtcException.SdpException.v1|{}v1[0]
+            final fun <get-v1>(): kotlin/String // uniffi.ktor_client_webrtc/RtcException.SdpException.v1.<get-v1>|<get-v1>(){}[0]
+    }
+
+    final class StatsException : uniffi.ktor_client_webrtc/RtcException { // uniffi.ktor_client_webrtc/RtcException.StatsException|null[0]
+        constructor <init>(kotlin/String) // uniffi.ktor_client_webrtc/RtcException.StatsException.<init>|<init>(kotlin.String){}[0]
+
+        final val message // uniffi.ktor_client_webrtc/RtcException.StatsException.message|{}message[0]
+            final fun <get-message>(): kotlin/String // uniffi.ktor_client_webrtc/RtcException.StatsException.message.<get-message>|<get-message>(){}[0]
+        final val v1 // uniffi.ktor_client_webrtc/RtcException.StatsException.v1|{}v1[0]
+            final fun <get-v1>(): kotlin/String // uniffi.ktor_client_webrtc/RtcException.StatsException.v1.<get-v1>|<get-v1>(){}[0]
+    }
+}
+
+final object io.ktor.client.webrtc.rs/RustWebRtc : io.ktor.client.webrtc/WebRtcClientEngineFactory<io.ktor.client.webrtc/WebRtcConfig> { // io.ktor.client.webrtc.rs/RustWebRtc|null[0]
+    final fun create(kotlin/Function1<io.ktor.client.webrtc/WebRtcConfig, kotlin/Unit>): io.ktor.client.webrtc/WebRtcEngine // io.ktor.client.webrtc.rs/RustWebRtc.create|create(kotlin.Function1<io.ktor.client.webrtc.WebRtcConfig,kotlin.Unit>){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterBoolean : uniffi.ktor_client_webrtc/FfiConverter<kotlin/Boolean, kotlin/Byte> { // uniffi.ktor_client_webrtc/FfiConverterBoolean|null[0]
+    final fun allocationSize(kotlin/Boolean): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterBoolean.allocationSize|allocationSize(kotlin.Boolean){}[0]
+    final fun lift(kotlin/Byte): kotlin/Boolean // uniffi.ktor_client_webrtc/FfiConverterBoolean.lift|lift(kotlin.Byte){}[0]
+    final fun lower(kotlin/Boolean): kotlin/Byte // uniffi.ktor_client_webrtc/FfiConverterBoolean.lower|lower(kotlin.Boolean){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): kotlin/Boolean // uniffi.ktor_client_webrtc/FfiConverterBoolean.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(kotlin/Boolean, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterBoolean.write|write(kotlin.Boolean;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterByteArray : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<kotlin/ByteArray> { // uniffi.ktor_client_webrtc/FfiConverterByteArray|null[0]
+    final fun allocationSize(kotlin/ByteArray): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterByteArray.allocationSize|allocationSize(kotlin.ByteArray){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): kotlin/ByteArray // uniffi.ktor_client_webrtc/FfiConverterByteArray.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(kotlin/ByteArray, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterByteArray.write|write(kotlin.ByteArray;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterDuration : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<kotlin.time/Duration> { // uniffi.ktor_client_webrtc/FfiConverterDuration|null[0]
+    final fun allocationSize(kotlin.time/Duration): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterDuration.allocationSize|allocationSize(kotlin.time.Duration){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): kotlin.time/Duration // uniffi.ktor_client_webrtc/FfiConverterDuration.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(kotlin.time/Duration, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterDuration.write|write(kotlin.time.Duration;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterLong : uniffi.ktor_client_webrtc/FfiConverter<kotlin/Long, kotlin/Long> { // uniffi.ktor_client_webrtc/FfiConverterLong|null[0]
+    final fun allocationSize(kotlin/Long): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterLong.allocationSize|allocationSize(kotlin.Long){}[0]
+    final fun lift(kotlin/Long): kotlin/Long // uniffi.ktor_client_webrtc/FfiConverterLong.lift|lift(kotlin.Long){}[0]
+    final fun lower(kotlin/Long): kotlin/Long // uniffi.ktor_client_webrtc/FfiConverterLong.lower|lower(kotlin.Long){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): kotlin/Long // uniffi.ktor_client_webrtc/FfiConverterLong.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(kotlin/Long, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterLong.write|write(kotlin.Long;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterOptionalBoolean : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<kotlin/Boolean?> { // uniffi.ktor_client_webrtc/FfiConverterOptionalBoolean|null[0]
+    final fun allocationSize(kotlin/Boolean?): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterOptionalBoolean.allocationSize|allocationSize(kotlin.Boolean?){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): kotlin/Boolean? // uniffi.ktor_client_webrtc/FfiConverterOptionalBoolean.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(kotlin/Boolean?, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterOptionalBoolean.write|write(kotlin.Boolean?;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterOptionalString : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<kotlin/String?> { // uniffi.ktor_client_webrtc/FfiConverterOptionalString|null[0]
+    final fun allocationSize(kotlin/String?): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterOptionalString.allocationSize|allocationSize(kotlin.String?){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): kotlin/String? // uniffi.ktor_client_webrtc/FfiConverterOptionalString.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(kotlin/String?, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterOptionalString.write|write(kotlin.String?;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterOptionalTypeMediaStreamSinkWrapper : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<uniffi.ktor_client_webrtc/MediaStreamSinkWrapper?> { // uniffi.ktor_client_webrtc/FfiConverterOptionalTypeMediaStreamSinkWrapper|null[0]
+    final fun allocationSize(uniffi.ktor_client_webrtc/MediaStreamSinkWrapper?): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterOptionalTypeMediaStreamSinkWrapper.allocationSize|allocationSize(uniffi.ktor_client_webrtc.MediaStreamSinkWrapper?){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): uniffi.ktor_client_webrtc/MediaStreamSinkWrapper? // uniffi.ktor_client_webrtc/FfiConverterOptionalTypeMediaStreamSinkWrapper.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(uniffi.ktor_client_webrtc/MediaStreamSinkWrapper?, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterOptionalTypeMediaStreamSinkWrapper.write|write(uniffi.ktor_client_webrtc.MediaStreamSinkWrapper?;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterOptionalTypeMediaStreamTrack : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<uniffi.ktor_client_webrtc/MediaStreamTrack?> { // uniffi.ktor_client_webrtc/FfiConverterOptionalTypeMediaStreamTrack|null[0]
+    final fun allocationSize(uniffi.ktor_client_webrtc/MediaStreamTrack?): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterOptionalTypeMediaStreamTrack.allocationSize|allocationSize(uniffi.ktor_client_webrtc.MediaStreamTrack?){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): uniffi.ktor_client_webrtc/MediaStreamTrack? // uniffi.ktor_client_webrtc/FfiConverterOptionalTypeMediaStreamTrack.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(uniffi.ktor_client_webrtc/MediaStreamTrack?, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterOptionalTypeMediaStreamTrack.write|write(uniffi.ktor_client_webrtc.MediaStreamTrack?;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterOptionalTypeSessionDescription : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<uniffi.ktor_client_webrtc/SessionDescription?> { // uniffi.ktor_client_webrtc/FfiConverterOptionalTypeSessionDescription|null[0]
+    final fun allocationSize(uniffi.ktor_client_webrtc/SessionDescription?): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterOptionalTypeSessionDescription.allocationSize|allocationSize(uniffi.ktor_client_webrtc.SessionDescription?){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): uniffi.ktor_client_webrtc/SessionDescription? // uniffi.ktor_client_webrtc/FfiConverterOptionalTypeSessionDescription.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(uniffi.ktor_client_webrtc/SessionDescription?, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterOptionalTypeSessionDescription.write|write(uniffi.ktor_client_webrtc.SessionDescription?;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterOptionalUShort : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<kotlin/UShort?> { // uniffi.ktor_client_webrtc/FfiConverterOptionalUShort|null[0]
+    final fun allocationSize(kotlin/UShort?): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterOptionalUShort.allocationSize|allocationSize(kotlin.UShort?){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): kotlin/UShort? // uniffi.ktor_client_webrtc/FfiConverterOptionalUShort.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(kotlin/UShort?, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterOptionalUShort.write|write(kotlin.UShort?;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterSequenceString : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<kotlin.collections/List<kotlin/String>> { // uniffi.ktor_client_webrtc/FfiConverterSequenceString|null[0]
+    final fun allocationSize(kotlin.collections/List<kotlin/String>): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterSequenceString.allocationSize|allocationSize(kotlin.collections.List<kotlin.String>){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): kotlin.collections/List<kotlin/String> // uniffi.ktor_client_webrtc/FfiConverterSequenceString.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(kotlin.collections/List<kotlin/String>, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterSequenceString.write|write(kotlin.collections.List<kotlin.String>;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterSequenceTypeIceServer : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<kotlin.collections/List<uniffi.ktor_client_webrtc/IceServer>> { // uniffi.ktor_client_webrtc/FfiConverterSequenceTypeIceServer|null[0]
+    final fun allocationSize(kotlin.collections/List<uniffi.ktor_client_webrtc/IceServer>): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterSequenceTypeIceServer.allocationSize|allocationSize(kotlin.collections.List<uniffi.ktor_client_webrtc.IceServer>){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): kotlin.collections/List<uniffi.ktor_client_webrtc/IceServer> // uniffi.ktor_client_webrtc/FfiConverterSequenceTypeIceServer.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(kotlin.collections/List<uniffi.ktor_client_webrtc/IceServer>, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterSequenceTypeIceServer.write|write(kotlin.collections.List<uniffi.ktor_client_webrtc.IceServer>;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterSequenceTypeRtpCodecParameters : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<kotlin.collections/List<uniffi.ktor_client_webrtc/RtpCodecParameters>> { // uniffi.ktor_client_webrtc/FfiConverterSequenceTypeRtpCodecParameters|null[0]
+    final fun allocationSize(kotlin.collections/List<uniffi.ktor_client_webrtc/RtpCodecParameters>): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterSequenceTypeRtpCodecParameters.allocationSize|allocationSize(kotlin.collections.List<uniffi.ktor_client_webrtc.RtpCodecParameters>){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): kotlin.collections/List<uniffi.ktor_client_webrtc/RtpCodecParameters> // uniffi.ktor_client_webrtc/FfiConverterSequenceTypeRtpCodecParameters.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(kotlin.collections/List<uniffi.ktor_client_webrtc/RtpCodecParameters>, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterSequenceTypeRtpCodecParameters.write|write(kotlin.collections.List<uniffi.ktor_client_webrtc.RtpCodecParameters>;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterSequenceTypeRtpEncodingParameters : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<kotlin.collections/List<uniffi.ktor_client_webrtc/RtpEncodingParameters>> { // uniffi.ktor_client_webrtc/FfiConverterSequenceTypeRtpEncodingParameters|null[0]
+    final fun allocationSize(kotlin.collections/List<uniffi.ktor_client_webrtc/RtpEncodingParameters>): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterSequenceTypeRtpEncodingParameters.allocationSize|allocationSize(kotlin.collections.List<uniffi.ktor_client_webrtc.RtpEncodingParameters>){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): kotlin.collections/List<uniffi.ktor_client_webrtc/RtpEncodingParameters> // uniffi.ktor_client_webrtc/FfiConverterSequenceTypeRtpEncodingParameters.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(kotlin.collections/List<uniffi.ktor_client_webrtc/RtpEncodingParameters>, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterSequenceTypeRtpEncodingParameters.write|write(kotlin.collections.List<uniffi.ktor_client_webrtc.RtpEncodingParameters>;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterSequenceTypeRtpHeaderExtensionParameters : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<kotlin.collections/List<uniffi.ktor_client_webrtc/RtpHeaderExtensionParameters>> { // uniffi.ktor_client_webrtc/FfiConverterSequenceTypeRtpHeaderExtensionParameters|null[0]
+    final fun allocationSize(kotlin.collections/List<uniffi.ktor_client_webrtc/RtpHeaderExtensionParameters>): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterSequenceTypeRtpHeaderExtensionParameters.allocationSize|allocationSize(kotlin.collections.List<uniffi.ktor_client_webrtc.RtpHeaderExtensionParameters>){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): kotlin.collections/List<uniffi.ktor_client_webrtc/RtpHeaderExtensionParameters> // uniffi.ktor_client_webrtc/FfiConverterSequenceTypeRtpHeaderExtensionParameters.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(kotlin.collections/List<uniffi.ktor_client_webrtc/RtpHeaderExtensionParameters>, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterSequenceTypeRtpHeaderExtensionParameters.write|write(kotlin.collections.List<uniffi.ktor_client_webrtc.RtpHeaderExtensionParameters>;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterSequenceTypeStats : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<kotlin.collections/List<uniffi.ktor_client_webrtc/Stats>> { // uniffi.ktor_client_webrtc/FfiConverterSequenceTypeStats|null[0]
+    final fun allocationSize(kotlin.collections/List<uniffi.ktor_client_webrtc/Stats>): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterSequenceTypeStats.allocationSize|allocationSize(kotlin.collections.List<uniffi.ktor_client_webrtc.Stats>){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): kotlin.collections/List<uniffi.ktor_client_webrtc/Stats> // uniffi.ktor_client_webrtc/FfiConverterSequenceTypeStats.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(kotlin.collections/List<uniffi.ktor_client_webrtc/Stats>, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterSequenceTypeStats.write|write(kotlin.collections.List<uniffi.ktor_client_webrtc.Stats>;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterString : uniffi.ktor_client_webrtc/FfiConverter<kotlin/String, kotlinx.cinterop/CValue<ktor_client_webrtc.cinterop/RustBuffer>> { // uniffi.ktor_client_webrtc/FfiConverterString|null[0]
+    final fun allocationSize(kotlin/String): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterString.allocationSize|allocationSize(kotlin.String){}[0]
+    final fun lift(kotlinx.cinterop/CValue<ktor_client_webrtc.cinterop/RustBuffer>): kotlin/String // uniffi.ktor_client_webrtc/FfiConverterString.lift|lift(kotlinx.cinterop.CValue<ktor_client_webrtc.cinterop.RustBuffer>){}[0]
+    final fun lower(kotlin/String): kotlinx.cinterop/CValue<ktor_client_webrtc.cinterop/RustBuffer> // uniffi.ktor_client_webrtc/FfiConverterString.lower|lower(kotlin.String){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): kotlin/String // uniffi.ktor_client_webrtc/FfiConverterString.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(kotlin/String, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterString.write|write(kotlin.String;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterTimestamp : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<kotlinx.datetime/Instant> { // uniffi.ktor_client_webrtc/FfiConverterTimestamp|null[0]
+    final fun allocationSize(kotlinx.datetime/Instant): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterTimestamp.allocationSize|allocationSize(kotlinx.datetime.Instant){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): kotlinx.datetime/Instant // uniffi.ktor_client_webrtc/FfiConverterTimestamp.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(kotlinx.datetime/Instant, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterTimestamp.write|write(kotlinx.datetime.Instant;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterTypeBundlePolicy : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<uniffi.ktor_client_webrtc/BundlePolicy> { // uniffi.ktor_client_webrtc/FfiConverterTypeBundlePolicy|null[0]
+    final fun allocationSize(uniffi.ktor_client_webrtc/BundlePolicy): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterTypeBundlePolicy.allocationSize|allocationSize(uniffi.ktor_client_webrtc.BundlePolicy){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): uniffi.ktor_client_webrtc/BundlePolicy // uniffi.ktor_client_webrtc/FfiConverterTypeBundlePolicy.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(uniffi.ktor_client_webrtc/BundlePolicy, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterTypeBundlePolicy.write|write(uniffi.ktor_client_webrtc.BundlePolicy;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterTypeConnectionConfig : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<uniffi.ktor_client_webrtc/ConnectionConfig> { // uniffi.ktor_client_webrtc/FfiConverterTypeConnectionConfig|null[0]
+    final fun allocationSize(uniffi.ktor_client_webrtc/ConnectionConfig): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterTypeConnectionConfig.allocationSize|allocationSize(uniffi.ktor_client_webrtc.ConnectionConfig){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): uniffi.ktor_client_webrtc/ConnectionConfig // uniffi.ktor_client_webrtc/FfiConverterTypeConnectionConfig.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(uniffi.ktor_client_webrtc/ConnectionConfig, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterTypeConnectionConfig.write|write(uniffi.ktor_client_webrtc.ConnectionConfig;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterTypeConnectionState : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<uniffi.ktor_client_webrtc/ConnectionState> { // uniffi.ktor_client_webrtc/FfiConverterTypeConnectionState|null[0]
+    final fun allocationSize(uniffi.ktor_client_webrtc/ConnectionState): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterTypeConnectionState.allocationSize|allocationSize(uniffi.ktor_client_webrtc.ConnectionState){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): uniffi.ktor_client_webrtc/ConnectionState // uniffi.ktor_client_webrtc/FfiConverterTypeConnectionState.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(uniffi.ktor_client_webrtc/ConnectionState, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterTypeConnectionState.write|write(uniffi.ktor_client_webrtc.ConnectionState;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterTypeDataChannel : uniffi.ktor_client_webrtc/FfiConverter<uniffi.ktor_client_webrtc/DataChannel, kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>> { // uniffi.ktor_client_webrtc/FfiConverterTypeDataChannel|null[0]
+    final fun allocationSize(uniffi.ktor_client_webrtc/DataChannel): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterTypeDataChannel.allocationSize|allocationSize(uniffi.ktor_client_webrtc.DataChannel){}[0]
+    final fun lift(kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>): uniffi.ktor_client_webrtc/DataChannel // uniffi.ktor_client_webrtc/FfiConverterTypeDataChannel.lift|lift(kotlinx.cinterop.CPointer<out|kotlinx.cinterop.CPointed>){}[0]
+    final fun lower(uniffi.ktor_client_webrtc/DataChannel): kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed> // uniffi.ktor_client_webrtc/FfiConverterTypeDataChannel.lower|lower(uniffi.ktor_client_webrtc.DataChannel){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): uniffi.ktor_client_webrtc/DataChannel // uniffi.ktor_client_webrtc/FfiConverterTypeDataChannel.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(uniffi.ktor_client_webrtc/DataChannel, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterTypeDataChannel.write|write(uniffi.ktor_client_webrtc.DataChannel;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterTypeDataChannelInit : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<uniffi.ktor_client_webrtc/DataChannelInit> { // uniffi.ktor_client_webrtc/FfiConverterTypeDataChannelInit|null[0]
+    final fun allocationSize(uniffi.ktor_client_webrtc/DataChannelInit): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterTypeDataChannelInit.allocationSize|allocationSize(uniffi.ktor_client_webrtc.DataChannelInit){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): uniffi.ktor_client_webrtc/DataChannelInit // uniffi.ktor_client_webrtc/FfiConverterTypeDataChannelInit.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(uniffi.ktor_client_webrtc/DataChannelInit, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterTypeDataChannelInit.write|write(uniffi.ktor_client_webrtc.DataChannelInit;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterTypeDataChannelMessage : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<uniffi.ktor_client_webrtc/DataChannelMessage> { // uniffi.ktor_client_webrtc/FfiConverterTypeDataChannelMessage|null[0]
+    final fun allocationSize(uniffi.ktor_client_webrtc/DataChannelMessage): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterTypeDataChannelMessage.allocationSize|allocationSize(uniffi.ktor_client_webrtc.DataChannelMessage){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): uniffi.ktor_client_webrtc/DataChannelMessage // uniffi.ktor_client_webrtc/FfiConverterTypeDataChannelMessage.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(uniffi.ktor_client_webrtc/DataChannelMessage, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterTypeDataChannelMessage.write|write(uniffi.ktor_client_webrtc.DataChannelMessage;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterTypeDataChannelObserver : uniffi.ktor_client_webrtc/FfiConverter<uniffi.ktor_client_webrtc/DataChannelObserver, kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>> { // uniffi.ktor_client_webrtc/FfiConverterTypeDataChannelObserver|null[0]
+    final fun allocationSize(uniffi.ktor_client_webrtc/DataChannelObserver): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterTypeDataChannelObserver.allocationSize|allocationSize(uniffi.ktor_client_webrtc.DataChannelObserver){}[0]
+    final fun lift(kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>): uniffi.ktor_client_webrtc/DataChannelObserver // uniffi.ktor_client_webrtc/FfiConverterTypeDataChannelObserver.lift|lift(kotlinx.cinterop.CPointer<out|kotlinx.cinterop.CPointed>){}[0]
+    final fun lower(uniffi.ktor_client_webrtc/DataChannelObserver): kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed> // uniffi.ktor_client_webrtc/FfiConverterTypeDataChannelObserver.lower|lower(uniffi.ktor_client_webrtc.DataChannelObserver){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): uniffi.ktor_client_webrtc/DataChannelObserver // uniffi.ktor_client_webrtc/FfiConverterTypeDataChannelObserver.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(uniffi.ktor_client_webrtc/DataChannelObserver, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterTypeDataChannelObserver.write|write(uniffi.ktor_client_webrtc.DataChannelObserver;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterTypeDataChannelState : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<uniffi.ktor_client_webrtc/DataChannelState> { // uniffi.ktor_client_webrtc/FfiConverterTypeDataChannelState|null[0]
+    final fun allocationSize(uniffi.ktor_client_webrtc/DataChannelState): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterTypeDataChannelState.allocationSize|allocationSize(uniffi.ktor_client_webrtc.DataChannelState){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): uniffi.ktor_client_webrtc/DataChannelState // uniffi.ktor_client_webrtc/FfiConverterTypeDataChannelState.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(uniffi.ktor_client_webrtc/DataChannelState, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterTypeDataChannelState.write|write(uniffi.ktor_client_webrtc.DataChannelState;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterTypeIceCandidate : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<uniffi.ktor_client_webrtc/IceCandidate> { // uniffi.ktor_client_webrtc/FfiConverterTypeIceCandidate|null[0]
+    final fun allocationSize(uniffi.ktor_client_webrtc/IceCandidate): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterTypeIceCandidate.allocationSize|allocationSize(uniffi.ktor_client_webrtc.IceCandidate){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): uniffi.ktor_client_webrtc/IceCandidate // uniffi.ktor_client_webrtc/FfiConverterTypeIceCandidate.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(uniffi.ktor_client_webrtc/IceCandidate, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterTypeIceCandidate.write|write(uniffi.ktor_client_webrtc.IceCandidate;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterTypeIceConnectionState : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<uniffi.ktor_client_webrtc/IceConnectionState> { // uniffi.ktor_client_webrtc/FfiConverterTypeIceConnectionState|null[0]
+    final fun allocationSize(uniffi.ktor_client_webrtc/IceConnectionState): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterTypeIceConnectionState.allocationSize|allocationSize(uniffi.ktor_client_webrtc.IceConnectionState){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): uniffi.ktor_client_webrtc/IceConnectionState // uniffi.ktor_client_webrtc/FfiConverterTypeIceConnectionState.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(uniffi.ktor_client_webrtc/IceConnectionState, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterTypeIceConnectionState.write|write(uniffi.ktor_client_webrtc.IceConnectionState;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterTypeIceGatheringState : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<uniffi.ktor_client_webrtc/IceGatheringState> { // uniffi.ktor_client_webrtc/FfiConverterTypeIceGatheringState|null[0]
+    final fun allocationSize(uniffi.ktor_client_webrtc/IceGatheringState): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterTypeIceGatheringState.allocationSize|allocationSize(uniffi.ktor_client_webrtc.IceGatheringState){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): uniffi.ktor_client_webrtc/IceGatheringState // uniffi.ktor_client_webrtc/FfiConverterTypeIceGatheringState.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(uniffi.ktor_client_webrtc/IceGatheringState, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterTypeIceGatheringState.write|write(uniffi.ktor_client_webrtc.IceGatheringState;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterTypeIceServer : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<uniffi.ktor_client_webrtc/IceServer> { // uniffi.ktor_client_webrtc/FfiConverterTypeIceServer|null[0]
+    final fun allocationSize(uniffi.ktor_client_webrtc/IceServer): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterTypeIceServer.allocationSize|allocationSize(uniffi.ktor_client_webrtc.IceServer){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): uniffi.ktor_client_webrtc/IceServer // uniffi.ktor_client_webrtc/FfiConverterTypeIceServer.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(uniffi.ktor_client_webrtc/IceServer, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterTypeIceServer.write|write(uniffi.ktor_client_webrtc.IceServer;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterTypeIceTransportPolicy : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<uniffi.ktor_client_webrtc/IceTransportPolicy> { // uniffi.ktor_client_webrtc/FfiConverterTypeIceTransportPolicy|null[0]
+    final fun allocationSize(uniffi.ktor_client_webrtc/IceTransportPolicy): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterTypeIceTransportPolicy.allocationSize|allocationSize(uniffi.ktor_client_webrtc.IceTransportPolicy){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): uniffi.ktor_client_webrtc/IceTransportPolicy // uniffi.ktor_client_webrtc/FfiConverterTypeIceTransportPolicy.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(uniffi.ktor_client_webrtc/IceTransportPolicy, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterTypeIceTransportPolicy.write|write(uniffi.ktor_client_webrtc.IceTransportPolicy;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterTypeMediaCodec : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<uniffi.ktor_client_webrtc/MediaCodec> { // uniffi.ktor_client_webrtc/FfiConverterTypeMediaCodec|null[0]
+    final fun allocationSize(uniffi.ktor_client_webrtc/MediaCodec): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterTypeMediaCodec.allocationSize|allocationSize(uniffi.ktor_client_webrtc.MediaCodec){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): uniffi.ktor_client_webrtc/MediaCodec // uniffi.ktor_client_webrtc/FfiConverterTypeMediaCodec.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(uniffi.ktor_client_webrtc/MediaCodec, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterTypeMediaCodec.write|write(uniffi.ktor_client_webrtc.MediaCodec;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterTypeMediaHandler : uniffi.ktor_client_webrtc/FfiConverter<uniffi.ktor_client_webrtc/MediaHandler, kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>> { // uniffi.ktor_client_webrtc/FfiConverterTypeMediaHandler|null[0]
+    final fun allocationSize(uniffi.ktor_client_webrtc/MediaHandler): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterTypeMediaHandler.allocationSize|allocationSize(uniffi.ktor_client_webrtc.MediaHandler){}[0]
+    final fun lift(kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>): uniffi.ktor_client_webrtc/MediaHandler // uniffi.ktor_client_webrtc/FfiConverterTypeMediaHandler.lift|lift(kotlinx.cinterop.CPointer<out|kotlinx.cinterop.CPointed>){}[0]
+    final fun lower(uniffi.ktor_client_webrtc/MediaHandler): kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed> // uniffi.ktor_client_webrtc/FfiConverterTypeMediaHandler.lower|lower(uniffi.ktor_client_webrtc.MediaHandler){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): uniffi.ktor_client_webrtc/MediaHandler // uniffi.ktor_client_webrtc/FfiConverterTypeMediaHandler.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(uniffi.ktor_client_webrtc/MediaHandler, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterTypeMediaHandler.write|write(uniffi.ktor_client_webrtc.MediaHandler;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterTypeMediaSample : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<uniffi.ktor_client_webrtc/MediaSample> { // uniffi.ktor_client_webrtc/FfiConverterTypeMediaSample|null[0]
+    final fun allocationSize(uniffi.ktor_client_webrtc/MediaSample): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterTypeMediaSample.allocationSize|allocationSize(uniffi.ktor_client_webrtc.MediaSample){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): uniffi.ktor_client_webrtc/MediaSample // uniffi.ktor_client_webrtc/FfiConverterTypeMediaSample.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(uniffi.ktor_client_webrtc/MediaSample, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterTypeMediaSample.write|write(uniffi.ktor_client_webrtc.MediaSample;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterTypeMediaStreamSinkWrapper : uniffi.ktor_client_webrtc/FfiConverter<uniffi.ktor_client_webrtc/MediaStreamSinkWrapper, kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>> { // uniffi.ktor_client_webrtc/FfiConverterTypeMediaStreamSinkWrapper|null[0]
+    final fun allocationSize(uniffi.ktor_client_webrtc/MediaStreamSinkWrapper): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterTypeMediaStreamSinkWrapper.allocationSize|allocationSize(uniffi.ktor_client_webrtc.MediaStreamSinkWrapper){}[0]
+    final fun lift(kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>): uniffi.ktor_client_webrtc/MediaStreamSinkWrapper // uniffi.ktor_client_webrtc/FfiConverterTypeMediaStreamSinkWrapper.lift|lift(kotlinx.cinterop.CPointer<out|kotlinx.cinterop.CPointed>){}[0]
+    final fun lower(uniffi.ktor_client_webrtc/MediaStreamSinkWrapper): kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed> // uniffi.ktor_client_webrtc/FfiConverterTypeMediaStreamSinkWrapper.lower|lower(uniffi.ktor_client_webrtc.MediaStreamSinkWrapper){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): uniffi.ktor_client_webrtc/MediaStreamSinkWrapper // uniffi.ktor_client_webrtc/FfiConverterTypeMediaStreamSinkWrapper.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(uniffi.ktor_client_webrtc/MediaStreamSinkWrapper, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterTypeMediaStreamSinkWrapper.write|write(uniffi.ktor_client_webrtc.MediaStreamSinkWrapper;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterTypeMediaStreamTrack : uniffi.ktor_client_webrtc/FfiConverter<uniffi.ktor_client_webrtc/MediaStreamTrack, kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>> { // uniffi.ktor_client_webrtc/FfiConverterTypeMediaStreamTrack|null[0]
+    final fun allocationSize(uniffi.ktor_client_webrtc/MediaStreamTrack): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterTypeMediaStreamTrack.allocationSize|allocationSize(uniffi.ktor_client_webrtc.MediaStreamTrack){}[0]
+    final fun lift(kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>): uniffi.ktor_client_webrtc/MediaStreamTrack // uniffi.ktor_client_webrtc/FfiConverterTypeMediaStreamTrack.lift|lift(kotlinx.cinterop.CPointer<out|kotlinx.cinterop.CPointed>){}[0]
+    final fun lower(uniffi.ktor_client_webrtc/MediaStreamTrack): kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed> // uniffi.ktor_client_webrtc/FfiConverterTypeMediaStreamTrack.lower|lower(uniffi.ktor_client_webrtc.MediaStreamTrack){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): uniffi.ktor_client_webrtc/MediaStreamTrack // uniffi.ktor_client_webrtc/FfiConverterTypeMediaStreamTrack.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(uniffi.ktor_client_webrtc/MediaStreamTrack, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterTypeMediaStreamTrack.write|write(uniffi.ktor_client_webrtc.MediaStreamTrack;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterTypePeerConnection : uniffi.ktor_client_webrtc/FfiConverter<uniffi.ktor_client_webrtc/PeerConnection, kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>> { // uniffi.ktor_client_webrtc/FfiConverterTypePeerConnection|null[0]
+    final fun allocationSize(uniffi.ktor_client_webrtc/PeerConnection): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterTypePeerConnection.allocationSize|allocationSize(uniffi.ktor_client_webrtc.PeerConnection){}[0]
+    final fun lift(kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>): uniffi.ktor_client_webrtc/PeerConnection // uniffi.ktor_client_webrtc/FfiConverterTypePeerConnection.lift|lift(kotlinx.cinterop.CPointer<out|kotlinx.cinterop.CPointed>){}[0]
+    final fun lower(uniffi.ktor_client_webrtc/PeerConnection): kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed> // uniffi.ktor_client_webrtc/FfiConverterTypePeerConnection.lower|lower(uniffi.ktor_client_webrtc.PeerConnection){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): uniffi.ktor_client_webrtc/PeerConnection // uniffi.ktor_client_webrtc/FfiConverterTypePeerConnection.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(uniffi.ktor_client_webrtc/PeerConnection, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterTypePeerConnection.write|write(uniffi.ktor_client_webrtc.PeerConnection;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterTypePeerConnectionObserver : uniffi.ktor_client_webrtc/FfiConverter<uniffi.ktor_client_webrtc/PeerConnectionObserver, kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>> { // uniffi.ktor_client_webrtc/FfiConverterTypePeerConnectionObserver|null[0]
+    final fun allocationSize(uniffi.ktor_client_webrtc/PeerConnectionObserver): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterTypePeerConnectionObserver.allocationSize|allocationSize(uniffi.ktor_client_webrtc.PeerConnectionObserver){}[0]
+    final fun lift(kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>): uniffi.ktor_client_webrtc/PeerConnectionObserver // uniffi.ktor_client_webrtc/FfiConverterTypePeerConnectionObserver.lift|lift(kotlinx.cinterop.CPointer<out|kotlinx.cinterop.CPointed>){}[0]
+    final fun lower(uniffi.ktor_client_webrtc/PeerConnectionObserver): kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed> // uniffi.ktor_client_webrtc/FfiConverterTypePeerConnectionObserver.lower|lower(uniffi.ktor_client_webrtc.PeerConnectionObserver){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): uniffi.ktor_client_webrtc/PeerConnectionObserver // uniffi.ktor_client_webrtc/FfiConverterTypePeerConnectionObserver.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(uniffi.ktor_client_webrtc/PeerConnectionObserver, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterTypePeerConnectionObserver.write|write(uniffi.ktor_client_webrtc.PeerConnectionObserver;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterTypeRtcError : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<uniffi.ktor_client_webrtc/RtcException> { // uniffi.ktor_client_webrtc/FfiConverterTypeRtcError|null[0]
+    final fun allocationSize(uniffi.ktor_client_webrtc/RtcException): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterTypeRtcError.allocationSize|allocationSize(uniffi.ktor_client_webrtc.RtcException){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): uniffi.ktor_client_webrtc/RtcException // uniffi.ktor_client_webrtc/FfiConverterTypeRtcError.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(uniffi.ktor_client_webrtc/RtcException, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterTypeRtcError.write|write(uniffi.ktor_client_webrtc.RtcException;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterTypeRtcpMuxPolicy : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<uniffi.ktor_client_webrtc/RtcpMuxPolicy> { // uniffi.ktor_client_webrtc/FfiConverterTypeRtcpMuxPolicy|null[0]
+    final fun allocationSize(uniffi.ktor_client_webrtc/RtcpMuxPolicy): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterTypeRtcpMuxPolicy.allocationSize|allocationSize(uniffi.ktor_client_webrtc.RtcpMuxPolicy){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): uniffi.ktor_client_webrtc/RtcpMuxPolicy // uniffi.ktor_client_webrtc/FfiConverterTypeRtcpMuxPolicy.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(uniffi.ktor_client_webrtc/RtcpMuxPolicy, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterTypeRtcpMuxPolicy.write|write(uniffi.ktor_client_webrtc.RtcpMuxPolicy;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterTypeRtpCodecParameters : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<uniffi.ktor_client_webrtc/RtpCodecParameters> { // uniffi.ktor_client_webrtc/FfiConverterTypeRtpCodecParameters|null[0]
+    final fun allocationSize(uniffi.ktor_client_webrtc/RtpCodecParameters): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterTypeRtpCodecParameters.allocationSize|allocationSize(uniffi.ktor_client_webrtc.RtpCodecParameters){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): uniffi.ktor_client_webrtc/RtpCodecParameters // uniffi.ktor_client_webrtc/FfiConverterTypeRtpCodecParameters.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(uniffi.ktor_client_webrtc/RtpCodecParameters, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterTypeRtpCodecParameters.write|write(uniffi.ktor_client_webrtc.RtpCodecParameters;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterTypeRtpEncodingParameters : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<uniffi.ktor_client_webrtc/RtpEncodingParameters> { // uniffi.ktor_client_webrtc/FfiConverterTypeRtpEncodingParameters|null[0]
+    final fun allocationSize(uniffi.ktor_client_webrtc/RtpEncodingParameters): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterTypeRtpEncodingParameters.allocationSize|allocationSize(uniffi.ktor_client_webrtc.RtpEncodingParameters){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): uniffi.ktor_client_webrtc/RtpEncodingParameters // uniffi.ktor_client_webrtc/FfiConverterTypeRtpEncodingParameters.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(uniffi.ktor_client_webrtc/RtpEncodingParameters, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterTypeRtpEncodingParameters.write|write(uniffi.ktor_client_webrtc.RtpEncodingParameters;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterTypeRtpHeaderExtensionParameters : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<uniffi.ktor_client_webrtc/RtpHeaderExtensionParameters> { // uniffi.ktor_client_webrtc/FfiConverterTypeRtpHeaderExtensionParameters|null[0]
+    final fun allocationSize(uniffi.ktor_client_webrtc/RtpHeaderExtensionParameters): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterTypeRtpHeaderExtensionParameters.allocationSize|allocationSize(uniffi.ktor_client_webrtc.RtpHeaderExtensionParameters){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): uniffi.ktor_client_webrtc/RtpHeaderExtensionParameters // uniffi.ktor_client_webrtc/FfiConverterTypeRtpHeaderExtensionParameters.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(uniffi.ktor_client_webrtc/RtpHeaderExtensionParameters, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterTypeRtpHeaderExtensionParameters.write|write(uniffi.ktor_client_webrtc.RtpHeaderExtensionParameters;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterTypeRtpParameters : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<uniffi.ktor_client_webrtc/RtpParameters> { // uniffi.ktor_client_webrtc/FfiConverterTypeRtpParameters|null[0]
+    final fun allocationSize(uniffi.ktor_client_webrtc/RtpParameters): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterTypeRtpParameters.allocationSize|allocationSize(uniffi.ktor_client_webrtc.RtpParameters){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): uniffi.ktor_client_webrtc/RtpParameters // uniffi.ktor_client_webrtc/FfiConverterTypeRtpParameters.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(uniffi.ktor_client_webrtc/RtpParameters, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterTypeRtpParameters.write|write(uniffi.ktor_client_webrtc.RtpParameters;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterTypeRtpSender : uniffi.ktor_client_webrtc/FfiConverter<uniffi.ktor_client_webrtc/RtpSender, kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>> { // uniffi.ktor_client_webrtc/FfiConverterTypeRtpSender|null[0]
+    final fun allocationSize(uniffi.ktor_client_webrtc/RtpSender): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterTypeRtpSender.allocationSize|allocationSize(uniffi.ktor_client_webrtc.RtpSender){}[0]
+    final fun lift(kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>): uniffi.ktor_client_webrtc/RtpSender // uniffi.ktor_client_webrtc/FfiConverterTypeRtpSender.lift|lift(kotlinx.cinterop.CPointer<out|kotlinx.cinterop.CPointed>){}[0]
+    final fun lower(uniffi.ktor_client_webrtc/RtpSender): kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed> // uniffi.ktor_client_webrtc/FfiConverterTypeRtpSender.lower|lower(uniffi.ktor_client_webrtc.RtpSender){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): uniffi.ktor_client_webrtc/RtpSender // uniffi.ktor_client_webrtc/FfiConverterTypeRtpSender.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(uniffi.ktor_client_webrtc/RtpSender, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterTypeRtpSender.write|write(uniffi.ktor_client_webrtc.RtpSender;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterTypeSessionDescription : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<uniffi.ktor_client_webrtc/SessionDescription> { // uniffi.ktor_client_webrtc/FfiConverterTypeSessionDescription|null[0]
+    final fun allocationSize(uniffi.ktor_client_webrtc/SessionDescription): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterTypeSessionDescription.allocationSize|allocationSize(uniffi.ktor_client_webrtc.SessionDescription){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): uniffi.ktor_client_webrtc/SessionDescription // uniffi.ktor_client_webrtc/FfiConverterTypeSessionDescription.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(uniffi.ktor_client_webrtc/SessionDescription, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterTypeSessionDescription.write|write(uniffi.ktor_client_webrtc.SessionDescription;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterTypeSessionDescriptionType : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<uniffi.ktor_client_webrtc/SessionDescriptionType> { // uniffi.ktor_client_webrtc/FfiConverterTypeSessionDescriptionType|null[0]
+    final fun allocationSize(uniffi.ktor_client_webrtc/SessionDescriptionType): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterTypeSessionDescriptionType.allocationSize|allocationSize(uniffi.ktor_client_webrtc.SessionDescriptionType){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): uniffi.ktor_client_webrtc/SessionDescriptionType // uniffi.ktor_client_webrtc/FfiConverterTypeSessionDescriptionType.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(uniffi.ktor_client_webrtc/SessionDescriptionType, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterTypeSessionDescriptionType.write|write(uniffi.ktor_client_webrtc.SessionDescriptionType;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterTypeSignalingState : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<uniffi.ktor_client_webrtc/SignalingState> { // uniffi.ktor_client_webrtc/FfiConverterTypeSignalingState|null[0]
+    final fun allocationSize(uniffi.ktor_client_webrtc/SignalingState): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterTypeSignalingState.allocationSize|allocationSize(uniffi.ktor_client_webrtc.SignalingState){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): uniffi.ktor_client_webrtc/SignalingState // uniffi.ktor_client_webrtc/FfiConverterTypeSignalingState.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(uniffi.ktor_client_webrtc/SignalingState, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterTypeSignalingState.write|write(uniffi.ktor_client_webrtc.SignalingState;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterTypeStats : uniffi.ktor_client_webrtc/FfiConverterRustBuffer<uniffi.ktor_client_webrtc/Stats> { // uniffi.ktor_client_webrtc/FfiConverterTypeStats|null[0]
+    final fun allocationSize(uniffi.ktor_client_webrtc/Stats): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterTypeStats.allocationSize|allocationSize(uniffi.ktor_client_webrtc.Stats){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): uniffi.ktor_client_webrtc/Stats // uniffi.ktor_client_webrtc/FfiConverterTypeStats.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(uniffi.ktor_client_webrtc/Stats, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterTypeStats.write|write(uniffi.ktor_client_webrtc.Stats;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterUByte : uniffi.ktor_client_webrtc/FfiConverter<kotlin/UByte, kotlin/Byte> { // uniffi.ktor_client_webrtc/FfiConverterUByte|null[0]
+    final fun allocationSize(kotlin/UByte): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterUByte.allocationSize|allocationSize(kotlin.UByte){}[0]
+    final fun lift(kotlin/Byte): kotlin/UByte // uniffi.ktor_client_webrtc/FfiConverterUByte.lift|lift(kotlin.Byte){}[0]
+    final fun lower(kotlin/UByte): kotlin/Byte // uniffi.ktor_client_webrtc/FfiConverterUByte.lower|lower(kotlin.UByte){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): kotlin/UByte // uniffi.ktor_client_webrtc/FfiConverterUByte.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(kotlin/UByte, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterUByte.write|write(kotlin.UByte;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterUInt : uniffi.ktor_client_webrtc/FfiConverter<kotlin/UInt, kotlin/Int> { // uniffi.ktor_client_webrtc/FfiConverterUInt|null[0]
+    final fun allocationSize(kotlin/UInt): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterUInt.allocationSize|allocationSize(kotlin.UInt){}[0]
+    final fun lift(kotlin/Int): kotlin/UInt // uniffi.ktor_client_webrtc/FfiConverterUInt.lift|lift(kotlin.Int){}[0]
+    final fun lower(kotlin/UInt): kotlin/Int // uniffi.ktor_client_webrtc/FfiConverterUInt.lower|lower(kotlin.UInt){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): kotlin/UInt // uniffi.ktor_client_webrtc/FfiConverterUInt.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(kotlin/UInt, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterUInt.write|write(kotlin.UInt;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterULong : uniffi.ktor_client_webrtc/FfiConverter<kotlin/ULong, kotlin/Long> { // uniffi.ktor_client_webrtc/FfiConverterULong|null[0]
+    final fun allocationSize(kotlin/ULong): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterULong.allocationSize|allocationSize(kotlin.ULong){}[0]
+    final fun lift(kotlin/Long): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterULong.lift|lift(kotlin.Long){}[0]
+    final fun lower(kotlin/ULong): kotlin/Long // uniffi.ktor_client_webrtc/FfiConverterULong.lower|lower(kotlin.ULong){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterULong.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(kotlin/ULong, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterULong.write|write(kotlin.ULong;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/FfiConverterUShort : uniffi.ktor_client_webrtc/FfiConverter<kotlin/UShort, kotlin/Short> { // uniffi.ktor_client_webrtc/FfiConverterUShort|null[0]
+    final fun allocationSize(kotlin/UShort): kotlin/ULong // uniffi.ktor_client_webrtc/FfiConverterUShort.allocationSize|allocationSize(kotlin.UShort){}[0]
+    final fun lift(kotlin/Short): kotlin/UShort // uniffi.ktor_client_webrtc/FfiConverterUShort.lift|lift(kotlin.Short){}[0]
+    final fun lower(kotlin/UShort): kotlin/Short // uniffi.ktor_client_webrtc/FfiConverterUShort.lower|lower(kotlin.UShort){}[0]
+    final fun read(uniffi.ktor_client_webrtc/ByteBuffer): kotlin/UShort // uniffi.ktor_client_webrtc/FfiConverterUShort.read|read(uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+    final fun write(kotlin/UShort, uniffi.ktor_client_webrtc/ByteBuffer) // uniffi.ktor_client_webrtc/FfiConverterUShort.write|write(kotlin.UShort;uniffi.ktor_client_webrtc.ByteBuffer){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/NoPointer // uniffi.ktor_client_webrtc/NoPointer|null[0]
+
+final object uniffi.ktor_client_webrtc/RtcExceptionErrorHandler : uniffi.ktor_client_webrtc/UniffiRustCallStatusErrorHandler<uniffi.ktor_client_webrtc/RtcException> { // uniffi.ktor_client_webrtc/RtcExceptionErrorHandler|null[0]
+    final fun lift(kotlinx.cinterop/CValue<ktor_client_webrtc.cinterop/RustBuffer>): uniffi.ktor_client_webrtc/RtcException // uniffi.ktor_client_webrtc/RtcExceptionErrorHandler.lift|lift(kotlinx.cinterop.CValue<ktor_client_webrtc.cinterop.RustBuffer>){}[0]
+}
+
+final object uniffi.ktor_client_webrtc/UniffiNullRustCallStatusErrorHandler : uniffi.ktor_client_webrtc/UniffiRustCallStatusErrorHandler<uniffi.ktor_client_webrtc/InternalException> { // uniffi.ktor_client_webrtc/UniffiNullRustCallStatusErrorHandler|null[0]
+    final fun lift(kotlinx.cinterop/CValue<ktor_client_webrtc.cinterop/RustBuffer>): uniffi.ktor_client_webrtc/InternalException // uniffi.ktor_client_webrtc/UniffiNullRustCallStatusErrorHandler.lift|lift(kotlinx.cinterop.CValue<ktor_client_webrtc.cinterop.RustBuffer>){}[0]
+}
+
+final val uniffi.ktor_client_webrtc/capacity // uniffi.ktor_client_webrtc/capacity|@kotlinx.cinterop.CValue<ktor_client_webrtc.cinterop.RustBuffer>{}capacity[0]
+    final fun (kotlinx.cinterop/CValue<ktor_client_webrtc.cinterop/RustBuffer>).<get-capacity>(): kotlin/Long // uniffi.ktor_client_webrtc/capacity.<get-capacity>|<get-capacity>@kotlinx.cinterop.CValue<ktor_client_webrtc.cinterop.RustBuffer>(){}[0]
+final val uniffi.ktor_client_webrtc/data // uniffi.ktor_client_webrtc/data|@kotlinx.cinterop.CValue<ktor_client_webrtc.cinterop.RustBuffer>{}data[0]
+    final fun (kotlinx.cinterop/CValue<ktor_client_webrtc.cinterop/RustBuffer>).<get-data>(): kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>? // uniffi.ktor_client_webrtc/data.<get-data>|<get-data>@kotlinx.cinterop.CValue<ktor_client_webrtc.cinterop.RustBuffer>(){}[0]
+final val uniffi.ktor_client_webrtc/len // uniffi.ktor_client_webrtc/len|@kotlinx.cinterop.CValue<ktor_client_webrtc.cinterop.RustBuffer>{}len[0]
+    final fun (kotlinx.cinterop/CValue<ktor_client_webrtc.cinterop/RustBuffer>).<get-len>(): kotlin/Long // uniffi.ktor_client_webrtc/len.<get-len>|<get-len>@kotlinx.cinterop.CValue<ktor_client_webrtc.cinterop.RustBuffer>(){}[0]
+
+final var uniffi.ktor_client_webrtc/capacity // uniffi.ktor_client_webrtc/capacity|@kotlinx.cinterop.CPointer<ktor_client_webrtc.cinterop.RustBuffer>{}capacity[0]
+    final fun (kotlinx.cinterop/CPointer<ktor_client_webrtc.cinterop/RustBuffer>).<get-capacity>(): kotlin/Long // uniffi.ktor_client_webrtc/capacity.<get-capacity>|<get-capacity>@kotlinx.cinterop.CPointer<ktor_client_webrtc.cinterop.RustBuffer>(){}[0]
+    final fun (kotlinx.cinterop/CPointer<ktor_client_webrtc.cinterop/RustBuffer>).<set-capacity>(kotlin/Long) // uniffi.ktor_client_webrtc/capacity.<set-capacity>|<set-capacity>@kotlinx.cinterop.CPointer<ktor_client_webrtc.cinterop.RustBuffer>(kotlin.Long){}[0]
+final var uniffi.ktor_client_webrtc/data // uniffi.ktor_client_webrtc/data|@kotlinx.cinterop.CPointer<ktor_client_webrtc.cinterop.RustBuffer>{}data[0]
+    final fun (kotlinx.cinterop/CPointer<ktor_client_webrtc.cinterop/RustBuffer>).<get-data>(): kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>? // uniffi.ktor_client_webrtc/data.<get-data>|<get-data>@kotlinx.cinterop.CPointer<ktor_client_webrtc.cinterop.RustBuffer>(){}[0]
+    final fun (kotlinx.cinterop/CPointer<ktor_client_webrtc.cinterop/RustBuffer>).<set-data>(kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>?) // uniffi.ktor_client_webrtc/data.<set-data>|<set-data>@kotlinx.cinterop.CPointer<ktor_client_webrtc.cinterop.RustBuffer>(kotlinx.cinterop.CPointer<out|kotlinx.cinterop.CPointed>?){}[0]
+final var uniffi.ktor_client_webrtc/len // uniffi.ktor_client_webrtc/len|@kotlinx.cinterop.CPointer<ktor_client_webrtc.cinterop.RustBuffer>{}len[0]
+    final fun (kotlinx.cinterop/CPointer<ktor_client_webrtc.cinterop/RustBuffer>).<get-len>(): kotlin/Long // uniffi.ktor_client_webrtc/len.<get-len>|<get-len>@kotlinx.cinterop.CPointer<ktor_client_webrtc.cinterop.RustBuffer>(){}[0]
+    final fun (kotlinx.cinterop/CPointer<ktor_client_webrtc.cinterop/RustBuffer>).<set-len>(kotlin/Long) // uniffi.ktor_client_webrtc/len.<set-len>|<set-len>@kotlinx.cinterop.CPointer<ktor_client_webrtc.cinterop.RustBuffer>(kotlin.Long){}[0]
+
+final fun (io.ktor.client.webrtc/WebRtc.RtpParameters).io.ktor.client.webrtc.rs/getNative(): uniffi.ktor_client_webrtc/RtpParameters // io.ktor.client.webrtc.rs/getNative|getNative@io.ktor.client.webrtc.WebRtc.RtpParameters(){}[0]
+final fun (io.ktor.client.webrtc/WebRtc.RtpSender).io.ktor.client.webrtc.rs/getNative(): uniffi.ktor_client_webrtc/RtpSender // io.ktor.client.webrtc.rs/getNative|getNative@io.ktor.client.webrtc.WebRtc.RtpSender(){}[0]
+final fun (io.ktor.client.webrtc/WebRtcDataChannel).io.ktor.client.webrtc.rs/getNative(): uniffi.ktor_client_webrtc/DataChannel // io.ktor.client.webrtc.rs/getNative|getNative@io.ktor.client.webrtc.WebRtcDataChannel(){}[0]
+final fun (io.ktor.client.webrtc/WebRtcMedia.Track).io.ktor.client.webrtc.rs/getNative(): uniffi.ktor_client_webrtc/MediaStreamTrack // io.ktor.client.webrtc.rs/getNative|getNative@io.ktor.client.webrtc.WebRtcMedia.Track(){}[0]
+final fun (io.ktor.client.webrtc/WebRtcPeerConnection).io.ktor.client.webrtc.rs/getNative(): uniffi.ktor_client_webrtc/PeerConnection // io.ktor.client.webrtc.rs/getNative|getNative@io.ktor.client.webrtc.WebRtcPeerConnection(){}[0]
+final fun (kotlinx.cinterop/CPointer<ktor_client_webrtc.cinterop/RustBuffer>).uniffi.ktor_client_webrtc/asByteBuffer(): uniffi.ktor_client_webrtc/ByteBuffer? // uniffi.ktor_client_webrtc/asByteBuffer|asByteBuffer@kotlinx.cinterop.CPointer<ktor_client_webrtc.cinterop.RustBuffer>(){}[0]
+final fun (kotlinx.cinterop/CPointer<ktor_client_webrtc.cinterop/RustBuffer>).uniffi.ktor_client_webrtc/setValue(kotlinx.cinterop/CValue<ktor_client_webrtc.cinterop/RustBuffer>) // uniffi.ktor_client_webrtc/setValue|setValue@kotlinx.cinterop.CPointer<ktor_client_webrtc.cinterop.RustBuffer>(kotlinx.cinterop.CValue<ktor_client_webrtc.cinterop.RustBuffer>){}[0]
+final fun (kotlinx.cinterop/CValue<ktor_client_webrtc.cinterop/RustBuffer>).uniffi.ktor_client_webrtc/asByteBuffer(): uniffi.ktor_client_webrtc/ByteBuffer? // uniffi.ktor_client_webrtc/asByteBuffer|asByteBuffer@kotlinx.cinterop.CValue<ktor_client_webrtc.cinterop.RustBuffer>(){}[0]
+final fun uniffi.ktor_client_webrtc/RustBufferByValue(kotlin/Long, kotlin/Long, kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed>?): kotlinx.cinterop/CValue<ktor_client_webrtc.cinterop/RustBuffer> // uniffi.ktor_client_webrtc/RustBufferByValue|RustBufferByValue(kotlin.Long;kotlin.Long;kotlinx.cinterop.CPointer<out|kotlinx.cinterop.CPointed>?){}[0]
+final fun uniffi.ktor_client_webrtc/createAudioOpusTrack(kotlin/String, kotlin/String): uniffi.ktor_client_webrtc/MediaStreamTrack // uniffi.ktor_client_webrtc/createAudioOpusTrack|createAudioOpusTrack(kotlin.String;kotlin.String){}[0]
+final fun uniffi.ktor_client_webrtc/createVideoH264Track(kotlin/String, kotlin/String): uniffi.ktor_client_webrtc/MediaStreamTrack // uniffi.ktor_client_webrtc/createVideoH264Track|createVideoH264Track(kotlin.String;kotlin.String){}[0]
+final fun uniffi.ktor_client_webrtc/createVideoVp8Track(kotlin/String, kotlin/String): uniffi.ktor_client_webrtc/MediaStreamTrack // uniffi.ktor_client_webrtc/createVideoVp8Track|createVideoVp8Track(kotlin.String;kotlin.String){}[0]
+final fun uniffi.ktor_client_webrtc/enableLogging() // uniffi.ktor_client_webrtc/enableLogging|enableLogging(){}[0]
+final fun uniffi.ktor_client_webrtc/uniffiEnsureInitialized() // uniffi.ktor_client_webrtc/uniffiEnsureInitialized|uniffiEnsureInitialized(){}[0]
+final inline fun <#A: uniffi.ktor_client_webrtc/Disposable?, #B: kotlin/Any?> (#A).uniffi.ktor_client_webrtc/use(kotlin/Function1<#A, #B>): #B // uniffi.ktor_client_webrtc/use|use@0:0(kotlin.Function1<0:0,0:1>){0§<uniffi.ktor_client_webrtc.Disposable?>;1§<kotlin.Any?>}[0]
+final suspend fun uniffi.ktor_client_webrtc/makePeerConnection(uniffi.ktor_client_webrtc/ConnectionConfig): uniffi.ktor_client_webrtc/PeerConnection // uniffi.ktor_client_webrtc/makePeerConnection|makePeerConnection(uniffi.ktor_client_webrtc.ConnectionConfig){}[0]

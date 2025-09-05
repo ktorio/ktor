@@ -4,16 +4,16 @@
 
 package io.ktor.server.plugins.di
 
-import io.ktor.server.plugins.di.utils.hierarchy
-import io.ktor.server.plugins.di.utils.toNullable
-import io.ktor.server.plugins.di.utils.typeParametersHierarchy
-import io.ktor.util.reflect.TypeInfo
-import io.ktor.utils.io.InternalAPI
+import io.ktor.server.plugins.di.utils.*
+import io.ktor.util.reflect.*
+import io.ktor.utils.io.*
 
 /**
  * Functional interface for mapping a dependency key to its covariant types.
  *
  * For example, `ArrayList<String> -> [ArrayList<String>, List<String>, Collection<String>]`
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyKeyCovariance)
  */
 public fun interface DependencyKeyCovariance {
     public fun map(key: DependencyKey, distance: Int): Sequence<KeyMatch>
@@ -26,6 +26,8 @@ internal val KeyMatch.distance: Int get() = second
 
 /**
  * Standard covariance mapping for matching dependency keys to supertypes and implemented interfaces.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.Supertypes)
  */
 @OptIn(InternalAPI::class)
 public val Supertypes: DependencyKeyCovariance =
@@ -42,6 +44,8 @@ public val Supertypes: DependencyKeyCovariance =
  * This allows matching applicable types when there is no unnamed dependency key provided.
  *
  * This logic is not enabled by default.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.Unnamed)
  */
 public val Unnamed: DependencyKeyCovariance =
     DependencyKeyCovariance { key, distance ->
@@ -60,6 +64,8 @@ public val Unnamed: DependencyKeyCovariance =
  *
  * The primary purpose of this value is to facilitate support for nullable types or variant type
  * mappings within dependency injection.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.Nullables)
  */
 @OptIn(InternalAPI::class)
 public val Nullables: DependencyKeyCovariance =
@@ -76,6 +82,8 @@ public val Nullables: DependencyKeyCovariance =
  * A [DependencyKeyCovariance] that generates supertypes for out type arguments of parameterized types.
  *
  * For example, `Pair<String, Int>` yields `Pair<CharSequence, Number>`
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.OutTypeArgumentsSupertypes)
  */
 @OptIn(InternalAPI::class)
 public val OutTypeArgumentsSupertypes: DependencyKeyCovariance =
@@ -95,6 +103,8 @@ public val OutTypeArgumentsSupertypes: DependencyKeyCovariance =
  * ```
  * Supertypes * Unnamed
  * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.times)
  */
 public operator fun DependencyKeyCovariance.times(other: DependencyKeyCovariance): DependencyKeyCovariance =
     DependencyKeyCovariance { key, distance ->
@@ -112,6 +122,8 @@ public operator fun DependencyKeyCovariance.times(other: DependencyKeyCovariance
  * ```
  * Supertypes + Unnamed
  * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.plus)
  */
 public operator fun DependencyKeyCovariance.plus(other: DependencyKeyCovariance): DependencyKeyCovariance =
     DependencyKeyCovariance { key, distance ->
@@ -125,6 +137,8 @@ public operator fun DependencyKeyCovariance.plus(other: DependencyKeyCovariance)
  * The default covariance logic for dependency keys.
  *
  * Where applicable, this supports super type, nullable, and type argument supertypes.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DefaultKeyCovariance)
  */
 public val DefaultKeyCovariance: DependencyKeyCovariance =
     Supertypes * Nullables * OutTypeArgumentsSupertypes

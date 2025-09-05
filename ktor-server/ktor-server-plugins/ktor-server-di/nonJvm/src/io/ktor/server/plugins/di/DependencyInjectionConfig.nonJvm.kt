@@ -6,6 +6,8 @@ package io.ktor.server.plugins.di
 
 /**
  * Reflection is currently disabled for all non-JVM platforms.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DefaultReflection)
  */
 public actual val DefaultReflection: DependencyReflection
     get() = NoReflection

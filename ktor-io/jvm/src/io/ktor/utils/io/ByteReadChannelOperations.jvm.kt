@@ -118,11 +118,17 @@ public suspend fun ByteReadChannel.skipDelimiter(delimiter: ByteString) {
     }
 }
 
+/**
+ * Reads data from the [ByteReadChannel] into the provided [buffer] until the buffer is fully filled or EOF is reached.
+ *
+ * @param buffer the [ByteBuffer] into which bytes are read from the channel.
+ * @throws EOFException if the channel is closed or there are not enough bytes available to fill the [buffer].
+ */
 @OptIn(InternalAPI::class)
 public suspend fun ByteReadChannel.readFully(buffer: ByteBuffer) {
     while (buffer.hasRemaining()) {
-        if (availableForRead == 0) {
-            awaitContent()
+        if (!awaitContent()) {
+            throw EOFException("Not enough bytes available: expected ${buffer.remaining()} more bytes")
         }
         readBuffer.readAtMostTo(buffer)
     }

@@ -4,15 +4,7 @@
 
 package io.ktor.client.webrtc
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
-import kotlin.coroutines.CoroutineContext
+import kotlinx.coroutines.flow.*
 
 /**
  * Represents events related to media tracks in a WebRTC peer connection.
@@ -72,6 +64,12 @@ public interface WebRtcConnectionEvents {
     public val trackEvents: SharedFlow<TrackEvent>
 
     /**
+     * Flow of newly added connection dataChannels,
+     * as a result of the remote peer calling [WebRtcPeerConnection.createDataChannel].
+     */
+    public val dataChannelEvents: SharedFlow<DataChannelEvent>
+
+    /**
      * Flow of connection statistics.
      */
     public val stats: StateFlow<List<WebRtc.Stats>>
@@ -88,10 +86,9 @@ public interface WebRtcConnectionEvents {
  * This class maintains the mutable flows and provides methods to emit events
  * from platform-specific WebRTC implementations.
  */
-internal class WebRtcConnectionEventsEmitter(
-    override val coroutineContext: CoroutineContext,
+public class WebRtcConnectionEventsEmitter(
     config: WebRtcConnectionConfig
-) : CoroutineScope, WebRtcConnectionEvents {
+) : WebRtcConnectionEvents {
 
     // Private mutable flows
     private val iceCandidatesFlow: MutableSharedFlow<WebRtc.IceCandidate> =
@@ -105,8 +102,10 @@ internal class WebRtcConnectionEventsEmitter(
     private val signalingStateFlow: MutableStateFlow<WebRtc.SignalingState> =
         MutableStateFlow(WebRtc.SignalingState.STABLE)
     private val trackEventsFlow: MutableSharedFlow<TrackEvent> = MutableSharedFlow(config.remoteTracksReplay)
+    private val dataChannelEventsFlow: MutableSharedFlow<DataChannelEvent> =
+        MutableSharedFlow(config.dataChannelEventsReplay)
     private val statsFlow: MutableStateFlow<List<WebRtc.Stats>> = MutableStateFlow(listOf())
-    private val negotiationNeededFlow: MutableSharedFlow<Unit> = MutableSharedFlow()
+    private val negotiationNeededFlow: MutableSharedFlow<Unit> = MutableSharedFlow(extraBufferCapacity = 1)
 
     // Public flows
     override val stats: StateFlow<List<WebRtc.Stats>> = statsFlow.asStateFlow()
@@ -115,45 +114,50 @@ internal class WebRtcConnectionEventsEmitter(
     override val state: StateFlow<WebRtc.ConnectionState> = connectionStateFlow.asStateFlow()
     override val iceCandidates: SharedFlow<WebRtc.IceCandidate> = iceCandidatesFlow.asSharedFlow()
     override val signalingState: StateFlow<WebRtc.SignalingState> = signalingStateFlow.asStateFlow()
+    override val dataChannelEvents: SharedFlow<DataChannelEvent> = dataChannelEventsFlow.asSharedFlow()
     override val iceGatheringState: StateFlow<WebRtc.IceGatheringState> = iceGatheringStateFlow.asStateFlow()
     override val iceConnectionState: StateFlow<WebRtc.IceConnectionState> = iceConnectionStateFlow.asStateFlow()
 
     // Helper functions to emit events in WebRtcConnection implementations,
     // So it doesn't have to extend CoroutineScope and run `launch`
 
-    fun emitIceCandidate(candidate: WebRtc.IceCandidate) {
-        launch { iceCandidatesFlow.emit(candidate) }
+    public fun emitIceCandidate(candidate: WebRtc.IceCandidate) {
+        iceCandidatesFlow.tryEmit(candidate)
     }
 
-    fun emitStats(stats: List<WebRtc.Stats>) {
-        launch { statsFlow.emit(stats) }
+    public fun emitStats(stats: List<WebRtc.Stats>) {
+        statsFlow.tryEmit(stats)
     }
 
-    fun emitNegotiationNeeded() {
-        launch { negotiationNeededFlow.emit(Unit) }
+    public fun emitNegotiationNeeded() {
+        negotiationNeededFlow.tryEmit(Unit)
     }
 
-    fun emitIceConnectionStateChange(state: WebRtc.IceConnectionState) {
-        launch { iceConnectionStateFlow.emit(state) }
+    public fun emitIceConnectionStateChange(state: WebRtc.IceConnectionState) {
+        iceConnectionStateFlow.tryEmit(state)
     }
 
-    fun emitConnectionStateChange(state: WebRtc.ConnectionState) {
-        launch { connectionStateFlow.emit(state) }
+    public fun emitConnectionStateChange(state: WebRtc.ConnectionState) {
+        connectionStateFlow.tryEmit(state)
     }
 
-    fun emitIceGatheringStateChange(state: WebRtc.IceGatheringState) {
-        launch { iceGatheringStateFlow.emit(state) }
+    public fun emitIceGatheringStateChange(state: WebRtc.IceGatheringState) {
+        iceGatheringStateFlow.tryEmit(state)
     }
 
-    fun emitSignalingStateChange(state: WebRtc.SignalingState) {
-        launch { signalingStateFlow.emit(state) }
+    public fun emitSignalingStateChange(state: WebRtc.SignalingState) {
+        signalingStateFlow.tryEmit(state)
     }
 
-    fun emitAddTrack(track: WebRtcMedia.Track) {
-        launch { trackEventsFlow.emit(TrackEvent.Add(track)) }
+    public fun emitAddTrack(track: WebRtcMedia.Track) {
+        trackEventsFlow.tryEmit(TrackEvent.Add(track))
     }
 
-    fun emitRemoveTrack(track: WebRtcMedia.Track) {
-        launch { trackEventsFlow.emit(TrackEvent.Remove(track)) }
+    public fun emitRemoveTrack(track: WebRtcMedia.Track) {
+        trackEventsFlow.tryEmit(TrackEvent.Remove(track))
+    }
+
+    public fun emitDataChannelEvent(event: DataChannelEvent) {
+        dataChannelEventsFlow.tryEmit(event)
     }
 }

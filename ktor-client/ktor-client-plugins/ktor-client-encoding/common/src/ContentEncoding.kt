@@ -15,7 +15,6 @@ import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.CoroutineScope
 
 private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.compression.ContentEncoding")
 
@@ -138,14 +137,10 @@ public val ContentEncoding: ClientPlugin<ContentEncodingConfig> = createClientPl
         return current
     }
 
-    fun CoroutineScope.decode(response: HttpResponse): HttpResponse {
-        val contentEncodingHeader = response.headers[HttpHeaders.ContentEncoding] ?: run {
-            LOGGER.trace {
-                "Empty or no Content-Encoding header in response. " +
-                    "Skipping ContentEncoding for ${response.call.request.url}"
-            }
-            return response
-        }
+    fun decode(response: HttpResponse): HttpResponse {
+        if (!shouldDecode(response)) return response
+        val contentEncodingHeader = response.headers[HttpHeaders.ContentEncoding]
+            ?: error("${HttpHeaders.ContentEncoding} unavailable")
         val encodings = contentEncodingHeader.split(",").map { it.trim().lowercase() }
 
         val selectedEncoders = encodings.asReversed().map { encoding ->
@@ -208,7 +203,7 @@ public val ContentEncoding: ClientPlugin<ContentEncodingConfig> = createClientPl
         if (contentLength == 0L) return@on null
         if (contentLength == null && method == HttpMethod.Head) return@on null
 
-        return@on response.call.decode(response)
+        return@on decode(response)
     }
 }
 
@@ -299,3 +294,5 @@ public fun HttpRequestBuilder.compress(contentEncoderNames: List<String>) {
  */
 public val HttpResponse.appliedDecoders: List<String>
     get() = call.attributes.getOrNull(DecompressionListAttribute) ?: emptyList()
+
+internal expect fun shouldDecode(response: HttpResponse): Boolean

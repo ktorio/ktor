@@ -7,6 +7,8 @@ package io.ktor.server.plugins.di.annotations
 /**
  * Used for populating parameters with configuration property values when using classpath
  * references with the dependency injection plugin.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.annotations.Property)
  */
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.VALUE_PARAMETER)

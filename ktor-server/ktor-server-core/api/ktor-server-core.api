@@ -61,6 +61,11 @@ public final class io/ktor/server/application/ApplicationKt {
 	public static synthetic fun serverConfig$default (Lio/ktor/server/application/ApplicationEnvironment;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/application/ServerConfig;
 }
 
+public final class io/ktor/server/application/ApplicationModulesKt {
+	public static final fun getStartupMode (Lio/ktor/server/application/ApplicationEnvironment;)Lio/ktor/server/application/ApplicationStartupMode;
+	public static final fun getStartupTimeout (Lio/ktor/server/application/ApplicationEnvironment;)J
+}
+
 public abstract interface class io/ktor/server/application/ApplicationPlugin : io/ktor/server/application/BaseApplicationPlugin {
 }
 
@@ -75,6 +80,14 @@ public final class io/ktor/server/application/ApplicationPluginKt {
 	public static final fun uninstall (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/server/application/Plugin;)V
 	public static final fun uninstallAllPlugins (Lio/ktor/util/pipeline/Pipeline;)V
 	public static final fun uninstallPlugin (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/util/AttributeKey;)V
+}
+
+public final class io/ktor/server/application/ApplicationStartupMode : java/lang/Enum {
+	public static final field CONCURRENT Lio/ktor/server/application/ApplicationStartupMode;
+	public static final field SEQUENTIAL Lio/ktor/server/application/ApplicationStartupMode;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/ktor/server/application/ApplicationStartupMode;
+	public static fun values ()[Lio/ktor/server/application/ApplicationStartupMode;
 }
 
 public abstract interface class io/ktor/server/application/BaseApplicationPlugin : io/ktor/server/application/Plugin {
@@ -99,6 +112,7 @@ public final class io/ktor/server/application/CreatePluginUtilsKt {
 
 public final class io/ktor/server/application/DefaultApplicationEventsKt {
 	public static final fun getApplicationModulesLoaded ()Lio/ktor/events/EventDefinition;
+	public static final fun getApplicationModulesLoading ()Lio/ktor/events/EventDefinition;
 	public static final fun getApplicationStarted ()Lio/ktor/events/EventDefinition;
 	public static final fun getApplicationStarting ()Lio/ktor/events/EventDefinition;
 	public static final fun getApplicationStopPreparing ()Lio/ktor/events/EventDefinition;
@@ -133,7 +147,7 @@ public final class io/ktor/server/application/MissingApplicationPluginException 
 
 public abstract interface class io/ktor/server/application/ModuleParametersInjector {
 	public static final field Companion Lio/ktor/server/application/ModuleParametersInjector$Companion;
-	public abstract fun resolveParameter (Lio/ktor/server/application/Application;Lkotlin/reflect/KParameter;)Ljava/lang/Object;
+	public abstract fun resolveParameter (Lio/ktor/server/application/Application;Lkotlin/reflect/KParameter;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/application/ModuleParametersInjector$Companion {
@@ -153,8 +167,8 @@ public final class io/ktor/server/application/OnCallRespondContext : io/ktor/ser
 public abstract interface class io/ktor/server/application/PipelineCall : io/ktor/server/application/ApplicationCall {
 	public abstract fun getRequest ()Lio/ktor/server/request/PipelineRequest;
 	public abstract fun getResponse ()Lio/ktor/server/response/PipelineResponse;
-	public abstract fun receiveNullable (Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun respond (Ljava/lang/Object;Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun receiveNullable (Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun respond (Ljava/lang/Object;Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/application/PipelineCall$DefaultImpls {
@@ -370,31 +384,23 @@ public class io/ktor/server/config/MapApplicationConfig : io/ktor/server/config/
 	public fun toMap ()Ljava/util/Map;
 }
 
-protected final class io/ktor/server/config/MapApplicationConfig$MapApplicationConfigValue : io/ktor/server/config/ApplicationConfigValue {
-	public fun <init> (Ljava/util/Map;Ljava/lang/String;)V
-	public fun getList ()Ljava/util/List;
-	public final fun getMap ()Ljava/util/Map;
-	public final fun getPath ()Ljava/lang/String;
-	public fun getString ()Ljava/lang/String;
-}
-
 public final class io/ktor/server/config/MergedApplicationConfigKt {
 	public static final fun merge (Ljava/util/List;)Lio/ktor/server/config/ApplicationConfig;
 	public static final fun mergeWith (Lio/ktor/server/config/ApplicationConfig;Lio/ktor/server/config/ApplicationConfig;)Lio/ktor/server/config/ApplicationConfig;
 	public static final fun withFallback (Lio/ktor/server/config/ApplicationConfig;Lio/ktor/server/config/ApplicationConfig;)Lio/ktor/server/config/ApplicationConfig;
 }
 
-public abstract interface class io/ktor/server/config/SerializableConfigValue : io/ktor/server/config/ApplicationConfigValue {
-	public abstract fun getAs (Lio/ktor/util/reflect/TypeInfo;)Ljava/lang/Object;
-}
-
 public abstract interface class io/ktor/server/engine/ApplicationEngine {
 	public abstract fun getEnvironment ()Lio/ktor/server/application/ApplicationEnvironment;
 	public abstract fun resolvedConnectors (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun start (Z)Lio/ktor/server/engine/ApplicationEngine;
-	public abstract fun startSuspend (ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun start$default (Lio/ktor/server/engine/ApplicationEngine;ZILjava/lang/Object;)Lio/ktor/server/engine/ApplicationEngine;
+	public fun startSuspend (ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun startSuspend$default (Lio/ktor/server/engine/ApplicationEngine;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun stop (JJ)V
-	public abstract fun stopSuspend (JJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun stop$default (Lio/ktor/server/engine/ApplicationEngine;JJILjava/lang/Object;)V
+	public fun stopSuspend (JJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun stopSuspend$default (Lio/ktor/server/engine/ApplicationEngine;JJLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public class io/ktor/server/engine/ApplicationEngine$Configuration {
@@ -735,8 +741,10 @@ public abstract interface class io/ktor/server/engine/EngineSSLConnectorConfig :
 
 public final class io/ktor/server/engine/ShutDownUrl {
 	public static final field Companion Lio/ktor/server/engine/ShutDownUrl$Companion;
-	public fun <init> (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public fun <init> (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun doShutdown (Lio/ktor/server/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getExit ()Lkotlin/jvm/functions/Function1;
 	public final fun getExitCode ()Lkotlin/jvm/functions/Function1;
 	public final fun getUrl ()Ljava/lang/String;
 }
@@ -747,8 +755,10 @@ public final class io/ktor/server/engine/ShutDownUrl$Companion {
 
 public final class io/ktor/server/engine/ShutDownUrl$Config {
 	public fun <init> ()V
+	public final fun getExit ()Lkotlin/jvm/functions/Function1;
 	public final fun getExitCodeSupplier ()Lkotlin/jvm/functions/Function1;
 	public final fun getShutDownUrl ()Ljava/lang/String;
+	public final fun setExit (Lkotlin/jvm/functions/Function1;)V
 	public final fun setExitCodeSupplier (Lkotlin/jvm/functions/Function1;)V
 	public final fun setShutDownUrl (Ljava/lang/String;)V
 }
@@ -1583,6 +1593,7 @@ public abstract interface class io/ktor/server/routing/Route {
 	public abstract fun getParent ()Lio/ktor/server/routing/Route;
 	public abstract fun handle (Lkotlin/jvm/functions/Function2;)V
 	public abstract fun install (Lio/ktor/server/application/Plugin;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public static synthetic fun install$default (Lio/ktor/server/routing/Route;Lio/ktor/server/application/Plugin;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun plugin (Lio/ktor/server/application/Plugin;)Ljava/lang/Object;
 }
 
