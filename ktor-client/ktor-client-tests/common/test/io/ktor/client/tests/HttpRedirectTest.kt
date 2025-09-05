@@ -147,4 +147,18 @@ class HttpRedirectTest : ClientLoader() {
             assertEquals(HttpStatusCode.Found, response.status)
         }
     }
+
+    @Test
+    fun testRedirectWithoutLocationHeaderFallback() = clientTests {
+        config {
+            install(HttpRedirect)
+        }
+
+        test { client ->
+            client.prepareGet("$TEST_URL_BASE/withoutLocationHeader").execute {
+                assertEquals(HttpStatusCode.Found, it.status)
+                assertEquals("withoutLocationHeader", it.bodyAsText())
+            }
+        }
+    }
 }
