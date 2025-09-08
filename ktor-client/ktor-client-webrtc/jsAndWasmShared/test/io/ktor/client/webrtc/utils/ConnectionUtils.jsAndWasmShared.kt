@@ -6,12 +6,13 @@ package io.ktor.client.webrtc.utils
 
 import io.ktor.client.webrtc.*
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlin.time.Duration.Companion.milliseconds
 
 actual fun createTestWebRtcClient(): WebRtcClient = WebRtcClient(JsWebRtc) {
     mediaTrackFactory = MockMediaTrackFactory
     defaultConnectionConfig = {
         iceServers = listOf()
-        statsRefreshRate = 100
+        statsRefreshRate = 100.milliseconds
         // propagate exceptions to the test scope
         exceptionHandler = CoroutineExceptionHandler { _, e -> throw e }
     }

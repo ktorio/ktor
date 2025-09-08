@@ -6,11 +6,13 @@ package io.ktor.client.webrtc.rs
 
 import io.ktor.client.webrtc.*
 import io.ktor.client.webrtc.rs.utils.*
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withTimeout
 import kotlin.test.*
+import kotlin.time.Duration.Companion.milliseconds
 
 class WebRtcEngineTest {
 
@@ -30,7 +32,9 @@ class WebRtcEngineTest {
         client = WebRtcClient(RustWebRtc) {
             mediaTrackFactory = MockMediaDevices()
             defaultConnectionConfig = {
-                statsRefreshRate = 100 // 100 ms refresh rate
+                statsRefreshRate = 100.milliseconds
+                // propagate exceptions to the test scope
+                exceptionHandler = CoroutineExceptionHandler { _, e -> throw e }
             }
         }
     }

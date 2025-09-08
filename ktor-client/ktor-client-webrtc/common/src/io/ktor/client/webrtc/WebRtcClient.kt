@@ -33,7 +33,7 @@ public fun interface WebRtcClientEngineFactory<out T : WebRtcConfig> {
  * val client = WebRtcClient(JsWebRtc) {
  *     defaultConnectionConfig = {
  *         iceServers = listOf(WebRtc.IceServer("stun:stun.l.google.com:19302"))
- *         statsRefreshRate = 100
+ *         statsRefreshRate = 100.milliseconds
  *     }
  * }
  * ```

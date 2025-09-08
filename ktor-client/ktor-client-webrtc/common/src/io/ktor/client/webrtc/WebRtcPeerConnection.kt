@@ -31,11 +31,12 @@ public abstract class WebRtcPeerConnection private constructor(
         config: WebRtcConnectionConfig
     ) : this(events = WebRtcConnectionEventsEmitter(config), coroutineScope = CoroutineScope(coroutineContext)) {
         // Start fetching statistics
-        if (config.statsRefreshRate > 0) {
+        val refreshRate = config.statsRefreshRate
+        if (refreshRate != null) {
             coroutineScope.launch {
                 while (true) {
-                    delay(config.statsRefreshRate)
-                    events.emitStats(getStatistics())
+                    delay(duration = refreshRate)
+                    events.emitStats(stats = getStatistics())
                 }
             }
         }

@@ -9,6 +9,8 @@ import android.content.Context
 import androidx.test.platform.app.InstrumentationRegistry
 import io.ktor.client.webrtc.*
 import io.ktor.client.webrtc.media.AndroidMediaDevices
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlin.time.Duration.Companion.milliseconds
 
 private val ctx: Context get() = InstrumentationRegistry.getInstrumentation().targetContext
 
@@ -17,7 +19,9 @@ actual fun createTestWebRtcClient(): WebRtcClient {
         mediaTrackFactory = AndroidMediaDevices(ctx)
         defaultConnectionConfig = {
             iceServers = listOf()
-            statsRefreshRate = 100 // 100 ms refresh rate
+            statsRefreshRate = 100.milliseconds
+            // propagate exceptions to the test scope
+            exceptionHandler = CoroutineExceptionHandler { _, e -> throw e }
         }
     }
 }

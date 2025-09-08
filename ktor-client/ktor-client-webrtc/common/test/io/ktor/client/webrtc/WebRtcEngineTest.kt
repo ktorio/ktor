@@ -13,6 +13,7 @@ import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.test.TestResult
 import kotlin.coroutines.CoroutineContext
 import kotlin.test.*
+import kotlin.time.Duration.Companion.milliseconds
 
 @IgnoreJvm
 @IgnorePosix
@@ -232,7 +233,7 @@ class WebRtcEngineTest {
         WebRtcClient(mockEngine).use { client ->
             val connection = client.createPeerConnection {
                 exceptionHandler = CoroutineExceptionHandler { _, e -> channel.trySend(e) }
-                statsRefreshRate = 10
+                statsRefreshRate = 10.milliseconds
             }
 
             connection.use {

@@ -8,12 +8,7 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlin.coroutines.CoroutineContext
-
-/**
- * Constant that indicates to WebRTCConnection that there should be no automatic statistics collection.
- * E.g., [WebRtcPeerConnection.stats] flow will not emit any events.
- */
-public const val WEBRTC_STATISTICS_DISABLED: Long = -1
+import kotlin.time.Duration
 
 /**
  * Configuration for WebRtc connections.
@@ -26,12 +21,12 @@ public open class WebRtcConnectionConfig {
     public var iceServers: List<WebRtc.IceServer> = emptyList()
 
     /**
-     * Refresh rate of [WebRtc.Stats] in ms.
-     * Value less than or equal to zero means there will be no statistics collected.
+     * Refresh rate of [WebRtc.Stats].
+     * `null` means there will be no statistics collected.
      * You can provide a custom [exceptionHandler] to handle exceptions during a statistics collection.
-     * Defaults to [WEBRTC_STATISTICS_DISABLED].
+     * Defaults to `null`.
      */
-    public var statsRefreshRate: Long = WEBRTC_STATISTICS_DISABLED
+    public var statsRefreshRate: Duration? = null
 
     /**
      * The size of the prefetched ICE candidate pool.
