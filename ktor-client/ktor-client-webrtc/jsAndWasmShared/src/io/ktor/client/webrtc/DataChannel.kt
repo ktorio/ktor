@@ -55,9 +55,13 @@ public class JsWebRtcDataChannel(
     override val protocol: String
         get() = channel.protocol
 
-    override fun send(text: String): Unit = channel.send(text)
+    override suspend fun send(text: String) {
+        channel.send(text)
+    }
 
-    override fun send(bytes: ByteArray): Unit = channel.send(bytes.toArrayBuffer())
+    override suspend fun send(bytes: ByteArray) {
+        channel.send(bytes.toArrayBuffer())
+    }
 
     override fun setBufferedAmountLowThreshold(threshold: Long) {
         channel.bufferedAmountLowThreshold = threshold.toInt()

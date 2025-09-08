@@ -137,9 +137,9 @@ impl DataChannel {
             .await
     }
 
-    pub async fn send(&self, text: Vec<u8>) -> Result<u64, RtcError> {
+    pub async fn send(&self, data: Vec<u8>) -> Result<u64, RtcError> {
         self.inner
-            .send(&Bytes::from(text))
+            .send(&Bytes::from(data))
             .await
             .map(|bytes_sent| bytes_sent as u64)
             .map_err(|e| DataChannelError(e.to_string()))

@@ -53,11 +53,11 @@ public class RustWebRtcDataChannel(
     override val protocol: String
         get() = inner.protocol()
 
-    override fun send(text: String): Unit = runBlocking {
+    override suspend fun send(text: String) {
         inner.sendText(text)
     }
 
-    override fun send(bytes: ByteArray): Unit = runBlocking {
+    override suspend fun send(bytes: ByteArray) {
         inner.send(bytes)
     }
 

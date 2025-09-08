@@ -398,7 +398,7 @@ public object WebRtc {
          * @param text The text message to send.
          * @see [MDN RTCDataChannel.send()](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/send)
          */
-        public fun send(text: String)
+        public suspend fun send(text: String)
 
         /**
          * Sends binary data through the data channel.
@@ -406,7 +406,7 @@ public object WebRtc {
          * @param bytes The binary data to send.
          * @see [MDN RTCDataChannel.send()](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/send)
          */
-        public fun send(bytes: ByteArray)
+        public suspend fun send(bytes: ByteArray)
 
         /**
          * Suspends until a message is available in the data channel and returns it.

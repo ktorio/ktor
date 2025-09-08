@@ -56,13 +56,13 @@ public class AndroidWebRtcDataChannel(
         }
     }
 
-    override fun send(text: String) {
+    override suspend fun send(text: String) {
         checkStatus()
         val buffer = DataChannel.Buffer(Charsets.UTF_8.encode(text), false)
         nativeChannel.send(buffer)
     }
 
-    override fun send(bytes: ByteArray) {
+    override suspend fun send(bytes: ByteArray) {
         checkStatus()
         val buffer = DataChannel.Buffer(ByteBuffer.wrap(bytes), true)
         nativeChannel.send(buffer)
