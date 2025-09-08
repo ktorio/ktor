@@ -6,6 +6,7 @@ package io.ktor.client.webrtc
 
 import io.ktor.client.webrtc.utils.*
 import io.ktor.test.dispatcher.*
+import io.ktor.utils.io.ExperimentalKtorApi
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -17,6 +18,7 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @IgnoreJvm
 @IgnorePosix
+@OptIn(ExperimentalKtorApi::class)
 class WebRtcEngineTest {
 
     private lateinit var client: WebRtcClient

@@ -16,7 +16,6 @@ import org.webrtc.audio.JavaAudioDeviceModule
 import java.util.*
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
-import kotlin.math.min
 
 /**
  * MediaDevicesFactory based on the org.webrtc, which uses Android Camera2 API

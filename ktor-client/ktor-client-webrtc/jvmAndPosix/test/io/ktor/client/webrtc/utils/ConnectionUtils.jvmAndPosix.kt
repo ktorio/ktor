@@ -5,7 +5,9 @@
 package io.ktor.client.webrtc.utils
 
 import io.ktor.client.webrtc.*
+import io.ktor.utils.io.ExperimentalKtorApi
 
+@OptIn(ExperimentalKtorApi::class)
 actual fun createTestWebRtcClient(): WebRtcClient {
     throw NotImplementedError("There are no JVM WebRTC clients now.")
 }

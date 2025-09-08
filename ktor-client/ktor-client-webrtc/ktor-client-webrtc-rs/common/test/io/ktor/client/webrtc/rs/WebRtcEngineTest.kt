@@ -6,6 +6,7 @@ package io.ktor.client.webrtc.rs
 
 import io.ktor.client.webrtc.*
 import io.ktor.client.webrtc.rs.utils.*
+import io.ktor.utils.io.ExperimentalKtorApi
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -14,6 +15,7 @@ import kotlinx.coroutines.withTimeout
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
 
+@OptIn(ExperimentalKtorApi::class)
 class WebRtcEngineTest {
 
     private lateinit var client: WebRtcClient

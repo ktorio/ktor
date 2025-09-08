@@ -176,7 +176,7 @@ abstract interface <#A: kotlin/Any?> uniffi.ktor_client_webrtc/UniffiRustCallSta
 }
 
 abstract interface uniffi.ktor_client_webrtc/DataChannelInterface { // uniffi.ktor_client_webrtc/DataChannelInterface|null[0]
-    abstract fun id(): kotlin/UShort // uniffi.ktor_client_webrtc/DataChannelInterface.id|id(){}[0]
+    abstract fun id(): kotlin/UShort? // uniffi.ktor_client_webrtc/DataChannelInterface.id|id(){}[0]
     abstract fun label(): kotlin/String // uniffi.ktor_client_webrtc/DataChannelInterface.label|label(){}[0]
     abstract fun maxPacketLifetime(): kotlin/UShort? // uniffi.ktor_client_webrtc/DataChannelInterface.maxPacketLifetime|maxPacketLifetime(){}[0]
     abstract fun maxRetransmits(): kotlin/UShort? // uniffi.ktor_client_webrtc/DataChannelInterface.maxRetransmits|maxRetransmits(){}[0]
@@ -389,7 +389,7 @@ final class io.ktor.client.webrtc.rs/RustWebRtcDataChannel : io.ktor.client.webr
     final val bufferedAmountLowThreshold // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.bufferedAmountLowThreshold|{}bufferedAmountLowThreshold[0]
         final fun <get-bufferedAmountLowThreshold>(): kotlin/Long // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.bufferedAmountLowThreshold.<get-bufferedAmountLowThreshold>|<get-bufferedAmountLowThreshold>(){}[0]
     final val id // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.id|{}id[0]
-        final fun <get-id>(): kotlin/Int // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.id.<get-id>|<get-id>(){}[0]
+        final fun <get-id>(): kotlin/Int? // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.id.<get-id>|<get-id>(){}[0]
     final val label // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.label|{}label[0]
         final fun <get-label>(): kotlin/String // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.label.<get-label>|<get-label>(){}[0]
     final val maxPacketLifeTime // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.maxPacketLifeTime|{}maxPacketLifeTime[0]
@@ -407,9 +407,9 @@ final class io.ktor.client.webrtc.rs/RustWebRtcDataChannel : io.ktor.client.webr
 
     final fun close() // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.close|close(){}[0]
     final fun closeTransport() // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.closeTransport|closeTransport(){}[0]
-    final fun send(kotlin/ByteArray) // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.send|send(kotlin.ByteArray){}[0]
-    final fun send(kotlin/String) // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.send|send(kotlin.String){}[0]
     final fun setBufferedAmountLowThreshold(kotlin/Long) // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.setBufferedAmountLowThreshold|setBufferedAmountLowThreshold(kotlin.Long){}[0]
+    final suspend fun send(kotlin/ByteArray) // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.send|send(kotlin.ByteArray){}[0]
+    final suspend fun send(kotlin/String) // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.send|send(kotlin.String){}[0]
 }
 
 final class io.ktor.client.webrtc.rs/RustWebRtcEngine : io.ktor.client.webrtc/MediaTrackFactory, io.ktor.client.webrtc/WebRtcEngineBase { // io.ktor.client.webrtc.rs/RustWebRtcEngine|null[0]
@@ -787,7 +787,7 @@ open class uniffi.ktor_client_webrtc/DataChannel : uniffi.ktor_client_webrtc/Dat
     final fun uniffiClonePointer(): kotlinx.cinterop/CPointer<out kotlinx.cinterop/CPointed> // uniffi.ktor_client_webrtc/DataChannel.uniffiClonePointer|uniffiClonePointer(){}[0]
     open fun close() // uniffi.ktor_client_webrtc/DataChannel.close|close(){}[0]
     open fun destroy() // uniffi.ktor_client_webrtc/DataChannel.destroy|destroy(){}[0]
-    open fun id(): kotlin/UShort // uniffi.ktor_client_webrtc/DataChannel.id|id(){}[0]
+    open fun id(): kotlin/UShort? // uniffi.ktor_client_webrtc/DataChannel.id|id(){}[0]
     open fun label(): kotlin/String // uniffi.ktor_client_webrtc/DataChannel.label|label(){}[0]
     open fun maxPacketLifetime(): kotlin/UShort? // uniffi.ktor_client_webrtc/DataChannel.maxPacketLifetime|maxPacketLifetime(){}[0]
     open fun maxRetransmits(): kotlin/UShort? // uniffi.ktor_client_webrtc/DataChannel.maxRetransmits|maxRetransmits(){}[0]

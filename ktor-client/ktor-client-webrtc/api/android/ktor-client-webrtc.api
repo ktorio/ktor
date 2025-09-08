@@ -38,7 +38,7 @@ public final class io/ktor/client/webrtc/AndroidWebRtcDataChannel : io/ktor/clie
 	public fun closeTransport ()V
 	public fun getBufferedAmount ()J
 	public fun getBufferedAmountLowThreshold ()J
-	public fun getId ()I
+	public fun getId ()Ljava/lang/Integer;
 	public fun getLabel ()Ljava/lang/String;
 	public fun getMaxPacketLifeTime ()Ljava/lang/Integer;
 	public fun getMaxRetransmits ()Ljava/lang/Integer;
@@ -46,8 +46,8 @@ public final class io/ktor/client/webrtc/AndroidWebRtcDataChannel : io/ktor/clie
 	public fun getOrdered ()Z
 	public fun getProtocol ()Ljava/lang/String;
 	public fun getState ()Lio/ktor/client/webrtc/WebRtc$DataChannel$State;
-	public fun send (Ljava/lang/String;)V
-	public fun send ([B)V
+	public fun send (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun send ([BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun setBufferedAmountLowThreshold (J)V
 }
 
@@ -210,7 +210,7 @@ public abstract interface class io/ktor/client/webrtc/WebRtc$DataChannel : java/
 	public abstract fun closeTransport ()V
 	public abstract fun getBufferedAmount ()J
 	public abstract fun getBufferedAmountLowThreshold ()J
-	public abstract fun getId ()I
+	public abstract fun getId ()Ljava/lang/Integer;
 	public abstract fun getLabel ()Ljava/lang/String;
 	public abstract fun getMaxPacketLifeTime ()Ljava/lang/Integer;
 	public abstract fun getMaxRetransmits ()Ljava/lang/Integer;
@@ -221,8 +221,8 @@ public abstract interface class io/ktor/client/webrtc/WebRtc$DataChannel : java/
 	public abstract fun receive (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun receiveBinary (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun receiveText (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun send (Ljava/lang/String;)V
-	public abstract fun send ([B)V
+	public abstract fun send (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun send ([BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun setBufferedAmountLowThreshold (J)V
 	public abstract fun tryReceive ()Lio/ktor/client/webrtc/WebRtc$DataChannel$Message;
 	public abstract fun tryReceiveBinary ()[B
@@ -535,7 +535,7 @@ public class io/ktor/client/webrtc/WebRtcConnectionConfig {
 	public final fun getIceTransportPolicy ()Lio/ktor/client/webrtc/WebRtc$IceTransportPolicy;
 	public final fun getRemoteTracksReplay ()I
 	public final fun getRtcpMuxPolicy ()Lio/ktor/client/webrtc/WebRtc$RtcpMuxPolicy;
-	public final fun getStatsRefreshRate ()J
+	public final fun getStatsRefreshRate-FghU774 ()Lkotlin/time/Duration;
 	public final fun setBundlePolicy (Lio/ktor/client/webrtc/WebRtc$BundlePolicy;)V
 	public final fun setDataChannelEventsReplay (I)V
 	public final fun setExceptionHandler (Lkotlinx/coroutines/CoroutineExceptionHandler;)V
@@ -545,7 +545,7 @@ public class io/ktor/client/webrtc/WebRtcConnectionConfig {
 	public final fun setIceTransportPolicy (Lio/ktor/client/webrtc/WebRtc$IceTransportPolicy;)V
 	public final fun setRemoteTracksReplay (I)V
 	public final fun setRtcpMuxPolicy (Lio/ktor/client/webrtc/WebRtc$RtcpMuxPolicy;)V
-	public final fun setStatsRefreshRate (J)V
+	public final fun setStatsRefreshRate-BwNAW2A (Lkotlin/time/Duration;)V
 }
 
 public abstract interface class io/ktor/client/webrtc/WebRtcConnectionEvents {
@@ -640,10 +640,6 @@ public abstract class io/ktor/client/webrtc/WebRtcEngineBase : io/ktor/client/we
 
 public final class io/ktor/client/webrtc/WebRtcEngineClosedException : java/util/concurrent/CancellationException {
 	public fun <init> ()V
-}
-
-public final class io/ktor/client/webrtc/WebRtcEngineKt {
-	public static final field WEBRTC_STATISTICS_DISABLED J
 }
 
 public final class io/ktor/client/webrtc/WebRtcMedia {
@@ -785,6 +781,7 @@ public final class io/ktor/client/webrtc/media/AndroidAudioTrack : io/ktor/clien
 }
 
 public final class io/ktor/client/webrtc/media/AndroidMediaDevices : io/ktor/client/webrtc/MediaTrackFactory {
+	public static final field DEFAULT_FRAME_RATE I
 	public fun <init> (Landroid/content/Context;Lorg/webrtc/EglBase;)V
 	public synthetic fun <init> (Landroid/content/Context;Lorg/webrtc/EglBase;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun createAudioTrack (Lio/ktor/client/webrtc/WebRtcMedia$AudioTrackConstraints;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;

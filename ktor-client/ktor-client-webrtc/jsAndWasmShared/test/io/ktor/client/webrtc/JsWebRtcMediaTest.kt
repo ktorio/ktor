@@ -4,6 +4,7 @@
 
 package io.ktor.client.webrtc
 
+import io.ktor.utils.io.ExperimentalKtorApi
 import kotlinx.coroutines.test.runTest
 import web.errors.DOMException
 import web.errors.NotFoundError
@@ -12,6 +13,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertFails
 
+@OptIn(ExperimentalKtorApi::class)
 class JsWebRtcMediaTest {
 
     private lateinit var client: WebRtcClient

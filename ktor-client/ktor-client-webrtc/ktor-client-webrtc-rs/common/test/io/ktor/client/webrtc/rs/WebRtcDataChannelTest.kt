@@ -6,6 +6,7 @@ package io.ktor.client.webrtc.rs
 
 import io.ktor.client.webrtc.*
 import io.ktor.client.webrtc.rs.utils.*
+import io.ktor.utils.io.ExperimentalKtorApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -14,6 +15,7 @@ import kotlinx.coroutines.withTimeout
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
 
+@OptIn(ExperimentalKtorApi::class)
 class WebRtcDataChannelTest {
     private lateinit var client: WebRtcClient
 
@@ -153,7 +155,7 @@ class WebRtcDataChannelTest {
             while (dataChannel.id == null) {
                 delay(duration = 10.milliseconds)
             }
-            assertTrue( dataChannel.id!! >= 0, "Expected id to be non-negative after negotiation")
+            assertTrue(dataChannel.id!! >= 0, "Expected id to be non-negative after negotiation")
         }
 
         val dataChannel2 = pc1.createDataChannel(label = "options-test2") {

@@ -9,11 +9,13 @@ import android.content.Context
 import androidx.test.platform.app.InstrumentationRegistry
 import io.ktor.client.webrtc.*
 import io.ktor.client.webrtc.media.AndroidMediaDevices
+import io.ktor.utils.io.ExperimentalKtorApi
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlin.time.Duration.Companion.milliseconds
 
 private val ctx: Context get() = InstrumentationRegistry.getInstrumentation().targetContext
 
+@OptIn(ExperimentalKtorApi::class)
 actual fun createTestWebRtcClient(): WebRtcClient {
     return WebRtcClient(AndroidWebRtc) {
         mediaTrackFactory = AndroidMediaDevices(ctx)

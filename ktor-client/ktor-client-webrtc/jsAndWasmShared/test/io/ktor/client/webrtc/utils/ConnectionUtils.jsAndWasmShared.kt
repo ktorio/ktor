@@ -5,9 +5,11 @@
 package io.ktor.client.webrtc.utils
 
 import io.ktor.client.webrtc.*
+import io.ktor.utils.io.ExperimentalKtorApi
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlin.time.Duration.Companion.milliseconds
 
+@OptIn(ExperimentalKtorApi::class)
 actual fun createTestWebRtcClient(): WebRtcClient = WebRtcClient(JsWebRtc) {
     mediaTrackFactory = MockMediaTrackFactory
     defaultConnectionConfig = {

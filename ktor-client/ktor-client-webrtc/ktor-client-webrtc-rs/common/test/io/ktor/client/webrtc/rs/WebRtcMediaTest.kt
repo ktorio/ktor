@@ -6,6 +6,7 @@ package io.ktor.client.webrtc.rs
 
 import io.ktor.client.webrtc.*
 import io.ktor.client.webrtc.rs.utils.*
+import io.ktor.utils.io.ExperimentalKtorApi
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,6 +18,7 @@ import kotlin.test.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
+@OptIn(ExperimentalKtorApi::class)
 class WebRtcMediaTest {
 
     private lateinit var client: WebRtcClient

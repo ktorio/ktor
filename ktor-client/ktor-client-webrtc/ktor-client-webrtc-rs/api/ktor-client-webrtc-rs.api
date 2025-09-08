@@ -84,7 +84,7 @@ public final class io/ktor/client/webrtc/rs/RustWebRtcDataChannel : io/ktor/clie
 	public fun closeTransport ()V
 	public fun getBufferedAmount ()J
 	public fun getBufferedAmountLowThreshold ()J
-	public fun getId ()I
+	public fun getId ()Ljava/lang/Integer;
 	public fun getLabel ()Ljava/lang/String;
 	public fun getMaxPacketLifeTime ()Ljava/lang/Integer;
 	public fun getMaxRetransmits ()Ljava/lang/Integer;
@@ -92,8 +92,8 @@ public final class io/ktor/client/webrtc/rs/RustWebRtcDataChannel : io/ktor/clie
 	public fun getOrdered ()Z
 	public fun getProtocol ()Ljava/lang/String;
 	public fun getState ()Lio/ktor/client/webrtc/WebRtc$DataChannel$State;
-	public fun send (Ljava/lang/String;)V
-	public fun send ([B)V
+	public fun send (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun send ([BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun setBufferedAmountLowThreshold (J)V
 }
 
@@ -214,7 +214,7 @@ public class uniffi/ktor_client_webrtc/DataChannel : uniffi/ktor_client_webrtc/D
 	public fun destroy ()V
 	protected final fun getCleanable ()Luniffi/ktor_client_webrtc/UniffiCleaner$Cleanable;
 	protected final fun getPointer ()Lcom/sun/jna/Pointer;
-	public fun id-Mh2AYeg ()S
+	public fun id-XRpZGF0 ()Lkotlin/UShort;
 	public fun label ()Ljava/lang/String;
 	public fun maxPacketLifetime-XRpZGF0 ()Lkotlin/UShort;
 	public fun maxRetransmits-XRpZGF0 ()Lkotlin/UShort;
@@ -265,7 +265,7 @@ public abstract interface class uniffi/ktor_client_webrtc/DataChannelInterface {
 	public abstract fun bufferedAmount-I7RO_PI (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun bufferedAmountLowThreshold-I7RO_PI (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun closeChannel (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun id-Mh2AYeg ()S
+	public abstract fun id-XRpZGF0 ()Lkotlin/UShort;
 	public abstract fun label ()Ljava/lang/String;
 	public abstract fun maxPacketLifetime-XRpZGF0 ()Lkotlin/UShort;
 	public abstract fun maxRetransmits-XRpZGF0 ()Lkotlin/UShort;

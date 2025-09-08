@@ -6,6 +6,7 @@ package io.ktor.client.webrtc.utils
 
 import io.ktor.client.webrtc.*
 import io.ktor.test.dispatcher.*
+import io.ktor.utils.io.ExperimentalKtorApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -17,6 +18,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
 
 // Create different WebRtc engine implementation to be tested for every platform.
+@OptIn(ExperimentalKtorApi::class)
 expect fun createTestWebRtcClient(): WebRtcClient
 
 // Grant permissions to use audio and video media devices
