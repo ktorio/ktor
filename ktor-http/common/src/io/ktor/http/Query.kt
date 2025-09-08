@@ -4,6 +4,8 @@
 
 package io.ktor.http
 
+import io.ktor.utils.io.InternalAPI
+
 /**
  * Parse query string withing starting at the specified [startIndex] but up to [limit] pairs
  *
@@ -94,3 +96,28 @@ private fun trimStart(start: Int, end: Int, query: CharSequence): Int {
     while (spaceIndex < end && query[spaceIndex].isWhitespace()) spaceIndex++
     return spaceIndex
 }
+
+/**
+ * Converts parameters to query parameters by fixing the [Parameters.get] method
+ * to make it return an empty string for the parameters without value (e.g., `?empty`)
+ */
+@InternalAPI
+public fun Parameters.withEmptyStringForValuelessKeys(): Parameters =
+    if (entries().none { it.value.isEmpty() }) {
+        this
+    } else {
+        let { parameters ->
+            object : Parameters {
+                override fun get(name: String): String? {
+                    val values = getAll(name) ?: return null
+                    return if (values.isEmpty()) "" else values.first()
+                }
+                override val caseInsensitiveName: Boolean
+                    get() = parameters.caseInsensitiveName
+                override fun getAll(name: String): List<String>? = parameters.getAll(name)
+                override fun names(): Set<String> = parameters.names()
+                override fun entries(): Set<Map.Entry<String, List<String>>> = parameters.entries()
+                override fun isEmpty(): Boolean = parameters.isEmpty()
+            }
+        }
+    }

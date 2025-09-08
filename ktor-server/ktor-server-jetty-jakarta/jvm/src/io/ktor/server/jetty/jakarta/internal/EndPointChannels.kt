@@ -49,7 +49,7 @@ internal class EndPointReader(
 
                     channel.writeFully(buffer)
                 }
-            } catch (cause: ClosedChannelException) {
+            } catch (_: ClosedChannelException) {
                 channel.flushAndClose()
             } catch (cause: Throwable) {
                 channel.close(cause)
@@ -65,7 +65,7 @@ internal class EndPointReader(
         buffer.flip()
         val count = try {
             endPoint.fill(buffer)
-        } catch (cause: Throwable) {
+        } catch (_: Throwable) {
             handler.resumeWithException(ClosedChannelException())
         }
 
