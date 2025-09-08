@@ -61,10 +61,9 @@ actual constructor(
     private val moduleInjector: ModuleParametersInjector by lazy {
         loadServiceOrNull() ?: ModuleParametersInjector.Disabled
     }
-    private val modules by lazy {
+    private val modules: List<DynamicApplicationModule> get() =
         environment.moduleConfigReferences.map(::dynamicModule) +
             rootConfig.modules.map { module -> module.toDynamicModuleOrNull() ?: module.wrapWithDynamicModule() }
-    }
 
     private var applicationInstance: Application? = Application(
         environment,
@@ -397,10 +396,10 @@ actual constructor(
     }
 
     private fun dynamicModule(name: String): DynamicApplicationModule {
-        return DynamicApplicationModule(name, { classLoader ->
+        return DynamicApplicationModule(name) { classLoader ->
             val application = this
             launchModuleByName(name, classLoader, application)
-        })
+        }
     }
 
     private fun ApplicationModule.toDynamicModuleOrNull(): DynamicApplicationModule? {
@@ -408,16 +407,7 @@ actual constructor(
         if (!rootConfig.developmentMode) return null
 
         val module = this
-        // Method name getting might fail if method signature has been changed after compilation
-        // (for example by R8 or ProGuard)
-        val name = runCatching { module.methodName() }
-            .onFailure { cause ->
-                environment.log.debug(
-                    "Module can't be loaded dynamically, auto-reloading won't work for this module",
-                    cause,
-                )
-            }
-            .getOrElse { return null }
+        val name = methodNameOrNull() ?: return null
 
         return DynamicApplicationModule(name) { classLoader ->
             val application = this
@@ -432,6 +422,21 @@ actual constructor(
             }
         }
     }
+
+    /**
+     * Method name getting might fail if method signature has been changed after compilation
+     * (for example by R8 or ProGuard).
+     *
+     * We must also filter out function names with $, assuming they are anonymous.
+     */
+    private fun ApplicationModule.methodNameOrNull(): String? =
+        runCatching {
+            this@methodNameOrNull.methodName()
+        }.onFailure { cause ->
+            environment.log.debug("Module can't be loaded dynamically; auto-reloading unavailable", cause)
+        }.getOrNull()?.takeIf {
+            '$' !in it
+        }
 
     private fun ApplicationModule.wrapWithDynamicModule(): DynamicApplicationModule {
         val module = this
