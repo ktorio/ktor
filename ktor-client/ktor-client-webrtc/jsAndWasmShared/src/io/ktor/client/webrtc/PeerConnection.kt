@@ -112,7 +112,8 @@ public class JsWebRtcPeerConnection(
     override suspend fun removeTrack(track: WebRtcMedia.Track) {
         val mediaTrack = (track as JsMediaTrack).nativeTrack
         val sender = connection.getSenders().toArray().find { it.track?.id == mediaTrack.id }
-        sender?.let { connection.removeTrack(it) }
+            ?: error("Track is not found.")
+        connection.removeTrack(sender)
     }
 
     override suspend fun removeTrack(sender: WebRtc.RtpSender) {

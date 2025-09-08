@@ -24,7 +24,12 @@ public class JsRtpSender(internal val nativeSender: RTCRtpSender) : WebRtc.RtpSe
         }
 
     override suspend fun replaceTrack(withTrack: WebRtcMedia.Track?) {
-        nativeSender.replaceTrack((withTrack as? JsMediaTrack)?.nativeTrack)
+        if (withTrack == null) {
+            nativeSender.replaceTrack(null)
+            return
+        }
+        val track = withTrack as? JsMediaTrack ?: error("Track should extend JsMediaTrack.")
+        nativeSender.replaceTrack(track.nativeTrack)
     }
 
     override suspend fun getParameters(): WebRtc.RtpParameters {
@@ -32,7 +37,8 @@ public class JsRtpSender(internal val nativeSender: RTCRtpSender) : WebRtc.RtpSe
     }
 
     override suspend fun setParameters(parameters: WebRtc.RtpParameters) {
-        (parameters as? JsRtpParameters)?.let { nativeSender.setParameters(it.nativeRtpParameters) }
+        val params = parameters as? JsRtpParameters ?: error("Parameters should extend JsRtpParameters.")
+        nativeSender.setParameters(params.nativeRtpParameters)
     }
 }
 
