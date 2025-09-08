@@ -144,31 +144,37 @@ public class NettyChannelInitializer(
 
     override fun initChannel(ch: SocketChannel) {
         with(ch.pipeline()) {
-            if (enableHttp2 && enableH2c) {
-                configurePipeline(this, Http2CodecUtil.HTTP_UPGRADE_PROTOCOL_NAME.toString())
+            when {
+                enableHttp2 && enableH2c && connector is EngineSSLConnectorConfig -> {
+                    error("Invalid configuration: H2C (HTTP/2 cleartext) cannot be used with SSL")
+                }
 
-                return
-            }
+                enableHttp2 && enableH2c -> {
+                    configurePipeline(this, Http2CodecUtil.HTTP_UPGRADE_PROTOCOL_NAME.toString())
+                }
 
-            if (connector is EngineSSLConnectorConfig) {
-                val sslEngine = sslContext!!.newEngine(ch.alloc()).apply {
-                    if (connector.hasTrustStore()) {
-                        useClientMode = false
-                        needClientAuth = true
+                connector is EngineSSLConnectorConfig -> {
+                    val sslEngine = sslContext!!.newEngine(ch.alloc()).apply {
+                        if (connector.hasTrustStore()) {
+                            useClientMode = false
+                            needClientAuth = true
+                        }
+                        connector.enabledProtocols?.let {
+                            enabledProtocols = it.toTypedArray()
+                        }
                     }
-                    connector.enabledProtocols?.let {
-                        enabledProtocols = it.toTypedArray()
+                    addLast("ssl", SslHandler(sslEngine))
+
+                    if (enableHttp2 && alpnProvider != null) {
+                        addLast(NegotiatedPipelineInitializer())
+                    } else {
+                        configurePipeline(this, ApplicationProtocolNames.HTTP_1_1)
                     }
                 }
-                addLast("ssl", SslHandler(sslEngine))
 
-                if (enableHttp2 && alpnProvider != null) {
-                    addLast(NegotiatedPipelineInitializer())
-                } else {
+                else -> {
                     configurePipeline(this, ApplicationProtocolNames.HTTP_1_1)
                 }
-            } else {
-                configurePipeline(this, ApplicationProtocolNames.HTTP_1_1)
             }
         }
     }
