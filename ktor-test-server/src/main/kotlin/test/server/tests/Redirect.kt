@@ -4,6 +4,7 @@
 
 package test.server.tests
 
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -61,6 +62,9 @@ internal fun Application.redirectTest() {
             }
             get("/multipleRedirects/user/account/details") {
                 call.respondText("account details")
+            }
+            get("/withoutLocationHeader") {
+                call.respondText("withoutLocationHeader", status = HttpStatusCode.Found)
             }
         }
     }
