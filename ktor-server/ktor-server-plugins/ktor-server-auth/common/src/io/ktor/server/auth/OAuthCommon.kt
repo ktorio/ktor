@@ -93,6 +93,7 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
         /**
          * Constructor that accepts the old style authorizeUrlInterceptor for backward compatibility
          */
+        @Deprecated(level = DeprecationLevel.HIDDEN, message = "Compatibility with authorizeUrlInterceptor change")
         public constructor(
             name: String,
             authorizeUrl: String,
