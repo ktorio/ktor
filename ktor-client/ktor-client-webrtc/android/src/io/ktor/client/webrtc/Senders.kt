@@ -17,7 +17,16 @@ public class AndroidRtpSender(internal val nativeSender: RtpSender) : WebRtc.Rtp
         get() = nativeSender.track()?.let { AndroidMediaTrack.from(it) }
 
     override suspend fun replaceTrack(withTrack: WebRtcMedia.Track?) {
-        nativeSender.setTrack((withTrack as? AndroidMediaTrack)?.nativeTrack, false)
+        if (withTrack == null) {
+            if (!nativeSender.setTrack(null, true)) {
+                error("Failed to replace track.")
+            }
+            return
+        }
+        val track = withTrack as? AndroidMediaTrack ?: error("Track should extend AndroidMediaTrack.")
+        if (!nativeSender.setTrack(track.nativeTrack, false)) {
+            error("Failed to replace track.")
+        }
     }
 
     override suspend fun getParameters(): WebRtc.RtpParameters {
@@ -25,7 +34,8 @@ public class AndroidRtpSender(internal val nativeSender: RtpSender) : WebRtc.Rtp
     }
 
     override suspend fun setParameters(parameters: WebRtc.RtpParameters) {
-        nativeSender.parameters = (parameters as? AndroidRtpParameters)?.nativeRtpParameters
+        val parameters = parameters as? AndroidRtpParameters ?: error("Parameters should extend AndroidRtpParameters.")
+        nativeSender.parameters = parameters.nativeRtpParameters
     }
 }
 
@@ -57,12 +67,7 @@ public class AndroidRtpParameters(internal val nativeRtpParameters: RtpParameter
         }
 
     override val degradationPreference: WebRtc.DegradationPreference
-        get() = when (nativeRtpParameters.degradationPreference) {
-            RtpParameters.DegradationPreference.MAINTAIN_RESOLUTION -> WebRtc.DegradationPreference.MAINTAIN_RESOLUTION
-            RtpParameters.DegradationPreference.MAINTAIN_FRAMERATE -> WebRtc.DegradationPreference.MAINTAIN_FRAMERATE
-            RtpParameters.DegradationPreference.BALANCED -> WebRtc.DegradationPreference.BALANCED
-            else -> WebRtc.DegradationPreference.DISABLED
-        }
+        get() = nativeRtpParameters.degradationPreference?.toKtor() ?: WebRtc.DegradationPreference.DISABLED
 }
 
 /**

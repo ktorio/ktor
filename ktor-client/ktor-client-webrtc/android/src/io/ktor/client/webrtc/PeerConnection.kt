@@ -56,24 +56,20 @@ public class AndroidWebRtcPeerConnection(
 
     private fun createObserver() = object : Observer {
         override fun onIceCandidate(candidate: IceCandidate?) = runInConnectionScope {
-            if (candidate == null) return@runInConnectionScope
-            events.emitIceCandidate(candidate.toKtor())
+            val candidate = candidate?.toKtor() ?: return@runInConnectionScope
+            events.emitIceCandidate(candidate)
         }
 
         override fun onIceCandidatesRemoved(candidates: Array<out IceCandidate>?) = Unit
 
         override fun onAddTrack(receiver: RtpReceiver?, mediaStreams: Array<out MediaStream>?) = runInConnectionScope {
-            if (receiver == null) return@runInConnectionScope
-            receiver.track()?.let {
-                events.emitAddTrack(AndroidMediaTrack.from(it))
-            }
+            val track = receiver?.track() ?: return@runInConnectionScope
+            events.emitAddTrack(AndroidMediaTrack.from(track))
         }
 
         override fun onRemoveTrack(receiver: RtpReceiver?) = runInConnectionScope {
-            if (receiver == null) return@runInConnectionScope
-            receiver.track()?.let {
-                events.emitRemoveTrack(AndroidMediaTrack.from(it))
-            }
+            val track = receiver?.track() ?: return@runInConnectionScope
+            events.emitRemoveTrack(AndroidMediaTrack.from(track))
         }
 
         override fun onIceConnectionChange(newState: PeerConnection.IceConnectionState?) = runInConnectionScope {
@@ -193,21 +189,26 @@ public class AndroidWebRtcPeerConnection(
     }
 
     override suspend fun addTrack(track: WebRtcMedia.Track): WebRtc.RtpSender {
-        val mediaTrack = track as? AndroidMediaTrack ?: error("Track should extend AndroidMediaTrack")
+        val mediaTrack = track as? AndroidMediaTrack ?: error("Track should extend AndroidMediaTrack.")
         val newSender = AndroidRtpSender(peerConnection.addTrack(mediaTrack.nativeTrack))
         rtpSenders.add(newSender)
         return newSender
     }
 
     override suspend fun removeTrack(track: WebRtcMedia.Track) {
-        val mediaTrack = track as? AndroidMediaTrack ?: error("Track should extend AndroidMediaTrack")
-        val sender = rtpSenders.firstOrNull { it.track?.id == mediaTrack.id } ?: return
-        peerConnection.removeTrack(sender.nativeSender)
+        val mediaTrack = track as? AndroidMediaTrack ?: error("Track should extend AndroidMediaTrack.")
+        val sender = rtpSenders.firstOrNull { it.track?.id == mediaTrack.id }
+            ?: error("Track is not found.")
+        if (!peerConnection.removeTrack(sender.nativeSender)) {
+            error("Failed to remove track.")
+        }
     }
 
     override suspend fun removeTrack(sender: WebRtc.RtpSender) {
-        val rtpSender = sender as? AndroidRtpSender ?: error("Sender should extend AndroidRtpSender")
-        peerConnection.removeTrack(rtpSender.nativeSender)
+        val rtpSender = sender as? AndroidRtpSender ?: error("Sender should extend AndroidRtpSender.")
+        if (!peerConnection.removeTrack(rtpSender.nativeSender)) {
+            error("Failed to remove track.")
+        }
     }
 
     override fun restartIce() {

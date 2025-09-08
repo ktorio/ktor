@@ -15,7 +15,7 @@ import uniffi.ktor_client_webrtc.DataChannelObserver
 import uniffi.ktor_client_webrtc.RtcException
 
 /**
- * WebRtc data channel implementation for the Android platform.
+ * WebRtc data channel implementation based on the WebRTC.rs library.
  */
 public class RustWebRtcDataChannel(
     internal val inner: DataChannel,

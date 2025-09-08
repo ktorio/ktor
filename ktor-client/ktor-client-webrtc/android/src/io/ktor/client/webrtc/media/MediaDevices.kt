@@ -8,18 +8,10 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
-import io.ktor.client.webrtc.MediaTrackFactory
-import io.ktor.client.webrtc.WebRtcMedia
+import io.ktor.client.webrtc.*
 import kotlinx.coroutines.suspendCancellableCoroutine
-import org.webrtc.Camera2Enumerator
+import org.webrtc.*
 import org.webrtc.CameraVideoCapturer.CameraEventsHandler
-import org.webrtc.DefaultVideoDecoderFactory
-import org.webrtc.DefaultVideoEncoderFactory
-import org.webrtc.EglBase
-import org.webrtc.MediaConstraints
-import org.webrtc.PeerConnectionFactory
-import org.webrtc.SurfaceTextureHelper
-import org.webrtc.VideoSource
 import org.webrtc.audio.JavaAudioDeviceModule
 import java.util.*
 import kotlin.coroutines.resume
@@ -65,20 +57,20 @@ public class AndroidMediaDevices(
         }
 
     public val peerConnectionFactory: PeerConnectionFactory by lazy {
+        if (!libraryInitialized) {
+            val options = PeerConnectionFactory.InitializationOptions
+                .builder(context)
+                .createInitializationOptions()
+            PeerConnectionFactory.initialize(options)
+            libraryInitialized = true
+        }
+
         PeerConnectionFactory
             .builder()
             .setVideoDecoderFactory(videoDecoderFactory)
             .setVideoEncoderFactory(videoEncoderFactory)
             .setAudioDeviceModule(audioDeviceModule)
             .createPeerConnectionFactory()
-    }
-
-    init {
-        PeerConnectionFactory.initialize(
-            PeerConnectionFactory.InitializationOptions
-                .builder(context)
-                .createInitializationOptions()
-        )
     }
 
     private fun assertPermission(permission: String) {
@@ -90,19 +82,13 @@ public class AndroidMediaDevices(
 
     override suspend fun createAudioTrack(constraints: WebRtcMedia.AudioTrackConstraints): WebRtcMedia.AudioTrack {
         if (constraints.latency != null) {
-            throw NotImplementedError(
-                "Latency is not supported yet for Android. You can provide custom MediaTrackFactory"
-            )
+            TODO("Latency is not supported yet for Android. You can provide custom MediaTrackFactory")
         }
         if (constraints.channelCount != null) {
-            throw NotImplementedError(
-                "Channel count is not supported yet for Android. You can provide custom MediaTrackFactory"
-            )
+            TODO("Channel count is not supported yet for Android. You can provide custom MediaTrackFactory")
         }
         if (constraints.sampleSize != null) {
-            throw NotImplementedError(
-                "Sample size is not supported yet for Android. You can provide custom MediaTrackFactory"
-            )
+            TODO("Sample size is not supported yet for Android. You can provide custom MediaTrackFactory")
         }
         assertPermission(Manifest.permission.RECORD_AUDIO)
 
@@ -134,11 +120,12 @@ public class AndroidMediaDevices(
 
     private suspend fun makeVideoSource(constraints: WebRtcMedia.VideoTrackConstraints): Pair<VideoSource, () -> Unit> {
         val cameraId = findCameraId(constraints) ?: error("No camera found for such constraints")
-        val format = cameraEnumerator.getSupportedFormats(cameraId)!![0]
+        val format = cameraEnumerator.getSupportedFormats(cameraId)?.firstOrNull()
+            ?: error("No supported formats for camera $cameraId")
 
         val videoWidth = constraints.width ?: format.width
         val videoHeight = constraints.height ?: format.height
-        val videoFrameRate = constraints.frameRate ?: min(format.framerate.max, 60)
+        val videoFrameRate = constraints.frameRate ?: DEFAULT_FRAME_RATE
 
         return suspendCancellableCoroutine { cont ->
             var videoSource: VideoSource? = null
@@ -186,9 +173,7 @@ public class AndroidMediaDevices(
 
     override suspend fun createVideoTrack(constraints: WebRtcMedia.VideoTrackConstraints): WebRtcMedia.VideoTrack {
         if (constraints.resizeMode != null) {
-            throw NotImplementedError(
-                "Resize mode is not supported yet for Android. You can provide custom MediaTrackFactory"
-            )
+            TODO("Resize mode is not supported yet for Android. You can provide custom MediaTrackFactory")
         }
         assertPermission(Manifest.permission.CAMERA)
 
@@ -196,5 +181,10 @@ public class AndroidMediaDevices(
         val id = "android-webrtc-video-${UUID.randomUUID()}"
         val nativeTrack = peerConnectionFactory.createVideoTrack(id, src)
         return AndroidVideoTrack(nativeTrack) { onDispose() }
+    }
+
+    private companion object {
+        var libraryInitialized = false
+        const val DEFAULT_FRAME_RATE = 30
     }
 }

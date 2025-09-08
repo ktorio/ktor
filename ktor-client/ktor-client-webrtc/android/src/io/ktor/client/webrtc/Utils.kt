@@ -109,6 +109,23 @@ internal fun IceCandidate.toKtor(): WebRtc.IceCandidate = WebRtc.IceCandidate(
     sdpMLineIndex = sdpMLineIndex
 )
 
+internal fun RtpParameters.DegradationPreference.toKtor(): WebRtc.DegradationPreference = when (this) {
+    RtpParameters.DegradationPreference.MAINTAIN_RESOLUTION -> WebRtc.DegradationPreference.MAINTAIN_RESOLUTION
+    RtpParameters.DegradationPreference.MAINTAIN_FRAMERATE -> WebRtc.DegradationPreference.MAINTAIN_FRAMERATE
+    RtpParameters.DegradationPreference.BALANCED -> WebRtc.DegradationPreference.BALANCED
+    RtpParameters.DegradationPreference.DISABLED -> WebRtc.DegradationPreference.DISABLED
+}
+
+internal fun DataChannel.Buffer.toKtor(): WebRtc.DataChannel.Message {
+    return if (binary) {
+        val data = ByteArray(data.remaining()).apply { data.get(this) }
+        WebRtc.DataChannel.Message.Binary(data)
+    } else {
+        val data = Charsets.UTF_8.decode(data).toString()
+        WebRtc.DataChannel.Message.Text(data)
+    }
+}
+
 internal fun Continuation<SessionDescription>.resumeAfterSdpCreate(): SdpObserver {
     return object : SdpObserver {
         override fun onCreateSuccess(sdp: SessionDescription?) = resume(requireNotNull(sdp))

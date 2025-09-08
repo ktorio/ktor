@@ -50,20 +50,20 @@ public class AndroidWebRtcDataChannel(
     override val protocol: String
         get() = channelInit?.protocol ?: error("Protocol is not supported in WebRTC")
 
-    private fun checkStatus() {
+    private fun assertOpen() {
         if (!state.canSend()) {
             error("Data channel is closed.")
         }
     }
 
     override suspend fun send(text: String) {
-        checkStatus()
+        assertOpen()
         val buffer = DataChannel.Buffer(Charsets.UTF_8.encode(text), false)
         nativeChannel.send(buffer)
     }
 
     override suspend fun send(bytes: ByteArray) {
-        checkStatus()
+        assertOpen()
         val buffer = DataChannel.Buffer(ByteBuffer.wrap(bytes), true)
         nativeChannel.send(buffer)
     }
@@ -81,55 +81,44 @@ public class AndroidWebRtcDataChannel(
         nativeChannel.dispose()
     }
 
+    private inline fun runInConnectionScope(crossinline block: suspend () -> Unit) {
+        coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) {
+            block()
+        }
+    }
+
     internal fun setupEvents(eventsEmitter: WebRtcConnectionEventsEmitter) {
         nativeChannel.registerObserver(object : DataChannel.Observer {
-            override fun onStateChange() {
-                coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) {
-                    val event = when (state) {
-                        WebRtc.DataChannel.State.CONNECTING -> null
-                        WebRtc.DataChannel.State.OPEN -> DataChannelEvent.Open(this@AndroidWebRtcDataChannel)
-                        WebRtc.DataChannel.State.CLOSING -> DataChannelEvent.Closing(this@AndroidWebRtcDataChannel)
-                        WebRtc.DataChannel.State.CLOSED -> {
-                            stopReceivingMessages()
-                            DataChannelEvent.Closed(this@AndroidWebRtcDataChannel)
-                        }
+            override fun onStateChange() = runInConnectionScope {
+                val event = when (state) {
+                    WebRtc.DataChannel.State.CONNECTING -> null
+                    WebRtc.DataChannel.State.OPEN -> DataChannelEvent.Open(this@AndroidWebRtcDataChannel)
+                    WebRtc.DataChannel.State.CLOSING -> DataChannelEvent.Closing(this@AndroidWebRtcDataChannel)
+                    WebRtc.DataChannel.State.CLOSED -> {
+                        stopReceivingMessages()
+                        DataChannelEvent.Closed(this@AndroidWebRtcDataChannel)
                     }
-                    event?.let { eventsEmitter.emitDataChannelEvent(it) }
+                }
+                if (event != null) {
+                    eventsEmitter.emitDataChannelEvent(event)
                 }
             }
 
-            override fun onMessage(buffer: DataChannel.Buffer?) {
-                // This coroutine should start immediately because the protocol relies on the message order
-                coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) {
-                    if (buffer == null) {
-                        return@launch
-                    }
-                    val message = when (buffer.binary) {
-                        true -> {
-                            val data = ByteArray(buffer.data.remaining()).apply { buffer.data.get(this) }
-                            WebRtc.DataChannel.Message.Binary(data)
-                        }
-
-                        false -> {
-                            val data = Charsets.UTF_8.decode(buffer.data).toString()
-                            WebRtc.DataChannel.Message.Text(data)
-                        }
-                    }
-                    emitMessage(message)
-                }
+            // This coroutine should start immediately because the protocol relies on the message order
+            override fun onMessage(buffer: DataChannel.Buffer?) = runInConnectionScope {
+                val message = buffer?.toKtor() ?: return@runInConnectionScope
+                emitMessage(message)
             }
 
-            override fun onBufferedAmountChange(previousAmount: Long) {
-                coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) {
-                    // guard against duplicate events
-                    if (previousAmount < bufferedAmountLowThreshold) {
-                        return@launch
-                    }
-                    // buffer has dropped below the threshold
-                    if (bufferedAmount <= bufferedAmountLowThreshold) {
-                        val event = DataChannelEvent.BufferedAmountLow(this@AndroidWebRtcDataChannel)
-                        eventsEmitter.emitDataChannelEvent(event)
-                    }
+            override fun onBufferedAmountChange(previousAmount: Long) = runInConnectionScope {
+                // guard against duplicate events
+                if (previousAmount < bufferedAmountLowThreshold) {
+                    return@runInConnectionScope
+                }
+                // buffer has dropped below the threshold
+                if (bufferedAmount <= bufferedAmountLowThreshold) {
+                    val event = DataChannelEvent.BufferedAmountLow(this@AndroidWebRtcDataChannel)
+                    eventsEmitter.emitDataChannelEvent(event)
                 }
             }
         })
