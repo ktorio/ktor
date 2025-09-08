@@ -20,8 +20,8 @@ public class AndroidWebRtcDataChannel(
     receiveOptions: DataChannelReceiveOptions
 ) : WebRtcDataChannel(receiveOptions) {
 
-    override val id: Int
-        get() = nativeChannel.id().let { if (it < 0) 0 else it }
+    override val id: Int?
+        get() = nativeChannel.id().let { if (it >= 0) it else null }
 
     override val label: String
         get() = nativeChannel.label()

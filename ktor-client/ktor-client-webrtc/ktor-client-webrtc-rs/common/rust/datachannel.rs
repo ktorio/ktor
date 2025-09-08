@@ -6,9 +6,9 @@ use crate::rtc::RtcError::DataChannelError;
 use bytes::Bytes;
 use std::fmt::Debug;
 use std::sync::Arc;
+use webrtc::data_channel::RTCDataChannel;
 use webrtc::data_channel::data_channel_init::RTCDataChannelInit;
 use webrtc::data_channel::data_channel_state::RTCDataChannelState;
-use webrtc::data_channel::RTCDataChannel;
 
 #[derive(uniffi::Enum)]
 pub enum DataChannelState {
@@ -78,8 +78,15 @@ pub trait DataChannelObserver: Send + Sync + Debug {
 
 #[uniffi::export(async_runtime = "tokio")]
 impl DataChannel {
-    pub fn id(&self) -> u16 {
-        self.inner.id()
+    pub fn id(&self) -> Option<u16> {
+        if self.negotiated() {
+            Some(self.inner.id())
+        } else {
+            match self.inner.ready_state() {
+                RTCDataChannelState::Connecting => None, // Still unassigned
+                _ => Some(self.inner.id()),
+            }
+        }
     }
 
     pub fn label(&self) -> String {

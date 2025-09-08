@@ -25,8 +25,8 @@ public class JsWebRtcDataChannel(
     receiveOptions: DataChannelReceiveOptions
 ) : WebRtcDataChannel(receiveOptions) {
 
-    override val id: Int
-        get() = channel.id?.toInt() ?: 0
+    override val id: Int?
+        get() = channel.id?.let { if (it >= 0) it.toInt() else null }
 
     override val label: String
         get() = channel.label

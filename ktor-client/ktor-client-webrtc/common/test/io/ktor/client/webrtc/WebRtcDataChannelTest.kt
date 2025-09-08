@@ -9,7 +9,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.test.TestResult
-import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
@@ -133,29 +132,37 @@ class WebRtcDataChannelTest {
     }
 
     @Test
-    fun testDataChannelOptions() = runTest {
-        client.createPeerConnection().use { peerConnection ->
-            val dataChannel = peerConnection.createDataChannel("options-test") {
-                id = 42
-                ordered = false
-                maxRetransmits = 3
-                negotiated = false
-                protocol = "custom-protocol"
-            }
+    fun testDataChannelOptions() = testDataChannel { pc1, pc2, jobs ->
+        val dataChannel = pc1.createDataChannel(label = "options-test") {
+            id = 42
+            ordered = false
+            maxRetransmits = 3
+            negotiated = false
+            protocol = "custom-protocol"
+        }
+        assertEquals(null, dataChannel.id, "Expected id to be null before negotiation")
+        assertEquals("options-test", dataChannel.label)
+        assertEquals("custom-protocol", dataChannel.protocol)
+        assertFalse(dataChannel.ordered)
+        assertEquals(3, dataChannel.maxRetransmits)
+        assertFalse(dataChannel.negotiated)
 
-            assertTrue(dataChannel.id >= 0, "DataChannel id should be non-negative when negotiated=false")
-            assertEquals("options-test", dataChannel.label)
-            assertEquals("custom-protocol", dataChannel.protocol)
-            assertFalse(dataChannel.ordered)
-            assertEquals(3, dataChannel.maxRetransmits)
-            assertFalse(dataChannel.negotiated)
+        connect(pc1, pc2, jobs)
 
-            assertFails {
-                // maxRetransmits and maxPacketLifeTime can't be specified at the same time
-                peerConnection.createDataChannel("options-test") {
-                    maxRetransmits = 2
-                    maxPacketLifeTime = 1000.milliseconds
-                }
+        assertTrue(dataChannel.id!! >= 0, "Expected id to be non-negative after negotiation")
+
+        val dataChannel2 = pc1.createDataChannel(label = "options-test2") {
+            id = 42
+            negotiated = true
+        }
+        // negotiated id is set immediately
+        assertEquals(42, dataChannel2.id)
+
+        assertFails {
+            // maxRetransmits and maxPacketLifeTime can't be specified at the same time
+            pc1.createDataChannel(label = "options-test") {
+                maxRetransmits = 2
+                maxPacketLifeTime = 1000.milliseconds
             }
         }
     }

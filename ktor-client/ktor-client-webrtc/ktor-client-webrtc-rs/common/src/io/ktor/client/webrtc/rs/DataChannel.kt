@@ -23,8 +23,8 @@ public class RustWebRtcDataChannel(
     receiveOptions: DataChannelReceiveOptions
 ) : WebRtcDataChannel(receiveOptions) {
 
-    override val id: Int
-        get() = inner.id().toInt()
+    override val id: Int?
+        get() = inner.id()?.toInt()
 
     override val label: String
         get() = inner.label()

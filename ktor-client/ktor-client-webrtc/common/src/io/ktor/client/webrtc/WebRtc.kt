@@ -312,10 +312,11 @@ public object WebRtc {
 
         /**
          * An ID number (between 0 and 65,534) which uniquely identifies the data channel.
+         * It can be null when the data channel is created but not yet assigned an ID.
          *
          * @see [MDN RTCDataChannel.id](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/id)
          */
-        public val id: Int
+        public val id: Int?
 
         /**
          * A string containing a name describing the data channel.
