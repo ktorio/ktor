@@ -82,6 +82,8 @@ abstract interface io.ktor.client.plugins.cookies/CookiesStorage : io.ktor.utils
 abstract interface io.ktor.client.plugins.sse/SSESession : kotlinx.coroutines/CoroutineScope { // io.ktor.client.plugins.sse/SSESession|null[0]
     abstract val incoming // io.ktor.client.plugins.sse/SSESession.incoming|{}incoming[0]
         abstract fun <get-incoming>(): kotlinx.coroutines.flow/Flow<io.ktor.sse/ServerSentEvent> // io.ktor.client.plugins.sse/SSESession.incoming.<get-incoming>|<get-incoming>(){}[0]
+
+    open fun bodyBuffer(): kotlin/ByteArray // io.ktor.client.plugins.sse/SSESession.bodyBuffer|bodyBuffer(){}[0]
 }
 
 abstract interface io.ktor.client.plugins.sse/SSESessionWithDeserialization : kotlinx.coroutines/CoroutineScope { // io.ktor.client.plugins.sse/SSESessionWithDeserialization|null[0]
@@ -89,6 +91,8 @@ abstract interface io.ktor.client.plugins.sse/SSESessionWithDeserialization : ko
         abstract fun <get-deserializer>(): kotlin/Function2<io.ktor.util.reflect/TypeInfo, kotlin/String, kotlin/Any?> // io.ktor.client.plugins.sse/SSESessionWithDeserialization.deserializer.<get-deserializer>|<get-deserializer>(){}[0]
     abstract val incoming // io.ktor.client.plugins.sse/SSESessionWithDeserialization.incoming|{}incoming[0]
         abstract fun <get-incoming>(): kotlinx.coroutines.flow/Flow<io.ktor.sse/TypedServerSentEvent<kotlin/String>> // io.ktor.client.plugins.sse/SSESessionWithDeserialization.incoming.<get-incoming>|<get-incoming>(){}[0]
+
+    open fun bodyBuffer(): kotlin/ByteArray // io.ktor.client.plugins.sse/SSESessionWithDeserialization.bodyBuffer|bodyBuffer(){}[0]
 }
 
 abstract interface io.ktor.client.plugins.websocket/ClientWebSocketSession : io.ktor.websocket/WebSocketSession { // io.ktor.client.plugins.websocket/ClientWebSocketSession|null[0]
@@ -113,6 +117,52 @@ abstract interface io.ktor.client.request/HttpRequest : io.ktor.http/HttpMessage
         abstract fun <get-url>(): io.ktor.http/Url // io.ktor.client.request/HttpRequest.url.<get-url>|<get-url>(){}[0]
     open val coroutineContext // io.ktor.client.request/HttpRequest.coroutineContext|{}coroutineContext[0]
         open fun <get-coroutineContext>(): kotlin.coroutines/CoroutineContext // io.ktor.client.request/HttpRequest.coroutineContext.<get-coroutineContext>|<get-coroutineContext>(){}[0]
+}
+
+sealed interface io.ktor.client.plugins.sse/SSEBufferPolicy { // io.ktor.client.plugins.sse/SSEBufferPolicy|null[0]
+    final class LastEvents : io.ktor.client.plugins.sse/SSEBufferPolicy { // io.ktor.client.plugins.sse/SSEBufferPolicy.LastEvents|null[0]
+        constructor <init>(kotlin/Int) // io.ktor.client.plugins.sse/SSEBufferPolicy.LastEvents.<init>|<init>(kotlin.Int){}[0]
+
+        final val count // io.ktor.client.plugins.sse/SSEBufferPolicy.LastEvents.count|{}count[0]
+            final fun <get-count>(): kotlin/Int // io.ktor.client.plugins.sse/SSEBufferPolicy.LastEvents.count.<get-count>|<get-count>(){}[0]
+
+        final fun component1(): kotlin/Int // io.ktor.client.plugins.sse/SSEBufferPolicy.LastEvents.component1|component1(){}[0]
+        final fun copy(kotlin/Int = ...): io.ktor.client.plugins.sse/SSEBufferPolicy.LastEvents // io.ktor.client.plugins.sse/SSEBufferPolicy.LastEvents.copy|copy(kotlin.Int){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.client.plugins.sse/SSEBufferPolicy.LastEvents.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.ktor.client.plugins.sse/SSEBufferPolicy.LastEvents.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.ktor.client.plugins.sse/SSEBufferPolicy.LastEvents.toString|toString(){}[0]
+    }
+
+    final class LastLines : io.ktor.client.plugins.sse/SSEBufferPolicy { // io.ktor.client.plugins.sse/SSEBufferPolicy.LastLines|null[0]
+        constructor <init>(kotlin/Int) // io.ktor.client.plugins.sse/SSEBufferPolicy.LastLines.<init>|<init>(kotlin.Int){}[0]
+
+        final val count // io.ktor.client.plugins.sse/SSEBufferPolicy.LastLines.count|{}count[0]
+            final fun <get-count>(): kotlin/Int // io.ktor.client.plugins.sse/SSEBufferPolicy.LastLines.count.<get-count>|<get-count>(){}[0]
+
+        final fun component1(): kotlin/Int // io.ktor.client.plugins.sse/SSEBufferPolicy.LastLines.component1|component1(){}[0]
+        final fun copy(kotlin/Int = ...): io.ktor.client.plugins.sse/SSEBufferPolicy.LastLines // io.ktor.client.plugins.sse/SSEBufferPolicy.LastLines.copy|copy(kotlin.Int){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.client.plugins.sse/SSEBufferPolicy.LastLines.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.ktor.client.plugins.sse/SSEBufferPolicy.LastLines.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.ktor.client.plugins.sse/SSEBufferPolicy.LastLines.toString|toString(){}[0]
+    }
+
+    final object All : io.ktor.client.plugins.sse/SSEBufferPolicy { // io.ktor.client.plugins.sse/SSEBufferPolicy.All|null[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.client.plugins.sse/SSEBufferPolicy.All.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.ktor.client.plugins.sse/SSEBufferPolicy.All.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.ktor.client.plugins.sse/SSEBufferPolicy.All.toString|toString(){}[0]
+    }
+
+    final object LastEvent : io.ktor.client.plugins.sse/SSEBufferPolicy { // io.ktor.client.plugins.sse/SSEBufferPolicy.LastEvent|null[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.client.plugins.sse/SSEBufferPolicy.LastEvent.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.ktor.client.plugins.sse/SSEBufferPolicy.LastEvent.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.ktor.client.plugins.sse/SSEBufferPolicy.LastEvent.toString|toString(){}[0]
+    }
+
+    final object Off : io.ktor.client.plugins.sse/SSEBufferPolicy { // io.ktor.client.plugins.sse/SSEBufferPolicy.Off|null[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.client.plugins.sse/SSEBufferPolicy.Off.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.ktor.client.plugins.sse/SSEBufferPolicy.Off.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.ktor.client.plugins.sse/SSEBufferPolicy.Off.toString|toString(){}[0]
+    }
 }
 
 abstract class io.ktor.client.engine/HttpClientEngineBase : io.ktor.client.engine/HttpClientEngine { // io.ktor.client.engine/HttpClientEngineBase|null[0]
@@ -444,6 +494,8 @@ final class io.ktor.client.plugins.sse/ClientSSESession : io.ktor.client.plugins
         final fun <get-coroutineContext>(): kotlin.coroutines/CoroutineContext // io.ktor.client.plugins.sse/ClientSSESession.coroutineContext.<get-coroutineContext>|<get-coroutineContext>(){}[0]
     final val incoming // io.ktor.client.plugins.sse/ClientSSESession.incoming|{}incoming[0]
         final fun <get-incoming>(): kotlinx.coroutines.flow/Flow<io.ktor.sse/ServerSentEvent> // io.ktor.client.plugins.sse/ClientSSESession.incoming.<get-incoming>|<get-incoming>(){}[0]
+
+    final fun bodyBuffer(): kotlin/ByteArray // io.ktor.client.plugins.sse/ClientSSESession.bodyBuffer|bodyBuffer(){}[0]
 }
 
 final class io.ktor.client.plugins.sse/ClientSSESessionWithDeserialization : io.ktor.client.plugins.sse/SSESessionWithDeserialization { // io.ktor.client.plugins.sse/ClientSSESessionWithDeserialization|null[0]
@@ -457,6 +509,8 @@ final class io.ktor.client.plugins.sse/ClientSSESessionWithDeserialization : io.
         final fun <get-deserializer>(): kotlin/Function2<io.ktor.util.reflect/TypeInfo, kotlin/String, kotlin/Any?> // io.ktor.client.plugins.sse/ClientSSESessionWithDeserialization.deserializer.<get-deserializer>|<get-deserializer>(){}[0]
     final val incoming // io.ktor.client.plugins.sse/ClientSSESessionWithDeserialization.incoming|{}incoming[0]
         final fun <get-incoming>(): kotlinx.coroutines.flow/Flow<io.ktor.sse/TypedServerSentEvent<kotlin/String>> // io.ktor.client.plugins.sse/ClientSSESessionWithDeserialization.incoming.<get-incoming>|<get-incoming>(){}[0]
+
+    final fun bodyBuffer(): kotlin/ByteArray // io.ktor.client.plugins.sse/ClientSSESessionWithDeserialization.bodyBuffer|bodyBuffer(){}[0]
 }
 
 final class io.ktor.client.plugins.sse/DefaultClientSSESession : io.ktor.client.plugins.sse/SSESession { // io.ktor.client.plugins.sse/DefaultClientSSESession|null[0]
@@ -467,11 +521,15 @@ final class io.ktor.client.plugins.sse/DefaultClientSSESession : io.ktor.client.
         final fun <get-coroutineContext>(): kotlin.coroutines/CoroutineContext // io.ktor.client.plugins.sse/DefaultClientSSESession.coroutineContext.<get-coroutineContext>|<get-coroutineContext>(){}[0]
     final val incoming // io.ktor.client.plugins.sse/DefaultClientSSESession.incoming|{}incoming[0]
         final fun <get-incoming>(): kotlinx.coroutines.flow/Flow<io.ktor.sse/ServerSentEvent> // io.ktor.client.plugins.sse/DefaultClientSSESession.incoming.<get-incoming>|<get-incoming>(){}[0]
+
+    final fun bodyBuffer(): kotlin/ByteArray // io.ktor.client.plugins.sse/DefaultClientSSESession.bodyBuffer|bodyBuffer(){}[0]
 }
 
 final class io.ktor.client.plugins.sse/SSEClientContent : io.ktor.http.content/OutgoingContent.ContentWrapper { // io.ktor.client.plugins.sse/SSEClientContent|null[0]
-    constructor <init>(kotlin.time/Duration, kotlin/Boolean, kotlin/Boolean, kotlin/Int, kotlin.coroutines/CoroutineContext, io.ktor.client.request/HttpRequestBuilder, io.ktor.http.content/OutgoingContent) // io.ktor.client.plugins.sse/SSEClientContent.<init>|<init>(kotlin.time.Duration;kotlin.Boolean;kotlin.Boolean;kotlin.Int;kotlin.coroutines.CoroutineContext;io.ktor.client.request.HttpRequestBuilder;io.ktor.http.content.OutgoingContent){}[0]
+    constructor <init>(kotlin.time/Duration, kotlin/Boolean, kotlin/Boolean, kotlin/Int, io.ktor.client.plugins.sse/SSEBufferPolicy, kotlin.coroutines/CoroutineContext, io.ktor.client.request/HttpRequestBuilder, io.ktor.http.content/OutgoingContent) // io.ktor.client.plugins.sse/SSEClientContent.<init>|<init>(kotlin.time.Duration;kotlin.Boolean;kotlin.Boolean;kotlin.Int;io.ktor.client.plugins.sse.SSEBufferPolicy;kotlin.coroutines.CoroutineContext;io.ktor.client.request.HttpRequestBuilder;io.ktor.http.content.OutgoingContent){}[0]
 
+    final val bufferPolicy // io.ktor.client.plugins.sse/SSEClientContent.bufferPolicy|{}bufferPolicy[0]
+        final fun <get-bufferPolicy>(): io.ktor.client.plugins.sse/SSEBufferPolicy // io.ktor.client.plugins.sse/SSEClientContent.bufferPolicy.<get-bufferPolicy>|<get-bufferPolicy>(){}[0]
     final val callContext // io.ktor.client.plugins.sse/SSEClientContent.callContext|{}callContext[0]
         final fun <get-callContext>(): kotlin.coroutines/CoroutineContext // io.ktor.client.plugins.sse/SSEClientContent.callContext.<get-callContext>|<get-callContext>(){}[0]
     final val headers // io.ktor.client.plugins.sse/SSEClientContent.headers|{}headers[0]
@@ -505,6 +563,9 @@ final class io.ktor.client.plugins.sse/SSEClientException : kotlin/IllegalStateE
 final class io.ktor.client.plugins.sse/SSEConfig { // io.ktor.client.plugins.sse/SSEConfig|null[0]
     constructor <init>() // io.ktor.client.plugins.sse/SSEConfig.<init>|<init>(){}[0]
 
+    final var bufferPolicy // io.ktor.client.plugins.sse/SSEConfig.bufferPolicy|{}bufferPolicy[0]
+        final fun <get-bufferPolicy>(): io.ktor.client.plugins.sse/SSEBufferPolicy // io.ktor.client.plugins.sse/SSEConfig.bufferPolicy.<get-bufferPolicy>|<get-bufferPolicy>(){}[0]
+        final fun <set-bufferPolicy>(io.ktor.client.plugins.sse/SSEBufferPolicy) // io.ktor.client.plugins.sse/SSEConfig.bufferPolicy.<set-bufferPolicy>|<set-bufferPolicy>(io.ktor.client.plugins.sse.SSEBufferPolicy){}[0]
     final var maxReconnectionAttempts // io.ktor.client.plugins.sse/SSEConfig.maxReconnectionAttempts|{}maxReconnectionAttempts[0]
         final fun <get-maxReconnectionAttempts>(): kotlin/Int // io.ktor.client.plugins.sse/SSEConfig.maxReconnectionAttempts.<get-maxReconnectionAttempts>|<get-maxReconnectionAttempts>(){}[0]
         final fun <set-maxReconnectionAttempts>(kotlin/Int) // io.ktor.client.plugins.sse/SSEConfig.maxReconnectionAttempts.<set-maxReconnectionAttempts>|<set-maxReconnectionAttempts>(kotlin.Int){}[0]
@@ -1391,6 +1452,7 @@ final fun (io.ktor.client.call/HttpClientCall).io.ktor.client.plugins.observer/w
 final fun (io.ktor.client.engine/ProxyBuilder).io.ktor.client.engine/http(kotlin/String): io.ktor.client.engine/ProxyConfig // io.ktor.client.engine/http|http@io.ktor.client.engine.ProxyBuilder(kotlin.String){}[0]
 final fun (io.ktor.client.engine/ProxyConfig).io.ktor.client.engine/resolveAddress(): io.ktor.util.network/NetworkAddress // io.ktor.client.engine/resolveAddress|resolveAddress@io.ktor.client.engine.ProxyConfig(){}[0]
 final fun (io.ktor.client.request.forms/FormBuilder).io.ktor.client.request.forms/append(kotlin/String, kotlin/String, io.ktor.http/ContentType? = ..., kotlin/Long? = ..., kotlin/Function1<kotlinx.io/Sink, kotlin/Unit>) // io.ktor.client.request.forms/append|append@io.ktor.client.request.forms.FormBuilder(kotlin.String;kotlin.String;io.ktor.http.ContentType?;kotlin.Long?;kotlin.Function1<kotlinx.io.Sink,kotlin.Unit>){}[0]
+final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.plugins.sse/bufferPolicy(io.ktor.client.plugins.sse/SSEBufferPolicy) // io.ktor.client.plugins.sse/bufferPolicy|bufferPolicy@io.ktor.client.request.HttpRequestBuilder(io.ktor.client.plugins.sse.SSEBufferPolicy){}[0]
 final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.plugins/onDownload(io.ktor.client.content/ProgressListener?) // io.ktor.client.plugins/onDownload|onDownload@io.ktor.client.request.HttpRequestBuilder(io.ktor.client.content.ProgressListener?){}[0]
 final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.plugins/onUpload(io.ktor.client.content/ProgressListener?) // io.ktor.client.plugins/onUpload|onUpload@io.ktor.client.request.HttpRequestBuilder(io.ktor.client.content.ProgressListener?){}[0]
 final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.plugins/retry(kotlin/Function1<io.ktor.client.plugins/HttpRequestRetryConfig, kotlin/Unit>) // io.ktor.client.plugins/retry|retry@io.ktor.client.request.HttpRequestBuilder(kotlin.Function1<io.ktor.client.plugins.HttpRequestRetryConfig,kotlin.Unit>){}[0]

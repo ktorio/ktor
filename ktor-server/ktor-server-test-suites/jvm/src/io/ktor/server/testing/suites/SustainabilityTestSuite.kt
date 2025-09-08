@@ -35,6 +35,7 @@ import org.slf4j.event.Level
 import org.slf4j.helpers.AbstractLogger
 import java.io.File
 import java.io.IOException
+import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.Proxy
 import java.net.URL
@@ -394,7 +395,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             }
         }
 
-        val originalSha1WithSize = file.inputStream().use { it.crcWithSize() }
+        val (fileChecksum, fileCount) = file.inputStream().use { it.crcWithSize() }
 
         createAndStartServer {
             get("/file") {
@@ -403,7 +404,9 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         }
 
         withUrl("/file") {
-            assertEquals(originalSha1WithSize, rawContent.toInputStream().crcWithSize())
+            val (actualChecksum, actualCount) = body<InputStream>().crcWithSize()
+            assertEquals(fileCount, actualCount, "Response size differs from file")
+            assertEquals(fileChecksum, actualChecksum, "Response checksum differs from file")
         }
     }
 
@@ -883,10 +886,11 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                 } catch (cause: Throwable) {
                     failCause = cause
                 } finally {
+                    runCatching {
+                        call.respond("OK")
+                    }
                     result.complete()
                 }
-
-                call.respond("OK")
             }
         }
 

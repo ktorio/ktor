@@ -9,16 +9,15 @@ plugins {
 }
 
 kotlin {
-    // The minimal JVM version required for Jetty 10+
-    jvmToolchain(11)
+    // The minimal JVM version required for Jetty 12+
+    jvmToolchain(17)
 
     sourceSets {
         jvmMain.dependencies {
             api(projects.ktorClientCore)
 
             api(libs.jetty.http2.client.jakarta)
-            api(libs.jetty.alpn.openjdk8.client)
-            api(libs.jetty.alpn.java.client)
+            api(libs.jetty.alpn.java.client.jakarta)
         }
         commonTest.dependencies {
             api(projects.ktorClientTests)
