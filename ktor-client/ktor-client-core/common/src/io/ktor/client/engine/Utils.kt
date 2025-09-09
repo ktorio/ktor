@@ -9,8 +9,11 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
-import kotlin.coroutines.*
+import kotlinx.coroutines.InternalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.coroutineContext
 
 /**
  * Default user agent to use in a Ktor client.
@@ -98,7 +101,7 @@ internal class KtorCallContextElement(val callContext: CoroutineContext) : Corou
  */
 @OptIn(InternalCoroutinesApi::class)
 internal suspend inline fun attachToUserJob(callJob: Job) {
-    val userJob = coroutineContext[Job] ?: return
+    val userJob = currentCoroutineContext()[Job] ?: return
 
     val cleanupHandler = userJob.invokeOnCompletion(onCancelling = true) { cause ->
         cause ?: return@invokeOnCompletion
