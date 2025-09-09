@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.netty.http1
@@ -9,13 +9,15 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.netty.cio.*
 import io.ktor.utils.io.*
-import io.netty.channel.*
+import io.netty.channel.ChannelHandlerContext
+import io.netty.channel.ChannelInboundHandlerAdapter
 import io.netty.handler.codec.http.*
-import io.netty.handler.timeout.*
-import io.netty.util.concurrent.*
-import kotlinx.coroutines.*
-import java.io.*
-import kotlin.coroutines.*
+import io.netty.handler.timeout.ReadTimeoutException
+import io.netty.util.concurrent.EventExecutorGroup
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import java.io.IOException
+import kotlin.coroutines.CoroutineContext
 
 internal class NettyHttp1Handler(
     private val applicationProvider: () -> Application,
@@ -139,13 +141,14 @@ internal class NettyHttp1Handler(
             else -> prepareRequestContentChannel(context, message)
         }
 
+        val application = applicationProvider()
         return NettyHttp1ApplicationCall(
-            applicationProvider(),
+            application,
             context,
             message,
             requestBodyChannel,
             engineContext,
-            userContext
+            application.coroutineContext + userContext
         )
     }
 

@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.server.netty
 
@@ -8,20 +8,27 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.http1.*
 import io.ktor.server.netty.http2.*
-import io.netty.channel.*
+import io.netty.channel.ChannelHandlerContext
+import io.netty.channel.ChannelInitializer
+import io.netty.channel.ChannelPipeline
 import io.netty.channel.socket.SocketChannel
-import io.netty.handler.codec.http.*
-import io.netty.handler.codec.http2.*
+import io.netty.handler.codec.http.HttpServerCodec
+import io.netty.handler.codec.http.HttpServerExpectContinueHandler
+import io.netty.handler.codec.http2.Http2MultiplexCodecBuilder
+import io.netty.handler.codec.http2.Http2SecurityUtil
 import io.netty.handler.ssl.*
-import io.netty.handler.timeout.*
-import io.netty.util.concurrent.*
-import kotlinx.coroutines.*
-import java.io.*
-import java.nio.channels.*
-import java.security.*
-import java.security.cert.*
-import javax.net.ssl.*
-import kotlin.coroutines.*
+import io.netty.handler.timeout.ReadTimeoutException
+import io.netty.handler.timeout.ReadTimeoutHandler
+import io.netty.handler.timeout.WriteTimeoutHandler
+import io.netty.util.concurrent.EventExecutorGroup
+import kotlinx.coroutines.cancel
+import java.io.FileInputStream
+import java.nio.channels.ClosedChannelException
+import java.security.KeyStore
+import java.security.PrivateKey
+import java.security.cert.X509Certificate
+import javax.net.ssl.TrustManagerFactory
+import kotlin.coroutines.CoroutineContext
 
 /**
  * A [ChannelInitializer] implementation that sets up the default ktor channel pipeline
@@ -109,11 +116,12 @@ public class NettyChannelInitializer(
     private fun configurePipeline(pipeline: ChannelPipeline, protocol: String) {
         when (protocol) {
             ApplicationProtocolNames.HTTP_2 -> {
+                val application = applicationProvider()
                 val handler = NettyHttp2Handler(
                     enginePipeline,
-                    applicationProvider(),
+                    application,
                     callEventGroup,
-                    userContext,
+                    application.coroutineContext + userContext,
                     runningLimit
                 )
 
