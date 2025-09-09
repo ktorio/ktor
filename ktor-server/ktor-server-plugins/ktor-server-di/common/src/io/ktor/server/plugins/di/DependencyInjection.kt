@@ -136,9 +136,7 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
                     }
                 }
             }
-            monitor.subscribe(ApplicationStopped) {
-                coroutineScope.cancel("Application stopped")
-
+            monitor.subscribe(ApplicationStopping) {
                 for (key in map.keys.reversed()) {
                     try {
                         val instance = registry.getDeferred<Any?>(key).tryGetCompleted() ?: continue
@@ -148,6 +146,7 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
                         environment.log.warn("Exception during cleanup for $key; continuing", e)
                     }
                 }
+                coroutineScope.cancel("Application stopped")
             }
 
             attributes.put(DependencyRegistryKey, registry)
