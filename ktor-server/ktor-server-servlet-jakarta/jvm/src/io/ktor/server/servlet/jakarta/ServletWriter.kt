@@ -43,7 +43,6 @@ private class ServletWriter(val output: ServletOutputStream, val idleTimeout: Du
     suspend fun run() {
         try {
             output.setWriteListener(this)
-            events.receive()
             loop()
 
             finish()

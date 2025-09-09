@@ -7,4 +7,6 @@ package io.ktor.tests.server.jetty.jakarta
 import io.ktor.server.jetty.jakarta.*
 import io.ktor.server.testing.suites.*
 
-class JettyWebSocketTest : WebSocketEngineSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
+class JettyWebSocketTest : WebSocketEngineSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(
+    Jetty
+)
