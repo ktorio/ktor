@@ -33,6 +33,8 @@ import kotlin.coroutines.CoroutineContext
  */
 @OptIn(InternalAPI::class)
 public suspend fun HttpClientCall.save(): HttpClientCall {
+    if (this is SavedHttpCall) return this
+
     val responseBody = response.rawContent.readRemaining().readByteArray()
     return SavedHttpCall(client, request, response, responseBody)
 }
@@ -49,13 +51,6 @@ internal class SavedHttpCall(
         this.response = SavedHttpResponse(this, responseBody, response)
 
         checkContentLength(response.contentLength(), responseBody.size.toLong(), request.method)
-    }
-
-    /**
-     * Returns a channel with [responseBody] data.
-     */
-    override suspend fun getResponseContent(): ByteReadChannel {
-        return ByteReadChannel(responseBody)
     }
 
     override val allowDoubleReceive: Boolean = true
