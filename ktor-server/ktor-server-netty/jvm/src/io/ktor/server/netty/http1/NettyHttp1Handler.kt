@@ -139,13 +139,14 @@ internal class NettyHttp1Handler(
             else -> prepareRequestContentChannel(context, message)
         }
 
+        val application = applicationProvider()
         return NettyHttp1ApplicationCall(
-            applicationProvider(),
+            application,
             context,
             message,
             requestBodyChannel,
             engineContext,
-            userContext
+            application.coroutineContext + userContext
         )
     }
 
