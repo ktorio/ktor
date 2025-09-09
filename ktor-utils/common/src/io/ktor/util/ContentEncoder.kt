@@ -77,6 +77,30 @@ public expect object DeflateEncoder : ContentEncoder {
 }
 
 /**
+ * Implementation of [ContentEncoder] using zstd algorithm
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.ZstdEncoder)
+ */
+public expect class ZstdEncoder : ContentEncoder {
+    override val name: String
+
+    override fun encode(
+        source: ByteReadChannel,
+        coroutineContext: CoroutineContext
+    ): ByteReadChannel
+
+    override fun encode(
+        source: ByteWriteChannel,
+        coroutineContext: CoroutineContext
+    ): ByteWriteChannel
+
+    override fun decode(
+        source: ByteReadChannel,
+        coroutineContext: CoroutineContext
+    ): ByteReadChannel
+}
+
+/**
  * Implementation of [ContentEncoder] using identity algorithm
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.IdentityEncoder)
