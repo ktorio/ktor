@@ -9,6 +9,8 @@ import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.websocket.cio.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.network.selector.*
+import io.ktor.network.sockets.*
 import io.ktor.server.application.*
 import io.ktor.server.netty.*
 import io.ktor.server.response.*
@@ -16,9 +18,21 @@ import io.ktor.server.routing.*
 import io.ktor.server.test.base.*
 import io.ktor.server.testing.suites.*
 import io.ktor.server.websocket.*
+import io.ktor.utils.io.*
 import io.ktor.websocket.*
-import kotlinx.coroutines.flow.*
-import kotlin.test.*
+import io.netty.buffer.ByteBuf
+import io.netty.buffer.Unpooled
+import io.netty.handler.codec.http.HttpResponseStatus
+import io.netty.handler.codec.http2.DefaultHttp2Headers
+import io.netty.handler.codec.http2.DefaultHttp2HeadersDecoder
+import io.netty.handler.codec.http2.DefaultHttp2HeadersEncoder
+import io.netty.handler.codec.http2.Http2CodecUtil.readUnsignedInt
+import io.netty.handler.codec.http2.Http2Flags
+import io.netty.handler.codec.http2.Http2FrameTypes
+import kotlinx.coroutines.flow.consumeAsFlow
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class NettyCompressionTest : CompressionTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
     init {
@@ -151,3 +165,224 @@ class NettyServerPluginsTest : ServerPluginsTestSuite<NettyApplicationEngine, Ne
 }
 
 class NettyHooksTest : HooksTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty)
+
+class NettyH2cServerJvmTest :
+    HttpServerJvmTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
+
+    init {
+        enableSsl = false
+        enableHttp2 = true
+    }
+
+    override fun configure(configuration: NettyApplicationEngine.Configuration) {
+        configuration.enableH2c = true
+    }
+}
+
+class NettyH2cEnabledTest :
+    EngineTestBase<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
+
+    init {
+        enableSsl = false
+        enableHttp2 = true
+    }
+
+    override fun configure(configuration: NettyApplicationEngine.Configuration) {
+        configuration.enableH2c = true
+    }
+
+    class Http2Frame(
+        val frameType: Byte,
+        val flags: Http2Flags,
+        val streamId: Int,
+        val payload: ByteArray,
+    )
+
+    companion object {
+        private const val TEST_SERVER_HOST = "127.0.0.1"
+        private const val PATH = "/"
+        private const val BODY = "Hello world"
+        private const val STREAM_ID = 3
+    }
+
+    @Test
+    fun testConnectionUpgradeH2cRequest() = runTest {
+        h2cTest { writer, reader ->
+            writer.writeStringUtf8("GET $PATH HTTP/1.1\r\n")
+            writer.writeStringUtf8("Host: ${TEST_SERVER_HOST}\r\n")
+            writer.writeStringUtf8("Connection: Upgrade, HTTP2-Settings\r\n")
+            writer.writeStringUtf8("Upgrade: h2c\r\n")
+            writer.writeStringUtf8("HTTP2-Settings: AAMAAABkAAQCAAAAAAIAAAAA\r\n")
+            writer.writeStringUtf8("\r\n")
+            writer.flush()
+
+            val response = reader.readHttp1Headers()
+            val responseLower = response.lowercase()
+
+            assertTrue(response.startsWith("HTTP/1.1 101"))
+            assertTrue(responseLower.contains("connection: upgrade"))
+            assertTrue(responseLower.contains("upgrade: h2c"))
+        }
+    }
+
+    @Test
+    fun testSendH2cRequestWithConnectionPreface() = runTest {
+        h2cTest { writer, reader ->
+            // send connection preset
+            writer.writeHttp2ConnectionPreface()
+
+            // send settings frame
+            writer.writeFully(http2SettingsFrame(ack = false))
+            writer.flush()
+
+            // read server settings
+            val http2ServerSettingsFrame = reader.readHttp2Frame()
+            assertEquals(Http2FrameTypes.SETTINGS, http2ServerSettingsFrame.frameType)
+
+            // read server ack
+            val http2ServerAckFrame = reader.readHttp2Frame()
+            assertEquals(Http2FrameTypes.SETTINGS, http2ServerAckFrame.frameType)
+            assertTrue(http2ServerAckFrame.flags.ack())
+
+            // send settings ack frame
+            writer.writeFully(http2SettingsFrame(ack = true))
+            writer.flush()
+
+            // send headers frame
+            writer.writeFully(http2HeadersFrame())
+            writer.flush()
+
+            reader.readHeaderFrame()
+
+            reader.readDataFrame()
+        }
+    }
+
+    private suspend fun ByteWriteChannel.writeHttp2ConnectionPreface() {
+        writeStringUtf8("PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n")
+        flush()
+    }
+
+    private suspend fun ByteReadChannel.readHttp2Frame(): Http2Frame {
+        val dataHeaderBuf = Unpooled.wrappedBuffer(readByteArray(9))
+
+        val payloadLength = dataHeaderBuf.readUnsignedMedium()
+        val frameType = dataHeaderBuf.readByte()
+        val flags = Http2Flags(dataHeaderBuf.readUnsignedByte())
+        val streamId = readUnsignedInt(dataHeaderBuf)
+        val payload = readByteArray(payloadLength)
+
+        return Http2Frame(
+            frameType = frameType,
+            flags = flags,
+            streamId = streamId,
+            payload = payload
+        )
+    }
+
+    private suspend fun ByteReadChannel.readHeaderFrame() {
+        val http2Frame = readHttp2Frame()
+
+        val payloadBuff = Unpooled.wrappedBuffer(http2Frame.payload)
+        val decoder = DefaultHttp2HeadersDecoder(true)
+        val decodedHeaders = decoder.decodeHeaders(STREAM_ID, payloadBuff)
+
+        assertEquals(Http2FrameTypes.HEADERS, http2Frame.frameType)
+        assertEquals(STREAM_ID, http2Frame.streamId)
+        assertTrue(http2Frame.flags.endOfHeaders())
+        assertEquals(decodedHeaders.status(), HttpResponseStatus.OK.codeAsText())
+    }
+
+    private suspend fun ByteReadChannel.readDataFrame() {
+        val http2Frame = readHttp2Frame()
+
+        val data = String(http2Frame.payload, Charsets.UTF_8)
+
+        assertEquals(Http2FrameTypes.DATA, http2Frame.frameType)
+        assertEquals(STREAM_ID, http2Frame.streamId)
+        assertTrue(http2Frame.flags.endOfStream())
+        assertEquals(BODY, data)
+    }
+
+    private fun http2HeadersFrame(): ByteArray {
+        val headers = DefaultHttp2Headers().also {
+            it.method("GET")
+            it.path("/")
+            it.scheme("http")
+        }
+
+        val encodedHeaders = Unpooled.buffer()
+        val encoder = DefaultHttp2HeadersEncoder()
+        encoder.encodeHeaders(STREAM_ID, headers, encodedHeaders)
+
+        return http2Frame(
+            payload = encodedHeaders,
+            type = Http2FrameTypes.HEADERS,
+            flags = Http2Flags()
+                .endOfHeaders(true)
+                .endOfStream(true),
+            streamId = STREAM_ID
+        )
+    }
+
+    private fun http2SettingsFrame(ack: Boolean) = http2Frame(
+        payload = null,
+        type = Http2FrameTypes.SETTINGS,
+        flags = Http2Flags().ack(ack),
+        streamId = 0
+    )
+
+    private fun http2Frame(payload: ByteBuf?, type: Byte, flags: Http2Flags, streamId: Int): ByteArray {
+        val buf = Unpooled.buffer()
+
+        val payloadLength = payload?.readableBytes() ?: 0
+
+        buf.writeMedium(payloadLength)
+        buf.writeByte(type.toInt())
+        buf.writeByte(flags.value().toInt())
+        buf.writeInt(streamId)
+        payload?.let {
+            buf.writeBytes(it)
+        }
+
+        val frame = ByteArray(buf.readableBytes())
+        buf.readBytes(frame)
+
+        return frame
+    }
+
+    private fun h2cTest(block: suspend (ByteWriteChannel, ByteReadChannel) -> Unit) = runTest {
+        val server = createServer {
+            routing {
+                get(PATH) {
+                    call.respondText(BODY)
+                }
+            }
+        }
+        server.start(wait = false)
+
+        SelectorManager().use {
+            aSocket(it).tcp().connect(TEST_SERVER_HOST, port).use { socket ->
+                val writeChannel = socket.openWriteChannel()
+                val readChannel = socket.openReadChannel()
+                block(writeChannel, readChannel)
+            }
+        }
+
+        server.stop()
+    }
+
+    private suspend fun ByteReadChannel.readHttp1Headers(maxBytes: Int = 8192): String {
+        val buf = ByteArray(maxBytes)
+        var total = 0
+        while (true) {
+            val n = readAvailable(buf, total, buf.size - total)
+            if (n == -1) error("Connection closed before headers complete")
+            total += n
+            val s = buf.decodeToString(0, total)
+            val end = s.indexOf("\r\n\r\n")
+            if (end >= 0) return s.substring(0, end + 4)
+            require(total < maxBytes) { "HTTP/1.1 headers exceed $maxBytes bytes" }
+        }
+    }
+}
