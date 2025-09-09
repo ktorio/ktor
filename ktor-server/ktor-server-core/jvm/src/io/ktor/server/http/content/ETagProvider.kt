@@ -108,7 +108,7 @@ private fun keyAndStreamSupplier(resource: Any): Pair<String, () -> InputStream>
         val meta = runCatching {
             val conn = resource.openConnection()
             (conn.lastModified.takeIf { it > 0 }?.toString() ?: "") +
-                    ":" + (conn.contentLengthLong.takeIf { it >= 0 }?.toString() ?: "")
+                ":" + (conn.contentLengthLong.takeIf { it >= 0 }?.toString() ?: "")
         }.getOrDefault("")
         "${resource.toExternalForm()}:$meta" to { resource.openStream() }
     }
