@@ -182,11 +182,12 @@ public class NettyChannelInitializer(
     private fun configurePipeline(pipeline: ChannelPipeline, protocol: String) {
         when (protocol) {
             ApplicationProtocolNames.HTTP_2 -> {
+                val application = applicationProvider()
                 val handler = NettyHttp2Handler(
                     enginePipeline,
-                    applicationProvider(),
+                    application,
                     callEventGroup,
-                    userContext,
+                    application.coroutineContext + userContext,
                     runningLimit
                 )
 
