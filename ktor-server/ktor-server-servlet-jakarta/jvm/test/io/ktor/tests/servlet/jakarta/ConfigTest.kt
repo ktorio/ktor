@@ -40,6 +40,7 @@ class ConfigTest {
         }
 
         val config = mockk<ServletConfig> {
+            every { getInitParameter("jakarta.servlet.http.legacyDoHead") } returns "false"
             every { getInitParameter("io.ktor.ktor.config") } returns "test.conf"
             every { servletContext } returns context
             every { servletName } returns "ktor-test"
@@ -75,6 +76,7 @@ class ConfigTest {
         }
 
         val config = mockk<ServletConfig> {
+            every { getInitParameter("jakarta.servlet.http.legacyDoHead") } returns "false"
             every { getInitParameter("io.ktor.ktor.config") } returns "custom-config.yaml"
             every { servletContext } returns context
             every { servletName } returns "ktor-test"
