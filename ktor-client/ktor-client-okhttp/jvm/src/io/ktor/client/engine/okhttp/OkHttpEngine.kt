@@ -65,8 +65,7 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
             ?: error("OkHttpClient can't be constructed because HttpTimeout plugin is not installed")
 
         return when {
-            data.isUpgradeRequest() -> executeWebSocketRequest(requestEngine, engineRequest, callContext)
-            data.isSseRequest() -> executeServerSendEventsRequest(requestEngine, engineRequest, callContext)
+            data.isUpgradeRequest() -> executeWebSocketRequest(requestEngine, engineRequest, callContext, data)
             else -> executeHttpRequest(requestEngine, engineRequest, callContext, data)
         }
     }
@@ -79,7 +78,8 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
     private suspend fun executeWebSocketRequest(
         engine: OkHttpClient,
         engineRequest: Request,
-        callContext: CoroutineContext
+        callContext: CoroutineContext,
+        requestData: HttpRequestData,
     ): HttpResponseData {
         val requestTime = GMTDate()
         val session = OkHttpWebsocketSession(
@@ -90,23 +90,7 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
         ).apply { start() }
 
         val originResponse = session.originResponse.await()
-        return buildResponseData(originResponse, requestTime, session, callContext)
-    }
-
-    private suspend fun executeServerSendEventsRequest(
-        engine: OkHttpClient,
-        engineRequest: Request,
-        callContext: CoroutineContext
-    ): HttpResponseData {
-        val requestTime = GMTDate()
-        val session = OkHttpSSESession(
-            engine,
-            engineRequest,
-            callContext
-        )
-
-        val originResponse = session.originResponse.await()
-        return buildResponseData(originResponse, requestTime, session, callContext)
+        return buildResponseData(originResponse, requestTime, session, callContext, requestData)
     }
 
     private suspend fun executeHttpRequest(
@@ -122,20 +106,29 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
         callContext.job.invokeOnCompletion { body.close() }
 
         val responseContent = body.source().toChannel(callContext, requestData)
-        return buildResponseData(response, requestTime, responseContent, callContext)
+        return buildResponseData(response, requestTime, responseContent, callContext, requestData)
     }
 
     private fun buildResponseData(
         response: Response,
         requestTime: GMTDate,
         body: Any,
-        callContext: CoroutineContext
+        callContext: CoroutineContext,
+        requestData: HttpRequestData
     ): HttpResponseData {
         val status = HttpStatusCode(response.code, response.message)
         val version = response.protocol.fromOkHttp()
         val headers = response.headers.fromOkHttp()
+        val responseBody: Any = when (body) {
+            is ByteReadChannel ->
+                requestData.attributes
+                    .getOrNull(ResponseAdapterAttributeKey)
+                    ?.adapt(requestData, status, headers, body, requestData.body, callContext)
+                    ?: body
+            else -> body
+        }
 
-        return HttpResponseData(status, requestTime, headers, version, body, callContext)
+        return HttpResponseData(status, requestTime, headers, version, responseBody, callContext)
     }
 
     private companion object {
