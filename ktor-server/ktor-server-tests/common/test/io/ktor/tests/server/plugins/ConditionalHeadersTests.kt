@@ -159,7 +159,7 @@ class ETagsTest {
     }
 
     @Test
-    fun testInvalidWeakStarETag() = withConditionalApplication {
+    fun testInvalidWeakStarETag() {
         assertFailsWith<IllegalArgumentException> {
             EntityTagVersion(EntityTagVersion.STAR.etag, weak = true)
         }
