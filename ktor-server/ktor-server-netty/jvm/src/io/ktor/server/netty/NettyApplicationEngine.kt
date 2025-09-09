@@ -206,8 +206,7 @@ public class NettyApplicationEngine(
                 channel(getChannelClass().java)
             }
 
-            val userContext = applicationProvider().coroutineContext +
-                NettyApplicationCallHandler.CallHandlerCoroutineName +
+            val userContext = NettyApplicationCallHandler.CallHandlerCoroutineName +
                 NettyDispatcher +
                 DefaultUncaughtExceptionHandler(environment.log)
 
