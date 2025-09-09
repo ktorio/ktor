@@ -1796,6 +1796,7 @@ public final class io/ktor/server/routing/RoutingPathSegmentKind : java/lang/Enu
 }
 
 public final class io/ktor/server/routing/RoutingPipelineCall : io/ktor/server/application/PipelineCall, kotlinx/coroutines/CoroutineScope {
+	public fun <init> (Lio/ktor/server/application/PipelineCall;Lio/ktor/server/routing/RoutingNode;Lio/ktor/server/request/ApplicationReceivePipeline;Lio/ktor/server/response/ApplicationSendPipeline;Lio/ktor/http/Parameters;)V
 	public fun <init> (Lio/ktor/server/application/PipelineCall;Lio/ktor/server/routing/RoutingNode;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/request/ApplicationReceivePipeline;Lio/ktor/server/response/ApplicationSendPipeline;Lio/ktor/http/Parameters;)V
 	public fun getApplication ()Lio/ktor/server/application/Application;
 	public fun getAttributes ()Lio/ktor/util/Attributes;
