@@ -124,6 +124,8 @@ public object HttpHeaders {
     public val XCorrelationId: String = "X-Correlation-ID"
     public val XTotalCount: String = "X-Total-Count"
 
+    public val LastEventID: String = "Last-Event-ID"
+
     /**
      * Check if [header] is unsafe. Header is unsafe if listed in [UnsafeHeadersList]
      *

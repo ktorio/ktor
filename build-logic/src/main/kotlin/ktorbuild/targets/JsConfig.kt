@@ -9,10 +9,18 @@ import ktorbuild.internal.gradle.maybeNamed
 import ktorbuild.internal.kotlin
 import ktorbuild.internal.libs
 import org.gradle.api.Project
+import org.gradle.kotlin.dsl.assign
 import org.gradle.kotlin.dsl.invoke
+import org.gradle.kotlin.dsl.the
+import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsSubTargetDsl
 import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsTargetDsl
+import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
+import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootEnvSpec
+import org.jetbrains.kotlin.gradle.targets.wasm.yarn.WasmYarnPlugin
+import org.jetbrains.kotlin.gradle.targets.wasm.yarn.WasmYarnRootEnvSpec
+import org.jetbrains.kotlin.gradle.targets.web.yarn.BaseYarnRootEnvSpec
 
 internal fun KotlinJsTargetDsl.addSubTargets(targets: KtorTargets) {
     if (targets.isEnabled("${targetName}.nodeJs")) nodejs {
@@ -70,11 +78,20 @@ internal fun Project.configureWasmJs() {
     configureJsTestTasks(target = "wasmJs")
 }
 
-
 internal fun Project.configureJsTestTasks(target: String) {
     val shouldRunJsBrowserTest = !hasProperty("teamcity") || hasProperty("enable-js-tests")
     if (shouldRunJsBrowserTest) return
 
     tasks.maybeNamed("clean${target.capitalized()}BrowserTest") { onlyIf { false } }
     tasks.maybeNamed("${target}BrowserTest") { onlyIf { false } }
+}
+
+fun Project.configureYarn() {
+    plugins.withType<YarnPlugin> { the<YarnRootEnvSpec>().configure() }
+    plugins.withType<WasmYarnPlugin> { the<WasmYarnRootEnvSpec>().configure() }
+}
+
+private fun BaseYarnRootEnvSpec.configure() {
+    // Don't ignore scripts as we want Chrome to be installed automatically with puppeteer.
+    ignoreScripts = false
 }

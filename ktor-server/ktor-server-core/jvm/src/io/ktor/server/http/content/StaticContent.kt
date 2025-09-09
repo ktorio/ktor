@@ -75,6 +75,7 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
     internal var exclude: (Resource) -> Boolean = { false }
     internal var extensions: List<String> = emptyList()
     internal var defaultPath: String? = null
+    internal var fallback: suspend (String, ApplicationCall) -> Unit = { _, _ -> }
     internal var preCompressedFileTypes: List<CompressedFileType> = emptyList()
     internal var autoHeadResponse: Boolean = false
 
@@ -111,6 +112,39 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
      */
     public fun default(path: String?) {
         this.defaultPath = path
+    }
+
+    /**
+     * Configures custom fallback behavior when a requested static resource is not found.
+     *
+     * This function allows you to provide a callback that inspects the originally requested path (e.g. "plugins/file.php")
+     * and the [ApplicationCall], and then perform custom logic such as:
+     * - redirecting to a different path,
+     * - responding with a specific HTTP status (e.g. 410 Gone or 400 Bad Request),
+     * - or serving an alternative static file manually.
+     *
+     * Example:
+     * ```
+     * staticFiles("/static", File("files")) {
+     *   fallback { requestedPath, call ->
+     *     when {
+     *       requestedPath.endsWith(".php") -> call.respondRedirect("/static/index.html")
+     *       requestedPath.endsWith(".xml") -> call.respond(HttpStatusCode.Gone)
+     *       else -> call.respondFile(File("files/index.html"))
+     *     }
+     *   }
+     * }
+     * ```
+     *
+     * This differs from the existing `default(path: String?)`:
+     * - `default(...)` serves a fixed, path‑agnostic fallback resource.
+     * - `fallback { requestedPath, call -> ... }` gives full control and context for conditional behavior.
+     * @see default
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.StaticContentConfig.fallback)
+     */
+    public fun fallback(fallback: suspend (String, ApplicationCall) -> Unit) {
+        this.fallback = fallback
     }
 
     /**
@@ -207,6 +241,7 @@ public fun Route.staticFiles(
     val modify = staticRoute.modifier
     val exclude = staticRoute.exclude
     val defaultPath = staticRoute.defaultPath
+    val fallback = staticRoute.fallback
     return staticContentRoute(remotePath, autoHead) {
         respondStaticFile(
             index = index,
@@ -217,7 +252,8 @@ public fun Route.staticFiles(
             modify = modify,
             exclude = exclude,
             extensions = extensions,
-            defaultPath = defaultPath
+            defaultPath = defaultPath,
+            fallback = fallback,
         )
     }
 }
@@ -249,6 +285,7 @@ public fun Route.staticResources(
     val modifier = staticRoute.modifier
     val exclude = staticRoute.exclude
     val defaultPath = staticRoute.defaultPath
+    val fallback = staticRoute.fallback
     return staticContentRoute(remotePath, autoHead) {
         respondStaticResource(
             index = index,
@@ -259,7 +296,8 @@ public fun Route.staticResources(
             modifier = modifier,
             exclude = exclude,
             extensions = extensions,
-            defaultPath = defaultPath
+            defaultPath = defaultPath,
+            fallback = fallback,
         )
     }
 }
@@ -361,6 +399,7 @@ public fun Route.staticFileSystem(
     val modify = staticRoute.modifier
     val exclude = staticRoute.exclude
     val defaultPath = staticRoute.defaultPath
+    val fallback = staticRoute.fallback
     return staticContentRoute(remotePath, autoHead) {
         respondStaticPath(
             fileSystem = fileSystem,
@@ -372,7 +411,8 @@ public fun Route.staticFileSystem(
             modify = modify,
             exclude = exclude,
             extensions = extensions,
-            defaultPath = defaultPath
+            defaultPath = defaultPath,
+            fallback = fallback,
         )
     }
 }
@@ -639,7 +679,8 @@ private suspend fun ApplicationCall.respondStaticFile(
     modify: suspend (File, ApplicationCall) -> Unit,
     exclude: (File) -> Boolean,
     extensions: List<String>,
-    defaultPath: String?
+    defaultPath: String?,
+    fallback: suspend (String, ApplicationCall) -> Unit,
 ) {
     val relativePath = parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return
     val requestedFile = dir.combineSafe(relativePath)
@@ -670,6 +711,9 @@ private suspend fun ApplicationCall.respondStaticFile(
     if (defaultPath != null) {
         respondStaticFile(File(dir, defaultPath), compressedTypes, contentType, cacheControl, modify)
     }
+
+    if (isHandled) return
+    fallback(relativePath, this)
 }
 
 private suspend fun ApplicationCall.respondStaticPath(
@@ -682,7 +726,8 @@ private suspend fun ApplicationCall.respondStaticPath(
     modify: suspend (Path, ApplicationCall) -> Unit,
     exclude: (Path) -> Boolean,
     extensions: List<String>,
-    defaultPath: String?
+    defaultPath: String?,
+    fallback: suspend (String, ApplicationCall) -> Unit,
 ) {
     val relativePath = parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return
     val requestedPath = fileSystem.getPath(basePath.orEmpty()).combineSafe(fileSystem.getPath(relativePath))
@@ -720,6 +765,9 @@ private suspend fun ApplicationCall.respondStaticPath(
             modify
         )
     }
+
+    if (isHandled) return
+    fallback(relativePath, this)
 }
 
 private suspend fun ApplicationCall.respondStaticResource(
@@ -731,7 +779,8 @@ private suspend fun ApplicationCall.respondStaticResource(
     modifier: suspend (URL, ApplicationCall) -> Unit,
     exclude: (URL) -> Boolean,
     extensions: List<String>,
-    defaultPath: String?
+    defaultPath: String?,
+    fallback: suspend (String, ApplicationCall) -> Unit,
 ) {
     val relativePath = parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return
 
@@ -769,16 +818,21 @@ private suspend fun ApplicationCall.respondStaticResource(
             modifier = modifier
         )
     }
-    if (isHandled || defaultPath == null) return
 
-    respondStaticResource(
-        requestedResource = defaultPath,
-        packageName = basePackage,
-        compressedTypes = compressedTypes,
-        contentType = contentType,
-        cacheControl = cacheControl,
-        modifier = modifier
-    )
+    if (isHandled) return
+    if (defaultPath != null) {
+        respondStaticResource(
+            requestedResource = defaultPath,
+            packageName = basePackage,
+            compressedTypes = compressedTypes,
+            contentType = contentType,
+            cacheControl = cacheControl,
+            modifier = modifier
+        )
+    }
+
+    if (isHandled) return
+    fallback(relativePath, this)
 }
 
 /**

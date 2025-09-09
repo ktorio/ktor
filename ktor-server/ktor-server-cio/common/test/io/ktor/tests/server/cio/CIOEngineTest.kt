@@ -92,6 +92,7 @@ class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApp
             writePostHeaders(writeChannel, body.length)
             val continueResponse = readChannel.readUTF8Line()
             assertEquals("HTTP/1.1 100 Continue", continueResponse)
+            assertTrue { readChannel.readUTF8Line()?.isEmpty() ?: false }
 
             writePostBody(writeChannel, body)
             val response = readAvailable(readChannel)
