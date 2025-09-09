@@ -157,4 +157,11 @@ class ETagsTest {
         }
         assertEquals(HttpStatusCode.PreconditionFailed, result.status)
     }
+
+    @Test
+    fun testInvalidWeakStarETag() = withConditionalApplication {
+        assertFailsWith<IllegalArgumentException> {
+            EntityTagVersion(EntityTagVersion.STAR.etag, weak = true)
+        }
+    }
 }

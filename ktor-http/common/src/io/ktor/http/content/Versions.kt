@@ -183,6 +183,8 @@ public data class EntityTagVersion(val etag: String, val weak: Boolean) : Versio
     private val normalized: String = if (weak) "W/$opaque" else opaque
 
     init {
+        require(!(weak && etag == STAR.etag)) { "Entity tag '*' could not be weak." }
+
         for (index in etag.indices) {
             val ch = etag[index]
             if (ch <= ' ' || ch == '\"') {
@@ -213,9 +215,8 @@ public data class EntityTagVersion(val etag: String, val weak: Boolean) : Versio
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.EntityTagVersion.match)
      */
     public fun match(other: EntityTagVersion): Boolean {
-        if (this == STAR || other == STAR) return true
         if (weak || other.weak) return false
-        return opaque == other.opaque
+        return weakMatch(other)
     }
 
     /**
@@ -227,7 +228,7 @@ public data class EntityTagVersion(val etag: String, val weak: Boolean) : Versio
     }
 
     /**
-     * Specifies `If-None-Match` logic using the [weakMatch] function.
+     * Specifies `If-None-Match` logic.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.EntityTagVersion.noneMatch)
      */

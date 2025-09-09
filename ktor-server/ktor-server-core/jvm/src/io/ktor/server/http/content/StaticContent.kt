@@ -80,7 +80,7 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
     internal var preCompressedFileTypes: List<CompressedFileType> = emptyList()
     internal var autoHeadResponse: Boolean = false
     internal var lastModifiedExtractor: (Resource) -> GMTDate? = { null }
-    internal var etagExtractor: (Resource) -> EntityTagVersion? = { null }
+    internal var etagExtractor: ETagProvider = ETagProvider { null }
 
     /**
      * Enables pre-compressed files or resources.
@@ -207,7 +207,7 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.StaticContentConfig.etag)
      */
-    public fun etag(block: (Resource) -> EntityTagVersion?) {
+    public fun etag(block: ETagProvider) {
         etagExtractor = block
     }
 
@@ -722,7 +722,7 @@ private suspend fun ApplicationCall.respondStaticFile(
     contentType: (File) -> ContentType,
     cacheControl: (File) -> List<CacheControl>,
     lastModified: (File) -> GMTDate?,
-    etag: (File) -> EntityTagVersion?,
+    etag: ETagProvider,
     modify: suspend (File, ApplicationCall) -> Unit,
     exclude: (File) -> Boolean,
     extensions: List<String>,
@@ -787,7 +787,7 @@ private suspend fun ApplicationCall.respondStaticPath(
     contentType: (Path) -> ContentType,
     cacheControl: (Path) -> List<CacheControl>,
     lastModified: (Path) -> GMTDate?,
-    etag: (Path) -> EntityTagVersion?,
+    etag: ETagProvider,
     modify: suspend (Path, ApplicationCall) -> Unit,
     exclude: (Path) -> Boolean,
     extensions: List<String>,
@@ -871,7 +871,7 @@ private suspend fun ApplicationCall.respondStaticResource(
     contentType: (URL) -> ContentType,
     cacheControl: (URL) -> List<CacheControl>,
     lastModified: (URL) -> GMTDate?,
-    etag: (URL) -> EntityTagVersion?,
+    etag: ETagProvider,
     modifier: suspend (URL, ApplicationCall) -> Unit,
     exclude: (URL) -> Boolean,
     extensions: List<String>,

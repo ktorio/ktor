@@ -122,7 +122,7 @@ internal suspend fun ApplicationCall.respondStaticFile(
     contentType: (File) -> ContentType = { ContentType.defaultForFile(it) },
     cacheControl: (File) -> List<CacheControl> = { emptyList() },
     lastModified: (File) -> GMTDate? = { null },
-    etag: (File) -> EntityTagVersion? = { null },
+    etag: ETagProvider = ETagProvider { null },
     modify: suspend (File, ApplicationCall) -> Unit = { _, _ -> }
 ) {
     attributes.put(StaticFileLocationProperty, requestedFile.path)
@@ -133,7 +133,7 @@ internal suspend fun ApplicationCall.respondStaticFile(
             if (cacheControlValues.isNotEmpty()) response.header(HttpHeaders.CacheControl, cacheControlValues)
             modify(requestedFile, this)
             val content = LocalFileContent(requestedFile, contentType(requestedFile)).apply {
-                etag(requestedFile)?.let { versions += it }
+                etag.provide(requestedFile)?.let { versions += it }
                 lastModified(requestedFile)?.let { versions += LastModifiedVersion(it) }
             }
             respond(content)
@@ -149,7 +149,7 @@ internal suspend fun ApplicationCall.respondStaticFile(
     )
     modify(requestedFile, this)
     val localFileContent = LocalFileContent(compressedFile, contentType(requestedFile)).apply {
-        etag(compressedFile)?.let { versions += it }
+        etag.provide(compressedFile)?.let { versions += it }
         lastModified(compressedFile)?.let { versions += LastModifiedVersion(it) }
     }
     respond(PreCompressedResponse(localFileContent, bestCompressionFit.encoding))
@@ -163,7 +163,7 @@ internal suspend fun ApplicationCall.respondStaticPath(
     cacheControl: (Path) -> List<CacheControl> = { emptyList() },
     modify: suspend (Path, ApplicationCall) -> Unit = { _, _ -> },
     lastModified: (Path) -> GMTDate? = { null },
-    etag: (Path) -> EntityTagVersion? = { null },
+    etag: ETagProvider = ETagProvider { null },
 ) {
     attributes.put(StaticFileLocationProperty, requestedPath.toString())
     val bestCompressionFit =
@@ -174,7 +174,7 @@ internal suspend fun ApplicationCall.respondStaticPath(
             if (cacheControlValues.isNotEmpty()) response.header(HttpHeaders.CacheControl, cacheControlValues)
             modify(requestedPath, this)
             val content = LocalPathContent(requestedPath, contentType(requestedPath)).apply {
-                etag(requestedPath)?.let { versions += it }
+                etag.provide(requestedPath)?.let { versions += it }
                 lastModified(requestedPath)?.let { versions += LastModifiedVersion(it) }
             }
             respond(content)
@@ -186,7 +186,7 @@ internal suspend fun ApplicationCall.respondStaticPath(
     if (cacheControlValues.isNotEmpty()) response.header(HttpHeaders.CacheControl, cacheControlValues)
     modify(requestedPath, this)
     val localFileContent = LocalPathContent(compressedPath, contentType(requestedPath)).apply {
-        etag(compressedPath)?.let { versions += it }
+        etag.provide(compressedPath)?.let { versions += it }
         lastModified(compressedPath)?.let { versions += LastModifiedVersion(it) }
     }
     respond(PreCompressedResponse(localFileContent, compression.encoding))
@@ -200,7 +200,7 @@ internal suspend fun ApplicationCall.respondStaticResource(
     cacheControl: (URL) -> List<CacheControl> = { emptyList() },
     modifier: suspend (URL, ApplicationCall) -> Unit = { _, _ -> },
     lastModified: (URL) -> GMTDate? = { null },
-    etag: (URL) -> EntityTagVersion? = { null },
+    etag: ETagProvider = ETagProvider { null },
     exclude: (URL) -> Boolean = { false }
 ) {
     attributes.put(StaticFileLocationProperty, requestedResource)
@@ -227,7 +227,7 @@ internal suspend fun ApplicationCall.respondStaticResource(
         )
         modifier(bestCompressionFit.url, this)
         val content = PreCompressedResponse(bestCompressionFit.content, bestCompressionFit.compression.encoding).apply {
-            etag(bestCompressionFit.url)?.let { versions += it }
+            etag.provide(bestCompressionFit.url)?.let { versions += it }
             lastModified(bestCompressionFit.url)?.let { versions += LastModifiedVersion(it) }
         }
         respond(content)
@@ -248,7 +248,7 @@ internal suspend fun ApplicationCall.respondStaticResource(
         if (cacheControlValues.isNotEmpty()) response.header(HttpHeaders.CacheControl, cacheControlValues)
         modifier(content.first, this)
         val outgoingContent = content.second.apply {
-            etag(content.first)?.let { versions += it }
+            etag.provide(content.first)?.let { versions += it }
             lastModified(content.first)?.let { versions += LastModifiedVersion(it) }
         }
         respond(outgoingContent)

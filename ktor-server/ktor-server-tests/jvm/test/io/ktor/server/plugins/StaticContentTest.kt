@@ -1529,7 +1529,7 @@ class StaticContentTest {
         routing {
             staticFiles("/static", filesDir) {
                 preCompressed(CompressedFileType.BROTLI, CompressedFileType.GZIP)
-                etag(EntityTagMode.StrongSha256)
+                etag(ETagProvider.StrongSha256)
             }
         }
 
