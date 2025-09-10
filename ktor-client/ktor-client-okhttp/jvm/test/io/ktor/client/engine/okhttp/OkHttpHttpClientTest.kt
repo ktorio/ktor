@@ -16,8 +16,11 @@ import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import okhttp3.OkHttpClient
+import org.junit.jupiter.api.assertInstanceOf
 import java.util.concurrent.TimeUnit
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.fail
 
 class OkHttpHttpClientTest : HttpClientTest(OkHttp) {
     @Test
@@ -71,21 +74,25 @@ class OkHttpHttpClientTest : HttpClientTest(OkHttp) {
     }
 
     @Test
-    fun testSSESessionTimeout() = runTest {
+    fun testSSESessionTimeout() {
         val okHttpClient = OkHttpClient.Builder().apply {
-            readTimeout(100, TimeUnit.MILLISECONDS)
+            readTimeout(1L, TimeUnit.SECONDS)
         }.build()
 
-        val client = HttpClient(OkHttp) {
+        HttpClient(OkHttp) {
             engine { preconfigured = okHttpClient }
             install(SSE)
-        }
-        assertFailsWith<SSEClientException> {
-            client.sse("$TEST_SERVER/sse/hello?delay=1000") {
-                incoming.collect()
+        }.use { client ->
+            runTest {
+                try {
+                    client.sse("$TEST_SERVER/sse/hello?delay=10000") {
+                        incoming.collect()
+                        fail("Request should error.")
+                    }
+                } catch (e: SSEClientException) {
+                    assertInstanceOf<SocketTimeoutException>(e.cause)
+                }
             }
-        }.apply {
-            assertTrue { cause is SocketTimeoutException }
         }
     }
 }
