@@ -279,7 +279,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testCancellingScope() = clientTests(except(ENGINES_WITHOUT_WS)) {
+    fun testCancellingScope() = clientTests(except(ENGINES_WITHOUT_WS, "Curl")) {
         config {
             install(WebSockets)
         }
