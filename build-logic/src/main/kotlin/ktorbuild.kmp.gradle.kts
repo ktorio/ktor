@@ -74,10 +74,10 @@ if (targets.hasNative) {
 
     // A workaround for KT-70915
     tasks.withType<KotlinNativeLink>()
-        .configureEach { withLimitedParallelism("native-link", maxParallelTasks = 1) }
+        .configureEach { withLimitedParallelism("native-tools", maxParallelTasks = 3) }
     // A workaround for KT-77609
     tasks.matching { it::class.simpleName?.startsWith("CInteropCommonizerTask") == true }
-        .configureEach { withLimitedParallelism("cinterop-commonizer", maxParallelTasks = 1) }
+        .configureEach { withLimitedParallelism("native-tools", maxParallelTasks = 3) }
 }
 
 if (ktorBuild.isCI.get()) configureTestTasksOnCi()
