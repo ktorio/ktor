@@ -4,10 +4,12 @@
 
 package io.ktor.client.plugins.sse
 
+import io.ktor.client.network.sockets.SocketTimeoutException
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.sse.*
 import io.ktor.util.logging.*
+import io.ktor.util.rootCause
 import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.*
@@ -147,7 +149,12 @@ public class DefaultClientSSESession(
     private suspend fun ByteReadChannel.tryParseEvent(): ServerSentEvent? =
         try {
             parseEvent()
-        } catch (_: ClosedByteChannelException) {
+        } catch (cause: ClosedByteChannelException) {
+            val rootCause = cause.rootCause
+            if (rootCause is SocketTimeoutException) {
+                throw rootCause
+            }
+
             // this is expected when the server disconnects
             null
         }
