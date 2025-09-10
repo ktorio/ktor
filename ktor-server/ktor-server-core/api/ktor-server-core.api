@@ -809,6 +809,15 @@ public final class io/ktor/server/http/content/DefaultTransformKt {
 	public static final fun transformDefaultContent (Lio/ktor/server/application/ApplicationCall;Ljava/lang/Object;)Lio/ktor/http/content/OutgoingContent;
 }
 
+public abstract interface class io/ktor/server/http/content/ETagProvider {
+	public static final field Companion Lio/ktor/server/http/content/ETagProvider$Companion;
+	public abstract fun provide (Ljava/lang/Object;)Lio/ktor/http/content/EntityTagVersion;
+}
+
+public final class io/ktor/server/http/content/ETagProvider$Companion {
+	public final fun getStrongSha256 ()Lio/ktor/server/http/content/ETagProvider;
+}
+
 public abstract interface class io/ktor/server/http/content/FileSystemPaths {
 	public static final field Companion Lio/ktor/server/http/content/FileSystemPaths$Companion;
 	public abstract fun getPath (Ljava/lang/String;[Ljava/lang/String;)Ljava/nio/file/Path;
@@ -900,9 +909,11 @@ public final class io/ktor/server/http/content/StaticContentConfig {
 	public final fun contentType (Lkotlin/jvm/functions/Function1;)V
 	public final fun default (Ljava/lang/String;)V
 	public final fun enableAutoHeadResponse ()V
+	public final fun etag (Lio/ktor/server/http/content/ETagProvider;)V
 	public final fun exclude (Lkotlin/jvm/functions/Function1;)V
 	public final fun extensions ([Ljava/lang/String;)V
 	public final fun fallback (Lkotlin/jvm/functions/Function3;)V
+	public final fun lastModified (Lkotlin/jvm/functions/Function1;)V
 	public final fun modify (Lkotlin/jvm/functions/Function3;)V
 	public final fun preCompressed ([Lio/ktor/server/http/content/CompressedFileType;)V
 }
@@ -1785,6 +1796,7 @@ public final class io/ktor/server/routing/RoutingPathSegmentKind : java/lang/Enu
 }
 
 public final class io/ktor/server/routing/RoutingPipelineCall : io/ktor/server/application/PipelineCall, kotlinx/coroutines/CoroutineScope {
+	public fun <init> (Lio/ktor/server/application/PipelineCall;Lio/ktor/server/routing/RoutingNode;Lio/ktor/server/request/ApplicationReceivePipeline;Lio/ktor/server/response/ApplicationSendPipeline;Lio/ktor/http/Parameters;)V
 	public fun <init> (Lio/ktor/server/application/PipelineCall;Lio/ktor/server/routing/RoutingNode;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/request/ApplicationReceivePipeline;Lio/ktor/server/response/ApplicationSendPipeline;Lio/ktor/http/Parameters;)V
 	public fun getApplication ()Lio/ktor/server/application/Application;
 	public fun getAttributes ()Lio/ktor/util/Attributes;

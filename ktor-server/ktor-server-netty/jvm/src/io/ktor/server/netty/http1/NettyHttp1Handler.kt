@@ -47,7 +47,13 @@ internal class NettyHttp1Handler(
         context.channel().read()
         context.pipeline().apply {
             addLast(RequestBodyHandler(context))
-            addLast(callEventGroup, NettyApplicationCallHandler(userContext, enginePipeline))
+            addLast(
+                callEventGroup,
+                NettyApplicationCallHandler(
+                    applicationProvider().coroutineContext + userContext,
+                    enginePipeline
+                )
+            )
         }
         context.fireChannelActive()
     }
@@ -139,13 +145,14 @@ internal class NettyHttp1Handler(
             else -> prepareRequestContentChannel(context, message)
         }
 
+        val application = applicationProvider()
         return NettyHttp1ApplicationCall(
-            applicationProvider(),
+            application,
             context,
             message,
             requestBodyChannel,
             engineContext,
-            userContext
+            application.coroutineContext + userContext
         )
     }
 

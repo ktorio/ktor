@@ -4,15 +4,20 @@
 
 package io.ktor.client.tests
 
-import io.ktor.client.call.body
+import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.compression.*
 import io.ktor.client.request.*
 import io.ktor.client.test.base.*
 import io.ktor.http.*
+import io.ktor.util.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.io.IOException
 import kotlin.test.*
+import kotlin.time.Duration.Companion.seconds
 
 class HttpRequestRetryTest {
 
@@ -480,6 +485,35 @@ class HttpRequestRetryTest {
             } catch (cause: Throwable) {
                 fail("No exception should be thrown", cause)
             }
+        }
+    }
+
+    // KTOR-8820
+    @Test
+    fun testRetryWithLargeEncodedBody() = testWithEngine(MockEngine, timeout = 1.seconds) {
+        config {
+            engine {
+                addHandler {
+                    // Compressed body size should be larger than DEFAULT_BUFFER_SIZE to reproduce the bug
+                    val bytes = ByteArray(2 * 1024 * 1024) { it.toByte() }
+                    respond(
+                        GZipEncoder.encode(ByteReadChannel(bytes)),
+                        headers = headersOf(HttpHeaders.ContentEncoding, "gzip"),
+                    )
+                }
+            }
+
+            install(HttpRequestRetry) {
+                noRetry()
+            }
+            install(ContentEncoding) {
+                gzip()
+            }
+        }
+
+        test { client ->
+            val response = client.get { }
+            assertEquals(HttpStatusCode.OK, response.status)
         }
     }
 }

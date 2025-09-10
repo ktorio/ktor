@@ -13,6 +13,7 @@ import io.ktor.server.http.content.FileSystemPaths.Companion.paths
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
+import io.ktor.util.date.*
 import java.io.File
 import java.net.URL
 import java.nio.file.FileSystem
@@ -78,6 +79,8 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
     internal var fallback: suspend (String, ApplicationCall) -> Unit = { _, _ -> }
     internal var preCompressedFileTypes: List<CompressedFileType> = emptyList()
     internal var autoHeadResponse: Boolean = false
+    internal var lastModifiedExtractor: (Resource) -> GMTDate? = { null }
+    internal var etagExtractor: ETagProvider = ETagProvider { null }
 
     /**
      * Enables pre-compressed files or resources.
@@ -183,6 +186,32 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
     }
 
     /**
+     * Configures [HttpHeaders.LastModified] for requested static content.
+     * For files, [Resource] is a requested [File].
+     * For resources, [Resource] is a [URL] to a requested resource.
+     *
+     * Note: for this functionality to work, you need to install the [ConditionalHeaders] plugin.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.StaticContentConfig.lastModified)
+     */
+    public fun lastModified(block: (Resource) -> GMTDate?) {
+        lastModifiedExtractor = block
+    }
+
+    /**
+     * Configures [HttpHeaders.ETag] for requested content.
+     * For files, [Resource] is a requested [File].
+     * For resources, [Resource] is a [URL] to a requested resource.
+     *
+     * Note: for this functionality to work, you need to install the [ConditionalHeaders] plugin.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.StaticContentConfig.etag)
+     */
+    public fun etag(block: ETagProvider) {
+        etagExtractor = block
+    }
+
+    /**
      * Configures resources that should not be served.
      * If this block returns `true` for [Resource], [Application] will respond with [HttpStatusCode.Forbidden].
      * Can be invoked multiple times.
@@ -242,6 +271,8 @@ public fun Route.staticFiles(
     val exclude = staticRoute.exclude
     val defaultPath = staticRoute.defaultPath
     val fallback = staticRoute.fallback
+    val lastModified = staticRoute.lastModifiedExtractor
+    val etag = staticRoute.etagExtractor
     return staticContentRoute(remotePath, autoHead) {
         respondStaticFile(
             index = index,
@@ -249,6 +280,8 @@ public fun Route.staticFiles(
             compressedTypes = compressedTypes,
             contentType = contentType,
             cacheControl = cacheControl,
+            lastModified = lastModified,
+            etag = etag,
             modify = modify,
             exclude = exclude,
             extensions = extensions,
@@ -286,6 +319,8 @@ public fun Route.staticResources(
     val exclude = staticRoute.exclude
     val defaultPath = staticRoute.defaultPath
     val fallback = staticRoute.fallback
+    val lastModified = staticRoute.lastModifiedExtractor
+    val etag = staticRoute.etagExtractor
     return staticContentRoute(remotePath, autoHead) {
         respondStaticResource(
             index = index,
@@ -293,6 +328,8 @@ public fun Route.staticResources(
             compressedTypes = compressedTypes,
             contentType = contentType,
             cacheControl = cacheControl,
+            lastModified = lastModified,
+            etag = etag,
             modifier = modifier,
             exclude = exclude,
             extensions = extensions,
@@ -400,6 +437,8 @@ public fun Route.staticFileSystem(
     val exclude = staticRoute.exclude
     val defaultPath = staticRoute.defaultPath
     val fallback = staticRoute.fallback
+    val lastModified = staticRoute.lastModifiedExtractor
+    val etag = staticRoute.etagExtractor
     return staticContentRoute(remotePath, autoHead) {
         respondStaticPath(
             fileSystem = fileSystem,
@@ -408,6 +447,8 @@ public fun Route.staticFileSystem(
             compressedTypes = compressedTypes,
             contentType = contentType,
             cacheControl = cacheControl,
+            lastModified = lastModified,
+            etag = etag,
             modify = modify,
             exclude = exclude,
             extensions = extensions,
@@ -449,6 +490,10 @@ public fun Route.preCompressed(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.staticRootFolder)
  */
+@Deprecated(
+    "This property only used in deprecated functions `files`, `file` and `default`. " +
+        "Please use `staticFiles` or `staticResources` instead"
+)
 public var Route.staticRootFolder: File?
     get() = attributes.getOrNull(staticRootFolderKey) ?: parent?.staticRootFolder
     set(value) {
@@ -676,6 +721,8 @@ private suspend fun ApplicationCall.respondStaticFile(
     compressedTypes: List<CompressedFileType>?,
     contentType: (File) -> ContentType,
     cacheControl: (File) -> List<CacheControl>,
+    lastModified: (File) -> GMTDate?,
+    etag: ETagProvider,
     modify: suspend (File, ApplicationCall) -> Unit,
     exclude: (File) -> Boolean,
     extensions: List<String>,
@@ -693,23 +740,39 @@ private suspend fun ApplicationCall.respondStaticFile(
 
     val isDirectory = requestedFile.isDirectory
     if (index != null && isDirectory) {
-        respondStaticFile(File(requestedFile, index), compressedTypes, contentType, cacheControl, modify)
+        respondStaticFile(
+            File(requestedFile, index),
+            compressedTypes,
+            contentType,
+            cacheControl,
+            lastModified,
+            etag,
+            modify
+        )
     } else if (!isDirectory) {
         if (checkExclude(requestedFile)) return
 
-        respondStaticFile(requestedFile, compressedTypes, contentType, cacheControl, modify)
+        respondStaticFile(requestedFile, compressedTypes, contentType, cacheControl, lastModified, etag, modify)
         if (isHandled) return
         for (extension in extensions) {
             val fileWithExtension = File("${requestedFile.path}.$extension")
             if (checkExclude(fileWithExtension)) return
-            respondStaticFile(fileWithExtension, compressedTypes, contentType, cacheControl, modify)
+            respondStaticFile(fileWithExtension, compressedTypes, contentType, cacheControl, lastModified, etag, modify)
             if (isHandled) return
         }
     }
 
     if (isHandled) return
     if (defaultPath != null) {
-        respondStaticFile(File(dir, defaultPath), compressedTypes, contentType, cacheControl, modify)
+        respondStaticFile(
+            File(dir, defaultPath),
+            compressedTypes,
+            contentType,
+            cacheControl,
+            lastModified,
+            etag,
+            modify
+        )
     }
 
     if (isHandled) return
@@ -723,6 +786,8 @@ private suspend fun ApplicationCall.respondStaticPath(
     compressedTypes: List<CompressedFileType>?,
     contentType: (Path) -> ContentType,
     cacheControl: (Path) -> List<CacheControl>,
+    lastModified: (Path) -> GMTDate?,
+    etag: ETagProvider,
     modify: suspend (Path, ApplicationCall) -> Unit,
     exclude: (Path) -> Boolean,
     extensions: List<String>,
@@ -740,16 +805,43 @@ private suspend fun ApplicationCall.respondStaticPath(
 
     val isDirectory = requestedPath.isDirectory()
     if (index != null && isDirectory) {
-        respondStaticPath(fileSystem, requestedPath.resolve(index), compressedTypes, contentType, cacheControl, modify)
+        respondStaticPath(
+            fileSystem,
+            requestedPath.resolve(index),
+            compressedTypes,
+            contentType,
+            cacheControl,
+            modify,
+            lastModified,
+            etag
+        )
     } else if (!isDirectory) {
         if (checkExclude(requestedPath)) return
 
-        respondStaticPath(fileSystem, requestedPath, compressedTypes, contentType, cacheControl, modify)
+        respondStaticPath(
+            fileSystem,
+            requestedPath,
+            compressedTypes,
+            contentType,
+            cacheControl,
+            modify,
+            lastModified,
+            etag
+        )
         if (isHandled) return
         for (extension in extensions) {
             val pathWithExtension = fileSystem.getPath("${requestedPath.pathString}.$extension")
             if (checkExclude(pathWithExtension)) return
-            respondStaticPath(fileSystem, pathWithExtension, compressedTypes, contentType, cacheControl, modify)
+            respondStaticPath(
+                fileSystem,
+                pathWithExtension,
+                compressedTypes,
+                contentType,
+                cacheControl,
+                modify,
+                lastModified,
+                etag
+            )
             if (isHandled) return
         }
     }
@@ -762,7 +854,9 @@ private suspend fun ApplicationCall.respondStaticPath(
             compressedTypes,
             contentType,
             cacheControl,
-            modify
+            modify,
+            lastModified,
+            etag
         )
     }
 
@@ -776,6 +870,8 @@ private suspend fun ApplicationCall.respondStaticResource(
     compressedTypes: List<CompressedFileType>?,
     contentType: (URL) -> ContentType,
     cacheControl: (URL) -> List<CacheControl>,
+    lastModified: (URL) -> GMTDate?,
+    etag: ETagProvider,
     modifier: suspend (URL, ApplicationCall) -> Unit,
     exclude: (URL) -> Boolean,
     extensions: List<String>,
@@ -791,6 +887,8 @@ private suspend fun ApplicationCall.respondStaticResource(
         contentType = contentType,
         cacheControl = cacheControl,
         modifier = modifier,
+        lastModified = lastModified,
+        etag = etag,
         exclude = exclude
     )
 
@@ -803,6 +901,8 @@ private suspend fun ApplicationCall.respondStaticResource(
             contentType = contentType,
             cacheControl = cacheControl,
             modifier = modifier,
+            lastModified = lastModified,
+            etag = etag,
             exclude = exclude
         )
         if (isHandled) return
@@ -815,7 +915,9 @@ private suspend fun ApplicationCall.respondStaticResource(
             compressedTypes = compressedTypes,
             contentType = contentType,
             cacheControl = cacheControl,
-            modifier = modifier
+            modifier = modifier,
+            lastModified = lastModified,
+            etag = etag,
         )
     }
 
@@ -827,7 +929,9 @@ private suspend fun ApplicationCall.respondStaticResource(
             compressedTypes = compressedTypes,
             contentType = contentType,
             cacheControl = cacheControl,
-            modifier = modifier
+            modifier = modifier,
+            lastModified = lastModified,
+            etag = etag,
         )
     }
 

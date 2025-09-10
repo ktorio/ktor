@@ -40,7 +40,7 @@ internal class Endpoint(
     private val deliveryPoint: Channel<RequestTask> = Channel()
     private val maxEndpointIdleTime: Long = 2 * config.endpoint.connectTimeout
 
-    private val timeout = launch(coroutineContext + CoroutineName("Endpoint timeout($host:$port)")) {
+    private val timeout = launch(coroutineContext + CoroutineName("cio-endpoint-timeout")) {
         try {
             while (true) {
                 val remaining = (lastActivity.value + maxEndpointIdleTime) - getTimeMillis()
@@ -317,7 +317,7 @@ internal class Endpoint(
 private fun setupTimeout(callContext: CoroutineContext, request: HttpRequestData, timeout: Long) {
     if (timeout == HttpTimeoutConfig.INFINITE_TIMEOUT_MS || timeout == 0L) return
 
-    val timeoutJob = GlobalScope.launch {
+    val timeoutJob = GlobalScope.launch(CoroutineName("cio-request-timeout")) {
         delay(timeout)
         callContext.job.cancel("Request is timed out", HttpRequestTimeoutException(request))
     }
