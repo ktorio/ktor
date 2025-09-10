@@ -229,7 +229,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun testShowComments() = clientTests(except("OkHttp")) {
+    fun testShowComments() = clientTests {
         config {
             install(SSE) {
                 showCommentEvents()
@@ -253,7 +253,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun testDifferentConfigs() = clientTests(except("OkHttp")) {
+    fun testDifferentConfigs() = clientTests {
         config {
             install(SSE) {
                 showCommentEvents()
@@ -380,10 +380,8 @@ class ServerSentEventsTest : ClientLoader() {
         }
     }
 
-    // Android, Darwin and Js engines don't support request body in GET request
-    // SSE in OkHttp and Curl doesn't send a request body for GET request
     @Test
-    fun testRequestBody() = clientTests(except("Android", "Darwin", "DarwinLegacy", "Js", "OkHttp", "Curl")) {
+    fun testRequestBody() = clientTests {
         config {
             install(SSE)
         }
@@ -392,6 +390,7 @@ class ServerSentEventsTest : ClientLoader() {
         val contentType = ContentType.Text.Plain
         test { client ->
             client.sse({
+                method = HttpMethod.Post
                 url("$TEST_SERVER/sse/echo")
                 setBody(body)
                 contentType(contentType)
@@ -403,7 +402,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun testErrorForProtocolUpgradeRequestBody() = clientTests(except("OkHttp")) {
+    fun testErrorForProtocolUpgradeRequestBody() = clientTests {
         config {
             install(SSE)
         }
@@ -423,9 +422,12 @@ class ServerSentEventsTest : ClientLoader() {
         test { client ->
             assertFailsWith<SSEClientException> {
                 client.sse({
+                    method = HttpMethod.Post
                     url("$TEST_SERVER/sse/echo")
                     setBody(body)
                 }) {}
+            }.apply {
+                assertTrue { message!!.contains("Failed to write body") }
             }
         }
     }
@@ -579,7 +581,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun testReconnection() = clientTests(except("OkHttp")) {
+    fun testReconnection() = clientTests {
         config {
             install(SSE) {
                 maxReconnectionAttempts = 1
@@ -603,7 +605,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun testClientExceptionDuringSSESession() = clientTests(except("OkHttp")) {
+    fun testClientExceptionDuringSSESession() = clientTests {
         config {
             install(SSE) {
                 maxReconnectionAttempts = 1
@@ -635,7 +637,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun testServerExceptionDuringSSESession() = clientTests(except("OkHttp")) {
+    fun testServerExceptionDuringSSESession() = clientTests {
         config {
             install(SSE) {
                 reconnectionTime = 100.milliseconds
@@ -664,7 +666,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun testSeveralReconnections() = clientTests(except("OkHttp")) {
+    fun testSeveralReconnections() = clientTests {
         config {
             install(SSE) {
                 maxReconnectionAttempts = 2
@@ -693,7 +695,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun testMaxRetries() = clientTests(except("OkHttp")) {
+    fun testMaxRetries() = clientTests {
         config {
             install(SSE) {
                 reconnectionTime = 10.milliseconds
@@ -723,7 +725,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun testNoContent() = clientTests(except("OkHttp")) {
+    fun testNoContent() = clientTests {
         config {
             install(SSE) {
                 maxReconnectionAttempts = 1
@@ -751,7 +753,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun testNoContentStream() = clientTests(except("OkHttp")) {
+    fun testNoContentStream() = clientTests {
         config {
             install(SSE)
         }
@@ -765,7 +767,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun `test response body with BufferPolicy-All`() = clientTests(except("OkHttp")) {
+    fun `test response body with BufferPolicy-All`() = clientTests {
         config {
             install(SSE) {
                 bufferPolicy = SSEBufferPolicy.All
@@ -793,7 +795,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun `test local BufferPolicy wins`() = clientTests(except("OkHttp")) {
+    fun `test local BufferPolicy wins`() = clientTests {
         config {
             install(SSE) {
                 bufferPolicy = SSEBufferPolicy.All
@@ -815,7 +817,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun `test response body with BufferPolicy-LastLines`() = clientTests(except("OkHttp")) {
+    fun `test response body with BufferPolicy-LastLines`() = clientTests {
         config {
             install(SSE)
         }
@@ -847,7 +849,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun `test response body with BufferPolicy-LastEvent`() = clientTests(except("OkHttp")) {
+    fun `test response body with BufferPolicy-LastEvent`() = clientTests {
         config {
             install(SSE)
         }
@@ -878,7 +880,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun `test response body with BufferPolicy-LastEvents`() = clientTests(except("OkHttp")) {
+    fun `test response body with BufferPolicy-LastEvents`() = clientTests {
         config {
             install(SSE)
         }
@@ -913,7 +915,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun `test body contains only proceeded data`() = clientTests(except("OkHttp")) {
+    fun `test body contains only proceeded data`() = clientTests {
         config {
             install(SSE)
         }
@@ -932,7 +934,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun `test full response body in exception on non-200 status`() = clientTests(except("OkHttp")) {
+    fun `test full response body in exception on non-200 status`() = clientTests {
         config {
             install(SSE)
         }

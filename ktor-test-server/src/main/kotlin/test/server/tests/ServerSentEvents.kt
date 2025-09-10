@@ -73,7 +73,7 @@ internal fun Application.serverSentEvents() {
                     writeSseEvents(events)
                 }
             }
-            get("/echo") {
+            post("/echo") {
                 call.respondSseEvents(
                     flow {
                         emit(SseEvent(call.receiveText()))
