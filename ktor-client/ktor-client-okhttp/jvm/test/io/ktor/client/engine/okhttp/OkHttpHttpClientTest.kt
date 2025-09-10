@@ -16,6 +16,7 @@ import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import okhttp3.OkHttpClient
+import org.junit.jupiter.api.assertInstanceOf
 import java.util.concurrent.TimeUnit
 import kotlin.test.*
 
@@ -70,6 +71,7 @@ class OkHttpHttpClientTest : HttpClientTest(OkHttp) {
         assertEquals(0, okHttpClient.connectionPool.connectionCount())
     }
 
+    @Ignore("Flaky test: KTOR-8854")
     @Test
     fun testSSESessionTimeout() = runTest {
         val okHttpClient = OkHttpClient.Builder().apply {
@@ -85,7 +87,7 @@ class OkHttpHttpClientTest : HttpClientTest(OkHttp) {
                 incoming.collect()
             }
         }.apply {
-            assertTrue { cause is SocketTimeoutException }
+            assertInstanceOf<SocketTimeoutException>(cause)
         }
     }
 }
