@@ -278,6 +278,10 @@ public final class io/ktor/utils/io/DeprecationKt {
 public abstract interface annotation class io/ktor/utils/io/ExperimentalKtorApi : java/lang/annotation/Annotation {
 }
 
+public final class io/ktor/utils/io/IODispatcher_jvmKt {
+	public static final fun ioDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
+}
+
 public abstract interface annotation class io/ktor/utils/io/InternalAPI : java/lang/annotation/Annotation {
 }
 
