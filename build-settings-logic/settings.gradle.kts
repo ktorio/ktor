@@ -21,6 +21,7 @@ dependencyResolutionManagement {
     }
 
     repositories {
+        google()
         gradlePluginPortal()
 
         // Should be in sync with ktorsettings.kotlin-user-project

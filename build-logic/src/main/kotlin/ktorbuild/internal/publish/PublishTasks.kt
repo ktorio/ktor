@@ -17,6 +17,7 @@ import org.gradle.kotlin.dsl.withType
 
 private val jvmAndCommonPublications = setOf(
     "jvm",
+    "android",
     "androidRelease",
     "androidDebug",
     "metadata",

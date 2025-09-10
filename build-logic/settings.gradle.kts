@@ -5,6 +5,7 @@
 pluginManagement {
     // Add repositories required for build-settings-logic
     repositories {
+        google()
         gradlePluginPortal()
 
         // Should be in sync with ktorsettings.kotlin-user-project
