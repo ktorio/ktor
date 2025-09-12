@@ -1,3 +1,39 @@
+# 3.3.0
+> Published 11 September 2025
+
+### Features
+* Support for server side http2 without tls (h2c) ([KTOR-4750](https://youtrack.jetbrains.com/issue/KTOR-4750))
+* OpenAPI generation build extension preview ([KTOR-8721](https://youtrack.jetbrains.com/issue/KTOR-8721))
+* Serve static resources with caching headers and ETag based on sha256 of content ([KTOR-6700](https://youtrack.jetbrains.com/issue/KTOR-6700))
+* Jetty engine: Upgrade Jetty dependencies to the latest version 12 ([KTOR-6734](https://youtrack.jetbrains.com/issue/KTOR-6734))
+* OpenAPI server plugin enhancements for generated specs ([KTOR-8722](https://youtrack.jetbrains.com/issue/KTOR-8722))
+* staticFiles: when directory is requested, file listing or an error message should be returned ([KTOR-8115](https://youtrack.jetbrains.com/issue/KTOR-8115))
+* Static content: Support a custom respond logic if the file is not found ([KTOR-8496](https://youtrack.jetbrains.com/issue/KTOR-8496))
+* Upgrade OkHttp to version 5.0.0 ([KTOR-8652](https://youtrack.jetbrains.com/issue/KTOR-8652))
+
+### Improvements
+* SSE: Cannot read response body from SSEClientException ([KTOR-8165](https://youtrack.jetbrains.com/issue/KTOR-8165))
+* SSE: "SSEClientException: Content-Length mismatch" on saving response body in DefaultResponseValidation ([KTOR-8753](https://youtrack.jetbrains.com/issue/KTOR-8753))
+* `var Route.staticRootFolder: File?` should be deprecated ([KTOR-5836](https://youtrack.jetbrains.com/issue/KTOR-5836))
+* Add `image/bmp` to the ContentType ([KTOR-8735](https://youtrack.jetbrains.com/issue/KTOR-8735))
+* Add some missing image content types ([KTOR-8624](https://youtrack.jetbrains.com/issue/KTOR-8624))
+* Upgrade to Kotlin 2.2 ([KTOR-8647](https://youtrack.jetbrains.com/issue/KTOR-8647))
+* Bump Kotlin API level to 2.2 ([KTOR-8637](https://youtrack.jetbrains.com/issue/KTOR-8637))
+* CIO: The engine ignores system proxy settings ([KTOR-5922](https://youtrack.jetbrains.com/issue/KTOR-5922))
+
+### Bugfixes
+* Performance regression when using ContentEncoding and HttpRequestRetry since 3.2.0 ([KTOR-8820](https://youtrack.jetbrains.com/issue/KTOR-8820))
+* Big number of simultaneous outbound web socket connections leads to a coroutine deadlock ([KTOR-8829](https://youtrack.jetbrains.com/issue/KTOR-8829))
+* DI: JobCancellationException during cleanup ([KTOR-8785](https://youtrack.jetbrains.com/issue/KTOR-8785))
+* Autoreloading: JobCancellationException when app is reloaded in the debugger since 3.2.0 ([KTOR-8810](https://youtrack.jetbrains.com/issue/KTOR-8810))
+* HttpRedirect: The client is redirected when no Location header in response ([KTOR-8697](https://youtrack.jetbrains.com/issue/KTOR-8697))
+* SerializationException when Application.propertyOrNull() is called with type Map<String, Any?> ([KTOR-8781](https://youtrack.jetbrains.com/issue/KTOR-8781))
+* "Failed resolution of: Ljava/lang/management/ManagementFactory" on Android when JvmGcMetrics are initialized ([KTOR-8714](https://youtrack.jetbrains.com/issue/KTOR-8714))
+* HttpCache: all header values but first in HttpResponse.varyKeys() are ignored ([KTOR-6402](https://youtrack.jetbrains.com/issue/KTOR-6402))
+* HttpCache: plugin selects wrong cache entry when filtering Vary headers with different case ([KTOR-7621](https://youtrack.jetbrains.com/issue/KTOR-7621))
+* CountedByteWriteChannel: autoFlush of the source channel doesn't make the channel auto flushing ([KTOR-8411](https://youtrack.jetbrains.com/issue/KTOR-8411))
+
+
 # 3.2.3
 > Published 29 July 2025
 
