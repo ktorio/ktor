@@ -9,6 +9,7 @@
 * staticFiles: when directory is requested, file listing or an error message should be returned ([KTOR-8115](https://youtrack.jetbrains.com/issue/KTOR-8115))
 * Static content: Support a custom respond logic if the file is not found ([KTOR-8496](https://youtrack.jetbrains.com/issue/KTOR-8496))
 * Upgrade OkHttp to version 5.0.0 ([KTOR-8652](https://youtrack.jetbrains.com/issue/KTOR-8652))
+* WebRTC Client, Android + WASM ([KTOR-7958](https://youtrack.jetbrains.com/issue/KTOR-7958))
 
 ### Improvements
 * SSE: Cannot read response body from SSEClientException ([KTOR-8165](https://youtrack.jetbrains.com/issue/KTOR-8165))
