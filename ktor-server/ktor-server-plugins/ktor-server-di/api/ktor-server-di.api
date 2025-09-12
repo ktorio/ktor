@@ -277,6 +277,7 @@ public final class io/ktor/server/plugins/di/DependencyRegistry$KeyContext {
 public final class io/ktor/server/plugins/di/DependencyRegistryKt {
 	public static final fun dependencies (Lio/ktor/server/application/Application;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 	public static final fun getDependencies (Lio/ktor/server/application/Application;)Lio/ktor/server/plugins/di/DependencyRegistry;
+	public static final fun getDependencies (Lio/ktor/server/routing/Route;)Lio/ktor/server/plugins/di/DependencyRegistry;
 	public static final fun setDependencies (Lio/ktor/server/application/Application;Lio/ktor/server/plugins/di/DependencyRegistry;)V
 }
 
