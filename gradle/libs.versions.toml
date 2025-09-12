@@ -17,7 +17,7 @@ kotlinx-browser = "0.3.1"
 # Used for test server in buildSrc
 ktor = "3.3.0-eap-1398"
 
-netty = "4.2.4.Final"
+netty = "4.2.6.Final"
 netty-tcnative = "2.0.73.Final"
 
 jetty = "9.4.58.v20250814"
