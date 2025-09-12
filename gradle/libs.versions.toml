@@ -1,6 +1,6 @@
 [versions]
 
-kotlin = "2.2.10"
+kotlin = "2.2.20"
 android-kmp-plugin = "8.9.2"
 androidx = "1.6.1"
 kotlinx-html = "0.12.0"
