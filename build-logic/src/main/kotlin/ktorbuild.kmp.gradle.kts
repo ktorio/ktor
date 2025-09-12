@@ -50,6 +50,8 @@ if (targets.hasWasmJs) configureWasmJs()
 if (targets.hasAndroidJvm && project.hasAndroidPlugin()) configureAndroidJvm()
 
 if (targets.hasJsOrWasmJs) {
+    configureNodeJs()
+
     tasks.configureEach {
         if (name == "compileJsAndWasmSharedMainKotlinMetadata") enabled = false
     }
