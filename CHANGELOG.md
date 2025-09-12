@@ -6,7 +6,6 @@
 * OpenAPI generation build extension preview ([KTOR-8721](https://youtrack.jetbrains.com/issue/KTOR-8721))
 * Serve static resources with caching headers and ETag based on sha256 of content ([KTOR-6700](https://youtrack.jetbrains.com/issue/KTOR-6700))
 * Jetty engine: Upgrade Jetty dependencies to the latest version 12 ([KTOR-6734](https://youtrack.jetbrains.com/issue/KTOR-6734))
-* OpenAPI server plugin enhancements for generated specs ([KTOR-8722](https://youtrack.jetbrains.com/issue/KTOR-8722))
 * staticFiles: when directory is requested, file listing or an error message should be returned ([KTOR-8115](https://youtrack.jetbrains.com/issue/KTOR-8115))
 * Static content: Support a custom respond logic if the file is not found ([KTOR-8496](https://youtrack.jetbrains.com/issue/KTOR-8496))
 * Upgrade OkHttp to version 5.0.0 ([KTOR-8652](https://youtrack.jetbrains.com/issue/KTOR-8652))
