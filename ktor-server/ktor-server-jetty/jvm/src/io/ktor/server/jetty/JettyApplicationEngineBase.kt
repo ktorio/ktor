@@ -7,6 +7,7 @@ package io.ktor.server.jetty
 import io.ktor.events.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.CompletableJob
 import org.eclipse.jetty.server.HttpConfiguration
 import org.eclipse.jetty.server.Server
@@ -42,7 +43,7 @@ public open class JettyApplicationEngineBase(
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.jetty.JettyApplicationEngineBase.Configuration.configureServer)
          */
-        public var configureServer: Server.() -> Unit = {}
+        public var configureServer: (@KtorDsl Server).() -> Unit = {}
 
         /**
          * Property function that will be called during Jetty server initialization with the http configuration instance
@@ -50,7 +51,7 @@ public open class JettyApplicationEngineBase(
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.jetty.JettyApplicationEngineBase.Configuration.httpConfiguration)
          */
-        public var httpConfiguration: HttpConfiguration.() -> Unit = {}
+        public var httpConfiguration: (@KtorDsl HttpConfiguration).() -> Unit = {}
 
         /**
          * The duration of time that a connection can be idle before the connector takes action to close the connection.

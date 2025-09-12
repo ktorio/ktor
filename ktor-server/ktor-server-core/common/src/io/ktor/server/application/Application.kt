@@ -21,6 +21,7 @@ import kotlin.coroutines.EmptyCoroutineContext
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ServerConfigBuilder)
  */
+@KtorDsl
 public class ServerConfigBuilder(
     public val environment: ApplicationEnvironment
 ) {
