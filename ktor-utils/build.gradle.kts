@@ -31,6 +31,9 @@ kotlin {
         commonTest.dependencies {
             api(projects.ktorTestDispatcher)
         }
+        jvmMain.dependencies {
+            implementation(libs.zstd.jni)
+        }
         jvmTest.dependencies {
             implementation(projects.ktorTestBase)
         }
