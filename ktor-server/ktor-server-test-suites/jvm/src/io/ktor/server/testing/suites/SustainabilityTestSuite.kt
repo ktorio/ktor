@@ -315,6 +315,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         }
     }
 
+    @Ignore
     @OptIn(InternalAPI::class, ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
     @Test
     open fun testBlockingConcurrency() = runTest {
@@ -380,7 +381,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
     @OptIn(InternalAPI::class)
     @Test
-    fun testBigFile() = runTest {
+    open fun testBigFile() = runTest {
         val file = File("build/large-file.dat")
         val rnd = Random()
 

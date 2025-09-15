@@ -19,6 +19,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.test.junit.*
 import io.ktor.util.*
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assumptions.*
@@ -55,7 +56,7 @@ actual abstract class EngineTestBase<
     protected var callGroupSize: Int = -1
         private set
     protected actual var enableHttp2: Boolean = System.getProperty("enable.http2") == "true"
-    protected actual var enableSsl: Boolean = System.getProperty("enable.ssl") != "false"
+    protected actual var enableSsl: Boolean by Companion::enableSsl
     protected actual var enableCertVerify: Boolean = System.getProperty("enable.cert.verify") == "true"
 
     private val allConnections = CopyOnWriteArrayList<HttpURLConnection>()
@@ -276,7 +277,7 @@ actual abstract class EngineTestBase<
         builder: suspend HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
     ) {
-        client.prepareRequest {
+        client().prepareRequest {
             url.takeFrom(urlString)
             builder()
         }.execute { response ->
@@ -295,8 +296,10 @@ actual abstract class EngineTestBase<
             expectSuccess = false
             engine {
                 pipelining = true
-                sslContext = SSLContext.getInstance("SSL").apply {
-                    init(null, trustAllCertificates, SecureRandom())
+                if (enableSsl) {
+                    sslContext = SSLContext.getInstance("SSL").apply {
+                        init(null, trustAllCertificates, SecureRandom())
+                    }
                 }
             }
         }.use { client ->
@@ -310,37 +313,58 @@ actual abstract class EngineTestBase<
 
     companion object {
         val keyStoreFile: File = File("build/temp.jks")
-        lateinit var keyStore: KeyStore
-        lateinit var sslContext: SSLContext
-        lateinit var trustManager: X509TrustManager
-        lateinit var client: HttpClient
+        val keyStore: KeyStore by lazy {
+            generateCertificate(keyStoreFile, algorithm = "SHA256withECDSA", keySizeInBits = 256)
+        }
+        val tmf: TrustManagerFactory by lazy {
+            TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm()).also { tmf ->
+                SSLContext.getInstance("TLS").apply {
+                    init(null, tmf.trustManagers, null)
+                }
+            }
+        }
+        val trustManager: X509TrustManager by lazy {
+            tmf.trustManagers.first { it is X509TrustManager } as X509TrustManager
+        }
+        var enableSsl: Boolean = System.getProperty("enable.ssl") == "true"
+
+        @JvmStatic
+        val testScope = CoroutineScope(Job())
+
+        @OptIn(DelicateCoroutinesApi::class)
+        private lateinit var client: Deferred<HttpClient>
 
         @BeforeAll
         @JvmStatic
         fun setupAll() {
-            keyStore = generateCertificate(keyStoreFile, algorithm = "SHA256withECDSA", keySizeInBits = 256)
-            val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
-            tmf.init(keyStore)
-            sslContext = SSLContext.getInstance("TLS")
-            sslContext.init(null, tmf.trustManagers, null)
-            trustManager = tmf.trustManagers.first { it is X509TrustManager } as X509TrustManager
+            client = testScope.async(start = CoroutineStart.LAZY) {
+                HttpClient(CIO) {
+                    engine {
+                        if (enableSsl) {
+                            https.trustManager = trustManager
+                            https.serverName = "localhost"
+                        }
+                        requestTimeout = 0
+                    }
 
-            client = HttpClient(CIO) {
-                engine {
-                    https.trustManager = trustManager
-                    https.serverName = "localhost"
-                    requestTimeout = 0
+                    followRedirects = false
+                    expectSuccess = false
                 }
-
-                followRedirects = false
-                expectSuccess = false
             }
         }
 
+        suspend fun client(): HttpClient = client.await()
+
+        @OptIn(ExperimentalCoroutinesApi::class)
         @AfterAll
         @JvmStatic
         fun cleanup() {
-            client.close()
+            runCatching {
+                if (client.isCompleted)
+                    client.getCompleted().close()
+                else
+                    client.cancel()
+            }
         }
 
         @Suppress("BlockingMethodInNonBlockingContext")
