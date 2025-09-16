@@ -10,8 +10,8 @@ import io.ktor.server.application.*
 import io.ktor.server.plugins.*
 import io.ktor.server.util.*
 import io.ktor.utils.io.*
-import java.io.*
-import java.net.*
+import java.io.File
+import java.net.URL
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -93,9 +93,11 @@ public fun resourceClasspathResource(
             if (path.endsWith("/")) {
                 null
             } else {
-                val zipFile = findContainingJarFile(url.toString())
-                val content = JarFileContent(zipFile, path, mimeResolve(url))
-                if (content.isFile) content else null
+                val zipFile = findSimpleJarFile(url.toString())
+                if (zipFile == null) {
+                    return URIFileContent(url, mimeResolve(url))
+                }
+                JarFileContent(zipFile, path, mimeResolve(url)).takeIf { it.isFile }
             }
         }
 
@@ -107,15 +109,20 @@ public fun resourceClasspathResource(
     }
 }
 
-internal fun findContainingJarFile(url: String): File {
-    if (url.startsWith("jar:file:")) {
-        val jarPathSeparator = url.indexOf("!", startIndex = 9)
-        require(jarPathSeparator != -1) { "Jar path requires !/ separator but it is: $url" }
+// Only optimize single-level local 'jar:file:/...!/entry'
+internal fun findSimpleJarFile(url: String): File? {
+    if (!url.startsWith("jar:file:")) return null
 
-        return File(url.substring(9, jarPathSeparator).decodeURLPart())
+    val jarPathSeparator = url.indexOf("!", startIndex = 9)
+    if (jarPathSeparator == -1) {
+        return null
+    }
+    val nextJarSeparator = url.indexOf("!", startIndex = jarPathSeparator + 1)
+    if (nextJarSeparator != -1) {
+        return null
     }
 
-    throw IllegalArgumentException("Only local jars are supported (jar:file:)")
+    return File(url.substring(9, jarPathSeparator).decodeURLPart())
 }
 
 internal fun String.extension(): String {
