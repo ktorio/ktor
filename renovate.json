@@ -6,6 +6,7 @@
     ":label(dependencies)",
     "schedule:automergeNonOfficeHours"
   ],
+  "baseBranchPatterns": ["main","release/*"],
   "rebaseWhen": "conflicted",
   "packageRules": [
     {
@@ -66,11 +67,15 @@
       "enabled": false
     },
     {
-      "description": "Automerge non-major releases",
-      "matchUpdateTypes": [
-        "patch",
-        "minor"
-      ],
+      "description": "Patch updates go to release branch",
+      "matchUpdateTypes": ["patch"],
+      "matchBaseBranches": ["release/*"],
+      "automerge": true
+    },
+    {
+      "description": "Minor updates go to main branch",
+      "matchUpdateTypes": ["minor"],
+      "matchBaseBranches": ["main"],
       "automerge": true
     },
     {
@@ -86,6 +91,7 @@
         "org.jmailen.gradle:kotlinter-gradle",
         "org.junit.jupiter:junit-jupiter"
       ],
+      "matchBaseBranches": ["release/*"],
       "automerge": true
     }
   ]
