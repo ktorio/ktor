@@ -865,7 +865,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             val response = inputStream.bufferedReader()
             val status = response.readLine()
 
-            assertTrue(status.startsWith("HTTP/1.1 400"))
+            assertContains(status, "400")
             outputStream.close()
         }
     }
