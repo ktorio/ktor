@@ -7,6 +7,7 @@ package io.ktor.tests.http
 import io.ktor.server.http.content.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 
 class FindContainingJarFileTest {
@@ -29,8 +30,10 @@ class FindContainingJarFileTest {
     }
 
     @Test
-    fun testNestedJar() {
+    fun testNestedAndNonLocalJars() {
         assertNull(findContainingJarFile("jar:nested:/pathto/app.jar/!BOOT-INF/classes/!/static"))
-        assertNull(findContainingJarFile("jar:file:/pathto/app.jar/!BOOT-INF/classes/!/static"))
+        assertFailsWith<IllegalArgumentException> {
+            findContainingJarFile("jar:file:/pathto/app.jar/!BOOT-INF/classes/!/static")
+        }
     }
 }

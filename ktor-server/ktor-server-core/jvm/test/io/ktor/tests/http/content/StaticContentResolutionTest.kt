@@ -15,7 +15,6 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.net.URL
-import java.util.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -88,32 +87,6 @@ class StaticContentResolutionTest {
                 }
             }
             assertEquals(1, callCount)
-        }
-    }
-
-    @Test
-    fun testNestedJar() = testApplication {
-        val outer = javaClass.classLoader.getResource("nested.jar")
-        val nestedUrl = URL("jar", "", "$outer!/lib/dependency.jar!/static/index.html")
-
-        environment {
-            classLoader = object : ClassLoader(null) {
-                override fun getResources(name: String?): Enumeration<URL> {
-                    if (name == "static/index.html") {
-                        return Collections.enumeration(listOf(nestedUrl))
-                    }
-                    return Collections.emptyEnumeration()
-                }
-            }
-        }
-
-        application {
-            routing { staticResources("/static", "static") }
-        }
-
-        client.get("/static/index.html").apply {
-            assertEquals(HttpStatusCode.OK, status)
-            assertEquals("ok", bodyAsText())
         }
     }
 }
