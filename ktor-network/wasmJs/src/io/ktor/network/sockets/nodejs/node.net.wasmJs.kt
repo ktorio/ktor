@@ -39,7 +39,7 @@ internal actual fun ByteArray.toJsBuffer(fromIndex: Int, toIndex: Int): JsBuffer
 }
 
 internal actual fun JsBuffer.toByteArray(): ByteArray {
-    val array = Int8Array(justCast<ArrayBuffer>(this))
+    val array = justCast<Uint8Array>(this)
     val bytes = ByteArray(array.length)
 
     repeat(array.length) { index ->
