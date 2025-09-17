@@ -11,12 +11,14 @@ import io.ktor.server.http.content.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import io.ktor.util.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
-import java.io.*
-import java.net.*
-import kotlin.test.*
+import kotlinx.coroutines.runBlocking
+import java.io.File
+import java.net.URL
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 class StaticContentResolutionTest {
 
