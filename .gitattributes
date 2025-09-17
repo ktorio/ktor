@@ -1,1 +1,2 @@
-version.gradle.kts merge=ours
+# Prevent merges from clobbering version
+VERSION merge=ours

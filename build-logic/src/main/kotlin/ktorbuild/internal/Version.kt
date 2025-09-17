@@ -14,7 +14,7 @@ import org.gradle.api.Project
  * ```
  */
 internal fun Project.resolveVersion(): String {
-    val projectVersion = project.version.toString()
+    val projectVersion = project.rootDir.resolve("VERSION").readText().trim()
     val releaseVersion = providers.gradleProperty("releaseVersion").orNull
     val eapVersion = providers.gradleProperty("eapVersion").orNull
 

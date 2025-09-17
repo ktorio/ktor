@@ -10,8 +10,6 @@ plugins {
     id("ktorbuild.publish.verifier")
 }
 
-apply(from = "version.gradle.kts")
-
 println("Build version: ${project.version}")
 println("Kotlin version: ${libs.versions.kotlin.get()}")
 
