@@ -10,6 +10,7 @@ import java.net.*
 internal interface URLConnectionFactory {
     operator fun invoke(urlString: String): HttpURLConnection
     fun protocolFromRequest(connection: HttpURLConnection): HttpProtocolVersion {
+        // This is not exposed with HttpEngine
         return HttpProtocolVersion.HTTP_1_1
     }
 
@@ -19,10 +20,5 @@ internal interface URLConnectionFactory {
             val connection: URLConnection = config.proxy?.let { url.openConnection(it) } ?: url.openConnection()
             return connection as HttpURLConnection
         }
-
-        // Work out how to get version
-//        override fun protocolFromRequest(connection: HttpURLConnection): HttpProtocolVersion {
-//            return connection
-//        }
     }
 }
