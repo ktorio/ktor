@@ -79,18 +79,11 @@ public class Apache5EngineConfig : HttpClientEngineConfig() {
      */
     public var sslHostnameVerificationPolicy: HostnameVerificationPolicy = HostnameVerificationPolicy.BOTH
 
-    /**
-     * Configures the `AsyncClientConnectionManager` used by the Apache5 engine.
-     *
-     * We recommend using this function instead of `customizeClient { setConnectionManager(...) }`, so you do not
-     * override the Ktor-managed connection manager and inadvertently bypass engine settings and timeout mapping.
-     */
-    public var configureConnectionManager:
-        (PoolingAsyncClientConnectionManagerBuilder.() -> PoolingAsyncClientConnectionManagerBuilder) = { this }
-
     internal var customRequest: (RequestConfig.Builder.() -> RequestConfig.Builder) = { this }
 
     internal var customClient: (HttpAsyncClientBuilder.() -> HttpAsyncClientBuilder) = { this }
+
+    internal var configureConnectionManager: PoolingAsyncClientConnectionManagerBuilder.() -> Unit = {}
 
     /**
      * Customizes a [RequestConfig.Builder] in the specified [block].
@@ -110,5 +103,17 @@ public class Apache5EngineConfig : HttpClientEngineConfig() {
     public fun customizeClient(block: HttpAsyncClientBuilder.() -> Unit) {
         val current = customClient
         customClient = { current().apply(block) }
+    }
+
+    /**
+     * Configures the `AsyncClientConnectionManager` used by the Apache5 engine.
+     *
+     * We recommend using this function instead of `customizeClient { setConnectionManager(...) }`,
+     * to avoid replacing the Ktor‑managed manager and inadvertently bypass engine settings and timeout mapping.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.apache5.Apache5EngineConfig.configureConnectionManager)
+     */
+    public fun configureConnectionManager(block: PoolingAsyncClientConnectionManagerBuilder.() -> Unit) {
+        configureConnectionManager = { block() }
     }
 }

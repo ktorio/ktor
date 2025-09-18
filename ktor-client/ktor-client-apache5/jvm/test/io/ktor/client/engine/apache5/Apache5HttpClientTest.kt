@@ -27,18 +27,18 @@ class Apache5HttpClientTest : HttpClientTest(Apache5) {
     fun testSocketTimeoutWithCustomConnectionManager() = runBlocking {
         val client = HttpClient(Apache5) {
             engine {
-                configureConnectionManager = {
+                configureConnectionManager {
                     setMaxConnPerRoute(1_000)
                     setMaxConnTotal(2_000)
                 }
             }
             install(HttpTimeout) {
-                socketTimeoutMillis = 500
+                socketTimeoutMillis = 1000
             }
         }
 
         assertFailsWith<ClosedByteChannelException> {
-            client.prepareGet("http://localhost:$serverPort/sse/delay/1000").execute { response: HttpResponse ->
+            client.prepareGet("http://localhost:$serverPort/sse/delay/2000").execute { response: HttpResponse ->
                 val channel = response.bodyAsChannel()
                 while (!channel.isClosedForRead) {
                     channel.readUTF8Line()
@@ -55,20 +55,20 @@ class Apache5HttpClientTest : HttpClientTest(Apache5) {
     fun testCustomTimeoutOverridesHttpTimeout() = runBlocking {
         val client = HttpClient(Apache5) {
             engine {
-                configureConnectionManager = {
+                configureConnectionManager {
                     setDefaultConnectionConfig(
                         ConnectionConfig.custom()
-                            .setSocketTimeout(Timeout.ofMilliseconds(1000))
+                            .setSocketTimeout(Timeout.ofMilliseconds(10000))
                             .build()
                     )
                 }
             }
             install(HttpTimeout) {
-                socketTimeoutMillis = 100
+                socketTimeoutMillis = 1000
             }
         }
 
-        client.prepareGet("http://localhost:$serverPort/sse/delay/200").execute { response: HttpResponse ->
+        client.prepareGet("http://localhost:$serverPort/sse/delay/2000").execute { response: HttpResponse ->
             val channel = response.bodyAsChannel()
             assertEquals("data: hello", channel.readUTF8Line())
         }
