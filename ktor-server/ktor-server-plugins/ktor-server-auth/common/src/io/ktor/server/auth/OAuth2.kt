@@ -26,7 +26,10 @@ private val Logger: Logger = KtorSimpleLogger("io.ktor.auth.oauth")
 
 internal suspend fun ApplicationCall.oauth2HandleCallback(): OAuthCallback? {
     val params = when (request.contentType()) {
-        ContentType.Application.FormUrlEncoded -> receiveParameters()
+        ContentType.Application.FormUrlEncoded -> {
+            attributes.put(cacheOAuthFormReceiveKey, Unit)
+            receiveParameters()
+        }
         else -> parameters
     }
     val code = params[OAuth2RequestParameters.Code]
@@ -47,7 +50,7 @@ internal suspend fun ApplicationCall.redirectAuthenticateOAuth2(
     state: String,
     extraParameters: List<Pair<String, String>> = emptyList(),
     scopes: List<String> = emptyList(),
-    interceptor: URLBuilder.() -> Unit
+    interceptor: URLBuilder.(ApplicationRequest) -> Unit
 ) {
     redirectAuthenticateOAuth2(
         authenticateUrl = settings.authorizeUrl,
@@ -99,7 +102,7 @@ private suspend fun ApplicationCall.redirectAuthenticateOAuth2(
     state: String,
     scopes: List<String>,
     parameters: List<Pair<String, String>>,
-    interceptor: URLBuilder.() -> Unit
+    interceptor: URLBuilder.(ApplicationRequest) -> Unit
 ) {
     val url = URLBuilder()
     url.takeFrom(authenticateUrl)
@@ -113,7 +116,7 @@ private suspend fun ApplicationCall.redirectAuthenticateOAuth2(
         append(OAuth2RequestParameters.ResponseType, "code")
         parameters.forEach { (k, v) -> append(k, v) }
     }
-    interceptor(url)
+    url.interceptor(this.request)
 
     return respondRedirect(url.buildString())
 }

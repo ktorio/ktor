@@ -18,11 +18,6 @@ with some of the [low hanging fruit](https://youtrack.jetbrains.com/issues?q=%23
 
 ### Building the project
 
-> [!IMPORTANT]
-> This project requires JDK 21.
-> Make sure you have JDK 21 installed before attempting to build the project.
-> If you use IntelliJ IDEA, you should also select JDK 21 in **"Project Structure" > "Project" > "SDK"**
-
 Ktor is built with Gradle. Given it is multiplatform, you can build Ktor for the JVM, Native, and JavaScript.
 
 To build the projects and produce the corresponding artifacts, use
@@ -36,7 +31,23 @@ for other platforms, the corresponding tests for these should also be run. To se
 
 `./gradlew tasks`
 
-For Ktor to build correctly, a series of additional libraries/tools need to be installed, based on the operating
+#### System requirements
+
+The project requires JDK 21.
+Make sure you have it installed before attempting to build the project.
+If you use IntelliJ IDEA, you should also select JDK 21 in **"Project Structure" > "Project" > "SDK"**
+
+Up to 12 GB of free RAM is required to build the project.
+This amount can be reduced by decreasing the `Xmx` value in `gradle.properties`.
+Read the comments in `gradle.properties` for more details.
+
+If targeting macOS and/or iOS, install `Xcode` and `Xcode command line tools` on macOS.
+
+<details>
+<summary>Requirements for Ktor before 3.1.0</summary>
+
+For versions of Ktor before 3.1.0 to build correctly,
+a series of additional libraries/tools need to be installed, based on the operating
 system you use for development:
 
 **Linux**
@@ -57,12 +68,12 @@ Run the following commands:
 brew install curl ncurses
 ```
 
-If targeting macOS and/or iOS, install `Xcode` and `Xcode command line tools` on macOS.
-
 **Windows**
 
 For development on Windows, it is recommended to use [Cygwin](http://cygwin.com/) which will provide the necessary
 libraries such as `libncurses`.
+
+</details>
 
 #### Referencing artifacts locally
 
@@ -80,6 +91,18 @@ includeBuild("/PATH/TO/KTOR")
 To import into IntelliJ IDEA, just open up the `Ktor` project folder. IntelliJ IDEA should automatically detect
 that it is a Gradle project and import it. It's important that you make sure that all building and test operations
 are delegated to Gradle under [Gradle Settings](https://www.jetbrains.com/help/idea/gradle-settings.html).
+
+#### Working with Rust-based Modules Locally
+
+The `ktor-client-webrtc-rs` module utilizes Rust components internally. To develop with this module in your local environment, you'll need to complete the following setup steps:
+
+**Prerequisites:**
+- Install Rust and Cargo on your system
+- Configure your build environment by adding `ktorbuild.rustCompilation=true` to your global `gradle.properties` file
+  > ⚠️ **Important:** This setting should remain local to your development environment—do not commit this change to version control
+
+**Additional Dependencies:**
+Depending on your target platforms, you may need to install additional dependencies for Rust cross-compilation. For comprehensive guidance on cross-compilation requirements and troubleshooting, refer to the [Gobley cross-compilation documentation](https://gobley.dev/docs/cross-compilation-tips).
 
 ### Pull Requests
 

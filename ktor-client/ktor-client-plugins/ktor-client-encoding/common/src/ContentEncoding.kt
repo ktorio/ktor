@@ -1,12 +1,12 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.compression
 
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.plugins.api.*
-import io.ktor.client.plugins.observer.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -15,7 +15,6 @@ import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.CoroutineScope
 
 private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.compression.ContentEncoding")
 
@@ -128,24 +127,24 @@ public val ContentEncoding: ClientPlugin<ContentEncodingConfig> = createClientPl
         }
     }
 
-    fun CoroutineScope.decode(response: HttpResponse): HttpResponse {
-        val encodings =
-            response.headers[HttpHeaders.ContentEncoding]?.split(",")?.map { it.trim().lowercase() } ?: run {
-                LOGGER.trace(
-                    "Empty or no Content-Encoding header in response. " +
-                        "Skipping ContentEncoding for ${response.call.request.url}"
-                )
-                return response
-            }
+    fun HttpResponse.decodeContent(encoders: List<ContentEncoder>): ByteReadChannel {
+        var current = rawContent
+        for (encoder in encoders) {
+            LOGGER.trace { "Decoding response with $encoder for ${call.request.url}" }
+            current = encoder.decode(current, coroutineContext)
+        }
 
-        var current = response.rawContent
-        for (encoding in encodings.reversed()) {
-            val encoder: Encoder = encoders[encoding] ?: throw UnsupportedContentEncodingException(encoding)
+        return current
+    }
 
-            LOGGER.trace("Decoding response with $encoder for ${response.call.request.url}")
-            with(encoder) {
-                current = decode(current, response.coroutineContext)
-            }
+    fun decode(response: HttpResponse): HttpResponse {
+        if (!shouldDecode(response)) return response
+        val contentEncodingHeader = response.headers[HttpHeaders.ContentEncoding]
+            ?: error("${HttpHeaders.ContentEncoding} unavailable")
+        val encodings = contentEncodingHeader.split(",").map { it.trim().lowercase() }
+
+        val selectedEncoders = encodings.asReversed().map { encoding ->
+            encoders[encoding] ?: throw UnsupportedContentEncodingException(encoding)
         }
 
         val headers = headers {
@@ -166,13 +165,13 @@ public val ContentEncoding: ClientPlugin<ContentEncodingConfig> = createClientPl
             }
         }
         response.call.attributes.put(DecompressionListAttribute, encodings)
-        return response.call.wrap(current, headers).response
+        return response.call.replaceResponse(headers) { decodeContent(selectedEncoders) }.response
     }
 
     onRequest { request, _ ->
         if (!mode.response) return@onRequest
         if (request.headers.contains(HttpHeaders.AcceptEncoding)) return@onRequest
-        LOGGER.trace("Adding Accept-Encoding=$requestHeader for ${request.url}")
+        LOGGER.trace { "Adding Accept-Encoding=$requestHeader for ${request.url}" }
         request.headers[HttpHeaders.AcceptEncoding] = requestHeader
     }
 
@@ -180,11 +179,11 @@ public val ContentEncoding: ClientPlugin<ContentEncodingConfig> = createClientPl
         if (!mode.request) return@on null
 
         val encoderNames = request.attributes.getOrNull(CompressionListAttribute) ?: run {
-            LOGGER.trace("Skipping request compression for ${request.url} because no compressions set")
+            LOGGER.trace { "Skipping request compression for ${request.url} because no compressions set" }
             return@on null
         }
 
-        LOGGER.trace("Compressing request body for ${request.url} using $encoderNames")
+        LOGGER.trace { "Compressing request body for ${request.url} using $encoderNames" }
         val selectedEncoders = encoderNames.map {
             encoders[it] ?: throw UnsupportedContentEncodingException(it)
         }
@@ -204,7 +203,7 @@ public val ContentEncoding: ClientPlugin<ContentEncodingConfig> = createClientPl
         if (contentLength == 0L) return@on null
         if (contentLength == null && method == HttpMethod.Head) return@on null
 
-        return@on response.call.decode(response)
+        return@on decode(response)
     }
 }
 
@@ -295,3 +294,5 @@ public fun HttpRequestBuilder.compress(contentEncoderNames: List<String>) {
  */
 public val HttpResponse.appliedDecoders: List<String>
     get() = call.attributes.getOrNull(DecompressionListAttribute) ?: emptyList()
+
+internal expect fun shouldDecode(response: HttpResponse): Boolean

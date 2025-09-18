@@ -25,8 +25,6 @@ internal fun testSockets(
     }
 }
 
-internal expect fun Any.supportsUnixDomainSockets(): Boolean
-
 internal expect fun Throwable.isPosixException(): Boolean
 
 @OptIn(ExperimentalUuidApi::class)
@@ -37,3 +35,5 @@ internal fun createTempFilePath(basename: String): String {
 internal fun removeFile(path: String) {
     SystemFileSystem.delete(Path(path), mustExist = false)
 }
+
+internal expect fun initSocketsIfNeeded()

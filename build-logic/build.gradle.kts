@@ -10,11 +10,12 @@ dependencies {
     implementation(libs.kotlin.gradlePlugin)
     implementation(libs.kotlin.serialization)
     implementation(libs.kotlinx.atomicfu.gradlePlugin)
-    implementation(libs.kotlinx.binaryCompatibilityValidator)
     implementation(libs.dokka.gradlePlugin)
     implementation(libs.develocity)
     implementation(libs.gradleDoctor)
     implementation(libs.kotlinter)
+    implementation(libs.mavenPublishing)
+    implementation(libs.android.kmp.library)
 
     // A hack to make version catalogs accessible from buildSrc sources
     // https://github.com/gradle/gradle/issues/15383#issuecomment-779893192

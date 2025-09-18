@@ -11,6 +11,8 @@ package io.ktor.network.sockets
  * such as Internet-specific or other platform-dependent address types.
  * Implementations of this class are expected to be platform-specific and provide
  * details necessary to work with socket connections or bindings.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.SocketAddress)
  */
 public expect sealed class SocketAddress
 
@@ -19,6 +21,8 @@ public expect sealed class SocketAddress
  *
  * If the `SocketAddress` instance is of type `InetSocketAddress`, the associated port is returned.
  * Otherwise, an `UnsupportedOperationException` is thrown, as the provided address type does not support ports.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.port)
  *
  * @return the port number of the socket address if available.
  * @throws UnsupportedOperationException if the socket address type does not support a port.
@@ -47,6 +51,18 @@ public expect class InetSocketAddress(
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.InetSocketAddress.port)
      */
     public val port: Int
+
+    /**
+     * Returns the raw IP address bytes of this socket address.
+     *
+     * The returned array is 4-bytes for IPv4 addresses and 16-bytes for IPv6 addresses.
+     * Returns `null` if the address cannot be resolved or is not a valid IP address.
+     *
+     * Always returns `null` for Kotlin/JS and Kotlin/Wasm targets.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.InetSocketAddress.resolveAddress)
+     */
+    public fun resolveAddress(): ByteArray?
 
     /**
      * The hostname of the socket address.
@@ -104,4 +120,15 @@ public expect class UnixSocketAddress(
     override fun equals(other: Any?): Boolean
     override fun hashCode(): Int
     override fun toString(): String
+
+    public companion object {
+        /**
+         * Checks if Unix domain sockets are supported on the current platform.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.UnixSocketAddress.Companion.isSupported)
+         *
+         * @return `true` if Unix domain sockets are supported, `false` otherwise.
+         */
+        public fun isSupported(): Boolean
+    }
 }

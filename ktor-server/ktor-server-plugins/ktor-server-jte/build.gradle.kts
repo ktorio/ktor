@@ -6,22 +6,20 @@ plugins {
     id("ktorbuild.project.server-plugin")
 }
 
-ktorBuild {
+kotlin {
     // The minimal JDK version required for jte 3.0+
     jvmToolchain(17)
-}
 
-kotlin {
     sourceSets {
         jvmMain.dependencies {
             api(libs.jte)
         }
         jvmTest.dependencies {
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-status-pages"))
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-compression"))
-            api(project(":ktor-server:ktor-server-plugins:ktor-server-conditional-headers"))
+            api(projects.ktorServerStatusPages)
+            api(projects.ktorServerCompression)
+            api(projects.ktorServerConditionalHeaders)
             api(libs.jte.kotlin)
-            implementation(project(":ktor-server:ktor-server-plugins:ktor-server-content-negotiation"))
+            implementation(projects.ktorServerContentNegotiation)
         }
     }
 }

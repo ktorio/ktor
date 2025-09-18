@@ -1,13 +1,13 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.logging
 
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.api.*
-import io.ktor.client.plugins.isSaved
 import io.ktor.client.plugins.observer.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -18,13 +18,8 @@ import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
-import io.ktor.utils.io.core.readText
-import io.ktor.utils.io.core.writeFully
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
+import io.ktor.utils.io.core.*
+import kotlinx.coroutines.*
 import kotlinx.io.Buffer
 
 private val ClientCallLogger = AttributeKey<HttpClientCallLogger>("CallLogger")
@@ -156,17 +151,25 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         }
 
         val buffer = Buffer().apply { writeFully(firstChunk, 0, firstReadSize) }
-        val firstChunkText = charset.newDecoder().decode(buffer, firstReadSize)
 
-        var lastCharIndex = -1
-        for (ch in firstChunkText) {
-            lastCharIndex += 1
+        val firstChunkText = try {
+            charset.newDecoder().decode(buffer)
+        } catch (_: MalformedInputException) {
+            isBinary = true
+            ""
         }
 
-        for ((i, ch) in firstChunkText.withIndex()) {
-            if (ch == '\ufffd' && i != lastCharIndex) {
-                isBinary = true
-                break
+        if (!isBinary) {
+            var lastCharIndex = -1
+            for (ch in firstChunkText) {
+                lastCharIndex += 1
+            }
+
+            for ((i, ch) in firstChunkText.withIndex()) {
+                if (ch == '\ufffd' && i != lastCharIndex) {
+                    isBinary = true
+                    break
+                }
             }
         }
 
@@ -233,22 +236,27 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
                 logRequestBody(content, bytes.size.toLong(), headers, method, logLines, ByteReadChannel(bytes))
                 null
             }
+
             is OutgoingContent.ContentWrapper -> {
                 logOutgoingContent(content.delegate(), method, headers, logLines, process)
             }
+
             is OutgoingContent.NoContent -> {
                 logLines.add("--> END ${method.value}")
                 null
             }
+
             is OutgoingContent.ProtocolUpgrade -> {
                 logLines.add("--> END ${method.value}")
                 null
             }
+
             is OutgoingContent.ReadChannelContent -> {
                 val (origChannel, newChannel) = content.readFrom().split(client)
                 logRequestBody(content, content.contentLength, headers, method, logLines, newChannel)
                 LoggedContent(content, origChannel)
             }
+
             is OutgoingContent.WriteChannelContent -> {
                 val channel = ByteChannel()
 
@@ -443,7 +451,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
 
         logResponseBody(response, newChannel, logLines)
 
-        val call = response.call.wrapWithContent(origChannel)
+        val call = response.call.replaceResponse { origChannel }
         return call.response
     }
 
@@ -604,7 +612,13 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
             throw cause
         } finally {
             callLogger.logResponseHeader(header.toString())
-            if (failed || !level.body) callLogger.closeResponseLog()
+            if (failed || !level.body) {
+                callLogger.closeResponseLog()
+            } else if (level.body && response.isSaved) {
+                // Log only saved response body here. Streaming responses are logged via ResponseObserver
+                callLogger.logResponseBody(response)
+                callLogger.closeResponseLog()
+            }
         }
     }
 
@@ -631,24 +645,19 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
 
     if (!level.body) return@createClientPlugin
 
-    @OptIn(InternalAPI::class)
-    val observer: ResponseHandler = observer@{
-        if (level == LogLevel.NONE || it.call.attributes.contains(DisableLogging)) {
-            return@observer
-        }
+    val responseObserver = ResponseObserver.prepare {
+        // Use observer to log streaming responses (responses that aren't saved in memory)
+        filter { !it.response.isSaved }
 
-        val callLogger = it.call.attributes[ClientCallLogger]
-        val log = StringBuilder()
-        try {
-            logResponseBody(log, it.contentType(), it.rawContent)
-        } catch (_: Throwable) {
-        } finally {
-            callLogger.logResponseBody(log.toString().trim())
+        onResponse { response ->
+            if (level == LogLevel.NONE || response.call.attributes.contains(DisableLogging)) return@onResponse
+
+            val callLogger = response.call.attributes[ClientCallLogger]
+            callLogger.logResponseBody(response)
             callLogger.closeResponseLog()
         }
     }
-
-    ResponseObserver.install(ResponseObserver.prepare { onResponse(observer) }, client)
+    ResponseObserver.install(responseObserver, client)
 }
 
 private fun Url.pathQuery(): String {

@@ -8,6 +8,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.metrics.dropwizard.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -244,7 +245,7 @@ class MicrometerMetricsTests {
             this.first().run {
                 assertTag("throwable", "n/a")
                 assertTag("status", "404")
-                assertTag("route", "/uri")
+                assertTag("route", "n/a")
                 assertTag("method", "GET")
                 assertTag("address", "localhost:80")
             }
@@ -398,6 +399,63 @@ class MicrometerMetricsTests {
             val gauge = find(activeRequestsGaugeName).gauge()
             val configurableGauge = find(activeRequestsGaugeName).gauge()
             assertEquals(gauge, configurableGauge)
+        }
+    }
+
+    @Test
+    fun `route transformation can be configured`() = testApplication {
+        val testRegistry = SimpleMeterRegistry()
+
+        install(MicrometerMetrics) {
+            registry = testRegistry
+            transformRoute {
+                "/prefix${it.path}"
+            }
+        }
+
+        routing {
+            get("/uri") {
+                call.respond("some response")
+            }
+        }
+
+        client.request("/uri")
+
+        with(testRegistry.find(requestTimeTimerName).timers()) {
+            assertEquals(1, size)
+            this.first().run {
+                assertTag("route", "/prefix/uri")
+            }
+        }
+    }
+
+    @Test
+    fun `route with auth plugin should not include authentication provider`() = testApplication {
+        val testRegistry = SimpleMeterRegistry()
+
+        install(MicrometerMetrics) {
+            registry = testRegistry
+        }
+
+        install(Authentication) {
+            bearer { }
+        }
+
+        routing {
+            authenticate {
+                get("/uri") {
+                    call.respond("some response")
+                }
+            }
+        }
+
+        client.request("/uri")
+
+        with(testRegistry.find(requestTimeTimerName).timers()) {
+            assertEquals(1, size)
+            this.first().run {
+                assertTag("route", "/uri")
+            }
         }
     }
 

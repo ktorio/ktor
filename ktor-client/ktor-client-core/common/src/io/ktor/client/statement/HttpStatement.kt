@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.statement
 
@@ -9,7 +9,8 @@ import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CompletableJob
+import kotlinx.coroutines.job
 
 /**
  * Represents a prepared HTTP request statement for [HttpClient].
@@ -145,7 +146,7 @@ public class HttpStatement(
     @OptIn(InternalAPI::class)
     internal suspend fun fetchStreamingResponse(): HttpResponse = unwrapRequestTimeoutException {
         val builder = HttpRequestBuilder().takeFromWithExecutionContext(builder)
-        builder.skipSavingBody()
+        builder.skipSaveBody()
 
         val call = client.execute(builder)
         return call.response
@@ -158,7 +159,10 @@ public class HttpStatement(
     @OptIn(InternalAPI::class)
     internal suspend fun fetchResponse(): HttpResponse = unwrapRequestTimeoutException {
         val builder = HttpRequestBuilder().takeFromWithExecutionContext(builder)
+
         val call = client.execute(builder)
+        // Save the body again to make sure that it is replayable after pipeline execution
+        // We need this because wrongly implemented plugins could make response body non-replayable
         val result = call.save().response
         call.response.cleanup()
 
@@ -171,13 +175,17 @@ public class HttpStatement(
     @PublishedApi
     @OptIn(InternalAPI::class)
     internal suspend fun HttpResponse.cleanup() {
-        val job = coroutineContext[Job]!! as CompletableJob
+        val job = coroutineContext.job as CompletableJob
 
         job.apply {
             complete()
-            try {
-                rawContent.cancel()
-            } catch (_: Throwable) {
+            // If the response is saved, the underlying channel is already closed and
+            // calling `rawContent` would create a new one
+            if (!isSaved) {
+                try {
+                    rawContent.cancel()
+                } catch (_: Throwable) {
+                }
             }
             join()
         }

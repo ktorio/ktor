@@ -17,9 +17,9 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.coroutines.debug.junit5.CoroutinesTimeout
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
+import io.ktor.utils.io.*
+import kotlinx.coroutines.test.runTest
+import org.junit.jupiter.api.assertThrows
 import java.io.File
 import java.net.ConnectException
 import java.net.ServerSocket
@@ -30,7 +30,6 @@ import javax.net.ssl.X509TrustManager
 import kotlin.concurrent.thread
 import kotlin.test.*
 
-@CoroutinesTimeout(5 * 60 * 1000)
 class ConnectErrorsTest {
 
     private val serverSocket = ServerSocket(0, 1)
@@ -41,7 +40,7 @@ class ConnectErrorsTest {
     }
 
     @Test
-    fun testConnectAfterConnectionErrors(): Unit = runBlocking {
+    fun testConnectAfterConnectionErrors() = runTest {
         val client = HttpClient(CIO) {
             engine {
                 maxConnectionsCount = 1
@@ -76,16 +75,15 @@ class ConnectErrorsTest {
                     } catch (ignore: SocketException) {
                     }
                 }
-                withTimeout(10000L) {
-                    assertEquals("OK", client.get("http://localhost:${serverSocket.localPort}/").body())
-                }
+
+                assertEquals("OK", client.get("http://localhost:${serverSocket.localPort}/").body())
                 thread.join()
             }
         }
     }
 
     @Test
-    fun testResponseWithNoLengthChunkedAndConnectionClosedWithHttp10(): Unit = runBlocking {
+    fun testResponseWithNoLengthChunkedAndConnectionClosedWithHttp10() = runTest {
         val client = HttpClient(CIO)
 
         client.use {
@@ -112,7 +110,7 @@ class ConnectErrorsTest {
     }
 
     @Test
-    fun testResponseErrorWithNoLengthChunkedAndConnectionClosedWithHttp11(): Unit = runBlocking {
+    fun testResponseErrorWithNoLengthChunkedAndConnectionClosedWithHttp11() = runTest {
         val client = HttpClient(CIO)
 
         client.use {
@@ -139,7 +137,7 @@ class ConnectErrorsTest {
     }
 
     @Test
-    fun testResponseErrorWithInvalidChunkException(): Unit = runBlocking {
+    fun testResponseErrorWithInvalidChunkException() = runTest {
         val client = HttpClient(CIO) {
             install(HttpRequestRetry) {
                 retryOnException(maxRetries = 3)
@@ -171,9 +169,9 @@ class ConnectErrorsTest {
                             }
                         }
                     }
-                    runCatching(prematureDisconnect)
-                    runCatching(prematureDisconnect)
-                    runCatching(respondCorrectly)
+                    prematureDisconnect()
+                    prematureDisconnect()
+                    respondCorrectly()
                 }
 
                 val response = client.get("http://localhost:${serverSocket.localPort}/")
@@ -185,7 +183,29 @@ class ConnectErrorsTest {
     }
 
     @Test
-    fun testLateServerStart(): Unit = runBlocking {
+    fun testConnectionClosedBeforeReadingResponseStatusLine() = runTest {
+        val client = HttpClient(CIO)
+
+        client.use {
+            serverSocket.close()
+
+            ServerSocket(serverSocket.localPort).use { server ->
+                val thread = thread {
+                    server.accept().use {
+                        // emulate connection closed before sending status line
+                    }
+                }
+
+                assertThrows<ClosedReadChannelException> {
+                    client.get("http://localhost:${serverSocket.localPort}/")
+                }
+                thread.join()
+            }
+        }
+    }
+
+    @Test
+    fun testLateServerStart() = runTest {
         val keyStoreFile = File("build/temp.jks")
         val keyStore = generateCertificate(keyStoreFile, algorithm = "SHA256withECDSA", keySizeInBits = 256)
 
@@ -233,7 +253,7 @@ class ConnectErrorsTest {
             }
 
             try {
-                server.start(wait = false)
+                server.startSuspend(wait = false)
 
                 val message = client.get { url(scheme = "https", path = "/", port = serverPort) }.body<String>()
                 assertEquals("OK", message)

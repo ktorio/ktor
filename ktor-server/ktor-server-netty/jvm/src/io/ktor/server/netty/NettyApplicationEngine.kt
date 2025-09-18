@@ -23,7 +23,6 @@ import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.handler.codec.http.HttpObjectDecoder
 import io.netty.handler.codec.http.HttpServerCodec
 import kotlinx.coroutines.CompletableJob
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.asCoroutineDispatcher
 import java.net.BindException
 import java.util.concurrent.TimeUnit
@@ -126,6 +125,13 @@ public class NettyApplicationEngine(
         public var enableHttp2: Boolean = true
 
         /**
+         * If set to `true` and [enableHttp2] is set to `true`, enables HTTP/2 protocol without TLS for Netty engine
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.NettyApplicationEngine.Configuration.enableH2c)
+         */
+        public var enableH2c: Boolean = false
+
+        /**
          * User-provided function to configure Netty's [HttpServerCodec]
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.NettyApplicationEngine.Configuration.httpServerCodec)
@@ -185,10 +191,6 @@ public class NettyApplicationEngine(
         }
     }
 
-    private val nettyDispatcher: CoroutineDispatcher by lazy {
-        NettyDispatcher
-    }
-
     private val workerDispatcher by lazy {
         workerEventGroup.asCoroutineDispatcher()
     }
@@ -200,11 +202,6 @@ public class NettyApplicationEngine(
         configuration.connectors.map(::createBootstrap)
     }
 
-    private val userContext = applicationProvider().parentCoroutineContext +
-        nettyDispatcher +
-        NettyApplicationCallHandler.CallHandlerCoroutineName +
-        DefaultUncaughtExceptionHandler(environment.log)
-
     private fun createBootstrap(connector: EngineConnectorConfig): ServerBootstrap {
         return customBootstrap.clone().apply {
             if (config().group() == null && config().childGroup() == null) {
@@ -214,6 +211,10 @@ public class NettyApplicationEngine(
             if (config().channelFactory() == null) {
                 channel(getChannelClass().java)
             }
+
+            val userContext =
+                NettyApplicationCallHandler.CallHandlerCoroutineName +
+                    DefaultUncaughtExceptionHandler(environment.log)
 
             childHandler(
                 NettyChannelInitializer(
@@ -229,7 +230,8 @@ public class NettyApplicationEngine(
                     configuration.requestReadTimeoutSeconds,
                     configuration.httpServerCodec,
                     configuration.channelPipelineConfig,
-                    configuration.enableHttp2
+                    configuration.enableHttp2,
+                    configuration.enableH2c
                 )
             )
             if (configuration.tcpKeepAlive) {

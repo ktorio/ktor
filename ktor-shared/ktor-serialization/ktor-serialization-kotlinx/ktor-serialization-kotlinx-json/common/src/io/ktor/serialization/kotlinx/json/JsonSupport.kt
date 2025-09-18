@@ -48,7 +48,7 @@ public val DefaultJson: Json =
  *     })
  * }
  * ```
- * You can learn more from [Content negotiation and serialization](https://ktor.io/docs/serialization.html).
+ * You can learn more from the corresponding [client](https://ktor.io/docs/client-serialization.html#-3bcvpz_156) and [server](https://ktor.io/docs/server-serialization.html#-230zkf_173) documentation.
  *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.kotlinx.json.json)

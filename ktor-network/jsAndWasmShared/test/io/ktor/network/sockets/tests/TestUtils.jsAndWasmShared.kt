@@ -4,6 +4,6 @@
 
 package io.ktor.network.sockets.tests
 
-internal actual fun Any.supportsUnixDomainSockets(): Boolean = false
-
 internal actual fun Throwable.isPosixException(): Boolean = false
+
+actual fun initSocketsIfNeeded() {}

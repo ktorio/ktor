@@ -10,6 +10,17 @@ open annotation class io.ktor.server.response/UseHttp2Push : kotlin/Annotation {
     constructor <init>() // io.ktor.server.response/UseHttp2Push.<init>|<init>(){}[0]
 }
 
+final enum class io.ktor.server.application/ApplicationStartupMode : kotlin/Enum<io.ktor.server.application/ApplicationStartupMode> { // io.ktor.server.application/ApplicationStartupMode|null[0]
+    enum entry CONCURRENT // io.ktor.server.application/ApplicationStartupMode.CONCURRENT|null[0]
+    enum entry SEQUENTIAL // io.ktor.server.application/ApplicationStartupMode.SEQUENTIAL|null[0]
+
+    final val entries // io.ktor.server.application/ApplicationStartupMode.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<io.ktor.server.application/ApplicationStartupMode> // io.ktor.server.application/ApplicationStartupMode.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): io.ktor.server.application/ApplicationStartupMode // io.ktor.server.application/ApplicationStartupMode.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<io.ktor.server.application/ApplicationStartupMode> // io.ktor.server.application/ApplicationStartupMode.values|values#static(){}[0]
+}
+
 final enum class io.ktor.server.routing/RoutingPathSegmentKind : kotlin/Enum<io.ktor.server.routing/RoutingPathSegmentKind> { // io.ktor.server.routing/RoutingPathSegmentKind|null[0]
     enum entry Constant // io.ktor.server.routing/RoutingPathSegmentKind.Constant|null[0]
     enum entry Parameter // io.ktor.server.routing/RoutingPathSegmentKind.Parameter|null[0]
@@ -90,8 +101,26 @@ abstract interface io.ktor.server.config/ApplicationConfig { // io.ktor.server.c
 }
 
 abstract interface io.ktor.server.config/ApplicationConfigValue { // io.ktor.server.config/ApplicationConfigValue|null[0]
+    abstract val type // io.ktor.server.config/ApplicationConfigValue.type|{}type[0]
+        abstract fun <get-type>(): io.ktor.server.config/ApplicationConfigValue.Type // io.ktor.server.config/ApplicationConfigValue.type.<get-type>|<get-type>(){}[0]
+
+    abstract fun getAs(io.ktor.util.reflect/TypeInfo): kotlin/Any? // io.ktor.server.config/ApplicationConfigValue.getAs|getAs(io.ktor.util.reflect.TypeInfo){}[0]
     abstract fun getList(): kotlin.collections/List<kotlin/String> // io.ktor.server.config/ApplicationConfigValue.getList|getList(){}[0]
+    abstract fun getMap(): kotlin.collections/Map<kotlin/String, kotlin/Any?> // io.ktor.server.config/ApplicationConfigValue.getMap|getMap(){}[0]
     abstract fun getString(): kotlin/String // io.ktor.server.config/ApplicationConfigValue.getString|getString(){}[0]
+
+    final enum class Type : kotlin/Enum<io.ktor.server.config/ApplicationConfigValue.Type> { // io.ktor.server.config/ApplicationConfigValue.Type|null[0]
+        enum entry LIST // io.ktor.server.config/ApplicationConfigValue.Type.LIST|null[0]
+        enum entry NULL // io.ktor.server.config/ApplicationConfigValue.Type.NULL|null[0]
+        enum entry OBJECT // io.ktor.server.config/ApplicationConfigValue.Type.OBJECT|null[0]
+        enum entry SINGLE // io.ktor.server.config/ApplicationConfigValue.Type.SINGLE|null[0]
+
+        final val entries // io.ktor.server.config/ApplicationConfigValue.Type.entries|#static{}entries[0]
+            final fun <get-entries>(): kotlin.enums/EnumEntries<io.ktor.server.config/ApplicationConfigValue.Type> // io.ktor.server.config/ApplicationConfigValue.Type.entries.<get-entries>|<get-entries>#static(){}[0]
+
+        final fun valueOf(kotlin/String): io.ktor.server.config/ApplicationConfigValue.Type // io.ktor.server.config/ApplicationConfigValue.Type.valueOf|valueOf#static(kotlin.String){}[0]
+        final fun values(): kotlin/Array<io.ktor.server.config/ApplicationConfigValue.Type> // io.ktor.server.config/ApplicationConfigValue.Type.values|values#static(){}[0]
+    }
 }
 
 abstract interface io.ktor.server.config/ConfigLoader { // io.ktor.server.config/ConfigLoader|null[0]
@@ -99,6 +128,7 @@ abstract interface io.ktor.server.config/ConfigLoader { // io.ktor.server.config
 
     final object Companion { // io.ktor.server.config/ConfigLoader.Companion|null[0]
         final fun load(kotlin/String? = ...): io.ktor.server.config/ApplicationConfig // io.ktor.server.config/ConfigLoader.Companion.load|load(kotlin.String?){}[0]
+        final fun loadAll(kotlin/Array<out kotlin/String>...): io.ktor.server.config/ApplicationConfig // io.ktor.server.config/ConfigLoader.Companion.loadAll|loadAll(kotlin.Array<out|kotlin.String>...){}[0]
     }
 }
 
@@ -457,6 +487,7 @@ final class io.ktor.server.application/Application : io.ktor.server.application/
         final fun <set-rootPath>(kotlin/String) // io.ktor.server.application/Application.rootPath.<set-rootPath>|<set-rootPath>(kotlin.String){}[0]
 
     final fun dispose() // io.ktor.server.application/Application.dispose|dispose(){}[0]
+    final suspend fun disposeAndJoin() // io.ktor.server.application/Application.disposeAndJoin|disposeAndJoin(){}[0]
 }
 
 final class io.ktor.server.application/DuplicatePluginException : io.ktor.server.application/DuplicateApplicationPluginException { // io.ktor.server.application/DuplicatePluginException|null[0]
@@ -510,6 +541,7 @@ final class io.ktor.server.application/ServerConfigBuilder { // io.ktor.server.a
         final fun <get-watchPaths>(): kotlin.collections/List<kotlin/String> // io.ktor.server.application/ServerConfigBuilder.watchPaths.<get-watchPaths>|<get-watchPaths>(){}[0]
         final fun <set-watchPaths>(kotlin.collections/List<kotlin/String>) // io.ktor.server.application/ServerConfigBuilder.watchPaths.<set-watchPaths>|<set-watchPaths>(kotlin.collections.List<kotlin.String>){}[0]
 
+    final fun module(kotlin.coroutines/SuspendFunction1<io.ktor.server.application/Application, kotlin/Unit>) // io.ktor.server.application/ServerConfigBuilder.module|module(kotlin.coroutines.SuspendFunction1<io.ktor.server.application.Application,kotlin.Unit>){}[0]
     final fun module(kotlin/Function1<io.ktor.server.application/Application, kotlin/Unit>) // io.ktor.server.application/ServerConfigBuilder.module|module(kotlin.Function1<io.ktor.server.application.Application,kotlin.Unit>){}[0]
 }
 
@@ -577,6 +609,8 @@ final class io.ktor.server.engine/ConnectorType { // io.ktor.server.engine/Conne
             final fun <get-HTTP>(): io.ktor.server.engine/ConnectorType // io.ktor.server.engine/ConnectorType.Companion.HTTP.<get-HTTP>|<get-HTTP>(){}[0]
         final val HTTPS // io.ktor.server.engine/ConnectorType.Companion.HTTPS|{}HTTPS[0]
             final fun <get-HTTPS>(): io.ktor.server.engine/ConnectorType // io.ktor.server.engine/ConnectorType.Companion.HTTPS.<get-HTTPS>|<get-HTTPS>(){}[0]
+        final val UNIX // io.ktor.server.engine/ConnectorType.Companion.UNIX|{}UNIX[0]
+            final fun <get-UNIX>(): io.ktor.server.engine/ConnectorType // io.ktor.server.engine/ConnectorType.Companion.UNIX.<get-UNIX>|<get-UNIX>(){}[0]
     }
 }
 
@@ -675,6 +709,8 @@ final class io.ktor.server.plugins/MutableOriginConnectionPoint : io.ktor.http/R
     final var version // io.ktor.server.plugins/MutableOriginConnectionPoint.version|{}version[0]
         final fun <get-version>(): kotlin/String // io.ktor.server.plugins/MutableOriginConnectionPoint.version.<get-version>|<get-version>(){}[0]
         final fun <set-version>(kotlin/String) // io.ktor.server.plugins/MutableOriginConnectionPoint.version.<set-version>|<set-version>(kotlin.String){}[0]
+
+    final fun toString(): kotlin/String // io.ktor.server.plugins/MutableOriginConnectionPoint.toString|toString(){}[0]
 }
 
 final class io.ktor.server.plugins/NotFoundException : kotlin/Exception { // io.ktor.server.plugins/NotFoundException|null[0]
@@ -1070,6 +1106,7 @@ final class io.ktor.server.routing/RoutingPathSegment { // io.ktor.server.routin
 }
 
 final class io.ktor.server.routing/RoutingPipelineCall : io.ktor.server.application/PipelineCall, kotlinx.coroutines/CoroutineScope { // io.ktor.server.routing/RoutingPipelineCall|null[0]
+    constructor <init>(io.ktor.server.application/PipelineCall, io.ktor.server.routing/RoutingNode, io.ktor.server.request/ApplicationReceivePipeline, io.ktor.server.response/ApplicationSendPipeline, io.ktor.http/Parameters) // io.ktor.server.routing/RoutingPipelineCall.<init>|<init>(io.ktor.server.application.PipelineCall;io.ktor.server.routing.RoutingNode;io.ktor.server.request.ApplicationReceivePipeline;io.ktor.server.response.ApplicationSendPipeline;io.ktor.http.Parameters){}[0]
     constructor <init>(io.ktor.server.application/PipelineCall, io.ktor.server.routing/RoutingNode, kotlin.coroutines/CoroutineContext, io.ktor.server.request/ApplicationReceivePipeline, io.ktor.server.response/ApplicationSendPipeline, io.ktor.http/Parameters) // io.ktor.server.routing/RoutingPipelineCall.<init>|<init>(io.ktor.server.application.PipelineCall;io.ktor.server.routing.RoutingNode;kotlin.coroutines.CoroutineContext;io.ktor.server.request.ApplicationReceivePipeline;io.ktor.server.response.ApplicationSendPipeline;io.ktor.http.Parameters){}[0]
 
     final val application // io.ktor.server.routing/RoutingPipelineCall.application|{}application[0]
@@ -1272,7 +1309,7 @@ open class io.ktor.server.application/DuplicateApplicationPluginException : kotl
 
 open class io.ktor.server.config/MapApplicationConfig : io.ktor.server.config/ApplicationConfig { // io.ktor.server.config/MapApplicationConfig|null[0]
     constructor <init>() // io.ktor.server.config/MapApplicationConfig.<init>|<init>(){}[0]
-    constructor <init>(kotlin.collections/List<kotlin/Pair<kotlin/String, kotlin/String>>) // io.ktor.server.config/MapApplicationConfig.<init>|<init>(kotlin.collections.List<kotlin.Pair<kotlin.String,kotlin.String>>){}[0]
+    constructor <init>(kotlin.collections/Collection<kotlin/Pair<kotlin/String, kotlin/String>>) // io.ktor.server.config/MapApplicationConfig.<init>|<init>(kotlin.collections.Collection<kotlin.Pair<kotlin.String,kotlin.String>>){}[0]
     constructor <init>(kotlin/Array<out kotlin/Pair<kotlin/String, kotlin/String>>...) // io.ktor.server.config/MapApplicationConfig.<init>|<init>(kotlin.Array<out|kotlin.Pair<kotlin.String,kotlin.String>>...){}[0]
 
     final val map // io.ktor.server.config/MapApplicationConfig.map|{}map[0]
@@ -1288,18 +1325,6 @@ open class io.ktor.server.config/MapApplicationConfig : io.ktor.server.config/Ap
     open fun property(kotlin/String): io.ktor.server.config/ApplicationConfigValue // io.ktor.server.config/MapApplicationConfig.property|property(kotlin.String){}[0]
     open fun propertyOrNull(kotlin/String): io.ktor.server.config/ApplicationConfigValue? // io.ktor.server.config/MapApplicationConfig.propertyOrNull|propertyOrNull(kotlin.String){}[0]
     open fun toMap(): kotlin.collections/Map<kotlin/String, kotlin/Any?> // io.ktor.server.config/MapApplicationConfig.toMap|toMap(){}[0]
-
-    final class MapApplicationConfigValue : io.ktor.server.config/ApplicationConfigValue { // io.ktor.server.config/MapApplicationConfig.MapApplicationConfigValue|null[0]
-        constructor <init>(kotlin.collections/Map<kotlin/String, kotlin/String>, kotlin/String) // io.ktor.server.config/MapApplicationConfig.MapApplicationConfigValue.<init>|<init>(kotlin.collections.Map<kotlin.String,kotlin.String>;kotlin.String){}[0]
-
-        final val map // io.ktor.server.config/MapApplicationConfig.MapApplicationConfigValue.map|{}map[0]
-            final fun <get-map>(): kotlin.collections/Map<kotlin/String, kotlin/String> // io.ktor.server.config/MapApplicationConfig.MapApplicationConfigValue.map.<get-map>|<get-map>(){}[0]
-        final val path // io.ktor.server.config/MapApplicationConfig.MapApplicationConfigValue.path|{}path[0]
-            final fun <get-path>(): kotlin/String // io.ktor.server.config/MapApplicationConfig.MapApplicationConfigValue.path.<get-path>|<get-path>(){}[0]
-
-        final fun getList(): kotlin.collections/List<kotlin/String> // io.ktor.server.config/MapApplicationConfig.MapApplicationConfigValue.getList|getList(){}[0]
-        final fun getString(): kotlin/String // io.ktor.server.config/MapApplicationConfig.MapApplicationConfigValue.getString|getString(){}[0]
-    }
 }
 
 open class io.ktor.server.engine.internal/ClosedChannelException : kotlinx.io/IOException { // io.ktor.server.engine.internal/ClosedChannelException|null[0]
@@ -1485,6 +1510,8 @@ sealed class io.ktor.server.routing/RouteSelectorEvaluation { // io.ktor.server.
             final fun <get-ConstantPath>(): io.ktor.server.routing/RouteSelectorEvaluation // io.ktor.server.routing/RouteSelectorEvaluation.Companion.ConstantPath.<get-ConstantPath>|<get-ConstantPath>(){}[0]
         final val Failed // io.ktor.server.routing/RouteSelectorEvaluation.Companion.Failed|{}Failed[0]
             final fun <get-Failed>(): io.ktor.server.routing/RouteSelectorEvaluation.Failure // io.ktor.server.routing/RouteSelectorEvaluation.Companion.Failed.<get-Failed>|<get-Failed>(){}[0]
+        final val FailedAcceptHeader // io.ktor.server.routing/RouteSelectorEvaluation.Companion.FailedAcceptHeader|{}FailedAcceptHeader[0]
+            final fun <get-FailedAcceptHeader>(): io.ktor.server.routing/RouteSelectorEvaluation.Failure // io.ktor.server.routing/RouteSelectorEvaluation.Companion.FailedAcceptHeader.<get-FailedAcceptHeader>|<get-FailedAcceptHeader>(){}[0]
         final val FailedMethod // io.ktor.server.routing/RouteSelectorEvaluation.Companion.FailedMethod|{}FailedMethod[0]
             final fun <get-FailedMethod>(): io.ktor.server.routing/RouteSelectorEvaluation.Failure // io.ktor.server.routing/RouteSelectorEvaluation.Companion.FailedMethod.<get-FailedMethod>|<get-FailedMethod>(){}[0]
         final val FailedParameter // io.ktor.server.routing/RouteSelectorEvaluation.Companion.FailedParameter|{}FailedParameter[0]
@@ -1602,6 +1629,10 @@ final object io.ktor.server.routing/TrailingSlashRouteSelector : io.ktor.server.
     final suspend fun evaluate(io.ktor.server.routing/RoutingResolveContext, kotlin/Int): io.ktor.server.routing/RouteSelectorEvaluation // io.ktor.server.routing/TrailingSlashRouteSelector.evaluate|evaluate(io.ktor.server.routing.RoutingResolveContext;kotlin.Int){}[0]
 }
 
+final val io.ktor.server.application/ApplicationModulesLoaded // io.ktor.server.application/ApplicationModulesLoaded|{}ApplicationModulesLoaded[0]
+    final fun <get-ApplicationModulesLoaded>(): io.ktor.events/EventDefinition<io.ktor.server.application/Application> // io.ktor.server.application/ApplicationModulesLoaded.<get-ApplicationModulesLoaded>|<get-ApplicationModulesLoaded>(){}[0]
+final val io.ktor.server.application/ApplicationModulesLoading // io.ktor.server.application/ApplicationModulesLoading|{}ApplicationModulesLoading[0]
+    final fun <get-ApplicationModulesLoading>(): io.ktor.events/EventDefinition<io.ktor.server.application/Application> // io.ktor.server.application/ApplicationModulesLoading.<get-ApplicationModulesLoading>|<get-ApplicationModulesLoading>(){}[0]
 final val io.ktor.server.application/ApplicationStarted // io.ktor.server.application/ApplicationStarted|{}ApplicationStarted[0]
     final fun <get-ApplicationStarted>(): io.ktor.events/EventDefinition<io.ktor.server.application/Application> // io.ktor.server.application/ApplicationStarted.<get-ApplicationStarted>|<get-ApplicationStarted>(){}[0]
 final val io.ktor.server.application/ApplicationStarting // io.ktor.server.application/ApplicationStarting|{}ApplicationStarting[0]
@@ -1630,6 +1661,10 @@ final val io.ktor.server.application/pluginRegistry // io.ktor.server.applicatio
     final fun <#A1: io.ktor.util.pipeline/Pipeline<*, io.ktor.server.application/PipelineCall>> (#A1).<get-pluginRegistry>(): io.ktor.util/Attributes // io.ktor.server.application/pluginRegistry.<get-pluginRegistry>|<get-pluginRegistry>@0:0(){0§<io.ktor.util.pipeline.Pipeline<*,io.ktor.server.application.PipelineCall>>}[0]
 final val io.ktor.server.application/port // io.ktor.server.application/port|@io.ktor.server.config.ApplicationConfig{}port[0]
     final fun (io.ktor.server.config/ApplicationConfig).<get-port>(): kotlin/Int // io.ktor.server.application/port.<get-port>|<get-port>@io.ktor.server.config.ApplicationConfig(){}[0]
+final val io.ktor.server.application/startupMode // io.ktor.server.application/startupMode|@io.ktor.server.application.ApplicationEnvironment{}startupMode[0]
+    final fun (io.ktor.server.application/ApplicationEnvironment).<get-startupMode>(): io.ktor.server.application/ApplicationStartupMode // io.ktor.server.application/startupMode.<get-startupMode>|<get-startupMode>@io.ktor.server.application.ApplicationEnvironment(){}[0]
+final val io.ktor.server.application/startupTimeout // io.ktor.server.application/startupTimeout|@io.ktor.server.application.ApplicationEnvironment{}startupTimeout[0]
+    final fun (io.ktor.server.application/ApplicationEnvironment).<get-startupTimeout>(): kotlin.time/Duration // io.ktor.server.application/startupTimeout.<get-startupTimeout>|<get-startupTimeout>@io.ktor.server.application.ApplicationEnvironment(){}[0]
 final val io.ktor.server.config/configLoaders // io.ktor.server.config/configLoaders|{}configLoaders[0]
     final fun <get-configLoaders>(): kotlin.collections/List<io.ktor.server.config/ConfigLoader> // io.ktor.server.config/configLoaders.<get-configLoaders>|<get-configLoaders>(){}[0]
 final val io.ktor.server.http.content/SuppressionAttribute // io.ktor.server.http.content/SuppressionAttribute|{}SuppressionAttribute[0]
@@ -1660,6 +1695,10 @@ final val io.ktor.server.routing/RoutingFailureStatusCode // io.ktor.server.rout
     final fun <get-RoutingFailureStatusCode>(): io.ktor.util/AttributeKey<io.ktor.http/HttpStatusCode> // io.ktor.server.routing/RoutingFailureStatusCode.<get-RoutingFailureStatusCode>|<get-RoutingFailureStatusCode>(){}[0]
 final val io.ktor.server.routing/application // io.ktor.server.routing/application|@io.ktor.server.routing.Route{}application[0]
     final fun (io.ktor.server.routing/Route).<get-application>(): io.ktor.server.application/Application // io.ktor.server.routing/application.<get-application>|<get-application>@io.ktor.server.routing.Route(){}[0]
+final val io.ktor.server.routing/path // io.ktor.server.routing/path|@io.ktor.server.routing.RoutingNode{}path[0]
+    final fun (io.ktor.server.routing/RoutingNode).<get-path>(): kotlin/String // io.ktor.server.routing/path.<get-path>|<get-path>@io.ktor.server.routing.RoutingNode(){}[0]
+final val io.ktor.server.routing/routingRoot // io.ktor.server.routing/routingRoot|@io.ktor.server.application.Application{}routingRoot[0]
+    final fun (io.ktor.server.application/Application).<get-routingRoot>(): io.ktor.server.routing/RoutingNode // io.ktor.server.routing/routingRoot.<get-routingRoot>|<get-routingRoot>@io.ktor.server.application.Application(){}[0]
 
 final var io.ktor.server.application/receiveType // io.ktor.server.application/receiveType|@io.ktor.server.application.ApplicationCall{}receiveType[0]
     final fun (io.ktor.server.application/ApplicationCall).<get-receiveType>(): io.ktor.util.reflect/TypeInfo // io.ktor.server.application/receiveType.<get-receiveType>|<get-receiveType>@io.ktor.server.application.ApplicationCall(){}[0]
@@ -1686,6 +1725,8 @@ final fun (io.ktor.server.config/ApplicationConfig).io.ktor.server.config/tryGet
 final fun (io.ktor.server.config/ApplicationConfig).io.ktor.server.config/withFallback(io.ktor.server.config/ApplicationConfig): io.ktor.server.config/ApplicationConfig // io.ktor.server.config/withFallback|withFallback@io.ktor.server.config.ApplicationConfig(io.ktor.server.config.ApplicationConfig){}[0]
 final fun (io.ktor.server.engine/ApplicationEngine).io.ktor.server.engine/stopServerOnCancellation(io.ktor.server.application/Application, kotlin/Long = ..., kotlin/Long = ...): kotlinx.coroutines/CompletableJob // io.ktor.server.engine/stopServerOnCancellation|stopServerOnCancellation@io.ktor.server.engine.ApplicationEngine(io.ktor.server.application.Application;kotlin.Long;kotlin.Long){}[0]
 final fun (io.ktor.server.engine/ApplicationEngine.Configuration).io.ktor.server.engine/loadCommonConfiguration(io.ktor.server.config/ApplicationConfig) // io.ktor.server.engine/loadCommonConfiguration|loadCommonConfiguration@io.ktor.server.engine.ApplicationEngine.Configuration(io.ktor.server.config.ApplicationConfig){}[0]
+final fun (io.ktor.server.engine/ApplicationEnvironmentBuilder).io.ktor.server.engine/configure(kotlin/Array<out io.ktor.server.config/ApplicationConfig>...) // io.ktor.server.engine/configure|configure@io.ktor.server.engine.ApplicationEnvironmentBuilder(kotlin.Array<out|io.ktor.server.config.ApplicationConfig>...){}[0]
+final fun (io.ktor.server.engine/ApplicationEnvironmentBuilder).io.ktor.server.engine/configure(kotlin/Array<out kotlin/String>...) // io.ktor.server.engine/configure|configure@io.ktor.server.engine.ApplicationEnvironmentBuilder(kotlin.Array<out|kotlin.String>...){}[0]
 final fun (io.ktor.server.engine/EmbeddedServer<*, *>).io.ktor.server.engine/addShutdownHook(kotlin/Function0<kotlin/Unit>) // io.ktor.server.engine/addShutdownHook|addShutdownHook@io.ktor.server.engine.EmbeddedServer<*,*>(kotlin.Function0<kotlin.Unit>){}[0]
 final fun (io.ktor.server.engine/EngineConnectorConfig).io.ktor.server.engine/withPort(kotlin/Int): io.ktor.server.engine/EngineConnectorConfig // io.ktor.server.engine/withPort|withPort@io.ktor.server.engine.EngineConnectorConfig(kotlin.Int){}[0]
 final fun (io.ktor.server.request/ApplicationReceivePipeline).io.ktor.server.engine/installDefaultTransformations() // io.ktor.server.engine/installDefaultTransformations|installDefaultTransformations@io.ktor.server.request.ApplicationReceivePipeline(){}[0]
@@ -1772,10 +1813,14 @@ final fun (io.ktor.server.routing/RoutingNode).io.ktor.server.routing/getAllRout
 final fun (kotlin.collections/List<io.ktor.server.config/ApplicationConfig>).io.ktor.server.config/merge(): io.ktor.server.config/ApplicationConfig // io.ktor.server.config/merge|merge@kotlin.collections.List<io.ktor.server.config.ApplicationConfig>(){}[0]
 final fun (kotlin.collections/List<kotlin/String>).io.ktor.server.util/normalizePathComponents(): kotlin.collections/List<kotlin/String> // io.ktor.server.util/normalizePathComponents|normalizePathComponents@kotlin.collections.List<kotlin.String>(){}[0]
 final fun (kotlinx.coroutines/Job).io.ktor.server.engine/launchOnCancellation(kotlin.coroutines/SuspendFunction0<kotlin/Unit>): kotlinx.coroutines/CompletableJob // io.ktor.server.engine/launchOnCancellation|launchOnCancellation@kotlinx.coroutines.Job(kotlin.coroutines.SuspendFunction0<kotlin.Unit>){}[0]
+final fun <#A: io.ktor.server.engine/ApplicationEngine, #B: io.ktor.server.engine/ApplicationEngine.Configuration> (kotlinx.coroutines/CoroutineScope).io.ktor.server.engine/embeddedServer(io.ktor.server.engine/ApplicationEngineFactory<#A, #B>, kotlin/Array<out io.ktor.server.engine/EngineConnectorConfig>... = ..., kotlin.collections/List<kotlin/String> = ..., kotlin.coroutines/CoroutineContext = ..., kotlin.coroutines/SuspendFunction1<io.ktor.server.application/Application, kotlin/Unit>): io.ktor.server.engine/EmbeddedServer<#A, #B> // io.ktor.server.engine/embeddedServer|embeddedServer@kotlinx.coroutines.CoroutineScope(io.ktor.server.engine.ApplicationEngineFactory<0:0,0:1>;kotlin.Array<out|io.ktor.server.engine.EngineConnectorConfig>...;kotlin.collections.List<kotlin.String>;kotlin.coroutines.CoroutineContext;kotlin.coroutines.SuspendFunction1<io.ktor.server.application.Application,kotlin.Unit>){0§<io.ktor.server.engine.ApplicationEngine>;1§<io.ktor.server.engine.ApplicationEngine.Configuration>}[0]
 final fun <#A: io.ktor.server.engine/ApplicationEngine, #B: io.ktor.server.engine/ApplicationEngine.Configuration> (kotlinx.coroutines/CoroutineScope).io.ktor.server.engine/embeddedServer(io.ktor.server.engine/ApplicationEngineFactory<#A, #B>, kotlin/Array<out io.ktor.server.engine/EngineConnectorConfig>... = ..., kotlin.collections/List<kotlin/String> = ..., kotlin.coroutines/CoroutineContext = ..., kotlin/Function1<io.ktor.server.application/Application, kotlin/Unit>): io.ktor.server.engine/EmbeddedServer<#A, #B> // io.ktor.server.engine/embeddedServer|embeddedServer@kotlinx.coroutines.CoroutineScope(io.ktor.server.engine.ApplicationEngineFactory<0:0,0:1>;kotlin.Array<out|io.ktor.server.engine.EngineConnectorConfig>...;kotlin.collections.List<kotlin.String>;kotlin.coroutines.CoroutineContext;kotlin.Function1<io.ktor.server.application.Application,kotlin.Unit>){0§<io.ktor.server.engine.ApplicationEngine>;1§<io.ktor.server.engine.ApplicationEngine.Configuration>}[0]
+final fun <#A: io.ktor.server.engine/ApplicationEngine, #B: io.ktor.server.engine/ApplicationEngine.Configuration> (kotlinx.coroutines/CoroutineScope).io.ktor.server.engine/embeddedServer(io.ktor.server.engine/ApplicationEngineFactory<#A, #B>, kotlin/Int = ..., kotlin/String = ..., kotlin.collections/List<kotlin/String> = ..., kotlin.coroutines/CoroutineContext = ..., kotlin.coroutines/SuspendFunction1<io.ktor.server.application/Application, kotlin/Unit>): io.ktor.server.engine/EmbeddedServer<#A, #B> // io.ktor.server.engine/embeddedServer|embeddedServer@kotlinx.coroutines.CoroutineScope(io.ktor.server.engine.ApplicationEngineFactory<0:0,0:1>;kotlin.Int;kotlin.String;kotlin.collections.List<kotlin.String>;kotlin.coroutines.CoroutineContext;kotlin.coroutines.SuspendFunction1<io.ktor.server.application.Application,kotlin.Unit>){0§<io.ktor.server.engine.ApplicationEngine>;1§<io.ktor.server.engine.ApplicationEngine.Configuration>}[0]
 final fun <#A: io.ktor.server.engine/ApplicationEngine, #B: io.ktor.server.engine/ApplicationEngine.Configuration> (kotlinx.coroutines/CoroutineScope).io.ktor.server.engine/embeddedServer(io.ktor.server.engine/ApplicationEngineFactory<#A, #B>, kotlin/Int = ..., kotlin/String = ..., kotlin.collections/List<kotlin/String> = ..., kotlin.coroutines/CoroutineContext = ..., kotlin/Function1<io.ktor.server.application/Application, kotlin/Unit>): io.ktor.server.engine/EmbeddedServer<#A, #B> // io.ktor.server.engine/embeddedServer|embeddedServer@kotlinx.coroutines.CoroutineScope(io.ktor.server.engine.ApplicationEngineFactory<0:0,0:1>;kotlin.Int;kotlin.String;kotlin.collections.List<kotlin.String>;kotlin.coroutines.CoroutineContext;kotlin.Function1<io.ktor.server.application.Application,kotlin.Unit>){0§<io.ktor.server.engine.ApplicationEngine>;1§<io.ktor.server.engine.ApplicationEngine.Configuration>}[0]
+final fun <#A: io.ktor.server.engine/ApplicationEngine, #B: io.ktor.server.engine/ApplicationEngine.Configuration> io.ktor.server.engine/embeddedServer(io.ktor.server.engine/ApplicationEngineFactory<#A, #B>, io.ktor.server.application/ApplicationEnvironment = ..., kotlin/Function1<#B, kotlin/Unit> = ..., kotlin.coroutines/SuspendFunction1<io.ktor.server.application/Application, kotlin/Unit> = ...): io.ktor.server.engine/EmbeddedServer<#A, #B> // io.ktor.server.engine/embeddedServer|embeddedServer(io.ktor.server.engine.ApplicationEngineFactory<0:0,0:1>;io.ktor.server.application.ApplicationEnvironment;kotlin.Function1<0:1,kotlin.Unit>;kotlin.coroutines.SuspendFunction1<io.ktor.server.application.Application,kotlin.Unit>){0§<io.ktor.server.engine.ApplicationEngine>;1§<io.ktor.server.engine.ApplicationEngine.Configuration>}[0]
 final fun <#A: io.ktor.server.engine/ApplicationEngine, #B: io.ktor.server.engine/ApplicationEngine.Configuration> io.ktor.server.engine/embeddedServer(io.ktor.server.engine/ApplicationEngineFactory<#A, #B>, io.ktor.server.application/ApplicationEnvironment = ..., kotlin/Function1<#B, kotlin/Unit> = ..., kotlin/Function1<io.ktor.server.application/Application, kotlin/Unit> = ...): io.ktor.server.engine/EmbeddedServer<#A, #B> // io.ktor.server.engine/embeddedServer|embeddedServer(io.ktor.server.engine.ApplicationEngineFactory<0:0,0:1>;io.ktor.server.application.ApplicationEnvironment;kotlin.Function1<0:1,kotlin.Unit>;kotlin.Function1<io.ktor.server.application.Application,kotlin.Unit>){0§<io.ktor.server.engine.ApplicationEngine>;1§<io.ktor.server.engine.ApplicationEngine.Configuration>}[0]
 final fun <#A: io.ktor.server.engine/ApplicationEngine, #B: io.ktor.server.engine/ApplicationEngine.Configuration> io.ktor.server.engine/embeddedServer(io.ktor.server.engine/ApplicationEngineFactory<#A, #B>, io.ktor.server.application/ServerConfig, kotlin/Function1<#B, kotlin/Unit> = ...): io.ktor.server.engine/EmbeddedServer<#A, #B> // io.ktor.server.engine/embeddedServer|embeddedServer(io.ktor.server.engine.ApplicationEngineFactory<0:0,0:1>;io.ktor.server.application.ServerConfig;kotlin.Function1<0:1,kotlin.Unit>){0§<io.ktor.server.engine.ApplicationEngine>;1§<io.ktor.server.engine.ApplicationEngine.Configuration>}[0]
+final fun <#A: io.ktor.server.engine/ApplicationEngine, #B: io.ktor.server.engine/ApplicationEngine.Configuration> io.ktor.server.engine/embeddedServer(io.ktor.server.engine/ApplicationEngineFactory<#A, #B>, kotlin/Int = ..., kotlin/String = ..., kotlin.collections/List<kotlin/String> = ..., kotlin.coroutines/SuspendFunction1<io.ktor.server.application/Application, kotlin/Unit>): io.ktor.server.engine/EmbeddedServer<#A, #B> // io.ktor.server.engine/embeddedServer|embeddedServer(io.ktor.server.engine.ApplicationEngineFactory<0:0,0:1>;kotlin.Int;kotlin.String;kotlin.collections.List<kotlin.String>;kotlin.coroutines.SuspendFunction1<io.ktor.server.application.Application,kotlin.Unit>){0§<io.ktor.server.engine.ApplicationEngine>;1§<io.ktor.server.engine.ApplicationEngine.Configuration>}[0]
 final fun <#A: io.ktor.server.engine/ApplicationEngine, #B: io.ktor.server.engine/ApplicationEngine.Configuration> io.ktor.server.engine/embeddedServer(io.ktor.server.engine/ApplicationEngineFactory<#A, #B>, kotlin/Int = ..., kotlin/String = ..., kotlin.collections/List<kotlin/String> = ..., kotlin/Function1<io.ktor.server.application/Application, kotlin/Unit>): io.ktor.server.engine/EmbeddedServer<#A, #B> // io.ktor.server.engine/embeddedServer|embeddedServer(io.ktor.server.engine.ApplicationEngineFactory<0:0,0:1>;kotlin.Int;kotlin.String;kotlin.collections.List<kotlin.String>;kotlin.Function1<io.ktor.server.application.Application,kotlin.Unit>){0§<io.ktor.server.engine.ApplicationEngine>;1§<io.ktor.server.engine.ApplicationEngine.Configuration>}[0]
 final fun <#A: io.ktor.server.routing/RoutingNode, #B: kotlin/Any, #C: kotlin/Any> (#A).io.ktor.server.application/install(io.ktor.server.application/BaseApplicationPlugin<#A, #B, #C>, kotlin/Function1<#B, kotlin/Unit> = ...): #C // io.ktor.server.application/install|install@0:0(io.ktor.server.application.BaseApplicationPlugin<0:0,0:1,0:2>;kotlin.Function1<0:1,kotlin.Unit>){0§<io.ktor.server.routing.RoutingNode>;1§<kotlin.Any>;2§<kotlin.Any>}[0]
 final fun <#A: io.ktor.util.pipeline/Pipeline<*, io.ktor.server.application/PipelineCall>, #B: kotlin/Any, #C: kotlin/Any> (#A).io.ktor.server.application/install(io.ktor.server.application/Plugin<#A, #B, #C>, kotlin/Function1<#B, kotlin/Unit> = ...): #C // io.ktor.server.application/install|install@0:0(io.ktor.server.application.Plugin<0:0,0:1,0:2>;kotlin.Function1<0:1,kotlin.Unit>){0§<io.ktor.util.pipeline.Pipeline<*,io.ktor.server.application.PipelineCall>>;1§<kotlin.Any>;2§<kotlin.Any>}[0]
@@ -1814,6 +1859,9 @@ final inline fun <#A: reified kotlin/Any> (io.ktor.server.routing/Route).io.ktor
 final inline fun <#A: reified kotlin/Any> (io.ktor.server.routing/Route).io.ktor.server.routing/put(crossinline kotlin.coroutines/SuspendFunction2<io.ktor.server.routing/RoutingContext, #A, kotlin/Unit>): io.ktor.server.routing/Route // io.ktor.server.routing/put|put@io.ktor.server.routing.Route(kotlin.coroutines.SuspendFunction2<io.ktor.server.routing.RoutingContext,0:0,kotlin.Unit>){0§<kotlin.Any>}[0]
 final inline fun <#A: reified kotlin/Any> (io.ktor.server.routing/Route).io.ktor.server.routing/put(kotlin.text/Regex, crossinline kotlin.coroutines/SuspendFunction2<io.ktor.server.routing/RoutingContext, #A, kotlin/Unit>): io.ktor.server.routing/Route // io.ktor.server.routing/put|put@io.ktor.server.routing.Route(kotlin.text.Regex;kotlin.coroutines.SuspendFunction2<io.ktor.server.routing.RoutingContext,0:0,kotlin.Unit>){0§<kotlin.Any>}[0]
 final inline fun <#A: reified kotlin/Any> (io.ktor.server.routing/Route).io.ktor.server.routing/put(kotlin/String, crossinline kotlin.coroutines/SuspendFunction2<io.ktor.server.routing/RoutingContext, #A, kotlin/Unit>): io.ktor.server.routing/Route // io.ktor.server.routing/put|put@io.ktor.server.routing.Route(kotlin.String;kotlin.coroutines.SuspendFunction2<io.ktor.server.routing.RoutingContext,0:0,kotlin.Unit>){0§<kotlin.Any>}[0]
+final inline fun <#A: reified kotlin/Any?> (io.ktor.server.application/Application).io.ktor.server.config/property(kotlin/String): #A // io.ktor.server.config/property|property@io.ktor.server.application.Application(kotlin.String){0§<kotlin.Any?>}[0]
+final inline fun <#A: reified kotlin/Any?> (io.ktor.server.application/Application).io.ktor.server.config/propertyOrNull(kotlin/String): #A? // io.ktor.server.config/propertyOrNull|propertyOrNull@io.ktor.server.application.Application(kotlin.String){0§<kotlin.Any?>}[0]
+final inline fun <#A: reified kotlin/Any?> (io.ktor.server.config/ApplicationConfigValue).io.ktor.server.config/getAs(): #A // io.ktor.server.config/getAs|getAs@io.ktor.server.config.ApplicationConfigValue(){0§<kotlin.Any?>}[0]
 final suspend fun (io.ktor.server.application/ApplicationCall).io.ktor.server.response/respond(io.ktor.http/HttpStatusCode, kotlin/Any?, io.ktor.util.reflect/TypeInfo) // io.ktor.server.response/respond|respond@io.ktor.server.application.ApplicationCall(io.ktor.http.HttpStatusCode;kotlin.Any?;io.ktor.util.reflect.TypeInfo){}[0]
 final suspend fun (io.ktor.server.application/ApplicationCall).io.ktor.server.response/respondBytes(io.ktor.http/ContentType? = ..., io.ktor.http/HttpStatusCode? = ..., kotlin.coroutines/SuspendFunction0<kotlin/ByteArray>) // io.ktor.server.response/respondBytes|respondBytes@io.ktor.server.application.ApplicationCall(io.ktor.http.ContentType?;io.ktor.http.HttpStatusCode?;kotlin.coroutines.SuspendFunction0<kotlin.ByteArray>){}[0]
 final suspend fun (io.ktor.server.application/ApplicationCall).io.ktor.server.response/respondBytes(kotlin/ByteArray, io.ktor.http/ContentType? = ..., io.ktor.http/HttpStatusCode? = ..., kotlin/Function1<io.ktor.http.content/OutgoingContent, kotlin/Unit> = ...) // io.ktor.server.response/respondBytes|respondBytes@io.ktor.server.application.ApplicationCall(kotlin.ByteArray;io.ktor.http.ContentType?;io.ktor.http.HttpStatusCode?;kotlin.Function1<io.ktor.http.content.OutgoingContent,kotlin.Unit>){}[0]

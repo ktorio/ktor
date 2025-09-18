@@ -8,6 +8,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.i18n.*
+import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
@@ -68,6 +69,29 @@ class TranslationTest {
     }
 
     @Test
+    fun testFallbackToDefaultLanguage() = testApplication {
+        install(I18n) {
+            availableLanguages = testAvailableLanguages
+            defaultLanguage = "en-US"
+        }
+
+        routing {
+            get("/") {
+                val value = i18n("some_key")
+                call.respond(HttpStatusCode.OK, value)
+            }
+        }
+
+        val response = client.get("/") {
+            header(HttpHeaders.AcceptLanguage, "de-DE")
+        }
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("en-US", response.headers[HttpHeaders.ContentLanguage])
+        val body = response.bodyAsText()
+        assertEquals("English Key", body)
+    }
+
+    @Test
     fun testDefaultBundleWhenDefaultLanguageIsNotConfigured() = testApplication {
         install(I18n) {
             availableLanguages = testAvailableLanguages
@@ -85,6 +109,33 @@ class TranslationTest {
         assertNull(response.headers[HttpHeaders.ContentLanguage])
         val body = response.bodyAsText()
         assertEquals("Default key", body)
+    }
+
+    @Test
+    fun canUseTranslationWithApplicationCall() = testApplication {
+        install(I18n) {
+            availableLanguages = testAvailableLanguages
+        }
+        install(StatusPages) {
+            exception<Throwable> { call, cause ->
+                val value = call.i18n("some_key")
+                call.respond(HttpStatusCode.OK, value)
+            }
+        }
+
+        routing {
+            get("/") {
+                error("Some error")
+            }
+        }
+
+        val response = client.get("/") {
+            header(HttpHeaders.AcceptLanguage, "en-US")
+        }
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("en-US", response.headers[HttpHeaders.ContentLanguage])
+        val body = response.bodyAsText()
+        assertEquals("English Key", body)
     }
 
     @Test

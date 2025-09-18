@@ -12,6 +12,7 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelAndJoin
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
@@ -24,7 +25,7 @@ public class ServerConfigBuilder(
     public val environment: ApplicationEnvironment
 ) {
 
-    internal val modules: MutableList<Application.() -> Unit> = mutableListOf()
+    internal val modules: MutableList<suspend Application.() -> Unit> = mutableListOf()
 
     /**
      * Paths to wait for application reload.
@@ -59,7 +60,17 @@ public class ServerConfigBuilder(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ServerConfigBuilder.module)
      */
+    @Deprecated("Replaced with suspend function parameter", level = DeprecationLevel.HIDDEN)
     public fun module(body: Application.() -> Unit) {
+        modules.add(body)
+    }
+
+    /**
+     * Installs an application module.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ServerConfigBuilder.module)
+     */
+    public fun module(body: suspend Application.() -> Unit) {
         modules.add(body)
     }
 
@@ -75,7 +86,7 @@ public class ServerConfigBuilder(
  */
 public class ServerConfig internal constructor(
     public val environment: ApplicationEnvironment,
-    internal val modules: List<Application.() -> Unit>,
+    internal val modules: List<suspend Application.() -> Unit>,
     internal val watchPaths: List<String>,
     public val rootPath: String,
     public val developmentMode: Boolean = PlatformUtils.IS_DEVELOPMENT_MODE,
@@ -121,13 +132,30 @@ public class Application internal constructor(
     override val coroutineContext: CoroutineContext = parentCoroutineContext + applicationJob
 
     /**
-     * Called by [ApplicationEngine] when [Application] is terminated.
+     * Cancels the application job without waiting for join.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.Application.dispose)
      */
+    @Deprecated(
+        replaceWith = ReplaceWith("disposeAndJoin()"),
+        level = DeprecationLevel.WARNING,
+        message = "Use disposeAndJoin() instead."
+    )
     @Suppress("DEPRECATION_ERROR")
     public fun dispose() {
         applicationJob.cancel()
+        uninstallAllPlugins()
+    }
+
+    /**
+     * Called by [ApplicationEngine] when [Application] is terminated.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.Application.disposeAndJoin)
+     */
+    @InternalAPI
+    @Suppress("DEPRECATION_ERROR")
+    public suspend fun disposeAndJoin() {
+        applicationJob.cancelAndJoin()
         uninstallAllPlugins()
     }
 }

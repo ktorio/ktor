@@ -20,3 +20,4 @@ public actual interface Logger {
 }
 
 public actual val Logger.isTraceEnabled: Boolean get() = level <= LogLevel.TRACE
+public actual val Logger.isDebugEnabled: Boolean get() = level <= LogLevel.DEBUG

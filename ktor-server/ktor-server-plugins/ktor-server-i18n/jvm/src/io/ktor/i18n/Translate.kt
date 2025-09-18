@@ -4,22 +4,14 @@
 
 package io.ktor.i18n
 
-import io.ktor.server.routing.*
-import java.util.*
+import io.ktor.server.routing.RoutingContext
+import org.jetbrains.annotations.PropertyKey
 
 /**
  * Translate a message key to an accepted language specified in HTTP request
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.i18n.i18n)
  */
-public fun RoutingContext.i18n(key: String): String {
-    val bestMatchLanguage = call.attributes[REQUIRED_RESPONSE_LANGUAGE]
-
-    val locale = Locale.forLanguageTag(bestMatchLanguage)
-
-    val bundle = ResourceBundle.getBundle("messages/messages", locale)
-    val value = bundle.getString(key)
-
-    I18N_LOGGER.debug("translating to $locale: $key=$value")
-    return value
+public fun RoutingContext.i18n(@PropertyKey(resourceBundle = BUNDLE_KEY) key: String): String {
+    return call.i18n(key)
 }

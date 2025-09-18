@@ -98,7 +98,7 @@ public abstract interface class io/ktor/network/sockets/AReadable {
 }
 
 public abstract interface class io/ktor/network/sockets/ASocket : java/io/Closeable, kotlinx/coroutines/DisposableHandle {
-	public abstract fun dispose ()V
+	public fun dispose ()V
 	public abstract fun getSocketContext ()Lkotlinx/coroutines/Job;
 }
 
@@ -133,7 +133,7 @@ public final class io/ktor/network/sockets/BuildersKt {
 }
 
 public abstract interface class io/ktor/network/sockets/Configurable {
-	public abstract fun configure (Lkotlin/jvm/functions/Function1;)Lio/ktor/network/sockets/Configurable;
+	public fun configure (Lkotlin/jvm/functions/Function1;)Lio/ktor/network/sockets/Configurable;
 	public abstract fun getOptions ()Lio/ktor/network/sockets/SocketOptions;
 	public abstract fun setOptions (Lio/ktor/network/sockets/SocketOptions;)V
 }
@@ -166,7 +166,7 @@ public final class io/ktor/network/sockets/Datagram {
 
 public abstract interface class io/ktor/network/sockets/DatagramReadChannel {
 	public abstract fun getIncoming ()Lkotlinx/coroutines/channels/ReceiveChannel;
-	public abstract fun receive (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun receive (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/network/sockets/DatagramReadChannel$DefaultImpls {
@@ -183,7 +183,7 @@ public final class io/ktor/network/sockets/DatagramReadWriteChannel$DefaultImpls
 
 public abstract interface class io/ktor/network/sockets/DatagramWriteChannel {
 	public abstract fun getOutgoing ()Lkotlinx/coroutines/channels/SendChannel;
-	public abstract fun send (Lio/ktor/network/sockets/Datagram;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun send (Lio/ktor/network/sockets/Datagram;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/network/sockets/DatagramWriteChannel$DefaultImpls {
@@ -201,6 +201,7 @@ public final class io/ktor/network/sockets/InetSocketAddress : io/ktor/network/s
 	public final fun getHostname ()Ljava/lang/String;
 	public final fun getPort ()I
 	public fun hashCode ()I
+	public final fun resolveAddress ()[B
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -360,6 +361,7 @@ public final class io/ktor/network/sockets/UDPSocketBuilder : io/ktor/network/so
 }
 
 public final class io/ktor/network/sockets/UnixSocketAddress : io/ktor/network/sockets/SocketAddress {
+	public static final field Companion Lio/ktor/network/sockets/UnixSocketAddress$Companion;
 	public fun <init> (Ljava/lang/String;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun copy (Ljava/lang/String;)Lio/ktor/network/sockets/UnixSocketAddress;
@@ -368,6 +370,10 @@ public final class io/ktor/network/sockets/UnixSocketAddress : io/ktor/network/s
 	public final fun getPath ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/network/sockets/UnixSocketAddress$Companion {
+	public final fun isSupported ()Z
 }
 
 public final class io/ktor/network/util/PoolsKt {

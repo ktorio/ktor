@@ -120,11 +120,33 @@ internal fun Application.cacheTestServer() {
             }
             get("/different-vary") {
                 if (call.request.headers.contains("200")) {
-                    call.response.header("Vary", "X-Requested-With,Accept-Encoding")
-                    call.respond(HttpStatusCode.OK)
+                    call.response.header("Vary", "X-Requested-With, Accept-Encoding")
+                    call.respondText { "Ok" }
                 } else {
                     call.response.header("Vary", "X-Requested-With")
                     call.respond(HttpStatusCode.NotModified)
+                }
+            }
+            get("/vary-header") {
+                call.response.header("Vary", "Accept")
+                call.respondText { "OK" }
+            }
+
+            get("/vary-header-case-sensitive") {
+                when (call.request.headers["Count"]?.toIntOrNull() ?: 0) {
+                    1 -> {
+                        call.response.header(HttpHeaders.CacheControl, "max-age=0")
+                        call.response.header(HttpHeaders.Vary, "Accept-Language")
+                        call.respond("1")
+                    }
+
+                    2 -> {
+                        call.response.header(HttpHeaders.CacheControl, "max-age=0")
+                        call.response.header(HttpHeaders.Vary, "accept-language")
+                        call.respond("2")
+                    }
+
+                    else -> error("Should not be invoked")
                 }
             }
         }

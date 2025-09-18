@@ -52,17 +52,25 @@ internal suspend inline fun ByteReadChannel.tryReadText(charset: Charset): Strin
     null
 }
 
-internal suspend fun logResponseBody(
-    log: StringBuilder,
+@OptIn(InternalAPI::class)
+internal suspend fun HttpClientCallLogger.logResponseBody(response: HttpResponse) {
+    val log = StringBuilder()
+    try {
+        log.appendResponseBody(response.contentType(), response.rawContent)
+    } catch (_: Throwable) {
+    } finally {
+        logResponseBody(log.toString().trim())
+    }
+}
+
+internal suspend fun StringBuilder.appendResponseBody(
     contentType: ContentType?,
     content: ByteReadChannel
 ) {
-    with(log) {
-        appendLine("BODY Content-Type: $contentType")
-        appendLine("BODY START")
+    appendLine("BODY Content-Type: $contentType")
+    appendLine("BODY START")
 
-        val message = content.tryReadText(contentType?.charset() ?: Charsets.UTF_8) ?: "[response body omitted]"
-        appendLine(message)
-        append("BODY END")
-    }
+    val message = content.tryReadText(contentType?.charset() ?: Charsets.UTF_8) ?: "[response body omitted]"
+    appendLine(message)
+    append("BODY END")
 }

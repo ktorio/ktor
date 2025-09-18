@@ -4,40 +4,41 @@
 
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class)
 
+import ktorbuild.KtorBuildExtension
 import ktorbuild.internal.*
 import ktorbuild.internal.gradle.maybeNamed
 import ktorbuild.targets.*
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 
 plugins {
     id("ktorbuild.base")
     kotlin("multiplatform")
-    id("org.jetbrains.kotlinx.atomicfu")
     id("ktorbuild.codestyle")
 }
 
+// atomicfu gradle plugin is not compatible with Android KMP plugin
+// see https://github.com/Kotlin/kotlinx-atomicfu/issues/511
+if (!project.hasAndroidPlugin()) {
+    plugins {
+        id("org.jetbrains.kotlinx.atomicfu")
+    }
+}
+
 kotlin {
+    jvmToolchain(KtorBuildExtension.DEFAULT_JDK)
     explicitApi()
 
     compilerOptions {
-        progressiveMode = ktorBuild.kotlinLanguageVersion.map { it >= KotlinVersion.DEFAULT }
-        apiVersion = ktorBuild.kotlinApiVersion
-        languageVersion = ktorBuild.kotlinLanguageVersion
+        apiVersion = KotlinVersion.KOTLIN_2_2
+        languageVersion = KotlinVersion.KOTLIN_2_2
+        progressiveMode = languageVersion.map { it >= KotlinVersion.DEFAULT }
         freeCompilerArgs.addAll("-Xexpect-actual-classes")
     }
 
     applyHierarchyTemplate(KtorTargets.hierarchyTemplate)
-    addTargets(ktorBuild.targets)
-
-    // Specify JVM toolchain later to prevent it from being evaluated before it was configured.
-    // TODO: Remove `afterEvaluate` when the BCV issue triggering JVM toolchain evaluation is fixed
-    //   https://github.com/Kotlin/binary-compatibility-validator/issues/286
-    afterEvaluate {
-        jvmToolchain {
-            languageVersion = ktorBuild.jvmToolchain
-        }
-    }
+    addTargets(ktorBuild.targets, ktorBuild.isCI.get())
 }
 
 val targets = ktorBuild.targets
@@ -46,8 +47,11 @@ configureCommon()
 if (targets.hasJvm) configureJvm()
 if (targets.hasJs) configureJs()
 if (targets.hasWasmJs) configureWasmJs()
+if (targets.hasAndroidJvm && project.hasAndroidPlugin()) configureAndroidJvm()
 
 if (targets.hasJsOrWasmJs) {
+    configureNodeJs()
+
     tasks.configureEach {
         if (name == "compileJsAndWasmSharedMainKotlinMetadata") enabled = false
     }
@@ -58,15 +62,24 @@ if (targets.hasJsOrWasmJs) {
 @Suppress("UnstableApiUsage")
 if (targets.hasNative) {
     tasks.maybeNamed("linkDebugTestLinuxX64") {
-        onlyIf("run only on Linux") { ktorBuild.os.get().isLinux }
+        val os = ktorBuild.os.get()
+        onlyIf("run only on Linux") { os.isLinux }
     }
     tasks.maybeNamed("linkDebugTestLinuxArm64") {
-        onlyIf("run only on Linux") { ktorBuild.os.get().isLinux }
+        val os = ktorBuild.os.get()
+        onlyIf("run only on Linux") { os.isLinux }
     }
     tasks.maybeNamed("linkDebugTestMingwX64") {
-        onlyIf("run only on Windows") { ktorBuild.os.get().isWindows }
+        val os = ktorBuild.os.get()
+        onlyIf("run only on Windows") { os.isWindows }
     }
+
+    // A workaround for KT-70915
+    tasks.withType<KotlinNativeLink>()
+        .configureEach { withLimitedParallelism("native-tools", maxParallelTasks = 3) }
+    // A workaround for KT-77609
+    tasks.matching { it::class.simpleName?.startsWith("CInteropCommonizerTask") == true }
+        .configureEach { withLimitedParallelism("native-tools", maxParallelTasks = 3) }
 }
 
-setupTrain()
 if (ktorBuild.isCI.get()) configureTestTasksOnCi()

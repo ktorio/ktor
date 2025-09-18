@@ -6,15 +6,13 @@ plugins {
     id("ktorbuild.project.server-plugin")
 }
 
-ktorBuild {
+kotlin {
     // The minimal JDK version required for Swagger Codegen
     jvmToolchain(11)
-}
 
-kotlin {
     sourceSets {
         jvmMain.dependencies {
-            implementation(project(":ktor-server:ktor-server-plugins:ktor-server-html-builder"))
+            implementation(projects.ktorServerHtmlBuilder)
 
             implementation(libs.swagger.codegen)
             implementation(libs.swagger.codegen.generators)

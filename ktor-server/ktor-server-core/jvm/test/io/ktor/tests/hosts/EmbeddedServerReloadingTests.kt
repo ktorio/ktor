@@ -6,7 +6,7 @@
 
 package io.ktor.tests.hosts
 
-import com.typesafe.config.*
+import com.typesafe.config.ConfigFactory
 import io.ktor.client.request.*
 import io.ktor.events.*
 import io.ktor.server.application.*
@@ -15,23 +15,31 @@ import io.ktor.server.engine.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.tests.hosts.EmbeddedServerReloadingTests.Companion.addLoadedModule
 import io.ktor.util.*
-import kotlinx.coroutines.*
-import org.slf4j.helpers.*
-import kotlin.reflect.*
-import kotlin.reflect.jvm.*
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.runBlocking
+import org.slf4j.helpers.NOPLogger
+import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
+import kotlin.reflect.KFunction0
+import kotlin.reflect.jvm.javaMethod
+import kotlin.reflect.jvm.jvmName
 import kotlin.test.*
 
 class EmbeddedServerReloadingTests {
 
     @Test
-    fun `top level extension function as module function`() {
+    fun `top level extension functions as module function`() {
         val environment = applicationEnvironment {
             config = HoconApplicationConfig(
                 ConfigFactory.parseMap(
                     mapOf(
                         "ktor.deployment.environment" to "test",
-                        "ktor.application.modules" to listOf(Application::topLevelExtensionFunction.fqName)
+                        "ktor.application.modules" to listOf(
+                            Application::topLevelExtensionFunction.fqName,
+                            Application::topLevelSuspendExtensionFunction.fqName,
+                        )
                     )
                 )
             )
@@ -45,6 +53,7 @@ class EmbeddedServerReloadingTests {
         val application = server.application
         assertNotNull(application)
         assertEquals("topLevelExtensionFunction", application.attributes[TestKey])
+        assertEquals("topLevelSuspendExtensionFunction", application.attributes[TestKey2])
         server.stop()
     }
 
@@ -387,7 +396,9 @@ class EmbeddedServerReloadingTests {
                     mapOf(
                         "ktor.deployment.environment" to "test",
                         "ktor.application.modules" to listOf(
-                            EmbeddedServerReloadingTests::class.jvmName + "Kt.topLevelWithDefaultArg"
+                            Application::defaultArgBoolean.fqName,
+                            Application::defaultArgContainingApplicationWord.fqName,
+                            Application::defaultArgInline.fqName,
                         )
                     )
                 )
@@ -401,7 +412,14 @@ class EmbeddedServerReloadingTests {
         server.start()
         val application = server.application
         assertNotNull(application)
-        assertEquals("topLevelWithDefaultArg", application.attributes[TestKey])
+        assertEquals(
+            setOf(
+                "defaultArgBoolean",
+                "defaultArgContainingApplicationWord",
+                "defaultArgInline",
+            ),
+            application.loadedModules,
+        )
         server.stop()
     }
 
@@ -507,6 +525,15 @@ class EmbeddedServerReloadingTests {
 
     companion object {
         val TestKey = AttributeKey<String>("test-key")
+        val TestKey2 = AttributeKey<String>("test-key2")
+        private val LoadedModulesKey = AttributeKey<MutableSet<String>>("loaded-modules")
+
+        val Application.loadedModules: Set<String>
+            get() = attributes.getOrNull(LoadedModulesKey).orEmpty()
+
+        fun Application.addLoadedModule(name: String) {
+            attributes.computeIfAbsent(LoadedModulesKey) { mutableSetOf() }.add(name)
+        }
 
         private val KFunction<*>.fqName: String
             get() = javaMethod!!.declaringClass.name + "." + name
@@ -634,6 +661,10 @@ fun Application.topLevelExtensionFunction() {
     attributes.put(EmbeddedServerReloadingTests.TestKey, "topLevelExtensionFunction")
 }
 
+suspend fun Application.topLevelSuspendExtensionFunction() {
+    attributes.put(EmbeddedServerReloadingTests.TestKey2, "topLevelSuspendExtensionFunction")
+}
+
 fun topLevelFunction(app: Application) {
     app.attributes.put(EmbeddedServerReloadingTests.TestKey, "topLevelFunction")
 }
@@ -643,8 +674,19 @@ fun topLevelFunction() {
     error("Shouldn't be invoked")
 }
 
-fun Application.topLevelWithDefaultArg(testing: Boolean = false) {
-    attributes.put(EmbeddedServerReloadingTests.TestKey, "topLevelWithDefaultArg")
+fun Application.defaultArgBoolean(testing: Boolean = false) {
+    addLoadedModule("defaultArgBoolean")
+}
+
+fun Application.defaultArgContainingApplicationWord(configure: Application.() -> Unit = {}) {
+    addLoadedModule("defaultArgContainingApplicationWord")
+}
+
+@JvmInline
+value class InstanceId(val value: String)
+
+fun Application.defaultArgInline(id: InstanceId = InstanceId("default")) {
+    addLoadedModule("defaultArgInline")
 }
 
 @JvmOverloads

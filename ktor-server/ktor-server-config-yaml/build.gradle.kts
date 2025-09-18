@@ -4,13 +4,16 @@
 
 plugins {
     id("ktorbuild.project.library")
+    id("kotlinx-serialization")
 }
 
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            api(project(":ktor-server:ktor-server-core"))
+            api(projects.ktorServerCore)
+            // KTOR-8386 Remove in next major release
             api(libs.yamlkt.serialization)
+            implementation(libs.kaml.serialization)
         }
     }
 }

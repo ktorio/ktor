@@ -73,7 +73,7 @@ internal fun Application.serverSentEvents() {
                     writeSseEvents(events)
                 }
             }
-            get("/echo") {
+            post("/echo") {
                 call.respondSseEvents(
                     flow {
                         emit(SseEvent(call.receiveText()))
@@ -153,6 +153,9 @@ internal fun Application.serverSentEvents() {
             get("no-content") {
                 call.respond(HttpStatusCode.NoContent)
             }
+            get("no-events") {
+                call.respondBytesWriter(ContentType.Text.EventStream) {}
+            }
             get("no-content-after-reconnection") {
                 val count = call.parameters["count"]?.toInt() ?: 0
                 val lastEventId = call.request.header("Last-Event-ID")
@@ -167,6 +170,9 @@ internal fun Application.serverSentEvents() {
                 } else {
                     call.respond(HttpStatusCode.NoContent)
                 }
+            }
+            get("/error") {
+                call.respond(HttpStatusCode.InternalServerError, "Server error")
             }
         }
     }

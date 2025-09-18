@@ -11,7 +11,6 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.http.content.*
-import io.ktor.network.sockets.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.http.content.*
@@ -36,6 +35,7 @@ import org.slf4j.event.Level
 import org.slf4j.helpers.AbstractLogger
 import java.io.File
 import java.io.IOException
+import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.Proxy
 import java.net.URL
@@ -246,21 +246,6 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         }
     }
 
-    @Test
-    fun testApplicationScopeCancellation() = runTest {
-        var job: Job? = null
-
-        createAndStartServer {
-            job = application.launch {
-                delay(10000000L)
-            }
-        }
-
-        server!!.stop(1, 10, TimeUnit.SECONDS)
-        assertNotNull(job)
-        assertTrue(job!!.isCancelled)
-    }
-
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun testEmbeddedServerCancellation() = runTest {
@@ -410,7 +395,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             }
         }
 
-        val originalSha1WithSize = file.inputStream().use { it.crcWithSize() }
+        val (fileChecksum, fileCount) = file.inputStream().use { it.crcWithSize() }
 
         createAndStartServer {
             get("/file") {
@@ -419,7 +404,9 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         }
 
         withUrl("/file") {
-            assertEquals(originalSha1WithSize, rawContent.toInputStream().crcWithSize())
+            val (actualChecksum, actualCount) = body<InputStream>().crcWithSize()
+            assertEquals(fileCount, actualCount, "Response size differs from file")
+            assertEquals(fileChecksum, actualChecksum, "Response checksum differs from file")
         }
     }
 
@@ -878,7 +865,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             val response = inputStream.bufferedReader()
             val status = response.readLine()
 
-            assertTrue(status.startsWith("HTTP/1.1 400"))
+            assertContains(status, "400")
             outputStream.close()
         }
     }
@@ -899,10 +886,11 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                 } catch (cause: Throwable) {
                     failCause = cause
                 } finally {
+                    runCatching {
+                        call.respond("OK")
+                    }
                     result.complete()
                 }
-
-                call.respond("OK")
             }
         }
 
@@ -977,6 +965,51 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             assertNotNull(loggedException)
             loggedException = null
         }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    open fun testJobsAreCancelledOnShutdown() = runTest {
+        var applicationJob: Job? = null
+        var routingJob: Job? = null
+        val jobsStartedLatch = CountDownLatch(2)
+
+        suspend fun waitForever() {
+            jobsStartedLatch.countDown()
+            delay(Long.MAX_VALUE) // Hang until canceled
+        }
+
+        val server = createAndStartServer {
+            // Launch a coroutine in the application context
+            applicationJob = application.launch { waitForever() }
+
+            // Configure a route that launches a coroutine in the routing context
+            get("/launch-job") {
+                routingJob = call.launch { waitForever() }
+                call.respondText("Job launched")
+            }
+        }
+
+        // Trigger the route to start the routing job
+        withUrl("/launch-job") {
+            assertEquals("Job launched", call.body<String>())
+        }
+
+        // Wait for both jobs to start
+        assertTrue(jobsStartedLatch.await(5, TimeUnit.SECONDS), "Jobs did not start within timeout")
+
+        // Verify both jobs are active
+        assertNotNull(applicationJob, "Application job should not be null")
+        assertNotNull(routingJob, "Routing job should not be null")
+        assertTrue(applicationJob.isActive, "Application job should be active")
+        assertTrue(routingJob.isActive, "Routing job should be active")
+
+        // Stop the server
+        server.stop(1, 10, TimeUnit.SECONDS)
+
+        // Verify both jobs are canceled
+        assertTrue(applicationJob.isCancelled, "Application job should be canceled")
+        assertTrue(routingJob.isCancelled, "Routing job should be canceled")
     }
 }
 

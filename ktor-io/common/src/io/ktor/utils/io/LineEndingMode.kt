@@ -4,6 +4,9 @@
 
 package io.ktor.utils.io
 
+import io.ktor.utils.io.LineEndingMode.Companion.CR
+import io.ktor.utils.io.LineEndingMode.Companion.CRLF
+import io.ktor.utils.io.LineEndingMode.Companion.LF
 import kotlin.jvm.JvmInline
 
 /**
@@ -44,28 +47,28 @@ public value class LineEndingMode private constructor(private val mode: Int) {
         /**
          * Represents Carriage Return (\r) line ending.
          *
-         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.LineEndingMode.CR)
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.LineEndingMode.Companion.CR)
          */
         public val CR: LineEndingMode = LineEndingMode(0b001)
 
         /**
          * Represents Line Feed (\n) line ending.
          *
-         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.LineEndingMode.LF)
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.LineEndingMode.Companion.LF)
          */
         public val LF: LineEndingMode = LineEndingMode(0b010)
 
         /**
          * Represents Carriage Return + Line Feed (\r\n) line ending.
          *
-         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.LineEndingMode.CRLF)
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.LineEndingMode.Companion.CRLF)
          */
         public val CRLF: LineEndingMode = LineEndingMode(0b100)
 
         /**
          * Represents a mode that accepts any line ending ([CR], [LF], or [CRLF]).
          *
-         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.LineEndingMode.Any)
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.LineEndingMode.Companion.Any)
          */
         public val Any: LineEndingMode = LineEndingMode(0b111)
 

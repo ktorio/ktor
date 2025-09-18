@@ -3,14 +3,30 @@
  */
 
 plugins {
-    id("com.gradle.develocity") version "3.17.6"
+    // Keep it in sync with libs.versions.toml
+    id("com.gradle.develocity") version "3.19.2"
 }
 
+@Suppress("UnstableApiUsage")
 dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
             from(files("../gradle/libs.versions.toml"))
+
+            // Make it possible to override Kotlin version
+            // See ktorsettings.kotlin-user-project for more details
+            val kotlinVersion = providers.gradleProperty("kotlin_version").orNull
+            if (kotlinVersion != null) version("kotlin", kotlinVersion)
         }
+    }
+
+    repositories {
+        google()
+        gradlePluginPortal()
+
+        // Should be in sync with ktorsettings.kotlin-user-project
+        val kotlinRepoUrl = providers.gradleProperty("kotlin_repo_url").orNull
+        if (kotlinRepoUrl != null) maven(kotlinRepoUrl) { name = "KotlinDev" }
     }
 }
 

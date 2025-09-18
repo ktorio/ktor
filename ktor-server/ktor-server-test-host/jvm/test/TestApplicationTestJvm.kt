@@ -12,7 +12,6 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
-import io.ktor.server.config.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
@@ -95,9 +94,7 @@ class TestApplicationTestJvm {
 
     @Test
     fun testCustomEnvironmentKeepsDefaultProperties() = testApplication {
-        environment {
-            config = ApplicationConfig("application-custom.conf")
-        }
+        configure("application-custom.conf")
         routing {
             val config = environment.config
             get("a") {
@@ -111,9 +108,7 @@ class TestApplicationTestJvm {
 
     @Test
     fun testExplicitDefaultConfig() = testApplication {
-        environment {
-            config = ConfigLoader.load()
-        }
+        configure()
         routing {
             val config = environment.config
             get {
@@ -127,9 +122,7 @@ class TestApplicationTestJvm {
 
     @Test
     fun testCustomConfig() = testApplication {
-        environment {
-            config = ApplicationConfig("application-custom.conf")
-        }
+        configure("application-custom.conf")
         routing {
             val config = environment.config
             get {
@@ -143,9 +136,7 @@ class TestApplicationTestJvm {
 
     @Test
     fun testCustomYamlConfig() = testApplication {
-        environment {
-            config = ApplicationConfig("application-custom.yaml")
-        }
+        configure("application-custom.yaml")
         routing {
             val config = environment.config
             get {
@@ -159,18 +150,33 @@ class TestApplicationTestJvm {
 
     @Test
     fun testConfigLoadsModules() = testApplication {
-        environment {
-            config = ApplicationConfig("application-with-modules.conf")
-        }
-
+        configure("application-with-modules.conf")
         val response = client.get("/")
         assertEquals("OK FROM MODULE", response.bodyAsText())
     }
 
     @Test
+    fun configureMultipleFiles() = testApplication {
+        configure(
+            "application.conf",
+            "application-custom.yaml",
+            "application-with-modules.conf",
+        )
+        routing {
+            val config = environment.config
+            get("/test") {
+                call.respond(config.property("ktor.test").getString())
+            }
+        }
+
+        assertEquals("OK FROM MODULE", client.get("/").bodyAsText())
+        assertEquals("another_test_value", client.get("/test").bodyAsText())
+    }
+
+    @Test
     fun testExternalServicesCustomConfig() = testApplication {
-        environment {
-            config = ApplicationConfig("application-custom.conf")
+        configure("application-custom.conf") {
+            put("config.test", "other")
         }
         externalServices {
             hosts("http://www.google.com") {

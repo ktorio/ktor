@@ -5,15 +5,19 @@
 package ktorbuild.internal.publish
 
 import ktorbuild.internal.capitalized
-import ktorbuild.internal.gradle.maybeNamed
 import ktorbuild.targets.KtorTargets
 import org.gradle.api.Project
+import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.tasks.AbstractPublishToMaven
+import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
 import org.gradle.api.publish.plugins.PublishingPlugin
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.kotlin.dsl.the
+import org.gradle.kotlin.dsl.withType
 
 private val jvmAndCommonPublications = setOf(
     "jvm",
+    "android",
     "androidRelease",
     "androidDebug",
     "metadata",
@@ -27,8 +31,8 @@ private val windowsPublications = KtorTargets.resolveTargets("windows")
 private val darwinPublications = KtorTargets.resolveTargets("darwin")
 private val androidNativePublications = KtorTargets.resolveTargets("androidNative")
 
-internal fun AbstractPublishToMaven.isAvailableForPublication(os: OperatingSystem): Boolean {
-    return when (val name = publication.name) {
+internal fun AbstractPublishToMaven.isAvailableForPublication(publicationName: String, os: OperatingSystem): Boolean {
+    return when (publicationName) {
         in linuxPublications -> os.isLinux
         in windowsPublications -> os.isWindows
         in darwinPublications -> os.isMacOsX
@@ -37,7 +41,7 @@ internal fun AbstractPublishToMaven.isAvailableForPublication(os: OperatingSyste
         in androidNativePublications -> true
 
         else -> {
-            logger.warn("Unknown publication: $name (project ${project.path})")
+            logger.warn("Unknown publication: $publicationName (project ${project.path})")
             false
         }
     }
@@ -59,12 +63,31 @@ internal fun Project.registerTargetsPublishTasks(targets: KtorTargets) = with(ta
     if (hasAndroidNative) registerAggregatingPublishTask("AndroidNative", androidNativePublications)
 }
 
-private fun Project.registerAggregatingPublishTask(name: String, targets: Set<String>) {
+private fun Project.registerAggregatingPublishTask(name: String, publications: Set<String>) {
     tasks.register("publish${name}Publications") {
         group = PublishingPlugin.PUBLISH_TASK_GROUP
-        val targetsTasks = targets.mapNotNull { target ->
-            tasks.maybeNamed("publish${target.capitalized()}PublicationToMavenRepository")
+
+        val taskNames = provider {
+            val repositoryName = publishing.inferRepositoryName().capitalized()
+            publications
+                .map { "publish${it.capitalized()}PublicationTo${repositoryName}Repository" }
+                .toSet()
         }
-        dependsOn(targetsTasks)
+
+        dependsOn(tasks.withType<PublishToMavenRepository>().named { it in taskNames.get() })
     }
 }
+
+private fun PublishingExtension.inferRepositoryName(): String {
+    val repositoryNames = repositories.map { it.name }.filter { it != MAVEN_REPO_DEFAULT_NAME }
+    check(repositoryNames.size <= 1) {
+        "Publishing repository can't be inferred. Multiple repositories are defined: $repositoryNames"
+    }
+
+    return repositoryNames.singleOrNull() ?: MAVEN_REPO_DEFAULT_NAME
+}
+
+private val Project.publishing: PublishingExtension
+    get() = the()
+
+private const val MAVEN_REPO_DEFAULT_NAME = "MavenLocal"

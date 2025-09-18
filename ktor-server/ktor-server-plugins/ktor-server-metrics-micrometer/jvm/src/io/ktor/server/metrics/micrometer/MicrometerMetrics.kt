@@ -7,20 +7,26 @@ package io.ktor.server.metrics.micrometer
 import io.ktor.http.HttpMethod.Companion.DefaultMethods
 import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
-import io.ktor.server.application.hooks.Metrics
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
-import io.micrometer.core.instrument.*
-import io.micrometer.core.instrument.Tag.*
-import io.micrometer.core.instrument.binder.*
-import io.micrometer.core.instrument.binder.jvm.*
-import io.micrometer.core.instrument.binder.system.*
-import io.micrometer.core.instrument.config.*
-import io.micrometer.core.instrument.distribution.*
-import io.micrometer.core.instrument.logging.*
-import java.util.concurrent.atomic.*
+import io.micrometer.core.instrument.Meter
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tag.of
+import io.micrometer.core.instrument.Timer
+import io.micrometer.core.instrument.binder.MeterBinder
+import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics
+import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics
+import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics
+import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics
+import io.micrometer.core.instrument.binder.system.FileDescriptorMetrics
+import io.micrometer.core.instrument.binder.system.ProcessorMetrics
+import io.micrometer.core.instrument.binder.system.UptimeMetrics
+import io.micrometer.core.instrument.config.MeterFilter
+import io.micrometer.core.instrument.distribution.DistributionStatisticConfig
+import io.micrometer.core.instrument.logging.LoggingMeterRegistry
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * A configuration for the [MicrometerMetrics] plugin.
@@ -66,13 +72,13 @@ public class MicrometerMetricsConfig {
 
     /**
      * Specifies if requests for non-existent routes should
-     * contain a request path or fallback to common `n/a` value. `true` by default.
+     * contain a request path or fallback to common `n/a` value. `false` by default.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.metrics.micrometer.MicrometerMetricsConfig.distinctNotRegisteredRoutes)
      *
      * @see [MicrometerMetrics]
      */
-    public var distinctNotRegisteredRoutes: Boolean = true
+    public var distinctNotRegisteredRoutes: Boolean = false
 
     /**
      * Allows you to configure a set of metrics for monitoring the JVM.
@@ -85,15 +91,28 @@ public class MicrometerMetricsConfig {
      *
      * @see [MicrometerMetrics]
      */
-    public var meterBinders: List<MeterBinder> = listOf(
-        ClassLoaderMetrics(),
-        JvmMemoryMetrics(),
-        JvmGcMetrics(),
-        ProcessorMetrics(),
-        JvmThreadMetrics(),
-        FileDescriptorMetrics(),
-        UptimeMetrics(),
-    )
+    public var meterBinders: List<MeterBinder>
+        get() = _meterBinders ?: defaultMeterBinders
+        set(value) {
+            _meterBinders = value
+        }
+
+    private var _meterBinders: List<MeterBinder>? = null
+    private val defaultMeterBinders: List<MeterBinder> by lazy {
+        if (isManagementFactoryAvailable) {
+            listOf(
+                ClassLoaderMetrics(),
+                JvmMemoryMetrics(),
+                JvmGcMetrics(),
+                ProcessorMetrics(),
+                JvmThreadMetrics(),
+                FileDescriptorMetrics(),
+                UptimeMetrics(),
+            )
+        } else {
+            emptyList()
+        }
+    }
 
     /**
      * Configures the histogram and/or percentiles for all request timers.
@@ -118,6 +137,34 @@ public class MicrometerMetricsConfig {
      */
     public fun timers(block: Timer.Builder.(ApplicationCall, Throwable?) -> Unit) {
         timerBuilder = block
+    }
+
+    internal var transformRoute: (RoutingNode) -> String = { it.path }
+
+    /**
+     * Configures mapping function for the route label string of the [CallMeasure].
+     * Defaults to [RoutingNode.path].
+     *
+     * **Examples:**
+     *
+     * Use the toString() function of the RoutingNode:
+     * ```kotlin
+     * transformRoute {
+     *    it.toString()
+     * }
+     * ```
+     *
+     * Remove a prefix from the path:
+     * ```kotlin
+     * transformRoute {
+     *     it.path.removePrefix("/path/prefix")
+     * }
+     * ```
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.metrics.micrometer.MicrometerMetricsConfig.transformRoute)
+     */
+    public fun transformRoute(block: (RoutingNode) -> String) {
+        transformRoute = block
     }
 }
 
@@ -194,7 +241,7 @@ public val MicrometerMetrics: ApplicationPlugin<MicrometerMetricsConfig> =
 
         application.monitor.subscribe(RoutingRoot.RoutingCallStarted) { call ->
             call.attributes.getOrNull(measureKey)?.let { measure ->
-                measure.route = call.route.parent.toString()
+                measure.route = pluginConfig.transformRoute(call.route)
             }
         }
     }
@@ -204,3 +251,13 @@ private data class CallMeasure(
     var route: String? = null,
     var throwable: Throwable? = null
 )
+
+// ManagementFactory might not be available. For example, on Android
+private val isManagementFactoryAvailable: Boolean by lazy {
+    try {
+        Class.forName("java.lang.management.ManagementFactory")
+        true
+    } catch (_: ClassNotFoundException) {
+        false
+    }
+}

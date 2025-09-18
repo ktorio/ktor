@@ -6,6 +6,7 @@
 
 package ktorbuild.targets
 
+import com.android.build.api.dsl.androidLibrary
 import ktorbuild.internal.KotlinHierarchyTracker
 import ktorbuild.internal.TrackedKotlinHierarchyTemplate
 import ktorbuild.internal.gradle.ProjectGradleProperties
@@ -20,11 +21,8 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
-import org.jetbrains.kotlin.gradle.plugin.KotlinHierarchyBuilder
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
-import org.jetbrains.kotlin.konan.target.KonanTarget
 import javax.inject.Inject
 
 /**
@@ -53,6 +51,12 @@ import javax.inject.Inject
  * target.wasmJs.browser=false
  * ```
  *
+ * Android JVM tests could be also configured
+ * ```properties
+ * target.android.unitTest=false
+ * target.android.deviceTest=false
+ * ```
+ *
  * See the full list of targets and target groups in [KtorTargets.hierarchyTemplate].
  */
 abstract class KtorTargets internal constructor(
@@ -79,6 +83,7 @@ abstract class KtorTargets internal constructor(
     val hasJvm: Boolean get() = isEnabled("jvm")
     val hasJs: Boolean get() = isEnabled("js")
     val hasWasmJs: Boolean get() = isEnabled("wasmJs")
+    val hasAndroidJvm: Boolean get() = isEnabled("android")
 
     val hasJsOrWasmJs: Boolean get() = hasJs || hasWasmJs
     val hasNative: Boolean get() = resolveTargets("posix").any(::isEnabled)
@@ -145,7 +150,7 @@ abstract class KtorTargets internal constructor(
 
                             group("androidNative32") {
                                 withAndroidNativeX86()
-                                withAndroidNativeArm32Fixed()
+                                withAndroidNativeArm32()
                             }
                         }
                     }
@@ -171,6 +176,14 @@ abstract class KtorTargets internal constructor(
                     group("posix")
                     group("jsAndWasmShared")
                 }
+
+                group("nonDarwinPosix") {
+                    group("windows")
+                    group("linux")
+                    group("androidNative")
+                }
+
+                withAndroidTarget()
             }
         }
 
@@ -179,23 +192,12 @@ abstract class KtorTargets internal constructor(
     }
 }
 
-/**
- * Original `withAndroidNativeArm32` has a bug and matches to `X86` actually.
- * TODO: Remove after the bug is fixed
- *  https://youtrack.jetbrains.com/issue/KT-71866/
- */
-@OptIn(ExperimentalKotlinGradlePluginApi::class)
-private fun KotlinHierarchyBuilder.withAndroidNativeArm32Fixed() {
-    if (this is KotlinHierarchyTracker) return withAndroidNativeArm32()
-
-    withCompilations {
-        val target = it.target
-        target is KotlinNativeTarget && target.konanTarget == KonanTarget.ANDROID_ARM32
-    }
-}
-
-internal fun KotlinMultiplatformExtension.addTargets(targets: KtorTargets) {
+internal fun KotlinMultiplatformExtension.addTargets(targets: KtorTargets, isCI: Boolean) {
     if (targets.hasJvm) jvm()
+    if (targets.hasAndroidJvm && project.hasAndroidPlugin()) {
+        // device tests are not configured on the CI yet
+        androidLibrary { addTests(targets, allowDeviceTest = !isCI) }
+    }
 
     if (targets.hasJs) js { addSubTargets(targets) }
     @OptIn(ExperimentalWasmDsl::class)

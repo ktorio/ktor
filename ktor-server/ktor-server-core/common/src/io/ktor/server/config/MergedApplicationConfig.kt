@@ -4,6 +4,9 @@
 
 package io.ktor.server.config
 
+import io.ktor.server.config.ApplicationConfigValue.Type.*
+import io.ktor.server.config.MapApplicationConfig.Companion.flatten
+
 /**
  * Merge configuration combining all their keys.
  * If key is not found in one of the configs, search will continue in the next config in the list.
@@ -28,9 +31,12 @@ public fun List<ApplicationConfig>.merge(): ApplicationConfig {
  *
  * @see [withFallback]
  */
-public fun ApplicationConfig.mergeWith(other: ApplicationConfig): ApplicationConfig {
-    return MergedApplicationConfig(other, this)
-}
+public fun ApplicationConfig.mergeWith(other: ApplicationConfig): ApplicationConfig =
+    when {
+        keys().isEmpty() -> other
+        other.keys().isEmpty() -> this
+        else -> MergedApplicationConfig(other, this)
+    }
 
 /**
  * Merge configuration combining all their keys.
@@ -53,15 +59,11 @@ internal class MergedApplicationConfig(
     private val firstKeys by lazy { first.keys() }
     private val secondKeys by lazy { second.keys() }
 
-    override fun property(path: String): ApplicationConfigValue = when {
-        firstKeys.contains(path) -> first.property(path)
-        else -> second.property(path)
-    }
+    override fun property(path: String): ApplicationConfigValue =
+        merge(first.propertyOrNull(path), second.propertyOrNull(path)) ?: second.property(path)
 
-    override fun propertyOrNull(path: String): ApplicationConfigValue? = when {
-        firstKeys.contains(path) -> first.propertyOrNull(path)
-        else -> second.propertyOrNull(path)
-    }
+    override fun propertyOrNull(path: String): ApplicationConfigValue? =
+        merge(first.propertyOrNull(path), second.propertyOrNull(path))
 
     override fun config(path: String): ApplicationConfig {
         if (firstKeys.none { it.startsWith("$path.") }) return second.config(path)
@@ -79,6 +81,11 @@ internal class MergedApplicationConfig(
 
     override fun toMap(): Map<String, Any?> = second.toMap().merge(first.toMap())
 
+    /**
+     * Adds entries from `other` into `this` as a new map.
+     *
+     * Preference for keys is given to `other`.
+     */
     @Suppress("UNCHECKED_CAST")
     private fun Map<String, Any?>.merge(other: Map<String, Any?>): Map<String, Any?> =
         (this.keys + other.keys).associateWith { key ->
@@ -93,4 +100,39 @@ internal class MergedApplicationConfig(
                 else -> value2 ?: value1
             }
         }
+
+    /**
+     * Returns a non-null value with preference of the first, or null if both are null.
+     *
+     * When both are not null and objects, merge the keys from both.
+     */
+    private fun merge(
+        first: ApplicationConfigValue?,
+        second: ApplicationConfigValue?,
+    ): ApplicationConfigValue? {
+        val value = when {
+            first == null -> second
+            second == null -> first
+            first.type != OBJECT || second.type != OBJECT -> first
+            else -> mergeMapConfigValues(first, second)
+        }
+        return value
+    }
+
+    /**
+     * Converts both config values to maps, then merges them with a preference for the first's keys.
+     *
+     * The resulting map is used to populate a `MapApplicationConfigValue` using a flattened copy.
+     */
+    private fun mergeMapConfigValues(
+        first: ApplicationConfigValue,
+        second: ApplicationConfigValue,
+    ): ApplicationConfigValue {
+        val firstMap = first.getMap()
+        val secondMap = second.getMap()
+        val mergedMap = secondMap.merge(firstMap)
+        val flattenedMap = mergedMap.flatten().toMap().toMutableMap()
+
+        return MapApplicationConfigValue(flattenedMap, "")
+    }
 }

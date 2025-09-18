@@ -365,8 +365,14 @@ public suspend inline fun HttpClient.get(block: HttpRequestBuilder.() -> Unit): 
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.post)
  */
-public suspend inline fun HttpClient.post(block: HttpRequestBuilder.() -> Unit): HttpResponse =
-    post(HttpRequestBuilder().apply(block))
+public suspend inline fun HttpClient.post(block: HttpRequestBuilder.() -> Unit): HttpResponse {
+    val builder = HttpRequestBuilder()
+    builder.method = HttpMethod.Post
+    builder.block()
+    builder.method = HttpMethod.Post
+
+    return request(builder)
+}
 
 /**
  * Executes an [HttpClient]'s PUT request with the parameters configured in [block].
@@ -375,8 +381,14 @@ public suspend inline fun HttpClient.post(block: HttpRequestBuilder.() -> Unit):
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.put)
  */
-public suspend inline fun HttpClient.put(block: HttpRequestBuilder.() -> Unit): HttpResponse =
-    put(HttpRequestBuilder().apply(block))
+public suspend inline fun HttpClient.put(block: HttpRequestBuilder.() -> Unit): HttpResponse {
+    val builder = HttpRequestBuilder()
+    builder.method = HttpMethod.Put
+    builder.block()
+    builder.method = HttpMethod.Put
+
+    return request(builder)
+}
 
 /**
  * Executes an [HttpClient]'s DELETE request with the parameters configured in [block].
@@ -385,8 +397,14 @@ public suspend inline fun HttpClient.put(block: HttpRequestBuilder.() -> Unit): 
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.delete)
  */
-public suspend inline fun HttpClient.delete(block: HttpRequestBuilder.() -> Unit): HttpResponse =
-    delete(HttpRequestBuilder().apply(block))
+public suspend inline fun HttpClient.delete(block: HttpRequestBuilder.() -> Unit): HttpResponse {
+    val builder = HttpRequestBuilder()
+    builder.method = HttpMethod.Delete
+    builder.block()
+    builder.method = HttpMethod.Delete
+
+    return request(builder)
+}
 
 /**
  * Executes an [HttpClient]'s OPTIONS request with the parameters configured in [block].
@@ -395,8 +413,14 @@ public suspend inline fun HttpClient.delete(block: HttpRequestBuilder.() -> Unit
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.options)
  */
-public suspend inline fun HttpClient.options(block: HttpRequestBuilder.() -> Unit): HttpResponse =
-    options(HttpRequestBuilder().apply(block))
+public suspend inline fun HttpClient.options(block: HttpRequestBuilder.() -> Unit): HttpResponse {
+    val builder = HttpRequestBuilder()
+    builder.method = HttpMethod.Options
+    builder.block()
+    builder.method = HttpMethod.Options
+
+    return request(builder)
+}
 
 /**
  * Executes an [HttpClient]'s PATCH request with the parameters configured in [block].
@@ -405,8 +429,14 @@ public suspend inline fun HttpClient.options(block: HttpRequestBuilder.() -> Uni
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.patch)
  */
-public suspend inline fun HttpClient.patch(block: HttpRequestBuilder.() -> Unit): HttpResponse =
-    patch(HttpRequestBuilder().apply(block))
+public suspend inline fun HttpClient.patch(block: HttpRequestBuilder.() -> Unit): HttpResponse {
+    val builder = HttpRequestBuilder()
+    builder.method = HttpMethod.Patch
+    builder.block()
+    builder.method = HttpMethod.Patch
+
+    return request(builder)
+}
 
 /**
  * Executes an [HttpClient]'s HEAD request with the parameters configured in [block].
@@ -415,8 +445,14 @@ public suspend inline fun HttpClient.patch(block: HttpRequestBuilder.() -> Unit)
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.head)
  */
-public suspend inline fun HttpClient.head(block: HttpRequestBuilder.() -> Unit): HttpResponse =
-    head(HttpRequestBuilder().apply(block))
+public suspend inline fun HttpClient.head(block: HttpRequestBuilder.() -> Unit): HttpResponse {
+    val builder = HttpRequestBuilder()
+    builder.method = HttpMethod.Head
+    builder.block()
+    builder.method = HttpMethod.Head
+
+    return request(builder)
+}
 
 /**
  * Prepares an [HttpClient]'s GET request with the parameters configured in [block].
@@ -431,48 +467,66 @@ public suspend inline fun HttpClient.prepareGet(block: HttpRequestBuilder.() -> 
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.preparePost)
  */
-public suspend inline fun HttpClient.preparePost(block: HttpRequestBuilder.() -> Unit): HttpStatement =
-    preparePost(HttpRequestBuilder().apply(block))
+public suspend inline fun HttpClient.preparePost(block: HttpRequestBuilder.() -> Unit): HttpStatement {
+    val builder = HttpRequestBuilder()
+    builder.method = HttpMethod.Post
+    return prepareRequest(builder.apply(block))
+}
 
 /**
  * Prepares an [HttpClient]'s PUT request with the parameters configured in [block].
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.preparePut)
  */
-public suspend inline fun HttpClient.preparePut(block: HttpRequestBuilder.() -> Unit): HttpStatement =
-    preparePut(HttpRequestBuilder().apply(block))
+public suspend inline fun HttpClient.preparePut(block: HttpRequestBuilder.() -> Unit): HttpStatement {
+    val builder = HttpRequestBuilder()
+    builder.method = HttpMethod.Put
+    return prepareRequest(builder.apply(block))
+}
 
 /**
  * Prepares an [HttpClient]'s DELETE request with the parameters configured in [block].
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.prepareDelete)
  */
-public suspend inline fun HttpClient.prepareDelete(block: HttpRequestBuilder.() -> Unit): HttpStatement =
-    prepareDelete(HttpRequestBuilder().apply(block))
+public suspend inline fun HttpClient.prepareDelete(block: HttpRequestBuilder.() -> Unit): HttpStatement {
+    val builder = HttpRequestBuilder()
+    builder.method = HttpMethod.Delete
+    return prepareRequest(builder.apply(block))
+}
 
 /**
  * Prepares an [HttpClient]'s OPTIONS request with the parameters configured in [block].
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.prepareOptions)
  */
-public suspend inline fun HttpClient.prepareOptions(block: HttpRequestBuilder.() -> Unit): HttpStatement =
-    prepareOptions(HttpRequestBuilder().apply(block))
+public suspend inline fun HttpClient.prepareOptions(block: HttpRequestBuilder.() -> Unit): HttpStatement {
+    val builder = HttpRequestBuilder()
+    builder.method = HttpMethod.Options
+    return prepareRequest(builder.apply(block))
+}
 
 /**
  * Prepares an [HttpClient]'s PATCH request with the parameters configured in [block].
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.preparePatch)
  */
-public suspend inline fun HttpClient.preparePatch(block: HttpRequestBuilder.() -> Unit): HttpStatement =
-    preparePatch(HttpRequestBuilder().apply(block))
+public suspend inline fun HttpClient.preparePatch(block: HttpRequestBuilder.() -> Unit): HttpStatement {
+    val builder = HttpRequestBuilder()
+    builder.method = HttpMethod.Patch
+    return prepareRequest(builder.apply(block))
+}
 
 /**
  * Prepares an [HttpClient]'s HEAD request with the parameters configured in [block].
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.prepareHead)
  */
-public suspend inline fun HttpClient.prepareHead(block: HttpRequestBuilder.() -> Unit): HttpStatement =
-    prepareHead(HttpRequestBuilder().apply(block))
+public suspend inline fun HttpClient.prepareHead(block: HttpRequestBuilder.() -> Unit): HttpStatement {
+    val builder = HttpRequestBuilder()
+    builder.method = HttpMethod.Head
+    return prepareRequest(builder.apply(block))
+}
 
 /**
  * Creates an [HttpRequestBuilder] and configures it using [block].

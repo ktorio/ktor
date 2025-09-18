@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.cio.backend
@@ -12,13 +12,13 @@ import io.ktor.server.engine.internal.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
-import kotlinx.io.*
+import kotlinx.io.IOException
 import kotlin.time.Duration.Companion.seconds
 
 private val LOGGER = KtorSimpleLogger("io.ktor.server.cio.HttpServer")
 
 /**
- * Start a http server with [settings] invoking [handler] for every request
+ * Start an http server with [settings] invoking [handler] for every request
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.cio.backend.httpServer)
  */
@@ -32,7 +32,7 @@ public fun CoroutineScope.httpServer(
     val serverLatch: CompletableJob = Job()
 
     val serverJob = launch(
-        context = CoroutineName("server-root-${settings.port}"),
+        context = CoroutineName("server-root-$settings"),
         start = CoroutineStart.UNDISPATCHED
     ) {
         serverLatch.join()
@@ -40,11 +40,14 @@ public fun CoroutineScope.httpServer(
 
     val selector = SelectorManager(coroutineContext)
     val timeout = settings.connectionIdleTimeoutSeconds.seconds
+    val rootConnectionJob = SupervisorJob(serverJob)
 
-    val acceptJob = launch(serverJob + CoroutineName("accept-${settings.port}")) {
-        aSocket(selector).tcp().bind(settings.host, settings.port) {
+    val acceptJob = launch(serverJob + CoroutineName("accept-$settings")) {
+        val serverSocket = aSocket(selector).tcp().bind(settings.host, settings.port) {
             reuseAddress = settings.reuseAddress
-        }.use { server ->
+        }
+
+        serverSocket.use { server ->
             socket.complete(server)
 
             val exceptionHandler = coroutineContext[CoroutineExceptionHandler]
@@ -52,7 +55,7 @@ public fun CoroutineScope.httpServer(
 
             val connectionScope = CoroutineScope(
                 coroutineContext +
-                    SupervisorJob(serverJob) +
+                    rootConnectionJob +
                     exceptionHandler +
                     CoroutineName("request")
             )
@@ -62,6 +65,7 @@ public fun CoroutineScope.httpServer(
                     val client: Socket = try {
                         server.accept()
                     } catch (cause: IOException) {
+                        LOGGER.trace("Failed to accept connection", cause)
                         continue
                     }
 
@@ -83,11 +87,13 @@ public fun CoroutineScope.httpServer(
                     }
                 }
             } catch (closed: ClosedChannelException) {
+                LOGGER.trace("Server socket closed", closed)
                 coroutineContext.cancel()
             } finally {
                 server.close()
+                rootConnectionJob.complete()
+                rootConnectionJob.join()
                 server.awaitClosed()
-                connectionScope.coroutineContext.cancel()
             }
         }
     }

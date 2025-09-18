@@ -32,6 +32,8 @@ public object EngineMain {
     /**
      * Creates an instance of the embedded Tomcat server without starting it.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.tomcat.EngineMain.createServer)
+     *
      * @param args Command line arguments for configuring the server.
      * @return An instance of [EmbeddedServer] with the specified configuration.
      */

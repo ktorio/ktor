@@ -30,7 +30,7 @@ import kotlin.coroutines.EmptyCoroutineContext
 @KtorDsl
 public interface ClientProvider {
     /**
-     * Returns a client with the default configuration.
+     * Returns the current client attached to the test application instance.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.ClientProvider.client)
      *
@@ -86,6 +86,13 @@ public class TestApplication internal constructor(
     private val applicationStarting by lazy { Job(server.engine.coroutineContext[Job]) }
 
     /**
+     * Returns an instance of [Application] behind this test application.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplication.application)
+     */
+    public val application: Application get() = server.application
+
+    /**
      * Starts this [TestApplication] instance.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplication.start)
@@ -93,7 +100,7 @@ public class TestApplication internal constructor(
     public suspend fun start() {
         if (state.compareAndSet(State.Created, State.Starting)) {
             try {
-                server.start()
+                server.startSuspend()
                 externalServices.externalApplications.values.forEach { it.start() }
             } finally {
                 state.value = State.Started
@@ -110,9 +117,9 @@ public class TestApplication internal constructor(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplication.stop)
      */
-    public fun stop() {
+    public suspend fun stop() {
         state.value = State.Stopped
-        server.stop()
+        server.stopSuspend()
         externalServices.externalApplications.values.forEach { it.stop() }
         client.close()
     }
@@ -130,7 +137,7 @@ public class TestApplication internal constructor(
 public fun TestApplication(
     block: TestApplicationBuilder.() -> Unit
 ): TestApplication {
-    return ApplicationTestBuilder().apply(block).application
+    return ApplicationTestBuilder().apply(block).testApplication
 }
 
 /**
@@ -180,7 +187,7 @@ public open class TestApplicationBuilder {
     private var built = false
 
     internal val externalServices = ExternalServicesBuilder(this)
-    internal val applicationModules = mutableListOf<Application.() -> Unit>()
+    internal val applicationModules = mutableListOf<suspend Application.() -> Unit>()
     internal var engineConfig: TestApplicationEngine.Configuration.() -> Unit = {}
     internal var environmentBuilder: ApplicationEnvironmentBuilder.() -> Unit = {}
     internal var applicationProperties: ServerConfigBuilder.() -> Unit = {}
@@ -283,8 +290,21 @@ public open class TestApplicationBuilder {
      *
      * @see [testApplication]
      */
-    @KtorDsl
+    @Deprecated("Use the suspend argument variant", level = DeprecationLevel.HIDDEN)
     public fun application(block: Application.() -> Unit) {
+        checkNotBuilt()
+        applicationModules.add(block)
+    }
+
+    /**
+     * Adds a module to [TestApplication].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationBuilder.application)
+     *
+     * @see [testApplication]
+     */
+    @KtorDsl
+    public fun application(block: suspend Application.() -> Unit) {
         checkNotBuilt()
         applicationModules.add(block)
     }
@@ -315,6 +335,37 @@ public open class TestApplicationBuilder {
         applicationModules.add { routing(configuration) }
     }
 
+    /**
+     * Configures the application environment using the provided configuration file paths.
+     *
+     * If no paths are provided, the default configuration is loaded.
+     * If one path is provided, the corresponding configuration file is loaded.
+     * If multiple paths are provided, the configurations are merged in the given order.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationBuilder.configure)
+     *
+     * @param configPaths Optional paths to configuration files.
+     */
+    @KtorDsl
+    public fun configure(
+        vararg configPaths: String,
+        overrides: (MutableMap<String, String>.() -> Unit)? = null
+    ) {
+        checkNotBuilt()
+        environment {
+            if (overrides == null) {
+                configure(*configPaths)
+            } else {
+                val fileConfigs = ConfigLoader.loadAll(*configPaths)
+                val overrideEntries = mutableMapOf<String, String>()
+                    .apply(overrides)
+                    .entries.map { it.toPair() }
+                val mapConfig = MapApplicationConfig(overrideEntries)
+                config = fileConfigs.mergeWith(mapConfig)
+            }
+        }
+    }
+
     private fun checkNotBuilt() {
         check(!built) {
             "The test application has already been built. Make sure you configure the application " +
@@ -331,15 +382,34 @@ public open class TestApplicationBuilder {
 @KtorDsl
 public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
 
-    override val client: HttpClient by lazy { createClient { } }
+    private var _client: HttpClient? = null
+    override var client: HttpClient
+        get() {
+            if (_client == null) {
+                _client = createClient { }
+            }
+            return _client!!
+        }
+        set(value) {
+            _client = value
+        }
 
-    internal val application: TestApplication by lazy {
+    internal val testApplication: TestApplication by lazy {
         TestApplication(
             createServer = { embeddedServer },
             clientProvider = this,
             externalServices = externalServices,
         )
     }
+
+    /**
+     * Returns an instance of [Application] used in this test.
+     * This application might be not started if used before [startApplication] was called,
+     * or any client request was made.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.ApplicationTestBuilder.application)
+     */
+    public val application: Application get() = testApplication.application
 
     /**
      * Starts instance of [TestApplication].
@@ -351,7 +421,7 @@ public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.ApplicationTestBuilder.startApplication)
      */
     public suspend fun startApplication() {
-        application.start()
+        testApplication.start()
     }
 
     @KtorDsl
@@ -360,7 +430,7 @@ public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
     ): HttpClient = HttpClient(DelegatingTestClientEngine) {
         engine {
             parentJob = this@ApplicationTestBuilder.job
-            testApplicationProvder = this@ApplicationTestBuilder::application
+            testApplicationProvder = this@ApplicationTestBuilder::testApplication
         }
         block()
     }
@@ -463,7 +533,7 @@ public suspend fun runTestApplication(
         }
         withContext(parentCoroutineContext) { block() }
     }
-    val testApplication = builder.application
+    val testApplication = builder.testApplication
     testApplication.start()
     testApplication.stop()
 }

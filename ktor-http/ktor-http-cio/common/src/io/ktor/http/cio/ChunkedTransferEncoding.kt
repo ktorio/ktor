@@ -69,11 +69,8 @@ public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) 
     var totalBytesCopied = 0L
 
     try {
-        while (true) {
-            chunkSizeBuffer.clear()
-            if (!input.readUTF8LineTo(chunkSizeBuffer, MAX_CHUNK_SIZE_LENGTH, httpLineEndings)) {
-                throw EOFException("Chunked stream has ended unexpectedly: no chunk size")
-            } else if (chunkSizeBuffer.isEmpty()) {
+        while (input.readUTF8LineTo(chunkSizeBuffer, MAX_CHUNK_SIZE_LENGTH, httpLineEndings)) {
+            if (chunkSizeBuffer.isEmpty()) {
                 throw EOFException("Invalid chunk size: empty")
             }
 

@@ -4,12 +4,14 @@
 
 package io.ktor.server.config.yaml
 
+import com.charleskorn.kaml.Yaml
+import com.charleskorn.kaml.YamlMap
 import io.ktor.server.config.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
 import io.ktor.utils.io.pool.*
 import kotlinx.cinterop.*
-import net.mamoe.yamlkt.*
+import kotlinx.serialization.decodeFromString
 import platform.posix.*
 
 private fun init() {
@@ -31,15 +33,14 @@ private val initHook = init()
 @Suppress("ktlint:standard:function-naming")
 public actual fun YamlConfig(path: String?): YamlConfig? {
     val resolvedPath = when {
-        path != null && path.endsWith(".yaml") -> path
+        path != null && (path.endsWith(".yaml") || path.endsWith(".yml")) -> path
         path == null && access(DEFAULT_YAML_FILENAME, F_OK) == 0 -> DEFAULT_YAML_FILENAME
         else -> null
     } ?: return null
     val content = readFile(resolvedPath)
-    val yaml = Yaml.decodeYamlFromString(content) as? YamlMap
-        ?: throw ApplicationConfigurationException("$resolvedPath should be a YAML dictionary")
+    val yaml = Yaml.default.decodeFromString<YamlMap>(content)
 
-    return YamlConfig(yaml).apply { checkEnvironmentVariables() }
+    return YamlConfig.from(yaml)
 }
 
 @OptIn(ExperimentalForeignApi::class)

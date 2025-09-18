@@ -12,12 +12,10 @@ import io.ktor.server.engine.internal.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import java.io.File
 import java.net.URL
 import java.net.URLDecoder
@@ -30,8 +28,7 @@ import kotlin.concurrent.getOrSet
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 
-private typealias ApplicationModule = Application.() -> Unit
-private typealias DynamicApplicationModule = Application.(ClassLoader) -> Unit
+private typealias ApplicationModule = suspend Application.() -> Unit
 
 public actual class EmbeddedServer<
     TEngine : ApplicationEngine,
@@ -60,13 +57,13 @@ actual constructor(
     private val configuredWatchPath = environment.config.propertyOrNull("ktor.deployment.watch")?.getList().orEmpty()
     private val watchPatterns: List<String> = configuredWatchPath + rootConfig.watchPaths
 
-    private val configModulesNames: List<String> =
-        environment.config.propertyOrNull("ktor.application.modules")?.getList().orEmpty()
-
-    private val modules by lazy {
-        configModulesNames.map(::dynamicModule) +
-            rootConfig.modules.map { module -> module.toDynamicModuleOrNull() ?: module.wrapWithDynamicModule() }
+    @OptIn(InternalAPI::class)
+    private val moduleInjector: ModuleParametersInjector by lazy {
+        loadServiceOrNull() ?: ModuleParametersInjector.Disabled
     }
+    private val modules: List<DynamicApplicationModule> get() =
+        environment.moduleConfigReferences.map(::dynamicModule) +
+            rootConfig.modules.map { module -> module.toDynamicModuleOrNull() ?: module.wrapWithDynamicModule() }
 
     private var applicationInstance: Application? = Application(
         environment,
@@ -225,7 +222,11 @@ actual constructor(
     }
 
     private fun safeRaiseEvent(event: EventDefinition<Application>, application: Application) {
-        monitor.raiseCatching(event, application)
+        try {
+            monitor.raise(event, application)
+        } catch (cause: Throwable) {
+            environment.log.debug("One or more of the handlers thrown an exception", cause)
+        }
     }
 
     private fun destroyApplication() {
@@ -237,16 +238,27 @@ actual constructor(
         if (currentApplication != null) {
             safeRaiseEvent(ApplicationStopping, currentApplication)
             try {
-                currentApplication.dispose()
-                (currentApplicationClassLoader as? OverridingClassLoader)?.close()
+                destroyBlocking(currentApplication, currentApplicationClassLoader)
             } catch (e: Throwable) {
                 environment.log.error("Failed to destroy application instance.", e)
             }
-
             safeRaiseEvent(ApplicationStopped, currentApplication)
         }
         packageWatchKeys.forEach { it.cancel() }
         packageWatchKeys = mutableListOf()
+    }
+
+    @OptIn(InternalAPI::class)
+    private fun destroyBlocking(application: Application, classLoader: ClassLoader?) {
+        try {
+            runBlocking {
+                withTimeout(engineConfig.shutdownTimeout) {
+                    application.disposeAndJoin()
+                }
+            }
+        } finally {
+            (classLoader as? OverridingClassLoader)?.close()
+        }
     }
 
     private fun watchUrls(urls: List<URL>) {
@@ -368,15 +380,23 @@ actual constructor(
         safeRaiseEvent(ApplicationStarting, newInstance)
 
         avoidingDoubleStartup {
-            modules.forEach { module -> module(newInstance, currentClassLoader) }
+            withTimeout(environment.startupTimeout) {
+                environment.moduleLoader.loadModules(
+                    newInstance,
+                    currentClassLoader,
+                    modules,
+                )
+            }
         }
 
-        safeRaiseEvent(ApplicationStarted, newInstance)
+        monitor.raise(ApplicationModulesLoaded, newInstance)
+        monitor.raise(ApplicationStarted, newInstance)
+
         return newInstance
     }
 
     private fun dynamicModule(name: String): DynamicApplicationModule {
-        return { classLoader ->
+        return DynamicApplicationModule(name) { classLoader ->
             val application = this
             launchModuleByName(name, classLoader, application)
         }
@@ -387,18 +407,9 @@ actual constructor(
         if (!rootConfig.developmentMode) return null
 
         val module = this
-        // Method name getting might fail if method signature has been changed after compilation
-        // (for example by R8 or ProGuard)
-        val name = runCatching { module.methodName() }
-            .onFailure { cause ->
-                environment.log.debug(
-                    "Module can't be loaded dynamically, auto-reloading won't work for this module",
-                    cause,
-                )
-            }
-            .getOrElse { return null }
+        val name = methodNameOrNull() ?: return null
 
-        return { classLoader ->
+        return DynamicApplicationModule(name) { classLoader ->
             val application = this
             try {
                 launchModuleByName(name, classLoader, application)
@@ -412,20 +423,37 @@ actual constructor(
         }
     }
 
+    /**
+     * Method name getting might fail if method signature has been changed after compilation
+     * (for example by R8 or ProGuard).
+     *
+     * We must also filter out function names with $, assuming they are anonymous.
+     */
+    private fun ApplicationModule.methodNameOrNull(): String? =
+        runCatching {
+            this@methodNameOrNull.methodName()
+        }.onFailure { cause ->
+            environment.log.debug("Module can't be loaded dynamically; auto-reloading unavailable", cause)
+        }.getOrNull()?.takeIf {
+            '$' !in it
+        }
+
     private fun ApplicationModule.wrapWithDynamicModule(): DynamicApplicationModule {
         val module = this
-        return { module() }
+        return DynamicApplicationModule { module() }
     }
 
-    private fun launchModuleByName(name: String, currentClassLoader: ClassLoader, newInstance: Application) {
+    private suspend fun launchModuleByName(name: String, currentClassLoader: ClassLoader, newInstance: Application) {
         avoidingDoubleStartupFor(name) {
-            executeModuleFunction(currentClassLoader, name, newInstance)
+            executeModuleFunction(currentClassLoader, name, newInstance, moduleInjector)
         }
     }
 
-    private fun avoidingDoubleStartup(block: () -> Unit) {
+    private fun avoidingDoubleStartup(block: suspend () -> Unit) {
         try {
-            block()
+            runBlocking {
+                block()
+            }
         } finally {
             currentStartupModules.get()?.let {
                 if (it.isEmpty()) {
@@ -435,7 +463,7 @@ actual constructor(
         }
     }
 
-    private fun avoidingDoubleStartupFor(fqName: String, block: () -> Unit) {
+    private suspend fun avoidingDoubleStartupFor(fqName: String, block: suspend () -> Unit) {
         val modules = currentStartupModules.getOrSet { ArrayList(1) }
         check(!modules.contains(fqName)) {
             "Module startup is already in progress for function $fqName (recursive module startup from module main?)"

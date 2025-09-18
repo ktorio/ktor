@@ -6,10 +6,12 @@ package io.ktor.server.testing
 
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.network.sockets.SocketTimeoutException
 import io.ktor.server.engine.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.testing.internal.*
+import io.ktor.util.cio.ChannelWriteException
 import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
@@ -50,6 +52,8 @@ public class TestApplicationResponse(
     private var responseChannel: ByteReadChannel? = null
 
     private var responseJob: Job? = null
+
+    internal val writeContentChannel = atomic<ByteReadChannel?>(null)
 
     /**
      * Get completed when a response channel is assigned.
@@ -106,6 +110,43 @@ public class TestApplicationResponse(
     override suspend fun respondOutgoingContent(content: OutgoingContent) {
         super.respondOutgoingContent(content)
         responseChannelDeferred.completeExceptionally(IllegalStateException("No response channel assigned"))
+    }
+
+    override suspend fun respondWriteChannelContent(content: OutgoingContent.WriteChannelContent) {
+        val writerJob = scope.writer {
+            val counted = channel.counted()
+            val job = coroutineContext.job
+
+            val socketTimeoutMillis = timeoutAttributes?.socketTimeoutMillis
+            if (socketTimeoutMillis != null) {
+                val killJob = launch {
+                    var cur = counted.totalBytesWritten
+                    while (job.isActive) {
+                        delay(socketTimeoutMillis)
+                        val next = counted.totalBytesWritten
+                        if (cur == next) {
+                            counted.cancel(SocketTimeoutException("Socket timeout elapsed"))
+                        }
+                        cur = next
+                    }
+                }
+                job.invokeOnCompletion {
+                    killJob.cancel()
+                }
+            }
+
+            try {
+                withContext(Dispatchers.IOBridge) {
+                    content.writeTo(counted)
+                }
+            } catch (closed: ClosedWriteChannelException) {
+                throw ChannelWriteException(exception = closed)
+            } finally {
+                channel.flushAndClose()
+            }
+        }
+
+        writeContentChannel.compareAndSet(null, writerJob.channel)
     }
 
     /**

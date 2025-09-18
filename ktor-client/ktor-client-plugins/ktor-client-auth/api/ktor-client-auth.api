@@ -15,10 +15,11 @@ public final class io/ktor/client/plugins/auth/AuthKt {
 
 public abstract interface class io/ktor/client/plugins/auth/AuthProvider {
 	public abstract fun addRequestHeaders (Lio/ktor/client/request/HttpRequestBuilder;Lio/ktor/http/auth/HttpAuthHeader;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun addRequestHeaders$default (Lio/ktor/client/plugins/auth/AuthProvider;Lio/ktor/client/request/HttpRequestBuilder;Lio/ktor/http/auth/HttpAuthHeader;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun getSendWithoutRequest ()Z
 	public abstract fun isApplicable (Lio/ktor/http/auth/HttpAuthHeader;)Z
-	public abstract fun refreshToken (Lio/ktor/client/statement/HttpResponse;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun sendWithoutRequest (Lio/ktor/client/request/HttpRequestBuilder;)Z
+	public fun refreshToken (Lio/ktor/client/statement/HttpResponse;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun sendWithoutRequest (Lio/ktor/client/request/HttpRequestBuilder;)Z
 }
 
 public final class io/ktor/client/plugins/auth/AuthProvider$DefaultImpls {

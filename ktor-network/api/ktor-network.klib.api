@@ -135,6 +135,7 @@ final class io.ktor.network.sockets/InetSocketAddress : io.ktor.network.sockets/
     final fun copy(kotlin/String = ..., kotlin/Int = ...): io.ktor.network.sockets/InetSocketAddress // io.ktor.network.sockets/InetSocketAddress.copy|copy(kotlin.String;kotlin.Int){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.network.sockets/InetSocketAddress.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // io.ktor.network.sockets/InetSocketAddress.hashCode|hashCode(){}[0]
+    final fun resolveAddress(): kotlin/ByteArray? // io.ktor.network.sockets/InetSocketAddress.resolveAddress|resolveAddress(){}[0]
     final fun toString(): kotlin/String // io.ktor.network.sockets/InetSocketAddress.toString|toString(){}[0]
 }
 
@@ -184,6 +185,10 @@ final class io.ktor.network.sockets/UnixSocketAddress : io.ktor.network.sockets/
     final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.network.sockets/UnixSocketAddress.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // io.ktor.network.sockets/UnixSocketAddress.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // io.ktor.network.sockets/UnixSocketAddress.toString|toString(){}[0]
+
+    final object Companion { // io.ktor.network.sockets/UnixSocketAddress.Companion|null[0]
+        final fun isSupported(): kotlin/Boolean // io.ktor.network.sockets/UnixSocketAddress.Companion.isSupported|isSupported(){}[0]
+    }
 }
 
 final value class io.ktor.network.sockets/TypeOfService { // io.ktor.network.sockets/TypeOfService|null[0]

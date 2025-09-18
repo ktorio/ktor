@@ -11,6 +11,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
+import io.ktor.http.content.TextContent
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.engine.*
@@ -22,6 +23,9 @@ import io.ktor.server.testing.*
 import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 import kotlin.test.*
@@ -154,7 +158,9 @@ class OAuth2Test {
     )
 
     val failures = ArrayList<Throwable>()
-    fun Application.module(settings: OAuthServerSettings.OAuth2ServerSettings = DefaultSettings) {
+    suspend fun Application.module(settings: OAuthServerSettings.OAuth2ServerSettings = DefaultSettings) {
+        val testClient = testClient.await()
+
         install(Authentication) {
             oauth("login") {
                 client = testClient
@@ -190,9 +196,10 @@ class OAuth2Test {
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @AfterTest
     fun tearDown() {
-        testClient.close()
+        testClient.getCompleted().close()
     }
 
     @Test
@@ -573,6 +580,44 @@ class OAuth2Test {
         assertEquals("some-url", response1.bodyAsText())
     }
 
+    @Test
+    fun formRequestBodyCanBeReceivedInRouteHandler() = testApplication {
+        application {
+            install(Authentication) {
+                oauth {
+                    urlProvider = { "http://localhost:8080/callback" }
+                    providerLookup = {
+                        OAuthServerSettings.OAuth2ServerSettings(
+                            name = "dummy",
+                            authorizeUrl = "localhost",
+                            accessTokenUrl = "localhost",
+                            clientId = "clientId",
+                            clientSecret = "clientSecret"
+                        )
+                    }
+                    client = this@testApplication.client
+                }
+            }
+
+            routing {
+                route("/oauth") {
+                    authenticate(optional = true) {
+                        post {
+                            call.respond(call.receiveText())
+                        }
+                    }
+                }
+            }
+        }
+
+        client.post("/oauth") {
+            setBody(TextContent(listOf("foo" to "bar").formUrlEncode(), ContentType.Application.FormUrlEncoded))
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("foo=bar", response.bodyAsText())
+        }
+    }
+
     private fun assertFailures() {
         failures.forEach {
             throw it
@@ -609,7 +654,7 @@ internal interface OAuth2Server {
     ): OAuthAccessTokenResponse.OAuth2
 }
 
-internal fun createOAuth2Server(server: OAuth2Server): HttpClient {
+internal fun createOAuth2Server(server: OAuth2Server): Deferred<HttpClient> {
     val environment = createTestEnvironment {}
     val props = serverConfig(environment) {
         module {
@@ -683,10 +728,13 @@ internal fun createOAuth2Server(server: OAuth2Server): HttpClient {
             }
         }
     }
-    val embeddedServer = EmbeddedServer(props, TestEngine)
-    embeddedServer.start()
-    return embeddedServer.engine.client.config {
-        expectSuccess = false
+    return EmbeddedServer(props, TestEngine).let { server ->
+        server.application.async {
+            server.startSuspend()
+            server.engine.client.config {
+                expectSuccess = false
+            }
+        }
     }
 }
 

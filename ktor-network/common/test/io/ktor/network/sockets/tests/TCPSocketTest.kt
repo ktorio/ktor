@@ -4,11 +4,14 @@
 
 package io.ktor.network.sockets.tests
 
+import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.*
-import kotlinx.io.*
+import kotlinx.io.EOFException
+import kotlinx.io.IOException
+import kotlinx.io.readByteArray
 import kotlin.test.*
 import kotlin.time.Duration.Companion.seconds
 
@@ -113,56 +116,6 @@ class TCPSocketTest {
 
         acceptJob.cancelAndJoin()
         server.close()
-    }
-
-    @Test
-    fun testEchoOverUnixSockets() = testSockets { selector ->
-        if (!supportsUnixDomainSockets()) return@testSockets
-
-        val socketPath = createTempFilePath("ktor-echo-test")
-        try {
-            val tcp = aSocket(selector).tcp()
-            val server = tcp.bind(UnixSocketAddress(socketPath))
-
-            val serverConnectionPromise = async {
-                server.accept()
-            }
-
-            val clientConnection = tcp.connect(UnixSocketAddress(socketPath))
-            val serverConnection = serverConnectionPromise.await()
-
-            val clientOutput = clientConnection.openWriteChannel()
-            try {
-                clientOutput.writeStringUtf8("Hello, world\n")
-                clientOutput.flush()
-            } finally {
-                clientOutput.flushAndClose()
-            }
-
-            val serverInput = serverConnection.openReadChannel()
-            val message = serverInput.readUTF8Line()
-            assertEquals("Hello, world", message)
-
-            val serverOutput = serverConnection.openWriteChannel()
-            try {
-                serverOutput.writeStringUtf8("Hello From Server\n")
-                serverOutput.flush()
-
-                val clientInput = clientConnection.openReadChannel()
-                val echo = clientInput.readUTF8Line()
-
-                assertEquals("Hello From Server", echo)
-            } finally {
-                serverOutput.flushAndClose()
-            }
-
-            serverConnection.close()
-            clientConnection.close()
-
-            server.close()
-        } finally {
-            removeFile(socketPath)
-        }
     }
 
     @Test
@@ -304,6 +257,69 @@ class TCPSocketTest {
             }
             socket.close()
             socket.awaitClosed()
+        }
+    }
+
+    @Test
+    fun testAwaitClosedDoesNotDeadLock() = testSockets { selector ->
+        val address = InetSocketAddress("127.0.0.1", 0)
+        val serverSocket = aSocket(SelectorManager(Dispatchers.Default)).tcp().bind(address)
+
+        val serverJob = launch {
+            while (isActive) {
+                ensureActive()
+                serverSocket.accept()
+            }
+        }
+
+        val resolvedAddress = serverSocket.localAddress
+        repeat(256) {
+            val socket = aSocket(selector).tcp().connect(resolvedAddress)
+            socket.openWriteChannel(autoFlush = true)
+
+            try {
+                withTimeout(500) {
+                    socket.close()
+                    socket.awaitClosed()
+                }
+            } catch (cause: TimeoutCancellationException) {
+                fail("Dead lock while closing a socket", cause)
+            }
+        }
+
+        serverJob.cancelAndJoin()
+        serverSocket.close()
+    }
+
+    @Test
+    fun testAutoFlush() = testSockets { selector ->
+        val tcp = aSocket(selector).tcp()
+        val server: ServerSocket = tcp.bind("127.0.0.1", port = 0)
+
+        try {
+            val serverConnectionPromise = async {
+                server.accept()
+            }
+
+            val clientConnection = tcp.connect("127.0.0.1", port = server.port)
+            val serverConnection = serverConnectionPromise.await()
+            val serverInput = serverConnection.openReadChannel()
+            try {
+                val writeChannel = clientConnection.openWriteChannel(autoFlush = true)
+                writeChannel.writeStringUtf8("Hello, world\n")
+                val message = serverInput.readUTF8Line()
+                assertEquals("Hello, world", message)
+
+                val countedWriteChannel = CountedByteWriteChannel(writeChannel)
+                countedWriteChannel.writeStringUtf8("Hello again\n")
+                val message2 = serverInput.readUTF8Line()
+                assertEquals("Hello again", message2)
+            } finally {
+                serverConnection.close()
+                clientConnection.close()
+            }
+        } finally {
+            server.close()
         }
     }
 }

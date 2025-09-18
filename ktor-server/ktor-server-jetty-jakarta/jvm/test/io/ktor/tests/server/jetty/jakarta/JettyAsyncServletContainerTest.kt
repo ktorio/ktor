@@ -27,6 +27,11 @@ class JettyAsyncServletContainerHttpServerJvmTest :
     HttpServerJvmTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(
         Servlet(async = true)
     ) {
+    @Test
+    override fun testUpgrade() {
+        super.testUpgrade()
+    }
+
     @Ignore
     override fun testPipelining() {
     }
@@ -37,7 +42,9 @@ class JettyAsyncServletContainerHttpServerJvmTest :
 }
 
 class JettyAsyncServletContainerSustainabilityTest :
-    SustainabilityTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = true))
+    SustainabilityTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(
+        Servlet(async = true)
+    )
 
 class JettyAsyncServerPluginsTest :
     ServerPluginsTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(

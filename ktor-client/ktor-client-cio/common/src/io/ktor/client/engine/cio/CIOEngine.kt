@@ -24,8 +24,13 @@ internal class CIOEngine(
     override val config: CIOEngineConfig
 ) : HttpClientEngineBase("ktor-cio") {
 
-    override val supportedCapabilities =
-        setOf(HttpTimeoutCapability, WebSocketCapability, WebSocketExtensionsCapability, SSECapability)
+    override val supportedCapabilities: Set<HttpClientEngineCapability<out Any>> = setOf(
+        HttpTimeoutCapability,
+        WebSocketCapability,
+        WebSocketExtensionsCapability,
+        SSECapability,
+        UnixSocketCapability
+    )
 
     private val endpoints = ConcurrentMap<String, Endpoint>()
 
@@ -74,7 +79,8 @@ internal class CIOEngine(
         val callContext = callContext()
 
         while (coroutineContext.isActive) {
-            val endpoint = selectEndpoint(data.url, proxy)
+            val unixSocket = data.getCapabilityOrNull(UnixSocketCapability)
+            val endpoint = selectEndpoint(data.url, proxy, unixSocket)
 
             try {
                 return endpoint.execute(data, callContext)
@@ -100,13 +106,15 @@ internal class CIOEngine(
         (requestsJob[Job] as CompletableJob).complete()
     }
 
-    private fun selectEndpoint(url: Url, proxy: ProxyConfig?): Endpoint {
+    private fun selectEndpoint(url: Url, proxy: ProxyConfig?, unixSocket: UnixSocketSettings?): Endpoint {
         val host: String
         val port: Int
         val protocol: URLProtocol = url.protocol
 
-        if (proxy != null) {
-            val proxyAddress = proxy.resolveAddress()
+        val actualProxy = proxy ?: lookupGlobalProxy(url)
+
+        if (actualProxy != null) {
+            val proxyAddress = actualProxy.resolveAddress()
             host = proxyAddress.hostname
             port = proxyAddress.port
         } else {
@@ -114,19 +122,20 @@ internal class CIOEngine(
             port = url.port
         }
 
-        val endpointId = "$host:$port:$protocol"
+        val endpointId = "$host:$port:$protocol:${unixSocket?.path}"
 
         return endpoints.computeIfAbsent(endpointId) {
             val secure = (protocol.isSecure())
             Endpoint(
                 host,
                 port,
-                proxy,
+                actualProxy,
                 secure,
                 config,
                 connectionFactory,
                 coroutineContext,
-                onDone = { endpoints.remove(endpointId) }
+                onDone = { endpoints.remove(endpointId) },
+                unixSocket,
             )
         }
     }

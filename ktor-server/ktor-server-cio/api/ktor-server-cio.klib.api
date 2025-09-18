@@ -6,6 +6,11 @@
 // - Show declarations: true
 
 // Library unique name: <io.ktor:ktor-server-cio>
+abstract interface io.ktor.server.cio/UnixSocketConnectorConfig : io.ktor.server.engine/EngineConnectorConfig { // io.ktor.server.cio/UnixSocketConnectorConfig|null[0]
+    abstract val socketPath // io.ktor.server.cio/UnixSocketConnectorConfig.socketPath|{}socketPath[0]
+        abstract fun <get-socketPath>(): kotlin/String // io.ktor.server.cio/UnixSocketConnectorConfig.socketPath.<get-socketPath>|<get-socketPath>(){}[0]
+}
+
 final class io.ktor.server.cio.backend/ServerIncomingConnection { // io.ktor.server.cio.backend/ServerIncomingConnection|null[0]
     constructor <init>(io.ktor.utils.io/ByteReadChannel, io.ktor.utils.io/ByteWriteChannel, io.ktor.util.network/NetworkAddress?, io.ktor.util.network/NetworkAddress?) // io.ktor.server.cio.backend/ServerIncomingConnection.<init>|<init>(io.ktor.utils.io.ByteReadChannel;io.ktor.utils.io.ByteWriteChannel;io.ktor.util.network.NetworkAddress?;io.ktor.util.network.NetworkAddress?){}[0]
 
@@ -92,6 +97,25 @@ final class io.ktor.server.cio/HttpServerSettings { // io.ktor.server.cio/HttpSe
     final fun toString(): kotlin/String // io.ktor.server.cio/HttpServerSettings.toString|toString(){}[0]
 }
 
+final class io.ktor.server.cio/UnixSocketConnectorBuilder : io.ktor.server.cio/UnixSocketConnectorConfig, io.ktor.server.engine/EngineConnectorBuilder { // io.ktor.server.cio/UnixSocketConnectorBuilder|null[0]
+    constructor <init>() // io.ktor.server.cio/UnixSocketConnectorBuilder.<init>|<init>(){}[0]
+
+    final var socketPath // io.ktor.server.cio/UnixSocketConnectorBuilder.socketPath|{}socketPath[0]
+        final fun <get-socketPath>(): kotlin/String // io.ktor.server.cio/UnixSocketConnectorBuilder.socketPath.<get-socketPath>|<get-socketPath>(){}[0]
+        final fun <set-socketPath>(kotlin/String) // io.ktor.server.cio/UnixSocketConnectorBuilder.socketPath.<set-socketPath>|<set-socketPath>(kotlin.String){}[0]
+
+    final fun toString(): kotlin/String // io.ktor.server.cio/UnixSocketConnectorBuilder.toString|toString(){}[0]
+}
+
+final class io.ktor.server.cio/UnixSocketServerSettings { // io.ktor.server.cio/UnixSocketServerSettings|null[0]
+    constructor <init>(kotlin/String, kotlin/Long = ...) // io.ktor.server.cio/UnixSocketServerSettings.<init>|<init>(kotlin.String;kotlin.Long){}[0]
+
+    final val connectionIdleTimeoutSeconds // io.ktor.server.cio/UnixSocketServerSettings.connectionIdleTimeoutSeconds|{}connectionIdleTimeoutSeconds[0]
+        final fun <get-connectionIdleTimeoutSeconds>(): kotlin/Long // io.ktor.server.cio/UnixSocketServerSettings.connectionIdleTimeoutSeconds.<get-connectionIdleTimeoutSeconds>|<get-connectionIdleTimeoutSeconds>(){}[0]
+    final val socketPath // io.ktor.server.cio/UnixSocketServerSettings.socketPath|{}socketPath[0]
+        final fun <get-socketPath>(): kotlin/String // io.ktor.server.cio/UnixSocketServerSettings.socketPath.<get-socketPath>|<get-socketPath>(){}[0]
+}
+
 final object io.ktor.server.cio/CIO : io.ktor.server.engine/ApplicationEngineFactory<io.ktor.server.cio/CIOApplicationEngine, io.ktor.server.cio/CIOApplicationEngine.Configuration> { // io.ktor.server.cio/CIO|null[0]
     final fun configuration(kotlin/Function1<io.ktor.server.cio/CIOApplicationEngine.Configuration, kotlin/Unit>): io.ktor.server.cio/CIOApplicationEngine.Configuration // io.ktor.server.cio/CIO.configuration|configuration(kotlin.Function1<io.ktor.server.cio.CIOApplicationEngine.Configuration,kotlin.Unit>){}[0]
     final fun create(io.ktor.server.application/ApplicationEnvironment, io.ktor.events/Events, kotlin/Boolean, io.ktor.server.cio/CIOApplicationEngine.Configuration, kotlin/Function0<io.ktor.server.application/Application>): io.ktor.server.cio/CIOApplicationEngine // io.ktor.server.cio/CIO.create|create(io.ktor.server.application.ApplicationEnvironment;io.ktor.events.Events;kotlin.Boolean;io.ktor.server.cio.CIOApplicationEngine.Configuration;kotlin.Function0<io.ktor.server.application.Application>){}[0]
@@ -102,5 +126,7 @@ final object io.ktor.server.cio/EngineMain { // io.ktor.server.cio/EngineMain|nu
     final fun main(kotlin/Array<kotlin/String>) // io.ktor.server.cio/EngineMain.main|main(kotlin.Array<kotlin.String>){}[0]
 }
 
+final fun (io.ktor.server.engine/ApplicationEngine.Configuration).io.ktor.server.cio/unixConnector(kotlin/String, kotlin/Function1<io.ktor.server.cio/UnixSocketConnectorBuilder, kotlin/Unit> = ...) // io.ktor.server.cio/unixConnector|unixConnector@io.ktor.server.engine.ApplicationEngine.Configuration(kotlin.String;kotlin.Function1<io.ktor.server.cio.UnixSocketConnectorBuilder,kotlin.Unit>){}[0]
 final fun (kotlinx.coroutines/CoroutineScope).io.ktor.server.cio.backend/httpServer(io.ktor.server.cio/HttpServerSettings, kotlin.coroutines/SuspendFunction2<io.ktor.server.cio.backend/ServerRequestScope, io.ktor.http.cio/Request, kotlin/Unit>): io.ktor.server.cio/HttpServer // io.ktor.server.cio.backend/httpServer|httpServer@kotlinx.coroutines.CoroutineScope(io.ktor.server.cio.HttpServerSettings;kotlin.coroutines.SuspendFunction2<io.ktor.server.cio.backend.ServerRequestScope,io.ktor.http.cio.Request,kotlin.Unit>){}[0]
 final fun (kotlinx.coroutines/CoroutineScope).io.ktor.server.cio.backend/startServerConnectionPipeline(io.ktor.server.cio.backend/ServerIncomingConnection, kotlin.time/Duration, kotlin.coroutines/SuspendFunction2<io.ktor.server.cio.backend/ServerRequestScope, io.ktor.http.cio/Request, kotlin/Unit>): kotlinx.coroutines/Job // io.ktor.server.cio.backend/startServerConnectionPipeline|startServerConnectionPipeline@kotlinx.coroutines.CoroutineScope(io.ktor.server.cio.backend.ServerIncomingConnection;kotlin.time.Duration;kotlin.coroutines.SuspendFunction2<io.ktor.server.cio.backend.ServerRequestScope,io.ktor.http.cio.Request,kotlin.Unit>){}[0]
+final fun (kotlinx.coroutines/CoroutineScope).io.ktor.server.cio.backend/unixSocketServer(io.ktor.server.cio/UnixSocketServerSettings, kotlin.coroutines/SuspendFunction2<io.ktor.server.cio.backend/ServerRequestScope, io.ktor.http.cio/Request, kotlin/Unit>): io.ktor.server.cio/HttpServer // io.ktor.server.cio.backend/unixSocketServer|unixSocketServer@kotlinx.coroutines.CoroutineScope(io.ktor.server.cio.UnixSocketServerSettings;kotlin.coroutines.SuspendFunction2<io.ktor.server.cio.backend.ServerRequestScope,io.ktor.http.cio.Request,kotlin.Unit>){}[0]

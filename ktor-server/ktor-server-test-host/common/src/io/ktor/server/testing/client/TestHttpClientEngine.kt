@@ -59,8 +59,7 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
             val status = response.statusOrNotFound()
             val headers = response.headers.allValues().takeUnless { it.isEmpty() } ?: Headers
                 .build { append(HttpHeaders.ContentLength, "0") }
-            val body = ByteReadChannel(response.byteContent ?: byteArrayOf())
-
+            val body = response.writeContentChannel.value ?: ByteReadChannel(response.byteContent ?: byteArrayOf())
             val responseBody: Any = data.attributes.getOrNull(ResponseAdapterAttributeKey)
                 ?.adapt(data, status, headers, body, data.body, callContext)
                 ?: body

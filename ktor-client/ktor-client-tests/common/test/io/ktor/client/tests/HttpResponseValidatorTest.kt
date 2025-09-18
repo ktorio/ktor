@@ -7,6 +7,7 @@ package io.ktor.client.tests
 import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.test.base.*
@@ -514,10 +515,33 @@ class HttpResponseValidatorTest {
             }
         }
 
-        test {
-            it.prepareGet("").execute {
+        test { client ->
+            assertEquals("Hello, world!", client.get("").bodyAsText())
+        }
+    }
+
+    @Test
+    fun testConsumeBodyWithLogging() = testWithEngine(MockEngine) {
+        config {
+            install(Logging) {
+                level = LogLevel.ALL
             }
-            assertEquals("Hello, world!", it.get("").bodyAsText())
+
+            HttpResponseValidator {
+                validateResponse {
+                    assertEquals("Hello, world!", it.bodyAsText())
+                }
+            }
+
+            engine {
+                addHandler {
+                    respondOk("Hello, world!")
+                }
+            }
+        }
+
+        test { client ->
+            assertEquals("Hello, world!", client.get("").bodyAsText())
         }
     }
 }
