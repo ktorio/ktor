@@ -10,8 +10,8 @@ import io.ktor.server.application.*
 import io.ktor.server.plugins.*
 import io.ktor.server.util.*
 import io.ktor.utils.io.*
-import java.io.*
-import java.net.*
+import java.io.File
+import java.net.URL
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -94,8 +94,10 @@ public fun resourceClasspathResource(
                 null
             } else {
                 val zipFile = findContainingJarFile(url.toString())
-                val content = JarFileContent(zipFile, path, mimeResolve(url))
-                if (content.isFile) content else null
+                if (zipFile == null) {
+                    return URIFileContent(url, mimeResolve(url))
+                }
+                JarFileContent(zipFile, path, mimeResolve(url)).takeIf { it.isFile }
             }
         }
 
@@ -107,15 +109,33 @@ public fun resourceClasspathResource(
     }
 }
 
-internal fun findContainingJarFile(url: String): File {
-    if (url.startsWith("jar:file:")) {
-        val jarPathSeparator = url.indexOf("!", startIndex = 9)
-        require(jarPathSeparator != -1) { "Jar path requires !/ separator but it is: $url" }
+/**
+ * Returns the local jar file containing the resource pointed to by the given URL,
+ * or `null` if URL is not a standard JAR URL.
+ *
+ * The syntax of a JAR URL is: `jar:<url>!/{entry}`
+ * Example: `jar:file:/path/to/app.jar!/entry/inside/jar`
+ *
+ * Examples:
+ * - `jar:file:/dist/app.jar!/static/index.html`              → returns `/dist/app.jar`
+ * - `jar:file:/dist/app.jar!`                                → returns `/dist/app.jar`
+ * - `jar:file:/outer.jar!/lib/dep.jar!/x.css`                → throws IllegalArgumentException (nested)
+ * - `jar:nested:/path/to/app.jar/!BOOT-INF/classes/!/static` → returns `null` (non-local container)
+ */
+internal fun findContainingJarFile(url: String): File? {
+    if (!url.startsWith(JAR_PREFIX)) return null
 
-        return File(url.substring(9, jarPathSeparator).decodeURLPart())
+    val jarPathSeparator = url.indexOf("!", startIndex = JAR_PREFIX.length)
+    if (jarPathSeparator == -1) {
+        return null
+    }
+    val nextJarSeparator = url.indexOf("!", startIndex = jarPathSeparator + 1)
+    if (nextJarSeparator != -1) {
+        // KTOR-8883 Support nested jars in static resources
+        throw IllegalArgumentException("Only local jars are supported (jar:file:)")
     }
 
-    throw IllegalArgumentException("Only local jars are supported (jar:file:)")
+    return File(url.substring(JAR_PREFIX.length, jarPathSeparator).decodeURLPart())
 }
 
 internal fun String.extension(): String {
@@ -134,3 +154,5 @@ private fun normalisedPath(resourcePackage: String?, path: String): String {
         .normalizePathComponents()
         .joinToString("/")
 }
+
+private const val JAR_PREFIX = "jar:file:"
