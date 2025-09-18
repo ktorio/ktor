@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package ktorbuild.internal
@@ -14,7 +14,7 @@ import org.gradle.api.Project
  * ```
  */
 internal fun Project.resolveVersion(): String {
-    val projectVersion = project.version.toString()
+    val projectVersion = project.rootDir.resolve("VERSION").readText().trim()
     val releaseVersion = providers.gradleProperty("releaseVersion").orNull
     val eapVersion = providers.gradleProperty("eapVersion").orNull
 
