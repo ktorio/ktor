@@ -70,5 +70,11 @@ public object EngineMain {
         deploymentConfig.propertyOrNull("maxChunkSize")?.getString()?.toInt()?.let {
             maxChunkSize = it
         }
+        deploymentConfig.propertyOrNull("enableHttp2")?.getString()?.toBoolean()?.let {
+            enableHttp2 = it
+        }
+        deploymentConfig.propertyOrNull("enableH2c")?.getString()?.toBoolean()?.let {
+            enableH2c = it
+        }
     }
 }
