@@ -1,32 +1,78 @@
 public final class io/ktor/htmx/html/HxAttributes : io/ktor/util/collections/StringMapDelegate {
 	public fun <init> (Lkotlinx/html/impl/DelegatingMap;)V
 	public fun get (Ljava/lang/String;)Ljava/lang/String;
+	public final fun getBoost ()Ljava/lang/String;
+	public final fun getConfirm ()Ljava/lang/String;
+	public final fun getDelete ()Ljava/lang/String;
+	public final fun getDisable ()Ljava/lang/String;
+	public final fun getDisabledElt ()Ljava/lang/String;
+	public final fun getDisinherit ()Ljava/lang/String;
+	public final fun getEncoding ()Ljava/lang/String;
+	public final fun getExt ()Ljava/lang/String;
 	public final fun getGet ()Ljava/lang/String;
+	public final fun getHistory ()Ljava/lang/String;
+	public final fun getHistoryElt ()Ljava/lang/String;
+	public final fun getInclude ()Ljava/lang/String;
+	public final fun getIndicator ()Ljava/lang/String;
+	public final fun getInherit ()Ljava/lang/String;
 	public synthetic fun getMap ()Ljava/util/Map;
 	public fun getMap ()Lkotlinx/html/impl/DelegatingMap;
 	public final fun getOn-6sA4otk ()Ljava/util/Map;
+	public final fun getParams ()Ljava/lang/String;
+	public final fun getPatch ()Ljava/lang/String;
 	public final fun getPost ()Ljava/lang/String;
+	public final fun getPreserve ()Ljava/lang/String;
+	public final fun getPrompt ()Ljava/lang/String;
 	public final fun getPushUrl ()Ljava/lang/String;
+	public final fun getPut ()Ljava/lang/String;
+	public final fun getReplaceUrl ()Ljava/lang/String;
+	public final fun getRequest ()Ljava/lang/String;
 	public final fun getSelect ()Ljava/lang/String;
 	public final fun getSelectOob ()Ljava/lang/String;
 	public final fun getSwap ()Ljava/lang/String;
 	public final fun getSwapOob ()Ljava/lang/String;
+	public final fun getSync ()Ljava/lang/String;
 	public final fun getTarget ()Ljava/lang/String;
 	public final fun getTrigger ()Ljava/lang/String;
+	public final fun getValidate ()Ljava/lang/String;
 	public final fun getVals ()Ljava/lang/String;
+	public final fun getVars ()Ljava/lang/String;
 	public final fun on (Ljava/lang/String;Ljava/lang/String;)V
 	public fun remove (Ljava/lang/String;)Ljava/lang/String;
 	public fun set (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun setBoost (Ljava/lang/String;)V
+	public final fun setConfirm (Ljava/lang/String;)V
+	public final fun setDelete (Ljava/lang/String;)V
+	public final fun setDisable (Ljava/lang/String;)V
+	public final fun setDisabledElt (Ljava/lang/String;)V
+	public final fun setDisinherit (Ljava/lang/String;)V
+	public final fun setEncoding (Ljava/lang/String;)V
+	public final fun setExt (Ljava/lang/String;)V
 	public final fun setGet (Ljava/lang/String;)V
+	public final fun setHistory (Ljava/lang/String;)V
+	public final fun setHistoryElt (Ljava/lang/String;)V
+	public final fun setInclude (Ljava/lang/String;)V
+	public final fun setIndicator (Ljava/lang/String;)V
+	public final fun setInherit (Ljava/lang/String;)V
+	public final fun setParams (Ljava/lang/String;)V
+	public final fun setPatch (Ljava/lang/String;)V
 	public final fun setPost (Ljava/lang/String;)V
+	public final fun setPreserve (Ljava/lang/String;)V
+	public final fun setPrompt (Ljava/lang/String;)V
 	public final fun setPushUrl (Ljava/lang/String;)V
+	public final fun setPut (Ljava/lang/String;)V
+	public final fun setReplaceUrl (Ljava/lang/String;)V
+	public final fun setRequest (Ljava/lang/String;)V
 	public final fun setSelect (Ljava/lang/String;)V
 	public final fun setSelectOob (Ljava/lang/String;)V
 	public final fun setSwap (Ljava/lang/String;)V
 	public final fun setSwapOob (Ljava/lang/String;)V
+	public final fun setSync (Ljava/lang/String;)V
 	public final fun setTarget (Ljava/lang/String;)V
 	public final fun setTrigger (Ljava/lang/String;)V
+	public final fun setValidate (Ljava/lang/String;)V
 	public final fun setVals (Ljava/lang/String;)V
+	public final fun setVars (Ljava/lang/String;)V
 }
 
 public final class io/ktor/htmx/html/HxAttributes$On {
