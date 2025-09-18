@@ -50,7 +50,7 @@ public class AndroidEngineConfig : HttpClientEngineConfig() {
     /**
      * Allows you to set engine-specific request configuration.
      */
-    // public var httpEngineConfig: HttpEngine.Builder.() -> Unit = {}
+    public var httpEngineConfig: HttpEngine.Builder.() -> Unit = {}
 
     internal var httpEngineDisabled = false
 
