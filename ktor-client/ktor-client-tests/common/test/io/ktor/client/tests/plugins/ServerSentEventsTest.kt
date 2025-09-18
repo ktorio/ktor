@@ -8,6 +8,7 @@ import io.ktor.client.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.auth.*
 import io.ktor.client.plugins.auth.providers.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.client.plugins.sse.*
 import io.ktor.client.request.*
@@ -15,6 +16,7 @@ import io.ktor.client.statement.*
 import io.ktor.client.test.base.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.serialization.kotlinx.json.*
 import io.ktor.sse.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
@@ -945,6 +947,31 @@ class ServerSentEventsTest : ClientLoader() {
             } catch (e: SSEClientException) {
                 assertEquals("Expected status code 200 but was 500", e.message)
                 assertEquals(e.response!!.bodyAsText(), "Server error")
+            }
+        }
+    }
+
+    @Test
+    fun `test with ContentNegotiation`() = clientTests {
+        config {
+            install(ContentNegotiation) { json() }
+            install(SSE)
+        }
+
+        test { client ->
+            assertFailsWith<SSEClientException> {
+                client.sse("$TEST_SERVER/sse/bad-response-json") { }
+            }.apply {
+                assertEquals("Expected status code 200 but was 400", message)
+            }
+
+            assertFailsWith<SSEClientException> {
+                client.sse("$TEST_SERVER/sse/bad-response-json", deserialize = { typeInfo, jsonString ->
+                    val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
+                    Json.decodeFromString(serializer, jsonString) ?: Exception()
+                }) { }
+            }.apply {
+                assertEquals("Expected status code 200 but was 400", message)
             }
         }
     }
