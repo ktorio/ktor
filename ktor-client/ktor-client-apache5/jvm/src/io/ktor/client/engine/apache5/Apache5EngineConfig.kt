@@ -7,6 +7,7 @@ package io.ktor.client.engine.apache5
 import io.ktor.client.engine.*
 import org.apache.hc.client5.http.config.RequestConfig
 import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder
 import org.apache.hc.client5.http.ssl.HostnameVerificationPolicy
 import javax.net.ssl.SSLContext
 
@@ -77,6 +78,15 @@ public class Apache5EngineConfig : HttpClientEngineConfig() {
      * @see HostnameVerificationPolicy
      */
     public var sslHostnameVerificationPolicy: HostnameVerificationPolicy = HostnameVerificationPolicy.BOTH
+
+    /**
+     * Configures the `AsyncClientConnectionManager` used by the Apache5 engine.
+     *
+     * We recommend using this function instead of `customizeClient { setConnectionManager(...) }`, so you do not
+     * override the Ktor-managed connection manager and inadvertently bypass engine settings and timeout mapping.
+     */
+    public var configureConnectionManager:
+        (PoolingAsyncClientConnectionManagerBuilder.() -> PoolingAsyncClientConnectionManagerBuilder) = { this }
 
     internal var customRequest: (RequestConfig.Builder.() -> RequestConfig.Builder) = { this }
 
