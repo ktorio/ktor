@@ -35,8 +35,20 @@ public class HttpCallValidatorConfig {
     internal var expectSuccess: Boolean = true
 
     /**
+     * Add [CallExceptionHandler].
+     * Last added handler executes first.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpCallValidatorConfig.handleResponseException)
+     */
+    public fun handleResponseException(block: CallExceptionHandler) {
+        responseExceptionHandlers += ExceptionHandlerWrapper(block)
+    }
+
+    /**
      * Add [CallRequestExceptionHandler].
      * Last added handler executes first.
+     * @Deprecated("Use handleResponseException(CallExceptionHandler) instead", level = DeprecationLevel.WARNING)
+
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpCallValidatorConfig.handleResponseException)
      */
