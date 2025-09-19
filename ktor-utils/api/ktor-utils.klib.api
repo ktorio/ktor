@@ -310,7 +310,7 @@ final class <#A: kotlin/Any?, #B: kotlin/Any?> io.ktor.util.collections/Concurre
 }
 
 final class <#A: kotlin/Any?> io.ktor.util.collections/SerializedMapValue { // io.ktor.util.collections/SerializedMapValue|null[0]
-    constructor <init>(kotlin/String, kotlin/Function1<#A, kotlin/String>, kotlin/Function1<kotlin/String, #A>) // io.ktor.util.collections/SerializedMapValue.<init>|<init>(kotlin.String;kotlin.Function1<1:0,kotlin.String>;kotlin.Function1<kotlin.String,1:0>){}[0]
+    constructor <init>(kotlin/String, kotlin/Function1<#A, kotlin/String?>, kotlin/Function1<kotlin/String, #A>) // io.ktor.util.collections/SerializedMapValue.<init>|<init>(kotlin.String;kotlin.Function1<1:0,kotlin.String?>;kotlin.Function1<kotlin.String,1:0>){}[0]
 }
 
 final class io.ktor.util.cio/ChannelReadException : io.ktor.util.cio/ChannelIOException { // io.ktor.util.cio/ChannelReadException|null[0]
@@ -956,6 +956,7 @@ final fun (kotlin/ByteArray).io.ktor.util/encodeBase64(): kotlin/String // io.kt
 final fun (kotlin/ByteArray).io.ktor.util/readShort(kotlin/Int): kotlin/Short // io.ktor.util/readShort|readShort@kotlin.ByteArray(kotlin.Int){}[0]
 final fun (kotlin/Char).io.ktor.util/isLowerCase(): kotlin/Boolean // io.ktor.util/isLowerCase|isLowerCase@kotlin.Char(){}[0]
 final fun (kotlin/String).io.ktor.util.collections/asBoolean(): io.ktor.util.collections/SerializedMapValue<kotlin/Boolean> // io.ktor.util.collections/asBoolean|asBoolean@kotlin.String(){}[0]
+final fun (kotlin/String).io.ktor.util.collections/asPresenceBoolean(): io.ktor.util.collections/SerializedMapValue<kotlin/Boolean?> // io.ktor.util.collections/asPresenceBoolean|asPresenceBoolean@kotlin.String(){}[0]
 final fun (kotlin/String).io.ktor.util.collections/getValue(io.ktor.util.collections/StringMap, kotlin.reflect/KProperty<*>): kotlin/String? // io.ktor.util.collections/getValue|getValue@kotlin.String(io.ktor.util.collections.StringMap;kotlin.reflect.KProperty<*>){}[0]
 final fun (kotlin/String).io.ktor.util.collections/setValue(io.ktor.util.collections/StringMap, kotlin.reflect/KProperty<*>, kotlin/String?) // io.ktor.util.collections/setValue|setValue@kotlin.String(io.ktor.util.collections.StringMap;kotlin.reflect.KProperty<*>;kotlin.String?){}[0]
 final fun (kotlin/String).io.ktor.util/decodeBase64Bytes(): kotlin/ByteArray // io.ktor.util/decodeBase64Bytes|decodeBase64Bytes@kotlin.String(){}[0]

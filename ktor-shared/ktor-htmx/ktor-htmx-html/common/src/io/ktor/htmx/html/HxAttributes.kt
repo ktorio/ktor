@@ -33,6 +33,29 @@ public class HxAttributes(override val map: DelegatingMap) : StringMapDelegate {
     public var target: String? by HxAttributeKeys.Target
     public var trigger: String? by HxAttributeKeys.Trigger
     public var vals: String? by HxAttributeKeys.Vals
+    public var boost: Boolean? by HxAttributeKeys.Boost.asBoolean()
+    public var confirm: String? by HxAttributeKeys.Confirm
+    public var delete: String? by HxAttributeKeys.Delete
+    public var disable: Boolean? by HxAttributeKeys.Disable.asPresenceBoolean()
+    public var disabledElt: String? by HxAttributeKeys.DisabledElt
+    public var disinherit: String? by HxAttributeKeys.Disinherit
+    public var encoding: String? by HxAttributeKeys.Encoding
+    public var ext: String? by HxAttributeKeys.Ext
+    public var history: String? by HxAttributeKeys.History
+    public var historyElt: String? by HxAttributeKeys.HistoryElt
+    public var include: String? by HxAttributeKeys.Include
+    public var indicator: String? by HxAttributeKeys.Indicator
+    public var inherit: String? by HxAttributeKeys.Inherit
+    public var params: String? by HxAttributeKeys.Params
+    public var patch: String? by HxAttributeKeys.Patch
+    public var preserve: Boolean? by HxAttributeKeys.Preserve.asBoolean()
+    public var prompt: String? by HxAttributeKeys.Prompt
+    public var put: String? by HxAttributeKeys.Put
+    public var replaceUrl: String? by HxAttributeKeys.ReplaceUrl
+    public var request: String? by HxAttributeKeys.Request
+    public var sync: String? by HxAttributeKeys.Sync
+    public var validate: Boolean? by HxAttributeKeys.Validate.asBoolean()
+    public var vars: String? by HxAttributeKeys.Vars
 
     public val on: On
         get() = On(map)
