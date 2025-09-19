@@ -24,6 +24,7 @@ internal fun Project.configureTestTasksOnCi() {
     // 2. To run as many tests as possible while keeping fail-fast behavior locally.
     tasks.withType<AbstractTestTask>().configureEach {
         ignoreFailures = true
+        failOnNoDiscoveredTests = false
         if (this is KotlinTest) ignoreRunFailures = true
     }
     // KotlinTestReport overwrites ignoreFailure values and fails build on test failure if this flag is disabled
