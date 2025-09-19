@@ -6,7 +6,9 @@ package io.ktor.server.engine
 
 import io.ktor.server.application.*
 import io.ktor.server.engine.internal.*
-import kotlinx.coroutines.*
+import io.ktor.utils.io.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * An engine which runs an application.
@@ -21,6 +23,7 @@ public interface ApplicationEngine {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.ApplicationEngine.Configuration)
      */
     @Suppress("MemberVisibilityCanBePrivate")
+    @KtorDsl
     public open class Configuration {
         /**
          * Returns the current parallelism level (e.g. the number of available processors).

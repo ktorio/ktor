@@ -28,7 +28,6 @@ internal val LOGGER = KtorSimpleLogger("io.ktor.server.routing.Routing")
  *
  * @param application is an instance of [Application] for this routing node.
  */
-@KtorDsl
 public class RoutingRoot(
     public val application: Application
 ) : RoutingNode(
@@ -178,7 +177,6 @@ public val Route.application: Application
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.routing)
  */
-@KtorDsl
 public fun Application.routing(configuration: Routing.() -> Unit): RoutingRoot =
     pluginOrNull(RoutingRoot)?.apply(configuration) ?: install(RoutingRoot, configuration)
 
