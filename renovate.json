@@ -67,16 +67,16 @@
       "enabled": false
     },
     {
-      "description": "Don't create PRs to main branch for patch updates",
+      "description": "Ignore patch updates for main branch",
       "matchUpdateTypes": ["patch"],
       "matchBaseBranches": ["main"],
       "enabled": false
     },
     {
-      "description": "Minor/major updates go to main branch",
+      "description": "Ignore major/minor for release branches",
       "matchUpdateTypes": ["minor", "major"],
-      "matchBaseBranches": ["main"],
-      "automerge": true
+      "matchBaseBranches": ["release/*"],
+      "enabled": false
     },
     {
       "description": "Automerge test and infrastructure dependencies",
