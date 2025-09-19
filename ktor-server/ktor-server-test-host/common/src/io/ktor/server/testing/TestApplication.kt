@@ -55,7 +55,6 @@ public interface ClientProvider {
      *
      * @see [testApplication]
      */
-    @KtorDsl
     public fun createClient(block: HttpClientConfig<out HttpClientEngineConfig>.() -> Unit): HttpClient
 }
 
@@ -133,7 +132,6 @@ public class TestApplication internal constructor(
  *
  * @see [testApplication]
  */
-@KtorDsl
 public fun TestApplication(
     block: TestApplicationBuilder.() -> Unit
 ): TestApplication {
@@ -160,7 +158,6 @@ public class ExternalServicesBuilder internal constructor(private val testApplic
      *
      * @see [testApplication]
      */
-    @KtorDsl
     public fun hosts(vararg hosts: String, block: Application.() -> Unit) {
         check(hosts.isNotEmpty()) { "hosts can not be empty" }
 
@@ -424,7 +421,6 @@ public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
         testApplication.start()
     }
 
-    @KtorDsl
     override fun createClient(
         block: HttpClientConfig<out HttpClientEngineConfig>.() -> Unit
     ): HttpClient = HttpClient(DelegatingTestClientEngine) {
@@ -470,7 +466,6 @@ public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.testApplication)
  */
-@KtorDsl
 public fun testApplication(block: suspend ApplicationTestBuilder.() -> Unit): TestResult {
     return testApplication(EmptyCoroutineContext, block)
 }
@@ -509,7 +504,6 @@ public fun testApplication(block: suspend ApplicationTestBuilder.() -> Unit): Te
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.testApplication)
  */
-@KtorDsl
 public fun testApplication(
     parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
     block: suspend ApplicationTestBuilder.() -> Unit
@@ -519,7 +513,6 @@ public fun testApplication(
 
 // allows running multiple servers during one test
 // not really needed outside ktor probably
-@KtorDsl
 public suspend fun runTestApplication(
     parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
     block: suspend ApplicationTestBuilder.() -> Unit
