@@ -5,6 +5,7 @@
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
+import io.ktor.client.plugins.DefaultRequest
 import io.ktor.client.plugins.api.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -12,6 +13,7 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
 class ClientPluginsTest {
@@ -183,5 +185,43 @@ class ClientPluginsTest {
         }
 
         assertEquals("OK", client.get("/").bodyAsText())
+    }
+
+    @Test
+    fun testInstallOrReplace() = runTest {
+        val initialClient = HttpClient(MockEngine) {
+            engine {
+                addHandler {
+                    respond("OK")
+                }
+            }
+
+            install(DefaultRequest) {
+                headers.append("CustomHeader1", "true")
+            }
+        }
+
+        val clientWithInstall = initialClient.config {
+            install(DefaultRequest) {
+                headers.append("CustomHeader2", "true")
+            }
+        }
+
+        val clientWithInstallOrReplace = initialClient.config {
+            installOrReplace(DefaultRequest) {
+                headers.append("CustomHeader2", "false")
+                headers.append("CustomHeader3", "true")
+            }
+        }
+
+        clientWithInstall.get("/ok").apply {
+            assertEquals("true", request.headers["CustomHeader1"])
+            assertEquals("true", request.headers["CustomHeader2"])
+        }
+        clientWithInstallOrReplace.get("/ok").apply {
+            assertTrue { request.headers["CustomHeader1"] == null }
+            assertEquals("false", request.headers.getAll("CustomHeader2")?.joinToString())
+            assertEquals("true", request.headers["CustomHeader3"])
+        }
     }
 }
