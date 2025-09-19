@@ -1,10 +1,10 @@
 public final class io/ktor/htmx/html/HxAttributes : io/ktor/util/collections/StringMapDelegate {
 	public fun <init> (Lkotlinx/html/impl/DelegatingMap;)V
 	public fun get (Ljava/lang/String;)Ljava/lang/String;
-	public final fun getBoost ()Ljava/lang/String;
+	public final fun getBoost ()Ljava/lang/Boolean;
 	public final fun getConfirm ()Ljava/lang/String;
 	public final fun getDelete ()Ljava/lang/String;
-	public final fun getDisable ()Ljava/lang/String;
+	public final fun getDisable ()Ljava/lang/Boolean;
 	public final fun getDisabledElt ()Ljava/lang/String;
 	public final fun getDisinherit ()Ljava/lang/String;
 	public final fun getEncoding ()Ljava/lang/String;
@@ -21,7 +21,7 @@ public final class io/ktor/htmx/html/HxAttributes : io/ktor/util/collections/Str
 	public final fun getParams ()Ljava/lang/String;
 	public final fun getPatch ()Ljava/lang/String;
 	public final fun getPost ()Ljava/lang/String;
-	public final fun getPreserve ()Ljava/lang/String;
+	public final fun getPreserve ()Ljava/lang/Boolean;
 	public final fun getPrompt ()Ljava/lang/String;
 	public final fun getPushUrl ()Ljava/lang/String;
 	public final fun getPut ()Ljava/lang/String;
@@ -34,16 +34,16 @@ public final class io/ktor/htmx/html/HxAttributes : io/ktor/util/collections/Str
 	public final fun getSync ()Ljava/lang/String;
 	public final fun getTarget ()Ljava/lang/String;
 	public final fun getTrigger ()Ljava/lang/String;
-	public final fun getValidate ()Ljava/lang/String;
+	public final fun getValidate ()Ljava/lang/Boolean;
 	public final fun getVals ()Ljava/lang/String;
 	public final fun getVars ()Ljava/lang/String;
 	public final fun on (Ljava/lang/String;Ljava/lang/String;)V
 	public fun remove (Ljava/lang/String;)Ljava/lang/String;
 	public fun set (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun setBoost (Ljava/lang/String;)V
+	public final fun setBoost (Ljava/lang/Boolean;)V
 	public final fun setConfirm (Ljava/lang/String;)V
 	public final fun setDelete (Ljava/lang/String;)V
-	public final fun setDisable (Ljava/lang/String;)V
+	public final fun setDisable (Ljava/lang/Boolean;)V
 	public final fun setDisabledElt (Ljava/lang/String;)V
 	public final fun setDisinherit (Ljava/lang/String;)V
 	public final fun setEncoding (Ljava/lang/String;)V
@@ -57,7 +57,7 @@ public final class io/ktor/htmx/html/HxAttributes : io/ktor/util/collections/Str
 	public final fun setParams (Ljava/lang/String;)V
 	public final fun setPatch (Ljava/lang/String;)V
 	public final fun setPost (Ljava/lang/String;)V
-	public final fun setPreserve (Ljava/lang/String;)V
+	public final fun setPreserve (Ljava/lang/Boolean;)V
 	public final fun setPrompt (Ljava/lang/String;)V
 	public final fun setPushUrl (Ljava/lang/String;)V
 	public final fun setPut (Ljava/lang/String;)V
@@ -70,7 +70,7 @@ public final class io/ktor/htmx/html/HxAttributes : io/ktor/util/collections/Str
 	public final fun setSync (Ljava/lang/String;)V
 	public final fun setTarget (Ljava/lang/String;)V
 	public final fun setTrigger (Ljava/lang/String;)V
-	public final fun setValidate (Ljava/lang/String;)V
+	public final fun setValidate (Ljava/lang/Boolean;)V
 	public final fun setVals (Ljava/lang/String;)V
 	public final fun setVars (Ljava/lang/String;)V
 }
