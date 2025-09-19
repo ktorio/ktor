@@ -329,7 +329,6 @@ import kotlin.coroutines.CoroutineContext
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClient)
  */
-@KtorDsl
 public expect fun HttpClient(
     block: HttpClientConfig<*>.() -> Unit = {}
 ): HttpClient
@@ -642,7 +641,6 @@ public expect fun HttpClient(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClient)
  */
-@KtorDsl
 public fun <T : HttpClientEngineConfig> HttpClient(
     engineFactory: HttpClientEngineFactory<T>,
     block: HttpClientConfig<T>.() -> Unit = {}
@@ -968,7 +966,6 @@ public fun <T : HttpClientEngineConfig> HttpClient(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClient)
  */
-@KtorDsl
 public fun HttpClient(
     engine: HttpClientEngine,
     block: HttpClientConfig<*>.() -> Unit

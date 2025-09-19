@@ -21,6 +21,9 @@ import kotlin.coroutines.EmptyCoroutineContext
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ServerConfigBuilder)
  */
+@Suppress("ktlint:standard:no-consecutive-comments")
+// TODO KTOR-8809: Uncomment the annotation
+// @KtorDsl
 public class ServerConfigBuilder(
     public val environment: ApplicationEnvironment
 ) {
