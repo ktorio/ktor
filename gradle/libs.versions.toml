@@ -88,6 +88,8 @@ develocity-commonCustomUserData = "2.3"
 gradleDoctor = "0.12.0"
 mavenPublishing = "0.34.0"
 
+robolectric-android = "16-robolectric-13921718"
+
 [libraries]
 
 android-kmp-library = { module = "com.android.kotlin.multiplatform.library:com.android.kotlin.multiplatform.library.gradle.plugin", version.ref = "android-kmp-plugin" }
@@ -247,6 +249,8 @@ gradleDoctor = { module = "com.osacky.doctor:doctor-plugin", version.ref = "grad
 mavenPublishing = { module = "com.vanniktech:gradle-maven-publish-plugin", version.ref = "mavenPublishing" }
 
 zstd-jni = { module = "com.github.luben:zstd-jni", version.ref = "zstd-jni" }
+
+robolectric-android = { module = "org.robolectric:android-all", version.ref = "robolectric-android" }
 
 [plugins]
 

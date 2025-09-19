@@ -13,11 +13,14 @@ kotlin {
     sourceSets {
         jvmMain.dependencies {
             api(projects.ktorClientCore)
+            // Used to compile against Android SDK without the android plugin
+            compileOnly(libs.robolectric.android)
         }
         jvmTest.dependencies {
             api(projects.ktorClientTests)
             api(projects.ktorNetworkTls)
             api(projects.ktorNetworkTlsCertificates)
+            implementation(libs.robolectric.android)
         }
     }
 }

@@ -4,6 +4,7 @@
 
 package io.ktor.client.engine.android
 
+import android.net.http.*
 import io.ktor.client.engine.*
 import java.net.*
 import javax.net.ssl.*
@@ -45,4 +46,19 @@ public class AndroidEngineConfig : HttpClientEngineConfig() {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.android.AndroidEngineConfig.requestConfig)
      */
     public var requestConfig: HttpURLConnection.() -> Unit = {}
+
+    /**
+     * Allows you to set engine-specific request configuration.
+     */
+    public var httpEngineConfig: HttpEngine.Builder.() -> Unit = {}
+
+    internal var httpEngineDisabled = false
+
+    /**
+     * Allows you to set engine-specific request configuration.
+     */
+    public var context: android.content.Context? = null
+        set(value) {
+            field = value
+        }
 }
