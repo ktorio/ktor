@@ -11,6 +11,7 @@ plugins {
     id("com.android.kotlin.multiplatform.library")
     id("kotlinx-serialization")
     id("ktorbuild.project.library")
+    kotlin("native.cocoapods")
 }
 
 kotlin {
@@ -48,6 +49,23 @@ kotlin {
 
         androidMain.dependencies {
             implementation(libs.stream.webrtc.android)
+        }
+
+        cocoapods {
+            version = project.version.toString()
+            summary = "Ktor WebRTC Client"
+            homepage = "https://github.com/ktorio/ktor"
+            ios.deploymentTarget = "13.0"
+
+            pod("WebRTC-SDK") {
+                version = "137.7151.04"
+                moduleName = "WebRTC"
+                packageName = "WebRTC"
+            }
+
+            framework {
+                baseName = "KtorWebRTC"
+            }
         }
     }
 }
