@@ -79,7 +79,6 @@ public operator fun <T> SerializedMapValue<T>.setValue(thisRef: StringMap, prope
 public fun String.asBoolean(): SerializedMapValue<Boolean> =
     SerializedMapValue(this, Boolean::toString, String::toBoolean)
 
-
 /**
  * Includes the attribute when the flag is set to true; else, excludes it.
  *
