@@ -598,6 +598,7 @@ public final class io/ktor/util/collections/CopyOnWriteHashMap {
 
 public final class io/ktor/util/collections/MapDelegatesKt {
 	public static final fun asBoolean (Ljava/lang/String;)Lio/ktor/util/collections/SerializedMapValue;
+	public static final fun asPresenceBoolean (Ljava/lang/String;)Lio/ktor/util/collections/SerializedMapValue;
 	public static final fun getValue (Lio/ktor/util/collections/SerializedMapValue;Lio/ktor/util/collections/StringMap;Lkotlin/reflect/KProperty;)Ljava/lang/Object;
 	public static final fun getValue (Ljava/lang/String;Lio/ktor/util/collections/StringMap;Lkotlin/reflect/KProperty;)Ljava/lang/String;
 	public static final fun setValue (Lio/ktor/util/collections/SerializedMapValue;Lio/ktor/util/collections/StringMap;Lkotlin/reflect/KProperty;Ljava/lang/Object;)V
