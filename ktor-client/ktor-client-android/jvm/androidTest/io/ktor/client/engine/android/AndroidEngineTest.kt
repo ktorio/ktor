@@ -15,16 +15,19 @@ import org.junit.Test
 import kotlin.test.assertContains
 
 class AndroidEngineTest {
+    @SdkSuppress(minSdkVersion = 34)
     @Test
     fun testHttpEngine() = runTest {
         val client = HttpClient(Android.create {
             httpEngineDisabled = false
             context = InstrumentationRegistry.getInstrumentation().targetContext
         })
-
-        val response = client.get("https://github.com/robots.txt")
-
-        assertContains(response.bodyAsText(), "Disallow")
+        try {
+            val response = client.get("https://github.com/robots.txt")
+            assertContains(response.bodyAsText(), "Disallow")
+        } finally {
+            client.close()
+        }
     }
     @Test
     fun testHttpEngineConfig() = runTest {
