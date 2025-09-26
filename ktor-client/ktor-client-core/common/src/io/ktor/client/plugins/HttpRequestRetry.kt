@@ -15,10 +15,10 @@ import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
-import kotlin.math.*
-import kotlin.random.*
+import kotlinx.coroutines.CompletableJob
+import kotlin.math.pow
+import kotlin.random.Random
 
 private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.HttpRequestRetry")
 
@@ -479,5 +479,14 @@ private fun Throwable.isTimeoutException(): Boolean {
 private suspend fun HttpResponse.throwOnInvalidResponseBody(): Boolean {
     // wait for saved content to pass through intermediate processing
     // if the encoding is wrong, then this will throw an exception
-    return isSaved && rawContent.awaitContent()
+    return isSaved && rawContent.run {
+        try {
+            awaitContent()
+        } finally {
+            // Saved response returns a new instance of ByteReadChannel on each rawContent read,
+            // so we should close the channel to free up resources
+            runCatching { cancel() }
+                .onFailure { LOGGER.debug("Failed to close response body channel", it) }
+        }
+    }
 }

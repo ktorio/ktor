@@ -11,6 +11,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
+import io.ktor.http.content.TextContent
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.engine.*
@@ -22,6 +23,7 @@ import io.ktor.server.testing.*
 import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.*
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 import kotlin.test.*
@@ -154,7 +156,9 @@ class OAuth2Test {
     )
 
     val failures = ArrayList<Throwable>()
-    fun Application.module(settings: OAuthServerSettings.OAuth2ServerSettings = DefaultSettings) {
+    suspend fun Application.module(settings: OAuthServerSettings.OAuth2ServerSettings = DefaultSettings) {
+        val testClient = testClient.await()
+
         install(Authentication) {
             oauth("login") {
                 client = testClient
@@ -190,9 +194,10 @@ class OAuth2Test {
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @AfterTest
     fun tearDown() {
-        testClient.close()
+        testClient.getCompleted().close()
     }
 
     @Test
@@ -284,6 +289,81 @@ class OAuth2Test {
     }
 
     @Test
+    fun testRedirectWithMultipleProviders() = testApplication {
+        val testClient = testClient.await()
+
+        suspend fun resolveProvider(providerId: String): OAuthServerSettings.OAuth2ServerSettings {
+            delay(5)
+            return when (providerId) {
+                "provider1" -> OAuthServerSettings.OAuth2ServerSettings(
+                    name = "provider1-oauth2",
+                    authorizeUrl = "http://provider1-com/authorize",
+                    accessTokenUrl = "http://provider1-com/access_token",
+                    clientId = "provider1-id",
+                    clientSecret = "provider1-secret",
+                    requestMethod = HttpMethod.Post
+                )
+
+                "provider2" -> OAuthServerSettings.OAuth2ServerSettings(
+                    name = "provider2-oauth2",
+                    authorizeUrl = "http://provider2-com/authorize",
+                    accessTokenUrl = "http://provider2-com/access_token",
+                    clientId = "provider2-id",
+                    clientSecret = "provider2-secret",
+                    requestMethod = HttpMethod.Post
+                )
+
+                else -> error("Unsupported provider ID: $providerId")
+            }
+        }
+
+        install(Authentication) {
+            oauth("login") {
+                client = testClient
+                providerLookup = {
+                    val providerId = parameters["provider"] ?: error("Missing provider ID")
+                    resolveProvider(providerId)
+                }
+                urlProvider = {
+                    delay(5)
+                    "http://localhost/login/${parameters["provider"]}"
+                }
+            }
+        }
+
+        routing {
+            authenticate("login") {
+                get("/login/{provider}") {
+                    val providerId = call.parameters["provider"] ?: return@get call.respond(HttpStatusCode.BadRequest)
+                    call.respondText("OAuth config applied for provider: $providerId")
+                }
+            }
+        }
+
+        coroutineScope {
+            repeat(50) { index ->
+                launch {
+                    val provider = if (index % 2 == 0) "provider1" else "provider2"
+                    val result = noRedirectsClient().get("/login/$provider")
+                    assertEquals(HttpStatusCode.Found, result.status)
+                    val url = Url(
+                        result.headers[HttpHeaders.Location]
+                            ?: throw IllegalStateException("No location header in the response")
+                    )
+                    assertEquals("/authorize", url.encodedPath)
+                    assertEquals("$provider-com", url.host)
+
+                    val query = url.parameters
+                    assertEquals("$provider-id", query[OAuth2RequestParameters.ClientId])
+                    assertEquals("code", query[OAuth2RequestParameters.ResponseType])
+                    assertNotNull(query[OAuth2RequestParameters.State])
+                    assertEquals("http://localhost/login/$provider", query[OAuth2RequestParameters.RedirectUri])
+                }
+            }
+        }
+    }
+
+    @Test
     fun testRequestToken() = testApplication {
         application { module() }
         val result = client.get(
@@ -294,6 +374,84 @@ class OAuth2Test {
         )
 
         assertEquals(HttpStatusCode.OK, result.status)
+    }
+
+    @Test
+    fun testRequestTokenWithMultipleProviders() = testApplication {
+        val testClient = testClient.await()
+
+        suspend fun resolveProvider(providerId: String): OAuthServerSettings.OAuth2ServerSettings {
+            delay(5)
+            return when (providerId) {
+                "provider1" -> OAuthServerSettings.OAuth2ServerSettings(
+                    name = "provider1-oauth2",
+                    authorizeUrl = "http://provider1-com/authorize",
+                    accessTokenUrl = "http://provider1-com/oauth/access_token",
+                    clientId = "clientId1",
+                    clientSecret = "clientSecret1",
+                    requestMethod = HttpMethod.Post
+                )
+
+                "provider2" -> OAuthServerSettings.OAuth2ServerSettings(
+                    name = "provider2-oauth2",
+                    authorizeUrl = "http://provider2-com/authorize",
+                    accessTokenUrl = "http://provider2-com/oauth/access_token",
+                    clientId = "clientId1",
+                    clientSecret = "clientSecret1",
+                    requestMethod = HttpMethod.Post
+                )
+
+                else -> error("Unsupported provider ID: $providerId")
+            }
+        }
+
+        install(Authentication) {
+            oauth("login") {
+                client = testClient
+                providerLookup = {
+                    val providerId = parameters["provider"] ?: error("Missing provider ID")
+                    resolveProvider(providerId)
+                }
+                urlProvider = { "http://localhost/login" }
+            }
+
+            basic("resource") {
+                realm = "oauth2"
+                validate { }
+            }
+        }
+        routing {
+            authenticate("login") {
+                route("/login/{provider}") {
+                    handle {
+                        val providerId = call.parameters["provider"]
+                        call.respondText("OAuth config applied for provider: $providerId")
+                    }
+                }
+            }
+            authenticate("resource") {
+                get("/resource/{provider}") {
+                    call.respondText("ok")
+                }
+            }
+        }
+
+        coroutineScope {
+            repeat(50) { index ->
+                launch {
+                    val provider = if (index % 2 == 0) "provider1" else "provider2"
+                    val result = client.get(
+                        "/login/$provider?" + listOf(
+                            OAuth2RequestParameters.Code to "code1",
+                            OAuth2RequestParameters.State to "state1"
+                        ).formUrlEncode()
+                    )
+
+                    assertEquals(HttpStatusCode.OK, result.status)
+                    assertTrue(result.bodyAsText().contains(provider), "Expected response to contain: $provider")
+                }
+            }
+        }
     }
 
     @Test
@@ -573,6 +731,44 @@ class OAuth2Test {
         assertEquals("some-url", response1.bodyAsText())
     }
 
+    @Test
+    fun formRequestBodyCanBeReceivedInRouteHandler() = testApplication {
+        application {
+            install(Authentication) {
+                oauth {
+                    urlProvider = { "http://localhost:8080/callback" }
+                    providerLookup = {
+                        OAuthServerSettings.OAuth2ServerSettings(
+                            name = "dummy",
+                            authorizeUrl = "localhost",
+                            accessTokenUrl = "localhost",
+                            clientId = "clientId",
+                            clientSecret = "clientSecret"
+                        )
+                    }
+                    client = this@testApplication.client
+                }
+            }
+
+            routing {
+                route("/oauth") {
+                    authenticate(optional = true) {
+                        post {
+                            call.respond(call.receiveText())
+                        }
+                    }
+                }
+            }
+        }
+
+        client.post("/oauth") {
+            setBody(TextContent(listOf("foo" to "bar").formUrlEncode(), ContentType.Application.FormUrlEncoded))
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("foo=bar", response.bodyAsText())
+        }
+    }
+
     private fun assertFailures() {
         failures.forEach {
             throw it
@@ -609,7 +805,7 @@ internal interface OAuth2Server {
     ): OAuthAccessTokenResponse.OAuth2
 }
 
-internal fun createOAuth2Server(server: OAuth2Server): HttpClient {
+internal fun createOAuth2Server(server: OAuth2Server): Deferred<HttpClient> {
     val environment = createTestEnvironment {}
     val props = serverConfig(environment) {
         module {
@@ -683,10 +879,13 @@ internal fun createOAuth2Server(server: OAuth2Server): HttpClient {
             }
         }
     }
-    val embeddedServer = EmbeddedServer(props, TestEngine)
-    embeddedServer.start()
-    return embeddedServer.engine.client.config {
-        expectSuccess = false
+    return EmbeddedServer(props, TestEngine).let { server ->
+        server.application.async {
+            server.startSuspend()
+            server.engine.client.config {
+                expectSuccess = false
+            }
+        }
     }
 }
 

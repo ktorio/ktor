@@ -40,7 +40,6 @@ internal fun <R> List<KFunction<R>>.bestFunction(): KFunction<R>? = sortedWith(
 
 internal fun KFunction<*>.isApplicableFunction(): Boolean {
     if (isOperator || isInfix || isInline || isAbstract) return false
-    if (isSuspend) return false // not supported yet
 
     extensionReceiverParameter?.let {
         if (!isApplication(it) && !isApplicationEnvironment(it)) return false
@@ -56,9 +55,7 @@ internal fun KFunction<*>.isApplicableFunction(): Boolean {
         }
     }
 
-    return parameters.all {
-        isApplication(it) || isApplicationEnvironment(it) || it.kind == KParameter.Kind.INSTANCE || it.isOptional
-    }
+    return true
 }
 
 internal fun Class<*>.takeIfNotFacade(): KClass<*>? =

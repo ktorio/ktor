@@ -9,6 +9,8 @@ import io.ktor.http.cio.*
 import io.ktor.http.cio.internals.*
 import io.ktor.server.cio.*
 import io.ktor.util.cio.*
+import io.ktor.util.logging.KtorSimpleLogger
+import io.ktor.util.logging.trace
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
@@ -17,6 +19,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
 import kotlinx.io.*
 import kotlin.time.*
+
+private val LOGGER = KtorSimpleLogger("io.ktor.server.cio.backend.ServerPipeline")
 
 /**
  * Start connection HTTP pipeline invoking [handler] for every request.
@@ -67,6 +71,7 @@ public fun CoroutineScope.startServerConnectionPipeline(
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (parseFailed: Throwable) {
+                LOGGER.trace { "Request parsing failed with exception: $parseFailed" }
                 // try to write 400 Bad Request
                 respondBadRequest(actorChannel)
                 break // end pipeline loop

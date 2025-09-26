@@ -9,3 +9,5 @@ version = resolveVersion()
 
 ProjectTagsService.register(project)
 extensions.create<KtorBuildExtension>(KtorBuildExtension.NAME)
+
+registerPackageJsonAggregationTasks()

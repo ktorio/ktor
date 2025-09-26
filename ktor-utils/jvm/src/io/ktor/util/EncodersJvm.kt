@@ -4,13 +4,21 @@
 
 package io.ktor.util
 
+import com.github.luben.zstd.ZstdCompressCtx
+import com.github.luben.zstd.ZstdDecompressCtx
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import kotlinx.coroutines.*
-import java.nio.*
-import java.util.zip.*
-import kotlin.coroutines.*
+import io.ktor.utils.io.pool.ObjectPool
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import java.nio.ByteBuffer
+import java.util.zip.CRC32
+import java.util.zip.Checksum
+import java.util.zip.Deflater
+import java.util.zip.Inflater
+import kotlin.coroutines.CoroutineContext
 
 private const val GZIP_HEADER_SIZE: Int = 10
 
@@ -67,14 +75,109 @@ public val GZip: Encoder = object : Encoder {
         inflate(source, coroutineContext = coroutineContext)
 }
 
+private val InflateWriterCoroutineName = CoroutineName("encoder-inflate-writer")
+
+/**
+ * Implementation of Zstd [Encoder].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.Zstd)
+ */
+public class Zstd(private val compressionLevel: Int) : Encoder {
+    @OptIn(DelicateCoroutinesApi::class)
+    override fun encode(source: ByteReadChannel, coroutineContext: CoroutineContext): ByteReadChannel =
+        GlobalScope.writer(coroutineContext, autoFlush = true) {
+            source.encodeTo(channel, KtorDefaultPool, compressionLevel)
+        }.channel
+
+    @OptIn(DelicateCoroutinesApi::class)
+    override fun encode(source: ByteWriteChannel, coroutineContext: CoroutineContext): ByteWriteChannel =
+        GlobalScope.reader(coroutineContext, autoFlush = true) {
+            channel.encodeTo(source, KtorDefaultPool, compressionLevel)
+        }.channel
+
+    @OptIn(DelicateCoroutinesApi::class)
+    override fun decode(
+        source: ByteReadChannel,
+        coroutineContext: CoroutineContext
+    ): ByteReadChannel = GlobalScope.writer(coroutineContext) {
+        source.decodeTo(channel, KtorDefaultPool)
+    }.channel
+
+    private suspend fun ByteReadChannel.decodeTo(
+        destination: ByteWriteChannel,
+        pool: ObjectPool<ByteBuffer> = KtorDefaultPool
+    ) {
+        val inputBuf = pool.borrow()
+        val outputBuf = pool.borrow()
+        val ctx = ZstdDecompressCtx()
+
+        try {
+            while (!isClosedForRead) {
+                inputBuf.clear()
+                val bytesRead = readAvailable(inputBuf)
+                if (bytesRead <= 0) continue
+
+                val decompressedSize = ctx.decompressByteArray(
+                    outputBuf.array(),
+                    0,
+                    outputBuf.capacity(),
+                    inputBuf.array(),
+                    0,
+                    bytesRead
+                )
+
+                destination.writeFully(outputBuf.array(), 0, decompressedSize)
+            }
+        } finally {
+            ctx.close()
+            pool.recycle(inputBuf)
+            pool.recycle(outputBuf)
+        }
+    }
+
+    private suspend fun ByteReadChannel.encodeTo(
+        destination: ByteWriteChannel,
+        pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
+        compressionLevel: Int,
+    ) {
+        val inputBuf = pool.borrow()
+        val outputBuf = pool.borrow()
+        val ctx = ZstdCompressCtx().apply { setLevel(compressionLevel) }
+
+        try {
+            while (!isClosedForRead) {
+                inputBuf.clear()
+                val bytesRead = readAvailable(inputBuf)
+                if (bytesRead <= 0) continue
+
+                val compressedSize = ctx.compressByteArray(
+                    outputBuf.array(),
+                    0,
+                    outputBuf.capacity(),
+                    inputBuf.array(),
+                    0,
+                    bytesRead
+                )
+
+                destination.writeFully(outputBuf.array(), 0, compressedSize)
+            }
+        } finally {
+            ctx.close()
+            pool.recycle(inputBuf)
+            pool.recycle(outputBuf)
+        }
+    }
+}
+
 @OptIn(DelicateCoroutinesApi::class)
 private fun inflate(
     source: ByteReadChannel,
     gzip: Boolean = true,
     coroutineContext: CoroutineContext
-): ByteReadChannel = GlobalScope.writer(coroutineContext) {
+): ByteReadChannel = GlobalScope.writer(coroutineContext + InflateWriterCoroutineName) {
     val readBuffer = KtorDefaultPool.borrow()
     val writeBuffer = KtorDefaultPool.borrow()
+
     val inflater = Inflater(true)
     val checksum = CRC32()
 
@@ -116,7 +219,6 @@ private fun inflate(
         while (!source.isClosedForRead) {
             if (source.readAvailable(readBuffer) <= 0) continue
             readBuffer.flip()
-
             inflater.setInput(readBuffer.array(), readBuffer.position(), readBuffer.remaining())
 
             while (!inflater.needsInput() && !inflater.finished()) {

@@ -6,6 +6,7 @@ package io.ktor.client.tests
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
 
@@ -341,6 +343,34 @@ class LoggingMockedTests {
                     channel.close()
                 }
             }
+        }
+    }
+
+    // Issue: KTOR-6474
+    @Test
+    fun testLoggingWithResponseValidator() = testWithEngine(MockEngine) {
+        val responseBody = "Hello, world!"
+
+        config {
+            install(Logging) {
+                level = LogLevel.ALL
+            }
+
+            HttpResponseValidator {
+                validateResponse {
+                    assertEquals(responseBody, it.bodyAsText())
+                }
+            }
+
+            engine {
+                addHandler {
+                    respondOk(responseBody)
+                }
+            }
+        }
+
+        test { client ->
+            assertEquals(responseBody, client.get("").bodyAsText())
         }
     }
 }

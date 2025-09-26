@@ -7,19 +7,17 @@ plugins {
     id("test-server")
 }
 
-ktorBuild {
+kotlin {
     // Package java.net.http was introduced in Java 11
     jvmToolchain(11)
-}
 
-kotlin {
     sourceSets {
         jvmMain.dependencies {
-            api(project(":ktor-client:ktor-client-core"))
+            api(projects.ktorClientCore)
             implementation(libs.kotlinx.coroutines.jdk8)
         }
         jvmTest.dependencies {
-            api(project(":ktor-client:ktor-client-tests"))
+            api(projects.ktorClientTests)
         }
     }
 }

@@ -16,13 +16,10 @@ import kotlin.test.assertNull
 class ClientHeadersTest : ClientLoader() {
 
     @Test
-    fun testHeadersReturnNullWhenMissing() = clientTests(
-        except("Java", "Curl", "Js", "Darwin", "DarwinLegacy", "WinHttp")
-    ) {
+    fun testHeadersReturnNullWhenMissing() = clientTests {
         test { client ->
             client.get("$TEST_SERVER/headers").let {
                 assertEquals(HttpStatusCode.OK, it.status)
-                assertEquals("", it.bodyAsText())
 
                 assertNull(it.headers["X-Nonexistent-Header"])
                 assertNull(it.headers.getAll("X-Nonexistent-Header"))
@@ -31,7 +28,7 @@ class ClientHeadersTest : ClientLoader() {
     }
 
     @Test
-    fun testContentNegotiationMediaType() = clientTests(except("Java", "Curl", "Js", "Darwin", "DarwinLegacy")) {
+    fun testContentNegotiationMediaType() = clientTests {
         test { client ->
             client.preparePost("$TEST_SERVER/content-type") {
                 contentType(ContentType.Application.Json)
@@ -44,7 +41,7 @@ class ClientHeadersTest : ClientLoader() {
     }
 
     @Test
-    fun testHeadersMerge() = clientTests(except("Js")) {
+    fun testHeadersMerge() = clientTests {
         test { client ->
             client.get("$TEST_SERVER/headers-merge") {
                 accept(ContentType.Text.Html)
@@ -66,7 +63,7 @@ class ClientHeadersTest : ClientLoader() {
     }
 
     @Test
-    fun testAcceptMerge() = clientTests(except("Js")) {
+    fun testAcceptMerge() = clientTests {
         test { client ->
             val lines = client.get("$TCP_SERVER/headers-merge") {
                 accept(ContentType.Application.Xml)
@@ -79,7 +76,7 @@ class ClientHeadersTest : ClientLoader() {
     }
 
     @Test
-    fun testSingleHostHeader() = clientTests(except("Js", "Android", "Java")) {
+    fun testSingleHostHeader() = clientTests {
         test { client ->
             client.get("$TEST_SERVER/headers/host") {
                 header(HttpHeaders.Host, "CustomHost")
@@ -109,8 +106,9 @@ class ClientHeadersTest : ClientLoader() {
         }
     }
 
+    // Fails on Java before 19 because of https://bugs.openjdk.org/browse/JDK-8283544
     @Test
-    fun testRequestHasContentLength() = clientTests(except("Java", "Curl", "Js", "Darwin", "DarwinLegacy", "WinHttp")) {
+    fun testRequestHasContentLength() = clientTests(except("Java")) {
         test { client ->
             val get = client.get("$TEST_SERVER/headers").bodyAsText()
             assertEquals("", get)

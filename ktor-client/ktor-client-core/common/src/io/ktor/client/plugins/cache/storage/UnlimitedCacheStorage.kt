@@ -23,7 +23,7 @@ internal class UnlimitedCacheStorage : HttpCacheStorage() {
     override fun find(url: Url, varyKeys: Map<String, String>): HttpCacheEntry? {
         val data = store.computeIfAbsent(url) { ConcurrentSet() }
         return data.find {
-            varyKeys.all { (key, value) -> it.varyKeys[key] == value } && varyKeys.size == it.varyKeys.size
+            varyKeys.all { (key, value) -> it.varyKeys[key] == value }
         }
     }
 
@@ -45,9 +45,19 @@ internal class UnlimitedStorage : CacheStorage {
     override suspend fun find(url: Url, varyKeys: Map<String, String>): CachedResponseData? {
         val data = store.computeIfAbsent(url) { ConcurrentSet() }
         return data.find {
-            varyKeys.all { (key, value) -> it.varyKeys[key] == value } && varyKeys.size == it.varyKeys.size
+            varyKeys.all { (key, value) -> it.varyKeys[key] == value }
         }
     }
 
     override suspend fun findAll(url: Url): Set<CachedResponseData> = store[url] ?: emptySet()
+
+    override suspend fun remove(url: Url, varyKeys: Map<String, String>) {
+        store[url]?.removeAll { entry ->
+            varyKeys.all { (key, value) -> entry.varyKeys[key] == value } && varyKeys.size == entry.varyKeys.size
+        }
+    }
+
+    override suspend fun removeAll(url: Url) {
+        store.remove(url)
+    }
 }

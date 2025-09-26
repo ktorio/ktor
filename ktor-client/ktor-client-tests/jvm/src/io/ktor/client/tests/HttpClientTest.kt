@@ -20,6 +20,7 @@ import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import java.util.concurrent.ArrayBlockingQueue
 import kotlin.coroutines.Continuation
@@ -42,6 +43,9 @@ abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) :
             post("/echo") {
                 val text = call.receiveText()
                 call.respondText(text)
+            }
+            options("/hello") {
+                call.respond(HttpStatusCode.OK)
             }
 
             route("/sse") {
@@ -69,6 +73,21 @@ abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) :
                 get("/done") {
                     messages.close()
                     call.respond("OK")
+                }
+                get("delay/{time}") {
+                    val time = call.parameters["time"]?.toLongOrNull() ?: 0L
+
+                    val body = object : OutgoingContent.WriteChannelContent() {
+                        override val contentType: ContentType
+                            get() = ContentType.Text.EventStream
+
+                        override suspend fun writeTo(channel: ByteWriteChannel) {
+                            delay(time)
+                            channel.writeStringUtf8("data: hello\n")
+                            channel.flush()
+                        }
+                    }
+                    call.respond(body)
                 }
             }
         }
@@ -173,6 +192,17 @@ abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) :
 
         // check the new custom plugin is there too
         assertTrue(newClient.attributes.contains(anotherCustomPluginKey), "no other custom plugin installed")
+    }
+
+    @Test
+    fun testOptionsRequest() {
+        val client = HttpClient(factory)
+
+        runBlocking {
+            client.options("http://localhost:$serverPort/hello").apply {
+                assertEquals(HttpStatusCode.OK, status)
+            }
+        }
     }
 
     private class SendException : RuntimeException("Error on write")

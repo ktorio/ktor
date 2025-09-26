@@ -7,7 +7,6 @@
 package io.ktor.server.application
 
 import io.ktor.events.EventDefinition
-import kotlin.native.concurrent.*
 
 /**
  * Event definition for Application Starting event
@@ -18,6 +17,26 @@ import kotlin.native.concurrent.*
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationStarting)
  */
 public val ApplicationStarting: EventDefinition<Application> = EventDefinition()
+
+/**
+ * Event definition that is fired after `ApplicationStarting` hooks, and before `ApplicationModulesLoaded`.
+ *
+ * This is triggered after all modules have begun loading.
+ *
+ * It is used for parallel loading of dependencies.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationModulesLoading)
+ */
+public val ApplicationModulesLoading: EventDefinition<Application> = EventDefinition()
+
+/**
+ * Event definition that is fired after `ApplicationModulesLoading` hooks, and before `ApplicationStarted`.
+ *
+ * Hooks registered for this event can interrupt the application startup if needed by throwing exceptions.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationModulesLoaded)
+ */
+public val ApplicationModulesLoaded: EventDefinition<Application> = EventDefinition()
 
 /**
  * Event definition for Application Started event

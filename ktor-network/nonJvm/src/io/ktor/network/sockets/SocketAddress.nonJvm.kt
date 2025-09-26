@@ -10,6 +10,10 @@ public actual class InetSocketAddress actual constructor(
     public actual val hostname: String,
     public actual val port: Int
 ) : SocketAddress() {
+    public actual fun resolveAddress(): ByteArray? {
+        return platformResolveAddress()
+    }
+
     /**
      * Create a copy of [InetSocketAddress].
      *
@@ -88,4 +92,19 @@ public actual class UnixSocketAddress actual constructor(
     public actual fun copy(path: String): UnixSocketAddress {
         return UnixSocketAddress(path)
     }
+
+    public actual companion object {
+        /**
+         * Checks if Unix domain sockets are supported on the current platform.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.UnixSocketAddress.Companion.isSupported)
+         *
+         * @return `true` if Unix domain sockets are supported, `false` otherwise.
+         */
+        public actual fun isSupported(): Boolean = isUnixSocketSupported()
+    }
 }
+
+internal expect fun isUnixSocketSupported(): Boolean
+
+internal expect fun InetSocketAddress.platformResolveAddress(): ByteArray?

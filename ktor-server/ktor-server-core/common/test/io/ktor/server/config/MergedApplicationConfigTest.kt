@@ -109,10 +109,15 @@ class MergedApplicationConfigTest {
             "nested.nested-value-2" to "value2",
             "nested.nested-value-3" to "value2",
         )
-        val merged = first.mergeWith(second).toMap()["nested"] as Map<*, *>
-        assertEquals("value1", merged["nested-value-1"])
-        assertEquals("value2", merged["nested-value-2"])
-        assertEquals("value2", merged["nested-value-3"])
+        val merged = first.mergeWith(second)
+        val nested = merged.toMap()["nested"] as Map<*, *>
+        assertEquals("value1", nested["nested-value-1"])
+        assertEquals("value2", nested["nested-value-2"])
+        assertEquals("value2", nested["nested-value-3"])
+        assertEquals(
+            merged.config("nested").toMap(),
+            merged.property("nested").getAs()
+        )
     }
 
     @Test

@@ -17,6 +17,13 @@ public data class HttpProtocolVersion(val name: String, val major: Int, val mino
     @Suppress("PublicApiImplicitType")
     public companion object {
         /**
+         * HTTP/3.0 version.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.HttpProtocolVersion.Companion.HTTP_3_0)
+         */
+        public val HTTP_3_0: HttpProtocolVersion = HttpProtocolVersion("HTTP", 3, 0)
+
+        /**
          * HTTP/2.0 version.
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.HttpProtocolVersion.Companion.HTTP_2_0)
@@ -60,6 +67,7 @@ public data class HttpProtocolVersion(val name: String, val major: Int, val mino
             name == "HTTP" && major == 1 && minor == 0 -> HTTP_1_0
             name == "HTTP" && major == 1 && minor == 1 -> HTTP_1_1
             name == "HTTP" && major == 2 && minor == 0 -> HTTP_2_0
+            name == "HTTP" && major == 3 && minor == 0 -> HTTP_3_0
             else -> HttpProtocolVersion(name, major, minor)
         }
 

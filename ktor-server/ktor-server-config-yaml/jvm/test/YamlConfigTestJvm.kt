@@ -4,9 +4,10 @@
 
 package io.ktor.server.config.yaml
 
+import com.charleskorn.kaml.Yaml
+import com.charleskorn.kaml.YamlMap
 import io.ktor.server.config.*
-import net.mamoe.yamlkt.Yaml
-import net.mamoe.yamlkt.YamlMap
+import kotlinx.serialization.decodeFromString
 import kotlin.test.*
 import kotlin.test.Test
 
@@ -21,8 +22,16 @@ class YamlConfigTestJvm {
     }
 
     @Test
-    fun testLoadCustomConfig() {
+    fun testLoadCustomConfigWithYamlSuffix() {
         val path = YamlConfigTestJvm::class.java.classLoader.getResource("application-custom.yaml").toURI().path
+        val config = YamlConfig(path)!!
+        assertEquals("2345", config.property("ktor.deployment.port").getString())
+        assertEquals(listOf("c", "d", "e"), config.property("ktor.auth.users").getList())
+    }
+
+    @Test
+    fun testLoadCustomConfigWithYmlSuffix() {
+        val path = YamlConfigTestJvm::class.java.classLoader.getResource("application-custom.yml").toURI().path
         val config = YamlConfig(path)!!
         assertEquals("2345", config.property("ktor.deployment.port").getString())
         assertEquals(listOf("c", "d", "e"), config.property("ktor.auth.users").getList())
@@ -46,9 +55,8 @@ class YamlConfigTestJvm {
             ktor:
                 property: "${'$'}test.property"
             """.trimIndent()
-            val yaml = Yaml.decodeYamlFromString(content)
-            val config = YamlConfig(yaml as YamlMap)
-            config.checkEnvironmentVariables()
+            val yaml = Yaml.default.decodeFromString<YamlMap>(content)
+            val config = YamlConfig.from(yaml)
 
             val value = config.property("ktor.property").getString()
             assertEquals("systemValue", value)

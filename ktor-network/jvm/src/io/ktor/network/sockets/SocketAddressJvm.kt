@@ -4,7 +4,7 @@
 
 package io.ktor.network.sockets
 
-import java.lang.reflect.*
+import java.lang.reflect.Method
 
 public actual sealed class SocketAddress {
     internal abstract val address: java.net.SocketAddress
@@ -18,6 +18,8 @@ public actual class InetSocketAddress internal constructor(
     public actual val hostname: String get() = address.hostName
 
     public actual val port: Int get() = address.port
+
+    public actual fun resolveAddress(): ByteArray? = address.address?.address
 
     public actual constructor(hostname: String, port: Int) :
         this(java.net.InetSocketAddress(hostname, port))
@@ -103,17 +105,26 @@ public actual class UnixSocketAddress internal constructor(
 
     public actual override fun toString(): String = address.toString()
 
-    private companion object {
+    public actual companion object {
         private val unixDomainSocketAddressClass = try {
             Class.forName(UNIX_DOMAIN_SOCKET_ADDRESS_CLASS)
         } catch (exception: ClassNotFoundException) {
             null
         }
 
-        private fun checkSupportForUnixDomainSockets(): Class<*> {
+        internal fun checkSupportForUnixDomainSockets(): Class<*> {
             return unixDomainSocketAddressClass
                 ?: error("Unix domain sockets are unsupported before Java 16.")
         }
+
+        /**
+         * Checks if Unix domain sockets are supported on the current platform.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.UnixSocketAddress.Companion.isSupported)
+         *
+         * @return `true` if Unix domain sockets are supported, `false` otherwise.
+         */
+        public actual fun isSupported(): Boolean = unixDomainSocketAddressClass != null
     }
 }
 

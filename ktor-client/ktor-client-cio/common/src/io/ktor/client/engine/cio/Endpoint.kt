@@ -5,7 +5,6 @@
 package io.ktor.client.engine.cio
 
 import io.ktor.client.engine.*
-import io.ktor.client.network.sockets.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
@@ -16,13 +15,15 @@ import io.ktor.util.date.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import kotlinx.atomicfu.*
+import kotlinx.atomicfu.AtomicInt
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
-import kotlin.coroutines.*
+import kotlinx.coroutines.channels.Channel
+import kotlin.coroutines.CoroutineContext
 
 private val LOGGER = KtorSimpleLogger("io.ktor.client.engine.cio.Endpoint")
 
+@OptIn(InternalAPI::class)
 internal class Endpoint(
     private val host: String,
     private val port: Int,
@@ -31,14 +32,15 @@ internal class Endpoint(
     private val config: CIOEngineConfig,
     private val connectionFactory: ConnectionFactory,
     override val coroutineContext: CoroutineContext,
-    private val onDone: () -> Unit
+    private val onDone: () -> Unit,
+    private val unixSocket: UnixSocketSettings?,
 ) : CoroutineScope, Closeable {
     private val lastActivity = atomic(getTimeMillis())
     private val connections: AtomicInt = atomic(0)
     private val deliveryPoint: Channel<RequestTask> = Channel()
     private val maxEndpointIdleTime: Long = 2 * config.endpoint.connectTimeout
 
-    private val timeout = launch(coroutineContext + CoroutineName("Endpoint timeout($host:$port)")) {
+    private val timeout = launch(coroutineContext + CoroutineName("cio-endpoint-timeout")) {
         try {
             while (true) {
                 val remaining = (lastActivity.value + maxEndpointIdleTime) - getTimeMillis()
@@ -194,7 +196,7 @@ internal class Endpoint(
     }
 
     @Suppress("UNUSED_EXPRESSION")
-    private suspend fun connect(requestData: HttpRequestData): Pair<InetSocketAddress, Connection> {
+    private suspend fun connect(requestData: HttpRequestData): Pair<SocketAddress, Connection> {
         val connectAttempts = config.endpoint.connectAttempts
         val (connectTimeout, socketTimeout) = retrieveTimeouts(requestData)
         var timeoutFails = 0
@@ -203,7 +205,11 @@ internal class Endpoint(
 
         try {
             repeat(connectAttempts) {
-                val address = InetSocketAddress(host, port)
+                val address = if (unixSocket != null) {
+                    UnixSocketAddress(unixSocket.path)
+                } else {
+                    InetSocketAddress(host, port)
+                }
 
                 val connect: suspend CoroutineScope.() -> Socket = {
                     connectionFactory.connect(address) {
@@ -230,8 +236,16 @@ internal class Endpoint(
                     if (proxy?.type == ProxyType.HTTP) {
                         startTunnel(requestData, connection.output, connection.input)
                     }
+
+                    if (unixSocket != null) {
+                        throw IllegalArgumentException("TLS over Unix sockets is not supported")
+                    }
+
                     val realAddress = when (proxy) {
-                        null -> address
+                        null ->
+                            address as? InetSocketAddress
+                                ?: throw IllegalArgumentException("Expected InetSocketAddress for TLS connection")
+
                         else -> InetSocketAddress(requestData.url.host, requestData.url.port)
                     }
                     val tlsSocket = connection.tls(coroutineContext) {
@@ -285,7 +299,7 @@ internal class Endpoint(
         return connectTimeout to socketTimeout
     }
 
-    private fun releaseConnection(address: InetSocketAddress) {
+    private fun releaseConnection(address: SocketAddress) {
         connectionFactory.release(address)
         connections.decrementAndGet()
     }
@@ -303,7 +317,7 @@ internal class Endpoint(
 private fun setupTimeout(callContext: CoroutineContext, request: HttpRequestData, timeout: Long) {
     if (timeout == HttpTimeoutConfig.INFINITE_TIMEOUT_MS || timeout == 0L) return
 
-    val timeoutJob = GlobalScope.launch {
+    val timeoutJob = GlobalScope.launch(CoroutineName("cio-request-timeout")) {
         delay(timeout)
         callContext.job.cancel("Request is timed out", HttpRequestTimeoutException(request))
     }

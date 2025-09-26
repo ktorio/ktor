@@ -28,6 +28,13 @@ public data class ConnectorType(val name: String) {
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.ConnectorType.Companion.HTTPS)
          */
         public val HTTPS: ConnectorType = ConnectorType("HTTPS")
+
+        /**
+         * Unix domain socket connector.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.ConnectorType.Companion.UNIX)
+         */
+        public val UNIX: ConnectorType = ConnectorType("UNIX")
     }
 }
 

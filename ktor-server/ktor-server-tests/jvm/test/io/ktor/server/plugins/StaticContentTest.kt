@@ -4,10 +4,11 @@
 
 package io.ktor.server.plugins
 
-import com.sun.nio.file.*
+import com.sun.nio.file.SensitivityWatchEventModifier
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
 import io.ktor.server.plugins.autohead.*
@@ -18,11 +19,18 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import kotlinx.coroutines.*
-import java.io.*
-import java.nio.file.*
-import java.util.zip.*
-import kotlin.io.path.*
+import io.ktor.util.date.*
+import kotlinx.coroutines.delay
+import java.io.File
+import java.io.FileOutputStream
+import java.nio.file.FileSystems
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.StandardWatchEventKinds
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
+import kotlin.io.path.name
+import kotlin.io.path.pathString
 import kotlin.test.*
 
 class StaticContentTest {
@@ -31,7 +39,26 @@ class StaticContentTest {
             .map { File(it, "io/ktor/server") }
             .first(File::exists)
 
-    private operator fun File.get(relativePath: String) = File(this, relativePath)
+    @Test
+    fun testVaryHeaderWithPreCompressedStaticResources() = testApplication {
+        routing {
+            staticResources("static", "public") {
+                preCompressed(CompressedFileType.BROTLI)
+            }
+        }
+
+        client.get("static/nested/file-nested.txt").let { response ->
+            assertNull(response.headers[HttpHeaders.Vary])
+        }
+
+        client.get("static/nested/file-nested.txt") {
+            headers {
+                append(HttpHeaders.AcceptEncoding, "br")
+            }
+        }.let { response ->
+            assertEquals(HttpHeaders.AcceptEncoding, response.headers[HttpHeaders.Vary])
+        }
+    }
 
     @Test
     fun testStaticContentBuilder() = testApplication {
@@ -184,6 +211,77 @@ class StaticContentTest {
 
         val notFoundNoDefault = client.get("static_no_index/not-existing")
         assertEquals(HttpStatusCode.NotFound, notFoundNoDefault.status)
+    }
+
+    @Test
+    fun testFallback() = testApplication {
+        routing {
+            staticFiles("staticFiles", basedir) {
+                setFallback("staticFiles", "plugins", "PartialContentTest.kt")
+            }
+            staticResources("staticResources", "public") {
+                setFallback("staticResources", "nested", "file-nested.txt")
+            }
+            staticFileSystem("staticFileSystem", "jvm/test-resources/public") {
+                setFallback("staticFileSystem", "nested", "file-nested.txt")
+            }
+
+            staticFiles("staticFilesWithValidDefault", basedir) {
+                default("/plugins/PartialContentTest.kt")
+                fallback { _, _ ->
+                    error("This should not be called because valid default is set")
+                }
+            }
+            staticFiles("staticFilesWithInvalidDefault", basedir) {
+                default("invalid-file.kt")
+                fallback { _, call ->
+                    call.respondRedirect("/staticFilesWithInvalidDefault/http/ApplicationRequestContentTestJvm.kt")
+                }
+            }
+        }
+
+        testFallback("staticFiles", "plugins", "PartialContentTest.kt", "class PartialContentTest {")
+        testFallback("staticResources", "nested", "file-nested.txt", "file-nested.txt")
+        testFallback("staticFileSystem", "nested", "file-nested.txt", "file-nested.txt")
+
+        val validDefault = client.get("staticFilesWithValidDefault/plugins/default.kt")
+        assertEquals(HttpStatusCode.OK, validDefault.status)
+        assertTrue(validDefault.bodyAsText().contains("class PartialContentTest {"))
+
+        val invalidDefault = client.get("staticFilesWithInvalidDefault/plugins/default.kt")
+        assertEquals(HttpStatusCode.OK, invalidDefault.status)
+        assertTrue(invalidDefault.bodyAsText().contains("class ApplicationRequestContentTest {"))
+    }
+
+    private fun <T : Any> StaticContentConfig<T>.setFallback(remotePath: String, path: String, file: String) {
+        fallback { requestedPath, call ->
+            if (requestedPath.endsWith(".pdf")) {
+                call.respondRedirect("/$remotePath/$path/$file")
+            } else if (requestedPath.endsWith(".zip")) {
+                call.respondRedirect(file)
+            }
+        }
+    }
+
+    private suspend fun ApplicationTestBuilder.testFallback(
+        remotePath: String,
+        path: String,
+        file: String,
+        body: String
+    ) {
+        val noFallback = client.get("$remotePath/$path/$file")
+        assertEquals(HttpStatusCode.OK, noFallback.status)
+        assertTrue(noFallback.bodyAsText().contains(body))
+
+        val fallbackPdf = client.get("$remotePath/NoSuchFile.pdf")
+        assertEquals(HttpStatusCode.OK, fallbackPdf.status)
+        assertTrue(fallbackPdf.bodyAsText().contains(body))
+
+        val fallbackZip = client.get("$remotePath/$path/NoSuchFile.zip")
+        assertEquals(HttpStatusCode.OK, fallbackZip.status)
+        assertTrue(fallbackZip.bodyAsText().contains(body))
+
+        assertEquals(HttpStatusCode.NotFound, client.get("$remotePath/NoSuchFile").status)
     }
 
     @Test
@@ -672,7 +770,12 @@ class StaticContentTest {
     fun testStaticResourcesModifier() = testApplication {
         routing {
             staticResources("static", "public") {
-                modify { url, call -> call.response.headers.append(HttpHeaders.ETag, url.path.substringAfterLast('/')) }
+                modify { url, call ->
+                    call.response.headers.append(
+                        HttpHeaders.ETag,
+                        url.path.substringAfterLast('/')
+                    )
+                }
             }
         }
 
@@ -1348,6 +1451,110 @@ class StaticContentTest {
             }
         }
         return File(zipFileName)
+    }
+
+    @Test
+    fun `test custom ETag and LastModified with ConditionalHeaders`() = testApplication {
+        val date = GMTDate()
+        val etag = "etag"
+
+        install(ConditionalHeaders)
+        routing {
+            staticResources("staticResources", "public") {
+                configure(etag, date)
+            }
+            staticFiles("staticFiles", basedir) {
+                configure(etag, date)
+            }
+            staticFileSystem("staticFileSystem", "jvm/test-resources/public") {
+                configure(etag, date)
+            }
+            staticZip("staticZip", "public", Paths.get("jvm/test-resources/public.zip")) {
+                configure(etag, date)
+            }
+
+            val filesDir = Files.createTempDirectory("assets").toFile()
+            val file = File(filesDir, "file.txt")
+            val brFile = File(filesDir, "file.txt.br")
+            file.writeText("file.txt")
+            brFile.writeText("temp.br")
+            staticFiles("staticFilesPrecompressed", filesDir) {
+                configure(etag, date)
+            }
+        }
+
+        testCustomEtagAndLastModified("staticFiles/plugins/PartialContentTest.kt", etag, date)
+        testCustomEtagAndLastModified("staticResources/nested/file-nested.txt", etag, date)
+        testCustomEtagAndLastModified("staticFileSystem/nested/file-nested.txt", etag, date)
+        testCustomEtagAndLastModified("staticZip/nested/file-nested.txt", etag, date)
+
+        // precompressed
+        testCustomEtagAndLastModified("staticFilesPrecompressed/file.txt", etag, date, "br")
+        testCustomEtagAndLastModified("staticResources/nested/file-nested.txt", etag, date, "br")
+        testCustomEtagAndLastModified("staticFileSystem/nested/file-nested.txt", etag, date, "br")
+        testCustomEtagAndLastModified("staticZip/nested/file-nested.txt", etag, date, "br")
+    }
+
+    private suspend fun ApplicationTestBuilder.testCustomEtagAndLastModified(
+        url: String,
+        expectedEtag: String,
+        expectedDate: GMTDate,
+        acceptEncoding: String? = null
+    ) {
+        val response = client.get(url) {
+            headers {
+                acceptEncoding?.let { append(HttpHeaders.AcceptEncoding, acceptEncoding) }
+            }
+        }
+        assertEquals(HttpStatusCode.OK, response.status)
+        val etag = response.headers[HttpHeaders.ETag] ?: fail("no ETag")
+        assertEquals(expectedEtag.quote(), etag)
+        assertEquals(expectedDate.toHttpDate(), response.headers[HttpHeaders.LastModified])
+    }
+
+    private fun StaticContentConfig<*>.configure(etag: String, date: GMTDate) {
+        preCompressed(CompressedFileType.BROTLI)
+        etag { EntityTagVersion(etag) }
+        lastModified { date }
+    }
+
+    @Test
+    fun `test strong etag`() = testApplication {
+        val filesDir = Files.createTempDirectory("etag-strong").toFile()
+        File(filesDir, "test.txt").apply { writeText("test.txt") }
+        File(filesDir, "test.txt.br").apply { writeText("test.txt.br") }
+        File(filesDir, "test.txt.gz").apply { writeText("test.txt.gz") }
+
+        install(ConditionalHeaders)
+        routing {
+            staticFiles("/static", filesDir) {
+                preCompressed(CompressedFileType.BROTLI, CompressedFileType.GZIP)
+                etag(ETagProvider.StrongSha256)
+            }
+        }
+
+        val idResponse = client.get("/static/test.txt")
+        assertEquals(HttpStatusCode.OK, idResponse.status)
+        val idEtag = idResponse.headers[HttpHeaders.ETag] ?: error("missing ETag for identity")
+        assertNull(idResponse.headers[HttpHeaders.ContentEncoding])
+
+        val brResponse = client.get("/static/test.txt") {
+            header(HttpHeaders.AcceptEncoding, "br")
+        }
+        assertEquals(HttpStatusCode.OK, brResponse.status)
+        val brEtag = brResponse.headers[HttpHeaders.ETag] ?: error("missing ETag for br")
+        assertEquals("br", brResponse.headers[HttpHeaders.ContentEncoding])
+
+        val gzResponse = client.get("/static/test.txt") {
+            header(HttpHeaders.AcceptEncoding, "gzip")
+        }
+        assertEquals(HttpStatusCode.OK, gzResponse.status)
+        val gzEtag = gzResponse.headers[HttpHeaders.ETag] ?: error("missing ETag for gz")
+        assertEquals("gzip", gzResponse.headers[HttpHeaders.ContentEncoding])
+
+        assertNotEquals(idEtag, brEtag)
+        assertNotEquals(idEtag, gzEtag)
+        assertNotEquals(gzEtag, brEtag)
     }
 }
 

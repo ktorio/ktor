@@ -8,9 +8,13 @@ import ktorbuild.targets.KtorTargets
 import org.gradle.kotlin.dsl.assign
 import org.gradle.kotlin.dsl.getValue
 import org.gradle.kotlin.dsl.provideDelegate
+import org.gradle.kotlin.dsl.withType
+import org.jetbrains.dokka.gradle.tasks.DokkaGenerateModuleTask
+import org.jetbrains.dokka.gradle.tasks.DokkaGeneratePublicationTask
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.mpp.DefaultCInteropSettings
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
 
 /**
  * Creates a CInterop configuration for all Native targets using the given [sourceSet]
@@ -62,4 +66,17 @@ fun KotlinMultiplatformExtension.createCInterop(
                 configure(targetName)
             }
         }
+
+    // Disable configuration cache for compile[target]MainKotlinMetadata tasks
+    project.tasks.withType<KotlinNativeCompile>()
+        .named { it.endsWith("MainKotlinMetadata") }
+        .configureEach { notCompatibleWithConfigurationCache("Workaround for KT-76147") }
+
+    // The problem with compile*MainKotlinMetadata tasks also affects Dokka tasks
+    project.tasks.withType<DokkaGeneratePublicationTask>()
+        .named { it == "dokkaGeneratePublicationHtml" }
+        .configureEach { notCompatibleWithConfigurationCache("Workaround for KT-76147") }
+    project.tasks.withType<DokkaGenerateModuleTask>()
+        .named { it == "dokkaGenerateModuleHtml" }
+        .configureEach { notCompatibleWithConfigurationCache("Workaround for KT-76147") }
 }

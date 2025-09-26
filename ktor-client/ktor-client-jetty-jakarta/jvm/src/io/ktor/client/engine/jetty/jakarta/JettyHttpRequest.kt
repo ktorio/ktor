@@ -5,7 +5,6 @@
 package io.ktor.client.engine.jetty.jakarta
 
 import io.ktor.client.call.*
-import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
@@ -18,8 +17,11 @@ import kotlinx.coroutines.*
 import org.eclipse.jetty.http.*
 import org.eclipse.jetty.http2.api.*
 import org.eclipse.jetty.http2.client.*
+import org.eclipse.jetty.http2.client.internal.HTTP2ClientSession
 import org.eclipse.jetty.http2.frames.*
+import org.eclipse.jetty.io.Transport
 import org.eclipse.jetty.util.*
+import org.eclipse.jetty.util.ssl.SslContextFactory
 import java.net.*
 import java.nio.*
 import kotlin.coroutines.*
@@ -58,21 +60,26 @@ internal suspend fun HttpRequestData.executeRequest(
     )
 }
 
+internal val NoopListener = object : Session.Listener {}
+
 internal suspend fun HTTP2Client.connect(
     url: Url,
     config: JettyEngineConfig
-): Session = withPromise { promise ->
-    val factory = if (url.protocol.isSecure()) config.sslContextFactory else null
-    connect(factory, InetSocketAddress(url.host, url.port), Session.Listener.Adapter(), promise)
+): Session = withPromise { promise: Promise<Session> ->
+    connect(
+        Transport.TCP_IP,
+        config.sslContextFactory as SslContextFactory.Client?,
+        InetSocketAddress(url.host, url.port),
+        NoopListener,
+        promise,
+        mutableMapOf<String, Object>() as Map<String, Object>
+    )
 }
 
 @OptIn(InternalAPI::class)
 private fun HttpRequestData.prepareHeadersFrame(): HeadersFrame {
     val rawHeaders = HttpFields.build()
-
-    mergeHeaders(headers, body) { name, value ->
-        rawHeaders.add(name, value)
-    }
+    forEachHeader(rawHeaders::add)
 
     val meta = MetaData.Request(
         method.value,

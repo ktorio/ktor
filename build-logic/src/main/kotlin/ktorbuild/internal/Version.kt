@@ -14,7 +14,7 @@ import org.gradle.api.Project
  * ```
  */
 internal fun Project.resolveVersion(): String {
-    val projectVersion = project.version.toString()
+    val projectVersion = project.rootDir.resolve("VERSION").readText().trim()
     val releaseVersion = providers.gradleProperty("releaseVersion").orNull
     val eapVersion = providers.gradleProperty("eapVersion").orNull
 
@@ -24,3 +24,8 @@ internal fun Project.resolveVersion(): String {
         else -> projectVersion
     }
 }
+
+private val stableVersionRegex = Regex("""^\d+\.\d+\.\d+$""")
+
+/** Checks whether the given [version] stable or not. */
+internal fun isStableVersion(version: String) = version matches stableVersionRegex

@@ -5,6 +5,7 @@
 package io.ktor.client.plugins
 
 import io.ktor.client.*
+import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.*
@@ -231,16 +232,44 @@ public class DefaultRequest private constructor(private val block: DefaultReques
         public fun setAttributes(block: Attributes.() -> Unit) {
             attributes.apply(block)
         }
+
+        public fun <T : Any> setCapability(key: HttpClientEngineCapability<T>, capability: T) {
+            val capabilities = attributes.computeIfAbsent(ENGINE_CAPABILITIES_KEY) { mutableMapOf() }
+            capabilities[key] = capability
+        }
+
+        @OptIn(InternalAPI::class)
+        public fun unixSocket(path: String) {
+            setCapability(UnixSocketCapability, UnixSocketSettings(path))
+        }
     }
 }
 
 /**
- * Set default request parameters. See [DefaultRequest]
+ * Set default request parameters and optionally lets replace previous configuration. See [DefaultRequest]
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.defaultRequest)
  */
-public fun HttpClientConfig<*>.defaultRequest(block: DefaultRequest.DefaultRequestBuilder.() -> Unit) {
+public fun HttpClientConfig<*>.defaultRequest(
+    block: DefaultRequest.DefaultRequestBuilder.() -> Unit
+): Unit = install(DefaultRequest) {
+    block()
+}
+
+/**
+ * Set default request parameters and optionally replace previous configuration. See [DefaultRequest]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.defaultRequest)
+ */
+public fun HttpClientConfig<*>.defaultRequest(
+    replace: Boolean = false,
+    block: DefaultRequest.DefaultRequestBuilder.() -> Unit
+): Unit = if (!replace) {
     install(DefaultRequest) {
+        block()
+    }
+} else {
+    installOrReplace(DefaultRequest) {
         block()
     }
 }

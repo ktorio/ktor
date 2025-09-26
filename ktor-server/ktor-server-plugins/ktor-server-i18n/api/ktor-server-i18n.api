@@ -8,6 +8,8 @@ public final class io/ktor/i18n/I18nConfiguration {
 
 public final class io/ktor/i18n/I18nKt {
 	public static final fun getI18n ()Lio/ktor/server/application/ApplicationPlugin;
+	public static final fun getLocale (Lio/ktor/server/application/ApplicationCall;)Ljava/util/Locale;
+	public static final fun i18n (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;)Ljava/lang/String;
 }
 
 public final class io/ktor/i18n/TranslateKt {

@@ -11,8 +11,8 @@ plugins {
 kotlin {
     sourceSets {
         jvmMain.dependencies {
-            api(project(":ktor-server:ktor-server-core"))
-            api(project(":ktor-server:ktor-server-servlet"))
+            api(projects.ktorServerCore)
+            api(projects.ktorServerServlet)
             api(libs.jetty.server)
             api(libs.jetty.servlets)
             api(libs.jetty.alpn.server)
@@ -21,9 +21,9 @@ kotlin {
             api(libs.jetty.http2.server)
         }
         jvmTest.dependencies {
-            api(project(":ktor-server:ktor-server-core"))
-            api(project(":ktor-server:ktor-server-test-base"))
-            api(project(":ktor-server:ktor-server-test-suites"))
+            api(projects.ktorServerCore)
+            api(projects.ktorServerTestBase)
+            api(projects.ktorServerTestSuites)
 
             api(libs.jetty.servlet)
         }

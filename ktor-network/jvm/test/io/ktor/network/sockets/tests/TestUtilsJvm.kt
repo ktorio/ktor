@@ -4,15 +4,6 @@
 
 package io.ktor.network.sockets.tests
 
-private const val UNIX_DOMAIN_SOCKET_ADDRESS_CLASS = "java.net.UnixDomainSocketAddress"
-
-internal actual fun Any.supportsUnixDomainSockets(): Boolean {
-    return try {
-        Class.forName(UNIX_DOMAIN_SOCKET_ADDRESS_CLASS, false, javaClass.classLoader)
-        true
-    } catch (e: ClassNotFoundException) {
-        false
-    }
-}
-
 internal actual fun Throwable.isPosixException(): Boolean = false
+
+actual fun initSocketsIfNeeded() {}

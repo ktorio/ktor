@@ -92,6 +92,12 @@ public suspend fun ByteWriteChannel.writeBuffer(source: RawSource) {
 }
 
 @OptIn(InternalAPI::class)
+public suspend fun ByteWriteChannel.writeBuffer(value: RawSource, length: Long) {
+    writeBuffer.write(value, length)
+    flushIfNeeded()
+}
+
+@OptIn(InternalAPI::class)
 public suspend fun ByteWriteChannel.writeStringUtf8(value: String) {
     writeBuffer.writeText(value)
     flushIfNeeded()
@@ -106,6 +112,8 @@ public suspend fun ByteWriteChannel.writePacket(copy: Buffer) {
 /**
  * Writes the entire source contents to the [ByteChannel].
  * Prevents memory exhaustion by waiting for buffer to flush.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.writePacket)
  */
 @OptIn(InternalAPI::class)
 public suspend fun ByteWriteChannel.writePacket(source: Source) {
@@ -143,6 +151,10 @@ public val ChannelJob.isCancelled: Boolean get() = job.isCancelled
 @OptIn(InternalCoroutinesApi::class)
 public fun ChannelJob.getCancellationException(): CancellationException = job.getCancellationException()
 
+public fun ChannelJob.invokeOnCompletion(block: (cause: Throwable?) -> Unit): DisposableHandle =
+    job.invokeOnCompletion(block)
+
+@Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
 public fun ChannelJob.invokeOnCompletion(block: () -> Unit) {
     job.invokeOnCompletion { block() }
 }

@@ -1,3 +1,179 @@
+# 3.3.0
+> Published 11 September 2025
+
+### Features
+* Support for server side http2 without tls (h2c) ([KTOR-4750](https://youtrack.jetbrains.com/issue/KTOR-4750))
+* OpenAPI generation build extension preview ([KTOR-8721](https://youtrack.jetbrains.com/issue/KTOR-8721))
+* Serve static resources with caching headers and ETag based on sha256 of content ([KTOR-6700](https://youtrack.jetbrains.com/issue/KTOR-6700))
+* Jetty engine: Upgrade Jetty dependencies to the latest version 12 ([KTOR-6734](https://youtrack.jetbrains.com/issue/KTOR-6734))
+* Static content: Support a custom respond logic if the file is not found ([KTOR-8496](https://youtrack.jetbrains.com/issue/KTOR-8496))
+* Upgrade OkHttp to version 5.0.0 ([KTOR-8652](https://youtrack.jetbrains.com/issue/KTOR-8652))
+* WebRTC Client, Android + WASM ([KTOR-7958](https://youtrack.jetbrains.com/issue/KTOR-7958))
+
+### Improvements
+* SSE: Cannot read response body from SSEClientException ([KTOR-8165](https://youtrack.jetbrains.com/issue/KTOR-8165))
+* SSE: "SSEClientException: Content-Length mismatch" on saving response body in DefaultResponseValidation ([KTOR-8753](https://youtrack.jetbrains.com/issue/KTOR-8753))
+* `var Route.staticRootFolder: File?` should be deprecated ([KTOR-5836](https://youtrack.jetbrains.com/issue/KTOR-5836))
+* Add `image/bmp` to the ContentType ([KTOR-8735](https://youtrack.jetbrains.com/issue/KTOR-8735))
+* Add some missing image content types ([KTOR-8624](https://youtrack.jetbrains.com/issue/KTOR-8624))
+* Upgrade to Kotlin 2.2 ([KTOR-8647](https://youtrack.jetbrains.com/issue/KTOR-8647))
+* Bump Kotlin API level to 2.2 ([KTOR-8637](https://youtrack.jetbrains.com/issue/KTOR-8637))
+* CIO: The engine ignores system proxy settings ([KTOR-5922](https://youtrack.jetbrains.com/issue/KTOR-5922))
+
+### Bugfixes
+* Performance regression when using ContentEncoding and HttpRequestRetry since 3.2.0 ([KTOR-8820](https://youtrack.jetbrains.com/issue/KTOR-8820))
+* Big number of simultaneous outbound web socket connections leads to a coroutine deadlock ([KTOR-8829](https://youtrack.jetbrains.com/issue/KTOR-8829))
+* DI: JobCancellationException during cleanup ([KTOR-8785](https://youtrack.jetbrains.com/issue/KTOR-8785))
+* Autoreloading: JobCancellationException when app is reloaded in the debugger since 3.2.0 ([KTOR-8810](https://youtrack.jetbrains.com/issue/KTOR-8810))
+* HttpRedirect: The client is redirected when no Location header in response ([KTOR-8697](https://youtrack.jetbrains.com/issue/KTOR-8697))
+* SerializationException when Application.propertyOrNull() is called with type Map<String, Any?> ([KTOR-8781](https://youtrack.jetbrains.com/issue/KTOR-8781))
+* "Failed resolution of: Ljava/lang/management/ManagementFactory" on Android when JvmGcMetrics are initialized ([KTOR-8714](https://youtrack.jetbrains.com/issue/KTOR-8714))
+* HttpCache: all header values but first in HttpResponse.varyKeys() are ignored ([KTOR-6402](https://youtrack.jetbrains.com/issue/KTOR-6402))
+* HttpCache: plugin selects wrong cache entry when filtering Vary headers with different case ([KTOR-7621](https://youtrack.jetbrains.com/issue/KTOR-7621))
+* CountedByteWriteChannel: autoFlush of the source channel doesn't make the channel auto flushing ([KTOR-8411](https://youtrack.jetbrains.com/issue/KTOR-8411))
+
+
+# 3.2.3
+> Published 29 July 2025
+
+### Improvements
+* Server only accepts `yaml` as the configuration file suffix ([KTOR-8712](https://youtrack.jetbrains.com/issue/KTOR-8712))
+* JS / WASM error when process global is undefined ([KTOR-8686](https://youtrack.jetbrains.com/issue/KTOR-8686))
+* DI async duplicate resolution ([KTOR-8681](https://youtrack.jetbrains.com/issue/KTOR-8681))
+
+### Bugfixes
+* CIO: Expect 100-continue response is missing a final `\r\n` ([KTOR-8687](https://youtrack.jetbrains.com/issue/KTOR-8687))
+* Intermittent "ParserException: No colon in HTTP header" when parsing multipart request ([KTOR-8523](https://youtrack.jetbrains.com/issue/KTOR-8523))
+* Infinite loop in ByteReadChannel.readFully ([KTOR-8682](https://youtrack.jetbrains.com/issue/KTOR-8682))
+* ShutDownUrl: The server cannot shut down since 3.2.0 ([KTOR-8674](https://youtrack.jetbrains.com/issue/KTOR-8674))
+
+
+# 3.2.2
+> Published 14 July 2025
+
+### Improvements
+* SSE: Change the order of SSE field serialization: put `event` before `data` ([KTOR-8627](https://youtrack.jetbrains.com/issue/KTOR-8627))
+
+### Bugfixes
+* CORS: server replies with the 405 status code on a preflight request when the plugin is installed in a route ([KTOR-4499](https://youtrack.jetbrains.com/issue/KTOR-4499))
+* Darwin: The Content-Encoding header is removed since 3.0.3 ([KTOR-8526](https://youtrack.jetbrains.com/issue/KTOR-8526))
+* JS/WASM: response doesn't contain the Content-Length header in a browser ([KTOR-8377](https://youtrack.jetbrains.com/issue/KTOR-8377))
+* StatusPages: response headers of OutgoingContent aren't available in the status handlers ([KTOR-8232](https://youtrack.jetbrains.com/issue/KTOR-8232))
+* testApplication: The `client.sse()` acts like a REST call and not a stream in test environment ([KTOR-7910](https://youtrack.jetbrains.com/issue/KTOR-7910))
+* Config deserialization - default properties problem ([KTOR-8654](https://youtrack.jetbrains.com/issue/KTOR-8654))
+* kotlinx.datetime is not available transitively in 3.2.1 ([KTOR-8656](https://youtrack.jetbrains.com/issue/KTOR-8656))
+* Request builder block overrides HTTP method in specific request builders (get, post, etc) ([KTOR-8636](https://youtrack.jetbrains.com/issue/KTOR-8636))
+
+
+# 3.2.1
+> Published 3 July 2025
+
+### Improvements
+* Replace kotlinx.datetime APIs with kotlin.time ([KTOR-8635](https://youtrack.jetbrains.com/issue/KTOR-8635))
+* Thymeleaf: null values in template model ([KTOR-8559](https://youtrack.jetbrains.com/issue/KTOR-8559))
+* Publish Javadoc as a maven artifact ([KTOR-3962](https://youtrack.jetbrains.com/issue/KTOR-3962))
+* Netty: Invalid hex byte with malformed query string ([KTOR-2934](https://youtrack.jetbrains.com/issue/KTOR-2934))
+
+### Bugfixes
+* "Space characters in SimpleName" error when executing R8 mergeExtDex task with 3.2.0 ([KTOR-8583](https://youtrack.jetbrains.com/issue/KTOR-8583))
+* ForwardedHeaders: the plugin does not handle parameters case-insensitively ([KTOR-8622](https://youtrack.jetbrains.com/issue/KTOR-8622))
+* Potential race condition in `socket.awaitClosed` (hangs indefinitely) since 3.2.0 ([KTOR-8618](https://youtrack.jetbrains.com/issue/KTOR-8618))
+* Module parameter type Application.() -> kotlin.Unit is not supported in 3.2.0 ([KTOR-8602](https://youtrack.jetbrains.com/issue/KTOR-8602))
+* OkHttp: java.net.ProtocolException when sending MultiPartFormDataContent with onUpload ([KTOR-6790](https://youtrack.jetbrains.com/issue/KTOR-6790))
+* OAuth2 authentication provider breaks form-urlencoded POST requests when receiving request body ([KTOR-4420](https://youtrack.jetbrains.com/issue/KTOR-4420))
+* 404 for a link in KDoc for io.ktor.server.plugins.contentnegotiation.ContentNegotiation ([KTOR-8597](https://youtrack.jetbrains.com/issue/KTOR-8597))
+* Ktor fails to boot with default jvminline argument ([KTOR-8608](https://youtrack.jetbrains.com/issue/KTOR-8608))
+* Flow invariant is violated since 3.2.0 ([KTOR-8606](https://youtrack.jetbrains.com/issue/KTOR-8606))
+* ResponseSent hook handler of the plugin installed into a route isn't executed when an exception is thrown from the route ([KTOR-6794](https://youtrack.jetbrains.com/issue/KTOR-6794))
+
+
+# 3.2.0
+> Published 12 June 2025
+
+### Features
+* Dependency injection Ktor extension ([KTOR-8267](https://youtrack.jetbrains.com/issue/KTOR-8267))
+* Support Version Catalog ([KTOR-8162](https://youtrack.jetbrains.com/issue/KTOR-8162))
+* Unix domain socket support at the Ktor Engine level ([KTOR-4766](https://youtrack.jetbrains.com/issue/KTOR-4766))
+* Allow suspend Ktor modules ([KTOR-8005](https://youtrack.jetbrains.com/issue/KTOR-8005))
+* Ability to use browser cookie storage ([KTOR-539](https://youtrack.jetbrains.com/issue/KTOR-539))
+* Configuration file deserialization ([KTOR-7874](https://youtrack.jetbrains.com/issue/KTOR-7874))
+* HttpCache: Support evicting/clearing cache ([KTOR-6653](https://youtrack.jetbrains.com/issue/KTOR-6653))
+* File configuration for dependencies ([KTOR-8304](https://youtrack.jetbrains.com/issue/KTOR-8304))
+
+### Improvements
+* Excessive allocation of ApplicationConfig when loading multiple files from CLI ([KTOR-8563](https://youtrack.jetbrains.com/issue/KTOR-8563))
+* Linux curl engine doesn't work for simultaneous websocket and http request ([KTOR-8259](https://youtrack.jetbrains.com/issue/KTOR-8259))
+* ktor-network produces ProGuard warning ([KTOR-8525](https://youtrack.jetbrains.com/issue/KTOR-8525))
+* More overloads for StringValuesBuilder.appendAll ([KTOR-8573](https://youtrack.jetbrains.com/issue/KTOR-8573))
+* HttpClientCall: Deprecate `wrapWithContent` and `wrap` ([KTOR-8378](https://youtrack.jetbrains.com/issue/KTOR-8378))
+* Add a way to create an `ApplicationCall` for testing ([KTOR-7607](https://youtrack.jetbrains.com/issue/KTOR-7607))
+* Configuration access API improvements ([KTOR-8185](https://youtrack.jetbrains.com/issue/KTOR-8185))
+* Application instance access in testApplication ([KTOR-8215](https://youtrack.jetbrains.com/issue/KTOR-8215))
+* The TestApplication client should be configurable and mutable ([KTOR-8465](https://youtrack.jetbrains.com/issue/KTOR-8465))
+* Support accessing resolved IP address on an instance of `io.ktor.network.sockets.InetSocketAddress` ([KTOR-8490](https://youtrack.jetbrains.com/issue/KTOR-8490))
+* Deprecate SaveBodyPlugin in favor of HttpClientCall.save ([KTOR-8367](https://youtrack.jetbrains.com/issue/KTOR-8367))
+* Obscure log message on server startup ([KTOR-8519](https://youtrack.jetbrains.com/issue/KTOR-8519))
+* Routing: `accept` should return 406 if the `Accept` header isn't matched ([KTOR-8416](https://youtrack.jetbrains.com/issue/KTOR-8416))
+* MicrometerMetrics: the `route` label can exceed length limit ([KTOR-7274](https://youtrack.jetbrains.com/issue/KTOR-7274))
+* Micrometer: Make route label configurable ([KTOR-8183](https://youtrack.jetbrains.com/issue/KTOR-8183))
+* Add more common ContentType values ([KTOR-7108](https://youtrack.jetbrains.com/issue/KTOR-7108))
+
+### Bugfixes
+* Logging/Darwin: IOException is thrown when detecting if body is a binary ([KTOR-8581](https://youtrack.jetbrains.com/issue/KTOR-8581))
+* Netty: NoSuchElementException or empty headers when responding with 204 ([KTOR-8528](https://youtrack.jetbrains.com/issue/KTOR-8528))
+* YAML configuration: NoSuchElementException when parameter is expanded with curly braces ([KTOR-8575](https://youtrack.jetbrains.com/issue/KTOR-8575))
+* ApplicationConfig: Most of the content is absent after merging configs ([KTOR-8565](https://youtrack.jetbrains.com/issue/KTOR-8565))
+* Android: "ProtocolException: TRACE does not support writing" when sending TRACE request ([KTOR-8352](https://youtrack.jetbrains.com/issue/KTOR-8352))
+* The "Content-Length: 0" header is added for GET requests sent to some servers ([KTOR-6508](https://youtrack.jetbrains.com/issue/KTOR-6508))
+* HttpRequestRetry: requests with some IOException's thrown by Java engine aren't retried ([KTOR-6770](https://youtrack.jetbrains.com/issue/KTOR-6770))
+* HttpCookies: Encoding of request cookies is not preserved in CookiesStorage ([KTOR-8343](https://youtrack.jetbrains.com/issue/KTOR-8343))
+* Url class mangles data URLs ([KTOR-5708](https://youtrack.jetbrains.com/issue/KTOR-5708))
+* SaveBodyPlugin: Logging plugin consumes response body ([KTOR-6474](https://youtrack.jetbrains.com/issue/KTOR-6474))
+* Config deserialization does not respect `testApplication` environment ([KTOR-8436](https://youtrack.jetbrains.com/issue/KTOR-8436))
+* Resources: Exclude a parent from query params when it is an object ([KTOR-8507](https://youtrack.jetbrains.com/issue/KTOR-8507))
+* BearerAuthProvider does not clear token if refreshTokens returns null ([KTOR-8470](https://youtrack.jetbrains.com/issue/KTOR-8470))
+* Coroutines launched from RoutingContext are not cancelled upon server shutdown ([KTOR-8338](https://youtrack.jetbrains.com/issue/KTOR-8338))
+* Application job is not joined during shutdown ([KTOR-8291](https://youtrack.jetbrains.com/issue/KTOR-8291))
+* HttpCache: InvalidCacheStateException thrown when Vary header has different entries is overly severe ([KTOR-8345](https://youtrack.jetbrains.com/issue/KTOR-8345))
+* Fix socket channel close handling ([KTOR-8201](https://youtrack.jetbrains.com/issue/KTOR-8201))
+
+# 3.1.3
+> Published 5 May 2025
+
+### Improvements
+* Implement toString for staticContentRoute ([KTOR-8451](https://youtrack.jetbrains.com/issue/KTOR-8451))
+* Don't send Authorization header for requests marked with markAsRefreshTokenRequest ([KTOR-8107](https://youtrack.jetbrains.com/issue/KTOR-8107))
+* ByteChannel single-byte operations are slow ([KTOR-8412](https://youtrack.jetbrains.com/issue/KTOR-8412))
+* Receiving multipart without Content-Length is very slow ([KTOR-8407](https://youtrack.jetbrains.com/issue/KTOR-8407))
+* MicrometerMetrics: different path 404s requests can be abused to trigger OOM ([KTOR-8276](https://youtrack.jetbrains.com/issue/KTOR-8276))
+* Compression & Static Content: No Vary Header when serving a compressed resource ([KTOR-8326](https://youtrack.jetbrains.com/issue/KTOR-8326))
+* HttpTimeout: Reference to nonexistent INFINITE_TIMEOUT_MS in the exception message ([KTOR-8358](https://youtrack.jetbrains.com/issue/KTOR-8358))
+
+### Bugfixes
+* Websockets: Unable to send a frame when ktor-serialization-kotlinx-json-jvm dependency is defined in Maven build ([KTOR-7662](https://youtrack.jetbrains.com/issue/KTOR-7662))
+* OkHttp: Cancelling of SSE request job doesn't cancel the connection ([KTOR-8409](https://youtrack.jetbrains.com/issue/KTOR-8409))
+* OkHttp: Exceptions are not propagated to flow collectors ([KTOR-7947](https://youtrack.jetbrains.com/issue/KTOR-7947))
+* OOM in CountedByteReadChannel while copying from multipart/form-data part channel ([KTOR-8317](https://youtrack.jetbrains.com/issue/KTOR-8317))
+* Apache5: "ProtocolException: OPTIONS request must have Content-Type header" is thrown when body isn't set ([KTOR-8318](https://youtrack.jetbrains.com/issue/KTOR-8318))
+* Netty/Websockets: server processes hanging in CLOSE_WAIT state after many concurrent requests ([KTOR-7965](https://youtrack.jetbrains.com/issue/KTOR-7965))
+* Update JTE to the version supporting Kotlin 2.1.0 ([KTOR-8030](https://youtrack.jetbrains.com/issue/KTOR-8030))
+
+
+# 3.1.2
+> Published 27 March 2025
+
+### Improvements
+* Update Kotlin to 2.1.20 ([KTOR-8081](https://youtrack.jetbrains.com/issue/KTOR-8081))
+* Remove empty artifacts from publication ([KTOR-8336](https://youtrack.jetbrains.com/issue/KTOR-8336))
+
+### Bugfixes
+* URL-safe base64 decoding problem ([KTOR-8292](https://youtrack.jetbrains.com/issue/KTOR-8292))
+* Auth: AuthTokenHolder.clearToken executed in the middle of an ongoing token update doesn't actually clear ([KTOR-8312](https://youtrack.jetbrains.com/issue/KTOR-8312))
+* Android: "Array has more than one element" error when starting a server with release build ([KTOR-7298](https://youtrack.jetbrains.com/issue/KTOR-7298))
+* WebSockets: extensions in sec-websocket-extensions header must be separated by comma ([KTOR-6384](https://youtrack.jetbrains.com/issue/KTOR-6384))
+* OkHttp: Cancelling of SSESession.incoming flow doesn't cancel connection ([KTOR-8244](https://youtrack.jetbrains.com/issue/KTOR-8244))
+
+
 # 3.1.1
 > Published 24 February 2025
 

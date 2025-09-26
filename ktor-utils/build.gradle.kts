@@ -25,14 +25,17 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            api(project(":ktor-io"))
+            api(projects.ktorIo)
             api(libs.kotlinx.serialization.core)
         }
         commonTest.dependencies {
-            api(project(":ktor-test-dispatcher"))
+            api(projects.ktorTestDispatcher)
+        }
+        jvmMain.dependencies {
+            implementation(libs.zstd.jni)
         }
         jvmTest.dependencies {
-            implementation(project(":ktor-shared:ktor-test-base"))
+            implementation(projects.ktorTestBase)
         }
     }
 }

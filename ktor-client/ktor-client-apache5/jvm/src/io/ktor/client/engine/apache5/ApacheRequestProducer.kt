@@ -8,19 +8,20 @@ import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.http.HttpHeaders
 import io.ktor.http.content.*
 import io.ktor.utils.io.*
-import kotlinx.atomicfu.*
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.*
-import org.apache.hc.client5.http.async.methods.*
-import org.apache.hc.client5.http.config.*
+import org.apache.hc.client5.http.async.methods.ConfigurableHttpRequest
+import org.apache.hc.client5.http.config.RequestConfig
 import org.apache.hc.core5.http.HttpRequest
-import org.apache.hc.core5.http.nio.*
-import org.apache.hc.core5.http.nio.support.*
-import java.nio.*
-import java.util.concurrent.*
-import kotlin.coroutines.*
+import org.apache.hc.core5.http.nio.AsyncEntityProducer
+import org.apache.hc.core5.http.nio.AsyncRequestProducer
+import org.apache.hc.core5.http.nio.DataStreamChannel
+import org.apache.hc.core5.http.nio.support.BasicRequestProducer
+import java.nio.ByteBuffer
+import java.util.concurrent.TimeUnit
+import kotlin.coroutines.CoroutineContext
 
 @Suppress("FunctionName")
 @OptIn(InternalAPI::class)
@@ -40,14 +41,14 @@ internal fun ApacheRequestProducer(
         }
     }
 
-    val isGetOrHead = requestData.method == HttpMethod.Get || requestData.method == HttpMethod.Head
+    val supportsRequestBody = requestData.method.supportsRequestBody
     val hasContent = requestData.body !is OutgoingContent.NoContent
     val contentLength = length?.toLong() ?: -1
-    val isChunked = contentLength == -1L && !isGetOrHead && hasContent
+    val isChunked = contentLength == -1L && supportsRequestBody && hasContent
 
     return BasicRequestProducer(
         setupRequest(requestData, config),
-        if (!hasContent && isGetOrHead) {
+        if (!hasContent && !supportsRequestBody) {
             null
         } else {
             ApacheRequestEntityProducer(requestData, callContext, contentLength, type, isChunked)
