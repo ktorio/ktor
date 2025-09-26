@@ -1,18 +1,20 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+* Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
 package io.ktor.client.engine.android
 
 import android.net.http.ConnectionMigrationOptions
 import android.net.http.HttpEngine
+import androidx.test.filters.SdkSuppress
 import androidx.test.platform.app.InstrumentationRegistry
-import io.ktor.client.HttpClient
-import io.ktor.client.request.get
-import io.ktor.client.statement.bodyAsText
+import io.ktor.client.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import kotlin.test.assertContains
+
 
 class AndroidEngineTest {
     @SdkSuppress(minSdkVersion = 34)
@@ -51,9 +53,13 @@ class AndroidEngineTest {
             }
         })
 
-        val response = client.get("https://github.com/robots.txt")
+        try {
+            val response = client.get("https://github.com/robots.txt")
 
-        assertContains(response.bodyAsText(), "Disallow")
+            assertContains(response.bodyAsText(), "Disallow")
+        } finally {
+            client.close()
+        }
     }
 
     @Test
@@ -62,9 +68,13 @@ class AndroidEngineTest {
             httpEngineDisabled = true
         })
 
-        val response = client.get("https://github.com/robots.txt")
+        try {
+            val response = client.get("https://github.com/robots.txt")
 
-        println(response.bodyAsText())
-        assertContains(response.bodyAsText(), "Disallow")
+            println(response.bodyAsText())
+            assertContains(response.bodyAsText(), "Disallow")
+        } finally {
+            client.close()
+        }
     }
 }
