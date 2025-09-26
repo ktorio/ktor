@@ -11,8 +11,11 @@ import java.net.*
 internal class AndroidNetHttpEngineFactory(private val config: AndroidEngineConfig) : URLConnectionFactory {
     private val engine = buildEngine()
 
-    fun buildEngine(): HttpEngine {
-        return HttpEngine.Builder(config.context!!)
+    private fun buildEngine(): HttpEngine {
+        val ctx = requireNotNull(config.context) {
+            "AndroidEngineConfig.context must be set when using HttpEngine; prefer applicationContext."
+        }.applicationContext
+        return HttpEngine.Builder(ctx)
             .apply(config.httpEngineConfig)
             .build()
     }

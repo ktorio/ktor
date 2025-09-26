@@ -88,7 +88,7 @@ develocity-commonCustomUserData = "2.3"
 gradleDoctor = "0.12.0"
 mavenPublishing = "0.34.0"
 
-robolectric-android = "15-robolectric-12650502"
+robolectric-android = "16-robolectric-13921718"
 
 [libraries]
 
