@@ -29,16 +29,9 @@ import kotlin.time.measureTime
  *
  * **Performance Optimization: **
  * This implementation uses frame caching to achieve optimal performance. A set of pre-calculated
- * frames (15 by default) are generated once during initialization and then cycled through during
+ * frames (15) are generated once during initialization and then cycled through during
  * video capture. This eliminates the need for real-time pixel calculations, significantly
  * improving frame generation speed.
- *
- * **Frame Rate Limitations: **
- * While this capturer can theoretically support high frame rates, very high values (e.g., >60 FPS)
- * may not be achievable. If the requested frame rate cannot be maintained, the actual frame rate
- * may be lower than specified. For testing purposes, frame rates between 15-30 FPS are recommended
- * for reliable performance.
- *
  *
  * @param constraints Video track constraints specifying frame dimensions and rate
  * @param videoCapturerDelegate Delegate for handling captured video frames
@@ -46,11 +39,13 @@ import kotlin.time.measureTime
 public class SimulatorVideoCapturer(
     private val constraints: WebRtcMedia.VideoTrackConstraints,
     private val videoCapturerDelegate: RTCVideoCapturerDelegateProtocol
-) : Capturer, AutoCloseable {
+) : Capturer {
     private var frameIndex = 0
     private var timeStampNs = 0L
     override var isCapturing: Boolean = false
         private set
+
+    private var job: Job? = null
     private val scope = CoroutineScope(context = SupervisorJob() + Dispatchers.IO)
     private val capturer: RTCVideoCapturer = RTCVideoCapturer(videoCapturerDelegate)
 
@@ -59,7 +54,7 @@ public class SimulatorVideoCapturer(
 
     private val arena = Arena()
     private val lazyBuffers = (0..<min(DEFAULT_FPS, fps)).map { frameIndex ->
-        lazy { createVideoBuffer(arena, frameIndex) }
+        lazy { createVideoBuffer(frameIndex) }
     }
 
     @OptIn(ExperimentalNativeApi::class)
@@ -71,8 +66,8 @@ public class SimulatorVideoCapturer(
 
     private fun nextFrame(): RTCVideoFrame {
         val buffer = lazyBuffers[frameIndex].value
+        timeStampNs += delayDuration.inWholeNanoseconds
         frameIndex = (frameIndex + 1) % lazyBuffers.size
-        timeStampNs += delayDuration.inWholeMilliseconds * 1_000_000_000L
         return RTCVideoFrame(
             rotation = 0,
             buffer = buffer,
@@ -84,13 +79,13 @@ public class SimulatorVideoCapturer(
         require(!isCapturing) { "Capturing already started" }
         isCapturing = true
 
-        scope.launch {
+        job = scope.launch {
             while (isActive) {
                 val calculationTime = measureTime {
                     videoCapturerDelegate.capturer(capturer, nextFrame())
                 }
                 val duration = delayDuration.minus(calculationTime)
-                if (duration.isPositive()) {
+                if (duration.isPositive() && isActive) {
                     delay(duration)
                 }
             }
@@ -103,16 +98,16 @@ public class SimulatorVideoCapturer(
         isCapturing = false
     }
 
-    private fun createVideoBuffer(arena: Arena, frameIndex: Int): RTCCVPixelBuffer {
+    private fun createVideoBuffer(frameIndex: Int): RTCCVPixelBuffer {
         val width = constraints.width ?: DEFAULT_WIDTH
         val height = constraints.height ?: DEFAULT_HEIGHT
-        val pixelBuffer = createPixelBuffer(arena, width, height).apply {
+        val pixelBuffer = createPixelBuffer(width, height).apply {
             applyGradient(width, height, frameIndex)
         }
         return RTCCVPixelBuffer(pixelBuffer)
     }
 
-    private fun createPixelBuffer(arena: Arena, width: Int, height: Int): CVPixelBufferRef {
+    private fun createPixelBuffer(width: Int, height: Int): CVPixelBufferRef {
         val pixelBuffer = arena.alloc<CVPixelBufferRefVar>()
         // Create a simple RGBA pixel buffer filled with a gradient pattern
         val result = CVPixelBufferCreate(
@@ -133,10 +128,8 @@ public class SimulatorVideoCapturer(
     }
 
     override fun close() {
-        if (isCapturing) {
-            stopCapture()
-        }
-        arena.clear()
+        if (isCapturing) stopCapture()
+        job?.invokeOnCompletion { arena.clear() }
     }
 
     public companion object Companion : VideoCapturerFactory {

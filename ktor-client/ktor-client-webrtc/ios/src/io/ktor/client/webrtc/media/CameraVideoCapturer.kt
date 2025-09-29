@@ -35,7 +35,7 @@ public class CameraVideoCapturer(
         private set
     private val videoCapturer = RTCCameraVideoCapturer(videoCapturerDelegate)
 
-    private val device by lazy {
+    private val device: AVCaptureDevice by lazy {
         val position = constraints.facingMode?.toIos()
         selectDevice(position) ?: error("No camera found for the defined facing mode.")
     }
@@ -61,6 +61,10 @@ public class CameraVideoCapturer(
         require(isCapturing) { "Capturing was not started." }
         isCapturing = false
         videoCapturer.stopCapture()
+    }
+
+    override fun close() {
+        if (isCapturing) stopCapture()
     }
 
     public companion object : VideoCapturerFactory {

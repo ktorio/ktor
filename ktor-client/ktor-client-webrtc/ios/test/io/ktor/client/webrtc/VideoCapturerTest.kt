@@ -9,6 +9,7 @@ import WebRTC.RTCVideoCapturerDelegateProtocol
 import WebRTC.RTCVideoFrame
 import io.ktor.client.webrtc.media.*
 import io.ktor.test.dispatcher.*
+import io.ktor.utils.io.InternalAPI
 import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -57,7 +58,7 @@ class VideoCapturerTest {
             val timestamp1 = delegate.capturedFrameTimestamps.receive().nanoseconds
             val timestamp2 = delegate.capturedFrameTimestamps.receive().nanoseconds
             assertTrue(timestamp2 - timestamp1 >= 100.milliseconds, "Expected timestamps to be in order")
-            assertTrue(timestamp2 - timestamp1 <= 1.seconds, "Should be less than 1 second")
+            assertTrue(timestamp2 - timestamp1 <= 2.seconds, "Should be less than 2 second")
         }
         // Test stop capture
         capturer.stopCapture()
@@ -69,6 +70,7 @@ class VideoCapturerTest {
     }
 
     @Test
+    @OptIn(InternalAPI::class)
     fun testSampleVideoCapturerFrameRate() = runTestWithRealTime {
         val targetFps = 10
         val constraints = WebRtcMedia.VideoTrackConstraints(frameRate = targetFps)

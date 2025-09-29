@@ -7,10 +7,31 @@ package io.ktor.client.webrtc.media
 
 import WebRTC.*
 import io.ktor.client.webrtc.*
+import io.ktor.utils.io.InternalAPI
+import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.Foundation.NSUUID.Companion.UUID
 
-public interface Capturer {
+/**
+ * Represents a media capturer that controls the start and stop of media capture operations.
+ *
+ * This interface provides a unified abstraction for different types of media capture devices
+ * such as cameras, synthetic video generators, or other media sources. Implementations handle
+ * the underlying platform-specific capture mechanisms while providing a consistent API.
+ *
+ * ## Threading
+ * Interface doesn't guarantee thread-safety. All operations should be performed on the same thread.
+ *
+ * ## Lifecycle and Idempotency
+ * - [startCapture] begins media capture. Repeated calls are safe but will throw
+ *   [IllegalArgumentException] if capture is already active.
+ * - [stopCapture] ends media capture. Repeated calls are safe but will throw
+ *   [IllegalStateException] if capture is not currently active.
+ * - [isCapturing] reflects the current capture state and can be checked at any time.
+ * - Resources are typically allocated during [startCapture] and released during [stopCapture].
+ * - [close] ensures cleanup of all resources and stops capture if still active.
+ */
+public interface Capturer : AutoCloseable {
     public val isCapturing: Boolean
     public fun startCapture()
     public fun stopCapture()
@@ -28,16 +49,78 @@ public interface VideoCapturerFactory {
     ): Capturer
 }
 
-internal expect fun defaultVideoCapturerFactory(): VideoCapturerFactory
+/**
+ * Creates a default video capturer factory for the current platform.
+ *
+ * This function returns a platform-specific implementation of [VideoCapturerFactory]
+ * that provides access to the device's default video capture capabilities.
+ *
+ * ## Platform Behavior
+ * - **iOS**: Returns a factory that creates camera-based video capturers
+ * - **Simulator**: Returns a factory that creates synthetic video capturers
+ */
+@InternalAPI
+public expect fun defaultVideoCapturerFactory(): VideoCapturerFactory
 
+private const val DTLS_SRTP_KEY_AGREEMENT = "DtlsSrtpKeyAgreement"
+private const val GOOG_ECHO_CANCELLATION = "googEchoCancellation"
+private const val GOOG_AUTO_GAIN_CONTROL = "googAutoGainControl"
+private const val GOOG_NOISE_SUPPRESSION = "googNoiseSuppression"
+
+/**
+ * iOS-specific implementation of [MediaTrackFactory] for WebRTC media operations.
+ *
+ * This class provides iOS-native WebRTC media track creation capabilities using the
+ * WebRTC framework. It manages peer connection factory initialization, SSL setup,
+ * and platform-specific media track creation.
+ *
+ * ## Key Features
+ * - **Audio Track Creation**: Creates audio tracks with echo cancellation, auto gain control,
+ *   and noise suppression
+ * - **Video Track Creation**: Creates video tracks with camera or synthetic video capture
+ * - **Resource Management**: Handles WebRTC framework initialization and cleanup
+ *
+ * ## Threading
+ * This class is thread-safe.
+ *
+ * ## Lifecycle
+ * - SSL initialization happens lazily when the first peer connection factory is accessed
+ * - Video capturers are automatically started when video tracks are created
+ * - Resources are cleaned up when tracks are disposed
+ *
+ * ## Usage Example
+ * ```kotlin
+ * val mediaDevices = IosMediaDevices()
+ *
+ * // Create audio track with custom constraints
+ * val audioTrack = mediaDevices.createAudioTrack {
+ *     echoCancellation = true
+ *     noiseSuppression = true
+ *     volume = 0.8
+ * }
+ *
+ * // Create video track
+ * val videoTrack = mediaDevices.createVideoTrack {
+ *     width = 1280
+ *     height = 720
+ *     frameRate = 30
+ * }
+ *
+ * audioTrack.close()
+ * videoTrack.close()
+ * ```
+ *
+ * @param videoCapturerFactory Factory for creating video capturer instances.
+ *                            Defaults to platform-specific implementation
+ */
+@OptIn(InternalAPI::class)
 public class IosMediaDevices(
     private val videoCapturerFactory: VideoCapturerFactory = defaultVideoCapturerFactory()
 ) : MediaTrackFactory {
 
     public val peerConnectionFactory: RTCPeerConnectionFactory by lazy {
-        if (!sslInitialized) {
+        if (sslInitialized.compareAndSet(expect = false, update = true)) {
             RTCInitializeSSL()
-            sslInitialized = true
         }
         RTCPeerConnectionFactory(
             encoderFactory = RTCDefaultVideoEncoderFactory(),
@@ -47,21 +130,21 @@ public class IosMediaDevices(
 
     override suspend fun createAudioTrack(constraints: WebRtcMedia.AudioTrackConstraints): WebRtcMedia.AudioTrack {
         if (constraints.sampleSize != null) {
-            TODO("Sample size is not supported yet for Ios. You can provide custom MediaTrackFactory")
+            TODO("Sample size is not supported yet for iOS. You can provide custom MediaTrackFactory")
         }
         if (constraints.latency != null) {
-            TODO("Latency is not supported yet for Ios. You can provide custom MediaTrackFactory")
+            TODO("Latency is not supported yet for iOS. You can provide custom MediaTrackFactory")
         }
         if (constraints.channelCount != null) {
-            TODO("Channel count is not supported yet for Android. You can provide custom MediaTrackFactory")
+            TODO("Channel count is not supported yet for iOS. You can provide custom MediaTrackFactory")
         }
         val mediaConstraints = RTCMediaConstraints(
             mandatoryConstraints = mapOf(
-                "googEchoCancellation" to (constraints.echoCancellation != false).toString(),
-                "googAutoGainControl" to (constraints.autoGainControl != false).toString(),
-                "googNoiseSuppression" to (constraints.noiseSuppression != false).toString()
+                GOOG_ECHO_CANCELLATION to (constraints.echoCancellation != false).toString(),
+                GOOG_AUTO_GAIN_CONTROL to (constraints.autoGainControl != false).toString(),
+                GOOG_NOISE_SUPPRESSION to (constraints.noiseSuppression != false).toString()
             ),
-            optionalConstraints = mapOf("DtlsSrtpKeyAgreement" to "true")
+            optionalConstraints = mapOf(DTLS_SRTP_KEY_AGREEMENT to "true")
         )
         val trackId = "ios-webrtc-audio-${UUID().UUIDString()}"
         val audioSource = peerConnectionFactory.audioSourceWithConstraints(mediaConstraints)
@@ -82,10 +165,10 @@ public class IosMediaDevices(
         val videoCapturer = videoCapturerFactory.create(constraints, videoSource).apply {
             startCapture()
         }
-        return IosVideoTrack(nativeTrack = track, onDispose = { videoCapturer.stopCapture() })
+        return IosVideoTrack(nativeTrack = track, onDispose = { videoCapturer.close() })
     }
 
     private companion object {
-        var sslInitialized = false
+        var sslInitialized = atomic(false)
     }
 }

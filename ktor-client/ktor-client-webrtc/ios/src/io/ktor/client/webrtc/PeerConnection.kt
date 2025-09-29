@@ -16,6 +16,12 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
+/**
+ * iOS-specific implementation of a WebRTC peer connection.
+ *
+ * @param coroutineContext coroutine context used to deliver connection callbacks.
+ * @param config configuration describing ICE servers, media constraints, and other connection options.
+ */
 @OptIn(ExperimentalForeignApi::class)
 public class IosWebRtcConnection(
     coroutineContext: CoroutineContext,
@@ -24,7 +30,7 @@ public class IosWebRtcConnection(
     private lateinit var peerConnection: RTCPeerConnection
 
     override suspend fun getStatistics(): List<WebRtc.Stats> = suspendCoroutine { cont ->
-        if (this::peerConnection.isInitialized.not()) {
+        if (!this::peerConnection.isInitialized) {
             cont.resume(emptyList())
             return@suspendCoroutine
         }
@@ -33,7 +39,13 @@ public class IosWebRtcConnection(
         }
     }
 
-    // helper method to break a dependency cycle (PeerConnection -> PeerConnectionFactory -> Observer)
+    /**
+     * Finishes constructing the underlying native peer connection by invoking [block] with the created delegate.
+     *
+     * @param block factory that receives the delegate and returns a configured [RTCPeerConnection].
+     * @return this connection instance once the native peer connection has been installed.
+     * @throws IllegalStateException if called more than once or if the native connection cannot be created.
+     */
     public fun initialize(block: (RTCPeerConnectionDelegateProtocol) -> RTCPeerConnection?): IosWebRtcConnection {
         if (this::peerConnection.isInitialized) {
             error("Peer connection has been already initialized.")
@@ -83,14 +95,14 @@ public class IosWebRtcConnection(
             events.emitSignalingStateChange(didChangeSignalingState.toKtor())
         }
 
-        override fun peerConnectionShouldNegotiate(peerConnection: RTCPeerConnection) {
+        override fun peerConnectionShouldNegotiate(peerConnection: RTCPeerConnection) = runInConnectionScope {
             events.emitNegotiationNeeded()
         }
 
         override fun peerConnection(
             peerConnection: RTCPeerConnection,
             didOpenDataChannel: RTCDataChannel
-        ) {
+        ) = runInConnectionScope {
             val channel = IosWebRtcDataChannel(
                 nativeChannel = didOpenDataChannel,
                 coroutineScope = coroutineScope,
