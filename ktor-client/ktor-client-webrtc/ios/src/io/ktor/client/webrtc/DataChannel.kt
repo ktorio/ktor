@@ -61,12 +61,16 @@ public class IosWebRtcDataChannel(
 
     override suspend fun send(text: String) {
         assertOpen()
-        nativeChannel.sendData(data = text.toRTCDataBuffer())
+        if (!nativeChannel.sendData(data = text.toRTCDataBuffer())) {
+            error("Failed to send text message over DataChannel.")
+        }
     }
 
     override suspend fun send(bytes: ByteArray) {
         assertOpen()
-        nativeChannel.sendData(data = bytes.toRTCDataBuffer())
+        if (!nativeChannel.sendData(data = bytes.toRTCDataBuffer())) {
+            error("Failed to send binary message over DataChannel.")
+        }
     }
 
     override fun setBufferedAmountLowThreshold(threshold: Long) {

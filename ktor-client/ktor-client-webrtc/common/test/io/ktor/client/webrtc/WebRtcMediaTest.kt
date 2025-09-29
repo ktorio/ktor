@@ -1,7 +1,7 @@
 package io.ktor.client.webrtc
 
 import io.ktor.client.webrtc.utils.*
-import io.ktor.utils.io.ExperimentalKtorApi
+import io.ktor.utils.io.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.test.TestResult

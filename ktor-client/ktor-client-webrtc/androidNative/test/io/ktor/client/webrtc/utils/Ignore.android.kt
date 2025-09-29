@@ -4,7 +4,8 @@
 
 package io.ktor.client.webrtc.utils
 
-actual typealias IgnoreJvm = org.junit.jupiter.api.Disabled
+@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
+actual annotation class IgnoreJvm
 
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 actual annotation class IgnoreDesktop

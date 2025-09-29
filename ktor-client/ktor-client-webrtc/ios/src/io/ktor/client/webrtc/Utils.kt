@@ -161,20 +161,16 @@ internal fun WebRtcMedia.FacingMode.toIos(): AVCaptureDevicePosition {
 
 internal fun Continuation<RTCSessionDescription>.toSdpCreateHandler() =
     { sdp: RTCSessionDescription?, error: NSError? ->
-        if (error != null) {
-            resumeWithException(WebRtc.SdpException(message = error.toString()))
-        }
-        if (sdp == null) {
-            resumeWithException(WebRtc.SdpException(message = "Failed to create session description."))
-        } else {
-            resume(sdp)
+        when {
+            error != null -> resumeWithException(WebRtc.SdpException(message = error.toString()))
+            sdp == null -> resumeWithException(WebRtc.SdpException(message = "Failed to create session description."))
+            else -> resume(sdp)
         }
     }
 
 internal fun Continuation<Unit>.toSdpSetHandler() = { error: NSError? ->
-    if (error != null) {
-        resumeWithException(WebRtc.SdpException(message = error.toString()))
-    } else {
-        resume(Unit)
+    when {
+        error != null -> resumeWithException(WebRtc.SdpException(message = error.toString()))
+        else -> resume(Unit)
     }
 }

@@ -55,6 +55,9 @@ kotlin {
             version = project.version.toString()
             summary = "Ktor WebRTC Client"
             homepage = "https://github.com/ktorio/ktor"
+            source = "https://github.com/ktorio/ktor"
+            authors = "JetBrains"
+            license = "https://www.apache.org/licenses/LICENSE-2.0"
             ios.deploymentTarget = "13.0"
 
             pod("WebRTC-SDK") {
@@ -66,6 +69,8 @@ kotlin {
             framework {
                 baseName = "KtorWebRTC"
             }
+
+            noPodspec()
         }
     }
 }

@@ -1,6 +1,7 @@
 /*
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
+@file:OptIn(ExperimentalForeignApi::class)
 
 package io.ktor.client.webrtc.media
 
@@ -10,19 +11,25 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import platform.Foundation.NSUUID.Companion.UUID
 
 public interface Capturer {
+    public val isCapturing: Boolean
     public fun startCapture()
     public fun stopCapture()
 }
 
-@OptIn(ExperimentalForeignApi::class)
-public typealias VideoCapturerFactory = (
-    constraints: WebRtcMedia.VideoTrackConstraints,
-    videoCapturerDelegate: RTCVideoCapturerDelegateProtocol
-) -> Capturer
+public interface VideoCapturerFactory {
+    /**
+     * @param constraints Video track constraints specifying capture parameters
+     * @param delegate Video capturer delegate for handling captured video frames
+     * @return New Capturer instance configured with the provided parameters
+     */
+    public fun create(
+        constraints: WebRtcMedia.VideoTrackConstraints,
+        delegate: RTCVideoCapturerDelegateProtocol
+    ): Capturer
+}
 
 internal expect fun defaultVideoCapturerFactory(): VideoCapturerFactory
 
-@OptIn(ExperimentalForeignApi::class)
 public class IosMediaDevices(
     private val videoCapturerFactory: VideoCapturerFactory = defaultVideoCapturerFactory()
 ) : MediaTrackFactory {
@@ -72,7 +79,7 @@ public class IosMediaDevices(
             source = videoSource,
             trackId = "ios-webrtc-video-${UUID().UUIDString()}"
         )
-        val videoCapturer = videoCapturerFactory(constraints, videoSource).apply {
+        val videoCapturer = videoCapturerFactory.create(constraints, videoSource).apply {
             startCapture()
         }
         return IosVideoTrack(nativeTrack = track, onDispose = { videoCapturer.stopCapture() })

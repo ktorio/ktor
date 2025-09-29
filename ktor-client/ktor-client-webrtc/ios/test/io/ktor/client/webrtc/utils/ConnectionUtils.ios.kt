@@ -17,5 +17,7 @@ actual fun createTestWebRtcClient(): WebRtcClient {
     }
 }
 
-actual fun grantPermissions(audio: Boolean, video: Boolean) {
-}
+/**
+ * There are no camera or microphone on the iOS simulator.
+ */
+actual fun grantPermissions(audio: Boolean, video: Boolean) {}

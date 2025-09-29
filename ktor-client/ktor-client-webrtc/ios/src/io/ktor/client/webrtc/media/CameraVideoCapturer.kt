@@ -6,37 +6,43 @@ package io.ktor.client.webrtc.media
 
 import WebRTC.RTCCameraVideoCapturer
 import WebRTC.RTCVideoCapturerDelegateProtocol
-import io.ktor.client.webrtc.WebRtcMedia
-import io.ktor.client.webrtc.toIos
+import io.ktor.client.webrtc.*
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
-import platform.AVFoundation.AVCaptureDevice
-import platform.AVFoundation.AVCaptureDeviceFormat
-import platform.AVFoundation.AVCaptureDevicePosition
-import platform.AVFoundation.AVCaptureMultiCamSession
-import platform.AVFoundation.AVFrameRateRange
-import platform.AVFoundation.multiCamSupported
-import platform.AVFoundation.position
+import platform.AVFoundation.*
 import platform.CoreMedia.CMFormatDescriptionGetMediaSubType
 import platform.CoreMedia.CMVideoFormatDescriptionGetDimensions
 import platform.darwin.FourCharCode
 import kotlin.math.abs
 
+/**
+ * Camera video capturer that captures live video from device cameras.
+ *
+ * This capturer automatically selects the camera device and format that most closely matches
+ * the provided video track constraints. It chooses the camera format with dimensions nearest
+ * to the requested width and height, adjusts frame rate to the maximum supported rate
+ * that doesn't exceed the requested target.
+ *
+ * @param constraints Video track constraints specifying desired camera parameters
+ * @param videoCapturerDelegate Delegate for handling captured video frames
+ */
 @OptIn(ExperimentalForeignApi::class)
 public class CameraVideoCapturer(
     private val constraints: WebRtcMedia.VideoTrackConstraints,
     videoCapturerDelegate: RTCVideoCapturerDelegateProtocol
 ) : Capturer {
+    override var isCapturing: Boolean = false
+        private set
     private val videoCapturer = RTCCameraVideoCapturer(videoCapturerDelegate)
 
-    private val device = lazy {
+    private val device by lazy {
         val position = constraints.facingMode?.toIos()
         selectDevice(position) ?: error("No camera found for the defined facing mode.")
     }
 
     private val format: AVCaptureDeviceFormat by lazy {
         selectFormat(
-            device.value,
+            device,
             targetWidth = constraints.width,
             targetHeight = constraints.height,
             preferredOutputPixelFormat = videoCapturer.preferredOutputPixelFormat()
@@ -44,22 +50,30 @@ public class CameraVideoCapturer(
     }
 
     override fun startCapture() {
-        require(!device.isInitialized()) { "Capturing was already started." }
+        require(!isCapturing) { "Capturing was already started." }
+        isCapturing = true
         val targetFps = constraints.frameRate?.toDouble() ?: DEFAULT_FPS
         val fps = selectFps(format = format, targetFps = targetFps)
-        videoCapturer.startCaptureWithDevice(device.value, format, fps.toLong())
+        videoCapturer.startCaptureWithDevice(device, format, fps.toLong())
     }
 
     override fun stopCapture() {
-        require(device.isInitialized()) { "Capturing was not started." }
+        require(isCapturing) { "Capturing was not started." }
+        isCapturing = false
         videoCapturer.stopCapture()
     }
 
-    public companion object {
+    public companion object : VideoCapturerFactory {
+        /**
+         * Default frames per-second rate used by the camera video capturer.
+         */
         public const val DEFAULT_FPS: Double = 30.0
 
-        public val factory: VideoCapturerFactory = { constraints, videoCapturerDelegate ->
-            CameraVideoCapturer(constraints, videoCapturerDelegate)
+        public override fun create(
+            constraints: WebRtcMedia.VideoTrackConstraints,
+            delegate: RTCVideoCapturerDelegateProtocol
+        ): Capturer {
+            return CameraVideoCapturer(constraints, videoCapturerDelegate = delegate)
         }
 
         private fun selectDevice(position: AVCaptureDevicePosition?): AVCaptureDevice? {

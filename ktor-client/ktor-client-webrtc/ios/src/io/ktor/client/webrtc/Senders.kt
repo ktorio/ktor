@@ -14,6 +14,12 @@ import WebRTC.RTCRtpSender
 import io.ktor.client.webrtc.media.IosMediaTrack
 import kotlinx.cinterop.ExperimentalForeignApi
 
+/**
+ * iOS implementation of RTP sender that wraps native RTCRtpSender.
+ *
+ * Provides platform-safe access to RTP sender functionality including track management,
+ * DTMF capabilities, and parameter configuration.
+ */
 @OptIn(ExperimentalForeignApi::class)
 public class IosRtpSender(internal val nativeSender: RTCRtpSender) : WebRtc.RtpSender {
     override val dtmf: WebRtc.DtmfSender?
@@ -39,6 +45,12 @@ public class IosRtpSender(internal val nativeSender: RTCRtpSender) : WebRtc.RtpS
     }
 }
 
+/**
+ * iOS implementation of DTMF sender that wraps native RTCDtmfSenderProtocol.
+ *
+ * Provides platform-safe API for sending DTMF tones with proper time unit conversion
+ * from milliseconds to seconds for the native iOS implementation.
+ */
 @OptIn(ExperimentalForeignApi::class)
 public class IosDtmfSender(internal val nativeSender: RTCDtmfSenderProtocol) : WebRtc.DtmfSender {
     override val toneBuffer: String
@@ -48,10 +60,17 @@ public class IosDtmfSender(internal val nativeSender: RTCDtmfSenderProtocol) : W
         get() = nativeSender.canInsertDtmf()
 
     override fun insertDtmf(tones: String, duration: Int, interToneGap: Int) {
-        nativeSender.insertDtmf(tones, duration.toDouble(), interToneGap.toDouble())
+        // map milliseconds to seconds
+        nativeSender.insertDtmf(tones, duration / 1000.0, interToneGap / 1000.0)
     }
 }
 
+/**
+ * iOS implementation of RTP parameters that wraps native RTCRtpParameters.
+ *
+ * Provides type-safe access to RTP configuration, including encodings, codecs,
+ * header extensions, and degradation preferences with proper enum mapping.
+ */
 @OptIn(ExperimentalForeignApi::class)
 public class IosRtpParameters(internal val nativeRtpParameters: RTCRtpParameters) : WebRtc.RtpParameters {
     override val transactionId: String = nativeRtpParameters.transactionId
@@ -71,12 +90,14 @@ public class IosRtpParameters(internal val nativeRtpParameters: RTCRtpParameters
         }
 
     override val degradationPreference: WebRtc.DegradationPreference
-        get() = when (nativeRtpParameters.degradationPreference!!.longValue) {
+        get() = when (nativeRtpParameters.degradationPreference?.longValue) {
             RTCDegradationPreference.RTCDegradationPreferenceBalanced.value -> WebRtc.DegradationPreference.BALANCED
             RTCDegradationPreference.RTCDegradationPreferenceDisabled.value -> WebRtc.DegradationPreference.DISABLED
-            RTCDegradationPreference.RTCDegradationPreferenceMaintainFramerate.value -> WebRtc.DegradationPreference.MAINTAIN_FRAMERATE
-            RTCDegradationPreference.RTCDegradationPreferenceMaintainResolution.value -> WebRtc.DegradationPreference.MAINTAIN_RESOLUTION
-            else -> error("Unknown RTCDegradationPreference: ${nativeRtpParameters.degradationPreference}")
+            RTCDegradationPreference.RTCDegradationPreferenceMaintainFramerate.value ->
+                WebRtc.DegradationPreference.MAINTAIN_FRAMERATE
+            RTCDegradationPreference.RTCDegradationPreferenceMaintainResolution.value ->
+                WebRtc.DegradationPreference.MAINTAIN_RESOLUTION
+            else -> WebRtc.DegradationPreference.BALANCED
         }
 }
 

@@ -26,13 +26,10 @@ public class IosWebRtcConnection(
     override suspend fun getStatistics(): List<WebRtc.Stats> = suspendCoroutine { cont ->
         if (this::peerConnection.isInitialized.not()) {
             cont.resume(emptyList())
+            return@suspendCoroutine
         }
         peerConnection.statisticsWithCompletionHandler { stats ->
-            if (stats == null) {
-                cont.resume(emptyList())
-            } else {
-                cont.resume(stats.toKtor())
-            }
+            cont.resume(stats?.toKtor() ?: emptyList())
         }
     }
 
@@ -106,10 +103,12 @@ public class IosWebRtcConnection(
         override fun peerConnection(peerConnection: RTCPeerConnection, didRemoveIceCandidates: List<*>) {}
 
         @ObjCSignatureOverride
-        override fun peerConnection(peerConnection: RTCPeerConnection, didAddStream: RTCMediaStream) {}
+        override fun peerConnection(peerConnection: RTCPeerConnection, didAddStream: RTCMediaStream) {
+        }
 
         @ObjCSignatureOverride
-        override fun peerConnection(peerConnection: RTCPeerConnection, didRemoveStream: RTCMediaStream) {}
+        override fun peerConnection(peerConnection: RTCPeerConnection, didRemoveStream: RTCMediaStream) {
+        }
 
         override fun peerConnection(
             peerConnection: RTCPeerConnection,
@@ -216,7 +215,7 @@ public class IosWebRtcConnection(
 
     override suspend fun addTrack(track: WebRtcMedia.Track): WebRtc.RtpSender {
         val mediaTrack = track as? IosMediaTrack ?: error("Track should extend IosMediaTrack")
-        val nativeSender = peerConnection.addTrack(mediaTrack.nativeTrack, streamIds = listOf<RTCMediaStream>())
+        val nativeSender = peerConnection.addTrack(mediaTrack.nativeTrack, streamIds = listOf<String>())
             ?: error("Failed to add track.")
         return IosRtpSender(nativeSender)
     }

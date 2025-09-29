@@ -10,11 +10,23 @@ import WebRTC.RTCVideoTrack
 import io.ktor.client.webrtc.*
 import kotlinx.cinterop.ExperimentalForeignApi
 
+/**
+ * iOS-specific implementation of a WebRTC media track that wraps native RTCMediaStreamTrack.
+ *
+ * Provides a bridge between the common WebRTC API and iOS-specific WebRTC implementation,
+ * handling track identification, state management, and proper disposal of native resources.
+ *
+ * @property nativeTrack The underlying iOS RTCMediaStreamTrack instance
+ * @property id Unique identifier for this track
+ * @property kind Type of media track (audio or video)
+ * @property enabled Current enabled state of the track
+ */
 @OptIn(ExperimentalForeignApi::class)
 public abstract class IosMediaTrack(
     internal val nativeTrack: RTCMediaStreamTrack,
     private val onDispose: () -> Unit
 ) : WebRtcMedia.Track {
+    private var closed = false
     public override val id: String = nativeTrack.trackId
 
     public override val kind: WebRtcMedia.TrackType = kindOf(nativeTrack)
@@ -27,8 +39,10 @@ public abstract class IosMediaTrack(
     }
 
     override fun close() {
-        onDispose()
-        nativeTrack.finalize()
+        if (!closed) {
+            closed = true
+            onDispose()
+        }
     }
 
     public companion object {
@@ -47,12 +61,26 @@ public abstract class IosMediaTrack(
     }
 }
 
+/**
+ * iOS-specific implementation of an audio track that wraps RTCMediaStreamTrack.
+ *
+ * Handles audio-specific functionality and provides proper resource cleanup when disposed.
+ * Call [close] to properly dispose of native resources when the track is no longer needed.
+ */
 @OptIn(ExperimentalForeignApi::class)
-public class IosAudioTrack(nativeTrack: RTCMediaStreamTrack, onDispose: () -> Unit = {}) : WebRtcMedia.AudioTrack,
+public class IosAudioTrack(nativeTrack: RTCMediaStreamTrack, onDispose: () -> Unit = {}) :
+    WebRtcMedia.AudioTrack,
     IosMediaTrack(nativeTrack, onDispose)
 
+/**
+ * iOS-specific implementation of a video track that wraps RTCMediaStreamTrack.
+ *
+ * Handles video-specific functionality and provides proper resource cleanup when disposed.
+ * Call [close] to properly dispose of native resources when the track is no longer needed.
+ */
 @OptIn(ExperimentalForeignApi::class)
-public class IosVideoTrack(nativeTrack: RTCMediaStreamTrack, onDispose: () -> Unit = {}) : WebRtcMedia.VideoTrack,
+public class IosVideoTrack(nativeTrack: RTCMediaStreamTrack, onDispose: () -> Unit = {}) :
+    WebRtcMedia.VideoTrack,
     IosMediaTrack(nativeTrack, onDispose)
 
 /**

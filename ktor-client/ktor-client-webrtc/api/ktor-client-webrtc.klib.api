@@ -815,8 +815,16 @@ final fun <#A: io.ktor.client.webrtc/WebRtcConfig> io.ktor.client.webrtc/WebRtcC
 
 // Targets: [apple]
 abstract interface io.ktor.client.webrtc.media/Capturer { // io.ktor.client.webrtc.media/Capturer|null[0]
+    abstract val isCapturing // io.ktor.client.webrtc.media/Capturer.isCapturing|{}isCapturing[0]
+        abstract fun <get-isCapturing>(): kotlin/Boolean // io.ktor.client.webrtc.media/Capturer.isCapturing.<get-isCapturing>|<get-isCapturing>(){}[0]
+
     abstract fun startCapture() // io.ktor.client.webrtc.media/Capturer.startCapture|startCapture(){}[0]
     abstract fun stopCapture() // io.ktor.client.webrtc.media/Capturer.stopCapture|stopCapture(){}[0]
+}
+
+// Targets: [apple]
+abstract interface io.ktor.client.webrtc.media/VideoCapturerFactory { // io.ktor.client.webrtc.media/VideoCapturerFactory|null[0]
+    abstract fun create(io.ktor.client.webrtc/WebRtcMedia.VideoTrackConstraints, WebRTC/RTCVideoCapturerDelegateProtocol): io.ktor.client.webrtc.media/Capturer // io.ktor.client.webrtc.media/VideoCapturerFactory.create|create(io.ktor.client.webrtc.WebRtcMedia.VideoTrackConstraints;WebRTC.RTCVideoCapturerDelegateProtocol){}[0]
 }
 
 // Targets: [apple]
@@ -842,15 +850,17 @@ abstract class io.ktor.client.webrtc.media/IosMediaTrack : io.ktor.client.webrtc
 final class io.ktor.client.webrtc.media/CameraVideoCapturer : io.ktor.client.webrtc.media/Capturer { // io.ktor.client.webrtc.media/CameraVideoCapturer|null[0]
     constructor <init>(io.ktor.client.webrtc/WebRtcMedia.VideoTrackConstraints, WebRTC/RTCVideoCapturerDelegateProtocol) // io.ktor.client.webrtc.media/CameraVideoCapturer.<init>|<init>(io.ktor.client.webrtc.WebRtcMedia.VideoTrackConstraints;WebRTC.RTCVideoCapturerDelegateProtocol){}[0]
 
+    final var isCapturing // io.ktor.client.webrtc.media/CameraVideoCapturer.isCapturing|{}isCapturing[0]
+        final fun <get-isCapturing>(): kotlin/Boolean // io.ktor.client.webrtc.media/CameraVideoCapturer.isCapturing.<get-isCapturing>|<get-isCapturing>(){}[0]
+
     final fun startCapture() // io.ktor.client.webrtc.media/CameraVideoCapturer.startCapture|startCapture(){}[0]
     final fun stopCapture() // io.ktor.client.webrtc.media/CameraVideoCapturer.stopCapture|stopCapture(){}[0]
 
-    final object Companion { // io.ktor.client.webrtc.media/CameraVideoCapturer.Companion|null[0]
+    final object Companion : io.ktor.client.webrtc.media/VideoCapturerFactory { // io.ktor.client.webrtc.media/CameraVideoCapturer.Companion|null[0]
         final const val DEFAULT_FPS // io.ktor.client.webrtc.media/CameraVideoCapturer.Companion.DEFAULT_FPS|{}DEFAULT_FPS[0]
             final fun <get-DEFAULT_FPS>(): kotlin/Double // io.ktor.client.webrtc.media/CameraVideoCapturer.Companion.DEFAULT_FPS.<get-DEFAULT_FPS>|<get-DEFAULT_FPS>(){}[0]
 
-        final val factory // io.ktor.client.webrtc.media/CameraVideoCapturer.Companion.factory|{}factory[0]
-            final fun <get-factory>(): kotlin/Function2<io.ktor.client.webrtc/WebRtcMedia.VideoTrackConstraints, WebRTC/RTCVideoCapturerDelegateProtocol, io.ktor.client.webrtc.media/Capturer> // io.ktor.client.webrtc.media/CameraVideoCapturer.Companion.factory.<get-factory>|<get-factory>(){}[0]
+        final fun create(io.ktor.client.webrtc/WebRtcMedia.VideoTrackConstraints, WebRTC/RTCVideoCapturerDelegateProtocol): io.ktor.client.webrtc.media/Capturer // io.ktor.client.webrtc.media/CameraVideoCapturer.Companion.create|create(io.ktor.client.webrtc.WebRtcMedia.VideoTrackConstraints;WebRTC.RTCVideoCapturerDelegateProtocol){}[0]
     }
 }
 
@@ -861,7 +871,7 @@ final class io.ktor.client.webrtc.media/IosAudioTrack : io.ktor.client.webrtc.me
 
 // Targets: [apple]
 final class io.ktor.client.webrtc.media/IosMediaDevices : io.ktor.client.webrtc/MediaTrackFactory { // io.ktor.client.webrtc.media/IosMediaDevices|null[0]
-    constructor <init>(kotlin/Function2<io.ktor.client.webrtc/WebRtcMedia.VideoTrackConstraints, WebRTC/RTCVideoCapturerDelegateProtocol, io.ktor.client.webrtc.media/Capturer> = ...) // io.ktor.client.webrtc.media/IosMediaDevices.<init>|<init>(kotlin.Function2<io.ktor.client.webrtc.WebRtcMedia.VideoTrackConstraints,WebRTC.RTCVideoCapturerDelegateProtocol,io.ktor.client.webrtc.media.Capturer>){}[0]
+    constructor <init>(io.ktor.client.webrtc.media/VideoCapturerFactory = ...) // io.ktor.client.webrtc.media/IosMediaDevices.<init>|<init>(io.ktor.client.webrtc.media.VideoCapturerFactory){}[0]
 
     final val peerConnectionFactory // io.ktor.client.webrtc.media/IosMediaDevices.peerConnectionFactory|{}peerConnectionFactory[0]
         final fun <get-peerConnectionFactory>(): WebRTC/RTCPeerConnectionFactory // io.ktor.client.webrtc.media/IosMediaDevices.peerConnectionFactory.<get-peerConnectionFactory>|<get-peerConnectionFactory>(){}[0]
@@ -876,22 +886,25 @@ final class io.ktor.client.webrtc.media/IosVideoTrack : io.ktor.client.webrtc.me
 }
 
 // Targets: [apple]
-final class io.ktor.client.webrtc.media/MockVideoCapturer : io.ktor.client.webrtc.media/Capturer { // io.ktor.client.webrtc.media/MockVideoCapturer|null[0]
-    constructor <init>(io.ktor.client.webrtc/WebRtcMedia.VideoTrackConstraints, WebRTC/RTCVideoCapturerDelegateProtocol) // io.ktor.client.webrtc.media/MockVideoCapturer.<init>|<init>(io.ktor.client.webrtc.WebRtcMedia.VideoTrackConstraints;WebRTC.RTCVideoCapturerDelegateProtocol){}[0]
+final class io.ktor.client.webrtc.media/SimulatorVideoCapturer : io.ktor.client.webrtc.media/Capturer, kotlin/AutoCloseable { // io.ktor.client.webrtc.media/SimulatorVideoCapturer|null[0]
+    constructor <init>(io.ktor.client.webrtc/WebRtcMedia.VideoTrackConstraints, WebRTC/RTCVideoCapturerDelegateProtocol) // io.ktor.client.webrtc.media/SimulatorVideoCapturer.<init>|<init>(io.ktor.client.webrtc.WebRtcMedia.VideoTrackConstraints;WebRTC.RTCVideoCapturerDelegateProtocol){}[0]
 
-    final fun startCapture() // io.ktor.client.webrtc.media/MockVideoCapturer.startCapture|startCapture(){}[0]
-    final fun stopCapture() // io.ktor.client.webrtc.media/MockVideoCapturer.stopCapture|stopCapture(){}[0]
+    final var isCapturing // io.ktor.client.webrtc.media/SimulatorVideoCapturer.isCapturing|{}isCapturing[0]
+        final fun <get-isCapturing>(): kotlin/Boolean // io.ktor.client.webrtc.media/SimulatorVideoCapturer.isCapturing.<get-isCapturing>|<get-isCapturing>(){}[0]
 
-    final object Companion { // io.ktor.client.webrtc.media/MockVideoCapturer.Companion|null[0]
-        final const val DEFAULT_FPS // io.ktor.client.webrtc.media/MockVideoCapturer.Companion.DEFAULT_FPS|{}DEFAULT_FPS[0]
-            final fun <get-DEFAULT_FPS>(): kotlin/Int // io.ktor.client.webrtc.media/MockVideoCapturer.Companion.DEFAULT_FPS.<get-DEFAULT_FPS>|<get-DEFAULT_FPS>(){}[0]
-        final const val DEFAULT_HEIGHT // io.ktor.client.webrtc.media/MockVideoCapturer.Companion.DEFAULT_HEIGHT|{}DEFAULT_HEIGHT[0]
-            final fun <get-DEFAULT_HEIGHT>(): kotlin/Int // io.ktor.client.webrtc.media/MockVideoCapturer.Companion.DEFAULT_HEIGHT.<get-DEFAULT_HEIGHT>|<get-DEFAULT_HEIGHT>(){}[0]
-        final const val DEFAULT_WIDTH // io.ktor.client.webrtc.media/MockVideoCapturer.Companion.DEFAULT_WIDTH|{}DEFAULT_WIDTH[0]
-            final fun <get-DEFAULT_WIDTH>(): kotlin/Int // io.ktor.client.webrtc.media/MockVideoCapturer.Companion.DEFAULT_WIDTH.<get-DEFAULT_WIDTH>|<get-DEFAULT_WIDTH>(){}[0]
+    final fun close() // io.ktor.client.webrtc.media/SimulatorVideoCapturer.close|close(){}[0]
+    final fun startCapture() // io.ktor.client.webrtc.media/SimulatorVideoCapturer.startCapture|startCapture(){}[0]
+    final fun stopCapture() // io.ktor.client.webrtc.media/SimulatorVideoCapturer.stopCapture|stopCapture(){}[0]
 
-        final val factory // io.ktor.client.webrtc.media/MockVideoCapturer.Companion.factory|{}factory[0]
-            final fun <get-factory>(): kotlin/Function2<io.ktor.client.webrtc/WebRtcMedia.VideoTrackConstraints, WebRTC/RTCVideoCapturerDelegateProtocol, io.ktor.client.webrtc.media/Capturer> // io.ktor.client.webrtc.media/MockVideoCapturer.Companion.factory.<get-factory>|<get-factory>(){}[0]
+    final object Companion : io.ktor.client.webrtc.media/VideoCapturerFactory { // io.ktor.client.webrtc.media/SimulatorVideoCapturer.Companion|null[0]
+        final const val DEFAULT_FPS // io.ktor.client.webrtc.media/SimulatorVideoCapturer.Companion.DEFAULT_FPS|{}DEFAULT_FPS[0]
+            final fun <get-DEFAULT_FPS>(): kotlin/Int // io.ktor.client.webrtc.media/SimulatorVideoCapturer.Companion.DEFAULT_FPS.<get-DEFAULT_FPS>|<get-DEFAULT_FPS>(){}[0]
+        final const val DEFAULT_HEIGHT // io.ktor.client.webrtc.media/SimulatorVideoCapturer.Companion.DEFAULT_HEIGHT|{}DEFAULT_HEIGHT[0]
+            final fun <get-DEFAULT_HEIGHT>(): kotlin/Int // io.ktor.client.webrtc.media/SimulatorVideoCapturer.Companion.DEFAULT_HEIGHT.<get-DEFAULT_HEIGHT>|<get-DEFAULT_HEIGHT>(){}[0]
+        final const val DEFAULT_WIDTH // io.ktor.client.webrtc.media/SimulatorVideoCapturer.Companion.DEFAULT_WIDTH|{}DEFAULT_WIDTH[0]
+            final fun <get-DEFAULT_WIDTH>(): kotlin/Int // io.ktor.client.webrtc.media/SimulatorVideoCapturer.Companion.DEFAULT_WIDTH.<get-DEFAULT_WIDTH>|<get-DEFAULT_WIDTH>(){}[0]
+
+        final fun create(io.ktor.client.webrtc/WebRtcMedia.VideoTrackConstraints, WebRTC/RTCVideoCapturerDelegateProtocol): io.ktor.client.webrtc.media/Capturer // io.ktor.client.webrtc.media/SimulatorVideoCapturer.Companion.create|create(io.ktor.client.webrtc.WebRtcMedia.VideoTrackConstraints;WebRTC.RTCVideoCapturerDelegateProtocol){}[0]
     }
 }
 
