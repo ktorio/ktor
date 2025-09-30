@@ -7,6 +7,12 @@ package io.ktor.client.engine.android
 import io.ktor.http.*
 import java.net.*
 
+package io.ktor.client.engine.android
+
+import io.ktor.http.*
+import io.ktor.util.*
+
+@InternalAPI
 internal interface URLConnectionFactory {
     operator fun invoke(urlString: String): HttpURLConnection
     fun protocolFromRequest(connection: HttpURLConnection): HttpProtocolVersion {
@@ -14,6 +20,7 @@ internal interface URLConnectionFactory {
         return HttpProtocolVersion.HTTP_1_1
     }
 
+    @InternalAPI
     class StandardURLConnectionFactory(val config: AndroidEngineConfig) : URLConnectionFactory {
         override operator fun invoke(urlString: String): HttpURLConnection {
             val url = URL(urlString)
@@ -21,4 +28,5 @@ internal interface URLConnectionFactory {
             return connection as HttpURLConnection
         }
     }
+}
 }
