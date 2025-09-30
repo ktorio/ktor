@@ -5,12 +5,8 @@
 package io.ktor.client.engine.android
 
 import io.ktor.http.*
-import java.net.*
-
-package io.ktor.client.engine.android
-
-import io.ktor.http.*
 import io.ktor.util.*
+import java.net.*
 
 @InternalAPI
 internal interface URLConnectionFactory {
