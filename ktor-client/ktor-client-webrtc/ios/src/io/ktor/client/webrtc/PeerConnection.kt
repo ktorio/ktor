@@ -240,7 +240,7 @@ public class IosWebRtcConnection(
     }
 
     override suspend fun removeTrack(sender: WebRtc.RtpSender) {
-        val rtpSender = sender as? IosRtpSender ?: error("Sender should extend AndroidRtpSender")
+        val rtpSender = sender as? IosRtpSender ?: error("Sender should extend IosRtpSender")
         if (!peerConnection.removeTrack(rtpSender.nativeSender)) {
             error("Failed to remove track.")
         }
