@@ -34,6 +34,27 @@ public class AndroidClientEngine(override val config: AndroidEngineConfig) : Htt
 
     override val supportedCapabilities: Set<HttpClientEngineCapability<*>> = setOf(HttpTimeoutCapability, SSECapability)
 
+    private val urlFactory = if (config.httpEngineDisabled ||
+        !isHttpEngineAvailable() ||
+        config.proxy != null ||
+        config.context == null
+    ) {
+        URLConnectionFactory.StandardURLConnectionFactory(config)
+    } else {
+        AndroidNetHttpEngineFactory(config)
+    }
+
+    /**
+     * Executes the given HTTP request and returns the resulting response.
+     *
+     * The request described by `data` is sent over a configured HttpURLConnection; the request body
+     * (if any) is written to the connection, and the response status, headers, protocol version, and
+     * body (or an adapted representation when a ResponseAdapterAttribute is present) are returned.
+     *
+     * @param data The HTTP request data to execute (URL, method, headers, body, and attributes).
+     * @return The HttpResponseData containing the response status, headers, protocol version, body, and call context.
+     * @throws IllegalStateException If the request method does not allow a body but a non-empty body is provided.
+     */
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
 
@@ -44,12 +65,13 @@ public class AndroidClientEngine(override val config: AndroidEngineConfig) : Htt
         val contentLength: Long? = data.headers[HttpHeaders.ContentLength]?.toLong()
             ?: outgoingContent.contentLength
 
-        val connection: HttpURLConnection = getProxyAwareConnection(url).apply {
+        val connection: HttpURLConnection = urlFactory(url).apply {
             connectTimeout = config.connectTimeout
             readTimeout = config.socketTimeout
 
             setupTimeoutAttributes(data)
 
+            // TODO document not active on Android 14
             if (this is HttpsURLConnection) {
                 config.sslManager(this)
             }
@@ -91,7 +113,7 @@ public class AndroidClientEngine(override val config: AndroidEngineConfig) : Htt
                 .mapKeys { it.key?.lowercase(Locale.getDefault()) ?: "" }
                 .filter { it.key.isNotBlank() }
 
-            val version: HttpProtocolVersion = HttpProtocolVersion.HTTP_1_1
+            val version: HttpProtocolVersion = urlFactory.protocolFromRequest(connection)
             val responseHeaders = HeadersImpl(headerFields)
 
             val responseBody: Any = data.attributes.getOrNull(ResponseAdapterAttributeKey)
@@ -101,14 +123,20 @@ public class AndroidClientEngine(override val config: AndroidEngineConfig) : Htt
             HttpResponseData(statusCode, requestTime, responseHeaders, version, responseBody, callContext)
         }
     }
-
-    private fun getProxyAwareConnection(urlString: String): HttpURLConnection {
-        val url = URL(urlString)
-        val connection: URLConnection = config.proxy?.let { url.openConnection(it) } ?: url.openConnection()
-        return connection as HttpURLConnection
-    }
 }
 
+/**
+ * Writes this [OutgoingContent] into the provided [stream], honoring the supplied [callContext].
+ *
+ * Supports ByteArrayContent, ReadChannelContent, WriteChannelContent, NoContent and ContentWrapper;
+ * for WriteChannelContent a writer is launched with [callContext] and its resulting channel is copied to the stream.
+ * The stream is closed after writing completes.
+ *
+ * @param stream The destination [OutputStream] to write the content into; it will be closed when writing finishes.
+ * @param callContext The coroutine context used when producing content for `WriteChannelContent`.
+ *
+ * @throws UnsupportedContentTypeException if this content is a [OutgoingContent.ProtocolUpgrade].
+ */
 @OptIn(DelicateCoroutinesApi::class)
 internal suspend fun OutgoingContent.writeTo(
     stream: OutputStream,
