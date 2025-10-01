@@ -19,7 +19,7 @@ import io.ktor.utils.io.*
  */
 public fun AuthConfig.bearer(block: BearerAuthConfig.() -> Unit) {
     with(BearerAuthConfig().apply(block)) {
-        this@bearer.providers.add(BearerAuthProvider(refreshTokens, loadTokens, sendWithoutRequest, realm))
+        this@bearer.providers.add(BearerAuthProvider(refreshTokens, cache, loadTokens, sendWithoutRequest, realm))
     }
 }
 
@@ -60,6 +60,7 @@ public class BearerAuthConfig {
     internal var loadTokens: suspend () -> BearerTokens? = { null }
     internal var sendWithoutRequest: (HttpRequestBuilder) -> Boolean = { true }
 
+    public var cache: Boolean = true
     public var realm: String? = null
 
     /**
@@ -103,6 +104,7 @@ public class BearerAuthConfig {
  */
 public class BearerAuthProvider(
     private val refreshTokens: suspend RefreshTokensParams.() -> BearerTokens?,
+    cache: Boolean = true,
     loadTokens: suspend () -> BearerTokens?,
     private val sendWithoutRequestCallback: (HttpRequestBuilder) -> Boolean = { true },
     private val realm: String?
@@ -113,7 +115,7 @@ public class BearerAuthProvider(
     override val sendWithoutRequest: Boolean
         get() = error("Deprecated")
 
-    private val tokensHolder = AuthTokenHolder(loadTokens)
+    private val tokensHolder = AuthTokenHolder(cache, loadTokens)
 
     override fun sendWithoutRequest(request: HttpRequestBuilder): Boolean = sendWithoutRequestCallback(request)
 
