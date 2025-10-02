@@ -212,12 +212,16 @@ internal class DarwinWebsocketSession(
     }
 }
 
+@OptIn(UnsafeNumber::class)
 private suspend fun NSURLSessionWebSocketTask.receiveMessage(): NSURLSessionWebSocketMessage =
     suspendCancellableCoroutine {
         receiveMessageWithCompletionHandler { message, error ->
             if (error != null) {
                 // KTOR-7363 We want to proceed with the request if we get 401 Unauthorized status code
-                if (getStatusCode() == HttpStatusCode.Unauthorized.value) {
+                // KTOR-6198 We want to set correct close code and reason on URLSession:webSocketTask:didCloseWithCode:reason:
+                if ((getStatusCode() == HttpStatusCode.Unauthorized.value) ||
+                    (this.closeCode != NSURLSessionWebSocketCloseCodeInvalid)
+                ) {
                     it.cancel()
                     return@receiveMessageWithCompletionHandler
                 }
