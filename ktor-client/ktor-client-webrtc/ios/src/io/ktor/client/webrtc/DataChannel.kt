@@ -130,6 +130,5 @@ public class IosWebRtcDataChannel(
  */
 @OptIn(ExperimentalForeignApi::class)
 public fun WebRtcDataChannel.getNative(): RTCDataChannel {
-    val channel = (this as? IosWebRtcDataChannel) ?: error("Wrong data channel implementation.")
-    return channel.nativeChannel
+    return (this as IosWebRtcDataChannel).nativeChannel
 }

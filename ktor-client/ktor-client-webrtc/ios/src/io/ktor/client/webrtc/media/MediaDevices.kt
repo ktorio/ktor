@@ -74,41 +74,9 @@ private const val GOOG_NOISE_SUPPRESSION = "googNoiseSuppression"
  * WebRTC framework. It manages peer connection factory initialization, SSL setup,
  * and platform-specific media track creation.
  *
- * ## Key Features
- * - **Audio Track Creation**: Creates audio tracks with echo cancellation, auto gain control,
- *   and noise suppression
- * - **Video Track Creation**: Creates video tracks with camera or synthetic video capture
- * - **Resource Management**: Handles WebRTC framework initialization and cleanup
- *
- * ## Threading
- * This class is thread-safe.
- *
  * ## Lifecycle
  * - SSL initialization happens lazily when the first peer connection factory is accessed
  * - Video capturers are automatically started when video tracks are created
- * - Resources are cleaned up when tracks are disposed
- *
- * ## Usage Example
- * ```kotlin
- * val mediaDevices = IosMediaDevices()
- *
- * // Create audio track with custom constraints
- * val audioTrack = mediaDevices.createAudioTrack {
- *     echoCancellation = true
- *     noiseSuppression = true
- *     volume = 0.8
- * }
- *
- * // Create video track
- * val videoTrack = mediaDevices.createVideoTrack {
- *     width = 1280
- *     height = 720
- *     frameRate = 30
- * }
- *
- * audioTrack.close()
- * videoTrack.close()
- * ```
  *
  * @param videoCapturerFactory Factory for creating video capturer instances.
  *                            Defaults to platform-specific implementation
@@ -129,14 +97,14 @@ public class IosMediaDevices(
     }
 
     override suspend fun createAudioTrack(constraints: WebRtcMedia.AudioTrackConstraints): WebRtcMedia.AudioTrack {
-        if (constraints.sampleSize != null) {
-            TODO("Sample size is not supported yet for iOS. You can provide custom MediaTrackFactory")
+        require(constraints.sampleSize == null) {
+            "Sample size is not supported yet for iOS. You can provide custom MediaTrackFactory"
         }
-        if (constraints.latency != null) {
-            TODO("Latency is not supported yet for iOS. You can provide custom MediaTrackFactory")
+        require(constraints.latency == null) {
+            "Latency is not supported yet for iOS. You can provide custom MediaTrackFactory"
         }
-        if (constraints.channelCount != null) {
-            TODO("Channel count is not supported yet for iOS. You can provide custom MediaTrackFactory")
+        require(constraints.channelCount == null) {
+            "Channel count is not supported yet for iOS. You can provide custom MediaTrackFactory"
         }
         val mediaConstraints = RTCMediaConstraints(
             mandatoryConstraints = mapOf(

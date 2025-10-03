@@ -10,11 +10,11 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ObjCSignatureOverride
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import platform.darwin.NSObject
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
 
 /**
  * iOS-specific implementation of a WebRTC peer connection.
@@ -29,10 +29,10 @@ public class IosWebRtcConnection(
 ) : WebRtcPeerConnection(coroutineContext, config) {
     private lateinit var peerConnection: RTCPeerConnection
 
-    override suspend fun getStatistics(): List<WebRtc.Stats> = suspendCoroutine { cont ->
+    override suspend fun getStatistics(): List<WebRtc.Stats> = suspendCancellableCoroutine { cont ->
         if (!this::peerConnection.isInitialized) {
             cont.resume(emptyList())
-            return@suspendCoroutine
+            return@suspendCancellableCoroutine
         }
         peerConnection.statisticsWithCompletionHandler { stats ->
             cont.resume(stats?.toKtor() ?: emptyList())
@@ -160,7 +160,7 @@ public class IosWebRtcConnection(
     }
 
     override suspend fun createOffer(): WebRtc.SessionDescription {
-        val offer = suspendCoroutine { cont ->
+        val offer = suspendCancellableCoroutine { cont ->
             peerConnection.offerForConstraints(
                 constraints = sdpConstraints(),
                 completionHandler = cont.toSdpCreateHandler()
@@ -170,7 +170,7 @@ public class IosWebRtcConnection(
     }
 
     override suspend fun createAnswer(): WebRtc.SessionDescription {
-        val answer = suspendCoroutine { cont ->
+        val answer = suspendCancellableCoroutine { cont ->
             peerConnection.answerForConstraints(
                 constraints = sdpConstraints(),
                 completionHandler = cont.toSdpCreateHandler()
@@ -207,40 +207,41 @@ public class IosWebRtcConnection(
         }
     }
 
-    override suspend fun setLocalDescription(description: WebRtc.SessionDescription): Unit = suspendCoroutine { cont ->
-        peerConnection.setLocalDescription(sdp = description.toIos(), completionHandler = cont.toSdpSetHandler())
-    }
+    override suspend fun setLocalDescription(description: WebRtc.SessionDescription): Unit =
+        suspendCancellableCoroutine { cont ->
+            peerConnection.setLocalDescription(sdp = description.toIos(), completionHandler = cont.toSdpSetHandler())
+        }
 
-    override suspend fun setRemoteDescription(description: WebRtc.SessionDescription): Unit = suspendCoroutine { cont ->
-        peerConnection.setRemoteDescription(sdp = description.toIos(), completionHandler = cont.toSdpSetHandler())
-    }
+    override suspend fun setRemoteDescription(description: WebRtc.SessionDescription): Unit =
+        suspendCancellableCoroutine { cont ->
+            peerConnection.setRemoteDescription(sdp = description.toIos(), completionHandler = cont.toSdpSetHandler())
+        }
 
-    override suspend fun addIceCandidate(candidate: WebRtc.IceCandidate): Unit = suspendCoroutine { cont ->
+    override suspend fun addIceCandidate(candidate: WebRtc.IceCandidate): Unit = suspendCancellableCoroutine { cont ->
         peerConnection.addIceCandidate(candidate.toIos()) { error ->
-            if (error != null) {
-                cont.resumeWithException(WebRtc.IceException(error.toString()))
-            } else {
-                cont.resume(Unit)
+            when {
+                error == null -> cont.resume(Unit)
+                else -> cont.resumeWithException(WebRtc.IceException(error.toString()))
             }
         }
     }
 
     override suspend fun addTrack(track: WebRtcMedia.Track): WebRtc.RtpSender {
-        val mediaTrack = track as? IosMediaTrack ?: error("Track should extend IosMediaTrack")
-        val nativeSender = peerConnection.addTrack(mediaTrack.nativeTrack, streamIds = listOf<String>())
+        val mediaTrack = (track as IosMediaTrack).nativeTrack
+        val nativeSender = peerConnection.addTrack(mediaTrack, streamIds = listOf<String>())
             ?: error("Failed to add track.")
         return IosRtpSender(nativeSender)
     }
 
     override suspend fun removeTrack(track: WebRtcMedia.Track) {
-        val track = track as? IosMediaTrack ?: error("Track should extend IosMediaTrack")
+        val track = track as IosMediaTrack
         val sender = peerConnection.senders.firstOrNull { (it as RTCRtpSender).track?.trackId == track.id }
             ?: error("Failed to find sender for the track.")
         peerConnection.removeTrack(sender as RTCRtpSender)
     }
 
     override suspend fun removeTrack(sender: WebRtc.RtpSender) {
-        val rtpSender = sender as? IosRtpSender ?: error("Sender should extend IosRtpSender")
+        val rtpSender = sender as IosRtpSender
         if (!peerConnection.removeTrack(rtpSender.nativeSender)) {
             error("Failed to remove track.")
         }

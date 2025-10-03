@@ -106,8 +106,7 @@ public class IosRtpParameters(internal val nativeRtpParameters: RTCRtpParameters
  */
 @OptIn(ExperimentalForeignApi::class)
 public fun WebRtc.RtpSender.getNative(): RTCRtpSender {
-    val sender = this as? IosRtpSender ?: error("Wrong Rtp sender implementation.")
-    return sender.nativeSender
+    return (this as IosRtpSender).nativeSender
 }
 
 /**
@@ -115,8 +114,7 @@ public fun WebRtc.RtpSender.getNative(): RTCRtpSender {
  */
 @OptIn(ExperimentalForeignApi::class)
 public fun WebRtc.DtmfSender.getNative(): RTCDtmfSenderProtocol {
-    val sender = this as? IosDtmfSender ?: error("Wrong Dtmf sender implementation.")
-    return sender.nativeSender
+    return (this as IosDtmfSender).nativeSender
 }
 
 /**
@@ -124,6 +122,5 @@ public fun WebRtc.DtmfSender.getNative(): RTCDtmfSenderProtocol {
  */
 @OptIn(ExperimentalForeignApi::class)
 public fun WebRtc.RtpParameters.getNative(): RTCRtpParameters {
-    val parameters = this as? IosRtpParameters ?: error("Wrong parameters implementation.")
-    return parameters.nativeRtpParameters
+    return (this as IosRtpParameters).nativeRtpParameters
 }

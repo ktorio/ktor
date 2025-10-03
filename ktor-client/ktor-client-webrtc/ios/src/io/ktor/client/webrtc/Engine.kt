@@ -40,8 +40,7 @@ public class IosWebRtcEngine(
 
     private val localFactory: RTCPeerConnectionFactory
         get() {
-            return config.rtcFactory ?: (mediaTrackFactory as? IosMediaDevices)?.peerConnectionFactory
-                ?: error("Please specify custom rtcFactory for custom MediaTrackFactory")
+            return config.rtcFactory ?: (mediaTrackFactory as IosMediaDevices).peerConnectionFactory
         }
 
     private fun WebRtc.IceServer.toIos(): RTCIceServer {

@@ -88,8 +88,7 @@ public class IosVideoTrack(nativeTrack: RTCMediaStreamTrack, onDispose: () -> Un
  */
 @OptIn(ExperimentalForeignApi::class)
 public fun WebRtcMedia.VideoTrack.getNative(): RTCVideoTrack {
-    val track = this as? IosMediaTrack ?: error("Wrong track implementation.")
-    return track.nativeTrack as RTCVideoTrack
+    return (this as IosMediaTrack).nativeTrack as RTCVideoTrack
 }
 
 /**
@@ -97,6 +96,5 @@ public fun WebRtcMedia.VideoTrack.getNative(): RTCVideoTrack {
  */
 @OptIn(ExperimentalForeignApi::class)
 public fun WebRtcMedia.AudioTrack.getNative(): RTCAudioTrack {
-    val track = this as? IosMediaTrack ?: error("Wrong track implementation.")
-    return track.nativeTrack as RTCAudioTrack
+    return (this as IosMediaTrack).nativeTrack as RTCAudioTrack
 }
