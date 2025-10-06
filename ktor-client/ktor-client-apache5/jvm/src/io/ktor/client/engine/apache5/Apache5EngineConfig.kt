@@ -7,6 +7,7 @@ package io.ktor.client.engine.apache5
 import io.ktor.client.engine.*
 import org.apache.hc.client5.http.config.RequestConfig
 import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder
 import org.apache.hc.client5.http.ssl.HostnameVerificationPolicy
 import javax.net.ssl.SSLContext
 
@@ -82,6 +83,8 @@ public class Apache5EngineConfig : HttpClientEngineConfig() {
 
     internal var customClient: (HttpAsyncClientBuilder.() -> HttpAsyncClientBuilder) = { this }
 
+    internal var configureConnectionManager: PoolingAsyncClientConnectionManagerBuilder.() -> Unit = {}
+
     /**
      * Customizes a [RequestConfig.Builder] in the specified [block].
      *
@@ -100,5 +103,17 @@ public class Apache5EngineConfig : HttpClientEngineConfig() {
     public fun customizeClient(block: HttpAsyncClientBuilder.() -> Unit) {
         val current = customClient
         customClient = { current().apply(block) }
+    }
+
+    /**
+     * Configures the `AsyncClientConnectionManager` used by the Apache5 engine.
+     *
+     * We recommend using this function instead of `customizeClient { setConnectionManager(...) }`,
+     * to avoid replacing the Ktor‑managed manager and inadvertently bypass engine settings and timeout mapping.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.apache5.Apache5EngineConfig.configureConnectionManager)
+     */
+    public fun configureConnectionManager(block: PoolingAsyncClientConnectionManagerBuilder.() -> Unit) {
+        configureConnectionManager = { block() }
     }
 }

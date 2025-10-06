@@ -101,6 +101,7 @@ internal class Apache5Engine(override val config: Apache5EngineConfig) : HttpCli
                                 .setSocketTimeout(socketTimeout)
                                 .build()
                         )
+                        .apply(config.configureConnectionManager)
                         .build()
                 )
                 setIOReactorConfig(
