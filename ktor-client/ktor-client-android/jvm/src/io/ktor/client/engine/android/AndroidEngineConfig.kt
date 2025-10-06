@@ -4,6 +4,7 @@
 
 package io.ktor.client.engine.android
 
+import android.net.http.*
 import io.ktor.client.engine.*
 import java.net.*
 import javax.net.ssl.*
@@ -45,4 +46,26 @@ public class AndroidEngineConfig : HttpClientEngineConfig() {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.android.AndroidEngineConfig.requestConfig)
      */
     public var requestConfig: HttpURLConnection.() -> Unit = {}
+
+    /**
+     * Android 14+ HttpEngine customization hook.
+     *
+     * Applied only when the Android HttpEngine-backed URLConnection path is active
+     * (i.e., when [context] is non-null and the platform reports availability; see internal checks).
+     * Use this to enable features such as Brotli, QUIC, DNS options, and connection migration.
+     * Ignored on the legacy `HttpURLConnection` path.
+     */
+    public var httpEngineConfig: HttpEngine.Builder.() -> Unit = {}
+
+    internal var httpEngineDisabled = false
+
+    /**
+     * Android Context required to initialize the Android HttpEngine path (API 34 or S Extensions ≥ 7).
+     * If this is `null`, or when a proxy is configured, the engine falls back to the legacy
+     * `HttpURLConnection` path.
+     */
+    public var context: android.content.Context? = null
+        set(value) {
+            field = value
+        }
 }
