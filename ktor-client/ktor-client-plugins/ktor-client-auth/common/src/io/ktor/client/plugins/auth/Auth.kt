@@ -205,8 +205,55 @@ public fun HttpClientConfig<*>.Auth(block: AuthConfig.() -> Unit) {
 @PublishedApi
 internal val AuthProvidersKey: AttributeKey<List<AuthProvider>> = AttributeKey("AuthProviders")
 
+/**
+ * Returns all auth providers configured for this client.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.authProviders)
+ */
 public val HttpClient.authProviders: List<AuthProvider>
     get() = attributes.getOrNull(AuthProvidersKey) ?: emptyList()
 
+/**
+ * Returns a single auth provider of the specified type, or null if not found or multiple providers exist.
+ *
+ * Example:
+ * ```kotlin
+ * val bearerProvider = client.authProvider<BearerAuthProvider>()
+ * bearerProvider?.clearToken()
+ * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.authProvider)
+ */
 public inline fun <reified T : AuthProvider> HttpClient.authProvider(): T? =
     authProviders.filterIsInstance<T>().singleOrNull()
+
+/**
+ * Clears cached tokens/credentials from all auth providers that support token clearing.
+ *
+ * This is a convenience method that calls clearToken on all applicable auth providers:
+ * - [io.ktor.client.plugins.auth.providers.BearerAuthProvider]
+ * - [io.ktor.client.plugins.auth.providers.BasicAuthProvider]
+ *
+ * Use this method when:
+ * - User logs out and tokens should be invalidated
+ * - Credentials have been updated externally
+ * - You want to force fresh token/credential loading
+ *
+ * Note: This only affects providers where caching is enabled (default behavior).
+ * If [io.ktor.client.plugins.auth.providers.BearerAuthConfig.cacheTokens] or
+ * [io.ktor.client.plugins.auth.providers.BasicAuthConfig.cacheTokens] is set to `false`,
+ * this method has no effect on those providers.
+ *
+ * Example:
+ * ```kotlin
+ * // Clear all cached auth tokens on logout
+ * client.clearAuthTokens()
+ * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.clearAuthTokens)
+ */
+public fun HttpClient.clearAuthTokens() {
+    authProviders.forEach { provider ->
+        provider.clearToken()
+    }
+}
