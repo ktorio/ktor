@@ -16,9 +16,15 @@ internal class AuthTokenHolder<T>(
     private val cacheTokens: Boolean = true
 ) {
 
-    @Volatile private var value: T? = null
+    constructor(
+        loadTokens: suspend () -> T?,
+    ) : this(loadTokens, true)
 
-    @Volatile private var isLoadRequest = false
+    @Volatile
+    private var value: T? = null
+
+    @Volatile
+    private var isLoadRequest = false
 
     private val mutex = Mutex()
 
