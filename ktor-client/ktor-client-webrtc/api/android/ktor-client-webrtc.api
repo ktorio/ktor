@@ -673,6 +673,14 @@ public final class io/ktor/client/webrtc/WebRtcMedia$AudioTrackConstraints {
 	public final fun getSampleSize ()Ljava/lang/Integer;
 	public final fun getVolume ()Ljava/lang/Double;
 	public fun hashCode ()I
+	public final fun setAutoGainControl (Ljava/lang/Boolean;)V
+	public final fun setChannelCount (Ljava/lang/Integer;)V
+	public final fun setEchoCancellation (Ljava/lang/Boolean;)V
+	public final fun setLatency (Ljava/lang/Double;)V
+	public final fun setNoiseSuppression (Ljava/lang/Boolean;)V
+	public final fun setSampleRate (Ljava/lang/Integer;)V
+	public final fun setSampleSize (Ljava/lang/Integer;)V
+	public final fun setVolume (Ljava/lang/Double;)V
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -741,6 +749,12 @@ public final class io/ktor/client/webrtc/WebRtcMedia$VideoTrackConstraints {
 	public final fun getResizeMode ()Lio/ktor/client/webrtc/WebRtcMedia$ResizeMode;
 	public final fun getWidth ()Ljava/lang/Integer;
 	public fun hashCode ()I
+	public final fun setAspectRatio (Ljava/lang/Double;)V
+	public final fun setFacingMode (Lio/ktor/client/webrtc/WebRtcMedia$FacingMode;)V
+	public final fun setFrameRate (Ljava/lang/Integer;)V
+	public final fun setHeight (Ljava/lang/Integer;)V
+	public final fun setResizeMode (Lio/ktor/client/webrtc/WebRtcMedia$ResizeMode;)V
+	public final fun setWidth (Ljava/lang/Integer;)V
 	public fun toString ()Ljava/lang/String;
 }
 
