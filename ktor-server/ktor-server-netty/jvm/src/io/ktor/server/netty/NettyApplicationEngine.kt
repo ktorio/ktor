@@ -9,6 +9,7 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.util.network.*
 import io.ktor.util.pipeline.*
+import io.ktor.utils.io.*
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.Channel
 import io.netty.channel.ChannelOption
@@ -69,7 +70,7 @@ public class NettyApplicationEngine(
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.NettyApplicationEngine.Configuration.configureBootstrap)
          */
-        public var configureBootstrap: ServerBootstrap.() -> Unit = {}
+        public var configureBootstrap: (@KtorDsl ServerBootstrap).() -> Unit = {}
 
         /**
          * Timeout in seconds for sending responses to client
@@ -143,7 +144,7 @@ public class NettyApplicationEngine(
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.NettyApplicationEngine.Configuration.channelPipelineConfig)
          */
-        public var channelPipelineConfig: ChannelPipeline.() -> Unit = {}
+        public var channelPipelineConfig: (@KtorDsl ChannelPipeline).() -> Unit = {}
 
         /**
          * Default function to configure Netty's

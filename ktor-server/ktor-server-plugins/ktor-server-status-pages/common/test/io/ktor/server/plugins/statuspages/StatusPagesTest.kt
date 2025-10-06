@@ -293,10 +293,11 @@ class StatusPagesTest {
 
             routing {
                 get("/fail") {
-                    async { throw AsyncFailedException() }.await()
+                    // TODO KTOR-8824: Check why we can't catch an exception thrown from call.async { ... } block
+                    application.async { throw AsyncFailedException() }.await()
                 }
                 get("/cancel") {
-                    val j = launch {
+                    val j = application.launch {
                         delay(1000000L)
                     }
                     j.cancel()
