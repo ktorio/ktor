@@ -130,6 +130,7 @@ public class JsWebRtcPeerConnection(
     }
 
     override fun close() {
+        super.close()
         connection.close()
     }
 }
