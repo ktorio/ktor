@@ -28,6 +28,8 @@ public final class io/ktor/client/HttpClientConfig {
 	public final fun install (Lio/ktor/client/plugins/HttpClientPlugin;Lkotlin/jvm/functions/Function1;)V
 	public final fun install (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun install$default (Lio/ktor/client/HttpClientConfig;Lio/ktor/client/plugins/HttpClientPlugin;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public final fun installOrReplace (Lio/ktor/client/plugins/HttpClientPlugin;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun installOrReplace$default (Lio/ktor/client/HttpClientConfig;Lio/ktor/client/plugins/HttpClientPlugin;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public final fun plusAssign (Lio/ktor/client/HttpClientConfig;)V
 	public final fun setDevelopmentMode (Z)V
 	public final fun setExpectSuccess (Z)V
@@ -284,6 +286,8 @@ public final class io/ktor/client/plugins/DefaultRequest$Plugin : io/ktor/client
 
 public final class io/ktor/client/plugins/DefaultRequestKt {
 	public static final fun defaultRequest (Lio/ktor/client/HttpClientConfig;Lkotlin/jvm/functions/Function1;)V
+	public static final fun defaultRequest (Lio/ktor/client/HttpClientConfig;ZLkotlin/jvm/functions/Function1;)V
+	public static synthetic fun defaultRequest$default (Lio/ktor/client/HttpClientConfig;ZLkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 }
 
 public final class io/ktor/client/plugins/DefaultResponseValidationKt {
