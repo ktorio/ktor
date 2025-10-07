@@ -88,6 +88,11 @@ develocity-commonCustomUserData = "2.3"
 gradleDoctor = "0.12.0"
 mavenPublishing = "0.34.0"
 
+android-compileSdk = "36"
+android-minSdk = "28"
+ios-deploymentTarget = "13.0"
+ios-webrtc-sdk = "137.7151.04"
+
 [libraries]
 
 android-kmp-library = { module = "com.android.kotlin.multiplatform.library:com.android.kotlin.multiplatform.library.gradle.plugin", version.ref = "android-kmp-plugin" }

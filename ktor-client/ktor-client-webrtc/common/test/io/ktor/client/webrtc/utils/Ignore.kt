@@ -8,4 +8,4 @@ package io.ktor.client.webrtc.utils
 expect annotation class IgnoreJvm()
 
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
-expect annotation class IgnorePosix()
+expect annotation class IgnoreDesktop()
