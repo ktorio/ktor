@@ -129,8 +129,14 @@ public class BasicAuthProvider(
     private val credentials: suspend () -> BasicAuthCredentials?,
     private val realm: String? = null,
     private val sendWithoutRequestCallback: (HttpRequestBuilder) -> Boolean = { false },
-    cacheTokens: Boolean = true
+    cacheTokens: Boolean
 ) : AuthProvider {
+
+    public constructor(
+        credentials: suspend () -> BasicAuthCredentials?,
+        realm: String? = null,
+        sendWithoutRequestCallback: (HttpRequestBuilder) -> Boolean = { false },
+    ) : this(credentials, realm, sendWithoutRequestCallback, cacheTokens = true)
 
     @Deprecated("Consider using constructor with credentials provider instead", level = DeprecationLevel.ERROR)
     public constructor(
