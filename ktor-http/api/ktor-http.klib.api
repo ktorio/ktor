@@ -1713,6 +1713,7 @@ final fun (io.ktor.http/ContentType.Companion).io.ktor.http/defaultForFilePath(k
 final fun (io.ktor.http/ContentType.Companion).io.ktor.http/fromFileExtension(kotlin/String): kotlin.collections/List<io.ktor.http/ContentType> // io.ktor.http/fromFileExtension|fromFileExtension@io.ktor.http.ContentType.Companion(kotlin.String){}[0]
 final fun (io.ktor.http/ContentType.Companion).io.ktor.http/fromFilePath(kotlin/String): kotlin.collections/List<io.ktor.http/ContentType> // io.ktor.http/fromFilePath|fromFilePath@io.ktor.http.ContentType.Companion(kotlin.String){}[0]
 final fun (io.ktor.http/HeaderValueWithParameters).io.ktor.http/charset(): io.ktor.utils.io.charsets/Charset? // io.ktor.http/charset|charset@io.ktor.http.HeaderValueWithParameters(){}[0]
+final fun (io.ktor.http/Headers).io.ktor.http/getSplitValues(kotlin/String, kotlin/Char = ..., kotlin/Boolean = ...): kotlin.collections/List<kotlin/String>? // io.ktor.http/getSplitValues|getSplitValues@io.ktor.http.Headers(kotlin.String;kotlin.Char;kotlin.Boolean){}[0]
 final fun (io.ktor.http/HeadersBuilder).io.ktor.http/etag(kotlin/String) // io.ktor.http/etag|etag@io.ktor.http.HeadersBuilder(kotlin.String){}[0]
 final fun (io.ktor.http/HttpMessage).io.ktor.http/cacheControl(): kotlin.collections/List<io.ktor.http/HeaderValue> // io.ktor.http/cacheControl|cacheControl@io.ktor.http.HttpMessage(){}[0]
 final fun (io.ktor.http/HttpMessage).io.ktor.http/charset(): io.ktor.utils.io.charsets/Charset? // io.ktor.http/charset|charset@io.ktor.http.HttpMessage(){}[0]
