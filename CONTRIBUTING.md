@@ -41,6 +41,11 @@ Up to 12 GB of free RAM is required to build the project.
 This amount can be reduced by decreasing the `Xmx` value in `gradle.properties`.
 Read the comments in `gradle.properties` for more details.
 
+The path to the android sdk should be defined in the ANDROID_HOME environment variable or `sdk.dir` in the `local.properties` file, like:
+```properties
+sdk.dir=/Users/USER_NAME/Library/Android/sdk
+```
+
 If targeting macOS and/or iOS, install `Xcode` and `Xcode command line tools` on macOS.
 
 <details>

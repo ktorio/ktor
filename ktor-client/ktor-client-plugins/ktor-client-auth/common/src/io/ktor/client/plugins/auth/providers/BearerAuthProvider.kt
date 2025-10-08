@@ -19,7 +19,7 @@ import io.ktor.utils.io.*
  */
 public fun AuthConfig.bearer(block: BearerAuthConfig.() -> Unit) {
     with(BearerAuthConfig().apply(block)) {
-        this@bearer.providers.add(BearerAuthProvider(refreshTokens, loadTokens, sendWithoutRequest, realm))
+        this@bearer.providers.add(BearerAuthProvider(refreshTokens, loadTokens, sendWithoutRequest, realm, cacheTokens))
     }
 }
 
@@ -61,6 +61,22 @@ public class BearerAuthConfig {
     internal var sendWithoutRequest: (HttpRequestBuilder) -> Boolean = { true }
 
     public var realm: String? = null
+
+    /**
+     * Configures whether to cache the result of [loadTokens].
+     *
+     * When `true` (default), the result of [loadTokens] is cached and reused for subsequent requests.
+     * When `false`, [loadTokens] is called on every request, allowing external token management systems
+     * (like Firebase Auth) to provide fresh tokens without redundant caching.
+     *
+     * Set this to `false` when:
+     * - You manage token caching externally (e.g., Firebase Auth, or other authentication SDKs)
+     * - You need fine-grained control over token lifecycle
+     * - You want to avoid calling [BearerAuthProvider.clearToken] on logout
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.BearerAuthConfig.cacheTokens)
+     */
+    public var cacheTokens: Boolean = true
 
     /**
      * Configures a callback that refreshes a token when the 401 status code is received.
@@ -105,7 +121,8 @@ public class BearerAuthProvider(
     private val refreshTokens: suspend RefreshTokensParams.() -> BearerTokens?,
     loadTokens: suspend () -> BearerTokens?,
     private val sendWithoutRequestCallback: (HttpRequestBuilder) -> Boolean = { true },
-    private val realm: String?
+    private val realm: String?,
+    cacheTokens: Boolean = true
 ) : AuthProvider {
 
     @Suppress("OverridingDeprecatedMember")
@@ -113,7 +130,7 @@ public class BearerAuthProvider(
     override val sendWithoutRequest: Boolean
         get() = error("Deprecated")
 
-    private val tokensHolder = AuthTokenHolder(loadTokens)
+    private val tokensHolder = AuthTokenHolder(loadTokens, cacheTokens)
 
     override fun sendWithoutRequest(request: HttpRequestBuilder): Boolean = sendWithoutRequestCallback(request)
 
@@ -171,13 +188,24 @@ public class BearerAuthProvider(
      * - When access or refresh tokens have been updated externally
      * - When you want to clear sensitive token data (for example, during logout)
      *
-     * Note: The result of `loadTokens` invocation is cached internally.
+     * Note: The result of `loadTokens` invocation is cached internally by default.
      * Calling this method will force the next authentication attempt to fetch fresh tokens
      * through the configured `loadTokens` function.
      *
+     * If [BearerAuthConfig.cacheTokens] is set to `false`, this method has no effect
+     * as tokens are not cached.
+     *
+     * Example usage:
+     * ```kotlin
+     * // Clear tokens on logout
+     * client.authProvider<BearerAuthProvider>()?.clearToken()
+     * // Or use the convenience extension
+     * client.clearAuthTokens()
+     * ```
+     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.BearerAuthProvider.clearToken)
      */
-    public fun clearToken() {
+    public override fun clearToken() {
         tokensHolder.clearToken()
     }
 }
