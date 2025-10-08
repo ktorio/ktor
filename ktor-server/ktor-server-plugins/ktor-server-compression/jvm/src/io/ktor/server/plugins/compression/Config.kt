@@ -43,7 +43,12 @@ public data class CompressionEncoderConfig(
     /**
      * A priority of an encoder.
      */
-    val priority: Double
+    val priority: Double,
+
+    /**
+     * Compression level of an encoder. Only works for 'zstd' compression algorithm for now.
+     */
+    val compressionLevel: Int,
 )
 
 /**
@@ -100,6 +105,7 @@ public class CompressionConfig : ConditionsHolderBuilder {
     public fun default() {
         gzip()
         deflate()
+        zstd()
         identity()
     }
 
@@ -158,8 +164,16 @@ public class CompressionEncoderBuilder internal constructor(
      */
     public var priority: Double = 1.0
 
+    /**
+     * Compression level of an encoder.
+     * Only works for 'zstd' compression algorithm for now and initialized with the default compression level for 'zstd' algorithm.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.compression.CompressionEncoderBuilder.compressionLevel)
+     */
+    public var compressionLevel: Int = 3
+
     internal fun buildConfig(): CompressionEncoderConfig {
-        return CompressionEncoderConfig(encoder, conditions.toList(), priority)
+        return CompressionEncoderConfig(encoder, conditions.toList(), priority, compressionLevel)
     }
 }
 
@@ -170,6 +184,16 @@ public class CompressionEncoderBuilder internal constructor(
  */
 public fun CompressionConfig.gzip(block: CompressionEncoderBuilder.() -> Unit = {}) {
     encoder(GZipEncoder, block)
+}
+
+/**
+ * Appends the 'zstd' encoder with [block] configuration.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.compression.zstd)
+ */
+public fun CompressionConfig.zstd(block: CompressionEncoderBuilder.() -> Unit = {}) {
+    val compressionLevel = CompressionEncoderBuilder(ZstdEncoder()).apply { block() }.compressionLevel
+    encoder(ZstdEncoder(compressionLevel), block)
 }
 
 /**

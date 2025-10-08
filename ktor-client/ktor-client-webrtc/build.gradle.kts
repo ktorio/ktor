@@ -3,6 +3,7 @@
  */
 @file:OptIn(ExperimentalWasmDsl::class)
 
+import ktorbuild.disableNativeCompileConfigurationCache
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 description = "Ktor WebRTC Client"
@@ -11,6 +12,7 @@ plugins {
     id("com.android.kotlin.multiplatform.library")
     id("kotlinx-serialization")
     id("ktorbuild.project.library")
+    kotlin("native.cocoapods")
 }
 
 kotlin {
@@ -18,8 +20,8 @@ kotlin {
 
     androidLibrary {
         namespace = "io.ktor.client.webrtc"
-        compileSdk = 35
-        minSdk = 28
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+        minSdk = libs.versions.android.minSdk.get().toInt()
     }
 
     sourceSets {
@@ -49,5 +51,29 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.stream.webrtc.android)
         }
+
+        cocoapods {
+            version = project.version.toString()
+            summary = "Ktor WebRTC Client"
+            homepage = "https://github.com/ktorio/ktor"
+            source = "https://github.com/ktorio/ktor"
+            authors = "JetBrains"
+            license = "https://www.apache.org/licenses/LICENSE-2.0"
+            ios.deploymentTarget = libs.versions.ios.deploymentTarget.get()
+
+            pod("WebRTC-SDK") {
+                version = libs.versions.ios.webrtc.sdk.get()
+                moduleName = "WebRTC"
+                packageName = "WebRTC"
+            }
+
+            framework {
+                baseName = "KtorWebRTC"
+            }
+
+            noPodspec()
+        }
     }
+
+    disableNativeCompileConfigurationCache()
 }

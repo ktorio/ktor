@@ -25,12 +25,12 @@ public object WebRtcMedia {
      * @see [MDN MediaTrackConstraints](https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints)
      */
     public data class VideoTrackConstraints(
-        val width: Int? = null,
-        val height: Int? = null,
-        val frameRate: Int? = null,
-        val aspectRatio: Double? = null,
-        val facingMode: FacingMode? = null,
-        val resizeMode: ResizeMode? = null,
+        var width: Int? = null,
+        var height: Int? = null,
+        var frameRate: Int? = null,
+        var aspectRatio: Double? = null,
+        var facingMode: FacingMode? = null,
+        var resizeMode: ResizeMode? = null,
     )
 
     /**
@@ -48,14 +48,14 @@ public object WebRtcMedia {
      * @see [MDN MediaTrackConstraints](https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints)
      */
     public data class AudioTrackConstraints(
-        val volume: Double? = null,
-        val sampleRate: Int? = null,
-        val sampleSize: Int? = null,
-        val echoCancellation: Boolean? = null,
-        val autoGainControl: Boolean? = null,
-        val noiseSuppression: Boolean? = null,
-        val latency: Double? = null,
-        val channelCount: Int? = null,
+        var volume: Double? = null,
+        var sampleRate: Int? = null,
+        var sampleSize: Int? = null,
+        var echoCancellation: Boolean? = null,
+        var autoGainControl: Boolean? = null,
+        var noiseSuppression: Boolean? = null,
+        var latency: Double? = null,
+        var channelCount: Int? = null,
     )
 
     /**
