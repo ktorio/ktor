@@ -46,7 +46,12 @@ The path to the android sdk should be defined in the ANDROID_HOME environment va
 sdk.dir=/Users/USER_NAME/Library/Android/sdk
 ```
 
-If targeting macOS and/or iOS, install `Xcode` and `Xcode command line tools` on macOS.
+If you target macOS and/or iOS, install `Xcode`, `Xcode command line tools`, `CocoaPods` and `Ruby` on macOS.
+An outdated Ruby version 2 is installed by default, but you should manually install a new version of it.
+We recommend using Ruby `3.3.x` or newer with [rbenv](https://github.com/rbenv/rbenv):
+- `rbenv install 3.3.x`
+- `rbenv global 3.3.x`
+- `sudo gem install -n /usr/local/bin cocoapods`
 
 <details>
 <summary>Requirements for Ktor before 3.1.0</summary>
