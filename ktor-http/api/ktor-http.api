@@ -465,6 +465,8 @@ public final class io/ktor/http/HeadersImpl : io/ktor/util/StringValuesImpl, io/
 }
 
 public final class io/ktor/http/HeadersKt {
+	public static final fun getSplitValues (Lio/ktor/http/Headers;Ljava/lang/String;CZ)Ljava/util/List;
+	public static synthetic fun getSplitValues$default (Lio/ktor/http/Headers;Ljava/lang/String;CZILjava/lang/Object;)Ljava/util/List;
 	public static final fun headers (Lkotlin/jvm/functions/Function1;)Lio/ktor/http/Headers;
 	public static final fun headersOf ()Lio/ktor/http/Headers;
 	public static final fun headersOf (Ljava/lang/String;Ljava/lang/String;)Lio/ktor/http/Headers;
