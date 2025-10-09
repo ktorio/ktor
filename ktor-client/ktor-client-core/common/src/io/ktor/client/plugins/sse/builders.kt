@@ -54,13 +54,6 @@ public fun HttpClientConfig<*>.SSE(config: SSEConfig.() -> Unit) {
 /**
  * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server.
  *
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEventsSession)
- *
- * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
- * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
  * Example of usage:
  * ```kotlin
  * val session = client.serverSentEventsSession {
@@ -72,6 +65,12 @@ public fun HttpClientConfig<*>.SSE(config: SSEConfig.() -> Unit) {
  *     println("Data: ${event.data}")
  * }
  * ```
+ *
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEventsSession)
  */
 public suspend fun HttpClient.serverSentEventsSession(
     reconnectionTime: Duration? = null,
@@ -83,13 +82,6 @@ public suspend fun HttpClient.serverSentEventsSession(
 /**
  * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server.
  *
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEventsSession)
- *
- * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
- * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
  * Example of usage:
  * ```kotlin
  * val session = client.serverSentEventsSession {
@@ -101,6 +93,12 @@ public suspend fun HttpClient.serverSentEventsSession(
  *     println("Data: ${event.data}")
  * }
  * ```
+ *
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEventsSession)
  */
 public suspend fun HttpClient.serverSentEventsSession(
     scheme: String? = null,
@@ -123,13 +121,6 @@ public suspend fun HttpClient.serverSentEventsSession(
 /**
  * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server.
  *
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEventsSession)
- *
- * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
- * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
  * Example of usage:
  * ```kotlin
  * val session = client.serverSentEventsSession {
@@ -141,6 +132,12 @@ public suspend fun HttpClient.serverSentEventsSession(
  *     println("Data: ${event.data}")
  * }
  * ```
+ *
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEventsSession)
  */
 public suspend fun HttpClient.serverSentEventsSession(
     urlString: String,
@@ -160,12 +157,8 @@ public suspend fun HttpClient.serverSentEventsSession(
 /**
  * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server and performs [block].
  *
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEvents)
- *
- * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
- * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ * Note: [ClientSSESession] is bound to the session lifetime.
+ * Its scope is canceled when the `serverSentEvents { ... }` block returns or when the connection closes.
  *
  * Example of usage:
  * ```kotlin
@@ -177,6 +170,12 @@ public suspend fun HttpClient.serverSentEventsSession(
  *     }
  * }
  * ```
+ *
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEvents)
  */
 @OptIn(InternalAPI::class)
 public suspend fun HttpClient.serverSentEvents(
@@ -202,12 +201,8 @@ public suspend fun HttpClient.serverSentEvents(
 /**
  * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server and performs [block].
  *
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEvents)
- *
- * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
- * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ * Note: [ClientSSESession] is bound to the session lifetime.
+ * Its scope is canceled when the `serverSentEvents { ... }` block returns or when the connection closes.
  *
  * Example of usage:
  * ```kotlin
@@ -219,6 +214,12 @@ public suspend fun HttpClient.serverSentEvents(
  *     }
  * }
  * ```
+ *
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEvents)
  */
 public suspend fun HttpClient.serverSentEvents(
     scheme: String? = null,
@@ -246,12 +247,8 @@ public suspend fun HttpClient.serverSentEvents(
 /**
  * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server and performs [block].
  *
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEvents)
- *
- * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
- * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ * Note: [ClientSSESession] is bound to the session lifetime.
+ * Its scope is canceled when the `serverSentEvents { ... }` block returns or when the connection closes.
  *
  * Example of usage:
  * ```kotlin
@@ -263,6 +260,12 @@ public suspend fun HttpClient.serverSentEvents(
  *     }
  * }
  * ```
+ *
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEvents)
  */
 public suspend fun HttpClient.serverSentEvents(
     urlString: String,
@@ -287,13 +290,6 @@ public suspend fun HttpClient.serverSentEvents(
 /**
  * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server.
  *
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sseSession)
- *
- * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
- * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
  * Example of usage:
  * ```kotlin
  * val session = client.sseSession {
@@ -305,6 +301,12 @@ public suspend fun HttpClient.serverSentEvents(
  *     println("Data: ${event.data}")
  * }
  * ```
+ *
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sseSession)
  */
 public suspend fun HttpClient.sseSession(
     reconnectionTime: Duration? = null,
@@ -321,13 +323,6 @@ public suspend fun HttpClient.sseSession(
 /**
  * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server.
  *
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sseSession)
- *
- * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
- * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
  * Example of usage:
  * ```kotlin
  * val session = client.sseSession {
@@ -339,6 +334,12 @@ public suspend fun HttpClient.sseSession(
  *     println("Data: ${event.data}")
  * }
  * ```
+ *
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sseSession)
  */
 public suspend fun HttpClient.sseSession(
     scheme: String? = null,
@@ -364,13 +365,6 @@ public suspend fun HttpClient.sseSession(
 /**
  * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server.
  *
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sseSession)
- *
- * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
- * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
  * Example of usage:
  * ```kotlin
  * val session = client.sseSession {
@@ -382,6 +376,12 @@ public suspend fun HttpClient.sseSession(
  *     println("Data: ${event.data}")
  * }
  * ```
+ *
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sseSession)
  */
 public suspend fun HttpClient.sseSession(
     urlString: String,
@@ -395,12 +395,8 @@ public suspend fun HttpClient.sseSession(
 /**
  * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server and performs [block].
  *
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sse)
- *
- * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
- * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ * Note: [ClientSSESession] is bound to the session lifetime.
+ * Its scope is canceled when the `sse { ... }` block returns or when the connection closes.
  *
  * Example of usage:
  * ```kotlin
@@ -412,6 +408,12 @@ public suspend fun HttpClient.sseSession(
  *     }
  * }
  * ```
+ *
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sse)
  */
 public suspend fun HttpClient.sse(
     request: HttpRequestBuilder.() -> Unit,
@@ -424,12 +426,8 @@ public suspend fun HttpClient.sse(
 /**
  * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server and performs [block].
  *
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sse)
- *
- * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
- * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ * Note: [ClientSSESession] is bound to the session lifetime.
+ * Its scope is canceled when the `sse { ... }` block returns or when the connection closes.
  *
  * Example of usage:
  * ```kotlin
@@ -441,6 +439,12 @@ public suspend fun HttpClient.sse(
  *     }
  * }
  * ```
+ *
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sse)
  */
 public suspend fun HttpClient.sse(
     scheme: String? = null,
@@ -468,12 +472,8 @@ public suspend fun HttpClient.sse(
 /**
  * Opens a [ClientSSESession] to receive Server-Sent Events (SSE) from a server and performs [block].
  *
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sse)
- *
- * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
- * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ * Note: [ClientSSESession] is bound to the session lifetime.
+ * Its scope is canceled when the `sse { ... }` block returns or when the connection closes.
  *
  * Example of usage:
  * ```kotlin
@@ -485,6 +485,12 @@ public suspend fun HttpClient.sse(
  *     }
  * }
  * ```
+ *
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sse)
  */
 public suspend fun HttpClient.sse(
     urlString: String,
@@ -508,15 +514,6 @@ public suspend fun HttpClient.sse(
  * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
  * deserialize the `data` field of the `TypedServerSentEvent`.
  *
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEventsSession)
- *
- * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
- *                    into an object
- * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
- * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
  * Example of usage:
  * ```kotlin
  * val session = client.serverSentEventsSession("http://localhost:8080/sse", deserialize = { typeInfo, jsonString ->
@@ -538,6 +535,14 @@ public suspend fun HttpClient.sse(
  *     }
  * }
  * ```
+ *
+ * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
+ *                    into an object
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEventsSession)
  */
 public suspend fun HttpClient.serverSentEventsSession(
     deserialize: (TypeInfo, String) -> Any?,
@@ -557,15 +562,6 @@ public suspend fun HttpClient.serverSentEventsSession(
  * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
  * deserialize the `data` field of the `TypedServerSentEvent`.
  *
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEventsSession)
- *
- * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
- *                    into an object
- * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
- * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
  * Example of usage:
  * ```kotlin
  * val session = client.serverSentEventsSession("http://localhost:8080/sse", deserialize = { typeInfo, jsonString ->
@@ -587,6 +583,14 @@ public suspend fun HttpClient.serverSentEventsSession(
  *     }
  * }
  * ```
+ *
+ * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
+ *                    into an object
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEventsSession)
  */
 public suspend fun HttpClient.serverSentEventsSession(
     scheme: String? = null,
@@ -608,15 +612,6 @@ public suspend fun HttpClient.serverSentEventsSession(
  * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
  * deserialize the `data` field of the `TypedServerSentEvent`.
  *
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEventsSession)
- *
- * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
- *                    into an object
- * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
- * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
  * Example of usage:
  * ```kotlin
  * val session = client.serverSentEventsSession("http://localhost:8080/sse", deserialize = { typeInfo, jsonString ->
@@ -638,6 +633,14 @@ public suspend fun HttpClient.serverSentEventsSession(
  *     }
  * }
  * ```
+ *
+ * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
+ *                    into an object
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEventsSession)
  */
 public suspend fun HttpClient.serverSentEventsSession(
     urlString: String,
@@ -656,14 +659,8 @@ public suspend fun HttpClient.serverSentEventsSession(
  * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
  * deserialize the `data` field of the `TypedServerSentEvent`.
  *
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEvents)
- *
- * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
- *                    into an object
- * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
- * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ * Note: [ClientSSESessionWithDeserialization] is bound to the session lifetime.
+ * Its scope is canceled when the `serverSentEvents { ... }` block returns or when the connection closes.
  *
  * Example of usage:
  * ```kotlin
@@ -686,6 +683,14 @@ public suspend fun HttpClient.serverSentEventsSession(
  *     }
  * }
  * ```
+ *
+ * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
+ *                    into an object
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEvents)
  */
 @OptIn(InternalAPI::class)
 public suspend fun HttpClient.serverSentEvents(
@@ -719,14 +724,8 @@ public suspend fun HttpClient.serverSentEvents(
  * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
  * deserialize the `data` field of the `TypedServerSentEvent` and performs [block].
  *
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEvents)
- *
- * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
- *                    into an object
- * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
- * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ * Note: [ClientSSESessionWithDeserialization] is bound to the session lifetime.
+ * Its scope is canceled when the `serverSentEvents { ... }` block returns or when the connection closes.
  *
  * Example of usage:
  * ```kotlin
@@ -749,6 +748,14 @@ public suspend fun HttpClient.serverSentEvents(
  *     }
  * }
  * ```
+ *
+ * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
+ *                    into an object
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEvents)
  */
 public suspend fun HttpClient.serverSentEvents(
     scheme: String? = null,
@@ -779,14 +786,8 @@ public suspend fun HttpClient.serverSentEvents(
  * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
  * deserialize the `data` field of the `TypedServerSentEvent` and performs [block].
  *
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEvents)
- *
- * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
- *                    into an object
- * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
- * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ * Note: [ClientSSESessionWithDeserialization] is bound to the session lifetime.
+ * Its scope is canceled when the `serverSentEvents { ... }` block returns or when the connection closes.
  *
  * Example of usage:
  * ```kotlin
@@ -809,6 +810,14 @@ public suspend fun HttpClient.serverSentEvents(
  *     }
  * }
  * ```
+ *
+ * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
+ *                    into an object
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEvents)
  */
 public suspend fun HttpClient.serverSentEvents(
     urlString: String,
@@ -836,15 +845,6 @@ public suspend fun HttpClient.serverSentEvents(
  * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
  * deserialize the `data` field of the `TypedServerSentEvent` and performs [block].
  *
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sseSession)
- *
- * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
- *                    into an object
- * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
- * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
  * Example of usage:
  * ```kotlin
  * val session = client.sseSession("http://localhost:8080/sse", deserialize = { typeInfo, jsonString ->
@@ -866,6 +866,14 @@ public suspend fun HttpClient.serverSentEvents(
  *     }
  * }
  * ```
+ *
+ * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
+ *                    into an object
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sseSession)
  */
 public suspend fun HttpClient.sseSession(
     deserialize: (TypeInfo, String) -> Any?,
@@ -886,15 +894,6 @@ public suspend fun HttpClient.sseSession(
  * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
  * deserialize the `data` field of the `TypedServerSentEvent` and performs [block].
  *
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sseSession)
- *
- * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
- *                    into an object
- * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
- * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
  * Example of usage:
  * ```kotlin
  * val session = client.sseSession("http://localhost:8080/sse", deserialize = { typeInfo, jsonString ->
@@ -916,6 +915,14 @@ public suspend fun HttpClient.sseSession(
  *     }
  * }
  * ```
+ *
+ * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
+ *                    into an object
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sseSession)
  */
 public suspend fun HttpClient.sseSession(
     scheme: String? = null,
@@ -943,15 +950,6 @@ public suspend fun HttpClient.sseSession(
  * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
  * deserialize the `data` field of the `TypedServerSentEvent` and performs [block].
  *
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sseSession)
- *
- * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
- *                    into an object
- * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
- * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
  * Example of usage:
  * ```kotlin
  * val session = client.sseSession("http://localhost:8080/sse", deserialize = { typeInfo, jsonString ->
@@ -973,6 +971,14 @@ public suspend fun HttpClient.sseSession(
  *     }
  * }
  * ```
+ *
+ * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
+ *                    into an object
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sseSession)
  */
 public suspend fun HttpClient.sseSession(
     urlString: String,
@@ -995,14 +1001,8 @@ public suspend fun HttpClient.sseSession(
  * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
  * deserialize the `data` field of the `TypedServerSentEvent` and performs [block].
  *
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sse)
- *
- * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
- *                    into an object
- * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
- * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ * Note: [ClientSSESessionWithDeserialization] is bound to the session lifetime.
+ * Its scope is canceled when the `sse { ... }` block returns or when the connection closes.
  *
  * Example of usage:
  * ```kotlin
@@ -1025,6 +1025,14 @@ public suspend fun HttpClient.sseSession(
  *     }
  * }
  * ```
+ *
+ * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
+ *                    into an object
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sse)
  */
 public suspend fun HttpClient.sse(
     request: HttpRequestBuilder.() -> Unit,
@@ -1047,14 +1055,8 @@ public suspend fun HttpClient.sse(
  * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
  * deserialize the `data` field of the `TypedServerSentEvent` and performs [block].
  *
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sse)
- *
- * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
- *                    into an object
- * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
- * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ * Note: [ClientSSESessionWithDeserialization] is bound to the session lifetime.
+ * Its scope is canceled when the `sse { ... }` block returns or when the connection closes.
  *
  * Example of usage:
  * ```kotlin
@@ -1077,6 +1079,14 @@ public suspend fun HttpClient.sse(
  *     }
  * }
  * ```
+ *
+ * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
+ *                    into an object
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sse)
  */
 public suspend fun HttpClient.sse(
     scheme: String? = null,
@@ -1106,14 +1116,8 @@ public suspend fun HttpClient.sse(
  * Opens a [ClientSSESessionWithDeserialization] to receive Server-Sent Events (SSE) from a server with ability to
  * deserialize the `data` field of the `TypedServerSentEvent` and performs [block].
  *
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sse)
- *
- * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
- *                    into an object
- * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
- * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
- * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ * Note: [ClientSSESessionWithDeserialization] is bound to the session lifetime.
+ * Its scope is canceled when the `sse { ... }` block returns or when the connection closes.
  *
  * Example of usage:
  * ```kotlin
@@ -1136,6 +1140,14 @@ public suspend fun HttpClient.sse(
  *     }
  * }
  * ```
+ *
+ * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
+ *                    into an object
+ * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
+ * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
+ * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sse)
  */
 public suspend fun HttpClient.sse(
     urlString: String,
