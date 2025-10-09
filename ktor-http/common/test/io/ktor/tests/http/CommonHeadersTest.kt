@@ -5,7 +5,10 @@
 package io.ktor.tests.http
 
 import io.ktor.http.*
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFails
+import kotlin.test.assertNull
 
 class CommonHeadersTest {
     @Test
@@ -360,5 +363,81 @@ class CommonHeadersTest {
         }
         assertEquals(listOf("1"), headers.getAll("x"))
         assertEquals(listOf("2", "3"), headers.getAll("y"))
+    }
+
+    @Test
+    fun testGetSplitValuesReturnsSeparatedValues() {
+        val customHeader = "X-Custom-Header"
+        val headers = headers {
+            append(customHeader, "1, 2")
+        }.getSplitValues(customHeader)!!
+        assertEquals(2, headers.size)
+        assertEquals(listOf("1", "2"), headers)
+    }
+
+    @Test
+    fun testHeadersCombined() {
+        val customHeader = "X-Custom-Header"
+        val headers = headers {
+            append(customHeader, "1, 2")
+            append(customHeader, "3")
+        }
+        assertEquals(3, headers.getSplitValues(customHeader)!!.size)
+        assertEquals(listOf("1", "2", "3"), headers.getSplitValues(customHeader))
+        assertEquals("1, 2", headers[customHeader])
+        assertEquals(listOf("1, 2", "3"), headers.getAll(customHeader))
+    }
+
+    @Test
+    fun testCommaInsideQuotes() {
+        val headers = headers {
+            append(HttpHeaders.CacheControl, "private=\"a,b\", no-cache=\"X-One, X-Two\"")
+            append(HttpHeaders.CacheControl, "s-maxage=1000")
+        }
+        assertEquals(
+            listOf("private=\"a,b\"", "no-cache=\"X-One, X-Two\"", "s-maxage=1000"),
+            headers.getSplitValues(HttpHeaders.CacheControl)
+        )
+    }
+
+    @Test
+    fun testSetCookieNotSplitWithGetAll() {
+        val firstCookie = "id=a; Expires=Wed, 21 Oct 2015 07:28:00 GMT"
+        val secondCookie = "k=v"
+        val headers = headers {
+            append(HttpHeaders.SetCookie, firstCookie)
+            append(HttpHeaders.SetCookie, secondCookie)
+        }
+        assertEquals(listOf(firstCookie, secondCookie), headers.getAll(HttpHeaders.SetCookie))
+        assertEquals(firstCookie, headers[HttpHeaders.SetCookie])
+    }
+
+    @Test
+    fun testQuotes() {
+        val customHeader = "X-Custom-Header"
+        val header = headers {
+            append(customHeader, "value(\"\'\"),value(\"\'\")")
+        }
+        assertEquals("value(\"\'\")", header.getSplitValues(customHeader)!![0])
+        assertEquals(2, header.getSplitValues(customHeader)!!.size)
+    }
+
+    @Test
+    fun testSeparator() {
+        val customHeader = "X-Custom-Header"
+        val header = headers {
+            append(customHeader, "1; 2")
+            append(customHeader, "3;")
+        }
+        assertEquals(listOf("1", "2", "3"), header.getSplitValues(customHeader, separator = ';'))
+    }
+
+    @Test
+    fun testIgnoreQuotes() {
+        val customHeader = "X-Custom-Header"
+        val header = headers {
+            append(customHeader, "1, \"2,3\", 4")
+        }
+        assertEquals(listOf("1", "\"2", "3\"", "4"), header.getSplitValues(customHeader, splitInsideQuotes = true))
     }
 }
