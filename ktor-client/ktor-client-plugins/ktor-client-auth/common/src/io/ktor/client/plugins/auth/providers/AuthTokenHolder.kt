@@ -11,11 +11,20 @@ import kotlin.concurrent.Volatile
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 
-internal class AuthTokenHolder<T>(private val loadTokens: suspend () -> T?) {
+internal class AuthTokenHolder<T>(
+    private val loadTokens: suspend () -> T?,
+    private val cacheTokens: Boolean = true
+) {
 
-    @Volatile private var value: T? = null
+    constructor(
+        loadTokens: suspend () -> T?,
+    ) : this(loadTokens, true)
 
-    @Volatile private var isLoadRequest = false
+    @Volatile
+    private var value: T? = null
+
+    @Volatile
+    private var isLoadRequest = false
 
     private val mutex = Mutex()
 
@@ -27,8 +36,13 @@ internal class AuthTokenHolder<T>(private val loadTokens: suspend () -> T?) {
     /**
      * Returns a cached value if any. Otherwise, computes a value using [loadTokens] and caches it.
      * Only one [loadToken] call can be executed at a time. The other calls are suspended and have no effect on the cached value.
+     * If [cacheTokens] is false, always calls [loadTokens] without caching.
      */
     internal suspend fun loadToken(): T? {
+        if (!cacheTokens) {
+            return loadTokens()
+        }
+
         if (value != null) return value // Hot path
         val prevValue = value
 

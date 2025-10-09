@@ -14,9 +14,12 @@ import io.ktor.server.engine.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.*
-import java.net.*
-import kotlin.test.*
+import java.net.ServerSocket
+import kotlin.system.measureTimeMillis
 import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 abstract class ConnectionTestSuite(val engine: ApplicationEngineFactory<*, *>) {
 
@@ -42,6 +45,30 @@ abstract class ConnectionTestSuite(val engine: ApplicationEngineFactory<*, *>) {
         assertEquals(2, addresses.size)
         assertFalse(addresses.any { it.port == 0 })
         server.stop(50, 1000)
+    }
+
+    @Test
+    fun testShutdownGracePeriod() = runBlocking {
+        val shutdownGracePeriodValue = 3000L
+        val serverStarted = CompletableDeferred<Unit>()
+        val server = embeddedServer(
+            factory = engine,
+            configure = {
+                shutdownGracePeriod = shutdownGracePeriodValue
+            }
+        )
+        server.monitor.subscribe(ServerReady) {
+            serverStarted.complete(Unit)
+        }
+        GlobalScope.launch {
+            server.start(true)
+        }
+        serverStarted.join()
+
+        val time = measureTimeMillis {
+            server.stop()
+        }
+        assertTrue { time < shutdownGracePeriodValue * 2 }
     }
 
     @OptIn(DelicateCoroutinesApi::class)

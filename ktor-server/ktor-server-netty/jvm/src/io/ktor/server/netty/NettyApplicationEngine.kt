@@ -288,7 +288,6 @@ public class NettyApplicationEngine(
         try {
             val shutdownConnections =
                 connectionEventGroup.shutdownGracefully(gracePeriodMillis, timeoutMillis, TimeUnit.MILLISECONDS)
-            shutdownConnections.await()
 
             val shutdownWorkers =
                 workerEventGroup.shutdownGracefully(gracePeriodMillis, timeoutMillis, TimeUnit.MILLISECONDS)
@@ -300,6 +299,7 @@ public class NettyApplicationEngine(
                 shutdownWorkers.await()
                 shutdownCall.await()
             }
+            shutdownConnections.await()
         } finally {
             channelFutures.forEach { it.sync() }
         }

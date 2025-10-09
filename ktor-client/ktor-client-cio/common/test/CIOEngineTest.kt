@@ -10,16 +10,17 @@ import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.test.base.*
+import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
+import io.ktor.util.*
+import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.websocket.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.single
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 import kotlin.time.Duration.Companion.seconds
 
@@ -184,6 +185,49 @@ class CIOEngineTest : ClientEngineTest<CIOEngineConfig>(CIO) {
             }
         }
     }
+
+    @Test
+    fun `test ignore invalid Content-Length with Connection close`() = runTest {
+        val serverResponse = getResponse(connection = "close")
+        val response = readResponse(GMTDate.START, anyRequest, serverResponse, ByteChannel(), coroutineContext)
+        assertEquals("5\u0000", response.headers[HttpHeaders.ContentLength])
+        val body = response.body
+        assertIs<ByteReadChannel>(body)
+        assertEquals("hello", body.readRemaining().readText())
+    }
+
+    @Test
+    fun `test throw exception on invalid Content-Length with Connection keep-alive`() = runTest {
+        val serverResponse = getResponse(connection = "keep-alive")
+        val response = readResponse(GMTDate.START, anyRequest, serverResponse, ByteChannel(), coroutineContext)
+        assertEquals("5\u0000", response.headers[HttpHeaders.ContentLength])
+        val body = response.body
+        assertIs<ByteReadChannel>(body)
+        assertFailsWith<ClosedByteChannelException> {
+            body.readRemaining()
+        }.apply {
+            assertTrue { message!!.contains("request body length should be specified") }
+        }
+    }
+
+    private fun getResponse(connection: String): ByteReadChannel = ByteReadChannel(
+        "HTTP/1.1 200 OK\r\n" +
+            "Content-Length: 5\u0000\r\n" + // Invalid null character after length
+            "Content-Type: text/plain\r\n" +
+            "Connection: $connection\r\n" +
+            "\r\n" +
+            "hello"
+    )
+
+    @OptIn(InternalAPI::class)
+    private val anyRequest = HttpRequestData(
+        Url("http://example.com"),
+        HttpMethod.Get,
+        Headers.Empty,
+        EmptyContent,
+        Job(),
+        Attributes()
+    )
 
     private fun CoroutineScope.sendExpectRequest(
         socket: ServerSocket,
