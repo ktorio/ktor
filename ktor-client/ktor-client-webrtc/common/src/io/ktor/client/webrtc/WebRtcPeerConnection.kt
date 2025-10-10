@@ -9,6 +9,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 
@@ -34,7 +35,7 @@ public abstract class WebRtcPeerConnection private constructor(
         val refreshRate = config.statsRefreshRate
         if (refreshRate != null) {
             coroutineScope.launch {
-                while (true) {
+                while (isActive) {
                     delay(duration = refreshRate)
                     events.emitStats(stats = getStatistics())
                 }

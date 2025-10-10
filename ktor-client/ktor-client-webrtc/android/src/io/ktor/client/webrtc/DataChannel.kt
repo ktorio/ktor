@@ -129,6 +129,5 @@ public class AndroidWebRtcDataChannel(
  * Returns implementation of the data channel that is used under the hood. Use it with caution.
  */
 public fun WebRtcDataChannel.getNative(): DataChannel {
-    val channel = (this as? AndroidWebRtcDataChannel) ?: error("Wrong data channel implementation.")
-    return channel.nativeChannel
+    return (this as AndroidWebRtcDataChannel).nativeChannel
 }

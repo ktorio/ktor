@@ -130,6 +130,7 @@ public class JsWebRtcPeerConnection(
     }
 
     override fun close() {
+        super.close()
         connection.close()
     }
 }
@@ -138,6 +139,5 @@ public class JsWebRtcPeerConnection(
  * Returns implementation of the peer connection that is used under the hood. Use it with caution.
  */
 public fun WebRtcPeerConnection.getNative(): RTCPeerConnection {
-    val connection = this as? JsWebRtcPeerConnection ?: error("Wrong peer connection implementation.")
-    return connection.connection
+    return (this as JsWebRtcPeerConnection).connection
 }

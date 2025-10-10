@@ -216,7 +216,7 @@ internal fun WebRtcDataChannelOptions.toJs(): RTCDataChannelInit = unsafeJso {
 internal fun RTCStatsReport.toKtor(): List<WebRtc.Stats> {
     val statsList = mutableListOf<WebRtc.Stats>()
     forEach { value, _ ->
-        val rtcStats = (value as? RTCStats) ?: return@forEach
+        val rtcStats = value as RTCStats
         statsList.add(rtcStats.toKtor())
     }
     return statsList
