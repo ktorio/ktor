@@ -30,12 +30,12 @@ class HttpResponseValidatorTest {
                 addHandler { respondOk() }
             }
             HttpResponseValidator {
-                handleResponseException { cause, _ ->
+                handleResponseException { cause ->
                     firstHandler++
                     assertTrue(cause is CallValidatorTestException)
                 }
 
-                handleResponseException { cause, _ ->
+                handleResponseException { cause ->
                     secondHandler++
                     assertTrue(cause is CallValidatorTestException)
                 }
@@ -46,7 +46,7 @@ class HttpResponseValidatorTest {
                     assertNotNull(request)
                 }
 
-                handleResponseException { cause, request ->
+                handleResponseExceptionWithRequest { cause, request ->
                     fourthHandler++
                     assertTrue(cause is CallValidatorTestException)
                     assertNotNull(request)
@@ -79,7 +79,7 @@ class HttpResponseValidatorTest {
                 addHandler { throw CallValidatorTestException() }
             }
             HttpResponseValidator {
-                handleResponseException { cause, _ ->
+                handleResponseException { cause ->
                     assertTrue(cause is CallValidatorTestException)
                     firstHandler++
                 }
@@ -108,7 +108,7 @@ class HttpResponseValidatorTest {
                 addHandler { respondOk() }
             }
             HttpResponseValidator {
-                handleResponseException { cause, _ ->
+                handleResponseException { cause ->
                     assertTrue(cause is CallValidatorTestException)
                     handleTriggered = true
                 }
@@ -132,7 +132,7 @@ class HttpResponseValidatorTest {
                 addHandler { respondOk() }
             }
             HttpResponseValidator {
-                handleResponseException { cause, _ ->
+                handleResponseException { cause ->
                     assertTrue(cause is CallValidatorTestException)
                     handleTriggered = true
                 }
@@ -156,14 +156,14 @@ class HttpResponseValidatorTest {
                 addHandler { respondOk() }
             }
             HttpResponseValidator {
-                handleResponseException { cause, _ ->
+                handleResponseException { cause ->
                     firstHandler++
                     assertTrue(cause is CallValidatorTestException)
                 }
             }
 
             HttpResponseValidator {
-                handleResponseException { cause, _ ->
+                handleResponseException { cause ->
                     secondHandler++
                     assertTrue(cause is CallValidatorTestException)
                 }
