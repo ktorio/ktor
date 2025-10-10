@@ -1106,6 +1106,7 @@ final class io.ktor.server.routing/RoutingPathSegment { // io.ktor.server.routin
 }
 
 final class io.ktor.server.routing/RoutingPipelineCall : io.ktor.server.application/PipelineCall, kotlinx.coroutines/CoroutineScope { // io.ktor.server.routing/RoutingPipelineCall|null[0]
+    constructor <init>(io.ktor.server.application/PipelineCall, io.ktor.server.routing/RoutingNode, io.ktor.server.request/ApplicationReceivePipeline, io.ktor.server.response/ApplicationSendPipeline, io.ktor.http/Parameters) // io.ktor.server.routing/RoutingPipelineCall.<init>|<init>(io.ktor.server.application.PipelineCall;io.ktor.server.routing.RoutingNode;io.ktor.server.request.ApplicationReceivePipeline;io.ktor.server.response.ApplicationSendPipeline;io.ktor.http.Parameters){}[0]
     constructor <init>(io.ktor.server.application/PipelineCall, io.ktor.server.routing/RoutingNode, kotlin.coroutines/CoroutineContext, io.ktor.server.request/ApplicationReceivePipeline, io.ktor.server.response/ApplicationSendPipeline, io.ktor.http/Parameters) // io.ktor.server.routing/RoutingPipelineCall.<init>|<init>(io.ktor.server.application.PipelineCall;io.ktor.server.routing.RoutingNode;kotlin.coroutines.CoroutineContext;io.ktor.server.request.ApplicationReceivePipeline;io.ktor.server.response.ApplicationSendPipeline;io.ktor.http.Parameters){}[0]
 
     final val application // io.ktor.server.routing/RoutingPipelineCall.application|{}application[0]

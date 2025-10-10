@@ -4,6 +4,7 @@
 
 package io.ktor.http
 
+import io.ktor.http.header.*
 import io.ktor.util.*
 
 /**
@@ -104,4 +105,23 @@ public class HeadersSingleImpl(
     values: List<String>
 ) : Headers, StringValuesSingleImpl(true, name, values) {
     override fun toString(): String = "Headers ${entries()}"
+}
+
+/**
+ * Gets all values associated with the specified header [name] and splits them using the provided [separator].
+ *
+ * If [splitInsideQuotes] is true, the function ignores quotes entirely and splits everywhere the [separator] appears.
+ * Otherwise, [separator] that occurs inside a double-quoted string isn't treated as a split point.
+ *
+ *  @param name The header name.
+ *  @param separator The character on which to split (e.g., ',' or ';').
+ *  @param splitInsideQuotes If `true`, quotes are ignored and splitting occurs at every [separator].
+ *                           If `false`, separators inside quoted strings are not considered split points.
+ */
+public fun Headers.getSplitValues(
+    name: String,
+    separator: Char = ',',
+    splitInsideQuotes: Boolean = false
+): List<String>? {
+    return splitHeaderValues(getAll(name) ?: return null, separator, splitInsideQuotes)
 }

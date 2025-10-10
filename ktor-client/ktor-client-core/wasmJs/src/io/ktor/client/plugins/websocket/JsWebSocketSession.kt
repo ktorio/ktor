@@ -73,7 +73,7 @@ internal class JsWebSocketSession(
             } else {
                 val dataAsBuffer = tryGetEventDataAsArrayBuffer(data)
                 if (dataAsBuffer != null) {
-                    Frame.Binary(false, Uint8Array(dataAsBuffer).asByteArray())
+                    Frame.Binary(true, Uint8Array(dataAsBuffer).asByteArray())
                 } else {
                     val error = IllegalStateException("Unknown frame type: ${event.type}")
                     _closeReason.completeExceptionally(error)

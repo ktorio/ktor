@@ -5,6 +5,7 @@
 package io.ktor.client.plugins.contentnegotiation
 
 import io.ktor.client.plugins.api.*
+import io.ktor.client.plugins.sse.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.utils.*
@@ -25,7 +26,9 @@ internal val DefaultCommonIgnoredTypes: Set<KClass<*>> = setOf(
     String::class,
     HttpStatusCode::class,
     ByteReadChannel::class,
-    OutgoingContent::class
+    OutgoingContent::class,
+    ClientSSESession::class,
+    ClientSSESessionWithDeserialization::class,
 )
 
 internal expect val DefaultIgnoredTypes: Set<KClass<*>>

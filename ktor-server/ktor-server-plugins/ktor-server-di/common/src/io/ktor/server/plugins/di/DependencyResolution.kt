@@ -4,18 +4,22 @@
 
 package io.ktor.server.plugins.di
 
-import io.ktor.server.config.ApplicationConfig
+import io.ktor.server.config.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlin.reflect.KProperty
 
 /**
  * Functional interface for generating a fresh `DependencyResolver`.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyResolution)
  */
 public fun interface DependencyResolution {
     /**
      * Resolves and creates a new instance of `DependencyResolver` using the provided `DependencyProvider`
      * and `DependencyReflection`.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyResolution.resolve)
      *
      * @param provider The `DependencyProvider` instance responsible for managing dependency initializers
      *                 and declarations.
@@ -33,6 +37,8 @@ public fun interface DependencyResolution {
 
 /**
  * A map of object instances.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyMap)
  */
 public interface DependencyMap {
     public companion object {
@@ -44,6 +50,8 @@ public interface DependencyMap {
          * using the `get` method of this object will always throw a `MissingDependencyException`.
          *
          * Use this object as a default or placeholder implementation.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyMap.Companion.EMPTY)
          */
         public val EMPTY: DependencyMap = object : DependencyMap {
             override fun contains(key: DependencyKey): Boolean = false
@@ -65,6 +73,8 @@ public interface DependencyMap {
     /**
      * Checks if the given dependency key is present in the dependency map.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyMap.contains)
+     *
      * @param key The unique key that identifies the dependency to check.
      * @return `true` if the dependency identified by the key is present in the map; otherwise `false`
      */
@@ -78,6 +88,8 @@ public interface DependencyMap {
  *
  * Unavailable on WASM / JS targets.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.getBlocking)
+ *
  * @param key the unique key that identifies the dependency to retrieve
  * @return the instance of the dependency associated with the given key
  * @throws MissingDependencyException if no dependency is associated with the given key
@@ -86,11 +98,15 @@ public expect fun <T> DependencyResolver.getBlocking(key: DependencyKey): T
 
 /**
  * A mutable extension of [DependencyMap] that allows for adding and retrieving dependencies.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.MutableDependencyMap)
  */
 public interface MutableDependencyMap : DependencyMap {
     /**
      * Retrieves the value associated with the specified key if it exists. If the key does not already have an associated
      * value, the result of invoking the [defaultValue] function will be stored and returned as the value for the given key.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.MutableDependencyMap.getOrPut)
      *
      * @param key the dependency key used to look up or store the value.
      * @param defaultValue a lambda function that provides a default value to store and return if the key is not found.
@@ -101,6 +117,8 @@ public interface MutableDependencyMap : DependencyMap {
 
 /**
  * Extends [DependencyMap] with reflection, allowing for the automatic injection of types.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyResolver)
  */
 public interface DependencyResolver : MutableDependencyMap, CoroutineScope {
     public val reflection: DependencyReflection
@@ -109,6 +127,8 @@ public interface DependencyResolver : MutableDependencyMap, CoroutineScope {
      * Decorates the dependency resolver with a qualified name for the expected type.
      *
      * Useful with delegation when used like: `val connection by dependencies.named("postgres")`
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyResolver.named)
      */
     public fun named(key: String): DependencyResolverContext =
         DependencyResolverContext(this, key)
@@ -119,6 +139,8 @@ public interface DependencyResolver : MutableDependencyMap, CoroutineScope {
 
     /**
      * Retrieves an instance of the dependency associated with the given key from the dependency map.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyResolver.get)
      *
      * @param key the unique key that identifies the dependency to retrieve
      * @return the instance of the dependency associated with the given key
@@ -141,6 +163,8 @@ public class MapDependencyResolver(
      * Updates the waitForValues flag so that future consumers will fail immediately when no initializer is found.
      *
      * This is called during application startup when all modules have either suspended or completed.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.MapDependencyResolver.stopWaiting)
      */
     public fun stopWaiting() {
         waitForValues = false
@@ -197,6 +221,8 @@ public class MapDependencyResolver(
  *
  * Where keys are common, precedence is given to the right-hand argument.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.plus)
+ *
  * @param right The DependencyMap to merge with.
  * @return A new DependencyMap instance that contains the keys of both.
  */
@@ -205,6 +231,8 @@ public operator fun DependencyMap.plus(right: DependencyMap): DependencyMap =
 
 /**
  * Get the dependency from the map for the key represented by the type (and optionally, with the given name).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.resolve)
  */
 public suspend inline fun <reified T> DependencyResolver.resolve(key: String? = null): T =
     get(DependencyKey<T>(key))
@@ -227,11 +255,15 @@ internal class MergedDependencyMap(
 
 /**
  * Qualifier for specifying when a dependency key maps to a property in the file configuration.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.PropertyQualifier)
  */
 public data object PropertyQualifier
 
 /**
  * Implementation of [DependencyMap] for referencing items from the server's file configuration.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.ConfigurationDependencyMap)
  */
 @Suppress("UNCHECKED_CAST")
 public class ConfigurationDependencyMap(
@@ -254,6 +286,8 @@ public class ConfigurationDependencyMap(
 
 /**
  * Context for property delegation with chaining (i.e., `dependencies.named("foo")`)
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyResolverContext)
  */
 public data class DependencyResolverContext(
     val resolver: DependencyResolver,
@@ -261,12 +295,16 @@ public data class DependencyResolverContext(
 ) {
     /**
      * Property delegation for [DependencyResolverContext] for use with the `named` shorthand for string qualifiers.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyResolverContext.getValue)
      */
     public inline operator fun <reified T> getValue(thisRef: Any?, property: KProperty<*>): T =
         resolver.getBlocking(DependencyKey<T>(name))
 
     /**
      * Get the dependency from the map for the key represented by the type (and optionally, with the given name).
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyResolverContext.resolve)
      */
     public suspend inline fun <reified T> DependencyResolver.resolve(key: String? = null): T =
         get(DependencyKey<T>(key))

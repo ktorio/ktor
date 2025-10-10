@@ -167,8 +167,8 @@ public final class io/ktor/server/application/OnCallRespondContext : io/ktor/ser
 public abstract interface class io/ktor/server/application/PipelineCall : io/ktor/server/application/ApplicationCall {
 	public abstract fun getRequest ()Lio/ktor/server/request/PipelineRequest;
 	public abstract fun getResponse ()Lio/ktor/server/response/PipelineResponse;
-	public abstract fun receiveNullable (Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun respond (Ljava/lang/Object;Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun receiveNullable (Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun respond (Ljava/lang/Object;Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/application/PipelineCall$DefaultImpls {
@@ -394,9 +394,13 @@ public abstract interface class io/ktor/server/engine/ApplicationEngine {
 	public abstract fun getEnvironment ()Lio/ktor/server/application/ApplicationEnvironment;
 	public abstract fun resolvedConnectors (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun start (Z)Lio/ktor/server/engine/ApplicationEngine;
-	public abstract fun startSuspend (ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun start$default (Lio/ktor/server/engine/ApplicationEngine;ZILjava/lang/Object;)Lio/ktor/server/engine/ApplicationEngine;
+	public fun startSuspend (ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun startSuspend$default (Lio/ktor/server/engine/ApplicationEngine;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun stop (JJ)V
-	public abstract fun stopSuspend (JJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun stop$default (Lio/ktor/server/engine/ApplicationEngine;JJILjava/lang/Object;)V
+	public fun stopSuspend (JJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun stopSuspend$default (Lio/ktor/server/engine/ApplicationEngine;JJLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public class io/ktor/server/engine/ApplicationEngine$Configuration {
@@ -737,8 +741,10 @@ public abstract interface class io/ktor/server/engine/EngineSSLConnectorConfig :
 
 public final class io/ktor/server/engine/ShutDownUrl {
 	public static final field Companion Lio/ktor/server/engine/ShutDownUrl$Companion;
-	public fun <init> (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public fun <init> (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun doShutdown (Lio/ktor/server/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getExit ()Lkotlin/jvm/functions/Function1;
 	public final fun getExitCode ()Lkotlin/jvm/functions/Function1;
 	public final fun getUrl ()Ljava/lang/String;
 }
@@ -749,8 +755,10 @@ public final class io/ktor/server/engine/ShutDownUrl$Companion {
 
 public final class io/ktor/server/engine/ShutDownUrl$Config {
 	public fun <init> ()V
+	public final fun getExit ()Lkotlin/jvm/functions/Function1;
 	public final fun getExitCodeSupplier ()Lkotlin/jvm/functions/Function1;
 	public final fun getShutDownUrl ()Ljava/lang/String;
+	public final fun setExit (Lkotlin/jvm/functions/Function1;)V
 	public final fun setExitCodeSupplier (Lkotlin/jvm/functions/Function1;)V
 	public final fun setShutDownUrl (Ljava/lang/String;)V
 }
@@ -799,6 +807,15 @@ public final class io/ktor/server/http/content/CompressedFileType : java/lang/En
 
 public final class io/ktor/server/http/content/DefaultTransformKt {
 	public static final fun transformDefaultContent (Lio/ktor/server/application/ApplicationCall;Ljava/lang/Object;)Lio/ktor/http/content/OutgoingContent;
+}
+
+public abstract interface class io/ktor/server/http/content/ETagProvider {
+	public static final field Companion Lio/ktor/server/http/content/ETagProvider$Companion;
+	public abstract fun provide (Ljava/lang/Object;)Lio/ktor/http/content/EntityTagVersion;
+}
+
+public final class io/ktor/server/http/content/ETagProvider$Companion {
+	public final fun getStrongSha256 ()Lio/ktor/server/http/content/ETagProvider;
 }
 
 public abstract interface class io/ktor/server/http/content/FileSystemPaths {
@@ -892,8 +909,11 @@ public final class io/ktor/server/http/content/StaticContentConfig {
 	public final fun contentType (Lkotlin/jvm/functions/Function1;)V
 	public final fun default (Ljava/lang/String;)V
 	public final fun enableAutoHeadResponse ()V
+	public final fun etag (Lio/ktor/server/http/content/ETagProvider;)V
 	public final fun exclude (Lkotlin/jvm/functions/Function1;)V
 	public final fun extensions ([Ljava/lang/String;)V
+	public final fun fallback (Lkotlin/jvm/functions/Function3;)V
+	public final fun lastModified (Lkotlin/jvm/functions/Function1;)V
 	public final fun modify (Lkotlin/jvm/functions/Function3;)V
 	public final fun preCompressed ([Lio/ktor/server/http/content/CompressedFileType;)V
 }
@@ -1585,6 +1605,7 @@ public abstract interface class io/ktor/server/routing/Route {
 	public abstract fun getParent ()Lio/ktor/server/routing/Route;
 	public abstract fun handle (Lkotlin/jvm/functions/Function2;)V
 	public abstract fun install (Lio/ktor/server/application/Plugin;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public static synthetic fun install$default (Lio/ktor/server/routing/Route;Lio/ktor/server/application/Plugin;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun plugin (Lio/ktor/server/application/Plugin;)Ljava/lang/Object;
 }
 
@@ -1775,6 +1796,7 @@ public final class io/ktor/server/routing/RoutingPathSegmentKind : java/lang/Enu
 }
 
 public final class io/ktor/server/routing/RoutingPipelineCall : io/ktor/server/application/PipelineCall, kotlinx/coroutines/CoroutineScope {
+	public fun <init> (Lio/ktor/server/application/PipelineCall;Lio/ktor/server/routing/RoutingNode;Lio/ktor/server/request/ApplicationReceivePipeline;Lio/ktor/server/response/ApplicationSendPipeline;Lio/ktor/http/Parameters;)V
 	public fun <init> (Lio/ktor/server/application/PipelineCall;Lio/ktor/server/routing/RoutingNode;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/request/ApplicationReceivePipeline;Lio/ktor/server/response/ApplicationSendPipeline;Lio/ktor/http/Parameters;)V
 	public fun getApplication ()Lio/ktor/server/application/Application;
 	public fun getAttributes ()Lio/ktor/util/Attributes;

@@ -1,5 +1,6 @@
 name: "Validate Gradle Wrapper"
-on: [ push, pull_request ]
+
+on: [ pull_request ]
 
 permissions:
   contents: read #  to fetch code (actions/checkout)
@@ -9,5 +10,5 @@ jobs:
     name: "Validation"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: gradle/actions/wrapper-validation@v4

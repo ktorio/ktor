@@ -135,7 +135,7 @@ public open class HttpClientCall(
     }
 
     public companion object {
-        private val CustomResponse: AttributeKey<Any> = AttributeKey("CustomResponse")
+        internal val CustomResponse: AttributeKey<Any> = AttributeKey("CustomResponse")
     }
 }
 

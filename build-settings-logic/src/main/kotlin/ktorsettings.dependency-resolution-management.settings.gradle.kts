@@ -24,12 +24,17 @@ dependencyResolutionManagement {
 
             downgradeTestDependencies()
         }
+
+        create("kotlinWrappers") {
+            from("org.jetbrains.kotlin-wrappers:kotlin-wrappers-catalog:2025.7.10")
+        }
     }
 }
 
 private fun RepositoryHandler.configureRepositories() {
     google {
         content {
+            includeGroupAndSubgroups("androidx")
             includeGroupAndSubgroups("com.google")
             includeGroupAndSubgroups("com.android")
         }

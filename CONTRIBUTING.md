@@ -41,7 +41,17 @@ Up to 12 GB of free RAM is required to build the project.
 This amount can be reduced by decreasing the `Xmx` value in `gradle.properties`.
 Read the comments in `gradle.properties` for more details.
 
-If targeting macOS and/or iOS, install `Xcode` and `Xcode command line tools` on macOS.
+The path to the android sdk should be defined in the ANDROID_HOME environment variable or `sdk.dir` in the `local.properties` file, like:
+```properties
+sdk.dir=/Users/USER_NAME/Library/Android/sdk
+```
+
+If you target macOS and/or iOS, install `Xcode`, `Xcode command line tools`, `CocoaPods` and `Ruby` on macOS.
+An outdated Ruby version 2 is installed by default, but you should manually install a new version of it.
+We recommend using Ruby `3.3.x` or newer with [rbenv](https://github.com/rbenv/rbenv):
+- `rbenv install 3.3.x`
+- `rbenv global 3.3.x`
+- `sudo gem install -n /usr/local/bin cocoapods`
 
 <details>
 <summary>Requirements for Ktor before 3.1.0</summary>
@@ -91,6 +101,18 @@ includeBuild("/PATH/TO/KTOR")
 To import into IntelliJ IDEA, just open up the `Ktor` project folder. IntelliJ IDEA should automatically detect
 that it is a Gradle project and import it. It's important that you make sure that all building and test operations
 are delegated to Gradle under [Gradle Settings](https://www.jetbrains.com/help/idea/gradle-settings.html).
+
+#### Working with Rust-based Modules Locally
+
+The `ktor-client-webrtc-rs` module utilizes Rust components internally. To develop with this module in your local environment, you'll need to complete the following setup steps:
+
+**Prerequisites:**
+- Install Rust and Cargo on your system
+- Configure your build environment by adding `ktorbuild.rustCompilation=true` to your global `gradle.properties` file
+  > ⚠️ **Important:** This setting should remain local to your development environment—do not commit this change to version control
+
+**Additional Dependencies:**
+Depending on your target platforms, you may need to install additional dependencies for Rust cross-compilation. For comprehensive guidance on cross-compilation requirements and troubleshooting, refer to the [Gobley cross-compilation documentation](https://gobley.dev/docs/cross-compilation-tips).
 
 ### Pull Requests
 

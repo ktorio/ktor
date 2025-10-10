@@ -38,8 +38,8 @@ class ServerSentEventsTest {
 
         val client = createSseClient()
         val expected = """
-            data: world
             event: send
+            data: world
             id: 100
             retry: 1000
             : comment

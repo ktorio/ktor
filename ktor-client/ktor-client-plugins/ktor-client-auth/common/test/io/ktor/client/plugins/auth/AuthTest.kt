@@ -828,4 +828,308 @@ class AuthTest : ClientLoader() {
             assertEquals(HttpStatusCode.OK, response2.status)
         }
     }
+
+    @Test
+    fun testBearerAuthWithoutCaching() = testWithEngine(MockEngine) {
+        var tokenCounter = 0
+        config {
+            install(Auth) {
+                bearer {
+                    cacheTokens = false
+                    loadTokens {
+                        tokenCounter++
+                        BearerTokens("token$tokenCounter", "refresh")
+                    }
+                }
+            }
+            engine {
+                addHandler { request ->
+                    val authHeader = request.headers[HttpHeaders.Authorization]
+                    respond("OK: $authHeader", HttpStatusCode.OK)
+                }
+            }
+        }
+
+        test { client ->
+            tokenCounter = 0
+
+            val response1 = client.get("/").bodyAsText()
+            assertEquals("OK: Bearer token1", response1)
+
+            val response2 = client.get("/").bodyAsText()
+            assertEquals("OK: Bearer token2", response2)
+
+            val response3 = client.get("/").bodyAsText()
+            assertEquals("OK: Bearer token3", response3)
+
+            // Verify loadTokens was called 3 times (no caching)
+            assertEquals(3, tokenCounter)
+        }
+    }
+
+    @Test
+    fun testBearerAuthWithCaching() = testWithEngine(MockEngine) {
+        var tokenCounter = 0
+        config {
+            install(Auth) {
+                bearer {
+                    cacheTokens = true // explicit, though this is default
+                    loadTokens {
+                        tokenCounter++
+                        BearerTokens("token$tokenCounter", "refresh")
+                    }
+                }
+            }
+            engine {
+                addHandler { request ->
+                    val authHeader = request.headers[HttpHeaders.Authorization]
+                    respond("OK: $authHeader", HttpStatusCode.OK)
+                }
+            }
+        }
+
+        test { client ->
+            tokenCounter = 0
+
+            val response1 = client.get("/").bodyAsText()
+            assertEquals("OK: Bearer token1", response1)
+
+            val response2 = client.get("/").bodyAsText()
+            assertEquals("OK: Bearer token1", response2)
+
+            val response3 = client.get("/").bodyAsText()
+            assertEquals("OK: Bearer token1", response3)
+
+            // Verify loadTokens was called only once (cached)
+            assertEquals(1, tokenCounter)
+        }
+    }
+
+    @Test
+    fun testBasicAuthWithoutCaching() = testWithEngine(MockEngine) {
+        var credentialCounter = 0
+        config {
+            install(Auth) {
+                basic {
+                    cacheTokens = false
+                    credentials {
+                        credentialCounter++
+                        BasicAuthCredentials("user$credentialCounter", "pass$credentialCounter")
+                    }
+                    sendWithoutRequest { true }
+                }
+            }
+            engine {
+                addHandler { request ->
+                    val authHeader = request.headers[HttpHeaders.Authorization]
+                    respond("OK: $authHeader", HttpStatusCode.OK)
+                }
+            }
+        }
+
+        test { client ->
+            credentialCounter = 0
+
+            client.get("/").bodyAsText()
+            client.get("/").bodyAsText()
+            client.get("/").bodyAsText()
+
+            // Verify credentials was called 3 times (no caching)
+            assertEquals(3, credentialCounter)
+        }
+    }
+
+    @Test
+    fun testClearAuthTokensExtension() = testWithEngine(MockEngine) {
+        var tokenCounter = 0
+        config {
+            install(Auth) {
+                bearer {
+                    loadTokens {
+                        tokenCounter++
+                        BearerTokens("token$tokenCounter", "refresh")
+                    }
+                }
+            }
+            engine {
+                addHandler { request ->
+                    val authHeader = request.headers[HttpHeaders.Authorization]
+                    respond("OK: $authHeader", HttpStatusCode.OK)
+                }
+            }
+        }
+
+        test { client ->
+            tokenCounter = 0
+
+            val response1 = client.get("/").bodyAsText()
+            assertEquals("OK: Bearer token1", response1)
+
+            val response2 = client.get("/").bodyAsText()
+            assertEquals("OK: Bearer token1", response2)
+
+            // Clear tokens using extension
+            client.clearAuthTokens()
+
+            val response3 = client.get("/").bodyAsText()
+            assertEquals("OK: Bearer token2", response3)
+
+            // Verify loadTokens was called twice (once initially, once after clear)
+            assertEquals(2, tokenCounter)
+        }
+    }
+
+    @Test
+    fun testClearAuthTokensWithMultipleProviders() = testWithEngine(MockEngine) {
+        var bearerTokenCounter = 0
+        var basicCredentialCounter = 0
+        config {
+            install(Auth) {
+                bearer {
+                    loadTokens {
+                        bearerTokenCounter++
+                        BearerTokens("bearer$bearerTokenCounter", "refresh")
+                    }
+                    sendWithoutRequest { it.url.encodedPath == "/bearer" }
+                }
+                basic {
+                    credentials {
+                        basicCredentialCounter++
+                        BasicAuthCredentials("user$basicCredentialCounter", "pass")
+                    }
+                    sendWithoutRequest { it.url.encodedPath == "/basic" }
+                }
+            }
+            engine {
+                addHandler { request ->
+                    val authHeader = request.headers[HttpHeaders.Authorization]
+                    respond("OK: $authHeader", HttpStatusCode.OK)
+                }
+            }
+        }
+
+        test { client ->
+            bearerTokenCounter = 0
+            basicCredentialCounter = 0
+
+            client.get("/bearer").bodyAsText()
+            client.get("/basic").bodyAsText()
+
+            assertEquals(1, bearerTokenCounter)
+            assertEquals(1, basicCredentialCounter)
+
+            // Clear all auth tokens
+            client.clearAuthTokens()
+
+            client.get("/bearer").bodyAsText()
+            client.get("/basic").bodyAsText()
+
+            // Both should be called again after clear
+            assertEquals(2, bearerTokenCounter)
+            assertEquals(2, basicCredentialCounter)
+        }
+    }
+
+    @Test
+    fun testAuthProviderExtension() = testWithEngine(MockEngine) {
+        config {
+            install(Auth) {
+                bearer {
+                    loadTokens { BearerTokens("bearer-token", "refresh") }
+                }
+                basic {
+                    credentials { BasicAuthCredentials("user", "pass") }
+                }
+            }
+            engine {
+                addHandler { respond("OK", HttpStatusCode.OK) }
+            }
+        }
+
+        test { client ->
+            // Test getting bearer provider
+            val bearerProvider = client.authProvider<BearerAuthProvider>()
+            assertNotNull(bearerProvider)
+
+            // Test getting basic provider
+            val basicProvider = client.authProvider<BasicAuthProvider>()
+            assertNotNull(basicProvider)
+
+            // Test getting non-existent provider
+            val digestProvider = client.authProvider<DigestAuthProvider>()
+            assertNull(digestProvider)
+        }
+    }
+
+    @Test
+    fun testAuthProviderExtensionWithClearToken() = testWithEngine(MockEngine) {
+        var tokenCounter = 0
+        config {
+            install(Auth) {
+                bearer {
+                    loadTokens {
+                        tokenCounter++
+                        BearerTokens("token$tokenCounter", "refresh")
+                    }
+                }
+            }
+            engine {
+                addHandler { request ->
+                    val authHeader = request.headers[HttpHeaders.Authorization]
+                    respond("OK: $authHeader", HttpStatusCode.OK)
+                }
+            }
+        }
+
+        test { client ->
+            tokenCounter = 0
+
+            val response1 = client.get("/").bodyAsText()
+            assertEquals("OK: Bearer token1", response1)
+
+            val response2 = client.get("/").bodyAsText()
+            assertEquals("OK: Bearer token1", response2)
+
+            // Clear using authProvider extension
+            client.authProvider<BearerAuthProvider>()?.clearToken()
+
+            val response3 = client.get("/").bodyAsText()
+            assertEquals("OK: Bearer token2", response3)
+
+            assertEquals(2, tokenCounter)
+        }
+    }
+
+    @Test
+    fun testAuthProvidersProperty() = testWithEngine(MockEngine) {
+        config {
+            install(Auth) {
+                bearer {
+                    loadTokens { BearerTokens("token", "refresh") }
+                    realm = "realm1"
+                }
+                bearer {
+                    loadTokens { BearerTokens("token2", "refresh2") }
+                    realm = "realm2"
+                }
+                basic {
+                    credentials { BasicAuthCredentials("user", "pass") }
+                }
+            }
+            engine {
+                addHandler { respond("OK", HttpStatusCode.OK) }
+            }
+        }
+
+        test { client ->
+            val providers = client.authProviders
+            assertEquals(3, providers.size)
+
+            val bearerProviders = providers.filterIsInstance<BearerAuthProvider>()
+            assertEquals(2, bearerProviders.size)
+
+            val basicProviders = providers.filterIsInstance<BasicAuthProvider>()
+            assertEquals(1, basicProviders.size)
+        }
+    }
 }

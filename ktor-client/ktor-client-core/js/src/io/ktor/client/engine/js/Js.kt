@@ -6,7 +6,6 @@ package io.ktor.client.engine.js
 
 import io.ktor.client.engine.*
 import io.ktor.utils.io.*
-import org.w3c.fetch.RequestInit
 
 /**
  * A JavaScript client engine that uses the fetch API to execute requests.
@@ -40,6 +39,8 @@ public actual open class JsClientEngineConfig : HttpClientEngineConfig() {
     /**
      * Provides access to the underlying fetch options of the engine.
      * It allows setting credentials, cache, mode, redirect, referrer, integrity, keepalive, signal, window.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.js.JsClientEngineConfig.configureRequest)
      */
     public fun configureRequest(block: io.ktor.client.fetch.RequestInit.() -> Unit) {
         requestInit = block

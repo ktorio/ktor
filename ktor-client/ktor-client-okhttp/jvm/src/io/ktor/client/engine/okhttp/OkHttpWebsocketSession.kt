@@ -12,9 +12,9 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import okhttp3.*
-import okio.*
+import okio.ByteString
 import okio.ByteString.Companion.toByteString
-import kotlin.coroutines.*
+import kotlin.coroutines.CoroutineContext
 
 internal class OkHttpWebsocketSession(
     private val engine: OkHttpClient,
@@ -125,7 +125,7 @@ internal class OkHttpWebsocketSession(
         _closeReason.complete(CloseReason(code.toShort(), reason))
         try {
             outgoing.trySendBlocking(Frame.Close(CloseReason(code.toShort(), reason)))
-        } catch (ignore: Throwable) {
+        } catch (_: Throwable) {
         }
         _incoming.close()
     }

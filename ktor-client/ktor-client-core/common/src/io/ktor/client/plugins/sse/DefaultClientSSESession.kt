@@ -4,10 +4,12 @@
 
 package io.ktor.client.plugins.sse
 
+import io.ktor.client.network.sockets.SocketTimeoutException
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.sse.*
 import io.ktor.util.logging.*
+import io.ktor.util.rootCause
 import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.*
@@ -30,10 +32,13 @@ public class DefaultClientSSESession(
     private val showRetryEvents = content.showRetryEvents
     private val maxReconnectionAttempts = content.maxReconnectionAttempts
     private var needToReconnect = maxReconnectionAttempts > 0
+    private var bodyBuffer: BodyBuffer = content.bufferPolicy.toBodyBuffer()
 
     private val initialRequest = content.initialRequest
 
     private val clientForReconnection = initialRequest.attributes[SSEClientForReconnectionAttr]
+
+    override fun bodyBuffer(): ByteArray = bodyBuffer.toByteArray()
 
     public constructor(
         content: SSEClientContent,
@@ -50,6 +55,7 @@ public class DefaultClientSSESession(
                 if (event.isCommentsEvent() && !showCommentEvents) continue
                 if (event.isRetryEvent() && !showRetryEvents) continue
 
+                bodyBuffer.appendEvent(event)
                 emit(event)
             }
 
@@ -128,7 +134,7 @@ public class DefaultClientSSESession(
         attributes.put(SSEReconnectionRequestAttr, true)
 
         lastEventId?.let {
-            headers.append("Last-Event-ID", it)
+            headers.append(HttpHeaders.LastEventID, it)
         }
     }
 
@@ -143,7 +149,12 @@ public class DefaultClientSSESession(
     private suspend fun ByteReadChannel.tryParseEvent(): ServerSentEvent? =
         try {
             parseEvent()
-        } catch (_: ClosedByteChannelException) {
+        } catch (cause: ClosedByteChannelException) {
+            val rootCause = cause.rootCause
+            if (rootCause is SocketTimeoutException) {
+                throw rootCause
+            }
+
             // this is expected when the server disconnects
             null
         }
@@ -158,9 +169,9 @@ public class DefaultClientSSESession(
         var wasData = false
         var wasComments = false
 
-        var line: String = readUTF8Line() ?: return null
+        var line: String = readUTF8LineWithSave() ?: return null
         while (line.isBlank()) {
-            line = readUTF8Line() ?: return null
+            line = readUTF8LineWithSave() ?: return null
         }
 
         while (true) {
@@ -209,12 +220,18 @@ public class DefaultClientSSESession(
                     }
                 }
             }
-            line = readUTF8Line() ?: return null
+            line = readUTF8LineWithSave() ?: return null
         }
     }
 
     private fun StringBuilder.appendComment(comment: String) {
         append(comment.removePrefix(COLON).removePrefix(SPACE)).append(END_OF_LINE)
+    }
+
+    private suspend fun ByteReadChannel.readUTF8LineWithSave(): String? {
+        val line = readUTF8Line() ?: return null
+        bodyBuffer.appendLine(line)
+        return line
     }
 
     private fun StringBuilder.toText() = toString().removeSuffix(END_OF_LINE)

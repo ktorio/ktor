@@ -94,7 +94,6 @@ public class RoutingRoot(
         val routingApplicationCall = RoutingPipelineCall(
             context.call,
             route,
-            context.coroutineContext,
             receivePipeline,
             responsePipeline,
             parameters

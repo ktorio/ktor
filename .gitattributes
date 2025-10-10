@@ -1,0 +1,2 @@
+# Prevent merges from clobbering version
+VERSION merge=ours

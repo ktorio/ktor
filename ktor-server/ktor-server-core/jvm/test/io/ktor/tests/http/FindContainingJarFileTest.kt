@@ -5,25 +5,35 @@
 package io.ktor.tests.http
 
 import io.ktor.server.http.content.*
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 
 class FindContainingJarFileTest {
     @Test
     fun testSimpleJar() {
-        assertEquals("/dist/app.jar", findContainingJarFile("jar:file:/dist/app.jar!/test").path.replace('\\', '/'))
+        assertEquals("/dist/app.jar", findContainingJarFile("jar:file:/dist/app.jar!/test")!!.path.replace('\\', '/'))
     }
 
     @Test
     fun testSimpleJarNoFile() {
-        assertEquals("/dist/app.jar", findContainingJarFile("jar:file:/dist/app.jar!").path.replace('\\', '/'))
+        assertEquals("/dist/app.jar", findContainingJarFile("jar:file:/dist/app.jar!")!!.path.replace('\\', '/'))
     }
 
     @Test
     fun testEscapedChars() {
         assertEquals(
             "/Program Files/app.jar",
-            findContainingJarFile("jar:file:/Program%20Files/app.jar!/test")
-                .path.replace('\\', '/')
+            findContainingJarFile("jar:file:/Program%20Files/app.jar!/test")!!.path.replace('\\', '/')
         )
+    }
+
+    @Test
+    fun testNestedAndNonLocalJars() {
+        assertNull(findContainingJarFile("jar:nested:/pathto/app.jar/!BOOT-INF/classes/!/static"))
+        assertFailsWith<IllegalArgumentException> {
+            findContainingJarFile("jar:file:/pathto/app.jar/!BOOT-INF/classes/!/static")
+        }
     }
 }

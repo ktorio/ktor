@@ -166,6 +166,39 @@ public class HttpClientConfig<T : HttpClientEngineConfig> {
             (this as TBuilder).configure()
         }
 
+        installPlugin(plugin)
+    }
+
+    /**
+     * Installs the specified [plugin] and optionally configures it using the [configure] block.
+     * If the plugin is already installed, the configuration block will replace the existing configuration class.
+     *
+     * ```kotlin
+     * val client = HttpClient {
+     *     installOrReplace(ContentNegotiation) {
+     *         // configuration block
+     *         json()
+     *     }
+     * }
+     * ```
+     *
+     * Learn more from [Plugins](https://ktor.io/docs/http-client-plugins.html).
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClientConfig.installOrReplace)
+     */
+    public fun <TBuilder : Any, TPlugin : Any> installOrReplace(
+        plugin: HttpClientPlugin<TBuilder, TPlugin>,
+        configure: TBuilder.() -> Unit = {}
+    ) {
+        pluginConfigurations[plugin.key] = {
+            @Suppress("UNCHECKED_CAST")
+            (this as TBuilder).configure()
+        }
+
+        installPlugin(plugin)
+    }
+
+    private fun <TBuilder : Any, TPlugin : Any> installPlugin(plugin: HttpClientPlugin<TBuilder, TPlugin>) {
         if (plugins.containsKey(plugin.key)) return
 
         plugins[plugin.key] = { scope ->

@@ -70,7 +70,7 @@ public final class io/ktor/server/plugins/di/DependencyConflictResult$Replace : 
 
 public abstract interface class io/ktor/server/plugins/di/DependencyInitializer {
 	public abstract fun getKey ()Lio/ktor/server/plugins/di/DependencyKey;
-	public abstract fun getOriginKey ()Lio/ktor/server/plugins/di/DependencyKey;
+	public fun getOriginKey ()Lio/ktor/server/plugins/di/DependencyKey;
 	public abstract fun resolve (Lio/ktor/server/plugins/di/DependencyResolver;)Lkotlinx/coroutines/Deferred;
 }
 
@@ -293,10 +293,10 @@ public final class io/ktor/server/plugins/di/DependencyResolution_jvmKt {
 }
 
 public abstract interface class io/ktor/server/plugins/di/DependencyResolver : io/ktor/server/plugins/di/MutableDependencyMap, kotlinx/coroutines/CoroutineScope {
-	public abstract fun get (Lio/ktor/server/plugins/di/DependencyKey;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun getDeferred (Lio/ktor/server/plugins/di/DependencyKey;)Lkotlinx/coroutines/Deferred;
+	public fun get (Lio/ktor/server/plugins/di/DependencyKey;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getDeferred (Lio/ktor/server/plugins/di/DependencyKey;)Lkotlinx/coroutines/Deferred;
 	public abstract fun getReflection ()Lio/ktor/server/plugins/di/DependencyReflection;
-	public abstract fun named (Ljava/lang/String;)Lio/ktor/server/plugins/di/DependencyResolverContext;
+	public fun named (Ljava/lang/String;)Lio/ktor/server/plugins/di/DependencyResolverContext;
 }
 
 public final class io/ktor/server/plugins/di/DependencyResolver$DefaultImpls {

@@ -92,6 +92,12 @@ public suspend fun ByteWriteChannel.writeBuffer(source: RawSource) {
 }
 
 @OptIn(InternalAPI::class)
+public suspend fun ByteWriteChannel.writeBuffer(value: RawSource, length: Long) {
+    writeBuffer.write(value, length)
+    flushIfNeeded()
+}
+
+@OptIn(InternalAPI::class)
 public suspend fun ByteWriteChannel.writeStringUtf8(value: String) {
     writeBuffer.writeText(value)
     flushIfNeeded()
@@ -106,6 +112,8 @@ public suspend fun ByteWriteChannel.writePacket(copy: Buffer) {
 /**
  * Writes the entire source contents to the [ByteChannel].
  * Prevents memory exhaustion by waiting for buffer to flush.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.writePacket)
  */
 @OptIn(InternalAPI::class)
 public suspend fun ByteWriteChannel.writePacket(source: Source) {

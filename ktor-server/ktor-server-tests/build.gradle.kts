@@ -19,6 +19,7 @@ kotlin {
         jvmTest.dependencies {
             implementation(libs.jansi)
             implementation(projects.ktorClientEncoding)
+            implementation(libs.zstd.jni)
             api(projects.ktorServerSse)
         }
     }

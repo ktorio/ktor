@@ -8,6 +8,7 @@ public final class io/ktor/client/engine/apache5/Apache5 : io/ktor/client/engine
 
 public final class io/ktor/client/engine/apache5/Apache5EngineConfig : io/ktor/client/engine/HttpClientEngineConfig {
 	public fun <init> ()V
+	public final fun configureConnectionManager (Lkotlin/jvm/functions/Function1;)V
 	public final fun customizeClient (Lkotlin/jvm/functions/Function1;)V
 	public final fun customizeRequest (Lkotlin/jvm/functions/Function1;)V
 	public final fun getConnectTimeout ()J

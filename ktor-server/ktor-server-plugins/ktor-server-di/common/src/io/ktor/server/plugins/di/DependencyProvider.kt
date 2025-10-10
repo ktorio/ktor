@@ -13,10 +13,14 @@ import kotlin.coroutines.CoroutineContext
  * Represents a provider for managing dependencies in a dependency injection mechanism.
  * This interface allows the registration of dependency initializers and the retrieval
  * or instantiation of declared dependencies based on their unique keys.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyProvider)
  */
 public interface DependencyProvider {
     /**
      * Associate the given dependency key with the corresponding initializer.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyProvider.set)
      *
      * @param T The type of the value produced by the initializer function.
      * @param key The key containing type and name
@@ -28,6 +32,8 @@ public interface DependencyProvider {
 
 /**
  * Basic call for providing a dependency, like `provide<Service> { ServiceImpl() }`.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.provide)
  */
 public inline fun <reified T> DependencyProvider.provide(
     name: String? = null,

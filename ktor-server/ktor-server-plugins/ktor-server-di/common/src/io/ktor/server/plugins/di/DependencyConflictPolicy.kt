@@ -4,16 +4,15 @@
 
 package io.ktor.server.plugins.di
 
-import io.ktor.server.plugins.di.DependencyConflictResult.Ambiguous
-import io.ktor.server.plugins.di.DependencyConflictResult.Conflict
-import io.ktor.server.plugins.di.DependencyConflictResult.KeepNew
-import io.ktor.server.plugins.di.DependencyConflictResult.KeepPrevious
+import io.ktor.server.plugins.di.DependencyConflictResult.*
 
 /**
  * Defines a policy for resolving conflicts between two dependency creation functions.
  *
  * This mechanism is used to manage dependency resolutions in scenarios where multiple
  * initializers are registered for the same dependency key.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyConflictPolicy)
  */
 public fun interface DependencyConflictPolicy {
 
@@ -23,6 +22,8 @@ public fun interface DependencyConflictPolicy {
      * This method determines the appropriate `DependencyConflictResult` for handling
      * the conflict between the previously registered dependency creation function
      * and the currently provided one.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyConflictPolicy.resolve)
      *
      * @param prev The previously registered dependency creation function.
      * @param current The newly provided dependency creation function.
@@ -45,6 +46,8 @@ public fun interface DependencyConflictPolicy {
  * - `Ambiguous`: Mark the conflict as ambiguous and unresolved.
  * - `Conflict`: Indicate a detected irreconcilable conflict that cannot be resolved.
  * - `Replace`: Replace the existing dependency with a specific creation function.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyConflictResult)
  */
 public sealed interface DependencyConflictResult {
     public data object KeepPrevious : DependencyConflictResult
@@ -59,6 +62,8 @@ public sealed interface DependencyConflictResult {
  *
  * When two declarations are made for the same type, a duplicate exception is thrown.
  * When there are multiple declarations that match the same implicit keys, then an ambiguous exception is thrown.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DefaultConflictPolicy)
  */
 public val DefaultConflictPolicy: DependencyConflictPolicy = DependencyConflictPolicy { prev, current ->
     require(current !is DependencyInitializer.Ambiguous) { "Unexpected ambiguous function supplied" }
@@ -74,6 +79,8 @@ public val DefaultConflictPolicy: DependencyConflictPolicy = DependencyConflictP
 /**
  * During testing, we ignore conflicts.
  * This allows for replacing base implementations with mock values.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.IgnoreConflicts)
  */
 public val IgnoreConflicts: DependencyConflictPolicy = DependencyConflictPolicy { prev, current ->
     when (val result = DefaultConflictPolicy.resolve(prev, current)) {

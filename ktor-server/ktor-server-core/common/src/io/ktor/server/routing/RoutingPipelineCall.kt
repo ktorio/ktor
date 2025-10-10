@@ -23,14 +23,29 @@ import kotlin.coroutines.*
 public class RoutingPipelineCall(
     public val engineCall: PipelineCall,
     public val route: RoutingNode,
-    override val coroutineContext: CoroutineContext,
     receivePipeline: ApplicationReceivePipeline,
     responsePipeline: ApplicationSendPipeline,
     public val pathParameters: Parameters
 ) : PipelineCall, CoroutineScope {
+    @Deprecated(level = DeprecationLevel.WARNING, message = "CoroutineContext is delegated to engineCall now.")
+    public constructor(
+        engineCall: PipelineCall,
+        route: RoutingNode,
+        coroutineContext: CoroutineContext,
+        receivePipeline: ApplicationReceivePipeline,
+        responsePipeline: ApplicationSendPipeline,
+        pathParameters: Parameters
+    ) : this(
+        engineCall,
+        route,
+        receivePipeline,
+        responsePipeline,
+        pathParameters
+    )
 
     override val application: Application get() = engineCall.application
     override val attributes: Attributes get() = engineCall.attributes
+    override val coroutineContext: CoroutineContext get() = engineCall.coroutineContext
 
     override val request: RoutingPipelineRequest =
         RoutingPipelineRequest(this, receivePipeline, engineCall.request)

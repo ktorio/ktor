@@ -11,19 +11,36 @@ import org.jetbrains.kotlin.gradle.targets.js.npm.PublicPackageJsonTask
 
 /**
  * Register an empty task that will trigger all [PublicPackageJsonTask] tasks in the project.
- * This task should be registered for every project to make [dependsOnPackageJsonAggregation] work.
+ * This task should be registered for every project to make [wirePackageJsonAggregationTasks] work.
  */
-internal fun Project.registerPackageJsonAggregationTask() {
-    tasks.register(TASK_NAME) {
-        dependsOn(tasks.withType<PublicPackageJsonTask>())
+internal fun Project.registerPackageJsonAggregationTasks() {
+    registerPackageJsonAggregationTask("js")
+    registerPackageJsonAggregationTask("wasmJs")
+}
+
+private fun Project.registerPackageJsonAggregationTask(target: String) {
+    tasks.register(aggregationTaskName(target)) {
+        dependsOn(tasks.withType<PublicPackageJsonTask>().named { it.startsWith(target) })
     }
+}
+
+/**
+ * Applies a workaround to make the ':packageJsonUmbrella' task compatible with configuration on demand.
+ * This function should be called on the root project.
+ * Issue: https://youtrack.jetbrains.com/issue/KT-55701
+ */
+fun Project.wirePackageJsonAggregationTasks() {
+    tasks.named { it == "kotlinPackageJsonUmbrella" }
+        .configureEach { dependsOnPackageJsonAggregation("js") }
+    tasks.named { it == "kotlinWasmPackageJsonUmbrella" }
+        .configureEach { dependsOnPackageJsonAggregation("wasmJs") }
 }
 
 /**
  * Ensures that all [PublicPackageJsonTask] tasks are executed before the task is executed.
  */
-fun Task.dependsOnPackageJsonAggregation() {
-    dependsOn(project.subprojects.map { subproject -> "${subproject.path}:$TASK_NAME" })
+private fun Task.dependsOnPackageJsonAggregation(target: String) {
+    dependsOn(project.subprojects.map { subproject -> "${subproject.path}:${aggregationTaskName(target)}" })
 }
 
-private const val TASK_NAME = "packageJsonAggregation"
+private fun aggregationTaskName(target: String) = "${target}PackageJsonAggregation"

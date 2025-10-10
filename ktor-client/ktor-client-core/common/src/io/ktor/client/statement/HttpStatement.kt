@@ -9,7 +9,8 @@ import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CompletableJob
+import kotlinx.coroutines.job
 
 /**
  * Represents a prepared HTTP request statement for [HttpClient].
@@ -174,13 +175,17 @@ public class HttpStatement(
     @PublishedApi
     @OptIn(InternalAPI::class)
     internal suspend fun HttpResponse.cleanup() {
-        val job = coroutineContext[Job]!! as CompletableJob
+        val job = coroutineContext.job as CompletableJob
 
         job.apply {
             complete()
-            try {
-                rawContent.cancel()
-            } catch (_: Throwable) {
+            // If the response is saved, the underlying channel is already closed and
+            // calling `rawContent` would create a new one
+            if (!isSaved) {
+                try {
+                    rawContent.cancel()
+                } catch (_: Throwable) {
+                }
             }
             join()
         }

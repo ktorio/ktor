@@ -285,6 +285,57 @@ class MultipartTest {
         assertEquals("epilogue", epilogue.body.readText())
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
+    @Test
+    fun testEmptyPart() = runBlocking {
+        val body = """
+            POST /send-message.html HTTP/1.1
+            Host: webmail.example.com
+            Referer: http://webmail.example.com/send-message.html
+            User-Agent: BrowserForDummies/4.67b
+            Content-Type: multipart/form-data; boundary=Asrf456BGe4h
+            Connection: close
+            Keep-Alive: 300
+
+            preamble
+            --Asrf456BGe4h
+            Content-Disposition: form-data; name="DestAddress"
+
+            recipient@example.com
+            --Asrf456BGe4h
+            --Asrf456BGe4h
+            Content-Disposition: form-data; name="MessageText"
+
+            See attachments...
+            --Asrf456BGe4h
+            --Asrf456BGe4h--
+            epilogue
+        """.trimIndent()
+            .lines()
+            .joinToString("\r\n")
+
+        val ch = ByteReadChannel(body.toByteArray())
+        val request = parseRequest(ch)!!
+        val mp = parseMultipart(ch, request.headers)
+
+        val allEvents = ArrayList<MultipartEvent>()
+        mp.consumeEach { allEvents.add(it) }
+
+        assertEquals(4, allEvents.size)
+
+        val preamble = allEvents[0] as MultipartEvent.Preamble
+        assertEquals("preamble\r\n", preamble.body.readText())
+
+        val recipient = allEvents[1] as MultipartEvent.MultipartPart
+        assertEquals("recipient@example.com", recipient.body.readRemaining().readText())
+
+        val text = allEvents[2] as MultipartEvent.MultipartPart
+        assertEquals("See attachments...", text.body.readRemaining().readText())
+
+        val epilogue = allEvents[3] as MultipartEvent.Epilogue
+        assertEquals("epilogue", epilogue.body.readText())
+    }
+
     @Test
     fun testParseBoundary() {
         testBoundary("\r\n--A", "multipart/mixed;boundary=A")

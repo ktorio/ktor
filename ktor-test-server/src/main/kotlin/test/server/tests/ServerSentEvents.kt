@@ -73,7 +73,7 @@ internal fun Application.serverSentEvents() {
                     writeSseEvents(events)
                 }
             }
-            get("/echo") {
+            post("/echo") {
                 call.respondSseEvents(
                     flow {
                         emit(SseEvent(call.receiveText()))
@@ -170,6 +170,13 @@ internal fun Application.serverSentEvents() {
                 } else {
                     call.respond(HttpStatusCode.NoContent)
                 }
+            }
+            get("/error") {
+                call.respond(HttpStatusCode.InternalServerError, "Server error")
+            }
+            get("/bad-response-json") {
+                call.response.header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                call.respond(HttpStatusCode.BadRequest, "{ 'error': 'Bad request' }")
             }
         }
     }

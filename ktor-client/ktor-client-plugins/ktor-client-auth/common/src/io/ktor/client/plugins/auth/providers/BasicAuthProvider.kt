@@ -22,7 +22,7 @@ import io.ktor.utils.io.core.*
 @KtorDsl
 public fun AuthConfig.basic(block: BasicAuthConfig.() -> Unit) {
     with(BasicAuthConfig().apply(block)) {
-        this@basic.providers.add(BasicAuthProvider(credentials, realm, _sendWithoutRequest))
+        this@basic.providers.add(BasicAuthProvider(credentials, realm, _sendWithoutRequest, cacheTokens))
     }
 }
 
@@ -63,6 +63,22 @@ public class BasicAuthConfig {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.BasicAuthConfig.realm)
      */
     public var realm: String? = null
+
+    /**
+     * Configures whether to cache the result of [credentials].
+     *
+     * When `true` (default), the result of [credentials] is cached and reused for subsequent requests.
+     * When `false`, [credentials] is called on every request, allowing dynamic credential updates
+     * without needing to call [BasicAuthProvider.clearToken].
+     *
+     * Set this to `false` when:
+     * - You need to update credentials dynamically during the client's lifetime
+     * - You manage credential caching externally
+     * - You want to avoid calling [BasicAuthProvider.clearToken] on credential changes
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.BasicAuthConfig.cacheTokens)
+     */
+    public var cacheTokens: Boolean = true
 
     @Suppress("DEPRECATION_ERROR", "PropertyName")
     internal var _sendWithoutRequest: (HttpRequestBuilder) -> Boolean = { sendWithoutRequest }
@@ -112,8 +128,15 @@ public class BasicAuthCredentials(
 public class BasicAuthProvider(
     private val credentials: suspend () -> BasicAuthCredentials?,
     private val realm: String? = null,
-    private val sendWithoutRequestCallback: (HttpRequestBuilder) -> Boolean = { false }
+    private val sendWithoutRequestCallback: (HttpRequestBuilder) -> Boolean = { false },
+    cacheTokens: Boolean
 ) : AuthProvider {
+
+    public constructor(
+        credentials: suspend () -> BasicAuthCredentials?,
+        realm: String? = null,
+        sendWithoutRequestCallback: (HttpRequestBuilder) -> Boolean = { false },
+    ) : this(credentials, realm, sendWithoutRequestCallback, cacheTokens = true)
 
     @Deprecated("Consider using constructor with credentials provider instead", level = DeprecationLevel.ERROR)
     public constructor(
@@ -127,7 +150,7 @@ public class BasicAuthProvider(
         sendWithoutRequestCallback = { sendWithoutRequest }
     )
 
-    private val tokensHolder = AuthTokenHolder(credentials)
+    private val tokensHolder = AuthTokenHolder(credentials, cacheTokens)
 
     @Suppress("OverridingDeprecatedMember")
     @Deprecated("Please use sendWithoutRequest function instead", level = DeprecationLevel.ERROR)
@@ -164,20 +187,22 @@ public class BasicAuthProvider(
     }
 
     /**
-     * Clears the currently stored authentication tokens from the cache.
+     * Clears the currently stored authentication credentials from the cache.
      *
      * This method should be called in the following cases:
      * - When the credentials have been updated and need to take effect
      * - When you want to force re-authentication
      * - When you want to clear sensitive authentication data
      *
-     * Note: The result of [credentials] invocation is cached internally.
+     * Note: The result of [credentials] invocation is cached internally by default.
      * Calling this method will force the next authentication attempt to fetch fresh credentials.
+     *
+     * If [BasicAuthConfig.cacheTokens] is set to `false`, this method has no effect
+     * as credentials are not cached.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.BasicAuthProvider.clearToken)
      */
-    @InternalAPI // TODO KTOR-8180: Provide control over tokens to user code
-    public fun clearToken() {
+    public override fun clearToken() {
         tokensHolder.clearToken()
     }
 }

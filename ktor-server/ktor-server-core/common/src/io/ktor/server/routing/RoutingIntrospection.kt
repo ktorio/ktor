@@ -8,6 +8,8 @@ import io.ktor.server.application.*
 
 /**
  * Gets the root of the routing block.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.routingRoot)
  */
 public val Application.routingRoot: RoutingNode
     get() = pluginOrNull(RoutingRoot) ?: throw IllegalStateException("Routing plugin is not installed")

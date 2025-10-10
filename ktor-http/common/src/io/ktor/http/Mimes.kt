@@ -6,7 +6,7 @@ package io.ktor.http
 
 import io.ktor.util.*
 
-internal const val INITIAL_MIMES_LIST_SIZE: Int = 1215
+internal const val INITIAL_MIMES_LIST_SIZE: Int = 1217
 
 private val rawMimes: String
     get() = """
@@ -764,6 +764,7 @@ font/ttf,ttf
 font/woff,woff
 font/woff2,woff2
 i-world/i-vrml,ivr
+image/apng,apng
 image/avif,avif avifs
 image/bmp,bm bmp
 image/cgm,cgm
@@ -777,6 +778,7 @@ image/heif,heif
 image/ief,ief iefs
 image/jpeg,jfif jfif-tbnl jpe jpeg jpg
 image/jutvision,jut
+image/jxl,jxl
 image/ktx,ktx
 image/naplps,nap naplps
 image/pict,pic pict

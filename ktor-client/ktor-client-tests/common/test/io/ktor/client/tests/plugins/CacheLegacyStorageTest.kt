@@ -319,7 +319,7 @@ class CacheLegacyStorageTest : ClientLoader() {
     }
 
     @Test
-    fun testMaxAge() = clientTests {
+    fun testMaxAge() = clientTests(except("native:CIO")) {
         val publicStorage = HttpCacheStorage.Unlimited()
         val privateStorage = HttpCacheStorage.Unlimited()
         config {

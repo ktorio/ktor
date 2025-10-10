@@ -13,6 +13,7 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
+            // TODO KTOR-8657: Remove kotlinx-datetime from ktor-server-default-headers dependencies
             api(libs.kotlinx.datetime)
         }
     }

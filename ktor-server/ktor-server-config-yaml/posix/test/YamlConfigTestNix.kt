@@ -38,7 +38,7 @@ class YamlConfigTestNix {
     }
 
     @Test
-    fun testLoadCustomConfig() {
+    fun testLoadCustomConfigWithYamlSuffix() {
         val content = """
             ktor:
                 deployment:
@@ -51,6 +51,25 @@ class YamlConfigTestNix {
         """.trimIndent()
         val config = withFile("application-custom.yaml", content) {
             YamlConfig("application-custom.yaml")!!
+        }
+        assertEquals("2345", config.property("ktor.deployment.port").getString())
+        assertEquals(listOf("c", "d", "e"), config.property("ktor.auth.users").getList())
+    }
+
+    @Test
+    fun testLoadCustomConfigWithYmlSuffix() {
+        val content = """
+            ktor:
+                deployment:
+                    port: 2345
+                auth:
+                    users:
+                        - c
+                        - d
+                        - e
+        """.trimIndent()
+        val config = withFile("application-custom.yml", content) {
+            YamlConfig("application-custom.yml")!!
         }
         assertEquals("2345", config.property("ktor.deployment.port").getString())
         assertEquals(listOf("c", "d", "e"), config.property("ktor.auth.users").getList())

@@ -220,6 +220,26 @@ class HoconDecoderTest {
         }
     }
 
+    @Test
+    fun `default values`() {
+        val content = """
+            address {
+                streetName = "Main Street"
+                postalCode = "12345"
+                municipality = "Test City"
+                # unitNumber is intentionally omitted to test default value
+            }
+        """.trimIndent()
+
+        val address = parseConfig(content)
+            .propertyOrNull("address")?.getAs<Address>()
+
+        assertNotNull(address)
+        assertEquals("Main Street", address.streetName)
+        assertEquals("Test City", address.municipality)
+        assertNull(address.unitNumber)
+    }
+
     private fun parseConfig(content: String): HoconApplicationConfig =
         HoconApplicationConfig(ConfigFactory.parseString(content))
 
@@ -293,5 +313,13 @@ class HoconDecoderTest {
     data class EnumContainer(
         val enumValue: TestEnum,
         val enumList: List<TestEnum>
+    )
+
+    @Serializable
+    data class Address(
+        val streetName: String,
+        val postalCode: String,
+        val unitNumber: String? = null,
+        val municipality: String,
     )
 }

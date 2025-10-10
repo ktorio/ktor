@@ -1,0 +1,88 @@
+name: DevContainer
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - .devcontainer/**
+      - .github/workflows/devcontainer.yml
+      - .nvmrc
+
+  push:
+    branches: [ main ]
+    paths:
+      - .devcontainer/**
+      - .github/workflows/devcontainer.yml
+      - .nvmrc
+
+  schedule:
+    - cron: '0 0 * * 6' # Every Saturday at 00:00
+
+  # Allow running manually
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ktorio/devcontainer
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+
+    env:
+      # If the event is a "pull_request", just test the image builds successfully and do not push it
+      PUSH_IMAGE: ${{ github.event_name != 'pull_request' }}
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          platforms: linux/amd64
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            latest
+            {{date 'YYYYMMDD'}}
+
+      - name: Extract Node.js version
+        id: node-version
+        run: echo "result=$(cat .nvmrc)" >> $GITHUB_OUTPUT
+
+      - name: Build image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          push: ${{ env.PUSH_IMAGE }}
+          context: .devcontainer
+          target: dev
+          build-args: |
+            node_version=${{ steps.node-version.outputs.result }}
+          platforms: linux/amd64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@v2
+        if: ${{ env.PUSH_IMAGE == 'true' }}
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
