@@ -95,6 +95,5 @@ public class JsVideoTrack(nativeTrack: MediaStreamTrack) :
  * Returns implementation of the native media stream track used under the hood. Use it with caution.
  */
 public fun WebRtcMedia.Track.getNative(): MediaStreamTrack {
-    val track = this as? JsMediaTrack ?: error("Wrong track implementation.")
-    return track.nativeTrack
+    return (this as JsMediaTrack).nativeTrack
 }

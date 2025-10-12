@@ -17,7 +17,7 @@ class AuthTokenHolderTest {
 
     @Test
     fun testOnlyOneSetTokenCallComputesBlock() = testScope.runTest {
-        val holder = AuthTokenHolder<Int> { fail() }
+        val holder = AuthTokenHolder<Int>(loadTokens = { fail() })
 
         // First job starts immediately, but takes some time to complete its block
         var firstCalled = false
@@ -51,10 +51,10 @@ class AuthTokenHolderTest {
     fun testLoadTokenWaitsUntilTokenIsLoaded() = testScope.runTest {
         val loadingCompletionTrigger = Job()
 
-        val holder = AuthTokenHolder {
+        val holder = AuthTokenHolder(loadTokens = {
             loadingCompletionTrigger.join()
             BearerTokens("1", "2")
-        }
+        })
 
         // Start two concurrent loadToken operations
         val firstLoadJob = async { holder.loadToken() }
@@ -76,12 +76,12 @@ class AuthTokenHolderTest {
         val loadStarted = Job()
         val clearDone = Job()
 
-        val holder = AuthTokenHolder {
+        val holder = AuthTokenHolder(loadTokens = {
             loadStarted.complete()
             // Suspend until clearToken is called
             clearDone.join()
             1
-        }
+        })
 
         val loadJob = async {
             holder.loadToken()
@@ -102,9 +102,9 @@ class AuthTokenHolderTest {
         val setTokenStarted = Job()
         val clearDone = Job()
 
-        val holder = AuthTokenHolder<Int> {
+        val holder = AuthTokenHolder<Int>(loadTokens = {
             fail("loadTokens argument function shouldn't be invoked")
-        }
+        })
 
         val setTokenJob = async {
             holder.setToken {
@@ -125,22 +125,22 @@ class AuthTokenHolderTest {
     @Test
     fun testExceptionInLoadTokens() = testScope.runTest {
         var firstCall = true
-        val holder = AuthTokenHolder {
+        val holder = AuthTokenHolder(loadTokens = {
             if (firstCall) {
                 firstCall = false
                 throw IllegalStateException("First call failed")
             }
             "token"
-        }
+        })
         assertFailsWith<IllegalStateException> { holder.loadToken() }
         assertEquals("token", holder.loadToken())
     }
 
     @Test
     fun testExceptionInSetTokens() = testScope.runTest {
-        val holder = AuthTokenHolder<String> {
+        val holder = AuthTokenHolder<String>(loadTokens = {
             fail("loadTokens argument function shouldn't be invoked")
-        }
+        })
         assertFailsWith<IllegalStateException> { holder.setToken { throw IllegalStateException("First call") } }
         assertEquals("token", holder.setToken { "token" })
     }
@@ -154,10 +154,10 @@ class AuthTokenHolderTest {
 
     @Test
     fun firstLoadTokenCallComputesBlockAndSetsValue() = testScope.runTest {
-        val holder = AuthTokenHolder {
+        val holder = AuthTokenHolder(loadTokens = {
             val result = assertNotNull(currentCoroutineContext()[ResultContextElement])
             result.value
-        }
+        })
 
         // First job starts with a delay
         val first = async {
@@ -182,9 +182,9 @@ class AuthTokenHolderTest {
 
     @Test
     fun firstSetTokenCallComputesBlockAndSetsValue() = testScope.runTest {
-        val holder = AuthTokenHolder<Int> {
+        val holder = AuthTokenHolder<Int>(loadTokens = {
             fail("loadTokens shouldn't be called in this test")
-        }
+        })
 
         // First job starts with a delay, but completes its block quickly
         val firstJob = async {
@@ -209,11 +209,11 @@ class AuthTokenHolderTest {
 
     @Test
     fun testClearCoroutineResetsCachedValue() = testScope.runTest {
-        val holder = AuthTokenHolder {
+        val holder = AuthTokenHolder(loadTokens = {
             // Simulate loading delay
             delay(200)
             1
-        }
+        })
 
         val loadTokenLob = async {
             holder.loadToken()
@@ -240,10 +240,10 @@ class AuthTokenHolderTest {
 
     @Test
     fun lockedSetTokenByLoadTokenSetsValue() = testScope.runTest {
-        val holder = AuthTokenHolder {
+        val holder = AuthTokenHolder(loadTokens = {
             delay(200)
             1
-        }
+        })
 
         val loadTokenJob = async {
             holder.loadToken()
@@ -261,7 +261,7 @@ class AuthTokenHolderTest {
 
     @Test
     fun loadTokensCanBeCalledInSetTokenBlock() = testScope.runTest {
-        val holder = AuthTokenHolder { 1 }
+        val holder = AuthTokenHolder(loadTokens = { 1 })
         val result = holder.setToken { 1 + holder.loadToken()!! }
 
         assertEquals(2, result)

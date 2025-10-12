@@ -174,6 +174,10 @@ internal fun Application.serverSentEvents() {
             get("/error") {
                 call.respond(HttpStatusCode.InternalServerError, "Server error")
             }
+            get("/bad-response-json") {
+                call.response.header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                call.respond(HttpStatusCode.BadRequest, "{ 'error': 'Bad request' }")
+            }
         }
     }
 }

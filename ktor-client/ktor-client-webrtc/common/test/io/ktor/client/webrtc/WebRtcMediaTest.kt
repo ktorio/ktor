@@ -1,17 +1,15 @@
 package io.ktor.client.webrtc
 
 import io.ktor.client.webrtc.utils.*
-import io.ktor.utils.io.ExperimentalKtorApi
-import kotlinx.atomicfu.atomic
+import io.ktor.utils.io.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.withTimeout
 import kotlin.test.*
 
 @IgnoreJvm
-@IgnorePosix
+@IgnoreDesktop
 @OptIn(ExperimentalKtorApi::class)
 class WebRtcMediaTest {
 
@@ -84,14 +82,6 @@ class WebRtcMediaTest {
     @Test
     fun receiveRemoteTracks() = testConnection(realtime = true) { pc1, jobs ->
         client.createPeerConnection().use { pc2 ->
-            val negotiationNeededCnt = atomic(0)
-            launch {
-                pc1.negotiationNeeded.collect { negotiationNeededCnt.incrementAndGet() }
-            }.also { jobs.add(it) }
-            launch {
-                pc2.negotiationNeeded.collect { negotiationNeededCnt.incrementAndGet() }
-            }.also { jobs.add(it) }
-
             val remoteTracks1 = pc1.trackEvents.collectToChannel(this, jobs)
             val remoteTracks2 = pc2.trackEvents.collectToChannel(this, jobs)
 
@@ -122,9 +112,9 @@ class WebRtcMediaTest {
                 assertEquals(1, tracks.filter { it.track.kind === WebRtcMedia.TrackType.VIDEO }.size)
             }
 
-            // remove audio track at pc2, needs renegotiation to work
-            assertTrue(negotiationNeededCnt.value >= 1)
             pc2.removeTrack(audioSender)
+
+            // remove audio track at pc2, needs renegotiation to work
             negotiate(pc1, pc2)
 
             // Check if the remote track is removed

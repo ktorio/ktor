@@ -28,8 +28,7 @@ public class JsRtpSender(internal val nativeSender: RTCRtpSender) : WebRtc.RtpSe
             nativeSender.replaceTrack(null)
             return
         }
-        val track = withTrack as? JsMediaTrack ?: error("Track should extend JsMediaTrack.")
-        nativeSender.replaceTrack(track.nativeTrack)
+        nativeSender.replaceTrack((withTrack as JsMediaTrack).nativeTrack)
     }
 
     override suspend fun getParameters(): WebRtc.RtpParameters {
@@ -37,7 +36,7 @@ public class JsRtpSender(internal val nativeSender: RTCRtpSender) : WebRtc.RtpSe
     }
 
     override suspend fun setParameters(parameters: WebRtc.RtpParameters) {
-        val params = parameters as? JsRtpParameters ?: error("Parameters should extend JsRtpParameters.")
+        val params = parameters as JsRtpParameters
         nativeSender.setParameters(params.nativeRtpParameters)
     }
 }
@@ -82,22 +81,19 @@ public class JsRtpParameters(internal val nativeRtpParameters: RTCRtpSendParamet
  * Returns implementation of the rtp sender that is used under the hood. Use it with caution.
  */
 public fun WebRtc.RtpSender.getNative(): RTCRtpSender {
-    val sender = this as? JsRtpSender ?: error("Wrong sender implementation.")
-    return sender.nativeSender
+    return (this as JsRtpSender).nativeSender
 }
 
 /**
  * Returns implementation of the dtmf sender that is used under the hood. Use it with caution.
  */
 public fun WebRtc.DtmfSender.getNative(): RTCDTMFSender {
-    val sender = this as? JsDtmfSender ?: error("Wrong sender implementation.")
-    return sender.nativeSender
+    return (this as JsDtmfSender).nativeSender
 }
 
 /**
  * Returns implementation of the rtp parameters that is used under the hood. Use it with caution.
  */
 public fun WebRtc.RtpParameters.getNative(): RTCRtpSendParameters {
-    val parameters = this as? JsRtpParameters ?: error("Wrong parameters implementation.")
-    return parameters.nativeRtpParameters
+    return (this as JsRtpParameters).nativeRtpParameters
 }
