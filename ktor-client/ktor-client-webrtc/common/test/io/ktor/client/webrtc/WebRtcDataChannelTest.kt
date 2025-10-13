@@ -16,8 +16,6 @@ import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
-@IgnoreJvm
-@IgnoreDesktop
 @OptIn(ExperimentalKtorApi::class)
 class WebRtcDataChannelTest {
 
@@ -268,7 +266,9 @@ class WebRtcDataChannelTest {
         ch2.close()
     }
 
+    // Ignored on JVM: webrtc-java's onBufferedAmountChange/bufferedAmountLow callback isn't fired
     @Test
+    @IgnoreJvm
     fun testDataChannelBufferedAmountLowEvent() = testDataChannel { pc1, pc2 ->
         val dataChannelEvents1 = pc1.dataChannelEvents.collectToChannel()
         val dataChannelEvents2 = pc2.dataChannelEvents.collectToChannel()
