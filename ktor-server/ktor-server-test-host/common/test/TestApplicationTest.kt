@@ -156,7 +156,7 @@ class TestApplicationTest {
             }
         }
         install(TestPlugin) {
-            pluginClient = client
+            pluginClient = this@testApplication.client
         }
         externalServices {
             hosts("https://test.com") {

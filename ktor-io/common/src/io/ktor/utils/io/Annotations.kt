@@ -108,5 +108,5 @@ public annotation class PublicAPICandidate(val version: String)
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.KtorDsl)
  */
 @DslMarker
-@Target(AnnotationTarget.CLASS, AnnotationTarget.TYPEALIAS, AnnotationTarget.TYPE, AnnotationTarget.FUNCTION)
+@Target(AnnotationTarget.CLASS, AnnotationTarget.TYPEALIAS, AnnotationTarget.TYPE)
 public annotation class KtorDsl

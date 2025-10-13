@@ -4,6 +4,8 @@
 
 package io.ktor.server.engine
 
+import io.ktor.utils.io.*
+
 /**
  * Represents a type of a connector, e.g HTTP or HTTPS.
  *
@@ -80,6 +82,7 @@ public inline fun ApplicationEngine.Configuration.connector(builder: EngineConne
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.EngineConnectorBuilder)
  */
+@KtorDsl
 public open class EngineConnectorBuilder(
     override val type: ConnectorType = ConnectorType.HTTP
 ) : EngineConnectorConfig {

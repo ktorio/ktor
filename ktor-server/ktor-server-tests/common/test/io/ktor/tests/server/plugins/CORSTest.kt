@@ -9,12 +9,12 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
-import io.ktor.server.plugins.cors.routing.CORS
-import io.ktor.server.request.httpMethod
+import io.ktor.server.plugins.cors.routing.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import kotlinx.coroutines.test.*
+import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
 class CORSTest {
@@ -1570,26 +1570,6 @@ class CORSTest {
         }.let { response ->
             assertEquals(response.status, HttpStatusCode.NotFound)
             assertNull(response.headers[HttpHeaders.AccessControlAllowOrigin])
-        }
-    }
-
-    @Test
-    fun routeInsideCorsPluginConfig() = testApplication {
-        routing {
-            install(CORS) {
-                route("/abc") {
-                    get {
-                        call.respond("OK")
-                    }
-                }
-            }
-        }
-
-        client.options("/abc") {
-            header(HttpHeaders.Origin, "https://example.com")
-            header(HttpHeaders.AccessControlRequestMethod, "GET")
-        }.let { response ->
-            assertEquals(response.status, HttpStatusCode.Forbidden)
         }
     }
 }
