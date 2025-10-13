@@ -646,6 +646,22 @@ public final class io/ktor/util/collections/StringMapDelegate$DefaultImpls {
 	public static fun set (Lio/ktor/util/collections/StringMapDelegate;Ljava/lang/String;Ljava/lang/String;)V
 }
 
+public abstract interface class io/ktor/util/collections/TreeLike {
+	public fun descendants ()Lkotlin/sequences/Sequence;
+	public abstract fun getChildren ()Ljava/lang/Iterable;
+	public abstract fun getParent ()Lio/ktor/util/collections/TreeLike;
+	public fun isLeaf ()Z
+	public fun isRoot ()Z
+	public fun lineage ()Lkotlin/sequences/Sequence;
+}
+
+public final class io/ktor/util/collections/TreeLike$DefaultImpls {
+	public static fun descendants (Lio/ktor/util/collections/TreeLike;)Lkotlin/sequences/Sequence;
+	public static fun isLeaf (Lio/ktor/util/collections/TreeLike;)Z
+	public static fun isRoot (Lio/ktor/util/collections/TreeLike;)Z
+	public static fun lineage (Lio/ktor/util/collections/TreeLike;)Lkotlin/sequences/Sequence;
+}
+
 public abstract interface class io/ktor/util/converters/ConversionService {
 	public abstract fun fromValues (Ljava/util/List;Lio/ktor/util/reflect/TypeInfo;)Ljava/lang/Object;
 	public abstract fun toValues (Ljava/lang/Object;)Ljava/util/List;

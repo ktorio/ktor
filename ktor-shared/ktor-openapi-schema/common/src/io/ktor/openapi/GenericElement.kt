@@ -1,0 +1,464 @@
+/*
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
+package io.ktor.openapi
+
+import kotlinx.serialization.DeserializationStrategy
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.SerialKind
+import kotlinx.serialization.descriptors.StructureKind
+import kotlinx.serialization.descriptors.buildSerialDescriptor
+import kotlinx.serialization.encoding.AbstractDecoder
+import kotlinx.serialization.encoding.AbstractEncoder
+import kotlinx.serialization.encoding.CompositeDecoder
+import kotlinx.serialization.encoding.CompositeEncoder
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonEncoder
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.modules.EmptySerializersModule
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.serializer
+
+/**
+ * A generalized element for deferred deserialization for use as an interoperable stand in for JSON and YAML nodes.
+ */
+@Serializable(GenericElementSerializer::class)
+public interface GenericElement {
+    /**
+     * The serializer used to deserialize the element.
+     */
+    public val elementSerializer: KSerializer<*>
+
+    /**
+     * The underlying element.
+     */
+    public val element: Any
+
+    /**
+     * Returns true if the element is a JSON object.
+     */
+    public fun isObject(): Boolean =
+        elementSerializer.descriptor.kind == StructureKind.OBJECT ||
+            elementSerializer.descriptor.kind == StructureKind.MAP
+
+    /**
+     * Returns true if the element is a JSON array.
+     */
+    public fun isArray(): Boolean =
+        elementSerializer.descriptor.kind == StructureKind.LIST
+
+    /**
+     * Returns true if the element is a JSON primitive and is a string.
+     */
+    public fun isString(): Boolean =
+        elementSerializer.descriptor.kind == PrimitiveKind.STRING
+
+    /**
+     * Deserializes the element into the given [serializer].
+     */
+    public fun <T> deserialize(serializer: KSerializer<T>): T
+
+    /**
+     * Returns a list of key-value pairs for the element.
+     */
+    public fun entries(): List<Pair<String, GenericElement>>
+
+    /**
+     * Splits the element into two elements using the given [splitPredicate].  Matching keys will be moved
+     * to the second element.
+     */
+    public fun split(splitPredicate: (String) -> Boolean): Pair<GenericElement, GenericElement> =
+        entries()
+            .partition { !splitPredicate(it.first) }
+            .map { GenericElementMap(it.toMap()) }
+
+    /**
+     * Merges two elements into a single element with the keys of both.
+     */
+    public operator fun plus(other: GenericElement): GenericElement =
+        GenericElementMap((entries() + other.entries()).toMap())
+}
+
+/**
+ * Deserialize an element to the given type [T].
+ */
+public inline fun <reified T> GenericElement.asA(): T =
+    deserialize(serializer<T>())
+
+/**
+ * Convenience function for creating a [GenericElement] from a value of type [T].
+ */
+public inline fun <reified T : Any> GenericElement(value: T): GenericElement =
+    GenericElementWrapper(value, serializer<T>())
+
+/**
+ * Adapter for custom [GenericElement] types when using different encoders / decoders.
+ */
+public interface GenericElementSerialAdapter {
+    public fun <T> trySerializeToElement(encoder: Encoder, value: T, serializer: KSerializer<T>): GenericElement?
+    public fun tryDeserialize(decoder: Decoder): GenericElement?
+}
+
+/**
+ * [GenericElementSerialAdapter] for standard kotlinx-json.
+ */
+public object JsonElementSerialAdapter : GenericElementSerialAdapter {
+    override fun <T> trySerializeToElement(
+        encoder: Encoder,
+        value: T,
+        serializer: KSerializer<T>
+    ): GenericElement? {
+        if (encoder !is JsonEncoder) return null
+        val jsonElement = encoder.json.encodeToJsonElement(serializer, value)
+        return JsonGenericElement(encoder.json, jsonElement, JsonElement.serializer())
+    }
+
+    override fun tryDeserialize(decoder: Decoder): GenericElement? {
+        if (decoder !is JsonDecoder) return null
+        val deserializer = JsonElement.serializer()
+        val jsonElement = decoder.decodeSerializableValue(deserializer)
+        return JsonGenericElement(decoder.json, jsonElement, deserializer)
+    }
+}
+
+/**
+ * A [GenericElement] implementation that wraps a value of type [T].
+ */
+public class GenericElementWrapper<T : Any>(
+    override val element: T,
+    override val elementSerializer: KSerializer<T>,
+) : GenericElement {
+
+    @Suppress("UNCHECKED_CAST")
+    override fun <T> deserialize(serializer: KSerializer<T>): T =
+        element as? T ?: error {
+            "Cannot deserialize ${element::class} to ${serializer.descriptor.serialName}"
+        }
+
+    override fun entries(): List<Pair<String, GenericElement>> {
+        val entries = mutableListOf<Pair<String, GenericElement>>()
+        GenericElementEntriesEncoder { key, value ->
+            entries += key to value
+        }.also {
+            it.encodeSerializableValue(elementSerializer, element)
+        }
+        return entries
+    }
+}
+
+/**
+ * A [GenericElement] implementation that wraps a map of [GenericElement]s.
+ */
+public class GenericElementMap(
+    override val element: Map<String, GenericElement>,
+    override val elementSerializer: KSerializer<Map<String, GenericElement>> = serializer(),
+) : GenericElement {
+    override fun isObject(): Boolean = true
+
+    override fun <T> deserialize(serializer: KSerializer<T>): T =
+        serializer.deserialize(GenericElementMapDecoder(element))
+
+    override fun entries(): List<Pair<String, GenericElement>> =
+        element.entries.map { it.key to it.value }
+}
+
+/**
+ * A custom decoder for deserializing a [GenericElementMap].
+ */
+@OptIn(ExperimentalSerializationApi::class)
+internal class GenericElementMapDecoder(
+    private val map: Map<String, GenericElement>,
+    override val serializersModule: SerializersModule = EmptySerializersModule()
+) : AbstractDecoder() {
+    private var elementIndex = 0
+    private var currentElementName: String = ""
+
+    override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
+        if (elementIndex >= descriptor.elementsCount) {
+            return CompositeDecoder.DECODE_DONE
+        }
+
+        // Find the next property that exists in the map
+        while (elementIndex < descriptor.elementsCount) {
+            val elementName = descriptor.getElementName(elementIndex)
+            val newIndex = elementIndex++
+
+            if (elementName in map) {
+                currentElementName = elementName
+                return newIndex
+            }
+
+            // Check if property is optional - if so, skip it
+            if (descriptor.isElementOptional(newIndex)) {
+                continue
+            }
+
+            // Required property not found
+            return CompositeDecoder.DECODE_DONE
+        }
+
+        return CompositeDecoder.DECODE_DONE
+    }
+
+    override fun decodeNotNullMark(): Boolean {
+        return currentElementName in map
+    }
+
+    private fun getCurrentElement(): GenericElement {
+        return map[currentElementName]
+            ?: throw SerializationException("Element '$currentElementName' not found in map")
+    }
+
+    override fun decodeBoolean(): Boolean {
+        return getCurrentElement().deserialize(Boolean.serializer())
+    }
+
+    override fun decodeByte(): Byte {
+        return getCurrentElement().deserialize(Byte.serializer())
+    }
+
+    override fun decodeShort(): Short {
+        return getCurrentElement().deserialize(Short.serializer())
+    }
+
+    override fun decodeInt(): Int {
+        return getCurrentElement().deserialize(Int.serializer())
+    }
+
+    override fun decodeLong(): Long {
+        return getCurrentElement().deserialize(Long.serializer())
+    }
+
+    override fun decodeFloat(): Float {
+        return getCurrentElement().deserialize(Float.serializer())
+    }
+
+    override fun decodeDouble(): Double {
+        return getCurrentElement().deserialize(Double.serializer())
+    }
+
+    override fun decodeChar(): Char {
+        return getCurrentElement().deserialize(Char.serializer())
+    }
+
+    override fun decodeString(): String {
+        return getCurrentElement().deserialize(String.serializer())
+    }
+
+    override fun decodeEnum(enumDescriptor: SerialDescriptor): Int {
+        val enumValue = decodeString()
+        return enumDescriptor.getElementIndex(enumValue)
+    }
+
+    override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
+        val element = getCurrentElement()
+
+        // For nested structures, create a new decoder with the nested element's entries
+        return when (descriptor.kind) {
+            StructureKind.CLASS, StructureKind.OBJECT -> {
+                val nestedMap = element.entries().toMap()
+                GenericElementMapDecoder(nestedMap, serializersModule)
+            }
+            StructureKind.LIST -> {
+                // For lists, the element should be a list/array type
+                // This would need special handling similar to ListMapConfigDecoder
+                throw SerializationException("List support not yet implemented for GenericElementMapDecoder")
+            }
+            StructureKind.MAP -> {
+                // For maps, similar special handling needed
+                throw SerializationException("Map support not yet implemented")
+            }
+            else -> this
+        }
+    }
+
+    override fun <T> decodeSerializableValue(deserializer: DeserializationStrategy<T>): T {
+        val element = getCurrentElement()
+        return element.deserialize(deserializer as KSerializer<T>)
+    }
+}
+
+/**
+ * A custom encoder for populating [GenericElement] key-value pairs from any serializer.
+ */
+@OptIn(ExperimentalSerializationApi::class)
+private class GenericElementEntriesEncoder(
+    private val entryCallback: (String, GenericElement) -> Unit
+) : AbstractEncoder() {
+    private var currentElementName: String? = null
+
+    override val serializersModule: SerializersModule = EmptySerializersModule()
+
+    override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
+        return this
+    }
+
+    override fun endStructure(descriptor: SerialDescriptor) {
+        // Structure encoding complete
+    }
+
+    private fun <T : Any> captureElement(value: T?, serializer: KSerializer<T>) {
+        val name = currentElementName ?: return
+        if (value != null) {
+            entryCallback(name, GenericElementWrapper(value, serializer))
+        }
+        currentElementName = null
+    }
+
+    override fun encodeElement(descriptor: SerialDescriptor, index: Int): Boolean {
+        currentElementName = descriptor.getElementName(index)
+        return true
+    }
+
+    override fun encodeNull() {
+        currentElementName = null
+    }
+
+    override fun encodeBoolean(value: Boolean) {
+        captureElement(value, Boolean.serializer())
+    }
+
+    override fun encodeByte(value: Byte) {
+        captureElement(value, Byte.serializer())
+    }
+
+    override fun encodeShort(value: Short) {
+        captureElement(value, Short.serializer())
+    }
+
+    override fun encodeInt(value: Int) {
+        captureElement(value, Int.serializer())
+    }
+
+    override fun encodeLong(value: Long) {
+        captureElement(value, Long.serializer())
+    }
+
+    override fun encodeFloat(value: Float) {
+        captureElement(value, Float.serializer())
+    }
+
+    override fun encodeDouble(value: Double) {
+        captureElement(value, Double.serializer())
+    }
+
+    override fun encodeChar(value: Char) {
+        captureElement(value, Char.serializer())
+    }
+
+    override fun encodeString(value: String) {
+        captureElement(value, String.serializer())
+    }
+
+    override fun encodeEnum(enumDescriptor: SerialDescriptor, index: Int) {
+        // For enums, we need to handle them specially
+        val name = currentElementName ?: return
+        val enumValue = enumDescriptor.getElementName(index)
+        entryCallback(name, GenericElementWrapper(enumValue, String.serializer()))
+        currentElementName = null
+    }
+}
+
+/**
+ * A [GenericElement] implementation that wraps a JSON element.
+ */
+public class JsonGenericElement(
+    private val json: Json,
+    override val element: JsonElement,
+    override val elementSerializer: KSerializer<JsonElement>,
+) : GenericElement {
+    override fun isObject(): Boolean = element is JsonObject
+    override fun isArray(): Boolean = element is JsonArray
+    override fun isString(): Boolean = element is JsonPrimitive && element.isString
+
+    override fun <T> deserialize(serializer: KSerializer<T>): T =
+        json.decodeFromJsonElement(serializer, element)
+
+    override fun entries(): List<Pair<String, GenericElement>> {
+        require(element is JsonObject) {
+            "$element is not an object"
+        }
+        return element.entries
+            .map { (key, value) ->
+                key to JsonGenericElement(
+                    json,
+                    value,
+                    elementSerializer
+                )
+            }
+    }
+
+    override fun split(splitPredicate: (String) -> Boolean): Pair<GenericElement, GenericElement> {
+        require(element is JsonObject) {
+            "$element is not an object"
+        }
+        return element.entries
+            .map { (key, value) -> key to value }
+            .partition { !splitPredicate(it.first) }
+            .map { entries ->
+                JsonGenericElement(
+                    json,
+                    JsonObject(entries.toMap()),
+                    elementSerializer
+                )
+            }
+    }
+
+    override fun plus(other: GenericElement): GenericElement {
+        require(element is JsonObject) {
+            "$element is not an object"
+        }
+        require(other is JsonGenericElement) {
+            "$other is not a JSON element"
+        }
+        require(other.element is JsonObject) {
+            "${other.element} is not an object"
+        }
+        return JsonGenericElement(
+            json,
+            JsonObject(element + other.element),
+            elementSerializer
+        )
+    }
+}
+
+/**
+ * A [GenericElement] serializer that delegates to the first registered [GenericElementSerialAdapter] that can
+ * deserialize the element.
+ */
+public class GenericElementSerializer : KSerializer<GenericElement> {
+    private val adapters: List<GenericElementSerialAdapter> = listOf(JsonElementSerialAdapter)
+
+    @OptIn(InternalSerializationApi::class)
+    override val descriptor: SerialDescriptor = buildSerialDescriptor(
+        "io.ktor.openapi.GenericElement",
+        SerialKind.CONTEXTUAL
+    )
+
+    @Suppress("UNCHECKED_CAST")
+    override fun serialize(encoder: Encoder, value: GenericElement) {
+        encoder.serializersModule
+        encoder.encodeSerializableValue(
+            value.elementSerializer as KSerializer<Any>,
+            value.element
+        )
+    }
+
+    override fun deserialize(decoder: Decoder): GenericElement =
+        adapters.firstNotNullOfOrNull { it.tryDeserialize(decoder) }
+            ?: error("No generic element adapter for ${decoder::class.simpleName}")
+}

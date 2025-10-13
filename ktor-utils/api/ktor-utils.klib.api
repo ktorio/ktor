@@ -75,6 +75,18 @@ final enum class io.ktor.util.logging/LogLevel : kotlin/Enum<io.ktor.util.loggin
     enum entry NONE // io.ktor.util.logging/LogLevel.NONE|null[0]
 }
 
+abstract interface <#A: out io.ktor.util.collections/TreeLike<#A>> io.ktor.util.collections/TreeLike { // io.ktor.util.collections/TreeLike|null[0]
+    abstract val children // io.ktor.util.collections/TreeLike.children|{}children[0]
+        abstract fun <get-children>(): kotlin.collections/Iterable<#A> // io.ktor.util.collections/TreeLike.children.<get-children>|<get-children>(){}[0]
+    abstract val parent // io.ktor.util.collections/TreeLike.parent|{}parent[0]
+        abstract fun <get-parent>(): #A? // io.ktor.util.collections/TreeLike.parent.<get-parent>|<get-parent>(){}[0]
+
+    open fun descendants(): kotlin.sequences/Sequence<#A> // io.ktor.util.collections/TreeLike.descendants|descendants(){}[0]
+    open fun isLeaf(): kotlin/Boolean // io.ktor.util.collections/TreeLike.isLeaf|isLeaf(){}[0]
+    open fun isRoot(): kotlin/Boolean // io.ktor.util.collections/TreeLike.isRoot|isRoot(){}[0]
+    open fun lineage(): kotlin.sequences/Sequence<#A> // io.ktor.util.collections/TreeLike.lineage|lineage(){}[0]
+}
+
 abstract interface io.ktor.util.collections/StringMap { // io.ktor.util.collections/StringMap|null[0]
     abstract fun get(kotlin/String): kotlin/String? // io.ktor.util.collections/StringMap.get|get(kotlin.String){}[0]
     abstract fun remove(kotlin/String): kotlin/String? // io.ktor.util.collections/StringMap.remove|remove(kotlin.String){}[0]
