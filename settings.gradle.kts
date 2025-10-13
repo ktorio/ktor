@@ -103,6 +103,7 @@ projects {
             +"ktor-server-velocity"
             +"ktor-server-webjars"
             +"ktor-server-websockets"
+            +"ktor-server-docs"
         }
     }
 
@@ -180,6 +181,7 @@ projects {
         +"ktor-websocket-serialization"
         +"ktor-websockets"
         +"ktor-test-base"
+        +"ktor-openapi-schema"
     }
 
     +"ktor-network" including {

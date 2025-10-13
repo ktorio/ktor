@@ -9,6 +9,7 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
+import io.ktor.util.collections.TreeLike
 import io.ktor.util.pipeline.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
@@ -32,14 +33,14 @@ public open class RoutingNode(
     public val selector: RouteSelector,
     developmentMode: Boolean = false,
     environment: ApplicationEnvironment
-) : ApplicationCallPipeline(developmentMode, environment), Route {
+) : ApplicationCallPipeline(developmentMode, environment), Route, TreeLike<RoutingNode> {
 
     /**
      * List of child routes for this node.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RoutingNode.children)
      */
-    public val children: List<RoutingNode> get() = childList
+    public override val children: List<RoutingNode> get() = childList
 
     private val childList: MutableList<RoutingNode> = mutableListOf()
 
@@ -129,6 +130,9 @@ public open class RoutingNode(
         cachedPipeline = pipeline
         pipeline
     }
+
+    public fun hasHandler(): Boolean =
+        handlers.isNotEmpty()
 
     override fun toString(): String {
         return when (val parentRoute = parent?.toString()) {

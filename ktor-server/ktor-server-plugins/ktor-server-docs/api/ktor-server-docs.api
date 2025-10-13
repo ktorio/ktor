@@ -1,0 +1,527 @@
+public final class io/ktor/annotate/RouteAnnotationApiKt {
+	public static final fun annotate (Lio/ktor/server/routing/Route;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
+	public static final fun findPathItems (Lio/ktor/server/routing/RoutingNode;)Ljava/util/Map;
+	public static final fun getEndpointAnnotationAttributeKey ()Lio/ktor/util/AttributeKey;
+}
+
+public final class io/ktor/openapi/RouteAnnotationApiKt {
+	public static final fun annotate (Lio/ktor/server/routing/Route;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
+	public static final fun findPathItems (Lio/ktor/server/routing/RoutingNode;)Ljava/util/Map;
+	public static final fun getEndpointAnnotationAttributeKey ()Lio/ktor/util/AttributeKey;
+	public static final fun plus (Lio/ktor/openapi/Operation;Lio/ktor/openapi/Operation;)Lio/ktor/openapi/Operation;
+	public static final fun plus (Lio/ktor/openapi/PathItem;Lio/ktor/openapi/PathItem;)Lio/ktor/openapi/PathItem;
+}
+
+public final class io/ktor/server/docs/ContentTypeSerializer : kotlinx/serialization/KSerializer {
+	public fun <init> ()V
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/http/ContentType;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/http/ContentType;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+}
+
+public final class io/ktor/server/docs/Headers {
+	public static final field Companion Lio/ktor/server/docs/Headers$Companion;
+	public fun <init> (Ljava/util/Map;)V
+	public final fun component1 ()Ljava/util/Map;
+	public final fun copy (Ljava/util/Map;)Lio/ktor/server/docs/Headers;
+	public static synthetic fun copy$default (Lio/ktor/server/docs/Headers;Ljava/util/Map;ILjava/lang/Object;)Lio/ktor/server/docs/Headers;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getHeaders ()Ljava/util/Map;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/ktor/server/docs/Headers$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/ktor/server/docs/Headers$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/server/docs/Headers;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/server/docs/Headers;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/docs/Headers$Builder {
+	public fun <init> ()V
+	public final fun getHeaders ()Ljava/util/Map;
+	public final fun header (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+}
+
+public final class io/ktor/server/docs/Headers$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/docs/Operation {
+	public static final field Companion Lio/ktor/server/docs/Operation$Companion;
+	public fun <init> ()V
+	public fun <init> (Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lio/ktor/server/docs/RequestBody;Ljava/util/Map;Ljava/lang/Boolean;Ljava/util/List;Ljava/util/List;Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lio/ktor/server/docs/RequestBody;Ljava/util/Map;Ljava/lang/Boolean;Ljava/util/List;Ljava/util/List;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component10 ()Ljava/util/List;
+	public final fun component11 ()Ljava/util/List;
+	public final fun component12 ()Ljava/util/Map;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Ljava/util/List;
+	public final fun component7 ()Lio/ktor/server/docs/RequestBody;
+	public final fun component8 ()Ljava/util/Map;
+	public final fun component9 ()Ljava/lang/Boolean;
+	public final fun copy (Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lio/ktor/server/docs/RequestBody;Ljava/util/Map;Ljava/lang/Boolean;Ljava/util/List;Ljava/util/List;Ljava/util/Map;)Lio/ktor/server/docs/Operation;
+	public static synthetic fun copy$default (Lio/ktor/server/docs/Operation;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lio/ktor/server/docs/RequestBody;Ljava/util/Map;Ljava/lang/Boolean;Ljava/util/List;Ljava/util/List;Ljava/util/Map;ILjava/lang/Object;)Lio/ktor/server/docs/Operation;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDeprecated ()Ljava/lang/Boolean;
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getExtensions ()Ljava/util/Map;
+	public final fun getExternalDocs ()Ljava/lang/String;
+	public final fun getOperationId ()Ljava/lang/String;
+	public final fun getParameters ()Ljava/util/List;
+	public final fun getRequestBody ()Lio/ktor/server/docs/RequestBody;
+	public final fun getResponses ()Ljava/util/Map;
+	public final fun getSecurity ()Ljava/util/List;
+	public final fun getServers ()Ljava/util/List;
+	public final fun getSummary ()Ljava/lang/String;
+	public final fun getTags ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/ktor/server/docs/Operation$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/ktor/server/docs/Operation$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/server/docs/Operation;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/server/docs/Operation;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/docs/Operation$Builder {
+	public fun <init> ()V
+	public final fun extension (Ljava/lang/String;Ljava/lang/Object;)V
+	public final fun getDeprecated ()Ljava/lang/Boolean;
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getExtensions ()Ljava/util/Map;
+	public final fun getExternalDocs ()Ljava/lang/String;
+	public final fun getOperationId ()Ljava/lang/String;
+	public final fun getParameters ()Ljava/util/List;
+	public final fun getRequestBody ()Lio/ktor/server/docs/RequestBody;
+	public final fun getResponses ()Ljava/util/Map;
+	public final fun getSecurity ()Ljava/util/List;
+	public final fun getServers ()Ljava/util/List;
+	public final fun getSummary ()Ljava/lang/String;
+	public final fun getTags ()Ljava/util/List;
+	public final fun parameters (Lkotlin/jvm/functions/Function1;)V
+	public final fun requestBody (Lkotlin/jvm/functions/Function1;)V
+	public final fun responses (Lkotlin/jvm/functions/Function1;)V
+	public final fun security (Lkotlin/jvm/functions/Function1;)V
+	public final fun servers (Lkotlin/jvm/functions/Function1;)V
+	public final fun setDeprecated (Ljava/lang/Boolean;)V
+	public final fun setDescription (Ljava/lang/String;)V
+	public final fun setExternalDocs (Ljava/lang/String;)V
+	public final fun setOperationId (Ljava/lang/String;)V
+	public final fun setRequestBody (Lio/ktor/server/docs/RequestBody;)V
+	public final fun setSummary (Ljava/lang/String;)V
+	public final fun tag (Ljava/lang/String;)V
+}
+
+public final class io/ktor/server/docs/Operation$Companion {
+	public final fun Build (Lkotlin/jvm/functions/Function1;)Lio/ktor/server/docs/Operation;
+	public final fun getAttributeKey ()Lio/ktor/util/AttributeKey;
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/docs/Parameter {
+	public static final field Companion Lio/ktor/server/docs/Parameter$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLio/ktor/openapi/Schema;Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLio/ktor/openapi/Schema;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Z
+	public final fun component5 ()Z
+	public final fun component6 ()Lio/ktor/openapi/Schema;
+	public final fun component7 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLio/ktor/openapi/Schema;Ljava/util/Map;)Lio/ktor/server/docs/Parameter;
+	public static synthetic fun copy$default (Lio/ktor/server/docs/Parameter;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLio/ktor/openapi/Schema;Ljava/util/Map;ILjava/lang/Object;)Lio/ktor/server/docs/Parameter;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDeprecated ()Z
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getExtensions ()Ljava/util/Map;
+	public final fun getIn ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getRequired ()Z
+	public final fun getSchema ()Lio/ktor/openapi/Schema;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/ktor/server/docs/Parameter$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/ktor/server/docs/Parameter$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/server/docs/Parameter;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/server/docs/Parameter;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/docs/Parameter$Builder {
+	public fun <init> ()V
+	public final fun extension (Ljava/lang/String;Ljava/lang/Object;)V
+	public final fun getDeprecated ()Z
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getIn ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getRequired ()Z
+	public final fun getSchema ()Lio/ktor/openapi/Schema;
+	public final fun setDeprecated (Z)V
+	public final fun setDescription (Ljava/lang/String;)V
+	public final fun setIn (Ljava/lang/String;)V
+	public final fun setName (Ljava/lang/String;)V
+	public final fun setRequired (Z)V
+	public final fun setSchema (Lio/ktor/openapi/Schema;)V
+}
+
+public final class io/ktor/server/docs/Parameter$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/docs/Parameters {
+	public static final field Companion Lio/ktor/server/docs/Parameters$Companion;
+	public fun <init> (Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Lio/ktor/server/docs/Parameters;
+	public static synthetic fun copy$default (Lio/ktor/server/docs/Parameters;Ljava/util/List;ILjava/lang/Object;)Lio/ktor/server/docs/Parameters;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getParameters ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/ktor/server/docs/Parameters$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/ktor/server/docs/Parameters$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/server/docs/Parameters;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/server/docs/Parameters;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/docs/Parameters$Builder {
+	public fun <init> ()V
+	public final fun cookie (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun cookie$default (Lio/ktor/server/docs/Parameters$Builder;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public final fun getParameters ()Ljava/util/List;
+	public final fun header (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun header$default (Lio/ktor/server/docs/Parameters$Builder;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public final fun parameter (Lkotlin/jvm/functions/Function1;)V
+	public final fun path (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun path$default (Lio/ktor/server/docs/Parameters$Builder;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public final fun query (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun query$default (Lio/ktor/server/docs/Parameters$Builder;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+}
+
+public final class io/ktor/server/docs/Parameters$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/docs/PathItem {
+	public static final field Companion Lio/ktor/server/docs/PathItem$Companion;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/server/docs/Operation;Lio/ktor/server/docs/Operation;Lio/ktor/server/docs/Operation;Lio/ktor/server/docs/Operation;Lio/ktor/server/docs/Operation;Lio/ktor/server/docs/Operation;Lio/ktor/server/docs/Operation;Lio/ktor/server/docs/Operation;Ljava/util/List;Ljava/util/List;Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/server/docs/Operation;Lio/ktor/server/docs/Operation;Lio/ktor/server/docs/Operation;Lio/ktor/server/docs/Operation;Lio/ktor/server/docs/Operation;Lio/ktor/server/docs/Operation;Lio/ktor/server/docs/Operation;Lio/ktor/server/docs/Operation;Ljava/util/List;Ljava/util/List;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component10 ()Lio/ktor/server/docs/Operation;
+	public final fun component11 ()Lio/ktor/server/docs/Operation;
+	public final fun component12 ()Ljava/util/List;
+	public final fun component13 ()Ljava/util/List;
+	public final fun component14 ()Ljava/util/Map;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Lio/ktor/server/docs/Operation;
+	public final fun component5 ()Lio/ktor/server/docs/Operation;
+	public final fun component6 ()Lio/ktor/server/docs/Operation;
+	public final fun component7 ()Lio/ktor/server/docs/Operation;
+	public final fun component8 ()Lio/ktor/server/docs/Operation;
+	public final fun component9 ()Lio/ktor/server/docs/Operation;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/server/docs/Operation;Lio/ktor/server/docs/Operation;Lio/ktor/server/docs/Operation;Lio/ktor/server/docs/Operation;Lio/ktor/server/docs/Operation;Lio/ktor/server/docs/Operation;Lio/ktor/server/docs/Operation;Lio/ktor/server/docs/Operation;Ljava/util/List;Ljava/util/List;Ljava/util/Map;)Lio/ktor/server/docs/PathItem;
+	public static synthetic fun copy$default (Lio/ktor/server/docs/PathItem;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/server/docs/Operation;Lio/ktor/server/docs/Operation;Lio/ktor/server/docs/Operation;Lio/ktor/server/docs/Operation;Lio/ktor/server/docs/Operation;Lio/ktor/server/docs/Operation;Lio/ktor/server/docs/Operation;Lio/ktor/server/docs/Operation;Ljava/util/List;Ljava/util/List;Ljava/util/Map;ILjava/lang/Object;)Lio/ktor/server/docs/PathItem;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDelete ()Lio/ktor/server/docs/Operation;
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getExtensions ()Ljava/util/Map;
+	public final fun getGet ()Lio/ktor/server/docs/Operation;
+	public final fun getHead ()Lio/ktor/server/docs/Operation;
+	public final fun getOptions ()Lio/ktor/server/docs/Operation;
+	public final fun getParameters ()Ljava/util/List;
+	public final fun getPatch ()Lio/ktor/server/docs/Operation;
+	public final fun getPost ()Lio/ktor/server/docs/Operation;
+	public final fun getPut ()Lio/ktor/server/docs/Operation;
+	public final fun getRef ()Ljava/lang/String;
+	public final fun getServers ()Ljava/util/List;
+	public final fun getSummary ()Ljava/lang/String;
+	public final fun getTrace ()Lio/ktor/server/docs/Operation;
+	public fun hashCode ()I
+	public final fun plus (Lio/ktor/server/docs/PathItem;)Lio/ktor/server/docs/PathItem;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/ktor/server/docs/PathItem$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/ktor/server/docs/PathItem$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/server/docs/PathItem;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/server/docs/PathItem;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/docs/PathItem$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/docs/RequestBody {
+	public static final field Companion Lio/ktor/server/docs/RequestBody$Companion;
+	public fun <init> (Ljava/lang/String;Lio/ktor/http/ContentType;Lio/ktor/openapi/Schema;ZLjava/util/Map;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lio/ktor/http/ContentType;
+	public final fun component3 ()Lio/ktor/openapi/Schema;
+	public final fun component4 ()Z
+	public final fun component5 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;Lio/ktor/http/ContentType;Lio/ktor/openapi/Schema;ZLjava/util/Map;)Lio/ktor/server/docs/RequestBody;
+	public static synthetic fun copy$default (Lio/ktor/server/docs/RequestBody;Ljava/lang/String;Lio/ktor/http/ContentType;Lio/ktor/openapi/Schema;ZLjava/util/Map;ILjava/lang/Object;)Lio/ktor/server/docs/RequestBody;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getContentType ()Lio/ktor/http/ContentType;
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getExtensions ()Ljava/util/Map;
+	public final fun getRequired ()Z
+	public final fun getSchema ()Lio/ktor/openapi/Schema;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/ktor/server/docs/RequestBody$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/ktor/server/docs/RequestBody$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/server/docs/RequestBody;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/server/docs/RequestBody;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/docs/RequestBody$Builder {
+	public fun <init> ()V
+	public final fun getContentType ()Lio/ktor/http/ContentType;
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getRequired ()Z
+	public final fun getSchema ()Lio/ktor/openapi/Schema;
+	public final fun setContentType (Lio/ktor/http/ContentType;)V
+	public final fun setDescription (Ljava/lang/String;)V
+	public final fun setRequired (Z)V
+	public final fun setSchema (Lio/ktor/openapi/Schema;)V
+}
+
+public final class io/ktor/server/docs/RequestBody$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/docs/Response {
+	public static final field Companion Lio/ktor/server/docs/Response$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lio/ktor/openapi/Schema;Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lio/ktor/openapi/Schema;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Lio/ktor/openapi/Schema;
+	public final fun component5 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lio/ktor/openapi/Schema;Ljava/util/Map;)Lio/ktor/server/docs/Response;
+	public static synthetic fun copy$default (Lio/ktor/server/docs/Response;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lio/ktor/openapi/Schema;Ljava/util/Map;ILjava/lang/Object;)Lio/ktor/server/docs/Response;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getContentType ()Ljava/lang/String;
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getExtensions ()Ljava/util/Map;
+	public final fun getHeaders ()Ljava/util/Map;
+	public final fun getSchema ()Lio/ktor/openapi/Schema;
+	public fun hashCode ()I
+	public final fun setContentType (Ljava/lang/String;)V
+	public final fun setSchema (Lio/ktor/openapi/Schema;)V
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/ktor/server/docs/Response$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/ktor/server/docs/Response$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/server/docs/Response;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/server/docs/Response;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/docs/Response$Builder {
+	public fun <init> ()V
+	public final fun extension (Ljava/lang/String;Ljava/lang/Object;)V
+	public final fun getContentType ()Lio/ktor/http/ContentType;
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getSchema ()Lio/ktor/openapi/Schema;
+	public final fun headers (Lkotlin/jvm/functions/Function1;)V
+	public final fun setContentType (Lio/ktor/http/ContentType;)V
+	public final fun setDescription (Ljava/lang/String;)V
+	public final fun setSchema (Lio/ktor/openapi/Schema;)V
+}
+
+public final class io/ktor/server/docs/Response$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/docs/Responses {
+	public static final field Companion Lio/ktor/server/docs/Responses$Companion;
+	public fun <init> (Ljava/util/Map;)V
+	public final fun component1 ()Ljava/util/Map;
+	public final fun copy (Ljava/util/Map;)Lio/ktor/server/docs/Responses;
+	public static synthetic fun copy$default (Lio/ktor/server/docs/Responses;Ljava/util/Map;ILjava/lang/Object;)Lio/ktor/server/docs/Responses;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getResponses ()Ljava/util/Map;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/ktor/server/docs/Responses$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/ktor/server/docs/Responses$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/server/docs/Responses;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/server/docs/Responses;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/docs/Responses$Builder {
+	public fun <init> ()V
+	public final fun default (Lkotlin/jvm/functions/Function1;)V
+	public final fun getResponses ()Ljava/util/Map;
+	public final fun invoke (Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun invoke$default (Lio/ktor/server/docs/Responses$Builder;Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public final fun response (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+}
+
+public final class io/ktor/server/docs/Responses$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/docs/RoutingExtensionsKt {
+	public static final fun annotate (Lio/ktor/server/routing/Route;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
+	public static final fun findPathItems (Lio/ktor/server/routing/RoutingNode;)Lkotlin/sequences/Sequence;
+	public static final fun plus (Lio/ktor/server/docs/Operation;Lio/ktor/server/docs/Operation;)Lio/ktor/server/docs/Operation;
+}
+
+public final class io/ktor/server/docs/Security {
+	public fun <init> (Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Lio/ktor/server/docs/Security;
+	public static synthetic fun copy$default (Lio/ktor/server/docs/Security;Ljava/util/List;ILjava/lang/Object;)Lio/ktor/server/docs/Security;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getRequirements ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/docs/Security$Builder {
+	public fun <init> ()V
+	public final fun apiKey (Ljava/lang/String;)V
+	public final fun basic ()V
+	public final fun getRequirements ()Ljava/util/List;
+	public final fun oauth2 ([Ljava/lang/String;)V
+	public final fun openIdConnect ([Ljava/lang/String;)V
+	public final fun requirement (Ljava/lang/String;Ljava/util/List;)V
+	public static synthetic fun requirement$default (Lio/ktor/server/docs/Security$Builder;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)V
+}
+
+public final class io/ktor/server/docs/Server {
+	public static final field Companion Lio/ktor/server/docs/Server$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Lio/ktor/server/docs/Server;
+	public static synthetic fun copy$default (Lio/ktor/server/docs/Server;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Lio/ktor/server/docs/Server;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getExtensions ()Ljava/util/Map;
+	public final fun getUrl ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/ktor/server/docs/Server$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/ktor/server/docs/Server$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/server/docs/Server;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/server/docs/Server;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/docs/Server$Builder {
+	public fun <init> ()V
+	public final fun extension (Ljava/lang/String;Ljava/lang/Object;)V
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getUrl ()Ljava/lang/String;
+	public final fun setDescription (Ljava/lang/String;)V
+	public final fun setUrl (Ljava/lang/String;)V
+}
+
+public final class io/ktor/server/docs/Server$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/docs/Servers {
+	public static final field Companion Lio/ktor/server/docs/Servers$Companion;
+	public fun <init> (Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Lio/ktor/server/docs/Servers;
+	public static synthetic fun copy$default (Lio/ktor/server/docs/Servers;Ljava/util/List;ILjava/lang/Object;)Lio/ktor/server/docs/Servers;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getServers ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/ktor/server/docs/Servers$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/ktor/server/docs/Servers$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/server/docs/Servers;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/server/docs/Servers;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/docs/Servers$Builder {
+	public fun <init> ()V
+	public final fun getServers ()Ljava/util/List;
+	public final fun server (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun server$default (Lio/ktor/server/docs/Servers$Builder;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+}
+
+public final class io/ktor/server/docs/Servers$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+

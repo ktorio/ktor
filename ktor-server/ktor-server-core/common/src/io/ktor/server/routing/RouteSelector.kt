@@ -252,12 +252,24 @@ public abstract class RouteSelector {
     public abstract suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation
 }
 
+public interface RoutePathComponent {
+    public fun pathString(): String
+}
+
+public interface RouteParameterComponent {
+    public val name: String
+}
+
+public interface CompositeRouteSelector {
+    public fun subSelectors(): List<RouteSelector>
+}
+
 /**
  * A selector for a routing root.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RootRouteSelector)
  */
-public class RootRouteSelector(rootPath: String = "") : RouteSelector() {
+public class RootRouteSelector(rootPath: String = "") : RouteSelector(), RoutePathComponent {
 
     private val parts = RoutingPath.parse(rootPath).parts.map {
         require(it.kind == RoutingPathSegmentKind.Constant) {
@@ -292,7 +304,11 @@ public class RootRouteSelector(rootPath: String = "") : RouteSelector() {
         return successEvaluationResult
     }
 
-    override fun toString(): String = parts.joinToString("/")
+    override fun pathString(): String =
+        parts.joinToString("/")
+
+    override fun toString(): String =
+        pathString()
 }
 
 /**
@@ -326,8 +342,8 @@ public data class ConstantParameterRouteSelector(
  * @param name is a name of the query parameter
  */
 public data class ParameterRouteSelector(
-    val name: String
-) : RouteSelector() {
+    override val name: String
+) : RouteSelector(), RouteParameterComponent {
 
     override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val param = context.call.parameters.getAll(name)
@@ -351,8 +367,8 @@ public data class ParameterRouteSelector(
  * @param name is a name of the query parameter
  */
 public data class OptionalParameterRouteSelector(
-    val name: String
-) : RouteSelector() {
+    override val name: String
+) : RouteSelector(), RouteParameterComponent {
 
     override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val param = context.call.parameters.getAll(name)
@@ -377,7 +393,7 @@ public data class OptionalParameterRouteSelector(
  */
 public data class PathSegmentConstantRouteSelector(
     val value: String
-) : RouteSelector() {
+) : RouteSelector(), RoutePathComponent {
 
     override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation = when {
         segmentIndex < context.segments.size && context.segments[segmentIndex] == value ->
@@ -385,6 +401,8 @@ public data class PathSegmentConstantRouteSelector(
 
         else -> RouteSelectorEvaluation.FailedPath
     }
+
+    override fun pathString(): String = value
 
     override fun toString(): String = value
 }
@@ -394,7 +412,7 @@ public data class PathSegmentConstantRouteSelector(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.TrailingSlashRouteSelector)
  */
-public object TrailingSlashRouteSelector : RouteSelector() {
+public object TrailingSlashRouteSelector : RouteSelector(), RoutePathComponent {
 
     override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation = when {
         context.call.ignoreTrailingSlash -> RouteSelectorEvaluation.Transparent
@@ -405,6 +423,8 @@ public object TrailingSlashRouteSelector : RouteSelector() {
         context.hasTrailingSlash -> RouteSelectorEvaluation.ConstantPath
         else -> RouteSelectorEvaluation.FailedPath
     }
+
+    override fun pathString(): String = "/"
 
     override fun toString(): String = "<slash>"
 }
@@ -419,10 +439,10 @@ public object TrailingSlashRouteSelector : RouteSelector() {
  * @param suffix is an optional prefix
  */
 public data class PathSegmentParameterRouteSelector(
-    val name: String,
+    override val name: String,
     val prefix: String? = null,
     val suffix: String? = null
-) : RouteSelector() {
+) : RouteSelector(), RoutePathComponent, RouteParameterComponent {
 
     override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         return evaluatePathSegmentParameter(
@@ -434,6 +454,8 @@ public data class PathSegmentParameterRouteSelector(
             isOptional = false
         )
     }
+
+    override fun pathString(): String = "${prefix ?: ""}{$name}${suffix ?: ""}"
 
     override fun toString(): String = "${prefix ?: ""}{$name}${suffix ?: ""}"
 }
@@ -448,10 +470,10 @@ public data class PathSegmentParameterRouteSelector(
  * @param suffix is an optional prefix
  */
 public data class PathSegmentOptionalParameterRouteSelector(
-    val name: String,
+    override val name: String,
     val prefix: String? = null,
     val suffix: String? = null
-) : RouteSelector() {
+) : RouteSelector(), RoutePathComponent, RouteParameterComponent {
 
     override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         return evaluatePathSegmentParameter(
@@ -464,6 +486,8 @@ public data class PathSegmentOptionalParameterRouteSelector(
         )
     }
 
+    override fun pathString(): String = "${prefix ?: ""}{$name}${suffix ?: ""}"
+
     override fun toString(): String = "${prefix ?: ""}{$name?}${suffix ?: ""}"
 }
 
@@ -472,13 +496,14 @@ public data class PathSegmentOptionalParameterRouteSelector(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.PathSegmentWildcardRouteSelector)
  */
-public object PathSegmentWildcardRouteSelector : RouteSelector() {
+public object PathSegmentWildcardRouteSelector : RouteSelector(), RoutePathComponent {
     override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         if (segmentIndex < context.segments.size && context.segments[segmentIndex].isNotEmpty()) {
             return RouteSelectorEvaluation.WildcardPath
         }
         return RouteSelectorEvaluation.FailedPath
     }
+    override fun pathString(): String = "{*}"
 
     override fun toString(): String = "*"
 }
@@ -548,7 +573,7 @@ public data class PathSegmentTailcardRouteSelector(
 public data class OrRouteSelector(
     val first: RouteSelector,
     val second: RouteSelector
-) : RouteSelector() {
+) : RouteSelector(), CompositeRouteSelector {
 
     override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val result = first.evaluate(context, segmentIndex)
@@ -558,6 +583,9 @@ public data class OrRouteSelector(
             second.evaluate(context, segmentIndex)
         }
     }
+
+    override fun subSelectors(): List<RouteSelector> =
+        listOf(first, second)
 
     override fun toString(): String = "{$first | $second}"
 }
@@ -574,7 +602,7 @@ public data class OrRouteSelector(
 public data class AndRouteSelector(
     val first: RouteSelector,
     val second: RouteSelector
-) : RouteSelector() {
+) : RouteSelector(), CompositeRouteSelector {
 
     override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val result1 = first.evaluate(context, segmentIndex)
@@ -592,6 +620,9 @@ public data class AndRouteSelector(
             result1.segmentIncrement + result2.segmentIncrement
         )
     }
+
+    override fun subSelectors(): List<RouteSelector> =
+        listOf(first, second)
 
     override fun toString(): String = "{$first & $second}"
 }
@@ -626,9 +657,9 @@ public data class HttpMethodRouteSelector(
  * @param value is the value of the header
  */
 public data class HttpHeaderRouteSelector(
-    val name: String,
+    override val name: String,
     val value: String
-) : RouteSelector() {
+) : RouteSelector(), RouteParameterComponent {
 
     override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val headers = context.call.request.headers[name]
