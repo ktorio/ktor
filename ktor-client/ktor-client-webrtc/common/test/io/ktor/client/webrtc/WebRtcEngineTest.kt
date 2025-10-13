@@ -16,8 +16,6 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
 
-@IgnoreJvm
-@IgnoreDesktop
 @OptIn(ExperimentalKtorApi::class)
 class WebRtcEngineTest {
 

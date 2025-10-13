@@ -14,8 +14,6 @@ import kotlinx.coroutines.withTimeout
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
 
-@IgnoreJvm
-@IgnoreDesktop
 @OptIn(ExperimentalKtorApi::class)
 class WebRtcDataChannelTest {
 
@@ -214,6 +212,7 @@ class WebRtcDataChannelTest {
     }
 
     @Test
+    @IgnoreJvm
     fun testDataChannelBufferedAmountLowEvent() = testDataChannel { pc1, pc2, jobs ->
         val dataChannelEvents1 = pc1.dataChannelEvents.collectToChannel(this, jobs)
         val dataChannelEvents2 = pc2.dataChannelEvents.collectToChannel(this, jobs)
