@@ -19,14 +19,14 @@ import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsSubTargetDsl
 import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsTargetDsl
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsEnvSpec
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsPlugin
-import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
-import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootEnvSpec
+import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
+import org.jetbrains.kotlin.gradle.targets.js.npm.BaseNpmExtension
+import org.jetbrains.kotlin.gradle.targets.js.npm.NpmExtension
 import org.jetbrains.kotlin.gradle.targets.wasm.nodejs.WasmNodeJsEnvSpec
 import org.jetbrains.kotlin.gradle.targets.wasm.nodejs.WasmNodeJsPlugin
-import org.jetbrains.kotlin.gradle.targets.wasm.yarn.WasmYarnPlugin
-import org.jetbrains.kotlin.gradle.targets.wasm.yarn.WasmYarnRootEnvSpec
+import org.jetbrains.kotlin.gradle.targets.wasm.nodejs.WasmNodeJsRootPlugin
+import org.jetbrains.kotlin.gradle.targets.wasm.npm.WasmNpmExtension
 import org.jetbrains.kotlin.gradle.targets.web.nodejs.BaseNodeJsEnvSpec
-import org.jetbrains.kotlin.gradle.targets.web.yarn.BaseYarnRootEnvSpec
 
 internal fun KotlinJsTargetDsl.addSubTargets(targets: KtorTargets) {
     if (targets.isEnabled("${targetName}.nodeJs")) nodejs {
@@ -108,13 +108,13 @@ private fun BaseNodeJsEnvSpec.configure(nodeVersion: Provider<String>) {
     if (isKtorDevEnvironment) download = false
 }
 
-fun Project.configureYarn() {
-    plugins.withType<YarnPlugin> { the<YarnRootEnvSpec>().configure() }
-    plugins.withType<WasmYarnPlugin> { the<WasmYarnRootEnvSpec>().configure() }
+fun Project.configureNpm() {
+    check(this == rootProject) { "Npm configuration should be done on the root project only" }
+    plugins.withType<NodeJsRootPlugin> { the<NpmExtension>().configure() }
+    plugins.withType<WasmNodeJsRootPlugin> { the<WasmNpmExtension>().configure() }
 }
 
-private fun BaseYarnRootEnvSpec.configure() {
-    if (isKtorDevEnvironment) download = false
+private fun BaseNpmExtension.configure() {
     // Don't ignore scripts if we want Chrome to be installed automatically with puppeteer.
     if (shouldDownloadBrowser) ignoreScripts = false
 }

@@ -15,5 +15,5 @@ println("Kotlin version: ${libs.versions.kotlin.get()}")
 
 wirePackageJsonAggregationTasks()
 
-configureYarn()
+configureNpm()
 configureNodeJs()
