@@ -149,6 +149,11 @@ internal fun Application.cacheTestServer() {
                     else -> error("Should not be invoked")
                 }
             }
+
+            get("/vary-header-not-modified") {
+                call.response.header(HttpHeaders.Vary, HttpHeaders.AcceptLanguage)
+                call.respond(HttpStatusCode.NotModified)
+            }
         }
     }
 }

@@ -17,6 +17,7 @@ import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.core.toByteArray
 import kotlinx.coroutines.delay
 import kotlin.test.*
 
@@ -919,6 +920,46 @@ class CacheTest : ClientLoader() {
             assertEquals("1", response1)
             assertEquals("2", response2)
             assertEquals("2", response3)
+        }
+    }
+
+    @Test
+    fun testUpgradeOldCacheVersionWithCaseSensitiveVary() = clientTests {
+        val publicStorage = CacheStorage.Unlimited()
+        val privateStorage = CacheStorage.Unlimited()
+        config {
+            install(HttpCache) {
+                publicStorage(publicStorage)
+                privateStorage(privateStorage)
+            }
+        }
+
+        test { client ->
+            val url = Url("$TEST_SERVER/cache/vary-header-not-modified")
+
+            // Prepopulate the cache with an entry that uses a capitalized "Accept-Language" vary key.
+            val now = GMTDate()
+            publicStorage.store(url, CachedResponseData(
+                url = url,
+                statusCode = HttpStatusCode.OK,
+                requestTime = now,
+                responseTime = now,
+                version = HttpProtocolVersion.HTTP_1_1,
+                expires = now,
+                headers = headers {
+                    append(HttpHeaders.Vary, HttpHeaders.AcceptLanguage)
+                },
+                varyKeys = mapOf(
+                    HttpHeaders.AcceptLanguage to "en-US"
+                ),
+                body = "OK".toByteArray(),
+            ))
+
+            val response = client.get(url) {
+                header(HttpHeaders.AcceptLanguage, "en-US")
+            }.bodyAsText()
+
+            assertEquals("OK", response)
         }
     }
 
