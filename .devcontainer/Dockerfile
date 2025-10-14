@@ -26,7 +26,7 @@ RUN <<EOT
 
   apt-get update
   apt-get install --yes --no-install-recommends \
-    git util-linux openssh-server \
+    git util-linux openssh-server pulseaudio \
     ca-certificates curl fonts-liberation \
     $(grep --invert-match '^#' /tmp/chrome-dependencies.txt | tr '\n' ' ') \
     temurin-8-jdk temurin-11-jdk temurin-17-jdk \
