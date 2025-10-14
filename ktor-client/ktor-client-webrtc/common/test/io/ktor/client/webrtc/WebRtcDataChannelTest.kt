@@ -243,6 +243,9 @@ class WebRtcDataChannelTest {
         assertEquals(null, dataChannel2.tryReceive())
     }
 
+    // Ignored on JVM: webrtc-java’s onBufferedAmountChange/bufferedAmountLow callback isn’t fired
+    // See https://github.com/devopvoid/webrtc-java/issues/214
+    // Remove this annotation once the issue is resolved
     @Test
     fun testCloseIsIdempotent() = testDataChannel { pc1, pc2 ->
         val ch1 = pc1.createDataChannel("idempotent-close")

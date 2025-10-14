@@ -135,18 +135,13 @@ public class JvmWebRtcConnection(
         }
 
         val channelInit = RTCDataChannelInit().apply {
-            if (options.id != null) {
-                id = options.id!!
-            }
-            if (options.maxRetransmits != null) {
-                maxRetransmits = options.maxRetransmits!!
-            }
-            if (options.maxPacketLifeTime != null) {
-                maxPacketLifeTime = options.maxPacketLifeTime?.inWholeMilliseconds?.toInt()!!
-            }
             ordered = options.ordered
             protocol = options.protocol
             negotiated = options.negotiated
+
+            options.id?.let { id = it }
+            options.maxRetransmits?.let { maxRetransmits = it }
+            options.maxPacketLifeTime?.let { maxPacketLifeTime = it.inWholeMilliseconds.toInt() }
         }
         val nativeChannel = inner.createDataChannel(label, channelInit)
         val receiveOptions = DataChannelReceiveOptions().apply(options.receiveOptions)
@@ -197,7 +192,7 @@ public class JvmWebRtcConnection(
 
     override suspend fun removeTrack(track: WebRtcMedia.Track) {
         val mediaTrack = track as JvmMediaTrack
-        val sender = inner.senders.firstOrNull { it.track.id == mediaTrack.id }
+        val sender = inner.senders.firstOrNull { it.track?.id == mediaTrack.id }
             ?: error("Track is not found.")
         inner.removeTrack(sender)
     }

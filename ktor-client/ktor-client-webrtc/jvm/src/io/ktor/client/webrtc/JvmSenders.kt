@@ -24,8 +24,7 @@ public class JvmRtpSender(internal val inner: RTCRtpSender) : WebRtc.RtpSender {
         if (withTrack == null) {
             return inner.replaceTrack(null)
         }
-        val withTrack = withTrack as JvmMediaTrack
-        inner.replaceTrack(withTrack.inner)
+        inner.replaceTrack((withTrack as JvmMediaTrack).inner)
     }
 
     override suspend fun getParameters(): WebRtc.RtpParameters {
@@ -38,10 +37,9 @@ public class JvmRtpSender(internal val inner: RTCRtpSender) : WebRtc.RtpSender {
 }
 
 /**
- * JVM implementation of DTMF sender that wraps native RTCDtmfSenderProtocol.
+ * JVM implementation of DTMF sender that wraps RTCDtmfSender.
  *
- * Provides platform-safe API for sending DTMF tones with proper time unit conversion
- * from milliseconds to seconds for the native iOS implementation.
+ * Provides a platform-safe API for sending DTMF tones.
  */
 public class JvmDtmfSender(internal val inner: RTCDtmfSender) : WebRtc.DtmfSender {
     override val toneBuffer: String
@@ -56,7 +54,7 @@ public class JvmDtmfSender(internal val inner: RTCDtmfSender) : WebRtc.DtmfSende
 }
 
 /**
- * JVM implementation of RTP parameters that wraps native RTCRtpParameters.
+ * JVM implementation of RTP parameters that wraps RTCRtpSendParameters.
  *
  * Provides type-safe access to RTP configuration, including encodings, codecs,
  * header extensions, and degradation preferences with proper enum mapping.
@@ -72,8 +70,7 @@ public class JvmRtpParameters(internal val inner: RTCRtpSendParameters) : WebRtc
             WebRtc.RtpHeaderExtensionParameters(it.id, it.uri, it.encrypted)
         }
 
-    override val degradationPreference: WebRtc.DegradationPreference
-        get() = WebRtc.DegradationPreference.DISABLED
+    override val degradationPreference: WebRtc.DegradationPreference = WebRtc.DegradationPreference.DISABLED
 }
 
 /**
@@ -93,6 +90,6 @@ public fun WebRtc.DtmfSender.getNative(): RTCDtmfSender {
 /**
  * Returns implementation of the rtp parameters that is used under the hood. Use it with caution.
  */
-public fun WebRtc.RtpParameters.getNative(): RTCRtpParameters {
+public fun WebRtc.RtpParameters.getNative(): RTCRtpSendParameters {
     return (this as JvmRtpParameters).inner
 }
