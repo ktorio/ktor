@@ -31,9 +31,9 @@ public class JvmWebRtcEngine(
 ) : WebRtcEngineBase("jvm-webrtc", config), MediaTrackFactory by mediaTrackFactory {
 
     private val localFactory: PeerConnectionFactory
-        get() {
-            return config.rtcFactory ?: (mediaTrackFactory as JvmMediaDevices).peerConnectionFactory
-        }
+        get() = config.rtcFactory
+            ?: (mediaTrackFactory as? JvmMediaDevices)?.peerConnectionFactory
+            ?: error("Provide `JvmWebRtcEngineConfig.rtcFactory` when mediaTrackFactory is not `JvmMediaDevices`.")
 
     override suspend fun createPeerConnection(config: WebRtcConnectionConfig): WebRtcPeerConnection {
         require(config.iceCandidatePoolSize <= 0) {
@@ -48,11 +48,14 @@ public class JvmWebRtcEngine(
         val coroutineContext = createConnectionContext(config.exceptionHandler)
         return JvmWebRtcConnection(coroutineContext, config).initialize { observer ->
             localFactory.createPeerConnection(rtcConfig, observer)
+                ?: error("Failed to create peer connection.")
         }
     }
 }
 
-/** Factory object for creating JVM WebRTC engine instances. */
+/**
+ * Factory object for creating JVM WebRTC engine instances.
+ */
 public object JvmWebRtc : WebRtcClientEngineFactory<JvmWebRtcEngineConfig> {
     override fun create(block: JvmWebRtcEngineConfig.() -> Unit): WebRtcEngine =
         JvmWebRtcEngine(JvmWebRtcEngineConfig().apply(block))

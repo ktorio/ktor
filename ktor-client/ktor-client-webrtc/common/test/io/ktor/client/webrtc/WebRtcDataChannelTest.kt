@@ -211,6 +211,9 @@ class WebRtcDataChannelTest {
         assertEquals(null, dataChannel2.tryReceive())
     }
 
+    // Ignored on JVM: webrtc-java’s onBufferedAmountChange/bufferedAmountLow callback isn’t fired
+    // See https://github.com/devopvoid/webrtc-java/issues/214
+    // Remove this annotation once the issue is resolved
     @Test
     @IgnoreJvm
     fun testDataChannelBufferedAmountLowEvent() = testDataChannel { pc1, pc2, jobs ->

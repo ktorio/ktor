@@ -41,25 +41,21 @@ public class CameraVideoFactory : VideoFactory {
         val targetFrameRate = constraints.frameRate ?: DEFAULT_VIDEO_FRAME_RATE
 
         val allDevices = MediaDevices.getVideoCaptureDevices()
-
-        val capabilitiesByDimensions = allDevices
-            .flatMap { MediaDevices.getVideoCaptureCapabilities(it) }
-            .groupBy { it.width to it.height }
-
-        val bestDimension = capabilitiesByDimensions.keys.minByOrNull { key ->
-            val capability = capabilitiesByDimensions.getValue(key).first()
-            capability.fitnessDistance(targetWidth, targetHeight)
-        } ?: throw WebRtcMedia.DeviceException("No suitable video device found.")
-
-        val bestCapability = capabilitiesByDimensions
-            .getValue(bestDimension)
-            .sortedBy { it.frameRate }
-            .first { it.frameRate >= targetFrameRate }
-
-        val selectedDevice = allDevices.first { device ->
-            MediaDevices.getVideoCaptureCapabilities(device).any { it == bestCapability }
+        val candidates = allDevices.flatMap { device ->
+            MediaDevices.getVideoCaptureCapabilities(device).map { capability -> device to capability }
+        }
+        if (candidates.isEmpty()) {
+            throw WebRtcMedia.DeviceException("No suitable video device found.")
         }
 
+        val sortedByFit = candidates.sortedWith { a, b ->
+            val da = a.second.fitnessDistance(targetWidth, targetHeight)
+            val db = b.second.fitnessDistance(targetWidth, targetHeight)
+            if (da != db) da - db else b.second.frameRate - a.second.frameRate
+        }
+        val bestCandidate = sortedByFit.firstOrNull { it.second.frameRate >= targetFrameRate }
+            ?: sortedByFit.first()
+        val (selectedDevice, bestCapability) = bestCandidate
         return VideoTrackCapturer().apply {
             source.setVideoCaptureDevice(selectedDevice)
             source.setVideoCaptureCapability(bestCapability)

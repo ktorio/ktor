@@ -80,7 +80,7 @@ public final class io/ktor/client/webrtc/JvmRtpSender : io/ktor/client/webrtc/We
 
 public final class io/ktor/client/webrtc/JvmSendersKt {
 	public static final fun getNative (Lio/ktor/client/webrtc/WebRtc$DtmfSender;)Ldev/onvoid/webrtc/RTCDtmfSender;
-	public static final fun getNative (Lio/ktor/client/webrtc/WebRtc$RtpParameters;)Ldev/onvoid/webrtc/RTCRtpParameters;
+	public static final fun getNative (Lio/ktor/client/webrtc/WebRtc$RtpParameters;)Ldev/onvoid/webrtc/RTCRtpSendParameters;
 	public static final fun getNative (Lio/ktor/client/webrtc/WebRtc$RtpSender;)Ldev/onvoid/webrtc/RTCRtpSender;
 }
 
