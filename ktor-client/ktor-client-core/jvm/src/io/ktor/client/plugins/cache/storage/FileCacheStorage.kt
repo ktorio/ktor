@@ -222,7 +222,7 @@ private class FileCacheStorage(
         val varyKeysCount = channel.readInt()
         val varyKeys = buildMap {
             for (j in 0 until varyKeysCount) {
-                val key = channel.readUTF8Line()!!
+                val key = channel.readUTF8Line()!!.lowercase()
                 val value = channel.readUTF8Line()!!
                 put(key, value)
             }

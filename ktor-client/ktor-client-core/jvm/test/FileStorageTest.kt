@@ -38,7 +38,7 @@ class FileStorageTest {
         val storage = FileStorage(tempDirectory)
 
         storage.store(Url("http://example.com"), data())
-        storage.store(Url("http://example.com"), data(mapOf("key" to "value")))
+        storage.store(Url("http://example.com"), data(mapOf("Key" to "value")))
 
         assertNotNull(storage.find(Url("http://example.com"), mapOf("key" to "value")))
     }
