@@ -152,21 +152,24 @@ class FileCacheTest : ClientLoader() {
 
             // Prepopulate the cache with an entry that uses a capitalized "Accept-Language" vary key.
             val now = GMTDate()
-            publicStorage.store(url, CachedResponseData(
-                url = url,
-                statusCode = HttpStatusCode.OK,
-                requestTime = now,
-                responseTime = now,
-                version = HttpProtocolVersion.HTTP_1_1,
-                expires = now,
-                headers = headers {
-                    append(HttpHeaders.Vary, HttpHeaders.AcceptLanguage)
-                },
-                varyKeys = mapOf(
-                    HttpHeaders.AcceptLanguage to "en-US"
-                ),
-                body = "OK".toByteArray(),
-            ))
+            publicStorage.store(
+                url,
+                CachedResponseData(
+                    url = url,
+                    statusCode = HttpStatusCode.OK,
+                    requestTime = now,
+                    responseTime = now,
+                    version = HttpProtocolVersion.HTTP_1_1,
+                    expires = now,
+                    headers = headers {
+                        append(HttpHeaders.Vary, HttpHeaders.AcceptLanguage)
+                    },
+                    varyKeys = mapOf(
+                        HttpHeaders.AcceptLanguage to "en-US"
+                    ),
+                    body = "OK".toByteArray(),
+                )
+            )
 
             val response = client.get(url) {
                 header(HttpHeaders.AcceptLanguage, "en-US")
