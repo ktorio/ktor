@@ -57,7 +57,7 @@ public data class Schema(
     val minItems: Int? = null,
     val uniqueItems: Boolean? = null,
     // inner type nullable to allow explicit "null" value for nullable enums
-    val enum: List<String?>? = null,
+    val enum: List<GenericElement?>? = null,
     val multipleOf: Double? = null,
     @SerialName("\$id") val id: String? = null,
     @SerialName("\$anchor") val anchor: String? = null,

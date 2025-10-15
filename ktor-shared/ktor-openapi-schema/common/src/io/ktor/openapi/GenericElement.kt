@@ -70,7 +70,7 @@ public interface GenericElement {
     /**
      * Deserializes the element into the given [serializer].
      */
-    public fun <T> deserialize(serializer: KSerializer<T>): T
+    public fun <T> deserialize(serializer: DeserializationStrategy<T>): T
 
     /**
      * Returns a list of key-value pairs for the element.
@@ -103,7 +103,10 @@ public inline fun <reified T> GenericElement.asA(): T =
  * Convenience function for creating a [GenericElement] from a value of type [T].
  */
 public inline fun <reified T : Any> GenericElement(value: T): GenericElement =
-    GenericElementWrapper(value, serializer<T>())
+    when (value) {
+        is String -> GenericElementString(value)
+        else -> GenericElementWrapper(value, serializer())
+    }
 
 /**
  * Adapter for custom [GenericElement] types when using different encoders / decoders.
@@ -144,7 +147,7 @@ public class GenericElementWrapper<T : Any>(
 ) : GenericElement {
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T> deserialize(serializer: KSerializer<T>): T =
+    override fun <T> deserialize(serializer: DeserializationStrategy<T>): T =
         element as? T ?: error {
             "Cannot deserialize ${element::class} to ${serializer.descriptor.serialName}"
         }
@@ -161,6 +164,25 @@ public class GenericElementWrapper<T : Any>(
 }
 
 /**
+ * A [GenericElement] implementation that wraps a string value.
+ */
+public class GenericElementString(
+    override val element: String,
+    override val elementSerializer: KSerializer<String> = String.serializer(),
+) : GenericElement {
+    @Suppress("UNCHECKED_CAST")
+    override fun <T> deserialize(serializer: DeserializationStrategy<T>): T =
+        element as? T ?: error {
+            "Expected String but got ${serializer.descriptor.serialName}"
+        }
+
+    override fun entries(): List<Pair<String, GenericElement>> =
+        throw UnsupportedOperationException("Cannot get entries for a string")
+
+    override fun isString(): Boolean = true
+}
+
+/**
  * A [GenericElement] implementation that wraps a map of [GenericElement]s.
  */
 public class GenericElementMap(
@@ -169,7 +191,7 @@ public class GenericElementMap(
 ) : GenericElement {
     override fun isObject(): Boolean = true
 
-    override fun <T> deserialize(serializer: KSerializer<T>): T =
+    override fun <T> deserialize(serializer: DeserializationStrategy<T>): T =
         serializer.deserialize(GenericElementMapDecoder(element))
 
     override fun entries(): List<Pair<String, GenericElement>> =
@@ -288,7 +310,7 @@ internal class GenericElementMapDecoder(
 
     override fun <T> decodeSerializableValue(deserializer: DeserializationStrategy<T>): T {
         val element = getCurrentElement()
-        return element.deserialize(deserializer as KSerializer<T>)
+        return element.deserialize(deserializer)
     }
 }
 
@@ -385,7 +407,7 @@ public class JsonGenericElement(
     override fun isArray(): Boolean = element is JsonArray
     override fun isString(): Boolean = element is JsonPrimitive && element.isString
 
-    override fun <T> deserialize(serializer: KSerializer<T>): T =
+    override fun <T> deserialize(serializer: DeserializationStrategy<T>): T =
         json.decodeFromJsonElement(serializer, element)
 
     override fun entries(): List<Pair<String, GenericElement>> {
@@ -451,7 +473,6 @@ public class GenericElementSerializer : KSerializer<GenericElement> {
 
     @Suppress("UNCHECKED_CAST")
     override fun serialize(encoder: Encoder, value: GenericElement) {
-        encoder.serializersModule
         encoder.encodeSerializableValue(
             value.elementSerializer as KSerializer<Any>,
             value.element

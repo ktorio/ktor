@@ -7,21 +7,40 @@ package io.ktor.openapi
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 
+/**
+ * Generates a JSON Schema representation for the given type [T].
+ *
+ * This function attempts to infer the schema from the type's [KSerializer].
+ * If the type is not serializable, returns a Schema representing a non-serializable type.
+ *
+ * @return A [Schema] object representing the JSON Schema for type [T].
+ */
 public inline fun <reified T : Any> jsonSchema(): Schema {
     return try {
-        // Try to get the serializer for type T
         serializer<T>().descriptor.buildJsonSchema()
     } catch (e: SerializationException) {
-        // Type T is not serializable
         Schema(
             type = Schema.SchemaType.JsonType.Object,
-            description = "Not serializable type: ${T::class.simpleName}"
+            description = "Not serializable type: ${T::class.simpleName}. Reason: ${e.message}"
         )
     }
 }
 
 /**
- * Generate a Schema from a SerialDescriptor.
+ * Generates a JSON Schema representation from a Kotlinx Serialization [SerialDescriptor].
+ *
+ * Supports the following descriptor kinds:
+ * - CLASS/OBJECT: Maps to object schema with properties and required fields (based on nullability)
+ * - LIST: Maps to array schema with items
+ * - MAP: Maps to object schema with additionalProperties
+ * - Primitives (STRING, BOOLEAN, INT, LONG, FLOAT, DOUBLE, etc.): Maps to corresponding JSON types
+ * - ENUM: Maps to string schema with enum values
+ * - CONTEXTUAL: Returns a generic object schema (actual type resolution requires serialization context)
+ *
+ * @return A [Schema] object representing the JSON Schema for this descriptor.
+ *
+ * Note: This function does not handle circular references. For types with circular dependencies,
+ * consider implementing depth tracking or schema references to avoid stack overflow.
  */
 public fun SerialDescriptor.buildJsonSchema(): Schema {
     return when (kind) {
@@ -35,7 +54,7 @@ public fun SerialDescriptor.buildJsonSchema(): Schema {
                 val isNullable = elementDescriptor.isNullable
 
                 // Add non-nullable fields to required list
-                if (!isNullable) {
+                if (!isNullable && !isElementOptional(i)) {
                     required.add(name)
                 }
 
@@ -68,7 +87,7 @@ public fun SerialDescriptor.buildJsonSchema(): Schema {
             Schema(type = Schema.SchemaType.JsonType.Integer)
         PrimitiveKind.FLOAT, PrimitiveKind.DOUBLE -> Schema(type = Schema.SchemaType.JsonType.Number)
         SerialKind.ENUM -> {
-            val enumValues = List(elementsCount) { i -> getElementName(i) }
+            val enumValues = List(elementsCount) { i -> GenericElement(getElementName(i)) }
             Schema(
                 type = Schema.SchemaType.JsonType.String,
                 enum = enumValues

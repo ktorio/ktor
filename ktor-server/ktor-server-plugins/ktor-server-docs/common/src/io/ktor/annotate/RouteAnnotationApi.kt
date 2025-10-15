@@ -27,7 +27,7 @@ public fun Route.annotate(configure: Operation.Builder.() -> Unit): Route {
 }
 
 /**
- * Finds all [PathItem]s in the [RoutingNode] and its descendents.
+ * Finds all [PathItem]s in the [RoutingNode] and its descendants.
  */
 public fun RoutingNode.findPathItems(): Map<String, PathItem> =
     descendants()
@@ -53,12 +53,26 @@ internal fun RoutingNode.asPathItem(): Pair<String, PathItem>? {
 }
 
 internal fun RoutingNode.path(): String =
-    lineage()
+    lineage().toList()
+        .asReversed()
         .mapNotNull { it.selector.segmentOrNull() }
-        .toList()
-        .reversed()
-        .joinToString("/")
-        .let { if (it.startsWith("/")) it else "/$it" }
+        .fold("") { acc, seg ->
+            when {
+                acc.isEmpty() -> seg
+                seg.isEmpty() -> acc
+                acc.endsWith('/') || seg.startsWith('/') -> "$acc$seg"
+                else -> "$acc/$seg"
+            }
+        }
+        .let {
+            if (it.isEmpty()) {
+                "/"
+            } else if (it.startsWith("/")) {
+                it
+            } else {
+                "/$it"
+            }
+        }
 
 internal fun RouteSelector.segmentOrNull(): String? =
     when (this) {
@@ -148,7 +162,6 @@ internal operator fun Operation.plus(other: Operation): Operation =
 
 internal operator fun PathItem.plus(other: PathItem): PathItem =
     PathItem(
-        ref = ref ?: other.ref,
         summary = summary ?: other.summary,
         get = get ?: other.get,
         put = put ?: other.put,

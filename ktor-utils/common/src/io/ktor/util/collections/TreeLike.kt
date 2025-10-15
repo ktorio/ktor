@@ -39,5 +39,5 @@ public interface TreeLike<out T : TreeLike<T>> {
      * Returns `true` if the current node has no children.
      */
     public fun isLeaf(): Boolean =
-        !isRoot() && !children.iterator().hasNext()
+        !children.iterator().hasNext()
 }

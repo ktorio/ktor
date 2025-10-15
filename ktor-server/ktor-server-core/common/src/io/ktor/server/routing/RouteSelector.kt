@@ -252,14 +252,24 @@ public abstract class RouteSelector {
     public abstract suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation
 }
 
+/**
+ * Exposes a textual representation of the path fragment contributed by this selector.
+ * Used for tooling (e.g., documentation generation).
+ */
 public interface RoutePathComponent {
     public fun pathString(): String
 }
 
+/**
+ * Exposes the parameter name contributed by this selector (query, header, or path).
+ */
 public interface RouteParameterComponent {
     public val name: String
 }
 
+/**
+ * Exposes child selectors composing this selector (e.g., Or/And).
+ */
 public interface CompositeRouteSelector {
     public fun subSelectors(): List<RouteSelector>
 }

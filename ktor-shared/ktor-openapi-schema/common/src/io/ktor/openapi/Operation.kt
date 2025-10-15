@@ -438,7 +438,8 @@ public data class Responses(
 public data class Response(
     public val description: String,
     public val headers: Map<String, Parameter>? = null,
-    public var contentType: String? = null,
+    @Serializable(ContentTypeSerializer::class)
+    public var contentType: ContentType? = null,
     public var schema: Schema? = null,
     public val extensions: Map<String, GenericElement>? = null
 ) {
@@ -497,7 +498,7 @@ public data class Response(
         internal fun build(): Response {
             return Response(
                 description = description,
-                contentType = contentType.toString(),
+                contentType = contentType,
                 schema = schema,
                 headers = _headers.ifEmpty { null },
                 extensions = extensions.ifEmpty { null },
