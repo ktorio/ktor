@@ -38,6 +38,7 @@ class FileStorageTest {
         val storage = FileStorage(tempDirectory)
 
         storage.store(Url("http://example.com"), data())
+        // Use an uppercase key to test case insensitivity
         storage.store(Url("http://example.com"), data(mapOf("Key" to "value")))
 
         assertNotNull(storage.find(Url("http://example.com"), mapOf("key" to "value")))
