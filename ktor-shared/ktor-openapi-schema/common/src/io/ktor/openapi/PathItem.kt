@@ -6,6 +6,7 @@ package io.ktor.openapi
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KeepGeneratedSerializer
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -17,12 +18,6 @@ import kotlinx.serialization.Serializable
 @OptIn(ExperimentalSerializationApi::class)
 @KeepGeneratedSerializer
 public data class PathItem(
-    /**
-     * Allows for an external definition of this path item. The referenced structure MUST be in the
-     * format of a [PathItem]. In case a [PathItem] field appears both in the defined object and the
-     * referenced object, the behavior is undefined.
-     */
-    public val ref: String? = null,
     /** An optional, string summary, intended to apply to all operations in this path. */
     public val summary: String? = null,
     /**
@@ -38,9 +33,8 @@ public data class PathItem(
     public val post: Operation? = null,
     /** A definition of a DELETE operation on this path. */
     public val delete: Operation? = null,
-    /** A definition of a OPTIONS operation on this path. */
+    /** A definition of an OPTIONS operation on this path. */
     public val options: Operation? = null,
-    /** A definition of a HEAD operation on this path. */
     public val head: Operation? = null,
     /** A definition of a PATCH operation on this path. */
     public val patch: Operation? = null,

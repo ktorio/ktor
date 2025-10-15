@@ -20,7 +20,7 @@ internal abstract class SerializerWithExtensions<T>(
     override fun serialize(encoder: Encoder, value: T) {
         val element = adapters.firstNotNullOfOrNull {
             it.trySerializeToElement(encoder, value, serializer)
-        } ?: error { "No adapter found for $encoder" }
+        } ?: error("No adapter found for $encoder")
         val (base, extensions) = element.split { it == "extensions" }
         when (val extensionsValue = extensions.entries().firstOrNull()?.second) {
             null -> encoder.encodeSerializableValue(serializer, value)

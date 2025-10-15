@@ -60,7 +60,9 @@ public sealed interface ReferenceOr<out A> {
                         val entries = element.entries().toMap()
                         when {
                             RefKey in entries -> Reference(entries[RefKey]!!.deserialize(String.serializer()))
-                            RecursiveRefKey in entries -> Reference(entries[RefKey]!!.deserialize(String.serializer()))
+                            RecursiveRefKey in entries -> Reference(
+                                entries[RecursiveRefKey]!!.deserialize(String.serializer())
+                            )
                             else -> Value(element.deserialize(dataSerializer))
                         }
                     }
