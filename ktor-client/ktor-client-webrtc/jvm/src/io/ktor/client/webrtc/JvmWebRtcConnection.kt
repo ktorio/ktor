@@ -94,7 +94,6 @@ public class JvmWebRtcConnection(
                 receiveOptions = DataChannelReceiveOptions()
             )
             channel.setupEvents(events)
-            events.emitDataChannelEvent(event = DataChannelEvent.Open(channel))
         }
 
         override fun onAddTrack(receiver: RTCRtpReceiver?, mediaStreams: Array<out MediaStream?>?) =
