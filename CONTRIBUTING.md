@@ -40,7 +40,7 @@ If you use IntelliJ IDEA, you should also select JDK 21 in **"Project Structure"
 On macOS, install [Xcode and Xcode Command line tools](https://developer.apple.com/download/) to build Apple targets.
 Launch it and accept the license terms first.
 
-If you want to run `ktor-client-webrtc` JVM tests on Linux, you should have `pulseaudio` installed.</summary>
+If you want to run `ktor-client-webrtc` JVM tests on Linux, you should have `pulseaudio` installed.
 The actual audio is not played during tests, but WebRTC native library depends on it. You can install it on Ubuntu with:
 ```bash
 sudo apt update
