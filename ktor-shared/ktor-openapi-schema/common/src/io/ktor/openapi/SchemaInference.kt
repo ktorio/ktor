@@ -19,10 +19,7 @@ public inline fun <reified T : Any> jsonSchema(): Schema {
     return try {
         serializer<T>().descriptor.buildJsonSchema()
     } catch (e: SerializationException) {
-        Schema(
-            type = Schema.SchemaType.JsonType.Object,
-            description = "Not serializable type: ${T::class.simpleName}. Reason: ${e.message}"
-        )
+        Schema(Schema.SchemaType.JsonType.`object`)
     }
 }
 
@@ -62,41 +59,41 @@ public fun SerialDescriptor.buildJsonSchema(): Schema {
             }
 
             Schema(
-                type = Schema.SchemaType.JsonType.Object,
+                type = Schema.SchemaType.JsonType.`object`,
                 properties = properties,
-                required = required
+                // required = required
             )
         }
         StructureKind.LIST -> {
             Schema(
-                type = Schema.SchemaType.JsonType.Array,
+                type = Schema.SchemaType.JsonType.array,
                 items = ReferenceOr.Value(getElementDescriptor(0).buildJsonSchema())
             )
         }
         StructureKind.MAP -> {
             Schema(
-                type = Schema.SchemaType.JsonType.Object,
+                type = Schema.SchemaType.JsonType.`object`,
                 additionalProperties = AdditionalProperties.PSchema(
                     ReferenceOr.Value(getElementDescriptor(1).buildJsonSchema())
                 )
             )
         }
-        PrimitiveKind.STRING -> Schema(type = Schema.SchemaType.JsonType.String)
-        PrimitiveKind.BOOLEAN -> Schema(type = Schema.SchemaType.JsonType.Boolean)
+        PrimitiveKind.STRING -> Schema(type = Schema.SchemaType.JsonType.string)
+        PrimitiveKind.BOOLEAN -> Schema(type = Schema.SchemaType.JsonType.boolean)
         PrimitiveKind.BYTE, PrimitiveKind.SHORT, PrimitiveKind.INT, PrimitiveKind.LONG ->
-            Schema(type = Schema.SchemaType.JsonType.Integer)
-        PrimitiveKind.FLOAT, PrimitiveKind.DOUBLE -> Schema(type = Schema.SchemaType.JsonType.Number)
+            Schema(type = Schema.SchemaType.JsonType.integer)
+        PrimitiveKind.FLOAT, PrimitiveKind.DOUBLE -> Schema(type = Schema.SchemaType.JsonType.number)
         SerialKind.ENUM -> {
             val enumValues = List(elementsCount) { i -> GenericElement(getElementName(i)) }
             Schema(
-                type = Schema.SchemaType.JsonType.String,
+                type = Schema.SchemaType.JsonType.string,
                 enum = enumValues
             )
         }
         SerialKind.CONTEXTUAL -> {
             // For contextual serializers, we need to get the actual serializer from the context
-            Schema(type = Schema.SchemaType.JsonType.Object)
+            Schema(type = Schema.SchemaType.JsonType.`object`)
         }
-        else -> Schema(type = Schema.SchemaType.JsonType.Object) // Default for other kinds
+        else -> Schema(type = Schema.SchemaType.JsonType.`object`) // Default for other kinds
     }
 }

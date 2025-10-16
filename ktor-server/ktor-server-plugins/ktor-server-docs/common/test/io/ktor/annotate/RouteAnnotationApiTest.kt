@@ -17,6 +17,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 
 class RouteAnnotationApiTest {
 
@@ -44,11 +45,7 @@ class RouteAnnotationApiTest {
                       "schema": {
                         "type": "array",
                         "items": {
-                          "required": [
-                            "id",
-                            "content",
-                            "timestamp"
-                          ],
+                          "type": "object",
                           "properties": {
                             "id": {
                               "type": "integer"
@@ -59,8 +56,7 @@ class RouteAnnotationApiTest {
                             "timestamp": {
                               "type": "integer"
                             }
-                          },
-                          "type": "object"
+                          }
                         }
                       },
                       "x-sample-message": {
@@ -80,17 +76,16 @@ class RouteAnnotationApiTest {
         """.trimIndent()
     }
     val testMessage = Message(1L, "Hello, world!", 16777216000)
+    val jsonFormat = Json {
+        encodeDefaults = false
+        prettyPrint = true
+        prettyPrintIndent = "  "
+    }
 
     @Test
     fun test() = testApplication {
         install(ContentNegotiation) {
-            json(
-                Json {
-                    encodeDefaults = false
-                    prettyPrint = true
-                    prettyPrintIndent = "  "
-                }
-            )
+            json(jsonFormat)
         }
         routing {
             // get all path items
@@ -130,6 +125,11 @@ class RouteAnnotationApiTest {
         val routesResponse = client.get("/routes")
         val responseText = routesResponse.bodyAsText()
         assertEquals(expected, responseText)
+        // should not appear
+        assertFalse("extensions" in responseText)
+
+        val pathItems: Map<String, PathItem> = jsonFormat.decodeFromString(responseText)
+        assertEquals(1, pathItems.size)
     }
 }
 

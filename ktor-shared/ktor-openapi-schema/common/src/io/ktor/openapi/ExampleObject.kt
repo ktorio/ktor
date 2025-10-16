@@ -28,10 +28,10 @@ public data class ExampleObject(
     /** URL that points to an external example value. */
     public val externalValue: String? = null,
     /** Specification extensions (keys must start with x-). */
-    public val extensions: Map<String, GenericElement> = emptyMap(),
-) {
+    override val extensions: Map<String, GenericElement>? = null,
+) : Extensible {
     public companion object {
-        internal object Serializer : SerializerWithExtensions<ExampleObject>(
+        internal object Serializer : ExtensibleMixinSerializer<ExampleObject>(
             generatedSerializer(),
             { ex, extensions -> ex.copy(extensions = extensions) }
         )

@@ -6,7 +6,6 @@ package io.ktor.openapi
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KeepGeneratedSerializer
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -49,14 +48,14 @@ public data class PathItem(
      * a name and location. The list can use the Reference Object to link to parameters that are
      * defined at the OpenAPI Object's components/parameters.
      */
-    public val parameters: List<ReferenceOr<Parameter>> = emptyList(),
+    public val parameters: List<ReferenceOr<Parameter>>? = null,
     /**
      * Any additional external documentation for this OpenAPI document.
      */
-    public val extensions: Map<String, GenericElement> = emptyMap(),
-) {
+    override val extensions: Map<String, GenericElement>? = null,
+) : Extensible {
     public companion object {
-        internal object Serializer : SerializerWithExtensions<PathItem>(
+        internal object Serializer : ExtensibleMixinSerializer<PathItem>(
             generatedSerializer(),
             { pi, extensions -> pi.copy(extensions = extensions) }
         )

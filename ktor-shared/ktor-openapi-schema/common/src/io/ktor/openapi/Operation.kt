@@ -5,10 +5,16 @@
 package io.ktor.openapi
 
 import io.ktor.http.*
+import io.ktor.openapi.ReferenceOr.Value
 import io.ktor.utils.io.KtorDsl
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KeepGeneratedSerializer
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.serializer
+import kotlin.jvm.JvmInline
 
 /**
  * Describes a single API operation on a path item as defined by the OpenAPI Specification.
@@ -16,13 +22,14 @@ import kotlinx.serialization.Serializable
  *
  * Properties correspond to the OpenAPI Operation object.
  *
+ * @property operationId Unique string used to identify the operation.
  * @property tags Optional tags for this operation.
  * @property summary A short summary of what the operation does.
  * @property description A verbose explanation of the operation behavior.
- * @property externalDocs A URL to additional external documentation for this operation.
- * @property operationId Unique string used to identify the operation.
+ * @property externalDocs Contains a description and URL to reference external documentation
  * @property parameters List of parameters that are applicable for this operation.
  * @property requestBody The request body applicable for this operation.
+ * @property callbacks Map of possible callbacks related to this operation.
  * @property responses The list of possible responses as they are returned from executing this operation, keyed by status code.
  * @property deprecated Marks the operation as deprecated if true.
  * @property security A declaration of which security mechanisms can be used for this operation.
@@ -33,19 +40,20 @@ import kotlinx.serialization.Serializable
 @OptIn(ExperimentalSerializationApi::class)
 @KeepGeneratedSerializer
 public data class Operation(
+    public val operationId: String? = null,
     public val tags: List<String>? = null,
     public val summary: String? = null,
     public val description: String? = null,
-    public val externalDocs: String? = null,
-    public val operationId: String? = null,
+    public val externalDocs: ExternalDocs? = null,
     public val parameters: List<Parameter>? = null,
-    public val requestBody: RequestBody? = null,
-    public val responses: Map<String, Response>? = null,
+    public val requestBody: ReferenceOr<RequestBody>? = null,
+    public val callbacks: Map<String, ReferenceOr<Callback>>? = null,
+    public val responses: Responses? = null,
     public val deprecated: Boolean? = null,
     public val security: List<Map<String, List<String>>>? = null,
     public val servers: List<Server>? = null,
-    public val extensions: Map<String, GenericElement>? = null
-) {
+    override val extensions: Map<String, GenericElement>? = null
+) : Extensible {
     public companion object {
         /**
          * Builds an [Operation] instance using the provided DSL [configure] block.
@@ -53,7 +61,7 @@ public data class Operation(
         public fun build(configure: Builder.() -> Unit): Operation =
             Builder().apply(configure).build()
 
-        internal object Serializer : SerializerWithExtensions<Operation>(
+        internal object Serializer : ExtensibleMixinSerializer<Operation>(
             generatedSerializer(),
             { op, extensions -> op.copy(extensions = extensions) }
         )
@@ -77,14 +85,15 @@ public data class Operation(
         public var deprecated: Boolean? = null
 
         /** A URL to additional external documentation for this operation. */
-        public var externalDocs: String? = null
+        public var externalDocs: ExternalDocs? = null
 
         // TODO remove these after KT-14663 is implemented
         private val _tags = mutableListOf<String>()
         private val _parameters = mutableListOf<Parameter>()
-        private val _responses = mutableMapOf<String, Response>()
+        private var _responses: Responses? = null
         private val _servers = mutableListOf<Server>()
         private val _securityRequirements = mutableListOf<Map<String, List<String>>>()
+        private val _callbacks = mutableMapOf<String, ReferenceOr<Callback>>()
 
         /** Collected tags added to this operation. */
         public val tags: List<String> get() = _tags
@@ -93,7 +102,7 @@ public data class Operation(
         public val parameters: List<Parameter> get() = _parameters
 
         /** Collected response definitions keyed by HTTP status code. */
-        public val responses: Map<String, Response> get() = _responses
+        public val responses: Responses? get() = _responses
 
         /** Collected server definitions specific to this operation. */
         public val servers: List<Server> get() = _servers
@@ -105,7 +114,10 @@ public data class Operation(
         public var requestBody: RequestBody? = null
 
         /** Specification-extensions for this operation (keys must start with `x-`). */
-        public var extensions: MutableMap<String, GenericElement>? = null
+        public var extensions: MutableMap<String, GenericElement> = mutableMapOf()
+
+        /** Callback definitions for this operation, if any. */
+        public val callbacks: Map<String, ReferenceOr<Callback>> get() = _callbacks
 
         /**
          * Adds a tag to this operation.
@@ -140,9 +152,14 @@ public data class Operation(
          * @param configure DSL to define one or more responses.
          */
         public fun responses(configure: Responses.Builder.() -> Unit) {
-            Responses.Builder().apply(configure).build().responses.forEach { (code, response) ->
-                _responses[code] = response
-            }
+            _responses = Responses.Builder().apply(configure).build()
+        }
+
+        /**
+         * Adds a callback definition for this operation using the [Callback] DSL.
+         */
+        public fun callback(key: String, value: Callback) {
+            _callbacks[key] = Value(value)
         }
 
         /**
@@ -171,10 +188,7 @@ public data class Operation(
          */
         public inline fun <reified T : Any> extension(name: String, value: T) {
             require(name.startsWith("x-")) { "Extension name must start with 'x-'" }
-            if (extensions == null) {
-                extensions = mutableMapOf()
-            }
-            extensions!![name] = GenericElement(value)
+            extensions[name] = GenericElement(value)
         }
 
         internal fun build(): Operation {
@@ -185,12 +199,13 @@ public data class Operation(
                 externalDocs = externalDocs,
                 operationId = operationId,
                 parameters = if (_parameters.isEmpty()) null else _parameters,
-                requestBody = requestBody,
+                requestBody = requestBody?.let(::Value),
                 responses = _responses,
+                callbacks = _callbacks.ifEmpty { null },
                 deprecated = deprecated,
                 security = if (_securityRequirements.isEmpty()) null else _securityRequirements,
                 servers = if (_servers.isEmpty()) null else _servers,
-                extensions = extensions
+                extensions = extensions.ifEmpty { null }
             )
         }
     }
@@ -233,7 +248,7 @@ public data class Parameters(
         public fun path(name: String, configure: Parameter.Builder.() -> Unit = {}) {
             Parameter.Builder().apply {
                 this.name = name
-                this.`in` = "path"
+                this.`in` = ParameterType.path
                 this.required = true
                 configure()
             }.also { _parameters.add(it.build()) }
@@ -248,7 +263,7 @@ public data class Parameters(
         public fun query(name: String, configure: Parameter.Builder.() -> Unit = {}) {
             Parameter.Builder().apply {
                 this.name = name
-                this.`in` = "query"
+                this.`in` = ParameterType.query
                 configure()
             }.also { _parameters.add(it.build()) }
         }
@@ -262,7 +277,7 @@ public data class Parameters(
         public fun header(name: String, configure: Parameter.Builder.() -> Unit = {}) {
             Parameter.Builder().apply {
                 this.name = name
-                this.`in` = "header"
+                this.`in` = ParameterType.header
                 configure()
             }.also { _parameters.add(it.build()) }
         }
@@ -276,7 +291,7 @@ public data class Parameters(
         public fun cookie(name: String, configure: Parameter.Builder.() -> Unit = {}) {
             Parameter.Builder().apply {
                 this.name = name
-                this.`in` = "cookie"
+                this.`in` = ParameterType.cookie
                 configure()
             }.also { _parameters.add(it.build()) }
         }
@@ -297,6 +312,12 @@ public data class Parameters(
  * @property required Determines whether this parameter is mandatory.
  * @property deprecated Marks the parameter as deprecated if true.
  * @property schema The schema defining the parameter type.
+ * @property style Describes how the parameter value will be serialized.
+ * @property explode Specifies whether arrays and objects generate separate parameters for each value.
+ * @property allowReserved Determines if reserved characters `:/?#[]@!$&'()*+,;=` are allowed without percent-encoding.
+ * @property allowEmptyValue Allows sending a parameter with an empty value (deprecated in OpenAPI 3.1).
+ * @property example Example of the parameter's potential value.
+ * @property examples Map of examples for the parameter.
  * @property extensions Specification-extensions for this parameter (keys must start with `x-`).
  */
 @Serializable(Parameter.Companion.Serializer::class)
@@ -304,15 +325,21 @@ public data class Parameters(
 @KeepGeneratedSerializer
 public data class Parameter(
     public val name: String,
-    public val `in`: String,
+    public val `in`: ParameterType,
     public val description: String? = null,
     public val required: Boolean = false,
     public val deprecated: Boolean = false,
-    public val schema: Schema? = null,
-    public val extensions: Map<String, GenericElement>? = null,
-) {
+    override val schema: Schema? = null,
+    public val style: String? = null,
+    public val explode: Boolean? = null,
+    public val allowReserved: Boolean? = null,
+    public val allowEmptyValue: Boolean? = null,
+    public val example: GenericElement? = null,
+    public val examples: Map<String, ReferenceOr<ExampleObject>>? = null,
+    override val extensions: Map<String, GenericElement>? = null,
+) : Extensible, SchemaHolder {
     public companion object {
-        internal object Serializer : SerializerWithExtensions<Parameter>(
+        internal object Serializer : ExtensibleMixinSerializer<Parameter>(
             generatedSerializer(),
             { pi, extensions -> pi.copy(extensions = extensions) }
         )
@@ -325,7 +352,7 @@ public data class Parameter(
         public var name: String? = null
 
         /** Location of the parameter: one of "query", "header", "path", or "cookie". */
-        public var `in`: String? = null
+        public var `in`: ParameterType? = null
 
         /** A brief description of the parameter. */
         public var description: String? = null
@@ -338,6 +365,24 @@ public data class Parameter(
 
         /** The schema defining the parameter type. */
         public var schema: Schema? = null
+
+        /** Describes how the parameter value will be serialized (e.g., "matrix", "label", "form", "simple", "spaceDelimited", "pipeDelimited", "deepObject"). */
+        public var style: String? = null
+
+        /** Specifies whether arrays and objects generate separate parameters for each value. */
+        public var explode: Boolean? = null
+
+        /** Determines if reserved characters are allowed without percent-encoding. Only applies to query parameters. */
+        public var allowReserved: Boolean? = null
+
+        /** Allows sending a parameter with an empty value. Deprecated in OpenAPI 3.1, only applies to query parameters. */
+        public var allowEmptyValue: Boolean? = null
+
+        /** Example of the parameter's potential value. */
+        public var example: GenericElement? = null
+
+        /** Map of examples for the parameter. */
+        public var examples: MutableMap<String, ReferenceOr<ExampleObject>> = mutableMapOf()
 
         /** Specification-extensions for this parameter (keys must start with `x-`). */
         public val extensions: MutableMap<String, GenericElement> = mutableMapOf()
@@ -353,6 +398,16 @@ public data class Parameter(
             extensions[name] = GenericElement(value)
         }
 
+        /**
+         * Adds an example for this parameter.
+         *
+         * @param name The example identifier.
+         * @param example The example object.
+         */
+        public fun example(name: String, example: ExampleObject) {
+            examples[name] = ReferenceOr.Value(example)
+        }
+
         /** Validates required fields and constructs the [Parameter]. */
         internal fun build(): Parameter {
             requireNotNull(name) { "Parameter name is required" }
@@ -365,10 +420,25 @@ public data class Parameter(
                 required = required,
                 deprecated = deprecated,
                 schema = schema,
-                extensions = extensions,
+                style = style,
+                explode = explode,
+                allowReserved = allowReserved,
+                allowEmptyValue = allowEmptyValue,
+                example = example,
+                examples = examples.ifEmpty { null },
+                extensions = extensions.ifEmpty { null },
             )
         }
     }
+}
+
+@Suppress("EnumEntryName")
+@Serializable
+public enum class ParameterType {
+    query,
+    header,
+    path,
+    cookie,
 }
 
 /**
@@ -376,17 +446,45 @@ public data class Parameter(
  *
  * @property responses Map of status code (or "default") to a [Response].
  */
-@Serializable
+@Serializable(Responses.Companion.Serializer::class)
+@OptIn(ExperimentalSerializationApi::class)
+@KeepGeneratedSerializer
 public data class Responses(
-    public val responses: Map<String, Response>
-) {
+    public val default: ReferenceOr<Response>? = null,
+    public val responses: Map<Int, ReferenceOr<Response>>? = null,
+    override val extensions: Map<String, GenericElement>? = null,
+) : Extensible {
+    public companion object {
+        internal object Serializer :
+            DoublePropertyMixinSerializer<
+                Responses,
+                Map<Int, ReferenceOr<Response>>?,
+                Map<String, GenericElement>?
+                >(
+                generatedSerializer(),
+                Responses::responses,
+                serializer<Map<Int, ReferenceOr<Response>>?>(),
+                { it.toIntOrNull() != null },
+                Responses::extensions,
+                serializer<Map<String, GenericElement>?>(),
+                { it.startsWith("x-") },
+                { r, responses, extensions -> r.copy(responses = responses, extensions = extensions) }
+            )
+    }
+
     /** Builder for collecting operation [Response]s keyed by status code. */
     @KtorDsl
     public class Builder {
-        private val _responses = mutableMapOf<String, Response>()
+        private val _responses = mutableMapOf<Int, Response>()
+        private val _extensions = mutableMapOf<String, GenericElement>()
+
+        public var default: Response? = null
 
         /** Map of HTTP status code (or "default") to a response definition. */
-        public val responses: Map<String, Response> get() = _responses
+        public val responses: Map<Int, Response> get() = _responses
+
+        /** Map of extension properties provided */
+        public val extensions: Map<String, GenericElement> get() = _extensions
 
         /**
          * Adds a response for the given HTTP [statusCode].
@@ -394,7 +492,7 @@ public data class Responses(
          * @param statusCode The HTTP status code as a string (or "default").
          * @param configure DSL to configure the [Response].
          */
-        public fun response(statusCode: String, configure: Response.Builder.() -> Unit) {
+        public fun response(statusCode: Int, configure: Response.Builder.() -> Unit) {
             _responses[statusCode] = Response.Builder().apply(configure).build()
         }
 
@@ -404,7 +502,7 @@ public data class Responses(
          * @param configure Optional DSL to configure the [Response].
          */
         public operator fun HttpStatusCode.invoke(configure: Response.Builder.() -> Unit = {}) {
-            response(value.toString(), configure)
+            response(value, configure)
         }
 
         /**
@@ -413,12 +511,16 @@ public data class Responses(
          * @param configure DSL to configure the default [Response].
          */
         public fun default(configure: Response.Builder.() -> Unit) {
-            response("default", configure)
+            default = Response.Builder().apply(configure).build()
         }
 
         /** Builds the [Responses] map. */
         internal fun build(): Responses {
-            return Responses(_responses)
+            return Responses(
+                default?.let(::Value),
+                _responses.mapValues { (_, v) -> v.let(::Value) },
+                _extensions.ifEmpty { null }
+            )
         }
     }
 }
@@ -440,11 +542,11 @@ public data class Response(
     public val headers: Map<String, Parameter>? = null,
     @Serializable(ContentTypeSerializer::class)
     public var contentType: ContentType? = null,
-    public var schema: Schema? = null,
-    public val extensions: Map<String, GenericElement>? = null
-) {
+    override var schema: Schema? = null,
+    override val extensions: Map<String, GenericElement>? = null
+) : Extensible, SchemaHolder {
     public companion object {
-        internal object Serializer : SerializerWithExtensions<Response>(
+        internal object Serializer : ExtensibleMixinSerializer<Response>(
             generatedSerializer(),
             { r, extensions -> r.copy(extensions = extensions) }
         )
@@ -508,11 +610,19 @@ public data class Response(
 }
 
 /**
- * Describes the request body for an operation including content type, schema, and whether it is required.
+ * A map of possible out-of band callbacks related to the parent operation. Each value in the map is
+ * a [PathItem] Object that describes a set of requests that may be initiated by the API provider
+ * and the expected responses. The key value used to identify the path item object is an expression,
+ * evaluated at runtime, that identifies a URL to use for the callback operation.
+ */
+@Serializable @JvmInline
+public value class Callback(public val value: Map<String, PathItem>)
+
+/**
+ * Describes the request body for an operation including content types, schemas, and whether it is required.
  *
  * @property description Optional description for the request body.
- * @property contentType Optional content type accepted for the request body.
- * @property schema Optional schema that defines the structure of the request body.
+ * @property content Map of media type to [MediaType] object, describing the request body content.
  * @property required Whether the request body is required for this operation.
  * @property extensions Specification-extensions for this request body (keys must start with `x-`).
  */
@@ -520,15 +630,13 @@ public data class Response(
 @OptIn(ExperimentalSerializationApi::class)
 @KeepGeneratedSerializer
 public data class RequestBody(
-    public val description: String?,
-    @Serializable(ContentTypeSerializer::class)
-    public val contentType: ContentType?,
-    public val schema: Schema?,
-    public val required: Boolean,
-    public val extensions: Map<String, GenericElement>?
-) {
+    public val description: String? = null,
+    public val content: Map<@Serializable(ContentTypeSerializer::class) ContentType, MediaType>? = null,
+    public val required: Boolean = false,
+    override val extensions: Map<String, GenericElement>? = null
+) : Extensible {
     public companion object {
-        internal object Serializer : SerializerWithExtensions<RequestBody>(
+        internal object Serializer : ExtensibleMixinSerializer<RequestBody>(
             generatedSerializer(),
             { rb, extensions -> rb.copy(extensions = extensions) }
         )
@@ -543,21 +651,58 @@ public data class RequestBody(
         /** Whether the request body is required. */
         public var required: Boolean = false
 
-        /** Content type accepted for the request body, if any. */
-        public var contentType: ContentType? = null
+        private val _content = mutableMapOf<ContentType, MediaType>()
 
-        /** Schema that defines the structure of the request body, if any. */
-        public var schema: Schema? = null
+        /** Map of media type to [MediaType] object. */
+        public val content: Map<ContentType, MediaType> get() = _content
 
         /** Specification-extensions for this request body (keys must start with `x-`). */
         public val extensions: MutableMap<String, GenericElement> = mutableMapOf()
+
+        /**
+         * Adds a media type definition for the request body.
+         *
+         * @param mediaType The media type string (e.g., "application/json").
+         * @param configure DSL to configure the [MediaType].
+         */
+        public fun ContentType.invoke(configure: MediaType.Builder.() -> Unit) {
+            _content[this] = MediaType.Builder().apply(configure).build()
+        }
+
+        /**
+         * Convenience prorpert to add JSON content with a schema.
+         */
+        public var jsonSchema: Schema?
+            get() = _content[ContentType.Application.Json]?.schema?.valueOrNull()
+            set(value) {
+                _content[ContentType.Application.Json] = MediaType(schema = value?.let(::Value))
+            }
+
+        /**
+         * Convenience method to add XML content with a schema.
+         *
+         * @param schema The schema defining the XML structure.
+         */
+        public fun xml(schema: Schema) {
+            _content[ContentType.Application.Xml] = MediaType(schema = ReferenceOr.Value(schema))
+        }
+
+        /**
+         * Adds a specification-extension to this request body.
+         *
+         * @param name The extension name; must start with `x-`.
+         * @param value The extension value.
+         */
+        public inline fun <reified T : Any> extension(name: String, value: T) {
+            require(name.startsWith("x-")) { "Extension name must start with 'x-'" }
+            extensions[name] = GenericElement(value)
+        }
 
         /** Builds the [RequestBody] object. */
         internal fun build(): RequestBody {
             return RequestBody(
                 description = description,
-                contentType = contentType,
-                schema = schema,
+                content = _content.ifEmpty { null },
                 required = required,
                 extensions = extensions.ifEmpty { null },
             )
@@ -681,11 +826,11 @@ public data class Servers(
 @KeepGeneratedSerializer
 public data class Server(
     public val url: String,
-    public val description: String?,
-    public val extensions: Map<String, GenericElement>?
-) {
+    public val description: String? = null,
+    override val extensions: Map<String, GenericElement>? = null,
+) : Extensible {
     public companion object {
-        internal object Serializer : SerializerWithExtensions<Server>(
+        internal object Serializer : ExtensibleMixinSerializer<Server>(
             generatedSerializer(),
             { s, extensions -> s.copy(extensions = extensions) }
         )
@@ -719,7 +864,7 @@ public data class Server(
             return Server(
                 url = url!!,
                 description = description,
-                extensions = extensions,
+                extensions = extensions.ifEmpty { null },
             )
         }
     }
@@ -748,7 +893,13 @@ public data class Headers(
          * @param configure DSL to configure the header parameter.
          */
         public fun header(name: String, configure: Parameter.Builder.() -> Unit) {
-            _headers[name] = Parameter.Builder().apply(configure).build()
+            Parameter.Builder().apply {
+                this.name = name
+                this.`in` = ParameterType.header
+                configure()
+            }.also {
+                _headers[name] = it.build()
+            }
         }
 
         internal fun build(): Headers {
