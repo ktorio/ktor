@@ -60,6 +60,16 @@ public class BearerAuthConfig {
     internal var loadTokens: suspend () -> BearerTokens? = { null }
     internal var sendWithoutRequest: (HttpRequestBuilder) -> Boolean = { true }
 
+    /**
+     * Determines whether tokens should be cached after being loaded or refreshed.
+     * When set to `true` (default), tokens are cached and reused until explicitly cleared or refreshed.
+     * When set to `false`, tokens are loaded fresh on every request.
+     *
+     * Set this to `false` if you need to obtain a new token for each request,
+     * for example when using short-lived tokens or when token state is managed externally.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.BearerAuthConfig.cache)
+     */
     public var cache: Boolean = true
     public var realm: String? = null
 
