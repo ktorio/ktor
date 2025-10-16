@@ -172,7 +172,15 @@ internal operator fun PathItem.plus(other: PathItem): PathItem =
         patch = patch ?: other.patch,
         trace = trace ?: other.trace,
         servers = mergeNullable(servers, other.servers) { a, b -> a + b },
-        parameters = parameters + other.parameters,
+        parameters = mergeNullable(parameters, other.parameters) { a, b -> a + b },
+        extensions = mergeNullable(extensions, other.extensions) { a, b -> a + b }
+    )
+
+internal operator fun Responses.plus(other: Responses) =
+    Responses(
+        default = default ?: other.default,
+        responses = mergeNullable(responses, other.responses) { a, b -> a + b },
+        extensions = mergeNullable(extensions, other.extensions) { a, b -> a + b }
     )
 
 internal fun <T> mergeNullable(a: T?, b: T?, merge: (T, T) -> T): T? =

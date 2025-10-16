@@ -18,16 +18,16 @@ public data class Xml(
      * within the list. When defined alongside type being array (outside the items), it will affect
      * the wrapping element and only if wrapped is true. If wrapped is false, it will be ignored.
      */
-    val name: String,
+    public val name: String,
     /** The URL of the namespace definition. Value SHOULD be in the form of a URL. */
-    val namespace: String? = null,
+    public val namespace: String? = null,
     /** The prefix to be used for the name. */
-    val prefix: String? = null,
+    public val prefix: String? = null,
     /**
      * Declares whether the property definition translates to an attribute instead of an element.
      * Default value is @False@.
      */
-    val attribute: Boolean? = null,
+    public val attribute: Boolean? = null,
     /**
      * MAY be used only for an array definition. Signifies whether the array is wrapped (for
      * example, @\<books\>\<book/\>\<book/\>\</books\>@) or unwrapped (@\<book/\>\<book/\>@). Default
@@ -36,16 +36,16 @@ public data class Xml(
      * @False@. The definition takes effect only when defined alongside type being array (outside the
      *   items).
      */
-    val wrapped: Boolean? = null,
+    public val wrapped: Boolean? = null,
     /**
      * Any additional external documentation for this OpenAPI document. The key is the name of the
      * extension (beginning with x-), and the value is the data. The value can be a [JsonNull],
      * [JsonPrimitive], [JsonArray] or [JsonObject].
      */
-    val extensions: Map<String, GenericElement> = emptyMap(),
-) {
+    override val extensions: Map<String, GenericElement>? = null,
+) : Extensible {
     public companion object {
-        internal object Serializer : SerializerWithExtensions<Xml>(
+        internal object Serializer : ExtensibleMixinSerializer<Xml>(
             generatedSerializer(),
             { xml, extensions -> xml.copy(extensions = extensions) }
         )

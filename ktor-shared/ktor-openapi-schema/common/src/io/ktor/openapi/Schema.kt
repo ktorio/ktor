@@ -20,9 +20,9 @@ import kotlinx.serialization.encoding.*
  */
 @Serializable
 public data class Schema(
+    val type: @Serializable(SchemaType.Serializer::class) SchemaType? = null,
     val title: String? = null,
     val description: String? = null,
-    /** required is an object-level attribute, not a property attribute. */
     val required: List<String> = emptyList(),
     val nullable: Boolean? = null,
     val allOf: List<ReferenceOr<Schema>>? = null,
@@ -43,7 +43,6 @@ public data class Schema(
     val minProperties: Int? = null,
     /** Unlike JSON Schema this value MUST conform to the defined type for this parameter. */
     val default: GenericElement? = null,
-    val type: @Serializable(SchemaType.Serializer::class) SchemaType? = null,
     val format: String? = null,
     val items: ReferenceOr<Schema>? = null,
     val maximum: Double? = null,
@@ -75,20 +74,15 @@ public data class Schema(
 
         public data class AnyOf(val types: List<JsonType>) : SchemaType
 
+        @Suppress("EnumEntryName")
         public enum class JsonType : SchemaType {
-            @SerialName("array") Array,
-
-            @SerialName("object") Object,
-
-            @SerialName("number") Number,
-
-            @SerialName("boolean") Boolean,
-
-            @SerialName("integer") Integer,
-
-            @SerialName("null") Null,
-
-            @SerialName("string") String
+            array,
+            `object`,
+            number,
+            boolean,
+            integer,
+            `null`,
+            string
         }
 
         public object Serializer : KSerializer<SchemaType> {
@@ -100,9 +94,7 @@ public data class Schema(
                 val element: GenericElement = decoder.decodeSerializableValue(decoder.serializersModule.serializer())
                 val jsonTypeSerializer: KSerializer<JsonType> = decoder.serializersModule.serializer()
                 return when {
-                    element.isArray() -> AnyOf(
-                        element.deserialize(ListSerializer(jsonTypeSerializer))
-                    )
+                    element.isArray() -> AnyOf(element.deserialize(ListSerializer(jsonTypeSerializer)))
                     else -> element.deserialize(jsonTypeSerializer)
                 }
             }

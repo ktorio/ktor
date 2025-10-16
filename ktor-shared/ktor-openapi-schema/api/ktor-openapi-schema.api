@@ -34,6 +34,36 @@ public final class io/ktor/openapi/AdditionalProperties$PSchema : io/ktor/openap
 	public final synthetic fun unbox-impl ()Lio/ktor/openapi/ReferenceOr;
 }
 
+public final class io/ktor/openapi/Callback {
+	public static final field Companion Lio/ktor/openapi/Callback$Companion;
+	public static final synthetic fun box-impl (Ljava/util/Map;)Lio/ktor/openapi/Callback;
+	public static fun constructor-impl (Ljava/util/Map;)Ljava/util/Map;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Ljava/util/Map;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/util/Map;Ljava/util/Map;)Z
+	public final fun getValue ()Ljava/util/Map;
+	public fun hashCode ()I
+	public static fun hashCode-impl (Ljava/util/Map;)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Ljava/util/Map;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/util/Map;
+}
+
+public final synthetic class io/ktor/openapi/Callback$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/ktor/openapi/Callback$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun deserialize-ppcp4YM (Lkotlinx/serialization/encoding/Decoder;)Ljava/util/Map;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public final fun serialize-Fy7AELE (Lkotlinx/serialization/encoding/Encoder;Ljava/util/Map;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/openapi/Callback$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public final class io/ktor/openapi/ContentTypeSerializer : kotlinx/serialization/KSerializer {
 	public fun <init> ()V
 	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/http/ContentType;
@@ -43,7 +73,45 @@ public final class io/ktor/openapi/ContentTypeSerializer : kotlinx/serialization
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
 }
 
-public final class io/ktor/openapi/ExampleObject {
+public final class io/ktor/openapi/Encoding : io/ktor/openapi/Extensible {
+	public static final field Companion Lio/ktor/openapi/Encoding$Companion;
+	public fun <init> (Lio/ktor/http/ContentType;Ljava/util/Map;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/util/Map;)V
+	public synthetic fun <init> (Lio/ktor/http/ContentType;Ljava/util/Map;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lio/ktor/http/ContentType;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/Boolean;
+	public final fun component5 ()Ljava/lang/Boolean;
+	public final fun component6 ()Ljava/util/Map;
+	public final fun copy (Lio/ktor/http/ContentType;Ljava/util/Map;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/util/Map;)Lio/ktor/openapi/Encoding;
+	public static synthetic fun copy$default (Lio/ktor/openapi/Encoding;Lio/ktor/http/ContentType;Ljava/util/Map;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/util/Map;ILjava/lang/Object;)Lio/ktor/openapi/Encoding;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAllowReserved ()Ljava/lang/Boolean;
+	public final fun getContentType ()Lio/ktor/http/ContentType;
+	public final fun getExplode ()Ljava/lang/Boolean;
+	public fun getExtensions ()Ljava/util/Map;
+	public final fun getHeaders ()Ljava/util/Map;
+	public final fun getStyle ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/ktor/openapi/Encoding$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/ktor/openapi/Encoding$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/openapi/Encoding;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/openapi/Encoding;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/openapi/Encoding$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/openapi/ExampleObject : io/ktor/openapi/Extensible {
 	public static final field Companion Lio/ktor/openapi/ExampleObject$Companion;
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lio/ktor/openapi/GenericElement;Ljava/lang/String;Ljava/util/Map;)V
@@ -57,7 +125,7 @@ public final class io/ktor/openapi/ExampleObject {
 	public static synthetic fun copy$default (Lio/ktor/openapi/ExampleObject;Ljava/lang/String;Ljava/lang/String;Lio/ktor/openapi/GenericElement;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Lio/ktor/openapi/ExampleObject;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getDescription ()Ljava/lang/String;
-	public final fun getExtensions ()Ljava/util/Map;
+	public fun getExtensions ()Ljava/util/Map;
 	public final fun getExternalValue ()Ljava/lang/String;
 	public final fun getSummary ()Ljava/lang/String;
 	public final fun getValue ()Lio/ktor/openapi/GenericElement;
@@ -157,10 +225,11 @@ public abstract interface class io/ktor/openapi/GenericElement {
 	public fun isObject ()Z
 	public fun isString ()Z
 	public fun plus (Lio/ktor/openapi/GenericElement;)Lio/ktor/openapi/GenericElement;
-	public fun split (Lkotlin/jvm/functions/Function1;)Lkotlin/Pair;
 }
 
 public final class io/ktor/openapi/GenericElement$Companion {
+	public final fun getEmptyObject ()Lio/ktor/openapi/GenericElement;
+	public final fun orEmpty (Lio/ktor/openapi/GenericElement;)Lio/ktor/openapi/GenericElement;
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
@@ -169,22 +238,11 @@ public final class io/ktor/openapi/GenericElement$DefaultImpls {
 	public static fun isObject (Lio/ktor/openapi/GenericElement;)Z
 	public static fun isString (Lio/ktor/openapi/GenericElement;)Z
 	public static fun plus (Lio/ktor/openapi/GenericElement;Lio/ktor/openapi/GenericElement;)Lio/ktor/openapi/GenericElement;
-	public static fun split (Lio/ktor/openapi/GenericElement;Lkotlin/jvm/functions/Function1;)Lkotlin/Pair;
 }
 
-public final class io/ktor/openapi/GenericElementMap : io/ktor/openapi/GenericElement {
-	public fun <init> (Ljava/util/Map;Lkotlinx/serialization/KSerializer;)V
-	public synthetic fun <init> (Ljava/util/Map;Lkotlinx/serialization/KSerializer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun deserialize (Lkotlinx/serialization/DeserializationStrategy;)Ljava/lang/Object;
-	public fun entries ()Ljava/util/List;
-	public synthetic fun getElement ()Ljava/lang/Object;
-	public fun getElement ()Ljava/util/Map;
-	public fun getElementSerializer ()Lkotlinx/serialization/KSerializer;
-	public fun isArray ()Z
-	public fun isObject ()Z
-	public fun isString ()Z
-	public fun plus (Lio/ktor/openapi/GenericElement;)Lio/ktor/openapi/GenericElement;
-	public fun split (Lkotlin/jvm/functions/Function1;)Lkotlin/Pair;
+public final class io/ktor/openapi/GenericElementKt {
+	public static final fun GenericElement (Ljava/util/Collection;)Lio/ktor/openapi/GenericElement;
+	public static final fun GenericElement (Ljava/util/Map;)Lio/ktor/openapi/GenericElement;
 }
 
 public abstract interface class io/ktor/openapi/GenericElementSerialAdapter {
@@ -213,7 +271,6 @@ public final class io/ktor/openapi/GenericElementString : io/ktor/openapi/Generi
 	public fun isObject ()Z
 	public fun isString ()Z
 	public fun plus (Lio/ktor/openapi/GenericElement;)Lio/ktor/openapi/GenericElement;
-	public fun split (Lkotlin/jvm/functions/Function1;)Lkotlin/Pair;
 }
 
 public final class io/ktor/openapi/GenericElementWrapper : io/ktor/openapi/GenericElement {
@@ -226,7 +283,53 @@ public final class io/ktor/openapi/GenericElementWrapper : io/ktor/openapi/Gener
 	public fun isObject ()Z
 	public fun isString ()Z
 	public fun plus (Lio/ktor/openapi/GenericElement;)Lio/ktor/openapi/GenericElement;
-	public fun split (Lkotlin/jvm/functions/Function1;)Lkotlin/Pair;
+}
+
+public final class io/ktor/openapi/GenericMapDecoderAdapter : io/ktor/openapi/GenericElementSerialAdapter {
+	public static final field INSTANCE Lio/ktor/openapi/GenericMapDecoderAdapter;
+	public fun tryDeserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/openapi/GenericElement;
+	public fun trySerializeToElement (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;Lkotlinx/serialization/KSerializer;)Lio/ktor/openapi/GenericElement;
+}
+
+public final class io/ktor/openapi/Header {
+	public static final field Companion Lio/ktor/openapi/Header$Companion;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/util/Map;Lio/ktor/openapi/ReferenceOr;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/util/Map;Lio/ktor/openapi/ReferenceOr;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/Boolean;
+	public final fun component3 ()Ljava/lang/Boolean;
+	public final fun component4 ()Ljava/lang/Boolean;
+	public final fun component5 ()Ljava/lang/Boolean;
+	public final fun component6 ()Ljava/util/Map;
+	public final fun component7 ()Lio/ktor/openapi/ReferenceOr;
+	public final fun copy (Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/util/Map;Lio/ktor/openapi/ReferenceOr;)Lio/ktor/openapi/Header;
+	public static synthetic fun copy$default (Lio/ktor/openapi/Header;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/util/Map;Lio/ktor/openapi/ReferenceOr;ILjava/lang/Object;)Lio/ktor/openapi/Header;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAllowEmptyValue ()Ljava/lang/Boolean;
+	public final fun getDeprecated ()Ljava/lang/Boolean;
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getExamples ()Ljava/util/Map;
+	public final fun getExplode ()Ljava/lang/Boolean;
+	public final fun getRequired ()Ljava/lang/Boolean;
+	public final fun getSchema ()Lio/ktor/openapi/ReferenceOr;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/ktor/openapi/Header$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/ktor/openapi/Header$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/openapi/Header;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/openapi/Header;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/openapi/Header$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
 public final class io/ktor/openapi/Headers {
@@ -275,41 +378,93 @@ public final class io/ktor/openapi/JsonGenericElement : io/ktor/openapi/GenericE
 	public synthetic fun getElement ()Ljava/lang/Object;
 	public fun getElement ()Lkotlinx/serialization/json/JsonElement;
 	public fun getElementSerializer ()Lkotlinx/serialization/KSerializer;
+	public final fun getJson ()Lkotlinx/serialization/json/Json;
 	public fun isArray ()Z
 	public fun isObject ()Z
 	public fun isString ()Z
 	public fun plus (Lio/ktor/openapi/GenericElement;)Lio/ktor/openapi/GenericElement;
-	public fun split (Lkotlin/jvm/functions/Function1;)Lkotlin/Pair;
 }
 
-public final class io/ktor/openapi/Operation {
+public final class io/ktor/openapi/MediaType : io/ktor/openapi/Extensible {
+	public static final field Companion Lio/ktor/openapi/MediaType$Companion;
+	public fun <init> ()V
+	public fun <init> (Lio/ktor/openapi/ReferenceOr;Ljava/util/Map;Ljava/util/Map;Ljava/util/Map;)V
+	public synthetic fun <init> (Lio/ktor/openapi/ReferenceOr;Ljava/util/Map;Ljava/util/Map;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lio/ktor/openapi/ReferenceOr;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun component3 ()Ljava/util/Map;
+	public final fun component4 ()Ljava/util/Map;
+	public final fun copy (Lio/ktor/openapi/ReferenceOr;Ljava/util/Map;Ljava/util/Map;Ljava/util/Map;)Lio/ktor/openapi/MediaType;
+	public static synthetic fun copy$default (Lio/ktor/openapi/MediaType;Lio/ktor/openapi/ReferenceOr;Ljava/util/Map;Ljava/util/Map;Ljava/util/Map;ILjava/lang/Object;)Lio/ktor/openapi/MediaType;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEncoding ()Ljava/util/Map;
+	public final fun getExamples ()Ljava/util/Map;
+	public fun getExtensions ()Ljava/util/Map;
+	public final fun getSchema ()Lio/ktor/openapi/ReferenceOr;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/ktor/openapi/MediaType$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/ktor/openapi/MediaType$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/openapi/MediaType;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/openapi/MediaType;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/openapi/MediaType$Builder {
+	public fun <init> ()V
+	public final fun encoding (Ljava/lang/String;Lio/ktor/openapi/Encoding;)V
+	public final fun example (Ljava/lang/String;Lio/ktor/openapi/ExampleObject;)V
+	public final fun getEncoding ()Ljava/util/Map;
+	public final fun getExamples ()Ljava/util/Map;
+	public final fun getExtensions ()Ljava/util/Map;
+	public final fun getSchema ()Lio/ktor/openapi/ReferenceOr;
+	public final fun setSchema (Lio/ktor/openapi/ReferenceOr;)V
+}
+
+public final class io/ktor/openapi/MediaType$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/openapi/OpenApiSerializerModuleKt {
+	public static final fun getOpenApiSerializerModule ()Lkotlinx/serialization/modules/SerializersModule;
+}
+
+public final class io/ktor/openapi/Operation : io/ktor/openapi/Extensible {
 	public static final field Companion Lio/ktor/openapi/Operation$Companion;
 	public fun <init> ()V
-	public fun <init> (Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lio/ktor/openapi/RequestBody;Ljava/util/Map;Ljava/lang/Boolean;Ljava/util/List;Ljava/util/List;Ljava/util/Map;)V
-	public synthetic fun <init> (Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lio/ktor/openapi/RequestBody;Ljava/util/Map;Ljava/lang/Boolean;Ljava/util/List;Ljava/util/List;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Ljava/util/List;
-	public final fun component10 ()Ljava/util/List;
+	public fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Lio/ktor/openapi/ExternalDocs;Ljava/util/List;Lio/ktor/openapi/ReferenceOr;Ljava/util/Map;Lio/ktor/openapi/Responses;Ljava/lang/Boolean;Ljava/util/List;Ljava/util/List;Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Lio/ktor/openapi/ExternalDocs;Ljava/util/List;Lio/ktor/openapi/ReferenceOr;Ljava/util/Map;Lio/ktor/openapi/Responses;Ljava/lang/Boolean;Ljava/util/List;Ljava/util/List;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component10 ()Ljava/lang/Boolean;
 	public final fun component11 ()Ljava/util/List;
-	public final fun component12 ()Ljava/util/Map;
-	public final fun component2 ()Ljava/lang/String;
+	public final fun component12 ()Ljava/util/List;
+	public final fun component13 ()Ljava/util/Map;
+	public final fun component2 ()Ljava/util/List;
 	public final fun component3 ()Ljava/lang/String;
 	public final fun component4 ()Ljava/lang/String;
-	public final fun component5 ()Ljava/lang/String;
+	public final fun component5 ()Lio/ktor/openapi/ExternalDocs;
 	public final fun component6 ()Ljava/util/List;
-	public final fun component7 ()Lio/ktor/openapi/RequestBody;
+	public final fun component7 ()Lio/ktor/openapi/ReferenceOr;
 	public final fun component8 ()Ljava/util/Map;
-	public final fun component9 ()Ljava/lang/Boolean;
-	public final fun copy (Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lio/ktor/openapi/RequestBody;Ljava/util/Map;Ljava/lang/Boolean;Ljava/util/List;Ljava/util/List;Ljava/util/Map;)Lio/ktor/openapi/Operation;
-	public static synthetic fun copy$default (Lio/ktor/openapi/Operation;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lio/ktor/openapi/RequestBody;Ljava/util/Map;Ljava/lang/Boolean;Ljava/util/List;Ljava/util/List;Ljava/util/Map;ILjava/lang/Object;)Lio/ktor/openapi/Operation;
+	public final fun component9 ()Lio/ktor/openapi/Responses;
+	public final fun copy (Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Lio/ktor/openapi/ExternalDocs;Ljava/util/List;Lio/ktor/openapi/ReferenceOr;Ljava/util/Map;Lio/ktor/openapi/Responses;Ljava/lang/Boolean;Ljava/util/List;Ljava/util/List;Ljava/util/Map;)Lio/ktor/openapi/Operation;
+	public static synthetic fun copy$default (Lio/ktor/openapi/Operation;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Lio/ktor/openapi/ExternalDocs;Ljava/util/List;Lio/ktor/openapi/ReferenceOr;Ljava/util/Map;Lio/ktor/openapi/Responses;Ljava/lang/Boolean;Ljava/util/List;Ljava/util/List;Ljava/util/Map;ILjava/lang/Object;)Lio/ktor/openapi/Operation;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCallbacks ()Ljava/util/Map;
 	public final fun getDeprecated ()Ljava/lang/Boolean;
 	public final fun getDescription ()Ljava/lang/String;
-	public final fun getExtensions ()Ljava/util/Map;
-	public final fun getExternalDocs ()Ljava/lang/String;
+	public fun getExtensions ()Ljava/util/Map;
+	public final fun getExternalDocs ()Lio/ktor/openapi/ExternalDocs;
 	public final fun getOperationId ()Ljava/lang/String;
 	public final fun getParameters ()Ljava/util/List;
-	public final fun getRequestBody ()Lio/ktor/openapi/RequestBody;
-	public final fun getResponses ()Ljava/util/Map;
+	public final fun getRequestBody ()Lio/ktor/openapi/ReferenceOr;
+	public final fun getResponses ()Lio/ktor/openapi/Responses;
 	public final fun getSecurity ()Ljava/util/List;
 	public final fun getServers ()Ljava/util/List;
 	public final fun getSummary ()Ljava/lang/String;
@@ -331,14 +486,16 @@ public final synthetic class io/ktor/openapi/Operation$$serializer : kotlinx/ser
 
 public final class io/ktor/openapi/Operation$Builder {
 	public fun <init> ()V
+	public final fun callback-Fy7AELE (Ljava/lang/String;Ljava/util/Map;)V
+	public final fun getCallbacks ()Ljava/util/Map;
 	public final fun getDeprecated ()Ljava/lang/Boolean;
 	public final fun getDescription ()Ljava/lang/String;
 	public final fun getExtensions ()Ljava/util/Map;
-	public final fun getExternalDocs ()Ljava/lang/String;
+	public final fun getExternalDocs ()Lio/ktor/openapi/ExternalDocs;
 	public final fun getOperationId ()Ljava/lang/String;
 	public final fun getParameters ()Ljava/util/List;
 	public final fun getRequestBody ()Lio/ktor/openapi/RequestBody;
-	public final fun getResponses ()Ljava/util/Map;
+	public final fun getResponses ()Lio/ktor/openapi/Responses;
 	public final fun getSecurityRequirements ()Ljava/util/List;
 	public final fun getServers ()Ljava/util/List;
 	public final fun getSummary ()Ljava/lang/String;
@@ -351,7 +508,7 @@ public final class io/ktor/openapi/Operation$Builder {
 	public final fun setDeprecated (Ljava/lang/Boolean;)V
 	public final fun setDescription (Ljava/lang/String;)V
 	public final fun setExtensions (Ljava/util/Map;)V
-	public final fun setExternalDocs (Ljava/lang/String;)V
+	public final fun setExternalDocs (Lio/ktor/openapi/ExternalDocs;)V
 	public final fun setOperationId (Ljava/lang/String;)V
 	public final fun setRequestBody (Lio/ktor/openapi/RequestBody;)V
 	public final fun setSummary (Ljava/lang/String;)V
@@ -363,27 +520,39 @@ public final class io/ktor/openapi/Operation$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
-public final class io/ktor/openapi/Parameter {
+public final class io/ktor/openapi/Parameter : io/ktor/openapi/Extensible, io/ktor/openapi/SchemaHolder {
 	public static final field Companion Lio/ktor/openapi/Parameter$Companion;
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLio/ktor/openapi/Schema;Ljava/util/Map;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLio/ktor/openapi/Schema;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Lio/ktor/openapi/ParameterType;Ljava/lang/String;ZZLio/ktor/openapi/Schema;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Lio/ktor/openapi/GenericElement;Ljava/util/Map;Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/lang/String;Lio/ktor/openapi/ParameterType;Ljava/lang/String;ZZLio/ktor/openapi/Schema;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Lio/ktor/openapi/GenericElement;Ljava/util/Map;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
-	public final fun component2 ()Ljava/lang/String;
+	public final fun component10 ()Ljava/lang/Boolean;
+	public final fun component11 ()Lio/ktor/openapi/GenericElement;
+	public final fun component12 ()Ljava/util/Map;
+	public final fun component13 ()Ljava/util/Map;
+	public final fun component2 ()Lio/ktor/openapi/ParameterType;
 	public final fun component3 ()Ljava/lang/String;
 	public final fun component4 ()Z
 	public final fun component5 ()Z
 	public final fun component6 ()Lio/ktor/openapi/Schema;
-	public final fun component7 ()Ljava/util/Map;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLio/ktor/openapi/Schema;Ljava/util/Map;)Lio/ktor/openapi/Parameter;
-	public static synthetic fun copy$default (Lio/ktor/openapi/Parameter;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLio/ktor/openapi/Schema;Ljava/util/Map;ILjava/lang/Object;)Lio/ktor/openapi/Parameter;
+	public final fun component7 ()Ljava/lang/String;
+	public final fun component8 ()Ljava/lang/Boolean;
+	public final fun component9 ()Ljava/lang/Boolean;
+	public final fun copy (Ljava/lang/String;Lio/ktor/openapi/ParameterType;Ljava/lang/String;ZZLio/ktor/openapi/Schema;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Lio/ktor/openapi/GenericElement;Ljava/util/Map;Ljava/util/Map;)Lio/ktor/openapi/Parameter;
+	public static synthetic fun copy$default (Lio/ktor/openapi/Parameter;Ljava/lang/String;Lio/ktor/openapi/ParameterType;Ljava/lang/String;ZZLio/ktor/openapi/Schema;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Lio/ktor/openapi/GenericElement;Ljava/util/Map;Ljava/util/Map;ILjava/lang/Object;)Lio/ktor/openapi/Parameter;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAllowEmptyValue ()Ljava/lang/Boolean;
+	public final fun getAllowReserved ()Ljava/lang/Boolean;
 	public final fun getDeprecated ()Z
 	public final fun getDescription ()Ljava/lang/String;
-	public final fun getExtensions ()Ljava/util/Map;
-	public final fun getIn ()Ljava/lang/String;
+	public final fun getExample ()Lio/ktor/openapi/GenericElement;
+	public final fun getExamples ()Ljava/util/Map;
+	public final fun getExplode ()Ljava/lang/Boolean;
+	public fun getExtensions ()Ljava/util/Map;
+	public final fun getIn ()Lio/ktor/openapi/ParameterType;
 	public final fun getName ()Ljava/lang/String;
 	public final fun getRequired ()Z
-	public final fun getSchema ()Lio/ktor/openapi/Schema;
+	public fun getSchema ()Lio/ktor/openapi/Schema;
+	public final fun getStyle ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -401,22 +570,50 @@ public final synthetic class io/ktor/openapi/Parameter$$serializer : kotlinx/ser
 
 public final class io/ktor/openapi/Parameter$Builder {
 	public fun <init> ()V
+	public final fun example (Ljava/lang/String;Lio/ktor/openapi/ExampleObject;)V
+	public final fun getAllowEmptyValue ()Ljava/lang/Boolean;
+	public final fun getAllowReserved ()Ljava/lang/Boolean;
 	public final fun getDeprecated ()Z
 	public final fun getDescription ()Ljava/lang/String;
+	public final fun getExample ()Lio/ktor/openapi/GenericElement;
+	public final fun getExamples ()Ljava/util/Map;
+	public final fun getExplode ()Ljava/lang/Boolean;
 	public final fun getExtensions ()Ljava/util/Map;
-	public final fun getIn ()Ljava/lang/String;
+	public final fun getIn ()Lio/ktor/openapi/ParameterType;
 	public final fun getName ()Ljava/lang/String;
 	public final fun getRequired ()Z
 	public final fun getSchema ()Lio/ktor/openapi/Schema;
+	public final fun getStyle ()Ljava/lang/String;
+	public final fun setAllowEmptyValue (Ljava/lang/Boolean;)V
+	public final fun setAllowReserved (Ljava/lang/Boolean;)V
 	public final fun setDeprecated (Z)V
 	public final fun setDescription (Ljava/lang/String;)V
-	public final fun setIn (Ljava/lang/String;)V
+	public final fun setExample (Lio/ktor/openapi/GenericElement;)V
+	public final fun setExamples (Ljava/util/Map;)V
+	public final fun setExplode (Ljava/lang/Boolean;)V
+	public final fun setIn (Lio/ktor/openapi/ParameterType;)V
 	public final fun setName (Ljava/lang/String;)V
 	public final fun setRequired (Z)V
 	public final fun setSchema (Lio/ktor/openapi/Schema;)V
+	public final fun setStyle (Ljava/lang/String;)V
 }
 
 public final class io/ktor/openapi/Parameter$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/openapi/ParameterType : java/lang/Enum {
+	public static final field Companion Lio/ktor/openapi/ParameterType$Companion;
+	public static final field cookie Lio/ktor/openapi/ParameterType;
+	public static final field header Lio/ktor/openapi/ParameterType;
+	public static final field path Lio/ktor/openapi/ParameterType;
+	public static final field query Lio/ktor/openapi/ParameterType;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/ktor/openapi/ParameterType;
+	public static fun values ()[Lio/ktor/openapi/ParameterType;
+}
+
+public final class io/ktor/openapi/ParameterType$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
@@ -461,7 +658,7 @@ public final class io/ktor/openapi/Parameters$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
-public final class io/ktor/openapi/PathItem {
+public final class io/ktor/openapi/PathItem : io/ktor/openapi/Extensible {
 	public static final field Companion Lio/ktor/openapi/PathItem$Companion;
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lio/ktor/openapi/Operation;Lio/ktor/openapi/Operation;Lio/ktor/openapi/Operation;Lio/ktor/openapi/Operation;Lio/ktor/openapi/Operation;Lio/ktor/openapi/Operation;Lio/ktor/openapi/Operation;Lio/ktor/openapi/Operation;Ljava/util/List;Ljava/util/List;Ljava/util/Map;)V
@@ -484,7 +681,7 @@ public final class io/ktor/openapi/PathItem {
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getDelete ()Lio/ktor/openapi/Operation;
 	public final fun getDescription ()Ljava/lang/String;
-	public final fun getExtensions ()Ljava/util/Map;
+	public fun getExtensions ()Ljava/util/Map;
 	public final fun getGet ()Lio/ktor/openapi/Operation;
 	public final fun getHead ()Lio/ktor/openapi/Operation;
 	public final fun getOptions ()Lio/ktor/openapi/Operation;
@@ -574,22 +771,22 @@ public final class io/ktor/openapi/ReferenceOr$Value : io/ktor/openapi/Reference
 	public static fun valueOrNull-impl (Ljava/lang/Object;)Ljava/lang/Object;
 }
 
-public final class io/ktor/openapi/RequestBody {
+public final class io/ktor/openapi/RequestBody : io/ktor/openapi/Extensible {
 	public static final field Companion Lio/ktor/openapi/RequestBody$Companion;
-	public fun <init> (Ljava/lang/String;Lio/ktor/http/ContentType;Lio/ktor/openapi/Schema;ZLjava/util/Map;)V
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/util/Map;ZLjava/util/Map;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;ZLjava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
-	public final fun component2 ()Lio/ktor/http/ContentType;
-	public final fun component3 ()Lio/ktor/openapi/Schema;
-	public final fun component4 ()Z
-	public final fun component5 ()Ljava/util/Map;
-	public final fun copy (Ljava/lang/String;Lio/ktor/http/ContentType;Lio/ktor/openapi/Schema;ZLjava/util/Map;)Lio/ktor/openapi/RequestBody;
-	public static synthetic fun copy$default (Lio/ktor/openapi/RequestBody;Ljava/lang/String;Lio/ktor/http/ContentType;Lio/ktor/openapi/Schema;ZLjava/util/Map;ILjava/lang/Object;)Lio/ktor/openapi/RequestBody;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun component3 ()Z
+	public final fun component4 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;Ljava/util/Map;ZLjava/util/Map;)Lio/ktor/openapi/RequestBody;
+	public static synthetic fun copy$default (Lio/ktor/openapi/RequestBody;Ljava/lang/String;Ljava/util/Map;ZLjava/util/Map;ILjava/lang/Object;)Lio/ktor/openapi/RequestBody;
 	public fun equals (Ljava/lang/Object;)Z
-	public final fun getContentType ()Lio/ktor/http/ContentType;
+	public final fun getContent ()Ljava/util/Map;
 	public final fun getDescription ()Ljava/lang/String;
-	public final fun getExtensions ()Ljava/util/Map;
+	public fun getExtensions ()Ljava/util/Map;
 	public final fun getRequired ()Z
-	public final fun getSchema ()Lio/ktor/openapi/Schema;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -607,22 +804,23 @@ public final synthetic class io/ktor/openapi/RequestBody$$serializer : kotlinx/s
 
 public final class io/ktor/openapi/RequestBody$Builder {
 	public fun <init> ()V
-	public final fun getContentType ()Lio/ktor/http/ContentType;
+	public final fun getContent ()Ljava/util/Map;
 	public final fun getDescription ()Ljava/lang/String;
 	public final fun getExtensions ()Ljava/util/Map;
+	public final fun getJsonSchema ()Lio/ktor/openapi/Schema;
 	public final fun getRequired ()Z
-	public final fun getSchema ()Lio/ktor/openapi/Schema;
-	public final fun setContentType (Lio/ktor/http/ContentType;)V
+	public final fun invoke (Lio/ktor/http/ContentType;Lkotlin/jvm/functions/Function1;)V
 	public final fun setDescription (Ljava/lang/String;)V
+	public final fun setJsonSchema (Lio/ktor/openapi/Schema;)V
 	public final fun setRequired (Z)V
-	public final fun setSchema (Lio/ktor/openapi/Schema;)V
+	public final fun xml (Lio/ktor/openapi/Schema;)V
 }
 
 public final class io/ktor/openapi/RequestBody$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
-public final class io/ktor/openapi/Response {
+public final class io/ktor/openapi/Response : io/ktor/openapi/Extensible, io/ktor/openapi/SchemaHolder {
 	public static final field Companion Lio/ktor/openapi/Response$Companion;
 	public fun <init> (Ljava/lang/String;Ljava/util/Map;Lio/ktor/http/ContentType;Lio/ktor/openapi/Schema;Ljava/util/Map;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;Lio/ktor/http/ContentType;Lio/ktor/openapi/Schema;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -636,12 +834,12 @@ public final class io/ktor/openapi/Response {
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getContentType ()Lio/ktor/http/ContentType;
 	public final fun getDescription ()Ljava/lang/String;
-	public final fun getExtensions ()Ljava/util/Map;
+	public fun getExtensions ()Ljava/util/Map;
 	public final fun getHeaders ()Ljava/util/Map;
-	public final fun getSchema ()Lio/ktor/openapi/Schema;
+	public fun getSchema ()Lio/ktor/openapi/Schema;
 	public fun hashCode ()I
 	public final fun setContentType (Lio/ktor/http/ContentType;)V
-	public final fun setSchema (Lio/ktor/openapi/Schema;)V
+	public fun setSchema (Lio/ktor/openapi/Schema;)V
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -673,13 +871,19 @@ public final class io/ktor/openapi/Response$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
-public final class io/ktor/openapi/Responses {
+public final class io/ktor/openapi/Responses : io/ktor/openapi/Extensible {
 	public static final field Companion Lio/ktor/openapi/Responses$Companion;
-	public fun <init> (Ljava/util/Map;)V
-	public final fun component1 ()Ljava/util/Map;
-	public final fun copy (Ljava/util/Map;)Lio/ktor/openapi/Responses;
-	public static synthetic fun copy$default (Lio/ktor/openapi/Responses;Ljava/util/Map;ILjava/lang/Object;)Lio/ktor/openapi/Responses;
+	public fun <init> ()V
+	public fun <init> (Lio/ktor/openapi/ReferenceOr;Ljava/util/Map;Ljava/util/Map;)V
+	public synthetic fun <init> (Lio/ktor/openapi/ReferenceOr;Ljava/util/Map;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lio/ktor/openapi/ReferenceOr;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun component3 ()Ljava/util/Map;
+	public final fun copy (Lio/ktor/openapi/ReferenceOr;Ljava/util/Map;Ljava/util/Map;)Lio/ktor/openapi/Responses;
+	public static synthetic fun copy$default (Lio/ktor/openapi/Responses;Lio/ktor/openapi/ReferenceOr;Ljava/util/Map;Ljava/util/Map;ILjava/lang/Object;)Lio/ktor/openapi/Responses;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDefault ()Lio/ktor/openapi/ReferenceOr;
+	public fun getExtensions ()Ljava/util/Map;
 	public final fun getResponses ()Ljava/util/Map;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
@@ -699,10 +903,13 @@ public final synthetic class io/ktor/openapi/Responses$$serializer : kotlinx/ser
 public final class io/ktor/openapi/Responses$Builder {
 	public fun <init> ()V
 	public final fun default (Lkotlin/jvm/functions/Function1;)V
+	public final fun getDefault ()Lio/ktor/openapi/Response;
+	public final fun getExtensions ()Ljava/util/Map;
 	public final fun getResponses ()Ljava/util/Map;
 	public final fun invoke (Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun invoke$default (Lio/ktor/openapi/Responses$Builder;Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
-	public final fun response (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public final fun response (ILkotlin/jvm/functions/Function1;)V
+	public final fun setDefault (Lio/ktor/openapi/Response;)V
 }
 
 public final class io/ktor/openapi/Responses$Companion {
@@ -712,23 +919,23 @@ public final class io/ktor/openapi/Responses$Companion {
 public final class io/ktor/openapi/Schema {
 	public static final field Companion Lio/ktor/openapi/Schema$Companion;
 	public fun <init> ()V
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/Boolean;Ljava/util/List;Ljava/util/List;Lio/ktor/openapi/ReferenceOr;Ljava/util/List;Ljava/util/Map;Lio/ktor/openapi/AdditionalProperties;Lio/ktor/openapi/Schema$Discriminator;Ljava/lang/Boolean;Ljava/lang/Boolean;Lio/ktor/openapi/Xml;Lio/ktor/openapi/ExternalDocs;Lio/ktor/openapi/GenericElement;Ljava/util/List;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Lio/ktor/openapi/GenericElement;Lio/ktor/openapi/Schema$SchemaType;Ljava/lang/String;Lio/ktor/openapi/ReferenceOr;Ljava/lang/Double;Ljava/lang/Boolean;Ljava/lang/Double;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Boolean;Ljava/util/List;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/Boolean;Ljava/util/List;Ljava/util/List;Lio/ktor/openapi/ReferenceOr;Ljava/util/List;Ljava/util/Map;Lio/ktor/openapi/AdditionalProperties;Lio/ktor/openapi/Schema$Discriminator;Ljava/lang/Boolean;Ljava/lang/Boolean;Lio/ktor/openapi/Xml;Lio/ktor/openapi/ExternalDocs;Lio/ktor/openapi/GenericElement;Ljava/util/List;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Lio/ktor/openapi/GenericElement;Lio/ktor/openapi/Schema$SchemaType;Ljava/lang/String;Lio/ktor/openapi/ReferenceOr;Ljava/lang/Double;Ljava/lang/Boolean;Ljava/lang/Double;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Boolean;Ljava/util/List;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun component10 ()Lio/ktor/openapi/AdditionalProperties;
-	public final fun component11 ()Lio/ktor/openapi/Schema$Discriminator;
-	public final fun component12 ()Ljava/lang/Boolean;
+	public fun <init> (Lio/ktor/openapi/Schema$SchemaType;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/Boolean;Ljava/util/List;Ljava/util/List;Lio/ktor/openapi/ReferenceOr;Ljava/util/List;Ljava/util/Map;Lio/ktor/openapi/AdditionalProperties;Lio/ktor/openapi/Schema$Discriminator;Ljava/lang/Boolean;Ljava/lang/Boolean;Lio/ktor/openapi/Xml;Lio/ktor/openapi/ExternalDocs;Lio/ktor/openapi/GenericElement;Ljava/util/List;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Lio/ktor/openapi/GenericElement;Ljava/lang/String;Lio/ktor/openapi/ReferenceOr;Ljava/lang/Double;Ljava/lang/Boolean;Ljava/lang/Double;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Boolean;Ljava/util/List;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;)V
+	public synthetic fun <init> (Lio/ktor/openapi/Schema$SchemaType;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/Boolean;Ljava/util/List;Ljava/util/List;Lio/ktor/openapi/ReferenceOr;Ljava/util/List;Ljava/util/Map;Lio/ktor/openapi/AdditionalProperties;Lio/ktor/openapi/Schema$Discriminator;Ljava/lang/Boolean;Ljava/lang/Boolean;Lio/ktor/openapi/Xml;Lio/ktor/openapi/ExternalDocs;Lio/ktor/openapi/GenericElement;Ljava/util/List;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Lio/ktor/openapi/GenericElement;Ljava/lang/String;Lio/ktor/openapi/ReferenceOr;Ljava/lang/Double;Ljava/lang/Boolean;Ljava/lang/Double;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Boolean;Ljava/util/List;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lio/ktor/openapi/Schema$SchemaType;
+	public final fun component10 ()Ljava/util/Map;
+	public final fun component11 ()Lio/ktor/openapi/AdditionalProperties;
+	public final fun component12 ()Lio/ktor/openapi/Schema$Discriminator;
 	public final fun component13 ()Ljava/lang/Boolean;
-	public final fun component14 ()Lio/ktor/openapi/Xml;
-	public final fun component15 ()Lio/ktor/openapi/ExternalDocs;
-	public final fun component16 ()Lio/ktor/openapi/GenericElement;
-	public final fun component17 ()Ljava/util/List;
-	public final fun component18 ()Ljava/lang/Boolean;
-	public final fun component19 ()Ljava/lang/Integer;
+	public final fun component14 ()Ljava/lang/Boolean;
+	public final fun component15 ()Lio/ktor/openapi/Xml;
+	public final fun component16 ()Lio/ktor/openapi/ExternalDocs;
+	public final fun component17 ()Lio/ktor/openapi/GenericElement;
+	public final fun component18 ()Ljava/util/List;
+	public final fun component19 ()Ljava/lang/Boolean;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component20 ()Ljava/lang/Integer;
-	public final fun component21 ()Lio/ktor/openapi/GenericElement;
-	public final fun component22 ()Lio/ktor/openapi/Schema$SchemaType;
+	public final fun component21 ()Ljava/lang/Integer;
+	public final fun component22 ()Lio/ktor/openapi/GenericElement;
 	public final fun component23 ()Ljava/lang/String;
 	public final fun component24 ()Lio/ktor/openapi/ReferenceOr;
 	public final fun component25 ()Ljava/lang/Double;
@@ -736,7 +943,7 @@ public final class io/ktor/openapi/Schema {
 	public final fun component27 ()Ljava/lang/Double;
 	public final fun component28 ()Ljava/lang/Boolean;
 	public final fun component29 ()Ljava/lang/Integer;
-	public final fun component3 ()Ljava/util/List;
+	public final fun component3 ()Ljava/lang/String;
 	public final fun component30 ()Ljava/lang/Integer;
 	public final fun component31 ()Ljava/lang/String;
 	public final fun component32 ()Ljava/lang/Integer;
@@ -747,14 +954,14 @@ public final class io/ktor/openapi/Schema {
 	public final fun component37 ()Ljava/lang/String;
 	public final fun component38 ()Ljava/lang/String;
 	public final fun component39 ()Ljava/lang/Boolean;
-	public final fun component4 ()Ljava/lang/Boolean;
-	public final fun component5 ()Ljava/util/List;
+	public final fun component4 ()Ljava/util/List;
+	public final fun component5 ()Ljava/lang/Boolean;
 	public final fun component6 ()Ljava/util/List;
-	public final fun component7 ()Lio/ktor/openapi/ReferenceOr;
-	public final fun component8 ()Ljava/util/List;
-	public final fun component9 ()Ljava/util/Map;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/Boolean;Ljava/util/List;Ljava/util/List;Lio/ktor/openapi/ReferenceOr;Ljava/util/List;Ljava/util/Map;Lio/ktor/openapi/AdditionalProperties;Lio/ktor/openapi/Schema$Discriminator;Ljava/lang/Boolean;Ljava/lang/Boolean;Lio/ktor/openapi/Xml;Lio/ktor/openapi/ExternalDocs;Lio/ktor/openapi/GenericElement;Ljava/util/List;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Lio/ktor/openapi/GenericElement;Lio/ktor/openapi/Schema$SchemaType;Ljava/lang/String;Lio/ktor/openapi/ReferenceOr;Ljava/lang/Double;Ljava/lang/Boolean;Ljava/lang/Double;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Boolean;Ljava/util/List;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;)Lio/ktor/openapi/Schema;
-	public static synthetic fun copy$default (Lio/ktor/openapi/Schema;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/Boolean;Ljava/util/List;Ljava/util/List;Lio/ktor/openapi/ReferenceOr;Ljava/util/List;Ljava/util/Map;Lio/ktor/openapi/AdditionalProperties;Lio/ktor/openapi/Schema$Discriminator;Ljava/lang/Boolean;Ljava/lang/Boolean;Lio/ktor/openapi/Xml;Lio/ktor/openapi/ExternalDocs;Lio/ktor/openapi/GenericElement;Ljava/util/List;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Lio/ktor/openapi/GenericElement;Lio/ktor/openapi/Schema$SchemaType;Ljava/lang/String;Lio/ktor/openapi/ReferenceOr;Ljava/lang/Double;Ljava/lang/Boolean;Ljava/lang/Double;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Boolean;Ljava/util/List;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;IILjava/lang/Object;)Lio/ktor/openapi/Schema;
+	public final fun component7 ()Ljava/util/List;
+	public final fun component8 ()Lio/ktor/openapi/ReferenceOr;
+	public final fun component9 ()Ljava/util/List;
+	public final fun copy (Lio/ktor/openapi/Schema$SchemaType;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/Boolean;Ljava/util/List;Ljava/util/List;Lio/ktor/openapi/ReferenceOr;Ljava/util/List;Ljava/util/Map;Lio/ktor/openapi/AdditionalProperties;Lio/ktor/openapi/Schema$Discriminator;Ljava/lang/Boolean;Ljava/lang/Boolean;Lio/ktor/openapi/Xml;Lio/ktor/openapi/ExternalDocs;Lio/ktor/openapi/GenericElement;Ljava/util/List;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Lio/ktor/openapi/GenericElement;Ljava/lang/String;Lio/ktor/openapi/ReferenceOr;Ljava/lang/Double;Ljava/lang/Boolean;Ljava/lang/Double;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Boolean;Ljava/util/List;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;)Lio/ktor/openapi/Schema;
+	public static synthetic fun copy$default (Lio/ktor/openapi/Schema;Lio/ktor/openapi/Schema$SchemaType;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/Boolean;Ljava/util/List;Ljava/util/List;Lio/ktor/openapi/ReferenceOr;Ljava/util/List;Ljava/util/Map;Lio/ktor/openapi/AdditionalProperties;Lio/ktor/openapi/Schema$Discriminator;Ljava/lang/Boolean;Ljava/lang/Boolean;Lio/ktor/openapi/Xml;Lio/ktor/openapi/ExternalDocs;Lio/ktor/openapi/GenericElement;Ljava/util/List;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Lio/ktor/openapi/GenericElement;Ljava/lang/String;Lio/ktor/openapi/ReferenceOr;Ljava/lang/Double;Ljava/lang/Boolean;Ljava/lang/Double;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Boolean;Ljava/util/List;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;IILjava/lang/Object;)Lio/ktor/openapi/Schema;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAdditionalProperties ()Lio/ktor/openapi/AdditionalProperties;
 	public final fun getAllOf ()Ljava/util/List;
@@ -864,13 +1071,13 @@ public final class io/ktor/openapi/Schema$SchemaType$Companion {
 }
 
 public final class io/ktor/openapi/Schema$SchemaType$JsonType : java/lang/Enum, io/ktor/openapi/Schema$SchemaType {
-	public static final field Array Lio/ktor/openapi/Schema$SchemaType$JsonType;
-	public static final field Boolean Lio/ktor/openapi/Schema$SchemaType$JsonType;
-	public static final field Integer Lio/ktor/openapi/Schema$SchemaType$JsonType;
-	public static final field Null Lio/ktor/openapi/Schema$SchemaType$JsonType;
-	public static final field Number Lio/ktor/openapi/Schema$SchemaType$JsonType;
-	public static final field Object Lio/ktor/openapi/Schema$SchemaType$JsonType;
-	public static final field String Lio/ktor/openapi/Schema$SchemaType$JsonType;
+	public static final field array Lio/ktor/openapi/Schema$SchemaType$JsonType;
+	public static final field boolean Lio/ktor/openapi/Schema$SchemaType$JsonType;
+	public static final field integer Lio/ktor/openapi/Schema$SchemaType$JsonType;
+	public static final field null Lio/ktor/openapi/Schema$SchemaType$JsonType;
+	public static final field number Lio/ktor/openapi/Schema$SchemaType$JsonType;
+	public static final field object Lio/ktor/openapi/Schema$SchemaType$JsonType;
+	public static final field string Lio/ktor/openapi/Schema$SchemaType$JsonType;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lio/ktor/openapi/Schema$SchemaType$JsonType;
 	public static fun values ()[Lio/ktor/openapi/Schema$SchemaType$JsonType;
@@ -962,9 +1169,10 @@ public final class io/ktor/openapi/SerializationUtilsKt {
 	public static final fun mergeNullable (Ljava/lang/Object;Ljava/lang/Object;Lkotlin/jvm/functions/Function2;)Ljava/lang/Object;
 }
 
-public final class io/ktor/openapi/Server {
+public final class io/ktor/openapi/Server : io/ktor/openapi/Extensible {
 	public static final field Companion Lio/ktor/openapi/Server$Companion;
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/util/Map;
@@ -972,7 +1180,7 @@ public final class io/ktor/openapi/Server {
 	public static synthetic fun copy$default (Lio/ktor/openapi/Server;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Lio/ktor/openapi/Server;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getDescription ()Ljava/lang/String;
-	public final fun getExtensions ()Ljava/util/Map;
+	public fun getExtensions ()Ljava/util/Map;
 	public final fun getUrl ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
@@ -1036,7 +1244,7 @@ public final class io/ktor/openapi/Servers$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
-public final class io/ktor/openapi/Xml {
+public final class io/ktor/openapi/Xml : io/ktor/openapi/Extensible {
 	public static final field Companion Lio/ktor/openapi/Xml$Companion;
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/util/Map;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -1050,7 +1258,7 @@ public final class io/ktor/openapi/Xml {
 	public static synthetic fun copy$default (Lio/ktor/openapi/Xml;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/util/Map;ILjava/lang/Object;)Lio/ktor/openapi/Xml;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAttribute ()Ljava/lang/Boolean;
-	public final fun getExtensions ()Ljava/util/Map;
+	public fun getExtensions ()Ljava/util/Map;
 	public final fun getName ()Ljava/lang/String;
 	public final fun getNamespace ()Ljava/lang/String;
 	public final fun getPrefix ()Ljava/lang/String;
