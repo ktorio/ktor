@@ -52,7 +52,7 @@ public data class PathItem(
     /**
      * Any additional external documentation for this OpenAPI document.
      */
-    override val extensions: Map<String, GenericElement>? = null,
+    override val extensions: ExtensionProperties = null,
 ) : Extensible {
     public companion object {
         internal object Serializer : ExtensibleMixinSerializer<PathItem>(

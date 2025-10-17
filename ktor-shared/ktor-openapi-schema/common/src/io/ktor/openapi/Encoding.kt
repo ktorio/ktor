@@ -61,7 +61,7 @@ public data class Encoding(
      * extension (beginning with x-), and the value is the data. The value can be a [JsonNull],
      * [JsonPrimitive], [JsonArray] or [JsonObject].
      */
-    override val extensions: Map<String, GenericElement>? = null,
+    override val extensions: ExtensionProperties = null,
 ) : Extensible {
     public companion object {
         internal object Serializer : ExtensibleMixinSerializer<Encoding>(

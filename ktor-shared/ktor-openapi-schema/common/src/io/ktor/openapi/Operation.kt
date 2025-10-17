@@ -5,14 +5,11 @@
 package io.ktor.openapi
 
 import io.ktor.http.*
-import io.ktor.openapi.ReferenceOr.Value
-import io.ktor.utils.io.KtorDsl
+import io.ktor.openapi.ReferenceOr.*
+import io.ktor.utils.io.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KeepGeneratedSerializer
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.builtins.MapSerializer
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.serializer
 import kotlin.jvm.JvmInline
 
@@ -52,7 +49,7 @@ public data class Operation(
     public val deprecated: Boolean? = null,
     public val security: List<Map<String, List<String>>>? = null,
     public val servers: List<Server>? = null,
-    override val extensions: Map<String, GenericElement>? = null
+    override val extensions: ExtensionProperties = null
 ) : Extensible {
     public companion object {
         /**
@@ -336,7 +333,7 @@ public data class Parameter(
     public val allowEmptyValue: Boolean? = null,
     public val example: GenericElement? = null,
     public val examples: Map<String, ReferenceOr<ExampleObject>>? = null,
-    override val extensions: Map<String, GenericElement>? = null,
+    override val extensions: ExtensionProperties = null,
 ) : Extensible, SchemaHolder {
     public companion object {
         internal object Serializer : ExtensibleMixinSerializer<Parameter>(
@@ -441,6 +438,8 @@ public enum class ParameterType {
     cookie,
 }
 
+public typealias ResponsesByStatusCode = Map<Int, ReferenceOr<Response>>?
+
 /**
  * A container for named response objects keyed by HTTP status code or "default".
  *
@@ -452,21 +451,17 @@ public enum class ParameterType {
 public data class Responses(
     public val default: ReferenceOr<Response>? = null,
     public val responses: Map<Int, ReferenceOr<Response>>? = null,
-    override val extensions: Map<String, GenericElement>? = null,
+    override val extensions: ExtensionProperties = null,
 ) : Extensible {
     public companion object {
         internal object Serializer :
-            DoublePropertyMixinSerializer<
-                Responses,
-                Map<Int, ReferenceOr<Response>>?,
-                Map<String, GenericElement>?
-                >(
+            DoublePropertyMixinSerializer<Responses, ResponsesByStatusCode, ExtensionProperties>(
                 generatedSerializer(),
                 Responses::responses,
                 serializer<Map<Int, ReferenceOr<Response>>?>(),
                 { it.toIntOrNull() != null },
                 Responses::extensions,
-                serializer<Map<String, GenericElement>?>(),
+                serializer<ExtensionProperties>(),
                 { it.startsWith("x-") },
                 { r, responses, extensions -> r.copy(responses = responses, extensions = extensions) }
             )
@@ -526,12 +521,12 @@ public data class Responses(
 }
 
 /**
- * Describes a response returned by an operation including description, headers, and payload schema.
+ * Describes a response returned by an operation including description, headers, content, and links.
  *
  * @property description Human-readable description of the response.
  * @property headers Optional map of response header parameters.
- * @property contentType Optional content type of the response payload.
- * @property schema Optional schema of the response payload.
+ * @property content Map of media type to [MediaType] object, describing the response content.
+ * @property links Map of link names to [Link] objects for dynamic links that can be followed from the response.
  * @property extensions Specification-extensions for this response (keys must start with `x-`).
  */
 @Serializable(Response.Companion.Serializer::class)
@@ -539,12 +534,11 @@ public data class Responses(
 @KeepGeneratedSerializer
 public data class Response(
     public val description: String,
-    public val headers: Map<String, Parameter>? = null,
-    @Serializable(ContentTypeSerializer::class)
-    public var contentType: ContentType? = null,
-    override var schema: Schema? = null,
-    override val extensions: Map<String, GenericElement>? = null
-) : Extensible, SchemaHolder {
+    public val headers: Map<String, ReferenceOr<Header>>? = null,
+    public val content: Map<@Serializable(ContentTypeSerializer::class) ContentType, MediaType>? = null,
+    public val links: Map<String, ReferenceOr<Link>>? = null,
+    override val extensions: ExtensionProperties = null
+) : Extensible {
     public companion object {
         internal object Serializer : ExtensibleMixinSerializer<Response>(
             generatedSerializer(),
@@ -558,21 +552,27 @@ public data class Response(
         /** Human-readable description of the response. */
         public var description: String = ""
 
-        /** Content type of the response payload, if any. */
-        public var contentType: ContentType? = null
-
-        /** Schema of the response payload, if any. */
-        public var schema: Schema? = null
-
         /** Specification-extensions for this response (keys must start with `x-`). */
         public val extensions: MutableMap<String, GenericElement> = mutableMapOf()
 
-        private val _headers = mutableMapOf<String, Parameter>()
+        private val _headers = mutableMapOf<String, Header>()
+        private val _content = mutableMapOf<ContentType, MediaType>()
+        private val _links = mutableMapOf<String, Link>()
 
         /**
          * Headers for this response.
          */
-        public val headers: Map<String, Parameter> get() = _headers
+        public val headers: Map<String, Header> get() = _headers
+
+        /**
+         * Content types and schemas for this response.
+         */
+        public val content: Map<ContentType, MediaType> get() = _content
+
+        /**
+         * Links that can be followed from this response.
+         */
+        public val links: Map<String, Link> get() = _links
 
         /**
          * Defines response header parameters.
@@ -583,6 +583,34 @@ public data class Response(
             Headers.Builder().apply(configure).build().headers.forEach { (name, header) ->
                 _headers[name] = header
             }
+        }
+
+        /**
+         * Adds a media type definition for the response content.
+         *
+         * @param configure DSL to configure the [MediaType].
+         */
+        public operator fun ContentType.invoke(configure: MediaType.Builder.() -> Unit = {}) {
+            _content[this] = MediaType.Builder().apply(configure).build()
+        }
+
+        /**
+         * Convenience property to add JSON content with a schema.
+         */
+        public var jsonSchema: Schema?
+            get() = _content[ContentType.Application.Json]?.schema?.valueOrNull()
+            set(value) {
+                _content[ContentType.Application.Json] = MediaType(schema = value?.let(::Value))
+            }
+
+        /**
+         * Adds a link that can be followed from this response.
+         *
+         * @param name The link identifier.
+         * @param configure DSL to configure the [Link].
+         */
+        public fun link(name: String, configure: Link.Builder.() -> Unit) {
+            _links[name] = Link.Builder().apply(configure).build()
         }
 
         /**
@@ -600,10 +628,106 @@ public data class Response(
         internal fun build(): Response {
             return Response(
                 description = description,
-                contentType = contentType,
-                schema = schema,
-                headers = _headers.ifEmpty { null },
+                headers = _headers.mapValues { (_, value) -> Value(value) }.ifEmpty { null },
+                content = _content.ifEmpty { null },
+                links = _links.mapValues { (_, value) -> Value(value) }.ifEmpty { null },
                 extensions = extensions.ifEmpty { null },
+            )
+        }
+    }
+}
+
+/**
+ * Represents a possible design-time link for a response. The presence of a link does not guarantee
+ * the caller's ability to successfully invoke it, but it does provide a known relationship and
+ * traversal mechanism between responses and other operations.
+ *
+ * @property operationRef A relative or absolute URI reference to an OAS operation.
+ * @property operationId The name of an existing, resolvable OAS operation, as defined with a unique operationId.
+ * @property parameters A map of parameters to pass to the operation as specified with operationId or identified via operationRef.
+ * @property requestBody A literal value or expression to use as a request body when calling the target operation.
+ * @property description A description of the link.
+ * @property server A server object to be used by the target operation.
+ * @property extensions Specification-extensions for this link (keys must start with `x-`).
+ */
+@Serializable(Link.Companion.Serializer::class)
+@OptIn(ExperimentalSerializationApi::class)
+@KeepGeneratedSerializer
+public data class Link(
+    public val operationRef: String? = null,
+    public val operationId: String? = null,
+    public val parameters: ExtensionProperties = null,
+    public val requestBody: GenericElement? = null,
+    public val description: String? = null,
+    public val server: Server? = null,
+    override val extensions: ExtensionProperties = null
+) : Extensible {
+    public companion object {
+        internal object Serializer : ExtensibleMixinSerializer<Link>(
+            generatedSerializer(),
+            { link, extensions -> link.copy(extensions = extensions) }
+        )
+    }
+
+    /** Builder for constructing a [Link] instance. */
+    @KtorDsl
+    public class Builder {
+        /** A relative or absolute URI reference to an OAS operation. */
+        public var operationRef: String? = null
+
+        /** The name of an existing, resolvable OAS operation. */
+        public var operationId: String? = null
+
+        /** A map of parameters to pass to the operation. */
+        public val parameters: MutableMap<String, GenericElement> = mutableMapOf()
+
+        /** A literal value or expression to use as a request body. */
+        public var requestBody: GenericElement? = null
+
+        /** A description of the link. */
+        public var description: String? = null
+
+        /** A server object to be used by the target operation. */
+        public var server: Server? = null
+
+        /** Specification-extensions for this link (keys must start with `x-`). */
+        public val extensions: MutableMap<String, GenericElement> = mutableMapOf()
+
+        /**
+         * Adds a parameter to pass to the linked operation.
+         *
+         * @param name The parameter name.
+         * @param value The parameter value or expression.
+         */
+        public inline fun <reified T : Any> parameter(name: String, value: T) {
+            parameters[name] = GenericElement(value)
+        }
+
+        /**
+         * Adds a specification-extension to this link.
+         *
+         * @param name The extension name; must start with `x-`.
+         * @param value The extension value.
+         */
+        public inline fun <reified T : Any> extension(name: String, value: T) {
+            require(name.startsWith("x-")) { "Extension name must start with 'x-'" }
+            extensions[name] = GenericElement(value)
+        }
+
+        /** Builds the [Link] object. */
+        internal fun build(): Link {
+            require(operationRef != null || operationId != null) {
+                "Either operationRef or operationId must be specified"
+            }
+
+            return Link(
+                operationRef = operationRef,
+                operationId = operationId,
+                parameters = parameters.ifEmpty { null },
+                requestBody = requestBody,
+                description = description,
+                server = server,
+                extensions = extensions.ifEmpty { null }
             )
         }
     }
@@ -633,7 +757,7 @@ public data class RequestBody(
     public val description: String? = null,
     public val content: Map<@Serializable(ContentTypeSerializer::class) ContentType, MediaType>? = null,
     public val required: Boolean = false,
-    override val extensions: Map<String, GenericElement>? = null
+    override val extensions: ExtensionProperties = null
 ) : Extensible {
     public companion object {
         internal object Serializer : ExtensibleMixinSerializer<RequestBody>(
@@ -828,7 +952,7 @@ public data class Servers(
 public data class Server(
     public val url: String,
     public val description: String? = null,
-    override val extensions: Map<String, GenericElement>? = null,
+    override val extensions: ExtensionProperties = null,
 ) : Extensible {
     public companion object {
         internal object Serializer : ExtensibleMixinSerializer<Server>(
@@ -878,29 +1002,24 @@ public data class Server(
  */
 @Serializable
 public data class Headers(
-    public val headers: Map<String, Parameter>
+    public val headers: Map<String, Header>
 ) {
     @KtorDsl
     public class Builder {
-        private val _headers = mutableMapOf<String, Parameter>()
+        private val _headers = mutableMapOf<String, Header>()
 
-        /** Map of header name to its parameter definition. */
-        public val headers: Map<String, Parameter> get() = _headers
+        /** Map of header name to its header definition. */
+        public val headers: Map<String, Header> get() = _headers
 
         /**
-         * Adds a header parameter definition.
+         * Adds a header definition.
          *
          * @param name Header name.
-         * @param configure DSL to configure the header parameter.
+         * @param configure DSL to configure the header.
          */
-        public fun header(name: String, configure: Parameter.Builder.() -> Unit) {
-            Parameter.Builder().apply {
-                this.name = name
-                this.`in` = ParameterType.header
-                configure()
-            }.also {
-                _headers[name] = it.build()
-            }
+        public fun header(name: String, configure: Header.Builder.() -> Unit) {
+            val header = Header.Builder().apply(configure).build()
+            _headers[name] = header
         }
 
         internal fun build(): Headers {

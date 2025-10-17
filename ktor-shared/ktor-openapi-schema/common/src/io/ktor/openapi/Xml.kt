@@ -41,7 +41,7 @@ public data class Xml(
      * Any additional external documentation for this OpenAPI document. The key is the name of the
      * extension (beginning with x-), and the value is the data.
      */
-    override val extensions: Map<String, GenericElement>? = null,
+    override val extensions: ExtensionProperties = null,
 ) : Extensible {
     public companion object {
         internal object Serializer : ExtensibleMixinSerializer<Xml>(
