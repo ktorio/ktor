@@ -22,6 +22,7 @@ dokka {
         versioning {
             version = apiVersion
             if (dokkaVersionsDirectory != null) olderVersionsDir = dokkaVersionsDirectory
+            olderVersionsDirName = "" // Put versions in the docs root directory
         }
     }
 
