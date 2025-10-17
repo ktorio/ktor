@@ -298,10 +298,16 @@ class ByteReadChannelOperationsTest {
         val bytesCopied = channel.copyTo(outputChannel)
         outputChannel.close()
         
-        // Verify data integrity
+        // Verify bytes copied
         assertEquals(dataSize.toLong(), bytesCopied)
-        val output = outputChannel.readRemaining().readByteArray()
-        assertContentEquals(data, output)
+        
+        // Verify data integrity by reading in chunks
+        val output = mutableListOf<Byte>()
+        while (!outputChannel.exhausted()) {
+            val chunk = outputChannel.readRemaining()
+            output.addAll(chunk.readByteArray().toList())
+        }
+        assertContentEquals(data.toList(), output)
     }
 
     @Test
@@ -319,7 +325,7 @@ class ByteReadChannelOperationsTest {
         
         // Read in chunks using readRemaining with max parameter
         val chunks = mutableListOf<ByteArray>()
-        while (!channel.isClosedForRead) {
+        while (!channel.exhausted()) {
             val chunk = channel.readRemaining(8192)
             if (chunk.remaining > 0) {
                 chunks.add(chunk.readByteArray())
