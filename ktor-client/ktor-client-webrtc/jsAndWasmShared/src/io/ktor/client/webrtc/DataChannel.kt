@@ -63,7 +63,7 @@ public class JsWebRtcDataChannel(
     }
 
     override suspend fun send(bytes: ByteArray) {
-        channel.send(bytes.toInt8Array().buffer)
+        channel.send(bytes.toInt8Array())
     }
 
     override fun setBufferedAmountLowThreshold(threshold: Long) {
