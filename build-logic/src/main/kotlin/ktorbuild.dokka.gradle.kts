@@ -31,7 +31,7 @@ tasks.withType<DokkaGeneratePublicationTask>().configureEach {
     // Generate Dokka only for stable releases 'X.Y.Z' to save time when building snapshots, EAPs, etc.
     // Comment these lines if you want to test Dokka generation locally
     val projectVersion = project.version.toString()
-    onlyIf { isStableVersion(projectVersion) }
+    onlyIf("Version is stable") { isStableVersion(projectVersion) }
 
     // Reduce memory consumption on CI
     if (ktorBuild.isCI.get()) {
