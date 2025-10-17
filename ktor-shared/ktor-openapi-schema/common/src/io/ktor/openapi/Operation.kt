@@ -715,6 +715,7 @@ public data class RequestBody(
  *
  * @property requirements The list of security requirement objects (scheme name to scopes).
  */
+@Serializable
 public data class Security(
     public val requirements: List<Map<String, List<String>>>
 ) {

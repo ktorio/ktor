@@ -72,9 +72,11 @@ public data class Schema(
     @Serializable(with = SchemaType.Serializer::class)
     public sealed interface SchemaType {
 
+        @Serializable
         public data class AnyOf(val types: List<JsonType>) : SchemaType
 
         @Suppress("EnumEntryName")
+        @Serializable
         public enum class JsonType : SchemaType {
             array,
             `object`,
