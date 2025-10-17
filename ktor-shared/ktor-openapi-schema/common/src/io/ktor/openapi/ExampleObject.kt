@@ -28,7 +28,7 @@ public data class ExampleObject(
     /** URL that points to an external example value. */
     public val externalValue: String? = null,
     /** Specification extensions (keys must start with x-). */
-    override val extensions: Map<String, GenericElement>? = null,
+    override val extensions: ExtensionProperties = null,
 ) : Extensible {
     public companion object {
         internal object Serializer : ExtensibleMixinSerializer<ExampleObject>(

@@ -4,11 +4,7 @@
 
 package io.ktor.openapi
 
-import kotlin.test.Test
-
-class GenericElementTest {
-
-    @Test
-    fun deepTraversal() {
-    }
-}
+/**
+ * A map of arbitrary extension properties, each key starting with "x-".
+ */
+public typealias ExtensionProperties = Map<String, GenericElement>?

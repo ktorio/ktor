@@ -15,7 +15,7 @@ import kotlin.collections.mapOf
 import kotlin.reflect.KProperty
 
 internal interface Extensible {
-    val extensions: Map<String, GenericElement>?
+    val extensions: ExtensionProperties
 }
 
 internal interface SchemaHolder {
@@ -24,11 +24,11 @@ internal interface SchemaHolder {
 
 internal abstract class ExtensibleMixinSerializer<T : Extensible>(
     baseSerializer: KSerializer<T>,
-    copy: (T, Map<String, GenericElement>?) -> T,
-) : SinglePropertyMixinSerializer<T, Map<String, GenericElement>?>(
+    copy: (T, ExtensionProperties) -> T,
+) : SinglePropertyMixinSerializer<T, ExtensionProperties>(
     baseSerializer,
     Extensible::extensions,
-    serializer<Map<String, GenericElement>?>(),
+    serializer<ExtensionProperties>(),
     { it.startsWith("x-") },
     copy
 )

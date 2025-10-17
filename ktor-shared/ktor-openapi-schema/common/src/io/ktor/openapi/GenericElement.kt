@@ -127,12 +127,12 @@ public fun GenericElement(entries: Collection<Pair<String, GenericElement>>): Ge
     if (!entries.isEmpty() && entries.all { it.second is JsonGenericElement }) {
         val firstEntry = entries.first().second as JsonGenericElement
         JsonGenericElement(
-            firstEntry.json,
             JsonObject(
                 entries.associate { (key, value) ->
                     key to (value as JsonGenericElement).element
                 }
             ),
+            firstEntry.json,
             firstEntry.elementSerializer
         )
     } else {
@@ -158,14 +158,14 @@ public object JsonElementSerialAdapter : GenericElementSerialAdapter {
     ): GenericElement? {
         if (encoder !is JsonEncoder) return null
         val jsonElement = encoder.json.encodeToJsonElement(serializer, value)
-        return JsonGenericElement(encoder.json, jsonElement, JsonElement.serializer())
+        return JsonGenericElement(jsonElement, encoder.json, JsonElement.serializer())
     }
 
     override fun tryDeserialize(decoder: Decoder): GenericElement? {
         if (decoder !is JsonDecoder) return null
         val deserializer = JsonElement.serializer()
         val jsonElement = decoder.decodeSerializableValue(deserializer)
-        return JsonGenericElement(decoder.json, jsonElement, deserializer)
+        return JsonGenericElement(jsonElement, decoder.json, deserializer)
     }
 }
 
@@ -448,9 +448,9 @@ private class GenericElementEntriesEncoder(
  * A [GenericElement] implementation that wraps a JSON element.
  */
 public class JsonGenericElement(
-    public val json: Json,
     override val element: JsonElement,
-    override val elementSerializer: KSerializer<JsonElement>,
+    public val json: Json = Json,
+    override val elementSerializer: KSerializer<JsonElement> = JsonElement.serializer(),
 ) : GenericElement {
     override fun isObject(): Boolean = element is JsonObject
     override fun isArray(): Boolean = element is JsonArray
@@ -466,8 +466,8 @@ public class JsonGenericElement(
         return element.entries
             .map { (key, value) ->
                 key to JsonGenericElement(
-                    json,
                     value,
+                    json,
                     elementSerializer
                 )
             }
@@ -482,8 +482,8 @@ public class JsonGenericElement(
         }
         return when (other.element) {
             is JsonObject -> JsonGenericElement(
-                json,
                 JsonObject(element + other.element),
+                json,
                 elementSerializer
             )
             is JsonNull -> this

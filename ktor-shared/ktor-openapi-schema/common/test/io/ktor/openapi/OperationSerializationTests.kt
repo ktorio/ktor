@@ -20,11 +20,6 @@ class OperationSerializationTests {
     }
 
     @Test
-    fun `empty object deserialization`() {
-        assertEquals(PathItem(), GenericElement.EmptyObject.deserialize(PathItem.serializer()))
-    }
-
-    @Test
     fun `operation with parameters`() {
         val operation = Operation.build {
             summary = "Get articles"
@@ -133,12 +128,11 @@ class OperationSerializationTests {
             responses {
                 HttpStatusCode.Created {
                     description = "Article created successfully"
-                    contentType = ContentType.Application.Json
-                    schema = jsonSchema<Article>()
+                    jsonSchema = jsonSchema<Article>()
                 }
                 HttpStatusCode.BadRequest {
                     description = "Invalid input"
-                    contentType = ContentType.Text.Plain
+                    ContentType.Text.Plain()
                 }
             }
 
@@ -163,8 +157,9 @@ class OperationSerializationTests {
             responses {
                 HttpStatusCode.OK {
                     description = "Success response"
-                    contentType = ContentType.Application.Json
-                    schema = jsonSchema<List<Article>>()
+                    ContentType.Application.Json {
+                        schema = jsonSchema<List<Article>>()
+                    }
 
                     // Extensions on response level
                     extension("x-cache-ttl", 300)

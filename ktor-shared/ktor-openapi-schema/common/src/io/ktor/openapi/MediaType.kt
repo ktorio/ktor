@@ -1,5 +1,6 @@
 package io.ktor.openapi
 
+import io.ktor.openapi.ReferenceOr.Value
 import io.ktor.utils.io.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KeepGeneratedSerializer
@@ -18,17 +19,17 @@ public data class MediaType(
      * if referencing a schema which contains an example, the examples value SHALL override the
      * example provided by the schema.
      */
-    public val examples: Map<String, ReferenceOr<ExampleObject>> = emptyMap(),
+    public val examples: Map<String, ReferenceOr<ExampleObject>>? = null,
     /**
      * A map between a property name and its encoding information. The key, being the property name,
      * MUST exist in the schema as a property. The encoding object SHALL only apply to requestBody
      * objects when the media type is multipart or application/x-www-form-urlencoded.
      */
-    public val encoding: Map<String, Encoding> = emptyMap(),
+    public val encoding: Map<String, Encoding>? = null,
     /**
      * Any additional external documentation for this media type.
      */
-    override val extensions: Map<String, GenericElement>? = emptyMap(),
+    override val extensions: ExtensionProperties = null,
 ) : Extensible {
     public companion object {
         internal object Serializer : ExtensibleMixinSerializer<MediaType>(
@@ -41,7 +42,7 @@ public data class MediaType(
     @KtorDsl
     public class Builder {
         /** The schema defining the content. */
-        public var schema: ReferenceOr<Schema>? = null
+        public var schema: Schema? = null
 
         private val _examples = mutableMapOf<String, ReferenceOr<ExampleObject>>()
         private val _encoding = mutableMapOf<String, Encoding>()
@@ -62,7 +63,7 @@ public data class MediaType(
          * @param example The example object.
          */
         public fun example(name: String, example: ExampleObject) {
-            _examples[name] = ReferenceOr.Value(example)
+            _examples[name] = Value(example)
         }
 
         /**
@@ -88,9 +89,9 @@ public data class MediaType(
 
         internal fun build(): MediaType {
             return MediaType(
-                schema = schema,
-                examples = _examples,
-                encoding = _encoding,
+                schema = schema?.let(::Value),
+                examples = _examples.ifEmpty { null },
+                encoding = _encoding.ifEmpty { null },
                 extensions = extensions.ifEmpty { null },
             )
         }
