@@ -19,7 +19,10 @@ public inline fun <reified T : Any> jsonSchema(): Schema {
     return try {
         serializer<T>().descriptor.buildJsonSchema()
     } catch (e: SerializationException) {
-        Schema(Schema.SchemaType.JsonType.`object`)
+        Schema(
+            type = Schema.SchemaType.JsonType.`object`,
+            description = "Failed to resolve schema for ${T::class.simpleName}. ${e::class.simpleName}: ${e.message}"
+        )
     }
 }
 
@@ -61,7 +64,7 @@ public fun SerialDescriptor.buildJsonSchema(): Schema {
             Schema(
                 type = Schema.SchemaType.JsonType.`object`,
                 properties = properties,
-                // required = required
+                required = required
             )
         }
         StructureKind.LIST -> {

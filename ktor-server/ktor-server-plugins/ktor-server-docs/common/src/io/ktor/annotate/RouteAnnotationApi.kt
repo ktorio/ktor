@@ -27,7 +27,7 @@ public fun Route.annotate(configure: Operation.Builder.() -> Unit): Route {
 }
 
 /**
- * Finds all [PathItem]s in the [RoutingNode] and its descendants.
+ * Finds all [PathItem]s under the given [RoutingNode].
  */
 public fun RoutingNode.findPathItems(): Map<String, PathItem> =
     descendants()

@@ -18,7 +18,7 @@ public data class Xml(
      * within the list. When defined alongside type being array (outside the items), it will affect
      * the wrapping element and only if wrapped is true. If wrapped is false, it will be ignored.
      */
-    public val name: String,
+    public val name: String? = null,
     /** The URL of the namespace definition. Value SHOULD be in the form of a URL. */
     public val namespace: String? = null,
     /** The prefix to be used for the name. */
@@ -39,8 +39,7 @@ public data class Xml(
     public val wrapped: Boolean? = null,
     /**
      * Any additional external documentation for this OpenAPI document. The key is the name of the
-     * extension (beginning with x-), and the value is the data. The value can be a [JsonNull],
-     * [JsonPrimitive], [JsonArray] or [JsonObject].
+     * extension (beginning with x-), and the value is the data.
      */
     override val extensions: Map<String, GenericElement>? = null,
 ) : Extensible {
