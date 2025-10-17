@@ -211,18 +211,45 @@ public suspend fun ByteReadChannel.readByteArray(count: Int): ByteArray = buildP
     }
 }.readByteArray()
 
+/**
+ * Reads remaining bytes from the channel up to [CHANNEL_MAX_SIZE] (1MB).
+ *
+ * For responses or data smaller than 1MB, this reads all remaining data at once.
+ * For larger data, this reads up to 1MB, allowing you to process large files in chunks
+ * by calling this function in a loop.
+ *
+ * **Example for streaming large files:**
+ * ```
+ * while (!channel.exhausted()) {
+ *     val chunk = channel.readRemaining()
+ *     chunk.transferTo(outputSink)
+ * }
+ * ```
+ *
+ * **Alternative approaches for large data:**
+ * - Use [copyTo] to stream efficiently to another channel
+ * - Use [readAvailable] with a byte array buffer for manual chunking
+ * - Use [readRemaining] with explicit [max] parameter for custom chunk sizes
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readRemaining)
+ *
+ * @return A [Source] containing up to 1MB of remaining bytes from the channel
+ */
 @OptIn(InternalAPI::class, InternalIoApi::class)
 public suspend fun ByteReadChannel.readRemaining(): Source {
-    val result = BytePacketBuilder()
-    while (!isClosedForRead) {
-        result.transferFrom(readBuffer)
-        awaitContent()
-    }
-
-    rethrowCloseCauseIfNeeded()
-    return result.buffer
+    return readRemaining(CHANNEL_MAX_SIZE.toLong())
 }
 
+/**
+ * Reads up to [max] bytes from the channel.
+ *
+ * This function is useful when you want to process data in manageable chunks.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readRemaining)
+ *
+ * @param max The maximum number of bytes to read
+ * @return A [Source] containing up to [max] bytes of data
+ */
 @OptIn(InternalAPI::class, InternalIoApi::class)
 public suspend fun ByteReadChannel.readRemaining(max: Long): Source {
     val result = BytePacketBuilder()

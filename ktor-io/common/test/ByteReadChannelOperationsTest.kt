@@ -253,6 +253,140 @@ class ByteReadChannelOperationsTest {
         assertEquals(16843009, channel.readInt())
     }
 
+    @Test
+    fun testStreamingLargeData() = runTest {
+        val channel = ByteChannel()
+        
+        // Write 32KB of data
+        val dataSize = 32 * 1024
+        val data = ByteArray(dataSize) { (it % 256).toByte() }
+        
+        launch {
+            channel.writeFully(data)
+            channel.flushAndClose()
+        }
+        
+        // Read data in chunks using readAvailable - correct pattern for large files
+        val output = mutableListOf<Byte>()
+        val buffer = ByteArray(8192)
+        while (true) {
+            val read = channel.readAvailable(buffer)
+            if (read == -1) break
+            output.addAll(buffer.take(read))
+        }
+        
+        // Verify data integrity
+        assertEquals(dataSize, output.size)
+        assertContentEquals(data.toList(), output)
+    }
+
+    @Test
+    fun testStreamingWithCopyTo() = runTest {
+        val channel = ByteChannel()
+        val outputChannel = ByteChannel()
+        
+        // Write 32KB of data
+        val dataSize = 32 * 1024
+        val data = ByteArray(dataSize) { (it % 256).toByte() }
+        
+        launch {
+            channel.writeFully(data)
+            channel.flushAndClose()
+        }
+        
+        // Use copyTo for efficient streaming
+        val bytesCopied = channel.copyTo(outputChannel)
+        outputChannel.close()
+        
+        // Verify data integrity
+        assertEquals(dataSize.toLong(), bytesCopied)
+        val output = outputChannel.readRemaining().readByteArray()
+        assertContentEquals(data, output)
+    }
+
+    @Test
+    fun testReadRemainingWithLimit() = runTest {
+        val channel = ByteChannel()
+        
+        // Write 16KB of data
+        val dataSize = 16 * 1024
+        val data = ByteArray(dataSize) { (it % 256).toByte() }
+        
+        launch {
+            channel.writeFully(data)
+            channel.flushAndClose()
+        }
+        
+        // Read in chunks using readRemaining with max parameter
+        val chunks = mutableListOf<ByteArray>()
+        while (!channel.isClosedForRead) {
+            val chunk = channel.readRemaining(8192)
+            if (chunk.remaining > 0) {
+                chunks.add(chunk.readByteArray())
+            }
+        }
+        
+        // Verify we got multiple chunks
+        assertTrue(chunks.size > 1, "Expected multiple chunks, got ${chunks.size}")
+        
+        // Verify data integrity
+        val reconstructed = chunks.flatMap { it.toList() }.toByteArray()
+        assertContentEquals(data, reconstructed)
+    }
+
+    @Test
+    fun testReadRemainingChunkedForLargeData() = runTest {
+        val channel = ByteChannel()
+        
+        // Write 2MB of data (should be read in 2 chunks of 1MB each)
+        val dataSize = 2 * 1024 * 1024
+        val data = ByteArray(dataSize) { (it % 256).toByte() }
+        
+        launch {
+            channel.writeFully(data)
+            channel.flushAndClose()
+        }
+        
+        // Read using the user's pattern from the issue
+        val chunks = mutableListOf<ByteArray>()
+        while (!channel.exhausted()) {
+            val chunk = channel.readRemaining()
+            chunks.add(chunk.readByteArray())
+        }
+        
+        // Verify we got multiple chunks (2 chunks of 1MB each)
+        assertTrue(chunks.size >= 2, "Expected at least 2 chunks, got ${chunks.size}")
+        
+        // Verify data integrity
+        val reconstructed = chunks.flatMap { it.toList() }.toByteArray()
+        assertEquals(dataSize, reconstructed.size)
+        assertContentEquals(data, reconstructed)
+    }
+
+    @Test
+    fun testReadRemainingSmallDataStillReadsAll() = runTest {
+        val channel = ByteChannel()
+        
+        // Write small amount of data (< 1MB)
+        val dataSize = 100 * 1024  // 100KB
+        val data = ByteArray(dataSize) { (it % 256).toByte() }
+        
+        launch {
+            channel.writeFully(data)
+            channel.flushAndClose()
+        }
+        
+        // Small data should still be read in one call
+        val chunk = channel.readRemaining()
+        assertEquals(dataSize, chunk.remaining.toInt())
+        
+        // Channel should be exhausted after one call for small data
+        assertTrue(channel.exhausted())
+        
+        // Verify data integrity
+        assertContentEquals(data, chunk.readByteArray())
+    }
+
     @OptIn(InternalAPI::class)
     private suspend fun String.toByteChannel() = ByteChannel().also {
         it.writeBuffer.writeString(this)
