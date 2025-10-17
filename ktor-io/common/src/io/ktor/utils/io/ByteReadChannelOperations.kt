@@ -234,16 +234,10 @@ public suspend fun ByteReadChannel.readByteArray(count: Int): ByteArray = buildP
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readRemaining)
  *
  * @return A [Source] containing up to 1MB of remaining bytes from the channel
- * @throws IOException if the channel was closed with an exception
  */
 @OptIn(InternalAPI::class, InternalIoApi::class)
 public suspend fun ByteReadChannel.readRemaining(): Source {
-    val result = readRemaining(CHANNEL_MAX_SIZE.toLong())
-    // Check for errors after reading to maintain backward compatibility with error handling
-    if (isClosedForRead) {
-        rethrowCloseCauseIfNeeded()
-    }
-    return result
+    return readRemaining(CHANNEL_MAX_SIZE.toLong())
 }
 
 /**
