@@ -17,6 +17,18 @@ dokka {
             localDirectory = rootDir
             remoteUrl("https://github.com/ktorio/ktor/blob/$version")
         }
+
+        externalDocumentationLinks {
+            register("kotlinx-io") {
+                url("https://kotlinlang.org/api/kotlinx-io/")
+            }
+            register("kotlinx.coroutines") {
+                url("https://kotlinlang.org/api/kotlinx.coroutines/")
+            }
+            register("kotlinx.serialization") {
+                url("https://kotlinlang.org/api/kotlinx.serialization/")
+            }
+        }
     }
 
     pluginsConfiguration {
