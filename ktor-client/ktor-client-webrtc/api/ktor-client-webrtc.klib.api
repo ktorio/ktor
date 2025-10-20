@@ -828,7 +828,7 @@ final object io.ktor.client.webrtc/WebRtcMedia { // io.ktor.client.webrtc/WebRtc
 final fun <#A: io.ktor.client.webrtc/WebRtcConfig> io.ktor.client.webrtc/WebRtcClient(io.ktor.client.webrtc/WebRtcClientEngineFactory<#A>, kotlin/Function1<#A, kotlin/Unit> = ...): io.ktor.client.webrtc/WebRtcClient // io.ktor.client.webrtc/WebRtcClient|WebRtcClient(io.ktor.client.webrtc.WebRtcClientEngineFactory<0:0>;kotlin.Function1<0:0,kotlin.Unit>){0§<io.ktor.client.webrtc.WebRtcConfig>}[0]
 
 // Targets: [apple]
-abstract interface io.ktor.client.webrtc.media/Capturer { // io.ktor.client.webrtc.media/Capturer|null[0]
+abstract interface io.ktor.client.webrtc.media/Capturer : kotlin/AutoCloseable { // io.ktor.client.webrtc.media/Capturer|null[0]
     abstract val isCapturing // io.ktor.client.webrtc.media/Capturer.isCapturing|{}isCapturing[0]
         abstract fun <get-isCapturing>(): kotlin/Boolean // io.ktor.client.webrtc.media/Capturer.isCapturing.<get-isCapturing>|<get-isCapturing>(){}[0]
 
@@ -867,6 +867,7 @@ final class io.ktor.client.webrtc.media/CameraVideoCapturer : io.ktor.client.web
     final var isCapturing // io.ktor.client.webrtc.media/CameraVideoCapturer.isCapturing|{}isCapturing[0]
         final fun <get-isCapturing>(): kotlin/Boolean // io.ktor.client.webrtc.media/CameraVideoCapturer.isCapturing.<get-isCapturing>|<get-isCapturing>(){}[0]
 
+    final fun close() // io.ktor.client.webrtc.media/CameraVideoCapturer.close|close(){}[0]
     final fun startCapture() // io.ktor.client.webrtc.media/CameraVideoCapturer.startCapture|startCapture(){}[0]
     final fun stopCapture() // io.ktor.client.webrtc.media/CameraVideoCapturer.stopCapture|stopCapture(){}[0]
 
@@ -900,7 +901,7 @@ final class io.ktor.client.webrtc.media/IosVideoTrack : io.ktor.client.webrtc.me
 }
 
 // Targets: [apple]
-final class io.ktor.client.webrtc.media/SimulatorVideoCapturer : io.ktor.client.webrtc.media/Capturer, kotlin/AutoCloseable { // io.ktor.client.webrtc.media/SimulatorVideoCapturer|null[0]
+final class io.ktor.client.webrtc.media/SimulatorVideoCapturer : io.ktor.client.webrtc.media/Capturer { // io.ktor.client.webrtc.media/SimulatorVideoCapturer|null[0]
     constructor <init>(io.ktor.client.webrtc/WebRtcMedia.VideoTrackConstraints, WebRTC/RTCVideoCapturerDelegateProtocol) // io.ktor.client.webrtc.media/SimulatorVideoCapturer.<init>|<init>(io.ktor.client.webrtc.WebRtcMedia.VideoTrackConstraints;WebRTC.RTCVideoCapturerDelegateProtocol){}[0]
 
     final var isCapturing // io.ktor.client.webrtc.media/SimulatorVideoCapturer.isCapturing|{}isCapturing[0]
@@ -1067,6 +1068,12 @@ final fun (io.ktor.client.webrtc/WebRtcMedia.AudioTrack).io.ktor.client.webrtc.m
 
 // Targets: [apple]
 final fun (io.ktor.client.webrtc/WebRtcMedia.VideoTrack).io.ktor.client.webrtc.media/getNative(): WebRTC/RTCVideoTrack // io.ktor.client.webrtc.media/getNative|getNative@io.ktor.client.webrtc.WebRtcMedia.VideoTrack(){}[0]
+
+// Targets: [apple]
+final fun (io.ktor.client.webrtc/WebRtcPeerConnection).io.ktor.client.webrtc/getNative(): WebRTC/RTCPeerConnection // io.ktor.client.webrtc/getNative|getNative@io.ktor.client.webrtc.WebRtcPeerConnection(){}[0]
+
+// Targets: [apple]
+final fun io.ktor.client.webrtc.media/defaultVideoCapturerFactory(): io.ktor.client.webrtc.media/VideoCapturerFactory // io.ktor.client.webrtc.media/defaultVideoCapturerFactory|defaultVideoCapturerFactory(){}[0]
 
 // Targets: [js, wasmJs]
 abstract interface io.ktor.client.webrtc/JsPeerConnectionConfig // io.ktor.client.webrtc/JsPeerConnectionConfig|null[0]
