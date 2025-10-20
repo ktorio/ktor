@@ -39,9 +39,9 @@ public class IosWebRtcEngine(
 ) : WebRtcEngineBase("ios-webrtc", config), MediaTrackFactory by mediaTrackFactory {
 
     private val localFactory: RTCPeerConnectionFactory
-        get() {
-            return config.rtcFactory ?: (mediaTrackFactory as IosMediaDevices).peerConnectionFactory
-        }
+        get() = config.rtcFactory
+            ?: (mediaTrackFactory as? IosMediaDevices)?.peerConnectionFactory
+            ?: error("Please specify custom rtcFactory for custom MediaTrackFactory")
 
     private fun WebRtc.IceServer.toIos(): RTCIceServer {
         return RTCIceServer(listOf(urls), username, credential)
@@ -59,7 +59,7 @@ public class IosWebRtcEngine(
         }
 
         val coroutineContext = createConnectionContext(config.exceptionHandler)
-        return IosWebRtcConnection(coroutineContext, config).initialize { delegate ->
+        return IosWebRtcConnection(coroutineContext, config) { delegate ->
             localFactory.peerConnectionWithConfiguration(
                 constraints = RTCMediaConstraints(),
                 configuration = rtcConfig,
