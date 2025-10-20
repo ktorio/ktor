@@ -46,7 +46,7 @@ public class JvmWebRtcEngine(
             bundlePolicy = config.bundlePolicy.toJvm()
         }
         val coroutineContext = createConnectionContext(config.exceptionHandler)
-        return JvmWebRtcConnection(coroutineContext, config).initialize { observer ->
+        return JvmWebRtcConnection(coroutineContext, config) { observer ->
             localFactory.createPeerConnection(rtcConfig, observer)
                 ?: error("Failed to create peer connection.")
         }
