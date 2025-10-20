@@ -184,6 +184,8 @@ public object GenericMapDecoderAdapter : GenericElementSerialAdapter {
         val entries = mutableListOf<Pair<String, GenericElement>>()
         GenericElementEntriesEncoder { key, value ->
             entries += key to value
+        }.also {
+            it.encodeSerializableValue(serializer, value)
         }
         return GenericElementMap(entries.toMap())
     }
@@ -505,15 +507,15 @@ internal class GenericElementMapDecoder(
             ?: throw SerializationException("Element '$name' not found in map")
     }
 
-    override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
-        // For empty structures or when no element is set, create an empty decoder
-        if (currentElementName == null || currentElementName !in map) {
-            return GenericElementMapDecoder(emptyMap(), serializersModule)
+    override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder =
+        when (currentElementName) {
+            // self reference
+            null -> this
+            // decode a missing key
+            !in map -> GenericElementMapDecoder(emptyMap(), serializersModule)
+            // decode a nested structure
+            else -> createNestedDecoder(descriptor, getCurrentElement())
         }
-
-        val element = getCurrentElement()
-        return createNestedDecoder(descriptor, element)
-    }
 }
 
 /**

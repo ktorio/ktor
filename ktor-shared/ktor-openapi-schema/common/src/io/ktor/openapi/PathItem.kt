@@ -34,6 +34,7 @@ public data class PathItem(
     public val delete: Operation? = null,
     /** A definition of an OPTIONS operation on this path. */
     public val options: Operation? = null,
+    /** A definition of an HEAD operation on this path. */
     public val head: Operation? = null,
     /** A definition of a PATCH operation on this path. */
     public val patch: Operation? = null,
@@ -49,9 +50,7 @@ public data class PathItem(
      * defined at the OpenAPI Object's components/parameters.
      */
     public val parameters: List<ReferenceOr<Parameter>>? = null,
-    /**
-     * Any additional external documentation for this OpenAPI document.
-     */
+    /** Specification extensions for this Path Item (keys MUST start with "x-"). */
     override val extensions: ExtensionProperties = null,
 ) : Extensible {
     public companion object {
