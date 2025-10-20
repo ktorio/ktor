@@ -484,7 +484,7 @@ public data class Responses(
         /**
          * Adds a response for the given HTTP [statusCode].
          *
-         * @param statusCode The HTTP status code as a string (or "default").
+         * @param statusCode The HTTP status code as an Int.
          * @param configure DSL to configure the [Response].
          */
         public fun response(statusCode: Int, configure: Response.Builder.() -> Unit) {
@@ -586,7 +586,7 @@ public data class Response(
         }
 
         /**
-         * Adds a media type definition for the response content.
+         * Adds a media type definition for the request body using a ContentType receiver.
          *
          * @param configure DSL to configure the [MediaType].
          */
@@ -794,7 +794,7 @@ public data class RequestBody(
         }
 
         /**
-         * Convenience prorpert to add JSON content with a schema.
+         * Convenience property to add JSON content with a schema.
          */
         public var jsonSchema: Schema?
             get() = _content[ContentType.Application.Json]?.schema?.valueOrNull()

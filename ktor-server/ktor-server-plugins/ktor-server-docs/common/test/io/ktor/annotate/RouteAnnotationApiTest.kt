@@ -41,20 +41,28 @@ class RouteAnnotationApiTest {
                   "responses": {
                     "200": {
                       "description": "A list of messages",
-                      "contentType": "application/json",
-                      "schema": {
-                        "type": "array",
-                        "items": {
-                          "type": "object",
-                          "properties": {
-                            "id": {
-                              "type": "integer"
-                            },
-                            "content": {
-                              "type": "string"
-                            },
-                            "timestamp": {
-                              "type": "integer"
+                      "content": {
+                        "application/json": {
+                          "schema": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "required": [
+                                "id",
+                                "content",
+                                "timestamp"
+                              ],
+                              "properties": {
+                                "id": {
+                                  "type": "integer"
+                                },
+                                "content": {
+                                  "type": "string"
+                                },
+                                "timestamp": {
+                                  "type": "integer"
+                                }
+                              }
                             }
                           }
                         }
@@ -67,7 +75,9 @@ class RouteAnnotationApiTest {
                     },
                     "400": {
                       "description": "Invalid query",
-                      "contentType": "text/plain"
+                      "content": {
+                        "text/plain": {}
+                      }
                     }
                   }
                 }
@@ -83,7 +93,7 @@ class RouteAnnotationApiTest {
     }
 
     @Test
-    fun test() = testApplication {
+    fun routeAnnotationIntrospection() = testApplication {
         install(ContentNegotiation) {
             json(jsonFormat)
         }
@@ -108,13 +118,12 @@ class RouteAnnotationApiTest {
                 responses {
                     HttpStatusCode.OK {
                         description = "A list of messages"
-                        contentType = ContentType.Application.Json
-                        schema = jsonSchema<List<Message>>()
+                        jsonSchema = jsonSchema<List<Message>>()
                         extension("x-sample-message", testMessage)
                     }
                     HttpStatusCode.BadRequest {
                         description = "Invalid query"
-                        contentType = ContentType.Text.Plain
+                        ContentType.Text.Plain()
                     }
                 }
                 summary = "get messages"
