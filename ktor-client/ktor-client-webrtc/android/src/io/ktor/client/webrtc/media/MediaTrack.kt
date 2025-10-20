@@ -58,14 +58,12 @@ public class AndroidVideoTrack(nativeTrack: MediaStreamTrack, onDispose: (() -> 
  * Returns implementation of the native video stream track used under the hood. Use it with caution.
  */
 public fun WebRtcMedia.VideoTrack.getNative(): VideoTrack {
-    val track = this as? AndroidMediaTrack ?: error("Wrong track implementation.")
-    return track.nativeTrack as VideoTrack
+    return (this as AndroidMediaTrack).nativeTrack as VideoTrack
 }
 
 /**
  * Returns implementation of the native audio stream track used under the hood. Use it with caution.
  */
 public fun WebRtcMedia.AudioTrack.getNative(): AudioTrack {
-    val track = this as? AndroidMediaTrack ?: error("Wrong track implementation.")
-    return track.nativeTrack as AudioTrack
+    return (this as AndroidMediaTrack).nativeTrack as AudioTrack
 }

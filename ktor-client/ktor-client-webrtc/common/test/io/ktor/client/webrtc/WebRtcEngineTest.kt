@@ -6,7 +6,7 @@ package io.ktor.client.webrtc
 
 import io.ktor.client.webrtc.utils.*
 import io.ktor.test.dispatcher.*
-import io.ktor.utils.io.ExperimentalKtorApi
+import io.ktor.utils.io.*
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -198,6 +198,7 @@ class WebRtcEngineTest {
             peerConnection.addTrack(audioTrack)
 
             val stats = peerConnection.stats.collectToChannel(this, jobs)
+            assertNull(stats.tryReceive().getOrNull())
 
             withTimeout(5000) {
                 val firstStats = stats.receive()
@@ -211,6 +212,63 @@ class WebRtcEngineTest {
                 val mediaSource = realStats.first { it.type == "media-source" }
                 assertEquals("audio", mediaSource.props["kind"])
             }
+        }
+    }
+
+    private fun Channel<*>.assertOnlyOneReceived() {
+        assertNotNull(tryReceive().getOrNull())
+        assertNull(tryReceive().getOrNull())
+    }
+
+    @Test
+    fun testClientClose() = runTestWithRealTime {
+        val delay = 10
+        val connection1 = client.createPeerConnection {
+            statsRefreshRate = delay.milliseconds
+            exceptionHandler = CoroutineExceptionHandler { _, e -> throw e }
+        }
+        val jobs = mutableListOf<Job>()
+        try {
+            val stats1 = connection1.stats.collectToChannel(scope = this, jobs)
+            delay(duration = (delay * 1.5).milliseconds)
+            stats1.assertOnlyOneReceived()
+            client.close()
+
+            delay(duration = (delay * 5).milliseconds)
+            // ensure no more elements are emitted after close
+            assertNull(stats1.tryReceive().getOrNull())
+        } finally {
+            jobs.forEach { it.cancel() }
+        }
+    }
+
+    @Test
+    fun testConnectionClose() = runTestWithRealTime {
+        val delay = 10
+        val config = WebRtcConnectionConfig().apply {
+            statsRefreshRate = delay.milliseconds
+            exceptionHandler = CoroutineExceptionHandler { _, e -> throw e }
+        }
+        val connection1 = client.createPeerConnection(config)
+        val connection2 = client.createPeerConnection(config)
+        val jobs = mutableListOf<Job>()
+        try {
+            val stats1 = connection1.stats.collectToChannel(scope = this, jobs)
+            val stats2 = connection2.stats.collectToChannel(scope = this, jobs)
+            delay(duration = (delay * 1.5).milliseconds)
+
+            stats1.assertOnlyOneReceived()
+            stats2.assertOnlyOneReceived()
+
+            connection1.close()
+
+            delay(duration = (delay * 5).milliseconds)
+            // ensure no more elements are emitted after close
+            assertNull(stats1.tryReceive().getOrNull())
+            // connection2 should still receive stats
+            withTimeout(1000) { stats2.receive() }
+        } finally {
+            jobs.forEach { it.cancel() }
         }
     }
 

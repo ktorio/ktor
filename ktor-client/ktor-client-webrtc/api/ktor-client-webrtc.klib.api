@@ -1070,6 +1070,9 @@ final fun (io.ktor.client.webrtc/WebRtcMedia.AudioTrack).io.ktor.client.webrtc.m
 final fun (io.ktor.client.webrtc/WebRtcMedia.VideoTrack).io.ktor.client.webrtc.media/getNative(): WebRTC/RTCVideoTrack // io.ktor.client.webrtc.media/getNative|getNative@io.ktor.client.webrtc.WebRtcMedia.VideoTrack(){}[0]
 
 // Targets: [ios]
+final fun (io.ktor.client.webrtc/WebRtcPeerConnection).io.ktor.client.webrtc/getNative(): WebRTC/RTCPeerConnection // io.ktor.client.webrtc/getNative|getNative@io.ktor.client.webrtc.WebRtcPeerConnection(){}[0]
+
+// Targets: [ios]
 final fun io.ktor.client.webrtc.media/defaultVideoCapturerFactory(): io.ktor.client.webrtc.media/VideoCapturerFactory // io.ktor.client.webrtc.media/defaultVideoCapturerFactory|defaultVideoCapturerFactory(){}[0]
 
 // Targets: [js, wasmJs]

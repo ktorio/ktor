@@ -1,9 +1,10 @@
 /*
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
-@file:OptIn(ExperimentalWasmDsl::class)
+@file:OptIn(ExperimentalWasmDsl::class, ExperimentalKotlinGradlePluginApi::class)
 
 import ktorbuild.disableNativeCompileConfigurationCache
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 description = "Ktor WebRTC Client"
@@ -65,7 +66,7 @@ kotlin {
         }
 
         jsAndWasmSharedMain.dependencies {
-            implementation(kotlinWrappers.browser)
+            api(kotlinWrappers.browser)
         }
 
         wasmJs {
@@ -75,7 +76,7 @@ kotlin {
         }
 
         androidMain.dependencies {
-            implementation(libs.stream.webrtc.android)
+            api(libs.stream.webrtc.android)
         }
 
         cocoapods {
@@ -91,10 +92,12 @@ kotlin {
                 version = libs.versions.ios.webrtc.sdk.get()
                 moduleName = "WebRTC"
                 packageName = "WebRTC"
+                extraOpts += listOf("-compiler-option", "-fmodules")
             }
 
             framework {
                 baseName = "KtorWebRTC"
+                isStatic = true
             }
 
             noPodspec()
