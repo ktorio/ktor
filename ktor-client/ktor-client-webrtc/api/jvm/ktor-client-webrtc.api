@@ -90,7 +90,7 @@ public final class io/ktor/client/webrtc/JvmWebRtc : io/ktor/client/webrtc/WebRt
 }
 
 public final class io/ktor/client/webrtc/JvmWebRtcConnection : io/ktor/client/webrtc/WebRtcPeerConnection {
-	public fun <init> (Lkotlin/coroutines/CoroutineContext;Lio/ktor/client/webrtc/WebRtcConnectionConfig;)V
+	public fun <init> (Lkotlin/coroutines/CoroutineContext;Lio/ktor/client/webrtc/WebRtcConnectionConfig;Lkotlin/jvm/functions/Function1;)V
 	public fun addIceCandidate (Lio/ktor/client/webrtc/WebRtc$IceCandidate;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun addTrack (Lio/ktor/client/webrtc/WebRtcMedia$Track;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun close ()V
@@ -100,12 +100,15 @@ public final class io/ktor/client/webrtc/JvmWebRtcConnection : io/ktor/client/we
 	public fun getLocalDescription ()Lio/ktor/client/webrtc/WebRtc$SessionDescription;
 	public fun getRemoteDescription ()Lio/ktor/client/webrtc/WebRtc$SessionDescription;
 	public fun getStatistics (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun initialize (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/webrtc/JvmWebRtcConnection;
 	public fun removeTrack (Lio/ktor/client/webrtc/WebRtc$RtpSender;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun removeTrack (Lio/ktor/client/webrtc/WebRtcMedia$Track;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun restartIce ()V
 	public fun setLocalDescription (Lio/ktor/client/webrtc/WebRtc$SessionDescription;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun setRemoteDescription (Lio/ktor/client/webrtc/WebRtc$SessionDescription;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/client/webrtc/JvmWebRtcConnectionKt {
+	public static final fun getNative (Lio/ktor/client/webrtc/WebRtcPeerConnection;)Ldev/onvoid/webrtc/RTCPeerConnection;
 }
 
 public final class io/ktor/client/webrtc/JvmWebRtcDataChannel : io/ktor/client/webrtc/WebRtcDataChannel {

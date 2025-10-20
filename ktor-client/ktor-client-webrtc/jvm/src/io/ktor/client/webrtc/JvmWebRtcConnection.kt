@@ -29,20 +29,13 @@ import kotlin.coroutines.resume
  */
 public class JvmWebRtcConnection(
     coroutineContext: CoroutineContext,
-    config: WebRtcConnectionConfig
+    config: WebRtcConnectionConfig,
+    createConnection: (PeerConnectionObserver) -> RTCPeerConnection
 ) : WebRtcPeerConnection(coroutineContext, config) {
+    internal val inner: RTCPeerConnection
 
-    private lateinit var inner: RTCPeerConnection
-
-    /**
-     * Installs a native PeerConnection instance created by the engine.
-     */
-    public fun initialize(block: (PeerConnectionObserver) -> RTCPeerConnection): JvmWebRtcConnection {
-        if (this::inner.isInitialized) {
-            error("Peer connection has been already initialized.")
-        }
-        inner = block(createObserver())
-        return this
+    init {
+        inner = createConnection(createObserver())
     }
 
     override val localDescription: WebRtc.SessionDescription?
@@ -202,13 +195,7 @@ public class JvmWebRtcConnection(
 
     override suspend fun getStatistics(): List<WebRtc.Stats> {
         return suspendCancellableCoroutine { cont ->
-            if (!this::inner.isInitialized) {
-                cont.resume(emptyList())
-                return@suspendCancellableCoroutine
-            }
-            inner.getStats { statsReport ->
-                cont.resume(statsReport.toKtor())
-            }
+            inner.getStats { statsReport -> cont.resume(statsReport.toKtor()) }
         }
     }
 
@@ -216,4 +203,11 @@ public class JvmWebRtcConnection(
         super.close()
         inner.close()
     }
+}
+
+/**
+ * Returns implementation of the rtc peer connection that is used under the hood. Use it with caution.
+ */
+public fun WebRtcPeerConnection.getNative(): RTCPeerConnection {
+    return (this as JvmWebRtcConnection).inner
 }

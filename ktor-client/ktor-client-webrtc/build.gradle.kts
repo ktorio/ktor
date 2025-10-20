@@ -57,7 +57,7 @@ kotlin {
         }
 
         jvmMain.dependencies {
-            implementation(libs.webrtc.java)
+            api(libs.webrtc.java)
 
             // Gradle has issues resolving a native library with classifier, so we add it manually
             val webRtcJavaNativeLib = libs.webrtc.java.get().toString() + ":" + resolveWebRtcJavaClassifier()
