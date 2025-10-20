@@ -114,6 +114,5 @@ public class JsWebRtcDataChannel(
  * Returns implementation of the data channel that is used under the hood. Use it with caution.
  */
 public fun WebRtcDataChannel.getNative(): RTCDataChannel {
-    val channel = (this as? JsWebRtcDataChannel) ?: error("Wrong data channel implementation.")
-    return channel.channel
+    return (this as JsWebRtcDataChannel).channel
 }

@@ -7,12 +7,12 @@ package io.ktor.client.webrtc
 import io.ktor.client.webrtc.media.*
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import org.webrtc.*
 import org.webrtc.PeerConnection.Observer
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
 
 public class AndroidWebRtcPeerConnection(
     coroutineContext: CoroutineContext,
@@ -23,9 +23,10 @@ public class AndroidWebRtcPeerConnection(
     // remember RTP senders because method PeerConnection.getSenders() disposes all returned senders
     private val rtpSenders = arrayListOf<AndroidRtpSender>()
 
-    override suspend fun getStatistics(): List<WebRtc.Stats> = suspendCoroutine { cont ->
+    override suspend fun getStatistics(): List<WebRtc.Stats> = suspendCancellableCoroutine { cont ->
         if (this::peerConnection.isInitialized.not()) {
             cont.resume(emptyList())
+            return@suspendCancellableCoroutine
         }
         peerConnection.getStats { cont.resume(it.toKtor()) }
     }
@@ -120,14 +121,14 @@ public class AndroidWebRtcPeerConnection(
         get() = peerConnection.remoteDescription?.toKtor()
 
     override suspend fun createOffer(): WebRtc.SessionDescription {
-        val offer = suspendCoroutine { cont ->
+        val offer = suspendCancellableCoroutine { cont ->
             peerConnection.createOffer(cont.resumeAfterSdpCreate(), offerConstraints())
         }
         return offer.toKtor()
     }
 
     override suspend fun createAnswer(): WebRtc.SessionDescription {
-        val answer = suspendCoroutine { cont ->
+        val answer = suspendCancellableCoroutine { cont ->
             peerConnection.createAnswer(cont.resumeAfterSdpCreate(), offerConstraints())
         }
         return answer.toKtor()
@@ -160,13 +161,13 @@ public class AndroidWebRtcPeerConnection(
     }
 
     override suspend fun setLocalDescription(description: WebRtc.SessionDescription) {
-        suspendCoroutine { cont ->
+        suspendCancellableCoroutine { cont ->
             peerConnection.setLocalDescription(cont.resumeAfterSdpSet(), description.toNative())
         }
     }
 
     override suspend fun setRemoteDescription(description: WebRtc.SessionDescription) {
-        suspendCoroutine { cont ->
+        suspendCancellableCoroutine { cont ->
             peerConnection.setRemoteDescription(cont.resumeAfterSdpSet(), description.toNative())
         }
     }
@@ -177,7 +178,7 @@ public class AndroidWebRtcPeerConnection(
             candidate.sdpMLineIndex,
             candidate.candidate,
         )
-        suspendCoroutine { cont ->
+        suspendCancellableCoroutine { cont ->
             peerConnection.addIceCandidate(
                 iceCandidate,
                 object : AddIceObserver {
@@ -189,14 +190,14 @@ public class AndroidWebRtcPeerConnection(
     }
 
     override suspend fun addTrack(track: WebRtcMedia.Track): WebRtc.RtpSender {
-        val mediaTrack = track as? AndroidMediaTrack ?: error("Track should extend AndroidMediaTrack.")
+        val mediaTrack = track as AndroidMediaTrack
         val newSender = AndroidRtpSender(peerConnection.addTrack(mediaTrack.nativeTrack))
         rtpSenders.add(newSender)
         return newSender
     }
 
     override suspend fun removeTrack(track: WebRtcMedia.Track) {
-        val mediaTrack = track as? AndroidMediaTrack ?: error("Track should extend AndroidMediaTrack.")
+        val mediaTrack = track as AndroidMediaTrack
         val sender = rtpSenders.firstOrNull { it.track?.id == mediaTrack.id }
             ?: error("Track is not found.")
         if (!peerConnection.removeTrack(sender.nativeSender)) {
@@ -205,7 +206,7 @@ public class AndroidWebRtcPeerConnection(
     }
 
     override suspend fun removeTrack(sender: WebRtc.RtpSender) {
-        val rtpSender = sender as? AndroidRtpSender ?: error("Sender should extend AndroidRtpSender.")
+        val rtpSender = sender as AndroidRtpSender
         if (!peerConnection.removeTrack(rtpSender.nativeSender)) {
             error("Failed to remove track.")
         }
@@ -216,6 +217,7 @@ public class AndroidWebRtcPeerConnection(
     }
 
     override fun close() {
+        super.close()
         peerConnection.close()
     }
 }

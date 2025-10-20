@@ -252,6 +252,7 @@ public class IosWebRtcConnection(
     }
 
     override fun close() {
+        super.close()
         peerConnection.close()
     }
 }
