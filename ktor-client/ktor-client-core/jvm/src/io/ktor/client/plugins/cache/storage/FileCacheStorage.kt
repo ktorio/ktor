@@ -206,13 +206,13 @@ private class FileCacheStorage(
     }
 
     /**
-     * Deserialize a single CachedResponseData from the provided ByteReadChannel.
+     * Deserialize a single [CachedResponseData] from the provided [ByteReadChannel].
      *
      * Reads the cached-entry fields in the stored binary format: request URL, HTTP status and version,
      * headers, request/response/expiration timestamps, vary keys (converted to lowercase), and the body bytes.
      *
      * @param channel Source channel positioned at the start of a serialized cache entry.
-     * @return The reconstructed CachedResponseData instance.
+     * @return The reconstructed [CachedResponseData] instance.
      */
     private suspend fun readCache(channel: ByteReadChannel): CachedResponseData {
         val url = channel.readUTF8Line()!!
