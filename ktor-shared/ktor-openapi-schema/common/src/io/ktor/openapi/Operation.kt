@@ -996,7 +996,7 @@ public data class Server(
 }
 
 /**
- * Container for named header parameters attached to a response.
+ * Container for named headers attached to a response.
  *
  * @property headers Map of header name to its parameter definition.
  */

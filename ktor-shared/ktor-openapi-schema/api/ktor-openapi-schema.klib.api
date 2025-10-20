@@ -56,29 +56,19 @@ sealed interface <#A: out kotlin/Any?> io.ktor.openapi/ReferenceOr { // io.ktor.
     open fun valueOrNull(): #A? // io.ktor.openapi/ReferenceOr.valueOrNull|valueOrNull(){}[0]
 
     final class Reference : io.ktor.openapi/ReferenceOr<kotlin/Nothing> { // io.ktor.openapi/ReferenceOr.Reference|null[0]
-        constructor <init>(kotlin/String) // io.ktor.openapi/ReferenceOr.Reference.<init>|<init>(kotlin.String){}[0]
+        constructor <init>(kotlin/String, kotlin/Boolean = ...) // io.ktor.openapi/ReferenceOr.Reference.<init>|<init>(kotlin.String;kotlin.Boolean){}[0]
 
+        final val isRecursive // io.ktor.openapi/ReferenceOr.Reference.isRecursive|{}isRecursive[0]
+            final fun <get-isRecursive>(): kotlin/Boolean // io.ktor.openapi/ReferenceOr.Reference.isRecursive.<get-isRecursive>|<get-isRecursive>(){}[0]
         final val ref // io.ktor.openapi/ReferenceOr.Reference.ref|{}ref[0]
             final fun <get-ref>(): kotlin/String // io.ktor.openapi/ReferenceOr.Reference.ref.<get-ref>|<get-ref>(){}[0]
 
         final fun component1(): kotlin/String // io.ktor.openapi/ReferenceOr.Reference.component1|component1(){}[0]
-        final fun copy(kotlin/String = ...): io.ktor.openapi/ReferenceOr.Reference // io.ktor.openapi/ReferenceOr.Reference.copy|copy(kotlin.String){}[0]
+        final fun component2(): kotlin/Boolean // io.ktor.openapi/ReferenceOr.Reference.component2|component2(){}[0]
+        final fun copy(kotlin/String = ..., kotlin/Boolean = ...): io.ktor.openapi/ReferenceOr.Reference // io.ktor.openapi/ReferenceOr.Reference.copy|copy(kotlin.String;kotlin.Boolean){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.openapi/ReferenceOr.Reference.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // io.ktor.openapi/ReferenceOr.Reference.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // io.ktor.openapi/ReferenceOr.Reference.toString|toString(){}[0]
-
-        final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<io.ktor.openapi/ReferenceOr.Reference> { // io.ktor.openapi/ReferenceOr.Reference.$serializer|null[0]
-            final val descriptor // io.ktor.openapi/ReferenceOr.Reference.$serializer.descriptor|{}descriptor[0]
-                final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // io.ktor.openapi/ReferenceOr.Reference.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
-
-            final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // io.ktor.openapi/ReferenceOr.Reference.$serializer.childSerializers|childSerializers(){}[0]
-            final fun deserialize(kotlinx.serialization.encoding/Decoder): io.ktor.openapi/ReferenceOr.Reference // io.ktor.openapi/ReferenceOr.Reference.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
-            final fun serialize(kotlinx.serialization.encoding/Encoder, io.ktor.openapi/ReferenceOr.Reference) // io.ktor.openapi/ReferenceOr.Reference.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;io.ktor.openapi.ReferenceOr.Reference){}[0]
-        }
-
-        final object Companion { // io.ktor.openapi/ReferenceOr.Reference.Companion|null[0]
-            final fun serializer(): kotlinx.serialization/KSerializer<io.ktor.openapi/ReferenceOr.Reference> // io.ktor.openapi/ReferenceOr.Reference.Companion.serializer|serializer(){}[0]
-        }
     }
 
     final value class <#A1: kotlin/Any?> Value : io.ktor.openapi/ReferenceOr<#A1> { // io.ktor.openapi/ReferenceOr.Value|null[0]
@@ -139,6 +129,7 @@ final class <#A: kotlin/Any> io.ktor.openapi/GenericElementWrapper : io.ktor.ope
 
     final fun <#A1: kotlin/Any?> deserialize(kotlinx.serialization/DeserializationStrategy<#A1>): #A1 // io.ktor.openapi/GenericElementWrapper.deserialize|deserialize(kotlinx.serialization.DeserializationStrategy<0:0>){0§<kotlin.Any?>}[0]
     final fun entries(): kotlin.collections/List<kotlin/Pair<kotlin/String, io.ktor.openapi/GenericElement>> // io.ktor.openapi/GenericElementWrapper.entries|entries(){}[0]
+    final fun toString(): kotlin/String // io.ktor.openapi/GenericElementWrapper.toString|toString(){}[0]
 }
 
 final class io.ktor.openapi/ContentTypeSerializer : kotlinx.serialization/KSerializer<io.ktor.http/ContentType> { // io.ktor.openapi/ContentTypeSerializer|null[0]
@@ -395,24 +386,6 @@ final class io.ktor.openapi/Headers { // io.ktor.openapi/Headers|null[0]
 
         final fun serializer(): kotlinx.serialization/KSerializer<io.ktor.openapi/Headers> // io.ktor.openapi/Headers.Companion.serializer|serializer(){}[0]
     }
-}
-
-final class io.ktor.openapi/JsonGenericElement : io.ktor.openapi/GenericElement { // io.ktor.openapi/JsonGenericElement|null[0]
-    constructor <init>(kotlinx.serialization.json/JsonElement, kotlinx.serialization.json/Json = ..., kotlinx.serialization/KSerializer<kotlinx.serialization.json/JsonElement> = ...) // io.ktor.openapi/JsonGenericElement.<init>|<init>(kotlinx.serialization.json.JsonElement;kotlinx.serialization.json.Json;kotlinx.serialization.KSerializer<kotlinx.serialization.json.JsonElement>){}[0]
-
-    final val element // io.ktor.openapi/JsonGenericElement.element|{}element[0]
-        final fun <get-element>(): kotlinx.serialization.json/JsonElement // io.ktor.openapi/JsonGenericElement.element.<get-element>|<get-element>(){}[0]
-    final val elementSerializer // io.ktor.openapi/JsonGenericElement.elementSerializer|{}elementSerializer[0]
-        final fun <get-elementSerializer>(): kotlinx.serialization/KSerializer<kotlinx.serialization.json/JsonElement> // io.ktor.openapi/JsonGenericElement.elementSerializer.<get-elementSerializer>|<get-elementSerializer>(){}[0]
-    final val json // io.ktor.openapi/JsonGenericElement.json|{}json[0]
-        final fun <get-json>(): kotlinx.serialization.json/Json // io.ktor.openapi/JsonGenericElement.json.<get-json>|<get-json>(){}[0]
-
-    final fun <#A1: kotlin/Any?> deserialize(kotlinx.serialization/DeserializationStrategy<#A1>): #A1 // io.ktor.openapi/JsonGenericElement.deserialize|deserialize(kotlinx.serialization.DeserializationStrategy<0:0>){0§<kotlin.Any?>}[0]
-    final fun entries(): kotlin.collections/List<kotlin/Pair<kotlin/String, io.ktor.openapi/GenericElement>> // io.ktor.openapi/JsonGenericElement.entries|entries(){}[0]
-    final fun isArray(): kotlin/Boolean // io.ktor.openapi/JsonGenericElement.isArray|isArray(){}[0]
-    final fun isObject(): kotlin/Boolean // io.ktor.openapi/JsonGenericElement.isObject|isObject(){}[0]
-    final fun isString(): kotlin/Boolean // io.ktor.openapi/JsonGenericElement.isString|isString(){}[0]
-    final fun plus(io.ktor.openapi/GenericElement): io.ktor.openapi/GenericElement // io.ktor.openapi/JsonGenericElement.plus|plus(io.ktor.openapi.GenericElement){}[0]
 }
 
 final class io.ktor.openapi/Link : io.ktor.openapi/Extensible { // io.ktor.openapi/Link|null[0]
@@ -1496,7 +1469,7 @@ final object io.ktor.openapi/JsonElementSerialAdapter : io.ktor.openapi/GenericE
 
 final fun (kotlinx.serialization.descriptors/SerialDescriptor).io.ktor.openapi/buildJsonSchema(): io.ktor.openapi/Schema // io.ktor.openapi/buildJsonSchema|buildJsonSchema@kotlinx.serialization.descriptors.SerialDescriptor(){}[0]
 final fun io.ktor.openapi/GenericElement(kotlin.collections/Collection<kotlin/Pair<kotlin/String, io.ktor.openapi/GenericElement>>): io.ktor.openapi/GenericElement // io.ktor.openapi/GenericElement|GenericElement(kotlin.collections.Collection<kotlin.Pair<kotlin.String,io.ktor.openapi.GenericElement>>){}[0]
-final fun io.ktor.openapi/GenericElement(kotlin.collections/Map<kotlin/String, io.ktor.openapi/GenericElement>): io.ktor.openapi/GenericElement // io.ktor.openapi/GenericElement|GenericElement(kotlin.collections.Map<kotlin.String,io.ktor.openapi.GenericElement>){}[0]
 final inline fun <#A: reified kotlin/Any> io.ktor.openapi/GenericElement(#A): io.ktor.openapi/GenericElement // io.ktor.openapi/GenericElement|GenericElement(0:0){0§<kotlin.Any>}[0]
+final inline fun <#A: reified kotlin/Any> io.ktor.openapi/GenericElement(kotlin.collections/Map<kotlin/String, #A>): io.ktor.openapi/GenericElement // io.ktor.openapi/GenericElement|GenericElement(kotlin.collections.Map<kotlin.String,0:0>){0§<kotlin.Any>}[0]
 final inline fun <#A: reified kotlin/Any> io.ktor.openapi/jsonSchema(): io.ktor.openapi/Schema // io.ktor.openapi/jsonSchema|jsonSchema(){0§<kotlin.Any>}[0]
 final inline fun <#A: reified kotlin/Any?> (io.ktor.openapi/GenericElement).io.ktor.openapi/asA(): #A // io.ktor.openapi/asA|asA@io.ktor.openapi.GenericElement(){0§<kotlin.Any?>}[0]

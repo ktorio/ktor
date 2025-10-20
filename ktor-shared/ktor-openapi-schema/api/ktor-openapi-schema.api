@@ -205,7 +205,6 @@ public final class io/ktor/openapi/GenericElement$DefaultImpls {
 
 public final class io/ktor/openapi/GenericElementKt {
 	public static final fun GenericElement (Ljava/util/Collection;)Lio/ktor/openapi/GenericElement;
-	public static final fun GenericElement (Ljava/util/Map;)Lio/ktor/openapi/GenericElement;
 }
 
 public abstract interface class io/ktor/openapi/GenericElementSerialAdapter {
@@ -246,6 +245,7 @@ public final class io/ktor/openapi/GenericElementWrapper : io/ktor/openapi/Gener
 	public fun isObject ()Z
 	public fun isString ()Z
 	public fun plus (Lio/ktor/openapi/GenericElement;)Lio/ktor/openapi/GenericElement;
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/ktor/openapi/GenericMapDecoderAdapter : io/ktor/openapi/GenericElementSerialAdapter {
@@ -351,21 +351,6 @@ public final class io/ktor/openapi/JsonElementSerialAdapter : io/ktor/openapi/Ge
 	public static final field INSTANCE Lio/ktor/openapi/JsonElementSerialAdapter;
 	public fun tryDeserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/openapi/GenericElement;
 	public fun trySerializeToElement (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;Lkotlinx/serialization/KSerializer;)Lio/ktor/openapi/GenericElement;
-}
-
-public final class io/ktor/openapi/JsonGenericElement : io/ktor/openapi/GenericElement {
-	public fun <init> (Lkotlinx/serialization/json/JsonElement;Lkotlinx/serialization/json/Json;Lkotlinx/serialization/KSerializer;)V
-	public synthetic fun <init> (Lkotlinx/serialization/json/JsonElement;Lkotlinx/serialization/json/Json;Lkotlinx/serialization/KSerializer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun deserialize (Lkotlinx/serialization/DeserializationStrategy;)Ljava/lang/Object;
-	public fun entries ()Ljava/util/List;
-	public synthetic fun getElement ()Ljava/lang/Object;
-	public fun getElement ()Lkotlinx/serialization/json/JsonElement;
-	public fun getElementSerializer ()Lkotlinx/serialization/KSerializer;
-	public final fun getJson ()Lkotlinx/serialization/json/Json;
-	public fun isArray ()Z
-	public fun isObject ()Z
-	public fun isString ()Z
-	public fun plus (Lio/ktor/openapi/GenericElement;)Lio/ktor/openapi/GenericElement;
 }
 
 public final class io/ktor/openapi/Link : io/ktor/openapi/Extensible {
@@ -763,14 +748,16 @@ public final class io/ktor/openapi/ReferenceOr$DefaultImpls {
 }
 
 public final class io/ktor/openapi/ReferenceOr$Reference : io/ktor/openapi/ReferenceOr {
-	public static final field Companion Lio/ktor/openapi/ReferenceOr$Reference$Companion;
-	public fun <init> (Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Z)V
+	public synthetic fun <init> (Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;)Lio/ktor/openapi/ReferenceOr$Reference;
-	public static synthetic fun copy$default (Lio/ktor/openapi/ReferenceOr$Reference;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/openapi/ReferenceOr$Reference;
+	public final fun component2 ()Z
+	public final fun copy (Ljava/lang/String;Z)Lio/ktor/openapi/ReferenceOr$Reference;
+	public static synthetic fun copy$default (Lio/ktor/openapi/ReferenceOr$Reference;Ljava/lang/String;ZILjava/lang/Object;)Lio/ktor/openapi/ReferenceOr$Reference;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getRef ()Ljava/lang/String;
 	public fun hashCode ()I
+	public final fun isRecursive ()Z
 	public fun toString ()Ljava/lang/String;
 	public synthetic fun valueOrNull ()Ljava/lang/Object;
 	public fun valueOrNull ()Ljava/lang/Void;
