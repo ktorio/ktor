@@ -10,8 +10,8 @@ import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 import kotlin.jvm.JvmInline
 
-private const val RefKey = "\$ref"
-private const val RecursiveRefKey = "\$recursiveRef"
+private const val RefKey = $$"$ref"
+private const val RecursiveRefKey = $$"$recursiveRef"
 
 /**
  * Defines Union [A] | [Reference]. A lot of types like Header, Schema, MediaType, etc. can be
@@ -19,8 +19,10 @@ private const val RecursiveRefKey = "\$recursiveRef"
  */
 @Serializable(with = ReferenceOr.Companion.Serializer::class)
 public sealed interface ReferenceOr<out A> {
-    @Serializable
-    public data class Reference(@SerialName(RefKey) public val ref: String) : ReferenceOr<Nothing>
+    public data class Reference(
+        public val ref: String,
+        public val isRecursive: Boolean = false,
+    ) : ReferenceOr<Nothing>
 
     @JvmInline public value class Value<A>(public val value: A) : ReferenceOr<A>
 
@@ -44,12 +46,29 @@ public sealed interface ReferenceOr<out A> {
         internal class Serializer<T>(private val dataSerializer: KSerializer<T>) :
             KSerializer<ReferenceOr<T>> {
             @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
-            override val descriptor: SerialDescriptor = buildSerialDescriptor("ReferenceOr", SerialKind.CONTEXTUAL)
+            override val descriptor: SerialDescriptor =
+                buildSerialDescriptor("io.ktor.openapi.ReferenceOr", SerialKind.CONTEXTUAL)
+            private val refDescriptor = buildClassSerialDescriptor("io.ktor.openapi.ReferenceOr.Reference") {
+                element<String>(RefKey)
+            }
+            private val recursiveRefDescriptor = buildClassSerialDescriptor("io.ktor.openapi.ReferenceOr.Reference") {
+                element<String>(RecursiveRefKey)
+            }
 
             override fun serialize(encoder: Encoder, value: ReferenceOr<T>) {
                 when (value) {
                     is Value -> encoder.encodeSerializableValue(dataSerializer, value.value)
-                    is Reference -> encoder.encodeSerializableValue(Reference.serializer(), value)
+                    is Reference -> {
+                        if (value.isRecursive) {
+                            encoder.encodeStructure(recursiveRefDescriptor) {
+                                encodeStringElement(recursiveRefDescriptor, 0, value.ref)
+                            }
+                        } else {
+                            encoder.encodeStructure(refDescriptor) {
+                                encodeStringElement(refDescriptor, 0, value.ref)
+                            }
+                        }
+                    }
                 }
             }
 
@@ -59,10 +78,13 @@ public sealed interface ReferenceOr<out A> {
                     element.isObject() -> {
                         val entries = element.entries().toMap()
                         when {
-                            RefKey in entries -> Reference(entries[RefKey]!!.deserialize(String.serializer()))
-                            RecursiveRefKey in entries -> Reference(
-                                entries[RecursiveRefKey]!!.deserialize(String.serializer())
-                            )
+                            RefKey in entries ->
+                                Reference(entries[RefKey]!!.deserialize(String.serializer()))
+                            RecursiveRefKey in entries ->
+                                Reference(
+                                    entries[RecursiveRefKey]!!.deserialize(String.serializer()),
+                                    isRecursive = true
+                                )
                             else -> Value(element.deserialize(dataSerializer))
                         }
                     }

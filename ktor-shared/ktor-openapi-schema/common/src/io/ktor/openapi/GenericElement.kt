@@ -110,6 +110,7 @@ public inline fun <reified T> GenericElement.asA(): T =
  */
 public inline fun <reified T : Any> GenericElement(value: T): GenericElement =
     when (value) {
+        is GenericElement -> value
         is String -> GenericElementString(value)
         else -> GenericElementWrapper(value, serializer())
     }
@@ -117,8 +118,8 @@ public inline fun <reified T : Any> GenericElement(value: T): GenericElement =
 /**
  * Create an object node [GenericElement] from the given [map].
  */
-public fun GenericElement(map: Map<String, GenericElement>): GenericElement =
-    GenericElement(map.map { it.key to it.value })
+public inline fun <reified T : Any> GenericElement(map: Map<String, T>): GenericElement =
+    GenericElement(map.map { it.key to GenericElement(it.value) })
 
 /**
  * Create an object node [GenericElement] from the given [entries].
@@ -177,7 +178,15 @@ public object GenericMapDecoderAdapter : GenericElementSerialAdapter {
         encoder: Encoder,
         value: T,
         serializer: KSerializer<T>
-    ): GenericElement? = null
+    ): GenericElement? {
+        if (encoder !is GenericElementEntriesEncoder) return null
+        // Nested call to the same encoder - we'll just replace the encoder and serialize to a new object
+        val entries = mutableListOf<Pair<String, GenericElement>>()
+        GenericElementEntriesEncoder { key, value ->
+            entries += key to value
+        }
+        return GenericElementMap(entries.toMap())
+    }
 
     override fun tryDeserialize(decoder: Decoder): GenericElement? {
         if (decoder !is GenericElementMapDecoder) return null
@@ -208,6 +217,9 @@ public class GenericElementWrapper<T : Any>(
         }
         return entries
     }
+
+    override fun toString(): String =
+        "GenericElementWrapper(${elementSerializer.descriptor.serialName}: ${element.toString().take(20)})"
 }
 
 /**
@@ -246,128 +258,10 @@ internal class GenericElementMap(
 }
 
 /**
- * A custom decoder for deserializing a [GenericElementMap].
- */
-@OptIn(ExperimentalSerializationApi::class)
-internal class GenericElementMapDecoder(
-    internal val map: Map<String, GenericElement>,
-    override val serializersModule: SerializersModule = EmptySerializersModule()
-) : AbstractDecoder() {
-    private var elementIndex = 0
-    private var currentElementName: String? = null
-
-    override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
-        if (elementIndex >= descriptor.elementsCount) {
-            return CompositeDecoder.DECODE_DONE
-        }
-
-        // Find the next property that exists in the map
-        while (elementIndex < descriptor.elementsCount) {
-            val elementName = descriptor.getElementName(elementIndex)
-            val newIndex = elementIndex++
-
-            if (elementName in map) {
-                currentElementName = elementName
-                return newIndex
-            }
-
-            // Check if property is optional - if so, skip it
-            if (descriptor.isElementOptional(newIndex)) {
-                continue
-            }
-
-            // Required property not found
-            return CompositeDecoder.DECODE_DONE
-        }
-
-        return CompositeDecoder.DECODE_DONE
-    }
-
-    override fun decodeNotNullMark(): Boolean {
-        return currentElementName?.let { it in map } ?: false
-    }
-
-    private fun getCurrentElement(): GenericElement {
-        val name = currentElementName
-            ?: throw SerializationException("No current element - decoder in invalid state")
-        return map[name]
-            ?: throw SerializationException("Element '$name' not found in map")
-    }
-
-    override fun decodeBoolean(): Boolean {
-        return getCurrentElement().deserialize(Boolean.serializer())
-    }
-
-    override fun decodeByte(): Byte {
-        return getCurrentElement().deserialize(Byte.serializer())
-    }
-
-    override fun decodeShort(): Short {
-        return getCurrentElement().deserialize(Short.serializer())
-    }
-
-    override fun decodeInt(): Int {
-        return getCurrentElement().deserialize(Int.serializer())
-    }
-
-    override fun decodeLong(): Long {
-        return getCurrentElement().deserialize(Long.serializer())
-    }
-
-    override fun decodeFloat(): Float {
-        return getCurrentElement().deserialize(Float.serializer())
-    }
-
-    override fun decodeDouble(): Double {
-        return getCurrentElement().deserialize(Double.serializer())
-    }
-
-    override fun decodeChar(): Char {
-        return getCurrentElement().deserialize(Char.serializer())
-    }
-
-    override fun decodeString(): String {
-        return getCurrentElement().deserialize(String.serializer())
-    }
-
-    override fun decodeEnum(enumDescriptor: SerialDescriptor): Int {
-        val enumValue = decodeString()
-        return enumDescriptor.getElementIndex(enumValue)
-    }
-
-    override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
-        // For empty structures or when no element is set, create an empty decoder
-        if (currentElementName == null || currentElementName !in map) {
-            return GenericElementMapDecoder(emptyMap(), serializersModule)
-        }
-
-        val element = getCurrentElement()
-
-        // For nested structures, create a new decoder with the nested element's entries
-        return when (descriptor.kind) {
-            StructureKind.CLASS, StructureKind.OBJECT -> {
-                val nestedMap = element.entries().toMap()
-                GenericElementMapDecoder(nestedMap, serializersModule)
-            }
-            StructureKind.LIST -> {
-                // For lists, the element should be a list/array type
-                // This would need special handling similar to ListMapConfigDecoder
-                throw SerializationException("List support not yet implemented for GenericElementMapDecoder")
-            }
-            StructureKind.MAP -> {
-                // For maps, similar special handling needed
-                throw SerializationException("Map support not yet implemented")
-            }
-            else -> this
-        }
-    }
-}
-
-/**
  * A custom encoder for populating [GenericElement] key-value pairs from any serializer.
  */
 @OptIn(ExperimentalSerializationApi::class)
-private class GenericElementEntriesEncoder(
+internal class GenericElementEntriesEncoder(
     private val entryCallback: (String, GenericElement) -> Unit
 ) : AbstractEncoder() {
     private var currentElementName: String? = null
@@ -447,9 +341,9 @@ private class GenericElementEntriesEncoder(
 /**
  * A [GenericElement] implementation that wraps a JSON element.
  */
-public class JsonGenericElement(
+internal class JsonGenericElement(
     override val element: JsonElement,
-    public val json: Json = Json,
+    internal val json: Json = Json,
     override val elementSerializer: KSerializer<JsonElement> = JsonElement.serializer(),
 ) : GenericElement {
     override fun isObject(): Boolean = element is JsonObject
@@ -519,4 +413,163 @@ public class GenericElementSerializer : KSerializer<GenericElement> {
     override fun deserialize(decoder: Decoder): GenericElement =
         adapters.firstNotNullOfOrNull { it.tryDeserialize(decoder) }
             ?: error("No generic element adapter for ${decoder::class.simpleName}")
+}
+
+/**
+ * Base decoder for [GenericElement] with common primitive decoding logic.
+ */
+@OptIn(ExperimentalSerializationApi::class)
+internal abstract class GenericElementDecoder : AbstractDecoder() {
+    abstract override val serializersModule: SerializersModule
+
+    /**
+     * Returns the current [GenericElement] to decode.
+     */
+    protected abstract fun getCurrentElement(): GenericElement
+
+    override fun decodeBoolean(): Boolean = getCurrentElement().deserialize(Boolean.serializer())
+    override fun decodeByte(): Byte = getCurrentElement().deserialize(Byte.serializer())
+    override fun decodeShort(): Short = getCurrentElement().deserialize(Short.serializer())
+    override fun decodeInt(): Int = getCurrentElement().deserialize(Int.serializer())
+    override fun decodeLong(): Long = getCurrentElement().deserialize(Long.serializer())
+    override fun decodeFloat(): Float = getCurrentElement().deserialize(Float.serializer())
+    override fun decodeDouble(): Double = getCurrentElement().deserialize(Double.serializer())
+    override fun decodeChar(): Char = getCurrentElement().deserialize(Char.serializer())
+    override fun decodeString(): String = getCurrentElement().deserialize(String.serializer())
+
+    override fun decodeEnum(enumDescriptor: SerialDescriptor): Int {
+        val enumValue = decodeString()
+        return enumDescriptor.getElementIndex(enumValue)
+    }
+
+    protected fun createNestedDecoder(descriptor: SerialDescriptor, element: GenericElement): CompositeDecoder {
+        return when (descriptor.kind) {
+            StructureKind.CLASS, StructureKind.OBJECT, StructureKind.MAP -> {
+                val nestedMap = element.entries().toMap()
+                GenericElementMapDecoder(nestedMap, serializersModule)
+            }
+            StructureKind.LIST -> {
+                GenericElementListDecoder(element, serializersModule)
+            }
+            else -> this
+        }
+    }
+}
+
+/**
+ * A custom decoder for deserializing a [GenericElementMap].
+ */
+@OptIn(ExperimentalSerializationApi::class)
+internal class GenericElementMapDecoder(
+    internal val map: Map<String, GenericElement>,
+    override val serializersModule: SerializersModule = EmptySerializersModule()
+) : GenericElementDecoder() {
+    private var elementIndex = 0
+    private var currentElementName: String? = null
+
+    override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
+        if (elementIndex >= descriptor.elementsCount) {
+            return CompositeDecoder.DECODE_DONE
+        }
+
+        // Find the next property that exists in the map
+        while (elementIndex < descriptor.elementsCount) {
+            val elementName = descriptor.getElementName(elementIndex)
+            val newIndex = elementIndex++
+
+            if (elementName in map) {
+                currentElementName = elementName
+                return newIndex
+            }
+
+            // Check if property is optional - if so, skip it
+            if (descriptor.isElementOptional(newIndex)) {
+                continue
+            }
+
+            // Required property not found
+            return CompositeDecoder.DECODE_DONE
+        }
+
+        return CompositeDecoder.DECODE_DONE
+    }
+
+    override fun decodeNotNullMark(): Boolean {
+        return currentElementName?.let { it in map } ?: false
+    }
+
+    override fun getCurrentElement(): GenericElement {
+        val name = currentElementName
+            ?: throw SerializationException("No current element - decoder in invalid state")
+        return map[name]
+            ?: throw SerializationException("Element '$name' not found in map")
+    }
+
+    override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
+        // For empty structures or when no element is set, create an empty decoder
+        if (currentElementName == null || currentElementName !in map) {
+            return GenericElementMapDecoder(emptyMap(), serializersModule)
+        }
+
+        val element = getCurrentElement()
+        return createNestedDecoder(descriptor, element)
+    }
+}
+
+/**
+ * A custom decoder for deserializing a list within a [GenericElement].
+ */
+@OptIn(ExperimentalSerializationApi::class)
+internal class GenericElementListDecoder(
+    private val listElement: GenericElement,
+    override val serializersModule: SerializersModule = EmptySerializersModule()
+) : GenericElementDecoder() {
+    private val elements: List<GenericElement> by lazy {
+        when (listElement) {
+            is GenericElementWrapper<*> if listElement.element is List<*> -> {
+                listElement.element.map { item ->
+                    when (item) {
+                        null -> GenericElement.EmptyObject
+                        is GenericElement -> item
+                        else -> GenericElement(item)
+                    }
+                }
+            }
+
+            is JsonGenericElement if listElement.element is JsonArray -> {
+                listElement.element.map { jsonItem ->
+                    JsonGenericElement(jsonItem, listElement.json, listElement.elementSerializer)
+                }
+            }
+
+            else -> emptyList()
+        }
+    }
+
+    private var currentIndex = 0
+
+    override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
+        return if (currentIndex < elements.size) {
+            currentIndex++
+        } else {
+            CompositeDecoder.DECODE_DONE
+        }
+    }
+
+    override fun decodeCollectionSize(descriptor: SerialDescriptor): Int = elements.size
+
+    override fun decodeSequentially(): Boolean = true
+
+    override fun getCurrentElement(): GenericElement {
+        val index = currentIndex - 1
+        if (index < 0 || index >= elements.size) {
+            throw SerializationException("Index $index out of bounds for list of size ${elements.size}")
+        }
+        return elements[index]
+    }
+
+    override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
+        val element = getCurrentElement()
+        return createNestedDecoder(descriptor, element)
+    }
 }

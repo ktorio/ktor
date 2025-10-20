@@ -6,6 +6,7 @@ package io.ktor.openapi
 
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
@@ -13,6 +14,7 @@ import kotlin.test.assertEquals
 
 class OperationSerializationTests {
 
+    @OptIn(ExperimentalSerializationApi::class)
     private val jsonFormat = Json {
         encodeDefaults = false
         prettyPrint = true

@@ -77,7 +77,10 @@ internal abstract class DelegateMixinSerializer<T>(
     private val properties: Map<String, PropertyDelegateDescriptor>,
     private val copy: (T, List<Any?>) -> T,
 ) : KSerializer<T> {
-    private val adapters: List<GenericElementSerialAdapter> = listOf(JsonElementSerialAdapter)
+    private val adapters: List<GenericElementSerialAdapter> = listOf(
+        JsonElementSerialAdapter,
+        GenericMapDecoderAdapter,
+    )
     private val reverseLookup: List<Pair<(String) -> Boolean, String>> = properties.entries.map { (key, value) ->
         value.keyMatcher to key
     }
@@ -87,7 +90,7 @@ internal abstract class DelegateMixinSerializer<T>(
     override fun serialize(encoder: Encoder, value: T) {
         val joinedElement = adapters.firstNotNullOfOrNull {
             it.trySerializeToElement(encoder, value, baseSerializer)
-        } ?: error("No adapter found for $encoder")
+        } ?: error("No GenericElementSerialAdapter found for $encoder")
 
         val dividedElements = joinedElement.extract(properties.keys)
         when (dividedElements.size) {
