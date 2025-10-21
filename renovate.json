@@ -87,6 +87,18 @@
         "org.junit.jupiter:junit-jupiter"
       ],
       "automerge": true
+    },
+    {
+      "groupName": "Gobley",
+      "matchPackageNames": ["dev.gobley.**"]
+    },
+    {
+      "groupName": "Rust Dependencies",
+      "matchManagers": ["cargo"]
+    },
+    {
+      "groupName": "GitHub Actions",
+      "matchManagers": ["github-actions"]
     }
   ]
 }
