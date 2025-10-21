@@ -17,6 +17,14 @@ import java.util.concurrent.atomic.AtomicInteger
 
 internal val counter = AtomicInteger(0)
 
+/**
+ * Registers test routes under `/cache` that exercise caching and conditional header behaviors.
+ *
+ * Installs the `CachingHeaders` and `ConditionalHeaders` plugins and declares endpoints used in tests:
+ * handlers for various `Cache-Control` directives, `Expires`, `ETag`, `Last-Modified`, and `Vary`
+ * header scenarios, including endpoints that return 304 Not Modified responses and case-sensitive
+ * vary-header behaviors.
+ */
 internal fun Application.cacheTestServer() {
     routing {
         route("/cache") {
@@ -148,6 +156,11 @@ internal fun Application.cacheTestServer() {
 
                     else -> error("Should not be invoked")
                 }
+            }
+
+            get("/vary-header-not-modified") {
+                call.response.header(HttpHeaders.Vary, HttpHeaders.AcceptLanguage)
+                call.respond(HttpStatusCode.NotModified)
             }
         }
     }
