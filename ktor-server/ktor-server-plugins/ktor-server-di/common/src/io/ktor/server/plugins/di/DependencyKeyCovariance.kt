@@ -163,6 +163,15 @@ public val DefaultKeyCovariance: DependencyKeyCovariance =
 
 /**
  * Parses expressions using the OOTB key mapping rules.
+ *
+ * See [DependencyKeyCovarianceParser.mappings] for the list of supported OOTB options.
+ *
+ * When using expressions, operators are supported, including `+`, `*`, and `()`.
+ *
+ * Examples:
+ * - `Supertypes * Nullables` will provide all supertypes and nullable versions of those supertypes.
+ * - `Supertypes + (Nullables + Unnamed)` will provide the same, but also unnamed versions of the supertypes.
+ *    It will not include nullable, unnamed versions of the supertypes, however.
  */
 internal fun parseKeyMapping(text: String): DependencyKeyCovariance {
     return DependencyKeyCovarianceParser(text).parse()
@@ -188,8 +197,8 @@ private class DependencyKeyCovarianceParser(
         skipWhitespace()
         val result = parseAddition()
         skipWhitespace()
-        if (position < text.length) {
-            error("Unexpected character at position $position: '${text[position]}'")
+        check(position >= text.length) {
+            "Unexpected character at position $position: '${text[position]}'"
         }
         return result
     }
@@ -248,8 +257,8 @@ private class DependencyKeyCovarianceParser(
             position++
         }
 
-        if (start == position) {
-            error("Expected identifier at position $position")
+        check(start < position) {
+            "Expected identifier at position $position"
         }
 
         val identifier = text.substring(start, position)
@@ -266,11 +275,11 @@ private class DependencyKeyCovarianceParser(
     private fun peek(): Char = text[position]
 
     private fun consume(expected: Char) {
-        if (position >= text.length) {
-            error("Expected '$expected' but reached end of expression")
+        check(position < text.length) {
+            "Expected '$expected' but reached end of expression"
         }
-        if (text[position] != expected) {
-            error("Expected '$expected' but found '${text[position]}' at position $position")
+        check(text[position] == expected) {
+            "Expected '$expected' but found '${text[position]}' at position $position"
         }
         position++
     }
