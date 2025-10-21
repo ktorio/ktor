@@ -95,6 +95,24 @@ public val OutTypeArgumentsSupertypes: DependencyKeyCovariance =
     }
 
 /**
+ * A [DependencyKeyCovariance] that generates raw types for raw type arguments of parameterized types.
+ *
+ * For example, `Pair<String, Int>` yields `Pair`
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.RawTypes)
+ */
+@OptIn(InternalAPI::class)
+public val RawTypes: DependencyKeyCovariance =
+    DependencyKeyCovariance { key, distance ->
+        sequence {
+            yield(key to distance)
+            key.type.toRawType()?.let { rawType ->
+                yield(key.copy(type = rawType) to distance.inc())
+            }
+        }
+    }
+
+/**
  * Helper operator function for combining covariance logic.
  *
  * Returns a composed function that results in the cartesian product of the two outputs.
@@ -141,4 +159,4 @@ public operator fun DependencyKeyCovariance.plus(other: DependencyKeyCovariance)
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DefaultKeyCovariance)
  */
 public val DefaultKeyCovariance: DependencyKeyCovariance =
-    Supertypes * Nullables * OutTypeArgumentsSupertypes
+    Supertypes * Nullables * OutTypeArgumentsSupertypes * RawTypes

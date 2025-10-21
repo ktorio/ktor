@@ -40,3 +40,12 @@ public expect fun TypeInfo.toNullable(): TypeInfo?
  */
 @InternalAPI
 public expect fun TypeInfo.typeParametersHierarchy(): Sequence<TypeInfo>
+
+/**
+ * Returns a raw type representation of the current [TypeInfo].
+ */
+@InternalAPI
+public fun TypeInfo.toRawType(): TypeInfo? =
+    if (kotlinType != null)
+        TypeInfo(type, kotlinType = null)
+    else null
