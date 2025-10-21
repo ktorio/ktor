@@ -42,6 +42,7 @@ abstract interface io.ktor.openapi/GenericElement { // io.ktor.openapi/GenericEl
             final fun <get-EmptyObject>(): io.ktor.openapi/GenericElement // io.ktor.openapi/GenericElement.Companion.EmptyObject.<get-EmptyObject>|<get-EmptyObject>(){}[0]
 
         final fun (io.ktor.openapi/GenericElement?).orEmpty(): io.ktor.openapi/GenericElement // io.ktor.openapi/GenericElement.Companion.orEmpty|orEmpty@io.ktor.openapi.GenericElement?(){}[0]
+        final fun <#A2: kotlin/Any?> encodeToElement(kotlinx.serialization/KSerializer<#A2>, #A2): io.ktor.openapi/GenericElement // io.ktor.openapi/GenericElement.Companion.encodeToElement|encodeToElement(kotlinx.serialization.KSerializer<0:0>;0:0){0§<kotlin.Any?>}[0]
         final fun serializer(): kotlinx.serialization/KSerializer<io.ktor.openapi/GenericElement> // io.ktor.openapi/GenericElement.Companion.serializer|serializer(){}[0]
         final fun serializer(kotlin/Array<out kotlinx.serialization/KSerializer<*>>...): kotlinx.serialization/KSerializer<*> // io.ktor.openapi/GenericElement.Companion.serializer|serializer(kotlin.Array<out|kotlinx.serialization.KSerializer<*>>...){}[0]
     }

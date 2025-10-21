@@ -53,22 +53,11 @@ class GenericElementTest {
         @Serializable
         data class Person(val name: String, val age: Int, val active: Boolean)
 
-        val testObject = Person("Alice", 30, true)
+        val alice = Person("Alice", 30, true)
 
-        val entries = mutableListOf<Pair<String, GenericElement>>()
-        val encoder = GenericElementEntriesEncoder { key, value ->
-            entries += key to value
-        }
-
-        val result = GenericMapDecoderAdapter.trySerializeToElement(
-            encoder,
-            testObject,
-            serializer<Person>()
-        )
-        assert(result != null) { "Result should not be null" }
-        assert(result is GenericElementMap) { "Result should be a GenericElementMap" }
-        assertEquals(setOf("name", "age", "active"), result!!.entries().map { it.first }.toSet())
-        assertEquals(testObject, result.deserialize<Person>(serializer<Person>()))
+        val result = GenericElement.encodeToElement(serializer<Person>(), alice)
+        assertEquals(setOf("name", "age", "active"), result.entries().map { it.first }.toSet())
+        assertEquals(alice, result.deserialize<Person>(serializer<Person>()))
     }
 
     @Test
@@ -79,21 +68,14 @@ class GenericElementTest {
         @Serializable
         data class Person(val name: String, val address: Address)
 
-        val person = Person("Bob", Address("Main St", "Springfield"))
+        val bob = Person("Bob", Address("Main St", "Springfield"))
 
-        val encoder = GenericElementEntriesEncoder { _, _ -> }
-        val result = GenericMapDecoderAdapter.trySerializeToElement(
-            encoder,
-            person,
-            serializer<Person>()
-        )
-        assertNotNull(result)
-        assertEquals(2, result.entries().size)
+        val result = GenericElement.encodeToElement(serializer<Person>(), bob)
+        assertEquals(setOf("name", "address"), result.entries().map { it.first }.toSet())
 
         // Verify nested structure
         val addressEntry = result.entries().first { it.first == "address" }.second
         val addressEntries = addressEntry.entries()
-        assertEquals(2, addressEntries.size)
         assertEquals(setOf("street", "city"), addressEntries.map { it.first }.toSet())
     }
 
