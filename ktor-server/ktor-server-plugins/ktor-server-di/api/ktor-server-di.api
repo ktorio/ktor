@@ -212,6 +212,7 @@ public final class io/ktor/server/plugins/di/DependencyKeyCovarianceKt {
 	public static final fun getDefaultKeyCovariance ()Lio/ktor/server/plugins/di/DependencyKeyCovariance;
 	public static final fun getNullables ()Lio/ktor/server/plugins/di/DependencyKeyCovariance;
 	public static final fun getOutTypeArgumentsSupertypes ()Lio/ktor/server/plugins/di/DependencyKeyCovariance;
+	public static final fun getRawTypes ()Lio/ktor/server/plugins/di/DependencyKeyCovariance;
 	public static final fun getSupertypes ()Lio/ktor/server/plugins/di/DependencyKeyCovariance;
 	public static final fun getUnnamed ()Lio/ktor/server/plugins/di/DependencyKeyCovariance;
 	public static final fun plus (Lio/ktor/server/plugins/di/DependencyKeyCovariance;Lio/ktor/server/plugins/di/DependencyKeyCovariance;)Lio/ktor/server/plugins/di/DependencyKeyCovariance;
@@ -370,6 +371,10 @@ public abstract interface annotation class io/ktor/server/plugins/di/annotations
 
 public abstract interface annotation class io/ktor/server/plugins/di/annotations/Property : java/lang/annotation/Annotation {
 	public abstract fun value ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/plugins/di/utils/TypesKt {
+	public static final fun toRawType (Lio/ktor/util/reflect/TypeInfo;)Lio/ktor/util/reflect/TypeInfo;
 }
 
 public final class io/ktor/server/plugins/di/utils/Types_jvmKt {
