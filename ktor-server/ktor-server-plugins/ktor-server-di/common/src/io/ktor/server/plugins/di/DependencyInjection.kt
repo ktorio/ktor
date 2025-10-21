@@ -8,6 +8,7 @@ import io.ktor.server.application.*
 import io.ktor.server.plugins.di.utils.*
 import io.ktor.util.*
 import io.ktor.util.reflect.*
+import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -164,7 +165,9 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
                         registry.shutdownHooks[key]?.invoke(instance)
                         onShutdown(key, instance)
                     } catch (e: Throwable) {
-                        environment.log.warn("Exception during cleanup for $key; continuing", e)
+                        if (e !is CancellationException) {
+                            environment.log.warn("Exception during cleanup for $key; continuing", e)
+                        }
                     }
                 }
                 coroutineScope.cancel("Application stopped")
