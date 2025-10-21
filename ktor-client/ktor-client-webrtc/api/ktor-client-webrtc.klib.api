@@ -969,7 +969,7 @@ final class io.ktor.client.webrtc/IosRtpSender : io.ktor.client.webrtc/WebRtc.Rt
 
 // Targets: [apple]
 final class io.ktor.client.webrtc/IosWebRtcConnection : io.ktor.client.webrtc/WebRtcPeerConnection { // io.ktor.client.webrtc/IosWebRtcConnection|null[0]
-    constructor <init>(kotlin.coroutines/CoroutineContext, io.ktor.client.webrtc/WebRtcConnectionConfig) // io.ktor.client.webrtc/IosWebRtcConnection.<init>|<init>(kotlin.coroutines.CoroutineContext;io.ktor.client.webrtc.WebRtcConnectionConfig){}[0]
+    constructor <init>(kotlin.coroutines/CoroutineContext, io.ktor.client.webrtc/WebRtcConnectionConfig, kotlin/Function1<WebRTC/RTCPeerConnectionDelegateProtocol, WebRTC/RTCPeerConnection?>) // io.ktor.client.webrtc/IosWebRtcConnection.<init>|<init>(kotlin.coroutines.CoroutineContext;io.ktor.client.webrtc.WebRtcConnectionConfig;kotlin.Function1<WebRTC.RTCPeerConnectionDelegateProtocol,WebRTC.RTCPeerConnection?>){}[0]
 
     final val localDescription // io.ktor.client.webrtc/IosWebRtcConnection.localDescription|{}localDescription[0]
         final fun <get-localDescription>(): io.ktor.client.webrtc/WebRtc.SessionDescription? // io.ktor.client.webrtc/IosWebRtcConnection.localDescription.<get-localDescription>|<get-localDescription>(){}[0]
@@ -977,7 +977,6 @@ final class io.ktor.client.webrtc/IosWebRtcConnection : io.ktor.client.webrtc/We
         final fun <get-remoteDescription>(): io.ktor.client.webrtc/WebRtc.SessionDescription? // io.ktor.client.webrtc/IosWebRtcConnection.remoteDescription.<get-remoteDescription>|<get-remoteDescription>(){}[0]
 
     final fun close() // io.ktor.client.webrtc/IosWebRtcConnection.close|close(){}[0]
-    final fun initialize(kotlin/Function1<WebRTC/RTCPeerConnectionDelegateProtocol, WebRTC/RTCPeerConnection?>): io.ktor.client.webrtc/IosWebRtcConnection // io.ktor.client.webrtc/IosWebRtcConnection.initialize|initialize(kotlin.Function1<WebRTC.RTCPeerConnectionDelegateProtocol,WebRTC.RTCPeerConnection?>){}[0]
     final fun restartIce() // io.ktor.client.webrtc/IosWebRtcConnection.restartIce|restartIce(){}[0]
     final suspend fun addIceCandidate(io.ktor.client.webrtc/WebRtc.IceCandidate) // io.ktor.client.webrtc/IosWebRtcConnection.addIceCandidate|addIceCandidate(io.ktor.client.webrtc.WebRtc.IceCandidate){}[0]
     final suspend fun addTrack(io.ktor.client.webrtc/WebRtcMedia.Track): io.ktor.client.webrtc/WebRtc.RtpSender // io.ktor.client.webrtc/IosWebRtcConnection.addTrack|addTrack(io.ktor.client.webrtc.WebRtcMedia.Track){}[0]

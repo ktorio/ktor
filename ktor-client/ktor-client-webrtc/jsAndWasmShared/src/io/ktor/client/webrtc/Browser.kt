@@ -1,22 +1,29 @@
 /*
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
+@file:OptIn(ExperimentalWasmJsInterop::class)
+
 package io.ktor.client.webrtc
 
 import js.array.component1
 import js.array.component2
 import js.core.JsPrimitives.toDouble
-import js.core.JsPrimitives.toJsBoolean
 import js.core.JsPrimitives.toJsDouble
 import js.core.JsPrimitives.toJsInt
-import js.core.JsPrimitives.toJsString
-import js.core.JsString
 import js.objects.Object
 import js.objects.unsafeJso
 import js.reflect.unsafeCast
 import web.mediastreams.ConstrainDouble
 import web.mediastreams.MediaTrackConstraints
 import web.rtc.*
+import kotlin.collections.associate
+import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.JsString
+import kotlin.js.toArray
+import kotlin.js.toJsArray
+import kotlin.js.toJsBoolean
+import kotlin.js.toJsString
+import kotlin.toString
 
 // Mapping from Browser interfaces for the web platform
 // TODO: add missing fields in the `kotlin-wrappers` api
@@ -25,7 +32,7 @@ internal fun WebRtcConnectionConfig.toJs(): RTCConfiguration = unsafeJso {
     bundlePolicy = this@toJs.bundlePolicy.toJs()
     rtcpMuxPolicy = this@toJs.rtcpMuxPolicy.toJs()
     iceTransportPolicy = this@toJs.iceTransportPolicy.toJs()
-    iceServers = this@toJs.iceServers.map { it.toJs() }.toJs()
+    iceServers = this@toJs.iceServers.map { it.toJs() }.toJsArray()
     iceCandidatePoolSize = this@toJs.iceCandidatePoolSize.toShort()
 }
 
@@ -201,12 +208,8 @@ internal fun WebRtcDataChannelOptions.toJs(): RTCDataChannelInit = unsafeJso {
     ordered = this@toJs.ordered
     protocol = this@toJs.protocol
     negotiated = this@toJs.negotiated
-    if (this@toJs.maxRetransmits != null) {
-        maxRetransmits = this@toJs.maxRetransmits!!.toShort()
-    }
-    if (this@toJs.maxPacketLifeTime != null) {
-        maxPacketLifeTime = this@toJs.maxPacketLifeTime?.inWholeMilliseconds?.toShort()
-    }
+    this@toJs.maxRetransmits?.let { maxRetransmits = it.toShort() }
+    this@toJs.maxPacketLifeTime?.let { maxPacketLifeTime = it.inWholeMilliseconds.toShort() }
 }
 
 /**
@@ -216,6 +219,7 @@ internal fun WebRtcDataChannelOptions.toJs(): RTCDataChannelInit = unsafeJso {
 internal fun RTCStatsReport.toKtor(): List<WebRtc.Stats> {
     val statsList = mutableListOf<WebRtc.Stats>()
     forEach { value, _ ->
+        @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
         val rtcStats = value as RTCStats
         statsList.add(rtcStats.toKtor())
     }

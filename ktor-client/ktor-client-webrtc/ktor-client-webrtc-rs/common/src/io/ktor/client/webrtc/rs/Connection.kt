@@ -18,12 +18,6 @@ public class RustWebRtcConnection(
     config: WebRtcConnectionConfig
 ) : WebRtcPeerConnection(coroutineContext, config) {
 
-    private fun runInConnectionScope(block: suspend () -> Unit) {
-        coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) {
-            block()
-        }
-    }
-
     init {
         inner.registerObserver(object : PeerConnectionObserver {
             override fun onConnectionStateChange(state: ConnectionState) = runInConnectionScope {
