@@ -191,6 +191,7 @@ public abstract interface class io/ktor/openapi/GenericElement {
 }
 
 public final class io/ktor/openapi/GenericElement$Companion {
+	public final fun encodeToElement (Lkotlinx/serialization/KSerializer;Ljava/lang/Object;)Lio/ktor/openapi/GenericElement;
 	public final fun getEmptyObject ()Lio/ktor/openapi/GenericElement;
 	public final fun orEmpty (Lio/ktor/openapi/GenericElement;)Lio/ktor/openapi/GenericElement;
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
@@ -761,21 +762,6 @@ public final class io/ktor/openapi/ReferenceOr$Reference : io/ktor/openapi/Refer
 	public fun toString ()Ljava/lang/String;
 	public synthetic fun valueOrNull ()Ljava/lang/Object;
 	public fun valueOrNull ()Ljava/lang/Void;
-}
-
-public final synthetic class io/ktor/openapi/ReferenceOr$Reference$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
-	public static final field INSTANCE Lio/ktor/openapi/ReferenceOr$Reference$$serializer;
-	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/openapi/ReferenceOr$Reference;
-	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/openapi/ReferenceOr$Reference;)V
-	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
-}
-
-public final class io/ktor/openapi/ReferenceOr$Reference$Companion {
-	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
 public final class io/ktor/openapi/ReferenceOr$Value : io/ktor/openapi/ReferenceOr {

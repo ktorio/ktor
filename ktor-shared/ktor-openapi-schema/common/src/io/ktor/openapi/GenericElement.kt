@@ -51,6 +51,16 @@ public interface GenericElement {
          * Returns the empty element if the given [element] is null, otherwise returns the element.
          */
         public fun GenericElement?.orEmpty(): GenericElement = this ?: EmptyObject
+
+        /**
+         * Encodes the provided item into a [GenericElement] using the specified serializer.
+         *
+         * @param serializer The serializer to be used for encoding the item.
+         * @param item The item to encode into a [GenericElement].
+         * @return A [GenericElement] representing the encoded data of the item.
+         */
+        public fun <T> encodeToElement(serializer: KSerializer<T>, item: T): GenericElement =
+            GenericElementEntriesEncoder().encodeToElement(serializer, item)
     }
 
     /**
@@ -180,14 +190,7 @@ public object GenericMapDecoderAdapter : GenericElementSerialAdapter {
         serializer: KSerializer<T>
     ): GenericElement? {
         if (encoder !is GenericElementEntriesEncoder) return null
-        // Nested call to the same encoder - we'll just replace the encoder and serialize to a new object
-        val entries = mutableListOf<Pair<String, GenericElement>>()
-        GenericElementEntriesEncoder { key, value ->
-            entries += key to value
-        }.also {
-            it.encodeSerializableValue(serializer, value)
-        }
-        return GenericElementMap(entries.toMap())
+        return GenericElement.encodeToElement(serializer, value)
     }
 
     override fun tryDeserialize(decoder: Decoder): GenericElement? {
@@ -211,13 +214,10 @@ public class GenericElementWrapper<T : Any>(
         }
 
     override fun entries(): List<Pair<String, GenericElement>> {
-        val entries = mutableListOf<Pair<String, GenericElement>>()
-        GenericElementEntriesEncoder { key, value ->
-            entries += key to value
-        }.also {
-            it.encodeSerializableValue(elementSerializer, element)
+        return GenericElementEntriesEncoder().let { encoder ->
+            encoder.encodeSerializableValue(elementSerializer, element)
+            encoder.entries
         }
-        return entries
     }
 
     override fun toString(): String =
@@ -264,24 +264,40 @@ internal class GenericElementMap(
  */
 @OptIn(ExperimentalSerializationApi::class)
 internal class GenericElementEntriesEncoder(
-    private val entryCallback: (String, GenericElement) -> Unit
+    internal val entries: MutableList<Pair<String, GenericElement>> = mutableListOf()
 ) : AbstractEncoder() {
     private var currentElementName: String? = null
+    private var currentNestedEncoder: GenericElementEntriesEncoder? = null
 
     override val serializersModule: SerializersModule = EmptySerializersModule()
 
+    fun <T> encodeToElement(serializer: KSerializer<T>, item: T): GenericElement {
+        encodeSerializableValue(serializer, item)
+        return GenericElement(entries)
+    }
+
     override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
-        return this
+        return when (currentElementName) {
+            null -> this
+            else -> {
+                currentNestedEncoder = GenericElementEntriesEncoder()
+                currentNestedEncoder!!
+            }
+        }
     }
 
     override fun endStructure(descriptor: SerialDescriptor) {
-        // Structure encoding complete
+        if (currentElementName != null && currentNestedEncoder != null) {
+            entries += currentElementName!! to GenericElement(currentNestedEncoder!!.entries)
+            currentNestedEncoder = null
+            currentElementName = null
+        }
     }
 
     private fun <T : Any> captureElement(value: T?, serializer: KSerializer<T>) {
         val name = currentElementName ?: return
         if (value != null) {
-            entryCallback(name, GenericElementWrapper(value, serializer))
+            entries += name to GenericElementWrapper(value, serializer)
         }
         currentElementName = null
     }
@@ -335,7 +351,7 @@ internal class GenericElementEntriesEncoder(
         // For enums, we need to handle them specially
         val name = currentElementName ?: return
         val enumValue = enumDescriptor.getElementName(index)
-        entryCallback(name, GenericElementWrapper(enumValue, String.serializer()))
+        entries += name to GenericElementWrapper(enumValue, String.serializer())
         currentElementName = null
     }
 }
