@@ -1,5 +1,5 @@
 // Klib ABI Dump
-// Targets: [iosArm64, iosSimulatorArm64, iosX64, js, wasmJs]
+// Targets: [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, js, wasmJs]
 // Alias: ios => [iosArm64, iosSimulatorArm64, iosX64]
 // Rendering settings:
 // - Signature version: 2
