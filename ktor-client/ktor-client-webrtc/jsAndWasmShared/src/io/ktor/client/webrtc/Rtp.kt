@@ -1,6 +1,8 @@
 /*
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
+@file:OptIn(ExperimentalWasmJsInterop::class)
+
 package io.ktor.client.webrtc
 
 import web.rtc.RTCDTMFSender
@@ -11,6 +13,8 @@ import web.rtc.RTCRtpSendParameters
 import web.rtc.RTCRtpSender
 import web.rtc.replaceTrack
 import web.rtc.setParameters
+import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.toArray
 
 /**
  * Wrapper for RTCRtpSender.
