@@ -12,6 +12,7 @@ import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.ktor.server.testing.*
 import io.ktor.test.dispatcher.*
+import io.ktor.util.reflect.TypeInfo
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.test.TestResult
@@ -122,7 +123,7 @@ class DependencyInjectionJvmTest {
         assertFailsWith<AmbiguousDependencyException> {
             testApplication {
                 install(DI) {
-                    // provider = MapDependencyProvider()
+                    conflictPolicy = DefaultConflictPolicy
                 }
                 application {
                     dependencies {
@@ -417,6 +418,122 @@ class DependencyInjectionJvmTest {
         )
     }
 
+    @Test
+    fun `config keyMapping property with Supertypes`() {
+        testConfigFile(
+            GreetingServiceImpl::class.qualifiedName!!,
+            keyMapping = "Supertypes"
+        ) {
+            val service: GreetingService = dependencies.resolve()
+            assertEquals(HELLO, service.hello())
+            assertFalse(DependencyKey<GreetingServiceImpl?>() in dependencies)
+        }
+    }
+
+    @Test
+    fun `config keyMapping property with complex expression`() {
+        testConfigFile(
+            GreetingServiceImpl::class.qualifiedName!!,
+            keyMapping = "Supertypes + (Nullables * RawTypes)"
+        ) {
+            dependencies {
+                provide { listOf(GreetingServiceImpl()) }
+            }
+            // Should resolve through supertypes
+            val service: GreetingService = dependencies.resolve()
+            assertEquals(HELLO, service.hello())
+
+            // Should resolve nullable variant
+            val nullableService: GreetingServiceImpl? = dependencies.resolve()
+            assertNotNull(nullableService)
+            assertEquals(HELLO, nullableService.hello())
+
+            // Raw type for List<GreetingServiceImpl>
+            val serviceList: List<GreetingService> = dependencies.get(DependencyKey(TypeInfo(List::class)))
+            assertEquals(1, serviceList.size)
+
+            // Supertype combos should be avoided because + instead of *
+            assertFalse(DependencyKey<GreetingService?>() in dependencies)
+            assertFalse(DependencyKey(TypeInfo(Collection::class)) in dependencies)
+        }
+    }
+
+    @Test
+    fun `config conflictPolicy IgnoreConflicts keeps first declaration`() {
+        testConfigFile(
+            conflictPolicy = "IgnoreConflicts"
+        ) {
+            dependencies {
+                provide<GreetingService> { GreetingServiceImpl() }
+                provide<GreetingService> { BankGreetingService() }
+            }
+            val service: GreetingService = dependencies.resolve()
+            assertEquals(HELLO, service.hello())
+        }
+    }
+
+    @Test
+    fun `config conflictPolicy OverridePrevious uses last declaration`() {
+        testConfigFile(
+            GreetingServiceImpl::class.qualifiedName!!,
+            BankGreetingService::class.qualifiedName!!,
+            conflictPolicy = "OverridePrevious"
+        ) {
+            val service: GreetingService = dependencies.resolve()
+            assertEquals(HELLO_CUSTOMER, service.hello())
+        }
+    }
+
+    @Test
+    fun `config keyMapping with parentheses and operator precedence`() {
+        testConfigFile(
+            keyMapping = "(Supertypes + Unnamed) * Nullables"
+        ) {
+            dependencies {
+                provide("name") { setOf("hello", "world") }
+            }
+
+            // Should resolve through nullable supertypes and unnamed
+            assertEquals(
+                setOf("hello", "world"),
+                dependencies.resolve<Collection<String>?>("name")
+            )
+            assertEquals(
+                setOf("hello", "world"),
+                dependencies.resolve<Set<String>?>()
+            )
+
+            // Should not resolve unnamed supertypes
+            assertFalse(DependencyKey<Collection<String>>() in dependencies)
+        }
+    }
+
+    @Test
+    fun `config keyMapping invalid expression throws error`() {
+        assertFailsWith<IllegalStateException> {
+            testConfigFile(
+                GreetingServiceImpl::class.qualifiedName!!,
+                keyMapping = "InvalidMapping"
+            ) {
+                val service: GreetingService = dependencies.resolve()
+                fail("Should fail but found $service")
+            }
+        }
+    }
+
+    @Test
+    fun `config conflictPolicy invalid value throws error`() {
+        assertFailsWith<IllegalStateException> {
+            testConfigFile(
+                GreetingServiceImpl::class.qualifiedName!!,
+                conflictPolicy = "InvalidPolicy"
+            ) {
+                val service: GreetingService = dependencies.resolve()
+                fail("Should fail but found $service")
+            }
+        }
+    }
+
     private fun runTestDI(
         pluginInstall: DependencyInjectionConfig.() -> Unit = {},
         block: suspend Application.() -> Unit
@@ -443,12 +560,18 @@ class DependencyInjectionJvmTest {
     private fun testConfigFile(
         vararg references: String,
         modules: List<String> = emptyList(),
+        conflictPolicy: String? = null,
+        keyMapping: String? = null,
         extraConfig: String = "",
         test: suspend ApplicationTestBuilder.() -> Unit = {},
         block: suspend Application.() -> Unit = {}
     ) {
         val configText = """
             ktor {
+                di {
+                    ${conflictPolicy?.let { "conflictPolicy = \"$it\"" } ?: ""}
+                    ${keyMapping?.let { "keyMapping = \"$it\"" } ?: ""}
+                }
                 application {
                     startup=concurrent
                     dependencies=${references.map { "\"$it\"" }}
