@@ -8,8 +8,6 @@ import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.withTimeout
 import kotlin.test.*
 
-@IgnoreJvm
-@IgnoreDesktop
 @OptIn(ExperimentalKtorApi::class)
 class WebRtcMediaTest {
 

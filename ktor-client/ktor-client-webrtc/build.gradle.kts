@@ -16,6 +16,24 @@ plugins {
     kotlin("native.cocoapods")
 }
 
+fun resolveWebRtcJavaClassifier(): String {
+    val osName = System.getProperty("os.name").lowercase()
+    val osArch = System.getProperty("os.arch").lowercase()
+    val platform = when {
+        osName.contains("mac") || osName.contains("darwin") -> "macos"
+        osName.contains("windows") -> "windows"
+        osName.contains("linux") -> "linux"
+        else -> error("Unsupported OS: $osName")
+    }
+    val arch = when {
+        osArch.contains("aarch64") || osArch.contains("arm64") -> "aarch64"
+        osArch.contains("amd64") || osArch.contains("x86_64") || osArch.contains("x64") -> "x86_64"
+        osArch.contains("x86") -> "x86"
+        else -> error("Unsupported architecture: $osArch")
+    }
+    return "$platform-$arch"
+}
+
 kotlin {
     jvmToolchain(17)
 
@@ -37,6 +55,14 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(project(":ktor-test-dispatcher"))
+        }
+
+        jvmMain.dependencies {
+            api(libs.webrtc.java)
+
+            // Gradle has issues resolving a native library with classifier, so we add it manually
+            val webRtcJavaNativeLib = libs.webrtc.java.get().toString() + ":" + resolveWebRtcJavaClassifier()
+            implementation(webRtcJavaNativeLib)
         }
 
         jsAndWasmSharedMain.dependencies {

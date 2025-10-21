@@ -6,6 +6,3 @@ package io.ktor.client.webrtc.utils
 
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 actual annotation class IgnoreJvm
-
-@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
-actual annotation class IgnoreDesktop

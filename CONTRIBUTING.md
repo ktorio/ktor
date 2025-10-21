@@ -53,6 +53,13 @@ We recommend using Ruby `3.3.x` or newer with [rbenv](https://github.com/rbenv/r
 - `rbenv global 3.3.x`
 - `sudo gem install -n /usr/local/bin cocoapods`
 
+If you want to run `ktor-client-webrtc` JVM tests on Linux, you should have `pulseaudio` installed.
+The actual audio is not played during tests, but WebRTC native library depends on it. You can install it on Ubuntu with:
+```bash
+sudo apt update
+sudo apt install pulseaudio
+```
+
 <details>
 <summary>Requirements for Ktor before 3.1.0</summary>
 

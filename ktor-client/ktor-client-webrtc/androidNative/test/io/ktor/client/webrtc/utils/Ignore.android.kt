@@ -6,5 +6,3 @@ package io.ktor.client.webrtc.utils
 
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 actual annotation class IgnoreJvm
-
-actual typealias IgnoreDesktop = kotlin.test.Ignore

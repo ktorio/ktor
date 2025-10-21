@@ -5,13 +5,25 @@
 package io.ktor.client.webrtc.utils
 
 import io.ktor.client.webrtc.*
+import io.ktor.client.webrtc.media.JvmMediaDevices
 import io.ktor.utils.io.ExperimentalKtorApi
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalKtorApi::class)
 actual fun createTestWebRtcClient(): WebRtcClient {
-    TODO("There are no JVM WebRTC clients now.")
+    return WebRtcClient(JvmWebRtc) {
+        mediaTrackFactory = JvmMediaDevices(
+            audioFactory = MockAudioFactory(),
+            videoFactory = MockVideoFactory()
+        )
+        defaultConnectionConfig = {
+            statsRefreshRate = 100.milliseconds
+            exceptionHandler = CoroutineExceptionHandler { _, e ->
+                throw e
+            }
+        }
+    }
 }
 
-actual fun grantPermissions(audio: Boolean, video: Boolean) {
-    TODO("There are no JVM WebRTC clients now.")
-}
+actual fun grantPermissions(audio: Boolean, video: Boolean) {}

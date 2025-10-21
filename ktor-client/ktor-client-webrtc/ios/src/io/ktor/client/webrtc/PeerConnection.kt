@@ -89,7 +89,6 @@ public class IosWebRtcConnection(
                 receiveOptions = DataChannelReceiveOptions()
             )
             channel.setupEvents(events)
-            events.emitDataChannelEvent(event = DataChannelEvent.Open(channel))
         }
 
         override fun peerConnection(peerConnection: RTCPeerConnection, didRemoveIceCandidates: List<*>) {}
