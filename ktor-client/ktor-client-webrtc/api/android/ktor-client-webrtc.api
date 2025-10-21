@@ -160,6 +160,10 @@ public final class io/ktor/client/webrtc/MediaTrackFactory$DefaultImpls {
 	public static synthetic fun createVideoTrack$default (Lio/ktor/client/webrtc/MediaTrackFactory;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
+public final class io/ktor/client/webrtc/PeerConnectionKt {
+	public static final fun getNative (Lio/ktor/client/webrtc/WebRtcPeerConnection;)Lorg/webrtc/PeerConnection;
+}
+
 public final class io/ktor/client/webrtc/SendersKt {
 	public static final fun getNative (Lio/ktor/client/webrtc/WebRtc$DtmfSender;)Lorg/webrtc/DtmfSender;
 	public static final fun getNative (Lio/ktor/client/webrtc/WebRtc$RtpParameters;)Lorg/webrtc/RtpParameters;

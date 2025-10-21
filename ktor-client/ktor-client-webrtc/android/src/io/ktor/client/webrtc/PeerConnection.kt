@@ -18,7 +18,7 @@ public class AndroidWebRtcPeerConnection(
     coroutineContext: CoroutineContext,
     config: WebRtcConnectionConfig
 ) : WebRtcPeerConnection(coroutineContext, config) {
-    private lateinit var peerConnection: PeerConnection
+    internal lateinit var peerConnection: PeerConnection
 
     // remember RTP senders because method PeerConnection.getSenders() disposes all returned senders
     private val rtpSenders = arrayListOf<AndroidRtpSender>()
@@ -222,7 +222,9 @@ public class AndroidWebRtcPeerConnection(
     }
 }
 
-public object AndroidWebRtc : WebRtcClientEngineFactory<AndroidWebRtcEngineConfig> {
-    override fun create(block: AndroidWebRtcEngineConfig.() -> Unit): WebRtcEngine =
-        AndroidWebRtcEngine(AndroidWebRtcEngineConfig().apply(block))
+/**
+ * Returns implementation of the peer connection that is used under the hood. Use it with caution.
+ */
+public fun WebRtcPeerConnection.getNative(): PeerConnection {
+    return (this as AndroidWebRtcPeerConnection).peerConnection
 }

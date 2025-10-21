@@ -27,7 +27,7 @@ public class IosWebRtcConnection(
     coroutineContext: CoroutineContext,
     config: WebRtcConnectionConfig
 ) : WebRtcPeerConnection(coroutineContext, config) {
-    private lateinit var peerConnection: RTCPeerConnection
+    internal lateinit var peerConnection: RTCPeerConnection
 
     override suspend fun getStatistics(): List<WebRtc.Stats> = suspendCancellableCoroutine { cont ->
         if (!this::peerConnection.isInitialized) {
@@ -255,4 +255,12 @@ public class IosWebRtcConnection(
         super.close()
         peerConnection.close()
     }
+}
+
+/**
+ * Returns implementation of the peer connection that is used under the hood. Use it with caution.
+ */
+@OptIn(ExperimentalForeignApi::class)
+public fun WebRtcPeerConnection.getNative(): RTCPeerConnection {
+    return (this as IosWebRtcConnection).peerConnection
 }
