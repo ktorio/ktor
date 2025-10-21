@@ -11,7 +11,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
-import io.ktor.http.content.TextContent
+import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.engine.*
@@ -24,8 +24,11 @@ import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
-import kotlinx.serialization.*
-import kotlinx.serialization.json.*
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlin.test.*
 
 class OAuth2Test {
@@ -364,6 +367,73 @@ class OAuth2Test {
     }
 
     @Test
+    fun testFallback() = testApplication {
+        val errorMessage = "Invalid response!"
+        install(Authentication) {
+            oauth("login") {
+                client = this@testApplication.client
+                urlProvider = { "http://localhost/login" }
+                providerLookup = {
+                    OAuthServerSettings.OAuth2ServerSettings(
+                        name = "oauth2",
+                        authorizeUrl = "http://localhost/authorize",
+                        accessTokenUrl = "http://localhost/access_token",
+                        clientId = "clientId1",
+                        clientSecret = "clientSecret1",
+                        requestMethod = HttpMethod.Post,
+                        passParamsInURL = true
+                    )
+                }
+                fallback = { cause ->
+                    if (cause is OAuth2RedirectError) {
+                        respondRedirect("/login-after-fallback")
+                    } else if (cause.message.contains(errorMessage)) {
+                        respond(HttpStatusCode.Forbidden, cause.message)
+                    } else {
+                        response.header("Auth-Fallback", "Unknown error")
+                    }
+                }
+            }
+        }
+
+        routing {
+            post("/authorize") {
+                call.respondText("error=authorizeError", ContentType.Application.FormUrlEncoded)
+            }
+            post("/access_token") {
+                if (call.request.queryParameters[OAuth2RequestParameters.Code] == "code") {
+                    call.respondText("error=$errorMessage", ContentType.Application.FormUrlEncoded)
+                } else {
+                    call.respondText("error=error", ContentType.Application.FormUrlEncoded)
+                }
+            }
+            authenticate("login") {
+                get("/login") { }
+            }
+            get("/login-after-fallback") {
+                call.respondText("Redirected after fallback")
+            }
+        }
+
+        // exception during redirect, for example user denied access
+        client.get("/login?error=ERROR").apply {
+            assertEquals(status, HttpStatusCode.OK)
+            assertEquals("Redirected after fallback", bodyAsText())
+        }
+
+        // exception during token request
+        client.get("/login?code=code&state=state").apply {
+            assertEquals(status, HttpStatusCode.Forbidden)
+            assertTrue { bodyAsText().contains(errorMessage) }
+        }
+
+        // Unauthorized if not handled by fallback
+        client.get("/login?code=invalid&state=invalid").apply {
+            assertEquals(status, HttpStatusCode.Unauthorized)
+        }
+    }
+
+    @Test
     fun testRequestToken() = testApplication {
         application { module() }
         val result = client.get(
@@ -517,11 +587,7 @@ class OAuth2Test {
             ).formUrlEncode()
         )
 
-        assertEquals(HttpStatusCode.Found, call.status)
-        assertNotNull(call.headers[HttpHeaders.Location])
-        assertTrue {
-            call.headers[HttpHeaders.Location]!!.startsWith("https://login-server-com/authorize")
-        }
+        assertEquals(HttpStatusCode.Unauthorized, call.status)
     }
 
     @Test
