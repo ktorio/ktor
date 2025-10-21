@@ -26,51 +26,13 @@ import java.security.*
  * @param dispatcher dispatcher to use for file operations.
  */
 @Suppress("FunctionName")
+@Deprecated("Use the version from the common package using kotlinx.io")
 public fun FileStorage(
     directory: File,
     dispatcher: CoroutineDispatcher = Dispatchers.IO
-): CacheStorage = CachingCacheStorage(FileCacheStorage(directory, dispatcher))
+): CacheStorage = CachingCacheStorage(JvmFileCacheStorage(directory, dispatcher))
 
-internal class CachingCacheStorage(
-    private val delegate: CacheStorage
-) : CacheStorage {
-
-    private val store = ConcurrentMap<Url, Set<CachedResponseData>>()
-
-    override suspend fun store(url: Url, data: CachedResponseData) {
-        delegate.store(url, data)
-        store[url] = delegate.findAll(url)
-    }
-
-    override suspend fun find(url: Url, varyKeys: Map<String, String>): CachedResponseData? {
-        if (!store.containsKey(url)) {
-            store[url] = delegate.findAll(url)
-        }
-        val data = store.getValue(url)
-        return data.find {
-            varyKeys.all { (key, value) -> it.varyKeys[key] == value }
-        }
-    }
-
-    override suspend fun findAll(url: Url): Set<CachedResponseData> {
-        if (!store.containsKey(url)) {
-            store[url] = delegate.findAll(url)
-        }
-        return store.getValue(url)
-    }
-
-    override suspend fun remove(url: Url, varyKeys: Map<String, String>) {
-        delegate.remove(url, varyKeys)
-        store[url] = delegate.findAll(url)
-    }
-
-    override suspend fun removeAll(url: Url) {
-        delegate.removeAll(url)
-        store.remove(url)
-    }
-}
-
-private class FileCacheStorage(
+private class JvmFileCacheStorage(
     private val directory: File,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : CacheStorage {

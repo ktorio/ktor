@@ -6,26 +6,27 @@ import io.ktor.client.plugins.cache.storage.*
 import io.ktor.http.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.test.*
-import java.io.*
-import kotlin.io.path.*
+import kotlinx.io.files.*
 import kotlin.test.*
+import kotlin.uuid.*
 
 class FileStorageTest {
-    private lateinit var tempDirectory: File
+    private lateinit var tempDirectory: Path
 
     @BeforeTest
     fun setUp() {
-        tempDirectory = createTempDirectory().toFile()
+        tempDirectory = temporaryDirectoryPath()
+        SystemFileSystem.createDirectories(tempDirectory)
     }
 
     @AfterTest
     fun tearDown() {
-        tempDirectory.deleteRecursively()
+        SystemFileSystem.deleteRecursively(tempDirectory)
     }
 
     @Test
     fun testFindAll() = runTest {
-        val storage = FileStorage(tempDirectory)
+        val storage = FileStorage(SystemFileSystem, tempDirectory)
 
         storage.store(Url("http://example.com"), data())
         storage.store(Url("http://example.com"), data(mapOf("key" to "value")))
@@ -35,7 +36,7 @@ class FileStorageTest {
 
     @Test
     fun testFind() = runTest {
-        val storage = FileStorage(tempDirectory)
+        val storage = FileStorage(SystemFileSystem, tempDirectory)
 
         storage.store(Url("http://example.com"), data())
         storage.store(Url("http://example.com"), data(mapOf("key" to "value")))
@@ -45,7 +46,7 @@ class FileStorageTest {
 
     @Test
     fun testStore() = runTest {
-        val storage = FileStorage(tempDirectory)
+        val storage = FileStorage(SystemFileSystem, tempDirectory)
         storage.store(Url("http://example.com"), data())
 
         assertEquals(1, storage.findAll(Url("http://example.com")).size)
@@ -57,7 +58,7 @@ class FileStorageTest {
 
     @Test
     fun testRemove() = runTest {
-        val storage = FileStorage(tempDirectory)
+        val storage = FileStorage(SystemFileSystem, tempDirectory)
         storage.store(Url("http://example.com"), data())
         storage.store(Url("http://example.com"), data(mapOf("key" to "value")))
 
@@ -70,7 +71,7 @@ class FileStorageTest {
 
     @Test
     fun testRemoveAll() = runTest {
-        val storage = FileStorage(tempDirectory)
+        val storage = FileStorage(SystemFileSystem, tempDirectory)
         storage.store(Url("http://example.com"), data())
         storage.store(Url("http://example.com"), data(mapOf("key" to "value")))
 
@@ -91,4 +92,22 @@ class FileStorageTest {
         varyKeys,
         ByteArray(0)
     )
+
+    companion object {
+        @OptIn(ExperimentalUuidApi::class)
+        private fun temporaryDirectoryPath(): Path {
+            return Path(SystemTemporaryDirectory, Uuid.random().toString())
+        }
+
+        private fun FileSystem.deleteRecursively(directory: Path) {
+            for (subPath in list(directory)) {
+                if (metadataOrNull(subPath)?.isDirectory == true) {
+                    deleteRecursively(subPath)
+                } else {
+                    delete(subPath)
+                }
+            }
+            delete(directory)
+        }
+    }
 }
