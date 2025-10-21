@@ -41,7 +41,7 @@ gson = "2.13.2"
 jackson = "2.20.0"
 jackson-annotations = "2.20"
 
-junit = "5.13.4"
+junit = "5.14.0"
 slf4j = "2.0.17"
 logback = "1.5.20"
 
