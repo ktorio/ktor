@@ -8,8 +8,6 @@ import WebRTC.*
 import io.ktor.client.webrtc.media.*
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ObjCSignatureOverride
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import platform.darwin.NSObject
 import kotlin.coroutines.CoroutineContext
@@ -21,42 +19,24 @@ import kotlin.coroutines.resumeWithException
  *
  * @param coroutineContext coroutine context used to deliver connection callbacks.
  * @param config configuration describing ICE servers, media constraints, and other connection options.
+ * @param createConnection factory function that creates a native peer connection instance using a provided delegate.
  */
 @OptIn(ExperimentalForeignApi::class)
 public class IosWebRtcConnection(
     coroutineContext: CoroutineContext,
-    config: WebRtcConnectionConfig
+    config: WebRtcConnectionConfig,
+    createConnection: (RTCPeerConnectionDelegateProtocol) -> RTCPeerConnection?
 ) : WebRtcPeerConnection(coroutineContext, config) {
-    internal lateinit var peerConnection: RTCPeerConnection
+    internal val peerConnection: RTCPeerConnection
+
+    init {
+        peerConnection = createConnection(createDelegate()) ?: error("Failed to create peer connection.")
+    }
 
     override suspend fun getStatistics(): List<WebRtc.Stats> = suspendCancellableCoroutine { cont ->
-        if (!this::peerConnection.isInitialized) {
-            cont.resume(emptyList())
-            return@suspendCancellableCoroutine
-        }
         peerConnection.statisticsWithCompletionHandler { stats ->
             cont.resume(stats?.toKtor() ?: emptyList())
         }
-    }
-
-    /**
-     * Finishes constructing the underlying native peer connection by invoking [block] with the created delegate.
-     *
-     * @param block factory that receives the delegate and returns a configured [RTCPeerConnection].
-     * @return this connection instance once the native peer connection has been installed.
-     * @throws IllegalStateException if called more than once or if the native connection cannot be created.
-     */
-    public fun initialize(block: (RTCPeerConnectionDelegateProtocol) -> RTCPeerConnection?): IosWebRtcConnection {
-        if (this::peerConnection.isInitialized) {
-            error("Peer connection has been already initialized.")
-        }
-        peerConnection = block(createDelegate()) ?: error("Failed to create peer connection.")
-        return this
-    }
-
-    private inline fun runInConnectionScope(crossinline block: () -> Unit) {
-        // Runs a `block` in the coroutine of the peer connection not to lose possible exceptions.
-        coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) { block() }
     }
 
     private fun createDelegate() = object : RTCPeerConnectionDelegateProtocol, NSObject() {
