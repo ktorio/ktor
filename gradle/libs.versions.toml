@@ -10,7 +10,7 @@ coroutines = "1.10.2"
 atomicfu = "0.29.0"
 serialization = "1.9.0"
 dokka = "2.1.0"
-kover = "0.9.1"
+kover = "0.9.3"
 kotlinter = "5.2.0"
 kotlinx-browser = "0.5.0"
 
