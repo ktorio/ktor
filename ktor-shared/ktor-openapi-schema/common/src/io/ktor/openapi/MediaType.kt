@@ -30,7 +30,7 @@ public data class MediaType(
      */
     public val encoding: Map<String, Encoding>? = null,
     /**
-     * Any additional external documentation for this media type.
+     * Specification extensions for this media type (keys MUST start with "x-").
      */
     override val extensions: ExtensionProperties = null,
 ) : Extensible {

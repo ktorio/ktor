@@ -12,9 +12,8 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
+            api(projects.ktorHttp)
             implementation(projects.ktorIo)
-            implementation(projects.ktorHttp)
-            implementation(libs.kotlin.serialization)
             implementation(libs.kotlinx.serialization.core)
             implementation(libs.kotlinx.serialization.json)
         }

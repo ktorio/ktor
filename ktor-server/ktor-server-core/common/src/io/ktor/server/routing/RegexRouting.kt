@@ -246,7 +246,7 @@ private fun Route.createRouteFromRegexPath(regex: Regex): Route {
     return createChild(PathSegmentRegexRouteSelector(regex))
 }
 
-public class PathSegmentRegexRouteSelector(private val regex: Regex) : RouteSelector() {
+public class PathSegmentRegexRouteSelector(public val regex: Regex) : RouteSelector(), RoutePathComponent {
 
     override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val prefix = if (regex.pattern.startsWith('/') || regex.pattern.startsWith("""\/""")) "/" else ""

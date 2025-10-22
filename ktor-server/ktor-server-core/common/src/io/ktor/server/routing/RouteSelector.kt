@@ -256,9 +256,7 @@ public abstract class RouteSelector {
  * Exposes a textual representation of the path fragment contributed by this selector.
  * Used for tooling (e.g., documentation generation).
  */
-public interface RoutePathComponent {
-    public fun pathString(): String
-}
+public sealed interface RoutePathComponent
 
 /**
  * Exposes the parameter name contributed by this selector (query, header, or path).
@@ -314,11 +312,8 @@ public class RootRouteSelector(rootPath: String = "") : RouteSelector(), RoutePa
         return successEvaluationResult
     }
 
-    override fun pathString(): String =
-        parts.joinToString("/")
-
     override fun toString(): String =
-        pathString()
+        parts.joinToString("/")
 }
 
 /**
@@ -412,8 +407,6 @@ public data class PathSegmentConstantRouteSelector(
         else -> RouteSelectorEvaluation.FailedPath
     }
 
-    override fun pathString(): String = value
-
     override fun toString(): String = value
 }
 
@@ -433,8 +426,6 @@ public object TrailingSlashRouteSelector : RouteSelector(), RoutePathComponent {
         context.hasTrailingSlash -> RouteSelectorEvaluation.ConstantPath
         else -> RouteSelectorEvaluation.FailedPath
     }
-
-    override fun pathString(): String = "/"
 
     override fun toString(): String = "<slash>"
 }
@@ -465,8 +456,6 @@ public data class PathSegmentParameterRouteSelector(
         )
     }
 
-    override fun pathString(): String = "${prefix ?: ""}{$name}${suffix ?: ""}"
-
     override fun toString(): String = "${prefix ?: ""}{$name}${suffix ?: ""}"
 }
 
@@ -496,8 +485,6 @@ public data class PathSegmentOptionalParameterRouteSelector(
         )
     }
 
-    override fun pathString(): String = "${prefix ?: ""}{$name}${suffix ?: ""}"
-
     override fun toString(): String = "${prefix ?: ""}{$name?}${suffix ?: ""}"
 }
 
@@ -513,7 +500,6 @@ public object PathSegmentWildcardRouteSelector : RouteSelector(), RoutePathCompo
         }
         return RouteSelectorEvaluation.FailedPath
     }
-    override fun pathString(): String = "{*}"
 
     override fun toString(): String = "*"
 }
@@ -529,7 +515,7 @@ public object PathSegmentWildcardRouteSelector : RouteSelector(), RoutePathCompo
 public data class PathSegmentTailcardRouteSelector(
     val name: String = "",
     val prefix: String = ""
-) : RouteSelector() {
+) : RouteSelector(), RoutePathComponent {
 
     init {
         require(prefix.none { it == '/' }) { "Multisegment prefix is not supported" }
