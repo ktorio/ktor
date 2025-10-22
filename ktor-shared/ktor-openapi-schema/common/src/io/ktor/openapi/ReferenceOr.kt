@@ -48,12 +48,13 @@ public sealed interface ReferenceOr<out A> {
             @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
             override val descriptor: SerialDescriptor =
                 buildSerialDescriptor("io.ktor.openapi.ReferenceOr", SerialKind.CONTEXTUAL)
-            private val refDescriptor = buildClassSerialDescriptor("io.ktor.openapi.ReferenceOr.Reference") {
+            private val refDescriptor = buildClassSerialDescriptor("io.ktor.openapi.ReferenceOr.ref") {
                 element<String>(RefKey)
             }
-            private val recursiveRefDescriptor = buildClassSerialDescriptor("io.ktor.openapi.ReferenceOr.Reference") {
-                element<String>(RecursiveRefKey)
-            }
+            private val recursiveRefDescriptor =
+                buildClassSerialDescriptor("io.ktor.openapi.ReferenceOr.recursiveRef") {
+                    element<String>(RecursiveRefKey)
+                }
 
             override fun serialize(encoder: Encoder, value: ReferenceOr<T>) {
                 when (value) {

@@ -75,16 +75,15 @@ public data class Schema(
         @Serializable
         public data class AnyOf(val types: List<JsonType>) : SchemaType
 
-        @Suppress("EnumEntryName")
-        @Serializable
+        @Serializable(JsonTypeSerializer::class)
         public enum class JsonType : SchemaType {
-            array,
-            `object`,
-            number,
-            boolean,
-            integer,
-            `null`,
-            string
+            ARRAY,
+            OBJECT,
+            NUMBER,
+            BOOLEAN,
+            INTEGER,
+            NULL,
+            STRING
         }
 
         public object Serializer : KSerializer<SchemaType> {
@@ -94,10 +93,9 @@ public data class Schema(
 
             override fun deserialize(decoder: Decoder): SchemaType {
                 val element: GenericElement = decoder.decodeSerializableValue(decoder.serializersModule.serializer())
-                val jsonTypeSerializer: KSerializer<JsonType> = decoder.serializersModule.serializer()
                 return when {
-                    element.isArray() -> AnyOf(element.deserialize(ListSerializer(jsonTypeSerializer)))
-                    else -> element.deserialize(jsonTypeSerializer)
+                    element.isArray() -> AnyOf(element.deserialize(ListSerializer(JsonTypeSerializer)))
+                    else -> element.deserialize(JsonTypeSerializer)
                 }
             }
 
@@ -110,6 +108,18 @@ public data class Schema(
                         )
                     is JsonType -> encoder.encodeString(value.name.lowercase())
                 }
+            }
+        }
+
+        public object JsonTypeSerializer : KSerializer<JsonType> {
+            override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("JsonType", PrimitiveKind.STRING)
+
+            override fun serialize(encoder: Encoder, value: JsonType) {
+                encoder.encodeString(value.name.lowercase())
+            }
+
+            override fun deserialize(decoder: Decoder): JsonType {
+                return JsonType.valueOf(decoder.decodeString().uppercase())
             }
         }
     }

@@ -133,16 +133,6 @@ final class <#A: kotlin/Any> io.ktor.openapi/GenericElementWrapper : io.ktor.ope
     final fun toString(): kotlin/String // io.ktor.openapi/GenericElementWrapper.toString|toString(){}[0]
 }
 
-final class io.ktor.openapi/ContentTypeSerializer : kotlinx.serialization/KSerializer<io.ktor.http/ContentType> { // io.ktor.openapi/ContentTypeSerializer|null[0]
-    constructor <init>() // io.ktor.openapi/ContentTypeSerializer.<init>|<init>(){}[0]
-
-    final val descriptor // io.ktor.openapi/ContentTypeSerializer.descriptor|{}descriptor[0]
-        final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // io.ktor.openapi/ContentTypeSerializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
-
-    final fun deserialize(kotlinx.serialization.encoding/Decoder): io.ktor.http/ContentType // io.ktor.openapi/ContentTypeSerializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
-    final fun serialize(kotlinx.serialization.encoding/Encoder, io.ktor.http/ContentType) // io.ktor.openapi/ContentTypeSerializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;io.ktor.http.ContentType){}[0]
-}
-
 final class io.ktor.openapi/Encoding : io.ktor.openapi/Extensible { // io.ktor.openapi/Encoding|null[0]
     constructor <init>(io.ktor.http/ContentType, kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/Header>>? = ..., kotlin/String? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/GenericElement>? = ...) // io.ktor.openapi/Encoding.<init>|<init>(io.ktor.http.ContentType;kotlin.collections.Map<kotlin.String,io.ktor.openapi.ReferenceOr<io.ktor.openapi.Header>>?;kotlin.String?;kotlin.Boolean?;kotlin.Boolean?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.GenericElement>?){}[0]
 
@@ -632,8 +622,8 @@ final class io.ktor.openapi/Operation : io.ktor.openapi/Extensible { // io.ktor.
     }
 }
 
-final class io.ktor.openapi/Parameter : io.ktor.openapi/Extensible, io.ktor.openapi/SchemaHolder { // io.ktor.openapi/Parameter|null[0]
-    constructor <init>(kotlin/String, io.ktor.openapi/ParameterType, kotlin/String? = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., io.ktor.openapi/Schema? = ..., kotlin/String? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., io.ktor.openapi/GenericElement? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/ExampleObject>>? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/GenericElement>? = ...) // io.ktor.openapi/Parameter.<init>|<init>(kotlin.String;io.ktor.openapi.ParameterType;kotlin.String?;kotlin.Boolean;kotlin.Boolean;io.ktor.openapi.Schema?;kotlin.String?;kotlin.Boolean?;kotlin.Boolean?;kotlin.Boolean?;io.ktor.openapi.GenericElement?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.ReferenceOr<io.ktor.openapi.ExampleObject>>?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.GenericElement>?){}[0]
+final class io.ktor.openapi/Parameter : io.ktor.openapi/Extensible { // io.ktor.openapi/Parameter|null[0]
+    constructor <init>(kotlin/String, io.ktor.openapi/ParameterType, kotlin/String? = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., io.ktor.openapi/ReferenceOr<io.ktor.openapi/Schema>? = ..., kotlin/String? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., io.ktor.openapi/GenericElement? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/ExampleObject>>? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/GenericElement>? = ...) // io.ktor.openapi/Parameter.<init>|<init>(kotlin.String;io.ktor.openapi.ParameterType;kotlin.String?;kotlin.Boolean;kotlin.Boolean;io.ktor.openapi.ReferenceOr<io.ktor.openapi.Schema>?;kotlin.String?;kotlin.Boolean?;kotlin.Boolean?;kotlin.Boolean?;io.ktor.openapi.GenericElement?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.ReferenceOr<io.ktor.openapi.ExampleObject>>?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.GenericElement>?){}[0]
 
     final val allowEmptyValue // io.ktor.openapi/Parameter.allowEmptyValue|{}allowEmptyValue[0]
         final fun <get-allowEmptyValue>(): kotlin/Boolean? // io.ktor.openapi/Parameter.allowEmptyValue.<get-allowEmptyValue>|<get-allowEmptyValue>(){}[0]
@@ -658,7 +648,7 @@ final class io.ktor.openapi/Parameter : io.ktor.openapi/Extensible, io.ktor.open
     final val required // io.ktor.openapi/Parameter.required|{}required[0]
         final fun <get-required>(): kotlin/Boolean // io.ktor.openapi/Parameter.required.<get-required>|<get-required>(){}[0]
     final val schema // io.ktor.openapi/Parameter.schema|{}schema[0]
-        final fun <get-schema>(): io.ktor.openapi/Schema? // io.ktor.openapi/Parameter.schema.<get-schema>|<get-schema>(){}[0]
+        final fun <get-schema>(): io.ktor.openapi/ReferenceOr<io.ktor.openapi/Schema>? // io.ktor.openapi/Parameter.schema.<get-schema>|<get-schema>(){}[0]
     final val style // io.ktor.openapi/Parameter.style|{}style[0]
         final fun <get-style>(): kotlin/String? // io.ktor.openapi/Parameter.style.<get-style>|<get-style>(){}[0]
 
@@ -671,11 +661,11 @@ final class io.ktor.openapi/Parameter : io.ktor.openapi/Extensible, io.ktor.open
     final fun component3(): kotlin/String? // io.ktor.openapi/Parameter.component3|component3(){}[0]
     final fun component4(): kotlin/Boolean // io.ktor.openapi/Parameter.component4|component4(){}[0]
     final fun component5(): kotlin/Boolean // io.ktor.openapi/Parameter.component5|component5(){}[0]
-    final fun component6(): io.ktor.openapi/Schema? // io.ktor.openapi/Parameter.component6|component6(){}[0]
+    final fun component6(): io.ktor.openapi/ReferenceOr<io.ktor.openapi/Schema>? // io.ktor.openapi/Parameter.component6|component6(){}[0]
     final fun component7(): kotlin/String? // io.ktor.openapi/Parameter.component7|component7(){}[0]
     final fun component8(): kotlin/Boolean? // io.ktor.openapi/Parameter.component8|component8(){}[0]
     final fun component9(): kotlin/Boolean? // io.ktor.openapi/Parameter.component9|component9(){}[0]
-    final fun copy(kotlin/String = ..., io.ktor.openapi/ParameterType = ..., kotlin/String? = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., io.ktor.openapi/Schema? = ..., kotlin/String? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., io.ktor.openapi/GenericElement? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/ExampleObject>>? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/GenericElement>? = ...): io.ktor.openapi/Parameter // io.ktor.openapi/Parameter.copy|copy(kotlin.String;io.ktor.openapi.ParameterType;kotlin.String?;kotlin.Boolean;kotlin.Boolean;io.ktor.openapi.Schema?;kotlin.String?;kotlin.Boolean?;kotlin.Boolean?;kotlin.Boolean?;io.ktor.openapi.GenericElement?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.ReferenceOr<io.ktor.openapi.ExampleObject>>?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.GenericElement>?){}[0]
+    final fun copy(kotlin/String = ..., io.ktor.openapi/ParameterType = ..., kotlin/String? = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., io.ktor.openapi/ReferenceOr<io.ktor.openapi/Schema>? = ..., kotlin/String? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., io.ktor.openapi/GenericElement? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/ExampleObject>>? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/GenericElement>? = ...): io.ktor.openapi/Parameter // io.ktor.openapi/Parameter.copy|copy(kotlin.String;io.ktor.openapi.ParameterType;kotlin.String?;kotlin.Boolean;kotlin.Boolean;io.ktor.openapi.ReferenceOr<io.ktor.openapi.Schema>?;kotlin.String?;kotlin.Boolean?;kotlin.Boolean?;kotlin.Boolean?;io.ktor.openapi.GenericElement?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.ReferenceOr<io.ktor.openapi.ExampleObject>>?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.GenericElement>?){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.openapi/Parameter.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // io.ktor.openapi/Parameter.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // io.ktor.openapi/Parameter.toString|toString(){}[0]
@@ -1152,13 +1142,13 @@ final class io.ktor.openapi/Schema { // io.ktor.openapi/Schema|null[0]
 
     sealed interface SchemaType { // io.ktor.openapi/Schema.SchemaType|null[0]
         final enum class JsonType : io.ktor.openapi/Schema.SchemaType, kotlin/Enum<io.ktor.openapi/Schema.SchemaType.JsonType> { // io.ktor.openapi/Schema.SchemaType.JsonType|null[0]
-            enum entry array // io.ktor.openapi/Schema.SchemaType.JsonType.array|null[0]
-            enum entry boolean // io.ktor.openapi/Schema.SchemaType.JsonType.boolean|null[0]
-            enum entry integer // io.ktor.openapi/Schema.SchemaType.JsonType.integer|null[0]
-            enum entry null // io.ktor.openapi/Schema.SchemaType.JsonType.null|null[0]
-            enum entry number // io.ktor.openapi/Schema.SchemaType.JsonType.number|null[0]
-            enum entry object // io.ktor.openapi/Schema.SchemaType.JsonType.object|null[0]
-            enum entry string // io.ktor.openapi/Schema.SchemaType.JsonType.string|null[0]
+            enum entry ARRAY // io.ktor.openapi/Schema.SchemaType.JsonType.ARRAY|null[0]
+            enum entry BOOLEAN // io.ktor.openapi/Schema.SchemaType.JsonType.BOOLEAN|null[0]
+            enum entry INTEGER // io.ktor.openapi/Schema.SchemaType.JsonType.INTEGER|null[0]
+            enum entry NULL // io.ktor.openapi/Schema.SchemaType.JsonType.NULL|null[0]
+            enum entry NUMBER // io.ktor.openapi/Schema.SchemaType.JsonType.NUMBER|null[0]
+            enum entry OBJECT // io.ktor.openapi/Schema.SchemaType.JsonType.OBJECT|null[0]
+            enum entry STRING // io.ktor.openapi/Schema.SchemaType.JsonType.STRING|null[0]
 
             final val entries // io.ktor.openapi/Schema.SchemaType.JsonType.entries|#static{}entries[0]
                 final fun <get-entries>(): kotlin.enums/EnumEntries<io.ktor.openapi/Schema.SchemaType.JsonType> // io.ktor.openapi/Schema.SchemaType.JsonType.entries.<get-entries>|<get-entries>#static(){}[0]
@@ -1203,6 +1193,14 @@ final class io.ktor.openapi/Schema { // io.ktor.openapi/Schema|null[0]
         final object Companion : kotlinx.serialization.internal/SerializerFactory { // io.ktor.openapi/Schema.SchemaType.Companion|null[0]
             final fun serializer(): kotlinx.serialization/KSerializer<io.ktor.openapi/Schema.SchemaType> // io.ktor.openapi/Schema.SchemaType.Companion.serializer|serializer(){}[0]
             final fun serializer(kotlin/Array<out kotlinx.serialization/KSerializer<*>>...): kotlinx.serialization/KSerializer<*> // io.ktor.openapi/Schema.SchemaType.Companion.serializer|serializer(kotlin.Array<out|kotlinx.serialization.KSerializer<*>>...){}[0]
+        }
+
+        final object JsonTypeSerializer : kotlinx.serialization/KSerializer<io.ktor.openapi/Schema.SchemaType.JsonType> { // io.ktor.openapi/Schema.SchemaType.JsonTypeSerializer|null[0]
+            final val descriptor // io.ktor.openapi/Schema.SchemaType.JsonTypeSerializer.descriptor|{}descriptor[0]
+                final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // io.ktor.openapi/Schema.SchemaType.JsonTypeSerializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+            final fun deserialize(kotlinx.serialization.encoding/Decoder): io.ktor.openapi/Schema.SchemaType.JsonType // io.ktor.openapi/Schema.SchemaType.JsonTypeSerializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+            final fun serialize(kotlinx.serialization.encoding/Encoder, io.ktor.openapi/Schema.SchemaType.JsonType) // io.ktor.openapi/Schema.SchemaType.JsonTypeSerializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;io.ktor.openapi.Schema.SchemaType.JsonType){}[0]
         }
 
         final object Serializer : kotlinx.serialization/KSerializer<io.ktor.openapi/Schema.SchemaType> { // io.ktor.openapi/Schema.SchemaType.Serializer|null[0]
@@ -1456,6 +1454,14 @@ final value class io.ktor.openapi/Callback { // io.ktor.openapi/Callback|null[0]
 
         final fun serializer(): kotlinx.serialization/KSerializer<io.ktor.openapi/Callback> // io.ktor.openapi/Callback.Companion.serializer|serializer(){}[0]
     }
+}
+
+final object io.ktor.openapi/ContentTypeSerializer : kotlinx.serialization/KSerializer<io.ktor.http/ContentType> { // io.ktor.openapi/ContentTypeSerializer|null[0]
+    final val descriptor // io.ktor.openapi/ContentTypeSerializer.descriptor|{}descriptor[0]
+        final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // io.ktor.openapi/ContentTypeSerializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+    final fun deserialize(kotlinx.serialization.encoding/Decoder): io.ktor.http/ContentType // io.ktor.openapi/ContentTypeSerializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+    final fun serialize(kotlinx.serialization.encoding/Encoder, io.ktor.http/ContentType) // io.ktor.openapi/ContentTypeSerializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;io.ktor.http.ContentType){}[0]
 }
 
 final object io.ktor.openapi/GenericMapDecoderAdapter : io.ktor.openapi/GenericElementSerialAdapter { // io.ktor.openapi/GenericMapDecoderAdapter|null[0]

@@ -131,6 +131,9 @@ public open class RoutingNode(
         pipeline
     }
 
+    /**
+     * Returns `trye` when this node has at least one handler attached.
+     */
     public fun hasHandler(): Boolean =
         handlers.isNotEmpty()
 
@@ -361,28 +364,23 @@ private fun RoutingNode.getAllRoutes(endpoints: MutableList<RoutingNode>) {
 public val RoutingNode.path: String
     get() = path()
 
-private fun RoutingNode.path(): String {
-    val parentPath = parent?.path()
-    val selectorElement = selector.toPathElement()
+/**
+ * Constructs the full path of the routing node by combining the path of the parent node
+ * and the formatted path of this node's selector, using the provided format.
+ *
+ * @param format formats each selector in the node's lineage. Defaults to [RoutePathFormat.Default].
+ * @return the full path of the routing node as a string.
+ */
+public fun RoutingNode.path(format: RoutePathFormat = RoutePathFormat.Default): String {
+    val parentPath = parent?.path(format)
+    val pathComponent = selector as? RoutePathComponent ?: return parentPath.orEmpty()
+    val formattedPath = format.format(pathComponent)
     return when {
-        parentPath == null -> selectorElement
-        selectorElement.isEmpty() -> parentPath
-        parentPath.endsWith('/') || selectorElement.startsWith('/') -> "$parentPath$selectorElement"
-        else -> "$parentPath/$selectorElement"
+        parentPath == null -> formattedPath
+        formattedPath.isEmpty() -> parentPath
+        parentPath.endsWith('/') || formattedPath.startsWith('/') -> "$parentPath$formattedPath"
+        else -> "$parentPath/$formattedPath"
     }
-}
-
-private fun RouteSelector.toPathElement(): String = when (this) {
-    is PathSegmentConstantRouteSelector,
-    is PathSegmentParameterRouteSelector,
-    is PathSegmentOptionalParameterRouteSelector,
-    is PathSegmentTailcardRouteSelector,
-    is PathSegmentWildcardRouteSelector,
-    is PathSegmentRegexRouteSelector -> toString()
-
-    is TrailingSlashRouteSelector -> "/"
-
-    else -> ""
 }
 
 @Deprecated("Please use route scoped plugins instead")

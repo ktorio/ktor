@@ -16,6 +16,7 @@ import io.ktor.server.testing.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
+import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 
@@ -139,6 +140,39 @@ class RouteAnnotationApiTest {
 
         val pathItems: Map<String, PathItem> = jsonFormat.decodeFromString(responseText)
         assertEquals(1, pathItems.size)
+    }
+
+    @Test
+    fun annotateAddition() = testApplication {
+        install(ContentNegotiation) {
+            json(jsonFormat)
+        }
+        routing {
+            get("/routes") {
+                val routes = call.application.routingRoot.findPathItems() - "/routes"
+                call.respond(routes)
+            }
+            get("/messages") {
+                call.respond(listOf(testMessage))
+            }.annotate {
+                parameters {
+                    header("X-First") {
+                        description = "First header"
+                    }
+                }
+            }.annotate {
+                parameters {
+                    header("X-Second") {
+                        description = "Second header"
+                    }
+                }
+            }
+        }
+
+        val routesResponse = client.get("/routes")
+        val responseText = routesResponse.bodyAsText()
+        assertContains(responseText, "\"X-First\"")
+        assertContains(responseText, "\"X-Second\"")
     }
 }
 

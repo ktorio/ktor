@@ -18,10 +18,6 @@ internal interface Extensible {
     val extensions: ExtensionProperties
 }
 
-internal interface SchemaHolder {
-    val schema: Schema?
-}
-
 internal abstract class ExtensibleMixinSerializer<T : Extensible>(
     baseSerializer: KSerializer<T>,
     copy: (T, ExtensionProperties) -> T,

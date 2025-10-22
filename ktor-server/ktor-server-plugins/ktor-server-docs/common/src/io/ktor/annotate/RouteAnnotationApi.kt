@@ -22,7 +22,11 @@ public val EndpointAnnotationAttributeKey: AttributeKey<Operation> =
  * Annotate a [Route] with an OpenAPI [Operation].
  */
 public fun Route.annotate(configure: Operation.Builder.() -> Unit): Route {
-    attributes[EndpointAnnotationAttributeKey] = Operation.build(configure)
+    attributes[EndpointAnnotationAttributeKey] =
+        when (val previous = attributes.getOrNull(EndpointAnnotationAttributeKey)) {
+            null -> Operation.build(configure)
+            else -> previous + Operation.build(configure)
+        }
     return this
 }
 
@@ -44,44 +48,13 @@ public fun RoutingNode.findPathItems(): Map<String, PathItem> =
 
 internal fun RoutingNode.asPathItem(): Pair<String, PathItem>? {
     if (!hasHandler()) return null
-    val path = path()
+    val path = path(format = OpenApiRoutePathFormat)
     val method = method() ?: return null
     val operation = operation() ?: Operation()
     val pathItem = newPathItem(method, operation) ?: return null
 
     return path to pathItem
 }
-
-internal fun RoutingNode.path(): String =
-    lineage().toList()
-        .asReversed()
-        .mapNotNull { it.selector.segmentOrNull() }
-        .fold("") { acc, seg ->
-            when {
-                acc.isEmpty() -> seg
-                seg.isEmpty() -> acc
-                acc.endsWith('/') || seg.startsWith('/') -> "$acc$seg"
-                else -> "$acc/$seg"
-            }
-        }
-        .let {
-            if (it.isEmpty()) {
-                "/"
-            } else if (it.startsWith("/")) {
-                it
-            } else {
-                "/$it"
-            }
-        }
-
-internal fun RouteSelector.segmentOrNull(): String? =
-    when (this) {
-        is RoutePathComponent -> pathString()
-        is CompositeRouteSelector -> subSelectors()
-            .filterIsInstance<RoutePathComponent>()
-            .singleOrNull()?.pathString()
-        else -> null
-    }
 
 internal fun RoutingNode.method(): HttpMethod? =
     lineage()
@@ -106,7 +79,7 @@ internal fun RoutingNode.operationAttribute(): Operation? =
 internal fun RoutingNode.operationFromSelector(): Operation? {
     return when (val paramSelector = selector) {
         is ParameterRouteSelector,
-        is OptionalParameterRouteSelector -> Operation.Companion.build {
+        is OptionalParameterRouteSelector -> Operation.build {
             parameters {
                 query(paramSelector.name) {
                     required = paramSelector is OptionalParameterRouteSelector
@@ -114,14 +87,14 @@ internal fun RoutingNode.operationFromSelector(): Operation? {
             }
         }
         is PathSegmentParameterRouteSelector,
-        is PathSegmentOptionalParameterRouteSelector -> Operation.Companion.build {
+        is PathSegmentOptionalParameterRouteSelector -> Operation.build {
             parameters {
                 path(paramSelector.name) {
                     required = paramSelector is PathSegmentOptionalParameterRouteSelector
                 }
             }
         }
-        is HttpHeaderRouteSelector -> Operation.Companion.build {
+        is HttpHeaderRouteSelector -> Operation.build {
             parameters {
                 header(paramSelector.name) {}
             }

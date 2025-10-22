@@ -181,7 +181,7 @@ public object JsonElementSerialAdapter : GenericElementSerialAdapter {
 }
 
 /**
- * [GenericElementSerialAdapter] for standard kotlinx-json.
+ * Handles encoding/decoding of GenericElements during deserialization of [GenericElementMap]
  */
 public object GenericMapDecoderAdapter : GenericElementSerialAdapter {
     override fun <T> trySerializeToElement(

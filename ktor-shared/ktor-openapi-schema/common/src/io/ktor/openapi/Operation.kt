@@ -326,7 +326,7 @@ public data class Parameter(
     public val description: String? = null,
     public val required: Boolean = false,
     public val deprecated: Boolean = false,
-    override val schema: Schema? = null,
+    public val schema: ReferenceOr<Schema>? = null,
     public val style: String? = null,
     public val explode: Boolean? = null,
     public val allowReserved: Boolean? = null,
@@ -334,7 +334,7 @@ public data class Parameter(
     public val example: GenericElement? = null,
     public val examples: Map<String, ReferenceOr<ExampleObject>>? = null,
     override val extensions: ExtensionProperties = null,
-) : Extensible, SchemaHolder {
+) : Extensible {
     public companion object {
         internal object Serializer : ExtensibleMixinSerializer<Parameter>(
             generatedSerializer(),
@@ -416,7 +416,7 @@ public data class Parameter(
                 description = description,
                 required = required,
                 deprecated = deprecated,
-                schema = schema,
+                schema = schema?.let(::Value),
                 style = style,
                 explode = explode,
                 allowReserved = allowReserved,
@@ -586,7 +586,7 @@ public data class Response(
         }
 
         /**
-         * Adds a media type definition for the request body using a ContentType receiver.
+         * Adds a media type definition for the response body using a ContentType receiver.
          *
          * @param configure DSL to configure the [MediaType].
          */
@@ -998,7 +998,7 @@ public data class Server(
 /**
  * Container for named headers attached to a response.
  *
- * @property headers Map of header name to its parameter definition.
+ * @property headers Map of header name to its definition.
  */
 @Serializable
 public data class Headers(
