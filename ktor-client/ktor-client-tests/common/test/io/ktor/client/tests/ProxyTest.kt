@@ -50,4 +50,20 @@ class ProxyTest : ClientLoader() {
             assertEquals(expected, response)
         }
     }
+
+    @Test
+    fun testSocksProxy() = clientTests(
+        except("Js", "Darwin", "DarwinLegacy", "WinHttp", "CIO", "Apache", "Apache5", "Java")
+    ) {
+        config {
+            engine {
+                proxy = ProxyBuilder.socks("127.0.0.1", 8083)
+            }
+        }
+
+        test { client ->
+            val response = client.get("http://google.com").body<String>()
+            assertEquals("proxy", response)
+        }
+    }
 }
