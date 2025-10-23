@@ -29,6 +29,7 @@ class RoutingTracingTest {
       /*, segment:0 -> FAILURE "Better match was already found" @ /*
       / [(header:a = x)], segment:0 -> FAILURE "Selector didn't match" @ / [(header:a = x)]
       / [(header:b = x)], segment:0 -> FAILURE "Selector didn't match" @ / [(header:b = x)]
+      /route, segment:0 -> FAILURE "Selector didn't match" @ /route
     Matched routes:
       "" -> "bar" -> "(method:GET)"
     Routing resolve result:
@@ -57,6 +58,7 @@ class RoutingTracingTest {
       /*, segment:0 -> FAILURE "Better match was already found" @ /*
       / [(header:a = x)], segment:0 -> FAILURE "Selector didn't match" @ / [(header:a = x)]
       / [(header:b = x)], segment:0 -> FAILURE "Selector didn't match" @ / [(header:b = x)]
+      /route, segment:0 -> FAILURE "Selector didn't match" @ /route
     Matched routes:
       "" -> "{param}" -> "x" -> "(method:GET)"
     Routing resolve result:
@@ -85,6 +87,7 @@ class RoutingTracingTest {
       /*, segment:0 -> FAILURE "Better match was already found" @ /*
       / [(header:a = x)], segment:0 -> FAILURE "Selector didn't match" @ / [(header:a = x)]
       / [(header:b = x)], segment:0 -> FAILURE "Selector didn't match" @ / [(header:b = x)]
+      /route, segment:0 -> FAILURE "Selector didn't match" @ /route
     Matched routes:
       "" -> "baz" -> "x" -> "(method:GET)"
     Routing resolve result:
@@ -113,6 +116,7 @@ class RoutingTracingTest {
       /*, segment:0 -> FAILURE "Better match was already found" @ /*
       / [(header:a = x)], segment:0 -> FAILURE "Selector didn't match" @ / [(header:a = x)]
       / [(header:b = x)], segment:0 -> FAILURE "Selector didn't match" @ / [(header:b = x)]
+      /route, segment:0 -> FAILURE "Selector didn't match" @ /route
     Matched routes:
       "" -> "baz" -> "{y}" -> "(method:GET)"
     Routing resolve result:
@@ -142,6 +146,7 @@ class RoutingTracingTest {
       /*, segment:0 -> FAILURE "Better match was already found" @ /*
       / [(header:a = x)], segment:0 -> FAILURE "Selector didn't match" @ / [(header:a = x)]
       / [(header:b = x)], segment:0 -> FAILURE "Selector didn't match" @ / [(header:b = x)]
+      /route, segment:0 -> FAILURE "Selector didn't match" @ /route
     Matched routes:
       "" -> "baz" -> "x" -> "{optional?}" -> "(method:GET)"
     Routing resolve result:
@@ -171,6 +176,7 @@ class RoutingTracingTest {
       /*, segment:0 -> FAILURE "Better match was already found" @ /*
       / [(header:a = x)], segment:0 -> FAILURE "Selector didn't match" @ / [(header:a = x)]
       / [(header:b = x)], segment:0 -> FAILURE "Selector didn't match" @ / [(header:b = x)]
+      /route, segment:0 -> FAILURE "Selector didn't match" @ /route
     Matched routes:
       "" -> "baz" -> "x" -> "{optional?}" -> "(method:GET)"
     Routing resolve result:
@@ -196,6 +202,7 @@ class RoutingTracingTest {
       /*, segment:0 -> FAILURE "Better match was already found" @ /*
       / [(header:a = x)], segment:0 -> FAILURE "Selector didn't match" @ / [(header:a = x)]
       / [(header:b = x)], segment:0 -> FAILURE "Selector didn't match" @ / [(header:b = x)]
+      /route, segment:0 -> FAILURE "Selector didn't match" @ /route
     Matched routes:
       "" -> "{param}" -> "(method:GET)"
     Routing resolve result:
@@ -223,6 +230,7 @@ class RoutingTracingTest {
       /*, segment:0 -> FAILURE "Better match was already found" @ /*
       / [(header:a = x)], segment:0 -> FAILURE "Selector didn't match" @ / [(header:a = x)]
       / [(header:b = x)], segment:0 -> FAILURE "Selector didn't match" @ / [(header:b = x)]
+      /route, segment:0 -> FAILURE "Selector didn't match" @ /route
     Matched routes:
       "" -> "{param}" -> "x" -> "(method:GET)"
     Routing resolve result:
@@ -254,11 +262,43 @@ class RoutingTracingTest {
         / [(header:a = x), (method:GET)], segment:0 -> SUCCESS @ / [(header:a = x), (method:GET)]
       / [(header:b = x)], segment:0 -> SUCCESS @ / [(header:b = x)]
         / [(header:b = x), (method:GET)], segment:0 -> SUCCESS @ / [(header:b = x), (method:GET)]
+      /route, segment:0 -> FAILURE "Selector didn't match" @ /route
     Matched routes:
       "" -> "(header:a = x)" -> "(method:GET)"
       "" -> "(header:b = x)" -> "(method:GET)"
     Routing resolve result:
       SUCCESS @ / [(header:a = x), (method:GET)]
+            """.trimIndent(),
+            trace()
+        )
+    }
+
+    @Test
+    fun testPathAndConditionSelectors() = tracingApplication { trace ->
+        val response = client.get("/route/port")
+        assertEquals("port", response.bodyAsText())
+
+        assertEquals(
+            $$"""
+    Trace for [route, port]
+    /, segment:0 -> SUCCESS @ /
+      /bar, segment:0 -> FAILURE "Selector didn't match" @ /bar
+      /baz, segment:0 -> FAILURE "Selector didn't match" @ /baz
+      /{param}, segment:1 -> SUCCESS; Parameters [param=[route]] @ /{param}
+        /{param} [(method:GET)], segment:1 -> FAILURE "Not all segments matched" @ /{param} [(method:GET)]
+        /{param}/x, segment:1 -> FAILURE "Selector didn't match" @ /{param}/x
+      /*, segment:1 -> SUCCESS @ /*
+        /*/extra, segment:1 -> FAILURE "Selector didn't match" @ /*/extra
+      / [(header:a = x)], segment:0 -> FAILURE "Selector didn't match" @ / [(header:a = x)]
+      / [(header:b = x)], segment:0 -> FAILURE "Selector didn't match" @ / [(header:b = x)]
+      /route, segment:1 -> SUCCESS @ /route
+        /route [LocalPortRouteSelector(port=80)], segment:1 -> SUCCESS; Parameters [$LocalPort=[80]] @ /route [LocalPortRouteSelector(port=80)]
+          /route/port [LocalPortRouteSelector(port=80)], segment:2 -> SUCCESS @ /route/port [LocalPortRouteSelector(port=80)]
+            /route/port [LocalPortRouteSelector(port=80), (method:GET)], segment:2 -> SUCCESS @ /route/port [LocalPortRouteSelector(port=80), (method:GET)]
+    Matched routes:
+      "" -> "route" -> "LocalPortRouteSelector(port=80)" -> "port" -> "(method:GET)"
+    Routing resolve result:
+      SUCCESS; Parameters [$LocalPort=[80]] @ /route/port [LocalPortRouteSelector(port=80), (method:GET)]
             """.trimIndent(),
             trace()
         )
@@ -294,5 +334,6 @@ class RoutingTracingTest {
         get("/*/extra") { call.respond("/*/extra") }
         header("a", "x") { get { call.respond("a") } }
         header("b", "x") { get { call.respond("b") } }
+        route("/route") { localPort(80) { get("/port") { call.respond("port") } } }
     }
 }
