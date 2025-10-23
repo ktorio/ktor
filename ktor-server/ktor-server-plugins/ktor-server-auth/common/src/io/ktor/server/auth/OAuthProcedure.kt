@@ -31,6 +31,7 @@ public class OAuthAuthenticationProvider internal constructor(config: Config) : 
     internal val client: HttpClient = config.client
     internal val providerLookup: suspend ApplicationCall.() -> OAuthServerSettings? = config.providerLookup
     internal val urlProvider: suspend ApplicationCall.(OAuthServerSettings) -> String = config.urlProvider
+    internal val fallback: suspend ApplicationCall.(AuthenticationFailedCause.Error) -> Unit = config.fallback
 
     override suspend fun onAuthenticate(context: AuthenticationContext) {
         if (PlatformUtils.IS_JVM) oauth1a(name, context)
@@ -63,6 +64,15 @@ public class OAuthAuthenticationProvider internal constructor(config: Config) : 
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthAuthenticationProvider.Config.urlProvider)
          */
         public lateinit var urlProvider: suspend ApplicationCall.(OAuthServerSettings) -> String
+
+        /**
+         * Specifies a fallback function that is invoked when OAuth flow fails
+         * with an [AuthenticationFailedCause.Error], e.g. a token exchange error, network/parse failure etc.
+         * If call is not handled in the fallback, `401 Unauthorized` will be responded.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthAuthenticationProvider.Config.fallback)
+         */
+        public var fallback: suspend ApplicationCall.(AuthenticationFailedCause.Error) -> Unit = {}
 
         internal fun build() = OAuthAuthenticationProvider(this)
     }
@@ -113,6 +123,13 @@ internal suspend fun OAuthAuthenticationProvider.oauth2(authProviderName: String
     }
 
     cause ?: return
+
+    if (cause is AuthenticationFailedCause.Error) {
+        this@oauth2.fallback.invoke(call, cause)
+        context.error(OAuthKey, cause)
+        return
+    }
+
     @Suppress("NAME_SHADOWING")
     context.challenge(OAuthKey, cause) { challenge, call ->
         val state = provider.nonceManager.newNonce()
@@ -149,9 +166,5 @@ private suspend fun OAuthAuthenticationProvider.oauth2RequestToken(
     AuthenticationFailedCause.InvalidCredentials
 } catch (cause: Throwable) {
     Logger.trace("OAuth2 request access token failed", cause)
-    context.error(
-        OAuthKey,
-        AuthenticationFailedCause.Error("Failed to request OAuth2 access token due to $cause")
-    )
-    null
+    AuthenticationFailedCause.Error("Failed to request OAuth2 access token due to $cause")
 }
