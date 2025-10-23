@@ -562,7 +562,9 @@ class DependencyInjectionTest {
     }
 
     @Test
-    fun `access to raw types`() = runTestDI {
+    fun `access to raw types`() = runTestDI({
+        conflictPolicy = DefaultConflictPolicy
+    }) {
         val expectedService = GreetingServiceImpl()
         dependencies {
             provide<GreetingService> { expectedService }
@@ -578,6 +580,19 @@ class DependencyInjectionTest {
         assertFailsWith<AmbiguousDependencyException> {
             dependencies.get(DependencyKey(TypeInfo(Map::class)))
         }
+    }
+
+    @Test
+    fun `override previous policy`() = runTestDI({
+        conflictPolicy = OverridePrevious
+    }) {
+        dependencies {
+            provide<GreetingService> { GreetingServiceImpl() }
+            provide<GreetingService> { BankGreetingService() }
+        }
+
+        val service: GreetingService = dependencies.resolve()
+        assertEquals(HELLO_CUSTOMER, service.hello())
     }
 
     @Suppress("UNCHECKED_CAST")
