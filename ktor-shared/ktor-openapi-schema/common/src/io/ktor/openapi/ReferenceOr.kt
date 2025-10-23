@@ -19,6 +19,12 @@ private const val RecursiveRefKey = $$"$recursiveRef"
  */
 @Serializable(with = ReferenceOr.Companion.Serializer::class)
 public sealed interface ReferenceOr<out A> {
+    /**
+     * A reference to a definition within the current specification.
+     *
+     * @property ref Reference to a definition like #/components/schemas/Name
+     * @property isRecursive Whether this reference is recursive.
+     */
     public data class Reference(
         public val ref: String,
         public val isRecursive: Boolean = false,
@@ -26,6 +32,11 @@ public sealed interface ReferenceOr<out A> {
 
     @JvmInline public value class Value<A>(public val value: A) : ReferenceOr<A>
 
+    /**
+     * Returns the value if this instance is of type [Value], or null if it is of type [Reference].
+     *
+     * @return The value of type [A] if this is a [Value], or null if this is a [Reference].
+     */
     public fun valueOrNull(): A? =
         when (this) {
             is Reference -> null
