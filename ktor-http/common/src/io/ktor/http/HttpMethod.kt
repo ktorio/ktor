@@ -27,6 +27,7 @@ public data class HttpMethod(val value: String) {
         public val Delete: HttpMethod = HttpMethod("DELETE")
         public val Head: HttpMethod = HttpMethod("HEAD")
         public val Options: HttpMethod = HttpMethod("OPTIONS")
+        public val Trace: HttpMethod = HttpMethod("TRACE")
 
         /**
          * Parse HTTP method by [method] string
@@ -39,6 +40,7 @@ public data class HttpMethod(val value: String) {
                 Post.value -> Post
                 Put.value -> Put
                 Patch.value -> Patch
+                Trace.value -> Trace
                 Delete.value -> Delete
                 Head.value -> Head
                 Options.value -> Options
@@ -59,7 +61,7 @@ private val REQUESTS_WITHOUT_BODY = setOf(
     HttpMethod.Get,
     HttpMethod.Head,
     HttpMethod.Options,
-    HttpMethod("TRACE"),
+    HttpMethod.Trace,
 )
 
 /**

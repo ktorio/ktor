@@ -653,6 +653,7 @@ public final class io/ktor/http/HttpMethod$Companion {
 	public final fun getPatch ()Lio/ktor/http/HttpMethod;
 	public final fun getPost ()Lio/ktor/http/HttpMethod;
 	public final fun getPut ()Lio/ktor/http/HttpMethod;
+	public final fun getTrace ()Lio/ktor/http/HttpMethod;
 	public final fun parse (Ljava/lang/String;)Lio/ktor/http/HttpMethod;
 }
 
