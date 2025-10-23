@@ -14,11 +14,13 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 
 class RouteAnnotationApiTest {
 
@@ -173,6 +175,97 @@ class RouteAnnotationApiTest {
         val responseText = routesResponse.bodyAsText()
         assertContains(responseText, "\"X-First\"")
         assertContains(responseText, "\"X-Second\"")
+    }
+
+    @Test
+    fun annotateMerging() = testApplication {
+        install(ContentNegotiation) {
+            json(jsonFormat)
+        }
+        routing {
+            get("/routes") {
+                val routes = call.application.routingRoot.findPathItems() - "/routes"
+                call.respond(routes)
+            }
+            route("/messages") {
+                get {
+                    call.respond(listOf(testMessage))
+                }.annotate {
+                    summary = "get messages"
+                    description = "Retrieves a list of messages."
+
+                    parameters {
+                        query("q") {
+                            required = true
+                            schema = jsonSchema<String>()
+                            description = "Message query"
+                        }
+                    }
+                    responses {
+                        HttpStatusCode.OK {
+                            description = "A list of messages"
+                            jsonSchema = jsonSchema<List<Message>>()
+                            extension("x-bonus", "child")
+                        }
+                    }
+                }
+            }.annotate {
+                summary = "parent route"
+
+                parameters {
+                    query("q") {
+                        required = false
+                        description = "A query"
+                    }
+                }
+                responses {
+                    HttpStatusCode.OK {
+                        description = "Some list"
+                        extension("x-bonus", "parent")
+                    }
+                    HttpStatusCode.BadRequest {
+                        ContentType.Text.Plain()
+                    }
+                }
+            }
+        }
+
+        val routesResponse = client.get("/routes")
+        val responseText = routesResponse.bodyAsText()
+        val pathItems: Map<String, PathItem> = jsonFormat.decodeFromString(responseText)
+        assertEquals(1, pathItems.size)
+
+        val operation = pathItems.values.firstOrNull()?.get
+        assertNotNull(operation, "Expect get operation")
+        assertEquals("get messages", operation.summary)
+        assertEquals("Retrieves a list of messages.", operation.description)
+
+        val parameters = operation.parameters
+        assertNotNull(parameters, "Parameters were null")
+        assertEquals(1, parameters.size, "Expected a single, merged parameter but got: $parameters")
+        with(parameters.single().valueOrNull()!!) {
+            assertEquals("q", name)
+            assertEquals("Message query", description)
+            assertEquals(true, required)
+            assertEquals(jsonSchema<String>(), schema?.valueOrNull())
+        }
+
+        val responses = operation.responses
+        assertNotNull(responses, "Responses were null")
+        val okResponse = responses.responses?.get(HttpStatusCode.OK.value)?.valueOrNull()
+        assertNotNull(okResponse, "OK response is missing")
+        assertEquals("A list of messages", okResponse.description)
+        assertEquals("child", okResponse.extensions?.get("x-bonus")?.deserialize(String.serializer()))
+        assertEquals(
+            jsonSchema<List<Message>>(),
+            okResponse.content?.get(ContentType.Application.Json)?.schema?.valueOrNull()
+        )
+        val badRequestResponse = responses.responses?.get(HttpStatusCode.BadRequest.value)?.valueOrNull()
+        assertNotNull(badRequestResponse, "Bad request response is missing")
+        assertNotNull(
+            badRequestResponse.content?.get(ContentType.Text.Plain),
+            "Bad request response content is missing"
+        )
     }
 }
 

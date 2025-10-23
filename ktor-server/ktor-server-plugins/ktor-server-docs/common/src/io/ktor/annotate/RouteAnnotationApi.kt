@@ -8,9 +8,11 @@ package io.ktor.annotate
 
 import io.ktor.http.*
 import io.ktor.openapi.*
+import io.ktor.openapi.ReferenceOr.Companion.value
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
+import kotlin.collections.plus
 
 /**
  * Attribute key for storing [Operation] in a [Route].
@@ -46,7 +48,7 @@ public fun RoutingNode.findPathItems(): Map<String, PathItem> =
             }
         }
 
-internal fun RoutingNode.asPathItem(): Pair<String, PathItem>? {
+private fun RoutingNode.asPathItem(): Pair<String, PathItem>? {
     if (!hasHandler()) return null
     val path = path(format = OpenApiRoutePathFormat)
     val method = method() ?: return null
@@ -56,14 +58,14 @@ internal fun RoutingNode.asPathItem(): Pair<String, PathItem>? {
     return path to pathItem
 }
 
-internal fun RoutingNode.method(): HttpMethod? =
+private fun RoutingNode.method(): HttpMethod? =
     lineage()
         .map(RoutingNode::selector)
         .filterIsInstance<HttpMethodRouteSelector>()
         .firstOrNull()
         ?.method
 
-internal fun RoutingNode.operation(): Operation? =
+private fun RoutingNode.operation(): Operation? =
     lineage().fold(null) { acc, node ->
         val current = mergeNullable(
             node.operationAttribute(),
@@ -73,10 +75,10 @@ internal fun RoutingNode.operation(): Operation? =
         mergeNullable(acc, current, Operation::plus)
     }
 
-internal fun RoutingNode.operationAttribute(): Operation? =
+private fun RoutingNode.operationAttribute(): Operation? =
     attributes.getOrNull(EndpointAnnotationAttributeKey)
 
-internal fun RoutingNode.operationFromSelector(): Operation? {
+private fun RoutingNode.operationFromSelector(): Operation? {
     return when (val paramSelector = selector) {
         is ParameterRouteSelector,
         is OptionalParameterRouteSelector -> Operation.build {
@@ -104,7 +106,7 @@ internal fun RoutingNode.operationFromSelector(): Operation? {
     }
 }
 
-internal fun newPathItem(method: HttpMethod, operation: Operation): PathItem? =
+private fun newPathItem(method: HttpMethod, operation: Operation): PathItem? =
     when (method) {
         HttpMethod.Get -> PathItem(get = operation)
         HttpMethod.Post -> PathItem(post = operation)
@@ -117,23 +119,23 @@ internal fun newPathItem(method: HttpMethod, operation: Operation): PathItem? =
         else -> null
     }
 
-internal operator fun Operation.plus(other: Operation): Operation =
+private operator fun Operation.plus(other: Operation): Operation =
     Operation(
         tags = mergeNullable(tags, other.tags) { a, b -> a + b },
         summary = summary ?: other.summary,
         description = description ?: other.description,
         externalDocs = externalDocs ?: other.externalDocs,
         operationId = operationId ?: other.operationId,
-        parameters = mergeNullable(parameters, other.parameters) { a, b -> a + b },
+        parameters = mergeParameters(parameters, other.parameters),
         requestBody = requestBody ?: other.requestBody,
         responses = mergeNullable(responses, other.responses) { a, b -> a + b },
         deprecated = deprecated ?: other.deprecated,
         security = mergeNullable(security, other.security) { a, b -> a + b },
         servers = mergeNullable(servers, other.servers) { a, b -> a + b },
-        extensions = mergeNullable(extensions, other.extensions) { a, b -> a + b }
+        extensions = mergeNullable(extensions, other.extensions) { a, b -> b + a }
     )
 
-internal operator fun PathItem.plus(other: PathItem): PathItem =
+private operator fun PathItem.plus(other: PathItem): PathItem =
     PathItem(
         summary = summary ?: other.summary,
         get = get ?: other.get,
@@ -145,20 +147,85 @@ internal operator fun PathItem.plus(other: PathItem): PathItem =
         patch = patch ?: other.patch,
         trace = trace ?: other.trace,
         servers = mergeNullable(servers, other.servers) { a, b -> a + b },
-        parameters = mergeNullable(parameters, other.parameters) { a, b -> a + b },
-        extensions = mergeNullable(extensions, other.extensions) { a, b -> a + b }
+        parameters = mergeParameters(parameters, other.parameters),
+        extensions = mergeNullable(extensions, other.extensions) { a, b -> b + a }
     )
 
-internal operator fun Responses.plus(other: Responses) =
+private fun mergeParameters(parameters: List<ReferenceOr<Parameter>>?, otherParameters: List<ReferenceOr<Parameter>>?) =
+    mergeNullable(parameters, otherParameters) { a, b ->
+        (a + b).mergeReferencesOr {
+            mergeElementsBy({ `in` to name }) { a, b -> a + b }
+        }
+    }
+
+private operator fun Responses.plus(other: Responses): Responses =
     Responses(
         default = default ?: other.default,
-        responses = mergeNullable(responses, other.responses) { a, b -> a + b },
-        extensions = mergeNullable(extensions, other.extensions) { a, b -> a + b }
+        responses = mergeNullable(responses, other.responses) { a, b ->
+            val byStatusCode = (a.entries + b.entries).groupBy({ it.key }) { it.value }
+            byStatusCode.map { (statusCode, responseList) ->
+                // Merge responses with the same status code
+                // Automatically merges response values / references
+                // and takes the first one when they cannot be combined
+                statusCode to responseList.mergeReferencesOr {
+                    listOf(reduce { responseA, responseB -> responseA + responseB })
+                }.first()
+            }.toMap()
+        },
+        extensions = mergeNullable(extensions, other.extensions) { a, b -> b + a }
     )
 
-internal fun <T> mergeNullable(a: T?, b: T?, merge: (T, T) -> T): T? =
-    when {
-        a == null -> b
-        b == null -> a
-        else -> merge(a, b)
+private operator fun Response.plus(other: Response): Response =
+    Response(
+        description = description.ifEmpty { null } ?: other.description,
+        headers = mergeNullable(headers, other.headers) { a, b -> b + a },
+        content = mergeNullable(content, other.content) { a, b -> b + a },
+        links = mergeNullable(links, other.links) { a, b -> b + a },
+        extensions = mergeNullable(extensions, other.extensions) { a, b -> b + a }
+    )
+
+private operator fun Parameter.plus(other: Parameter): Parameter =
+    Parameter(
+        name = name,
+        `in` = `in`,
+        description = description ?: other.description,
+        required = required || other.required,
+        deprecated = deprecated || other.deprecated,
+        schema = schema ?: other.schema,
+        style = style ?: other.style,
+        explode = explode ?: other.explode,
+        allowReserved = allowReserved ?: other.allowReserved,
+        allowEmptyValue = allowEmptyValue ?: other.allowEmptyValue,
+        example = example ?: other.example,
+        examples = mergeNullable(examples, other.examples) { a, b -> b + a },
+        extensions = mergeNullable(extensions, other.extensions) { a, b -> b + a }
+    )
+
+/**
+ * Merges two nullable values using the provided merge function.
+ * If both values are non-null, applies the merge function.
+ * If only one value is non-null, returns that value.
+ * If both are null, returns null.
+ */
+private fun <T> mergeNullable(a: T?, b: T?, merge: (T, T) -> T): T? =
+    if (a != null && b != null) merge(a, b) else a ?: b
+
+private fun <E> List<ReferenceOr<E>>.mergeReferencesOr(
+    mergeNonReferences: List<E>.() -> List<E> = { this }
+): List<ReferenceOr<E>> {
+    val (references, nonReferences) = partition { it is ReferenceOr.Reference }
+    @Suppress("UNCHECKED_CAST")
+    val elements = (nonReferences as List<ReferenceOr.Value<E>>).map { it.value }
+    return references.distinct() + elements.mergeNonReferences().map(::value)
+}
+
+private fun <E, K> Iterable<E>.mergeElementsBy(
+    keySelector: E.() -> K,
+    mergeElements: (E, E) -> E
+): List<E> =
+    groupBy(keySelector).map { (_, elements) ->
+        elements.reduce(mergeElements)
     }
+
+private fun <K, V> Iterable<Map.Entry<K, V>>.toMap() =
+    associate { it.key to it.value }

@@ -262,6 +262,10 @@ public sealed interface RoutePathComponent
  * Exposes the parameter name contributed by this selector (query, header, or path).
  */
 public interface RouteParameterComponent {
+    /**
+     * Represents the name, typically as a string value.
+     * This variable can be used to store or retrieve a name, identifier, or label.
+     */
     public val name: String
 }
 
@@ -269,6 +273,12 @@ public interface RouteParameterComponent {
  * Exposes child selectors composing this selector (e.g., Or/And).
  */
 public interface CompositeRouteSelector {
+    /**
+     * Provides a list of child route selectors that compose this composite route selector.
+     * This is useful for accessing individual components of a composite route, such as in cases of logical "and" or "or" operations.
+     *
+     * @return a list of [RouteSelector] instances representing the child selectors.
+     */
     public fun subSelectors(): List<RouteSelector>
 }
 
