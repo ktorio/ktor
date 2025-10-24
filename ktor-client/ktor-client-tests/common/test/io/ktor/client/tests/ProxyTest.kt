@@ -53,7 +53,7 @@ class ProxyTest : ClientLoader() {
 
     @Test
     fun testSocksProxy() = clientTests(
-        except("Js", "Darwin", "DarwinLegacy", "WinHttp", "CIO", "Apache", "Apache5", "Java")
+        except("Js", "DarwinLegacy", "WinHttp", "CIO", "Apache", "Apache5", "Java")
     ) {
         config {
             engine {
