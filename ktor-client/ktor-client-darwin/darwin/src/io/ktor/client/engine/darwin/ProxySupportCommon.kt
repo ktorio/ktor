@@ -26,7 +26,7 @@ internal fun NSURLSessionConfiguration.setupProxy(config: DarwinClientEngineConf
     }
 }
 
-internal fun NSURLSessionConfiguration.setupHttpProxy(url: Url) {
+private fun NSURLSessionConfiguration.setupHttpProxy(url: Url) {
     connectionProxyDictionary = mapOf<Any?, Any?>(
         HTTP_ENABLE_KEY to 1,
         HTTP_PROXY_KEY to url.host,
@@ -34,7 +34,7 @@ internal fun NSURLSessionConfiguration.setupHttpProxy(url: Url) {
     )
 }
 
-internal fun NSURLSessionConfiguration.setupSocksProxy(url: Url) {
+private fun NSURLSessionConfiguration.setupSocksProxy(url: Url) {
     connectionProxyDictionary = mapOf<Any?, Any?>(
         SOCKS_ENABLE_KEY to 1,
         SOCKS_PROXY_KEY to url.host,
