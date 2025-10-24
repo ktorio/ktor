@@ -1495,6 +1495,22 @@ class StaticContentTest {
         testCustomEtagAndLastModified("staticZip/nested/file-nested.txt", etag, date, "br")
     }
 
+    @Test
+    fun testSiblings() = testApplication {
+        routing {
+            staticResources("/remote", "public/nested")
+            staticResources("/remote", "public")
+        }
+
+        val responseFileNested = client.get("/remote/file-nested.txt")
+        assertEquals(HttpStatusCode.OK, responseFileNested.status)
+        assertEquals("file-nested.txt", responseFileNested.bodyAsText().trim())
+
+        val responseFile = client.get("/remote/file.txt")
+        assertEquals(HttpStatusCode.OK, responseFile.status)
+        assertEquals("file.txt", responseFile.bodyAsText().trim())
+    }
+
     private suspend fun ApplicationTestBuilder.testCustomEtagAndLastModified(
         url: String,
         expectedEtag: String,
