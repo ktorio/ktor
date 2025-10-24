@@ -39,7 +39,8 @@ public sealed class RoutingResolveResult(public val route: RoutingNode) {
         )
         public constructor(route: RoutingNode, parameters: Parameters) : this(route, parameters, 0.0)
 
-        override fun toString(): String = "SUCCESS${if (parameters.isEmpty()) "" else "; $parameters"} @ $route"
+        override fun toString(): String =
+            "SUCCESS${if (parameters.isEmpty()) "" else "; $parameters"} @ ${route.render()}"
     }
 
     /**
@@ -64,6 +65,6 @@ public sealed class RoutingResolveResult(public val route: RoutingNode) {
         override val parameters: Nothing
             get() = throw UnsupportedOperationException("Parameters are available only when routing resolve succeeds")
 
-        override fun toString(): String = "FAILURE \"$reason\" @ $route"
+        override fun toString(): String = "FAILURE \"$reason\" @ ${route.render()}"
     }
 }

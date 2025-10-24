@@ -357,7 +357,7 @@ private fun RoutingNode.getAllRoutes(endpoints: MutableList<RoutingNode>) {
 public val RoutingNode.path: String
     get() = path()
 
-private fun RoutingNode.path(): String {
+internal fun RoutingNode.path(): String {
     val parentPath = parent?.path()
     val selectorElement = selector.toPathElement()
     return when {
@@ -368,16 +368,9 @@ private fun RoutingNode.path(): String {
     }
 }
 
-private fun RouteSelector.toPathElement(): String = when (this) {
-    is PathSegmentConstantRouteSelector,
-    is PathSegmentParameterRouteSelector,
-    is PathSegmentOptionalParameterRouteSelector,
-    is PathSegmentTailcardRouteSelector,
-    is PathSegmentWildcardRouteSelector,
-    is PathSegmentRegexRouteSelector -> toString()
-
-    is TrailingSlashRouteSelector -> "/"
-
+private fun RouteSelector.toPathElement(): String = when {
+    isPathElement() -> toString()
+    this is TrailingSlashRouteSelector -> "/"
     else -> ""
 }
 
