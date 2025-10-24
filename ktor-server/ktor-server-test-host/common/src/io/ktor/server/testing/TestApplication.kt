@@ -513,7 +513,7 @@ public fun testApplication(block: suspend ApplicationTestBuilder.() -> Unit): Te
 public fun testApplication(
     parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
     block: suspend ApplicationTestBuilder.() -> Unit
-): TestResult = runTestWithRealTime {
+): TestResult = runTestWithRealTime(parentCoroutineContext) {
     runTestApplication(parentCoroutineContext, block)
 }
 
