@@ -49,7 +49,7 @@ class MultiPartFormDataContentTest {
         assertEquals(
             listOf(
                 "--boundary",
-                "Content-Disposition: form-data; name=channel",
+                "Content-Disposition: form-data; name=\"channel\"",
                 "",
                 "",
                 "--boundary--",
@@ -72,7 +72,7 @@ class MultiPartFormDataContentTest {
         assertEquals(
             listOf(
                 "--boundary",
-                "Content-Disposition: form-data; name=channel",
+                "Content-Disposition: form-data; name=\"channel\"",
                 "Content-Length: 4",
                 "",
                 "body",
@@ -95,7 +95,7 @@ class MultiPartFormDataContentTest {
         assertEquals(
             listOf(
                 "--boundary",
-                "Content-Disposition: form-data; name=not_a_forty_two",
+                "Content-Disposition: form-data; name=\"not_a_forty_two\"",
                 "Content-Length: 4",
                 "",
                 "1337", // note quotes
@@ -118,7 +118,7 @@ class MultiPartFormDataContentTest {
         assertEquals(
             listOf(
                 "--boundary",
-                "Content-Disposition: form-data; name=is_forty_two",
+                "Content-Disposition: form-data; name=\"is_forty_two\"",
                 "Content-Length: 5",
                 "",
                 "false", // note quotes
@@ -223,7 +223,7 @@ class MultiPartFormDataContentTest {
         assertEquals(
             listOf(
                 "--boundary",
-                "Content-Disposition: form-data; name=channel",
+                "Content-Disposition: form-data; name=\"channel\"",
                 "",
                 "k".repeat(4089),
                 "--boundary--",
