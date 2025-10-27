@@ -5,10 +5,10 @@
 package ktorbuild.targets
 
 import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
-import org.gradle.api.Project
 import ktorbuild.internal.kotlin
-import org.gradle.kotlin.dsl.invoke
 import ktorbuild.internal.libs
+import org.gradle.api.Project
+import org.gradle.kotlin.dsl.invoke
 
 internal fun Project.hasAndroidPlugin(): Boolean {
     return plugins.hasPlugin("com.android.kotlin.multiplatform.library")
@@ -33,14 +33,7 @@ internal fun KotlinMultiplatformAndroidLibraryTarget.addTests(targets: KtorTarge
 internal fun Project.configureAndroidJvm() {
     kotlin {
         sourceSets {
-            androidMain {
-                // should be added automatically, but fails with the new Android KMP plugin
-                dependsOn(commonMain.get())
-            }
-
-            this.findByName("androidDeviceTest")?.apply {
-                // should be added automatically, but fails with the new Android KMP plugin
-                dependsOn(commonTest.get())
+            named { it == "androidDeviceTest" }.configureEach {
                 dependencies {
                     implementation(libs.androidx.core)
                     implementation(libs.androidx.runner)

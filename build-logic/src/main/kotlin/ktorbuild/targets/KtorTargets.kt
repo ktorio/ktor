@@ -6,6 +6,7 @@
 
 package ktorbuild.targets
 
+import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
 import com.android.build.api.dsl.androidLibrary
 import ktorbuild.internal.KotlinHierarchyTracker
 import ktorbuild.internal.TrackedKotlinHierarchyTemplate
@@ -21,6 +22,7 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import org.jetbrains.kotlin.gradle.plugin.KotlinHierarchyBuilder
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
 import javax.inject.Inject
@@ -183,7 +185,7 @@ abstract class KtorTargets internal constructor(
                     group("androidNative")
                 }
 
-                withAndroidTarget()
+                withAndroidLibrary()
             }
         }
 
@@ -349,4 +351,11 @@ private fun KotlinMultiplatformExtension.flattenSourceSetsStructure() {
             kotlin.setSrcDirs(listOf("$platform/$srcDir"))
             resources.setSrcDirs(listOf("$platform/${resourcesPrefix}resources"))
         }
+}
+
+// The default `withAndroidTarget` doesn't include the target created by the new KMP Android plugin.
+@OptIn(ExperimentalKotlinGradlePluginApi::class)
+private fun KotlinHierarchyBuilder.withAndroidLibrary() {
+    (this as? KotlinHierarchyTracker)?.addTarget("android")
+    withCompilations { it.target is KotlinMultiplatformAndroidLibraryTarget }
 }
