@@ -3,12 +3,13 @@
  */
 @file:OptIn(ExperimentalWasmDsl::class)
 
+import ktorbuild.targets.optionalAndroidLibrary
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 description = "Ktor WebRTC Client"
 
 plugins {
-    id("com.android.kotlin.multiplatform.library")
+    id("ktorbuild.optional.android-library")
     id("kotlinx-serialization")
     id("ktorbuild.project.library")
 }
@@ -16,7 +17,7 @@ plugins {
 kotlin {
     jvmToolchain(17)
 
-    androidLibrary {
+    optionalAndroidLibrary {
         namespace = "io.ktor.client.webrtc"
         compileSdk = 35
         minSdk = 28
@@ -46,7 +47,7 @@ kotlin {
             }
         }
 
-        androidMain.dependencies {
+        optional.androidMain.dependencies {
             implementation(libs.stream.webrtc.android)
         }
     }
