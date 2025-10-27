@@ -15,7 +15,7 @@ dependencies {
     implementation(libs.gradleDoctor)
     implementation(libs.kotlinter)
     implementation(libs.mavenPublishing)
-    implementation(libs.android.kmp.library)
+    implementation(libs.android.gradlePlugin)
 
     // Needed for patches/DokkaVersioningPluginParameters
     // TODO: Remove when the PR fixing this file will be merged and released. Probably in Dokka 2.2.0
