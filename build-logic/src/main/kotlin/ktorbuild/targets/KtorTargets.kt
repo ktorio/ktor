@@ -9,12 +9,11 @@ package ktorbuild.targets
 import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
 import com.android.build.api.dsl.androidLibrary
 import ktorbuild.internal.KotlinHierarchyTracker
+import ktorbuild.internal.KtorBuildProblems
 import ktorbuild.internal.TrackedKotlinHierarchyTemplate
 import ktorbuild.internal.gradle.ProjectGradleProperties
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.problems.ProblemGroup
-import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.ProblemReporter
 import org.gradle.api.problems.Problems
 import org.gradle.kotlin.dsl.newInstance
@@ -240,13 +239,6 @@ internal fun KotlinMultiplatformExtension.addTargets(targets: KtorTargets, isCI:
 
 private const val IGNORE_EXTRA_SOURCE_SETS_PROPERTY = "ktor.ignoreExtraSourceSets"
 
-private val ktorProblemGroup = ProblemGroup.create("ktor", "Ktor")
-private val extraSourceSetProblemId = ProblemId.create(
-    "ktor-extra-source-sets",
-    "Extra source sets detected",
-    ktorProblemGroup,
-)
-
 /**
  * Ensures that no additional source sets have been added after the initial automatic configuration phase.
  *
@@ -275,14 +267,14 @@ private fun KotlinMultiplatformExtension.freezeSourceSets() {
     }
 }
 
-private fun ProblemReporter.reportExtraSourceSetsWarning(context: String) = report(extraSourceSetProblemId) {
+private fun ProblemReporter.reportExtraSourceSetsWarning(context: String) = report(KtorBuildProblems.extraSourceSet) {
     contextualLabel(context)
     details("Ignoring them because '$IGNORE_EXTRA_SOURCE_SETS_PROPERTY' property is set to 'true'.")
 }
 
 private fun ProblemReporter.reportExtraSourceSetsError(context: String) = throwing(
-    IllegalStateException(extraSourceSetProblemId.displayName),
-    extraSourceSetProblemId,
+    IllegalStateException(KtorBuildProblems.extraSourceSet.displayName),
+    KtorBuildProblems.extraSourceSet,
 ) {
     contextualLabel(context)
     details(
