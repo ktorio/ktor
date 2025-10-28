@@ -1081,6 +1081,10 @@ public final class io/ktor/client/plugins/websocket/WebSockets$Plugin : io/ktor/
 	public synthetic fun prepare (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
+public final class io/ktor/client/plugins/websocket/WebSocketsKt {
+	public static final fun getWEBSOCKETS_KEY ()Lio/ktor/util/AttributeKey;
+}
+
 public final class io/ktor/client/request/BuildersJvmKt {
 	public static final fun delete (Lio/ktor/client/HttpClient;Ljava/net/URL;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun delete$default (Lio/ktor/client/HttpClient;Ljava/net/URL;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
