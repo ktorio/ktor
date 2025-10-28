@@ -45,7 +45,6 @@ public fun interface WebRtcClientEngineFactory<out T : WebRtcConfig> {
  * ```
  * @param block configuration block for the client
  */
-@KtorDsl
 @ExperimentalKtorApi
 public fun <T : WebRtcConfig> WebRtcClient(
     factory: WebRtcClientEngineFactory<T>,
