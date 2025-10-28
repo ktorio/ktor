@@ -26,7 +26,7 @@ internal class DarwinSession(
     private val session = sessionAndDelegate.first
     private val delegate = sessionAndDelegate.second
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalAPI::class, ExperimentalForeignApi::class)
     internal suspend fun execute(request: HttpRequestData, callContext: CoroutineContext): HttpResponseData {
         val nativeRequest = request.toNSUrlRequest()
             .apply(config.requestConfig)
@@ -37,7 +37,7 @@ internal class DarwinSession(
             // Fields MUST be assigned on the task BEFORE starting it.
             // The "maximum message size" actually refers to the underlying buffer,
             // so it will allow >= maxFrameSize, depending on how quickly our bytes are read to the buffer.
-            task.setMaximumMessageSize(maxFrameSize.toInt())
+            task.setMaximumMessageSize(maxFrameSize.convert())
 
             task to response
         } else {
