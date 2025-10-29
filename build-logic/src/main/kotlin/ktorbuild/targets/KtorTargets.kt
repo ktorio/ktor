@@ -69,6 +69,7 @@ abstract class KtorTargets @Inject internal constructor(
     private val targetStates: MutableMap<String, Boolean> by lazy {
         loadDefaults(providers.projectGradleProperties(layout, "target.").get())
     }
+    private var targetStatesAccessed: Boolean = false
 
     private val targetDirectories: Provider<Set<String>> = providers.projectTargetDirectories(layout)
 
@@ -96,12 +97,24 @@ abstract class KtorTargets @Inject internal constructor(
      * unless explicitly configured in `gradle.properties`.
      */
     fun isEnabled(target: String): Boolean = targetStates.getOrPut(target) {
+        targetStatesAccessed = true
+
         // Sub-targets inherit parent state
         if (target.contains(".")) {
             isEnabled(target.substringBefore("."))
         } else {
             hierarchyTracker.targetSourceSets.getValue(target).any { it in targetDirectories.get() }
         }
+    }
+
+    /**
+     * Sets the state of the specified [target] to the given [value].
+     *
+     * This function takes effect only if used before first [isEnabled] call.
+     */
+    internal operator fun set(target: String, value: Boolean) {
+        check(!targetStatesAccessed) { "Can't change target state after it has been accessed." }
+        for (sourceSet in resolveTargets(target)) targetStates[sourceSet] = value
     }
 
     private fun loadDefaults(rawDefaults: Map<String, String>): MutableMap<String, Boolean> {
