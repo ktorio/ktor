@@ -544,7 +544,7 @@ class HttpRequestRetryTest {
 
         test { client ->
             assertEquals(HttpStatusCode.OK, client.get("/").status)
-            println(counter)
+            assertEquals(maxRetriesCount, counter)
         }
     }
 }
