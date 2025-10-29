@@ -37,4 +37,3 @@ private fun HttpClient.supportedMethods(): List<HttpMethod> = when (engineName) 
 }
 
 private val HttpClient.engineName get() = engine::class.simpleName
-private val HttpMethod.Companion.Trace get() = HttpMethod("TRACE")
