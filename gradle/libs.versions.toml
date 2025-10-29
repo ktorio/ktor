@@ -1,6 +1,6 @@
 [versions]
 
-kotlin = "2.2.20"
+kotlin = "2.2.21"
 android-kmp-plugin = "8.9.2"
 androidx-test = "1.7.0"
 kotlinx-html = "0.12.0"
@@ -21,7 +21,7 @@ netty = "4.2.7.Final"
 netty-tcnative = "2.0.74.Final"
 
 jetty = "9.4.58.v20250814"
-jetty-jakarta = "12.0.28"
+jetty-jakarta = "12.0.29"
 jetty-alpn-api = "1.1.3.v20160715"
 jetty-alpn-openjdk8 = "9.4.58.v20250814"
 
