@@ -325,6 +325,11 @@ public val HttpRequestRetry: ClientPlugin<HttpRequestRetryConfig> = createClient
         return subRequest
     }
 
+    onRequest { request, _ ->
+        val maxRetriesValue = request.attributes.getOrNull(MaxRetriesPerRequestAttributeKey) ?: maxRetries
+        request.attributes.put(MaxRetriesPerRequestAttributeKey, maxRetriesValue)
+    }
+
     on(Send) { request ->
         var retryCount = 0
         val shouldRetry = request.attributes.getOrNull(ShouldRetryPerRequestAttributeKey) ?: shouldRetry
@@ -376,8 +381,8 @@ public val HttpRequestRetry: ClientPlugin<HttpRequestRetryConfig> = createClient
 }
 
 /**
- * A context for [HttpRequestRetry.Configuration.shouldRetry]
- * and [HttpRequestRetry.Configuration.shouldRetryOnException]
+ * A context for [HttpRequestRetryConfig.shouldRetry]
+ * and [HttpRequestRetryConfig.shouldRetryOnException]
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpRetryShouldRetryContext)
  */
@@ -389,7 +394,7 @@ public class HttpRetryShouldRetryContext(
 )
 
 /**
- * A context for [HttpRequestRetry.Configuration.delayMillis].
+ * A context for [HttpRequestRetryConfig.delayMillis].
  * Contains a non-null [response] or [cause] but not both.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpRetryDelayContext)
@@ -401,7 +406,7 @@ public class HttpRetryDelayContext internal constructor(
 )
 
 /**
- * A context for [HttpRequestRetry.Configuration.modifyRequest].
+ * A context for [HttpRequestRetryConfig.modifyRequest].
  * Contains a non-null [response] or [cause] but not both.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpRetryModifyRequestContext)
@@ -445,8 +450,7 @@ public fun HttpRequestBuilder.retry(block: HttpRequestRetryConfig.() -> Unit) {
     attributes.put(ModifyRequestPerRequestAttributeKey, configuration.modifyRequest)
 }
 
-private val MaxRetriesPerRequestAttributeKey =
-    AttributeKey<Int>("MaxRetriesPerRequestAttributeKey")
+internal val MaxRetriesPerRequestAttributeKey = AttributeKey<Int>("MaxRetriesPerRequestAttributeKey")
 
 private val ShouldRetryPerRequestAttributeKey =
     AttributeKey<HttpRetryShouldRetryContext.(HttpRequest, HttpResponse) -> Boolean>(
