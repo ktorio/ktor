@@ -280,7 +280,7 @@ class ContentTest : ClientLoader() {
                 }
             ).body<String>()
 
-            assertContains(response, "Content-Disposition: form-data; name=channel")
+            assertContains(response, "Content-Disposition: form-data; name=\"channel\"")
             assertContains(response, "from channel")
         }
     }
