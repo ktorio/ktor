@@ -174,7 +174,10 @@ public interface HttpClientEngine : CoroutineScope, Closeable {
     private suspend fun executeWithinCallContext(requestData: HttpRequestData): HttpResponseData {
         val callContext = createCallContext(requestData.executionContext)
 
-        val context = callContext + KtorCallContextElement(callContext)
+        val context = config.contextProvider?.let { provider ->
+            callContext + KtorCallContextElement(callContext) + provider.invoke()
+        } ?: callContext + KtorCallContextElement(callContext)
+
         return async(context) {
             if (closed) {
                 throw ClientEngineClosedException()
