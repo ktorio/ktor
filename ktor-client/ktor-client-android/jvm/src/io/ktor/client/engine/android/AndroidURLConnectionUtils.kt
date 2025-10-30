@@ -4,6 +4,8 @@
 
 package io.ktor.client.engine.android
 
+import android.os.*
+import android.os.ext.SdkExtensions
 import io.ktor.client.network.sockets.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
@@ -85,7 +87,21 @@ internal fun HttpURLConnection.content(status: Int, callContext: CoroutineContex
 }
 
 /**
- * Checks the exception and identifies timeout exception by it.
- */
+     * Determines whether this throwable represents a network timeout.
+     *
+     * @return `true` if the throwable is a `SocketTimeoutException` or a `ConnectException` whose message contains "timed out", `false` otherwise.
+     */
 private fun Throwable.isTimeoutException(): Boolean =
     this is java.net.SocketTimeoutException || (this is ConnectException && message?.contains("timed out") ?: false)
+
+internal val isAndroid: Boolean = "Dalvik" == System.getProperty("java.vm.name")
+
+/**
+     * Determines whether the Android HTTP engine is supported on the current runtime.
+     *
+     * @return `true` if the runtime VM is Dalvik, the OS SDK level is at least 30, and the S platform
+     * extensions version is at least 7; `false` otherwise.
+     */
+    internal fun isHttpEngineAvailable() = isAndroid &&
+    Build.VERSION.SDK_INT >= 30 &&
+    SdkExtensions.getExtensionVersion(Build.VERSION_CODES.S) >= 7
