@@ -82,6 +82,12 @@ io.ktor:ktor-client-serialization-js/sources.jar
 io.ktor:ktor-client-serialization-wasm-js/.klib
 io.ktor:ktor-client-serialization-wasm-js/javadoc.jar
 io.ktor:ktor-client-serialization-wasm-js/sources.jar
+io.ktor:ktor-client-webrtc-js/.klib
+io.ktor:ktor-client-webrtc-js/javadoc.jar
+io.ktor:ktor-client-webrtc-js/sources.jar
+io.ktor:ktor-client-webrtc-wasm-js/.klib
+io.ktor:ktor-client-webrtc-wasm-js/javadoc.jar
+io.ktor:ktor-client-webrtc-wasm-js/sources.jar
 io.ktor:ktor-client-websockets-js/.klib
 io.ktor:ktor-client-websockets-js/javadoc.jar
 io.ktor:ktor-client-websockets-js/sources.jar

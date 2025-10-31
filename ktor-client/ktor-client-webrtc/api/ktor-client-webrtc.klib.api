@@ -1,6 +1,6 @@
 // Klib ABI Dump
-// Targets: [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, js, linuxArm64, linuxX64, mingwX64, wasmJs]
-// Alias: apple => [iosArm64, iosSimulatorArm64, iosX64]
+// Targets: [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, js, wasmJs]
+// Alias: ios => [iosArm64, iosSimulatorArm64, iosX64]
 // Rendering settings:
 // - Signature version: 2
 // - Show manifest properties: true
@@ -827,7 +827,7 @@ final object io.ktor.client.webrtc/WebRtcMedia { // io.ktor.client.webrtc/WebRtc
 
 final fun <#A: io.ktor.client.webrtc/WebRtcConfig> io.ktor.client.webrtc/WebRtcClient(io.ktor.client.webrtc/WebRtcClientEngineFactory<#A>, kotlin/Function1<#A, kotlin/Unit> = ...): io.ktor.client.webrtc/WebRtcClient // io.ktor.client.webrtc/WebRtcClient|WebRtcClient(io.ktor.client.webrtc.WebRtcClientEngineFactory<0:0>;kotlin.Function1<0:0,kotlin.Unit>){0§<io.ktor.client.webrtc.WebRtcConfig>}[0]
 
-// Targets: [apple]
+// Targets: [ios]
 abstract interface io.ktor.client.webrtc.media/Capturer : kotlin/AutoCloseable { // io.ktor.client.webrtc.media/Capturer|null[0]
     abstract val isCapturing // io.ktor.client.webrtc.media/Capturer.isCapturing|{}isCapturing[0]
         abstract fun <get-isCapturing>(): kotlin/Boolean // io.ktor.client.webrtc.media/Capturer.isCapturing.<get-isCapturing>|<get-isCapturing>(){}[0]
@@ -836,12 +836,12 @@ abstract interface io.ktor.client.webrtc.media/Capturer : kotlin/AutoCloseable {
     abstract fun stopCapture() // io.ktor.client.webrtc.media/Capturer.stopCapture|stopCapture(){}[0]
 }
 
-// Targets: [apple]
+// Targets: [ios]
 abstract interface io.ktor.client.webrtc.media/VideoCapturerFactory { // io.ktor.client.webrtc.media/VideoCapturerFactory|null[0]
     abstract fun create(io.ktor.client.webrtc/WebRtcMedia.VideoTrackConstraints, WebRTC/RTCVideoCapturerDelegateProtocol): io.ktor.client.webrtc.media/Capturer // io.ktor.client.webrtc.media/VideoCapturerFactory.create|create(io.ktor.client.webrtc.WebRtcMedia.VideoTrackConstraints;WebRTC.RTCVideoCapturerDelegateProtocol){}[0]
 }
 
-// Targets: [apple]
+// Targets: [ios]
 abstract class io.ktor.client.webrtc.media/IosMediaTrack : io.ktor.client.webrtc/WebRtcMedia.Track { // io.ktor.client.webrtc.media/IosMediaTrack|null[0]
     constructor <init>(WebRTC/RTCMediaStreamTrack, kotlin/Function0<kotlin/Unit>) // io.ktor.client.webrtc.media/IosMediaTrack.<init>|<init>(WebRTC.RTCMediaStreamTrack;kotlin.Function0<kotlin.Unit>){}[0]
 
@@ -860,7 +860,7 @@ abstract class io.ktor.client.webrtc.media/IosMediaTrack : io.ktor.client.webrtc
     }
 }
 
-// Targets: [apple]
+// Targets: [ios]
 final class io.ktor.client.webrtc.media/CameraVideoCapturer : io.ktor.client.webrtc.media/Capturer { // io.ktor.client.webrtc.media/CameraVideoCapturer|null[0]
     constructor <init>(io.ktor.client.webrtc/WebRtcMedia.VideoTrackConstraints, WebRTC/RTCVideoCapturerDelegateProtocol) // io.ktor.client.webrtc.media/CameraVideoCapturer.<init>|<init>(io.ktor.client.webrtc.WebRtcMedia.VideoTrackConstraints;WebRTC.RTCVideoCapturerDelegateProtocol){}[0]
 
@@ -879,12 +879,12 @@ final class io.ktor.client.webrtc.media/CameraVideoCapturer : io.ktor.client.web
     }
 }
 
-// Targets: [apple]
+// Targets: [ios]
 final class io.ktor.client.webrtc.media/IosAudioTrack : io.ktor.client.webrtc.media/IosMediaTrack, io.ktor.client.webrtc/WebRtcMedia.AudioTrack { // io.ktor.client.webrtc.media/IosAudioTrack|null[0]
     constructor <init>(WebRTC/RTCMediaStreamTrack, kotlin/Function0<kotlin/Unit> = ...) // io.ktor.client.webrtc.media/IosAudioTrack.<init>|<init>(WebRTC.RTCMediaStreamTrack;kotlin.Function0<kotlin.Unit>){}[0]
 }
 
-// Targets: [apple]
+// Targets: [ios]
 final class io.ktor.client.webrtc.media/IosMediaDevices : io.ktor.client.webrtc/MediaTrackFactory { // io.ktor.client.webrtc.media/IosMediaDevices|null[0]
     constructor <init>(io.ktor.client.webrtc.media/VideoCapturerFactory = ...) // io.ktor.client.webrtc.media/IosMediaDevices.<init>|<init>(io.ktor.client.webrtc.media.VideoCapturerFactory){}[0]
 
@@ -895,12 +895,12 @@ final class io.ktor.client.webrtc.media/IosMediaDevices : io.ktor.client.webrtc/
     final suspend fun createVideoTrack(io.ktor.client.webrtc/WebRtcMedia.VideoTrackConstraints): io.ktor.client.webrtc/WebRtcMedia.VideoTrack // io.ktor.client.webrtc.media/IosMediaDevices.createVideoTrack|createVideoTrack(io.ktor.client.webrtc.WebRtcMedia.VideoTrackConstraints){}[0]
 }
 
-// Targets: [apple]
+// Targets: [ios]
 final class io.ktor.client.webrtc.media/IosVideoTrack : io.ktor.client.webrtc.media/IosMediaTrack, io.ktor.client.webrtc/WebRtcMedia.VideoTrack { // io.ktor.client.webrtc.media/IosVideoTrack|null[0]
     constructor <init>(WebRTC/RTCMediaStreamTrack, kotlin/Function0<kotlin/Unit> = ...) // io.ktor.client.webrtc.media/IosVideoTrack.<init>|<init>(WebRTC.RTCMediaStreamTrack;kotlin.Function0<kotlin.Unit>){}[0]
 }
 
-// Targets: [apple]
+// Targets: [ios]
 final class io.ktor.client.webrtc.media/SimulatorVideoCapturer : io.ktor.client.webrtc.media/Capturer { // io.ktor.client.webrtc.media/SimulatorVideoCapturer|null[0]
     constructor <init>(io.ktor.client.webrtc/WebRtcMedia.VideoTrackConstraints, WebRTC/RTCVideoCapturerDelegateProtocol) // io.ktor.client.webrtc.media/SimulatorVideoCapturer.<init>|<init>(io.ktor.client.webrtc.WebRtcMedia.VideoTrackConstraints;WebRTC.RTCVideoCapturerDelegateProtocol){}[0]
 
@@ -923,7 +923,7 @@ final class io.ktor.client.webrtc.media/SimulatorVideoCapturer : io.ktor.client.
     }
 }
 
-// Targets: [apple]
+// Targets: [ios]
 final class io.ktor.client.webrtc/IosDtmfSender : io.ktor.client.webrtc/WebRtc.DtmfSender { // io.ktor.client.webrtc/IosDtmfSender|null[0]
     constructor <init>(WebRTC/RTCDtmfSenderProtocol) // io.ktor.client.webrtc/IosDtmfSender.<init>|<init>(WebRTC.RTCDtmfSenderProtocol){}[0]
 
@@ -935,7 +935,7 @@ final class io.ktor.client.webrtc/IosDtmfSender : io.ktor.client.webrtc/WebRtc.D
     final fun insertDtmf(kotlin/String, kotlin/Int, kotlin/Int) // io.ktor.client.webrtc/IosDtmfSender.insertDtmf|insertDtmf(kotlin.String;kotlin.Int;kotlin.Int){}[0]
 }
 
-// Targets: [apple]
+// Targets: [ios]
 final class io.ktor.client.webrtc/IosRtpParameters : io.ktor.client.webrtc/WebRtc.RtpParameters { // io.ktor.client.webrtc/IosRtpParameters|null[0]
     constructor <init>(WebRTC/RTCRtpParameters) // io.ktor.client.webrtc/IosRtpParameters.<init>|<init>(WebRTC.RTCRtpParameters){}[0]
 
@@ -953,7 +953,7 @@ final class io.ktor.client.webrtc/IosRtpParameters : io.ktor.client.webrtc/WebRt
         final fun <get-transactionId>(): kotlin/String // io.ktor.client.webrtc/IosRtpParameters.transactionId.<get-transactionId>|<get-transactionId>(){}[0]
 }
 
-// Targets: [apple]
+// Targets: [ios]
 final class io.ktor.client.webrtc/IosRtpSender : io.ktor.client.webrtc/WebRtc.RtpSender { // io.ktor.client.webrtc/IosRtpSender|null[0]
     constructor <init>(WebRTC/RTCRtpSender) // io.ktor.client.webrtc/IosRtpSender.<init>|<init>(WebRTC.RTCRtpSender){}[0]
 
@@ -967,7 +967,7 @@ final class io.ktor.client.webrtc/IosRtpSender : io.ktor.client.webrtc/WebRtc.Rt
     final suspend fun setParameters(io.ktor.client.webrtc/WebRtc.RtpParameters) // io.ktor.client.webrtc/IosRtpSender.setParameters|setParameters(io.ktor.client.webrtc.WebRtc.RtpParameters){}[0]
 }
 
-// Targets: [apple]
+// Targets: [ios]
 final class io.ktor.client.webrtc/IosWebRtcConnection : io.ktor.client.webrtc/WebRtcPeerConnection { // io.ktor.client.webrtc/IosWebRtcConnection|null[0]
     constructor <init>(kotlin.coroutines/CoroutineContext, io.ktor.client.webrtc/WebRtcConnectionConfig, kotlin/Function1<WebRTC/RTCPeerConnectionDelegateProtocol, WebRTC/RTCPeerConnection?>) // io.ktor.client.webrtc/IosWebRtcConnection.<init>|<init>(kotlin.coroutines.CoroutineContext;io.ktor.client.webrtc.WebRtcConnectionConfig;kotlin.Function1<WebRTC.RTCPeerConnectionDelegateProtocol,WebRTC.RTCPeerConnection?>){}[0]
 
@@ -990,7 +990,7 @@ final class io.ktor.client.webrtc/IosWebRtcConnection : io.ktor.client.webrtc/We
     final suspend fun setRemoteDescription(io.ktor.client.webrtc/WebRtc.SessionDescription) // io.ktor.client.webrtc/IosWebRtcConnection.setRemoteDescription|setRemoteDescription(io.ktor.client.webrtc.WebRtc.SessionDescription){}[0]
 }
 
-// Targets: [apple]
+// Targets: [ios]
 final class io.ktor.client.webrtc/IosWebRtcDataChannel : io.ktor.client.webrtc/WebRtcDataChannel { // io.ktor.client.webrtc/IosWebRtcDataChannel|null[0]
     constructor <init>(WebRTC/RTCDataChannel, kotlinx.coroutines/CoroutineScope, io.ktor.client.webrtc/DataChannelReceiveOptions) // io.ktor.client.webrtc/IosWebRtcDataChannel.<init>|<init>(WebRTC.RTCDataChannel;kotlinx.coroutines.CoroutineScope;io.ktor.client.webrtc.DataChannelReceiveOptions){}[0]
 
@@ -1022,7 +1022,7 @@ final class io.ktor.client.webrtc/IosWebRtcDataChannel : io.ktor.client.webrtc/W
     final suspend fun send(kotlin/String) // io.ktor.client.webrtc/IosWebRtcDataChannel.send|send(kotlin.String){}[0]
 }
 
-// Targets: [apple]
+// Targets: [ios]
 final class io.ktor.client.webrtc/IosWebRtcEngine : io.ktor.client.webrtc/MediaTrackFactory, io.ktor.client.webrtc/WebRtcEngineBase { // io.ktor.client.webrtc/IosWebRtcEngine|null[0]
     constructor <init>(io.ktor.client.webrtc/IosWebRtcEngineConfig, io.ktor.client.webrtc/MediaTrackFactory = ...) // io.ktor.client.webrtc/IosWebRtcEngine.<init>|<init>(io.ktor.client.webrtc.IosWebRtcEngineConfig;io.ktor.client.webrtc.MediaTrackFactory){}[0]
 
@@ -1036,7 +1036,7 @@ final class io.ktor.client.webrtc/IosWebRtcEngine : io.ktor.client.webrtc/MediaT
     final suspend fun createVideoTrack(kotlin/Function1<io.ktor.client.webrtc/WebRtcMedia.VideoTrackConstraints, kotlin/Unit>): io.ktor.client.webrtc/WebRtcMedia.VideoTrack // io.ktor.client.webrtc/IosWebRtcEngine.createVideoTrack|createVideoTrack(kotlin.Function1<io.ktor.client.webrtc.WebRtcMedia.VideoTrackConstraints,kotlin.Unit>){}[0]
 }
 
-// Targets: [apple]
+// Targets: [ios]
 final class io.ktor.client.webrtc/IosWebRtcEngineConfig : io.ktor.client.webrtc/WebRtcConfig { // io.ktor.client.webrtc/IosWebRtcEngineConfig|null[0]
     constructor <init>() // io.ktor.client.webrtc/IosWebRtcEngineConfig.<init>|<init>(){}[0]
 
@@ -1045,33 +1045,33 @@ final class io.ktor.client.webrtc/IosWebRtcEngineConfig : io.ktor.client.webrtc/
         final fun <set-rtcFactory>(WebRTC/RTCPeerConnectionFactory?) // io.ktor.client.webrtc/IosWebRtcEngineConfig.rtcFactory.<set-rtcFactory>|<set-rtcFactory>(WebRTC.RTCPeerConnectionFactory?){}[0]
 }
 
-// Targets: [apple]
+// Targets: [ios]
 final object io.ktor.client.webrtc/IosWebRtc : io.ktor.client.webrtc/WebRtcClientEngineFactory<io.ktor.client.webrtc/IosWebRtcEngineConfig> { // io.ktor.client.webrtc/IosWebRtc|null[0]
     final fun create(kotlin/Function1<io.ktor.client.webrtc/IosWebRtcEngineConfig, kotlin/Unit>): io.ktor.client.webrtc/WebRtcEngine // io.ktor.client.webrtc/IosWebRtc.create|create(kotlin.Function1<io.ktor.client.webrtc.IosWebRtcEngineConfig,kotlin.Unit>){}[0]
 }
 
-// Targets: [apple]
+// Targets: [ios]
 final fun (io.ktor.client.webrtc/WebRtc.DtmfSender).io.ktor.client.webrtc/getNative(): WebRTC/RTCDtmfSenderProtocol // io.ktor.client.webrtc/getNative|getNative@io.ktor.client.webrtc.WebRtc.DtmfSender(){}[0]
 
-// Targets: [apple]
+// Targets: [ios]
 final fun (io.ktor.client.webrtc/WebRtc.RtpParameters).io.ktor.client.webrtc/getNative(): WebRTC/RTCRtpParameters // io.ktor.client.webrtc/getNative|getNative@io.ktor.client.webrtc.WebRtc.RtpParameters(){}[0]
 
-// Targets: [apple]
+// Targets: [ios]
 final fun (io.ktor.client.webrtc/WebRtc.RtpSender).io.ktor.client.webrtc/getNative(): WebRTC/RTCRtpSender // io.ktor.client.webrtc/getNative|getNative@io.ktor.client.webrtc.WebRtc.RtpSender(){}[0]
 
-// Targets: [apple]
+// Targets: [ios]
 final fun (io.ktor.client.webrtc/WebRtcDataChannel).io.ktor.client.webrtc/getNative(): WebRTC/RTCDataChannel // io.ktor.client.webrtc/getNative|getNative@io.ktor.client.webrtc.WebRtcDataChannel(){}[0]
 
-// Targets: [apple]
+// Targets: [ios]
 final fun (io.ktor.client.webrtc/WebRtcMedia.AudioTrack).io.ktor.client.webrtc.media/getNative(): WebRTC/RTCAudioTrack // io.ktor.client.webrtc.media/getNative|getNative@io.ktor.client.webrtc.WebRtcMedia.AudioTrack(){}[0]
 
-// Targets: [apple]
+// Targets: [ios]
 final fun (io.ktor.client.webrtc/WebRtcMedia.VideoTrack).io.ktor.client.webrtc.media/getNative(): WebRTC/RTCVideoTrack // io.ktor.client.webrtc.media/getNative|getNative@io.ktor.client.webrtc.WebRtcMedia.VideoTrack(){}[0]
 
-// Targets: [apple]
+// Targets: [ios]
 final fun (io.ktor.client.webrtc/WebRtcPeerConnection).io.ktor.client.webrtc/getNative(): WebRTC/RTCPeerConnection // io.ktor.client.webrtc/getNative|getNative@io.ktor.client.webrtc.WebRtcPeerConnection(){}[0]
 
-// Targets: [apple]
+// Targets: [ios]
 final fun io.ktor.client.webrtc.media/defaultVideoCapturerFactory(): io.ktor.client.webrtc.media/VideoCapturerFactory // io.ktor.client.webrtc.media/defaultVideoCapturerFactory|defaultVideoCapturerFactory(){}[0]
 
 // Targets: [js, wasmJs]
