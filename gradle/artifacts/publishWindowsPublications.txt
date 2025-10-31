@@ -41,6 +41,9 @@ io.ktor:ktor-client-resources-mingwx64/sources.jar
 io.ktor:ktor-client-serialization-mingwx64/.klib
 io.ktor:ktor-client-serialization-mingwx64/javadoc.jar
 io.ktor:ktor-client-serialization-mingwx64/sources.jar
+io.ktor:ktor-client-webrtc-mingwx64/.klib
+io.ktor:ktor-client-webrtc-mingwx64/javadoc.jar
+io.ktor:ktor-client-webrtc-mingwx64/sources.jar
 io.ktor:ktor-client-websockets-mingwx64/.klib
 io.ktor:ktor-client-websockets-mingwx64/javadoc.jar
 io.ktor:ktor-client-websockets-mingwx64/sources.jar
