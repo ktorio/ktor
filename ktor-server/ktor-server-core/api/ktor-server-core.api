@@ -567,11 +567,14 @@ public final class io/ktor/server/engine/ConfigKeys {
 	public static final field developmentModeKey Ljava/lang/String;
 	public static final field hostConfigPath Ljava/lang/String;
 	public static final field hostPortPath Ljava/lang/String;
+	public static final field hostSslEnabledProtocols Ljava/lang/String;
 	public static final field hostSslKeyAlias Ljava/lang/String;
 	public static final field hostSslKeyStore Ljava/lang/String;
 	public static final field hostSslKeyStorePassword Ljava/lang/String;
 	public static final field hostSslPortPath Ljava/lang/String;
 	public static final field hostSslPrivateKeyPassword Ljava/lang/String;
+	public static final field hostSslTrustStore Ljava/lang/String;
+	public static final field hostSslTrustStorePassword Ljava/lang/String;
 	public static final field hostWatchPaths Ljava/lang/String;
 	public static final field rootPathPath Ljava/lang/String;
 }
