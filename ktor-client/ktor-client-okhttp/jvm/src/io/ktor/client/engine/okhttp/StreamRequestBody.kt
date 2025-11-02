@@ -5,32 +5,43 @@
 package io.ktor.client.engine.okhttp
 
 import io.ktor.utils.io.*
-import io.ktor.utils.io.jvm.javaio.*
+import io.ktor.utils.io.streams.asByteWriteChannel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import okhttp3.*
 import okio.*
+import kotlin.coroutines.CoroutineContext
 
 internal class StreamAdapterIOException(cause: Throwable) : IOException(cause)
 
 internal class StreamRequestBody(
+    private val callContext: CoroutineContext,
     private val contentLength: Long?,
+    private val duplex: Boolean,
     private val block: () -> ByteReadChannel
 ) : RequestBody() {
 
     override fun contentType(): MediaType? = null
 
     override fun writeTo(sink: BufferedSink) {
-        try {
-            block().toInputStream().source().use {
-                sink.writeAll(it)
+        val job = CoroutineScope(callContext).launch(Dispatchers.IO) {
+            try {
+                val channel = block()
+                channel.copyTo(sink.outputStream().asByteWriteChannel())
+            } catch (cause: IOException) {
+                throw cause
+            } catch (cause: Throwable) {
+                throw StreamAdapterIOException(cause)
             }
-        } catch (cause: IOException) {
-            throw cause
-        } catch (cause: Throwable) {
-            throw StreamAdapterIOException(cause)
         }
+        if (!duplex) runBlocking { job.join() }
     }
 
     override fun contentLength(): Long = contentLength ?: -1
 
-    override fun isOneShot(): Boolean = true
+    override fun isOneShot(): Boolean = !duplex
+
+    override fun isDuplex(): Boolean = duplex
 }

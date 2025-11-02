@@ -45,6 +45,17 @@ public class OkHttpConfig : HttpClientEngineConfig() {
     public var webSocketFactory: WebSocket.Factory? = null
 
     /**
+     * Specifies if duplex streaming is enabled for the OkHttp client.
+     * Setting this to `true` allows clients to send and receive data simultaneously
+     * using bidirectional streaming.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.okhttp.OkHttpConfig.getDuplexStreamingEnabled)
+     *
+     * @see [okhttp3.RequestBody.isDuplex]
+     */
+    public var duplexStreamingEnabled: Boolean = false
+
+    /**
      * Configures [OkHttpClient] using [OkHttpClient.Builder].
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.okhttp.OkHttpConfig.config)
