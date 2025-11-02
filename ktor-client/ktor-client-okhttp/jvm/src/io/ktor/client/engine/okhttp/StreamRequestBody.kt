@@ -41,7 +41,7 @@ internal class StreamRequestBody(
 
     override fun contentLength(): Long = contentLength ?: -1
 
-    override fun isOneShot(): Boolean = !duplex
+    override fun isOneShot(): Boolean = true
 
     override fun isDuplex(): Boolean = duplex
 }
