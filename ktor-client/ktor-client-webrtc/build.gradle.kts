@@ -67,6 +67,7 @@ kotlin {
                 moduleName = "WebRTC"
                 packageName = "WebRTC"
                 extraOpts += listOf("-compiler-option", "-fmodules")
+                extraOpts += listOf("-compiler-option", "-DTARGET_OS_VISION=0")
             }
 
             framework {
