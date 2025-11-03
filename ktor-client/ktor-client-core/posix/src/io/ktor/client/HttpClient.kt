@@ -15,7 +15,6 @@ import io.ktor.utils.io.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClient)
  */
-@KtorDsl
 public actual fun HttpClient(
     block: HttpClientConfig<*>.() -> Unit
 ): HttpClient = HttpClient(FACTORY, block)
