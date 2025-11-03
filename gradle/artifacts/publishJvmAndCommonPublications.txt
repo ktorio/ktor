@@ -179,9 +179,6 @@ io.ktor:ktor-client-serialization/sources.jar
 io.ktor:ktor-client-webrtc-android/.aar
 io.ktor:ktor-client-webrtc-android/javadoc.jar
 io.ktor:ktor-client-webrtc-android/sources.jar
-io.ktor:ktor-client-webrtc-jvm/.jar
-io.ktor:ktor-client-webrtc-jvm/javadoc.jar
-io.ktor:ktor-client-webrtc-jvm/sources.jar
 io.ktor:ktor-client-webrtc/.jar
 io.ktor:ktor-client-webrtc/javadoc.jar
 io.ktor:ktor-client-webrtc/kotlin-tooling-metadata.json
