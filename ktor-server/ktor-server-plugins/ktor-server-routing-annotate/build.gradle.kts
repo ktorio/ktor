@@ -11,7 +11,7 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(projects.ktorOpenapiSchema)
+            api(projects.ktorOpenapiSchema)
         }
         commonTest.dependencies {
             implementation(projects.ktorServerTestHost)
