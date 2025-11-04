@@ -40,3 +40,20 @@ public expect fun TypeInfo.toNullable(): TypeInfo?
  */
 @InternalAPI
 public expect fun TypeInfo.typeParametersHierarchy(): Sequence<TypeInfo>
+
+/**
+ * Returns a raw type representation of the current [TypeInfo].
+ *
+ * A raw type is a [TypeInfo] instance without a [kotlinType], representing a type-erased
+ * version of the original type (e.g., `List` instead of `List<String>`).
+ *
+ * This is primarily used for dependency injection covariance matching, allowing resolution
+ * of typed dependencies using raw type keys when no specific type information is available.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.utils.toRawType)
+ *
+ * @return A new [TypeInfo] with [kotlinType] set to null.
+ */
+@InternalAPI
+public fun TypeInfo.toRawType(): TypeInfo =
+    TypeInfo(type, kotlinType = null)

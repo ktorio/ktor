@@ -1,6 +1,7 @@
 /*
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
+@file:OptIn(ExperimentalWasmJsInterop::class)
 
 package io.ktor.client.webrtc
 
@@ -10,6 +11,8 @@ import web.mediastreams.MediaStreamConstraints
 import web.mediastreams.MediaStreamTrack
 import web.mediastreams.MediaTrackConstraints
 import web.navigator.navigator
+import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.toArray
 import kotlin.js.undefined
 
 private fun makeStreamConstraints(

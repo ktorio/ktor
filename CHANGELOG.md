@@ -1,3 +1,18 @@
+# 3.3.1
+> Published 8 October 2025
+
+### Improvements
+* Add a note about SSE session lifetime in KDoc ([KTOR-8440](https://youtrack.jetbrains.com/issue/KTOR-8440))
+* Update Kotlin to 2.2.20 ([KTOR-8896](https://youtrack.jetbrains.com/issue/KTOR-8896))
+
+### Bugfixes
+* NumberFormatException when Content-Length header value contains null bytes ([KTOR-4828](https://youtrack.jetbrains.com/issue/KTOR-4828))
+* SerializationException: Serializer for class 'ClientSSESession' is not found when server responds with JSON ([KTOR-7631](https://youtrack.jetbrains.com/issue/KTOR-7631))
+* Netty: loadConfiguration missing enableHttp2 and enableH2c properties ([KTOR-8898](https://youtrack.jetbrains.com/issue/KTOR-8898))
+* Netty: EmbeddedServer.stop always blocks for twice of shutdownGracePeriod ([KTOR-8770](https://youtrack.jetbrains.com/issue/KTOR-8770))
+* shutdownGracePeriod is used instead of shutdownTimeout in EmbeddedServer.stop() ([KTOR-8771](https://youtrack.jetbrains.com/issue/KTOR-8771))
+* Support serving static resources within bootJar ([KTOR-8592](https://youtrack.jetbrains.com/issue/KTOR-8592))
+
 # 3.3.0
 > Published 11 September 2025
 

@@ -9,6 +9,7 @@ package io.ktor.client.tests
 import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.api.*
 import io.ktor.client.plugins.cache.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
@@ -297,6 +298,42 @@ class BodyProgressTest : ClientLoader() {
             client.get("$TEST_SERVER/compression/gzip-large") {
                 onDownload { _, length -> assertTrue(length == null || length > 0) }
             }
+        }
+    }
+
+    @Test
+    fun testOnDownloadChannelReplayable() = clientTests {
+        val cancelRawContentPlugin = createClientPlugin("CancelRawContentPlugin") {
+            on(Send) { request ->
+                // Proceed with the request - this runs the full request/response pipeline:
+                // 1. Request is sent and response received
+                // 2. Response goes through the receive pipeline
+                //    - SaveBody saves it (makes it replayable)
+                //    - BodyProgress wraps rawContent with an observable channel (and should keep it replayable)
+                val call = proceed(request)
+                val response = call.response
+                assertTrue(response.isSaved, "The response is not saved")
+
+                // Now check if the channel still replayable by reading it twice
+                assertContentEquals(TEST_ARRAY, response.body<ByteArray>())
+                assertContentEquals(TEST_ARRAY, response.body<ByteArray>())
+
+                call
+            }
+        }
+
+        config {
+            install(cancelRawContentPlugin)
+        }
+
+        test { client ->
+            val response = client.post("$TEST_SERVER/content/echo") {
+                setBody(TEST_ARRAY)
+                onDownload { _, _ -> } // Enable observable channel wrapping
+            }
+
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertContentEquals(TEST_ARRAY, response.body())
         }
     }
 }

@@ -5,14 +5,17 @@
 package io.ktor.client.webrtc
 
 import js.buffer.ArrayBuffer
-import js.core.JsString
+import js.buffer.toByteArray
+import js.typedarrays.toInt8Array
 import kotlinx.coroutines.CoroutineScope
 import web.blob.Blob
 import web.blob.arrayBuffer
+import web.buffer.BinaryType
+import web.buffer.arraybuffer
+import web.buffer.blob
 import web.rtc.RTCDataChannel
-import web.sockets.BinaryType
-import web.sockets.arraybuffer
-import web.sockets.blob
+import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.JsString
 
 /**
  * WebRtc data channel implementation for the JavaScript platform.
@@ -60,7 +63,7 @@ public class JsWebRtcDataChannel(
     }
 
     override suspend fun send(bytes: ByteArray) {
-        channel.send(bytes.toArrayBuffer())
+        channel.send(bytes.toInt8Array())
     }
 
     override fun setBufferedAmountLowThreshold(threshold: Long) {
@@ -71,6 +74,7 @@ public class JsWebRtcDataChannel(
         channel.close()
     }
 
+    @OptIn(ExperimentalWasmJsInterop::class)
     internal fun setupEvents(eventsEmitter: WebRtcConnectionEventsEmitter) {
         channel.onopen = eventHandler(coroutineScope) {
             eventsEmitter.emitDataChannelEvent(DataChannelEvent.Open(this))
