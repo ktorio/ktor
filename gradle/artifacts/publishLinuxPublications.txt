@@ -84,12 +84,6 @@ io.ktor:ktor-client-serialization-linuxarm64/sources.jar
 io.ktor:ktor-client-serialization-linuxx64/.klib
 io.ktor:ktor-client-serialization-linuxx64/javadoc.jar
 io.ktor:ktor-client-serialization-linuxx64/sources.jar
-io.ktor:ktor-client-webrtc-linuxarm64/.klib
-io.ktor:ktor-client-webrtc-linuxarm64/javadoc.jar
-io.ktor:ktor-client-webrtc-linuxarm64/sources.jar
-io.ktor:ktor-client-webrtc-linuxx64/.klib
-io.ktor:ktor-client-webrtc-linuxx64/javadoc.jar
-io.ktor:ktor-client-webrtc-linuxx64/sources.jar
 io.ktor:ktor-client-websockets-linuxarm64/.klib
 io.ktor:ktor-client-websockets-linuxarm64/javadoc.jar
 io.ktor:ktor-client-websockets-linuxarm64/sources.jar

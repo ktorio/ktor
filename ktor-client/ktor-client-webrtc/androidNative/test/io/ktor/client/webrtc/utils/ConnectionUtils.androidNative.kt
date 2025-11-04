@@ -9,9 +9,9 @@ import io.ktor.utils.io.ExperimentalKtorApi
 
 @OptIn(ExperimentalKtorApi::class)
 actual fun createTestWebRtcClient(): WebRtcClient {
-    throw NotImplementedError("There are no JVM WebRTC clients now.")
+    throw NotImplementedError("There are no WebRTC client now.")
 }
 
 actual fun grantPermissions(audio: Boolean, video: Boolean) {
-    throw NotImplementedError("There are no JVM WebRTC clients now.")
+    throw NotImplementedError("There are no WebRTC client now.")
 }
