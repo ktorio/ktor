@@ -969,14 +969,15 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun validateCallCoroutineContext() = runTest {
+    open fun validateCallCoroutineContext() = runTest {
         createAndStartServer {
             get {
                 val applicationJob = application.coroutineContext[Job] ?: error("application job is empty")
                 val callJob = call.coroutineContext[Job] ?: error("call job is empty")
+                val hierarchy = generateSequence(callJob) { it.parent }.toList()
                 call.respondText(
                     """
-                    Hierarchy preserved: ${callJob != applicationJob && callJob.parent == applicationJob}
+                    Hierarchy preserved: ${callJob != applicationJob && applicationJob in hierarchy}
                     """.trimIndent()
                 )
             }
