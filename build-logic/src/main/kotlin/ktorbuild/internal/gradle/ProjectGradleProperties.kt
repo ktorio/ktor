@@ -6,9 +6,10 @@ package ktorbuild.internal.gradle
 
 import org.gradle.api.Project
 import org.gradle.api.file.ProjectLayout
-import org.gradle.initialization.Environment
+import org.gradle.api.provider.*
+import org.gradle.kotlin.dsl.of
 import java.io.File
-import javax.inject.Inject
+import java.util.*
 
 /**
  * A utility class providing access to project properties declared in `gradle.properties`
@@ -20,39 +21,58 @@ import javax.inject.Inject
  * TODO: Remove when the issue is fixed
  *   https://github.com/gradle/gradle/issues/23572
  */
-internal abstract class ProjectGradleProperties(
-    private val layout: ProjectLayout,
-    private val environment: Environment,
-    private val rootDir: File,
-) {
-
-    @Suppress("unused")
-    @Inject
-    constructor(
-        layout: ProjectLayout,
-        environment: Environment,
-        project: Project,
-    ) : this(layout, environment, project.rootDir)
+internal abstract class ProjectGradleProperties : ValueSource<Map<String, String>, ProjectGradleProperties.Parameters> {
 
     private val properties: Map<String, String> by lazy {
         val properties = mutableMapOf<String, String>()
-        layout.projectDirectory.asFile
-            .walkUpToRoot(rootDir)
+        parameters.projectDirectory.get()
+            .walkUpToRoot(parameters.rootDirectory.get())
             .map { it.resolve(Project.GRADLE_PROPERTIES) }
-            .mapNotNull(environment::propertiesFile)
+            .mapNotNull(File::loadProperties)
             // Properties closer to the current project take precedence
             .forEach(properties::putAllAbsent)
 
         properties
     }
 
-    fun byNamePrefix(prefix: String): Map<String, String> {
-        return properties.filterKeys { it.startsWith(prefix) }
-            .mapKeys { (key, _) -> key.removePrefix(prefix) }
+    override fun obtain(): Map<String, String> {
+        val prefix = parameters.prefix.orNull
+
+        return if (prefix == null) {
+            properties
+        } else {
+            properties.filterKeys { it.startsWith(prefix) }
+                .mapKeys { (key, _) -> key.removePrefix(prefix) }
+        }
+    }
+
+    interface Parameters : ValueSourceParameters {
+        val prefix: Property<String>
+        val projectDirectory: Property<File>
+        val rootDirectory: Property<File>
+    }
+}
+
+@Suppress("UnstableApiUsage")
+internal fun ProviderFactory.projectGradleProperties(projectLayout: ProjectLayout, prefix: String): Provider<Map<String, String>> {
+    return of(ProjectGradleProperties::class) {
+        parameters {
+            this.prefix.set(prefix)
+            projectDirectory.set(projectLayout.projectDirectory.asFile)
+            rootDirectory.set(projectLayout.settingsDirectory.asFile)
+        }
     }
 }
 
 //region Utils
+internal fun File.loadProperties(): Map<String, String>? {
+    if (!exists()) return null
+    return bufferedReader().use {
+        @Suppress("UNCHECKED_CAST")
+        Properties().apply { load(it) }.toMap() as Map<String, String>
+    }
+}
+
 private fun File.walkUpToRoot(rootDir: File): Sequence<File> = sequence {
     var current = absoluteFile
     while(true) {
