@@ -972,8 +972,8 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
     open fun validateCallCoroutineContext() = runTest {
         createAndStartServer {
             get {
-                val applicationJob = application.coroutineContext[Job] ?: error("application job is empty")
-                val callJob = call.coroutineContext[Job] ?: error("call job is empty")
+                val applicationJob = application.coroutineContext.job
+                val callJob = call.coroutineContext.job
                 val hierarchy = generateSequence(callJob) { it.parent }.toList()
                 call.respondText(
                     """
