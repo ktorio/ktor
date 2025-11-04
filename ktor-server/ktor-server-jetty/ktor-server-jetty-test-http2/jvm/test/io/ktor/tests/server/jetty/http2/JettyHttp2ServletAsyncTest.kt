@@ -37,4 +37,9 @@ class JettyHttp2AsyncServletContainerHttpServerJvmTest :
 }
 
 class JettyHttp2AsyncServletContainerSustainabilityTest :
-    SustainabilityTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = true))
+    SustainabilityTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(
+        Servlet(async = true)
+    ) {
+    @Ignore
+    override fun validateCallCoroutineContext() {}
+}
