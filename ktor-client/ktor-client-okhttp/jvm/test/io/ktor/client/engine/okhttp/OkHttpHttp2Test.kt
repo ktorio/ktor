@@ -9,15 +9,19 @@ import io.ktor.client.statement.*
 import io.ktor.client.test.base.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.CompletableDeferred
 import okhttp3.Protocol
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.fail
 
 class OkHttpHttp2Test : TestWithKtor() {
 
@@ -83,6 +87,45 @@ class OkHttpHttp2Test : TestWithKtor() {
                 """.trimIndent(),
                 response.trim()
             )
+        }
+    }
+
+    @Test
+    fun testDuplexStreamingExceptionPropagates() = testWithEngine(OkHttp) {
+        config {
+            engine {
+                duplexStreamingEnabled = true
+                config {
+                    protocols(listOf(Protocol.H2_PRIOR_KNOWLEDGE))
+                }
+            }
+        }
+
+        test { client ->
+            val established = CompletableDeferred<Unit>()
+            val failingBody = object : OutgoingContent.WriteChannelContent() {
+                override suspend fun writeTo(channel: ByteWriteChannel) {
+                    channel.writeStringUtf8("client: 0\n")
+                    channel.flush()
+                    established.await()
+                    throw IllegalStateException("Client-side exception")
+                }
+            }
+
+            assertFailsWith<ClosedByteChannelException> {
+                client.preparePost("$testUrl/echo-stream") {
+                    setBody(failingBody)
+                }.execute { response ->
+                    val out = response.bodyAsChannel()
+                    val first = out.readUTF8Line()
+                    assertEquals("server: client: 0", first)
+                    established.complete(Unit)
+                    out.readUTF8Line()
+                    fail("Expected duplex writer failure")
+                }
+            }.apply {
+                assertEquals("Client-side exception", cause?.message)
+            }
         }
     }
 }
