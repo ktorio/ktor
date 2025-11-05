@@ -12,7 +12,10 @@ internal actual fun ApplicationEngine.Configuration.configureSSLConnectors(
     sslKeyStorePath: String?,
     sslKeyStorePassword: String?,
     sslPrivateKeyPassword: String?,
-    sslKeyAlias: String
+    sslKeyAlias: String,
+    sslTrustStorePath: String?,
+    sslTrustStorePassword: String?,
+    sslEnabledProtocols: List<String>?
 ) {
     error("SSL is not supported in native")
 }

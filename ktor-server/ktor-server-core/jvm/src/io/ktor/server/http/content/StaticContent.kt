@@ -692,12 +692,7 @@ private fun Route.staticContentRoute(
     remotePath: String,
     autoHead: Boolean,
     handler: suspend (ApplicationCall).() -> Unit
-) = createChild(object : RouteSelector() {
-    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation =
-        RouteSelectorEvaluation.Success(quality = RouteSelectorEvaluation.qualityTailcard)
-
-    override fun toString() = "(staticContent)"
-}).apply {
+) = createChild(TailcardSelector).apply {
     route(remotePath) {
         route("{$pathParameterName...}") {
             get {
@@ -963,4 +958,10 @@ public interface FileSystemPaths {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.FileSystemPaths.getPath)
      */
     public fun getPath(first: String, vararg more: String): Path
+}
+
+// Adds lower priority to the route so that it can be used as a fallback
+private object TailcardSelector : RouteSelector() {
+    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation =
+        RouteSelectorEvaluation.Success(quality = RouteSelectorEvaluation.qualityTailcard)
 }

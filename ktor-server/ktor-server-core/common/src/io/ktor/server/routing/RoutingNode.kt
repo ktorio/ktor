@@ -254,6 +254,9 @@ public class RoutingCall internal constructor(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RoutingContext)
  */
+@Suppress("ktlint:standard:no-consecutive-comments")
+// TODO KTOR-8809: Uncomment the annotation
+// @KtorDsl
 public class RoutingContext(
     public val call: RoutingCall
 )
@@ -270,6 +273,9 @@ public typealias RoutingHandler = suspend RoutingContext.() -> Unit
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.Route)
  */
+@Suppress("ktlint:standard:no-consecutive-comments")
+// TODO KTOR-8809: Uncomment the annotation
+// @KtorDsl
 public interface Route {
     public val environment: ApplicationEnvironment
     public val attributes: Attributes
@@ -357,7 +363,7 @@ private fun RoutingNode.getAllRoutes(endpoints: MutableList<RoutingNode>) {
 public val RoutingNode.path: String
     get() = path()
 
-private fun RoutingNode.path(): String {
+internal fun RoutingNode.path(): String {
     val parentPath = parent?.path()
     val selectorElement = selector.toPathElement()
     return when {
@@ -368,16 +374,9 @@ private fun RoutingNode.path(): String {
     }
 }
 
-private fun RouteSelector.toPathElement(): String = when (this) {
-    is PathSegmentConstantRouteSelector,
-    is PathSegmentParameterRouteSelector,
-    is PathSegmentOptionalParameterRouteSelector,
-    is PathSegmentTailcardRouteSelector,
-    is PathSegmentWildcardRouteSelector,
-    is PathSegmentRegexRouteSelector -> toString()
-
-    is TrailingSlashRouteSelector -> "/"
-
+private fun RouteSelector.toPathElement(): String = when {
+    isPathElement() -> toString()
+    this is TrailingSlashRouteSelector -> "/"
     else -> ""
 }
 

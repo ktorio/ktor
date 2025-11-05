@@ -1,3 +1,25 @@
+# 3.3.2
+> Published 5 November 2025
+
+### Improvements
+* WebRTC Client. Remove redundant targets ([KTOR-9062](https://youtrack.jetbrains.com/issue/KTOR-9062))
+* Add Socks proxy support to Darwin engine ([KTOR-8968](https://youtrack.jetbrains.com/issue/KTOR-8968))
+* Java: Improve error message when SOCKS proxy is used ([KTOR-2908](https://youtrack.jetbrains.com/issue/KTOR-2908))
+
+### Bugfixes
+* HttpRequestRetry: SendCountExceedException when max retries is more than maxSendCount of HttpSend ([KTOR-5850](https://youtrack.jetbrains.com/issue/KTOR-5850))
+* Darwin: The `maxFrameSize` option has no effect ([KTOR-6963](https://youtrack.jetbrains.com/issue/KTOR-6963))
+* OpenAPI: StackOverflowError when a response object has property with @Contextual serializer ([KTOR-8878](https://youtrack.jetbrains.com/issue/KTOR-8878))
+* OpenAPI gen: missing KDoc fields ([KTOR-9021](https://youtrack.jetbrains.com/issue/KTOR-9021))
+* Server call.request.path() returns routing selectors in path ([KTOR-7639](https://youtrack.jetbrains.com/issue/KTOR-7639))
+* StaticContent doesn't allow siblings ([KTOR-9012](https://youtrack.jetbrains.com/issue/KTOR-9012))
+* HttpCache: FileStorage doesn't use given dispatcher for all file operations ([KTOR-8832](https://youtrack.jetbrains.com/issue/KTOR-8832))
+* Curl: SOCKS proxy doesn't work ([KTOR-9008](https://youtrack.jetbrains.com/issue/KTOR-9008))
+* Netty: java.lang.VerifyError is thrown on Android since 3.3.0 ([KTOR-8916](https://youtrack.jetbrains.com/issue/KTOR-8916))
+* Response body channel is canceled while the body is being saved when having HttpRequestRetry and onDownload ([KTOR-8975](https://youtrack.jetbrains.com/issue/KTOR-8975))
+* HttpCache: InvalidCacheStateException when varyKeys stored in files contain uppercase letters since 3.3.0 ([KTOR-8970](https://youtrack.jetbrains.com/issue/KTOR-8970))
+
+
 # 3.3.1
 > Published 8 October 2025
 

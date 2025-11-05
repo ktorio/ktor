@@ -260,6 +260,29 @@ class DarwinEngineTest : ClientEngineTest<DarwinClientEngineConfig>(Darwin) {
         }
     }
 
+    @Test
+    fun testWebSocketMaxFrameSize() = testClient {
+        config {
+            install(WebSockets) {
+                maxFrameSize = 10
+            }
+        }
+
+        val shortMessage = "abc"
+        val longMessage = "def".repeat(500)
+        test { client ->
+            assertFailsWith<DarwinHttpRequestException> {
+                client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                    send(shortMessage)
+                    assertEquals(shortMessage, (incoming.receive() as Frame.Text).readText())
+                    send(longMessage)
+                    val frame = incoming.receive() as Frame.Text
+                    assertEquals(longMessage, frame.readText())
+                }
+            }
+        }
+    }
+
     @OptIn(UnsafeNumber::class)
     @Test
     fun testRethrowExceptionThrownDuringCustomChallenge() = runBlocking {
