@@ -160,9 +160,8 @@ private class FileCacheStorage(
                     channel.copyTo(output)
                 }
             }
-        } catch (cause: CancellationException) {
-            throw cause
         } catch (cause: Exception) {
+            if (cause is CancellationException) currentCoroutineContext().ensureActive()
             LOGGER.trace { "Exception during saving a cache to a file: ${cause.stackTraceToString()}" }
         } finally {
             channel.close()
