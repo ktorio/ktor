@@ -158,7 +158,11 @@ public object HttpHeaders {
     public fun checkHeaderName(name: String) {
         name.forEachIndexed { index, ch ->
             if (ch <= ' ' || isDelimiter(ch)) {
-                throw IllegalHeaderNameException(name, index)
+                // HTTP/2 pseudo header can start with `:`
+                val isPseudoHeader = index == 0 && ch == ':'
+                if(!isPseudoHeader) {
+                    throw IllegalHeaderNameException(name, index)
+                }
             }
         }
     }
