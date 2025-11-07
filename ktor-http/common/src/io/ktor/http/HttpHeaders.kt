@@ -160,7 +160,7 @@ public object HttpHeaders {
             if (ch <= ' ' || isDelimiter(ch)) {
                 // HTTP/2 pseudo header can start with `:`
                 val isPseudoHeader = index == 0 && ch == ':'
-                if(!isPseudoHeader) {
+                if (!isPseudoHeader) {
                     throw IllegalHeaderNameException(name, index)
                 }
             }
