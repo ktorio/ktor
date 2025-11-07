@@ -6,6 +6,7 @@ package io.ktor.util
 
 import kotlinx.coroutines.asDeferred
 import org.khronos.webgl.ArrayBuffer
+import org.khronos.webgl.DataView
 import org.khronos.webgl.Int8Array
 import org.khronos.webgl.get
 import kotlin.js.Promise
@@ -20,3 +21,9 @@ public actual fun Int8Array.toByteArray(): ByteArray =
 @Suppress("DEPRECATION_ERROR")
 internal actual suspend fun Promise<ArrayBuffer>.awaitBuffer(): ArrayBuffer =
     (this as Promise<JsAny?>).asDeferred<ArrayBuffer>().await()
+
+public actual typealias Int8Array = Int8Array
+public actual typealias ArrayBuffer = ArrayBuffer
+
+internal actual fun DataView(buffer: ArrayBuffer): DataView = DataView(buffer)
+internal actual typealias DataView = DataView

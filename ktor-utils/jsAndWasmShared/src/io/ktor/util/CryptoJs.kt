@@ -4,8 +4,6 @@
 
 package io.ktor.util
 
-import kotlinx.coroutines.*
-import org.khronos.webgl.*
 import kotlin.js.*
 
 /**
