@@ -172,14 +172,14 @@ public class CIOApplicationEngine(
     }
 
     @OptIn(InternalAPI::class)
-    private fun setRequestCloseHandler(request: Request, call: CIOApplicationCall) {
-        request.onClose = {
+    private fun ServerRequestScope.setCloseHandler(call: CIOApplicationCall) {
+        onClose = {
             val requestCloseHandler = call.attributes.getOrNull(HttpRequestCloseHandlerKey)
             requestCloseHandler?.invoke()
         }
     }
 
-    private suspend fun ServerRequestScope.handleRequest(request: io.ktor.http.cio.Request) {
+    private suspend fun ServerRequestScope.handleRequest(request: Request) {
         withContext(userDispatcher) requestContext@{
             val call = CIOApplicationCall(
                 applicationProvider(),
@@ -194,10 +194,9 @@ public class CIOApplicationEngine(
                 this@requestContext.coroutineContext
             )
 
-
             try {
                 addHandlerForExpectedHeader(output, call)
-                setRequestCloseHandler(request, call)
+                setCloseHandler(call)
                 pipeline.execute(call)
             } catch (error: Throwable) {
                 handleFailure(call, error)

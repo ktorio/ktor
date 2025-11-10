@@ -56,10 +56,7 @@ public class Request internal constructor(
     public val version: CharSequence,
     headers: HttpHeadersMap,
     builder: CharArrayBuilder
-) : HttpMessage(headers, builder) {
-    @InternalAPI
-    public var onClose: (() -> Unit)? = null
-}
+) : HttpMessage(headers, builder)
 
 /**
  * Represents an HTTP response

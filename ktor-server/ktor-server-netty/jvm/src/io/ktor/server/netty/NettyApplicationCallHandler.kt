@@ -41,6 +41,7 @@ internal class NettyApplicationCallHandler(
     override fun handlerRemoved(ctx: ChannelHandlerContext?) {
         if (ctx?.channel()?.isActive == false) {
             onConnectionClose?.invoke()
+            onConnectionClose = null
         }
     }
 

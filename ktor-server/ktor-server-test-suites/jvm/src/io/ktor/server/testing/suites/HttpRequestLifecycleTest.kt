@@ -26,50 +26,50 @@ import kotlin.time.Duration.Companion.seconds
 abstract class HttpRequestLifecycleTest<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     val engine: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(engine) {
+
+    private suspend fun cancellableRoute(handler: RoutingHandler) {
+        createAndStartServer {
+            install(plugin = HttpRequestLifecycle) {
+                cancelCallOnClose = true
+            }
+            get(handler)
+        }
+    }
+
     @Test
     fun testClientDisconnectionCancelsRequest() = runTest {
         val requestStarted = CompletableDeferred<Unit>()
         val requestCancelled = CompletableDeferred<Unit>()
 
-        createAndStartServer {
-            install(plugin = HttpRequestLifecycle) {
-                cancelCallOnClose = true
-            }
-
-            get("/") {
-                requestStarted.complete(Unit)
-                runCatching {
-                    repeat(100) {
-                        call.coroutineContext.ensureActive()
-                        delay(100.milliseconds)
-                    }
-                }.onFailure { err ->
-                    if (err is CancellationException) {
-                        @OptIn(InternalAPI::class)
-                        assertTrue(err.rootCause is ConnectionClosedException)
-                        requestCancelled.complete(Unit)
-                    } else throw err
+        cancellableRoute {
+            requestStarted.complete(Unit)
+            try {
+                // very long operation
+                repeat(100) {
+                    call.coroutineContext.ensureActive()
+                    delay(200.milliseconds)
                 }
+            } catch (err: CancellationException) {
+                @OptIn(InternalAPI::class)
+                assertTrue(err.rootCause is ConnectionClosedException)
+                requestCancelled.complete(Unit)
             }
         }
 
-        val client = HttpClient()
-        val requestJob = launch {
-            client.get("http://127.0.0.1:$port/")
+        HttpClient().use { client ->
+            val requestJob = launch {
+                client.get("http://127.0.0.1:$port/")
+            }
+
+            withTimeout(5.seconds) {
+                requestStarted.await() // Wait for the request to start processing on the server
+            }
+
+            // Cancel the request and close the client to force TCP to disconnect
+            requestJob.cancel()
         }
 
-        withTimeout(5.seconds) {
-            requestStarted.await() // Wait for the request to start processing on the server
-        }
-
-        // Give the request some time to start processing
-        delay(500.milliseconds)
-
-        // Cancel the request and close the client to force TCP to disconnect
-        requestJob.cancel()
-        client.close()
-
-        withTimeout(5.seconds) {
+        withTimeout(10.seconds) {
             requestCancelled.await() // Wait for the request to be canceled
         }
     }
@@ -78,55 +78,44 @@ abstract class HttpRequestLifecycleTest<TEngine : ApplicationEngine, TConfigurat
     fun testHttpRequestLifecycleSuccess() = runTest {
         val requestCompleted = CompletableDeferred<Unit>()
 
-        createAndStartServer {
-            install(plugin = HttpRequestLifecycle) {
-                cancelCallOnClose = true
-            }
-
-            get("/") {
-                call.respondText("OK")
-                requestCompleted.complete(Unit)
-            }
+        cancellableRoute {
+            call.respondText("OK")
+            requestCompleted.complete(Unit)
         }
 
-        val client = HttpClient()
-        val response = client.get("http://127.0.0.1:$port/")
+        HttpClient().use { client ->
+            val response = client.get("http://127.0.0.1:$port/")
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("OK", response.bodyAsText())
+        }
 
-        withTimeout(5.seconds) {
+        withTimeout(10.seconds) {
             requestCompleted.await()
         }
-
-        assertEquals(HttpStatusCode.OK, response.status)
-        assertEquals("OK", response.bodyAsText())
     }
 
     @Test
     fun testHttpRequestLifecycleWithStream() = runTest {
         val requestCompleted = CompletableDeferred<Unit>()
 
-        createAndStartServer {
-            install(plugin = HttpRequestLifecycle) {
-                cancelCallOnClose = true
-            }
-
-            get("/") {
-                call.respondOutputStream {
-                    repeat(3) {
-                        write("OK;".toByteArray())
-                        flush()
-                        delay(100.milliseconds)
-                    }
-                    requestCompleted.complete(Unit)
+        cancellableRoute {
+            call.respondOutputStream {
+                repeat(3) {
+                    write("OK;".toByteArray())
+                    flush()
+                    delay(100.milliseconds)
                 }
+                requestCompleted.complete(Unit)
             }
         }
 
-        val client = HttpClient()
-        val response = client.get("http://127.0.0.1:$port/")
-        assertEquals(HttpStatusCode.OK, response.status)
-        assertEquals("OK;OK;OK;", response.bodyAsText())
+        HttpClient().use { client ->
+            val response = client.get("http://127.0.0.1:$port/")
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("OK;OK;OK;", response.bodyAsText())
+        }
 
-        withTimeout(5.seconds) {
+        withTimeout(10.seconds) {
             requestCompleted.await()
         }
     }

@@ -651,6 +651,12 @@ final class io.ktor.server.http.content/HttpStatusCodeContent : io.ktor.http.con
     final fun toString(): kotlin/String // io.ktor.server.http.content/HttpStatusCodeContent.toString|toString(){}[0]
 }
 
+final class io.ktor.server.http/HttpRequestLifecycleConfig { // io.ktor.server.http/HttpRequestLifecycleConfig|null[0]
+    final var cancelCallOnClose // io.ktor.server.http/HttpRequestLifecycleConfig.cancelCallOnClose|{}cancelCallOnClose[0]
+        final fun <get-cancelCallOnClose>(): kotlin/Boolean // io.ktor.server.http/HttpRequestLifecycleConfig.cancelCallOnClose.<get-cancelCallOnClose>|<get-cancelCallOnClose>(){}[0]
+        final fun <set-cancelCallOnClose>(kotlin/Boolean) // io.ktor.server.http/HttpRequestLifecycleConfig.cancelCallOnClose.<set-cancelCallOnClose>|<set-cancelCallOnClose>(kotlin.Boolean){}[0]
+}
+
 final class io.ktor.server.plugins/CannotTransformContentToTypeException : io.ktor.server.plugins/ContentTransformationException, kotlinx.coroutines/CopyableThrowable<io.ktor.server.plugins/CannotTransformContentToTypeException> { // io.ktor.server.plugins/CannotTransformContentToTypeException|null[0]
     constructor <init>(kotlin.reflect/KType) // io.ktor.server.plugins/CannotTransformContentToTypeException.<init>|<init>(kotlin.reflect.KType){}[0]
 
@@ -1673,6 +1679,10 @@ final val io.ktor.server.http.content/isCompressionSuppressed // io.ktor.server.
     final fun (io.ktor.server.application/ApplicationCall).<get-isCompressionSuppressed>(): kotlin/Boolean // io.ktor.server.http.content/isCompressionSuppressed.<get-isCompressionSuppressed>|<get-isCompressionSuppressed>@io.ktor.server.application.ApplicationCall(){}[0]
 final val io.ktor.server.http.content/isDecompressionSuppressed // io.ktor.server.http.content/isDecompressionSuppressed|@io.ktor.server.application.ApplicationCall{}isDecompressionSuppressed[0]
     final fun (io.ktor.server.application/ApplicationCall).<get-isDecompressionSuppressed>(): kotlin/Boolean // io.ktor.server.http.content/isDecompressionSuppressed.<get-isDecompressionSuppressed>|<get-isDecompressionSuppressed>@io.ktor.server.application.ApplicationCall(){}[0]
+final val io.ktor.server.http/HttpRequestCloseHandlerKey // io.ktor.server.http/HttpRequestCloseHandlerKey|{}HttpRequestCloseHandlerKey[0]
+    final fun <get-HttpRequestCloseHandlerKey>(): io.ktor.util/AttributeKey<kotlin/Function0<kotlin/Unit>> // io.ktor.server.http/HttpRequestCloseHandlerKey.<get-HttpRequestCloseHandlerKey>|<get-HttpRequestCloseHandlerKey>(){}[0]
+final val io.ktor.server.http/HttpRequestLifecycle // io.ktor.server.http/HttpRequestLifecycle|{}HttpRequestLifecycle[0]
+    final fun <get-HttpRequestLifecycle>(): io.ktor.server.application/RouteScopedPlugin<io.ktor.server.http/HttpRequestLifecycleConfig> // io.ktor.server.http/HttpRequestLifecycle.<get-HttpRequestLifecycle>|<get-HttpRequestLifecycle>(){}[0]
 final val io.ktor.server.logging/mdcProvider // io.ktor.server.logging/mdcProvider|@io.ktor.server.application.Application{}mdcProvider[0]
     final fun (io.ktor.server.application/Application).<get-mdcProvider>(): io.ktor.server.logging/MDCProvider // io.ktor.server.logging/mdcProvider.<get-mdcProvider>|<get-mdcProvider>@io.ktor.server.application.Application(){}[0]
 final val io.ktor.server.plugins/MutableOriginConnectionPointKey // io.ktor.server.plugins/MutableOriginConnectionPointKey|{}MutableOriginConnectionPointKey[0]

@@ -85,7 +85,10 @@ public val HttpRequestLifecycle: RouteScopedPlugin<HttpRequestLifecycleConfig> =
     createConfiguration = ::HttpRequestLifecycleConfig
 ) {
     on(CallSetup) { call ->
-        if (!this@createRouteScopedPlugin.pluginConfig.cancelCallOnClose) {
+        if (
+            !this@createRouteScopedPlugin.pluginConfig.cancelCallOnClose ||
+            call.attributes.contains(HttpRequestCloseHandlerKey)
+        ) {
             return@on
         }
         call.attributes.put(HttpRequestCloseHandlerKey) {

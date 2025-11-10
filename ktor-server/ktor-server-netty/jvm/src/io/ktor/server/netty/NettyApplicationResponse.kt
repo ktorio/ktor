@@ -34,7 +34,7 @@ public abstract class NettyApplicationResponse(
     internal var responseChannel: ByteReadChannel = ByteReadChannel.Empty
 
     private val canRespond: Boolean
-        get() = !responseMessageSent && context.channel().isWritable
+        get() = !responseMessageSent && context.channel().isActive
 
     override suspend fun respondOutgoingContent(content: OutgoingContent) {
         try {
