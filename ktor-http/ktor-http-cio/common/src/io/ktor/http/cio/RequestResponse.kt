@@ -6,6 +6,7 @@ package io.ktor.http.cio
 
 import io.ktor.http.*
 import io.ktor.http.cio.internals.*
+import io.ktor.utils.io.InternalAPI
 import io.ktor.utils.io.core.*
 
 /**
@@ -55,7 +56,10 @@ public class Request internal constructor(
     public val version: CharSequence,
     headers: HttpHeadersMap,
     builder: CharArrayBuilder
-) : HttpMessage(headers, builder)
+) : HttpMessage(headers, builder) {
+    @InternalAPI
+    public var onClose: (() -> Unit)? = null
+}
 
 /**
  * Represents an HTTP response

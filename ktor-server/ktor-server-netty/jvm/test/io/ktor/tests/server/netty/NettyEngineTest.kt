@@ -386,3 +386,6 @@ class NettyH2cEnabledTest :
         }
     }
 }
+
+class NettyHttpRequestLifecycleTest :
+    HttpRequestLifecycleTest<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty)

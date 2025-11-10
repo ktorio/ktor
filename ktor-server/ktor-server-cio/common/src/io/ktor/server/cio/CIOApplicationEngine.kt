@@ -6,10 +6,12 @@ package io.ktor.server.cio
 
 import io.ktor.events.*
 import io.ktor.http.*
+import io.ktor.http.cio.Request
 import io.ktor.server.application.*
 import io.ktor.server.cio.backend.*
 import io.ktor.server.cio.internal.*
 import io.ktor.server.engine.*
+import io.ktor.server.http.HttpRequestCloseHandlerKey
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.pipeline.*
@@ -169,6 +171,14 @@ public class CIOApplicationEngine(
         return transferEncoding != null || (contentLength != null && contentLength > 0)
     }
 
+    @OptIn(InternalAPI::class)
+    private fun setRequestCloseHandler(request: Request, call: CIOApplicationCall) {
+        request.onClose = {
+            val requestCloseHandler = call.attributes.getOrNull(HttpRequestCloseHandlerKey)
+            requestCloseHandler?.invoke()
+        }
+    }
+
     private suspend fun ServerRequestScope.handleRequest(request: io.ktor.http.cio.Request) {
         withContext(userDispatcher) requestContext@{
             val call = CIOApplicationCall(
@@ -184,8 +194,10 @@ public class CIOApplicationEngine(
                 this@requestContext.coroutineContext
             )
 
+
             try {
                 addHandlerForExpectedHeader(output, call)
+                setRequestCloseHandler(request, call)
                 pipeline.execute(call)
             } catch (error: Throwable) {
                 handleFailure(call, error)

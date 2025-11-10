@@ -59,9 +59,10 @@ public fun CoroutineScope.startServerConnectionPipeline(
 
     val requestContext = RequestHandlerCoroutine + Dispatchers.Unconfined
 
+    var request: Request? = null
     try {
         while (true) { // parse requests loop
-            val request = try {
+            request = try {
                 parseRequest(connection.input) ?: break
             } catch (cause: TooLongLineException) {
                 respondBadRequest(actorChannel)
@@ -185,6 +186,7 @@ public fun CoroutineScope.startServerConnectionPipeline(
         // already handled
         coroutineContext.cancel()
     } finally {
+        request?.onClose?.invoke()
         actorChannel.close()
     }
 }

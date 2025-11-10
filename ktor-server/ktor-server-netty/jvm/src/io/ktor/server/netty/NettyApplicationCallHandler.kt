@@ -8,6 +8,7 @@ import io.ktor.http.*
 import io.ktor.http.HttpHeaders
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
+import io.ktor.server.http.HttpRequestCloseHandlerKey
 import io.ktor.server.netty.http1.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
@@ -35,8 +36,20 @@ internal class NettyApplicationCallHandler(
         }
     }
 
+    private var onConnectionClose: (() -> Unit)? = null
+
+    override fun handlerRemoved(ctx: ChannelHandlerContext?) {
+        if (ctx?.channel()?.isActive == false) {
+            onConnectionClose?.invoke()
+        }
+    }
+
+    @OptIn(InternalAPI::class)
     private fun handleRequest(context: ChannelHandlerContext, call: PipelineCall) {
         val callContext = CallHandlerCoroutineName + NettyDispatcher.CurrentContext(context)
+        onConnectionClose = {
+            call.attributes.getOrNull(HttpRequestCloseHandlerKey)?.invoke()
+        }
 
         currentJob = launch(callContext, start = CoroutineStart.UNDISPATCHED) {
             when {
@@ -65,6 +78,12 @@ internal class NettyApplicationCallHandler(
 
             else -> ctx.fireExceptionCaught(cause)
         }
+    }
+
+    override fun channelInactive(ctx: ChannelHandlerContext) {
+        onConnectionClose?.invoke()
+        onConnectionClose = null
+        ctx.fireChannelInactive()
     }
 
     private fun respond408RequestTimeout(ctx: ChannelHandlerContext) {
