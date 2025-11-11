@@ -261,6 +261,13 @@ io.ktor:ktor-network/.jar
 io.ktor:ktor-network/javadoc.jar
 io.ktor:ktor-network/kotlin-tooling-metadata.json
 io.ktor:ktor-network/sources.jar
+io.ktor:ktor-openapi-schema-jvm/.jar
+io.ktor:ktor-openapi-schema-jvm/javadoc.jar
+io.ktor:ktor-openapi-schema-jvm/sources.jar
+io.ktor:ktor-openapi-schema/.jar
+io.ktor:ktor-openapi-schema/javadoc.jar
+io.ktor:ktor-openapi-schema/kotlin-tooling-metadata.json
+io.ktor:ktor-openapi-schema/sources.jar
 io.ktor:ktor-resources-jvm/.jar
 io.ktor:ktor-resources-jvm/javadoc.jar
 io.ktor:ktor-resources-jvm/sources.jar
@@ -621,6 +628,13 @@ io.ktor:ktor-server-resources/.jar
 io.ktor:ktor-server-resources/javadoc.jar
 io.ktor:ktor-server-resources/kotlin-tooling-metadata.json
 io.ktor:ktor-server-resources/sources.jar
+io.ktor:ktor-server-routing-annotate-jvm/.jar
+io.ktor:ktor-server-routing-annotate-jvm/javadoc.jar
+io.ktor:ktor-server-routing-annotate-jvm/sources.jar
+io.ktor:ktor-server-routing-annotate/.jar
+io.ktor:ktor-server-routing-annotate/javadoc.jar
+io.ktor:ktor-server-routing-annotate/kotlin-tooling-metadata.json
+io.ktor:ktor-server-routing-annotate/sources.jar
 io.ktor:ktor-server-servlet-jakarta-jvm/.jar
 io.ktor:ktor-server-servlet-jakarta-jvm/javadoc.jar
 io.ktor:ktor-server-servlet-jakarta-jvm/sources.jar
