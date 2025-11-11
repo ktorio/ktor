@@ -84,7 +84,7 @@ private fun RoutingNode.operationFromSelector(): Operation? {
         is OptionalParameterRouteSelector -> Operation.build {
             parameters {
                 query(paramSelector.name) {
-                    required = paramSelector is OptionalParameterRouteSelector
+                    required = paramSelector !is OptionalParameterRouteSelector
                 }
             }
         }
@@ -92,7 +92,7 @@ private fun RoutingNode.operationFromSelector(): Operation? {
         is PathSegmentOptionalParameterRouteSelector -> Operation.build {
             parameters {
                 path(paramSelector.name) {
-                    required = paramSelector is PathSegmentOptionalParameterRouteSelector
+                    required = paramSelector !is PathSegmentOptionalParameterRouteSelector
                 }
             }
         }
