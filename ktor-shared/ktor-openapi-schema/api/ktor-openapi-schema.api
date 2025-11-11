@@ -454,6 +454,7 @@ public final class io/ktor/openapi/MediaType$Builder {
 }
 
 public final class io/ktor/openapi/MediaType$Companion {
+	public final fun getText ()Ljava/util/Map;
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
@@ -544,26 +545,28 @@ public final class io/ktor/openapi/Operation$Companion {
 
 public final class io/ktor/openapi/Parameter : io/ktor/openapi/Extensible {
 	public static final field Companion Lio/ktor/openapi/Parameter$Companion;
-	public fun <init> (Ljava/lang/String;Lio/ktor/openapi/ParameterType;Ljava/lang/String;ZZLio/ktor/openapi/ReferenceOr;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Lio/ktor/openapi/GenericElement;Ljava/util/Map;Ljava/util/Map;)V
-	public synthetic fun <init> (Ljava/lang/String;Lio/ktor/openapi/ParameterType;Ljava/lang/String;ZZLio/ktor/openapi/ReferenceOr;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Lio/ktor/openapi/GenericElement;Ljava/util/Map;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Lio/ktor/openapi/ParameterType;Ljava/lang/String;ZZLio/ktor/openapi/ReferenceOr;Ljava/util/Map;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Lio/ktor/openapi/GenericElement;Ljava/util/Map;Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/lang/String;Lio/ktor/openapi/ParameterType;Ljava/lang/String;ZZLio/ktor/openapi/ReferenceOr;Ljava/util/Map;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Lio/ktor/openapi/GenericElement;Ljava/util/Map;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component10 ()Ljava/lang/Boolean;
-	public final fun component11 ()Lio/ktor/openapi/GenericElement;
-	public final fun component12 ()Ljava/util/Map;
+	public final fun component11 ()Ljava/lang/Boolean;
+	public final fun component12 ()Lio/ktor/openapi/GenericElement;
 	public final fun component13 ()Ljava/util/Map;
+	public final fun component14 ()Ljava/util/Map;
 	public final fun component2 ()Lio/ktor/openapi/ParameterType;
 	public final fun component3 ()Ljava/lang/String;
 	public final fun component4 ()Z
 	public final fun component5 ()Z
 	public final fun component6 ()Lio/ktor/openapi/ReferenceOr;
-	public final fun component7 ()Ljava/lang/String;
-	public final fun component8 ()Ljava/lang/Boolean;
+	public final fun component7 ()Ljava/util/Map;
+	public final fun component8 ()Ljava/lang/String;
 	public final fun component9 ()Ljava/lang/Boolean;
-	public final fun copy (Ljava/lang/String;Lio/ktor/openapi/ParameterType;Ljava/lang/String;ZZLio/ktor/openapi/ReferenceOr;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Lio/ktor/openapi/GenericElement;Ljava/util/Map;Ljava/util/Map;)Lio/ktor/openapi/Parameter;
-	public static synthetic fun copy$default (Lio/ktor/openapi/Parameter;Ljava/lang/String;Lio/ktor/openapi/ParameterType;Ljava/lang/String;ZZLio/ktor/openapi/ReferenceOr;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Lio/ktor/openapi/GenericElement;Ljava/util/Map;Ljava/util/Map;ILjava/lang/Object;)Lio/ktor/openapi/Parameter;
+	public final fun copy (Ljava/lang/String;Lio/ktor/openapi/ParameterType;Ljava/lang/String;ZZLio/ktor/openapi/ReferenceOr;Ljava/util/Map;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Lio/ktor/openapi/GenericElement;Ljava/util/Map;Ljava/util/Map;)Lio/ktor/openapi/Parameter;
+	public static synthetic fun copy$default (Lio/ktor/openapi/Parameter;Ljava/lang/String;Lio/ktor/openapi/ParameterType;Ljava/lang/String;ZZLio/ktor/openapi/ReferenceOr;Ljava/util/Map;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Lio/ktor/openapi/GenericElement;Ljava/util/Map;Ljava/util/Map;ILjava/lang/Object;)Lio/ktor/openapi/Parameter;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAllowEmptyValue ()Ljava/lang/Boolean;
 	public final fun getAllowReserved ()Ljava/lang/Boolean;
+	public final fun getContent ()Ljava/util/Map;
 	public final fun getDeprecated ()Z
 	public final fun getDescription ()Ljava/lang/String;
 	public final fun getExample ()Lio/ktor/openapi/GenericElement;
@@ -595,6 +598,7 @@ public final class io/ktor/openapi/Parameter$Builder {
 	public final fun example (Ljava/lang/String;Lio/ktor/openapi/ExampleObject;)V
 	public final fun getAllowEmptyValue ()Ljava/lang/Boolean;
 	public final fun getAllowReserved ()Ljava/lang/Boolean;
+	public final fun getContent ()Ljava/util/Map;
 	public final fun getDeprecated ()Z
 	public final fun getDescription ()Ljava/lang/String;
 	public final fun getExample ()Lio/ktor/openapi/GenericElement;
@@ -606,6 +610,8 @@ public final class io/ktor/openapi/Parameter$Builder {
 	public final fun getRequired ()Z
 	public final fun getSchema ()Lio/ktor/openapi/Schema;
 	public final fun getStyle ()Ljava/lang/String;
+	public final fun invoke (Lio/ktor/http/ContentType;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun invoke$default (Lio/ktor/openapi/Parameter$Builder;Lio/ktor/http/ContentType;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public final fun setAllowEmptyValue (Ljava/lang/Boolean;)V
 	public final fun setAllowReserved (Ljava/lang/Boolean;)V
 	public final fun setDeprecated (Z)V
@@ -669,7 +675,7 @@ public final class io/ktor/openapi/Parameters$Builder {
 	public final fun getParameters ()Ljava/util/List;
 	public final fun header (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun header$default (Lio/ktor/openapi/Parameters$Builder;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
-	public final fun parameter (Lkotlin/jvm/functions/Function1;)V
+	public final fun parameter (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public final fun path (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun path$default (Lio/ktor/openapi/Parameters$Builder;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public final fun query (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
@@ -819,6 +825,7 @@ public final class io/ktor/openapi/RequestBody$Builder {
 	public final fun getJsonSchema ()Lio/ktor/openapi/Schema;
 	public final fun getRequired ()Z
 	public final fun invoke (Lio/ktor/http/ContentType;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun invoke$default (Lio/ktor/openapi/RequestBody$Builder;Lio/ktor/http/ContentType;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public final fun setDescription (Ljava/lang/String;)V
 	public final fun setJsonSchema (Lio/ktor/openapi/Schema;)V
 	public final fun setRequired (Z)V

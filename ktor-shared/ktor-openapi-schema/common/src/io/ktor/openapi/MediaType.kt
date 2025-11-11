@@ -3,6 +3,7 @@
  */
 package io.ktor.openapi
 
+import io.ktor.http.ContentType
 import io.ktor.openapi.ReferenceOr.Value
 import io.ktor.utils.io.*
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -39,6 +40,11 @@ public data class MediaType(
             generatedSerializer(),
             { mt, extensions -> mt.copy(extensions = extensions) }
         )
+
+        /**
+         * Default content value for headers and cookies, etc.
+         */
+        public val Text: Map<ContentType, MediaType> = mapOf(ContentType.Text.Plain to MediaType())
     }
 
     /** Builder for constructing a [MediaType] instance. */

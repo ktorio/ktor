@@ -504,6 +504,8 @@ final class io.ktor.openapi/MediaType : io.ktor.openapi/Extensible { // io.ktor.
 
     final object Companion { // io.ktor.openapi/MediaType.Companion|null[0]
         final val $childSerializers // io.ktor.openapi/MediaType.Companion.$childSerializers|{}$childSerializers[0]
+        final val Text // io.ktor.openapi/MediaType.Companion.Text|{}Text[0]
+            final fun <get-Text>(): kotlin.collections/Map<io.ktor.http/ContentType, io.ktor.openapi/MediaType> // io.ktor.openapi/MediaType.Companion.Text.<get-Text>|<get-Text>(){}[0]
 
         final fun serializer(): kotlinx.serialization/KSerializer<io.ktor.openapi/MediaType> // io.ktor.openapi/MediaType.Companion.serializer|serializer(){}[0]
     }
@@ -623,12 +625,14 @@ final class io.ktor.openapi/Operation : io.ktor.openapi/Extensible { // io.ktor.
 }
 
 final class io.ktor.openapi/Parameter : io.ktor.openapi/Extensible { // io.ktor.openapi/Parameter|null[0]
-    constructor <init>(kotlin/String, io.ktor.openapi/ParameterType, kotlin/String? = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., io.ktor.openapi/ReferenceOr<io.ktor.openapi/Schema>? = ..., kotlin/String? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., io.ktor.openapi/GenericElement? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/ExampleObject>>? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/GenericElement>? = ...) // io.ktor.openapi/Parameter.<init>|<init>(kotlin.String;io.ktor.openapi.ParameterType;kotlin.String?;kotlin.Boolean;kotlin.Boolean;io.ktor.openapi.ReferenceOr<io.ktor.openapi.Schema>?;kotlin.String?;kotlin.Boolean?;kotlin.Boolean?;kotlin.Boolean?;io.ktor.openapi.GenericElement?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.ReferenceOr<io.ktor.openapi.ExampleObject>>?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.GenericElement>?){}[0]
+    constructor <init>(kotlin/String, io.ktor.openapi/ParameterType? = ..., kotlin/String? = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., io.ktor.openapi/ReferenceOr<io.ktor.openapi/Schema>? = ..., kotlin.collections/Map<io.ktor.http/ContentType, io.ktor.openapi/MediaType>? = ..., kotlin/String? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., io.ktor.openapi/GenericElement? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/ExampleObject>>? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/GenericElement>? = ...) // io.ktor.openapi/Parameter.<init>|<init>(kotlin.String;io.ktor.openapi.ParameterType?;kotlin.String?;kotlin.Boolean;kotlin.Boolean;io.ktor.openapi.ReferenceOr<io.ktor.openapi.Schema>?;kotlin.collections.Map<io.ktor.http.ContentType,io.ktor.openapi.MediaType>?;kotlin.String?;kotlin.Boolean?;kotlin.Boolean?;kotlin.Boolean?;io.ktor.openapi.GenericElement?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.ReferenceOr<io.ktor.openapi.ExampleObject>>?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.GenericElement>?){}[0]
 
     final val allowEmptyValue // io.ktor.openapi/Parameter.allowEmptyValue|{}allowEmptyValue[0]
         final fun <get-allowEmptyValue>(): kotlin/Boolean? // io.ktor.openapi/Parameter.allowEmptyValue.<get-allowEmptyValue>|<get-allowEmptyValue>(){}[0]
     final val allowReserved // io.ktor.openapi/Parameter.allowReserved|{}allowReserved[0]
         final fun <get-allowReserved>(): kotlin/Boolean? // io.ktor.openapi/Parameter.allowReserved.<get-allowReserved>|<get-allowReserved>(){}[0]
+    final val content // io.ktor.openapi/Parameter.content|{}content[0]
+        final fun <get-content>(): kotlin.collections/Map<io.ktor.http/ContentType, io.ktor.openapi/MediaType>? // io.ktor.openapi/Parameter.content.<get-content>|<get-content>(){}[0]
     final val deprecated // io.ktor.openapi/Parameter.deprecated|{}deprecated[0]
         final fun <get-deprecated>(): kotlin/Boolean // io.ktor.openapi/Parameter.deprecated.<get-deprecated>|<get-deprecated>(){}[0]
     final val description // io.ktor.openapi/Parameter.description|{}description[0]
@@ -642,7 +646,7 @@ final class io.ktor.openapi/Parameter : io.ktor.openapi/Extensible { // io.ktor.
     final val extensions // io.ktor.openapi/Parameter.extensions|{}extensions[0]
         final fun <get-extensions>(): kotlin.collections/Map<kotlin/String, io.ktor.openapi/GenericElement>? // io.ktor.openapi/Parameter.extensions.<get-extensions>|<get-extensions>(){}[0]
     final val in // io.ktor.openapi/Parameter.in|{}in[0]
-        final fun <get-in>(): io.ktor.openapi/ParameterType // io.ktor.openapi/Parameter.in.<get-in>|<get-in>(){}[0]
+        final fun <get-in>(): io.ktor.openapi/ParameterType? // io.ktor.openapi/Parameter.in.<get-in>|<get-in>(){}[0]
     final val name // io.ktor.openapi/Parameter.name|{}name[0]
         final fun <get-name>(): kotlin/String // io.ktor.openapi/Parameter.name.<get-name>|<get-name>(){}[0]
     final val required // io.ktor.openapi/Parameter.required|{}required[0]
@@ -654,18 +658,19 @@ final class io.ktor.openapi/Parameter : io.ktor.openapi/Extensible { // io.ktor.
 
     final fun component1(): kotlin/String // io.ktor.openapi/Parameter.component1|component1(){}[0]
     final fun component10(): kotlin/Boolean? // io.ktor.openapi/Parameter.component10|component10(){}[0]
-    final fun component11(): io.ktor.openapi/GenericElement? // io.ktor.openapi/Parameter.component11|component11(){}[0]
-    final fun component12(): kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/ExampleObject>>? // io.ktor.openapi/Parameter.component12|component12(){}[0]
-    final fun component13(): kotlin.collections/Map<kotlin/String, io.ktor.openapi/GenericElement>? // io.ktor.openapi/Parameter.component13|component13(){}[0]
-    final fun component2(): io.ktor.openapi/ParameterType // io.ktor.openapi/Parameter.component2|component2(){}[0]
+    final fun component11(): kotlin/Boolean? // io.ktor.openapi/Parameter.component11|component11(){}[0]
+    final fun component12(): io.ktor.openapi/GenericElement? // io.ktor.openapi/Parameter.component12|component12(){}[0]
+    final fun component13(): kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/ExampleObject>>? // io.ktor.openapi/Parameter.component13|component13(){}[0]
+    final fun component14(): kotlin.collections/Map<kotlin/String, io.ktor.openapi/GenericElement>? // io.ktor.openapi/Parameter.component14|component14(){}[0]
+    final fun component2(): io.ktor.openapi/ParameterType? // io.ktor.openapi/Parameter.component2|component2(){}[0]
     final fun component3(): kotlin/String? // io.ktor.openapi/Parameter.component3|component3(){}[0]
     final fun component4(): kotlin/Boolean // io.ktor.openapi/Parameter.component4|component4(){}[0]
     final fun component5(): kotlin/Boolean // io.ktor.openapi/Parameter.component5|component5(){}[0]
     final fun component6(): io.ktor.openapi/ReferenceOr<io.ktor.openapi/Schema>? // io.ktor.openapi/Parameter.component6|component6(){}[0]
-    final fun component7(): kotlin/String? // io.ktor.openapi/Parameter.component7|component7(){}[0]
-    final fun component8(): kotlin/Boolean? // io.ktor.openapi/Parameter.component8|component8(){}[0]
+    final fun component7(): kotlin.collections/Map<io.ktor.http/ContentType, io.ktor.openapi/MediaType>? // io.ktor.openapi/Parameter.component7|component7(){}[0]
+    final fun component8(): kotlin/String? // io.ktor.openapi/Parameter.component8|component8(){}[0]
     final fun component9(): kotlin/Boolean? // io.ktor.openapi/Parameter.component9|component9(){}[0]
-    final fun copy(kotlin/String = ..., io.ktor.openapi/ParameterType = ..., kotlin/String? = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., io.ktor.openapi/ReferenceOr<io.ktor.openapi/Schema>? = ..., kotlin/String? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., io.ktor.openapi/GenericElement? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/ExampleObject>>? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/GenericElement>? = ...): io.ktor.openapi/Parameter // io.ktor.openapi/Parameter.copy|copy(kotlin.String;io.ktor.openapi.ParameterType;kotlin.String?;kotlin.Boolean;kotlin.Boolean;io.ktor.openapi.ReferenceOr<io.ktor.openapi.Schema>?;kotlin.String?;kotlin.Boolean?;kotlin.Boolean?;kotlin.Boolean?;io.ktor.openapi.GenericElement?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.ReferenceOr<io.ktor.openapi.ExampleObject>>?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.GenericElement>?){}[0]
+    final fun copy(kotlin/String = ..., io.ktor.openapi/ParameterType? = ..., kotlin/String? = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., io.ktor.openapi/ReferenceOr<io.ktor.openapi/Schema>? = ..., kotlin.collections/Map<io.ktor.http/ContentType, io.ktor.openapi/MediaType>? = ..., kotlin/String? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., io.ktor.openapi/GenericElement? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/ExampleObject>>? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/GenericElement>? = ...): io.ktor.openapi/Parameter // io.ktor.openapi/Parameter.copy|copy(kotlin.String;io.ktor.openapi.ParameterType?;kotlin.String?;kotlin.Boolean;kotlin.Boolean;io.ktor.openapi.ReferenceOr<io.ktor.openapi.Schema>?;kotlin.collections.Map<io.ktor.http.ContentType,io.ktor.openapi.MediaType>?;kotlin.String?;kotlin.Boolean?;kotlin.Boolean?;kotlin.Boolean?;io.ktor.openapi.GenericElement?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.ReferenceOr<io.ktor.openapi.ExampleObject>>?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.GenericElement>?){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.openapi/Parameter.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // io.ktor.openapi/Parameter.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // io.ktor.openapi/Parameter.toString|toString(){}[0]
@@ -673,6 +678,8 @@ final class io.ktor.openapi/Parameter : io.ktor.openapi/Extensible { // io.ktor.
     final class Builder { // io.ktor.openapi/Parameter.Builder|null[0]
         constructor <init>() // io.ktor.openapi/Parameter.Builder.<init>|<init>(){}[0]
 
+        final val content // io.ktor.openapi/Parameter.Builder.content|{}content[0]
+            final fun <get-content>(): kotlin.collections/Map<io.ktor.http/ContentType, io.ktor.openapi/MediaType> // io.ktor.openapi/Parameter.Builder.content.<get-content>|<get-content>(){}[0]
         final val extensions // io.ktor.openapi/Parameter.Builder.extensions|{}extensions[0]
             final fun <get-extensions>(): kotlin.collections/MutableMap<kotlin/String, io.ktor.openapi/GenericElement> // io.ktor.openapi/Parameter.Builder.extensions.<get-extensions>|<get-extensions>(){}[0]
 
@@ -713,6 +720,7 @@ final class io.ktor.openapi/Parameter : io.ktor.openapi/Extensible { // io.ktor.
             final fun <get-style>(): kotlin/String? // io.ktor.openapi/Parameter.Builder.style.<get-style>|<get-style>(){}[0]
             final fun <set-style>(kotlin/String?) // io.ktor.openapi/Parameter.Builder.style.<set-style>|<set-style>(kotlin.String?){}[0]
 
+        final fun (io.ktor.http/ContentType).invoke(kotlin/Function1<io.ktor.openapi/MediaType.Builder, kotlin/Unit> = ...) // io.ktor.openapi/Parameter.Builder.invoke|invoke@io.ktor.http.ContentType(kotlin.Function1<io.ktor.openapi.MediaType.Builder,kotlin.Unit>){}[0]
         final fun example(kotlin/String, io.ktor.openapi/ExampleObject) // io.ktor.openapi/Parameter.Builder.example|example(kotlin.String;io.ktor.openapi.ExampleObject){}[0]
         final inline fun <#A2: reified kotlin/Any> extension(kotlin/String, #A2) // io.ktor.openapi/Parameter.Builder.extension|extension(kotlin.String;0:0){0§<kotlin.Any>}[0]
     }
@@ -753,7 +761,7 @@ final class io.ktor.openapi/Parameters { // io.ktor.openapi/Parameters|null[0]
 
         final fun cookie(kotlin/String, kotlin/Function1<io.ktor.openapi/Parameter.Builder, kotlin/Unit> = ...) // io.ktor.openapi/Parameters.Builder.cookie|cookie(kotlin.String;kotlin.Function1<io.ktor.openapi.Parameter.Builder,kotlin.Unit>){}[0]
         final fun header(kotlin/String, kotlin/Function1<io.ktor.openapi/Parameter.Builder, kotlin/Unit> = ...) // io.ktor.openapi/Parameters.Builder.header|header(kotlin.String;kotlin.Function1<io.ktor.openapi.Parameter.Builder,kotlin.Unit>){}[0]
-        final fun parameter(kotlin/Function1<io.ktor.openapi/Parameter.Builder, kotlin/Unit>) // io.ktor.openapi/Parameters.Builder.parameter|parameter(kotlin.Function1<io.ktor.openapi.Parameter.Builder,kotlin.Unit>){}[0]
+        final fun parameter(kotlin/String, kotlin/Function1<io.ktor.openapi/Parameter.Builder, kotlin/Unit>) // io.ktor.openapi/Parameters.Builder.parameter|parameter(kotlin.String;kotlin.Function1<io.ktor.openapi.Parameter.Builder,kotlin.Unit>){}[0]
         final fun path(kotlin/String, kotlin/Function1<io.ktor.openapi/Parameter.Builder, kotlin/Unit> = ...) // io.ktor.openapi/Parameters.Builder.path|path(kotlin.String;kotlin.Function1<io.ktor.openapi.Parameter.Builder,kotlin.Unit>){}[0]
         final fun query(kotlin/String, kotlin/Function1<io.ktor.openapi/Parameter.Builder, kotlin/Unit> = ...) // io.ktor.openapi/Parameters.Builder.query|query(kotlin.String;kotlin.Function1<io.ktor.openapi.Parameter.Builder,kotlin.Unit>){}[0]
     }
@@ -877,7 +885,7 @@ final class io.ktor.openapi/RequestBody : io.ktor.openapi/Extensible { // io.kto
             final fun <get-required>(): kotlin/Boolean // io.ktor.openapi/RequestBody.Builder.required.<get-required>|<get-required>(){}[0]
             final fun <set-required>(kotlin/Boolean) // io.ktor.openapi/RequestBody.Builder.required.<set-required>|<set-required>(kotlin.Boolean){}[0]
 
-        final fun (io.ktor.http/ContentType).invoke(kotlin/Function1<io.ktor.openapi/MediaType.Builder, kotlin/Unit>) // io.ktor.openapi/RequestBody.Builder.invoke|invoke@io.ktor.http.ContentType(kotlin.Function1<io.ktor.openapi.MediaType.Builder,kotlin.Unit>){}[0]
+        final fun (io.ktor.http/ContentType).invoke(kotlin/Function1<io.ktor.openapi/MediaType.Builder, kotlin/Unit> = ...) // io.ktor.openapi/RequestBody.Builder.invoke|invoke@io.ktor.http.ContentType(kotlin.Function1<io.ktor.openapi.MediaType.Builder,kotlin.Unit>){}[0]
         final fun xml(io.ktor.openapi/Schema) // io.ktor.openapi/RequestBody.Builder.xml|xml(io.ktor.openapi.Schema){}[0]
         final inline fun <#A2: reified kotlin/Any> extension(kotlin/String, #A2) // io.ktor.openapi/RequestBody.Builder.extension|extension(kotlin.String;0:0){0§<kotlin.Any>}[0]
     }

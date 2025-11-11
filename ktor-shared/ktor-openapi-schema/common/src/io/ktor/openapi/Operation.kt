@@ -230,10 +230,18 @@ public data class Parameters(
         /**
          * Adds a generic [Parameter] via the provided [configure] block.
          *
+         * This is used internally for marking ambiguous parameter types (i.e., `call.parameters`)
+         *
          * @param configure DSL to configure the parameter.
          */
-        public fun parameter(configure: Parameter.Builder.() -> Unit) {
-            _parameters.add(Parameter.Builder().apply(configure).build())
+        @Deprecated("Use path, query, header, or cookie instead.")
+        public fun parameter(name: String, configure: Parameter.Builder.() -> Unit) {
+            _parameters.add(
+                Parameter.Builder().apply {
+                    this.name = name
+                    configure()
+                }.build()
+            )
         }
 
         /**
@@ -322,11 +330,12 @@ public data class Parameters(
 @KeepGeneratedSerializer
 public data class Parameter(
     public val name: String,
-    public val `in`: ParameterType,
+    public val `in`: ParameterType? = null,
     public val description: String? = null,
     public val required: Boolean = false,
     public val deprecated: Boolean = false,
     public val schema: ReferenceOr<Schema>? = null,
+    public val content: Map<@Serializable(ContentTypeSerializer::class) ContentType, MediaType>? = null,
     public val style: String? = null,
     public val explode: Boolean? = null,
     public val allowReserved: Boolean? = null,
@@ -363,6 +372,11 @@ public data class Parameter(
         /** The schema defining the parameter type. */
         public var schema: Schema? = null
 
+        private val _content = mutableMapOf<ContentType, MediaType>()
+
+        /** Map of media type to [MediaType] object. */
+        public val content: Map<ContentType, MediaType> get() = _content
+
         /** Describes how the parameter value will be serialized (e.g., "matrix", "label", "form", "simple", "spaceDelimited", "pipeDelimited", "deepObject"). */
         public var style: String? = null
 
@@ -383,6 +397,16 @@ public data class Parameter(
 
         /** Specification-extensions for this parameter (keys must start with `x-`). */
         public val extensions: MutableMap<String, GenericElement> = mutableMapOf()
+
+        /**
+         * Adds a media type definition for the request body.
+         *
+         * @receiver the media type to assign
+         * @param configure DSL to configure the [MediaType].
+         */
+        public operator fun ContentType.invoke(configure: MediaType.Builder.() -> Unit = {}) {
+            _content[this] = MediaType.Builder().apply(configure).build()
+        }
 
         /**
          * Adds a custom vendor-specific extension.
@@ -408,15 +432,15 @@ public data class Parameter(
         /** Validates required fields and constructs the [Parameter]. */
         internal fun build(): Parameter {
             requireNotNull(name) { "Parameter name is required" }
-            requireNotNull(`in`) { "Parameter location ('in') is required" }
 
             return Parameter(
                 name = name!!,
-                `in` = `in`!!,
+                `in` = `in`,
                 description = description,
                 required = required,
                 deprecated = deprecated,
                 schema = schema?.let(::Value),
+                content = _content.ifEmpty { null },
                 style = style,
                 explode = explode,
                 allowReserved = allowReserved,
@@ -786,10 +810,10 @@ public data class RequestBody(
         /**
          * Adds a media type definition for the request body.
          *
-         * @param mediaType The media type string (e.g., "application/json").
+         * @receiver the media type to assign
          * @param configure DSL to configure the [MediaType].
          */
-        public fun ContentType.invoke(configure: MediaType.Builder.() -> Unit) {
+        public operator fun ContentType.invoke(configure: MediaType.Builder.() -> Unit = {}) {
             _content[this] = MediaType.Builder().apply(configure).build()
         }
 

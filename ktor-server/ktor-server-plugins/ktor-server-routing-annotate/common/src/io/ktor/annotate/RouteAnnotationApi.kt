@@ -52,7 +52,7 @@ private fun RoutingNode.asPathItem(): Pair<String, PathItem>? {
     if (!hasHandler()) return null
     val path = path(format = OpenApiRoutePathFormat)
     val method = method() ?: return null
-    val operation = operation() ?: Operation()
+    val operation = operation()?.normalize() ?: Operation()
     val pathItem = newPathItem(method, operation) ?: return null
 
     return path to pathItem
@@ -154,7 +154,7 @@ private operator fun PathItem.plus(other: PathItem): PathItem =
 private fun mergeParameters(parameters: List<ReferenceOr<Parameter>>?, otherParameters: List<ReferenceOr<Parameter>>?) =
     mergeNullable(parameters, otherParameters) { a, b ->
         (a + b).mergeReferencesOr {
-            mergeElementsBy({ `in` to name }) { a, b -> a + b }
+            mergeElementsBy({ name }) { a, b -> a + b }
         }
     }
 
@@ -187,7 +187,7 @@ private operator fun Response.plus(other: Response): Response =
 private operator fun Parameter.plus(other: Parameter): Parameter =
     Parameter(
         name = name,
-        `in` = `in`,
+        `in` = `in` ?: other.`in`,
         description = description ?: other.description,
         required = required || other.required,
         deprecated = deprecated || other.deprecated,
@@ -229,3 +229,23 @@ private fun <E, K> Iterable<E>.mergeElementsBy(
 
 private fun <K, V> Iterable<Map.Entry<K, V>>.toMap() =
     associate { it.key to it.value }
+
+private fun Operation.normalize(): Operation {
+    val hasMissingMediaInfo = parameters.orEmpty()
+        .filterIsInstance<ReferenceOr.Value<Parameter>>()
+        .any { it.value.schema == null && it.value.content == null || it.value.`in` == null }
+    if (!hasMissingMediaInfo) {
+        return this
+    }
+    return copy(
+        parameters = parameters?.map { ref ->
+            val param = ref.valueOrNull() ?: return@map ref
+            ReferenceOr.Value(
+                param.copy(
+                    `in` = param.`in` ?: ParameterType.query,
+                    content = param.content ?: MediaType.Text.takeIf { param.schema == null },
+                )
+            )
+        }
+    )
+}

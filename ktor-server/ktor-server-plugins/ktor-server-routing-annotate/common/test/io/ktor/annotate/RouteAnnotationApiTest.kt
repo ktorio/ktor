@@ -13,6 +13,7 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
@@ -36,8 +37,8 @@ class RouteAnnotationApiTest {
                       "name": "q",
                       "in": "query",
                       "description": "An encoded query",
-                      "schema": {
-                        "type": "string"
+                      "content": {
+                        "text/plain": {}
                       }
                     }
                   ],
@@ -89,6 +90,8 @@ class RouteAnnotationApiTest {
         """.trimIndent()
     }
     val testMessage = Message(1L, "Hello, world!", 16777216000)
+
+    @OptIn(ExperimentalSerializationApi::class)
     val jsonFormat = Json {
         encodeDefaults = false
         prettyPrint = true
@@ -115,7 +118,6 @@ class RouteAnnotationApiTest {
                     query("q") {
                         description = "An encoded query"
                         required = false
-                        schema = jsonSchema<String>()
                     }
                 }
                 responses {
@@ -195,9 +197,8 @@ class RouteAnnotationApiTest {
                     description = "Retrieves a list of messages."
 
                     parameters {
-                        query("q") {
+                        parameter("q") {
                             required = true
-                            schema = jsonSchema<String>()
                             description = "Message query"
                         }
                     }
@@ -216,6 +217,7 @@ class RouteAnnotationApiTest {
                     query("q") {
                         required = false
                         description = "A query"
+                        schema = jsonSchema<String>()
                     }
                 }
                 responses {
