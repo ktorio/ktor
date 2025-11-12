@@ -1,0 +1,6 @@
+public final class io/ktor/annotate/RouteAnnotationApiKt {
+	public static final fun annotate (Lio/ktor/server/routing/Route;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
+	public static final fun findPathItems (Lio/ktor/server/routing/RoutingNode;)Ljava/util/Map;
+	public static final fun getEndpointAnnotationAttributeKey ()Lio/ktor/util/AttributeKey;
+}
+
