@@ -47,4 +47,9 @@ internal object KtorBuildProblems {
         "Missing Android SDK",
         group,
     )
+    val missingCocoaPods = ProblemId.create(
+        "ktor-missing-cocoapods",
+        "Missing CocoaPods",
+        group,
+    )
 }
