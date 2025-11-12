@@ -11,8 +11,6 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.kotlin.dsl.of
-import java.util.*
-
 
 internal val Project.localProperties: Provider<Map<String, String>>
     get() = providers
@@ -21,9 +19,6 @@ internal val Project.localProperties: Provider<Map<String, String>>
         }
 
 internal fun Project.localProperty(name: String): Provider<String> = localProperties.map { it[name] }
-
-internal fun Provider<Map<String, String>>.hasKey(key: String): Provider<Boolean> =
-    map { it.containsKey(key) }
 
 // Copied from org.jetbrains.kotlin.gradle.plugin.internal.CustomPropertiesFileValueSource
 internal abstract class CustomPropertiesFileValueSource : ValueSource<Map<String, String>, CustomPropertiesFileValueSource.Parameters>,
@@ -37,13 +32,6 @@ internal abstract class CustomPropertiesFileValueSource : ValueSource<Map<String
 
     override fun obtain(): Map<String, String> {
         val customFile = parameters.propertiesFile.get().asFile
-        return if (customFile.exists()) {
-            customFile.bufferedReader().use {
-                @Suppress("UNCHECKED_CAST")
-                Properties().apply { load(it) }.toMap() as Map<String, String>
-            }
-        } else {
-            emptyMap()
-        }
+        return customFile.loadProperties().orEmpty()
     }
 }
