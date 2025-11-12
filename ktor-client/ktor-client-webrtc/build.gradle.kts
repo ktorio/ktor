@@ -64,7 +64,7 @@ kotlin {
             implementation(project(":ktor-test-dispatcher"))
         }
 
-        jsAndWasmSharedMain.dependencies {
+        webMain.dependencies {
             api(kotlinWrappers.browser)
         }
 
