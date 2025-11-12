@@ -49,11 +49,11 @@ if (targets.hasJs) configureJs()
 if (targets.hasWasmJs) configureWasmJs()
 if (targets.hasAndroidJvm && project.hasAndroidPlugin()) configureAndroidJvm()
 
-if (targets.hasJsOrWasmJs) {
+if (targets.hasWeb) {
     configureNodeJs()
 
     tasks.configureEach {
-        if (name == "compileJsAndWasmSharedMainKotlinMetadata") enabled = false
+        if (name == "compileWebMainKotlinMetadata") enabled = false
     }
 }
 

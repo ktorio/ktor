@@ -78,7 +78,7 @@ abstract class KtorTargets @Inject internal constructor(
     val hasWasmJs: Boolean get() = isEnabled("wasmJs")
     val hasAndroidJvm: Boolean get() = isEnabled("android")
 
-    val hasJsOrWasmJs: Boolean get() = hasJs || hasWasmJs
+    val hasWeb: Boolean get() = hasJs || hasWasmJs
     val hasNative: Boolean get() = resolveTargets("posix").any(::isEnabled)
     val hasLinux: Boolean get() = resolveTargets("linux").any(::isEnabled)
     val hasWindows: Boolean get() = resolveTargets("windows").any(::isEnabled)
@@ -161,7 +161,7 @@ abstract class KtorTargets @Inject internal constructor(
                     }
                 }
 
-                group("jsAndWasmShared") {
+                group("web") {
                     withJs()
                     withWasmJs()
                 }
@@ -179,7 +179,7 @@ abstract class KtorTargets @Inject internal constructor(
 
                 group("nonJvm") {
                     group("posix")
-                    group("jsAndWasmShared")
+                    group("web")
                 }
 
                 group("nonDarwinPosix") {
