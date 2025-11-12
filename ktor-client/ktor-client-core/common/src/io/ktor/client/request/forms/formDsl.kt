@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.request.forms
 
@@ -8,9 +8,12 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import kotlinx.io.*
 import kotlinx.io.Buffer
-import kotlin.contracts.*
+import kotlinx.io.Sink
+import kotlinx.io.Source
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 /**
  * A multipart form item. Use it to build a form in client.
@@ -83,7 +86,7 @@ public fun formData(vararg values: FormPart<*>): List<PartData> {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.formData)
  */
-public fun formData(block: FormBuilder.() -> Unit): List<PartData> =
+public inline fun formData(block: FormBuilder.() -> Unit): List<PartData> =
     formData(*FormBuilder().apply(block).build().toTypedArray())
 
 /**
@@ -91,7 +94,7 @@ public fun formData(block: FormBuilder.() -> Unit): List<PartData> =
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.FormBuilder)
  */
-public class FormBuilder internal constructor() {
+public class FormBuilder @PublishedApi internal constructor() {
     private val parts = mutableListOf<FormPart<*>>()
 
     /**
@@ -209,6 +212,7 @@ public class FormBuilder internal constructor() {
         parts += part
     }
 
+    @PublishedApi
     internal fun build(): List<FormPart<*>> = parts
 }
 
