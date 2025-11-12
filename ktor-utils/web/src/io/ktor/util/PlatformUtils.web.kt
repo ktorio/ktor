@@ -4,6 +4,8 @@
 
 package io.ktor.util
 
+import kotlin.js.*
+
 internal actual val PlatformUtils.isDevelopmentMode: Boolean
     get() = false
 

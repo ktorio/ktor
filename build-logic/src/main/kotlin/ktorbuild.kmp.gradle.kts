@@ -47,15 +47,8 @@ configureCommon()
 if (targets.hasJvm) configureJvm()
 if (targets.hasJs) configureJs()
 if (targets.hasWasmJs) configureWasmJs()
+if (targets.hasWeb) configureWeb()
 if (targets.hasAndroidJvm && project.hasAndroidPlugin()) configureAndroidJvm()
-
-if (targets.hasWeb) {
-    configureNodeJs()
-
-    tasks.configureEach {
-        if (name == "compileWebMainKotlinMetadata") enabled = false
-    }
-}
 
 // Run native tests only on matching host.
 // There is no need to configure `onlyIf` for Darwin targets as they're configured by KGP.

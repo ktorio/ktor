@@ -1,10 +1,11 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.js
 
 import io.ktor.client.engine.*
+import kotlin.js.*
 
 /**
  * A JavaScript client engine that uses the fetch API to execute requests.
@@ -22,7 +23,9 @@ import io.ktor.client.engine.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.js.Js)
  */
-public expect object Js : HttpClientEngineFactory<JsClientEngineConfig>
+public expect object Js : HttpClientEngineFactory<JsClientEngineConfig> {
+    override fun create(block: JsClientEngineConfig.() -> Unit): HttpClientEngine
+}
 
 /**
  * Configuration for the [Js] client.

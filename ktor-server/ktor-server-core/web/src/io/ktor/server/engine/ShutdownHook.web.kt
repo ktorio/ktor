@@ -1,11 +1,12 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.engine
 
 import io.ktor.events.*
 import kotlin.concurrent.*
+import kotlin.js.*
 
 internal actual val SHUTDOWN_HOOK_ENABLED = true
 
