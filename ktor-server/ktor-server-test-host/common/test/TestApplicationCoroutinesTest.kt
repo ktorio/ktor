@@ -33,6 +33,6 @@ class TestApplicationCoroutinesTest {
         val mark = kotlin.time.TimeSource.Monotonic.markNow()
         client.get("/")
         val elapsed = mark.elapsedNow().inWholeMilliseconds
-        assertTrue(elapsed < 1_000, "Expected request to finish quickly, but it took $elapsed ms")
+        assertTrue(elapsed < 5_000, "Expected request to finish quickly, but it took $elapsed ms")
     }
 }

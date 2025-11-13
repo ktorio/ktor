@@ -4,17 +4,16 @@
 @file:OptIn(ExperimentalWasmDsl::class, ExperimentalKotlinGradlePluginApi::class)
 
 import ktorbuild.disableNativeCompileConfigurationCache
-import ktorbuild.targets.optionalAndroidLibrary
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import ktorbuild.targets.*
+import org.jetbrains.kotlin.gradle.*
 
 description = "Ktor WebRTC Client"
 
 plugins {
     id("ktorbuild.optional.android-library")
+    id("ktorbuild.optional.cocoapods")
     id("kotlinx-serialization")
     id("ktorbuild.project.library")
-    kotlin("native.cocoapods")
 }
 
 kotlin {
@@ -24,6 +23,31 @@ kotlin {
         namespace = "io.ktor.client.webrtc"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
+    }
+
+    optionalCocoapods {
+        version = project.version.toString()
+        summary = "Ktor WebRTC Client"
+        homepage = "https://github.com/ktorio/ktor"
+        source = "https://github.com/ktorio/ktor"
+        authors = "JetBrains"
+        license = "https://www.apache.org/licenses/LICENSE-2.0"
+        ios.deploymentTarget = libs.versions.ios.deploymentTarget.get()
+
+        pod("WebRTC-SDK") {
+            version = libs.versions.ios.webrtc.sdk.get()
+            moduleName = "WebRTC"
+            packageName = "WebRTC"
+            extraOpts += listOf("-compiler-option", "-fmodules")
+            extraOpts += listOf("-compiler-option", "-DTARGET_OS_VISION=0")
+        }
+
+        framework {
+            baseName = "KtorWebRTC"
+            isStatic = true
+        }
+
+        noPodspec()
     }
 
     sourceSets {
@@ -40,7 +64,7 @@ kotlin {
             implementation(project(":ktor-test-dispatcher"))
         }
 
-        jsAndWasmSharedMain.dependencies {
+        webMain.dependencies {
             api(kotlinWrappers.browser)
         }
 
@@ -52,31 +76,6 @@ kotlin {
 
         optional.androidMain.dependencies {
             api(libs.stream.webrtc.android)
-        }
-
-        cocoapods {
-            version = project.version.toString()
-            summary = "Ktor WebRTC Client"
-            homepage = "https://github.com/ktorio/ktor"
-            source = "https://github.com/ktorio/ktor"
-            authors = "JetBrains"
-            license = "https://www.apache.org/licenses/LICENSE-2.0"
-            ios.deploymentTarget = libs.versions.ios.deploymentTarget.get()
-
-            pod("WebRTC-SDK") {
-                version = libs.versions.ios.webrtc.sdk.get()
-                moduleName = "WebRTC"
-                packageName = "WebRTC"
-                extraOpts += listOf("-compiler-option", "-fmodules")
-                extraOpts += listOf("-compiler-option", "-DTARGET_OS_VISION=0")
-            }
-
-            framework {
-                baseName = "KtorWebRTC"
-                isStatic = true
-            }
-
-            noPodspec()
         }
     }
 

@@ -306,6 +306,7 @@ public final class io/ktor/client/plugins/DoubleReceivePluginKt {
 
 public final class io/ktor/client/plugins/HttpCallValidatorConfig {
 	public fun <init> ()V
+	public final fun handleResponseException (Lkotlin/jvm/functions/Function2;)V
 	public final fun handleResponseException (Lkotlin/jvm/functions/Function3;)V
 	public final fun handleResponseExceptionWithRequest (Lkotlin/jvm/functions/Function3;)V
 	public final fun validateResponse (Lkotlin/jvm/functions/Function2;)V
