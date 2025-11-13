@@ -155,15 +155,24 @@ internal class CurlMultiApiHandler : Closeable {
         easyHandle.apply {
             when (method) {
                 "GET" -> option(CURLOPT_HTTPGET, 1L)
-                "PUT" -> option(CURLOPT_PUT, 1L)
+
+                "PUT" -> {
+                    option(CURLOPT_PUT, 1L)
+                    option(CURLOPT_INFILESIZE_LARGE, size)
+                }
+
                 "POST" -> {
                     option(CURLOPT_POST, 1L)
-                    option(CURLOPT_POSTFIELDSIZE, size)
+                    option(CURLOPT_POSTFIELDSIZE_LARGE, size)
                 }
 
                 "HEAD" -> option(CURLOPT_NOBODY, 1L)
+
                 else -> {
-                    if (size > 0) option(CURLOPT_POST, 1L)
+                    if (size > 0) {
+                        option(CURLOPT_POST, 1L)
+                        option(CURLOPT_POSTFIELDSIZE_LARGE, size)
+                    }
                     option(CURLOPT_CUSTOMREQUEST, method)
                 }
             }
@@ -182,7 +191,6 @@ internal class CurlMultiApiHandler : Closeable {
         easyHandle.apply {
             option(CURLOPT_READDATA, requestPointer)
             option(CURLOPT_READFUNCTION, staticCFunction(::onBodyChunkRequested))
-            option(CURLOPT_INFILESIZE_LARGE, request.contentLength)
         }
         return requestPointer
     }
