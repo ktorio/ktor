@@ -1189,7 +1189,9 @@ class AuthTest : ClientLoader() {
                                 delay(250)
 
                                 respond(
-                                    content = ByteReadChannel("access_token:${new.access}&refresh_token:${new.refresh}"),
+                                    content = ByteReadChannel(
+                                        "access_token:${new.access}&refresh_token:${new.refresh}"
+                                    ),
                                     status = HttpStatusCode.OK
                                 )
                             } else {

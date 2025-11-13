@@ -208,7 +208,7 @@ public class DigestAuthProvider(
     }
 
     override suspend fun refreshToken(response: HttpResponse): Boolean {
-        tokenHolder.setToken(false,credentials)
+        tokenHolder.setToken(false, credentials)
         return true
     }
 

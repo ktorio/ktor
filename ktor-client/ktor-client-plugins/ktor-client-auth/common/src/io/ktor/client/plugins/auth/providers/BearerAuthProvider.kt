@@ -119,7 +119,7 @@ public class BearerAuthConfig {
      * When enabled, token refresh function is executed in a NonCancellable coroutine context.
      * This prevents cancellation of the originating request from rolling back a successful token refresh.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.AuthConfig.nonCancellableRefresh)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.BearerAuthConfig.nonCancellableRefresh)
      */
     public var nonCancellableRefresh: Boolean = false
 }
@@ -142,6 +142,20 @@ public class BearerAuthProvider(
     cacheTokens: Boolean = true,
     private val nonCancellableRefresh: Boolean = false,
 ) : AuthProvider {
+
+    public constructor(
+        refreshTokens: suspend (RefreshTokensParams) -> BearerTokens?,
+        loadTokens: suspend () -> BearerTokens?,
+        sendWithoutRequestCallback: (HttpRequestBuilder) -> Boolean,
+        realm: String?,
+    ) : this(
+        refreshTokens,
+        loadTokens,
+        sendWithoutRequestCallback,
+        realm,
+        cacheTokens = true,
+        nonCancellableRefresh = false
+    )
 
     @Suppress("OverridingDeprecatedMember")
     @Deprecated("Please use sendWithoutRequest function instead", level = DeprecationLevel.ERROR)
