@@ -20,6 +20,15 @@ internal fun Application.echoTest() {
                     call.response.status(HttpStatusCode.OK)
                 }
             }
+
+            route("/headers") {
+                handle {
+                    val headers = call.request.headers.entries().joinToString("\n") { (name, value) ->
+                        "${name.lowercase()}: $value"
+                    }
+                    call.respondText(headers)
+                }
+            }
         }
     }
 }
