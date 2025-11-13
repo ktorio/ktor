@@ -14,6 +14,8 @@ import org.gradle.kotlin.dsl.assign
 import org.gradle.kotlin.dsl.invoke
 import org.gradle.kotlin.dsl.the
 import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.dsl.KotlinCommonCompilerOptions
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsSubTargetDsl
 import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsTargetDsl
@@ -27,6 +29,7 @@ import org.jetbrains.kotlin.gradle.targets.wasm.yarn.WasmYarnPlugin
 import org.jetbrains.kotlin.gradle.targets.wasm.yarn.WasmYarnRootEnvSpec
 import org.jetbrains.kotlin.gradle.targets.web.nodejs.BaseNodeJsEnvSpec
 import org.jetbrains.kotlin.gradle.targets.web.yarn.BaseYarnRootEnvSpec
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompileCommon
 
 internal fun KotlinJsTargetDsl.addSubTargets(targets: KtorTargets) {
     if (targets.isEnabled("${targetName}.nodeJs")) nodejs {
@@ -55,35 +58,43 @@ private fun KotlinJsSubTargetDsl.useKarmaForTests() {
 }
 
 internal fun Project.configureJs() {
-    kotlin {
-        js { binaries.library() }
-
-        sourceSets {
-            jsTest.dependencies {
-                // Puppeteer is used to install Chrome for tests
-                implementation(npm("puppeteer", libs.versions.puppeteer.get()))
-            }
-        }
+    kotlin.js {
+        compilerOptions.configure()
+        binaries.library()
     }
 
     configureJsTestTasks(target = "js")
 }
 
-
+@OptIn(ExperimentalWasmDsl::class)
 internal fun Project.configureWasmJs() {
+    kotlin.wasmJs { compilerOptions.configure() }
+
+    configureJsTestTasks(target = "wasmJs")
+}
+
+internal fun Project.configureWeb() {
     kotlin {
         sourceSets {
-            wasmJsMain.dependencies {
+            webMain.dependencies {
                 implementation(libs.kotlinx.browser)
             }
-            wasmJsTest.dependencies {
+            webTest.dependencies {
                 // Puppeteer is used to install Chrome for tests
                 implementation(npm("puppeteer", libs.versions.puppeteer.get()))
             }
         }
     }
 
-    configureJsTestTasks(target = "wasmJs")
+    tasks.named { it == "compileWebMainKotlinMetadata" }.configureEach {
+        (this as KotlinCompileCommon).compilerOptions.configure()
+    }
+
+    configureNodeJs()
+}
+
+private fun KotlinCommonCompilerOptions.configure() {
+    optIn.add("kotlin.js.ExperimentalWasmJsInterop")
 }
 
 internal fun Project.configureJsTestTasks(target: String) {
@@ -96,8 +107,9 @@ internal fun Project.configureJsTestTasks(target: String) {
 
 fun Project.configureNodeJs() {
     @Suppress("UnstableApiUsage")
-    val nvmrc = project.layout.settingsDirectory.file(".nvmrc")
-    val nodeVersion = provider { nvmrc.asFile.readText().trim() }
+    val nodeVersion = providers.fileContents(layout.settingsDirectory.file(".nvmrc"))
+        .asText
+        .map { it.trim() }
 
     plugins.withType<NodeJsPlugin> { the<NodeJsEnvSpec>().configure(nodeVersion) }
     plugins.withType<WasmNodeJsPlugin> { the<WasmNodeJsEnvSpec>().configure(nodeVersion) }
