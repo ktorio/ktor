@@ -78,19 +78,27 @@ internal class AuthTokenHolder<T>(
      * Replaces the current cached value with one computed with [block].
      * Only one [loadToken] or [setToken] call can be executed at a time,
      * although the resumed [setToken] call recomputes the value cached by [loadToken].
+     *
+     * If [nonCancellable] is `true`, both the computation and the cache update
+     * are executed in a `NonCancellable` context to prevent cancellation from
+     * rolling back a successful token refresh.
      */
-    internal suspend fun setToken(block: suspend () -> T?): T? {
+    internal suspend fun setToken(nonCancellable: Boolean = false, block: suspend () -> T?): T? {
         val prevValue = value
         val lockedByLoad = isLoadRequest
 
-        return mutex.withLock {
-            if (prevValue == value || lockedByLoad) { // Raced first
-                value = withContext(coroutineContext + setTokenMarker) {
-                    block()
+        val context = if (nonCancellable) {
+            coroutineContext + NonCancellable + setTokenMarker
+        } else {
+            coroutineContext + setTokenMarker
+        }
+        return withContext(context) {
+            mutex.withLock {
+                if (prevValue == value || lockedByLoad) { // Raced first
+                    value = block()
                 }
+                value
             }
-
-            value
         }
     }
 

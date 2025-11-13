@@ -15,6 +15,7 @@ import io.ktor.client.test.base.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.test.dispatcher.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.io.IOException
 import kotlin.test.*
@@ -1130,6 +1131,97 @@ class AuthTest : ClientLoader() {
 
             val basicProviders = providers.filterIsInstance<BasicAuthProvider>()
             assertEquals(1, basicProviders.size)
+        }
+    }
+
+    data class Tokens(val access: String, val refresh: String)
+
+    @Test
+    fun testNonCancellableRefresh() = testWithEngine(MockEngine) {
+        val old = Tokens("access-old", "refresh-old")
+        val new = Tokens("access-new", "refresh-new")
+
+        val serverAccessToken = new.access
+        var serverRefreshToken = old.refresh
+
+        val tokensRenewed = CompletableDeferred<Unit>()
+        config {
+            var tokenStorage = BearerTokens(old.access, old.refresh)
+            install(Auth) {
+                bearer {
+                    nonCancellableRefresh = true
+
+                    sendWithoutRequest { request ->
+                        request.url.encodedPath != "/auth/token"
+                    }
+
+                    loadTokens {
+                        tokenStorage
+                    }
+
+                    refreshTokens {
+                        val response = client.post("/auth/token") {
+                            url {
+                                parameters.append("grant_type", "refresh_token")
+                                parameters.append("refresh_token", oldTokens!!.refreshToken!!)
+                            }
+                        }
+
+                        if (response.status == HttpStatusCode.Unauthorized) {
+                            throw IllegalStateException("Refresh failed with 401")
+                        }
+
+                        // server returned new valid tokens
+                        val result = BearerTokens(new.access, new.refresh)
+                        tokenStorage = result
+                        result
+                    }
+                }
+            }
+            engine {
+                addHandler { request ->
+                    when (request.url.encodedPath) {
+                        "/auth/token" -> {
+                            if (request.url.parameters["refresh_token"] == serverRefreshToken) {
+                                serverRefreshToken = new.refresh
+
+                                tokensRenewed.complete(Unit)
+                                delay(250)
+
+                                respond(
+                                    content = ByteReadChannel("access_token:${new.access}&refresh_token:${new.refresh}"),
+                                    status = HttpStatusCode.OK
+                                )
+                            } else {
+                                respond(content = ByteReadChannel.Empty, status = HttpStatusCode.Unauthorized)
+                            }
+                        }
+
+                        "/get/something" ->
+                            if (request.headers[HttpHeaders.Authorization] == "Bearer $serverAccessToken") {
+                                respondOk("data")
+                            } else {
+                                respond(content = ByteReadChannel.Empty, status = HttpStatusCode.Unauthorized)
+                            }
+
+                        else -> respondBadRequest()
+                    }
+                }
+            }
+        }
+
+        test { client ->
+            val firstJob = async {
+                client.get("/get/something")
+            }
+
+            tokensRenewed.await()
+            firstJob.cancel()
+
+            client.get("/get/something").apply {
+                assertEquals(HttpStatusCode.OK, status)
+                assertEquals("data", bodyAsText())
+            }
         }
     }
 }
