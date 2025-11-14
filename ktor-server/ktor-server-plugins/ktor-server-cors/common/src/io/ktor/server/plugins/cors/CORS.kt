@@ -197,7 +197,7 @@ private fun checkOrigin(
         OriginCheckResult.SkipCORS
     }
     allowSameOrigin && isSameOrigin(origin, request.origin) -> {
-        LOGGER.trace { "${request.id()}: Skip CORS handler because Origin $origin matches exactly the server origin" }
+        LOGGER.trace { "${request.id()}: Skip CORS handler because Origin $origin matches the server origin exactly" }
         OriginCheckResult.SkipCORS
     }
     !corsCheckOrigins(
