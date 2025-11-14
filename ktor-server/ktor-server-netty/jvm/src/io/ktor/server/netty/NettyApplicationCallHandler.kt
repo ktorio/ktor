@@ -35,6 +35,11 @@ internal class NettyApplicationCallHandler(
         }
     }
 
+    override fun channelUnregistered(ctx: ChannelHandlerContext?) {
+        currentJob?.cancel()
+        super.channelUnregistered(ctx)
+    }
+
     private fun handleRequest(context: ChannelHandlerContext, call: PipelineCall) {
         val callContext = CallHandlerCoroutineName + NettyDispatcher.CurrentContext(context)
 

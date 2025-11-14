@@ -51,7 +51,7 @@ public abstract class NettyApplicationResponse(
         // because it should've been set by commitHeaders earlier
         val chunked = headers[HttpHeaders.TransferEncoding] == "chunked"
 
-        if (responseMessageSent) return
+        if (responseMessageSent || !context.channel().isActive) return
 
         val message = responseMessage(chunked, bytes)
         responseChannel = when (message) {
@@ -111,7 +111,7 @@ public abstract class NettyApplicationResponse(
     }
 
     internal fun sendResponse(chunked: Boolean = true, content: ByteReadChannel) {
-        if (responseMessageSent) return
+        if (responseMessageSent || !context.channel().isActive) return
 
         responseChannel = content
         responseMessage = when {
