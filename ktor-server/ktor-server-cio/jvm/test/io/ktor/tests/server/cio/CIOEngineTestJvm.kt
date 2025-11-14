@@ -85,3 +85,10 @@ class CIOHooksTest : HooksTestSuite<CIOApplicationEngine, CIOApplicationEngine.C
         enableSsl = false
     }
 }
+
+class CIOHttpRequestLifecycleTest :
+    HttpRequestLifecycleTest<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
+    init {
+        enableSsl = false
+    }
+}

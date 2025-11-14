@@ -28,3 +28,11 @@ public class ClosedWriteChannelException(cause: Throwable? = null) : ClosedByteC
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.ClosedReadChannelException)
  */
 public class ClosedReadChannelException(cause: Throwable? = null) : ClosedByteChannelException(cause)
+
+/**
+ * Exception thrown when a network connection is closed or reset by peer.
+ * This exception is used to signal that the underlying connection was terminated.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.ConnectionClosedException)
+ */
+public class ConnectionClosedException(message: String = "Connection was closed") : IOException(message)
