@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.darwin.internal
@@ -9,12 +9,16 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.CancellationException
-import kotlinx.cinterop.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.UnsafeNumber
+import kotlinx.cinterop.convert
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.consumeEach
 import platform.Foundation.*
-import kotlin.coroutines.*
+import kotlin.coroutines.CoroutineContext
 
 @OptIn(DelicateCoroutinesApi::class)
 internal class DarwinTaskHandler(
@@ -29,6 +33,8 @@ internal class DarwinTaskHandler(
     private var pendingFailure: Throwable? = null
         get() = field?.also { field = null }
 
+    private var metrics: NSURLSessionTaskTransactionMetrics? = null
+
     private val body: ByteReadChannel = GlobalScope.writer(callContext) {
         try {
             bodyChunks.consumeEach {
@@ -42,21 +48,20 @@ internal class DarwinTaskHandler(
     }.channel
 
     fun receiveData(dataTask: NSURLSessionDataTask, data: NSData) {
-        if (!response.isCompleted) {
-            val result = dataTask.response as NSHTTPURLResponse
-            response.complete(result.toResponseData(requestData))
-        }
-
         val content = data.toByteArray()
         try {
             bodyChunks.trySend(content).isSuccess
-        } catch (cause: CancellationException) {
+        } catch (_: CancellationException) {
             dataTask.cancel()
         }
     }
 
     fun saveFailure(cause: Throwable) {
         pendingFailure = cause
+    }
+
+    fun saveMetrics(taskMetrics: NSURLSessionTaskTransactionMetrics) {
+        metrics = taskMetrics
     }
 
     fun complete(task: NSURLSessionTask, didCompleteWithError: NSError?) {
@@ -87,9 +92,16 @@ internal class DarwinTaskHandler(
             status,
             requestTime,
             headers,
-            HttpProtocolVersion.HTTP_1_1,
+            protocolVersion(),
             responseBody,
             callContext
         )
+    }
+
+    private fun protocolVersion(): HttpProtocolVersion = when (metrics?.networkProtocolName) {
+        "http/1.1" -> HttpProtocolVersion.HTTP_1_1
+        "h2", "h2c" -> HttpProtocolVersion.HTTP_2_0
+        "h3" -> HttpProtocolVersion.HTTP_3_0
+        else -> HttpProtocolVersion.HTTP_1_1
     }
 }
