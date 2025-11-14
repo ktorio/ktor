@@ -6,6 +6,7 @@ description = "Jetty based client engine"
 
 plugins {
     id("ktorbuild.project.library")
+    id("test-server")
 }
 
 kotlin {
