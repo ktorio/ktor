@@ -8,6 +8,7 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
+import io.ktor.util.logging.Logger
 
 private val NUMBER_REGEX = "[0-9]+".toRegex()
 
@@ -44,18 +45,56 @@ internal fun isSameOrigin(origin: String, point: RequestConnectionPoint): Boolea
 }
 
 internal fun corsCheckOrigins(
+    request: ApplicationRequest,
     origin: String,
     allowsAnyHost: Boolean,
     hostsNormalized: Set<String>,
     hostsWithWildcard: Set<Pair<String, String>>,
+    allowedHosts: Set<String>,
     originPredicates: List<(String) -> Boolean>,
 ): Boolean {
     val normalizedOrigin = normalizeOrigin(origin)
-    return allowsAnyHost ||
+
+    val matchWildcardHosts = hostsWithWildcard
+        .any { (prefix, suffix) -> normalizedOrigin.startsWith(prefix) && normalizedOrigin.endsWith(suffix) }
+
+    val allow = allowsAnyHost ||
         normalizedOrigin in hostsNormalized ||
-        hostsWithWildcard
-            .any { (prefix, suffix) -> normalizedOrigin.startsWith(prefix) && normalizedOrigin.endsWith(suffix) } ||
+        matchWildcardHosts ||
         originPredicates.any { it(origin) }
+
+    if (!allow) {
+        LOGGER.info { "${request.id()}: Any * host is not allowed" }
+        LOGGER.info { "${request.id()}: Origin $normalizedOrigin does not match allowed hosts: $allowedHosts" }
+        if (originPredicates.isNotEmpty()) {
+            LOGGER.info {
+                "${request.id()}: Origin $normalizedOrigin fulfills no allowed hosts predicates $originPredicates"
+            }
+        }
+    } else {
+        when {
+            allowsAnyHost ->
+                LOGGER.info { "${request.id()}: Any * host is allowed" }
+            normalizedOrigin in hostsNormalized ->
+                LOGGER.info { "${request.id()}: Origin $normalizedOrigin is allowed from $hostsNormalized" }
+            matchWildcardHosts ->
+                LOGGER.info {
+                    val (prefix, suffix) = hostsWithWildcard
+                        .find { (prefix, suffix) ->
+                            normalizedOrigin.startsWith(prefix) && normalizedOrigin.endsWith(suffix)
+                        }!!
+                    "${request.id()}: Origin $normalizedOrigin matches wildcard host $prefix*$suffix"
+                }
+            originPredicates.any { it(origin) } -> {
+                LOGGER.info {
+                    "${request.id()}: Origin $normalizedOrigin fulfills " +
+                        "host predicate ${originPredicates.find { it(origin) }}"
+                }
+            }
+        }
+    }
+
+    return allow
 }
 
 internal fun corsCheckRequestHeaders(
@@ -73,6 +112,18 @@ internal fun ApplicationCall.corsCheckCurrentMethod(methods: Set<HttpMethod>): B
 
 internal fun ApplicationCall.corsCheckRequestMethod(methods: Set<HttpMethod>): Boolean {
     val requestMethod = request.header(HttpHeaders.AccessControlRequestMethod)?.let { HttpMethod(it) }
+    val success = requestMethod != null && requestMethod in methods
+
+    if (!success) {
+        LOGGER.info {
+            if (requestMethod == null) {
+                "${request.id()}: Preflight: The request header Access-Control-Request-Method is missing"
+            } else {
+                "${request.id()}: Preflight: Method ${requestMethod.value} is not allowed. Allowed methods: $methods"
+            }
+        }
+    }
+
     return requestMethod != null && requestMethod in methods
 }
 
@@ -134,4 +185,8 @@ internal fun normalizeOrigin(origin: String): String {
     }
 
     return builder.toString()
+}
+
+internal inline fun Logger.info(message: () -> String) {
+    info(message())
 }

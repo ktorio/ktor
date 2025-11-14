@@ -12,7 +12,7 @@ import io.ktor.server.response.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
 
-private val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.cors.CORS")
+internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.cors.CORS")
 
 /**
  * A plugin that allows you to configure handling cross-origin requests.
@@ -87,19 +87,27 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
             return@onCall
         }
 
+        LOGGER.info { "${call.request.id()}: Start handler" }
+
         if (!allowsAnyHost || allowCredentials) {
             call.corsVary()
         }
 
-        val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull() ?: return@onCall
+        val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull()
+
+        if (origin == null) {
+            LOGGER.info { "${call.request.id()}: Skip CORS handler because request lacks the Origin header" }
+            return@onCall
+        }
 
         val checkOrigin = checkOrigin(
             origin,
-            call.request.origin,
+            call.request,
             allowSameOrigin,
             allowsAnyHost,
             hostsNormalized,
             hostsWithWildcard,
+            pluginConfig.hosts,
             originPredicates
         )
         when (checkOrigin) {
@@ -108,7 +116,7 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
 
             OriginCheckResult.SkipCORS -> return@onCall
             OriginCheckResult.Failed -> {
-                LOGGER.trace("Respond forbidden ${call.request.uri}: origin doesn't match ${call.request.origin}")
+                LOGGER.info { "${call.request.id()}: CORS check fails because Origin $origin does not match" }
                 call.respondCorsFailed()
                 return@onCall
             }
@@ -118,7 +126,10 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
             val contentType = call.request.header(HttpHeaders.ContentType)?.let { ContentType.parse(it) }
             if (contentType != null) {
                 if (contentType.withoutParameters() !in CORSConfig.CorsSimpleContentTypes) {
-                    LOGGER.trace("Respond forbidden ${call.request.uri}: Content-Type isn't allowed $contentType")
+                    LOGGER.info {
+                        "${call.request.id()}: CORS check fails because the requested content type $contentType " +
+                            "is not in the list of the only allowed simple types ${CORSConfig.CorsSimpleContentTypes}"
+                    }
                     call.respondCorsFailed()
                     return@onCall
                 }
@@ -126,7 +137,7 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
         }
 
         if (call.request.httpMethod == HttpMethod.Options) {
-            LOGGER.trace("Respond preflight on OPTIONS for ${call.request.uri}")
+            LOGGER.info { "${call.request.id()}: Start preflight handler" }
             call.respondPreflight(
                 origin,
                 methodsListHeaderValue,
@@ -142,10 +153,15 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
         }
 
         if (!call.corsCheckCurrentMethod(methods)) {
-            LOGGER.trace("Respond forbidden ${call.request.uri}: method doesn't match ${call.request.httpMethod}")
+            LOGGER.info {
+                "${call.request.id()}: CORS check fails because HTTP method ${call.request.httpMethod.value} " +
+                    "is not allowed. Allowed methods: $methods"
+            }
             call.respondCorsFailed()
             return@onCall
         }
+
+        LOGGER.info { "${call.request.id()}: CORS check is succeeded" }
 
         call.accessControlAllowOrigin(origin, allowsAnyHost, allowCredentials)
         call.accessControlAllowCredentials(allowCredentials)
@@ -156,6 +172,10 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
     }
 }
 
+internal fun ApplicationRequest.id(): String {
+    return "${httpMethod.value} $uri"
+}
+
 private enum class OriginCheckResult {
     OK,
     SkipCORS,
@@ -164,20 +184,29 @@ private enum class OriginCheckResult {
 
 private fun checkOrigin(
     origin: String,
-    point: RequestConnectionPoint,
+    request: ApplicationRequest,
     allowSameOrigin: Boolean,
     allowsAnyHost: Boolean,
     hostsNormalized: Set<String>,
     hostsWithWildcard: Set<Pair<String, String>>,
+    allowedHosts: Set<String>,
     originPredicates: List<(String) -> Boolean>
 ): OriginCheckResult = when {
-    !isValidOrigin(origin) -> OriginCheckResult.SkipCORS
-    allowSameOrigin && isSameOrigin(origin, point) -> OriginCheckResult.SkipCORS
+    !isValidOrigin(origin) -> {
+        LOGGER.info { "${request.id()}: Skip CORS handler because Origin $origin is malformed" }
+        OriginCheckResult.SkipCORS
+    }
+    allowSameOrigin && isSameOrigin(origin, request.origin) -> {
+        LOGGER.info { "${request.id()}: Skip CORS handler because Origin $origin matches the server origin exactly" }
+        OriginCheckResult.SkipCORS
+    }
     !corsCheckOrigins(
+        request,
         origin,
         allowsAnyHost,
         hostsNormalized,
         hostsWithWildcard,
+        allowedHosts,
         originPredicates
     ) -> OriginCheckResult.Failed
 
@@ -204,13 +233,23 @@ private suspend fun ApplicationCall.respondPreflight(
         } ?: emptyList()
 
     if (!corsCheckRequestMethod(methods)) {
-        LOGGER.trace("Return Forbidden for ${this.request.uri}: CORS method doesn't match ${request.httpMethod}")
+        LOGGER.info { "${request.id()}: Preflight: Request method check fails" }
         respond(HttpStatusCode.Forbidden)
         return
     }
 
     if (!corsCheckRequestHeaders(requestHeaders, allHeadersSet, headerPredicates)) {
-        LOGGER.trace("Return Forbidden for ${this.request.uri}: request has not allowed headers.")
+        LOGGER.info {
+            val disallowedHeaders = requestHeaders.filterNot { header ->
+                header in allHeadersSet || headerMatchesAPredicate(header, headerPredicates)
+            }
+
+            "${request.id()}: Preflight: Headers $disallowedHeaders are not allowed. " +
+                "Allowed headers: $allHeadersSet. " +
+                if (headerPredicates.isNotEmpty()) "Allowed Header predicates: $headerPredicates" else ""
+        }
+
+        LOGGER.info { "${request.id()}: Preflight: Check on headers from Access-Control-Request-Headers fails" }
         respond(HttpStatusCode.Forbidden)
         return
     }
