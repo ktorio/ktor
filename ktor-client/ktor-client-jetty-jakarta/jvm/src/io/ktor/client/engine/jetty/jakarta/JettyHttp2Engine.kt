@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.jetty.jakarta
@@ -9,8 +9,10 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
-import org.eclipse.jetty.http2.client.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.asExecutor
+import org.eclipse.jetty.http2.client.HTTP2Client
 
 @OptIn(InternalAPI::class)
 internal class JettyHttp2Engine(
