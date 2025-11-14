@@ -181,7 +181,7 @@ public class BasicAuthProvider(
     }
 
     override suspend fun refreshToken(response: HttpResponse): Boolean {
-        tokensHolder.setToken(credentials)
+        tokensHolder.setToken(false, credentials)
         return true
     }
 
