@@ -119,7 +119,7 @@ internal fun ApplicationCall.corsCheckRequestMethod(methods: Set<HttpMethod>): B
             if (requestMethod == null) {
                 "${request.id()}: Preflight: The request header Access-Control-Request-Method is missing"
             } else {
-                "${request.id()}: Preflight: Method ${requestMethod.value} is not allowed: $methods"
+                "${request.id()}: Preflight: Method ${requestMethod.value} is not allowed. Allowed methods: $methods"
             }
         }
     }

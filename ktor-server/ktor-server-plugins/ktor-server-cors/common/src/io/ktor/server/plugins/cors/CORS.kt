@@ -96,7 +96,7 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
         val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull()
 
         if (origin == null) {
-            LOGGER.trace { "${call.request.id()}: Skip CORS handler because request misses the Origin header" }
+            LOGGER.trace { "${call.request.id()}: Skip CORS handler because request lacks the Origin header" }
             return@onCall
         }
 
@@ -116,7 +116,7 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
 
             OriginCheckResult.SkipCORS -> return@onCall
             OriginCheckResult.Failed -> {
-                LOGGER.trace { "${call.request.id()}: CORS check fails because the origin does not match" }
+                LOGGER.trace { "${call.request.id()}: CORS check fails because Origin $origin does not match" }
                 call.respondCorsFailed()
                 return@onCall
             }
@@ -155,7 +155,7 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
         if (!call.corsCheckCurrentMethod(methods)) {
             LOGGER.trace {
                 "${call.request.id()}: CORS check fails because HTTP method ${call.request.httpMethod.value} " +
-                    "is not allowed: $methods"
+                    "is not allowed. Allowed methods: $methods"
             }
             call.respondCorsFailed()
             return@onCall
@@ -193,11 +193,11 @@ private fun checkOrigin(
     originPredicates: List<(String) -> Boolean>
 ): OriginCheckResult = when {
     !isValidOrigin(origin) -> {
-        LOGGER.trace { "${request.id()}: Skip CORS handler because the origin '$origin' is malformed" }
+        LOGGER.trace { "${request.id()}: Skip CORS handler because Origin $origin is malformed" }
         OriginCheckResult.SkipCORS
     }
     allowSameOrigin && isSameOrigin(origin, request.origin) -> {
-        LOGGER.trace { "${request.id()}: Skip CORS handler because the origin '$origin' matches the server origin" }
+        LOGGER.trace { "${request.id()}: Skip CORS handler because Origin $origin matches exactly the server origin" }
         OriginCheckResult.SkipCORS
     }
     !corsCheckOrigins(
