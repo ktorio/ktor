@@ -42,7 +42,18 @@ internal class JavaHttpResponseBodyHandler(
             attachJob(consumerJob)
         }
         val status = HttpStatusCode.fromValue(response.statusCode())
-        val headers = HeadersImpl(response.headers().map())
+        val version = when (val version = response.version()) {
+            HttpClient.Version.HTTP_1_1 -> HttpProtocolVersion.HTTP_1_1
+            HttpClient.Version.HTTP_2 -> HttpProtocolVersion.HTTP_2_0
+            else -> throw IllegalStateException("Unknown HTTP protocol version ${version.name}")
+        }
+        val headerValues = response.headers().map().let {
+            if(version == HttpProtocolVersion.HTTP_2_0){
+                it.filterKeys { !it.startsWith(":") }
+            } else it
+        }
+
+        val headers = HeadersImpl(headerValues)
 
         val body: Any = requestData.attributes.getOrNull(ResponseAdapterAttributeKey)
             ?.adapt(requestData, status, headers, responseChannel, requestData.body, callContext)
@@ -52,11 +63,7 @@ internal class JavaHttpResponseBodyHandler(
             status,
             requestTime,
             headers,
-            when (val version = response.version()) {
-                HttpClient.Version.HTTP_1_1 -> HttpProtocolVersion.HTTP_1_1
-                HttpClient.Version.HTTP_2 -> HttpProtocolVersion.HTTP_2_0
-                else -> throw IllegalStateException("Unknown HTTP protocol version ${version.name}")
-            },
+            version,
             body,
             callContext
         )
