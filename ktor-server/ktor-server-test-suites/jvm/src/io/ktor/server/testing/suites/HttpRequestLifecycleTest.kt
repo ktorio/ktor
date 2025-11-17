@@ -4,8 +4,6 @@
 
 package io.ktor.server.testing.suites
 
-import io.ktor.client.*
-import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.engine.*
@@ -17,6 +15,10 @@ import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.channels.Channel
+import kotlin.concurrent.atomics.AtomicInt
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import kotlin.concurrent.atomics.incrementAndFetch
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -37,12 +39,16 @@ abstract class HttpRequestLifecycleTest<TEngine : ApplicationEngine, TConfigurat
     }
 
     @Test
+    @OptIn(ExperimentalAtomicApi::class)
     fun testClientDisconnectionCancelsRequest() = runTest {
-        val requestStarted = CompletableDeferred<Unit>()
-        val requestCancelled = CompletableDeferred<Unit>()
+        val requestStartedCnt = AtomicInt(0)
+        val requestCancelledCnt = AtomicInt(0)
+
+        val requestStarted = Channel<Int>(Channel.UNLIMITED)
+        val requestCancelled = Channel<Int>(Channel.UNLIMITED)
 
         cancellableRoute {
-            requestStarted.complete(Unit)
+            requestStarted.send(requestStartedCnt.incrementAndFetch())
             try {
                 // very long operation
                 repeat(100) {
@@ -52,25 +58,45 @@ abstract class HttpRequestLifecycleTest<TEngine : ApplicationEngine, TConfigurat
             } catch (err: CancellationException) {
                 @OptIn(InternalAPI::class)
                 assertTrue(err.rootCause is ConnectionClosedException)
-                requestCancelled.complete(Unit)
+                requestCancelled.send(requestCancelledCnt.incrementAndFetch())
             }
         }
 
-        HttpClient().use { client ->
-            val requestJob = launch {
-                client.get("http://127.0.0.1:$port/")
+        fun resetRequestOnStart(request: suspend () -> Unit) = launch {
+            client = createApacheClient()
+            client.use {
+                val requestJob = launch {
+                    runCatching { request() }
+                }
+                withTimeout(10.seconds) {
+                    requestStarted.receive() // Wait for the request to start processing on the server
+                }
+                // Cancel the request and close the client to force TCP to disconnect
+                requestJob.cancel()
             }
-
-            withTimeout(5.seconds) {
-                requestStarted.await() // Wait for the request to start processing on the server
-            }
-
-            // Cancel the request and close the client to force TCP to disconnect
-            requestJob.cancel()
         }
+
+        buildList {
+            resetRequestOnStart {
+                withHttp1("http://127.0.0.1:$port", port, {}, {})
+            }.also { add(it) }
+            if (enableSsl) {
+                resetRequestOnStart {
+                    withHttp1("https://127.0.0.1:$sslPort", sslPort, {}, {})
+                }.also { add(it) }
+            }
+            if (enableSsl && enableHttp2) {
+                resetRequestOnStart {
+                    withHttp2("https://127.0.0.1:$sslPort", sslPort, {}, {})
+                }.also { add(it) }
+            }
+        }.joinAll()
 
         withTimeout(10.seconds) {
-            requestCancelled.await() // Wait for the request to be canceled
+            do {
+                // Wait for the request to be canceled
+                val cancelledCount = requestCancelled.receive()
+            } while (cancelledCount < requestStartedCnt.load())
         }
     }
 
@@ -79,14 +105,17 @@ abstract class HttpRequestLifecycleTest<TEngine : ApplicationEngine, TConfigurat
         val requestCompleted = CompletableDeferred<Unit>()
 
         cancellableRoute {
+            delay(100.milliseconds)
             call.respondText("OK")
             requestCompleted.complete(Unit)
         }
 
-        HttpClient().use { client ->
-            val response = client.get("http://127.0.0.1:$port/")
-            assertEquals(HttpStatusCode.OK, response.status)
-            assertEquals("OK", response.bodyAsText())
+        client = createApacheClient()
+        client.use {
+            withUrl("/") {
+                assertEquals(HttpStatusCode.OK, status)
+                assertEquals("OK", bodyAsText())
+            }
         }
 
         withTimeout(10.seconds) {
@@ -102,17 +131,19 @@ abstract class HttpRequestLifecycleTest<TEngine : ApplicationEngine, TConfigurat
             call.respondOutputStream {
                 repeat(3) {
                     write("OK;".toByteArray())
-                    flush()
                     delay(100.milliseconds)
                 }
                 requestCompleted.complete(Unit)
             }
         }
 
-        HttpClient().use { client ->
-            val response = client.get("http://127.0.0.1:$port/")
-            assertEquals(HttpStatusCode.OK, response.status)
-            assertEquals("OK;OK;OK;", response.bodyAsText())
+        client = createApacheClient()
+        client.use {
+            withUrl("/") {
+                assertEquals(HttpStatusCode.OK, status)
+                assertEquals(ContentType.Application.OctetStream, contentType())
+                assertEquals("OK;OK;OK;", bodyAsText())
+            }
         }
 
         withTimeout(10.seconds) {

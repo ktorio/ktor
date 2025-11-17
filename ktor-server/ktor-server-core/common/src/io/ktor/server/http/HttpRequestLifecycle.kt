@@ -19,6 +19,12 @@ public class HttpRequestLifecycleConfig internal constructor() {
      * When `true`, cancels the call coroutine context if the other peer resets the client connection.
      * When `false` (default), request processing continues even if the connection is closed.
      *
+     * **When to use this property: **
+     * - Set to `true` for long-running or resource-intensive requests where you want to stop processing
+     *   immediately when the client disconnects (e.g., streaming, batch processing, heavy computations)
+     * - Keep as `false` (default) for short requests, or when you need to complete processing regardless
+     *   of client connection status (e.g., important side effects, database transactions)
+     *
      * Example:
      * ```kotlin
      * install(HttpRequestLifecycle) {
@@ -43,7 +49,8 @@ public val HttpRequestCloseHandlerKey: AttributeKey<() -> Unit> = AttributeKey<(
  * the plugin will automatically cancel the request handling coroutine if the client disconnects,
  * preventing unnecessary processing and freeing up resources.
  *
- * Remember, coroutine cancellation doesn't stop blocking operations, so check [call.coroutineContext.isActive] if needed.
+ * Remember, when the coroutine context is canceled, the next suspension point will throw [CancellationException], but until
+ * that moment it doesn't stop any blocking operations, so call `call.coroutineContext.ensureActive` if needed.
  * Plugin only works for CIO and Netty engines. Other implementations fail on closed connection only when trying to write some response.
  *
  * This is particularly useful for:
@@ -63,17 +70,14 @@ public val HttpRequestCloseHandlerKey: AttributeKey<() -> Unit> = AttributeKey<(
  *         try {
  *             // Long-running operation
  *             repeat(100) {
- *                 delay(100)
- *                 // Process data...
+ *                  // throws an exception if the client disconnects during processing
+ *                  call.coroutineContext.ensureActive()
+ *                  // Process more data...
+ *                  logger.info("Very important work.")
  *             }
  *             call.respond("Completed")
  *         } catch (e: CancellationException) {
- *             if (e.rootCause is ConnectionClosedException) {
- *                 // Client disconnected, clean up resources
- *                 logger.info("Request cancelled due to client disconnect")
- *             } else {
- *                 throw e
- *             }
+ *             // Handle client disconnected, clean up resources
  *         }
  *     }
  * }

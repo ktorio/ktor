@@ -388,4 +388,9 @@ class NettyH2cEnabledTest :
 }
 
 class NettyHttpRequestLifecycleTest :
-    HttpRequestLifecycleTest<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty)
+    HttpRequestLifecycleTest<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
+    init {
+        enableSsl = true
+        enableHttp2 = true
+    }
+}

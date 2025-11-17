@@ -26,6 +26,7 @@ internal class NettyApplicationCallHandler(
     private val enginePipeline: EnginePipeline
 ) : ChannelInboundHandlerAdapter(), CoroutineScope {
     private var currentJob: Job? = null
+    private var currentCall: PipelineCall? = null
 
     override val coroutineContext: CoroutineContext = userCoroutineContext
 
@@ -36,22 +37,21 @@ internal class NettyApplicationCallHandler(
         }
     }
 
-    private var onConnectionClose: (() -> Unit)? = null
-
-    override fun handlerRemoved(ctx: ChannelHandlerContext?) {
-        if (ctx?.channel()?.isActive == false) {
-            onConnectionClose?.invoke()
-            onConnectionClose = null
+    internal fun onConnectionClose(context: ChannelHandlerContext) {
+        if (context.channel().isActive) {
+            return
+        }
+        currentCall?.let {
+            currentCall = null
+            @OptIn(InternalAPI::class)
+            it.attributes.getOrNull(HttpRequestCloseHandlerKey)?.invoke()
         }
     }
 
-    @OptIn(InternalAPI::class)
     private fun handleRequest(context: ChannelHandlerContext, call: PipelineCall) {
         val callContext = CallHandlerCoroutineName + NettyDispatcher.CurrentContext(context)
-        onConnectionClose = {
-            call.attributes.getOrNull(HttpRequestCloseHandlerKey)?.invoke()
-        }
 
+        currentCall = call
         currentJob = launch(callContext, start = CoroutineStart.UNDISPATCHED) {
             when {
                 call is NettyHttp1ApplicationCall && !call.request.isValid() -> {
@@ -82,8 +82,7 @@ internal class NettyApplicationCallHandler(
     }
 
     override fun channelInactive(ctx: ChannelHandlerContext) {
-        onConnectionClose?.invoke()
-        onConnectionClose = null
+        onConnectionClose(ctx)
         ctx.fireChannelInactive()
     }
 

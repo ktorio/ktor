@@ -774,11 +774,6 @@ public final class io/ktor/server/engine/ShutdownHookKt {
 	public static final fun addShutdownHook (Lio/ktor/server/engine/EmbeddedServer;Lkotlin/jvm/functions/Function0;)V
 }
 
-public final class io/ktor/server/http/ConnectionLifecycleKt {
-	public static final fun getHttpRequestCloseHandlerKey ()Lio/ktor/util/AttributeKey;
-	public static final fun getHttpRequestLifecycle ()Lio/ktor/server/application/RouteScopedPlugin;
-}
-
 public final class io/ktor/server/http/HttpDateJvmKt {
 	public static final fun getHttpDateFormat ()Ljava/time/format/DateTimeFormatter;
 	public static final fun toHttpDateString (Ljava/time/temporal/Temporal;)Ljava/lang/String;
