@@ -48,9 +48,11 @@ internal class JavaHttpResponseBodyHandler(
             else -> throw IllegalStateException("Unknown HTTP protocol version ${version.name}")
         }
         val headerValues = response.headers().map().let {
-            if(version == HttpProtocolVersion.HTTP_2_0){
+            if (version == HttpProtocolVersion.HTTP_2_0) {
                 it.filterKeys { !it.startsWith(":") }
-            } else it
+            } else {
+                it
+            }
         }
 
         val headers = HeadersImpl(headerValues)
