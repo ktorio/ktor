@@ -13,8 +13,4 @@ class JavaHttp2Test : Http2Test<JavaHttpConfig>(Java) {
     override fun JavaHttpConfig.enableHttp2() {
         protocolVersion = HttpClient.Version.HTTP_2
     }
-
-    @Ignore // KTOR-8947 Java: Headers contain ":status" pseudo header with HTTP/2
-    @Test
-    override fun `test pseudo headers are ignored`() {}
 }
