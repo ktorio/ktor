@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.routing
@@ -9,7 +9,7 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
-import io.ktor.util.collections.TreeLike
+import io.ktor.util.collections.*
 import io.ktor.util.pipeline.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
@@ -258,6 +258,9 @@ public class RoutingCall internal constructor(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RoutingContext)
  */
+@Suppress("ktlint:standard:no-consecutive-comments")
+// TODO KTOR-8809: Uncomment the annotation
+// @KtorDsl
 public class RoutingContext(
     public val call: RoutingCall
 )
@@ -274,6 +277,9 @@ public typealias RoutingHandler = suspend RoutingContext.() -> Unit
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.Route)
  */
+@Suppress("ktlint:standard:no-consecutive-comments")
+// TODO KTOR-8809: Uncomment the annotation
+// @KtorDsl
 public interface Route {
     public val environment: ApplicationEnvironment
     public val attributes: Attributes
