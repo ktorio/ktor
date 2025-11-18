@@ -89,6 +89,10 @@ val suppressGradlePluginVersionWarning by tasks.registering {
                             "*/\nabstract class EmbeddedKotlinPlugin",
                             "*/\ninternal abstract class EmbeddedKotlinPlugin"
                         )
+                        // Convert parameter into receiver
+                        .replace(".configureEach { swift ->", ".configureEach {")
+                        .replace("swift.withDependencies { dependencies ->", "withDependencies {")
+                        .replace("dependencies.clear()", "clear()")
                 )
             }
         }
