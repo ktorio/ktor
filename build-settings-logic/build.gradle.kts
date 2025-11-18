@@ -36,7 +36,6 @@ val kotlinDslPluginSources: Configuration by configurations.creating {
     isCanBeConsumed = false
     isCanBeResolved = false
     isCanBeDeclared = true
-    isVisible = false
     defaultDependencies {
         add(project.dependencies.create("org.gradle.kotlin:gradle-kotlin-dsl-plugins:$expectedKotlinDslPluginsVersion"))
     }
@@ -47,7 +46,6 @@ val kotlinDslPluginSourcesResolver: Configuration by configurations.creating {
     isCanBeConsumed = false
     isCanBeResolved = true
     isCanBeDeclared = false
-    isVisible = false
     extendsFrom(kotlinDslPluginSources)
     attributes {
         attribute(DOCS_TYPE_ATTRIBUTE, objects.named(SOURCES))
@@ -91,6 +89,10 @@ val suppressGradlePluginVersionWarning by tasks.registering {
                             "*/\nabstract class EmbeddedKotlinPlugin",
                             "*/\ninternal abstract class EmbeddedKotlinPlugin"
                         )
+                        // Convert parameter into receiver
+                        .replace(".configureEach { swift ->", ".configureEach {")
+                        .replace("swift.withDependencies { dependencies ->", "withDependencies {")
+                        .replace("dependencies.clear()", "clear()")
                 )
             }
         }
