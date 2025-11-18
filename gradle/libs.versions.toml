@@ -51,7 +51,9 @@ micrometer = "1.15.5"
 jansi = "2.4.2"
 typesafe = "1.4.5"
 
-mockk = "1.14.6"
+# Version 1.14.6 is not compatible with Java 11.
+# Wait until https://github.com/mockk/mockk/issues/1433 is resolved.
+mockk = "1.14.5"
 
 java-jwt = "4.5.0"
 
