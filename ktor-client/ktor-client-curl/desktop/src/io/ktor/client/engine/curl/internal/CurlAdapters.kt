@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.curl.internal
@@ -130,11 +130,11 @@ internal fun HttpRequestData.headersToCurl(): CPointer<curl_slist> {
     return result!!
 }
 
-@OptIn(ExperimentalForeignApi::class)
-internal fun UInt.fromCurl(): HttpProtocolVersion = when (this) {
-    CURL_HTTP_VERSION_1_0 -> HttpProtocolVersion.HTTP_1_0
-    CURL_HTTP_VERSION_1_1 -> HttpProtocolVersion.HTTP_1_1
-    CURL_HTTP_VERSION_2_0 -> HttpProtocolVersion.HTTP_2_0
+@OptIn(ExperimentalForeignApi::class, UnsafeNumber::class)
+internal fun Long.fromCurl(): HttpProtocolVersion = when (this) {
+    CURL_HTTP_VERSION_1_0.toLong() -> HttpProtocolVersion.HTTP_1_0
+    CURL_HTTP_VERSION_1_1.toLong() -> HttpProtocolVersion.HTTP_1_1
+    CURL_HTTP_VERSION_2_0.toLong() -> HttpProtocolVersion.HTTP_2_0
     // old curl fallback
     else -> HttpProtocolVersion.HTTP_1_1
 }
