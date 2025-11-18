@@ -6,8 +6,10 @@ package test.server.tests
 
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.utils.io.*
 
 internal fun Application.echoTest() {
     routing {
@@ -27,6 +29,19 @@ internal fun Application.echoTest() {
                         "${name.lowercase()}: $value"
                     }
                     call.respondText(headers)
+                }
+            }
+
+            post("/stream") {
+                val inputChannel = call.receiveChannel()
+
+                call.respondBytesWriter(status = HttpStatusCode.OK) {
+                    val outputChannel = this
+                    while (true) {
+                        val inputLine = inputChannel.readUTF8Line() ?: break
+                        outputChannel.writeStringUtf8("server: $inputLine\n")
+                        outputChannel.flush()
+                    }
                 }
             }
         }
