@@ -23,7 +23,7 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -78,7 +78,7 @@ CURL_EXTERN CURL *curl_easy_duphandle(CURL *curl);
  *
  * DESCRIPTION
  *
- * Re-initializes a CURL handle to the default values. This puts back the
+ * Re-initializes a curl handle to the default values. This puts back the
  * handle to the same state as it was in when it was just created.
  *
  * It does keep: live connections, the Session ID cache, the DNS cache and the
@@ -118,7 +118,7 @@ CURL_EXTERN CURLcode curl_easy_send(CURL *curl, const void *buffer,
  */
 CURL_EXTERN CURLcode curl_easy_upkeep(CURL *curl);
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 } /* end of extern "C" */
 #endif
 
