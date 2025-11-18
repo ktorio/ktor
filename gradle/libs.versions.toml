@@ -79,8 +79,8 @@ puppeteer = "24.16.1"
 tomlj = "1.1.1"
 
 # Keep it in sync with build-settings-logic/settings.gradle.kts
-develocity = "3.19.2" # Should be compatible with our server: ge.jetbrains.com
-develocity-commonCustomUserData = "2.3"
+develocity = "4.0.3" # Should be compatible with our server: ge.jetbrains.com
+develocity-commonCustomUserData = "2.4.0"
 gradleDoctor = "0.12.1"
 mavenPublishing = "0.34.0"
 
