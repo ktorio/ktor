@@ -697,6 +697,7 @@ final class io.ktor.client.plugins/DefaultRequest { // io.ktor.client.plugins/De
 final class io.ktor.client.plugins/HttpCallValidatorConfig { // io.ktor.client.plugins/HttpCallValidatorConfig|null[0]
     constructor <init>() // io.ktor.client.plugins/HttpCallValidatorConfig.<init>|<init>(){}[0]
 
+    final fun handleResponseException(kotlin.coroutines/SuspendFunction1<kotlin/Throwable, kotlin/Unit>) // io.ktor.client.plugins/HttpCallValidatorConfig.handleResponseException|handleResponseException(kotlin.coroutines.SuspendFunction1<kotlin.Throwable,kotlin.Unit>){}[0]
     final fun handleResponseException(kotlin.coroutines/SuspendFunction2<kotlin/Throwable, io.ktor.client.request/HttpRequest, kotlin/Unit>) // io.ktor.client.plugins/HttpCallValidatorConfig.handleResponseException|handleResponseException(kotlin.coroutines.SuspendFunction2<kotlin.Throwable,io.ktor.client.request.HttpRequest,kotlin.Unit>){}[0]
     final fun handleResponseExceptionWithRequest(kotlin.coroutines/SuspendFunction2<kotlin/Throwable, io.ktor.client.request/HttpRequest, kotlin/Unit>) // io.ktor.client.plugins/HttpCallValidatorConfig.handleResponseExceptionWithRequest|handleResponseExceptionWithRequest(kotlin.coroutines.SuspendFunction2<kotlin.Throwable,io.ktor.client.request.HttpRequest,kotlin.Unit>){}[0]
     final fun validateResponse(kotlin.coroutines/SuspendFunction1<io.ktor.client.statement/HttpResponse, kotlin/Unit>) // io.ktor.client.plugins/HttpCallValidatorConfig.validateResponse|validateResponse(kotlin.coroutines.SuspendFunction1<io.ktor.client.statement.HttpResponse,kotlin.Unit>){}[0]
@@ -1388,6 +1389,8 @@ final val io.ktor.client.plugins.observer/ResponseObserver // io.ktor.client.plu
     final fun <get-ResponseObserver>(): io.ktor.client.plugins.api/ClientPlugin<io.ktor.client.plugins.observer/ResponseObserverConfig> // io.ktor.client.plugins.observer/ResponseObserver.<get-ResponseObserver>|<get-ResponseObserver>(){}[0]
 final val io.ktor.client.plugins.sse/SSE // io.ktor.client.plugins.sse/SSE|{}SSE[0]
     final fun <get-SSE>(): io.ktor.client.plugins.api/ClientPlugin<io.ktor.client.plugins.sse/SSEConfig> // io.ktor.client.plugins.sse/SSE.<get-SSE>|<get-SSE>(){}[0]
+final val io.ktor.client.plugins.websocket/WEBSOCKETS_KEY // io.ktor.client.plugins.websocket/WEBSOCKETS_KEY|{}WEBSOCKETS_KEY[0]
+    final fun <get-WEBSOCKETS_KEY>(): io.ktor.util/AttributeKey<io.ktor.client.plugins.websocket/WebSockets> // io.ktor.client.plugins.websocket/WEBSOCKETS_KEY.<get-WEBSOCKETS_KEY>|<get-WEBSOCKETS_KEY>(){}[0]
 final val io.ktor.client.plugins.websocket/converter // io.ktor.client.plugins.websocket/converter|@io.ktor.client.plugins.websocket.DefaultClientWebSocketSession{}converter[0]
     final fun (io.ktor.client.plugins.websocket/DefaultClientWebSocketSession).<get-converter>(): io.ktor.serialization/WebsocketContentConverter? // io.ktor.client.plugins.websocket/converter.<get-converter>|<get-converter>@io.ktor.client.plugins.websocket.DefaultClientWebSocketSession(){}[0]
 final val io.ktor.client.plugins.websocket/pingInterval // io.ktor.client.plugins.websocket/pingInterval|@io.ktor.client.plugins.websocket.WebSockets{}pingInterval[0]

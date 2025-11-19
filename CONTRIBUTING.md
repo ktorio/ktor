@@ -41,17 +41,8 @@ Up to 12 GB of free RAM is required to build the project.
 This amount can be reduced by decreasing the `Xmx` value in `gradle.properties`.
 Read the comments in `gradle.properties` for more details.
 
-The path to the android sdk should be defined in the ANDROID_HOME environment variable or `sdk.dir` in the `local.properties` file, like:
-```properties
-sdk.dir=/Users/USER_NAME/Library/Android/sdk
-```
-
-If you target macOS and/or iOS, install `Xcode`, `Xcode command line tools`, `CocoaPods` and `Ruby` on macOS.
-An outdated Ruby version 2 is installed by default, but you should manually install a new version of it.
-We recommend using Ruby `3.3.x` or newer with [rbenv](https://github.com/rbenv/rbenv):
-- `rbenv install 3.3.x`
-- `rbenv global 3.3.x`
-- `sudo gem install -n /usr/local/bin cocoapods`
+On macOS, install [Xcode and Xcode Command line tools](https://developer.apple.com/download/) to build Apple targets.
+Launch it and accept the license terms first.
 
 <details>
 <summary>Requirements for Ktor before 3.1.0</summary>
@@ -84,6 +75,32 @@ For development on Windows, it is recommended to use [Cygwin](http://cygwin.com/
 libraries such as `libncurses`.
 
 </details>
+
+#### Optional: Android SDK
+
+The Android SDK is optional for building Ktor.
+If the Android SDK is not available, Android targets will be automatically excluded from the build.
+
+To install the Android SDK, use [Android Studio](https://developer.android.com/studio) or [sdkmanager](https://developer.android.com/tools/sdkmanager).
+
+To enable Android targets,
+define the path to the Android SDK in the `ANDROID_HOME` environment variable or `sdk.dir` in the `local.properties` file:
+```properties
+sdk.dir=/path/to/android/sdk
+```
+
+#### Optional: CocoaPods for Apple targets
+
+CocoaPods is optional for building Ktor.
+If CocoaPods is not available on macOS, Apple targets will be automatically excluded from modules that require CocoaPods dependencies (e.g., `ktor-client-webrtc`).
+Other modules will continue to build Apple targets normally.
+
+To install CocoaPods, follow the [Kotlin Multiplatform CocoaPods setup guide](https://www.jetbrains.com/help/kotlin-multiplatform-dev/multiplatform-cocoapods-overview.html).
+
+You can also specify the path to the `pod` executable using the `kotlin.native.cocoapods.bin` property in `local.properties`:
+```properties
+kotlin.native.cocoapods.bin=/path/to/pod/binary
+```
 
 #### Referencing artifacts locally
 

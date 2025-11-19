@@ -306,6 +306,7 @@ public final class io/ktor/client/plugins/DoubleReceivePluginKt {
 
 public final class io/ktor/client/plugins/HttpCallValidatorConfig {
 	public fun <init> ()V
+	public final fun handleResponseException (Lkotlin/jvm/functions/Function2;)V
 	public final fun handleResponseException (Lkotlin/jvm/functions/Function3;)V
 	public final fun handleResponseExceptionWithRequest (Lkotlin/jvm/functions/Function3;)V
 	public final fun validateResponse (Lkotlin/jvm/functions/Function2;)V
@@ -1083,6 +1084,10 @@ public final class io/ktor/client/plugins/websocket/WebSockets$Plugin : io/ktor/
 	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
 	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/plugins/websocket/WebSockets;
 	public synthetic fun prepare (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public final class io/ktor/client/plugins/websocket/WebSocketsKt {
+	public static final fun getWEBSOCKETS_KEY ()Lio/ktor/util/AttributeKey;
 }
 
 public final class io/ktor/client/request/BuildersJvmKt {

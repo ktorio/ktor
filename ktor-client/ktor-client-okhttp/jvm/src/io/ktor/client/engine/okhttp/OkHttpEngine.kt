@@ -59,7 +59,7 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
-        val engineRequest = data.convertToOkHttpRequest(callContext)
+        val engineRequest = data.convertToOkHttpRequest(callContext, config)
 
         val requestEngine = clientCache[data.getCapabilityOrNull(HttpTimeoutCapability)]
             ?: error("OkHttpClient can't be constructed because HttpTimeout plugin is not installed")
@@ -181,7 +181,7 @@ private fun mapExceptions(cause: Throwable, request: HttpRequestData): Throwable
 }
 
 @OptIn(InternalAPI::class)
-private fun HttpRequestData.convertToOkHttpRequest(callContext: CoroutineContext): Request {
+private fun HttpRequestData.convertToOkHttpRequest(callContext: CoroutineContext, config: OkHttpConfig): Request {
     val builder = Request.Builder()
 
     with(builder) {
@@ -190,7 +190,7 @@ private fun HttpRequestData.convertToOkHttpRequest(callContext: CoroutineContext
         forEachHeader(::addHeader)
 
         val bodyBytes = if (HttpMethod.permitsRequestBody(method.value)) {
-            body.convertToOkHttpBody(callContext)
+            body.convertToOkHttpBody(callContext, config)
         } else {
             null
         }
@@ -202,18 +202,34 @@ private fun HttpRequestData.convertToOkHttpRequest(callContext: CoroutineContext
 }
 
 @OptIn(DelicateCoroutinesApi::class)
-internal fun OutgoingContent.convertToOkHttpBody(callContext: CoroutineContext): RequestBody = when (this) {
+internal fun OutgoingContent.convertToOkHttpBody(
+    callContext: CoroutineContext,
+    config: OkHttpConfig,
+): RequestBody = when (this) {
     is OutgoingContent.ByteArrayContent -> bytes().let {
         it.toRequestBody(contentType.toString().toMediaTypeOrNull(), 0, it.size)
     }
 
-    is OutgoingContent.ReadChannelContent -> StreamRequestBody(contentLength) { readFrom() }
+    is OutgoingContent.ReadChannelContent -> {
+        StreamRequestBody(
+            callContext,
+            contentLength,
+            config.duplexStreamingEnabled,
+        ) { readFrom() }
+    }
+
     is OutgoingContent.WriteChannelContent -> {
-        StreamRequestBody(contentLength) { GlobalScope.writer(callContext) { writeTo(channel) }.channel }
+        StreamRequestBody(
+            callContext,
+            contentLength,
+            config.duplexStreamingEnabled,
+        ) {
+            GlobalScope.writer(callContext) { writeTo(channel) }.channel
+        }
     }
 
     is OutgoingContent.NoContent -> ByteArray(0).toRequestBody(null, 0, 0)
-    is OutgoingContent.ContentWrapper -> delegate().convertToOkHttpBody(callContext)
+    is OutgoingContent.ContentWrapper -> delegate().convertToOkHttpBody(callContext, config)
     is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(this)
 }
 

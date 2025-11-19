@@ -21,6 +21,14 @@ fun KotlinMultiplatformExtension.disableNativeCompileConfigurationCache() {
     project.tasks.withType<KotlinNativeCompile>()
         .named { it.endsWith("MainKotlinMetadata") }
         .configureEach { notCompatibleWithConfigurationCache("Workaround for KT-76147") }
+
+    // The problem with compile*MainKotlinMetadata tasks also affects Dokka tasks
+    project.tasks.withType<DokkaGeneratePublicationTask>()
+        .named { it == "dokkaGeneratePublicationHtml" }
+        .configureEach { notCompatibleWithConfigurationCache("Workaround for KT-76147") }
+    project.tasks.withType<DokkaGenerateModuleTask>()
+        .named { it == "dokkaGenerateModuleHtml" }
+        .configureEach { notCompatibleWithConfigurationCache("Workaround for KT-76147") }
 }
 
 /**
@@ -75,12 +83,4 @@ fun KotlinMultiplatformExtension.createCInterop(
         }
 
     disableNativeCompileConfigurationCache()
-
-    // The problem with compile*MainKotlinMetadata tasks also affects Dokka tasks
-    project.tasks.withType<DokkaGeneratePublicationTask>()
-        .named { it == "dokkaGeneratePublicationHtml" }
-        .configureEach { notCompatibleWithConfigurationCache("Workaround for KT-76147") }
-    project.tasks.withType<DokkaGenerateModuleTask>()
-        .named { it == "dokkaGenerateModuleHtml" }
-        .configureEach { notCompatibleWithConfigurationCache("Workaround for KT-76147") }
 }
