@@ -55,8 +55,10 @@ public data class Operation(
         /**
          * Builds an [Operation] instance using the provided DSL [configure] block.
          */
-        public fun build(configure: Builder.() -> Unit): Operation =
-            Builder().apply(configure).build()
+        public fun build(
+            schemaInference: JsonSchemaInference = KotlinxJsonSchemaInference,
+            configure: Builder.() -> Unit
+        ): Operation = Builder(schemaInference).apply(configure).build()
 
         internal object Serializer : ExtensibleMixinSerializer<Operation>(
             generatedSerializer(),
@@ -68,7 +70,9 @@ public data class Operation(
      * Builder for OpenAPI Operation object
      */
     @KtorDsl
-    public class Builder {
+    public class Builder(
+        private val schemaInference: JsonSchemaInference
+    ) : JsonSchemaInference by schemaInference {
         /** A short summary of what the operation does. */
         public var summary: String? = null
 
@@ -131,7 +135,7 @@ public data class Operation(
          * @param configure DSL to define one or more parameters.
          */
         public fun parameters(configure: Parameters.Builder.() -> Unit) {
-            Parameters.Builder().apply(configure).build().parameters.forEach { _parameters.add(it) }
+            Parameters.Builder(schemaInference).apply(configure).build().parameters.forEach { _parameters.add(it) }
         }
 
         /**
@@ -140,7 +144,7 @@ public data class Operation(
          * @param configure DSL to configure the request body.
          */
         public fun requestBody(configure: RequestBody.Builder.() -> Unit) {
-            requestBody = RequestBody.Builder().apply(configure).build()
+            requestBody = RequestBody.Builder(schemaInference).apply(configure).build()
         }
 
         /**
@@ -149,7 +153,7 @@ public data class Operation(
          * @param configure DSL to define one or more responses.
          */
         public fun responses(configure: Responses.Builder.() -> Unit) {
-            _responses = Responses.Builder().apply(configure).build()
+            _responses = Responses.Builder(schemaInference).apply(configure).build()
         }
 
         /**
@@ -221,7 +225,7 @@ public data class Parameters(
      * DSL builder for assembling a list of [Parameter]s used by an operation.
      */
     @KtorDsl
-    public class Builder {
+    public class Builder(private val schemaInference: JsonSchemaInference) {
         private val _parameters = mutableListOf<Parameter>()
 
         /** The collected list of parameters. */
@@ -237,7 +241,7 @@ public data class Parameters(
         @Deprecated("Use path, query, header, or cookie instead.")
         public fun parameter(name: String, configure: Parameter.Builder.() -> Unit) {
             _parameters.add(
-                Parameter.Builder().apply {
+                Parameter.Builder(schemaInference).apply {
                     this.name = name
                     configure()
                 }.build()
@@ -251,7 +255,7 @@ public data class Parameters(
          * @param configure Optional DSL to further configure the parameter.
          */
         public fun path(name: String, configure: Parameter.Builder.() -> Unit = {}) {
-            Parameter.Builder().apply {
+            Parameter.Builder(schemaInference).apply {
                 this.name = name
                 this.`in` = ParameterType.path
                 this.required = true
@@ -266,7 +270,7 @@ public data class Parameters(
          * @param configure Optional DSL to further configure the parameter.
          */
         public fun query(name: String, configure: Parameter.Builder.() -> Unit = {}) {
-            Parameter.Builder().apply {
+            Parameter.Builder(schemaInference).apply {
                 this.name = name
                 this.`in` = ParameterType.query
                 configure()
@@ -280,7 +284,7 @@ public data class Parameters(
          * @param configure Optional DSL to further configure the parameter.
          */
         public fun header(name: String, configure: Parameter.Builder.() -> Unit = {}) {
-            Parameter.Builder().apply {
+            Parameter.Builder(schemaInference).apply {
                 this.name = name
                 this.`in` = ParameterType.header
                 configure()
@@ -294,7 +298,7 @@ public data class Parameters(
          * @param configure Optional DSL to further configure the parameter.
          */
         public fun cookie(name: String, configure: Parameter.Builder.() -> Unit = {}) {
-            Parameter.Builder().apply {
+            Parameter.Builder(schemaInference).apply {
                 this.name = name
                 this.`in` = ParameterType.cookie
                 configure()
@@ -334,7 +338,7 @@ public data class Parameter(
     public val description: String? = null,
     public val required: Boolean = false,
     public val deprecated: Boolean = false,
-    public val schema: ReferenceOr<Schema>? = null,
+    public val schema: ReferenceOr<JsonSchema>? = null,
     public val content: Map<@Serializable(ContentTypeSerializer::class) ContentType, MediaType>? = null,
     public val style: String? = null,
     public val explode: Boolean? = null,
@@ -353,7 +357,7 @@ public data class Parameter(
 
     /** Builder for constructing a [Parameter] instance. */
     @KtorDsl
-    public class Builder {
+    public class Builder(private val schemaInference: JsonSchemaInference) : JsonSchemaInference by schemaInference {
         /** The name of the parameter. */
         public var name: String? = null
 
@@ -370,7 +374,7 @@ public data class Parameter(
         public var deprecated: Boolean = false
 
         /** The schema defining the parameter type. */
-        public var schema: Schema? = null
+        public var schema: JsonSchema? = null
 
         private val _content = mutableMapOf<ContentType, MediaType>()
 
@@ -405,7 +409,7 @@ public data class Parameter(
          * @param configure DSL to configure the [MediaType].
          */
         public operator fun ContentType.invoke(configure: MediaType.Builder.() -> Unit = {}) {
-            _content[this] = MediaType.Builder().apply(configure).build()
+            _content[this] = MediaType.Builder(schemaInference).apply(configure).build()
         }
 
         /**
@@ -493,7 +497,7 @@ public data class Responses(
 
     /** Builder for collecting operation [Response]s keyed by status code. */
     @KtorDsl
-    public class Builder {
+    public class Builder(private val schemaInference: JsonSchemaInference) {
         private val _responses = mutableMapOf<Int, Response>()
         private val _extensions = mutableMapOf<String, GenericElement>()
 
@@ -512,7 +516,7 @@ public data class Responses(
          * @param configure DSL to configure the [Response].
          */
         public fun response(statusCode: Int, configure: Response.Builder.() -> Unit) {
-            _responses[statusCode] = Response.Builder().apply(configure).build()
+            _responses[statusCode] = Response.Builder(schemaInference).apply(configure).build()
         }
 
         /**
@@ -530,7 +534,7 @@ public data class Responses(
          * @param configure DSL to configure the default [Response].
          */
         public fun default(configure: Response.Builder.() -> Unit) {
-            default = Response.Builder().apply(configure).build()
+            default = Response.Builder(schemaInference).apply(configure).build()
         }
 
         /** Builds the [Responses] map. */
@@ -572,7 +576,7 @@ public data class Response(
 
     /** Builder for constructing a [Response] definition. */
     @KtorDsl
-    public class Builder {
+    public class Builder(private val schemaInference: JsonSchemaInference) : JsonSchemaInference by schemaInference {
         /** Human-readable description of the response. */
         public var description: String = ""
 
@@ -604,7 +608,7 @@ public data class Response(
          * @param configure DSL to define the response headers.
          */
         public fun headers(configure: Headers.Builder.() -> Unit) {
-            Headers.Builder().apply(configure).build().headers.forEach { (name, header) ->
+            Headers.Builder(schemaInference).apply(configure).build().headers.forEach { (name, header) ->
                 _headers[name] = header
             }
         }
@@ -615,13 +619,13 @@ public data class Response(
          * @param configure DSL to configure the [MediaType].
          */
         public operator fun ContentType.invoke(configure: MediaType.Builder.() -> Unit = {}) {
-            _content[this] = MediaType.Builder().apply(configure).build()
+            _content[this] = MediaType.Builder(schemaInference).apply(configure).build()
         }
 
         /**
          * Convenience property to add JSON content with a schema.
          */
-        public var jsonSchema: Schema?
+        public var jsonSchema: JsonSchema?
             get() = _content[ContentType.Application.Json]?.schema?.valueOrNull()
             set(value) {
                 _content[ContentType.Application.Json] = MediaType(schema = value?.let(::Value))
@@ -792,7 +796,7 @@ public data class RequestBody(
 
     /** Builder for constructing a [RequestBody] description. */
     @KtorDsl
-    public class Builder {
+    public class Builder(private val schemaInference: JsonSchemaInference) : JsonSchemaInference by schemaInference {
         /** Optional description of the request body. */
         public var description: String? = null
 
@@ -814,13 +818,13 @@ public data class RequestBody(
          * @param configure DSL to configure the [MediaType].
          */
         public operator fun ContentType.invoke(configure: MediaType.Builder.() -> Unit = {}) {
-            _content[this] = MediaType.Builder().apply(configure).build()
+            _content[this] = MediaType.Builder(schemaInference).apply(configure).build()
         }
 
         /**
          * Convenience property to add JSON content with a schema.
          */
-        public var jsonSchema: Schema?
+        public var jsonSchema: JsonSchema?
             get() = _content[ContentType.Application.Json]?.schema?.valueOrNull()
             set(value) {
                 _content[ContentType.Application.Json] = MediaType(schema = value?.let(::Value))
@@ -831,7 +835,7 @@ public data class RequestBody(
          *
          * @param schema The schema defining the XML structure.
          */
-        public fun xml(schema: Schema) {
+        public fun xml(schema: JsonSchema) {
             _content[ContentType.Application.Xml] = MediaType(schema = ReferenceOr.Value(schema))
         }
 
@@ -1029,7 +1033,7 @@ public data class Headers(
     public val headers: Map<String, Header>
 ) {
     @KtorDsl
-    public class Builder {
+    public class Builder(private val schemaInference: JsonSchemaInference) {
         private val _headers = mutableMapOf<String, Header>()
 
         /** Map of header name to its header definition. */
@@ -1042,12 +1046,112 @@ public data class Headers(
          * @param configure DSL to configure the header.
          */
         public fun header(name: String, configure: Header.Builder.() -> Unit) {
-            val header = Header.Builder().apply(configure).build()
+            val header = Header.Builder(schemaInference).apply(configure).build()
             _headers[name] = header
         }
 
         internal fun build(): Headers {
             return Headers(_headers)
+        }
+    }
+}
+
+/**
+ * Header fields have the same meaning as for 'Param'. Style is always treated as [Style.simple], as
+ * it is the only value allowed for headers.
+ */
+@Serializable
+public data class Header(
+    /** A short description of the header. */
+    public val description: String? = null,
+    public val required: Boolean = false,
+    public val deprecated: Boolean = false,
+    public val schema: ReferenceOr<JsonSchema>? = null,
+    public val content: Map<@Serializable(ContentTypeSerializer::class) ContentType, MediaType>? = null,
+    public val style: String? = null,
+    public val explode: Boolean? = null,
+    public val example: GenericElement? = null,
+    public val examples: Map<String, ReferenceOr<ExampleObject>>? = null,
+) {
+    /** Builder for constructing a [Header] instance. */
+    @KtorDsl
+    public class Builder(private val schemaInference: JsonSchemaInference) : JsonSchemaInference by schemaInference {
+        /** A brief description of the header. */
+        public var description: String? = null
+
+        /** Whether this header is mandatory. */
+        public var required: Boolean = false
+
+        /** Marks the header as deprecated when true. */
+        public var deprecated: Boolean = false
+
+        /** The schema defining the header type. */
+        public var schema: JsonSchema? = null
+
+        private val _content = mutableMapOf<ContentType, MediaType>()
+
+        /** Map of media type to [MediaType] object. */
+        public val content: Map<ContentType, MediaType> get() = _content
+
+        /** Describes how the header value will be serialized (e.g., "matrix", "label", "form", "simple", "spaceDelimited", "pipeDelimited", "deepObject"). */
+        public var style: String? = null
+
+        /** Specifies whether arrays and objects generate separate headers for each value. */
+        public var explode: Boolean? = null
+
+        /** Example of the parameter's potential value. */
+        public var example: GenericElement? = null
+
+        /** Map of examples for the parameter. */
+        public var examples: MutableMap<String, ReferenceOr<ExampleObject>> = mutableMapOf()
+
+        /** Specification-extensions for this parameter (keys must start with `x-`). */
+        public val extensions: MutableMap<String, GenericElement> = mutableMapOf()
+
+        /**
+         * Adds a media type definition for the request body.
+         *
+         * @receiver the media type to assign
+         * @param configure DSL to configure the [MediaType].
+         */
+        public operator fun ContentType.invoke(configure: MediaType.Builder.() -> Unit = {}) {
+            _content[this] = MediaType.Builder(schemaInference).apply(configure).build()
+        }
+
+        /**
+         * Adds a custom vendor-specific extension.
+         *
+         * @param name The extension name; must start with `x-`.
+         * @param value The extension value.
+         */
+        public inline fun <reified T : Any> extension(name: String, value: T) {
+            require(name.startsWith("x-")) { "Extension name must start with 'x-'" }
+            extensions[name] = GenericElement(value)
+        }
+
+        /**
+         * Adds an example for this parameter.
+         *
+         * @param name The example identifier.
+         * @param example The example object.
+         */
+        public fun example(name: String, example: ExampleObject) {
+            examples[name] = ReferenceOr.Value(example)
+        }
+
+        /** Constructs the [Header]. */
+        internal fun build(): Header {
+            return Header(
+                description = description,
+                required = required,
+                deprecated = deprecated,
+                schema = schema?.let(::Value),
+                content = _content.ifEmpty { null },
+                style = style,
+                explode = explode,
+                example = example,
+                examples = examples.ifEmpty { null },
+            )
         }
     }
 }

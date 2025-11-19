@@ -16,7 +16,7 @@ import kotlinx.serialization.Serializable
 @KeepGeneratedSerializer
 public data class MediaType(
     /** The schema defining the content of the request, response, or parameter. */
-    public val schema: ReferenceOr<Schema>? = null,
+    public val schema: ReferenceOr<JsonSchema>? = null,
     /**
      * Examples of the media type. Each example object SHOULD match the media type and specified
      * schema if present. The examples field is mutually exclusive of the example field. Furthermore,
@@ -49,9 +49,9 @@ public data class MediaType(
 
     /** Builder for constructing a [MediaType] instance. */
     @KtorDsl
-    public class Builder {
+    public class Builder(private val schemaInference: JsonSchemaInference) : JsonSchemaInference by schemaInference {
         /** The schema defining the content. */
-        public var schema: Schema? = null
+        public var schema: JsonSchema? = null
 
         private val _examples = mutableMapOf<String, ReferenceOr<ExampleObject>>()
         private val _encoding = mutableMapOf<String, Encoding>()

@@ -4,5 +4,5 @@
 
 package io.ktor.openapi
 
-internal fun <T, U> Pair<T, T>.map(transform: (T) -> U): Pair<U, U> =
+internal fun <T, U> Pair<T, T>.mapValue(transform: (T) -> U): Pair<U, U> =
     transform(first) to transform(second)
