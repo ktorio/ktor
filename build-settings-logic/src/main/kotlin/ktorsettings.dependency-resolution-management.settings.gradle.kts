@@ -18,7 +18,7 @@ dependencyResolutionManagement {
 
     versionCatalogs {
         create("libs") {
-            if (file("../gradle/libs.versions.toml").exists()) {
+            if (!file("gradle/libs.versions.toml").exists() && file("../gradle/libs.versions.toml").exists()) {
                 from(files("../gradle/libs.versions.toml"))
             }
 

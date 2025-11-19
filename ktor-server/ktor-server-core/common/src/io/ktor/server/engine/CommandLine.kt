@@ -29,6 +29,9 @@ public object ConfigKeys {
     public const val hostSslKeyAlias: String = "ktor.security.ssl.keyAlias"
     public const val hostSslKeyStorePassword: String = "ktor.security.ssl.keyStorePassword"
     public const val hostSslPrivateKeyPassword: String = "ktor.security.ssl.privateKeyPassword"
+    public const val hostSslTrustStore: String = "ktor.security.ssl.trustStore"
+    public const val hostSslTrustStorePassword: String = "ktor.security.ssl.trustStorePassword"
+    public const val hostSslEnabledProtocols: String = "ktor.security.ssl.enabledProtocols"
     public const val developmentModeKey: String = "ktor.development"
 }
 
@@ -68,6 +71,9 @@ public fun CommandLineConfig(args: Array<String>): CommandLineConfig {
     val sslKeyStorePath = argumentsMap["-sslKeyStore"] ?: configuration.tryGetString(ConfigKeys.hostSslKeyStore)
     val sslKeyStorePassword = configuration.tryGetString(ConfigKeys.hostSslKeyStorePassword)?.trim()
     val sslPrivateKeyPassword = configuration.tryGetString(ConfigKeys.hostSslPrivateKeyPassword)?.trim()
+    val sslTrustStorePath = configuration.tryGetString(ConfigKeys.hostSslTrustStore)?.trim()
+    val sslTrustStorePassword = configuration.tryGetString(ConfigKeys.hostSslTrustStorePassword)?.trim()
+    val sslEnabledProtocols = configuration.tryGetStringList(ConfigKeys.hostSslEnabledProtocols)
     val sslKeyAlias = configuration.tryGetString(ConfigKeys.hostSslKeyAlias) ?: "mykey"
 
     if (port == null && sslPort == null) {
@@ -91,7 +97,10 @@ public fun CommandLineConfig(args: Array<String>): CommandLineConfig {
             sslKeyStorePath,
             sslKeyStorePassword,
             sslPrivateKeyPassword,
-            sslKeyAlias
+            sslKeyAlias,
+            sslTrustStorePath,
+            sslTrustStorePassword,
+            sslEnabledProtocols
         )
     }
 
@@ -123,7 +132,10 @@ internal expect fun ApplicationEngine.Configuration.configureSSLConnectors(
     sslKeyStorePath: String?,
     sslKeyStorePassword: String?,
     sslPrivateKeyPassword: String?,
-    sslKeyAlias: String
+    sslKeyAlias: String,
+    sslTrustStorePath: String?,
+    sslTrustStorePassword: String?,
+    sslEnabledProtocols: List<String>?
 )
 
 internal expect fun ApplicationEnvironmentBuilder.configurePlatformProperties(args: Array<String>)

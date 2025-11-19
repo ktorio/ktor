@@ -1,20 +1,32 @@
 /*
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
+@file:Suppress("UnstableApiUsage")
 
 package ktorbuild.targets
 
 import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
-import org.gradle.api.Project
+import com.android.build.api.dsl.androidLibrary
+import dependencies
 import ktorbuild.internal.kotlin
-import org.gradle.kotlin.dsl.invoke
 import ktorbuild.internal.libs
+import optional
+import org.gradle.api.Project
+import org.gradle.kotlin.dsl.invoke
+import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
-internal fun Project.hasAndroidPlugin(): Boolean {
-    return plugins.hasPlugin("com.android.kotlin.multiplatform.library")
+private const val ANDROID_PLUGIN_ID = "com.android.kotlin.multiplatform.library"
+
+fun KotlinMultiplatformExtension.optionalAndroidLibrary(action: KotlinMultiplatformAndroidLibraryTarget.() -> Unit) {
+    project.pluginManager.withPlugin(ANDROID_PLUGIN_ID) {
+        androidLibrary(action)
+    }
 }
 
-@Suppress("UnstableApiUsage")
+internal fun Project.hasAndroidPlugin(): Boolean {
+    return plugins.hasPlugin(ANDROID_PLUGIN_ID)
+}
+
 internal fun KotlinMultiplatformAndroidLibraryTarget.addTests(targets: KtorTargets, allowDeviceTest: Boolean) {
     if (targets.isEnabled("android.unitTest")) {
         withHostTest {}
@@ -33,18 +45,9 @@ internal fun KotlinMultiplatformAndroidLibraryTarget.addTests(targets: KtorTarge
 internal fun Project.configureAndroidJvm() {
     kotlin {
         sourceSets {
-            androidMain {
-                // should be added automatically, but fails with the new Android KMP plugin
-                dependsOn(commonMain.get())
-            }
-
-            this.findByName("androidDeviceTest")?.apply {
-                // should be added automatically, but fails with the new Android KMP plugin
-                dependsOn(commonTest.get())
-                dependencies {
-                    implementation(libs.androidx.core)
-                    implementation(libs.androidx.runner)
-                }
+            optional.androidDeviceTest.dependencies {
+                implementation(libs.androidx.core)
+                implementation(libs.androidx.runner)
             }
         }
     }

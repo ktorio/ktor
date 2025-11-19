@@ -516,4 +516,35 @@ class HttpRequestRetryTest {
             assertEquals(HttpStatusCode.OK, response.status)
         }
     }
+
+    @Test
+    fun testRetryHasPriorityOverHttpSend() = testWithEngine(MockEngine) {
+        val maxRetriesCount = 5
+        var counter = 1
+        config {
+            engine {
+                addHandler {
+                    if (counter < maxRetriesCount) {
+                        counter++
+                        respondError(HttpStatusCode.InternalServerError)
+                    } else {
+                        respondOk()
+                    }
+                }
+            }
+
+            install(HttpRequestRetry) {
+                retryOnServerErrors(maxRetriesCount)
+                delayMillis { 0L }
+            }
+            install(HttpSend) {
+                maxSendCount = 1
+            }
+        }
+
+        test { client ->
+            assertEquals(HttpStatusCode.OK, client.get("/").status)
+            assertEquals(maxRetriesCount, counter)
+        }
+    }
 }

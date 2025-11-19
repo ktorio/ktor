@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:Suppress("UnstableApiUsage")
@@ -14,7 +14,6 @@ plugins {
 
 dependencies {
     implementation(libs.kotlin.gradlePlugin)
-    implementation(libs.android.kmp.library)
     implementation(libs.develocity)
     implementation(libs.develocity.commonCustomUserData)
 }
@@ -37,7 +36,6 @@ val kotlinDslPluginSources: Configuration by configurations.creating {
     isCanBeConsumed = false
     isCanBeResolved = false
     isCanBeDeclared = true
-    isVisible = false
     defaultDependencies {
         add(project.dependencies.create("org.gradle.kotlin:gradle-kotlin-dsl-plugins:$expectedKotlinDslPluginsVersion"))
     }
@@ -48,7 +46,6 @@ val kotlinDslPluginSourcesResolver: Configuration by configurations.creating {
     isCanBeConsumed = false
     isCanBeResolved = true
     isCanBeDeclared = false
-    isVisible = false
     extendsFrom(kotlinDslPluginSources)
     attributes {
         attribute(DOCS_TYPE_ATTRIBUTE, objects.named(SOURCES))
@@ -92,6 +89,10 @@ val suppressGradlePluginVersionWarning by tasks.registering {
                             "*/\nabstract class EmbeddedKotlinPlugin",
                             "*/\ninternal abstract class EmbeddedKotlinPlugin"
                         )
+                        // Convert parameter into receiver
+                        .replace(".configureEach { swift ->", ".configureEach {")
+                        .replace("swift.withDependencies { dependencies ->", "withDependencies {")
+                        .replace("dependencies.clear()", "clear()")
                 )
             }
         }

@@ -19,7 +19,6 @@ import io.ktor.utils.io.core.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.basic)
  */
-@KtorDsl
 public fun AuthConfig.basic(block: BasicAuthConfig.() -> Unit) {
     with(BasicAuthConfig().apply(block)) {
         this@basic.providers.add(BasicAuthProvider(credentials, realm, _sendWithoutRequest, cacheTokens))
@@ -182,7 +181,7 @@ public class BasicAuthProvider(
     }
 
     override suspend fun refreshToken(response: HttpResponse): Boolean {
-        tokensHolder.setToken(credentials)
+        tokensHolder.setToken(false, credentials)
         return true
     }
 

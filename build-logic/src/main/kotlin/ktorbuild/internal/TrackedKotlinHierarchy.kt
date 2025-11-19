@@ -28,6 +28,7 @@ fun TrackedKotlinHierarchyTemplate(
 interface KotlinHierarchyTracker {
     val targetSourceSets: Map<String, Set<String>>
     val groups: Map<String, Set<String>>
+    fun addTarget(name: String)
 }
 
 fun KotlinHierarchyTracker(): KotlinHierarchyTracker = KotlinHierarchyTrackerImpl.getOrCreate(
@@ -144,7 +145,7 @@ private class KotlinHierarchyTrackerImpl(
     override fun withMingwX64() = addTarget("mingwX64")
     //endregion
 
-    private fun addTarget(name: String) {
+    override fun addTarget(name: String) {
         if (groupName == null) return
         check(!targetsFrozen) { "Can't add targets to already declared group: $groupName" }
 

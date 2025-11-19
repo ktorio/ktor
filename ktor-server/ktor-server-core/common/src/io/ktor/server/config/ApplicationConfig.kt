@@ -189,7 +189,7 @@ public fun ApplicationConfig.tryGetString(key: String): String? =
     propertyOrNull(key)?.getString()
 
 /**
- * Try read String value from [ApplicationConfig].
+ * Try read list of String values from [ApplicationConfig].
  *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.tryGetStringList)

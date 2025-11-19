@@ -7,10 +7,10 @@ package io.ktor.client.webrtc
 import kotlinx.serialization.Serializable
 
 /**
- * An object containing WebRtc protocol entities and abstractions.
- * Provides the core types and interfaces needed for WebRtc peer-to-peer communication.
+ * An object containing WebRTC protocol entities and abstractions.
+ * Provides the core types and interfaces needed for WebRTC peer-to-peer communication.
  *
- * @see [MDN WebRtc API](https://developer.mozilla.org/en-US/docs/Web/API/WebRtc_API)
+ * @see [MDN WebRTC API](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API)
  */
 public object WebRtc {
     /**

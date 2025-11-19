@@ -77,17 +77,20 @@ public final class io/ktor/client/plugins/auth/providers/BasicAuthProviderKt {
 public final class io/ktor/client/plugins/auth/providers/BearerAuthConfig {
 	public fun <init> ()V
 	public final fun getCacheTokens ()Z
+	public final fun getNonCancellableRefresh ()Z
 	public final fun getRealm ()Ljava/lang/String;
 	public final fun loadTokens (Lkotlin/jvm/functions/Function1;)V
 	public final fun refreshTokens (Lkotlin/jvm/functions/Function2;)V
 	public final fun sendWithoutRequest (Lkotlin/jvm/functions/Function1;)V
 	public final fun setCacheTokens (Z)V
+	public final fun setNonCancellableRefresh (Z)V
 	public final fun setRealm (Ljava/lang/String;)V
 }
 
 public final class io/ktor/client/plugins/auth/providers/BearerAuthProvider : io/ktor/client/plugins/auth/AuthProvider {
-	public fun <init> (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Ljava/lang/String;Z)V
-	public synthetic fun <init> (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Ljava/lang/String;)V
+	public fun <init> (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Ljava/lang/String;ZZ)V
+	public synthetic fun <init> (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Ljava/lang/String;ZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun addRequestHeaders (Lio/ktor/client/request/HttpRequestBuilder;Lio/ktor/http/auth/HttpAuthHeader;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun clearToken ()V
 	public fun getSendWithoutRequest ()Z

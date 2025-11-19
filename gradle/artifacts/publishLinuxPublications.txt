@@ -142,6 +142,12 @@ io.ktor:ktor-network-tls-linuxarm64/sources.jar
 io.ktor:ktor-network-tls-linuxx64/.klib
 io.ktor:ktor-network-tls-linuxx64/javadoc.jar
 io.ktor:ktor-network-tls-linuxx64/sources.jar
+io.ktor:ktor-openapi-schema-linuxarm64/.klib
+io.ktor:ktor-openapi-schema-linuxarm64/javadoc.jar
+io.ktor:ktor-openapi-schema-linuxarm64/sources.jar
+io.ktor:ktor-openapi-schema-linuxx64/.klib
+io.ktor:ktor-openapi-schema-linuxx64/javadoc.jar
+io.ktor:ktor-openapi-schema-linuxx64/sources.jar
 io.ktor:ktor-resources-linuxarm64/.klib
 io.ktor:ktor-resources-linuxarm64/javadoc.jar
 io.ktor:ktor-resources-linuxarm64/sources.jar
@@ -354,6 +360,12 @@ io.ktor:ktor-server-resources-linuxarm64/sources.jar
 io.ktor:ktor-server-resources-linuxx64/.klib
 io.ktor:ktor-server-resources-linuxx64/javadoc.jar
 io.ktor:ktor-server-resources-linuxx64/sources.jar
+io.ktor:ktor-server-routing-annotate-linuxarm64/.klib
+io.ktor:ktor-server-routing-annotate-linuxarm64/javadoc.jar
+io.ktor:ktor-server-routing-annotate-linuxarm64/sources.jar
+io.ktor:ktor-server-routing-annotate-linuxx64/.klib
+io.ktor:ktor-server-routing-annotate-linuxx64/javadoc.jar
+io.ktor:ktor-server-routing-annotate-linuxx64/sources.jar
 io.ktor:ktor-server-sessions-linuxarm64/.klib
 io.ktor:ktor-server-sessions-linuxarm64/javadoc.jar
 io.ktor:ktor-server-sessions-linuxarm64/sources.jar

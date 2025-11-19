@@ -17,6 +17,7 @@ kotlin {
             api(projects.ktorClientMock)
         }
         commonTest.dependencies {
+            api(projects.ktorClientCio)
             api(projects.ktorClientJson)
             api(projects.ktorClientSerialization)
             api(projects.ktorClientLogging)
@@ -51,10 +52,6 @@ kotlin {
             implementation(libs.junit)
         }
 
-        commonTest.dependencies {
-            api(projects.ktorClientCio)
-        }
-
         jsTest.dependencies {
             api(projects.ktorClientJs)
         }
@@ -64,12 +61,12 @@ kotlin {
         }
 
         darwinTest.dependencies {
-                api(projects.ktorClientDarwin)
-                api(projects.ktorClientDarwinLegacy)
+            api(projects.ktorClientDarwin)
+            api(projects.ktorClientDarwinLegacy)
         }
 
         windowsTest.dependencies {
-                api(projects.ktorClientWinhttp)
+            api(projects.ktorClientWinhttp)
         }
     }
 }
