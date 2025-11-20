@@ -3,8 +3,9 @@
  */
 
 import ktorbuild.createCInterop
-import ktorbuild.targets.KtorTargets
+import ktorbuild.targets.hostTarget
 import ktorbuild.vcpkg.*
+import org.jetbrains.kotlin.konan.target.HostManager
 
 plugins {
     id("ktorbuild.project.library")
@@ -37,26 +38,24 @@ kotlin {
 }
 
 //region Libcurl tasks
-// Register `libcurlUpdate[Target]` tasks updating libcurl binaries for the corresponding desktop target.
-// These tasks should be run only in the suitable environment to avoid cross-compilation.
-// To update libcurl binaries, run `libcurlUpdate*` on each platform.
-for (target in KtorTargets.resolveTargets("desktop")) {
-    val capitalizedTarget = target.replaceFirstChar { it.uppercase() }
-    val libcurlInstall = tasks.register<VcpkgInstall>("libcurlInstall$capitalizedTarget") {
-        install(manifestPath = "libcurl", target = target)
+// Register `libcurlUpdate` task updating libcurl binaries for the current host OS and architecture.
+// This task should be run on each platform separately to update libcurl for all platforms.
+val hostTarget = HostManager.hostTarget
+if (hostTarget != null) {
+    val libcurlInstall = registerVcpkgInstallTask("libcurl", hostTarget) {
         // Use overlays to link against system zlib (except for Windows)
-        useOverlays = target != "mingwX64"
+        useOverlays = hostTarget != "mingwX64"
     }
 
-    // Headers are equal for all targets, so update them only once
-    val libcurlUpdateHeaders = if (target == "macosArm64") {
-        registerSyncHeadersTask("libcurlUpdateHeaders", from = libcurlInstall, into = includeDir, library = "curl")
-    } else {
-        null
-    }
+    val libcurlUpdateHeaders = registerSyncHeadersTask(
+        "libcurlUpdateHeaders",
+        from = libcurlInstall,
+        into = includeDir,
+        library = "curl"
+    )
 
-    registerSyncBinariesTask("libcurlUpdate$capitalizedTarget", from = libcurlInstall, into = libraryPath(target)) {
-        if (libcurlUpdateHeaders != null) dependsOn(libcurlUpdateHeaders)
+    registerSyncBinariesTask("libcurlUpdate", from = libcurlInstall, into = libraryPath(hostTarget)) {
+        dependsOn(libcurlUpdateHeaders)
     }
 }
 //endregion
