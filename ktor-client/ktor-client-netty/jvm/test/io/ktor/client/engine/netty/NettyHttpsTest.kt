@@ -10,7 +10,7 @@ class NettyHttpsTest : HttpsTest<NettyHttpConfig>(Netty) {
 
     override fun NettyHttpConfig.disableCertificatePinning() {
 //        config {
-            sslContext(unsafeSslContext)
+        sslContext(unsafeSslContext)
 //        }
     }
 }
