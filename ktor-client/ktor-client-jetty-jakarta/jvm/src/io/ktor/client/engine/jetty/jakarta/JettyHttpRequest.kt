@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.jetty.jakarta
@@ -13,18 +13,26 @@ import io.ktor.util.cio.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.*
-import kotlinx.coroutines.*
-import org.eclipse.jetty.http.*
-import org.eclipse.jetty.http2.api.*
-import org.eclipse.jetty.http2.client.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import org.eclipse.jetty.http.HostPortHttpField
+import org.eclipse.jetty.http.HttpFields
+import org.eclipse.jetty.http.HttpVersion
+import org.eclipse.jetty.http.MetaData
+import org.eclipse.jetty.http2.api.Session
+import org.eclipse.jetty.http2.client.HTTP2Client
 import org.eclipse.jetty.http2.client.internal.HTTP2ClientSession
-import org.eclipse.jetty.http2.frames.*
+import org.eclipse.jetty.http2.frames.HeadersFrame
+import org.eclipse.jetty.http2.frames.SettingsFrame
 import org.eclipse.jetty.io.Transport
-import org.eclipse.jetty.util.*
+import org.eclipse.jetty.util.Callback
+import org.eclipse.jetty.util.Promise
 import org.eclipse.jetty.util.ssl.SslContextFactory
-import java.net.*
-import java.nio.*
-import kotlin.coroutines.*
+import java.net.InetSocketAddress
+import java.nio.ByteBuffer
+import kotlin.coroutines.CoroutineContext
 
 internal suspend fun HttpRequestData.executeRequest(
     client: HTTP2Client,
@@ -68,7 +76,8 @@ internal suspend fun HTTP2Client.connect(
 ): Session = withPromise { promise: Promise<Session> ->
     connect(
         Transport.TCP_IP,
-        config.sslContextFactory as SslContextFactory.Client?,
+        // Allow HTTP/2 over plaintext (h2c)
+        config.sslContextFactory.takeUnless { url.protocol == URLProtocol.HTTP } as SslContextFactory.Client?,
         InetSocketAddress(url.host, url.port),
         NoopListener,
         promise,
@@ -102,11 +111,13 @@ private fun sendRequestBody(request: JettyHttp2Request, content: OutgoingContent
             request.write(ByteBuffer.wrap(content.bytes()))
             request.endBody()
         }
+
         is OutgoingContent.ReadChannelContent -> writeRequest(content.readFrom(), request, callContext)
         is OutgoingContent.WriteChannelContent -> {
             val source = GlobalScope.writer(callContext) { content.writeTo(channel) }.channel
             writeRequest(source, request, callContext)
         }
+
         is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(content)
         is OutgoingContent.ContentWrapper -> sendRequestBody(request, content.delegate(), callContext)
     }
