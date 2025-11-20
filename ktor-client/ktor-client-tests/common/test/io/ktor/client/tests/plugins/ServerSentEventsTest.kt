@@ -34,6 +34,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 class ServerSentEventsTest : ClientLoader() {
 
@@ -973,6 +974,35 @@ class ServerSentEventsTest : ClientLoader() {
             }.apply {
                 assertEquals("Expected status code 200 but was 400", message)
             }
+        }
+    }
+
+    @Test
+    fun testCallContextCancelled() = clientTests {
+        config {
+            install(SSE)
+        }
+
+        test { client ->
+            // 10 because for Darwin default httpMaximumConnectionsPerHost equals 6
+            repeat(10) { iteration ->
+                val hasReceivedAnything = CompletableDeferred<Unit>()
+                val job = launch {
+                    client.sse("$TEST_SERVER/sse/hello?times=100&interval=100") {
+                        incoming.collect {
+                            hasReceivedAnything.complete(Unit)
+                        }
+                    }
+                }
+                val result = withTimeoutOrNull(2.seconds) {
+                    hasReceivedAnything.await()
+                }
+                if (result == null) {
+                    error("Stuck after $iteration")
+                }
+                job.cancel()
+            }
+            client.close()
         }
     }
 
