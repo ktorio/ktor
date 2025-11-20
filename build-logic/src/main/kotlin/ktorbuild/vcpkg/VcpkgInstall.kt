@@ -12,24 +12,27 @@ import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputDirectory
-import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.*
 import org.gradle.process.ExecOperations
+import org.gradle.process.ExecSpec
 import org.gradle.work.DisableCachingByDefault
 import java.io.ByteArrayOutputStream
+import java.io.File
 import javax.inject.Inject
 
 @DisableCachingByDefault(because = "We rely on vcpkg's caches")
 abstract class VcpkgInstall @Inject constructor(
-    private val layout: ProjectLayout,
     private val execOps: ExecOperations,
+    layout: ProjectLayout,
     objects: ObjectFactory,
 ) : DefaultTask() {
 
     @get:InputDirectory
     internal abstract val manifestDir: DirectoryProperty
+
+    @get:Input
+    @get:Optional
+    internal abstract val toolchainDirectory: Property<File>
 
     @get:Input
     internal abstract val triplet: Property<String>
@@ -71,21 +74,33 @@ abstract class VcpkgInstall @Inject constructor(
 
     @TaskAction
     internal fun run() {
-        checkNotNull(execOps.which("vcpkg")) { "Vcpkg is not installed" }
+        val vcpkgPath = checkNotNull(execOps.which("vcpkg")) { "Vcpkg is not installed" }
         val installDir = installDir.get().asFile
         val manifestDir = manifestDir.get().asFile
         val overlayPortsDir = manifestDir.resolve("overlays")
+        val overlayTripletsDir = manifestDir.resolve("triplets")
         val currentTriplet = triplet.get()
 
         val commandLine = listOfNotNull(
-            "vcpkg", "install",
+            if ("mingw" in currentTriplet) "vcpkg" else vcpkgPath,
+            "install",
             "--triplet=$currentTriplet",
             "--x-install-root=$installDir",
             "--x-manifest-root=$manifestDir",
-            if (useOverlays.get()) "--overlay-ports=$overlayPortsDir" else null
+            if (overlayPortsDir.isDirectory && useOverlays.get()) "--overlay-ports=$overlayPortsDir" else null,
+            if (overlayTripletsDir.isDirectory) "--overlay-triplets=$overlayTripletsDir" else null
         )
 
-        execOps.exec { commandLine(commandLine) }
+        execOps.exec {
+            commandLine(commandLine)
+            if (toolchainDirectory.isPresent) setSysrootOverride(toolchainDirectory.get())
+        }
+    }
+
+    private fun ExecSpec.setSysrootOverride(toolchainDirectory: File) {
+        check(toolchainDirectory.exists()) { "Toolchain directory does not exist: $toolchainDirectory" }
+        environment("TOOLCHAIN_DIR", toolchainDirectory.absolutePath)
+        environment("TOOLCHAIN_TARGET", toolchainDirectory.name.substringBefore("-gcc"))
     }
 }
 
