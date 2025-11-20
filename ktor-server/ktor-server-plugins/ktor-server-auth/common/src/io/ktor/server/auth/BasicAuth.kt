@@ -10,6 +10,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
+import kotlin.io.encoding.Base64
 
 /**
  * A `basic` [Authentication] provider.
@@ -127,7 +128,7 @@ public fun ApplicationRequest.basicAuthenticationCredentials(charset: Charset? =
             if (!authHeader.authScheme.equals("Basic", ignoreCase = true)) return null
 
             val userPass = try {
-                val bytes = authHeader.blob.decodeBase64Bytes()
+                val bytes = Base64.decode(authHeader.blob)
                 bytes.decodeToString(0, 0 + bytes.size)
             } catch (e: Throwable) {
                 return null

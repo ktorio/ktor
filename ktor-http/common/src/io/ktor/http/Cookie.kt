@@ -10,6 +10,7 @@ import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlinx.serialization.*
+import kotlin.io.encoding.Base64
 import kotlin.jvm.*
 
 /**
@@ -231,7 +232,7 @@ public fun decodeCookieValue(encodedValue: String, encoding: CookieEncoding): St
         else -> encodedValue
     }
     CookieEncoding.URI_ENCODING -> encodedValue.decodeURLQueryComponent(plusIsSpace = true)
-    CookieEncoding.BASE64_ENCODING -> encodedValue.decodeBase64String()
+    CookieEncoding.BASE64_ENCODING -> Base64.decode(encodedValue).decodeToString()
 }
 
 private fun String.assertCookieName() = when {

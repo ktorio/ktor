@@ -6,6 +6,7 @@ package io.ktor.client.webrtc
 
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -123,6 +124,14 @@ public abstract class WebRtcPeerConnection private constructor(
 
     public suspend fun awaitIceGatheringComplete() {
         iceGatheringState.first { it == WebRtc.IceGatheringState.COMPLETE }
+    }
+
+    /**
+     * Runs a [block] in the coroutine scope of the peer connection without extra dispatching.
+     * This should be used to run some background tasks without losing thrown exceptions.
+     */
+    internal inline fun runInConnectionScope(crossinline block: () -> Unit) {
+        coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) { block() }
     }
 
     override fun close() {

@@ -14,7 +14,9 @@ config.set({
                 "--disable-web-security",
                 "--disable-setuid-sandbox",
                 "--enable-logging",
-                "--v=1"
+                "--v=1",
+                "--use-fake-device-for-media-stream",
+                "--use-fake-ui-for-media-stream"
             ]
         }
     },

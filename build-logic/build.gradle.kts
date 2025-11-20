@@ -15,7 +15,12 @@ dependencies {
     implementation(libs.gradleDoctor)
     implementation(libs.kotlinter)
     implementation(libs.mavenPublishing)
-    implementation(libs.android.kmp.library)
+    implementation(libs.android.gradlePlugin)
+
+    // Needed for patches/DokkaVersioningPluginParameters
+    // TODO: Remove when the PR fixing this file will be merged and released. Probably in Dokka 2.2.0
+    //   PR: https://github.com/Kotlin/dokka/pull/4301
+    implementation(libs.kotlinx.serialization.json)
 
     // A hack to make version catalogs accessible from buildSrc sources
     // https://github.com/gradle/gradle/issues/15383#issuecomment-779893192
@@ -28,5 +33,6 @@ kotlin {
 
     compilerOptions {
         allWarningsAsErrors = true
+        freeCompilerArgs.add("-Xcontext-parameters")
     }
 }

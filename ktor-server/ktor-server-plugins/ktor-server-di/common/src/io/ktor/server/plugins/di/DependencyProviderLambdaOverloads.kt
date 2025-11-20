@@ -6,8 +6,6 @@
 
 package io.ktor.server.plugins.di
 
-import io.ktor.utils.io.*
-
 /**
  * Registers a dependency provider that takes no parameters and returns a value of type [E].
  *
@@ -17,7 +15,7 @@ import io.ktor.utils.io.*
  * @param function A function that creates and returns an instance of [E]
  * @return A [DependencyRegistry.KeyContext] for further configuration of the dependency
  */
-@KtorDsl public inline fun <reified E> DependencyRegistry.provide(
+public inline fun <reified E> DependencyRegistry.provide(
     crossinline function: suspend () -> E
 ): DependencyRegistry.KeyContext<E> = provide {
     function()
@@ -33,7 +31,7 @@ import io.ktor.utils.io.*
  * @param function A function that takes one parameter of type [I1] and returns an instance of [E]
  * @return A [DependencyRegistry.KeyContext] for further configuration of the dependency
  */
-@KtorDsl public inline fun <reified E, reified I1> DependencyRegistry.provide(
+public inline fun <reified E, reified I1> DependencyRegistry.provide(
     crossinline function: suspend (I1) -> E
 ): DependencyRegistry.KeyContext<E> = provide { function(resolve()) }
 
@@ -48,7 +46,7 @@ import io.ktor.utils.io.*
  * @param function A function that takes two parameters and returns an instance of [E]
  * @return A [DependencyRegistry.KeyContext] for further configuration of the dependency
  */
-@KtorDsl public inline fun <reified E, reified I1, reified I2> DependencyRegistry.provide(
+public inline fun <reified E, reified I1, reified I2> DependencyRegistry.provide(
     crossinline function: suspend (I1, I2) -> E
 ): DependencyRegistry.KeyContext<E> = provide { function(resolve(), resolve()) }
 
@@ -64,7 +62,7 @@ import io.ktor.utils.io.*
  * @param function A function that takes three parameters and returns an instance of [E]
  * @return A [DependencyRegistry.KeyContext] for further configuration of the dependency
  */
-@KtorDsl public inline fun <reified E, reified I1, reified I2, reified I3> DependencyRegistry.provide(
+public inline fun <reified E, reified I1, reified I2, reified I3> DependencyRegistry.provide(
     crossinline function: suspend (I1, I2, I3) -> E
 ): DependencyRegistry.KeyContext<E> = provide { function(resolve(), resolve(), resolve()) }
 
@@ -81,7 +79,7 @@ import io.ktor.utils.io.*
  * @param function A function that takes four parameters and returns an instance of [E]
  * @return A [DependencyRegistry.KeyContext] for further configuration of the dependency
  */
-@KtorDsl public inline fun <reified E, reified I1, reified I2, reified I3, reified I4> DependencyRegistry.provide(
+public inline fun <reified E, reified I1, reified I2, reified I3, reified I4> DependencyRegistry.provide(
     crossinline function: suspend (I1, I2, I3, I4) -> E
 ): DependencyRegistry.KeyContext<E> = provide { function(resolve(), resolve(), resolve(), resolve()) }
 
@@ -99,7 +97,7 @@ import io.ktor.utils.io.*
  * @param function A function that takes five parameters and returns an instance of [E]
  * @return A [DependencyRegistry.KeyContext] for further configuration of the dependency
  */
-@KtorDsl public inline fun <reified E, reified I1, reified I2, reified I3, reified I4, reified I5> DependencyRegistry.provide(
+public inline fun <reified E, reified I1, reified I2, reified I3, reified I4, reified I5> DependencyRegistry.provide(
     crossinline function: suspend (I1, I2, I3, I4, I5) -> E
 ): DependencyRegistry.KeyContext<E> = provide { function(resolve(), resolve(), resolve(), resolve(), resolve()) }
 
@@ -118,7 +116,7 @@ import io.ktor.utils.io.*
  * @param function A function that takes six parameters and returns an instance of [E]
  * @return A [DependencyRegistry.KeyContext] for further configuration of the dependency
  */
-@KtorDsl public inline fun <reified E, reified I1, reified I2, reified I3, reified I4, reified I5, reified I6> DependencyRegistry.provide(
+public inline fun <reified E, reified I1, reified I2, reified I3, reified I4, reified I5, reified I6> DependencyRegistry.provide(
     crossinline function: suspend (I1, I2, I3, I4, I5, I6) -> E
 ): DependencyRegistry.KeyContext<E> = provide {
     function(resolve(), resolve(), resolve(), resolve(), resolve(), resolve())

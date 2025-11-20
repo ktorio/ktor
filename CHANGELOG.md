@@ -1,3 +1,40 @@
+# 3.3.2
+> Published 5 November 2025
+
+### Improvements
+* WebRTC Client. Remove redundant targets ([KTOR-9062](https://youtrack.jetbrains.com/issue/KTOR-9062))
+* Add Socks proxy support to Darwin engine ([KTOR-8968](https://youtrack.jetbrains.com/issue/KTOR-8968))
+* Java: Improve error message when SOCKS proxy is used ([KTOR-2908](https://youtrack.jetbrains.com/issue/KTOR-2908))
+
+### Bugfixes
+* HttpRequestRetry: SendCountExceedException when max retries is more than maxSendCount of HttpSend ([KTOR-5850](https://youtrack.jetbrains.com/issue/KTOR-5850))
+* Darwin: The `maxFrameSize` option has no effect ([KTOR-6963](https://youtrack.jetbrains.com/issue/KTOR-6963))
+* OpenAPI: StackOverflowError when a response object has property with @Contextual serializer ([KTOR-8878](https://youtrack.jetbrains.com/issue/KTOR-8878))
+* OpenAPI gen: missing KDoc fields ([KTOR-9021](https://youtrack.jetbrains.com/issue/KTOR-9021))
+* Server call.request.path() returns routing selectors in path ([KTOR-7639](https://youtrack.jetbrains.com/issue/KTOR-7639))
+* StaticContent doesn't allow siblings ([KTOR-9012](https://youtrack.jetbrains.com/issue/KTOR-9012))
+* HttpCache: FileStorage doesn't use given dispatcher for all file operations ([KTOR-8832](https://youtrack.jetbrains.com/issue/KTOR-8832))
+* Curl: SOCKS proxy doesn't work ([KTOR-9008](https://youtrack.jetbrains.com/issue/KTOR-9008))
+* Netty: java.lang.VerifyError is thrown on Android since 3.3.0 ([KTOR-8916](https://youtrack.jetbrains.com/issue/KTOR-8916))
+* Response body channel is canceled while the body is being saved when having HttpRequestRetry and onDownload ([KTOR-8975](https://youtrack.jetbrains.com/issue/KTOR-8975))
+* HttpCache: InvalidCacheStateException when varyKeys stored in files contain uppercase letters since 3.3.0 ([KTOR-8970](https://youtrack.jetbrains.com/issue/KTOR-8970))
+
+
+# 3.3.1
+> Published 8 October 2025
+
+### Improvements
+* Add a note about SSE session lifetime in KDoc ([KTOR-8440](https://youtrack.jetbrains.com/issue/KTOR-8440))
+* Update Kotlin to 2.2.20 ([KTOR-8896](https://youtrack.jetbrains.com/issue/KTOR-8896))
+
+### Bugfixes
+* NumberFormatException when Content-Length header value contains null bytes ([KTOR-4828](https://youtrack.jetbrains.com/issue/KTOR-4828))
+* SerializationException: Serializer for class 'ClientSSESession' is not found when server responds with JSON ([KTOR-7631](https://youtrack.jetbrains.com/issue/KTOR-7631))
+* Netty: loadConfiguration missing enableHttp2 and enableH2c properties ([KTOR-8898](https://youtrack.jetbrains.com/issue/KTOR-8898))
+* Netty: EmbeddedServer.stop always blocks for twice of shutdownGracePeriod ([KTOR-8770](https://youtrack.jetbrains.com/issue/KTOR-8770))
+* shutdownGracePeriod is used instead of shutdownTimeout in EmbeddedServer.stop() ([KTOR-8771](https://youtrack.jetbrains.com/issue/KTOR-8771))
+* Support serving static resources within bootJar ([KTOR-8592](https://youtrack.jetbrains.com/issue/KTOR-8592))
+
 # 3.3.0
 > Published 11 September 2025
 

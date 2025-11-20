@@ -7,13 +7,14 @@ package io.ktor.tests.auth
 import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
+import kotlin.io.encoding.Base64
 import kotlin.test.*
 
 class CryptoTest {
     @Test
     fun testBase64() {
         assertEquals("AAAA", ByteArray(3).encodeBase64())
-        assertEquals(ByteArray(3), "AAAA".decodeBase64Bytes())
+        assertEquals(ByteArray(3), Base64.decode("AAAA"))
     }
 
     @Test

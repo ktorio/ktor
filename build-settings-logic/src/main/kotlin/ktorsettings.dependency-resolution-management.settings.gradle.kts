@@ -18,7 +18,7 @@ dependencyResolutionManagement {
 
     versionCatalogs {
         create("libs") {
-            if (file("../gradle/libs.versions.toml").exists()) {
+            if (!file("gradle/libs.versions.toml").exists() && file("../gradle/libs.versions.toml").exists()) {
                 from(files("../gradle/libs.versions.toml"))
             }
 
@@ -26,7 +26,7 @@ dependencyResolutionManagement {
         }
 
         create("kotlinWrappers") {
-            from("org.jetbrains.kotlin-wrappers:kotlin-wrappers-catalog:2025.7.10")
+            from("org.jetbrains.kotlin-wrappers:kotlin-wrappers-catalog:2025.10.8")
         }
     }
 }

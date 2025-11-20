@@ -4,9 +4,9 @@
 
 package io.ktor.client.tests
 
-import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.test.base.*
+import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -24,17 +24,3 @@ class HttpMethodTest : ClientLoader() {
         }
     }
 }
-
-private val allMethods = HttpMethod.DefaultMethods + HttpMethod.Trace
-
-private fun HttpClient.supportedMethods(): List<HttpMethod> = when (engineName) {
-    // PATCH is not supported by HttpURLConnection
-    // https://bugs.openjdk.org/browse/JDK-7016595
-    "AndroidClientEngine" -> allMethods - HttpMethod.Patch
-    // Js engine throws: TypeError: 'TRACE' HTTP method is unsupported.
-    "JsClientEngine" -> allMethods - HttpMethod.Trace
-    else -> allMethods
-}
-
-private val HttpClient.engineName get() = engine::class.simpleName
-private val HttpMethod.Companion.Trace get() = HttpMethod("TRACE")
