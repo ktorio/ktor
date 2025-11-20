@@ -8,8 +8,7 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.util.*
-import io.ktor.utils.io.*
-import kotlin.jvm.*
+import kotlin.jvm.JvmName
 
 /**
  * Builds a route to match the specified regex [path].
@@ -27,7 +26,6 @@ import kotlin.jvm.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.route)
  */
-@KtorDsl
 public fun Route.route(path: Regex, build: Route.() -> Unit): Route =
     createRouteFromRegexPath(path).apply(build)
 
@@ -47,7 +45,6 @@ public fun Route.route(path: Regex, build: Route.() -> Unit): Route =
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.route)
  */
-@KtorDsl
 public fun Route.route(path: Regex, method: HttpMethod, build: Route.() -> Unit): Route {
     val selector = HttpMethodRouteSelector(method)
     return createRouteFromRegexPath(path).createChild(selector).apply(build)
@@ -67,7 +64,6 @@ public fun Route.route(path: Regex, method: HttpMethod, build: Route.() -> Unit)
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.get)
  */
-@KtorDsl
 public fun Route.get(path: Regex, body: RoutingHandler): Route {
     return route(path, HttpMethod.Get) { handle(body) }
 }
@@ -86,7 +82,6 @@ public fun Route.get(path: Regex, body: RoutingHandler): Route {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.post)
  */
-@KtorDsl
 public fun Route.post(path: Regex, body: RoutingHandler): Route {
     return route(path, HttpMethod.Post) { handle(body) }
 }
@@ -105,7 +100,6 @@ public fun Route.post(path: Regex, body: RoutingHandler): Route {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.post)
  */
-@KtorDsl
 @JvmName("postTypedPath")
 public inline fun <reified R : Any> Route.post(
     path: Regex,
@@ -128,7 +122,6 @@ public inline fun <reified R : Any> Route.post(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.head)
  */
-@KtorDsl
 public fun Route.head(path: Regex, body: RoutingHandler): Route {
     return route(path, HttpMethod.Head) { handle(body) }
 }
@@ -147,7 +140,6 @@ public fun Route.head(path: Regex, body: RoutingHandler): Route {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.put)
  */
-@KtorDsl
 public fun Route.put(path: Regex, body: RoutingHandler): Route {
     return route(path, HttpMethod.Put) { handle(body) }
 }
@@ -166,7 +158,6 @@ public fun Route.put(path: Regex, body: RoutingHandler): Route {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.put)
  */
-@KtorDsl
 @JvmName("putTypedPath")
 public inline fun <reified R : Any> Route.put(
     path: Regex,
@@ -189,7 +180,6 @@ public inline fun <reified R : Any> Route.put(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.patch)
  */
-@KtorDsl
 public fun Route.patch(path: Regex, body: RoutingHandler): Route {
     return route(path, HttpMethod.Patch) { handle(body) }
 }
@@ -208,7 +198,6 @@ public fun Route.patch(path: Regex, body: RoutingHandler): Route {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.patch)
  */
-@KtorDsl
 @JvmName("patchTypedPath")
 public inline fun <reified R : Any> Route.patch(
     path: Regex,
@@ -231,7 +220,6 @@ public inline fun <reified R : Any> Route.patch(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.delete)
  */
-@KtorDsl
 public fun Route.delete(path: Regex, body: RoutingHandler): Route {
     return route(path, HttpMethod.Delete) { handle(body) }
 }
@@ -250,7 +238,6 @@ public fun Route.delete(path: Regex, body: RoutingHandler): Route {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.options)
  */
-@KtorDsl
 public fun Route.options(path: Regex, body: RoutingHandler): Route {
     return route(path, HttpMethod.Options) { handle(body) }
 }
@@ -259,7 +246,13 @@ private fun Route.createRouteFromRegexPath(regex: Regex): Route {
     return createChild(PathSegmentRegexRouteSelector(regex))
 }
 
-public class PathSegmentRegexRouteSelector(private val regex: Regex) : RouteSelector() {
+/**
+ * A route selector that matches a segment of the path against a specified regular expression [regex].
+ * This selector allows flexible matching of URI path segments by using regex patterns.
+ *
+ * @property regex regular expression for matching path segments
+ */
+public class PathSegmentRegexRouteSelector(public val regex: Regex) : RouteSelector(), RoutePathComponent {
 
     override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val prefix = if (regex.pattern.startsWith('/') || regex.pattern.startsWith("""\/""")) "/" else ""

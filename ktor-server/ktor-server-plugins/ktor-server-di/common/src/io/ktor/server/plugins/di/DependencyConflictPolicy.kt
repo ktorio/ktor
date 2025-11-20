@@ -77,14 +77,27 @@ public val DefaultConflictPolicy: DependencyConflictPolicy = DependencyConflictP
 }
 
 /**
- * During testing, we ignore conflicts.
- * This allows for replacing base implementations with mock values.
+ * During testing, we ignore conflicts by providing dependencies BEFORE loading modules.
+ * This allows for mocking out dependencies.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.IgnoreConflicts)
  */
 public val IgnoreConflicts: DependencyConflictPolicy = DependencyConflictPolicy { prev, current ->
     when (val result = DefaultConflictPolicy.resolve(prev, current)) {
-        is Conflict -> KeepPrevious
+        is Conflict, Ambiguous -> KeepPrevious
+        else -> result
+    }
+}
+
+/**
+ * Overrides the previous dependency with the newly provided one.
+ * This can be useful either for testing or in cases where consumers do not have control over the base implementations.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.OverridePrevious)
+ */
+public val OverridePrevious: DependencyConflictPolicy = DependencyConflictPolicy { prev, current ->
+    when (val result = DefaultConflictPolicy.resolve(prev, current)) {
+        is Conflict, Ambiguous -> KeepNew
         else -> result
     }
 }
@@ -96,4 +109,11 @@ private fun DependencyInitializer.distance(): Int = when (this) {
     is DependencyInitializer.Ambiguous -> functions.minOf { it.distance() }
     is DependencyInitializer.Missing,
     is DependencyInitializer.Null -> Int.MAX_VALUE
+}
+
+internal fun parseConflictPolicy(name: String): DependencyConflictPolicy = when (name) {
+    "Default" -> DefaultConflictPolicy
+    "IgnoreConflicts" -> IgnoreConflicts
+    "OverridePrevious" -> OverridePrevious
+    else -> error("Unknown conflict policy: $name")
 }

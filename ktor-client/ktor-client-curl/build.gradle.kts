@@ -22,7 +22,7 @@ kotlin {
             api(projects.ktorHttpCio)
         }
         desktopTest.dependencies {
-            implementation(projects.ktorClientTestBase)
+            implementation(projects.ktorClientTests)
             api(projects.ktorClientLogging)
             api(projects.ktorClientJson)
             implementation(libs.kotlinx.serialization.json)

@@ -4,12 +4,6 @@
 
 package io.ktor.client.webrtc
 
-import js.array.JsArray
-import js.core.JsAny
 import web.errors.DOMException
-
-internal actual fun <T : JsAny?> JsArray<T>.toArray(): Array<T> = this.copyOf()
-
-internal actual fun <T : JsAny?> List<T>.toJs(): JsArray<T> = toTypedArray()
 
 internal actual fun Throwable.asDomException(): DOMException? = this as? DOMException

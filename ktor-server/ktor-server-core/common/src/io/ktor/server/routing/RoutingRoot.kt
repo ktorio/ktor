@@ -94,6 +94,7 @@ public class RoutingRoot(
         val routingApplicationCall = RoutingPipelineCall(
             context.call,
             route,
+            context.coroutineContext,
             receivePipeline,
             responsePipeline,
             parameters
@@ -178,7 +179,6 @@ public val Route.application: Application
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.routing)
  */
-@KtorDsl
 public fun Application.routing(configuration: Routing.() -> Unit): RoutingRoot =
     pluginOrNull(RoutingRoot)?.apply(configuration) ?: install(RoutingRoot, configuration)
 

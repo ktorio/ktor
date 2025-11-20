@@ -45,7 +45,7 @@ public class TestApplicationEngine(
     private var cancellationJob: CompletableJob? = null
 
     override val coroutineContext: CoroutineContext =
-        applicationProvider().parentCoroutineContext + testEngineJob + configuration.dispatcher
+        configuration.dispatcher + applicationProvider().parentCoroutineContext + testEngineJob
 
     public val application: Application
         get() = applicationProvider()

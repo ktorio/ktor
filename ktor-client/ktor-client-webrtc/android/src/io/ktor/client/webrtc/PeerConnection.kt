@@ -5,8 +5,6 @@
 package io.ktor.client.webrtc
 
 import io.ktor.client.webrtc.media.*
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import org.webrtc.*
 import org.webrtc.PeerConnection.Observer
@@ -16,27 +14,23 @@ import kotlin.coroutines.resumeWithException
 
 public class AndroidWebRtcPeerConnection(
     coroutineContext: CoroutineContext,
-    config: WebRtcConnectionConfig
+    config: WebRtcConnectionConfig,
+    createConnection: (Observer) -> PeerConnection?
 ) : WebRtcPeerConnection(coroutineContext, config) {
-    internal lateinit var peerConnection: PeerConnection
+    internal val peerConnection: PeerConnection
+
+    init {
+        peerConnection = createConnection(createObserver())
+            ?: error(
+                "Failed to create peer connection. On the Android platform it is usually caused by invalid configuration. For instance, missing turn server username."
+            )
+    }
 
     // remember RTP senders because method PeerConnection.getSenders() disposes all returned senders
     private val rtpSenders = arrayListOf<AndroidRtpSender>()
 
     override suspend fun getStatistics(): List<WebRtc.Stats> = suspendCancellableCoroutine { cont ->
-        if (this::peerConnection.isInitialized.not()) {
-            cont.resume(emptyList())
-            return@suspendCancellableCoroutine
-        }
         peerConnection.getStats { cont.resume(it.toKtor()) }
-    }
-
-    // helper method to break a dependency cycle (PeerConnection -> PeerConnectionFactory -> Observer)
-    public fun initialize(block: (Observer) -> PeerConnection?): AndroidWebRtcPeerConnection {
-        peerConnection = block(createObserver()) ?: error(
-            "Failed to create peer connection. On the Android platform it is usually caused by invalid configuration. For instance, missing turn server username."
-        )
-        return this
     }
 
     private val hasVideo get() = rtpSenders.any { it.track?.kind == WebRtcMedia.TrackType.VIDEO }
@@ -45,14 +39,6 @@ public class AndroidWebRtcPeerConnection(
     private fun offerConstraints() = MediaConstraints().apply {
         if (hasAudio) mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true"))
         if (hasVideo) mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true"))
-    }
-
-    private inline fun runInConnectionScope(crossinline block: () -> Unit) {
-        // Runs a `block` in the coroutine of the peer connection not to lose possible exceptions.
-        // We are already running on the special thread, so extra dispatching is not required.
-        // Moreover, dispatching the coroutine on another thread could break the internal `org.webrtc` logic.
-        // For instance, it silently breaks registering a data channel observer.
-        coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) { block() }
     }
 
     private fun createObserver() = object : Observer {

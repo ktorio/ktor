@@ -21,6 +21,8 @@ internal val Project.ktorBuild: KtorBuildExtension get() = extensions.getByType(
 
 internal val Project.java: JavaPluginExtension get() = extensions.getByType()
 
+internal val Project.kotlin: KotlinMultiplatformExtension get() = extensions.getByType()
+
 internal fun Project.kotlin(configure: KotlinMultiplatformExtension.() -> Unit) =
     extensions.configure("kotlin", configure)
 

@@ -17,6 +17,7 @@ import org.eclipse.jetty.server.Response
 import org.eclipse.jetty.util.Callback
 import java.util.concurrent.*
 import java.util.concurrent.atomic.AtomicLong
+import kotlin.coroutines.CoroutineContext
 
 private val JettyCallHandlerCoroutineName = CoroutineName("jetty-call-handler")
 private val JettyKtorCounter = AtomicLong()
@@ -41,17 +42,16 @@ internal class JettyKtorHandler(
         Thread(r, "ktor-jetty-$environmentName-${JettyKtorCounter.incrementAndGet()}")
     }
     private val dispatcher = executor.asCoroutineDispatcher()
-
-    private val handlerJob = SupervisorJob(applicationProvider().parentCoroutineContext[Job])
-    private val coroutineScope: CoroutineScope =
-        applicationProvider() + handlerJob + DefaultUncaughtExceptionHandler(environment.log)
+    private val handlerContext: CoroutineContext = dispatcher +
+        DefaultUncaughtExceptionHandler(environment.log) +
+        JettyCallHandlerCoroutineName
 
     override fun destroy() {
         try {
             super.destroy()
             executor.shutdownNow()
         } finally {
-            handlerJob.cancel()
+            handlerContext.cancel()
         }
     }
 
@@ -61,14 +61,15 @@ internal class JettyKtorHandler(
         callback: Callback,
     ): Boolean {
         try {
-            coroutineScope.launch(dispatcher + JettyCallHandlerCoroutineName) {
+            val application = applicationProvider()
+            application.launch(handlerContext) {
                 val call = JettyApplicationCall(
-                    applicationProvider(),
+                    application,
                     request,
                     response,
                     executor = executor,
-                    userContext = dispatcher,
-                    coroutineContext = this@launch.coroutineContext,
+                    userContext = application.coroutineContext,
+                    coroutineContext = currentCoroutineContext(),
                     idleTimeout = configuration.idleTimeout
                 )
 
