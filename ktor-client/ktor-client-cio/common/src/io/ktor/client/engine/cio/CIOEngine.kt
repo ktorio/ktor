@@ -107,6 +107,8 @@ internal class CIOEngine(
     }
 
     private fun selectEndpoint(url: Url, proxy: ProxyConfig?, unixSocket: UnixSocketSettings?): Endpoint {
+        val url = url.rebuildIfNeeded()
+
         val host: String
         val port: Int
         val protocol: URLProtocol = url.protocol
@@ -138,5 +140,13 @@ internal class CIOEngine(
                 unixSocket,
             )
         }
+    }
+}
+
+internal fun Url.rebuildIfNeeded(): Url {
+    return if (host.contains('/') || host.contains("?") || host.contains("#")) {
+        Url(this.toString())
+    } else {
+        this
     }
 }

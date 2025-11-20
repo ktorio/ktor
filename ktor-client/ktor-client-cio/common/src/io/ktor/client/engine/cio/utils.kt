@@ -41,7 +41,7 @@ internal suspend fun writeHeaders(
     val builder = RequestResponseBuilder()
 
     val method = request.method
-    val url = request.url
+    val url = request.url.rebuildIfNeeded()
     val headers = request.headers
     val body = request.body
 
