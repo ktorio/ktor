@@ -7,6 +7,7 @@ headerFilter = curl/*
 # There is no libz by default installed on Windows, so we need to include it statically
 staticLibraries.mingw = libcurl.a libnghttp2.a libzlib.a
 compilerOpts.mingw = -DCURL_STATICLIB
+linkerOpts.mingw = -liphlpapi -lsecur32 -lcrypt32 -lws2_32
 
 staticLibraries.osx = libcurl.a libnghttp2.a libssl.a libcrypto.a
 linkerOpts.osx = -framework SystemConfiguration
