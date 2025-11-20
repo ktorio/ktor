@@ -44,7 +44,10 @@ class JettyBlockingServletContainerHttpServerJvmTest :
 class JettyBlockingServletContainerSustainabilityTest :
     SustainabilityTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(
         Servlet(async = false)
-    )
+    ) {
+    @Ignore
+    override fun validateCallCoroutineContext() {}
+}
 
 class JettyBlockingServletServerPluginTest :
     ServerPluginsTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(

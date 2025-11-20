@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.okhttp
@@ -7,14 +7,8 @@ package io.ktor.client.engine.okhttp
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.test.base.*
-import io.ktor.client.tests.utils.*
-import io.ktor.http.*
+import io.ktor.client.tests.*
 import io.ktor.http.content.*
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.CompletableDeferred
 import okhttp3.Protocol
@@ -23,49 +17,21 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.fail
 
-class OkHttpHttp2Test : TestWithKtor() {
-
-    override val server = embeddedServer(
-        Netty,
-        configure = {
-            connector {
-                port = serverPort
-            }
-            enableHttp2 = true
-            enableH2c = true
-        }
-    ) {
-        routing {
-            post("/echo-stream") {
-                val inputChannel = call.receiveChannel()
-
-                call.respondBytesWriter(status = HttpStatusCode.OK) {
-                    val outputChannel = this
-                    while (true) {
-                        val inputLine = inputChannel.readUTF8Line() ?: break
-                        outputChannel.writeStringUtf8("server: $inputLine\n")
-                        outputChannel.flush()
-                    }
-                }
-            }
-        }
+class OkHttpHttp2Test : Http2Test<OkHttpConfig>(OkHttp) {
+    override fun OkHttpConfig.enableHttp2() {
+        config { protocols(listOf(Protocol.H2_PRIOR_KNOWLEDGE)) }
     }
 
     @Test
-    fun testDuplexStreaming() = testWithEngine(OkHttp) {
-        config {
-            engine {
-                duplexStreamingEnabled = true
-                config {
-                    protocols(listOf(Protocol.H2_PRIOR_KNOWLEDGE))
-                }
-            }
+    fun testDuplexStreaming() = testClient {
+        configureClient {
+            engine { duplexStreamingEnabled = true }
         }
 
         test { client ->
             val inputChannel = ByteChannel(true)
             val response = client
-                .preparePost("$testUrl/echo-stream") {
+                .preparePost("/echo/stream") {
                     setBody(inputChannel)
                 }
                 .execute {
@@ -91,14 +57,9 @@ class OkHttpHttp2Test : TestWithKtor() {
     }
 
     @Test
-    fun testDuplexStreamingExceptionPropagates() = testWithEngine(OkHttp) {
-        config {
-            engine {
-                duplexStreamingEnabled = true
-                config {
-                    protocols(listOf(Protocol.H2_PRIOR_KNOWLEDGE))
-                }
-            }
+    fun testDuplexStreamingExceptionPropagates() = testClient {
+        configureClient {
+            engine { duplexStreamingEnabled = true }
         }
 
         test { client ->
@@ -113,7 +74,7 @@ class OkHttpHttp2Test : TestWithKtor() {
             }
 
             assertFailsWith<ClosedByteChannelException> {
-                client.preparePost("$testUrl/echo-stream") {
+                client.preparePost("/echo/stream") {
                     setBody(failingBody)
                 }.execute { response ->
                     val out = response.bodyAsChannel()
