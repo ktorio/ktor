@@ -116,6 +116,7 @@ projects {
         +"ktor-client-ios"
         +"ktor-client-darwin"
         +"ktor-client-darwin-legacy"
+        +"ktor-client-netty"
         +"ktor-client-winhttp"
         +"ktor-client-java"
         +"ktor-client-jetty"
