@@ -3,6 +3,9 @@
  */
 
 import ktorbuild.createCInterop
+import ktorbuild.targets.hostTarget
+import ktorbuild.vcpkg.*
+import org.jetbrains.kotlin.konan.target.HostManager
 
 plugins {
     id("ktorbuild.project.library")
@@ -10,10 +13,14 @@ plugins {
     id("test-server")
 }
 
+val interopDir = file("desktop/interop")
+val includeDir = interopDir.resolve("include")
+fun libraryPath(target: String) = interopDir.resolve("lib/$target")
+
 kotlin {
     createCInterop("libcurl", sourceSet = "desktop") { target ->
-        includeDirs(file("desktop/interop/include"))
-        extraOpts("-libraryPath", file("desktop/interop/lib/$target"))
+        includeDirs(includeDir)
+        extraOpts("-libraryPath", libraryPath(target))
     }
 
     sourceSets {
@@ -29,3 +36,26 @@ kotlin {
         }
     }
 }
+
+//region Libcurl tasks
+// Register `libcurlUpdate` task updating libcurl binaries for the current host OS and architecture.
+// This task should be run on each platform separately to update libcurl for all platforms.
+val hostTarget = HostManager.hostTarget
+if (hostTarget != null) {
+    val libcurlInstall = registerVcpkgInstallTask("libcurl", hostTarget) {
+        // Use overlays to link against system zlib (except for Windows)
+        useOverlays = hostTarget != "mingwX64"
+    }
+
+    val libcurlUpdateHeaders = registerSyncHeadersTask(
+        "libcurlUpdateHeaders",
+        from = libcurlInstall,
+        into = includeDir,
+        library = "curl"
+    )
+
+    registerSyncBinariesTask("libcurlUpdate", from = libcurlInstall, into = libraryPath(hostTarget)) {
+        dependsOn(libcurlUpdateHeaders)
+    }
+}
+//endregion
