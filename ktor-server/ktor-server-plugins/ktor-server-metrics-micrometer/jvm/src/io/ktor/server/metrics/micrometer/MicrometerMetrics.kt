@@ -35,6 +35,10 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 @KtorDsl
 public class MicrometerMetricsConfig {
+    public companion object {
+        public val measureKey: AttributeKey<CallMeasure> = AttributeKey("micrometerMetrics")
+    }
+
     /**
      * Specifies the base name (prefix) of Ktor metrics used for monitoring HTTP requests.
      * For example, the default "ktor.http.server.requests" values results in the following metrics:
@@ -129,6 +133,20 @@ public class MicrometerMetricsConfig {
 
     internal var timerBuilder: Timer.Builder.(ApplicationCall, Throwable?) -> Unit = { _, _ -> }
 
+    internal var defaultTags: Timer.Builder.(ApplicationCall, Throwable?) -> Timer.Builder = { call, throwable ->
+        val route = call.attributes[measureKey].route ?: if (distinctNotRegisteredRoutes) call.request.path() else "n/a"
+        tags(
+            listOf(
+                of("address", call.request.local.let { "${it.localHost}:${it.localPort}" }),
+                of("method", call.request.httpMethod.value),
+                of("route", route),
+                of("status", call.response.status()?.value?.toString() ?: "n/a"),
+                of("throwable", throwable?.let { it::class.qualifiedName } ?: "n/a")
+            )
+        )
+        this
+    }
+
     /**
      * Configures micrometer timers.
      * Can be used to customize tags for each timer, configure individual SLAs, and so on.
@@ -166,6 +184,14 @@ public class MicrometerMetricsConfig {
     public fun transformRoute(block: (RoutingNode) -> String) {
         transformRoute = block
     }
+
+    /**
+     * Configures how default micrometer tags are applied.
+     * Replaces the default tag set with a custom one.
+     */
+    public fun defaultTags(block: Timer.Builder.(ApplicationCall, Throwable?) -> Timer.Builder) {
+        defaultTags = block
+    }
 }
 
 /**
@@ -195,22 +221,10 @@ public val MicrometerMetrics: ApplicationPlugin<MicrometerMetricsConfig> =
         })
 
         val active = registry.gauge(activeRequestsGaugeName, AtomicInteger(0))
-        val measureKey = AttributeKey<CallMeasure>("micrometerMetrics")
+        val defaultTags = pluginConfig.defaultTags
 
-        fun Timer.Builder.addDefaultTags(call: ApplicationCall, throwable: Throwable?): Timer.Builder {
-            val route = call.attributes[measureKey].route
-                ?: if (pluginConfig.distinctNotRegisteredRoutes) call.request.path() else "n/a"
-            tags(
-                listOf(
-                    of("address", call.request.local.let { "${it.localHost}:${it.localPort}" }),
-                    of("method", call.request.httpMethod.value),
-                    of("route", route),
-                    of("status", call.response.status()?.value?.toString() ?: "n/a"),
-                    of("throwable", throwable?.let { it::class.qualifiedName } ?: "n/a")
-                )
-            )
-            return this
-        }
+        fun Timer.Builder.addDefaultTags(call: ApplicationCall, throwable: Throwable?): Timer.Builder =
+            defaultTags(this, call, throwable)
 
         pluginConfig.meterBinders.forEach { it.bindTo(pluginConfig.registry) }
 
@@ -218,12 +232,12 @@ public val MicrometerMetrics: ApplicationPlugin<MicrometerMetricsConfig> =
         on(Metrics) { call ->
             if (call.request.httpMethod in DefaultMethods) {
                 active?.incrementAndGet()
-                call.attributes.put(measureKey, CallMeasure(Timer.start(registry)))
+                call.attributes.put(MicrometerMetricsConfig.measureKey, CallMeasure(Timer.start(registry)))
             }
         }
 
         on(ResponseSent) { call ->
-            call.attributes.getOrNull(measureKey)?.let { measure ->
+            call.attributes.getOrNull(MicrometerMetricsConfig.measureKey)?.let { measure ->
                 active?.decrementAndGet()
                 measure.timer.stop(
                     Timer.builder(metricName)
@@ -235,18 +249,18 @@ public val MicrometerMetrics: ApplicationPlugin<MicrometerMetricsConfig> =
         }
 
         on(CallFailed) { call, cause ->
-            call.attributes.getOrNull(measureKey)?.throwable = cause
+            call.attributes.getOrNull(MicrometerMetricsConfig.measureKey)?.throwable = cause
             throw cause
         }
 
         application.monitor.subscribe(RoutingRoot.RoutingCallStarted) { call ->
-            call.attributes.getOrNull(measureKey)?.let { measure ->
+            call.attributes.getOrNull(MicrometerMetricsConfig.measureKey)?.let { measure ->
                 measure.route = pluginConfig.transformRoute(call.route)
             }
         }
     }
 
-private data class CallMeasure(
+public data class CallMeasure(
     val timer: Timer.Sample,
     var route: String? = null,
     var throwable: Throwable? = null

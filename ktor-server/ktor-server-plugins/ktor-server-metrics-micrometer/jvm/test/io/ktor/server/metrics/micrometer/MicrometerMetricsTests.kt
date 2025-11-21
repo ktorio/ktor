@@ -10,6 +10,7 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.metrics.dropwizard.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
@@ -248,6 +249,45 @@ class MicrometerMetricsTests {
                 assertTag("route", "n/a")
                 assertTag("method", "GET")
                 assertTag("address", "localhost:80")
+            }
+        }
+
+        assertNull(throwableCaughtInEngine)
+        assertTrue(noHandlerHandledRequest)
+    }
+
+    @Test
+    fun `only custom default tags should appear`() = testApplication {
+        val testRegistry = SimpleMeterRegistry()
+
+        install(MicrometerMetrics) {
+            registry = testRegistry
+            distinctNotRegisteredRoutes = true
+            defaultTags { call, _ ->
+                val route = call.attributes[MicrometerMetricsConfig.measureKey].route
+                    ?: if (distinctNotRegisteredRoutes) call.request.path() else "n/a"
+                tags(
+                    listOf(
+                        Tag.of("route", route),
+                        Tag.of("status", call.response.status()?.value?.toString() ?: "n/a"),
+                    )
+                )
+                this
+            }
+        }
+
+        installDefaultBehaviour()
+
+        client.request("/uri")
+
+        with(testRegistry.find(requestTimeTimerName).timers()) {
+            assertEquals(1, size)
+            this.first().run {
+                assertTag("status", "404")
+                assertTag("route", "/uri")
+                assertTag("throwable", "n/a", shouldAppear = false)
+                assertTag("method", "GET", shouldAppear = false)
+                assertTag("address", "localhost:80", shouldAppear = false)
             }
         }
 
@@ -537,10 +577,14 @@ class MicrometerMetricsTests {
         )
     }
 
-    private fun Meter.assertTag(tagName: String, expectedValue: String) {
+    private fun Meter.assertTag(tagName: String, expectedValue: String, shouldAppear: Boolean = true) {
         val tag = this.id.tags.find { it.key == tagName }
 
-        assertNotNull(tag, "$this does not contain a tag named '$tagName'")
-        assertEquals(expectedValue, tag.value, "Tag value for '$tagName' should be '$expectedValue'")
+        if (shouldAppear) {
+            assertNotNull(tag, "$this does not contain a tag named '$tagName'")
+            assertEquals(expectedValue, tag?.value, "Tag value for '$tagName' should be '$expectedValue'")
+        } else {
+            assertNull(tag, "$this should not contain a tag named '$tagName'")
+        }
     }
 }
