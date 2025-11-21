@@ -18,6 +18,7 @@ kotlin {
         jvmMain.dependencies {
             api(projects.ktorNetworkTls)
 
+            api(projects.ktorClientApache5)
             api(projects.ktorClientApache)
             api(projects.ktorNetworkTlsCertificates)
             api(projects.ktorServerCallLogging)

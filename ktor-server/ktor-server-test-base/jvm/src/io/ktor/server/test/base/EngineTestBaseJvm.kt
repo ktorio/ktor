@@ -1,13 +1,13 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.test.base
 
 import io.ktor.client.*
-import io.ktor.client.engine.apache.*
+import io.ktor.client.engine.apache.Apache
+import io.ktor.client.engine.apache5.*
 import io.ktor.client.engine.cio.*
-import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -20,17 +20,28 @@ import io.ktor.server.testing.*
 import io.ktor.test.junit.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Assumptions.*
-import org.slf4j.*
-import java.io.*
-import java.net.*
-import java.security.*
-import java.security.cert.*
-import java.util.concurrent.*
-import javax.net.ssl.*
-import kotlin.coroutines.*
-import kotlin.time.*
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assumptions.assumeTrue
+import org.junit.jupiter.api.BeforeAll
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import java.io.File
+import java.io.IOException
+import java.net.BindException
+import java.net.HttpURLConnection
+import java.net.InetSocketAddress
+import java.net.Socket
+import java.security.KeyStore
+import java.security.SecureRandom
+import java.security.cert.X509Certificate
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.TimeUnit
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManagerFactory
+import javax.net.ssl.X509TrustManager
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -315,6 +326,22 @@ actual abstract class EngineTestBase<
         lateinit var trustManager: X509TrustManager
         lateinit var client: HttpClient
 
+        val http2Client = lazy {
+            HttpClient(Apache5) {
+                followRedirects = false
+                expectSuccess = false
+                engine {
+                    customizeClient {
+                        disableAutomaticRetries()
+                    }
+                    pipelining = true
+                    sslContext = SSLContext.getInstance("SSL").apply {
+                        init(null, trustAllCertificates, SecureRandom())
+                    }
+                }
+            }
+        }
+
         @BeforeAll
         @JvmStatic
         fun setupAll() {
@@ -341,6 +368,7 @@ actual abstract class EngineTestBase<
         @JvmStatic
         fun cleanup() {
             client.close()
+            if (http2Client.isInitialized()) http2Client.value.close()
         }
 
         @Suppress("BlockingMethodInNonBlockingContext")
@@ -354,13 +382,13 @@ actual abstract class EngineTestBase<
                 }
             } while (true)
         }
-    }
 
-    private val trustAllCertificates = arrayOf<X509TrustManager>(
-        object : X509TrustManager {
-            override fun getAcceptedIssuers(): Array<X509Certificate> = emptyArray()
-            override fun checkClientTrusted(certs: Array<X509Certificate>, authType: String) {}
-            override fun checkServerTrusted(certs: Array<X509Certificate>, authType: String) {}
-        }
-    )
+        private val trustAllCertificates = arrayOf<X509TrustManager>(
+            object : X509TrustManager {
+                override fun getAcceptedIssuers(): Array<X509Certificate> = emptyArray()
+                override fun checkClientTrusted(certs: Array<X509Certificate>, authType: String) {}
+                override fun checkServerTrusted(certs: Array<X509Certificate>, authType: String) {}
+            }
+        )
+    }
 }

@@ -98,8 +98,9 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
         withUrl("/") {
             assertEquals(200, status.value)
             val body = call.response.bodyAsText()
-            assertTrue(body.contains("Name-1=[value-1, value-2]"))
-            assertTrue(body.contains("Name-2=[value]"))
+            val ignoreCase = call.response.version != HttpProtocolVersion.HTTP_1_1
+            assertTrue(body.contains("Name-1=[value-1, value-2]", ignoreCase))
+            assertTrue(body.contains("Name-2=[value]", ignoreCase))
         }
     }
 
@@ -130,7 +131,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
 
         withUrl("/") {
             assertEquals(200, status.value)
-            assertEquals("k1=v1; \$x-enc=URI_ENCODING", headers[HttpHeaders.SetCookie])
+            assertEquals($$"k1=v1; $x-enc=URI_ENCODING", headers[HttpHeaders.SetCookie])
         }
     }
 
@@ -175,6 +176,13 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
         }
     }
 
+    private inline fun withoutHttp2(crossinline block: suspend () -> Unit) = runTest {
+        val original = enableHttp2
+        enableHttp2 = false
+        block()
+        enableHttp2 = original
+    }
+
     @Test
     fun testRequestTwiceNoKeepAlive() = runTest {
         createAndStartServer {
@@ -183,22 +191,24 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
             }
         }
 
-        withUrl(
-            "/",
-            {
-                header(HttpHeaders.Connection, "close")
+        withoutHttp2 {
+            withUrl(
+                "/",
+                {
+                    header(HttpHeaders.Connection, "close")
+                }
+            ) {
+                assertEquals("Text", bodyAsText())
             }
-        ) {
-            assertEquals("Text", bodyAsText())
-        }
 
-        withUrl(
-            "/",
-            {
-                header(HttpHeaders.Connection, "close")
+            withUrl(
+                "/",
+                {
+                    header(HttpHeaders.Connection, "close")
+                }
+            ) {
+                assertEquals("Text", bodyAsText())
             }
-        ) {
-            assertEquals("Text", bodyAsText())
         }
     }
 
@@ -210,24 +220,26 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
             }
         }
 
-        withUrl(
-            "/",
-            {
-                header(HttpHeaders.Connection, "keep-alive")
+        withoutHttp2 {
+            withUrl(
+                "/",
+                {
+                    header(HttpHeaders.Connection, "keep-alive")
+                }
+            ) {
+                assertEquals(200, status.value)
+                assertEquals("Text", bodyAsText())
             }
-        ) {
-            assertEquals(200, status.value)
-            assertEquals("Text", bodyAsText())
-        }
 
-        withUrl(
-            "/",
-            {
-                header(HttpHeaders.Connection, "keep-alive")
+            withUrl(
+                "/",
+                {
+                    header(HttpHeaders.Connection, "keep-alive")
+                }
+            ) {
+                assertEquals(200, status.value)
+                assertEquals("Text", bodyAsText())
             }
-        ) {
-            assertEquals(200, status.value)
-            assertEquals("Text", bodyAsText())
         }
     }
 
@@ -505,7 +517,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
             parent = TestData("parent")
         ) {
             get("/") {
-                val testDataFromParent = kotlin.coroutines.coroutineContext[TestData]
+                val testDataFromParent = currentCoroutineContext()[TestData]
                 assertNotNull(testDataFromParent, "Context should contain test data from parent")
                 call.respond(HttpStatusCode.OK, testDataFromParent.name)
             }
@@ -763,7 +775,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
             withUrl("/") {
                 body<ByteArray>()
             }
-        } catch (cause: Throwable) {
+        } catch (_: Throwable) {
             // expected
         }
     }
@@ -790,7 +802,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
             withUrl("/") {
                 body<ByteArray>()
             }
-        } catch (cause: Throwable) {
+        } catch (_: Throwable) {
             // expected
         }
     }

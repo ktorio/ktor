@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.engine
@@ -10,6 +10,7 @@ import io.ktor.server.config.*
 import io.ktor.server.engine.internal.*
 import io.ktor.server.logging.*
 import io.ktor.server.plugins.*
+import io.ktor.server.request.httpVersion
 import io.ktor.server.response.*
 import io.ktor.server.routing.routingCallKey
 import io.ktor.util.cio.*
@@ -46,8 +47,15 @@ public fun defaultEnginePipeline(config: ApplicationConfig, developmentMode: Boo
             }
         } finally {
             try {
-                call.request.receiveChannel().discard()
-            } catch (ignore: Throwable) {
+                val version = HttpProtocolVersion.parse(call.request.httpVersion)
+                if (version.major == 1) {
+                    // In HTTP/1.1, we should read the entire response body to reuse the persistent connection
+                    call.request.receiveChannel().discard()
+                } else {
+                    // HTTP/2 and higher don't require draining the input to reuse the persistent connection
+                    call.request.receiveChannel().cancel()
+                }
+            } catch (_: Throwable) {
             }
         }
     }
@@ -94,6 +102,7 @@ private suspend fun tryRespondError(call: ApplicationCall, statusCode: HttpStatu
     try {
         call.respond(statusCode)
     } catch (ignore: BaseApplicationResponse.ResponseAlreadySentException) {
+        println(ignore)
     }
 }
 
@@ -119,10 +128,10 @@ private fun ApplicationEnvironment.logFailure(call: ApplicationCall, cause: Thro
 
             else -> log.error("$status: $logString", cause)
         }
-    } catch (oom: OutOfMemoryError) {
+    } catch (_: OutOfMemoryError) {
         try {
             log.error(cause)
-        } catch (oomAttempt2: OutOfMemoryError) {
+        } catch (_: OutOfMemoryError) {
             printError("OutOfMemoryError: ")
             printError(cause.message)
             printError("\n")

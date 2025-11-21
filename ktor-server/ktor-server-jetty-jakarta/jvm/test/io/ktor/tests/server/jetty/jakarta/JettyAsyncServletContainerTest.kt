@@ -44,7 +44,11 @@ class JettyAsyncServletContainerHttpServerJvmTest :
 class JettyAsyncServletContainerSustainabilityTest :
     SustainabilityTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(
         Servlet(async = true)
-    )
+    ) {
+    override fun configure(configuration: JettyApplicationEngineBase.Configuration) {
+        configuration.callGroupSize = 5
+    }
+}
 
 class JettyAsyncServerPluginsTest :
     ServerPluginsTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(
