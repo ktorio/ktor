@@ -10,8 +10,6 @@ import java.util.concurrent.*
 import kotlin.system.*
 import kotlin.test.*
 
-var count = 0
-
 abstract class ConfigTestSuite(val engine: ApplicationEngineFactory<*, *>) {
 
     @Test
@@ -57,5 +55,9 @@ abstract class ConfigTestSuite(val engine: ApplicationEngineFactory<*, *>) {
         }
 
         assertTrue(time < 100, "Stop time is $time")
+    }
+
+    private companion object {
+        var count = 0
     }
 }

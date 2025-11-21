@@ -42,4 +42,6 @@ public class ServerRequestScope internal constructor(
             localAddress,
             upgraded
         )
+
+    internal var onClose: (() -> Unit)? = null
 }

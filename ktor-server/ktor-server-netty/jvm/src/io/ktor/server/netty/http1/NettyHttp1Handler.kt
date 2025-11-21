@@ -88,7 +88,8 @@ internal class NettyHttp1Handler(
     }
 
     override fun channelInactive(context: ChannelHandlerContext) {
-        context.pipeline().remove(NettyApplicationCallHandler::class.java)
+        val handler = context.pipeline().remove(NettyApplicationCallHandler::class.java)
+        handler?.onConnectionClose(context)
         context.fireChannelInactive()
     }
 

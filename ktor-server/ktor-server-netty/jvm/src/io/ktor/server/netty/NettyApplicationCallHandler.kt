@@ -8,6 +8,7 @@ import io.ktor.http.*
 import io.ktor.http.HttpHeaders
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
+import io.ktor.server.http.HttpRequestCloseHandlerKey
 import io.ktor.server.netty.http1.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
@@ -25,6 +26,7 @@ internal class NettyApplicationCallHandler(
     private val enginePipeline: EnginePipeline
 ) : ChannelInboundHandlerAdapter(), CoroutineScope {
     private var currentJob: Job? = null
+    private var currentCall: PipelineCall? = null
 
     override val coroutineContext: CoroutineContext = userCoroutineContext
 
@@ -35,9 +37,21 @@ internal class NettyApplicationCallHandler(
         }
     }
 
+    internal fun onConnectionClose(context: ChannelHandlerContext) {
+        if (context.channel().isActive) {
+            return
+        }
+        currentCall?.let {
+            currentCall = null
+            @OptIn(InternalAPI::class)
+            it.attributes.getOrNull(HttpRequestCloseHandlerKey)?.invoke()
+        }
+    }
+
     private fun handleRequest(context: ChannelHandlerContext, call: PipelineCall) {
         val callContext = CallHandlerCoroutineName + NettyDispatcher.CurrentContext(context)
 
+        currentCall = call
         currentJob = launch(callContext, start = CoroutineStart.UNDISPATCHED) {
             when {
                 call is NettyHttp1ApplicationCall && !call.request.isValid() -> {
@@ -65,6 +79,11 @@ internal class NettyApplicationCallHandler(
 
             else -> ctx.fireExceptionCaught(cause)
         }
+    }
+
+    override fun channelInactive(ctx: ChannelHandlerContext) {
+        onConnectionClose(ctx)
+        ctx.fireChannelInactive()
     }
 
     private fun respond408RequestTimeout(ctx: ChannelHandlerContext) {

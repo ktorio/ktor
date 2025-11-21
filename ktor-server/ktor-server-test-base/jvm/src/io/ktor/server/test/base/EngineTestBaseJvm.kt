@@ -5,7 +5,6 @@
 package io.ktor.server.test.base
 
 import io.ktor.client.*
-import io.ktor.client.engine.apache.Apache
 import io.ktor.client.engine.apache5.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
@@ -180,7 +179,7 @@ actual abstract class EngineTestBase<
         routingConfigurer: Route.() -> Unit
     ): EmbeddedServer<TEngine, TConfiguration> {
         var lastFailures = emptyList<Throwable>()
-        for (attempt in 1..5) {
+        repeat(5) {
             val server = createServer(log, parent) {
                 plugins(this, routingConfigurer)
             }
@@ -213,7 +212,7 @@ actual abstract class EngineTestBase<
         this.server = server
 
         // we start it on the global scope because we don't want it to fail the whole test
-        // as far as we have retry loop on call side
+        // as far as we have retry loop on a call side
         val starting = GlobalScope.async(testDispatcher) {
             server.start(wait = false)
 
@@ -260,10 +259,10 @@ actual abstract class EngineTestBase<
         builder: suspend HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
     ) {
-        withUrl("http://127.0.0.1:$port$path", port, builder, block)
+        withHttp1("http://127.0.0.1:$port$path", port, builder, block)
 
         if (enableSsl) {
-            withUrl("https://127.0.0.1:$sslPort$path", sslPort, builder, block)
+            withHttp1("https://127.0.0.1:$sslPort$path", sslPort, builder, block)
         }
 
         if (enableHttp2 && enableSsl) {
@@ -281,7 +280,7 @@ actual abstract class EngineTestBase<
         }
     }
 
-    private suspend fun withUrl(
+    protected suspend fun withHttp1(
         urlString: String,
         port: Int,
         builder: suspend HttpRequestBuilder.() -> Unit,
@@ -295,22 +294,13 @@ actual abstract class EngineTestBase<
         }
     }
 
-    private suspend fun withHttp2(
+    protected suspend fun withHttp2(
         url: String,
         port: Int,
         builder: suspend HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
     ) {
-        HttpClient(Apache) {
-            followRedirects = false
-            expectSuccess = false
-            engine {
-                pipelining = true
-                sslContext = SSLContext.getInstance("SSL").apply {
-                    init(null, trustAllCertificates, SecureRandom())
-                }
-            }
-        }.use { client ->
+        http2Client.value.use { client ->
             client.prepareRequest(url) {
                 builder()
             }.execute { response ->
@@ -321,13 +311,34 @@ actual abstract class EngineTestBase<
 
     companion object {
         val keyStoreFile: File = File("build/temp.jks")
-        lateinit var keyStore: KeyStore
-        lateinit var sslContext: SSLContext
-        lateinit var trustManager: X509TrustManager
+        val keyStore: KeyStore by lazy { generateCertificate(keyStoreFile) }
         lateinit var client: HttpClient
+        private val http2Client = lazy {
+            createApacheClient()
+        }
 
-        val http2Client = lazy {
-            HttpClient(Apache5) {
+        fun createTrustManager(): X509TrustManager {
+            val sslContext = SSLContext.getInstance("TLS")
+            val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+            tmf.init(keyStore)
+            sslContext.init(null, tmf.trustManagers, null)
+            return tmf.trustManagers.first { it is X509TrustManager } as X509TrustManager
+        }
+
+        fun createCIOClient(): HttpClient {
+            return HttpClient(CIO) {
+                engine {
+                    https.trustManager = createTrustManager()
+                    https.serverName = "localhost"
+                    requestTimeout = 0
+                }
+                followRedirects = false
+                expectSuccess = false
+            }
+        }
+
+        fun createApacheClient(): HttpClient {
+            return HttpClient(Apache5) {
                 followRedirects = false
                 expectSuccess = false
                 engine {
@@ -345,23 +356,7 @@ actual abstract class EngineTestBase<
         @BeforeAll
         @JvmStatic
         fun setupAll() {
-            keyStore = generateCertificate(keyStoreFile, algorithm = "SHA256withECDSA", keySizeInBits = 256)
-            val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
-            tmf.init(keyStore)
-            sslContext = SSLContext.getInstance("TLS")
-            sslContext.init(null, tmf.trustManagers, null)
-            trustManager = tmf.trustManagers.first { it is X509TrustManager } as X509TrustManager
-
-            client = HttpClient(CIO) {
-                engine {
-                    https.trustManager = trustManager
-                    https.serverName = "localhost"
-                    requestTimeout = 0
-                }
-
-                followRedirects = false
-                expectSuccess = false
-            }
+            client = createCIOClient()
         }
 
         @AfterAll
@@ -384,9 +379,12 @@ actual abstract class EngineTestBase<
         }
 
         private val trustAllCertificates = arrayOf<X509TrustManager>(
+            @Suppress("CustomX509TrustManager")
             object : X509TrustManager {
                 override fun getAcceptedIssuers(): Array<X509Certificate> = emptyArray()
+                @Suppress("TrustAllX509TrustManager")
                 override fun checkClientTrusted(certs: Array<X509Certificate>, authType: String) {}
+                @Suppress("TrustAllX509TrustManager")
                 override fun checkServerTrusted(certs: Array<X509Certificate>, authType: String) {}
             }
         )

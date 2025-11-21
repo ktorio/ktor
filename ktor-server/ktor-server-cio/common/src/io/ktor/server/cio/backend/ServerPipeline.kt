@@ -59,11 +59,12 @@ public fun CoroutineScope.startServerConnectionPipeline(
 
     val requestContext = RequestHandlerCoroutine + Dispatchers.Unconfined
 
+    var handlerScope: ServerRequestScope? = null
     try {
         while (true) { // parse requests loop
             val request = try {
                 parseRequest(connection.input) ?: break
-            } catch (cause: TooLongLineException) {
+            } catch (_: TooLongLineException) {
                 respondBadRequest(actorChannel)
                 break // end pipeline loop
             } catch (io: IOException) {
@@ -113,7 +114,7 @@ public fun CoroutineScope.startServerConnectionPipeline(
                     contentType
                 )
                 expectedHttpUpgrade = !expectedHttpBody && expectHttpUpgrade(request.method, upgrade, connectionOptions)
-            } catch (cause: Throwable) {
+            } catch (_: Throwable) {
                 request.release()
                 response.writePacket(BadRequestPacket.copy())
                 response.close()
@@ -129,7 +130,7 @@ public fun CoroutineScope.startServerConnectionPipeline(
             val upgraded = if (expectedHttpUpgrade) CompletableDeferred<Boolean>() else null
 
             launch(requestContext, start = CoroutineStart.UNDISPATCHED) {
-                val handlerScope = ServerRequestScope(
+                handlerScope = ServerRequestScope(
                     coroutineContext,
                     requestBody,
                     response,
@@ -181,10 +182,11 @@ public fun CoroutineScope.startServerConnectionPipeline(
 
             if (isLastHttpRequest(version, connectionOptions)) break
         }
-    } catch (cause: IOException) {
+    } catch (_: IOException) {
         // already handled
         coroutineContext.cancel()
     } finally {
+        handlerScope?.onClose?.invoke()
         actorChannel.close()
     }
 }
