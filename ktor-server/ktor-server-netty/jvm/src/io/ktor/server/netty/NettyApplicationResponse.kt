@@ -1,18 +1,19 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.server.netty
 
 import io.ktor.http.*
-import io.ktor.http.HttpHeaders
 import io.ktor.http.content.*
 import io.ktor.server.engine.*
 import io.ktor.utils.io.*
-import io.netty.channel.*
-import io.netty.handler.codec.http.*
+import io.netty.channel.ChannelHandlerContext
+import io.netty.channel.ChannelPromise
+import io.netty.handler.codec.http.HttpResponseStatus
+import io.netty.handler.codec.http.LastHttpContent
 import java.util.concurrent.CancellationException
-import kotlin.coroutines.*
+import kotlin.coroutines.CoroutineContext
 
 public abstract class NettyApplicationResponse(
     call: NettyApplicationCall,

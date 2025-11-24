@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.server.netty
@@ -12,10 +12,11 @@ import io.ktor.server.netty.*
 import io.ktor.util.logging.*
 import io.mockk.*
 import io.netty.channel.*
-import io.netty.channel.nio.*
-import kotlinx.coroutines.*
-import java.util.concurrent.*
-import kotlin.test.*
+import io.netty.channel.nio.NioEventLoopGroup
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import java.util.concurrent.TimeUnit
+import kotlin.test.Test
 
 class NettyConfigurationTest {
     private fun server(
@@ -106,7 +107,7 @@ class NettyConfigurationTest {
         return mockk {
             every { register(channel) } returns stubResolvedFuture(channel)
             every { shutdownGracefully(any(), any(), any()) } returns mockk {
-                every { await() } returns mockk()
+                every { sync() } returns mockk()
             }
         }
     }

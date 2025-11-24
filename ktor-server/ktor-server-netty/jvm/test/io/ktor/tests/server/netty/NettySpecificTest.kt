@@ -1,51 +1,42 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.tests.server.netty
 
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.plugins.DefaultRequest
-import io.ktor.client.request.get
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.content.OutgoingContent
-import io.ktor.network.selector.SelectorManager
-import io.ktor.network.sockets.aSocket
-import io.ktor.network.sockets.openReadChannel
-import io.ktor.network.sockets.openWriteChannel
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import io.ktor.http.content.*
+import io.ktor.network.selector.*
+import io.ktor.network.sockets.*
 import io.ktor.server.application.*
-import io.ktor.server.application.hooks.ResponseSent
+import io.ktor.server.application.hooks.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import io.ktor.server.response.respond
-import io.ktor.server.response.respondBytesWriter
-import io.ktor.server.routing.get
-import io.ktor.server.routing.routing
-import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.readUTF8Line
-import io.ktor.utils.io.writeStringUtf8
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.withTimeout
-import java.net.*
-import java.util.concurrent.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import io.ktor.test.dispatcher.*
+import io.ktor.utils.io.*
+import kotlinx.coroutines.*
+import java.net.BindException
+import java.net.ServerSocket
+import java.util.concurrent.ExecutorService
 import kotlin.test.*
+import kotlin.time.Duration.Companion.seconds
 
 class NettySpecificTest {
 
     @Test
-    fun testNoLeakWithoutStartAndStop() {
+    fun testNoLeakWithoutStartAndStop() = runTestWithRealTime {
         repeat(100000) {
             embeddedServer(Netty, serverConfig { })
         }
     }
 
+    // Doesn't work with real time
     @Test
     fun testStartOnUsedPort() {
         val socket = ServerSocket(0)
@@ -62,7 +53,7 @@ class NettySpecificTest {
     }
 
     @Test
-    fun testStartMultipleConnectorsOnUsedPort() {
+    fun testStartMultipleConnectorsOnUsedPort() = runTestWithRealTime {
         val socket = ServerSocket(0)
         val port = socket.localPort
 
@@ -96,7 +87,7 @@ class NettySpecificTest {
     }
 
     @Test
-    fun contentLengthAndTransferEncodingAreSafelyRemoved() = runTest {
+    fun contentLengthAndTransferEncodingAreSafelyRemoved() = runTestWithRealTime {
         val appStarted = CompletableDeferred<Application>()
         val testScope = CoroutineScope(coroutineContext)
         val earlyHints = HttpStatusCode(103, "Early Hints")
@@ -156,7 +147,9 @@ class NettySpecificTest {
         }
 
         try {
-            val serverApp = appStarted.await()
+            val serverApp = withTimeout(10.seconds) {
+                appStarted.await()
+            }
             val connector = serverApp.engine.resolvedConnectors()[0]
             val host = connector.host
             val port = connector.port
@@ -179,7 +172,7 @@ class NettySpecificTest {
     }
 
     @Test
-    fun badRequestOnInvalidQueryString() = runBlocking {
+    fun badRequestOnInvalidQueryString() = runTestWithRealTime {
         val appStarted = CompletableDeferred<Application>()
 
         val serverJob = launch(Dispatchers.IO) {
@@ -198,7 +191,9 @@ class NettySpecificTest {
             server.start(wait = true)
         }
 
-        val serverApp = appStarted.await()
+        val serverApp = withTimeout(10.seconds) {
+            appStarted.await()
+        }
         val connector = serverApp.engine.resolvedConnectors()[0]
 
         try {
