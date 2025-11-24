@@ -121,6 +121,7 @@ public class TestApplicationEngine(
 
     private suspend fun handleTestFailure(call: ApplicationCall, cause: Throwable) {
         logError(call, cause)
+        if (call.response.isSent) return
 
         val throwOnException = environment.config
             .propertyOrNull(CONFIG_KEY_THROW_ON_EXCEPTION)

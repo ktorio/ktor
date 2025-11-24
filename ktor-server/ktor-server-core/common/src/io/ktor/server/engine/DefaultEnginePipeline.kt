@@ -11,13 +11,13 @@ import io.ktor.server.engine.internal.*
 import io.ktor.server.logging.*
 import io.ktor.server.plugins.*
 import io.ktor.server.response.*
-import io.ktor.server.routing.routingCallKey
+import io.ktor.server.routing.*
 import io.ktor.util.cio.*
 import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.io.IOException
 
 /**
@@ -62,6 +62,8 @@ public fun defaultEnginePipeline(config: ApplicationConfig, developmentMode: Boo
  */
 public suspend fun handleFailure(call: ApplicationCall, error: Throwable) {
     logError(call, error)
+    if (call.response.isSent) return
+
     tryRespondError(call, defaultExceptionStatusCode(error) ?: HttpStatusCode.InternalServerError)
 }
 

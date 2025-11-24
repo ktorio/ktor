@@ -795,6 +795,36 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
         }
     }
 
+    @Test
+    fun testResponseSentCalledOnce() = runTest {
+        var responseSentCalled = 0
+        createAndStartServer {
+            serverConfig {
+                enableSsl = false
+                enableHttp2 = false
+            }
+            install(
+                createRouteScopedPlugin("Plugin") {
+                    on(ResponseSent) {
+                        responseSentCalled++
+                    }
+                }
+            )
+
+            get("/") {
+                call.respond("ok")
+                throw ExpectedTestException("exception")
+            }
+        }
+
+        withUrl("/") {
+            assertEquals(HttpStatusCode.OK, status)
+            assertEquals("ok", bodyAsText())
+        }
+        delay(500)
+        assertEquals(1, responseSentCalled)
+    }
+
     private data class TestData(
         val name: String
     ) : AbstractCoroutineContextElement(TestData) {
