@@ -162,7 +162,7 @@ internal class NettyHttp2Handler(
         try {
             Http2FrameCodec::class.javaObjectType.getDeclaredField("streamKey")
                 .also { it.isAccessible = true }
-        } catch (cause: Throwable) {
+        } catch (_: Throwable) {
             null
         }
     }
@@ -176,7 +176,7 @@ internal class NettyHttp2Handler(
 
         try {
             function.invoke(this, streamKey, childStream)
-        } catch (cause: Throwable) {
+        } catch (_: Throwable) {
             return false
         }
 
@@ -189,7 +189,7 @@ internal class NettyHttp2Handler(
     private tailrec fun Class<*>.findIdField(): Field {
         val idField = try {
             getDeclaredField("id")
-        } catch (t: NoSuchFieldException) {
+        } catch (_: NoSuchFieldException) {
             null
         }
         if (idField != null) {
