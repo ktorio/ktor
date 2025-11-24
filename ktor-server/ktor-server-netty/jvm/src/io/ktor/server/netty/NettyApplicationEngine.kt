@@ -287,10 +287,7 @@ public class NettyApplicationEngine(
     }
 
     override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
-        if (cancellationJob?.complete() != true) {
-            // Engine was already stopped or started stop process
-            return
-        }
+        cancellationJob?.complete()
         monitor.raise(ApplicationStopPreparing, environment)
         val channelFutures = channels?.mapNotNull { if (it.isOpen) it.close() else null }.orEmpty()
         channelFutures.forEach { future ->
