@@ -4,9 +4,11 @@
 
 package io.ktor.openapi
 
-import kotlinx.serialization.*
+import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.EncodeDefault.Mode.ALWAYS
-import kotlinx.serialization.json.*
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KeepGeneratedSerializer
+import kotlinx.serialization.Serializable
 
 /** This is the root document object for the API specification. */
 @OptIn(ExperimentalSerializationApi::class)
@@ -43,15 +45,11 @@ public data class OpenApiSpecification(
      * 'Operation' Object must be declared. The tags that are not declared MAY be organized randomly
      * or based on the tools' logic. Each tag name in the list MUST be unique.
      */
-    public val tags: Set<Tag>? = null,
+    public val tags: List<Tag>? = null,
     /** Additional external documentation. */
     public val externalDocs: ExternalDocs? = null,
-    /**
-     * Any additional external documentation for this OpenAPI document. The key is the name of the
-     * extension (beginning with x-), and the value is the data. The value can be a [JsonNull],
-     * [JsonPrimitive], [JsonArray] or [JsonObject].
-     */
-    public val extensions: Map<String, JsonElement>? = null,
+    /** Any additional external documentation for this OpenAPI document. */
+    public val extensions: Map<String, GenericElement>? = null,
 )
 
 /**
@@ -65,7 +63,9 @@ public typealias SecurityRequirement = Map<String, List<String>>
  * The object provides metadata about the API. The metadata MAY be used by the clients if needed,
  * and MAY be presented in editing or documentation generation tools for convenience.
  */
-@Serializable
+@Serializable(OpenApiInfo.Companion.Serializer::class)
+@OptIn(ExperimentalSerializationApi::class)
+@KeepGeneratedSerializer
 public data class OpenApiInfo(
     /** The title of the API. */
     public val title: String,
@@ -85,13 +85,16 @@ public data class OpenApiInfo(
     public val contact: Contact? = Contact(),
     /** The license information for the exposed API. */
     public val license: License? = null,
-    /**
-     * Any additional external documentation for this OpenAPI document. The key is the name of the
-     * extension (beginning with x-), and the value is the data. The value can be a [JsonNull],
-     * [JsonPrimitive], [JsonArray] or [JsonObject].
-     */
-    public val extensions: Map<String, JsonElement> = emptyMap(),
-) {
+    /** Any additional external documentation for this OpenAPI document. */
+    public override val extensions: ExtensionProperties = null,
+) : Extensible {
+    public companion object {
+        internal object Serializer : ExtensibleMixinSerializer<OpenApiInfo>(
+            generatedSerializer(),
+            { o, extensions -> o.copy(extensions = extensions) }
+        )
+    }
+
     /** Contact information for the exposed API. */
     @Serializable
     public data class Contact(
@@ -104,12 +107,6 @@ public data class OpenApiInfo(
          * address.
          */
         public val email: String? = null,
-        /**
-         * Any additional external documentation for this OpenAPI document. The key is the name of the
-         * extension (beginning with x-), and the value is the data. The value can be a [JsonNull],
-         * [JsonPrimitive], [JsonArray] or [JsonObject].
-         */
-        public val extensions: Map<String, JsonElement> = emptyMap(),
     )
 
     /** License information for the exposed API. */
@@ -119,13 +116,8 @@ public data class OpenApiInfo(
         public val name: String,
         /** A URL to the license used for the API. MUST be in the format of a URL. */
         public val url: String? = null,
-        private val identifier: String? = null,
-        /**
-         * Any additional external documentation for this OpenAPI document. The key is the name of the
-         * extension (beginning with x-), and the value is the data. The value can be a [JsonNull],
-         * [JsonPrimitive], [JsonArray] or [JsonObject].
-         */
-        public val extensions: Map<String, JsonElement> = emptyMap(),
+        /** An SPDX license expression for the API. The identifier field is mutually exclusive of the url field. */
+        public val identifier: String? = null,
     )
 }
 
@@ -164,11 +156,6 @@ public data class Components(
     public val links: Map<String, Link>? = null,
     public val callbacks: Map<String, Callback>? = null,
     public val pathItems: Map<String, ReferenceOr<PathItem>>? = null,
-    /**
-     * Any additional external documentation for this OpenAPI document. The key is the name of the
-     * extension (beginning with x-), and the value is the data. The value can be a [JsonNull],
-     * [JsonPrimitive], [JsonArray] or [JsonObject].
-     */
     public override val extensions: ExtensionProperties = null,
 ) : Extensible {
     public companion object {
@@ -190,7 +177,8 @@ public data class Components(
             headers.isNullOrEmpty() &&
             links.isNullOrEmpty() &&
             callbacks.isNullOrEmpty() &&
-            pathItems.isNullOrEmpty()
+            pathItems.isNullOrEmpty() &&
+            extensions.isNullOrEmpty()
 
     /**
      * Returns true if this object has at least one property.

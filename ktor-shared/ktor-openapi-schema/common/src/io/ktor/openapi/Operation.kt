@@ -1072,7 +1072,9 @@ public data class Headers(
  * Header fields have the same meaning as for 'Param'. Style is always treated as [Style.simple], as
  * it is the only value allowed for headers.
  */
-@Serializable
+@Serializable(Header.Companion.Serializer::class)
+@OptIn(ExperimentalSerializationApi::class)
+@KeepGeneratedSerializer
 public data class Header(
     /** A short description of the header. */
     public val description: String? = null,
@@ -1084,7 +1086,15 @@ public data class Header(
     public val explode: Boolean? = null,
     public val example: GenericElement? = null,
     public val examples: Map<String, ReferenceOr<ExampleObject>>? = null,
-) {
+    override val extensions: ExtensionProperties = null,
+) : Extensible {
+    public companion object {
+        internal object Serializer : ExtensibleMixinSerializer<Header>(
+            generatedSerializer(),
+            { h, extensions -> h.copy(extensions = extensions) }
+        )
+    }
+
     /** Builder for constructing a [Header] instance. */
     @KtorDsl
     public class Builder(private val schemaInference: JsonSchemaInference) : JsonSchemaInference by schemaInference {
@@ -1163,6 +1173,7 @@ public data class Header(
                 explode = explode,
                 example = example,
                 examples = examples.ifEmpty { null },
+                extensions = extensions.ifEmpty { null },
             )
         }
     }

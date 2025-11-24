@@ -39,8 +39,6 @@ public val KotlinxJsonSchemaInference: JsonSchemaInference = JsonSchemaInference
  * - ENUM: Maps to string schema with enum values
  * - CONTEXTUAL: Returns a generic object schema (actual type resolution requires serialization context)
  *
- * @param schema the base instance for the resulting schema, use this to include extra properties
- *
  * @return A [JsonSchema] object representing the JSON Schema for this descriptor.
  *
  * Note: This function does not handle circular references. For types with circular dependencies,

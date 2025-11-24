@@ -33,17 +33,37 @@ internal class JoinedOperationMapping(private val operations: List<OperationMapp
 }
 
 /**
- * Populate [Parameter.content] fields with default values.
+ * Populate [Parameter.content] and response [Header.content] fields with default values.
+ *
+ * Defaults applied:
+ * - Parameters: if `in` is missing, default to `query`.
+ * - Parameters: if both `schema` and `content` are missing, set `content` to `text/plain`.
+ * - Response headers: if both `schema` and `content` are missing, set `content` to `text/plain`.
  */
 public val PopulateMediaTypeDefaults: OperationMapping = OperationMapping { operation ->
-    val hasMissingMediaInfo = operation.parameters.orEmpty()
+    // Fast path: detect whether any defaults are needed
+    val hasMissingParamMediaInfo = operation.parameters.orEmpty()
         .filterIsInstance<ReferenceOr.Value<Parameter>>()
         .any { it.value.schema == null && it.value.content == null || it.value.`in` == null }
-    if (!hasMissingMediaInfo) {
+
+    val hasMissingHeaderMediaInfo = run {
+        val responses = operation.responses ?: return@run false
+        fun ReferenceOr<Response>.hasMissingInHeaders(): Boolean {
+            val headers = this.valueOrNull()?.headers ?: return false
+            return headers.values.filterIsInstance<ReferenceOr.Value<Header>>()
+                .any { it.value.schema == null && it.value.content == null }
+        }
+
+        (responses.default?.hasMissingInHeaders() == true) ||
+            (responses.responses?.values?.any { it.hasMissingInHeaders() } == true)
+    }
+
+    if (!hasMissingParamMediaInfo && !hasMissingHeaderMediaInfo) {
         return@OperationMapping operation
     }
 
     operation.copy(
+        // Parameter defaults
         parameters = operation.parameters?.map { ref ->
             val param = ref.valueOrNull() ?: return@map ref
             ReferenceOr.Value(
@@ -51,6 +71,35 @@ public val PopulateMediaTypeDefaults: OperationMapping = OperationMapping { oper
                     `in` = param.`in` ?: ParameterType.query,
                     content = param.content ?: MediaType.Text.takeIf { param.schema == null },
                 )
+            )
+        },
+        // Response header defaults
+        responses = operation.responses?.let { responses ->
+            responses.copy(
+                default = responses.default?.mapValue { resp ->
+                    resp.copy(
+                        headers = resp.headers?.mapValues { (_, headerRef) ->
+                            headerRef.mapValue { header ->
+                                header.copy(
+                                    content = header.content ?: MediaType.Text.takeIf { header.schema == null },
+                                )
+                            }
+                        }
+                    )
+                },
+                responses = responses.responses?.mapValues { (_, responseRef) ->
+                    responseRef.mapValue { resp ->
+                        resp.copy(
+                            headers = resp.headers?.mapValues { (_, headerRef) ->
+                                headerRef.mapValue { header ->
+                                    header.copy(
+                                        content = header.content ?: MediaType.Text.takeIf { header.schema == null },
+                                    )
+                                }
+                            }
+                        )
+                    }
+                }
             )
         }
     )

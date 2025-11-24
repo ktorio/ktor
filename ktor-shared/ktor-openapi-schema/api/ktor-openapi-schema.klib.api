@@ -331,8 +331,8 @@ final class io.ktor.openapi/GenericElementString : io.ktor.openapi/GenericElemen
     final fun isString(): kotlin/Boolean // io.ktor.openapi/GenericElementString.isString|isString(){}[0]
 }
 
-final class io.ktor.openapi/Header { // io.ktor.openapi/Header|null[0]
-    constructor <init>(kotlin/String? = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., io.ktor.openapi/ReferenceOr<io.ktor.openapi/JsonSchema>? = ..., kotlin.collections/Map<io.ktor.http/ContentType, io.ktor.openapi/MediaType>? = ..., kotlin/String? = ..., kotlin/Boolean? = ..., io.ktor.openapi/GenericElement? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/ExampleObject>>? = ...) // io.ktor.openapi/Header.<init>|<init>(kotlin.String?;kotlin.Boolean;kotlin.Boolean;io.ktor.openapi.ReferenceOr<io.ktor.openapi.JsonSchema>?;kotlin.collections.Map<io.ktor.http.ContentType,io.ktor.openapi.MediaType>?;kotlin.String?;kotlin.Boolean?;io.ktor.openapi.GenericElement?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.ReferenceOr<io.ktor.openapi.ExampleObject>>?){}[0]
+final class io.ktor.openapi/Header : io.ktor.openapi/Extensible { // io.ktor.openapi/Header|null[0]
+    constructor <init>(kotlin/String? = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., io.ktor.openapi/ReferenceOr<io.ktor.openapi/JsonSchema>? = ..., kotlin.collections/Map<io.ktor.http/ContentType, io.ktor.openapi/MediaType>? = ..., kotlin/String? = ..., kotlin/Boolean? = ..., io.ktor.openapi/GenericElement? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/ExampleObject>>? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/GenericElement>? = ...) // io.ktor.openapi/Header.<init>|<init>(kotlin.String?;kotlin.Boolean;kotlin.Boolean;io.ktor.openapi.ReferenceOr<io.ktor.openapi.JsonSchema>?;kotlin.collections.Map<io.ktor.http.ContentType,io.ktor.openapi.MediaType>?;kotlin.String?;kotlin.Boolean?;io.ktor.openapi.GenericElement?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.ReferenceOr<io.ktor.openapi.ExampleObject>>?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.GenericElement>?){}[0]
 
     final val content // io.ktor.openapi/Header.content|{}content[0]
         final fun <get-content>(): kotlin.collections/Map<io.ktor.http/ContentType, io.ktor.openapi/MediaType>? // io.ktor.openapi/Header.content.<get-content>|<get-content>(){}[0]
@@ -346,6 +346,8 @@ final class io.ktor.openapi/Header { // io.ktor.openapi/Header|null[0]
         final fun <get-examples>(): kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/ExampleObject>>? // io.ktor.openapi/Header.examples.<get-examples>|<get-examples>(){}[0]
     final val explode // io.ktor.openapi/Header.explode|{}explode[0]
         final fun <get-explode>(): kotlin/Boolean? // io.ktor.openapi/Header.explode.<get-explode>|<get-explode>(){}[0]
+    final val extensions // io.ktor.openapi/Header.extensions|{}extensions[0]
+        final fun <get-extensions>(): kotlin.collections/Map<kotlin/String, io.ktor.openapi/GenericElement>? // io.ktor.openapi/Header.extensions.<get-extensions>|<get-extensions>(){}[0]
     final val required // io.ktor.openapi/Header.required|{}required[0]
         final fun <get-required>(): kotlin/Boolean // io.ktor.openapi/Header.required.<get-required>|<get-required>(){}[0]
     final val schema // io.ktor.openapi/Header.schema|{}schema[0]
@@ -354,6 +356,7 @@ final class io.ktor.openapi/Header { // io.ktor.openapi/Header|null[0]
         final fun <get-style>(): kotlin/String? // io.ktor.openapi/Header.style.<get-style>|<get-style>(){}[0]
 
     final fun component1(): kotlin/String? // io.ktor.openapi/Header.component1|component1(){}[0]
+    final fun component10(): kotlin.collections/Map<kotlin/String, io.ktor.openapi/GenericElement>? // io.ktor.openapi/Header.component10|component10(){}[0]
     final fun component2(): kotlin/Boolean // io.ktor.openapi/Header.component2|component2(){}[0]
     final fun component3(): kotlin/Boolean // io.ktor.openapi/Header.component3|component3(){}[0]
     final fun component4(): io.ktor.openapi/ReferenceOr<io.ktor.openapi/JsonSchema>? // io.ktor.openapi/Header.component4|component4(){}[0]
@@ -362,7 +365,7 @@ final class io.ktor.openapi/Header { // io.ktor.openapi/Header|null[0]
     final fun component7(): kotlin/Boolean? // io.ktor.openapi/Header.component7|component7(){}[0]
     final fun component8(): io.ktor.openapi/GenericElement? // io.ktor.openapi/Header.component8|component8(){}[0]
     final fun component9(): kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/ExampleObject>>? // io.ktor.openapi/Header.component9|component9(){}[0]
-    final fun copy(kotlin/String? = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., io.ktor.openapi/ReferenceOr<io.ktor.openapi/JsonSchema>? = ..., kotlin.collections/Map<io.ktor.http/ContentType, io.ktor.openapi/MediaType>? = ..., kotlin/String? = ..., kotlin/Boolean? = ..., io.ktor.openapi/GenericElement? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/ExampleObject>>? = ...): io.ktor.openapi/Header // io.ktor.openapi/Header.copy|copy(kotlin.String?;kotlin.Boolean;kotlin.Boolean;io.ktor.openapi.ReferenceOr<io.ktor.openapi.JsonSchema>?;kotlin.collections.Map<io.ktor.http.ContentType,io.ktor.openapi.MediaType>?;kotlin.String?;kotlin.Boolean?;io.ktor.openapi.GenericElement?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.ReferenceOr<io.ktor.openapi.ExampleObject>>?){}[0]
+    final fun copy(kotlin/String? = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., io.ktor.openapi/ReferenceOr<io.ktor.openapi/JsonSchema>? = ..., kotlin.collections/Map<io.ktor.http/ContentType, io.ktor.openapi/MediaType>? = ..., kotlin/String? = ..., kotlin/Boolean? = ..., io.ktor.openapi/GenericElement? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/ExampleObject>>? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/GenericElement>? = ...): io.ktor.openapi/Header // io.ktor.openapi/Header.copy|copy(kotlin.String?;kotlin.Boolean;kotlin.Boolean;io.ktor.openapi.ReferenceOr<io.ktor.openapi.JsonSchema>?;kotlin.collections.Map<io.ktor.http.ContentType,io.ktor.openapi.MediaType>?;kotlin.String?;kotlin.Boolean?;io.ktor.openapi.GenericElement?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.ReferenceOr<io.ktor.openapi.ExampleObject>>?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.GenericElement>?){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.openapi/Header.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // io.ktor.openapi/Header.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // io.ktor.openapi/Header.toString|toString(){}[0]
@@ -837,15 +840,15 @@ final class io.ktor.openapi/MediaType : io.ktor.openapi/Extensible { // io.ktor.
     }
 }
 
-final class io.ktor.openapi/OpenApiInfo { // io.ktor.openapi/OpenApiInfo|null[0]
-    constructor <init>(kotlin/String, kotlin/String, kotlin/String? = ..., kotlin/String? = ..., io.ktor.openapi/OpenApiInfo.Contact? = ..., io.ktor.openapi/OpenApiInfo.License? = ..., kotlin.collections/Map<kotlin/String, kotlinx.serialization.json/JsonElement> = ...) // io.ktor.openapi/OpenApiInfo.<init>|<init>(kotlin.String;kotlin.String;kotlin.String?;kotlin.String?;io.ktor.openapi.OpenApiInfo.Contact?;io.ktor.openapi.OpenApiInfo.License?;kotlin.collections.Map<kotlin.String,kotlinx.serialization.json.JsonElement>){}[0]
+final class io.ktor.openapi/OpenApiInfo : io.ktor.openapi/Extensible { // io.ktor.openapi/OpenApiInfo|null[0]
+    constructor <init>(kotlin/String, kotlin/String, kotlin/String? = ..., kotlin/String? = ..., io.ktor.openapi/OpenApiInfo.Contact? = ..., io.ktor.openapi/OpenApiInfo.License? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/GenericElement>? = ...) // io.ktor.openapi/OpenApiInfo.<init>|<init>(kotlin.String;kotlin.String;kotlin.String?;kotlin.String?;io.ktor.openapi.OpenApiInfo.Contact?;io.ktor.openapi.OpenApiInfo.License?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.GenericElement>?){}[0]
 
     final val contact // io.ktor.openapi/OpenApiInfo.contact|{}contact[0]
         final fun <get-contact>(): io.ktor.openapi/OpenApiInfo.Contact? // io.ktor.openapi/OpenApiInfo.contact.<get-contact>|<get-contact>(){}[0]
     final val description // io.ktor.openapi/OpenApiInfo.description|{}description[0]
         final fun <get-description>(): kotlin/String? // io.ktor.openapi/OpenApiInfo.description.<get-description>|<get-description>(){}[0]
     final val extensions // io.ktor.openapi/OpenApiInfo.extensions|{}extensions[0]
-        final fun <get-extensions>(): kotlin.collections/Map<kotlin/String, kotlinx.serialization.json/JsonElement> // io.ktor.openapi/OpenApiInfo.extensions.<get-extensions>|<get-extensions>(){}[0]
+        final fun <get-extensions>(): kotlin.collections/Map<kotlin/String, io.ktor.openapi/GenericElement>? // io.ktor.openapi/OpenApiInfo.extensions.<get-extensions>|<get-extensions>(){}[0]
     final val license // io.ktor.openapi/OpenApiInfo.license|{}license[0]
         final fun <get-license>(): io.ktor.openapi/OpenApiInfo.License? // io.ktor.openapi/OpenApiInfo.license.<get-license>|<get-license>(){}[0]
     final val termsOfService // io.ktor.openapi/OpenApiInfo.termsOfService|{}termsOfService[0]
@@ -861,19 +864,17 @@ final class io.ktor.openapi/OpenApiInfo { // io.ktor.openapi/OpenApiInfo|null[0]
     final fun component4(): kotlin/String? // io.ktor.openapi/OpenApiInfo.component4|component4(){}[0]
     final fun component5(): io.ktor.openapi/OpenApiInfo.Contact? // io.ktor.openapi/OpenApiInfo.component5|component5(){}[0]
     final fun component6(): io.ktor.openapi/OpenApiInfo.License? // io.ktor.openapi/OpenApiInfo.component6|component6(){}[0]
-    final fun component7(): kotlin.collections/Map<kotlin/String, kotlinx.serialization.json/JsonElement> // io.ktor.openapi/OpenApiInfo.component7|component7(){}[0]
-    final fun copy(kotlin/String = ..., kotlin/String = ..., kotlin/String? = ..., kotlin/String? = ..., io.ktor.openapi/OpenApiInfo.Contact? = ..., io.ktor.openapi/OpenApiInfo.License? = ..., kotlin.collections/Map<kotlin/String, kotlinx.serialization.json/JsonElement> = ...): io.ktor.openapi/OpenApiInfo // io.ktor.openapi/OpenApiInfo.copy|copy(kotlin.String;kotlin.String;kotlin.String?;kotlin.String?;io.ktor.openapi.OpenApiInfo.Contact?;io.ktor.openapi.OpenApiInfo.License?;kotlin.collections.Map<kotlin.String,kotlinx.serialization.json.JsonElement>){}[0]
+    final fun component7(): kotlin.collections/Map<kotlin/String, io.ktor.openapi/GenericElement>? // io.ktor.openapi/OpenApiInfo.component7|component7(){}[0]
+    final fun copy(kotlin/String = ..., kotlin/String = ..., kotlin/String? = ..., kotlin/String? = ..., io.ktor.openapi/OpenApiInfo.Contact? = ..., io.ktor.openapi/OpenApiInfo.License? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/GenericElement>? = ...): io.ktor.openapi/OpenApiInfo // io.ktor.openapi/OpenApiInfo.copy|copy(kotlin.String;kotlin.String;kotlin.String?;kotlin.String?;io.ktor.openapi.OpenApiInfo.Contact?;io.ktor.openapi.OpenApiInfo.License?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.GenericElement>?){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.openapi/OpenApiInfo.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // io.ktor.openapi/OpenApiInfo.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // io.ktor.openapi/OpenApiInfo.toString|toString(){}[0]
 
     final class Contact { // io.ktor.openapi/OpenApiInfo.Contact|null[0]
-        constructor <init>(kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin.collections/Map<kotlin/String, kotlinx.serialization.json/JsonElement> = ...) // io.ktor.openapi/OpenApiInfo.Contact.<init>|<init>(kotlin.String?;kotlin.String?;kotlin.String?;kotlin.collections.Map<kotlin.String,kotlinx.serialization.json.JsonElement>){}[0]
+        constructor <init>(kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ...) // io.ktor.openapi/OpenApiInfo.Contact.<init>|<init>(kotlin.String?;kotlin.String?;kotlin.String?){}[0]
 
         final val email // io.ktor.openapi/OpenApiInfo.Contact.email|{}email[0]
             final fun <get-email>(): kotlin/String? // io.ktor.openapi/OpenApiInfo.Contact.email.<get-email>|<get-email>(){}[0]
-        final val extensions // io.ktor.openapi/OpenApiInfo.Contact.extensions|{}extensions[0]
-            final fun <get-extensions>(): kotlin.collections/Map<kotlin/String, kotlinx.serialization.json/JsonElement> // io.ktor.openapi/OpenApiInfo.Contact.extensions.<get-extensions>|<get-extensions>(){}[0]
         final val name // io.ktor.openapi/OpenApiInfo.Contact.name|{}name[0]
             final fun <get-name>(): kotlin/String? // io.ktor.openapi/OpenApiInfo.Contact.name.<get-name>|<get-name>(){}[0]
         final val url // io.ktor.openapi/OpenApiInfo.Contact.url|{}url[0]
@@ -882,8 +883,7 @@ final class io.ktor.openapi/OpenApiInfo { // io.ktor.openapi/OpenApiInfo|null[0]
         final fun component1(): kotlin/String? // io.ktor.openapi/OpenApiInfo.Contact.component1|component1(){}[0]
         final fun component2(): kotlin/String? // io.ktor.openapi/OpenApiInfo.Contact.component2|component2(){}[0]
         final fun component3(): kotlin/String? // io.ktor.openapi/OpenApiInfo.Contact.component3|component3(){}[0]
-        final fun component4(): kotlin.collections/Map<kotlin/String, kotlinx.serialization.json/JsonElement> // io.ktor.openapi/OpenApiInfo.Contact.component4|component4(){}[0]
-        final fun copy(kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin.collections/Map<kotlin/String, kotlinx.serialization.json/JsonElement> = ...): io.ktor.openapi/OpenApiInfo.Contact // io.ktor.openapi/OpenApiInfo.Contact.copy|copy(kotlin.String?;kotlin.String?;kotlin.String?;kotlin.collections.Map<kotlin.String,kotlinx.serialization.json.JsonElement>){}[0]
+        final fun copy(kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ...): io.ktor.openapi/OpenApiInfo.Contact // io.ktor.openapi/OpenApiInfo.Contact.copy|copy(kotlin.String?;kotlin.String?;kotlin.String?){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.openapi/OpenApiInfo.Contact.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // io.ktor.openapi/OpenApiInfo.Contact.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // io.ktor.openapi/OpenApiInfo.Contact.toString|toString(){}[0]
@@ -898,17 +898,13 @@ final class io.ktor.openapi/OpenApiInfo { // io.ktor.openapi/OpenApiInfo|null[0]
         }
 
         final object Companion { // io.ktor.openapi/OpenApiInfo.Contact.Companion|null[0]
-            final val $childSerializers // io.ktor.openapi/OpenApiInfo.Contact.Companion.$childSerializers|{}$childSerializers[0]
-
             final fun serializer(): kotlinx.serialization/KSerializer<io.ktor.openapi/OpenApiInfo.Contact> // io.ktor.openapi/OpenApiInfo.Contact.Companion.serializer|serializer(){}[0]
         }
     }
 
     final class License { // io.ktor.openapi/OpenApiInfo.License|null[0]
-        constructor <init>(kotlin/String, kotlin/String? = ..., kotlin/String? = ..., kotlin.collections/Map<kotlin/String, kotlinx.serialization.json/JsonElement> = ...) // io.ktor.openapi/OpenApiInfo.License.<init>|<init>(kotlin.String;kotlin.String?;kotlin.String?;kotlin.collections.Map<kotlin.String,kotlinx.serialization.json.JsonElement>){}[0]
+        constructor <init>(kotlin/String, kotlin/String? = ..., kotlin/String? = ...) // io.ktor.openapi/OpenApiInfo.License.<init>|<init>(kotlin.String;kotlin.String?;kotlin.String?){}[0]
 
-        final val extensions // io.ktor.openapi/OpenApiInfo.License.extensions|{}extensions[0]
-            final fun <get-extensions>(): kotlin.collections/Map<kotlin/String, kotlinx.serialization.json/JsonElement> // io.ktor.openapi/OpenApiInfo.License.extensions.<get-extensions>|<get-extensions>(){}[0]
         final val name // io.ktor.openapi/OpenApiInfo.License.name|{}name[0]
             final fun <get-name>(): kotlin/String // io.ktor.openapi/OpenApiInfo.License.name.<get-name>|<get-name>(){}[0]
         final val url // io.ktor.openapi/OpenApiInfo.License.url|{}url[0]
@@ -916,8 +912,7 @@ final class io.ktor.openapi/OpenApiInfo { // io.ktor.openapi/OpenApiInfo|null[0]
 
         final fun component1(): kotlin/String // io.ktor.openapi/OpenApiInfo.License.component1|component1(){}[0]
         final fun component2(): kotlin/String? // io.ktor.openapi/OpenApiInfo.License.component2|component2(){}[0]
-        final fun component4(): kotlin.collections/Map<kotlin/String, kotlinx.serialization.json/JsonElement> // io.ktor.openapi/OpenApiInfo.License.component4|component4(){}[0]
-        final fun copy(kotlin/String = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin.collections/Map<kotlin/String, kotlinx.serialization.json/JsonElement> = ...): io.ktor.openapi/OpenApiInfo.License // io.ktor.openapi/OpenApiInfo.License.copy|copy(kotlin.String;kotlin.String?;kotlin.String?;kotlin.collections.Map<kotlin.String,kotlinx.serialization.json.JsonElement>){}[0]
+        final fun copy(kotlin/String = ..., kotlin/String? = ..., kotlin/String? = ...): io.ktor.openapi/OpenApiInfo.License // io.ktor.openapi/OpenApiInfo.License.copy|copy(kotlin.String;kotlin.String?;kotlin.String?){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.openapi/OpenApiInfo.License.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // io.ktor.openapi/OpenApiInfo.License.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // io.ktor.openapi/OpenApiInfo.License.toString|toString(){}[0]
@@ -932,8 +927,6 @@ final class io.ktor.openapi/OpenApiInfo { // io.ktor.openapi/OpenApiInfo|null[0]
         }
 
         final object Companion { // io.ktor.openapi/OpenApiInfo.License.Companion|null[0]
-            final val $childSerializers // io.ktor.openapi/OpenApiInfo.License.Companion.$childSerializers|{}$childSerializers[0]
-
             final fun serializer(): kotlinx.serialization/KSerializer<io.ktor.openapi/OpenApiInfo.License> // io.ktor.openapi/OpenApiInfo.License.Companion.serializer|serializer(){}[0]
         }
     }

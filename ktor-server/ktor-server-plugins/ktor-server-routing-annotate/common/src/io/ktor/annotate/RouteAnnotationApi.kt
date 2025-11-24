@@ -15,7 +15,7 @@ import io.ktor.utils.io.*
 import kotlin.collections.plus
 
 /**
- * Attribute key for storing [Operation] in a [Route].
+ * Attribute key for including OpenAPI metadata on a [Route].
  */
 public val EndpointAnnotationAttributeKey: AttributeKey<List<RouteAnnotationFunction>> =
     AttributeKey("operation-docs")
@@ -138,6 +138,7 @@ private fun RoutingNode.operationFromSelector(): Operation? {
                 }
             }
         }
+
         is PathSegmentParameterRouteSelector,
         is PathSegmentOptionalParameterRouteSelector -> Operation.build {
             parameters {
@@ -146,6 +147,7 @@ private fun RoutingNode.operationFromSelector(): Operation? {
                 }
             }
         }
+
         is HttpHeaderRouteSelector -> Operation.build {
             parameters {
                 header(paramSelector.name) {}
