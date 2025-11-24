@@ -151,7 +151,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
     }
 
     @Test
-    @NoHttp2
+    @Http1Only
     @Ignore
     open fun testChunkedWrongLength() = runTest {
         val data = ByteArray(16 * 1024) { it.toByte() }
@@ -560,7 +560,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
     @Ignore("Flaky. To be investigated in KTOR-7811")
     @Test
-    @NoHttp2
+    @Http1Only
     fun testHeaderIsTooLong() = runTest {
         createAndStartServer {
             get("/") {

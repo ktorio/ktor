@@ -40,7 +40,7 @@ actual constructor(
 
     @Target(AnnotationTarget.FUNCTION)
     @Retention
-    protected actual annotation class NoHttp2 actual constructor()
+    protected actual annotation class Http1Only actual constructor()
 
     /**
      * It's not possible to find a free port during test setup,

@@ -49,11 +49,9 @@ public fun defaultEnginePipeline(config: ApplicationConfig, developmentMode: Boo
             try {
                 val version = HttpProtocolVersion.parse(call.request.httpVersion)
                 if (version.major == 1) {
-                    // In HTTP/1.1, we should read the entire response body to reuse the persistent connection
+                    // In HTTP/1.1, we should read the entire request body to reuse the persistent connection
+                    // HTTP/2 and higher don't require draining the input to reuse it
                     call.request.receiveChannel().discard()
-                } else {
-                    // HTTP/2 and higher don't require draining the input to reuse the persistent connection
-                    call.request.receiveChannel().cancel()
                 }
             } catch (_: Throwable) {
             }

@@ -177,7 +177,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    @NoHttp2
+    @Http1Only
     fun testRequestTwiceNoKeepAlive() = runTest {
         createAndStartServer {
             get("/") {
@@ -205,7 +205,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    @NoHttp2
+    @Http1Only
     fun testRequestTwiceWithKeepAlive() = runTest {
         createAndStartServer {
             get("/") {

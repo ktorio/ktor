@@ -39,7 +39,7 @@ actual constructor(
 
     @Target(AnnotationTarget.FUNCTION)
     @Retention
-    protected actual annotation class NoHttp2 actual constructor()
+    protected actual annotation class Http1Only actual constructor()
 
     protected actual var port: Int = findFreePort()
 

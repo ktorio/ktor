@@ -78,7 +78,7 @@ actual abstract class EngineTestBase<
 
     @Target(AnnotationTarget.FUNCTION)
     @Retention
-    protected actual annotation class NoHttp2 actual constructor()
+    protected actual annotation class Http1Only actual constructor()
 
     actual override val coroutineContext: CoroutineContext
         get() = testJob + testDispatcher
@@ -97,7 +97,7 @@ actual abstract class EngineTestBase<
         if (method.isAnnotationPresent(Http2Only::class.java)) {
             assumeTrue(enableHttp2, "http2 is not enabled")
         }
-        if (method.isAnnotationPresent(NoHttp2::class.java)) {
+        if (method.isAnnotationPresent(Http1Only::class.java)) {
             enableHttp2 = false
         }
 

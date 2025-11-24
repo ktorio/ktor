@@ -25,7 +25,7 @@ expect abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
 
     @Target(AnnotationTarget.FUNCTION)
     @Retention
-    protected annotation class NoHttp2()
+    protected annotation class Http1Only()
 
     val applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 
