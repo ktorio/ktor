@@ -498,13 +498,13 @@ public data class Responses(
     /** Builder for collecting operation [Response]s keyed by status code. */
     @KtorDsl
     public class Builder(private val schemaInference: JsonSchemaInference) {
-        private val _responses = mutableMapOf<Int, Response>()
+        private val _responses = mutableMapOf<Int, Response.Builder>()
         private val _extensions = mutableMapOf<String, GenericElement>()
 
-        public var default: Response? = null
+        public var default: Response.Builder? = null
 
         /** Map of HTTP status code (or "default") to a response definition. */
-        public val responses: Map<Int, Response> get() = _responses
+        public val responses: Map<Int, Response> get() = _responses.mapValues { it.value.build() }
 
         /** Map of extension properties provided */
         public val extensions: Map<String, GenericElement> get() = _extensions
@@ -516,7 +516,9 @@ public data class Responses(
          * @param configure DSL to configure the [Response].
          */
         public fun response(statusCode: Int, configure: Response.Builder.() -> Unit) {
-            _responses[statusCode] = Response.Builder(schemaInference).apply(configure).build()
+            _responses.getOrPut(statusCode) {
+                Response.Builder(schemaInference)
+            }.apply(configure)
         }
 
         /**
@@ -534,14 +536,18 @@ public data class Responses(
          * @param configure DSL to configure the default [Response].
          */
         public fun default(configure: Response.Builder.() -> Unit) {
-            default = Response.Builder(schemaInference).apply(configure).build()
+            if (default == null) {
+                default = Response.Builder(schemaInference).apply(configure)
+            } else {
+                default!!.apply(configure)
+            }
         }
 
         /** Builds the [Responses] map. */
         internal fun build(): Responses {
             return Responses(
-                default?.let(::Value),
-                _responses.mapValues { (_, v) -> v.let(::Value) },
+                default?.let { Value(it.build()) },
+                _responses.mapValues { (_, v) -> Value(v.build()) }.ifEmpty { null },
                 _extensions.ifEmpty { null }
             )
         }
@@ -584,7 +590,7 @@ public data class Response(
         public val extensions: MutableMap<String, GenericElement> = mutableMapOf()
 
         private val _headers = mutableMapOf<String, Header>()
-        private val _content = mutableMapOf<ContentType, MediaType>()
+        private val _content = mutableMapOf<ContentType, MediaType.Builder>()
         private val _links = mutableMapOf<String, Link>()
 
         /**
@@ -595,7 +601,7 @@ public data class Response(
         /**
          * Content types and schemas for this response.
          */
-        public val content: Map<ContentType, MediaType> get() = _content
+        public val content: Map<ContentType, MediaType> get() = _content.mapValues { it.value.build() }
 
         /**
          * Links that can be followed from this response.
@@ -619,16 +625,22 @@ public data class Response(
          * @param configure DSL to configure the [MediaType].
          */
         public operator fun ContentType.invoke(configure: MediaType.Builder.() -> Unit = {}) {
-            _content[this] = MediaType.Builder(schemaInference).apply(configure).build()
+            _content.getOrPut(this) {
+                MediaType.Builder(schemaInference)
+            }.apply(configure)
         }
 
         /**
          * Convenience property to add JSON content with a schema.
          */
         public var jsonSchema: JsonSchema?
-            get() = _content[ContentType.Application.Json]?.schema?.valueOrNull()
+            get() = _content[ContentType.Application.Json]?.schema
             set(value) {
-                _content[ContentType.Application.Json] = MediaType(schema = value?.let(::Value))
+                _content.getOrPut(ContentType.Application.Json) {
+                    MediaType.Builder(schemaInference)
+                }.apply {
+                    schema = value
+                }
             }
 
         /**
@@ -657,7 +669,7 @@ public data class Response(
             return Response(
                 description = description,
                 headers = _headers.mapValues { (_, value) -> Value(value) }.ifEmpty { null },
-                content = _content.ifEmpty { null },
+                content = _content.mapValues { it.value.build() }.ifEmpty { null },
                 links = _links.mapValues { (_, value) -> Value(value) }.ifEmpty { null },
                 extensions = extensions.ifEmpty { null },
             )
