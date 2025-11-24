@@ -704,29 +704,6 @@ final class io.ktor.openapi/JsonSchema { // io.ktor.openapi/JsonSchema|null[0]
     }
 }
 
-final class io.ktor.openapi/JsonSchemaReference { // io.ktor.openapi/JsonSchemaReference|null[0]
-    final val type // io.ktor.openapi/JsonSchemaReference.type|{}type[0]
-        final fun <get-type>(): kotlin.reflect/KType? // io.ktor.openapi/JsonSchemaReference.type.<get-type>|<get-type>(){}[0]
-
-    final fun get(kotlin/Function1<kotlin.reflect/KType, io.ktor.openapi/JsonSchema> = ...): io.ktor.openapi/JsonSchema // io.ktor.openapi/JsonSchemaReference.get|get(kotlin.Function1<kotlin.reflect.KType,io.ktor.openapi.JsonSchema>){}[0]
-
-    final object Companion { // io.ktor.openapi/JsonSchemaReference.Companion|null[0]
-        final fun of(io.ktor.openapi/JsonSchema): io.ktor.openapi/JsonSchemaReference // io.ktor.openapi/JsonSchemaReference.Companion.of|of(io.ktor.openapi.JsonSchema){}[0]
-        final fun ofType(kotlin.reflect/KType): io.ktor.openapi/JsonSchemaReference // io.ktor.openapi/JsonSchemaReference.Companion.ofType|ofType(kotlin.reflect.KType){}[0]
-        final fun serializer(): kotlinx.serialization/KSerializer<io.ktor.openapi/JsonSchemaReference> // io.ktor.openapi/JsonSchemaReference.Companion.serializer|serializer(){}[0]
-    }
-}
-
-final class io.ktor.openapi/JsonSchemaReferenceSerializer : kotlinx.serialization/KSerializer<io.ktor.openapi/JsonSchemaReference> { // io.ktor.openapi/JsonSchemaReferenceSerializer|null[0]
-    constructor <init>() // io.ktor.openapi/JsonSchemaReferenceSerializer.<init>|<init>(){}[0]
-
-    final val descriptor // io.ktor.openapi/JsonSchemaReferenceSerializer.descriptor|{}descriptor[0]
-        final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // io.ktor.openapi/JsonSchemaReferenceSerializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
-
-    final fun deserialize(kotlinx.serialization.encoding/Decoder): io.ktor.openapi/JsonSchemaReference // io.ktor.openapi/JsonSchemaReferenceSerializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
-    final fun serialize(kotlinx.serialization.encoding/Encoder, io.ktor.openapi/JsonSchemaReference) // io.ktor.openapi/JsonSchemaReferenceSerializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;io.ktor.openapi.JsonSchemaReference){}[0]
-}
-
 final class io.ktor.openapi/Link : io.ktor.openapi/Extensible { // io.ktor.openapi/Link|null[0]
     constructor <init>(kotlin/String? = ..., kotlin/String? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/GenericElement>? = ..., io.ktor.openapi/GenericElement? = ..., kotlin/String? = ..., io.ktor.openapi/Server? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/GenericElement>? = ...) // io.ktor.openapi/Link.<init>|<init>(kotlin.String?;kotlin.String?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.GenericElement>?;io.ktor.openapi.GenericElement?;kotlin.String?;io.ktor.openapi.Server?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.GenericElement>?){}[0]
 
@@ -1523,8 +1500,8 @@ final class io.ktor.openapi/Responses : io.ktor.openapi/Extensible { // io.ktor.
             final fun <get-responses>(): kotlin.collections/Map<kotlin/Int, io.ktor.openapi/Response> // io.ktor.openapi/Responses.Builder.responses.<get-responses>|<get-responses>(){}[0]
 
         final var default // io.ktor.openapi/Responses.Builder.default|{}default[0]
-            final fun <get-default>(): io.ktor.openapi/Response? // io.ktor.openapi/Responses.Builder.default.<get-default>|<get-default>(){}[0]
-            final fun <set-default>(io.ktor.openapi/Response?) // io.ktor.openapi/Responses.Builder.default.<set-default>|<set-default>(io.ktor.openapi.Response?){}[0]
+            final fun <get-default>(): io.ktor.openapi/Response.Builder? // io.ktor.openapi/Responses.Builder.default.<get-default>|<get-default>(){}[0]
+            final fun <set-default>(io.ktor.openapi/Response.Builder?) // io.ktor.openapi/Responses.Builder.default.<set-default>|<set-default>(io.ktor.openapi.Response.Builder?){}[0]
 
         final fun (io.ktor.http/HttpStatusCode).invoke(kotlin/Function1<io.ktor.openapi/Response.Builder, kotlin/Unit> = ...) // io.ktor.openapi/Responses.Builder.invoke|invoke@io.ktor.http.HttpStatusCode(kotlin.Function1<io.ktor.openapi.Response.Builder,kotlin.Unit>){}[0]
         final fun default(kotlin/Function1<io.ktor.openapi/Response.Builder, kotlin/Unit>) // io.ktor.openapi/Responses.Builder.default|default(kotlin.Function1<io.ktor.openapi.Response.Builder,kotlin.Unit>){}[0]

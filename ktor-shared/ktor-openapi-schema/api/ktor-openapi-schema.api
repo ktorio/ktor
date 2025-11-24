@@ -1388,13 +1388,13 @@ public final synthetic class io/ktor/openapi/Responses$$serializer : kotlinx/ser
 public final class io/ktor/openapi/Responses$Builder {
 	public fun <init> (Lio/ktor/openapi/JsonSchemaInference;)V
 	public final fun default (Lkotlin/jvm/functions/Function1;)V
-	public final fun getDefault ()Lio/ktor/openapi/Response;
+	public final fun getDefault ()Lio/ktor/openapi/Response$Builder;
 	public final fun getExtensions ()Ljava/util/Map;
 	public final fun getResponses ()Ljava/util/Map;
 	public final fun invoke (Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun invoke$default (Lio/ktor/openapi/Responses$Builder;Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public final fun response (ILkotlin/jvm/functions/Function1;)V
-	public final fun setDefault (Lio/ktor/openapi/Response;)V
+	public final fun setDefault (Lio/ktor/openapi/Response$Builder;)V
 }
 
 public final class io/ktor/openapi/Responses$Companion {
