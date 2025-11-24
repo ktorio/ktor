@@ -106,7 +106,7 @@ class NettyConfigurationTest {
         return mockk {
             every { register(channel) } returns stubResolvedFuture(channel)
             every { shutdownGracefully(any(), any(), any()) } returns mockk {
-                every { await() } returns mockk()
+                every { sync() } returns mockk()
             }
         }
     }

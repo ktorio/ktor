@@ -280,29 +280,37 @@ public class NettyApplicationEngine(
         workerEventGroup.shutdownGracefully().sync()
     }
 
+    private inline fun <R> withStopException(crossinline block: () -> R) {
+        runCatching(block).onFailure {
+            environment.log.error("Exception thrown during engine stop", it)
+        }
+    }
+
     override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
         cancellationJob?.complete()
         monitor.raise(ApplicationStopPreparing, environment)
         val channelFutures = channels?.mapNotNull { if (it.isOpen) it.close() else null }.orEmpty()
-
-        try {
-            val shutdownConnections =
-                connectionEventGroup.shutdownGracefully(gracePeriodMillis, timeoutMillis, TimeUnit.MILLISECONDS)
-
-            val shutdownWorkers =
-                workerEventGroup.shutdownGracefully(gracePeriodMillis, timeoutMillis, TimeUnit.MILLISECONDS)
-            if (configuration.shareWorkGroup) {
-                shutdownWorkers.await()
-            } else {
-                val shutdownCall =
-                    callEventGroup.shutdownGracefully(gracePeriodMillis, timeoutMillis, TimeUnit.MILLISECONDS)
-                shutdownWorkers.await()
-                shutdownCall.await()
-            }
-            shutdownConnections.await()
-        } finally {
-            channelFutures.forEach { it.sync() }
+        channelFutures.forEach { future ->
+            withStopException { future.sync() }
         }
+
+        val shutdownConnections = connectionEventGroup.shutdownGracefully(
+            gracePeriodMillis,
+            timeoutMillis,
+            TimeUnit.MILLISECONDS
+        )
+        val shutdownWorkers = workerEventGroup.shutdownGracefully(
+            gracePeriodMillis,
+            timeoutMillis,
+            TimeUnit.MILLISECONDS
+        )
+        if (!configuration.shareWorkGroup) {
+            withStopException {
+                callEventGroup.shutdownGracefully(gracePeriodMillis, timeoutMillis, TimeUnit.MILLISECONDS).sync()
+            }
+        }
+        withStopException { shutdownConnections.sync() }
+        withStopException { shutdownWorkers.sync() }
     }
 
     override fun toString(): String {
