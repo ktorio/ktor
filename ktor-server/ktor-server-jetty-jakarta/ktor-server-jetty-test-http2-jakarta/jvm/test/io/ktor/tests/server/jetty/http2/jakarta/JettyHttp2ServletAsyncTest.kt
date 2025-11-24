@@ -37,9 +37,13 @@ class JettyHttp2AsyncServletContainerHttpServerJvmTest :
 }
 
 class JettyHttp2AsyncServletContainerSustainabilityTest :
-    SustainabilityTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = true)) {
-
+    SustainabilityTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(
+        Servlet(async = true)
+    ) {
     override fun configure(configuration: JettyApplicationEngineBase.Configuration) {
         configuration.callGroupSize = 5
     }
+
+    @Ignore
+    override fun validateCallCoroutineContext() {}
 }

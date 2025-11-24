@@ -23,6 +23,10 @@ expect abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
     @Retention
     protected annotation class Http2Only()
 
+    @Target(AnnotationTarget.FUNCTION)
+    @Retention
+    protected annotation class NoHttp2()
+
     val applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 
     protected var enableHttp2: Boolean

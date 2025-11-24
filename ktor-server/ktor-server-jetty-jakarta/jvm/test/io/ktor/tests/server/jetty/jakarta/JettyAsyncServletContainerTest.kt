@@ -48,6 +48,9 @@ class JettyAsyncServletContainerSustainabilityTest :
     override fun configure(configuration: JettyApplicationEngineBase.Configuration) {
         configuration.callGroupSize = 5
     }
+
+    @Ignore
+    override fun validateCallCoroutineContext() {}
 }
 
 class JettyAsyncServerPluginsTest :

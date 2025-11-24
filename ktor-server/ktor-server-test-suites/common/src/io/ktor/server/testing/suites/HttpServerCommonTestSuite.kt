@@ -176,14 +176,8 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
         }
     }
 
-    private inline fun withoutHttp2(crossinline block: suspend () -> Unit) = runTest {
-        val original = enableHttp2
-        enableHttp2 = false
-        block()
-        enableHttp2 = original
-    }
-
     @Test
+    @NoHttp2
     fun testRequestTwiceNoKeepAlive() = runTest {
         createAndStartServer {
             get("/") {
@@ -191,28 +185,27 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
             }
         }
 
-        withoutHttp2 {
-            withUrl(
-                "/",
-                {
-                    header(HttpHeaders.Connection, "close")
-                }
-            ) {
-                assertEquals("Text", bodyAsText())
+        withUrl(
+            "/",
+            {
+                header(HttpHeaders.Connection, "close")
             }
+        ) {
+            assertEquals("Text", bodyAsText())
+        }
 
-            withUrl(
-                "/",
-                {
-                    header(HttpHeaders.Connection, "close")
-                }
-            ) {
-                assertEquals("Text", bodyAsText())
+        withUrl(
+            "/",
+            {
+                header(HttpHeaders.Connection, "close")
             }
+        ) {
+            assertEquals("Text", bodyAsText())
         }
     }
 
     @Test
+    @NoHttp2
     fun testRequestTwiceWithKeepAlive() = runTest {
         createAndStartServer {
             get("/") {
@@ -220,26 +213,24 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
             }
         }
 
-        withoutHttp2 {
-            withUrl(
-                "/",
-                {
-                    header(HttpHeaders.Connection, "keep-alive")
-                }
-            ) {
-                assertEquals(200, status.value)
-                assertEquals("Text", bodyAsText())
+        withUrl(
+            "/",
+            {
+                header(HttpHeaders.Connection, "keep-alive")
             }
+        ) {
+            assertEquals(200, status.value)
+            assertEquals("Text", bodyAsText())
+        }
 
-            withUrl(
-                "/",
-                {
-                    header(HttpHeaders.Connection, "keep-alive")
-                }
-            ) {
-                assertEquals(200, status.value)
-                assertEquals("Text", bodyAsText())
+        withUrl(
+            "/",
+            {
+                header(HttpHeaders.Connection, "keep-alive")
             }
+        ) {
+            assertEquals(200, status.value)
+            assertEquals("Text", bodyAsText())
         }
     }
 

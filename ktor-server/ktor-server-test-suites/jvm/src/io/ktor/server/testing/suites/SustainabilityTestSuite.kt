@@ -928,6 +928,32 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
+    open fun validateCallCoroutineContext() = runTest {
+        createAndStartServer {
+            get {
+                val applicationJob = application.coroutineContext.job
+                val callJob = call.coroutineContext.job
+                val hierarchy = generateSequence(callJob) { it.parent }.toList()
+                call.respondText(
+                    """
+                    Hierarchy preserved: ${callJob != applicationJob && applicationJob in hierarchy}
+                    """.trimIndent()
+                )
+            }
+        }
+
+        withUrl("") {
+            assertEquals(
+                """
+                Hierarchy preserved: true
+                """.trimIndent(),
+                body()
+            )
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
     open fun testJobsAreCancelledOnShutdown() = runTest {
         var applicationJob: Job? = null
         var routingJob: Job? = null

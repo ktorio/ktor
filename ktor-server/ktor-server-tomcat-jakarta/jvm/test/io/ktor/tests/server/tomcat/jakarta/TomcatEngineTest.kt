@@ -177,6 +177,9 @@ class TomcatSustainabilityTestSuite :
     override fun testBlockingConcurrency() {
         super.testBlockingConcurrency()
     }
+
+    @Ignore
+    override fun validateCallCoroutineContext() {}
 }
 
 class TomcatConfigTest : ConfigTestSuite(Tomcat)

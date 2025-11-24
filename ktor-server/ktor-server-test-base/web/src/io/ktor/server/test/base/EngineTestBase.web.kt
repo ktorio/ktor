@@ -38,6 +38,10 @@ actual constructor(
     @Retention
     protected actual annotation class Http2Only actual constructor()
 
+    @Target(AnnotationTarget.FUNCTION)
+    @Retention
+    protected actual annotation class NoHttp2 actual constructor()
+
     /**
      * It's not possible to find a free port during test setup,
      * as on JS (Node.js) all APIs are non-blocking (suspend).

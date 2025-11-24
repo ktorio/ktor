@@ -101,8 +101,7 @@ public fun defaultExceptionStatusCode(cause: Throwable): HttpStatusCode? = when 
 private suspend fun tryRespondError(call: ApplicationCall, statusCode: HttpStatusCode) {
     try {
         call.respond(statusCode)
-    } catch (ignore: BaseApplicationResponse.ResponseAlreadySentException) {
-        println(ignore)
+    } catch (_: BaseApplicationResponse.ResponseAlreadySentException) {
     }
 }
 
