@@ -43,8 +43,11 @@ kotlin {
 val hostTarget = HostManager.hostTarget
 if (hostTarget != null) {
     val libcurlInstall = registerVcpkgInstallTask("libcurl", hostTarget) {
-        // Use overlays to link against system zlib (except for Windows)
-        useOverlays = hostTarget != "mingwX64"
+        // Link against system zlib (except for Windows)
+        if (hostTarget != "mingwX64") overlayPorts.add("ports/zlib")
+        // Apply an additional patch removing usage of sys_nerr/sys_errlist on Windows
+        // TODO: Remove this port overlay after updating to curl 8.18.0 where this patch is included
+        overlayPorts.add("ports/curl")
     }
 
     val libcurlUpdateHeaders = registerSyncHeadersTask(

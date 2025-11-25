@@ -10,6 +10,7 @@ import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.*
@@ -40,7 +41,7 @@ abstract class VcpkgInstall @Inject constructor(
     internal abstract val triplet: Property<String>
 
     @get:Input
-    abstract val useOverlays: Property<Boolean>
+    abstract val overlayPorts: ListProperty<String>
 
     private val installDir: Provider<Directory> = layout.buildDirectory.dir("vcpkg")
     private val outputDirProperty: DirectoryProperty = objects.directoryProperty()
@@ -89,19 +90,23 @@ abstract class VcpkgInstall @Inject constructor(
 
         val installDir = installDir.get().asFile
         val manifestDir = manifestDir.get().asFile
-        val overlayPortsDir = manifestDir.resolve("overlays")
-        val overlayTripletsDir = manifestDir.resolve("triplets")
         val currentTriplet = triplet.get()
 
-        val commandLine = listOfNotNull(
+        val commandLine = mutableListOf(
             vcpkgPath,
             "install",
             "--triplet=$currentTriplet",
             "--x-install-root=$installDir",
             "--x-manifest-root=$manifestDir",
-            if (overlayPortsDir.isDirectory && useOverlays.get()) "--overlay-ports=$overlayPortsDir" else null,
-            if (overlayTripletsDir.isDirectory) "--overlay-triplets=$overlayTripletsDir" else null
+            "--no-print-usage",
         )
+        for (overlayPort in overlayPorts.get()) {
+            val overlayPortDir = manifestDir.resolve(overlayPort)
+            commandLine.add("--overlay-ports=$overlayPortDir")
+        }
+
+        val overlayTripletsDir = manifestDir.resolve("triplets")
+        if (overlayTripletsDir.isDirectory) commandLine.add("--overlay-triplets=$overlayTripletsDir")
 
         execOps.exec {
             commandLine(commandLine)
