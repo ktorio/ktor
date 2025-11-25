@@ -7,7 +7,28 @@ package io.ktor.network.sockets.nodejs
 import io.ktor.network.sockets.*
 import org.khronos.webgl.*
 
-internal actual fun nodeNet(): NodeNet? = js("eval('require')('node:net')")
+@JsFun(
+    """
+    (globalThis.module = (typeof process !== 'undefined') && (process.release.name === 'node') ?
+        await import(/* webpackIgnore: true */'node:module') : void 0, () => {})
+"""
+)
+internal external fun persistModule()
+
+@JsFun(
+    """() => { 
+    const importMeta = import.meta;
+    return globalThis.module.default.createRequire(importMeta.url);
+}"""
+)
+internal external fun getRequire(): JsAny
+
+@JsFun("(require) => require('node:net')")
+internal external fun nodeNetRequire(require: JsAny): NodeNet?
+
+private val require = persistModule().let { getRequire() }
+
+internal actual fun nodeNet(): NodeNet? = nodeNetRequire(require)
 
 internal actual typealias ExternalAny = JsAny
 
