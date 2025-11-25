@@ -29,4 +29,10 @@ internal actual fun EmbeddedServer<*, *>.platformAddShutdownHook(stop: () -> Uni
             shutdownHook.value()
         }
     )
+    signal(
+        SIGTERM,
+        staticCFunction<Int, Unit> {
+            shutdownHook.value()
+        }
+    )
 }
