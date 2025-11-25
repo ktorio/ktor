@@ -22,6 +22,10 @@ internal actual fun EmbeddedServer<*, *>.platformAddShutdownHook(stop: () -> Uni
 }
 
 private fun addProcessShutdownHook(block: () -> Unit) {
-    js("process.on('SIGTERM', block)")
-    js("process.on('SIGINT', block)")
+    processOn("SIGTERM", block)
+    processOn("SIGINT", block)
+}
+
+private fun processOn(signal: String, block: () -> Unit) {
+    js("process.on(signal, block)")
 }
