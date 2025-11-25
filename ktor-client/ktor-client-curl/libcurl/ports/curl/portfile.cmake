@@ -9,6 +9,7 @@ vcpkg_from_github(
     PATCHES
         dependencies.patch
         pkgconfig-curl-config.patch
+        fix-sys-nerr.patch
 )
 
 vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
