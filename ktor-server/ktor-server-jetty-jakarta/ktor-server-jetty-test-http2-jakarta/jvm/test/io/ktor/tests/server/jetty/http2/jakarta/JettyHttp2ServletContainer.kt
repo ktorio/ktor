@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.server.jetty.http2.jakarta
@@ -9,7 +9,7 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.jakarta.*
 import io.ktor.server.servlet.jakarta.*
-import jakarta.servlet.*
+import jakarta.servlet.MultipartConfigElement
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler
 import org.eclipse.jetty.ee10.servlet.ServletHandler
 import org.eclipse.jetty.ee10.servlet.ServletHolder

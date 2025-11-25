@@ -51,7 +51,12 @@ class NettyContentTest : ContentTestSuite<NettyApplicationEngine, NettyApplicati
 }
 
 class NettyHttpServerCommonTest :
-    HttpServerCommonTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty)
+    HttpServerCommonTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
+    init {
+        enableSsl = true
+        enableHttp2 = true
+    }
+}
 
 class NettyHttpServerJvmTest :
     HttpServerJvmTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
@@ -64,9 +69,6 @@ class NettyHttpServerJvmTest :
         configuration.tcpKeepAlive = true
     }
 }
-
-class NettyHttp2ServerCommonTest :
-    HttpServerCommonTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty)
 
 class NettyHttp2ServerJvmTest :
     HttpServerJvmTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
