@@ -10,20 +10,28 @@ import org.khronos.webgl.Uint8Array
 import org.khronos.webgl.get
 import org.khronos.webgl.set
 
-internal actual suspend fun loadNodeNet(): NodeNet = nodeNet
-
-private val nodeNet: NodeNet by lazy {
-    loadNodeNetModule()?.let { justCast<NodeNet>(it) }
-        ?: throw UnsupportedOperationException(
-            "Module node:net is not available. Please verify that you are using Node.js"
-        )
-}
+@JsFun(
+    """
+    (globalThis.module = (typeof process !== 'undefined') && (process.release.name === 'node') ?
+        await import(/* webpackIgnore: true */'node:module') : void 0, () => {})
+"""
+)
+internal external fun persistModule()
 
 @JsFun(
-    "((module) => () => module)(((typeof process !== 'undefined') && process.release.name === 'node')" +
-        " ? await import(/* webpackIgnore: true */'node:net') : null)"
+    """() => { 
+    const importMeta = import.meta;
+    return globalThis.module.default.createRequire(importMeta.url);
+}"""
 )
-private external fun loadNodeNetModule(): JsAny?
+internal external fun getRequire(): JsAny
+
+@JsFun("(require) => require('node:net')")
+internal external fun nodeNetRequire(require: JsAny): NodeNet?
+
+private val require = persistModule().let { getRequire() }
+
+internal actual fun nodeNet(): NodeNet? = nodeNetRequire(require)
 
 internal actual typealias ExternalAny = JsAny
 
