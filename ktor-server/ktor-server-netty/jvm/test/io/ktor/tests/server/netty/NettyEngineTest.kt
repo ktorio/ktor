@@ -23,12 +23,8 @@ import io.ktor.websocket.*
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import io.netty.handler.codec.http.HttpResponseStatus
-import io.netty.handler.codec.http2.DefaultHttp2Headers
-import io.netty.handler.codec.http2.DefaultHttp2HeadersDecoder
-import io.netty.handler.codec.http2.DefaultHttp2HeadersEncoder
+import io.netty.handler.codec.http2.*
 import io.netty.handler.codec.http2.Http2CodecUtil.readUnsignedInt
-import io.netty.handler.codec.http2.Http2Flags
-import io.netty.handler.codec.http2.Http2FrameTypes
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -55,7 +51,12 @@ class NettyContentTest : ContentTestSuite<NettyApplicationEngine, NettyApplicati
 }
 
 class NettyHttpServerCommonTest :
-    HttpServerCommonTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty)
+    HttpServerCommonTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
+    init {
+        enableSsl = true
+        enableHttp2 = true
+    }
+}
 
 class NettyHttpServerJvmTest :
     HttpServerJvmTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
@@ -68,9 +69,6 @@ class NettyHttpServerJvmTest :
         configuration.tcpKeepAlive = true
     }
 }
-
-class NettyHttp2ServerCommonTest :
-    HttpServerCommonTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty)
 
 class NettyHttp2ServerJvmTest :
     HttpServerJvmTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
@@ -381,7 +379,7 @@ class NettyH2cEnabledTest :
             total += n
             val s = buf.decodeToString(0, total)
             val end = s.indexOf("\r\n\r\n")
-            if (end >= 0) return s.substring(0, end + 4)
+            if (end >= 0) return s.take(end + 4)
             require(total < maxBytes) { "HTTP/1.1 headers exceed $maxBytes bytes" }
         }
     }
