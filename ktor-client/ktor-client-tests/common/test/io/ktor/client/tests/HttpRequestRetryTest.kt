@@ -554,11 +554,11 @@ class HttpRequestRetryTest {
         config {
             engine { addHandler { respondOk() } }
 
-            install(HttpRequestRetry) { 
-                retryOnExceptionIf(maxRetriesCount) { _, _ -> 
-                    // request shouldn't fail and shouldn't retry 
-                    false 
-                } 
+            install(HttpRequestRetry) {
+                retryOnExceptionIf(maxRetriesCount) { _, _ ->
+                    // request shouldn't fail and shouldn't retry
+                    false
+                }
             }
         }
 
