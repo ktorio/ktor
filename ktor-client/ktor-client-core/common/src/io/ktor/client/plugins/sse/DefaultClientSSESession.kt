@@ -38,6 +38,8 @@ public class DefaultClientSSESession(
 
     private val clientForReconnection = initialRequest.attributes[SSEClientForReconnectionAttr]
 
+    private val callContext = content.callContext
+
     override fun bodyBuffer(): ByteArray = bodyBuffer.toByteArray()
 
     public constructor(
@@ -144,6 +146,7 @@ public class DefaultClientSSESession(
     private fun close() {
         coroutineContext.cancel()
         input.cancel()
+        callContext.cancel()
     }
 
     private suspend fun ByteReadChannel.tryParseEvent(): ServerSentEvent? =
