@@ -11,7 +11,6 @@ import kotlinx.cinterop.UnsafeNumber
 import kotlinx.coroutines.CompletableDeferred
 import platform.Foundation.*
 import platform.darwin.NSObject
-import kotlin.collections.set
 import kotlin.coroutines.CoroutineContext
 
 private const val HTTP_REQUESTS_INITIAL_CAPACITY = 32
@@ -37,6 +36,7 @@ public fun KtorNSURLSessionDelegate(): KtorNSURLSessionDelegate {
  *
  * For HTTP requests to work property, it's important that users call these functions:
  *   * URLSession:dataTask:didReceiveData:
+ *   * URLSession:task:didFinishCollectingMetrics:
  *   * URLSession:task:didCompleteWithError:
  *   * URLSession:task:willPerformHTTPRedirection:newRequest:completionHandler:
  *
@@ -63,6 +63,16 @@ public class KtorNSURLSessionDelegate(
     }
 
     override fun URLSession(session: NSURLSession, taskIsWaitingForConnectivity: NSURLSessionTask) {
+    }
+
+    override fun URLSession(
+        session: NSURLSession,
+        task: NSURLSessionTask,
+        didFinishCollectingMetrics: NSURLSessionTaskMetrics
+    ) {
+        val lastTransactionMetrics = didFinishCollectingMetrics.transactionMetrics.lastOrNull()
+            as? NSURLSessionTaskTransactionMetrics
+        lastTransactionMetrics?.let { taskHandlers[task]?.saveMetrics(it) }
     }
 
     override fun URLSession(session: NSURLSession, task: NSURLSessionTask, didCompleteWithError: NSError?) {
