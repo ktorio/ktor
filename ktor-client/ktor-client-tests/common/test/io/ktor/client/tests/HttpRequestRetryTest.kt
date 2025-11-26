@@ -554,13 +554,7 @@ class HttpRequestRetryTest {
         config {
             engine { addHandler { respondOk() } }
 
-            install(HttpRequestRetry) {
-                retryOnServerErrors(maxRetriesCount)
-                delayMillis { 0L }
-            }
-            install(HttpSend) {
-                maxSendCount = 1
-            }
+            install(HttpRequestRetry) { retryOnExceptionIf(maxRetriesCount) { _, _ -> // request shouldn't fail and shouldn't retry false } }
         }
 
         /**
