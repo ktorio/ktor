@@ -5,6 +5,7 @@
 package io.ktor.server.sse
 
 import io.ktor.http.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.reflect.*
@@ -178,7 +179,9 @@ private fun Route.processSSE(
     handle {
         call.response.header(HttpHeaders.ContentType, ContentType.Text.EventStream.toString())
         call.response.header(HttpHeaders.CacheControl, "no-store")
-        call.response.header(HttpHeaders.Connection, "keep-alive")
+        if (call.request.httpVersion.startsWith("HTTP/1.")) {
+            call.response.header(HttpHeaders.Connection, "keep-alive")
+        }
         call.response.header("X-Accel-Buffering", "no")
         call.respond(SSEServerContent(call, handler, serialize))
     }
