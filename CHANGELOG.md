@@ -2,21 +2,21 @@
 > Published 26 November 2025
 
 ### Improvements
-* Discrepancies when parsing URL host with CIO and Darwin engines compared to the rest engines ([KTOR-6837](https://youtrack.jetbrains.com/issue/KTOR-6837))
-* Logging: SimpleLogger should be an object, not a class ([KTOR-9050](https://youtrack.jetbrains.com/issue/KTOR-9050))
-* Jetty Client: Support HTTP/2 over cleartext (h2c) ([KTOR-9094](https://youtrack.jetbrains.com/issue/KTOR-9094))
-* OpenAPI gen: missing operationId for KDoc fields ([KTOR-9120](https://youtrack.jetbrains.com/issue/KTOR-9120))
-* Improve logging for CORS plugin ([KTOR-3019](https://youtrack.jetbrains.com/issue/KTOR-3019))
+* [KTOR-6837](https://youtrack.jetbrains.com/issue/KTOR-6837) Discrepancies when parsing URL host with CIO and Darwin engines compared to the rest engines
+* [KTOR-9050](https://youtrack.jetbrains.com/issue/KTOR-9050) Logging: SimpleLogger should be an object, not a class
+* [KTOR-9094](https://youtrack.jetbrains.com/issue/KTOR-9094) Jetty Client: Support HTTP/2 over cleartext (h2c)
+* [KTOR-9120](https://youtrack.jetbrains.com/issue/KTOR-9120) OpenAPI gen: missing operationId for KDoc fields
+* [KTOR-3019](https://youtrack.jetbrains.com/issue/KTOR-3019) Improve logging for CORS plugin
 
 ### Bugfixes
-* Netty: RejectedExecutionException during shutdown on MacOS when dev mode is enabled ([KTOR-8671](https://youtrack.jetbrains.com/issue/KTOR-8671))
-* Darwin: New SSE handlers stop responding after canceling few SSE sessions ([KTOR-9096](https://youtrack.jetbrains.com/issue/KTOR-9096))
-* Double ResponseSent invocation when exception is thrown after respond ([KTOR-9125](http://youtrack.jetbrains.com/issue/KTOR-9125))
-* OpenAPI: StackOverflowError when a response object has property with @Contextual serializer ([KTOR-8878](https://youtrack.jetbrains.com/issue/KTOR-8878))
-* Java, ContentEncoding: IllegalHeaderNameException is thrown  for ":status" pseudo header with HTTP/2 ([KTOR-8947](https://youtrack.jetbrains.com/issue/KTOR-8947))
-* NettyHttp2Handler throws IllegalArgumentException: 'ktor.ApplicationCall' is already in use ([KTOR-9092](https://youtrack.jetbrains.com/issue/KTOR-9092))
-* Curl: Client sends both Transfer-Encoding and Content-Length headers for DELETE requests with body ([KTOR-8924](https://youtrack.jetbrains.com/issue/KTOR-8924))
-* Exception handling issue in client cache ([KTOR-8838](https://youtrack.jetbrains.com/issue/KTOR-8838))
+* [KTOR-8671](https://youtrack.jetbrains.com/issue/KTOR-8671) Netty: RejectedExecutionException during shutdown on MacOS when dev mode is enabled
+* [KTOR-9096](https://youtrack.jetbrains.com/issue/KTOR-9096) Darwin: New SSE handlers stop responding after canceling few SSE sessions
+* [KTOR-9125](http://youtrack.jetbrains.com/issue/KTOR-9125) Double ResponseSent invocation when exception is thrown after respond
+* [KTOR-8878](https://youtrack.jetbrains.com/issue/KTOR-8878) OpenAPI: StackOverflowError when a response object has property with @Contextual serializer
+* [KTOR-8947](https://youtrack.jetbrains.com/issue/KTOR-8947) Java, ContentEncoding: IllegalHeaderNameException is thrown  for ":status" pseudo header with HTTP/2
+* [KTOR-9092](https://youtrack.jetbrains.com/issue/KTOR-9092) NettyHttp2Handler throws IllegalArgumentException: 'ktor.ApplicationCall' is already in use
+* [KTOR-8924](https://youtrack.jetbrains.com/issue/KTOR-8924) Curl: Client sends both Transfer-Encoding and Content-Length headers for DELETE requests with body
+* [KTOR-8838](https://youtrack.jetbrains.com/issue/KTOR-8838) Exception handling issue in client cache
 
 
 # 3.3.2
