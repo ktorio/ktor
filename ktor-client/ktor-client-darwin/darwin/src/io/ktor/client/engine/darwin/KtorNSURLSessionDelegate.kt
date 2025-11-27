@@ -5,18 +5,16 @@
 package io.ktor.client.engine.darwin
 
 import io.ktor.client.engine.darwin.internal.*
-import io.ktor.client.plugins.websocket.WEBSOCKETS_KEY
+import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.util.collections.*
-import io.ktor.utils.io.InternalAPI
-import io.ktor.websocket.ChannelConfig
+import io.ktor.utils.io.*
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.UnsafeNumber
 import kotlinx.cinterop.convert
 import kotlinx.coroutines.CompletableDeferred
 import platform.Foundation.*
 import platform.darwin.NSObject
-import kotlin.collections.set
 import kotlin.coroutines.CoroutineContext
 
 private const val HTTP_REQUESTS_INITIAL_CAPACITY = 32
@@ -56,14 +54,14 @@ public class KtorNSURLSessionDelegate(
     internal val challengeHandler: ChallengeHandler?
 ) : NSObject(), NSURLSessionDataDelegateProtocol, NSURLSessionWebSocketDelegateProtocol {
 
-    private val taskHandlers: ConcurrentMap<NSURLSessionTask, DarwinTaskHandler> =
+    private val taskHandlers: ConcurrentMap<ULong, DarwinTaskHandler> =
         ConcurrentMap(HTTP_REQUESTS_INITIAL_CAPACITY)
 
-    private val webSocketSessions: ConcurrentMap<NSURLSessionWebSocketTask, DarwinWebsocketSession> =
+    private val webSocketSessions: ConcurrentMap<ULong, DarwinWebsocketSession> =
         ConcurrentMap(WS_REQUESTS_INITIAL_CAPACITY)
 
     override fun URLSession(session: NSURLSession, dataTask: NSURLSessionDataTask, didReceiveData: NSData) {
-        val taskHandler = taskHandlers[dataTask] ?: return
+        val taskHandler = taskHandlers[dataTask.id] ?: return
         taskHandler.receiveData(dataTask, didReceiveData)
     }
 
@@ -71,12 +69,15 @@ public class KtorNSURLSessionDelegate(
     }
 
     override fun URLSession(session: NSURLSession, task: NSURLSessionTask, didCompleteWithError: NSError?) {
-        taskHandlers[task]?.let {
+        taskHandlers[task.id]?.let {
             it.complete(task, didCompleteWithError)
-            taskHandlers.remove(task)
+            taskHandlers.remove(task.id)
         }
 
-        webSocketSessions[task]?.didComplete(didCompleteWithError)
+        webSocketSessions[task.id]?.let {
+            it.didComplete(didCompleteWithError)
+            webSocketSessions.remove(task.id)
+        }
     }
 
     override fun URLSession(
@@ -84,7 +85,7 @@ public class KtorNSURLSessionDelegate(
         webSocketTask: NSURLSessionWebSocketTask,
         didOpenWithProtocol: String?
     ) {
-        val wsSession = webSocketSessions[webSocketTask] ?: return
+        val wsSession = webSocketSessions[webSocketTask.id] ?: return
         wsSession.didOpen(didOpenWithProtocol)
     }
 
@@ -94,8 +95,9 @@ public class KtorNSURLSessionDelegate(
         didCloseWithCode: NSURLSessionWebSocketCloseCode,
         reason: NSData?
     ) {
-        val wsSession = webSocketSessions[webSocketTask] ?: return
+        val wsSession = webSocketSessions[webSocketTask.id] ?: return
         wsSession.didClose(didCloseWithCode, reason, webSocketTask)
+        webSocketSessions.remove(webSocketTask.id)
     }
 
     internal fun read(
@@ -110,7 +112,7 @@ public class KtorNSURLSessionDelegate(
             task,
             wsConfig.channelsConfig
         )
-        webSocketSessions[task] = taskHandler
+        webSocketSessions[task.id] = taskHandler
         // Fields MUST be assigned to the task BEFORE starting it.
         // The "maximum message size" actually refers to the underlying buffer,
         // so it will allow >= maxFrameSize, depending on how quickly our bytes are read to the buffer.
@@ -125,7 +127,7 @@ public class KtorNSURLSessionDelegate(
         task: NSURLSessionTask
     ): CompletableDeferred<HttpResponseData> {
         val taskHandler = DarwinTaskHandler(request, callContext)
-        taskHandlers[task] = taskHandler
+        taskHandlers[task.id] = taskHandler
         return taskHandler.response
     }
 
@@ -163,7 +165,7 @@ public class KtorNSURLSessionDelegate(
         try {
             handler(session, task, didReceiveChallenge, completionHandler)
         } catch (cause: Throwable) {
-            taskHandlers[task]?.saveFailure(cause)
+            taskHandlers[task.id]?.saveFailure(cause)
             completionHandler(NSURLSessionAuthChallengeCancelAuthenticationChallenge, null)
         }
     }
