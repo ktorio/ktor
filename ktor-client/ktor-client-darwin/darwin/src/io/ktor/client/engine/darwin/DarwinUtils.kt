@@ -12,7 +12,10 @@ import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import kotlinx.io.IOException
 import platform.Foundation.*
-import platform.posix.*
+import platform.posix.memcpy
+
+@OptIn(UnsafeNumber::class)
+internal val NSURLSessionTask.id: ULong get() = this.taskIdentifier.toULong()
 
 @OptIn(
     DelicateCoroutinesApi::class,
