@@ -100,6 +100,20 @@ internal fun NSData.toByteArray(): ByteArray {
 }
 
 /**
+ * Writes the entire content of [NSData] to this channel without intermediate allocations.
+ * Writes directly from NSData's byte pointer to avoid creating an intermediate ByteArray.
+ */
+@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+internal suspend fun ByteWriteChannel.writeFully(data: NSData) {
+    val length = data.length.toLong()
+    if (length == 0L) return
+
+    val bytes = data.bytes ?: return
+    @Suppress("UNCHECKED_CAST")
+    writeFully(bytes as CPointer<ByteVar>, 0, length)
+}
+
+/**
  * Executes the given block function on this resource and then releases it correctly whether an
  * exception is thrown or not.
  */
