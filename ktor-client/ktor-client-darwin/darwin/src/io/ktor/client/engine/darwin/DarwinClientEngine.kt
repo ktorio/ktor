@@ -11,8 +11,7 @@ import io.ktor.client.plugins.sse.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
-import platform.Foundation.*
+import platform.Foundation.NSOperationQueue
 
 @OptIn(InternalAPI::class)
 internal class DarwinClientEngine(override val config: DarwinClientEngineConfig) : HttpClientEngineBase("ktor-darwin") {
@@ -21,8 +20,6 @@ internal class DarwinClientEngine(override val config: DarwinClientEngineConfig)
         NSOperationQueue.mainQueue -> NSOperationQueue()
         else -> queue
     }
-
-    override val dispatcher = Dispatchers.Unconfined
 
     override val supportedCapabilities = setOf(HttpTimeoutCapability, WebSocketCapability, SSECapability)
 
