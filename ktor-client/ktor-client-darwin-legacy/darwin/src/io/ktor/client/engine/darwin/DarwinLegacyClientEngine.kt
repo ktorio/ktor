@@ -10,8 +10,7 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.sse.*
 import io.ktor.client.request.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
-import platform.Foundation.*
+import platform.Foundation.NSOperationQueue
 
 @OptIn(InternalAPI::class)
 internal class DarwinLegacyClientEngine(
@@ -22,8 +21,6 @@ internal class DarwinLegacyClientEngine(
         NSOperationQueue.mainQueue -> NSOperationQueue()
         else -> queue
     }
-
-    override val dispatcher = Dispatchers.Unconfined
 
     override val supportedCapabilities = setOf(HttpTimeoutCapability, SSECapability)
 
