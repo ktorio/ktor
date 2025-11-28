@@ -52,8 +52,9 @@ internal class DarwinTaskHandler(
         }
 
         try {
-            bodyChunks.trySend(data).isSuccess
-        } catch (_: CancellationException) {
+            bodyChunks.trySend(data).getOrThrow()
+        } catch (cause: Throwable) {
+            saveFailure(cause)
             dataTask.cancel()
         }
     }
