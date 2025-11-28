@@ -18,6 +18,42 @@ import kotlin.test.*
 
 class HtmlBuilderTest {
     @Test
+    fun testRespondHtmlFragment() = testApplication {
+        routing {
+            get("/fragment") {
+                call.respondHtmlFragment {
+                    div {
+                        +"This is an HTML fragment"
+                    }
+                }
+            }
+        }
+
+        client.get("/fragment").let { response ->
+            val body = response.bodyAsText()
+            assertEquals("<div>This is an HTML fragment</div>", body.trim())
+            val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
+            assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
+        }
+    }
+
+    @Test
+    fun testRespondHtmlFragmentWithStatus() = testApplication {
+        routing {
+            get("/fragment") {
+                call.respondHtmlFragment(HttpStatusCode.Created) {
+                    span { +"Created!" }
+                }
+            }
+        }
+
+        client.get("/fragment").let { response ->
+            assertEquals(HttpStatusCode.Created, response.status)
+            assertEquals("<span>Created!</span>", response.bodyAsText().trim())
+        }
+    }
+
+    @Test
     fun testName() = testApplication {
         routing {
             get("/") {
