@@ -473,54 +473,96 @@ public suspend fun ByteReadChannel.readUTF8LineTo(
     max: Int = Int.MAX_VALUE,
     lineEnding: LineEndingMode = LineEndingMode.Any,
 ): Boolean {
+    val readBuffer = readBuffer // Get readBuffer once per function call
     if (readBuffer.exhausted()) awaitContent()
     if (isClosedForRead) return false
 
-    fun checkLineEndingAllowed(lineEndingToCheck: LineEndingMode) {
-        if (lineEndingToCheck !in lineEnding) {
-            throw IOException("Unexpected line ending $lineEndingToCheck, while expected $lineEnding")
+    var consumed = 0
+    fun consume(string: String) {
+        out.append(string)
+        consumed += string.length
+    }
+
+    fun transferString(count: Long = readBuffer.remaining) {
+        if (max != Int.MAX_VALUE && consumed + count > max) {
+            throw TooLongLineException("Line exceeds limit of $max characters")
+        }
+
+        consume(readBuffer.readString(count))
+    }
+
+    val allowsCrlf = LineEndingMode.CRLF in lineEnding
+    val allowsLF = LineEndingMode.LF in lineEnding
+    val allowsCR = LineEndingMode.CR in lineEnding
+
+    // We should subtract 1 from lfIndex to ignore the case when CR is part of the CRLF sequence
+    val crEndIndexCorrection = if (allowsCrlf) 1L else 0L
+
+    while (!isClosedForRead) {
+        val lfIndex = if (lineEnding != LineEndingMode.CR) readBuffer.indexOf(LF) else -1
+        val crIndex = if (allowsCR) {
+            // Index of lone CR delimiter.
+            // We're interested in it only if the requested line ending mode allows CR as a line delimiter.
+            val crEndIndex = if (lfIndex >= 0L) (lfIndex - crEndIndexCorrection).coerceAtLeast(0) else Long.MAX_VALUE
+            readBuffer.indexOf(CR, endIndex = crEndIndex)
+        } else {
+            -1
+        }
+
+        // Check for the corner case when the last byte in the buffer is CR, and LF is in the next buffer
+        val lastByteIndex = readBuffer.remaining - 1
+        if (allowsCrlf &&
+            // LF not in the buffer, and CR is either not had been searched for or found at the end of the buffer
+            lfIndex == -1L && (crIndex == -1L || crIndex == lastByteIndex) &&
+            readBuffer.buffer[lastByteIndex] == CR
+        ) {
+            transferString(count = lastByteIndex)
+            readBuffer.discard(1)
+
+            if (awaitContent() && readBuffer.buffer[0] == LF) {
+                readBuffer.discard(1)
+                return true
+            }
+
+            if (allowsCR) {
+                return true
+            } else {
+                consume("\r") // Add previously discarded CR to the output
+                continue
+            }
+        }
+
+        // No new line separator
+        if (crIndex == -1L && lfIndex == -1L) {
+            transferString()
+            if (!awaitContent()) break
+            continue
+        }
+
+        // Sole CR in the buffer
+        if (crIndex >= 0) {
+            transferString(count = crIndex)
+            readBuffer.discard(1)
+            return true
+        }
+
+        // LF or CRLF in the buffer
+        if (lfIndex >= 0) {
+            val isCrlf = allowsCrlf && lfIndex > 0 && readBuffer.buffer[lfIndex - 1] == CR
+            if (isCrlf || allowsLF) {
+                transferString(count = if (isCrlf) lfIndex - 1 else lfIndex)
+                readBuffer.discard(if (isCrlf) 2 else 1)
+
+                return true
+            } else {
+                // LF found but not allowed - treat it as content
+                transferString(count = lfIndex + 1)
+                continue
+            }
         }
     }
 
-    Buffer().use { lineBuffer ->
-        while (!isClosedForRead) {
-            while (!readBuffer.exhausted()) {
-                when (val b = readBuffer.readByte()) {
-                    CR -> {
-                        // Check if LF follows CR after awaiting
-                        if (readBuffer.exhausted()) awaitContent()
-                        if (readBuffer.buffer[0] == LF) {
-                            checkLineEndingAllowed(LineEndingMode.CRLF)
-                            readBuffer.discard(1)
-                        } else {
-                            checkLineEndingAllowed(LineEndingMode.CR)
-                        }
-                        out.append(lineBuffer.readString())
-                        return true
-                    }
-
-                    LF -> {
-                        checkLineEndingAllowed(LineEndingMode.LF)
-                        out.append(lineBuffer.readString())
-                        return true
-                    }
-
-                    else -> lineBuffer.writeByte(b)
-                }
-            }
-            if (lineBuffer.size >= max) {
-                throw TooLongLineException("Line exceeds limit of $max characters")
-            }
-
-            awaitContent()
-        }
-
-        return (lineBuffer.size > 0).also { remaining ->
-            if (remaining) {
-                out.append(lineBuffer.readString())
-            }
-        }
-    }
+    return consumed > 0 || !isClosedForRead
 }
 
 @OptIn(InternalAPI::class, UnsafeIoApi::class, InternalIoApi::class)

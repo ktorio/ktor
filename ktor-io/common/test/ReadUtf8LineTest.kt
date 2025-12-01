@@ -6,13 +6,13 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
-import kotlinx.io.IOException
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.time.Duration.Companion.seconds
 
+@OptIn(InternalAPI::class)
 class ReadUtf8LineTest {
 
     @Test
@@ -31,18 +31,38 @@ class ReadUtf8LineTest {
 
     @Test
     fun `test reading line with newline after flush`() = runTest {
+        val lineEndings = listOf(
+            LineEndingMode.CR + LineEndingMode.CRLF,
+            LineEndingMode.CRLF,
+        )
+
+        for (lineEnding in lineEndings) {
+            val channel = writer {
+                channel.writeStringUtf8("4\r")
+                channel.flush()
+                delay(100)
+                channel.writeStringUtf8("\n2\r\n")
+            }.channel
+            val buffer = StringBuilder()
+            channel.readUTF8LineTo(buffer, 1024, lineEnding)
+            assertEquals("4", buffer.toString(), "Line ending: $lineEnding")
+            buffer.clear()
+            channel.readUTF8LineTo(buffer, 1024, lineEnding)
+            assertEquals("2", buffer.toString(), "Line ending: $lineEnding")
+        }
+    }
+
+    @Test
+    fun `test reading line with flush after CR when only CRLF allowed`() = runTest {
         val channel = writer {
             channel.writeStringUtf8("4\r")
             channel.flush()
             delay(100)
-            channel.writeStringUtf8("\n2\r\n")
+            channel.writeStringUtf8("2\r\n")
         }.channel
         val buffer = StringBuilder()
-        channel.readUTF8LineTo(buffer, 1024)
-        assertEquals("4", buffer.toString())
-        buffer.clear()
-        channel.readUTF8LineTo(buffer, 1024)
-        assertEquals("2", buffer.toString())
+        channel.readUTF8LineTo(buffer, 1024, LineEndingMode.CRLF)
+        assertEquals("4\r2", buffer.toString())
     }
 
     @Test
@@ -103,7 +123,6 @@ class ReadUtf8LineTest {
         assertEquals(numberOfLines, count)
     }
 
-    @OptIn(InternalAPI::class)
     @Test
     fun `test reading lines with different line ending modes`() = runTest {
         data class TestCase(
@@ -119,17 +138,59 @@ class ReadUtf8LineTest {
                 lineEnding = LineEndingMode.LF,
                 expectedLines = listOf("line1", "line2", "line3")
             ),
+            // CR treated as content when only LF allowed
+            TestCase(
+                input = "line1\rline2\nline3\n",
+                lineEnding = LineEndingMode.LF,
+                expectedLines = listOf("line1\rline2", "line3")
+            ),
+            // LF at position 0
+            TestCase(
+                input = "\nline1\nline2\n",
+                lineEnding = LineEndingMode.LF,
+                expectedLines = listOf("", "line1", "line2")
+            ),
             // CR only
             TestCase(
                 input = "line1\rline2\rline3\r",
                 lineEnding = LineEndingMode.CR,
                 expectedLines = listOf("line1", "line2", "line3")
             ),
+            // LF treated as content when only CR allowed
+            TestCase(
+                input = "line1\nline2\rline3\r",
+                lineEnding = LineEndingMode.CR,
+                expectedLines = listOf("line1\nline2", "line3")
+            ),
+            // CR at position 0
+            TestCase(
+                input = "\rline1\rline2\r",
+                lineEnding = LineEndingMode.CR,
+                expectedLines = listOf("", "line1", "line2")
+            ),
+            // CR and LF both allowed but not CRLF (CR before LF should be treated as delimiter)
+            TestCase(
+                input = "line1\r\nline2\n",
+                lineEnding = LineEndingMode.CR + LineEndingMode.LF,
+                expectedLines = listOf("line1", "", "line2")
+            ),
+            // LF at position 0 with CR+LF mode (should handle LF immediately, not search for CR)
+            TestCase(
+                input = "\nline1\rline2",
+                lineEnding = LineEndingMode.CR + LineEndingMode.LF,
+                expectedLines = listOf("", "line1", "line2")
+            ),
             // CRLF only
             TestCase(
                 input = "line1\r\nline2\r\nline3\r\n",
                 lineEnding = LineEndingMode.CRLF,
                 expectedLines = listOf("line1", "line2", "line3")
+            ),
+            // Both CR and LF treated as content when only CRLF allowed
+            TestCase(
+                input = "line1\rline2\nline3\r\nline4\r\n",
+                lineEnding = LineEndingMode.CRLF,
+                expectedLines = listOf("line1\rline2\nline3", "line4")
             ),
             // Mixed line endings with Any mode
             TestCase(
@@ -147,7 +208,7 @@ class ReadUtf8LineTest {
                 input = "no newline",
                 lineEnding = LineEndingMode.Any,
                 expectedLines = listOf("no newline")
-            )
+            ),
         )
 
         testCases.forEachIndexed { index, testCase ->
@@ -167,34 +228,6 @@ class ReadUtf8LineTest {
                 actualLines,
                 "Test case $index failed. Expected: ${testCase.expectedLines}, actual: $actualLines"
             )
-        }
-    }
-
-    @OptIn(InternalAPI::class)
-    @Test
-    fun `test reading lines with wrong line ending mode throws exception`() = runTest {
-        val testCases = listOf(
-            "line1\nline2\n" to LineEndingMode.CR,
-            "line1\rline2\r" to LineEndingMode.LF,
-            "line1\r\nline2\r\n" to LineEndingMode.LF,
-            "line1\nline2\n" to LineEndingMode.CRLF,
-        )
-
-        testCases.forEachIndexed { index, (input, lineEnding) ->
-            val channel = ByteChannel()
-            channel.writeStringUtf8(input)
-            channel.close()
-
-            assertFailsWith<IOException>(
-                message = "Test case $index should have failed for input: '${
-                    input.replace("\r", "\\r").replace("\n", "\\n")
-                }' with mode $lineEnding"
-            ) {
-                val buffer = StringBuilder()
-                while (channel.readUTF8LineTo(buffer, lineEnding = lineEnding)) {
-                    buffer.clear()
-                }
-            }
         }
     }
 }
