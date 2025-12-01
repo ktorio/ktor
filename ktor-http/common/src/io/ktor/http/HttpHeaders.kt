@@ -7,7 +7,7 @@ package io.ktor.http
 @Suppress("unused", "KDocMissingDocumentation", "PublicApiImplicitType", "MayBeConstant")
 public object HttpHeaders {
     // Permanently registered standard HTTP headers
-    // The list is taken from http://www.iana.org/assignments/message-headers/message-headers.xml#perm-headers
+    // The list is taken from https://www.iana.org/assignments/message-headers/message-headers.xml#perm-headers
 
     public val Accept: String = "Accept"
     public val AcceptCharset: String = "Accept-Charset"
