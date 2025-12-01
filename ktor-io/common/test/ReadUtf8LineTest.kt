@@ -9,8 +9,13 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.time.Duration.Companion.seconds
+import kotlin.test.assertTrue
 
+/**
+ * See [ReadLineTest] for `readLineTo`/`readLineStrictTo` tests.
+ * These tests check only that [readUTF8LineTo] behavior is preserved after introduction of new functions.
+ */
+@OptIn(InternalAPI::class)
 class ReadUtf8LineTest {
 
     @Test
@@ -22,6 +27,7 @@ class ReadUtf8LineTest {
                 channel.writeStringUtf8(line)
             }
         }.channel
+
         assertFailsWith<TooLongLineException> {
             channel.readUTF8Line(8 * 1024)
         }
@@ -44,6 +50,19 @@ class ReadUtf8LineTest {
     }
 
     @Test
+    fun `test reading line with flush after CR when only CRLF allowed`() = runTest {
+        val channel = writer {
+            channel.writeStringUtf8("4\r")
+            channel.flush()
+            delay(100)
+            channel.writeStringUtf8("2\r\n")
+        }.channel
+        val buffer = StringBuilder()
+        channel.readUTF8LineTo(buffer, 1024, LineEndingMode.CRLF)
+        assertEquals("4\r2", buffer.toString())
+    }
+
+    @Test
     fun `test reading line with flush before newline`() = runTest {
         val channel = writer {
             channel.writeStringUtf8("4")
@@ -60,21 +79,15 @@ class ReadUtf8LineTest {
     }
 
     @Test
-    fun `test reading large amount of lines completes in a reasonable time`() = runTest(timeout = 5.seconds) {
-        var count = 0
-        val numberOfLines = 200_000
+    fun `test read line without line ending`() = runTest {
+        val lineSize = 42
+        val line = "A".repeat(lineSize)
         val channel = writer {
-            repeat(numberOfLines) { i ->
-                channel.writeStringUtf8("line $i\n")
-            }
+            channel.writeStringUtf8(line)
         }.channel
 
-        val out = StringBuilder()
-        while (channel.readUTF8LineTo(out) && count < numberOfLines) {
-            count++
-        }
-
-        assertEquals(numberOfLines, count)
-        assertEquals(2_088_890, out.length)
+        val buffer = StringBuilder()
+        assertTrue(channel.readUTF8LineTo(buffer))
+        assertEquals(line, buffer.toString())
     }
 }
