@@ -12,7 +12,7 @@ package io.ktor.http
 )
 public object HttpHeaders {
     // Permanently registered standard HTTP headers
-    // The list is taken from http://www.iana.org/assignments/message-headers/message-headers.xml#perm-headers
+    // The list is taken from https://www.iana.org/assignments/message-headers/message-headers.xml#perm-headers
 
     public const val Accept: String = "Accept"
     public const val AcceptCharset: String = "Accept-Charset"
