@@ -742,7 +742,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
 
         withUrl("/") {
             assertEquals(HttpStatusCode.InternalServerError, status)
-            assertTrue(bodyAsText().isEmpty())
+            assertEquals("Test exception", bodyAsText())
         }
     }
 

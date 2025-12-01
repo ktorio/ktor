@@ -128,13 +128,14 @@ public class TestApplicationEngine(
         tryRespondError(
             call,
             defaultExceptionStatusCode(cause)
-                ?: if (throwOnException) throw cause else HttpStatusCode.InternalServerError
+                ?: if (throwOnException) throw cause else HttpStatusCode.InternalServerError,
+            cause.message
         )
     }
 
-    private suspend fun tryRespondError(call: ApplicationCall, statusCode: HttpStatusCode) {
+    private suspend fun tryRespondError(call: ApplicationCall, statusCode: HttpStatusCode, message: String?) {
         try {
-            call.respond(statusCode)
+            call.respond(statusCode, message ?: "")
         } catch (ignore: BaseApplicationResponse.ResponseAlreadySentException) {
         }
     }
