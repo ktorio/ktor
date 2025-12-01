@@ -9,11 +9,12 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.time.Duration.Companion.seconds
 
 class ReadUtf8LineTest {
 
     @Test
-    fun testReadUtf8LineWithLongLineWithLimit() = runTest {
+    fun `test reading line exceeding limit`() = runTest {
         val lineSize = 1024
         val line = "A".repeat(lineSize)
         val channel = writer {
@@ -27,7 +28,7 @@ class ReadUtf8LineTest {
     }
 
     @Test
-    fun testNewLineAfterFlush() = runTest {
+    fun `test reading line with newline after flush`() = runTest {
         val channel = writer {
             channel.writeStringUtf8("4\r")
             channel.flush()
@@ -43,7 +44,7 @@ class ReadUtf8LineTest {
     }
 
     @Test
-    fun testFlushBeforeNewLine() = runTest {
+    fun `test reading line with flush before newline`() = runTest {
         val channel = writer {
             channel.writeStringUtf8("4")
             channel.flush()
@@ -56,5 +57,24 @@ class ReadUtf8LineTest {
         buffer.clear()
         channel.readUTF8LineTo(buffer, 1024)
         assertEquals("2", buffer.toString())
+    }
+
+    @Test
+    fun `test reading large amount of lines completes in a reasonable time`() = runTest(timeout = 5.seconds) {
+        var count = 0
+        val numberOfLines = 200_000
+        val channel = writer {
+            repeat(numberOfLines) { i ->
+                channel.writeStringUtf8("line $i\n")
+            }
+        }.channel
+
+        val out = StringBuilder()
+        while (channel.readUTF8LineTo(out) && count < numberOfLines) {
+            count++
+        }
+
+        assertEquals(numberOfLines, count)
+        assertEquals(2_088_890, out.length)
     }
 }
