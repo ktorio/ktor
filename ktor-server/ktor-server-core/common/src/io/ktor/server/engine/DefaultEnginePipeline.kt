@@ -68,7 +68,8 @@ public fun defaultEnginePipeline(config: ApplicationConfig, developmentMode: Boo
  */
 public suspend fun handleFailure(call: ApplicationCall, error: Throwable) {
     logError(call, error)
-    tryRespondError(call, defaultExceptionStatusCode(error) ?: HttpStatusCode.InternalServerError, error.message)
+    val statusCode = defaultExceptionStatusCode(error) ?: HttpStatusCode.InternalServerError
+    tryRespondError(call, statusCode, error.message)
 }
 
 /**
@@ -97,9 +98,7 @@ public fun defaultExceptionStatusCode(cause: Throwable): HttpStatusCode? = when 
 }
 
 private suspend fun tryRespondError(call: ApplicationCall, statusCode: HttpStatusCode, message: String?) {
-    if (call.response.isCommitted) {
-        return
-    }
+    if (call.response.isCommitted || call.response.isSent) return
     try {
         when (message) {
             null -> call.respond(statusCode)

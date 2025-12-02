@@ -97,12 +97,15 @@ internal class NettyApplicationCallHandler(
     private suspend fun respondError400BadRequest(call: NettyHttp1ApplicationCall) {
         logCause(call)
 
-        val causeMessage = call.failureCause?.message
+        val causeMessage = call.failureCause?.message?.toByteArray(charset = Charsets.UTF_8)
         val content = if (causeMessage != null) ByteReadChannel(causeMessage) else ByteReadChannel.Empty
-        val contentLength = causeMessage?.length ?: 0
+        val contentLength = causeMessage?.size ?: 0
 
         call.response.status(HttpStatusCode.BadRequest)
         call.response.headers.append(HttpHeaders.ContentLength, contentLength.toString(), safeOnly = false)
+        if (contentLength > 0) {
+            call.response.headers.append(HttpHeaders.ContentType, "text/plain; charset=utf-8", safeOnly = false)
+        }
         call.response.headers.append(HttpHeaders.Connection, "close", safeOnly = false)
         call.response.sendResponse(chunked = false, content)
         call.finish()
