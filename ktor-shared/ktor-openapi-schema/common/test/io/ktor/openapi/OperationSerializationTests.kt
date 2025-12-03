@@ -131,6 +131,12 @@ class OperationSerializationTests {
                 HttpStatusCode.Created {
                     description = "Article created successfully"
                     jsonSchema = jsonSchema<Article>()
+                    headers {
+                        header("Location") {
+                            description = "Location of the created resource"
+                            ContentType.Text.Plain()
+                        }
+                    }
                 }
                 HttpStatusCode.BadRequest {
                     description = "Invalid input"
