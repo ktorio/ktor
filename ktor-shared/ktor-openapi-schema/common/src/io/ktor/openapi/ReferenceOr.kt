@@ -43,6 +43,26 @@ public sealed interface ReferenceOr<out A> {
             is Value -> value
         }
 
+    /**
+     * Maps the value using the given function.
+     *
+     * In the case of Reference, this is a no-op.
+     */
+    public fun <B> mapValue(mappingFunction: (A) -> B): ReferenceOr<B> =
+        when (this) {
+            is Reference -> this
+            is Value -> Value(mappingFunction(value))
+        }
+
+    /**
+     * Same as map, but for mapping to references.
+     */
+    public fun <B> mapToReference(mappingFunction: (A) -> ReferenceOr<B>): ReferenceOr<B> =
+        when (this) {
+            is Reference -> this
+            is Value -> mappingFunction(value)
+        }
+
     public companion object {
         private const val schema: String = "#/components/schemas/"
         private const val responses: String = "#/components/responses/"
@@ -54,8 +74,9 @@ public sealed interface ReferenceOr<out A> {
 
         public fun <A> value(value: A): ReferenceOr<A> = Value(value)
 
-        internal class Serializer<T>(private val dataSerializer: KSerializer<T>) :
-            KSerializer<ReferenceOr<T>> {
+        internal class Serializer<T>(
+            private val dataSerializer: KSerializer<T>
+        ) : KSerializer<ReferenceOr<T>> {
             @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
             override val descriptor: SerialDescriptor =
                 buildSerialDescriptor("io.ktor.openapi.ReferenceOr", SerialKind.CONTEXTUAL)
@@ -70,16 +91,18 @@ public sealed interface ReferenceOr<out A> {
             override fun serialize(encoder: Encoder, value: ReferenceOr<T>) {
                 when (value) {
                     is Value -> encoder.encodeSerializableValue(dataSerializer, value.value)
-                    is Reference -> {
-                        if (value.isRecursive) {
-                            encoder.encodeStructure(recursiveRefDescriptor) {
-                                encodeStringElement(recursiveRefDescriptor, 0, value.ref)
-                            }
-                        } else {
-                            encoder.encodeStructure(refDescriptor) {
-                                encodeStringElement(refDescriptor, 0, value.ref)
-                            }
-                        }
+                    is Reference -> encodeReference(value, encoder)
+                }
+            }
+
+            private fun encodeReference(value: Reference, encoder: Encoder) {
+                if (value.isRecursive) {
+                    encoder.encodeStructure(recursiveRefDescriptor) {
+                        encodeStringElement(recursiveRefDescriptor, 0, value.ref)
+                    }
+                } else {
+                    encoder.encodeStructure(refDescriptor) {
+                        encodeStringElement(refDescriptor, 0, value.ref)
                     }
                 }
             }
