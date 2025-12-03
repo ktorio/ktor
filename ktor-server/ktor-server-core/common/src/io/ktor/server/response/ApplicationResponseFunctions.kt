@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:Suppress("unused")
@@ -13,7 +13,6 @@ import io.ktor.server.util.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
-import io.ktor.utils.io.core.*
 import kotlinx.io.*
 import kotlin.jvm.*
 
@@ -121,8 +120,8 @@ public suspend inline fun ApplicationCall.respondRedirect(permanent: Boolean = f
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.respondText)
  *
  * @see [io.ktor.server.response.ApplicationResponse]
- * @param contentType is an optional [ContentType], default is [ContentType.Text.Plain]
- * @param status is an optional [HttpStatusCode], default is [HttpStatusCode.OK]
+ * @param contentType An optional [ContentType], defaults to [ContentType.Text.Plain]
+ * @param status An optional [HttpStatusCode], defaults to [HttpStatusCode.OK] unless already assigned
  */
 public suspend fun ApplicationCall.respondText(
     text: String,
@@ -140,8 +139,8 @@ public suspend fun ApplicationCall.respondText(
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.respondText)
  *
  * @see [io.ktor.server.response.ApplicationResponse]
- * @param contentType is an optional [ContentType], default is [ContentType.Text.Plain]
- * @param status is an optional [HttpStatusCode], default is [HttpStatusCode.OK]
+ * @param contentType An optional [ContentType], defaults to [ContentType.Text.Plain]
+ * @param status An optional [HttpStatusCode], defaults to [HttpStatusCode.OK] unless already assigned
  */
 public suspend fun ApplicationCall.respondText(
     contentType: ContentType? = null,
@@ -158,8 +157,8 @@ public suspend fun ApplicationCall.respondText(
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.respondBytes)
  *
  * @see [io.ktor.server.response.ApplicationResponse]
- * @param contentType is an optional [ContentType], unspecified by default
- * @param status is an optional [HttpStatusCode], default is [HttpStatusCode.OK]
+ * @param contentType An optional [ContentType], unspecified by default
+ * @param status An optional [HttpStatusCode], defaults to [HttpStatusCode.OK] unless already assigned
  */
 public suspend fun ApplicationCall.respondBytes(
     contentType: ContentType? = null,
@@ -175,8 +174,8 @@ public suspend fun ApplicationCall.respondBytes(
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.respondBytes)
  *
  * @see [io.ktor.server.response.ApplicationResponse]
- * @param contentType is an optional [ContentType], unspecified by default
- * @param status is an optional [HttpStatusCode], default is [HttpStatusCode.OK]
+ * @param contentType An optional [ContentType], unspecified by default
+ * @param status An optional [HttpStatusCode], defaults to [HttpStatusCode.OK] unless already assigned
  */
 public suspend fun ApplicationCall.respondBytes(
     bytes: ByteArray,
@@ -195,7 +194,7 @@ public suspend fun ApplicationCall.respondBytes(
  *
  * @param source The binary data source of the content to be responded with.
  * @param contentType An optional [ContentType], unspecified by default
- * @param status An optional [HttpStatusCode], default is [HttpStatusCode.OK]
+ * @param status An optional [HttpStatusCode], defaults to [HttpStatusCode.OK] unless already assigned
  * @param contentLength An optional value included in the Content-Length header, also truncating content
  */
 public suspend fun ApplicationCall.respondSource(
@@ -218,6 +217,11 @@ public suspend fun ApplicationCall.respondSource(
  * The provided [ByteWriteChannel] will be closed automatically.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.respondBytesWriter)
+ *
+ * @param contentType An optional [ContentType], unspecified by default
+ * @param status An optional [HttpStatusCode], defaults to [HttpStatusCode.OK] unless already assigned
+ * @param contentLength An optional value included in the Content-Length header, also truncating content
+ * @param producer A function producing content.
  */
 public suspend fun ApplicationCall.respondBytesWriter(
     contentType: ContentType? = null,
