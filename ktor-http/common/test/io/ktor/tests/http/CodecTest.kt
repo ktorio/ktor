@@ -153,6 +153,34 @@ class CodecTest {
         assertEquals("/path/%F0%9F%90%95", surrogateSymbolUrlPath.encodeURLPath())
     }
 
+    @Test
+    fun testFormUrlEncodeWithSpaceToPlus() {
+        val result = StringBuilder()
+        val params = mapOf("a" to listOf("b c"))
+
+        params.entries.formUrlEncodeTo(result)
+        assertEquals("a=b%20c", result.toString())
+
+        result.clear()
+        params.entries.formUrlEncodeTo(result, spaceToPlus = true)
+        assertEquals("a=b+c", result.toString())
+
+        result.clear()
+        params.entries.formUrlEncodeTo(result, spaceToPlus = false)
+        assertEquals("a=b%20c", result.toString())
+    }
+
+    @Test
+    fun testListFormUrlEncodeWithSpaceToPlus() {
+        val params = listOf("a" to "b c")
+
+        // Default behavior -> %20
+        assertEquals("a=b%20c", params.formUrlEncode())
+
+        // Explicit true -> +
+        assertEquals("a=b+c", params.formUrlEncode(spaceToPlus = true))
+    }
+
     private fun encodeAndDecodeTest(text: String) {
         val encode1 = text.encodeURLQueryComponent()
         val decode1 = encode1.decodeURLQueryComponent()
