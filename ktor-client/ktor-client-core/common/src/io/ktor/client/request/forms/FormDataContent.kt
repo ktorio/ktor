@@ -25,9 +25,10 @@ private val RN_BYTES = "\r\n".toByteArray()
  * @param formData data to send.
  */
 public class FormDataContent(
-    public val formData: Parameters
+    public val formData: Parameters,
+    spaceToPlus: Boolean = false
 ) : OutgoingContent.ByteArrayContent() {
-    private val content = formData.formUrlEncode().toByteArray()
+    private val content = formData.formUrlEncode(spaceToPlus).toByteArray()
 
     override val contentLength: Long = content.size.toLong()
     override val contentType: ContentType = ContentType.Application.FormUrlEncoded.withCharset(Charsets.UTF_8)
