@@ -44,7 +44,10 @@ public val PopulateMediaTypeDefaults: OperationMapping = OperationMapping { oper
     // Fast path: detect whether any defaults are needed
     val hasMissingParamMediaInfo = operation.parameters.orEmpty()
         .filterIsInstance<ReferenceOr.Value<Parameter>>()
-        .any { it.value.schema == null && it.value.content == null || it.value.`in` == null }
+        .any { paramRef ->
+            (paramRef.value.schema == null && paramRef.value.content == null) ||
+                paramRef.value.`in` == null
+        }
 
     val hasMissingHeaderMediaInfo = run {
         val responses = operation.responses ?: return@run false
@@ -149,6 +152,7 @@ public class CollectSchemaReferences(private val schemaToComponent: (JsonSchema)
         } ?: ReferenceOr.value(
             schema.copy(
                 allOf = schema.allOf?.map { it.mapToReference(::collectSchema) },
+                anyOf = schema.anyOf?.map { it.mapToReference(::collectSchema) },
                 oneOf = schema.oneOf?.map { it.mapToReference(::collectSchema) },
                 not = schema.not?.mapToReference(::collectSchema),
                 properties = schema.properties?.mapValues { (_, value) -> value.mapToReference(::collectSchema) },

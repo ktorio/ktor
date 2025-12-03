@@ -11,8 +11,9 @@ import kotlinx.serialization.KeepGeneratedSerializer
 import kotlinx.serialization.Serializable
 
 /** This is the root document object for the API specification. */
+@Serializable(OpenApiSpecification.Companion.Serializer::class)
 @OptIn(ExperimentalSerializationApi::class)
-@Serializable
+@KeepGeneratedSerializer
 public data class OpenApiSpecification(
     @EncodeDefault(ALWAYS) public val openapi: String = "3.1.1",
     /** Provides metadata about the API. The metadata can be used by the clients if needed. */
@@ -49,8 +50,15 @@ public data class OpenApiSpecification(
     /** Additional external documentation. */
     public val externalDocs: ExternalDocs? = null,
     /** Any additional external documentation for this OpenAPI document. */
-    public val extensions: Map<String, GenericElement>? = null,
-)
+    public override val extensions: Map<String, GenericElement>? = null,
+) : Extensible {
+    public companion object {
+        internal object Serializer : ExtensibleMixinSerializer<OpenApiSpecification>(
+            generatedSerializer(),
+            { o, extensions -> o.copy(extensions = extensions) }
+        )
+    }
+}
 
 /**
  * Lists the required security schemes to execute this operation. The object can have multiple
@@ -153,8 +161,8 @@ public data class Components(
     public val examples: Map<String, ReferenceOr<ExampleObject>>? = null,
     public val requestBodies: Map<String, ReferenceOr<RequestBody>>? = null,
     public val headers: Map<String, ReferenceOr<Header>>? = null,
-    public val links: Map<String, Link>? = null,
-    public val callbacks: Map<String, Callback>? = null,
+    public val links: Map<String, ReferenceOr<Link>>? = null,
+    public val callbacks: Map<String, ReferenceOr<Callback>>? = null,
     public val pathItems: Map<String, ReferenceOr<PathItem>>? = null,
     public override val extensions: ExtensionProperties = null,
 ) : Extensible {

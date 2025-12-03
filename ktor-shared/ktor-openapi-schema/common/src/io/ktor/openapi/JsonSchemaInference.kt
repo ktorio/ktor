@@ -70,12 +70,14 @@ public fun SerialDescriptor.buildJsonSchema(): JsonSchema {
                 required = required
             )
         }
+
         StructureKind.LIST -> {
             JsonSchema(
                 type = JsonSchema.JsonType.ARRAY,
                 items = ReferenceOr.Value(getElementDescriptor(0).buildJsonSchema())
             )
         }
+
         StructureKind.MAP -> {
             JsonSchema(
                 type = JsonSchema.JsonType.OBJECT,
@@ -84,14 +86,19 @@ public fun SerialDescriptor.buildJsonSchema(): JsonSchema {
                 )
             )
         }
+
         PrimitiveKind.STRING ->
             JsonSchema(type = JsonSchema.JsonType.STRING)
+
         PrimitiveKind.BOOLEAN ->
             JsonSchema(type = JsonSchema.JsonType.BOOLEAN)
+
         PrimitiveKind.BYTE, PrimitiveKind.SHORT, PrimitiveKind.INT, PrimitiveKind.LONG ->
             JsonSchema(type = JsonSchema.JsonType.INTEGER)
+
         PrimitiveKind.FLOAT, PrimitiveKind.DOUBLE ->
             JsonSchema(type = JsonSchema.JsonType.NUMBER)
+
         SerialKind.ENUM -> {
             val enumValues = List(elementsCount) { i -> GenericElement(getElementName(i)) }
             JsonSchema(
@@ -99,10 +106,12 @@ public fun SerialDescriptor.buildJsonSchema(): JsonSchema {
                 enum = enumValues
             )
         }
+
         SerialKind.CONTEXTUAL -> {
             // For contextual serializers, we need to get the actual serializer from the context
             JsonSchema(type = JsonSchema.JsonType.OBJECT)
         }
+
         else -> JsonSchema(type = JsonSchema.JsonType.OBJECT) // Default for other kinds
     }
 }
@@ -124,15 +133,4 @@ public inline fun <reified T : Any> JsonSchemaInference.jsonSchema(): JsonSchema
             description = "Failed to resolve schema for ${T::class.simpleName}. ${e::class.simpleName}: ${e.message}"
         )
     }
-}
-
-/**
- * Generates JSON schema from the type's [KSerializer] descriptor.
- *
- * This is used as the default for inferring schema.
- */
-public fun buildKotlinxSerializationSchema(type: KType): JsonSchema {
-    return serializer(type)
-        .descriptor
-        .buildJsonSchema()
 }

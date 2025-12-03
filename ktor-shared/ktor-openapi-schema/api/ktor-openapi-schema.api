@@ -628,7 +628,6 @@ public abstract interface class io/ktor/openapi/JsonSchemaInference {
 
 public final class io/ktor/openapi/JsonSchemaInferenceKt {
 	public static final fun buildJsonSchema (Lkotlinx/serialization/descriptors/SerialDescriptor;)Lio/ktor/openapi/JsonSchema;
-	public static final fun buildKotlinxSerializationSchema (Lkotlin/reflect/KType;)Lio/ktor/openapi/JsonSchema;
 	public static final fun getKotlinxJsonSchemaInference ()Lio/ktor/openapi/JsonSchemaInference;
 }
 
@@ -816,9 +815,11 @@ public final class io/ktor/openapi/OpenApiInfo$License {
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
 	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lio/ktor/openapi/OpenApiInfo$License;
 	public static synthetic fun copy$default (Lio/ktor/openapi/OpenApiInfo$License;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/openapi/OpenApiInfo$License;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getIdentifier ()Ljava/lang/String;
 	public final fun getName ()Ljava/lang/String;
 	public final fun getUrl ()Ljava/lang/String;
 	public fun hashCode ()I
@@ -840,10 +841,10 @@ public final class io/ktor/openapi/OpenApiInfo$License$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
-public final class io/ktor/openapi/OpenApiSpecification {
+public final class io/ktor/openapi/OpenApiSpecification : io/ktor/openapi/Extensible {
 	public static final field Companion Lio/ktor/openapi/OpenApiSpecification$Companion;
-	public fun <init> (Ljava/lang/String;Lio/ktor/openapi/OpenApiInfo;Ljava/util/List;Ljava/util/Map;Ljava/util/Map;Lio/ktor/openapi/Components;Ljava/util/List;Ljava/util/Set;Lio/ktor/openapi/ExternalDocs;Ljava/util/Map;)V
-	public synthetic fun <init> (Ljava/lang/String;Lio/ktor/openapi/OpenApiInfo;Ljava/util/List;Ljava/util/Map;Ljava/util/Map;Lio/ktor/openapi/Components;Ljava/util/List;Ljava/util/Set;Lio/ktor/openapi/ExternalDocs;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Lio/ktor/openapi/OpenApiInfo;Ljava/util/List;Ljava/util/Map;Ljava/util/Map;Lio/ktor/openapi/Components;Ljava/util/List;Ljava/util/List;Lio/ktor/openapi/ExternalDocs;Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/lang/String;Lio/ktor/openapi/OpenApiInfo;Ljava/util/List;Ljava/util/Map;Ljava/util/Map;Lio/ktor/openapi/Components;Ljava/util/List;Ljava/util/List;Lio/ktor/openapi/ExternalDocs;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component10 ()Ljava/util/Map;
 	public final fun component2 ()Lio/ktor/openapi/OpenApiInfo;
@@ -852,20 +853,20 @@ public final class io/ktor/openapi/OpenApiSpecification {
 	public final fun component5 ()Ljava/util/Map;
 	public final fun component6 ()Lio/ktor/openapi/Components;
 	public final fun component7 ()Ljava/util/List;
-	public final fun component8 ()Ljava/util/Set;
+	public final fun component8 ()Ljava/util/List;
 	public final fun component9 ()Lio/ktor/openapi/ExternalDocs;
-	public final fun copy (Ljava/lang/String;Lio/ktor/openapi/OpenApiInfo;Ljava/util/List;Ljava/util/Map;Ljava/util/Map;Lio/ktor/openapi/Components;Ljava/util/List;Ljava/util/Set;Lio/ktor/openapi/ExternalDocs;Ljava/util/Map;)Lio/ktor/openapi/OpenApiSpecification;
-	public static synthetic fun copy$default (Lio/ktor/openapi/OpenApiSpecification;Ljava/lang/String;Lio/ktor/openapi/OpenApiInfo;Ljava/util/List;Ljava/util/Map;Ljava/util/Map;Lio/ktor/openapi/Components;Ljava/util/List;Ljava/util/Set;Lio/ktor/openapi/ExternalDocs;Ljava/util/Map;ILjava/lang/Object;)Lio/ktor/openapi/OpenApiSpecification;
+	public final fun copy (Ljava/lang/String;Lio/ktor/openapi/OpenApiInfo;Ljava/util/List;Ljava/util/Map;Ljava/util/Map;Lio/ktor/openapi/Components;Ljava/util/List;Ljava/util/List;Lio/ktor/openapi/ExternalDocs;Ljava/util/Map;)Lio/ktor/openapi/OpenApiSpecification;
+	public static synthetic fun copy$default (Lio/ktor/openapi/OpenApiSpecification;Ljava/lang/String;Lio/ktor/openapi/OpenApiInfo;Ljava/util/List;Ljava/util/Map;Ljava/util/Map;Lio/ktor/openapi/Components;Ljava/util/List;Ljava/util/List;Lio/ktor/openapi/ExternalDocs;Ljava/util/Map;ILjava/lang/Object;)Lio/ktor/openapi/OpenApiSpecification;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getComponents ()Lio/ktor/openapi/Components;
-	public final fun getExtensions ()Ljava/util/Map;
+	public fun getExtensions ()Ljava/util/Map;
 	public final fun getExternalDocs ()Lio/ktor/openapi/ExternalDocs;
 	public final fun getInfo ()Lio/ktor/openapi/OpenApiInfo;
 	public final fun getOpenapi ()Ljava/lang/String;
 	public final fun getPaths ()Ljava/util/Map;
 	public final fun getSecurity ()Ljava/util/List;
 	public final fun getServers ()Ljava/util/List;
-	public final fun getTags ()Ljava/util/Set;
+	public final fun getTags ()Ljava/util/List;
 	public final fun getWebhooks ()Ljava/util/Map;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
