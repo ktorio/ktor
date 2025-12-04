@@ -10,17 +10,15 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.sse.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
-import io.ktor.client.utils.dropCompressionHeaders
+import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
 
 internal class CurlClientEngine(
     override val config: CurlClientEngineConfig
 ) : HttpClientEngineBase("ktor-curl") {
-    override val dispatcher = Dispatchers.Unconfined
 
     override val supportedCapabilities = setOf(HttpTimeoutCapability, WebSocketCapability, SSECapability)
 

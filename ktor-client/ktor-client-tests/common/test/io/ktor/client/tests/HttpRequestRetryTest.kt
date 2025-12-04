@@ -547,4 +547,29 @@ class HttpRequestRetryTest {
             assertEquals(maxRetriesCount, counter)
         }
     }
+
+    @Test
+    fun testRetryWithMaxValueDoesNotFailAllRequests() = testWithEngine(MockEngine) {
+        val maxRetriesCount = Int.MAX_VALUE
+        config {
+            engine { addHandler { respondOk() } }
+
+            install(HttpRequestRetry) {
+                retryOnExceptionIf(maxRetriesCount) { _, _ ->
+                    // request shouldn't fail and shouldn't retry
+                    false
+                }
+            }
+        }
+
+        /**
+         * This is testing for a bug specific to using Int.MAX_VALUE as the
+         * maxRetriesCount value.
+         * No need to actually test retry behavior, as the bug happens
+         * immediately, without any retries.
+         */
+        test { client ->
+            assertEquals(HttpStatusCode.OK, client.get("/").status)
+        }
+    }
 }

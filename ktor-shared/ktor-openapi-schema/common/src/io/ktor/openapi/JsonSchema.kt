@@ -4,6 +4,7 @@
 
 package io.ktor.openapi
 
+import io.ktor.openapi.JsonSchema.SchemaType.JsonTypeSerializer
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
@@ -19,17 +20,17 @@ import kotlinx.serialization.encoding.*
  * Unless stated otherwise, the property definitions follow the JSON Schema.
  */
 @Serializable
-public data class Schema(
+public data class JsonSchema(
     val type: @Serializable(SchemaType.Serializer::class) SchemaType? = null,
     val title: String? = null,
     val description: String? = null,
     val required: List<String> = emptyList(),
     val nullable: Boolean? = null,
-    val allOf: List<ReferenceOr<Schema>>? = null,
-    val oneOf: List<ReferenceOr<Schema>>? = null,
-    val not: ReferenceOr<Schema>? = null,
-    val anyOf: List<ReferenceOr<Schema>>? = null,
-    val properties: Map<String, ReferenceOr<Schema>>? = null,
+    val allOf: List<ReferenceOr<JsonSchema>>? = null,
+    val oneOf: List<ReferenceOr<JsonSchema>>? = null,
+    val not: ReferenceOr<JsonSchema>? = null,
+    val anyOf: List<ReferenceOr<JsonSchema>>? = null,
+    val properties: Map<String, ReferenceOr<JsonSchema>>? = null,
     val additionalProperties: AdditionalProperties? = null,
     val discriminator: Discriminator? = null,
     val readOnly: Boolean? = null,
@@ -44,7 +45,7 @@ public data class Schema(
     /** Unlike JSON Schema this value MUST conform to the defined type for this parameter. */
     val default: GenericElement? = null,
     val format: String? = null,
-    val items: ReferenceOr<Schema>? = null,
+    val items: ReferenceOr<JsonSchema>? = null,
     val maximum: Double? = null,
     val exclusiveMaximum: Boolean? = null,
     val minimum: Double? = null,
@@ -69,22 +70,22 @@ public data class Schema(
         val mapping: Map<String, String>? = null,
     )
 
+    @Serializable(JsonTypeSerializer::class)
+    public enum class JsonType : SchemaType {
+        ARRAY,
+        OBJECT,
+        NUMBER,
+        BOOLEAN,
+        INTEGER,
+        NULL,
+        STRING
+    }
+
     @Serializable(with = SchemaType.Serializer::class)
     public sealed interface SchemaType {
 
         @Serializable
         public data class AnyOf(val types: List<JsonType>) : SchemaType
-
-        @Serializable(JsonTypeSerializer::class)
-        public enum class JsonType : SchemaType {
-            ARRAY,
-            OBJECT,
-            NUMBER,
-            BOOLEAN,
-            INTEGER,
-            NULL,
-            STRING
-        }
 
         public object Serializer : KSerializer<SchemaType> {
             @OptIn(InternalSerializationApi::class)

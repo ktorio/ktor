@@ -24,8 +24,6 @@ public data class PathItem(
      * syntax MAY be used for rich text representation.
      */
     public val description: String? = null,
-    /** A definition of a GET operation on this path. */
-    public val get: Operation? = null,
     /** A definition of a PUT operation on this path. */
     public val put: Operation? = null,
     /** A definition of a POST operation on this path. */
@@ -34,6 +32,8 @@ public data class PathItem(
     public val delete: Operation? = null,
     /** A definition of an OPTIONS operation on this path. */
     public val options: Operation? = null,
+    /** A definition of a GET operation on this path. */
+    public val get: Operation? = null,
     /** A definition of a HEAD operation on this path. */
     public val head: Operation? = null,
     /** A definition of a PATCH operation on this path. */
