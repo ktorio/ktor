@@ -26,61 +26,76 @@ import kotlin.test.assertNotNull
 class RouteAnnotationApiTest {
 
     companion object {
-        private val expected = """
+        private val expected = $$"""
             {
-              "/messages": {
-                "get": {
-                  "summary": "get messages",
-                  "description": "Retrieves a list of messages.",
-                  "parameters": [
-                    {
-                      "name": "q",
-                      "in": "query",
-                      "description": "An encoded query",
-                      "content": {
-                        "text/plain": {}
+              "openapi": "3.1.1",
+              "info": {
+                "title": "Test API",
+                "version": "1.0.0"
+              },
+              "paths": {
+                "/messages": {
+                  "get": {
+                    "summary": "get messages",
+                    "description": "Retrieves a list of messages.",
+                    "parameters": [
+                      {
+                        "name": "q",
+                        "in": "query",
+                        "description": "An encoded query",
+                        "content": {
+                          "text/plain": {}
+                        }
                       }
-                    }
-                  ],
-                  "responses": {
-                    "200": {
-                      "description": "A list of messages",
-                      "content": {
-                        "application/json": {
-                          "schema": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "required": [
-                                "id",
-                                "content",
-                                "timestamp"
-                              ],
-                              "properties": {
-                                "id": {
-                                  "type": "integer"
-                                },
-                                "content": {
-                                  "type": "string"
-                                },
-                                "timestamp": {
-                                  "type": "integer"
-                                }
+                    ],
+                    "responses": {
+                      "200": {
+                        "description": "A list of messages",
+                        "content": {
+                          "application/json": {
+                            "schema": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/Message"
                               }
                             }
                           }
+                        },
+                        "x-sample-message": {
+                          "id": 1,
+                          "content": "Hello, world!",
+                          "timestamp": 16777216000
                         }
                       },
-                      "x-sample-message": {
-                        "id": 1,
-                        "content": "Hello, world!",
-                        "timestamp": 16777216000
+                      "400": {
+                        "description": "Invalid query",
+                        "content": {
+                          "text/plain": {}
+                        }
                       }
-                    },
-                    "400": {
-                      "description": "Invalid query",
+                    }
+                  }
+                }
+              },
+              "components": {
+                "schemas": {
+                  "Message": {
+                    "type": "object",
+                    "title": "io.ktor.annotate.Message",
+                    "required": [
+                      "id",
+                      "content",
+                      "timestamp"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "integer"
+                      },
                       "content": {
-                        "text/plain": {}
+                        "type": "string"
+                      },
+                      "timestamp": {
+                        "type": "integer"
                       }
                     }
                   }
@@ -106,8 +121,16 @@ class RouteAnnotationApiTest {
         routing {
             // get all path items
             get("/routes") {
-                val routes = call.application.routingRoot.findPathItems() - "/routes"
-                call.respond(routes)
+                call.respond(
+                    generateOpenApiSpec(
+                        info = OpenApiInfo("Test API", "1.0.0"),
+                        route = call.application.routingRoot,
+                    ).let {
+                        it.copy(
+                            paths = it.paths - "/routes"
+                        )
+                    }
+                )
             }
 
             // example REST API route
@@ -142,7 +165,8 @@ class RouteAnnotationApiTest {
         // should not appear
         assertFalse("extensions" in responseText)
 
-        val pathItems: Map<String, PathItem> = jsonFormat.decodeFromString(responseText)
+        val openApiSpec = jsonFormat.decodeFromString<OpenApiSpecification>(responseText)
+        val pathItems: Map<String, PathItem> = openApiSpec.paths
         assertEquals(1, pathItems.size)
     }
 
@@ -153,10 +177,19 @@ class RouteAnnotationApiTest {
         }
         routing {
             get("/routes") {
-                val routes = call.application.routingRoot.findPathItems() - "/routes"
-                call.respond(routes)
+                call.respond(
+                    generateOpenApiSpec(
+                        info = OpenApiInfo("Test API", "1.0.0"),
+                        route = call.application.routingRoot,
+                    ).let {
+                        it.copy(
+                            paths = it.paths - "/routes"
+                        )
+                    }
+                )
             }
             get("/messages") {
+                call.response.header("X-Sample-Message", "test")
                 call.respond(listOf(testMessage))
             }.annotate {
                 parameters {
@@ -168,6 +201,7 @@ class RouteAnnotationApiTest {
                 parameters {
                     header("X-Second") {
                         description = "Second header"
+                        ContentType.Text.Plain()
                     }
                 }
             }
@@ -186,8 +220,8 @@ class RouteAnnotationApiTest {
         }
         routing {
             get("/routes") {
-                val routes = call.application.routingRoot.findPathItems() - "/routes"
-                call.respond(routes)
+                val pathItems = call.application.routingRoot.findPathItems() - "/routes"
+                call.respond(pathItems)
             }
             route("/messages") {
                 get {
@@ -197,6 +231,7 @@ class RouteAnnotationApiTest {
                     description = "Retrieves a list of messages."
 
                     parameters {
+                        @Suppress("DEPRECATION")
                         parameter("q") {
                             required = true
                             description = "Message query"
@@ -249,7 +284,7 @@ class RouteAnnotationApiTest {
             assertEquals("q", name)
             assertEquals("Message query", description)
             assertEquals(true, required)
-            assertEquals(jsonSchema<String>(), schema?.valueOrNull())
+            assertEquals(KotlinxJsonSchemaInference.jsonSchema<String>(), schema?.valueOrNull())
         }
 
         val responses = operation.responses
@@ -259,7 +294,7 @@ class RouteAnnotationApiTest {
         assertEquals("A list of messages", okResponse.description)
         assertEquals("child", okResponse.extensions?.get("x-bonus")?.deserialize(String.serializer()))
         assertEquals(
-            jsonSchema<List<Message>>(),
+            KotlinxJsonSchemaInference.jsonSchema<List<Message>>(),
             okResponse.content?.get(ContentType.Application.Json)?.schema?.valueOrNull()
         )
         val badRequestResponse = responses.responses?.get(HttpStatusCode.BadRequest.value)?.valueOrNull()
