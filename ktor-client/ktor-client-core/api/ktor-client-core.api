@@ -1417,6 +1417,7 @@ public final class io/ktor/client/request/forms/ChannelProvider {
 }
 
 public final class io/ktor/client/request/forms/FormBuilder {
+	public fun <init> ()V
 	public final fun append (Lio/ktor/client/request/forms/FormPart;)V
 	public final fun append (Ljava/lang/String;Lio/ktor/client/request/forms/ChannelProvider;Lio/ktor/http/Headers;)V
 	public final fun append (Ljava/lang/String;Lio/ktor/client/request/forms/InputProvider;Lio/ktor/http/Headers;)V
@@ -1440,6 +1441,7 @@ public final class io/ktor/client/request/forms/FormBuilder {
 	public static synthetic fun append$default (Lio/ktor/client/request/forms/FormBuilder;Ljava/lang/String;[Ljava/lang/String;Lio/ktor/http/Headers;ILjava/lang/Object;)V
 	public final fun appendInput (Ljava/lang/String;Lio/ktor/http/Headers;Ljava/lang/Long;Lkotlin/jvm/functions/Function0;)V
 	public static synthetic fun appendInput$default (Lio/ktor/client/request/forms/FormBuilder;Ljava/lang/String;Lio/ktor/http/Headers;Ljava/lang/Long;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)V
+	public final fun build ()Ljava/util/List;
 }
 
 public final class io/ktor/client/request/forms/FormBuildersKt {

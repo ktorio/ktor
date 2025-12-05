@@ -406,7 +406,7 @@ class JWTAuthTest {
 
     private suspend fun verifyResponseBadRequest(response: HttpResponse) {
         assertEquals(HttpStatusCode.BadRequest, response.status)
-        assertTrue(response.bodyAsText().isEmpty())
+        assertEquals("Invalid auth header", response.bodyAsText())
     }
 
     private suspend fun verifyResponseForbidden(response: HttpResponse) {

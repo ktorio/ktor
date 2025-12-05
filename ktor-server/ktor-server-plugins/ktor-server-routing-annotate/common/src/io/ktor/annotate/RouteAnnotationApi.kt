@@ -15,29 +15,71 @@ import io.ktor.utils.io.*
 import kotlin.collections.plus
 
 /**
- * Attribute key for storing [Operation] in a [Route].
+ * Attribute key for including OpenAPI metadata on a [Route].
  */
-public val EndpointAnnotationAttributeKey: AttributeKey<Operation> =
-    AttributeKey<Operation>("operation-docs")
+public val EndpointAnnotationAttributeKey: AttributeKey<List<RouteAnnotationFunction>> =
+    AttributeKey("operation-docs")
+
+/**
+ * Function that configures an OpenAPI [Operation].
+ */
+public typealias RouteAnnotationFunction = Operation.Builder.() -> Unit
 
 /**
  * Annotate a [Route] with an OpenAPI [Operation].
  */
-public fun Route.annotate(configure: Operation.Builder.() -> Unit): Route {
+public fun Route.annotate(configure: RouteAnnotationFunction): Route {
     attributes[EndpointAnnotationAttributeKey] =
         when (val previous = attributes.getOrNull(EndpointAnnotationAttributeKey)) {
-            null -> Operation.build(configure)
-            else -> previous + Operation.build(configure)
+            null -> listOf(configure)
+            else -> previous + configure
         }
     return this
 }
 
 /**
+ * Generates an OpenAPI specification for the given [route].
+ *
+ * @param info The OpenAPI info object.
+ * @param route The route to generate the specification for.
+ */
+public fun generateOpenApiSpec(
+    info: OpenApiInfo,
+    route: RoutingNode,
+): OpenApiSpecification {
+    val jsonSchema = mutableMapOf<String, JsonSchema>()
+    val pathItems = route.findPathItems(
+        PopulateMediaTypeDefaults + CollectSchemaReferences { schema ->
+            val title = schema.title ?: return@CollectSchemaReferences null
+            val unqualifiedTitle = title.substringAfterLast('.')
+            val existingTitle = jsonSchema[unqualifiedTitle]?.title ?: title
+            // if the shortened title is already in use, use the full title instead
+            if (existingTitle != title) {
+                jsonSchema[title] = schema
+                title
+            } else {
+                jsonSchema[unqualifiedTitle] = schema
+                unqualifiedTitle
+            }
+        }
+    )
+
+    return OpenApiSpecification(
+        info = info,
+        paths = pathItems,
+        components = Components(schemas = jsonSchema)
+            .takeIf(Components::isNotEmpty)
+    )
+}
+
+/**
  * Finds all [PathItem]s under the given [RoutingNode].
  */
-public fun RoutingNode.findPathItems(): Map<String, PathItem> =
-    descendants()
-        .mapNotNull(RoutingNode::asPathItem)
+public fun RoutingNode.findPathItems(
+    onOperation: OperationMapping = PopulateMediaTypeDefaults
+): Map<String, PathItem> {
+    return descendants()
+        .mapNotNull { it.asPathItem(onOperation) }
         .fold(mutableMapOf()) { map, (route, pathItem) ->
             map.also {
                 if (route in map) {
@@ -47,12 +89,15 @@ public fun RoutingNode.findPathItems(): Map<String, PathItem> =
                 }
             }
         }
+}
 
-private fun RoutingNode.asPathItem(): Pair<String, PathItem>? {
+private fun RoutingNode.asPathItem(
+    onOperation: OperationMapping
+): Pair<String, PathItem>? {
     if (!hasHandler()) return null
     val path = path(format = OpenApiRoutePathFormat)
     val method = method() ?: return null
-    val operation = operation()?.normalize() ?: Operation()
+    val operation = operation()?.let(onOperation::map) ?: Operation()
     val pathItem = newPathItem(method, operation) ?: return null
 
     return path to pathItem
@@ -65,18 +110,23 @@ private fun RoutingNode.method(): HttpMethod? =
         .firstOrNull()
         ?.method
 
-private fun RoutingNode.operation(): Operation? =
-    lineage().fold(null) { acc, node ->
+private fun RoutingNode.operation(): Operation? {
+    // TODO KTOR-9086 get schema inference from ContentNegotiation plugin
+    val schemaInference = KotlinxJsonSchemaInference
+    return lineage().fold(null) { acc, node ->
         val current = mergeNullable(
-            node.operationAttribute(),
+            node.operationFromAnnotateCalls(schemaInference),
             node.operationFromSelector(),
             Operation::plus
         )
         mergeNullable(acc, current, Operation::plus)
     }
+}
 
-private fun RoutingNode.operationAttribute(): Operation? =
+private fun RoutingNode.operationFromAnnotateCalls(schemaInference: JsonSchemaInference): Operation? =
     attributes.getOrNull(EndpointAnnotationAttributeKey)
+        ?.map { function -> Operation.build(schemaInference, function) }
+        ?.reduce(Operation::plus)
 
 private fun RoutingNode.operationFromSelector(): Operation? {
     return when (val paramSelector = selector) {
@@ -88,6 +138,7 @@ private fun RoutingNode.operationFromSelector(): Operation? {
                 }
             }
         }
+
         is PathSegmentParameterRouteSelector,
         is PathSegmentOptionalParameterRouteSelector -> Operation.build {
             parameters {
@@ -96,6 +147,7 @@ private fun RoutingNode.operationFromSelector(): Operation? {
                 }
             }
         }
+
         is HttpHeaderRouteSelector -> Operation.build {
             parameters {
                 header(paramSelector.name) {}
@@ -192,6 +244,7 @@ private operator fun Parameter.plus(other: Parameter): Parameter =
         required = required || other.required,
         deprecated = deprecated || other.deprecated,
         schema = schema ?: other.schema,
+        content = mergeNullable(content, other.content) { a, b -> b + a },
         style = style ?: other.style,
         explode = explode ?: other.explode,
         allowReserved = allowReserved ?: other.allowReserved,
@@ -229,23 +282,3 @@ private fun <E, K> Iterable<E>.mergeElementsBy(
 
 private fun <K, V> Iterable<Map.Entry<K, V>>.toMap() =
     associate { it.key to it.value }
-
-private fun Operation.normalize(): Operation {
-    val hasMissingMediaInfo = parameters.orEmpty()
-        .filterIsInstance<ReferenceOr.Value<Parameter>>()
-        .any { it.value.schema == null && it.value.content == null || it.value.`in` == null }
-    if (!hasMissingMediaInfo) {
-        return this
-    }
-    return copy(
-        parameters = parameters?.map { ref ->
-            val param = ref.valueOrNull() ?: return@map ref
-            ReferenceOr.Value(
-                param.copy(
-                    `in` = param.`in` ?: ParameterType.query,
-                    content = param.content ?: MediaType.Text.takeIf { param.schema == null },
-                )
-            )
-        }
-    )
-}

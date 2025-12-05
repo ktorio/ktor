@@ -7,7 +7,6 @@ package io.ktor.server.jetty
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
-import io.ktor.server.response.*
 import io.ktor.util.cio.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
@@ -96,30 +95,30 @@ internal class JettyKtorHandler(
 
                 try {
                     pipeline.execute(call)
-                } catch (cancelled: CancellationException) {
-                    response.sendErrorIfNotCommitted(HttpServletResponse.SC_GONE)
-                } catch (channelFailed: ChannelIOException) {
+                } catch (_: CancellationException) {
+                    response.sendErrorIfNotCommitted(status = HttpServletResponse.SC_GONE, message = null)
+                } catch (_: ChannelIOException) {
                 } catch (error: Throwable) {
                     logError(call, error)
-                    if (!response.isCommitted) {
-                        call.respond(HttpStatusCode.InternalServerError)
-                    }
+                    response.sendErrorIfNotCommitted(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, error.message)
                 } finally {
                     try {
                         request.asyncContext?.complete()
-                    } catch (expected: IllegalStateException) {
+                    } catch (_: IllegalStateException) {
                     }
                 }
             }
         } catch (ex: Throwable) {
             environment.log.error("Application cannot fulfill the request", ex)
-            response.sendErrorIfNotCommitted(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+            response.sendErrorIfNotCommitted(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.message)
         }
     }
 
-    private fun HttpServletResponse.sendErrorIfNotCommitted(status: Int) {
-        if (!isCommitted) {
-            sendError(status)
+    private fun HttpServletResponse.sendErrorIfNotCommitted(status: Int, message: String?) {
+        if (isCommitted) return
+        when (message) {
+            null -> sendError(status)
+            else -> sendError(status, message)
         }
     }
 }

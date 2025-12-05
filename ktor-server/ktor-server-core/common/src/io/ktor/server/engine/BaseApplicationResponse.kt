@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.engine
@@ -355,12 +355,16 @@ public abstract class BaseApplicationResponse(
                     val response = call.response as? BaseApplicationResponse
                         ?: call.attributes[EngineResponseAttributeKey]
 
-                    val content = if (inDevMode) {
-                        ExceptionPageContent(call, cause)
-                    } else {
-                        object : OutgoingContent.NoContent() {
-                            override val status: HttpStatusCode = HttpStatusCode.InternalServerError
-                        }
+                    val message = cause.message
+                    val content = when {
+                        inDevMode -> ExceptionPageContent(call, cause)
+                        message != null -> TextContent(
+                            text = message,
+                            contentType = ContentType.Text.Plain,
+                            status = HttpStatusCode.InternalServerError
+                        )
+
+                        else -> ERROR_CONTENT
                     }
 
                     response.respondOutgoingContent(content)

@@ -117,8 +117,11 @@ private fun Application.installDefaultTransformationChecker() {
     intercept(ApplicationCallPipeline.Plugins) {
         try {
             proceed()
-        } catch (_: CannotTransformContentToTypeException) {
-            call.respond(HttpStatusCode.UnsupportedMediaType)
+        } catch (e: CannotTransformContentToTypeException) {
+            when (val message = e.message) {
+                null -> call.respond(HttpStatusCode.UnsupportedMediaType)
+                else -> call.respond(HttpStatusCode.UnsupportedMediaType, message)
+            }
         }
     }
 

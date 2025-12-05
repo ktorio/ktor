@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.servlet.jakarta
@@ -40,9 +40,14 @@ private class ServletWriter(val output: ServletOutputStream, val idleTimeout: Du
 
     private val events = Channel<Unit>(2)
 
+    init {
+        // Shouldn't be dispatched because the connection can be already completing.
+        // Such an exception closes the connection without sending any data.
+        output.setWriteListener(this)
+    }
+
     suspend fun run() {
         try {
-            output.setWriteListener(this)
             loop()
 
             finish()
@@ -108,7 +113,7 @@ private class ServletWriter(val output: ServletOutputStream, val idleTimeout: Du
             if (!events.trySend(Unit).isSuccess) {
                 events.trySendBlocking(Unit)
             }
-        } catch (ignore: Throwable) {
+        } catch (_: Throwable) {
         }
     }
 

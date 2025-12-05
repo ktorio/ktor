@@ -4,8 +4,11 @@
 
 package io.ktor.client.tests
 
+import io.ktor.client.request.*
 import io.ktor.client.test.base.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlin.coroutines.ContinuationInterceptor
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -36,6 +39,26 @@ class DispatcherTest : ClientLoader() {
 
         test { client ->
             assertEquals(customDispatcher, client.engine.dispatcher)
+        }
+    }
+
+    @Test
+    fun `test HttpStatement_execute uses the engine dispatcher`() = clientTests {
+        test { client ->
+            client.prepareGet("$TEST_SERVER/").execute {
+                val currentDispatcher = currentCoroutineContext()[ContinuationInterceptor]
+                assertEquals(client.engine.dispatcher, currentDispatcher)
+            }
+        }
+    }
+
+    @Test
+    fun `test HttpStatement_body uses the engine dispatcher`() = clientTests {
+        test { client ->
+            client.prepareGet("$TEST_SERVER/").body { _: String ->
+                val currentDispatcher = currentCoroutineContext()[ContinuationInterceptor]
+                assertEquals(client.engine.dispatcher, currentDispatcher)
+            }
         }
     }
 }

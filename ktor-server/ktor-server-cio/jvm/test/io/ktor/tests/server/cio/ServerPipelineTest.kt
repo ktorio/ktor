@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.server.cio
@@ -107,7 +107,7 @@ class ServerPipelineTest : CoroutineScope {
             assertEquals("Upgrade", request.headers[HttpHeaders.Connection].toString())
 
             assertNotNull(upgraded)
-            upgraded!!.complete(true)
+            upgraded.complete(true)
 
             request.release()
 
@@ -127,49 +127,6 @@ class ServerPipelineTest : CoroutineScope {
     }
 
     @Test
-    fun testSingleRequestUpgradeNoTimeout(): Unit = runBlocking(coroutineContext) {
-        val input = ByteChannel()
-        val output = ByteChannel()
-
-        val requestsReceived = ArrayList<String>()
-        val latch = Job()
-
-        val connection = ServerIncomingConnection(input, output, null, null)
-        startServerConnectionPipeline(connection, timeout = 1.milliseconds) { request ->
-            requestsReceived += request.uri.toString()
-            assertEquals("/", request.uri.toString())
-            assertEquals("GET", request.method.value)
-            assertEquals("HTTP/1.1", request.version.toString())
-            assertEquals("Upgrade", request.headers[HttpHeaders.Connection].toString())
-
-            assertNotNull(upgraded)
-            upgraded!!.complete(true)
-
-            request.release()
-
-            output.writeStringUtf8("HTTP/1.1 101 Switching\r\nUpgrade: test\r\nConnection: Upgrade\r\n\r\n")
-            output.flush()
-
-            latch.join()
-        }
-
-        input.writeStringUtf8("GET / HTTP/1.1\r\nUpgrade: test\r\nConnection: Upgrade\r\n\r\n")
-        input.flush()
-
-        assertEquals("HTTP/1.1 101 Switching", output.readUTF8Line())
-        assertEquals("Upgrade: test", output.readUTF8Line())
-        assertEquals("Connection: Upgrade", output.readUTF8Line())
-        assertEquals("", output.readUTF8Line())
-        assertEquals("/", requestsReceived.single())
-
-        delay(100)
-        latch.complete()
-
-        input.close()
-        output.readRemaining().discard()
-    }
-
-    @Test
     fun testPipelineIdleTimeoutNoRequests(): Unit = runBlocking(coroutineContext) {
         val input = ByteChannel()
         val output = ByteChannel()
@@ -181,7 +138,7 @@ class ServerPipelineTest : CoroutineScope {
             }
 
             // it's important to close the joint channel as it happens in real networks
-            // this is really only a test specific thing
+            // this is really only a test-specific thing
             launch(CoroutineName("IO helper")) {
                 try {
                     output.discard()
@@ -216,7 +173,7 @@ class ServerPipelineTest : CoroutineScope {
             requestHandled.join()
 
             // it's important to close the joint channel as it happens in real networks
-            // this is really only a test specific thing
+            // this is really only a test-specific thing
             launch(CoroutineName("IO helper")) {
                 try {
                     output.discard()

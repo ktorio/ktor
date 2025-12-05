@@ -5,6 +5,7 @@
 package io.ktor.server.application
 
 import io.ktor.client.request.*
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.hooks.*
 import io.ktor.server.config.MapApplicationConfig
@@ -206,7 +207,9 @@ class HooksTest {
             }
         }
 
-        assertEquals(HttpStatusCode.BadRequest, client.get("/").status)
+        val response = client.get("/")
+        assertEquals(HttpStatusCode.BadRequest, response.status)
+        assertEquals("Bad Request", response.bodyAsText())
         assertTrue(responseSentCalled, message = "ResponseSent was not called")
     }
 

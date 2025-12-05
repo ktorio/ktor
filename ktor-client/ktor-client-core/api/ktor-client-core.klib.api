@@ -889,6 +889,8 @@ final class io.ktor.client.request.forms/ChannelProvider { // io.ktor.client.req
 }
 
 final class io.ktor.client.request.forms/FormBuilder { // io.ktor.client.request.forms/FormBuilder|null[0]
+    constructor <init>() // io.ktor.client.request.forms/FormBuilder.<init>|<init>(){}[0]
+
     final fun <#A1: kotlin/Any> append(io.ktor.client.request.forms/FormPart<#A1>) // io.ktor.client.request.forms/FormBuilder.append|append(io.ktor.client.request.forms.FormPart<0:0>){0§<kotlin.Any>}[0]
     final fun <#A1: kotlin/Any> append(kotlin/String, #A1, io.ktor.http/Headers = ...) // io.ktor.client.request.forms/FormBuilder.append|append(kotlin.String;0:0;io.ktor.http.Headers){0§<kotlin.Any>}[0]
     final fun append(kotlin/String, io.ktor.client.request.forms/ChannelProvider, io.ktor.http/Headers = ...) // io.ktor.client.request.forms/FormBuilder.append|append(kotlin.String;io.ktor.client.request.forms.ChannelProvider;io.ktor.http.Headers){}[0]
@@ -901,6 +903,7 @@ final class io.ktor.client.request.forms/FormBuilder { // io.ktor.client.request
     final fun append(kotlin/String, kotlin/String, io.ktor.http/Headers = ...) // io.ktor.client.request.forms/FormBuilder.append|append(kotlin.String;kotlin.String;io.ktor.http.Headers){}[0]
     final fun append(kotlin/String, kotlinx.io/Source, io.ktor.http/Headers = ...) // io.ktor.client.request.forms/FormBuilder.append|append(kotlin.String;kotlinx.io.Source;io.ktor.http.Headers){}[0]
     final fun appendInput(kotlin/String, io.ktor.http/Headers = ..., kotlin/Long? = ..., kotlin/Function0<kotlinx.io/Source>) // io.ktor.client.request.forms/FormBuilder.appendInput|appendInput(kotlin.String;io.ktor.http.Headers;kotlin.Long?;kotlin.Function0<kotlinx.io.Source>){}[0]
+    final fun build(): kotlin.collections/List<io.ktor.client.request.forms/FormPart<*>> // io.ktor.client.request.forms/FormBuilder.build|build(){}[0]
 }
 
 final class io.ktor.client.request.forms/FormDataContent : io.ktor.http.content/OutgoingContent.ByteArrayContent { // io.ktor.client.request.forms/FormDataContent|null[0]
@@ -1515,7 +1518,6 @@ final fun io.ktor.client.plugins/SocketTimeoutException(io.ktor.client.request/H
 final fun io.ktor.client.plugins/convertLongTimeoutToIntWithInfiniteAsZero(kotlin/Long): kotlin/Int // io.ktor.client.plugins/convertLongTimeoutToIntWithInfiniteAsZero|convertLongTimeoutToIntWithInfiniteAsZero(kotlin.Long){}[0]
 final fun io.ktor.client.plugins/convertLongTimeoutToLongWithInfiniteAsZero(kotlin/Long): kotlin/Long // io.ktor.client.plugins/convertLongTimeoutToLongWithInfiniteAsZero|convertLongTimeoutToLongWithInfiniteAsZero(kotlin.Long){}[0]
 final fun io.ktor.client.request.forms/formData(kotlin/Array<out io.ktor.client.request.forms/FormPart<*>>...): kotlin.collections/List<io.ktor.http.content/PartData> // io.ktor.client.request.forms/formData|formData(kotlin.Array<out|io.ktor.client.request.forms.FormPart<*>>...){}[0]
-final fun io.ktor.client.request.forms/formData(kotlin/Function1<io.ktor.client.request.forms/FormBuilder, kotlin/Unit>): kotlin.collections/List<io.ktor.http.content/PartData> // io.ktor.client.request.forms/formData|formData(kotlin.Function1<io.ktor.client.request.forms.FormBuilder,kotlin.Unit>){}[0]
 final fun io.ktor.client.request/request(kotlin/Function1<io.ktor.client.request/HttpRequestBuilder, kotlin/Unit>): io.ktor.client.request/HttpRequestBuilder // io.ktor.client.request/request|request(kotlin.Function1<io.ktor.client.request.HttpRequestBuilder,kotlin.Unit>){}[0]
 final fun io.ktor.client.utils/buildHeaders(kotlin/Function1<io.ktor.http/HeadersBuilder, kotlin/Unit> = ...): io.ktor.http/Headers // io.ktor.client.utils/buildHeaders|buildHeaders(kotlin.Function1<io.ktor.http.HeadersBuilder,kotlin.Unit>){}[0]
 final fun io.ktor.client/HttpClient(io.ktor.client.engine/HttpClientEngine, kotlin/Function1<io.ktor.client/HttpClientConfig<*>, kotlin/Unit>): io.ktor.client/HttpClient // io.ktor.client/HttpClient|HttpClient(io.ktor.client.engine.HttpClientEngine;kotlin.Function1<io.ktor.client.HttpClientConfig<*>,kotlin.Unit>){}[0]
@@ -1526,6 +1528,7 @@ final inline fun <#A: kotlin/Any?> io.ktor.client.plugins/unwrapRequestTimeoutEx
 final inline fun <#A: reified kotlin/Any?> (io.ktor.client.plugins.sse/SSESessionWithDeserialization).io.ktor.client.plugins.sse/deserialize(io.ktor.sse/TypedServerSentEvent<kotlin/String>): #A? // io.ktor.client.plugins.sse/deserialize|deserialize@io.ktor.client.plugins.sse.SSESessionWithDeserialization(io.ktor.sse.TypedServerSentEvent<kotlin.String>){0§<kotlin.Any?>}[0]
 final inline fun <#A: reified kotlin/Any?> (io.ktor.client.plugins.sse/SSESessionWithDeserialization).io.ktor.client.plugins.sse/deserialize(kotlin/String?): #A? // io.ktor.client.plugins.sse/deserialize|deserialize@io.ktor.client.plugins.sse.SSESessionWithDeserialization(kotlin.String?){0§<kotlin.Any?>}[0]
 final inline fun <#A: reified kotlin/Any?> (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.request/setBody(#A) // io.ktor.client.request/setBody|setBody@io.ktor.client.request.HttpRequestBuilder(0:0){0§<kotlin.Any?>}[0]
+final inline fun io.ktor.client.request.forms/formData(kotlin/Function1<io.ktor.client.request.forms/FormBuilder, kotlin/Unit>): kotlin.collections/List<io.ktor.http.content/PartData> // io.ktor.client.request.forms/formData|formData(kotlin.Function1<io.ktor.client.request.forms.FormBuilder,kotlin.Unit>){}[0]
 final suspend fun (io.ktor.client.call/HttpClientCall).io.ktor.client.call/save(): io.ktor.client.call/HttpClientCall // io.ktor.client.call/save|save@io.ktor.client.call.HttpClientCall(){}[0]
 final suspend fun (io.ktor.client.plugins.cache.storage/CacheStorage).io.ktor.client.plugins.cache.storage/store(io.ktor.client.statement/HttpResponse): io.ktor.client.plugins.cache.storage/CachedResponseData // io.ktor.client.plugins.cache.storage/store|store@io.ktor.client.plugins.cache.storage.CacheStorage(io.ktor.client.statement.HttpResponse){}[0]
 final suspend fun (io.ktor.client.plugins.cache.storage/CacheStorage).io.ktor.client.plugins.cache.storage/store(io.ktor.client.statement/HttpResponse, kotlin.collections/Map<kotlin/String, kotlin/String>, kotlin/Boolean = ...): io.ktor.client.plugins.cache.storage/CachedResponseData // io.ktor.client.plugins.cache.storage/store|store@io.ktor.client.plugins.cache.storage.CacheStorage(io.ktor.client.statement.HttpResponse;kotlin.collections.Map<kotlin.String,kotlin.String>;kotlin.Boolean){}[0]

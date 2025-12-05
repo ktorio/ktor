@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.plugins.statuspages
@@ -83,7 +83,7 @@ class StatusPagesTest {
         client.get("/missing").bodyAsText().let { response ->
             try {
                 assertEquals("class io.ktor.server.http.content.HttpStatusCodeContent", response)
-            } catch (cause: Throwable) {
+            } catch (_: Throwable) {
                 // for JS/Wasm
                 assertEquals("class HttpStatusCodeContent", response)
             }
@@ -92,7 +92,7 @@ class StatusPagesTest {
         client.get("/notFound").bodyAsText().let { response ->
             try {
                 assertEquals("class io.ktor.http.content.TextContent", response)
-            } catch (cause: Throwable) {
+            } catch (_: Throwable) {
                 // for JS/Wasm
                 assertEquals("class TextContent", response)
             }
@@ -401,15 +401,15 @@ class StatusPagesTest {
         }
 
         client.get("/bad-request").let { response ->
-            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals(HttpStatusCode.BadRequest, response.status)
             assertEquals("BadRequest", response.bodyAsText())
         }
         client.get("/media-type-not-supported").let { response ->
-            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals(HttpStatusCode.UnsupportedMediaType, response.status)
             assertEquals("UnsupportedMediaType", response.bodyAsText())
         }
         client.get("/not-found").let { response ->
-            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals(HttpStatusCode.NotFound, response.status)
             assertEquals("NotFound", response.bodyAsText())
         }
     }
