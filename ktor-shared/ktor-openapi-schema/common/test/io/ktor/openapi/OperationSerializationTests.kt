@@ -52,7 +52,7 @@ class OperationSerializationTests {
             requestBody {
                 description = "Article to create"
                 required = true
-                jsonSchema = jsonSchema<Article>()
+                schema = jsonSchema<Article>()
             }
         }
 
@@ -124,13 +124,13 @@ class OperationSerializationTests {
             requestBody {
                 description = "Article data"
                 required = true
-                jsonSchema = jsonSchema<Article>()
+                schema = jsonSchema<Article>()
             }
 
             responses {
                 HttpStatusCode.Created {
                     description = "Article created successfully"
-                    jsonSchema = jsonSchema<Article>()
+                    schema = jsonSchema<Article>()
                     headers {
                         header("Location") {
                             description = "Location of the created resource"
@@ -213,7 +213,7 @@ class OperationSerializationTests {
             requestBody {
                 description = "Article data"
                 required = true
-                jsonSchema = jsonSchema<Article>()
+                schema = jsonSchema<Article>()
                 extension("x-validation-schema", "article-v1")
                 extension("x-max-size-bytes", 1048576) // 1MB
             }

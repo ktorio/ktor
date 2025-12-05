@@ -23,5 +23,6 @@ public final class io/ktor/annotate/RouteAnnotationApiKt {
 	public static synthetic fun findPathItems$default (Lio/ktor/server/routing/RoutingNode;Lio/ktor/annotate/OperationMapping;ILjava/lang/Object;)Ljava/util/Map;
 	public static final fun generateOpenApiSpec (Lio/ktor/openapi/OpenApiInfo;Lio/ktor/server/routing/RoutingNode;)Lio/ktor/openapi/OpenApiSpecification;
 	public static final fun getEndpointAnnotationAttributeKey ()Lio/ktor/util/AttributeKey;
+	public static final fun getJsonSchemaAttributeKey ()Lio/ktor/util/AttributeKey;
 }
 

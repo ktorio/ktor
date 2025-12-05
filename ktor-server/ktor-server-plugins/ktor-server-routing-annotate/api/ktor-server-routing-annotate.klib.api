@@ -19,6 +19,8 @@ final class io.ktor.annotate/CollectSchemaReferences : io.ktor.annotate/Operatio
 
 final val io.ktor.annotate/EndpointAnnotationAttributeKey // io.ktor.annotate/EndpointAnnotationAttributeKey|{}EndpointAnnotationAttributeKey[0]
     final fun <get-EndpointAnnotationAttributeKey>(): io.ktor.util/AttributeKey<kotlin.collections/List<kotlin/Function1<io.ktor.openapi/Operation.Builder, kotlin/Unit>>> // io.ktor.annotate/EndpointAnnotationAttributeKey.<get-EndpointAnnotationAttributeKey>|<get-EndpointAnnotationAttributeKey>(){}[0]
+final val io.ktor.annotate/JsonSchemaAttributeKey // io.ktor.annotate/JsonSchemaAttributeKey|{}JsonSchemaAttributeKey[0]
+    final fun <get-JsonSchemaAttributeKey>(): io.ktor.util/AttributeKey<io.ktor.openapi/JsonSchemaInference> // io.ktor.annotate/JsonSchemaAttributeKey.<get-JsonSchemaAttributeKey>|<get-JsonSchemaAttributeKey>(){}[0]
 final val io.ktor.annotate/PopulateMediaTypeDefaults // io.ktor.annotate/PopulateMediaTypeDefaults|{}PopulateMediaTypeDefaults[0]
     final fun <get-PopulateMediaTypeDefaults>(): io.ktor.annotate/OperationMapping // io.ktor.annotate/PopulateMediaTypeDefaults.<get-PopulateMediaTypeDefaults>|<get-PopulateMediaTypeDefaults>(){}[0]
 

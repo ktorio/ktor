@@ -25,7 +25,12 @@ public fun interface JsonSchemaInference {
 }
 
 public val KotlinxJsonSchemaInference: JsonSchemaInference = JsonSchemaInference { type ->
-    serializer(type).descriptor.buildJsonSchema()
+    serializer(type)
+        .descriptor
+        .buildJsonSchema(
+            // parameterized types cannot be referenced from their serial name
+            includeTitle = type.arguments.isEmpty()
+        )
 }
 
 /**
@@ -44,7 +49,7 @@ public val KotlinxJsonSchemaInference: JsonSchemaInference = JsonSchemaInference
  * Note: This function does not handle circular references. For types with circular dependencies,
  * consider implementing depth tracking or schema references to avoid stack overflow.
  */
-public fun SerialDescriptor.buildJsonSchema(): JsonSchema {
+public fun SerialDescriptor.buildJsonSchema(includeTitle: Boolean = true): JsonSchema {
     return when (kind) {
         StructureKind.CLASS, StructureKind.OBJECT -> {
             val properties = mutableMapOf<String, ReferenceOr<JsonSchema>>()
@@ -64,7 +69,7 @@ public fun SerialDescriptor.buildJsonSchema(): JsonSchema {
             }
 
             JsonSchema(
-                title = serialName,
+                title = serialName.takeIf { includeTitle },
                 type = JsonSchema.JsonType.OBJECT,
                 properties = properties,
                 required = required

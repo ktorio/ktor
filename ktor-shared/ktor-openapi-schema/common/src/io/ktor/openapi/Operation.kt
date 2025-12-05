@@ -57,8 +57,12 @@ public data class Operation(
          */
         public fun build(
             schemaInference: JsonSchemaInference = KotlinxJsonSchemaInference,
+            defaultContentTypes: List<ContentType> = listOf(ContentType.Application.Json),
             configure: Builder.() -> Unit
-        ): Operation = Builder(schemaInference).apply(configure).build()
+        ): Operation {
+            require(defaultContentTypes.isNotEmpty()) { "Default content types must not be empty" }
+            return Builder(schemaInference, defaultContentTypes).apply(configure).build()
+        }
 
         internal object Serializer : ExtensibleMixinSerializer<Operation>(
             generatedSerializer(),
@@ -71,7 +75,8 @@ public data class Operation(
      */
     @KtorDsl
     public class Builder(
-        private val schemaInference: JsonSchemaInference
+        private val schemaInference: JsonSchemaInference,
+        private val defaultContentTypes: List<ContentType>,
     ) : JsonSchemaInference by schemaInference {
         /** A short summary of what the operation does. */
         public var summary: String? = null
@@ -135,7 +140,9 @@ public data class Operation(
          * @param configure DSL to define one or more parameters.
          */
         public fun parameters(configure: Parameters.Builder.() -> Unit) {
-            Parameters.Builder(schemaInference).apply(configure).build().parameters.forEach { _parameters.add(it) }
+            Parameters.Builder(schemaInference, defaultContentTypes).apply(configure).build().parameters.forEach {
+                _parameters.add(it)
+            }
         }
 
         /**
@@ -144,7 +151,7 @@ public data class Operation(
          * @param configure DSL to configure the request body.
          */
         public fun requestBody(configure: RequestBody.Builder.() -> Unit) {
-            requestBody = RequestBody.Builder(schemaInference).apply(configure).build()
+            requestBody = RequestBody.Builder(schemaInference, defaultContentTypes).apply(configure).build()
         }
 
         /**
@@ -153,7 +160,7 @@ public data class Operation(
          * @param configure DSL to define one or more responses.
          */
         public fun responses(configure: Responses.Builder.() -> Unit) {
-            _responses = Responses.Builder(schemaInference).apply(configure).build()
+            _responses = Responses.Builder(schemaInference, defaultContentTypes).apply(configure).build()
         }
 
         /**
@@ -225,7 +232,10 @@ public data class Parameters(
      * DSL builder for assembling a list of [Parameter]s used by an operation.
      */
     @KtorDsl
-    public class Builder(private val schemaInference: JsonSchemaInference) {
+    public class Builder(
+        private val schemaInference: JsonSchemaInference,
+        private val defaultContentTypes: List<ContentType>,
+    ) {
         private val _parameters = mutableListOf<Parameter>()
 
         /** The collected list of parameters. */
@@ -241,7 +251,7 @@ public data class Parameters(
         @Deprecated("Use path, query, header, or cookie instead.")
         public fun parameter(name: String, configure: Parameter.Builder.() -> Unit) {
             _parameters.add(
-                Parameter.Builder(schemaInference).apply {
+                Parameter.Builder(schemaInference, defaultContentTypes).apply {
                     this.name = name
                     configure()
                 }.build()
@@ -255,7 +265,7 @@ public data class Parameters(
          * @param configure Optional DSL to further configure the parameter.
          */
         public fun path(name: String, configure: Parameter.Builder.() -> Unit = {}) {
-            Parameter.Builder(schemaInference).apply {
+            Parameter.Builder(schemaInference, defaultContentTypes).apply {
                 this.name = name
                 this.`in` = ParameterType.path
                 this.required = true
@@ -270,7 +280,7 @@ public data class Parameters(
          * @param configure Optional DSL to further configure the parameter.
          */
         public fun query(name: String, configure: Parameter.Builder.() -> Unit = {}) {
-            Parameter.Builder(schemaInference).apply {
+            Parameter.Builder(schemaInference, defaultContentTypes).apply {
                 this.name = name
                 this.`in` = ParameterType.query
                 configure()
@@ -284,7 +294,7 @@ public data class Parameters(
          * @param configure Optional DSL to further configure the parameter.
          */
         public fun header(name: String, configure: Parameter.Builder.() -> Unit = {}) {
-            Parameter.Builder(schemaInference).apply {
+            Parameter.Builder(schemaInference, defaultContentTypes).apply {
                 this.name = name
                 this.`in` = ParameterType.header
                 configure()
@@ -298,7 +308,7 @@ public data class Parameters(
          * @param configure Optional DSL to further configure the parameter.
          */
         public fun cookie(name: String, configure: Parameter.Builder.() -> Unit = {}) {
-            Parameter.Builder(schemaInference).apply {
+            Parameter.Builder(schemaInference, defaultContentTypes).apply {
                 this.name = name
                 this.`in` = ParameterType.cookie
                 configure()
@@ -357,7 +367,10 @@ public data class Parameter(
 
     /** Builder for constructing a [Parameter] instance. */
     @KtorDsl
-    public class Builder(private val schemaInference: JsonSchemaInference) : JsonSchemaInference by schemaInference {
+    public class Builder(
+        private val schemaInference: JsonSchemaInference,
+        private val defaultContentTypes: List<ContentType>,
+    ) : JsonSchemaInference by schemaInference {
         /** The name of the parameter. */
         public var name: String? = null
 
@@ -376,10 +389,10 @@ public data class Parameter(
         /** The schema defining the parameter type. */
         public var schema: JsonSchema? = null
 
-        private val _content = mutableMapOf<ContentType, MediaType>()
+        private val _content = mutableMapOf<ContentType, MediaType.Builder>()
 
         /** Map of media type to [MediaType] object. */
-        public val content: Map<ContentType, MediaType> get() = _content
+        public val content: Map<ContentType, MediaType> get() = _content.mapValues { it.value.build() }
 
         /** Describes how the parameter value will be serialized (e.g., "matrix", "label", "form", "simple", "spaceDelimited", "pipeDelimited", "deepObject"). */
         public var style: String? = null
@@ -403,13 +416,25 @@ public data class Parameter(
         public val extensions: MutableMap<String, GenericElement> = mutableMapOf()
 
         /**
-         * Adds a media type definition for the request body.
+         * Provide a media type definition for the response body.
          *
-         * @receiver the media type to assign
+         * This applies to all registered default content types, as defined in the ContentNegotiation plugin.
+         */
+        public fun content(configure: MediaType.Builder.() -> Unit) {
+            for (contentType in defaultContentTypes) {
+                _content.getOrPut(contentType) {
+                    MediaType.Builder(schemaInference)
+                }.apply(configure)
+            }
+        }
+
+        /**
+         * Adds a media type definition for the response body using a ContentType receiver.
+         *
          * @param configure DSL to configure the [MediaType].
          */
         public operator fun ContentType.invoke(configure: MediaType.Builder.() -> Unit = {}) {
-            _content[this] = MediaType.Builder(schemaInference).apply(configure).build()
+            _content.getOrPut(this) { MediaType.Builder(schemaInference) }.apply(configure)
         }
 
         /**
@@ -444,7 +469,7 @@ public data class Parameter(
                 required = required,
                 deprecated = deprecated,
                 schema = schema?.let(::Value),
-                content = _content.ifEmpty { null },
+                content = _content.mapValues { it.value.build() }.ifEmpty { null },
                 style = style,
                 explode = explode,
                 allowReserved = allowReserved,
@@ -497,7 +522,10 @@ public data class Responses(
 
     /** Builder for collecting operation [Response]s keyed by status code. */
     @KtorDsl
-    public class Builder(private val schemaInference: JsonSchemaInference) {
+    public class Builder(
+        private val schemaInference: JsonSchemaInference,
+        private val defaultContentTypes: List<ContentType>,
+    ) {
         private val _responses = mutableMapOf<Int, Response.Builder>()
         private val _extensions = mutableMapOf<String, GenericElement>()
 
@@ -517,7 +545,7 @@ public data class Responses(
          */
         public fun response(statusCode: Int, configure: Response.Builder.() -> Unit) {
             _responses.getOrPut(statusCode) {
-                Response.Builder(schemaInference)
+                Response.Builder(schemaInference, defaultContentTypes)
             }.apply(configure)
         }
 
@@ -537,7 +565,7 @@ public data class Responses(
          */
         public fun default(configure: Response.Builder.() -> Unit) {
             if (default == null) {
-                default = Response.Builder(schemaInference).apply(configure)
+                default = Response.Builder(schemaInference, defaultContentTypes).apply(configure)
             } else {
                 default!!.apply(configure)
             }
@@ -582,7 +610,10 @@ public data class Response(
 
     /** Builder for constructing a [Response] definition. */
     @KtorDsl
-    public class Builder(private val schemaInference: JsonSchemaInference) : JsonSchemaInference by schemaInference {
+    public class Builder(
+        private val schemaInference: JsonSchemaInference,
+        private val defaultContentTypes: List<ContentType>,
+    ) : JsonSchemaInference by schemaInference {
         /** Human-readable description of the response. */
         public var description: String = ""
 
@@ -620,28 +651,35 @@ public data class Response(
         }
 
         /**
+         * Provide a media type definition for the response body.
+         *
+         * This applies to all registered default content types, as defined in the ContentNegotiation plugin.
+         */
+        public fun content(configure: MediaType.Builder.() -> Unit) {
+            for (contentType in defaultContentTypes) {
+                _content.getOrPut(contentType) {
+                    MediaType.Builder(schemaInference)
+                }.apply(configure)
+            }
+        }
+
+        /**
          * Adds a media type definition for the response body using a ContentType receiver.
          *
          * @param configure DSL to configure the [MediaType].
          */
         public operator fun ContentType.invoke(configure: MediaType.Builder.() -> Unit = {}) {
-            _content.getOrPut(this) {
-                MediaType.Builder(schemaInference)
-            }.apply(configure)
+            _content.getOrPut(this) { MediaType.Builder(schemaInference) }.apply(configure)
         }
 
         /**
-         * Convenience property to add JSON content with a schema.
+         * Convenience property to add default content with a schema.
+         *
+         * When reading, this will return the first registered default content type's schema.
          */
-        public var jsonSchema: JsonSchema?
-            get() = _content[ContentType.Application.Json]?.schema
-            set(value) {
-                _content.getOrPut(ContentType.Application.Json) {
-                    MediaType.Builder(schemaInference)
-                }.apply {
-                    schema = value
-                }
-            }
+        public var schema: JsonSchema?
+            get() = defaultContentTypes.firstOrNull()?.let { _content[it]?.schema }
+            set(value) = content { schema = value }
 
         /**
          * Adds a link that can be followed from this response.
@@ -808,48 +846,54 @@ public data class RequestBody(
 
     /** Builder for constructing a [RequestBody] description. */
     @KtorDsl
-    public class Builder(private val schemaInference: JsonSchemaInference) : JsonSchemaInference by schemaInference {
+    public class Builder(
+        private val schemaInference: JsonSchemaInference,
+        private val defaultContentTypes: List<ContentType>,
+    ) : JsonSchemaInference by schemaInference {
         /** Optional description of the request body. */
         public var description: String? = null
 
         /** Whether the request body is required. */
         public var required: Boolean = false
 
-        private val _content = mutableMapOf<ContentType, MediaType>()
+        private val _content = mutableMapOf<ContentType, MediaType.Builder>()
 
         /** Map of media type to [MediaType] object. */
-        public val content: Map<ContentType, MediaType> get() = _content
+        public val content: Map<ContentType, MediaType> get() = _content.mapValues { it.value.build() }
 
         /** Specification-extensions for this request body (keys must start with `x-`). */
         public val extensions: MutableMap<String, GenericElement> = mutableMapOf()
 
         /**
-         * Adds a media type definition for the request body.
+         * Provide a media type definition for the response body.
          *
-         * @receiver the media type to assign
+         * This applies to all registered default content types, as defined in the ContentNegotiation plugin.
+         */
+        public fun content(configure: MediaType.Builder.() -> Unit) {
+            for (contentType in defaultContentTypes) {
+                _content.getOrPut(contentType) {
+                    MediaType.Builder(schemaInference)
+                }.apply(configure)
+            }
+        }
+
+        /**
+         * Adds a media type definition for the request body using a ContentType receiver.
+         *
          * @param configure DSL to configure the [MediaType].
          */
         public operator fun ContentType.invoke(configure: MediaType.Builder.() -> Unit = {}) {
-            _content[this] = MediaType.Builder(schemaInference).apply(configure).build()
+            _content.getOrPut(this) { MediaType.Builder(schemaInference) }.apply(configure)
         }
 
         /**
-         * Convenience property to add JSON content with a schema.
-         */
-        public var jsonSchema: JsonSchema?
-            get() = _content[ContentType.Application.Json]?.schema?.valueOrNull()
-            set(value) {
-                _content[ContentType.Application.Json] = MediaType(schema = value?.let(::Value))
-            }
-
-        /**
-         * Convenience method to add XML content with a schema.
+         * Convenience property to add default content with the given schema.
          *
-         * @param schema The schema defining the XML structure.
+         * When reading, this will return the first registered default content type's schema.
          */
-        public fun xml(schema: JsonSchema) {
-            _content[ContentType.Application.Xml] = MediaType(schema = ReferenceOr.Value(schema))
-        }
+        public var schema: JsonSchema?
+            get() = defaultContentTypes.firstOrNull()?.let { _content[it]?.schema }
+            set(value) = content { schema = value }
 
         /**
          * Adds a specification-extension to this request body.
@@ -866,7 +910,7 @@ public data class RequestBody(
         internal fun build(): RequestBody {
             return RequestBody(
                 description = description,
-                content = _content.ifEmpty { null },
+                content = _content.ifEmpty { null }?.mapValues { it.value.build() },
                 required = required,
                 extensions = extensions.ifEmpty { null },
             )
