@@ -627,7 +627,8 @@ public abstract interface class io/ktor/openapi/JsonSchemaInference {
 }
 
 public final class io/ktor/openapi/JsonSchemaInferenceKt {
-	public static final fun buildJsonSchema (Lkotlinx/serialization/descriptors/SerialDescriptor;)Lio/ktor/openapi/JsonSchema;
+	public static final fun buildJsonSchema (Lkotlinx/serialization/descriptors/SerialDescriptor;Z)Lio/ktor/openapi/JsonSchema;
+	public static synthetic fun buildJsonSchema$default (Lkotlinx/serialization/descriptors/SerialDescriptor;ZILjava/lang/Object;)Lio/ktor/openapi/JsonSchema;
 	public static final fun getKotlinxJsonSchemaInference ()Lio/ktor/openapi/JsonSchemaInference;
 }
 
@@ -937,7 +938,7 @@ public final synthetic class io/ktor/openapi/Operation$$serializer : kotlinx/ser
 }
 
 public final class io/ktor/openapi/Operation$Builder : io/ktor/openapi/JsonSchemaInference {
-	public fun <init> (Lio/ktor/openapi/JsonSchemaInference;)V
+	public fun <init> (Lio/ktor/openapi/JsonSchemaInference;Ljava/util/List;)V
 	public fun buildSchema (Lkotlin/reflect/KType;)Lio/ktor/openapi/JsonSchema;
 	public final fun callback-Fy7AELE (Ljava/lang/String;Ljava/util/Map;)V
 	public final fun getCallbacks ()Ljava/util/Map;
@@ -969,8 +970,8 @@ public final class io/ktor/openapi/Operation$Builder : io/ktor/openapi/JsonSchem
 }
 
 public final class io/ktor/openapi/Operation$Companion {
-	public final fun build (Lio/ktor/openapi/JsonSchemaInference;Lkotlin/jvm/functions/Function1;)Lio/ktor/openapi/Operation;
-	public static synthetic fun build$default (Lio/ktor/openapi/Operation$Companion;Lio/ktor/openapi/JsonSchemaInference;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/openapi/Operation;
+	public final fun build (Lio/ktor/openapi/JsonSchemaInference;Ljava/util/List;Lkotlin/jvm/functions/Function1;)Lio/ktor/openapi/Operation;
+	public static synthetic fun build$default (Lio/ktor/openapi/Operation$Companion;Lio/ktor/openapi/JsonSchemaInference;Ljava/util/List;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/openapi/Operation;
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
@@ -1025,8 +1026,9 @@ public final synthetic class io/ktor/openapi/Parameter$$serializer : kotlinx/ser
 }
 
 public final class io/ktor/openapi/Parameter$Builder : io/ktor/openapi/JsonSchemaInference {
-	public fun <init> (Lio/ktor/openapi/JsonSchemaInference;)V
+	public fun <init> (Lio/ktor/openapi/JsonSchemaInference;Ljava/util/List;)V
 	public fun buildSchema (Lkotlin/reflect/KType;)Lio/ktor/openapi/JsonSchema;
+	public final fun content (Lkotlin/jvm/functions/Function1;)V
 	public final fun example (Ljava/lang/String;Lio/ktor/openapi/ExampleObject;)V
 	public final fun getAllowEmptyValue ()Ljava/lang/Boolean;
 	public final fun getAllowReserved ()Ljava/lang/Boolean;
@@ -1101,7 +1103,7 @@ public final synthetic class io/ktor/openapi/Parameters$$serializer : kotlinx/se
 }
 
 public final class io/ktor/openapi/Parameters$Builder {
-	public fun <init> (Lio/ktor/openapi/JsonSchemaInference;)V
+	public fun <init> (Lio/ktor/openapi/JsonSchemaInference;Ljava/util/List;)V
 	public final fun cookie (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun cookie$default (Lio/ktor/openapi/Parameters$Builder;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public final fun getParameters ()Ljava/util/List;
@@ -1260,19 +1262,19 @@ public final synthetic class io/ktor/openapi/RequestBody$$serializer : kotlinx/s
 }
 
 public final class io/ktor/openapi/RequestBody$Builder : io/ktor/openapi/JsonSchemaInference {
-	public fun <init> (Lio/ktor/openapi/JsonSchemaInference;)V
+	public fun <init> (Lio/ktor/openapi/JsonSchemaInference;Ljava/util/List;)V
 	public fun buildSchema (Lkotlin/reflect/KType;)Lio/ktor/openapi/JsonSchema;
+	public final fun content (Lkotlin/jvm/functions/Function1;)V
 	public final fun getContent ()Ljava/util/Map;
 	public final fun getDescription ()Ljava/lang/String;
 	public final fun getExtensions ()Ljava/util/Map;
-	public final fun getJsonSchema ()Lio/ktor/openapi/JsonSchema;
 	public final fun getRequired ()Z
+	public final fun getSchema ()Lio/ktor/openapi/JsonSchema;
 	public final fun invoke (Lio/ktor/http/ContentType;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun invoke$default (Lio/ktor/openapi/RequestBody$Builder;Lio/ktor/http/ContentType;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public final fun setDescription (Ljava/lang/String;)V
-	public final fun setJsonSchema (Lio/ktor/openapi/JsonSchema;)V
 	public final fun setRequired (Z)V
-	public final fun xml (Lio/ktor/openapi/JsonSchema;)V
+	public final fun setSchema (Lio/ktor/openapi/JsonSchema;)V
 }
 
 public final class io/ktor/openapi/RequestBody$Companion {
@@ -1312,20 +1314,21 @@ public final synthetic class io/ktor/openapi/Response$$serializer : kotlinx/seri
 }
 
 public final class io/ktor/openapi/Response$Builder : io/ktor/openapi/JsonSchemaInference {
-	public fun <init> (Lio/ktor/openapi/JsonSchemaInference;)V
+	public fun <init> (Lio/ktor/openapi/JsonSchemaInference;Ljava/util/List;)V
 	public fun buildSchema (Lkotlin/reflect/KType;)Lio/ktor/openapi/JsonSchema;
+	public final fun content (Lkotlin/jvm/functions/Function1;)V
 	public final fun getContent ()Ljava/util/Map;
 	public final fun getDescription ()Ljava/lang/String;
 	public final fun getExtensions ()Ljava/util/Map;
 	public final fun getHeaders ()Ljava/util/Map;
-	public final fun getJsonSchema ()Lio/ktor/openapi/JsonSchema;
 	public final fun getLinks ()Ljava/util/Map;
+	public final fun getSchema ()Lio/ktor/openapi/JsonSchema;
 	public final fun headers (Lkotlin/jvm/functions/Function1;)V
 	public final fun invoke (Lio/ktor/http/ContentType;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun invoke$default (Lio/ktor/openapi/Response$Builder;Lio/ktor/http/ContentType;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public final fun link (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public final fun setDescription (Ljava/lang/String;)V
-	public final fun setJsonSchema (Lio/ktor/openapi/JsonSchema;)V
+	public final fun setSchema (Lio/ktor/openapi/JsonSchema;)V
 }
 
 public final class io/ktor/openapi/Response$Companion {
@@ -1362,7 +1365,7 @@ public final synthetic class io/ktor/openapi/Responses$$serializer : kotlinx/ser
 }
 
 public final class io/ktor/openapi/Responses$Builder {
-	public fun <init> (Lio/ktor/openapi/JsonSchemaInference;)V
+	public fun <init> (Lio/ktor/openapi/JsonSchemaInference;Ljava/util/List;)V
 	public final fun default (Lkotlin/jvm/functions/Function1;)V
 	public final fun getDefault ()Lio/ktor/openapi/Response$Builder;
 	public final fun getExtensions ()Ljava/util/Map;
