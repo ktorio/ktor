@@ -318,6 +318,7 @@ internal class CurlMultiApiHandler : Closeable {
 
         easyHandle.apply {
             getInfo(CURLINFO_RESPONSE_CODE, httpStatusCode.ptr)
+            getInfo(CURLINFO_HTTP_VERSION, httpProtocolVersion.ptr)
             getInfo(CURLINFO_PRIVATE, responseDataRef.ptr)
         }
 
@@ -332,7 +333,7 @@ internal class CurlMultiApiHandler : Closeable {
 
             CurlSuccess(
                 httpStatusCode.value.toInt(),
-                httpProtocolVersion.value.toUInt(),
+                httpProtocolVersion.value,
                 headers,
                 responseBody
             )
