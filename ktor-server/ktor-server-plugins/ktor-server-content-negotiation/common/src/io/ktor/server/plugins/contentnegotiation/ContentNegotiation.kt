@@ -61,6 +61,9 @@ public val ContentNegotiation: RouteScopedPlugin<ContentNegotiationConfig> = cre
 ) {
     convertRequestBody()
     convertResponseBody()
+
+    // register default content types for application metadata, used in OpenAPI
+    application.attributes[DefaultContentTypesAttribute] = pluginConfig.registrations.map { it.contentType }.distinct()
 }
 
 /**
