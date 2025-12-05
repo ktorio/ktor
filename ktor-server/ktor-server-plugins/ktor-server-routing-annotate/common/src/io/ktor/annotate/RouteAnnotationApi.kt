@@ -9,6 +9,7 @@ package io.ktor.annotate
 import io.ktor.http.*
 import io.ktor.openapi.*
 import io.ktor.openapi.ReferenceOr.Companion.value
+import io.ktor.server.http.content.DefaultContentTypesAttribute
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
@@ -18,7 +19,13 @@ import kotlin.collections.plus
  * Attribute key for including OpenAPI metadata on a [Route].
  */
 public val EndpointAnnotationAttributeKey: AttributeKey<List<RouteAnnotationFunction>> =
-    AttributeKey("operation-docs")
+    AttributeKey("OperationDocs")
+
+/**
+ * Attribute key for JSON schema inference override.
+ */
+public val JsonSchemaAttributeKey: AttributeKey<JsonSchemaInference> =
+    AttributeKey("JsonSchemaInference")
 
 /**
  * Function that configures an OpenAPI [Operation].
@@ -111,11 +118,14 @@ private fun RoutingNode.method(): HttpMethod? =
         ?.method
 
 private fun RoutingNode.operation(): Operation? {
-    // TODO KTOR-9086 get schema inference from ContentNegotiation plugin
-    val schemaInference = KotlinxJsonSchemaInference
+    val schemaInference = application.attributes.getOrNull(JsonSchemaAttributeKey)
+        ?: KotlinxJsonSchemaInference
+    val defaultContentTypes = application.attributes.getOrNull(DefaultContentTypesAttribute)
+        ?: listOf(ContentType.Application.Json)
+
     return lineage().fold(null) { acc, node ->
         val current = mergeNullable(
-            node.operationFromAnnotateCalls(schemaInference),
+            node.operationFromAnnotateCalls(schemaInference, defaultContentTypes),
             node.operationFromSelector(),
             Operation::plus
         )
@@ -123,10 +133,12 @@ private fun RoutingNode.operation(): Operation? {
     }
 }
 
-private fun RoutingNode.operationFromAnnotateCalls(schemaInference: JsonSchemaInference): Operation? =
-    attributes.getOrNull(EndpointAnnotationAttributeKey)
-        ?.map { function -> Operation.build(schemaInference, function) }
-        ?.reduce(Operation::plus)
+private fun RoutingNode.operationFromAnnotateCalls(
+    schemaInference: JsonSchemaInference,
+    defaultContentTypes: List<ContentType>
+): Operation? = attributes.getOrNull(EndpointAnnotationAttributeKey)
+    ?.map { function -> Operation.build(schemaInference, defaultContentTypes, function) }
+    ?.reduce(Operation::plus)
 
 private fun RoutingNode.operationFromSelector(): Operation? {
     return when (val paramSelector = selector) {

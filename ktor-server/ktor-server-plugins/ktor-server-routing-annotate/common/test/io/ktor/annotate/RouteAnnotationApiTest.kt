@@ -146,7 +146,7 @@ class RouteAnnotationApiTest {
                 responses {
                     HttpStatusCode.OK {
                         description = "A list of messages"
-                        jsonSchema = jsonSchema<List<Message>>()
+                        schema = jsonSchema<List<Message>>()
                         extension("x-sample-message", testMessage)
                     }
                     HttpStatusCode.BadRequest {
@@ -240,7 +240,7 @@ class RouteAnnotationApiTest {
                     responses {
                         HttpStatusCode.OK {
                             description = "A list of messages"
-                            jsonSchema = jsonSchema<List<Message>>()
+                            schema = jsonSchema<List<Message>>()
                             extension("x-bonus", "child")
                         }
                     }
