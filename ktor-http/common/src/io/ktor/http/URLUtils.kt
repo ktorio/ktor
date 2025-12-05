@@ -41,7 +41,7 @@ public fun buildUrl(block: URLBuilder.() -> Unit): Url = URLBuilder().apply(bloc
 public fun parseUrl(urlString: String): Url? {
     return try {
         URLBuilder(urlString).takeIf { it.host.isNotEmpty() }?.build()
-    } catch (cause: URLParserException) {
+    } catch (_: Exception) {
         null
     }
 }
