@@ -263,11 +263,28 @@ class UDPSocketTest {
             .udp()
             .bind()
 
-        val remoteAddress = InetSocketAddress("127.0.0.1", (server.localAddress as InetSocketAddress).port)
-        val socket = aSocket(selector).udp().connect(remoteAddress)
+        server.use {
+            val remoteAddress = InetSocketAddress("127.0.0.1", (server.localAddress as InetSocketAddress).port)
+            val socket = aSocket(selector).udp().connect(remoteAddress)
 
-        socket.send(Datagram(buildPacket { writeText("hello") }, remoteAddress))
-        assertEquals("hello", server.receive().packet.readText())
+            socket.send(Datagram(buildPacket { writeText("hello") }, remoteAddress))
+            assertEquals("hello", server.receive().packet.readText())
+        }
+    }
+
+    @Test
+    fun testReceiveError() = testSockets { selector ->
+        val socket = aSocket(selector)
+            .udp()
+            .bind()
+
+        socket.use {
+            selector.close()
+            // Receive fails due to closed selector exception
+            assertFails {
+                socket.receive()
+            }
+        }
     }
 }
 
