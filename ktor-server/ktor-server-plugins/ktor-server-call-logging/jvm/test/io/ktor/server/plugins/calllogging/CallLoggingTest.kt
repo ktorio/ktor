@@ -470,6 +470,7 @@ class CallLoggingTest {
         }
         val response = client.get("/error")
         assertEquals(HttpStatusCode.InternalServerError, response.status)
+        assertEquals("Unexpected", response.bodyAsText())
         assertContains(messages, "INFO: 500 Internal Server Error: GET - /error in 0ms")
     }
 

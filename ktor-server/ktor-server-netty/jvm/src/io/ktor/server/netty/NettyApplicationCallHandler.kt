@@ -97,16 +97,23 @@ internal class NettyApplicationCallHandler(
     private suspend fun respondError400BadRequest(call: NettyHttp1ApplicationCall) {
         logCause(call)
 
+        val causeMessage = call.failureCause?.message?.toByteArray(charset = Charsets.UTF_8)
+        val content = if (causeMessage != null) ByteReadChannel(causeMessage) else ByteReadChannel.Empty
+        val contentLength = causeMessage?.size ?: 0
+
         call.response.status(HttpStatusCode.BadRequest)
-        call.response.headers.append(HttpHeaders.ContentLength, "0", safeOnly = false)
+        call.response.headers.append(HttpHeaders.ContentLength, contentLength.toString(), safeOnly = false)
+        if (contentLength > 0) {
+            call.response.headers.append(HttpHeaders.ContentType, "text/plain; charset=utf-8", safeOnly = false)
+        }
         call.response.headers.append(HttpHeaders.Connection, "close", safeOnly = false)
-        call.response.sendResponse(chunked = false, ByteReadChannel.Empty)
+        call.response.sendResponse(chunked = false, content)
         call.finish()
     }
 
     private fun logCause(call: NettyHttp1ApplicationCall) {
         if (call.application.log.isTraceEnabled) {
-            val cause = call.request.httpRequest.decoderResult()?.cause() ?: return
+            val cause = call.failureCause ?: return
             call.application.log.trace("Failed to decode request", cause)
         }
     }
@@ -155,3 +162,6 @@ internal fun List<String>.hasValidTransferEncoding(): Boolean {
 }
 
 private fun Char.isSeparator(): Boolean = (this == ' ' || this == ',')
+
+private val NettyHttp1ApplicationCall.failureCause: Throwable?
+    get() = request.httpRequest.decoderResult()?.cause()
