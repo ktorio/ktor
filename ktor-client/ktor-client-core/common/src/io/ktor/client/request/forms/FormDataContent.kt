@@ -23,10 +23,11 @@ private val RN_BYTES = "\r\n".toByteArray()
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.FormDataContent)
  *
  * @param formData data to send.
+ * @param spaceToPlus if true, space character is encoded as `+`, otherwise as `%20`. Defaults to true.
  */
 public class FormDataContent(
     public val formData: Parameters,
-    spaceToPlus: Boolean = false
+    spaceToPlus: Boolean = true
 ) : OutgoingContent.ByteArrayContent() {
     private val content = formData.formUrlEncode(spaceToPlus).toByteArray()
 

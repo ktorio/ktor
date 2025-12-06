@@ -158,13 +158,16 @@ class CodecTest {
         val result = StringBuilder()
         val params = mapOf("a" to listOf("b c"))
 
+        // Test Default behavior (spaceToPlus = true) -> Expect +
         params.entries.formUrlEncodeTo(result)
-        assertEquals("a=b%20c", result.toString())
+        assertEquals("a=b+c", result.toString())
 
+        // Test Explicit (spaceToPlus = true) -> Expect +
         result.clear()
         params.entries.formUrlEncodeTo(result, spaceToPlus = true)
         assertEquals("a=b+c", result.toString())
 
+        // Test Explicit (spaceToPlus = false) -> Expect %20
         result.clear()
         params.entries.formUrlEncodeTo(result, spaceToPlus = false)
         assertEquals("a=b%20c", result.toString())
@@ -174,11 +177,11 @@ class CodecTest {
     fun testListFormUrlEncodeWithSpaceToPlus() {
         val params = listOf("a" to "b c")
 
-        // Default behavior -> %20
-        assertEquals("a=b%20c", params.formUrlEncode())
+        // Default behavior -> +
+        assertEquals("a=b+c", params.formUrlEncode())
 
-        // Explicit true -> +
-        assertEquals("a=b+c", params.formUrlEncode(spaceToPlus = true))
+        // Explicit false -> %20
+        assertEquals("a=b%20c", params.formUrlEncode(spaceToPlus = false))
     }
 
     private fun encodeAndDecodeTest(text: String) {
