@@ -32,21 +32,26 @@ public fun String.parseUrlEncodedParameters(defaultEncoding: Charset = Charsets.
  * Encode form parameters from a list of pairs
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.formUrlEncode)
+ *
+ * @param spaceToPlus if true, space character is encoded as `+`, otherwise as `%20`. Defaults to true.
  */
-public fun List<Pair<String, String?>>.formUrlEncode(): String = buildString { formUrlEncodeTo(this) }
+public fun List<Pair<String, String?>>.formUrlEncode(spaceToPlus: Boolean = true): String =
+    buildString { formUrlEncodeTo(this, spaceToPlus) }
 
 /**
  * Encode form parameters from a list of pairs to the specified [out] appendable
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.formUrlEncodeTo)
+ *
+ * @param spaceToPlus if true, space character is encoded as `+`, otherwise as `%20`. Defaults to true.
  */
-public fun List<Pair<String, String?>>.formUrlEncodeTo(out: Appendable) {
+public fun List<Pair<String, String?>>.formUrlEncodeTo(out: Appendable, spaceToPlus: Boolean = true) {
     joinTo(out, "&") {
-        val key = it.first.encodeURLParameter(spaceToPlus = true)
+        val key = it.first.encodeURLParameter(spaceToPlus = spaceToPlus)
         if (it.second == null) {
             key
         } else {
-            val value = it.second.toString().encodeURLParameterValue()
+            val value = it.second.toString().encodeURLParameter(spaceToPlus = spaceToPlus)
             "$key=$value"
         }
     }
@@ -56,26 +61,30 @@ public fun List<Pair<String, String?>>.formUrlEncodeTo(out: Appendable) {
  * Encode form parameters
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.formUrlEncode)
+ *
+ * @param spaceToPlus if true, space character is encoded as `+`, otherwise as `%20`. Defaults to true.
  */
-public fun Parameters.formUrlEncode(): String = entries()
+public fun Parameters.formUrlEncode(spaceToPlus: Boolean = true): String = entries()
     .flatMap { e -> e.value.map { e.key to it } }
-    .formUrlEncode()
+    .formUrlEncode(spaceToPlus)
 
 /**
  * Encode form parameters to the specified [out] appendable
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.formUrlEncodeTo)
+ *
+ * @param spaceToPlus if true, space character is encoded as `+`, otherwise as `%20`. Defaults to true.
  */
-public fun Parameters.formUrlEncodeTo(out: Appendable) {
-    entries().formUrlEncodeTo(out)
+public fun Parameters.formUrlEncodeTo(out: Appendable, spaceToPlus: Boolean = true) {
+    entries().formUrlEncodeTo(out, spaceToPlus)
 }
 
-internal fun ParametersBuilder.formUrlEncodeTo(out: Appendable) {
-    entries().formUrlEncodeTo(out)
+internal fun ParametersBuilder.formUrlEncodeTo(out: Appendable, spaceToPlus: Boolean = true) {
+    entries().formUrlEncodeTo(out, spaceToPlus)
 }
 
-internal fun Set<Map.Entry<String, List<String>>>.formUrlEncodeTo(out: Appendable) {
+internal fun Set<Map.Entry<String, List<String>>>.formUrlEncodeTo(out: Appendable, spaceToPlus: Boolean = true) {
     flatMap { (key, value) ->
         if (value.isEmpty()) listOf(key to null) else value.map { key to it }
-    }.formUrlEncodeTo(out)
+    }.formUrlEncodeTo(out, spaceToPlus)
 }
