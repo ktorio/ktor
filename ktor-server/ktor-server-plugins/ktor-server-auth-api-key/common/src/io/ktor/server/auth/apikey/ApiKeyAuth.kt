@@ -25,7 +25,11 @@ public fun AuthenticationConfig.apiKey(
 }
 
 /**
- * Alias for function signature that is invoked when verifying header.
+ * Alias for function signature that is invoked when verifying an API key from a header.
+ *
+ * The function receives the API key as a [String] parameter and should return an arbitrary
+ * principal object (for example, a user or service identity) if authentication succeeds,
+ * or null if authentication fails.
  */
 public typealias ApiKeyAuthenticationFunction = suspend ApplicationCall.(String) -> Any?
 
@@ -102,12 +106,14 @@ public class ApiKeyAuthenticationProvider internal constructor(
         public var headerName: String = "X-Api-Key"
 
         /**
-         * Sets a validation function that will check given API key retrieved from [headerName] instance and return [Principal],
-         * or null if credential does not correspond to an authenticated principal.
+         * Sets a validation function that will check the given API key retrieved from the [headerName] header
+         * and return an arbitrary principal object (for example, a user or service identity) if authentication
+         * succeeds, or null if authentication fails.
          *
-         * @param body the validation function that receives the API key and returns a [Principal] or null.
+         * @param body the validation function that receives the API key as a [String] parameter and returns
+         * an arbitrary principal object or null.
          */
-        public fun validate(body: suspend ApplicationCall.(String) -> Any?) {
+        public fun validate(body: ApiKeyAuthenticationFunction) {
             authenticationFunction = body
         }
 
