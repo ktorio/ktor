@@ -12,6 +12,9 @@ import io.ktor.server.response.*
 
 /**
  * Installs API Key authentication mechanism.
+ *
+ * @param name optional name for this authentication provider. If not specified, a default name will be used.
+ * @param configure configuration block for setting up the API Key authentication provider.
  */
 public fun AuthenticationConfig.apiKey(
     name: String? = null,
@@ -33,6 +36,11 @@ public typealias ApiKeyAuthChallengeFunction = suspend (ApplicationCall) -> Unit
 
 /**
  * Represents an API Key authentication provider.
+ *
+ * This provider extracts an API key from a specified header and validates it using
+ * the configured authentication function.
+ *
+ * @param configuration the configuration for this authentication provider.
  */
 public class ApiKeyAuthenticationProvider internal constructor(
     configuration: Configuration,
@@ -71,7 +79,9 @@ public class ApiKeyAuthenticationProvider internal constructor(
     }
 
     /**
-     * Api key auth configuration.
+     * Configuration for API Key authentication.
+     *
+     * @param name optional name for this authentication provider.
      */
     public class Configuration internal constructor(name: String?) : Config(name) {
 
@@ -94,6 +104,8 @@ public class ApiKeyAuthenticationProvider internal constructor(
         /**
          * Sets a validation function that will check given API key retrieved from [headerName] instance and return [Principal],
          * or null if credential does not correspond to an authenticated principal.
+         *
+         * @param body the validation function that receives the API key and returns a [Principal] or null.
          */
         public fun validate(body: suspend ApplicationCall.(String) -> Any?) {
             authenticationFunction = body
@@ -101,6 +113,8 @@ public class ApiKeyAuthenticationProvider internal constructor(
 
         /**
          * A response to send back if authentication failed.
+         *
+         * @param body the challenge function that handles authentication failures.
          */
         public fun challenge(body: ApiKeyAuthChallengeFunction) {
             challengeFunction = body
