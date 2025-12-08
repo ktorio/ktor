@@ -61,6 +61,7 @@ projects {
 
         nested("ktor-server-plugins") {
             +"ktor-server-auth"
+            +"ktor-server-auth-api-key"
             +"ktor-server-auth-jwt"
             +"ktor-server-auth-ldap"
             +"ktor-server-auto-head-response"
