@@ -43,9 +43,15 @@ public class ApiKeyAuthenticationProvider internal constructor(
     private val challengeFunction = configuration.challengeFunction
     private val authScheme = configuration.authScheme
 
+    init {
+        requireNotNull(configuration.authenticationFunction) {
+            "API Key authentication requires a validate() function to be configured"
+        }
+    }
+
     override suspend fun onAuthenticate(context: AuthenticationContext) {
         val apiKey = context.call.request.header(headerName)
-        val principal = apiKey?.let { authenticationFunction(context.call, it) }
+        val principal = apiKey?.let { authenticationFunction!!(context.call, it) }
 
         val cause = when {
             apiKey == null -> AuthenticationFailedCause.NoCredentials
@@ -69,7 +75,7 @@ public class ApiKeyAuthenticationProvider internal constructor(
      */
     public class Configuration internal constructor(name: String?) : Config(name) {
 
-        internal lateinit var authenticationFunction: ApiKeyAuthenticationFunction
+        internal var authenticationFunction: ApiKeyAuthenticationFunction? = null
 
         internal var challengeFunction: ApiKeyAuthChallengeFunction = { call ->
             call.respond(HttpStatusCode.Unauthorized)

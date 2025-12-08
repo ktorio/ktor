@@ -9,12 +9,14 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.testing.*
 import kotlinx.serialization.Serializable
 import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class TestApiKeyAuth {
 
@@ -22,6 +24,22 @@ class TestApiKeyAuth {
     private data class ApiKeyPrincipal(val key: String)
 
     private val defaultHeader = "X-Api-Key"
+
+    @Test
+    fun `test apikey requires validate method to be configured`() {
+        testApplication {
+            install(Authentication) {
+                val exception = assertFailsWith<IllegalArgumentException> {
+                    apiKey(apiKeyAuth) {}
+                }
+
+                assertEquals(
+                    "API Key authentication requires a validate() function to be configured",
+                    exception.message
+                )
+            }
+        }
+    }
 
     @Test
     fun `test apikey auth does not influence open routes`() {
@@ -68,7 +86,7 @@ class TestApiKeyAuth {
             }
             assertEquals(HttpStatusCode.OK, response.status)
             val principal = response.body<ApiKeyPrincipal>()
-            assertEquals(principal, ApiKeyPrincipal(apiKey))
+            assertEquals(ApiKeyPrincipal(apiKey), principal)
 
             // incorrect header
             val unauthorizedResponse = client.get(Routes.AUTHENTICATED) {
@@ -99,7 +117,7 @@ class TestApiKeyAuth {
             }
             assertEquals(HttpStatusCode.OK, response.status)
             val principal = response.body<ApiKeyPrincipal>()
-            assertEquals(principal, ApiKeyPrincipal(apiKey))
+            assertEquals(ApiKeyPrincipal(apiKey), principal)
         }
     }
 
@@ -124,7 +142,7 @@ class TestApiKeyAuth {
             }
             assertEquals(HttpStatusCode.OK, response.status)
             val principal = response.body<ApiKeyPrincipal>()
-            assertEquals(principal, ApiKeyPrincipal(apiKey))
+            assertEquals(ApiKeyPrincipal(apiKey), principal)
 
             // incorrect header
             val unauthorizedResponse = client.get(Routes.AUTHENTICATED) {
