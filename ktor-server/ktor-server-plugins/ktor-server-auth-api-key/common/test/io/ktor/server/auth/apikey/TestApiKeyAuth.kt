@@ -12,7 +12,7 @@ import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.response.*
 import io.ktor.server.testing.*
 import kotlinx.serialization.Serializable
-import java.util.*
+import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -25,7 +25,7 @@ class TestApiKeyAuth {
 
     @Test
     fun `test apikey auth does not influence open routes`() {
-        val apiKey = UUID.randomUUID().toString()
+        val apiKey = Random.nextLong().toString()
 
         val module = buildApplicationModule {
             validate { header -> header.takeIf { it == apiKey }?.let { ApiKeyPrincipal(it) } }
@@ -52,7 +52,7 @@ class TestApiKeyAuth {
 
     @Test
     fun `test reasonable defaults work`() {
-        val apiKey = UUID.randomUUID().toString()
+        val apiKey = Random.nextLong().toString()
 
         val module = buildApplicationModule {
             validate { header -> header.takeIf { it == apiKey }?.let { ApiKeyPrincipal(it) } }
