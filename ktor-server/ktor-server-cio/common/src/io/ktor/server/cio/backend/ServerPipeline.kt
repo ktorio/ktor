@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.cio.backend
@@ -9,16 +9,18 @@ import io.ktor.http.cio.*
 import io.ktor.http.cio.internals.*
 import io.ktor.server.cio.*
 import io.ktor.util.cio.*
-import io.ktor.util.logging.KtorSimpleLogger
-import io.ktor.util.logging.trace
+import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
-import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.channels.*
-import kotlinx.io.*
-import kotlin.time.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.io.IOException
+import kotlinx.io.InternalIoApi
+import kotlinx.io.Source
+import kotlinx.io.readByteArray
+import kotlin.time.Duration
 
 private val LOGGER = KtorSimpleLogger("io.ktor.server.cio.backend.ServerPipeline")
 
@@ -64,8 +66,8 @@ public fun CoroutineScope.startServerConnectionPipeline(
         while (true) { // parse requests loop
             val request = try {
                 parseRequest(connection.input) ?: break
-            } catch (_: TooLongLineException) {
-                respondBadRequest(actorChannel)
+            } catch (e: TooLongLineException) {
+                respondBadRequest(actorChannel, e.message)
                 break // end pipeline loop
             } catch (io: IOException) {
                 throw io
@@ -74,7 +76,7 @@ public fun CoroutineScope.startServerConnectionPipeline(
             } catch (parseFailed: Throwable) {
                 LOGGER.trace { "Request parsing failed with exception: $parseFailed" }
                 // try to write 400 Bad Request
-                respondBadRequest(actorChannel)
+                respondBadRequest(actorChannel, parseFailed.message)
                 break // end pipeline loop
             }
 
@@ -114,9 +116,9 @@ public fun CoroutineScope.startServerConnectionPipeline(
                     contentType
                 )
                 expectedHttpUpgrade = !expectedHttpBody && expectHttpUpgrade(request.method, upgrade, connectionOptions)
-            } catch (_: Throwable) {
+            } catch (e: Throwable) {
                 request.release()
-                response.writePacket(BadRequestPacket.copy())
+                response.writePacket(e.message.toBadRequestPacket())
                 response.close()
                 break
             }
@@ -151,11 +153,11 @@ public fun CoroutineScope.startServerConnectionPipeline(
             }
 
             if (upgraded != null) {
-                if (upgraded.await()) { // suspend pipeline until we know if upgrade performed?
+                if (upgraded.await()) { // suspend a pipeline until we know if the upgrade performed?
                     actorChannel.close()
                     connection.input.copyAndClose(requestBody as ByteChannel)
                     break
-                } else if (requestBody is ByteChannel) { // not upgraded, for example 404
+                } else if (requestBody is ByteChannel) { // not upgraded, for example, 404
                     requestBody.close()
                 }
             }
@@ -172,7 +174,7 @@ public fun CoroutineScope.startServerConnectionPipeline(
                     )
                 } catch (cause: Throwable) {
                     requestBody.close(ChannelReadException("Failed to read request body", cause))
-                    response.writePacket(BadRequestPacket.copy())
+                    response.writePacket(cause.message.toBadRequestPacket())
                     response.close()
                     break
                 } finally {
@@ -191,10 +193,24 @@ public fun CoroutineScope.startServerConnectionPipeline(
     }
 }
 
-private suspend fun respondBadRequest(actorChannel: Channel<ByteReadChannel>) {
+@OptIn(InternalIoApi::class)
+private fun String?.toBadRequestPacket(): Source {
+    if (this == null) {
+        return BadRequestPacket.buffer.copy()
+    }
+    val bytes = encodeToByteArray()
+    return RequestResponseBuilder().apply {
+        bytes(BadRequestPacketCommon)
+        headerLine("Content-Length", bytes.size.toString())
+        emptyLine()
+        bytes(bytes)
+    }.build()
+}
+
+private suspend fun respondBadRequest(actorChannel: Channel<ByteReadChannel>, message: String?) {
     val bc = ByteChannel()
     if (actorChannel.trySend(bc).isSuccess) {
-        bc.writePacket(BadRequestPacket.copy())
+        bc.writePacket(message.toBadRequestPacket())
         bc.close()
     }
     actorChannel.close()
@@ -220,6 +236,13 @@ private suspend fun pipelineWriterLoop(
         }
     }
 }
+
+@OptIn(InternalIoApi::class)
+private val BadRequestPacketCommon = RequestResponseBuilder().apply {
+    responseLine("HTTP/1.0", HttpStatusCode.BadRequest.value, "Bad Request")
+    headerLine("Connection", "close")
+    headerLine("Content-Type", "text/plain; charset=utf-8")
+}.build().buffer.readByteArray()
 
 private val BadRequestPacket = RequestResponseBuilder().apply {
     responseLine("HTTP/1.0", HttpStatusCode.BadRequest.value, "Bad Request")

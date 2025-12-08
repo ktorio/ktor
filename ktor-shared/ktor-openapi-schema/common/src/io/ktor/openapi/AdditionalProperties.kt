@@ -29,7 +29,7 @@ public sealed interface AdditionalProperties {
 
     /** Wrapper for a schema reference describing the type of additional properties. */
     @JvmInline
-    public value class PSchema(public val value: ReferenceOr<Schema>) : AdditionalProperties
+    public value class PSchema(public val value: ReferenceOr<JsonSchema>) : AdditionalProperties
 
     public companion object {
         internal object Serializer : KSerializer<AdditionalProperties> {
@@ -41,7 +41,7 @@ public sealed interface AdditionalProperties {
                 val element: GenericElement = decoder.decodeSerializableValue(decoder.serializersModule.serializer())
                 return when {
                     element.isObject() -> {
-                        val schemaSerializer: KSerializer<ReferenceOr<Schema>> = decoder.serializersModule.serializer()
+                        val schemaSerializer = decoder.serializersModule.serializer<ReferenceOr<JsonSchema>>()
                         PSchema(element.deserialize(schemaSerializer))
                     }
                     else -> Allowed(element.deserialize(Boolean.serializer()))
@@ -53,7 +53,7 @@ public sealed interface AdditionalProperties {
                     is Allowed -> encoder.encodeBoolean(value.value)
                     is PSchema ->
                         encoder.encodeSerializableValue(
-                            ReferenceOr.serializer(Schema.serializer()),
+                            ReferenceOr.serializer(JsonSchema.serializer()),
                             value.value,
                         )
                 }

@@ -22,6 +22,7 @@ import kotlinx.atomicfu.AtomicRef
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
+import kotlin.io.encoding.Base64
 
 @OptIn(InternalAPI::class)
 @PublicAPICandidate("2.2.0")
@@ -68,7 +69,7 @@ public class TestApplicationEngine(
 
     /**
      * An interceptor for engine calls.
-     * Can be modified to emulate behaviour of a specific engine (e.g. error handling).
+     * Can be modified to emulate the behaviour of a specific engine (e.g. error handling).
      */
     private val _callInterceptor: AtomicRef<(suspend PipelineContext<Unit, PipelineCall>.(Unit) -> Unit)?> =
         atomic(null)
@@ -87,7 +88,7 @@ public class TestApplicationEngine(
     public val engine: HttpClientEngine = TestHttpClientEngine.create { app = this@TestApplicationEngine }
 
     /**
-     * A client instance connected to this test server instance. Only works until engine stop invocation.
+     * A client instance connected to this test server instance. Only works until the engine stops invocation.
      */
     private val _client = atomic<HttpClient?>(null)
 
@@ -125,17 +126,20 @@ public class TestApplicationEngine(
         val throwOnException = environment.config
             .propertyOrNull(CONFIG_KEY_THROW_ON_EXCEPTION)
             ?.getString()?.toBoolean() != false
-        tryRespondError(
-            call,
-            defaultExceptionStatusCode(cause)
-                ?: if (throwOnException) throw cause else HttpStatusCode.InternalServerError
-        )
+        val statusCode = defaultExceptionStatusCode(cause)
+            ?: if (throwOnException) throw cause else HttpStatusCode.InternalServerError
+
+        tryRespondError(call, statusCode, cause.message)
     }
 
-    private suspend fun tryRespondError(call: ApplicationCall, statusCode: HttpStatusCode) {
+    private suspend fun tryRespondError(call: ApplicationCall, statusCode: HttpStatusCode, message: String?) {
+        if (call.response.isCommitted || call.response.isSent) return
         try {
-            call.respond(statusCode)
-        } catch (ignore: BaseApplicationResponse.ResponseAlreadySentException) {
+            when (message) {
+                null -> call.respond(statusCode)
+                else -> call.respond(statusCode, message)
+            }
+        } catch (_: BaseApplicationResponse.ResponseAlreadySentException) {
         }
     }
 
@@ -213,7 +217,7 @@ public class TestApplicationEngine(
             this.uri = uri
             addHeader(HttpHeaders.Connection, "Upgrade")
             addHeader(HttpHeaders.Upgrade, "websocket")
-            addHeader(HttpHeaders.SecWebSocketKey, "test".toByteArray().encodeBase64())
+            addHeader(HttpHeaders.SecWebSocketKey, Base64.encode("test".toByteArray()))
 
             processRequest(setup)
         }

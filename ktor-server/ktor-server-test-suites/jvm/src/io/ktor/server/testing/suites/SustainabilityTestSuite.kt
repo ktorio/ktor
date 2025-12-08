@@ -725,10 +725,11 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
                     intercepted = false
                 }) {
-                    body<String>()
+                    val responseText = bodyAsText()
                     assertEquals(HttpStatusCode.InternalServerError, status, "Failed in phase $phase")
                     assertEquals(exceptions.size, 1, "Failed in phase $phase")
                     assertEquals("Failed in phase $phase", exceptions[0].message)
+                    assertTrue(responseText.contains("Failed in phase"))
                     exceptions.clear()
                 }
 

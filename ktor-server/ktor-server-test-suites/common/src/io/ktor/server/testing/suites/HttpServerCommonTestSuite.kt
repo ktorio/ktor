@@ -22,6 +22,7 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.sse.*
 import io.ktor.server.test.base.*
 import io.ktor.server.testing.*
 import io.ktor.server.util.*
@@ -742,7 +743,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
 
         withUrl("/") {
             assertEquals(HttpStatusCode.InternalServerError, status)
-            assertTrue(bodyAsText().isEmpty())
+            assertEquals("Test exception", bodyAsText())
         }
     }
 
@@ -795,6 +796,28 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
             }
         } catch (_: Throwable) {
             // expected
+        }
+    }
+
+    @Test
+    fun testSSEDoesNotSendConnectionOnHttp2() = runTest {
+        createAndStartServer {
+            application.install(SSE)
+            application.routing {
+                sse("/") {
+                    send("hello")
+                }
+            }
+        }
+
+        withUrl("/", {
+            header(HttpHeaders.Accept, "text/event-stream")
+        }) {
+            if (version == HttpProtocolVersion.HTTP_2_0) {
+                assertNull(headers[HttpHeaders.Connection])
+            }
+            assertEquals("text/event-stream", headers[HttpHeaders.ContentType])
+            assertEquals("data: hello", bodyAsText().trim())
         }
     }
 
