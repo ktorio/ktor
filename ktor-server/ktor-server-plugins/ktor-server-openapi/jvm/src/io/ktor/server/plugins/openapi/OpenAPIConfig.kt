@@ -4,6 +4,8 @@
 
 package io.ktor.server.plugins.openapi
 
+import io.ktor.annotate.OpenApiSpecSource
+import io.ktor.http.ContentType
 import io.swagger.codegen.v3.*
 import io.swagger.codegen.v3.generators.html.*
 import io.swagger.parser.*
@@ -15,6 +17,21 @@ import io.swagger.v3.parser.core.models.*
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.openapi.OpenAPIConfig)
  */
 public class OpenAPIConfig {
+    /**
+     * Defines the source of the OpenAPI specification.
+     */
+    public var source: OpenApiSpecSource = OpenApiSpecSource.FirstOf(
+        OpenApiSpecSource.FileSource("openapi/documentation.yaml"),
+        OpenApiSpecSource.RoutingSource(ContentType.Application.Yaml),
+    )
+
+    /**
+     * Specifies where the generated OpenAPI code will be saved to.
+     *
+     * Defaults to `docs`.
+     */
+    public var outputPath: String = "docs"
+
     /**
      * Specifies a parser used to parse OpenAPI.
      *

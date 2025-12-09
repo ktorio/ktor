@@ -4,6 +4,12 @@
 
 package io.ktor.openapi
 
+import com.charleskorn.kaml.Yaml
+import com.charleskorn.kaml.YamlList
+import com.charleskorn.kaml.YamlMap
+import com.charleskorn.kaml.YamlNode
+import com.charleskorn.kaml.YamlScalar
+import com.charleskorn.kaml.yamlList
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
@@ -177,6 +183,30 @@ public object JsonElementSerialAdapter : GenericElementSerialAdapter {
         val deserializer = JsonElement.serializer()
         val jsonElement = decoder.decodeSerializableValue(deserializer)
         return JsonGenericElement(jsonElement, decoder.json, deserializer)
+    }
+}
+
+public object YamlNodeSerialAdapter : GenericElementSerialAdapter {
+
+    // Kaml doesn't include a function for encoding to YamlNode,
+    // so we just return a GenericElementWrapper
+    override fun <T> trySerializeToElement(
+        encoder: Encoder,
+        value: T,
+        serializer: KSerializer<T>
+    ): GenericElement? {
+        if (value !is Any) return null
+        @Suppress("UNCHECKED_CAST")
+        return GenericElementWrapper(
+            value,
+            serializer as KSerializer<Any>
+        )
+    }
+
+    override fun tryDeserialize(decoder: Decoder): GenericElement {
+        val deserializer = YamlNode.serializer()
+        val yamlNode = decoder.decodeSerializableValue(deserializer)
+        return YamlGenericElement(yamlNode, Yaml.default, deserializer)
     }
 }
 
@@ -404,14 +434,59 @@ internal class JsonGenericElement(
     }
 }
 
+internal class YamlGenericElement(
+    override val element: YamlNode,
+    internal val yaml: Yaml,
+    override val elementSerializer: KSerializer<YamlNode> = YamlNode.serializer(),
+) : GenericElement {
+    override fun isObject(): Boolean = element is YamlList
+    override fun isArray(): Boolean = element is YamlList
+    override fun isString(): Boolean = element is YamlScalar
+
+    override fun <T> deserialize(serializer: DeserializationStrategy<T>): T =
+        yaml.decodeFromYamlNode(serializer, element)
+
+    override fun entries(): List<Pair<String, GenericElement>> {
+        require(element is YamlMap) {
+            "$element is not a yaml map"
+        }
+        return element.entries.map { (key, value) ->
+            key.contentToString() to YamlGenericElement(
+                value,
+                yaml,
+                elementSerializer
+            )
+        }
+    }
+
+    override fun plus(other: GenericElement): GenericElement {
+        require(element is YamlMap) {
+            "$element is not an object"
+        }
+        require(other is YamlGenericElement) {
+            "$other is not a YAML element"
+        }
+        val otherElement = other.element
+        require(otherElement is YamlMap) {
+            "$otherElement is not a yaml map"
+        }
+        return YamlGenericElement(
+            YamlMap(element.entries + otherElement.entries, element.path),
+            yaml,
+            elementSerializer
+        )
+    }
+}
+
 /**
  * A [GenericElement] serializer that delegates to the first registered [GenericElementSerialAdapter] that can
  * deserialize the element.
  */
 public class GenericElementSerializer : KSerializer<GenericElement> {
     private val adapters: List<GenericElementSerialAdapter> = listOf(
-        JsonElementSerialAdapter,
         GenericMapDecoderAdapter,
+        JsonElementSerialAdapter,
+        YamlNodeSerialAdapter,
     )
 
     @OptIn(InternalSerializationApi::class)

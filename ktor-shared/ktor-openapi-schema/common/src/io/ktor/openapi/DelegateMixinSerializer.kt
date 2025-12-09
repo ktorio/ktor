@@ -75,6 +75,7 @@ internal abstract class DelegateMixinSerializer<T>(
 ) : KSerializer<T> {
     private val adapters: List<GenericElementSerialAdapter> = listOf(
         JsonElementSerialAdapter,
+        YamlNodeSerialAdapter,
         GenericMapDecoderAdapter,
     )
     private val reverseLookup: List<Pair<(String) -> Boolean, String>> = properties.entries.map { (key, value) ->

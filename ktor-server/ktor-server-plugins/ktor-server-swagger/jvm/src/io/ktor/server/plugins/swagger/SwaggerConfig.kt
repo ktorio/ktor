@@ -4,6 +4,9 @@
 
 package io.ktor.server.plugins.swagger
 
+import io.ktor.annotate.OpenApiSpecSource
+import io.ktor.http.ContentType
+
 /**
  * A configuration for the Swagger UI endpoint.
  *
@@ -11,6 +14,19 @@ package io.ktor.server.plugins.swagger
  */
 public class SwaggerConfig {
     internal var customStyle: String? = null
+
+    /**
+     * Defines the source of the OpenAPI specification.
+     */
+    public var source: OpenApiSpecSource = OpenApiSpecSource.FirstOf(
+        OpenApiSpecSource.FileSource("openapi/documentation.yaml"),
+        OpenApiSpecSource.RoutingSource(ContentType.Application.Yaml),
+    )
+
+    /**
+     * Relative path from the swagger URL root to the specification file.
+     */
+    public var remotePath: String = "documentation.yaml"
 
     /**
      * Specifies a Swagger UI version to use.

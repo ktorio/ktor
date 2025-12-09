@@ -4,14 +4,36 @@
 
 package io.ktor.server.plugins.swagger
 
+import io.ktor.annotate.OpenApiSpecSource
+import io.ktor.annotate.annotate
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.openapi.OpenApiInfo
+import io.ktor.server.response.respond
+import io.ktor.server.routing.RoutingNode
+import io.ktor.server.routing.get
+import io.ktor.server.routing.post
+import io.ktor.server.routing.put
+import io.ktor.server.routing.route
 import io.ktor.server.testing.*
 import kotlin.test.Test
+import kotlin.test.assertContains
 import kotlin.test.assertEquals
 
 class SwaggerTest {
+
+    private val sampleBook = Book(
+        "The Hitchhiker's Guide to the Galaxy",
+        "Douglas Adams"
+    )
+    private val descriptions = listOf(
+        "List all books",
+        "Get a book by id",
+        "Create a book",
+        "Update a book"
+    )
+
     @Test
     fun testSwaggerFromResources() = testApplication {
         routing {
@@ -193,4 +215,53 @@ class SwaggerTest {
             response
         )
     }
+
+    @Test
+    fun `swagger file resolved from routing`() = testApplication {
+        routing {
+            val apiRoute = route("/api") {
+                route("/books") {
+                    get {
+                        call.respond(listOf(sampleBook))
+                    }.annotate {
+                        summary = descriptions[0]
+                    }
+                    get("/{id}") {
+                        call.respond(sampleBook)
+                    }.annotate {
+                        summary = descriptions[1]
+                    }
+                    post {
+                        call.respond(HttpStatusCode.Created)
+                    }.annotate {
+                        summary = descriptions[2]
+                    }
+                    put("/{id}") {
+                        call.respond(HttpStatusCode.NoContent)
+                    }.annotate {
+                        summary = descriptions[3]
+                    }
+                }
+            }
+
+            swaggerUI("/swagger") {
+                source = OpenApiSpecSource.RoutingSource(
+                    info = OpenApiInfo("Books API from routes", "1.0.0"),
+                    route = apiRoute as RoutingNode,
+                    contentType = ContentType.Application.Yaml
+                )
+            }
+        }
+
+        client.get("/swagger/documentation.yaml").let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            val responseText = response.bodyAsText()
+            assertContains(responseText, "Books API from routes")
+            for (description in descriptions) {
+                assertContains(responseText, description, message = "Response should contain '$description'")
+            }
+        }
+    }
 }
+
+data class Book(val title: String, val author: String)

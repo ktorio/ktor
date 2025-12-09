@@ -4,15 +4,17 @@
 
 package io.ktor.server.plugins.swagger
 
-import io.ktor.http.*
-import io.ktor.server.application.*
+import io.ktor.annotate.*
+import io.ktor.annotate.OpenApiSpecSource.Companion.readOpenApiSource
 import io.ktor.server.html.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.util.*
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.async
 import kotlinx.html.*
-import java.io.*
+import java.io.File
 
 /**
  * Creates a `get` endpoint with [SwaggerUI] at [path] rendered from the OpenAPI file located at [swaggerFile].
@@ -25,33 +27,26 @@ import java.io.*
  */
 public fun Route.swaggerUI(
     path: String,
-    swaggerFile: String = "openapi/documentation.yaml",
+    swaggerFile: String,
     block: SwaggerConfig.() -> Unit = {}
-) {
-    val resource = environment.classLoader.getResourceAsStream(swaggerFile)
-        ?.bufferedReader()
-
-    if (resource != null) {
-        swaggerUI(path, swaggerFile.takeLastWhile { it != '/' }, resource.readText(), block)
-        return
+): Route =
+    swaggerUI(path) {
+        block()
+        source = OpenApiSpecSource.FileSource(path)
+        remotePath = swaggerFile.takeLastWhile { it != '/' }
     }
-
-    swaggerUI(path, File(swaggerFile), block)
-}
 
 /**
  * Creates a `get` endpoint with [SwaggerUI] at [path] rendered from the [apiFile].
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.swagger.swaggerUI)
  */
-public fun Route.swaggerUI(path: String, apiFile: File, block: SwaggerConfig.() -> Unit = {}) {
-    if (!apiFile.exists()) {
-        throw FileNotFoundException("Swagger file not found: ${apiFile.absolutePath}")
+public fun Route.swaggerUI(path: String, apiFile: File, block: SwaggerConfig.() -> Unit = {}): Route =
+    swaggerUI(path) {
+        block()
+        source = OpenApiSpecSource.FileSource(apiFile.absolutePath)
+        remotePath = apiFile.name
     }
-
-    val content = apiFile.readText()
-    swaggerUI(path, apiFile.name, content, block)
-}
 
 /**
  * Configures a route to serve Swagger UI and its corresponding API specification.
@@ -71,18 +66,46 @@ public fun Route.swaggerUI(
     apiUrl: String,
     api: String,
     block: SwaggerConfig.() -> Unit = {}
-) {
-    val config = SwaggerConfig().apply(block)
+): Route =
+    swaggerUI(path) {
+        block()
+        source = OpenApiSpecSource.StringSource(api)
+        remotePath = apiUrl
+    }
 
-    route(path) {
+/**
+ * Adds a Swagger UI endpoint to the current route.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.swagger.swaggerUI)
+ *
+ * @param path The root path where the Swagger UI will be available.
+ * @param block Configuration block for customizing the Swagger UI, such as defining the OpenAPI specification source.
+ */
+public fun Route.swaggerUI(
+    path: String,
+    block: SwaggerConfig.() -> Unit = {}
+): Route {
+    val config = SwaggerConfig().apply(block)
+    val source = config.source
+    val apiUrl = config.remotePath
+    val specData = with(application) {
+        async(start = CoroutineStart.LAZY) {
+            readOpenApiSource(source) ?: error {
+                "Failed to read OpenAPI document from $source"
+            }
+        }
+    }
+
+    return route(path) {
         get(apiUrl) {
-            call.respondText(api, ContentType.fromFilePath(apiUrl).firstOrNull())
+            call.respondText(specData.await(), source.contentType)
         }
         get {
             val fullPath = call.request.path()
             val docExpansion = runCatching {
                 call.request.queryParameters.getOrFail<String>("docExpansion")
             }.getOrNull()
+
             call.respondHtml {
                 head {
                     title { +"Swagger UI" }
