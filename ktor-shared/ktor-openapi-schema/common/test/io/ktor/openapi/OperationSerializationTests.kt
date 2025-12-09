@@ -4,10 +4,13 @@
 
 package io.ktor.openapi
 
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
+import com.charleskorn.kaml.Yaml
+import com.charleskorn.kaml.YamlConfiguration
+import io.ktor.http.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -20,6 +23,9 @@ class OperationSerializationTests {
         prettyPrint = true
         prettyPrintIndent = "  "
     }
+    private val yamlFormat = Yaml(
+        configuration = YamlConfiguration(encodeDefaults = false)
+    )
 
     @Test
     fun `operation with parameters`() {
@@ -224,8 +230,12 @@ class OperationSerializationTests {
 
     private fun checkSerialization(operation: Operation) {
         val json = jsonFormat.encodeToString(operation)
-        val parsed = jsonFormat.decodeFromString<Operation>(json)
-        assertEquals(json, jsonFormat.encodeToString(parsed))
+        val parsedJson = jsonFormat.decodeFromString<Operation>(json)
+        assertEquals(json, jsonFormat.encodeToString(parsedJson))
+
+        val yaml = yamlFormat.encodeToString(operation)
+        val parsedYaml = yamlFormat.decodeFromString<Operation>(yaml)
+        assertEquals(yaml, yamlFormat.encodeToString(parsedYaml))
     }
 }
 

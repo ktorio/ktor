@@ -74,8 +74,9 @@ public fun generateOpenApiSpec(
     return OpenApiSpecification(
         info = info,
         paths = pathItems,
-        components = Components(schemas = jsonSchema)
-            .takeIf(Components::isNotEmpty)
+        components = Components(
+            schemas = jsonSchema
+        )
     )
 }
 

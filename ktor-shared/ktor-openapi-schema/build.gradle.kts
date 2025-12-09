@@ -16,6 +16,7 @@ kotlin {
             implementation(projects.ktorIo)
             implementation(libs.kotlinx.serialization.core)
             implementation(libs.kotlinx.serialization.json)
+            implementation(libs.kaml.serialization)
         }
     }
 }
