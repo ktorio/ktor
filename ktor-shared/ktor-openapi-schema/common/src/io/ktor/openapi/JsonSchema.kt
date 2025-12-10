@@ -42,7 +42,7 @@ public data class JsonSchema(
     val deprecated: Boolean? = null,
     val maxProperties: Int? = null,
     val minProperties: Int? = null,
-    /** Unlike JSON Schema this value MUST conform to the defined type for this parameter. */
+    /** Unlike JSON Schema, this value MUST conform to the defined type for this parameter. */
     val default: GenericElement? = null,
     val format: String? = null,
     val items: ReferenceOr<JsonSchema>? = null,
@@ -59,9 +59,9 @@ public data class JsonSchema(
     // inner type nullable to allow explicit "null" value for nullable enums
     val enum: List<GenericElement?>? = null,
     val multipleOf: Double? = null,
-    @SerialName("\$id") val id: String? = null,
-    @SerialName("\$anchor") val anchor: String? = null,
-    @SerialName("\$recursiveAnchor") val recursiveAnchor: Boolean? = null,
+    @SerialName($$"$id") val id: String? = null,
+    @SerialName($$"$anchor") val anchor: String? = null,
+    @SerialName($$"$recursiveAnchor") val recursiveAnchor: Boolean? = null,
 ) {
     @Serializable
     public data class Discriminator(

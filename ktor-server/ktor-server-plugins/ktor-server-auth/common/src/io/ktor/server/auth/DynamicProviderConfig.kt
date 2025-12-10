@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.auth
@@ -9,7 +9,10 @@ package io.ktor.server.auth
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.DynamicProviderConfig)
  */
-public class DynamicProviderConfig(name: String?) : AuthenticationProvider.Config(name) {
+public class DynamicProviderConfig(
+    name: String?,
+    description: String? = null
+) : AuthenticationProvider.Config(name, description) {
 
     private lateinit var authenticateFunction: (context: AuthenticationContext) -> Unit
 

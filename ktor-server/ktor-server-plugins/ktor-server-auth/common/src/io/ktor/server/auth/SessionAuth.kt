@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.auth
@@ -62,8 +62,9 @@ public class SessionAuthenticationProvider<T : Any> private constructor(
      */
     public class Config<T : Any> @PublishedApi internal constructor(
         name: String?,
+        description: String?,
         internal val type: KClass<T>
-    ) : AuthenticationProvider.Config(name) {
+    ) : AuthenticationProvider.Config(name, description) {
         internal var validator: AuthenticationFunction<T> = UninitializedValidator
 
         internal var challengeFunction: SessionAuthChallengeFunction<T> = { call.respond(UnauthorizedResponse()) }
@@ -187,7 +188,24 @@ public fun <T : Any> AuthenticationConfig.session(
     kClass: KClass<T>,
     configure: SessionAuthenticationProvider.Config<T>.() -> Unit,
 ) {
-    val provider = SessionAuthenticationProvider.Config(name, kClass).apply(configure).buildProvider()
+    session(name, description = null, kClass, configure)
+}
+
+/**
+ * Installs the session [Authentication] provider with description.
+ * This provider provides the ability to authenticate a user that already has an associated session.
+ *
+ * To learn how to configure the session provider, see [Session authentication](https://ktor.io/docs/session-auth.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.session)
+ */
+public inline fun <T : Any> AuthenticationConfig.session(
+    name: String?,
+    description: String?,
+    kClass: KClass<T>,
+    configure: SessionAuthenticationProvider.Config<T>.() -> Unit,
+) {
+    val provider = SessionAuthenticationProvider.Config(name, description, kClass).apply(configure).buildProvider()
     register(provider)
 }
 
