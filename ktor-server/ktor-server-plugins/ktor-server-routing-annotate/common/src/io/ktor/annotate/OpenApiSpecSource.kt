@@ -4,15 +4,12 @@
 
 package io.ktor.annotate
 
-import com.charleskorn.kaml.Yaml
-import com.charleskorn.kaml.YamlConfiguration
 import io.ktor.http.ContentType
 import io.ktor.http.fromFilePath
 import io.ktor.openapi.OpenApiInfo
 import io.ktor.server.application.Application
 import io.ktor.server.routing.RoutingNode
 import io.ktor.server.routing.routingRoot
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
@@ -22,10 +19,6 @@ import kotlinx.serialization.json.Json
  */
 public sealed interface OpenApiSpecSource {
     public companion object {
-        private val yamlFormat by lazy {
-            Yaml(configuration = YamlConfiguration(encodeDefaults = false))
-        }
-
         public fun Application.readOpenApiSource(source: OpenApiSpecSource): String? =
             when (source) {
                 is StringSource -> source.content
@@ -40,7 +33,7 @@ public sealed interface OpenApiSpecSource {
                 route = source.route ?: routingRoot
             )
             return when (source.contentType) {
-                ContentType.Application.Yaml -> yamlFormat.encodeToString(specification)
+                ContentType.Application.Yaml -> serializeToYaml(specification)
                 ContentType.Application.Json -> Json.encodeToString(specification)
                 else -> error { "Unsupported content type: ${source.contentType}" }
             }

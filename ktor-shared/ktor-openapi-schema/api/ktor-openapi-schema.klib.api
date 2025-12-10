@@ -36,6 +36,7 @@ abstract interface io.ktor.openapi/GenericElement { // io.ktor.openapi/GenericEl
 
     abstract fun <#A1: kotlin/Any?> deserialize(kotlinx.serialization/DeserializationStrategy<#A1>): #A1 // io.ktor.openapi/GenericElement.deserialize|deserialize(kotlinx.serialization.DeserializationStrategy<0:0>){0§<kotlin.Any?>}[0]
     abstract fun entries(): kotlin.collections/List<kotlin/Pair<kotlin/String, io.ktor.openapi/GenericElement>> // io.ktor.openapi/GenericElement.entries|entries(){}[0]
+    abstract fun items(): kotlin.collections/List<io.ktor.openapi/GenericElement> // io.ktor.openapi/GenericElement.items|items(){}[0]
     open fun isArray(): kotlin/Boolean // io.ktor.openapi/GenericElement.isArray|isArray(){}[0]
     open fun isObject(): kotlin/Boolean // io.ktor.openapi/GenericElement.isObject|isObject(){}[0]
     open fun isString(): kotlin/Boolean // io.ktor.openapi/GenericElement.isString|isString(){}[0]
@@ -136,6 +137,7 @@ final class <#A: kotlin/Any> io.ktor.openapi/GenericElementWrapper : io.ktor.ope
 
     final fun <#A1: kotlin/Any?> deserialize(kotlinx.serialization/DeserializationStrategy<#A1>): #A1 // io.ktor.openapi/GenericElementWrapper.deserialize|deserialize(kotlinx.serialization.DeserializationStrategy<0:0>){0§<kotlin.Any?>}[0]
     final fun entries(): kotlin.collections/List<kotlin/Pair<kotlin/String, io.ktor.openapi/GenericElement>> // io.ktor.openapi/GenericElementWrapper.entries|entries(){}[0]
+    final fun items(): kotlin.collections/List<io.ktor.openapi/GenericElement> // io.ktor.openapi/GenericElementWrapper.items|items(){}[0]
     final fun toString(): kotlin/String // io.ktor.openapi/GenericElementWrapper.toString|toString(){}[0]
 }
 
@@ -329,6 +331,7 @@ final class io.ktor.openapi/GenericElementString : io.ktor.openapi/GenericElemen
     final fun <#A1: kotlin/Any?> deserialize(kotlinx.serialization/DeserializationStrategy<#A1>): #A1 // io.ktor.openapi/GenericElementString.deserialize|deserialize(kotlinx.serialization.DeserializationStrategy<0:0>){0§<kotlin.Any?>}[0]
     final fun entries(): kotlin.collections/List<kotlin/Pair<kotlin/String, io.ktor.openapi/GenericElement>> // io.ktor.openapi/GenericElementString.entries|entries(){}[0]
     final fun isString(): kotlin/Boolean // io.ktor.openapi/GenericElementString.isString|isString(){}[0]
+    final fun items(): kotlin.collections/List<io.ktor.openapi/GenericElement> // io.ktor.openapi/GenericElementString.items|items(){}[0]
 }
 
 final class io.ktor.openapi/Header : io.ktor.openapi/Extensible { // io.ktor.openapi/Header|null[0]
@@ -1759,9 +1762,9 @@ final object io.ktor.openapi/ContentTypeSerializer : kotlinx.serialization/KSeri
     final fun serialize(kotlinx.serialization.encoding/Encoder, io.ktor.http/ContentType) // io.ktor.openapi/ContentTypeSerializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;io.ktor.http.ContentType){}[0]
 }
 
-final object io.ktor.openapi/GenericMapDecoderAdapter : io.ktor.openapi/GenericElementSerialAdapter { // io.ktor.openapi/GenericMapDecoderAdapter|null[0]
-    final fun <#A1: kotlin/Any?> trySerializeToElement(kotlinx.serialization.encoding/Encoder, #A1, kotlinx.serialization/KSerializer<#A1>): io.ktor.openapi/GenericElement? // io.ktor.openapi/GenericMapDecoderAdapter.trySerializeToElement|trySerializeToElement(kotlinx.serialization.encoding.Encoder;0:0;kotlinx.serialization.KSerializer<0:0>){0§<kotlin.Any?>}[0]
-    final fun tryDeserialize(kotlinx.serialization.encoding/Decoder): io.ktor.openapi/GenericElement? // io.ktor.openapi/GenericMapDecoderAdapter.tryDeserialize|tryDeserialize(kotlinx.serialization.encoding.Decoder){}[0]
+final object io.ktor.openapi/GenericElementEncodingAdapter : io.ktor.openapi/GenericElementSerialAdapter { // io.ktor.openapi/GenericElementEncodingAdapter|null[0]
+    final fun <#A1: kotlin/Any?> trySerializeToElement(kotlinx.serialization.encoding/Encoder, #A1, kotlinx.serialization/KSerializer<#A1>): io.ktor.openapi/GenericElement? // io.ktor.openapi/GenericElementEncodingAdapter.trySerializeToElement|trySerializeToElement(kotlinx.serialization.encoding.Encoder;0:0;kotlinx.serialization.KSerializer<0:0>){0§<kotlin.Any?>}[0]
+    final fun tryDeserialize(kotlinx.serialization.encoding/Decoder): io.ktor.openapi/GenericElement? // io.ktor.openapi/GenericElementEncodingAdapter.tryDeserialize|tryDeserialize(kotlinx.serialization.encoding.Decoder){}[0]
 }
 
 final object io.ktor.openapi/JsonElementSerialAdapter : io.ktor.openapi/GenericElementSerialAdapter { // io.ktor.openapi/JsonElementSerialAdapter|null[0]

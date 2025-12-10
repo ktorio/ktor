@@ -4,6 +4,7 @@
 
 package io.ktor.openapi
 
+import com.charleskorn.kaml.SingleLineStringStyle
 import com.charleskorn.kaml.Yaml
 import com.charleskorn.kaml.YamlConfiguration
 import io.ktor.http.*
@@ -24,7 +25,10 @@ class OperationSerializationTests {
         prettyPrintIndent = "  "
     }
     private val yamlFormat = Yaml(
-        configuration = YamlConfiguration(encodeDefaults = false)
+        configuration = YamlConfiguration(
+            encodeDefaults = false,
+            singleLineStringStyle = SingleLineStringStyle.Plain
+        )
     )
 
     @Test

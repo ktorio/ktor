@@ -236,6 +236,7 @@ public abstract interface class io/ktor/openapi/GenericElement {
 	public fun isArray ()Z
 	public fun isObject ()Z
 	public fun isString ()Z
+	public abstract fun items ()Ljava/util/List;
 	public fun plus (Lio/ktor/openapi/GenericElement;)Lio/ktor/openapi/GenericElement;
 }
 
@@ -251,6 +252,12 @@ public final class io/ktor/openapi/GenericElement$DefaultImpls {
 	public static fun isObject (Lio/ktor/openapi/GenericElement;)Z
 	public static fun isString (Lio/ktor/openapi/GenericElement;)Z
 	public static fun plus (Lio/ktor/openapi/GenericElement;Lio/ktor/openapi/GenericElement;)Lio/ktor/openapi/GenericElement;
+}
+
+public final class io/ktor/openapi/GenericElementEncodingAdapter : io/ktor/openapi/GenericElementSerialAdapter {
+	public static final field INSTANCE Lio/ktor/openapi/GenericElementEncodingAdapter;
+	public fun tryDeserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/openapi/GenericElement;
+	public fun trySerializeToElement (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;Lkotlinx/serialization/KSerializer;)Lio/ktor/openapi/GenericElement;
 }
 
 public final class io/ktor/openapi/GenericElementKt {
@@ -282,6 +289,7 @@ public final class io/ktor/openapi/GenericElementString : io/ktor/openapi/Generi
 	public fun isArray ()Z
 	public fun isObject ()Z
 	public fun isString ()Z
+	public fun items ()Ljava/util/List;
 	public fun plus (Lio/ktor/openapi/GenericElement;)Lio/ktor/openapi/GenericElement;
 }
 
@@ -294,14 +302,9 @@ public final class io/ktor/openapi/GenericElementWrapper : io/ktor/openapi/Gener
 	public fun isArray ()Z
 	public fun isObject ()Z
 	public fun isString ()Z
+	public fun items ()Ljava/util/List;
 	public fun plus (Lio/ktor/openapi/GenericElement;)Lio/ktor/openapi/GenericElement;
 	public fun toString ()Ljava/lang/String;
-}
-
-public final class io/ktor/openapi/GenericMapDecoderAdapter : io/ktor/openapi/GenericElementSerialAdapter {
-	public static final field INSTANCE Lio/ktor/openapi/GenericMapDecoderAdapter;
-	public fun tryDeserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/openapi/GenericElement;
-	public fun trySerializeToElement (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;Lkotlinx/serialization/KSerializer;)Lio/ktor/openapi/GenericElement;
 }
 
 public final class io/ktor/openapi/Header : io/ktor/openapi/Extensible {
