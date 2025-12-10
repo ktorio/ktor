@@ -99,7 +99,7 @@ public class ApiKeyAuthenticationProvider internal constructor(
         /**
          * Name of the header that will be used as a source for the api key.
          */
-        public var headerName: String = "X-Api-Key"
+        public var headerName: String = ApiKeyAuth.DEFAULT_HEADER_NAME
 
         /**
          * Sets a validation function that will check the given API key retrieved from the [headerName] header
@@ -122,4 +122,14 @@ public class ApiKeyAuthenticationProvider internal constructor(
             challengeFunction = body
         }
     }
+}
+
+/**
+ * Constants related to API Key authentication.
+ */
+object ApiKeyAuth {
+    /**
+     * Default name of the header that will be used as a source for the API key.
+     */
+    const val DEFAULT_HEADER_NAME = "X-Api-Key"
 }

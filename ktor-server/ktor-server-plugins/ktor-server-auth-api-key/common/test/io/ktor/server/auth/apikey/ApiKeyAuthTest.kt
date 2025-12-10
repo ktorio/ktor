@@ -18,7 +18,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
-class TestApiKeyAuth {
+class ApiKeyAuthTest {
 
     @Serializable
     private data class ApiKeyPrincipal(val key: String)
