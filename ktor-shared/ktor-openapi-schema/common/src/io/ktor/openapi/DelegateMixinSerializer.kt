@@ -5,8 +5,12 @@
 package io.ktor.openapi
 
 import io.ktor.openapi.GenericElement.Companion.orEmpty
+import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.StructureKind
+import kotlinx.serialization.descriptors.buildSerialDescriptor
 import kotlinx.serialization.descriptors.elementNames
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
@@ -73,21 +77,25 @@ internal abstract class DelegateMixinSerializer<T>(
     private val properties: Map<String, PropertyDelegateDescriptor>,
     private val copy: (T, List<Any?>) -> T,
 ) : KSerializer<T> {
-    private val adapters: List<GenericElementSerialAdapter> = listOf(
-        JsonElementSerialAdapter,
-        YamlNodeSerialAdapter,
-        GenericMapDecoderAdapter,
-    )
     private val reverseLookup: List<Pair<(String) -> Boolean, String>> = properties.entries.map { (key, value) ->
         value.keyMatcher to key
     }
 
-    override val descriptor: SerialDescriptor = baseSerializer.descriptor
+    @OptIn(InternalSerializationApi::class)
+    override val descriptor: SerialDescriptor = buildSerialDescriptor(
+        baseSerializer.descriptor.serialName,
+        StructureKind.MAP,
+        String.serializer().descriptor,
+        GenericElement.serializer().descriptor
+    )
 
     override fun serialize(encoder: Encoder, value: T) {
-        val joinedElement = adapters.firstNotNullOfOrNull {
+        val joinedElement: GenericElement? = genericElementSerialAdapters.firstNotNullOfOrNull {
             it.trySerializeToElement(encoder, value, baseSerializer)
-        } ?: error("No GenericElementSerialAdapter found for $encoder")
+        }
+        require(joinedElement != null) {
+            "No GenericElementSerialAdapter found for ${encoder::class.simpleName}"
+        }
 
         val dividedElements = joinedElement.extract(properties.keys)
         when (dividedElements.size) {

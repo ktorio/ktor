@@ -516,7 +516,12 @@ public data class Responses(
                 Responses::extensions,
                 serializer<ExtensionProperties>(),
                 { it.startsWith("x-") },
-                { r, responses, extensions -> r.copy(responses = responses, extensions = extensions) }
+                { r, responses, extensions ->
+                    r.copy(
+                        responses = responses,
+                        extensions = extensions
+                    )
+                }
             )
     }
 

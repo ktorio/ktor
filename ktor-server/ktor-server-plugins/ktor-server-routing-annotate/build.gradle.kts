@@ -15,12 +15,14 @@ kotlin {
 
             implementation(libs.kotlinx.serialization.core)
             implementation(libs.kotlinx.serialization.json)
-            implementation(libs.kaml.serialization)
         }
         commonTest.dependencies {
             implementation(projects.ktorServerTestHost)
             implementation(projects.ktorServerContentNegotiation)
             implementation(projects.ktorSerializationKotlinxJson)
+        }
+        jvmMain.dependencies {
+            implementation(libs.kaml.serialization)
         }
     }
 }
