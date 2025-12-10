@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.auth.jwt
@@ -99,7 +99,7 @@ public abstract class JWTPayloadHolder(
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.JWTPayloadHolder.get)
      *
      * @param name a claim's key as it appears in the JSON object
-     * @return a claim's value or null if not available or not a string
+     * @return a claim's value, or null it is unavailable or not a string
      */
     public operator fun get(name: String): String? {
         return payload.getClaim(name).asString()
@@ -117,7 +117,7 @@ public abstract class JWTPayloadHolder(
     public fun <T : Any> getClaim(name: String, clazz: KClass<T>): T? {
         return try {
             payload.getClaim(name).`as`(clazz.javaObjectType)
-        } catch (ex: JWTDecodeException) {
+        } catch (_: JWTDecodeException) {
             null
         }
     }
@@ -134,7 +134,7 @@ public abstract class JWTPayloadHolder(
     public fun <T : Any> getListClaim(name: String, clazz: KClass<T>): List<T> {
         return try {
             payload.getClaim(name).asList(clazz.javaObjectType) ?: emptyList()
-        } catch (ex: JWTDecodeException) {
+        } catch (_: JWTDecodeException) {
             emptyList()
         }
     }
@@ -226,7 +226,10 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.JWTAuthenticationProvider.Config)
      */
-    public class Config internal constructor(name: String?) : AuthenticationProvider.Config(name) {
+    public class Config internal constructor(
+        name: String?,
+        description: String?
+    ) : AuthenticationProvider.Config(name, description) {
         internal var authenticationFunction: AuthenticationFunction<JWTCredential> = {
             throw NotImplementedError(
                 "JWT auth validate function is not specified. Use jwt { validate { ... } } to fix."
@@ -399,7 +402,23 @@ public fun AuthenticationConfig.jwt(
     name: String? = null,
     configure: JWTAuthenticationProvider.Config.() -> Unit
 ) {
-    val provider = JWTAuthenticationProvider.Config(name).apply(configure).build()
+    jwt(name, description = null, configure)
+}
+
+/**
+ * Installs the JWT [Authentication] provider with description.
+ * JWT (JSON Web Token) is an open standard that defines a way for
+ * securely transmitting information between parties as a JSON object.
+ * To learn how to configure it, see [JSON Web Tokens](https://ktor.io/docs/jwt.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.jwt)
+ */
+public fun AuthenticationConfig.jwt(
+    name: String? = null,
+    description: String? = null,
+    configure: JWTAuthenticationProvider.Config.() -> Unit
+) {
+    val provider = JWTAuthenticationProvider.Config(name, description).apply(configure).build()
     register(provider)
 }
 

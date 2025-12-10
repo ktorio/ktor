@@ -1,11 +1,12 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+* Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
 package io.ktor.server.sessions
 
 import io.ktor.server.application.*
 import io.ktor.util.*
+import io.ktor.utils.io.InternalAPI
 import kotlin.reflect.*
 
 /**
@@ -48,6 +49,7 @@ public fun <SessionType : Any> ApplicationCall.sessionId(klass: KClass<SessionTy
  *
  * @return session id or `null` if no session ID sent by the client
  */
+@OptIn(InternalAPI::class)
 public val ApplicationCall.sessionId: String?
     get() {
         val providers = application.attributes[SessionProvidersKey].filter { it.tracker is SessionTrackerById }
@@ -59,6 +61,7 @@ public val ApplicationCall.sessionId: String?
     }
 
 @PublishedApi
+@OptIn(InternalAPI::class)
 internal fun ApplicationCall.sessionId(name: String): String? {
     val provider = application.attributes[SessionProvidersKey]
         .firstOrNull { it.name == name }

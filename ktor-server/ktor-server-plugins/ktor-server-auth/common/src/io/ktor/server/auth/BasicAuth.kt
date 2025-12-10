@@ -1,5 +1,5 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+* Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
 package io.ktor.server.auth
@@ -8,7 +8,6 @@ import io.ktor.http.auth.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
-import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
 import kotlin.io.encoding.Base64
 
@@ -58,7 +57,10 @@ public class BasicAuthenticationProvider internal constructor(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.BasicAuthenticationProvider.Config)
      */
-    public class Config internal constructor(name: String?) : AuthenticationProvider.Config(name) {
+    public class Config internal constructor(
+        name: String?,
+        description: String?
+    ) : AuthenticationProvider.Config(name, description) {
         internal var authenticationFunction: AuthenticationFunction<UserPasswordCredential> = {
             throw NotImplementedError(
                 "Basic auth validate function is not specified. Use basic { validate { ... } } to fix."
@@ -111,7 +113,23 @@ public fun AuthenticationConfig.basic(
     name: String? = null,
     configure: BasicAuthenticationProvider.Config.() -> Unit
 ) {
-    val provider = BasicAuthenticationProvider(BasicAuthenticationProvider.Config(name).apply(configure))
+    basic(name, description = null, configure)
+}
+
+/**
+ * Installs the basic [Authentication] provider with description.
+ * You can use basic authentication for logging in users and protecting specific routes.
+ * To learn how to configure it, see [Basic authentication](https://ktor.io/docs/basic.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.basic)
+ */
+public fun AuthenticationConfig.basic(
+    name: String? = null,
+    description: String? = null,
+    configure: BasicAuthenticationProvider.Config.() -> Unit
+) {
+    val config = BasicAuthenticationProvider.Config(name, description).apply(configure)
+    val provider = BasicAuthenticationProvider(config)
     register(provider)
 }
 
@@ -130,7 +148,7 @@ public fun ApplicationRequest.basicAuthenticationCredentials(charset: Charset? =
             val userPass = try {
                 val bytes = Base64.decode(authHeader.blob)
                 bytes.decodeToString(0, 0 + bytes.size)
-            } catch (e: Throwable) {
+            } catch (_: Throwable) {
                 return null
             }
 
@@ -138,7 +156,7 @@ public fun ApplicationRequest.basicAuthenticationCredentials(charset: Charset? =
 
             if (colonIndex == -1) return null
 
-            return UserPasswordCredential(userPass.substring(0, colonIndex), userPass.substring(colonIndex + 1))
+            return UserPasswordCredential(userPass.take(colonIndex), userPass.substring(colonIndex + 1))
         }
         else -> return null
     }
