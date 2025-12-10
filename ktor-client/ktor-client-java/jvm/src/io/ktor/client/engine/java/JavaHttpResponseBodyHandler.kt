@@ -4,19 +4,23 @@
 
 package io.ktor.client.engine.java
 
-import io.ktor.client.plugins.sse.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
-import kotlinx.atomicfu.*
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
-import java.io.*
-import java.net.http.*
-import java.nio.*
-import java.util.concurrent.*
-import kotlin.coroutines.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.coroutines.channels.consume
+import java.io.IOException
+import java.net.http.HttpClient
+import java.net.http.HttpResponse
+import java.nio.ByteBuffer
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletionStage
+import java.util.concurrent.Flow
+import kotlin.coroutines.CoroutineContext
 
 internal class JavaHttpResponseBodyHandler(
     private val coroutineContext: CoroutineContext,
@@ -94,8 +98,7 @@ internal class JavaHttpResponseBodyHandler(
                 }
             }.apply {
                 invokeOnCompletion {
-                    responseChannel.close(it)
-                    consumerJob.complete()
+                    close(it)
                 }
             }
         }
@@ -147,7 +150,7 @@ internal class JavaHttpResponseBodyHandler(
             return CompletableFuture.completedStage(httpResponse)
         }
 
-        private fun close(cause: Throwable) {
+        private fun close(cause: Throwable?) {
             if (!closed.compareAndSet(expect = false, update = true)) {
                 return
             }
@@ -156,7 +159,9 @@ internal class JavaHttpResponseBodyHandler(
                 queue.close(cause)
                 subscription.getAndSet(null)?.cancel()
             } finally {
-                consumerJob.completeExceptionally(cause)
+                cause?.apply {
+                    consumerJob.completeExceptionally(cause)
+                } ?: consumerJob.complete()
                 responseChannel.cancel(cause)
             }
         }
