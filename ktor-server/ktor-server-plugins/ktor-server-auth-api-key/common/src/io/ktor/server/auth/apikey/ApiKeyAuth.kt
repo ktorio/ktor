@@ -127,9 +127,9 @@ public class ApiKeyAuthenticationProvider internal constructor(
 /**
  * Constants related to API Key authentication.
  */
-object ApiKeyAuth {
+public object ApiKeyAuth {
     /**
      * Default name of the header that will be used as a source for the API key.
      */
-    const val DEFAULT_HEADER_NAME = "X-Api-Key"
+    public const val DEFAULT_HEADER_NAME: String = "X-Api-Key"
 }
