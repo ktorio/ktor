@@ -37,7 +37,7 @@ public fun runTestWithRealTime(
     timeout: Duration = 60.seconds,
     testBody: suspend CoroutineScope.() -> Unit
 ): TestResult {
-    val context = if (context[CoroutineDispatcher] is TestDispatcher) context else EmptyCoroutineContext
+    val context = if (context[ContinuationInterceptor] is TestDispatcher) context else EmptyCoroutineContext
     return runTest(context, timeout) {
         withContext(Dispatchers.Default.limitedParallelism(1), testBody)
     }
