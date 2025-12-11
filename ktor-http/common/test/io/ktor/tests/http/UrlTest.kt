@@ -360,6 +360,7 @@ class UrlTest {
 
         assertEquals(null, parseUrl("incorrecturl"))
         assertEquals(null, parseUrl("http://localhost:7000Value"))
+        assertEquals(null, parseUrl("https://example.com?url=https%3A%2F%2Fwww.google.com%2"))
     }
 
     @Test
