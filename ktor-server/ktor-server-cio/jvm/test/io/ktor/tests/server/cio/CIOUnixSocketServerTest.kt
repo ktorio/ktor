@@ -1,30 +1,24 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.server.cio
 
 import io.ktor.network.selector.*
-import io.ktor.network.sockets.UnixSocketAddress
-import io.ktor.network.sockets.aSocket
-import io.ktor.network.sockets.openReadChannel
-import io.ktor.network.sockets.openWriteChannel
+import io.ktor.network.sockets.*
 import io.ktor.server.application.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.utils.io.readUTF8Line
-import io.ktor.utils.io.writeStringUtf8
+import io.ktor.utils.io.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import java.io.File
-import kotlin.io.use
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.use
 
 class CIOUnixSocketServerTest {
 
@@ -78,17 +72,17 @@ class CIOUnixSocketServerTest {
                         output.flush()
 
                         // Read response
-                        val statusLine = input.readUTF8Line()
+                        val statusLine = input.readLineStrict()
                         assertEquals(true, statusLine?.contains("200 OK"), "Expected HTTP 200 OK, got: $statusLine")
 
                         // Skip headers
                         while (true) {
-                            val line = input.readUTF8Line() ?: break
+                            val line = input.readLineStrict() ?: break
                             if (line.isEmpty()) break
                         }
 
                         // Read body
-                        val responseBody = input.readUTF8Line()
+                        val responseBody = input.readLineStrict()
                         assertEquals("Hello, Unix socket world!", responseBody)
                     }
                 }

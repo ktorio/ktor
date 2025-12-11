@@ -1,15 +1,15 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.sse
 
-import io.ktor.client.network.sockets.SocketTimeoutException
+import io.ktor.client.network.sockets.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.sse.*
+import io.ktor.util.*
 import io.ktor.util.logging.*
-import io.ktor.util.rootCause
 import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.*
@@ -172,9 +172,9 @@ public class DefaultClientSSESession(
         var wasData = false
         var wasComments = false
 
-        var line: String = readUTF8LineWithSave() ?: return null
+        var line: String = readLineWithSave() ?: return null
         while (line.isBlank()) {
-            line = readUTF8LineWithSave() ?: return null
+            line = readLineWithSave() ?: return null
         }
 
         while (true) {
@@ -223,7 +223,7 @@ public class DefaultClientSSESession(
                     }
                 }
             }
-            line = readUTF8LineWithSave() ?: return null
+            line = readLineWithSave() ?: return null
         }
     }
 
@@ -231,10 +231,9 @@ public class DefaultClientSSESession(
         append(comment.removePrefix(COLON).removePrefix(SPACE)).append(END_OF_LINE)
     }
 
-    private suspend fun ByteReadChannel.readUTF8LineWithSave(): String? {
-        val line = readUTF8Line() ?: return null
-        bodyBuffer.appendLine(line)
-        return line
+    private suspend fun ByteReadChannel.readLineWithSave(): String? {
+        return readLine(lineEnding = LineEnding.Lenient)
+            ?.also(bodyBuffer::appendLine)
     }
 
     private fun StringBuilder.toText() = toString().removeSuffix(END_OF_LINE)
