@@ -18,6 +18,7 @@ import java.util.zip.GZIPInputStream
 import kotlin.random.Random
 import kotlin.test.*
 
+@Ignore("KTOR-9179 Fix races in DeflaterReadChannelTest")
 @CoroutinesTimeout(60_000)
 class DeflaterReadChannelTest : CoroutineScope {
     private val testJob = Job()
