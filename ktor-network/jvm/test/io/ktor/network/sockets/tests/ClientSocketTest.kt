@@ -89,7 +89,7 @@ class ClientSocketTest {
         }
 
         client { socket ->
-            assertEquals("0123456789", socket.openReadChannel().readUTF8Line())
+            assertEquals("0123456789", socket.openReadChannel().readLine())
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 import io.ktor.utils.io.*
@@ -15,7 +15,7 @@ import kotlin.test.assertTrue
  * See [ReadLineTest] for `readLineTo`/`readLineStrictTo` tests.
  * These tests check only that [readUTF8LineTo] behavior is preserved after introduction of new functions.
  */
-@OptIn(InternalAPI::class)
+@Suppress("DEPRECATION")
 class ReadUtf8LineTest {
 
     @Test
@@ -49,6 +49,7 @@ class ReadUtf8LineTest {
         assertEquals("2", buffer.toString())
     }
 
+    @OptIn(InternalAPI::class)
     @Test
     fun `test reading line with flush after CR when only CRLF allowed`() = runTest {
         val channel = writer {

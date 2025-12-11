@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.engine.java
 
@@ -9,13 +9,17 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.future.*
-import java.net.http.*
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.future.await
+import kotlinx.coroutines.runBlocking
+import java.net.http.HttpClient
 import java.net.http.HttpHeaders
-import java.nio.*
-import kotlin.coroutines.*
-import kotlin.test.*
+import java.net.http.HttpResponse
+import java.nio.ByteBuffer
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class ResponseConsumerTest {
     @Test
@@ -51,7 +55,7 @@ class ResponseConsumerTest {
             assertEquals("4", responseBody.headers[io.ktor.http.HttpHeaders.ContentLength])
             assertEquals("text/plain", responseBody.headers[io.ktor.http.HttpHeaders.ContentType])
             assertEquals(HttpProtocolVersion.HTTP_2_0, responseBody.version)
-            assertEquals("ktor", (responseBody.body as ByteReadChannel).readUTF8Line())
+            assertEquals("ktor", (responseBody.body as ByteReadChannel).readLine())
         }
     }
 

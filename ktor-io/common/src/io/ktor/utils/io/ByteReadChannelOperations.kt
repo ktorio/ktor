@@ -145,22 +145,6 @@ public suspend fun ByteReadChannel.copyAndClose(channel: ByteWriteChannel): Long
     return result
 }
 
-/**
- * Reads a line of UTF-8 characters from the `ByteReadChannel`.
- * It recognizes CR, LF and CRLF as line delimiters.
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readUTF8Line)
- *
- * @param max the maximum number of characters to read. Default is [Int.MAX_VALUE].
- * @return a string containing the line read, or null if channel is closed
- * @throws TooLongLineException if max is reached before encountering a newline or end of input
- */
-public suspend fun ByteReadChannel.readUTF8Line(max: Int = Int.MAX_VALUE): String? {
-    val result = StringBuilder()
-    val completed = readUTF8LineTo(result, max)
-    return if (!completed) null else result.toString()
-}
-
 @OptIn(InternalAPI::class)
 public suspend fun ByteReadChannel.copyTo(channel: ByteWriteChannel): Long {
     var result = 0L
@@ -294,7 +278,7 @@ public suspend fun ByteReadChannel.readAvailable(
 /**
  * Invokes [block] if it is possible to read at least [min] byte
  * providing buffer to it so lambda can read from the buffer
- * up to [Buffer.readRemaining] bytes. If there are no [min] bytes available then the invocation returns -1.
+ * up to [Buffer.remaining] bytes. If there are no [min] bytes available then the invocation returns -1.
  *
  * Warning: it is not guaranteed that all of available bytes will be represented as a single byte buffer
  * eg: it could be 4 bytes available for read but the provided byte buffer could have only 2 available bytes:
@@ -434,8 +418,93 @@ private const val CR: Byte = '\r'.code.toByte()
 private const val LF: Byte = '\n'.code.toByte()
 
 /**
+ * Reads a line of UTF-8 characters from the `ByteReadChannel`.
+ * It recognizes CR, LF, and CRLF as line delimiters.
+ *
+ * ## Deprecation Notes
+ *
+ * This function is deprecated in favor of [readLineStrict] and [readLine].
+ *
+ * Changes:
+ * - New functions recognize LF and CRLF as a line delimiter by default. This default comes with better performance.
+ *   To keep current behavior and recognize all line delimiters (CR, LF, and CRLF), specify [LineEnding.Lenient].
+ * - [readLineStrict] throws [TooLongLineException] if limit is reached before encountering a line break,
+ *   similarly to current behavior. While [readLine] reads lines without limits.
+ * - [readLineStrict] throws [EOFException] if the channel is closed before a line break is found,
+ *   while `readUTF8Line` returns the line assuming it is full for such cases.
+ *   [readLine] treats the stream end as an implicit line break, similarly to current behavior.
+ * - [readLineStrict] accepts [Long] instead of [Int] as a limit parameter.
+ *
+ * The direct equivalent of `readUTF8Line` would be:
+ * ```
+ * // Before
+ * val line = channel.readUTF8Line(out, max = 1024)
+ *
+ * // After
+ * val buffer = StringBuilder()
+ * val success = try {
+ *     channel.readLineStrictTo(out, limit = 1024, lineEnding = LineEnding.Lenient) >= 0
+ * } catch (_: EOFException) {
+ *     true
+ * }
+ * val line = if (success) buffer.toString() else null
+ * ```
+ * However, we recommend to use [LineEnding.Default] if possible and verify if the case with
+ * the unexpected end of line should actually be ignored. We expect the following code to be correct in most cases:
+ * ```
+ * val line = channel.readLineStrict(out, limit = 1024)
+ * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readUTF8Line)
+ *
+ * @param max the maximum number of characters to read. Default is [Int.MAX_VALUE].
+ * @return a string containing the line read, or null if channel is closed
+ * @throws TooLongLineException if max is reached before encountering a line delimiter or end of input
+ */
+@Suppress("DEPRECATION")
+@Deprecated("Use readLineStrict instead. See deprecation notes for more details.")
+public suspend fun ByteReadChannel.readUTF8Line(max: Int = Int.MAX_VALUE): String? {
+    val result = StringBuilder()
+    val completed = readUTF8LineTo(result, max)
+    return if (!completed) null else result.toString()
+}
+
+/**
  * Reads a line of UTF-8 characters to the specified [out] buffer.
- * It recognizes CR, LF and CRLF as a line delimiter.
+ * It recognizes CR, LF, and CRLF as a line delimiter.
+ *
+ * ## Deprecation Notes
+ *
+ * This function is deprecated in favor of [readLineStrictTo] and [readLineTo].
+ *
+ * Changes:
+ * - New functions recognize LF and CRLF as a line delimiter by default. This default comes with better performance.
+ *   To keep current behavior and recognize all line delimiters (CR, LF, and CRLF), specify [LineEnding.Lenient].
+ * - [readLineStrictTo] throws [TooLongLineException] if limit is reached before encountering a line break,
+ *   similarly to current behavior. While [readLineTo] reads lines without limits.
+ * - [readLineStrictTo] throws [EOFException] if the channel is closed before a line break is found,
+ *   while `readUTF8LineTo` returns `true` for such cases.
+ *   [readLineTo] treats the stream end as an implicit line break, similarly to current behavior.
+ * - New functions return number of appended characters instead of [Boolean] or `-1` if the channel is empty.
+ * - [readLineStrictTo] accepts [Long] instead of [Int] as a limit parameter.
+ *
+ * The direct equivalent of `readUTF8LineTo` would be:
+ * ```
+ * // Before
+ * val success = channel.readUTF8LineTo(out, max = 1024)
+ *
+ * // After
+ * val success = try {
+ *     channel.readLineStrictTo(out, limit = 1024, lineEnding = LineEnding.Lenient) >= 0
+ * } catch (_: EOFException) {
+ *     true
+ * }
+ * ```
+ * However, we recommend to use [LineEnding.Default] if possible and verify if the case with
+ * the unexpected end of line should actually be ignored. We expect the following code to be correct in most cases:
+ * ```
+ * val success = channel.readLineTo(out, limit = 1024) >= 0
+ * ```
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readUTF8LineTo)
  *
@@ -445,7 +514,9 @@ private const val LF: Byte = '\n'.code.toByte()
  * @return `true` if a new line separator was found or max bytes appended. `false` if no new line separator and no bytes read.
  * @throws TooLongLineException if max is reached before encountering a newline or end of input
  */
+@Suppress("DEPRECATION")
 @OptIn(InternalAPI::class)
+@Deprecated("Use readLineStrictTo instead. See deprecation notes for more details.")
 public suspend fun ByteReadChannel.readUTF8LineTo(out: Appendable, max: Int = Int.MAX_VALUE): Boolean {
     return readUTF8LineTo(out, max, lineEnding = LineEndingMode.Any)
 }
@@ -464,6 +535,8 @@ public suspend fun ByteReadChannel.readUTF8LineTo(out: Appendable, max: Int = In
  * @return `true` if a new line separator was found or max bytes appended. `false` if no new line separator and no bytes read.
  * @throws TooLongLineException if max is reached before encountering a newline or end of input
  */
+@Suppress("DEPRECATION")
+@Deprecated("Use readLineStrictTo instead.")
 @InternalAPI
 @OptIn(InternalIoApi::class)
 public suspend fun ByteReadChannel.readUTF8LineTo(

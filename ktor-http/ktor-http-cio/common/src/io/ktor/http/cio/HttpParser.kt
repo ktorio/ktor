@@ -42,7 +42,7 @@ public suspend fun parseRequest(input: ByteReadChannel): Request? {
 
     try {
         while (true) {
-            if (!input.readUTF8LineTo(builder, HTTP_LINE_LIMIT, httpLineEndings)) return null
+            if (input.readLineStrictTo(builder, HTTP_LINE_LIMIT.toLong()) == -1L) return null
             range.end = builder.length
             if (range.start == range.end) continue
 
@@ -78,7 +78,7 @@ public suspend fun parseResponse(input: ByteReadChannel): Response? {
     val range = MutableRange(0, 0)
 
     try {
-        if (!input.readUTF8LineTo(builder, HTTP_LINE_LIMIT, httpLineEndings)) return null
+        if (input.readLineStrictTo(builder, HTTP_LINE_LIMIT.toLong()) == -1L) return null
         range.end = builder.length
 
         val version = parseVersion(builder, range)
@@ -119,7 +119,7 @@ internal suspend fun parseHeaders(
 
     try {
         while (true) {
-            if (!input.readUTF8LineTo(builder, HTTP_LINE_LIMIT, httpLineEndings)) {
+            if (input.readLineStrictTo(builder, HTTP_LINE_LIMIT.toLong()) == -1L) {
                 headers.release()
                 return null
             }

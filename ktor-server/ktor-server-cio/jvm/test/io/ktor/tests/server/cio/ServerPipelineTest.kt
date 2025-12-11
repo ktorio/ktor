@@ -82,9 +82,9 @@ class ServerPipelineTest : CoroutineScope {
         input.writeStringUtf8("GET / HTTP/1.1\r\nConnection: close\r\n\r\n")
         input.flush()
 
-        assertEquals("HTTP/1.1 200 OK", output.readUTF8Line())
-        assertEquals("Connection: close", output.readUTF8Line())
-        assertEquals("", output.readUTF8Line())
+        assertEquals("HTTP/1.1 200 OK", output.readLineStrict())
+        assertEquals("Connection: close", output.readLineStrict())
+        assertEquals("", output.readLineStrict())
         assertEquals("/", requestsReceived.single())
 
         input.close()
@@ -117,9 +117,9 @@ class ServerPipelineTest : CoroutineScope {
         input.writeStringUtf8("GET / HTTP/1.1\r\nUpgrade: test\r\nConnection: Upgrade\r\n\r\n")
         input.flush()
 
-        assertEquals("HTTP/1.1 200 OK", output.readUTF8Line())
-        assertEquals("Connection: close", output.readUTF8Line())
-        assertEquals("", output.readUTF8Line())
+        assertEquals("HTTP/1.1 200 OK", output.readLineStrict())
+        assertEquals("Connection: close", output.readLineStrict())
+        assertEquals("", output.readLineStrict())
         assertEquals("/", requestsReceived.single())
 
         input.close()
