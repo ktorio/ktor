@@ -1,0 +1,30 @@
+// Klib ABI Dump
+// Targets: [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, js, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, wasmJs, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <io.ktor:ktor-server-auth-api-key>
+final class io.ktor.server.auth.apikey/ApiKeyAuthenticationProvider : io.ktor.server.auth/AuthenticationProvider { // io.ktor.server.auth.apikey/ApiKeyAuthenticationProvider|null[0]
+    final suspend fun onAuthenticate(io.ktor.server.auth/AuthenticationContext) // io.ktor.server.auth.apikey/ApiKeyAuthenticationProvider.onAuthenticate|onAuthenticate(io.ktor.server.auth.AuthenticationContext){}[0]
+
+    final class Configuration : io.ktor.server.auth/AuthenticationProvider.Config { // io.ktor.server.auth.apikey/ApiKeyAuthenticationProvider.Configuration|null[0]
+        final var authScheme // io.ktor.server.auth.apikey/ApiKeyAuthenticationProvider.Configuration.authScheme|{}authScheme[0]
+            final fun <get-authScheme>(): kotlin/String // io.ktor.server.auth.apikey/ApiKeyAuthenticationProvider.Configuration.authScheme.<get-authScheme>|<get-authScheme>(){}[0]
+            final fun <set-authScheme>(kotlin/String) // io.ktor.server.auth.apikey/ApiKeyAuthenticationProvider.Configuration.authScheme.<set-authScheme>|<set-authScheme>(kotlin.String){}[0]
+        final var headerName // io.ktor.server.auth.apikey/ApiKeyAuthenticationProvider.Configuration.headerName|{}headerName[0]
+            final fun <get-headerName>(): kotlin/String // io.ktor.server.auth.apikey/ApiKeyAuthenticationProvider.Configuration.headerName.<get-headerName>|<get-headerName>(){}[0]
+            final fun <set-headerName>(kotlin/String) // io.ktor.server.auth.apikey/ApiKeyAuthenticationProvider.Configuration.headerName.<set-headerName>|<set-headerName>(kotlin.String){}[0]
+
+        final fun challenge(kotlin.coroutines/SuspendFunction1<io.ktor.server.application/ApplicationCall, kotlin/Unit>) // io.ktor.server.auth.apikey/ApiKeyAuthenticationProvider.Configuration.challenge|challenge(kotlin.coroutines.SuspendFunction1<io.ktor.server.application.ApplicationCall,kotlin.Unit>){}[0]
+        final fun validate(kotlin.coroutines/SuspendFunction2<io.ktor.server.application/ApplicationCall, kotlin/String, kotlin/Any?>) // io.ktor.server.auth.apikey/ApiKeyAuthenticationProvider.Configuration.validate|validate(kotlin.coroutines.SuspendFunction2<io.ktor.server.application.ApplicationCall,kotlin.String,kotlin.Any?>){}[0]
+    }
+}
+
+final object io.ktor.server.auth.apikey/ApiKeyAuth { // io.ktor.server.auth.apikey/ApiKeyAuth|null[0]
+    final const val DEFAULT_HEADER_NAME // io.ktor.server.auth.apikey/ApiKeyAuth.DEFAULT_HEADER_NAME|{}DEFAULT_HEADER_NAME[0]
+        final fun <get-DEFAULT_HEADER_NAME>(): kotlin/String // io.ktor.server.auth.apikey/ApiKeyAuth.DEFAULT_HEADER_NAME.<get-DEFAULT_HEADER_NAME>|<get-DEFAULT_HEADER_NAME>(){}[0]
+}
+
+final fun (io.ktor.server.auth/AuthenticationConfig).io.ktor.server.auth.apikey/apiKey(kotlin/String? = ..., kotlin/Function1<io.ktor.server.auth.apikey/ApiKeyAuthenticationProvider.Configuration, kotlin/Unit>) // io.ktor.server.auth.apikey/apiKey|apiKey@io.ktor.server.auth.AuthenticationConfig(kotlin.String?;kotlin.Function1<io.ktor.server.auth.apikey.ApiKeyAuthenticationProvider.Configuration,kotlin.Unit>){}[0]

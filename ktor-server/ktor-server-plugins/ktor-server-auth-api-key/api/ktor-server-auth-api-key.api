@@ -1,0 +1,23 @@
+public final class io/ktor/server/auth/apikey/ApiKeyAuth {
+	public static final field DEFAULT_HEADER_NAME Ljava/lang/String;
+	public static final field INSTANCE Lio/ktor/server/auth/apikey/ApiKeyAuth;
+}
+
+public final class io/ktor/server/auth/apikey/ApiKeyAuthKt {
+	public static final fun apiKey (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun apiKey$default (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+}
+
+public final class io/ktor/server/auth/apikey/ApiKeyAuthenticationProvider : io/ktor/server/auth/AuthenticationProvider {
+	public fun onAuthenticate (Lio/ktor/server/auth/AuthenticationContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/auth/apikey/ApiKeyAuthenticationProvider$Configuration : io/ktor/server/auth/AuthenticationProvider$Config {
+	public final fun challenge (Lkotlin/jvm/functions/Function2;)V
+	public final fun getAuthScheme ()Ljava/lang/String;
+	public final fun getHeaderName ()Ljava/lang/String;
+	public final fun setAuthScheme (Ljava/lang/String;)V
+	public final fun setHeaderName (Ljava/lang/String;)V
+	public final fun validate (Lkotlin/jvm/functions/Function3;)V
+}
+
