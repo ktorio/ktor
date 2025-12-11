@@ -10,6 +10,15 @@ plugins {
     id("ktorbuild.publish.verifier")
 }
 
+subprojects {
+
+    configurations.all {
+        resolutionStrategy {
+            force("commons-beanutils:commons-beanutils:1.11.0")
+        }
+    }
+}
+
 println("Build version: ${project.version}")
 println("Kotlin version: ${libs.versions.kotlin.get()}")
 
