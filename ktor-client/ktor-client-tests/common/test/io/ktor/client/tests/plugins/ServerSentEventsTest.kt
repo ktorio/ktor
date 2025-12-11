@@ -631,7 +631,7 @@ class ServerSentEventsTest : ClientLoader() {
                 }
             }
 
-            assertTrue(events.size == 7)
+            assertEquals(events.size, 7)
             events.forEachIndexed { index, event ->
                 assertEquals(index + 1, event.id?.toInt())
             }
@@ -972,6 +972,28 @@ class ServerSentEventsTest : ClientLoader() {
                 }) { }
             }.apply {
                 assertEquals("Expected status code 200 but was 400", message)
+            }
+        }
+    }
+
+    @Test
+    fun testCancellingUnderlyingConnection() = clientTests {
+        config {
+            install(SSE)
+        }
+
+        test { client ->
+            val sseSession = client.sseSession("$TEST_SERVER/sse/active-sessions")
+            sseSession.incoming.collect {
+                assertEquals("ok", it.data)
+                sseSession.cancel()
+            }
+            withTimeout(1000) {
+                while (true) {
+                    val count = client.get("$TEST_SERVER/sse/active-sessions-count").bodyAsText().toInt()
+                    if (count == 0) break
+                    delay(100)
+                }
             }
         }
     }
