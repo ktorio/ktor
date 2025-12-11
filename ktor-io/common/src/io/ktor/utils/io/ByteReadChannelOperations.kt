@@ -664,6 +664,21 @@ private suspend fun ByteReadChannel.internalReadLineTo(
         }
     }
 
+    fun Source.scanForSoleCr(lfIndex: Long, limitLeft: Long): Long {
+        // Don't scan for CR in default mode
+        if (!lenientLineEnding) return -1L
+
+        val endIndex = when (lfIndex) {
+            // Subtract 1 from remaining to ignore the last byte,
+            // when RC might be part of a CRLF sequence split into two buffers
+            -1L -> minOf(limitLeft, remaining - 1)
+            0L -> 0
+            // Subtract 1 from lfIndex to ignore the case when CR is part of the CRLF sequence
+            else -> lfIndex - 1
+        }
+        return indexOf(CR, endIndex = endIndex)
+    }
+
     // Should be called only if buffer[0] = CR
     suspend fun Source.discardCrlfOrCr(): Boolean {
         if ((remaining >= 2 || awaitContent(min = 2)) && buffer[1] == LF) {
@@ -682,24 +697,13 @@ private suspend fun ByteReadChannel.internalReadLineTo(
     while (consumed < limit && !isClosedForRead) {
         val limitLeft = limit - consumed
         val lfIndex = readBuffer.indexOf(LF, endIndex = limitLeft)
+        val crIndex = readBuffer.scanForSoleCr(lfIndex, limitLeft)
 
-        if (lenientLineEnding) {
-            val crEndIndex = when (lfIndex) {
-                // Subtract 1 from source.remaining to ignore the last byte,
-                // when RC might be part of a CRLF sequence split into two buffers
-                -1L -> minOf(limitLeft, readBuffer.remaining - 1)
-                0L -> 0
-                // Subtract 1 from lfIndex to ignore the case when CR is part of the CRLF sequence
-                else -> lfIndex - 1
-            }
-            val crIndex = readBuffer.indexOf(CR, endIndex = crEndIndex)
-
-            // Sole CR in the buffer
-            if (crIndex >= 0) {
-                transferString(count = crIndex)
-                readBuffer.discard(1)
-                return consumed
-            }
+        // Sole CR in the buffer
+        if (crIndex >= 0) {
+            transferString(count = crIndex)
+            readBuffer.discard(1)
+            return consumed
         }
 
         // Fast path. LF or CRLF in the buffer
@@ -723,14 +727,16 @@ private suspend fun ByteReadChannel.internalReadLineTo(
         } else {
             // No new line separator
             transferString(count)
-            if (consumed < limit && !awaitContent()) break
         }
+
+        if (consumed < limit && readBuffer.remaining == 0L && !awaitContent()) break
     }
 
     if (consumed == 0L && isClosedForRead) return -1
 
-    // Defensive check. Normally the consumed count should never exceed the limit
-    if (consumed > limit) throwTooLongLineException(limit)
+    check(consumed <= limit) {
+        "Consumed bytes exceed the limit: $consumed > $limit. It's an implementation bug, please report it."
+    }
     if (consumed == limit) {
         // We can't read data anymore
         if (limit == Long.MAX_VALUE) throw TooLongLineException("Max line length exceeded")
@@ -754,11 +760,11 @@ private suspend fun ByteReadChannel.internalReadLineTo(
     return consumed
 }
 
-private fun throwTooLongLineException(limit: Long) {
+private fun throwTooLongLineException(limit: Long): Nothing {
     throw TooLongLineException("Line exceeds limit of $limit characters")
 }
 
-private fun throwEndOfStreamException(consumed: Long) {
+private fun throwEndOfStreamException(consumed: Long): Nothing {
     throw EOFException("Unexpected end of stream after reading $consumed characters")
 }
 
