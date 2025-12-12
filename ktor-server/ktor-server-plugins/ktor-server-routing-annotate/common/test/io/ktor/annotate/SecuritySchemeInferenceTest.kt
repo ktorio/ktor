@@ -7,6 +7,7 @@ package io.ktor.annotate
 import io.ktor.client.*
 import io.ktor.openapi.*
 import io.ktor.server.auth.*
+import io.ktor.server.auth.apikey.*
 import io.ktor.server.sessions.*
 import io.ktor.server.testing.*
 import kotlinx.serialization.Serializable
@@ -79,6 +80,36 @@ class SecuritySchemeInferenceTest {
     }
 
     @Test
+    fun testInferApiKeyAuthenticationProvider() = testApplication {
+        install(Authentication) {
+            apiKey("api-key-header") {
+                validate { UserIdPrincipal("user") }
+            }
+            apiKey("api-key-custom", "Custom API Key Description") {
+                headerName = "X-Custom-Key"
+                validate { UserIdPrincipal("user") }
+            }
+        }
+        startApplication()
+
+        val schemes = application.findSecuritySchemes(inferFromAuthenticationPlugin = true)
+        assertNotNull(schemes)
+        assertEquals(2, schemes.size)
+
+        val headerScheme = schemes["api-key-header"]?.valueOrNull() as ApiKeySecurityScheme
+        assertEquals(SecuritySchemeType.API_KEY, headerScheme.type)
+        assertEquals("X-Api-Key", headerScheme.name)
+        assertEquals(SecuritySchemeIn.HEADER, headerScheme.`in`)
+        assertEquals("API Key Authentication", headerScheme.description)
+
+        val customScheme = schemes["api-key-custom"]?.valueOrNull() as ApiKeySecurityScheme
+        assertEquals(SecuritySchemeType.API_KEY, customScheme.type)
+        assertEquals("X-Custom-Key", customScheme.name)
+        assertEquals(SecuritySchemeIn.HEADER, customScheme.`in`)
+        assertEquals("Custom API Key Description", customScheme.description)
+    }
+
+    @Test
     fun testInferFormAuthenticationProvider() = testApplication {
         install(Authentication) {
             form("default-form") {
@@ -122,10 +153,8 @@ class SecuritySchemeInferenceTest {
         assertEquals(SecuritySchemeType.API_KEY, cookieScheme.type)
         assertEquals("user_session", cookieScheme.name)
         assertEquals(SecuritySchemeIn.COOKIE, cookieScheme.`in`)
-        assertTrue(cookieScheme.description!!.contains("Session-based Authentication"))
-        assertTrue(cookieScheme.description!!.contains("user_session"))
         assertEquals(
-            "Session-based Authentication stored in `user_session` cookie",
+            "Session-based Authentication",
             cookieScheme.description
         )
 
@@ -135,7 +164,7 @@ class SecuritySchemeInferenceTest {
         assertEquals("X-Session-Token", headerScheme.name)
         assertEquals(SecuritySchemeIn.HEADER, headerScheme.`in`)
         assertEquals(
-            "Session-based Authentication stored in `X-Session-Token` header",
+            "Session-based Authentication",
             headerScheme.description
         )
     }
@@ -298,7 +327,6 @@ class SecuritySchemeInferenceTest {
 
         assertTrue(schemes["bearer"]?.valueOrNull() is HttpSecurityScheme)
         assertEquals("bearer", (schemes["bearer"]?.valueOrNull() as HttpSecurityScheme).scheme)
-
 
         assertTrue(schemes["session"]?.valueOrNull() is ApiKeySecurityScheme)
         assertEquals(SecuritySchemeIn.COOKIE, (schemes["session"]?.valueOrNull() as ApiKeySecurityScheme).`in`)

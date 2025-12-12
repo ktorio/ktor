@@ -78,9 +78,7 @@ public data class ApiKeySecurityScheme(
     public override val type: SecuritySchemeType = SecuritySchemeType.API_KEY
 
     public companion object {
-        public fun defaultDescription(keyName: String, keyLocation: String): String {
-            return "Session-based Authentication stored in `$keyName` $keyLocation"
-        }
+        public const val DEFAULT_DESCRIPTION: String = "API Key Authentication"
 
         internal object Serializer : ExtensibleMixinSerializer<ApiKeySecurityScheme>(
             generatedSerializer(),

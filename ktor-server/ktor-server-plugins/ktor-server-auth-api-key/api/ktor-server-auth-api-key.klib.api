@@ -7,6 +7,9 @@
 
 // Library unique name: <io.ktor:ktor-server-auth-api-key>
 final class io.ktor.server.auth.apikey/ApiKeyAuthenticationProvider : io.ktor.server.auth/AuthenticationProvider { // io.ktor.server.auth.apikey/ApiKeyAuthenticationProvider|null[0]
+    final val headerName // io.ktor.server.auth.apikey/ApiKeyAuthenticationProvider.headerName|{}headerName[0]
+        final fun <get-headerName>(): kotlin/String // io.ktor.server.auth.apikey/ApiKeyAuthenticationProvider.headerName.<get-headerName>|<get-headerName>(){}[0]
+
     final suspend fun onAuthenticate(io.ktor.server.auth/AuthenticationContext) // io.ktor.server.auth.apikey/ApiKeyAuthenticationProvider.onAuthenticate|onAuthenticate(io.ktor.server.auth.AuthenticationContext){}[0]
 
     final class Configuration : io.ktor.server.auth/AuthenticationProvider.Config { // io.ktor.server.auth.apikey/ApiKeyAuthenticationProvider.Configuration|null[0]
@@ -28,3 +31,4 @@ final object io.ktor.server.auth.apikey/ApiKeyAuth { // io.ktor.server.auth.apik
 }
 
 final fun (io.ktor.server.auth/AuthenticationConfig).io.ktor.server.auth.apikey/apiKey(kotlin/String? = ..., kotlin/Function1<io.ktor.server.auth.apikey/ApiKeyAuthenticationProvider.Configuration, kotlin/Unit>) // io.ktor.server.auth.apikey/apiKey|apiKey@io.ktor.server.auth.AuthenticationConfig(kotlin.String?;kotlin.Function1<io.ktor.server.auth.apikey.ApiKeyAuthenticationProvider.Configuration,kotlin.Unit>){}[0]
+final fun (io.ktor.server.auth/AuthenticationConfig).io.ktor.server.auth.apikey/apiKey(kotlin/String? = ..., kotlin/String? = ..., kotlin/Function1<io.ktor.server.auth.apikey/ApiKeyAuthenticationProvider.Configuration, kotlin/Unit>) // io.ktor.server.auth.apikey/apiKey|apiKey@io.ktor.server.auth.AuthenticationConfig(kotlin.String?;kotlin.String?;kotlin.Function1<io.ktor.server.auth.apikey.ApiKeyAuthenticationProvider.Configuration,kotlin.Unit>){}[0]

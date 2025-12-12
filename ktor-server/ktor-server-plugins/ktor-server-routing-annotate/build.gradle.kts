@@ -13,10 +13,12 @@ kotlin {
         commonMain.dependencies {
             api(projects.ktorOpenapiSchema)
             compileOnly(projects.ktorServerAuth)
+            compileOnly(projects.ktorServerAuthApiKey)
         }
         commonTest.dependencies {
             implementation(projects.ktorServerTestHost)
             implementation(projects.ktorServerAuth)
+            implementation(projects.ktorServerAuthApiKey)
             implementation(projects.ktorServerContentNegotiation)
             implementation(projects.ktorSerializationKotlinxJson)
         }
