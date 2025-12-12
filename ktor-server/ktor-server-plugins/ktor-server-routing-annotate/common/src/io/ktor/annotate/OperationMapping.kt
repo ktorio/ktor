@@ -41,7 +41,6 @@ internal class JoinedOperationMapping(private val operations: List<OperationMapp
  * - Response headers: if both `schema` and `content` are missing, set `content` to `text/plain`.
  */
 public val PopulateMediaTypeDefaults: OperationMapping = OperationMapping { operation ->
-    // Fast path: detect whether any defaults are needed
     val hasMissingParamMediaInfo = operation.parameters.orEmpty()
         .filterIsInstance<ReferenceOr.Value<Parameter>>()
         .any { paramRef ->

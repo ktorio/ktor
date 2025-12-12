@@ -1709,6 +1709,8 @@ final val io.ktor.server.application/startupTimeout // io.ktor.server.applicatio
     final fun (io.ktor.server.application/ApplicationEnvironment).<get-startupTimeout>(): kotlin.time/Duration // io.ktor.server.application/startupTimeout.<get-startupTimeout>|<get-startupTimeout>@io.ktor.server.application.ApplicationEnvironment(){}[0]
 final val io.ktor.server.config/configLoaders // io.ktor.server.config/configLoaders|{}configLoaders[0]
     final fun <get-configLoaders>(): kotlin.collections/List<io.ktor.server.config/ConfigLoader> // io.ktor.server.config/configLoaders.<get-configLoaders>|<get-configLoaders>(){}[0]
+final val io.ktor.server.http.content/DefaultContentTypesAttribute // io.ktor.server.http.content/DefaultContentTypesAttribute|{}DefaultContentTypesAttribute[0]
+    final fun <get-DefaultContentTypesAttribute>(): io.ktor.util/AttributeKey<kotlin.collections/List<io.ktor.http/ContentType>> // io.ktor.server.http.content/DefaultContentTypesAttribute.<get-DefaultContentTypesAttribute>|<get-DefaultContentTypesAttribute>(){}[0]
 final val io.ktor.server.http.content/SuppressionAttribute // io.ktor.server.http.content/SuppressionAttribute|{}SuppressionAttribute[0]
     final fun <get-SuppressionAttribute>(): io.ktor.util/AttributeKey<kotlin/Boolean> // io.ktor.server.http.content/SuppressionAttribute.<get-SuppressionAttribute>|<get-SuppressionAttribute>(){}[0]
 final val io.ktor.server.http.content/isCompressionSuppressed // io.ktor.server.http.content/isCompressionSuppressed|@io.ktor.server.application.ApplicationCall{}isCompressionSuppressed[0]

@@ -1348,7 +1348,7 @@ final class io.ktor.openapi/Operation : io.ktor.openapi/Extensible { // io.ktor.
     final fun toString(): kotlin/String // io.ktor.openapi/Operation.toString|toString(){}[0]
 
     final class Builder : io.ktor.openapi/JsonSchemaInference { // io.ktor.openapi/Operation.Builder|null[0]
-        constructor <init>(io.ktor.openapi/JsonSchemaInference) // io.ktor.openapi/Operation.Builder.<init>|<init>(io.ktor.openapi.JsonSchemaInference){}[0]
+        constructor <init>(io.ktor.openapi/JsonSchemaInference, kotlin.collections/List<io.ktor.http/ContentType>) // io.ktor.openapi/Operation.Builder.<init>|<init>(io.ktor.openapi.JsonSchemaInference;kotlin.collections.List<io.ktor.http.ContentType>){}[0]
 
         final val callbacks // io.ktor.openapi/Operation.Builder.callbacks|{}callbacks[0]
             final fun <get-callbacks>(): kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/Callback>> // io.ktor.openapi/Operation.Builder.callbacks.<get-callbacks>|<get-callbacks>(){}[0]
@@ -1408,7 +1408,7 @@ final class io.ktor.openapi/Operation : io.ktor.openapi/Extensible { // io.ktor.
     final object Companion { // io.ktor.openapi/Operation.Companion|null[0]
         final val $childSerializers // io.ktor.openapi/Operation.Companion.$childSerializers|{}$childSerializers[0]
 
-        final fun build(io.ktor.openapi/JsonSchemaInference = ..., kotlin/Function1<io.ktor.openapi/Operation.Builder, kotlin/Unit>): io.ktor.openapi/Operation // io.ktor.openapi/Operation.Companion.build|build(io.ktor.openapi.JsonSchemaInference;kotlin.Function1<io.ktor.openapi.Operation.Builder,kotlin.Unit>){}[0]
+        final fun build(io.ktor.openapi/JsonSchemaInference = ..., kotlin.collections/List<io.ktor.http/ContentType> = ..., kotlin/Function1<io.ktor.openapi/Operation.Builder, kotlin/Unit>): io.ktor.openapi/Operation // io.ktor.openapi/Operation.Companion.build|build(io.ktor.openapi.JsonSchemaInference;kotlin.collections.List<io.ktor.http.ContentType>;kotlin.Function1<io.ktor.openapi.Operation.Builder,kotlin.Unit>){}[0]
         final fun serializer(): kotlinx.serialization/KSerializer<io.ktor.openapi/Operation> // io.ktor.openapi/Operation.Companion.serializer|serializer(){}[0]
     }
 }
@@ -1465,7 +1465,7 @@ final class io.ktor.openapi/Parameter : io.ktor.openapi/Extensible { // io.ktor.
     final fun toString(): kotlin/String // io.ktor.openapi/Parameter.toString|toString(){}[0]
 
     final class Builder : io.ktor.openapi/JsonSchemaInference { // io.ktor.openapi/Parameter.Builder|null[0]
-        constructor <init>(io.ktor.openapi/JsonSchemaInference) // io.ktor.openapi/Parameter.Builder.<init>|<init>(io.ktor.openapi.JsonSchemaInference){}[0]
+        constructor <init>(io.ktor.openapi/JsonSchemaInference, kotlin.collections/List<io.ktor.http/ContentType>) // io.ktor.openapi/Parameter.Builder.<init>|<init>(io.ktor.openapi.JsonSchemaInference;kotlin.collections.List<io.ktor.http.ContentType>){}[0]
 
         final val content // io.ktor.openapi/Parameter.Builder.content|{}content[0]
             final fun <get-content>(): kotlin.collections/Map<io.ktor.http/ContentType, io.ktor.openapi/MediaType> // io.ktor.openapi/Parameter.Builder.content.<get-content>|<get-content>(){}[0]
@@ -1511,6 +1511,7 @@ final class io.ktor.openapi/Parameter : io.ktor.openapi/Extensible { // io.ktor.
 
         final fun (io.ktor.http/ContentType).invoke(kotlin/Function1<io.ktor.openapi/MediaType.Builder, kotlin/Unit> = ...) // io.ktor.openapi/Parameter.Builder.invoke|invoke@io.ktor.http.ContentType(kotlin.Function1<io.ktor.openapi.MediaType.Builder,kotlin.Unit>){}[0]
         final fun buildSchema(kotlin.reflect/KType): io.ktor.openapi/JsonSchema // io.ktor.openapi/Parameter.Builder.buildSchema|buildSchema(kotlin.reflect.KType){}[0]
+        final fun content(kotlin/Function1<io.ktor.openapi/MediaType.Builder, kotlin/Unit>) // io.ktor.openapi/Parameter.Builder.content|content(kotlin.Function1<io.ktor.openapi.MediaType.Builder,kotlin.Unit>){}[0]
         final fun example(kotlin/String, io.ktor.openapi/ExampleObject) // io.ktor.openapi/Parameter.Builder.example|example(kotlin.String;io.ktor.openapi.ExampleObject){}[0]
         final inline fun <#A2: reified kotlin/Any> extension(kotlin/String, #A2) // io.ktor.openapi/Parameter.Builder.extension|extension(kotlin.String;0:0){0§<kotlin.Any>}[0]
     }
@@ -1544,7 +1545,7 @@ final class io.ktor.openapi/Parameters { // io.ktor.openapi/Parameters|null[0]
     final fun toString(): kotlin/String // io.ktor.openapi/Parameters.toString|toString(){}[0]
 
     final class Builder { // io.ktor.openapi/Parameters.Builder|null[0]
-        constructor <init>(io.ktor.openapi/JsonSchemaInference) // io.ktor.openapi/Parameters.Builder.<init>|<init>(io.ktor.openapi.JsonSchemaInference){}[0]
+        constructor <init>(io.ktor.openapi/JsonSchemaInference, kotlin.collections/List<io.ktor.http/ContentType>) // io.ktor.openapi/Parameters.Builder.<init>|<init>(io.ktor.openapi.JsonSchemaInference;kotlin.collections.List<io.ktor.http.ContentType>){}[0]
 
         final val parameters // io.ktor.openapi/Parameters.Builder.parameters|{}parameters[0]
             final fun <get-parameters>(): kotlin.collections/List<io.ktor.openapi/Parameter> // io.ktor.openapi/Parameters.Builder.parameters.<get-parameters>|<get-parameters>(){}[0]
@@ -1658,7 +1659,7 @@ final class io.ktor.openapi/RequestBody : io.ktor.openapi/Extensible { // io.kto
     final fun toString(): kotlin/String // io.ktor.openapi/RequestBody.toString|toString(){}[0]
 
     final class Builder : io.ktor.openapi/JsonSchemaInference { // io.ktor.openapi/RequestBody.Builder|null[0]
-        constructor <init>(io.ktor.openapi/JsonSchemaInference) // io.ktor.openapi/RequestBody.Builder.<init>|<init>(io.ktor.openapi.JsonSchemaInference){}[0]
+        constructor <init>(io.ktor.openapi/JsonSchemaInference, kotlin.collections/List<io.ktor.http/ContentType>) // io.ktor.openapi/RequestBody.Builder.<init>|<init>(io.ktor.openapi.JsonSchemaInference;kotlin.collections.List<io.ktor.http.ContentType>){}[0]
 
         final val content // io.ktor.openapi/RequestBody.Builder.content|{}content[0]
             final fun <get-content>(): kotlin.collections/Map<io.ktor.http/ContentType, io.ktor.openapi/MediaType> // io.ktor.openapi/RequestBody.Builder.content.<get-content>|<get-content>(){}[0]
@@ -1668,16 +1669,16 @@ final class io.ktor.openapi/RequestBody : io.ktor.openapi/Extensible { // io.kto
         final var description // io.ktor.openapi/RequestBody.Builder.description|{}description[0]
             final fun <get-description>(): kotlin/String? // io.ktor.openapi/RequestBody.Builder.description.<get-description>|<get-description>(){}[0]
             final fun <set-description>(kotlin/String?) // io.ktor.openapi/RequestBody.Builder.description.<set-description>|<set-description>(kotlin.String?){}[0]
-        final var jsonSchema // io.ktor.openapi/RequestBody.Builder.jsonSchema|{}jsonSchema[0]
-            final fun <get-jsonSchema>(): io.ktor.openapi/JsonSchema? // io.ktor.openapi/RequestBody.Builder.jsonSchema.<get-jsonSchema>|<get-jsonSchema>(){}[0]
-            final fun <set-jsonSchema>(io.ktor.openapi/JsonSchema?) // io.ktor.openapi/RequestBody.Builder.jsonSchema.<set-jsonSchema>|<set-jsonSchema>(io.ktor.openapi.JsonSchema?){}[0]
         final var required // io.ktor.openapi/RequestBody.Builder.required|{}required[0]
             final fun <get-required>(): kotlin/Boolean // io.ktor.openapi/RequestBody.Builder.required.<get-required>|<get-required>(){}[0]
             final fun <set-required>(kotlin/Boolean) // io.ktor.openapi/RequestBody.Builder.required.<set-required>|<set-required>(kotlin.Boolean){}[0]
+        final var schema // io.ktor.openapi/RequestBody.Builder.schema|{}schema[0]
+            final fun <get-schema>(): io.ktor.openapi/JsonSchema? // io.ktor.openapi/RequestBody.Builder.schema.<get-schema>|<get-schema>(){}[0]
+            final fun <set-schema>(io.ktor.openapi/JsonSchema?) // io.ktor.openapi/RequestBody.Builder.schema.<set-schema>|<set-schema>(io.ktor.openapi.JsonSchema?){}[0]
 
         final fun (io.ktor.http/ContentType).invoke(kotlin/Function1<io.ktor.openapi/MediaType.Builder, kotlin/Unit> = ...) // io.ktor.openapi/RequestBody.Builder.invoke|invoke@io.ktor.http.ContentType(kotlin.Function1<io.ktor.openapi.MediaType.Builder,kotlin.Unit>){}[0]
         final fun buildSchema(kotlin.reflect/KType): io.ktor.openapi/JsonSchema // io.ktor.openapi/RequestBody.Builder.buildSchema|buildSchema(kotlin.reflect.KType){}[0]
-        final fun xml(io.ktor.openapi/JsonSchema) // io.ktor.openapi/RequestBody.Builder.xml|xml(io.ktor.openapi.JsonSchema){}[0]
+        final fun content(kotlin/Function1<io.ktor.openapi/MediaType.Builder, kotlin/Unit>) // io.ktor.openapi/RequestBody.Builder.content|content(kotlin.Function1<io.ktor.openapi.MediaType.Builder,kotlin.Unit>){}[0]
         final inline fun <#A2: reified kotlin/Any> extension(kotlin/String, #A2) // io.ktor.openapi/RequestBody.Builder.extension|extension(kotlin.String;0:0){0§<kotlin.Any>}[0]
     }
 
@@ -1722,7 +1723,7 @@ final class io.ktor.openapi/Response : io.ktor.openapi/Extensible { // io.ktor.o
     final fun toString(): kotlin/String // io.ktor.openapi/Response.toString|toString(){}[0]
 
     final class Builder : io.ktor.openapi/JsonSchemaInference { // io.ktor.openapi/Response.Builder|null[0]
-        constructor <init>(io.ktor.openapi/JsonSchemaInference) // io.ktor.openapi/Response.Builder.<init>|<init>(io.ktor.openapi.JsonSchemaInference){}[0]
+        constructor <init>(io.ktor.openapi/JsonSchemaInference, kotlin.collections/List<io.ktor.http/ContentType>) // io.ktor.openapi/Response.Builder.<init>|<init>(io.ktor.openapi.JsonSchemaInference;kotlin.collections.List<io.ktor.http.ContentType>){}[0]
 
         final val content // io.ktor.openapi/Response.Builder.content|{}content[0]
             final fun <get-content>(): kotlin.collections/Map<io.ktor.http/ContentType, io.ktor.openapi/MediaType> // io.ktor.openapi/Response.Builder.content.<get-content>|<get-content>(){}[0]
@@ -1736,12 +1737,13 @@ final class io.ktor.openapi/Response : io.ktor.openapi/Extensible { // io.ktor.o
         final var description // io.ktor.openapi/Response.Builder.description|{}description[0]
             final fun <get-description>(): kotlin/String // io.ktor.openapi/Response.Builder.description.<get-description>|<get-description>(){}[0]
             final fun <set-description>(kotlin/String) // io.ktor.openapi/Response.Builder.description.<set-description>|<set-description>(kotlin.String){}[0]
-        final var jsonSchema // io.ktor.openapi/Response.Builder.jsonSchema|{}jsonSchema[0]
-            final fun <get-jsonSchema>(): io.ktor.openapi/JsonSchema? // io.ktor.openapi/Response.Builder.jsonSchema.<get-jsonSchema>|<get-jsonSchema>(){}[0]
-            final fun <set-jsonSchema>(io.ktor.openapi/JsonSchema?) // io.ktor.openapi/Response.Builder.jsonSchema.<set-jsonSchema>|<set-jsonSchema>(io.ktor.openapi.JsonSchema?){}[0]
+        final var schema // io.ktor.openapi/Response.Builder.schema|{}schema[0]
+            final fun <get-schema>(): io.ktor.openapi/JsonSchema? // io.ktor.openapi/Response.Builder.schema.<get-schema>|<get-schema>(){}[0]
+            final fun <set-schema>(io.ktor.openapi/JsonSchema?) // io.ktor.openapi/Response.Builder.schema.<set-schema>|<set-schema>(io.ktor.openapi.JsonSchema?){}[0]
 
         final fun (io.ktor.http/ContentType).invoke(kotlin/Function1<io.ktor.openapi/MediaType.Builder, kotlin/Unit> = ...) // io.ktor.openapi/Response.Builder.invoke|invoke@io.ktor.http.ContentType(kotlin.Function1<io.ktor.openapi.MediaType.Builder,kotlin.Unit>){}[0]
         final fun buildSchema(kotlin.reflect/KType): io.ktor.openapi/JsonSchema // io.ktor.openapi/Response.Builder.buildSchema|buildSchema(kotlin.reflect.KType){}[0]
+        final fun content(kotlin/Function1<io.ktor.openapi/MediaType.Builder, kotlin/Unit>) // io.ktor.openapi/Response.Builder.content|content(kotlin.Function1<io.ktor.openapi.MediaType.Builder,kotlin.Unit>){}[0]
         final fun headers(kotlin/Function1<io.ktor.openapi/Headers.Builder, kotlin/Unit>) // io.ktor.openapi/Response.Builder.headers|headers(kotlin.Function1<io.ktor.openapi.Headers.Builder,kotlin.Unit>){}[0]
         final fun link(kotlin/String, kotlin/Function1<io.ktor.openapi/Link.Builder, kotlin/Unit>) // io.ktor.openapi/Response.Builder.link|link(kotlin.String;kotlin.Function1<io.ktor.openapi.Link.Builder,kotlin.Unit>){}[0]
         final inline fun <#A2: reified kotlin/Any> extension(kotlin/String, #A2) // io.ktor.openapi/Response.Builder.extension|extension(kotlin.String;0:0){0§<kotlin.Any>}[0]
@@ -1782,7 +1784,7 @@ final class io.ktor.openapi/Responses : io.ktor.openapi/Extensible { // io.ktor.
     final fun toString(): kotlin/String // io.ktor.openapi/Responses.toString|toString(){}[0]
 
     final class Builder { // io.ktor.openapi/Responses.Builder|null[0]
-        constructor <init>(io.ktor.openapi/JsonSchemaInference) // io.ktor.openapi/Responses.Builder.<init>|<init>(io.ktor.openapi.JsonSchemaInference){}[0]
+        constructor <init>(io.ktor.openapi/JsonSchemaInference, kotlin.collections/List<io.ktor.http/ContentType>) // io.ktor.openapi/Responses.Builder.<init>|<init>(io.ktor.openapi.JsonSchemaInference;kotlin.collections.List<io.ktor.http.ContentType>){}[0]
 
         final val extensions // io.ktor.openapi/Responses.Builder.extensions|{}extensions[0]
             final fun <get-extensions>(): kotlin.collections/Map<kotlin/String, io.ktor.openapi/GenericElement> // io.ktor.openapi/Responses.Builder.extensions.<get-extensions>|<get-extensions>(){}[0]
@@ -2064,7 +2066,7 @@ final object io.ktor.openapi/JsonElementSerialAdapter : io.ktor.openapi/GenericE
 final val io.ktor.openapi/KotlinxJsonSchemaInference // io.ktor.openapi/KotlinxJsonSchemaInference|{}KotlinxJsonSchemaInference[0]
     final fun <get-KotlinxJsonSchemaInference>(): io.ktor.openapi/JsonSchemaInference // io.ktor.openapi/KotlinxJsonSchemaInference.<get-KotlinxJsonSchemaInference>|<get-KotlinxJsonSchemaInference>(){}[0]
 
-final fun (kotlinx.serialization.descriptors/SerialDescriptor).io.ktor.openapi/buildJsonSchema(): io.ktor.openapi/JsonSchema // io.ktor.openapi/buildJsonSchema|buildJsonSchema@kotlinx.serialization.descriptors.SerialDescriptor(){}[0]
+final fun (kotlinx.serialization.descriptors/SerialDescriptor).io.ktor.openapi/buildJsonSchema(kotlin/Boolean = ...): io.ktor.openapi/JsonSchema // io.ktor.openapi/buildJsonSchema|buildJsonSchema@kotlinx.serialization.descriptors.SerialDescriptor(kotlin.Boolean){}[0]
 final fun io.ktor.openapi/GenericElement(kotlin.collections/Collection<kotlin/Pair<kotlin/String, io.ktor.openapi/GenericElement>>): io.ktor.openapi/GenericElement // io.ktor.openapi/GenericElement|GenericElement(kotlin.collections.Collection<kotlin.Pair<kotlin.String,io.ktor.openapi.GenericElement>>){}[0]
 final inline fun <#A: reified kotlin/Any> (io.ktor.openapi/JsonSchemaInference).io.ktor.openapi/jsonSchema(): io.ktor.openapi/JsonSchema // io.ktor.openapi/jsonSchema|jsonSchema@io.ktor.openapi.JsonSchemaInference(){0§<kotlin.Any>}[0]
 final inline fun <#A: reified kotlin/Any> io.ktor.openapi/GenericElement(#A): io.ktor.openapi/GenericElement // io.ktor.openapi/GenericElement|GenericElement(0:0){0§<kotlin.Any>}[0]
