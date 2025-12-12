@@ -238,9 +238,11 @@ final class io.ktor.openapi/ApiKeySecurityScheme : io.ktor.openapi/Extensible, i
     }
 
     final object Companion { // io.ktor.openapi/ApiKeySecurityScheme.Companion|null[0]
+        final const val DEFAULT_DESCRIPTION // io.ktor.openapi/ApiKeySecurityScheme.Companion.DEFAULT_DESCRIPTION|{}DEFAULT_DESCRIPTION[0]
+            final fun <get-DEFAULT_DESCRIPTION>(): kotlin/String // io.ktor.openapi/ApiKeySecurityScheme.Companion.DEFAULT_DESCRIPTION.<get-DEFAULT_DESCRIPTION>|<get-DEFAULT_DESCRIPTION>(){}[0]
+
         final val $childSerializers // io.ktor.openapi/ApiKeySecurityScheme.Companion.$childSerializers|{}$childSerializers[0]
 
-        final fun defaultDescription(kotlin/String, kotlin/String): kotlin/String // io.ktor.openapi/ApiKeySecurityScheme.Companion.defaultDescription|defaultDescription(kotlin.String;kotlin.String){}[0]
         final fun serializer(): kotlinx.serialization/KSerializer<io.ktor.openapi/ApiKeySecurityScheme> // io.ktor.openapi/ApiKeySecurityScheme.Companion.serializer|serializer(){}[0]
     }
 }

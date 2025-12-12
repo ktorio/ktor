@@ -8,6 +8,7 @@ import io.ktor.openapi.*
 import io.ktor.openapi.ReferenceOr.Companion.value
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.auth.apikey.ApiKeyAuthenticationProvider
 import io.ktor.server.sessions.SessionProvidersKey
 import io.ktor.server.sessions.SessionTransportCookie
 import io.ktor.server.sessions.SessionTransportHeader
@@ -118,10 +119,17 @@ private fun Application.inferSecurityScheme(
                 else -> return null
             }
             ApiKeySecurityScheme(
-                `in` = keyLocation,
                 name = keyName,
-                description = provider.description
-                    ?: ApiKeySecurityScheme.defaultDescription(keyName, keyLocation.name.lowercase())
+                `in` = keyLocation,
+                description = provider.description ?: "Session-based Authentication"
+            )
+        }
+
+        is ApiKeyAuthenticationProvider -> {
+            ApiKeySecurityScheme(
+                name = provider.headerName,
+                `in` = SecuritySchemeIn.HEADER,
+                description = provider.description ?: ApiKeySecurityScheme.DEFAULT_DESCRIPTION
             )
         }
 
@@ -193,7 +201,7 @@ public fun Application.registerApiKeySecurityScheme(
     name: String? = null,
     keyName: String,
     location: SecuritySchemeIn,
-    description: String = ApiKeySecurityScheme.defaultDescription(keyName, location.name)
+    description: String = ApiKeySecurityScheme.DEFAULT_DESCRIPTION
 ) {
     val scheme = ApiKeySecurityScheme(name = keyName, `in` = location, description = description)
     registerSecurityScheme(name, scheme)

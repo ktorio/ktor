@@ -36,6 +36,7 @@ public final class io/ktor/openapi/AdditionalProperties$PSchema : io/ktor/openap
 
 public final class io/ktor/openapi/ApiKeySecurityScheme : io/ktor/openapi/Extensible, io/ktor/openapi/SecurityScheme {
 	public static final field Companion Lio/ktor/openapi/ApiKeySecurityScheme$Companion;
+	public static final field DEFAULT_DESCRIPTION Ljava/lang/String;
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/String;Lio/ktor/openapi/SecuritySchemeIn;Ljava/lang/String;Ljava/util/Map;)V
 	public synthetic fun <init> (Ljava/lang/String;Lio/ktor/openapi/SecuritySchemeIn;Ljava/lang/String;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -67,7 +68,6 @@ public final synthetic class io/ktor/openapi/ApiKeySecurityScheme$$serializer : 
 }
 
 public final class io/ktor/openapi/ApiKeySecurityScheme$Companion {
-	public final fun defaultDescription (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
@@ -1590,216 +1590,6 @@ public final class io/ktor/openapi/Responses$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
-public final class io/ktor/openapi/Schema {
-	public static final field Companion Lio/ktor/openapi/Schema$Companion;
-	public fun <init> ()V
-	public fun <init> (Lio/ktor/openapi/Schema$SchemaType;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/Boolean;Ljava/util/List;Ljava/util/List;Lio/ktor/openapi/ReferenceOr;Ljava/util/List;Ljava/util/Map;Lio/ktor/openapi/AdditionalProperties;Lio/ktor/openapi/Schema$Discriminator;Ljava/lang/Boolean;Ljava/lang/Boolean;Lio/ktor/openapi/Xml;Lio/ktor/openapi/ExternalDocs;Lio/ktor/openapi/GenericElement;Ljava/util/List;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Lio/ktor/openapi/GenericElement;Ljava/lang/String;Lio/ktor/openapi/ReferenceOr;Ljava/lang/Double;Ljava/lang/Boolean;Ljava/lang/Double;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Boolean;Ljava/util/List;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;)V
-	public synthetic fun <init> (Lio/ktor/openapi/Schema$SchemaType;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/Boolean;Ljava/util/List;Ljava/util/List;Lio/ktor/openapi/ReferenceOr;Ljava/util/List;Ljava/util/Map;Lio/ktor/openapi/AdditionalProperties;Lio/ktor/openapi/Schema$Discriminator;Ljava/lang/Boolean;Ljava/lang/Boolean;Lio/ktor/openapi/Xml;Lio/ktor/openapi/ExternalDocs;Lio/ktor/openapi/GenericElement;Ljava/util/List;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Lio/ktor/openapi/GenericElement;Ljava/lang/String;Lio/ktor/openapi/ReferenceOr;Ljava/lang/Double;Ljava/lang/Boolean;Ljava/lang/Double;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Boolean;Ljava/util/List;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Lio/ktor/openapi/Schema$SchemaType;
-	public final fun component10 ()Ljava/util/Map;
-	public final fun component11 ()Lio/ktor/openapi/AdditionalProperties;
-	public final fun component12 ()Lio/ktor/openapi/Schema$Discriminator;
-	public final fun component13 ()Ljava/lang/Boolean;
-	public final fun component14 ()Ljava/lang/Boolean;
-	public final fun component15 ()Lio/ktor/openapi/Xml;
-	public final fun component16 ()Lio/ktor/openapi/ExternalDocs;
-	public final fun component17 ()Lio/ktor/openapi/GenericElement;
-	public final fun component18 ()Ljava/util/List;
-	public final fun component19 ()Ljava/lang/Boolean;
-	public final fun component2 ()Ljava/lang/String;
-	public final fun component20 ()Ljava/lang/Integer;
-	public final fun component21 ()Ljava/lang/Integer;
-	public final fun component22 ()Lio/ktor/openapi/GenericElement;
-	public final fun component23 ()Ljava/lang/String;
-	public final fun component24 ()Lio/ktor/openapi/ReferenceOr;
-	public final fun component25 ()Ljava/lang/Double;
-	public final fun component26 ()Ljava/lang/Boolean;
-	public final fun component27 ()Ljava/lang/Double;
-	public final fun component28 ()Ljava/lang/Boolean;
-	public final fun component29 ()Ljava/lang/Integer;
-	public final fun component3 ()Ljava/lang/String;
-	public final fun component30 ()Ljava/lang/Integer;
-	public final fun component31 ()Ljava/lang/String;
-	public final fun component32 ()Ljava/lang/Integer;
-	public final fun component33 ()Ljava/lang/Integer;
-	public final fun component34 ()Ljava/lang/Boolean;
-	public final fun component35 ()Ljava/util/List;
-	public final fun component36 ()Ljava/lang/Double;
-	public final fun component37 ()Ljava/lang/String;
-	public final fun component38 ()Ljava/lang/String;
-	public final fun component39 ()Ljava/lang/Boolean;
-	public final fun component4 ()Ljava/util/List;
-	public final fun component5 ()Ljava/lang/Boolean;
-	public final fun component6 ()Ljava/util/List;
-	public final fun component7 ()Ljava/util/List;
-	public final fun component8 ()Lio/ktor/openapi/ReferenceOr;
-	public final fun component9 ()Ljava/util/List;
-	public final fun copy (Lio/ktor/openapi/Schema$SchemaType;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/Boolean;Ljava/util/List;Ljava/util/List;Lio/ktor/openapi/ReferenceOr;Ljava/util/List;Ljava/util/Map;Lio/ktor/openapi/AdditionalProperties;Lio/ktor/openapi/Schema$Discriminator;Ljava/lang/Boolean;Ljava/lang/Boolean;Lio/ktor/openapi/Xml;Lio/ktor/openapi/ExternalDocs;Lio/ktor/openapi/GenericElement;Ljava/util/List;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Lio/ktor/openapi/GenericElement;Ljava/lang/String;Lio/ktor/openapi/ReferenceOr;Ljava/lang/Double;Ljava/lang/Boolean;Ljava/lang/Double;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Boolean;Ljava/util/List;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;)Lio/ktor/openapi/Schema;
-	public static synthetic fun copy$default (Lio/ktor/openapi/Schema;Lio/ktor/openapi/Schema$SchemaType;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/Boolean;Ljava/util/List;Ljava/util/List;Lio/ktor/openapi/ReferenceOr;Ljava/util/List;Ljava/util/Map;Lio/ktor/openapi/AdditionalProperties;Lio/ktor/openapi/Schema$Discriminator;Ljava/lang/Boolean;Ljava/lang/Boolean;Lio/ktor/openapi/Xml;Lio/ktor/openapi/ExternalDocs;Lio/ktor/openapi/GenericElement;Ljava/util/List;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Lio/ktor/openapi/GenericElement;Ljava/lang/String;Lio/ktor/openapi/ReferenceOr;Ljava/lang/Double;Ljava/lang/Boolean;Ljava/lang/Double;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Boolean;Ljava/util/List;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;IILjava/lang/Object;)Lio/ktor/openapi/Schema;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getAdditionalProperties ()Lio/ktor/openapi/AdditionalProperties;
-	public final fun getAllOf ()Ljava/util/List;
-	public final fun getAnchor ()Ljava/lang/String;
-	public final fun getAnyOf ()Ljava/util/List;
-	public final fun getDefault ()Lio/ktor/openapi/GenericElement;
-	public final fun getDeprecated ()Ljava/lang/Boolean;
-	public final fun getDescription ()Ljava/lang/String;
-	public final fun getDiscriminator ()Lio/ktor/openapi/Schema$Discriminator;
-	public final fun getEnum ()Ljava/util/List;
-	public final fun getExample ()Lio/ktor/openapi/GenericElement;
-	public final fun getExamples ()Ljava/util/List;
-	public final fun getExclusiveMaximum ()Ljava/lang/Boolean;
-	public final fun getExclusiveMinimum ()Ljava/lang/Boolean;
-	public final fun getExternalDocs ()Lio/ktor/openapi/ExternalDocs;
-	public final fun getFormat ()Ljava/lang/String;
-	public final fun getId ()Ljava/lang/String;
-	public final fun getItems ()Lio/ktor/openapi/ReferenceOr;
-	public final fun getMaxItems ()Ljava/lang/Integer;
-	public final fun getMaxLength ()Ljava/lang/Integer;
-	public final fun getMaxProperties ()Ljava/lang/Integer;
-	public final fun getMaximum ()Ljava/lang/Double;
-	public final fun getMinItems ()Ljava/lang/Integer;
-	public final fun getMinLength ()Ljava/lang/Integer;
-	public final fun getMinProperties ()Ljava/lang/Integer;
-	public final fun getMinimum ()Ljava/lang/Double;
-	public final fun getMultipleOf ()Ljava/lang/Double;
-	public final fun getNot ()Lio/ktor/openapi/ReferenceOr;
-	public final fun getNullable ()Ljava/lang/Boolean;
-	public final fun getOneOf ()Ljava/util/List;
-	public final fun getPattern ()Ljava/lang/String;
-	public final fun getProperties ()Ljava/util/Map;
-	public final fun getReadOnly ()Ljava/lang/Boolean;
-	public final fun getRecursiveAnchor ()Ljava/lang/Boolean;
-	public final fun getRequired ()Ljava/util/List;
-	public final fun getTitle ()Ljava/lang/String;
-	public final fun getType ()Lio/ktor/openapi/Schema$SchemaType;
-	public final fun getUniqueItems ()Ljava/lang/Boolean;
-	public final fun getWriteOnly ()Ljava/lang/Boolean;
-	public final fun getXml ()Lio/ktor/openapi/Xml;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final synthetic class io/ktor/openapi/Schema$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
-	public static final field INSTANCE Lio/ktor/openapi/Schema$$serializer;
-	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/openapi/Schema;
-	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/openapi/Schema;)V
-	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
-}
-
-public final class io/ktor/openapi/Schema$Companion {
-	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
-public final class io/ktor/openapi/Schema$Discriminator {
-	public static final field Companion Lio/ktor/openapi/Schema$Discriminator$Companion;
-	public fun <init> (Ljava/lang/String;Ljava/util/Map;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun component2 ()Ljava/util/Map;
-	public final fun copy (Ljava/lang/String;Ljava/util/Map;)Lio/ktor/openapi/Schema$Discriminator;
-	public static synthetic fun copy$default (Lio/ktor/openapi/Schema$Discriminator;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Lio/ktor/openapi/Schema$Discriminator;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getMapping ()Ljava/util/Map;
-	public final fun getPropertyName ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final synthetic class io/ktor/openapi/Schema$Discriminator$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
-	public static final field INSTANCE Lio/ktor/openapi/Schema$Discriminator$$serializer;
-	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/openapi/Schema$Discriminator;
-	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/openapi/Schema$Discriminator;)V
-	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
-}
-
-public final class io/ktor/openapi/Schema$Discriminator$Companion {
-	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
-public abstract interface class io/ktor/openapi/Schema$SchemaType {
-	public static final field Companion Lio/ktor/openapi/Schema$SchemaType$Companion;
-}
-
-public final class io/ktor/openapi/Schema$SchemaType$AnyOf : io/ktor/openapi/Schema$SchemaType {
-	public static final field Companion Lio/ktor/openapi/Schema$SchemaType$AnyOf$Companion;
-	public fun <init> (Ljava/util/List;)V
-	public final fun component1 ()Ljava/util/List;
-	public final fun copy (Ljava/util/List;)Lio/ktor/openapi/Schema$SchemaType$AnyOf;
-	public static synthetic fun copy$default (Lio/ktor/openapi/Schema$SchemaType$AnyOf;Ljava/util/List;ILjava/lang/Object;)Lio/ktor/openapi/Schema$SchemaType$AnyOf;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getTypes ()Ljava/util/List;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final synthetic class io/ktor/openapi/Schema$SchemaType$AnyOf$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
-	public static final field INSTANCE Lio/ktor/openapi/Schema$SchemaType$AnyOf$$serializer;
-	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/openapi/Schema$SchemaType$AnyOf;
-	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/openapi/Schema$SchemaType$AnyOf;)V
-	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
-}
-
-public final class io/ktor/openapi/Schema$SchemaType$AnyOf$Companion {
-	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
-public final class io/ktor/openapi/Schema$SchemaType$Companion {
-	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
-public final class io/ktor/openapi/Schema$SchemaType$JsonType : java/lang/Enum, io/ktor/openapi/Schema$SchemaType {
-	public static final field ARRAY Lio/ktor/openapi/Schema$SchemaType$JsonType;
-	public static final field BOOLEAN Lio/ktor/openapi/Schema$SchemaType$JsonType;
-	public static final field Companion Lio/ktor/openapi/Schema$SchemaType$JsonType$Companion;
-	public static final field INTEGER Lio/ktor/openapi/Schema$SchemaType$JsonType;
-	public static final field NULL Lio/ktor/openapi/Schema$SchemaType$JsonType;
-	public static final field NUMBER Lio/ktor/openapi/Schema$SchemaType$JsonType;
-	public static final field OBJECT Lio/ktor/openapi/Schema$SchemaType$JsonType;
-	public static final field STRING Lio/ktor/openapi/Schema$SchemaType$JsonType;
-	public static fun getEntries ()Lkotlin/enums/EnumEntries;
-	public static fun valueOf (Ljava/lang/String;)Lio/ktor/openapi/Schema$SchemaType$JsonType;
-	public static fun values ()[Lio/ktor/openapi/Schema$SchemaType$JsonType;
-}
-
-public final class io/ktor/openapi/Schema$SchemaType$JsonType$Companion {
-	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
-public final class io/ktor/openapi/Schema$SchemaType$JsonTypeSerializer : kotlinx/serialization/KSerializer {
-	public static final field INSTANCE Lio/ktor/openapi/Schema$SchemaType$JsonTypeSerializer;
-	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/openapi/Schema$SchemaType$JsonType;
-	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/openapi/Schema$SchemaType$JsonType;)V
-	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-}
-
-public final class io/ktor/openapi/Schema$SchemaType$Serializer : kotlinx/serialization/KSerializer {
-	public static final field INSTANCE Lio/ktor/openapi/Schema$SchemaType$Serializer;
-	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/openapi/Schema$SchemaType;
-	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/openapi/Schema$SchemaType;)V
-	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-}
-
-public final class io/ktor/openapi/SchemaInferenceKt {
-	public static final fun buildJsonSchema (Lkotlinx/serialization/descriptors/SerialDescriptor;)Lio/ktor/openapi/Schema;
-}
-
 public final class io/ktor/openapi/Security {
 	public static final field Companion Lio/ktor/openapi/Security$Companion;
 	public fun <init> (Ljava/util/List;)V
@@ -1838,30 +1628,9 @@ public final class io/ktor/openapi/Security$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
-public final class io/ktor/openapi/Security$RequirementBuilder {
-	public fun <init> ()V
-	public final fun scheme (Ljava/lang/String;Ljava/util/List;)V
-	public static synthetic fun scheme$default (Lio/ktor/openapi/Security$RequirementBuilder;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)V
-}
-
 public abstract interface class io/ktor/openapi/SecurityScheme {
 	public abstract fun getDescription ()Ljava/lang/String;
 	public abstract fun getType ()Lio/ktor/openapi/SecuritySchemeType;
-}
-
-public final synthetic class io/ktor/openapi/SecurityScheme$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
-	public static final field INSTANCE Lio/ktor/openapi/SecurityScheme$$serializer;
-	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/openapi/SecurityScheme;
-	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/openapi/SecurityScheme;)V
-	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
-}
-
-public final class io/ktor/openapi/SecurityScheme$Companion {
-	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
 public final class io/ktor/openapi/SecuritySchemeIn : java/lang/Enum {
