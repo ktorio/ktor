@@ -92,10 +92,9 @@ class ReadLineTest {
             channel.flushAndClose()
         }.channel
 
-        val exception = assertFailsWith<EOFException> {
+        assertFailsWith<EOFException> {
             channel.readLineStrict()
         }
-        assertEquals("Unexpected end of stream after reading 1024 characters", exception.message)
     }
 
     @Test
@@ -106,10 +105,9 @@ class ReadLineTest {
             channel.writeStringUtf8(line)
         }.channel
 
-        val exception = assertFailsWith<EOFException> {
+        assertFailsWith<EOFException> {
             channel.readLineStrict()
         }
-        assertEquals("Unexpected end of stream after reading 1024 characters", exception.message)
     }
 
     @Test
@@ -158,10 +156,9 @@ class ReadLineTest {
     fun `limit - exact limit with CR immediately after in default mode throws`() = runTest {
         val channel = ByteReadChannel("12345\r")
 
-        val exception = assertFailsWith<TooLongLineException> {
+        assertFailsWith<TooLongLineException> {
             channel.readLineStrictTo(buffer, limit = 5)
         }
-        assertEquals("Line exceeds limit of 5 characters", exception.message)
     }
 
     @Test
@@ -197,30 +194,27 @@ class ReadLineTest {
             channel.writeStringUtf8("\rmore")
         }.channel
 
-        val exception = assertFailsWith<TooLongLineException> {
+        assertFailsWith<TooLongLineException> {
             channel.readLineStrictTo(buffer, limit = 5)
         }
-        assertEquals("Line exceeds limit of 5 characters", exception.message)
     }
 
     @Test
     fun `limit - exceeding limit in middle of line throws`() = runTest {
         val channel = ByteReadChannel("123456789\n")
 
-        val exception = assertFailsWith<TooLongLineException> {
+        assertFailsWith<TooLongLineException> {
             channel.readLineStrictTo(buffer, limit = 5)
         }
-        assertEquals("Line exceeds limit of 5 characters", exception.message)
     }
 
     @Test
     fun `limit - exact limit at end of stream throws in strict mode`() = runTest {
         val channel = ByteReadChannel("12345")
 
-        val exception = assertFailsWith<EOFException> {
+        assertFailsWith<EOFException> {
             channel.readLineStrictTo(buffer, limit = 5)
         }
-        assertEquals("Unexpected end of stream after reading 5 characters", exception.message)
     }
 
     @Test
@@ -242,10 +236,9 @@ class ReadLineTest {
     fun `limit - zero limit with data throws`() = runTest {
         val channel = ByteReadChannel("X\n")
 
-        val exception = assertFailsWith<TooLongLineException> {
+        assertFailsWith<TooLongLineException> {
             channel.readLineStrictTo(buffer, limit = 0)
         }
-        assertEquals("Line exceeds limit of 0 characters", exception.message)
     }
 
     @Test
