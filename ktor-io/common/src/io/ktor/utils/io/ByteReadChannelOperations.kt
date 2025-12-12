@@ -419,26 +419,30 @@ private const val LF: Byte = '\n'.code.toByte()
 
 /**
  * Reads a line of UTF-8 characters from the `ByteReadChannel`.
- * It recognizes CR, LF, and CRLF as line delimiters.
+ * It recognizes CR, LF, and CRLF as a line delimiter.
  *
  * ## Deprecation Notes
  *
  * This function is deprecated in favor of [readLineStrict] and [readLine].
  *
- * Changes:
+ * Use [readLineStrict] when:
+ * - Need to limit line length and throw [TooLongLineException] if the limit is reached
+ * - Expect an explicit line break at the end of a line. [EOFException] will be thrown
+ *   if the channel is closed before the line break
+ *
+ * Use [readLine] when:
+ * - No need to limit line length
+ * - An explicit line break at the end of the channel is not mandatory
+ *
+ * Other changes:
  * - New functions recognize LF and CRLF as a line delimiter by default. This default comes with better performance.
  *   To keep current behavior and recognize all line delimiters (CR, LF, and CRLF), specify [LineEnding.Lenient].
- * - [readLineStrict] throws [TooLongLineException] if limit is reached before encountering a line break,
- *   similarly to current behavior. While [readLine] reads lines without limits.
- * - [readLineStrict] throws [EOFException] if the channel is closed before a line break is found,
- *   while `readUTF8Line` returns the line assuming it is full for such cases.
- *   [readLine] treats the stream end as an implicit line break, similarly to current behavior.
  * - [readLineStrict] accepts [Long] instead of [Int] as a limit parameter.
  *
  * The direct equivalent of `readUTF8Line` would be:
  * ```
  * // Before
- * val line = channel.readUTF8Line(out, max = 1024)
+ * val line = channel.readUTF8Line(max = 1024)
  *
  * // After
  * val buffer = StringBuilder()
@@ -452,7 +456,7 @@ private const val LF: Byte = '\n'.code.toByte()
  * However, we recommend to use [LineEnding.Default] if possible and verify if the case with
  * the unexpected end of line should actually be ignored. We expect the following code to be correct in most cases:
  * ```
- * val line = channel.readLineStrict(out, limit = 1024)
+ * val line = channel.readLineStrict(limit = 1024)
  * ```
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readUTF8Line)
@@ -477,14 +481,18 @@ public suspend fun ByteReadChannel.readUTF8Line(max: Int = Int.MAX_VALUE): Strin
  *
  * This function is deprecated in favor of [readLineStrictTo] and [readLineTo].
  *
- * Changes:
+ * Use [readLineStrictTo] when:
+ * - Need to limit line length and throw [TooLongLineException] if the limit is reached
+ * - Expect an explicit line break at the end of a line. [EOFException] will be thrown
+ *   if the channel is closed before the line break
+ *
+ * Use [readLineTo] when:
+ * - No need to limit line length
+ * - An explicit line break at the end of the channel is not mandatory
+ *
+ * Other changes:
  * - New functions recognize LF and CRLF as a line delimiter by default. This default comes with better performance.
  *   To keep current behavior and recognize all line delimiters (CR, LF, and CRLF), specify [LineEnding.Lenient].
- * - [readLineStrictTo] throws [TooLongLineException] if limit is reached before encountering a line break,
- *   similarly to current behavior. While [readLineTo] reads lines without limits.
- * - [readLineStrictTo] throws [EOFException] if the channel is closed before a line break is found,
- *   while `readUTF8LineTo` returns `true` for such cases.
- *   [readLineTo] treats the stream end as an implicit line break, similarly to current behavior.
  * - New functions return number of appended characters instead of [Boolean] or `-1` if the channel is empty.
  * - [readLineStrictTo] accepts [Long] instead of [Int] as a limit parameter.
  *
@@ -559,8 +567,8 @@ public suspend fun ByteReadChannel.readUTF8LineTo(
 /**
  * Reads and returns a line of UTF-8 characters.
  *
- * Reads UTF-8 bytes until a line break is found or the channel is exhausted. Implicit line break
- * is assumed if the line doesn't end with a line break. Line break characters are not included in the result.
+ * Reads UTF-8 characters until a line break is found or the channel is exhausted. Implicit line break
+ * is assumed if the channel ends without a line break. Line break characters are not included in the result.
  *
  * @param lineEnding line ending mode. Accepts LF and CRLF by default.
  *
@@ -576,10 +584,10 @@ public suspend fun ByteReadChannel.readLine(
 /**
  * Reads a line of UTF-8 characters to the specified [out] buffer.
  *
- * Appends UTF-8 bytes until a line break is found or the channel is exhausted. Implicit line break
- * is assumed if the line doesn't end with a line break. Line break characters are not included in the result.
+ * Appends UTF-8 characters until a line break is found or the channel is exhausted. Implicit line break
+ * is assumed if the channel ends without a line break. Line break characters are not included in the result.
  *
- * @param out the buffer to append line to.
+ * @param out the buffer to append line to (line break characters are not appended)
  * @param lineEnding line ending mode. Accepts LF and CRLF by default.
  *
  * @return number of characters appended to [out], or `-1` if can't read from the channel
@@ -601,6 +609,12 @@ public suspend fun ByteReadChannel.readLineTo(
  * Reads and returns a line of UTF-8 characters.
  * Throws an exception if the line exceeds [limit] or doesn't end with a line break.
  *
+ * The [limit] counts **characters** after UTF-8 decoding, not bytes.
+ * Line break characters are not included in the result and not counted towards the [limit].
+ * So this function may scan up to `limit + 2` characters (when line ends with CRLF after limit).
+ *
+ * **Important**: This function consumes bytes from the channel even if it fails to complete.
+ *
  * @param lineEnding line ending mode. Accepts LF and CRLF by default.
  *
  * @return the line, or `null` if can't read from the channel
@@ -619,8 +633,15 @@ public suspend fun ByteReadChannel.readLineStrict(
  * Reads a line of UTF-8 characters to the specified [out] buffer.
  * Throws an exception if the line exceeds [limit] or doesn't end with a line break.
  *
- * @param out the buffer to append line to
- * @param limit maximum characters to append. Unlimited by default.
+ * The [limit] counts **characters** after UTF-8 decoding, not bytes.
+ * Line break characters are not included in the result and not counted towards the [limit].
+ * So this function may scan up to `limit + 2` characters (when line ends with CRLF after limit).
+ *
+ * **Important**: This function consumes bytes from the channel and appends them to [out]
+ * even if it fails to complete.
+ *
+ * @param out the buffer to append line to (line break characters are not appended)
+ * @param limit maximum characters to append to [out]. Unlimited by default.
  * @param lineEnding line ending mode. Accepts LF and CRLF by default.
  *
  * @return number of characters appended to [out], or `-1` if can't read from the channel
