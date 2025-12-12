@@ -1,5 +1,5 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+* Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
 package io.ktor.server.auth
@@ -93,7 +93,10 @@ public class DigestAuthenticationProvider internal constructor(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.DigestAuthenticationProvider.Config)
      */
-    public class Config internal constructor(name: String?) : AuthenticationProvider.Config(name) {
+    public class Config internal constructor(
+        name: String?,
+        description: String?
+    ) : AuthenticationProvider.Config(name, description) {
         internal var digestProvider: DigestProviderFunction = { userName, realm ->
             MessageDigest.getInstance(algorithmName).let { digester ->
                 digester.reset()
@@ -137,7 +140,7 @@ public class DigestAuthenticationProvider internal constructor(
 
         /**
          * Configures a digest provider function that should fetch or compute message digest for the specified
-         * `userName` and `realm`. A message digest is usually computed based on username, realm and password
+         * `userName` and `realm`. A message digest is usually computed based on username, realm, and password
          * concatenated with the colon character ':'. For example, `"$userName:$realm:$password"`.
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.DigestAuthenticationProvider.Config.digestProvider)
@@ -166,7 +169,21 @@ public fun AuthenticationConfig.digest(
     name: String? = null,
     configure: DigestAuthenticationProvider.Config.() -> Unit
 ) {
-    val provider = DigestAuthenticationProvider(DigestAuthenticationProvider.Config(name).apply(configure))
+    digest(name, description = null, configure)
+}
+
+/**
+ * Installs the digest [Authentication] provider with description.
+ * To learn how to configure it, see [Digest authentication](https://ktor.io/docs/digest.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.digest)
+ */
+public fun AuthenticationConfig.digest(
+    name: String? = null,
+    description: String? = null,
+    configure: DigestAuthenticationProvider.Config.() -> Unit
+) {
+    val provider = DigestAuthenticationProvider(DigestAuthenticationProvider.Config(name, description).apply(configure))
     register(provider)
 }
 
@@ -179,9 +196,9 @@ public fun AuthenticationConfig.digest(
  *
  * @property realm a digest authentication realm
  * @property userName
- * @property digestUri may be an absolute URI or `*`
+ * @property digestUri an absolute URI or `*`
  * @property nonce
- * @property opaque a string of data which should be returned by the client unchanged
+ * @property opaque a string of data, which should be returned by the client unchanged
  * @property nonceCount must be sent if [qop] is specified and must be `null` otherwise
  * @property algorithm a digest algorithm name
  * @property response consist of 32 hex digits (digested password and other fields as per RFC)
@@ -251,11 +268,11 @@ public suspend fun DigestCredential.verifier(
 
     val incoming: ByteArray = try {
         hex(response)
-    } catch (e: NumberFormatException) {
+    } catch (_: NumberFormatException) {
         return false
     }
 
-    // here we do null-check in the end because it should be always time-constant comparison due to security reasons
+    // here we do null-check in the end because it should always be time-constant comparison due to security reasons
     return MessageDigest.isEqual(incoming, validDigest) && userNameRealmPasswordDigestResult != null
 }
 
