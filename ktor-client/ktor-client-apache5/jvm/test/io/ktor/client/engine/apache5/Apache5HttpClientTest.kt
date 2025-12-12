@@ -41,7 +41,7 @@ class Apache5HttpClientTest : HttpClientTest(Apache5) {
             client.prepareGet("http://localhost:$serverPort/sse/delay/2000").execute { response: HttpResponse ->
                 val channel = response.bodyAsChannel()
                 while (!channel.isClosedForRead) {
-                    channel.readUTF8Line()
+                    channel.readLineStrict()
                 }
             }
         }.apply {
@@ -70,7 +70,7 @@ class Apache5HttpClientTest : HttpClientTest(Apache5) {
 
         client.prepareGet("http://localhost:$serverPort/sse/delay/2000").execute { response: HttpResponse ->
             val channel = response.bodyAsChannel()
-            assertEquals("data: hello", channel.readUTF8Line())
+            assertEquals("data: hello", channel.readLineStrict())
         }
     }
 }
