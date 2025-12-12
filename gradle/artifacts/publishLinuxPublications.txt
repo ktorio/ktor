@@ -190,6 +190,12 @@ io.ktor:ktor-serialization-linuxarm64/sources.jar
 io.ktor:ktor-serialization-linuxx64/.klib
 io.ktor:ktor-serialization-linuxx64/javadoc.jar
 io.ktor:ktor-serialization-linuxx64/sources.jar
+io.ktor:ktor-server-auth-api-key-linuxarm64/.klib
+io.ktor:ktor-server-auth-api-key-linuxarm64/javadoc.jar
+io.ktor:ktor-server-auth-api-key-linuxarm64/sources.jar
+io.ktor:ktor-server-auth-api-key-linuxx64/.klib
+io.ktor:ktor-server-auth-api-key-linuxx64/javadoc.jar
+io.ktor:ktor-server-auth-api-key-linuxx64/sources.jar
 io.ktor:ktor-server-auth-linuxarm64/.klib
 io.ktor:ktor-server-auth-linuxarm64/javadoc.jar
 io.ktor:ktor-server-auth-linuxarm64/sources.jar
