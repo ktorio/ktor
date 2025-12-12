@@ -4,11 +4,14 @@
 
 package io.ktor.annotate
 
+import com.charleskorn.kaml.Yaml
+import com.charleskorn.kaml.YamlConfiguration
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.openapi.*
 import io.ktor.serialization.kotlinx.json.*
+import io.ktor.serialization.kotlinx.serialization
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -16,6 +19,7 @@ import io.ktor.server.testing.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertContains
@@ -25,85 +29,6 @@ import kotlin.test.assertNotNull
 
 class RouteAnnotationApiTest {
 
-    companion object {
-        private val expected = $$"""
-            {
-              "openapi": "3.1.1",
-              "info": {
-                "title": "Test API",
-                "version": "1.0.0"
-              },
-              "paths": {
-                "/messages": {
-                  "get": {
-                    "summary": "get messages",
-                    "description": "Retrieves a list of messages.",
-                    "parameters": [
-                      {
-                        "name": "q",
-                        "in": "query",
-                        "description": "An encoded query",
-                        "content": {
-                          "text/plain": {}
-                        }
-                      }
-                    ],
-                    "responses": {
-                      "200": {
-                        "description": "A list of messages",
-                        "content": {
-                          "application/json": {
-                            "schema": {
-                              "type": "array",
-                              "items": {
-                                "$ref": "#/components/schemas/Message"
-                              }
-                            }
-                          }
-                        },
-                        "x-sample-message": {
-                          "id": 1,
-                          "content": "Hello, world!",
-                          "timestamp": 16777216000
-                        }
-                      },
-                      "400": {
-                        "description": "Invalid query",
-                        "content": {
-                          "text/plain": {}
-                        }
-                      }
-                    }
-                  }
-                }
-              },
-              "components": {
-                "schemas": {
-                  "Message": {
-                    "type": "object",
-                    "title": "io.ktor.annotate.Message",
-                    "required": [
-                      "id",
-                      "content",
-                      "timestamp"
-                    ],
-                    "properties": {
-                      "id": {
-                        "type": "integer"
-                      },
-                      "content": {
-                        "type": "string"
-                      },
-                      "timestamp": {
-                        "type": "integer"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-        """.trimIndent()
-    }
     val testMessage = Message(1L, "Hello, world!", 16777216000)
 
     @OptIn(ExperimentalSerializationApi::class)
@@ -112,6 +37,12 @@ class RouteAnnotationApiTest {
         prettyPrint = true
         prettyPrintIndent = "  "
     }
+
+    val yamlFormat = Yaml(
+        configuration = YamlConfiguration(
+            encodeDefaults = false,
+        )
+    )
 
     @Test
     fun routeAnnotationIntrospection() = testApplication {
@@ -161,7 +92,8 @@ class RouteAnnotationApiTest {
 
         val routesResponse = client.get("/routes")
         val responseText = routesResponse.bodyAsText()
-        assertEquals(expected, responseText)
+        val expectedJson = this::class.java.getResource("/expected/openapi.json")!!.readText()
+        assertEquals(expectedJson.trim(), responseText)
         // should not appear
         assertFalse("extensions" in responseText)
 
@@ -303,6 +235,62 @@ class RouteAnnotationApiTest {
             badRequestResponse.content?.get(ContentType.Text.Plain),
             "Bad request response content is missing"
         )
+    }
+
+    @Test
+    fun yamlResponse() = testApplication {
+        install(ContentNegotiation) {
+            serialization(ContentType.Application.Yaml, yamlFormat)
+        }
+        routing {
+            // get all path items
+            get("/routes") {
+                call.respond(
+                    generateOpenApiSpec(
+                        info = OpenApiInfo("Test API", "1.0.0"),
+                        route = call.application.routingRoot,
+                    ).let {
+                        it.copy(
+                            paths = it.paths - "/routes"
+                        )
+                    }
+                )
+            }
+
+            // example REST API route
+            get("/messages") {
+                call.respond(listOf(testMessage))
+            }.annotate {
+                parameters {
+                    query("q") {
+                        description = "An encoded query"
+                        required = false
+                    }
+                }
+                responses {
+                    HttpStatusCode.OK {
+                        description = "A list of messages"
+                        schema = jsonSchema<List<Message>>()
+                        extension("x-sample-message", testMessage)
+                    }
+                    HttpStatusCode.BadRequest {
+                        description = "Invalid query"
+                        ContentType.Text.Plain()
+                    }
+                }
+                summary = "get messages"
+                description = "Retrieves a list of messages."
+            }
+        }
+
+        val routesResponse = client.get("/routes")
+        val responseText = routesResponse.bodyAsText()
+        val expectedYaml = this::class.java.getResource("/expected/openapi.yaml")!!.readText()
+        assertEquals(expectedYaml.trim(), responseText)
+
+        val openApiSpec = Yaml.default.decodeFromString<OpenApiSpecification>(responseText)
+        val pathItems: Map<String, PathItem> = openApiSpec.paths
+        assertEquals(1, pathItems.size)
     }
 }
 

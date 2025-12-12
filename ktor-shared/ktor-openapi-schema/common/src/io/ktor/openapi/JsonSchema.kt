@@ -24,7 +24,7 @@ public data class JsonSchema(
     val type: @Serializable(SchemaType.Serializer::class) SchemaType? = null,
     val title: String? = null,
     val description: String? = null,
-    val required: List<String> = emptyList(),
+    val required: List<String>? = null,
     val nullable: Boolean? = null,
     val allOf: List<ReferenceOr<JsonSchema>>? = null,
     val oneOf: List<ReferenceOr<JsonSchema>>? = null,
@@ -63,6 +63,9 @@ public data class JsonSchema(
     @SerialName("\$anchor") val anchor: String? = null,
     @SerialName("\$recursiveAnchor") val recursiveAnchor: Boolean? = null,
 ) {
+    public companion object {
+        public val StringReference: ReferenceOr<JsonSchema> = ReferenceOr.Value(JsonSchema(type = JsonType.STRING))
+    }
 
     @Serializable
     public data class Discriminator(
