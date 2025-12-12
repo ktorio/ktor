@@ -152,7 +152,7 @@ public interface GenericElementSerialAdapter {
 /**
  * [GenericElementSerialAdapter] for standard kotlinx-json.
  */
-public object JsonElementSerialAdapter : GenericElementSerialAdapter {
+internal object JsonElementSerialAdapter : GenericElementSerialAdapter {
     override fun <T> trySerializeToElement(
         encoder: Encoder,
         value: T,
@@ -174,7 +174,7 @@ public object JsonElementSerialAdapter : GenericElementSerialAdapter {
 /**
  * Handles encoding/decoding of GenericElements during deserialization of [GenericElementMap]
  */
-public object GenericElementEncodingAdapter : GenericElementSerialAdapter {
+internal object GenericElementEncodingAdapter : GenericElementSerialAdapter {
     override fun <T> trySerializeToElement(
         encoder: Encoder,
         value: T,
@@ -203,11 +203,11 @@ public class GenericElementWrapper<T : Any>(
     override val elementSerializer: KSerializer<T>,
 ) : GenericElement {
 
+    private val elementSerialName: String get() = elementSerializer.descriptor.serialName
+
     @Suppress("UNCHECKED_CAST")
     override fun <T> deserialize(serializer: DeserializationStrategy<T>): T =
-        element as? T ?: error {
-            "Cannot deserialize ${element::class} to ${serializer.descriptor.serialName}"
-        }
+        element as? T ?: serialError("Cannot deserialize ${element::class} to $elementSerialName")
 
     override fun entries(): List<Pair<String, GenericElement>> {
         return GenericElement.encodeToElement(elementSerializer, element).entries()
@@ -223,11 +223,11 @@ public class GenericElementWrapper<T : Any>(
                 }
             }
         } else {
-            emptyList()
+            serialError("Cannot get items for a non-iterable element $elementSerialName")
         }
 
     override fun toString(): String =
-        "GenericElementWrapper(${elementSerializer.descriptor.serialName}: ${element.toString().take(20)})"
+        "GenericElementWrapper($elementSerialName: ${element.toString().take(20)})"
 }
 
 /**
@@ -242,10 +242,10 @@ public class GenericElementString(
         serializer.deserialize(StringDecoder(serializersModule))
 
     override fun entries(): List<Pair<String, GenericElement>> =
-        error("Cannot get entries for a string")
+        serialError("Cannot get entries for a string")
 
     override fun items(): List<GenericElement> =
-        error("Cannot get items for a string")
+        serialError("Cannot get items for a string")
 
     override fun isString(): Boolean = true
 
@@ -254,13 +254,13 @@ public class GenericElementString(
         override val serializersModule: SerializersModule
     ) : AbstractDecoder() {
         override fun decodeElementIndex(descriptor: SerialDescriptor): Int =
-            error("Cannot decode element index for string")
+            serialError("Cannot decode element index for string")
         override fun decodeBoolean(): Boolean =
             element.toBooleanStrict()
         override fun decodeByte(): Byte =
             element.toByte()
         override fun decodeChar(): Char =
-            element.singleOrNull() ?: error("Cannot decode char from string '$element'")
+            element.singleOrNull() ?: serialError("Cannot decode char from string '$element'")
         override fun decodeDouble(): Double =
             element.toDouble()
         override fun decodeEnum(enumDescriptor: SerialDescriptor): Int =
@@ -292,14 +292,14 @@ internal class GenericElementMap(
             StructureKind.CLASS, StructureKind.OBJECT ->
                 serializer.deserialize(GenericElementClassDecoder(element))
             StructureKind.MAP -> serializer.deserialize(GenericElementMapDecoder(element.entries.map { it.toPair() }))
-            else -> error("Cannot deserialize map to ${serializer.descriptor.serialName}")
+            else -> serialError("Cannot deserialize map to ${serializer.descriptor.serialName}")
         }
 
     override fun entries(): List<Pair<String, GenericElement>> =
         element.entries.map { it.key to it.value }
 
     override fun items(): List<GenericElement> =
-        error("Cannot get items for a map")
+        serialError("Cannot get items for a map")
 }
 
 internal class GenericElementList(
@@ -314,7 +314,7 @@ internal class GenericElementList(
         serializer.deserialize(GenericElementListDecoder(this))
 
     override fun entries(): List<Pair<String, GenericElement>> =
-        error("Cannot get entries for a list")
+        serialError("Cannot get entries for a list")
 }
 
 internal fun GenericElementEncoder(serializer: KSerializer<*>) =
@@ -354,9 +354,7 @@ internal abstract class GenericElementEncoder(
 
     protected fun closeNested() {
         storeElement(
-            currentNestedEncoder?.build() ?: error {
-                "No nested encoder to close"
-            }
+            currentNestedEncoder?.build() ?: serialError("No nested encoder to close")
         )
         currentNestedEncoder = null
     }
@@ -427,7 +425,7 @@ internal class GenericElementListEncoder(
     override fun shouldCreateNested(): Boolean = true
 
     override fun encodeNull() {
-        // Nulls in lists are currently skipped or not supported by GenericElement wrapper logic for primitives
+        throw SerializationException("Nulls cannot be encoded in generic element lists")
     }
 }
 
@@ -447,7 +445,7 @@ internal class GenericElementMapEncoder(
             currentKey = element.element.toString()
             waitingForKey = false
         } else {
-            entries += (currentKey ?: error("Map value without key")) to element
+            entries += (currentKey ?: serialError("Map value without key")) to element
             currentKey = null
             waitingForKey = true
         }
@@ -455,7 +453,7 @@ internal class GenericElementMapEncoder(
 
     override fun encodeNull() {
         if (waitingForKey) {
-            error("Map key cannot be null")
+            serialError("Map key cannot be null")
         }
         // Value is null -> skip adding
         currentKey = null
@@ -547,7 +545,7 @@ public class GenericElementSerializer : KSerializer<GenericElement> {
 
     override fun deserialize(decoder: Decoder): GenericElement =
         genericElementSerialAdapters.firstNotNullOfOrNull { it.tryDeserialize(decoder) }
-            ?: error("No generic element adapter for ${decoder::class.simpleName}")
+            ?: serialError("No generic element adapter for ${decoder::class.simpleName}")
 }
 
 /**
@@ -738,3 +736,6 @@ internal class GenericElementListDecoder(
         return elements[index]
     }
 }
+
+private fun serialError(message: String): Nothing =
+    throw SerializationException(message)

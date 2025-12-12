@@ -8,8 +8,9 @@ import io.ktor.server.application.Application
 import java.io.File
 
 internal actual fun Application.readFileContents(path: String): String? {
-    val resource = environment.classLoader.getResourceAsStream(path)
-        ?.bufferedReader()?.readText()
+    val resource = environment.classLoader.getResourceAsStream(path)?.use { input ->
+        input.bufferedReader().readText()
+    }
 
     if (resource != null) return resource
 

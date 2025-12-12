@@ -7,5 +7,7 @@ package io.ktor.annotate
 import io.ktor.openapi.OpenApiSpecification
 
 internal actual fun serializeToYaml(openApiSpec: OpenApiSpecification): String {
-    TODO("YAML support is not implemented on non-JVM targets yet")
+    throw UnsupportedOperationException(
+        "OpenAPI YAML serialization is not supported on non-JVM targets yet. Use JSON instead."
+    )
 }

@@ -22,6 +22,7 @@ import java.io.File
  * This method tries to lookup [swaggerFile] in the resources first, and if it's not found, it will try to read it from
  * the file system using [java.io.File].
  *
+ * If source is supplied inside the config [block], the [swaggerFile] argument will take precedence.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.swagger.swaggerUI)
  */
@@ -32,12 +33,14 @@ public fun Route.swaggerUI(
 ): Route =
     swaggerUI(path) {
         block()
-        source = OpenApiSpecSource.FileSource(path)
-        remotePath = swaggerFile.takeLastWhile { it != '/' }
+        source = OpenApiSpecSource.FileSource(swaggerFile)
+        remotePath = File(swaggerFile).name
     }
 
 /**
- * Creates a `get` endpoint with [SwaggerUI] at [path] rendered from the [apiFile].
+ * Creates a `get` endpoint with [swaggerUI] at [path] rendered from the [apiFile].
+ *
+ * If source is supplied inside the config [block], the [apiFile] argument will take precedence.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.swagger.swaggerUI)
  */
@@ -53,6 +56,7 @@ public fun Route.swaggerUI(path: String, apiFile: File, block: SwaggerConfig.() 
  *
  * This function sets up a given path to serve a Swagger UI interface based on the provided API specification.
  *
+ * If source is supplied inside the config [block], the [api] argument will take precedence.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.swagger.swaggerUI)
  *
@@ -90,9 +94,8 @@ public fun Route.swaggerUI(
     val apiUrl = config.remotePath
     val specData = with(application) {
         async(start = CoroutineStart.LAZY) {
-            readOpenApiSource(source) ?: error {
-                "Failed to read OpenAPI document from $source"
-            }
+            readOpenApiSource(source)
+                ?: error("Failed to read OpenAPI document from $source")
         }
     }
 

@@ -11,7 +11,6 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.openapi.OpenApiInfo
 import io.ktor.server.response.respond
-import io.ktor.server.routing.RoutingNode
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
@@ -247,7 +246,7 @@ class SwaggerTest {
             swaggerUI("/swagger") {
                 source = OpenApiSpecSource.RoutingSource(
                     info = OpenApiInfo("Books API from routes", "1.0.0"),
-                    route = apiRoute as RoutingNode,
+                    route = apiRoute,
                     contentType = ContentType.Application.Yaml
                 )
             }

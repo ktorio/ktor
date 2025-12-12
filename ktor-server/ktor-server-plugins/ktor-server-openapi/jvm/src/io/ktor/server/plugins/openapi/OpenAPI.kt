@@ -11,8 +11,6 @@ import io.ktor.server.http.content.*
 import io.ktor.server.routing.*
 import io.swagger.codegen.v3.ClientOpts
 import io.swagger.codegen.v3.generators.html.StaticHtml2Codegen
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.launch
 import java.io.File
 
 /**
@@ -23,6 +21,8 @@ import java.io.File
  *
  * The documentation is generated using [StaticHtml2Codegen] by default. It can be customized using config in [block].
  * See [OpenAPIConfig] for more details.
+ *
+ * If source is supplied inside the config [block], the [swaggerFile] argument will take precedence.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.openapi.openAPI)
  *
@@ -42,8 +42,7 @@ public fun Route.openAPI(
 /**
  * Creates a `get` endpoint at [path] with documentation rendered from the OpenAPI file.
  *
- * This method tries to lookup [swaggerFile] in the resources first, and if it's not found, it will try to read it from
- * the file system using [File].
+ * This method uses the configured [OpenAPIConfig.source] to resolve the OpenAPI specification.
  *
  * The documentation is generated using [StaticHtml2Codegen] by default. It can be customized using config in [block].
  * See [OpenAPIConfig] for more details.
@@ -57,8 +56,8 @@ public fun Route.openAPI(
     path: String,
     block: OpenAPIConfig.() -> Unit = {}
 ): Route {
-    val outputDir = File(OpenAPIConfig().apply(block).outputPath)
-    return staticFiles(path, outputDir).apply {
+    val outputPath = OpenAPIConfig().apply(block).outputPath
+    return staticFiles(path, File(outputPath)).apply {
         install(OpenAPI) {
             block()
         }
@@ -69,32 +68,41 @@ public fun Route.openAPI(
  * When installed on a route, this plugin will generate OpenAPI documentation UI code before the first request.
  */
 internal val OpenAPI: RouteScopedPlugin<OpenAPIConfig> = createRouteScopedPlugin("OpenAPI", ::OpenAPIConfig) {
-    val source = pluginConfig.source
-    val createFiles = with(application) {
-        launch(start = CoroutineStart.LAZY) {
-            val apiDocument = readOpenApiSource(source) ?: run {
-                log.error("Failed to read OpenAPI document from $source")
-                return@launch
-            }
-            this@createRouteScopedPlugin.pluginConfig
-                .generateFiles(apiDocument)
-        }
-    }
-    onCall {
-        createFiles.join()
+    application.generateFilesBeforeStartup(pluginConfig)
+}
+
+internal fun Application.generateFilesBeforeStartup(config: OpenAPIConfig) {
+    monitor.subscribe(ApplicationModulesLoaded) {
+        val apiDocument = readOpenApiSource(config.source) ?:
+            error("Failed to read OpenAPI document from ${config.source}")
+        config.generateFiles(apiDocument)
     }
 }
 
 internal fun OpenAPIConfig.generateFiles(apiDocument: String) {
-    val swagger = parser.readContents(apiDocument, null, options)
-    File(outputPath).mkdirs()
+    val swagger = try {
+        parser.readContents(apiDocument, null, options)
+    } catch (t: Throwable) {
+        throw IllegalStateException("Failed to parse OpenAPI document", t)
+    }
+    val outDir = File(outputPath)
+    if (!outDir.exists() && !outDir.mkdirs()) {
+        throw kotlinx.io.IOException("Failed to create OpenAPI output directory: $outputPath")
+    }
+    val openApi = swagger.openAPI
+        ?: throw IllegalStateException("Parsed OpenAPI document is missing `openAPI` (messages=${swagger.messages})")
 
     opts.apply {
+        codegen.outputDir = outDir.absolutePath
         config(codegen)
         opts(ClientOpts())
-        openAPI(swagger.openAPI)
+        openAPI(openApi)
     }
 
     generator.opts(opts)
-    generator.generate()
+    try {
+        generator.generate()
+    } catch (t: Throwable) {
+        throw IllegalStateException("Failed to generate OpenAPI UI files into $outputPath", t)
+    }
 }

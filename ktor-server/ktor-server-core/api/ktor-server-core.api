@@ -1632,11 +1632,12 @@ public final class io/ktor/server/routing/RootRouteSelector : io/ktor/server/rou
 	public fun toString ()Ljava/lang/String;
 }
 
-public abstract interface class io/ktor/server/routing/Route {
+public abstract interface class io/ktor/server/routing/Route : io/ktor/util/collections/TreeLike {
 	public abstract fun createChild (Lio/ktor/server/routing/RouteSelector;)Lio/ktor/server/routing/Route;
 	public abstract fun getAttributes ()Lio/ktor/util/Attributes;
+	public fun getChildren ()Ljava/lang/Iterable;
 	public abstract fun getEnvironment ()Lio/ktor/server/application/ApplicationEnvironment;
-	public abstract fun getParent ()Lio/ktor/server/routing/Route;
+	public fun getSelector ()Lio/ktor/server/routing/RouteSelector;
 	public abstract fun handle (Lkotlin/jvm/functions/Function2;)V
 	public abstract fun install (Lio/ktor/server/application/Plugin;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 	public static synthetic fun install$default (Lio/ktor/server/routing/Route;Lio/ktor/server/application/Plugin;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ljava/lang/Object;
@@ -1644,7 +1645,13 @@ public abstract interface class io/ktor/server/routing/Route {
 }
 
 public final class io/ktor/server/routing/Route$DefaultImpls {
+	public static fun descendants (Lio/ktor/server/routing/Route;)Lkotlin/sequences/Sequence;
+	public static fun getChildren (Lio/ktor/server/routing/Route;)Ljava/lang/Iterable;
+	public static fun getSelector (Lio/ktor/server/routing/Route;)Lio/ktor/server/routing/RouteSelector;
 	public static synthetic fun install$default (Lio/ktor/server/routing/Route;Lio/ktor/server/application/Plugin;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ljava/lang/Object;
+	public static fun isLeaf (Lio/ktor/server/routing/Route;)Z
+	public static fun isRoot (Lio/ktor/server/routing/Route;)Z
+	public static fun lineage (Lio/ktor/server/routing/Route;)Lkotlin/sequences/Sequence;
 }
 
 public abstract interface class io/ktor/server/routing/RouteParameterComponent {
@@ -1734,6 +1741,15 @@ public abstract interface class io/ktor/server/routing/Routing : io/ktor/server/
 	public abstract fun trace (Lkotlin/jvm/functions/Function1;)V
 }
 
+public final class io/ktor/server/routing/Routing$DefaultImpls {
+	public static fun descendants (Lio/ktor/server/routing/Routing;)Lkotlin/sequences/Sequence;
+	public static fun getChildren (Lio/ktor/server/routing/Routing;)Ljava/lang/Iterable;
+	public static fun getSelector (Lio/ktor/server/routing/Routing;)Lio/ktor/server/routing/RouteSelector;
+	public static fun isLeaf (Lio/ktor/server/routing/Routing;)Z
+	public static fun isRoot (Lio/ktor/server/routing/Routing;)Z
+	public static fun lineage (Lio/ktor/server/routing/Routing;)Lkotlin/sequences/Sequence;
+}
+
 public final class io/ktor/server/routing/RoutingBuilderKt {
 	public static final fun accept (Lio/ktor/server/routing/Route;[Lio/ktor/http/ContentType;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
 	public static final fun contentType (Lio/ktor/server/routing/Route;Lio/ktor/http/ContentType;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
@@ -1789,7 +1805,7 @@ public final class io/ktor/server/routing/RoutingIntrospectionKt {
 	public static final fun getRoutingRoot (Lio/ktor/server/application/Application;)Lio/ktor/server/routing/RoutingNode;
 }
 
-public class io/ktor/server/routing/RoutingNode : io/ktor/server/application/ApplicationCallPipeline, io/ktor/server/routing/Route, io/ktor/util/collections/TreeLike {
+public class io/ktor/server/routing/RoutingNode : io/ktor/server/application/ApplicationCallPipeline, io/ktor/server/routing/Route {
 	public fun <init> (Lio/ktor/server/routing/RoutingNode;Lio/ktor/server/routing/RouteSelector;ZLio/ktor/server/application/ApplicationEnvironment;)V
 	public synthetic fun <init> (Lio/ktor/server/routing/RoutingNode;Lio/ktor/server/routing/RouteSelector;ZLio/ktor/server/application/ApplicationEnvironment;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun afterIntercepted ()V
@@ -1798,10 +1814,9 @@ public class io/ktor/server/routing/RoutingNode : io/ktor/server/application/App
 	public fun descendants ()Lkotlin/sequences/Sequence;
 	public synthetic fun getChildren ()Ljava/lang/Iterable;
 	public fun getChildren ()Ljava/util/List;
-	public synthetic fun getParent ()Lio/ktor/server/routing/Route;
 	public fun getParent ()Lio/ktor/server/routing/RoutingNode;
 	public synthetic fun getParent ()Lio/ktor/util/collections/TreeLike;
-	public final fun getSelector ()Lio/ktor/server/routing/RouteSelector;
+	public fun getSelector ()Lio/ktor/server/routing/RouteSelector;
 	public fun handle (Lkotlin/jvm/functions/Function2;)V
 	public final fun hasHandler ()Z
 	public fun install (Lio/ktor/server/application/Plugin;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;

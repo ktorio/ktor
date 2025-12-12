@@ -10,6 +10,11 @@ import kotlinx.io.readString
 
 internal actual fun Application.readFileContents(path: String): String? {
     val filePath = kotlinx.io.files.Path(path)
-    return kotlinx.io.files.SystemFileSystem.source(filePath)
-        .buffered().readString()
+    return if (!kotlinx.io.files.SystemFileSystem.exists(filePath)) {
+        null
+    } else {
+        kotlinx.io.files.SystemFileSystem.source(filePath).use { source ->
+            source.buffered().readString()
+        }
+    }
 }

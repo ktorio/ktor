@@ -52,7 +52,7 @@ public fun Route.annotate(configure: RouteAnnotationFunction): Route {
  */
 public fun generateOpenApiSpec(
     info: OpenApiInfo,
-    route: RoutingNode,
+    route: Route,
 ): OpenApiSpecification {
     val jsonSchema = mutableMapOf<String, JsonSchema>()
     val pathItems = route.findPathItems(
@@ -75,15 +75,15 @@ public fun generateOpenApiSpec(
         info = info,
         paths = pathItems,
         components = Components(
-            schemas = jsonSchema
+            schemas = jsonSchema.takeIf { it.isNotEmpty() }
         )
     )
 }
 
 /**
- * Finds all [PathItem]s under the given [RoutingNode].
+ * Finds all [PathItem]s under the given [Route].
  */
-public fun RoutingNode.findPathItems(
+public fun Route.findPathItems(
     onOperation: OperationMapping = PopulateMediaTypeDefaults
 ): Map<String, PathItem> {
     return descendants()
@@ -99,10 +99,10 @@ public fun RoutingNode.findPathItems(
         }
 }
 
-private fun RoutingNode.asPathItem(
+private fun Route.asPathItem(
     onOperation: OperationMapping
 ): Pair<String, PathItem>? {
-    if (!hasHandler()) return null
+    if (this !is RoutingNode || !this.hasHandler()) return null
     val path = path(format = OpenApiRoutePathFormat)
     val method = method() ?: return null
     val operation = operation()?.let(onOperation::map) ?: Operation()
@@ -111,14 +111,14 @@ private fun RoutingNode.asPathItem(
     return path to pathItem
 }
 
-private fun RoutingNode.method(): HttpMethod? =
+private fun Route.method(): HttpMethod? =
     lineage()
-        .map(RoutingNode::selector)
+        .mapNotNull(Route::selector)
         .filterIsInstance<HttpMethodRouteSelector>()
         .firstOrNull()
         ?.method
 
-private fun RoutingNode.operation(): Operation? {
+private fun Route.operation(): Operation? {
     val schemaInference = application.attributes.getOrNull(JsonSchemaAttributeKey)
         ?: KotlinxJsonSchemaInference
     val defaultContentTypes = application.attributes.getOrNull(DefaultContentTypesAttribute)
@@ -134,14 +134,14 @@ private fun RoutingNode.operation(): Operation? {
     }
 }
 
-private fun RoutingNode.operationFromAnnotateCalls(
+private fun Route.operationFromAnnotateCalls(
     schemaInference: JsonSchemaInference,
     defaultContentTypes: List<ContentType>
 ): Operation? = attributes.getOrNull(EndpointAnnotationAttributeKey)
     ?.map { function -> Operation.build(schemaInference, defaultContentTypes, function) }
     ?.reduce(Operation::plus)
 
-private fun RoutingNode.operationFromSelector(): Operation? {
+private fun Route.operationFromSelector(): Operation? {
     return when (val paramSelector = selector) {
         is ParameterRouteSelector,
         is OptionalParameterRouteSelector -> Operation.build {

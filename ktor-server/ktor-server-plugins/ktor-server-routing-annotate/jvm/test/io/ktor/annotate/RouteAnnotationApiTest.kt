@@ -29,85 +29,6 @@ import kotlin.test.assertNotNull
 
 class RouteAnnotationApiTest {
 
-    companion object {
-        private val expected = $$"""
-            {
-              "openapi": "3.1.1",
-              "info": {
-                "title": "Test API",
-                "version": "1.0.0"
-              },
-              "paths": {
-                "/messages": {
-                  "get": {
-                    "summary": "get messages",
-                    "description": "Retrieves a list of messages.",
-                    "parameters": [
-                      {
-                        "name": "q",
-                        "in": "query",
-                        "description": "An encoded query",
-                        "content": {
-                          "text/plain": {}
-                        }
-                      }
-                    ],
-                    "responses": {
-                      "200": {
-                        "description": "A list of messages",
-                        "content": {
-                          "application/json": {
-                            "schema": {
-                              "type": "array",
-                              "items": {
-                                "$ref": "#/components/schemas/Message"
-                              }
-                            }
-                          }
-                        },
-                        "x-sample-message": {
-                          "id": 1,
-                          "content": "Hello, world!",
-                          "timestamp": 16777216000
-                        }
-                      },
-                      "400": {
-                        "description": "Invalid query",
-                        "content": {
-                          "text/plain": {}
-                        }
-                      }
-                    }
-                  }
-                }
-              },
-              "components": {
-                "schemas": {
-                  "Message": {
-                    "type": "object",
-                    "title": "io.ktor.annotate.Message",
-                    "required": [
-                      "id",
-                      "content",
-                      "timestamp"
-                    ],
-                    "properties": {
-                      "id": {
-                        "type": "integer"
-                      },
-                      "content": {
-                        "type": "string"
-                      },
-                      "timestamp": {
-                        "type": "integer"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-        """.trimIndent()
-    }
     val testMessage = Message(1L, "Hello, world!", 16777216000)
 
     @OptIn(ExperimentalSerializationApi::class)
@@ -118,7 +39,9 @@ class RouteAnnotationApiTest {
     }
 
     val yamlFormat = Yaml(
-        configuration = YamlConfiguration(encodeDefaults = false)
+        configuration = YamlConfiguration(
+            encodeDefaults = false,
+        )
     )
 
     @Test
@@ -169,7 +92,8 @@ class RouteAnnotationApiTest {
 
         val routesResponse = client.get("/routes")
         val responseText = routesResponse.bodyAsText()
-        assertEquals(expected, responseText)
+        val expectedJson = this::class.java.getResource("/expected/openapi.json")!!.readText()
+        assertEquals(expectedJson.trim(), responseText)
         // should not appear
         assertFalse("extensions" in responseText)
 
@@ -346,7 +270,7 @@ class RouteAnnotationApiTest {
                 responses {
                     HttpStatusCode.OK {
                         description = "A list of messages"
-                        jsonSchema = jsonSchema<List<Message>>()
+                        schema = jsonSchema<List<Message>>()
                         extension("x-sample-message", testMessage)
                     }
                     HttpStatusCode.BadRequest {
@@ -361,7 +285,8 @@ class RouteAnnotationApiTest {
 
         val routesResponse = client.get("/routes")
         val responseText = routesResponse.bodyAsText()
-        assertEquals(expected, responseText)
+        val expectedYaml = this::class.java.getResource("/expected/openapi.yaml")!!.readText()
+        assertEquals(expectedYaml.trim(), responseText)
 
         val openApiSpec = Yaml.default.decodeFromString<OpenApiSpecification>(responseText)
         val pathItems: Map<String, PathItem> = openApiSpec.paths

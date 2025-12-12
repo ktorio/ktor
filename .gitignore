@@ -44,3 +44,6 @@ gradle-user-home
 scan-journal.log
 
 **/.claude/settings.local.json
+
+# Generated from test
+ktor-server/ktor-server-plugins/ktor-server-openapi/docs
