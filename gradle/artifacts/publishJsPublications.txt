@@ -190,6 +190,12 @@ io.ktor:ktor-serialization-kotlinx-xml-wasm-js/sources.jar
 io.ktor:ktor-serialization-wasm-js/.klib
 io.ktor:ktor-serialization-wasm-js/javadoc.jar
 io.ktor:ktor-serialization-wasm-js/sources.jar
+io.ktor:ktor-server-auth-api-key-js/.klib
+io.ktor:ktor-server-auth-api-key-js/javadoc.jar
+io.ktor:ktor-server-auth-api-key-js/sources.jar
+io.ktor:ktor-server-auth-api-key-wasm-js/.klib
+io.ktor:ktor-server-auth-api-key-wasm-js/javadoc.jar
+io.ktor:ktor-server-auth-api-key-wasm-js/sources.jar
 io.ktor:ktor-server-auth-js/.klib
 io.ktor:ktor-server-auth-js/javadoc.jar
 io.ktor:ktor-server-auth-js/sources.jar

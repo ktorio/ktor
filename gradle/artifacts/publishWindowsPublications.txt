@@ -98,6 +98,9 @@ io.ktor:ktor-serialization-kotlinx-xml-mingwx64/sources.jar
 io.ktor:ktor-serialization-mingwx64/.klib
 io.ktor:ktor-serialization-mingwx64/javadoc.jar
 io.ktor:ktor-serialization-mingwx64/sources.jar
+io.ktor:ktor-server-auth-api-key-mingwx64/.klib
+io.ktor:ktor-server-auth-api-key-mingwx64/javadoc.jar
+io.ktor:ktor-server-auth-api-key-mingwx64/sources.jar
 io.ktor:ktor-server-auth-mingwx64/.klib
 io.ktor:ktor-server-auth-mingwx64/javadoc.jar
 io.ktor:ktor-server-auth-mingwx64/sources.jar
