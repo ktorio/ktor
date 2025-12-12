@@ -47,19 +47,19 @@ sealed interface io.ktor.annotate/OpenApiSpecSource { // io.ktor.annotate/OpenAp
     }
 
     final class RoutingSource : io.ktor.annotate/OpenApiSpecSource { // io.ktor.annotate/OpenApiSpecSource.RoutingSource|null[0]
-        constructor <init>(io.ktor.http/ContentType, io.ktor.openapi/OpenApiInfo? = ..., io.ktor.server.routing/RoutingNode? = ...) // io.ktor.annotate/OpenApiSpecSource.RoutingSource.<init>|<init>(io.ktor.http.ContentType;io.ktor.openapi.OpenApiInfo?;io.ktor.server.routing.RoutingNode?){}[0]
+        constructor <init>(io.ktor.http/ContentType, io.ktor.openapi/OpenApiInfo? = ..., io.ktor.server.routing/Route? = ...) // io.ktor.annotate/OpenApiSpecSource.RoutingSource.<init>|<init>(io.ktor.http.ContentType;io.ktor.openapi.OpenApiInfo?;io.ktor.server.routing.Route?){}[0]
 
         final val contentType // io.ktor.annotate/OpenApiSpecSource.RoutingSource.contentType|{}contentType[0]
             final fun <get-contentType>(): io.ktor.http/ContentType // io.ktor.annotate/OpenApiSpecSource.RoutingSource.contentType.<get-contentType>|<get-contentType>(){}[0]
         final val info // io.ktor.annotate/OpenApiSpecSource.RoutingSource.info|{}info[0]
             final fun <get-info>(): io.ktor.openapi/OpenApiInfo? // io.ktor.annotate/OpenApiSpecSource.RoutingSource.info.<get-info>|<get-info>(){}[0]
         final val route // io.ktor.annotate/OpenApiSpecSource.RoutingSource.route|{}route[0]
-            final fun <get-route>(): io.ktor.server.routing/RoutingNode? // io.ktor.annotate/OpenApiSpecSource.RoutingSource.route.<get-route>|<get-route>(){}[0]
+            final fun <get-route>(): io.ktor.server.routing/Route? // io.ktor.annotate/OpenApiSpecSource.RoutingSource.route.<get-route>|<get-route>(){}[0]
 
         final fun component1(): io.ktor.http/ContentType // io.ktor.annotate/OpenApiSpecSource.RoutingSource.component1|component1(){}[0]
         final fun component2(): io.ktor.openapi/OpenApiInfo? // io.ktor.annotate/OpenApiSpecSource.RoutingSource.component2|component2(){}[0]
-        final fun component3(): io.ktor.server.routing/RoutingNode? // io.ktor.annotate/OpenApiSpecSource.RoutingSource.component3|component3(){}[0]
-        final fun copy(io.ktor.http/ContentType = ..., io.ktor.openapi/OpenApiInfo? = ..., io.ktor.server.routing/RoutingNode? = ...): io.ktor.annotate/OpenApiSpecSource.RoutingSource // io.ktor.annotate/OpenApiSpecSource.RoutingSource.copy|copy(io.ktor.http.ContentType;io.ktor.openapi.OpenApiInfo?;io.ktor.server.routing.RoutingNode?){}[0]
+        final fun component3(): io.ktor.server.routing/Route? // io.ktor.annotate/OpenApiSpecSource.RoutingSource.component3|component3(){}[0]
+        final fun copy(io.ktor.http/ContentType = ..., io.ktor.openapi/OpenApiInfo? = ..., io.ktor.server.routing/Route? = ...): io.ktor.annotate/OpenApiSpecSource.RoutingSource // io.ktor.annotate/OpenApiSpecSource.RoutingSource.copy|copy(io.ktor.http.ContentType;io.ktor.openapi.OpenApiInfo?;io.ktor.server.routing.Route?){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.annotate/OpenApiSpecSource.RoutingSource.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // io.ktor.annotate/OpenApiSpecSource.RoutingSource.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // io.ktor.annotate/OpenApiSpecSource.RoutingSource.toString|toString(){}[0]
@@ -101,5 +101,5 @@ final val io.ktor.annotate/PopulateMediaTypeDefaults // io.ktor.annotate/Populat
     final fun <get-PopulateMediaTypeDefaults>(): io.ktor.annotate/OperationMapping // io.ktor.annotate/PopulateMediaTypeDefaults.<get-PopulateMediaTypeDefaults>|<get-PopulateMediaTypeDefaults>(){}[0]
 
 final fun (io.ktor.server.routing/Route).io.ktor.annotate/annotate(kotlin/Function1<io.ktor.openapi/Operation.Builder, kotlin/Unit>): io.ktor.server.routing/Route // io.ktor.annotate/annotate|annotate@io.ktor.server.routing.Route(kotlin.Function1<io.ktor.openapi.Operation.Builder,kotlin.Unit>){}[0]
-final fun (io.ktor.server.routing/RoutingNode).io.ktor.annotate/findPathItems(io.ktor.annotate/OperationMapping = ...): kotlin.collections/Map<kotlin/String, io.ktor.openapi/PathItem> // io.ktor.annotate/findPathItems|findPathItems@io.ktor.server.routing.RoutingNode(io.ktor.annotate.OperationMapping){}[0]
-final fun io.ktor.annotate/generateOpenApiSpec(io.ktor.openapi/OpenApiInfo, io.ktor.server.routing/RoutingNode): io.ktor.openapi/OpenApiSpecification // io.ktor.annotate/generateOpenApiSpec|generateOpenApiSpec(io.ktor.openapi.OpenApiInfo;io.ktor.server.routing.RoutingNode){}[0]
+final fun (io.ktor.server.routing/Route).io.ktor.annotate/findPathItems(io.ktor.annotate/OperationMapping = ...): kotlin.collections/Map<kotlin/String, io.ktor.openapi/PathItem> // io.ktor.annotate/findPathItems|findPathItems@io.ktor.server.routing.Route(io.ktor.annotate.OperationMapping){}[0]
+final fun io.ktor.annotate/generateOpenApiSpec(io.ktor.openapi/OpenApiInfo, io.ktor.server.routing/Route): io.ktor.openapi/OpenApiSpecification // io.ktor.annotate/generateOpenApiSpec|generateOpenApiSpec(io.ktor.openapi.OpenApiInfo;io.ktor.server.routing.Route){}[0]

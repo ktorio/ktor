@@ -72,7 +72,7 @@ public fun SerialDescriptor.buildJsonSchema(includeTitle: Boolean = true): JsonS
                 title = serialName.takeIf { includeTitle },
                 type = JsonSchema.JsonType.OBJECT,
                 properties = properties,
-                required = required
+                required = required.takeIf { it.isNotEmpty() }
             )
         }
 

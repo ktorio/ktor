@@ -37,8 +37,7 @@ internal class JoinedOperationMapping(private val operations: List<OperationMapp
  *
  * Defaults applied:
  * - Parameters: if `in` is missing, default to `query`.
- * - Parameters: if both `schema` and `content` are missing, set `content` to `text/plain`.
- * - Response headers: if both `schema` and `content` are missing, set `content` to `text/plain`.
+ * - Parameters/Headers: if both `schema` and `content` are missing, set `schema` to `type/string`.
  */
 public val PopulateMediaTypeDefaults: OperationMapping = OperationMapping { operation ->
     val hasMissingParamMediaInfo = operation.parameters.orEmpty()
@@ -71,7 +70,7 @@ public val PopulateMediaTypeDefaults: OperationMapping = OperationMapping { oper
             ReferenceOr.Value(
                 param.copy(
                     `in` = param.`in` ?: ParameterType.query,
-                    content = param.content ?: MediaType.Text.takeIf { param.schema == null },
+                    schema = JsonSchema.StringReference.takeIf { param.content == null },
                 )
             )
         },
@@ -83,7 +82,7 @@ public val PopulateMediaTypeDefaults: OperationMapping = OperationMapping { oper
                         headers = resp.headers?.mapValues { (_, headerRef) ->
                             headerRef.mapValue { header ->
                                 header.copy(
-                                    content = header.content ?: MediaType.Text.takeIf { header.schema == null },
+                                    schema = JsonSchema.StringReference.takeIf { header.content == null },
                                 )
                             }
                         }
@@ -95,7 +94,7 @@ public val PopulateMediaTypeDefaults: OperationMapping = OperationMapping { oper
                             headers = resp.headers?.mapValues { (_, headerRef) ->
                                 headerRef.mapValue { header ->
                                     header.copy(
-                                        content = header.content ?: MediaType.Text.takeIf { header.schema == null },
+                                        schema = JsonSchema.StringReference.takeIf { header.content == null },
                                     )
                                 }
                             }

@@ -8,7 +8,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.fromFilePath
 import io.ktor.openapi.OpenApiInfo
 import io.ktor.server.application.Application
-import io.ktor.server.routing.RoutingNode
+import io.ktor.server.routing.Route
 import io.ktor.server.routing.routingRoot
 import kotlinx.serialization.json.Json
 
@@ -29,13 +29,17 @@ public sealed interface OpenApiSpecSource {
 
         public fun Application.readOpenApiFromRoute(source: RoutingSource): String {
             val specification = generateOpenApiSpec(
-                info = source.info ?: OpenApiInfo(title = "Untitled", version = "1.0.0"),
+                info = source.info ?: OpenApiInfo(
+                    title = "Untitled",
+                    version = "1.0.0",
+                    description = ""
+                ),
                 route = source.route ?: routingRoot
             )
             return when (source.contentType) {
                 ContentType.Application.Yaml -> serializeToYaml(specification)
                 ContentType.Application.Json -> Json.encodeToString(specification)
-                else -> error { "Unsupported content type: ${source.contentType}" }
+                else -> throw IllegalArgumentException("Unsupported content type: ${source.contentType}")
             }
         }
     }
@@ -58,6 +62,12 @@ public sealed interface OpenApiSpecSource {
     ) : OpenApiSpecSource {
         override fun toString(): String = "<string>"
     }
+
+    /**
+     * A file-based source for OpenAPI specification.
+     *
+     * @param path The file path to read the specification from.
+     */
     public data class FileSource(val path: String) : OpenApiSpecSource {
         override val contentType: ContentType? by lazy {
             ContentType.fromFilePath(path).firstOrNull()
@@ -70,19 +80,19 @@ public sealed interface OpenApiSpecSource {
      * A source for OpenAPI specification that is generated from the application's routing tree.
      *
      * @param info The [OpenApiInfo] to use for the specification.
-     * @param route The root [RoutingNode] to use for the specification.
+     * @param route The root [Route] to use for the specification.
      */
     public data class RoutingSource(
         override val contentType: ContentType,
         val info: OpenApiInfo? = null,
-        val route: RoutingNode? = null,
+        val route: Route? = null,
     ) : OpenApiSpecSource {
         override fun toString(): String =
-            "route: ${route?.selector}"
+            "route: $route"
     }
 
     /**
-     * A source for OpenAPI specification that is generated from the first non-null source.
+     * A source for OpenAPI specification that is generated from the first available source.
      *
      * @param options The list of sources to try.
      */

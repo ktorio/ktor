@@ -254,12 +254,6 @@ public final class io/ktor/openapi/GenericElement$DefaultImpls {
 	public static fun plus (Lio/ktor/openapi/GenericElement;Lio/ktor/openapi/GenericElement;)Lio/ktor/openapi/GenericElement;
 }
 
-public final class io/ktor/openapi/GenericElementEncodingAdapter : io/ktor/openapi/GenericElementSerialAdapter {
-	public static final field INSTANCE Lio/ktor/openapi/GenericElementEncodingAdapter;
-	public fun tryDeserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/openapi/GenericElement;
-	public fun trySerializeToElement (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;Lkotlinx/serialization/KSerializer;)Lio/ktor/openapi/GenericElement;
-}
-
 public final class io/ktor/openapi/GenericElementKt {
 	public static final fun GenericElement (Ljava/util/Collection;)Lio/ktor/openapi/GenericElement;
 }
@@ -411,12 +405,6 @@ public final class io/ktor/openapi/Headers$Builder {
 
 public final class io/ktor/openapi/Headers$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
-public final class io/ktor/openapi/JsonElementSerialAdapter : io/ktor/openapi/GenericElementSerialAdapter {
-	public static final field INSTANCE Lio/ktor/openapi/JsonElementSerialAdapter;
-	public fun tryDeserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/openapi/GenericElement;
-	public fun trySerializeToElement (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;Lkotlinx/serialization/KSerializer;)Lio/ktor/openapi/GenericElement;
 }
 
 public final class io/ktor/openapi/JsonSchema {

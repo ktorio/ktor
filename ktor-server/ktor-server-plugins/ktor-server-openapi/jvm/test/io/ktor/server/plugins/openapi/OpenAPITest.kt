@@ -4,20 +4,19 @@
 
 package io.ktor.server.plugins.openapi
 
-import io.ktor.annotate.OpenApiSpecSource
-import io.ktor.annotate.annotate
-import io.ktor.annotate.generateOpenApiSpec
-import io.ktor.client.request.get
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
-import io.ktor.openapi.OpenApiInfo
-import io.ktor.serialization.kotlinx.json.json
-import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.annotate.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.openapi.*
+import io.ktor.serialization.kotlinx.json.*
+import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertContains
+import kotlin.test.assertEquals
 
 class OpenAPITest {
 
@@ -65,15 +64,18 @@ class OpenAPITest {
 
             // Use the default documentation.yaml file
             route("/default") {
-                openAPI("docs")
+                openAPI("docs") {
+                    outputPath = "docs/files"
+                }
             }
 
             // Use the routing tree
             route("/routes") {
                 openAPI("docs") {
+                    outputPath = "docs/routes"
                     source = OpenApiSpecSource.RoutingSource(
                         info = OpenApiInfo("Books API from routes", "1.0.0"),
-                        route = apiRoute as RoutingNode,
+                        route = apiRoute,
                         contentType = ContentType.Application.Json,
                     )
                 }
@@ -94,7 +96,7 @@ class OpenAPITest {
             val responseText = response.bodyAsText()
             assertContains(responseText, "Books API from routes")
             for (description in descriptions) {
-                assertContains(response.bodyAsText(), description, message = "Response should contain '$description'")
+                assertContains(responseText, description, message = "Response should contain '$description'")
             }
         }
     }
