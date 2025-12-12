@@ -15,6 +15,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
+import io.ktor.utils.io.InternalAPI
 import kotlinx.serialization.*
 import kotlin.test.*
 
@@ -610,6 +611,7 @@ class AuthBuildersTest {
             form { validate { UserIdPrincipal(it.name) } }
         }
 
+        @OptIn(InternalAPI::class)
         install(AuthenticationInterceptors)
 
         application {

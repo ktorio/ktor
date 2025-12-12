@@ -73,7 +73,10 @@ class JvmSecuritySchemeInferenceTest {
         }
         startApplication()
 
-        val schemes = application.findSecuritySchemes(inferFromAuthenticationPlugin = true)
+        val schemes = application.findSecuritySchemes(
+            inferFromAuthenticationPlugin = true,
+            includeJwt = true
+        )
         assertNotNull(schemes)
 
         val scheme = schemes["jwt-auth"]?.valueOrNull() as HttpSecurityScheme
@@ -94,7 +97,10 @@ class JvmSecuritySchemeInferenceTest {
         }
         startApplication()
 
-        val schemes = application.findSecuritySchemes(inferFromAuthenticationPlugin = true)
+        val schemes = application.findSecuritySchemes(
+            inferFromAuthenticationPlugin = true,
+            includeJwt = true
+        )
         val scheme = schemes?.get("jwt-custom-schemes")?.valueOrNull() as HttpSecurityScheme
 
         // Inference always produces a standard-bearer scheme
@@ -114,7 +120,7 @@ class JvmSecuritySchemeInferenceTest {
         val scheme1 = schemes["custom-digest"]?.valueOrNull() as HttpSecurityScheme
         assertEquals(SecuritySchemeType.HTTP, scheme1.type)
         assertEquals("digest", scheme1.scheme)
-        assertEquals("Http Digest Authentication", scheme1.description)
+        assertEquals("HTTP Digest Authentication", scheme1.description)
         assertNull(scheme1.bearerFormat)
 
         val scheme2 = schemes["digest-custom"]?.valueOrNull() as HttpSecurityScheme

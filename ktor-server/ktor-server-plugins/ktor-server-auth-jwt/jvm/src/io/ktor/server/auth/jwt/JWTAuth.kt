@@ -99,7 +99,7 @@ public abstract class JWTPayloadHolder(
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.JWTPayloadHolder.get)
      *
      * @param name a claim's key as it appears in the JSON object
-     * @return a claim's value, or null it is unavailable or not a string
+     * @return a claim's value, or null if it is unavailable or not a string
      */
     public operator fun get(name: String): String? {
         return payload.getClaim(name).asString()
