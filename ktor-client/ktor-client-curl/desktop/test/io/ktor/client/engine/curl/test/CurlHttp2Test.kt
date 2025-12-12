@@ -6,7 +6,10 @@ package io.ktor.client.engine.curl.test
 
 import io.ktor.client.engine.curl.*
 import io.ktor.client.tests.*
-import kotlin.test.Ignore
 
-@Ignore // KTOR-9100 Curl always uses HTTP/1.1
-class CurlHttp2Test : Http2Test<CurlClientEngineConfig>(Curl)
+class CurlHttp2Test : Http2Test<CurlClientEngineConfig>(Curl, useH2c = false) {
+
+    override fun CurlClientEngineConfig.disableCertificateValidation() {
+        sslVerify = false
+    }
+}
