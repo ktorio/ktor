@@ -67,7 +67,7 @@ public class OAuthAuthenticationProvider internal constructor(config: Config) : 
         /**
          * Static OAuth server settings. Either this or [providerLookup] should be specified.
          *
-         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthAuthenticationProvider.Config.providerLookup)
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthAuthenticationProvider.Config.settings)
          */
         public var settings: OAuthServerSettings? = null
 

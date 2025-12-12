@@ -8,7 +8,11 @@ import io.ktor.openapi.SecurityScheme
 import io.ktor.server.application.Application
 import io.ktor.server.auth.AuthenticationProvider
 
-internal actual fun Application.inferPlatformSpecificSecurityScheme(provider: AuthenticationProvider): SecurityScheme? {
+internal actual fun Application.inferPlatformSpecificSecurityScheme(
+    provider: AuthenticationProvider,
+    includeJwt: Boolean
+): SecurityScheme? {
     // No platform-specific metadata for authentication providers on non-JVM platforms.
+    require(!includeJwt) { "JWT authentication is not supported on non-JVM platforms" }
     return null
 }

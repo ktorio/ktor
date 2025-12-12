@@ -84,26 +84,11 @@ class SecuritySchemeInferenceTest {
             form("default-form") {
                 validate { UserIdPrincipal(it.name) }
             }
-            form("form-auth", "Custom Login Form") {
-                userParamName = "the_email"
-                passwordParamName = "the_password"
-            }
         }
         startApplication()
 
         val schemes = application.findSecuritySchemes(inferFromAuthenticationPlugin = true)
-        assertNotNull(schemes)
-
-        val defaultScheme = schemes["default-form"]?.valueOrNull() as HttpSecurityScheme
-
-        assertEquals("form", defaultScheme.scheme)
-        assertTrue(defaultScheme.description!!.contains("user"))
-        assertTrue(defaultScheme.description!!.contains("password"))
-
-        val customScheme = schemes["form-auth"]?.valueOrNull() as HttpSecurityScheme
-        assertEquals(SecuritySchemeType.HTTP, customScheme.type)
-        assertEquals("form", customScheme.scheme)
-        assertEquals("Custom Login Form", customScheme.description)
+        assertNull(schemes)
     }
 
     @Serializable
@@ -296,7 +281,7 @@ class SecuritySchemeInferenceTest {
         install(Authentication) {
             basic("basic") {}
             bearer("bearer") {}
-            form("form") {}
+            form("form") {} // shouldn't be inferred
             session<UserSession>("session") {
                 validate { it }
             }
@@ -306,7 +291,7 @@ class SecuritySchemeInferenceTest {
         val schemes = application.findSecuritySchemes(inferFromAuthenticationPlugin = true)
 
         assertNotNull(schemes)
-        assertEquals(4, schemes.size)
+        assertEquals(3, schemes.size)
 
         assertTrue(schemes["basic"]?.valueOrNull() is HttpSecurityScheme)
         assertEquals("basic", (schemes["basic"]?.valueOrNull() as HttpSecurityScheme).scheme)
@@ -314,8 +299,6 @@ class SecuritySchemeInferenceTest {
         assertTrue(schemes["bearer"]?.valueOrNull() is HttpSecurityScheme)
         assertEquals("bearer", (schemes["bearer"]?.valueOrNull() as HttpSecurityScheme).scheme)
 
-        assertTrue(schemes["form"]?.valueOrNull() is HttpSecurityScheme)
-        assertEquals("form", (schemes["form"]?.valueOrNull() as HttpSecurityScheme).scheme)
 
         assertTrue(schemes["session"]?.valueOrNull() is ApiKeySecurityScheme)
         assertEquals(SecuritySchemeIn.COOKIE, (schemes["session"]?.valueOrNull() as ApiKeySecurityScheme).`in`)

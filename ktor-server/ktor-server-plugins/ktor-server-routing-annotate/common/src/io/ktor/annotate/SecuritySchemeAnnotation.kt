@@ -41,15 +41,17 @@ public fun Application.registerSecurityScheme(
  * Retrieves all registered security schemes from the application.
  *
  * @param inferFromAuthenticationPlugin Whether to infer security schemes from the installed [Authentication] plugin.
+ * @param includeJwt Whether to include JWT security schemes in the result. Enable only if you have a plugin installed.
  *
  * @return A map of provider names to their security schemes, or null if no schemes are available.
  */
 public fun Application.findSecuritySchemes(
-    inferFromAuthenticationPlugin: Boolean = true
+    inferFromAuthenticationPlugin: Boolean = true,
+    includeJwt: Boolean = false
 ): Map<String, ReferenceOr<SecurityScheme>>? {
     val manualSchemes = attributes.getOrNull(AuthenticationSecuritySchemesAttributeKey)
     val inferredSchemes = when (inferFromAuthenticationPlugin) {
-        true -> inferSecuritySchemesFromAuthentication()
+        true -> inferSecuritySchemesFromAuthentication(includeJwt)
         false -> null
     }
     val manualSchemesRefs = manualSchemes?.wrap()
@@ -69,12 +71,12 @@ private fun Map<String, SecurityScheme>.wrap() = buildMap<String, ReferenceOr<Se
 }
 
 @OptIn(InternalAPI::class)
-private fun Application.inferSecuritySchemesFromAuthentication(): Map<String, SecurityScheme>? {
+private fun Application.inferSecuritySchemesFromAuthentication(includeJwt: Boolean): Map<String, SecurityScheme>? {
     val authPlugin = pluginOrNull(Authentication) ?: return null
     val providers = authPlugin.configuration().allProviders()
     return buildMap {
         for ((providerName, provider) in providers) {
-            inferSecurityScheme(provider)?.let {
+            inferSecurityScheme(provider, includeJwt)?.let {
                 set(providerName ?: AuthenticationRouteSelector.DEFAULT_NAME, it)
             }
         }
@@ -85,8 +87,11 @@ private fun Application.inferSecuritySchemesFromAuthentication(): Map<String, Se
  * Infers the OpenAPI security scheme from an authentication provider based on its type.
  */
 @OptIn(InternalAPI::class)
-private fun Application.inferSecurityScheme(provider: AuthenticationProvider): SecurityScheme? {
-    inferPlatformSpecificSecurityScheme(provider)?.let { return it }
+private fun Application.inferSecurityScheme(
+    provider: AuthenticationProvider,
+    includeJwt: Boolean
+): SecurityScheme? {
+    inferPlatformSpecificSecurityScheme(provider, includeJwt)?.let { return it }
 
     return when (provider) {
         is BasicAuthenticationProvider -> HttpSecurityScheme(
@@ -120,14 +125,6 @@ private fun Application.inferSecurityScheme(provider: AuthenticationProvider): S
             )
         }
 
-        is FormAuthenticationProvider -> HttpSecurityScheme(
-            scheme = "form",
-            description = provider.description ?: (
-                "Form-based Authentication with post parameters " +
-                    "${provider.userParamName} and ${provider.passwordParamName}"
-                )
-        )
-
         is OAuthAuthenticationProvider -> {
             val settings = provider.staticSettings() as? OAuthServerSettings.OAuth2ServerSettings ?: return null
             OAuth2SecurityScheme(
@@ -148,7 +145,10 @@ private fun Application.inferSecurityScheme(provider: AuthenticationProvider): S
     }
 }
 
-internal expect fun Application.inferPlatformSpecificSecurityScheme(provider: AuthenticationProvider): SecurityScheme?
+internal expect fun Application.inferPlatformSpecificSecurityScheme(
+    provider: AuthenticationProvider,
+    includeJwt: Boolean
+): SecurityScheme?
 
 /**
  * Registers a Basic HTTP authentication security scheme.
@@ -190,7 +190,7 @@ public fun Application.registerBearerAuthSecurityScheme(
  * @param description Optional description for the security scheme. Defaults to "API Key Authentication".
  */
 public fun Application.registerApiKeySecurityScheme(
-    name: String?,
+    name: String? = null,
     keyName: String,
     location: SecuritySchemeIn,
     description: String = ApiKeySecurityScheme.defaultDescription(keyName, location.name)
@@ -207,7 +207,7 @@ public fun Application.registerApiKeySecurityScheme(
  * @param description Optional description for the security scheme. Defaults to "OAuth2 Authentication".
  */
 public fun Application.registerOAuth2SecurityScheme(
-    name: String?,
+    name: String? = null,
     flows: OAuthFlows,
     description: String? = OAuth2SecurityScheme.DEFAULT_DESCRIPTION
 ) {
@@ -222,7 +222,7 @@ public fun Application.registerOAuth2SecurityScheme(
  * @param description Optional description for the security scheme. Defaults to "OpenID Connect Authentication".
  */
 public fun Application.registerOpenIdConnectSecurityScheme(
-    name: String?,
+    name: String? = null,
     openIdConnectUrl: String,
     description: String? = OpenIdConnectSecurityScheme.DEFAULT_DESCRIPTION
 ) {
