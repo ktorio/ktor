@@ -64,7 +64,10 @@ internal class JavaHttpWebSocket(
     private val requestTime: GMTDate = GMTDate()
 ) : WebSocket.Listener, WebSocketSession {
 
-    private lateinit var webSocket: WebSocket
+    private var _webSocket: WebSocket? = null
+    private val webSocket: WebSocket
+        get() = checkNotNull(_webSocket) { "Web socket is not connected yet." }
+
     private val socketJob = Job(callContext[Job])
     private val _incoming = Channel<Frame>(Channel.UNLIMITED)
     private val _outgoing = Channel<Frame>(Channel.UNLIMITED)
@@ -90,46 +93,41 @@ internal class JavaHttpWebSocket(
         get() = emptyList()
 
     init {
-        launch {
+        launch(CoroutineName("java-ws-outgoing")) {
             _outgoing.consumeEach { frame ->
-                when (frame.frameType) {
-                    FrameType.TEXT -> {
-                        webSocket.sendText(String(frame.data), frame.fin).await()
-                    }
-
-                    FrameType.BINARY -> {
-                        webSocket.sendBinary(frame.buffer, frame.fin).await()
-                    }
-
-                    FrameType.CLOSE -> {
-                        val data = buildPacket { writeFully(frame.data) }
-                        val code = data.readShort().toInt()
-                        val reason = data.readText()
-                        webSocket.sendClose(code, reason).await()
-                        socketJob.complete()
-                        return@launch
-                    }
-
-                    FrameType.PING -> {
-                        webSocket.sendPing(frame.buffer).await()
-                    }
-
-                    FrameType.PONG -> {
-                        webSocket.sendPong(frame.buffer).await()
-                    }
+                webSocket.sendFrame(frame)
+                if (frame.frameType == FrameType.CLOSE) {
+                    socketJob.complete()
+                    return@launch
                 }
             }
         }
 
-        GlobalScope.launch(callContext, start = CoroutineStart.ATOMIC) {
+        GlobalScope.launch(callContext + CoroutineName("java-ws-closer"), start = CoroutineStart.ATOMIC) {
             try {
                 socketJob[Job]!!.join()
             } catch (cause: Throwable) {
                 val code = CloseReason.Codes.INTERNAL_ERROR.code.toInt()
-                webSocket.sendClose(code, "Client failed")
+                _webSocket?.sendClose(code, "Client failed")
             } finally {
                 _incoming.close()
                 _outgoing.cancel()
+            }
+        }
+    }
+
+    private suspend fun WebSocket.sendFrame(frame: Frame) {
+        when (frame.frameType) {
+            FrameType.TEXT -> sendText(String(frame.data), frame.fin).await()
+            FrameType.BINARY -> sendBinary(frame.buffer, frame.fin).await()
+            FrameType.PING -> sendPing(frame.buffer).await()
+            FrameType.PONG -> sendPong(frame.buffer).await()
+
+            FrameType.CLOSE -> {
+                val data = buildPacket { writeFully(frame.data) }
+                val code = data.readShort().toInt()
+                val reason = data.readText()
+                sendClose(code, reason).await()
             }
         }
     }
@@ -163,7 +161,7 @@ internal class JavaHttpWebSocket(
         var status = HttpStatusCode.SwitchingProtocols
         var headers: Headers
         try {
-            webSocket = builder.buildAsync(requestData.url.toURI(), this).await()
+            _webSocket = builder.buildAsync(requestData.url.toURI(), this).await()
             val protocol = webSocket.subprotocol?.takeIf { it.isNotEmpty() }
             headers = if (protocol != null) headersOf(HttpHeaders.SecWebSocketProtocol, protocol) else Headers.Empty
         } catch (cause: WebSocketHandshakeException) {
