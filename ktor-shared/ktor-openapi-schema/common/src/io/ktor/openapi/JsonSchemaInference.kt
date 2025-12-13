@@ -4,13 +4,18 @@
 
 package io.ktor.openapi
 
+import io.ktor.openapi.AdditionalProperties.*
+import io.ktor.openapi.ReferenceOr.*
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
+import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.descriptors.StructureKind
 import kotlinx.serialization.serializer
+import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
 
@@ -24,6 +29,9 @@ public fun interface JsonSchemaInference {
     public fun buildSchema(type: KType): JsonSchema
 }
 
+/**
+ * Infers JSON schema from kotlinx-serialization descriptors.
+ */
 public val KotlinxJsonSchemaInference: JsonSchemaInference = JsonSchemaInference { type ->
     serializer(type)
         .descriptor
@@ -49,6 +57,7 @@ public val KotlinxJsonSchemaInference: JsonSchemaInference = JsonSchemaInference
  * Note: This function does not handle circular references. For types with circular dependencies,
  * consider implementing depth tracking or schema references to avoid stack overflow.
  */
+@OptIn(ExperimentalSerializationApi::class)
 public fun SerialDescriptor.buildJsonSchema(includeTitle: Boolean = true): JsonSchema {
     return when (kind) {
         StructureKind.CLASS, StructureKind.OBJECT -> {
@@ -65,7 +74,7 @@ public fun SerialDescriptor.buildJsonSchema(includeTitle: Boolean = true): JsonS
                     required.add(name)
                 }
 
-                properties[name] = ReferenceOr.Value(elementDescriptor.buildJsonSchema())
+                properties[name] = Value(elementDescriptor.buildJsonSchema())
             }
 
             JsonSchema(
@@ -79,7 +88,7 @@ public fun SerialDescriptor.buildJsonSchema(includeTitle: Boolean = true): JsonS
         StructureKind.LIST -> {
             JsonSchema(
                 type = JsonSchema.JsonType.ARRAY,
-                items = ReferenceOr.Value(getElementDescriptor(0).buildJsonSchema())
+                items = Value(getElementDescriptor(0).buildJsonSchema())
             )
         }
 
@@ -96,7 +105,8 @@ public fun SerialDescriptor.buildJsonSchema(includeTitle: Boolean = true): JsonS
             )
         }
 
-        PrimitiveKind.STRING ->
+        PrimitiveKind.STRING,
+        PrimitiveKind.CHAR ->
             JsonSchema(type = JsonSchema.JsonType.STRING)
 
         PrimitiveKind.BOOLEAN ->
@@ -109,10 +119,9 @@ public fun SerialDescriptor.buildJsonSchema(includeTitle: Boolean = true): JsonS
             JsonSchema(type = JsonSchema.JsonType.NUMBER)
 
         SerialKind.ENUM -> {
-            val enumValues = List(elementsCount) { i -> GenericElement(getElementName(i)) }
             JsonSchema(
                 type = JsonSchema.JsonType.STRING,
-                enum = enumValues
+                enum = List(elementsCount) { i -> GenericElement<String>(getElementName(i)) }
             )
         }
 
@@ -121,7 +130,9 @@ public fun SerialDescriptor.buildJsonSchema(includeTitle: Boolean = true): JsonS
             JsonSchema(type = JsonSchema.JsonType.OBJECT)
         }
 
-        else -> JsonSchema(type = JsonSchema.JsonType.OBJECT) // Default for other kinds
+        PolymorphicKind.OPEN,
+        PolymorphicKind.SEALED ->
+            JsonSchema(type = JsonSchema.JsonType.OBJECT) // Default for other kinds
     }
 }
 
