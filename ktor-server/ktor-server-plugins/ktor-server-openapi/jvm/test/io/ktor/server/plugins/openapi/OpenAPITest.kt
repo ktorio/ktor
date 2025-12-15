@@ -73,11 +73,10 @@ class OpenAPITest {
             route("/routes") {
                 openAPI("docs") {
                     outputPath = "docs/routes"
-                    source = OpenApiSpecSource.RoutingSource(
-                        info = OpenApiInfo("Books API from routes", "1.0.0"),
-                        route = apiRoute,
-                        contentType = ContentType.Application.Json,
-                    )
+                    info = OpenApiInfo("Books API from routes", "1.0.0")
+                    source = OpenApiDocSource.RoutingSource(ContentType.Application.Json) {
+                        apiRoute.descendants()
+                    }
                 }
             }
         }

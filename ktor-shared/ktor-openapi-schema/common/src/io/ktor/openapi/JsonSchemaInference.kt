@@ -86,9 +86,13 @@ public fun SerialDescriptor.buildJsonSchema(includeTitle: Boolean = true): JsonS
         StructureKind.MAP -> {
             JsonSchema(
                 type = JsonSchema.JsonType.OBJECT,
-                additionalProperties = AdditionalProperties.PSchema(
-                    ReferenceOr.Value(getElementDescriptor(1).buildJsonSchema())
-                )
+                additionalProperties = if (elementsCount > 1) {
+                    AdditionalProperties.PSchema(
+                        ReferenceOr.Value(getElementDescriptor(1).buildJsonSchema())
+                    )
+                } else {
+                    AdditionalProperties.Allowed(true)
+                }
             )
         }
 

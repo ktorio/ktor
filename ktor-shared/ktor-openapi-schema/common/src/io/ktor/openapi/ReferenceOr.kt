@@ -20,7 +20,7 @@ private const val RecursiveRefKey = $$"$recursiveRef"
 @Serializable(with = ReferenceOr.Companion.Serializer::class)
 public sealed interface ReferenceOr<out A> {
     /**
-     * A reference to a definition within the current specification.
+     * A reference to a definition within the current document.
      *
      * @property ref Reference to a definition like #/components/schemas/Name
      * @property isRecursive Whether this reference is recursive.

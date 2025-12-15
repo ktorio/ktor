@@ -4,8 +4,10 @@
 
 package io.ktor.server.plugins.openapi
 
-import io.ktor.annotate.OpenApiSpecSource
+import io.ktor.annotate.OpenApiDocSource
 import io.ktor.http.ContentType
+import io.ktor.openapi.OpenApiDoc
+import io.ktor.openapi.OpenApiDocDsl
 import io.swagger.codegen.v3.*
 import io.swagger.codegen.v3.generators.html.*
 import io.swagger.parser.*
@@ -16,13 +18,17 @@ import io.swagger.v3.parser.core.models.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.openapi.OpenAPIConfig)
  */
-public class OpenAPIConfig {
+public class OpenAPIConfig private constructor(
+    private val docBuilder: OpenApiDoc.Builder
+) : OpenApiDocDsl by docBuilder {
+    public constructor() : this(OpenApiDoc.Builder())
+
     /**
      * Defines the source of the OpenAPI specification.
      */
-    public var source: OpenApiSpecSource = OpenApiSpecSource.FirstOf(
-        OpenApiSpecSource.FileSource("openapi/documentation.yaml"),
-        OpenApiSpecSource.RoutingSource(ContentType.Application.Yaml),
+    public var source: OpenApiDocSource = OpenApiDocSource.FirstOf(
+        OpenApiDocSource.FileSource("openapi/documentation.yaml"),
+        OpenApiDocSource.RoutingSource(contentType = ContentType.Application.Yaml),
     )
 
     /**
@@ -68,4 +74,10 @@ public class OpenAPIConfig {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.openapi.OpenAPIConfig.options)
      */
     public var options: ParseOptions = ParseOptions()
+
+    /**
+     * Base document is built for route-based OpenAPI generation.
+     */
+    internal fun buildBaseDoc(): OpenApiDoc =
+        docBuilder.build()
 }

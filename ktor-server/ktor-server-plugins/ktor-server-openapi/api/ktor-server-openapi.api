@@ -1,19 +1,31 @@
-public final class io/ktor/server/plugins/openapi/OpenAPIConfig {
+public final class io/ktor/server/plugins/openapi/OpenAPIConfig : io/ktor/openapi/OpenApiDocDsl {
 	public fun <init> ()V
 	public final fun getCodegen ()Lio/swagger/codegen/v3/CodegenConfig;
+	public fun getComponents ()Lio/ktor/openapi/Components;
+	public fun getExtensions ()Ljava/util/Map;
+	public fun getExternalDocs ()Lio/ktor/openapi/ExternalDocs;
 	public final fun getGenerator ()Lio/swagger/codegen/v3/Generator;
+	public fun getInfo ()Lio/ktor/openapi/OpenApiInfo;
+	public fun getOpenapiVersion ()Ljava/lang/String;
 	public final fun getOptions ()Lio/swagger/v3/parser/core/models/ParseOptions;
 	public final fun getOpts ()Lio/swagger/codegen/v3/ClientOptInput;
 	public final fun getOutputPath ()Ljava/lang/String;
 	public final fun getParser ()Lio/swagger/parser/OpenAPIParser;
-	public final fun getSource ()Lio/ktor/annotate/OpenApiSpecSource;
+	public final fun getSource ()Lio/ktor/annotate/OpenApiDocSource;
+	public fun security (Lkotlin/jvm/functions/Function1;)V
+	public fun servers (Lkotlin/jvm/functions/Function1;)V
 	public final fun setCodegen (Lio/swagger/codegen/v3/CodegenConfig;)V
+	public fun setComponents (Lio/ktor/openapi/Components;)V
+	public fun setExternalDocs (Lio/ktor/openapi/ExternalDocs;)V
 	public final fun setGenerator (Lio/swagger/codegen/v3/Generator;)V
+	public fun setInfo (Lio/ktor/openapi/OpenApiInfo;)V
+	public fun setOpenapiVersion (Ljava/lang/String;)V
 	public final fun setOptions (Lio/swagger/v3/parser/core/models/ParseOptions;)V
 	public final fun setOpts (Lio/swagger/codegen/v3/ClientOptInput;)V
 	public final fun setOutputPath (Ljava/lang/String;)V
 	public final fun setParser (Lio/swagger/parser/OpenAPIParser;)V
-	public final fun setSource (Lio/ktor/annotate/OpenApiSpecSource;)V
+	public final fun setSource (Lio/ktor/annotate/OpenApiDocSource;)V
+	public fun tag (Ljava/lang/String;)V
 }
 
 public final class io/ktor/server/plugins/openapi/OpenAPIKt {

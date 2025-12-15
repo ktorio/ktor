@@ -7,7 +7,7 @@ package io.ktor.annotate
 import com.charleskorn.kaml.SingleLineStringStyle
 import com.charleskorn.kaml.Yaml
 import com.charleskorn.kaml.YamlConfiguration
-import io.ktor.openapi.OpenApiSpecification
+import io.ktor.openapi.OpenApiDoc
 import kotlinx.serialization.encodeToString
 
 private val yamlFormat by lazy {
@@ -19,5 +19,5 @@ private val yamlFormat by lazy {
     )
 }
 
-internal actual fun serializeToYaml(openApiSpec: OpenApiSpecification): String =
+internal actual fun serializeToYaml(openApiSpec: OpenApiDoc): String =
     yamlFormat.encodeToString(openApiSpec)

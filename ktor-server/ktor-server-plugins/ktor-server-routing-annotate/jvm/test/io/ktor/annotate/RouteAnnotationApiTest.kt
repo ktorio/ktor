@@ -53,9 +53,9 @@ class RouteAnnotationApiTest {
             // get all path items
             get("/routes") {
                 call.respond(
-                    generateOpenApiSpec(
-                        info = OpenApiInfo("Test API", "1.0.0"),
-                        route = call.application.routingRoot,
+                    generateOpenApiDoc(
+                        base = OpenApiDoc(info = OpenApiInfo("Test API", "1.0.0")),
+                        routes = call.application.routingRoot.descendants(),
                     ).let {
                         it.copy(
                             paths = it.paths - "/routes"
@@ -97,8 +97,8 @@ class RouteAnnotationApiTest {
         // should not appear
         assertFalse("extensions" in responseText)
 
-        val openApiSpec = jsonFormat.decodeFromString<OpenApiSpecification>(responseText)
-        val pathItems: Map<String, PathItem> = openApiSpec.paths
+        val openApiSpec = jsonFormat.decodeFromString<OpenApiDoc>(responseText)
+        val pathItems: Map<String, ReferenceOr<PathItem>> = openApiSpec.paths
         assertEquals(1, pathItems.size)
     }
 
@@ -110,9 +110,9 @@ class RouteAnnotationApiTest {
         routing {
             get("/routes") {
                 call.respond(
-                    generateOpenApiSpec(
-                        info = OpenApiInfo("Test API", "1.0.0"),
-                        route = call.application.routingRoot,
+                    generateOpenApiDoc(
+                        base = OpenApiDoc(info = OpenApiInfo("Test API", "1.0.0")),
+                        routes = call.application.routingRoot.descendants(),
                     ).let {
                         it.copy(
                             paths = it.paths - "/routes"
@@ -152,7 +152,7 @@ class RouteAnnotationApiTest {
         }
         routing {
             get("/routes") {
-                val pathItems = call.application.routingRoot.findPathItems() - "/routes"
+                val pathItems = call.application.routingRoot.descendants().findPathItems() - "/routes"
                 call.respond(pathItems)
             }
             route("/messages") {
@@ -246,9 +246,9 @@ class RouteAnnotationApiTest {
             // get all path items
             get("/routes") {
                 call.respond(
-                    generateOpenApiSpec(
-                        info = OpenApiInfo("Test API", "1.0.0"),
-                        route = call.application.routingRoot,
+                    generateOpenApiDoc(
+                        base = OpenApiDoc(info = OpenApiInfo("Test API", "1.0.0")),
+                        routes = call.application.routingRoot.descendants(),
                     ).let {
                         it.copy(
                             paths = it.paths - "/routes"
@@ -288,8 +288,8 @@ class RouteAnnotationApiTest {
         val expectedYaml = this::class.java.getResource("/expected/openapi.yaml")!!.readText()
         assertEquals(expectedYaml.trim(), responseText)
 
-        val openApiSpec = Yaml.default.decodeFromString<OpenApiSpecification>(responseText)
-        val pathItems: Map<String, PathItem> = openApiSpec.paths
+        val openApiSpec = yamlFormat.decodeFromString<OpenApiDoc>(responseText)
+        val pathItems: Map<String, ReferenceOr<PathItem>> = openApiSpec.paths
         assertEquals(1, pathItems.size)
     }
 }

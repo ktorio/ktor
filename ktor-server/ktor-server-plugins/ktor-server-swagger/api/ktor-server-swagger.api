@@ -1,18 +1,30 @@
-public final class io/ktor/server/plugins/swagger/SwaggerConfig {
+public final class io/ktor/server/plugins/swagger/SwaggerConfig : io/ktor/openapi/OpenApiDocDsl {
 	public fun <init> ()V
 	public final fun customStyle (Ljava/lang/String;)V
+	public fun getComponents ()Lio/ktor/openapi/Components;
 	public final fun getDeepLinking ()Z
+	public fun getExtensions ()Ljava/util/Map;
+	public fun getExternalDocs ()Lio/ktor/openapi/ExternalDocs;
 	public final fun getFaviconLocation ()Ljava/lang/String;
+	public fun getInfo ()Lio/ktor/openapi/OpenApiInfo;
+	public fun getOpenapiVersion ()Ljava/lang/String;
 	public final fun getPackageLocation ()Ljava/lang/String;
 	public final fun getRemotePath ()Ljava/lang/String;
-	public final fun getSource ()Lio/ktor/annotate/OpenApiSpecSource;
+	public final fun getSource ()Lio/ktor/annotate/OpenApiDocSource;
 	public final fun getVersion ()Ljava/lang/String;
+	public fun security (Lkotlin/jvm/functions/Function1;)V
+	public fun servers (Lkotlin/jvm/functions/Function1;)V
+	public fun setComponents (Lio/ktor/openapi/Components;)V
 	public final fun setDeepLinking (Z)V
+	public fun setExternalDocs (Lio/ktor/openapi/ExternalDocs;)V
 	public final fun setFaviconLocation (Ljava/lang/String;)V
+	public fun setInfo (Lio/ktor/openapi/OpenApiInfo;)V
+	public fun setOpenapiVersion (Ljava/lang/String;)V
 	public final fun setPackageLocation (Ljava/lang/String;)V
 	public final fun setRemotePath (Ljava/lang/String;)V
-	public final fun setSource (Lio/ktor/annotate/OpenApiSpecSource;)V
+	public final fun setSource (Lio/ktor/annotate/OpenApiDocSource;)V
 	public final fun setVersion (Ljava/lang/String;)V
+	public fun tag (Ljava/lang/String;)V
 }
 
 public final class io/ktor/server/plugins/swagger/SwaggerKt {

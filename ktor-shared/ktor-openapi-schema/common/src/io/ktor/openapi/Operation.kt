@@ -189,7 +189,7 @@ public data class Operation(
         }
 
         /**
-         * Adds a specification-extension to this operation.
+         * Adds a extension to this operation.
          *
          * @param name The extension name; must start with `x-`.
          * @param value The extension value.
@@ -697,7 +697,7 @@ public data class Response(
         }
 
         /**
-         * Adds a specification-extension to this response.
+         * Adds a extension to this response.
          *
          * @param name The extension name; must start with `x-`.
          * @param value The extension value.
@@ -787,7 +787,7 @@ public data class Link(
         }
 
         /**
-         * Adds a specification-extension to this link.
+         * Adds a extension to this link.
          *
          * @param name The extension name; must start with `x-`.
          * @param value The extension value.
@@ -901,7 +901,7 @@ public data class RequestBody(
             set(value) = content { schema = value }
 
         /**
-         * Adds a specification-extension to this request body.
+         * Adds a extension to this request body.
          *
          * @param name The extension name; must start with `x-`.
          * @param value The extension value.
@@ -1062,7 +1062,7 @@ public data class Server(
         public val extensions: MutableMap<String, GenericElement> = mutableMapOf()
 
         /**
-         * Adds a specification-extension to this server.
+         * Adds a extension to this server.
          *
          * @param name The extension name; must start with `x-`.
          * @param value The extension value.

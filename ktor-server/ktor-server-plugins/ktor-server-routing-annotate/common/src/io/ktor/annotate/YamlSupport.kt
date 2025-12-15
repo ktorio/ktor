@@ -4,6 +4,6 @@
 
 package io.ktor.annotate
 
-import io.ktor.openapi.OpenApiSpecification
+import io.ktor.openapi.OpenApiDoc
 
-internal expect fun serializeToYaml(openApiSpec: OpenApiSpecification): String
+internal expect fun serializeToYaml(openApiSpec: OpenApiDoc): String
