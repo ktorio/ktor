@@ -8,7 +8,7 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
-import io.ktor.util.logging.Logger
+import io.ktor.util.logging.trace
 
 private val NUMBER_REGEX = "[0-9]+".toRegex()
 
@@ -64,21 +64,21 @@ internal fun corsCheckOrigins(
         originPredicates.any { it(origin) }
 
     if (!allow) {
-        LOGGER.info { "${request.id()}: Any * host is not allowed" }
-        LOGGER.info { "${request.id()}: Origin $normalizedOrigin does not match allowed hosts: $allowedHosts" }
+        LOGGER.trace { "${request.id()}: Any * host is not allowed" }
+        LOGGER.trace { "${request.id()}: Origin $normalizedOrigin does not match allowed hosts: $allowedHosts" }
         if (originPredicates.isNotEmpty()) {
-            LOGGER.info {
+            LOGGER.trace {
                 "${request.id()}: Origin $normalizedOrigin fulfills no allowed hosts predicates $originPredicates"
             }
         }
     } else {
         when {
             allowsAnyHost ->
-                LOGGER.info { "${request.id()}: Any * host is allowed" }
+                LOGGER.trace { "${request.id()}: Any * host is allowed" }
             normalizedOrigin in hostsNormalized ->
-                LOGGER.info { "${request.id()}: Origin $normalizedOrigin is allowed from $hostsNormalized" }
+                LOGGER.trace { "${request.id()}: Origin $normalizedOrigin is allowed from $hostsNormalized" }
             matchWildcardHosts ->
-                LOGGER.info {
+                LOGGER.trace {
                     val (prefix, suffix) = hostsWithWildcard
                         .find { (prefix, suffix) ->
                             normalizedOrigin.startsWith(prefix) && normalizedOrigin.endsWith(suffix)
@@ -86,7 +86,7 @@ internal fun corsCheckOrigins(
                     "${request.id()}: Origin $normalizedOrigin matches wildcard host $prefix*$suffix"
                 }
             originPredicates.any { it(origin) } -> {
-                LOGGER.info {
+                LOGGER.trace {
                     "${request.id()}: Origin $normalizedOrigin fulfills " +
                         "host predicate ${originPredicates.find { it(origin) }}"
                 }
@@ -115,7 +115,7 @@ internal fun ApplicationCall.corsCheckRequestMethod(methods: Set<HttpMethod>): B
     val success = requestMethod != null && requestMethod in methods
 
     if (!success) {
-        LOGGER.info {
+        LOGGER.trace {
             if (requestMethod == null) {
                 "${request.id()}: Preflight: The request header Access-Control-Request-Method is missing"
             } else {
@@ -185,8 +185,4 @@ internal fun normalizeOrigin(origin: String): String {
     }
 
     return builder.toString()
-}
-
-internal inline fun Logger.info(message: () -> String) {
-    info(message())
 }
