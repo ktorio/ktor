@@ -11,6 +11,15 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.openapi.*
 import io.ktor.serialization.kotlinx.json.*
+import io.ktor.server.auth.Authentication
+import io.ktor.server.auth.AuthenticationStrategy
+import io.ktor.server.auth.OAuthServerSettings
+import io.ktor.server.auth.UserIdPrincipal
+import io.ktor.server.auth.apikey.apiKey
+import io.ktor.server.auth.authenticate
+import io.ktor.server.auth.basic
+import io.ktor.server.auth.bearer
+import io.ktor.server.auth.oauth
 import io.ktor.serialization.kotlinx.serialization
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.response.*
@@ -26,6 +35,7 @@ import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class RouteAnnotationApiTest {
 

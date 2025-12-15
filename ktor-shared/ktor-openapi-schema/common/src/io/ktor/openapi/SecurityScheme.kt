@@ -4,10 +4,11 @@
 
 package io.ktor.openapi
 
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.KeepGeneratedSerializer
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.*
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.buildClassSerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 
 /**
  * Defines a security scheme that can be used by the operations.
@@ -15,9 +16,44 @@ import kotlinx.serialization.Serializable
  * @property type The type of the security scheme.
  * @property description A short description for a security scheme.
  */
+@Serializable(SecuritySchemeSerializer::class)
 public sealed interface SecurityScheme {
     public val type: SecuritySchemeType
     public val description: String?
+}
+
+@OptIn(InternalSerializationApi::class)
+internal object SecuritySchemeSerializer : KSerializer<SecurityScheme> {
+    @Suppress("UNCHECKED_CAST")
+    private val serializers = mapOf(
+        SecuritySchemeType.HTTP to HttpSecurityScheme.serializer() as KSerializer<SecurityScheme>,
+        SecuritySchemeType.API_KEY to ApiKeySecurityScheme.serializer() as KSerializer<SecurityScheme>,
+        SecuritySchemeType.OAUTH2 to OAuth2SecurityScheme.serializer() as KSerializer<SecurityScheme>,
+        SecuritySchemeType.OPEN_ID_CONNECT to OpenIdConnectSecurityScheme.serializer() as KSerializer<SecurityScheme>,
+    )
+
+    override val descriptor: SerialDescriptor =
+        buildClassSerialDescriptor("SecurityScheme") {
+            element("type", SecuritySchemeType.serializer().descriptor)
+        }
+
+    override fun serialize(encoder: Encoder, value: SecurityScheme) {
+        val serializer = serializers[value.type]
+            ?: error("Unknown security scheme type: ${value.type}")
+        return serializer.serialize(encoder, value)
+    }
+
+    override fun deserialize(decoder: Decoder): SecurityScheme {
+        val element: GenericElement = decoder.decodeSerializableValue(
+            deserializer = decoder.serializersModule.serializer()
+        )
+        val (_, typename) = element.entries().firstOrNull { e -> e.first == "type" }
+            ?: error("SecurityScheme is missing 'type' field")
+        val type = typename.deserialize(SecuritySchemeType.serializer())
+        val serializer = serializers[type]
+            ?: error("Unknown security scheme type: $type")
+        return element.deserialize(serializer)
+    }
 }
 
 /**
@@ -38,6 +74,8 @@ public data class HttpSecurityScheme(
     public override val description: String? = null,
     public override val extensions: ExtensionProperties = null,
 ) : SecurityScheme, Extensible {
+
+    @EncodeDefault(EncodeDefault.Mode.ALWAYS)
     public override val type: SecuritySchemeType = SecuritySchemeType.HTTP
 
     public companion object {
@@ -73,8 +111,10 @@ public data class ApiKeySecurityScheme(
     public val name: String? = null,
     public val `in`: SecuritySchemeIn? = null,
     public override val description: String? = null,
-    public override val extensions: ExtensionProperties = null,
+    public override val extensions: ExtensionProperties = null
 ) : SecurityScheme, Extensible {
+
+    @EncodeDefault(EncodeDefault.Mode.ALWAYS)
     public override val type: SecuritySchemeType = SecuritySchemeType.API_KEY
 
     public companion object {
@@ -95,6 +135,8 @@ public data class OAuth2SecurityScheme(
     public override val description: String? = null,
     public override val extensions: ExtensionProperties = null,
 ) : SecurityScheme, Extensible {
+
+    @EncodeDefault(EncodeDefault.Mode.ALWAYS)
     public override val type: SecuritySchemeType = SecuritySchemeType.OAUTH2
 
     public companion object {
@@ -115,7 +157,8 @@ public data class OpenIdConnectSecurityScheme(
     public override val description: String? = null,
     public override val extensions: ExtensionProperties = null,
 ) : SecurityScheme, Extensible {
-    override val type: SecuritySchemeType = SecuritySchemeType.OPEN_ID_CONNECT
+    @EncodeDefault(EncodeDefault.Mode.ALWAYS)
+    public override val type: SecuritySchemeType = SecuritySchemeType.OPEN_ID_CONNECT
 
     public companion object {
         public const val DEFAULT_DESCRIPTION: String = "OpenID Connect Authentication"
