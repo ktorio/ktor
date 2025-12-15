@@ -178,6 +178,25 @@ internal fun Application.serverSentEvents() {
                 call.response.header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                 call.respond(HttpStatusCode.BadRequest, "{ 'error': 'Bad request' }")
             }
+
+            var activeSessions = 0
+            get("/active-sessions-count") {
+                call.respond("$activeSessions")
+            }
+            get("/active-sessions") {
+                activeSessions = 1
+                call.respondBytesWriter(contentType = ContentType.Text.EventStream) {
+                    try {
+                        while (!isClosedForWrite) {
+                            writeSseEvent(SseEvent("ok"))
+                            flush()
+                            delay(100)
+                        }
+                    } finally {
+                        activeSessions = 0
+                    }
+                }
+            }
         }
     }
 }
@@ -188,7 +207,12 @@ private suspend fun ApplicationCall.respondSseEvents(events: Flow<SseEvent>) {
     }
 }
 
-private suspend fun ByteWriteChannel.writeSseEvents(events: Flow<SseEvent>): Unit = events.collect { event ->
+
+private suspend fun ByteWriteChannel.writeSseEvents(events: Flow<SseEvent>): Unit = events.collect {
+    writeSseEvent(it)
+}
+
+private suspend fun ByteWriteChannel.writeSseEvent(event: SseEvent) {
     if (event.id != null) {
         writeStringUtf8WithNewlineAndFlush("id: ${event.id}")
     }
