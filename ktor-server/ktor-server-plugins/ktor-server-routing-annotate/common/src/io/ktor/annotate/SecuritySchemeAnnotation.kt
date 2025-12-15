@@ -14,13 +14,20 @@ import io.ktor.server.sessions.SessionTransportCookie
 import io.ktor.server.sessions.SessionTransportHeader
 import io.ktor.util.*
 import io.ktor.utils.io.*
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.iterator
+import kotlin.collections.set
 
 /**
  * Attribute key for storing OpenAPI security scheme metadata for authentication providers.
  * Maps provider names to their corresponding SecurityScheme definitions.
  */
-public val AuthenticationSecuritySchemesAttributeKey: AttributeKey<Map<String, SecurityScheme>> =
-    AttributeKey("AuthenticationSecuritySchemes")
+public val AuthSecuritySchemesAttributeKey: AttributeKey<Map<String, SecurityScheme>> =
+    AttributeKey("AuthSecuritySchemes")
+
+public val AuthSecuritySchemesCacheAttributeKey: AttributeKey<Map<String, SecurityScheme>> =
+    AttributeKey("InferredAuthSecuritySchemes")
 
 /**
  * Registers a security scheme for an authentication provider.
@@ -34,8 +41,8 @@ public fun Application.registerSecurityScheme(
     securityScheme: SecurityScheme
 ) {
     val providerName = providerName ?: AuthenticationRouteSelector.DEFAULT_NAME
-    val existingSchemes = attributes.getOrNull(AuthenticationSecuritySchemesAttributeKey) ?: emptyMap()
-    attributes.put(AuthenticationSecuritySchemesAttributeKey, existingSchemes + (providerName to securityScheme))
+    val existingSchemes = attributes.getOrNull(AuthSecuritySchemesAttributeKey) ?: emptyMap()
+    attributes.put(AuthSecuritySchemesAttributeKey, existingSchemes + (providerName to securityScheme))
 }
 
 /**
@@ -43,31 +50,56 @@ public fun Application.registerSecurityScheme(
  *
  * @param inferFromAuthenticationPlugin Whether to infer security schemes from the installed [Authentication] plugin.
  * @param includeJwt Whether to include JWT security schemes in the result. Enable only if you have a plugin installed.
+ * @param useCache Whether to use a cached value if available.
  *
  * @return A map of provider names to their security schemes, or null if no schemes are available.
  */
 public fun Application.findSecuritySchemes(
     inferFromAuthenticationPlugin: Boolean = true,
-    includeJwt: Boolean = false
-): Map<String, ReferenceOr<SecurityScheme>>? {
-    val manualSchemes = attributes.getOrNull(AuthenticationSecuritySchemesAttributeKey)
-    val inferredSchemes = when (inferFromAuthenticationPlugin) {
-        true -> inferSecuritySchemesFromAuthentication(includeJwt)
-        false -> null
+    includeJwt: Boolean = false,
+    useCache: Boolean = false
+): Map<String, SecurityScheme>? {
+    val cachedSchemes = attributes.getOrNull(AuthSecuritySchemesCacheAttributeKey)
+    if (cachedSchemes != null && useCache) {
+        return cachedSchemes
     }
-    val manualSchemesRefs = manualSchemes?.wrap()
-    val inferredSchemesRefs = inferredSchemes?.wrap()
-    return when {
-        manualSchemesRefs != null && inferredSchemesRefs != null -> inferredSchemesRefs + manualSchemesRefs
-        manualSchemesRefs != null -> manualSchemesRefs
-        inferredSchemesRefs != null -> inferredSchemesRefs
+    val manualSchemes = attributes.getOrNull(AuthSecuritySchemesAttributeKey)
+    val inferredSchemes = when {
+        inferFromAuthenticationPlugin -> inferSecuritySchemesFromAuthentication(includeJwt)
         else -> null
     }
+    val mergedScheme = when {
+        manualSchemes != null && inferredSchemes != null -> inferredSchemes + manualSchemes
+        manualSchemes != null -> manualSchemes
+        inferredSchemes != null -> inferredSchemes
+        else -> null
+    }
+    if (useCache && mergedScheme != null) {
+        attributes[AuthSecuritySchemesCacheAttributeKey] = mergedScheme
+    }
+    return mergedScheme
 }
 
-private fun Map<String, SecurityScheme>.wrap() = buildMap<String, ReferenceOr<SecurityScheme>> {
-    for ((providerName, securityScheme) in this@wrap) {
-        set(providerName, value(securityScheme))
+/**
+ * Retrieves all registered security schemes from the application.
+ *
+ * @param inferFromAuthenticationPlugin Whether to infer security schemes from the installed [Authentication] plugin.
+ * @param includeJwt Whether to include JWT security schemes in the result. Enable only if you have a plugin installed.
+ * @param useCache Whether to use a cached value if available.
+ *
+ * @return A map of provider names to their security schemes wrapped in ReferenceOr<SecurityScheme>, or null if no schemes are available.
+ */
+public fun Application.findSecuritySchemesOrRefs(
+    inferFromAuthenticationPlugin: Boolean = true,
+    includeJwt: Boolean = false,
+    useCache: Boolean = false
+): Map<String, ReferenceOr<SecurityScheme>>? {
+    return findSecuritySchemes(inferFromAuthenticationPlugin, includeJwt, useCache)?.let {
+        buildMap {
+            for ((providerName, securityScheme) in it) {
+                set(providerName, value(securityScheme))
+            }
+        }
     }
 }
 
@@ -194,16 +226,16 @@ public fun Application.registerBearerAuthSecurityScheme(
  *
  * @param name The name of the security scheme. Defaults to "default".
  * @param keyName The name of the header, query, or cookie parameter.
- * @param location The location of the API key (header, query, or cookie).
+ * @param keyLocation The location of the API key (header, query, or cookie).
  * @param description Optional description for the security scheme. Defaults to "API Key Authentication".
  */
 public fun Application.registerApiKeySecurityScheme(
     name: String? = null,
     keyName: String,
-    location: SecuritySchemeIn,
+    keyLocation: SecuritySchemeIn,
     description: String = ApiKeySecurityScheme.DEFAULT_DESCRIPTION
 ) {
-    val scheme = ApiKeySecurityScheme(name = keyName, `in` = location, description = description)
+    val scheme = ApiKeySecurityScheme(name = keyName, `in` = keyLocation, description = description)
     registerSecurityScheme(name, scheme)
 }
 

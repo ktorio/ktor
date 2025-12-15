@@ -1634,7 +1634,9 @@ public final class io/ktor/openapi/Security$Builder {
 	public final fun getRequirements ()Ljava/util/List;
 	public final fun oauth2 ([Ljava/lang/String;)V
 	public final fun openIdConnect ([Ljava/lang/String;)V
+	public final fun optional ()V
 	public final fun requirement (Ljava/lang/String;Ljava/util/List;)V
+	public final fun requirement (Ljava/util/Map;)V
 	public static synthetic fun requirement$default (Lio/ktor/openapi/Security$Builder;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)V
 }
 
@@ -1643,8 +1645,13 @@ public final class io/ktor/openapi/Security$Companion {
 }
 
 public abstract interface class io/ktor/openapi/SecurityScheme {
+	public static final field Companion Lio/ktor/openapi/SecurityScheme$Companion;
 	public abstract fun getDescription ()Ljava/lang/String;
 	public abstract fun getType ()Lio/ktor/openapi/SecuritySchemeType;
+}
+
+public final class io/ktor/openapi/SecurityScheme$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
 public final class io/ktor/openapi/SecuritySchemeIn : java/lang/Enum {

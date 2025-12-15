@@ -166,6 +166,11 @@ sealed interface io.ktor.openapi/SecurityScheme { // io.ktor.openapi/SecuritySch
         abstract fun <get-description>(): kotlin/String? // io.ktor.openapi/SecurityScheme.description.<get-description>|<get-description>(){}[0]
     abstract val type // io.ktor.openapi/SecurityScheme.type|{}type[0]
         abstract fun <get-type>(): io.ktor.openapi/SecuritySchemeType // io.ktor.openapi/SecurityScheme.type.<get-type>|<get-type>(){}[0]
+
+    final object Companion : kotlinx.serialization.internal/SerializerFactory { // io.ktor.openapi/SecurityScheme.Companion|null[0]
+        final fun serializer(): kotlinx.serialization/KSerializer<io.ktor.openapi/SecurityScheme> // io.ktor.openapi/SecurityScheme.Companion.serializer|serializer(){}[0]
+        final fun serializer(kotlin/Array<out kotlinx.serialization/KSerializer<*>>...): kotlinx.serialization/KSerializer<*> // io.ktor.openapi/SecurityScheme.Companion.serializer|serializer(kotlin.Array<out|kotlinx.serialization.KSerializer<*>>...){}[0]
+    }
 }
 
 final class <#A: kotlin/Any> io.ktor.openapi/GenericElementWrapper : io.ktor.openapi/GenericElement { // io.ktor.openapi/GenericElementWrapper|null[0]
@@ -1840,6 +1845,8 @@ final class io.ktor.openapi/Security { // io.ktor.openapi/Security|null[0]
         final fun basic() // io.ktor.openapi/Security.Builder.basic|basic(){}[0]
         final fun oauth2(kotlin/Array<out kotlin/String>...) // io.ktor.openapi/Security.Builder.oauth2|oauth2(kotlin.Array<out|kotlin.String>...){}[0]
         final fun openIdConnect(kotlin/Array<out kotlin/String>...) // io.ktor.openapi/Security.Builder.openIdConnect|openIdConnect(kotlin.Array<out|kotlin.String>...){}[0]
+        final fun optional() // io.ktor.openapi/Security.Builder.optional|optional(){}[0]
+        final fun requirement(kotlin.collections/Map<kotlin/String, kotlin.collections/List<kotlin/String>>) // io.ktor.openapi/Security.Builder.requirement|requirement(kotlin.collections.Map<kotlin.String,kotlin.collections.List<kotlin.String>>){}[0]
         final fun requirement(kotlin/String, kotlin.collections/List<kotlin/String> = ...) // io.ktor.openapi/Security.Builder.requirement|requirement(kotlin.String;kotlin.collections.List<kotlin.String>){}[0]
     }
 

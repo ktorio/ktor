@@ -25,7 +25,7 @@ class SecuritySchemeInferenceTest {
         val schemes = application.findSecuritySchemes(inferFromAuthenticationPlugin = true)
         assertNotNull(schemes)
 
-        val scheme = schemes["basic-auth"]?.valueOrNull() as HttpSecurityScheme
+        val scheme = schemes["basic-auth"] as HttpSecurityScheme
         assertEquals(SecuritySchemeType.HTTP, scheme.type)
         assertEquals("basic", scheme.scheme)
         assertEquals("HTTP Basic Authentication", scheme.description)
@@ -45,8 +45,8 @@ class SecuritySchemeInferenceTest {
         assertNotNull(schemes)
         assertEquals(2, schemes.size)
 
-        val adminScheme = schemes["admin-basic"]?.valueOrNull() as HttpSecurityScheme
-        val userScheme = schemes["user-basic"]?.valueOrNull() as HttpSecurityScheme
+        val adminScheme = schemes["admin-basic"] as HttpSecurityScheme
+        val userScheme = schemes["user-basic"] as HttpSecurityScheme
 
         assertEquals("HTTP Basic Authentication", adminScheme.description)
         assertEquals("Custom Basic Auth Description", userScheme.description)
@@ -67,12 +67,12 @@ class SecuritySchemeInferenceTest {
         val schemes = application.findSecuritySchemes(inferFromAuthenticationPlugin = true)
         assertNotNull(schemes)
 
-        val scheme1 = schemes["bearer-auth"]?.valueOrNull() as HttpSecurityScheme
+        val scheme1 = schemes["bearer-auth"] as HttpSecurityScheme
         assertEquals(SecuritySchemeType.HTTP, scheme1.type)
         assertEquals("bearer", scheme1.scheme)
         assertEquals("HTTP Bearer Authentication", scheme1.description)
 
-        val scheme2 = schemes["multi-scheme-bearer"]?.valueOrNull() as HttpSecurityScheme
+        val scheme2 = schemes["multi-scheme-bearer"] as HttpSecurityScheme
 
         // Inference creates a standard-bearer scheme regardless of custom schemes
         assertEquals("bearer", scheme2.scheme)
@@ -96,13 +96,13 @@ class SecuritySchemeInferenceTest {
         assertNotNull(schemes)
         assertEquals(2, schemes.size)
 
-        val headerScheme = schemes["api-key-header"]?.valueOrNull() as ApiKeySecurityScheme
+        val headerScheme = schemes["api-key-header"] as ApiKeySecurityScheme
         assertEquals(SecuritySchemeType.API_KEY, headerScheme.type)
         assertEquals("X-Api-Key", headerScheme.name)
         assertEquals(SecuritySchemeIn.HEADER, headerScheme.`in`)
         assertEquals("API Key Authentication", headerScheme.description)
 
-        val customScheme = schemes["api-key-custom"]?.valueOrNull() as ApiKeySecurityScheme
+        val customScheme = schemes["api-key-custom"] as ApiKeySecurityScheme
         assertEquals(SecuritySchemeType.API_KEY, customScheme.type)
         assertEquals("X-Custom-Key", customScheme.name)
         assertEquals(SecuritySchemeIn.HEADER, customScheme.`in`)
@@ -149,7 +149,7 @@ class SecuritySchemeInferenceTest {
         val schemes = application.findSecuritySchemes(inferFromAuthenticationPlugin = true)
         assertNotNull(schemes)
 
-        val cookieScheme = schemes["cookie-auth"]?.valueOrNull() as ApiKeySecurityScheme
+        val cookieScheme = schemes["cookie-auth"] as ApiKeySecurityScheme
         assertEquals(SecuritySchemeType.API_KEY, cookieScheme.type)
         assertEquals("user_session", cookieScheme.name)
         assertEquals(SecuritySchemeIn.COOKIE, cookieScheme.`in`)
@@ -158,7 +158,7 @@ class SecuritySchemeInferenceTest {
             cookieScheme.description
         )
 
-        val headerScheme = schemes["header-session"]?.valueOrNull() as ApiKeySecurityScheme
+        val headerScheme = schemes["header-session"] as ApiKeySecurityScheme
 
         assertEquals(SecuritySchemeType.API_KEY, headerScheme.type)
         assertEquals("X-Session-Token", headerScheme.name)
@@ -198,12 +198,12 @@ class SecuritySchemeInferenceTest {
         val schemes = application.findSecuritySchemes(inferFromAuthenticationPlugin = true)
         assertNotNull(schemes)
 
-        val headerScheme1 = schemes["header-session-empty-description"]?.valueOrNull() as ApiKeySecurityScheme
+        val headerScheme1 = schemes["header-session-empty-description"] as ApiKeySecurityScheme
         assertEquals("user_session", headerScheme1.name)
         assertEquals(SecuritySchemeIn.COOKIE, headerScheme1.`in`)
         assertEquals("", headerScheme1.description)
 
-        val headerScheme2 = schemes["header-session-custom-description"]?.valueOrNull() as ApiKeySecurityScheme
+        val headerScheme2 = schemes["header-session-custom-description"] as ApiKeySecurityScheme
         assertEquals("some-header", headerScheme2.name)
         assertEquals(SecuritySchemeIn.HEADER, headerScheme2.`in`)
     }
@@ -244,7 +244,7 @@ class SecuritySchemeInferenceTest {
         val schemes = application.findSecuritySchemes(inferFromAuthenticationPlugin = true)
         assertNotNull(schemes)
 
-        val scheme = schemes["oauth-no-desc"]?.valueOrNull() as OAuth2SecurityScheme
+        val scheme = schemes["oauth-no-desc"] as OAuth2SecurityScheme
         assertEquals(SecuritySchemeType.OAUTH2, scheme.type)
         assertEquals("OAuth2 Authentication", scheme.description)
 
@@ -257,7 +257,7 @@ class SecuritySchemeInferenceTest {
         assertEquals("OAuth2 scope", flow1.scopes?.get("profile"))
         assertEquals("OAuth2 scope", scheme.flows?.authorizationCode?.scopes?.get("email"))
 
-        val scheme2 = schemes["oauth-custom"]?.valueOrNull() as OAuth2SecurityScheme
+        val scheme2 = schemes["oauth-custom"] as OAuth2SecurityScheme
         assertEquals(SecuritySchemeType.OAUTH2, scheme2.type)
         assertEquals("OAuth2 Authentication for Social Login", scheme2.description)
 
@@ -291,12 +291,12 @@ class SecuritySchemeInferenceTest {
         assertNotNull(schemes)
         assertEquals(2, schemes.size)
 
-        val scheme1 = schemes["openid-connect"]?.valueOrNull() as OpenIdConnectSecurityScheme
+        val scheme1 = schemes["openid-connect"] as OpenIdConnectSecurityScheme
         assertEquals(SecuritySchemeType.OPEN_ID_CONNECT, scheme1.type)
         assertEquals("https://example.com/.well-known/openid-configuration", scheme1.openIdConnectUrl)
         assertEquals("OpenID Connect Authentication", scheme1.description)
 
-        val scheme2 = schemes["openid-connect-with-desc"]?.valueOrNull() as OpenIdConnectSecurityScheme
+        val scheme2 = schemes["openid-connect-with-desc"] as OpenIdConnectSecurityScheme
         assertEquals(SecuritySchemeType.OPEN_ID_CONNECT, scheme2.type)
         assertEquals("https://auth.example.com/.well-known/openid-configuration", scheme2.openIdConnectUrl)
         assertEquals("Custom OpenID Connect Authentication", scheme2.description)
@@ -322,14 +322,14 @@ class SecuritySchemeInferenceTest {
         assertNotNull(schemes)
         assertEquals(3, schemes.size)
 
-        assertTrue(schemes["basic"]?.valueOrNull() is HttpSecurityScheme)
-        assertEquals("basic", (schemes["basic"]?.valueOrNull() as HttpSecurityScheme).scheme)
+        assertTrue(schemes["basic"] is HttpSecurityScheme)
+        assertEquals("basic", (schemes["basic"] as HttpSecurityScheme).scheme)
 
-        assertTrue(schemes["bearer"]?.valueOrNull() is HttpSecurityScheme)
-        assertEquals("bearer", (schemes["bearer"]?.valueOrNull() as HttpSecurityScheme).scheme)
+        assertTrue(schemes["bearer"] is HttpSecurityScheme)
+        assertEquals("bearer", (schemes["bearer"] as HttpSecurityScheme).scheme)
 
-        assertTrue(schemes["session"]?.valueOrNull() is ApiKeySecurityScheme)
-        assertEquals(SecuritySchemeIn.COOKIE, (schemes["session"]?.valueOrNull() as ApiKeySecurityScheme).`in`)
+        assertTrue(schemes["session"] is ApiKeySecurityScheme)
+        assertEquals(SecuritySchemeIn.COOKIE, (schemes["session"] as ApiKeySecurityScheme).`in`)
     }
 
     @Test
@@ -342,7 +342,7 @@ class SecuritySchemeInferenceTest {
         val schemes = application.findSecuritySchemes(inferFromAuthenticationPlugin = true)
         assertNotNull(schemes)
 
-        val scheme = schemes[AuthenticationRouteSelector.DEFAULT_NAME]?.valueOrNull() as HttpSecurityScheme
+        val scheme = schemes[AuthenticationRouteSelector.DEFAULT_NAME] as HttpSecurityScheme
         assertEquals("basic", scheme.scheme)
     }
 
@@ -363,11 +363,11 @@ class SecuritySchemeInferenceTest {
         assertNotNull(schemes)
         assertEquals(2, schemes.size)
 
-        val bearerScheme = schemes["bearer-manual"]?.valueOrNull() as HttpSecurityScheme
+        val bearerScheme = schemes["bearer-manual"] as HttpSecurityScheme
         assertEquals("Custom Bearer", bearerScheme.description)
         assertEquals("JWT", bearerScheme.bearerFormat)
 
-        val basicScheme = schemes["basic-inferred"]?.valueOrNull() as HttpSecurityScheme
+        val basicScheme = schemes["basic-inferred"] as HttpSecurityScheme
         assertEquals("HTTP Basic Authentication", basicScheme.description)
     }
 
