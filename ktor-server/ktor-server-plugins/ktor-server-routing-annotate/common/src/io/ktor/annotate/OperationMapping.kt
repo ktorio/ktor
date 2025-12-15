@@ -6,6 +6,9 @@ package io.ktor.annotate
 
 import io.ktor.http.*
 import io.ktor.openapi.*
+import io.ktor.openapi.JsonSchema.JsonType
+
+private val StringReference: ReferenceOr<JsonSchema> = ReferenceOr.Value(JsonSchema(type = JsonType.STRING))
 
 /**
  * Mapping function for [Operation].
@@ -70,7 +73,7 @@ public val PopulateMediaTypeDefaults: OperationMapping = OperationMapping { oper
             ReferenceOr.Value(
                 param.copy(
                     `in` = param.`in` ?: ParameterType.query,
-                    schema = JsonSchema.StringReference.takeIf { param.content == null },
+                    schema = StringReference.takeIf { param.content == null },
                 )
             )
         },
@@ -82,7 +85,7 @@ public val PopulateMediaTypeDefaults: OperationMapping = OperationMapping { oper
                         headers = resp.headers?.mapValues { (_, headerRef) ->
                             headerRef.mapValue { header ->
                                 header.copy(
-                                    schema = JsonSchema.StringReference.takeIf { header.content == null },
+                                    schema = StringReference.takeIf { header.content == null },
                                 )
                             }
                         }
@@ -94,7 +97,7 @@ public val PopulateMediaTypeDefaults: OperationMapping = OperationMapping { oper
                             headers = resp.headers?.mapValues { (_, headerRef) ->
                                 headerRef.mapValue { header ->
                                     header.copy(
-                                        schema = JsonSchema.StringReference.takeIf { header.content == null },
+                                        schema = StringReference.takeIf { header.content == null },
                                     )
                                 }
                             }

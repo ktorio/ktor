@@ -4,23 +4,29 @@
 
 package io.ktor.server.plugins.swagger
 
-import io.ktor.annotate.OpenApiSpecSource
+import io.ktor.annotate.OpenApiDocSource
 import io.ktor.http.ContentType
+import io.ktor.openapi.OpenApiDoc
+import io.ktor.openapi.OpenApiDocDsl
 
 /**
  * A configuration for the Swagger UI endpoint.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.swagger.SwaggerConfig)
  */
-public class SwaggerConfig {
+public class SwaggerConfig private constructor(
+    private val docBuilder: OpenApiDoc.Builder
+) : OpenApiDocDsl by docBuilder {
+    public constructor() : this(OpenApiDoc.Builder())
+
     internal var customStyle: String? = null
 
     /**
      * Defines the source of the OpenAPI specification.
      */
-    public var source: OpenApiSpecSource = OpenApiSpecSource.FirstOf(
-        OpenApiSpecSource.FileSource("openapi/documentation.yaml"),
-        OpenApiSpecSource.RoutingSource(ContentType.Application.Yaml),
+    public var source: OpenApiDocSource = OpenApiDocSource.FirstOf(
+        OpenApiDocSource.FileSource("openapi/documentation.yaml"),
+        OpenApiDocSource.RoutingSource(contentType = ContentType.Application.Yaml),
     )
 
     /**
@@ -62,8 +68,14 @@ public class SwaggerConfig {
      */
     public var deepLinking: Boolean = false
 
-    /*
+    /**
      * Swagger favicon location
      */
     public var faviconLocation: String = "https://unpkg.com/swagger-ui-dist@$version/favicon-32x32.png"
+
+    /**
+     * Base document is built for route-based OpenAPI generation.
+     */
+    internal fun buildBaseDoc(): OpenApiDoc =
+        docBuilder.build()
 }

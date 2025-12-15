@@ -45,17 +45,17 @@ public fun Route.annotate(configure: RouteAnnotationFunction): Route {
 }
 
 /**
- * Generates an OpenAPI specification for the given [route].
+ * Generates an OpenAPI document from the given [route].
  *
- * @param info The OpenAPI info object.
+ * @param base The base OpenAPI document containing meta info.
  * @param route The route to generate the specification for.
  */
-public fun generateOpenApiSpec(
-    info: OpenApiInfo,
-    route: Route,
-): OpenApiSpecification {
+public fun generateOpenApiDoc(
+    base: OpenApiDoc,
+    routes: Sequence<Route>,
+): OpenApiDoc {
     val jsonSchema = mutableMapOf<String, JsonSchema>()
-    val pathItems = route.findPathItems(
+    val pathItems = routes.findPathItems(
         PopulateMediaTypeDefaults + CollectSchemaReferences { schema ->
             val title = schema.title ?: return@CollectSchemaReferences null
             val unqualifiedTitle = title.substringAfterLast('.')
@@ -71,9 +71,10 @@ public fun generateOpenApiSpec(
         }
     )
 
-    return OpenApiSpecification(
-        info = info,
-        paths = pathItems,
+    return base.copy(
+        paths = base.paths + pathItems.mapValues {
+            ReferenceOr.Value(it.value)
+        },
         components = Components(
             schemas = jsonSchema.takeIf { it.isNotEmpty() }
         )
@@ -83,20 +84,20 @@ public fun generateOpenApiSpec(
 /**
  * Finds all [PathItem]s under the given [Route].
  */
-public fun Route.findPathItems(
+public fun Sequence<Route>.findPathItems(
     onOperation: OperationMapping = PopulateMediaTypeDefaults
 ): Map<String, PathItem> {
-    return descendants()
-        .mapNotNull { it.asPathItem(onOperation) }
-        .fold(mutableMapOf()) { map, (route, pathItem) ->
-            map.also {
-                if (route in map) {
-                    map[route] = map[route]!! + pathItem
-                } else {
-                    map[route] = pathItem
-                }
+    return mapNotNull {
+        it.asPathItem(onOperation)
+    }.fold(mutableMapOf()) { map, (route, pathItem) ->
+        map.also {
+            if (route in map) {
+                map[route] = map[route]!! + pathItem
+            } else {
+                map[route] = pathItem
             }
         }
+    }
 }
 
 private fun Route.asPathItem(

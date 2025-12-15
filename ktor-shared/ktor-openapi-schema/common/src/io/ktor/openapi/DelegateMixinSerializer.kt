@@ -10,6 +10,7 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.StructureKind
+import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.descriptors.buildSerialDescriptor
 import kotlinx.serialization.descriptors.elementNames
 import kotlinx.serialization.encoding.Decoder
@@ -82,12 +83,7 @@ internal abstract class DelegateMixinSerializer<T>(
     }
 
     @OptIn(InternalSerializationApi::class)
-    override val descriptor: SerialDescriptor = buildSerialDescriptor(
-        baseSerializer.descriptor.serialName,
-        StructureKind.MAP,
-        String.serializer().descriptor,
-        GenericElement.serializer().descriptor
-    )
+    override val descriptor: SerialDescriptor = baseSerializer.descriptor
 
     override fun serialize(encoder: Encoder, value: T) {
         val joinedElement: GenericElement? = genericElementSerialAdapters.firstNotNullOfOrNull {

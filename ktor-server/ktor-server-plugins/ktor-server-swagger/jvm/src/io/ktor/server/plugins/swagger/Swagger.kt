@@ -5,7 +5,7 @@
 package io.ktor.server.plugins.swagger
 
 import io.ktor.annotate.*
-import io.ktor.annotate.OpenApiSpecSource.Companion.readOpenApiSource
+import io.ktor.annotate.OpenApiDocSource.Companion.readOpenApiSource
 import io.ktor.server.html.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -33,7 +33,7 @@ public fun Route.swaggerUI(
 ): Route =
     swaggerUI(path) {
         block()
-        source = OpenApiSpecSource.FileSource(swaggerFile)
+        source = OpenApiDocSource.FileSource(swaggerFile)
         remotePath = File(swaggerFile).name
     }
 
@@ -47,7 +47,7 @@ public fun Route.swaggerUI(
 public fun Route.swaggerUI(path: String, apiFile: File, block: SwaggerConfig.() -> Unit = {}): Route =
     swaggerUI(path) {
         block()
-        source = OpenApiSpecSource.FileSource(apiFile.absolutePath)
+        source = OpenApiDocSource.FileSource(apiFile.absolutePath)
         remotePath = apiFile.name
     }
 
@@ -73,7 +73,7 @@ public fun Route.swaggerUI(
 ): Route =
     swaggerUI(path) {
         block()
-        source = OpenApiSpecSource.StringSource(api)
+        source = OpenApiDocSource.StringSource(api)
         remotePath = apiUrl
     }
 
@@ -92,16 +92,16 @@ public fun Route.swaggerUI(
     val config = SwaggerConfig().apply(block)
     val source = config.source
     val apiUrl = config.remotePath
-    val specData = with(application) {
+    val openApiDocText = with(application) {
         async(start = CoroutineStart.LAZY) {
-            readOpenApiSource(source)
+            readOpenApiSource(source, config.buildBaseDoc())
                 ?: error("Failed to read OpenAPI document from $source")
         }
     }
 
     return route(path) {
         get(apiUrl) {
-            call.respondText(specData.await(), source.contentType)
+            call.respondText(openApiDocText.await(), source.contentType)
         }
         get {
             val fullPath = call.request.path()

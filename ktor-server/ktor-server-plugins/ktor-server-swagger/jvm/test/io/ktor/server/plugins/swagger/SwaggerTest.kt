@@ -4,7 +4,7 @@
 
 package io.ktor.server.plugins.swagger
 
-import io.ktor.annotate.OpenApiSpecSource
+import io.ktor.annotate.OpenApiDocSource
 import io.ktor.annotate.annotate
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -16,6 +16,7 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import io.ktor.server.testing.*
+import kotlinx.serialization.Serializable
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
@@ -244,11 +245,10 @@ class SwaggerTest {
             }
 
             swaggerUI("/swagger") {
-                source = OpenApiSpecSource.RoutingSource(
-                    info = OpenApiInfo("Books API from routes", "1.0.0"),
-                    route = apiRoute,
-                    contentType = ContentType.Application.Yaml
-                )
+                info = OpenApiInfo("Books API from routes", "1.0.0")
+                source = OpenApiDocSource.RoutingSource(ContentType.Application.Yaml) {
+                    apiRoute.descendants()
+                }
             }
         }
 
@@ -263,4 +263,5 @@ class SwaggerTest {
     }
 }
 
+@Serializable
 data class Book(val title: String, val author: String)
