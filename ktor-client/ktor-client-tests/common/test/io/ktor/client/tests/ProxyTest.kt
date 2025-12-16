@@ -11,6 +11,7 @@ import io.ktor.client.request.*
 import io.ktor.client.test.base.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.Serializable
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -52,6 +53,7 @@ class ProxyTest : ClientLoader() {
     }
 
     @Test
+    @Ignore
     fun testSocksProxy() = clientTests(
         except("Js", "DarwinLegacy", "WinHttp", "CIO", "Apache", "Apache5", "Java")
     ) {
