@@ -52,8 +52,6 @@ public fun Route.annotate(configure: RouteAnnotationFunction): Route {
  *
  * @param base The base OpenAPI document containing meta info.
  * @param route The route to generate the specification for.
- * @param inferSecurity Whether to infer security schemes from the authentication plugin. Defaults to `false`.
- * @param inferJwtSecurity Whether to infer JWT security schemes from the authentication plugin. Defaults to `false`.
  */
 public fun generateOpenApiDoc(
     base: OpenApiDoc,
@@ -174,11 +172,7 @@ private fun Route.operationFromSelector(): Operation? {
         }
 
         is AuthenticationRouteSelector -> {
-            val globalSchemes = application.findSecuritySchemes(
-                inferFromAuthenticationPlugin = true,
-                includeJwt = false,
-                useCache = true
-            )
+            val globalSchemes = application.findSecuritySchemes(useCache = true)
             val registration = attributes.getOrNull(AuthenticateProvidersKey)
             val strategy = registration?.strategy ?: AuthenticationStrategy.FirstSuccessful
 

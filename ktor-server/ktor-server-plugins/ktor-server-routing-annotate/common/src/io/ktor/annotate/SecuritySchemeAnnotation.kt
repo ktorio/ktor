@@ -26,12 +26,13 @@ import kotlin.collections.set
 public val AuthSecuritySchemesAttributeKey: AttributeKey<Map<String, SecurityScheme>> =
     AttributeKey("AuthSecuritySchemes")
 
-public val AuthSecuritySchemesCacheAttributeKey: AttributeKey<Map<String, SecurityScheme>> =
-    AttributeKey("InferredAuthSecuritySchemes")
+internal val AuthSecuritySchemesCacheAttributeKey: AttributeKey<Map<String, SecurityScheme>> =
+    AttributeKey("AuthSecuritySchemesCache")
 
 /**
  * Registers a security scheme for an authentication provider.
  * This metadata will be used to generate the OpenAPI specification.
+ * It's not recommended to use this method after the application has started.
  *
  * @param providerName The name of the authentication provider. Defaults to "default".
  * @param securityScheme The OpenAPI security scheme definition.
@@ -48,53 +49,40 @@ public fun Application.registerSecurityScheme(
 /**
  * Retrieves all registered security schemes from the application.
  *
- * @param inferFromAuthenticationPlugin Whether to infer security schemes from the installed [Authentication] plugin.
- * @param includeJwt Whether to include JWT security schemes in the result. Enable only if you have a plugin installed.
- * @param useCache Whether to use a cached value if available.
+ * @param useCache Whether to use a cached value if available. Enabled by default.
  *
  * @return A map of provider names to their security schemes, or null if no schemes are available.
  */
-public fun Application.findSecuritySchemes(
-    inferFromAuthenticationPlugin: Boolean = true,
-    includeJwt: Boolean = false,
-    useCache: Boolean = false
-): Map<String, SecurityScheme>? {
-    val cachedSchemes = attributes.getOrNull(AuthSecuritySchemesCacheAttributeKey)
-    if (cachedSchemes != null && useCache) {
-        return cachedSchemes
+public fun Application.findSecuritySchemes(useCache: Boolean = true): Map<String, SecurityScheme>? {
+    val cachedSchemes = this.attributes.getOrNull(AuthSecuritySchemesCacheAttributeKey)
+    if (useCache && cachedSchemes != null) {
+        return cachedSchemes.takeIf { it.isNotEmpty() }
     }
     val manualSchemes = attributes.getOrNull(AuthSecuritySchemesAttributeKey)
-    val inferredSchemes = when {
-        inferFromAuthenticationPlugin -> inferSecuritySchemesFromAuthentication(includeJwt)
-        else -> null
-    }
-    val mergedScheme = when {
+    val inferredSchemes = inferSecuritySchemesFromAuthentication()
+    val mergedSchemes = when {
         manualSchemes != null && inferredSchemes != null -> inferredSchemes + manualSchemes
         manualSchemes != null -> manualSchemes
         inferredSchemes != null -> inferredSchemes
         else -> null
     }
-    if (useCache && mergedScheme != null) {
-        attributes[AuthSecuritySchemesCacheAttributeKey] = mergedScheme
+    if (useCache) {
+        attributes[AuthSecuritySchemesCacheAttributeKey] = mergedSchemes ?: emptyMap()
     }
-    return mergedScheme
+    return mergedSchemes
 }
 
 /**
  * Retrieves all registered security schemes from the application.
  *
- * @param inferFromAuthenticationPlugin Whether to infer security schemes from the installed [Authentication] plugin.
- * @param includeJwt Whether to include JWT security schemes in the result. Enable only if you have a plugin installed.
- * @param useCache Whether to use a cached value if available.
+ * @param useCache Whether to use a cached value if available. Enabled by default.
  *
  * @return A map of provider names to their security schemes wrapped in ReferenceOr<SecurityScheme>, or null if no schemes are available.
  */
 public fun Application.findSecuritySchemesOrRefs(
-    inferFromAuthenticationPlugin: Boolean = true,
-    includeJwt: Boolean = false,
-    useCache: Boolean = false
+    useCache: Boolean = true
 ): Map<String, ReferenceOr<SecurityScheme>>? {
-    return findSecuritySchemes(inferFromAuthenticationPlugin, includeJwt, useCache)?.let {
+    return findSecuritySchemes(useCache)?.let {
         buildMap {
             for ((providerName, securityScheme) in it) {
                 set(providerName, value(securityScheme))
@@ -104,28 +92,22 @@ public fun Application.findSecuritySchemesOrRefs(
 }
 
 @OptIn(InternalAPI::class)
-private fun Application.inferSecuritySchemesFromAuthentication(includeJwt: Boolean): Map<String, SecurityScheme>? {
-    val authPlugin = pluginOrNull(Authentication) ?: return null
+private fun Application.inferSecuritySchemesFromAuthentication(): Map<String, SecurityScheme>? = buildMap {
+    val authPlugin = runCatching { pluginOrNull(Authentication) }.getOrElse { null }
+        ?: return null
     val providers = authPlugin.configuration().allProviders()
-    return buildMap {
-        for ((providerName, provider) in providers) {
-            inferSecurityScheme(provider, includeJwt)?.let {
-                set(providerName ?: AuthenticationRouteSelector.DEFAULT_NAME, it)
-            }
+    for ((providerName, provider) in providers) {
+        inferSecurityScheme(provider)?.let {
+            set(providerName ?: AuthenticationRouteSelector.DEFAULT_NAME, it)
         }
-    }.ifEmpty { null }
-}
+    }
+}.ifEmpty { null }
 
 /**
  * Infers the OpenAPI security scheme from an authentication provider based on its type.
  */
 @OptIn(InternalAPI::class)
-private fun Application.inferSecurityScheme(
-    provider: AuthenticationProvider,
-    includeJwt: Boolean
-): SecurityScheme? {
-    inferPlatformSpecificSecurityScheme(provider, includeJwt)?.let { return it }
-
+private fun Application.inferSecurityScheme(provider: AuthenticationProvider): SecurityScheme? {
     return when (provider) {
         is BasicAuthenticationProvider -> HttpSecurityScheme(
             scheme = "basic",
@@ -181,14 +163,11 @@ private fun Application.inferSecurityScheme(
             )
         }
 
-        else -> null
+        else -> inferPlatformSpecificSecurityScheme(provider)
     }
 }
 
-internal expect fun Application.inferPlatformSpecificSecurityScheme(
-    provider: AuthenticationProvider,
-    includeJwt: Boolean
-): SecurityScheme?
+internal expect fun Application.inferPlatformSpecificSecurityScheme(provider: AuthenticationProvider): SecurityScheme?
 
 /**
  * Registers a Basic HTTP authentication security scheme.
