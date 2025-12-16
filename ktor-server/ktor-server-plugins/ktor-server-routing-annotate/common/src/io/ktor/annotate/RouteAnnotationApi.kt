@@ -171,47 +171,49 @@ private fun RoutingNode.operationFromSelector(): Operation? {
             }
         }
 
-        is AuthenticationRouteSelector -> {
-            val globalSchemes = application.findSecuritySchemes(useCache = true)
-            val registration = attributes.getOrNull(AuthenticateProvidersKey)
-            val strategy = registration?.strategy ?: AuthenticationStrategy.FirstSuccessful
+        else -> if (application.isAuthPluginInstalled) operationFromAuthSelector() else null
+    }
+}
 
-            Operation.build {
-                security {
-                    fun firstSuccessful() {
-                        // At least one of the schemes must succeed (OR relationship)
+private fun RoutingNode.operationFromAuthSelector(): Operation? {
+    val paramSelector = selector as? AuthenticationRouteSelector
+        ?: return null
+    val globalSchemes = application.findSecuritySchemes(useCache = true)
+    val registration = attributes.getOrNull(AuthenticateProvidersKey)
+    val strategy = registration?.strategy ?: AuthenticationStrategy.FirstSuccessful
+
+    return Operation.build {
+        security {
+            fun firstSuccessful() {
+                // At least one of the schemes must succeed (OR relationship)
+                for (providerName in paramSelector.names) {
+                    val schemeName = providerName ?: AuthenticationRouteSelector.DEFAULT_NAME
+                    requirement(schemeName, scopes = globalSchemes.scopesFor(schemeName))
+                }
+            }
+
+            when (strategy) {
+                AuthenticationStrategy.Optional -> {
+                    firstSuccessful()
+                    optional()
+                }
+
+                AuthenticationStrategy.FirstSuccessful -> {
+                    firstSuccessful()
+                }
+
+                AuthenticationStrategy.Required -> {
+                    // All schemes must be satisfied (AND relationship)
+                    val schemes = buildMap {
                         for (providerName in paramSelector.names) {
                             val schemeName = providerName ?: AuthenticationRouteSelector.DEFAULT_NAME
-                            requirement(schemeName, scopes = globalSchemes.scopesFor(schemeName))
+                            set(schemeName, globalSchemes.scopesFor(schemeName))
                         }
                     }
-
-                    when (strategy) {
-                        AuthenticationStrategy.Optional -> {
-                            firstSuccessful()
-                            optional()
-                        }
-
-                        AuthenticationStrategy.FirstSuccessful -> {
-                            firstSuccessful()
-                        }
-
-                        AuthenticationStrategy.Required -> {
-                            // All schemes must be satisfied (AND relationship)
-                            val schemes = buildMap {
-                                for (providerName in paramSelector.names) {
-                                    val schemeName = providerName ?: AuthenticationRouteSelector.DEFAULT_NAME
-                                    set(schemeName, globalSchemes.scopesFor(schemeName))
-                                }
-                            }
-                            requirement(schemes)
-                        }
-                    }
+                    requirement(schemes)
                 }
             }
         }
-
-        else -> null
     }
 }
 

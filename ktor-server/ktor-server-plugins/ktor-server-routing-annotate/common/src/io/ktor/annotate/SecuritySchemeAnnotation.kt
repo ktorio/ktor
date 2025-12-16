@@ -91,10 +91,13 @@ public fun Application.findSecuritySchemesOrRefs(
     }
 }
 
+internal val Application.isAuthPluginInstalled: Boolean
+    get() = runCatching { pluginOrNull(Authentication) != null }.getOrElse { false }
+
 @OptIn(InternalAPI::class)
 private fun Application.inferSecuritySchemesFromAuthentication(): Map<String, SecurityScheme>? = buildMap {
-    val authPlugin = runCatching { pluginOrNull(Authentication) }.getOrElse { null }
-        ?: return null
+    if (!isAuthPluginInstalled) return null
+    val authPlugin = pluginOrNull(Authentication) ?: return null
     val providers = authPlugin.configuration().allProviders()
     for ((providerName, provider) in providers) {
         inferSecurityScheme(provider)?.let {
