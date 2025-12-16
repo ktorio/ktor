@@ -332,8 +332,7 @@ class RouteAnnotationApiTest {
                 call.respond(
                     generateOpenApiSpec(
                         info = OpenApiInfo("Test API", "1.0.0"),
-                        route = call.application.routingRoot,
-                        inferSecurity = true
+                        route = call.application.routingRoot
                     )
                 )
             }
@@ -507,7 +506,6 @@ class RouteAnnotationApiTest {
                     generateOpenApiSpec(
                         info = OpenApiInfo("Test API", "1.0.0"),
                         route = call.application.routingRoot,
-                        inferSecurity = true
                     )
                 )
             }

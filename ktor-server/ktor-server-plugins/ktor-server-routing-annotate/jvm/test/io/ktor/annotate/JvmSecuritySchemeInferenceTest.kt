@@ -46,7 +46,7 @@ class JvmSecuritySchemeInferenceTest {
         }
         startApplication()
 
-        val schemes = application.findSecuritySchemes(inferFromAuthenticationPlugin = true)
+        val schemes = application.findSecuritySchemes()
         assertNotNull(schemes)
 
         val scheme1 = schemes["digest-auth"] as HttpSecurityScheme
@@ -76,10 +76,7 @@ class JvmSecuritySchemeInferenceTest {
         }
         startApplication()
 
-        val schemes = application.findSecuritySchemes(
-            inferFromAuthenticationPlugin = true,
-            includeJwt = true
-        )
+        val schemes = application.findSecuritySchemes()
         assertNotNull(schemes)
 
         val scheme = schemes["jwt-auth"] as HttpSecurityScheme
@@ -100,10 +97,7 @@ class JvmSecuritySchemeInferenceTest {
         }
         startApplication()
 
-        val schemes = application.findSecuritySchemes(
-            inferFromAuthenticationPlugin = true,
-            includeJwt = true
-        )
+        val schemes = application.findSecuritySchemes()
         val scheme = schemes?.get("jwt-custom-schemes") as HttpSecurityScheme
 
         // Inference always produces a standard-bearer scheme
@@ -117,7 +111,7 @@ class JvmSecuritySchemeInferenceTest {
         application.registerDigestAuthSecurityScheme("digest-custom", "Custom Digest Auth")
         startApplication()
 
-        val schemes = application.findSecuritySchemes(inferFromAuthenticationPlugin = false)
+        val schemes = application.findSecuritySchemes()
         assertNotNull(schemes)
 
         val scheme1 = schemes["custom-digest"] as HttpSecurityScheme
@@ -138,7 +132,7 @@ class JvmSecuritySchemeInferenceTest {
         application.registerJWTSecurityScheme("jwt-custom", "Custom JWT Auth")
         startApplication()
 
-        val schemes = application.findSecuritySchemes(inferFromAuthenticationPlugin = false)
+        val schemes = application.findSecuritySchemes()
         assertNotNull(schemes)
 
         val scheme1 = schemes["custom-jwt"] as HttpSecurityScheme

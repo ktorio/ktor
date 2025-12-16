@@ -22,7 +22,7 @@ class SecuritySchemeInferenceTest {
         }
         startApplication()
 
-        val schemes = application.findSecuritySchemes(inferFromAuthenticationPlugin = true)
+        val schemes = application.findSecuritySchemes()
         assertNotNull(schemes)
 
         val scheme = schemes["basic-auth"] as HttpSecurityScheme
@@ -40,7 +40,7 @@ class SecuritySchemeInferenceTest {
         }
         startApplication()
 
-        val schemes = application.findSecuritySchemes(inferFromAuthenticationPlugin = true)
+        val schemes = application.findSecuritySchemes()
 
         assertNotNull(schemes)
         assertEquals(2, schemes.size)
@@ -64,7 +64,7 @@ class SecuritySchemeInferenceTest {
         }
         startApplication()
 
-        val schemes = application.findSecuritySchemes(inferFromAuthenticationPlugin = true)
+        val schemes = application.findSecuritySchemes()
         assertNotNull(schemes)
 
         val scheme1 = schemes["bearer-auth"] as HttpSecurityScheme
@@ -92,7 +92,7 @@ class SecuritySchemeInferenceTest {
         }
         startApplication()
 
-        val schemes = application.findSecuritySchemes(inferFromAuthenticationPlugin = true)
+        val schemes = application.findSecuritySchemes()
         assertNotNull(schemes)
         assertEquals(2, schemes.size)
 
@@ -118,7 +118,7 @@ class SecuritySchemeInferenceTest {
         }
         startApplication()
 
-        val schemes = application.findSecuritySchemes(inferFromAuthenticationPlugin = true)
+        val schemes = application.findSecuritySchemes()
         assertNull(schemes)
     }
 
@@ -146,7 +146,7 @@ class SecuritySchemeInferenceTest {
         }
         startApplication()
 
-        val schemes = application.findSecuritySchemes(inferFromAuthenticationPlugin = true)
+        val schemes = application.findSecuritySchemes()
         assertNotNull(schemes)
 
         val cookieScheme = schemes["cookie-auth"] as ApiKeySecurityScheme
@@ -195,7 +195,7 @@ class SecuritySchemeInferenceTest {
         }
         startApplication()
 
-        val schemes = application.findSecuritySchemes(inferFromAuthenticationPlugin = true)
+        val schemes = application.findSecuritySchemes()
         assertNotNull(schemes)
 
         val headerScheme1 = schemes["header-session-empty-description"] as ApiKeySecurityScheme
@@ -241,7 +241,7 @@ class SecuritySchemeInferenceTest {
         }
         startApplication()
 
-        val schemes = application.findSecuritySchemes(inferFromAuthenticationPlugin = true)
+        val schemes = application.findSecuritySchemes()
         assertNotNull(schemes)
 
         val scheme = schemes["oauth-no-desc"] as OAuth2SecurityScheme
@@ -286,7 +286,7 @@ class SecuritySchemeInferenceTest {
         }
         startApplication()
 
-        val schemes = application.findSecuritySchemes(inferFromAuthenticationPlugin = false)
+        val schemes = application.findSecuritySchemes()
 
         assertNotNull(schemes)
         assertEquals(2, schemes.size)
@@ -317,7 +317,7 @@ class SecuritySchemeInferenceTest {
         }
         startApplication()
 
-        val schemes = application.findSecuritySchemes(inferFromAuthenticationPlugin = true)
+        val schemes = application.findSecuritySchemes()
 
         assertNotNull(schemes)
         assertEquals(3, schemes.size)
@@ -339,7 +339,7 @@ class SecuritySchemeInferenceTest {
         }
         startApplication()
 
-        val schemes = application.findSecuritySchemes(inferFromAuthenticationPlugin = true)
+        val schemes = application.findSecuritySchemes()
         assertNotNull(schemes)
 
         val scheme = schemes[AuthenticationRouteSelector.DEFAULT_NAME] as HttpSecurityScheme
@@ -358,7 +358,7 @@ class SecuritySchemeInferenceTest {
         }
         startApplication()
 
-        val schemes = application.findSecuritySchemes(inferFromAuthenticationPlugin = true)
+        val schemes = application.findSecuritySchemes()
 
         assertNotNull(schemes)
         assertEquals(2, schemes.size)
@@ -372,27 +372,8 @@ class SecuritySchemeInferenceTest {
     }
 
     @Test
-    fun testDisableInferenceShowsOnlyManual() = testApplication {
-        application {
-            registerBasicAuthSecurityScheme("manual-basic")
-        }
-        install(Authentication) {
-            basic("inferred-basic") {}
-            bearer("bearer") {}
-        }
-        startApplication()
-
-        val schemes = application.findSecuritySchemes(inferFromAuthenticationPlugin = false)
-
-        assertNotNull(schemes)
-        assertEquals(1, schemes.size)
-        assertTrue(schemes.containsKey("manual-basic"))
-        assertFalse(schemes.containsKey("inferred-basic"))
-    }
-
-    @Test
     fun testNoAuthenticationPluginInstalled() = testApplication {
-        val schemes = application.findSecuritySchemes(inferFromAuthenticationPlugin = true)
+        val schemes = application.findSecuritySchemes()
         assertNull(schemes)
     }
 
@@ -400,7 +381,7 @@ class SecuritySchemeInferenceTest {
     fun testEmptyAuthenticationPlugin() = testApplication {
         install(Authentication)
         startApplication()
-        val schemes = application.findSecuritySchemes(inferFromAuthenticationPlugin = true)
+        val schemes = application.findSecuritySchemes()
         assertNull(schemes)
     }
 
@@ -412,7 +393,7 @@ class SecuritySchemeInferenceTest {
         }
         startApplication()
 
-        val schemes = application.findSecuritySchemes(inferFromAuthenticationPlugin = true)
+        val schemes = application.findSecuritySchemes()
 
         assertNotNull(schemes)
         assertEquals(2, schemes.size)
@@ -428,8 +409,24 @@ class SecuritySchemeInferenceTest {
             }
         }
         startApplication()
-        val schemes = application.findSecuritySchemes(inferFromAuthenticationPlugin = true)
+        val schemes = application.findSecuritySchemes()
         // Dynamic providers cannot be inferred automatically
         assertNull(schemes)
+    }
+
+    @Test
+    fun testDisabledCaching() = testApplication {
+        val schemes = application.findSecuritySchemes(useCache = true)
+        assertNull(schemes)
+
+        application.registerBasicAuthSecurityScheme("basic-auth")
+
+        val cachedSchemes = application.findSecuritySchemes(useCache = true)
+        assertNull(cachedSchemes)
+
+        val schemes2 = application.findSecuritySchemes(useCache = false)
+        assertNotNull(schemes2)
+        assertEquals(1, schemes2.size)
+        assertTrue(schemes2.containsKey("basic-auth"))
     }
 }

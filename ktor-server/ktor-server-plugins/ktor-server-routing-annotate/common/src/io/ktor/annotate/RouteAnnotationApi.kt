@@ -52,14 +52,10 @@ public fun Route.annotate(configure: RouteAnnotationFunction): Route {
  *
  * @param info The OpenAPI info object.
  * @param route The route to generate the specification for.
- * @param inferSecurity Whether to infer security schemes from the authentication plugin. Defaults to `false`.
- * @param inferJwtSecurity Whether to infer JWT security schemes from the authentication plugin. Defaults to `false`.
  */
 public fun generateOpenApiSpec(
     info: OpenApiInfo,
-    route: RoutingNode,
-    inferSecurity: Boolean = false,
-    inferJwtSecurity: Boolean = false
+    route: RoutingNode
 ): OpenApiSpecification {
     val jsonSchema = mutableMapOf<String, JsonSchema>()
     val pathItems = route.findPathItems(
@@ -83,11 +79,7 @@ public fun generateOpenApiSpec(
         paths = pathItems,
         components = Components(
             schemas = jsonSchema,
-            securitySchemes = route.application.findSecuritySchemesOrRefs(
-                inferFromAuthenticationPlugin = inferSecurity,
-                includeJwt = inferJwtSecurity,
-                useCache = false
-            )
+            securitySchemes = route.application.findSecuritySchemesOrRefs(useCache = true)
         ).takeIf(Components::isNotEmpty)
     )
 }
@@ -180,11 +172,7 @@ private fun RoutingNode.operationFromSelector(): Operation? {
         }
 
         is AuthenticationRouteSelector -> {
-            val globalSchemes = application.findSecuritySchemes(
-                inferFromAuthenticationPlugin = true,
-                includeJwt = false,
-                useCache = true
-            )
+            val globalSchemes = application.findSecuritySchemes(useCache = true)
             val registration = attributes.getOrNull(AuthenticateProvidersKey)
             val strategy = registration?.strategy ?: AuthenticationStrategy.FirstSuccessful
 

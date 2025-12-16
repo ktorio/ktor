@@ -21,19 +21,17 @@ public final class io/ktor/annotate/RouteAnnotationApiKt {
 	public static final fun annotate (Lio/ktor/server/routing/Route;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
 	public static final fun findPathItems (Lio/ktor/server/routing/RoutingNode;Lio/ktor/annotate/OperationMapping;)Ljava/util/Map;
 	public static synthetic fun findPathItems$default (Lio/ktor/server/routing/RoutingNode;Lio/ktor/annotate/OperationMapping;ILjava/lang/Object;)Ljava/util/Map;
-	public static final fun generateOpenApiSpec (Lio/ktor/openapi/OpenApiInfo;Lio/ktor/server/routing/RoutingNode;ZZ)Lio/ktor/openapi/OpenApiSpecification;
-	public static synthetic fun generateOpenApiSpec$default (Lio/ktor/openapi/OpenApiInfo;Lio/ktor/server/routing/RoutingNode;ZZILjava/lang/Object;)Lio/ktor/openapi/OpenApiSpecification;
+	public static final fun generateOpenApiSpec (Lio/ktor/openapi/OpenApiInfo;Lio/ktor/server/routing/RoutingNode;)Lio/ktor/openapi/OpenApiSpecification;
 	public static final fun getEndpointAnnotationAttributeKey ()Lio/ktor/util/AttributeKey;
 	public static final fun getJsonSchemaAttributeKey ()Lio/ktor/util/AttributeKey;
 }
 
 public final class io/ktor/annotate/SecuritySchemeAnnotationKt {
-	public static final fun findSecuritySchemes (Lio/ktor/server/application/Application;ZZZ)Ljava/util/Map;
-	public static synthetic fun findSecuritySchemes$default (Lio/ktor/server/application/Application;ZZZILjava/lang/Object;)Ljava/util/Map;
-	public static final fun findSecuritySchemesOrRefs (Lio/ktor/server/application/Application;ZZZ)Ljava/util/Map;
-	public static synthetic fun findSecuritySchemesOrRefs$default (Lio/ktor/server/application/Application;ZZZILjava/lang/Object;)Ljava/util/Map;
+	public static final fun findSecuritySchemes (Lio/ktor/server/application/Application;Z)Ljava/util/Map;
+	public static synthetic fun findSecuritySchemes$default (Lio/ktor/server/application/Application;ZILjava/lang/Object;)Ljava/util/Map;
+	public static final fun findSecuritySchemesOrRefs (Lio/ktor/server/application/Application;Z)Ljava/util/Map;
+	public static synthetic fun findSecuritySchemesOrRefs$default (Lio/ktor/server/application/Application;ZILjava/lang/Object;)Ljava/util/Map;
 	public static final fun getAuthSecuritySchemesAttributeKey ()Lio/ktor/util/AttributeKey;
-	public static final fun getAuthSecuritySchemesCacheAttributeKey ()Lio/ktor/util/AttributeKey;
 	public static final fun registerApiKeySecurityScheme (Lio/ktor/server/application/Application;Ljava/lang/String;Ljava/lang/String;Lio/ktor/openapi/SecuritySchemeIn;Ljava/lang/String;)V
 	public static synthetic fun registerApiKeySecurityScheme$default (Lio/ktor/server/application/Application;Ljava/lang/String;Ljava/lang/String;Lio/ktor/openapi/SecuritySchemeIn;Ljava/lang/String;ILjava/lang/Object;)V
 	public static final fun registerBasicAuthSecurityScheme (Lio/ktor/server/application/Application;Ljava/lang/String;Ljava/lang/String;)V

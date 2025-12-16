@@ -47,9 +47,7 @@ class RouteAnnotationApiJvmTest {
                 call.respond(
                     generateOpenApiSpec(
                         info = OpenApiInfo("Test API", "1.0.0"),
-                        route = call.application.routingRoot,
-                        inferSecurity = true,
-                        inferJwtSecurity = true
+                        route = call.application.routingRoot
                     )
                 )
             }
