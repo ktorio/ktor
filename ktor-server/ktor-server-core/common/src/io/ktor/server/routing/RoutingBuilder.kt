@@ -359,6 +359,57 @@ public fun Route.options(body: RoutingHandler): Route {
 }
 
 /**
+ * Builds a route to match `QUERY` requests with the specified [path].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.query)
+ *
+ * @see [Application.routing]
+ */
+public fun Route.query(path: String, body: RoutingHandler): Route {
+    return route(path, HttpMethod.Query) { handle(body) }
+}
+
+/**
+ * Builds a route to match `QUERY` requests.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.query)
+ *
+ * @see [Application.routing]
+ */
+public fun Route.query(body: RoutingHandler): Route {
+    return method(HttpMethod.Query) { handle(body) }
+}
+
+/**
+ * Builds a route to match `QUERY` requests receiving a request body as content of the [R] type.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.query)
+ *
+ * @see [Application.routing]
+ */
+@JvmName("queryTyped")
+public inline fun <reified R : Any> Route.query(
+    crossinline body: suspend RoutingContext.(R) -> Unit
+): Route = query {
+    body(call.receive())
+}
+
+/**
+ * Builds a route to match `QUERY` requests with the specified [path] receiving a request body as content of the [R] type.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.query)
+ *
+ * @see [Application.routing]
+ */
+@JvmName("queryTypedPath")
+public inline fun <reified R : Any> Route.query(
+    path: String,
+    crossinline body: suspend RoutingContext.(R) -> Unit
+): Route = query(path) {
+    body(call.receive())
+}
+
+/**
  * Creates a routing entry for the specified path.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.createRouteFromPath)
