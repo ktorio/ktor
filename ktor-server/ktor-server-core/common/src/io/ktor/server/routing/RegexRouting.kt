@@ -242,6 +242,46 @@ public fun Route.options(path: Regex, body: RoutingHandler): Route {
     return route(path, HttpMethod.Options) { handle(body) }
 }
 
+/**
+ * Builds a route to match `QUERY` requests with the specified regex [path].
+ * Named parameters from regex can be accessed via [ApplicationCall.parameters].
+ *
+ * Example:
+ * ```
+ * query(Regex("/(?<name>.+)/hello")) {
+ *     val name = call.parameters["name"]
+ *     ...
+ * }
+ * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.query)
+ */
+public fun Route.query(path: Regex, body: RoutingHandler): Route {
+    return route(path, HttpMethod.Query) { handle(body) }
+}
+
+/**
+ * Builds a route to match `QUERY` requests with the specified regex [path] receiving a request body as content of the [R] type.
+ * Named parameters from regex can be accessed via [ApplicationCall.parameters].
+ *
+ * Example:
+ * ```
+ * query<String>(Regex("/(?<name>.+)/hello")) {
+ *     val name = call.parameters["name"]
+ *     ...
+ * }
+ * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.query)
+ */
+@JvmName("queryTypedPath")
+public inline fun <reified R : Any> Route.query(
+    path: Regex,
+    crossinline body: suspend RoutingContext.(R) -> Unit
+): Route = query(path) {
+    body(call.receive())
+}
+
 private fun Route.createRouteFromRegexPath(regex: Regex): Route {
     return createChild(PathSegmentRegexRouteSelector(regex))
 }

@@ -779,6 +779,8 @@ final class io.ktor.http/HttpMethod { // io.ktor.http/HttpMethod|null[0]
             final fun <get-Post>(): io.ktor.http/HttpMethod // io.ktor.http/HttpMethod.Companion.Post.<get-Post>|<get-Post>(){}[0]
         final val Put // io.ktor.http/HttpMethod.Companion.Put|{}Put[0]
             final fun <get-Put>(): io.ktor.http/HttpMethod // io.ktor.http/HttpMethod.Companion.Put.<get-Put>|<get-Put>(){}[0]
+        final val Query // io.ktor.http/HttpMethod.Companion.Query|{}Query[0]
+            final fun <get-Query>(): io.ktor.http/HttpMethod // io.ktor.http/HttpMethod.Companion.Query.<get-Query>|<get-Query>(){}[0]
         final val Trace // io.ktor.http/HttpMethod.Companion.Trace|{}Trace[0]
             final fun <get-Trace>(): io.ktor.http/HttpMethod // io.ktor.http/HttpMethod.Companion.Trace.<get-Trace>|<get-Trace>(){}[0]
 

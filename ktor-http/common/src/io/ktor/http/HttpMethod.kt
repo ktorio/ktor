@@ -28,6 +28,7 @@ public data class HttpMethod(val value: String) {
         public val Head: HttpMethod = HttpMethod("HEAD")
         public val Options: HttpMethod = HttpMethod("OPTIONS")
         public val Trace: HttpMethod = HttpMethod("TRACE")
+        public val Query: HttpMethod = HttpMethod("QUERY")
 
         /**
          * Parse HTTP method by [method] string
@@ -43,6 +44,7 @@ public data class HttpMethod(val value: String) {
                 Trace.value -> Trace
                 Delete.value -> Delete
                 Head.value -> Head
+                Query.value -> Query
                 Options.value -> Options
                 else -> HttpMethod(method)
             }

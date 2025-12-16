@@ -17,7 +17,9 @@ import io.ktor.client.request.prepareOptions
 import io.ktor.client.request.preparePatch
 import io.ktor.client.request.preparePost
 import io.ktor.client.request.preparePut
+import io.ktor.client.request.prepareQuery
 import io.ktor.client.request.put
+import io.ktor.client.request.query
 import io.ktor.http.HttpMethod
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -245,6 +247,38 @@ class BuildMethodsTest {
 
         client.prepareGet {
             assertEquals(HttpMethod.Get, method)
+        }.execute()
+    }
+
+    @Test
+    fun queryMethodWithinBuilder() = runTest {
+        val client = HttpClient(MockEngine) {
+            engine {
+                addHandler { request ->
+                    assertEquals(HttpMethod.Query, request.method)
+                    respondOk()
+                }
+            }
+        }
+
+        client.query {
+            assertEquals(HttpMethod.Query, method)
+        }
+
+        client.query("/") {
+            assertEquals(HttpMethod.Query, method)
+        }
+
+        client.query {
+            method = HttpMethod.Query
+        }
+
+        client.prepareQuery("/") {
+            assertEquals(HttpMethod.Query, method)
+        }.execute()
+
+        client.prepareQuery {
+            assertEquals(HttpMethod.Query, method)
         }.execute()
     }
 }
