@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.engine.curl.internal
 
@@ -13,10 +13,14 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import kotlinx.cinterop.*
-import kotlinx.coroutines.*
-import libcurl.*
-import kotlin.coroutines.*
+import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import libcurl.curl_slist
+import kotlin.coroutines.coroutineContext
 
 @OptIn(ExperimentalForeignApi::class, InternalAPI::class)
 internal suspend fun HttpRequestData.toCurlRequest(config: CurlClientEngineConfig): CurlRequestData = CurlRequestData(
@@ -68,7 +72,7 @@ internal sealed class CurlResponseData
 
 internal class CurlSuccess(
     val status: Int,
-    val version: UInt,
+    val version: Long,
     val headersBytes: ByteArray,
     val responseBody: CurlResponseBodyData
 ) : CurlResponseData() {
