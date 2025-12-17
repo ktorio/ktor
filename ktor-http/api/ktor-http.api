@@ -773,8 +773,8 @@ public final class io/ktor/http/HttpUrlEncodedKt {
 	public static final fun formUrlEncode (Ljava/util/List;)Ljava/lang/String;
 	public static final fun formUrlEncodeTo (Lio/ktor/http/Parameters;Ljava/lang/Appendable;)V
 	public static final fun formUrlEncodeTo (Ljava/util/List;Ljava/lang/Appendable;)V
-	public static final fun parseUrlEncodedParameters (Ljava/lang/String;Ljava/nio/charset/Charset;I)Lio/ktor/http/Parameters;
-	public static synthetic fun parseUrlEncodedParameters$default (Ljava/lang/String;Ljava/nio/charset/Charset;IILjava/lang/Object;)Lio/ktor/http/Parameters;
+	public static final fun parseUrlEncodedParameters (Ljava/lang/String;Ljava/nio/charset/Charset;IZ)Lio/ktor/http/Parameters;
+	public static synthetic fun parseUrlEncodedParameters$default (Ljava/lang/String;Ljava/nio/charset/Charset;IZILjava/lang/Object;)Lio/ktor/http/Parameters;
 }
 
 public final class io/ktor/http/IllegalHeaderNameException : java/lang/IllegalArgumentException {
