@@ -122,7 +122,7 @@ gradle.afterProject {
 
     if (buildSnapshotTrain) {
         if (name == "ktor-client") {
-            println("Manifest of kotlin-compiler-embeddable.jar")
+            logger.lifecycle("Manifest of kotlin-compiler-embeddable.jar")
             printManifest()
         }
         filterTests()
@@ -179,7 +179,7 @@ private fun Project.printManifest() {
                 .matching { include("META-INF/MANIFEST.MF") }
                 .files.first()
 
-            manifest.useLines { println(it) }
+            manifest.useLines { logger.lifecycle(it.toString()) }
         }
     }
 }
