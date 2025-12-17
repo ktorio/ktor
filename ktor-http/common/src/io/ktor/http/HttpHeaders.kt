@@ -4,6 +4,8 @@
 
 package io.ktor.http
 
+import kotlin.jvm.JvmName
+
 @Suppress(
     "unused",
     "KDocMissingDocumentation",
