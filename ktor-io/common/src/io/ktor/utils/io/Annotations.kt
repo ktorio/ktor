@@ -108,5 +108,6 @@ public annotation class PublicAPICandidate(val version: String)
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.KtorDsl)
  */
 @DslMarker
+// TODO KTOR-8901: Remove AnnotationTarget.FUNCTION
 @Target(AnnotationTarget.CLASS, AnnotationTarget.TYPEALIAS, AnnotationTarget.TYPE, AnnotationTarget.FUNCTION)
 public annotation class KtorDsl

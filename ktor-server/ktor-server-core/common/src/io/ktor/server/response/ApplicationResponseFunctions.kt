@@ -1,9 +1,6 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
-
-@file:Suppress("unused")
-
 package io.ktor.server.response
 
 import io.ktor.http.*
@@ -13,7 +10,6 @@ import io.ktor.server.util.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
-import io.ktor.utils.io.core.*
 import kotlinx.io.*
 import kotlin.jvm.*
 
@@ -204,7 +200,11 @@ public suspend fun ApplicationCall.respondSource(
     status: HttpStatusCode? = null,
     contentLength: Long? = null,
 ) {
-    respond(ChannelWriterContent({ writeBuffer(source) }, contentType, status, contentLength))
+    val write: suspend ByteWriteChannel.() -> Unit =
+        contentLength?.let { length ->
+            { writeBuffer(source, length) }
+        } ?: { writeBuffer(source) }
+    respond(ChannelWriterContent(write, contentType, status, contentLength))
 }
 
 /**

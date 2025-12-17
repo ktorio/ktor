@@ -8,6 +8,7 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 pluginManagement {
     // Add repositories required for build-settings-logic
     repositories {
+        google()
         gradlePluginPortal()
 
         // Should be in sync with ktorsettings.kotlin-user-project
@@ -60,6 +61,7 @@ projects {
 
         nested("ktor-server-plugins") {
             +"ktor-server-auth"
+            +"ktor-server-auth-api-key"
             +"ktor-server-auth-jwt"
             +"ktor-server-auth-ldap"
             +"ktor-server-auto-head-response"
@@ -102,6 +104,7 @@ projects {
             +"ktor-server-velocity"
             +"ktor-server-webjars"
             +"ktor-server-websockets"
+            +"ktor-server-routing-annotate"
         }
     }
 
@@ -125,6 +128,17 @@ projects {
 
         +"ktor-client-test-base"
         +"ktor-client-tests"
+
+        +"ktor-client-webrtc" including {
+            // Include `ktor-client-webrtc-rs` if rust compilation is enabled in `gradle.properties` for local builds
+            // or if the `RUST_COMPILATION` environment variable is set to `true` for the CI.
+            val compileRust = providers.environmentVariable("KTOR_RUST_COMPILATION")
+                .orElse(providers.gradleProperty("ktorbuild.rustCompilation"))
+                .orNull.toBoolean()
+            if (compileRust) {
+                +"ktor-client-webrtc-rs" // requires `cargo` to be installed
+            }
+        }
 
         nested("ktor-client-plugins") {
             +"ktor-client-auth"
@@ -168,6 +182,7 @@ projects {
         +"ktor-websocket-serialization"
         +"ktor-websockets"
         +"ktor-test-base"
+        +"ktor-openapi-schema"
     }
 
     +"ktor-network" including {

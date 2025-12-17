@@ -12,6 +12,7 @@ import kotlinx.io.IOException
 import kotlinx.io.InternalIoApi
 import kotlinx.io.bytestring.ByteString
 import kotlinx.io.bytestring.encodeToByteString
+import kotlinx.io.readByteArray
 import kotlinx.io.writeString
 import kotlin.test.*
 import kotlin.time.Duration.Companion.seconds
@@ -46,6 +47,56 @@ class ByteReadChannelOperationsTest {
         first.close()
         val second = channel.readRemaining()
         assertEquals(0, second.remaining)
+    }
+
+    @Test
+    fun testReadToSinkAll() = runTest {
+        val channel = ByteChannel()
+        val data = byteArrayOf(1, 2, 3, 4, 5)
+        channel.writeFully(data)
+        channel.flushAndClose()
+        val sink = kotlinx.io.Buffer()
+        val fullReadCount = channel.readTo(sink)
+        assertEquals(5, fullReadCount)
+        assertEquals(5, sink.remaining)
+        assertContentEquals(data, sink.readByteArray())
+        val emptyReadCount = channel.readTo(sink)
+        assertEquals(0, emptyReadCount)
+        assertEquals(0, sink.remaining)
+    }
+
+    @Test
+    fun testReadToSinkPartial() = runTest {
+        val channel = ByteChannel()
+        val data = ByteArray(10) { it.toByte() }
+        channel.writeFully(data)
+        channel.flushAndClose()
+
+        var bytesRead = 0
+        val sink = kotlinx.io.Buffer()
+        for (chunkSize in listOf<Long>(2, 2, 5, 1)) {
+            val readCount = channel.readTo(sink, limit = chunkSize).toInt()
+            assertEquals(chunkSize, sink.remaining)
+            assertContentEquals(
+                ByteArray(chunkSize.toInt()) { (bytesRead + it).toByte() },
+                sink.readByteArray()
+            )
+            bytesRead += readCount
+        }
+        val sink2 = kotlinx.io.Buffer().also { channel.readTo(it) }
+        assertEquals(0, sink2.remaining)
+    }
+
+    @Test
+    fun testReadToFromCancelled() = runTest {
+        val channel = ByteChannel()
+        channel.writeFully(byteArrayOf(1, 2, 3))
+        channel.flush()
+        channel.cancel()
+        assertFailsWith<IOException> {
+            channel.readTo(kotlinx.io.Buffer())
+        }
+        assertTrue(channel.isClosedForRead)
     }
 
     @Test

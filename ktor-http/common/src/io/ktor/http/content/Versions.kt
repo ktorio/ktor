@@ -165,7 +165,6 @@ public fun EntityTagVersion(spec: String): EntityTagVersion {
  *
  * It never handles `If-None-Match: *`  as it is related to non-etag logic (for example, Last modified checks).
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.EntityTagVersion)
  *
  * @param etag - entity tag, for example file's content hash
@@ -175,13 +174,17 @@ public fun EntityTagVersion(spec: String): EntityTagVersion {
  * [VersionCheckResult.PRECONDITION_FAILED] for failed If-Match
  */
 public data class EntityTagVersion(val etag: String, val weak: Boolean) : Version {
-    private val normalized: String = when {
+    private val opaque: String = when {
         etag == "*" -> etag
         etag.startsWith("\"") -> etag
         else -> etag.quote()
     }
 
+    private val normalized: String = if (weak) "W/$opaque" else opaque
+
     init {
+        require(!(weak && etag == STAR.etag)) { "Entity tag '*' could not be weak." }
+
         for (index in etag.indices) {
             val ch = etag[index]
             if (ch <= ' ' || ch == '\"') {
@@ -212,19 +215,27 @@ public data class EntityTagVersion(val etag: String, val weak: Boolean) : Versio
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.EntityTagVersion.match)
      */
     public fun match(other: EntityTagVersion): Boolean {
-        if (this == STAR || other == STAR) return true
-        return normalized == other.normalized
+        if (weak || other.weak) return false
+        return weakMatch(other)
     }
 
     /**
-     * Specifies `If-None-Match` logic using the [match] function.
+     * Checks whether two entity-tags match (weak).
+     */
+    private fun weakMatch(other: EntityTagVersion): Boolean {
+        if (this == STAR || other == STAR) return true
+        return opaque == other.opaque
+    }
+
+    /**
+     * Specifies `If-None-Match` logic.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.EntityTagVersion.noneMatch)
      */
     public fun noneMatch(givenNoneMatchEtags: List<EntityTagVersion>): VersionCheckResult {
         if (STAR in givenNoneMatchEtags) return VersionCheckResult.OK
 
-        if (givenNoneMatchEtags.any { match(it) }) {
+        if (givenNoneMatchEtags.any { weakMatch(it) }) {
             return VersionCheckResult.NOT_MODIFIED
         }
 

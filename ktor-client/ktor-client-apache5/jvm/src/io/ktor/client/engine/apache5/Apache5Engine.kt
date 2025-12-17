@@ -101,6 +101,7 @@ internal class Apache5Engine(override val config: Apache5EngineConfig) : HttpCli
                                 .setSocketTimeout(socketTimeout)
                                 .build()
                         )
+                        .apply(config.configureConnectionManager)
                         .build()
                 )
                 setIOReactorConfig(
@@ -121,14 +122,12 @@ internal class Apache5Engine(override val config: Apache5EngineConfig) : HttpCli
 
     private fun HttpAsyncClientBuilder.setupProxy() {
         val proxy = config.proxy ?: return
-
-        if (proxy.type() == Proxy.Type.DIRECT) {
-            return
-        }
+        val proxyType = proxy.type()
+        if (proxyType == Proxy.Type.DIRECT) return
 
         val address = proxy.address()
-        check(proxy.type() == Proxy.Type.HTTP && address is InetSocketAddress) {
-            "Only http proxy is supported for Apache engine."
+        check(proxyType == Proxy.Type.HTTP && address is InetSocketAddress) {
+            "Only HTTP proxy is supported for Apache engine, but configured $proxyType."
         }
 
         setProxy(HttpHost.create("http://${address.hostName}:${address.port}"))

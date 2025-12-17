@@ -182,6 +182,36 @@ public suspend fun ByteReadChannel.copyTo(channel: ByteWriteChannel): Long {
     return result
 }
 
+/**
+ * Reads bytes from this [ByteReadChannel] and writes them to the specified [sink].
+ * If an exception is thrown, the channel and sink are closed.
+ *
+ * @param sink the destination to write bytes to
+ * @param limit the maximum number of bytes to transfer, defaults to [Long.MAX_VALUE]
+ * @return the number of bytes transferred
+ * @throws IOException if the channel is closed with an error
+ */
+@OptIn(InternalAPI::class)
+public suspend fun ByteReadChannel.readTo(sink: RawSink, limit: Long = Long.MAX_VALUE): Long {
+    var remaining = limit
+    try {
+        while (!isClosedForRead && remaining > 0) {
+            if (readBuffer.exhausted()) awaitContent()
+            val byteCount = minOf(remaining, readBuffer.remaining)
+            readBuffer.readTo(sink, byteCount)
+            remaining -= byteCount
+            sink.flush()
+        }
+    } catch (cause: Throwable) {
+        cancel(cause)
+        sink.close()
+        throw cause
+    }
+
+    rethrowCloseCauseIfNeeded()
+    return limit - remaining
+}
+
 @OptIn(InternalAPI::class)
 public suspend fun ByteReadChannel.copyTo(channel: ByteWriteChannel, limit: Long): Long {
     var remaining = limit

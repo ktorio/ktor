@@ -15,8 +15,15 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 plugins {
     id("ktorbuild.base")
     kotlin("multiplatform")
-    id("org.jetbrains.kotlinx.atomicfu")
     id("ktorbuild.codestyle")
+}
+
+// atomicfu gradle plugin is not compatible with Android KMP plugin
+// see https://github.com/Kotlin/kotlinx-atomicfu/issues/511
+if (!project.hasAndroidPlugin()) {
+    plugins {
+        id("org.jetbrains.kotlinx.atomicfu")
+    }
 }
 
 kotlin {
@@ -24,14 +31,14 @@ kotlin {
     explicitApi()
 
     compilerOptions {
-        apiVersion = KotlinVersion.KOTLIN_2_0
-        languageVersion = KotlinVersion.KOTLIN_2_1
+        apiVersion = KotlinVersion.KOTLIN_2_2
+        languageVersion = KotlinVersion.KOTLIN_2_2
         progressiveMode = languageVersion.map { it >= KotlinVersion.DEFAULT }
         freeCompilerArgs.addAll("-Xexpect-actual-classes")
     }
 
     applyHierarchyTemplate(KtorTargets.hierarchyTemplate)
-    addTargets(ktorBuild.targets)
+    addTargets(ktorBuild.targets, ktorBuild.isCI.get())
 }
 
 val targets = ktorBuild.targets
@@ -40,12 +47,8 @@ configureCommon()
 if (targets.hasJvm) configureJvm()
 if (targets.hasJs) configureJs()
 if (targets.hasWasmJs) configureWasmJs()
-
-if (targets.hasJsOrWasmJs) {
-    tasks.configureEach {
-        if (name == "compileJsAndWasmSharedMainKotlinMetadata") enabled = false
-    }
-}
+if (targets.hasWeb) configureWeb()
+if (targets.hasAndroidJvm && project.hasAndroidPlugin()) configureAndroidJvm()
 
 // Run native tests only on matching host.
 // There is no need to configure `onlyIf` for Darwin targets as they're configured by KGP.
@@ -66,10 +69,10 @@ if (targets.hasNative) {
 
     // A workaround for KT-70915
     tasks.withType<KotlinNativeLink>()
-        .configureEach { withLimitedParallelism("native-link", maxParallelTasks = 1) }
+        .configureEach { withLimitedParallelism("native-tools", maxParallelTasks = 3) }
     // A workaround for KT-77609
     tasks.matching { it::class.simpleName?.startsWith("CInteropCommonizerTask") == true }
-        .configureEach { withLimitedParallelism("cinterop-commonizer", maxParallelTasks = 1) }
+        .configureEach { withLimitedParallelism("native-tools", maxParallelTasks = 3) }
 }
 
 if (ktorBuild.isCI.get()) configureTestTasksOnCi()

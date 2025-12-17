@@ -10,6 +10,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
+import kotlinx.coroutines.job
 import platform.Foundation.*
 import kotlin.coroutines.*
 
@@ -30,6 +31,12 @@ internal class DarwinLegacySession(
             .apply(config.requestConfig)
         val task = session.dataTaskWithRequest(nativeRequest)
         val response = delegate.read(request, callContext, task)
+
+        callContext.job.invokeOnCompletion { cause ->
+            if (cause != null) {
+                task.cancel()
+            }
+        }
 
         task.resume()
 

@@ -62,10 +62,11 @@ public operator fun <T> SerializedMapValue<T>.getValue(thisRef: StringMap, prope
  */
 @InternalAPI
 public operator fun <T> SerializedMapValue<T>.setValue(thisRef: StringMap, property: KProperty<*>, value: T?) {
-    if (value == null) {
+    val serializedValue = value?.let { serialize(it) }
+    if (serializedValue == null) {
         thisRef.remove(key)
     } else {
-        thisRef[key] = serialize(value)
+        thisRef[key] = serializedValue
     }
 }
 
@@ -79,6 +80,15 @@ public fun String.asBoolean(): SerializedMapValue<Boolean> =
     SerializedMapValue(this, Boolean::toString, String::toBoolean)
 
 /**
+ * Includes the attribute when the flag is set to true; else, excludes it.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.collections.asPresenceBoolean)
+ */
+@InternalAPI
+public fun String.asPresenceBoolean(): SerializedMapValue<Boolean?> =
+    SerializedMapValue(this, { bool -> "".takeIf { bool != false } }, { true })
+
+/**
  * Simple type for handling serialization with [StringMap] delegation.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.collections.SerializedMapValue)
@@ -86,6 +96,6 @@ public fun String.asBoolean(): SerializedMapValue<Boolean> =
 @InternalAPI
 public class SerializedMapValue<T>(
     internal val key: String,
-    internal val serialize: (T) -> String,
+    internal val serialize: (T) -> String?,
     internal val deserialize: (String) -> T
 )

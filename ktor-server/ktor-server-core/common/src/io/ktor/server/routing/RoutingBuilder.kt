@@ -9,8 +9,7 @@ package io.ktor.server.routing
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
-import io.ktor.utils.io.*
-import kotlin.jvm.*
+import kotlin.jvm.JvmName
 
 /**
  * Builds a route to match the specified [path].
@@ -19,7 +18,6 @@ import kotlin.jvm.*
  *
  * @see [Application.routing]
  */
-@KtorDsl
 public fun Route.route(path: String, build: Route.() -> Unit): Route =
     createRouteFromPath(path).apply(build)
 
@@ -30,7 +28,6 @@ public fun Route.route(path: String, build: Route.() -> Unit): Route =
  *
  * @see [Application.routing]
  */
-@KtorDsl
 public fun Route.route(path: String, method: HttpMethod, build: Route.() -> Unit): Route {
     val selector = HttpMethodRouteSelector(method)
     return createRouteFromPath(path).createChild(selector).apply(build)
@@ -43,7 +40,6 @@ public fun Route.route(path: String, method: HttpMethod, build: Route.() -> Unit
  *
  * @see [Application.routing]
  */
-@KtorDsl
 public fun Route.method(method: HttpMethod, body: Route.() -> Unit): Route {
     val selector = HttpMethodRouteSelector(method)
     return createChild(selector).apply(body)
@@ -56,7 +52,6 @@ public fun Route.method(method: HttpMethod, body: Route.() -> Unit): Route {
  *
  * @see [Application.routing]
  */
-@KtorDsl
 public fun Route.param(name: String, value: String, build: Route.() -> Unit): Route {
     val selector = ConstantParameterRouteSelector(name, value)
     return createChild(selector).apply(build)
@@ -69,7 +64,6 @@ public fun Route.param(name: String, value: String, build: Route.() -> Unit): Ro
  *
  * @see [Application.routing]
  */
-@KtorDsl
 public fun Route.param(name: String, build: Route.() -> Unit): Route {
     val selector = ParameterRouteSelector(name)
     return createChild(selector).apply(build)
@@ -82,7 +76,6 @@ public fun Route.param(name: String, build: Route.() -> Unit): Route {
  *
  * @see [Application.routing]
  */
-@KtorDsl
 public fun Route.optionalParam(name: String, build: Route.() -> Unit): Route {
     val selector = OptionalParameterRouteSelector(name)
     return createChild(selector).apply(build)
@@ -95,7 +88,6 @@ public fun Route.optionalParam(name: String, build: Route.() -> Unit): Route {
  *
  * @see [Application.routing]
  */
-@KtorDsl
 public fun Route.header(name: String, value: String, build: Route.() -> Unit): Route {
     val selector = HttpHeaderRouteSelector(name, value)
     return createChild(selector).apply(build)
@@ -108,7 +100,6 @@ public fun Route.header(name: String, value: String, build: Route.() -> Unit): R
  *
  * @see [Application.routing]
  */
-@KtorDsl
 public fun Route.accept(vararg contentTypes: ContentType, build: Route.() -> Unit): Route {
     val selector = HttpMultiAcceptRouteSelector(listOf(*contentTypes))
     return createChild(selector).apply(build)
@@ -121,7 +112,6 @@ public fun Route.accept(vararg contentTypes: ContentType, build: Route.() -> Uni
  *
  * @see [Application.routing]
  */
-@KtorDsl
 public fun Route.contentType(contentType: ContentType, build: Route.() -> Unit): Route {
     val selector = ContentTypeHeaderRouteSelector(contentType)
     return createChild(selector).apply(build)
@@ -134,7 +124,6 @@ public fun Route.contentType(contentType: ContentType, build: Route.() -> Unit):
  *
  * @see [Application.routing]
  */
-@KtorDsl
 public fun Route.get(path: String, body: RoutingHandler): Route {
     return route(path, HttpMethod.Get) { handle(body) }
 }
@@ -146,7 +135,6 @@ public fun Route.get(path: String, body: RoutingHandler): Route {
  *
  * @see [Application.routing]
  */
-@KtorDsl
 public fun Route.get(body: RoutingHandler): Route {
     return method(HttpMethod.Get) { handle(body) }
 }
@@ -158,7 +146,6 @@ public fun Route.get(body: RoutingHandler): Route {
  *
  * @see [Application.routing]
  */
-@KtorDsl
 public fun Route.post(path: String, body: RoutingHandler): Route {
     return route(path, HttpMethod.Post) { handle(body) }
 }
@@ -170,7 +157,6 @@ public fun Route.post(path: String, body: RoutingHandler): Route {
  *
  * @see [Application.routing]
  */
-@KtorDsl
 @JvmName("postTyped")
 public inline fun <reified R : Any> Route.post(
     crossinline body: suspend RoutingContext.(R) -> Unit
@@ -185,7 +171,6 @@ public inline fun <reified R : Any> Route.post(
  *
  * @see [Application.routing]
  */
-@KtorDsl
 @JvmName("postTypedPath")
 public inline fun <reified R : Any> Route.post(
     path: String,
@@ -201,7 +186,6 @@ public inline fun <reified R : Any> Route.post(
  *
  * @see [Application.routing]
  */
-@KtorDsl
 public fun Route.post(body: RoutingHandler): Route {
     return method(HttpMethod.Post) { handle(body) }
 }
@@ -213,7 +197,6 @@ public fun Route.post(body: RoutingHandler): Route {
  *
  * @see [Application.routing]
  */
-@KtorDsl
 public fun Route.head(path: String, body: RoutingHandler): Route {
     return route(path, HttpMethod.Head) { handle(body) }
 }
@@ -225,7 +208,6 @@ public fun Route.head(path: String, body: RoutingHandler): Route {
  *
  * @see [Application.routing]
  */
-@KtorDsl
 public fun Route.head(body: RoutingHandler): Route {
     return method(HttpMethod.Head) { handle(body) }
 }
@@ -237,7 +219,6 @@ public fun Route.head(body: RoutingHandler): Route {
  *
  * @see [Application.routing]
  */
-@KtorDsl
 public fun Route.put(path: String, body: RoutingHandler): Route {
     return route(path, HttpMethod.Put) { handle(body) }
 }
@@ -249,7 +230,6 @@ public fun Route.put(path: String, body: RoutingHandler): Route {
  *
  * @see [Application.routing]
  */
-@KtorDsl
 public fun Route.put(body: RoutingHandler): Route {
     return method(HttpMethod.Put) { handle(body) }
 }
@@ -261,7 +241,6 @@ public fun Route.put(body: RoutingHandler): Route {
  *
  * @see [Application.routing]
  */
-@KtorDsl
 @JvmName("putTyped")
 public inline fun <reified R : Any> Route.put(
     crossinline body: suspend RoutingContext.(R) -> Unit
@@ -276,7 +255,6 @@ public inline fun <reified R : Any> Route.put(
  *
  * @see [Application.routing]
  */
-@KtorDsl
 @JvmName("putTypedPath")
 public inline fun <reified R : Any> Route.put(
     path: String,
@@ -292,7 +270,6 @@ public inline fun <reified R : Any> Route.put(
  *
  * @see [Application.routing]
  */
-@KtorDsl
 public fun Route.patch(path: String, body: RoutingHandler): Route {
     return route(path, HttpMethod.Patch) { handle(body) }
 }
@@ -304,7 +281,6 @@ public fun Route.patch(path: String, body: RoutingHandler): Route {
  *
  * @see [Application.routing]
  */
-@KtorDsl
 public fun Route.patch(body: RoutingHandler): Route {
     return method(HttpMethod.Patch) { handle(body) }
 }
@@ -316,7 +292,6 @@ public fun Route.patch(body: RoutingHandler): Route {
  *
  * @see [Application.routing]
  */
-@KtorDsl
 @JvmName("patchTyped")
 public inline fun <reified R : Any> Route.patch(
     crossinline body: suspend RoutingContext.(R) -> Unit
@@ -331,7 +306,6 @@ public inline fun <reified R : Any> Route.patch(
  *
  * @see [Application.routing]
  */
-@KtorDsl
 @JvmName("patchTypedPath")
 public inline fun <reified R : Any> Route.patch(
     path: String,
@@ -347,7 +321,6 @@ public inline fun <reified R : Any> Route.patch(
  *
  * @see [Application.routing]
  */
-@KtorDsl
 public fun Route.delete(path: String, body: RoutingHandler): Route {
     return route(path, HttpMethod.Delete) { handle(body) }
 }
@@ -359,7 +332,6 @@ public fun Route.delete(path: String, body: RoutingHandler): Route {
  *
  * @see [Application.routing]
  */
-@KtorDsl
 public fun Route.delete(body: RoutingHandler): Route {
     return method(HttpMethod.Delete) { handle(body) }
 }
@@ -371,7 +343,6 @@ public fun Route.delete(body: RoutingHandler): Route {
  *
  * @see [Application.routing]
  */
-@KtorDsl
 public fun Route.options(path: String, body: RoutingHandler): Route {
     return route(path, HttpMethod.Options) { handle(body) }
 }
@@ -383,9 +354,59 @@ public fun Route.options(path: String, body: RoutingHandler): Route {
  *
  * @see [Application.routing]
  */
-@KtorDsl
 public fun Route.options(body: RoutingHandler): Route {
     return method(HttpMethod.Options) { handle(body) }
+}
+
+/**
+ * Builds a route to match `QUERY` requests with the specified [path].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.query)
+ *
+ * @see [Application.routing]
+ */
+public fun Route.query(path: String, body: RoutingHandler): Route {
+    return route(path, HttpMethod.Query) { handle(body) }
+}
+
+/**
+ * Builds a route to match `QUERY` requests.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.query)
+ *
+ * @see [Application.routing]
+ */
+public fun Route.query(body: RoutingHandler): Route {
+    return method(HttpMethod.Query) { handle(body) }
+}
+
+/**
+ * Builds a route to match `QUERY` requests receiving a request body as content of the [R] type.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.query)
+ *
+ * @see [Application.routing]
+ */
+@JvmName("queryTyped")
+public inline fun <reified R : Any> Route.query(
+    crossinline body: suspend RoutingContext.(R) -> Unit
+): Route = query {
+    body(call.receive())
+}
+
+/**
+ * Builds a route to match `QUERY` requests with the specified [path] receiving a request body as content of the [R] type.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.query)
+ *
+ * @see [Application.routing]
+ */
+@JvmName("queryTypedPath")
+public inline fun <reified R : Any> Route.query(
+    path: String,
+    crossinline body: suspend RoutingContext.(R) -> Unit
+): Route = query(path) {
+    body(call.receive())
 }
 
 /**

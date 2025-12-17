@@ -1,9 +1,10 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.engine.curl.internal
 
+import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
@@ -97,7 +98,7 @@ internal class CurlMultiApiHandler : Closeable {
             }
 
             request.proxy?.let { proxy ->
-                option(CURLOPT_PROXY, proxy.toString())
+                option(CURLOPT_PROXY, fixProxyUrl(proxy.toString(), proxy.type))
                 option(CURLOPT_SUPPRESS_CONNECT_HEADERS, 1L)
                 if (request.forceProxyTunneling) {
                     option(CURLOPT_HTTPPROXYTUNNEL, 1L)
@@ -115,6 +116,10 @@ internal class CurlMultiApiHandler : Closeable {
         curl_multi_add_handle(multiHandle, easyHandle).verify()
 
         return easyHandle
+    }
+
+    private fun fixProxyUrl(url: String, proxyType: ProxyType): String {
+        return if (proxyType == ProxyType.SOCKS) url.replaceFirst("socks://", "socks5://") else url
     }
 
     internal fun cancelRequest(easyHandle: EasyHandle, cause: Throwable) {
@@ -150,15 +155,24 @@ internal class CurlMultiApiHandler : Closeable {
         easyHandle.apply {
             when (method) {
                 "GET" -> option(CURLOPT_HTTPGET, 1L)
-                "PUT" -> option(CURLOPT_PUT, 1L)
+
+                "PUT" -> {
+                    option(CURLOPT_PUT, 1L)
+                    option(CURLOPT_INFILESIZE_LARGE, size)
+                }
+
                 "POST" -> {
                     option(CURLOPT_POST, 1L)
-                    option(CURLOPT_POSTFIELDSIZE, size)
+                    option(CURLOPT_POSTFIELDSIZE_LARGE, size)
                 }
 
                 "HEAD" -> option(CURLOPT_NOBODY, 1L)
+
                 else -> {
-                    if (size > 0) option(CURLOPT_POST, 1L)
+                    if (size > 0) {
+                        option(CURLOPT_POST, 1L)
+                        option(CURLOPT_POSTFIELDSIZE_LARGE, size)
+                    }
                     option(CURLOPT_CUSTOMREQUEST, method)
                 }
             }
@@ -177,7 +191,6 @@ internal class CurlMultiApiHandler : Closeable {
         easyHandle.apply {
             option(CURLOPT_READDATA, requestPointer)
             option(CURLOPT_READFUNCTION, staticCFunction(::onBodyChunkRequested))
-            option(CURLOPT_INFILESIZE_LARGE, request.contentLength)
         }
         return requestPointer
     }
@@ -305,6 +318,7 @@ internal class CurlMultiApiHandler : Closeable {
 
         easyHandle.apply {
             getInfo(CURLINFO_RESPONSE_CODE, httpStatusCode.ptr)
+            getInfo(CURLINFO_HTTP_VERSION, httpProtocolVersion.ptr)
             getInfo(CURLINFO_PRIVATE, responseDataRef.ptr)
         }
 
@@ -319,7 +333,7 @@ internal class CurlMultiApiHandler : Closeable {
 
             CurlSuccess(
                 httpStatusCode.value.toInt(),
-                httpProtocolVersion.value.toUInt(),
+                httpProtocolVersion.value,
                 headers,
                 responseBody
             )

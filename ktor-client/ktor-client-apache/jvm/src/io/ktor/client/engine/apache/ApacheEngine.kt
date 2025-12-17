@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.apache
@@ -9,11 +9,14 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.sse.*
 import io.ktor.client.request.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
-import org.apache.http.*
-import org.apache.http.impl.nio.client.*
-import org.apache.http.impl.nio.reactor.*
-import java.net.*
+import kotlinx.coroutines.Job
+import org.apache.http.HttpHost
+import org.apache.http.impl.nio.client.CloseableHttpAsyncClient
+import org.apache.http.impl.nio.client.HttpAsyncClientBuilder
+import org.apache.http.impl.nio.client.HttpAsyncClients
+import org.apache.http.impl.nio.reactor.IOReactorConfig
+import java.net.InetSocketAddress
+import java.net.Proxy
 
 private const val MAX_CONNECTIONS_COUNT = 1000
 private const val IO_THREAD_COUNT_DEFAULT = 4
@@ -73,14 +76,12 @@ internal class ApacheEngine(override val config: ApacheEngineConfig) : HttpClien
 
     private fun HttpAsyncClientBuilder.setupProxy() {
         val proxy = config.proxy ?: return
-
-        if (proxy.type() == Proxy.Type.DIRECT) {
-            return
-        }
+        val proxyType = proxy.type()
+        if (proxyType == Proxy.Type.DIRECT) return
 
         val address = proxy.address()
-        check(proxy.type() == Proxy.Type.HTTP && address is InetSocketAddress) {
-            "Only http proxy is supported for Apache engine."
+        check(proxyType == Proxy.Type.HTTP && address is InetSocketAddress) {
+            "Only HTTP proxy is supported for Apache engine, but configured $proxyType."
         }
 
         setProxy(HttpHost.create("http://${address.hostName}:${address.port}"))

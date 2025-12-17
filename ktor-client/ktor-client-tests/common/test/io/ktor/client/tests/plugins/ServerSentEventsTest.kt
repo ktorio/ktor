@@ -8,6 +8,7 @@ import io.ktor.client.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.auth.*
 import io.ktor.client.plugins.auth.providers.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.client.plugins.sse.*
 import io.ktor.client.request.*
@@ -15,6 +16,7 @@ import io.ktor.client.statement.*
 import io.ktor.client.test.base.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.serialization.kotlinx.json.*
 import io.ktor.sse.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
@@ -32,6 +34,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 class ServerSentEventsTest : ClientLoader() {
 
@@ -229,7 +232,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun testShowComments() = clientTests(except("OkHttp")) {
+    fun testShowComments() = clientTests {
         config {
             install(SSE) {
                 showCommentEvents()
@@ -253,7 +256,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun testDifferentConfigs() = clientTests(except("OkHttp")) {
+    fun testDifferentConfigs() = clientTests {
         config {
             install(SSE) {
                 showCommentEvents()
@@ -380,10 +383,8 @@ class ServerSentEventsTest : ClientLoader() {
         }
     }
 
-    // Android, Darwin and Js engines don't support request body in GET request
-    // SSE in OkHttp and Curl doesn't send a request body for GET request
     @Test
-    fun testRequestBody() = clientTests(except("Android", "Darwin", "DarwinLegacy", "Js", "OkHttp", "Curl")) {
+    fun testRequestBody() = clientTests {
         config {
             install(SSE)
         }
@@ -392,6 +393,7 @@ class ServerSentEventsTest : ClientLoader() {
         val contentType = ContentType.Text.Plain
         test { client ->
             client.sse({
+                method = HttpMethod.Post
                 url("$TEST_SERVER/sse/echo")
                 setBody(body)
                 contentType(contentType)
@@ -403,7 +405,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun testErrorForProtocolUpgradeRequestBody() = clientTests(except("OkHttp")) {
+    fun testErrorForProtocolUpgradeRequestBody() = clientTests {
         config {
             install(SSE)
         }
@@ -423,9 +425,12 @@ class ServerSentEventsTest : ClientLoader() {
         test { client ->
             assertFailsWith<SSEClientException> {
                 client.sse({
+                    method = HttpMethod.Post
                     url("$TEST_SERVER/sse/echo")
                     setBody(body)
                 }) {}
+            }.apply {
+                assertTrue { message!!.contains("Failed to write body") }
             }
         }
     }
@@ -579,7 +584,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun testReconnection() = clientTests(except("OkHttp")) {
+    fun testReconnection() = clientTests {
         config {
             install(SSE) {
                 maxReconnectionAttempts = 1
@@ -603,7 +608,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun testClientExceptionDuringSSESession() = clientTests(except("OkHttp")) {
+    fun testClientExceptionDuringSSESession() = clientTests {
         config {
             install(SSE) {
                 maxReconnectionAttempts = 1
@@ -627,7 +632,7 @@ class ServerSentEventsTest : ClientLoader() {
                 }
             }
 
-            assertTrue(events.size == 7)
+            assertEquals(7, events.size)
             events.forEachIndexed { index, event ->
                 assertEquals(index + 1, event.id?.toInt())
             }
@@ -635,7 +640,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun testServerExceptionDuringSSESession() = clientTests(except("OkHttp")) {
+    fun testServerExceptionDuringSSESession() = clientTests {
         config {
             install(SSE) {
                 reconnectionTime = 100.milliseconds
@@ -664,7 +669,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun testSeveralReconnections() = clientTests(except("OkHttp")) {
+    fun testSeveralReconnections() = clientTests {
         config {
             install(SSE) {
                 maxReconnectionAttempts = 2
@@ -693,7 +698,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun testMaxRetries() = clientTests(except("OkHttp")) {
+    fun testMaxRetries() = clientTests {
         config {
             install(SSE) {
                 reconnectionTime = 10.milliseconds
@@ -723,7 +728,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun testNoContent() = clientTests(except("OkHttp")) {
+    fun testNoContent() = clientTests {
         config {
             install(SSE) {
                 maxReconnectionAttempts = 1
@@ -751,7 +756,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun testNoContentStream() = clientTests(except("OkHttp")) {
+    fun testNoContentStream() = clientTests {
         config {
             install(SSE)
         }
@@ -761,6 +766,283 @@ class ServerSentEventsTest : ClientLoader() {
                 assertEquals(HttpStatusCode.OK, call.response.status)
                 assertEquals(0, incoming.toList().size)
             }
+        }
+    }
+
+    @Test
+    fun `test response body with BufferPolicy-All`() = clientTests {
+        config {
+            install(SSE) {
+                bufferPolicy = SSEBufferPolicy.All
+            }
+        }
+
+        val expected = listOf(
+            "event: hello 0",
+            "data: hello",
+            "data: from server",
+            "id: 0",
+            ""
+        ).joinToString("\r\n")
+
+        test { client ->
+            try {
+                client.sse("$TEST_SERVER/sse/hello") {
+                    incoming.collect { }
+                    throw IllegalStateException("exception")
+                }
+            } catch (e: SSEClientException) {
+                checkBody(expected, e.response?.bodyAsText())
+            }
+        }
+    }
+
+    @Test
+    fun `test local BufferPolicy wins`() = clientTests {
+        config {
+            install(SSE) {
+                bufferPolicy = SSEBufferPolicy.All
+            }
+        }
+
+        test { client ->
+            try {
+                client.sse(urlString = "$TEST_SERVER/sse/hello", {
+                    bufferPolicy(SSEBufferPolicy.Off)
+                }) {
+                    incoming.collect { }
+                    throw IllegalStateException("exception")
+                }
+            } catch (e: SSEClientException) {
+                assertTrue { e.response!!.bodyAsText().isEmpty() }
+            }
+        }
+    }
+
+    @Test
+    fun `test response body with BufferPolicy-LastLines`() = clientTests {
+        config {
+            install(SSE)
+        }
+
+        val expected = listOf(
+            "event: hello 0",
+            "data: hello",
+            "data: from server",
+            "id: 0",
+            ""
+        ).joinToString("\r\n")
+
+        val count = 3
+        test { client ->
+            try {
+                client.sse(
+                    urlString = "$TEST_SERVER/sse/hello",
+                    {
+                        bufferPolicy(SSEBufferPolicy.LastLines(count))
+                    }
+                ) {
+                    incoming.collect { }
+                    throw IllegalStateException("exception")
+                }
+            } catch (e: SSEClientException) {
+                checkBody(expected, e.response?.bodyAsText(), count)
+            }
+        }
+    }
+
+    @Test
+    fun `test response body with BufferPolicy-LastEvent`() = clientTests {
+        config {
+            install(SSE)
+        }
+
+        val expected = listOf(
+            "event: hello 99",
+            "data: hello",
+            "data: from server",
+            "id: 99",
+            ""
+        ).joinToString("\r\n")
+
+        test { client ->
+            try {
+                client.sse(
+                    urlString = "$TEST_SERVER/sse/hello?times=100",
+                    {
+                        bufferPolicy(SSEBufferPolicy.LastEvent)
+                    }
+                ) {
+                    incoming.collect { }
+                    throw IllegalStateException("exception")
+                }
+            } catch (e: SSEClientException) {
+                checkBody(expected, e.response?.bodyAsText())
+            }
+        }
+    }
+
+    @Test
+    fun `test response body with BufferPolicy-LastEvents`() = clientTests {
+        config {
+            install(SSE)
+        }
+
+        test { client ->
+            try {
+                client.sse(
+                    urlString = "$TEST_SERVER/sse/hello?times=100",
+                    {
+                        bufferPolicy(SSEBufferPolicy.LastEvents(2))
+                    }
+                ) {
+                    incoming.collect {}
+                    throw IllegalStateException("exception")
+                }
+            } catch (e: SSEClientException) {
+                val expected = listOf(
+                    "event: hello 98",
+                    "data: hello",
+                    "data: from server",
+                    "id: 98",
+                    "",
+                    "event: hello 99",
+                    "data: hello",
+                    "data: from server",
+                    "id: 99",
+                    ""
+                ).joinToString("\r\n")
+                checkBody(expected, e.response?.bodyAsText())
+            }
+        }
+    }
+
+    @Test
+    fun `test body contains only proceeded data`() = clientTests {
+        config {
+            install(SSE)
+        }
+
+        test { client ->
+            try {
+                client.sse(urlString = "$TEST_SERVER/sse/hello", {
+                    bufferPolicy(SSEBufferPolicy.All)
+                }) {
+                    throw IllegalStateException("exception")
+                }
+            } catch (e: SSEClientException) {
+                assertTrue { e.response!!.bodyAsText().isEmpty() }
+            }
+        }
+    }
+
+    @Test
+    fun `test full response body in exception on non-200 status`() = clientTests {
+        config {
+            install(SSE)
+        }
+
+        test { client ->
+            try {
+                client.sse(urlString = "$TEST_SERVER/sse/error", { bufferPolicy(SSEBufferPolicy.All) }) { }
+            } catch (e: SSEClientException) {
+                assertEquals("Expected status code 200 but was 500", e.message)
+                assertEquals(e.response!!.bodyAsText(), "Server error")
+            }
+        }
+    }
+
+    @Test
+    fun `test with ContentNegotiation`() = clientTests {
+        config {
+            install(ContentNegotiation) { json() }
+            install(SSE)
+        }
+
+        test { client ->
+            assertFailsWith<SSEClientException> {
+                client.sse("$TEST_SERVER/sse/bad-response-json") { }
+            }.apply {
+                assertEquals("Expected status code 200 but was 400", message)
+            }
+
+            assertFailsWith<SSEClientException> {
+                client.sse("$TEST_SERVER/sse/bad-response-json", deserialize = { typeInfo, jsonString ->
+                    val serializer = Json.serializersModule.serializer(typeInfo.kotlinType!!)
+                    Json.decodeFromString(serializer, jsonString) ?: Exception()
+                }) { }
+            }.apply {
+                assertEquals("Expected status code 200 but was 400", message)
+            }
+        }
+    }
+
+    @Test
+    fun testCallContextCancelled() = clientTests {
+        config {
+            install(SSE)
+        }
+
+        test { client ->
+            // 10 because for Darwin default httpMaximumConnectionsPerHost equals 6
+            repeat(10) { iteration ->
+                val hasReceivedAnything = CompletableDeferred<Unit>()
+                val job = launch {
+                    client.sse("$TEST_SERVER/sse/hello?times=100&interval=100") {
+                        incoming.collect {
+                            hasReceivedAnything.complete(Unit)
+                        }
+                    }
+                }
+                val result = withTimeoutOrNull(2.seconds) {
+                    hasReceivedAnything.await()
+                }
+                if (result == null) {
+                    error("Stuck after $iteration")
+                }
+                job.cancel()
+            }
+            client.close()
+        }
+    }
+
+    @Test
+    fun testCancellingUnderlyingConnection() = clientTests {
+        config {
+            install(SSE)
+        }
+
+        test { client ->
+            val sseSession = client.sseSession("$TEST_SERVER/sse/active-sessions")
+            sseSession.incoming.collect {
+                assertEquals("ok", it.data)
+                sseSession.cancel()
+            }
+            withTimeout(5000) {
+                while (true) {
+                    val count = client.get("$TEST_SERVER/sse/active-sessions-count").bodyAsText().toInt()
+                    if (count == 0) break
+                    delay(100)
+                }
+            }
+        }
+    }
+
+    private fun checkBody(expected: String, actual: String?, count: Int? = null) {
+        assertNotNull(actual)
+        val expectedLines = expected.split("\r\n").let { lines ->
+            count?.let { lines.takeLast(count) } ?: lines
+        }
+        val actualLines = actual.split("\r\n").let { lines ->
+            count?.let { lines.takeLast(count) } ?: lines
+        }
+        assertEquals(
+            expectedLines.size,
+            actualLines.size,
+            "Number of lines differs, expected ${expectedLines.size}, actual ${actualLines.size}"
+        )
+        expectedLines.forEachIndexed { index, line ->
+            assertEquals(line, actualLines[index], "Line #$index differs")
         }
     }
 }

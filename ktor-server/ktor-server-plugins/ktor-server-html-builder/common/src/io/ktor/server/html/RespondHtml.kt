@@ -28,6 +28,35 @@ public suspend fun ApplicationCall.respondHtml(status: HttpStatusCode = HttpStat
     respond(TextContent(text, ContentType.Text.Html.withCharset(Charsets.UTF_8), status))
 }
 
+private class FlowContentFragment(override val consumer: TagConsumer<*>) : FlowContent {
+    override val attributes: MutableMap<String, String> = mutableMapOf()
+    override val attributesEntries: Collection<Map.Entry<String, String>>
+        get() = attributes.entries
+    override val emptyTag: Boolean = false
+    override val inlineTag: Boolean = false
+    override val namespace: String? = null
+    override val tagName: String = ""
+}
+
+/**
+ * Responds to a client with an HTML response using the specified [block] to build an HTML fragment.
+ * Unlike [respondHtml], this function does not wrap the content in `<!DOCTYPE html>`, `<html>`, or `<body>` tags.
+ * This is useful for returning partial HTML content, such as HTMX responses.
+ * You can learn more from [HTML DSL](https://ktor.io/docs/html-dsl.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.html.respondHtmlFragment)
+ */
+public suspend fun ApplicationCall.respondHtmlFragment(
+    status: HttpStatusCode = HttpStatusCode.OK,
+    block: FlowContent.() -> Unit
+) {
+    val text = buildString {
+        val consumer = appendHTML(prettyPrint = false)
+        FlowContentFragment(consumer).block()
+    }
+    respond(TextContent(text, ContentType.Text.Html.withCharset(Charsets.UTF_8), status))
+}
+
 /**
  * Represents an [OutgoingContent] build using `kotlinx.html`.
  *

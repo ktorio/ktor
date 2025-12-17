@@ -248,6 +248,10 @@ abstract interface io.ktor.server.response/ResponsePushBuilder { // io.ktor.serv
         abstract fun <set-method>(io.ktor.http/HttpMethod) // io.ktor.server.response/ResponsePushBuilder.method.<set-method>|<set-method>(io.ktor.http.HttpMethod){}[0]
 }
 
+abstract interface io.ktor.server.routing/CompositeRouteSelector { // io.ktor.server.routing/CompositeRouteSelector|null[0]
+    abstract fun subSelectors(): kotlin.collections/List<io.ktor.server.routing/RouteSelector> // io.ktor.server.routing/CompositeRouteSelector.subSelectors|subSelectors(){}[0]
+}
+
 abstract interface io.ktor.server.routing/Route { // io.ktor.server.routing/Route|null[0]
     abstract val attributes // io.ktor.server.routing/Route.attributes|{}attributes[0]
         abstract fun <get-attributes>(): io.ktor.util/Attributes // io.ktor.server.routing/Route.attributes.<get-attributes>|<get-attributes>(){}[0]
@@ -262,9 +266,25 @@ abstract interface io.ktor.server.routing/Route { // io.ktor.server.routing/Rout
     abstract fun handle(kotlin.coroutines/SuspendFunction1<io.ktor.server.routing/RoutingContext, kotlin/Unit>) // io.ktor.server.routing/Route.handle|handle(kotlin.coroutines.SuspendFunction1<io.ktor.server.routing.RoutingContext,kotlin.Unit>){}[0]
 }
 
+abstract interface io.ktor.server.routing/RouteParameterComponent { // io.ktor.server.routing/RouteParameterComponent|null[0]
+    abstract val name // io.ktor.server.routing/RouteParameterComponent.name|{}name[0]
+        abstract fun <get-name>(): kotlin/String // io.ktor.server.routing/RouteParameterComponent.name.<get-name>|<get-name>(){}[0]
+}
+
+abstract interface io.ktor.server.routing/RoutePathFormat { // io.ktor.server.routing/RoutePathFormat|null[0]
+    abstract fun format(io.ktor.server.routing/RoutePathComponent): kotlin/String // io.ktor.server.routing/RoutePathFormat.format|format(io.ktor.server.routing.RoutePathComponent){}[0]
+
+    final object Companion { // io.ktor.server.routing/RoutePathFormat.Companion|null[0]
+        final val Default // io.ktor.server.routing/RoutePathFormat.Companion.Default|{}Default[0]
+            final fun <get-Default>(): io.ktor.server.routing/RoutePathFormat // io.ktor.server.routing/RoutePathFormat.Companion.Default.<get-Default>|<get-Default>(){}[0]
+    }
+}
+
 abstract interface io.ktor.server.routing/Routing : io.ktor.server.routing/Route { // io.ktor.server.routing/Routing|null[0]
     abstract fun trace(kotlin/Function1<io.ktor.server.routing/RoutingResolveTrace, kotlin/Unit>) // io.ktor.server.routing/Routing.trace|trace(kotlin.Function1<io.ktor.server.routing.RoutingResolveTrace,kotlin.Unit>){}[0]
 }
+
+sealed interface io.ktor.server.routing/RoutePathComponent // io.ktor.server.routing/RoutePathComponent|null[0]
 
 abstract class <#A: kotlin/Any> io.ktor.server.application/PluginBuilder { // io.ktor.server.application/PluginBuilder|null[0]
     abstract val application // io.ktor.server.application/PluginBuilder.application|{}application[0]
@@ -651,6 +671,12 @@ final class io.ktor.server.http.content/HttpStatusCodeContent : io.ktor.http.con
     final fun toString(): kotlin/String // io.ktor.server.http.content/HttpStatusCodeContent.toString|toString(){}[0]
 }
 
+final class io.ktor.server.http/HttpRequestLifecycleConfig { // io.ktor.server.http/HttpRequestLifecycleConfig|null[0]
+    final var cancelCallOnClose // io.ktor.server.http/HttpRequestLifecycleConfig.cancelCallOnClose|{}cancelCallOnClose[0]
+        final fun <get-cancelCallOnClose>(): kotlin/Boolean // io.ktor.server.http/HttpRequestLifecycleConfig.cancelCallOnClose.<get-cancelCallOnClose>|<get-cancelCallOnClose>(){}[0]
+        final fun <set-cancelCallOnClose>(kotlin/Boolean) // io.ktor.server.http/HttpRequestLifecycleConfig.cancelCallOnClose.<set-cancelCallOnClose>|<set-cancelCallOnClose>(kotlin.Boolean){}[0]
+}
+
 final class io.ktor.server.plugins/CannotTransformContentToTypeException : io.ktor.server.plugins/ContentTransformationException, kotlinx.coroutines/CopyableThrowable<io.ktor.server.plugins/CannotTransformContentToTypeException> { // io.ktor.server.plugins/CannotTransformContentToTypeException|null[0]
     constructor <init>(kotlin.reflect/KType) // io.ktor.server.plugins/CannotTransformContentToTypeException.<init>|<init>(kotlin.reflect.KType){}[0]
 
@@ -771,7 +797,7 @@ final class io.ktor.server.response/ResponseCookies { // io.ktor.server.response
     final fun get(kotlin/String): io.ktor.http/Cookie? // io.ktor.server.response/ResponseCookies.get|get(kotlin.String){}[0]
 }
 
-final class io.ktor.server.routing/AndRouteSelector : io.ktor.server.routing/RouteSelector { // io.ktor.server.routing/AndRouteSelector|null[0]
+final class io.ktor.server.routing/AndRouteSelector : io.ktor.server.routing/CompositeRouteSelector, io.ktor.server.routing/RouteSelector { // io.ktor.server.routing/AndRouteSelector|null[0]
     constructor <init>(io.ktor.server.routing/RouteSelector, io.ktor.server.routing/RouteSelector) // io.ktor.server.routing/AndRouteSelector.<init>|<init>(io.ktor.server.routing.RouteSelector;io.ktor.server.routing.RouteSelector){}[0]
 
     final val first // io.ktor.server.routing/AndRouteSelector.first|{}first[0]
@@ -784,6 +810,7 @@ final class io.ktor.server.routing/AndRouteSelector : io.ktor.server.routing/Rou
     final fun copy(io.ktor.server.routing/RouteSelector = ..., io.ktor.server.routing/RouteSelector = ...): io.ktor.server.routing/AndRouteSelector // io.ktor.server.routing/AndRouteSelector.copy|copy(io.ktor.server.routing.RouteSelector;io.ktor.server.routing.RouteSelector){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.server.routing/AndRouteSelector.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // io.ktor.server.routing/AndRouteSelector.hashCode|hashCode(){}[0]
+    final fun subSelectors(): kotlin.collections/List<io.ktor.server.routing/RouteSelector> // io.ktor.server.routing/AndRouteSelector.subSelectors|subSelectors(){}[0]
     final fun toString(): kotlin/String // io.ktor.server.routing/AndRouteSelector.toString|toString(){}[0]
     final suspend fun evaluate(io.ktor.server.routing/RoutingResolveContext, kotlin/Int): io.ktor.server.routing/RouteSelectorEvaluation // io.ktor.server.routing/AndRouteSelector.evaluate|evaluate(io.ktor.server.routing.RoutingResolveContext;kotlin.Int){}[0]
 }
@@ -846,7 +873,7 @@ final class io.ktor.server.routing/HttpAcceptRouteSelector : io.ktor.server.rout
     final suspend fun evaluate(io.ktor.server.routing/RoutingResolveContext, kotlin/Int): io.ktor.server.routing/RouteSelectorEvaluation // io.ktor.server.routing/HttpAcceptRouteSelector.evaluate|evaluate(io.ktor.server.routing.RoutingResolveContext;kotlin.Int){}[0]
 }
 
-final class io.ktor.server.routing/HttpHeaderRouteSelector : io.ktor.server.routing/RouteSelector { // io.ktor.server.routing/HttpHeaderRouteSelector|null[0]
+final class io.ktor.server.routing/HttpHeaderRouteSelector : io.ktor.server.routing/RouteParameterComponent, io.ktor.server.routing/RouteSelector { // io.ktor.server.routing/HttpHeaderRouteSelector|null[0]
     constructor <init>(kotlin/String, kotlin/String) // io.ktor.server.routing/HttpHeaderRouteSelector.<init>|<init>(kotlin.String;kotlin.String){}[0]
 
     final val name // io.ktor.server.routing/HttpHeaderRouteSelector.name|{}name[0]
@@ -910,7 +937,7 @@ final class io.ktor.server.routing/LocalPortRouteSelector : io.ktor.server.routi
     }
 }
 
-final class io.ktor.server.routing/OptionalParameterRouteSelector : io.ktor.server.routing/RouteSelector { // io.ktor.server.routing/OptionalParameterRouteSelector|null[0]
+final class io.ktor.server.routing/OptionalParameterRouteSelector : io.ktor.server.routing/RouteParameterComponent, io.ktor.server.routing/RouteSelector { // io.ktor.server.routing/OptionalParameterRouteSelector|null[0]
     constructor <init>(kotlin/String) // io.ktor.server.routing/OptionalParameterRouteSelector.<init>|<init>(kotlin.String){}[0]
 
     final val name // io.ktor.server.routing/OptionalParameterRouteSelector.name|{}name[0]
@@ -924,7 +951,7 @@ final class io.ktor.server.routing/OptionalParameterRouteSelector : io.ktor.serv
     final suspend fun evaluate(io.ktor.server.routing/RoutingResolveContext, kotlin/Int): io.ktor.server.routing/RouteSelectorEvaluation // io.ktor.server.routing/OptionalParameterRouteSelector.evaluate|evaluate(io.ktor.server.routing.RoutingResolveContext;kotlin.Int){}[0]
 }
 
-final class io.ktor.server.routing/OrRouteSelector : io.ktor.server.routing/RouteSelector { // io.ktor.server.routing/OrRouteSelector|null[0]
+final class io.ktor.server.routing/OrRouteSelector : io.ktor.server.routing/CompositeRouteSelector, io.ktor.server.routing/RouteSelector { // io.ktor.server.routing/OrRouteSelector|null[0]
     constructor <init>(io.ktor.server.routing/RouteSelector, io.ktor.server.routing/RouteSelector) // io.ktor.server.routing/OrRouteSelector.<init>|<init>(io.ktor.server.routing.RouteSelector;io.ktor.server.routing.RouteSelector){}[0]
 
     final val first // io.ktor.server.routing/OrRouteSelector.first|{}first[0]
@@ -937,11 +964,12 @@ final class io.ktor.server.routing/OrRouteSelector : io.ktor.server.routing/Rout
     final fun copy(io.ktor.server.routing/RouteSelector = ..., io.ktor.server.routing/RouteSelector = ...): io.ktor.server.routing/OrRouteSelector // io.ktor.server.routing/OrRouteSelector.copy|copy(io.ktor.server.routing.RouteSelector;io.ktor.server.routing.RouteSelector){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.server.routing/OrRouteSelector.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // io.ktor.server.routing/OrRouteSelector.hashCode|hashCode(){}[0]
+    final fun subSelectors(): kotlin.collections/List<io.ktor.server.routing/RouteSelector> // io.ktor.server.routing/OrRouteSelector.subSelectors|subSelectors(){}[0]
     final fun toString(): kotlin/String // io.ktor.server.routing/OrRouteSelector.toString|toString(){}[0]
     final suspend fun evaluate(io.ktor.server.routing/RoutingResolveContext, kotlin/Int): io.ktor.server.routing/RouteSelectorEvaluation // io.ktor.server.routing/OrRouteSelector.evaluate|evaluate(io.ktor.server.routing.RoutingResolveContext;kotlin.Int){}[0]
 }
 
-final class io.ktor.server.routing/ParameterRouteSelector : io.ktor.server.routing/RouteSelector { // io.ktor.server.routing/ParameterRouteSelector|null[0]
+final class io.ktor.server.routing/ParameterRouteSelector : io.ktor.server.routing/RouteParameterComponent, io.ktor.server.routing/RouteSelector { // io.ktor.server.routing/ParameterRouteSelector|null[0]
     constructor <init>(kotlin/String) // io.ktor.server.routing/ParameterRouteSelector.<init>|<init>(kotlin.String){}[0]
 
     final val name // io.ktor.server.routing/ParameterRouteSelector.name|{}name[0]
@@ -955,7 +983,7 @@ final class io.ktor.server.routing/ParameterRouteSelector : io.ktor.server.routi
     final suspend fun evaluate(io.ktor.server.routing/RoutingResolveContext, kotlin/Int): io.ktor.server.routing/RouteSelectorEvaluation // io.ktor.server.routing/ParameterRouteSelector.evaluate|evaluate(io.ktor.server.routing.RoutingResolveContext;kotlin.Int){}[0]
 }
 
-final class io.ktor.server.routing/PathSegmentConstantRouteSelector : io.ktor.server.routing/RouteSelector { // io.ktor.server.routing/PathSegmentConstantRouteSelector|null[0]
+final class io.ktor.server.routing/PathSegmentConstantRouteSelector : io.ktor.server.routing/RoutePathComponent, io.ktor.server.routing/RouteSelector { // io.ktor.server.routing/PathSegmentConstantRouteSelector|null[0]
     constructor <init>(kotlin/String) // io.ktor.server.routing/PathSegmentConstantRouteSelector.<init>|<init>(kotlin.String){}[0]
 
     final val value // io.ktor.server.routing/PathSegmentConstantRouteSelector.value|{}value[0]
@@ -969,7 +997,7 @@ final class io.ktor.server.routing/PathSegmentConstantRouteSelector : io.ktor.se
     final suspend fun evaluate(io.ktor.server.routing/RoutingResolveContext, kotlin/Int): io.ktor.server.routing/RouteSelectorEvaluation // io.ktor.server.routing/PathSegmentConstantRouteSelector.evaluate|evaluate(io.ktor.server.routing.RoutingResolveContext;kotlin.Int){}[0]
 }
 
-final class io.ktor.server.routing/PathSegmentOptionalParameterRouteSelector : io.ktor.server.routing/RouteSelector { // io.ktor.server.routing/PathSegmentOptionalParameterRouteSelector|null[0]
+final class io.ktor.server.routing/PathSegmentOptionalParameterRouteSelector : io.ktor.server.routing/RouteParameterComponent, io.ktor.server.routing/RoutePathComponent, io.ktor.server.routing/RouteSelector { // io.ktor.server.routing/PathSegmentOptionalParameterRouteSelector|null[0]
     constructor <init>(kotlin/String, kotlin/String? = ..., kotlin/String? = ...) // io.ktor.server.routing/PathSegmentOptionalParameterRouteSelector.<init>|<init>(kotlin.String;kotlin.String?;kotlin.String?){}[0]
 
     final val name // io.ktor.server.routing/PathSegmentOptionalParameterRouteSelector.name|{}name[0]
@@ -989,7 +1017,7 @@ final class io.ktor.server.routing/PathSegmentOptionalParameterRouteSelector : i
     final suspend fun evaluate(io.ktor.server.routing/RoutingResolveContext, kotlin/Int): io.ktor.server.routing/RouteSelectorEvaluation // io.ktor.server.routing/PathSegmentOptionalParameterRouteSelector.evaluate|evaluate(io.ktor.server.routing.RoutingResolveContext;kotlin.Int){}[0]
 }
 
-final class io.ktor.server.routing/PathSegmentParameterRouteSelector : io.ktor.server.routing/RouteSelector { // io.ktor.server.routing/PathSegmentParameterRouteSelector|null[0]
+final class io.ktor.server.routing/PathSegmentParameterRouteSelector : io.ktor.server.routing/RouteParameterComponent, io.ktor.server.routing/RoutePathComponent, io.ktor.server.routing/RouteSelector { // io.ktor.server.routing/PathSegmentParameterRouteSelector|null[0]
     constructor <init>(kotlin/String, kotlin/String? = ..., kotlin/String? = ...) // io.ktor.server.routing/PathSegmentParameterRouteSelector.<init>|<init>(kotlin.String;kotlin.String?;kotlin.String?){}[0]
 
     final val name // io.ktor.server.routing/PathSegmentParameterRouteSelector.name|{}name[0]
@@ -1009,8 +1037,11 @@ final class io.ktor.server.routing/PathSegmentParameterRouteSelector : io.ktor.s
     final suspend fun evaluate(io.ktor.server.routing/RoutingResolveContext, kotlin/Int): io.ktor.server.routing/RouteSelectorEvaluation // io.ktor.server.routing/PathSegmentParameterRouteSelector.evaluate|evaluate(io.ktor.server.routing.RoutingResolveContext;kotlin.Int){}[0]
 }
 
-final class io.ktor.server.routing/PathSegmentRegexRouteSelector : io.ktor.server.routing/RouteSelector { // io.ktor.server.routing/PathSegmentRegexRouteSelector|null[0]
+final class io.ktor.server.routing/PathSegmentRegexRouteSelector : io.ktor.server.routing/RoutePathComponent, io.ktor.server.routing/RouteSelector { // io.ktor.server.routing/PathSegmentRegexRouteSelector|null[0]
     constructor <init>(kotlin.text/Regex) // io.ktor.server.routing/PathSegmentRegexRouteSelector.<init>|<init>(kotlin.text.Regex){}[0]
+
+    final val regex // io.ktor.server.routing/PathSegmentRegexRouteSelector.regex|{}regex[0]
+        final fun <get-regex>(): kotlin.text/Regex // io.ktor.server.routing/PathSegmentRegexRouteSelector.regex.<get-regex>|<get-regex>(){}[0]
 
     final fun toString(): kotlin/String // io.ktor.server.routing/PathSegmentRegexRouteSelector.toString|toString(){}[0]
     final suspend fun evaluate(io.ktor.server.routing/RoutingResolveContext, kotlin/Int): io.ktor.server.routing/RouteSelectorEvaluation // io.ktor.server.routing/PathSegmentRegexRouteSelector.evaluate|evaluate(io.ktor.server.routing.RoutingResolveContext;kotlin.Int){}[0]
@@ -1018,7 +1049,7 @@ final class io.ktor.server.routing/PathSegmentRegexRouteSelector : io.ktor.serve
     final object Companion // io.ktor.server.routing/PathSegmentRegexRouteSelector.Companion|null[0]
 }
 
-final class io.ktor.server.routing/PathSegmentTailcardRouteSelector : io.ktor.server.routing/RouteSelector { // io.ktor.server.routing/PathSegmentTailcardRouteSelector|null[0]
+final class io.ktor.server.routing/PathSegmentTailcardRouteSelector : io.ktor.server.routing/RoutePathComponent, io.ktor.server.routing/RouteSelector { // io.ktor.server.routing/PathSegmentTailcardRouteSelector|null[0]
     constructor <init>(kotlin/String = ..., kotlin/String = ...) // io.ktor.server.routing/PathSegmentTailcardRouteSelector.<init>|<init>(kotlin.String;kotlin.String){}[0]
 
     final val name // io.ktor.server.routing/PathSegmentTailcardRouteSelector.name|{}name[0]
@@ -1035,7 +1066,7 @@ final class io.ktor.server.routing/PathSegmentTailcardRouteSelector : io.ktor.se
     final suspend fun evaluate(io.ktor.server.routing/RoutingResolveContext, kotlin/Int): io.ktor.server.routing/RouteSelectorEvaluation // io.ktor.server.routing/PathSegmentTailcardRouteSelector.evaluate|evaluate(io.ktor.server.routing.RoutingResolveContext;kotlin.Int){}[0]
 }
 
-final class io.ktor.server.routing/RootRouteSelector : io.ktor.server.routing/RouteSelector { // io.ktor.server.routing/RootRouteSelector|null[0]
+final class io.ktor.server.routing/RootRouteSelector : io.ktor.server.routing/RoutePathComponent, io.ktor.server.routing/RouteSelector { // io.ktor.server.routing/RootRouteSelector|null[0]
     constructor <init>(kotlin/String = ...) // io.ktor.server.routing/RootRouteSelector.<init>|<init>(kotlin.String){}[0]
 
     final fun toString(): kotlin/String // io.ktor.server.routing/RootRouteSelector.toString|toString(){}[0]
@@ -1106,6 +1137,7 @@ final class io.ktor.server.routing/RoutingPathSegment { // io.ktor.server.routin
 }
 
 final class io.ktor.server.routing/RoutingPipelineCall : io.ktor.server.application/PipelineCall, kotlinx.coroutines/CoroutineScope { // io.ktor.server.routing/RoutingPipelineCall|null[0]
+    constructor <init>(io.ktor.server.application/PipelineCall, io.ktor.server.routing/RoutingNode, io.ktor.server.request/ApplicationReceivePipeline, io.ktor.server.response/ApplicationSendPipeline, io.ktor.http/Parameters) // io.ktor.server.routing/RoutingPipelineCall.<init>|<init>(io.ktor.server.application.PipelineCall;io.ktor.server.routing.RoutingNode;io.ktor.server.request.ApplicationReceivePipeline;io.ktor.server.response.ApplicationSendPipeline;io.ktor.http.Parameters){}[0]
     constructor <init>(io.ktor.server.application/PipelineCall, io.ktor.server.routing/RoutingNode, kotlin.coroutines/CoroutineContext, io.ktor.server.request/ApplicationReceivePipeline, io.ktor.server.response/ApplicationSendPipeline, io.ktor.http/Parameters) // io.ktor.server.routing/RoutingPipelineCall.<init>|<init>(io.ktor.server.application.PipelineCall;io.ktor.server.routing.RoutingNode;kotlin.coroutines.CoroutineContext;io.ktor.server.request.ApplicationReceivePipeline;io.ktor.server.response.ApplicationSendPipeline;io.ktor.http.Parameters){}[0]
 
     final val application // io.ktor.server.routing/RoutingPipelineCall.application|{}application[0]
@@ -1402,16 +1434,17 @@ open class io.ktor.server.response/ApplicationSendPipeline : io.ktor.util.pipeli
     }
 }
 
-open class io.ktor.server.routing/RoutingNode : io.ktor.server.application/ApplicationCallPipeline, io.ktor.server.routing/Route { // io.ktor.server.routing/RoutingNode|null[0]
+open class io.ktor.server.routing/RoutingNode : io.ktor.server.application/ApplicationCallPipeline, io.ktor.server.routing/Route, io.ktor.util.collections/TreeLike<io.ktor.server.routing/RoutingNode> { // io.ktor.server.routing/RoutingNode|null[0]
     constructor <init>(io.ktor.server.routing/RoutingNode?, io.ktor.server.routing/RouteSelector, kotlin/Boolean = ..., io.ktor.server.application/ApplicationEnvironment) // io.ktor.server.routing/RoutingNode.<init>|<init>(io.ktor.server.routing.RoutingNode?;io.ktor.server.routing.RouteSelector;kotlin.Boolean;io.ktor.server.application.ApplicationEnvironment){}[0]
 
-    final val children // io.ktor.server.routing/RoutingNode.children|{}children[0]
-        final fun <get-children>(): kotlin.collections/List<io.ktor.server.routing/RoutingNode> // io.ktor.server.routing/RoutingNode.children.<get-children>|<get-children>(){}[0]
     final val selector // io.ktor.server.routing/RoutingNode.selector|{}selector[0]
         final fun <get-selector>(): io.ktor.server.routing/RouteSelector // io.ktor.server.routing/RoutingNode.selector.<get-selector>|<get-selector>(){}[0]
+    open val children // io.ktor.server.routing/RoutingNode.children|{}children[0]
+        open fun <get-children>(): kotlin.collections/List<io.ktor.server.routing/RoutingNode> // io.ktor.server.routing/RoutingNode.children.<get-children>|<get-children>(){}[0]
     open val parent // io.ktor.server.routing/RoutingNode.parent|{}parent[0]
         open fun <get-parent>(): io.ktor.server.routing/RoutingNode? // io.ktor.server.routing/RoutingNode.parent.<get-parent>|<get-parent>(){}[0]
 
+    final fun hasHandler(): kotlin/Boolean // io.ktor.server.routing/RoutingNode.hasHandler|hasHandler(){}[0]
     final fun invoke(kotlin/Function1<io.ktor.server.routing/RoutingNode, kotlin/Unit>) // io.ktor.server.routing/RoutingNode.invoke|invoke(kotlin.Function1<io.ktor.server.routing.RoutingNode,kotlin.Unit>){}[0]
     open fun <#A1: kotlin/Any, #B1: kotlin/Any> install(io.ktor.server.application/Plugin<io.ktor.server.application/ApplicationCallPipeline, #A1, #B1>, kotlin/Function1<#A1, kotlin/Unit>): #B1 // io.ktor.server.routing/RoutingNode.install|install(io.ktor.server.application.Plugin<io.ktor.server.application.ApplicationCallPipeline,0:0,0:1>;kotlin.Function1<0:0,kotlin.Unit>){0§<kotlin.Any>;1§<kotlin.Any>}[0]
     open fun <#A1: kotlin/Any> plugin(io.ktor.server.application/Plugin<*, *, #A1>): #A1 // io.ktor.server.routing/RoutingNode.plugin|plugin(io.ktor.server.application.Plugin<*,*,0:0>){0§<kotlin.Any>}[0]
@@ -1596,6 +1629,8 @@ final object io.ktor.server.engine/ConfigKeys { // io.ktor.server.engine/ConfigK
         final fun <get-hostConfigPath>(): kotlin/String // io.ktor.server.engine/ConfigKeys.hostConfigPath.<get-hostConfigPath>|<get-hostConfigPath>(){}[0]
     final const val hostPortPath // io.ktor.server.engine/ConfigKeys.hostPortPath|{}hostPortPath[0]
         final fun <get-hostPortPath>(): kotlin/String // io.ktor.server.engine/ConfigKeys.hostPortPath.<get-hostPortPath>|<get-hostPortPath>(){}[0]
+    final const val hostSslEnabledProtocols // io.ktor.server.engine/ConfigKeys.hostSslEnabledProtocols|{}hostSslEnabledProtocols[0]
+        final fun <get-hostSslEnabledProtocols>(): kotlin/String // io.ktor.server.engine/ConfigKeys.hostSslEnabledProtocols.<get-hostSslEnabledProtocols>|<get-hostSslEnabledProtocols>(){}[0]
     final const val hostSslKeyAlias // io.ktor.server.engine/ConfigKeys.hostSslKeyAlias|{}hostSslKeyAlias[0]
         final fun <get-hostSslKeyAlias>(): kotlin/String // io.ktor.server.engine/ConfigKeys.hostSslKeyAlias.<get-hostSslKeyAlias>|<get-hostSslKeyAlias>(){}[0]
     final const val hostSslKeyStore // io.ktor.server.engine/ConfigKeys.hostSslKeyStore|{}hostSslKeyStore[0]
@@ -1606,10 +1641,18 @@ final object io.ktor.server.engine/ConfigKeys { // io.ktor.server.engine/ConfigK
         final fun <get-hostSslPortPath>(): kotlin/String // io.ktor.server.engine/ConfigKeys.hostSslPortPath.<get-hostSslPortPath>|<get-hostSslPortPath>(){}[0]
     final const val hostSslPrivateKeyPassword // io.ktor.server.engine/ConfigKeys.hostSslPrivateKeyPassword|{}hostSslPrivateKeyPassword[0]
         final fun <get-hostSslPrivateKeyPassword>(): kotlin/String // io.ktor.server.engine/ConfigKeys.hostSslPrivateKeyPassword.<get-hostSslPrivateKeyPassword>|<get-hostSslPrivateKeyPassword>(){}[0]
+    final const val hostSslTrustStore // io.ktor.server.engine/ConfigKeys.hostSslTrustStore|{}hostSslTrustStore[0]
+        final fun <get-hostSslTrustStore>(): kotlin/String // io.ktor.server.engine/ConfigKeys.hostSslTrustStore.<get-hostSslTrustStore>|<get-hostSslTrustStore>(){}[0]
+    final const val hostSslTrustStorePassword // io.ktor.server.engine/ConfigKeys.hostSslTrustStorePassword|{}hostSslTrustStorePassword[0]
+        final fun <get-hostSslTrustStorePassword>(): kotlin/String // io.ktor.server.engine/ConfigKeys.hostSslTrustStorePassword.<get-hostSslTrustStorePassword>|<get-hostSslTrustStorePassword>(){}[0]
     final const val hostWatchPaths // io.ktor.server.engine/ConfigKeys.hostWatchPaths|{}hostWatchPaths[0]
         final fun <get-hostWatchPaths>(): kotlin/String // io.ktor.server.engine/ConfigKeys.hostWatchPaths.<get-hostWatchPaths>|<get-hostWatchPaths>(){}[0]
     final const val rootPathPath // io.ktor.server.engine/ConfigKeys.rootPathPath|{}rootPathPath[0]
         final fun <get-rootPathPath>(): kotlin/String // io.ktor.server.engine/ConfigKeys.rootPathPath.<get-rootPathPath>|<get-rootPathPath>(){}[0]
+}
+
+final object io.ktor.server.routing/OpenApiRoutePathFormat : io.ktor.server.routing/RoutePathFormat { // io.ktor.server.routing/OpenApiRoutePathFormat|null[0]
+    final fun format(io.ktor.server.routing/RoutePathComponent): kotlin/String // io.ktor.server.routing/OpenApiRoutePathFormat.format|format(io.ktor.server.routing.RoutePathComponent){}[0]
 }
 
 final object io.ktor.server.routing/PathSegmentSelectorBuilder { // io.ktor.server.routing/PathSegmentSelectorBuilder|null[0]
@@ -1618,12 +1661,12 @@ final object io.ktor.server.routing/PathSegmentSelectorBuilder { // io.ktor.serv
     final fun parseParameter(kotlin/String): io.ktor.server.routing/RouteSelector // io.ktor.server.routing/PathSegmentSelectorBuilder.parseParameter|parseParameter(kotlin.String){}[0]
 }
 
-final object io.ktor.server.routing/PathSegmentWildcardRouteSelector : io.ktor.server.routing/RouteSelector { // io.ktor.server.routing/PathSegmentWildcardRouteSelector|null[0]
+final object io.ktor.server.routing/PathSegmentWildcardRouteSelector : io.ktor.server.routing/RoutePathComponent, io.ktor.server.routing/RouteSelector { // io.ktor.server.routing/PathSegmentWildcardRouteSelector|null[0]
     final fun toString(): kotlin/String // io.ktor.server.routing/PathSegmentWildcardRouteSelector.toString|toString(){}[0]
     final suspend fun evaluate(io.ktor.server.routing/RoutingResolveContext, kotlin/Int): io.ktor.server.routing/RouteSelectorEvaluation // io.ktor.server.routing/PathSegmentWildcardRouteSelector.evaluate|evaluate(io.ktor.server.routing.RoutingResolveContext;kotlin.Int){}[0]
 }
 
-final object io.ktor.server.routing/TrailingSlashRouteSelector : io.ktor.server.routing/RouteSelector { // io.ktor.server.routing/TrailingSlashRouteSelector|null[0]
+final object io.ktor.server.routing/TrailingSlashRouteSelector : io.ktor.server.routing/RoutePathComponent, io.ktor.server.routing/RouteSelector { // io.ktor.server.routing/TrailingSlashRouteSelector|null[0]
     final fun toString(): kotlin/String // io.ktor.server.routing/TrailingSlashRouteSelector.toString|toString(){}[0]
     final suspend fun evaluate(io.ktor.server.routing/RoutingResolveContext, kotlin/Int): io.ktor.server.routing/RouteSelectorEvaluation // io.ktor.server.routing/TrailingSlashRouteSelector.evaluate|evaluate(io.ktor.server.routing.RoutingResolveContext;kotlin.Int){}[0]
 }
@@ -1666,12 +1709,18 @@ final val io.ktor.server.application/startupTimeout // io.ktor.server.applicatio
     final fun (io.ktor.server.application/ApplicationEnvironment).<get-startupTimeout>(): kotlin.time/Duration // io.ktor.server.application/startupTimeout.<get-startupTimeout>|<get-startupTimeout>@io.ktor.server.application.ApplicationEnvironment(){}[0]
 final val io.ktor.server.config/configLoaders // io.ktor.server.config/configLoaders|{}configLoaders[0]
     final fun <get-configLoaders>(): kotlin.collections/List<io.ktor.server.config/ConfigLoader> // io.ktor.server.config/configLoaders.<get-configLoaders>|<get-configLoaders>(){}[0]
+final val io.ktor.server.http.content/DefaultContentTypesAttribute // io.ktor.server.http.content/DefaultContentTypesAttribute|{}DefaultContentTypesAttribute[0]
+    final fun <get-DefaultContentTypesAttribute>(): io.ktor.util/AttributeKey<kotlin.collections/List<io.ktor.http/ContentType>> // io.ktor.server.http.content/DefaultContentTypesAttribute.<get-DefaultContentTypesAttribute>|<get-DefaultContentTypesAttribute>(){}[0]
 final val io.ktor.server.http.content/SuppressionAttribute // io.ktor.server.http.content/SuppressionAttribute|{}SuppressionAttribute[0]
     final fun <get-SuppressionAttribute>(): io.ktor.util/AttributeKey<kotlin/Boolean> // io.ktor.server.http.content/SuppressionAttribute.<get-SuppressionAttribute>|<get-SuppressionAttribute>(){}[0]
 final val io.ktor.server.http.content/isCompressionSuppressed // io.ktor.server.http.content/isCompressionSuppressed|@io.ktor.server.application.ApplicationCall{}isCompressionSuppressed[0]
     final fun (io.ktor.server.application/ApplicationCall).<get-isCompressionSuppressed>(): kotlin/Boolean // io.ktor.server.http.content/isCompressionSuppressed.<get-isCompressionSuppressed>|<get-isCompressionSuppressed>@io.ktor.server.application.ApplicationCall(){}[0]
 final val io.ktor.server.http.content/isDecompressionSuppressed // io.ktor.server.http.content/isDecompressionSuppressed|@io.ktor.server.application.ApplicationCall{}isDecompressionSuppressed[0]
     final fun (io.ktor.server.application/ApplicationCall).<get-isDecompressionSuppressed>(): kotlin/Boolean // io.ktor.server.http.content/isDecompressionSuppressed.<get-isDecompressionSuppressed>|<get-isDecompressionSuppressed>@io.ktor.server.application.ApplicationCall(){}[0]
+final val io.ktor.server.http/HttpRequestCloseHandlerKey // io.ktor.server.http/HttpRequestCloseHandlerKey|{}HttpRequestCloseHandlerKey[0]
+    final fun <get-HttpRequestCloseHandlerKey>(): io.ktor.util/AttributeKey<kotlin/Function0<kotlin/Unit>> // io.ktor.server.http/HttpRequestCloseHandlerKey.<get-HttpRequestCloseHandlerKey>|<get-HttpRequestCloseHandlerKey>(){}[0]
+final val io.ktor.server.http/HttpRequestLifecycle // io.ktor.server.http/HttpRequestLifecycle|{}HttpRequestLifecycle[0]
+    final fun <get-HttpRequestLifecycle>(): io.ktor.server.application/RouteScopedPlugin<io.ktor.server.http/HttpRequestLifecycleConfig> // io.ktor.server.http/HttpRequestLifecycle.<get-HttpRequestLifecycle>|<get-HttpRequestLifecycle>(){}[0]
 final val io.ktor.server.logging/mdcProvider // io.ktor.server.logging/mdcProvider|@io.ktor.server.application.Application{}mdcProvider[0]
     final fun (io.ktor.server.application/Application).<get-mdcProvider>(): io.ktor.server.logging/MDCProvider // io.ktor.server.logging/mdcProvider.<get-mdcProvider>|<get-mdcProvider>@io.ktor.server.application.Application(){}[0]
 final val io.ktor.server.plugins/MutableOriginConnectionPointKey // io.ktor.server.plugins/MutableOriginConnectionPointKey|{}MutableOriginConnectionPointKey[0]
@@ -1804,11 +1853,15 @@ final fun (io.ktor.server.routing/Route).io.ktor.server.routing/post(kotlin/Stri
 final fun (io.ktor.server.routing/Route).io.ktor.server.routing/put(kotlin.coroutines/SuspendFunction1<io.ktor.server.routing/RoutingContext, kotlin/Unit>): io.ktor.server.routing/Route // io.ktor.server.routing/put|put@io.ktor.server.routing.Route(kotlin.coroutines.SuspendFunction1<io.ktor.server.routing.RoutingContext,kotlin.Unit>){}[0]
 final fun (io.ktor.server.routing/Route).io.ktor.server.routing/put(kotlin.text/Regex, kotlin.coroutines/SuspendFunction1<io.ktor.server.routing/RoutingContext, kotlin/Unit>): io.ktor.server.routing/Route // io.ktor.server.routing/put|put@io.ktor.server.routing.Route(kotlin.text.Regex;kotlin.coroutines.SuspendFunction1<io.ktor.server.routing.RoutingContext,kotlin.Unit>){}[0]
 final fun (io.ktor.server.routing/Route).io.ktor.server.routing/put(kotlin/String, kotlin.coroutines/SuspendFunction1<io.ktor.server.routing/RoutingContext, kotlin/Unit>): io.ktor.server.routing/Route // io.ktor.server.routing/put|put@io.ktor.server.routing.Route(kotlin.String;kotlin.coroutines.SuspendFunction1<io.ktor.server.routing.RoutingContext,kotlin.Unit>){}[0]
+final fun (io.ktor.server.routing/Route).io.ktor.server.routing/query(kotlin.coroutines/SuspendFunction1<io.ktor.server.routing/RoutingContext, kotlin/Unit>): io.ktor.server.routing/Route // io.ktor.server.routing/query|query@io.ktor.server.routing.Route(kotlin.coroutines.SuspendFunction1<io.ktor.server.routing.RoutingContext,kotlin.Unit>){}[0]
+final fun (io.ktor.server.routing/Route).io.ktor.server.routing/query(kotlin.text/Regex, kotlin.coroutines/SuspendFunction1<io.ktor.server.routing/RoutingContext, kotlin/Unit>): io.ktor.server.routing/Route // io.ktor.server.routing/query|query@io.ktor.server.routing.Route(kotlin.text.Regex;kotlin.coroutines.SuspendFunction1<io.ktor.server.routing.RoutingContext,kotlin.Unit>){}[0]
+final fun (io.ktor.server.routing/Route).io.ktor.server.routing/query(kotlin/String, kotlin.coroutines/SuspendFunction1<io.ktor.server.routing/RoutingContext, kotlin/Unit>): io.ktor.server.routing/Route // io.ktor.server.routing/query|query@io.ktor.server.routing.Route(kotlin.String;kotlin.coroutines.SuspendFunction1<io.ktor.server.routing.RoutingContext,kotlin.Unit>){}[0]
 final fun (io.ktor.server.routing/Route).io.ktor.server.routing/route(kotlin.text/Regex, io.ktor.http/HttpMethod, kotlin/Function1<io.ktor.server.routing/Route, kotlin/Unit>): io.ktor.server.routing/Route // io.ktor.server.routing/route|route@io.ktor.server.routing.Route(kotlin.text.Regex;io.ktor.http.HttpMethod;kotlin.Function1<io.ktor.server.routing.Route,kotlin.Unit>){}[0]
 final fun (io.ktor.server.routing/Route).io.ktor.server.routing/route(kotlin.text/Regex, kotlin/Function1<io.ktor.server.routing/Route, kotlin/Unit>): io.ktor.server.routing/Route // io.ktor.server.routing/route|route@io.ktor.server.routing.Route(kotlin.text.Regex;kotlin.Function1<io.ktor.server.routing.Route,kotlin.Unit>){}[0]
 final fun (io.ktor.server.routing/Route).io.ktor.server.routing/route(kotlin/String, io.ktor.http/HttpMethod, kotlin/Function1<io.ktor.server.routing/Route, kotlin/Unit>): io.ktor.server.routing/Route // io.ktor.server.routing/route|route@io.ktor.server.routing.Route(kotlin.String;io.ktor.http.HttpMethod;kotlin.Function1<io.ktor.server.routing.Route,kotlin.Unit>){}[0]
 final fun (io.ktor.server.routing/Route).io.ktor.server.routing/route(kotlin/String, kotlin/Function1<io.ktor.server.routing/Route, kotlin/Unit>): io.ktor.server.routing/Route // io.ktor.server.routing/route|route@io.ktor.server.routing.Route(kotlin.String;kotlin.Function1<io.ktor.server.routing.Route,kotlin.Unit>){}[0]
 final fun (io.ktor.server.routing/RoutingNode).io.ktor.server.routing/getAllRoutes(): kotlin.collections/List<io.ktor.server.routing/RoutingNode> // io.ktor.server.routing/getAllRoutes|getAllRoutes@io.ktor.server.routing.RoutingNode(){}[0]
+final fun (io.ktor.server.routing/RoutingNode).io.ktor.server.routing/path(io.ktor.server.routing/RoutePathFormat = ...): kotlin/String // io.ktor.server.routing/path|path@io.ktor.server.routing.RoutingNode(io.ktor.server.routing.RoutePathFormat){}[0]
 final fun (kotlin.collections/List<io.ktor.server.config/ApplicationConfig>).io.ktor.server.config/merge(): io.ktor.server.config/ApplicationConfig // io.ktor.server.config/merge|merge@kotlin.collections.List<io.ktor.server.config.ApplicationConfig>(){}[0]
 final fun (kotlin.collections/List<kotlin/String>).io.ktor.server.util/normalizePathComponents(): kotlin.collections/List<kotlin/String> // io.ktor.server.util/normalizePathComponents|normalizePathComponents@kotlin.collections.List<kotlin.String>(){}[0]
 final fun (kotlinx.coroutines/Job).io.ktor.server.engine/launchOnCancellation(kotlin.coroutines/SuspendFunction0<kotlin/Unit>): kotlinx.coroutines/CompletableJob // io.ktor.server.engine/launchOnCancellation|launchOnCancellation@kotlinx.coroutines.Job(kotlin.coroutines.SuspendFunction0<kotlin.Unit>){}[0]
@@ -1858,6 +1911,9 @@ final inline fun <#A: reified kotlin/Any> (io.ktor.server.routing/Route).io.ktor
 final inline fun <#A: reified kotlin/Any> (io.ktor.server.routing/Route).io.ktor.server.routing/put(crossinline kotlin.coroutines/SuspendFunction2<io.ktor.server.routing/RoutingContext, #A, kotlin/Unit>): io.ktor.server.routing/Route // io.ktor.server.routing/put|put@io.ktor.server.routing.Route(kotlin.coroutines.SuspendFunction2<io.ktor.server.routing.RoutingContext,0:0,kotlin.Unit>){0§<kotlin.Any>}[0]
 final inline fun <#A: reified kotlin/Any> (io.ktor.server.routing/Route).io.ktor.server.routing/put(kotlin.text/Regex, crossinline kotlin.coroutines/SuspendFunction2<io.ktor.server.routing/RoutingContext, #A, kotlin/Unit>): io.ktor.server.routing/Route // io.ktor.server.routing/put|put@io.ktor.server.routing.Route(kotlin.text.Regex;kotlin.coroutines.SuspendFunction2<io.ktor.server.routing.RoutingContext,0:0,kotlin.Unit>){0§<kotlin.Any>}[0]
 final inline fun <#A: reified kotlin/Any> (io.ktor.server.routing/Route).io.ktor.server.routing/put(kotlin/String, crossinline kotlin.coroutines/SuspendFunction2<io.ktor.server.routing/RoutingContext, #A, kotlin/Unit>): io.ktor.server.routing/Route // io.ktor.server.routing/put|put@io.ktor.server.routing.Route(kotlin.String;kotlin.coroutines.SuspendFunction2<io.ktor.server.routing.RoutingContext,0:0,kotlin.Unit>){0§<kotlin.Any>}[0]
+final inline fun <#A: reified kotlin/Any> (io.ktor.server.routing/Route).io.ktor.server.routing/query(crossinline kotlin.coroutines/SuspendFunction2<io.ktor.server.routing/RoutingContext, #A, kotlin/Unit>): io.ktor.server.routing/Route // io.ktor.server.routing/query|query@io.ktor.server.routing.Route(kotlin.coroutines.SuspendFunction2<io.ktor.server.routing.RoutingContext,0:0,kotlin.Unit>){0§<kotlin.Any>}[0]
+final inline fun <#A: reified kotlin/Any> (io.ktor.server.routing/Route).io.ktor.server.routing/query(kotlin.text/Regex, crossinline kotlin.coroutines/SuspendFunction2<io.ktor.server.routing/RoutingContext, #A, kotlin/Unit>): io.ktor.server.routing/Route // io.ktor.server.routing/query|query@io.ktor.server.routing.Route(kotlin.text.Regex;kotlin.coroutines.SuspendFunction2<io.ktor.server.routing.RoutingContext,0:0,kotlin.Unit>){0§<kotlin.Any>}[0]
+final inline fun <#A: reified kotlin/Any> (io.ktor.server.routing/Route).io.ktor.server.routing/query(kotlin/String, crossinline kotlin.coroutines/SuspendFunction2<io.ktor.server.routing/RoutingContext, #A, kotlin/Unit>): io.ktor.server.routing/Route // io.ktor.server.routing/query|query@io.ktor.server.routing.Route(kotlin.String;kotlin.coroutines.SuspendFunction2<io.ktor.server.routing.RoutingContext,0:0,kotlin.Unit>){0§<kotlin.Any>}[0]
 final inline fun <#A: reified kotlin/Any?> (io.ktor.server.application/Application).io.ktor.server.config/property(kotlin/String): #A // io.ktor.server.config/property|property@io.ktor.server.application.Application(kotlin.String){0§<kotlin.Any?>}[0]
 final inline fun <#A: reified kotlin/Any?> (io.ktor.server.application/Application).io.ktor.server.config/propertyOrNull(kotlin/String): #A? // io.ktor.server.config/propertyOrNull|propertyOrNull@io.ktor.server.application.Application(kotlin.String){0§<kotlin.Any?>}[0]
 final inline fun <#A: reified kotlin/Any?> (io.ktor.server.config/ApplicationConfigValue).io.ktor.server.config/getAs(): #A // io.ktor.server.config/getAs|getAs@io.ktor.server.config.ApplicationConfigValue(){0§<kotlin.Any?>}[0]

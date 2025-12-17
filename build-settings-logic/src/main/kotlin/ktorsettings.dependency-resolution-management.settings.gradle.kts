@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:Suppress("UnstableApiUsage")
@@ -18,11 +18,15 @@ dependencyResolutionManagement {
 
     versionCatalogs {
         create("libs") {
-            if (file("../gradle/libs.versions.toml").exists()) {
+            if (!file("gradle/libs.versions.toml").exists() && file("../gradle/libs.versions.toml").exists()) {
                 from(files("../gradle/libs.versions.toml"))
             }
 
             downgradeTestDependencies()
+        }
+
+        create("kotlinWrappers") {
+            from("org.jetbrains.kotlin-wrappers:kotlin-wrappers-catalog:2025.10.8")
         }
     }
 }
@@ -30,6 +34,7 @@ dependencyResolutionManagement {
 private fun RepositoryHandler.configureRepositories() {
     google {
         content {
+            includeGroupAndSubgroups("androidx")
             includeGroupAndSubgroups("com.google")
             includeGroupAndSubgroups("com.android")
         }

@@ -1,10 +1,10 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 plugins {
     // Keep it in sync with libs.versions.toml
-    id("com.gradle.develocity") version "3.19.2"
+    id("com.gradle.develocity") version "4.0.3"
 }
 
 @Suppress("UnstableApiUsage")

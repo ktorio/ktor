@@ -54,4 +54,6 @@ public interface AuthProvider {
      * @return if the token was successfully refreshed.
      */
     public suspend fun refreshToken(response: HttpResponse): Boolean = true
+
+    public fun clearToken() {}
 }

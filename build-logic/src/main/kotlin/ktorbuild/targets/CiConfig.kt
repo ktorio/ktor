@@ -6,6 +6,7 @@ package ktorbuild.targets
 
 import com.gradle.develocity.agent.gradle.test.DevelocityTestConfiguration
 import com.gradle.develocity.agent.gradle.test.TestRetryConfiguration
+import ktorbuild.internal.withLimitedParallelism
 import org.gradle.api.Project
 import org.gradle.api.tasks.testing.AbstractTestTask
 import org.gradle.api.tasks.testing.Test
@@ -13,6 +14,7 @@ import org.gradle.kotlin.dsl.assign
 import org.gradle.kotlin.dsl.extra
 import org.gradle.kotlin.dsl.getByName
 import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
 import org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest
 import org.jetbrains.kotlin.gradle.tasks.KotlinTest
 
@@ -29,6 +31,9 @@ internal fun Project.configureTestTasksOnCi() {
     // KotlinTestReport overwrites ignoreFailure values and fails build on test failure if this flag is disabled
     extra["kotlin.tests.individualTaskReports"] = true
 
+    tasks.withType<KotlinJsTest>().configureEach {
+        withLimitedParallelism("js-flakiness")
+    }
     tasks.withType<KotlinJvmTest>().configureEach {
         testRetry {
             maxRetries = 1

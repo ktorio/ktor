@@ -1,33 +1,38 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.jetty.jakarta
 
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.http.HttpMethod
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.channels.Channel
-import org.eclipse.jetty.http.*
-import org.eclipse.jetty.http2.*
-import org.eclipse.jetty.http2.api.*
-import org.eclipse.jetty.http2.client.*
-import org.eclipse.jetty.http2.frames.*
-import org.eclipse.jetty.util.*
-import java.io.*
-import java.nio.*
-import java.nio.channels.*
-import kotlin.coroutines.*
+import kotlinx.coroutines.launch
+import org.eclipse.jetty.http.MetaData
+import org.eclipse.jetty.http2.ErrorCode
+import org.eclipse.jetty.http2.HTTP2Session
+import org.eclipse.jetty.http2.api.Stream
+import org.eclipse.jetty.http2.frames.HeadersFrame
+import org.eclipse.jetty.http2.frames.PushPromiseFrame
+import org.eclipse.jetty.http2.frames.ResetFrame
+import org.eclipse.jetty.util.Callback
+import org.eclipse.jetty.util.Promise
+import java.io.IOException
+import java.nio.channels.ClosedChannelException
+import java.util.concurrent.TimeoutException
+import kotlin.coroutines.CoroutineContext
 
 internal data class StatusWithHeaders(val statusCode: HttpStatusCode, val headers: Headers)
 
-private data class JettyResponseChunk(val buffer: ByteBuffer, val callback: Callback)
+private data class JettyResponseChunk(val data: Stream.Data, val stream: Stream)
 
 internal class JettyResponseListener(
     private val request: HttpRequestData,
-    private val session: HTTP2ClientSession,
+    private val session: HTTP2Session,
     private val channel: ByteWriteChannel,
     private val callContext: CoroutineContext
 ) : Stream.Listener {
@@ -41,40 +46,51 @@ internal class JettyResponseListener(
 
     override fun onPush(stream: Stream, frame: PushPromiseFrame): Stream.Listener {
         stream.reset(ResetFrame(frame.promisedStreamId, ErrorCode.CANCEL_STREAM_ERROR.code), Callback.NOOP)
-        return Ignore
+        return Stream.Listener.AUTO_DISCARD
     }
 
-    override fun onIdleTimeout(stream: Stream, cause: Throwable): Boolean {
-        channel.close(cause)
-        return true
+    override fun onIdleTimeout(
+        stream: Stream?,
+        x: TimeoutException?,
+        promise: Promise<Boolean?>?
+    ) {
+        channel.close(x)
+        backendChannel.close()
+        promise?.succeeded(true)
     }
 
-    override fun onReset(stream: Stream, frame: ResetFrame) {
-        val error = when (frame.error) {
+    override fun onReset(
+        stream: Stream?,
+        frame: ResetFrame?,
+        callback: Callback?
+    ) {
+        val cause = when (val code = frame?.error ?: 0) {
             0 -> null
             ErrorCode.CANCEL_STREAM_ERROR.code -> ClosedChannelException()
             else -> {
-                val code = ErrorCode.from(frame.error)
-                IOException("Connection reset ${code?.name ?: "with unknown error code ${frame.error}"}")
+                val ec = ErrorCode.from(code)
+                IOException("Connection reset ${ec?.name ?: "with unknown error code $code"}")
             }
         }
-
-        error?.let { backendChannel.close(it) }
-
+        backendChannel.close(cause)
         onHeadersReceived.complete(null)
+        callback?.succeeded()
     }
 
-    override fun onData(stream: Stream, frame: DataFrame, callback: Callback) {
-        val data = frame.data!!
-        try {
-            if (!backendChannel.trySend(JettyResponseChunk(data, callback)).isSuccess) {
-                throw IOException("backendChannel.offer() failed")
-            }
+    override fun onDataAvailable(stream: Stream) {
+        val streamData = stream.readData()
+        if (streamData == null) {
+            // No data available now, demand to be called back
+            stream.demand()
+            return
+        }
 
-            if (frame.isEndStream) backendChannel.close()
+        try {
+            if (!backendChannel.trySend(JettyResponseChunk(streamData, stream)).isSuccess) {
+                throw IOException("Failed to send response data to processing channel - channel may be full or closed")
+            }
         } catch (cause: Throwable) {
             backendChannel.close(cause)
-            callback.failed(cause)
         }
     }
 
@@ -93,12 +109,15 @@ internal class JettyResponseListener(
     }
 
     override fun onHeaders(stream: Stream, frame: HeadersFrame) {
-        frame.metaData.fields.forEach { field ->
+        frame.metaData.httpFields.forEach { field ->
             headersBuilder.append(field.name, field.value)
         }
 
         if (frame.isEndStream || request.method == HttpMethod.Head) {
             backendChannel.close()
+        } else {
+            // Signal that we want to receive DATA frames
+            stream.demand()
         }
 
         onHeadersReceived.complete(
@@ -115,18 +134,27 @@ internal class JettyResponseListener(
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    private fun runResponseProcessing() = GlobalScope.launch(callContext) {
+    private fun runResponseProcessing() = CoroutineScope(callContext).launch {
         while (true) {
-            val (buffer, callback) = backendChannel.receiveCatching().getOrNull() ?: break
+            val (data, stream) = backendChannel.receiveCatching().getOrNull() ?: break
+            val frame = data.frame()
+            val buffer = frame.byteBuffer
             try {
-                if (buffer.remaining() > 0) channel.writeFully(buffer)
-                callback.succeeded()
-            } catch (cause: ClosedWriteChannelException) {
-                callback.failed(cause)
+                if (buffer.remaining() > 0) {
+                    channel.writeFully(buffer)
+                }
+                data.release()
+
+                if (frame.isEndStream) {
+                    backendChannel.close()
+                } else {
+                    // Continue demanding more DATA frames
+                    stream.demand()
+                }
+            } catch (_: ClosedWriteChannelException) {
                 session.endPoint.close()
                 break
             } catch (cause: Throwable) {
-                callback.failed(cause)
                 session.endPoint.close()
                 throw cause
             }
@@ -134,14 +162,5 @@ internal class JettyResponseListener(
     }.invokeOnCompletion { cause ->
         channel.close(cause)
         backendChannel.close()
-        GlobalScope.launch {
-            for ((_, callback) in backendChannel) {
-                callback.succeeded()
-            }
-        }
-    }
-
-    companion object {
-        private val Ignore = Stream.Listener.Adapter()
     }
 }

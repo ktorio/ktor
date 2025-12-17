@@ -6,20 +6,23 @@
 
 package ktorbuild.targets
 
+import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
+import com.android.build.api.dsl.androidLibrary
 import ktorbuild.internal.KotlinHierarchyTracker
+import ktorbuild.internal.KtorBuildProblems
 import ktorbuild.internal.TrackedKotlinHierarchyTemplate
-import ktorbuild.internal.gradle.ProjectGradleProperties
+import ktorbuild.internal.gradle.projectGradleProperties
+import ktorbuild.internal.gradle.projectTargetDirectories
 import org.gradle.api.file.ProjectLayout
-import org.gradle.api.model.ObjectFactory
-import org.gradle.api.problems.ProblemGroup
-import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.ProblemReporter
 import org.gradle.api.problems.Problems
-import org.gradle.kotlin.dsl.newInstance
+import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import org.jetbrains.kotlin.gradle.plugin.KotlinHierarchyBuilder
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
 import javax.inject.Inject
@@ -50,34 +53,32 @@ import javax.inject.Inject
  * target.wasmJs.browser=false
  * ```
  *
+ * Android JVM tests could be also configured
+ * ```properties
+ * target.android.unitTest=false
+ * target.android.deviceTest=false
+ * ```
+ *
  * See the full list of targets and target groups in [KtorTargets.hierarchyTemplate].
  */
-abstract class KtorTargets internal constructor(
+abstract class KtorTargets @Inject internal constructor(
     private val layout: ProjectLayout,
-    properties: ProjectGradleProperties,
+    providers: ProviderFactory,
 ) {
 
-    @Inject
-    internal constructor(
-        layout: ProjectLayout,
-        objects: ObjectFactory,
-    ) : this(layout, properties = objects.newInstance())
-
-    private val targetStates: MutableMap<String, Boolean> by lazy { loadDefaults(properties) }
-
-    private val directories: Set<String> by lazy {
-        layout.projectDirectory.asFile.walk()
-            .maxDepth(1)
-            .filter { it.isDirectory }
-            .map { it.name }
-            .toSet()
+    private val targetStates: MutableMap<String, Boolean> by lazy {
+        loadDefaults(providers.projectGradleProperties(layout, "target.").get())
     }
+    private var targetStatesAccessed: Boolean = false
+
+    private val targetDirectories: Provider<Set<String>> = providers.projectTargetDirectories(layout)
 
     val hasJvm: Boolean get() = isEnabled("jvm")
     val hasJs: Boolean get() = isEnabled("js")
     val hasWasmJs: Boolean get() = isEnabled("wasmJs")
+    val hasAndroidJvm: Boolean get() = isEnabled("android")
 
-    val hasJsOrWasmJs: Boolean get() = hasJs || hasWasmJs
+    val hasWeb: Boolean get() = hasJs || hasWasmJs
     val hasNative: Boolean get() = resolveTargets("posix").any(::isEnabled)
     val hasLinux: Boolean get() = resolveTargets("linux").any(::isEnabled)
     val hasWindows: Boolean get() = resolveTargets("windows").any(::isEnabled)
@@ -96,17 +97,29 @@ abstract class KtorTargets internal constructor(
      * unless explicitly configured in `gradle.properties`.
      */
     fun isEnabled(target: String): Boolean = targetStates.getOrPut(target) {
+        targetStatesAccessed = true
+
         // Sub-targets inherit parent state
         if (target.contains(".")) {
             isEnabled(target.substringBefore("."))
         } else {
-            hierarchyTracker.targetSourceSets.getValue(target).any { it in directories }
+            hierarchyTracker.targetSourceSets.getValue(target).any { it in targetDirectories.get() }
         }
     }
 
-    private fun loadDefaults(properties: ProjectGradleProperties): MutableMap<String, Boolean> {
+    /**
+     * Sets the state of the specified [target] to the given [value].
+     *
+     * This function takes effect only if used before first [isEnabled] call.
+     */
+    internal operator fun set(target: String, value: Boolean) {
+        check(!targetStatesAccessed) { "Can't change target state after it has been accessed." }
+        for (sourceSet in resolveTargets(target)) targetStates[sourceSet] = value
+    }
+
+    private fun loadDefaults(rawDefaults: Map<String, String>): MutableMap<String, Boolean> {
         val defaults = mutableMapOf<String, Boolean>()
-        for ((key, rawValue) in properties.byNamePrefix("target.")) {
+        for ((key, rawValue) in rawDefaults) {
             val value = rawValue.toBoolean()
             for (target in resolveTargets(key)) defaults[target] = value
         }
@@ -148,7 +161,7 @@ abstract class KtorTargets internal constructor(
                     }
                 }
 
-                group("jsAndWasmShared") {
+                group("web") {
                     withJs()
                     withWasmJs()
                 }
@@ -166,7 +179,7 @@ abstract class KtorTargets internal constructor(
 
                 group("nonJvm") {
                     group("posix")
-                    group("jsAndWasmShared")
+                    group("web")
                 }
 
                 group("nonDarwinPosix") {
@@ -174,16 +187,25 @@ abstract class KtorTargets internal constructor(
                     group("linux")
                     group("androidNative")
                 }
+
+                withAndroidLibrary()
             }
         }
+
+        /** Returns all known source sets including all targets and groups. */
+        val knownSourceSets: Set<String> = hierarchyTracker.targetSourceSets.keys + hierarchyTracker.groups.keys
 
         /** Returns targets corresponding to the provided [sourceSet]. */
         fun resolveTargets(sourceSet: String): Set<String> = hierarchyTracker.groups[sourceSet] ?: setOf(sourceSet)
     }
 }
 
-internal fun KotlinMultiplatformExtension.addTargets(targets: KtorTargets) {
+internal fun KotlinMultiplatformExtension.addTargets(targets: KtorTargets, isCI: Boolean) {
     if (targets.hasJvm) jvm()
+    if (targets.hasAndroidJvm && project.hasAndroidPlugin()) {
+        // device tests are not configured on the CI yet
+        androidLibrary { addTests(targets, allowDeviceTest = !isCI) }
+    }
 
     if (targets.hasJs) js { addSubTargets(targets) }
     @OptIn(ExperimentalWasmDsl::class)
@@ -224,13 +246,6 @@ internal fun KotlinMultiplatformExtension.addTargets(targets: KtorTargets) {
 
 private const val IGNORE_EXTRA_SOURCE_SETS_PROPERTY = "ktor.ignoreExtraSourceSets"
 
-private val ktorProblemGroup = ProblemGroup.create("ktor", "Ktor")
-private val extraSourceSetProblemId = ProblemId.create(
-    "ktor-extra-source-sets",
-    "Extra source sets detected",
-    ktorProblemGroup,
-)
-
 /**
  * Ensures that no additional source sets have been added after the initial automatic configuration phase.
  *
@@ -259,14 +274,14 @@ private fun KotlinMultiplatformExtension.freezeSourceSets() {
     }
 }
 
-private fun ProblemReporter.reportExtraSourceSetsWarning(context: String) = report(extraSourceSetProblemId) {
+private fun ProblemReporter.reportExtraSourceSetsWarning(context: String) = report(KtorBuildProblems.extraSourceSet) {
     contextualLabel(context)
     details("Ignoring them because '$IGNORE_EXTRA_SOURCE_SETS_PROPERTY' property is set to 'true'.")
 }
 
 private fun ProblemReporter.reportExtraSourceSetsError(context: String) = throwing(
-    IllegalStateException(extraSourceSetProblemId.displayName),
-    extraSourceSetProblemId,
+    IllegalStateException(KtorBuildProblems.extraSourceSet.displayName),
+    KtorBuildProblems.extraSourceSet,
 ) {
     contextualLabel(context)
     details(
@@ -335,4 +350,11 @@ private fun KotlinMultiplatformExtension.flattenSourceSetsStructure() {
             kotlin.setSrcDirs(listOf("$platform/$srcDir"))
             resources.setSrcDirs(listOf("$platform/${resourcesPrefix}resources"))
         }
+}
+
+// The default `withAndroidTarget` doesn't include the target created by the new KMP Android plugin.
+@OptIn(ExperimentalKotlinGradlePluginApi::class)
+private fun KotlinHierarchyBuilder.withAndroidLibrary() {
+    (this as? KotlinHierarchyTracker)?.addTarget("android")
+    withCompilations { it.target is KotlinMultiplatformAndroidLibraryTarget }
 }

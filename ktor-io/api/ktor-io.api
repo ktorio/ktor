@@ -3,6 +3,10 @@ public abstract interface class io/ktor/utils/io/BufferedByteWriteChannel : io/k
 	public abstract fun flushWriteBuffer ()V
 }
 
+public final class io/ktor/utils/io/BufferedByteWriteChannel$DefaultImpls {
+	public static fun getAutoFlush (Lio/ktor/utils/io/BufferedByteWriteChannel;)Z
+}
+
 public final class io/ktor/utils/io/ByteChannel : io/ktor/utils/io/BufferedByteWriteChannel, io/ktor/utils/io/ByteReadChannel {
 	public fun <init> ()V
 	public fun <init> (Z)V
@@ -13,7 +17,7 @@ public final class io/ktor/utils/io/ByteChannel : io/ktor/utils/io/BufferedByteW
 	public fun flush (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun flushAndClose (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun flushWriteBuffer ()V
-	public final fun getAutoFlush ()Z
+	public fun getAutoFlush ()Z
 	public fun getClosedCause ()Ljava/lang/Throwable;
 	public fun getReadBuffer ()Lkotlinx/io/Source;
 	public fun getWriteBuffer ()Lkotlinx/io/Sink;
@@ -38,6 +42,7 @@ public final class io/ktor/utils/io/ByteChannelUtilsKt {
 public abstract interface class io/ktor/utils/io/ByteReadChannel {
 	public static final field Companion Lio/ktor/utils/io/ByteReadChannel$Companion;
 	public abstract fun awaitContent (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun awaitContent$default (Lio/ktor/utils/io/ByteReadChannel;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun cancel (Ljava/lang/Throwable;)V
 	public abstract fun getClosedCause ()Ljava/lang/Throwable;
 	public abstract fun getReadBuffer ()Lkotlinx/io/Source;
@@ -85,6 +90,8 @@ public final class io/ktor/utils/io/ByteReadChannelOperationsKt {
 	public static final fun readRemaining (Lio/ktor/utils/io/ByteReadChannel;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun readRemaining (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun readShort (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun readTo (Lio/ktor/utils/io/ByteReadChannel;Lkotlinx/io/RawSink;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun readTo$default (Lio/ktor/utils/io/ByteReadChannel;Lkotlinx/io/RawSink;JLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun readUTF8Line (Lio/ktor/utils/io/ByteReadChannel;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun readUTF8Line$default (Lio/ktor/utils/io/ByteReadChannel;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun readUTF8LineTo (Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/Appendable;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -125,9 +132,14 @@ public abstract interface class io/ktor/utils/io/ByteWriteChannel {
 	public abstract fun cancel (Ljava/lang/Throwable;)V
 	public abstract fun flush (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun flushAndClose (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getAutoFlush ()Z
 	public abstract fun getClosedCause ()Ljava/lang/Throwable;
 	public abstract fun getWriteBuffer ()Lkotlinx/io/Sink;
 	public abstract fun isClosedForWrite ()Z
+}
+
+public final class io/ktor/utils/io/ByteWriteChannel$DefaultImpls {
+	public static fun getAutoFlush (Lio/ktor/utils/io/ByteWriteChannel;)Z
 }
 
 public final class io/ktor/utils/io/ByteWriteChannelKt {
@@ -149,6 +161,7 @@ public final class io/ktor/utils/io/ByteWriteChannelOperationsKt {
 	public static final fun join (Lio/ktor/utils/io/ChannelJob;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun write (Lio/ktor/utils/io/ByteWriteChannel;ILkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun write$default (Lio/ktor/utils/io/ByteWriteChannel;ILkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun writeBuffer (Lio/ktor/utils/io/ByteWriteChannel;Lkotlinx/io/RawSource;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun writeBuffer (Lio/ktor/utils/io/ByteWriteChannel;Lkotlinx/io/RawSource;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun writeByte (Lio/ktor/utils/io/ByteWriteChannel;BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun writeByteArray (Lio/ktor/utils/io/ByteWriteChannel;[BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -215,6 +228,12 @@ public final class io/ktor/utils/io/ConcurrentIOException : java/lang/IllegalSta
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
+public final class io/ktor/utils/io/ConnectionClosedException : java/io/IOException {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
 public final class io/ktor/utils/io/CountedByteReadChannel : io/ktor/utils/io/ByteReadChannel {
 	public fun <init> (Lio/ktor/utils/io/ByteReadChannel;)V
 	public fun awaitContent (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -237,6 +256,7 @@ public final class io/ktor/utils/io/CountedByteWriteChannel : io/ktor/utils/io/B
 	public fun cancel (Ljava/lang/Throwable;)V
 	public fun flush (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun flushAndClose (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getAutoFlush ()Z
 	public fun getClosedCause ()Ljava/lang/Throwable;
 	public final fun getTotalBytesWritten ()J
 	public fun getWriteBuffer ()Lkotlinx/io/Sink;
@@ -264,6 +284,10 @@ public final class io/ktor/utils/io/DeprecationKt {
 }
 
 public abstract interface annotation class io/ktor/utils/io/ExperimentalKtorApi : java/lang/annotation/Annotation {
+}
+
+public final class io/ktor/utils/io/IODispatcher_jvmKt {
+	public static final fun ioDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
 }
 
 public abstract interface annotation class io/ktor/utils/io/InternalAPI : java/lang/annotation/Annotation {
@@ -626,7 +650,7 @@ public abstract class io/ktor/utils/io/pool/NoPoolImpl : io/ktor/utils/io/pool/O
 
 public abstract interface class io/ktor/utils/io/pool/ObjectPool : java/lang/AutoCloseable {
 	public abstract fun borrow ()Ljava/lang/Object;
-	public abstract fun close ()V
+	public fun close ()V
 	public abstract fun dispose ()V
 	public abstract fun getCapacity ()I
 	public abstract fun recycle (Ljava/lang/Object;)V

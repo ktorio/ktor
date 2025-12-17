@@ -1,13 +1,12 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.test.base
 
 import io.ktor.client.*
-import io.ktor.client.engine.apache.*
+import io.ktor.client.engine.apache5.*
 import io.ktor.client.engine.cio.*
-import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -20,17 +19,28 @@ import io.ktor.server.testing.*
 import io.ktor.test.junit.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Assumptions.*
-import org.slf4j.*
-import java.io.*
-import java.net.*
-import java.security.*
-import java.security.cert.*
-import java.util.concurrent.*
-import javax.net.ssl.*
-import kotlin.coroutines.*
-import kotlin.time.*
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assumptions.assumeTrue
+import org.junit.jupiter.api.BeforeAll
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import java.io.File
+import java.io.IOException
+import java.net.BindException
+import java.net.HttpURLConnection
+import java.net.InetSocketAddress
+import java.net.Socket
+import java.security.KeyStore
+import java.security.SecureRandom
+import java.security.cert.X509Certificate
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.TimeUnit
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManagerFactory
+import javax.net.ssl.X509TrustManager
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -68,7 +78,7 @@ actual abstract class EngineTestBase<
 
     @Target(AnnotationTarget.FUNCTION)
     @Retention
-    protected annotation class NoHttp2
+    protected actual annotation class Http1Only actual constructor()
 
     actual override val coroutineContext: CoroutineContext
         get() = testJob + testDispatcher
@@ -87,7 +97,7 @@ actual abstract class EngineTestBase<
         if (method.isAnnotationPresent(Http2Only::class.java)) {
             assumeTrue(enableHttp2, "http2 is not enabled")
         }
-        if (method.isAnnotationPresent(NoHttp2::class.java)) {
+        if (method.isAnnotationPresent(Http1Only::class.java)) {
             enableHttp2 = false
         }
 
@@ -169,7 +179,7 @@ actual abstract class EngineTestBase<
         routingConfigurer: Route.() -> Unit
     ): EmbeddedServer<TEngine, TConfiguration> {
         var lastFailures = emptyList<Throwable>()
-        for (attempt in 1..5) {
+        repeat(5) {
             val server = createServer(log, parent) {
                 plugins(this, routingConfigurer)
             }
@@ -202,7 +212,7 @@ actual abstract class EngineTestBase<
         this.server = server
 
         // we start it on the global scope because we don't want it to fail the whole test
-        // as far as we have retry loop on call side
+        // as far as we have retry loop on the call side
         val starting = GlobalScope.async(testDispatcher) {
             server.start(wait = false)
 
@@ -249,10 +259,10 @@ actual abstract class EngineTestBase<
         builder: suspend HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
     ) {
-        withUrl("http://127.0.0.1:$port$path", port, builder, block)
+        withHttp1("http://127.0.0.1:$port$path", port, builder, block)
 
         if (enableSsl) {
-            withUrl("https://127.0.0.1:$sslPort$path", sslPort, builder, block)
+            withHttp1("https://127.0.0.1:$sslPort$path", sslPort, builder, block)
         }
 
         if (enableHttp2 && enableSsl) {
@@ -270,7 +280,7 @@ actual abstract class EngineTestBase<
         }
     }
 
-    private suspend fun withUrl(
+    protected suspend fun withHttp1(
         urlString: String,
         port: Int,
         builder: suspend HttpRequestBuilder.() -> Unit,
@@ -284,63 +294,78 @@ actual abstract class EngineTestBase<
         }
     }
 
-    private suspend fun withHttp2(
+    protected suspend fun withHttp2(
         url: String,
         port: Int,
         builder: suspend HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
     ) {
-        HttpClient(Apache) {
-            followRedirects = false
-            expectSuccess = false
-            engine {
-                pipelining = true
-                sslContext = SSLContext.getInstance("SSL").apply {
-                    init(null, trustAllCertificates, SecureRandom())
-                }
-            }
-        }.use { client ->
-            client.prepareRequest(url) {
-                builder()
-            }.execute { response ->
-                block(response, port)
-            }
+        val client = http2Client ?: createApacheClient().also {
+            http2Client = it
+        }
+        client.prepareRequest(url) {
+            builder()
+        }.execute { response ->
+            block(response, port)
         }
     }
 
     companion object {
         val keyStoreFile: File = File("build/temp.jks")
-        lateinit var keyStore: KeyStore
-        lateinit var sslContext: SSLContext
-        lateinit var trustManager: X509TrustManager
+        val keyStore: KeyStore by lazy { generateCertificate(keyStoreFile) }
         lateinit var client: HttpClient
+        var http2Client: HttpClient? = null
+
+        fun createTrustManager(): X509TrustManager {
+            val sslContext = SSLContext.getInstance("TLS")
+            val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+            tmf.init(keyStore)
+            sslContext.init(null, tmf.trustManagers, null)
+            return tmf.trustManagers.first { it is X509TrustManager } as X509TrustManager
+        }
+
+        fun createCIOClient(): HttpClient {
+            return HttpClient(CIO) {
+                engine {
+                    https.trustManager = createTrustManager()
+                    https.serverName = "localhost"
+                    requestTimeout = 0
+                }
+                followRedirects = false
+                expectSuccess = false
+            }
+        }
+
+        fun createApacheClient(): HttpClient {
+            return HttpClient(Apache5) {
+                followRedirects = false
+                expectSuccess = false
+                engine {
+                    customizeClient {
+                        disableAutomaticRetries()
+                    }
+                    pipelining = true
+                    sslContext = SSLContext.getInstance("TLS").apply {
+                        init(null, trustAllCertificates, SecureRandom())
+                    }
+                }
+            }
+        }
 
         @BeforeAll
         @JvmStatic
         fun setupAll() {
-            keyStore = generateCertificate(keyStoreFile, algorithm = "SHA256withECDSA", keySizeInBits = 256)
-            val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
-            tmf.init(keyStore)
-            sslContext = SSLContext.getInstance("TLS")
-            sslContext.init(null, tmf.trustManagers, null)
-            trustManager = tmf.trustManagers.first { it is X509TrustManager } as X509TrustManager
-
-            client = HttpClient(CIO) {
-                engine {
-                    https.trustManager = trustManager
-                    https.serverName = "localhost"
-                    requestTimeout = 0
-                }
-
-                followRedirects = false
-                expectSuccess = false
-            }
+            client = createCIOClient()
         }
 
         @AfterAll
         @JvmStatic
         fun cleanup() {
             client.close()
+            http2Client?.let {
+                it.close()
+                http2Client = null
+            }
         }
 
         @Suppress("BlockingMethodInNonBlockingContext")
@@ -354,13 +379,20 @@ actual abstract class EngineTestBase<
                 }
             } while (true)
         }
-    }
 
-    private val trustAllCertificates = arrayOf<X509TrustManager>(
-        object : X509TrustManager {
-            override fun getAcceptedIssuers(): Array<X509Certificate> = emptyArray()
-            override fun checkClientTrusted(certs: Array<X509Certificate>, authType: String) {}
-            override fun checkServerTrusted(certs: Array<X509Certificate>, authType: String) {}
-        }
-    )
+        private val trustAllCertificates = arrayOf<X509TrustManager>(
+            @Suppress("CustomX509TrustManager")
+            object : X509TrustManager {
+                override fun getAcceptedIssuers(): Array<X509Certificate> = emptyArray()
+
+                @Suppress("TrustAllX509TrustManager")
+                override fun checkClientTrusted(certs: Array<X509Certificate>, authType: String) {
+                }
+
+                @Suppress("TrustAllX509TrustManager")
+                override fun checkServerTrusted(certs: Array<X509Certificate>, authType: String) {
+                }
+            }
+        )
+    }
 }

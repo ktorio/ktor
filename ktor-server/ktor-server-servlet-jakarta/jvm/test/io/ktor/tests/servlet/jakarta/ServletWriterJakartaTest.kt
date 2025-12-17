@@ -1,10 +1,9 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.servlet.jakarta
 
-import io.ktor.server.servlet.*
 import io.ktor.server.servlet.jakarta.servletWriter
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*

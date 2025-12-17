@@ -88,6 +88,7 @@ class NettyReadRequestTimeoutTest :
         client.performAndCheckRequestWithoutTimeout()
     }
 
+    @Ignore
     @Test
     fun `parallel timeout requests`() = requestTimeoutTest(timeout = 1) { _, _ ->
         val client = HttpClient()

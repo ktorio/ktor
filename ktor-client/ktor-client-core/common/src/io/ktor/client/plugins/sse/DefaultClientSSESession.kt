@@ -4,17 +4,21 @@
 
 package io.ktor.client.plugins.sse
 
+import io.ktor.client.network.sockets.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.sse.*
+import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onCompletion
+import kotlinx.io.IOException
 import kotlin.coroutines.CoroutineContext
 
 @OptIn(InternalAPI::class)
@@ -30,10 +34,14 @@ public class DefaultClientSSESession(
     private val showRetryEvents = content.showRetryEvents
     private val maxReconnectionAttempts = content.maxReconnectionAttempts
     private var needToReconnect = maxReconnectionAttempts > 0
-
+    private var bodyBuffer: BodyBuffer = content.bufferPolicy.toBodyBuffer()
     private val initialRequest = content.initialRequest
-
     private val clientForReconnection = initialRequest.attributes[SSEClientForReconnectionAttr]
+    private val callContext = content.callContext
+
+    private val closed = atomic(false)
+
+    override fun bodyBuffer(): ByteArray = bodyBuffer.toByteArray()
 
     public constructor(
         content: SSEClientContent,
@@ -50,32 +58,32 @@ public class DefaultClientSSESession(
                 if (event.isCommentsEvent() && !showCommentEvents) continue
                 if (event.isRetryEvent() && !showRetryEvents) continue
 
+                bodyBuffer.appendEvent(event)
                 emit(event)
             }
 
             if (needToReconnect) {
                 doReconnection()
             } else {
-                close()
+                break
             }
         }
     }.catch { cause ->
-        when (cause) {
-            is CancellationException -> {
-                // CancellationException will be handled by onCompletion operator
-            }
-
-            else -> {
-                LOGGER.trace { "Error during SSE session processing: $cause" }
-                close()
-                throw cause
-            }
-        }
-    }.onCompletion { cause ->
-        // Because catch operator only catch throwable occurs in upstream flow, so we use onCompletion operator instead
-        // to handle CancellationException occurs in either upstream flow or downstream flow.
         if (cause is CancellationException) {
-            close()
+            return@catch
+        }
+
+        LOGGER.trace { "Error during SSE session processing: $cause" }
+        throw cause
+    }.onCompletion { cause ->
+        close()
+
+        when (cause) {
+            null -> return@onCompletion
+            is CancellationException -> return@onCompletion
+            else -> {
+                throw SSEClientException(cause = cause, message = cause.message)
+            }
         }
     }
 
@@ -128,7 +136,7 @@ public class DefaultClientSSESession(
         attributes.put(SSEReconnectionRequestAttr, true)
 
         lastEventId?.let {
-            headers.append("Last-Event-ID", it)
+            headers.append(HttpHeaders.LastEventID, it)
         }
     }
 
@@ -136,14 +144,22 @@ public class DefaultClientSSESession(
         get() = _incoming
 
     private fun close() {
+        if (!closed.compareAndSet(expect = false, update = true)) return
+
         coroutineContext.cancel()
         input.cancel()
+        callContext.cancel()
     }
 
     private suspend fun ByteReadChannel.tryParseEvent(): ServerSentEvent? =
         try {
             parseEvent()
-        } catch (_: ClosedByteChannelException) {
+        } catch (cause: IOException) {
+            val rootCause = cause.rootCause
+            if (rootCause is SocketTimeoutException) {
+                throw rootCause
+            }
+
             // this is expected when the server disconnects
             null
         }
@@ -158,9 +174,9 @@ public class DefaultClientSSESession(
         var wasData = false
         var wasComments = false
 
-        var line: String = readUTF8Line() ?: return null
+        var line: String = readUTF8LineWithSave() ?: return null
         while (line.isBlank()) {
-            line = readUTF8Line() ?: return null
+            line = readUTF8LineWithSave() ?: return null
         }
 
         while (true) {
@@ -209,12 +225,18 @@ public class DefaultClientSSESession(
                     }
                 }
             }
-            line = readUTF8Line() ?: return null
+            line = readUTF8LineWithSave() ?: return null
         }
     }
 
     private fun StringBuilder.appendComment(comment: String) {
         append(comment.removePrefix(COLON).removePrefix(SPACE)).append(END_OF_LINE)
+    }
+
+    private suspend fun ByteReadChannel.readUTF8LineWithSave(): String? {
+        val line = readUTF8Line() ?: return null
+        bodyBuffer.appendLine(line)
+        return line
     }
 
     private fun StringBuilder.toText() = toString().removeSuffix(END_OF_LINE)

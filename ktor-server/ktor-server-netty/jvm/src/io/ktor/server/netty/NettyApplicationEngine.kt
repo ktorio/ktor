@@ -27,6 +27,7 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import java.net.BindException
 import java.util.concurrent.TimeUnit
 import kotlin.reflect.KClass
+import kotlin.system.measureTimeMillis
 
 private val AFTER_CALL_PHASE = PipelinePhase("After")
 
@@ -125,6 +126,13 @@ public class NettyApplicationEngine(
         public var enableHttp2: Boolean = true
 
         /**
+         * If set to `true` and [enableHttp2] is set to `true`, enables HTTP/2 protocol without TLS for Netty engine
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.NettyApplicationEngine.Configuration.enableH2c)
+         */
+        public var enableH2c: Boolean = false
+
+        /**
          * User-provided function to configure Netty's [HttpServerCodec]
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.NettyApplicationEngine.Configuration.httpServerCodec)
@@ -205,9 +213,9 @@ public class NettyApplicationEngine(
                 channel(getChannelClass().java)
             }
 
-            val userContext = applicationProvider().coroutineContext +
+            val userContext =
                 NettyApplicationCallHandler.CallHandlerCoroutineName +
-                DefaultUncaughtExceptionHandler(environment.log)
+                    DefaultUncaughtExceptionHandler(environment.log)
 
             childHandler(
                 NettyChannelInitializer(
@@ -223,7 +231,8 @@ public class NettyApplicationEngine(
                     configuration.requestReadTimeoutSeconds,
                     configuration.httpServerCodec,
                     configuration.channelPipelineConfig,
-                    configuration.enableHttp2
+                    configuration.enableHttp2,
+                    configuration.enableH2c
                 )
             )
             if (configuration.tcpKeepAlive) {
@@ -268,32 +277,57 @@ public class NettyApplicationEngine(
     }
 
     private fun terminate() {
-        connectionEventGroup.shutdownGracefully().sync()
-        workerEventGroup.shutdownGracefully().sync()
+        withStopException {
+            connectionEventGroup.shutdownGracefully().sync()
+        }
+        withStopException {
+            callEventGroup.shutdownGracefully().sync()
+        }
+    }
+
+    private inline fun <R> withStopException(crossinline block: () -> R) {
+        runCatching(block).onFailure {
+            environment.log.error("Exception thrown during engine stop", it)
+        }
     }
 
     override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
         cancellationJob?.complete()
         monitor.raise(ApplicationStopPreparing, environment)
-        val channelFutures = channels?.mapNotNull { if (it.isOpen) it.close() else null }.orEmpty()
 
-        try {
-            val shutdownConnections =
-                connectionEventGroup.shutdownGracefully(gracePeriodMillis, timeoutMillis, TimeUnit.MILLISECONDS)
-            shutdownConnections.await()
-
-            val shutdownWorkers =
-                workerEventGroup.shutdownGracefully(gracePeriodMillis, timeoutMillis, TimeUnit.MILLISECONDS)
-            if (configuration.shareWorkGroup) {
-                shutdownWorkers.await()
-            } else {
-                val shutdownCall =
-                    callEventGroup.shutdownGracefully(gracePeriodMillis, timeoutMillis, TimeUnit.MILLISECONDS)
-                shutdownWorkers.await()
-                shutdownCall.await()
+        val channelsCloseTime = measureTimeMillis {
+            val channelFutures = channels?.mapNotNull { if (it.isOpen) it.close() else null }.orEmpty()
+            channelFutures.forEach { future ->
+                withStopException { future.sync() }
             }
-        } finally {
-            channelFutures.forEach { it.sync() }
+        }
+
+        // Quiet period in Ktor Server and Netty EventLoopGroup are different.
+        // Ktor Server waits for all requests to finish without accepting new ones.
+        // Netty's EventLoopGroup accepts new tasks during the gracePeriod
+        // and always waits at least gracePeriod, even if there are no tasks to complete.
+        val noQuietPeriod = 0L
+        val timeoutMillis = (timeoutMillis - channelsCloseTime).coerceAtLeast(gracePeriodMillis)
+        val shutdownConnections = connectionEventGroup.shutdownGracefully(
+            noQuietPeriod,
+            timeoutMillis,
+            TimeUnit.MILLISECONDS
+        )
+        val shutdownWorkers = workerEventGroup.shutdownGracefully(
+            gracePeriodMillis,
+            timeoutMillis,
+            TimeUnit.MILLISECONDS
+        )
+        val workersShutdownTime = measureTimeMillis {
+            withStopException { shutdownConnections.sync() }
+            withStopException { shutdownWorkers.sync() }
+        }
+        if (!configuration.shareWorkGroup) {
+            withStopException {
+                // There should be no new tasks to be scheduled at this point; no quiet period is needed.
+                val timeoutMillis = (timeoutMillis - workersShutdownTime).coerceAtLeast(100L)
+                callEventGroup.shutdownGracefully(noQuietPeriod, timeoutMillis, TimeUnit.MILLISECONDS).sync()
+            }
         }
     }
 

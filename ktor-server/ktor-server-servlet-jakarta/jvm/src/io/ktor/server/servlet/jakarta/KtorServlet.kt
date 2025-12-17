@@ -50,7 +50,10 @@ public abstract class KtorServlet : HttpServlet(), CoroutineScope {
     override val coroutineContext: CoroutineContext = Dispatchers.Unconfined +
         SupervisorJob() +
         CoroutineName("servlet") +
-        DefaultUncaughtExceptionHandler { logger }
+        DefaultUncaughtExceptionHandler {
+            // fallback in case the coroutine fails after servlet context is cleared
+            runCatching { logger }.getOrNull() ?: LoggerFactory.getLogger(servletName)
+        }
 
     /**
      * Called by the servlet container when loading the servlet (on load)
@@ -97,12 +100,14 @@ public abstract class KtorServlet : HttpServlet(), CoroutineScope {
         }
     }
 
-    private fun HttpServletResponse.sendErrorIfNotCommitted(message: String) {
+    private fun HttpServletResponse.sendErrorIfNotCommitted(message: String?) {
+        if (isCommitted) return
         try {
-            if (!isCommitted) {
-                sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message)
+            when (message) {
+                null -> sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+                else -> sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message)
             }
-        } catch (alreadyCommitted: IllegalStateException) {
+        } catch (_: Throwable) {
         }
     }
 
@@ -127,7 +132,7 @@ public abstract class KtorServlet : HttpServlet(), CoroutineScope {
                 enginePipeline.execute(call)
             } catch (cause: Throwable) {
                 logError(call, cause)
-                response.sendErrorIfNotCommitted("")
+                response.sendErrorIfNotCommitted(cause.message)
             } finally {
                 try {
                     asyncContext.complete()

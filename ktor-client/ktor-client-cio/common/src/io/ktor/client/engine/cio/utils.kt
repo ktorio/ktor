@@ -41,7 +41,7 @@ internal suspend fun writeHeaders(
     val builder = RequestResponseBuilder()
 
     val method = request.method
-    val url = request.url
+    val url = request.url.rebuildIfNeeded()
     val headers = request.headers
     val body = request.body
 
@@ -177,7 +177,7 @@ internal suspend fun readResponse(
 
     rawResponse.use {
         val status = HttpStatusCode(rawResponse.status, rawResponse.statusText.toString())
-        val contentLength = rawResponse.headers[HttpHeaders.ContentLength]?.toString()?.toLong() ?: -1L
+        val contentLength = rawResponse.headers[HttpHeaders.ContentLength]?.toString()?.toLongOrNull() ?: -1L
         val transferEncoding = rawResponse.headers[HttpHeaders.TransferEncoding]?.toString()
         val connectionType = ConnectionOptions.parse(rawResponse.headers[HttpHeaders.Connection])
 

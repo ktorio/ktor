@@ -210,6 +210,13 @@ public class DefaultRequest private constructor(private val block: DefaultReques
         public var host: String
             get() = url.host
             set(value) {
+                if (value.contains("/") || value.contains("?") || value.contains("#")) {
+                    LOGGER.warn(
+                        "DefaultRequest.host was set to '$value', which is not a valid host. " +
+                            "Host must not contain scheme, path, query or fragment. " +
+                            "Use `url(...)` or `url{ ... }` instead."
+                    )
+                }
                 url.host = value
             }
 
@@ -246,12 +253,30 @@ public class DefaultRequest private constructor(private val block: DefaultReques
 }
 
 /**
- * Set default request parameters. See [DefaultRequest]
+ * Set default request parameters and optionally lets replace previous configuration. See [DefaultRequest]
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.defaultRequest)
  */
-public fun HttpClientConfig<*>.defaultRequest(block: DefaultRequest.DefaultRequestBuilder.() -> Unit) {
+public fun HttpClientConfig<*>.defaultRequest(
+    block: DefaultRequest.DefaultRequestBuilder.() -> Unit
+): Unit = install(DefaultRequest) {
+    block()
+}
+
+/**
+ * Set default request parameters and optionally replace previous configuration. See [DefaultRequest]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.defaultRequest)
+ */
+public fun HttpClientConfig<*>.defaultRequest(
+    replace: Boolean = false,
+    block: DefaultRequest.DefaultRequestBuilder.() -> Unit
+): Unit = if (!replace) {
     install(DefaultRequest) {
+        block()
+    }
+} else {
+    installOrReplace(DefaultRequest) {
         block()
     }
 }

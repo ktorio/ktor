@@ -9,7 +9,10 @@ import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CompletableJob
+import kotlinx.coroutines.job
+import kotlinx.coroutines.withContext
+import kotlin.coroutines.ContinuationInterceptor
 
 /**
  * Represents a prepared HTTP request statement for [HttpClient].
@@ -36,25 +39,29 @@ public class HttpStatement(
     /**
      * Executes the HTTP statement and invokes the provided [block] with the streaming [HttpResponse].
      *
-     * The [response] holds an open network connection until [block] completes.
-     * You can access the response body incrementally (streaming) or load it entirely with [body<T>()].
+     * The response holds an open network connection until [block] completes.
+     * You can access the response body incrementally (streaming) or load it entirely with `body<T>()`.
      *
-     * After [block] finishes, the [response] is finalized based on the engine's configuration—either discarded
+     * After [block] finishes, the response is finalized based on the engine's configuration—either discarded
      * or released.
-     * The [response] object should not be accessed outside of [block] as it will be canceled upon
+     * The response object should not be accessed outside of [block] as it will be canceled upon
      * block completion.
      *
+     * The [block] is executed on the engine's dispatcher, making it safe to perform IO operations
+     * such as reading the response content and writing it into a file.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.HttpStatement.execute)
      *
      * @param block A suspend function that receives the [HttpResponse] for streaming.
-     * @return The result of executing [block] with the streaming [response].
+     * @return The result of executing [block] with the streaming response.
      */
     public suspend fun <T> execute(block: suspend (response: HttpResponse) -> T): T = unwrapRequestTimeoutException {
         val response = fetchStreamingResponse()
 
         try {
-            return block(response)
+            return withContext(response.coroutineContext[ContinuationInterceptor]!!) {
+                block(response)
+            }
         } finally {
             response.cleanup()
         }
@@ -102,10 +109,13 @@ public class HttpStatement(
      *
      * This function is particularly useful for handling streaming responses, allowing you to process data on-the-fly
      * while the network connection remains open.
-     * The [block] receives the streamed [response] and can be used to perform operations on the data as it arrives.
+     * The [block] receives the streamed response and can be used to perform operations on the data as it arrives.
      *
      * Once [block] completes, the resources associated with the response are automatically cleaned up, freeing
      * any network or memory resources held by the response.
+     *
+     * The [block] is executed on the engine's dispatcher, making it safe to perform IO operations
+     * such as writing to a file.
      *
      * ## Usage Example
      * ```
@@ -117,11 +127,10 @@ public class HttpStatement(
      * // Resources are released automatically after block completes
      * ```
      *
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.HttpStatement.body)
      *
-     * @param block A suspend function that handles the streamed [response] of type [T].
-     * @return The result of [block] applied to the streaming [response].
+     * @param block A suspend function that handles the streamed response of type [T].
+     * @return The result of [block] applied to the streaming response.
      *
      * @note For streaming types (such as [ByteReadChannel]), ensure processing completes within [block], as resources
      * will be cleaned up automatically once [block] finishes.
@@ -131,8 +140,10 @@ public class HttpStatement(
     ): R = unwrapRequestTimeoutException {
         val response: HttpResponse = fetchStreamingResponse()
         try {
-            val result = response.body<T>()
-            return block(result)
+            return withContext(response.coroutineContext[ContinuationInterceptor]!!) {
+                val result = response.body<T>()
+                block(result)
+            }
         } finally {
             response.cleanup()
         }
@@ -174,13 +185,17 @@ public class HttpStatement(
     @PublishedApi
     @OptIn(InternalAPI::class)
     internal suspend fun HttpResponse.cleanup() {
-        val job = coroutineContext[Job]!! as CompletableJob
+        val job = coroutineContext.job as CompletableJob
 
         job.apply {
             complete()
-            try {
-                rawContent.cancel()
-            } catch (_: Throwable) {
+            // If the response is saved, the underlying channel is already closed and
+            // calling `rawContent` would create a new one
+            if (!isSaved) {
+                try {
+                    rawContent.cancel()
+                } catch (_: Throwable) {
+                }
             }
             join()
         }

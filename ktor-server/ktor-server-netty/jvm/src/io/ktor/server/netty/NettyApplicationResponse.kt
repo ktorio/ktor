@@ -1,5 +1,5 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+* Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
 package io.ktor.server.netty
@@ -33,6 +33,9 @@ public abstract class NettyApplicationResponse(
 
     internal var responseChannel: ByteReadChannel = ByteReadChannel.Empty
 
+    private val canRespond: Boolean
+        get() = !responseMessageSent && context.channel().isActive
+
     override suspend fun respondOutgoingContent(content: OutgoingContent) {
         try {
             super.respondOutgoingContent(content)
@@ -51,7 +54,7 @@ public abstract class NettyApplicationResponse(
         // because it should've been set by commitHeaders earlier
         val chunked = headers[HttpHeaders.TransferEncoding] == "chunked"
 
-        if (responseMessageSent) return
+        if (!canRespond) return
 
         val message = responseMessage(chunked, bytes)
         responseChannel = when (message) {
@@ -111,7 +114,7 @@ public abstract class NettyApplicationResponse(
     }
 
     internal fun sendResponse(chunked: Boolean = true, content: ByteReadChannel) {
-        if (responseMessageSent) return
+        if (!canRespond) return
 
         responseChannel = content
         responseMessage = when {

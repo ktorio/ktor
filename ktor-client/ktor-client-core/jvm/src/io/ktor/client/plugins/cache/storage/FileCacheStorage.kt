@@ -11,11 +11,13 @@ import io.ktor.util.collections.*
 import io.ktor.util.date.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.CancellationException
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.sync.*
-import java.io.*
-import java.security.*
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import java.io.File
+import java.security.MessageDigest
 
 /**
  * Creates storage that uses file system to store cache data.
@@ -88,25 +90,25 @@ private class FileCacheStorage(
         }
     }
 
-    override suspend fun findAll(url: Url): Set<CachedResponseData> {
-        return readCache(key(url)).toSet()
+    override suspend fun findAll(url: Url): Set<CachedResponseData> = withContext(dispatcher) {
+        readCache(key(url)).toSet()
     }
 
-    override suspend fun find(url: Url, varyKeys: Map<String, String>): CachedResponseData? {
+    override suspend fun find(url: Url, varyKeys: Map<String, String>): CachedResponseData? = withContext(dispatcher) {
         val data = readCache(key(url))
-        return data.find {
+        data.find {
             varyKeys.all { (key, value) -> it.varyKeys[key] == value }
         }
     }
 
-    override suspend fun remove(url: Url, varyKeys: Map<String, String>) {
+    override suspend fun remove(url: Url, varyKeys: Map<String, String>) = withContext(dispatcher) {
         val urlHex = key(url)
         updateCache(urlHex) { caches ->
             caches.filterNot { it.varyKeys == varyKeys }
         }
     }
 
-    override suspend fun removeAll(url: Url) {
+    override suspend fun removeAll(url: Url) = withContext(dispatcher) {
         val urlHex = key(url)
         deleteCache(urlHex)
     }
@@ -143,21 +145,26 @@ private class FileCacheStorage(
         }
     }
 
-    private suspend fun writeCacheUnsafe(urlHex: String, caches: List<CachedResponseData>) = coroutineScope {
+    private suspend fun writeCacheUnsafe(urlHex: String, caches: List<CachedResponseData>) {
         val channel = ByteChannel()
         try {
-            File(directory, urlHex).outputStream().buffered().use { output ->
-                launch {
-                    channel.writeInt(caches.size)
-                    for (cache in caches) {
-                        writeCache(channel, cache)
+            coroutineScope {
+                File(directory, urlHex).outputStream().buffered().use { output ->
+                    launch {
+                        channel.writeInt(caches.size)
+                        for (cache in caches) {
+                            writeCache(channel, cache)
+                        }
+                        channel.close()
                     }
-                    channel.close()
+                    channel.copyTo(output)
                 }
-                channel.copyTo(output)
             }
         } catch (cause: Exception) {
+            if (cause is CancellationException) currentCoroutineContext().ensureActive()
             LOGGER.trace { "Exception during saving a cache to a file: ${cause.stackTraceToString()}" }
+        } finally {
+            channel.close()
         }
     }
 
@@ -205,6 +212,15 @@ private class FileCacheStorage(
         channel.writeFully(cache.body)
     }
 
+    /**
+     * Deserialize a single [CachedResponseData] from the provided [ByteReadChannel].
+     *
+     * Reads the cached-entry fields in the stored binary format: request URL, HTTP status and version,
+     * headers, request/response/expiration timestamps, vary keys (converted to lowercase), and the body bytes.
+     *
+     * @param channel Source channel positioned at the start of a serialized cache entry.
+     * @return The reconstructed [CachedResponseData] instance.
+     */
     private suspend fun readCache(channel: ByteReadChannel): CachedResponseData {
         val url = channel.readUTF8Line()!!
         val status = HttpStatusCode(channel.readInt(), channel.readUTF8Line()!!)
@@ -222,7 +238,7 @@ private class FileCacheStorage(
         val varyKeysCount = channel.readInt()
         val varyKeys = buildMap {
             for (j in 0 until varyKeysCount) {
-                val key = channel.readUTF8Line()!!
+                val key = channel.readUTF8Line()!!.lowercase()
                 val value = channel.readUTF8Line()!!
                 put(key, value)
             }

@@ -14,7 +14,9 @@ config.set({
                 "--disable-web-security",
                 "--disable-setuid-sandbox",
                 "--enable-logging",
-                "--v=1"
+                "--v=1",
+                "--use-fake-device-for-media-stream",
+                "--use-fake-ui-for-media-stream"
             ]
         }
     },
@@ -27,4 +29,7 @@ config.set({
     }
 });
 
-process.env.CHROME_BIN = require('puppeteer').executablePath();
+// CHROME_BIN might be already defined, otherwise use puppeteer to get the path
+if (!process.env.CHROME_BIN) {
+    process.env.CHROME_BIN = require('puppeteer').executablePath();
+}

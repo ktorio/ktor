@@ -5,7 +5,7 @@
 package io.ktor.server.plugins.di
 
 import io.ktor.server.plugins.di.utils.*
-import io.ktor.util.reflect.*
+import io.ktor.util.reflect.TypeInfo
 import io.ktor.utils.io.*
 
 /**
@@ -95,6 +95,24 @@ public val OutTypeArgumentsSupertypes: DependencyKeyCovariance =
     }
 
 /**
+ * A [DependencyKeyCovariance] that generates raw type variants from parameterized types.
+ *
+ * For example, `Pair<String, Int>` yields `Pair`
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.RawTypes)
+ */
+@OptIn(InternalAPI::class)
+public val RawTypes: DependencyKeyCovariance =
+    DependencyKeyCovariance { key, distance ->
+        sequence {
+            yield(key to distance)
+            if (key.type.kotlinType != null) {
+                yield(key.copy(type = key.type.toRawType()) to distance.inc())
+            }
+        }
+    }
+
+/**
  * Helper operator function for combining covariance logic.
  *
  * Returns a composed function that results in the cartesian product of the two outputs.
@@ -141,4 +159,128 @@ public operator fun DependencyKeyCovariance.plus(other: DependencyKeyCovariance)
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DefaultKeyCovariance)
  */
 public val DefaultKeyCovariance: DependencyKeyCovariance =
-    Supertypes * Nullables * OutTypeArgumentsSupertypes
+    Supertypes * Nullables * OutTypeArgumentsSupertypes * RawTypes
+
+/**
+ * Parses expressions using the OOTB key mapping rules.
+ *
+ * See [DependencyKeyCovarianceParser.mappings] for the list of supported OOTB options.
+ *
+ * When using expressions, operators are supported, including `+`, `*`, and `()`.
+ *
+ * Examples:
+ * - `Supertypes * Nullables` will provide all supertypes and nullable versions of those supertypes.
+ * - `Supertypes + (Nullables + Unnamed)` will provide the same, but also unnamed versions of the supertypes.
+ *    It will not include nullable, unnamed versions of the supertypes, however.
+ */
+internal fun parseKeyMapping(text: String): DependencyKeyCovariance {
+    return DependencyKeyCovarianceParser(text).parse()
+}
+
+private class DependencyKeyCovarianceParser(
+    private val text: String,
+) {
+    companion object {
+        private val mappings = mapOf(
+            "Supertypes" to Supertypes,
+            "SuperTypes" to Supertypes,
+            "Unnamed" to Unnamed,
+            "Nullables" to Nullables,
+            "OutTypeArgumentsSupertypes" to OutTypeArgumentsSupertypes,
+            "RawTypes" to RawTypes,
+            "Default" to DefaultKeyCovariance
+        )
+    }
+    private var position = 0
+
+    fun parse(): DependencyKeyCovariance {
+        skipWhitespace()
+        val result = parseAddition()
+        skipWhitespace()
+        check(position >= text.length) {
+            "Unexpected character at position $position: '${text[position]}'"
+        }
+        return result
+    }
+
+    private fun parseAddition(): DependencyKeyCovariance {
+        var left = parseMultiplication()
+
+        while (true) {
+            skipWhitespace()
+            if (position >= text.length || peek() != '+') break
+
+            consume('+')
+            skipWhitespace()
+            val right = parseMultiplication()
+            left += right
+        }
+
+        return left
+    }
+
+    private fun parseMultiplication(): DependencyKeyCovariance {
+        var left = parsePrimary()
+
+        while (true) {
+            skipWhitespace()
+            if (position >= text.length || peek() != '*') break
+
+            consume('*')
+            skipWhitespace()
+            val right = parsePrimary()
+            left *= right
+        }
+
+        return left
+    }
+
+    private fun parsePrimary(): DependencyKeyCovariance {
+        skipWhitespace()
+
+        return when {
+            position >= text.length -> error("Unexpected end of expression")
+            peek() == '(' -> {
+                consume('(')
+                val result = parseAddition()
+                skipWhitespace()
+                consume(')')
+                result
+            }
+            else -> parseIdentifier()
+        }
+    }
+
+    private fun parseIdentifier(): DependencyKeyCovariance {
+        val start = position
+        while (position < text.length && (text[position].isLetterOrDigit() || text[position] == '_')) {
+            position++
+        }
+
+        check(start < position) {
+            "Expected identifier at position $position"
+        }
+
+        val identifier = text.substring(start, position)
+        return mappings[identifier]
+            ?: error("Unknown mapping: '$identifier'. Available: ${mappings.keys.joinToString(", ")}")
+    }
+
+    private fun skipWhitespace() {
+        while (position < text.length && text[position].isWhitespace()) {
+            position++
+        }
+    }
+
+    private fun peek(): Char = text[position]
+
+    private fun consume(expected: Char) {
+        check(position < text.length) {
+            "Expected '$expected' but reached end of expression"
+        }
+        check(text[position] == expected) {
+            "Expected '$expected' but found '${text[position]}' at position $position"
+        }
+        position++
+    }
+}

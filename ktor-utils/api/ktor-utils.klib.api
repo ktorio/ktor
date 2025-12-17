@@ -75,6 +75,18 @@ final enum class io.ktor.util.logging/LogLevel : kotlin/Enum<io.ktor.util.loggin
     enum entry NONE // io.ktor.util.logging/LogLevel.NONE|null[0]
 }
 
+abstract interface <#A: out io.ktor.util.collections/TreeLike<#A>> io.ktor.util.collections/TreeLike { // io.ktor.util.collections/TreeLike|null[0]
+    abstract val children // io.ktor.util.collections/TreeLike.children|{}children[0]
+        abstract fun <get-children>(): kotlin.collections/Iterable<#A> // io.ktor.util.collections/TreeLike.children.<get-children>|<get-children>(){}[0]
+    abstract val parent // io.ktor.util.collections/TreeLike.parent|{}parent[0]
+        abstract fun <get-parent>(): #A? // io.ktor.util.collections/TreeLike.parent.<get-parent>|<get-parent>(){}[0]
+
+    open fun descendants(): kotlin.sequences/Sequence<#A> // io.ktor.util.collections/TreeLike.descendants|descendants(){}[0]
+    open fun isLeaf(): kotlin/Boolean // io.ktor.util.collections/TreeLike.isLeaf|isLeaf(){}[0]
+    open fun isRoot(): kotlin/Boolean // io.ktor.util.collections/TreeLike.isRoot|isRoot(){}[0]
+    open fun lineage(): kotlin.sequences/Sequence<#A> // io.ktor.util.collections/TreeLike.lineage|lineage(){}[0]
+}
+
 abstract interface io.ktor.util.collections/StringMap { // io.ktor.util.collections/StringMap|null[0]
     abstract fun get(kotlin/String): kotlin/String? // io.ktor.util.collections/StringMap.get|get(kotlin.String){}[0]
     abstract fun remove(kotlin/String): kotlin/String? // io.ktor.util.collections/StringMap.remove|remove(kotlin.String){}[0]
@@ -310,7 +322,7 @@ final class <#A: kotlin/Any?, #B: kotlin/Any?> io.ktor.util.collections/Concurre
 }
 
 final class <#A: kotlin/Any?> io.ktor.util.collections/SerializedMapValue { // io.ktor.util.collections/SerializedMapValue|null[0]
-    constructor <init>(kotlin/String, kotlin/Function1<#A, kotlin/String>, kotlin/Function1<kotlin/String, #A>) // io.ktor.util.collections/SerializedMapValue.<init>|<init>(kotlin.String;kotlin.Function1<1:0,kotlin.String>;kotlin.Function1<kotlin.String,1:0>){}[0]
+    constructor <init>(kotlin/String, kotlin/Function1<#A, kotlin/String?>, kotlin/Function1<kotlin/String, #A>) // io.ktor.util.collections/SerializedMapValue.<init>|<init>(kotlin.String;kotlin.Function1<1:0,kotlin.String?>;kotlin.Function1<kotlin.String,1:0>){}[0]
 }
 
 final class io.ktor.util.cio/ChannelReadException : io.ktor.util.cio/ChannelIOException { // io.ktor.util.cio/ChannelReadException|null[0]
@@ -893,6 +905,15 @@ final object io.ktor.util/PlatformUtils { // io.ktor.util/PlatformUtils|null[0]
         final fun <get-IS_WASM_JS>(): kotlin/Boolean // io.ktor.util/PlatformUtils.IS_WASM_JS.<get-IS_WASM_JS>|<get-IS_WASM_JS>(){}[0]
 }
 
+final object io.ktor.util/ZstdEncoder : io.ktor.util/ContentEncoder, io.ktor.util/Encoder { // io.ktor.util/ZstdEncoder|null[0]
+    final val name // io.ktor.util/ZstdEncoder.name|{}name[0]
+        final fun <get-name>(): kotlin/String // io.ktor.util/ZstdEncoder.name.<get-name>|<get-name>(){}[0]
+
+    final fun decode(io.ktor.utils.io/ByteReadChannel, kotlin.coroutines/CoroutineContext): io.ktor.utils.io/ByteReadChannel // io.ktor.util/ZstdEncoder.decode|decode(io.ktor.utils.io.ByteReadChannel;kotlin.coroutines.CoroutineContext){}[0]
+    final fun encode(io.ktor.utils.io/ByteReadChannel, kotlin.coroutines/CoroutineContext): io.ktor.utils.io/ByteReadChannel // io.ktor.util/ZstdEncoder.encode|encode(io.ktor.utils.io.ByteReadChannel;kotlin.coroutines.CoroutineContext){}[0]
+    final fun encode(io.ktor.utils.io/ByteWriteChannel, kotlin.coroutines/CoroutineContext): io.ktor.utils.io/ByteWriteChannel // io.ktor.util/ZstdEncoder.encode|encode(io.ktor.utils.io.ByteWriteChannel;kotlin.coroutines.CoroutineContext){}[0]
+}
+
 final const val io.ktor.util.internal/FAILURE // io.ktor.util.internal/FAILURE|{}FAILURE[0]
     final fun <get-FAILURE>(): kotlin/Int // io.ktor.util.internal/FAILURE.<get-FAILURE>|<get-FAILURE>(){}[0]
 final const val io.ktor.util.internal/SUCCESS // io.ktor.util.internal/SUCCESS|{}SUCCESS[0]
@@ -956,6 +977,7 @@ final fun (kotlin/ByteArray).io.ktor.util/encodeBase64(): kotlin/String // io.kt
 final fun (kotlin/ByteArray).io.ktor.util/readShort(kotlin/Int): kotlin/Short // io.ktor.util/readShort|readShort@kotlin.ByteArray(kotlin.Int){}[0]
 final fun (kotlin/Char).io.ktor.util/isLowerCase(): kotlin/Boolean // io.ktor.util/isLowerCase|isLowerCase@kotlin.Char(){}[0]
 final fun (kotlin/String).io.ktor.util.collections/asBoolean(): io.ktor.util.collections/SerializedMapValue<kotlin/Boolean> // io.ktor.util.collections/asBoolean|asBoolean@kotlin.String(){}[0]
+final fun (kotlin/String).io.ktor.util.collections/asPresenceBoolean(): io.ktor.util.collections/SerializedMapValue<kotlin/Boolean?> // io.ktor.util.collections/asPresenceBoolean|asPresenceBoolean@kotlin.String(){}[0]
 final fun (kotlin/String).io.ktor.util.collections/getValue(io.ktor.util.collections/StringMap, kotlin.reflect/KProperty<*>): kotlin/String? // io.ktor.util.collections/getValue|getValue@kotlin.String(io.ktor.util.collections.StringMap;kotlin.reflect.KProperty<*>){}[0]
 final fun (kotlin/String).io.ktor.util.collections/setValue(io.ktor.util.collections/StringMap, kotlin.reflect/KProperty<*>, kotlin/String?) // io.ktor.util.collections/setValue|setValue@kotlin.String(io.ktor.util.collections.StringMap;kotlin.reflect.KProperty<*>;kotlin.String?){}[0]
 final fun (kotlin/String).io.ktor.util/decodeBase64Bytes(): kotlin/ByteArray // io.ktor.util/decodeBase64Bytes|decodeBase64Bytes@kotlin.String(){}[0]

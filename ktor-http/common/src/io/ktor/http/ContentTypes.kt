@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http
@@ -144,7 +144,7 @@ public class ContentType private constructor(
                     throw BadContentTypeFormatException(value)
                 }
 
-                val type = parts.substring(0, slash).trim()
+                val type = parts.take(slash).trim()
 
                 if (type.isEmpty()) {
                     throw BadContentTypeFormatException(value)
@@ -251,10 +251,18 @@ public class ContentType private constructor(
         public const val TYPE: String = "image"
 
         public val Any: ContentType = ContentType(TYPE, "*")
+        public val APNG: ContentType = ContentType(TYPE, "apng")
+        public val AVIF: ContentType = ContentType(TYPE, "avif")
+        public val BMP: ContentType = ContentType(TYPE, "bmp")
         public val GIF: ContentType = ContentType(TYPE, "gif")
+        public val HEIC: ContentType = ContentType(TYPE, "heic")
+        public val HEIF: ContentType = ContentType(TYPE, "heif")
         public val JPEG: ContentType = ContentType(TYPE, "jpeg")
+        public val JXL: ContentType = ContentType(TYPE, "jxl")
         public val PNG: ContentType = ContentType(TYPE, "png")
         public val SVG: ContentType = ContentType(TYPE, "svg+xml")
+        public val TIFF: ContentType = ContentType(TYPE, "tiff")
+        public val WEBP: ContentType = ContentType(TYPE, "webp")
         public val XIcon: ContentType = ContentType(TYPE, "x-icon")
 
         /** Checks that the given [contentType] has type `image/`. */
@@ -423,7 +431,7 @@ public fun ContentType.withCharsetIfNeeded(charset: Charset): ContentType =
 public fun HeaderValueWithParameters.charset(): Charset? = parameter("charset")?.let {
     try {
         Charsets.forName(it)
-    } catch (exception: IllegalArgumentException) {
+    } catch (_: IllegalArgumentException) {
         null
     }
 }

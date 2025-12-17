@@ -1,3 +1,96 @@
+# 3.3.3
+> Published 26 November 2025
+
+### Improvements
+* [KTOR-6837](https://youtrack.jetbrains.com/issue/KTOR-6837) Discrepancies when parsing URL host with CIO and Darwin engines compared to the rest engines
+* [KTOR-9050](https://youtrack.jetbrains.com/issue/KTOR-9050) Logging: SimpleLogger should be an object, not a class
+* [KTOR-9094](https://youtrack.jetbrains.com/issue/KTOR-9094) Jetty Client: Support HTTP/2 over cleartext (h2c)
+* [KTOR-9120](https://youtrack.jetbrains.com/issue/KTOR-9120) OpenAPI gen: missing operationId for KDoc fields
+* [KTOR-3019](https://youtrack.jetbrains.com/issue/KTOR-3019) Improve logging for CORS plugin
+
+### Bugfixes
+* [KTOR-8671](https://youtrack.jetbrains.com/issue/KTOR-8671) Netty: RejectedExecutionException during shutdown on MacOS when dev mode is enabled
+* [KTOR-9096](https://youtrack.jetbrains.com/issue/KTOR-9096) Darwin: New SSE handlers stop responding after canceling few SSE sessions
+* [KTOR-9125](http://youtrack.jetbrains.com/issue/KTOR-9125) Double ResponseSent invocation when exception is thrown after respond
+* [KTOR-8878](https://youtrack.jetbrains.com/issue/KTOR-8878) OpenAPI: StackOverflowError when a response object has property with @Contextual serializer
+* [KTOR-8947](https://youtrack.jetbrains.com/issue/KTOR-8947) Java, ContentEncoding: IllegalHeaderNameException is thrown  for ":status" pseudo header with HTTP/2
+* [KTOR-9092](https://youtrack.jetbrains.com/issue/KTOR-9092) NettyHttp2Handler throws IllegalArgumentException: 'ktor.ApplicationCall' is already in use
+* [KTOR-8924](https://youtrack.jetbrains.com/issue/KTOR-8924) Curl: Client sends both Transfer-Encoding and Content-Length headers for DELETE requests with body
+* [KTOR-8838](https://youtrack.jetbrains.com/issue/KTOR-8838) Exception handling issue in client cache
+
+
+# 3.3.2
+> Published 5 November 2025
+
+### Improvements
+* WebRTC Client. Remove redundant targets ([KTOR-9062](https://youtrack.jetbrains.com/issue/KTOR-9062))
+* Add Socks proxy support to Darwin engine ([KTOR-8968](https://youtrack.jetbrains.com/issue/KTOR-8968))
+* Java: Improve error message when SOCKS proxy is used ([KTOR-2908](https://youtrack.jetbrains.com/issue/KTOR-2908))
+
+### Bugfixes
+* HttpRequestRetry: SendCountExceedException when max retries is more than maxSendCount of HttpSend ([KTOR-5850](https://youtrack.jetbrains.com/issue/KTOR-5850))
+* Darwin: The `maxFrameSize` option has no effect ([KTOR-6963](https://youtrack.jetbrains.com/issue/KTOR-6963))
+* OpenAPI: StackOverflowError when a response object has property with @Contextual serializer ([KTOR-8878](https://youtrack.jetbrains.com/issue/KTOR-8878))
+* OpenAPI gen: missing KDoc fields ([KTOR-9021](https://youtrack.jetbrains.com/issue/KTOR-9021))
+* Server call.request.path() returns routing selectors in path ([KTOR-7639](https://youtrack.jetbrains.com/issue/KTOR-7639))
+* StaticContent doesn't allow siblings ([KTOR-9012](https://youtrack.jetbrains.com/issue/KTOR-9012))
+* HttpCache: FileStorage doesn't use given dispatcher for all file operations ([KTOR-8832](https://youtrack.jetbrains.com/issue/KTOR-8832))
+* Curl: SOCKS proxy doesn't work ([KTOR-9008](https://youtrack.jetbrains.com/issue/KTOR-9008))
+* Netty: java.lang.VerifyError is thrown on Android since 3.3.0 ([KTOR-8916](https://youtrack.jetbrains.com/issue/KTOR-8916))
+* Response body channel is canceled while the body is being saved when having HttpRequestRetry and onDownload ([KTOR-8975](https://youtrack.jetbrains.com/issue/KTOR-8975))
+* HttpCache: InvalidCacheStateException when varyKeys stored in files contain uppercase letters since 3.3.0 ([KTOR-8970](https://youtrack.jetbrains.com/issue/KTOR-8970))
+
+
+# 3.3.1
+> Published 8 October 2025
+
+### Improvements
+* Add a note about SSE session lifetime in KDoc ([KTOR-8440](https://youtrack.jetbrains.com/issue/KTOR-8440))
+* Update Kotlin to 2.2.20 ([KTOR-8896](https://youtrack.jetbrains.com/issue/KTOR-8896))
+
+### Bugfixes
+* NumberFormatException when Content-Length header value contains null bytes ([KTOR-4828](https://youtrack.jetbrains.com/issue/KTOR-4828))
+* SerializationException: Serializer for class 'ClientSSESession' is not found when server responds with JSON ([KTOR-7631](https://youtrack.jetbrains.com/issue/KTOR-7631))
+* Netty: loadConfiguration missing enableHttp2 and enableH2c properties ([KTOR-8898](https://youtrack.jetbrains.com/issue/KTOR-8898))
+* Netty: EmbeddedServer.stop always blocks for twice of shutdownGracePeriod ([KTOR-8770](https://youtrack.jetbrains.com/issue/KTOR-8770))
+* shutdownGracePeriod is used instead of shutdownTimeout in EmbeddedServer.stop() ([KTOR-8771](https://youtrack.jetbrains.com/issue/KTOR-8771))
+* Support serving static resources within bootJar ([KTOR-8592](https://youtrack.jetbrains.com/issue/KTOR-8592))
+
+# 3.3.0
+> Published 11 September 2025
+
+### Features
+* Support for server side http2 without tls (h2c) ([KTOR-4750](https://youtrack.jetbrains.com/issue/KTOR-4750))
+* OpenAPI generation build extension preview ([KTOR-8721](https://youtrack.jetbrains.com/issue/KTOR-8721))
+* Serve static resources with caching headers and ETag based on sha256 of content ([KTOR-6700](https://youtrack.jetbrains.com/issue/KTOR-6700))
+* Jetty engine: Upgrade Jetty dependencies to the latest version 12 ([KTOR-6734](https://youtrack.jetbrains.com/issue/KTOR-6734))
+* Static content: Support a custom respond logic if the file is not found ([KTOR-8496](https://youtrack.jetbrains.com/issue/KTOR-8496))
+* Upgrade OkHttp to version 5.0.0 ([KTOR-8652](https://youtrack.jetbrains.com/issue/KTOR-8652))
+* WebRTC Client, Android + WASM ([KTOR-7958](https://youtrack.jetbrains.com/issue/KTOR-7958))
+
+### Improvements
+* SSE: Cannot read response body from SSEClientException ([KTOR-8165](https://youtrack.jetbrains.com/issue/KTOR-8165))
+* SSE: "SSEClientException: Content-Length mismatch" on saving response body in DefaultResponseValidation ([KTOR-8753](https://youtrack.jetbrains.com/issue/KTOR-8753))
+* `var Route.staticRootFolder: File?` should be deprecated ([KTOR-5836](https://youtrack.jetbrains.com/issue/KTOR-5836))
+* Add `image/bmp` to the ContentType ([KTOR-8735](https://youtrack.jetbrains.com/issue/KTOR-8735))
+* Add some missing image content types ([KTOR-8624](https://youtrack.jetbrains.com/issue/KTOR-8624))
+* Upgrade to Kotlin 2.2 ([KTOR-8647](https://youtrack.jetbrains.com/issue/KTOR-8647))
+* Bump Kotlin API level to 2.2 ([KTOR-8637](https://youtrack.jetbrains.com/issue/KTOR-8637))
+* CIO: The engine ignores system proxy settings ([KTOR-5922](https://youtrack.jetbrains.com/issue/KTOR-5922))
+
+### Bugfixes
+* Performance regression when using ContentEncoding and HttpRequestRetry since 3.2.0 ([KTOR-8820](https://youtrack.jetbrains.com/issue/KTOR-8820))
+* Big number of simultaneous outbound web socket connections leads to a coroutine deadlock ([KTOR-8829](https://youtrack.jetbrains.com/issue/KTOR-8829))
+* DI: JobCancellationException during cleanup ([KTOR-8785](https://youtrack.jetbrains.com/issue/KTOR-8785))
+* Autoreloading: JobCancellationException when app is reloaded in the debugger since 3.2.0 ([KTOR-8810](https://youtrack.jetbrains.com/issue/KTOR-8810))
+* HttpRedirect: The client is redirected when no Location header in response ([KTOR-8697](https://youtrack.jetbrains.com/issue/KTOR-8697))
+* SerializationException when Application.propertyOrNull() is called with type Map<String, Any?> ([KTOR-8781](https://youtrack.jetbrains.com/issue/KTOR-8781))
+* "Failed resolution of: Ljava/lang/management/ManagementFactory" on Android when JvmGcMetrics are initialized ([KTOR-8714](https://youtrack.jetbrains.com/issue/KTOR-8714))
+* HttpCache: all header values but first in HttpResponse.varyKeys() are ignored ([KTOR-6402](https://youtrack.jetbrains.com/issue/KTOR-6402))
+* HttpCache: plugin selects wrong cache entry when filtering Vary headers with different case ([KTOR-7621](https://youtrack.jetbrains.com/issue/KTOR-7621))
+* CountedByteWriteChannel: autoFlush of the source channel doesn't make the channel auto flushing ([KTOR-8411](https://youtrack.jetbrains.com/issue/KTOR-8411))
+
+
 # 3.2.3
 > Published 29 July 2025
 

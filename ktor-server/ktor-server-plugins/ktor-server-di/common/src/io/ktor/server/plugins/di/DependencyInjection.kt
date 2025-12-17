@@ -8,6 +8,7 @@ import io.ktor.server.application.*
 import io.ktor.server.plugins.di.utils.*
 import io.ktor.util.*
 import io.ktor.util.reflect.*
+import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -67,8 +68,12 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
                 ?.map { ClasspathReference(it) }
                 .orEmpty()
 
-        val configMap = ConfigurationDependencyMap(application.environment.config)
-        var extensionMap = pluginConfig.dependenciesMap?.let { it + configMap } ?: configMap
+        val configuration = application.environment.config
+        val configConflictPolicy = configuration.propertyOrNull("ktor.di.conflictPolicy")?.getString()
+        val configKeyMapping = configuration.propertyOrNull("ktor.di.keyMapping")?.getString()
+        val configDependencyMap = ConfigurationDependencyMap(configuration)
+
+        var extensionMap = pluginConfig.dependenciesMap?.let { it + configDependencyMap } ?: configDependencyMap
         for (extension in loadMapExtensions()) {
             extensionMap += extension.get(application)
         }
@@ -79,23 +84,40 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
                 application.coroutineContext +
                     CoroutineName("dependency-injection")
             )
-        val map: DependencyInitializerMap = mutableMapOf()
+        val dependencyMap: DependencyInitializerMap = mutableMapOf()
         val reflection = pluginConfig.reflection
         val useSuspend = startupMode == ApplicationStartupMode.CONCURRENT
-        val resolver = MapDependencyResolver(
-            map,
-            extensionMap,
-            reflection,
-            useSuspend,
-            coroutineScope,
-        )
         val conflictPolicy = pluginConfig.conflictPolicy
-            ?: if (isTestEngine()) IgnoreConflicts else DefaultConflictPolicy
+            ?: if (configConflictPolicy != null) {
+                parseConflictPolicy(configConflictPolicy)
+            } else if (isTestEngine()) {
+                IgnoreConflicts
+            } else {
+                DefaultConflictPolicy
+            }
+        val keyMapping = when (pluginConfig.keyMapping) {
+            DefaultKeyCovariance -> {
+                if (configKeyMapping != null) {
+                    parseKeyMapping(configKeyMapping)
+                } else {
+                    DefaultKeyCovariance
+                }
+            }
+            else -> pluginConfig.keyMapping
+        }
+
         val provider = MapDependencyProvider(
-            map = map,
-            keyMapping = pluginConfig.keyMapping,
+            map = dependencyMap,
+            keyMapping = keyMapping,
             conflictPolicy = conflictPolicy,
             onConflict = pluginConfig.onConflict,
+        )
+        val resolver = MapDependencyResolver(
+            map = dependencyMap,
+            extension = extensionMap,
+            reflection = reflection,
+            waitForValues = useSuspend,
+            coroutineScope = coroutineScope,
         )
         var registry = DependencyRegistry(resolver, provider)
 
@@ -136,18 +158,19 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
                     }
                 }
             }
-            monitor.subscribe(ApplicationStopped) {
-                coroutineScope.cancel("Application stopped")
-
-                for (key in map.keys.reversed()) {
+            monitor.subscribe(ApplicationStopping) {
+                for (key in dependencyMap.keys.reversed()) {
                     try {
                         val instance = registry.getDeferred<Any?>(key).tryGetCompleted() ?: continue
                         registry.shutdownHooks[key]?.invoke(instance)
                         onShutdown(key, instance)
                     } catch (e: Throwable) {
-                        environment.log.warn("Exception during cleanup for $key; continuing", e)
+                        if (e !is CancellationException) {
+                            environment.log.warn("Exception during cleanup for $key; continuing", e)
+                        }
                     }
                 }
+                coroutineScope.cancel("Application stopped")
             }
 
             attributes.put(DependencyRegistryKey, registry)

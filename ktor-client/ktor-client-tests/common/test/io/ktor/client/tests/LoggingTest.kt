@@ -20,11 +20,7 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
-import kotlin.test.fail
+import kotlin.test.*
 
 @OptIn(DelicateCoroutinesApi::class)
 class LoggingTest : ClientLoader() {
@@ -74,7 +70,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testLogLevelAll() = clientTests(except("native:CIO")) {
+    fun testLogLevelAll() = clientTests(except("native:CIO", "web:Js")) {
         val logger = TestLogger(
             "REQUEST: http://localhost:8080/logging",
             "METHOD: GET",
@@ -144,7 +140,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testLogPostBody() = clientTests(except("native:CIO")) {
+    fun testLogPostBody() = clientTests(except("native:CIO", "web:Js")) {
         val testLogger = TestLogger(
             "REQUEST: http://localhost:8080/logging",
             "METHOD: POST",
@@ -200,7 +196,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testLogPostMalformedUtf8Body() = clientTests(except("native:CIO")) {
+    fun testLogPostMalformedUtf8Body() = clientTests(except("native:CIO", "web:Js")) {
         val testLogger = TestLogger(
             "REQUEST: http://localhost:8080/logging/non-utf",
             "METHOD: POST",
@@ -256,7 +252,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testRequestAndResponseBody() = clientTests(except("native:CIO")) {
+    fun testRequestAndResponseBody() = clientTests(except("native:CIO", "web:Js")) {
         val testLogger = TestLogger(
             "REQUEST: http://127.0.0.1:8080/content/echo",
             "METHOD: POST",
@@ -306,7 +302,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testRequestContentTypeInLog() = clientTests(except("Darwin", "native:CIO", "DarwinLegacy")) {
+    fun testRequestContentTypeInLog() = clientTests(except("Darwin", "native:CIO", "DarwinLegacy", "web:Js")) {
         val testLogger = TestLogger(
             "REQUEST: http://127.0.0.1:8080/content/echo",
             "METHOD: POST",

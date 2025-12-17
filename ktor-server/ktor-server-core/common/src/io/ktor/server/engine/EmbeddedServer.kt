@@ -46,12 +46,12 @@ public expect class EmbeddedServer<TEngine : ApplicationEngine, TConfiguration :
 
     public fun stop(
         gracePeriodMillis: Long = engineConfig.shutdownGracePeriod,
-        timeoutMillis: Long = engineConfig.shutdownGracePeriod
+        timeoutMillis: Long = engineConfig.shutdownTimeout
     )
 
     public suspend fun stopSuspend(
         gracePeriodMillis: Long = engineConfig.shutdownGracePeriod,
-        timeoutMillis: Long = engineConfig.shutdownGracePeriod
+        timeoutMillis: Long = engineConfig.shutdownTimeout
     )
 }
 
