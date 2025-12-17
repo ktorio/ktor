@@ -4,7 +4,13 @@
 
 package io.ktor.http
 
-@Suppress("unused", "KDocMissingDocumentation", "PublicApiImplicitType")
+@Suppress(
+    "unused",
+    "KDocMissingDocumentation",
+    "PublicApiImplicitType",
+    "ConstPropertyName",
+    "ObjectPropertyName"
+)
 public object HttpHeaders {
     // Permanently registered standard HTTP headers
     // The list is taken from http://www.iana.org/assignments/message-headers/message-headers.xml#perm-headers
@@ -175,6 +181,402 @@ public object HttpHeaders {
             }
         }
     }
+
+    @Deprecated("Use Accept constant instead.", ReplaceWith("Accept"))
+    @get:JvmName("getAccept")
+    public val _Accept: String = Accept
+
+    @Deprecated("Use AcceptCharset constant instead.", ReplaceWith("AcceptCharset"))
+    @get:JvmName("getAcceptCharset")
+    public val _AcceptCharset: String = AcceptCharset
+
+    @Deprecated("Use AcceptEncoding constant instead.", ReplaceWith("AcceptEncoding"))
+    @get:JvmName("getAcceptEncoding")
+    public val _AcceptEncoding: String = AcceptEncoding
+
+    @Deprecated("Use AcceptLanguage constant instead.", ReplaceWith("AcceptLanguage"))
+    @get:JvmName("getAcceptLanguage")
+    public val _AcceptLanguage: String = AcceptLanguage
+
+    @Deprecated("Use AcceptRanges constant instead.", ReplaceWith("AcceptRanges"))
+    @get:JvmName("getAcceptRanges")
+    public val _AcceptRanges: String = AcceptRanges
+
+    @Deprecated("Use Age constant instead.", ReplaceWith("Age"))
+    @get:JvmName("getAge")
+    public val _Age: String = Age
+
+    @Deprecated("Use Allow constant instead.", ReplaceWith("Allow"))
+    @get:JvmName("getAllow")
+    public val _Allow: String = Allow
+
+    @Deprecated("Use ALPN constant instead.", ReplaceWith("ALPN"))
+    @get:JvmName("getALPN")
+    public val _ALPN: String = ALPN
+
+    @Deprecated("Use AuthenticationInfo constant instead.", ReplaceWith("AuthenticationInfo"))
+    @get:JvmName("getAuthenticationInfo")
+    public val _AuthenticationInfo: String = AuthenticationInfo
+
+    @Deprecated("Use Authorization constant instead.", ReplaceWith("Authorization"))
+    @get:JvmName("getAuthorization")
+    public val _Authorization: String = Authorization
+
+    @Deprecated("Use CacheControl constant instead.", ReplaceWith("CacheControl"))
+    @get:JvmName("getCacheControl")
+    public val _CacheControl: String = CacheControl
+
+    @Deprecated("Use Connection constant instead.", ReplaceWith("Connection"))
+    @get:JvmName("getConnection")
+    public val _Connection: String = Connection
+
+    @Deprecated("Use ContentDisposition constant instead.", ReplaceWith("ContentDisposition"))
+    @get:JvmName("getContentDisposition")
+    public val _ContentDisposition: String = ContentDisposition
+
+    @Deprecated("Use ContentEncoding constant instead.", ReplaceWith("ContentEncoding"))
+    @get:JvmName("getContentEncoding")
+    public val _ContentEncoding: String = ContentEncoding
+
+    @Deprecated("Use ContentLanguage constant instead.", ReplaceWith("ContentLanguage"))
+    @get:JvmName("getContentLanguage")
+    public val _ContentLanguage: String = ContentLanguage
+
+    @Deprecated("Use ContentLength constant instead.", ReplaceWith("ContentLength"))
+    @get:JvmName("getContentLength")
+    public val _ContentLength: String = ContentLength
+
+    @Deprecated("Use ContentLocation constant instead.", ReplaceWith("ContentLocation"))
+    @get:JvmName("getContentLocation")
+    public val _ContentLocation: String = ContentLocation
+
+    @Deprecated("Use ContentRange constant instead.", ReplaceWith("ContentRange"))
+    @get:JvmName("getContentRange")
+    public val _ContentRange: String = ContentRange
+
+    @Deprecated("Use ContentType constant instead.", ReplaceWith("ContentType"))
+    @get:JvmName("getContentType")
+    public val _ContentType: String = ContentType
+
+    @Deprecated("Use Cookie constant instead.", ReplaceWith("Cookie"))
+    @get:JvmName("getCookie")
+    public val _Cookie: String = Cookie
+
+    @Deprecated("Use DASL constant instead.", ReplaceWith("DASL"))
+    @get:JvmName("getDASL")
+    public val _DASL: String = DASL
+
+    @Deprecated("Use Date constant instead.", ReplaceWith("Date"))
+    @get:JvmName("getDate")
+    public val _Date: String = Date
+
+    @Deprecated("Use DAV constant instead.", ReplaceWith("DAV"))
+    @get:JvmName("getDAV")
+    public val _DAV: String = DAV
+
+    @Deprecated("Use Depth constant instead.", ReplaceWith("Depth"))
+    @get:JvmName("getDepth")
+    public val _Depth: String = Depth
+
+    @Deprecated("Use Destination constant instead.", ReplaceWith("Destination"))
+    @get:JvmName("getDestination")
+    public val _Destination: String = Destination
+
+    @Deprecated("Use ETag constant instead.", ReplaceWith("ETag"))
+    @get:JvmName("getETag")
+    public val _ETag: String = ETag
+
+    @Deprecated("Use Expect constant instead.", ReplaceWith("Expect"))
+    @get:JvmName("getExpect")
+    public val _Expect: String = Expect
+
+    @Deprecated("Use Expires constant instead.", ReplaceWith("Expires"))
+    @get:JvmName("getExpires")
+    public val _Expires: String = Expires
+
+    @Deprecated("Use From constant instead.", ReplaceWith("From"))
+    @get:JvmName("getFrom")
+    public val _From: String = From
+
+    @Deprecated("Use Forwarded constant instead.", ReplaceWith("Forwarded"))
+    @get:JvmName("getForwarded")
+    public val _Forwarded: String = Forwarded
+
+    @Deprecated("Use Host constant instead.", ReplaceWith("Host"))
+    @get:JvmName("getHost")
+    public val _Host: String = Host
+
+    @Deprecated("Use HTTP2Settings constant instead.", ReplaceWith("HTTP2Settings"))
+    @get:JvmName("getHTTP2Settings")
+    public val _HTTP2Settings: String = HTTP2Settings
+
+    @Deprecated("Use If constant instead.", ReplaceWith("If"))
+    @get:JvmName("getIf")
+    public val _If: String = If
+
+    @Deprecated("Use IfMatch constant instead.", ReplaceWith("IfMatch"))
+    @get:JvmName("getIfMatch")
+    public val _IfMatch: String = IfMatch
+
+    @Deprecated("Use IfModifiedSince constant instead.", ReplaceWith("IfModifiedSince"))
+    @get:JvmName("getIfModifiedSince")
+    public val _IfModifiedSince: String = IfModifiedSince
+
+    @Deprecated("Use IfNoneMatch constant instead.", ReplaceWith("IfNoneMatch"))
+    @get:JvmName("getIfNoneMatch")
+    public val _IfNoneMatch: String = IfNoneMatch
+
+    @Deprecated("Use IfRange constant instead.", ReplaceWith("IfRange"))
+    @get:JvmName("getIfRange")
+    public val _IfRange: String = IfRange
+
+    @Deprecated("Use IfScheduleTagMatch constant instead.", ReplaceWith("IfScheduleTagMatch"))
+    @get:JvmName("getIfScheduleTagMatch")
+    public val _IfScheduleTagMatch: String = IfScheduleTagMatch
+
+    @Deprecated("Use IfUnmodifiedSince constant instead.", ReplaceWith("IfUnmodifiedSince"))
+    @get:JvmName("getIfUnmodifiedSince")
+    public val _IfUnmodifiedSince: String = IfUnmodifiedSince
+
+    @Deprecated("Use LastModified constant instead.", ReplaceWith("LastModified"))
+    @get:JvmName("getLastModified")
+    public val _LastModified: String = LastModified
+
+    @Deprecated("Use Location constant instead.", ReplaceWith("Location"))
+    @get:JvmName("getLocation")
+    public val _Location: String = Location
+
+    @Deprecated("Use LockToken constant instead.", ReplaceWith("LockToken"))
+    @get:JvmName("getLockToken")
+    public val _LockToken: String = LockToken
+
+    @Deprecated("Use Link constant instead.", ReplaceWith("Link"))
+    @get:JvmName("getLink")
+    public val _Link: String = Link
+
+    @Deprecated("Use MaxForwards constant instead.", ReplaceWith("MaxForwards"))
+    @get:JvmName("getMaxForwards")
+    public val _MaxForwards: String = MaxForwards
+
+    @Deprecated("Use MIMEVersion constant instead.", ReplaceWith("MIMEVersion"))
+    @get:JvmName("getMIMEVersion")
+    public val _MIMEVersion: String = MIMEVersion
+
+    @Deprecated("Use OrderingType constant instead.", ReplaceWith("OrderingType"))
+    @get:JvmName("getOrderingType")
+    public val _OrderingType: String = OrderingType
+
+    @Deprecated("Use Origin constant instead.", ReplaceWith("Origin"))
+    @get:JvmName("getOrigin")
+    public val _Origin: String = Origin
+
+    @Deprecated("Use Overwrite constant instead.", ReplaceWith("Overwrite"))
+    @get:JvmName("getOverwrite")
+    public val _Overwrite: String = Overwrite
+
+    @Deprecated("Use Position constant instead.", ReplaceWith("Position"))
+    @get:JvmName("getPosition")
+    public val _Position: String = Position
+
+    @Deprecated("Use Pragma constant instead.", ReplaceWith("Pragma"))
+    @get:JvmName("getPragma")
+    public val _Pragma: String = Pragma
+
+    @Deprecated("Use Prefer constant instead.", ReplaceWith("Prefer"))
+    @get:JvmName("getPrefer")
+    public val _Prefer: String = Prefer
+
+    @Deprecated("Use PreferenceApplied constant instead.", ReplaceWith("PreferenceApplied"))
+    @get:JvmName("getPreferenceApplied")
+    public val _PreferenceApplied: String = PreferenceApplied
+
+    @Deprecated("Use ProxyAuthenticate constant instead.", ReplaceWith("ProxyAuthenticate"))
+    @get:JvmName("getProxyAuthenticate")
+    public val _ProxyAuthenticate: String = ProxyAuthenticate
+
+    @Deprecated("Use ProxyAuthenticationInfo constant instead.", ReplaceWith("ProxyAuthenticationInfo"))
+    @get:JvmName("getProxyAuthenticationInfo")
+    public val _ProxyAuthenticationInfo: String = ProxyAuthenticationInfo
+
+    @Deprecated("Use ProxyAuthorization constant instead.", ReplaceWith("ProxyAuthorization"))
+    @get:JvmName("getProxyAuthorization")
+    public val _ProxyAuthorization: String = ProxyAuthorization
+
+    @Deprecated("Use PublicKeyPins constant instead.", ReplaceWith("PublicKeyPins"))
+    @get:JvmName("getPublicKeyPins")
+    public val _PublicKeyPins: String = PublicKeyPins
+
+    @Deprecated("Use PublicKeyPinsReportOnly constant instead.", ReplaceWith("PublicKeyPinsReportOnly"))
+    @get:JvmName("getPublicKeyPinsReportOnly")
+    public val _PublicKeyPinsReportOnly: String = PublicKeyPinsReportOnly
+
+    @Deprecated("Use Range constant instead.", ReplaceWith("Range"))
+    @get:JvmName("getRange")
+    public val _Range: String = Range
+
+    @Deprecated("Use Referrer constant instead.", ReplaceWith("Referrer"))
+    @get:JvmName("getReferrer")
+    public val _Referrer: String = Referrer
+
+    @Deprecated("Use RetryAfter constant instead.", ReplaceWith("RetryAfter"))
+    @get:JvmName("getRetryAfter")
+    public val _RetryAfter: String = RetryAfter
+
+    @Deprecated("Use ScheduleReply constant instead.", ReplaceWith("ScheduleReply"))
+    @get:JvmName("getScheduleReply")
+    public val _ScheduleReply: String = ScheduleReply
+
+    @Deprecated("Use ScheduleTag constant instead.", ReplaceWith("ScheduleTag"))
+    @get:JvmName("getScheduleTag")
+    public val _ScheduleTag: String = ScheduleTag
+
+    @Deprecated("Use SecWebSocketAccept constant instead.", ReplaceWith("SecWebSocketAccept"))
+    @get:JvmName("getSecWebSocketAccept")
+    public val _SecWebSocketAccept: String = SecWebSocketAccept
+
+    @Deprecated("Use SecWebSocketExtensions constant instead.", ReplaceWith("SecWebSocketExtensions"))
+    @get:JvmName("getSecWebSocketExtensions")
+    public val _SecWebSocketExtensions: String = SecWebSocketExtensions
+
+    @Deprecated("Use SecWebSocketKey constant instead.", ReplaceWith("SecWebSocketKey"))
+    @get:JvmName("getSecWebSocketKey")
+    public val _SecWebSocketKey: String = SecWebSocketKey
+
+    @Deprecated("Use SecWebSocketProtocol constant instead.", ReplaceWith("SecWebSocketProtocol"))
+    @get:JvmName("getSecWebSocketProtocol")
+    public val _SecWebSocketProtocol: String = SecWebSocketProtocol
+
+    @Deprecated("Use SecWebSocketVersion constant instead.", ReplaceWith("SecWebSocketVersion"))
+    @get:JvmName("getSecWebSocketVersion")
+    public val _SecWebSocketVersion: String = SecWebSocketVersion
+
+    @Deprecated("Use Server constant instead.", ReplaceWith("Server"))
+    @get:JvmName("getServer")
+    public val _Server: String = Server
+
+    @Deprecated("Use SetCookie constant instead.", ReplaceWith("SetCookie"))
+    @get:JvmName("getSetCookie")
+    public val _SetCookie: String = SetCookie
+
+    @Deprecated("Use SLUG constant instead.", ReplaceWith("SLUG"))
+    @get:JvmName("getSLUG")
+    public val _SLUG: String = SLUG
+
+    @Deprecated("Use StrictTransportSecurity constant instead.", ReplaceWith("StrictTransportSecurity"))
+    @get:JvmName("getStrictTransportSecurity")
+    public val _StrictTransportSecurity: String = StrictTransportSecurity
+
+    @Deprecated("Use TE constant instead.", ReplaceWith("TE"))
+    @get:JvmName("getTE")
+    public val _TE: String = TE
+
+    @Deprecated("Use Timeout constant instead.", ReplaceWith("Timeout"))
+    @get:JvmName("getTimeout")
+    public val _Timeout: String = Timeout
+
+    @Deprecated("Use Trailer constant instead.", ReplaceWith("Trailer"))
+    @get:JvmName("getTrailer")
+    public val _Trailer: String = Trailer
+
+    @Deprecated("Use TransferEncoding constant instead.", ReplaceWith("TransferEncoding"))
+    @get:JvmName("getTransferEncoding")
+    public val _TransferEncoding: String = TransferEncoding
+
+    @Deprecated("Use Upgrade constant instead.", ReplaceWith("Upgrade"))
+    @get:JvmName("getUpgrade")
+    public val _Upgrade: String = Upgrade
+
+    @Deprecated("Use UserAgent constant instead.", ReplaceWith("UserAgent"))
+    @get:JvmName("getUserAgent")
+    public val _UserAgent: String = UserAgent
+
+    @Deprecated("Use Vary constant instead.", ReplaceWith("Vary"))
+    @get:JvmName("getVary")
+    public val _Vary: String = Vary
+
+    @Deprecated("Use Via constant instead.", ReplaceWith("Via"))
+    @get:JvmName("getVia")
+    public val _Via: String = Via
+
+    @Deprecated("Use Warning constant instead.", ReplaceWith("Warning"))
+    @get:JvmName("getWarning")
+    public val _Warning: String = Warning
+
+    @Deprecated("Use WWWAuthenticate constant instead.", ReplaceWith("WWWAuthenticate"))
+    @get:JvmName("getWWWAuthenticate")
+    public val _WWWAuthenticate: String = WWWAuthenticate
+
+    @Deprecated("Use AccessControlAllowOrigin constant instead.", ReplaceWith("AccessControlAllowOrigin"))
+    @get:JvmName("getAccessControlAllowOrigin")
+    public val _AccessControlAllowOrigin: String = AccessControlAllowOrigin
+
+    @Deprecated("Use AccessControlAllowMethods constant instead.", ReplaceWith("AccessControlAllowMethods"))
+    @get:JvmName("getAccessControlAllowMethods")
+    public val _AccessControlAllowMethods: String = AccessControlAllowMethods
+
+    @Deprecated("Use AccessControlAllowCredentials constant instead.", ReplaceWith("AccessControlAllowCredentials"))
+    @get:JvmName("getAccessControlAllowCredentials")
+    public val _AccessControlAllowCredentials: String = AccessControlAllowCredentials
+
+    @Deprecated("Use AccessControlAllowHeaders constant instead.", ReplaceWith("AccessControlAllowHeaders"))
+    @get:JvmName("getAccessControlAllowHeaders")
+    public val _AccessControlAllowHeaders: String = AccessControlAllowHeaders
+
+    @Deprecated("Use AccessControlRequestMethod constant instead.", ReplaceWith("AccessControlRequestMethod"))
+    @get:JvmName("getAccessControlRequestMethod")
+    public val _AccessControlRequestMethod: String = AccessControlRequestMethod
+
+    @Deprecated("Use AccessControlRequestHeaders constant instead.", ReplaceWith("AccessControlRequestHeaders"))
+    @get:JvmName("getAccessControlRequestHeaders")
+    public val _AccessControlRequestHeaders: String = AccessControlRequestHeaders
+
+    @Deprecated("Use AccessControlExposeHeaders constant instead.", ReplaceWith("AccessControlExposeHeaders"))
+    @get:JvmName("getAccessControlExposeHeaders")
+    public val _AccessControlExposeHeaders: String = AccessControlExposeHeaders
+
+    @Deprecated("Use AccessControlMaxAge constant instead.", ReplaceWith("AccessControlMaxAge"))
+    @get:JvmName("getAccessControlMaxAge")
+    public val _AccessControlMaxAge: String = AccessControlMaxAge
+
+    @Deprecated("Use XHttpMethodOverride constant instead.", ReplaceWith("XHttpMethodOverride"))
+    @get:JvmName("getXHttpMethodOverride")
+    public val _XHttpMethodOverride: String = XHttpMethodOverride
+
+    @Deprecated("Use XForwardedHost constant instead.", ReplaceWith("XForwardedHost"))
+    @get:JvmName("getXForwardedHost")
+    public val _XForwardedHost: String = XForwardedHost
+
+    @Deprecated("Use XForwardedServer constant instead.", ReplaceWith("XForwardedServer"))
+    @get:JvmName("getXForwardedServer")
+    public val _XForwardedServer: String = XForwardedServer
+
+    @Deprecated("Use XForwardedProto constant instead.", ReplaceWith("XForwardedProto"))
+    @get:JvmName("getXForwardedProto")
+    public val _XForwardedProto: String = XForwardedProto
+
+    @Deprecated("Use XForwardedFor constant instead.", ReplaceWith("XForwardedFor"))
+    @get:JvmName("getXForwardedFor")
+    public val _XForwardedFor: String = XForwardedFor
+
+    @Deprecated("Use XForwardedPort constant instead.", ReplaceWith("XForwardedPort"))
+    @get:JvmName("getXForwardedPort")
+    public val _XForwardedPort: String = XForwardedPort
+
+    @Deprecated("Use XRequestId constant instead.", ReplaceWith("XRequestId"))
+    @get:JvmName("getXRequestId")
+    public val _XRequestId: String = XRequestId
+
+    @Deprecated("Use XCorrelationId constant instead.", ReplaceWith("XCorrelationId"))
+    @get:JvmName("getXCorrelationId")
+    public val _XCorrelationId: String = XCorrelationId
+
+    @Deprecated("Use XTotalCount constant instead.", ReplaceWith("XTotalCount"))
+    @get:JvmName("getXTotalCount")
+    public val _XTotalCount: String = XTotalCount
+
+    @Deprecated("Use LastEventID constant instead.", ReplaceWith("LastEventID"))
+    @get:JvmName("getLastEventID")
+    public val _LastEventID: String = LastEventID
 }
 
 /**
