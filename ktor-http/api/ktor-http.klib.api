@@ -784,6 +784,15 @@ final class io.ktor.http/HttpMethod { // io.ktor.http/HttpMethod|null[0]
         final val Trace // io.ktor.http/HttpMethod.Companion.Trace|{}Trace[0]
             final fun <get-Trace>(): io.ktor.http/HttpMethod // io.ktor.http/HttpMethod.Companion.Trace.<get-Trace>|<get-Trace>(){}[0]
 
+        final fun getDefaultMethods(): kotlin.collections/List<io.ktor.http/HttpMethod> // io.ktor.http/HttpMethod.Companion.getDefaultMethods|getDefaultMethods(){}[0]
+        final fun getDelete(): io.ktor.http/HttpMethod // io.ktor.http/HttpMethod.Companion.getDelete|getDelete(){}[0]
+        final fun getGet(): io.ktor.http/HttpMethod // io.ktor.http/HttpMethod.Companion.getGet|getGet(){}[0]
+        final fun getHead(): io.ktor.http/HttpMethod // io.ktor.http/HttpMethod.Companion.getHead|getHead(){}[0]
+        final fun getOptions(): io.ktor.http/HttpMethod // io.ktor.http/HttpMethod.Companion.getOptions|getOptions(){}[0]
+        final fun getPatch(): io.ktor.http/HttpMethod // io.ktor.http/HttpMethod.Companion.getPatch|getPatch(){}[0]
+        final fun getPost(): io.ktor.http/HttpMethod // io.ktor.http/HttpMethod.Companion.getPost|getPost(){}[0]
+        final fun getPut(): io.ktor.http/HttpMethod // io.ktor.http/HttpMethod.Companion.getPut|getPut(){}[0]
+        final fun getTrace(): io.ktor.http/HttpMethod // io.ktor.http/HttpMethod.Companion.getTrace|getTrace(){}[0]
         final fun parse(kotlin/String): io.ktor.http/HttpMethod // io.ktor.http/HttpMethod.Companion.parse|parse(kotlin.String){}[0]
     }
 }
