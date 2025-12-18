@@ -20,7 +20,6 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
-import kotlinx.io.Buffer
 
 private val ClientCallLogger = AttributeKey<HttpClientCallLogger>("CallLogger")
 private val DisableLogging = AttributeKey<Unit>("DisableLogging")

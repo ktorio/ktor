@@ -8,7 +8,6 @@ import io.ktor.client.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.HttpResponseValidator
 import io.ktor.client.plugins.compression.ContentEncoding
-import io.ktor.client.plugins.onUpload
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.InputProvider
 import io.ktor.client.request.forms.MultiPartFormDataContent
@@ -22,7 +21,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.OutgoingContent
 import io.ktor.http.content.TextContent
 import io.ktor.http.contentType
-import io.ktor.server.routing.post
 import io.ktor.util.GZipEncoder
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.ByteWriteChannel
@@ -263,7 +261,7 @@ class OkHttpFormatTest {
     fun basicGetWithResponseContentLength() = testWithLevel(LogLevel.INFO, handle = {
         respond("", headers = Headers.build { append(HttpHeaders.ContentLength, "10") })
     }) { client ->
-        client.prepareGet("/").execute { response ->
+        client.prepareGet("/").execute {
             log.assertLogEqual("--> GET /")
                 .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 10-byte body\)"""))
                 .assertNoMoreLogs()
@@ -281,7 +279,7 @@ class OkHttpFormatTest {
             }
         )
     }) { client ->
-        client.prepareGet("/").execute { response ->
+        client.prepareGet("/").execute {
             log.assertLogEqual("--> GET /")
                 .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 29-byte body\)"""))
                 .assertNoMoreLogs()
@@ -1218,7 +1216,7 @@ class OkHttpFormatTest {
     }
 
     @Test
-    fun multipartBinaryBody() = testWithLevel(LogLevel.BODY, handle = { request ->
+    fun multipartBinaryBody() = testWithLevel(LogLevel.BODY, handle = {
         respond(
             "",
             headers = Headers.build {
