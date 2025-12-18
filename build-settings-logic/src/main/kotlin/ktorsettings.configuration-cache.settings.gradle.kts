@@ -19,5 +19,5 @@ if (features.configurationCache.requested.get()) {
             .configureEach { notCompatibleWithConfigurationCache("Workaround for KT-72933") }
     }
 
-    println("Configuration Cache: Workaround for KT-72933 was applied")
+    logger.lifecycle("Configuration Cache: Workaround for KT-72933 was applied")
 }
