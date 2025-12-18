@@ -1257,7 +1257,7 @@ class OkHttpFormatTest {
                     ContentType.MultiPart.FormData.withParameter("boundary", "WebAppBoundary")
                 )
             )
-            onUpload { _, _ ->  }
+            onUpload { _, _ -> }
         }
 
         log.assertLogEqual("--> POST /")
