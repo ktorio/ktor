@@ -48,7 +48,7 @@ class OkHttpFormatTest {
         private val loggedLines = mutableListOf<String>()
         private var currentLine = 0
         override fun log(message: String) {
-            loggedLines.addAll(message.split("""\n|\r\n""".toRegex()))
+            loggedLines.addAll(message.split("""\r?\n""".toRegex()))
         }
 
         fun assertLogEqual(msg: String): LogRecorder {
