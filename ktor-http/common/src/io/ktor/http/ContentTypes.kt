@@ -191,10 +191,21 @@ public class ContentType private constructor(
         public val Cbor: ContentType = ContentType(TYPE, "cbor")
         public val Json: ContentType = ContentType(TYPE, "json")
         public val HalJson: ContentType = ContentType(TYPE, "hal+json")
+        public val LdJson: ContentType = ContentType(TYPE, "ld+json")
+        public val SeqJson: ContentType = ContentType(TYPE, "json-seq")
+        public val NDJson: ContentType = ContentType(TYPE, "x-ndjson")
+        public val ActivityJson: ContentType = ContentType(TYPE, "activity+json")
+        public val GeoJson: ContentType = ContentType(TYPE, "geo+json")
+        public val VndApiJson: ContentType = ContentType(TYPE, "vnd.api+json")
+        public val VndCollectionJson: ContentType = ContentType(TYPE, "vnd.collection+json")
+        public val JoseJson: ContentType = ContentType(TYPE, "jose+json")
+        public val Epub: ContentType = ContentType(TYPE, "epub+zip")
+        public val Jwt: ContentType = ContentType(TYPE, "jwt")
         public val JavaScript: ContentType = ContentType(TYPE, "javascript")
         public val OctetStream: ContentType = ContentType(TYPE, "octet-stream")
         public val Rss: ContentType = ContentType(TYPE, "rss+xml")
         public val Soap: ContentType = ContentType(TYPE, "soap+xml")
+        public val Xhtml: ContentType = ContentType(TYPE, "xhtml+xml")
         public val Xml: ContentType = ContentType(TYPE, "xml")
         public val Xml_Dtd: ContentType = ContentType(TYPE, "xml-dtd")
         public val Yaml: ContentType = ContentType(TYPE, "yaml")
@@ -232,6 +243,10 @@ public class ContentType private constructor(
         public val MP4: ContentType = ContentType(TYPE, "mp4")
         public val MPEG: ContentType = ContentType(TYPE, "mpeg")
         public val OGG: ContentType = ContentType(TYPE, "ogg")
+        public val AAC: ContentType = ContentType(TYPE, "aac")
+        public val FLAC: ContentType = ContentType(TYPE, "flac")
+        public val Midi: ContentType = ContentType(TYPE, "midi")
+        public val Aiff: ContentType = ContentType(TYPE, "aiff")
 
         /** Checks that the given [contentType] has type `audio/`. */
         public operator fun contains(contentType: CharSequence): Boolean =
@@ -264,6 +279,7 @@ public class ContentType private constructor(
         public val TIFF: ContentType = ContentType(TYPE, "tiff")
         public val WEBP: ContentType = ContentType(TYPE, "webp")
         public val XIcon: ContentType = ContentType(TYPE, "x-icon")
+        public val Djvu: ContentType = ContentType(TYPE, "vnd.djvu")
 
         /** Checks that the given [contentType] has type `image/`. */
         public operator fun contains(contentSubtype: String): Boolean =
@@ -309,6 +325,8 @@ public class ContentType private constructor(
         public val FormData: ContentType = ContentType(TYPE, "form-data")
         public val Signed: ContentType = ContentType(TYPE, "signed")
         public val Encrypted: ContentType = ContentType(TYPE, "encrypted")
+        public val Digest: ContentType = ContentType(TYPE, "digest")
+        public val Report: ContentType = ContentType(TYPE, "report")
         public val ByteRanges: ContentType = ContentType(TYPE, "byteranges")
 
         /** Checks that the given [contentType] has type `multipart/`. */
@@ -336,6 +354,11 @@ public class ContentType private constructor(
         public val JavaScript: ContentType = ContentType(TYPE, "javascript")
         public val VCard: ContentType = ContentType(TYPE, "vcard")
         public val Xml: ContentType = ContentType(TYPE, "xml")
+        public val Markdown: ContentType = ContentType(TYPE, "markdown")
+        public val Vtt: ContentType = ContentType(TYPE, "vtt")
+        public val Calendar: ContentType = ContentType(TYPE, "calendar")
+        public val RTF: ContentType = ContentType(TYPE, "rtf")
+        public val UriList: ContentType = ContentType(TYPE, "uri-list")
         public val EventStream: ContentType = ContentType(TYPE, "event-stream")
 
         /** Checks that the given [contentType] has type `text/`. */
@@ -359,6 +382,10 @@ public class ContentType private constructor(
         public val MPEG: ContentType = ContentType(TYPE, "mpeg")
         public val MP4: ContentType = ContentType(TYPE, "mp4")
         public val OGG: ContentType = ContentType(TYPE, "ogg")
+        public val WebM: ContentType = ContentType(TYPE, "webm")
+        public val AVI: ContentType = ContentType(TYPE, "x-msvideo")
+        public val FLV: ContentType = ContentType(TYPE, "x-flv")
+        public val Matroska: ContentType = ContentType(TYPE, "x-matroska")
         public val QuickTime: ContentType = ContentType(TYPE, "quicktime")
 
         /** Checks that the given [contentType] has type `video/`. */
@@ -385,6 +412,7 @@ public class ContentType private constructor(
         public val Ttf: ContentType = ContentType(TYPE, "ttf")
         public val Woff: ContentType = ContentType(TYPE, "woff")
         public val Woff2: ContentType = ContentType(TYPE, "woff2")
+        public val EOT: ContentType = ContentType(TYPE, "eot")
 
         /** Checks that the given [contentType] has type `font/`. */
         public operator fun contains(contentType: CharSequence): Boolean =

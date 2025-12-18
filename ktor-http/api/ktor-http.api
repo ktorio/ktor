@@ -157,15 +157,22 @@ public final class io/ktor/http/ContentType$Application {
 	public static final field TYPE Ljava/lang/String;
 	public final fun contains (Lio/ktor/http/ContentType;)Z
 	public final fun contains (Ljava/lang/CharSequence;)Z
+	public final fun getActivityJson ()Lio/ktor/http/ContentType;
 	public final fun getAny ()Lio/ktor/http/ContentType;
 	public final fun getAtom ()Lio/ktor/http/ContentType;
 	public final fun getCbor ()Lio/ktor/http/ContentType;
 	public final fun getDocx ()Lio/ktor/http/ContentType;
+	public final fun getEpub ()Lio/ktor/http/ContentType;
 	public final fun getFormUrlEncoded ()Lio/ktor/http/ContentType;
 	public final fun getGZip ()Lio/ktor/http/ContentType;
+	public final fun getGeoJson ()Lio/ktor/http/ContentType;
 	public final fun getHalJson ()Lio/ktor/http/ContentType;
 	public final fun getJavaScript ()Lio/ktor/http/ContentType;
+	public final fun getJoseJson ()Lio/ktor/http/ContentType;
 	public final fun getJson ()Lio/ktor/http/ContentType;
+	public final fun getJwt ()Lio/ktor/http/ContentType;
+	public final fun getLdJson ()Lio/ktor/http/ContentType;
+	public final fun getNDJson ()Lio/ktor/http/ContentType;
 	public final fun getOctetStream ()Lio/ktor/http/ContentType;
 	public final fun getPdf ()Lio/ktor/http/ContentType;
 	public final fun getPptx ()Lio/ktor/http/ContentType;
@@ -173,8 +180,12 @@ public final class io/ktor/http/ContentType$Application {
 	public final fun getProblemXml ()Lio/ktor/http/ContentType;
 	public final fun getProtoBuf ()Lio/ktor/http/ContentType;
 	public final fun getRss ()Lio/ktor/http/ContentType;
+	public final fun getSeqJson ()Lio/ktor/http/ContentType;
 	public final fun getSoap ()Lio/ktor/http/ContentType;
+	public final fun getVndApiJson ()Lio/ktor/http/ContentType;
+	public final fun getVndCollectionJson ()Lio/ktor/http/ContentType;
 	public final fun getWasm ()Lio/ktor/http/ContentType;
+	public final fun getXhtml ()Lio/ktor/http/ContentType;
 	public final fun getXlsx ()Lio/ktor/http/ContentType;
 	public final fun getXml ()Lio/ktor/http/ContentType;
 	public final fun getXml_Dtd ()Lio/ktor/http/ContentType;
@@ -187,9 +198,13 @@ public final class io/ktor/http/ContentType$Audio {
 	public static final field TYPE Ljava/lang/String;
 	public final fun contains (Lio/ktor/http/ContentType;)Z
 	public final fun contains (Ljava/lang/CharSequence;)Z
+	public final fun getAAC ()Lio/ktor/http/ContentType;
+	public final fun getAiff ()Lio/ktor/http/ContentType;
 	public final fun getAny ()Lio/ktor/http/ContentType;
+	public final fun getFLAC ()Lio/ktor/http/ContentType;
 	public final fun getMP4 ()Lio/ktor/http/ContentType;
 	public final fun getMPEG ()Lio/ktor/http/ContentType;
+	public final fun getMidi ()Lio/ktor/http/ContentType;
 	public final fun getOGG ()Lio/ktor/http/ContentType;
 }
 
@@ -205,6 +220,7 @@ public final class io/ktor/http/ContentType$Font {
 	public final fun contains (Ljava/lang/CharSequence;)Z
 	public final fun getAny ()Lio/ktor/http/ContentType;
 	public final fun getCollection ()Lio/ktor/http/ContentType;
+	public final fun getEOT ()Lio/ktor/http/ContentType;
 	public final fun getOtf ()Lio/ktor/http/ContentType;
 	public final fun getSfnt ()Lio/ktor/http/ContentType;
 	public final fun getTtf ()Lio/ktor/http/ContentType;
@@ -221,6 +237,7 @@ public final class io/ktor/http/ContentType$Image {
 	public final fun getAVIF ()Lio/ktor/http/ContentType;
 	public final fun getAny ()Lio/ktor/http/ContentType;
 	public final fun getBMP ()Lio/ktor/http/ContentType;
+	public final fun getDjvu ()Lio/ktor/http/ContentType;
 	public final fun getGIF ()Lio/ktor/http/ContentType;
 	public final fun getHEIC ()Lio/ktor/http/ContentType;
 	public final fun getHEIF ()Lio/ktor/http/ContentType;
@@ -250,10 +267,12 @@ public final class io/ktor/http/ContentType$MultiPart {
 	public final fun getAlternative ()Lio/ktor/http/ContentType;
 	public final fun getAny ()Lio/ktor/http/ContentType;
 	public final fun getByteRanges ()Lio/ktor/http/ContentType;
+	public final fun getDigest ()Lio/ktor/http/ContentType;
 	public final fun getEncrypted ()Lio/ktor/http/ContentType;
 	public final fun getFormData ()Lio/ktor/http/ContentType;
 	public final fun getMixed ()Lio/ktor/http/ContentType;
 	public final fun getRelated ()Lio/ktor/http/ContentType;
+	public final fun getReport ()Lio/ktor/http/ContentType;
 	public final fun getSigned ()Lio/ktor/http/ContentType;
 }
 
@@ -265,11 +284,16 @@ public final class io/ktor/http/ContentType$Text {
 	public final fun getAny ()Lio/ktor/http/ContentType;
 	public final fun getCSS ()Lio/ktor/http/ContentType;
 	public final fun getCSV ()Lio/ktor/http/ContentType;
+	public final fun getCalendar ()Lio/ktor/http/ContentType;
 	public final fun getEventStream ()Lio/ktor/http/ContentType;
 	public final fun getHtml ()Lio/ktor/http/ContentType;
 	public final fun getJavaScript ()Lio/ktor/http/ContentType;
+	public final fun getMarkdown ()Lio/ktor/http/ContentType;
 	public final fun getPlain ()Lio/ktor/http/ContentType;
+	public final fun getRTF ()Lio/ktor/http/ContentType;
+	public final fun getUriList ()Lio/ktor/http/ContentType;
 	public final fun getVCard ()Lio/ktor/http/ContentType;
+	public final fun getVtt ()Lio/ktor/http/ContentType;
 	public final fun getXml ()Lio/ktor/http/ContentType;
 }
 
@@ -278,11 +302,15 @@ public final class io/ktor/http/ContentType$Video {
 	public static final field TYPE Ljava/lang/String;
 	public final fun contains (Lio/ktor/http/ContentType;)Z
 	public final fun contains (Ljava/lang/CharSequence;)Z
+	public final fun getAVI ()Lio/ktor/http/ContentType;
 	public final fun getAny ()Lio/ktor/http/ContentType;
+	public final fun getFLV ()Lio/ktor/http/ContentType;
 	public final fun getMP4 ()Lio/ktor/http/ContentType;
 	public final fun getMPEG ()Lio/ktor/http/ContentType;
+	public final fun getMatroska ()Lio/ktor/http/ContentType;
 	public final fun getOGG ()Lio/ktor/http/ContentType;
 	public final fun getQuickTime ()Lio/ktor/http/ContentType;
+	public final fun getWebM ()Lio/ktor/http/ContentType;
 }
 
 public abstract interface class io/ktor/http/ContentTypeMatcher {
