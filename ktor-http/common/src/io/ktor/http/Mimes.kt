@@ -11,6 +11,7 @@ internal const val INITIAL_MIMES_LIST_SIZE: Int = 1217
 private val rawMimes: String
     get() = """
 application/acad,dwg
+application/activity+json,activity
 application/andrew-inset,ez
 application/applixware,aw
 application/arj,arj
@@ -21,6 +22,7 @@ application/base64,mm mme
 application/binhex,hqx
 application/binhex4,hqx
 application/book,boo book
+application/cbor,cbor
 application/ccxml+xml,ccxml
 application/cdf,cdf
 application/cdmi-capability,cdmia
@@ -32,6 +34,7 @@ application/clariscad,ccad
 application/commonground,dp
 application/cu-seeme,cu
 application/davmount+xml,davmount
+application/did+json,didjson
 application/drafting,drw
 application/dsptype,tsp
 application/dssc+der,dssc
@@ -46,9 +49,11 @@ application/font-tdpfr,pfr
 application/fractals,fif
 application/freeloader,frl
 application/futuresplash,spl
+application/geo+json,geojson
 application/gnutar,tgz
 application/groupwise,vew
 application/gzip,gz gzip
+application/hal+json,hal
 application/hlp,hlp
 application/hta,hta
 application/hyperstudio,stk
@@ -62,7 +67,14 @@ application/java-archive,jar
 application/java-byte-code,class
 application/java-serialized-object,ser
 application/java-vm,class
+application/jose+json,jose
 application/json,json
+application/json-patch+json,json-patch
+application/json-seq,jsonseq
+application/jwk+json,jwk
+application/jwk-set+json,jwk-set
+application/jwt,jwt
+application/ld+json,jsonld ldjson
 application/lha,lha
 application/lzx,lzx
 application/mac-binary,bin
@@ -80,6 +92,7 @@ application/mbedlet,mbd
 application/mbox,mbox
 application/mcad,mcd
 application/mediaservercontrol+xml,mscml
+application/merge-patch+json,merge-patch
 application/metalink4+xml,meta4
 application/mets+xml,mets
 application/mime,aps
@@ -117,6 +130,9 @@ application/pls+xml,pls
 application/postscript,ai eps ps
 application/powerpoint,ppt
 application/pro_eng,part prt
+application/problem+json,problem+json problemjson
+application/problem+xml,problem+xml problemxml
+application/protobuf,proto
 application/prs.cww,cww
 application/pskc+xml,pskcxml
 application/rdf+xml,rdf
@@ -180,6 +196,7 @@ application/vnd.android.package-archive,apk
 application/vnd.anser-web-certificate-issue-initiation,cii
 application/vnd.anser-web-funds-transfer-initiation,fti
 application/vnd.antix.game-component,atx
+application/vnd.api+json,jsonapi
 application/vnd.apple.installer+xml,mpkg
 application/vnd.apple.mpegurl,m3u8
 application/vnd.apple.pages,pages
@@ -196,6 +213,7 @@ application/vnd.cloanto.rp9,rp9
 application/vnd.clonk.c4group,c4g
 application/vnd.cluetrust.cartomobile-config,c11amc
 application/vnd.cluetrust.cartomobile-config-pkg,c11amz
+application/vnd.collection+json,collection
 application/vnd.commonspace,csp
 application/vnd.contact.cmsg,cdbcmsg
 application/vnd.cosmocaller,cmc
@@ -473,6 +491,7 @@ application/vnd.tmobile-livetv,tmo
 application/vnd.trid.tpt,tpt
 application/vnd.triscape.mxs,mxs
 application/vnd.trueapp,tra
+application/vnd.uber+json,uberjson
 application/vnd.ufdl,ufd
 application/vnd.uiq.theme,utz
 application/vnd.umajin,umj
@@ -620,6 +639,7 @@ application/x-navi-animation,ani
 application/x-navidoc,nvd
 application/x-navimap,map
 application/x-navistyle,stl
+application/x-ndjson,ndjson
 application/x-netcdf,cdf nc
 application/x-newton-compatible-pkg,pkg
 application/x-nokia-9000-communicator-add-on-software,aos
@@ -710,6 +730,7 @@ audio/mpeg,mpg
 audio/mpeg3,mp3
 audio/nspaudio,la lma
 audio/ogg,oga ogg
+audio/opus,opus
 audio/s3m,s3m
 audio/tsp-audio,tsi
 audio/tsplayer,tsp
@@ -761,6 +782,7 @@ chemical/x-csml,csml
 chemical/x-pdb,pdb xyz
 chemical/x-xyz,xyz
 font/collection	,collection
+font/eot,eot
 font/otf,otf
 font/sfnt,sfnt
 font/ttf,ttf
@@ -844,6 +866,8 @@ model/vnd.mts,mts
 model/vnd.vtu,vtu
 model/vrml,vrml wrl wrz
 model/x-pov,pov
+multipart/digest,digest
+multipart/report,report
 multipart/x-gzip,gzip
 multipart/x-ustar,ustar
 multipart/x-zip,zip
@@ -854,8 +878,10 @@ text/asp,asp
 text/calendar,ics
 text/css,css
 text/csv,csv
+text/event-stream,sse event-stream
 text/html,acgi htm html htmls htx shtml
 text/javascript,js mjs
+text/markdown,md markdown
 text/mcf,mcf
 text/n3,n3
 text/pascal,pas
