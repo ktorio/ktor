@@ -99,8 +99,10 @@ public val Auth: ClientPlugin<AuthConfig> = createClientPlugin("Auth", ::AuthCon
         val authHeaders = headerValues?.map { parseAuthorizationHeaders(it) }?.flatten() ?: emptyList()
 
         return when {
-            authHeaders.isEmpty() && candidateProviders.size == 1 -> {
-                candidateProviders.first() to null
+            candidateProviders.size == 1 -> {
+                val provider = candidateProviders.first()
+                val header = authHeaders.firstOrNull { provider.isApplicable(it) }
+                provider to header
             }
 
             authHeaders.isEmpty() -> {
