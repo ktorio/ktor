@@ -8,6 +8,7 @@ import io.ktor.util.*
 
 internal const val INITIAL_MIMES_LIST_SIZE: Int = 1217
 
+// If you add new lines, make sure they are sorted.
 private val rawMimes: String
     get() = """
 application/acad,dwg
@@ -65,11 +66,11 @@ application/java-vm,class
 application/json,json
 application/lha,lha
 application/lzx,lzx
-application/macbinary,bin
 application/mac-binary,bin
 application/mac-binhex,hqx
 application/mac-binhex40,hqx
 application/mac-compactpro,cpt
+application/macbinary,bin
 application/mads+xml,mads
 application/manifest+json,webmanifest
 application/marc,mrc
@@ -85,6 +86,7 @@ application/mets+xml,mets
 application/mime,aps
 application/mods+xml,mods
 application/mp21,m21
+application/mp4,mp4
 application/mspowerpoint,pot pps ppt ppz
 application/msword,doc dot w6w wiz word
 application/mswrite,wri
@@ -536,7 +538,6 @@ application/x-cmu-raster,ras
 application/x-cocoa,cco
 application/x-compactpro,cpt
 application/x-compress,z
-application/zip,zip
 application/x-compressed,gz tgz z zip
 application/x-conference,nsc
 application/x-cpio,cpio
@@ -638,6 +639,7 @@ application/x-portable-anymap,pnm
 application/x-project,mpc mpt mpv mpx
 application/x-qpro,wb1
 application/x-rar-compressed,rar
+application/x-rpm,rpm
 application/x-sdp,sdp
 application/x-sea,sea
 application/x-seelogo,sl
@@ -677,6 +679,7 @@ application/x-x509-user-cert,crt
 application/x-xfig,fig
 application/x-xpinstall,xpi
 application/x-xz,xz
+application/x-yaml,yaml
 application/x-zip-compressed,zip
 application/xcap-diff+xml,xdf
 application/xenc+xml,xenc
@@ -687,11 +690,11 @@ application/xop+xml,xop
 application/xslt+xml,xslt
 application/xspf+xml,xspf
 application/xv+xml,mxml
-application/yang,yang
 application/yaml,yaml
-application/x-yaml,yaml
+application/yang,yang
 application/yin+xml,yin
 application/zip,war
+application/zip,zip
 audio/aac,aac
 audio/adpcm,adp
 audio/aiff,aif aifc aiff
@@ -704,6 +707,7 @@ audio/midi,kar mid midi
 audio/mod,mod
 audio/mp4,m4a mp4a
 audio/mpeg,m2a mp2 mp3 mpa mpga
+audio/mpeg,mpg
 audio/mpeg3,mp3
 audio/nspaudio,la lma
 audio/ogg,oga ogg
@@ -731,6 +735,7 @@ audio/x-au,au
 audio/x-gsm,gsd gsm
 audio/x-jam,jam
 audio/x-liveaudio,lam
+audio/x-matroska,mkv
 audio/x-mid,mid midi
 audio/x-midi,midi
 audio/x-mod,mod
@@ -741,7 +746,6 @@ audio/x-ms-wma,wma
 audio/x-nspaudio,la lma
 audio/x-pn-realaudio,ra ram rm rmm rmp
 audio/x-pn-realaudio-plugin,ra rmp rpm
-application/x-rpm,rpm
 audio/x-psid,sid
 audio/x-realaudio,ra
 audio/x-twinvq,vqf
@@ -917,9 +921,9 @@ text/x-uil,uil
 text/x-uuencode,uu uue
 text/x-vcalendar,vcs
 text/x-vcard,vcf
+text/x-yaml,yaml
 text/xml,xml
 text/yaml,yaml
-text/x-yaml,yaml
 video/3gpp,3gp
 video/3gpp2,3g2
 video/animaflex,afl
@@ -936,9 +940,7 @@ video/jpeg,jpgv
 video/jpm,jpm
 video/mj2,mj2
 video/mp4,m4v mp4
-application/mp4,mp4
 video/mpeg,m1v m2v mp2 mpe mpeg mpg
-audio/mpeg,mpg
 video/msvideo,avi
 video/ogg,ogv
 video/quicktime,moov mov qt
@@ -968,7 +970,6 @@ video/x-flv,flv
 video/x-gl,gl
 video/x-isvideo,isu
 video/x-matroska,mkv
-audio/x-matroska,mkv
 video/x-motion-jpeg,mjpg
 video/x-mpeg,mp2
 video/x-mpeq2a,mp2
