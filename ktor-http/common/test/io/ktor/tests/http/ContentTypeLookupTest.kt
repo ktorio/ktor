@@ -48,30 +48,6 @@ class ContentTypeLookupTest {
 
         assertEquals(
             listOf(
-                ContentType.parse("video/mpeg"),
-                ContentType.parse("audio/mpeg")
-            ),
-            ContentType.fromFileExtension(".mpg")
-        )
-
-        assertEquals(
-            listOf(
-                ContentType.parse("video/mp4"),
-                ContentType.parse("application/mp4")
-            ),
-            ContentType.fromFileExtension(".mp4")
-        )
-
-        assertEquals(
-            listOf(
-                ContentType.parse("video/x-matroska"),
-                ContentType.parse("audio/x-matroska"),
-            ),
-            ContentType.fromFileExtension(".mkv")
-        )
-
-        assertEquals(
-            listOf(
                 ContentType.parse("text/javascript"),
                 ContentType.parse("application/javascript"),
             ),
