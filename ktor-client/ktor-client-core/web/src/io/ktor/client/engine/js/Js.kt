@@ -5,6 +5,8 @@
 package io.ktor.client.engine.js
 
 import io.ktor.client.engine.*
+import io.ktor.client.utils.makeJsObject
+import web.http.RequestInit
 import kotlin.js.*
 
 /**
@@ -23,8 +25,10 @@ import kotlin.js.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.js.Js)
  */
-public expect object Js : HttpClientEngineFactory<JsClientEngineConfig> {
-    override fun create(block: JsClientEngineConfig.() -> Unit): HttpClientEngine
+public object Js : HttpClientEngineFactory<JsClientEngineConfig> {
+    override fun create(block: JsClientEngineConfig.() -> Unit): HttpClientEngine {
+        return JsClientEngine(JsClientEngineConfig().apply(block))
+    }
 }
 
 /**
@@ -32,7 +36,40 @@ public expect object Js : HttpClientEngineFactory<JsClientEngineConfig> {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.js.JsClientEngineConfig)
  */
-public expect open class JsClientEngineConfig : HttpClientEngineConfig
+public open class JsClientEngineConfig : HttpClientEngineConfig() {
+    internal var requestInit: RequestInit.() -> Unit = {}
+
+    /**
+     * Provides access to the underlying fetch options of the engine.
+     * It allows setting credentials, cache, mode, redirect, referrer, integrity, keepalive, signal, window.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.js.JsClientEngineConfig.configureRequest)
+     */
+    public fun configureRequest(block: RequestInit.() -> Unit) {
+        requestInit = block
+    }
+
+    /**
+     * An `Object` which can contain additional configuration options that should get passed to node-fetch.
+     *
+     * For example, this can be used to configure a custom `Agent`:
+     *
+     * ```kotlin
+     * HttpClient(Js) {
+     *     engine {
+     *         val agentOptions = js("Object").create(null)
+     *         agentOptions.minVersion = "TLSv1.2"
+     *         agentOptions.maxVersion = "TLSv1.3"
+     *         nodeOptions.agent = Agent(agentOptions)
+     *     }
+     * }
+     * ```
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.js.JsClientEngineConfig.nodeOptions)
+     */
+    @Deprecated("Use configureRequest instead", level = DeprecationLevel.WARNING)
+    public var nodeOptions: JsAny = makeJsObject()
+}
 
 /**
  * Creates a [Js] client engine.

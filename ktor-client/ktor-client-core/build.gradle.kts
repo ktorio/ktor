@@ -30,6 +30,11 @@ kotlin {
             api(npm("ws", libs.versions.ws.get()))
         }
 
+        webMain.dependencies {
+            api(npm("ws", libs.versions.ws.get()))
+            implementation("org.jetbrains.kotlin-wrappers:kotlin-browser:2025.12.7")
+        }
+
         commonTest.dependencies {
             api(projects.ktorTestDispatcher)
             api(projects.ktorClientMock)
