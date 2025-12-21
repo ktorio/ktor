@@ -1464,7 +1464,8 @@ public final class io/ktor/client/request/forms/FormBuildersKt {
 }
 
 public final class io/ktor/client/request/forms/FormDataContent : io/ktor/http/content/OutgoingContent$ByteArrayContent {
-	public fun <init> (Lio/ktor/http/Parameters;)V
+	public fun <init> (Lio/ktor/http/Parameters;Z)V
+	public synthetic fun <init> (Lio/ktor/http/Parameters;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun bytes ()[B
 	public fun getContentLength ()Ljava/lang/Long;
 	public fun getContentType ()Lio/ktor/http/ContentType;
