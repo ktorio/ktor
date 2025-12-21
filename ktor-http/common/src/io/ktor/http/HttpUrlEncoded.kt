@@ -29,21 +29,21 @@ public fun String.parseUrlEncodedParameters(defaultEncoding: Charset = Charsets.
 }
 
 /**
- * Encode form parameters from a list of pairs
+ * Form-url-encodes a list of key/value pairs into an application/x-www-form-urlencoded string.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.formUrlEncode)
- *
- * @param spaceToPlus if true, space character is encoded as `+`, otherwise as `%20`. Defaults to true.
+ * @param spaceToPlus If `true`, spaces are encoded as `+`; if `false`, spaces are encoded as `%20`. Defaults to `true`.
+ * @return The encoded form string containing joined `key=value` pairs separated by `&`. Values that are `null` are serialized as keys without `=`.
  */
 public fun List<Pair<String, String?>>.formUrlEncode(spaceToPlus: Boolean = true): String =
     buildString { formUrlEncodeTo(this, spaceToPlus) }
 
 /**
- * Encode form parameters from a list of pairs to the specified [out] appendable
+ *  Write this list of key/value pairs to the given Appendable using application/x-www-form-urlencoded encoding.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.formUrlEncodeTo)
+ *  Each pair is serialized as `key` or `key=value` and pairs are joined with `&`. A `null` value produces the key without an `=`. Keys and values are percent-encoded; when [spaceToPlus] is `true` space characters are encoded as `+`, otherwise as `%20`.
  *
- * @param spaceToPlus if true, space character is encoded as `+`, otherwise as `%20`. Defaults to true.
+ *  @param out Destination appendable that receives the encoded form string.
+ *  @param spaceToPlus If `true`, encode space as `+`; if `false`, encode space as `%20`. Defaults to `true`.
  */
 public fun List<Pair<String, String?>>.formUrlEncodeTo(out: Appendable, spaceToPlus: Boolean = true) {
     joinTo(out, "&") {
@@ -58,22 +58,22 @@ public fun List<Pair<String, String?>>.formUrlEncodeTo(out: Appendable, spaceToP
 }
 
 /**
- * Encode form parameters
+ * Encodes parameters into an application/x-www-form-urlencoded string.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.formUrlEncode)
- *
- * @param spaceToPlus if true, space character is encoded as `+`, otherwise as `%20`. Defaults to true.
+ * @param spaceToPlus If `true`, space characters are encoded as `+`. If `false`, spaces are encoded as `%20`.
+ * @return The resulting form-encoded string.
  */
 public fun Parameters.formUrlEncode(spaceToPlus: Boolean = true): String = entries()
     .flatMap { e -> e.value.map { e.key to it } }
     .formUrlEncode(spaceToPlus)
 
 /**
- * Encode form parameters to the specified [out] appendable
+ * Write these parameters as application/x-www-form-urlencoded into the given appendable.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.formUrlEncodeTo)
  *
- * @param spaceToPlus if true, space character is encoded as `+`, otherwise as `%20`. Defaults to true.
+ * @param out Destination to which the encoded form string is written.
+ * @param spaceToPlus If `true`, encode space as `+`; if `false`, encode space as `%20`. Defaults to `true`.
  */
 public fun Parameters.formUrlEncodeTo(out: Appendable, spaceToPlus: Boolean = true) {
     entries().formUrlEncodeTo(out, spaceToPlus)
