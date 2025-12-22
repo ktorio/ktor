@@ -1373,6 +1373,7 @@ public class HttpClient(
             config.install(HttpRequestLifecycle)
             config.install(BodyProgress)
             config.install(SaveBody)
+            config.install(CleartextTraffic)
 
             if (useDefaultTransformers) {
                 config.install("DefaultTransformers") { defaultTransformers() }
