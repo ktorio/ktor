@@ -88,6 +88,10 @@ class JettySustainabilityTest :
     SustainabilityTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty) {
     @Ignore
     override fun validateCallCoroutineContext() {}
+
+    override fun configure(configuration: JettyApplicationEngineBase.Configuration) {
+        configuration.callGroupSize = 6
+    }
 }
 
 class JettyConfigTest : ConfigTestSuite(Jetty)
