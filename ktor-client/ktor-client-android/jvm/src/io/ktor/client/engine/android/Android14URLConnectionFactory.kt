@@ -13,7 +13,7 @@ internal class AndroidNetHttpEngineFactory(private val config: AndroidEngineConf
     private val engine by lazy { buildEngine() }
 
     private fun buildEngine(): HttpEngine {
-        val ctx = requireNotNull(config.context) {
+        val ctx = checkNotNull(config.context) {
             "AndroidEngineConfig.context must be set when using HttpEngine; prefer applicationContext."
         }.applicationContext
         return HttpEngine.Builder(ctx)
