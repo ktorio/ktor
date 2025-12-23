@@ -1771,6 +1771,7 @@ final fun (kotlin/String).io.ktor.http/encodeURLQueryComponent(kotlin/Boolean = 
 final fun (kotlin/String).io.ktor.http/escapeIfNeeded(): kotlin/String // io.ktor.http/escapeIfNeeded|escapeIfNeeded@kotlin.String(){}[0]
 final fun (kotlin/String).io.ktor.http/fromCookieToGmtDate(): io.ktor.util.date/GMTDate // io.ktor.http/fromCookieToGmtDate|fromCookieToGmtDate@kotlin.String(){}[0]
 final fun (kotlin/String).io.ktor.http/fromHttpToGmtDate(): io.ktor.util.date/GMTDate // io.ktor.http/fromHttpToGmtDate|fromHttpToGmtDate@kotlin.String(){}[0]
+final fun (kotlin/String).io.ktor.http/parseUrlEncodedParameters(io.ktor.utils.io.charsets/Charset = ..., kotlin/Int = ...): io.ktor.http/Parameters // io.ktor.http/parseUrlEncodedParameters|parseUrlEncodedParameters@kotlin.String(io.ktor.utils.io.charsets.Charset;kotlin.Int){}[0]
 final fun (kotlin/String).io.ktor.http/parseUrlEncodedParameters(io.ktor.utils.io.charsets/Charset = ..., kotlin/Int = ..., kotlin/Boolean = ...): io.ktor.http/Parameters // io.ktor.http/parseUrlEncodedParameters|parseUrlEncodedParameters@kotlin.String(io.ktor.utils.io.charsets.Charset;kotlin.Int;kotlin.Boolean){}[0]
 final fun (kotlin/String).io.ktor.http/quote(): kotlin/String // io.ktor.http/quote|quote@kotlin.String(){}[0]
 final fun io.ktor.http.auth/parseAuthorizationHeader(kotlin/String): io.ktor.http.auth/HttpAuthHeader? // io.ktor.http.auth/parseAuthorizationHeader|parseAuthorizationHeader(kotlin.String){}[0]

@@ -6,6 +6,12 @@ package io.ktor.http
 
 import io.ktor.utils.io.charsets.*
 
+@Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
+public fun String.parseUrlEncodedParameters(
+    defaultEncoding: Charset = Charsets.UTF_8,
+    limit: Int = 1000,
+): Parameters = parseUrlEncodedParameters(defaultEncoding, limit)
+
 /**
  * Parse URL query parameters. Shouldn't be used for urlencoded forms because of `+` character.
  *
