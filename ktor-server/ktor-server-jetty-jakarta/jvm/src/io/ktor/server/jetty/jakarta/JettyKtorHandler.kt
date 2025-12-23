@@ -31,16 +31,21 @@ internal class JettyKtorHandler(
     private val applicationProvider: () -> Application
 ) : Handler.Abstract() {
     private val environmentName = configuration.connectors.joinToString("-") { it.port.toString() }
-    private val queue: BlockingQueue<Runnable> = LinkedBlockingQueue()
+    private val queue: BlockingQueue<Runnable> = SynchronousQueue()
+    private val rejectedExecutionHandler =
+        // Always run on caller thread when pool is full or during shutdown.
+        // Unlike `ThreadPoolExecutor.CallerRunsPolicy` which discards tasks during shutdown,
+        // this ensures cancellation can propagate through the dispatcher.
+        RejectedExecutionHandler { r, _ -> r.run() }
     private val executor = ThreadPoolExecutor(
         configuration.callGroupSize,
         configuration.callGroupSize * 8,
         THREAD_KEEP_ALIVE_TIME,
         TimeUnit.MINUTES,
-        queue
-    ) { r ->
-        Thread(r, "ktor-jetty-$environmentName-${JettyKtorCounter.incrementAndGet()}")
-    }
+        queue,
+        { r -> Thread(r, "ktor-jetty-$environmentName-${JettyKtorCounter.incrementAndGet()}") },
+        rejectedExecutionHandler
+    )
     private val dispatcher = executor.asCoroutineDispatcher()
     private val handlerContext: CoroutineContext = dispatcher +
         DefaultUncaughtExceptionHandler(environment.log) +
