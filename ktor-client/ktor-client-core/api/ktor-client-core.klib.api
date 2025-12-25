@@ -907,7 +907,7 @@ final class io.ktor.client.request.forms/FormBuilder { // io.ktor.client.request
 }
 
 final class io.ktor.client.request.forms/FormDataContent : io.ktor.http.content/OutgoingContent.ByteArrayContent { // io.ktor.client.request.forms/FormDataContent|null[0]
-    constructor <init>(io.ktor.http/Parameters) // io.ktor.client.request.forms/FormDataContent.<init>|<init>(io.ktor.http.Parameters){}[0]
+    constructor <init>(io.ktor.http/Parameters, kotlin/Boolean = ...) // io.ktor.client.request.forms/FormDataContent.<init>|<init>(io.ktor.http.Parameters;kotlin.Boolean){}[0]
 
     final val contentLength // io.ktor.client.request.forms/FormDataContent.contentLength|{}contentLength[0]
         final fun <get-contentLength>(): kotlin/Long // io.ktor.client.request.forms/FormDataContent.contentLength.<get-contentLength>|<get-contentLength>(){}[0]
