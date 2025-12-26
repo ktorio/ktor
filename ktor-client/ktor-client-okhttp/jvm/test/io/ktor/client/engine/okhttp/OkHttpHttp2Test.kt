@@ -36,14 +36,14 @@ class OkHttpHttp2Test : Http2Test<OkHttpConfig>(OkHttp) {
                 }
                 .execute {
                     val outputChannel = it.bodyAsChannel()
-                    var acc = ""
-                    (0..2).forEach {
-                        inputChannel.writeStringUtf8("client: $it\n")
+                    val buffer = StringBuilder()
+                    (0..2).forEach { i ->
+                        inputChannel.writeStringUtf8("client: $i\n")
                         inputChannel.flush()
-                        acc += outputChannel.readUTF8Line()
-                        acc += "\n"
+                        outputChannel.readLineStrictTo(buffer)
+                        buffer.append('\n')
                     }
-                    acc
+                    buffer.toString()
                 }
             assertEquals(
                 """
@@ -78,10 +78,10 @@ class OkHttpHttp2Test : Http2Test<OkHttpConfig>(OkHttp) {
                     setBody(failingBody)
                 }.execute { response ->
                     val out = response.bodyAsChannel()
-                    val first = out.readUTF8Line()
+                    val first = out.readLineStrict()
                     assertEquals("server: client: 0", first)
                     established.complete(Unit)
-                    out.readUTF8Line()
+                    out.readLineStrict()
                     fail("Expected duplex writer failure")
                 }
             }.apply {
