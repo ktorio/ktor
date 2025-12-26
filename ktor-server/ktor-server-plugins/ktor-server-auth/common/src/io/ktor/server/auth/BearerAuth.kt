@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.auth
@@ -53,7 +53,7 @@ public class BearerAuthenticationProvider internal constructor(config: Config) :
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.BearerAuthenticationProvider.Config)
      */
-    public class Config(name: String?) : AuthenticationProvider.Config(name) {
+    public class Config(name: String?, description: String? = null) : AuthenticationProvider.Config(name, description) {
         internal var authenticate: AuthenticationFunction<BearerTokenCredential> = {
             throw NotImplementedError(
                 "Bearer auth authenticate function is not specified. Use bearer { authenticate { ... } } to fix."
@@ -112,7 +112,7 @@ public class BearerAuthenticationProvider internal constructor(config: Config) :
 
 /**
  * Installs the Bearer [Authentication] provider.
- * Bearer auth requires the developer to provide a custom 'authenticate' function to authorize the token,
+ * Bearer auth requires the developer to provide a custom 'authenticate' function to authorize the token
  * and return the associated principal.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.bearer)
@@ -121,7 +121,22 @@ public fun AuthenticationConfig.bearer(
     name: String? = null,
     configure: BearerAuthenticationProvider.Config.() -> Unit,
 ) {
-    val provider = BearerAuthenticationProvider.Config(name).apply(configure).build()
+    bearer(name, description = null, configure)
+}
+
+/**
+ * Installs the Bearer [Authentication] provider with description.
+ * Bearer auth requires the developer to provide a custom 'authenticate' function to authorize the token
+ * and return the associated principal.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.bearer)
+ */
+public fun AuthenticationConfig.bearer(
+    name: String? = null,
+    description: String? = null,
+    configure: BearerAuthenticationProvider.Config.() -> Unit,
+) {
+    val provider = BearerAuthenticationProvider.Config(name, description).apply(configure).build()
     register(provider)
 }
 

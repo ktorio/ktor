@@ -318,7 +318,7 @@ class OAuth1aFlowTest {
         install(Authentication) {
             oauth {
                 client = testClient
-                providerLookup = { settings.mutateSettings() }
+                providerLookup = { this@OAuth1aFlowTest.settings.mutateSettings() }
                 urlProvider = { redirectUrl }
                 fallback = fallbackSetting
             }
