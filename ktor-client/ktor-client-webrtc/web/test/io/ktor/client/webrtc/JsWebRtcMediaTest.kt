@@ -26,6 +26,7 @@ class JsWebRtcMediaTest {
 
     private fun WebRtcMedia.Track.getSettings() = getNative().getSettings()
 
+    @OptIn(ExperimentalWasmJsInterop::class)
     @Test
     fun testCreateAudioTrackConstraints() = runTest {
         val tracks = mutableListOf<WebRtcMedia.Track>()

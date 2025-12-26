@@ -44,7 +44,7 @@ public class IosWebRtcEngine(
             ?: error("Please specify custom rtcFactory for custom MediaTrackFactory")
 
     private fun WebRtc.IceServer.toIos(): RTCIceServer {
-        return RTCIceServer(listOf(urls), username, credential)
+        return RTCIceServer(urls, username, credential)
     }
 
     override suspend fun createPeerConnection(config: WebRtcConnectionConfig): WebRtcPeerConnection {

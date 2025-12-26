@@ -16,7 +16,6 @@ import web.mediastreams.ConstrainDouble
 import web.mediastreams.MediaTrackConstraints
 import web.rtc.*
 import kotlin.collections.associate
-import kotlin.js.ExperimentalWasmJsInterop
 import kotlin.js.JsString
 import kotlin.js.toArray
 import kotlin.js.toJsArray
@@ -197,7 +196,7 @@ internal fun WebRtc.IceCandidate.toJs(): RTCLocalIceCandidateInit = unsafeJso {
 }
 
 internal fun WebRtc.IceServer.toJs(): RTCIceServer = unsafeJso {
-    urls = this@toJs.urls.toJsString()
+    urls = this@toJs.urls.map { it.toJsString() }.toJsArray()
     username = this@toJs.username
     credential = this@toJs.credential
 }

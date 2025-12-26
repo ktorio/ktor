@@ -594,19 +594,19 @@ final object io.ktor.client.webrtc/WebRtc { // io.ktor.client.webrtc/WebRtc|null
     }
 
     final class IceServer { // io.ktor.client.webrtc/WebRtc.IceServer|null[0]
-        constructor <init>(kotlin/String, kotlin/String? = ..., kotlin/String? = ...) // io.ktor.client.webrtc/WebRtc.IceServer.<init>|<init>(kotlin.String;kotlin.String?;kotlin.String?){}[0]
+        constructor <init>(kotlin.collections/List<kotlin/String>, kotlin/String? = ..., kotlin/String? = ...) // io.ktor.client.webrtc/WebRtc.IceServer.<init>|<init>(kotlin.collections.List<kotlin.String>;kotlin.String?;kotlin.String?){}[0]
 
         final val credential // io.ktor.client.webrtc/WebRtc.IceServer.credential|{}credential[0]
             final fun <get-credential>(): kotlin/String? // io.ktor.client.webrtc/WebRtc.IceServer.credential.<get-credential>|<get-credential>(){}[0]
         final val urls // io.ktor.client.webrtc/WebRtc.IceServer.urls|{}urls[0]
-            final fun <get-urls>(): kotlin/String // io.ktor.client.webrtc/WebRtc.IceServer.urls.<get-urls>|<get-urls>(){}[0]
+            final fun <get-urls>(): kotlin.collections/List<kotlin/String> // io.ktor.client.webrtc/WebRtc.IceServer.urls.<get-urls>|<get-urls>(){}[0]
         final val username // io.ktor.client.webrtc/WebRtc.IceServer.username|{}username[0]
             final fun <get-username>(): kotlin/String? // io.ktor.client.webrtc/WebRtc.IceServer.username.<get-username>|<get-username>(){}[0]
 
-        final fun component1(): kotlin/String // io.ktor.client.webrtc/WebRtc.IceServer.component1|component1(){}[0]
+        final fun component1(): kotlin.collections/List<kotlin/String> // io.ktor.client.webrtc/WebRtc.IceServer.component1|component1(){}[0]
         final fun component2(): kotlin/String? // io.ktor.client.webrtc/WebRtc.IceServer.component2|component2(){}[0]
         final fun component3(): kotlin/String? // io.ktor.client.webrtc/WebRtc.IceServer.component3|component3(){}[0]
-        final fun copy(kotlin/String = ..., kotlin/String? = ..., kotlin/String? = ...): io.ktor.client.webrtc/WebRtc.IceServer // io.ktor.client.webrtc/WebRtc.IceServer.copy|copy(kotlin.String;kotlin.String?;kotlin.String?){}[0]
+        final fun copy(kotlin.collections/List<kotlin/String> = ..., kotlin/String? = ..., kotlin/String? = ...): io.ktor.client.webrtc/WebRtc.IceServer // io.ktor.client.webrtc/WebRtc.IceServer.copy|copy(kotlin.collections.List<kotlin.String>;kotlin.String?;kotlin.String?){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.client.webrtc/WebRtc.IceServer.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // io.ktor.client.webrtc/WebRtc.IceServer.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // io.ktor.client.webrtc/WebRtc.IceServer.toString|toString(){}[0]
