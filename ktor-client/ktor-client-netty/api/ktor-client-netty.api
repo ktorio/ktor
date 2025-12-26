@@ -1,0 +1,38 @@
+public final class io/ktor/client/engine/netty/Netty : io/ktor/client/engine/HttpClientEngineFactory {
+	public static final field INSTANCE Lio/ktor/client/engine/netty/Netty;
+	public fun create (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/engine/HttpClientEngine;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/client/engine/netty/NettyHttpConfig : io/ktor/client/engine/HttpClientEngineConfig {
+	public fun <init> ()V
+	public final fun bootstrap (Lkotlin/jvm/functions/Function1;)V
+	public final fun getMaxConnectionsPerRoute ()I
+	public final fun getMaxConnectionsTotal ()I
+	public final fun getMaxDecompressorAllocation ()I
+	public final fun getProtocolVersion ()Ljava/net/http/HttpClient$Version;
+	public final fun getSslContext ()Ljavax/net/ssl/SSLContext;
+	public final fun setMaxConnectionsPerRoute (I)V
+	public final fun setMaxConnectionsTotal (I)V
+	public final fun setMaxDecompressorAllocation (I)V
+	public final fun setProtocolVersion (Ljava/net/http/HttpClient$Version;)V
+	public final fun setSslContext (Ljavax/net/ssl/SSLContext;)V
+	public final fun sslContext (Ljavax/net/ssl/SSLContext;)V
+}
+
+public final class io/ktor/client/engine/netty/NettyHttpEngine : io/ktor/client/engine/HttpClientEngineBase {
+	public fun <init> (Lio/ktor/client/engine/netty/NettyHttpConfig;)V
+	public fun execute (Lio/ktor/client/request/HttpRequestData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public synthetic fun getConfig ()Lio/ktor/client/engine/HttpClientEngineConfig;
+	public fun getConfig ()Lio/ktor/client/engine/netty/NettyHttpConfig;
+	public fun getSupportedCapabilities ()Ljava/util/Set;
+}
+
+public final class io/ktor/client/engine/netty/NettyHttpEngineContainer : io/ktor/client/HttpClientEngineContainer {
+	public fun <init> ()V
+	public fun getFactory ()Lio/ktor/client/engine/HttpClientEngineFactory;
+	public fun toString ()Ljava/lang/String;
+}
+
