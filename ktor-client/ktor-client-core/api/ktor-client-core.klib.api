@@ -1400,6 +1400,8 @@ final val io.ktor.client.plugins.websocket/pingInterval // io.ktor.client.plugin
     final inline fun (io.ktor.client.plugins.websocket/WebSockets).<get-pingInterval>(): kotlin.time/Duration? // io.ktor.client.plugins.websocket/pingInterval.<get-pingInterval>|<get-pingInterval>@io.ktor.client.plugins.websocket.WebSockets(){}[0]
 final val io.ktor.client.plugins/BodyProgress // io.ktor.client.plugins/BodyProgress|{}BodyProgress[0]
     final fun <get-BodyProgress>(): io.ktor.client.plugins.api/ClientPlugin<kotlin/Unit> // io.ktor.client.plugins/BodyProgress.<get-BodyProgress>|<get-BodyProgress>(){}[0]
+final val io.ktor.client.plugins/CleartextTraffic // io.ktor.client.plugins/CleartextTraffic|{}CleartextTraffic[0]
+    final fun <get-CleartextTraffic>(): io.ktor.client.plugins.api/ClientPlugin<kotlin/Unit> // io.ktor.client.plugins/CleartextTraffic.<get-CleartextTraffic>|<get-CleartextTraffic>(){}[0]
 final val io.ktor.client.plugins/HttpCallValidator // io.ktor.client.plugins/HttpCallValidator|{}HttpCallValidator[0]
     final fun <get-HttpCallValidator>(): io.ktor.client.plugins.api/ClientPlugin<io.ktor.client.plugins/HttpCallValidatorConfig> // io.ktor.client.plugins/HttpCallValidator.<get-HttpCallValidator>|<get-HttpCallValidator>(){}[0]
 final val io.ktor.client.plugins/HttpPlainText // io.ktor.client.plugins/HttpPlainText|{}HttpPlainText[0]
