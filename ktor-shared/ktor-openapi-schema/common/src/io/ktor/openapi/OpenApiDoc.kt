@@ -4,24 +4,93 @@
 
 package io.ktor.openapi
 
+import io.ktor.utils.io.*
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.EncodeDefault.Mode.ALWAYS
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KeepGeneratedSerializer
 import kotlinx.serialization.Serializable
 
-/** This is the root document object for the API specification. */
-@Serializable(OpenApiSpecification.Companion.Serializer::class)
+/**
+ * A small interface exposing the OpenAPI document builder state.
+ *
+ * This is used in the OpenAPI and Swagger plugins for providing details in the resulting generated document.
+ */
+public interface OpenApiDocDsl {
+    /**
+     * OpenAPI specification version to be written into the resulting document.
+     *
+     * This corresponds to the top-level `openapi` field (for example, `"3.1.1"`).
+     */
+    public var openapiVersion: String
+
+    /**
+     * Required OpenAPI "Info Object" describing the API (title, version, optional description, etc.).
+     *
+     * This corresponds to the top-level `info` section.
+     */
+    public var info: OpenApiInfo
+
+    /**
+     * Configures one or more servers for this API using the [Servers] DSL.
+     *
+     * Servers describe base URLs where the API can be accessed (for example, production and staging).
+     *
+     * @param configure DSL block used to add server entries.
+     */
+    public fun servers(configure: Servers.Builder.() -> Unit)
+
+    /**
+     * Configures one or more global security requirements using the [Security] DSL.
+     *
+     * These requirements apply to operations by default unless overridden at the operation level.
+     *
+     * @param configure DSL block used to declare security requirements.
+     */
+    public fun security(configure: Security.Builder.() -> Unit)
+
+    /**
+     * Registers a tag name at the document level.
+     *
+     * Tags are typically used by documentation tooling to group operations.
+     *
+     * @param tag The tag name.
+     */
+    public fun tag(tag: String)
+
+    /**
+     * Optional reusable components for the document (schemas, responses, parameters, request bodies, etc.).
+     *
+     * This corresponds to the top-level `components` section.
+     */
+    public var components: Components?
+
+    /**
+     * Optional external documentation for the entire API.
+     *
+     * This corresponds to the top-level `externalDocs` section.
+     */
+    public var externalDocs: ExternalDocs?
+
+    /**
+     * Specification extensions for the document.
+     *
+     * In OpenAPI, extension keys must start with `x-` (for example, `x-company-metadata`).
+     */
+    public val extensions: MutableMap<String, GenericElement>
+}
+
+@Serializable(OpenApiDoc.Companion.Serializer::class)
 @OptIn(ExperimentalSerializationApi::class)
 @KeepGeneratedSerializer
-public data class OpenApiSpecification(
+public data class OpenApiDoc(
     @EncodeDefault(ALWAYS) public val openapi: String = "3.1.1",
     /** Provides metadata about the API. The metadata can be used by the clients if needed. */
     public val info: OpenApiInfo,
     /** An array of Server Objects, which provide connectivity information to a target server. */
     public val servers: List<Server>? = null,
     /** The available paths and operations for the API. */
-    public val paths: Map<String, PathItem> = emptyMap(),
+    public val paths: Map<String, ReferenceOr<PathItem>> = emptyMap(),
     /**
      * The incoming webhooks that MAY be received as part of this API and that the API consumer MAY
      * choose to implement. Closely related to the callbacks feature, this section describes requests
@@ -53,10 +122,81 @@ public data class OpenApiSpecification(
     public override val extensions: Map<String, GenericElement>? = null,
 ) : Extensible {
     public companion object {
-        internal object Serializer : ExtensibleMixinSerializer<OpenApiSpecification>(
+        /**
+         * Builds an [OpenApiDoc] instance using the provided DSL [configure] block.
+         */
+        public fun build(configure: Builder.() -> Unit): OpenApiDoc {
+            return Builder().apply(configure).build()
+        }
+
+        internal object Serializer : ExtensibleMixinSerializer<OpenApiDoc>(
             generatedSerializer(),
             { o, extensions -> o.copy(extensions = extensions) }
         )
+    }
+
+    /**
+     * Builder for the OpenAPI root document object.
+     *
+     * This does not include builder DSL for path items and webhooks.  These are generally handled on the routes
+     * themselves, then resolved later at runtime.
+     */
+    @KtorDsl
+    public class Builder : OpenApiDocDsl {
+        override var openapiVersion: String = "3.1.1"
+        override var info: OpenApiInfo = OpenApiInfo(title = "Untitled API", version = "1.0.0")
+
+        override var components: Components? = null
+        override var externalDocs: ExternalDocs? = null
+
+        override val extensions: MutableMap<String, GenericElement> = linkedMapOf()
+
+        private val _servers = mutableListOf<Server>()
+        private val _tags = mutableListOf<String>()
+        private val _securityRequirements = mutableListOf<Map<String, List<String>>>()
+
+        override fun servers(configure: Servers.Builder.() -> Unit) {
+            Servers.Builder().apply(configure).build().servers.forEach { _servers.add(it) }
+        }
+
+        override fun security(configure: Security.Builder.() -> Unit) {
+            Security.Builder().apply(configure).build().requirements.forEach { _securityRequirements.add(it) }
+        }
+
+        override fun tag(tag: String) {
+            _tags.add(tag)
+        }
+
+        /**
+         * Adds a specification-extension to this OpenAPI document.
+         *
+         * @param name The extension name; must start with `x-`.
+         * @param value The extension value.
+         */
+        public inline fun <reified T : Any> extension(name: String, value: T) {
+            require(name.startsWith("x-")) { "Extension name must start with 'x-'" }
+            extensions[name] = GenericElement(value)
+        }
+
+        /**
+         * Builds an instance of [OpenApiDoc] based on the current state of the [Builder].
+         *
+         * @return An instance of [OpenApiDoc].
+         */
+        public fun build(): OpenApiDoc {
+            return OpenApiDoc(
+                openapi = openapiVersion,
+                info = info,
+                servers = _servers.ifEmpty { null },
+                paths = emptyMap(),
+                webhooks = emptyMap(),
+                components = components,
+                security = _securityRequirements.ifEmpty { null },
+                tags = _tags.distinct().map(::Tag).ifEmpty { null },
+                externalDocs = externalDocs,
+                extensions = extensions.ifEmpty { null },
+            )
+        }
     }
 }
 

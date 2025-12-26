@@ -86,7 +86,7 @@ public data class MediaType(
         }
 
         /**
-         * Adds a specification-extension.
+         * Adds an extension.
          *
          * @param name The extension name; must start with `x-`.
          * @param value The extension value.

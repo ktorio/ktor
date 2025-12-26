@@ -252,13 +252,15 @@ abstract interface io.ktor.server.routing/CompositeRouteSelector { // io.ktor.se
     abstract fun subSelectors(): kotlin.collections/List<io.ktor.server.routing/RouteSelector> // io.ktor.server.routing/CompositeRouteSelector.subSelectors|subSelectors(){}[0]
 }
 
-abstract interface io.ktor.server.routing/Route { // io.ktor.server.routing/Route|null[0]
+abstract interface io.ktor.server.routing/Route : io.ktor.util.collections/TreeLike<io.ktor.server.routing/Route> { // io.ktor.server.routing/Route|null[0]
     abstract val attributes // io.ktor.server.routing/Route.attributes|{}attributes[0]
         abstract fun <get-attributes>(): io.ktor.util/Attributes // io.ktor.server.routing/Route.attributes.<get-attributes>|<get-attributes>(){}[0]
     abstract val environment // io.ktor.server.routing/Route.environment|{}environment[0]
         abstract fun <get-environment>(): io.ktor.server.application/ApplicationEnvironment // io.ktor.server.routing/Route.environment.<get-environment>|<get-environment>(){}[0]
-    abstract val parent // io.ktor.server.routing/Route.parent|{}parent[0]
-        abstract fun <get-parent>(): io.ktor.server.routing/Route? // io.ktor.server.routing/Route.parent.<get-parent>|<get-parent>(){}[0]
+    open val children // io.ktor.server.routing/Route.children|{}children[0]
+        open fun <get-children>(): kotlin.collections/Iterable<io.ktor.server.routing/Route> // io.ktor.server.routing/Route.children.<get-children>|<get-children>(){}[0]
+    open val selector // io.ktor.server.routing/Route.selector|{}selector[0]
+        open fun <get-selector>(): io.ktor.server.routing/RouteSelector? // io.ktor.server.routing/Route.selector.<get-selector>|<get-selector>(){}[0]
 
     abstract fun <#A1: kotlin/Any, #B1: kotlin/Any> install(io.ktor.server.application/Plugin<io.ktor.server.application/ApplicationCallPipeline, #A1, #B1>, kotlin/Function1<#A1, kotlin/Unit> = ...): #B1 // io.ktor.server.routing/Route.install|install(io.ktor.server.application.Plugin<io.ktor.server.application.ApplicationCallPipeline,0:0,0:1>;kotlin.Function1<0:0,kotlin.Unit>){0§<kotlin.Any>;1§<kotlin.Any>}[0]
     abstract fun <#A1: kotlin/Any> plugin(io.ktor.server.application/Plugin<*, *, #A1>): #A1 // io.ktor.server.routing/Route.plugin|plugin(io.ktor.server.application.Plugin<*,*,0:0>){0§<kotlin.Any>}[0]
@@ -1434,15 +1436,15 @@ open class io.ktor.server.response/ApplicationSendPipeline : io.ktor.util.pipeli
     }
 }
 
-open class io.ktor.server.routing/RoutingNode : io.ktor.server.application/ApplicationCallPipeline, io.ktor.server.routing/Route, io.ktor.util.collections/TreeLike<io.ktor.server.routing/RoutingNode> { // io.ktor.server.routing/RoutingNode|null[0]
+open class io.ktor.server.routing/RoutingNode : io.ktor.server.application/ApplicationCallPipeline, io.ktor.server.routing/Route { // io.ktor.server.routing/RoutingNode|null[0]
     constructor <init>(io.ktor.server.routing/RoutingNode?, io.ktor.server.routing/RouteSelector, kotlin/Boolean = ..., io.ktor.server.application/ApplicationEnvironment) // io.ktor.server.routing/RoutingNode.<init>|<init>(io.ktor.server.routing.RoutingNode?;io.ktor.server.routing.RouteSelector;kotlin.Boolean;io.ktor.server.application.ApplicationEnvironment){}[0]
 
-    final val selector // io.ktor.server.routing/RoutingNode.selector|{}selector[0]
-        final fun <get-selector>(): io.ktor.server.routing/RouteSelector // io.ktor.server.routing/RoutingNode.selector.<get-selector>|<get-selector>(){}[0]
     open val children // io.ktor.server.routing/RoutingNode.children|{}children[0]
         open fun <get-children>(): kotlin.collections/List<io.ktor.server.routing/RoutingNode> // io.ktor.server.routing/RoutingNode.children.<get-children>|<get-children>(){}[0]
     open val parent // io.ktor.server.routing/RoutingNode.parent|{}parent[0]
         open fun <get-parent>(): io.ktor.server.routing/RoutingNode? // io.ktor.server.routing/RoutingNode.parent.<get-parent>|<get-parent>(){}[0]
+    open val selector // io.ktor.server.routing/RoutingNode.selector|{}selector[0]
+        open fun <get-selector>(): io.ktor.server.routing/RouteSelector // io.ktor.server.routing/RoutingNode.selector.<get-selector>|<get-selector>(){}[0]
 
     final fun hasHandler(): kotlin/Boolean // io.ktor.server.routing/RoutingNode.hasHandler|hasHandler(){}[0]
     final fun invoke(kotlin/Function1<io.ktor.server.routing/RoutingNode, kotlin/Unit>) // io.ktor.server.routing/RoutingNode.invoke|invoke(kotlin.Function1<io.ktor.server.routing.RoutingNode,kotlin.Unit>){}[0]
