@@ -10,6 +10,7 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.api.*
 import io.ktor.client.plugins.observer.*
 import io.ktor.client.request.*
+import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.statement.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
@@ -20,7 +21,6 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
-import kotlinx.io.Buffer
 
 private val ClientCallLogger = AttributeKey<HttpClientCallLogger>("CallLogger")
 private val DisableLogging = AttributeKey<Unit>("DisableLogging")
@@ -119,6 +119,25 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
     fun isHeaders(): Boolean = level == LogLevel.HEADERS
     fun isBody(): Boolean = level == LogLevel.BODY || level == LogLevel.ALL
 
+    fun isTextType(contentType: ContentType): Boolean {
+        if (contentType.charset() != null) return true
+        if (contentType.contentType == "text") return true
+
+        if (contentType.match("application/json") ||
+            contentType.match("application/xml") ||
+            contentType.match("application/ld+json") ||
+            contentType.match("application/xhtml+xml") ||
+            contentType.match("application/rss+xml") ||
+            contentType.match("application/atom+xml") ||
+            contentType.match("application/x-www-form-urlencoded") ||
+            contentType.match("image/svg+xml")
+        ) {
+            return true
+        }
+
+        return false
+    }
+
     /**
      * Detects if the body is a binary data
      * @return
@@ -126,67 +145,19 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
      * Long?: body size if calculated.
      * ByteReadChannel: body channel with the original data.
      */
-    suspend fun detectIfBinary(
-        body: ByteReadChannel,
-        contentLength: Long?,
+    fun detectIfBinary(
         contentType: ContentType?,
         headers: Headers
-    ): Triple<Boolean, Long?, ByteReadChannel> {
+    ): Boolean {
         if (headers.contains(HttpHeaders.ContentEncoding)) {
-            return Triple(true, contentLength, body)
+            return true
         }
 
-        val charset = if (contentType != null) {
-            contentType.charset() ?: Charsets.UTF_8
+        return if (contentType != null) {
+            !isTextType(contentType)
         } else {
-            Charsets.UTF_8
+            true
         }
-
-        var isBinary = false
-        val firstChunk = ByteArray(1024)
-        val firstReadSize = body.readAvailable(firstChunk)
-
-        if (firstReadSize < 1) {
-            return Triple(false, 0L, body)
-        }
-
-        val buffer = Buffer().apply { writeFully(firstChunk, 0, firstReadSize) }
-
-        val firstChunkText = try {
-            charset.newDecoder().decode(buffer)
-        } catch (_: MalformedInputException) {
-            isBinary = true
-            ""
-        }
-
-        if (!isBinary) {
-            var lastCharIndex = -1
-            for (ch in firstChunkText) {
-                lastCharIndex += 1
-            }
-
-            for ((i, ch) in firstChunkText.withIndex()) {
-                if (ch == '\ufffd' && i != lastCharIndex) {
-                    isBinary = true
-                    break
-                }
-            }
-        }
-
-        if (!isBinary) {
-            val channel = ByteChannel()
-
-            val copied = client.async {
-                channel.writeFully(firstChunk, 0, firstReadSize)
-                val copied = body.copyTo(channel)
-                channel.flushAndClose()
-                copied
-            }.await()
-
-            return Triple(isBinary, copied + firstReadSize, channel)
-        }
-
-        return Triple(isBinary, contentLength, body)
     }
 
     suspend fun logRequestBody(
@@ -196,10 +167,10 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         method: HttpMethod,
         logLines: MutableList<String>,
         body: ByteReadChannel
-    ) {
-        val (isBinary, size, newBody) = detectIfBinary(body, contentLength, content.contentType, headers)
+    ): ByteReadChannel {
+        val isBinary = detectIfBinary(content.contentType, headers)
 
-        if (!isBinary) {
+        return if (!isBinary) {
             val contentType = content.contentType
             val charset = if (contentType != null) {
                 contentType.charset() ?: Charsets.UTF_8
@@ -207,19 +178,25 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
                 Charsets.UTF_8
             }
 
-            logLines.add(newBody.readRemaining().readText(charset = charset))
-            logLines.add("--> END ${method.value} ($size-byte body)")
+            val (origChannel, newChannel) = body.split(client)
+            val text = newChannel.readRemaining().readText(charset = charset)
+
+            logLines.add(text)
+            logLines.add("--> END ${method.value} (${contentLength ?: text.length}-byte body)")
+            origChannel
         } else {
             var type = "binary"
             if (headers.contains(HttpHeaders.ContentEncoding)) {
                 type = "encoded"
             }
 
-            if (size != null) {
-                logLines.add("--> END ${method.value} ($type $size-byte body omitted)")
+            if (contentLength != null) {
+                logLines.add("--> END ${method.value} ($type $contentLength-byte body omitted)")
             } else {
                 logLines.add("--> END ${method.value} ($type body omitted)")
             }
+
+            body
         }
     }
 
@@ -231,6 +208,38 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         process: (ByteReadChannel) -> ByteReadChannel = { it }
     ): OutgoingContent? {
         return when (content) {
+            is io.ktor.client.content.ObservableContent -> {
+                logOutgoingContent(content.delegate, method, headers, logLines, process)
+            }
+
+            is MultiPartFormDataContent -> {
+                for (part in content.parts) {
+                    logLines.add("--${content.boundary}")
+                    for ((key, values) in part.headers.entries()) {
+                        logLines.add("$key: ${values.joinToString("; ")}")
+                    }
+
+                    if (part is PartData.FormItem) {
+                        logLines.add("${HttpHeaders.ContentLength}: ${part.value.length}")
+                        logLines.add("")
+                        logLines.add(part.value)
+                    } else {
+                        logLines.add("")
+                        val contentLength = part.headers[HttpHeaders.ContentLength]
+                        if (contentLength != null) {
+                            logLines.add("binary $contentLength-byte body omitted")
+                        } else {
+                            logLines.add("binary body omitted")
+                        }
+                    }
+                }
+
+                logLines.add("--${content.boundary}--")
+                logLines.add("--> END ${method.value}")
+
+                null
+            }
+
             is OutgoingContent.ByteArrayContent -> {
                 val bytes = content.bytes()
                 logRequestBody(content, bytes.size.toLong(), headers, method, logLines, ByteReadChannel(bytes))
@@ -252,8 +261,8 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
             }
 
             is OutgoingContent.ReadChannelContent -> {
-                val (origChannel, newChannel) = content.readFrom().split(client)
-                logRequestBody(content, content.contentLength, headers, method, logLines, newChannel)
+                val body = content.readFrom()
+                val origChannel = logRequestBody(content, content.contentLength, headers, method, logLines, body)
                 LoggedContent(content, origChannel)
             }
 
@@ -261,12 +270,14 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
                 val channel = ByteChannel()
 
                 client.launch {
-                    content.writeTo(channel)
-                    channel.close()
+                    try {
+                        content.writeTo(channel)
+                    } finally {
+                        channel.close()
+                    }
                 }
 
-                val (origChannel, newChannel) = channel.split(client)
-                logRequestBody(content, content.contentLength, headers, method, logLines, newChannel)
+                val origChannel = logRequestBody(content, content.contentLength, headers, method, logLines, channel)
                 LoggedContent(content, origChannel)
             }
         }
@@ -349,23 +360,23 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         return newContent
     }
 
-    suspend fun logResponseBody(response: HttpResponse, body: ByteReadChannel, logLines: MutableList<String>) {
+    suspend fun logResponseBody(
+        response: HttpResponse,
+        body: ByteReadChannel,
+        logLines: MutableList<String>
+    ): ByteReadChannel {
         logLines.add("")
 
-        val (isBinary, size, newBody) = detectIfBinary(
-            body,
-            response.contentLength(),
-            response.contentType(),
-            response.headers
-        )
+        val isBinary = detectIfBinary(response.contentType(), response.headers)
         val duration = response.responseTime.timestamp - response.requestTime.timestamp
 
+        val size = response.contentLength()
         if (size == 0L) {
             logLines.add("<-- END HTTP (${duration}ms, $size-byte body)")
-            return
+            return body
         }
 
-        if (!isBinary) {
+        return if (!isBinary) {
             val contentType = response.contentType()
             val charset = if (contentType != null) {
                 contentType.charset() ?: Charsets.UTF_8
@@ -373,8 +384,11 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
                 Charsets.UTF_8
             }
 
-            logLines.add(newBody.readRemaining().readText(charset = charset))
-            logLines.add("<-- END HTTP (${duration}ms, $size-byte body)")
+            val (origChannel, newChannel) = body.split(client)
+            val text = newChannel.readRemaining().readText(charset = charset)
+            logLines.add(text)
+            logLines.add("<-- END HTTP (${duration}ms, ${size ?: text.length}-byte body)")
+            origChannel
         } else {
             var type = "binary"
             if (response.headers.contains(HttpHeaders.ContentEncoding)) {
@@ -386,6 +400,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
             } else {
                 logLines.add("<-- END HTTP (${duration}ms, $type body omitted)")
             }
+            body
         }
     }
 
@@ -447,12 +462,14 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
             return response
         }
 
-        val (origChannel, newChannel) = response.rawContent.split(response)
+        val origChannel = logResponseBody(response, response.rawContent, logLines)
 
-        logResponseBody(response, newChannel, logLines)
+        if (origChannel != response.rawContent) {
+            val call = response.call.replaceResponse { origChannel }
+            return call.response
+        }
 
-        val call = response.call.replaceResponse { origChannel }
-        return call.response
+        return response
     }
 
     @OptIn(DelicateCoroutinesApi::class)
