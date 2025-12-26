@@ -31,7 +31,7 @@ internal class JettyKtorHandler(
     private val applicationProvider: () -> Application
 ) : Handler.Abstract() {
     private val environmentName = configuration.connectors.joinToString("-") { it.port.toString() }
-    private val queue: BlockingQueue<Runnable> = LinkedBlockingQueue()
+    private val queue: BlockingQueue<Runnable> = SynchronousQueue()
     private val executor = ThreadPoolExecutor(
         configuration.callGroupSize,
         configuration.callGroupSize * 8,

@@ -35,7 +35,12 @@ class JettyHttpServerJvmTest : HttpServerJvmTestSuite<JettyApplicationEngine, Je
 }
 
 class JettySustainabilityTest :
-    SustainabilityTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
+    SustainabilityTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty) {
+
+    override fun configure(configuration: JettyApplicationEngineBase.Configuration) {
+        configuration.callGroupSize = 6
+    }
+}
 
 class JettyConfigTest : ConfigTestSuite(Jetty)
 
