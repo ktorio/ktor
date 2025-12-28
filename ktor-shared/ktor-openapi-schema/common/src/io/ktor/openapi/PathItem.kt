@@ -4,6 +4,8 @@
 
 package io.ktor.openapi
 
+import io.ktor.http.ContentType
+import io.ktor.utils.io.KtorDsl
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KeepGeneratedSerializer
 import kotlinx.serialization.Serializable
@@ -57,6 +59,123 @@ public data class PathItem(
         internal object Serializer : ExtensibleMixinSerializer<PathItem>(
             generatedSerializer(),
             { pi, extensions -> pi.copy(extensions = extensions) }
+        )
+    }
+
+    @KtorDsl
+    public class Builder(
+        private val schemaInference: JsonSchemaInference,
+        private val defaultContentTypes: List<ContentType>,
+    ) {
+        /** A short summary of the path item */
+        public var summary: String? = null
+        public var description: String? = null
+        private var put: Operation? = null
+        private var post: Operation? = null
+        private var delete: Operation? = null
+        private var options: Operation? = null
+        private var get: Operation? = null
+        private var head: Operation? = null
+        private var patch: Operation? = null
+        private var trace: Operation? = null
+
+        private val _parameters = mutableListOf<Parameter>()
+        private val _servers = mutableListOf<Server>()
+        public var extensions: MutableMap<String, GenericElement> = mutableMapOf()
+
+        /**
+         * Adds parameters using the [Parameters] DSL.
+         *
+         * @param configure DSL to define one or more parameters.
+         */
+        public fun parameters(configure: Parameters.Builder.() -> Unit) {
+            Parameters.Builder(schemaInference, defaultContentTypes).apply(configure).build().parameters.forEach {
+                _parameters.add(it)
+            }
+        }
+
+        /**
+         * Adds server definitions specific to this operation using the [Servers] DSL.
+         *
+         * @param configure DSL to define one or more servers.
+         */
+        public fun servers(configure: Servers.Builder.() -> Unit) {
+            Servers.Builder().apply(configure).build().servers.forEach { _servers.add(it) }
+        }
+
+        /**
+         * Sets the DELETE operation for this path item with the Operation DSL.
+         */
+        public fun delete(configure: Operation.Builder.() -> Unit) {
+            delete = buildOperation(configure)
+        }
+
+        /**
+         * Sets the OPTIONS operation for this path item with the Operation DSL.
+         */
+        public fun options(configure: Operation.Builder.() -> Unit) {
+            options = buildOperation(configure)
+        }
+
+        /**
+         * Sets the GET operation for this path item with the Operation DSL.
+         */
+        public fun get(configure: Operation.Builder.() -> Unit) {
+            get = buildOperation(configure)
+        }
+
+        /**
+         * Sets the HEAD operation for this path item with the Operation DSL.
+         */
+        public fun head(configure: Operation.Builder.() -> Unit) {
+            head = buildOperation(configure)
+        }
+
+        /**
+         * Sets the PATCH operation for this path item with the Operation DSL.
+         */
+        public fun patch(configure: Operation.Builder.() -> Unit) {
+            patch = buildOperation(configure)
+        }
+
+        /**
+         * Sets the TRACE operation for this path item with the Operation DSL.
+         */
+        public fun trace(configure: Operation.Builder.() -> Unit) {
+            trace = buildOperation(configure)
+        }
+
+        /**
+         * Sets the PUT operation for this path item with the Operation DSL.
+         */
+        public fun put(configure: Operation.Builder.() -> Unit) {
+            put = buildOperation(configure)
+        }
+
+        /**
+         * Sets the POST operation for this path item with the Operation DSL.
+         */
+        public fun post(configure: Operation.Builder.() -> Unit) {
+            post = buildOperation(configure)
+        }
+
+        private fun buildOperation(configure: Operation.Builder.() -> Unit): Operation =
+            Operation.Builder(schemaInference, defaultContentTypes).apply(configure).build()
+
+        public fun build(): PathItem = PathItem(
+            summary = summary,
+            description = description,
+            put = put,
+            post = post,
+            delete = delete,
+            options = options,
+            get = get,
+            head = head,
+            patch = patch,
+            trace = trace,
+            servers = _servers.ifEmpty { null },
+            parameters = _parameters.map(ReferenceOr.Companion::value).ifEmpty { null },
+            extensions = extensions.ifEmpty { null },
         )
     }
 }

@@ -17,5 +17,8 @@ kotlin {
             implementation(libs.kotlinx.serialization.core)
             implementation(libs.kotlinx.serialization.json)
         }
+        jvmMain.dependencies {
+            implementation(libs.kaml.serialization)
+        }
     }
 }
