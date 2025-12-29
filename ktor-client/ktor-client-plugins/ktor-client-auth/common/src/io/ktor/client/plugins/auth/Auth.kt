@@ -101,7 +101,7 @@ public val Auth: ClientPlugin<AuthConfig> = createClientPlugin("Auth", ::AuthCon
         return when {
             candidateProviders.size == 1 -> {
                 val provider = candidateProviders.first()
-                val header = authHeaders.firstNotNullOfOrNull { provider.isApplicable(it) }
+                val header = authHeaders.firstOrNull { provider.isApplicable(it) }
                 provider to header
             }
 
