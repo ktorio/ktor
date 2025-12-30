@@ -75,7 +75,7 @@ internal class DarwinTaskHandler(
         bodyChunks.close()
     }
 
-    @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class, InternalAPI::class)
+    @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class, InternalKtorApi::class)
     fun NSHTTPURLResponse.toResponseData(requestData: HttpRequestData): HttpResponseData {
         val status = HttpStatusCode.fromValue(statusCode.convert())
         val headers = readHeaders(requestData.method, requestData.attributes)

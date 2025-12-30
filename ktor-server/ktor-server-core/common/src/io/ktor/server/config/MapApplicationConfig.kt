@@ -188,7 +188,7 @@ internal class MapApplicationConfigValue(
         return MapApplicationConfig(map, path).toMap()
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     override fun getAs(type: TypeInfo): Any? {
         return type.serializer()
             .deserialize(MapConfigDecoder(map, path))

@@ -45,7 +45,7 @@ public class MustacheConfig {
 public val Mustache: ApplicationPlugin<MustacheConfig> = createApplicationPlugin("Mustache", ::MustacheConfig) {
     val mustacheFactory = pluginConfig.mustacheFactory
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     on(BeforeResponseTransform(MustacheContent::class)) { _, content ->
         with(content) {
             val writer = StringWriter()

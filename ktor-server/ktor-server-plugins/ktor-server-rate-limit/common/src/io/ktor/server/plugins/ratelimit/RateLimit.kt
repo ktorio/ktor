@@ -25,7 +25,7 @@ internal val RateLimiterInstancesRegistryKey =
 internal val RateLimiterConfigsRegistryKey =
     AttributeKey<Map<RateLimitName, RateLimitProvider>>("RateLimiterConfigsRegistryKey")
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 @PublicAPICandidate("3.0.0")
 // Make it public in 3.0.0 and change Pair to a separate class
 internal val RateLimitersForCallKey =

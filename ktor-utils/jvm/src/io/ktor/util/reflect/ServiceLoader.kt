@@ -18,7 +18,7 @@ import java.util.*
  *
  * @see loadServices
  */
-@InternalAPI
+@InternalKtorApi
 public inline fun <reified T : Any> loadServicesAsSequence(): Sequence<T> = ServiceLoader.load(
     T::class.java,
     T::class.java.classLoader,
@@ -32,7 +32,7 @@ public inline fun <reified T : Any> loadServicesAsSequence(): Sequence<T> = Serv
  * @see loadServiceOrNull
  * @see loadServicesAsSequence
  */
-@InternalAPI
+@InternalKtorApi
 public inline fun <reified T : Any> loadServices(): List<T> = loadServicesAsSequence<T>().toList()
 
 /**
@@ -43,5 +43,5 @@ public inline fun <reified T : Any> loadServices(): List<T> = loadServicesAsSequ
  *
  * @see loadServices
  */
-@InternalAPI
+@InternalKtorApi
 public inline fun <reified T : Any> loadServiceOrNull(): T? = loadServicesAsSequence<T>().firstOrNull()

@@ -4,13 +4,11 @@
 
 package io.ktor.utils.io
 
-/**
- * API marked with this annotation is internal, and it is not intended to be used outside Ktor.
- * It could be modified or removed without any notice. Using it outside Ktor could cause undefined behaviour and/or
- * any unexpected effects.
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.InternalAPI)
- */
+@Deprecated(
+    "Use InternalKtorApi instead",
+    ReplaceWith("InternalKtorApi"),
+    DeprecationLevel.ERROR
+)
 @RequiresOptIn(
     level = RequiresOptIn.Level.ERROR,
     message = "This API is internal in Ktor and should not be used. It could be removed or changed without notice."
@@ -27,6 +25,30 @@ package io.ktor.utils.io
 )
 @Retention(AnnotationRetention.BINARY)
 public annotation class InternalAPI
+
+/**
+ * API marked with this annotation is internal, and it is not intended to be used outside Ktor.
+ * It could be modified or removed without any notice. Using it outside Ktor could cause undefined behaviour and/or
+ * any unexpected effects.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.InternalKtorApi)
+ */
+@RequiresOptIn(
+    level = RequiresOptIn.Level.ERROR,
+    message = "This API is internal in Ktor and should not be used. It could be removed or changed without notice."
+)
+@Target(
+    AnnotationTarget.CLASS,
+    AnnotationTarget.TYPEALIAS,
+    AnnotationTarget.FUNCTION,
+    AnnotationTarget.PROPERTY,
+    AnnotationTarget.FIELD,
+    AnnotationTarget.CONSTRUCTOR,
+    AnnotationTarget.PROPERTY_SETTER,
+    AnnotationTarget.PROPERTY_SETTER
+)
+@Retention(AnnotationRetention.BINARY)
+public annotation class InternalKtorApi
 
 /**
  * API marked with this annotation is experimental and is not guaranteed to be stable.
@@ -79,7 +101,7 @@ public annotation class ExperimentalKtorApi
  * compatibility guarantees restrictions.
  *
  * Marking a public declaration with this annotation makes no sense
- * except for the case when it is also marked with [InternalAPI].
+ * except for the case when it is also marked with [InternalKtorApi].
  *
  * Please note that the specified [version] and the fact of making something a candidate is not a guarantee,
  * so the target version could be changed without any notice or even the promotion could be cancelled at all.
@@ -89,7 +111,7 @@ public annotation class ExperimentalKtorApi
  *
  * @property version in which the API is planned to be promoted
  */
-@InternalAPI
+@InternalKtorApi
 @Retention(AnnotationRetention.SOURCE)
 @Target(
     AnnotationTarget.CLASS,

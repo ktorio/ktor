@@ -10,14 +10,14 @@ import kotlinx.io.*
 public fun ByteWriteChannel.counted(): CountedByteWriteChannel = CountedByteWriteChannel(this)
 
 public class CountedByteWriteChannel(private val delegate: ByteWriteChannel) : ByteWriteChannel {
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     private var initial = delegate.writeBuffer.size
     private var flushedCount = 0
 
     public override val autoFlush: Boolean
         get() = delegate.autoFlush
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     public val totalBytesWritten: Long get() = (flushedCount + writeBuffer.size - initial).toLong()
 
     override val isClosedForWrite: Boolean
@@ -25,11 +25,11 @@ public class CountedByteWriteChannel(private val delegate: ByteWriteChannel) : B
     override val closedCause: Throwable?
         get() = delegate.closedCause
 
-    @InternalAPI
+    @InternalKtorApi
     override val writeBuffer: Sink
         get() = delegate.writeBuffer
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     override suspend fun flush() {
         flushedCount += writeBuffer.size
         delegate.flush()

@@ -36,7 +36,7 @@ public class ShutDownUrl(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.ShutDownUrl.doShutdown)
      */
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     public suspend fun doShutdown(call: ApplicationCall) {
         val application = call.application
         val log = application.log

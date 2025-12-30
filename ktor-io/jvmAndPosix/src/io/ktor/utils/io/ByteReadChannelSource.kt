@@ -23,7 +23,7 @@ public fun ByteReadChannel.asSource(): RawSource = ByteReadChannelSource(this)
 
 internal class ByteReadChannelSource(private val origin: ByteReadChannel) : RawSource {
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
         if (origin.readBuffer.exhausted()) {
             runBlocking { origin.awaitContent() }

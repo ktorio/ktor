@@ -26,7 +26,7 @@ internal class DarwinSession(
     private val session = sessionAndDelegate.first
     private val delegate = sessionAndDelegate.second
 
-    @OptIn(InternalAPI::class, ExperimentalForeignApi::class)
+    @OptIn(InternalKtorApi::class, ExperimentalForeignApi::class)
     internal suspend fun execute(request: HttpRequestData, callContext: CoroutineContext): HttpResponseData {
         val nativeRequest = request.toNSUrlRequest()
             .apply(config.requestConfig)

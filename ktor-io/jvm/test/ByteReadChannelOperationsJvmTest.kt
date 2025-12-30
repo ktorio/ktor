@@ -83,7 +83,7 @@ class ByteReadChannelOperationsJvmTest {
         assertEquals(42, channel.readLong())
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     @Test
     fun readUTF8LineTo() = runBlocking {
         var lineNumber = 0

@@ -13,7 +13,7 @@ import io.ktor.utils.io.*
 private val initHook = SerializerInitializer
 
 @Suppress("DEPRECATION_ERROR")
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 private object SerializerInitializer {
     init {
         serializers.add(KotlinxSerializer())

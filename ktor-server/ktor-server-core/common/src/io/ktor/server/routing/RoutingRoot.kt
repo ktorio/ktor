@@ -14,7 +14,7 @@ import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 
-@InternalAPI
+@InternalKtorApi
 public val RoutingFailureStatusCode: AttributeKey<HttpStatusCode> = AttributeKey("RoutingFailureStatusCode")
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.server.routing.Routing")
@@ -63,7 +63,7 @@ public class RoutingRoot(
         tracers.add(block)
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     public suspend fun interceptor(context: PipelineContext<Unit, PipelineCall>) {
         val resolveContext = RoutingResolveContext(this, context.call, tracers)
         when (val resolveResult = resolveContext.resolve()) {

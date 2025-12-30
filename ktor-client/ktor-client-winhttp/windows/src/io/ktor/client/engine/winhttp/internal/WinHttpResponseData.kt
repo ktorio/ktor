@@ -17,7 +17,7 @@ internal class WinHttpResponseData(
     val headers: String
 )
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal suspend fun WinHttpResponseData.convert(
     data: HttpRequestData,
     requestTime: GMTDate,

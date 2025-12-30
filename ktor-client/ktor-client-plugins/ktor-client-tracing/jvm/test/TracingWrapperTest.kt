@@ -278,7 +278,7 @@ class TestHttpClientEngine(private val responseData: HttpResponseData) : HttpCli
 
     override fun close() {}
 
-    @InternalAPI
+    @InternalKtorApi
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         return responseData
     }

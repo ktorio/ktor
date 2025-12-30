@@ -95,7 +95,7 @@ class SaveBodyTest : ClientEngineTest<MockEngineConfig>(MockEngine) {
         }
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     @Test
     fun `wrongly implemented plugin shouldn't affect the resulting response replayability`() = testClient {
         config {

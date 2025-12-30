@@ -16,7 +16,7 @@ import io.ktor.utils.io.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.unixSocket)
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public fun HttpRequestBuilder.unixSocket(path: String) {
     setCapability(UnixSocketCapability, UnixSocketSettings(path))
 }

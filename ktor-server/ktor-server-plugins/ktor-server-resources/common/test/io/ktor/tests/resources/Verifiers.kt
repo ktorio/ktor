@@ -12,7 +12,7 @@ import io.ktor.server.testing.*
 import io.ktor.utils.io.*
 import kotlin.test.*
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 suspend inline fun <reified T> ApplicationTestBuilder.urlShouldBeHandled(resource: T, content: String? = null) {
     on("making get request to resource $resource") {
         val result = client.get(

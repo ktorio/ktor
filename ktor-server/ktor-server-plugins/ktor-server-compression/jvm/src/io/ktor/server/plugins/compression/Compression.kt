@@ -77,7 +77,7 @@ public val Compression: RouteScopedPlugin<CompressionConfig> = createRouteScoped
     }
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 private suspend fun OnCallReceiveContext<CompressionConfig>.decode(call: PipelineCall, options: CompressionOptions) {
     val encodingRaw = call.request.headers[HttpHeaders.ContentEncoding]
     if (call.isDecompressionSuppressed) {

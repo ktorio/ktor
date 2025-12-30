@@ -31,7 +31,7 @@ import kotlin.coroutines.CoroutineContext
  *
  * @return A new [HttpClientCall] instance with all its content stored in memory.
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun HttpClientCall.save(): HttpClientCall {
     if (this is SavedHttpCall) return this
 
@@ -78,6 +78,6 @@ internal class SavedHttpResponse(
 
     override val coroutineContext: CoroutineContext = origin.coroutineContext
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     override val rawContent: ByteReadChannel get() = ByteReadChannel(body)
 }

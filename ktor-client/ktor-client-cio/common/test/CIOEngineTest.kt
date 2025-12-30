@@ -219,7 +219,7 @@ class CIOEngineTest : ClientEngineTest<CIOEngineConfig>(CIO) {
             "hello"
     )
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     private val anyRequest = HttpRequestData(
         Url("http://example.com"),
         HttpMethod.Get,

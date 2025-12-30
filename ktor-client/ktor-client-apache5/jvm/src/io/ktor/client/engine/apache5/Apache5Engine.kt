@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit
 private const val MAX_CONNECTIONS_COUNT = 1000
 private const val IO_THREAD_COUNT_DEFAULT = 4
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal class Apache5Engine(override val config: Apache5EngineConfig) : HttpClientEngineBase("ktor-apache") {
 
     override val supportedCapabilities = setOf(HttpTimeoutCapability, SSECapability)

@@ -34,7 +34,7 @@ internal val DISALLOWED_HEADERS = TreeSet(String.CASE_INSENSITIVE_ORDER).apply {
     )
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal fun HttpRequestData.convertToHttpRequest(callContext: CoroutineContext): HttpRequest {
     val builder = HttpRequest.newBuilder(url.toURI())
 

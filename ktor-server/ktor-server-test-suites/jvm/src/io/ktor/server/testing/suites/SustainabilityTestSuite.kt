@@ -317,7 +317,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         }
     }
 
-    @OptIn(InternalAPI::class, ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
+    @OptIn(InternalKtorApi::class, ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
     @Test
     open fun testBlockingConcurrency() = runTest {
         val completed = AtomicInteger(0)
@@ -380,7 +380,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         assertEquals(count * multiplier, completed.get())
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     @Test
     fun testBigFile() = runTest {
         val file = File("build/large-file.dat")
@@ -776,7 +776,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         server.stop(1000, 5000, TimeUnit.MILLISECONDS)
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     @Test
     fun testRespondBlockingLarge() = runTest {
         val server = createServer {

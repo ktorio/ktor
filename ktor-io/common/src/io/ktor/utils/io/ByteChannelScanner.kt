@@ -18,7 +18,7 @@ import kotlinx.io.indexOf
  * @property writeChannel The channel to write the read bytes to
  * @property limit The maximum number of bytes to read before throwing an exception
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal class ByteChannelScanner(
     private val channel: ByteReadChannel,
     private val matchString: ByteString,
@@ -119,7 +119,7 @@ internal class ByteChannelScanner(
      *
      * @return true if a complete match was found, false otherwise
      */
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     private suspend fun checkFullMatch(): Boolean {
         while (!input.exhausted() || channel.awaitContent()) {
             val byte = input.readByte()

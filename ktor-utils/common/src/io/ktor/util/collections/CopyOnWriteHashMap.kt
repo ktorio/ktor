@@ -14,7 +14,7 @@ import kotlinx.atomicfu.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.collections.CopyOnWriteHashMap)
  */
-@InternalAPI
+@InternalKtorApi
 public class CopyOnWriteHashMap<K : Any, V : Any> {
     private val current = atomic(emptyMap<K, V>())
 

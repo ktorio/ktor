@@ -29,7 +29,7 @@ internal class DefaultServerSSESession(
         }
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     private suspend fun ByteWriteChannel.writeSSE(event: ServerSentEvent) {
         writeStringUtf8(event.toString() + END_OF_LINE)
         flush()

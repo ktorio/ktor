@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap
  *
  * @return [LocalFileContent] or [JarFileContent] or `null`
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public fun ApplicationCall.resolveResource(
     path: String,
     resourcePackage: String? = null,
@@ -48,7 +48,7 @@ public fun ApplicationCall.resolveResource(
 
 private val resourceCache by lazy { ConcurrentHashMap<String, URL>() }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal fun Application.resolveResource(
     path: String,
     resourcePackage: String? = null,
@@ -77,7 +77,7 @@ internal fun Application.resolveResource(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.resourceClasspathResource)
  */
-@InternalAPI
+@InternalKtorApi
 public fun resourceClasspathResource(
     url: URL,
     path: String,

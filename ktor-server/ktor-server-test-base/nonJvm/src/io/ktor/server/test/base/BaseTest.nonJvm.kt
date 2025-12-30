@@ -13,7 +13,7 @@ import kotlinx.coroutines.test.TestResult
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 actual abstract class BaseTest actual constructor() {
     actual open val timeout: Duration = 10.seconds
 

@@ -118,7 +118,7 @@ public interface Digest {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.build)
  */
-@InternalAPI
+@InternalKtorApi
 public suspend fun Digest.build(bytes: ByteArray): ByteArray {
     this += bytes
     return build()
@@ -129,7 +129,7 @@ public suspend fun Digest.build(bytes: ByteArray): ByteArray {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.build)
  */
-@InternalAPI
+@InternalKtorApi
 public suspend fun Digest.build(string: String, charset: Charset = Charsets.UTF_8): ByteArray {
     this += string.toByteArray(charset)
     return build()

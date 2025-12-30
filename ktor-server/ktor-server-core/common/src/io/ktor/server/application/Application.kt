@@ -155,7 +155,7 @@ public class Application internal constructor(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.Application.disposeAndJoin)
      */
-    @InternalAPI
+    @InternalKtorApi
     @Suppress("DEPRECATION_ERROR")
     public suspend fun disposeAndJoin() {
         applicationJob.cancelAndJoin()

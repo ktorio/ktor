@@ -24,7 +24,7 @@ internal class CurlClientEngine(
 
     private val curlProcessor = CurlProcessor(coroutineContext)
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
 

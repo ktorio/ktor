@@ -34,7 +34,7 @@ public fun ByteReadChannel(content: ByteBuffer): ByteReadChannel {
  * @param buffer the buffer to write the read bytes into
  * @return the number of bytes read and written to the buffer or -1 if the channel is closed
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteReadChannel.readAvailable(buffer: ByteBuffer): Int {
     if (isClosedForRead) return -1
     if (readBuffer.exhausted()) awaitContent()
@@ -124,7 +124,7 @@ public suspend fun ByteReadChannel.skipDelimiter(delimiter: ByteString) {
  * @param buffer the [ByteBuffer] into which bytes are read from the channel.
  * @throws EOFException if the channel is closed or there are not enough bytes available to fill the [buffer].
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteReadChannel.readFully(buffer: ByteBuffer) {
     while (buffer.hasRemaining()) {
         if (!awaitContent()) {
@@ -151,7 +151,7 @@ public suspend fun ByteReadChannel.readFully(buffer: ByteBuffer) {
  *
  * @return number of consumed bytes or -1 if the block wasn't executed.
  */
-@OptIn(InternalAPI::class, UnsafeIoApi::class, InternalIoApi::class)
+@OptIn(InternalKtorApi::class, UnsafeIoApi::class, InternalIoApi::class)
 public fun ByteReadChannel.readAvailable(block: (ByteBuffer) -> Int): Int {
     if (isClosedForRead || readBuffer.exhausted()) return -1
 
@@ -191,7 +191,7 @@ public fun ByteReadChannel.readAvailable(block: (ByteBuffer) -> Int): Int {
  * @param consumer to be invoked when at least [min] bytes available for read
  * @throws EOFException when there are less than [min] bytes available after the channel is closed
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend inline fun ByteReadChannel.read(min: Int = 1, noinline consumer: (ByteBuffer) -> Unit) {
     require(min >= 0) { "min should be positive or zero" }
     if (min > 0) {

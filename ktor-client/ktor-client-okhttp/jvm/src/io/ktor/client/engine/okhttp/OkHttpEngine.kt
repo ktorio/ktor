@@ -25,7 +25,7 @@ import okio.use
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
 
-@OptIn(InternalAPI::class, DelicateCoroutinesApi::class)
+@OptIn(InternalKtorApi::class, DelicateCoroutinesApi::class)
 public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("ktor-okhttp") {
 
     override val supportedCapabilities: Set<HttpClientEngineCapability<*>> =
@@ -180,7 +180,7 @@ private fun mapExceptions(cause: Throwable, request: HttpRequestData): Throwable
     else -> cause
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 private fun HttpRequestData.convertToOkHttpRequest(callContext: CoroutineContext, config: OkHttpConfig): Request {
     val builder = Request.Builder()
 
@@ -234,7 +234,7 @@ internal fun OutgoingContent.convertToOkHttpBody(
 }
 
 /** Update [OkHttpClient.Builder] setting timeout configuration taken from [HttpTimeoutConfig]. */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 private fun OkHttpClient.Builder.setupTimeoutAttributes(
     timeoutAttributes: HttpTimeoutConfig
 ): OkHttpClient.Builder {

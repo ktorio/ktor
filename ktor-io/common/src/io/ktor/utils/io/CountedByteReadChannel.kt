@@ -33,14 +33,14 @@ public class CountedByteReadChannel(public val delegate: ByteReadChannel) : Byte
     override val isClosedForRead: Boolean
         get() = buffer.exhausted() && delegate.isClosedForRead
 
-    @InternalAPI
+    @InternalKtorApi
     override val readBuffer: Buffer
         get() {
             transferFromDelegate()
             return buffer
         }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     override suspend fun awaitContent(min: Int): Boolean {
         if (readBuffer.size >= min) {
             return true
@@ -52,7 +52,7 @@ public class CountedByteReadChannel(public val delegate: ByteReadChannel) : Byte
         return false
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     private fun transferFromDelegate() {
         updateConsumed()
         val appended = buffer.transferFrom(delegate.readBuffer)

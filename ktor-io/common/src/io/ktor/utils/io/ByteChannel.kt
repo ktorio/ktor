@@ -29,7 +29,7 @@ public class ByteChannel(public override val autoFlush: Boolean = false) : ByteR
     @Volatile
     private var flushBufferSize = 0
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     private val flushBufferMutex = SynchronizedObject()
 
     // Awaiting slot, handles suspension when waiting for I/O
@@ -39,7 +39,7 @@ public class ByteChannel(public override val autoFlush: Boolean = false) : ByteR
     private val _writeBuffer = Buffer()
     private val _closedCause = atomic<CloseToken?>(null)
 
-    @InternalAPI
+    @InternalKtorApi
     override val readBuffer: Source
         get() {
             _closedCause.value?.throwOrNull(::ClosedReadChannelException)
@@ -47,7 +47,7 @@ public class ByteChannel(public override val autoFlush: Boolean = false) : ByteR
             return _readBuffer
         }
 
-    @InternalAPI
+    @InternalKtorApi
     override val writeBuffer: Sink
         get() {
             if (isClosedForWrite) {
@@ -66,7 +66,7 @@ public class ByteChannel(public override val autoFlush: Boolean = false) : ByteR
     override val isClosedForRead: Boolean
         get() = (closedCause != null) || (isClosedForWrite && flushBufferSize == 0 && _readBuffer.exhausted())
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     override suspend fun awaitContent(min: Int): Boolean {
         rethrowCloseCauseIfNeeded()
         if (_readBuffer.size >= min) return true
@@ -79,7 +79,7 @@ public class ByteChannel(public override val autoFlush: Boolean = false) : ByteR
         return _readBuffer.size >= min
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     private fun moveFlushToReadBuffer() {
         synchronized(flushBufferMutex) {
             flushBuffer.transferTo(_readBuffer)
@@ -89,7 +89,7 @@ public class ByteChannel(public override val autoFlush: Boolean = false) : ByteR
         resumeSlot<Slot.Write>()
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     override suspend fun flush() {
         rethrowCloseCauseIfNeeded()
 
@@ -101,7 +101,7 @@ public class ByteChannel(public override val autoFlush: Boolean = false) : ByteR
         }
     }
 
-    @InternalAPI
+    @InternalKtorApi
     public override fun flushWriteBuffer() {
         if (_writeBuffer.exhausted()) return
 
@@ -114,7 +114,7 @@ public class ByteChannel(public override val autoFlush: Boolean = false) : ByteR
         resumeSlot<Slot.Read>()
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     override fun close() {
         flushWriteBuffer()
 

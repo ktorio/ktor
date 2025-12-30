@@ -4,9 +4,9 @@
 
 package io.ktor.client.webrtc.media
 
-import io.ktor.utils.io.InternalAPI
+import io.ktor.utils.io.InternalKtorApi
 import kotlinx.cinterop.ExperimentalForeignApi
 
-@InternalAPI
+@InternalKtorApi
 @OptIn(ExperimentalForeignApi::class)
 public actual fun defaultVideoCapturerFactory(): VideoCapturerFactory = CameraVideoCapturer.Companion

@@ -93,7 +93,7 @@ public class TestApplicationRequest(
      */
     public var bodyChannel: ByteReadChannel = if (closeRequest) ByteReadChannel.Empty else ByteChannel()
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     override val queryParameters: Parameters by lazy {
         encodeParameters(rawQueryParameters)
             .withEmptyStringForValuelessKeys()

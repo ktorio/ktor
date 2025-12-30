@@ -15,5 +15,5 @@ internal actual val CONFIG_PATH: List<String>
         getEnvironmentProperty("config.url"),
     )
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public actual val configLoaders: List<ConfigLoader> = loadServices<ConfigLoader>()

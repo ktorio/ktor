@@ -30,7 +30,7 @@ public fun ZonedDateTime.toGMTDate(): GMTDate = toInstant().toGMTDate()
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.util.toLocalDateTime)
  */
-@InternalAPI
+@InternalKtorApi
 public fun Date.toLocalDateTime(): LocalDateTime = LocalDateTime.ofInstant(toInstant(), ZoneId.systemDefault())
 
 /**
@@ -38,7 +38,7 @@ public fun Date.toLocalDateTime(): LocalDateTime = LocalDateTime.ofInstant(toIns
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.util.toZonedDateTime)
  */
-@InternalAPI
+@InternalKtorApi
 public fun Date.toZonedDateTime(): ZonedDateTime = ZonedDateTime.ofInstant(toInstant(), GreenwichMeanTime)
 
 /**
@@ -46,5 +46,5 @@ public fun Date.toZonedDateTime(): ZonedDateTime = ZonedDateTime.ofInstant(toIns
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.util.GreenwichMeanTime)
  */
-@InternalAPI
+@InternalKtorApi
 public val GreenwichMeanTime: ZoneId = ZoneId.of("GMT")

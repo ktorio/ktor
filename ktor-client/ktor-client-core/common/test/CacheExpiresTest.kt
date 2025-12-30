@@ -129,7 +129,7 @@ class CacheExpiresTest {
         override val responseTime: GMTDate
             get() = error("Shouldn't be used")
 
-        @OptIn(InternalAPI::class)
+        @OptIn(InternalKtorApi::class)
         override val rawContent: ByteReadChannel
             get() = error("Shouldn't be used")
         override val coroutineContext: CoroutineContext

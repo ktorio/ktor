@@ -33,7 +33,7 @@ public data object Jetty : HttpClientEngineFactory<JettyEngineConfig> {
         JettyHttp2Engine(JettyEngineConfig().apply(block))
 }
 
-@InternalAPI
+@InternalKtorApi
 public class JettyEngineContainer : HttpClientEngineContainer {
     override val factory: HttpClientEngineFactory<*> = Jetty
 

@@ -48,7 +48,7 @@ public interface SSESession : CoroutineScope {
     /**
      * Returns a diagnostic buffer of SSE data that has already been processed by this session.
      */
-    @InternalAPI
+    @InternalKtorApi
     public fun bodyBuffer(): ByteArray = EMPTY
 }
 
@@ -108,7 +108,7 @@ public interface SSESessionWithDeserialization : CoroutineScope {
     /**
      * Returns a diagnostic buffer of SSE data that has already been processed by this session.
      */
-    @InternalAPI
+    @InternalKtorApi
     public fun bodyBuffer(): ByteArray = EMPTY
 }
 

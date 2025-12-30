@@ -9,15 +9,15 @@ import java.io.ObjectInput
 import java.io.ObjectOutput
 import java.io.Serializable
 
-@InternalAPI
+@InternalKtorApi
 public actual typealias JvmSerializable = Serializable
 
 @Suppress("FunctionName")
-@InternalAPI
+@InternalKtorApi
 public actual fun <T : Any> JvmSerializerReplacement(serializer: JvmSerializer<T>, value: T): Any =
     DefaultJvmSerializerReplacement(serializer, value)
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 @PublishedApi // IMPORTANT: changing the class name would result in serialization incompatibility
 internal class DefaultJvmSerializerReplacement<T : Any>(
     private var serializer: JvmSerializer<T>?,

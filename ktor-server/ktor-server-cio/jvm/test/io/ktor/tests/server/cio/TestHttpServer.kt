@@ -66,7 +66,7 @@ internal fun testHttpServer(
     return Pair(j, deferred)
 }
 
-@OptIn(InternalAPI::class, DelicateCoroutinesApi::class)
+@OptIn(InternalKtorApi::class, DelicateCoroutinesApi::class)
 private suspend fun client(
     socket: SocketChannel,
     ioCoroutineContext: CoroutineContext,

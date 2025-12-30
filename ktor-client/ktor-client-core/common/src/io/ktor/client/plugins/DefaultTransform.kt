@@ -27,7 +27,7 @@ private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.defaultTransformer
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.defaultTransformers)
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public fun HttpClient.defaultTransformers() {
     requestPipeline.intercept(HttpRequestPipeline.Render) { body ->
         if (context.headers[HttpHeaders.Accept] == null) {

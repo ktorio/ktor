@@ -26,7 +26,7 @@ abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfiguration 
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     @Test
     fun testLocalFileContentWithCompression() = runTest {
         val file = loadTestFile()
@@ -46,7 +46,7 @@ abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfiguration 
         }
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     @Test
     fun testStreamingContentWithCompression() = runTest {
         val file = loadTestFile()

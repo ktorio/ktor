@@ -177,7 +177,7 @@ public suspend fun HttpClient.serverSentEventsSession(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEvents)
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun HttpClient.serverSentEvents(
     request: HttpRequestBuilder.() -> Unit,
     reconnectionTime: Duration? = null,
@@ -692,7 +692,7 @@ public suspend fun HttpClient.serverSentEventsSession(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEvents)
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun HttpClient.serverSentEvents(
     request: HttpRequestBuilder.() -> Unit,
     deserialize: (TypeInfo, String) -> Any?,

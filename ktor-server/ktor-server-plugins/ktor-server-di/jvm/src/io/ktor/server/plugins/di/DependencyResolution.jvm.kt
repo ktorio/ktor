@@ -5,10 +5,10 @@
 package io.ktor.server.plugins.di
 
 import io.ktor.util.reflect.loadServices
-import io.ktor.utils.io.InternalAPI
+import io.ktor.utils.io.InternalKtorApi
 import kotlinx.coroutines.runBlocking
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal actual fun loadMapExtensions(): List<DependencyMapExtension> =
     loadServices<DependencyMapExtension>()
 

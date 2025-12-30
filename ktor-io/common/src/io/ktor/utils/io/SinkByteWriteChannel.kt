@@ -43,19 +43,19 @@ internal class SinkByteWriteChannel(origin: RawSink) : ByteWriteChannel {
     override val closedCause: Throwable?
         get() = closed.value?.wrapCause()
 
-    @InternalAPI
+    @InternalKtorApi
     override val writeBuffer: Sink
         get() {
             if (isClosedForWrite) throw closedCause ?: IOException("Channel is closed for write")
             return buffer
         }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     override suspend fun flush() {
         writeBuffer.flush()
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     override suspend fun flushAndClose() {
         writeBuffer.flush()
         if (!closed.compareAndSet(expect = null, update = CLOSED)) return

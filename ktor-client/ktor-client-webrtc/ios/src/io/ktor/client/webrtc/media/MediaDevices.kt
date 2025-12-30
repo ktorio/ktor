@@ -7,7 +7,7 @@ package io.ktor.client.webrtc.media
 
 import WebRTC.*
 import io.ktor.client.webrtc.*
-import io.ktor.utils.io.InternalAPI
+import io.ktor.utils.io.InternalKtorApi
 import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.Foundation.NSUUID.Companion.UUID
@@ -59,7 +59,7 @@ public interface VideoCapturerFactory {
  * - **iOS**: Returns a factory that creates camera-based video capturers
  * - **Simulator**: Returns a factory that creates synthetic video capturers
  */
-@InternalAPI
+@InternalKtorApi
 public expect fun defaultVideoCapturerFactory(): VideoCapturerFactory
 
 private const val DTLS_SRTP_KEY_AGREEMENT = "DtlsSrtpKeyAgreement"
@@ -81,7 +81,7 @@ private const val GOOG_NOISE_SUPPRESSION = "googNoiseSuppression"
  * @param videoCapturerFactory Factory for creating video capturer instances.
  *                            Defaults to platform-specific implementation
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public class IosMediaDevices(
     private val videoCapturerFactory: VideoCapturerFactory = defaultVideoCapturerFactory()
 ) : MediaTrackFactory {

@@ -25,7 +25,7 @@ public actual abstract class NetworkAddress(
 ) {
     private val _explicitAddress: AtomicRef<Any?> = atomic(explicitAddress)
 
-    @InternalAPI
+    @InternalKtorApi
     public var explicitAddress: Any? by _explicitAddress
 
     /**

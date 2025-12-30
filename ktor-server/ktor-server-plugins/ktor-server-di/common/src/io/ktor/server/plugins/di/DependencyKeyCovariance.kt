@@ -29,7 +29,7 @@ internal val KeyMatch.distance: Int get() = second
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.Supertypes)
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public val Supertypes: DependencyKeyCovariance =
     DependencyKeyCovariance { key, start ->
         var distance = start
@@ -67,7 +67,7 @@ public val Unnamed: DependencyKeyCovariance =
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.Nullables)
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public val Nullables: DependencyKeyCovariance =
     DependencyKeyCovariance { key, distance ->
         sequence {
@@ -85,7 +85,7 @@ public val Nullables: DependencyKeyCovariance =
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.OutTypeArgumentsSupertypes)
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public val OutTypeArgumentsSupertypes: DependencyKeyCovariance =
     DependencyKeyCovariance { key, distance ->
         var distance = distance
@@ -101,7 +101,7 @@ public val OutTypeArgumentsSupertypes: DependencyKeyCovariance =
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.RawTypes)
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public val RawTypes: DependencyKeyCovariance =
     DependencyKeyCovariance { key, distance ->
         sequence {

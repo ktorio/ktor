@@ -36,7 +36,7 @@ public fun ReadableByteChannel.read(buffer: Buffer): Int {
  *
  * @return number of bytes written (possibly 0)
  */
-@InternalAPI
+@InternalKtorApi
 public fun WritableByteChannel.write(buffer: Buffer): Int {
     var count = 0
     buffer.readDirect { bb ->

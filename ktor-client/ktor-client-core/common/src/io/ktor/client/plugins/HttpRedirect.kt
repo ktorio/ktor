@@ -46,7 +46,7 @@ public class HttpRedirectConfig {
     public var allowHttpsDowngrade: Boolean = false
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public val HttpRedirect: ClientPlugin<HttpRedirectConfig> = createClientPlugin(
     "HttpRedirect",
     ::HttpRedirectConfig

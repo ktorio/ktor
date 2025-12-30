@@ -8,7 +8,7 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.intrinsics.*
 import kotlin.test.*
 
-@OptIn(InternalAPI::class, DelicateCoroutinesApi::class)
+@OptIn(InternalKtorApi::class, DelicateCoroutinesApi::class)
 class MultiWorkerDispatcherTest {
 
     private val dispatcher = Dispatchers.createFixedThreadDispatcher(

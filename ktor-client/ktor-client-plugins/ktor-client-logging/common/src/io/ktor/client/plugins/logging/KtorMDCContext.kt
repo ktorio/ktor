@@ -8,5 +8,5 @@ import io.ktor.utils.io.*
 import kotlin.coroutines.*
 
 @Suppress("FunctionName")
-@InternalAPI
+@InternalKtorApi
 public expect fun MDCContext(): CoroutineContext.Element

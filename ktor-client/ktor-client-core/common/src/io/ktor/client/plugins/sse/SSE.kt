@@ -78,7 +78,7 @@ public data object SSECapability : HttpClientEngineCapability<Unit>
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.SSE)
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
     name = "SSE",
     createConfiguration = ::SSEConfig

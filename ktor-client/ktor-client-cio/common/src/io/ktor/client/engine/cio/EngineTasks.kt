@@ -18,7 +18,7 @@ internal data class RequestTask(
     val context: CoroutineContext
 )
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal fun HttpRequestData.requiresDedicatedConnection(): Boolean =
     listOf(headers, body.headers).any { it[HttpHeaders.Connection] == "close" || it.contains(HttpHeaders.Upgrade) } ||
         method !in listOf(HttpMethod.Get, HttpMethod.Head) ||

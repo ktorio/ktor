@@ -20,7 +20,7 @@ public fun ByteWriteChannel.asSink(): RawSink = ByteWriteChannelSink(this)
 
 internal class ByteWriteChannelSink(private val origin: ByteWriteChannel) : RawSink {
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     override fun write(source: Buffer, byteCount: Long) {
         origin.rethrowCloseCauseIfNeeded()
 
@@ -33,14 +33,14 @@ internal class ByteWriteChannelSink(private val origin: ByteWriteChannel) : RawS
         }
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     override fun flush() = runBlocking {
         origin.rethrowCloseCauseIfNeeded()
 
         origin.flush()
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     override fun close() = runBlocking {
         origin.rethrowCloseCauseIfNeeded()
 

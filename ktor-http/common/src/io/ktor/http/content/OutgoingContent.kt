@@ -212,7 +212,7 @@ public sealed class OutgoingContent {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.isEmpty)
  */
-@InternalAPI
+@InternalKtorApi
 public fun OutgoingContent.isEmpty(): Boolean = when (this) {
     is OutgoingContent.NoContent -> true
     is OutgoingContent.ContentWrapper -> delegate().isEmpty()

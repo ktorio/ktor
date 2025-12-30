@@ -19,7 +19,7 @@ public actual fun HttpClient(
     block: HttpClientConfig<*>.() -> Unit
 ): HttpClient = HttpClient(FACTORY, block)
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 private val FACTORY = engines.firstOrNull() ?: error(
     "Failed to find HTTP client engine implementation: consider adding client engine dependency. " +
         "See https://ktor.io/docs/http-client-engines.html"

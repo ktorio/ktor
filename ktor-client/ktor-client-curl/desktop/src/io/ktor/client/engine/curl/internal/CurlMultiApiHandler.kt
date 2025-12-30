@@ -27,7 +27,7 @@ private class RequestHolder(
     }
 }
 
-@OptIn(InternalAPI::class, ExperimentalForeignApi::class)
+@OptIn(InternalKtorApi::class, ExperimentalForeignApi::class)
 internal class CurlMultiApiHandler : Closeable {
     private val activeHandles = mutableMapOf<EasyHandle, RequestHolder>()
     private val cancelledHandles = mutableSetOf<Pair<EasyHandle, Throwable>>()

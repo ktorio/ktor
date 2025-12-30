@@ -17,7 +17,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 import kotlinx.serialization.json.io.*
 
-@OptIn(ExperimentalSerializationApi::class, InternalSerializationApi::class, InternalAPI::class)
+@OptIn(ExperimentalSerializationApi::class, InternalSerializationApi::class, InternalKtorApi::class)
 public class ExperimentalJsonConverter(private val format: Json) : ContentConverter {
 
     @Suppress("UNCHECKED_CAST")

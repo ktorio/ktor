@@ -13,7 +13,7 @@ import io.ktor.client.request.*
 import io.ktor.utils.io.*
 import platform.Foundation.NSOperationQueue
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal class DarwinClientEngine(override val config: DarwinClientEngineConfig) : HttpClientEngineBase("ktor-darwin") {
 
     private val requestQueue: NSOperationQueue? = when (val queue = NSOperationQueue.currentQueue()) {

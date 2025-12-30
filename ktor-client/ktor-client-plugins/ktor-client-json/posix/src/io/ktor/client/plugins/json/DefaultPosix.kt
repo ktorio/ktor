@@ -13,8 +13,8 @@ import io.ktor.utils.io.*
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.json.defaultSerializer)
  */
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public actual fun defaultSerializer(): JsonSerializer = serializers.first()
 
-@InternalAPI
+@InternalKtorApi
 public val serializers: MutableList<JsonSerializer> = mutableListOf()

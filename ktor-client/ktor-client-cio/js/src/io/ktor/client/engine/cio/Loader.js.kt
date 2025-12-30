@@ -9,7 +9,7 @@ import io.ktor.util.*
 import io.ktor.utils.io.*
 
 @Suppress("DEPRECATION")
-@OptIn(ExperimentalStdlibApi::class, ExperimentalJsExport::class, InternalAPI::class)
+@OptIn(ExperimentalStdlibApi::class, ExperimentalJsExport::class, InternalKtorApi::class)
 @Deprecated("", level = DeprecationLevel.HIDDEN)
 @JsExport
 @EagerInitialization

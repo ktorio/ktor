@@ -13,7 +13,7 @@ import kotlinx.coroutines.debug.CoroutineInfo
 import kotlinx.coroutines.debug.DebugProbes
 import java.util.*
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal actual val enginesToTest: Iterable<HttpClientEngineFactory<HttpClientEngineConfig>> by lazy {
     val enginesIterator = loadServicesAsSequence<HttpClientEngineContainer>().iterator()
 

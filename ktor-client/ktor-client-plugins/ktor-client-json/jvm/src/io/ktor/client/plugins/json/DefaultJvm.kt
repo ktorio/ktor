@@ -19,6 +19,6 @@ public actual fun defaultSerializer(): JsonSerializer {
     )
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 @Suppress("DEPRECATION_ERROR")
 private val serializers = loadServices<JsonSerializer>()

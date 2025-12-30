@@ -165,7 +165,7 @@ public class YamlConfig private constructor(yamlMap: YamlMap) : ApplicationConfi
             toPrimitive(rootNode, node) as? Map<String, Any?>
                 ?: error("Expected map at $key but found ${type.name}")
 
-        @OptIn(InternalAPI::class)
+        @OptIn(InternalKtorApi::class)
         override fun getAs(type: TypeInfo): Any? {
             return format.decodeFromYamlNode(type.serializer(), node)
         }

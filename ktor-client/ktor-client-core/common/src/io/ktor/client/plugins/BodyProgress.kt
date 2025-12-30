@@ -68,7 +68,7 @@ internal object AfterRenderHook : ClientHook<suspend (HttpRequestBuilder, Outgoi
     }
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal fun HttpResponse.withObservableDownload(listener: ProgressListener): HttpResponse {
     return call.replaceResponse { rawContent.observable(coroutineContext, contentLength(), listener) }.response
 }

@@ -23,7 +23,7 @@ class DefaultWebSocketTest {
 
     private lateinit var client: WebSocketSession
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     @BeforeTest
     fun prepare() {
         parent = Job()
@@ -84,7 +84,7 @@ class DefaultWebSocketTest {
     }
 
     @Test
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     fun testPingPongTimeout() = runTestWithRealTime {
         parent = Job()
         client2server = ByteChannel()

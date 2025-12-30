@@ -20,7 +20,7 @@ internal class SourceByteReadChannel(private val source: Source) : ByteReadChann
         get() = source.exhausted()
 
     @OptIn(InternalIoApi::class)
-    @InternalAPI
+    @InternalKtorApi
     override val readBuffer: Source
         get() {
             closedCause?.let { throw it }

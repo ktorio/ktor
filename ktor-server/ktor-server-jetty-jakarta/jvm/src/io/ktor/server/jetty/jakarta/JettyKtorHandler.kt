@@ -23,7 +23,7 @@ private val JettyCallHandlerCoroutineName = CoroutineName("jetty-call-handler")
 private val JettyKtorCounter = AtomicLong()
 private const val THREAD_KEEP_ALIVE_TIME = 1L
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal class JettyKtorHandler(
     private val environment: ApplicationEnvironment,
     private val configuration: JettyApplicationEngineBase.Configuration,

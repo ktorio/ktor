@@ -151,7 +151,7 @@ private suspend fun ByteReadChannel.skipIfFoundReadCount(prefix: ByteString): Lo
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.parseMultipart)
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public fun CoroutineScope.parseMultipart(
     input: ByteReadChannel,
     headers: HttpHeadersMap,
@@ -170,7 +170,7 @@ public fun CoroutineScope.parseMultipart(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.parseMultipart)
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public fun CoroutineScope.parseMultipart(
     input: ByteReadChannel,
     contentType: CharSequence,

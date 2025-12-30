@@ -16,7 +16,7 @@ private val DecompressionListAttribute: AttributeKey<MutableList<String>> = Attr
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.utils.dropCompressionHeaders)
  */
-@InternalAPI
+@InternalKtorApi
 public fun HeadersBuilder.dropCompressionHeaders(
     method: HttpMethod,
     attributes: Attributes,

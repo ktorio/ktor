@@ -10,7 +10,7 @@ import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import kotlinx.serialization.json.*
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 private fun init() {
     addExtensionProvider(KotlinxSerializationJsonExtensionProvider())
 }

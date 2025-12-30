@@ -51,7 +51,7 @@ class BasicProviderTest {
         assertTrue(provider.isApplicable(header), "Provider with capitalized scheme should be applicable")
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     @Test
     fun `update credentials after clearToken`() = runTest {
         var credentials = BasicAuthCredentials("admin", "admin")

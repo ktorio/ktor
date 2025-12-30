@@ -479,7 +479,7 @@ private fun Throwable.isTimeoutException(): Boolean {
         exception is SocketTimeoutException
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 private suspend fun HttpResponse.throwOnInvalidResponseBody(): Boolean {
     // wait for saved content to pass through intermediate processing
     // if the encoding is wrong, then this will throw an exception

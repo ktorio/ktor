@@ -63,7 +63,7 @@ public fun CoroutineScope.decodeChunked(input: ByteReadChannel, contentLength: L
  * @throws EOFException if stream has ended unexpectedly.
  * @throws ParserException if the format is invalid.
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) {
     val chunkSizeBuffer = ChunkSizeBufferPool.borrow()
     var totalBytesCopied = 0L

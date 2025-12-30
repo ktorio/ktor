@@ -170,7 +170,7 @@ public val HttpTimeout: ClientPlugin<HttpTimeoutConfig> = createClientPlugin(
 }
 
 /** Request timeout shouldn't be applied to WebSocket or SSE connection. */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 private val HttpRequestBuilder.supportsRequestTimeout: Boolean
     get() = !url.protocol.isWebsocket() &&
         body !is ClientUpgradeContent &&
@@ -283,7 +283,7 @@ public fun SocketTimeoutException(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.convertLongTimeoutToIntWithInfiniteAsZero)
  */
-@InternalAPI
+@InternalKtorApi
 public fun convertLongTimeoutToIntWithInfiniteAsZero(timeout: Long): Int = when {
     timeout == HttpTimeoutConfig.INFINITE_TIMEOUT_MS -> 0
     timeout < Int.MIN_VALUE -> Int.MIN_VALUE
@@ -297,7 +297,7 @@ public fun convertLongTimeoutToIntWithInfiniteAsZero(timeout: Long): Int = when 
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.convertLongTimeoutToLongWithInfiniteAsZero)
  */
-@InternalAPI
+@InternalKtorApi
 public fun convertLongTimeoutToLongWithInfiniteAsZero(timeout: Long): Long = when (timeout) {
     HttpTimeoutConfig.INFINITE_TIMEOUT_MS -> 0L
     else -> timeout

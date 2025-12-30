@@ -19,7 +19,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlin.collections.set
 import kotlin.coroutines.coroutineContext
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal class WinHttpRequestProducer(
     private val request: WinHttpRequest,
     private val data: HttpRequestData

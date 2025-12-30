@@ -15,7 +15,7 @@ import io.ktor.utils.io.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.utils.hierarchy)
  */
-@InternalAPI
+@InternalKtorApi
 public expect fun TypeInfo.hierarchy(): Sequence<TypeInfo>
 
 /**
@@ -26,7 +26,7 @@ public expect fun TypeInfo.hierarchy(): Sequence<TypeInfo>
  *
  * @return A new [TypeInfo] instance with a nullable type, or null if the type is already nullable.
  */
-@InternalAPI
+@InternalKtorApi
 public expect fun TypeInfo.toNullable(): TypeInfo?
 
 /**
@@ -38,7 +38,7 @@ public expect fun TypeInfo.toNullable(): TypeInfo?
  *
  * @return A list of [TypeInfo] representing the base type with covariant type arguments.
  */
-@InternalAPI
+@InternalKtorApi
 public expect fun TypeInfo.typeParametersHierarchy(): Sequence<TypeInfo>
 
 /**
@@ -54,6 +54,6 @@ public expect fun TypeInfo.typeParametersHierarchy(): Sequence<TypeInfo>
  *
  * @return A new [TypeInfo] with [kotlinType] set to null.
  */
-@InternalAPI
+@InternalKtorApi
 public fun TypeInfo.toRawType(): TypeInfo =
     TypeInfo(type, kotlinType = null)

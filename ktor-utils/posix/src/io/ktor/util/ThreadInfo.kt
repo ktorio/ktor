@@ -15,7 +15,7 @@ import kotlin.native.concurrent.*
 @EagerInitialization
 private val init = setSignalHandler()
 
-@InternalAPI
+@InternalKtorApi
 @OptIn(ExperimentalForeignApi::class)
 public object ThreadInfo {
     @OptIn(ObsoleteWorkersApi::class)
@@ -81,7 +81,7 @@ public object ThreadInfo {
     }
 }
 
-@InternalAPI
+@InternalKtorApi
 public class WorkerStacktrace(
     public val worker: String,
     public val stacktrace: List<String>

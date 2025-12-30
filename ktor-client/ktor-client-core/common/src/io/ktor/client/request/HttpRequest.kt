@@ -100,7 +100,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.HttpRequestBuilder.body)
      */
     public var body: Any = EmptyContent
-        @InternalAPI public set
+        @InternalKtorApi public set
 
     /**
      * The [KType] of [body] for this request. Null for default types that don't need serialization.
@@ -110,7 +110,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
     public var bodyType: TypeInfo?
         get() = attributes.getOrNull(BodyTypeAttributeKey)
 
-        @InternalAPI set(value) {
+        @InternalKtorApi set(value) {
             if (value != null) {
                 attributes.put(BodyTypeAttributeKey, value)
             } else {
@@ -145,7 +145,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.HttpRequestBuilder.build)
      */
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     public fun build(): HttpRequestData = HttpRequestData(
         url.build(),
         method,
@@ -169,7 +169,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.HttpRequestBuilder.takeFromWithExecutionContext)
      */
-    @InternalAPI
+    @InternalKtorApi
     public fun takeFromWithExecutionContext(builder: HttpRequestBuilder): HttpRequestBuilder {
         executionContext = builder.executionContext
         return takeFrom(builder)
@@ -180,7 +180,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.HttpRequestBuilder.takeFrom)
      */
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     public fun takeFrom(builder: HttpRequestBuilder): HttpRequestBuilder {
         method = builder.method
         body = builder.body
@@ -222,7 +222,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.HttpRequestData)
  */
-public class HttpRequestData @InternalAPI constructor(
+public class HttpRequestData @InternalKtorApi constructor(
     public val url: Url,
     public val method: HttpMethod,
     public val headers: Headers,
@@ -257,7 +257,7 @@ public class HttpRequestData @InternalAPI constructor(
  *
  * @see mergeHeaders
  */
-@InternalAPI
+@InternalKtorApi
 public inline fun HttpRequestData.forEachHeader(
     crossinline block: (key: String, value: String) -> Unit
 ) {
@@ -298,7 +298,7 @@ public fun HttpMessageBuilder.headers(block: HeadersBuilder.() -> Unit): Headers
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.takeFrom)
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public fun HttpRequestBuilder.takeFrom(request: HttpRequest): HttpRequestBuilder {
     method = request.method
     body = request.content
@@ -321,7 +321,7 @@ public fun HttpRequestBuilder.url(block: URLBuilder.() -> Unit): Unit = block(ur
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.takeFrom)
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public fun HttpRequestBuilder.takeFrom(request: HttpRequestData): HttpRequestBuilder {
     method = request.method
     body = request.body
@@ -381,25 +381,25 @@ public fun HttpRequestBuilder.url(urlString: String) {
     url.takeFrom(urlString)
 }
 
-@InternalAPI
+@InternalKtorApi
 public fun HttpRequestData.isUpgradeRequest(): Boolean {
     return body is ClientUpgradeContent
 }
 
-@InternalAPI
+@InternalKtorApi
 public fun HttpRequestData.isSseRequest(): Boolean {
     return body is SSEClientContent
 }
 
-@InternalAPI
+@InternalKtorApi
 public fun HttpRequestData.isSseReconnectionRequest(): Boolean {
     return attributes.getOrNull(SSEReconnectionRequestAttr) == true
 }
 
-@InternalAPI
+@InternalKtorApi
 public val ResponseAdapterAttributeKey: AttributeKey<ResponseAdapter> = AttributeKey("ResponseAdapterAttributeKey")
 
-@InternalAPI
+@InternalKtorApi
 public fun interface ResponseAdapter {
     public fun adapt(
         data: HttpRequestData,
@@ -411,9 +411,9 @@ public fun interface ResponseAdapter {
     ): Any?
 }
 
-@InternalAPI
+@InternalKtorApi
 public class SSEClientResponseAdapter : ResponseAdapter {
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     override fun adapt(
         data: HttpRequestData,
         status: HttpStatusCode,

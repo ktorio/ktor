@@ -71,7 +71,7 @@ public fun parseAuthorizationHeader(headerValue: String): HttpAuthHeader? {
  * @return a list of [HttpAuthHeader]
  * @throws [ParseException] on invalid header
  */
-@InternalAPI
+@InternalKtorApi
 public fun parseAuthorizationHeaders(headerValue: String): List<HttpAuthHeader> {
     var index = 0
     val headers = mutableListOf<HttpAuthHeader>()

@@ -46,7 +46,7 @@ internal class JsClientEngine(
         check(config.proxy == null) { "Proxy unsupported in Js engine." }
     }
 
-    @OptIn(InternalAPI::class, InternalCoroutinesApi::class)
+    @OptIn(InternalKtorApi::class, InternalCoroutinesApi::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
         val clientConfig = data.attributes[CLIENT_CONFIG]
@@ -163,7 +163,7 @@ private fun eventAsString(event: Event): String =
 private fun getKeys(headers: org.w3c.fetch.Headers): JsArray<JsString> =
     js("Array.from(headers.keys())")
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal fun org.w3c.fetch.Headers.mapToKtor(method: HttpMethod, attributes: Attributes): Headers = buildHeaders {
     val keys = getKeys(this@mapToKtor)
     for (i in 0 until keys.length) {

@@ -7,14 +7,14 @@ package io.ktor.util.collections
 import io.ktor.utils.io.*
 import kotlin.reflect.KProperty
 
-@InternalAPI
+@InternalKtorApi
 public interface StringMap {
     public operator fun set(key: String, value: String)
     public operator fun get(key: String): String?
     public fun remove(key: String): String?
 }
 
-@InternalAPI
+@InternalKtorApi
 public interface StringMapDelegate : StringMap {
     public val map: MutableMap<String, String>
 
@@ -28,7 +28,7 @@ public interface StringMapDelegate : StringMap {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.collections.getValue)
  */
-@InternalAPI
+@InternalKtorApi
 public operator fun String.getValue(thisRef: StringMap, property: KProperty<*>): String? =
     thisRef[this]
 
@@ -37,7 +37,7 @@ public operator fun String.getValue(thisRef: StringMap, property: KProperty<*>):
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.collections.setValue)
  */
-@InternalAPI
+@InternalKtorApi
 public operator fun String.setValue(thisRef: StringMap, property: KProperty<*>, value: String?) {
     if (value == null) {
         thisRef.remove(this)
@@ -51,7 +51,7 @@ public operator fun String.setValue(thisRef: StringMap, property: KProperty<*>, 
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.collections.getValue)
  */
-@InternalAPI
+@InternalKtorApi
 public operator fun <T> SerializedMapValue<T>.getValue(thisRef: StringMap, property: KProperty<*>): T? =
     thisRef[key]?.let(deserialize)
 
@@ -60,7 +60,7 @@ public operator fun <T> SerializedMapValue<T>.getValue(thisRef: StringMap, prope
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.collections.setValue)
  */
-@InternalAPI
+@InternalKtorApi
 public operator fun <T> SerializedMapValue<T>.setValue(thisRef: StringMap, property: KProperty<*>, value: T?) {
     val serializedValue = value?.let { serialize(it) }
     if (serializedValue == null) {
@@ -75,7 +75,7 @@ public operator fun <T> SerializedMapValue<T>.setValue(thisRef: StringMap, prope
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.collections.asBoolean)
  */
-@InternalAPI
+@InternalKtorApi
 public fun String.asBoolean(): SerializedMapValue<Boolean> =
     SerializedMapValue(this, Boolean::toString, String::toBoolean)
 
@@ -84,7 +84,7 @@ public fun String.asBoolean(): SerializedMapValue<Boolean> =
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.collections.asPresenceBoolean)
  */
-@InternalAPI
+@InternalKtorApi
 public fun String.asPresenceBoolean(): SerializedMapValue<Boolean?> =
     SerializedMapValue(this, { bool -> "".takeIf { bool != false } }, { true })
 
@@ -93,7 +93,7 @@ public fun String.asPresenceBoolean(): SerializedMapValue<Boolean?> =
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.collections.SerializedMapValue)
  */
-@InternalAPI
+@InternalKtorApi
 public class SerializedMapValue<T>(
     internal val key: String,
     internal val serialize: (T) -> String?,

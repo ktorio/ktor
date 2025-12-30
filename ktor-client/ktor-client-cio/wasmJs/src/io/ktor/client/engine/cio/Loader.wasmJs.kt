@@ -9,7 +9,7 @@ import io.ktor.util.*
 import io.ktor.utils.io.*
 
 @Suppress("DEPRECATION")
-@OptIn(InternalAPI::class, ExperimentalStdlibApi::class)
+@OptIn(InternalKtorApi::class, ExperimentalStdlibApi::class)
 @EagerInitialization
 private val initHook: Unit = run {
     if (PlatformUtils.IS_NODE) engines.append(CIO)

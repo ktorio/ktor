@@ -53,7 +53,7 @@ public class ResponseObserverConfig {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.observer.ResponseObserver)
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public val ResponseObserver: ClientPlugin<ResponseObserverConfig> = createClientPlugin(
     "ResponseObserver",
     ::ResponseObserverConfig

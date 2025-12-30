@@ -104,7 +104,7 @@ public class LoggingConfig {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.logging.Logging)
  */
-@OptIn(InternalAPI::class, DelicateCoroutinesApi::class)
+@OptIn(InternalKtorApi::class, DelicateCoroutinesApi::class)
 public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", ::LoggingConfig) {
     val logger: Logger = pluginConfig.logger
     val level: LogLevel = pluginConfig.level

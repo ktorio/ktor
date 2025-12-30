@@ -102,7 +102,7 @@ public class FormBuilder @PublishedApi internal constructor() {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.FormBuilder.append)
      */
-    @InternalAPI
+    @InternalKtorApi
     public fun <T : Any> append(key: String, value: T, headers: Headers = Headers.Empty) {
         parts += FormPart(key, value, headers)
     }

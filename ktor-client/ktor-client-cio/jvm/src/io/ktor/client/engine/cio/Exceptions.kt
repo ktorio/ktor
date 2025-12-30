@@ -9,7 +9,7 @@ import io.ktor.client.request.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal actual fun Throwable.mapToKtor(request: HttpRequestData): Throwable = when (cause?.rootCause) {
     is java.net.SocketTimeoutException -> SocketTimeoutException(request, cause)
     else -> cause

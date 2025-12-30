@@ -149,7 +149,7 @@ public suspend fun CacheStorage.store(response: HttpResponse): CachedResponseDat
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cache.storage.store)
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun CacheStorage.store(
     response: HttpResponse,
     varyKeys: Map<String, String>,
@@ -184,7 +184,7 @@ internal fun CachedResponseData.createResponse(
         override val requestTime: GMTDate = this@createResponse.requestTime
         override val responseTime: GMTDate = this@createResponse.responseTime
 
-        @InternalAPI
+        @InternalKtorApi
         override val rawContent: ByteReadChannel get() = throw IllegalStateException("This is a fake response")
         override val headers: Headers = this@createResponse.headers
         override val coroutineContext: CoroutineContext = responseContext

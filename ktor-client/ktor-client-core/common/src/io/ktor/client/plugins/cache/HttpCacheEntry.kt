@@ -12,7 +12,7 @@ import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlinx.io.readByteArray
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal suspend fun HttpCacheEntry(isShared: Boolean, response: HttpResponse): HttpCacheEntry {
     val body = response.rawContent.readRemaining().readByteArray()
     return HttpCacheEntry(response.cacheExpires(isShared), response.varyKeys(), response, body)

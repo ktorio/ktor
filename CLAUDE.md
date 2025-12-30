@@ -18,7 +18,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Indent: 4 spaces (2 for JSON, YAML)
 - Include copyright header in new files
 - Document all public APIs including parameters, return types, and exceptions
-- Mark internal APIs with `@InternalAPI` annotation
+- Mark internal APIs with `@InternalKtorApi` annotation
 - Prefix commit messages with KTOR-{NUM} (YouTrack issue)
 - Write commit messages in present tense, imperative mood
 

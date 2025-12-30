@@ -11,7 +11,7 @@ import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlin.coroutines.*
 
-@InternalAPI
+@InternalKtorApi
 public class DefaultHttpResponse(
     override val call: HttpClientCall,
     responseData: HttpResponseData

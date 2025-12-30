@@ -43,7 +43,7 @@ internal class DelegatingTestClientEngine(
 
     override val coroutineContext: CoroutineContext = dispatcher + clientJob
 
-    @InternalAPI
+    @InternalKtorApi
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         config.testApplicationProvder().start()
         val mainEngineHostWithPorts = mainEngineHostWithPortsDeferred.await()

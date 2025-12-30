@@ -24,7 +24,7 @@ public class LookAheadSuspendSession(private val channel: ByteReadChannel) {
      * - end of stream encountered and all bytes were consumed
      * - channel has been closed with an exception so buffer has been recycled
      */
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     public fun request(skip: Int, atLeast: Int): ByteBuffer? {
         if (channel.readBuffer.remaining < skip + atLeast) return null
         val buffer = channel.readBuffer.preview {
@@ -36,14 +36,14 @@ public class LookAheadSuspendSession(private val channel: ByteReadChannel) {
         return buffer
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     public suspend fun awaitAtLeast(min: Int): Boolean {
         if (channel.readBuffer.remaining >= min) return true
         channel.awaitContent(min)
         return channel.readBuffer.remaining >= min
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     public fun consumed(count: Int) {
         channel.readBuffer.discard(count.toLong())
     }

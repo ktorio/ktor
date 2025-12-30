@@ -41,7 +41,7 @@ public val FreeMarker: ApplicationPlugin<Configuration> = createApplicationPlugi
     "FreeMarker",
     { Configuration(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS) }
 ) {
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     on(BeforeResponseTransform(FreeMarkerContent::class)) { _, content ->
         with(content) {
             val writer = StringWriter()

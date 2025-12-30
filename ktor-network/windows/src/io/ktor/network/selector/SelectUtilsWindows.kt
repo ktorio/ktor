@@ -13,7 +13,7 @@ import kotlinx.coroutines.*
 import kotlinx.io.IOException
 import platform.posix.*
 
-@OptIn(InternalAPI::class, ExperimentalForeignApi::class)
+@OptIn(InternalKtorApi::class, ExperimentalForeignApi::class)
 internal actual class SelectorHelper {
     private val wakeupSignal = SignalPoint()
     private val interestQueue = LockFreeMPSCQueue<EventInfo>()
@@ -48,7 +48,7 @@ internal actual class SelectorHelper {
         }
     }
 
-    @OptIn(ExperimentalForeignApi::class, InternalAPI::class)
+    @OptIn(ExperimentalForeignApi::class, InternalKtorApi::class)
     private suspend fun selectionLoop() {
         val completed = mutableSetOf<EventInfo>()
         val watchSet = mutableSetOf<EventInfo>()

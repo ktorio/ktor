@@ -9,7 +9,7 @@ import kotlinx.atomicfu.*
 
 private typealias EngineFactory = HttpClientEngineFactory<HttpClientEngineConfig>
 
-@InternalAPI
+@InternalKtorApi
 /**
  * Shared engines collection for.
  * Use [append] to enable engine auto discover in [HttpClient()].

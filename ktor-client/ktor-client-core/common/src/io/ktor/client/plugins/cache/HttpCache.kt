@@ -267,7 +267,7 @@ public class HttpCache private constructor(
             proceedWith(cachedCall)
         }
 
-        @OptIn(InternalAPI::class)
+        @OptIn(InternalKtorApi::class)
         private suspend fun PipelineContext<Any, HttpRequestBuilder>.proceedWithWarning(
             cachedResponse: CachedResponseData,
             scope: HttpClient,
@@ -291,7 +291,7 @@ public class HttpCache private constructor(
             proceedWith(call)
         }
 
-        @OptIn(InternalAPI::class)
+        @OptIn(InternalKtorApi::class)
         internal suspend fun PipelineContext<Any, HttpRequestBuilder>.proceedWithMissingCache(
             scope: HttpClient
         ) {
@@ -379,7 +379,7 @@ public class HttpCache private constructor(
     }
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal fun mergedHeadersLookup(
     content: OutgoingContent,
     headerExtractor: (String) -> String?,

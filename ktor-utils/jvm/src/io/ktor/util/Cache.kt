@@ -22,7 +22,7 @@ private const val CACHE_LOAD_FACTOR = 0.75f
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.createLRUCache)
  */
-@InternalAPI
+@InternalKtorApi
 public fun <K, V> createLRUCache(supplier: (K) -> V, close: (V) -> Unit, maxSize: Int): Map<K, V> =
     Collections.synchronizedMap(LRUCache(supplier, close, maxSize))
 

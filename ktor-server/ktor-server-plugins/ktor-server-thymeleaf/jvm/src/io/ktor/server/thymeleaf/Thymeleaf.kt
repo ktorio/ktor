@@ -46,7 +46,7 @@ public val Thymeleaf: ApplicationPlugin<TemplateEngine> = createApplicationPlugi
     "Thymeleaf",
     ::TemplateEngine
 ) {
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     on(BeforeResponseTransform(ThymeleafContent::class)) { _, content ->
         with(content) {
             val context = Context(locale).apply { setVariables(model) }

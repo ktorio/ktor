@@ -47,7 +47,7 @@ private val initHook = Curl
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.curl.Curl)
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public data object Curl : HttpClientEngineFactory<CurlClientEngineConfig> {
     init {
         engines.append(this)

@@ -17,7 +17,7 @@ import java.io.*
  *
  * @return number of bytes copied
  */
-@OptIn(InternalAPI::class, InternalIoApi::class)
+@OptIn(InternalKtorApi::class, InternalIoApi::class)
 public suspend fun ByteReadChannel.copyTo(out: OutputStream, limit: Long = Long.MAX_VALUE): Long {
     require(limit >= 0) { "Limit shouldn't be negative: $limit" }
     var result = 0L

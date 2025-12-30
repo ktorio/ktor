@@ -95,7 +95,7 @@ private class StartupInfo {
     var initializedStartAt = getTimeMillis()
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 private fun Application.installDefaultInterceptors() {
     intercept(ApplicationCallPipeline.Fallback) {
         if (call.isHandled) return@intercept

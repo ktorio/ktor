@@ -27,7 +27,7 @@ private val hostForbiddenSymbols = setOf('/', '?', '#', '@')
  * a recipient MAY recognize a single LF as a line terminator and ignore any preceding CR."
  * https://datatracker.ietf.org/doc/html/rfc9112#section-2.2-3
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal val httpLineEndings: LineEndingMode = LineEndingMode.CRLF + LineEndingMode.LF
 
 /**
@@ -35,7 +35,7 @@ internal val httpLineEndings: LineEndingMode = LineEndingMode.CRLF + LineEndingM
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.parseRequest)
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun parseRequest(input: ByteReadChannel): Request? {
     val builder = CharArrayBuilder()
     val range = MutableRange(0, 0)
@@ -72,7 +72,7 @@ public suspend fun parseRequest(input: ByteReadChannel): Request? {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.parseResponse)
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun parseResponse(input: ByteReadChannel): Response? {
     val builder = CharArrayBuilder()
     val range = MutableRange(0, 0)
@@ -109,7 +109,7 @@ public suspend fun parseHeaders(input: ByteReadChannel): HttpHeadersMap {
 /**
  * Parse HTTP headers. Not applicable to request and response status lines.
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal suspend fun parseHeaders(
     input: ByteReadChannel,
     builder: CharArrayBuilder,

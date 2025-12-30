@@ -8,7 +8,7 @@ import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.utils.io.*
 
-@InternalAPI
+@InternalKtorApi
 public class CIOEngineContainer : HttpClientEngineContainer {
     override val factory: HttpClientEngineFactory<*> = CIO
 

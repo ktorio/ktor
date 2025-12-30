@@ -27,10 +27,10 @@ class RawWebSocketTest {
 
     private val errors = mutableListOf<Throwable>()
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     private val errorsLock = SynchronizedObject()
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     private fun collectUnhandledException(error: Throwable) {
         synchronized(errorsLock) { errors.add(error) }
     }

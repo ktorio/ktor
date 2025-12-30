@@ -13,7 +13,7 @@ import kotlinx.cinterop.*
  *
  * @return number of bytes were read or `-1` if the channel has been closed
  */
-@OptIn(ExperimentalForeignApi::class, InternalAPI::class)
+@OptIn(ExperimentalForeignApi::class, InternalKtorApi::class)
 public suspend fun ByteReadChannel.readAvailable(dst: CPointer<ByteVar>, offset: Int, length: Int): Int {
     if (availableForRead == 0) awaitContent()
     if (isClosedForRead) return -1

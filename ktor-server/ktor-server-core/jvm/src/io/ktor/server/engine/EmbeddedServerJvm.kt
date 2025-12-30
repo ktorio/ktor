@@ -57,7 +57,7 @@ actual constructor(
     private val configuredWatchPath = environment.config.propertyOrNull("ktor.deployment.watch")?.getList().orEmpty()
     private val watchPatterns: List<String> = configuredWatchPath + rootConfig.watchPaths
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     private val moduleInjector: ModuleParametersInjector by lazy {
         loadServiceOrNull() ?: ModuleParametersInjector.Disabled
     }
@@ -248,7 +248,7 @@ actual constructor(
         packageWatchKeys = mutableListOf()
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     private fun destroyBlocking(application: Application, classLoader: ClassLoader?) {
         try {
             runBlocking {

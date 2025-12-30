@@ -26,7 +26,7 @@ public interface ByteWriteChannel {
 
     public val closedCause: Throwable?
 
-    @InternalAPI
+    @InternalKtorApi
     public val writeBuffer: Sink
 
     public suspend fun flush()
@@ -58,7 +58,7 @@ public fun ByteWriteChannel.cancel() {
     cancel(IOException("Channel was cancelled"))
 }
 
-@InternalAPI
+@InternalKtorApi
 public suspend fun ByteWriteChannel.flushIfNeeded() {
     rethrowCloseCauseIfNeeded()
 

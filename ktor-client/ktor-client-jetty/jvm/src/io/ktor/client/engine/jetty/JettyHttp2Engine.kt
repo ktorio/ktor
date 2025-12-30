@@ -12,7 +12,7 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import org.eclipse.jetty.http2.client.*
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal class JettyHttp2Engine(
     override val config: JettyEngineConfig
 ) : HttpClientEngineBase("ktor-jetty") {

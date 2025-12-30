@@ -12,7 +12,7 @@ import io.ktor.utils.io.locks.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.collections.ConcurrentMap)
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public actual class ConcurrentMap<Key, Value> public actual constructor(
     initialCapacity: Int
 ) : MutableMap<Key, Value> {

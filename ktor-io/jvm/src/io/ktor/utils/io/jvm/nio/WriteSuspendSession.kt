@@ -19,7 +19,7 @@ public class WriteSuspendSession(public val channel: ByteWriteChannel) {
     }
 
     @Suppress("UNUSED_PARAMETER")
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     public fun tryAwait(count: Int) {
         channel.writeBuffer.writeByteBuffer(byteBuffer)
     }
@@ -46,7 +46,7 @@ public suspend fun ByteWriteChannel.writeSuspendSession(block: suspend WriteSusp
     }
 }
 
-@OptIn(UnsafeIoApi::class, InternalAPI::class, InternalIoApi::class)
+@OptIn(UnsafeIoApi::class, InternalKtorApi::class, InternalIoApi::class)
 public suspend inline fun ByteWriteChannel.writeWhile(crossinline block: (ByteBuffer) -> Boolean) {
     var done = false
 

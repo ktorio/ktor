@@ -22,7 +22,7 @@ import kotlin.test.*
 @Suppress("BlockingMethodInNonBlockingContext")
 class RequestProducerTest {
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     @Test
     fun testHeadersMerge() = runBlocking {
         val request = ApacheRequestProducer(
@@ -200,7 +200,7 @@ class RequestProducerTest {
         }
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     private fun producer(body: OutgoingContent, context: CoroutineContext) = ApacheRequestProducer(
         requestData = HttpRequestData(
             URLBuilder("https://example.com").build(),

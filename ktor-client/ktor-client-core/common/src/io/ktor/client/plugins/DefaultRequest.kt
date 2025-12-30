@@ -245,7 +245,7 @@ public class DefaultRequest private constructor(private val block: DefaultReques
             capabilities[key] = capability
         }
 
-        @OptIn(InternalAPI::class)
+        @OptIn(InternalKtorApi::class)
         public fun unixSocket(path: String) {
             setCapability(UnixSocketCapability, UnixSocketSettings(path))
         }

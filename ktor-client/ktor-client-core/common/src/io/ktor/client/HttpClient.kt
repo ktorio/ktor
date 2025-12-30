@@ -1279,7 +1279,7 @@ public fun HttpClient(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClient)
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public class HttpClient(
     public val engine: HttpClientEngine,
     private val userConfig: HttpClientConfig<out HttpClientEngineConfig> = HttpClientConfig()

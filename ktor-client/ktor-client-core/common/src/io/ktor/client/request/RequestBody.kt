@@ -11,7 +11,7 @@ import io.ktor.utils.io.*
 
 internal val BodyTypeAttributeKey: AttributeKey<TypeInfo> = AttributeKey("BodyTypeAttributeKey")
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public inline fun <reified T> HttpRequestBuilder.setBody(body: T) {
     when (body) {
         null -> {
@@ -29,7 +29,7 @@ public inline fun <reified T> HttpRequestBuilder.setBody(body: T) {
     }
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public fun HttpRequestBuilder.setBody(body: Any?, bodyType: TypeInfo) {
     this.body = body ?: NullBody
     this.bodyType = bodyType

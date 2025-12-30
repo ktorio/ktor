@@ -7,7 +7,7 @@ package io.ktor.server.config
 import com.typesafe.config.*
 import io.ktor.util.reflect.TypeInfo
 import io.ktor.util.reflect.serializer
-import io.ktor.utils.io.InternalAPI
+import io.ktor.utils.io.InternalKtorApi
 import java.io.*
 
 /**
@@ -97,7 +97,7 @@ public open class HoconApplicationConfig(private val config: Config) : Applicati
         override fun getMap(): Map<String, Any?> =
             config.getObject(path).unwrapped()
 
-        @OptIn(InternalAPI::class)
+        @OptIn(InternalKtorApi::class)
         override fun getAs(type: TypeInfo): Any? {
             return type.serializer()
                 .deserialize(HoconDecoder(config, path))

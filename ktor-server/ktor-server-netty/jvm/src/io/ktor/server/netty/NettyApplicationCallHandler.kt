@@ -43,7 +43,7 @@ internal class NettyApplicationCallHandler(
         }
         currentCall?.let {
             currentCall = null
-            @OptIn(InternalAPI::class)
+            @OptIn(InternalKtorApi::class)
             it.attributes.getOrNull(HttpRequestCloseHandlerKey)?.invoke()
         }
     }

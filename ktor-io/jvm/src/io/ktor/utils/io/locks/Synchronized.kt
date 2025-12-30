@@ -4,7 +4,7 @@
 
 package io.ktor.utils.io.locks
 
-import io.ktor.utils.io.InternalAPI
+import io.ktor.utils.io.InternalKtorApi
 
 /**
  * [SynchronizedObject] from `kotlinx.atomicfu.locks`
@@ -17,7 +17,7 @@ import io.ktor.utils.io.InternalAPI
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.locks.SynchronizedObject)
  */
-@InternalAPI
+@InternalKtorApi
 public actual typealias SynchronizedObject = Any
 
 /**
@@ -29,7 +29,7 @@ public actual typealias SynchronizedObject = Any
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.locks.ReentrantLock)
  */
-@InternalAPI
+@InternalKtorApi
 public actual typealias ReentrantLock = java.util.concurrent.locks.ReentrantLock
 
 /**
@@ -37,7 +37,7 @@ public actual typealias ReentrantLock = java.util.concurrent.locks.ReentrantLock
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.locks.reentrantLock)
  */
-@InternalAPI
+@InternalKtorApi
 public actual fun reentrantLock(): ReentrantLock = ReentrantLock()
 
 /**
@@ -54,7 +54,7 @@ public actual fun reentrantLock(): ReentrantLock = ReentrantLock()
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.locks.withLock)
  */
-@InternalAPI
+@InternalKtorApi
 public actual inline fun <T> ReentrantLock.withLock(block: () -> T): T {
     lock()
     try {
@@ -79,6 +79,6 @@ public actual inline fun <T> ReentrantLock.withLock(block: () -> T): T {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.locks.synchronized)
  */
-@InternalAPI
+@InternalKtorApi
 public actual inline fun <T> synchronized(lock: SynchronizedObject, block: () -> T): T =
     kotlin.synchronized(lock, block)

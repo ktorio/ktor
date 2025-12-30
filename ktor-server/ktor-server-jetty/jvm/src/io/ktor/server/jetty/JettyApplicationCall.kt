@@ -13,7 +13,7 @@ import javax.servlet.http.*
 import kotlin.coroutines.*
 import kotlin.time.Duration
 
-@InternalAPI
+@InternalKtorApi
 public class JettyApplicationCall(
     application: Application,
     request: Request,

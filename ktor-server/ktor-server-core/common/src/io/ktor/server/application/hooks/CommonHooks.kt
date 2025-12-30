@@ -84,7 +84,7 @@ public class MonitoringEvent<Param : Any, Event : EventDefinition<Param>>(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.hooks.Metrics)
  */
-@InternalAPI
+@InternalKtorApi
 public object Metrics : Hook<suspend (ApplicationCall) -> Unit> {
     override fun install(pipeline: ApplicationCallPipeline, handler: suspend (ApplicationCall) -> Unit) {
         pipeline.intercept(ApplicationCallPipeline.Monitoring) {
@@ -155,7 +155,7 @@ public object ReceiveRequestBytes : Hook<(call: ApplicationCall, body: ByteReadC
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.hooks.BeforeResponseTransform)
  */
-@InternalAPI
+@InternalKtorApi
 public class BeforeResponseTransform<T : Any>(private val clazz: KClass<T>) :
     Hook<suspend (call: ApplicationCall, body: T) -> Any> {
     override fun install(

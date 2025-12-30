@@ -12,7 +12,7 @@ import io.ktor.client.request.*
 import io.ktor.utils.io.*
 import platform.Foundation.NSOperationQueue
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal class DarwinLegacyClientEngine(
     override val config: DarwinLegacyClientEngineConfig
 ) : HttpClientEngineBase("ktor-darwin-legacy") {

@@ -36,7 +36,7 @@ class IgnoreTypesTest {
         }
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     val request = HttpRequestBuilder().apply {
         bodyType = typeInfo<String>()
         contentType(ContentType.Application.Json)

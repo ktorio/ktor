@@ -67,7 +67,7 @@ public interface DefaultWebSocketSession : WebSocketSession {
      *
      * @param negotiatedExtensions specify negotiated extensions list to use in current session.
      */
-    @InternalAPI
+    @InternalKtorApi
     public fun start(negotiatedExtensions: List<WebSocketExtension<*>> = emptyList())
 }
 
@@ -144,7 +144,7 @@ internal class DefaultWebSocketSessionImpl(
 
     override val closeReason: Deferred<CloseReason?> = closeReasonRef
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     override fun start(negotiatedExtensions: List<WebSocketExtension<*>>) {
         if (!started.compareAndSet(false, true)) {
             error("WebSocket session $this is already started.")
@@ -190,7 +190,7 @@ internal class DefaultWebSocketSessionImpl(
         raw.cancel()
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     private fun runIncomingProcessor(ponger: SendChannel<Frame.Ping>): Job = launch(
         IncomingProcessorCoroutineName + Dispatchers.Unconfined
     ) {
@@ -301,7 +301,7 @@ internal class DefaultWebSocketSessionImpl(
         }
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     private suspend fun sendCloseSequence(reason: CloseReason?, exception: Throwable? = null) {
         if (!tryClose()) return
         LOGGER.trace { "Sending Close Sequence for session $this with reason $reason and exception $exception" }

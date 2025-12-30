@@ -30,7 +30,7 @@ private val LOGGER by lazy { KtorSimpleLogger("io.ktor.client.plugins.SaveBody")
  *
  * @see HttpClientCall.save
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal val SaveBody: ClientPlugin<Unit> = createClientPlugin("SaveBody") {
     client.receivePipeline.intercept(HttpReceivePipeline.Before) { response ->
         val call = response.call

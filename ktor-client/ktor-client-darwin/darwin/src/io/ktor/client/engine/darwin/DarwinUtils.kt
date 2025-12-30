@@ -17,7 +17,7 @@ import platform.posix.*
 @OptIn(
     DelicateCoroutinesApi::class,
     UnsafeNumber::class,
-    InternalAPI::class,
+    InternalKtorApi::class,
     ExperimentalForeignApi::class,
     BetaInteropApi::class
 )

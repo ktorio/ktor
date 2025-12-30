@@ -115,7 +115,7 @@ class AuthorizeHeaderParserTest {
         }
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     private fun testParserMultipleChallenges(expected: List<HttpAuthHeader>, headerValue: String) {
         val actual = parseAuthorizationHeaders(headerValue)
 

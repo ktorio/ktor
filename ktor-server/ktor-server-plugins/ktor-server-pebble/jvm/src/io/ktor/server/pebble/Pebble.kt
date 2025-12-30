@@ -62,7 +62,7 @@ public val Pebble: ApplicationPlugin<PebbleConfiguration> = createApplicationPlu
     val engine = pluginConfig.build()
     val availableLanguages: List<String>? = pluginConfig.availableLanguages?.toList()
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     on(BeforeResponseTransform(PebbleContent::class)) { call, content ->
         with(content) {
             val writer = StringWriter()

@@ -11,7 +11,7 @@ import io.ktor.utils.io.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.readShort)
  */
-@InternalAPI
+@InternalKtorApi
 public fun ByteArray.readShort(offset: Int): Short {
     val result = ((this[offset].toInt() and 0xFF) shl 8) or (this[offset + 1].toInt() and 0xFF)
     return result.toShort()

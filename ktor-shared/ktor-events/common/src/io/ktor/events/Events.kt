@@ -10,7 +10,7 @@ import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public class Events {
     private val handlers = CopyOnWriteHashMap<EventDefinition<*>, LockFreeLinkedListHead>()
 

@@ -139,7 +139,7 @@ class ClientHeadersTest : ClientLoader() {
                 assertTrue("$method: Shouldn't send the Transfer-Encoding header") { "transfer-encoding" !in body }
             }
 
-            @OptIn(InternalAPI::class)
+            @OptIn(InternalKtorApi::class)
             client.supportedMethods()
                 .filter { it.supportsRequestBody }
                 .forEach { testWithMethod(it) }
