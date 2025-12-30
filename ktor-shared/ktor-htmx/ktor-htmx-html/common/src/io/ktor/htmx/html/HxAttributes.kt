@@ -21,7 +21,7 @@ public inline fun DelegatingMap.hx(block: HxAttributes.() -> Unit) {
 
 @ExperimentalKtorApi
 @HtmlTagMarker
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public class HxAttributes(override val map: DelegatingMap) : StringMapDelegate {
     public var get: String? by HxAttributeKeys.Get
     public var post: String? by HxAttributeKeys.Post

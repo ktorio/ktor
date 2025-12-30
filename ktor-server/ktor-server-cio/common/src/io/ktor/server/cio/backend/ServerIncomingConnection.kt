@@ -17,7 +17,7 @@ import io.ktor.utils.io.*
  * @property remoteAddress of the client (optional)
  * @property localAddress on which the client was accepted (optional)
  */
-@InternalAPI
+@InternalKtorApi
 public class ServerIncomingConnection(
     public val input: ByteReadChannel,
     public val output: ByteWriteChannel,

@@ -9,17 +9,17 @@ package io.ktor.utils.io
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.JvmSerializable)
  */
-@InternalAPI
+@InternalKtorApi
 public expect interface JvmSerializable
 
-@InternalAPI
+@InternalKtorApi
 public interface JvmSerializer<T> : JvmSerializable {
     public fun jvmSerialize(value: T): ByteArray
     public fun jvmDeserialize(value: ByteArray): T
 }
 
 @Suppress("FunctionName")
-@InternalAPI
+@InternalKtorApi
 public expect fun <T : Any> JvmSerializerReplacement(serializer: JvmSerializer<T>, value: T): Any
 
 internal object DummyJvmSimpleSerializerReplacement

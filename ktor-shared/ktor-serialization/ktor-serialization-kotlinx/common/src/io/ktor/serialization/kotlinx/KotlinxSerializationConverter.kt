@@ -36,7 +36,7 @@ public class KotlinxSerializationConverter(
         }
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     override suspend fun serialize(
         contentType: ContentType,
         charset: Charset,

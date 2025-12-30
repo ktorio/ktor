@@ -55,7 +55,7 @@ class ResponseConsumerTest {
         }
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     private val notNeededRequestData = HttpRequestData(
         Url(""),
         HttpMethod.Get,

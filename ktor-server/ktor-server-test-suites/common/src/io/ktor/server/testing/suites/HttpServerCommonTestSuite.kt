@@ -640,7 +640,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
         client.close()
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     @Test
     open fun testCanModifyRequestHeaders() = runTest {
         createAndStartServer {
@@ -677,7 +677,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
         }
     }
 
-    @OptIn(InternalAPI::class, DelicateCoroutinesApi::class)
+    @OptIn(InternalKtorApi::class, DelicateCoroutinesApi::class)
     @Test
     open fun testCanModifyRequestBody() = runTest {
         createAndStartServer {

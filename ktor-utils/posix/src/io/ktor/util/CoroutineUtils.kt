@@ -11,7 +11,7 @@ import kotlinx.coroutines.channels.*
 import kotlin.coroutines.*
 import kotlin.native.concurrent.*
 
-@InternalAPI
+@InternalKtorApi
 public fun Dispatchers.createFixedThreadDispatcher(name: String, threads: Int): CloseableCoroutineDispatcher =
     MultiWorkerDispatcher(name, threads)
 
@@ -20,7 +20,7 @@ private val CLOSE_WORKER: Worker by lazy {
     Worker.start(name = "CLOSE_WORKER")
 }
 
-@OptIn(InternalAPI::class, ObsoleteWorkersApi::class)
+@OptIn(InternalKtorApi::class, ObsoleteWorkersApi::class)
 private class MultiWorkerDispatcher(name: String, workersCount: Int) : CloseableCoroutineDispatcher() {
     private val closed = atomic(false)
     private val tasksQueue = Channel<Runnable>(Channel.UNLIMITED)

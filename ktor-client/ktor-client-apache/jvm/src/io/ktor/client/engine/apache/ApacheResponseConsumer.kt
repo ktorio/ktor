@@ -43,7 +43,7 @@ internal class ApacheResponseConsumer(
         }
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     override fun consumeContent(decoder: ContentDecoder, ioctrl: IOControl) {
         check(!waiting.value)
 

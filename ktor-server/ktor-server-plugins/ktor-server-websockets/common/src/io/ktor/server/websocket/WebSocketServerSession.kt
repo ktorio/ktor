@@ -66,7 +66,7 @@ public val WebSocketServerSession.converter: WebsocketContentConverter?
  *
  * @throws WebsocketConverterNotFoundException if no [contentConverter] is found for the [WebSockets] plugin
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun WebSocketServerSession.sendSerialized(data: Any?, typeInfo: TypeInfo) {
     val converter = converter
         ?: throw WebsocketConverterNotFoundException("No converter was found for websocket")
@@ -105,7 +105,7 @@ public suspend inline fun <reified T> WebSocketServerSession.sendSerialized(data
  * @throws WebsocketConverterNotFoundException if no [contentConverter] is found for the [WebSockets] plugin
  * @throws WebsocketDeserializeException if the received frame can't be deserialized to type [T]
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun <T> WebSocketServerSession.receiveDeserialized(typeInfo: TypeInfo): T {
     val converter = converter
         ?: throw WebsocketConverterNotFoundException("No converter was found for websocket")

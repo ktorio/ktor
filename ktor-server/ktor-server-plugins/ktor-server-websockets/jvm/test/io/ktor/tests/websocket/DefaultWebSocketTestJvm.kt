@@ -12,7 +12,7 @@ import kotlin.test.*
 
 class DefaultWebSocketTestJvm {
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     @Test
     fun testOutgoingCapacity(): Unit = runTest {
         val capacity = 1000 // more than BBC can buffer

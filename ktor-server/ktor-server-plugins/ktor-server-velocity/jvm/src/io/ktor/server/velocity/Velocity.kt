@@ -59,7 +59,7 @@ public val Velocity: ApplicationPlugin<VelocityEngine> = createApplicationPlugin
 
     pluginConfig.init()
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     on(BeforeResponseTransform(VelocityContent::class)) { _, content ->
         velocityOutgoingContent(
             pluginConfig.getTemplate(content.template),

@@ -22,5 +22,5 @@ public actual fun HttpClient(
 
 // we need to fall back to the default (Js) engine if there are no other engines,
 // but in the presence of other engines, they're preferred.
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 private val FACTORY = engines.firstOrNull { it != Js } ?: Js

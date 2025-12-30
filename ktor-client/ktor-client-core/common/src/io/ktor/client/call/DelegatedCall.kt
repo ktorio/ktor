@@ -57,7 +57,7 @@ internal class DelegatedRequest(
     origin: HttpRequest
 ) : HttpRequest by origin
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal class DelegatedResponse(
     override val call: HttpClientCall,
     private val origin: HttpResponse,

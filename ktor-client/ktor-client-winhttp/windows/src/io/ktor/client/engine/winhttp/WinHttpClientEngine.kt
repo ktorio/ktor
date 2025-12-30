@@ -30,7 +30,7 @@ internal class WinHttpClientEngine(
 
     override fun toString(): String = "WinHttp"
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
         val requestTime = GMTDate()

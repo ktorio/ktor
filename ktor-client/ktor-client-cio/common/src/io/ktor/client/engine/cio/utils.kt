@@ -31,7 +31,7 @@ internal suspend fun writeRequest(
     writeBody(request, output, callContext)
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal suspend fun writeHeaders(
     request: HttpRequestData,
     output: ByteWriteChannel,
@@ -162,7 +162,7 @@ private suspend fun processOutgoingContent(request: HttpRequestData, body: Outgo
     }
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal suspend fun readResponse(
     requestTime: GMTDate,
     request: HttpRequestData,

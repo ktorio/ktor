@@ -4,10 +4,10 @@
 
 package io.ktor.utils.io
 
-@InternalAPI
+@InternalKtorApi
 public actual interface JvmSerializable
 
 @Suppress("FunctionName")
-@InternalAPI
+@InternalKtorApi
 public actual fun <T : Any> JvmSerializerReplacement(serializer: JvmSerializer<T>, value: T): Any =
     DummyJvmSimpleSerializerReplacement

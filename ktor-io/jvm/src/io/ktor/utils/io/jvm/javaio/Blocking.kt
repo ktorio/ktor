@@ -16,7 +16,7 @@ import kotlin.math.*
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.jvm.javaio.toInputStream)
  */
 @Suppress("UNUSED_PARAMETER")
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public fun ByteReadChannel.toInputStream(parent: Job? = null): InputStream = object : InputStream() {
 
     override fun read(): Int {

@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
 
 @Suppress("FunctionName")
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal fun ApacheRequestProducer(
     requestData: HttpRequestData,
     config: Apache5EngineConfig,
@@ -56,7 +56,7 @@ internal fun ApacheRequestProducer(
     )
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 private fun setupRequest(requestData: HttpRequestData, config: Apache5EngineConfig): HttpRequest = with(requestData) {
     val request = ConfigurableHttpRequest(method.value, url.toURI())
 

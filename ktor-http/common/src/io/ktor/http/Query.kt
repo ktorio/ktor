@@ -4,7 +4,7 @@
 
 package io.ktor.http
 
-import io.ktor.utils.io.InternalAPI
+import io.ktor.utils.io.InternalKtorApi
 
 /**
  * Parse query string withing starting at the specified [startIndex] but up to [limit] pairs
@@ -101,7 +101,7 @@ private fun trimStart(start: Int, end: Int, query: CharSequence): Int {
  * Converts parameters to query parameters by fixing the [Parameters.get] method
  * to make it return an empty string for the parameters without value (e.g., `?empty`)
  */
-@InternalAPI
+@InternalKtorApi
 public fun Parameters.withEmptyStringForValuelessKeys(): Parameters =
     if (entries().none { it.value.isEmpty() }) {
         this

@@ -397,7 +397,7 @@ class ContentTest : ClientLoader() {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.tests.ContentTest.testSaveBody)
      */
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     @Test
     fun testSaveBody() = clientTests {
         val expected = "I will not introduce deadlocks.\n"

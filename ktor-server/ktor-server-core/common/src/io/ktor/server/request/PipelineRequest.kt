@@ -102,7 +102,7 @@ public interface PipelineRequest : ApplicationRequest {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.PipelineRequest.setHeader)
      */
-    @InternalAPI
+    @InternalKtorApi
     public fun setHeader(name: String, values: List<String>?)
 
     /**
@@ -110,7 +110,7 @@ public interface PipelineRequest : ApplicationRequest {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.PipelineRequest.setReceiveChannel)
      */
-    @InternalAPI
+    @InternalKtorApi
     public fun setReceiveChannel(channel: ByteReadChannel)
 }
 

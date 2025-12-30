@@ -22,7 +22,7 @@ import kotlin.test.assertNull
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 class ServerPipelineTest : CoroutineScope {
 
     private val dispatcher = Dispatchers.IO.limitedParallelism(8)

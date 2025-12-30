@@ -18,7 +18,7 @@ import kotlin.js.JsName
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.locks.SynchronizedObject)
  */
-@InternalAPI
+@InternalKtorApi
 public actual typealias SynchronizedObject = Any
 
 /**
@@ -31,7 +31,7 @@ public actual typealias SynchronizedObject = Any
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.locks.ReentrantLock)
  */
 @Suppress("NOTHING_TO_INLINE")
-@InternalAPI
+@InternalKtorApi
 public actual class ReentrantLock {
     public actual inline fun lock() {}
     public actual inline fun tryLock(): Boolean = true
@@ -44,7 +44,7 @@ public actual class ReentrantLock {
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.locks.Lock)
  */
 @JsName(REENTRANT_LOCK)
-@InternalAPI
+@InternalKtorApi
 public val Lock: ReentrantLock = ReentrantLock()
 
 /**
@@ -53,7 +53,7 @@ public val Lock: ReentrantLock = ReentrantLock()
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.locks.reentrantLock)
  */
 @Suppress("NOTHING_TO_INLINE")
-@InternalAPI
+@InternalKtorApi
 public actual inline fun reentrantLock(): ReentrantLock = Lock
 
 /**
@@ -70,7 +70,7 @@ public actual inline fun reentrantLock(): ReentrantLock = Lock
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.locks.withLock)
  */
-@InternalAPI
+@InternalKtorApi
 public actual inline fun <T> ReentrantLock.withLock(block: () -> T): T = block()
 
 /**
@@ -88,7 +88,7 @@ public actual inline fun <T> ReentrantLock.withLock(block: () -> T): T = block()
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.locks.synchronized)
  */
-@InternalAPI
+@InternalKtorApi
 public actual inline fun <T> synchronized(lock: SynchronizedObject, block: () -> T): T = block()
 
 private const val REENTRANT_LOCK = "atomicfu\$reentrantLock"

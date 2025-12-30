@@ -33,7 +33,7 @@ private val initHook = Darwin
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.Darwin)
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public data object Darwin : HttpClientEngineFactory<DarwinClientEngineConfig> {
     init {
         engines.append(this)

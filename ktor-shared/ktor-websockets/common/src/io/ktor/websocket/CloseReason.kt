@@ -43,7 +43,7 @@ public data class CloseReason(val code: Short, val message: String) {
         PROTOCOL_ERROR(1002),
         CANNOT_ACCEPT(1003),
 
-        @InternalAPI
+        @InternalKtorApi
         @Deprecated("This code MUST NOT be set as a status code in a Close control frame by an endpoint")
         CLOSED_ABNORMALLY(1006),
         NOT_CONSISTENT(1007),

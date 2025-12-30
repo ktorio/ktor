@@ -94,7 +94,7 @@ public class HttpStatement(
      *
      * @return The response body transformed to the specified type [T].
      */
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     public suspend inline fun <reified T> body(): T = unwrapRequestTimeoutException {
         val response = fetchStreamingResponse()
         return try {
@@ -153,7 +153,7 @@ public class HttpStatement(
      * Returns [HttpResponse] with open streaming body.
      */
     @PublishedApi
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     internal suspend fun fetchStreamingResponse(): HttpResponse = unwrapRequestTimeoutException {
         val builder = HttpRequestBuilder().takeFromWithExecutionContext(builder)
         builder.skipSaveBody()
@@ -166,7 +166,7 @@ public class HttpStatement(
      * Returns [HttpResponse] with saved body.
      */
     @PublishedApi
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     internal suspend fun fetchResponse(): HttpResponse = unwrapRequestTimeoutException {
         val builder = HttpRequestBuilder().takeFromWithExecutionContext(builder)
 
@@ -183,7 +183,7 @@ public class HttpStatement(
      * Completes [HttpResponse] and releases resources.
      */
     @PublishedApi
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     internal suspend fun HttpResponse.cleanup() {
         val job = coroutineContext.job as CompletableJob
 

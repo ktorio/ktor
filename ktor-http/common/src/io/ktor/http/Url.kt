@@ -2,7 +2,7 @@
  * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-@file:OptIn(InternalAPI::class)
+@file:OptIn(InternalKtorApi::class)
 
 package io.ktor.http
 

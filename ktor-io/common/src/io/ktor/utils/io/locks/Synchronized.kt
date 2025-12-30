@@ -17,7 +17,7 @@ import io.ktor.utils.io.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.locks.SynchronizedObject)
  */
-@InternalAPI
+@InternalKtorApi
 public expect open class SynchronizedObject()
 
 /**
@@ -29,7 +29,7 @@ public expect open class SynchronizedObject()
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.locks.ReentrantLock)
  */
-@InternalAPI
+@InternalKtorApi
 public expect class ReentrantLock {
     /**
      * Acquires the lock. If the lock is already held by another thread, the current thread
@@ -65,7 +65,7 @@ public expect class ReentrantLock {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.locks.reentrantLock)
  */
-@InternalAPI
+@InternalKtorApi
 public expect fun reentrantLock(): ReentrantLock
 
 /**
@@ -82,7 +82,7 @@ public expect fun reentrantLock(): ReentrantLock
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.locks.withLock)
  */
-@InternalAPI
+@InternalKtorApi
 public expect inline fun <T> ReentrantLock.withLock(block: () -> T): T
 
 /**
@@ -100,5 +100,5 @@ public expect inline fun <T> ReentrantLock.withLock(block: () -> T): T
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.locks.synchronized)
  */
-@InternalAPI
+@InternalKtorApi
 public expect inline fun <T> synchronized(lock: SynchronizedObject, block: () -> T): T

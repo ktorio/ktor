@@ -31,7 +31,7 @@ private val initHook = WinHttp
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.winhttp.WinHttp)
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public data object WinHttp : HttpClientEngineFactory<WinHttpClientEngineConfig> {
     init {
         engines.append(this)

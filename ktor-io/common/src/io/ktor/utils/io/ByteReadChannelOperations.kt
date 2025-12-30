@@ -15,7 +15,7 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.math.min
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public val ByteWriteChannel.availableForWrite: Int
     get() = CHANNEL_MAX_SIZE - writeBuffer.size
 
@@ -29,7 +29,7 @@ public val ByteWriteChannel.availableForWrite: Int
  *
  * @return `true` if the channel is exhausted, `false` if EOF is reached or an error occurred.
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteReadChannel.exhausted(): Boolean {
     if (readBuffer.exhausted()) awaitContent()
     return readBuffer.exhausted()
@@ -39,7 +39,7 @@ public suspend fun ByteReadChannel.toByteArray(): ByteArray {
     return readBuffer().readBytes()
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteReadChannel.readByte(): Byte {
     val currentBuffer = readBuffer
     if (currentBuffer.exhausted() && !awaitContent()) {
@@ -48,13 +48,13 @@ public suspend fun ByteReadChannel.readByte(): Byte {
     return currentBuffer.readByte()
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteReadChannel.readShort(): Short {
     awaitUntilReadable(Short.SIZE_BYTES)
     return readBuffer.readShort()
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteReadChannel.readInt(): Int {
     awaitUntilReadable(Int.SIZE_BYTES)
     return readBuffer.readInt()
@@ -65,13 +65,13 @@ public suspend fun ByteReadChannel.readInt(): Int {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readFloat)
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteReadChannel.readFloat(): Float {
     awaitUntilReadable(Float.SIZE_BYTES)
     return readBuffer.readFloat()
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteReadChannel.readLong(): Long {
     awaitUntilReadable(Long.SIZE_BYTES)
     return readBuffer.readLong()
@@ -82,7 +82,7 @@ public suspend fun ByteReadChannel.readLong(): Long {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readDouble)
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteReadChannel.readDouble(): Double {
     awaitUntilReadable(Double.SIZE_BYTES)
     return readBuffer.readDouble()
@@ -94,7 +94,7 @@ private suspend fun ByteReadChannel.awaitUntilReadable(numberOfBytes: Int) {
     }
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteReadChannel.readBuffer(): Buffer {
     val result = Buffer()
     while (!isClosedForRead) {
@@ -107,7 +107,7 @@ public suspend fun ByteReadChannel.readBuffer(): Buffer {
     return result
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteReadChannel.readBuffer(max: Int): Buffer {
     val result = Buffer()
     var remaining = max
@@ -123,7 +123,7 @@ public suspend fun ByteReadChannel.readBuffer(max: Int): Buffer {
     return result
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteReadChannel.copyAndClose(channel: ByteWriteChannel): Long {
     var result = 0L
     try {
@@ -162,7 +162,7 @@ public suspend fun ByteReadChannel.readUTF8Line(max: Int = Int.MAX_VALUE): Strin
     return if (!completed) null else result.toString()
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteReadChannel.copyTo(channel: ByteWriteChannel): Long {
     var result = 0L
     try {
@@ -191,7 +191,7 @@ public suspend fun ByteReadChannel.copyTo(channel: ByteWriteChannel): Long {
  * @return the number of bytes transferred
  * @throws IOException if the channel is closed with an error
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteReadChannel.readTo(sink: RawSink, limit: Long = Long.MAX_VALUE): Long {
     var remaining = limit
     try {
@@ -212,7 +212,7 @@ public suspend fun ByteReadChannel.readTo(sink: RawSink, limit: Long = Long.MAX_
     return limit - remaining
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteReadChannel.copyTo(channel: ByteWriteChannel, limit: Long): Long {
     var remaining = limit
     try {
@@ -241,7 +241,7 @@ public suspend fun ByteReadChannel.readByteArray(count: Int): ByteArray = buildP
     }
 }.readByteArray()
 
-@OptIn(InternalAPI::class, InternalIoApi::class)
+@OptIn(InternalKtorApi::class, InternalIoApi::class)
 public suspend fun ByteReadChannel.readRemaining(): Source {
     val result = BytePacketBuilder()
     while (!isClosedForRead) {
@@ -253,7 +253,7 @@ public suspend fun ByteReadChannel.readRemaining(): Source {
     return result.buffer
 }
 
-@OptIn(InternalAPI::class, InternalIoApi::class)
+@OptIn(InternalKtorApi::class, InternalIoApi::class)
 public suspend fun ByteReadChannel.readRemaining(max: Long): Source {
     val result = BytePacketBuilder()
     var remaining = max
@@ -279,7 +279,7 @@ public suspend fun ByteReadChannel.readRemaining(max: Long): Source {
  *
  * @return number of bytes were read or `-1` if the channel has been closed
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteReadChannel.readAvailable(
     buffer: ByteArray,
     offset: Int = 0,
@@ -309,7 +309,7 @@ public suspend fun ByteReadChannel.readAvailable(
  *
  * @return number of consumed bytes or -1 if the block wasn't executed.
  */
-@OptIn(InternalAPI::class, InternalIoApi::class)
+@OptIn(InternalKtorApi::class, InternalIoApi::class)
 public fun ByteReadChannel.readAvailable(min: Int, block: (Buffer) -> Int): Int {
     require(min > 0) { "min should be positive" }
     require(min <= CHANNEL_MAX_SIZE) { "Min($min) shouldn't be greater than $CHANNEL_MAX_SIZE" }
@@ -333,7 +333,7 @@ public class ReaderJob internal constructor(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.ReaderJob.flushAndClose)
      */
-    @InternalAPI
+    @InternalKtorApi
     public suspend fun flushAndClose() {
         job.cancelChildren()
         job.children.forEach {
@@ -391,7 +391,7 @@ public fun CoroutineScope.reader(
  *
  * @throws EOFException if the channel is closed before the packet is fully read.
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteReadChannel.readPacket(packet: Int): Source {
     val result = Buffer()
     while (result.size < packet) {
@@ -415,7 +415,7 @@ public suspend fun ByteReadChannel.discardExact(value: Long) {
     if (discard(value) < value) throw EOFException("Unable to discard $value bytes")
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteReadChannel.discard(max: Long = Long.MAX_VALUE): Long {
     var remaining = max
     while (remaining > 0 && !isClosedForRead) {
@@ -446,7 +446,7 @@ private const val LF: Byte = '\n'.code.toByte()
  * @return `true` if a new line separator was found or max bytes appended. `false` if no new line separator and no bytes read.
  * @throws TooLongLineException if max is reached before encountering a newline or end of input
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteReadChannel.readUTF8LineTo(out: Appendable, max: Int = Int.MAX_VALUE): Boolean {
     return readUTF8LineTo(out, max, lineEnding = LineEndingMode.Any)
 }
@@ -466,7 +466,7 @@ public suspend fun ByteReadChannel.readUTF8LineTo(out: Appendable, max: Int = In
  * @return `true` if a new line separator was found or max bytes appended. `false` if no new line separator and no bytes read.
  * @throws TooLongLineException if max is reached before encountering a newline or end of input
  */
-@InternalAPI
+@InternalKtorApi
 @OptIn(InternalIoApi::class)
 public suspend fun ByteReadChannel.readUTF8LineTo(
     out: Appendable,
@@ -523,7 +523,7 @@ public suspend fun ByteReadChannel.readUTF8LineTo(
     }
 }
 
-@OptIn(InternalAPI::class, UnsafeIoApi::class, InternalIoApi::class)
+@OptIn(InternalKtorApi::class, UnsafeIoApi::class, InternalIoApi::class)
 public suspend inline fun ByteReadChannel.read(crossinline block: suspend (ByteArray, Int, Int) -> Int): Int {
     if (isClosedForRead) return -1
     if (readBuffer.exhausted()) awaitContent()
@@ -538,7 +538,7 @@ public suspend inline fun ByteReadChannel.read(crossinline block: suspend (ByteA
     return result
 }
 
-@OptIn(InternalAPI::class, InternalIoApi::class)
+@OptIn(InternalKtorApi::class, InternalIoApi::class)
 public val ByteReadChannel.availableForRead: Int
     get() = readBuffer.buffer.size.toInt()
 
@@ -555,7 +555,7 @@ public val ByteReadChannel.availableForRead: Int
  * @param start the index to start writing at
  * @param end the index to write until
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteReadChannel.readFully(out: ByteArray, start: Int = 0, end: Int = out.size) {
     if (end > start && isClosedForRead) throw EOFException("Channel is already closed")
     var offset = start
@@ -569,17 +569,17 @@ public suspend fun ByteReadChannel.readFully(out: ByteArray, start: Int = 0, end
     }
 }
 
-@InternalAPI
+@InternalKtorApi
 public fun ByteReadChannel.rethrowCloseCauseIfNeeded() {
     closedCause?.let { throw it }
 }
 
-@InternalAPI
+@InternalKtorApi
 public fun ByteWriteChannel.rethrowCloseCauseIfNeeded() {
     closedCause?.let { throw it }
 }
 
-@InternalAPI
+@InternalKtorApi
 public fun ByteChannel.rethrowCloseCauseIfNeeded() {
     closedCause?.let { throw it }
 }
@@ -600,7 +600,7 @@ public fun ByteChannel.rethrowCloseCauseIfNeeded() {
  * @return The number of bytes read, not including the search string.
  * @throws IOException If the limit is exceeded or the byteString is not found and ignoreMissing is false.
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteReadChannel.readUntil(
     matchString: ByteString,
     writeChannel: ByteWriteChannel,
@@ -642,7 +642,7 @@ public suspend fun ByteReadChannel.skipIfFound(byteString: ByteString): Boolean 
  * @param count The number of bytes to peek.
  * @return A [ByteString] containing the bytes that were peeked, or null if unable to peek the specified number of bytes.
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteReadChannel.peek(count: Int): ByteString? {
     if (isClosedForRead) return null
     if (!awaitContent(count)) return null

@@ -59,7 +59,7 @@ internal class RawSourceChannel(
     val job = Job(parent[Job])
     val coroutineContext = parent + job + CoroutineName("RawSourceChannel")
 
-    @InternalAPI
+    @InternalKtorApi
     override val readBuffer: Source
         get() = buffer
 

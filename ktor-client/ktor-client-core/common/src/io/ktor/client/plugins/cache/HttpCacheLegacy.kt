@@ -83,7 +83,7 @@ internal suspend fun PipelineContext<HttpResponse, Unit>.interceptReceiveLegacy(
     }
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 private suspend fun PipelineContext<Any, HttpRequestBuilder>.proceedWithWarning(
     cachedCall: HttpClientCall,
     scope: HttpClient

@@ -19,7 +19,7 @@ import org.eclipse.jetty.io.Connection
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
 
-@InternalAPI
+@InternalKtorApi
 public object JettyUpgradeImpl : ServletUpgrade {
 
     override suspend fun performUpgrade(

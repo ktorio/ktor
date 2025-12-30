@@ -56,7 +56,7 @@ public open class HttpClientCall(
     public lateinit var response: HttpResponse
         protected set
 
-    @InternalAPI
+    @InternalKtorApi
     public constructor(
         client: HttpClient,
         requestData: HttpRequestData,
@@ -73,7 +73,7 @@ public open class HttpClientCall(
 
     protected open val allowDoubleReceive: Boolean = false
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     protected open suspend fun getResponseContent(): ByteReadChannel = response.rawContent
 
     /**

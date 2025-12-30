@@ -12,7 +12,7 @@ import kotlinx.coroutines.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.utils.clientDispatcher)
  */
-@InternalAPI
+@InternalKtorApi
 public actual fun Dispatchers.clientDispatcher(
     threadCount: Int,
     dispatcherName: String

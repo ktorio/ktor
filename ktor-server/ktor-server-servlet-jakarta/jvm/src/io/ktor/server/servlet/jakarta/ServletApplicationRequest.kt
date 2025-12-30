@@ -8,7 +8,7 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.request.*
-import io.ktor.utils.io.InternalAPI
+import io.ktor.utils.io.InternalKtorApi
 import jakarta.servlet.http.*
 
 public abstract class ServletApplicationRequest(
@@ -18,7 +18,7 @@ public abstract class ServletApplicationRequest(
 
     override val local: RequestConnectionPoint = ServletConnectionPoint(servletRequest)
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     override val queryParameters: Parameters by lazy {
         encodeParameters(rawQueryParameters)
             .withEmptyStringForValuelessKeys()

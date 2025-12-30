@@ -52,7 +52,7 @@ internal suspend inline fun ByteReadChannel.tryReadText(charset: Charset): Strin
     null
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal suspend fun HttpClientCallLogger.logResponseBody(response: HttpResponse) {
     val log = StringBuilder()
     try {

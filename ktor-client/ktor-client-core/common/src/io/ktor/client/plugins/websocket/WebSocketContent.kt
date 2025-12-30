@@ -13,7 +13,7 @@ import io.ktor.utils.io.*
 private const val WEBSOCKET_VERSION = "13"
 private const val NONCE_SIZE = 16
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal class WebSocketContent : ClientUpgradeContent() {
     private val nonce: String = buildString {
         val nonce = generateNonce(NONCE_SIZE)

@@ -62,7 +62,7 @@ public open class MockEngine internal constructor(
      */
     public val responseHistory: List<HttpResponseData> get() = _responseHistory
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
 

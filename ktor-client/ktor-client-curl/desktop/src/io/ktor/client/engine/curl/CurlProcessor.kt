@@ -22,7 +22,7 @@ internal class RequestContainer(
 )
 
 internal class CurlProcessor(coroutineContext: CoroutineContext) {
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     private val curlDispatcher: CloseableCoroutineDispatcher =
         Dispatchers.createFixedThreadDispatcher("curl-dispatcher", 1)
 

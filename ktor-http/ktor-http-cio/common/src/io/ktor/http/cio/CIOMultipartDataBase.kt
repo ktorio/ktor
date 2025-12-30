@@ -16,7 +16,7 @@ import kotlin.coroutines.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.CIOMultipartDataBase)
  */
-@InternalAPI
+@InternalKtorApi
 public class CIOMultipartDataBase(
     override val coroutineContext: CoroutineContext,
     channel: ByteReadChannel,

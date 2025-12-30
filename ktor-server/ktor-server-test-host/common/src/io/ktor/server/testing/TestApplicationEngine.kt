@@ -24,7 +24,7 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
 import kotlin.io.encoding.Base64
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 @PublicAPICandidate("2.2.0")
 internal const val CONFIG_KEY_THROW_ON_EXCEPTION = "ktor.test.throwOnException"
 

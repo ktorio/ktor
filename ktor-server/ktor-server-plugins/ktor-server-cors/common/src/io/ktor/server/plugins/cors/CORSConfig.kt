@@ -76,7 +76,7 @@ public class CORSConfig {
                 ContentType.Text.Plain
             ).unmodifiable()
 
-        @OptIn(InternalAPI::class)
+        @OptIn(InternalKtorApi::class)
         private fun caseInsensitiveSet(vararg elements: String): Set<String> =
             CaseInsensitiveSet(elements.asList())
     }
@@ -93,7 +93,7 @@ public class CORSConfig {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORSConfig.headers)
      */
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     public val headers: MutableSet<String> = CaseInsensitiveSet()
 
     /**
@@ -108,7 +108,7 @@ public class CORSConfig {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORSConfig.exposedHeaders)
      */
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     public val exposedHeaders: MutableSet<String> = CaseInsensitiveSet()
 
     /**

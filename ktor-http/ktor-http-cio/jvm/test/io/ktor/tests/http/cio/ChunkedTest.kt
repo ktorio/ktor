@@ -251,7 +251,7 @@ class ChunkedTest {
             override val isClosedForWrite: Boolean get() = false
             override val closedCause: Throwable? get() = null
 
-            @InternalAPI
+            @InternalKtorApi
             override val writeBuffer: Sink = Buffer()
             override suspend fun flush() {
                 throw IOException()

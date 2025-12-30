@@ -34,7 +34,7 @@ internal class JsClientEngine(
         check(config.proxy == null) { "Proxy unsupported in Js engine." }
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
         val clientConfig = data.attributes[CLIENT_CONFIG]
@@ -152,7 +152,7 @@ private fun Event.asString(): String = buildString {
     append(JSON.stringify(this@asString, arrayOf("message", "target", "type", "isTrusted")))
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 private fun org.w3c.fetch.Headers.mapToKtor(method: HttpMethod, attributes: Attributes): Headers = buildHeaders {
     this@mapToKtor.asDynamic().forEach { value: String, key: String ->
         append(key, value)

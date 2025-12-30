@@ -20,7 +20,7 @@ public interface ByteReadChannel {
 
     public val isClosedForRead: Boolean
 
-    @InternalAPI
+    @InternalKtorApi
     public val readBuffer: Source
 
     /**
@@ -43,7 +43,7 @@ public interface ByteReadChannel {
             override val isClosedForRead: Boolean
                 get() = true
 
-            @InternalAPI
+            @InternalKtorApi
             override val readBuffer: Source = Buffer()
 
             override suspend fun awaitContent(min: Int): Boolean = false

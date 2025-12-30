@@ -213,7 +213,7 @@ public class DigestAuthProvider(
     }
 
     @Suppress("DEPRECATION_ERROR")
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     private suspend fun makeDigest(data: String): ByteArray {
         val digest = Digest(algorithmName)
         return digest.build(data.toByteArray(Charsets.UTF_8))

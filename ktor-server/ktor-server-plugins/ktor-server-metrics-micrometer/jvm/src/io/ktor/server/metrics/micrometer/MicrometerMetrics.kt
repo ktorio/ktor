@@ -214,7 +214,7 @@ public val MicrometerMetrics: ApplicationPlugin<MicrometerMetricsConfig> =
 
         pluginConfig.meterBinders.forEach { it.bindTo(pluginConfig.registry) }
 
-        @OptIn(InternalAPI::class)
+        @OptIn(InternalKtorApi::class)
         on(Metrics) { call ->
             if (call.request.httpMethod in DefaultMethods) {
                 active?.incrementAndGet()

@@ -85,7 +85,7 @@ internal suspend fun HTTP2Client.connect(
     )
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 private fun HttpRequestData.prepareHeadersFrame(): HeadersFrame {
     val rawHeaders = HttpFields.build()
     forEachHeader(rawHeaders::add)
@@ -123,7 +123,7 @@ private fun sendRequestBody(request: JettyHttp2Request, content: OutgoingContent
     }
 }
 
-@OptIn(InternalAPI::class, DelicateCoroutinesApi::class)
+@OptIn(InternalKtorApi::class, DelicateCoroutinesApi::class)
 private fun writeRequest(
     from: ByteReadChannel,
     request: JettyHttp2Request,

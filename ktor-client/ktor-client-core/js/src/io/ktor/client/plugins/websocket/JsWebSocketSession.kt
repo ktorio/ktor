@@ -135,7 +135,7 @@ internal class JsWebSocketSession(
         }
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     override fun start(negotiatedExtensions: List<WebSocketExtension<*>>) {
         require(negotiatedExtensions.isEmpty()) { "Extensions are not supported." }
     }
@@ -155,7 +155,7 @@ internal class JsWebSocketSession(
         websocket.close()
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     private fun Short.isReservedStatusCode(): Boolean {
         return CloseReason.Codes.byCode(this).let { resolved ->
 

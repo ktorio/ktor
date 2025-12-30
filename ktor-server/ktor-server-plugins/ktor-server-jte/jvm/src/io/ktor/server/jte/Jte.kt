@@ -52,7 +52,7 @@ public val Jte: ApplicationPlugin<JteConfig> = createApplicationPlugin("jte", ::
 
     val templateEngine = pluginConfig.templateEngine
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     on(BeforeResponseTransform(JteContent::class)) { _, content ->
         val writer = StringOutput()
         templateEngine.render(content.template, content.params, writer)

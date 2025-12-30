@@ -17,6 +17,10 @@ open annotation class io.ktor.utils.io/InternalAPI : kotlin/Annotation { // io.k
     constructor <init>() // io.ktor.utils.io/InternalAPI.<init>|<init>(){}[0]
 }
 
+open annotation class io.ktor.utils.io/InternalKtorApi : kotlin/Annotation { // io.ktor.utils.io/InternalKtorApi|null[0]
+    constructor <init>() // io.ktor.utils.io/InternalKtorApi.<init>|<init>(){}[0]
+}
+
 open annotation class io.ktor.utils.io/KtorDsl : kotlin/Annotation { // io.ktor.utils.io/KtorDsl|null[0]
     constructor <init>() // io.ktor.utils.io/KtorDsl.<init>|<init>(){}[0]
 }

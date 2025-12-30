@@ -15,7 +15,7 @@ open class Animal
 class Cat : Animal(), Pet
 interface Groomer<out P : Pet>
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 class TypesTest {
 
     @Test

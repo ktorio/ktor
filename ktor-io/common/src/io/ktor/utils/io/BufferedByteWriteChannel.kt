@@ -10,7 +10,7 @@ public interface BufferedByteWriteChannel : ByteWriteChannel {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.BufferedByteWriteChannel.flushWriteBuffer)
      */
-    @InternalAPI
+    @InternalKtorApi
     public fun flushWriteBuffer()
 
     /**

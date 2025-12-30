@@ -19,7 +19,7 @@ import org.w3c.fetch.MANUAL
 import org.w3c.fetch.RequestRedirect
 import kotlin.coroutines.CoroutineContext
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal suspend fun HttpRequestData.toRaw(
     clientConfig: HttpClientConfig<*>,
     callContext: CoroutineContext

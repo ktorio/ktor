@@ -71,7 +71,7 @@ public abstract class HttpResponse : HttpMessage, CoroutineScope {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.HttpResponse.rawContent)
      */
-    @InternalAPI
+    @InternalKtorApi
     public abstract val rawContent: ByteReadChannel
 
     override fun toString(): String = "HttpResponse[${request.url}, $status]"
@@ -87,7 +87,7 @@ public abstract class HttpResponse : HttpMessage, CoroutineScope {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.content)
  */
-@InternalAPI
+@InternalKtorApi
 @Deprecated(
     "This method was renamed to readRawBytes() to reflect what it does.",
     ReplaceWith("readRawBytes()")
@@ -101,7 +101,7 @@ public val HttpResponse.content: ByteReadChannel get() = rawContent
  */
 public val HttpResponse.request: HttpRequest get() = call.request
 
-@InternalAPI
+@InternalKtorApi
 @PublishedApi
 internal fun HttpResponse.complete() {
     val job = coroutineContext.job as CompletableJob

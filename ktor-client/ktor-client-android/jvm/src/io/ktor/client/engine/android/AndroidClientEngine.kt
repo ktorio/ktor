@@ -29,7 +29,7 @@ import kotlin.coroutines.CoroutineContext
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.android.AndroidClientEngine)
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClientEngineBase("ktor-android") {
 
     override val supportedCapabilities: Set<HttpClientEngineCapability<*>> = setOf(HttpTimeoutCapability, SSECapability)

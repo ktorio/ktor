@@ -23,7 +23,7 @@ import kotlin.coroutines.CoroutineContext
 
 private val LOGGER = KtorSimpleLogger("io.ktor.client.engine.cio.Endpoint")
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal class Endpoint(
     private val host: String,
     private val port: Int,
@@ -331,7 +331,7 @@ public class FailToConnectException : Exception("Connect timed out or retry atte
 
 internal expect fun Throwable.mapToKtor(request: HttpRequestData): Throwable
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal fun getRequestTimeout(
     request: HttpRequestData,
     engineConfig: CIOEngineConfig

@@ -117,6 +117,6 @@ private val REQUESTS_WITHOUT_BODY = setOf(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.supportsRequestBody)
  */
-@InternalAPI
+@InternalKtorApi
 public val HttpMethod.supportsRequestBody: Boolean
     get() = this !in REQUESTS_WITHOUT_BODY

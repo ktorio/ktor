@@ -35,7 +35,7 @@ internal class JavaHttpResponseBodyHandler(
         return JavaHttpResponseBodySubscriber(coroutineContext, requestData, responseInfo, requestTime)
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     private class JavaHttpResponseBodySubscriber(
         callContext: CoroutineContext,
         requestData: HttpRequestData,

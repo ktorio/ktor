@@ -6,5 +6,5 @@ package io.ktor.server.util
 
 import io.ktor.utils.io.*
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public typealias CopyOnWriteHashMap<K, V> = io.ktor.util.collections.CopyOnWriteHashMap<K, V>

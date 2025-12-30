@@ -46,7 +46,7 @@ public fun ApplicationCall.push(encodedPath: String, encodedParameters: Paramete
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.push)
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 @UseHttp2Push
 public fun ApplicationCall.push(block: ResponsePushBuilder.() -> Unit) {
     response.push(DefaultResponsePushBuilder(this).apply(block))

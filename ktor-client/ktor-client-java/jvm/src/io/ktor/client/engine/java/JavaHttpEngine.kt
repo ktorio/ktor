@@ -37,7 +37,7 @@ public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEng
         }
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val engine = getJavaHttpClient(data)
         val callContext = callContext()

@@ -25,7 +25,7 @@ import kotlin.native.internal.NativePtr
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.locks.SynchronizedObject)
  */
 @OptIn(ExperimentalForeignApi::class)
-@InternalAPI
+@InternalKtorApi
 public actual open class SynchronizedObject {
 
     protected val lock: AtomicReference<LockState> = AtomicReference(LockState(Status.UNLOCKED, 0, 0))
@@ -250,7 +250,7 @@ public actual open class SynchronizedObject {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.locks.ReentrantLock)
  */
-@InternalAPI
+@InternalKtorApi
 public actual typealias ReentrantLock = SynchronizedObject
 
 /**
@@ -258,7 +258,7 @@ public actual typealias ReentrantLock = SynchronizedObject
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.locks.reentrantLock)
  */
-@InternalAPI
+@InternalKtorApi
 public actual fun reentrantLock(): ReentrantLock = ReentrantLock()
 
 /**
@@ -275,7 +275,7 @@ public actual fun reentrantLock(): ReentrantLock = ReentrantLock()
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.locks.withLock)
  */
-@InternalAPI
+@InternalKtorApi
 public actual inline fun <T> ReentrantLock.withLock(block: () -> T): T {
     lock()
     try {
@@ -300,7 +300,7 @@ public actual inline fun <T> ReentrantLock.withLock(block: () -> T): T {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.locks.synchronized)
  */
-@InternalAPI
+@InternalKtorApi
 public actual inline fun <T> synchronized(lock: SynchronizedObject, block: () -> T): T {
     lock.lock()
     try {
