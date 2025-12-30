@@ -69,7 +69,7 @@ public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) 
     var totalBytesCopied = 0L
 
     try {
-        while (input.readUTF8LineTo(chunkSizeBuffer, MAX_CHUNK_SIZE_LENGTH, httpLineEndings)) {
+        while (input.readLineStrictTo(chunkSizeBuffer, MAX_CHUNK_SIZE_LENGTH.toLong()) >= 0) {
             if (chunkSizeBuffer.isEmpty()) {
                 throw EOFException("Invalid chunk size: empty")
             }
@@ -84,11 +84,8 @@ public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) 
             }
 
             chunkSizeBuffer.clear()
-            if (!input.readUTF8LineTo(chunkSizeBuffer, 2, httpLineEndings)) {
+            if (input.readLineStrictTo(chunkSizeBuffer, limit = 0) == -1L) {
                 throw EOFException("Invalid chunk: content block of size $chunkSize ended unexpectedly")
-            }
-            if (chunkSizeBuffer.isNotEmpty()) {
-                throw EOFException("Invalid chunk: content block should end with CR+LF")
             }
 
             if (chunkSize == 0L) break
