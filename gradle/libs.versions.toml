@@ -80,7 +80,7 @@ swagger-parser = "2.1.35"
 puppeteer = "24.16.1"
 tomlj = "1.1.1"
 
-zstd-jni = "1.5.7-3"
+zstd-jni = "1.5.7-6"
 
 # Keep it in sync with build-settings-logic/settings.gradle.kts
 develocity = "4.0.3" # Should be compatible with our server: ge.jetbrains.com
