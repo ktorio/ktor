@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.auth
@@ -60,6 +60,7 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
      *
      * @property authorizeUrl OAuth server authorization page URL
      * @property accessTokenUrl OAuth server access token request URL
+     * @property refreshUrl OAuth server refresh token request URL (optional, only used for API Docs)
      * @property requestMethod HTTP request method to be used to acquire access token (see vendors documentation)
      * @property clientId client id parameter (provided by OAuth server vendor)
      * @property clientSecret client secret parameter (provided by OAuth server vendor)
@@ -70,16 +71,19 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
      * @property authorizeUrlInterceptor an interceptor function to customize authorization URL
      * @property extraAuthParameters extra parameters to send during authentication
      * @property extraTokenParameters extra parameters to send with getting access token call
-     * @property accessTokenInterceptor an interceptor function to customize access token request
+     * @property accessTokenInterceptor an interceptor function to customize the access token request
      */
     public class OAuth2ServerSettings(
         name: String,
         public val authorizeUrl: String,
         public val accessTokenUrl: String,
+        public val refreshUrl: String? = null,
         public val requestMethod: HttpMethod = HttpMethod.Get,
         public val clientId: String,
         public val clientSecret: String,
         public val defaultScopes: List<String> = emptyList(),
+        // TODO: merge `defaultScopes` and `defaultScopeDescriptions` in the next major release
+        public val defaultScopeDescriptions: Map<String, String> = emptyMap(),
         public val accessTokenRequiresBasicAuth: Boolean = false,
         public val nonceManager: NonceManager = GenerateOnlyNonceManager,
         public val authorizeUrlInterceptor: URLBuilder.(ApplicationRequest) -> Unit = {},
@@ -114,13 +118,15 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
             name,
             authorizeUrl,
             accessTokenUrl,
+            refreshUrl = null,
             requestMethod,
             clientId,
             clientSecret,
             defaultScopes,
+            defaultScopeDescriptions = emptyMap(),
             accessTokenRequiresBasicAuth,
             nonceManager,
-            { request: ApplicationRequest -> authorizeUrlInterceptor() },
+            authorizeUrlInterceptor = { _: ApplicationRequest -> authorizeUrlInterceptor() },
             passParamsInURL,
             extraAuthParameters,
             extraTokenParameters,
@@ -137,7 +143,7 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
  */
 public sealed class OAuthCallback {
     /**
-     * An OAuth1a token pair callback parameters.
+     * OAuth1a token pair callback parameters.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthCallback.TokenPair)
      *

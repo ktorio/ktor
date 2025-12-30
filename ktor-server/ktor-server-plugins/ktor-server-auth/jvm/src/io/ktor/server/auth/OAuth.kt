@@ -1,11 +1,10 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.auth
 
 import io.ktor.server.application.*
-import io.ktor.server.response.*
 import kotlinx.io.IOException
 
 internal actual suspend fun OAuthAuthenticationProvider.oauth1a(
@@ -13,7 +12,7 @@ internal actual suspend fun OAuthAuthenticationProvider.oauth1a(
     context: AuthenticationContext
 ) {
     val call = context.call
-    val provider = call.providerLookup()
+    val provider = providerLookup?.invoke(call) ?: settings
     if (provider !is OAuthServerSettings.OAuth1aServerSettings) return
 
     val token = call.oauth1aHandleCallback()
@@ -59,13 +58,11 @@ private suspend fun OAuthAuthenticationProvider.oauth1RequestToken(
     val accessToken = requestOAuth1aAccessToken(client, provider, token)
     context.principal(authProviderName, accessToken)
     null
-} catch (cause: OAuth1aException.MissingTokenException) {
+} catch (_: OAuth1aException.MissingTokenException) {
     AuthenticationFailedCause.InvalidCredentials
 } catch (cause: Throwable) {
     AuthenticationFailedCause.Error("OAuth1a failed to get OAuth1 access token due to $cause")
 }
-
-internal suspend fun ApplicationCall.oauthHandleFail(redirectUrl: String) = respondRedirect(redirectUrl)
 
 internal fun String.appendUrlParameters(parameters: String) =
     when {

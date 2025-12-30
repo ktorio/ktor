@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.auth
@@ -55,6 +55,7 @@ public object AuthenticationChecked : Hook<suspend (ApplicationCall) -> Unit> {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.AuthenticationInterceptors)
  */
+@OptIn(InternalAPI::class)
 public val AuthenticationInterceptors: RouteScopedPlugin<RouteAuthenticationConfig> = createRouteScopedPlugin(
     "AuthenticationInterceptors",
     ::RouteAuthenticationConfig
@@ -208,6 +209,12 @@ private suspend fun AuthenticationContext.executeChallenges(
     return false
 }
 
+@OptIn(InternalAPI::class)
+public fun AuthenticationConfig.allProviders(): Map<String?, AuthenticationProvider> {
+    return providers
+}
+
+@OptIn(InternalAPI::class)
 private fun AuthenticationConfig.findProviders(
     configurations: Collection<AuthenticateProvidersRegistration>,
     filter: (AuthenticationStrategy) -> Boolean
@@ -229,7 +236,7 @@ private fun AuthenticationConfig.findProvider(configurationName: String?): Authe
 
 /**
  *  A resolution strategy for nested authentication providers.
- *  [AuthenticationStrategy.Optional] - if no authentication is provided by the client,
+ *  [AuthenticationStrategy.Optional] - if the client provides no authentication,
  *  a call continues but with a null [Principal].
  *  [AuthenticationStrategy.FirstSuccessful] - client must provide authentication data for at least one provider
  *  registered for this route
@@ -249,13 +256,13 @@ public enum class AuthenticationStrategy { Optional, FirstSuccessful, Required }
  * @see [Authentication]
  *
  * @param configurations names of authentication providers defined in the [Authentication] plugin configuration.
- * @param optional when set, if no authentication is provided by the client,
+ * @param optional when set, if the client provides no authentication,
  * a call continues but with a null [Principal].
  * @throws MissingApplicationPluginException if no [Authentication] plugin installed first.
  * @throws IllegalArgumentException if there are no registered providers referred by [configurations] names.
  */
 public fun Route.authenticate(
-    vararg configurations: String? = arrayOf<String?>(null),
+    vararg configurations: String? = arrayOf(null),
     optional: Boolean = false,
     build: Route.() -> Unit
 ): Route {
@@ -276,7 +283,7 @@ public fun Route.authenticate(
  *
  * @param configurations names of authentication providers defined in the [Authentication] plugin configuration.
  * @param strategy defines resolution strategy for nested authentication providers.
- *  [AuthenticationStrategy.Optional] - if no authentication is provided by the client,
+ *  [AuthenticationStrategy.Optional] - if the client provides no authentication,
  *  a call continues but with a null [Principal].
  *  [AuthenticationStrategy.FirstSuccessful] - client must provide authentication data for at least one provider
  *  registered for this route
@@ -285,8 +292,9 @@ public fun Route.authenticate(
  * @throws MissingApplicationPluginException if no [Authentication] plugin installed first.
  * @throws IllegalArgumentException if there are no registered providers referred by [configurations] names.
  */
+@OptIn(InternalAPI::class)
 public fun Route.authenticate(
-    vararg configurations: String? = arrayOf<String?>(null),
+    vararg configurations: String? = arrayOf(null),
     strategy: AuthenticationStrategy,
     build: Route.() -> Unit
 ): Route {
@@ -316,6 +324,7 @@ public fun Route.authenticate(
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.RouteAuthenticationConfig)
  */
 @KtorDsl
+@InternalAPI
 public class RouteAuthenticationConfig {
     internal var providers: List<AuthenticateProvidersRegistration> =
         listOf(AuthenticateProvidersRegistration(listOf(null), AuthenticationStrategy.FirstSuccessful))
@@ -335,12 +344,19 @@ public class AuthenticationRouteSelector(public val names: List<String?>) : Rout
         return RouteSelectorEvaluation.Transparent
     }
 
-    override fun toString(): String = "(authenticate ${names.joinToString { it ?: "\"default\"" }})"
+    override fun toString(): String = "(authenticate ${names.joinToString { it ?: "\"$DEFAULT_NAME\"" }})"
+
+    public companion object {
+        public const val DEFAULT_NAME: String = "default"
+    }
 }
 
-internal class AuthenticateProvidersRegistration(
-    val names: List<String?>,
-    val strategy: AuthenticationStrategy
+@InternalAPI
+public class AuthenticateProvidersRegistration(
+    public val names: List<String?>,
+    public val strategy: AuthenticationStrategy
 )
 
-private val AuthenticateProvidersKey = AttributeKey<AuthenticateProvidersRegistration>("AuthenticateProviderNamesKey")
+@InternalAPI
+public val AuthenticateProvidersKey: AttributeKey<AuthenticateProvidersRegistration> =
+    AttributeKey<AuthenticateProvidersRegistration>("AuthenticateProviderNamesKey")
