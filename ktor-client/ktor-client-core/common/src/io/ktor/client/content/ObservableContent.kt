@@ -36,8 +36,9 @@ public fun interface ProgressListener {
     public suspend fun onProgress(bytesSentTotal: Long, contentLength: Long?)
 }
 
-internal class ObservableContent(
-    private val delegate: OutgoingContent,
+@InternalAPI
+public class ObservableContent(
+    public val delegate: OutgoingContent,
     private val callContext: CoroutineContext,
     private val listener: ProgressListener
 ) : OutgoingContent.ReadChannelContent() {
