@@ -130,7 +130,7 @@ public abstract class WebRtcPeerConnection private constructor(
      * Runs a [block] in the coroutine scope of the peer connection without extra dispatching.
      * This should be used to run some background tasks without losing thrown exceptions.
      */
-    internal inline fun runInConnectionScope(crossinline block: () -> Unit) {
+    protected inline fun runInConnectionScope(crossinline block: () -> Unit) {
         coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) { block() }
     }
 

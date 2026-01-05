@@ -89,17 +89,23 @@ public object WebRtc {
     /**
      * Represents an ICE server configuration for WebRtc connections.
      *
-     * @property urls The URL(s) of the ICE server.
+     * @property urls The URLs of the ICE server.
      * @property username Optional username for the ICE server.
      * @property credential Optional credential for the ICE server.
      *
      * @see [MDN RTCIceServer](https://developer.mozilla.org/en-US/docs/Web/API/RTCIceServer)
      */
     public data class IceServer(
-        val urls: String,
+        val urls: List<String>,
         val username: String? = null,
         val credential: String? = null
-    )
+    ) {
+        public constructor(url: String, username: String? = null, credential: String? = null) : this(
+            urls = listOf(url),
+            username,
+            credential
+        )
+    }
 
     /**
      * Represents the bundle policy for media negotiation.
