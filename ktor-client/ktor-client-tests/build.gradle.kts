@@ -42,7 +42,6 @@ kotlin {
         }
 
         jvmTest.dependencies {
-            api(projects.ktorClientApache)
             api(projects.ktorClientApache5)
             runtimeOnly(projects.ktorClientAndroid)
             runtimeOnly(projects.ktorClientOkhttp)
