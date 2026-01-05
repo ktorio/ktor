@@ -455,7 +455,7 @@ public data class Parameter(
          * @param example The example object.
          */
         public fun example(name: String, example: ExampleObject) {
-            examples[name] = ReferenceOr.Value(example)
+            examples[name] = Value(example)
         }
 
         /** Validates required fields and constructs the [Parameter]. */
@@ -937,6 +937,7 @@ public data class Security(
 
         /**
          * Adds a security requirement for the given [scheme] and [scopes].
+         * Each call to this method creates an OR relationship (alternative).
          *
          * @param scheme The name of the security scheme.
          * @param scopes Optional list of scopes required for the scheme.
@@ -945,7 +946,26 @@ public data class Security(
             _requirements.add(mapOf(scheme to scopes))
         }
 
-        /** Adds a HTTP Basic authentication requirement. */
+        /**
+         * Adds a security requirement with multiple schemes that must all be satisfied (AND relationship).
+         * Use this when multiple authentication schemes must be used simultaneously.
+         * Each call to this method creates an OR relationship (alternative).
+         *
+         * @param schemes A map of scheme names to their required scopes.
+         */
+        public fun requirement(schemes: Map<String, List<String>>) {
+            _requirements.add(schemes)
+        }
+
+        /**
+         * Marks security as optional by adding an empty requirement object.
+         * This allows requests without any authentication to succeed.
+         */
+        public fun optional() {
+            _requirements.add(emptyMap())
+        }
+
+        /** Adds an HTTP Basic authentication requirement. */
         public fun basic() {
             requirement("basicAuth")
         }
@@ -1202,7 +1222,7 @@ public data class Header(
          * @param example The example object.
          */
         public fun example(name: String, example: ExampleObject) {
-            examples[name] = ReferenceOr.Value(example)
+            examples[name] = Value(example)
         }
 
         /** Constructs the [Header]. */

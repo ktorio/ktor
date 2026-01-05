@@ -16,7 +16,7 @@ import kotlinx.serialization.Serializable
 @KeepGeneratedSerializer
 public data class OpenApiSpecification(
     @EncodeDefault(ALWAYS) public val openapi: String = "3.1.1",
-    /** Provides metadata about the API. The metadata can be used by the clients if needed. */
+    /** Provides metadata about the API. The clients can use the metadata if needed. */
     public val info: OpenApiInfo,
     /** An array of Server Objects, which provide connectivity information to a target server. */
     public val servers: List<Server>? = null,
@@ -25,7 +25,7 @@ public data class OpenApiSpecification(
     /**
      * The incoming webhooks that MAY be received as part of this API and that the API consumer MAY
      * choose to implement. Closely related to the callbacks feature, this section describes requests
-     * initiated other than by an API call, for example by an out of band registration. The key name
+     * initiated other than by an API call, for example, by an out-of-band registration. The key name
      * is a unique string to refer to each webhook, while the (optionally referenced) Path Item Object
      * describes a request that may be initiated by the API provider and the expected responses.
      */
@@ -35,7 +35,7 @@ public data class OpenApiSpecification(
     /**
      * A declaration of which security mechanisms can be used across the API. The list of values
      * includes alternative security requirement objects that can be used. Only one of the security
-     * requirement objects need to be satisfied to authorize a request. Individual operations can
+     * requirement objects needs to be satisfied to authorize a request. Individual operations can
      * override this definition. To make security optional, an empty security requirement can be
      * included in the array.
      */
@@ -148,8 +148,8 @@ public data class Tag(
 
 /**
  * Holds a set of reusable objects for different aspects of the OAS. All objects defined within the
- * components object will have no effect on the API unless they are explicitly referenced from
- * properties outside the components object.
+ * component object will have no effect on the API unless they are explicitly referenced from
+ * properties outside the component object.
  */
 @Serializable(Components.Companion.Serializer::class)
 @OptIn(ExperimentalSerializationApi::class)
@@ -161,6 +161,7 @@ public data class Components(
     public val examples: Map<String, ReferenceOr<ExampleObject>>? = null,
     public val requestBodies: Map<String, ReferenceOr<RequestBody>>? = null,
     public val headers: Map<String, ReferenceOr<Header>>? = null,
+    public val securitySchemes: Map<String, ReferenceOr<SecurityScheme>>? = null,
     public val links: Map<String, ReferenceOr<Link>>? = null,
     public val callbacks: Map<String, ReferenceOr<Callback>>? = null,
     public val pathItems: Map<String, ReferenceOr<PathItem>>? = null,
@@ -183,6 +184,7 @@ public data class Components(
             examples.isNullOrEmpty() &&
             requestBodies.isNullOrEmpty() &&
             headers.isNullOrEmpty() &&
+            securitySchemes.isNullOrEmpty() &&
             links.isNullOrEmpty() &&
             callbacks.isNullOrEmpty() &&
             pathItems.isNullOrEmpty() &&

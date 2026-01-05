@@ -257,6 +257,8 @@ final object io.ktor.server.sessions/SameSite { // io.ktor.server.sessions/SameS
 final const val io.ktor.server.sessions/DEFAULT_SESSION_MAX_AGE // io.ktor.server.sessions/DEFAULT_SESSION_MAX_AGE|{}DEFAULT_SESSION_MAX_AGE[0]
     final fun <get-DEFAULT_SESSION_MAX_AGE>(): kotlin/Long // io.ktor.server.sessions/DEFAULT_SESSION_MAX_AGE.<get-DEFAULT_SESSION_MAX_AGE>|<get-DEFAULT_SESSION_MAX_AGE>(){}[0]
 
+final val io.ktor.server.sessions/SessionProvidersKey // io.ktor.server.sessions/SessionProvidersKey|{}SessionProvidersKey[0]
+    final fun <get-SessionProvidersKey>(): io.ktor.util/AttributeKey<kotlin.collections/List<io.ktor.server.sessions/SessionProvider<*>>> // io.ktor.server.sessions/SessionProvidersKey.<get-SessionProvidersKey>|<get-SessionProvidersKey>(){}[0]
 final val io.ktor.server.sessions/Sessions // io.ktor.server.sessions/Sessions|{}Sessions[0]
     final fun <get-Sessions>(): io.ktor.server.application/RouteScopedPlugin<io.ktor.server.sessions/SessionsConfig> // io.ktor.server.sessions/Sessions.<get-Sessions>|<get-Sessions>(){}[0]
 final val io.ktor.server.sessions/sameSite // io.ktor.server.sessions/sameSite|@io.ktor.http.Cookie{}sameSite[0]
