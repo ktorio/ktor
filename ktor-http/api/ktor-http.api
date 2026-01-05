@@ -488,7 +488,106 @@ public final class io/ktor/http/HttpHeaderValueParserKt {
 }
 
 public final class io/ktor/http/HttpHeaders {
+	public static final field ALPN Ljava/lang/String;
+	public static final field Accept Ljava/lang/String;
+	public static final field AcceptCharset Ljava/lang/String;
+	public static final field AcceptEncoding Ljava/lang/String;
+	public static final field AcceptLanguage Ljava/lang/String;
+	public static final field AcceptRanges Ljava/lang/String;
+	public static final field AccessControlAllowCredentials Ljava/lang/String;
+	public static final field AccessControlAllowHeaders Ljava/lang/String;
+	public static final field AccessControlAllowMethods Ljava/lang/String;
+	public static final field AccessControlAllowOrigin Ljava/lang/String;
+	public static final field AccessControlExposeHeaders Ljava/lang/String;
+	public static final field AccessControlMaxAge Ljava/lang/String;
+	public static final field AccessControlRequestHeaders Ljava/lang/String;
+	public static final field AccessControlRequestMethod Ljava/lang/String;
+	public static final field Age Ljava/lang/String;
+	public static final field Allow Ljava/lang/String;
+	public static final field AuthenticationInfo Ljava/lang/String;
+	public static final field Authorization Ljava/lang/String;
+	public static final field CacheControl Ljava/lang/String;
+	public static final field Connection Ljava/lang/String;
+	public static final field ContentDisposition Ljava/lang/String;
+	public static final field ContentEncoding Ljava/lang/String;
+	public static final field ContentLanguage Ljava/lang/String;
+	public static final field ContentLength Ljava/lang/String;
+	public static final field ContentLocation Ljava/lang/String;
+	public static final field ContentRange Ljava/lang/String;
+	public static final field ContentType Ljava/lang/String;
+	public static final field Cookie Ljava/lang/String;
+	public static final field DASL Ljava/lang/String;
+	public static final field DAV Ljava/lang/String;
+	public static final field Date Ljava/lang/String;
+	public static final field Depth Ljava/lang/String;
+	public static final field Destination Ljava/lang/String;
+	public static final field ETag Ljava/lang/String;
+	public static final field Expect Ljava/lang/String;
+	public static final field Expires Ljava/lang/String;
+	public static final field Forwarded Ljava/lang/String;
+	public static final field From Ljava/lang/String;
+	public static final field HTTP2Settings Ljava/lang/String;
+	public static final field Host Ljava/lang/String;
 	public static final field INSTANCE Lio/ktor/http/HttpHeaders;
+	public static final field If Ljava/lang/String;
+	public static final field IfMatch Ljava/lang/String;
+	public static final field IfModifiedSince Ljava/lang/String;
+	public static final field IfNoneMatch Ljava/lang/String;
+	public static final field IfRange Ljava/lang/String;
+	public static final field IfScheduleTagMatch Ljava/lang/String;
+	public static final field IfUnmodifiedSince Ljava/lang/String;
+	public static final field LastEventID Ljava/lang/String;
+	public static final field LastModified Ljava/lang/String;
+	public static final field Link Ljava/lang/String;
+	public static final field Location Ljava/lang/String;
+	public static final field LockToken Ljava/lang/String;
+	public static final field MIMEVersion Ljava/lang/String;
+	public static final field MaxForwards Ljava/lang/String;
+	public static final field OrderingType Ljava/lang/String;
+	public static final field Origin Ljava/lang/String;
+	public static final field Overwrite Ljava/lang/String;
+	public static final field Position Ljava/lang/String;
+	public static final field Pragma Ljava/lang/String;
+	public static final field Prefer Ljava/lang/String;
+	public static final field PreferenceApplied Ljava/lang/String;
+	public static final field ProxyAuthenticate Ljava/lang/String;
+	public static final field ProxyAuthenticationInfo Ljava/lang/String;
+	public static final field ProxyAuthorization Ljava/lang/String;
+	public static final field PublicKeyPins Ljava/lang/String;
+	public static final field PublicKeyPinsReportOnly Ljava/lang/String;
+	public static final field Range Ljava/lang/String;
+	public static final field Referrer Ljava/lang/String;
+	public static final field RetryAfter Ljava/lang/String;
+	public static final field SLUG Ljava/lang/String;
+	public static final field ScheduleReply Ljava/lang/String;
+	public static final field ScheduleTag Ljava/lang/String;
+	public static final field SecWebSocketAccept Ljava/lang/String;
+	public static final field SecWebSocketExtensions Ljava/lang/String;
+	public static final field SecWebSocketKey Ljava/lang/String;
+	public static final field SecWebSocketProtocol Ljava/lang/String;
+	public static final field SecWebSocketVersion Ljava/lang/String;
+	public static final field Server Ljava/lang/String;
+	public static final field SetCookie Ljava/lang/String;
+	public static final field StrictTransportSecurity Ljava/lang/String;
+	public static final field TE Ljava/lang/String;
+	public static final field Timeout Ljava/lang/String;
+	public static final field Trailer Ljava/lang/String;
+	public static final field TransferEncoding Ljava/lang/String;
+	public static final field Upgrade Ljava/lang/String;
+	public static final field UserAgent Ljava/lang/String;
+	public static final field Vary Ljava/lang/String;
+	public static final field Via Ljava/lang/String;
+	public static final field WWWAuthenticate Ljava/lang/String;
+	public static final field Warning Ljava/lang/String;
+	public static final field XCorrelationId Ljava/lang/String;
+	public static final field XForwardedFor Ljava/lang/String;
+	public static final field XForwardedHost Ljava/lang/String;
+	public static final field XForwardedPort Ljava/lang/String;
+	public static final field XForwardedProto Ljava/lang/String;
+	public static final field XForwardedServer Ljava/lang/String;
+	public static final field XHttpMethodOverride Ljava/lang/String;
+	public static final field XRequestId Ljava/lang/String;
+	public static final field XTotalCount Ljava/lang/String;
 	public final fun checkHeaderName (Ljava/lang/String;)V
 	public final fun checkHeaderValue (Ljava/lang/String;)V
 	public final fun getALPN ()Ljava/lang/String;
@@ -634,6 +733,16 @@ public final class io/ktor/http/HttpMessagePropertiesKt {
 
 public final class io/ktor/http/HttpMethod {
 	public static final field Companion Lio/ktor/http/HttpMethod$Companion;
+	public static final field DefaultMethods Ljava/util/List;
+	public static final field Delete Lio/ktor/http/HttpMethod;
+	public static final field Get Lio/ktor/http/HttpMethod;
+	public static final field Head Lio/ktor/http/HttpMethod;
+	public static final field Options Lio/ktor/http/HttpMethod;
+	public static final field Patch Lio/ktor/http/HttpMethod;
+	public static final field Post Lio/ktor/http/HttpMethod;
+	public static final field Put Lio/ktor/http/HttpMethod;
+	public static final field Query Lio/ktor/http/HttpMethod;
+	public static final field Trace Lio/ktor/http/HttpMethod;
 	public fun <init> (Ljava/lang/String;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun copy (Ljava/lang/String;)Lio/ktor/http/HttpMethod;
@@ -653,7 +762,6 @@ public final class io/ktor/http/HttpMethod$Companion {
 	public final fun getPatch ()Lio/ktor/http/HttpMethod;
 	public final fun getPost ()Lio/ktor/http/HttpMethod;
 	public final fun getPut ()Lio/ktor/http/HttpMethod;
-	public final fun getQuery ()Lio/ktor/http/HttpMethod;
 	public final fun getTrace ()Lio/ktor/http/HttpMethod;
 	public final fun parse (Ljava/lang/String;)Lio/ktor/http/HttpMethod;
 }
@@ -773,8 +881,10 @@ public final class io/ktor/http/HttpUrlEncodedKt {
 	public static final fun formUrlEncode (Ljava/util/List;)Ljava/lang/String;
 	public static final fun formUrlEncodeTo (Lio/ktor/http/Parameters;Ljava/lang/Appendable;)V
 	public static final fun formUrlEncodeTo (Ljava/util/List;Ljava/lang/Appendable;)V
-	public static final fun parseUrlEncodedParameters (Ljava/lang/String;Ljava/nio/charset/Charset;I)Lio/ktor/http/Parameters;
+	public static final synthetic fun parseUrlEncodedParameters (Ljava/lang/String;Ljava/nio/charset/Charset;I)Lio/ktor/http/Parameters;
+	public static final fun parseUrlEncodedParameters (Ljava/lang/String;Ljava/nio/charset/Charset;IZ)Lio/ktor/http/Parameters;
 	public static synthetic fun parseUrlEncodedParameters$default (Ljava/lang/String;Ljava/nio/charset/Charset;IILjava/lang/Object;)Lio/ktor/http/Parameters;
+	public static synthetic fun parseUrlEncodedParameters$default (Ljava/lang/String;Ljava/nio/charset/Charset;IZILjava/lang/Object;)Lio/ktor/http/Parameters;
 }
 
 public final class io/ktor/http/IllegalHeaderNameException : java/lang/IllegalArgumentException {
