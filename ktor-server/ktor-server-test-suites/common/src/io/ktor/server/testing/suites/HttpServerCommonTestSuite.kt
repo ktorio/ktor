@@ -178,6 +178,26 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
+    fun testQueryMethodWithBody() = runTest {
+        createAndStartServer {
+            query("/") {
+                call.respondText("Hello")
+            }
+        }
+
+        withUrl(
+            "/",
+            {
+                method = HttpMethod.Query
+                setBody(ByteArrayContent("some=data".toByteArray(), ContentType.Application.FormUrlEncoded))
+            }
+        ) {
+            assertEquals(HttpStatusCode.OK.value, status.value)
+            assertEquals("Hello", bodyAsText())
+        }
+    }
+
+    @Test
     @Http1Only
     fun testRequestTwiceNoKeepAlive() = runTest {
         createAndStartServer {

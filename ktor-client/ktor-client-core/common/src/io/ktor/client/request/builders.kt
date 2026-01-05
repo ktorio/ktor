@@ -279,6 +279,18 @@ public suspend inline fun HttpClient.head(builder: HttpRequestBuilder): HttpResp
 }
 
 /**
+ * Executes a [HttpClient] QUERY request with the parameters configured in [builder].
+ *
+ * Learn more from [Making requests](https://ktor.io/docs/request.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.query)
+ */
+public suspend inline fun HttpClient.query(builder: HttpRequestBuilder): HttpResponse {
+    builder.method = HttpMethod.Query
+    return request(builder)
+}
+
+/**
  * Prepares an [HttpClient]'s GET request with the parameters configured in [builder].
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.prepareGet)
@@ -345,6 +357,16 @@ public suspend inline fun HttpClient.preparePatch(builder: HttpRequestBuilder): 
  */
 public suspend inline fun HttpClient.prepareHead(builder: HttpRequestBuilder): HttpStatement {
     builder.method = HttpMethod.Head
+    return prepareRequest(builder)
+}
+
+/**
+ * Prepares an [HttpClient]'s QUERY request with the parameters configured in [builder].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.prepareQuery)
+ */
+public suspend inline fun HttpClient.prepareQuery(builder: HttpRequestBuilder): HttpStatement {
+    builder.method = HttpMethod.Query
     return prepareRequest(builder)
 }
 
@@ -455,6 +477,22 @@ public suspend inline fun HttpClient.head(block: HttpRequestBuilder.() -> Unit):
 }
 
 /**
+ * Executes an [HttpClient]'s QUERY request with the parameters configured in [block].
+ *
+ * Learn more from [Making requests](https://ktor.io/docs/request.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.query)
+ */
+public suspend inline fun HttpClient.query(block: HttpRequestBuilder.() -> Unit): HttpResponse {
+    val builder = HttpRequestBuilder()
+    builder.method = HttpMethod.Query
+    builder.block()
+    builder.method = HttpMethod.Query
+
+    return request(builder)
+}
+
+/**
  * Prepares an [HttpClient]'s GET request with the parameters configured in [block].
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.prepareGet)
@@ -525,6 +563,17 @@ public suspend inline fun HttpClient.preparePatch(block: HttpRequestBuilder.() -
 public suspend inline fun HttpClient.prepareHead(block: HttpRequestBuilder.() -> Unit): HttpStatement {
     val builder = HttpRequestBuilder()
     builder.method = HttpMethod.Head
+    return prepareRequest(builder.apply(block))
+}
+
+/**
+ * Prepares an [HttpClient]'s QUERY request with the parameters configured in [block].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.prepareQuery)
+ */
+public suspend inline fun HttpClient.prepareQuery(block: HttpRequestBuilder.() -> Unit): HttpStatement {
+    val builder = HttpRequestBuilder()
+    builder.method = HttpMethod.Query
     return prepareRequest(builder.apply(block))
 }
 
@@ -649,6 +698,22 @@ public suspend inline fun HttpClient.head(
 }
 
 /**
+ * Executes an [HttpClient]'s QUERY request with the specified [url] and
+ * an optional [block] receiving an [HttpRequestBuilder] for configuring the request.
+ *
+ * Learn more from [Making requests](https://ktor.io/docs/request.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.query)
+ */
+public suspend inline fun HttpClient.query(
+    urlString: String,
+    block: HttpRequestBuilder.() -> Unit = {}
+): HttpResponse = query {
+    url(urlString)
+    block()
+}
+
+/**
  * Prepares an [HttpClient]'s GET request with the specified [url] and
  * an optional [block] receiving an [HttpRequestBuilder] for configuring the request.
  *
@@ -742,6 +807,20 @@ public suspend inline fun HttpClient.prepareHead(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
 ): HttpStatement = prepareHead {
+    url(urlString)
+    block()
+}
+
+/**
+ * Prepares an [HttpClient]'s QUERY request with the specified [url] and
+ * an optional [block] receiving an [HttpRequestBuilder] for configuring the request.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.prepareQuery)
+ */
+public suspend inline fun HttpClient.prepareQuery(
+    urlString: String,
+    block: HttpRequestBuilder.() -> Unit = {}
+): HttpStatement = prepareQuery {
     url(urlString)
     block()
 }

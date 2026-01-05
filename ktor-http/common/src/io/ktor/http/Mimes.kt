@@ -6,7 +6,7 @@ package io.ktor.http
 
 import io.ktor.util.*
 
-internal const val INITIAL_MIMES_LIST_SIZE: Int = 1217
+internal const val INITIAL_MIMES_LIST_SIZE: Int = 1216
 
 private val rawMimes: String
     get() = """
@@ -731,6 +731,7 @@ audio/x-au,au
 audio/x-gsm,gsd gsm
 audio/x-jam,jam
 audio/x-liveaudio,lam
+audio/x-matroska,mka
 audio/x-mid,mid midi
 audio/x-midi,midi
 audio/x-mod,mod
@@ -936,9 +937,8 @@ video/jpeg,jpgv
 video/jpm,jpm
 video/mj2,mj2
 video/mp4,m4v mp4
-application/mp4,mp4
+application/mp4,mp4s
 video/mpeg,m1v m2v mp2 mpe mpeg mpg
-audio/mpeg,mpg
 video/msvideo,avi
 video/ogg,ogv
 video/quicktime,moov mov qt
@@ -968,7 +968,6 @@ video/x-flv,flv
 video/x-gl,gl
 video/x-isvideo,isu
 video/x-matroska,mkv
-audio/x-matroska,mkv
 video/x-motion-jpeg,mjpg
 video/x-mpeg,mp2
 video/x-mpeq2a,mp2

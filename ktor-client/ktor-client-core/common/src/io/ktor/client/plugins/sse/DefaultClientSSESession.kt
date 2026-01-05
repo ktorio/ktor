@@ -4,19 +4,21 @@
 
 package io.ktor.client.plugins.sse
 
-import io.ktor.client.network.sockets.SocketTimeoutException
+import io.ktor.client.network.sockets.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.sse.*
+import io.ktor.util.*
 import io.ktor.util.logging.*
-import io.ktor.util.rootCause
 import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onCompletion
+import kotlinx.io.IOException
 import kotlin.coroutines.CoroutineContext
 
 @OptIn(InternalAPI::class)
@@ -33,12 +35,11 @@ public class DefaultClientSSESession(
     private val maxReconnectionAttempts = content.maxReconnectionAttempts
     private var needToReconnect = maxReconnectionAttempts > 0
     private var bodyBuffer: BodyBuffer = content.bufferPolicy.toBodyBuffer()
-
     private val initialRequest = content.initialRequest
-
     private val clientForReconnection = initialRequest.attributes[SSEClientForReconnectionAttr]
-
     private val callContext = content.callContext
+
+    private val closed = atomic(false)
 
     override fun bodyBuffer(): ByteArray = bodyBuffer.toByteArray()
 
@@ -64,26 +65,25 @@ public class DefaultClientSSESession(
             if (needToReconnect) {
                 doReconnection()
             } else {
-                close()
+                break
             }
         }
     }.catch { cause ->
-        when (cause) {
-            is CancellationException -> {
-                // CancellationException will be handled by onCompletion operator
-            }
-
-            else -> {
-                LOGGER.trace { "Error during SSE session processing: $cause" }
-                close()
-                throw cause
-            }
-        }
-    }.onCompletion { cause ->
-        // Because catch operator only catch throwable occurs in upstream flow, so we use onCompletion operator instead
-        // to handle CancellationException occurs in either upstream flow or downstream flow.
         if (cause is CancellationException) {
-            close()
+            return@catch
+        }
+
+        LOGGER.trace { "Error during SSE session processing: $cause" }
+        throw cause
+    }.onCompletion { cause ->
+        close()
+
+        when (cause) {
+            null -> return@onCompletion
+            is CancellationException -> return@onCompletion
+            else -> {
+                throw SSEClientException(cause = cause, message = cause.message)
+            }
         }
     }
 
@@ -144,6 +144,8 @@ public class DefaultClientSSESession(
         get() = _incoming
 
     private fun close() {
+        if (!closed.compareAndSet(expect = false, update = true)) return
+
         coroutineContext.cancel()
         input.cancel()
         callContext.cancel()
@@ -152,7 +154,7 @@ public class DefaultClientSSESession(
     private suspend fun ByteReadChannel.tryParseEvent(): ServerSentEvent? =
         try {
             parseEvent()
-        } catch (cause: ClosedByteChannelException) {
+        } catch (cause: IOException) {
             val rootCause = cause.rootCause
             if (rootCause is SocketTimeoutException) {
                 throw rootCause
