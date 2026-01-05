@@ -99,7 +99,13 @@ public object WebRtc {
         val urls: List<String>,
         val username: String? = null,
         val credential: String? = null
-    )
+    ) {
+        public constructor(url: String, username: String? = null, credential: String? = null) : this(
+            urls = listOf(url),
+            username,
+            credential
+        )
+    }
 
     /**
      * Represents the bundle policy for media negotiation.

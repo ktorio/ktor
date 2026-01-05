@@ -172,6 +172,7 @@ abstract class io.ktor.client.webrtc/WebRtcPeerConnection : io.ktor.client.webrt
     abstract suspend fun removeTrack(io.ktor.client.webrtc/WebRtcMedia.Track) // io.ktor.client.webrtc/WebRtcPeerConnection.removeTrack|removeTrack(io.ktor.client.webrtc.WebRtcMedia.Track){}[0]
     abstract suspend fun setLocalDescription(io.ktor.client.webrtc/WebRtc.SessionDescription) // io.ktor.client.webrtc/WebRtcPeerConnection.setLocalDescription|setLocalDescription(io.ktor.client.webrtc.WebRtc.SessionDescription){}[0]
     abstract suspend fun setRemoteDescription(io.ktor.client.webrtc/WebRtc.SessionDescription) // io.ktor.client.webrtc/WebRtcPeerConnection.setRemoteDescription|setRemoteDescription(io.ktor.client.webrtc.WebRtc.SessionDescription){}[0]
+    final inline fun runInConnectionScope(crossinline kotlin/Function0<kotlin/Unit>) // io.ktor.client.webrtc/WebRtcPeerConnection.runInConnectionScope|runInConnectionScope(kotlin.Function0<kotlin.Unit>){}[0]
     final suspend fun awaitIceGatheringComplete() // io.ktor.client.webrtc/WebRtcPeerConnection.awaitIceGatheringComplete|awaitIceGatheringComplete(){}[0]
     open fun close() // io.ktor.client.webrtc/WebRtcPeerConnection.close|close(){}[0]
 }
@@ -595,6 +596,7 @@ final object io.ktor.client.webrtc/WebRtc { // io.ktor.client.webrtc/WebRtc|null
 
     final class IceServer { // io.ktor.client.webrtc/WebRtc.IceServer|null[0]
         constructor <init>(kotlin.collections/List<kotlin/String>, kotlin/String? = ..., kotlin/String? = ...) // io.ktor.client.webrtc/WebRtc.IceServer.<init>|<init>(kotlin.collections.List<kotlin.String>;kotlin.String?;kotlin.String?){}[0]
+        constructor <init>(kotlin/String, kotlin/String? = ..., kotlin/String? = ...) // io.ktor.client.webrtc/WebRtc.IceServer.<init>|<init>(kotlin.String;kotlin.String?;kotlin.String?){}[0]
 
         final val credential // io.ktor.client.webrtc/WebRtc.IceServer.credential|{}credential[0]
             final fun <get-credential>(): kotlin/String? // io.ktor.client.webrtc/WebRtc.IceServer.credential.<get-credential>|<get-credential>(){}[0]
