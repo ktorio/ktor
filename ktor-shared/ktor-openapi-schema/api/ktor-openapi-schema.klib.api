@@ -909,6 +909,12 @@ final class io.ktor.openapi/OpenApiDoc : io.ktor.openapi/Extensible { // io.ktor
 
         final val extensions // io.ktor.openapi/OpenApiDoc.Builder.extensions|{}extensions[0]
             final fun <get-extensions>(): kotlin.collections/MutableMap<kotlin/String, io.ktor.openapi/GenericElement> // io.ktor.openapi/OpenApiDoc.Builder.extensions.<get-extensions>|<get-extensions>(){}[0]
+        final val securityRequirements // io.ktor.openapi/OpenApiDoc.Builder.securityRequirements|{}securityRequirements[0]
+            final fun <get-securityRequirements>(): kotlin.collections/List<kotlin.collections/Map<kotlin/String, kotlin.collections/List<kotlin/String>>> // io.ktor.openapi/OpenApiDoc.Builder.securityRequirements.<get-securityRequirements>|<get-securityRequirements>(){}[0]
+        final val servers // io.ktor.openapi/OpenApiDoc.Builder.servers|{}servers[0]
+            final fun <get-servers>(): kotlin.collections/List<io.ktor.openapi/Server> // io.ktor.openapi/OpenApiDoc.Builder.servers.<get-servers>|<get-servers>(){}[0]
+        final val tags // io.ktor.openapi/OpenApiDoc.Builder.tags|{}tags[0]
+            final fun <get-tags>(): kotlin.collections/List<kotlin/String> // io.ktor.openapi/OpenApiDoc.Builder.tags.<get-tags>|<get-tags>(){}[0]
 
         final var components // io.ktor.openapi/OpenApiDoc.Builder.components|{}components[0]
             final fun <get-components>(): io.ktor.openapi/Components? // io.ktor.openapi/OpenApiDoc.Builder.components.<get-components>|<get-components>(){}[0]
@@ -1381,6 +1387,11 @@ final class io.ktor.openapi/PathItem : io.ktor.openapi/Extensible { // io.ktor.o
 
     final class Builder { // io.ktor.openapi/PathItem.Builder|null[0]
         constructor <init>(io.ktor.openapi/JsonSchemaInference, kotlin.collections/List<io.ktor.http/ContentType>) // io.ktor.openapi/PathItem.Builder.<init>|<init>(io.ktor.openapi.JsonSchemaInference;kotlin.collections.List<io.ktor.http.ContentType>){}[0]
+
+        final val parameters // io.ktor.openapi/PathItem.Builder.parameters|{}parameters[0]
+            final fun <get-parameters>(): kotlin.collections/List<io.ktor.openapi/Parameter> // io.ktor.openapi/PathItem.Builder.parameters.<get-parameters>|<get-parameters>(){}[0]
+        final val servers // io.ktor.openapi/PathItem.Builder.servers|{}servers[0]
+            final fun <get-servers>(): kotlin.collections/List<io.ktor.openapi/Server> // io.ktor.openapi/PathItem.Builder.servers.<get-servers>|<get-servers>(){}[0]
 
         final var description // io.ktor.openapi/PathItem.Builder.description|{}description[0]
             final fun <get-description>(): kotlin/String? // io.ktor.openapi/PathItem.Builder.description.<get-description>|<get-description>(){}[0]

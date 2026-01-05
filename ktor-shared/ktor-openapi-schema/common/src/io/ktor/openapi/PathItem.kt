@@ -84,6 +84,16 @@ public data class PathItem(
         public var extensions: MutableMap<String, GenericElement> = mutableMapOf()
 
         /**
+         * A list of parameters that are applicable for all the operations described under this path.
+         */
+        public val parameters: List<Parameter> get() = _parameters
+
+        /**
+         * A list of servers configured for this path.
+         */
+        public val servers: List<Server> get() = _servers
+
+        /**
          * Adds parameters using the [Parameters] DSL.
          *
          * @param configure DSL to define one or more parameters.

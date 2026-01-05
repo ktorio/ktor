@@ -4,6 +4,7 @@
 
 package io.ktor.openapi
 
+import io.ktor.openapi.GenericElementEncoder.Companion.elementEncoder
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
@@ -39,7 +40,7 @@ public interface GenericElement {
          * @return A [GenericElement] representing the encoded data of the item.
          */
         public fun <T> encodeToElement(serializer: KSerializer<T>, item: T): GenericElement {
-            val encoder = GenericElementEncoder(serializer)
+            val encoder = elementEncoder(serializer)
             encoder.encodeSerializableValue(serializer, item)
             return encoder.build()
         }
@@ -82,14 +83,14 @@ public interface GenericElement {
     /**
      * If this is a map, return a list of key-value entries.
      *
-     * @throws IllegalStateException if this is not a map.
+     * @throws SerializationException if this is not a map.
      */
     public fun entries(): List<Pair<String, GenericElement>>
 
     /**
      * If this is a list, return all elements.
      *
-     * @throws IllegalStateException if this is not a list.
+     * @throws SerializationException if this is not a list.
      */
     public fun items(): List<GenericElement>
 
@@ -217,7 +218,7 @@ public class GenericElementWrapper<T : Any>(
         if (element is Iterable<*>) {
             element.map { item ->
                 when (item) {
-                    null -> GenericElement.EmptyObject
+                    null -> serialError("Expected element but was null")
                     is GenericElement -> item
                     else -> GenericElement(item)
                 }
@@ -237,6 +238,13 @@ public class GenericElementString(
     override val element: String,
     override val elementSerializer: KSerializer<String> = String.serializer(),
 ) : GenericElement {
+    /**
+     * Deserializes the string element using strict type conversion.
+     *
+     * @throws NumberFormatException if converting to numeric type with invalid format
+     * @throws IllegalArgumentException if converting to boolean with value other than "true"/"false"
+     * @throws IllegalStateException if attempting to deserialize to non-scalar types
+     */
     @Suppress("UNCHECKED_CAST")
     override fun <T> deserialize(serializer: DeserializationStrategy<T>): T =
         serializer.deserialize(StringDecoder(serializersModule))
@@ -317,20 +325,26 @@ internal class GenericElementList(
         serialError("Cannot get entries for a list")
 }
 
-internal fun GenericElementEncoder(serializer: KSerializer<*>) =
-    GenericElementEncoder(serializer.descriptor)
-
-internal fun GenericElementEncoder(descriptor: SerialDescriptor, onClose: () -> Unit = {}) = when (descriptor.kind) {
-    StructureKind.LIST -> GenericElementListEncoder(onClose)
-    StructureKind.MAP -> GenericElementMapEncoder(onClose)
-    // Class, Objects, etc.
-    else -> GenericElementEntriesEncoder(onClose)
-}
-
 @OptIn(ExperimentalSerializationApi::class)
 internal abstract class GenericElementEncoder(
     protected val onClose: () -> Unit
 ) : AbstractEncoder() {
+    companion object {
+        internal fun elementEncoder(serializer: KSerializer<*>) =
+            elementEncoder(serializer.descriptor, isRoot = true)
+
+        internal fun elementEncoder(
+            descriptor: SerialDescriptor,
+            isRoot: Boolean = true,
+            onClose: () -> Unit = {}
+        ) =
+            when (descriptor.kind) {
+                StructureKind.LIST -> GenericElementListEncoder(onClose, isRoot)
+                StructureKind.MAP -> GenericElementMapEncoder(onClose)
+                // Class, Objects, etc.
+                else -> GenericElementEntriesEncoder(onClose)
+            }
+    }
 
     override val serializersModule: SerializersModule = EmptySerializersModule()
 
@@ -341,7 +355,7 @@ internal abstract class GenericElementEncoder(
 
     override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder =
         if (shouldCreateNested()) {
-            GenericElementEncoder(descriptor) {
+            elementEncoder(descriptor, isRoot = false) {
                 closeNested()
             }.also {
                 currentNestedEncoder = it
@@ -353,13 +367,18 @@ internal abstract class GenericElementEncoder(
     protected abstract fun shouldCreateNested(): Boolean
 
     protected fun closeNested() {
-        storeElement(
-            currentNestedEncoder?.build() ?: serialError("No nested encoder to close")
-        )
-        currentNestedEncoder = null
+        currentNestedEncoder?.let { encoder ->
+            storeElement(encoder.build())
+            currentNestedEncoder = null
+        }
     }
 
     override fun endStructure(descriptor: SerialDescriptor) {
+        // Only call onClose if this encoder was created as a nested encoder
+        // (i.e., it has an onClose callback that does something)
+        if (currentNestedEncoder != null) {
+            closeNested()
+        }
         onClose()
     }
 
@@ -390,8 +409,9 @@ internal class GenericElementEntriesEncoder(
     internal val entries: MutableList<Pair<String, GenericElement>> = mutableListOf(),
 ) : GenericElementEncoder(onClose) {
     private var currentElementName: String? = null
+    private var rootElement: GenericElement? = null
 
-    override fun build(): GenericElement = GenericElement(entries)
+    override fun build(): GenericElement = rootElement ?: GenericElement(entries)
 
     override fun encodeElement(descriptor: SerialDescriptor, index: Int): Boolean {
         currentElementName = descriptor.getElementName(index)
@@ -399,7 +419,11 @@ internal class GenericElementEntriesEncoder(
     }
 
     override fun storeElement(element: GenericElement) {
-        val name = currentElementName ?: return
+        val name = currentElementName
+        if (name == null) {
+            rootElement = element
+            return
+        }
         entries += name to element
         currentElementName = null
     }
@@ -409,12 +433,13 @@ internal class GenericElementEntriesEncoder(
     }
 
     override fun shouldCreateNested(): Boolean =
-        currentElementName != null
+        rootElement == null || currentElementName != null
 }
 
 internal class GenericElementListEncoder(
     onClose: () -> Unit,
-    internal val elements: MutableList<GenericElement> = mutableListOf()
+    private val isRoot: Boolean = false,
+    internal val elements: MutableList<GenericElement> = mutableListOf(),
 ) : GenericElementEncoder(onClose) {
     override fun build(): GenericElement = GenericElementList(elements)
 
@@ -422,10 +447,10 @@ internal class GenericElementListEncoder(
         elements += element
     }
 
-    override fun shouldCreateNested(): Boolean = true
+    override fun shouldCreateNested(): Boolean = !isRoot
 
     override fun encodeNull() {
-        throw SerializationException("Nulls cannot be encoded in generic element lists")
+        // Skip null values in lists
     }
 }
 

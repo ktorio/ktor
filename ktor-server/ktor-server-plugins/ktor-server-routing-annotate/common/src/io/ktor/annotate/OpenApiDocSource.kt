@@ -7,7 +7,6 @@ package io.ktor.annotate
 import io.ktor.http.ContentType
 import io.ktor.http.fromFilePath
 import io.ktor.openapi.OpenApiDoc
-import io.ktor.openapi.OpenApiInfo
 import io.ktor.server.application.Application
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.routingRoot
@@ -29,15 +28,16 @@ public sealed interface OpenApiDocSource {
         public fun Application.readOpenApiSource(
             source: OpenApiDocSource,
             baseDoc: OpenApiDoc,
-        ): String? =
+        ): OpenApiDocText? =
             when (source) {
-                is StringSource -> source.content
-                is FileSource -> readFileContents(source.path)
-                is RoutingSource -> readOpenApiFromRoute(source, baseDoc)
-                is FirstOf -> source.options
-                    .firstNotNullOfOrNull {
-                        readOpenApiSource(it, baseDoc)
-                    }
+                is OpenApiDocText -> source
+                is FileSource -> readFileContents(source.path)?.let { OpenApiDocText(it, source.contentType) }
+                is RoutingSource -> OpenApiDocText(readOpenApiFromRoute(source, baseDoc), source.contentType)
+                is FirstOf ->
+                    source.options
+                        .firstNotNullOfOrNull {
+                            readOpenApiSource(it, baseDoc)
+                        }
             }
 
         private fun Application.readOpenApiFromRoute(
@@ -57,20 +57,13 @@ public sealed interface OpenApiDocSource {
     }
 
     /**
-     * The [ContentType] of the OpenAPI document.
-     *
-     * This is generally either application/json or application/yaml.
-     */
-    public val contentType: ContentType
-
-    /**
      * A static string source for an OpenAPI document.
      *
      * @param content The text returned for the spec.
      */
-    public data class StringSource(
+    public data class OpenApiDocText(
         val content: String,
-        override val contentType: ContentType = ContentType.Application.Json
+        val contentType: ContentType = ContentType.Application.Json
     ) : OpenApiDocSource {
         override fun toString(): String = "<string>"
     }
@@ -81,7 +74,7 @@ public sealed interface OpenApiDocSource {
      * @param path The file path to read the document from.
      */
     public data class FileSource(val path: String) : OpenApiDocSource {
-        override val contentType: ContentType by lazy {
+        val contentType: ContentType by lazy {
             ContentType.fromFilePath(path).firstOrNull() ?: ContentType.Application.Json
         }
         override fun toString(): String =
@@ -91,11 +84,10 @@ public sealed interface OpenApiDocSource {
     /**
      * A source for an OpenAPI document that is generated from the application's routing tree.
      *
-     * @param info The [OpenApiInfo] to use for the document.
      * @param routes Producer for routes to be included in the document.  Defaults to the full routing tree.
      */
     public data class RoutingSource(
-        override val contentType: ContentType,
+        val contentType: ContentType,
         val routes: Application.() -> Sequence<Route> = { routingRoot.descendants() }
     ) : OpenApiDocSource {
         override fun toString(): String =
@@ -109,9 +101,6 @@ public sealed interface OpenApiDocSource {
      */
     public data class FirstOf(val options: List<OpenApiDocSource>) : OpenApiDocSource {
         public constructor(vararg options: OpenApiDocSource) : this(options.toList())
-
-        override val contentType: ContentType =
-            options.firstNotNullOfOrNull { it.contentType } ?: ContentType.Application.Json
 
         override fun toString(): String =
             "firstOf: ${options.joinToString(", ")}"

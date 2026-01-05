@@ -6,6 +6,7 @@ package io.ktor.server.plugins.openapi
 
 import io.ktor.annotate.*
 import io.ktor.annotate.OpenApiDocSource.Companion.readOpenApiSource
+import io.ktor.http.ContentType
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
 import io.ktor.server.routing.*
@@ -71,15 +72,15 @@ internal val OpenAPI: RouteScopedPlugin<OpenAPIConfig> = createRouteScopedPlugin
     application.generateFilesBeforeStartup(pluginConfig)
 }
 
-internal fun Application.generateFilesBeforeStartup(config: OpenAPIConfig) {
+private fun Application.generateFilesBeforeStartup(config: OpenAPIConfig) {
     monitor.subscribe(ApplicationModulesLoaded) {
-        val apiDocument = readOpenApiSource(config.source, config.buildBaseDoc())
+        val (apiDocument) = readOpenApiSource(config.source, config.buildBaseDoc())
             ?: error("Failed to read OpenAPI document from ${config.source}")
         config.generateFiles(apiDocument)
     }
 }
 
-internal fun OpenAPIConfig.generateFiles(apiDocument: String) {
+private fun OpenAPIConfig.generateFiles(apiDocument: String) {
     val swagger = try {
         parser.readContents(apiDocument, null, options)
     } catch (t: Throwable) {

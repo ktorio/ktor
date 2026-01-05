@@ -73,7 +73,7 @@ public fun Route.swaggerUI(
 ): Route =
     swaggerUI(path) {
         block()
-        source = OpenApiDocSource.StringSource(api)
+        source = OpenApiDocSource.OpenApiDocText(api)
         remotePath = apiUrl
     }
 
@@ -92,7 +92,7 @@ public fun Route.swaggerUI(
     val config = SwaggerConfig().apply(block)
     val source = config.source
     val apiUrl = config.remotePath
-    val openApiDocText = with(application) {
+    val openApiDoc = with(application) {
         async(start = CoroutineStart.LAZY) {
             readOpenApiSource(source, config.buildBaseDoc())
                 ?: error("Failed to read OpenAPI document from $source")
@@ -101,7 +101,8 @@ public fun Route.swaggerUI(
 
     return route(path) {
         get(apiUrl) {
-            call.respondText(openApiDocText.await(), source.contentType)
+            val (openApiText, contentType) = openApiDoc.await()
+            call.respondText(openApiText, contentType)
         }
         get {
             val fullPath = call.request.path()

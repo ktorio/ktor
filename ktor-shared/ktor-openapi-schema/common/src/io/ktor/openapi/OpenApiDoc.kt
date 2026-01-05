@@ -155,6 +155,21 @@ public data class OpenApiDoc(
         private val _tags = mutableListOf<String>()
         private val _securityRequirements = mutableListOf<Map<String, List<String>>>()
 
+        /**
+         * A list of servers configured for this API.
+         */
+        public val servers: List<Server> get() = _servers
+
+        /**
+         * A list of tags configured for this API.
+         */
+        public val tags: List<String> get() = _tags
+
+        /**
+         * A list of security requirements configured for this API.
+         */
+        public val securityRequirements: List<Map<String, List<String>>> get() = _securityRequirements
+
         override fun servers(configure: Servers.Builder.() -> Unit) {
             Servers.Builder().apply(configure).build().servers.forEach { _servers.add(it) }
         }

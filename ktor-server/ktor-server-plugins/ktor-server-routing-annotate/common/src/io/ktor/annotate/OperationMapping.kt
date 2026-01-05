@@ -73,7 +73,7 @@ public val PopulateMediaTypeDefaults: OperationMapping = OperationMapping { oper
             ReferenceOr.Value(
                 param.copy(
                     `in` = param.`in` ?: ParameterType.query,
-                    schema = StringReference.takeIf { param.content == null },
+                    schema = param.schema ?: StringReference.takeIf { param.content == null },
                 )
             )
         },

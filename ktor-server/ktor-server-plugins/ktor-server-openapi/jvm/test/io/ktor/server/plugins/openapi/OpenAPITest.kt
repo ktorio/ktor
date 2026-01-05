@@ -32,7 +32,7 @@ class OpenAPITest {
     )
 
     @Test
-    fun testResolveOpenAPIFile() = testApplication {
+    fun `resolves from file and routing sources`() = testApplication {
         install(ContentNegotiation) {
             json()
         }
