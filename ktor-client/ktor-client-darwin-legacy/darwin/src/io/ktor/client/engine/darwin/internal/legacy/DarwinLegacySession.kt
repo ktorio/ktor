@@ -15,6 +15,7 @@ import platform.Foundation.*
 import kotlin.coroutines.*
 
 @OptIn(UnsafeNumber::class)
+@Suppress("DEPRECATION")
 internal class DarwinLegacySession(
     private val config: DarwinLegacyClientEngineConfig,
     private val requestQueue: NSOperationQueue?
@@ -55,6 +56,7 @@ internal class DarwinLegacySession(
 }
 
 @OptIn(UnsafeNumber::class)
+@Suppress("DEPRECATION")
 internal fun createSession(
     config: DarwinLegacyClientEngineConfig,
     requestQueue: NSOperationQueue?
