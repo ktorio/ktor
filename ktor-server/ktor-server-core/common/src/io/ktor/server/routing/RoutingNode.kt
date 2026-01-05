@@ -30,10 +30,10 @@ import kotlin.coroutines.CoroutineContext
 @KtorDsl
 public open class RoutingNode(
     public override val parent: RoutingNode?,
-    public val selector: RouteSelector,
+    public override val selector: RouteSelector,
     developmentMode: Boolean = false,
     environment: ApplicationEnvironment
-) : ApplicationCallPipeline(developmentMode, environment), Route, TreeLike<RoutingNode> {
+) : ApplicationCallPipeline(developmentMode, environment), Route {
 
     /**
      * List of child routes for this node.
@@ -280,10 +280,26 @@ public typealias RoutingHandler = suspend RoutingContext.() -> Unit
 @Suppress("ktlint:standard:no-consecutive-comments")
 // TODO KTOR-8809: Uncomment the annotation
 // @KtorDsl
-public interface Route {
+public interface Route : TreeLike<Route> {
+    /**
+     * The containing application's environment.
+     */
     public val environment: ApplicationEnvironment
+
+    /**
+     * Key-value store of route metadata, scoped to the lifetime of the application.
+     */
     public val attributes: Attributes
-    public val parent: Route?
+
+    /**
+     * Optional selector for filtering on requests.
+     */
+    public val selector: RouteSelector? get() = null
+
+    /**
+     * Children of the current route.
+     */
+    override val children: Iterable<Route> get() = emptyList()
 
     /**
      * Installs a handler into this route which is called when the route is selected for a call.

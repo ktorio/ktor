@@ -12,11 +12,17 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(projects.ktorOpenapiSchema)
+
+            implementation(libs.kotlinx.serialization.core)
+            implementation(libs.kotlinx.serialization.json)
         }
         commonTest.dependencies {
             implementation(projects.ktorServerTestHost)
             implementation(projects.ktorServerContentNegotiation)
             implementation(projects.ktorSerializationKotlinxJson)
+        }
+        jvmMain.dependencies {
+            implementation(libs.kaml.serialization)
         }
     }
 }

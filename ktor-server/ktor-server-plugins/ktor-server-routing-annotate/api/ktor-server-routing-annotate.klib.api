@@ -11,6 +11,73 @@ abstract fun interface io.ktor.annotate/OperationMapping { // io.ktor.annotate/O
     open fun plus(io.ktor.annotate/OperationMapping): io.ktor.annotate/OperationMapping // io.ktor.annotate/OperationMapping.plus|plus(io.ktor.annotate.OperationMapping){}[0]
 }
 
+sealed interface io.ktor.annotate/OpenApiDocSource { // io.ktor.annotate/OpenApiDocSource|null[0]
+    final class FileSource : io.ktor.annotate/OpenApiDocSource { // io.ktor.annotate/OpenApiDocSource.FileSource|null[0]
+        constructor <init>(kotlin/String) // io.ktor.annotate/OpenApiDocSource.FileSource.<init>|<init>(kotlin.String){}[0]
+
+        final val contentType // io.ktor.annotate/OpenApiDocSource.FileSource.contentType|{}contentType[0]
+            final fun <get-contentType>(): io.ktor.http/ContentType // io.ktor.annotate/OpenApiDocSource.FileSource.contentType.<get-contentType>|<get-contentType>(){}[0]
+        final val path // io.ktor.annotate/OpenApiDocSource.FileSource.path|{}path[0]
+            final fun <get-path>(): kotlin/String // io.ktor.annotate/OpenApiDocSource.FileSource.path.<get-path>|<get-path>(){}[0]
+
+        final fun component1(): kotlin/String // io.ktor.annotate/OpenApiDocSource.FileSource.component1|component1(){}[0]
+        final fun copy(kotlin/String = ...): io.ktor.annotate/OpenApiDocSource.FileSource // io.ktor.annotate/OpenApiDocSource.FileSource.copy|copy(kotlin.String){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.annotate/OpenApiDocSource.FileSource.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.ktor.annotate/OpenApiDocSource.FileSource.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.ktor.annotate/OpenApiDocSource.FileSource.toString|toString(){}[0]
+    }
+
+    final class FirstOf : io.ktor.annotate/OpenApiDocSource { // io.ktor.annotate/OpenApiDocSource.FirstOf|null[0]
+        constructor <init>(kotlin.collections/List<io.ktor.annotate/OpenApiDocSource>) // io.ktor.annotate/OpenApiDocSource.FirstOf.<init>|<init>(kotlin.collections.List<io.ktor.annotate.OpenApiDocSource>){}[0]
+        constructor <init>(kotlin/Array<out io.ktor.annotate/OpenApiDocSource>...) // io.ktor.annotate/OpenApiDocSource.FirstOf.<init>|<init>(kotlin.Array<out|io.ktor.annotate.OpenApiDocSource>...){}[0]
+
+        final val options // io.ktor.annotate/OpenApiDocSource.FirstOf.options|{}options[0]
+            final fun <get-options>(): kotlin.collections/List<io.ktor.annotate/OpenApiDocSource> // io.ktor.annotate/OpenApiDocSource.FirstOf.options.<get-options>|<get-options>(){}[0]
+
+        final fun component1(): kotlin.collections/List<io.ktor.annotate/OpenApiDocSource> // io.ktor.annotate/OpenApiDocSource.FirstOf.component1|component1(){}[0]
+        final fun copy(kotlin.collections/List<io.ktor.annotate/OpenApiDocSource> = ...): io.ktor.annotate/OpenApiDocSource.FirstOf // io.ktor.annotate/OpenApiDocSource.FirstOf.copy|copy(kotlin.collections.List<io.ktor.annotate.OpenApiDocSource>){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.annotate/OpenApiDocSource.FirstOf.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.ktor.annotate/OpenApiDocSource.FirstOf.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.ktor.annotate/OpenApiDocSource.FirstOf.toString|toString(){}[0]
+    }
+
+    final class OpenApiDocText : io.ktor.annotate/OpenApiDocSource { // io.ktor.annotate/OpenApiDocSource.OpenApiDocText|null[0]
+        constructor <init>(kotlin/String, io.ktor.http/ContentType = ...) // io.ktor.annotate/OpenApiDocSource.OpenApiDocText.<init>|<init>(kotlin.String;io.ktor.http.ContentType){}[0]
+
+        final val content // io.ktor.annotate/OpenApiDocSource.OpenApiDocText.content|{}content[0]
+            final fun <get-content>(): kotlin/String // io.ktor.annotate/OpenApiDocSource.OpenApiDocText.content.<get-content>|<get-content>(){}[0]
+        final val contentType // io.ktor.annotate/OpenApiDocSource.OpenApiDocText.contentType|{}contentType[0]
+            final fun <get-contentType>(): io.ktor.http/ContentType // io.ktor.annotate/OpenApiDocSource.OpenApiDocText.contentType.<get-contentType>|<get-contentType>(){}[0]
+
+        final fun component1(): kotlin/String // io.ktor.annotate/OpenApiDocSource.OpenApiDocText.component1|component1(){}[0]
+        final fun component2(): io.ktor.http/ContentType // io.ktor.annotate/OpenApiDocSource.OpenApiDocText.component2|component2(){}[0]
+        final fun copy(kotlin/String = ..., io.ktor.http/ContentType = ...): io.ktor.annotate/OpenApiDocSource.OpenApiDocText // io.ktor.annotate/OpenApiDocSource.OpenApiDocText.copy|copy(kotlin.String;io.ktor.http.ContentType){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.annotate/OpenApiDocSource.OpenApiDocText.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.ktor.annotate/OpenApiDocSource.OpenApiDocText.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.ktor.annotate/OpenApiDocSource.OpenApiDocText.toString|toString(){}[0]
+    }
+
+    final class RoutingSource : io.ktor.annotate/OpenApiDocSource { // io.ktor.annotate/OpenApiDocSource.RoutingSource|null[0]
+        constructor <init>(io.ktor.http/ContentType, kotlin/Function1<io.ktor.server.application/Application, kotlin.sequences/Sequence<io.ktor.server.routing/Route>> = ...) // io.ktor.annotate/OpenApiDocSource.RoutingSource.<init>|<init>(io.ktor.http.ContentType;kotlin.Function1<io.ktor.server.application.Application,kotlin.sequences.Sequence<io.ktor.server.routing.Route>>){}[0]
+
+        final val contentType // io.ktor.annotate/OpenApiDocSource.RoutingSource.contentType|{}contentType[0]
+            final fun <get-contentType>(): io.ktor.http/ContentType // io.ktor.annotate/OpenApiDocSource.RoutingSource.contentType.<get-contentType>|<get-contentType>(){}[0]
+        final val routes // io.ktor.annotate/OpenApiDocSource.RoutingSource.routes|{}routes[0]
+            final fun <get-routes>(): kotlin/Function1<io.ktor.server.application/Application, kotlin.sequences/Sequence<io.ktor.server.routing/Route>> // io.ktor.annotate/OpenApiDocSource.RoutingSource.routes.<get-routes>|<get-routes>(){}[0]
+
+        final fun component1(): io.ktor.http/ContentType // io.ktor.annotate/OpenApiDocSource.RoutingSource.component1|component1(){}[0]
+        final fun component2(): kotlin/Function1<io.ktor.server.application/Application, kotlin.sequences/Sequence<io.ktor.server.routing/Route>> // io.ktor.annotate/OpenApiDocSource.RoutingSource.component2|component2(){}[0]
+        final fun copy(io.ktor.http/ContentType = ..., kotlin/Function1<io.ktor.server.application/Application, kotlin.sequences/Sequence<io.ktor.server.routing/Route>> = ...): io.ktor.annotate/OpenApiDocSource.RoutingSource // io.ktor.annotate/OpenApiDocSource.RoutingSource.copy|copy(io.ktor.http.ContentType;kotlin.Function1<io.ktor.server.application.Application,kotlin.sequences.Sequence<io.ktor.server.routing.Route>>){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.annotate/OpenApiDocSource.RoutingSource.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // io.ktor.annotate/OpenApiDocSource.RoutingSource.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // io.ktor.annotate/OpenApiDocSource.RoutingSource.toString|toString(){}[0]
+    }
+
+    final object Companion { // io.ktor.annotate/OpenApiDocSource.Companion|null[0]
+        final fun (io.ktor.server.application/Application).readOpenApiSource(io.ktor.annotate/OpenApiDocSource, io.ktor.openapi/OpenApiDoc): io.ktor.annotate/OpenApiDocSource.OpenApiDocText? // io.ktor.annotate/OpenApiDocSource.Companion.readOpenApiSource|readOpenApiSource@io.ktor.server.application.Application(io.ktor.annotate.OpenApiDocSource;io.ktor.openapi.OpenApiDoc){}[0]
+    }
+}
+
 final class io.ktor.annotate/CollectSchemaReferences : io.ktor.annotate/OperationMapping { // io.ktor.annotate/CollectSchemaReferences|null[0]
     constructor <init>(kotlin/Function1<io.ktor.openapi/JsonSchema, kotlin/String?>) // io.ktor.annotate/CollectSchemaReferences.<init>|<init>(kotlin.Function1<io.ktor.openapi.JsonSchema,kotlin.String?>){}[0]
 
@@ -25,5 +92,5 @@ final val io.ktor.annotate/PopulateMediaTypeDefaults // io.ktor.annotate/Populat
     final fun <get-PopulateMediaTypeDefaults>(): io.ktor.annotate/OperationMapping // io.ktor.annotate/PopulateMediaTypeDefaults.<get-PopulateMediaTypeDefaults>|<get-PopulateMediaTypeDefaults>(){}[0]
 
 final fun (io.ktor.server.routing/Route).io.ktor.annotate/annotate(kotlin/Function1<io.ktor.openapi/Operation.Builder, kotlin/Unit>): io.ktor.server.routing/Route // io.ktor.annotate/annotate|annotate@io.ktor.server.routing.Route(kotlin.Function1<io.ktor.openapi.Operation.Builder,kotlin.Unit>){}[0]
-final fun (io.ktor.server.routing/RoutingNode).io.ktor.annotate/findPathItems(io.ktor.annotate/OperationMapping = ...): kotlin.collections/Map<kotlin/String, io.ktor.openapi/PathItem> // io.ktor.annotate/findPathItems|findPathItems@io.ktor.server.routing.RoutingNode(io.ktor.annotate.OperationMapping){}[0]
-final fun io.ktor.annotate/generateOpenApiSpec(io.ktor.openapi/OpenApiInfo, io.ktor.server.routing/RoutingNode): io.ktor.openapi/OpenApiSpecification // io.ktor.annotate/generateOpenApiSpec|generateOpenApiSpec(io.ktor.openapi.OpenApiInfo;io.ktor.server.routing.RoutingNode){}[0]
+final fun (kotlin.sequences/Sequence<io.ktor.server.routing/Route>).io.ktor.annotate/findPathItems(io.ktor.annotate/OperationMapping = ...): kotlin.collections/Map<kotlin/String, io.ktor.openapi/PathItem> // io.ktor.annotate/findPathItems|findPathItems@kotlin.sequences.Sequence<io.ktor.server.routing.Route>(io.ktor.annotate.OperationMapping){}[0]
+final fun io.ktor.annotate/generateOpenApiDoc(io.ktor.openapi/OpenApiDoc, kotlin.sequences/Sequence<io.ktor.server.routing/Route>): io.ktor.openapi/OpenApiDoc // io.ktor.annotate/generateOpenApiDoc|generateOpenApiDoc(io.ktor.openapi.OpenApiDoc;kotlin.sequences.Sequence<io.ktor.server.routing.Route>){}[0]

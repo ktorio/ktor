@@ -72,7 +72,7 @@ public fun SerialDescriptor.buildJsonSchema(includeTitle: Boolean = true): JsonS
                 title = serialName.takeIf { includeTitle },
                 type = JsonSchema.JsonType.OBJECT,
                 properties = properties,
-                required = required
+                required = required.takeIf { it.isNotEmpty() }
             )
         }
 
@@ -86,9 +86,13 @@ public fun SerialDescriptor.buildJsonSchema(includeTitle: Boolean = true): JsonS
         StructureKind.MAP -> {
             JsonSchema(
                 type = JsonSchema.JsonType.OBJECT,
-                additionalProperties = AdditionalProperties.PSchema(
-                    ReferenceOr.Value(getElementDescriptor(1).buildJsonSchema())
-                )
+                additionalProperties = if (elementsCount > 1) {
+                    AdditionalProperties.PSchema(
+                        ReferenceOr.Value(getElementDescriptor(1).buildJsonSchema())
+                    )
+                } else {
+                    AdditionalProperties.Allowed(true)
+                }
             )
         }
 

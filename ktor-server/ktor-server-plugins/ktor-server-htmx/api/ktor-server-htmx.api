@@ -44,21 +44,34 @@ public final class io/ktor/server/htmx/HxRoute : io/ktor/server/routing/Route {
 	public static final synthetic fun box-impl (Lio/ktor/server/routing/Route;)Lio/ktor/server/htmx/HxRoute;
 	public fun createChild (Lio/ktor/server/routing/RouteSelector;)Lio/ktor/server/routing/Route;
 	public static fun createChild-impl (Lio/ktor/server/routing/Route;Lio/ktor/server/routing/RouteSelector;)Lio/ktor/server/routing/Route;
+	public fun descendants ()Lkotlin/sequences/Sequence;
+	public static fun descendants-impl (Lio/ktor/server/routing/Route;)Lkotlin/sequences/Sequence;
 	public fun equals (Ljava/lang/Object;)Z
 	public static fun equals-impl (Lio/ktor/server/routing/Route;Ljava/lang/Object;)Z
 	public static final fun equals-impl0 (Lio/ktor/server/routing/Route;Lio/ktor/server/routing/Route;)Z
 	public fun getAttributes ()Lio/ktor/util/Attributes;
 	public static fun getAttributes-impl (Lio/ktor/server/routing/Route;)Lio/ktor/util/Attributes;
+	public fun getChildren ()Ljava/lang/Iterable;
+	public static fun getChildren-impl (Lio/ktor/server/routing/Route;)Ljava/lang/Iterable;
 	public fun getEnvironment ()Lio/ktor/server/application/ApplicationEnvironment;
 	public static fun getEnvironment-impl (Lio/ktor/server/routing/Route;)Lio/ktor/server/application/ApplicationEnvironment;
 	public fun getParent ()Lio/ktor/server/routing/Route;
+	public synthetic fun getParent ()Lio/ktor/util/collections/TreeLike;
 	public static fun getParent-impl (Lio/ktor/server/routing/Route;)Lio/ktor/server/routing/Route;
+	public fun getSelector ()Lio/ktor/server/routing/RouteSelector;
+	public static fun getSelector-impl (Lio/ktor/server/routing/Route;)Lio/ktor/server/routing/RouteSelector;
 	public fun handle (Lkotlin/jvm/functions/Function2;)V
 	public static fun handle-impl (Lio/ktor/server/routing/Route;Lkotlin/jvm/functions/Function2;)V
 	public fun hashCode ()I
 	public static fun hashCode-impl (Lio/ktor/server/routing/Route;)I
 	public fun install (Lio/ktor/server/application/Plugin;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 	public static fun install-impl (Lio/ktor/server/routing/Route;Lio/ktor/server/application/Plugin;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public fun isLeaf ()Z
+	public static fun isLeaf-impl (Lio/ktor/server/routing/Route;)Z
+	public fun isRoot ()Z
+	public static fun isRoot-impl (Lio/ktor/server/routing/Route;)Z
+	public fun lineage ()Lkotlin/sequences/Sequence;
+	public static fun lineage-impl (Lio/ktor/server/routing/Route;)Lkotlin/sequences/Sequence;
 	public fun plugin (Lio/ktor/server/application/Plugin;)Ljava/lang/Object;
 	public static fun plugin-impl (Lio/ktor/server/routing/Route;Lio/ktor/server/application/Plugin;)Ljava/lang/Object;
 	public static final fun target-impl (Lio/ktor/server/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
