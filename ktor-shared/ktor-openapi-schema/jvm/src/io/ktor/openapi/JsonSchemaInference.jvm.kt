@@ -32,7 +32,7 @@ public interface SchemaReflectionAdapter {
         property.name
 
     public fun isIgnored(property: KProperty1<*, *>): Boolean =
-        property.annotations.any { it is JsonSchemaIgnore }
+        property.annotations.any { it is JsonSchema.Annotations.Ignore }
 
     public fun isNullable(type: KType): Boolean =
         type.isMarkedNullable

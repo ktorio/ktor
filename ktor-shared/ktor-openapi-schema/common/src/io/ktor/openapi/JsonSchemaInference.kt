@@ -5,6 +5,7 @@
 package io.ktor.openapi
 
 import io.ktor.openapi.AdditionalProperties.*
+import io.ktor.openapi.JsonSchema.Annotations.*
 import io.ktor.openapi.ReferenceOr.*
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
@@ -71,7 +72,7 @@ public fun SerialDescriptor.buildJsonSchema(
                 val name = getElementName(i)
                 val elementDescriptor = getElementDescriptor(i)
                 val annotations = getElementAnnotations(i)
-                if (annotations.any { it is JsonSchemaIgnore }) continue
+                if (annotations.any { it is Ignore }) continue
 
                 if (!isElementOptional(i)) {
                     required.add(name)
@@ -241,25 +242,26 @@ internal fun jsonSchemaFromAnnotations(
     }
 
     return JsonSchema(
-        type = annotations.firstInstanceOf<JsonSchemaType>()?.value ?: type,
-        title = annotations.firstInstanceOf<JsonSchemaTitle>()?.value ?: title,
-        description = annotations.firstInstanceOf<JsonSchemaDescription>()?.value,
+        type = annotations.firstInstanceOf<Type>()?.value ?: type,
+        title = annotations.firstInstanceOf<Title>()?.value ?: title,
+        description = annotations.firstInstanceOf<Description>()?.value,
         required =
-        annotations.firstInstanceOf<JsonSchemaRequired>()?.value?.toList()?.takeIf { it.isNotEmpty() } ?: required,
-        nullable = annotations.firstInstanceOf<JsonSchemaNullable>()?.value ?: nullable?.takeIf { it },
-        anyOf = annotations.firstInstanceOf<JsonSchemaAnyOfRefs>()?.value
+        annotations.firstInstanceOf<JsonSchema.Annotations.Required>()?.value?.toList()?.takeIf { it.isNotEmpty() }
+            ?: required,
+        nullable = annotations.firstInstanceOf<Nullable>()?.value ?: nullable?.takeIf { it },
+        anyOf = annotations.firstInstanceOf<AnyOfRefs>()?.value
             ?.map { refFromString(it) }
             ?.takeIf { it.isNotEmpty() },
-        oneOf = annotations.firstInstanceOf<JsonSchemaOneOf>()?.value
+        oneOf = annotations.firstInstanceOf<OneOf>()?.value
             ?.map { it.reflectSchema() }
             ?.takeIf { it.isNotEmpty() },
-        not = annotations.firstInstanceOf<JsonSchemaNot>()?.value?.reflectSchema(),
+        not = annotations.firstInstanceOf<Not>()?.value?.reflectSchema(),
         properties = properties,
         additionalProperties =
-        annotations.firstInstanceOf<JsonSchemaAdditionalPropertiesRef>()?.value?.let { PSchema(it.reflectSchema()) }
-            ?: annotations.firstInstanceOf<JsonSchemaAdditionalPropertiesAllowed>()?.let { Allowed(true) }
+        annotations.firstInstanceOf<AdditionalPropertiesRef>()?.value?.let { PSchema(it.reflectSchema()) }
+            ?: annotations.firstInstanceOf<AdditionalPropertiesAllowed>()?.let { Allowed(true) }
             ?: additionalProperties,
-        discriminator = annotations.firstInstanceOf<JsonSchemaDiscriminator>()?.let { annotation ->
+        discriminator = annotations.firstInstanceOf<Discriminator>()?.let { annotation ->
             JsonSchema.Discriminator(
                 annotation.property,
                 annotation.mapping.associate {
@@ -267,35 +269,35 @@ internal fun jsonSchemaFromAnnotations(
                 }
             )
         } ?: discriminator,
-        readOnly = annotations.firstInstanceOf<JsonSchemaReadOnly>()?.let { true },
-        writeOnly = annotations.firstInstanceOf<JsonSchemaWriteOnly>()?.let { true },
-        deprecated = annotations.firstInstanceOf<JsonSchemaDeprecated>()?.let { true },
-        maxProperties = annotations.firstInstanceOf<JsonSchemaMaxProperties>()?.value,
-        minProperties = annotations.firstInstanceOf<JsonSchemaMinProperties>()?.value,
-        default = annotations.firstInstanceOf<JsonSchemaDefault>()?.value?.let { parseJsonLiteralToGenericElement(it) },
-        format = annotations.firstInstanceOf<JsonSchemaFormat>()?.value ?: format,
-        items = annotations.firstInstanceOf<JsonSchemaItemsRef>()?.value?.reflectSchema() ?: items,
-        maximum = annotations.firstInstanceOf<JsonSchemaMaximum>()?.value,
-        exclusiveMaximum = annotations.firstInstanceOf<JsonSchemaMaximum>()?.exclusive?.takeIf { it },
-        minimum = annotations.firstInstanceOf<JsonSchemaMinimum>()?.value,
-        exclusiveMinimum = annotations.firstInstanceOf<JsonSchemaMinimum>()?.exclusive?.takeIf { it },
-        maxLength = annotations.firstInstanceOf<JsonSchemaMaxLength>()?.value,
-        minLength = annotations.firstInstanceOf<JsonSchemaMinLength>()?.value,
-        pattern = annotations.firstInstanceOf<JsonSchemaPattern>()?.value,
-        maxItems = annotations.firstInstanceOf<JsonSchemaMaxItems>()?.value,
-        minItems = annotations.firstInstanceOf<JsonSchemaMinItems>()?.value,
-        uniqueItems = annotations.firstInstanceOf<JsonSchemaUniqueItems>()?.let { true },
-        enum = annotations.firstInstanceOf<JsonSchemaEnum>()?.value
+        readOnly = annotations.firstInstanceOf<ReadOnly>()?.let { true },
+        writeOnly = annotations.firstInstanceOf<WriteOnly>()?.let { true },
+        deprecated = annotations.firstInstanceOf<Deprecated>()?.let { true },
+        maxProperties = annotations.firstInstanceOf<MaxProperties>()?.value,
+        minProperties = annotations.firstInstanceOf<MinProperties>()?.value,
+        default = annotations.firstInstanceOf<Default>()?.value?.let { parseJsonLiteralToGenericElement(it) },
+        format = annotations.firstInstanceOf<Format>()?.value ?: format,
+        items = annotations.firstInstanceOf<ItemsRef>()?.value?.reflectSchema() ?: items,
+        maximum = annotations.firstInstanceOf<Maximum>()?.value,
+        exclusiveMaximum = annotations.firstInstanceOf<Maximum>()?.exclusive?.takeIf { it },
+        minimum = annotations.firstInstanceOf<Minimum>()?.value,
+        exclusiveMinimum = annotations.firstInstanceOf<Minimum>()?.exclusive?.takeIf { it },
+        maxLength = annotations.firstInstanceOf<MaxLength>()?.value,
+        minLength = annotations.firstInstanceOf<MinLength>()?.value,
+        pattern = annotations.firstInstanceOf<Pattern>()?.value,
+        maxItems = annotations.firstInstanceOf<MaxItems>()?.value,
+        minItems = annotations.firstInstanceOf<MinItems>()?.value,
+        uniqueItems = annotations.firstInstanceOf<UniqueItems>()?.let { true },
+        enum = annotations.firstInstanceOf<JsonSchema.Annotations.Enum>()?.value
             ?.map { parseJsonLiteralOrUseString(it) }
             ?.takeIf { it.isNotEmpty() } ?: enum,
-        multipleOf = annotations.firstInstanceOf<JsonSchemaMultipleOf>()?.value,
-        id = annotations.firstInstanceOf<JsonSchemaId>()?.value,
-        anchor = annotations.firstInstanceOf<JsonSchemaAnchor>()?.value,
-        recursiveAnchor = annotations.firstInstanceOf<JsonSchemaAnchor>()?.recursive?.takeIf { it },
-        example = annotations.firstInstanceOf<JsonSchemaExample>()?.value
+        multipleOf = annotations.firstInstanceOf<MultipleOf>()?.value,
+        id = annotations.firstInstanceOf<Id>()?.value,
+        anchor = annotations.firstInstanceOf<Anchor>()?.value,
+        recursiveAnchor = annotations.firstInstanceOf<Anchor>()?.recursive?.takeIf { it },
+        example = annotations.firstInstanceOf<Example>()?.value
             ?.map { parseJsonLiteralToGenericElement(it) }
             ?.takeIf { it.isNotEmpty() }?.singleOrNull(),
-        examples = annotations.firstInstanceOf<JsonSchemaExample>()?.value
+        examples = annotations.firstInstanceOf<Example>()?.value
             ?.map { parseJsonLiteralToGenericElement(it) }
             ?.takeIf { it.isNotEmpty() }?.takeIf { it.size > 1 },
     )

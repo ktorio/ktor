@@ -587,6 +587,312 @@ public final synthetic class io/ktor/openapi/JsonSchema$$serializer : kotlinx/se
 	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
 }
 
+public final class io/ktor/openapi/JsonSchema$Annotations {
+	public fun <init> ()V
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Annotations$AdditionalPropertiesAllowed : java/lang/annotation/Annotation {
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$Annotations$AdditionalPropertiesAllowed$Impl : io/ktor/openapi/JsonSchema$Annotations$AdditionalPropertiesAllowed {
+	public fun <init> ()V
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Annotations$AdditionalPropertiesRef : java/lang/annotation/Annotation {
+	public abstract fun value ()Ljava/lang/Class;
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$Annotations$AdditionalPropertiesRef$Impl : io/ktor/openapi/JsonSchema$Annotations$AdditionalPropertiesRef {
+	public fun <init> (Lkotlin/reflect/KClass;)V
+	public final synthetic fun value ()Ljava/lang/Class;
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Annotations$Anchor : java/lang/annotation/Annotation {
+	public abstract fun recursive ()Z
+	public abstract fun value ()Ljava/lang/String;
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$Annotations$Anchor$Impl : io/ktor/openapi/JsonSchema$Annotations$Anchor {
+	public fun <init> (Ljava/lang/String;Z)V
+	public synthetic fun <init> (Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final synthetic fun recursive ()Z
+	public final synthetic fun value ()Ljava/lang/String;
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Annotations$AnyOfRefs : java/lang/annotation/Annotation {
+	public abstract fun value ()[Ljava/lang/String;
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$Annotations$AnyOfRefs$Impl : io/ktor/openapi/JsonSchema$Annotations$AnyOfRefs {
+	public fun <init> ([Ljava/lang/String;)V
+	public final synthetic fun value ()[Ljava/lang/String;
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Annotations$Default : java/lang/annotation/Annotation {
+	public abstract fun value ()Ljava/lang/String;
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$Annotations$Default$Impl : io/ktor/openapi/JsonSchema$Annotations$Default {
+	public fun <init> (Ljava/lang/String;)V
+	public final synthetic fun value ()Ljava/lang/String;
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Annotations$Deprecated : java/lang/annotation/Annotation {
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$Annotations$Deprecated$Impl : io/ktor/openapi/JsonSchema$Annotations$Deprecated {
+	public fun <init> ()V
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Annotations$Description : java/lang/annotation/Annotation {
+	public abstract fun value ()Ljava/lang/String;
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$Annotations$Description$Impl : io/ktor/openapi/JsonSchema$Annotations$Description {
+	public fun <init> (Ljava/lang/String;)V
+	public final synthetic fun value ()Ljava/lang/String;
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Annotations$Discriminator : java/lang/annotation/Annotation {
+	public abstract fun mapping ()[Lio/ktor/openapi/JsonSchema$Annotations$Discriminator$Mapping;
+	public abstract fun property ()Ljava/lang/String;
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$Annotations$Discriminator$Impl : io/ktor/openapi/JsonSchema$Annotations$Discriminator {
+	public fun <init> (Ljava/lang/String;[Lio/ktor/openapi/JsonSchema$Annotations$Discriminator$Mapping;)V
+	public final synthetic fun mapping ()[Lio/ktor/openapi/JsonSchema$Annotations$Discriminator$Mapping;
+	public final synthetic fun property ()Ljava/lang/String;
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Annotations$Discriminator$Mapping : java/lang/annotation/Annotation {
+	public abstract fun key ()Ljava/lang/String;
+	public abstract fun ref ()Ljava/lang/Class;
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Annotations$Enum : java/lang/annotation/Annotation {
+	public abstract fun value ()[Ljava/lang/String;
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$Annotations$Enum$Impl : io/ktor/openapi/JsonSchema$Annotations$Enum {
+	public fun <init> ([Ljava/lang/String;)V
+	public final synthetic fun value ()[Ljava/lang/String;
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Annotations$Example : java/lang/annotation/Annotation {
+	public abstract fun value ()[Ljava/lang/String;
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$Annotations$Example$Impl : io/ktor/openapi/JsonSchema$Annotations$Example {
+	public fun <init> ([Ljava/lang/String;)V
+	public final synthetic fun value ()[Ljava/lang/String;
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Annotations$Format : java/lang/annotation/Annotation {
+	public abstract fun value ()Ljava/lang/String;
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$Annotations$Format$Impl : io/ktor/openapi/JsonSchema$Annotations$Format {
+	public fun <init> (Ljava/lang/String;)V
+	public final synthetic fun value ()Ljava/lang/String;
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Annotations$Id : java/lang/annotation/Annotation {
+	public abstract fun value ()Ljava/lang/String;
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$Annotations$Id$Impl : io/ktor/openapi/JsonSchema$Annotations$Id {
+	public fun <init> (Ljava/lang/String;)V
+	public final synthetic fun value ()Ljava/lang/String;
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Annotations$Ignore : java/lang/annotation/Annotation {
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$Annotations$Ignore$Impl : io/ktor/openapi/JsonSchema$Annotations$Ignore {
+	public fun <init> ()V
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Annotations$ItemsRef : java/lang/annotation/Annotation {
+	public abstract fun value ()Ljava/lang/Class;
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$Annotations$ItemsRef$Impl : io/ktor/openapi/JsonSchema$Annotations$ItemsRef {
+	public fun <init> (Lkotlin/reflect/KClass;)V
+	public final synthetic fun value ()Ljava/lang/Class;
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Annotations$MaxItems : java/lang/annotation/Annotation {
+	public abstract fun value ()I
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$Annotations$MaxItems$Impl : io/ktor/openapi/JsonSchema$Annotations$MaxItems {
+	public fun <init> (I)V
+	public final synthetic fun value ()I
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Annotations$MaxLength : java/lang/annotation/Annotation {
+	public abstract fun value ()I
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$Annotations$MaxLength$Impl : io/ktor/openapi/JsonSchema$Annotations$MaxLength {
+	public fun <init> (I)V
+	public final synthetic fun value ()I
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Annotations$MaxProperties : java/lang/annotation/Annotation {
+	public abstract fun value ()I
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$Annotations$MaxProperties$Impl : io/ktor/openapi/JsonSchema$Annotations$MaxProperties {
+	public fun <init> (I)V
+	public final synthetic fun value ()I
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Annotations$Maximum : java/lang/annotation/Annotation {
+	public abstract fun exclusive ()Z
+	public abstract fun value ()D
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$Annotations$Maximum$Impl : io/ktor/openapi/JsonSchema$Annotations$Maximum {
+	public fun <init> (DZ)V
+	public synthetic fun <init> (DZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final synthetic fun exclusive ()Z
+	public final synthetic fun value ()D
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Annotations$MinItems : java/lang/annotation/Annotation {
+	public abstract fun value ()I
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$Annotations$MinItems$Impl : io/ktor/openapi/JsonSchema$Annotations$MinItems {
+	public fun <init> (I)V
+	public final synthetic fun value ()I
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Annotations$MinLength : java/lang/annotation/Annotation {
+	public abstract fun value ()I
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$Annotations$MinLength$Impl : io/ktor/openapi/JsonSchema$Annotations$MinLength {
+	public fun <init> (I)V
+	public final synthetic fun value ()I
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Annotations$MinProperties : java/lang/annotation/Annotation {
+	public abstract fun value ()I
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$Annotations$MinProperties$Impl : io/ktor/openapi/JsonSchema$Annotations$MinProperties {
+	public fun <init> (I)V
+	public final synthetic fun value ()I
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Annotations$Minimum : java/lang/annotation/Annotation {
+	public abstract fun exclusive ()Z
+	public abstract fun value ()D
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$Annotations$Minimum$Impl : io/ktor/openapi/JsonSchema$Annotations$Minimum {
+	public fun <init> (DZ)V
+	public synthetic fun <init> (DZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final synthetic fun exclusive ()Z
+	public final synthetic fun value ()D
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Annotations$MultipleOf : java/lang/annotation/Annotation {
+	public abstract fun value ()D
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$Annotations$MultipleOf$Impl : io/ktor/openapi/JsonSchema$Annotations$MultipleOf {
+	public fun <init> (D)V
+	public final synthetic fun value ()D
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Annotations$Not : java/lang/annotation/Annotation {
+	public abstract fun value ()Ljava/lang/Class;
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$Annotations$Not$Impl : io/ktor/openapi/JsonSchema$Annotations$Not {
+	public fun <init> (Lkotlin/reflect/KClass;)V
+	public final synthetic fun value ()Ljava/lang/Class;
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Annotations$Nullable : java/lang/annotation/Annotation {
+	public abstract fun value ()Z
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$Annotations$Nullable$Impl : io/ktor/openapi/JsonSchema$Annotations$Nullable {
+	public fun <init> (Z)V
+	public synthetic fun <init> (ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final synthetic fun value ()Z
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Annotations$OneOf : java/lang/annotation/Annotation {
+	public abstract fun value ()[Ljava/lang/Class;
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$Annotations$OneOf$Impl : io/ktor/openapi/JsonSchema$Annotations$OneOf {
+	public fun <init> ([Lkotlin/reflect/KClass;)V
+	public final synthetic fun value ()[Ljava/lang/Class;
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Annotations$Pattern : java/lang/annotation/Annotation {
+	public abstract fun value ()Ljava/lang/String;
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$Annotations$Pattern$Impl : io/ktor/openapi/JsonSchema$Annotations$Pattern {
+	public fun <init> (Ljava/lang/String;)V
+	public final synthetic fun value ()Ljava/lang/String;
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Annotations$ReadOnly : java/lang/annotation/Annotation {
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$Annotations$ReadOnly$Impl : io/ktor/openapi/JsonSchema$Annotations$ReadOnly {
+	public fun <init> ()V
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Annotations$Required : java/lang/annotation/Annotation {
+	public abstract fun value ()[Ljava/lang/String;
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$Annotations$Required$Impl : io/ktor/openapi/JsonSchema$Annotations$Required {
+	public fun <init> ([Ljava/lang/String;)V
+	public final synthetic fun value ()[Ljava/lang/String;
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Annotations$Title : java/lang/annotation/Annotation {
+	public abstract fun value ()Ljava/lang/String;
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$Annotations$Title$Impl : io/ktor/openapi/JsonSchema$Annotations$Title {
+	public fun <init> (Ljava/lang/String;)V
+	public final synthetic fun value ()Ljava/lang/String;
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Annotations$Type : java/lang/annotation/Annotation {
+	public abstract fun value ()Lio/ktor/openapi/JsonType;
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$Annotations$Type$Impl : io/ktor/openapi/JsonSchema$Annotations$Type {
+	public fun <init> (Lio/ktor/openapi/JsonType;)V
+	public final synthetic fun value ()Lio/ktor/openapi/JsonType;
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Annotations$UniqueItems : java/lang/annotation/Annotation {
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$Annotations$UniqueItems$Impl : io/ktor/openapi/JsonSchema$Annotations$UniqueItems {
+	public fun <init> ()V
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Annotations$WriteOnly : java/lang/annotation/Annotation {
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$Annotations$WriteOnly$Impl : io/ktor/openapi/JsonSchema$Annotations$WriteOnly {
+	public fun <init> ()V
+}
+
 public final class io/ktor/openapi/JsonSchema$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
@@ -674,127 +980,6 @@ public final class io/ktor/openapi/JsonSchema$SchemaType$Serializer : kotlinx/se
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
 }
 
-public abstract interface annotation class io/ktor/openapi/JsonSchemaAdditionalPropertiesAllowed : java/lang/annotation/Annotation {
-}
-
-public final synthetic class io/ktor/openapi/JsonSchemaAdditionalPropertiesAllowed$Impl : io/ktor/openapi/JsonSchemaAdditionalPropertiesAllowed {
-	public fun <init> ()V
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchemaAdditionalPropertiesRef : java/lang/annotation/Annotation {
-	public abstract fun value ()Ljava/lang/Class;
-}
-
-public final synthetic class io/ktor/openapi/JsonSchemaAdditionalPropertiesRef$Impl : io/ktor/openapi/JsonSchemaAdditionalPropertiesRef {
-	public fun <init> (Lkotlin/reflect/KClass;)V
-	public final synthetic fun value ()Ljava/lang/Class;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchemaAnchor : java/lang/annotation/Annotation {
-	public abstract fun recursive ()Z
-	public abstract fun value ()Ljava/lang/String;
-}
-
-public final synthetic class io/ktor/openapi/JsonSchemaAnchor$Impl : io/ktor/openapi/JsonSchemaAnchor {
-	public fun <init> (Ljava/lang/String;Z)V
-	public synthetic fun <init> (Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final synthetic fun recursive ()Z
-	public final synthetic fun value ()Ljava/lang/String;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchemaAnyOfRefs : java/lang/annotation/Annotation {
-	public abstract fun value ()[Ljava/lang/String;
-}
-
-public final synthetic class io/ktor/openapi/JsonSchemaAnyOfRefs$Impl : io/ktor/openapi/JsonSchemaAnyOfRefs {
-	public fun <init> ([Ljava/lang/String;)V
-	public final synthetic fun value ()[Ljava/lang/String;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchemaDefault : java/lang/annotation/Annotation {
-	public abstract fun value ()Ljava/lang/String;
-}
-
-public final synthetic class io/ktor/openapi/JsonSchemaDefault$Impl : io/ktor/openapi/JsonSchemaDefault {
-	public fun <init> (Ljava/lang/String;)V
-	public final synthetic fun value ()Ljava/lang/String;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchemaDeprecated : java/lang/annotation/Annotation {
-}
-
-public final synthetic class io/ktor/openapi/JsonSchemaDeprecated$Impl : io/ktor/openapi/JsonSchemaDeprecated {
-	public fun <init> ()V
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchemaDescription : java/lang/annotation/Annotation {
-	public abstract fun value ()Ljava/lang/String;
-}
-
-public final synthetic class io/ktor/openapi/JsonSchemaDescription$Impl : io/ktor/openapi/JsonSchemaDescription {
-	public fun <init> (Ljava/lang/String;)V
-	public final synthetic fun value ()Ljava/lang/String;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchemaDiscriminator : java/lang/annotation/Annotation {
-	public abstract fun mapping ()[Lio/ktor/openapi/JsonSchemaDiscriminator$Mapping;
-	public abstract fun property ()Ljava/lang/String;
-}
-
-public final synthetic class io/ktor/openapi/JsonSchemaDiscriminator$Impl : io/ktor/openapi/JsonSchemaDiscriminator {
-	public fun <init> (Ljava/lang/String;[Lio/ktor/openapi/JsonSchemaDiscriminator$Mapping;)V
-	public final synthetic fun mapping ()[Lio/ktor/openapi/JsonSchemaDiscriminator$Mapping;
-	public final synthetic fun property ()Ljava/lang/String;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchemaDiscriminator$Mapping : java/lang/annotation/Annotation {
-	public abstract fun key ()Ljava/lang/String;
-	public abstract fun ref ()Ljava/lang/Class;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchemaEnum : java/lang/annotation/Annotation {
-	public abstract fun value ()[Ljava/lang/String;
-}
-
-public final synthetic class io/ktor/openapi/JsonSchemaEnum$Impl : io/ktor/openapi/JsonSchemaEnum {
-	public fun <init> ([Ljava/lang/String;)V
-	public final synthetic fun value ()[Ljava/lang/String;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchemaExample : java/lang/annotation/Annotation {
-	public abstract fun value ()[Ljava/lang/String;
-}
-
-public final synthetic class io/ktor/openapi/JsonSchemaExample$Impl : io/ktor/openapi/JsonSchemaExample {
-	public fun <init> ([Ljava/lang/String;)V
-	public final synthetic fun value ()[Ljava/lang/String;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchemaFormat : java/lang/annotation/Annotation {
-	public abstract fun value ()Ljava/lang/String;
-}
-
-public final synthetic class io/ktor/openapi/JsonSchemaFormat$Impl : io/ktor/openapi/JsonSchemaFormat {
-	public fun <init> (Ljava/lang/String;)V
-	public final synthetic fun value ()Ljava/lang/String;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchemaId : java/lang/annotation/Annotation {
-	public abstract fun value ()Ljava/lang/String;
-}
-
-public final synthetic class io/ktor/openapi/JsonSchemaId$Impl : io/ktor/openapi/JsonSchemaId {
-	public fun <init> (Ljava/lang/String;)V
-	public final synthetic fun value ()Ljava/lang/String;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchemaIgnore : java/lang/annotation/Annotation {
-}
-
-public final synthetic class io/ktor/openapi/JsonSchemaIgnore$Impl : io/ktor/openapi/JsonSchemaIgnore {
-	public fun <init> ()V
-}
-
 public abstract interface class io/ktor/openapi/JsonSchemaInference {
 	public abstract fun buildSchema (Lkotlin/reflect/KType;)Lio/ktor/openapi/JsonSchema;
 }
@@ -803,187 +988,6 @@ public final class io/ktor/openapi/JsonSchemaInferenceKt {
 	public static final fun buildJsonSchema (Lkotlinx/serialization/descriptors/SerialDescriptor;ZLjava/util/List;)Lio/ktor/openapi/JsonSchema;
 	public static synthetic fun buildJsonSchema$default (Lkotlinx/serialization/descriptors/SerialDescriptor;ZLjava/util/List;ILjava/lang/Object;)Lio/ktor/openapi/JsonSchema;
 	public static final fun getKotlinxJsonSchemaInference ()Lio/ktor/openapi/JsonSchemaInference;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchemaItemsRef : java/lang/annotation/Annotation {
-	public abstract fun value ()Ljava/lang/Class;
-}
-
-public final synthetic class io/ktor/openapi/JsonSchemaItemsRef$Impl : io/ktor/openapi/JsonSchemaItemsRef {
-	public fun <init> (Lkotlin/reflect/KClass;)V
-	public final synthetic fun value ()Ljava/lang/Class;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchemaMaxItems : java/lang/annotation/Annotation {
-	public abstract fun value ()I
-}
-
-public final synthetic class io/ktor/openapi/JsonSchemaMaxItems$Impl : io/ktor/openapi/JsonSchemaMaxItems {
-	public fun <init> (I)V
-	public final synthetic fun value ()I
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchemaMaxLength : java/lang/annotation/Annotation {
-	public abstract fun value ()I
-}
-
-public final synthetic class io/ktor/openapi/JsonSchemaMaxLength$Impl : io/ktor/openapi/JsonSchemaMaxLength {
-	public fun <init> (I)V
-	public final synthetic fun value ()I
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchemaMaxProperties : java/lang/annotation/Annotation {
-	public abstract fun value ()I
-}
-
-public final synthetic class io/ktor/openapi/JsonSchemaMaxProperties$Impl : io/ktor/openapi/JsonSchemaMaxProperties {
-	public fun <init> (I)V
-	public final synthetic fun value ()I
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchemaMaximum : java/lang/annotation/Annotation {
-	public abstract fun exclusive ()Z
-	public abstract fun value ()D
-}
-
-public final synthetic class io/ktor/openapi/JsonSchemaMaximum$Impl : io/ktor/openapi/JsonSchemaMaximum {
-	public fun <init> (DZ)V
-	public synthetic fun <init> (DZILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final synthetic fun exclusive ()Z
-	public final synthetic fun value ()D
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchemaMinItems : java/lang/annotation/Annotation {
-	public abstract fun value ()I
-}
-
-public final synthetic class io/ktor/openapi/JsonSchemaMinItems$Impl : io/ktor/openapi/JsonSchemaMinItems {
-	public fun <init> (I)V
-	public final synthetic fun value ()I
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchemaMinLength : java/lang/annotation/Annotation {
-	public abstract fun value ()I
-}
-
-public final synthetic class io/ktor/openapi/JsonSchemaMinLength$Impl : io/ktor/openapi/JsonSchemaMinLength {
-	public fun <init> (I)V
-	public final synthetic fun value ()I
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchemaMinProperties : java/lang/annotation/Annotation {
-	public abstract fun value ()I
-}
-
-public final synthetic class io/ktor/openapi/JsonSchemaMinProperties$Impl : io/ktor/openapi/JsonSchemaMinProperties {
-	public fun <init> (I)V
-	public final synthetic fun value ()I
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchemaMinimum : java/lang/annotation/Annotation {
-	public abstract fun exclusive ()Z
-	public abstract fun value ()D
-}
-
-public final synthetic class io/ktor/openapi/JsonSchemaMinimum$Impl : io/ktor/openapi/JsonSchemaMinimum {
-	public fun <init> (DZ)V
-	public synthetic fun <init> (DZILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final synthetic fun exclusive ()Z
-	public final synthetic fun value ()D
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchemaMultipleOf : java/lang/annotation/Annotation {
-	public abstract fun value ()D
-}
-
-public final synthetic class io/ktor/openapi/JsonSchemaMultipleOf$Impl : io/ktor/openapi/JsonSchemaMultipleOf {
-	public fun <init> (D)V
-	public final synthetic fun value ()D
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchemaNot : java/lang/annotation/Annotation {
-	public abstract fun value ()Ljava/lang/Class;
-}
-
-public final synthetic class io/ktor/openapi/JsonSchemaNot$Impl : io/ktor/openapi/JsonSchemaNot {
-	public fun <init> (Lkotlin/reflect/KClass;)V
-	public final synthetic fun value ()Ljava/lang/Class;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchemaNullable : java/lang/annotation/Annotation {
-	public abstract fun value ()Z
-}
-
-public final synthetic class io/ktor/openapi/JsonSchemaNullable$Impl : io/ktor/openapi/JsonSchemaNullable {
-	public fun <init> (Z)V
-	public synthetic fun <init> (ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final synthetic fun value ()Z
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchemaOneOf : java/lang/annotation/Annotation {
-	public abstract fun value ()[Ljava/lang/Class;
-}
-
-public final synthetic class io/ktor/openapi/JsonSchemaOneOf$Impl : io/ktor/openapi/JsonSchemaOneOf {
-	public fun <init> ([Lkotlin/reflect/KClass;)V
-	public final synthetic fun value ()[Ljava/lang/Class;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchemaPattern : java/lang/annotation/Annotation {
-	public abstract fun value ()Ljava/lang/String;
-}
-
-public final synthetic class io/ktor/openapi/JsonSchemaPattern$Impl : io/ktor/openapi/JsonSchemaPattern {
-	public fun <init> (Ljava/lang/String;)V
-	public final synthetic fun value ()Ljava/lang/String;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchemaReadOnly : java/lang/annotation/Annotation {
-}
-
-public final synthetic class io/ktor/openapi/JsonSchemaReadOnly$Impl : io/ktor/openapi/JsonSchemaReadOnly {
-	public fun <init> ()V
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchemaRequired : java/lang/annotation/Annotation {
-	public abstract fun value ()[Ljava/lang/String;
-}
-
-public final synthetic class io/ktor/openapi/JsonSchemaRequired$Impl : io/ktor/openapi/JsonSchemaRequired {
-	public fun <init> ([Ljava/lang/String;)V
-	public final synthetic fun value ()[Ljava/lang/String;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchemaTitle : java/lang/annotation/Annotation {
-	public abstract fun value ()Ljava/lang/String;
-}
-
-public final synthetic class io/ktor/openapi/JsonSchemaTitle$Impl : io/ktor/openapi/JsonSchemaTitle {
-	public fun <init> (Ljava/lang/String;)V
-	public final synthetic fun value ()Ljava/lang/String;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchemaType : java/lang/annotation/Annotation {
-	public abstract fun value ()Lio/ktor/openapi/JsonType;
-}
-
-public final synthetic class io/ktor/openapi/JsonSchemaType$Impl : io/ktor/openapi/JsonSchemaType {
-	public fun <init> (Lio/ktor/openapi/JsonType;)V
-	public final synthetic fun value ()Lio/ktor/openapi/JsonType;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchemaUniqueItems : java/lang/annotation/Annotation {
-}
-
-public final synthetic class io/ktor/openapi/JsonSchemaUniqueItems$Impl : io/ktor/openapi/JsonSchemaUniqueItems {
-	public fun <init> ()V
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchemaWriteOnly : java/lang/annotation/Annotation {
-}
-
-public final synthetic class io/ktor/openapi/JsonSchemaWriteOnly$Impl : io/ktor/openapi/JsonSchemaWriteOnly {
-	public fun <init> ()V
 }
 
 public final class io/ktor/openapi/JsonType : java/lang/Enum, io/ktor/openapi/JsonSchema$SchemaType {

@@ -7,9 +7,12 @@ package io.ktor.openapi
 import com.charleskorn.kaml.SingleLineStringStyle
 import com.charleskorn.kaml.Yaml
 import com.charleskorn.kaml.YamlConfiguration
+import io.ktor.openapi.JsonSchema.Annotations.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 abstract class AbstractSchemaInferenceTest(
     val inference: JsonSchemaInference
@@ -89,10 +92,10 @@ sealed interface Location
 
 @Serializable
 data class Address(
-    @JsonSchemaMinimum(value = 1.0, exclusive = false)
+    @Minimum(value = 1.0, exclusive = false)
     val houseNumber: Int,
-    @JsonSchemaMinLength(1)
-    @JsonSchemaMaxLength(4)
+    @MinLength(1)
+    @MaxLength(4)
     val apartment: String? = null,
     val street: String,
     val municipality: Municipality,
@@ -108,9 +111,9 @@ data class Municipality(
 
 @Serializable
 data class Country(
-    @JsonSchemaPattern("[A-Za-z'-,]+")
+    @Pattern("[A-Za-z'-,]+")
     val name: String,
-    @JsonSchemaPattern("[A-Z]{3}")
+    @Pattern("[A-Z]{3}")
     val code: String,
 ) : Location
 
@@ -132,36 +135,36 @@ sealed class Shape {
 
 @Serializable
 data class AnnotatedUser(
-    @JsonSchemaDescription("The user's unique identifier")
+    @Description("The user's unique identifier")
     val id: Int,
-    @JsonSchemaMinLength(3)
-    @JsonSchemaMaxLength(20)
-    @JsonSchemaPattern("^[a-z0-9_]+$")
+    @MinLength(3)
+    @MaxLength(20)
+    @Pattern("^[a-z0-9_]+$")
     val username: String,
     @JsonSchemaEmail
     val email: String,
-    @JsonSchemaReadOnly
+    @ReadOnly
     val createdAt: String
 )
 
 @Serializable
 data class ContainerTestData(
-    @JsonSchemaUniqueItems
-    @JsonSchemaMinItems(1)
+    @UniqueItems
+    @MinItems(1)
     val tags: List<String>,
-    @JsonSchemaMaxProperties(5)
+    @MaxProperties(5)
     val metadata: Map<String, String>
 )
 
 @Serializable
 data class LogicalOperatorsData(
-    @JsonSchemaOneOf(Address::class, Country::class)
+    @OneOf(Address::class, Country::class)
     val location: Location,
-    @JsonSchemaNot(Color::class)
+    @Not(Color::class)
     val nonColorValue: String
 )
 
 // Helper annotation for pattern test
 @Target(AnnotationTarget.PROPERTY)
-@JsonSchemaPattern(".+@.+\\..+")
+@Pattern(".+@.+\\..+")
 annotation class JsonSchemaEmail
