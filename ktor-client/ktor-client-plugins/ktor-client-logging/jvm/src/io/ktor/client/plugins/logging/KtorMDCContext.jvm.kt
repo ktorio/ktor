@@ -8,7 +8,7 @@ import io.ktor.utils.io.*
 import kotlin.coroutines.*
 
 @Suppress("FunctionName")
-@InternalAPI
+@InternalKtorApi
 public actual fun MDCContext(): CoroutineContext.Element {
     return kotlinx.coroutines.slf4j.MDCContext()
 }

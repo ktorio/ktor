@@ -9,7 +9,7 @@ import io.ktor.server.response.*
 import io.ktor.utils.io.*
 import jakarta.servlet.http.*
 
-@InternalAPI
+@InternalKtorApi
 @UseHttp2Push
 public fun doPush(request: HttpServletRequest, builder: ResponsePushBuilder): Boolean {
     request.newPushBuilder()?.apply {

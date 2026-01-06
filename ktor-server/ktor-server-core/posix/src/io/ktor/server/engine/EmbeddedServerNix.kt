@@ -8,7 +8,7 @@ import io.ktor.events.*
 import io.ktor.events.EventDefinition
 import io.ktor.server.application.*
 import io.ktor.server.engine.internal.*
-import io.ktor.utils.io.InternalAPI
+import io.ktor.utils.io.InternalKtorApi
 import kotlinx.coroutines.*
 
 public actual class EmbeddedServer<
@@ -97,7 +97,7 @@ actual constructor(
         runBlocking(Dispatchers.IOBridge) { destroy(application) }
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     private suspend fun destroy(application: Application) {
         safeRaiseEvent(ApplicationStopping, application)
         try {

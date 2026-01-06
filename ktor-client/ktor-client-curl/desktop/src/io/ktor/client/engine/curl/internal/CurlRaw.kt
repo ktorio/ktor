@@ -22,7 +22,7 @@ import kotlinx.coroutines.Job
 import libcurl.curl_slist
 import kotlin.coroutines.coroutineContext
 
-@OptIn(ExperimentalForeignApi::class, InternalAPI::class)
+@OptIn(ExperimentalForeignApi::class, InternalKtorApi::class)
 internal suspend fun HttpRequestData.toCurlRequest(config: CurlClientEngineConfig): CurlRequestData = CurlRequestData(
     protocol = url.protocol.name,
     url = url.toString(),

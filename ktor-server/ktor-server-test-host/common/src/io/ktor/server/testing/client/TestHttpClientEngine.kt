@@ -39,7 +39,7 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
 
     override val coroutineContext: CoroutineContext = clientJob + dispatcher + CoroutineExceptionHandler { _, _ -> }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
         try {
@@ -98,7 +98,7 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
         }
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     private suspend fun TestApplicationResponse.httpResponseData(body: Any) = HttpResponseData(
         statusOrNotFound(),
         GMTDate(),
@@ -109,7 +109,7 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
         callContext()
     )
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     internal fun TestApplicationRequest.appendRequestHeaders(
         headers: Headers,
         content: OutgoingContent

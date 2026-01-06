@@ -8,7 +8,7 @@ import io.ktor.server.util.*
 import io.ktor.utils.io.*
 import kotlin.test.*
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 class CopyOnWriteHashMapTest {
     private val map = CopyOnWriteHashMap<String, String>()
 

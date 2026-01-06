@@ -54,7 +54,7 @@ internal class OkHttpWebsocketSession(
     override val closeReason: Deferred<CloseReason?>
         get() = _closeReason
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     override fun start(negotiatedExtensions: List<WebSocketExtension<*>>) {
         require(negotiatedExtensions.isEmpty()) { "Extensions are not supported." }
     }
@@ -175,7 +175,7 @@ public class UnsupportedFrameTypeException(
     }
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 private fun CloseReason.isReserved() = CloseReason.Codes.byCode(code).let { recognized ->
     recognized == null || recognized == CloseReason.Codes.CLOSED_ABNORMALLY
 }

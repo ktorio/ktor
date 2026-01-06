@@ -14,7 +14,7 @@ import javax.servlet.http.*
 import kotlin.coroutines.*
 import kotlin.time.Duration
 
-@InternalAPI
+@InternalKtorApi
 public class JettyApplicationResponse(
     call: AsyncServletApplicationCall,
     servletRequest: HttpServletRequest,

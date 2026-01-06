@@ -12,7 +12,7 @@ import kotlinx.io.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.readBytes)
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun HttpResponse.readBytes(count: Int): ByteArray = ByteArray(count).also {
     rawContent.readFully(it)
 }
@@ -31,7 +31,7 @@ public suspend fun HttpResponse.readBytes(count: Int): ByteArray = ByteArray(cou
  *
  * @return the raw payload of the HTTP response as a byte array
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun HttpResponse.readRawBytes(): ByteArray = rawContent.readRemaining().readByteArray()
 
 /**
@@ -48,7 +48,7 @@ public suspend fun HttpResponse.readRawBytes(): ByteArray = rawContent.readRemai
  *
  * @return the raw payload of the HTTP response as a byte array
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 @Deprecated("This method was renamed to readRawBytes() to reflect what it does.", ReplaceWith("readRawBytes()"))
 public suspend fun HttpResponse.readBytes(): ByteArray = rawContent.readRemaining().readByteArray()
 
@@ -57,7 +57,7 @@ public suspend fun HttpResponse.readBytes(): ByteArray = rawContent.readRemainin
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.discardRemaining)
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun HttpResponse.discardRemaining() {
     rawContent.discard()
 }

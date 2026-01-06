@@ -171,7 +171,7 @@ public class CIOApplicationEngine(
         return transferEncoding != null || (contentLength != null && contentLength > 0)
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     private fun ServerRequestScope.setCloseHandler(call: CIOApplicationCall) {
         onClose = {
             val requestCloseHandler = call.attributes.getOrNull(HttpRequestCloseHandlerKey)

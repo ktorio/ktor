@@ -29,7 +29,7 @@ private class LoggerWithMdc : Logger {
 
 class LoggingTestJvm : ClientLoader() {
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     @Test
     fun testMdc() = clientTests(except("native:CIO")) {
         val testLogger = LoggerWithMdc()

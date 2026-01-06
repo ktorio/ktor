@@ -71,7 +71,7 @@ public value class HXRequestHeaders(private val headers: Headers) {
 }
 
 @ExperimentalKtorApi
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public class HXResponseHeaders(private val headers: ResponseHeaders) : StringMap {
 
     public var location: String? by HxResponseHeaders.Location

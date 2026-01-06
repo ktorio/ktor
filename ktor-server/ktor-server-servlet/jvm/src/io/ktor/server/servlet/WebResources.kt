@@ -76,7 +76,7 @@ public class WebResourcesConfig internal constructor() {
  *
  * @param subPath slash-delimited web resources root path (relative to webapp directory)
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public fun Route.webResources(subPath: String = "/", configure: WebResourcesConfig.() -> Unit = {}) {
     val config = WebResourcesConfig().apply(configure)
     val pathParameterName = pathParameterName + "_" + Random.nextInt(0, Int.MAX_VALUE)

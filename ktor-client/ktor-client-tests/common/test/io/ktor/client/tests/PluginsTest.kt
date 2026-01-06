@@ -43,7 +43,7 @@ class PluginsTest : ClientLoader() {
         }
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     @Test
     fun testBodyObserver() = clientTests(except("CIO")) {
         val body = "Hello, world"

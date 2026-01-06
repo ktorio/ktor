@@ -33,12 +33,12 @@ public abstract class BaseApplicationRequest(final override val call: PipelineCa
         return receiveChannel.value ?: engineReceiveChannel
     }
 
-    @InternalAPI
+    @InternalKtorApi
     final override fun setHeader(name: String, values: List<String>?) {
         (headers as DelegateHeaders).setHeader(name, values)
     }
 
-    @InternalAPI
+    @InternalKtorApi
     final override fun setReceiveChannel(channel: ByteReadChannel) {
         receiveChannel.value = channel
     }

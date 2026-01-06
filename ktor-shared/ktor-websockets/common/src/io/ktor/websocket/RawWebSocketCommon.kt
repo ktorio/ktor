@@ -36,7 +36,7 @@ public expect fun RawWebSocket(
     coroutineContext: CoroutineContext
 ): WebSocketSession
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal class RawWebSocketCommon(
     private val input: ByteReadChannel,
     private val output: ByteWriteChannel,
@@ -170,7 +170,7 @@ private fun Source.mask(maskKey: Int): Source = withMemory(4) { maskMemory ->
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.writeFrame)
  */
-@InternalAPI // used in tests
+@InternalKtorApi // used in tests
 public suspend fun ByteWriteChannel.writeFrame(frame: Frame, masking: Boolean) {
     val length = frame.data.size
 
@@ -221,7 +221,7 @@ public suspend fun ByteWriteChannel.writeFrame(frame: Frame, masking: Boolean) {
  * @param lastOpcode last read opcode
  */
 
-@InternalAPI // used in tests
+@InternalKtorApi // used in tests
 public suspend fun ByteReadChannel.readFrame(maxFrameSize: Long, lastOpcode: Int): Frame {
     val flagsAndOpcode = readByte().toInt()
     val maskAndLength = readByte().toInt()

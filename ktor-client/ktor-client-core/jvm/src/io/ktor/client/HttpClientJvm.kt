@@ -39,7 +39,7 @@ public interface HttpClientEngineContainer {
     public val factory: HttpClientEngineFactory<*>
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 private val FACTORY = loadServiceOrNull<HttpClientEngineContainer>()?.factory ?: error(
     "Failed to find HTTP client engine implementation: consider adding client engine dependency. " +
         "See https://ktor.io/docs/http-client-engines.html"

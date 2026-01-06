@@ -11,7 +11,7 @@ import io.ktor.utils.io.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.rootCause)
  */
-@InternalAPI
+@InternalKtorApi
 public val Throwable.rootCause: Throwable?
     get() {
         var rootCause: Throwable? = this

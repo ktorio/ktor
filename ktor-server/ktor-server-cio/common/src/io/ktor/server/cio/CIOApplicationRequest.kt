@@ -25,7 +25,7 @@ internal class CIOApplicationRequest(
 
     override var engineHeaders: Headers = CIOHeaders(request.headers)
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     override val queryParameters: Parameters by lazy {
         encodeParameters(rawQueryParameters).withEmptyStringForValuelessKeys()
     }

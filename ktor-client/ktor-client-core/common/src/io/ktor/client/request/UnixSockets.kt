@@ -4,10 +4,10 @@
 package io.ktor.client.request
 
 import io.ktor.client.engine.*
-import io.ktor.utils.io.InternalAPI
+import io.ktor.utils.io.InternalKtorApi
 
-@InternalAPI
+@InternalKtorApi
 public class UnixSocketSettings(public val path: String)
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public data object UnixSocketCapability : HttpClientEngineCapability<UnixSocketSettings>

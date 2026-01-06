@@ -119,7 +119,7 @@ public interface HttpClientEngine : CoroutineScope, Closeable {
      * @param data The [HttpRequestData] representing the request to be executed.
      * @return An [HttpResponseData] object containing the server's response.
      */
-    @InternalAPI
+    @InternalKtorApi
     public suspend fun execute(data: HttpRequestData): HttpResponseData
 
     /**
@@ -134,7 +134,7 @@ public interface HttpClientEngine : CoroutineScope, Closeable {
      *
      * @param client The [HttpClient] instance to which the engine is being installed.
      */
-    @InternalAPI
+    @InternalKtorApi
     public fun install(client: HttpClient) {
         client.sendPipeline.intercept(HttpSendPipeline.Engine) { content ->
             val builder = HttpRequestBuilder().apply {
@@ -170,7 +170,7 @@ public interface HttpClientEngine : CoroutineScope, Closeable {
     /**
      * Creates a call context and uses it as a coroutine context to [execute] a request.
      */
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     private suspend fun executeWithinCallContext(requestData: HttpRequestData): HttpResponseData {
         val callContext = createCallContext(requestData.executionContext)
 

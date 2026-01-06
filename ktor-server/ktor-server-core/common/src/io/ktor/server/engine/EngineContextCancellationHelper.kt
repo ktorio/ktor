@@ -14,7 +14,7 @@ import kotlinx.coroutines.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.stopServerOnCancellation)
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public fun ApplicationEngine.stopServerOnCancellation(
     application: Application,
     gracePeriodMillis: Long = 50,
@@ -32,7 +32,7 @@ public fun ApplicationEngine.stopServerOnCancellation(
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.launchOnCancellation)
  */
 @OptIn(DelicateCoroutinesApi::class)
-@InternalAPI
+@InternalKtorApi
 public fun Job.launchOnCancellation(block: suspend () -> Unit): CompletableJob {
     val completableJob: CompletableJob = Job(parent = this)
 

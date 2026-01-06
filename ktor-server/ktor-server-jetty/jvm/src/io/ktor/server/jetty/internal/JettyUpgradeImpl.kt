@@ -14,7 +14,7 @@ import java.util.concurrent.*
 import javax.servlet.http.*
 import kotlin.coroutines.*
 
-@InternalAPI
+@InternalKtorApi
 public object JettyUpgradeImpl : ServletUpgrade {
 
     override suspend fun performUpgrade(

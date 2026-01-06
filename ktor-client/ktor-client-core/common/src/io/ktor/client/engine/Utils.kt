@@ -20,7 +20,7 @@ import kotlin.coroutines.coroutineContext
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.KTOR_DEFAULT_USER_AGENT)
  */
-@InternalAPI
+@InternalKtorApi
 public val KTOR_DEFAULT_USER_AGENT: String = "ktor-client"
 
 private val DATE_HEADERS = setOf(
@@ -36,7 +36,7 @@ private val DATE_HEADERS = setOf(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.mergeHeaders)
  */
-@InternalAPI
+@InternalKtorApi
 public fun mergeHeaders(
     requestHeaders: Headers,
     content: OutgoingContent,
@@ -82,7 +82,7 @@ public fun mergeHeaders(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.callContext)
  */
-@InternalAPI
+@InternalKtorApi
 public suspend fun callContext(): CoroutineContext = coroutineContext[KtorCallContextElement]!!.callContext
 
 /**

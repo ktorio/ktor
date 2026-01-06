@@ -25,7 +25,7 @@ import io.ktor.websocket.*
  * @param converter The WebSocket converter
  * @param charset Response charset
  */
-@InternalAPI
+@InternalKtorApi
 public suspend inline fun <reified T> WebSocketSession.sendSerializedBase(
     data: Any?,
     converter: WebsocketContentConverter,
@@ -47,7 +47,7 @@ public suspend inline fun <reified T> WebSocketSession.sendSerializedBase(
  * @param converter The WebSocket converter
  * @param charset Response charset
  */
-@InternalAPI
+@InternalKtorApi
 public suspend fun WebSocketSession.sendSerializedBase(
     data: Any?,
     typeInfo: TypeInfo,
@@ -77,7 +77,7 @@ public suspend fun WebSocketSession.sendSerializedBase(
  * @returns A deserialized value or throws [WebsocketDeserializeException] if the [converter]
  * can't deserialize frame data to type [T]
  */
-@InternalAPI
+@InternalKtorApi
 public suspend inline fun <reified T> WebSocketSession.receiveDeserializedBase(
     converter: WebsocketContentConverter,
     charset: Charset
@@ -99,7 +99,7 @@ public suspend inline fun <reified T> WebSocketSession.receiveDeserializedBase(
  * @returns A deserialized value or throws [WebsocketDeserializeException] if the [converter]
  * can't deserialize frame data to type [T]
  */
-@InternalAPI
+@InternalKtorApi
 public suspend fun WebSocketSession.receiveDeserializedBase(
     typeInfo: TypeInfo,
     converter: WebsocketContentConverter,

@@ -19,7 +19,7 @@ import io.ktor.utils.io.*
  * @property url builder
  * @property headers builder
  */
-@InternalAPI
+@InternalKtorApi
 @UseHttp2Push
 public class DefaultResponsePushBuilder(
     override var method: HttpMethod = HttpMethod.Get,

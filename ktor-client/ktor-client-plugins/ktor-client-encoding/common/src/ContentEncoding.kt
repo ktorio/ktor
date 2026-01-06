@@ -104,7 +104,7 @@ public class ContentEncodingConfig {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.compression.ContentEncoding)
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public val ContentEncoding: ClientPlugin<ContentEncodingConfig> = createClientPlugin(
     "HttpEncoding",
     ::ContentEncodingConfig

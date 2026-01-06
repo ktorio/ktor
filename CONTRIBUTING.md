@@ -172,7 +172,7 @@ A few things to remember:
   every parameter, property, return types and exceptions should be described properly.
 * A Public API which is not intended to be used by end-users that couldn't be made private/internal due to technical
   reasons,
-  should be marked with `@InternalAPI` annotation.
+  should be marked with `@InternalKtorApi` annotation.
 
 ### Commit messages
 

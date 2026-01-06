@@ -40,7 +40,7 @@ public interface ServletUpgrade {
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.servlet.jakarta.DefaultServletUpgrade)
  */
 public object DefaultServletUpgrade : ServletUpgrade {
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     override suspend fun performUpgrade(
         upgrade: OutgoingContent.ProtocolUpgrade,
         servletRequest: HttpServletRequest,
@@ -60,7 +60,7 @@ public object DefaultServletUpgrade : ServletUpgrade {
 
 // the following types need to be public as they are accessed through reflection
 
-@InternalAPI
+@InternalKtorApi
 public class UpgradeRequest(
     public val response: HttpServletResponse,
     public val upgradeMessage: OutgoingContent.ProtocolUpgrade,
@@ -74,7 +74,7 @@ private val ServletUpgradeCoroutineName = CoroutineName("servlet-upgrade")
 // this class is instantiated by a servlet container
 // so we can't pass [UpgradeRequest] through a constructor
 // we also can't make it internal due to the same reason
-@InternalAPI
+@InternalKtorApi
 public class ServletUpgradeHandler : HttpUpgradeHandler, CoroutineScope {
     @Volatile
     public lateinit var up: UpgradeRequest

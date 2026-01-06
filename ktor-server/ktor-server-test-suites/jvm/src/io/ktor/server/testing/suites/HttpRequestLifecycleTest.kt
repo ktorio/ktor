@@ -56,7 +56,7 @@ abstract class HttpRequestLifecycleTest<TEngine : ApplicationEngine, TConfigurat
                     delay(200.milliseconds)
                 }
             } catch (err: CancellationException) {
-                @OptIn(InternalAPI::class)
+                @OptIn(InternalKtorApi::class)
                 assertTrue(err.rootCause is ConnectionClosedException)
                 requestCancelled.send(requestCancelledCnt.incrementAndFetch())
             }

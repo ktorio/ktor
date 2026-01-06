@@ -121,7 +121,7 @@ class BodyProgressTest : ClientLoader() {
         }
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     @Test
     fun testRequestBodyRemainReusableWhenObserving() = clientTests(except("web:*"), timeout = 5.seconds) {
         test { client ->

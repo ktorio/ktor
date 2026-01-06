@@ -9,19 +9,19 @@ import kotlinx.io.*
 import kotlinx.io.unsafe.*
 import java.nio.*
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteWriteChannel.writeByteBuffer(value: ByteBuffer) {
     writeBuffer.writeByteBuffer(value)
     flush()
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteWriteChannel.writeFully(value: ByteBuffer) {
     writeBuffer.writeByteBuffer(value)
     flush()
 }
 
-@OptIn(UnsafeIoApi::class, InternalAPI::class, InternalIoApi::class)
+@OptIn(UnsafeIoApi::class, InternalKtorApi::class, InternalIoApi::class)
 public suspend fun ByteWriteChannel.write(min: Int = 1, block: (buffer: ByteBuffer) -> Unit) {
     UnsafeBufferOperations.writeToTail(writeBuffer.buffer, min) { array, startIndex, endIndex ->
         val buffer = ByteBuffer.wrap(array, startIndex, endIndex - startIndex)
@@ -48,7 +48,7 @@ public suspend fun ByteWriteChannel.write(min: Int = 1, block: (buffer: ByteBuff
  *
  * @return number of consumed bytes or -1 if the block wasn't executed.
  */
-@OptIn(InternalAPI::class, UnsafeIoApi::class, InternalIoApi::class)
+@OptIn(InternalKtorApi::class, UnsafeIoApi::class, InternalIoApi::class)
 public fun ByteWriteChannel.writeAvailable(min: Int = 1, block: (ByteBuffer) -> Unit): Int {
     require(min > 0) { "min should be positive" }
     require(min <= CHANNEL_MAX_SIZE) { "Min($min) shouldn't be greater than $CHANNEL_MAX_SIZE" }
@@ -66,7 +66,7 @@ public fun ByteWriteChannel.writeAvailable(min: Int = 1, block: (ByteBuffer) -> 
     return result
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public fun ByteWriteChannel.writeAvailable(buffer: ByteBuffer) {
     writeBuffer.write(buffer)
 }

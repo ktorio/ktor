@@ -68,7 +68,7 @@ private class ClientPluginImpl<PluginConfigT : Any>(
         return ClientPluginInstance(key, config, body)
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     override fun install(plugin: ClientPluginInstance<PluginConfigT>, scope: HttpClient) {
         plugin.install(scope)
     }

@@ -20,7 +20,7 @@ import kotlin.coroutines.*
 /**
  * Setup [HttpURLConnection] timeout configuration using [HttpTimeout.HttpTimeoutCapabilityConfiguration] as a source.
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal fun HttpURLConnection.setupTimeoutAttributes(requestData: HttpRequestData) {
     requestData.getCapabilityOrNull(HttpTimeoutCapability)?.let { timeoutAttributes ->
         timeoutAttributes.connectTimeoutMillis?.let { connectTimeout = convertLongTimeoutToIntWithInfiniteAsZero(it) }
@@ -33,7 +33,7 @@ internal fun HttpURLConnection.setupTimeoutAttributes(requestData: HttpRequestDa
  * Update [HttpURLConnection] timeout configuration to support request timeout. Required to support blocking
  * [HttpURLConnection.connect] call.
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 private fun HttpURLConnection.setupRequestTimeoutAttributes(
     timeoutAttributes: HttpTimeoutConfig
 ) {

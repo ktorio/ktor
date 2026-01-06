@@ -292,7 +292,7 @@ class ByteReadChannelOperationsTest {
     }
 
     // this test ensures we don't get stuck on awaitContent
-    @OptIn(InternalAPI::class, InternalIoApi::class)
+    @OptIn(InternalKtorApi::class, InternalIoApi::class)
     @Test
     fun readIntWithPartialContents() = runTest(timeout = 1.seconds) {
         val channel = ByteChannel()
@@ -304,7 +304,7 @@ class ByteReadChannelOperationsTest {
         assertEquals(16843009, channel.readInt())
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     private suspend fun String.toByteChannel() = ByteChannel().also {
         it.writeBuffer.writeString(this)
         it.flushAndClose()

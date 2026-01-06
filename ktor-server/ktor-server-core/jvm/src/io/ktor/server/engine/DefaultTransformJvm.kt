@@ -32,7 +32,7 @@ internal actual suspend fun PipelineContext<Any, PipelineCall>.defaultPlatformTr
     }
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal actual fun PipelineContext<*, PipelineCall>.multiPartData(rc: ByteReadChannel): MultiPartData {
     val contentType = call.request.header(HttpHeaders.ContentType)
         ?: throw UnsupportedMediaTypeException(null)

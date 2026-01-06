@@ -69,7 +69,7 @@ internal fun CoroutineScope.socketTimeoutKiller(socketTimeoutMillis: Long, job: 
     }
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal fun Throwable.mapToKtor(data: HttpRequestData): Throwable = when {
     this is NetworkSocketTimeoutException -> SocketTimeoutException(data, this)
     cause?.rootCause is NetworkSocketTimeoutException -> SocketTimeoutException(data, cause?.rootCause)

@@ -14,19 +14,19 @@ import kotlin.coroutines.Continuation
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteWriteChannel.writeByte(value: Byte) {
     writeBuffer.writeByte(value)
     flushIfNeeded()
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteWriteChannel.writeShort(value: Short) {
     writeBuffer.writeShort(value)
     flushIfNeeded()
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteWriteChannel.writeInt(value: Int) {
     writeBuffer.writeInt(value)
     flushIfNeeded()
@@ -37,7 +37,7 @@ public suspend fun ByteWriteChannel.writeInt(value: Int) {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.writeFloat)
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteWriteChannel.writeFloat(value: Float) {
     writeBuffer.writeFloat(value)
     flushIfNeeded()
@@ -51,59 +51,59 @@ public suspend fun ByteWriteChannel.writeFloat(value: Float) {
  *
  * @param value The floating-point value to be written to the channel.
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteWriteChannel.writeDouble(value: Double) {
     writeBuffer.writeDouble(value)
     flushIfNeeded()
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteWriteChannel.writeLong(value: Long) {
     writeBuffer.writeLong(value)
     flushIfNeeded()
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteWriteChannel.writeByteArray(array: ByteArray) {
     writeBuffer.write(array)
     flushIfNeeded()
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteWriteChannel.writeSource(source: Source) {
     writePacket(source)
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteWriteChannel.writeString(value: String) {
     writeBuffer.writeText(value)
     flushIfNeeded()
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteWriteChannel.writeFully(value: ByteArray, startIndex: Int = 0, endIndex: Int = value.size) {
     writeBuffer.write(value, startIndex, endIndex)
     flushIfNeeded()
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteWriteChannel.writeBuffer(source: RawSource) {
     writePacket(source.buffered())
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteWriteChannel.writeBuffer(value: RawSource, length: Long) {
     writeBuffer.write(value, length)
     flushIfNeeded()
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteWriteChannel.writeStringUtf8(value: String) {
     writeBuffer.writeText(value)
     flushIfNeeded()
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteWriteChannel.writePacket(copy: Buffer) {
     writeBuffer.transferFrom(copy)
     flushIfNeeded()
@@ -115,7 +115,7 @@ public suspend fun ByteWriteChannel.writePacket(copy: Buffer) {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.writePacket)
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public suspend fun ByteWriteChannel.writePacket(source: Source) {
     while (!source.exhausted()) {
         writeBuffer.write(source, source.remaining)
@@ -218,7 +218,7 @@ public fun CoroutineScope.writer(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.write)
  */
-@OptIn(UnsafeIoApi::class, InternalAPI::class, InternalIoApi::class)
+@OptIn(UnsafeIoApi::class, InternalKtorApi::class, InternalIoApi::class)
 public suspend fun ByteWriteChannel.write(
     desiredSpace: Int = 1,
     block: (ByteArray, Int, Int) -> Int

@@ -7,6 +7,6 @@ package io.ktor.serialization.kotlinx
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal actual val providers: List<KotlinxSerializationExtensionProvider> =
     loadServices<KotlinxSerializationExtensionProvider>()

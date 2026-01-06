@@ -9,7 +9,7 @@ import io.ktor.http.content.*
 import io.ktor.utils.io.*
 
 @Suppress("KDocMissingDocumentation", "DEPRECATION")
-@InternalAPI
+@InternalKtorApi
 public abstract class ClientUpgradeContent : OutgoingContent.NoContent() {
     private val content: ByteChannel by lazy { ByteChannel() }
 

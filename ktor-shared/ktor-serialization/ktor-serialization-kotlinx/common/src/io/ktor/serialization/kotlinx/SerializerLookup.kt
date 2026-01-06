@@ -37,7 +37,7 @@ private fun <T : Any> KSerializer<T>.maybeNullable(typeInfo: TypeInfo): KSeriali
 }
 
 @Suppress("UNCHECKED_CAST")
-@InternalAPI
+@InternalKtorApi
 public fun guessSerializer(value: Any?, module: SerializersModule): KSerializer<Any> = when (value) {
     null -> String.serializer().nullable
     is List<*> -> ListSerializer(value.elementSerializer(module))
@@ -55,7 +55,7 @@ public fun guessSerializer(value: Any?, module: SerializersModule): KSerializer<
     }
 } as KSerializer<Any>
 
-@OptIn(ExperimentalSerializationApi::class, InternalAPI::class)
+@OptIn(ExperimentalSerializationApi::class, InternalKtorApi::class)
 private fun Collection<*>.elementSerializer(module: SerializersModule): KSerializer<*> {
     val serializers: List<KSerializer<*>> =
         filterNotNull().map { guessSerializer(it, module) }.distinctBy { it.descriptor.serialName }

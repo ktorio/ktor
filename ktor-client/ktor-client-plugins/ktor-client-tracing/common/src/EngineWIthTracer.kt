@@ -20,7 +20,7 @@ import io.ktor.utils.io.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugin.tracing.EngineWithTracer)
  */
-@InternalAPI
+@InternalKtorApi
 class EngineWithTracer(
     private val delegate: HttpClientEngine,
     private val tracer: Tracer
@@ -28,7 +28,7 @@ class EngineWithTracer(
 
     private val sequence = atomic(0)
 
-    @InternalAPI
+    @InternalKtorApi
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val requestId = "${sequence.getAndIncrement()}"
         data.traceRequestWillBeSent(requestId)
@@ -57,7 +57,7 @@ class EngineWithTracer(
         }
     }
 
-    @InternalAPI
+    @InternalKtorApi
     override fun install(client: HttpClient) {
         super.install(client)
     }

@@ -18,7 +18,7 @@ import org.apache.hc.core5.http.nio.*
 import java.net.*
 import kotlin.coroutines.*
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal suspend fun CloseableHttpAsyncClient.sendRequest(
     request: AsyncRequestProducer,
     callContext: CoroutineContext,

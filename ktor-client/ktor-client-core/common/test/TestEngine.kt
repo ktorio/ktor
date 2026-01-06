@@ -14,7 +14,7 @@ internal object TestEngine : HttpClientEngine {
 
     override val config: HttpClientEngineConfig = HttpClientEngineConfig()
 
-    @InternalAPI
+    @InternalKtorApi
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         TODO("Not yet implemented")
     }

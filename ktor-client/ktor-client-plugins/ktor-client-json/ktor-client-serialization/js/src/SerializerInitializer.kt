@@ -7,12 +7,12 @@ import io.ktor.client.plugins.kotlinx.serializer.*
 import io.ktor.utils.io.*
 
 @OptIn(ExperimentalStdlibApi::class)
-@InternalAPI
+@InternalKtorApi
 @Suppress("unused", "DEPRECATION")
 @EagerInitialization
 public val initializer: SerializerInitializer = SerializerInitializer
 
-@InternalAPI
+@InternalKtorApi
 public object SerializerInitializer {
     init {
         @Suppress("DEPRECATION_ERROR")

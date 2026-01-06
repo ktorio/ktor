@@ -38,7 +38,7 @@ class ExceptionsTest {
     }
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 private fun createResponseException(): ResponseException = ResponseException(
     object : HttpResponse() {
         override val call: HttpClientCall

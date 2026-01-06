@@ -46,7 +46,7 @@ public class AuthConfig {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.AuthConfig.isUnauthorizedResponse)
      */
-    @InternalAPI
+    @InternalKtorApi
     public var isUnauthorizedResponse: suspend (HttpResponse) -> Boolean = { it.status == HttpStatusCode.Unauthorized }
         private set
 
@@ -58,7 +58,7 @@ public class AuthConfig {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.AuthConfig.reAuthorizeOnResponse)
      */
     public fun reAuthorizeOnResponse(block: suspend (HttpResponse) -> Boolean) {
-        @OptIn(InternalAPI::class)
+        @OptIn(InternalKtorApi::class)
         isUnauthorizedResponse = block
     }
 }
@@ -81,7 +81,7 @@ public val AuthCircuitBreaker: AttributeKey<Unit> = AttributeKey("auth-request")
  *
  * @see [AuthConfig] for configuration options.
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public val Auth: ClientPlugin<AuthConfig> = createClientPlugin("Auth", ::AuthConfig) {
     val providers = pluginConfig.providers.toList()
 

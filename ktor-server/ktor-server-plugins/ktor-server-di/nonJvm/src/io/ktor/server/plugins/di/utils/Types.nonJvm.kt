@@ -14,7 +14,7 @@ import io.ktor.utils.io.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.utils.hierarchy)
  */
-@InternalAPI
+@InternalKtorApi
 public actual fun TypeInfo.hierarchy(): Sequence<TypeInfo> =
     sequenceOf(this)
 
@@ -25,7 +25,7 @@ public actual fun TypeInfo.hierarchy(): Sequence<TypeInfo> =
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.utils.toNullable)
  */
-@InternalAPI
+@InternalKtorApi
 public actual fun TypeInfo.toNullable(): TypeInfo? = null
 
 /**
@@ -35,6 +35,6 @@ public actual fun TypeInfo.toNullable(): TypeInfo? = null
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.utils.typeParametersHierarchy)
  */
-@InternalAPI
+@InternalKtorApi
 public actual fun TypeInfo.typeParametersHierarchy(): Sequence<TypeInfo> =
     sequenceOf(this)

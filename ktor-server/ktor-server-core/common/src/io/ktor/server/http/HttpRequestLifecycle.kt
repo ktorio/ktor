@@ -38,7 +38,7 @@ public class HttpRequestLifecycleConfig internal constructor() {
 /**
  * Internal attribute key for storing the connection close handler callback.
  */
-@InternalAPI
+@InternalKtorApi
 public val HttpRequestCloseHandlerKey: AttributeKey<() -> Unit> = AttributeKey<() -> Unit>("HttpRequestCloseHandler")
 
 /**
@@ -83,7 +83,7 @@ public val HttpRequestCloseHandlerKey: AttributeKey<() -> Unit> = AttributeKey<(
  * }
  * ```
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public val HttpRequestLifecycle: RouteScopedPlugin<HttpRequestLifecycleConfig> = createRouteScopedPlugin(
     name = "HttpRequestLifecycle",
     createConfiguration = ::HttpRequestLifecycleConfig

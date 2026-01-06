@@ -14,7 +14,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.asExecutor
 import org.eclipse.jetty.http2.client.HTTP2Client
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal class JettyHttp2Engine(
     override val config: JettyEngineConfig
 ) : HttpClientEngineBase("ktor-jetty") {

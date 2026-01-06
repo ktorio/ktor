@@ -4,7 +4,7 @@
 
 package io.ktor.util.reflect
 
-import io.ktor.utils.io.InternalAPI
+import io.ktor.utils.io.InternalKtorApi
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
@@ -69,7 +69,7 @@ public class TypeInfo(
 public inline fun <reified T> typeInfo(): TypeInfo = TypeInfo(T::class, typeOfOrNull<T>())
 
 @OptIn(InternalSerializationApi::class)
-@InternalAPI
+@InternalKtorApi
 public fun TypeInfo.serializer(): KSerializer<out Any?> =
     kotlinType?.let { serializer(it) } ?: type.serializer()
 

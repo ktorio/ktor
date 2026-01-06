@@ -10,7 +10,7 @@ import io.ktor.utils.io.*
 private val _providers: MutableList<KotlinxSerializationExtensionProvider> = mutableListOf()
 internal actual val providers: List<KotlinxSerializationExtensionProvider> = _providers
 
-@InternalAPI
+@InternalKtorApi
 public fun addExtensionProvider(provider: KotlinxSerializationExtensionProvider) {
     _providers.add(provider)
 }

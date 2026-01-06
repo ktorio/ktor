@@ -95,7 +95,7 @@ public val DropwizardMetrics: ApplicationPlugin<DropwizardMetricsConfig> =
             )
         }
 
-        @OptIn(InternalAPI::class)
+        @OptIn(InternalKtorApi::class)
         on(Metrics) { call ->
             active.inc()
             call.attributes.put(measureKey, CallMeasure(duration.time()))

@@ -70,7 +70,7 @@ public actual open class JsClientEngineConfig : HttpClientEngineConfig() {
     public var nodeOptions: JsAny = makeJsObject()
 }
 
-@OptIn(InternalAPI::class, ExperimentalStdlibApi::class)
+@OptIn(InternalKtorApi::class, ExperimentalStdlibApi::class)
 @Suppress("DEPRECATION")
 @EagerInitialization
 private val initHook: Unit = engines.append(Js)

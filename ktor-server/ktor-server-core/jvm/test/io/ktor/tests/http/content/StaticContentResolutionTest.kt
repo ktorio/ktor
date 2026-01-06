@@ -24,7 +24,7 @@ class StaticContentResolutionTest {
 
     private val baseUrl = StaticContentResolutionTest::class.java.classLoader.getResource("testjar.jar")
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     @Test
     fun testResourceClasspathResourceWithDirectoryInsideJar() {
         val content = resourceClasspathResource(URL("jar:$baseUrl!/testdir"), "testdir") {
@@ -34,7 +34,7 @@ class StaticContentResolutionTest {
         assertNull(content)
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     @Test
     fun testResourceClasspathResourceWithFileInsideJar() {
         val content = resourceClasspathResource(URL("jar:$baseUrl!/testdir/testfile"), "testdir/testfile") {

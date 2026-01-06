@@ -19,7 +19,7 @@ import io.ktor.websocket.*
 
 private val REQUEST_EXTENSIONS_KEY = AttributeKey<List<WebSocketExtension<*>>>("Websocket extensions")
 
-@InternalAPI
+@InternalKtorApi
 public val WEBSOCKETS_KEY: AttributeKey<WebSockets> = AttributeKey<WebSockets>("Websocket plugin config")
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.websocket.WebSockets")
@@ -171,7 +171,7 @@ public class WebSockets internal constructor(
             )
         }
 
-        @OptIn(InternalAPI::class)
+        @OptIn(InternalKtorApi::class)
         override fun install(plugin: WebSockets, scope: HttpClient) {
             val extensionsSupported = scope.engine.supportedCapabilities.contains(WebSocketExtensionsCapability)
 

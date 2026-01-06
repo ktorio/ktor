@@ -12,7 +12,7 @@ public suspend fun ByteWriteChannel.writeFully(value: CPointer<ByteVar>, offset:
     writeFully(value, offset.toLong(), length.toLong())
 }
 
-@OptIn(ExperimentalForeignApi::class, InternalAPI::class)
+@OptIn(ExperimentalForeignApi::class, InternalKtorApi::class)
 public suspend fun ByteWriteChannel.writeFully(src: CPointer<ByteVar>, offset: Long, length: Long) {
     writeBuffer.writeFully(src, offset, length)
     flush()

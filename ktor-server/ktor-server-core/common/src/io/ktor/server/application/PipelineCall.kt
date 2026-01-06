@@ -126,7 +126,7 @@ public interface PipelineCall : ApplicationCall {
         return transformed as T
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     override suspend fun respond(message: Any?, typeInfo: TypeInfo?) {
         response.responseType = typeInfo
         response.pipeline.execute(this, message ?: NullBody)

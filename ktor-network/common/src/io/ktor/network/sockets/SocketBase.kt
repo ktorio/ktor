@@ -34,7 +34,7 @@ internal abstract class SocketBase(
         close()
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     override fun close() {
         if (!closeFlag.compareAndSet(expect = false, update = true)) return
 

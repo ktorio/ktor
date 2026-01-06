@@ -188,7 +188,7 @@ private fun Route.webSocketProtocol(protocol: String?, block: Route.() -> Unit) 
     }
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 private suspend fun WebSocketServerSession.proceedWebSocket(handler: suspend DefaultWebSocketServerSession.() -> Unit) {
     val webSockets = application.plugin(WebSockets)
 

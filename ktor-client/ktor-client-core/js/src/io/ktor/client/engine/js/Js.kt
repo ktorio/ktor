@@ -69,7 +69,7 @@ public actual open class JsClientEngineConfig : HttpClientEngineConfig() {
 }
 
 @Suppress("DEPRECATION")
-@OptIn(ExperimentalStdlibApi::class, ExperimentalJsExport::class, InternalAPI::class)
+@OptIn(ExperimentalStdlibApi::class, ExperimentalJsExport::class, InternalKtorApi::class)
 @Deprecated("", level = DeprecationLevel.HIDDEN)
 @JsExport
 @EagerInitialization

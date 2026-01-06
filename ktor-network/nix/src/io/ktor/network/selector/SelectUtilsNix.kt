@@ -16,7 +16,7 @@ import platform.posix.*
 import kotlin.coroutines.*
 import kotlin.math.*
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal actual class SelectorHelper {
     private val fdSetSize: Int
 
@@ -66,7 +66,7 @@ internal actual class SelectorHelper {
         }
     }
 
-    @OptIn(ExperimentalForeignApi::class, InternalAPI::class)
+    @OptIn(ExperimentalForeignApi::class, InternalKtorApi::class)
     private suspend fun selectionLoop() {
         val completed = mutableSetOf<EventInfo>()
         val watchSet = mutableSetOf<EventInfo>()

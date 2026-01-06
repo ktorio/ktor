@@ -261,7 +261,7 @@ class CacheTest : ClientLoader() {
         }
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     @Test
     fun testNoVaryIn304() = clientTests(except("Js")) {
         val publicStorage = CacheStorage.Unlimited()

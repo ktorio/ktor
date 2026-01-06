@@ -21,7 +21,7 @@ import kotlin.reflect.full.starProjectedType
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.utils.hierarchy)
  */
-@InternalAPI
+@InternalKtorApi
 public actual fun TypeInfo.hierarchy(): Sequence<TypeInfo> {
     val supertypes = kotlinType?.hierarchy() ?: type.supertypes.asSequence()
     return supertypes.mapNotNull { it.toTypeInfo() }
@@ -35,7 +35,7 @@ public actual fun TypeInfo.hierarchy(): Sequence<TypeInfo> {
  *
  * @return A new [TypeInfo] instance with a nullable type, or null if the type is already nullable.
  */
-@InternalAPI
+@InternalKtorApi
 public actual fun TypeInfo.toNullable(): TypeInfo? =
     kotlinType?.takeIf { !it.isMarkedNullable }?.let { kType ->
         TypeInfo(
@@ -57,7 +57,7 @@ public actual fun TypeInfo.toNullable(): TypeInfo? =
  *
  * @return A list of [TypeInfo] representing the base type with covariant type arguments.
  */
-@InternalAPI
+@InternalKtorApi
 public actual fun TypeInfo.typeParametersHierarchy(): Sequence<TypeInfo> {
     // Return empty when not applicable
     if (!hasTypeParameters { it.variance == KVariance.OUT }) {
@@ -91,7 +91,7 @@ public actual fun TypeInfo.typeParametersHierarchy(): Sequence<TypeInfo> {
     return generateCombinations(0, emptyMap())
 }
 
-@InternalAPI
+@InternalKtorApi
 public fun TypeInfo.hasTypeParameters(predicate: (KTypeParameter) -> Boolean = { true }): Boolean {
     val kType = kotlinType ?: return false
     val typeParams = type.typeParameters

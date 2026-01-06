@@ -16,7 +16,7 @@ import kotlinx.coroutines.*
  * @param threadCount the number of threads for the new [CoroutineDispatcher].
  * @param dispatcherName the name of the new [CoroutineDispatcher].
  */
-@InternalAPI
+@InternalKtorApi
 public expect fun Dispatchers.clientDispatcher(
     threadCount: Int,
     dispatcherName: String = "ktor-client-dispatcher"

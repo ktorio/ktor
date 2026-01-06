@@ -35,7 +35,7 @@ import kotlin.time.Duration
 internal val bufferPool = ByteBufferPool(bufferSize = 8192)
 internal val emptyBuffer = ByteBuffer.allocate(0)
 
-@InternalAPI
+@InternalKtorApi
 public class JettyApplicationCall(
     application: Application,
     jettyRequest: Request,
@@ -58,7 +58,7 @@ public class JettyApplicationCall(
         putResponseAttribute()
     }
 
-    @InternalAPI
+    @InternalKtorApi
     public inner class JettyApplicationRequest(request: Request) : BaseApplicationRequest(this) {
         internal var upgraded: Boolean = false
 
@@ -78,7 +78,7 @@ public class JettyApplicationCall(
 
         override val local: RequestConnectionPoint = JettyConnectionPoint(request)
 
-        @OptIn(InternalAPI::class)
+        @OptIn(InternalKtorApi::class)
         override val queryParameters: Parameters by lazy {
             encodeParameters(rawQueryParameters)
                 .withEmptyStringForValuelessKeys()
@@ -90,7 +90,7 @@ public class JettyApplicationCall(
         }
     }
 
-    @InternalAPI
+    @InternalKtorApi
     public inner class JettyApplicationResponse(
         private val endpoint: EndPoint,
         private val response: Response,

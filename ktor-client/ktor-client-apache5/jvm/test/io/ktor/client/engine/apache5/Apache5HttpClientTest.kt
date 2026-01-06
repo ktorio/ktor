@@ -23,7 +23,7 @@ import kotlin.test.assertFailsWith
 class Apache5HttpClientTest : HttpClientTest(Apache5) {
 
     @Test
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     fun testSocketTimeoutWithCustomConnectionManager() = runBlocking {
         val client = HttpClient(Apache5) {
             engine {
@@ -51,7 +51,7 @@ class Apache5HttpClientTest : HttpClientTest(Apache5) {
     }
 
     @Test
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     fun testCustomTimeoutOverridesHttpTimeout() = runBlocking {
         val client = HttpClient(Apache5) {
             engine {

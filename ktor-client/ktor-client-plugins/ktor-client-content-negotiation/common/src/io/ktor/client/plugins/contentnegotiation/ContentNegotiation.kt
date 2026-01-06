@@ -167,7 +167,7 @@ public class ContentNegotiationConfig : Configuration {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.contentnegotiation.ContentNegotiation)
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 public val ContentNegotiation: ClientPlugin<ContentNegotiationConfig> = createClientPlugin(
     "ContentNegotiation",
     ::ContentNegotiationConfig
@@ -249,7 +249,7 @@ public val ContentNegotiation: ClientPlugin<ContentNegotiationConfig> = createCl
         return serializedContent
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalKtorApi::class)
     suspend fun convertResponse(
         requestUrl: Url,
         info: TypeInfo,

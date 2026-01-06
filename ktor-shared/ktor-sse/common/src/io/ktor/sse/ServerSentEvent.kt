@@ -74,7 +74,7 @@ public data class TypedServerSentEvent<T>(
     override val retry: Long? = null,
     override val comments: String? = null
 ) : ServerSentEventMetadata<T> {
-    @InternalAPI
+    @InternalKtorApi
     public fun toString(serializer: (T) -> String): String =
         eventToString(data?.let { serializer(it) }, event, id, retry, comments)
 }
@@ -93,7 +93,7 @@ private fun eventToString(data: String?, event: String?, id: String?, retry: Lon
     }
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 private fun <T> StringBuilder.appendField(name: String, value: T?) {
     if (value != null) {
         val values = value.toString().split(END_OF_LINE_VARIANTS)
@@ -103,14 +103,14 @@ private fun <T> StringBuilder.appendField(name: String, value: T?) {
     }
 }
 
-@InternalAPI
+@InternalKtorApi
 public const val COLON: String = ":"
 
-@InternalAPI
+@InternalKtorApi
 public const val SPACE: String = " "
 
-@InternalAPI
+@InternalKtorApi
 public const val END_OF_LINE: String = "\r\n"
 
-@InternalAPI
+@InternalKtorApi
 public val END_OF_LINE_VARIANTS: Regex = Regex("\r\n|\r|\n")

@@ -11,7 +11,7 @@ import io.ktor.utils.io.*
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
 
-@InternalAPI
+@InternalKtorApi
 public class SSEClientContent(
     public val reconnectionTime: Duration,
     public val showCommentEvents: Boolean,

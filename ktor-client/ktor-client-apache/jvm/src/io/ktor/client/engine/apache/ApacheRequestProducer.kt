@@ -27,7 +27,7 @@ import org.apache.http.protocol.HttpContext
 import java.nio.ByteBuffer
 import kotlin.coroutines.CoroutineContext
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 internal class ApacheRequestProducer(
     val requestData: HttpRequestData,
     private val config: ApacheEngineConfig,
@@ -161,7 +161,7 @@ internal class ApacheRequestProducer(
     }
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 private fun RequestConfig.Builder.setupTimeoutAttributes(requestData: HttpRequestData): RequestConfig.Builder = also {
     requestData.getCapabilityOrNull(HttpTimeoutCapability)?.let { timeoutAttributes ->
         timeoutAttributes.connectTimeoutMillis?.let { setConnectTimeout(convertLongTimeoutToIntWithInfiniteAsZero(it)) }

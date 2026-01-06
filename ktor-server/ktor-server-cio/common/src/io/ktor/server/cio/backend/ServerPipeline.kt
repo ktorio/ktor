@@ -38,7 +38,7 @@ private val LOGGER = KtorSimpleLogger("io.ktor.server.cio.backend.ServerPipeline
  * @return pipeline job
  */
 @Suppress("DEPRECATION_ERROR", "DEPRECATION")
-@InternalAPI
+@InternalKtorApi
 public fun CoroutineScope.startServerConnectionPipeline(
     connection: ServerIncomingConnection,
     timeout: Duration,
@@ -216,7 +216,7 @@ private suspend fun respondBadRequest(actorChannel: Channel<ByteReadChannel>, me
     actorChannel.close()
 }
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 private suspend fun pipelineWriterLoop(
     channel: ReceiveChannel<ByteReadChannel>,
     timeout: Duration,

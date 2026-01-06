@@ -11,7 +11,7 @@ import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlin.test.*
 
-@OptIn(InternalAPI::class)
+@OptIn(InternalKtorApi::class)
 class UtilsTest {
     @Test
     fun testMergeHeaders() {

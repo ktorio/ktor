@@ -22,7 +22,7 @@ public class ClientPluginInstance<PluginConfig : Any> internal constructor(
 
     private var onClose: () -> Unit = {}
 
-    @InternalAPI
+    @InternalKtorApi
     public fun install(scope: HttpClient) {
         val pluginBuilder = ClientPluginBuilder(key, scope, config).apply(body)
         this.onClose = pluginBuilder.onClose

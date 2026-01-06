@@ -22,7 +22,7 @@ private typealias Core<E> = LockFreeMPSCQueueCore<E>
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.collections.LockFreeMPSCQueue)
  */
-@InternalAPI
+@InternalKtorApi
 public class LockFreeMPSCQueue<E : Any> {
     private val curRef = atomic(Core<E>(Core.INITIAL_CAPACITY))
     private val closed = atomic(0)

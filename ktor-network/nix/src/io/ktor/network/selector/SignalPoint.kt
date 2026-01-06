@@ -13,7 +13,7 @@ import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
 import platform.posix.*
 
-@OptIn(ExperimentalForeignApi::class, InternalAPI::class)
+@OptIn(ExperimentalForeignApi::class, InternalKtorApi::class)
 internal class SignalPoint : Closeable {
     private val readDescriptor: Int
     private val writeDescriptor: Int
