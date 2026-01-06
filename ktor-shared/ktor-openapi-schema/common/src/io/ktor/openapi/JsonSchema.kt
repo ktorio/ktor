@@ -4,12 +4,12 @@
 
 package io.ktor.openapi
 
-import io.ktor.openapi.JsonSchema.SchemaType.JsonTypeSerializer
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.*
-import kotlinx.serialization.encoding.*
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 
 /**
  * The Schema Object allows the definition of input and output data types. These types can be
@@ -68,17 +68,6 @@ public data class JsonSchema(
         val propertyName: String,
         val mapping: Map<String, String>? = null,
     )
-
-    @Serializable(JsonTypeSerializer::class)
-    public enum class JsonType : SchemaType {
-        ARRAY,
-        OBJECT,
-        NUMBER,
-        BOOLEAN,
-        INTEGER,
-        NULL,
-        STRING
-    }
 
     @Serializable(with = SchemaType.Serializer::class)
     public sealed interface SchemaType {
