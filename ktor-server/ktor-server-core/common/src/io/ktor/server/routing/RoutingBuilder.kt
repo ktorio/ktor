@@ -106,14 +106,14 @@ public fun Route.accept(vararg contentTypes: ContentType, build: Route.() -> Uni
 }
 
 /**
- * Builds a route to match requests with the [HttpHeaders.ContentType] header matching the specified [contentType].
+ * Builds a route to match requests with the [HttpHeaders.ContentType] header matching any of the specified [contentTypes].
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.contentType)
  *
  * @see [Application.routing]
  */
-public fun Route.contentType(contentType: ContentType, build: Route.() -> Unit): Route {
-    val selector = ContentTypeHeaderRouteSelector(contentType)
+public fun Route.contentType(vararg contentTypes: ContentType, build: Route.() -> Unit): Route {
+    val selector = ContentTypeHeaderRouteSelector(listOf(*contentTypes))
     return createChild(selector).apply(build)
 }
 
