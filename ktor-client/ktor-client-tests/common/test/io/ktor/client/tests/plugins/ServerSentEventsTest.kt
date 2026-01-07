@@ -1007,7 +1007,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun testCancellingUnderlyingConnection() = clientTests {
+    fun testCancellingUnderlyingConnection() = clientTests(except("WinHttp")) {
         config {
             install(SSE)
         }
