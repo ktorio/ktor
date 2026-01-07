@@ -435,3 +435,25 @@ public fun HeaderValueWithParameters.charset(): Charset? = parameter("charset")?
         null
     }
 }
+
+private val textSubTypes = setOf(
+    "json",
+    "ld+json",
+    "xml",
+    "xhtml+xml",
+    "rss+xml",
+    "atom+xml",
+    "x-www-form-urlencoded",
+    "svg+xml"
+)
+
+/**
+ * Returns true if the content type represents textual data.
+ * For binary data, returns false.
+ */
+public fun ContentType.isTextType(): Boolean {
+    if (contentType == "text") return true
+    if (contentType == "application" && contentSubtype in textSubTypes) return true
+
+    return false
+}
