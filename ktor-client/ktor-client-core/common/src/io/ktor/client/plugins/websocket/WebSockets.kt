@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.websocket
@@ -48,12 +48,16 @@ public data object WebSocketExtensionsCapability : HttpClientEngineCapability<Un
  * @property maxFrameSize - max size of a single websocket frame.
  * @property extensionsConfig - extensions configuration
  * @property contentConverter - converter for serialization/deserialization
+ * @property incomingFramesConfig - configuration for the incoming [Frame] queue.
+ * @property outgoingFramesConfig - configuration for the outgoing [Frame] queue.
  */
 public class WebSockets internal constructor(
     public val pingIntervalMillis: Long,
     public val maxFrameSize: Long,
     private val extensionsConfig: WebSocketExtensionsConfig,
-    public val contentConverter: WebsocketContentConverter? = null
+    public val contentConverter: WebsocketContentConverter? = null,
+    public val incomingFramesConfig: ChannelConfig<Frame>? = null,
+    public val outgoingFramesConfig: ChannelConfig<Frame>? = null
 ) {
     /**
      * Client WebSocket plugin.
@@ -106,7 +110,13 @@ public class WebSockets internal constructor(
     internal fun convertSessionToDefault(session: WebSocketSession): DefaultWebSocketSession {
         if (session is DefaultWebSocketSession) return session
 
-        return DefaultWebSocketSession(session, pingIntervalMillis, timeoutMillis = pingIntervalMillis * 2).also {
+        return DefaultWebSocketSession(
+            session,
+            pingIntervalMillis,
+            timeoutMillis = pingIntervalMillis * 2,
+            incomingFramesConfig,
+            outgoingFramesConfig
+        ).also {
             it.maxFrameSize = this@WebSockets.maxFrameSize
         }
     }
@@ -144,6 +154,24 @@ public class WebSockets internal constructor(
         public var contentConverter: WebsocketContentConverter? = null
 
         /**
+         * Configuration for the incoming [Frame] queue.
+         * The default value is engine-specific.
+         * Set it manually if some concrete behavior is required.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.WebSockets.Config.incomingFramesConfig)
+         */
+        public var incomingFramesConfig: ChannelConfig<Frame>? = null
+
+        /**
+         * Configuration for the outgoing [Frame] queue.
+         * The default value is engine-specific.
+         * Set it manually if some concrete behavior is required.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.WebSockets.Config.outgoingFramesConfig)
+         */
+        public var outgoingFramesConfig: ChannelConfig<Frame>? = null
+
+        /**
          * Configure WebSocket extensions.
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.WebSockets.Config.extensions)
@@ -154,7 +182,7 @@ public class WebSockets internal constructor(
     }
 
     /**
-     * Add WebSockets support for ktor http client.
+     * Add WebSockets support for a ktor http client.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.WebSockets.Plugin)
      */
@@ -167,7 +195,9 @@ public class WebSockets internal constructor(
                 config.pingIntervalMillis,
                 config.maxFrameSize,
                 config.extensionsConfig,
-                config.contentConverter
+                config.contentConverter,
+                config.incomingFramesConfig,
+                config.outgoingFramesConfig
             )
         }
 

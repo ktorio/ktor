@@ -7,7 +7,6 @@ package io.ktor.client.engine.curl.internal
 import io.ktor.websocket.*
 import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.*
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import libcurl.*
 import platform.posix.size_t
@@ -15,11 +14,12 @@ import platform.posix.size_tVar
 
 @OptIn(ExperimentalForeignApi::class)
 internal class CurlWebSocketResponseBody(
-    private val curl: EasyHandle
+    private val curl: EasyHandle,
+    incomingFramesConfig: ChannelConfig<Frame> = ChannelConfig.UNLIMITED
 ) : CurlResponseBodyData {
 
     private val closed = atomic(false)
-    private val _incoming = Channel<Frame>(Channel.UNLIMITED)
+    private val _incoming = incomingFramesConfig.toChannel<Frame>()
 
     val incoming: ReceiveChannel<Frame>
         get() = _incoming

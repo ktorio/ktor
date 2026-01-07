@@ -1,5 +1,5 @@
 /*
-* Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+* Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
 package io.ktor.client.plugins.websocket
@@ -14,19 +14,23 @@ import org.khronos.webgl.*
 import org.w3c.dom.*
 import kotlin.coroutines.*
 
+@Suppress("UNUSED_PARAMETER")
 private fun tryGetEventDataAsString(data: JsAny): String? =
     js("typeof(data) === 'string' ? data : null")
 
+@Suppress("UNUSED_PARAMETER")
 private fun tryGetEventDataAsArrayBuffer(data: JsAny): ArrayBuffer? =
     js("data instanceof ArrayBuffer ? data : null")
 
 internal class JsWebSocketSession(
     override val coroutineContext: CoroutineContext,
-    private val websocket: WebSocket
+    private val websocket: WebSocket,
+    incomingFramesConfig: ChannelConfig<Frame>,
+    outgoingFramesConfig: ChannelConfig<Frame>
 ) : DefaultWebSocketSession {
     private val _closeReason: CompletableDeferred<CloseReason> = CompletableDeferred()
-    private val _incoming: Channel<Frame> = Channel(Channel.UNLIMITED)
-    private val _outgoing: Channel<Frame> = Channel(Channel.UNLIMITED)
+    private val _incoming: Channel<Frame> = incomingFramesConfig.toChannel()
+    private val _outgoing: Channel<Frame> = outgoingFramesConfig.toChannel()
 
     override val incoming: ReceiveChannel<Frame> = _incoming
     override val outgoing: SendChannel<Frame> = _outgoing

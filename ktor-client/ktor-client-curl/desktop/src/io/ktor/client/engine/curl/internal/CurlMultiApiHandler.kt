@@ -6,9 +6,11 @@ package io.ktor.client.engine.curl.internal
 
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.websocket.WEBSOCKETS_KEY
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.locks.*
+import io.ktor.websocket.ChannelConfig
 import kotlinx.cinterop.*
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.io.readByteArray
@@ -55,7 +57,8 @@ internal class CurlMultiApiHandler : Closeable {
 
         val bodyStartedReceiving = CompletableDeferred<Unit>()
         val responseBody = if (request.isUpgradeRequest) {
-            CurlWebSocketResponseBody(easyHandle)
+            val wsConfig = request.attributes[WEBSOCKETS_KEY]
+            CurlWebSocketResponseBody(easyHandle, wsConfig.incomingFramesConfig ?: ChannelConfig.UNLIMITED)
         } else {
             CurlHttpResponseBody(request.executionContext) {
                 unpauseEasyHandle(easyHandle)

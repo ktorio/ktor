@@ -11,6 +11,7 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.util.Attributes
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.cinterop.CPointer
@@ -37,7 +38,8 @@ internal suspend fun HttpRequestData.toCurlRequest(config: CurlClientEngineConfi
     forceProxyTunneling = config.forceProxyTunneling,
     sslVerify = config.sslVerify,
     caInfo = config.caInfo,
-    caPath = config.caPath
+    caPath = config.caPath,
+    attributes = attributes
 )
 
 internal class CurlRequestData @OptIn(ExperimentalForeignApi::class) constructor(
@@ -54,7 +56,8 @@ internal class CurlRequestData @OptIn(ExperimentalForeignApi::class) constructor
     val forceProxyTunneling: Boolean,
     val sslVerify: Boolean,
     val caInfo: String?,
-    val caPath: String?
+    val caPath: String?,
+    val attributes: Attributes
 ) {
     override fun toString(): String =
         "CurlRequestData(url='$url', method='$method', content: $contentLength bytes)"

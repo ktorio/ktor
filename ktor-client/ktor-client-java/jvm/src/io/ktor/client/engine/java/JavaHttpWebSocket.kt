@@ -15,7 +15,6 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.consumeEach
@@ -46,7 +45,15 @@ internal suspend fun HttpClient.executeWebSocketRequest(
     coroutineContext: CoroutineContext,
     requestData: HttpRequestData
 ): HttpResponseData {
-    val webSocket = JavaHttpWebSocket(coroutineContext, this, requestData)
+    @OptIn(InternalAPI::class)
+    val wsConfig = requestData.attributes[WEBSOCKETS_KEY]
+    val webSocket = JavaHttpWebSocket(
+        callContext = coroutineContext,
+        httpClient = this,
+        requestData = requestData,
+        incomingFramesConfig = wsConfig.incomingFramesConfig ?: ChannelConfig.UNLIMITED,
+        outgoingFramesConfig = wsConfig.outgoingFramesConfig ?: ChannelConfig.UNLIMITED
+    )
     try {
         return webSocket.getResponse()
     } catch (cause: HttpConnectTimeoutException) {
@@ -61,13 +68,15 @@ internal class JavaHttpWebSocket(
     private val callContext: CoroutineContext,
     private val httpClient: HttpClient,
     private val requestData: HttpRequestData,
-    private val requestTime: GMTDate = GMTDate()
+    private val requestTime: GMTDate = GMTDate(),
+    incomingFramesConfig: ChannelConfig<Frame> = ChannelConfig.UNLIMITED,
+    outgoingFramesConfig: ChannelConfig<Frame> = ChannelConfig.UNLIMITED
 ) : WebSocket.Listener, WebSocketSession {
 
     private lateinit var webSocket: WebSocket
     private val socketJob = Job(callContext[Job])
-    private val _incoming = Channel<Frame>(Channel.UNLIMITED)
-    private val _outgoing = Channel<Frame>(Channel.UNLIMITED)
+    private val _incoming = incomingFramesConfig.toChannel<Frame>()
+    private val _outgoing = outgoingFramesConfig.toChannel<Frame>()
 
     override val coroutineContext: CoroutineContext
         get() = callContext + socketJob + CoroutineName("java-ws")
@@ -124,7 +133,7 @@ internal class JavaHttpWebSocket(
         GlobalScope.launch(callContext, start = CoroutineStart.ATOMIC) {
             try {
                 socketJob[Job]!!.join()
-            } catch (cause: Throwable) {
+            } catch (_: Throwable) {
                 val code = CloseReason.Codes.INTERNAL_ERROR.code.toInt()
                 webSocket.sendClose(code, "Client failed")
             } finally {
@@ -190,17 +199,17 @@ internal class JavaHttpWebSocket(
     }
 
     override fun onText(webSocket: WebSocket, data: CharSequence, last: Boolean): CompletionStage<*> = async {
-        _incoming.trySend(Frame.Text(last, data.toString().toByteArray())).isSuccess
+        _incoming.send(Frame.Text(last, data.toString().toByteArray()))
         webSocket.request(1)
     }.asCompletableFuture()
 
     override fun onBinary(webSocket: WebSocket, data: ByteBuffer, last: Boolean): CompletionStage<*> = async {
-        _incoming.trySend(Frame.Binary(last, data)).isSuccess
+        _incoming.send(Frame.Binary(last, data))
         webSocket.request(1)
     }.asCompletableFuture()
 
     override fun onPong(webSocket: WebSocket, message: ByteBuffer): CompletionStage<*> = async {
-        _incoming.trySend(Frame.Pong(message)).isSuccess
+        _incoming.send(Frame.Pong(message))
         webSocket.request(1)
     }.asCompletableFuture()
 
