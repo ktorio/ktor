@@ -40,7 +40,7 @@ jackson-annotations = "2.20"
 
 junit = "5.14.0"
 slf4j = "2.0.17"
-logback = "1.5.20"
+logback = "1.5.24"
 
 dropwizard = "4.2.37"
 micrometer = "1.15.5"
