@@ -155,7 +155,7 @@ public class ReflectionJsonSchemaInference(
 
             // Map -> object with additionalProperties
             if (kClass.isSubclassOf(Map::class)) {
-                // key type ignod
+                // key type ignored
                 val valueType = type.arguments.getOrNull(1)?.type
 
                 // JSON object keys are strings; if key isn't String, we still produce an object schema.
@@ -248,7 +248,7 @@ public class ReflectionJsonSchemaInference(
         )
 
         // Kotlinx datetime
-        Instant::class -> jsonSchemaFromAnnotations(
+        kotlinx.datetime.Instant::class, Instant::class -> jsonSchemaFromAnnotations(
             annotations,
             ::schemaRefForClass,
             type = JsonType.STRING,
@@ -273,7 +273,7 @@ public class ReflectionJsonSchemaInference(
     private fun KClass<*>.starProjectedTypeOrNull(): KType? = try {
         @Suppress("UNCHECKED_CAST")
         (this as KClass<Any>).starProjectedType
-    } catch (_: Throwable) {
+    } catch (_: Exception) {
         null
     }
 }

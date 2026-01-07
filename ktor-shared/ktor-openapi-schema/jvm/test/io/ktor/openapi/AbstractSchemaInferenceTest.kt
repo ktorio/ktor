@@ -48,7 +48,7 @@ abstract class AbstractSchemaInferenceTest(
     @Test
     fun `array inference`() {
         val schema = inference.jsonSchema<List<Address>>()
-        val elementSchema = KotlinxJsonSchemaInference.jsonSchema<Address>()
+        val elementSchema = inference.jsonSchema<Address>()
         assertEquals(JsonType.ARRAY, schema.type)
         assertEquals(elementSchema, schema.items?.valueOrNull())
     }
