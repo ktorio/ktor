@@ -44,7 +44,7 @@ internal class EndPointReader(
             try {
                 while (true) {
                     buffer.clear()
-                    suspendCancellableCoroutine<Unit> { continuation ->
+                    suspendCancellableCoroutine { continuation ->
                         currentHandler.compareAndSet(null, continuation)
                         fillInterested()
                     }
@@ -99,6 +99,16 @@ internal class EndPointReader(
             return super.onIdleExpired(timeoutException)
         } finally {
             handleFailure(timeoutException ?: CancellationException("Idle timeout"))
+        }
+    }
+
+    override fun onClose(cause: Throwable?) {
+        try {
+            return super.onClose(cause)
+        } finally {
+            if (cause != null) {
+                handleFailure(cause)
+            }
         }
     }
 
