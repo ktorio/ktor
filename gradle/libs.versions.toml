@@ -75,7 +75,7 @@ kaml = "0.79.0"
 
 swagger-codegen = "3.0.75"
 swagger-codegen-generators = "1.0.59"
-swagger-parser = "2.1.35"
+swagger-parser = "2.1.37"
 
 puppeteer = "24.16.1"
 tomlj = "1.1.1"
