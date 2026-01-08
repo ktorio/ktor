@@ -9,6 +9,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.*
 import io.ktor.utils.io.pool.ByteBufferPool
 import kotlinx.coroutines.*
+import kotlinx.io.IOException
 import org.eclipse.jetty.io.*
 import org.eclipse.jetty.util.*
 import java.nio.*
@@ -16,6 +17,7 @@ import java.nio.channels.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import kotlin.coroutines.*
+import kotlin.coroutines.cancellation.CancellationException
 
 private const val JETTY_WEBSOCKET_POOL_SIZE = 2000
 
@@ -77,19 +79,31 @@ internal class EndPointReader(
     }
 
     override fun onFillInterestedFailed(cause: Throwable) {
-        super.onFillInterestedFailed(cause)
-        if (cause is ClosedChannelException) {
-            currentHandler.getAndSet(null)?.resumeWithException(cause)
-        } else {
-            currentHandler.getAndSet(null)?.resumeWithException(ChannelReadException(exception = cause))
+        try {
+            super.onFillInterestedFailed(cause)
+        } finally {
+            handleFailure(cause as? ClosedChannelException ?: ChannelReadException(exception = cause))
         }
     }
 
-    override fun failedCallback(callback: Callback, cause: Throwable) {
-        super.failedCallback(callback, cause)
+    override fun onReadTimeout(timeout: TimeoutException?): Boolean {
+        try {
+            return super.onReadTimeout(timeout)
+        } finally {
+            handleFailure(timeout ?: CancellationException("Read timeout"))
+        }
+    }
 
-        val handler = currentHandler.getAndSet(null) ?: return
-        handler.resumeWithException(ChannelReadException(exception = cause))
+    override fun onIdleExpired(timeoutException: TimeoutException?): Boolean {
+        try {
+            return super.onIdleExpired(timeoutException)
+        } finally {
+            handleFailure(timeoutException ?: CancellationException("Idle timeout"))
+        }
+    }
+
+    private fun handleFailure(cause: Throwable) {
+        currentHandler.getAndSet(null)?.resumeWithException(cause)
     }
 
     override fun onUpgradeTo(prefilled: ByteBuffer?) {
