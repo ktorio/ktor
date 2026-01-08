@@ -32,7 +32,7 @@ public interface SchemaReflectionAdapter {
         property.name
 
     public fun isIgnored(property: KProperty1<*, *>): Boolean =
-        property.annotations.any { it is JsonSchema.Annotations.Ignore }
+        property.annotations.any { it is JsonSchema.Ignore }
 
     public fun isNullable(type: KType): Boolean =
         type.isMarkedNullable
@@ -124,16 +124,18 @@ public class ReflectionJsonSchemaInference(
             // Sealed classes
             if (kClass.isSealed) {
                 val sealedSubclasses = kClass.sealedSubclasses
-                val mapping = sealedSubclasses.associate { subclass ->
-                    subclass.qualifiedName!! to "#/components/schemas/${subclass.simpleName}"
-                }
+                val mapping = sealedSubclasses
+                    .filter { it.qualifiedName != null && it.simpleName != null }
+                    .associate { subclass ->
+                        subclass.qualifiedName!! to "#/components/schemas/${subclass.simpleName}"
+                    }
 
                 return jsonSchemaFromAnnotations(
                     title = adapter.getName(type),
                     annotations = includeAnnotations + kClass.annotations,
                     reflectSchema = ::schemaRefForClass,
                     type = JsonType.OBJECT,
-                    discriminator = JsonSchema.Discriminator("type", mapping),
+                    discriminator = JsonSchemaDiscriminator("type", mapping),
                     nullable = nullable
                 )
             }

@@ -7,7 +7,7 @@ package io.ktor.openapi
 import com.charleskorn.kaml.SingleLineStringStyle
 import com.charleskorn.kaml.Yaml
 import com.charleskorn.kaml.YamlConfiguration
-import io.ktor.openapi.JsonSchema.Annotations.*
+import io.ktor.openapi.JsonSchema.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlin.test.Test
@@ -46,11 +46,20 @@ abstract class AbstractSchemaInferenceTest(
         assertSchemaMatches<LogicalOperatorsData>()
 
     @Test
+    fun `other validation rules`() =
+        assertSchemaMatches<AnnotatedUser>()
+
+    @Test
     fun `array inference`() {
-        val schema = inference.jsonSchema<List<Address>>()
+        val actualListOfSchema = listOf(
+            inference.jsonSchema<List<Address>>(),
+            inference.jsonSchema<Array<Address>>()
+        )
         val elementSchema = inference.jsonSchema<Address>()
-        assertEquals(JsonType.ARRAY, schema.type)
-        assertEquals(elementSchema, schema.items?.valueOrNull())
+        for (schema in actualListOfSchema) {
+            assertEquals(JsonType.ARRAY, schema.type)
+            assertEquals(elementSchema, schema.items?.valueOrNull())
+        }
     }
 
     @Test
@@ -141,7 +150,7 @@ data class AnnotatedUser(
     @MaxLength(20)
     @Pattern("^[a-z0-9_]+$")
     val username: String,
-    @JsonSchemaEmail
+    @Pattern(".+@.+\\..+")
     val email: String,
     @ReadOnly
     val createdAt: String
@@ -163,8 +172,3 @@ data class LogicalOperatorsData(
     @Not(Color::class)
     val nonColorValue: String
 )
-
-// Helper annotation for pattern test
-@Target(AnnotationTarget.PROPERTY)
-@Pattern(".+@.+\\..+")
-annotation class JsonSchemaEmail

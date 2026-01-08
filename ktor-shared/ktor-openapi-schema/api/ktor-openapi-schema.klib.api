@@ -649,7 +649,7 @@ final class io.ktor.openapi/HttpSecurityScheme : io.ktor.openapi/Extensible, io.
 }
 
 final class io.ktor.openapi/JsonSchema { // io.ktor.openapi/JsonSchema|null[0]
-    constructor <init>(io.ktor.openapi/JsonSchema.SchemaType? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin.collections/List<kotlin/String>? = ..., kotlin/Boolean? = ..., kotlin.collections/List<io.ktor.openapi/ReferenceOr<io.ktor.openapi/JsonSchema>>? = ..., kotlin.collections/List<io.ktor.openapi/ReferenceOr<io.ktor.openapi/JsonSchema>>? = ..., io.ktor.openapi/ReferenceOr<io.ktor.openapi/JsonSchema>? = ..., kotlin.collections/List<io.ktor.openapi/ReferenceOr<io.ktor.openapi/JsonSchema>>? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/JsonSchema>>? = ..., io.ktor.openapi/AdditionalProperties? = ..., io.ktor.openapi/JsonSchema.Discriminator? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., io.ktor.openapi/Xml? = ..., io.ktor.openapi/ExternalDocs? = ..., io.ktor.openapi/GenericElement? = ..., kotlin.collections/List<io.ktor.openapi/GenericElement>? = ..., kotlin/Boolean? = ..., kotlin/Int? = ..., kotlin/Int? = ..., io.ktor.openapi/GenericElement? = ..., kotlin/String? = ..., io.ktor.openapi/ReferenceOr<io.ktor.openapi/JsonSchema>? = ..., kotlin/Double? = ..., kotlin/Boolean? = ..., kotlin/Double? = ..., kotlin/Boolean? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin/String? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin/Boolean? = ..., kotlin.collections/List<io.ktor.openapi/GenericElement?>? = ..., kotlin/Double? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/Boolean? = ...) // io.ktor.openapi/JsonSchema.<init>|<init>(io.ktor.openapi.JsonSchema.SchemaType?;kotlin.String?;kotlin.String?;kotlin.collections.List<kotlin.String>?;kotlin.Boolean?;kotlin.collections.List<io.ktor.openapi.ReferenceOr<io.ktor.openapi.JsonSchema>>?;kotlin.collections.List<io.ktor.openapi.ReferenceOr<io.ktor.openapi.JsonSchema>>?;io.ktor.openapi.ReferenceOr<io.ktor.openapi.JsonSchema>?;kotlin.collections.List<io.ktor.openapi.ReferenceOr<io.ktor.openapi.JsonSchema>>?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.ReferenceOr<io.ktor.openapi.JsonSchema>>?;io.ktor.openapi.AdditionalProperties?;io.ktor.openapi.JsonSchema.Discriminator?;kotlin.Boolean?;kotlin.Boolean?;io.ktor.openapi.Xml?;io.ktor.openapi.ExternalDocs?;io.ktor.openapi.GenericElement?;kotlin.collections.List<io.ktor.openapi.GenericElement>?;kotlin.Boolean?;kotlin.Int?;kotlin.Int?;io.ktor.openapi.GenericElement?;kotlin.String?;io.ktor.openapi.ReferenceOr<io.ktor.openapi.JsonSchema>?;kotlin.Double?;kotlin.Boolean?;kotlin.Double?;kotlin.Boolean?;kotlin.Int?;kotlin.Int?;kotlin.String?;kotlin.Int?;kotlin.Int?;kotlin.Boolean?;kotlin.collections.List<io.ktor.openapi.GenericElement?>?;kotlin.Double?;kotlin.String?;kotlin.String?;kotlin.Boolean?){}[0]
+    constructor <init>(io.ktor.openapi/JsonSchema.SchemaType? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin.collections/List<kotlin/String>? = ..., kotlin/Boolean? = ..., kotlin.collections/List<io.ktor.openapi/ReferenceOr<io.ktor.openapi/JsonSchema>>? = ..., kotlin.collections/List<io.ktor.openapi/ReferenceOr<io.ktor.openapi/JsonSchema>>? = ..., io.ktor.openapi/ReferenceOr<io.ktor.openapi/JsonSchema>? = ..., kotlin.collections/List<io.ktor.openapi/ReferenceOr<io.ktor.openapi/JsonSchema>>? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/JsonSchema>>? = ..., io.ktor.openapi/AdditionalProperties? = ..., io.ktor.openapi/JsonSchemaDiscriminator? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., io.ktor.openapi/Xml? = ..., io.ktor.openapi/ExternalDocs? = ..., io.ktor.openapi/GenericElement? = ..., kotlin.collections/List<io.ktor.openapi/GenericElement>? = ..., kotlin/Boolean? = ..., kotlin/Int? = ..., kotlin/Int? = ..., io.ktor.openapi/GenericElement? = ..., kotlin/String? = ..., io.ktor.openapi/ReferenceOr<io.ktor.openapi/JsonSchema>? = ..., kotlin/Double? = ..., kotlin/Boolean? = ..., kotlin/Double? = ..., kotlin/Boolean? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin/String? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin/Boolean? = ..., kotlin.collections/List<io.ktor.openapi/GenericElement?>? = ..., kotlin/Double? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/Boolean? = ...) // io.ktor.openapi/JsonSchema.<init>|<init>(io.ktor.openapi.JsonSchema.SchemaType?;kotlin.String?;kotlin.String?;kotlin.collections.List<kotlin.String>?;kotlin.Boolean?;kotlin.collections.List<io.ktor.openapi.ReferenceOr<io.ktor.openapi.JsonSchema>>?;kotlin.collections.List<io.ktor.openapi.ReferenceOr<io.ktor.openapi.JsonSchema>>?;io.ktor.openapi.ReferenceOr<io.ktor.openapi.JsonSchema>?;kotlin.collections.List<io.ktor.openapi.ReferenceOr<io.ktor.openapi.JsonSchema>>?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.ReferenceOr<io.ktor.openapi.JsonSchema>>?;io.ktor.openapi.AdditionalProperties?;io.ktor.openapi.JsonSchemaDiscriminator?;kotlin.Boolean?;kotlin.Boolean?;io.ktor.openapi.Xml?;io.ktor.openapi.ExternalDocs?;io.ktor.openapi.GenericElement?;kotlin.collections.List<io.ktor.openapi.GenericElement>?;kotlin.Boolean?;kotlin.Int?;kotlin.Int?;io.ktor.openapi.GenericElement?;kotlin.String?;io.ktor.openapi.ReferenceOr<io.ktor.openapi.JsonSchema>?;kotlin.Double?;kotlin.Boolean?;kotlin.Double?;kotlin.Boolean?;kotlin.Int?;kotlin.Int?;kotlin.String?;kotlin.Int?;kotlin.Int?;kotlin.Boolean?;kotlin.collections.List<io.ktor.openapi.GenericElement?>?;kotlin.Double?;kotlin.String?;kotlin.String?;kotlin.Boolean?){}[0]
 
     final val additionalProperties // io.ktor.openapi/JsonSchema.additionalProperties|{}additionalProperties[0]
         final fun <get-additionalProperties>(): io.ktor.openapi/AdditionalProperties? // io.ktor.openapi/JsonSchema.additionalProperties.<get-additionalProperties>|<get-additionalProperties>(){}[0]
@@ -666,7 +666,7 @@ final class io.ktor.openapi/JsonSchema { // io.ktor.openapi/JsonSchema|null[0]
     final val description // io.ktor.openapi/JsonSchema.description|{}description[0]
         final fun <get-description>(): kotlin/String? // io.ktor.openapi/JsonSchema.description.<get-description>|<get-description>(){}[0]
     final val discriminator // io.ktor.openapi/JsonSchema.discriminator|{}discriminator[0]
-        final fun <get-discriminator>(): io.ktor.openapi/JsonSchema.Discriminator? // io.ktor.openapi/JsonSchema.discriminator.<get-discriminator>|<get-discriminator>(){}[0]
+        final fun <get-discriminator>(): io.ktor.openapi/JsonSchemaDiscriminator? // io.ktor.openapi/JsonSchema.discriminator.<get-discriminator>|<get-discriminator>(){}[0]
     final val enum // io.ktor.openapi/JsonSchema.enum|{}enum[0]
         final fun <get-enum>(): kotlin.collections/List<io.ktor.openapi/GenericElement?>? // io.ktor.openapi/JsonSchema.enum.<get-enum>|<get-enum>(){}[0]
     final val example // io.ktor.openapi/JsonSchema.example|{}example[0]
@@ -733,7 +733,7 @@ final class io.ktor.openapi/JsonSchema { // io.ktor.openapi/JsonSchema|null[0]
     final fun component1(): io.ktor.openapi/JsonSchema.SchemaType? // io.ktor.openapi/JsonSchema.component1|component1(){}[0]
     final fun component10(): kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/JsonSchema>>? // io.ktor.openapi/JsonSchema.component10|component10(){}[0]
     final fun component11(): io.ktor.openapi/AdditionalProperties? // io.ktor.openapi/JsonSchema.component11|component11(){}[0]
-    final fun component12(): io.ktor.openapi/JsonSchema.Discriminator? // io.ktor.openapi/JsonSchema.component12|component12(){}[0]
+    final fun component12(): io.ktor.openapi/JsonSchemaDiscriminator? // io.ktor.openapi/JsonSchema.component12|component12(){}[0]
     final fun component13(): kotlin/Boolean? // io.ktor.openapi/JsonSchema.component13|component13(){}[0]
     final fun component14(): kotlin/Boolean? // io.ktor.openapi/JsonSchema.component14|component14(){}[0]
     final fun component15(): io.ktor.openapi/Xml? // io.ktor.openapi/JsonSchema.component15|component15(){}[0]
@@ -769,10 +769,240 @@ final class io.ktor.openapi/JsonSchema { // io.ktor.openapi/JsonSchema|null[0]
     final fun component7(): kotlin.collections/List<io.ktor.openapi/ReferenceOr<io.ktor.openapi/JsonSchema>>? // io.ktor.openapi/JsonSchema.component7|component7(){}[0]
     final fun component8(): io.ktor.openapi/ReferenceOr<io.ktor.openapi/JsonSchema>? // io.ktor.openapi/JsonSchema.component8|component8(){}[0]
     final fun component9(): kotlin.collections/List<io.ktor.openapi/ReferenceOr<io.ktor.openapi/JsonSchema>>? // io.ktor.openapi/JsonSchema.component9|component9(){}[0]
-    final fun copy(io.ktor.openapi/JsonSchema.SchemaType? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin.collections/List<kotlin/String>? = ..., kotlin/Boolean? = ..., kotlin.collections/List<io.ktor.openapi/ReferenceOr<io.ktor.openapi/JsonSchema>>? = ..., kotlin.collections/List<io.ktor.openapi/ReferenceOr<io.ktor.openapi/JsonSchema>>? = ..., io.ktor.openapi/ReferenceOr<io.ktor.openapi/JsonSchema>? = ..., kotlin.collections/List<io.ktor.openapi/ReferenceOr<io.ktor.openapi/JsonSchema>>? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/JsonSchema>>? = ..., io.ktor.openapi/AdditionalProperties? = ..., io.ktor.openapi/JsonSchema.Discriminator? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., io.ktor.openapi/Xml? = ..., io.ktor.openapi/ExternalDocs? = ..., io.ktor.openapi/GenericElement? = ..., kotlin.collections/List<io.ktor.openapi/GenericElement>? = ..., kotlin/Boolean? = ..., kotlin/Int? = ..., kotlin/Int? = ..., io.ktor.openapi/GenericElement? = ..., kotlin/String? = ..., io.ktor.openapi/ReferenceOr<io.ktor.openapi/JsonSchema>? = ..., kotlin/Double? = ..., kotlin/Boolean? = ..., kotlin/Double? = ..., kotlin/Boolean? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin/String? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin/Boolean? = ..., kotlin.collections/List<io.ktor.openapi/GenericElement?>? = ..., kotlin/Double? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/Boolean? = ...): io.ktor.openapi/JsonSchema // io.ktor.openapi/JsonSchema.copy|copy(io.ktor.openapi.JsonSchema.SchemaType?;kotlin.String?;kotlin.String?;kotlin.collections.List<kotlin.String>?;kotlin.Boolean?;kotlin.collections.List<io.ktor.openapi.ReferenceOr<io.ktor.openapi.JsonSchema>>?;kotlin.collections.List<io.ktor.openapi.ReferenceOr<io.ktor.openapi.JsonSchema>>?;io.ktor.openapi.ReferenceOr<io.ktor.openapi.JsonSchema>?;kotlin.collections.List<io.ktor.openapi.ReferenceOr<io.ktor.openapi.JsonSchema>>?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.ReferenceOr<io.ktor.openapi.JsonSchema>>?;io.ktor.openapi.AdditionalProperties?;io.ktor.openapi.JsonSchema.Discriminator?;kotlin.Boolean?;kotlin.Boolean?;io.ktor.openapi.Xml?;io.ktor.openapi.ExternalDocs?;io.ktor.openapi.GenericElement?;kotlin.collections.List<io.ktor.openapi.GenericElement>?;kotlin.Boolean?;kotlin.Int?;kotlin.Int?;io.ktor.openapi.GenericElement?;kotlin.String?;io.ktor.openapi.ReferenceOr<io.ktor.openapi.JsonSchema>?;kotlin.Double?;kotlin.Boolean?;kotlin.Double?;kotlin.Boolean?;kotlin.Int?;kotlin.Int?;kotlin.String?;kotlin.Int?;kotlin.Int?;kotlin.Boolean?;kotlin.collections.List<io.ktor.openapi.GenericElement?>?;kotlin.Double?;kotlin.String?;kotlin.String?;kotlin.Boolean?){}[0]
+    final fun copy(io.ktor.openapi/JsonSchema.SchemaType? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin.collections/List<kotlin/String>? = ..., kotlin/Boolean? = ..., kotlin.collections/List<io.ktor.openapi/ReferenceOr<io.ktor.openapi/JsonSchema>>? = ..., kotlin.collections/List<io.ktor.openapi/ReferenceOr<io.ktor.openapi/JsonSchema>>? = ..., io.ktor.openapi/ReferenceOr<io.ktor.openapi/JsonSchema>? = ..., kotlin.collections/List<io.ktor.openapi/ReferenceOr<io.ktor.openapi/JsonSchema>>? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/JsonSchema>>? = ..., io.ktor.openapi/AdditionalProperties? = ..., io.ktor.openapi/JsonSchemaDiscriminator? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., io.ktor.openapi/Xml? = ..., io.ktor.openapi/ExternalDocs? = ..., io.ktor.openapi/GenericElement? = ..., kotlin.collections/List<io.ktor.openapi/GenericElement>? = ..., kotlin/Boolean? = ..., kotlin/Int? = ..., kotlin/Int? = ..., io.ktor.openapi/GenericElement? = ..., kotlin/String? = ..., io.ktor.openapi/ReferenceOr<io.ktor.openapi/JsonSchema>? = ..., kotlin/Double? = ..., kotlin/Boolean? = ..., kotlin/Double? = ..., kotlin/Boolean? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin/String? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin/Boolean? = ..., kotlin.collections/List<io.ktor.openapi/GenericElement?>? = ..., kotlin/Double? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/Boolean? = ...): io.ktor.openapi/JsonSchema // io.ktor.openapi/JsonSchema.copy|copy(io.ktor.openapi.JsonSchema.SchemaType?;kotlin.String?;kotlin.String?;kotlin.collections.List<kotlin.String>?;kotlin.Boolean?;kotlin.collections.List<io.ktor.openapi.ReferenceOr<io.ktor.openapi.JsonSchema>>?;kotlin.collections.List<io.ktor.openapi.ReferenceOr<io.ktor.openapi.JsonSchema>>?;io.ktor.openapi.ReferenceOr<io.ktor.openapi.JsonSchema>?;kotlin.collections.List<io.ktor.openapi.ReferenceOr<io.ktor.openapi.JsonSchema>>?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.ReferenceOr<io.ktor.openapi.JsonSchema>>?;io.ktor.openapi.AdditionalProperties?;io.ktor.openapi.JsonSchemaDiscriminator?;kotlin.Boolean?;kotlin.Boolean?;io.ktor.openapi.Xml?;io.ktor.openapi.ExternalDocs?;io.ktor.openapi.GenericElement?;kotlin.collections.List<io.ktor.openapi.GenericElement>?;kotlin.Boolean?;kotlin.Int?;kotlin.Int?;io.ktor.openapi.GenericElement?;kotlin.String?;io.ktor.openapi.ReferenceOr<io.ktor.openapi.JsonSchema>?;kotlin.Double?;kotlin.Boolean?;kotlin.Double?;kotlin.Boolean?;kotlin.Int?;kotlin.Int?;kotlin.String?;kotlin.Int?;kotlin.Int?;kotlin.Boolean?;kotlin.collections.List<io.ktor.openapi.GenericElement?>?;kotlin.Double?;kotlin.String?;kotlin.String?;kotlin.Boolean?){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.openapi/JsonSchema.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // io.ktor.openapi/JsonSchema.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // io.ktor.openapi/JsonSchema.toString|toString(){}[0]
+
+    open annotation class AdditionalPropertiesAllowed : kotlin/Annotation { // io.ktor.openapi/JsonSchema.AdditionalPropertiesAllowed|null[0]
+        constructor <init>() // io.ktor.openapi/JsonSchema.AdditionalPropertiesAllowed.<init>|<init>(){}[0]
+    }
+
+    open annotation class AdditionalPropertiesRef : kotlin/Annotation { // io.ktor.openapi/JsonSchema.AdditionalPropertiesRef|null[0]
+        constructor <init>(kotlin.reflect/KClass<*>) // io.ktor.openapi/JsonSchema.AdditionalPropertiesRef.<init>|<init>(kotlin.reflect.KClass<*>){}[0]
+
+        final val value // io.ktor.openapi/JsonSchema.AdditionalPropertiesRef.value|{}value[0]
+            final fun <get-value>(): kotlin.reflect/KClass<*> // io.ktor.openapi/JsonSchema.AdditionalPropertiesRef.value.<get-value>|<get-value>(){}[0]
+    }
+
+    open annotation class Anchor : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Anchor|null[0]
+        constructor <init>(kotlin/String, kotlin/Boolean = ...) // io.ktor.openapi/JsonSchema.Anchor.<init>|<init>(kotlin.String;kotlin.Boolean){}[0]
+
+        final val recursive // io.ktor.openapi/JsonSchema.Anchor.recursive|{}recursive[0]
+            final fun <get-recursive>(): kotlin/Boolean // io.ktor.openapi/JsonSchema.Anchor.recursive.<get-recursive>|<get-recursive>(){}[0]
+        final val value // io.ktor.openapi/JsonSchema.Anchor.value|{}value[0]
+            final fun <get-value>(): kotlin/String // io.ktor.openapi/JsonSchema.Anchor.value.<get-value>|<get-value>(){}[0]
+    }
+
+    open annotation class AnyOfRefs : kotlin/Annotation { // io.ktor.openapi/JsonSchema.AnyOfRefs|null[0]
+        constructor <init>(kotlin/Array<out kotlin/String>...) // io.ktor.openapi/JsonSchema.AnyOfRefs.<init>|<init>(kotlin.Array<out|kotlin.String>...){}[0]
+
+        final val value // io.ktor.openapi/JsonSchema.AnyOfRefs.value|{}value[0]
+            final fun <get-value>(): kotlin/Array<out kotlin/String> // io.ktor.openapi/JsonSchema.AnyOfRefs.value.<get-value>|<get-value>(){}[0]
+    }
+
+    open annotation class Default : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Default|null[0]
+        constructor <init>(kotlin/String) // io.ktor.openapi/JsonSchema.Default.<init>|<init>(kotlin.String){}[0]
+
+        final val value // io.ktor.openapi/JsonSchema.Default.value|{}value[0]
+            final fun <get-value>(): kotlin/String // io.ktor.openapi/JsonSchema.Default.value.<get-value>|<get-value>(){}[0]
+    }
+
+    open annotation class DeprecatedSchema : kotlin/Annotation { // io.ktor.openapi/JsonSchema.DeprecatedSchema|null[0]
+        constructor <init>() // io.ktor.openapi/JsonSchema.DeprecatedSchema.<init>|<init>(){}[0]
+    }
+
+    open annotation class Description : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Description|null[0]
+        constructor <init>(kotlin/String) // io.ktor.openapi/JsonSchema.Description.<init>|<init>(kotlin.String){}[0]
+
+        final val value // io.ktor.openapi/JsonSchema.Description.value|{}value[0]
+            final fun <get-value>(): kotlin/String // io.ktor.openapi/JsonSchema.Description.value.<get-value>|<get-value>(){}[0]
+    }
+
+    open annotation class Discriminator : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Discriminator|null[0]
+        constructor <init>(kotlin/String, kotlin/Array<out io.ktor.openapi/JsonSchema.Discriminator.Mapping>...) // io.ktor.openapi/JsonSchema.Discriminator.<init>|<init>(kotlin.String;kotlin.Array<out|io.ktor.openapi.JsonSchema.Discriminator.Mapping>...){}[0]
+
+        final val mapping // io.ktor.openapi/JsonSchema.Discriminator.mapping|{}mapping[0]
+            final fun <get-mapping>(): kotlin/Array<out io.ktor.openapi/JsonSchema.Discriminator.Mapping> // io.ktor.openapi/JsonSchema.Discriminator.mapping.<get-mapping>|<get-mapping>(){}[0]
+        final val property // io.ktor.openapi/JsonSchema.Discriminator.property|{}property[0]
+            final fun <get-property>(): kotlin/String // io.ktor.openapi/JsonSchema.Discriminator.property.<get-property>|<get-property>(){}[0]
+
+        open annotation class Mapping : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Discriminator.Mapping|null[0]
+            constructor <init>(kotlin/String, kotlin.reflect/KClass<*>) // io.ktor.openapi/JsonSchema.Discriminator.Mapping.<init>|<init>(kotlin.String;kotlin.reflect.KClass<*>){}[0]
+
+            final val key // io.ktor.openapi/JsonSchema.Discriminator.Mapping.key|{}key[0]
+                final fun <get-key>(): kotlin/String // io.ktor.openapi/JsonSchema.Discriminator.Mapping.key.<get-key>|<get-key>(){}[0]
+            final val ref // io.ktor.openapi/JsonSchema.Discriminator.Mapping.ref|{}ref[0]
+                final fun <get-ref>(): kotlin.reflect/KClass<*> // io.ktor.openapi/JsonSchema.Discriminator.Mapping.ref.<get-ref>|<get-ref>(){}[0]
+        }
+    }
+
+    open annotation class Enum : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Enum|null[0]
+        constructor <init>(kotlin/Array<out kotlin/String>...) // io.ktor.openapi/JsonSchema.Enum.<init>|<init>(kotlin.Array<out|kotlin.String>...){}[0]
+
+        final val value // io.ktor.openapi/JsonSchema.Enum.value|{}value[0]
+            final fun <get-value>(): kotlin/Array<out kotlin/String> // io.ktor.openapi/JsonSchema.Enum.value.<get-value>|<get-value>(){}[0]
+    }
+
+    open annotation class Example : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Example|null[0]
+        constructor <init>(kotlin/Array<out kotlin/String>...) // io.ktor.openapi/JsonSchema.Example.<init>|<init>(kotlin.Array<out|kotlin.String>...){}[0]
+
+        final val value // io.ktor.openapi/JsonSchema.Example.value|{}value[0]
+            final fun <get-value>(): kotlin/Array<out kotlin/String> // io.ktor.openapi/JsonSchema.Example.value.<get-value>|<get-value>(){}[0]
+    }
+
+    open annotation class Format : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Format|null[0]
+        constructor <init>(kotlin/String) // io.ktor.openapi/JsonSchema.Format.<init>|<init>(kotlin.String){}[0]
+
+        final val value // io.ktor.openapi/JsonSchema.Format.value|{}value[0]
+            final fun <get-value>(): kotlin/String // io.ktor.openapi/JsonSchema.Format.value.<get-value>|<get-value>(){}[0]
+    }
+
+    open annotation class Id : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Id|null[0]
+        constructor <init>(kotlin/String) // io.ktor.openapi/JsonSchema.Id.<init>|<init>(kotlin.String){}[0]
+
+        final val value // io.ktor.openapi/JsonSchema.Id.value|{}value[0]
+            final fun <get-value>(): kotlin/String // io.ktor.openapi/JsonSchema.Id.value.<get-value>|<get-value>(){}[0]
+    }
+
+    open annotation class Ignore : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Ignore|null[0]
+        constructor <init>() // io.ktor.openapi/JsonSchema.Ignore.<init>|<init>(){}[0]
+    }
+
+    open annotation class ItemsRef : kotlin/Annotation { // io.ktor.openapi/JsonSchema.ItemsRef|null[0]
+        constructor <init>(kotlin.reflect/KClass<*>) // io.ktor.openapi/JsonSchema.ItemsRef.<init>|<init>(kotlin.reflect.KClass<*>){}[0]
+
+        final val value // io.ktor.openapi/JsonSchema.ItemsRef.value|{}value[0]
+            final fun <get-value>(): kotlin.reflect/KClass<*> // io.ktor.openapi/JsonSchema.ItemsRef.value.<get-value>|<get-value>(){}[0]
+    }
+
+    open annotation class MaxItems : kotlin/Annotation { // io.ktor.openapi/JsonSchema.MaxItems|null[0]
+        constructor <init>(kotlin/Int) // io.ktor.openapi/JsonSchema.MaxItems.<init>|<init>(kotlin.Int){}[0]
+
+        final val value // io.ktor.openapi/JsonSchema.MaxItems.value|{}value[0]
+            final fun <get-value>(): kotlin/Int // io.ktor.openapi/JsonSchema.MaxItems.value.<get-value>|<get-value>(){}[0]
+    }
+
+    open annotation class MaxLength : kotlin/Annotation { // io.ktor.openapi/JsonSchema.MaxLength|null[0]
+        constructor <init>(kotlin/Int) // io.ktor.openapi/JsonSchema.MaxLength.<init>|<init>(kotlin.Int){}[0]
+
+        final val value // io.ktor.openapi/JsonSchema.MaxLength.value|{}value[0]
+            final fun <get-value>(): kotlin/Int // io.ktor.openapi/JsonSchema.MaxLength.value.<get-value>|<get-value>(){}[0]
+    }
+
+    open annotation class MaxProperties : kotlin/Annotation { // io.ktor.openapi/JsonSchema.MaxProperties|null[0]
+        constructor <init>(kotlin/Int) // io.ktor.openapi/JsonSchema.MaxProperties.<init>|<init>(kotlin.Int){}[0]
+
+        final val value // io.ktor.openapi/JsonSchema.MaxProperties.value|{}value[0]
+            final fun <get-value>(): kotlin/Int // io.ktor.openapi/JsonSchema.MaxProperties.value.<get-value>|<get-value>(){}[0]
+    }
+
+    open annotation class Maximum : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Maximum|null[0]
+        constructor <init>(kotlin/Double, kotlin/Boolean = ...) // io.ktor.openapi/JsonSchema.Maximum.<init>|<init>(kotlin.Double;kotlin.Boolean){}[0]
+
+        final val exclusive // io.ktor.openapi/JsonSchema.Maximum.exclusive|{}exclusive[0]
+            final fun <get-exclusive>(): kotlin/Boolean // io.ktor.openapi/JsonSchema.Maximum.exclusive.<get-exclusive>|<get-exclusive>(){}[0]
+        final val value // io.ktor.openapi/JsonSchema.Maximum.value|{}value[0]
+            final fun <get-value>(): kotlin/Double // io.ktor.openapi/JsonSchema.Maximum.value.<get-value>|<get-value>(){}[0]
+    }
+
+    open annotation class MinItems : kotlin/Annotation { // io.ktor.openapi/JsonSchema.MinItems|null[0]
+        constructor <init>(kotlin/Int) // io.ktor.openapi/JsonSchema.MinItems.<init>|<init>(kotlin.Int){}[0]
+
+        final val value // io.ktor.openapi/JsonSchema.MinItems.value|{}value[0]
+            final fun <get-value>(): kotlin/Int // io.ktor.openapi/JsonSchema.MinItems.value.<get-value>|<get-value>(){}[0]
+    }
+
+    open annotation class MinLength : kotlin/Annotation { // io.ktor.openapi/JsonSchema.MinLength|null[0]
+        constructor <init>(kotlin/Int) // io.ktor.openapi/JsonSchema.MinLength.<init>|<init>(kotlin.Int){}[0]
+
+        final val value // io.ktor.openapi/JsonSchema.MinLength.value|{}value[0]
+            final fun <get-value>(): kotlin/Int // io.ktor.openapi/JsonSchema.MinLength.value.<get-value>|<get-value>(){}[0]
+    }
+
+    open annotation class MinProperties : kotlin/Annotation { // io.ktor.openapi/JsonSchema.MinProperties|null[0]
+        constructor <init>(kotlin/Int) // io.ktor.openapi/JsonSchema.MinProperties.<init>|<init>(kotlin.Int){}[0]
+
+        final val value // io.ktor.openapi/JsonSchema.MinProperties.value|{}value[0]
+            final fun <get-value>(): kotlin/Int // io.ktor.openapi/JsonSchema.MinProperties.value.<get-value>|<get-value>(){}[0]
+    }
+
+    open annotation class Minimum : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Minimum|null[0]
+        constructor <init>(kotlin/Double, kotlin/Boolean = ...) // io.ktor.openapi/JsonSchema.Minimum.<init>|<init>(kotlin.Double;kotlin.Boolean){}[0]
+
+        final val exclusive // io.ktor.openapi/JsonSchema.Minimum.exclusive|{}exclusive[0]
+            final fun <get-exclusive>(): kotlin/Boolean // io.ktor.openapi/JsonSchema.Minimum.exclusive.<get-exclusive>|<get-exclusive>(){}[0]
+        final val value // io.ktor.openapi/JsonSchema.Minimum.value|{}value[0]
+            final fun <get-value>(): kotlin/Double // io.ktor.openapi/JsonSchema.Minimum.value.<get-value>|<get-value>(){}[0]
+    }
+
+    open annotation class MultipleOf : kotlin/Annotation { // io.ktor.openapi/JsonSchema.MultipleOf|null[0]
+        constructor <init>(kotlin/Double) // io.ktor.openapi/JsonSchema.MultipleOf.<init>|<init>(kotlin.Double){}[0]
+
+        final val value // io.ktor.openapi/JsonSchema.MultipleOf.value|{}value[0]
+            final fun <get-value>(): kotlin/Double // io.ktor.openapi/JsonSchema.MultipleOf.value.<get-value>|<get-value>(){}[0]
+    }
+
+    open annotation class Not : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Not|null[0]
+        constructor <init>(kotlin.reflect/KClass<*>) // io.ktor.openapi/JsonSchema.Not.<init>|<init>(kotlin.reflect.KClass<*>){}[0]
+
+        final val value // io.ktor.openapi/JsonSchema.Not.value|{}value[0]
+            final fun <get-value>(): kotlin.reflect/KClass<*> // io.ktor.openapi/JsonSchema.Not.value.<get-value>|<get-value>(){}[0]
+    }
+
+    open annotation class Nullable : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Nullable|null[0]
+        constructor <init>(kotlin/Boolean = ...) // io.ktor.openapi/JsonSchema.Nullable.<init>|<init>(kotlin.Boolean){}[0]
+
+        final val value // io.ktor.openapi/JsonSchema.Nullable.value|{}value[0]
+            final fun <get-value>(): kotlin/Boolean // io.ktor.openapi/JsonSchema.Nullable.value.<get-value>|<get-value>(){}[0]
+    }
+
+    open annotation class OneOf : kotlin/Annotation { // io.ktor.openapi/JsonSchema.OneOf|null[0]
+        constructor <init>(kotlin/Array<out kotlin.reflect/KClass<*>>...) // io.ktor.openapi/JsonSchema.OneOf.<init>|<init>(kotlin.Array<out|kotlin.reflect.KClass<*>>...){}[0]
+
+        final val value // io.ktor.openapi/JsonSchema.OneOf.value|{}value[0]
+            final fun <get-value>(): kotlin/Array<out kotlin.reflect/KClass<*>> // io.ktor.openapi/JsonSchema.OneOf.value.<get-value>|<get-value>(){}[0]
+    }
+
+    open annotation class Pattern : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Pattern|null[0]
+        constructor <init>(kotlin/String) // io.ktor.openapi/JsonSchema.Pattern.<init>|<init>(kotlin.String){}[0]
+
+        final val value // io.ktor.openapi/JsonSchema.Pattern.value|{}value[0]
+            final fun <get-value>(): kotlin/String // io.ktor.openapi/JsonSchema.Pattern.value.<get-value>|<get-value>(){}[0]
+    }
+
+    open annotation class ReadOnly : kotlin/Annotation { // io.ktor.openapi/JsonSchema.ReadOnly|null[0]
+        constructor <init>() // io.ktor.openapi/JsonSchema.ReadOnly.<init>|<init>(){}[0]
+    }
+
+    open annotation class Required : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Required|null[0]
+        constructor <init>(kotlin/Array<out kotlin/String>...) // io.ktor.openapi/JsonSchema.Required.<init>|<init>(kotlin.Array<out|kotlin.String>...){}[0]
+
+        final val value // io.ktor.openapi/JsonSchema.Required.value|{}value[0]
+            final fun <get-value>(): kotlin/Array<out kotlin/String> // io.ktor.openapi/JsonSchema.Required.value.<get-value>|<get-value>(){}[0]
+    }
+
+    open annotation class Title : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Title|null[0]
+        constructor <init>(kotlin/String) // io.ktor.openapi/JsonSchema.Title.<init>|<init>(kotlin.String){}[0]
+
+        final val value // io.ktor.openapi/JsonSchema.Title.value|{}value[0]
+            final fun <get-value>(): kotlin/String // io.ktor.openapi/JsonSchema.Title.value.<get-value>|<get-value>(){}[0]
+    }
+
+    open annotation class Type : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Type|null[0]
+        constructor <init>(io.ktor.openapi/JsonType) // io.ktor.openapi/JsonSchema.Type.<init>|<init>(io.ktor.openapi.JsonType){}[0]
+
+        final val value // io.ktor.openapi/JsonSchema.Type.value|{}value[0]
+            final fun <get-value>(): io.ktor.openapi/JsonType // io.ktor.openapi/JsonSchema.Type.value.<get-value>|<get-value>(){}[0]
+    }
+
+    open annotation class UniqueItems : kotlin/Annotation { // io.ktor.openapi/JsonSchema.UniqueItems|null[0]
+        constructor <init>() // io.ktor.openapi/JsonSchema.UniqueItems.<init>|<init>(){}[0]
+    }
+
+    open annotation class WriteOnly : kotlin/Annotation { // io.ktor.openapi/JsonSchema.WriteOnly|null[0]
+        constructor <init>() // io.ktor.openapi/JsonSchema.WriteOnly.<init>|<init>(){}[0]
+    }
 
     sealed interface SchemaType { // io.ktor.openapi/JsonSchema.SchemaType|null[0]
         final class AnyOf : io.ktor.openapi/JsonSchema.SchemaType { // io.ktor.openapi/JsonSchema.SchemaType.AnyOf|null[0]
@@ -825,271 +1055,6 @@ final class io.ktor.openapi/JsonSchema { // io.ktor.openapi/JsonSchema|null[0]
         }
     }
 
-    final class Annotations { // io.ktor.openapi/JsonSchema.Annotations|null[0]
-        constructor <init>() // io.ktor.openapi/JsonSchema.Annotations.<init>|<init>(){}[0]
-
-        open annotation class AdditionalPropertiesAllowed : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Annotations.AdditionalPropertiesAllowed|null[0]
-            constructor <init>() // io.ktor.openapi/JsonSchema.Annotations.AdditionalPropertiesAllowed.<init>|<init>(){}[0]
-        }
-
-        open annotation class AdditionalPropertiesRef : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Annotations.AdditionalPropertiesRef|null[0]
-            constructor <init>(kotlin.reflect/KClass<*>) // io.ktor.openapi/JsonSchema.Annotations.AdditionalPropertiesRef.<init>|<init>(kotlin.reflect.KClass<*>){}[0]
-
-            final val value // io.ktor.openapi/JsonSchema.Annotations.AdditionalPropertiesRef.value|{}value[0]
-                final fun <get-value>(): kotlin.reflect/KClass<*> // io.ktor.openapi/JsonSchema.Annotations.AdditionalPropertiesRef.value.<get-value>|<get-value>(){}[0]
-        }
-
-        open annotation class Anchor : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Annotations.Anchor|null[0]
-            constructor <init>(kotlin/String, kotlin/Boolean = ...) // io.ktor.openapi/JsonSchema.Annotations.Anchor.<init>|<init>(kotlin.String;kotlin.Boolean){}[0]
-
-            final val recursive // io.ktor.openapi/JsonSchema.Annotations.Anchor.recursive|{}recursive[0]
-                final fun <get-recursive>(): kotlin/Boolean // io.ktor.openapi/JsonSchema.Annotations.Anchor.recursive.<get-recursive>|<get-recursive>(){}[0]
-            final val value // io.ktor.openapi/JsonSchema.Annotations.Anchor.value|{}value[0]
-                final fun <get-value>(): kotlin/String // io.ktor.openapi/JsonSchema.Annotations.Anchor.value.<get-value>|<get-value>(){}[0]
-        }
-
-        open annotation class AnyOfRefs : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Annotations.AnyOfRefs|null[0]
-            constructor <init>(kotlin/Array<out kotlin/String>...) // io.ktor.openapi/JsonSchema.Annotations.AnyOfRefs.<init>|<init>(kotlin.Array<out|kotlin.String>...){}[0]
-
-            final val value // io.ktor.openapi/JsonSchema.Annotations.AnyOfRefs.value|{}value[0]
-                final fun <get-value>(): kotlin/Array<out kotlin/String> // io.ktor.openapi/JsonSchema.Annotations.AnyOfRefs.value.<get-value>|<get-value>(){}[0]
-        }
-
-        open annotation class Default : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Annotations.Default|null[0]
-            constructor <init>(kotlin/String) // io.ktor.openapi/JsonSchema.Annotations.Default.<init>|<init>(kotlin.String){}[0]
-
-            final val value // io.ktor.openapi/JsonSchema.Annotations.Default.value|{}value[0]
-                final fun <get-value>(): kotlin/String // io.ktor.openapi/JsonSchema.Annotations.Default.value.<get-value>|<get-value>(){}[0]
-        }
-
-        open annotation class Deprecated : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Annotations.Deprecated|null[0]
-            constructor <init>() // io.ktor.openapi/JsonSchema.Annotations.Deprecated.<init>|<init>(){}[0]
-        }
-
-        open annotation class Description : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Annotations.Description|null[0]
-            constructor <init>(kotlin/String) // io.ktor.openapi/JsonSchema.Annotations.Description.<init>|<init>(kotlin.String){}[0]
-
-            final val value // io.ktor.openapi/JsonSchema.Annotations.Description.value|{}value[0]
-                final fun <get-value>(): kotlin/String // io.ktor.openapi/JsonSchema.Annotations.Description.value.<get-value>|<get-value>(){}[0]
-        }
-
-        open annotation class Discriminator : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Annotations.Discriminator|null[0]
-            constructor <init>(kotlin/String, kotlin/Array<out io.ktor.openapi/JsonSchema.Annotations.Discriminator.Mapping>...) // io.ktor.openapi/JsonSchema.Annotations.Discriminator.<init>|<init>(kotlin.String;kotlin.Array<out|io.ktor.openapi.JsonSchema.Annotations.Discriminator.Mapping>...){}[0]
-
-            final val mapping // io.ktor.openapi/JsonSchema.Annotations.Discriminator.mapping|{}mapping[0]
-                final fun <get-mapping>(): kotlin/Array<out io.ktor.openapi/JsonSchema.Annotations.Discriminator.Mapping> // io.ktor.openapi/JsonSchema.Annotations.Discriminator.mapping.<get-mapping>|<get-mapping>(){}[0]
-            final val property // io.ktor.openapi/JsonSchema.Annotations.Discriminator.property|{}property[0]
-                final fun <get-property>(): kotlin/String // io.ktor.openapi/JsonSchema.Annotations.Discriminator.property.<get-property>|<get-property>(){}[0]
-
-            open annotation class Mapping : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Annotations.Discriminator.Mapping|null[0]
-                constructor <init>(kotlin/String, kotlin.reflect/KClass<*>) // io.ktor.openapi/JsonSchema.Annotations.Discriminator.Mapping.<init>|<init>(kotlin.String;kotlin.reflect.KClass<*>){}[0]
-
-                final val key // io.ktor.openapi/JsonSchema.Annotations.Discriminator.Mapping.key|{}key[0]
-                    final fun <get-key>(): kotlin/String // io.ktor.openapi/JsonSchema.Annotations.Discriminator.Mapping.key.<get-key>|<get-key>(){}[0]
-                final val ref // io.ktor.openapi/JsonSchema.Annotations.Discriminator.Mapping.ref|{}ref[0]
-                    final fun <get-ref>(): kotlin.reflect/KClass<*> // io.ktor.openapi/JsonSchema.Annotations.Discriminator.Mapping.ref.<get-ref>|<get-ref>(){}[0]
-            }
-        }
-
-        open annotation class Enum : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Annotations.Enum|null[0]
-            constructor <init>(kotlin/Array<out kotlin/String>...) // io.ktor.openapi/JsonSchema.Annotations.Enum.<init>|<init>(kotlin.Array<out|kotlin.String>...){}[0]
-
-            final val value // io.ktor.openapi/JsonSchema.Annotations.Enum.value|{}value[0]
-                final fun <get-value>(): kotlin/Array<out kotlin/String> // io.ktor.openapi/JsonSchema.Annotations.Enum.value.<get-value>|<get-value>(){}[0]
-        }
-
-        open annotation class Example : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Annotations.Example|null[0]
-            constructor <init>(kotlin/Array<out kotlin/String>...) // io.ktor.openapi/JsonSchema.Annotations.Example.<init>|<init>(kotlin.Array<out|kotlin.String>...){}[0]
-
-            final val value // io.ktor.openapi/JsonSchema.Annotations.Example.value|{}value[0]
-                final fun <get-value>(): kotlin/Array<out kotlin/String> // io.ktor.openapi/JsonSchema.Annotations.Example.value.<get-value>|<get-value>(){}[0]
-        }
-
-        open annotation class Format : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Annotations.Format|null[0]
-            constructor <init>(kotlin/String) // io.ktor.openapi/JsonSchema.Annotations.Format.<init>|<init>(kotlin.String){}[0]
-
-            final val value // io.ktor.openapi/JsonSchema.Annotations.Format.value|{}value[0]
-                final fun <get-value>(): kotlin/String // io.ktor.openapi/JsonSchema.Annotations.Format.value.<get-value>|<get-value>(){}[0]
-        }
-
-        open annotation class Id : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Annotations.Id|null[0]
-            constructor <init>(kotlin/String) // io.ktor.openapi/JsonSchema.Annotations.Id.<init>|<init>(kotlin.String){}[0]
-
-            final val value // io.ktor.openapi/JsonSchema.Annotations.Id.value|{}value[0]
-                final fun <get-value>(): kotlin/String // io.ktor.openapi/JsonSchema.Annotations.Id.value.<get-value>|<get-value>(){}[0]
-        }
-
-        open annotation class Ignore : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Annotations.Ignore|null[0]
-            constructor <init>() // io.ktor.openapi/JsonSchema.Annotations.Ignore.<init>|<init>(){}[0]
-        }
-
-        open annotation class ItemsRef : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Annotations.ItemsRef|null[0]
-            constructor <init>(kotlin.reflect/KClass<*>) // io.ktor.openapi/JsonSchema.Annotations.ItemsRef.<init>|<init>(kotlin.reflect.KClass<*>){}[0]
-
-            final val value // io.ktor.openapi/JsonSchema.Annotations.ItemsRef.value|{}value[0]
-                final fun <get-value>(): kotlin.reflect/KClass<*> // io.ktor.openapi/JsonSchema.Annotations.ItemsRef.value.<get-value>|<get-value>(){}[0]
-        }
-
-        open annotation class MaxItems : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Annotations.MaxItems|null[0]
-            constructor <init>(kotlin/Int) // io.ktor.openapi/JsonSchema.Annotations.MaxItems.<init>|<init>(kotlin.Int){}[0]
-
-            final val value // io.ktor.openapi/JsonSchema.Annotations.MaxItems.value|{}value[0]
-                final fun <get-value>(): kotlin/Int // io.ktor.openapi/JsonSchema.Annotations.MaxItems.value.<get-value>|<get-value>(){}[0]
-        }
-
-        open annotation class MaxLength : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Annotations.MaxLength|null[0]
-            constructor <init>(kotlin/Int) // io.ktor.openapi/JsonSchema.Annotations.MaxLength.<init>|<init>(kotlin.Int){}[0]
-
-            final val value // io.ktor.openapi/JsonSchema.Annotations.MaxLength.value|{}value[0]
-                final fun <get-value>(): kotlin/Int // io.ktor.openapi/JsonSchema.Annotations.MaxLength.value.<get-value>|<get-value>(){}[0]
-        }
-
-        open annotation class MaxProperties : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Annotations.MaxProperties|null[0]
-            constructor <init>(kotlin/Int) // io.ktor.openapi/JsonSchema.Annotations.MaxProperties.<init>|<init>(kotlin.Int){}[0]
-
-            final val value // io.ktor.openapi/JsonSchema.Annotations.MaxProperties.value|{}value[0]
-                final fun <get-value>(): kotlin/Int // io.ktor.openapi/JsonSchema.Annotations.MaxProperties.value.<get-value>|<get-value>(){}[0]
-        }
-
-        open annotation class Maximum : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Annotations.Maximum|null[0]
-            constructor <init>(kotlin/Double, kotlin/Boolean = ...) // io.ktor.openapi/JsonSchema.Annotations.Maximum.<init>|<init>(kotlin.Double;kotlin.Boolean){}[0]
-
-            final val exclusive // io.ktor.openapi/JsonSchema.Annotations.Maximum.exclusive|{}exclusive[0]
-                final fun <get-exclusive>(): kotlin/Boolean // io.ktor.openapi/JsonSchema.Annotations.Maximum.exclusive.<get-exclusive>|<get-exclusive>(){}[0]
-            final val value // io.ktor.openapi/JsonSchema.Annotations.Maximum.value|{}value[0]
-                final fun <get-value>(): kotlin/Double // io.ktor.openapi/JsonSchema.Annotations.Maximum.value.<get-value>|<get-value>(){}[0]
-        }
-
-        open annotation class MinItems : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Annotations.MinItems|null[0]
-            constructor <init>(kotlin/Int) // io.ktor.openapi/JsonSchema.Annotations.MinItems.<init>|<init>(kotlin.Int){}[0]
-
-            final val value // io.ktor.openapi/JsonSchema.Annotations.MinItems.value|{}value[0]
-                final fun <get-value>(): kotlin/Int // io.ktor.openapi/JsonSchema.Annotations.MinItems.value.<get-value>|<get-value>(){}[0]
-        }
-
-        open annotation class MinLength : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Annotations.MinLength|null[0]
-            constructor <init>(kotlin/Int) // io.ktor.openapi/JsonSchema.Annotations.MinLength.<init>|<init>(kotlin.Int){}[0]
-
-            final val value // io.ktor.openapi/JsonSchema.Annotations.MinLength.value|{}value[0]
-                final fun <get-value>(): kotlin/Int // io.ktor.openapi/JsonSchema.Annotations.MinLength.value.<get-value>|<get-value>(){}[0]
-        }
-
-        open annotation class MinProperties : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Annotations.MinProperties|null[0]
-            constructor <init>(kotlin/Int) // io.ktor.openapi/JsonSchema.Annotations.MinProperties.<init>|<init>(kotlin.Int){}[0]
-
-            final val value // io.ktor.openapi/JsonSchema.Annotations.MinProperties.value|{}value[0]
-                final fun <get-value>(): kotlin/Int // io.ktor.openapi/JsonSchema.Annotations.MinProperties.value.<get-value>|<get-value>(){}[0]
-        }
-
-        open annotation class Minimum : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Annotations.Minimum|null[0]
-            constructor <init>(kotlin/Double, kotlin/Boolean = ...) // io.ktor.openapi/JsonSchema.Annotations.Minimum.<init>|<init>(kotlin.Double;kotlin.Boolean){}[0]
-
-            final val exclusive // io.ktor.openapi/JsonSchema.Annotations.Minimum.exclusive|{}exclusive[0]
-                final fun <get-exclusive>(): kotlin/Boolean // io.ktor.openapi/JsonSchema.Annotations.Minimum.exclusive.<get-exclusive>|<get-exclusive>(){}[0]
-            final val value // io.ktor.openapi/JsonSchema.Annotations.Minimum.value|{}value[0]
-                final fun <get-value>(): kotlin/Double // io.ktor.openapi/JsonSchema.Annotations.Minimum.value.<get-value>|<get-value>(){}[0]
-        }
-
-        open annotation class MultipleOf : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Annotations.MultipleOf|null[0]
-            constructor <init>(kotlin/Double) // io.ktor.openapi/JsonSchema.Annotations.MultipleOf.<init>|<init>(kotlin.Double){}[0]
-
-            final val value // io.ktor.openapi/JsonSchema.Annotations.MultipleOf.value|{}value[0]
-                final fun <get-value>(): kotlin/Double // io.ktor.openapi/JsonSchema.Annotations.MultipleOf.value.<get-value>|<get-value>(){}[0]
-        }
-
-        open annotation class Not : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Annotations.Not|null[0]
-            constructor <init>(kotlin.reflect/KClass<*>) // io.ktor.openapi/JsonSchema.Annotations.Not.<init>|<init>(kotlin.reflect.KClass<*>){}[0]
-
-            final val value // io.ktor.openapi/JsonSchema.Annotations.Not.value|{}value[0]
-                final fun <get-value>(): kotlin.reflect/KClass<*> // io.ktor.openapi/JsonSchema.Annotations.Not.value.<get-value>|<get-value>(){}[0]
-        }
-
-        open annotation class Nullable : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Annotations.Nullable|null[0]
-            constructor <init>(kotlin/Boolean = ...) // io.ktor.openapi/JsonSchema.Annotations.Nullable.<init>|<init>(kotlin.Boolean){}[0]
-
-            final val value // io.ktor.openapi/JsonSchema.Annotations.Nullable.value|{}value[0]
-                final fun <get-value>(): kotlin/Boolean // io.ktor.openapi/JsonSchema.Annotations.Nullable.value.<get-value>|<get-value>(){}[0]
-        }
-
-        open annotation class OneOf : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Annotations.OneOf|null[0]
-            constructor <init>(kotlin/Array<out kotlin.reflect/KClass<*>>...) // io.ktor.openapi/JsonSchema.Annotations.OneOf.<init>|<init>(kotlin.Array<out|kotlin.reflect.KClass<*>>...){}[0]
-
-            final val value // io.ktor.openapi/JsonSchema.Annotations.OneOf.value|{}value[0]
-                final fun <get-value>(): kotlin/Array<out kotlin.reflect/KClass<*>> // io.ktor.openapi/JsonSchema.Annotations.OneOf.value.<get-value>|<get-value>(){}[0]
-        }
-
-        open annotation class Pattern : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Annotations.Pattern|null[0]
-            constructor <init>(kotlin/String) // io.ktor.openapi/JsonSchema.Annotations.Pattern.<init>|<init>(kotlin.String){}[0]
-
-            final val value // io.ktor.openapi/JsonSchema.Annotations.Pattern.value|{}value[0]
-                final fun <get-value>(): kotlin/String // io.ktor.openapi/JsonSchema.Annotations.Pattern.value.<get-value>|<get-value>(){}[0]
-        }
-
-        open annotation class ReadOnly : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Annotations.ReadOnly|null[0]
-            constructor <init>() // io.ktor.openapi/JsonSchema.Annotations.ReadOnly.<init>|<init>(){}[0]
-        }
-
-        open annotation class Required : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Annotations.Required|null[0]
-            constructor <init>(kotlin/Array<out kotlin/String>...) // io.ktor.openapi/JsonSchema.Annotations.Required.<init>|<init>(kotlin.Array<out|kotlin.String>...){}[0]
-
-            final val value // io.ktor.openapi/JsonSchema.Annotations.Required.value|{}value[0]
-                final fun <get-value>(): kotlin/Array<out kotlin/String> // io.ktor.openapi/JsonSchema.Annotations.Required.value.<get-value>|<get-value>(){}[0]
-        }
-
-        open annotation class Title : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Annotations.Title|null[0]
-            constructor <init>(kotlin/String) // io.ktor.openapi/JsonSchema.Annotations.Title.<init>|<init>(kotlin.String){}[0]
-
-            final val value // io.ktor.openapi/JsonSchema.Annotations.Title.value|{}value[0]
-                final fun <get-value>(): kotlin/String // io.ktor.openapi/JsonSchema.Annotations.Title.value.<get-value>|<get-value>(){}[0]
-        }
-
-        open annotation class Type : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Annotations.Type|null[0]
-            constructor <init>(io.ktor.openapi/JsonType) // io.ktor.openapi/JsonSchema.Annotations.Type.<init>|<init>(io.ktor.openapi.JsonType){}[0]
-
-            final val value // io.ktor.openapi/JsonSchema.Annotations.Type.value|{}value[0]
-                final fun <get-value>(): io.ktor.openapi/JsonType // io.ktor.openapi/JsonSchema.Annotations.Type.value.<get-value>|<get-value>(){}[0]
-        }
-
-        open annotation class UniqueItems : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Annotations.UniqueItems|null[0]
-            constructor <init>() // io.ktor.openapi/JsonSchema.Annotations.UniqueItems.<init>|<init>(){}[0]
-        }
-
-        open annotation class WriteOnly : kotlin/Annotation { // io.ktor.openapi/JsonSchema.Annotations.WriteOnly|null[0]
-            constructor <init>() // io.ktor.openapi/JsonSchema.Annotations.WriteOnly.<init>|<init>(){}[0]
-        }
-    }
-
-    final class Discriminator { // io.ktor.openapi/JsonSchema.Discriminator|null[0]
-        constructor <init>(kotlin/String, kotlin.collections/Map<kotlin/String, kotlin/String>? = ...) // io.ktor.openapi/JsonSchema.Discriminator.<init>|<init>(kotlin.String;kotlin.collections.Map<kotlin.String,kotlin.String>?){}[0]
-
-        final val mapping // io.ktor.openapi/JsonSchema.Discriminator.mapping|{}mapping[0]
-            final fun <get-mapping>(): kotlin.collections/Map<kotlin/String, kotlin/String>? // io.ktor.openapi/JsonSchema.Discriminator.mapping.<get-mapping>|<get-mapping>(){}[0]
-        final val propertyName // io.ktor.openapi/JsonSchema.Discriminator.propertyName|{}propertyName[0]
-            final fun <get-propertyName>(): kotlin/String // io.ktor.openapi/JsonSchema.Discriminator.propertyName.<get-propertyName>|<get-propertyName>(){}[0]
-
-        final fun component1(): kotlin/String // io.ktor.openapi/JsonSchema.Discriminator.component1|component1(){}[0]
-        final fun component2(): kotlin.collections/Map<kotlin/String, kotlin/String>? // io.ktor.openapi/JsonSchema.Discriminator.component2|component2(){}[0]
-        final fun copy(kotlin/String = ..., kotlin.collections/Map<kotlin/String, kotlin/String>? = ...): io.ktor.openapi/JsonSchema.Discriminator // io.ktor.openapi/JsonSchema.Discriminator.copy|copy(kotlin.String;kotlin.collections.Map<kotlin.String,kotlin.String>?){}[0]
-        final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.openapi/JsonSchema.Discriminator.equals|equals(kotlin.Any?){}[0]
-        final fun hashCode(): kotlin/Int // io.ktor.openapi/JsonSchema.Discriminator.hashCode|hashCode(){}[0]
-        final fun toString(): kotlin/String // io.ktor.openapi/JsonSchema.Discriminator.toString|toString(){}[0]
-
-        final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<io.ktor.openapi/JsonSchema.Discriminator> { // io.ktor.openapi/JsonSchema.Discriminator.$serializer|null[0]
-            final val descriptor // io.ktor.openapi/JsonSchema.Discriminator.$serializer.descriptor|{}descriptor[0]
-                final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // io.ktor.openapi/JsonSchema.Discriminator.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
-
-            final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // io.ktor.openapi/JsonSchema.Discriminator.$serializer.childSerializers|childSerializers(){}[0]
-            final fun deserialize(kotlinx.serialization.encoding/Decoder): io.ktor.openapi/JsonSchema.Discriminator // io.ktor.openapi/JsonSchema.Discriminator.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
-            final fun serialize(kotlinx.serialization.encoding/Encoder, io.ktor.openapi/JsonSchema.Discriminator) // io.ktor.openapi/JsonSchema.Discriminator.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;io.ktor.openapi.JsonSchema.Discriminator){}[0]
-        }
-
-        final object Companion { // io.ktor.openapi/JsonSchema.Discriminator.Companion|null[0]
-            final val $childSerializers // io.ktor.openapi/JsonSchema.Discriminator.Companion.$childSerializers|{}$childSerializers[0]
-
-            final fun serializer(): kotlinx.serialization/KSerializer<io.ktor.openapi/JsonSchema.Discriminator> // io.ktor.openapi/JsonSchema.Discriminator.Companion.serializer|serializer(){}[0]
-        }
-    }
-
     final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<io.ktor.openapi/JsonSchema> { // io.ktor.openapi/JsonSchema.$serializer|null[0]
         final val descriptor // io.ktor.openapi/JsonSchema.$serializer.descriptor|{}descriptor[0]
             final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // io.ktor.openapi/JsonSchema.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
@@ -1103,6 +1068,37 @@ final class io.ktor.openapi/JsonSchema { // io.ktor.openapi/JsonSchema|null[0]
         final val $childSerializers // io.ktor.openapi/JsonSchema.Companion.$childSerializers|{}$childSerializers[0]
 
         final fun serializer(): kotlinx.serialization/KSerializer<io.ktor.openapi/JsonSchema> // io.ktor.openapi/JsonSchema.Companion.serializer|serializer(){}[0]
+    }
+}
+
+final class io.ktor.openapi/JsonSchemaDiscriminator { // io.ktor.openapi/JsonSchemaDiscriminator|null[0]
+    constructor <init>(kotlin/String, kotlin.collections/Map<kotlin/String, kotlin/String>? = ...) // io.ktor.openapi/JsonSchemaDiscriminator.<init>|<init>(kotlin.String;kotlin.collections.Map<kotlin.String,kotlin.String>?){}[0]
+
+    final val mapping // io.ktor.openapi/JsonSchemaDiscriminator.mapping|{}mapping[0]
+        final fun <get-mapping>(): kotlin.collections/Map<kotlin/String, kotlin/String>? // io.ktor.openapi/JsonSchemaDiscriminator.mapping.<get-mapping>|<get-mapping>(){}[0]
+    final val propertyName // io.ktor.openapi/JsonSchemaDiscriminator.propertyName|{}propertyName[0]
+        final fun <get-propertyName>(): kotlin/String // io.ktor.openapi/JsonSchemaDiscriminator.propertyName.<get-propertyName>|<get-propertyName>(){}[0]
+
+    final fun component1(): kotlin/String // io.ktor.openapi/JsonSchemaDiscriminator.component1|component1(){}[0]
+    final fun component2(): kotlin.collections/Map<kotlin/String, kotlin/String>? // io.ktor.openapi/JsonSchemaDiscriminator.component2|component2(){}[0]
+    final fun copy(kotlin/String = ..., kotlin.collections/Map<kotlin/String, kotlin/String>? = ...): io.ktor.openapi/JsonSchemaDiscriminator // io.ktor.openapi/JsonSchemaDiscriminator.copy|copy(kotlin.String;kotlin.collections.Map<kotlin.String,kotlin.String>?){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.openapi/JsonSchemaDiscriminator.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.ktor.openapi/JsonSchemaDiscriminator.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.ktor.openapi/JsonSchemaDiscriminator.toString|toString(){}[0]
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<io.ktor.openapi/JsonSchemaDiscriminator> { // io.ktor.openapi/JsonSchemaDiscriminator.$serializer|null[0]
+        final val descriptor // io.ktor.openapi/JsonSchemaDiscriminator.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // io.ktor.openapi/JsonSchemaDiscriminator.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // io.ktor.openapi/JsonSchemaDiscriminator.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): io.ktor.openapi/JsonSchemaDiscriminator // io.ktor.openapi/JsonSchemaDiscriminator.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, io.ktor.openapi/JsonSchemaDiscriminator) // io.ktor.openapi/JsonSchemaDiscriminator.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;io.ktor.openapi.JsonSchemaDiscriminator){}[0]
+    }
+
+    final object Companion { // io.ktor.openapi/JsonSchemaDiscriminator.Companion|null[0]
+        final val $childSerializers // io.ktor.openapi/JsonSchemaDiscriminator.Companion.$childSerializers|{}$childSerializers[0]
+
+        final fun serializer(): kotlinx.serialization/KSerializer<io.ktor.openapi/JsonSchemaDiscriminator> // io.ktor.openapi/JsonSchemaDiscriminator.Companion.serializer|serializer(){}[0]
     }
 }
 

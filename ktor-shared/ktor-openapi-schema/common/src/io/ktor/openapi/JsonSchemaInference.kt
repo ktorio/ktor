@@ -5,7 +5,7 @@
 package io.ktor.openapi
 
 import io.ktor.openapi.AdditionalProperties.*
-import io.ktor.openapi.JsonSchema.Annotations.*
+import io.ktor.openapi.JsonSchema.*
 import io.ktor.openapi.ReferenceOr.*
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
@@ -108,7 +108,7 @@ public fun SerialDescriptor.buildJsonSchema(
                     reflectSchema = reflectJsonSchema,
                     type = JsonType.OBJECT,
                     title = serialName.takeIf { includeTitle },
-                    discriminator = JsonSchema.Discriminator(discriminatorProperty, sealedTypes),
+                    discriminator = JsonSchemaDiscriminator(discriminatorProperty, sealedTypes),
                     nullable = isNullable,
                 )
             } else {
@@ -216,7 +216,7 @@ internal fun jsonSchemaFromAnnotations(
     enum: List<GenericElement?>? = null,
     nullable: Boolean? = null,
     format: String? = null,
-    discriminator: JsonSchema.Discriminator? = null,
+    discriminator: JsonSchemaDiscriminator? = null,
 ): JsonSchema {
     fun parseJsonLiteralToGenericElement(text: String): GenericElement {
         val element: JsonElement = Json.parseToJsonElement(text)
@@ -246,7 +246,7 @@ internal fun jsonSchemaFromAnnotations(
         title = annotations.firstInstanceOf<Title>()?.value ?: title,
         description = annotations.firstInstanceOf<Description>()?.value,
         required =
-        annotations.firstInstanceOf<JsonSchema.Annotations.Required>()?.value?.toList()?.takeIf { it.isNotEmpty() }
+        annotations.firstInstanceOf<JsonSchema.Required>()?.value?.toList()?.takeIf { it.isNotEmpty() }
             ?: required,
         nullable = annotations.firstInstanceOf<Nullable>()?.value ?: nullable?.takeIf { it },
         anyOf = annotations.firstInstanceOf<AnyOfRefs>()?.value
@@ -262,7 +262,7 @@ internal fun jsonSchemaFromAnnotations(
             ?: annotations.firstInstanceOf<AdditionalPropertiesAllowed>()?.let { Allowed(true) }
             ?: additionalProperties,
         discriminator = annotations.firstInstanceOf<Discriminator>()?.let { annotation ->
-            JsonSchema.Discriminator(
+            JsonSchemaDiscriminator(
                 annotation.property,
                 annotation.mapping.associate {
                     it.key to "#/components/schemas/${it.ref.simpleName}"
@@ -287,7 +287,7 @@ internal fun jsonSchemaFromAnnotations(
         maxItems = annotations.firstInstanceOf<MaxItems>()?.value,
         minItems = annotations.firstInstanceOf<MinItems>()?.value,
         uniqueItems = annotations.firstInstanceOf<UniqueItems>()?.let { true },
-        enum = annotations.firstInstanceOf<JsonSchema.Annotations.Enum>()?.value
+        enum = annotations.firstInstanceOf<JsonSchema.Enum>()?.value
             ?.map { parseJsonLiteralOrUseString(it) }
             ?.takeIf { it.isNotEmpty() } ?: enum,
         multipleOf = annotations.firstInstanceOf<MultipleOf>()?.value,

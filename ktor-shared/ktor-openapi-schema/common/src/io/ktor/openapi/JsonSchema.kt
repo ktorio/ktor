@@ -4,7 +4,6 @@
 
 package io.ktor.openapi
 
-import io.ktor.utils.io.ExperimentalKtorApi
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
@@ -34,7 +33,7 @@ public data class JsonSchema(
     val anyOf: List<ReferenceOr<JsonSchema>>? = null,
     val properties: Map<String, ReferenceOr<JsonSchema>>? = null,
     val additionalProperties: AdditionalProperties? = null,
-    val discriminator: Discriminator? = null,
+    val discriminator: JsonSchemaDiscriminator? = null,
     val readOnly: Boolean? = null,
     val writeOnly: Boolean? = null,
     val xml: Xml? = null,
@@ -65,17 +64,6 @@ public data class JsonSchema(
     @SerialName($$"$anchor") val anchor: String? = null,
     @SerialName($$"$recursiveAnchor") val recursiveAnchor: Boolean? = null,
 ) {
-    /**
-     * Adds support for polymorphism. The discriminator is the schema property name that is used to
-     * differentiate between other schema that inherit this schema. The property name used MUST be defined
-     * at this schema and it MUST be in the required property list. When used, the value MUST be the name of
-     * this schema or any schema that inherits it.
-     */
-    @Serializable
-    public data class Discriminator(
-        val propertyName: String,
-        val mapping: Map<String, String>? = null,
-    )
 
     /**
      * Represents a sealed interface for defining schema types in a JSON structure.
@@ -118,6 +106,7 @@ public data class JsonSchema(
                             ListSerializer(String.serializer()),
                             value.types.map { it.name.lowercase() },
                         )
+
                     is JsonType -> encoder.encodeString(value.name.lowercase())
                 }
             }
@@ -136,224 +125,258 @@ public data class JsonSchema(
         }
     }
 
+    // Annotations scoped under JsonSchema for convenience / simplified naming
+
+    /** Skips the property from the inferred JSON schema model */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.PROPERTY)
+    public annotation class Ignore
+
+    /** $id */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS)
+    public annotation class Id(val value: String)
+
+    /** $anchor */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS)
+    public annotation class Anchor(val value: String, val recursive: Boolean = false)
+
+    /** title */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS)
+    public annotation class Title(val value: String)
+
+    /** description */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    public annotation class Description(val value: String)
+
+    /** type (e.g. "string", "object", "array") */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    public annotation class Type(val value: JsonType)
+
+    /** format (e.g. "date-time", "uuid") */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    public annotation class Format(val value: String)
+
+    /** nullable (OpenAPI-style extension in this project) */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    public annotation class Nullable(val value: Boolean = true)
+
+    /** deprecated */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    public annotation class DeprecatedSchema
+
+    /** readOnly */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    public annotation class ReadOnly
+
+    /** writeOnly */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    public annotation class WriteOnly
+
+    /** default (JSON literal as text) */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    public annotation class Default(val value: String)
+
+    /** example (JSON literal as text) */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    public annotation class Example(vararg val value: String)
+
+    /** enum (each entry is a JSON literal as text) */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    public annotation class Enum(vararg val value: String)
+
+    /** minLength */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    public annotation class MinLength(val value: Int)
+
+    /** maxLength */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    public annotation class MaxLength(val value: Int)
+
+    /** pattern */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    public annotation class Pattern(val value: String)
+
+    /** minimum (+ optional exclusivity) */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    public annotation class Minimum(
+        val value: Double,
+        val exclusive: Boolean = false,
+    )
+
+    /** maximum (+ optional exclusivity) */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    public annotation class Maximum(
+        val value: Double,
+        val exclusive: Boolean = false,
+    )
+
+    /** multipleOf */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    public annotation class MultipleOf(val value: Double)
+
+    /** minItems */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    public annotation class MinItems(val value: Int)
+
+    /** maxItems */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    public annotation class MaxItems(val value: Int)
+
+    /** uniqueItems */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    public annotation class UniqueItems
+
+    /** minProperties */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    public annotation class MinProperties(val value: Int)
+
+    /** maxProperties */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    public annotation class MaxProperties(val value: Int)
+
+    /** required (property names) */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    public annotation class Required(vararg val value: String)
+
     /**
-     * Container class for JSON schema annotations.
+     * Sets `additionalProperties` to `true` or `false`.
+     * Use [AdditionalPropertiesRef] if you need to define a schema for additional properties.
      */
-    public class Annotations {
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    public annotation class AdditionalPropertiesAllowed
 
-        /** Skips the property from the inferred JSON schema model */
-        @OptIn(ExperimentalSerializationApi::class)
-        @SerialInfo
-        @Target(AnnotationTarget.PROPERTY)
-        public annotation class Ignore
+    /**
+     * Defines the schema for any additional properties not explicitly listed in `properties`.
+     *
+     * @param value The Kotlin class to use as the schema for additional properties.
+     */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    public annotation class AdditionalPropertiesRef(val value: KClass<*>)
 
-        /** $id */
-        @OptIn(ExperimentalSerializationApi::class)
-        @SerialInfo
-        @Target(AnnotationTarget.CLASS)
-        public annotation class Id(val value: String)
+    /**
+     * Validates the data against any of the provided schema references.
+     *
+     * @param value Variadic array of schema identifiers or references.
+     */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    public annotation class AnyOfRefs(vararg val value: String)
 
-        /** $anchor */
-        @OptIn(ExperimentalSerializationApi::class)
-        @SerialInfo
-        @Target(AnnotationTarget.CLASS)
-        public annotation class Anchor(val value: String, val recursive: Boolean = false)
+    /**
+     * Validates the data against exactly one of the provided schemas.
+     *
+     * @param value Variadic array of Kotlin classes representing the possible schemas.
+     */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    public annotation class OneOf(vararg val value: KClass<*>)
 
-        /** title */
-        @OptIn(ExperimentalSerializationApi::class)
-        @SerialInfo
-        @Target(AnnotationTarget.CLASS)
-        public annotation class Title(val value: String)
+    /**
+     * Ensures the data does not match the provided schema.
+     *
+     * @param value The Kotlin class representing the schema to negate.
+     */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    public annotation class Not(val value: KClass<*>)
 
-        /** description */
-        @OptIn(ExperimentalSerializationApi::class)
-        @SerialInfo
-        @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
-        public annotation class Description(val value: String)
+    /**
+     * Defines the schema for items within an array.
+     *
+     * @param value The Kotlin class representing the item schema.
+     */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    public annotation class ItemsRef(val value: KClass<*>)
 
-        /** type (e.g. "string", "object", "array") */
-        @OptIn(ExperimentalSerializationApi::class)
-        @SerialInfo
-        @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
-        public annotation class Type(val value: JsonType)
-
-        /** format (e.g. "date-time", "uuid") */
-        @OptIn(ExperimentalSerializationApi::class)
-        @SerialInfo
-        @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
-        public annotation class Format(val value: String)
-
-        /** nullable (OpenAPI-style extension in this project) */
-        @OptIn(ExperimentalSerializationApi::class)
-        @SerialInfo
-        @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
-        public annotation class Nullable(val value: Boolean = true)
-
-        /** deprecated */
-        @OptIn(ExperimentalSerializationApi::class)
-        @SerialInfo
-        @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
-        public annotation class Deprecated
-
-        /** readOnly */
-        @OptIn(ExperimentalSerializationApi::class)
-        @SerialInfo
-        @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
-        public annotation class ReadOnly
-
-        /** writeOnly */
-        @OptIn(ExperimentalSerializationApi::class)
-        @SerialInfo
-        @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
-        public annotation class WriteOnly
-
-        /** default (JSON literal as text) */
-        @OptIn(ExperimentalSerializationApi::class)
-        @SerialInfo
-        @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
-        public annotation class Default(val value: String)
-
-        /** example (JSON literal as text) */
-        @OptIn(ExperimentalSerializationApi::class)
-        @SerialInfo
-        @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
-        public annotation class Example(vararg val value: String)
-
-        /** enum (each entry is a JSON literal as text) */
-        @OptIn(ExperimentalSerializationApi::class)
-        @SerialInfo
-        @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
-        public annotation class Enum(vararg val value: String)
-
-        /** minLength */
-        @OptIn(ExperimentalSerializationApi::class)
-        @SerialInfo
-        @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
-        public annotation class MinLength(val value: Int)
-
-        /** maxLength */
-        @OptIn(ExperimentalSerializationApi::class)
-        @SerialInfo
-        @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
-        public annotation class MaxLength(val value: Int)
-
-        /** pattern */
-        @OptIn(ExperimentalSerializationApi::class)
-        @SerialInfo
-        @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
-        public annotation class Pattern(val value: String)
-
-        /** minimum (+ optional exclusivity) */
-        @OptIn(ExperimentalSerializationApi::class)
-        @SerialInfo
-        @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
-        public annotation class Minimum(
-            val value: Double,
-            val exclusive: Boolean = false,
-        )
-
-        /** maximum (+ optional exclusivity) */
-        @OptIn(ExperimentalSerializationApi::class)
-        @SerialInfo
-        @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
-        public annotation class Maximum(
-            val value: Double,
-            val exclusive: Boolean = false,
-        )
-
-        /** multipleOf */
-        @OptIn(ExperimentalSerializationApi::class)
-        @SerialInfo
-        @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
-        public annotation class MultipleOf(val value: Double)
-
-        /** minItems */
-        @OptIn(ExperimentalSerializationApi::class)
-        @SerialInfo
-        @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
-        public annotation class MinItems(val value: Int)
-
-        /** maxItems */
-        @OptIn(ExperimentalSerializationApi::class)
-        @SerialInfo
-        @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
-        public annotation class MaxItems(val value: Int)
-
-        /** uniqueItems */
-        @OptIn(ExperimentalSerializationApi::class)
-        @SerialInfo
-        @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
-        public annotation class UniqueItems
-
-        /** minProperties */
-        @OptIn(ExperimentalSerializationApi::class)
-        @SerialInfo
-        @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
-        public annotation class MinProperties(val value: Int)
-
-        /** maxProperties */
-        @OptIn(ExperimentalSerializationApi::class)
-        @SerialInfo
-        @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
-        public annotation class MaxProperties(val value: Int)
-
-        /** required (property names) */
-        @OptIn(ExperimentalSerializationApi::class)
-        @SerialInfo
-        @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
-        public annotation class Required(vararg val value: String)
-
+    /**
+     * Configures polymorphism using a discriminator property and optional explicit mappings.
+     *
+     * @property property The name of the property in the payload used to identify the type.
+     * @property mapping An array of [Mapping] annotations defining the relationship between
+     * discriminator values and schema classes.
+     */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    public annotation class Discriminator(val property: String, vararg val mapping: Mapping) {
         /**
-         * additionalProperties (boolean form).
-         * If you need schema-valued additionalProperties, use [AdditionalPropertiesRef].
+         * Key-value pair for discriminator mappings (name -> $ref / schema id).
          */
-        @OptIn(ExperimentalSerializationApi::class)
-        @SerialInfo
-        @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
-        public annotation class AdditionalPropertiesAllowed
-
-        /** additionalProperties (class references) */
-        @OptIn(ExperimentalSerializationApi::class)
-        @SerialInfo
-        @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
-        public annotation class AdditionalPropertiesRef(val value: KClass<*>)
-
-        /** anyOf (refs) */
-        @OptIn(ExperimentalSerializationApi::class)
-        @SerialInfo
-        @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
-        public annotation class AnyOfRefs(vararg val value: String)
-
-        /** oneOf (refs) */
-        @OptIn(ExperimentalSerializationApi::class)
-        @SerialInfo
-        @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
-        public annotation class OneOf(vararg val value: KClass<*>)
-
-        /** not (ref) */
-        @OptIn(ExperimentalSerializationApi::class)
-        @SerialInfo
-        @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
-        public annotation class Not(val value: KClass<*>)
-
-        /** items (ref) */
-        @OptIn(ExperimentalSerializationApi::class)
-        @SerialInfo
-        @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
-        public annotation class ItemsRef(val value: KClass<*>)
-
-        /** discriminator mappings (OpenAPI-style) */
-        @OptIn(ExperimentalSerializationApi::class)
-        @SerialInfo
-        @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
-        public annotation class Discriminator(val property: String, vararg val mapping: Mapping) {
-            /**
-             * Key-value pair for discriminator mappings (name -> $ref / schema id).
-             */
-            public annotation class Mapping(
-                val key: String, // discriminator value
-                val ref: KClass<*>, // target schema $ref (or other identifier your generator understands)
-            )
-        }
+        public annotation class Mapping(
+            val key: String, // discriminator value
+            val ref: KClass<*>, // target schema $ref (or other identifier your generator understands)
+        )
     }
 }
+
+/**
+ * Adds support for polymorphism. The discriminator is the schema property name that is used to
+ * differentiate between other schema that inherit this schema. The property name used MUST be defined
+ * at this schema and it MUST be in the required property list. When used, the value MUST be the name of
+ * this schema or any schema that inherits it.
+ */
+@Serializable
+public data class JsonSchemaDiscriminator(
+    val propertyName: String,
+    val mapping: Map<String, String>? = null,
+)
