@@ -37,6 +37,8 @@ internal val LOGGER = KtorSimpleLogger("io.ktor.server.websocket.WebSockets")
  * @param maxFrameSize maximum frame that could be received or sent.
  * @param masking whether masking need to be enabled (useful for security).
  * @param extensionsConfig is configuration for WebSocket extensions.
+ * @param incomingFramesConfig configuration for the incoming [Frame] queue.
+ * @param outgoingFramesConfig configuration for the outgoing [Frame] queue.
  */
 public class WebSockets private constructor(
     public val pingIntervalMillis: Long,
@@ -44,7 +46,9 @@ public class WebSockets private constructor(
     public val maxFrameSize: Long,
     public val masking: Boolean,
     public val extensionsConfig: WebSocketExtensionsConfig,
-    public val contentConverter: WebsocketContentConverter?
+    public val contentConverter: WebsocketContentConverter?,
+    public val incomingFramesConfig: ChannelConfig<Frame>? = null,
+    public val outgoingFramesConfig: ChannelConfig<Frame>? = null
 ) : CoroutineScope {
     private val parent: CompletableJob = Job()
 
@@ -113,6 +117,20 @@ public class WebSockets private constructor(
         public var contentConverter: WebsocketContentConverter? = null
 
         /**
+         * Configuration for the incoming [Frame] queue.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.websocket.WebSockets.WebSocketOptions.incomingFramesConfig)
+         */
+        public var incomingFramesConfig: ChannelConfig<Frame>? = null
+
+        /**
+         * Configuration for the outgoing [Frame] queue.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.websocket.WebSockets.WebSocketOptions.outgoingFramesConfig)
+         */
+        public var outgoingFramesConfig: ChannelConfig<Frame>? = null
+
+        /**
          * Configure WebSocket extensions.
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.websocket.WebSockets.WebSocketOptions.extensions)
@@ -147,7 +165,9 @@ public class WebSockets private constructor(
                     maxFrameSize,
                     masking,
                     extensionsConfig,
-                    contentConverter
+                    contentConverter,
+                    incomingFramesConfig,
+                    outgoingFramesConfig
                 )
 
                 pipeline.monitor.subscribe(ApplicationStopPreparing) {

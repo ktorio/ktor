@@ -7,7 +7,6 @@ package io.ktor.websocket
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
@@ -36,18 +35,50 @@ public expect fun RawWebSocket(
     coroutineContext: CoroutineContext
 ): WebSocketSession
 
+/**
+ * Creates a RAW web socket session from connection.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.RawWebSocket)
+ *
+ * @param input is a [ByteReadChannel] of connection
+ * @param output is a [ByteWriteChannel] of connection
+ * @param maxFrameSize is an initial [maxFrameSize] value for [WebSocketSession]
+ * @param masking is an initial [masking] value for [WebSocketSession]
+ * @param coroutineContext is a [CoroutineContext] to execute reading/writing from/to connection
+ * @param incomingFramesChannelConfig is a [ChannelConfig] for the incoming [Frame] queue
+ * @param outgoingFramesChannelConfig is a [ChannelConfig] for the outgoing [Frame] queue
+ */
+@Suppress("FunctionName")
+public expect fun RawWebSocket(
+    input: ByteReadChannel,
+    output: ByteWriteChannel,
+    maxFrameSize: Long = Int.MAX_VALUE.toLong(),
+    masking: Boolean = false,
+    coroutineContext: CoroutineContext,
+    incomingFramesChannelConfig: ChannelConfig<Frame> = ChannelConfig.SMALL_BUFFER,
+    outgoingFramesChannelConfig: ChannelConfig<Frame> = ChannelConfig.SMALL_BUFFER,
+): WebSocketSession
+
 @OptIn(InternalAPI::class)
 internal class RawWebSocketCommon(
     private val input: ByteReadChannel,
     private val output: ByteWriteChannel,
     override var maxFrameSize: Long = Int.MAX_VALUE.toLong(),
     override var masking: Boolean = false,
-    coroutineContext: CoroutineContext
+    coroutineContext: CoroutineContext,
+    incomingFramesChannelConfig: ChannelConfig<Frame> = ChannelConfig.SMALL_BUFFER,
+    outgoingFramesChannelConfig: ChannelConfig<Frame> = ChannelConfig.SMALL_BUFFER,
 ) : WebSocketSession {
     private val socketJob: CompletableJob = Job(coroutineContext[Job])
 
-    private val _incoming = Channel<Frame>(capacity = 8)
-    private val _outgoing = Channel<Any>(capacity = 8)
+    private val _incoming = incomingFramesChannelConfig.toChannel<Frame>()
+    private val _outgoing = outgoingFramesChannelConfig.let { config ->
+        val onUndeliveredElement = config.onUndeliveredElement?.let { handler ->
+            { e: Any -> if (e is Frame) handler(e) }
+        }
+        Channel(config.capacity, config.onBufferOverflow, onUndeliveredElement)
+    }
 
     private var lastOpcode = 0
 
@@ -110,9 +141,9 @@ internal class RawWebSocketCommon(
             _incoming.close(cause)
         } catch (cause: CancellationException) {
             _incoming.cancel(cause)
-        } catch (eof: kotlinx.io.EOFException) {
+        } catch (_: EOFException) {
             // no more bytes is possible to read
-        } catch (eof: ClosedReceiveChannelException) {
+        } catch (_: ClosedReceiveChannelException) {
             // no more bytes is possible to read
         } catch (cause: Throwable) {
             _incoming.close(cause)
@@ -129,7 +160,7 @@ internal class RawWebSocketCommon(
     override suspend fun flush(): Unit = FlushRequest(coroutineContext[Job]).also {
         try {
             _outgoing.send(it)
-        } catch (closed: ClosedSendChannelException) {
+        } catch (_: ClosedSendChannelException) {
             it.complete()
             writerJob.join()
         } catch (sendFailure: Throwable) {

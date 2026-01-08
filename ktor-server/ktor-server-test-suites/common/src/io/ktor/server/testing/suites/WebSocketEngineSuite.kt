@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.testing.suites
@@ -33,11 +33,25 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
     private val errors = mutableListOf<Throwable>()
+    private var pluginConfiguration: (WebSockets.WebSocketOptions.() -> Unit) = {}
     override val timeout = 30.seconds
 
     override fun plugins(application: Application, routingConfig: Route.() -> Unit) {
-        application.install(WebSockets)
+        application.install(WebSockets, pluginConfiguration)
         super.plugins(application, routingConfig)
+    }
+
+    private suspend fun withPluginConfiguration(
+        configuration: WebSockets.WebSocketOptions.() -> Unit,
+        block: suspend () -> Unit
+    ) {
+        val previousConfiguration = pluginConfiguration
+        try {
+            pluginConfiguration = configuration
+            block()
+        } finally {
+            pluginConfiguration = previousConfiguration
+        }
     }
 
     @Test
@@ -264,7 +278,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                     val frame = incoming.receive()
                     assertIs<Frame.Text>(frame)
                     collected.send(frame.readText())
-                } catch (cancelled: CancellationException) {
+                } catch (_: CancellationException) {
                 } catch (t: Throwable) {
                     errors.add(t)
                 }
@@ -300,7 +314,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                 try {
                     incoming.consumeEach {
                     }
-                } catch (cancelled: CancellationException) {
+                } catch (_: CancellationException) {
                 } catch (t: Throwable) {
                     errors.add(t)
                 }
@@ -310,7 +324,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         useSocket {
             negotiateHttpWebSocket()
 
-            for (i in 1..5) {
+            repeat(5) {
                 val frame = input.readFrame(Long.MAX_VALUE, 0)
 
                 assertEquals(FrameType.PING, frame.frameType)
@@ -347,7 +361,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                             collected.send(frame.readText())
                         }
                     }
-                } catch (cancelled: CancellationException) {
+                } catch (_: CancellationException) {
                 } catch (t: Throwable) {
                     errors.add(t)
                     collected.send(t.toString())
@@ -398,7 +412,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                             collected.send(frame.readText())
                         }
                     }
-                } catch (cancelled: CancellationException) {
+                } catch (_: CancellationException) {
                 } catch (cause: Throwable) {
                     errors.add(cause)
                     collected.send(cause.toString())
@@ -526,7 +540,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                     }
 
                     assertEquals(expectedCount, counter - 1, "Not all frames received")
-                } catch (cancelled: CancellationException) {
+                } catch (_: CancellationException) {
                 } catch (t: Throwable) {
                     errors.add(t)
                 }
@@ -676,6 +690,83 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
     }
 
+    @Test
+    fun testIncomingFramesChannel() = runTest {
+        val undeliveredFrame = CompletableDeferred<Frame>()
+        val wsConfig: WebSockets.WebSocketOptions.() -> Unit = {
+            incomingFramesConfig = ChannelConfig(
+                capacity = 1,
+                onBufferOverflow = BufferOverflow.DROP_OLDEST,
+                onUndeliveredElement = { undeliveredFrame.complete(it) }
+            )
+        }
+
+        withPluginConfiguration(wsConfig) {
+            createAndStartServer {
+                webSocket("/") {
+                    // receive only the first message
+                    val frame = incoming.receive()
+                    assertIs<Frame.Text>(frame)
+                    assertEquals("message 0", frame.readText())
+                }
+            }
+
+            useSocket {
+                negotiateHttpWebSocket()
+
+                output.apply {
+                    repeat(5) {
+                        writeFrame(Frame.Text(true, "message $it".toByteArray()), false)
+                    }
+                    writeFrame(Frame.Close(), false)
+                    flush()
+                }
+                assertCloseFrame()
+            }
+
+            withTimeout(5.seconds) {
+                // multiple frames should arrive at the same time
+                // second frame (message 1) should be dropped as the oldest
+                val frame = undeliveredFrame.await() as Frame.Text
+                assertEquals("message 1", frame.readText())
+            }
+        }
+    }
+
+    @Test
+    fun testOutgoingFramesChannel() = runTest {
+        val undeliveredFrame = CompletableDeferred<Frame>()
+        val allFramesSent = CompletableDeferred<Unit>()
+
+        val wsConfig: WebSockets.WebSocketOptions.() -> Unit = {
+            outgoingFramesConfig = ChannelConfig(
+                capacity = 1,
+                onBufferOverflow = BufferOverflow.DROP_OLDEST,
+                onUndeliveredElement = { undeliveredFrame.complete(it) }
+            )
+        }
+
+        withPluginConfiguration(wsConfig) {
+            createAndStartServer {
+                webSocket("/") {
+                    repeat(10) { i ->
+                        // shouldn't suspend, so ought to create a backpressure
+                        outgoing.trySend(Frame.Text("message $i"))
+                    }
+                    allFramesSent.complete(Unit)
+                }
+            }
+
+            useSocket {
+                negotiateHttpWebSocket()
+                allFramesSent.await()
+            }
+
+            // we can't know which frame is dropped
+            withTimeout(5.seconds) { undeliveredFrame.await() }
+        }
+    }
+
     private suspend fun Connection.negotiateHttpWebSocket(
         additionalHeader: List<Pair<String, String>> = emptyList(),
     ) {
@@ -769,12 +860,12 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     }
 
     private suspend inline fun useSocket(block: Connection.() -> Unit) {
-        SelectorManager().use {
-            aSocket(it).tcp().connect("localhost", port) {
+        SelectorManager().use { selector ->
+            aSocket(selector).tcp().connect("localhost", port) {
                 noDelay = true
                 socketTimeout = 4.minutes.inWholeMilliseconds
-            }.use {
-                val connection = it.connection()
+            }.use { socket ->
+                val connection = socket.connection()
                 try {
                     block(connection)
                     // for native, output should be closed explicitly

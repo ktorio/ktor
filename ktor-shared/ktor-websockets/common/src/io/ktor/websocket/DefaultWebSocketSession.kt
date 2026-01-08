@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.websocket
@@ -53,7 +53,7 @@ public interface DefaultWebSocketSession : WebSocketSession {
 
     /**
      * A close reason for this session. It could be `null` if a session is terminated with no close reason
-     * (for example due to connection failure).
+     * (for example, due to connection failure).
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.DefaultWebSocketSession.closeReason)
      */
@@ -74,6 +74,10 @@ public interface DefaultWebSocketSession : WebSocketSession {
 /**
  * Creates [DefaultWebSocketSession] from a session.
  *
+ * @param session raw [WebSocketSession] to wrap.
+ * @param pingIntervalMillis interval between pings or [PINGER_DISABLED] to disable.
+ * @param timeoutMillis timeout for pings.
+ *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.DefaultWebSocketSession)
  */
 public fun DefaultWebSocketSession(
@@ -85,24 +89,56 @@ public fun DefaultWebSocketSession(
     return DefaultWebSocketSessionImpl(session, pingIntervalMillis, timeoutMillis)
 }
 
+/**
+ * Creates [DefaultWebSocketSession] from a session.
+ *
+ * @param session raw [WebSocketSession] to wrap.
+ * @param pingIntervalMillis interval between pings or [PINGER_DISABLED] to disable.
+ * @param timeoutMillis timeout for pings.
+ * @param incomingFramesConfig configuration for the incoming [Frame] queue.
+ * @param outgoingFramesConfig configuration for the outgoing [Frame] queue.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.DefaultWebSocketSession)
+ */
+public fun DefaultWebSocketSession(
+    session: WebSocketSession,
+    pingIntervalMillis: Long = PINGER_DISABLED,
+    timeoutMillis: Long = 15_000L,
+    incomingFramesConfig: ChannelConfig<Frame>?,
+    outgoingFramesConfig: ChannelConfig<Frame>?,
+): DefaultWebSocketSession {
+    require(session !is DefaultWebSocketSession) { "Cannot wrap other DefaultWebSocketSession" }
+    return DefaultWebSocketSessionImpl(
+        session,
+        pingIntervalMillis,
+        timeoutMillis,
+        incomingFramesConfig ?: ChannelConfig.SMALL_BUFFER,
+        outgoingFramesConfig ?: OUTGOING_CHANNEL_CONFIG ?: ChannelConfig.SMALL_BUFFER,
+    )
+}
+
 private val IncomingProcessorCoroutineName = CoroutineName("ws-incoming-processor")
 private val OutgoingProcessorCoroutineName = CoroutineName("ws-outgoing-processor")
 
 private val NORMAL_CLOSE = CloseReason(CloseReason.Codes.NORMAL, "OK")
 
+private val OUTGOING_CHANNEL_CONFIG = OUTGOING_CHANNEL_CAPACITY?.let { ChannelConfig.withCapacity(it) }
+
 /**
- * A default WebSocket session implementation that handles ping-pongs, close sequence and frame fragmentation.
+ * A default WebSocket session implementation that handles ping-pongs, close sequence, and frame fragmentation.
  */
 
 internal class DefaultWebSocketSessionImpl(
     private val raw: WebSocketSession,
     pingIntervalMillis: Long,
-    timeoutMillis: Long
+    timeoutMillis: Long,
+    incomingFramesConfig: ChannelConfig<Frame> = ChannelConfig.SMALL_BUFFER,
+    outgoingFramesConfig: ChannelConfig<Frame> = OUTGOING_CHANNEL_CONFIG ?: ChannelConfig.SMALL_BUFFER,
 ) : DefaultWebSocketSession, WebSocketSession {
     private val pinger = atomic<SendChannel<Frame.Pong>?>(null)
     private val closeReasonRef = CompletableDeferred<CloseReason>()
-    private val filtered = Channel<Frame>(8)
-    private val outgoingToBeProcessed = Channel<Frame>(OUTGOING_CHANNEL_CAPACITY)
+    private val filtered = incomingFramesConfig.toChannel<Frame>()
+    private val outgoingToBeProcessed = outgoingFramesConfig.toChannel<Frame>()
     private val closed: AtomicBoolean = atomic(false)
     private val context = Job(raw.coroutineContext[Job])
 
@@ -223,7 +259,7 @@ internal class DefaultWebSocketSessionImpl(
                                 frameBody = BytePacketBuilder()
                             }
 
-                            frameBody!!.writeFully(frame.data)
+                            frameBody.writeFully(frame.data)
                             return@consumeEach
                         }
 
@@ -235,11 +271,11 @@ internal class DefaultWebSocketSessionImpl(
                         frameBody!!.writeFully(frame.data)
                         val defragmented = Frame.byType(
                             fin = true,
-                            firstFrame!!.frameType,
-                            frameBody!!.build().readByteArray(),
-                            firstFrame!!.rsv1,
-                            firstFrame!!.rsv2,
-                            firstFrame!!.rsv3
+                            firstFrame.frameType,
+                            frameBody.build().readByteArray(),
+                            firstFrame.rsv1,
+                            firstFrame.rsv2,
+                            firstFrame.rsv3
                         )
 
                         firstFrame = null
@@ -247,7 +283,7 @@ internal class DefaultWebSocketSessionImpl(
                     }
                 }
             }
-        } catch (ignore: ClosedSendChannelException) {
+        } catch (_: ClosedSendChannelException) {
         } catch (cause: Throwable) {
             ponger.close()
             filtered.close(cause)
@@ -268,11 +304,11 @@ internal class DefaultWebSocketSessionImpl(
     ) {
         try {
             outgoingProcessorLoop()
-        } catch (ignore: ClosedSendChannelException) {
-        } catch (ignore: ClosedReceiveChannelException) {
-        } catch (ignore: CancellationException) {
+        } catch (_: ClosedSendChannelException) {
+        } catch (_: ClosedReceiveChannelException) {
+        } catch (_: CancellationException) {
             sendCloseSequence(CloseReason(CloseReason.Codes.NORMAL, ""))
-        } catch (ignore: ChannelIOException) {
+        } catch (_: ChannelIOException) {
         } catch (cause: Throwable) {
             outgoingToBeProcessed.cancel(CancellationException("Failed to send frame", cause))
             raw.closeExceptionally(cause)
@@ -397,4 +433,5 @@ public inline var DefaultWebSocketSession.timeout: Duration
         timeoutMillis = newDuration.inWholeMilliseconds
     }
 
-internal expect val OUTGOING_CHANNEL_CAPACITY: Int
+// TODO: drop in version 4, pass channel config only
+internal expect val OUTGOING_CHANNEL_CAPACITY: Int?

@@ -20,8 +20,19 @@ internal class OkHttpWebsocketSession(
     private val engine: OkHttpClient,
     private val webSocketFactory: WebSocket.Factory,
     engineRequest: Request,
-    override val coroutineContext: CoroutineContext
+    override val coroutineContext: CoroutineContext,
+    incomingFramesConfig: ChannelConfig<Frame> = ChannelConfig.NO_BUFFER,
+    outgoingFramesConfig: ChannelConfig<Frame> = ChannelConfig.NO_BUFFER
 ) : DefaultWebSocketSession, WebSocketListener() {
+    init {
+        require(outgoingFramesConfig.onBufferOverflow == BufferOverflow.SUSPEND) {
+            "OkHttp engine supports suspension only outgoing buffer overflow strategy."
+        }
+        require(outgoingFramesConfig.onUndeliveredElement == null) {
+            "OkHttp engine can't have undelivered frames."
+        }
+    }
+
     // Deferred reference to "this", completed only after the object successfully constructed.
     private val self = CompletableDeferred<OkHttpWebsocketSession>()
 
@@ -45,7 +56,7 @@ internal class OkHttpWebsocketSession(
         get() = Long.MAX_VALUE
         set(_) = throw WebSocketException("Max frame size switch is not supported in OkHttp engine.")
 
-    private val _incoming = Channel<Frame>()
+    private val _incoming = incomingFramesConfig.toChannel<Frame>()
     private val _closeReason = CompletableDeferred<CloseReason?>()
 
     override val incoming: ReceiveChannel<Frame>
@@ -60,7 +71,7 @@ internal class OkHttpWebsocketSession(
     }
 
     @OptIn(ObsoleteCoroutinesApi::class)
-    override val outgoing: SendChannel<Frame> = actor {
+    override val outgoing: SendChannel<Frame> = actor(capacity = outgoingFramesConfig.capacity) {
         val websocket: WebSocket = webSocketFactory.newWebSocket(engineRequest, self.await())
         var closeReason = DEFAULT_CLOSE_REASON_ERROR
 
@@ -76,6 +87,7 @@ internal class OkHttpWebsocketSession(
                         }
                         return@actor
                     }
+
                     else -> throw UnsupportedFrameTypeException(frame)
                 }
             }
@@ -98,13 +110,18 @@ internal class OkHttpWebsocketSession(
     }
 
     override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
-        super.onMessage(webSocket, bytes)
-        _incoming.trySendBlocking(Frame.Binary(true, bytes.toByteArray()))
+        launch(start = CoroutineStart.UNDISPATCHED) {
+            super.onMessage(webSocket, bytes)
+            _incoming.send(Frame.Binary(fin = true, data = bytes.toByteArray()))
+        }
     }
 
     override fun onMessage(webSocket: WebSocket, text: String) {
-        super.onMessage(webSocket, text)
-        _incoming.trySendBlocking(Frame.Text(true, text.toByteArray()))
+        // start immediately to keep the order
+        launch(start = CoroutineStart.UNDISPATCHED) {
+            super.onMessage(webSocket, text)
+            _incoming.send(Frame.Text(true, text.toByteArray()))
+        }
     }
 
     override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {

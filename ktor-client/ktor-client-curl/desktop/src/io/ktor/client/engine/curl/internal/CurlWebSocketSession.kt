@@ -16,12 +16,13 @@ import kotlin.coroutines.*
 @OptIn(ExperimentalForeignApi::class)
 internal class CurlWebSocketSession(
     private val websocket: CurlWebSocketResponseBody,
-    callContext: CoroutineContext
+    callContext: CoroutineContext,
+    outgoingFramesConfig: ChannelConfig<Frame> = ChannelConfig.UNLIMITED
 ) : WebSocketSession, Closeable {
 
     private val closed = atomic(false)
     private val socketJob = Job(callContext[Job])
-    private val _outgoing = Channel<Frame>(Channel.UNLIMITED)
+    private val _outgoing = outgoingFramesConfig.toChannel<Frame>()
 
     override val coroutineContext: CoroutineContext = callContext + socketJob + CoroutineName("curl-ws")
     override var masking: Boolean
@@ -77,10 +78,6 @@ internal class CurlWebSocketSession(
 
             FrameType.PONG -> {
                 websocket.sendFrame(CURLWS_PONG or flags, frame.data)
-            }
-
-            else -> {
-                throw IllegalArgumentException("Unknown frame type: $frame")
             }
         }
     }

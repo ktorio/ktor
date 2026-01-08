@@ -1,14 +1,17 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.winhttp.internal
 
 import io.ktor.client.engine.winhttp.*
+import io.ktor.client.plugins.websocket.WEBSOCKETS_KEY
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.utils.io.InternalAPI
 import io.ktor.utils.io.core.*
+import io.ktor.websocket.ChannelConfig
 import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.*
 import platform.windows.DWORDVar
@@ -35,6 +38,8 @@ internal class WinHttpRequest(
     private val requestClosed = atomic(false)
 
     private val connectReference: StableRef<WinHttpConnect>
+
+    private val attributes = data.attributes
 
     init {
         val hConnect = WinHttpConnect(hSession, data.url.host, data.url.port.convert(), 0.convert())
@@ -208,14 +213,20 @@ internal class WinHttpRequest(
      *
      * @param callContext is call context.
      */
+    @OptIn(InternalAPI::class)
     fun createWebSocket(callContext: CoroutineContext): WinHttpWebSocket {
         val statePtr = connectReference.asCPointer().rawValue.toLong()
         val hWebsocket = WinHttpWebSocketCompleteUpgrade(hRequest, statePtr.convert())
             ?: throw getWinHttpException("Unable to upgrade websocket")
+        val wsConfig = attributes[WEBSOCKETS_KEY]
 
-        return WinHttpWebSocket(hWebsocket, connect, callContext).also {
-            closeRequest()
-        }
+        return WinHttpWebSocket(
+            hWebsocket,
+            connect,
+            callContext,
+            wsConfig.incomingFramesConfig ?: ChannelConfig.UNLIMITED,
+            wsConfig.outgoingFramesConfig ?: ChannelConfig.UNLIMITED
+        ).also { closeRequest() }
     }
 
     /**

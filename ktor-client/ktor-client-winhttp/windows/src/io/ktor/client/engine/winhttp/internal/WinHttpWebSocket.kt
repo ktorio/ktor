@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.winhttp.internal
@@ -10,7 +10,6 @@ import io.ktor.websocket.*
 import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.*
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.launch
@@ -32,14 +31,16 @@ private object WinHttpWebSocketBuffer {
 internal class WinHttpWebSocket(
     private val hWebSocket: COpaquePointer,
     private val connect: WinHttpConnect,
-    callContext: CoroutineContext
+    callContext: CoroutineContext,
+    incomingFramesConfig: ChannelConfig<Frame>,
+    outgoingFramesConfig: ChannelConfig<Frame>,
 ) : WebSocketSession, Closeable {
 
     private val closed = atomic(false)
     private val socketJob = Job(callContext[Job])
 
-    private val _incoming = Channel<Frame>(Channel.UNLIMITED)
-    private val _outgoing = Channel<Frame>(Channel.UNLIMITED)
+    private val _incoming = incomingFramesConfig.toChannel<Frame>()
+    private val _outgoing = outgoingFramesConfig.toChannel<Frame>()
 
     override val coroutineContext: CoroutineContext = callContext + socketJob
     override var masking: Boolean

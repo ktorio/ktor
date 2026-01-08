@@ -14,7 +14,6 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.UnsafeNumber
 import kotlinx.cinterop.convert
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.consumeEach
@@ -29,13 +28,15 @@ import kotlin.coroutines.resumeWithException
 internal class DarwinWebsocketSession(
     callContext: CoroutineContext,
     private val task: NSURLSessionWebSocketTask,
+    incomingFramesConfig: ChannelConfig<Frame> = ChannelConfig.UNLIMITED,
+    outgoingFramesConfig: ChannelConfig<Frame> = ChannelConfig.UNLIMITED
 ) : WebSocketSession {
 
     private val requestTime: GMTDate = GMTDate()
     val response = CompletableDeferred<HttpResponseData>()
 
-    private val _incoming = Channel<Frame>(Channel.UNLIMITED)
-    private val _outgoing = Channel<Frame>(Channel.UNLIMITED)
+    private val _incoming = incomingFramesConfig.toChannel<Frame>()
+    private val _outgoing = outgoingFramesConfig.toChannel<Frame>()
     private val socketJob = Job(callContext[Job])
     override val coroutineContext: CoroutineContext = callContext + socketJob
 
@@ -239,4 +240,5 @@ private suspend fun NSURLSessionWebSocketTask.receiveMessage(): NSURLSessionWebS
     }
 
 @OptIn(UnsafeNumber::class)
+@Suppress("REDUNDANT_CALL_OF_CONVERSION_METHOD")
 internal fun NSURLSessionTask.getStatusCode() = (response() as NSHTTPURLResponse?)?.statusCode?.toInt()

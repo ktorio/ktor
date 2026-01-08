@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.js
@@ -16,6 +16,7 @@ import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
+import io.ktor.websocket.ChannelConfig
 import kotlinx.coroutines.*
 import org.w3c.dom.WebSocket
 import org.w3c.dom.events.Event
@@ -67,7 +68,7 @@ internal class JsClientEngine(
         )
     }
 
-    // Adding "_capturingHack" to reduce chances of JS IR backend to rename variable,
+    // Adding "_capturingHack" to reduce the chances of JS IR backend to rename variable,
     // so it can be accessed inside js("") function
     @Suppress("UNUSED_PARAMETER", "UnsafeCastFromDynamic", "UNUSED_VARIABLE", "LocalVariableName")
     private suspend fun createWebSocket(
@@ -92,6 +93,7 @@ internal class JsClientEngine(
         }
     }
 
+    @OptIn(InternalAPI::class)
     private suspend fun executeWebSocketRequest(
         request: HttpRequestData,
         callContext: CoroutineContext
@@ -99,8 +101,14 @@ internal class JsClientEngine(
         val requestTime = GMTDate()
 
         val urlString = request.url.toString()
+        val wsConfig = request.attributes[WEBSOCKETS_KEY]
         val socket: WebSocket = createWebSocket(urlString, request.headers)
-        val session = JsWebSocketSession(callContext, socket)
+        val session = JsWebSocketSession(
+            coroutineContext = callContext,
+            websocket = socket,
+            incomingFramesConfig = wsConfig.incomingFramesConfig ?: ChannelConfig.UNLIMITED,
+            outgoingFramesConfig = wsConfig.outgoingFramesConfig ?: ChannelConfig.UNLIMITED
+        )
 
         try {
             socket.awaitConnection()
