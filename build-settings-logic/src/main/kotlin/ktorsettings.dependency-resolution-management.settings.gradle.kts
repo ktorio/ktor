@@ -26,7 +26,7 @@ dependencyResolutionManagement {
         }
 
         create("kotlinWrappers") {
-            from("org.jetbrains.kotlin-wrappers:kotlin-wrappers-catalog:2025.10.8")
+            from("org.jetbrains.kotlin-wrappers:kotlin-wrappers-catalog:2025.12.12")
         }
     }
 }
