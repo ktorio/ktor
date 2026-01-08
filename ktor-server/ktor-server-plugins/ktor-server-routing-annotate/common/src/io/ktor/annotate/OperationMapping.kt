@@ -6,7 +6,6 @@ package io.ktor.annotate
 
 import io.ktor.http.*
 import io.ktor.openapi.*
-import io.ktor.openapi.JsonSchema.JsonType
 
 private val StringReference: ReferenceOr<JsonSchema> = ReferenceOr.Value(JsonSchema(type = JsonType.STRING))
 

@@ -1,0 +1,17 @@
+type: object
+title: io.ktor.openapi.ContainerTestData
+required:
+  - tags
+  - metadata
+properties:
+  tags:
+    type: array
+    items:
+      type: string
+    minItems: 1
+    uniqueItems: true
+  metadata:
+    type: object
+    additionalProperties:
+      type: string
+    maxProperties: 5

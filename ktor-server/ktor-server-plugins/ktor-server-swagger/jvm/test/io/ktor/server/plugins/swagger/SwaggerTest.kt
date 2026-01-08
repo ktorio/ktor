@@ -10,6 +10,8 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.openapi.OpenApiInfo
+import io.ktor.openapi.ReflectionJsonSchemaInference
+import io.ktor.openapi.jsonSchema
 import io.ktor.server.response.respond
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
@@ -225,11 +227,21 @@ class SwaggerTest {
                         call.respond(listOf(sampleBook))
                     }.annotate {
                         summary = descriptions[0]
+                        responses {
+                            HttpStatusCode.OK {
+                                schema = jsonSchema<List<Book>>()
+                            }
+                        }
                     }
                     get("/{id}") {
                         call.respond(sampleBook)
                     }.annotate {
                         summary = descriptions[1]
+                        responses {
+                            HttpStatusCode.OK {
+                                schema = jsonSchema<Book>()
+                            }
+                        }
                     }
                     post {
                         call.respond(HttpStatusCode.Created)
@@ -246,9 +258,11 @@ class SwaggerTest {
 
             swaggerUI("/swagger") {
                 info = OpenApiInfo("Books API from routes", "1.0.0")
-                source = OpenApiDocSource.RoutingSource(ContentType.Application.Yaml) {
-                    apiRoute.descendants()
-                }
+                source = OpenApiDocSource.RoutingSource(
+                    contentType = ContentType.Application.Yaml,
+                    schemaInference = ReflectionJsonSchemaInference.Default,
+                    routes = { apiRoute.descendants() },
+                )
             }
         }
 
@@ -256,6 +270,14 @@ class SwaggerTest {
             assertEquals(HttpStatusCode.OK, response.status)
             val responseText = response.bodyAsText()
             assertContains(responseText, "Books API from routes")
+            assertContains(
+                responseText,
+                """
+              required:
+              - author
+              - title
+                """.trimIndent().prependIndent("      ")
+            )
             for (description in descriptions) {
                 assertContains(responseText, description, message = "Response should contain '$description'")
             }

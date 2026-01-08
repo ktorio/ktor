@@ -1,0 +1,45 @@
+type: object
+title: io.ktor.openapi.Address
+required:
+  - houseNumber
+  - street
+  - municipality
+  - postalCode
+properties:
+  houseNumber:
+    type: integer
+    minimum: 1.0
+  apartment:
+    type: string
+    nullable: true
+    maxLength: 4
+    minLength: 1
+  street:
+    type: string
+  municipality:
+    type: object
+    title: io.ktor.openapi.Municipality
+    required:
+      - city
+      - country
+    properties:
+      city:
+        type: string
+      province:
+        type: string
+        nullable: true
+      country:
+        type: object
+        title: io.ktor.openapi.Country
+        required:
+          - name
+          - code
+        properties:
+          name:
+            type: string
+            pattern: '[A-Za-z''-,]+'
+          code:
+            type: string
+            pattern: '[A-Z]{3}'
+  postalCode:
+    type: string
