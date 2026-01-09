@@ -35,7 +35,7 @@ okio = "3.16.4"
 
 json-simple = "1.1.1"
 gson = "2.13.2"
-jackson = "2.20.0"
+jackson = "2.20.1"
 jackson-annotations = "2.20"
 
 junit = "5.14.2"
