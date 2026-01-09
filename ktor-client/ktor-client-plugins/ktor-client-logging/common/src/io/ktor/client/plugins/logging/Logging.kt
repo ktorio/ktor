@@ -179,18 +179,10 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         }
 
         if (!isBinary) {
-            val channel = ByteChannel()
-
-            client.launch {
-                try {
-                    channel.writeFully(firstChunk, 0, firstReadSize)
-                    body.copyTo(channel)
-                } catch (cause: Throwable) {
-                    channel.close(cause)
-                } finally {
-                    channel.flushAndClose()
-                }
-            }
+            val channel = client.writer {
+                channel.writeFully(firstChunk, 0, firstReadSize)
+                body.copyTo(channel)
+            }.channel
 
             return Triple(isBinary, null, channel)
         }
@@ -216,9 +208,10 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
                 Charsets.UTF_8
             }
 
-            val text = newBody.readRemaining().readText(charset = charset)
-            logLines.add(text)
-            logLines.add("--> END ${method.value} (${size ?: text.length}-byte body)")
+            val buffer = newBody.readBuffer()
+            var byteSize = buffer.size
+            logLines.add(buffer.readText(charset = charset))
+            logLines.add("--> END ${method.value} (${size ?: byteSize}-byte body)")
         } else {
             var type = "binary"
             if (headers.contains(HttpHeaders.ContentEncoding)) {
@@ -413,9 +406,10 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
             } else {
                 Charsets.UTF_8
             }
-            val text = newBody.readRemaining().readText(charset = charset)
-            logLines.add(text)
-            logLines.add("<-- END HTTP (${duration}ms, ${size ?: text.length}-byte body)")
+            val buffer = newBody.readBuffer()
+            var byteSize = buffer.size
+            logLines.add(buffer.readText(charset = charset))
+            logLines.add("<-- END HTTP (${duration}ms, ${size ?: byteSize}-byte body)")
         } else {
             var type = "binary"
             if (response.headers.contains(HttpHeaders.ContentEncoding)) {
