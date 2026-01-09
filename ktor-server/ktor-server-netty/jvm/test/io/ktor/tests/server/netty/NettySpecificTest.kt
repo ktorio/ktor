@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.tests.server.netty
 
@@ -213,7 +213,7 @@ class NettySpecificTest {
                         val responseLines = mutableListOf<String>()
                         assertFalse(readChannel.isClosedForRead)
                         while (!readChannel.isClosedForRead) {
-                            val line = readChannel.readUTF8Line() ?: break
+                            val line = readChannel.readLine() ?: break
                             responseLines.add(line)
                         }
 

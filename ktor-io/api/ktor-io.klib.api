@@ -47,6 +47,17 @@ final enum class io.ktor.utils.io.core/ByteOrder : kotlin/Enum<io.ktor.utils.io.
     }
 }
 
+final enum class io.ktor.utils.io/LineEnding : kotlin/Enum<io.ktor.utils.io/LineEnding> { // io.ktor.utils.io/LineEnding|null[0]
+    enum entry Default // io.ktor.utils.io/LineEnding.Default|null[0]
+    enum entry Lenient // io.ktor.utils.io/LineEnding.Lenient|null[0]
+
+    final val entries // io.ktor.utils.io/LineEnding.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<io.ktor.utils.io/LineEnding> // io.ktor.utils.io/LineEnding.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): io.ktor.utils.io/LineEnding // io.ktor.utils.io/LineEnding.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<io.ktor.utils.io/LineEnding> // io.ktor.utils.io/LineEnding.values|values#static(){}[0]
+}
+
 abstract interface <#A: kotlin/Any> io.ktor.utils.io.pool/ObjectPool : kotlin/AutoCloseable { // io.ktor.utils.io.pool/ObjectPool|null[0]
     abstract val capacity // io.ktor.utils.io.pool/ObjectPool.capacity|{}capacity[0]
         abstract fun <get-capacity>(): kotlin/Int // io.ktor.utils.io.pool/ObjectPool.capacity.<get-capacity>|<get-capacity>(){}[0]
@@ -489,6 +500,10 @@ final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/readDouble
 final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/readFloat(): kotlin/Float // io.ktor.utils.io/readFloat|readFloat@io.ktor.utils.io.ByteReadChannel(){}[0]
 final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/readFully(kotlin/ByteArray, kotlin/Int = ..., kotlin/Int = ...) // io.ktor.utils.io/readFully|readFully@io.ktor.utils.io.ByteReadChannel(kotlin.ByteArray;kotlin.Int;kotlin.Int){}[0]
 final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/readInt(): kotlin/Int // io.ktor.utils.io/readInt|readInt@io.ktor.utils.io.ByteReadChannel(){}[0]
+final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/readLine(io.ktor.utils.io/LineEnding = ...): kotlin/String? // io.ktor.utils.io/readLine|readLine@io.ktor.utils.io.ByteReadChannel(io.ktor.utils.io.LineEnding){}[0]
+final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/readLineStrict(kotlin/Long = ..., io.ktor.utils.io/LineEnding = ...): kotlin/String? // io.ktor.utils.io/readLineStrict|readLineStrict@io.ktor.utils.io.ByteReadChannel(kotlin.Long;io.ktor.utils.io.LineEnding){}[0]
+final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/readLineStrictTo(kotlin.text/Appendable, kotlin/Long = ..., io.ktor.utils.io/LineEnding = ...): kotlin/Long // io.ktor.utils.io/readLineStrictTo|readLineStrictTo@io.ktor.utils.io.ByteReadChannel(kotlin.text.Appendable;kotlin.Long;io.ktor.utils.io.LineEnding){}[0]
+final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/readLineTo(kotlin.text/Appendable, io.ktor.utils.io/LineEnding = ...): kotlin/Long // io.ktor.utils.io/readLineTo|readLineTo@io.ktor.utils.io.ByteReadChannel(kotlin.text.Appendable;io.ktor.utils.io.LineEnding){}[0]
 final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/readLong(): kotlin/Long // io.ktor.utils.io/readLong|readLong@io.ktor.utils.io.ByteReadChannel(){}[0]
 final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/readPacket(kotlin/Int): kotlinx.io/Source // io.ktor.utils.io/readPacket|readPacket@io.ktor.utils.io.ByteReadChannel(kotlin.Int){}[0]
 final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/readRemaining(): kotlinx.io/Source // io.ktor.utils.io/readRemaining|readRemaining@io.ktor.utils.io.ByteReadChannel(){}[0]

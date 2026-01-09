@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.curl
@@ -35,7 +35,8 @@ internal class CurlClientEngine(
 
         return with(responseData) {
             val headerBytes = ByteReadChannel(headersBytes).apply {
-                readUTF8Line()
+                // Skip status line
+                readLineStrict()
             }
             val rawHeaders = parseHeaders(headerBytes)
             val headers = rawHeaders

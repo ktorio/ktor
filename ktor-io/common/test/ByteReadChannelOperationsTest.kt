@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 import io.ktor.utils.io.*
@@ -288,7 +288,7 @@ class ByteReadChannelOperationsTest {
         val input = "This is a test of the skipIfFound".toByteChannel()
         assertFalse(input.skipIfFound("Won't find this".encodeToByteString()))
         assertTrue(input.skipIfFound("This is a test of the ".encodeToByteString()))
-        assertEquals("skipIfFound", input.readUTF8Line())
+        assertEquals("skipIfFound", input.readLine())
     }
 
     // this test ensures we don't get stuck on awaitContent
