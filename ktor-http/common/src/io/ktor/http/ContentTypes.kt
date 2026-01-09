@@ -453,7 +453,7 @@ private val textSubTypes = setOf(
  */
 public fun ContentType.isTextType(): Boolean {
     if (contentType == "text") return true
-    if (contentType == "application" && contentSubtype in textSubTypes) return true
+    if (contentType == "application" && contentSubtype.lowercase() in textSubTypes) return true
 
     return false
 }
