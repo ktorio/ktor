@@ -47,7 +47,8 @@ public class FormDataContent(
  */
 
 public class MultiPartFormDataContent(
-    parts: List<PartData>,
+    @InternalAPI
+    public val parts: List<PartData>,
     public val boundary: String = generateBoundary(),
     override val contentType: ContentType = ContentType.MultiPart.FormData.withParameter("boundary", boundary)
 ) : OutgoingContent.WriteChannelContent() {
@@ -57,6 +58,7 @@ public class MultiPartFormDataContent(
     private val BODY_OVERHEAD_SIZE = LAST_BOUNDARY_BYTES.size
     private val PART_OVERHEAD_SIZE = RN_BYTES.size * 2 + BOUNDARY_BYTES.size
 
+    @OptIn(InternalAPI::class)
     private val rawParts: List<PreparedPart> = parts.map { part ->
         val headersBuilder = BytePacketBuilder()
         for ((key, values) in part.headers.entries()) {

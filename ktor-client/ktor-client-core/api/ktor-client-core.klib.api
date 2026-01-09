@@ -322,6 +322,25 @@ final class io.ktor.client.call/UnsupportedUpgradeProtocolException : kotlin/Ill
     constructor <init>(io.ktor.http/Url) // io.ktor.client.call/UnsupportedUpgradeProtocolException.<init>|<init>(io.ktor.http.Url){}[0]
 }
 
+final class io.ktor.client.content/ObservableContent : io.ktor.http.content/OutgoingContent.ReadChannelContent { // io.ktor.client.content/ObservableContent|null[0]
+    constructor <init>(io.ktor.http.content/OutgoingContent, kotlin.coroutines/CoroutineContext, io.ktor.client.content/ProgressListener) // io.ktor.client.content/ObservableContent.<init>|<init>(io.ktor.http.content.OutgoingContent;kotlin.coroutines.CoroutineContext;io.ktor.client.content.ProgressListener){}[0]
+
+    final val contentLength // io.ktor.client.content/ObservableContent.contentLength|{}contentLength[0]
+        final fun <get-contentLength>(): kotlin/Long? // io.ktor.client.content/ObservableContent.contentLength.<get-contentLength>|<get-contentLength>(){}[0]
+    final val contentType // io.ktor.client.content/ObservableContent.contentType|{}contentType[0]
+        final fun <get-contentType>(): io.ktor.http/ContentType? // io.ktor.client.content/ObservableContent.contentType.<get-contentType>|<get-contentType>(){}[0]
+    final val delegate // io.ktor.client.content/ObservableContent.delegate|{}delegate[0]
+        final fun <get-delegate>(): io.ktor.http.content/OutgoingContent // io.ktor.client.content/ObservableContent.delegate.<get-delegate>|<get-delegate>(){}[0]
+    final val headers // io.ktor.client.content/ObservableContent.headers|{}headers[0]
+        final fun <get-headers>(): io.ktor.http/Headers // io.ktor.client.content/ObservableContent.headers.<get-headers>|<get-headers>(){}[0]
+    final val status // io.ktor.client.content/ObservableContent.status|{}status[0]
+        final fun <get-status>(): io.ktor.http/HttpStatusCode? // io.ktor.client.content/ObservableContent.status.<get-status>|<get-status>(){}[0]
+
+    final fun <#A1: kotlin/Any> getProperty(io.ktor.util/AttributeKey<#A1>): #A1? // io.ktor.client.content/ObservableContent.getProperty|getProperty(io.ktor.util.AttributeKey<0:0>){0§<kotlin.Any>}[0]
+    final fun <#A1: kotlin/Any> setProperty(io.ktor.util/AttributeKey<#A1>, #A1?) // io.ktor.client.content/ObservableContent.setProperty|setProperty(io.ktor.util.AttributeKey<0:0>;0:0?){0§<kotlin.Any>}[0]
+    final fun readFrom(): io.ktor.utils.io/ByteReadChannel // io.ktor.client.content/ObservableContent.readFrom|readFrom(){}[0]
+}
+
 final class io.ktor.client.engine/ClientEngineClosedException : kotlin/IllegalStateException { // io.ktor.client.engine/ClientEngineClosedException|null[0]
     constructor <init>(kotlin/Throwable? = ...) // io.ktor.client.engine/ClientEngineClosedException.<init>|<init>(kotlin.Throwable?){}[0]
 
@@ -935,6 +954,8 @@ final class io.ktor.client.request.forms/MultiPartFormDataContent : io.ktor.http
         final fun <get-boundary>(): kotlin/String // io.ktor.client.request.forms/MultiPartFormDataContent.boundary.<get-boundary>|<get-boundary>(){}[0]
     final val contentType // io.ktor.client.request.forms/MultiPartFormDataContent.contentType|{}contentType[0]
         final fun <get-contentType>(): io.ktor.http/ContentType // io.ktor.client.request.forms/MultiPartFormDataContent.contentType.<get-contentType>|<get-contentType>(){}[0]
+    final val parts // io.ktor.client.request.forms/MultiPartFormDataContent.parts|{}parts[0]
+        final fun <get-parts>(): kotlin.collections/List<io.ktor.http.content/PartData> // io.ktor.client.request.forms/MultiPartFormDataContent.parts.<get-parts>|<get-parts>(){}[0]
 
     final var contentLength // io.ktor.client.request.forms/MultiPartFormDataContent.contentLength|{}contentLength[0]
         final fun <get-contentLength>(): kotlin/Long? // io.ktor.client.request.forms/MultiPartFormDataContent.contentLength.<get-contentLength>|<get-contentLength>(){}[0]

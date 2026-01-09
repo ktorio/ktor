@@ -291,6 +291,7 @@ public abstract interface class io/ktor/http/ContentTypeMatcher {
 
 public final class io/ktor/http/ContentTypesKt {
 	public static final fun charset (Lio/ktor/http/HeaderValueWithParameters;)Ljava/nio/charset/Charset;
+	public static final fun isTextType (Lio/ktor/http/ContentType;)Z
 	public static final fun withCharset (Lio/ktor/http/ContentType;Ljava/nio/charset/Charset;)Lio/ktor/http/ContentType;
 	public static final fun withCharsetIfNeeded (Lio/ktor/http/ContentType;Ljava/nio/charset/Charset;)Lio/ktor/http/ContentType;
 }

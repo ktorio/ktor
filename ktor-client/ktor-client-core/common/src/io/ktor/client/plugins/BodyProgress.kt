@@ -28,6 +28,7 @@ private val DownloadProgressListenerAttributeKey =
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.BodyProgress)
  */
+@OptIn(InternalAPI::class)
 public val BodyProgress: ClientPlugin<Unit> = createClientPlugin("BodyProgress") {
 
     on(AfterRenderHook) { request, content ->
