@@ -8,7 +8,12 @@ import io.ktor.client.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.HttpResponseValidator
 import io.ktor.client.plugins.compression.ContentEncoding
+import io.ktor.client.plugins.onUpload
 import io.ktor.client.request.*
+import io.ktor.client.request.forms.ChannelProvider
+import io.ktor.client.request.forms.InputProvider
+import io.ktor.client.request.forms.MultiPartFormDataContent
+import io.ktor.client.request.forms.formData
 import io.ktor.client.statement.bodyAsBytes
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
@@ -21,11 +26,13 @@ import io.ktor.http.contentType
 import io.ktor.util.GZipEncoder
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.ByteWriteChannel
+import io.ktor.utils.io.InternalAPI
 import io.ktor.utils.io.readText
 import io.ktor.utils.io.writeFully
 import io.ktor.utils.io.writeStringUtf8
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.test.runTest
+import kotlinx.io.Buffer
 import kotlinx.io.readByteArray
 import org.junit.jupiter.api.BeforeEach
 import java.net.UnknownHostException
@@ -41,7 +48,7 @@ class OkHttpFormatTest {
         private val loggedLines = mutableListOf<String>()
         private var currentLine = 0
         override fun log(message: String) {
-            loggedLines.addAll(message.split('\n'))
+            loggedLines.addAll(message.lines())
         }
 
         fun assertLogEqual(msg: String): LogRecorder {
@@ -257,7 +264,7 @@ class OkHttpFormatTest {
     fun basicGetWithResponseContentLength() = testWithLevel(LogLevel.INFO, handle = {
         respond("", headers = Headers.build { append(HttpHeaders.ContentLength, "10") })
     }) { client ->
-        client.prepareGet("/").execute { response ->
+        client.prepareGet("/").execute {
             log.assertLogEqual("--> GET /")
                 .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 10-byte body\)"""))
                 .assertNoMoreLogs()
@@ -275,7 +282,7 @@ class OkHttpFormatTest {
             }
         )
     }) { client ->
-        client.prepareGet("/").execute { response ->
+        client.prepareGet("/").execute {
             log.assertLogEqual("--> GET /")
                 .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 29-byte body\)"""))
                 .assertNoMoreLogs()
@@ -484,7 +491,12 @@ class OkHttpFormatTest {
             engine {
                 addHandler {
                     val channel = GZipEncoder.encode(ByteReadChannel("a".repeat(1024)))
-                    respond(channel, headers = Headers.build { append(HttpHeaders.ContentEncoding, "gzip") })
+                    respond(
+                        channel,
+                        headers = Headers.build {
+                            append(HttpHeaders.ContentEncoding, "gzip")
+                        }
+                    )
                 }
             }
         }.use { client ->
@@ -1204,6 +1216,111 @@ class OkHttpFormatTest {
             .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 0")
             .assertLogEqual("<-- END HTTP")
+            .assertNoMoreLogs()
+    }
+
+    @Test
+    fun bigTextPayloadsWithoutContentType() = testWithLevel(LogLevel.BODY, handle = {
+        respond(
+            "a".repeat(16 * 1024 * 1024).toByteArray(),
+            headers = Headers.build {
+                append("Content-Length", (16 * 1024 * 1024).toString(10))
+            }
+        )
+    }) { client ->
+        client.post("/") {
+            setBody(object : OutgoingContent.ByteArrayContent() {
+                override fun bytes(): ByteArray = "b".repeat(8 * 1024 * 1024).toByteArray()
+            })
+            headers.append("Content-Length", (8 * 1024 * 1024).toString(10))
+        }
+
+        log.assertLogEqual("--> POST /")
+            .assertLogEqual("Content-Length: 8388608")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("")
+            .assertLogEqual("b".repeat(8 * 1024 * 1024))
+            .assertLogEqual("--> END POST (8388608-byte body)")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("Content-Length: 16777216")
+            .assertLogEqual("")
+            .assertLogEqual("a".repeat(16 * 1024 * 1024))
+            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 16777216-byte body\)"""))
+            .assertNoMoreLogs()
+    }
+
+    @OptIn(InternalAPI::class)
+    @Test
+    fun multipartBinaryBody() = testWithLevel(LogLevel.BODY, handle = {
+        respond(
+            "",
+            headers = Headers.build {
+                append("Content-Length", "0")
+            }
+        )
+    }) { client ->
+        val size = 10 * 1024 * 1024L
+        val data = Buffer().apply {
+            write(ByteArray(size.toInt()))
+        }
+        client.post("/") {
+            setBody(
+                MultiPartFormDataContent(
+                    formData {
+                        append("description", "simple description")
+                        append(
+                            "image",
+                            InputProvider(size) {
+                                data
+                            },
+                            Headers.build {
+                                append(HttpHeaders.ContentType, "image/png")
+                                append(HttpHeaders.ContentDisposition, "filename=\"sample_image.jpg\"")
+                            }
+                        )
+                        append("binary", "binary data".toByteArray())
+                        append("channel", ChannelProvider(1234) { ByteReadChannel("channel") })
+                    },
+                    "WebAppBoundary",
+                    ContentType.MultiPart.FormData.withParameter("boundary", "WebAppBoundary")
+                )
+            )
+            onUpload { _, _ -> }
+        }
+
+        log.assertLogEqual("--> POST /")
+            .assertLogEqual("Content-Type: multipart/form-data; boundary=WebAppBoundary")
+            .assertLogEqual("Content-Length: 10487458")
+            .assertLogEqual("Accept-Charset: UTF-8")
+            .assertLogEqual("Accept: */*")
+            .assertLogEqual("")
+            .assertLogEqual("--WebAppBoundary")
+            .assertLogEqual("Content-Disposition: form-data; name=description")
+            .assertLogEqual("Content-Length: 18")
+            .assertLogEqual("")
+            .assertLogEqual("simple description")
+            .assertLogEqual("--WebAppBoundary")
+            .assertLogEqual("Content-Disposition: form-data; name=image; filename=\"sample_image.jpg\"")
+            .assertLogEqual("Content-Type: image/png")
+            .assertLogEqual("Content-Length: $size")
+            .assertLogEqual("")
+            .assertLogEqual("binary $size-byte body omitted")
+            .assertLogEqual("--WebAppBoundary")
+            .assertLogEqual("Content-Disposition: form-data; name=binary")
+            .assertLogEqual("Content-Length: 11")
+            .assertLogEqual("")
+            .assertLogEqual("binary 11-byte body omitted")
+            .assertLogEqual("--WebAppBoundary")
+            .assertLogEqual("Content-Disposition: form-data; name=channel")
+            .assertLogEqual("Content-Length: 1234")
+            .assertLogEqual("")
+            .assertLogEqual("binary 1234-byte body omitted")
+            .assertLogEqual("--WebAppBoundary--")
+            .assertLogEqual("--> END POST")
+            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogEqual("Content-Length: 0")
+            .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
     }
 
