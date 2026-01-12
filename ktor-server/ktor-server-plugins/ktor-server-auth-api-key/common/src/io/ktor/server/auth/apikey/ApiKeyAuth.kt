@@ -15,6 +15,19 @@ import io.ktor.utils.io.InternalAPI
  * Installs an API Key authentication mechanism.
  *
  * @param name optional name for this authentication provider. If not specified, a default name will be used.
+ * @param configure configuration block for setting up the API Key authentication provider.
+ */
+public fun AuthenticationConfig.apiKey(
+    name: String? = null,
+    configure: ApiKeyAuthenticationProvider.Configuration.() -> Unit,
+) {
+    return apiKey(name, description = null, configure)
+}
+
+/**
+ * Installs an API Key authentication mechanism.
+ *
+ * @param name optional name for this authentication provider. If not specified, a default name will be used.
  * @param description optional description for this authentication provider.
  * @param configure configuration block for setting up the API Key authentication provider.
  */

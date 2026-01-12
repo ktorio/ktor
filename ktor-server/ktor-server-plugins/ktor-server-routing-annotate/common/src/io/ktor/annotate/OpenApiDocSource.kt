@@ -50,11 +50,15 @@ public sealed interface OpenApiDocSource {
 
             val baseDocWithComponents = if (securitySchemes != null) {
                 baseDoc.copy(
-                    components = baseDoc.components?.copy(
-                        securitySchemes = securitySchemes
-                    ) ?: Components(securitySchemes = securitySchemes)
+                    components = baseDoc.components?.let { components ->
+                        components.copy(
+                            securitySchemes = components.securitySchemes.orEmpty() + securitySchemes
+                        )
+                    } ?: Components(securitySchemes = securitySchemes)
                 )
-            } else baseDoc
+            } else {
+                baseDoc
+            }
 
             val doc = generateOpenApiDoc(
                 base = baseDocWithComponents,
@@ -89,6 +93,7 @@ public sealed interface OpenApiDocSource {
         val contentType: ContentType by lazy {
             ContentType.fromFilePath(path).firstOrNull() ?: ContentType.Application.Json
         }
+
         override fun toString(): String =
             "file: $path"
     }

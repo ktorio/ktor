@@ -30,4 +30,5 @@ final object io.ktor.server.auth.apikey/ApiKeyAuth { // io.ktor.server.auth.apik
         final fun <get-DEFAULT_HEADER_NAME>(): kotlin/String // io.ktor.server.auth.apikey/ApiKeyAuth.DEFAULT_HEADER_NAME.<get-DEFAULT_HEADER_NAME>|<get-DEFAULT_HEADER_NAME>(){}[0]
 }
 
+final fun (io.ktor.server.auth/AuthenticationConfig).io.ktor.server.auth.apikey/apiKey(kotlin/String? = ..., kotlin/Function1<io.ktor.server.auth.apikey/ApiKeyAuthenticationProvider.Configuration, kotlin/Unit>) // io.ktor.server.auth.apikey/apiKey|apiKey@io.ktor.server.auth.AuthenticationConfig(kotlin.String?;kotlin.Function1<io.ktor.server.auth.apikey.ApiKeyAuthenticationProvider.Configuration,kotlin.Unit>){}[0]
 final fun (io.ktor.server.auth/AuthenticationConfig).io.ktor.server.auth.apikey/apiKey(kotlin/String? = ..., kotlin/String? = ..., kotlin/Function1<io.ktor.server.auth.apikey/ApiKeyAuthenticationProvider.Configuration, kotlin/Unit>) // io.ktor.server.auth.apikey/apiKey|apiKey@io.ktor.server.auth.AuthenticationConfig(kotlin.String?;kotlin.String?;kotlin.Function1<io.ktor.server.auth.apikey.ApiKeyAuthenticationProvider.Configuration,kotlin.Unit>){}[0]

@@ -299,8 +299,6 @@ class RouteAnnotationApiTest {
         assertEquals(1, pathItems.size)
     }
 
-
-
     @Test
     fun automaticSecurityAnnotations() = testApplication {
         install(ContentNegotiation) {
@@ -536,7 +534,6 @@ class RouteAnnotationApiTest {
         assertEquals(setOf("profile", "email"), security[0]["oauth"]?.toSet())
     }
 
-
     @Test
     fun testDigestSecurityAnnotations() = testApplication {
         install(ContentNegotiation) {
@@ -603,7 +600,6 @@ class RouteAnnotationApiTest {
         assertEquals(emptyList(), security[0]["jwt-auth"])
     }
 
-
     private fun TestApplicationBuilder.openApiTestRoutes(authProvider: String) {
         routing {
             authenticate(authProvider) {
@@ -628,7 +624,6 @@ class RouteAnnotationApiTest {
             }
         }
     }
-
 }
 
 @Serializable

@@ -49,13 +49,13 @@ class JvmSecuritySchemeInferenceTest {
         val schemes = application.findSecuritySchemes()
         assertNotNull(schemes)
 
-        val scheme1 = schemes["digest-auth"] as HttpSecurityScheme
+        val scheme1 = schemes["digest-auth"]?.valueOrNull() as HttpSecurityScheme
         assertEquals(SecuritySchemeType.HTTP, scheme1.type)
         assertEquals("digest", scheme1.scheme)
         assertEquals("HTTP Digest Authentication", scheme1.description)
         assertNull(scheme1.bearerFormat)
 
-        val scheme2 = schemes["described-digest"] as HttpSecurityScheme
+        val scheme2 = schemes["described-digest"]?.valueOrNull() as HttpSecurityScheme
         assertEquals("Digest Authentication for Legacy Systems", scheme2.description)
     }
 
@@ -79,7 +79,7 @@ class JvmSecuritySchemeInferenceTest {
         val schemes = application.findSecuritySchemes()
         assertNotNull(schemes)
 
-        val scheme = schemes["jwt-auth"] as HttpSecurityScheme
+        val scheme = schemes["jwt-auth"]?.valueOrNull() as HttpSecurityScheme
         assertEquals(SecuritySchemeType.HTTP, scheme.type)
         assertEquals("bearer", scheme.scheme)
         assertEquals("JWT", scheme.bearerFormat)
@@ -98,7 +98,7 @@ class JvmSecuritySchemeInferenceTest {
         startApplication()
 
         val schemes = application.findSecuritySchemes()
-        val scheme = schemes?.get("jwt-custom-schemes") as HttpSecurityScheme
+        val scheme = schemes?.get("jwt-custom-schemes")?.valueOrNull() as HttpSecurityScheme
 
         // Inference always produces a standard-bearer scheme
         assertEquals("bearer", scheme.scheme)
@@ -114,13 +114,13 @@ class JvmSecuritySchemeInferenceTest {
         val schemes = application.findSecuritySchemes()
         assertNotNull(schemes)
 
-        val scheme1 = schemes["custom-digest"] as HttpSecurityScheme
+        val scheme1 = schemes["custom-digest"]?.valueOrNull() as HttpSecurityScheme
         assertEquals(SecuritySchemeType.HTTP, scheme1.type)
         assertEquals("digest", scheme1.scheme)
         assertEquals("HTTP Digest Authentication", scheme1.description)
         assertNull(scheme1.bearerFormat)
 
-        val scheme2 = schemes["digest-custom"] as HttpSecurityScheme
+        val scheme2 = schemes["digest-custom"]?.valueOrNull() as HttpSecurityScheme
 
         assertEquals("digest", scheme2.scheme)
         assertEquals("Custom Digest Auth", scheme2.description)
@@ -135,13 +135,13 @@ class JvmSecuritySchemeInferenceTest {
         val schemes = application.findSecuritySchemes()
         assertNotNull(schemes)
 
-        val scheme1 = schemes["custom-jwt"] as HttpSecurityScheme
+        val scheme1 = schemes["custom-jwt"]?.valueOrNull() as HttpSecurityScheme
         assertEquals(SecuritySchemeType.HTTP, scheme1.type)
         assertEquals("bearer", scheme1.scheme)
         assertEquals("JWT", scheme1.bearerFormat)
         assertEquals("JWT Bearer Authentication", scheme1.description)
 
-        val scheme2 = schemes["jwt-custom"] as HttpSecurityScheme
+        val scheme2 = schemes["jwt-custom"]?.valueOrNull() as HttpSecurityScheme
         assertEquals("Custom JWT Auth", scheme2.description)
     }
 }
