@@ -78,9 +78,11 @@ public fun generateOpenApiDoc(
         paths = base.paths + pathItems.mapValues {
             ReferenceOr.Value(it.value)
         },
-        components = Components(
+        components = base.components?.copy(
+            schemas = jsonSchema.takeIf { it.isNotEmpty() },
+        ) ?: Components(
             schemas = jsonSchema.takeIf { it.isNotEmpty() }
-        )
+        ),
     )
 }
 
@@ -175,7 +177,7 @@ private fun Route.operationFromSelector(): Operation? {
     }
 }
 
-private fun RoutingNode.operationFromAuthSelector(): Operation? {
+private fun Route.operationFromAuthSelector(): Operation? {
     val paramSelector = selector as? AuthenticationRouteSelector
         ?: return null
     val globalSchemes = application.findSecuritySchemes(useCache = true)
@@ -217,8 +219,8 @@ private fun RoutingNode.operationFromAuthSelector(): Operation? {
     }
 }
 
-private fun Map<String, SecurityScheme>?.scopesFor(name: String): List<String> {
-    val scheme = this?.get(name) ?: return emptyList()
+private fun Map<String, ReferenceOr<SecurityScheme>>?.scopesFor(name: String): List<String> {
+    val scheme = this?.get(name)?.valueOrNull() ?: return emptyList()
     return if (scheme is OAuth2SecurityScheme) {
         val (implicit, password, clientCredentials, authorizationCode) = scheme.flows
             ?: return emptyList()

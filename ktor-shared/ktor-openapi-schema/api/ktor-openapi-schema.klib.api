@@ -1127,6 +1127,94 @@ final class io.ktor.openapi/OAuthFlows : io.ktor.openapi/Extensible { // io.ktor
     }
 }
 
+final class io.ktor.openapi/OpenApiDoc : io.ktor.openapi/Extensible { // io.ktor.openapi/OpenApiDoc|null[0]
+    constructor <init>(kotlin/String = ..., io.ktor.openapi/OpenApiInfo, kotlin.collections/List<io.ktor.openapi/Server>? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/PathItem>> = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/PathItem>>? = ..., io.ktor.openapi/Components? = ..., kotlin.collections/List<kotlin.collections/Map<kotlin/String, kotlin.collections/List<kotlin/String>>>? = ..., kotlin.collections/List<io.ktor.openapi/Tag>? = ..., io.ktor.openapi/ExternalDocs? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/GenericElement>? = ...) // io.ktor.openapi/OpenApiDoc.<init>|<init>(kotlin.String;io.ktor.openapi.OpenApiInfo;kotlin.collections.List<io.ktor.openapi.Server>?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.ReferenceOr<io.ktor.openapi.PathItem>>;kotlin.collections.Map<kotlin.String,io.ktor.openapi.ReferenceOr<io.ktor.openapi.PathItem>>?;io.ktor.openapi.Components?;kotlin.collections.List<kotlin.collections.Map<kotlin.String,kotlin.collections.List<kotlin.String>>>?;kotlin.collections.List<io.ktor.openapi.Tag>?;io.ktor.openapi.ExternalDocs?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.GenericElement>?){}[0]
+
+    final val components // io.ktor.openapi/OpenApiDoc.components|{}components[0]
+        final fun <get-components>(): io.ktor.openapi/Components? // io.ktor.openapi/OpenApiDoc.components.<get-components>|<get-components>(){}[0]
+    final val extensions // io.ktor.openapi/OpenApiDoc.extensions|{}extensions[0]
+        final fun <get-extensions>(): kotlin.collections/Map<kotlin/String, io.ktor.openapi/GenericElement>? // io.ktor.openapi/OpenApiDoc.extensions.<get-extensions>|<get-extensions>(){}[0]
+    final val externalDocs // io.ktor.openapi/OpenApiDoc.externalDocs|{}externalDocs[0]
+        final fun <get-externalDocs>(): io.ktor.openapi/ExternalDocs? // io.ktor.openapi/OpenApiDoc.externalDocs.<get-externalDocs>|<get-externalDocs>(){}[0]
+    final val info // io.ktor.openapi/OpenApiDoc.info|{}info[0]
+        final fun <get-info>(): io.ktor.openapi/OpenApiInfo // io.ktor.openapi/OpenApiDoc.info.<get-info>|<get-info>(){}[0]
+    final val openapi // io.ktor.openapi/OpenApiDoc.openapi|{}openapi[0]
+        final fun <get-openapi>(): kotlin/String // io.ktor.openapi/OpenApiDoc.openapi.<get-openapi>|<get-openapi>(){}[0]
+    final val paths // io.ktor.openapi/OpenApiDoc.paths|{}paths[0]
+        final fun <get-paths>(): kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/PathItem>> // io.ktor.openapi/OpenApiDoc.paths.<get-paths>|<get-paths>(){}[0]
+    final val security // io.ktor.openapi/OpenApiDoc.security|{}security[0]
+        final fun <get-security>(): kotlin.collections/List<kotlin.collections/Map<kotlin/String, kotlin.collections/List<kotlin/String>>>? // io.ktor.openapi/OpenApiDoc.security.<get-security>|<get-security>(){}[0]
+    final val servers // io.ktor.openapi/OpenApiDoc.servers|{}servers[0]
+        final fun <get-servers>(): kotlin.collections/List<io.ktor.openapi/Server>? // io.ktor.openapi/OpenApiDoc.servers.<get-servers>|<get-servers>(){}[0]
+    final val tags // io.ktor.openapi/OpenApiDoc.tags|{}tags[0]
+        final fun <get-tags>(): kotlin.collections/List<io.ktor.openapi/Tag>? // io.ktor.openapi/OpenApiDoc.tags.<get-tags>|<get-tags>(){}[0]
+    final val webhooks // io.ktor.openapi/OpenApiDoc.webhooks|{}webhooks[0]
+        final fun <get-webhooks>(): kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/PathItem>>? // io.ktor.openapi/OpenApiDoc.webhooks.<get-webhooks>|<get-webhooks>(){}[0]
+
+    final fun component1(): kotlin/String // io.ktor.openapi/OpenApiDoc.component1|component1(){}[0]
+    final fun component10(): kotlin.collections/Map<kotlin/String, io.ktor.openapi/GenericElement>? // io.ktor.openapi/OpenApiDoc.component10|component10(){}[0]
+    final fun component2(): io.ktor.openapi/OpenApiInfo // io.ktor.openapi/OpenApiDoc.component2|component2(){}[0]
+    final fun component3(): kotlin.collections/List<io.ktor.openapi/Server>? // io.ktor.openapi/OpenApiDoc.component3|component3(){}[0]
+    final fun component4(): kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/PathItem>> // io.ktor.openapi/OpenApiDoc.component4|component4(){}[0]
+    final fun component5(): kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/PathItem>>? // io.ktor.openapi/OpenApiDoc.component5|component5(){}[0]
+    final fun component6(): io.ktor.openapi/Components? // io.ktor.openapi/OpenApiDoc.component6|component6(){}[0]
+    final fun component7(): kotlin.collections/List<kotlin.collections/Map<kotlin/String, kotlin.collections/List<kotlin/String>>>? // io.ktor.openapi/OpenApiDoc.component7|component7(){}[0]
+    final fun component8(): kotlin.collections/List<io.ktor.openapi/Tag>? // io.ktor.openapi/OpenApiDoc.component8|component8(){}[0]
+    final fun component9(): io.ktor.openapi/ExternalDocs? // io.ktor.openapi/OpenApiDoc.component9|component9(){}[0]
+    final fun copy(kotlin/String = ..., io.ktor.openapi/OpenApiInfo = ..., kotlin.collections/List<io.ktor.openapi/Server>? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/PathItem>> = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/PathItem>>? = ..., io.ktor.openapi/Components? = ..., kotlin.collections/List<kotlin.collections/Map<kotlin/String, kotlin.collections/List<kotlin/String>>>? = ..., kotlin.collections/List<io.ktor.openapi/Tag>? = ..., io.ktor.openapi/ExternalDocs? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/GenericElement>? = ...): io.ktor.openapi/OpenApiDoc // io.ktor.openapi/OpenApiDoc.copy|copy(kotlin.String;io.ktor.openapi.OpenApiInfo;kotlin.collections.List<io.ktor.openapi.Server>?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.ReferenceOr<io.ktor.openapi.PathItem>>;kotlin.collections.Map<kotlin.String,io.ktor.openapi.ReferenceOr<io.ktor.openapi.PathItem>>?;io.ktor.openapi.Components?;kotlin.collections.List<kotlin.collections.Map<kotlin.String,kotlin.collections.List<kotlin.String>>>?;kotlin.collections.List<io.ktor.openapi.Tag>?;io.ktor.openapi.ExternalDocs?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.GenericElement>?){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.openapi/OpenApiDoc.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.ktor.openapi/OpenApiDoc.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.ktor.openapi/OpenApiDoc.toString|toString(){}[0]
+
+    final class Builder : io.ktor.openapi/OpenApiDocDsl { // io.ktor.openapi/OpenApiDoc.Builder|null[0]
+        constructor <init>() // io.ktor.openapi/OpenApiDoc.Builder.<init>|<init>(){}[0]
+
+        final val extensions // io.ktor.openapi/OpenApiDoc.Builder.extensions|{}extensions[0]
+            final fun <get-extensions>(): kotlin.collections/MutableMap<kotlin/String, io.ktor.openapi/GenericElement> // io.ktor.openapi/OpenApiDoc.Builder.extensions.<get-extensions>|<get-extensions>(){}[0]
+        final val securityRequirements // io.ktor.openapi/OpenApiDoc.Builder.securityRequirements|{}securityRequirements[0]
+            final fun <get-securityRequirements>(): kotlin.collections/List<kotlin.collections/Map<kotlin/String, kotlin.collections/List<kotlin/String>>> // io.ktor.openapi/OpenApiDoc.Builder.securityRequirements.<get-securityRequirements>|<get-securityRequirements>(){}[0]
+        final val servers // io.ktor.openapi/OpenApiDoc.Builder.servers|{}servers[0]
+            final fun <get-servers>(): kotlin.collections/List<io.ktor.openapi/Server> // io.ktor.openapi/OpenApiDoc.Builder.servers.<get-servers>|<get-servers>(){}[0]
+        final val tags // io.ktor.openapi/OpenApiDoc.Builder.tags|{}tags[0]
+            final fun <get-tags>(): kotlin.collections/List<kotlin/String> // io.ktor.openapi/OpenApiDoc.Builder.tags.<get-tags>|<get-tags>(){}[0]
+
+        final var components // io.ktor.openapi/OpenApiDoc.Builder.components|{}components[0]
+            final fun <get-components>(): io.ktor.openapi/Components? // io.ktor.openapi/OpenApiDoc.Builder.components.<get-components>|<get-components>(){}[0]
+            final fun <set-components>(io.ktor.openapi/Components?) // io.ktor.openapi/OpenApiDoc.Builder.components.<set-components>|<set-components>(io.ktor.openapi.Components?){}[0]
+        final var externalDocs // io.ktor.openapi/OpenApiDoc.Builder.externalDocs|{}externalDocs[0]
+            final fun <get-externalDocs>(): io.ktor.openapi/ExternalDocs? // io.ktor.openapi/OpenApiDoc.Builder.externalDocs.<get-externalDocs>|<get-externalDocs>(){}[0]
+            final fun <set-externalDocs>(io.ktor.openapi/ExternalDocs?) // io.ktor.openapi/OpenApiDoc.Builder.externalDocs.<set-externalDocs>|<set-externalDocs>(io.ktor.openapi.ExternalDocs?){}[0]
+        final var info // io.ktor.openapi/OpenApiDoc.Builder.info|{}info[0]
+            final fun <get-info>(): io.ktor.openapi/OpenApiInfo // io.ktor.openapi/OpenApiDoc.Builder.info.<get-info>|<get-info>(){}[0]
+            final fun <set-info>(io.ktor.openapi/OpenApiInfo) // io.ktor.openapi/OpenApiDoc.Builder.info.<set-info>|<set-info>(io.ktor.openapi.OpenApiInfo){}[0]
+        final var openapiVersion // io.ktor.openapi/OpenApiDoc.Builder.openapiVersion|{}openapiVersion[0]
+            final fun <get-openapiVersion>(): kotlin/String // io.ktor.openapi/OpenApiDoc.Builder.openapiVersion.<get-openapiVersion>|<get-openapiVersion>(){}[0]
+            final fun <set-openapiVersion>(kotlin/String) // io.ktor.openapi/OpenApiDoc.Builder.openapiVersion.<set-openapiVersion>|<set-openapiVersion>(kotlin.String){}[0]
+
+        final fun build(): io.ktor.openapi/OpenApiDoc // io.ktor.openapi/OpenApiDoc.Builder.build|build(){}[0]
+        final fun security(kotlin/Function1<io.ktor.openapi/Security.Builder, kotlin/Unit>) // io.ktor.openapi/OpenApiDoc.Builder.security|security(kotlin.Function1<io.ktor.openapi.Security.Builder,kotlin.Unit>){}[0]
+        final fun servers(kotlin/Function1<io.ktor.openapi/Servers.Builder, kotlin/Unit>) // io.ktor.openapi/OpenApiDoc.Builder.servers|servers(kotlin.Function1<io.ktor.openapi.Servers.Builder,kotlin.Unit>){}[0]
+        final fun tag(kotlin/String) // io.ktor.openapi/OpenApiDoc.Builder.tag|tag(kotlin.String){}[0]
+        final inline fun <#A2: reified kotlin/Any> extension(kotlin/String, #A2) // io.ktor.openapi/OpenApiDoc.Builder.extension|extension(kotlin.String;0:0){0§<kotlin.Any>}[0]
+    }
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<io.ktor.openapi/OpenApiDoc> { // io.ktor.openapi/OpenApiDoc.$serializer|null[0]
+        final val descriptor // io.ktor.openapi/OpenApiDoc.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // io.ktor.openapi/OpenApiDoc.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // io.ktor.openapi/OpenApiDoc.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): io.ktor.openapi/OpenApiDoc // io.ktor.openapi/OpenApiDoc.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, io.ktor.openapi/OpenApiDoc) // io.ktor.openapi/OpenApiDoc.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;io.ktor.openapi.OpenApiDoc){}[0]
+    }
+
+    final object Companion { // io.ktor.openapi/OpenApiDoc.Companion|null[0]
+        final val $childSerializers // io.ktor.openapi/OpenApiDoc.Companion.$childSerializers|{}$childSerializers[0]
+
+        final fun build(kotlin/Function1<io.ktor.openapi/OpenApiDoc.Builder, kotlin/Unit>): io.ktor.openapi/OpenApiDoc // io.ktor.openapi/OpenApiDoc.Companion.build|build(kotlin.Function1<io.ktor.openapi.OpenApiDoc.Builder,kotlin.Unit>){}[0]
+        final fun serializer(): kotlinx.serialization/KSerializer<io.ktor.openapi/OpenApiDoc> // io.ktor.openapi/OpenApiDoc.Companion.serializer|serializer(){}[0]
+    }
+}
+
 final class io.ktor.openapi/OpenApiInfo : io.ktor.openapi/Extensible { // io.ktor.openapi/OpenApiInfo|null[0]
     constructor <init>(kotlin/String, kotlin/String, kotlin/String? = ..., kotlin/String? = ..., io.ktor.openapi/OpenApiInfo.Contact? = ..., io.ktor.openapi/OpenApiInfo.License? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/GenericElement>? = ...) // io.ktor.openapi/OpenApiInfo.<init>|<init>(kotlin.String;kotlin.String;kotlin.String?;kotlin.String?;io.ktor.openapi.OpenApiInfo.Contact?;io.ktor.openapi.OpenApiInfo.License?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.GenericElement>?){}[0]
 
@@ -1234,61 +1322,6 @@ final class io.ktor.openapi/OpenApiInfo : io.ktor.openapi/Extensible { // io.kto
         final val $childSerializers // io.ktor.openapi/OpenApiInfo.Companion.$childSerializers|{}$childSerializers[0]
 
         final fun serializer(): kotlinx.serialization/KSerializer<io.ktor.openapi/OpenApiInfo> // io.ktor.openapi/OpenApiInfo.Companion.serializer|serializer(){}[0]
-    }
-}
-
-final class io.ktor.openapi/OpenApiSpecification : io.ktor.openapi/Extensible { // io.ktor.openapi/OpenApiSpecification|null[0]
-    constructor <init>(kotlin/String = ..., io.ktor.openapi/OpenApiInfo, kotlin.collections/List<io.ktor.openapi/Server>? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/PathItem> = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/PathItem>>? = ..., io.ktor.openapi/Components? = ..., kotlin.collections/List<kotlin.collections/Map<kotlin/String, kotlin.collections/List<kotlin/String>>>? = ..., kotlin.collections/List<io.ktor.openapi/Tag>? = ..., io.ktor.openapi/ExternalDocs? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/GenericElement>? = ...) // io.ktor.openapi/OpenApiSpecification.<init>|<init>(kotlin.String;io.ktor.openapi.OpenApiInfo;kotlin.collections.List<io.ktor.openapi.Server>?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.PathItem>;kotlin.collections.Map<kotlin.String,io.ktor.openapi.ReferenceOr<io.ktor.openapi.PathItem>>?;io.ktor.openapi.Components?;kotlin.collections.List<kotlin.collections.Map<kotlin.String,kotlin.collections.List<kotlin.String>>>?;kotlin.collections.List<io.ktor.openapi.Tag>?;io.ktor.openapi.ExternalDocs?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.GenericElement>?){}[0]
-
-    final val components // io.ktor.openapi/OpenApiSpecification.components|{}components[0]
-        final fun <get-components>(): io.ktor.openapi/Components? // io.ktor.openapi/OpenApiSpecification.components.<get-components>|<get-components>(){}[0]
-    final val extensions // io.ktor.openapi/OpenApiSpecification.extensions|{}extensions[0]
-        final fun <get-extensions>(): kotlin.collections/Map<kotlin/String, io.ktor.openapi/GenericElement>? // io.ktor.openapi/OpenApiSpecification.extensions.<get-extensions>|<get-extensions>(){}[0]
-    final val externalDocs // io.ktor.openapi/OpenApiSpecification.externalDocs|{}externalDocs[0]
-        final fun <get-externalDocs>(): io.ktor.openapi/ExternalDocs? // io.ktor.openapi/OpenApiSpecification.externalDocs.<get-externalDocs>|<get-externalDocs>(){}[0]
-    final val info // io.ktor.openapi/OpenApiSpecification.info|{}info[0]
-        final fun <get-info>(): io.ktor.openapi/OpenApiInfo // io.ktor.openapi/OpenApiSpecification.info.<get-info>|<get-info>(){}[0]
-    final val openapi // io.ktor.openapi/OpenApiSpecification.openapi|{}openapi[0]
-        final fun <get-openapi>(): kotlin/String // io.ktor.openapi/OpenApiSpecification.openapi.<get-openapi>|<get-openapi>(){}[0]
-    final val paths // io.ktor.openapi/OpenApiSpecification.paths|{}paths[0]
-        final fun <get-paths>(): kotlin.collections/Map<kotlin/String, io.ktor.openapi/PathItem> // io.ktor.openapi/OpenApiSpecification.paths.<get-paths>|<get-paths>(){}[0]
-    final val security // io.ktor.openapi/OpenApiSpecification.security|{}security[0]
-        final fun <get-security>(): kotlin.collections/List<kotlin.collections/Map<kotlin/String, kotlin.collections/List<kotlin/String>>>? // io.ktor.openapi/OpenApiSpecification.security.<get-security>|<get-security>(){}[0]
-    final val servers // io.ktor.openapi/OpenApiSpecification.servers|{}servers[0]
-        final fun <get-servers>(): kotlin.collections/List<io.ktor.openapi/Server>? // io.ktor.openapi/OpenApiSpecification.servers.<get-servers>|<get-servers>(){}[0]
-    final val tags // io.ktor.openapi/OpenApiSpecification.tags|{}tags[0]
-        final fun <get-tags>(): kotlin.collections/List<io.ktor.openapi/Tag>? // io.ktor.openapi/OpenApiSpecification.tags.<get-tags>|<get-tags>(){}[0]
-    final val webhooks // io.ktor.openapi/OpenApiSpecification.webhooks|{}webhooks[0]
-        final fun <get-webhooks>(): kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/PathItem>>? // io.ktor.openapi/OpenApiSpecification.webhooks.<get-webhooks>|<get-webhooks>(){}[0]
-
-    final fun component1(): kotlin/String // io.ktor.openapi/OpenApiSpecification.component1|component1(){}[0]
-    final fun component10(): kotlin.collections/Map<kotlin/String, io.ktor.openapi/GenericElement>? // io.ktor.openapi/OpenApiSpecification.component10|component10(){}[0]
-    final fun component2(): io.ktor.openapi/OpenApiInfo // io.ktor.openapi/OpenApiSpecification.component2|component2(){}[0]
-    final fun component3(): kotlin.collections/List<io.ktor.openapi/Server>? // io.ktor.openapi/OpenApiSpecification.component3|component3(){}[0]
-    final fun component4(): kotlin.collections/Map<kotlin/String, io.ktor.openapi/PathItem> // io.ktor.openapi/OpenApiSpecification.component4|component4(){}[0]
-    final fun component5(): kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/PathItem>>? // io.ktor.openapi/OpenApiSpecification.component5|component5(){}[0]
-    final fun component6(): io.ktor.openapi/Components? // io.ktor.openapi/OpenApiSpecification.component6|component6(){}[0]
-    final fun component7(): kotlin.collections/List<kotlin.collections/Map<kotlin/String, kotlin.collections/List<kotlin/String>>>? // io.ktor.openapi/OpenApiSpecification.component7|component7(){}[0]
-    final fun component8(): kotlin.collections/List<io.ktor.openapi/Tag>? // io.ktor.openapi/OpenApiSpecification.component8|component8(){}[0]
-    final fun component9(): io.ktor.openapi/ExternalDocs? // io.ktor.openapi/OpenApiSpecification.component9|component9(){}[0]
-    final fun copy(kotlin/String = ..., io.ktor.openapi/OpenApiInfo = ..., kotlin.collections/List<io.ktor.openapi/Server>? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/PathItem> = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/PathItem>>? = ..., io.ktor.openapi/Components? = ..., kotlin.collections/List<kotlin.collections/Map<kotlin/String, kotlin.collections/List<kotlin/String>>>? = ..., kotlin.collections/List<io.ktor.openapi/Tag>? = ..., io.ktor.openapi/ExternalDocs? = ..., kotlin.collections/Map<kotlin/String, io.ktor.openapi/GenericElement>? = ...): io.ktor.openapi/OpenApiSpecification // io.ktor.openapi/OpenApiSpecification.copy|copy(kotlin.String;io.ktor.openapi.OpenApiInfo;kotlin.collections.List<io.ktor.openapi.Server>?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.PathItem>;kotlin.collections.Map<kotlin.String,io.ktor.openapi.ReferenceOr<io.ktor.openapi.PathItem>>?;io.ktor.openapi.Components?;kotlin.collections.List<kotlin.collections.Map<kotlin.String,kotlin.collections.List<kotlin.String>>>?;kotlin.collections.List<io.ktor.openapi.Tag>?;io.ktor.openapi.ExternalDocs?;kotlin.collections.Map<kotlin.String,io.ktor.openapi.GenericElement>?){}[0]
-    final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.openapi/OpenApiSpecification.equals|equals(kotlin.Any?){}[0]
-    final fun hashCode(): kotlin/Int // io.ktor.openapi/OpenApiSpecification.hashCode|hashCode(){}[0]
-    final fun toString(): kotlin/String // io.ktor.openapi/OpenApiSpecification.toString|toString(){}[0]
-
-    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<io.ktor.openapi/OpenApiSpecification> { // io.ktor.openapi/OpenApiSpecification.$serializer|null[0]
-        final val descriptor // io.ktor.openapi/OpenApiSpecification.$serializer.descriptor|{}descriptor[0]
-            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // io.ktor.openapi/OpenApiSpecification.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
-
-        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // io.ktor.openapi/OpenApiSpecification.$serializer.childSerializers|childSerializers(){}[0]
-        final fun deserialize(kotlinx.serialization.encoding/Decoder): io.ktor.openapi/OpenApiSpecification // io.ktor.openapi/OpenApiSpecification.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
-        final fun serialize(kotlinx.serialization.encoding/Encoder, io.ktor.openapi/OpenApiSpecification) // io.ktor.openapi/OpenApiSpecification.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;io.ktor.openapi.OpenApiSpecification){}[0]
-    }
-
-    final object Companion { // io.ktor.openapi/OpenApiSpecification.Companion|null[0]
-        final val $childSerializers // io.ktor.openapi/OpenApiSpecification.Companion.$childSerializers|{}$childSerializers[0]
-
-        final fun serializer(): kotlinx.serialization/KSerializer<io.ktor.openapi/OpenApiSpecification> // io.ktor.openapi/OpenApiSpecification.Companion.serializer|serializer(){}[0]
     }
 }
 

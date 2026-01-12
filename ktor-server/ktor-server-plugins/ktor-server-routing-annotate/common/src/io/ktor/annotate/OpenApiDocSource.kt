@@ -6,6 +6,7 @@ package io.ktor.annotate
 
 import io.ktor.http.ContentType
 import io.ktor.http.fromFilePath
+import io.ktor.openapi.Components
 import io.ktor.openapi.OpenApiDoc
 import io.ktor.server.application.Application
 import io.ktor.server.routing.Route
@@ -44,9 +45,20 @@ public sealed interface OpenApiDocSource {
             source: RoutingSource,
             baseDoc: OpenApiDoc,
         ): String {
+            val securitySchemes = findSecuritySchemes(useCache = true)
+                ?.takeIf { it.isNotEmpty() }
+
+            val baseDocWithComponents = if (securitySchemes != null) {
+                baseDoc.copy(
+                    components = baseDoc.components?.copy(
+                        securitySchemes = securitySchemes
+                    ) ?: Components(securitySchemes = securitySchemes)
+                )
+            } else baseDoc
+
             val doc = generateOpenApiDoc(
-                base = baseDoc,
-                routes = source.routes(this)
+                base = baseDocWithComponents,
+                routes = source.routes(this),
             )
             return when (source.contentType) {
                 ContentType.Application.Yaml -> serializeToYaml(doc)

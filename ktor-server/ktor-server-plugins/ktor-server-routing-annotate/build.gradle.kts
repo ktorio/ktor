@@ -12,8 +12,9 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(projects.ktorOpenapiSchema)
-            compileOnly(projects.ktorServerAuth)
-            compileOnly(projects.ktorServerAuthApiKey)
+
+            implementation(projects.ktorServerAuth)
+            implementation(projects.ktorServerAuthApiKey)
 
             implementation(libs.kotlinx.serialization.core)
             implementation(libs.kotlinx.serialization.json)

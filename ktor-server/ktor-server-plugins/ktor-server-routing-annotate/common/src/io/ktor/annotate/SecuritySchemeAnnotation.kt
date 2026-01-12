@@ -53,10 +53,11 @@ public fun Application.registerSecurityScheme(
  *
  * @return A map of provider names to their security schemes, or null if no schemes are available.
  */
-public fun Application.findSecuritySchemes(useCache: Boolean = true): Map<String, SecurityScheme>? {
+public fun Application.findSecuritySchemes(useCache: Boolean = true): Map<String, ReferenceOr<SecurityScheme>>? {
     val cachedSchemes = this.attributes.getOrNull(AuthSecuritySchemesCacheAttributeKey)
     if (useCache && cachedSchemes != null) {
         return cachedSchemes.takeIf { it.isNotEmpty() }
+            ?.mapValues { value(it.value) }
     }
     val manualSchemes = attributes.getOrNull(AuthSecuritySchemesAttributeKey)
     val inferredSchemes = inferSecuritySchemesFromAuthentication()
@@ -69,7 +70,7 @@ public fun Application.findSecuritySchemes(useCache: Boolean = true): Map<String
     if (useCache) {
         attributes[AuthSecuritySchemesCacheAttributeKey] = mergedSchemes ?: emptyMap()
     }
-    return mergedSchemes
+    return mergedSchemes?.mapValues { value(it.value) }
 }
 
 /**
@@ -85,7 +86,7 @@ public fun Application.findSecuritySchemesOrRefs(
     return findSecuritySchemes(useCache)?.let {
         buildMap {
             for ((providerName, securityScheme) in it) {
-                set(providerName, value(securityScheme))
+                set(providerName, securityScheme)
             }
         }
     }
