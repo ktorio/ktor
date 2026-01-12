@@ -109,7 +109,7 @@ public fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
         value = decodeCookieValue(first.value, encoding),
         encoding = encoding,
         maxAge = loweredMap["max-age"]?.toIntClamping(),
-        expires = loweredMap["expires"]?.fromCookieToGmtDate(),
+        expires = runCatching { loweredMap["expires"]?.fromCookieToGmtDate() }.getOrNull(),
         domain = loweredMap["domain"],
         path = loweredMap["path"],
         secure = "secure" in loweredMap,
