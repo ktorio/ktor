@@ -9,6 +9,9 @@ package io.ktor.annotate
 import io.ktor.http.*
 import io.ktor.openapi.*
 import io.ktor.openapi.ReferenceOr.Companion.value
+import io.ktor.server.auth.AuthenticateProvidersKey
+import io.ktor.server.auth.AuthenticationRouteSelector
+import io.ktor.server.auth.AuthenticationStrategy
 import io.ktor.server.http.content.DefaultContentTypesAttribute
 import io.ktor.server.routing.*
 import io.ktor.util.*
@@ -75,9 +78,11 @@ public fun generateOpenApiDoc(
         paths = base.paths + pathItems.mapValues {
             ReferenceOr.Value(it.value)
         },
-        components = Components(
+        components = base.components?.copy(
+            schemas = jsonSchema.takeIf { it.isNotEmpty() },
+        ) ?: Components(
             schemas = jsonSchema.takeIf { it.isNotEmpty() }
-        )
+        ),
     )
 }
 
@@ -168,8 +173,67 @@ private fun Route.operationFromSelector(): Operation? {
             }
         }
 
-        else -> null
+        else -> if (application.isAuthPluginInstalled) operationFromAuthSelector() else null
     }
+}
+
+private fun Route.operationFromAuthSelector(): Operation? {
+    val paramSelector = selector as? AuthenticationRouteSelector
+        ?: return null
+    val globalSchemes = application.findSecuritySchemes(useCache = true)
+    val registration = attributes.getOrNull(AuthenticateProvidersKey)
+    val strategy = registration?.strategy ?: AuthenticationStrategy.FirstSuccessful
+
+    return Operation.build {
+        security {
+            fun firstSuccessful() {
+                // At least one of the schemes must succeed (OR relationship)
+                for (providerName in paramSelector.names) {
+                    val schemeName = providerName ?: AuthenticationRouteSelector.DEFAULT_NAME
+                    requirement(schemeName, scopes = globalSchemes.scopesFor(schemeName))
+                }
+            }
+
+            when (strategy) {
+                AuthenticationStrategy.Optional -> {
+                    firstSuccessful()
+                    optional()
+                }
+
+                AuthenticationStrategy.FirstSuccessful -> {
+                    firstSuccessful()
+                }
+
+                AuthenticationStrategy.Required -> {
+                    // All schemes must be satisfied (AND relationship)
+                    val schemes = buildMap {
+                        for (providerName in paramSelector.names) {
+                            val schemeName = providerName ?: AuthenticationRouteSelector.DEFAULT_NAME
+                            set(schemeName, globalSchemes.scopesFor(schemeName))
+                        }
+                    }
+                    requirement(schemes)
+                }
+            }
+        }
+    }
+}
+
+private fun Map<String, ReferenceOr<SecurityScheme>>?.scopesFor(name: String): List<String> {
+    val scheme = this?.get(name)?.valueOrNull() ?: return emptyList()
+    return if (scheme is OAuth2SecurityScheme) {
+        val (implicit, password, clientCredentials, authorizationCode) = scheme.flows
+            ?: return emptyList()
+        when {
+            authorizationCode != null -> authorizationCode.scopes?.keys
+            clientCredentials != null -> clientCredentials.scopes?.keys
+            implicit != null -> implicit.scopes?.keys
+            password != null -> password.scopes?.keys
+            else -> null
+        }?.toList()
+    } else {
+        null
+    } ?: emptyList()
 }
 
 private fun newPathItem(method: HttpMethod, operation: Operation): PathItem? =
@@ -293,6 +357,3 @@ private fun <E, K> Iterable<E>.mergeElementsBy(
     groupBy(keySelector).map { (_, elements) ->
         elements.reduce(mergeElements)
     }
-
-private fun <K, V> Iterable<Map.Entry<K, V>>.toMap() =
-    associate { it.key to it.value }

@@ -9,9 +9,10 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
+import io.ktor.utils.io.InternalAPI
 
 /**
- * Installs API Key authentication mechanism.
+ * Installs an API Key authentication mechanism.
  *
  * @param name optional name for this authentication provider. If not specified, a default name will be used.
  * @param configure configuration block for setting up the API Key authentication provider.
@@ -20,7 +21,23 @@ public fun AuthenticationConfig.apiKey(
     name: String? = null,
     configure: ApiKeyAuthenticationProvider.Configuration.() -> Unit,
 ) {
-    val provider = ApiKeyAuthenticationProvider(ApiKeyAuthenticationProvider.Configuration(name).apply(configure))
+    return apiKey(name, description = null, configure)
+}
+
+/**
+ * Installs an API Key authentication mechanism.
+ *
+ * @param name optional name for this authentication provider. If not specified, a default name will be used.
+ * @param description optional description for this authentication provider.
+ * @param configure configuration block for setting up the API Key authentication provider.
+ */
+public fun AuthenticationConfig.apiKey(
+    name: String? = null,
+    description: String? = null,
+    configure: ApiKeyAuthenticationProvider.Configuration.() -> Unit,
+) {
+    val configuration = ApiKeyAuthenticationProvider.Configuration(name, description)
+    val provider = ApiKeyAuthenticationProvider(configuration.apply(configure))
     register(provider)
 }
 
@@ -50,13 +67,15 @@ public class ApiKeyAuthenticationProvider internal constructor(
     configuration: Configuration,
 ) : AuthenticationProvider(configuration) {
 
-    private val headerName: String = configuration.headerName
+    @InternalAPI
+    public val headerName: String = configuration.headerName
     private val authenticationFunction = requireNotNull(configuration.authenticationFunction) {
         "API Key authentication requires a validate() function to be configured"
     }
     private val challengeFunction = configuration.challengeFunction
     private val authScheme = configuration.authScheme
 
+    @OptIn(InternalAPI::class)
     override suspend fun onAuthenticate(context: AuthenticationContext) {
         val apiKey = context.call.request.header(headerName)
         val principal = apiKey?.let { authenticationFunction(context.call, it) }
@@ -82,8 +101,9 @@ public class ApiKeyAuthenticationProvider internal constructor(
      * Configuration for API Key authentication.
      *
      * @param name optional name for this authentication provider.
+     * @param description optional description for this authentication provider.
      */
-    public class Configuration internal constructor(name: String?) : Config(name) {
+    public class Configuration internal constructor(name: String?, description: String?) : Config(name, description) {
 
         internal var authenticationFunction: ApiKeyAuthenticationFunction? = null
 
