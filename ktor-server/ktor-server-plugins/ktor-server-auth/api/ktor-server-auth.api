@@ -107,9 +107,6 @@ public final class io/ktor/server/auth/AuthenticationRouteSelector : io/ktor/ser
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class io/ktor/server/auth/AuthenticationRouteSelector$Companion {
-}
-
 public final class io/ktor/server/auth/AuthenticationStrategy : java/lang/Enum {
 	public static final field FirstSuccessful Lio/ktor/server/auth/AuthenticationStrategy;
 	public static final field Optional Lio/ktor/server/auth/AuthenticationStrategy;

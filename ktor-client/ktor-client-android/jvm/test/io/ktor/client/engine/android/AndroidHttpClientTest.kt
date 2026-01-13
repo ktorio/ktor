@@ -19,5 +19,4 @@ class AndroidHttpClientTest : HttpClientTest(Android) {
         val segmentPoolSize = System.getProperty("kotlinx.io.pool.size.bytes")
         assertEquals("2097152", segmentPoolSize, "Default segment pool should be assigned")
     }
-
 }

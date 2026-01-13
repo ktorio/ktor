@@ -34,43 +34,6 @@ public final class io/ktor/openapi/AdditionalProperties$PSchema : io/ktor/openap
 	public final synthetic fun unbox-impl ()Lio/ktor/openapi/ReferenceOr;
 }
 
-public final class io/ktor/openapi/ApiKeySecurityScheme : io/ktor/openapi/Extensible, io/ktor/openapi/SecurityScheme {
-	public static final field Companion Lio/ktor/openapi/ApiKeySecurityScheme$Companion;
-	public static final field DEFAULT_DESCRIPTION Ljava/lang/String;
-	public fun <init> ()V
-	public fun <init> (Ljava/lang/String;Lio/ktor/openapi/SecuritySchemeIn;Ljava/lang/String;Ljava/util/Map;)V
-	public synthetic fun <init> (Ljava/lang/String;Lio/ktor/openapi/SecuritySchemeIn;Ljava/lang/String;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun component2 ()Lio/ktor/openapi/SecuritySchemeIn;
-	public final fun component3 ()Ljava/lang/String;
-	public final fun component4 ()Ljava/util/Map;
-	public final fun copy (Ljava/lang/String;Lio/ktor/openapi/SecuritySchemeIn;Ljava/lang/String;Ljava/util/Map;)Lio/ktor/openapi/ApiKeySecurityScheme;
-	public static synthetic fun copy$default (Lio/ktor/openapi/ApiKeySecurityScheme;Ljava/lang/String;Lio/ktor/openapi/SecuritySchemeIn;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Lio/ktor/openapi/ApiKeySecurityScheme;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun getDescription ()Ljava/lang/String;
-	public fun getExtensions ()Ljava/util/Map;
-	public final fun getIn ()Lio/ktor/openapi/SecuritySchemeIn;
-	public final fun getName ()Ljava/lang/String;
-	public fun getType ()Lio/ktor/openapi/SecuritySchemeType;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final synthetic class io/ktor/openapi/ApiKeySecurityScheme$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
-	public static final field INSTANCE Lio/ktor/openapi/ApiKeySecurityScheme$$serializer;
-	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/openapi/ApiKeySecurityScheme;
-	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/openapi/ApiKeySecurityScheme;)V
-	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
-}
-
-public final class io/ktor/openapi/ApiKeySecurityScheme$Companion {
-	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
 public final class io/ktor/openapi/Callback {
 	public static final field Companion Lio/ktor/openapi/Callback$Companion;
 	public static final synthetic fun box-impl (Ljava/util/Map;)Lio/ktor/openapi/Callback;
@@ -444,46 +407,6 @@ public final class io/ktor/openapi/Headers$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
-public final class io/ktor/openapi/HttpSecurityScheme : io/ktor/openapi/Extensible, io/ktor/openapi/SecurityScheme {
-	public static final field Companion Lio/ktor/openapi/HttpSecurityScheme$Companion;
-	public static final field DEFAULT_BASIC_DESCRIPTION Ljava/lang/String;
-	public static final field DEFAULT_BEARER_DESCRIPTION Ljava/lang/String;
-	public static final field DEFAULT_DIGEST_DESCRIPTION Ljava/lang/String;
-	public static final field DEFAULT_JWT_DESCRIPTION Ljava/lang/String;
-	public fun <init> ()V
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun component2 ()Ljava/lang/String;
-	public final fun component3 ()Ljava/lang/String;
-	public final fun component4 ()Ljava/util/Map;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Lio/ktor/openapi/HttpSecurityScheme;
-	public static synthetic fun copy$default (Lio/ktor/openapi/HttpSecurityScheme;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Lio/ktor/openapi/HttpSecurityScheme;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getBearerFormat ()Ljava/lang/String;
-	public fun getDescription ()Ljava/lang/String;
-	public fun getExtensions ()Ljava/util/Map;
-	public final fun getScheme ()Ljava/lang/String;
-	public fun getType ()Lio/ktor/openapi/SecuritySchemeType;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final synthetic class io/ktor/openapi/HttpSecurityScheme$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
-	public static final field INSTANCE Lio/ktor/openapi/HttpSecurityScheme$$serializer;
-	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/openapi/HttpSecurityScheme;
-	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/openapi/HttpSecurityScheme;)V
-	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
-}
-
-public final class io/ktor/openapi/HttpSecurityScheme$Companion {
-	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
 public final class io/ktor/openapi/JsonSchema {
 	public static final field Companion Lio/ktor/openapi/JsonSchema$Companion;
 	public fun <init> ()V
@@ -585,70 +508,8 @@ public final synthetic class io/ktor/openapi/JsonSchema$$serializer : kotlinx/se
 	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
 }
 
-public abstract interface annotation class io/ktor/openapi/JsonSchema$AdditionalPropertiesAllowed : java/lang/annotation/Annotation {
-}
-
-public final synthetic class io/ktor/openapi/JsonSchema$AdditionalPropertiesAllowed$Impl : io/ktor/openapi/JsonSchema$AdditionalPropertiesAllowed {
-	public fun <init> ()V
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchema$AdditionalPropertiesRef : java/lang/annotation/Annotation {
-	public abstract fun value ()Ljava/lang/Class;
-}
-
-public final synthetic class io/ktor/openapi/JsonSchema$AdditionalPropertiesRef$Impl : io/ktor/openapi/JsonSchema$AdditionalPropertiesRef {
-	public fun <init> (Lkotlin/reflect/KClass;)V
-	public final synthetic fun value ()Ljava/lang/Class;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchema$Anchor : java/lang/annotation/Annotation {
-	public abstract fun recursive ()Z
-	public abstract fun value ()Ljava/lang/String;
-}
-
-public final synthetic class io/ktor/openapi/JsonSchema$Anchor$Impl : io/ktor/openapi/JsonSchema$Anchor {
-	public fun <init> (Ljava/lang/String;Z)V
-	public synthetic fun <init> (Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final synthetic fun recursive ()Z
-	public final synthetic fun value ()Ljava/lang/String;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchema$AnyOfRefs : java/lang/annotation/Annotation {
-	public abstract fun value ()[Ljava/lang/String;
-}
-
-public final synthetic class io/ktor/openapi/JsonSchema$AnyOfRefs$Impl : io/ktor/openapi/JsonSchema$AnyOfRefs {
-	public fun <init> ([Ljava/lang/String;)V
-	public final synthetic fun value ()[Ljava/lang/String;
-}
-
 public final class io/ktor/openapi/JsonSchema$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchema$Default : java/lang/annotation/Annotation {
-	public abstract fun value ()Ljava/lang/String;
-}
-
-public final synthetic class io/ktor/openapi/JsonSchema$Default$Impl : io/ktor/openapi/JsonSchema$Default {
-	public fun <init> (Ljava/lang/String;)V
-	public final synthetic fun value ()Ljava/lang/String;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchema$DeprecatedSchema : java/lang/annotation/Annotation {
-}
-
-public final synthetic class io/ktor/openapi/JsonSchema$DeprecatedSchema$Impl : io/ktor/openapi/JsonSchema$DeprecatedSchema {
-	public fun <init> ()V
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchema$Description : java/lang/annotation/Annotation {
-	public abstract fun value ()Ljava/lang/String;
-}
-
-public final synthetic class io/ktor/openapi/JsonSchema$Description$Impl : io/ktor/openapi/JsonSchema$Description {
-	public fun <init> (Ljava/lang/String;)V
-	public final synthetic fun value ()Ljava/lang/String;
 }
 
 public final class io/ktor/openapi/JsonSchema$Discriminator {
@@ -681,69 +542,6 @@ public final class io/ktor/openapi/JsonSchema$Discriminator$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
-public final synthetic class io/ktor/openapi/JsonSchema$Discriminator$Impl : io/ktor/openapi/JsonSchema$Discriminator {
-	public fun <init> (Ljava/lang/String;[Lio/ktor/openapi/JsonSchema$Discriminator$Mapping;)V
-	public final synthetic fun mapping ()[Lio/ktor/openapi/JsonSchema$Discriminator$Mapping;
-	public final synthetic fun property ()Ljava/lang/String;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchema$Discriminator$Mapping : java/lang/annotation/Annotation {
-	public abstract fun key ()Ljava/lang/String;
-	public abstract fun ref ()Ljava/lang/Class;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchema$Enum : java/lang/annotation/Annotation {
-	public abstract fun value ()[Ljava/lang/String;
-}
-
-public final synthetic class io/ktor/openapi/JsonSchema$Enum$Impl : io/ktor/openapi/JsonSchema$Enum {
-	public fun <init> ([Ljava/lang/String;)V
-	public final synthetic fun value ()[Ljava/lang/String;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchema$Example : java/lang/annotation/Annotation {
-	public abstract fun value ()[Ljava/lang/String;
-}
-
-public final synthetic class io/ktor/openapi/JsonSchema$Example$Impl : io/ktor/openapi/JsonSchema$Example {
-	public fun <init> ([Ljava/lang/String;)V
-	public final synthetic fun value ()[Ljava/lang/String;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchema$Format : java/lang/annotation/Annotation {
-	public abstract fun value ()Ljava/lang/String;
-}
-
-public final synthetic class io/ktor/openapi/JsonSchema$Format$Impl : io/ktor/openapi/JsonSchema$Format {
-	public fun <init> (Ljava/lang/String;)V
-	public final synthetic fun value ()Ljava/lang/String;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchema$Id : java/lang/annotation/Annotation {
-	public abstract fun value ()Ljava/lang/String;
-}
-
-public final synthetic class io/ktor/openapi/JsonSchema$Id$Impl : io/ktor/openapi/JsonSchema$Id {
-	public fun <init> (Ljava/lang/String;)V
-	public final synthetic fun value ()Ljava/lang/String;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchema$Ignore : java/lang/annotation/Annotation {
-}
-
-public final synthetic class io/ktor/openapi/JsonSchema$Ignore$Impl : io/ktor/openapi/JsonSchema$Ignore {
-	public fun <init> ()V
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchema$ItemsRef : java/lang/annotation/Annotation {
-	public abstract fun value ()Ljava/lang/Class;
-}
-
-public final synthetic class io/ktor/openapi/JsonSchema$ItemsRef$Impl : io/ktor/openapi/JsonSchema$ItemsRef {
-	public fun <init> (Lkotlin/reflect/KClass;)V
-	public final synthetic fun value ()Ljava/lang/Class;
-}
-
 public final class io/ktor/openapi/JsonSchema$JsonType : java/lang/Enum, io/ktor/openapi/JsonSchema$SchemaType {
 	public static final field ARRAY Lio/ktor/openapi/JsonSchema$JsonType;
 	public static final field BOOLEAN Lio/ktor/openapi/JsonSchema$JsonType;
@@ -760,146 +558,6 @@ public final class io/ktor/openapi/JsonSchema$JsonType : java/lang/Enum, io/ktor
 
 public final class io/ktor/openapi/JsonSchema$JsonType$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchema$MaxItems : java/lang/annotation/Annotation {
-	public abstract fun value ()I
-}
-
-public final synthetic class io/ktor/openapi/JsonSchema$MaxItems$Impl : io/ktor/openapi/JsonSchema$MaxItems {
-	public fun <init> (I)V
-	public final synthetic fun value ()I
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchema$MaxLength : java/lang/annotation/Annotation {
-	public abstract fun value ()I
-}
-
-public final synthetic class io/ktor/openapi/JsonSchema$MaxLength$Impl : io/ktor/openapi/JsonSchema$MaxLength {
-	public fun <init> (I)V
-	public final synthetic fun value ()I
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchema$MaxProperties : java/lang/annotation/Annotation {
-	public abstract fun value ()I
-}
-
-public final synthetic class io/ktor/openapi/JsonSchema$MaxProperties$Impl : io/ktor/openapi/JsonSchema$MaxProperties {
-	public fun <init> (I)V
-	public final synthetic fun value ()I
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchema$Maximum : java/lang/annotation/Annotation {
-	public abstract fun exclusive ()Z
-	public abstract fun value ()D
-}
-
-public final synthetic class io/ktor/openapi/JsonSchema$Maximum$Impl : io/ktor/openapi/JsonSchema$Maximum {
-	public fun <init> (DZ)V
-	public synthetic fun <init> (DZILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final synthetic fun exclusive ()Z
-	public final synthetic fun value ()D
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchema$MinItems : java/lang/annotation/Annotation {
-	public abstract fun value ()I
-}
-
-public final synthetic class io/ktor/openapi/JsonSchema$MinItems$Impl : io/ktor/openapi/JsonSchema$MinItems {
-	public fun <init> (I)V
-	public final synthetic fun value ()I
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchema$MinLength : java/lang/annotation/Annotation {
-	public abstract fun value ()I
-}
-
-public final synthetic class io/ktor/openapi/JsonSchema$MinLength$Impl : io/ktor/openapi/JsonSchema$MinLength {
-	public fun <init> (I)V
-	public final synthetic fun value ()I
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchema$MinProperties : java/lang/annotation/Annotation {
-	public abstract fun value ()I
-}
-
-public final synthetic class io/ktor/openapi/JsonSchema$MinProperties$Impl : io/ktor/openapi/JsonSchema$MinProperties {
-	public fun <init> (I)V
-	public final synthetic fun value ()I
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchema$Minimum : java/lang/annotation/Annotation {
-	public abstract fun exclusive ()Z
-	public abstract fun value ()D
-}
-
-public final synthetic class io/ktor/openapi/JsonSchema$Minimum$Impl : io/ktor/openapi/JsonSchema$Minimum {
-	public fun <init> (DZ)V
-	public synthetic fun <init> (DZILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final synthetic fun exclusive ()Z
-	public final synthetic fun value ()D
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchema$MultipleOf : java/lang/annotation/Annotation {
-	public abstract fun value ()D
-}
-
-public final synthetic class io/ktor/openapi/JsonSchema$MultipleOf$Impl : io/ktor/openapi/JsonSchema$MultipleOf {
-	public fun <init> (D)V
-	public final synthetic fun value ()D
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchema$Not : java/lang/annotation/Annotation {
-	public abstract fun value ()Ljava/lang/Class;
-}
-
-public final synthetic class io/ktor/openapi/JsonSchema$Not$Impl : io/ktor/openapi/JsonSchema$Not {
-	public fun <init> (Lkotlin/reflect/KClass;)V
-	public final synthetic fun value ()Ljava/lang/Class;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchema$Nullable : java/lang/annotation/Annotation {
-	public abstract fun value ()Z
-}
-
-public final synthetic class io/ktor/openapi/JsonSchema$Nullable$Impl : io/ktor/openapi/JsonSchema$Nullable {
-	public fun <init> (Z)V
-	public synthetic fun <init> (ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final synthetic fun value ()Z
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchema$OneOf : java/lang/annotation/Annotation {
-	public abstract fun value ()[Ljava/lang/Class;
-}
-
-public final synthetic class io/ktor/openapi/JsonSchema$OneOf$Impl : io/ktor/openapi/JsonSchema$OneOf {
-	public fun <init> ([Lkotlin/reflect/KClass;)V
-	public final synthetic fun value ()[Ljava/lang/Class;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchema$Pattern : java/lang/annotation/Annotation {
-	public abstract fun value ()Ljava/lang/String;
-}
-
-public final synthetic class io/ktor/openapi/JsonSchema$Pattern$Impl : io/ktor/openapi/JsonSchema$Pattern {
-	public fun <init> (Ljava/lang/String;)V
-	public final synthetic fun value ()Ljava/lang/String;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchema$ReadOnly : java/lang/annotation/Annotation {
-}
-
-public final synthetic class io/ktor/openapi/JsonSchema$ReadOnly$Impl : io/ktor/openapi/JsonSchema$ReadOnly {
-	public fun <init> ()V
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchema$Required : java/lang/annotation/Annotation {
-	public abstract fun value ()[Ljava/lang/String;
-}
-
-public final synthetic class io/ktor/openapi/JsonSchema$Required$Impl : io/ktor/openapi/JsonSchema$Required {
-	public fun <init> ([Ljava/lang/String;)V
-	public final synthetic fun value ()[Ljava/lang/String;
 }
 
 public abstract interface class io/ktor/openapi/JsonSchema$SchemaType {
@@ -955,68 +613,6 @@ public final class io/ktor/openapi/JsonSchema$SchemaType$Serializer : kotlinx/se
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
 }
 
-public abstract interface annotation class io/ktor/openapi/JsonSchema$Title : java/lang/annotation/Annotation {
-	public abstract fun value ()Ljava/lang/String;
-}
-
-public final synthetic class io/ktor/openapi/JsonSchema$Title$Impl : io/ktor/openapi/JsonSchema$Title {
-	public fun <init> (Ljava/lang/String;)V
-	public final synthetic fun value ()Ljava/lang/String;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchema$Type : java/lang/annotation/Annotation {
-	public abstract fun value ()Lio/ktor/openapi/JsonType;
-}
-
-public final synthetic class io/ktor/openapi/JsonSchema$Type$Impl : io/ktor/openapi/JsonSchema$Type {
-	public fun <init> (Lio/ktor/openapi/JsonType;)V
-	public final synthetic fun value ()Lio/ktor/openapi/JsonType;
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchema$UniqueItems : java/lang/annotation/Annotation {
-}
-
-public final synthetic class io/ktor/openapi/JsonSchema$UniqueItems$Impl : io/ktor/openapi/JsonSchema$UniqueItems {
-	public fun <init> ()V
-}
-
-public abstract interface annotation class io/ktor/openapi/JsonSchema$WriteOnly : java/lang/annotation/Annotation {
-}
-
-public final synthetic class io/ktor/openapi/JsonSchema$WriteOnly$Impl : io/ktor/openapi/JsonSchema$WriteOnly {
-	public fun <init> ()V
-}
-
-public final class io/ktor/openapi/JsonSchemaDiscriminator {
-	public static final field Companion Lio/ktor/openapi/JsonSchemaDiscriminator$Companion;
-	public fun <init> (Ljava/lang/String;Ljava/util/Map;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun component2 ()Ljava/util/Map;
-	public final fun copy (Ljava/lang/String;Ljava/util/Map;)Lio/ktor/openapi/JsonSchemaDiscriminator;
-	public static synthetic fun copy$default (Lio/ktor/openapi/JsonSchemaDiscriminator;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Lio/ktor/openapi/JsonSchemaDiscriminator;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getMapping ()Ljava/util/Map;
-	public final fun getPropertyName ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final synthetic class io/ktor/openapi/JsonSchemaDiscriminator$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
-	public static final field INSTANCE Lio/ktor/openapi/JsonSchemaDiscriminator$$serializer;
-	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/openapi/JsonSchemaDiscriminator;
-	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/openapi/JsonSchemaDiscriminator;)V
-	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
-}
-
-public final class io/ktor/openapi/JsonSchemaDiscriminator$Companion {
-	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
 public abstract interface class io/ktor/openapi/JsonSchemaInference {
 	public abstract fun buildSchema (Lkotlin/reflect/KType;)Lio/ktor/openapi/JsonSchema;
 }
@@ -1025,24 +621,6 @@ public final class io/ktor/openapi/JsonSchemaInferenceKt {
 	public static final fun buildJsonSchema (Lkotlinx/serialization/descriptors/SerialDescriptor;Z)Lio/ktor/openapi/JsonSchema;
 	public static synthetic fun buildJsonSchema$default (Lkotlinx/serialization/descriptors/SerialDescriptor;ZILjava/lang/Object;)Lio/ktor/openapi/JsonSchema;
 	public static final fun getKotlinxJsonSchemaInference ()Lio/ktor/openapi/JsonSchemaInference;
-}
-
-public final class io/ktor/openapi/JsonType : java/lang/Enum, io/ktor/openapi/JsonSchema$SchemaType {
-	public static final field ARRAY Lio/ktor/openapi/JsonType;
-	public static final field BOOLEAN Lio/ktor/openapi/JsonType;
-	public static final field Companion Lio/ktor/openapi/JsonType$Companion;
-	public static final field INTEGER Lio/ktor/openapi/JsonType;
-	public static final field NULL Lio/ktor/openapi/JsonType;
-	public static final field NUMBER Lio/ktor/openapi/JsonType;
-	public static final field OBJECT Lio/ktor/openapi/JsonType;
-	public static final field STRING Lio/ktor/openapi/JsonType;
-	public static fun getEntries ()Lkotlin/enums/EnumEntries;
-	public static fun valueOf (Ljava/lang/String;)Lio/ktor/openapi/JsonType;
-	public static fun values ()[Lio/ktor/openapi/JsonType;
-}
-
-public final class io/ktor/openapi/JsonType$Companion {
-	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
 public final class io/ktor/openapi/Link : io/ktor/openapi/Extensible {
@@ -1147,116 +725,6 @@ public final class io/ktor/openapi/MediaType$Builder : io/ktor/openapi/JsonSchem
 
 public final class io/ktor/openapi/MediaType$Companion {
 	public final fun getText ()Ljava/util/Map;
-	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
-public final class io/ktor/openapi/OAuth2SecurityScheme : io/ktor/openapi/Extensible, io/ktor/openapi/SecurityScheme {
-	public static final field Companion Lio/ktor/openapi/OAuth2SecurityScheme$Companion;
-	public static final field DEFAULT_DESCRIPTION Ljava/lang/String;
-	public fun <init> ()V
-	public fun <init> (Lio/ktor/openapi/OAuthFlows;Ljava/lang/String;Ljava/util/Map;)V
-	public synthetic fun <init> (Lio/ktor/openapi/OAuthFlows;Ljava/lang/String;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Lio/ktor/openapi/OAuthFlows;
-	public final fun component2 ()Ljava/lang/String;
-	public final fun component3 ()Ljava/util/Map;
-	public final fun copy (Lio/ktor/openapi/OAuthFlows;Ljava/lang/String;Ljava/util/Map;)Lio/ktor/openapi/OAuth2SecurityScheme;
-	public static synthetic fun copy$default (Lio/ktor/openapi/OAuth2SecurityScheme;Lio/ktor/openapi/OAuthFlows;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Lio/ktor/openapi/OAuth2SecurityScheme;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun getDescription ()Ljava/lang/String;
-	public fun getExtensions ()Ljava/util/Map;
-	public final fun getFlows ()Lio/ktor/openapi/OAuthFlows;
-	public fun getType ()Lio/ktor/openapi/SecuritySchemeType;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final synthetic class io/ktor/openapi/OAuth2SecurityScheme$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
-	public static final field INSTANCE Lio/ktor/openapi/OAuth2SecurityScheme$$serializer;
-	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/openapi/OAuth2SecurityScheme;
-	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/openapi/OAuth2SecurityScheme;)V
-	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
-}
-
-public final class io/ktor/openapi/OAuth2SecurityScheme$Companion {
-	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
-public final class io/ktor/openapi/OAuthFlow : io/ktor/openapi/Extensible {
-	public static final field Companion Lio/ktor/openapi/OAuthFlow$Companion;
-	public static final field DEFAULT_SCOPE_DESCRIPTION Ljava/lang/String;
-	public fun <init> ()V
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/util/Map;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun component2 ()Ljava/lang/String;
-	public final fun component3 ()Ljava/lang/String;
-	public final fun component4 ()Ljava/util/Map;
-	public final fun component5 ()Ljava/util/Map;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/util/Map;)Lio/ktor/openapi/OAuthFlow;
-	public static synthetic fun copy$default (Lio/ktor/openapi/OAuthFlow;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/util/Map;ILjava/lang/Object;)Lio/ktor/openapi/OAuthFlow;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getAuthorizationUrl ()Ljava/lang/String;
-	public fun getExtensions ()Ljava/util/Map;
-	public final fun getRefreshUrl ()Ljava/lang/String;
-	public final fun getScopes ()Ljava/util/Map;
-	public final fun getTokenUrl ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final synthetic class io/ktor/openapi/OAuthFlow$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
-	public static final field INSTANCE Lio/ktor/openapi/OAuthFlow$$serializer;
-	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/openapi/OAuthFlow;
-	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/openapi/OAuthFlow;)V
-	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
-}
-
-public final class io/ktor/openapi/OAuthFlow$Companion {
-	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
-public final class io/ktor/openapi/OAuthFlows : io/ktor/openapi/Extensible {
-	public static final field Companion Lio/ktor/openapi/OAuthFlows$Companion;
-	public fun <init> ()V
-	public fun <init> (Lio/ktor/openapi/OAuthFlow;Lio/ktor/openapi/OAuthFlow;Lio/ktor/openapi/OAuthFlow;Lio/ktor/openapi/OAuthFlow;Ljava/util/Map;)V
-	public synthetic fun <init> (Lio/ktor/openapi/OAuthFlow;Lio/ktor/openapi/OAuthFlow;Lio/ktor/openapi/OAuthFlow;Lio/ktor/openapi/OAuthFlow;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Lio/ktor/openapi/OAuthFlow;
-	public final fun component2 ()Lio/ktor/openapi/OAuthFlow;
-	public final fun component3 ()Lio/ktor/openapi/OAuthFlow;
-	public final fun component4 ()Lio/ktor/openapi/OAuthFlow;
-	public final fun component5 ()Ljava/util/Map;
-	public final fun copy (Lio/ktor/openapi/OAuthFlow;Lio/ktor/openapi/OAuthFlow;Lio/ktor/openapi/OAuthFlow;Lio/ktor/openapi/OAuthFlow;Ljava/util/Map;)Lio/ktor/openapi/OAuthFlows;
-	public static synthetic fun copy$default (Lio/ktor/openapi/OAuthFlows;Lio/ktor/openapi/OAuthFlow;Lio/ktor/openapi/OAuthFlow;Lio/ktor/openapi/OAuthFlow;Lio/ktor/openapi/OAuthFlow;Ljava/util/Map;ILjava/lang/Object;)Lio/ktor/openapi/OAuthFlows;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getAuthorizationCode ()Lio/ktor/openapi/OAuthFlow;
-	public final fun getClientCredentials ()Lio/ktor/openapi/OAuthFlow;
-	public fun getExtensions ()Ljava/util/Map;
-	public final fun getImplicit ()Lio/ktor/openapi/OAuthFlow;
-	public final fun getPassword ()Lio/ktor/openapi/OAuthFlow;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final synthetic class io/ktor/openapi/OAuthFlows$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
-	public static final field INSTANCE Lio/ktor/openapi/OAuthFlows$$serializer;
-	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/openapi/OAuthFlows;
-	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/openapi/OAuthFlows;)V
-	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
-}
-
-public final class io/ktor/openapi/OAuthFlows$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
@@ -1444,41 +912,6 @@ public final synthetic class io/ktor/openapi/OpenApiInfo$License$$serializer : k
 }
 
 public final class io/ktor/openapi/OpenApiInfo$License$Companion {
-	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
-public final class io/ktor/openapi/OpenIdConnectSecurityScheme : io/ktor/openapi/Extensible, io/ktor/openapi/SecurityScheme {
-	public static final field Companion Lio/ktor/openapi/OpenIdConnectSecurityScheme$Companion;
-	public static final field DEFAULT_DESCRIPTION Ljava/lang/String;
-	public fun <init> ()V
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun component2 ()Ljava/lang/String;
-	public final fun component3 ()Ljava/util/Map;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Lio/ktor/openapi/OpenIdConnectSecurityScheme;
-	public static synthetic fun copy$default (Lio/ktor/openapi/OpenIdConnectSecurityScheme;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Lio/ktor/openapi/OpenIdConnectSecurityScheme;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun getDescription ()Ljava/lang/String;
-	public fun getExtensions ()Ljava/util/Map;
-	public final fun getOpenIdConnectUrl ()Ljava/lang/String;
-	public fun getType ()Lio/ktor/openapi/SecuritySchemeType;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final synthetic class io/ktor/openapi/OpenIdConnectSecurityScheme$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
-	public static final field INSTANCE Lio/ktor/openapi/OpenIdConnectSecurityScheme$$serializer;
-	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/openapi/OpenIdConnectSecurityScheme;
-	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/openapi/OpenIdConnectSecurityScheme;)V
-	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
-}
-
-public final class io/ktor/openapi/OpenIdConnectSecurityScheme$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
@@ -1847,18 +1280,6 @@ public final class io/ktor/openapi/ReferenceOr$Value : io/ktor/openapi/Reference
 	public static fun valueOrNull-impl (Ljava/lang/Object;)Ljava/lang/Object;
 }
 
-public final class io/ktor/openapi/ReflectionJsonSchemaInference : io/ktor/openapi/JsonSchemaInference {
-	public static final field Companion Lio/ktor/openapi/ReflectionJsonSchemaInference$Companion;
-	public fun <init> (Lio/ktor/openapi/SchemaReflectionAdapter;)V
-	public fun buildSchema (Lkotlin/reflect/KType;)Lio/ktor/openapi/JsonSchema;
-	public final fun schemaForClass (Lkotlin/reflect/KClass;)Lio/ktor/openapi/JsonSchema;
-	public final fun schemaRefForClass (Lkotlin/reflect/KClass;)Lio/ktor/openapi/ReferenceOr;
-}
-
-public final class io/ktor/openapi/ReflectionJsonSchemaInference$Companion {
-	public final fun getDefault ()Lio/ktor/openapi/JsonSchemaInference;
-}
-
 public final class io/ktor/openapi/RequestBody : io/ktor/openapi/Extensible {
 	public static final field Companion Lio/ktor/openapi/RequestBody$Companion;
 	public fun <init> ()V
@@ -2009,22 +1430,6 @@ public final class io/ktor/openapi/Responses$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
-public abstract interface class io/ktor/openapi/SchemaReflectionAdapter {
-	public fun getName (Lkotlin/reflect/KProperty1;)Ljava/lang/String;
-	public fun getName (Lkotlin/reflect/KType;)Ljava/lang/String;
-	public fun getProperties (Lkotlin/reflect/KClass;)Ljava/util/Collection;
-	public fun isIgnored (Lkotlin/reflect/KProperty1;)Z
-	public fun isNullable (Lkotlin/reflect/KType;)Z
-}
-
-public final class io/ktor/openapi/SchemaReflectionAdapter$DefaultImpls {
-	public static fun getName (Lio/ktor/openapi/SchemaReflectionAdapter;Lkotlin/reflect/KProperty1;)Ljava/lang/String;
-	public static fun getName (Lio/ktor/openapi/SchemaReflectionAdapter;Lkotlin/reflect/KType;)Ljava/lang/String;
-	public static fun getProperties (Lio/ktor/openapi/SchemaReflectionAdapter;Lkotlin/reflect/KClass;)Ljava/util/Collection;
-	public static fun isIgnored (Lio/ktor/openapi/SchemaReflectionAdapter;Lkotlin/reflect/KProperty1;)Z
-	public static fun isNullable (Lio/ktor/openapi/SchemaReflectionAdapter;Lkotlin/reflect/KType;)Z
-}
-
 public final class io/ktor/openapi/Security {
 	public static final field Companion Lio/ktor/openapi/Security$Companion;
 	public fun <init> (Ljava/util/List;)V
@@ -2060,45 +1465,6 @@ public final class io/ktor/openapi/Security$Builder {
 }
 
 public final class io/ktor/openapi/Security$Companion {
-	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
-public abstract interface class io/ktor/openapi/SecurityScheme {
-	public static final field Companion Lio/ktor/openapi/SecurityScheme$Companion;
-	public abstract fun getDescription ()Ljava/lang/String;
-	public abstract fun getType ()Lio/ktor/openapi/SecuritySchemeType;
-}
-
-public final class io/ktor/openapi/SecurityScheme$Companion {
-	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
-public final class io/ktor/openapi/SecuritySchemeIn : java/lang/Enum {
-	public static final field COOKIE Lio/ktor/openapi/SecuritySchemeIn;
-	public static final field Companion Lio/ktor/openapi/SecuritySchemeIn$Companion;
-	public static final field HEADER Lio/ktor/openapi/SecuritySchemeIn;
-	public static final field QUERY Lio/ktor/openapi/SecuritySchemeIn;
-	public static fun getEntries ()Lkotlin/enums/EnumEntries;
-	public static fun valueOf (Ljava/lang/String;)Lio/ktor/openapi/SecuritySchemeIn;
-	public static fun values ()[Lio/ktor/openapi/SecuritySchemeIn;
-}
-
-public final class io/ktor/openapi/SecuritySchemeIn$Companion {
-	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
-public final class io/ktor/openapi/SecuritySchemeType : java/lang/Enum {
-	public static final field API_KEY Lio/ktor/openapi/SecuritySchemeType;
-	public static final field Companion Lio/ktor/openapi/SecuritySchemeType$Companion;
-	public static final field HTTP Lio/ktor/openapi/SecuritySchemeType;
-	public static final field OAUTH2 Lio/ktor/openapi/SecuritySchemeType;
-	public static final field OPEN_ID_CONNECT Lio/ktor/openapi/SecuritySchemeType;
-	public static fun getEntries ()Lkotlin/enums/EnumEntries;
-	public static fun valueOf (Ljava/lang/String;)Lio/ktor/openapi/SecuritySchemeType;
-	public static fun values ()[Lio/ktor/openapi/SecuritySchemeType;
-}
-
-public final class io/ktor/openapi/SecuritySchemeType$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
