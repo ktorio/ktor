@@ -37,15 +37,58 @@ final enum class io.ktor.client.plugins.logging/LoggingFormat : kotlin/Enum<io.k
     final fun values(): kotlin/Array<io.ktor.client.plugins.logging/LoggingFormat> // io.ktor.client.plugins.logging/LoggingFormat.values|values#static(){}[0]
 }
 
+abstract fun interface io.ktor.client.plugins.logging/CommonLogBodyFilter : io.ktor.client.plugins.logging/LogBodyFilter { // io.ktor.client.plugins.logging/CommonLogBodyFilter|null[0]
+    abstract suspend fun filterAll(kotlin/Long?, io.ktor.http/ContentType?, io.ktor.http/Headers, io.ktor.utils.io/ByteReadChannel): io.ktor.client.plugins.logging/BodyFilterResult // io.ktor.client.plugins.logging/CommonLogBodyFilter.filterAll|filterAll(kotlin.Long?;io.ktor.http.ContentType?;io.ktor.http.Headers;io.ktor.utils.io.ByteReadChannel){}[0]
+    open suspend fun filterRequest(io.ktor.http/Url, kotlin/Long?, io.ktor.http/ContentType?, io.ktor.http/Headers, io.ktor.utils.io/ByteReadChannel): io.ktor.client.plugins.logging/BodyFilterResult // io.ktor.client.plugins.logging/CommonLogBodyFilter.filterRequest|filterRequest(io.ktor.http.Url;kotlin.Long?;io.ktor.http.ContentType?;io.ktor.http.Headers;io.ktor.utils.io.ByteReadChannel){}[0]
+    open suspend fun filterResponse(io.ktor.http/Url, kotlin/Long?, io.ktor.http/ContentType?, io.ktor.http/Headers, io.ktor.utils.io/ByteReadChannel): io.ktor.client.plugins.logging/BodyFilterResult // io.ktor.client.plugins.logging/CommonLogBodyFilter.filterResponse|filterResponse(io.ktor.http.Url;kotlin.Long?;io.ktor.http.ContentType?;io.ktor.http.Headers;io.ktor.utils.io.ByteReadChannel){}[0]
+}
+
+abstract interface io.ktor.client.plugins.logging/LogBodyFilter { // io.ktor.client.plugins.logging/LogBodyFilter|null[0]
+    abstract suspend fun filterRequest(io.ktor.http/Url, kotlin/Long?, io.ktor.http/ContentType?, io.ktor.http/Headers, io.ktor.utils.io/ByteReadChannel): io.ktor.client.plugins.logging/BodyFilterResult // io.ktor.client.plugins.logging/LogBodyFilter.filterRequest|filterRequest(io.ktor.http.Url;kotlin.Long?;io.ktor.http.ContentType?;io.ktor.http.Headers;io.ktor.utils.io.ByteReadChannel){}[0]
+    abstract suspend fun filterResponse(io.ktor.http/Url, kotlin/Long?, io.ktor.http/ContentType?, io.ktor.http/Headers, io.ktor.utils.io/ByteReadChannel): io.ktor.client.plugins.logging/BodyFilterResult // io.ktor.client.plugins.logging/LogBodyFilter.filterResponse|filterResponse(io.ktor.http.Url;kotlin.Long?;io.ktor.http.ContentType?;io.ktor.http.Headers;io.ktor.utils.io.ByteReadChannel){}[0]
+}
+
 abstract interface io.ktor.client.plugins.logging/Logger { // io.ktor.client.plugins.logging/Logger|null[0]
     abstract fun log(kotlin/String) // io.ktor.client.plugins.logging/Logger.log|log(kotlin.String){}[0]
 
     final object Companion // io.ktor.client.plugins.logging/Logger.Companion|null[0]
 }
 
+sealed interface io.ktor.client.plugins.logging/BodyFilterResult { // io.ktor.client.plugins.logging/BodyFilterResult|null[0]
+    open val byteSize // io.ktor.client.plugins.logging/BodyFilterResult.byteSize|{}byteSize[0]
+        open fun <get-byteSize>(): kotlin/Long? // io.ktor.client.plugins.logging/BodyFilterResult.byteSize.<get-byteSize>|<get-byteSize>(){}[0]
+
+    abstract interface Content : io.ktor.client.plugins.logging/BodyFilterResult { // io.ktor.client.plugins.logging/BodyFilterResult.Content|null[0]
+        abstract fun read(): kotlin/String // io.ktor.client.plugins.logging/BodyFilterResult.Content.read|read(){}[0]
+    }
+
+    final class BufferContent : io.ktor.client.plugins.logging/BodyFilterResult.Content { // io.ktor.client.plugins.logging/BodyFilterResult.BufferContent|null[0]
+        constructor <init>(kotlinx.io/Buffer, io.ktor.utils.io.charsets/Charset, kotlin/Long = ...) // io.ktor.client.plugins.logging/BodyFilterResult.BufferContent.<init>|<init>(kotlinx.io.Buffer;io.ktor.utils.io.charsets.Charset;kotlin.Long){}[0]
+
+        final val byteSize // io.ktor.client.plugins.logging/BodyFilterResult.BufferContent.byteSize|{}byteSize[0]
+            final fun <get-byteSize>(): kotlin/Long // io.ktor.client.plugins.logging/BodyFilterResult.BufferContent.byteSize.<get-byteSize>|<get-byteSize>(){}[0]
+
+        final fun read(): kotlin/String // io.ktor.client.plugins.logging/BodyFilterResult.BufferContent.read|read(){}[0]
+    }
+
+    final class Skip : io.ktor.client.plugins.logging/BodyFilterResult { // io.ktor.client.plugins.logging/BodyFilterResult.Skip|null[0]
+        constructor <init>(kotlin/String? = ..., kotlin/Long? = ...) // io.ktor.client.plugins.logging/BodyFilterResult.Skip.<init>|<init>(kotlin.String?;kotlin.Long?){}[0]
+
+        final val byteSize // io.ktor.client.plugins.logging/BodyFilterResult.Skip.byteSize|{}byteSize[0]
+            final fun <get-byteSize>(): kotlin/Long? // io.ktor.client.plugins.logging/BodyFilterResult.Skip.byteSize.<get-byteSize>|<get-byteSize>(){}[0]
+        final val reason // io.ktor.client.plugins.logging/BodyFilterResult.Skip.reason|{}reason[0]
+            final fun <get-reason>(): kotlin/String? // io.ktor.client.plugins.logging/BodyFilterResult.Skip.reason.<get-reason>|<get-reason>(){}[0]
+    }
+
+    final object Empty : io.ktor.client.plugins.logging/BodyFilterResult // io.ktor.client.plugins.logging/BodyFilterResult.Empty|null[0]
+}
+
 final class io.ktor.client.plugins.logging/LoggingConfig { // io.ktor.client.plugins.logging/LoggingConfig|null[0]
     constructor <init>() // io.ktor.client.plugins.logging/LoggingConfig.<init>|<init>(){}[0]
 
+    final var bodyFilter // io.ktor.client.plugins.logging/LoggingConfig.bodyFilter|{}bodyFilter[0]
+        final fun <get-bodyFilter>(): io.ktor.client.plugins.logging/LogBodyFilter // io.ktor.client.plugins.logging/LoggingConfig.bodyFilter.<get-bodyFilter>|<get-bodyFilter>(){}[0]
+        final fun <set-bodyFilter>(io.ktor.client.plugins.logging/LogBodyFilter) // io.ktor.client.plugins.logging/LoggingConfig.bodyFilter.<set-bodyFilter>|<set-bodyFilter>(io.ktor.client.plugins.logging.LogBodyFilter){}[0]
     final var format // io.ktor.client.plugins.logging/LoggingConfig.format|{}format[0]
         final fun <get-format>(): io.ktor.client.plugins.logging/LoggingFormat // io.ktor.client.plugins.logging/LoggingConfig.format.<get-format>|<get-format>(){}[0]
         final fun <set-format>(io.ktor.client.plugins.logging/LoggingFormat) // io.ktor.client.plugins.logging/LoggingConfig.format.<set-format>|<set-format>(io.ktor.client.plugins.logging.LoggingFormat){}[0]
@@ -60,6 +103,8 @@ final class io.ktor.client.plugins.logging/LoggingConfig { // io.ktor.client.plu
     final fun sanitizeHeader(kotlin/String = ..., kotlin/Function1<kotlin/String, kotlin/Boolean>) // io.ktor.client.plugins.logging/LoggingConfig.sanitizeHeader|sanitizeHeader(kotlin.String;kotlin.Function1<kotlin.String,kotlin.Boolean>){}[0]
 }
 
+final val io.ktor.client.plugins.logging/BinaryLogBodyFilter // io.ktor.client.plugins.logging/BinaryLogBodyFilter|{}BinaryLogBodyFilter[0]
+    final fun <get-BinaryLogBodyFilter>(): io.ktor.client.plugins.logging/LogBodyFilter // io.ktor.client.plugins.logging/BinaryLogBodyFilter.<get-BinaryLogBodyFilter>|<get-BinaryLogBodyFilter>(){}[0]
 final val io.ktor.client.plugins.logging/DEFAULT // io.ktor.client.plugins.logging/DEFAULT|@io.ktor.client.plugins.logging.Logger.Companion{}DEFAULT[0]
     final fun (io.ktor.client.plugins.logging/Logger.Companion).<get-DEFAULT>(): io.ktor.client.plugins.logging/Logger // io.ktor.client.plugins.logging/DEFAULT.<get-DEFAULT>|<get-DEFAULT>@io.ktor.client.plugins.logging.Logger.Companion(){}[0]
 final val io.ktor.client.plugins.logging/EMPTY // io.ktor.client.plugins.logging/EMPTY|@io.ktor.client.plugins.logging.Logger.Companion{}EMPTY[0]
