@@ -11,7 +11,7 @@ atomicfu = "0.29.0"
 serialization = "1.9.0"
 dokka = "2.1.0"
 kover = "0.9.4"
-kotlinter = "5.2.0"
+kotlinter = "5.3.0"
 kotlinx-browser = "0.5.0"
 
 netty = "4.2.9.Final"
