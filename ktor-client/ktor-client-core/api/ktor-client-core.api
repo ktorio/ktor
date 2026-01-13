@@ -235,6 +235,10 @@ public final class io/ktor/client/engine/UtilsKt {
 	public static final fun mergeHeaders (Lio/ktor/http/Headers;Lio/ktor/http/content/OutgoingContent;Lkotlin/jvm/functions/Function2;)V
 }
 
+public final class io/ktor/client/io/PlatformStaticConfig_jvmKt {
+	public static final fun configurePlatform ()V
+}
+
 public final class io/ktor/client/network/sockets/ConnectTimeoutException : java/net/ConnectException {
 	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
