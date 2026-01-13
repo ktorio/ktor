@@ -42,10 +42,26 @@ public class RoutingResolveContext(
 
     private val trace: RoutingResolveTrace?
 
-    private val resolveResult: ArrayList<RoutingResolveResult.Success> = ArrayList(ROUTING_DEFAULT_CAPACITY)
+    // Backtracking state stored as parallel arrays to avoid allocating Success objects
+    private val traitRoutes = ArrayList<RoutingNode>(ROUTING_DEFAULT_CAPACITY)
+    private val traitParameters = ArrayList<Parameters>(ROUTING_DEFAULT_CAPACITY)
+    private var traitQualities = DoubleArray(ROUTING_DEFAULT_CAPACITY)
+    private var traitSize = 0
+
+    // Best result storage as parallel arrays
+    private val resultRoutes = ArrayList<RoutingNode>(ROUTING_DEFAULT_CAPACITY)
+    private val resultParameters = ArrayList<Parameters>(ROUTING_DEFAULT_CAPACITY)
+    private var resultQualities = DoubleArray(ROUTING_DEFAULT_CAPACITY)
+    private var resultSize = 0
+
+    // Output from recursive handleRoute call
+    private var resultQuality = MIN_QUALITY
 
     private var failedEvaluation: RouteSelectorEvaluation.Failure? = RouteSelectorEvaluation.FailedPath
     private var failedEvaluationDepth = 0
+
+    // Reusable ParametersBuilder to avoid allocation in findBestRoute
+    private val parametersBuilder = ParametersBuilder()
 
     init {
         try {
@@ -89,7 +105,7 @@ public class RoutingResolveContext(
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RoutingResolveContext.resolve)
      */
     public suspend fun resolve(): RoutingResolveResult {
-        handleRoute(routing, 0, ArrayList(), MIN_QUALITY)
+        handleRoute(routing, 0, MIN_QUALITY)
 
         val resolveResult = findBestRoute()
 
@@ -101,9 +117,8 @@ public class RoutingResolveContext(
     private suspend fun handleRoute(
         entry: RoutingNode,
         segmentIndex: Int,
-        trait: ArrayList<RoutingResolveResult.Success>,
         matchedQuality: Double
-    ): Double {
+    ) {
         val evaluation = entry.selector.evaluate(this, segmentIndex)
 
         if (evaluation is RouteSelectorEvaluation.Failure) {
@@ -113,9 +128,10 @@ public class RoutingResolveContext(
                 RoutingResolveResult.Failure(entry, "Selector didn't match", evaluation.failureStatusCode)
             )
             if (segmentIndex == segments.size) {
-                updateFailedEvaluation(evaluation, trait)
+                updateFailedEvaluation(evaluation)
             }
-            return MIN_QUALITY
+            resultQuality = MIN_QUALITY
+            return
         }
 
         check(evaluation is RouteSelectorEvaluation.Success)
@@ -128,10 +144,10 @@ public class RoutingResolveContext(
                 segmentIndex,
                 RoutingResolveResult.Failure(entry, "Better match was already found", HttpStatusCode.NotFound)
             )
-            return MIN_QUALITY
+            resultQuality = MIN_QUALITY
+            return
         }
 
-        val result = RoutingResolveResult.Success(entry, evaluation.parameters, evaluation.quality)
         val newIndex = segmentIndex + evaluation.segmentIncrement
 
         if (entry.children.isEmpty() && newIndex != segments.size) {
@@ -140,46 +156,82 @@ public class RoutingResolveContext(
                 newIndex,
                 RoutingResolveResult.Failure(entry, "Not all segments matched", HttpStatusCode.NotFound)
             )
-
-            return MIN_QUALITY
+            resultQuality = MIN_QUALITY
+            return
         }
 
         trace?.begin(entry, newIndex)
-        trait.add(result)
+
+        // Add to trait using parallel arrays (no Success allocation)
+        traitRoutes.add(entry)
+        traitParameters.add(evaluation.parameters)
+        ensureTraitQualityCapacity()
+        traitQualities[traitSize] = evaluation.quality
+        traitSize++
 
         val hasHandlers = entry.handlers.isNotEmpty()
         var bestSucceedChildQuality: Double = MIN_QUALITY
 
         if (hasHandlers && newIndex == segments.size) {
-            if (resolveResult.isEmpty() || isBetterResolve(trait)) {
+            if (resultSize == 0 || isBetterResolve()) {
                 bestSucceedChildQuality = evaluation.quality
-                resolveResult.clear()
-                resolveResult.addAll(trait)
+                copyTraitToResult()
                 failedEvaluation = null
             }
 
-            trace?.addCandidate(trait)
+            trace?.addCandidate(buildTraitListForTrace())
         }
 
         // iterate using indices to avoid creating iterator
         for (childIndex in 0..entry.children.lastIndex) {
             val child = entry.children[childIndex]
-            val childQuality = handleRoute(child, newIndex, trait, bestSucceedChildQuality)
+            handleRoute(child, newIndex, bestSucceedChildQuality)
+            val childQuality = resultQuality
             if (childQuality > 0) {
                 bestSucceedChildQuality = max(bestSucceedChildQuality, childQuality)
             }
         }
 
-        trait.removeLast()
+        // Backtrack
+        traitSize--
+        traitRoutes.removeLast()
+        traitParameters.removeLast()
 
-        trace?.finish(entry, newIndex, result)
-        return if (bestSucceedChildQuality > 0) evaluation.quality else MIN_QUALITY
+        // Create Success only for trace (when tracing is enabled)
+        if (trace != null) {
+            val traceResult = RoutingResolveResult.Success(entry, evaluation.parameters, evaluation.quality)
+            trace.finish(entry, newIndex, traceResult)
+        }
+
+        resultQuality = if (bestSucceedChildQuality > 0) evaluation.quality else MIN_QUALITY
+    }
+
+    private fun ensureTraitQualityCapacity() {
+        if (traitSize >= traitQualities.size) {
+            traitQualities = traitQualities.copyOf(traitQualities.size * 2)
+        }
+    }
+
+    private fun copyTraitToResult() {
+        resultRoutes.clear()
+        resultParameters.clear()
+        resultRoutes.addAll(traitRoutes)
+        resultParameters.addAll(traitParameters)
+        if (resultQualities.size < traitSize) {
+            resultQualities = DoubleArray(maxOf(traitSize, resultQualities.size * 2))
+        }
+        traitQualities.copyInto(resultQualities, 0, 0, traitSize)
+        resultSize = traitSize
+    }
+
+    private fun buildTraitListForTrace(): List<RoutingResolveResult.Success> {
+        return List(traitSize) { index ->
+            RoutingResolveResult.Success(traitRoutes[index], traitParameters[index], traitQualities[index])
+        }
     }
 
     private fun findBestRoute(): RoutingResolveResult {
-        val finalResolve = resolveResult
-
-        if (finalResolve.isEmpty()) {
+        if (resultSize == 0) {
             return RoutingResolveResult.Failure(
                 routing,
                 "No matched subtrees found",
@@ -187,33 +239,31 @@ public class RoutingResolveContext(
             )
         }
 
-        val parameters = ParametersBuilder()
+        parametersBuilder.clear()
         var quality = Double.MAX_VALUE
 
-        for (index in 0..finalResolve.lastIndex) {
-            val part = finalResolve[index]
-            parameters.appendAll(part.parameters)
+        for (index in 0 until resultSize) {
+            parametersBuilder.appendAll(resultParameters[index])
 
-            val partQuality = if (part.quality == RouteSelectorEvaluation.qualityTransparent) {
+            val partQuality = if (resultQualities[index] == RouteSelectorEvaluation.qualityTransparent) {
                 RouteSelectorEvaluation.qualityConstant
             } else {
-                part.quality
+                resultQualities[index]
             }
 
             quality = minOf(quality, partQuality)
         }
 
-        return RoutingResolveResult.Success(finalResolve.last().route, parameters.build(), quality)
+        return RoutingResolveResult.Success(resultRoutes.last(), parametersBuilder.build(), quality)
     }
 
-    private fun isBetterResolve(new: List<RoutingResolveResult.Success>): Boolean {
+    private fun isBetterResolve(): Boolean {
         var index1 = 0
         var index2 = 0
-        val currentResolve = resolveResult
 
-        while (index1 < currentResolve.size && index2 < new.size) {
-            val quality1 = currentResolve[index1].quality
-            val quality2 = new[index2].quality
+        while (index1 < resultSize && index2 < traitSize) {
+            val quality1 = resultQualities[index1]
+            val quality2 = traitQualities[index2]
             if (quality1 == RouteSelectorEvaluation.qualityTransparent) {
                 index1++
                 continue
@@ -232,24 +282,36 @@ public class RoutingResolveContext(
             index2++
         }
 
-        val firstQuality = currentResolve.count { it.quality != RouteSelectorEvaluation.qualityTransparent }
-        val secondQuality = new.count { it.quality != RouteSelectorEvaluation.qualityTransparent }
+        var firstQuality = 0
+        for (i in 0 until resultSize) {
+            if (resultQualities[i] != RouteSelectorEvaluation.qualityTransparent) {
+                firstQuality++
+            }
+        }
+        var secondQuality = 0
+        for (i in 0 until traitSize) {
+            if (traitQualities[i] != RouteSelectorEvaluation.qualityTransparent) {
+                secondQuality++
+            }
+        }
         return secondQuality > firstQuality
     }
 
-    private fun updateFailedEvaluation(
-        new: RouteSelectorEvaluation.Failure,
-        trait: ArrayList<RoutingResolveResult.Success>
-    ) {
+    private fun updateFailedEvaluation(new: RouteSelectorEvaluation.Failure) {
         val current = failedEvaluation ?: return
-        if ((current.quality < new.quality || failedEvaluationDepth < trait.size) &&
-            trait.all {
-                it.quality == RouteSelectorEvaluation.qualityTransparent ||
-                    it.quality == RouteSelectorEvaluation.qualityConstant
+        if (current.quality < new.quality || failedEvaluationDepth < traitSize) {
+            var allConstantOrTransparent = true
+            for (i in 0 until traitSize) {
+                val q = traitQualities[i]
+                if (q != RouteSelectorEvaluation.qualityTransparent && q != RouteSelectorEvaluation.qualityConstant) {
+                    allConstantOrTransparent = false
+                    break
+                }
             }
-        ) {
-            failedEvaluation = new
-            failedEvaluationDepth = trait.size
+            if (allConstantOrTransparent) {
+                failedEvaluation = new
+                failedEvaluationDepth = traitSize
+            }
         }
     }
 }

@@ -542,16 +542,18 @@ public data class PathSegmentTailcardRouteSelector(
 
         val values = when {
             name.isEmpty() -> parametersOf()
-            else -> parametersOf(
-                name,
-                segments.drop(segmentIndex).mapIndexed { index, segment ->
-                    if (index == 0) {
-                        segment.drop(prefix.length)
-                    } else {
-                        segment
-                    }
+            else -> {
+                // Single-pass iteration to avoid intermediate list allocations from drop().mapIndexed()
+                val remainingCount = segments.size - segmentIndex
+                val valueList = ArrayList<String>(remainingCount)
+                for (i in segmentIndex until segments.size) {
+                    val segment = segments[i]
+                    valueList.add(
+                        if (i == segmentIndex && prefix.isNotEmpty()) segment.drop(prefix.length) else segment
+                    )
                 }
-            )
+                parametersOf(name, valueList)
+            }
         }
         val quality = when {
             segmentIndex < segments.size -> RouteSelectorEvaluation.qualityTailcard
