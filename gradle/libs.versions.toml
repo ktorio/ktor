@@ -43,7 +43,7 @@ slf4j = "2.0.17"
 logback = "1.5.24"
 
 dropwizard = "4.2.37"
-micrometer = "1.16.1"
+micrometer = "1.16.2"
 
 jansi = "2.4.2"
 typesafe = "1.4.5"
