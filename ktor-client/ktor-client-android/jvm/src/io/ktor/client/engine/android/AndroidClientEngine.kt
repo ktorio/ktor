@@ -6,6 +6,7 @@ package io.ktor.client.engine.android
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
+import io.ktor.client.io.configurePlatform
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.sse.*
 import io.ktor.client.request.*
@@ -31,16 +32,8 @@ import kotlin.coroutines.CoroutineContext
  */
 @OptIn(InternalAPI::class)
 public class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClientEngineBase("ktor-android") {
-    private companion object {
-        private const val IO_POOL_SIZE_PROPERTY = "kotlinx.io.pool.size.bytes"
-        private const val DEFAULT_POOL_SIZE_BYTES = "2097152"
-    }
-
     init {
-        // Automatically enable segment pool for Android
-        if (System.getProperty(IO_POOL_SIZE_PROPERTY) == null) {
-            System.setProperty(IO_POOL_SIZE_PROPERTY, DEFAULT_POOL_SIZE_BYTES)
-        }
+        configurePlatform()
     }
 
     override val supportedCapabilities: Set<HttpClientEngineCapability<*>> = setOf(HttpTimeoutCapability, SSECapability)

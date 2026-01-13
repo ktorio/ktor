@@ -6,6 +6,7 @@ package io.ktor.client.engine.okhttp
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
+import io.ktor.client.io.configurePlatform
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.sse.*
 import io.ktor.client.plugins.websocket.*
@@ -27,7 +28,6 @@ import kotlin.coroutines.CoroutineContext
 
 @OptIn(InternalAPI::class, DelicateCoroutinesApi::class)
 public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("ktor-okhttp") {
-
     override val supportedCapabilities: Set<HttpClientEngineCapability<*>> =
         setOf(HttpTimeoutCapability, WebSocketCapability, SSECapability)
 
@@ -41,6 +41,8 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
     private val clientCache = createLRUCache(::createOkHttpClient, {}, config.clientCacheSize)
 
     init {
+        configurePlatform()
+
         val parent = super.coroutineContext.job
         requestsJob = SilentSupervisor(parent)
         coroutineContext = super.coroutineContext + requestsJob
