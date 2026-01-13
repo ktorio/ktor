@@ -4,6 +4,7 @@
 
 package io.ktor.openapi
 
+import io.ktor.utils.io.InternalAPI
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import java.time.OffsetDateTime
@@ -16,8 +17,19 @@ import kotlin.reflect.full.starProjectedType
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
+/**
+ * An adapter used by [ReflectionJsonSchemaInference] to customize how Kotlin types and properties
+ * are mapped to OpenAPI schema components.
+ *
+ * This interface allows overriding the default reflection behavior, such as changing property names,
+ * filtering ignored fields, or handling specific nullability rules.
+ */
 public interface SchemaReflectionAdapter {
 
+    /**
+     * Provides a name for the given [type] to be used as a title in the JSON schema.
+     * By default, returns the qualified name for non-generic classes.
+     */
     public fun getName(type: KType): String? =
         if (type.arguments.isNotEmpty()) {
             null
@@ -25,15 +37,30 @@ public interface SchemaReflectionAdapter {
             (type.classifier as? KClass<*>)?.qualifiedName
         }
 
+    /**
+     * Returns the collection of properties for a given [kClass] that should be included in the schema.
+     * By default, returns all member properties.
+     */
     public fun <T : Any> getProperties(kClass: KClass<T>): Collection<KProperty1<T, *>> =
         kClass.memberProperties
 
+    /**
+     * Returns the schema property name for the given [property].
+     * By default, returns the Kotlin property name.
+     */
     public fun getName(property: KProperty1<*, *>): String =
         property.name
 
+    /**
+     * Determines if the given [property] should be excluded from the generated schema.
+     * By default, ignores properties annotated with [JsonSchema.Ignore].
+     */
     public fun isIgnored(property: KProperty1<*, *>): Boolean =
         property.annotations.any { it is JsonSchema.Ignore }
 
+    /**
+     * Determines if the given [type] should be marked as nullable in the OpenAPI schema.
+     */
     public fun isNullable(type: KType): Boolean =
         type.isMarkedNullable
 }
@@ -74,6 +101,7 @@ public class ReflectionJsonSchemaInference(
     // Implementation
     // ----------------------------
 
+    @OptIn(InternalAPI::class)
     private fun buildSchemaInternal(
         type: KType,
         visiting: MutableSet<KType>,
@@ -84,7 +112,8 @@ public class ReflectionJsonSchemaInference(
             return JsonSchema(
                 type = JsonType.OBJECT,
                 title = adapter.getName(type),
-                description = "Recursive type encountered; schema expansion stopped to prevent cycles."
+                description = "Recursive type encountered; schema expansion stopped to prevent cycles.",
+                nullable = adapter.isNullable(type).takeIf { it },
             )
         }
 
@@ -187,7 +216,7 @@ public class ReflectionJsonSchemaInference(
                 properties[name] = ReferenceOr.Value(propSchema)
 
                 // Required: non-nullable properties are required (best effort; default values are not detectable reliably)
-                if (!prop.returnType.isMarkedNullable) {
+                if (!adapter.isNullable(prop.returnType)) {
                     required += name
                 }
             }
@@ -206,7 +235,7 @@ public class ReflectionJsonSchemaInference(
         }
     }
 
-    @OptIn(ExperimentalTime::class)
+    @OptIn(ExperimentalTime::class, InternalAPI::class)
     private fun primitiveSchemaOrNull(kClass: KClass<*>, annotations: List<Annotation>): JsonSchema? = when (kClass) {
         String::class, Char::class -> jsonSchemaFromAnnotations(
             annotations,

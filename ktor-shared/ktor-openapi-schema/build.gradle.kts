@@ -19,7 +19,6 @@ kotlin {
             implementation(libs.kotlinx.datetime)
         }
         jvmMain.dependencies {
-            implementation(libs.kotlin.reflect)
             implementation(libs.kaml.serialization)
         }
     }

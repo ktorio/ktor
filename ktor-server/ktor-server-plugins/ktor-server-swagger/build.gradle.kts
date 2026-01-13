@@ -16,5 +16,8 @@ kotlin {
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.kaml.serialization)
         }
+        jvmTest.dependencies {
+            implementation(projects.ktorOpenapiSchemaReflect)
+        }
     }
 }

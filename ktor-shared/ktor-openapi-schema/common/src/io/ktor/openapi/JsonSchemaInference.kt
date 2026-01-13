@@ -7,6 +7,7 @@ package io.ktor.openapi
 import io.ktor.openapi.AdditionalProperties.*
 import io.ktor.openapi.JsonSchema.*
 import io.ktor.openapi.ReferenceOr.*
+import io.ktor.utils.io.InternalAPI
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.json.Json
@@ -53,7 +54,7 @@ public val KotlinxJsonSchemaInference: JsonSchemaInference = JsonSchemaInference
  * Note: This function does not handle circular references. For types with circular dependencies,
  * consider implementing depth tracking or schema references to avoid stack overflow.
  */
-@OptIn(ExperimentalSerializationApi::class, InternalSerializationApi::class)
+@OptIn(ExperimentalSerializationApi::class, InternalSerializationApi::class, InternalAPI::class)
 public fun SerialDescriptor.buildJsonSchema(
     includeTitle: Boolean = true,
     includeAnnotations: List<Annotation> = emptyList(),
@@ -204,7 +205,13 @@ public fun SerialDescriptor.buildJsonSchema(
     }
 }
 
-internal fun jsonSchemaFromAnnotations(
+/**
+ * Create an instance of JsonSchema from the provided properties and supplied annotations.
+ *
+ * This is used internally for different inference strategies.
+ */
+@InternalAPI
+public fun jsonSchemaFromAnnotations(
     annotations: List<Annotation>,
     reflectSchema: (KClass<*>).() -> ReferenceOr<JsonSchema>,
     type: JsonType,
@@ -271,7 +278,7 @@ internal fun jsonSchemaFromAnnotations(
         } ?: discriminator,
         readOnly = annotations.firstInstanceOf<ReadOnly>()?.let { true },
         writeOnly = annotations.firstInstanceOf<WriteOnly>()?.let { true },
-        deprecated = annotations.firstInstanceOf<Deprecated>()?.let { true },
+        deprecated = annotations.firstInstanceOf<DeprecatedSchema>()?.let { true },
         maxProperties = annotations.firstInstanceOf<MaxProperties>()?.value,
         minProperties = annotations.firstInstanceOf<MinProperties>()?.value,
         default = annotations.firstInstanceOf<Default>()?.value?.let { parseJsonLiteralToGenericElement(it) },
@@ -305,9 +312,6 @@ internal fun jsonSchemaFromAnnotations(
 
 private inline fun <reified T : Annotation> List<Annotation>.firstInstanceOf(): T? =
     filterIsInstance<T>().firstOrNull()
-
-private inline fun <reified T : Annotation> Map<KClass<out Annotation>, List<Annotation>>.lookup(): T? =
-    this[T::class]?.filterIsInstance<T>()?.firstOrNull()
 
 /**
  * Generates a JSON Schema representation for the given type [T].

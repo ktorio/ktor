@@ -984,6 +984,8 @@ public final class io/ktor/openapi/JsonSchemaInferenceKt {
 	public static final fun buildJsonSchema (Lkotlinx/serialization/descriptors/SerialDescriptor;ZLjava/util/List;)Lio/ktor/openapi/JsonSchema;
 	public static synthetic fun buildJsonSchema$default (Lkotlinx/serialization/descriptors/SerialDescriptor;ZLjava/util/List;ILjava/lang/Object;)Lio/ktor/openapi/JsonSchema;
 	public static final fun getKotlinxJsonSchemaInference ()Lio/ktor/openapi/JsonSchemaInference;
+	public static final fun jsonSchemaFromAnnotations (Ljava/util/List;Lkotlin/jvm/functions/Function1;Lio/ktor/openapi/JsonType;Ljava/lang/String;Ljava/util/List;Lio/ktor/openapi/ReferenceOr;Ljava/util/Map;Lio/ktor/openapi/AdditionalProperties;Ljava/util/List;Ljava/lang/Boolean;Ljava/lang/String;Lio/ktor/openapi/JsonSchemaDiscriminator;)Lio/ktor/openapi/JsonSchema;
+	public static synthetic fun jsonSchemaFromAnnotations$default (Ljava/util/List;Lkotlin/jvm/functions/Function1;Lio/ktor/openapi/JsonType;Ljava/lang/String;Ljava/util/List;Lio/ktor/openapi/ReferenceOr;Ljava/util/Map;Lio/ktor/openapi/AdditionalProperties;Ljava/util/List;Ljava/lang/Boolean;Ljava/lang/String;Lio/ktor/openapi/JsonSchemaDiscriminator;ILjava/lang/Object;)Lio/ktor/openapi/JsonSchema;
 }
 
 public final class io/ktor/openapi/JsonType : java/lang/Enum, io/ktor/openapi/JsonSchema$SchemaType {
@@ -1806,18 +1808,6 @@ public final class io/ktor/openapi/ReferenceOr$Value : io/ktor/openapi/Reference
 	public static fun valueOrNull-impl (Ljava/lang/Object;)Ljava/lang/Object;
 }
 
-public final class io/ktor/openapi/ReflectionJsonSchemaInference : io/ktor/openapi/JsonSchemaInference {
-	public static final field Companion Lio/ktor/openapi/ReflectionJsonSchemaInference$Companion;
-	public fun <init> (Lio/ktor/openapi/SchemaReflectionAdapter;)V
-	public fun buildSchema (Lkotlin/reflect/KType;)Lio/ktor/openapi/JsonSchema;
-	public final fun schemaForClass (Lkotlin/reflect/KClass;)Lio/ktor/openapi/JsonSchema;
-	public final fun schemaRefForClass (Lkotlin/reflect/KClass;)Lio/ktor/openapi/ReferenceOr;
-}
-
-public final class io/ktor/openapi/ReflectionJsonSchemaInference$Companion {
-	public final fun getDefault ()Lio/ktor/openapi/JsonSchemaInference;
-}
-
 public final class io/ktor/openapi/RequestBody : io/ktor/openapi/Extensible {
 	public static final field Companion Lio/ktor/openapi/RequestBody$Companion;
 	public fun <init> ()V
@@ -1966,22 +1956,6 @@ public final class io/ktor/openapi/Responses$Builder {
 
 public final class io/ktor/openapi/Responses$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
-public abstract interface class io/ktor/openapi/SchemaReflectionAdapter {
-	public fun getName (Lkotlin/reflect/KProperty1;)Ljava/lang/String;
-	public fun getName (Lkotlin/reflect/KType;)Ljava/lang/String;
-	public fun getProperties (Lkotlin/reflect/KClass;)Ljava/util/Collection;
-	public fun isIgnored (Lkotlin/reflect/KProperty1;)Z
-	public fun isNullable (Lkotlin/reflect/KType;)Z
-}
-
-public final class io/ktor/openapi/SchemaReflectionAdapter$DefaultImpls {
-	public static fun getName (Lio/ktor/openapi/SchemaReflectionAdapter;Lkotlin/reflect/KProperty1;)Ljava/lang/String;
-	public static fun getName (Lio/ktor/openapi/SchemaReflectionAdapter;Lkotlin/reflect/KType;)Ljava/lang/String;
-	public static fun getProperties (Lio/ktor/openapi/SchemaReflectionAdapter;Lkotlin/reflect/KClass;)Ljava/util/Collection;
-	public static fun isIgnored (Lio/ktor/openapi/SchemaReflectionAdapter;Lkotlin/reflect/KProperty1;)Z
-	public static fun isNullable (Lio/ktor/openapi/SchemaReflectionAdapter;Lkotlin/reflect/KType;)Z
 }
 
 public final class io/ktor/openapi/Security {
