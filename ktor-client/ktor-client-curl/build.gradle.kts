@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 import ktorbuild.createCInterop
@@ -45,9 +45,6 @@ if (hostTarget != null) {
     val libcurlInstall = registerVcpkgInstallTask("libcurl", hostTarget) {
         // Link against system zlib (except for Windows)
         if (hostTarget != "mingwX64") overlayPorts.add("ports/zlib")
-        // Apply an additional patch removing usage of sys_nerr/sys_errlist on Windows
-        // TODO: Remove this port overlay after updating to curl 8.18.0 where this patch is included
-        overlayPorts.add("ports/curl")
     }
 
     val libcurlUpdateHeaders = registerSyncHeadersTask(
