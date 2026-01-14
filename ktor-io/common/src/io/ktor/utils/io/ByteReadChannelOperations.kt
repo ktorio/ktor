@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.utils.io
@@ -421,21 +421,21 @@ private const val LF: Byte = '\n'.code.toByte()
  * Reads a line of UTF-8 characters from the `ByteReadChannel`.
  * It recognizes CR, LF, and CRLF as a line delimiter.
  *
- * ## Deprecation Notes
+ * ## Deprecation
  *
- * This function is deprecated in favor of [readLineStrict] and [readLine].
+ * This function is deprecated. Use [readLineStrict] or [readLine] instead.
  *
  * Use [readLineStrict] when:
- * - Need to limit line length and throw [TooLongLineException] if the limit is reached
- * - Expect an explicit line break at the end of a line. [EOFException] will be thrown
- *   if the channel is closed before the line break
+ * - You need to limit the line length and throw [TooLongLineException] when the limit is reached.
+ * - You expect an explicit line break at the end of a line. [EOFException] will be thrown
+ *   when the channel is closed before the line break.
  *
  * Use [readLine] when:
- * - No need to limit line length
- * - An explicit line break at the end of the channel is not mandatory
+ * - You do not need to limit line length.
+ * - An explicit line break at the end of the channel is not mandatory.
  *
- * Other changes:
- * - New functions recognize LF and CRLF as a line delimiter by default. This default comes with better performance.
+ * Compared to `readUTF8Line`, the new functions differ in the following ways:
+ * - They recognize LF and CRLF as line delimiters by default, which provides better performance.
  *   To keep current behavior and recognize all line delimiters (CR, LF, and CRLF), specify [LineEnding.Lenient].
  * - [readLineStrict] accepts [Long] instead of [Int] as a limit parameter.
  *
@@ -453,8 +453,8 @@ private const val LF: Byte = '\n'.code.toByte()
  * }
  * val line = if (success) buffer.toString() else null
  * ```
- * However, we recommend to use [LineEnding.Default] if possible and verify if the case with
- * the unexpected end of line should actually be ignored. We expect the following code to be correct in most cases:
+ * However, we recommend using the default line ending behavior ([LineEnding.Default]) and
+ * do not ignore unexpected end-of-input:
  * ```
  * val line = channel.readLineStrict(limit = 1024)
  * ```
@@ -466,7 +466,7 @@ private const val LF: Byte = '\n'.code.toByte()
  * @throws TooLongLineException if max is reached before encountering a line delimiter or end of input
  */
 @Suppress("DEPRECATION")
-@Deprecated("Use readLineStrict instead. See deprecation notes for more details.")
+@Deprecated("Use readLineStrict or readLine instead. See deprecation notes for more details.")
 public suspend fun ByteReadChannel.readUTF8Line(max: Int = Int.MAX_VALUE): String? {
     val result = StringBuilder()
     val completed = readUTF8LineTo(result, max)
@@ -477,23 +477,24 @@ public suspend fun ByteReadChannel.readUTF8Line(max: Int = Int.MAX_VALUE): Strin
  * Reads a line of UTF-8 characters to the specified [out] buffer.
  * It recognizes CR, LF, and CRLF as a line delimiter.
  *
- * ## Deprecation Notes
+ * ## Deprecation
  *
- * This function is deprecated in favor of [readLineStrictTo] and [readLineTo].
+ * This function is deprecated. Use [readLineStrictTo] or [readLineTo] instead.
  *
  * Use [readLineStrictTo] when:
- * - Need to limit line length and throw [TooLongLineException] if the limit is reached
- * - Expect an explicit line break at the end of a line. [EOFException] will be thrown
- *   if the channel is closed before the line break
+ * - You need to limit the line length and throw [TooLongLineException] when the limit is reached.
+ * - You expect an explicit line break at the end of a line. [EOFException] will be thrown
+ *   when the channel is closed before the line break.
  *
  * Use [readLineTo] when:
- * - No need to limit line length
- * - An explicit line break at the end of the channel is not mandatory
+ * - You do not need to limit line length.
+ * - An explicit line break at the end of the channel is not mandatory.
  *
- * Other changes:
- * - New functions recognize LF and CRLF as a line delimiter by default. This default comes with better performance.
+ * Compared to `readUTF8LineTo`, the new functions differ in the following ways:
+ * - They recognize LF and CRLF as line delimiters by default, which provides better performance.
  *   To keep current behavior and recognize all line delimiters (CR, LF, and CRLF), specify [LineEnding.Lenient].
- * - New functions return number of appended characters instead of [Boolean] or `-1` if the channel is empty.
+ * - They return the return number of appended characters instead, or `-1` if the channel is empty, instead of
+ *   returning [Boolean].
  * - [readLineStrictTo] accepts [Long] instead of [Int] as a limit parameter.
  *
  * The direct equivalent of `readUTF8LineTo` would be:
@@ -508,8 +509,8 @@ public suspend fun ByteReadChannel.readUTF8Line(max: Int = Int.MAX_VALUE): Strin
  *     true
  * }
  * ```
- * However, we recommend to use [LineEnding.Default] if possible and verify if the case with
- * the unexpected end of line should actually be ignored. We expect the following code to be correct in most cases:
+ * However, we recommend using the default line ending behavior ([LineEnding.Default]) and
+ * do not ignore unexpected end-of-input:
  * ```
  * val success = channel.readLineTo(out, limit = 1024) >= 0
  * ```
@@ -524,7 +525,7 @@ public suspend fun ByteReadChannel.readUTF8Line(max: Int = Int.MAX_VALUE): Strin
  */
 @Suppress("DEPRECATION")
 @OptIn(InternalAPI::class)
-@Deprecated("Use readLineStrictTo instead. See deprecation notes for more details.")
+@Deprecated("Use readLineStrictTo or readLineTo instead. See deprecation notes for more details.")
 public suspend fun ByteReadChannel.readUTF8LineTo(out: Appendable, max: Int = Int.MAX_VALUE): Boolean {
     return readUTF8LineTo(out, max, lineEnding = LineEndingMode.Any)
 }
