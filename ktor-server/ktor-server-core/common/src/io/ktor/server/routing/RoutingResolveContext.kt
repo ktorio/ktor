@@ -2,6 +2,9 @@
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+// ABOUTME: Context for routing resolution that matches URL paths to route handlers.
+// ABOUTME: Uses thread-local pooled state on JVM to minimize per-request allocations.
+
 package io.ktor.server.routing
 
 import io.ktor.http.*
@@ -10,7 +13,6 @@ import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import kotlin.math.*
 
-private const val ROUTING_DEFAULT_CAPACITY = 16
 private const val MIN_QUALITY = -Double.MAX_VALUE
 
 /**
@@ -42,26 +44,8 @@ public class RoutingResolveContext(
 
     private val trace: RoutingResolveTrace?
 
-    // Backtracking state stored as parallel arrays to avoid allocating Success objects
-    private val traitRoutes = ArrayList<RoutingNode>(ROUTING_DEFAULT_CAPACITY)
-    private val traitParameters = ArrayList<Parameters>(ROUTING_DEFAULT_CAPACITY)
-    private var traitQualities = DoubleArray(ROUTING_DEFAULT_CAPACITY)
-    private var traitSize = 0
-
-    // Best result storage as parallel arrays
-    private val resultRoutes = ArrayList<RoutingNode>(ROUTING_DEFAULT_CAPACITY)
-    private val resultParameters = ArrayList<Parameters>(ROUTING_DEFAULT_CAPACITY)
-    private var resultQualities = DoubleArray(ROUTING_DEFAULT_CAPACITY)
-    private var resultSize = 0
-
-    // Output from recursive handleRoute call
-    private var resultQuality = MIN_QUALITY
-
-    private var failedEvaluation: RouteSelectorEvaluation.Failure? = RouteSelectorEvaluation.FailedPath
-    private var failedEvaluationDepth = 0
-
-    // Reusable ParametersBuilder to avoid allocation in findBestRoute
-    private val parametersBuilder = ParametersBuilder()
+    // Pooled mutable state - acquired from thread-local pool on JVM
+    private val state = acquireRoutingResolveState()
 
     init {
         try {
@@ -130,7 +114,7 @@ public class RoutingResolveContext(
             if (segmentIndex == segments.size) {
                 updateFailedEvaluation(evaluation)
             }
-            resultQuality = MIN_QUALITY
+            state.resultQuality = MIN_QUALITY
             return
         }
 
@@ -144,7 +128,7 @@ public class RoutingResolveContext(
                 segmentIndex,
                 RoutingResolveResult.Failure(entry, "Better match was already found", HttpStatusCode.NotFound)
             )
-            resultQuality = MIN_QUALITY
+            state.resultQuality = MIN_QUALITY
             return
         }
 
@@ -156,27 +140,27 @@ public class RoutingResolveContext(
                 newIndex,
                 RoutingResolveResult.Failure(entry, "Not all segments matched", HttpStatusCode.NotFound)
             )
-            resultQuality = MIN_QUALITY
+            state.resultQuality = MIN_QUALITY
             return
         }
 
         trace?.begin(entry, newIndex)
 
         // Add to trait using parallel arrays (no Success allocation)
-        traitRoutes.add(entry)
-        traitParameters.add(evaluation.parameters)
-        ensureTraitQualityCapacity()
-        traitQualities[traitSize] = evaluation.quality
-        traitSize++
+        state.traitRoutes.add(entry)
+        state.traitParameters.add(evaluation.parameters)
+        state.ensureTraitQualityCapacity()
+        state.traitQualities[state.traitSize] = evaluation.quality
+        state.traitSize++
 
         val hasHandlers = entry.handlers.isNotEmpty()
         var bestSucceedChildQuality: Double = MIN_QUALITY
 
         if (hasHandlers && newIndex == segments.size) {
-            if (resultSize == 0 || isBetterResolve()) {
+            if (state.resultSize == 0 || isBetterResolve()) {
                 bestSucceedChildQuality = evaluation.quality
-                copyTraitToResult()
-                failedEvaluation = null
+                state.copyTraitToResult()
+                state.failedEvaluation = null
             }
 
             trace?.addCandidate(buildTraitListForTrace())
@@ -186,16 +170,16 @@ public class RoutingResolveContext(
         for (childIndex in 0..entry.children.lastIndex) {
             val child = entry.children[childIndex]
             handleRoute(child, newIndex, bestSucceedChildQuality)
-            val childQuality = resultQuality
+            val childQuality = state.resultQuality
             if (childQuality > 0) {
                 bestSucceedChildQuality = max(bestSucceedChildQuality, childQuality)
             }
         }
 
         // Backtrack
-        traitSize--
-        traitRoutes.removeLast()
-        traitParameters.removeLast()
+        state.traitSize--
+        state.traitRoutes.removeLast()
+        state.traitParameters.removeLast()
 
         // Create Success only for trace (when tracing is enabled)
         if (trace != null) {
@@ -203,67 +187,53 @@ public class RoutingResolveContext(
             trace.finish(entry, newIndex, traceResult)
         }
 
-        resultQuality = if (bestSucceedChildQuality > 0) evaluation.quality else MIN_QUALITY
-    }
-
-    private fun ensureTraitQualityCapacity() {
-        if (traitSize >= traitQualities.size) {
-            traitQualities = traitQualities.copyOf(traitQualities.size * 2)
-        }
-    }
-
-    private fun copyTraitToResult() {
-        resultRoutes.clear()
-        resultParameters.clear()
-        resultRoutes.addAll(traitRoutes)
-        resultParameters.addAll(traitParameters)
-        if (resultQualities.size < traitSize) {
-            resultQualities = DoubleArray(maxOf(traitSize, resultQualities.size * 2))
-        }
-        traitQualities.copyInto(resultQualities, 0, 0, traitSize)
-        resultSize = traitSize
+        state.resultQuality = if (bestSucceedChildQuality > 0) evaluation.quality else MIN_QUALITY
     }
 
     private fun buildTraitListForTrace(): List<RoutingResolveResult.Success> {
-        return List(traitSize) { index ->
-            RoutingResolveResult.Success(traitRoutes[index], traitParameters[index], traitQualities[index])
+        return List(state.traitSize) { index ->
+            RoutingResolveResult.Success(
+                state.traitRoutes[index],
+                state.traitParameters[index],
+                state.traitQualities[index]
+            )
         }
     }
 
     private fun findBestRoute(): RoutingResolveResult {
-        if (resultSize == 0) {
+        if (state.resultSize == 0) {
             return RoutingResolveResult.Failure(
                 routing,
                 "No matched subtrees found",
-                failedEvaluation?.failureStatusCode ?: HttpStatusCode.NotFound
+                state.failedEvaluation?.failureStatusCode ?: HttpStatusCode.NotFound
             )
         }
 
-        parametersBuilder.clear()
+        state.parametersBuilder.clear()
         var quality = Double.MAX_VALUE
 
-        for (index in 0 until resultSize) {
-            parametersBuilder.appendAll(resultParameters[index])
+        for (index in 0 until state.resultSize) {
+            state.parametersBuilder.appendAll(state.resultParameters[index])
 
-            val partQuality = if (resultQualities[index] == RouteSelectorEvaluation.qualityTransparent) {
+            val partQuality = if (state.resultQualities[index] == RouteSelectorEvaluation.qualityTransparent) {
                 RouteSelectorEvaluation.qualityConstant
             } else {
-                resultQualities[index]
+                state.resultQualities[index]
             }
 
             quality = minOf(quality, partQuality)
         }
 
-        return RoutingResolveResult.Success(resultRoutes.last(), parametersBuilder.build(), quality)
+        return RoutingResolveResult.Success(state.resultRoutes.last(), state.parametersBuilder.build(), quality)
     }
 
     private fun isBetterResolve(): Boolean {
         var index1 = 0
         var index2 = 0
 
-        while (index1 < resultSize && index2 < traitSize) {
-            val quality1 = resultQualities[index1]
-            val quality2 = traitQualities[index2]
+        while (index1 < state.resultSize && index2 < state.traitSize) {
+            val quality1 = state.resultQualities[index1]
+            val quality2 = state.traitQualities[index2]
             if (quality1 == RouteSelectorEvaluation.qualityTransparent) {
                 index1++
                 continue
@@ -283,14 +253,14 @@ public class RoutingResolveContext(
         }
 
         var firstQuality = 0
-        for (i in 0 until resultSize) {
-            if (resultQualities[i] != RouteSelectorEvaluation.qualityTransparent) {
+        for (i in 0 until state.resultSize) {
+            if (state.resultQualities[i] != RouteSelectorEvaluation.qualityTransparent) {
                 firstQuality++
             }
         }
         var secondQuality = 0
-        for (i in 0 until traitSize) {
-            if (traitQualities[i] != RouteSelectorEvaluation.qualityTransparent) {
+        for (i in 0 until state.traitSize) {
+            if (state.traitQualities[i] != RouteSelectorEvaluation.qualityTransparent) {
                 secondQuality++
             }
         }
@@ -298,19 +268,19 @@ public class RoutingResolveContext(
     }
 
     private fun updateFailedEvaluation(new: RouteSelectorEvaluation.Failure) {
-        val current = failedEvaluation ?: return
-        if (current.quality < new.quality || failedEvaluationDepth < traitSize) {
+        val current = state.failedEvaluation ?: return
+        if (current.quality < new.quality || state.failedEvaluationDepth < state.traitSize) {
             var allConstantOrTransparent = true
-            for (i in 0 until traitSize) {
-                val q = traitQualities[i]
+            for (i in 0 until state.traitSize) {
+                val q = state.traitQualities[i]
                 if (q != RouteSelectorEvaluation.qualityTransparent && q != RouteSelectorEvaluation.qualityConstant) {
                     allConstantOrTransparent = false
                     break
                 }
             }
             if (allConstantOrTransparent) {
-                failedEvaluation = new
-                failedEvaluationDepth = traitSize
+                state.failedEvaluation = new
+                state.failedEvaluationDepth = state.traitSize
             }
         }
     }
