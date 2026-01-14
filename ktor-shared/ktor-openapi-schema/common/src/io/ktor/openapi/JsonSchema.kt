@@ -131,108 +131,126 @@ public data class JsonSchema(
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.PROPERTY)
+    @Retention(AnnotationRetention.RUNTIME)
     public annotation class Ignore
 
     /** $id */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS)
+    @Retention(AnnotationRetention.RUNTIME)
     public annotation class Id(val value: String)
 
     /** $anchor */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS)
+    @Retention(AnnotationRetention.RUNTIME)
     public annotation class Anchor(val value: String, val recursive: Boolean = false)
 
     /** title */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS)
+    @Retention(AnnotationRetention.RUNTIME)
     public annotation class Title(val value: String)
 
     /** description */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    @Retention(AnnotationRetention.RUNTIME)
     public annotation class Description(val value: String)
 
     /** type (e.g. "string", "object", "array") */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    @Retention(AnnotationRetention.RUNTIME)
     public annotation class Type(val value: JsonType)
 
     /** format (e.g. "date-time", "uuid") */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    @Retention(AnnotationRetention.RUNTIME)
     public annotation class Format(val value: String)
 
     /** nullable (OpenAPI-style extension in this project) */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    @Retention(AnnotationRetention.RUNTIME)
     public annotation class Nullable(val value: Boolean = true)
 
     /** deprecated */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    @Retention(AnnotationRetention.RUNTIME)
     public annotation class DeprecatedSchema
 
     /** readOnly */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    @Retention(AnnotationRetention.RUNTIME)
     public annotation class ReadOnly
 
     /** writeOnly */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    @Retention(AnnotationRetention.RUNTIME)
     public annotation class WriteOnly
 
     /** default (JSON literal as text) */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    @Retention(AnnotationRetention.RUNTIME)
     public annotation class Default(val value: String)
 
     /** example (JSON literal as text) */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    @Retention(AnnotationRetention.RUNTIME)
     public annotation class Example(vararg val value: String)
 
     /** enum (each entry is a JSON literal as text) */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    @Retention(AnnotationRetention.RUNTIME)
     public annotation class Enum(vararg val value: String)
 
     /** minLength */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    @Retention(AnnotationRetention.RUNTIME)
     public annotation class MinLength(val value: Int)
 
     /** maxLength */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    @Retention(AnnotationRetention.RUNTIME)
     public annotation class MaxLength(val value: Int)
 
     /** pattern */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    @Retention(AnnotationRetention.RUNTIME)
     public annotation class Pattern(val value: String)
 
     /** minimum (+ optional exclusivity) */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    @Retention(AnnotationRetention.RUNTIME)
     public annotation class Minimum(
         val value: Double,
         val exclusive: Boolean = false,
@@ -242,6 +260,7 @@ public data class JsonSchema(
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    @Retention(AnnotationRetention.RUNTIME)
     public annotation class Maximum(
         val value: Double,
         val exclusive: Boolean = false,
@@ -251,42 +270,49 @@ public data class JsonSchema(
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    @Retention(AnnotationRetention.RUNTIME)
     public annotation class MultipleOf(val value: Double)
 
     /** minItems */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    @Retention(AnnotationRetention.RUNTIME)
     public annotation class MinItems(val value: Int)
 
     /** maxItems */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    @Retention(AnnotationRetention.RUNTIME)
     public annotation class MaxItems(val value: Int)
 
     /** uniqueItems */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    @Retention(AnnotationRetention.RUNTIME)
     public annotation class UniqueItems
 
     /** minProperties */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    @Retention(AnnotationRetention.RUNTIME)
     public annotation class MinProperties(val value: Int)
 
     /** maxProperties */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    @Retention(AnnotationRetention.RUNTIME)
     public annotation class MaxProperties(val value: Int)
 
     /** required (property names) */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    @Retention(AnnotationRetention.RUNTIME)
     public annotation class Required(vararg val value: String)
 
     /**
@@ -296,6 +322,7 @@ public data class JsonSchema(
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    @Retention(AnnotationRetention.RUNTIME)
     public annotation class AdditionalPropertiesAllowed
 
     /**
@@ -306,6 +333,7 @@ public data class JsonSchema(
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    @Retention(AnnotationRetention.RUNTIME)
     public annotation class AdditionalPropertiesRef(val value: KClass<*>)
 
     /**
@@ -316,6 +344,7 @@ public data class JsonSchema(
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    @Retention(AnnotationRetention.RUNTIME)
     public annotation class AnyOfRefs(vararg val value: String)
 
     /**
@@ -326,6 +355,7 @@ public data class JsonSchema(
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    @Retention(AnnotationRetention.RUNTIME)
     public annotation class OneOf(vararg val value: KClass<*>)
 
     /**
@@ -336,6 +366,7 @@ public data class JsonSchema(
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    @Retention(AnnotationRetention.RUNTIME)
     public annotation class Not(val value: KClass<*>)
 
     /**
@@ -346,6 +377,7 @@ public data class JsonSchema(
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    @Retention(AnnotationRetention.RUNTIME)
     public annotation class ItemsRef(val value: KClass<*>)
 
     /**
@@ -358,10 +390,12 @@ public data class JsonSchema(
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    @Retention(AnnotationRetention.RUNTIME)
     public annotation class Discriminator(val property: String, vararg val mapping: Mapping) {
         /**
          * Key-value pair for discriminator mappings (name -> $ref / schema id).
          */
+        @Retention(AnnotationRetention.RUNTIME)
         public annotation class Mapping(
             val key: String, // discriminator value
             val ref: KClass<*>, // target schema $ref (or other identifier your generator understands)
