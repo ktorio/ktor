@@ -13,16 +13,16 @@ import org.khronos.webgl.*
 import org.w3c.dom.*
 import kotlin.coroutines.*
 
+@OptIn(InternalAPI::class)
 @Suppress("CAST_NEVER_SUCCEEDS")
 internal class JsWebSocketSession(
     override val coroutineContext: CoroutineContext,
     private val websocket: WebSocket,
-    incomingFramesConfig: ChannelConfig<Frame>,
-    outgoingFramesConfig: ChannelConfig<Frame>
+    private val ioChannelsConfig: IOChannelsConfig
 ) : DefaultWebSocketSession {
     private val _closeReason: CompletableDeferred<CloseReason> = CompletableDeferred()
-    private val _incoming: Channel<Frame> = incomingFramesConfig.toChannel()
-    private val _outgoing: Channel<Frame> = outgoingFramesConfig.toChannel()
+    private val _incoming: Channel<Frame> = Channel.from(ioChannelsConfig.incoming)
+    private val _outgoing: Channel<Frame> = Channel.from(ioChannelsConfig.outgoing)
 
     override val incoming: ReceiveChannel<Frame> = _incoming
     override val outgoing: SendChannel<Frame> = _outgoing
@@ -140,6 +140,9 @@ internal class JsWebSocketSession(
     @OptIn(InternalAPI::class)
     override fun start(negotiatedExtensions: List<WebSocketExtension<*>>) {
         require(negotiatedExtensions.isEmpty()) { "Extensions are not supported." }
+        if (ioChannelsConfig.incoming.canSuspend) {
+            throw IllegalArgumentException("SUSPEND overflow strategy for incoming channel is not supported.")
+        }
     }
 
     override suspend fun flush() {

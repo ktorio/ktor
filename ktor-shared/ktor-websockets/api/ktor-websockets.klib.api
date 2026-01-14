@@ -6,6 +6,17 @@
 // - Show declarations: true
 
 // Library unique name: <io.ktor:ktor-websockets>
+final enum class io.ktor.websocket/ChannelOverflow : kotlin/Enum<io.ktor.websocket/ChannelOverflow> { // io.ktor.websocket/ChannelOverflow|null[0]
+    enum entry CLOSE // io.ktor.websocket/ChannelOverflow.CLOSE|null[0]
+    enum entry SUSPEND // io.ktor.websocket/ChannelOverflow.SUSPEND|null[0]
+
+    final val entries // io.ktor.websocket/ChannelOverflow.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<io.ktor.websocket/ChannelOverflow> // io.ktor.websocket/ChannelOverflow.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): io.ktor.websocket/ChannelOverflow // io.ktor.websocket/ChannelOverflow.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<io.ktor.websocket/ChannelOverflow> // io.ktor.websocket/ChannelOverflow.values|values#static(){}[0]
+}
+
 final enum class io.ktor.websocket/FrameType : kotlin/Enum<io.ktor.websocket/FrameType> { // io.ktor.websocket/FrameType|null[0]
     enum entry BINARY // io.ktor.websocket/FrameType.BINARY|null[0]
     enum entry CLOSE // io.ktor.websocket/FrameType.CLOSE|null[0]
@@ -87,35 +98,22 @@ abstract interface io.ktor.websocket/WebSocketSession : kotlinx.coroutines/Corou
     open suspend fun send(io.ktor.websocket/Frame) // io.ktor.websocket/WebSocketSession.send|send(io.ktor.websocket.Frame){}[0]
 }
 
-final class <#A: in kotlin/Any?> io.ktor.websocket/ChannelConfig { // io.ktor.websocket/ChannelConfig|null[0]
-    constructor <init>(kotlin/Int, kotlinx.coroutines.channels/BufferOverflow, kotlin/Function1<#A, kotlin/Unit>? = ...) // io.ktor.websocket/ChannelConfig.<init>|<init>(kotlin.Int;kotlinx.coroutines.channels.BufferOverflow;kotlin.Function1<1:0,kotlin.Unit>?){}[0]
-
+final class io.ktor.websocket/ChannelConfig { // io.ktor.websocket/ChannelConfig|null[0]
+    final val canSuspend // io.ktor.websocket/ChannelConfig.canSuspend|{}canSuspend[0]
+        final fun <get-canSuspend>(): kotlin/Boolean // io.ktor.websocket/ChannelConfig.canSuspend.<get-canSuspend>|<get-canSuspend>(){}[0]
     final val capacity // io.ktor.websocket/ChannelConfig.capacity|{}capacity[0]
         final fun <get-capacity>(): kotlin/Int // io.ktor.websocket/ChannelConfig.capacity.<get-capacity>|<get-capacity>(){}[0]
-    final val onBufferOverflow // io.ktor.websocket/ChannelConfig.onBufferOverflow|{}onBufferOverflow[0]
-        final fun <get-onBufferOverflow>(): kotlinx.coroutines.channels/BufferOverflow // io.ktor.websocket/ChannelConfig.onBufferOverflow.<get-onBufferOverflow>|<get-onBufferOverflow>(){}[0]
-    final val onUndeliveredElement // io.ktor.websocket/ChannelConfig.onUndeliveredElement|{}onUndeliveredElement[0]
-        final fun <get-onUndeliveredElement>(): kotlin/Function1<#A, kotlin/Unit>? // io.ktor.websocket/ChannelConfig.onUndeliveredElement.<get-onUndeliveredElement>|<get-onUndeliveredElement>(){}[0]
-
-    final fun <#A1: #A> toChannel(): kotlinx.coroutines.channels/Channel<#A1> // io.ktor.websocket/ChannelConfig.toChannel|toChannel(){0§<1:0>}[0]
-    final fun component1(): kotlin/Int // io.ktor.websocket/ChannelConfig.component1|component1(){}[0]
-    final fun component2(): kotlinx.coroutines.channels/BufferOverflow // io.ktor.websocket/ChannelConfig.component2|component2(){}[0]
-    final fun component3(): kotlin/Function1<#A, kotlin/Unit>? // io.ktor.websocket/ChannelConfig.component3|component3(){}[0]
-    final fun copy(kotlin/Int = ..., kotlinx.coroutines.channels/BufferOverflow = ..., kotlin/Function1<#A, kotlin/Unit>? = ...): io.ktor.websocket/ChannelConfig<#A> // io.ktor.websocket/ChannelConfig.copy|copy(kotlin.Int;kotlinx.coroutines.channels.BufferOverflow;kotlin.Function1<1:0,kotlin.Unit>?){}[0]
-    final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.websocket/ChannelConfig.equals|equals(kotlin.Any?){}[0]
-    final fun hashCode(): kotlin/Int // io.ktor.websocket/ChannelConfig.hashCode|hashCode(){}[0]
-    final fun toString(): kotlin/String // io.ktor.websocket/ChannelConfig.toString|toString(){}[0]
+    final val onOverflow // io.ktor.websocket/ChannelConfig.onOverflow|{}onOverflow[0]
+        final fun <get-onOverflow>(): io.ktor.websocket/ChannelOverflow // io.ktor.websocket/ChannelConfig.onOverflow.<get-onOverflow>|<get-onOverflow>(){}[0]
 
     final object Companion { // io.ktor.websocket/ChannelConfig.Companion|null[0]
-        final val NO_BUFFER // io.ktor.websocket/ChannelConfig.Companion.NO_BUFFER|{}NO_BUFFER[0]
-            final fun <get-NO_BUFFER>(): io.ktor.websocket/ChannelConfig<kotlin/Any> // io.ktor.websocket/ChannelConfig.Companion.NO_BUFFER.<get-NO_BUFFER>|<get-NO_BUFFER>(){}[0]
-        final val SMALL_BUFFER // io.ktor.websocket/ChannelConfig.Companion.SMALL_BUFFER|{}SMALL_BUFFER[0]
-            final fun <get-SMALL_BUFFER>(): io.ktor.websocket/ChannelConfig<kotlin/Any> // io.ktor.websocket/ChannelConfig.Companion.SMALL_BUFFER.<get-SMALL_BUFFER>|<get-SMALL_BUFFER>(){}[0]
         final val UNLIMITED // io.ktor.websocket/ChannelConfig.Companion.UNLIMITED|{}UNLIMITED[0]
-            final fun <get-UNLIMITED>(): io.ktor.websocket/ChannelConfig<kotlin/Any> // io.ktor.websocket/ChannelConfig.Companion.UNLIMITED.<get-UNLIMITED>|<get-UNLIMITED>(){}[0]
-
-        final fun withCapacity(kotlin/Int): io.ktor.websocket/ChannelConfig<kotlin/Any> // io.ktor.websocket/ChannelConfig.Companion.withCapacity|withCapacity(kotlin.Int){}[0]
+            final fun <get-UNLIMITED>(): io.ktor.websocket/ChannelConfig // io.ktor.websocket/ChannelConfig.Companion.UNLIMITED.<get-UNLIMITED>|<get-UNLIMITED>(){}[0]
     }
+}
+
+final class io.ktor.websocket/ChannelOverflowException : kotlin/RuntimeException { // io.ktor.websocket/ChannelOverflowException|null[0]
+    constructor <init>(kotlin/String) // io.ktor.websocket/ChannelOverflowException.<init>|<init>(kotlin.String){}[0]
 }
 
 final class io.ktor.websocket/CloseReason { // io.ktor.websocket/CloseReason|null[0]
@@ -176,6 +174,33 @@ final class io.ktor.websocket/FrameTooBigException : kotlin/Exception, kotlinx.c
         final fun <get-message>(): kotlin/String // io.ktor.websocket/FrameTooBigException.message.<get-message>|<get-message>(){}[0]
 
     final fun createCopy(): io.ktor.websocket/FrameTooBigException // io.ktor.websocket/FrameTooBigException.createCopy|createCopy(){}[0]
+}
+
+final class io.ktor.websocket/IOChannelsConfig { // io.ktor.websocket/IOChannelsConfig|null[0]
+    final val incoming // io.ktor.websocket/IOChannelsConfig.incoming|{}incoming[0]
+        final fun <get-incoming>(): io.ktor.websocket/ChannelConfig // io.ktor.websocket/IOChannelsConfig.incoming.<get-incoming>|<get-incoming>(){}[0]
+    final val outgoing // io.ktor.websocket/IOChannelsConfig.outgoing|{}outgoing[0]
+        final fun <get-outgoing>(): io.ktor.websocket/ChannelConfig // io.ktor.websocket/IOChannelsConfig.outgoing.<get-outgoing>|<get-outgoing>(){}[0]
+
+    final object Companion { // io.ktor.websocket/IOChannelsConfig.Companion|null[0]
+        final val UNLIMITED // io.ktor.websocket/IOChannelsConfig.Companion.UNLIMITED|{}UNLIMITED[0]
+            final fun <get-UNLIMITED>(): io.ktor.websocket/IOChannelsConfig // io.ktor.websocket/IOChannelsConfig.Companion.UNLIMITED.<get-UNLIMITED>|<get-UNLIMITED>(){}[0]
+    }
+}
+
+final class io.ktor.websocket/IOChannelsConfigBuilder { // io.ktor.websocket/IOChannelsConfigBuilder|null[0]
+    constructor <init>() // io.ktor.websocket/IOChannelsConfigBuilder.<init>|<init>(){}[0]
+
+    final var incoming // io.ktor.websocket/IOChannelsConfigBuilder.incoming|{}incoming[0]
+        final fun <get-incoming>(): io.ktor.websocket/ChannelConfig // io.ktor.websocket/IOChannelsConfigBuilder.incoming.<get-incoming>|<get-incoming>(){}[0]
+        final fun <set-incoming>(io.ktor.websocket/ChannelConfig) // io.ktor.websocket/IOChannelsConfigBuilder.incoming.<set-incoming>|<set-incoming>(io.ktor.websocket.ChannelConfig){}[0]
+    final var outgoing // io.ktor.websocket/IOChannelsConfigBuilder.outgoing|{}outgoing[0]
+        final fun <get-outgoing>(): io.ktor.websocket/ChannelConfig // io.ktor.websocket/IOChannelsConfigBuilder.outgoing.<get-outgoing>|<get-outgoing>(){}[0]
+        final fun <set-outgoing>(io.ktor.websocket/ChannelConfig) // io.ktor.websocket/IOChannelsConfigBuilder.outgoing.<set-outgoing>|<set-outgoing>(io.ktor.websocket.ChannelConfig){}[0]
+
+    final fun bounded(kotlin/Int, io.ktor.websocket/ChannelOverflow = ...): io.ktor.websocket/ChannelConfig // io.ktor.websocket/IOChannelsConfigBuilder.bounded|bounded(kotlin.Int;io.ktor.websocket.ChannelOverflow){}[0]
+    final fun build(): io.ktor.websocket/IOChannelsConfig // io.ktor.websocket/IOChannelsConfigBuilder.build|build(){}[0]
+    final fun unlimited(): io.ktor.websocket/ChannelConfig // io.ktor.websocket/IOChannelsConfigBuilder.unlimited|unlimited(){}[0]
 }
 
 final class io.ktor.websocket/ProtocolViolationException : kotlin/Exception, kotlinx.coroutines/CopyableThrowable<io.ktor.websocket/ProtocolViolationException> { // io.ktor.websocket/ProtocolViolationException|null[0]
@@ -277,10 +302,12 @@ final fun (io.ktor.websocket/Frame.Close).io.ktor.websocket/readReason(): io.kto
 final fun (io.ktor.websocket/Frame.Text).io.ktor.websocket/readText(): kotlin/String // io.ktor.websocket/readText|readText@io.ktor.websocket.Frame.Text(){}[0]
 final fun <#A: io.ktor.websocket/WebSocketExtension<*>> (io.ktor.websocket/WebSocketSession).io.ktor.websocket/extension(io.ktor.websocket/WebSocketExtensionFactory<*, #A>): #A // io.ktor.websocket/extension|extension@io.ktor.websocket.WebSocketSession(io.ktor.websocket.WebSocketExtensionFactory<*,0:0>){0§<io.ktor.websocket.WebSocketExtension<*>>}[0]
 final fun <#A: io.ktor.websocket/WebSocketExtension<*>> (io.ktor.websocket/WebSocketSession).io.ktor.websocket/extensionOrNull(io.ktor.websocket/WebSocketExtensionFactory<*, #A>): #A? // io.ktor.websocket/extensionOrNull|extensionOrNull@io.ktor.websocket.WebSocketSession(io.ktor.websocket.WebSocketExtensionFactory<*,0:0>){0§<io.ktor.websocket.WebSocketExtension<*>>}[0]
+final fun <#A: kotlin/Any?> (kotlinx.coroutines.channels/Channel.Factory).io.ktor.websocket/from(io.ktor.websocket/ChannelConfig): kotlinx.coroutines.channels/Channel<#A> // io.ktor.websocket/from|from@kotlinx.coroutines.channels.Channel.Factory(io.ktor.websocket.ChannelConfig){0§<kotlin.Any?>}[0]
 final fun io.ktor.websocket/DefaultWebSocketSession(io.ktor.websocket/WebSocketSession, kotlin/Long = ..., kotlin/Long = ...): io.ktor.websocket/DefaultWebSocketSession // io.ktor.websocket/DefaultWebSocketSession|DefaultWebSocketSession(io.ktor.websocket.WebSocketSession;kotlin.Long;kotlin.Long){}[0]
-final fun io.ktor.websocket/DefaultWebSocketSession(io.ktor.websocket/WebSocketSession, kotlin/Long = ..., kotlin/Long = ..., io.ktor.websocket/ChannelConfig<io.ktor.websocket/Frame>?, io.ktor.websocket/ChannelConfig<io.ktor.websocket/Frame>?): io.ktor.websocket/DefaultWebSocketSession // io.ktor.websocket/DefaultWebSocketSession|DefaultWebSocketSession(io.ktor.websocket.WebSocketSession;kotlin.Long;kotlin.Long;io.ktor.websocket.ChannelConfig<io.ktor.websocket.Frame>?;io.ktor.websocket.ChannelConfig<io.ktor.websocket.Frame>?){}[0]
+final fun io.ktor.websocket/DefaultWebSocketSession(io.ktor.websocket/WebSocketSession, kotlin/Long = ..., kotlin/Long = ..., io.ktor.websocket/IOChannelsConfig): io.ktor.websocket/DefaultWebSocketSession // io.ktor.websocket/DefaultWebSocketSession|DefaultWebSocketSession(io.ktor.websocket.WebSocketSession;kotlin.Long;kotlin.Long;io.ktor.websocket.IOChannelsConfig){}[0]
+final fun io.ktor.websocket/IOChannelsConfig(kotlin/Function1<io.ktor.websocket/IOChannelsConfigBuilder, kotlin/Unit>): io.ktor.websocket/IOChannelsConfig // io.ktor.websocket/IOChannelsConfig|IOChannelsConfig(kotlin.Function1<io.ktor.websocket.IOChannelsConfigBuilder,kotlin.Unit>){}[0]
 final fun io.ktor.websocket/RawWebSocket(io.ktor.utils.io/ByteReadChannel, io.ktor.utils.io/ByteWriteChannel, kotlin/Long = ..., kotlin/Boolean = ..., kotlin.coroutines/CoroutineContext): io.ktor.websocket/WebSocketSession // io.ktor.websocket/RawWebSocket|RawWebSocket(io.ktor.utils.io.ByteReadChannel;io.ktor.utils.io.ByteWriteChannel;kotlin.Long;kotlin.Boolean;kotlin.coroutines.CoroutineContext){}[0]
-final fun io.ktor.websocket/RawWebSocket(io.ktor.utils.io/ByteReadChannel, io.ktor.utils.io/ByteWriteChannel, kotlin/Long = ..., kotlin/Boolean = ..., kotlin.coroutines/CoroutineContext, io.ktor.websocket/ChannelConfig<io.ktor.websocket/Frame> = ..., io.ktor.websocket/ChannelConfig<io.ktor.websocket/Frame> = ...): io.ktor.websocket/WebSocketSession // io.ktor.websocket/RawWebSocket|RawWebSocket(io.ktor.utils.io.ByteReadChannel;io.ktor.utils.io.ByteWriteChannel;kotlin.Long;kotlin.Boolean;kotlin.coroutines.CoroutineContext;io.ktor.websocket.ChannelConfig<io.ktor.websocket.Frame>;io.ktor.websocket.ChannelConfig<io.ktor.websocket.Frame>){}[0]
+final fun io.ktor.websocket/RawWebSocket(io.ktor.utils.io/ByteReadChannel, io.ktor.utils.io/ByteWriteChannel, kotlin/Long = ..., kotlin/Boolean = ..., kotlin.coroutines/CoroutineContext, io.ktor.websocket/IOChannelsConfig): io.ktor.websocket/WebSocketSession // io.ktor.websocket/RawWebSocket|RawWebSocket(io.ktor.utils.io.ByteReadChannel;io.ktor.utils.io.ByteWriteChannel;kotlin.Long;kotlin.Boolean;kotlin.coroutines.CoroutineContext;io.ktor.websocket.IOChannelsConfig){}[0]
 final fun io.ktor.websocket/parseWebSocketExtensions(kotlin/String): kotlin.collections/List<io.ktor.websocket/WebSocketExtensionHeader> // io.ktor.websocket/parseWebSocketExtensions|parseWebSocketExtensions(kotlin.String){}[0]
 final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.websocket/readFrame(kotlin/Long, kotlin/Int): io.ktor.websocket/Frame // io.ktor.websocket/readFrame|readFrame@io.ktor.utils.io.ByteReadChannel(kotlin.Long;kotlin.Int){}[0]
 final suspend fun (io.ktor.utils.io/ByteWriteChannel).io.ktor.websocket/writeFrame(io.ktor.websocket/Frame, kotlin/Boolean) // io.ktor.websocket/writeFrame|writeFrame@io.ktor.utils.io.ByteWriteChannel(io.ktor.websocket.Frame;kotlin.Boolean){}[0]

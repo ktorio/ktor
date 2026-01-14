@@ -15,7 +15,6 @@ import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
-import io.ktor.websocket.ChannelConfig
 
 internal class CurlClientEngine(
     override val config: CurlClientEngineConfig
@@ -51,7 +50,7 @@ internal class CurlClientEngine(
             val responseBody: Any = if (data.isUpgradeRequest()) {
                 val wsConfig = data.attributes[WEBSOCKETS_KEY]
                 val websocket = responseBody as CurlWebSocketResponseBody
-                CurlWebSocketSession(websocket, callContext, wsConfig.outgoingFramesConfig ?: ChannelConfig.UNLIMITED)
+                CurlWebSocketSession(websocket, callContext, wsConfig.ioChannelsConfig.outgoing)
             } else {
                 val httpResponse = responseBody as CurlHttpResponseBody
                 data.attributes.getOrNull(ResponseAdapterAttributeKey)

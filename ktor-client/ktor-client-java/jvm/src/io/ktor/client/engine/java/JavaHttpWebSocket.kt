@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.java
@@ -15,6 +15,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.consumeEach
@@ -51,8 +52,7 @@ internal suspend fun HttpClient.executeWebSocketRequest(
         callContext = coroutineContext,
         httpClient = this,
         requestData = requestData,
-        incomingFramesConfig = wsConfig.incomingFramesConfig ?: ChannelConfig.UNLIMITED,
-        outgoingFramesConfig = wsConfig.outgoingFramesConfig ?: ChannelConfig.UNLIMITED
+        ioChannelsConfig = wsConfig.ioChannelsConfig
     )
     try {
         return webSocket.getResponse()
@@ -63,20 +63,19 @@ internal suspend fun HttpClient.executeWebSocketRequest(
     }
 }
 
-@OptIn(DelicateCoroutinesApi::class)
+@OptIn(DelicateCoroutinesApi::class, InternalAPI::class)
 internal class JavaHttpWebSocket(
     private val callContext: CoroutineContext,
     private val httpClient: HttpClient,
     private val requestData: HttpRequestData,
     private val requestTime: GMTDate = GMTDate(),
-    incomingFramesConfig: ChannelConfig<Frame> = ChannelConfig.UNLIMITED,
-    outgoingFramesConfig: ChannelConfig<Frame> = ChannelConfig.UNLIMITED
+    ioChannelsConfig: IOChannelsConfig
 ) : WebSocket.Listener, WebSocketSession {
 
     private lateinit var webSocket: WebSocket
     private val socketJob = Job(callContext[Job])
-    private val _incoming = incomingFramesConfig.toChannel<Frame>()
-    private val _outgoing = outgoingFramesConfig.toChannel<Frame>()
+    private val _incoming = Channel.from<Frame>(ioChannelsConfig.incoming)
+    private val _outgoing = Channel.from<Frame>(ioChannelsConfig.outgoing)
 
     override val coroutineContext: CoroutineContext
         get() = callContext + socketJob + CoroutineName("java-ws")
@@ -198,20 +197,23 @@ internal class JavaHttpWebSocket(
         webSocket.request(1)
     }
 
-    override fun onText(webSocket: WebSocket, data: CharSequence, last: Boolean): CompletionStage<*> = async {
-        _incoming.send(Frame.Text(last, data.toString().toByteArray()))
-        webSocket.request(1)
-    }.asCompletableFuture()
+    override fun onText(webSocket: WebSocket, data: CharSequence, last: Boolean): CompletionStage<*> =
+        async(start = CoroutineStart.UNDISPATCHED) {
+            _incoming.send(Frame.Text(last, data.toString().toByteArray()))
+            webSocket.request(1)
+        }.asCompletableFuture()
 
-    override fun onBinary(webSocket: WebSocket, data: ByteBuffer, last: Boolean): CompletionStage<*> = async {
-        _incoming.send(Frame.Binary(last, data))
-        webSocket.request(1)
-    }.asCompletableFuture()
+    override fun onBinary(webSocket: WebSocket, data: ByteBuffer, last: Boolean): CompletionStage<*> =
+        async(start = CoroutineStart.UNDISPATCHED) {
+            _incoming.send(Frame.Binary(last, data))
+            webSocket.request(1)
+        }.asCompletableFuture()
 
-    override fun onPong(webSocket: WebSocket, message: ByteBuffer): CompletionStage<*> = async {
-        _incoming.send(Frame.Pong(message))
-        webSocket.request(1)
-    }.asCompletableFuture()
+    override fun onPong(webSocket: WebSocket, message: ByteBuffer): CompletionStage<*> =
+        async(start = CoroutineStart.UNDISPATCHED) {
+            _incoming.send(Frame.Pong(message))
+            webSocket.request(1)
+        }.asCompletableFuture()
 
     override fun onError(webSocket: WebSocket, error: Throwable) {
         val cause = WebSocketException(error.message ?: "web socket failed", error)
@@ -220,11 +222,12 @@ internal class JavaHttpWebSocket(
         socketJob.complete()
     }
 
-    override fun onClose(webSocket: WebSocket, statusCode: Int, reason: String): CompletionStage<*> = async {
-        val closeReason = CloseReason(statusCode.toShort(), reason)
-        _incoming.send(Frame.Close(closeReason))
-        socketJob.complete()
-    }.asCompletableFuture()
+    override fun onClose(webSocket: WebSocket, statusCode: Int, reason: String): CompletionStage<*> =
+        async(start = CoroutineStart.UNDISPATCHED) {
+            val closeReason = CloseReason(statusCode.toShort(), reason)
+            _incoming.send(Frame.Close(closeReason))
+            socketJob.complete()
+        }.asCompletableFuture()
 
     override suspend fun flush() {
     }

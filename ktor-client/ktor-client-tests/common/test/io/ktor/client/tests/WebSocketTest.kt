@@ -11,16 +11,14 @@ import io.ktor.client.plugins.auth.*
 import io.ktor.client.plugins.auth.providers.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.*
 import io.ktor.client.test.base.*
 import io.ktor.http.*
 import io.ktor.serialization.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.websocket.*
-import io.ktor.websocket.send
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 import kotlin.time.Duration.Companion.seconds
@@ -471,72 +469,6 @@ class WebSocketTest : ClientLoader() {
                 val frame = incoming.receive() as Frame.Text
                 assertEquals("hello", frame.readText())
             }
-        }
-    }
-
-    @Test
-    fun testIncomingFramesChannel() = clientTests(except(ENGINES_WITHOUT_WS)) {
-        val undeliveredFrame = CompletableDeferred<Frame>()
-
-        config {
-            install(WebSockets) {
-                incomingFramesConfig = ChannelConfig(
-                    capacity = 5,
-                    onBufferOverflow = BufferOverflow.DROP_OLDEST,
-                    onUndeliveredElement = { undeliveredFrame.complete(it) }
-                )
-            }
-        }
-
-        test { client ->
-            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
-                // Send multiple messages to test the channel behavior
-                repeat(10) { i ->
-                    send("message $i")
-                }
-
-                val frame0 = incoming.receive() as Frame.Text
-                assertEquals("message 0", frame0.readText())
-
-                withTimeout(5.seconds) {
-                    // all messages should be delivered and the oldest must be dropped from the queue
-                    val frame1 = undeliveredFrame.await() as Frame.Text
-                    assertEquals("message 1", frame1.readText())
-                }
-            }
-            client.close()
-        }
-    }
-
-    @Test
-    fun testOutgoingFramesChannel() = clientTests(except(ENGINES_WITHOUT_WS, "OkHttp"), retries = 0) {
-        val undeliveredFrame = CompletableDeferred<Frame>()
-        config {
-            install(WebSockets) {
-                outgoingFramesConfig = ChannelConfig(
-                    capacity = 1,
-                    onBufferOverflow = BufferOverflow.DROP_OLDEST,
-                    onUndeliveredElement = { undeliveredFrame.complete(it) }
-                )
-            }
-        }
-
-        test { client ->
-            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
-                // Fill the outgoing buffer beyond capacity without waiting
-                // Use trySend to avoid suspension and trigger overflow
-                repeat(10) { i ->
-                    outgoing.trySend(Frame.Text("message $i"))
-                }
-
-                // The latest message should be dropped from the queue
-                withTimeout(5.seconds) {
-                    val droppedFrame = undeliveredFrame.await() as Frame.Text
-                    assertTrue(droppedFrame.readText().startsWith("message"))
-                }
-                outgoing.send(Frame.Close())
-            }
-            client.close()
         }
     }
 }

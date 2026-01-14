@@ -106,8 +106,7 @@ internal class JsClientEngine(
         val session = JsWebSocketSession(
             coroutineContext = callContext,
             websocket = socket,
-            incomingFramesConfig = wsConfig.incomingFramesConfig ?: ChannelConfig.UNLIMITED,
-            outgoingFramesConfig = wsConfig.outgoingFramesConfig ?: ChannelConfig.UNLIMITED
+            ioChannelsConfig = wsConfig.ioChannelsConfig
         )
 
         try {

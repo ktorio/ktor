@@ -26,6 +26,7 @@ import kotlin.properties.*
  * @param masking is an initial [masking] value for [WebSocketSession]
  * @param coroutineContext is a [CoroutineContext] to execute reading/writing from/to connection
  */
+@OptIn(InternalAPI::class)
 @Suppress("FunctionName")
 public actual fun RawWebSocket(
     input: ByteReadChannel,
@@ -33,7 +34,8 @@ public actual fun RawWebSocket(
     maxFrameSize: Long,
     masking: Boolean,
     coroutineContext: CoroutineContext
-): WebSocketSession = RawWebSocketJvm(input, output, maxFrameSize, masking, coroutineContext)
+): WebSocketSession =
+    RawWebSocketJvm(input, output, maxFrameSize, masking, coroutineContext, IOChannelsConfig.UNLIMITED)
 
 /**
  * Creates a RAW web socket session from connection
@@ -46,8 +48,7 @@ public actual fun RawWebSocket(
  * @param maxFrameSize is an initial [maxFrameSize] value for [WebSocketSession]
  * @param masking is an initial [masking] value for [WebSocketSession]
  * @param coroutineContext is a [CoroutineContext] to execute reading/writing from/to connection
- * @param incomingFramesChannelConfig is a [ChannelConfig] for the incoming [Frame] queue
- * @param outgoingFramesChannelConfig is a [ChannelConfig] for the outgoing [Frame] queue
+ * @param ioChannelsConfig is a [IOChannelsConfig] for the incoming and outgoing [Frame] queues
  */
 @Suppress("FunctionName")
 public actual fun RawWebSocket(
@@ -56,32 +57,30 @@ public actual fun RawWebSocket(
     maxFrameSize: Long,
     masking: Boolean,
     coroutineContext: CoroutineContext,
-    incomingFramesChannelConfig: ChannelConfig<Frame>,
-    outgoingFramesChannelConfig: ChannelConfig<Frame>
+    ioChannelsConfig: IOChannelsConfig
 ): WebSocketSession = RawWebSocketJvm(
     input,
     output,
     maxFrameSize,
     masking,
     coroutineContext,
-    incomingFramesChannelConfig,
-    outgoingFramesChannelConfig
+    ioChannelsConfig,
 )
 
+@OptIn(InternalAPI::class)
 internal class RawWebSocketJvm(
     input: ByteReadChannel,
     output: ByteWriteChannel,
     maxFrameSize: Long = Int.MAX_VALUE.toLong(),
     masking: Boolean = false,
     coroutineContext: CoroutineContext,
-    incomingFramesChannelConfig: ChannelConfig<Frame> = ChannelConfig.NO_BUFFER,
-    outgoingFramesChannelConfig: ChannelConfig<Frame> = ChannelConfig.SMALL_BUFFER,
+    ioChannelsConfig: IOChannelsConfig,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
 ) : WebSocketSession {
     private val socketJob: CompletableJob = Job(coroutineContext[Job])
-    private val filtered = incomingFramesChannelConfig.toChannel<Frame>()
-
     override val coroutineContext: CoroutineContext = coroutineContext + socketJob + CoroutineName("raw-ws")
+
+    private val filtered = Channel.from<Frame>(ioChannelsConfig.incoming)
     override val incoming: ReceiveChannel<Frame> get() = filtered
     override val outgoing: SendChannel<Frame> get() = writer.outgoing
 
@@ -102,9 +101,11 @@ internal class RawWebSocketJvm(
             coroutineContext = this.coroutineContext,
             masking = masking,
             pool = pool,
-            queueConfig = outgoingFramesChannelConfig
+            queueConfig = ioChannelsConfig.outgoing
         )
-    internal val reader: WebSocketReader = WebSocketReader(input, this.coroutineContext, maxFrameSize, pool)
+
+    internal val reader: WebSocketReader =
+        WebSocketReader(input, this.coroutineContext, maxFrameSize, pool, queueConfig = ioChannelsConfig.incoming)
 
     init {
         launch {

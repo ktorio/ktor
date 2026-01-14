@@ -4,12 +4,14 @@
 
 package io.ktor.client.engine.winhttp.internal
 
+import io.ktor.utils.io.InternalAPI
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
 import io.ktor.websocket.*
 import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.*
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.launch
@@ -27,22 +29,21 @@ private object WinHttpWebSocketBuffer {
     val Close = WINHTTP_WEB_SOCKET_CLOSE_BUFFER_TYPE
 }
 
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, InternalAPI::class)
 internal class WinHttpWebSocket(
     private val hWebSocket: COpaquePointer,
     private val connect: WinHttpConnect,
     callContext: CoroutineContext,
-    incomingFramesConfig: ChannelConfig<Frame>,
-    outgoingFramesConfig: ChannelConfig<Frame>,
+    ioChannelsConfig: IOChannelsConfig
 ) : WebSocketSession, Closeable {
 
     private val closed = atomic(false)
     private val socketJob = Job(callContext[Job])
 
-    private val _incoming = incomingFramesConfig.toChannel<Frame>()
-    private val _outgoing = outgoingFramesConfig.toChannel<Frame>()
-
     override val coroutineContext: CoroutineContext = callContext + socketJob
+
+    private val _incoming = Channel.from<Frame>(ioChannelsConfig.incoming)
+    private val _outgoing = Channel.from<Frame>(ioChannelsConfig.outgoing)
     override var masking: Boolean
         get() = true
         set(_) {}
@@ -73,14 +74,14 @@ internal class WinHttpWebSocket(
         launch {
             ByteArrayPool.useInstance { readBuffer ->
                 while (!closed.value) {
-                    val frame = readBuffer.usePinned { dst ->
+                    val status = readBuffer.usePinned { dst ->
                         receiveNextFrame(dst)
                     }
-                    if (frame == null) {
+                    if (status == null) {
                         socketJob.complete()
                         break
                     }
-                    onFrame(frame, readBuffer)
+                    onFrame(status, readBuffer)
                 }
             }
         }
@@ -127,31 +128,31 @@ internal class WinHttpWebSocket(
         }
     }
 
-    private fun onFrame(status: WinHttpWebSocketStatus, readBuffer: ByteArray) {
+    private suspend fun onFrame(status: WinHttpWebSocketStatus, readBuffer: ByteArray) {
         when (status.bufferType) {
             WinHttpWebSocketBuffer.BinaryMessage -> {
                 val data = readBuffer.copyOf(status.size)
-                _incoming.trySend(Frame.Binary(fin = true, data = data))
+                _incoming.send(Frame.Binary(fin = true, data = data))
             }
 
             WinHttpWebSocketBuffer.BinaryFragment -> {
                 val data = readBuffer.copyOf(status.size)
-                _incoming.trySend(Frame.Binary(fin = false, data = data))
+                _incoming.send(Frame.Binary(fin = false, data = data))
             }
 
             WinHttpWebSocketBuffer.TextMessage -> {
                 val data = readBuffer.copyOf(status.size)
-                _incoming.trySend(Frame.Text(fin = true, data = data))
+                _incoming.send(Frame.Text(fin = true, data = data))
             }
 
             WinHttpWebSocketBuffer.TextFragment -> {
                 val data = readBuffer.copyOf(status.size)
-                _incoming.trySend(Frame.Text(fin = false, data = data))
+                _incoming.send(Frame.Text(fin = false, data = data))
             }
 
             WinHttpWebSocketBuffer.Close -> {
                 val data = readBuffer.copyOf(status.size)
-                _incoming.trySend(Frame.Close(data))
+                _incoming.send(Frame.Close(data))
             }
         }
     }

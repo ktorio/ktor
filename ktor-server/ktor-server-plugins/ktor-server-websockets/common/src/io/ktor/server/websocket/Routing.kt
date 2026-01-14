@@ -196,8 +196,7 @@ private suspend fun WebSocketServerSession.proceedWebSocket(handler: suspend Def
         this,
         webSockets.pingIntervalMillis,
         webSockets.timeoutMillis,
-        webSockets.incomingFramesConfig,
-        webSockets.outgoingFramesConfig
+        webSockets.ioChannelsConfig,
     ).apply {
         val extensions = call.attributes[WebSockets.EXTENSIONS_KEY]
         start(extensions)

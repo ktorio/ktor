@@ -4,22 +4,28 @@
 
 package io.ktor.client.engine.curl.internal
 
+import io.ktor.utils.io.InternalAPI
 import io.ktor.websocket.*
 import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.*
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import libcurl.*
 import platform.posix.size_t
 import platform.posix.size_tVar
 
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(InternalAPI::class, ExperimentalForeignApi::class)
 internal class CurlWebSocketResponseBody(
     private val curl: EasyHandle,
-    incomingFramesConfig: ChannelConfig<Frame> = ChannelConfig.UNLIMITED
+    incomingFramesConfig: ChannelConfig
 ) : CurlResponseBodyData {
 
     private val closed = atomic(false)
-    private val _incoming = incomingFramesConfig.toChannel<Frame>()
+    private val _incoming = if (incomingFramesConfig.canSuspend) {
+        throw IllegalArgumentException("Curl Client does not support SUSPEND overflow strategy for incoming channel")
+    } else {
+        Channel.from<Frame>(incomingFramesConfig)
+    }
 
     val incoming: ReceiveChannel<Frame>
         get() = _incoming
@@ -66,7 +72,7 @@ internal class CurlWebSocketResponseBody(
             }
 
             (flags and CURLWS_PONG != 0) -> {
-                _incoming.trySend(Frame.Ping(data = buffer))
+                _incoming.trySend(Frame.Pong(data = buffer))
             }
 
             (flags and CURLWS_CLOSE != 0) -> {

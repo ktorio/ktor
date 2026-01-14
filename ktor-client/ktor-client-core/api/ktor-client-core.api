@@ -1063,9 +1063,8 @@ public final class io/ktor/client/plugins/websocket/WebSockets {
 	public fun <init> (JJ)V
 	public synthetic fun <init> (JJILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getContentConverter ()Lio/ktor/serialization/WebsocketContentConverter;
-	public final fun getIncomingFramesConfig ()Lio/ktor/websocket/ChannelConfig;
+	public final fun getIoChannelsConfig ()Lio/ktor/websocket/IOChannelsConfig;
 	public final fun getMaxFrameSize ()J
-	public final fun getOutgoingFramesConfig ()Lio/ktor/websocket/ChannelConfig;
 	public final fun getPingIntervalMillis ()J
 }
 
@@ -1073,14 +1072,11 @@ public final class io/ktor/client/plugins/websocket/WebSockets$Config {
 	public fun <init> ()V
 	public final fun extensions (Lkotlin/jvm/functions/Function1;)V
 	public final fun getContentConverter ()Lio/ktor/serialization/WebsocketContentConverter;
-	public final fun getIncomingFramesConfig ()Lio/ktor/websocket/ChannelConfig;
 	public final fun getMaxFrameSize ()J
-	public final fun getOutgoingFramesConfig ()Lio/ktor/websocket/ChannelConfig;
 	public final fun getPingIntervalMillis ()J
+	public final fun ioChannels (Lkotlin/jvm/functions/Function1;)V
 	public final fun setContentConverter (Lio/ktor/serialization/WebsocketContentConverter;)V
-	public final fun setIncomingFramesConfig (Lio/ktor/websocket/ChannelConfig;)V
 	public final fun setMaxFrameSize (J)V
-	public final fun setOutgoingFramesConfig (Lio/ktor/websocket/ChannelConfig;)V
 	public final fun setPingIntervalMillis (J)V
 }
 

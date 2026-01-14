@@ -86,7 +86,13 @@ public fun DefaultWebSocketSession(
     timeoutMillis: Long = 15_000L,
 ): DefaultWebSocketSession {
     require(session !is DefaultWebSocketSession) { "Cannot wrap other DefaultWebSocketSession" }
-    return DefaultWebSocketSessionImpl(session, pingIntervalMillis, timeoutMillis)
+    return DefaultWebSocketSessionImpl(
+        raw = session,
+        pingIntervalMillis,
+        timeoutMillis,
+        incomingFramesConfig = OUTGOING_CHANNEL_CONFIG ?: ChannelConfig.UNLIMITED,
+        outgoingFramesConfig = ChannelConfig.UNLIMITED
+    )
 }
 
 /**
@@ -95,8 +101,7 @@ public fun DefaultWebSocketSession(
  * @param session raw [WebSocketSession] to wrap.
  * @param pingIntervalMillis interval between pings or [PINGER_DISABLED] to disable.
  * @param timeoutMillis timeout for pings.
- * @param incomingFramesConfig configuration for the incoming [Frame] queue.
- * @param outgoingFramesConfig configuration for the outgoing [Frame] queue.
+ * @param ioChannelsConfig configuration for the I/O frame channels.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.DefaultWebSocketSession)
  */
@@ -104,16 +109,15 @@ public fun DefaultWebSocketSession(
     session: WebSocketSession,
     pingIntervalMillis: Long = PINGER_DISABLED,
     timeoutMillis: Long = 15_000L,
-    incomingFramesConfig: ChannelConfig<Frame>?,
-    outgoingFramesConfig: ChannelConfig<Frame>?,
+    ioChannelsConfig: IOChannelsConfig,
 ): DefaultWebSocketSession {
     require(session !is DefaultWebSocketSession) { "Cannot wrap other DefaultWebSocketSession" }
     return DefaultWebSocketSessionImpl(
         session,
         pingIntervalMillis,
         timeoutMillis,
-        incomingFramesConfig ?: ChannelConfig.SMALL_BUFFER,
-        outgoingFramesConfig ?: OUTGOING_CHANNEL_CONFIG ?: ChannelConfig.SMALL_BUFFER,
+        incomingFramesConfig = ioChannelsConfig.incoming,
+        outgoingFramesConfig = ioChannelsConfig.outgoing,
     )
 }
 
@@ -122,25 +126,34 @@ private val OutgoingProcessorCoroutineName = CoroutineName("ws-outgoing-processo
 
 private val NORMAL_CLOSE = CloseReason(CloseReason.Codes.NORMAL, "OK")
 
-private val OUTGOING_CHANNEL_CONFIG = OUTGOING_CHANNEL_CAPACITY?.let { ChannelConfig.withCapacity(it) }
+private val OUTGOING_CHANNEL_CONFIG = OUTGOING_CHANNEL_CAPACITY?.let {
+    ChannelConfig(capacity = it, onOverflow = ChannelOverflow.SUSPEND)
+}
 
 /**
  * A default WebSocket session implementation that handles ping-pongs, close sequence, and frame fragmentation.
  */
 
+@OptIn(InternalAPI::class)
 internal class DefaultWebSocketSessionImpl(
     private val raw: WebSocketSession,
     pingIntervalMillis: Long,
     timeoutMillis: Long,
-    incomingFramesConfig: ChannelConfig<Frame> = ChannelConfig.SMALL_BUFFER,
-    outgoingFramesConfig: ChannelConfig<Frame> = OUTGOING_CHANNEL_CONFIG ?: ChannelConfig.SMALL_BUFFER,
+    incomingFramesConfig: ChannelConfig,
+    outgoingFramesConfig: ChannelConfig,
 ) : DefaultWebSocketSession, WebSocketSession {
     private val pinger = atomic<SendChannel<Frame.Pong>?>(null)
     private val closeReasonRef = CompletableDeferred<CloseReason>()
-    private val filtered = incomingFramesConfig.toChannel<Frame>()
-    private val outgoingToBeProcessed = outgoingFramesConfig.toChannel<Frame>()
+
+    private val context = Job()
+    override val coroutineContext: CoroutineContext =
+        raw.coroutineContext.minusKey(Job) + context + CoroutineName("ws-default")
+
+    private val filtered = Channel.from<Frame>(incomingFramesConfig)
+
+    private val outgoingToBeProcessed = Channel.from<Frame>(outgoingFramesConfig)
+
     private val closed: AtomicBoolean = atomic(false)
-    private val context = Job(raw.coroutineContext[Job])
 
     private val _extensions: MutableList<WebSocketExtension<*>> = mutableListOf()
     private val started = atomic(false)
@@ -151,8 +164,6 @@ internal class DefaultWebSocketSessionImpl(
 
     override val extensions: List<WebSocketExtension<*>>
         get() = _extensions
-
-    override val coroutineContext: CoroutineContext = raw.coroutineContext + context + CoroutineName("ws-default")
 
     override var masking: Boolean
         get() = raw.masking

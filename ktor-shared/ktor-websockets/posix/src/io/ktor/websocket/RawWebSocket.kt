@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.websocket
@@ -26,7 +26,8 @@ public actual fun RawWebSocket(
     maxFrameSize: Long,
     masking: Boolean,
     coroutineContext: CoroutineContext
-): WebSocketSession = RawWebSocketCommon(input, output, maxFrameSize, masking, coroutineContext)
+): WebSocketSession =
+    RawWebSocketCommon(input, output, maxFrameSize, masking, coroutineContext, IOChannelsConfig.UNLIMITED)
 
 /**
  * Creates a RAW web socket session from connection
@@ -39,8 +40,7 @@ public actual fun RawWebSocket(
  * @param maxFrameSize is an initial [maxFrameSize] value for [WebSocketSession]
  * @param masking is an initial [masking] value for [WebSocketSession]
  * @param coroutineContext is a [CoroutineContext] to execute reading/writing from/to connection
- * @param incomingFramesChannelConfig is a [ChannelConfig] for the incoming [Frame] queue
- * @param outgoingFramesChannelConfig is a [ChannelConfig] for the outgoing [Frame] queue
+ * @param ioChannelsConfig is a [IOChannelsConfig] for the incoming and outgoing [Frame] queues
  */
 @Suppress("FunctionName")
 public actual fun RawWebSocket(
@@ -49,14 +49,5 @@ public actual fun RawWebSocket(
     maxFrameSize: Long,
     masking: Boolean,
     coroutineContext: CoroutineContext,
-    incomingFramesChannelConfig: ChannelConfig<Frame>,
-    outgoingFramesChannelConfig: ChannelConfig<Frame>,
-): WebSocketSession = RawWebSocketCommon(
-    input,
-    output,
-    maxFrameSize,
-    masking,
-    coroutineContext,
-    incomingFramesChannelConfig,
-    outgoingFramesChannelConfig
-)
+    ioChannelsConfig: IOChannelsConfig,
+): WebSocketSession = RawWebSocketCommon(input, output, maxFrameSize, masking, coroutineContext, ioChannelsConfig)

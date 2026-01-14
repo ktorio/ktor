@@ -224,8 +224,7 @@ internal class WinHttpRequest(
             hWebsocket,
             connect,
             callContext,
-            wsConfig.incomingFramesConfig ?: ChannelConfig.UNLIMITED,
-            wsConfig.outgoingFramesConfig ?: ChannelConfig.UNLIMITED
+            wsConfig.ioChannelsConfig
         ).also { closeRequest() }
     }
 

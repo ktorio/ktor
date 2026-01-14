@@ -23,20 +23,16 @@ import kotlin.coroutines.*
  * @property pool: [ByteBuffer] pool to be used by this writer
  * @param queueConfig: configuration for the internal [Frame] queue.
  */
+@OptIn(InternalAPI::class)
 public class WebSocketWriter(
     private val writeChannel: ByteWriteChannel,
     override val coroutineContext: CoroutineContext,
     public var masking: Boolean = false,
     public val pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
-    queueConfig: ChannelConfig<Frame> = ChannelConfig.SMALL_BUFFER,
+    queueConfig: ChannelConfig = ChannelConfig.UNLIMITED,
 ) : CoroutineScope {
 
-    private val queue = queueConfig.let { config ->
-        val onUndeliveredElement = config.onUndeliveredElement?.let { handler ->
-            { e: Any -> if (e is Frame) handler(e) }
-        }
-        Channel(config.capacity, config.onBufferOverflow, onUndeliveredElement)
-    }
+    private val queue = Channel.from<Any>(queueConfig)
 
     private val serializer = Serializer()
 

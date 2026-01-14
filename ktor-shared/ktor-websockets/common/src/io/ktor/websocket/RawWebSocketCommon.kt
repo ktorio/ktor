@@ -46,8 +46,7 @@ public expect fun RawWebSocket(
  * @param maxFrameSize is an initial [maxFrameSize] value for [WebSocketSession]
  * @param masking is an initial [masking] value for [WebSocketSession]
  * @param coroutineContext is a [CoroutineContext] to execute reading/writing from/to connection
- * @param incomingFramesChannelConfig is a [ChannelConfig] for the incoming [Frame] queue
- * @param outgoingFramesChannelConfig is a [ChannelConfig] for the outgoing [Frame] queue
+ * @param ioChannelsConfig is a [IOChannelsConfig] for the incoming and outgoing [Frame] queues
  */
 @Suppress("FunctionName")
 public expect fun RawWebSocket(
@@ -56,8 +55,7 @@ public expect fun RawWebSocket(
     maxFrameSize: Long = Int.MAX_VALUE.toLong(),
     masking: Boolean = false,
     coroutineContext: CoroutineContext,
-    incomingFramesChannelConfig: ChannelConfig<Frame> = ChannelConfig.SMALL_BUFFER,
-    outgoingFramesChannelConfig: ChannelConfig<Frame> = ChannelConfig.SMALL_BUFFER,
+    ioChannelsConfig: IOChannelsConfig,
 ): WebSocketSession
 
 @OptIn(InternalAPI::class)
@@ -67,22 +65,15 @@ internal class RawWebSocketCommon(
     override var maxFrameSize: Long = Int.MAX_VALUE.toLong(),
     override var masking: Boolean = false,
     coroutineContext: CoroutineContext,
-    incomingFramesChannelConfig: ChannelConfig<Frame> = ChannelConfig.SMALL_BUFFER,
-    outgoingFramesChannelConfig: ChannelConfig<Frame> = ChannelConfig.SMALL_BUFFER,
+    ioChannelsConfig: IOChannelsConfig,
 ) : WebSocketSession {
     private val socketJob: CompletableJob = Job(coroutineContext[Job])
+    override val coroutineContext: CoroutineContext = coroutineContext + socketJob + CoroutineName("raw-ws")
 
-    private val _incoming = incomingFramesChannelConfig.toChannel<Frame>()
-    private val _outgoing = outgoingFramesChannelConfig.let { config ->
-        val onUndeliveredElement = config.onUndeliveredElement?.let { handler ->
-            { e: Any -> if (e is Frame) handler(e) }
-        }
-        Channel(config.capacity, config.onBufferOverflow, onUndeliveredElement)
-    }
+    private val _incoming = Channel.from<Frame>(ioChannelsConfig.incoming)
+    private val _outgoing = Channel.from<Any>(ioChannelsConfig.outgoing)
 
     private var lastOpcode = 0
-
-    override val coroutineContext: CoroutineContext = coroutineContext + socketJob + CoroutineName("raw-ws")
     override val incoming: ReceiveChannel<Frame> get() = _incoming
     override val outgoing: SendChannel<Frame> get() = _outgoing
     override val extensions: List<WebSocketExtension<*>> get() = emptyList()
@@ -123,33 +114,35 @@ internal class RawWebSocketCommon(
         }
     }
 
-    private val readerJob = launch(CoroutineName("ws-reader"), start = CoroutineStart.ATOMIC) {
-        try {
-            while (true) {
-                val frame = input.readFrame(maxFrameSize, lastOpcode)
-                if (!frame.frameType.controlFrame) {
-                    lastOpcode = if (frame.fin) 0 else frame.frameType.opcode
+    init {
+        launch(CoroutineName("ws-reader"), start = CoroutineStart.ATOMIC) {
+            try {
+                while (true) {
+                    val frame = input.readFrame(maxFrameSize, lastOpcode)
+                    if (!frame.frameType.controlFrame) {
+                        lastOpcode = if (frame.fin) 0 else frame.frameType.opcode
+                    }
+                    _incoming.send(frame)
                 }
-                _incoming.send(frame)
+            } catch (cause: FrameTooBigException) {
+                _incoming.close(cause)
+                outgoing.send(Frame.Close(CloseReason(CloseReason.Codes.TOO_BIG, cause.message)))
+            } catch (cause: ProtocolViolationException) {
+                // same as above
+                _incoming.close(cause)
+                outgoing.send(Frame.Close(CloseReason(CloseReason.Codes.PROTOCOL_ERROR, cause.message)))
+            } catch (cause: CancellationException) {
+                _incoming.cancel(cause)
+            } catch (_: EOFException) {
+                // no more bytes is possible to read
+            } catch (_: ClosedReceiveChannelException) {
+                // no more bytes is possible to read
+            } catch (cause: Throwable) {
+                _incoming.close(cause)
+                throw cause
+            } finally {
+                _incoming.close()
             }
-        } catch (cause: FrameTooBigException) {
-            outgoing.send(Frame.Close(CloseReason(CloseReason.Codes.TOO_BIG, cause.message)))
-            _incoming.close(cause)
-        } catch (cause: ProtocolViolationException) {
-            // same as above
-            outgoing.send(Frame.Close(CloseReason(CloseReason.Codes.PROTOCOL_ERROR, cause.message)))
-            _incoming.close(cause)
-        } catch (cause: CancellationException) {
-            _incoming.cancel(cause)
-        } catch (_: EOFException) {
-            // no more bytes is possible to read
-        } catch (_: ClosedReceiveChannelException) {
-            // no more bytes is possible to read
-        } catch (cause: Throwable) {
-            _incoming.close(cause)
-            throw cause
-        } finally {
-            _incoming.close()
         }
     }
 

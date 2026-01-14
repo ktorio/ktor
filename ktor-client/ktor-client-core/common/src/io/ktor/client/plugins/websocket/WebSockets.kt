@@ -16,6 +16,7 @@ import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import io.ktor.websocket.*
+import io.ktor.websocket.IOChannelsConfig
 
 private val REQUEST_EXTENSIONS_KEY = AttributeKey<List<WebSocketExtension<*>>>("Websocket extensions")
 
@@ -44,20 +45,18 @@ public data object WebSocketExtensionsCapability : HttpClientEngineCapability<Un
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.WebSockets)
  *
- * @property pingIntervalMillis - interval between [FrameType.PING] messages.
- * @property maxFrameSize - max size of a single websocket frame.
+ * @property pingIntervalMillis - interval between [FrameType.PING] messages
+ * @property maxFrameSize - max size of a single websocket frame
  * @property extensionsConfig - extensions configuration
  * @property contentConverter - converter for serialization/deserialization
- * @property incomingFramesConfig - configuration for the incoming [Frame] queue.
- * @property outgoingFramesConfig - configuration for the outgoing [Frame] queue.
+ * @property ioChannelsConfig - configuration for the I/O frame channels
  */
 public class WebSockets internal constructor(
     public val pingIntervalMillis: Long,
     public val maxFrameSize: Long,
     private val extensionsConfig: WebSocketExtensionsConfig,
     public val contentConverter: WebsocketContentConverter? = null,
-    public val incomingFramesConfig: ChannelConfig<Frame>? = null,
-    public val outgoingFramesConfig: ChannelConfig<Frame>? = null
+    public val ioChannelsConfig: IOChannelsConfig = IOChannelsConfig.UNLIMITED,
 ) {
     /**
      * Client WebSocket plugin.
@@ -110,13 +109,8 @@ public class WebSockets internal constructor(
     internal fun convertSessionToDefault(session: WebSocketSession): DefaultWebSocketSession {
         if (session is DefaultWebSocketSession) return session
 
-        return DefaultWebSocketSession(
-            session,
-            pingIntervalMillis,
-            timeoutMillis = pingIntervalMillis * 2,
-            incomingFramesConfig,
-            outgoingFramesConfig
-        ).also {
+        val timeoutMillis = pingIntervalMillis * 2
+        return DefaultWebSocketSession(session, pingIntervalMillis, timeoutMillis, ioChannelsConfig).also {
             it.maxFrameSize = this@WebSockets.maxFrameSize
         }
     }
@@ -128,7 +122,10 @@ public class WebSockets internal constructor(
      */
     @KtorDsl
     public class Config {
-        internal val extensionsConfig: WebSocketExtensionsConfig = WebSocketExtensionsConfig()
+        internal val extensionsConfig = WebSocketExtensionsConfig()
+
+        @OptIn(InternalAPI::class)
+        internal val ioChannelsConfig = IOChannelsConfigBuilder()
 
         /**
          * Sets interval of sending ping frames.
@@ -154,22 +151,24 @@ public class WebSockets internal constructor(
         public var contentConverter: WebsocketContentConverter? = null
 
         /**
-         * Configuration for the incoming [Frame] queue.
-         * The default value is engine-specific.
-         * Set it manually if some concrete behavior is required.
+         * Configuration for the incoming and outgoing [Frame] queues.
+         * Both queues are unlimited by default, which may lead to OutOfMemoryError under high backpressure.
+         * Some engines don't support suspending limited-size incoming channels — check compatibility before using them.
          *
-         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.WebSockets.Config.incomingFramesConfig)
-         */
-        public var incomingFramesConfig: ChannelConfig<Frame>? = null
-
-        /**
-         * Configuration for the outgoing [Frame] queue.
-         * The default value is engine-specific.
-         * Set it manually if some concrete behavior is required.
+         * Caution: A bounded incoming channel with [ChannelOverflow.CLOSE] will close on overflow,
+         * possibly causing exceptions for any frames received afterward.
          *
-         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.WebSockets.Config.outgoingFramesConfig)
+         * ```kotlin
+         * ioChannels {
+         *     incoming = unlimited()
+         *     outgoing = bounded(capacity = 512, onOverflow = ChannelOverflow.SUSPEND)
+         * }
+         * ```
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.WebSockets.Config.ioChannels)
          */
-        public var outgoingFramesConfig: ChannelConfig<Frame>? = null
+        public fun ioChannels(block: IOChannelsConfigBuilder.() -> Unit) {
+            ioChannelsConfig.apply(block)
+        }
 
         /**
          * Configure WebSocket extensions.
@@ -196,8 +195,7 @@ public class WebSockets internal constructor(
                 config.maxFrameSize,
                 config.extensionsConfig,
                 config.contentConverter,
-                config.incomingFramesConfig,
-                config.outgoingFramesConfig
+                config.ioChannelsConfig.build(),
             )
         }
 

@@ -15,7 +15,6 @@ import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
-import io.ktor.websocket.ChannelConfig
 import kotlinx.coroutines.*
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -89,8 +88,7 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
             webSocketFactory = config.webSocketFactory ?: engine,
             engineRequest = engineRequest,
             coroutineContext = callContext,
-            incomingFramesConfig = wsConfig.incomingFramesConfig ?: ChannelConfig.NO_BUFFER,
-            outgoingFramesConfig = wsConfig.outgoingFramesConfig ?: ChannelConfig.NO_BUFFER
+            ioChannelsConfig = wsConfig.ioChannelsConfig
         ).apply { start() }
 
         val originResponse = session.originResponse.await()

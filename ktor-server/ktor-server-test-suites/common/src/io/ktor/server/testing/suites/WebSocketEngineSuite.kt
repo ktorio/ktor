@@ -41,19 +41,6 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         super.plugins(application, routingConfig)
     }
 
-    private suspend fun withPluginConfiguration(
-        configuration: WebSockets.WebSocketOptions.() -> Unit,
-        block: suspend () -> Unit
-    ) {
-        val previousConfiguration = pluginConfiguration
-        try {
-            pluginConfiguration = configuration
-            block()
-        } finally {
-            pluginConfiguration = previousConfiguration
-        }
-    }
-
     @Test
     fun testWebSocketDisconnectDuringConsuming() = runTest {
         val closeReasonJob = Job()
@@ -687,83 +674,6 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
             output.flush()
 
             assertCloseFrame(CloseReason.Codes.PROTOCOL_ERROR.code, replyCloseFrame = false)
-        }
-    }
-
-    @Test
-    fun testIncomingFramesChannel() = runTest {
-        val undeliveredFrame = CompletableDeferred<Frame>()
-        val wsConfig: WebSockets.WebSocketOptions.() -> Unit = {
-            incomingFramesConfig = ChannelConfig(
-                capacity = 1,
-                onBufferOverflow = BufferOverflow.DROP_OLDEST,
-                onUndeliveredElement = { undeliveredFrame.complete(it) }
-            )
-        }
-
-        withPluginConfiguration(wsConfig) {
-            createAndStartServer {
-                webSocket("/") {
-                    // receive only the first message
-                    val frame = incoming.receive()
-                    assertIs<Frame.Text>(frame)
-                    assertEquals("message 0", frame.readText())
-                }
-            }
-
-            useSocket {
-                negotiateHttpWebSocket()
-
-                output.apply {
-                    repeat(5) {
-                        writeFrame(Frame.Text(true, "message $it".toByteArray()), false)
-                    }
-                    writeFrame(Frame.Close(), false)
-                    flush()
-                }
-                assertCloseFrame()
-            }
-
-            withTimeout(5.seconds) {
-                // multiple frames should arrive at the same time
-                // second frame (message 1) should be dropped as the oldest
-                val frame = undeliveredFrame.await() as Frame.Text
-                assertEquals("message 1", frame.readText())
-            }
-        }
-    }
-
-    @Test
-    fun testOutgoingFramesChannel() = runTest {
-        val undeliveredFrame = CompletableDeferred<Frame>()
-        val allFramesSent = CompletableDeferred<Unit>()
-
-        val wsConfig: WebSockets.WebSocketOptions.() -> Unit = {
-            outgoingFramesConfig = ChannelConfig(
-                capacity = 1,
-                onBufferOverflow = BufferOverflow.DROP_OLDEST,
-                onUndeliveredElement = { undeliveredFrame.complete(it) }
-            )
-        }
-
-        withPluginConfiguration(wsConfig) {
-            createAndStartServer {
-                webSocket("/") {
-                    repeat(10) { i ->
-                        // shouldn't suspend, so ought to create a backpressure
-                        outgoing.trySend(Frame.Text("message $i"))
-                    }
-                    allFramesSent.complete(Unit)
-                }
-            }
-
-            useSocket {
-                negotiateHttpWebSocket()
-                allFramesSent.await()
-            }
-
-            // we can't know which frame is dropped
-            withTimeout(5.seconds) { undeliveredFrame.await() }
         }
     }
 

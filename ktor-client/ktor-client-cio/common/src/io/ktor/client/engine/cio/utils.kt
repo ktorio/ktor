@@ -193,8 +193,7 @@ internal suspend fun readResponse(
                 output = output,
                 masking = true,
                 coroutineContext = callContext,
-                incomingFramesChannelConfig = wsConfig.incomingFramesConfig ?: ChannelConfig.SMALL_BUFFER,
-                outgoingFramesChannelConfig = wsConfig.outgoingFramesConfig ?: ChannelConfig.SMALL_BUFFER
+                ioChannelsConfig = wsConfig.ioChannelsConfig
             )
             return@withContext HttpResponseData(status, requestTime, headers, version, session, callContext)
         }
