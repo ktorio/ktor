@@ -222,7 +222,7 @@ class HttpTimeoutTest : ClientLoader(timeout = 3.seconds) {
             }.body<ByteReadChannel>()
 
             assertFailsWith<CancellationException> {
-                response.readUTF8Line()
+                response.readLine()
             }
         }
     }
@@ -243,7 +243,7 @@ class HttpTimeoutTest : ClientLoader(timeout = 3.seconds) {
                 timeout { requestTimeoutMillis = 1000 }
             }.body<ByteReadChannel>()
             assertFailsWith<CancellationException> {
-                response.readUTF8Line()
+                response.readLine()
             }
         }
     }
@@ -262,7 +262,7 @@ class HttpTimeoutTest : ClientLoader(timeout = 3.seconds) {
                 timeout { requestTimeoutMillis = 1000 }
             }.body<ByteReadChannel>()
             assertFailsWith<CancellationException> {
-                response.readUTF8Line()
+                response.readLine()
             }
             val result = client.get("$TEST_URL/with-delay?delay=1") {
                 timeout { requestTimeoutMillis = 1000 }

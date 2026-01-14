@@ -111,11 +111,11 @@ abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) :
                     setBody(TextContent("hello\n", ContentType.Text.Plain))
                 }
 
-                assertEquals("hello", body.readUTF8Line())
+                assertEquals("hello", body.readLineStrict())
             }
 
             client.get("http://localhost:$serverPort/sse/done")
-            assertEquals(null, body.readUTF8Line())
+            assertEquals(null, body.readLineStrict())
         }
     }
 

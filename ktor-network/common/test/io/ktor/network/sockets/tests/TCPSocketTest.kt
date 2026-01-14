@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.network.sockets.tests
@@ -55,7 +55,7 @@ class TCPSocketTest {
         }
 
         val serverInput = serverConnection.openReadChannel()
-        val message = serverInput.readUTF8Line()
+        val message = serverInput.readLineStrict()
         assertEquals("Hello, world", message)
 
         val serverOutput = serverConnection.openWriteChannel()
@@ -64,7 +64,7 @@ class TCPSocketTest {
             serverOutput.flush()
 
             val clientInput = clientConnection.openReadChannel()
-            val echo = clientInput.readUTF8Line()
+            val echo = clientInput.readLineStrict()
 
             assertEquals("Hello From Server", echo)
         } finally {
@@ -307,12 +307,12 @@ class TCPSocketTest {
             try {
                 val writeChannel = clientConnection.openWriteChannel(autoFlush = true)
                 writeChannel.writeStringUtf8("Hello, world\n")
-                val message = serverInput.readUTF8Line()
+                val message = serverInput.readLineStrict()
                 assertEquals("Hello, world", message)
 
                 val countedWriteChannel = CountedByteWriteChannel(writeChannel)
                 countedWriteChannel.writeStringUtf8("Hello again\n")
-                val message2 = serverInput.readUTF8Line()
+                val message2 = serverInput.readLineStrict()
                 assertEquals("Hello again", message2)
             } finally {
                 serverConnection.close()
