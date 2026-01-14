@@ -32,7 +32,7 @@ internal class RoutingResolveState {
     // Output from recursive handleRoute call
     var resultQuality = -Double.MAX_VALUE
 
-    var failedEvaluation: RouteSelectorEvaluation.Failure? = null
+    var failedEvaluation: RouteSelectorEvaluation.Failure? = RouteSelectorEvaluation.FailedPath
     var failedEvaluationDepth = 0
 
     // Reusable ParametersBuilder to avoid allocation in findBestRoute
