@@ -4,8 +4,6 @@
 
 package io.ktor.server.plugins.swagger
 
-import io.ktor.annotate.OpenApiDocSource
-import io.ktor.annotate.annotate
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -14,10 +12,13 @@ import io.ktor.openapi.jsonSchema
 import io.ktor.openapi.reflect.ReflectionJsonSchemaInference
 import io.ktor.server.response.respond
 import io.ktor.server.routing.get
+import io.ktor.server.routing.openapi.OpenApiDocSource
+import io.ktor.server.routing.openapi.describe
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import io.ktor.server.testing.*
+import io.ktor.utils.io.ExperimentalKtorApi
 import kotlinx.serialization.Serializable
 import kotlin.test.Test
 import kotlin.test.assertContains
@@ -222,10 +223,11 @@ class SwaggerTest {
     fun `swagger file resolved from routing`() = testApplication {
         routing {
             val apiRoute = route("/api") {
+                @OptIn(ExperimentalKtorApi::class)
                 route("/books") {
                     get {
                         call.respond(listOf(sampleBook))
-                    }.annotate {
+                    }.describe {
                         summary = descriptions[0]
                         responses {
                             HttpStatusCode.OK {
@@ -235,7 +237,7 @@ class SwaggerTest {
                     }
                     get("/{id}") {
                         call.respond(sampleBook)
-                    }.annotate {
+                    }.describe {
                         summary = descriptions[1]
                         responses {
                             HttpStatusCode.OK {
@@ -245,12 +247,12 @@ class SwaggerTest {
                     }
                     post {
                         call.respond(HttpStatusCode.Created)
-                    }.annotate {
+                    }.describe {
                         summary = descriptions[2]
                     }
                     put("/{id}") {
                         call.respond(HttpStatusCode.NoContent)
-                    }.annotate {
+                    }.describe {
                         summary = descriptions[3]
                     }
                 }

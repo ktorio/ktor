@@ -4,12 +4,11 @@
 
 package io.ktor.server.plugins.openapi
 
-import io.ktor.annotate.*
-import io.ktor.annotate.OpenApiDocSource.Companion.readOpenApiSource
-import io.ktor.http.ContentType
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
 import io.ktor.server.routing.*
+import io.ktor.server.routing.openapi.OpenApiDocSource
+import io.ktor.server.routing.openapi.OpenApiDocSource.Companion.readOpenApiSource
 import io.swagger.codegen.v3.ClientOpts
 import io.swagger.codegen.v3.generators.html.StaticHtml2Codegen
 import java.io.File
