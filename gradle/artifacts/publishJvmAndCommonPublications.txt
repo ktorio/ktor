@@ -267,6 +267,13 @@ io.ktor:ktor-network/sources.jar
 io.ktor:ktor-openapi-schema-jvm/.jar
 io.ktor:ktor-openapi-schema-jvm/javadoc.jar
 io.ktor:ktor-openapi-schema-jvm/sources.jar
+io.ktor:ktor-openapi-schema-reflect-jvm/.jar
+io.ktor:ktor-openapi-schema-reflect-jvm/javadoc.jar
+io.ktor:ktor-openapi-schema-reflect-jvm/sources.jar
+io.ktor:ktor-openapi-schema-reflect/.jar
+io.ktor:ktor-openapi-schema-reflect/javadoc.jar
+io.ktor:ktor-openapi-schema-reflect/kotlin-tooling-metadata.json
+io.ktor:ktor-openapi-schema-reflect/sources.jar
 io.ktor:ktor-openapi-schema/.jar
 io.ktor:ktor-openapi-schema/javadoc.jar
 io.ktor:ktor-openapi-schema/kotlin-tooling-metadata.json

@@ -6,9 +6,9 @@ package io.ktor.annotate
 
 import io.ktor.http.ContentType
 import io.ktor.http.fromFilePath
+import io.ktor.openapi.Components
 import io.ktor.openapi.JsonSchemaInference
 import io.ktor.openapi.KotlinxJsonSchemaInference
-import io.ktor.openapi.Components
 import io.ktor.openapi.OpenApiDoc
 import io.ktor.server.application.Application
 import io.ktor.server.routing.Route
@@ -42,6 +42,7 @@ public sealed interface OpenApiDocSource {
                     }
                     OpenApiDocText(readOpenApiFromRoute(source, baseDoc), source.contentType)
                 }
+
                 is FirstOf ->
                     source.options
                         .firstNotNullOfOrNull {

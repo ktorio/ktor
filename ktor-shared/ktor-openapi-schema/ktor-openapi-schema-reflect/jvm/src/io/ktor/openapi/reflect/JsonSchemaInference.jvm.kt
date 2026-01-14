@@ -1,9 +1,10 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.openapi
+package io.ktor.openapi.reflect
 
+import io.ktor.openapi.*
 import io.ktor.utils.io.InternalAPI
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
@@ -94,6 +95,7 @@ public class ReflectionJsonSchemaInference(
             LinkedHashSet()
         )
     }
+
     public fun schemaRefForClass(kClass: KClass<*>): ReferenceOr<JsonSchema> =
         ReferenceOr.Value(schemaForClass(kClass))
 
@@ -242,6 +244,7 @@ public class ReflectionJsonSchemaInference(
             ::schemaRefForClass,
             type = JsonType.STRING
         )
+
         Boolean::class -> jsonSchemaFromAnnotations(annotations, ::schemaRefForClass, type = JsonType.BOOLEAN)
 
         Byte::class, Short::class, Int::class, Long::class,
@@ -259,18 +262,21 @@ public class ReflectionJsonSchemaInference(
             type = JsonType.STRING,
             format = "date-time"
         )
+
         OffsetDateTime::class -> jsonSchemaFromAnnotations(
             annotations,
             ::schemaRefForClass,
             type = JsonType.STRING,
             format = "date-time"
         )
+
         java.time.LocalDate::class -> jsonSchemaFromAnnotations(
             annotations,
             ::schemaRefForClass,
             type = JsonType.STRING,
             format = "date"
         )
+
         java.time.LocalDateTime::class -> jsonSchemaFromAnnotations(
             annotations,
             ::schemaRefForClass,
@@ -285,12 +291,14 @@ public class ReflectionJsonSchemaInference(
             type = JsonType.STRING,
             format = "date-time"
         )
+
         LocalDate::class -> jsonSchemaFromAnnotations(
             annotations,
             ::schemaRefForClass,
             type = JsonType.STRING,
             format = "date"
         )
+
         LocalDateTime::class -> jsonSchemaFromAnnotations(
             annotations,
             ::schemaRefForClass,

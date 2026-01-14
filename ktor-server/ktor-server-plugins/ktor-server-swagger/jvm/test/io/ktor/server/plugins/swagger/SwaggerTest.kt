@@ -10,8 +10,8 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.openapi.OpenApiInfo
-import io.ktor.openapi.ReflectionJsonSchemaInference
 import io.ktor.openapi.jsonSchema
+import io.ktor.openapi.reflect.ReflectionJsonSchemaInference
 import io.ktor.server.response.respond
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post

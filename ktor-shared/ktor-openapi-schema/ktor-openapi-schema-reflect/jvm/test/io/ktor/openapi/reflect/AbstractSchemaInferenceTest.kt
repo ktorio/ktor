@@ -2,11 +2,12 @@
  * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.openapi
+package io.ktor.openapi.reflect
 
 import com.charleskorn.kaml.SingleLineStringStyle
 import com.charleskorn.kaml.Yaml
 import com.charleskorn.kaml.YamlConfiguration
+import io.ktor.openapi.*
 import io.ktor.openapi.JsonSchema.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
