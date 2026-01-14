@@ -24,6 +24,7 @@ kotlin {
         jvmTest.dependencies {
             implementation(projects.ktorServerContentNegotiation)
             implementation(projects.ktorSerializationKotlinxJson)
+            implementation(projects.ktorOpenapiSchemaReflect)
         }
     }
 }

@@ -58,16 +58,19 @@ sealed interface io.ktor.annotate/OpenApiDocSource { // io.ktor.annotate/OpenApi
     }
 
     final class RoutingSource : io.ktor.annotate/OpenApiDocSource { // io.ktor.annotate/OpenApiDocSource.RoutingSource|null[0]
-        constructor <init>(io.ktor.http/ContentType, kotlin/Function1<io.ktor.server.application/Application, kotlin.sequences/Sequence<io.ktor.server.routing/Route>> = ...) // io.ktor.annotate/OpenApiDocSource.RoutingSource.<init>|<init>(io.ktor.http.ContentType;kotlin.Function1<io.ktor.server.application.Application,kotlin.sequences.Sequence<io.ktor.server.routing.Route>>){}[0]
+        constructor <init>(io.ktor.http/ContentType = ..., io.ktor.openapi/JsonSchemaInference? = ..., kotlin/Function1<io.ktor.server.application/Application, kotlin.sequences/Sequence<io.ktor.server.routing/Route>> = ...) // io.ktor.annotate/OpenApiDocSource.RoutingSource.<init>|<init>(io.ktor.http.ContentType;io.ktor.openapi.JsonSchemaInference?;kotlin.Function1<io.ktor.server.application.Application,kotlin.sequences.Sequence<io.ktor.server.routing.Route>>){}[0]
 
         final val contentType // io.ktor.annotate/OpenApiDocSource.RoutingSource.contentType|{}contentType[0]
             final fun <get-contentType>(): io.ktor.http/ContentType // io.ktor.annotate/OpenApiDocSource.RoutingSource.contentType.<get-contentType>|<get-contentType>(){}[0]
         final val routes // io.ktor.annotate/OpenApiDocSource.RoutingSource.routes|{}routes[0]
             final fun <get-routes>(): kotlin/Function1<io.ktor.server.application/Application, kotlin.sequences/Sequence<io.ktor.server.routing/Route>> // io.ktor.annotate/OpenApiDocSource.RoutingSource.routes.<get-routes>|<get-routes>(){}[0]
+        final val schemaInference // io.ktor.annotate/OpenApiDocSource.RoutingSource.schemaInference|{}schemaInference[0]
+            final fun <get-schemaInference>(): io.ktor.openapi/JsonSchemaInference? // io.ktor.annotate/OpenApiDocSource.RoutingSource.schemaInference.<get-schemaInference>|<get-schemaInference>(){}[0]
 
         final fun component1(): io.ktor.http/ContentType // io.ktor.annotate/OpenApiDocSource.RoutingSource.component1|component1(){}[0]
-        final fun component2(): kotlin/Function1<io.ktor.server.application/Application, kotlin.sequences/Sequence<io.ktor.server.routing/Route>> // io.ktor.annotate/OpenApiDocSource.RoutingSource.component2|component2(){}[0]
-        final fun copy(io.ktor.http/ContentType = ..., kotlin/Function1<io.ktor.server.application/Application, kotlin.sequences/Sequence<io.ktor.server.routing/Route>> = ...): io.ktor.annotate/OpenApiDocSource.RoutingSource // io.ktor.annotate/OpenApiDocSource.RoutingSource.copy|copy(io.ktor.http.ContentType;kotlin.Function1<io.ktor.server.application.Application,kotlin.sequences.Sequence<io.ktor.server.routing.Route>>){}[0]
+        final fun component2(): io.ktor.openapi/JsonSchemaInference? // io.ktor.annotate/OpenApiDocSource.RoutingSource.component2|component2(){}[0]
+        final fun component3(): kotlin/Function1<io.ktor.server.application/Application, kotlin.sequences/Sequence<io.ktor.server.routing/Route>> // io.ktor.annotate/OpenApiDocSource.RoutingSource.component3|component3(){}[0]
+        final fun copy(io.ktor.http/ContentType = ..., io.ktor.openapi/JsonSchemaInference? = ..., kotlin/Function1<io.ktor.server.application/Application, kotlin.sequences/Sequence<io.ktor.server.routing/Route>> = ...): io.ktor.annotate/OpenApiDocSource.RoutingSource // io.ktor.annotate/OpenApiDocSource.RoutingSource.copy|copy(io.ktor.http.ContentType;io.ktor.openapi.JsonSchemaInference?;kotlin.Function1<io.ktor.server.application.Application,kotlin.sequences.Sequence<io.ktor.server.routing.Route>>){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.annotate/OpenApiDocSource.RoutingSource.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // io.ktor.annotate/OpenApiDocSource.RoutingSource.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // io.ktor.annotate/OpenApiDocSource.RoutingSource.toString|toString(){}[0]

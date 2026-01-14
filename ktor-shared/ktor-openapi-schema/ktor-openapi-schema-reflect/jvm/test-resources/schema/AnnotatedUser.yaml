@@ -1,0 +1,22 @@
+type: object
+title: io.ktor.openapi.AnnotatedUser
+required:
+  - id
+  - username
+  - email
+  - createdAt
+properties:
+  id:
+    type: integer
+    description: The user's unique identifier
+  username:
+    type: string
+    maxLength: 20
+    minLength: 3
+    pattern: ^[a-z0-9_]+$
+  email:
+    type: string
+    pattern: .+@.+\..+
+  createdAt:
+    type: string
+    readOnly: true

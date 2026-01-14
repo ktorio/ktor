@@ -1,0 +1,7 @@
+type: object
+title: io.ktor.openapi.Shape
+discriminator:
+  propertyName: type
+  mapping:
+    io.ktor.openapi.Shape.Circle: "#/components/schemas/Circle"
+    io.ktor.openapi.Shape.Rectangle: "#/components/schemas/Rectangle"

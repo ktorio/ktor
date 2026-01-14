@@ -4,13 +4,15 @@
 
 package io.ktor.openapi
 
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerializationException
-import kotlinx.serialization.descriptors.PrimitiveKind
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.SerialKind
-import kotlinx.serialization.descriptors.StructureKind
-import kotlinx.serialization.serializer
+import io.ktor.openapi.AdditionalProperties.*
+import io.ktor.openapi.JsonSchema.*
+import io.ktor.openapi.ReferenceOr.*
+import io.ktor.utils.io.InternalAPI
+import kotlinx.serialization.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
 
@@ -24,6 +26,9 @@ public fun interface JsonSchemaInference {
     public fun buildSchema(type: KType): JsonSchema
 }
 
+/**
+ * Infers JSON schema from kotlinx-serialization descriptors.
+ */
 public val KotlinxJsonSchemaInference: JsonSchemaInference = JsonSchemaInference { type ->
     serializer(type)
         .descriptor
@@ -49,7 +54,16 @@ public val KotlinxJsonSchemaInference: JsonSchemaInference = JsonSchemaInference
  * Note: This function does not handle circular references. For types with circular dependencies,
  * consider implementing depth tracking or schema references to avoid stack overflow.
  */
-public fun SerialDescriptor.buildJsonSchema(includeTitle: Boolean = true): JsonSchema {
+@OptIn(ExperimentalSerializationApi::class, InternalSerializationApi::class, InternalAPI::class)
+public fun SerialDescriptor.buildJsonSchema(
+    includeTitle: Boolean = true,
+    includeAnnotations: List<Annotation> = emptyList(),
+): JsonSchema {
+    val reflectJsonSchema: KClass<*>.() -> ReferenceOr<JsonSchema> = {
+        Value(this.serializer().descriptor.buildJsonSchema(includeTitle))
+    }
+    val annotations = includeAnnotations + annotations
+
     return when (kind) {
         StructureKind.CLASS, StructureKind.OBJECT -> {
             val properties = mutableMapOf<String, ReferenceOr<JsonSchema>>()
@@ -58,72 +72,246 @@ public fun SerialDescriptor.buildJsonSchema(includeTitle: Boolean = true): JsonS
             for (i in 0 until elementsCount) {
                 val name = getElementName(i)
                 val elementDescriptor = getElementDescriptor(i)
-                val isNullable = elementDescriptor.isNullable
+                val annotations = getElementAnnotations(i)
+                if (annotations.any { it is Ignore }) continue
 
-                // Add non-nullable fields to required list
-                if (!isNullable && !isElementOptional(i)) {
+                if (!isElementOptional(i)) {
                     required.add(name)
                 }
 
-                properties[name] = ReferenceOr.Value(elementDescriptor.buildJsonSchema())
+                properties[name] = Value(
+                    elementDescriptor.buildJsonSchema(
+                        includeAnnotations = getElementAnnotations(i)
+                    )
+                )
             }
 
-            JsonSchema(
+            jsonSchemaFromAnnotations(
+                annotations = annotations,
+                reflectSchema = reflectJsonSchema,
+                type = JsonType.OBJECT,
                 title = serialName.takeIf { includeTitle },
-                type = JsonSchema.JsonType.OBJECT,
                 properties = properties,
-                required = required.takeIf { it.isNotEmpty() }
+                required = required.takeIf { it.isNotEmpty() },
+                nullable = isNullable,
             )
         }
 
+        PolymorphicKind.SEALED -> {
+            if (elementsCount == 2) {
+                val discriminatorProperty = getElementName(0)
+                val value = getElementDescriptor(1)
+                val sealedTypes = (0..<value.elementsCount).associate { i ->
+                    value.getElementName(i) to ReferenceOr.schema(value.getElementName(i).substringAfterLast('.')).ref
+                }
+                jsonSchemaFromAnnotations(
+                    annotations = annotations,
+                    reflectSchema = reflectJsonSchema,
+                    type = JsonType.OBJECT,
+                    title = serialName.takeIf { includeTitle },
+                    discriminator = JsonSchemaDiscriminator(discriminatorProperty, sealedTypes),
+                    nullable = isNullable,
+                )
+            } else {
+                jsonSchemaFromAnnotations(
+                    annotations = annotations,
+                    reflectSchema = reflectJsonSchema,
+                    type = JsonType.OBJECT,
+                    title = serialName.takeIf { includeTitle },
+                    nullable = isNullable,
+                )
+            }
+        }
+
         StructureKind.LIST -> {
-            JsonSchema(
-                type = JsonSchema.JsonType.ARRAY,
-                items = ReferenceOr.Value(getElementDescriptor(0).buildJsonSchema())
+            jsonSchemaFromAnnotations(
+                annotations = annotations,
+                reflectSchema = reflectJsonSchema,
+                type = JsonType.ARRAY,
+                items = Value(getElementDescriptor(0).buildJsonSchema()),
+                nullable = isNullable,
             )
         }
 
         StructureKind.MAP -> {
-            JsonSchema(
-                type = JsonSchema.JsonType.OBJECT,
+            jsonSchemaFromAnnotations(
+                annotations = annotations,
+                reflectSchema = reflectJsonSchema,
+                type = JsonType.OBJECT,
+                nullable = isNullable,
                 additionalProperties = if (elementsCount > 1) {
-                    AdditionalProperties.PSchema(
-                        ReferenceOr.Value(getElementDescriptor(1).buildJsonSchema())
+                    PSchema(
+                        Value(getElementDescriptor(1).buildJsonSchema())
                     )
                 } else {
-                    AdditionalProperties.Allowed(true)
-                }
+                    Allowed(true)
+                },
             )
         }
 
-        PrimitiveKind.STRING ->
-            JsonSchema(type = JsonSchema.JsonType.STRING)
+        PrimitiveKind.STRING,
+        PrimitiveKind.CHAR ->
+            jsonSchemaFromAnnotations(
+                annotations = annotations,
+                reflectSchema = reflectJsonSchema,
+                type = JsonType.STRING,
+                nullable = isNullable,
+            )
 
         PrimitiveKind.BOOLEAN ->
-            JsonSchema(type = JsonSchema.JsonType.BOOLEAN)
+            jsonSchemaFromAnnotations(
+                annotations = annotations,
+                reflectSchema = reflectJsonSchema,
+                type = JsonType.BOOLEAN,
+                nullable = isNullable,
+            )
 
         PrimitiveKind.BYTE, PrimitiveKind.SHORT, PrimitiveKind.INT, PrimitiveKind.LONG ->
-            JsonSchema(type = JsonSchema.JsonType.INTEGER)
+            jsonSchemaFromAnnotations(
+                annotations = annotations,
+                reflectSchema = reflectJsonSchema,
+                type = JsonType.INTEGER,
+                nullable = isNullable,
+            )
 
         PrimitiveKind.FLOAT, PrimitiveKind.DOUBLE ->
-            JsonSchema(type = JsonSchema.JsonType.NUMBER)
+            jsonSchemaFromAnnotations(
+                annotations = annotations,
+                reflectSchema = reflectJsonSchema,
+                type = JsonType.NUMBER,
+                nullable = isNullable,
+            )
 
         SerialKind.ENUM -> {
-            val enumValues = List(elementsCount) { i -> GenericElement(getElementName(i)) }
-            JsonSchema(
-                type = JsonSchema.JsonType.STRING,
-                enum = enumValues
+            jsonSchemaFromAnnotations(
+                annotations = annotations,
+                reflectSchema = reflectJsonSchema,
+                type = JsonType.STRING,
+                enum = List(elementsCount) { i -> GenericElement<String>(getElementName(i)) },
+                nullable = isNullable,
             )
         }
 
+        PolymorphicKind.OPEN,
         SerialKind.CONTEXTUAL -> {
             // For contextual serializers, we need to get the actual serializer from the context
-            JsonSchema(type = JsonSchema.JsonType.OBJECT)
+            jsonSchemaFromAnnotations(
+                annotations = annotations,
+                reflectSchema = reflectJsonSchema,
+                type = JsonType.OBJECT,
+                nullable = isNullable,
+            )
         }
-
-        else -> JsonSchema(type = JsonSchema.JsonType.OBJECT) // Default for other kinds
     }
 }
+
+/**
+ * Create an instance of JsonSchema from the provided properties and supplied annotations.
+ *
+ * This is used internally for different inference strategies.
+ */
+@InternalAPI
+public fun jsonSchemaFromAnnotations(
+    annotations: List<Annotation>,
+    reflectSchema: (KClass<*>).() -> ReferenceOr<JsonSchema>,
+    type: JsonType,
+    title: String? = null,
+    required: List<String>? = null,
+    items: ReferenceOr<JsonSchema>? = null,
+    properties: Map<String, ReferenceOr<JsonSchema>>? = null,
+    additionalProperties: AdditionalProperties? = null,
+    enum: List<GenericElement?>? = null,
+    nullable: Boolean? = null,
+    format: String? = null,
+    discriminator: JsonSchemaDiscriminator? = null,
+): JsonSchema {
+    fun parseJsonLiteralToGenericElement(text: String): GenericElement {
+        val element: JsonElement = Json.parseToJsonElement(text)
+        return JsonGenericElement(element, Json, JsonElement.serializer())
+    }
+
+    fun parseJsonLiteralOrUseString(text: String): GenericElement? =
+        try {
+            val element = Json.parseToJsonElement(text)
+            JsonGenericElement(element, Json, JsonElement.serializer())
+        } catch (_: Exception) {
+            GenericElement(text)
+        }
+
+    fun refFromString(raw: String): ReferenceOr<JsonSchema> {
+        val trimmed = raw.trim()
+        // If caller passed a full JSON-pointer-ish ref, keep it; otherwise treat it as a schema component name.
+        return if (trimmed.startsWith("#/") || trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+            Reference(trimmed)
+        } else {
+            ReferenceOr.schema(trimmed)
+        }
+    }
+
+    return JsonSchema(
+        type = annotations.firstInstanceOf<Type>()?.value ?: type,
+        title = annotations.firstInstanceOf<Title>()?.value ?: title,
+        description = annotations.firstInstanceOf<Description>()?.value,
+        required =
+        annotations.firstInstanceOf<JsonSchema.Required>()?.value?.toList()?.takeIf { it.isNotEmpty() }
+            ?: required,
+        nullable = annotations.firstInstanceOf<Nullable>()?.value ?: nullable?.takeIf { it },
+        anyOf = annotations.firstInstanceOf<AnyOfRefs>()?.value
+            ?.map { refFromString(it) }
+            ?.takeIf { it.isNotEmpty() },
+        oneOf = annotations.firstInstanceOf<OneOf>()?.value
+            ?.map { it.reflectSchema() }
+            ?.takeIf { it.isNotEmpty() },
+        not = annotations.firstInstanceOf<Not>()?.value?.reflectSchema(),
+        properties = properties,
+        additionalProperties =
+        annotations.firstInstanceOf<AdditionalPropertiesRef>()?.value?.let { PSchema(it.reflectSchema()) }
+            ?: annotations.firstInstanceOf<AdditionalPropertiesAllowed>()?.let { Allowed(true) }
+            ?: additionalProperties,
+        discriminator = annotations.firstInstanceOf<Discriminator>()?.let { annotation ->
+            JsonSchemaDiscriminator(
+                annotation.property,
+                annotation.mapping.associate {
+                    it.key to "#/components/schemas/${it.ref.simpleName}"
+                }
+            )
+        } ?: discriminator,
+        readOnly = annotations.firstInstanceOf<ReadOnly>()?.let { true },
+        writeOnly = annotations.firstInstanceOf<WriteOnly>()?.let { true },
+        deprecated = annotations.firstInstanceOf<DeprecatedSchema>()?.let { true },
+        maxProperties = annotations.firstInstanceOf<MaxProperties>()?.value,
+        minProperties = annotations.firstInstanceOf<MinProperties>()?.value,
+        default = annotations.firstInstanceOf<Default>()?.value?.let { parseJsonLiteralToGenericElement(it) },
+        format = annotations.firstInstanceOf<Format>()?.value ?: format,
+        items = annotations.firstInstanceOf<ItemsRef>()?.value?.reflectSchema() ?: items,
+        maximum = annotations.firstInstanceOf<Maximum>()?.value,
+        exclusiveMaximum = annotations.firstInstanceOf<Maximum>()?.exclusive?.takeIf { it },
+        minimum = annotations.firstInstanceOf<Minimum>()?.value,
+        exclusiveMinimum = annotations.firstInstanceOf<Minimum>()?.exclusive?.takeIf { it },
+        maxLength = annotations.firstInstanceOf<MaxLength>()?.value,
+        minLength = annotations.firstInstanceOf<MinLength>()?.value,
+        pattern = annotations.firstInstanceOf<Pattern>()?.value,
+        maxItems = annotations.firstInstanceOf<MaxItems>()?.value,
+        minItems = annotations.firstInstanceOf<MinItems>()?.value,
+        uniqueItems = annotations.firstInstanceOf<UniqueItems>()?.let { true },
+        enum = annotations.firstInstanceOf<JsonSchema.Enum>()?.value
+            ?.map { parseJsonLiteralOrUseString(it) }
+            ?.takeIf { it.isNotEmpty() } ?: enum,
+        multipleOf = annotations.firstInstanceOf<MultipleOf>()?.value,
+        id = annotations.firstInstanceOf<Id>()?.value,
+        anchor = annotations.firstInstanceOf<Anchor>()?.value,
+        recursiveAnchor = annotations.firstInstanceOf<Anchor>()?.recursive?.takeIf { it },
+        example = annotations.firstInstanceOf<Example>()?.value
+            ?.map { parseJsonLiteralToGenericElement(it) }
+            ?.takeIf { it.isNotEmpty() }?.singleOrNull(),
+        examples = annotations.firstInstanceOf<Example>()?.value
+            ?.map { parseJsonLiteralToGenericElement(it) }
+            ?.takeIf { it.isNotEmpty() }?.takeIf { it.size > 1 },
+    )
+}
+
+private inline fun <reified T : Annotation> List<Annotation>.firstInstanceOf(): T? =
+    filterIsInstance<T>().firstOrNull()
 
 /**
  * Generates a JSON Schema representation for the given type [T].
@@ -138,7 +326,7 @@ public inline fun <reified T : Any> JsonSchemaInference.jsonSchema(): JsonSchema
         buildSchema(typeOf<T>())
     } catch (e: SerializationException) {
         JsonSchema(
-            type = JsonSchema.JsonType.OBJECT,
+            type = JsonType.OBJECT,
             description = "Failed to resolve schema for ${T::class.simpleName}. ${e::class.simpleName}: ${e.message}"
         )
     }

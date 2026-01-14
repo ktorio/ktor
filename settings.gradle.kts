@@ -182,7 +182,9 @@ projects {
         +"ktor-websocket-serialization"
         +"ktor-websockets"
         +"ktor-test-base"
-        +"ktor-openapi-schema"
+        +"ktor-openapi-schema" including {
+            +"ktor-openapi-schema-reflect"
+        }
     }
 
     +"ktor-network" including {

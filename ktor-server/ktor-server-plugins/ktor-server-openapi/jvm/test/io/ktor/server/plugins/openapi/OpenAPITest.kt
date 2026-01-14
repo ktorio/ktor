@@ -9,6 +9,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.openapi.*
+import io.ktor.openapi.reflect.ReflectionJsonSchemaInference
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.response.*
@@ -74,9 +75,11 @@ class OpenAPITest {
                 openAPI("docs") {
                     outputPath = "docs/routes"
                     info = OpenApiInfo("Books API from routes", "1.0.0")
-                    source = OpenApiDocSource.RoutingSource(ContentType.Application.Json) {
-                        apiRoute.descendants()
-                    }
+                    source = OpenApiDocSource.RoutingSource(
+                        contentType = ContentType.Application.Json,
+                        schemaInference = ReflectionJsonSchemaInference.Default,
+                        routes = { apiRoute.descendants() },
+                    )
                 }
             }
         }
@@ -101,4 +104,7 @@ class OpenAPITest {
     }
 }
 
-data class Book(val title: String, val author: String)
+data class Book(
+    val title: String,
+    val author: String
+)
