@@ -132,11 +132,10 @@ private fun buildCommonHeaderCache(): Map<String, CaseInsensitiveString> {
     )
     val result = HashMap<String, CaseInsensitiveString>(headers.size * 2)
     for (header in headers) {
-        val caseInsensitive = CaseInsensitiveString(header)
-        result[header] = caseInsensitive
+        result[header] = CaseInsensitiveString(header)
         val lower = header.lowercase()
         if (lower != header) {
-            result[lower] = caseInsensitive
+            result[lower] = CaseInsensitiveString(lower)
         }
     }
     return result
