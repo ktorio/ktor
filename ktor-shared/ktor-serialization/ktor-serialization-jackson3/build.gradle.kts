@@ -9,6 +9,9 @@ plugins {
 }
 
 kotlin {
+    // Jackson 3.0 requires >= JDK 17
+    jvmToolchain(17)
+
     sourceSets {
         jvmMain.dependencies {
             api(projects.ktorSerialization)
@@ -16,13 +19,13 @@ kotlin {
             api(libs.jackson3.module.kotlin)
         }
         jvmTest.dependencies {
-            api(projects.ktorServerTestHost)
-            api(projects.ktorClientTests)
-            api(projects.ktorClientContentNegotiationTests)
-            api(projects.ktorSerializationTests)
+            implementation(projects.ktorServerTestHost)
+            implementation(projects.ktorClientTests)
+            implementation(projects.ktorClientContentNegotiationTests)
+            implementation(projects.ktorSerializationTests)
 
-            api(libs.logback.classic)
-            api(libs.jackson3.dataformat.smile)
+            implementation(libs.logback.classic)
+            implementation(libs.jackson3.dataformat.smile)
         }
     }
 }

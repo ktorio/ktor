@@ -87,7 +87,7 @@ class ClientJacksonTest : AbstractClientContentNegotiationTest() {
             assertTrue(response.ok)
             val list = response.result!!
             assertEquals(1, list.size)
-            assertEquals(Jackson("response", null), list[0]) // encoded with GsonConverter
+            assertEquals(Jackson("response", null), list[0])
         }
     }
 
@@ -152,7 +152,7 @@ class ClientJacksonTest : AbstractClientContentNegotiationTest() {
             assertTrue(response.ok)
             val list = response.result!!
             assertEquals(1, list.size)
-            assertEquals(Jackson("response", null), list[0]) // encoded with GsonConverter
+            assertEquals(Jackson("response", null), list[0])
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.serialization.jackson3
@@ -146,7 +146,7 @@ public class JacksonConverter(
  * You can learn more from the corresponding [client](https://ktor.io/docs/client-serialization.html#-3bcvpz_158) and [server](https://ktor.io/docs/server-serialization.html#-230zkf_175) documentation.
  *
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.jackson.jackson)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.jackson3.jackson)
  *
  * @param contentType the content type to send with request
  * @param streamRequestBody if set to true, will stream request body, without keeping it whole in memory.

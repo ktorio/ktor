@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.serialization.jackson3
@@ -21,10 +21,10 @@ import tools.jackson.module.kotlin.jacksonObjectMapper
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.jackson.JacksonWebsocketContentConverter)
  */
 public class JacksonWebsocketContentConverter(
-    private val objectmapper: ObjectMapper = jacksonObjectMapper()
+    private val objectMapper: ObjectMapper = jacksonObjectMapper()
 ) : WebsocketContentConverter {
     override suspend fun serialize(charset: Charset, typeInfo: TypeInfo, value: Any?): Frame {
-        val convertedValue = objectmapper.writeValueAsString(value).toByteArray(charset = charset)
+        val convertedValue = objectMapper.writeValueAsString(value).toByteArray(charset = charset)
         return Frame.Text(true, convertedValue)
     }
 
@@ -35,7 +35,7 @@ public class JacksonWebsocketContentConverter(
         try {
             return withContext(Dispatchers.IO) {
                 val data = charset.newDecoder().decode(buildPacket { writeFully(content.readBytes()) })
-                objectmapper.readValue(data, objectmapper.constructType(typeInfo.reifiedType))
+                objectMapper.readValue(data, objectMapper.constructType(typeInfo.reifiedType))
             }
         } catch (cause: Exception) {
             val convertException = JsonConvertException("Illegal json parameter found: ${cause.message}", cause)
