@@ -15,9 +15,9 @@ kotlin {
             api(libs.dropwizard.jvm)
         }
         jvmTest.dependencies {
-            api(projects.ktorServerStatusPages)
-            api(projects.ktorServerCors)
-            api(projects.ktorTestBase)
+            implementation(projects.ktorServerStatusPages)
+            implementation(projects.ktorServerCors)
+            implementation(projects.ktorTestBase)
         }
     }
 }

@@ -15,14 +15,14 @@ kotlin {
         }
 
         commonTest.dependencies {
-            api(projects.ktorTestDispatcher)
+            implementation(projects.ktorTestDispatcher)
         }
 
         jvmTest.dependencies {
-            api(libs.kotlinx.serialization.core)
-            api(projects.ktorClientContentNegotiation)
-            api(projects.ktorSerializationKotlinx)
-            api(projects.ktorSerializationKotlinxJson)
+            implementation(libs.kotlinx.serialization.core)
+            implementation(projects.ktorClientContentNegotiation)
+            implementation(projects.ktorSerializationKotlinx)
+            implementation(projects.ktorSerializationKotlinxJson)
         }
     }
 }

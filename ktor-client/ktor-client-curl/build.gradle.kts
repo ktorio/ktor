@@ -30,8 +30,8 @@ kotlin {
         }
         desktopTest.dependencies {
             implementation(projects.ktorClientTests)
-            api(projects.ktorClientLogging)
-            api(projects.ktorClientJson)
+            implementation(projects.ktorClientLogging)
+            implementation(projects.ktorClientJson)
             implementation(libs.kotlinx.serialization.json)
         }
     }

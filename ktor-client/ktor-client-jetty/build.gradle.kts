@@ -18,7 +18,7 @@ kotlin {
             api(libs.jetty.alpn.java.client)
         }
         commonTest.dependencies {
-            api(projects.ktorClientTests)
+            implementation(projects.ktorClientTests)
         }
     }
 }

@@ -22,7 +22,7 @@ kotlin {
         }
 
         commonTest.dependencies {
-            api(projects.ktorTestDispatcher)
+            implementation(projects.ktorTestDispatcher)
         }
 
         jvmTest.dependencies {

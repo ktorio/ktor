@@ -16,8 +16,8 @@ kotlin {
         }
 
         commonTest.dependencies {
-            api(projects.ktorServerContentNegotiation)
-            api(projects.ktorClientWebsockets)
+            implementation(projects.ktorServerContentNegotiation)
+            implementation(projects.ktorClientWebsockets)
         }
 
         jvmTest.dependencies {
