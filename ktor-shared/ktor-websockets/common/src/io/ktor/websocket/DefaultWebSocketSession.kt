@@ -90,8 +90,8 @@ public fun DefaultWebSocketSession(
         raw = session,
         pingIntervalMillis,
         timeoutMillis,
-        incomingFramesConfig = OUTGOING_CHANNEL_CONFIG ?: ChannelConfig.UNLIMITED,
-        outgoingFramesConfig = ChannelConfig.UNLIMITED
+        incomingFramesConfig = ChannelConfig.UNLIMITED,
+        outgoingFramesConfig = OUTGOING_CHANNEL_CONFIG ?: ChannelConfig.UNLIMITED
     )
 }
 

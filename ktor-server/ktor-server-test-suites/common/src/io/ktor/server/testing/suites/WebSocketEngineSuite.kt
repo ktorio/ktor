@@ -657,7 +657,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     fun testCorruptFrameWithBadOpcode() = runTest {
         createAndStartServer {
             application.routing {
-                webSocket("/") {
+                webSocketRaw("/") {
                     runCatching {
                         for (frame in incoming) {
                             outgoing.send(frame)

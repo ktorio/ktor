@@ -73,8 +73,8 @@ internal class DarwinWebsocketSession(
                 val code = CloseReason.Codes.INTERNAL_ERROR.code.convert<NSInteger>()
                 task.cancelWithCloseCode(code, "Client failed".toByteArray().toNSData())
             }
-            _incoming.close()
-            _outgoing.cancel()
+            _incoming.close(cause)
+            _outgoing.cancel(cause = CancellationException(cause))
         }
     }
 

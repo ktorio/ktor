@@ -21,10 +21,13 @@ import kotlin.time.Duration.Companion.seconds
 
 private const val FRAMES_COUNT = 100
 
-private val NON_CALLBACK_BASED_WS_CLIENTS = arrayOf("CIO", "Darwin", "Java")
+private val NON_CALLBACK_BASED_WS_CLIENTS = arrayOf("CIO", "Darwin", "Java", "WinHttp")
 private val CALLBACK_BASED_WS_CLIENTS = arrayOf("OkHttp", "JS", "Curl")
 
 class WebSocketBackpressureTest : ClientLoader() {
+
+    val Throwable?.isChannelOverflow: Boolean
+        get() = this is ChannelOverflowException || this?.cause is ChannelOverflowException
 
     @Test
     fun `test IO frame channels suspension`() =
@@ -48,7 +51,7 @@ class WebSocketBackpressureTest : ClientLoader() {
                         var expectedIndex = 1
                         for (frame in incoming) {
                             assertTrue(frame is Frame.Text)
-                            assertEquals(frame.readText(), "message ${expectedIndex++}")
+                            assertEquals("message ${expectedIndex++}", frame.readText())
                         }
                     }
                     listOf(sendJob, receiveJob).joinAll()
@@ -91,7 +94,7 @@ class WebSocketBackpressureTest : ClientLoader() {
                     val incomingChannelClosed = CompletableDeferred<Unit>()
                     // Cast it only for testing purposes!
                     (incoming as Channel<*>).invokeOnClose {
-                        assertTrue(it is ChannelOverflowException || it?.cause is ChannelOverflowException)
+                        assertTrue(it.isChannelOverflow, "Unexpected exception: $it")
                         incomingChannelClosed.complete(Unit)
                     }
                     withTimeout(10.seconds) {
@@ -101,7 +104,7 @@ class WebSocketBackpressureTest : ClientLoader() {
                 }
             } catch (e: Exception) {
                 // may be thrown if propagated from ws
-                assertTrue(e is ChannelOverflowException)
+                assertTrue(e.isChannelOverflow, "Unexpected exception: $e")
             }
         }
     }
@@ -120,7 +123,7 @@ class WebSocketBackpressureTest : ClientLoader() {
             client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
                 var outgoingChannelClosed = false
                 outgoing.invokeOnClose {
-                    assertTrue(it is ChannelOverflowException || it?.cause is ChannelOverflowException)
+                    assertTrue(it.isChannelOverflow, "Unexpected exception: $it")
                     outgoingChannelClosed = true
                 }
 
@@ -128,9 +131,9 @@ class WebSocketBackpressureTest : ClientLoader() {
                 runCatching {
                     for (i in 1..FRAMES_COUNT) send("message $i")
                 }.onFailure {
-                    assertTrue(it is ChannelOverflowException || it.cause is ChannelOverflowException)
+                    assertTrue(it.isChannelOverflow, "Unexpected exception: $it")
                 }.onSuccess {
-                    assertTrue(false, "Expected overflow exception but got success")
+                    fail("Expected overflow exception but got success")
                 }
                 assertTrue(outgoingChannelClosed)
             }
