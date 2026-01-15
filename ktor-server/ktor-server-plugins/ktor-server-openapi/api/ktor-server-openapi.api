@@ -11,7 +11,7 @@ public final class io/ktor/server/plugins/openapi/OpenAPIConfig : io/ktor/openap
 	public final fun getOpts ()Lio/swagger/codegen/v3/ClientOptInput;
 	public final fun getOutputPath ()Ljava/lang/String;
 	public final fun getParser ()Lio/swagger/parser/OpenAPIParser;
-	public final fun getSource ()Lio/ktor/annotate/OpenApiDocSource;
+	public final fun getSource ()Lio/ktor/server/routing/openapi/OpenApiDocSource;
 	public fun security (Lkotlin/jvm/functions/Function1;)V
 	public fun servers (Lkotlin/jvm/functions/Function1;)V
 	public final fun setCodegen (Lio/swagger/codegen/v3/CodegenConfig;)V
@@ -24,7 +24,7 @@ public final class io/ktor/server/plugins/openapi/OpenAPIConfig : io/ktor/openap
 	public final fun setOpts (Lio/swagger/codegen/v3/ClientOptInput;)V
 	public final fun setOutputPath (Ljava/lang/String;)V
 	public final fun setParser (Lio/swagger/parser/OpenAPIParser;)V
-	public final fun setSource (Lio/ktor/annotate/OpenApiDocSource;)V
+	public final fun setSource (Lio/ktor/server/routing/openapi/OpenApiDocSource;)V
 	public fun tag (Ljava/lang/String;)V
 }
 

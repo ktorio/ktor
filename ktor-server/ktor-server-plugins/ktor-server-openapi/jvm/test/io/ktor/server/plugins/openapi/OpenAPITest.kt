@@ -4,7 +4,6 @@
 
 package io.ktor.server.plugins.openapi
 
-import io.ktor.annotate.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -14,7 +13,10 @@ import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.routing.openapi.OpenApiDocSource
+import io.ktor.server.routing.openapi.describe
 import io.ktor.server.testing.*
+import io.ktor.utils.io.ExperimentalKtorApi
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
@@ -38,26 +40,27 @@ class OpenAPITest {
             json()
         }
         routing {
+            @OptIn(ExperimentalKtorApi::class)
             val apiRoute = route("/api") {
                 route("/books") {
                     get {
                         call.respond(listOf(sampleBook))
-                    }.annotate {
+                    }.describe {
                         summary = descriptions[0]
                     }
                     get("/{id}") {
                         call.respond(sampleBook)
-                    }.annotate {
+                    }.describe {
                         summary = descriptions[1]
                     }
                     post {
                         call.respond(HttpStatusCode.Created)
-                    }.annotate {
+                    }.describe {
                         summary = descriptions[2]
                     }
                     put("/{id}") {
                         call.respond(HttpStatusCode.NoContent)
-                    }.annotate {
+                    }.describe {
                         summary = descriptions[3]
                     }
                 }

@@ -4,12 +4,12 @@
 
 package io.ktor.server.plugins.swagger
 
-import io.ktor.annotate.*
-import io.ktor.annotate.OpenApiDocSource.Companion.readOpenApiSource
 import io.ktor.server.html.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.routing.openapi.OpenApiDocSource
+import io.ktor.server.routing.openapi.OpenApiDocSource.Companion.readOpenApiSource
 import io.ktor.server.util.*
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.async

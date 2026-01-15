@@ -10,7 +10,7 @@ public final class io/ktor/server/plugins/swagger/SwaggerConfig : io/ktor/openap
 	public fun getOpenapiVersion ()Ljava/lang/String;
 	public final fun getPackageLocation ()Ljava/lang/String;
 	public final fun getRemotePath ()Ljava/lang/String;
-	public final fun getSource ()Lio/ktor/annotate/OpenApiDocSource;
+	public final fun getSource ()Lio/ktor/server/routing/openapi/OpenApiDocSource;
 	public final fun getVersion ()Ljava/lang/String;
 	public fun security (Lkotlin/jvm/functions/Function1;)V
 	public fun servers (Lkotlin/jvm/functions/Function1;)V
@@ -22,7 +22,7 @@ public final class io/ktor/server/plugins/swagger/SwaggerConfig : io/ktor/openap
 	public fun setOpenapiVersion (Ljava/lang/String;)V
 	public final fun setPackageLocation (Ljava/lang/String;)V
 	public final fun setRemotePath (Ljava/lang/String;)V
-	public final fun setSource (Lio/ktor/annotate/OpenApiDocSource;)V
+	public final fun setSource (Lio/ktor/server/routing/openapi/OpenApiDocSource;)V
 	public final fun setVersion (Ljava/lang/String;)V
 	public fun tag (Ljava/lang/String;)V
 }

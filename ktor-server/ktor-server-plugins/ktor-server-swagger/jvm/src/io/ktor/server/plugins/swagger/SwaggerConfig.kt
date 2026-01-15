@@ -4,10 +4,10 @@
 
 package io.ktor.server.plugins.swagger
 
-import io.ktor.annotate.OpenApiDocSource
 import io.ktor.http.ContentType
 import io.ktor.openapi.OpenApiDoc
 import io.ktor.openapi.OpenApiDocDsl
+import io.ktor.server.routing.openapi.OpenApiDocSource
 
 /**
  * A configuration for the Swagger UI endpoint.

@@ -104,7 +104,7 @@ projects {
             +"ktor-server-velocity"
             +"ktor-server-webjars"
             +"ktor-server-websockets"
-            +"ktor-server-routing-annotate"
+            +"ktor-server-routing-openapi"
         }
     }
 
