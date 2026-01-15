@@ -327,17 +327,8 @@ internal class NettyHttpResponsePipeline(
                 continue
             }
 
-            var message: Any? = null
-            channel.read { array, startIndex, endIndex ->
-                val rc = endIndex - startIndex
-                val buf = context.alloc().buffer(rc)
-                val idx = buf.writerIndex()
-                buf.setBytes(idx, array, startIndex, rc)
-                buf.writerIndex(idx + rc)
-                unflushedBytes += rc
-
-                message = call.prepareMessage(buf, false)
-                rc
+            val message = readAndPrepareMessage(channel, call) { bytesRead ->
+                unflushedBytes += bytesRead
             }
 
             if (shouldFlush.invoke(channel, unflushedBytes)) {
@@ -355,6 +346,25 @@ internal class NettyHttpResponsePipeline(
 
         val lastMessage = response.prepareTrailerMessage() ?: call.prepareEndOfStreamMessage(false)
         handleLastResponseMessage(call, lastMessage, lastFuture)
+    }
+
+    private suspend inline fun readAndPrepareMessage(
+        channel: ByteReadChannel,
+        call: NettyApplicationCall,
+        crossinline onBytesRead: (Int) -> Unit
+    ): Any {
+        var result: Any? = null
+        channel.read { array, startIndex, endIndex ->
+            val rc = endIndex - startIndex
+            val buf = context.alloc().buffer(rc)
+            val idx = buf.writerIndex()
+            buf.setBytes(idx, array, startIndex, rc)
+            buf.writerIndex(idx + rc)
+            onBytesRead(rc)
+            result = call.prepareMessage(buf, false)
+            rc
+        }
+        return result!!
     }
 }
 
