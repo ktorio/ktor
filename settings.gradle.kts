@@ -173,6 +173,7 @@ projects {
             }
             +"ktor-serialization-gson"
             +"ktor-serialization-jackson"
+            +"ktor-serialization-jackson3"
             +"ktor-serialization-tests"
         }
         +"ktor-sse"
