@@ -32,7 +32,7 @@ kotlin {
         }
 
         commonTest.dependencies {
-            api(projects.ktorServerTestHost)
+            implementation(projects.ktorServerTestHost)
         }
 
         jvmTest.dependencies {

@@ -17,7 +17,7 @@ kotlin {
             api(libs.kotlinx.io.core)
         }
         commonTest.dependencies {
-            api(projects.ktorTestDispatcher)
+            implementation(projects.ktorTestDispatcher)
         }
     }
 }

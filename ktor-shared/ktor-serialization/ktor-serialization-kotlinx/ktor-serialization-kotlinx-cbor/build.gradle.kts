@@ -16,8 +16,8 @@ kotlin {
             api(libs.kotlinx.serialization.cbor)
         }
         commonTest.dependencies {
-            api(libs.kotlinx.serialization.json)
-            api(projects.ktorSerializationKotlinxTests)
+            implementation(libs.kotlinx.serialization.json)
+            implementation(projects.ktorSerializationKotlinxTests)
         }
     }
 }

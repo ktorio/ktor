@@ -20,9 +20,9 @@ kotlin {
             api(libs.tomcat.embed.core.jakarta)
         }
         jvmTest.dependencies {
-            api(projects.ktorServerTestBase)
-            api(projects.ktorServerTestSuites)
-            api(projects.ktorServerCore)
+            implementation(projects.ktorServerTestBase)
+            implementation(projects.ktorServerTestSuites)
+            implementation(projects.ktorServerCore)
         }
     }
 }

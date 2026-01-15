@@ -11,11 +11,11 @@ plugins {
 kotlin {
     sourceSets {
         jvmTest.dependencies {
-            api(projects.ktorServerTestBase)
-            api(projects.ktorServerTestSuites)
-            api(libs.jetty.servlet)
-            api(projects.ktorServerCore)
-            api(projects.ktorServerJetty)
+            implementation(projects.ktorServerTestBase)
+            implementation(projects.ktorServerTestSuites)
+            implementation(libs.jetty.servlet)
+            implementation(projects.ktorServerCore)
+            implementation(projects.ktorServerJetty)
         }
     }
 }

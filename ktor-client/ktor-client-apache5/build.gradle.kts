@@ -16,7 +16,7 @@ kotlin {
             api(libs.apache.client5)
         }
         jvmTest.dependencies {
-            api(projects.ktorClientTests)
+            implementation(projects.ktorClientTests)
         }
     }
 }

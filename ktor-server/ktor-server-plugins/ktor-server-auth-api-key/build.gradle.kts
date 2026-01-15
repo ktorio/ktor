@@ -13,10 +13,10 @@ kotlin {
             api(projects.ktorServerAuth)
         }
         commonTest.dependencies {
-            api(projects.ktorServerContentNegotiation)
-            api(projects.ktorClientContentNegotiation)
-            api(projects.ktorSerializationKotlinxJson)
-            api(libs.kotlinx.serialization.json)
+            implementation(projects.ktorServerContentNegotiation)
+            implementation(projects.ktorClientContentNegotiation)
+            implementation(projects.ktorSerializationKotlinxJson)
+            implementation(libs.kotlinx.serialization.json)
         }
     }
 }

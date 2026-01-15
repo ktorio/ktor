@@ -14,11 +14,11 @@ kotlin {
 
     sourceSets {
         jvmTest.dependencies {
-            api(projects.ktorServerTestBase)
-            api(projects.ktorServerTestSuites)
-            api(libs.jetty.servlet.jakarta)
-            api(projects.ktorServerCore)
-            api(projects.ktorServerJettyJakarta)
+            implementation(projects.ktorServerTestBase)
+            implementation(projects.ktorServerTestSuites)
+            implementation(libs.jetty.servlet.jakarta)
+            implementation(projects.ktorServerCore)
+            implementation(projects.ktorServerJettyJakarta)
         }
     }
 }

@@ -10,7 +10,7 @@ plugins {
 kotlin {
     sourceSets {
         jvmTest.dependencies {
-            api(projects.ktorServerTestHost)
+            implementation(projects.ktorServerTestHost)
         }
     }
 }

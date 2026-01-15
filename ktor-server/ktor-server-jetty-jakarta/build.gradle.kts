@@ -25,13 +25,13 @@ kotlin {
             api(libs.jetty.http2.server.jakarta)
         }
         jvmTest.dependencies {
-            api(libs.kotlin.test.junit5)
-            api(projects.ktorServerCore)
-            api(projects.ktorServerTestBase)
-            api(projects.ktorServerTestSuites)
+            implementation(libs.kotlin.test.junit5)
+            implementation(projects.ktorServerCore)
+            implementation(projects.ktorServerTestBase)
+            implementation(projects.ktorServerTestSuites)
 
-            api(libs.jetty.servlet.jakarta)
-            api(libs.jetty.servlet.websocket.jakarta)
+            implementation(libs.jetty.servlet.jakarta)
+            implementation(libs.jetty.servlet.websocket.jakarta)
         }
     }
 }

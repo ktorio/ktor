@@ -12,8 +12,8 @@ kotlin {
             api(projects.ktorServerAuth)
         }
         jvmTest.dependencies {
-            api(libs.apacheds.server)
-            api(libs.apacheds.core)
+            implementation(libs.apacheds.server)
+            implementation(libs.apacheds.core)
         }
     }
 }
