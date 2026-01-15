@@ -504,6 +504,24 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
+    fun testUnauthorizedRefreshTokenWithIncorrectWWWAuthenticateHeaderIfOneProviderIsInstalled() = clientTests {
+        config {
+            install(Auth) {
+                bearer {
+                    refreshTokens { BearerTokens("valid", "refresh") }
+                    loadTokens { BearerTokens("invalid", "refresh") }
+                }
+            }
+        }
+
+        test { client ->
+            client.prepareGet("$TEST_SERVER/auth/bearer/different-header").execute {
+                assertEquals(HttpStatusCode.OK, it.status)
+            }
+        }
+    }
+
+    @Test
     fun testRefreshOnBackgroundThread() = clientTests {
         config {
             install(Auth) {
