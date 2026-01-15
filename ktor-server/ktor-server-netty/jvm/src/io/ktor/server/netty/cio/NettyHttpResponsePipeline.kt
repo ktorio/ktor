@@ -32,6 +32,13 @@ internal class NettyHttpResponsePipeline(
     private val isDataNotFlushed: AtomicBoolean = atomic(false)
 
     /**
+     * Holder for last read message to avoid ObjectRef allocation when capturing mutable vars.
+     * Only accessed from single coroutine context, so no synchronization needed.
+     */
+    private var lastReadMessage: Any? = null
+    private var lastReadBytesCount: Int = 0
+
+    /**
      * Represents promise which is marked as success when the last read request is handled.
      * Marked as fail when last read request is failed.
      * Default value is success on purpose to start first request handle
@@ -327,9 +334,9 @@ internal class NettyHttpResponsePipeline(
                 continue
             }
 
-            val message = readAndPrepareMessage(channel, call) { bytesRead ->
-                unflushedBytes += bytesRead
-            }
+            readAndPrepareMessage(channel, call)
+            val message = lastReadMessage!!
+            unflushedBytes += lastReadBytesCount
 
             if (shouldFlush.invoke(channel, unflushedBytes)) {
                 context.read()
@@ -348,23 +355,24 @@ internal class NettyHttpResponsePipeline(
         handleLastResponseMessage(call, lastMessage, lastFuture)
     }
 
+    /**
+     * Reads from channel and prepares a message, storing results in [lastReadMessage] and [lastReadBytesCount].
+     * Uses class fields instead of a callback to avoid ObjectRef allocation from capturing mutable vars.
+     */
     private suspend inline fun readAndPrepareMessage(
         channel: ByteReadChannel,
-        call: NettyApplicationCall,
-        crossinline onBytesRead: (Int) -> Unit
-    ): Any {
-        var result: Any? = null
+        call: NettyApplicationCall
+    ) {
         channel.read { array, startIndex, endIndex ->
             val rc = endIndex - startIndex
             val buf = context.alloc().buffer(rc)
             val idx = buf.writerIndex()
             buf.setBytes(idx, array, startIndex, rc)
             buf.writerIndex(idx + rc)
-            onBytesRead(rc)
-            result = call.prepareMessage(buf, false)
+            lastReadBytesCount = rc
+            lastReadMessage = call.prepareMessage(buf, false)
             rc
         }
-        return result!!
     }
 }
 

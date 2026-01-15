@@ -4,6 +4,9 @@
 
 package io.ktor.util.date
 
+import java.time.Instant
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 import java.util.*
 
 private val GMT_TIMEZONE = TimeZone.getTimeZone("GMT")
@@ -16,8 +19,22 @@ private val GMT_TIMEZONE = TimeZone.getTimeZone("GMT")
  * @param timestamp is a number of epoch milliseconds (it is `now` by default).
  */
 @Suppress("FunctionName")
-public actual fun GMTDate(timestamp: Long?): GMTDate =
-    Calendar.getInstance(GMT_TIMEZONE, Locale.ROOT)!!.toDate(timestamp)
+public actual fun GMTDate(timestamp: Long?): GMTDate {
+    val ts = timestamp ?: System.currentTimeMillis()
+    val zdt = ZonedDateTime.ofInstant(Instant.ofEpochMilli(ts), ZoneOffset.UTC)
+
+    return GMTDate(
+        seconds = zdt.second,
+        minutes = zdt.minute,
+        hours = zdt.hour,
+        dayOfWeek = WeekDay.from(zdt.dayOfWeek.value - 1),
+        dayOfMonth = zdt.dayOfMonth,
+        dayOfYear = zdt.dayOfYear,
+        month = Month.from(zdt.monthValue - 1),
+        year = zdt.year,
+        timestamp = ts
+    )
+}
 
 /**
  * Create an instance of [GMTDate] from the specified date/time components
@@ -32,15 +49,21 @@ public actual fun GMTDate(
     dayOfMonth: Int,
     month: Month,
     year: Int
-): GMTDate = (Calendar.getInstance(GMT_TIMEZONE, Locale.ROOT)!!).apply {
-    set(Calendar.YEAR, year)
-    set(Calendar.MONTH, month.ordinal)
-    set(Calendar.DAY_OF_MONTH, dayOfMonth)
-    set(Calendar.HOUR_OF_DAY, hours)
-    set(Calendar.MINUTE, minutes)
-    set(Calendar.SECOND, seconds)
-    set(Calendar.MILLISECOND, 0)
-}.toDate(timestamp = null)
+): GMTDate {
+    val zdt = ZonedDateTime.of(year, month.ordinal + 1, dayOfMonth, hours, minutes, seconds, 0, ZoneOffset.UTC)
+
+    return GMTDate(
+        seconds = seconds,
+        minutes = minutes,
+        hours = hours,
+        dayOfWeek = WeekDay.from(zdt.dayOfWeek.value - 1),
+        dayOfMonth = dayOfMonth,
+        dayOfYear = zdt.dayOfYear,
+        month = month,
+        year = year,
+        timestamp = zdt.toInstant().toEpochMilli()
+    )
+}
 
 public fun Calendar.toDate(timestamp: Long?): GMTDate {
     timestamp?.let { timeInMillis = it }

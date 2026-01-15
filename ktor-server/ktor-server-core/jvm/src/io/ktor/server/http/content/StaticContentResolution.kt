@@ -46,7 +46,7 @@ public fun ApplicationCall.resolveResource(
     return null
 }
 
-private val resourceCache by lazy { ConcurrentHashMap<String, URL>() }
+private val resourceCache by lazy { ConcurrentHashMap<ClassLoader, ConcurrentHashMap<String, URL>>() }
 private val normalizedPathCache by lazy { ConcurrentHashMap<String, String>() }
 
 @OptIn(InternalAPI::class)
@@ -61,14 +61,14 @@ internal fun Application.resolveResource(
     }
 
     val normalizedPath = normalisedPath(resourcePackage, path)
-    val cacheKey = "${classLoader.hashCode()}/$normalizedPath"
+    val classLoaderCache = resourceCache.getOrPut(classLoader) { ConcurrentHashMap() }
     val resolveContent: (URL) -> Pair<URL, OutgoingContent.ReadChannelContent>? = { url ->
         resourceClasspathResource(url, normalizedPath, mimeResolve)?.let { url to it }
     }
-    return resourceCache[cacheKey]?.let(resolveContent)
+    return classLoaderCache[normalizedPath]?.let(resolveContent)
         ?: classLoader.getResources(normalizedPath).asSequence()
             .firstNotNullOfOrNull(resolveContent)?.also { (url) ->
-                resourceCache[cacheKey] = url
+                classLoaderCache[normalizedPath] = url
             }
 }
 
@@ -190,8 +190,25 @@ private fun computeNormalizedPath(resourcePackage: String?, path: String): Strin
     // Parse path components (split by '/', '\\')
     parseComponents(path, components, splitOnDot = false)
 
-    // Normalize and join
-    return components.normalizePathComponents().joinToString("/")
+    // Normalize and join using index-based iteration to avoid iterator allocation
+    return components.normalizePathComponents().joinByIndexToString("/")
+}
+
+/**
+ * Joins list elements using index-based access instead of iterator to avoid ArrayList$Itr allocation.
+ */
+private fun List<String>.joinByIndexToString(separator: String): String {
+    val size = size
+    if (size == 0) return ""
+    if (size == 1) return get(0)
+
+    val sb = StringBuilder()
+    sb.append(get(0))
+    for (i in 1 until size) {
+        sb.append(separator)
+        sb.append(get(i))
+    }
+    return sb.toString()
 }
 
 private fun parseComponents(input: String, output: MutableList<String>, splitOnDot: Boolean) {
