@@ -8,7 +8,6 @@
 package io.ktor.utils.io
 
 import kotlinx.atomicfu.atomic
-import kotlinx.coroutines.CompletionHandler
 import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -160,15 +159,17 @@ internal class ReusableSuspension : Continuation<Unit> {
     /**
      * Handles job cancellation by resuming the suspension with the cancellation cause.
      */
-    private inner class JobCancellationHandler(val job: Job) : CompletionHandler {
+    private inner class JobCancellationHandler(val job: Job) {
         private var handle: DisposableHandle? = null
 
         init {
             @OptIn(InternalCoroutinesApi::class)
-            handle = job.invokeOnCompletion(onCancelling = true, handler = this)
+            handle = job.invokeOnCompletion(onCancelling = true) { cause ->
+                onJobCompletion(cause)
+            }
         }
 
-        override fun invoke(cause: Throwable?) {
+        private fun onJobCompletion(cause: Throwable?) {
             // Remove ourselves from the handler slot
             jobHandler.compareAndSet(this, null)
             dispose()
