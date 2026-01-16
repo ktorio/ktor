@@ -1,5 +1,5 @@
 type: object
-title: io.ktor.openapi.ContainerTestData
+title: io.ktor.openapi.reflect.ContainerTestData
 required:
   - tags
   - metadata

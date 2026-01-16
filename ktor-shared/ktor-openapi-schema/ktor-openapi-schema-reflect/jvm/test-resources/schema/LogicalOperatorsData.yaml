@@ -1,15 +1,15 @@
 type: object
-title: io.ktor.openapi.LogicalOperatorsData
+title: io.ktor.openapi.reflect.LogicalOperatorsData
 required:
   - location
   - nonColorValue
 properties:
   location:
     type: object
-    title: io.ktor.openapi.Location
+    title: io.ktor.openapi.reflect.Location
     oneOf:
       - type: object
-        title: io.ktor.openapi.Address
+        title: io.ktor.openapi.reflect.Address
         required:
           - houseNumber
           - street
@@ -28,7 +28,7 @@ properties:
             type: string
           municipality:
             type: object
-            title: io.ktor.openapi.Municipality
+            title: io.ktor.openapi.reflect.Municipality
             required:
               - city
               - country
@@ -40,7 +40,7 @@ properties:
                 nullable: true
               country:
                 type: object
-                title: io.ktor.openapi.Country
+                title: io.ktor.openapi.reflect.Country
                 required:
                   - name
                   - code
@@ -54,7 +54,7 @@ properties:
           postalCode:
             type: string
       - type: object
-        title: io.ktor.openapi.Country
+        title: io.ktor.openapi.reflect.Country
         required:
           - name
           - code
@@ -68,9 +68,9 @@ properties:
     discriminator:
       propertyName: type
       mapping:
-        io.ktor.openapi.Address: "#/components/schemas/Address"
-        io.ktor.openapi.Country: "#/components/schemas/Country"
-        io.ktor.openapi.Municipality: "#/components/schemas/Municipality"
+        io.ktor.openapi.reflect.Address: "#/components/schemas/Address"
+        io.ktor.openapi.reflect.Country: "#/components/schemas/Country"
+        io.ktor.openapi.reflect.Municipality: "#/components/schemas/Municipality"
   nonColorValue:
     type: string
     not:

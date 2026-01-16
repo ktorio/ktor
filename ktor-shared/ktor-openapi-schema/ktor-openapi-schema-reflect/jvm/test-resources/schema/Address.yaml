@@ -1,5 +1,5 @@
 type: object
-title: io.ktor.openapi.Address
+title: io.ktor.openapi.reflect.Address
 required:
   - houseNumber
   - street
@@ -18,7 +18,7 @@ properties:
     type: string
   municipality:
     type: object
-    title: io.ktor.openapi.Municipality
+    title: io.ktor.openapi.reflect.Municipality
     required:
       - city
       - country
@@ -30,7 +30,7 @@ properties:
         nullable: true
       country:
         type: object
-        title: io.ktor.openapi.Country
+        title: io.ktor.openapi.reflect.Country
         required:
           - name
           - code

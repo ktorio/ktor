@@ -1,5 +1,5 @@
 type: object
-title: io.ktor.openapi.AnnotatedUser
+title: io.ktor.openapi.reflect.AnnotatedUser
 required:
   - id
   - username
