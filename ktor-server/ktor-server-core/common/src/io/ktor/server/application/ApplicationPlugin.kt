@@ -8,7 +8,8 @@ import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.util.internal.*
 import io.ktor.util.pipeline.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CopyableThrowable
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 /**
  * Defines an installable [Plugin](https://ktor.io/docs/plugins.html).
@@ -195,7 +196,7 @@ private fun Route.copyChildrenRecursively(child: RoutingNode) {
     }
 }
 
-private fun <B : Any, F : Any, TSubject, TContext, P : Pipeline<TSubject, TContext>> P.addAllInterceptors(
+private fun <B : Any, F : Any, TSubject : Any, TContext : Any, P : Pipeline<TSubject, TContext>> P.addAllInterceptors(
     fakePipeline: P,
     plugin: BaseRouteScopedPlugin<B, F>,
     pluginInstance: F
