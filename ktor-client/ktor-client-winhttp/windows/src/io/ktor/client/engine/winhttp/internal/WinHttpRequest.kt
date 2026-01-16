@@ -326,19 +326,15 @@ internal class WinHttpRequest(
     }
 
     /**
-     * Gets a HTTP protocol version from server response.
+     * Gets an HTTP protocol version from server response.
      */
-    private fun isHttp2Response() = memScoped {
+    private fun isHttp2Response(): Boolean = memScoped {
         val flags = alloc<UIntVar>()
         val dwSize = alloc<UIntVar> {
             value = UINT_SIZE
         }
-        if (WinHttpQueryOption(hRequest, WINHTTP_OPTION_HTTP_PROTOCOL_USED, flags.ptr, dwSize.ptr) != 0) {
-            if ((flags.value.convert<Int>() and WINHTTP_PROTOCOL_FLAG_HTTP2) != 0) {
-                return true
-            }
-        }
-        false
+        WinHttpQueryOption(hRequest, WINHTTP_OPTION_HTTP_PROTOCOL_USED, flags.ptr, dwSize.ptr) != 0 &&
+            (flags.value.convert<Int>() and WINHTTP_PROTOCOL_FLAG_HTTP2) != 0
     }
 
     private fun closeRequest() {
