@@ -12,6 +12,7 @@ import kotlinx.io.Sink
 import kotlinx.io.Source
 import kotlin.concurrent.Volatile
 import kotlin.coroutines.Continuation
+import kotlin.coroutines.intrinsics.COROUTINE_SUSPENDED
 import kotlin.coroutines.intrinsics.intercepted
 import kotlin.coroutines.intrinsics.suspendCoroutineUninterceptedOrReturn
 import kotlin.jvm.JvmStatic
@@ -206,7 +207,12 @@ public class ByteChannel(public override val autoFlush: Boolean = false) : ByteR
             return Unit
         }
 
-        return readSuspension.trySuspend(continuation)
+        val result = readSuspension.trySuspend(continuation)
+        // If trySuspend returned early (not suspended), reset slot state
+        if (result !== COROUTINE_SUSPENDED) {
+            slotState.compareAndSet(SlotState.ReadWaiting, SlotState.Empty)
+        }
+        return result
     }
 
     private inline fun trySuspendForWrite(
@@ -241,7 +247,12 @@ public class ByteChannel(public override val autoFlush: Boolean = false) : ByteR
             return Unit
         }
 
-        return writeSuspension.trySuspend(continuation)
+        val result = writeSuspension.trySuspend(continuation)
+        // If trySuspend returned early (not suspended), reset slot state
+        if (result !== COROUTINE_SUSPENDED) {
+            slotState.compareAndSet(SlotState.WriteWaiting, SlotState.Empty)
+        }
+        return result
     }
 
     /**
