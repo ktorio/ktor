@@ -4,12 +4,24 @@
 
 package io.ktor.util.date
 
-import java.time.Instant
-import java.time.ZoneOffset
-import java.time.ZonedDateTime
 import java.util.*
 
 private val GMT_TIMEZONE = TimeZone.getTimeZone("GMT")
+
+private const val SECONDS_PER_MINUTE = 60
+private const val SECONDS_PER_HOUR = 3600
+private const val SECONDS_PER_DAY = 86400L
+private const val MILLIS_PER_SECOND = 1000L
+private const val MILLIS_PER_DAY = SECONDS_PER_DAY * MILLIS_PER_SECOND
+
+private val DAYS_IN_MONTH = intArrayOf(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+private val CUMULATIVE_DAYS = intArrayOf(0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334)
+
+private fun isLeapYear(year: Int): Boolean =
+    (year % 4 == 0) && (year % 100 != 0 || year % 400 == 0)
+
+private fun daysInMonth(month: Int, year: Int): Int =
+    if (month == 1 && isLeapYear(year)) 29 else DAYS_IN_MONTH[month]
 
 /**
  * Create new gmt date from the [timestamp].
@@ -21,17 +33,51 @@ private val GMT_TIMEZONE = TimeZone.getTimeZone("GMT")
 @Suppress("FunctionName")
 public actual fun GMTDate(timestamp: Long?): GMTDate {
     val ts = timestamp ?: System.currentTimeMillis()
-    val zdt = ZonedDateTime.ofInstant(Instant.ofEpochMilli(ts), ZoneOffset.UTC)
+
+    val totalSeconds = ts / MILLIS_PER_SECOND
+    val secondOfDay = ((totalSeconds % SECONDS_PER_DAY) + SECONDS_PER_DAY).toInt() % SECONDS_PER_DAY.toInt()
+
+    val hours = secondOfDay / SECONDS_PER_HOUR
+    val minutes = (secondOfDay % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE
+    val seconds = secondOfDay % SECONDS_PER_MINUTE
+
+    var daysSinceEpoch = (ts / MILLIS_PER_DAY).toInt()
+    if (ts < 0 && ts % MILLIS_PER_DAY != 0L) daysSinceEpoch--
+
+    val dayOfWeek = WeekDay.from(((daysSinceEpoch % 7) + 7 + 3) % 7)
+
+    var year = 1970
+    var remainingDays = daysSinceEpoch
+
+    while (remainingDays >= 365) {
+        val daysInYear = if (isLeapYear(year)) 366 else 365
+        if (remainingDays < daysInYear) break
+        remainingDays -= daysInYear
+        year++
+    }
+    while (remainingDays < 0) {
+        year--
+        remainingDays += if (isLeapYear(year)) 366 else 365
+    }
+
+    val dayOfYear = remainingDays + 1
+
+    var monthValue = 0
+    var day = remainingDays
+    while (monthValue < 11 && day >= daysInMonth(monthValue, year)) {
+        day -= daysInMonth(monthValue, year)
+        monthValue++
+    }
 
     return GMTDate(
-        seconds = zdt.second,
-        minutes = zdt.minute,
-        hours = zdt.hour,
-        dayOfWeek = WeekDay.from(zdt.dayOfWeek.value - 1),
-        dayOfMonth = zdt.dayOfMonth,
-        dayOfYear = zdt.dayOfYear,
-        month = Month.from(zdt.monthValue - 1),
-        year = zdt.year,
+        seconds = seconds,
+        minutes = minutes,
+        hours = hours,
+        dayOfWeek = dayOfWeek,
+        dayOfMonth = day + 1,
+        dayOfYear = dayOfYear,
+        month = Month.from(monthValue),
+        year = year,
         timestamp = ts
     )
 }
@@ -50,18 +96,36 @@ public actual fun GMTDate(
     month: Month,
     year: Int
 ): GMTDate {
-    val zdt = ZonedDateTime.of(year, month.ordinal + 1, dayOfMonth, hours, minutes, seconds, 0, ZoneOffset.UTC)
+    val monthValue = month.ordinal
+    val dayOfYear = CUMULATIVE_DAYS[monthValue] + dayOfMonth +
+        if (monthValue > 1 && isLeapYear(year)) 1 else 0
+
+    var daysSinceEpoch = 0
+    for (y in 1970 until year) {
+        daysSinceEpoch += if (isLeapYear(y)) 366 else 365
+    }
+    for (y in year until 1970) {
+        daysSinceEpoch -= if (isLeapYear(y)) 366 else 365
+    }
+    daysSinceEpoch += dayOfYear - 1
+
+    val dayOfWeek = WeekDay.from(((daysSinceEpoch % 7) + 7 + 3) % 7)
+
+    val timestamp = daysSinceEpoch.toLong() * MILLIS_PER_DAY +
+        hours * SECONDS_PER_HOUR * MILLIS_PER_SECOND +
+        minutes * SECONDS_PER_MINUTE * MILLIS_PER_SECOND +
+        seconds * MILLIS_PER_SECOND
 
     return GMTDate(
         seconds = seconds,
         minutes = minutes,
         hours = hours,
-        dayOfWeek = WeekDay.from(zdt.dayOfWeek.value - 1),
+        dayOfWeek = dayOfWeek,
         dayOfMonth = dayOfMonth,
-        dayOfYear = zdt.dayOfYear,
+        dayOfYear = dayOfYear,
         month = month,
         year = year,
-        timestamp = zdt.toInstant().toEpochMilli()
+        timestamp = timestamp
     )
 }
 

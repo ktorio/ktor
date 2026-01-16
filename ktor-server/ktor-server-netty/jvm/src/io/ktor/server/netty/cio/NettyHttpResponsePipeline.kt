@@ -39,6 +39,11 @@ internal class NettyHttpResponsePipeline(
     private var lastReadBytesCount: Int = 0
 
     /**
+     * Cached dispatcher to avoid allocating ExecutorCoroutineDispatcherImpl per request.
+     */
+    private val executorDispatcher = context.executor().asCoroutineDispatcher()
+
+    /**
      * Represents promise which is marked as success when the last read request is handled.
      * Marked as fail when last read request is failed.
      * Default value is success on purpose to start first request handle
@@ -204,7 +209,7 @@ internal class NettyHttpResponsePipeline(
             else -> -1
         }
 
-        launch(context.executor().asCoroutineDispatcher(), start = CoroutineStart.UNDISPATCHED) {
+        launch(executorDispatcher, start = CoroutineStart.UNDISPATCHED) {
             respondWithBodyAndTrailerMessage(
                 call,
                 response,

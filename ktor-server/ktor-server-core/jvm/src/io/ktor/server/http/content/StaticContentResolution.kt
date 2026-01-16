@@ -47,7 +47,12 @@ public fun ApplicationCall.resolveResource(
 }
 
 private val resourceCache by lazy { ConcurrentHashMap<ClassLoader, ConcurrentHashMap<String, URL>>() }
-private val normalizedPathCache by lazy { ConcurrentHashMap<String, String>() }
+
+/**
+ * Two-level cache: resourcePackage -> (path -> normalizedPath)
+ * Using nested maps avoids string concatenation for cache key creation on every lookup.
+ */
+private val normalizedPathCache by lazy { ConcurrentHashMap<String, ConcurrentHashMap<String, String>>() }
 
 @OptIn(InternalAPI::class)
 internal fun Application.resolveResource(
@@ -151,10 +156,11 @@ private fun normalisedPath(resourcePackage: String?, path: String): String {
         throw BadRequestException("Relative path should not contain path traversing characters: $path")
     }
 
-    val cacheKey = "${resourcePackage.orEmpty()}\u0000$path"
-    return normalizedPathCache.getOrPut(cacheKey) {
-        computeNormalizedPath(resourcePackage, path)
-    }
+    // Use two-level cache to avoid string concatenation for cache key on every lookup
+    val packageKey = resourcePackage ?: ""
+    return normalizedPathCache
+        .getOrPut(packageKey) { ConcurrentHashMap() }
+        .getOrPut(path) { computeNormalizedPath(resourcePackage, path) }
 }
 
 private fun containsPathTraversal(path: String): Boolean {
