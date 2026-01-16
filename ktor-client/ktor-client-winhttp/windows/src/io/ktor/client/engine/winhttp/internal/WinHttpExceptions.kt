@@ -7,7 +7,7 @@ package io.ktor.client.engine.winhttp.internal
 import io.ktor.client.network.sockets.*
 import kotlinx.cinterop.*
 import platform.windows.*
-import platform.winhttp.*
+import platform.winhttp.ERROR_WINHTTP_TIMEOUT
 
 @OptIn(ExperimentalForeignApi::class)
 private val winHttpModuleHandle by lazy {
@@ -91,17 +91,16 @@ private fun formatMessage(errorCode: UInt, moduleHandle: HMODULE? = null): Strin
         return@memScoped null
     }
 
-    // If allocated buffer is too small, try to request buffer allocation
+    // If the allocated buffer is too small, try to request buffer allocation
     formatFlags = formatFlags or FORMAT_MESSAGE_ALLOCATE_BUFFER
 
     val bufferPtr = alloc<CPointerVar<UShortVar>>()
-    @Suppress("INFERRED_TYPE_VARIABLE_INTO_EMPTY_INTERSECTION_ERROR")
     readChars = FormatMessageW(
         formatFlags.convert(),
         moduleHandle,
         errorCode,
         languageId,
-        bufferPtr.reinterpret(),
+        bufferPtr.ptr.reinterpret(),
         0.convert(),
         null
     )
@@ -113,8 +112,7 @@ private fun formatMessage(errorCode: UInt, moduleHandle: HMODULE? = null): Strin
             null
         }
     } finally {
-        @Suppress("INFERRED_TYPE_VARIABLE_INTO_EMPTY_INTERSECTION_ERROR")
-        LocalFree(bufferPtr.reinterpret())
+        LocalFree(bufferPtr.value)
     }
 }
 
