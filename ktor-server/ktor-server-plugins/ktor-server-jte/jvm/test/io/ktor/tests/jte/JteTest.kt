@@ -27,6 +27,9 @@ import java.util.zip.GZIPInputStream
 import kotlin.test.*
 import kotlin.text.Charsets
 
+// TODO: Un-ignore when jte-kotlin supports Kotlin 2.3.0
+//   https://github.com/casid/jte/issues/473
+@Ignore("jte-kotlin doesn't support Kotlin 2.3.0")
 class JteTest {
 
     @Test

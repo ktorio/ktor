@@ -8,7 +8,6 @@ import kotlinx.cinterop.*
 import libcurl.*
 import kotlin.experimental.ExperimentalNativeApi
 import kotlin.test.Test
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalForeignApi::class)
@@ -39,21 +38,26 @@ class LibcurlTest {
 
     @OptIn(ExperimentalNativeApi::class)
     @Test
-    fun `test CURLINFO_CAPATH or CURLINFO_CAINFO set`() = memScoped {
+    fun `test CURLINFO_CAPATH or CURLINFO_CAINFO set`() {
         // libcurl doesn't set default CAPATH/CAINFO on Windows
         if (Platform.osFamily == OsFamily.WINDOWS) return
 
-        val curl = curl_easy_init()
+        memScoped {
+            val curl = curl_easy_init()
 
-        val caPath = allocPointerTo<ByteVar>()
-        curl_easy_getinfo(curl, CURLINFO_CAPATH, caPath.ptr)
+            val caPath = allocPointerTo<ByteVar>()
+            curl_easy_getinfo(curl, CURLINFO_CAPATH, caPath.ptr)
 
-        val caInfo = allocPointerTo<ByteVar>()
-        curl_easy_getinfo(curl, CURLINFO_CAINFO, caInfo.ptr)
+            val caInfo = allocPointerTo<ByteVar>()
+            curl_easy_getinfo(curl, CURLINFO_CAINFO, caInfo.ptr)
 
-        curl_easy_cleanup(curl)
+            curl_easy_cleanup(curl)
 
-        assertFalse(caPath.value == null && caInfo.value == null, "Neither CURLINFO_CAPATH nor CURLINFO_CAINFO are set")
+            assertTrue(
+                caPath.value != null || caInfo.value != null,
+                "Neither CURLINFO_CAPATH nor CURLINFO_CAINFO are set"
+            )
+        }
     }
 
     @Suppress("DEPRECATION")

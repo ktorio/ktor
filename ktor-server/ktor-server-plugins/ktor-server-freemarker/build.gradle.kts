@@ -12,9 +12,9 @@ kotlin {
             api(libs.freemarker)
         }
         jvmTest.dependencies {
-            api(projects.ktorServerStatusPages)
-            api(projects.ktorServerCompression)
-            api(projects.ktorServerConditionalHeaders)
+            implementation(projects.ktorServerStatusPages)
+            implementation(projects.ktorServerCompression)
+            implementation(projects.ktorServerConditionalHeaders)
             implementation(projects.ktorServerContentNegotiation)
         }
     }

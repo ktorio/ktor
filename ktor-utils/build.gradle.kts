@@ -29,7 +29,7 @@ kotlin {
             api(libs.kotlinx.serialization.core)
         }
         commonTest.dependencies {
-            api(projects.ktorTestDispatcher)
+            implementation(projects.ktorTestDispatcher)
         }
         jvmMain.dependencies {
             implementation(libs.zstd.jni)

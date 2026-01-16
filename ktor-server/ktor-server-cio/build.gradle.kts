@@ -17,9 +17,9 @@ kotlin {
             api(projects.ktorNetwork)
         }
         commonTest.dependencies {
-            api(projects.ktorClientCio)
-            api(projects.ktorServerTestSuites)
-            api(projects.ktorServerTestBase)
+            implementation(projects.ktorClientCio)
+            implementation(projects.ktorServerTestSuites)
+            implementation(projects.ktorServerTestBase)
         }
     }
 }

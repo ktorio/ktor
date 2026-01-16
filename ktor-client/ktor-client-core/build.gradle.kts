@@ -31,9 +31,9 @@ kotlin {
         }
 
         commonTest.dependencies {
-            api(projects.ktorTestDispatcher)
-            api(projects.ktorClientMock)
-            api(projects.ktorServerTestHost)
+            implementation(projects.ktorTestDispatcher)
+            implementation(projects.ktorClientMock)
+            implementation(projects.ktorServerTestHost)
         }
     }
 }

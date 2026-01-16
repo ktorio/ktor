@@ -20,8 +20,8 @@ kotlin {
         }
         windowsTest.dependencies {
             implementation(projects.ktorClientTestBase)
-            api(projects.ktorClientLogging)
-            api(projects.ktorClientJson)
+            implementation(projects.ktorClientLogging)
+            implementation(projects.ktorClientJson)
         }
     }
 }

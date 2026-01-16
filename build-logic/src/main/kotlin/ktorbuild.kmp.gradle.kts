@@ -32,7 +32,7 @@ kotlin {
 
     compilerOptions {
         apiVersion = KotlinVersion.KOTLIN_2_2
-        languageVersion = KotlinVersion.KOTLIN_2_2
+        languageVersion = KotlinVersion.KOTLIN_2_3
         progressiveMode = languageVersion.map { it >= KotlinVersion.DEFAULT }
         freeCompilerArgs.addAll("-Xexpect-actual-classes")
     }
