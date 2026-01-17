@@ -25,8 +25,8 @@ public class SwaggerConfig private constructor(
      * Defines the source of the OpenAPI specification.
      */
     public var source: OpenApiDocSource = OpenApiDocSource.FirstOf(
-        OpenApiDocSource.FileSource("openapi/documentation.yaml"),
-        OpenApiDocSource.RoutingSource(contentType = ContentType.Application.Yaml),
+        OpenApiDocSource.File("openapi/documentation.yaml"),
+        OpenApiDocSource.Routing(contentType = ContentType.Application.Yaml),
     )
 
     /**
