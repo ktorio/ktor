@@ -63,10 +63,17 @@ internal suspend fun TestApplicationEngine.handleWebSocketConversation(
             throw IllegalStateException("WebSocket connection failed")
         }
 
-        val writer = WebSocketWriter(websocketChannel, webSocketContext, pool = pool)
+        val writer =
+            WebSocketWriter(websocketChannel, webSocketContext, pool = pool, queueConfig = ChannelConfig.UNLIMITED)
         val responseChannel = call.response.websocketChannel()
             ?: error("Expected websocket channel in the established connection")
-        val reader = WebSocketReader(responseChannel, webSocketContext, Int.MAX_VALUE.toLong(), pool)
+        val reader = WebSocketReader(
+            responseChannel,
+            webSocketContext,
+            Int.MAX_VALUE.toLong(),
+            pool,
+            queueConfig = ChannelConfig.UNLIMITED
+        )
 
         val scope = if (awaitCallback) this else GlobalScope
         scope.launch {

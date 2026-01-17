@@ -1,5 +1,5 @@
 /*
-* Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+* Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
 package io.ktor.client.plugins.websocket
@@ -14,19 +14,23 @@ import org.khronos.webgl.*
 import org.w3c.dom.*
 import kotlin.coroutines.*
 
+@Suppress("UNUSED_PARAMETER")
 private fun tryGetEventDataAsString(data: JsAny): String? =
     js("typeof(data) === 'string' ? data : null")
 
+@Suppress("UNUSED_PARAMETER")
 private fun tryGetEventDataAsArrayBuffer(data: JsAny): ArrayBuffer? =
     js("data instanceof ArrayBuffer ? data : null")
 
+@OptIn(InternalAPI::class)
 internal class JsWebSocketSession(
     override val coroutineContext: CoroutineContext,
-    private val websocket: WebSocket
+    private val websocket: WebSocket,
+    private val ioChannelsConfig: IOChannelsConfig
 ) : DefaultWebSocketSession {
     private val _closeReason: CompletableDeferred<CloseReason> = CompletableDeferred()
-    private val _incoming: Channel<Frame> = Channel(Channel.UNLIMITED)
-    private val _outgoing: Channel<Frame> = Channel(Channel.UNLIMITED)
+    private val _incoming: Channel<Frame> = Channel.from(ioChannelsConfig.incoming)
+    private val _outgoing: Channel<Frame> = Channel.from(ioChannelsConfig.outgoing)
 
     override val incoming: ReceiveChannel<Frame> = _incoming
     override val outgoing: SendChannel<Frame> = _outgoing
@@ -112,6 +116,7 @@ internal class JsWebSocketSession(
 
                         websocket.send(text.decodeToString(0, 0 + text.size))
                     }
+
                     FrameType.BINARY -> {
                         val source = it.data.asJsArray()
                         val frameData = source.buffer.slice(
@@ -121,6 +126,7 @@ internal class JsWebSocketSession(
 
                         websocket.send(frameData)
                     }
+
                     FrameType.CLOSE -> {
                         val data = buildPacket { writeFully(it.data) }
                         val code = data.readShort()
@@ -132,6 +138,7 @@ internal class JsWebSocketSession(
                             websocket.close(code, reason)
                         }
                     }
+
                     FrameType.PING, FrameType.PONG -> {
                         // ignore
                     }
@@ -153,6 +160,9 @@ internal class JsWebSocketSession(
     @OptIn(InternalAPI::class)
     override fun start(negotiatedExtensions: List<WebSocketExtension<*>>) {
         require(negotiatedExtensions.isEmpty()) { "Extensions are not supported." }
+        if (ioChannelsConfig.incoming.canSuspend) {
+            throw IllegalArgumentException("SUSPEND overflow strategy for incoming channel is not supported.")
+        }
     }
 
     override suspend fun flush() {
@@ -173,7 +183,6 @@ internal class JsWebSocketSession(
     @OptIn(InternalAPI::class)
     private fun Short.isReservedStatusCode(): Boolean {
         return CloseReason.Codes.byCode(this).let { resolved ->
-
             resolved == null || resolved == CloseReason.Codes.CLOSED_ABNORMALLY
         }
     }

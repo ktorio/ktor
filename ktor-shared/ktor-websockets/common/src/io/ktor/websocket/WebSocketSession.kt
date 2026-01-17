@@ -44,8 +44,8 @@ public interface WebSocketSession : CoroutineScope {
     public val incoming: ReceiveChannel<Frame>
 
     /**
-     * An outgoing frames channel. It could have limited capacity so sending too many frames may lead to suspension at
-     * corresponding send invocations. It also may suspend if a peer doesn't read frames for some reason.
+     * An outgoing frames channel. It could have limited capacity, so sending too many frames may lead to suspension at
+     * corresponding `send` invocations. It also may suspend if a peer doesn't read frames for some reason.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketSession.outgoing)
      */

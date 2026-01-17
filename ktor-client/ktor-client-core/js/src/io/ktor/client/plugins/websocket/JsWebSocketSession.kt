@@ -1,5 +1,5 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+* Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
 package io.ktor.client.plugins.websocket
@@ -13,14 +13,16 @@ import org.khronos.webgl.*
 import org.w3c.dom.*
 import kotlin.coroutines.*
 
+@OptIn(InternalAPI::class)
 @Suppress("CAST_NEVER_SUCCEEDS")
 internal class JsWebSocketSession(
     override val coroutineContext: CoroutineContext,
-    private val websocket: WebSocket
+    private val websocket: WebSocket,
+    private val ioChannelsConfig: IOChannelsConfig
 ) : DefaultWebSocketSession {
     private val _closeReason: CompletableDeferred<CloseReason> = CompletableDeferred()
-    private val _incoming: Channel<Frame> = Channel(Channel.UNLIMITED)
-    private val _outgoing: Channel<Frame> = Channel(Channel.UNLIMITED)
+    private val _incoming: Channel<Frame> = Channel.from(ioChannelsConfig.incoming)
+    private val _outgoing: Channel<Frame> = Channel.from(ioChannelsConfig.outgoing)
 
     override val incoming: ReceiveChannel<Frame> = _incoming
     override val outgoing: SendChannel<Frame> = _outgoing
@@ -138,6 +140,9 @@ internal class JsWebSocketSession(
     @OptIn(InternalAPI::class)
     override fun start(negotiatedExtensions: List<WebSocketExtension<*>>) {
         require(negotiatedExtensions.isEmpty()) { "Extensions are not supported." }
+        if (ioChannelsConfig.incoming.canSuspend) {
+            throw IllegalArgumentException("SUSPEND overflow strategy for incoming channel is not supported.")
+        }
     }
 
     override suspend fun flush() {

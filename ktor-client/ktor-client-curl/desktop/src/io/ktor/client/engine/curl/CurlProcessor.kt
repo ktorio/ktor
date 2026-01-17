@@ -15,6 +15,7 @@ import kotlinx.cinterop.memScoped
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.cancellation.CancellationException
 
 internal class RequestContainer(
     val requestData: CurlRequestData,
@@ -41,7 +42,9 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
             init.join()
         }
 
-        runEventLoop()
+        runEventLoop().invokeOnCompletion { cause ->
+            cause?.let { curlScope.cancel(cause = CancellationException(cause)) }
+        }
     }
 
     suspend fun executeRequest(request: CurlRequestData): CurlSuccess {
@@ -52,15 +55,13 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
     }
 
     @OptIn(DelicateCoroutinesApi::class, ExperimentalForeignApi::class)
-    private fun runEventLoop() {
-        curlScope.launch {
-            memScoped {
-                val transfersRunning = alloc<IntVar>()
-                val api = curlApi!!
-                while (!requestQueue.isClosedForReceive) {
-                    drainRequestQueue(api)
-                    api.perform(transfersRunning)
-                }
+    private fun runEventLoop(): Job = curlScope.launch {
+        memScoped {
+            val transfersRunning = alloc<IntVar>()
+            val api = curlApi!!
+            while (!requestQueue.isClosedForReceive) {
+                drainRequestQueue(api)
+                api.perform(transfersRunning)
             }
         }
     }

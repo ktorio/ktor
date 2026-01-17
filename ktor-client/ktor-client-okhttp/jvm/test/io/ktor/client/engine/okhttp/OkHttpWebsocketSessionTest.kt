@@ -4,9 +4,10 @@
 
 package io.ktor.client.engine.okhttp
 
-import io.ktor.client.*
+import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.test.base.*
+import io.ktor.websocket.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
@@ -24,7 +25,7 @@ class OkHttpWebsocketSessionTest {
         val client = OkHttpClient()
         val request = Request.Builder().url("ws://google.com").build()
         val coroutineContext = Job()
-        val session = OkHttpWebsocketSession(client, client, request, coroutineContext)
+        val session = OkHttpWebsocketSession(client, client, request, coroutineContext, IOChannelsConfig.UNLIMITED)
         val webSocket = client.newWebSocket(request, object : WebSocketListener() {})
         val exception = RuntimeException()
         session.onFailure(webSocket, exception, null)

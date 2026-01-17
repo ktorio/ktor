@@ -643,6 +643,8 @@ final class io.ktor.client.plugins.websocket/WebSockets { // io.ktor.client.plug
 
     final val contentConverter // io.ktor.client.plugins.websocket/WebSockets.contentConverter|{}contentConverter[0]
         final fun <get-contentConverter>(): io.ktor.serialization/WebsocketContentConverter? // io.ktor.client.plugins.websocket/WebSockets.contentConverter.<get-contentConverter>|<get-contentConverter>(){}[0]
+    final val ioChannelsConfig // io.ktor.client.plugins.websocket/WebSockets.ioChannelsConfig|{}ioChannelsConfig[0]
+        final fun <get-ioChannelsConfig>(): io.ktor.websocket/IOChannelsConfig // io.ktor.client.plugins.websocket/WebSockets.ioChannelsConfig.<get-ioChannelsConfig>|<get-ioChannelsConfig>(){}[0]
     final val maxFrameSize // io.ktor.client.plugins.websocket/WebSockets.maxFrameSize|{}maxFrameSize[0]
         final fun <get-maxFrameSize>(): kotlin/Long // io.ktor.client.plugins.websocket/WebSockets.maxFrameSize.<get-maxFrameSize>|<get-maxFrameSize>(){}[0]
     final val pingIntervalMillis // io.ktor.client.plugins.websocket/WebSockets.pingIntervalMillis|{}pingIntervalMillis[0]
@@ -662,6 +664,7 @@ final class io.ktor.client.plugins.websocket/WebSockets { // io.ktor.client.plug
             final fun <set-pingIntervalMillis>(kotlin/Long) // io.ktor.client.plugins.websocket/WebSockets.Config.pingIntervalMillis.<set-pingIntervalMillis>|<set-pingIntervalMillis>(kotlin.Long){}[0]
 
         final fun extensions(kotlin/Function1<io.ktor.websocket/WebSocketExtensionsConfig, kotlin/Unit>) // io.ktor.client.plugins.websocket/WebSockets.Config.extensions|extensions(kotlin.Function1<io.ktor.websocket.WebSocketExtensionsConfig,kotlin.Unit>){}[0]
+        final fun ioChannels(kotlin/Function1<io.ktor.websocket/IOChannelsConfigBuilder, kotlin/Unit>) // io.ktor.client.plugins.websocket/WebSockets.Config.ioChannels|ioChannels(kotlin.Function1<io.ktor.websocket.IOChannelsConfigBuilder,kotlin.Unit>){}[0]
     }
 
     final object Plugin : io.ktor.client.plugins/HttpClientPlugin<io.ktor.client.plugins.websocket/WebSockets.Config, io.ktor.client.plugins.websocket/WebSockets> { // io.ktor.client.plugins.websocket/WebSockets.Plugin|null[0]

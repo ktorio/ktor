@@ -8,6 +8,7 @@ import io.ktor.client.engine.darwin.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.date.*
+import io.ktor.utils.io.InternalAPI
 import io.ktor.utils.io.core.*
 import io.ktor.websocket.*
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -25,17 +26,18 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(InternalAPI::class, UnsafeNumber::class, ExperimentalForeignApi::class)
 internal class DarwinWebsocketSession(
     callContext: CoroutineContext,
     private val task: NSURLSessionWebSocketTask,
+    ioChannelsConfig: IOChannelsConfig
 ) : WebSocketSession {
 
     private val requestTime: GMTDate = GMTDate()
     val response = CompletableDeferred<HttpResponseData>()
 
-    private val _incoming = Channel<Frame>(Channel.UNLIMITED)
-    private val _outgoing = Channel<Frame>(Channel.UNLIMITED)
+    private val _incoming = Channel.from<Frame>(ioChannelsConfig.incoming)
+    private val _outgoing = Channel.from<Frame>(ioChannelsConfig.outgoing)
     private val socketJob = Job(callContext[Job])
     override val coroutineContext: CoroutineContext = callContext + socketJob
 
@@ -71,8 +73,8 @@ internal class DarwinWebsocketSession(
                 val code = CloseReason.Codes.INTERNAL_ERROR.code.convert<NSInteger>()
                 task.cancelWithCloseCode(code, "Client failed".toByteArray().toNSData())
             }
-            _incoming.close()
-            _outgoing.cancel()
+            _incoming.close(cause)
+            _outgoing.cancel(cause = CancellationException(cause))
         }
     }
 
@@ -96,7 +98,7 @@ internal class DarwinWebsocketSession(
         _outgoing.consumeEach { frame ->
             when (frame.frameType) {
                 FrameType.TEXT -> {
-                    suspendCancellableCoroutine<Unit> { continuation ->
+                    suspendCancellableCoroutine { continuation ->
                         task.sendMessage(
                             NSURLSessionWebSocketMessage(
                                 frame.data.decodeToString(
@@ -141,7 +143,9 @@ internal class DarwinWebsocketSession(
                             cancel("Error receiving pong", DarwinHttpRequestException(error))
                             return@sendPingWithPongReceiveHandler
                         }
-                        _incoming.trySend(Frame.Pong(payload))
+                        launch(start = CoroutineStart.UNDISPATCHED) {
+                            _incoming.send(Frame.Pong(payload))
+                        }
                     }
                 }
 
@@ -239,4 +243,5 @@ private suspend fun NSURLSessionWebSocketTask.receiveMessage(): NSURLSessionWebS
     }
 
 @OptIn(UnsafeNumber::class)
+@Suppress("REDUNDANT_CALL_OF_CONVERSION_METHOD")
 internal fun NSURLSessionTask.getStatusCode() = (response() as NSHTTPURLResponse?)?.statusCode?.toInt()

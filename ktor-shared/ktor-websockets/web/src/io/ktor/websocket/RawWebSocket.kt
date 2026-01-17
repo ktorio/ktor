@@ -26,4 +26,41 @@ public actual fun RawWebSocket(
     maxFrameSize: Long,
     masking: Boolean,
     coroutineContext: CoroutineContext
-): WebSocketSession = RawWebSocketCommon(input, output, maxFrameSize, masking, coroutineContext)
+): WebSocketSession = RawWebSocketCommon(
+    input,
+    output,
+    maxFrameSize,
+    masking,
+    coroutineContext,
+    IOChannelsConfig.UNLIMITED
+)
+
+/**
+ * Creates a RAW web socket session from connection
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.RawWebSocket)
+ *
+ * @param input is a [ByteReadChannel] of connection
+ * @param output is a [ByteWriteChannel] of connection
+ * @param maxFrameSize is an initial [maxFrameSize] value for [WebSocketSession]
+ * @param masking is an initial [masking] value for [WebSocketSession]
+ * @param coroutineContext is a [CoroutineContext] to execute reading/writing from/to connection
+ * @param ioChannelsConfig is a [IOChannelsConfig] for the incoming and outgoing [Frame] queues
+ */
+@Suppress("FunctionName")
+public actual fun RawWebSocket(
+    input: ByteReadChannel,
+    output: ByteWriteChannel,
+    maxFrameSize: Long,
+    masking: Boolean,
+    coroutineContext: CoroutineContext,
+    ioChannelsConfig: IOChannelsConfig,
+): WebSocketSession = RawWebSocketCommon(
+    input,
+    output,
+    maxFrameSize,
+    masking,
+    coroutineContext,
+    ioChannelsConfig
+)

@@ -37,6 +37,7 @@ internal val LOGGER = KtorSimpleLogger("io.ktor.server.websocket.WebSockets")
  * @param maxFrameSize maximum frame that could be received or sent.
  * @param masking whether masking need to be enabled (useful for security).
  * @param extensionsConfig is configuration for WebSocket extensions.
+ * @param ioChannelsConfig configuration for the I/O channels.
  */
 public class WebSockets private constructor(
     public val pingIntervalMillis: Long,
@@ -44,7 +45,8 @@ public class WebSockets private constructor(
     public val maxFrameSize: Long,
     public val masking: Boolean,
     public val extensionsConfig: WebSocketExtensionsConfig,
-    public val contentConverter: WebsocketContentConverter?
+    public val contentConverter: WebsocketContentConverter?,
+    public val ioChannelsConfig: IOChannelsConfig = IOChannelsConfig.UNLIMITED
 ) : CoroutineScope {
     private val parent: CompletableJob = Job()
 
@@ -76,6 +78,9 @@ public class WebSockets private constructor(
     @KtorDsl
     public class WebSocketOptions {
         internal val extensionsConfig = WebSocketExtensionsConfig()
+
+        @OptIn(InternalAPI::class)
+        internal val ioChannelsConfig = IOChannelsConfigBuilder()
 
         /**
          * Duration between pings or [PINGER_DISABLED] to disable pings
@@ -113,6 +118,26 @@ public class WebSockets private constructor(
         public var contentConverter: WebsocketContentConverter? = null
 
         /**
+         * Configuration for the incoming and outgoing [Frame] queues.
+         * Both queues are unlimited by default, which may lead to OutOfMemoryError under high backpressure.
+         * Some engines don't support suspending limited-size incoming channels — check compatibility before using them.
+         *
+         * Caution: A bounded incoming channel with [ChannelOverflow.CLOSE] will close on overflow,
+         * possibly causing exceptions for any frames received afterward.
+         *
+         * ```kotlin
+         * ioChannels {
+         *     incoming = unlimited()
+         *     outgoing = bounded(capacity = 512, onOverflow = ChannelOverflow.SUSPEND)
+         * }
+         * ```
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.websocket.WebSockets.WebSocketOptions.ioChannels)
+         */
+        public fun ioChannels(block: IOChannelsConfigBuilder.() -> Unit) {
+            ioChannelsConfig.apply(block)
+        }
+
+        /**
          * Configure WebSocket extensions.
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.websocket.WebSockets.WebSocketOptions.extensions)
@@ -147,7 +172,8 @@ public class WebSockets private constructor(
                     maxFrameSize,
                     masking,
                     extensionsConfig,
-                    contentConverter
+                    contentConverter,
+                    ioChannelsConfig.build()
                 )
 
                 pipeline.monitor.subscribe(ApplicationStopPreparing) {

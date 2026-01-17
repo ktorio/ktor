@@ -4,5 +4,4 @@
 
 package io.ktor.websocket
 
-internal actual val OUTGOING_CHANNEL_CAPACITY: Int
-    get() = 8
+internal actual val OUTGOING_CHANNEL_CAPACITY: Int? = null
