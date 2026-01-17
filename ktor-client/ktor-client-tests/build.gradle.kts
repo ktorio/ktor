@@ -44,8 +44,9 @@ kotlin {
         jvmTest.dependencies {
             api(projects.ktorClientApache5)
             runtimeOnly(projects.ktorClientAndroid)
-            runtimeOnly(projects.ktorClientOkhttp)
             runtimeOnly(projects.ktorClientJava)
+            runtimeOnly(projects.ktorClientNetty)
+            runtimeOnly(projects.ktorClientOkhttp)
             implementation(projects.ktorClientLogging)
             implementation(libs.kotlinx.coroutines.slf4j)
             implementation(libs.junit)
