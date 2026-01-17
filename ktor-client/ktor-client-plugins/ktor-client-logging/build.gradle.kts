@@ -15,6 +15,7 @@ kotlin {
         commonTest.dependencies {
             api(projects.ktorClientMock)
             api(projects.ktorClientContentNegotiation)
+            implementation(projects.ktorServerTestHost)
         }
         jvmTest.dependencies {
             api(projects.ktorSerializationJackson)

@@ -53,7 +53,11 @@ class OkHttpFormatTest {
 
         fun assertLogEqual(msg: String): LogRecorder {
             assertTrue(message = "No more logs to check") { currentLine < loggedLines.size }
-            assertEquals(msg, loggedLines[currentLine])
+            assertEquals(
+                msg,
+                loggedLines[currentLine],
+                "Expected size ${msg.length}; actual size: ${loggedLines[currentLine].length}"
+            )
             currentLine++
             return this
         }
