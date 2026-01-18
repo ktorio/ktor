@@ -63,11 +63,6 @@ sealed interface io.ktor.server.routing.openapi/OpenApiDocSource { // io.ktor.se
         final val contentType // io.ktor.server.routing.openapi/OpenApiDocSource.Text.contentType|{}contentType[0]
             final fun <get-contentType>(): io.ktor.http/ContentType // io.ktor.server.routing.openapi/OpenApiDocSource.Text.contentType.<get-contentType>|<get-contentType>(){}[0]
 
-        final fun component1(): kotlin/String // io.ktor.server.routing.openapi/OpenApiDocSource.Text.component1|component1(){}[0]
-        final fun component2(): io.ktor.http/ContentType // io.ktor.server.routing.openapi/OpenApiDocSource.Text.component2|component2(){}[0]
-        final fun copy(kotlin/String = ..., io.ktor.http/ContentType = ...): io.ktor.server.routing.openapi/OpenApiDocSource.Text // io.ktor.server.routing.openapi/OpenApiDocSource.Text.copy|copy(kotlin.String;io.ktor.http.ContentType){}[0]
-        final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.server.routing.openapi/OpenApiDocSource.Text.equals|equals(kotlin.Any?){}[0]
-        final fun hashCode(): kotlin/Int // io.ktor.server.routing.openapi/OpenApiDocSource.Text.hashCode|hashCode(){}[0]
         final fun read(io.ktor.server.application/Application, io.ktor.openapi/OpenApiDoc): io.ktor.server.routing.openapi/OpenApiDocSource.Text // io.ktor.server.routing.openapi/OpenApiDocSource.Text.read|read(io.ktor.server.application.Application;io.ktor.openapi.OpenApiDoc){}[0]
         final fun toString(): kotlin/String // io.ktor.server.routing.openapi/OpenApiDocSource.Text.toString|toString(){}[0]
     }
@@ -90,6 +85,8 @@ final val io.ktor.server.routing.openapi/OperationHiddenAttributeKey // io.ktor.
 final val io.ktor.server.routing.openapi/PopulateMediaTypeDefaults // io.ktor.server.routing.openapi/PopulateMediaTypeDefaults|{}PopulateMediaTypeDefaults[0]
     final fun <get-PopulateMediaTypeDefaults>(): io.ktor.server.routing.openapi/OperationMapping // io.ktor.server.routing.openapi/PopulateMediaTypeDefaults.<get-PopulateMediaTypeDefaults>|<get-PopulateMediaTypeDefaults>(){}[0]
 
+final fun (io.ktor.openapi/OpenApiDoc).io.ktor.server.routing.openapi/plus(io.ktor.server.routing/Route): io.ktor.openapi/OpenApiDoc // io.ktor.server.routing.openapi/plus|plus@io.ktor.openapi.OpenApiDoc(io.ktor.server.routing.Route){}[0]
+final fun (io.ktor.openapi/OpenApiDoc).io.ktor.server.routing.openapi/plus(kotlin.collections/Collection<io.ktor.server.routing/Route>): io.ktor.openapi/OpenApiDoc // io.ktor.server.routing.openapi/plus|plus@io.ktor.openapi.OpenApiDoc(kotlin.collections.Collection<io.ktor.server.routing.Route>){}[0]
 final fun (io.ktor.openapi/OpenApiDoc).io.ktor.server.routing.openapi/plus(kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/SecurityScheme>>): io.ktor.openapi/OpenApiDoc // io.ktor.server.routing.openapi/plus|plus@io.ktor.openapi.OpenApiDoc(kotlin.collections.Map<kotlin.String,io.ktor.openapi.ReferenceOr<io.ktor.openapi.SecurityScheme>>){}[0]
 final fun (io.ktor.openapi/OpenApiDoc).io.ktor.server.routing.openapi/plus(kotlin.sequences/Sequence<io.ktor.server.routing/Route>): io.ktor.openapi/OpenApiDoc // io.ktor.server.routing.openapi/plus|plus@io.ktor.openapi.OpenApiDoc(kotlin.sequences.Sequence<io.ktor.server.routing.Route>){}[0]
 final fun (io.ktor.server.application/Application).io.ktor.server.routing.openapi/findSecuritySchemes(kotlin/Boolean = ...): kotlin.collections/Map<kotlin/String, io.ktor.openapi/ReferenceOr<io.ktor.openapi/SecurityScheme>> // io.ktor.server.routing.openapi/findSecuritySchemes|findSecuritySchemes@io.ktor.server.application.Application(kotlin.Boolean){}[0]

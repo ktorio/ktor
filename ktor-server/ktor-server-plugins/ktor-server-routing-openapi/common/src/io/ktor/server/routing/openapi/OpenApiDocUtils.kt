@@ -34,6 +34,23 @@ public operator fun OpenApiDoc.plus(routes: Sequence<Route>): OpenApiDoc {
 }
 
 /**
+ * Overload for [OpenApiDoc.plus] that accepts a [Collection] of [Route]s.
+ *
+ * @param routes A sequence of `Route` objects whose information is used to resolve path items and schemas.
+ * @return A new `OpenApiDoc` instance with the combined paths and components from the original instance and the provided routes.
+ */
+public operator fun OpenApiDoc.plus(routes: Collection<Route>): OpenApiDoc =
+    plus(routes.asSequence())
+
+/**
+ * Combines the current [OpenApiDoc] instance with a single [Route].
+ *
+ * @param route An instance of `Route` that will be used to resolve path items and schemas.
+ * @return A new `OpenApiDoc` instance with the combined paths and components from the original instance and the provided routes.
+ */
+public operator fun OpenApiDoc.plus(route: Route): OpenApiDoc = plus(sequenceOf(route))
+
+/**
  * Combines the current [OpenApiDoc] instance with additional security schemes.
  *
  * This method updates the existing security schemes in the `components` section of the current

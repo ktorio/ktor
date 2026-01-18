@@ -35,7 +35,7 @@ public sealed interface OpenApiDocSource {
      *
      * @param content The text returned for the spec.
      */
-    public data class Text(
+    public class Text(
         public val content: String,
         public val contentType: ContentType = ContentType.Application.Json
     ) : OpenApiDocSource {

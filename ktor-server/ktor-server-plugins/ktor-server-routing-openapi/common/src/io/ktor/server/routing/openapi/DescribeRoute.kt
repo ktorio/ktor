@@ -39,6 +39,7 @@ public typealias RouteOperationFunction = Operation.Builder.() -> Unit
  */
 @ExperimentalKtorApi
 public fun Route.describe(configure: RouteOperationFunction): Route {
+    attributes.remove(OperationHiddenAttributeKey)
     attributes[OperationDescribeAttributeKey] =
         when (val previous = attributes.getOrNull(OperationDescribeAttributeKey)) {
             null -> listOf(configure)

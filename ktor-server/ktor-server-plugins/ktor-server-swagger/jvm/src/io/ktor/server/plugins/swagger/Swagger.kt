@@ -103,8 +103,8 @@ public fun Route.swaggerUI(
     @OptIn(ExperimentalKtorApi::class)
     return route(path) {
         get(apiUrl) {
-            val (openApiText, contentType) = openApiDoc.await()
-            call.respondText(openApiText, contentType)
+            val doc = openApiDoc.await()
+            call.respondText(doc.content, doc.contentType)
         }.hide()
 
         get {
