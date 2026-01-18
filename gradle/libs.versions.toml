@@ -88,7 +88,7 @@ zstd-jni = "1.5.7-6"
 develocity = "4.0.3" # Should be compatible with our server: ge.jetbrains.com
 develocity-commonCustomUserData = "2.4.0"
 gradleDoctor = "0.12.1"
-mavenPublishing = "0.34.0"
+mavenPublishing = "0.36.0"
 
 android-compileSdk = "36"
 android-minSdk = "28"
