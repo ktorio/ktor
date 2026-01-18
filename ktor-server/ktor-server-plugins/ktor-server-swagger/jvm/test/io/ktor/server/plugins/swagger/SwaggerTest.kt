@@ -222,7 +222,7 @@ class SwaggerTest {
     @Test
     fun `swagger file resolved from routing`() = testApplication {
         routing {
-            val apiRoute = route("/api") {
+            route("/api") {
                 @OptIn(ExperimentalKtorApi::class)
                 route("/books") {
                     get {
@@ -260,10 +260,9 @@ class SwaggerTest {
 
             swaggerUI("/swagger") {
                 info = OpenApiInfo("Books API from routes", "1.0.0")
-                source = OpenApiDocSource.RoutingSource(
+                source = OpenApiDocSource.Routing(
                     contentType = ContentType.Application.Yaml,
                     schemaInference = ReflectionJsonSchemaInference.Default,
-                    routes = { apiRoute.descendants() },
                 )
             }
         }

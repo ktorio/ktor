@@ -1438,6 +1438,9 @@ final class io.ktor.openapi/OpenApiDoc : io.ktor.openapi/Extensible { // io.ktor
     }
 
     final object Companion { // io.ktor.openapi/OpenApiDoc.Companion|null[0]
+        final const val OPENAPI_VERSION // io.ktor.openapi/OpenApiDoc.Companion.OPENAPI_VERSION|{}OPENAPI_VERSION[0]
+            final fun <get-OPENAPI_VERSION>(): kotlin/String // io.ktor.openapi/OpenApiDoc.Companion.OPENAPI_VERSION.<get-OPENAPI_VERSION>|<get-OPENAPI_VERSION>(){}[0]
+
         final val $childSerializers // io.ktor.openapi/OpenApiDoc.Companion.$childSerializers|{}$childSerializers[0]
 
         final fun build(kotlin/Function1<io.ktor.openapi/OpenApiDoc.Builder, kotlin/Unit>): io.ktor.openapi/OpenApiDoc // io.ktor.openapi/OpenApiDoc.Companion.build|build(kotlin.Function1<io.ktor.openapi.OpenApiDoc.Builder,kotlin.Unit>){}[0]

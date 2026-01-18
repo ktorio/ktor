@@ -39,11 +39,10 @@ import io.ktor.util.reflect.*
  *
  * @see ServerSSESession
  */
-public fun Route.sse(path: String, handler: suspend ServerSSESession.() -> Unit) {
+public fun Route.sse(path: String, handler: suspend ServerSSESession.() -> Unit): Route =
     route(path, HttpMethod.Get) {
         sse(handler)
     }
-}
 
 /**
  * Adds a route to handle Server-Sent Events (SSE) using the provided [handler].
@@ -73,7 +72,7 @@ public fun Route.sse(path: String, handler: suspend ServerSSESession.() -> Unit)
  *
  * @see ServerSSESession
  */
-public fun Route.sse(handler: suspend ServerSSESession.() -> Unit): Unit = processSSEWithoutSerialization(handler)
+public fun Route.sse(handler: suspend ServerSSESession.() -> Unit): Route = processSSEWithoutSerialization(handler)
 
 /**
  * Adds a route to handle Server-Sent Events (SSE) at the specified [path] using the provided [handler].
@@ -111,10 +110,8 @@ public fun Route.sse(
     path: String,
     serialize: (TypeInfo, Any) -> String,
     handler: suspend ServerSSESessionWithSerialization.() -> Unit
-) {
-    route(path, HttpMethod.Get) {
-        sse(serialize, handler)
-    }
+): Route = route(path, HttpMethod.Get) {
+    sse(serialize, handler)
 }
 
 /**
@@ -151,29 +148,29 @@ public fun Route.sse(
 public fun Route.sse(
     serialize: (TypeInfo, Any) -> String,
     handler: suspend ServerSSESessionWithSerialization.() -> Unit
-): Unit = processSSEWithSerialization(serialize, handler)
+): Route = processSSEWithSerialization(serialize, handler)
 
 private fun Route.processSSEWithoutSerialization(
     handler: suspend ServerSSESession.() -> Unit
-) = processSSE(null, handler)
+): Route = processSSE(null, handler)
 
 private fun Route.processSSEWithSerialization(
     serialize: ((TypeInfo, Any) -> String),
     handler: suspend ServerSSESessionWithSerialization.() -> Unit
-) {
+): Route {
     val sessionHandler: suspend ServerSSESession.() -> Unit = {
         check(this is ServerSSESessionWithSerialization) {
             "Impossible state. Please report this bug: https://youtrack.jetbrains.com/newIssue?project=KTOR"
         }
         handler()
     }
-    processSSE(serialize, sessionHandler)
+    return processSSE(serialize, sessionHandler)
 }
 
 private fun Route.processSSE(
     serialize: ((TypeInfo, Any) -> String)?,
     handler: suspend ServerSSESession.() -> Unit
-) {
+): Route {
     plugin(SSE)
 
     handle {
@@ -185,4 +182,6 @@ private fun Route.processSSE(
         call.response.header("X-Accel-Buffering", "no")
         call.respond(SSEServerContent(call, handler, serialize))
     }
+
+    return this
 }

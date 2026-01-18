@@ -9,8 +9,9 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.routing.openapi.OpenApiDocSource
-import io.ktor.server.routing.openapi.OpenApiDocSource.Companion.readOpenApiSource
+import io.ktor.server.routing.openapi.hide
 import io.ktor.server.util.*
+import io.ktor.utils.io.ExperimentalKtorApi
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.async
 import kotlinx.html.*
@@ -33,7 +34,7 @@ public fun Route.swaggerUI(
 ): Route =
     swaggerUI(path) {
         block()
-        source = OpenApiDocSource.FileSource(swaggerFile)
+        source = OpenApiDocSource.File(swaggerFile)
         remotePath = File(swaggerFile).name
     }
 
@@ -47,7 +48,7 @@ public fun Route.swaggerUI(
 public fun Route.swaggerUI(path: String, apiFile: File, block: SwaggerConfig.() -> Unit = {}): Route =
     swaggerUI(path) {
         block()
-        source = OpenApiDocSource.FileSource(apiFile.absolutePath)
+        source = OpenApiDocSource.File(apiFile.absolutePath)
         remotePath = apiFile.name
     }
 
@@ -73,7 +74,7 @@ public fun Route.swaggerUI(
 ): Route =
     swaggerUI(path) {
         block()
-        source = OpenApiDocSource.OpenApiDocText(api)
+        source = OpenApiDocSource.Text(api)
         remotePath = apiUrl
     }
 
@@ -94,16 +95,18 @@ public fun Route.swaggerUI(
     val apiUrl = config.remotePath
     val openApiDoc = with(application) {
         async(start = CoroutineStart.LAZY) {
-            readOpenApiSource(source, config.buildBaseDoc())
+            source.read(this@with, config.buildBaseDoc())
                 ?: error("Failed to read OpenAPI document from $source")
         }
     }
 
+    @OptIn(ExperimentalKtorApi::class)
     return route(path) {
         get(apiUrl) {
-            val (openApiText, contentType) = openApiDoc.await()
-            call.respondText(openApiText, contentType)
-        }
+            val doc = openApiDoc.await()
+            call.respondText(doc.content, doc.contentType)
+        }.hide()
+
         get {
             val fullPath = call.request.path()
             val docExpansion = runCatching {
@@ -157,6 +160,6 @@ window.onload = function() {
                     }
                 }
             }
-        }
+        }.hide()
     }
 }

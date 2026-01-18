@@ -41,7 +41,7 @@ class OpenAPITest {
         }
         routing {
             @OptIn(ExperimentalKtorApi::class)
-            val apiRoute = route("/api") {
+            route("/api") {
                 route("/books") {
                     get {
                         call.respond(listOf(sampleBook))
@@ -78,10 +78,9 @@ class OpenAPITest {
                 openAPI("docs") {
                     outputPath = "docs/routes"
                     info = OpenApiInfo("Books API from routes", "1.0.0")
-                    source = OpenApiDocSource.RoutingSource(
+                    source = OpenApiDocSource.Routing(
                         contentType = ContentType.Application.Json,
                         schemaInference = ReflectionJsonSchemaInference.Default,
-                        routes = { apiRoute.descendants() },
                     )
                 }
             }

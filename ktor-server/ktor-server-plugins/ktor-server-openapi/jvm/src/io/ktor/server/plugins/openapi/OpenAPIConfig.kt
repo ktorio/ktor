@@ -8,6 +8,7 @@ import io.ktor.http.ContentType
 import io.ktor.openapi.OpenApiDoc
 import io.ktor.openapi.OpenApiDocDsl
 import io.ktor.server.routing.openapi.OpenApiDocSource
+import io.ktor.server.routing.openapi.OpenApiDocSource.*
 import io.swagger.codegen.v3.*
 import io.swagger.codegen.v3.generators.html.*
 import io.swagger.parser.*
@@ -26,9 +27,9 @@ public class OpenAPIConfig private constructor(
     /**
      * Defines the source of the OpenAPI specification.
      */
-    public var source: OpenApiDocSource = OpenApiDocSource.FirstOf(
-        OpenApiDocSource.FileSource("openapi/documentation.yaml"),
-        OpenApiDocSource.RoutingSource(contentType = ContentType.Application.Yaml),
+    public var source: OpenApiDocSource = FirstOf(
+        File("openapi/documentation.yaml"),
+        Routing(contentType = ContentType.Application.Yaml),
     )
 
     /**
