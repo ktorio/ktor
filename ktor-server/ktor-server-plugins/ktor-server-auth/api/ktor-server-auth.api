@@ -108,6 +108,7 @@ public abstract class io/ktor/server/auth/AuthenticationProvider {
 
 public class io/ktor/server/auth/AuthenticationProvider$Config {
 	protected fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getDescription ()Ljava/lang/String;
 	public final fun getName ()Ljava/lang/String;
 	public final fun skipWhen (Lkotlin/jvm/functions/Function1;)V
