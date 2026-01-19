@@ -47,9 +47,10 @@ internal class OkHttpWebsocketSession(
         get() = Long.MAX_VALUE
         set(_) = throw WebSocketException("Max frame size switch is not supported in OkHttp engine.")
 
-    private val _incoming = if (channelsConfig.incoming.canSuspend) {
-        throw IllegalArgumentException("OkHttp does not support SUSPEND overflow strategy for incoming channel")
-    } else {
+    private val _incoming = run {
+        require(!channelsConfig.incoming.canSuspend) {
+            "OkHttp does not support SUSPEND overflow strategy for incoming channel"
+        }
         Channel.from<Frame>(channelsConfig.incoming)
     }
     private val _outgoing = Channel.from<Frame>(channelsConfig.outgoing)

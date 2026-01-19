@@ -32,6 +32,11 @@ public class WebSocketReader(
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
     queueConfig: ChannelConfig = ChannelConfig.UNLIMITED
 ) : CoroutineScope {
+
+    @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
+    public constructor(byteChannel: ByteReadChannel, coroutineContext: CoroutineContext, maxFrameSize: Long) :
+        this(byteChannel, coroutineContext, maxFrameSize)
+
     private var state = State.HEADER
     private val frameParser = FrameParser()
     private val collector = SimpleFrameCollector()

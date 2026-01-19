@@ -143,8 +143,8 @@ internal class JsWebSocketSession(
             }
         }
 
-        if (channelsConfig.incoming.canSuspend) {
-            throw IllegalArgumentException("Suspendable channels are not supported in JS.")
+        require(!channelsConfig.incoming.canSuspend) {
+            "Suspendable channels are not supported in JS."
         }
     }
 

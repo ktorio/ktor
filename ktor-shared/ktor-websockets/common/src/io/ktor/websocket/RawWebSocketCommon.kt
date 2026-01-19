@@ -27,13 +27,15 @@ import kotlin.random.*
  * @param coroutineContext is a [CoroutineContext] to execute reading/writing from/to connection
  */
 @Suppress("FunctionName")
-public expect fun RawWebSocket(
+@Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
+public fun RawWebSocket(
     input: ByteReadChannel,
     output: ByteWriteChannel,
     maxFrameSize: Long = Int.MAX_VALUE.toLong(),
     masking: Boolean = false,
     coroutineContext: CoroutineContext
-): WebSocketSession
+): WebSocketSession =
+    RawWebSocket(input, output, maxFrameSize, masking, coroutineContext, WebSocketChannelsConfig.UNLIMITED)
 
 /**
  * Creates a RAW web socket session from connection.
@@ -55,7 +57,7 @@ public expect fun RawWebSocket(
     maxFrameSize: Long = Int.MAX_VALUE.toLong(),
     masking: Boolean = false,
     coroutineContext: CoroutineContext,
-    channelsConfig: WebSocketChannelsConfig,
+    channelsConfig: WebSocketChannelsConfig = WebSocketChannelsConfig.UNLIMITED,
 ): WebSocketSession
 
 @OptIn(InternalAPI::class)

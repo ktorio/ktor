@@ -22,7 +22,7 @@ import io.ktor.client.plugins.websocket.WebSockets as ClientWebSockets
 
 private const val FRAMES_COUNT = 100
 
-abstract class BackpressureTest {
+abstract class WebSocketBackpressureTest {
 
     abstract fun Route.createSession(url: String, handler: suspend WebSocketServerSession.() -> Unit)
 
@@ -124,13 +124,13 @@ abstract class BackpressureTest {
     }
 }
 
-class DefaultBackpressureTest : BackpressureTest() {
+class DefaultWebSocketSessionBackpressureTest : WebSocketBackpressureTest() {
     override fun Route.createSession(url: String, handler: suspend WebSocketServerSession.() -> Unit) {
         webSocket(path = url, handler = handler)
     }
 }
 
-class RawBackpressureTest : BackpressureTest() {
+class RawWebSocketSessionBackpressureTest : WebSocketBackpressureTest() {
     override fun Route.createSession(url: String, handler: suspend WebSocketServerSession.() -> Unit) {
         webSocketRaw(path = url, handler = handler)
     }

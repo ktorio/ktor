@@ -32,6 +32,14 @@ public class WebSocketWriter(
     queueConfig: ChannelConfig = ChannelConfig.UNLIMITED,
 ) : CoroutineScope {
 
+    @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
+    public constructor(
+        writeChannel: ByteWriteChannel,
+        coroutineContext: CoroutineContext,
+        masking: Boolean,
+        pool: ObjectPool<ByteBuffer>
+    ) : this(writeChannel, coroutineContext, masking, pool)
+
     private val queue = Channel.from<Any>(queueConfig)
 
     private val serializer = Serializer()

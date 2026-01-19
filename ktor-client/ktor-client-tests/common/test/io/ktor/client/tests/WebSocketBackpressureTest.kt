@@ -31,7 +31,7 @@ class WebSocketBackpressureTest : ClientLoader() {
 
     @Test
     fun `test IO frame channels suspension`() =
-        clientTests(except(ENGINES_WITHOUT_WS, *CALLBACK_BASED_WS_CLIENTS)) {
+        clientTests(except(ENGINES_WITHOUT_WS + CALLBACK_BASED_WS_CLIENTS)) {
             config {
                 install(WebSockets) {
                     channels {
@@ -44,7 +44,7 @@ class WebSocketBackpressureTest : ClientLoader() {
             test { client ->
                 client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
                     val sendJob = launch {
-                        for (i in 1..FRAMES_COUNT) send("message $i")
+                        repeat(FRAMES_COUNT) { i -> send("message $i") }
                         close()
                     }
                     val receiveJob = launch {

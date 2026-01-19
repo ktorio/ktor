@@ -16,6 +16,7 @@ import kotlinx.io.*
 import kotlin.coroutines.*
 import kotlin.time.*
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.websocket.WebSocket")
 
@@ -100,7 +101,7 @@ public fun DefaultWebSocketSession(
  *
  * @param session raw [WebSocketSession] to wrap.
  * @param pingIntervalMillis interval between pings or [PINGER_DISABLED] to disable.
- * @param timeoutMillis timeout for pings.
+ * @param timeout timeout for pings.
  * @param channelsConfig configuration for the I/O frame channels.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.DefaultWebSocketSession)
@@ -108,14 +109,14 @@ public fun DefaultWebSocketSession(
 public fun DefaultWebSocketSession(
     session: WebSocketSession,
     pingIntervalMillis: Long = PINGER_DISABLED,
-    timeoutMillis: Long = 15_000L,
-    channelsConfig: WebSocketChannelsConfig,
+    timeout: Duration = 15.seconds,
+    channelsConfig: WebSocketChannelsConfig = WebSocketChannelsConfig.UNLIMITED,
 ): DefaultWebSocketSession {
     require(session !is DefaultWebSocketSession) { "Cannot wrap other DefaultWebSocketSession" }
     return DefaultWebSocketSessionImpl(
         session,
         pingIntervalMillis,
-        timeoutMillis,
+        timeout.inWholeMilliseconds,
         incomingFramesConfig = channelsConfig.incoming,
         outgoingFramesConfig = channelsConfig.outgoing,
     )

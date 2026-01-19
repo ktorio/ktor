@@ -166,8 +166,8 @@ internal class JsWebSocketSession(
             }
         }
 
-        if (channelsConfig.incoming.canSuspend) {
-            throw IllegalArgumentException("SUSPEND overflow strategy for incoming channel is not supported.")
+        require(!channelsConfig.incoming.canSuspend) {
+            "SUSPEND overflow strategy for incoming channel is not supported."
         }
     }
 

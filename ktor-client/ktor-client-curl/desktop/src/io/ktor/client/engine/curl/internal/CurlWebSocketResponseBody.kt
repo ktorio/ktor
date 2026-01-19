@@ -21,9 +21,10 @@ internal class CurlWebSocketResponseBody(
 ) : CurlResponseBodyData {
 
     private val closed = atomic(false)
-    private val _incoming = if (incomingFramesConfig.canSuspend) {
-        throw IllegalArgumentException("Curl Client does not support SUSPEND overflow strategy for incoming channel")
-    } else {
+    private val _incoming = run {
+        require(!incomingFramesConfig.canSuspend) {
+            "Curl Client does not support SUSPEND overflow strategy for incoming channel"
+        }
         Channel.from<Frame>(incomingFramesConfig)
     }
 

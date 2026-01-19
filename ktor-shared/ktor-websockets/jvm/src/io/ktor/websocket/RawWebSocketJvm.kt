@@ -25,29 +25,6 @@ import kotlin.properties.*
  * @param maxFrameSize is an initial [maxFrameSize] value for [WebSocketSession]
  * @param masking is an initial [masking] value for [WebSocketSession]
  * @param coroutineContext is a [CoroutineContext] to execute reading/writing from/to connection
- */
-@OptIn(InternalAPI::class)
-@Suppress("FunctionName")
-public actual fun RawWebSocket(
-    input: ByteReadChannel,
-    output: ByteWriteChannel,
-    maxFrameSize: Long,
-    masking: Boolean,
-    coroutineContext: CoroutineContext
-): WebSocketSession =
-    RawWebSocketJvm(input, output, maxFrameSize, masking, coroutineContext, WebSocketChannelsConfig.UNLIMITED)
-
-/**
- * Creates a RAW web socket session from connection
- *
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.RawWebSocket)
- *
- * @param input is a [ByteReadChannel] of connection
- * @param output is a [ByteWriteChannel] of connection
- * @param maxFrameSize is an initial [maxFrameSize] value for [WebSocketSession]
- * @param masking is an initial [masking] value for [WebSocketSession]
- * @param coroutineContext is a [CoroutineContext] to execute reading/writing from/to connection
  * @param channelsConfig is a [WebSocketChannelsConfig] for the incoming and outgoing [Frame] queues
  */
 @Suppress("FunctionName")
