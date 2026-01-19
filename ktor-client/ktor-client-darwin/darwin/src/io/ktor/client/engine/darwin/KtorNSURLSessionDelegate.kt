@@ -108,7 +108,7 @@ public class KtorNSURLSessionDelegate(
         val taskHandler = DarwinWebsocketSession(
             callContext,
             task,
-            wsConfig.ioChannelsConfig
+            wsConfig.channelsConfig
         )
         webSocketSessions[task] = taskHandler
         // Fields MUST be assigned to the task BEFORE starting it.

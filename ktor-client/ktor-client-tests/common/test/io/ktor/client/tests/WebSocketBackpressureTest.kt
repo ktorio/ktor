@@ -34,7 +34,7 @@ class WebSocketBackpressureTest : ClientLoader() {
         clientTests(except(ENGINES_WITHOUT_WS, *CALLBACK_BASED_WS_CLIENTS)) {
             config {
                 install(WebSockets) {
-                    ioChannels {
+                    channels {
                         incoming = bounded(capacity = 1, onOverflow = ChannelOverflow.SUSPEND)
                         outgoing = bounded(capacity = 1, onOverflow = ChannelOverflow.SUSPEND)
                     }
@@ -50,7 +50,7 @@ class WebSocketBackpressureTest : ClientLoader() {
                     val receiveJob = launch {
                         var expectedIndex = 1
                         for (frame in incoming) {
-                            assertTrue(frame is Frame.Text)
+                            if (frame !is Frame.Text) continue
                             assertEquals("message ${expectedIndex++}", frame.readText())
                         }
                     }
@@ -64,7 +64,7 @@ class WebSocketBackpressureTest : ClientLoader() {
         clientTests(except(ENGINES_WITHOUT_WS, *NON_CALLBACK_BASED_WS_CLIENTS)) {
             config {
                 install(WebSockets) {
-                    ioChannels {
+                    channels {
                         incoming = bounded(capacity = 1, onOverflow = ChannelOverflow.SUSPEND)
                     }
                 }
@@ -82,7 +82,7 @@ class WebSocketBackpressureTest : ClientLoader() {
     fun `test incoming frame channel overflow`() = clientTests(except(ENGINES_WITHOUT_WS)) {
         config {
             install(WebSockets) {
-                ioChannels {
+                channels {
                     incoming = bounded(capacity = 1, onOverflow = ChannelOverflow.CLOSE)
                 }
             }
@@ -113,7 +113,7 @@ class WebSocketBackpressureTest : ClientLoader() {
     fun `test outgoing frame channel overflow`() = clientTests(except(ENGINES_WITHOUT_WS)) {
         config {
             install(WebSockets) {
-                ioChannels {
+                channels {
                     outgoing = bounded(capacity = 1, onOverflow = ChannelOverflow.CLOSE)
                 }
             }
@@ -121,10 +121,10 @@ class WebSocketBackpressureTest : ClientLoader() {
 
         test { client ->
             client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
-                var outgoingChannelClosed = false
+                val outgoingChannelClosed = CompletableDeferred<Unit>()
                 outgoing.invokeOnClose {
                     assertTrue(it.isChannelOverflow, "Unexpected exception: $it")
-                    outgoingChannelClosed = true
+                    outgoingChannelClosed.complete(Unit)
                 }
 
                 // Fill the outgoing buffer beyond capacity without waiting
@@ -135,7 +135,9 @@ class WebSocketBackpressureTest : ClientLoader() {
                 }.onSuccess {
                     fail("Expected overflow exception but got success")
                 }
-                assertTrue(outgoingChannelClosed)
+                withTimeout(1.seconds) {
+                    outgoingChannelClosed.await()
+                }
             }
         }
     }

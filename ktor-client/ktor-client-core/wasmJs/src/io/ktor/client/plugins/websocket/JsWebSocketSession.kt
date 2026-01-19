@@ -26,11 +26,11 @@ private fun tryGetEventDataAsArrayBuffer(data: JsAny): ArrayBuffer? =
 internal class JsWebSocketSession(
     override val coroutineContext: CoroutineContext,
     private val websocket: WebSocket,
-    private val ioChannelsConfig: IOChannelsConfig
+    channelsConfig: WebSocketChannelsConfig
 ) : DefaultWebSocketSession {
     private val _closeReason: CompletableDeferred<CloseReason> = CompletableDeferred()
-    private val _incoming: Channel<Frame> = Channel.from(ioChannelsConfig.incoming)
-    private val _outgoing: Channel<Frame> = Channel.from(ioChannelsConfig.outgoing)
+    private val _incoming: Channel<Frame> = Channel.from(channelsConfig.incoming)
+    private val _outgoing: Channel<Frame> = Channel.from(channelsConfig.outgoing)
 
     override val incoming: ReceiveChannel<Frame> = _incoming
     override val outgoing: SendChannel<Frame> = _outgoing
@@ -56,13 +56,16 @@ internal class JsWebSocketSession(
         get() = Long.MAX_VALUE
         set(_) = throw WebSocketException("Max frame size switch is not supported in Js engine.")
 
-    init {
-        websocket.binaryType = BinaryType.ARRAYBUFFER
+    private inline fun runWhenOpen(crossinline block: () -> Unit) {
+        if (websocket.readyState == WebSocket.OPEN) {
+            return block()
+        }
+        websocket.addEventListener("open", callback = { _: JsAny -> block() })
+    }
 
-        websocket.addEventListener(
-            "message"
-        ) { it: JsAny ->
-            val event = it.unsafeCast<MessageEvent>()
+    init {
+        val onMessage: (JsAny) -> Unit = { e ->
+            val event = e.unsafeCast<MessageEvent>()
 
             val data = event.data
             if (data == null) {
@@ -88,25 +91,42 @@ internal class JsWebSocketSession(
             _incoming.trySend(frame)
         }
 
-        websocket.addEventListener(
-            "error"
-        ) { it: JsAny ->
-            val cause = WebSocketException("$it")
+        val onError: (JsAny) -> Unit = { e ->
+            val cause = WebSocketException("$e")
             _closeReason.completeExceptionally(cause)
             _incoming.close(cause)
             _outgoing.cancel()
         }
 
-        websocket.addEventListener(
-            "close"
-        ) { it: JsAny ->
-            val closeEvent = it.unsafeCast<CloseEvent>()
+        lateinit var onClose: (JsAny) -> Unit
+        onClose = { e ->
+            val closeEvent = e.unsafeCast<CloseEvent>()
             val reason = CloseReason(closeEvent.code, closeEvent.reason)
             _closeReason.complete(reason)
             _incoming.trySend(Frame.Close(reason))
             _incoming.close()
             _outgoing.cancel()
+            websocket.removeEventListener("close", callback = onClose)
         }
+
+        coroutineContext[Job]?.invokeOnCompletion { cause ->
+            runWhenOpen {
+                if (cause == null) {
+                    websocket.close()
+                } else {
+                    // We cannot use INTERNAL_ERROR similarly to other WebSocketSession implementations here
+                    // as sending it is not supported by browsers.
+                    websocket.close(CloseReason.Codes.NORMAL.code, "Client failed")
+                }
+            }
+            websocket.removeEventListener("message", callback = onMessage)
+            websocket.removeEventListener("error", callback = onError)
+        }
+
+        websocket.binaryType = BinaryType.ARRAYBUFFER
+        websocket.addEventListener("message", callback = onMessage)
+        websocket.addEventListener("error", callback = onError)
+        websocket.addEventListener("close", callback = onClose)
 
         launch {
             _outgoing.consumeEach {
@@ -146,23 +166,14 @@ internal class JsWebSocketSession(
             }
         }
 
-        coroutineContext[Job]?.invokeOnCompletion { cause ->
-            if (cause == null) {
-                websocket.close()
-            } else {
-                // We cannot use INTERNAL_ERROR similarly to other WebSocketSession implementations here
-                // as sending it is not supported by browsers.
-                websocket.close(CloseReason.Codes.NORMAL.code, "Client failed")
-            }
+        if (channelsConfig.incoming.canSuspend) {
+            throw IllegalArgumentException("SUSPEND overflow strategy for incoming channel is not supported.")
         }
     }
 
     @OptIn(InternalAPI::class)
     override fun start(negotiatedExtensions: List<WebSocketExtension<*>>) {
         require(negotiatedExtensions.isEmpty()) { "Extensions are not supported." }
-        if (ioChannelsConfig.incoming.canSuspend) {
-            throw IllegalArgumentException("SUSPEND overflow strategy for incoming channel is not supported.")
-        }
     }
 
     override suspend fun flush() {

@@ -35,7 +35,7 @@ abstract class BackpressureTest {
     @Test
     fun testSessionBackpressure() = testApplication {
         install(WebSockets) {
-            ioChannels {
+            channels {
                 incoming = bounded(capacity = 1, onOverflow = ChannelOverflow.SUSPEND)
                 outgoing = bounded(capacity = 1, onOverflow = ChannelOverflow.SUSPEND)
             }
@@ -75,7 +75,7 @@ abstract class BackpressureTest {
     @Test
     fun testSessionOutgoingOverflow() = testApplication {
         install(WebSockets) {
-            ioChannels {
+            channels {
                 outgoing = bounded(capacity = 1, onOverflow = ChannelOverflow.CLOSE)
             }
         }
@@ -101,7 +101,7 @@ abstract class BackpressureTest {
     @Test
     fun testSessionIncomingOverflow() = testApplication {
         install(WebSockets) {
-            ioChannels {
+            channels {
                 incoming = bounded(capacity = 1, onOverflow = ChannelOverflow.CLOSE)
             }
         }

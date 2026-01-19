@@ -30,14 +30,14 @@ import kotlin.coroutines.resumeWithException
 internal class DarwinWebsocketSession(
     callContext: CoroutineContext,
     private val task: NSURLSessionWebSocketTask,
-    ioChannelsConfig: IOChannelsConfig
+    channelsConfig: WebSocketChannelsConfig
 ) : WebSocketSession {
 
     private val requestTime: GMTDate = GMTDate()
     val response = CompletableDeferred<HttpResponseData>()
 
-    private val _incoming = Channel.from<Frame>(ioChannelsConfig.incoming)
-    private val _outgoing = Channel.from<Frame>(ioChannelsConfig.outgoing)
+    private val _incoming = Channel.from<Frame>(channelsConfig.incoming)
+    private val _outgoing = Channel.from<Frame>(channelsConfig.outgoing)
     private val socketJob = Job(callContext[Job])
     override val coroutineContext: CoroutineContext = callContext + socketJob
 
@@ -94,6 +94,17 @@ internal class DarwinWebsocketSession(
         }
     }
 
+    private fun receiveFrame(frame: Frame) {
+        val result = _incoming.trySend(frame)
+        when {
+            result.isSuccess -> return
+            result.isClosed -> result.exceptionOrNull()?.let { throw it }
+            else -> launch(start = CoroutineStart.UNDISPATCHED) {
+                _incoming.send(frame)
+            }
+        }
+    }
+
     private suspend fun sendMessages() {
         _outgoing.consumeEach { frame ->
             when (frame.frameType) {
@@ -143,9 +154,7 @@ internal class DarwinWebsocketSession(
                             cancel("Error receiving pong", DarwinHttpRequestException(error))
                             return@sendPingWithPongReceiveHandler
                         }
-                        launch(start = CoroutineStart.UNDISPATCHED) {
-                            _incoming.send(Frame.Pong(payload))
-                        }
+                        receiveFrame(Frame.Pong(payload))
                     }
                 }
 

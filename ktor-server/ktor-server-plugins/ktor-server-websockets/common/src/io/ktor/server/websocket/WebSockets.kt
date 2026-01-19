@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.websocket
@@ -37,7 +37,7 @@ internal val LOGGER = KtorSimpleLogger("io.ktor.server.websocket.WebSockets")
  * @param maxFrameSize maximum frame that could be received or sent.
  * @param masking whether masking need to be enabled (useful for security).
  * @param extensionsConfig is configuration for WebSocket extensions.
- * @param ioChannelsConfig configuration for the I/O channels.
+ * @param channelsConfig configuration for the I/O channels.
  */
 public class WebSockets private constructor(
     public val pingIntervalMillis: Long,
@@ -46,7 +46,7 @@ public class WebSockets private constructor(
     public val masking: Boolean,
     public val extensionsConfig: WebSocketExtensionsConfig,
     public val contentConverter: WebsocketContentConverter?,
-    public val ioChannelsConfig: IOChannelsConfig = IOChannelsConfig.UNLIMITED
+    public val channelsConfig: WebSocketChannelsConfig = WebSocketChannelsConfig.UNLIMITED
 ) : CoroutineScope {
     private val parent: CompletableJob = Job()
 
@@ -80,7 +80,7 @@ public class WebSockets private constructor(
         internal val extensionsConfig = WebSocketExtensionsConfig()
 
         @OptIn(InternalAPI::class)
-        internal val ioChannelsConfig = IOChannelsConfigBuilder()
+        internal val channelsConfig = WebSocketChannelsConfig()
 
         /**
          * Duration between pings or [PINGER_DISABLED] to disable pings
@@ -126,15 +126,15 @@ public class WebSockets private constructor(
          * possibly causing exceptions for any frames received afterward.
          *
          * ```kotlin
-         * ioChannels {
+         * channels {
          *     incoming = unlimited()
          *     outgoing = bounded(capacity = 512, onOverflow = ChannelOverflow.SUSPEND)
          * }
          * ```
-         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.websocket.WebSockets.WebSocketOptions.ioChannels)
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.websocket.WebSockets.WebSocketOptions.channels)
          */
-        public fun ioChannels(block: IOChannelsConfigBuilder.() -> Unit) {
-            ioChannelsConfig.apply(block)
+        public fun channels(block: WebSocketChannelsConfig.() -> Unit) {
+            channelsConfig.apply(block)
         }
 
         /**
@@ -173,7 +173,7 @@ public class WebSockets private constructor(
                     masking,
                     extensionsConfig,
                     contentConverter,
-                    ioChannelsConfig.build()
+                    channelsConfig
                 )
 
                 pipeline.monitor.subscribe(ApplicationStopPreparing) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.websocket
@@ -46,7 +46,7 @@ public expect fun RawWebSocket(
  * @param maxFrameSize is an initial [maxFrameSize] value for [WebSocketSession]
  * @param masking is an initial [masking] value for [WebSocketSession]
  * @param coroutineContext is a [CoroutineContext] to execute reading/writing from/to connection
- * @param ioChannelsConfig is a [IOChannelsConfig] for the incoming and outgoing [Frame] queues
+ * @param channelsConfig is a [WebSocketChannelsConfig] for the incoming and outgoing [Frame] queues
  */
 @Suppress("FunctionName")
 public expect fun RawWebSocket(
@@ -55,7 +55,7 @@ public expect fun RawWebSocket(
     maxFrameSize: Long = Int.MAX_VALUE.toLong(),
     masking: Boolean = false,
     coroutineContext: CoroutineContext,
-    ioChannelsConfig: IOChannelsConfig,
+    channelsConfig: WebSocketChannelsConfig,
 ): WebSocketSession
 
 @OptIn(InternalAPI::class)
@@ -65,13 +65,13 @@ internal class RawWebSocketCommon(
     override var maxFrameSize: Long = Int.MAX_VALUE.toLong(),
     override var masking: Boolean = false,
     coroutineContext: CoroutineContext,
-    ioChannelsConfig: IOChannelsConfig,
+    channelsConfig: WebSocketChannelsConfig,
 ) : WebSocketSession {
     private val socketJob: CompletableJob = Job(coroutineContext[Job])
     override val coroutineContext: CoroutineContext = coroutineContext + socketJob + CoroutineName("raw-ws")
 
-    private val _incoming = Channel.from<Frame>(ioChannelsConfig.incoming)
-    private val _outgoing = Channel.from<Any>(ioChannelsConfig.outgoing)
+    private val _incoming = Channel.from<Frame>(channelsConfig.incoming)
+    private val _outgoing = Channel.from<Any>(channelsConfig.outgoing)
 
     private var lastOpcode = 0
     override val incoming: ReceiveChannel<Frame> get() = _incoming
@@ -131,8 +131,8 @@ internal class RawWebSocketCommon(
                 // same as above
                 _incoming.close(cause)
                 outgoing.send(Frame.Close(CloseReason(CloseReason.Codes.PROTOCOL_ERROR, cause.message)))
-            } catch (cause: CancellationException) {
-                _incoming.cancel(cause)
+            } catch (_: CancellationException) {
+                _incoming.cancel()
             } catch (_: EOFException) {
                 // no more bytes is possible to read
             } catch (_: ClosedReceiveChannelException) {

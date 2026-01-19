@@ -34,14 +34,14 @@ final class io.ktor.server.websocket/WebSocketUpgrade : io.ktor.http.content/Out
 final class io.ktor.server.websocket/WebSockets : kotlinx.coroutines/CoroutineScope { // io.ktor.server.websocket/WebSockets|null[0]
     constructor <init>(kotlin/Long, kotlin/Long, kotlin/Long, kotlin/Boolean) // io.ktor.server.websocket/WebSockets.<init>|<init>(kotlin.Long;kotlin.Long;kotlin.Long;kotlin.Boolean){}[0]
 
+    final val channelsConfig // io.ktor.server.websocket/WebSockets.channelsConfig|{}channelsConfig[0]
+        final fun <get-channelsConfig>(): io.ktor.websocket/WebSocketChannelsConfig // io.ktor.server.websocket/WebSockets.channelsConfig.<get-channelsConfig>|<get-channelsConfig>(){}[0]
     final val contentConverter // io.ktor.server.websocket/WebSockets.contentConverter|{}contentConverter[0]
         final fun <get-contentConverter>(): io.ktor.serialization/WebsocketContentConverter? // io.ktor.server.websocket/WebSockets.contentConverter.<get-contentConverter>|<get-contentConverter>(){}[0]
     final val coroutineContext // io.ktor.server.websocket/WebSockets.coroutineContext|{}coroutineContext[0]
         final fun <get-coroutineContext>(): kotlin.coroutines/CoroutineContext // io.ktor.server.websocket/WebSockets.coroutineContext.<get-coroutineContext>|<get-coroutineContext>(){}[0]
     final val extensionsConfig // io.ktor.server.websocket/WebSockets.extensionsConfig|{}extensionsConfig[0]
         final fun <get-extensionsConfig>(): io.ktor.websocket/WebSocketExtensionsConfig // io.ktor.server.websocket/WebSockets.extensionsConfig.<get-extensionsConfig>|<get-extensionsConfig>(){}[0]
-    final val ioChannelsConfig // io.ktor.server.websocket/WebSockets.ioChannelsConfig|{}ioChannelsConfig[0]
-        final fun <get-ioChannelsConfig>(): io.ktor.websocket/IOChannelsConfig // io.ktor.server.websocket/WebSockets.ioChannelsConfig.<get-ioChannelsConfig>|<get-ioChannelsConfig>(){}[0]
     final val masking // io.ktor.server.websocket/WebSockets.masking|{}masking[0]
         final fun <get-masking>(): kotlin/Boolean // io.ktor.server.websocket/WebSockets.masking.<get-masking>|<get-masking>(){}[0]
     final val maxFrameSize // io.ktor.server.websocket/WebSockets.maxFrameSize|{}maxFrameSize[0]
@@ -70,8 +70,8 @@ final class io.ktor.server.websocket/WebSockets : kotlinx.coroutines/CoroutineSc
             final fun <get-timeoutMillis>(): kotlin/Long // io.ktor.server.websocket/WebSockets.WebSocketOptions.timeoutMillis.<get-timeoutMillis>|<get-timeoutMillis>(){}[0]
             final fun <set-timeoutMillis>(kotlin/Long) // io.ktor.server.websocket/WebSockets.WebSocketOptions.timeoutMillis.<set-timeoutMillis>|<set-timeoutMillis>(kotlin.Long){}[0]
 
+        final fun channels(kotlin/Function1<io.ktor.websocket/WebSocketChannelsConfig, kotlin/Unit>) // io.ktor.server.websocket/WebSockets.WebSocketOptions.channels|channels(kotlin.Function1<io.ktor.websocket.WebSocketChannelsConfig,kotlin.Unit>){}[0]
         final fun extensions(kotlin/Function1<io.ktor.websocket/WebSocketExtensionsConfig, kotlin/Unit>) // io.ktor.server.websocket/WebSockets.WebSocketOptions.extensions|extensions(kotlin.Function1<io.ktor.websocket.WebSocketExtensionsConfig,kotlin.Unit>){}[0]
-        final fun ioChannels(kotlin/Function1<io.ktor.websocket/IOChannelsConfigBuilder, kotlin/Unit>) // io.ktor.server.websocket/WebSockets.WebSocketOptions.ioChannels|ioChannels(kotlin.Function1<io.ktor.websocket.IOChannelsConfigBuilder,kotlin.Unit>){}[0]
     }
 
     final object Plugin : io.ktor.server.application/BaseApplicationPlugin<io.ktor.server.application/Application, io.ktor.server.websocket/WebSockets.WebSocketOptions, io.ktor.server.websocket/WebSockets> { // io.ktor.server.websocket/WebSockets.Plugin|null[0]

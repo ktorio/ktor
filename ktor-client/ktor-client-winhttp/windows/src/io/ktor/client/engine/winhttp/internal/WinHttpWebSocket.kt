@@ -34,7 +34,7 @@ internal class WinHttpWebSocket(
     private val hWebSocket: COpaquePointer,
     private val connect: WinHttpConnect,
     callContext: CoroutineContext,
-    ioChannelsConfig: IOChannelsConfig
+    channelsConfig: WebSocketChannelsConfig
 ) : WebSocketSession, Closeable {
 
     private val closed = atomic(false)
@@ -42,8 +42,8 @@ internal class WinHttpWebSocket(
 
     override val coroutineContext: CoroutineContext = callContext + socketJob
 
-    private val _incoming = Channel.from<Frame>(ioChannelsConfig.incoming)
-    private val _outgoing = Channel.from<Frame>(ioChannelsConfig.outgoing)
+    private val _incoming = Channel.from<Frame>(channelsConfig.incoming)
+    private val _outgoing = Channel.from<Frame>(channelsConfig.outgoing)
     override var masking: Boolean
         get() = true
         set(_) {}

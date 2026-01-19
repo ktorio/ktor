@@ -224,7 +224,7 @@ internal class WinHttpRequest(
             hWebsocket,
             connect,
             callContext,
-            wsConfig.ioChannelsConfig
+            wsConfig.channelsConfig
         ).also { closeRequest() }
     }
 

@@ -59,7 +59,7 @@ internal class CurlMultiApiHandler : Closeable {
             val wsConfig = request.attributes[WEBSOCKETS_KEY]
             CurlWebSocketResponseBody(
                 easyHandle,
-                wsConfig.ioChannelsConfig.incoming
+                wsConfig.channelsConfig.incoming
             )
         } else {
             CurlHttpResponseBody(request.executionContext) {

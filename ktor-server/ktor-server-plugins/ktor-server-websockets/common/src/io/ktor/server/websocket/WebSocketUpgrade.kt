@@ -96,7 +96,7 @@ public class WebSocketUpgrade(
             plugin.maxFrameSize,
             plugin.masking,
             coroutineContext = engineContext + (coroutineContext[Job] ?: EmptyCoroutineContext),
-            ioChannelsConfig = plugin.ioChannelsConfig
+            channelsConfig = plugin.channelsConfig
         )
 
         webSocket.launch(WebSocketHandlerCoroutineName) {

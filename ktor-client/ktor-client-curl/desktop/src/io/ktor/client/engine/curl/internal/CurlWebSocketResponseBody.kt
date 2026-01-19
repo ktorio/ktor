@@ -51,34 +51,24 @@ internal class CurlWebSocketResponseBody(
         val meta = curl_ws_meta(curl)?.pointed ?: error("Missing metadata")
         val frameData = buffer.readBytes(bytesRead)
 
-        onFrame(frameData, meta.flags)
+        if (!onFrame(frameData, meta.flags)) {
+            return 0
+        }
 
         return bytesRead
     }
 
-    private fun onFrame(buffer: ByteArray, flags: Int) {
+    private fun onFrame(buffer: ByteArray, flags: Int): Boolean {
         val isFinal = (flags and CURLWS_CONT) == 0
-        when {
-            (flags and CURLWS_BINARY != 0) -> {
-                _incoming.trySend(Frame.Binary(fin = isFinal, data = buffer))
-            }
-
-            (flags and CURLWS_TEXT != 0) -> {
-                _incoming.trySend(Frame.Text(fin = isFinal, data = buffer))
-            }
-
-            (flags and CURLWS_PING != 0) -> {
-                _incoming.trySend(Frame.Ping(data = buffer))
-            }
-
-            (flags and CURLWS_PONG != 0) -> {
-                _incoming.trySend(Frame.Pong(data = buffer))
-            }
-
-            (flags and CURLWS_CLOSE != 0) -> {
-                _incoming.trySend(Frame.Close(buffer))
-            }
+        val frame = when {
+            (flags and CURLWS_BINARY != 0) -> Frame.Binary(fin = isFinal, data = buffer)
+            (flags and CURLWS_TEXT != 0) -> Frame.Text(fin = isFinal, data = buffer)
+            (flags and CURLWS_PING != 0) -> Frame.Ping(data = buffer)
+            (flags and CURLWS_PONG != 0) -> Frame.Pong(data = buffer)
+            (flags and CURLWS_CLOSE != 0) -> Frame.Close(buffer)
+            else -> return false
         }
+        return _incoming.trySend(frame).isSuccess
     }
 
     override fun close(cause: Throwable?) {

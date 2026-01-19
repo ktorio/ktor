@@ -126,32 +126,8 @@ public fun <T> Channel.Factory.from(config: ChannelConfig): Channel<T> = with(co
  * and specifying overflow strategies.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.IOChannelsConfig)
- *
- * @see IOChannelsConfigBuilder
  */
-public class IOChannelsConfig internal constructor(
-    public val incoming: ChannelConfig,
-    public val outgoing: ChannelConfig
-) {
-    public companion object {
-        /**
-         * A configuration with unlimited buffer for both incoming and outgoing channels.
-         *
-         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.IOChannelsConfig.Companion.UNLIMITED)
-         */
-        public val UNLIMITED: IOChannelsConfig =
-            IOChannelsConfig(incoming = ChannelConfig.UNLIMITED, outgoing = ChannelConfig.UNLIMITED)
-    }
-}
-
-/**
- * Builder for configuring incoming and outgoing WebSocket frame channels.
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.IOChannelsConfigBuilder)
- *
- * @see IOChannelsConfig
- */
-public class IOChannelsConfigBuilder @InternalAPI public constructor() {
+public class WebSocketChannelsConfig @InternalAPI public constructor() {
     /**
      * Configuration for the incoming channel.
      *
@@ -181,22 +157,16 @@ public class IOChannelsConfigBuilder @InternalAPI public constructor() {
     public fun bounded(capacity: Int, onOverflow: ChannelOverflow = ChannelOverflow.SUSPEND): ChannelConfig =
         ChannelConfig(capacity, onOverflow)
 
-    /**
-     * Builds an [IOChannelsConfig] from this builder.
-     */
-    public fun build(): IOChannelsConfig = IOChannelsConfig(incoming, outgoing)
-}
-
-/**
- * Creates an [IOChannelsConfig] using the provided configuration block.
- * Should be used only to customize manually created raw websocket sessions.
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.IOChannelsConfig)
- *
- * @param configure the configuration block to apply
- * @return the configured [IOChannelsConfig]
- */
-public fun IOChannelsConfig(configure: IOChannelsConfigBuilder.() -> Unit): IOChannelsConfig {
-    @OptIn(InternalAPI::class)
-    return IOChannelsConfigBuilder().apply(configure).build()
+    public companion object {
+        /**
+         * A configuration with unlimited buffer for both incoming and outgoing channels.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.IOChannelsConfig.Companion.UNLIMITED)
+         */
+        @OptIn(InternalAPI::class)
+        public val UNLIMITED: WebSocketChannelsConfig = WebSocketChannelsConfig().apply {
+            incoming = unlimited()
+            outgoing = unlimited()
+        }
+    }
 }

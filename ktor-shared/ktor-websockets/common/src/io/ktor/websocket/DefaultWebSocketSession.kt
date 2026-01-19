@@ -101,7 +101,7 @@ public fun DefaultWebSocketSession(
  * @param session raw [WebSocketSession] to wrap.
  * @param pingIntervalMillis interval between pings or [PINGER_DISABLED] to disable.
  * @param timeoutMillis timeout for pings.
- * @param ioChannelsConfig configuration for the I/O frame channels.
+ * @param channelsConfig configuration for the I/O frame channels.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.DefaultWebSocketSession)
  */
@@ -109,15 +109,15 @@ public fun DefaultWebSocketSession(
     session: WebSocketSession,
     pingIntervalMillis: Long = PINGER_DISABLED,
     timeoutMillis: Long = 15_000L,
-    ioChannelsConfig: IOChannelsConfig,
+    channelsConfig: WebSocketChannelsConfig,
 ): DefaultWebSocketSession {
     require(session !is DefaultWebSocketSession) { "Cannot wrap other DefaultWebSocketSession" }
     return DefaultWebSocketSessionImpl(
         session,
         pingIntervalMillis,
         timeoutMillis,
-        incomingFramesConfig = ioChannelsConfig.incoming,
-        outgoingFramesConfig = ioChannelsConfig.outgoing,
+        incomingFramesConfig = channelsConfig.incoming,
+        outgoingFramesConfig = channelsConfig.outgoing,
     )
 }
 
@@ -323,6 +323,7 @@ internal class DefaultWebSocketSessionImpl(
         } catch (cause: Throwable) {
             outgoingToBeProcessed.cancel(CancellationException("Failed to send frame", cause))
             raw.closeExceptionally(cause)
+            return@launch
         } finally {
             outgoingToBeProcessed.cancel()
             raw.close()

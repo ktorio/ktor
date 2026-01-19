@@ -29,7 +29,7 @@ internal fun Application.webSockets() {
                 }
             }
             webSocket("receive-backpressure") {
-                for (i in 0..100) {
+                for (i in 0..1000) {
                     send(Frame.Text("Hello $i"))
                 }
             }

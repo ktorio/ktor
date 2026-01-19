@@ -88,7 +88,7 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
             webSocketFactory = config.webSocketFactory ?: engine,
             engineRequest = engineRequest,
             coroutineContext = callContext,
-            ioChannelsConfig = wsConfig.ioChannelsConfig
+            channelsConfig = wsConfig.channelsConfig
         ).apply { start() }
 
         val originResponse = session.originResponse.await()

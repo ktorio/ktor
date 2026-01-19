@@ -22,7 +22,7 @@ internal class OkHttpWebsocketSession(
     private val webSocketFactory: WebSocket.Factory,
     engineRequest: Request,
     override val coroutineContext: CoroutineContext,
-    ioChannelsConfig: IOChannelsConfig = IOChannelsConfig.UNLIMITED,
+    channelsConfig: WebSocketChannelsConfig = WebSocketChannelsConfig.UNLIMITED,
 ) : DefaultWebSocketSession, WebSocketListener() {
     // Deferred reference to "this", completed only after the object successfully constructed.
     private val self = CompletableDeferred<OkHttpWebsocketSession>()
@@ -47,12 +47,12 @@ internal class OkHttpWebsocketSession(
         get() = Long.MAX_VALUE
         set(_) = throw WebSocketException("Max frame size switch is not supported in OkHttp engine.")
 
-    private val _incoming = if (ioChannelsConfig.incoming.canSuspend) {
+    private val _incoming = if (channelsConfig.incoming.canSuspend) {
         throw IllegalArgumentException("OkHttp does not support SUSPEND overflow strategy for incoming channel")
     } else {
-        Channel.from<Frame>(ioChannelsConfig.incoming)
+        Channel.from<Frame>(channelsConfig.incoming)
     }
-    private val _outgoing = Channel.from<Frame>(ioChannelsConfig.outgoing)
+    private val _outgoing = Channel.from<Frame>(channelsConfig.outgoing)
     private val _closeReason = CompletableDeferred<CloseReason?>()
 
     override val incoming: ReceiveChannel<Frame>

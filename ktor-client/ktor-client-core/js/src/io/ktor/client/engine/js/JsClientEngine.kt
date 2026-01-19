@@ -16,7 +16,6 @@ import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
-import io.ktor.websocket.ChannelConfig
 import kotlinx.coroutines.*
 import org.w3c.dom.WebSocket
 import org.w3c.dom.events.Event
@@ -106,7 +105,7 @@ internal class JsClientEngine(
         val session = JsWebSocketSession(
             coroutineContext = callContext,
             websocket = socket,
-            ioChannelsConfig = wsConfig.ioChannelsConfig
+            channelsConfig = wsConfig.channelsConfig
         )
 
         try {
