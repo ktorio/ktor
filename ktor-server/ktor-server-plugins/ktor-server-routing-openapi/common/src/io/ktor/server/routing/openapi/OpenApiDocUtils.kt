@@ -16,28 +16,26 @@ import kotlin.collections.plus
  * Combines the current `OpenApiDoc` instance with a sequence of routes, resulting in a new `OpenApiDoc`
  * containing the updated paths and components based on the provided routes.
  *
- * @param routes A sequence of `Route` objects whose information is used to resolve path items and schemas.
- * @return A new `OpenApiDoc` instance with the combined paths and components from the original instance and the provided routes.
+ * @param routes A sequence of [Route]s whose information is used to resolve path items and schemas.
+ * @return A new [OpenApiDoc] instance with the combined paths and components from the original instance and the provided routes.
  */
 public operator fun OpenApiDoc.plus(routes: Sequence<Route>): OpenApiDoc {
     val (pathItems, jsonSchema) = routes.mapToPathItemsAndSchema()
+    val merged = (components?.schemas.orEmpty() + jsonSchema).takeIf { it.isNotEmpty() }
+
     return copy(
         paths = paths + pathItems.mapValues {
             ReferenceOr.Value(it.value)
         },
-        components = components?.copy(
-            schemas = jsonSchema.takeIf { it.isNotEmpty() },
-        ) ?: Components(
-            schemas = jsonSchema.takeIf { it.isNotEmpty() }
-        ),
+        components = components?.copy(schemas = merged) ?: Components(schemas = merged),
     )
 }
 
 /**
  * Overload for [OpenApiDoc.plus] that accepts a [Collection] of [Route]s.
  *
- * @param routes A sequence of `Route` objects whose information is used to resolve path items and schemas.
- * @return A new `OpenApiDoc` instance with the combined paths and components from the original instance and the provided routes.
+ * @param routes A collection of [Route]s whose information is used to resolve path items and schemas.
+ * @return A new [OpenApiDoc] instance with the combined paths and components from the original instance and the provided routes.
  */
 public operator fun OpenApiDoc.plus(routes: Collection<Route>): OpenApiDoc =
     plus(routes.asSequence())
@@ -45,8 +43,8 @@ public operator fun OpenApiDoc.plus(routes: Collection<Route>): OpenApiDoc =
 /**
  * Combines the current [OpenApiDoc] instance with a single [Route].
  *
- * @param route An instance of `Route` that will be used to resolve path items and schemas.
- * @return A new `OpenApiDoc` instance with the combined paths and components from the original instance and the provided routes.
+ * @param route An instance of [Route] that will be used to resolve path items and schemas.
+ * @return A new [OpenApiDoc] instance with the combined paths and components from the original instance and the provided route.
  */
 public operator fun OpenApiDoc.plus(route: Route): OpenApiDoc = plus(sequenceOf(route))
 

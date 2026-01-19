@@ -36,6 +36,9 @@ public typealias RouteOperationFunction = Operation.Builder.() -> Unit
 
 /**
  * Annotate a [Route] with an OpenAPI [Operation].
+ *
+ * @param configure configures the operation metadata
+ * @return the current route for chaining expressions
  */
 @ExperimentalKtorApi
 public fun Route.describe(configure: RouteOperationFunction): Route {
@@ -50,6 +53,8 @@ public fun Route.describe(configure: RouteOperationFunction): Route {
 
 /**
  * Hide a [Route] from OpenAPI documentation.
+ *
+ * @return the current route for chaining expressions
  */
 @ExperimentalKtorApi
 public fun Route.hide(): Route {
