@@ -50,13 +50,13 @@ class SwaggerTest {
             <html>
               <head>
                 <title>Swagger UI</title>
-                <link href="https://unpkg.com/swagger-ui-dist@5.17.12/swagger-ui.css" rel="stylesheet">
-                <link href="https://unpkg.com/swagger-ui-dist@5.17.12/favicon-32x32.png" rel="icon" type="image/x-icon">
+                <link href="https://unpkg.com/swagger-ui-dist@5.31.0/swagger-ui.css" rel="stylesheet">
+                <link href="https://unpkg.com/swagger-ui-dist@5.31.0/favicon-32x32.png" rel="icon" type="image/x-icon">
               </head>
               <body>
                 <div id="swagger-ui"></div>
-                <script src="https://unpkg.com/swagger-ui-dist@5.17.12/swagger-ui-bundle.js" crossorigin="anonymous"></script>
-                <script src="https://unpkg.com/swagger-ui-dist@5.17.12/swagger-ui-standalone-preset.js" crossorigin="anonymous"></script>
+                <script src="https://unpkg.com/swagger-ui-dist@5.31.0/swagger-ui-bundle.js" crossorigin="anonymous"></script>
+                <script src="https://unpkg.com/swagger-ui-dist@5.31.0/swagger-ui-standalone-preset.js" crossorigin="anonymous"></script>
                 <script>window.onload = function() {
                 window.ui = SwaggerUIBundle({
                     url: '/swagger/documentation.yaml',
@@ -92,13 +92,13 @@ class SwaggerTest {
             <html>
               <head>
                 <title>Swagger UI</title>
-                <link href="https://unpkg.com/swagger-ui-dist@5.17.12/swagger-ui.css" rel="stylesheet">
-                <link href="https://unpkg.com/swagger-ui-dist@5.17.12/favicon-32x32.png" rel="icon" type="image/x-icon">
+                <link href="https://unpkg.com/swagger-ui-dist@5.31.0/swagger-ui.css" rel="stylesheet">
+                <link href="https://unpkg.com/swagger-ui-dist@5.31.0/favicon-32x32.png" rel="icon" type="image/x-icon">
               </head>
               <body>
                 <div id="swagger-ui"></div>
-                <script src="https://unpkg.com/swagger-ui-dist@5.17.12/swagger-ui-bundle.js" crossorigin="anonymous"></script>
-                <script src="https://unpkg.com/swagger-ui-dist@5.17.12/swagger-ui-standalone-preset.js" crossorigin="anonymous"></script>
+                <script src="https://unpkg.com/swagger-ui-dist@5.31.0/swagger-ui-bundle.js" crossorigin="anonymous"></script>
+                <script src="https://unpkg.com/swagger-ui-dist@5.31.0/swagger-ui-standalone-preset.js" crossorigin="anonymous"></script>
                 <script>window.onload = function() {
                 window.ui = SwaggerUIBundle({
                     url: '/swagger/documentation.yaml',
@@ -134,13 +134,13 @@ class SwaggerTest {
             <html>
               <head>
                 <title>Swagger UI</title>
-                <link href="https://unpkg.com/swagger-ui-dist@5.17.12/swagger-ui.css" rel="stylesheet">
-                <link href="https://unpkg.com/swagger-ui-dist@5.17.12/favicon-32x32.png" rel="icon" type="image/x-icon">
+                <link href="https://unpkg.com/swagger-ui-dist@5.31.0/swagger-ui.css" rel="stylesheet">
+                <link href="https://unpkg.com/swagger-ui-dist@5.31.0/favicon-32x32.png" rel="icon" type="image/x-icon">
               </head>
               <body>
                 <div id="swagger-ui"></div>
-                <script src="https://unpkg.com/swagger-ui-dist@5.17.12/swagger-ui-bundle.js" crossorigin="anonymous"></script>
-                <script src="https://unpkg.com/swagger-ui-dist@5.17.12/swagger-ui-standalone-preset.js" crossorigin="anonymous"></script>
+                <script src="https://unpkg.com/swagger-ui-dist@5.31.0/swagger-ui-bundle.js" crossorigin="anonymous"></script>
+                <script src="https://unpkg.com/swagger-ui-dist@5.31.0/swagger-ui-standalone-preset.js" crossorigin="anonymous"></script>
                 <script>window.onload = function() {
                 window.ui = SwaggerUIBundle({
                     url: '/swagger/documentation.yaml',
@@ -191,13 +191,13 @@ class SwaggerTest {
             <html>
               <head>
                 <title>Swagger UI</title>
-                <link href="https://unpkg.com/swagger-ui-dist@5.17.12/swagger-ui.css" rel="stylesheet">
+                <link href="https://unpkg.com/swagger-ui-dist@5.31.0/swagger-ui.css" rel="stylesheet">
                 <link href="https://www.google.com/favicon.ico" rel="icon" type="image/x-icon">
               </head>
               <body>
                 <div id="swagger-ui"></div>
-                <script src="https://unpkg.com/swagger-ui-dist@5.17.12/swagger-ui-bundle.js" crossorigin="anonymous"></script>
-                <script src="https://unpkg.com/swagger-ui-dist@5.17.12/swagger-ui-standalone-preset.js" crossorigin="anonymous"></script>
+                <script src="https://unpkg.com/swagger-ui-dist@5.31.0/swagger-ui-bundle.js" crossorigin="anonymous"></script>
+                <script src="https://unpkg.com/swagger-ui-dist@5.31.0/swagger-ui-standalone-preset.js" crossorigin="anonymous"></script>
                 <script>window.onload = function() {
                 window.ui = SwaggerUIBundle({
                     url: '/swagger/documentation.yaml',

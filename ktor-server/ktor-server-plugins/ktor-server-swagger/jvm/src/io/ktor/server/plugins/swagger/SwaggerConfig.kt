@@ -39,7 +39,7 @@ public class SwaggerConfig private constructor(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.swagger.SwaggerConfig.version)
      */
-    public var version: String = "5.17.12"
+    public var version: String = "5.31.0"
 
     /**
      * Specifies a URL for a custom CSS applied to a Swagger UI.
