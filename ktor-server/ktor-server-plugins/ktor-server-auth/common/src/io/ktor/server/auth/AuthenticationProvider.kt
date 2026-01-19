@@ -68,7 +68,7 @@ public abstract class AuthenticationProvider(config: Config) {
      */
     public open class Config protected constructor(
         public val name: String?,
-        public val description: String?
+        public val description: String? = null
     ) {
 
         /**
