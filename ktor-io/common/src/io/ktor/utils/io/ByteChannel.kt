@@ -193,7 +193,11 @@ public class ByteChannel(public override val autoFlush: Boolean = false) : ByteR
         // Handle previous waiter
         when (previous) {
             SlotState.ReadWaiting -> {
-                readSuspension.resumeWithException(ConcurrentIOException("read", null))
+                // Only throw ConcurrentIOException if there's actually a waiter.
+                // After cancellation, the suspension may have been resumed but slot state not yet cleared.
+                if (readSuspension.isWaiting()) {
+                    readSuspension.resumeWithException(ConcurrentIOException("read", null))
+                }
             }
             SlotState.WriteWaiting -> {
                 writeSuspension.resume()
@@ -233,7 +237,11 @@ public class ByteChannel(public override val autoFlush: Boolean = false) : ByteR
         // Handle previous waiter
         when (previous) {
             SlotState.WriteWaiting -> {
-                writeSuspension.resumeWithException(ConcurrentIOException("write", null))
+                // Only throw ConcurrentIOException if there's actually a waiter.
+                // After cancellation, the suspension may have been resumed but slot state not yet cleared.
+                if (writeSuspension.isWaiting()) {
+                    writeSuspension.resumeWithException(ConcurrentIOException("write", null))
+                }
             }
             SlotState.ReadWaiting -> {
                 readSuspension.resume()

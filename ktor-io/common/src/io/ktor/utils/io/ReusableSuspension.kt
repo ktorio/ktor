@@ -44,4 +44,10 @@ internal expect class ReusableSuspension() : Continuation<Unit> {
      * Closes this suspension with a cause, used when the channel is closed.
      */
     fun close(cause: Throwable?)
+
+    /**
+     * Returns true if there's a continuation waiting to be resumed.
+     * Used to detect stale slot state after cancellation.
+     */
+    fun isWaiting(): Boolean
 }

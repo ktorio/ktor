@@ -111,6 +111,8 @@ internal actual class ReusableSuspension actual constructor() : Continuation<Uni
         }
     }
 
+    actual fun isWaiting(): Boolean = state.value is Continuation<*>
+
     private fun setupJobCancellation(context: CoroutineContext) {
         val job = context[Job] ?: return
 
