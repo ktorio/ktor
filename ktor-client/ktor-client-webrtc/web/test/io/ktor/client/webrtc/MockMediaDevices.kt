@@ -10,7 +10,6 @@ import web.canvas.CanvasRenderingContext2D
 import web.canvas.ID
 import web.dom.document
 import web.html.HTMLCanvasElement
-import kotlin.js.ExperimentalWasmJsInterop
 
 object MockMediaTrackFactory : MediaTrackFactory {
     private var allowVideo = false

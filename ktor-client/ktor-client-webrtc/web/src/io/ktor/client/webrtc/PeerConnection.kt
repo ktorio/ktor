@@ -7,7 +7,6 @@ package io.ktor.client.webrtc
 import web.mediastreams.MediaStream
 import web.rtc.*
 import kotlin.coroutines.CoroutineContext
-import kotlin.js.ExperimentalWasmJsInterop
 import kotlin.js.toArray
 
 /**
