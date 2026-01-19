@@ -32,7 +32,7 @@ kotlin {
 
     compilerOptions {
         apiVersion = KotlinVersion.KOTLIN_2_2
-        languageVersion = KotlinVersion.KOTLIN_2_2
+        languageVersion = KotlinVersion.KOTLIN_2_3
         progressiveMode = languageVersion.map { it >= KotlinVersion.DEFAULT }
         freeCompilerArgs.addAll("-Xexpect-actual-classes")
     }
@@ -73,6 +73,12 @@ if (targets.hasNative) {
     // A workaround for KT-77609
     tasks.matching { it::class.simpleName?.startsWith("CInteropCommonizerTask") == true }
         .configureEach { withLimitedParallelism("native-tools", maxParallelTasks = 3) }
+
+    // A workaround for KT-83710
+    tasks.named { it == "commonizeNativeDistribution" }
+        .configureEach { dependsOn("downloadKotlinNativeDistribution") }
+    tasks.named { it == "downloadKotlinNativeDistribution" }
+        .configureEach { outputs.upToDateWhen { false } }
 }
 
 if (ktorBuild.isCI.get()) configureTestTasksOnCi()

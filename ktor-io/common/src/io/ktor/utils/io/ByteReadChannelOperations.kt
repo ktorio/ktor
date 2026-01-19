@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.utils.io
@@ -145,23 +145,6 @@ public suspend fun ByteReadChannel.copyAndClose(channel: ByteWriteChannel): Long
     return result
 }
 
-/**
- * Reads a line of UTF-8 characters from the `ByteReadChannel`.
- * It recognizes CR, LF and CRLF as line delimiters.
- *
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readUTF8Line)
- *
- * @param max the maximum number of characters to read. Default is [Int.MAX_VALUE].
- * @return a string containing the line read, or null if channel is closed
- * @throws TooLongLineException if max is reached before encountering a newline or end of input
- */
-public suspend fun ByteReadChannel.readUTF8Line(max: Int = Int.MAX_VALUE): String? {
-    val result = StringBuilder()
-    val completed = readUTF8LineTo(result, max)
-    return if (!completed) null else result.toString()
-}
-
 @OptIn(InternalAPI::class)
 public suspend fun ByteReadChannel.copyTo(channel: ByteWriteChannel): Long {
     var result = 0L
@@ -295,7 +278,7 @@ public suspend fun ByteReadChannel.readAvailable(
 /**
  * Invokes [block] if it is possible to read at least [min] byte
  * providing buffer to it so lambda can read from the buffer
- * up to [Buffer.readRemaining] bytes. If there are no [min] bytes available then the invocation returns -1.
+ * up to [Buffer.remaining] bytes. If there are no [min] bytes available then the invocation returns -1.
  *
  * Warning: it is not guaranteed that all of available bytes will be represented as a single byte buffer
  * eg: it could be 4 bytes available for read but the provided byte buffer could have only 2 available bytes:
@@ -435,8 +418,102 @@ private const val CR: Byte = '\r'.code.toByte()
 private const val LF: Byte = '\n'.code.toByte()
 
 /**
+ * Reads a line of UTF-8 characters from the `ByteReadChannel`.
+ * It recognizes CR, LF, and CRLF as a line delimiter.
+ *
+ * ## Deprecation
+ *
+ * This function is deprecated. Use [readLineStrict] or [readLine] instead.
+ *
+ * Use [readLineStrict] when:
+ * - You need to limit the line length and throw [TooLongLineException] when the limit is reached.
+ * - You expect an explicit line break at the end of a line. [EOFException] will be thrown
+ *   when the channel is closed before the line break.
+ *
+ * Use [readLine] when:
+ * - You do not need to limit line length.
+ * - An explicit line break at the end of the channel is not mandatory.
+ *
+ * Compared to `readUTF8Line`, the new functions differ in the following ways:
+ * - They recognize LF and CRLF as line delimiters by default, which provides better performance.
+ *   To keep current behavior and recognize all line delimiters (CR, LF, and CRLF), specify [LineEnding.Lenient].
+ * - [readLineStrict] accepts [Long] instead of [Int] as a limit parameter.
+ *
+ * The direct equivalent of `readUTF8Line` would be:
+ * ```
+ * // Before
+ * val line = channel.readUTF8Line(max = 1024)
+ *
+ * // After
+ * val buffer = StringBuilder()
+ * val success = try {
+ *     channel.readLineStrictTo(out, limit = 1024, lineEnding = LineEnding.Lenient) >= 0
+ * } catch (_: EOFException) {
+ *     true
+ * }
+ * val line = if (success) buffer.toString() else null
+ * ```
+ * However, we recommend using the default line ending behavior ([LineEnding.Default]) and
+ * do not ignore unexpected end-of-input:
+ * ```
+ * val line = channel.readLineStrict(limit = 1024)
+ * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readUTF8Line)
+ *
+ * @param max the maximum number of characters to read. Default is [Int.MAX_VALUE].
+ * @return a string containing the line read, or null if channel is closed
+ * @throws TooLongLineException if max is reached before encountering a line delimiter or end of input
+ */
+@Suppress("DEPRECATION")
+@Deprecated("Use readLineStrict or readLine instead. See deprecation notes for more details.")
+public suspend fun ByteReadChannel.readUTF8Line(max: Int = Int.MAX_VALUE): String? {
+    val result = StringBuilder()
+    val completed = readUTF8LineTo(result, max)
+    return if (!completed) null else result.toString()
+}
+
+/**
  * Reads a line of UTF-8 characters to the specified [out] buffer.
- * It recognizes CR, LF and CRLF as a line delimiter.
+ * It recognizes CR, LF, and CRLF as a line delimiter.
+ *
+ * ## Deprecation
+ *
+ * This function is deprecated. Use [readLineStrictTo] or [readLineTo] instead.
+ *
+ * Use [readLineStrictTo] when:
+ * - You need to limit the line length and throw [TooLongLineException] when the limit is reached.
+ * - You expect an explicit line break at the end of a line. [EOFException] will be thrown
+ *   when the channel is closed before the line break.
+ *
+ * Use [readLineTo] when:
+ * - You do not need to limit line length.
+ * - An explicit line break at the end of the channel is not mandatory.
+ *
+ * Compared to `readUTF8LineTo`, the new functions differ in the following ways:
+ * - They recognize LF and CRLF as line delimiters by default, which provides better performance.
+ *   To keep current behavior and recognize all line delimiters (CR, LF, and CRLF), specify [LineEnding.Lenient].
+ * - They return the return number of appended characters instead, or `-1` if the channel is empty, instead of
+ *   returning [Boolean].
+ * - [readLineStrictTo] accepts [Long] instead of [Int] as a limit parameter.
+ *
+ * The direct equivalent of `readUTF8LineTo` would be:
+ * ```
+ * // Before
+ * val success = channel.readUTF8LineTo(out, max = 1024)
+ *
+ * // After
+ * val success = try {
+ *     channel.readLineStrictTo(out, limit = 1024, lineEnding = LineEnding.Lenient) >= 0
+ * } catch (_: EOFException) {
+ *     true
+ * }
+ * ```
+ * However, we recommend using the default line ending behavior ([LineEnding.Default]) and
+ * do not ignore unexpected end-of-input:
+ * ```
+ * val success = channel.readLineTo(out, limit = 1024) >= 0
+ * ```
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readUTF8LineTo)
  *
@@ -446,15 +523,16 @@ private const val LF: Byte = '\n'.code.toByte()
  * @return `true` if a new line separator was found or max bytes appended. `false` if no new line separator and no bytes read.
  * @throws TooLongLineException if max is reached before encountering a newline or end of input
  */
+@Suppress("DEPRECATION")
 @OptIn(InternalAPI::class)
+@Deprecated("Use readLineStrictTo or readLineTo instead. See deprecation notes for more details.")
 public suspend fun ByteReadChannel.readUTF8LineTo(out: Appendable, max: Int = Int.MAX_VALUE): Boolean {
     return readUTF8LineTo(out, max, lineEnding = LineEndingMode.Any)
 }
 
 /**
  * Reads a line of UTF-8 characters to the specified [out] buffer.
- * It recognizes the specified line ending as a line delimiter and throws an exception
- * if an unexpected line delimiter is found.
+ * It recognizes specified line endings as a line delimiter.
  * By default, all line endings (CR, LF and CRLF) are allowed as a line delimiter.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readUTF8LineTo)
@@ -466,6 +544,8 @@ public suspend fun ByteReadChannel.readUTF8LineTo(out: Appendable, max: Int = In
  * @return `true` if a new line separator was found or max bytes appended. `false` if no new line separator and no bytes read.
  * @throws TooLongLineException if max is reached before encountering a newline or end of input
  */
+@Suppress("DEPRECATION")
+@Deprecated("Use readLineStrictTo instead.")
 @InternalAPI
 @OptIn(InternalIoApi::class)
 public suspend fun ByteReadChannel.readUTF8LineTo(
@@ -473,54 +553,241 @@ public suspend fun ByteReadChannel.readUTF8LineTo(
     max: Int = Int.MAX_VALUE,
     lineEnding: LineEndingMode = LineEndingMode.Any,
 ): Boolean {
+    return try {
+        readLineStrictTo(
+            out,
+            limit = max.toLong(),
+            lineEnding = if (LineEndingMode.CR in lineEnding) LineEnding.Lenient else LineEnding.Default
+        ) >= 0
+    } catch (cause: EOFException) {
+        if (cause.message?.startsWith("Unexpected end of stream after reading") == true) return true
+        throw cause
+    }
+}
+
+/**
+ * Reads and returns a line of UTF-8 characters.
+ *
+ * Reads UTF-8 characters until a line break is found or the channel is exhausted. Implicit line break
+ * is assumed if the channel ends without a line break. Line break characters are not included in the result.
+ *
+ * @param lineEnding line ending mode. Accepts LF and CRLF by default.
+ *
+ * @return the line, or `null` if can't read from the channel
+ */
+public suspend fun ByteReadChannel.readLine(
+    lineEnding: LineEnding = LineEnding.Default,
+): String? {
+    val result = StringBuilder()
+    return if (readLineTo(result, lineEnding) >= 0) result.toString() else null
+}
+
+/**
+ * Reads a line of UTF-8 characters to the specified [out] buffer.
+ *
+ * Appends UTF-8 characters until a line break is found or the channel is exhausted. Implicit line break
+ * is assumed if the channel ends without a line break. Line break characters are not included in the result.
+ *
+ * @param out the buffer to append line to (line break characters are not appended)
+ * @param lineEnding line ending mode. Accepts LF and CRLF by default.
+ *
+ * @return number of characters appended to [out], or `-1` if can't read from the channel
+ */
+@OptIn(InternalAPI::class)
+public suspend fun ByteReadChannel.readLineTo(
+    out: Appendable,
+    lineEnding: LineEnding = LineEnding.Default
+): Long {
+    return internalReadLineTo(
+        out,
+        limit = Long.MAX_VALUE,
+        lenientLineEnding = lineEnding == LineEnding.Lenient,
+        throwOnIncompleteLine = false,
+    )
+}
+
+/**
+ * Reads and returns a line of UTF-8 characters.
+ * Throws an exception if the line exceeds [limit] or doesn't end with a line break.
+ *
+ * The [limit] counts **characters** after UTF-8 decoding, not bytes.
+ * Line break characters are not included in the result and not counted towards the [limit].
+ * So this function may scan up to `limit + 2` characters (when line ends with CRLF after limit).
+ *
+ * **Important**: This function consumes bytes from the channel even if it fails to complete.
+ *
+ * @param lineEnding line ending mode. Accepts LF and CRLF by default.
+ *
+ * @return the line, or `null` if can't read from the channel
+ * @throws TooLongLineException if the line exceeds [limit]
+ * @throws EOFException if the channel is closed before a line break is found
+ */
+public suspend fun ByteReadChannel.readLineStrict(
+    limit: Long = Long.MAX_VALUE,
+    lineEnding: LineEnding = LineEnding.Default,
+): String? {
+    val result = StringBuilder()
+    return if (readLineStrictTo(result, limit, lineEnding) >= 0) result.toString() else null
+}
+
+/**
+ * Reads a line of UTF-8 characters to the specified [out] buffer.
+ * Throws an exception if the line exceeds [limit] or doesn't end with a line break.
+ *
+ * The [limit] counts **characters** after UTF-8 decoding, not bytes.
+ * Line break characters are not included in the result and not counted towards the [limit].
+ * So this function may scan up to `limit + 2` characters (when line ends with CRLF after limit).
+ *
+ * **Important**: This function consumes bytes from the channel and appends them to [out]
+ * even if it fails to complete.
+ *
+ * @param out the buffer to append line to (line break characters are not appended)
+ * @param limit maximum characters to append to [out]. Unlimited by default.
+ * @param lineEnding line ending mode. Accepts LF and CRLF by default.
+ *
+ * @return number of characters appended to [out], or `-1` if can't read from the channel
+ * @throws TooLongLineException if the line exceeds [limit]
+ * @throws EOFException if the channel is closed before a line break is found
+ */
+@OptIn(InternalAPI::class, InternalIoApi::class)
+public suspend fun ByteReadChannel.readLineStrictTo(
+    out: Appendable,
+    limit: Long = Long.MAX_VALUE,
+    lineEnding: LineEnding = LineEnding.Default,
+): Long {
+    require(limit >= 0) { "Limit ($limit) should be non-negative" }
+
+    return internalReadLineTo(
+        out,
+        limit,
+        lenientLineEnding = lineEnding == LineEnding.Lenient,
+        throwOnIncompleteLine = true
+    )
+}
+
+@OptIn(InternalAPI::class, InternalIoApi::class)
+private suspend fun ByteReadChannel.internalReadLineTo(
+    out: Appendable,
+    limit: Long,
+    lenientLineEnding: Boolean,
+    throwOnIncompleteLine: Boolean,
+): Long {
+    val readBuffer = readBuffer // Get readBuffer once per line
     if (readBuffer.exhausted()) awaitContent()
-    if (isClosedForRead) return false
+    if (isClosedForRead) return -1
 
-    fun checkLineEndingAllowed(lineEndingToCheck: LineEndingMode) {
-        if (lineEndingToCheck !in lineEnding) {
-            throw IOException("Unexpected line ending $lineEndingToCheck, while expected $lineEnding")
+    var consumed = 0L
+
+    fun transferString(count: Long) {
+        if (count > 0L) {
+            val string = readBuffer.readString(count)
+            out.append(string)
+            consumed += string.length
         }
     }
 
-    Buffer().use { lineBuffer ->
-        while (!isClosedForRead) {
-            while (!readBuffer.exhausted()) {
-                when (val b = readBuffer.readByte()) {
-                    CR -> {
-                        // Check if LF follows CR after awaiting
-                        if (readBuffer.exhausted()) awaitContent()
-                        if (readBuffer.buffer[0] == LF) {
-                            checkLineEndingAllowed(LineEndingMode.CRLF)
-                            readBuffer.discard(1)
-                        } else {
-                            checkLineEndingAllowed(LineEndingMode.CR)
-                        }
-                        out.append(lineBuffer.readString())
-                        return true
-                    }
+    fun Source.scanForSoleCr(lfIndex: Long, limitLeft: Long): Long {
+        // Don't scan for CR in default mode
+        if (!lenientLineEnding) return -1L
 
-                    LF -> {
-                        checkLineEndingAllowed(LineEndingMode.LF)
-                        out.append(lineBuffer.readString())
-                        return true
-                    }
-
-                    else -> lineBuffer.writeByte(b)
-                }
-            }
-            if (lineBuffer.size >= max) {
-                throw TooLongLineException("Line exceeds limit of $max characters")
-            }
-
-            awaitContent()
+        val endIndex = when (lfIndex) {
+            // Subtract 1 from remaining to ignore the last byte,
+            // when RC might be part of a CRLF sequence split into two buffers
+            -1L -> minOf(limitLeft, remaining - 1)
+            0L -> 0
+            // Subtract 1 from lfIndex to ignore the case when CR is part of the CRLF sequence
+            else -> lfIndex - 1
         }
-
-        return (lineBuffer.size > 0).also { remaining ->
-            if (remaining) {
-                out.append(lineBuffer.readString())
-            }
-        }
+        return indexOf(CR, endIndex = endIndex)
     }
+
+    // Should be called only if buffer[0] = CR
+    suspend fun Source.discardCrlfOrCr(): Boolean {
+        if ((remaining >= 2 || awaitContent(min = 2)) && buffer[1] == LF) {
+            discard(2)
+            return true
+        }
+
+        if (lenientLineEnding) {
+            discard(1)
+            return true
+        }
+
+        return false
+    }
+
+    while (consumed < limit && !isClosedForRead) {
+        val limitLeft = limit - consumed
+        val lfIndex = readBuffer.indexOf(LF, endIndex = limitLeft)
+        val crIndex = readBuffer.scanForSoleCr(lfIndex, limitLeft)
+
+        // Sole CR in the buffer
+        if (crIndex >= 0) {
+            transferString(count = crIndex)
+            readBuffer.discard(1)
+            return consumed
+        }
+
+        // Fast path. LF or CRLF in the buffer
+        if (lfIndex == 0L) {
+            readBuffer.discard(1)
+            return consumed
+        }
+        if (lfIndex > 0) {
+            val isCrlf = if (readBuffer.buffer[lfIndex - 1] == CR) 1L else 0L
+            transferString(count = lfIndex - isCrlf)
+            readBuffer.discard(1 + isCrlf)
+            return consumed
+        }
+
+        val count = minOf(limitLeft, readBuffer.remaining)
+        // Check for the corner case when the last byte in the buffer is CR, and LF is in the next buffer
+        if (readBuffer.buffer[count - 1] == CR) {
+            transferString(count = count - 1)
+            if (readBuffer.discardCrlfOrCr()) return consumed
+            transferString(1) // transfer the CR
+        } else {
+            // No new line separator
+            transferString(count)
+        }
+
+        if (consumed < limit && readBuffer.remaining == 0L && !awaitContent()) break
+    }
+
+    if (consumed == 0L && isClosedForRead) return -1
+
+    check(consumed <= limit) {
+        "Consumed bytes exceed the limit: $consumed > $limit. It's an implementation bug, please report it."
+    }
+    if (consumed == limit) {
+        // We can't read data anymore
+        if (limit == Long.MAX_VALUE) throw TooLongLineException("Max line length exceeded")
+        // There is no more data
+        if (readBuffer.remaining == 0L && !awaitContent()) throwEndOfStreamException(consumed)
+
+        // Corner case: line ending is right after the limit
+        when (readBuffer.buffer[0]) {
+            LF -> {
+                readBuffer.discard(1)
+                return consumed
+            }
+
+            CR -> if (readBuffer.discardCrlfOrCr()) return consumed
+        }
+
+        throwTooLongLineException(limit)
+    }
+
+    if (throwOnIncompleteLine) throwEndOfStreamException(consumed)
+    return consumed
+}
+
+private fun throwTooLongLineException(limit: Long): Nothing {
+    throw TooLongLineException("Line exceeds limit of $limit characters")
+}
+
+private fun throwEndOfStreamException(consumed: Long): Nothing {
+    throw EOFException("Unexpected end of stream after reading $consumed characters")
 }
 
 @OptIn(InternalAPI::class, UnsafeIoApi::class, InternalIoApi::class)

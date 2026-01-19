@@ -15,10 +15,10 @@ kotlin {
             api(libs.jte)
         }
         jvmTest.dependencies {
-            api(projects.ktorServerStatusPages)
-            api(projects.ktorServerCompression)
-            api(projects.ktorServerConditionalHeaders)
-            api(libs.jte.kotlin)
+            implementation(projects.ktorServerStatusPages)
+            implementation(projects.ktorServerCompression)
+            implementation(projects.ktorServerConditionalHeaders)
+            implementation(libs.jte.kotlin)
             implementation(projects.ktorServerContentNegotiation)
         }
     }

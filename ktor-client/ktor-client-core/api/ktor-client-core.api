@@ -128,6 +128,18 @@ public final class io/ktor/client/content/LocalFileContentKt {
 	public static synthetic fun LocalFileContent$default (Ljava/io/File;Ljava/lang/String;Lio/ktor/http/ContentType;ILjava/lang/Object;)Lio/ktor/client/content/LocalFileContent;
 }
 
+public final class io/ktor/client/content/ObservableContent : io/ktor/http/content/OutgoingContent$ReadChannelContent {
+	public fun <init> (Lio/ktor/http/content/OutgoingContent;Lkotlin/coroutines/CoroutineContext;Lio/ktor/client/content/ProgressListener;)V
+	public fun getContentLength ()Ljava/lang/Long;
+	public fun getContentType ()Lio/ktor/http/ContentType;
+	public final fun getDelegate ()Lio/ktor/http/content/OutgoingContent;
+	public fun getHeaders ()Lio/ktor/http/Headers;
+	public fun getProperty (Lio/ktor/util/AttributeKey;)Ljava/lang/Object;
+	public fun getStatus ()Lio/ktor/http/HttpStatusCode;
+	public fun readFrom ()Lio/ktor/utils/io/ByteReadChannel;
+	public fun setProperty (Lio/ktor/util/AttributeKey;Ljava/lang/Object;)V
+}
+
 public abstract interface class io/ktor/client/content/ProgressListener {
 	public abstract fun onProgress (JLjava/lang/Long;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
@@ -221,6 +233,10 @@ public final class io/ktor/client/engine/UtilsKt {
 	public static final fun callContext (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun getKTOR_DEFAULT_USER_AGENT ()Ljava/lang/String;
 	public static final fun mergeHeaders (Lio/ktor/http/Headers;Lio/ktor/http/content/OutgoingContent;Lkotlin/jvm/functions/Function2;)V
+}
+
+public final class io/ktor/client/io/PlatformStaticConfig_jvmKt {
+	public static final fun configurePlatform ()V
 }
 
 public final class io/ktor/client/network/sockets/ConnectTimeoutException : java/net/ConnectException {
@@ -1519,6 +1535,7 @@ public final class io/ktor/client/request/forms/MultiPartFormDataContent : io/kt
 	public final fun getBoundary ()Ljava/lang/String;
 	public fun getContentLength ()Ljava/lang/Long;
 	public fun getContentType ()Lio/ktor/http/ContentType;
+	public final fun getParts ()Ljava/util/List;
 	public fun writeTo (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 

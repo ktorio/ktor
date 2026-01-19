@@ -16,7 +16,7 @@ kotlin {
         }
 
         jvmTest.dependencies {
-            api(projects.ktorServerConfigYaml)
+            implementation(projects.ktorServerConfigYaml)
             implementation(libs.mockk)
             implementation(libs.javax.servlet)
         }

@@ -16,13 +16,13 @@ kotlin {
             api(libs.jackson.module.kotlin)
         }
         jvmTest.dependencies {
-            api(projects.ktorServerTestHost)
-            api(projects.ktorClientTests)
-            api(projects.ktorClientContentNegotiationTests)
-            api(projects.ktorSerializationTests)
+            implementation(projects.ktorServerTestHost)
+            implementation(projects.ktorClientTests)
+            implementation(projects.ktorClientContentNegotiationTests)
+            implementation(projects.ktorSerializationTests)
 
-            api(libs.logback.classic)
-            api(libs.jackson.dataformat.smile)
+            implementation(libs.logback.classic)
+            implementation(libs.jackson.dataformat.smile)
         }
     }
 }

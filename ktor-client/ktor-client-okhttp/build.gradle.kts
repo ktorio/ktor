@@ -15,7 +15,7 @@ kotlin {
             api(libs.okio)
         }
         jvmTest.dependencies {
-            api(projects.ktorClientTests)
+            implementation(projects.ktorClientTests)
         }
     }
 }

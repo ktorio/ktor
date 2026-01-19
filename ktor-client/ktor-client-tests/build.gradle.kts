@@ -17,17 +17,15 @@ kotlin {
             api(projects.ktorClientMock)
         }
         commonTest.dependencies {
-            api(projects.ktorClientCio)
-            api(projects.ktorClientJson)
-            api(projects.ktorClientSerialization)
-            api(projects.ktorClientLogging)
-            api(projects.ktorClientAuth)
-            api(projects.ktorClientEncoding)
-            api(projects.ktorClientContentNegotiation)
-            api(projects.ktorClientJson)
-            api(projects.ktorClientSerialization)
-            api(projects.ktorSerializationKotlinx)
-            api(projects.ktorSerializationKotlinxJson)
+            implementation(projects.ktorClientCio)
+            implementation(projects.ktorClientLogging)
+            implementation(projects.ktorClientAuth)
+            implementation(projects.ktorClientEncoding)
+            implementation(projects.ktorClientContentNegotiation)
+            implementation(projects.ktorClientJson)
+            implementation(projects.ktorClientSerialization)
+            implementation(projects.ktorSerializationKotlinx)
+            implementation(projects.ktorSerializationKotlinxJson)
         }
         jvmMain.dependencies {
             api(libs.kotlinx.serialization.json)
@@ -42,31 +40,29 @@ kotlin {
         }
 
         jvmTest.dependencies {
-            api(projects.ktorClientApache)
-            api(projects.ktorClientApache5)
+            implementation(projects.ktorClientApache5)
             runtimeOnly(projects.ktorClientAndroid)
             runtimeOnly(projects.ktorClientOkhttp)
             runtimeOnly(projects.ktorClientJava)
-            implementation(projects.ktorClientLogging)
             implementation(libs.kotlinx.coroutines.slf4j)
             implementation(libs.junit)
         }
 
         jsTest.dependencies {
-            api(projects.ktorClientJs)
+            implementation(projects.ktorClientJs)
         }
 
         desktopTest.dependencies {
-            api(projects.ktorClientCurl)
+            implementation(projects.ktorClientCurl)
         }
 
         darwinTest.dependencies {
-            api(projects.ktorClientDarwin)
-            api(projects.ktorClientDarwinLegacy)
+            implementation(projects.ktorClientDarwin)
+            implementation(projects.ktorClientDarwinLegacy)
         }
 
         windowsTest.dependencies {
-            api(projects.ktorClientWinhttp)
+            implementation(projects.ktorClientWinhttp)
         }
     }
 }

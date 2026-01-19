@@ -13,8 +13,8 @@ kotlin {
             api(libs.gson)
         }
         jvmTest.dependencies {
-            api(projects.ktorClientCio)
-            api(projects.ktorSerializationGson)
+            implementation(projects.ktorClientCio)
+            implementation(projects.ktorSerializationGson)
         }
     }
 }

@@ -14,6 +14,7 @@ import platform.Foundation.NSOperationQueue
 
 @OptIn(InternalAPI::class)
 internal class DarwinLegacyClientEngine(
+    @Suppress("DEPRECATION")
     override val config: DarwinLegacyClientEngineConfig
 ) : HttpClientEngineBase("ktor-darwin-legacy") {
 
