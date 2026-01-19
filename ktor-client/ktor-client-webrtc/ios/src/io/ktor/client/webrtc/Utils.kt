@@ -112,8 +112,8 @@ internal fun NSData.toByteArray(): ByteArray = ByteArray(length.toInt()).apply {
 }
 
 @OptIn(BetaInteropApi::class)
-internal fun ByteArray.toNSData() = memScoped<NSData> {
-    return NSData.create(bytes = this@toNSData.toCValues().ptr, length = size.toULong())
+internal fun ByteArray.toNSData(): NSData = memScoped {
+    NSData.create(bytes = this@toNSData.toCValues().ptr, length = size.toULong())
 }
 
 internal fun ByteArray.toRTCDataBuffer(): RTCDataBuffer {
