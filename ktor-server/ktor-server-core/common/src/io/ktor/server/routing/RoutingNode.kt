@@ -380,7 +380,7 @@ private fun RoutingNode.getAllRoutes(endpoints: MutableList<RoutingNode>) {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.path)
  */
-public val RoutingNode.path: String
+public val Route.path: String
     get() = path()
 
 /**
@@ -390,7 +390,7 @@ public val RoutingNode.path: String
  * @param format formats each selector in the node's lineage. Defaults to [RoutePathFormat.Default].
  * @return the full path of the routing node as a string.
  */
-public fun RoutingNode.path(format: RoutePathFormat = RoutePathFormat.Default): String {
+public fun Route.path(format: RoutePathFormat = RoutePathFormat.Default): String {
     val parentPath = parent?.path(format)
     val pathComponent = selector as? RoutePathComponent ?: return parentPath.orEmpty()
     val formattedPath = format.format(pathComponent)

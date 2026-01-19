@@ -51,26 +51,25 @@ public fun Application.registerSecurityScheme(
  *
  * @param useCache Whether to use a cached value if available. Enabled by default.
  *
- * @return A map of provider names to their security schemes, or null if no schemes are available.
+ * @return A map of provider names to their security schemes
  */
-public fun Application.findSecuritySchemes(useCache: Boolean = true): Map<String, ReferenceOr<SecurityScheme>>? {
+public fun Application.findSecuritySchemes(useCache: Boolean = true): Map<String, ReferenceOr<SecurityScheme>> {
     val cachedSchemes = this.attributes.getOrNull(AuthSecuritySchemesCacheAttributeKey)
     if (useCache && cachedSchemes != null) {
-        return cachedSchemes.takeIf { it.isNotEmpty() }
-            ?.mapValues { value(it.value) }
+        return cachedSchemes.mapValues { value(it.value) }
     }
     val manualSchemes = attributes.getOrNull(AuthSecuritySchemesAttributeKey)
     val inferredSchemes = inferSecuritySchemesFromAuthentication()
-    val mergedSchemes = when {
+    return when {
         manualSchemes != null && inferredSchemes != null -> inferredSchemes + manualSchemes
         manualSchemes != null -> manualSchemes
         inferredSchemes != null -> inferredSchemes
-        else -> null
+        else -> emptyMap()
+    }.also { mergedSchemes ->
+        attributes[AuthSecuritySchemesCacheAttributeKey] = mergedSchemes
+    }.mapValues {
+        value(it.value)
     }
-    if (useCache) {
-        attributes[AuthSecuritySchemesCacheAttributeKey] = mergedSchemes ?: emptyMap()
-    }
-    return mergedSchemes?.mapValues { value(it.value) }
 }
 
 /**
@@ -82,8 +81,8 @@ public fun Application.findSecuritySchemes(useCache: Boolean = true): Map<String
  */
 public fun Application.findSecuritySchemesOrRefs(
     useCache: Boolean = true
-): Map<String, ReferenceOr<SecurityScheme>>? {
-    return findSecuritySchemes(useCache)?.let {
+): Map<String, ReferenceOr<SecurityScheme>> {
+    return findSecuritySchemes(useCache).let {
         buildMap {
             for ((providerName, securityScheme) in it) {
                 set(providerName, securityScheme)

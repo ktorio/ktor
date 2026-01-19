@@ -25,8 +25,8 @@ public class SwaggerConfig private constructor(
      * Defines the source of the OpenAPI specification.
      */
     public var source: OpenApiDocSource = OpenApiDocSource.FirstOf(
-        OpenApiDocSource.FileSource("openapi/documentation.yaml"),
-        OpenApiDocSource.RoutingSource(contentType = ContentType.Application.Yaml),
+        OpenApiDocSource.File("openapi/documentation.yaml"),
+        OpenApiDocSource.Routing(contentType = ContentType.Application.Yaml),
     )
 
     /**
@@ -39,7 +39,7 @@ public class SwaggerConfig private constructor(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.swagger.SwaggerConfig.version)
      */
-    public var version: String = "5.17.12"
+    public var version: String = "5.31.0"
 
     /**
      * Specifies a URL for a custom CSS applied to a Swagger UI.

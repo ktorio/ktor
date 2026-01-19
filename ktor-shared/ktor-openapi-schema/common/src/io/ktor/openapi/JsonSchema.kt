@@ -26,7 +26,6 @@ public data class JsonSchema(
     val title: String? = null,
     val description: String? = null,
     val required: List<String>? = null,
-    val nullable: Boolean? = null,
     val allOf: List<ReferenceOr<JsonSchema>>? = null,
     val oneOf: List<ReferenceOr<JsonSchema>>? = null,
     val not: ReferenceOr<JsonSchema>? = null,
@@ -48,9 +47,9 @@ public data class JsonSchema(
     val format: String? = null,
     val items: ReferenceOr<JsonSchema>? = null,
     val maximum: Double? = null,
-    val exclusiveMaximum: Boolean? = null,
+    val exclusiveMaximum: Double? = null,
     val minimum: Double? = null,
-    val exclusiveMinimum: Boolean? = null,
+    val exclusiveMinimum: Double? = null,
     val maxLength: Int? = null,
     val minLength: Int? = null,
     val pattern: String? = null,
@@ -62,7 +61,7 @@ public data class JsonSchema(
     val multipleOf: Double? = null,
     @SerialName($$"$id") val id: String? = null,
     @SerialName($$"$anchor") val anchor: String? = null,
-    @SerialName($$"$recursiveAnchor") val recursiveAnchor: Boolean? = null,
+    @SerialName($$"$dynamicAnchor") val dynamicAnchor: Boolean? = null,
 ) {
 
     /**
@@ -146,7 +145,7 @@ public data class JsonSchema(
     @SerialInfo
     @Target(AnnotationTarget.CLASS)
     @Retention(AnnotationRetention.RUNTIME)
-    public annotation class Anchor(val value: String, val recursive: Boolean = false)
+    public annotation class Anchor(val value: String, val dynamic: Boolean = false)
 
     /** title */
     @OptIn(ExperimentalSerializationApi::class)
@@ -175,13 +174,6 @@ public data class JsonSchema(
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
     @Retention(AnnotationRetention.RUNTIME)
     public annotation class Format(val value: String)
-
-    /** nullable (OpenAPI-style extension in this project) */
-    @OptIn(ExperimentalSerializationApi::class)
-    @SerialInfo
-    @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
-    @Retention(AnnotationRetention.RUNTIME)
-    public annotation class Nullable(val value: Boolean = true)
 
     /** deprecated */
     @OptIn(ExperimentalSerializationApi::class)

@@ -123,7 +123,7 @@ class SecuritySchemeInferenceTest {
         startApplication()
 
         val schemes = application.findSecuritySchemes()
-        assertNull(schemes)
+        assertTrue(schemes.isEmpty())
     }
 
     @Serializable
@@ -378,7 +378,7 @@ class SecuritySchemeInferenceTest {
     @Test
     fun testNoAuthenticationPluginInstalled() = testApplication {
         val schemes = application.findSecuritySchemes()
-        assertNull(schemes)
+        assertTrue(schemes.isEmpty())
     }
 
     @Test
@@ -386,7 +386,7 @@ class SecuritySchemeInferenceTest {
         install(Authentication)
         startApplication()
         val schemes = application.findSecuritySchemes()
-        assertNull(schemes)
+        assertTrue(schemes.isEmpty())
     }
 
     @Test
@@ -415,18 +415,18 @@ class SecuritySchemeInferenceTest {
         startApplication()
         val schemes = application.findSecuritySchemes()
         // Dynamic providers cannot be inferred automatically
-        assertNull(schemes)
+        assertTrue(schemes.isEmpty())
     }
 
     @Test
     fun testDisabledCaching() = testApplication {
         val schemes = application.findSecuritySchemes(useCache = true)
-        assertNull(schemes)
+        assertTrue(schemes.isEmpty())
 
         application.registerBasicAuthSecurityScheme("basic-auth")
 
         val cachedSchemes = application.findSecuritySchemes(useCache = true)
-        assertNull(cachedSchemes)
+        assertTrue(cachedSchemes.isEmpty())
 
         val schemes2 = application.findSecuritySchemes(useCache = false)
         assertNotNull(schemes2)

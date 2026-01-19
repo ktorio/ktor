@@ -83,6 +83,28 @@ abstract class AbstractSchemaInferenceTest(
         assertEquals(valueSchema.required?.contains("street"), true)
     }
 
+    @Test
+    fun `recursive inference`() {
+        val schema = inference.jsonSchema<TreeNode>()
+        val schemaYaml = yaml.encodeToString(schema)
+        assertEquals(
+            $$"""
+                type: object
+                title: io.ktor.openapi.reflect.TreeNode
+                required:
+                  - name
+                properties:
+                  name:
+                    type: string
+                  parent:
+                    oneOf:
+                      - $ref: "#/components/schemas/io.ktor.openapi.reflect.TreeNode"
+                      - type: "null"
+            """.trimIndent(),
+            schemaYaml
+        )
+    }
+
     private inline fun <reified T : Any> assertSchemaMatches() {
         val schema = inference.jsonSchema<T>()
         val expected = readSchemaYaml<T>()
@@ -173,3 +195,6 @@ data class LogicalOperatorsData(
     @Not(Color::class)
     val nonColorValue: String
 )
+
+@Serializable
+data class TreeNode(val name: String, val parent: TreeNode?)

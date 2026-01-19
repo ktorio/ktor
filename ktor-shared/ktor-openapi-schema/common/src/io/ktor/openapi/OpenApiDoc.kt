@@ -84,7 +84,7 @@ public interface OpenApiDocDsl {
 @OptIn(ExperimentalSerializationApi::class)
 @KeepGeneratedSerializer
 public data class OpenApiDoc(
-    @EncodeDefault(ALWAYS) public val openapi: String = "3.1.1",
+    @EncodeDefault(ALWAYS) public val openapi: String = OPENAPI_VERSION,
     /** Provides metadata about the API. The clients can use the metadata if needed. */
     public val info: OpenApiInfo,
     /** An array of Server Objects, which provide connectivity information to a target server. */
@@ -122,6 +122,16 @@ public data class OpenApiDoc(
     public override val extensions: Map<String, GenericElement>? = null,
 ) : Extensible {
     public companion object {
+        /**
+         * Represents the version of the OpenAPI Specification being used.
+         *
+         * This constant defines the specific OpenAPI Specification version supported by this implementation,
+         * which influences the structure, features, and behavior of the OpenAPI document generation.
+         *
+         * The value adheres to the official OpenAPI Specification versioning format.
+         */
+        public const val OPENAPI_VERSION: String = "3.1.1"
+
         /**
          * Builds an [OpenApiDoc] instance using the provided DSL [configure] block.
          */
@@ -320,6 +330,7 @@ public data class Components(
     public val links: Map<String, ReferenceOr<Link>>? = null,
     public val callbacks: Map<String, ReferenceOr<Callback>>? = null,
     public val pathItems: Map<String, ReferenceOr<PathItem>>? = null,
+    public val servers: Map<String, ReferenceOr<Server>>? = null,
     public override val extensions: ExtensionProperties = null,
 ) : Extensible {
     public companion object {
@@ -343,6 +354,7 @@ public data class Components(
             links.isNullOrEmpty() &&
             callbacks.isNullOrEmpty() &&
             pathItems.isNullOrEmpty() &&
+            servers.isNullOrEmpty() &&
             extensions.isNullOrEmpty()
 
     /**

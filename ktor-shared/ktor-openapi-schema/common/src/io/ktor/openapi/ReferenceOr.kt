@@ -11,7 +11,7 @@ import kotlinx.serialization.encoding.*
 import kotlin.jvm.JvmInline
 
 private const val RefKey = $$"$ref"
-private const val RecursiveRefKey = $$"$recursiveRef"
+private const val DynamicRefKey = $$"$dynamicRef"
 
 /**
  * Defines Union [A] | [Reference]. A lot of types like Header, Schema, MediaType, etc. can be
@@ -23,11 +23,11 @@ public sealed interface ReferenceOr<out A> {
      * A reference to a definition within the current document.
      *
      * @property ref Reference to a definition like #/components/schemas/Name
-     * @property isRecursive Whether this reference is recursive.
+     * @property isDynamic Whether this reference is dynamic.
      */
     public data class Reference(
         public val ref: String,
-        public val isRecursive: Boolean = false,
+        public val isDynamic: Boolean = false,
     ) : ReferenceOr<Nothing>
 
     @JvmInline public value class Value<A>(public val value: A) : ReferenceOr<A>
@@ -70,7 +70,7 @@ public sealed interface ReferenceOr<out A> {
         private const val requestBodies: String = "#/components/requestBodies/"
         private const val pathItems: String = "#/components/pathItems/"
 
-        public fun schema(name: String): Reference = Reference("$schema$name")
+        public fun schema(name: String, dynamic: Boolean = false): Reference = Reference("$schema$name", dynamic)
 
         public fun <A> value(value: A): ReferenceOr<A> = Value(value)
 
@@ -83,9 +83,9 @@ public sealed interface ReferenceOr<out A> {
             private val refDescriptor = buildClassSerialDescriptor("io.ktor.openapi.ReferenceOr.ref") {
                 element<String>(RefKey)
             }
-            private val recursiveRefDescriptor =
-                buildClassSerialDescriptor("io.ktor.openapi.ReferenceOr.recursiveRef") {
-                    element<String>(RecursiveRefKey)
+            private val dynamicRefDescriptor =
+                buildClassSerialDescriptor("io.ktor.openapi.ReferenceOr.dynamicRef") {
+                    element<String>(DynamicRefKey)
                 }
 
             override fun serialize(encoder: Encoder, value: ReferenceOr<T>) {
@@ -96,9 +96,9 @@ public sealed interface ReferenceOr<out A> {
             }
 
             private fun encodeReference(value: Reference, encoder: Encoder) {
-                if (value.isRecursive) {
-                    encoder.encodeStructure(recursiveRefDescriptor) {
-                        encodeStringElement(recursiveRefDescriptor, 0, value.ref)
+                if (value.isDynamic) {
+                    encoder.encodeStructure(dynamicRefDescriptor) {
+                        encodeStringElement(dynamicRefDescriptor, 0, value.ref)
                     }
                 } else {
                     encoder.encodeStructure(refDescriptor) {
@@ -115,10 +115,10 @@ public sealed interface ReferenceOr<out A> {
                         when {
                             RefKey in entries ->
                                 Reference(entries[RefKey]!!.deserialize(String.serializer()))
-                            RecursiveRefKey in entries ->
+                            DynamicRefKey in entries ->
                                 Reference(
-                                    entries[RecursiveRefKey]!!.deserialize(String.serializer()),
-                                    isRecursive = true
+                                    entries[DynamicRefKey]!!.deserialize(String.serializer()),
+                                    isDynamic = true
                                 )
                             else -> Value(element.deserialize(dataSerializer))
                         }
