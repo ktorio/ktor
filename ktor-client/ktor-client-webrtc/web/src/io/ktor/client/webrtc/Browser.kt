@@ -6,9 +6,10 @@ package io.ktor.client.webrtc
 
 import js.array.component1
 import js.array.component2
-import js.core.JsPrimitives.toDouble
 import js.core.JsPrimitives.toJsDouble
 import js.core.JsPrimitives.toJsInt
+import js.core.JsPrimitives.toKotlinDouble
+import js.core.JsPrimitives.toKotlinString
 import js.objects.Object
 import js.objects.unsafeJso
 import js.reflect.unsafeCast
@@ -225,11 +226,11 @@ internal fun RTCStatsReport.toKtor(): List<WebRtc.Stats> {
 }
 
 internal fun RTCStats.toKtor(): WebRtc.Stats {
-    val props = Object.entries(this).toArray().associate { (k, v) -> k.toString() to v.toString() }
+    val props = Object.entries(this).toArray().associate { (k, v) -> k.toKotlinString() to v.toString() }
     return WebRtc.Stats(
         id = id,
         props = props,
         type = type.toString(),
-        timestamp = timestamp.toDouble().toLong(),
+        timestamp = timestamp.toKotlinDouble().toLong(),
     )
 }

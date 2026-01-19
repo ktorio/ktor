@@ -9,7 +9,6 @@ import web.mediastreams.MediaStreamConstraints
 import web.mediastreams.MediaStreamTrack
 import web.mediastreams.MediaTrackConstraints
 import web.navigator.navigator
-import kotlin.js.ExperimentalWasmJsInterop
 import kotlin.js.toArray
 import kotlin.js.undefined
 

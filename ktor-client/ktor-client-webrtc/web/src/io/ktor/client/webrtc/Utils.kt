@@ -14,7 +14,6 @@ import web.events.Event
 import web.events.EventHandler
 import web.events.EventTarget
 import web.events.HasTargets
-import kotlin.js.ExperimentalWasmJsInterop
 
 internal inline fun <T> withSdpException(message: String, block: () -> T): T {
     try {
