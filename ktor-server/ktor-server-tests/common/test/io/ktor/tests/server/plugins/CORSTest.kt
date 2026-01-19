@@ -1592,4 +1592,33 @@ class CORSTest {
             assertEquals(response.status, HttpStatusCode.Forbidden)
         }
     }
+
+    @Test
+    fun testPreflightIncludesDefaultMethods() = testApplication {
+        install(CORS) {
+            anyHost()
+            allowMethod(HttpMethod.Put)
+        }
+
+        routing {
+            get("/") { call.respond("OK") }
+            post("/") { call.respond("OK") }
+            put("/") { call.respond("OK") }
+        }
+
+        val response = client.options("/") {
+            header(HttpHeaders.Origin, "http://my-host")
+            header(HttpHeaders.AccessControlRequestMethod, "PUT")
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        val allowMethods = response.headers[HttpHeaders.AccessControlAllowMethods]?.split(", ")?.toSet()
+        assertNotNull(allowMethods)
+
+        assertTrue(HttpMethod.Get.value in allowMethods!!)
+        assertTrue(HttpMethod.Post.value in allowMethods)
+        assertTrue(HttpMethod.Head.value in allowMethods)
+        assertTrue(HttpMethod.Put.value in allowMethods)
+    }
+
 }
