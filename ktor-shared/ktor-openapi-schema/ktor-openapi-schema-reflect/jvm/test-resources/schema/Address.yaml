@@ -10,8 +10,9 @@ properties:
     type: integer
     minimum: 1.0
   apartment:
-    type: string
-    nullable: true
+    type:
+      - string
+      - "null"
     maxLength: 4
     minLength: 1
   street:
@@ -26,8 +27,9 @@ properties:
       city:
         type: string
       province:
-        type: string
-        nullable: true
+        type:
+          - string
+          - "null"
       country:
         type: object
         title: io.ktor.openapi.reflect.Country

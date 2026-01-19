@@ -106,19 +106,10 @@ public class ReflectionJsonSchemaInference(
     @OptIn(InternalAPI::class)
     private fun buildSchemaInternal(
         type: KType,
-        visiting: MutableSet<KType>,
+        visiting: MutableSet<String>,
         includeAnnotations: List<Annotation> = emptyList()
     ): JsonSchema {
-        // Cycle guard (best-effort): if we see the same type again, stop expanding.
-        if (!visiting.add(type)) {
-            return JsonSchema(
-                type = JsonType.OBJECT,
-                title = adapter.getName(type),
-                description = "Recursive type encountered; schema expansion stopped to prevent cycles.",
-                nullable = adapter.isNullable(type).takeIf { it },
-            )
-        }
-
+        val typeName = adapter.getName(type)?.also(visiting::add)
         try {
             val kClass = type.classifier as? KClass<*>
                 ?: return JsonSchema(type = JsonType.OBJECT)
@@ -127,13 +118,9 @@ public class ReflectionJsonSchemaInference(
             val nullable = adapter.isNullable(type)
 
             // Primitives / common JDK types
-            val primitiveSchema = primitiveSchemaOrNull(kClass, includeAnnotations)
+            val primitiveSchema = primitiveSchemaOrNull(kClass, includeAnnotations, nullable)
             if (primitiveSchema != null) {
-                return if (nullable) {
-                    primitiveSchema.copy(nullable = true)
-                } else {
-                    primitiveSchema
-                }
+                return primitiveSchema
             }
 
             // Enums
@@ -146,9 +133,8 @@ public class ReflectionJsonSchemaInference(
                 return jsonSchemaFromAnnotations(
                     annotations = includeAnnotations + kClass.annotations,
                     reflectSchema = ::schemaRefForClass,
-                    type = JsonType.STRING,
+                    type = JsonType.STRING.orNullable(nullable),
                     enum = values,
-                    nullable = nullable,
                 )
             }
 
@@ -165,9 +151,8 @@ public class ReflectionJsonSchemaInference(
                     title = adapter.getName(type),
                     annotations = includeAnnotations + kClass.annotations,
                     reflectSchema = ::schemaRefForClass,
-                    type = JsonType.OBJECT,
+                    type = JsonType.OBJECT.orNullable(nullable),
                     discriminator = JsonSchemaDiscriminator("type", mapping),
-                    nullable = nullable
                 )
             }
 
@@ -180,9 +165,8 @@ public class ReflectionJsonSchemaInference(
                 return jsonSchemaFromAnnotations(
                     annotations = includeAnnotations,
                     reflectSchema = ::schemaRefForClass,
-                    type = JsonType.ARRAY,
+                    type = JsonType.ARRAY.orNullable(nullable),
                     items = ReferenceOr.Value(itemSchema),
-                    nullable = nullable
                 )
             }
 
@@ -199,27 +183,31 @@ public class ReflectionJsonSchemaInference(
                 return jsonSchemaFromAnnotations(
                     annotations = includeAnnotations,
                     reflectSchema = ::schemaRefForClass,
-                    type = JsonType.OBJECT,
+                    type = JsonType.OBJECT.orNullable(nullable),
                     additionalProperties = additional,
-                    nullable = nullable
                 )
             }
 
-            // Fallback: treat as object (data classes, POJOs, etc.)
             val properties = mutableMapOf<String, ReferenceOr<JsonSchema>>()
             val required = mutableListOf<String>()
 
             for (prop in adapter.getProperties(kClass)) {
                 if (adapter.isIgnored(prop)) continue
 
-                val name = adapter.getName(prop)
-                val propSchema = buildSchemaInternal(prop.returnType, visiting, prop.annotations)
+                val propertyName = adapter.getName(prop)
+                val typeName = adapter.getName(prop.returnType)
+                val propertyIsNullable = adapter.isNullable(prop.returnType)
 
-                properties[name] = ReferenceOr.Value(propSchema)
+                properties[propertyName] = if (typeName != null && !visiting.add(typeName)) {
+                    ReferenceOr.schema(typeName).nonNullable(propertyIsNullable)
+                } else {
+                    val propSchema = buildSchemaInternal(prop.returnType, visiting, prop.annotations)
+                    ReferenceOr.Value(propSchema)
+                }
 
                 // Required: non-nullable properties are required (best effort; default values are not detectable reliably)
-                if (!adapter.isNullable(prop.returnType)) {
-                    required += name
+                if (!propertyIsNullable) {
+                    required += propertyName
                 }
             }
 
@@ -230,19 +218,24 @@ public class ReflectionJsonSchemaInference(
                 type = JsonType.OBJECT,
                 properties = properties.takeIf { it.isNotEmpty() },
                 required = required.takeIf { it.isNotEmpty() },
-                nullable = nullable
-            )
+            ).nonNullable(nullable)
         } finally {
-            visiting.remove(type)
+            if (typeName != null) {
+                visiting.remove(typeName)
+            }
         }
     }
 
     @OptIn(ExperimentalTime::class, InternalAPI::class)
-    private fun primitiveSchemaOrNull(kClass: KClass<*>, annotations: List<Annotation>): JsonSchema? = when (kClass) {
+    private fun primitiveSchemaOrNull(
+        kClass: KClass<*>,
+        annotations: List<Annotation>,
+        nullable: Boolean
+    ): JsonSchema? = when (kClass) {
         String::class, Char::class -> jsonSchemaFromAnnotations(
             annotations,
             ::schemaRefForClass,
-            type = JsonType.STRING
+            type = JsonType.STRING.orNullable(nullable)
         )
 
         Boolean::class -> jsonSchemaFromAnnotations(annotations, ::schemaRefForClass, type = JsonType.BOOLEAN)
@@ -259,28 +252,28 @@ public class ReflectionJsonSchemaInference(
         java.time.Instant::class -> jsonSchemaFromAnnotations(
             annotations,
             ::schemaRefForClass,
-            type = JsonType.STRING,
+            type = JsonType.STRING.orNullable(nullable),
             format = "date-time"
         )
 
         OffsetDateTime::class -> jsonSchemaFromAnnotations(
             annotations,
             ::schemaRefForClass,
-            type = JsonType.STRING,
+            type = JsonType.STRING.orNullable(nullable),
             format = "date-time"
         )
 
         java.time.LocalDate::class -> jsonSchemaFromAnnotations(
             annotations,
             ::schemaRefForClass,
-            type = JsonType.STRING,
+            type = JsonType.STRING.orNullable(nullable),
             format = "date"
         )
 
         java.time.LocalDateTime::class -> jsonSchemaFromAnnotations(
             annotations,
             ::schemaRefForClass,
-            type = JsonType.STRING,
+            type = JsonType.STRING.orNullable(nullable),
             format = "date-time"
         )
 
@@ -288,21 +281,21 @@ public class ReflectionJsonSchemaInference(
         kotlinx.datetime.Instant::class, Instant::class -> jsonSchemaFromAnnotations(
             annotations,
             ::schemaRefForClass,
-            type = JsonType.STRING,
+            type = JsonType.STRING.orNullable(nullable),
             format = "date-time"
         )
 
         LocalDate::class -> jsonSchemaFromAnnotations(
             annotations,
             ::schemaRefForClass,
-            type = JsonType.STRING,
+            type = JsonType.STRING.orNullable(nullable),
             format = "date"
         )
 
         LocalDateTime::class -> jsonSchemaFromAnnotations(
             annotations,
             ::schemaRefForClass,
-            type = JsonType.STRING,
+            type = JsonType.STRING.orNullable(nullable),
             format = "date-time"
         )
 

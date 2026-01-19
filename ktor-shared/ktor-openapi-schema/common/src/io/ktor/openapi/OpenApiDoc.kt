@@ -330,6 +330,7 @@ public data class Components(
     public val links: Map<String, ReferenceOr<Link>>? = null,
     public val callbacks: Map<String, ReferenceOr<Callback>>? = null,
     public val pathItems: Map<String, ReferenceOr<PathItem>>? = null,
+    public val servers: Map<String, ReferenceOr<Server>>? = null,
     public override val extensions: ExtensionProperties = null,
 ) : Extensible {
     public companion object {
@@ -353,6 +354,7 @@ public data class Components(
             links.isNullOrEmpty() &&
             callbacks.isNullOrEmpty() &&
             pathItems.isNullOrEmpty() &&
+            servers.isNullOrEmpty() &&
             extensions.isNullOrEmpty()
 
     /**
