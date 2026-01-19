@@ -27,7 +27,7 @@ class DateJvmTest {
         val date: OffsetDateTime = OffsetDateTime.of(
             dateRaw.year,
             dateRaw.month.ordinal + 1,
-            dateRaw.dayOfMonth - 2,
+            dateRaw.dayOfMonth,
             dateRaw.hours,
             dateRaw.minutes,
             dateRaw.seconds,
