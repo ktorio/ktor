@@ -87,7 +87,6 @@ public interface ApplicationEngineFactory<
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.embeddedServer)
  */
 @OptIn(DelicateCoroutinesApi::class)
-@Deprecated("Replaced with suspend function parameter", level = DeprecationLevel.HIDDEN)
 public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> embeddedServer(
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
     port: Int = 80,
@@ -118,7 +117,6 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.embeddedServer)
  */
 @Suppress("ktlint:standard:max-line-length")
-@Deprecated("Replaced with suspend function parameter", level = DeprecationLevel.HIDDEN)
 public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> CoroutineScope.embeddedServer(
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
     port: Int = 80,
@@ -177,7 +175,6 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.embeddedServer)
  */
 @Suppress("ktlint:standard:max-line-length")
-@Deprecated("Replaced with suspend function parameter", level = DeprecationLevel.HIDDEN)
 public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> CoroutineScope.embeddedServer(
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
     vararg connectors: EngineConnectorConfig = arrayOf(),
@@ -233,7 +230,6 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.embeddedServer)
  */
-@Deprecated("Replaced with suspend function parameter", level = DeprecationLevel.HIDDEN)
 public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> embeddedServer(
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
     environment: ApplicationEnvironment = applicationEnvironment(),
