@@ -16,7 +16,7 @@ kotlin {
             api(libs.apache.httpasyncclient)
         }
         jvmTest.dependencies {
-            api(projects.ktorClientTests)
+            implementation(projects.ktorClientTests)
         }
     }
 }

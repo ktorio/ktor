@@ -17,8 +17,8 @@ kotlin {
             api(libs.kotlinx.serialization.json)
         }
         jvmTest.dependencies {
-            api(projects.ktorServerContentNegotiation)
-            api(projects.ktorSerializationJackson)
+            implementation(projects.ktorServerContentNegotiation)
+            implementation(projects.ktorSerializationJackson)
         }
     }
 }
