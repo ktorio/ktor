@@ -19,9 +19,7 @@ import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
-import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
-import kotlinx.io.Buffer
 
 private val ClientCallLogger = AttributeKey<HttpClientCallLogger>("CallLogger")
 private val DisableLogging = AttributeKey<Unit>("DisableLogging")
@@ -76,6 +74,20 @@ public class LoggingConfig {
     public var level: LogLevel = LogLevel.HEADERS
 
     /**
+     * Configures the filter applied to the response body when logging.
+     *
+     * The `bodyFilter` property specifies the logic used to selectively log, modify,
+     * or exclude the body of HTTP responses. It uses a [LogBodyFilter] implementation
+     * to determine how the response body is included in the logs. By default, the filter
+     * is set to [BinaryLogBodyFilter].
+     *
+     * The associated filter can be customized to handle specific logging requirements
+     * such as hiding sensitive data, truncating long responses, or modifying the
+     * format of the logged body content.
+     */
+    public var bodyFilter: LogBodyFilter = BinaryLogBodyFilter
+
+    /**
      * Allows you to filter log messages for calls matching a [predicate].
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.logging.LoggingConfig.filter)
@@ -112,6 +124,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
     val filters: List<(HttpRequestBuilder) -> Boolean> = pluginConfig.filters
     val sanitizedHeaders: List<SanitizedHeader> = pluginConfig.sanitizedHeaders
     val okHttpFormat = pluginConfig.format == LoggingFormat.OkHttp
+    val bodyFilter: LogBodyFilter = pluginConfig.bodyFilter
 
     fun shouldBeLogged(request: HttpRequestBuilder): Boolean = filters.isEmpty() || filters.any { it(request) }
 
@@ -120,77 +133,8 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
     fun isHeaders(): Boolean = level == LogLevel.HEADERS
     fun isBody(): Boolean = level == LogLevel.BODY || level == LogLevel.ALL
 
-    /**
-     * Detects if the body is a binary data
-     * @return
-     * Boolean: true if the body is a binary data.
-     * Long?: body size if calculated.
-     * ByteReadChannel: body channel with the original data.
-     */
-    suspend fun detectIfBinary(
-        body: ByteReadChannel,
-        contentLength: Long?,
-        contentType: ContentType?,
-        headers: Headers
-    ): Triple<Boolean, Long?, ByteReadChannel> {
-        if (headers.contains(HttpHeaders.ContentEncoding)) {
-            return Triple(true, contentLength, body)
-        }
-
-        if (contentType != null && contentType.isTextType()) {
-            return Triple(false, contentLength, body)
-        }
-
-        val charset = if (contentType != null) {
-            contentType.charset() ?: Charsets.UTF_8
-        } else {
-            Charsets.UTF_8
-        }
-
-        var isBinary = false
-        val firstChunk = ByteArray(1024)
-        val firstReadSize = body.readAvailable(firstChunk)
-
-        if (firstReadSize < 1) {
-            return Triple(false, 0L, body)
-        }
-
-        val buffer = Buffer().apply { writeFully(firstChunk, 0, firstReadSize) }
-
-        val firstChunkText = try {
-            charset.newDecoder().decode(buffer)
-        } catch (_: MalformedInputException) {
-            isBinary = true
-            ""
-        }
-
-        if (!isBinary) {
-            var lastCharIndex = -1
-            for (ch in firstChunkText) {
-                lastCharIndex += 1
-            }
-
-            for ((i, ch) in firstChunkText.withIndex()) {
-                if (ch == '\ufffd' && i != lastCharIndex) {
-                    isBinary = true
-                    break
-                }
-            }
-        }
-
-        if (!isBinary) {
-            val channel = client.writer {
-                channel.writeFully(firstChunk, 0, firstReadSize)
-                body.copyTo(channel)
-            }.channel
-
-            return Triple(isBinary, null, channel)
-        }
-
-        return Triple(isBinary, contentLength, body)
-    }
-
     suspend fun logRequestBody(
+        url: Url,
         content: OutgoingContent,
         contentLength: Long?,
         headers: Headers,
@@ -198,35 +142,42 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         logLines: MutableList<String>,
         body: ByteReadChannel
     ) {
-        val (isBinary, size, newBody) = detectIfBinary(body, contentLength, content.contentType, headers)
-
-        if (!isBinary) {
-            val contentType = content.contentType
-            val charset = if (contentType != null) {
-                contentType.charset() ?: Charsets.UTF_8
-            } else {
-                Charsets.UTF_8
+        val filteredBody = bodyFilter.filterRequest(
+            url,
+            contentLength,
+            content.contentType,
+            headers,
+            body,
+        )
+        when (filteredBody) {
+            is BodyFilterResult.Empty -> {
+                logLines.add("--> END ${method.value} (0-byte body)")
             }
 
-            val buffer = newBody.readBuffer()
-            var byteSize = buffer.size
-            logLines.add(buffer.readText(charset = charset))
-            logLines.add("--> END ${method.value} (${size ?: byteSize}-byte body)")
-        } else {
-            var type = "binary"
-            if (headers.contains(HttpHeaders.ContentEncoding)) {
-                type = "encoded"
+            is BodyFilterResult.Skip -> {
+                logLines.add(
+                    buildString {
+                        append("--> END ${method.value} (")
+                        filteredBody.reason?.let {
+                            append("$it ")
+                        }
+                        filteredBody.byteSize?.let {
+                            append("$it-byte ")
+                        }
+                        append("body omitted)")
+                    }
+                )
             }
 
-            if (size != null) {
-                logLines.add("--> END ${method.value} ($type $size-byte body omitted)")
-            } else {
-                logLines.add("--> END ${method.value} ($type body omitted)")
+            is BodyFilterResult.Content -> {
+                logLines.add(filteredBody.read())
+                logLines.add("--> END ${method.value} (${filteredBody.byteSize}-byte body)")
             }
         }
     }
 
     suspend fun logOutgoingContent(
+        url: Url,
         content: OutgoingContent,
         method: HttpMethod,
         headers: Headers,
@@ -235,7 +186,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
     ): OutgoingContent? {
         return when (content) {
             is io.ktor.client.content.ObservableContent -> {
-                logOutgoingContent(content.delegate, method, headers, logLines, process)
+                logOutgoingContent(url, content.delegate, method, headers, logLines, process)
             }
 
             is MultiPartFormDataContent -> {
@@ -267,12 +218,12 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
             }
             is OutgoingContent.ByteArrayContent -> {
                 val bytes = content.bytes()
-                logRequestBody(content, bytes.size.toLong(), headers, method, logLines, ByteReadChannel(bytes))
+                logRequestBody(url, content, bytes.size.toLong(), headers, method, logLines, ByteReadChannel(bytes))
                 null
             }
 
             is OutgoingContent.ContentWrapper -> {
-                logOutgoingContent(content.delegate(), method, headers, logLines, process)
+                logOutgoingContent(url, content.delegate(), method, headers, logLines, process)
             }
 
             is OutgoingContent.NoContent -> {
@@ -287,7 +238,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
 
             is OutgoingContent.ReadChannelContent -> {
                 val (origChannel, newChannel) = content.readFrom().split(client)
-                logRequestBody(content, content.contentLength, headers, method, logLines, newChannel)
+                logRequestBody(url, content, content.contentLength, headers, method, logLines, newChannel)
                 LoggedContent(content, origChannel)
             }
 
@@ -300,7 +251,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
                 }
 
                 val (origChannel, newChannel) = channel.split(client)
-                logRequestBody(content, content.contentLength, headers, method, logLines, newChannel)
+                logRequestBody(url, content, content.contentLength, headers, method, logLines, newChannel)
                 LoggedContent(content, origChannel)
             }
         }
@@ -373,11 +324,11 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         }
 
         val newContent = if (request.headers[HttpHeaders.ContentEncoding] == "gzip") {
-            logOutgoingContent(body, request.method, headers, logLines) { channel ->
+            logOutgoingContent(request.url.build(), body, request.method, headers, logLines) { channel ->
                 GZipEncoder.decode(channel)
             }
         } else {
-            logOutgoingContent(body, request.method, headers, logLines)
+            logOutgoingContent(request.url.build(), body, request.method, headers, logLines)
         }
 
         return newContent
@@ -386,40 +337,40 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
     suspend fun logResponseBody(response: HttpResponse, body: ByteReadChannel, logLines: MutableList<String>) {
         logLines.add("")
 
-        val (isBinary, size, newBody) = detectIfBinary(
-            body,
+        val filteredBody = bodyFilter.filterResponse(
+            response.call.request.url,
             response.contentLength(),
             response.contentType(),
-            response.headers
+            response.headers,
+            body,
         )
         val duration = response.responseTime.timestamp - response.requestTime.timestamp
 
-        if (size == 0L) {
-            logLines.add("<-- END HTTP (${duration}ms, $size-byte body)")
-            return
-        }
-
-        if (!isBinary) {
-            val contentType = response.contentType()
-            val charset = if (contentType != null) {
-                contentType.charset() ?: Charsets.UTF_8
-            } else {
-                Charsets.UTF_8
-            }
-            val buffer = newBody.readBuffer()
-            var byteSize = buffer.size
-            logLines.add(buffer.readText(charset = charset))
-            logLines.add("<-- END HTTP (${duration}ms, ${size ?: byteSize}-byte body)")
-        } else {
-            var type = "binary"
-            if (response.headers.contains(HttpHeaders.ContentEncoding)) {
-                type = "encoded"
+        when (filteredBody) {
+            is BodyFilterResult.Empty -> {
+                logLines.add("<-- END HTTP (${duration}ms, 0-byte body)")
             }
 
-            if (size != null) {
-                logLines.add("<-- END HTTP (${duration}ms, $type $size-byte body omitted)")
-            } else {
-                logLines.add("<-- END HTTP (${duration}ms, $type body omitted)")
+            is BodyFilterResult.Skip -> {
+                logLines.add(
+                    buildString {
+                        append("<-- END HTTP (")
+                        append(duration)
+                        append("ms, ")
+                        filteredBody.reason?.let {
+                            append("$it ")
+                        }
+                        filteredBody.byteSize?.let {
+                            append("$it-byte ")
+                        }
+                        append("body omitted)")
+                    }
+                )
+            }
+
+            is BodyFilterResult.Content -> {
+                logLines.add(filteredBody.read())
+                logLines.add("<-- END HTTP (${duration}ms, ${filteredBody.byteSize}-byte body)")
             }
         }
     }

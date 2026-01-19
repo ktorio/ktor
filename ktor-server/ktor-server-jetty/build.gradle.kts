@@ -21,11 +21,11 @@ kotlin {
             api(libs.jetty.http2.server)
         }
         jvmTest.dependencies {
-            api(projects.ktorServerCore)
-            api(projects.ktorServerTestBase)
-            api(projects.ktorServerTestSuites)
+            implementation(projects.ktorServerCore)
+            implementation(projects.ktorServerTestBase)
+            implementation(projects.ktorServerTestSuites)
 
-            api(libs.jetty.servlet)
+            implementation(libs.jetty.servlet)
         }
     }
 }

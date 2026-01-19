@@ -17,7 +17,7 @@ kotlin {
             implementation(libs.kotlinx.coroutines.jdk8)
         }
         jvmTest.dependencies {
-            api(projects.ktorClientTests)
+            implementation(projects.ktorClientTests)
         }
     }
 }

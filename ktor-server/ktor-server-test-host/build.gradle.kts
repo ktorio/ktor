@@ -32,9 +32,9 @@ kotlin {
         }
 
         jvmTest.dependencies {
-            api(projects.ktorServerConfigYaml)
-            api(libs.kotlin.test)
-            api(libs.junit)
+            implementation(projects.ktorServerConfigYaml)
+            implementation(libs.kotlin.test)
+            implementation(libs.junit)
         }
     }
 }

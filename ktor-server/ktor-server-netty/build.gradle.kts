@@ -38,13 +38,13 @@ kotlin {
             }
         }
         jvmTest.dependencies {
-            api(projects.ktorServerTestBase)
-            api(projects.ktorServerTestSuites)
-            api(projects.ktorServerCore)
+            implementation(projects.ktorServerTestBase)
+            implementation(projects.ktorServerTestSuites)
+            implementation(projects.ktorServerCore)
 
-            api(libs.netty.tcnative)
-            api(libs.netty.tcnative.boringssl.static)
-            api(libs.mockk)
+            implementation(libs.netty.tcnative)
+            implementation(libs.netty.tcnative.boringssl.static)
+            implementation(libs.mockk)
         }
     }
 }
