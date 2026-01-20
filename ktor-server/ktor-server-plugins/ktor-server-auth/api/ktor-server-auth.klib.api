@@ -46,6 +46,7 @@ abstract class io.ktor.server.auth/AuthenticationProvider { // io.ktor.server.au
     abstract suspend fun onAuthenticate(io.ktor.server.auth/AuthenticationContext) // io.ktor.server.auth/AuthenticationProvider.onAuthenticate|onAuthenticate(io.ktor.server.auth.AuthenticationContext){}[0]
 
     open class Config { // io.ktor.server.auth/AuthenticationProvider.Config|null[0]
+        constructor <init>(kotlin/String?) // io.ktor.server.auth/AuthenticationProvider.Config.<init>|<init>(kotlin.String?){}[0]
         constructor <init>(kotlin/String?, kotlin/String? = ...) // io.ktor.server.auth/AuthenticationProvider.Config.<init>|<init>(kotlin.String?;kotlin.String?){}[0]
 
         final val description // io.ktor.server.auth/AuthenticationProvider.Config.description|{}description[0]
