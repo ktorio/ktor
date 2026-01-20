@@ -77,10 +77,10 @@ class YamlConfigTestNix {
 
     @Test
     fun testLoadWrongConfig() {
-        val content = """
+        val content = $$"""
             ktor:
                 deployment:
-                    port: ${'$'}NON_EXISTING_VARIABLE
+                    port: $NON_EXISTING_VARIABLE
         """.trimIndent()
         withFile("application-no-env.yaml", content) {
             assertFailsWith<ApplicationConfigurationException> {

@@ -73,7 +73,6 @@ public class YamlConfig private constructor(yamlMap: YamlMap) : ApplicationConfi
         }
         val value: YamlNode = yaml[parts.last()] ?: return null
         if (value is YamlNull) return null
-        if (value is YamlScalar && resolveReference(rootNode, value.content) == null) return null
 
         return YamlNodeConfigValue(path, value)
     }
@@ -115,7 +114,7 @@ public class YamlConfig private constructor(yamlMap: YamlMap) : ApplicationConfi
     }
 
     public override fun toMap(): Map<String, Any?> {
-        val primitive = toPrimitive(rootNode, rootNode)
+        val primitive = toPrimitive(rootNode)
         @Suppress("UNCHECKED_CAST")
         return primitive as? Map<String, Any?> ?: error("Top level element is not a map")
     }
@@ -124,7 +123,7 @@ public class YamlConfig private constructor(yamlMap: YamlMap) : ApplicationConfi
     public fun checkEnvironmentVariables() {
         fun check(element: YamlNode?) {
             when (element) {
-                is YamlScalar -> resolveReference(rootNode, element.content)
+                is YamlScalar -> resolveReference(rootNode, element.content, visited = mutableSetOf())
                 is YamlMap -> element.entries.forEach { entry -> check(entry.value) }
                 is YamlList -> element.items.forEach { check(it) }
                 else -> return
@@ -142,27 +141,20 @@ public class YamlConfig private constructor(yamlMap: YamlMap) : ApplicationConfi
             get() = node.asConfigValueType()
 
         override fun getString(): String =
-            (node as? YamlScalar)?.content?.let { value ->
-                resolveReference(rootNode, value)
-            } ?: throw ApplicationConfigurationException(
+            (node as? YamlScalar)?.content ?: throw ApplicationConfigurationException(
                 "Failed to read property value for key as String: \"$key\""
             )
 
         override fun getList(): List<String> =
             (node as? YamlList)?.items?.let { list ->
-                list.map { element ->
-                    resolveReference(rootNode, element.yamlScalar.content)
-                        ?: throw ApplicationConfigurationException(
-                            "Failed to read element of property key as String: \"$key\""
-                        )
-                }
+                list.map { element -> element.yamlScalar.content }
             } ?: throw ApplicationConfigurationException(
                 "Failed to read property value for key as List<String>: \"$key\""
             )
 
         @Suppress("UNCHECKED_CAST")
         override fun getMap(): Map<String, Any?> =
-            toPrimitive(rootNode, node) as? Map<String, Any?>
+            toPrimitive(node) as? Map<String, Any?>
                 ?: error("Expected map at $key but found ${type.name}")
 
         @OptIn(InternalAPI::class)
@@ -197,16 +189,22 @@ private fun YamlMap.deepReference(path: String): YamlNode? {
     return value
 }
 
-private fun YamlScalar.resolveReferences(rootNode: YamlMap): YamlNode =
-    resolveReference(rootNode, content)
-        ?.let { YamlScalar(it, path) }
-        ?: YamlNull(path)
+private fun YamlScalar.resolveReferences(rootNode: YamlMap): YamlNode {
+    return when (val resolved = resolveReference(rootNode, content, mutableSetOf())) {
+        null -> YamlNull(path)
+        else -> YamlScalar(resolved, path)
+    }
+}
 
-private fun resolveReference(rootNode: YamlMap, value: String): String? {
+private fun resolveReference(rootNode: YamlMap, value: String, visited: MutableSet<String>): String? {
+    if (value.startsWith("$") && !visited.add(value)) {
+        throw ApplicationConfigurationException("Cycle detected in references: $visited")
+    }
+
     val isEnvVariable = value.startsWith("$")
     if (!isEnvVariable) return value
 
-    val keyWithDefault = if (value.startsWith("\${") && value.endsWith("}")) {
+    val keyWithDefault = if (value.startsWith($$"${") && value.endsWith("}")) {
         value.substring(2, value.length - 1)
     } else {
         value.drop(1)
@@ -221,7 +219,7 @@ private fun resolveReference(rootNode: YamlMap, value: String): String? {
 
     val selfReference = rootNode.deepReference(keyWithDefault)
     if (selfReference is YamlScalar) {
-        return selfReference.content
+        return resolveReference(rootNode, selfReference.content, visited)
     }
 
     val isOptional = keyWithDefault.first() == '?'
@@ -235,14 +233,14 @@ private fun resolveReference(rootNode: YamlMap, value: String): String? {
     }
 }
 
-private fun toPrimitive(rootNode: YamlMap, yaml: YamlNode?): Any? = when (yaml) {
-    is YamlScalar -> resolveReference(rootNode, yaml.content)
+private fun toPrimitive(yaml: YamlNode?): Any? = when (yaml) {
+    is YamlScalar -> yaml.content
     is YamlMap -> yaml.entries.entries.associate { (key, value) ->
-        key.content to toPrimitive(rootNode, value)
+        key.content to toPrimitive(value)
     }
-    is YamlList -> yaml.items.map { toPrimitive(rootNode, it) }
+    is YamlList -> yaml.items.map { toPrimitive(it) }
     is YamlNull -> null
-    is YamlTaggedNode -> toPrimitive(rootNode, yaml.innerNode)
+    is YamlTaggedNode -> toPrimitive(yaml.innerNode)
     null -> null
 }
 
