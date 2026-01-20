@@ -301,6 +301,77 @@ class DefaultRequestTest {
             assertEquals(second, request.headers.getAll(HttpHeaders.Authorization)?.joinToString())
         }
     }
+
+    @Test
+    fun testHeadersBlockInDefaultRequest() = testSuspend {
+        val client = HttpClient(MockEngine) {
+            engine {
+                addHandler {
+                    respond(
+                        it.headers[HttpHeaders.Authorization] + ", " +
+                            it.headers[HttpHeaders.Accept]
+                    )
+                }
+            }
+
+            defaultRequest {
+                url("https://api.example.com")
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer my-secret-token")
+                    append(HttpHeaders.Accept, ContentType.Application.Json.toString())
+                }
+            }
+        }
+
+        assertEquals(
+            "Bearer my-secret-token, application/json",
+            client.get("/endpoint").bodyAsText()
+        )
+    }
+
+    @Test
+    fun testHeadersBlockWithMultipleAppends() = testSuspend {
+        val client = HttpClient(MockEngine) {
+            engine {
+                addHandler {
+                    respond(it.headers.getAll("X-Custom-Header")?.joinToString() ?: "missing")
+                }
+            }
+
+            defaultRequest {
+                headers {
+                    append("X-Custom-Header", "value1")
+                    append("X-Custom-Header", "value2")
+                }
+            }
+        }
+
+        assertEquals("value1, value2", client.get("/").bodyAsText())
+    }
+
+    @Test
+    fun testHeadersBlockChainingInDefaultRequest() = testSuspend {
+        val client = HttpClient(MockEngine) {
+            engine {
+                addHandler {
+                    respond(
+                        it.headers["X-First"] + ", " + it.headers["X-Second"]
+                    )
+                }
+            }
+
+            defaultRequest {
+                headers {
+                    append("X-First", "first-value")
+                }
+                headers {
+                    append("X-Second", "second-value")
+                }
+            }
+        }
+
+        assertEquals("first-value, second-value", client.get("/").bodyAsText())
+    }
 }
 
 private val TestAttributeKey = AttributeKey<String>("TestAttributeKey")

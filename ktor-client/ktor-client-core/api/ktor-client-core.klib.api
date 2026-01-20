@@ -700,6 +700,7 @@ final class io.ktor.client.plugins/DefaultRequest { // io.ktor.client.plugins/De
             final fun <set-port>(kotlin/Int) // io.ktor.client.plugins/DefaultRequest.DefaultRequestBuilder.port.<set-port>|<set-port>(kotlin.Int){}[0]
 
         final fun <#A2: kotlin/Any> setCapability(io.ktor.client.engine/HttpClientEngineCapability<#A2>, #A2) // io.ktor.client.plugins/DefaultRequest.DefaultRequestBuilder.setCapability|setCapability(io.ktor.client.engine.HttpClientEngineCapability<0:0>;0:0){0§<kotlin.Any>}[0]
+        final fun headers(kotlin/Function1<io.ktor.http/HeadersBuilder, kotlin/Unit>): io.ktor.http/HeadersBuilder // io.ktor.client.plugins/DefaultRequest.DefaultRequestBuilder.headers|headers(kotlin.Function1<io.ktor.http.HeadersBuilder,kotlin.Unit>){}[0]
         final fun setAttributes(kotlin/Function1<io.ktor.util/Attributes, kotlin/Unit>) // io.ktor.client.plugins/DefaultRequest.DefaultRequestBuilder.setAttributes|setAttributes(kotlin.Function1<io.ktor.util.Attributes,kotlin.Unit>){}[0]
         final fun unixSocket(kotlin/String) // io.ktor.client.plugins/DefaultRequest.DefaultRequestBuilder.unixSocket|unixSocket(kotlin.String){}[0]
         final fun url(kotlin/Function1<io.ktor.http/URLBuilder, kotlin/Unit>) // io.ktor.client.plugins/DefaultRequest.DefaultRequestBuilder.url|url(kotlin.Function1<io.ktor.http.URLBuilder,kotlin.Unit>){}[0]
