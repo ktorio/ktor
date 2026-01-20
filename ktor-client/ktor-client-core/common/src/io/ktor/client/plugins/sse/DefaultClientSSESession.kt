@@ -37,8 +37,6 @@ public class DefaultClientSSESession(
     private var bodyBuffer: BodyBuffer = content.bufferPolicy.toBodyBuffer()
     private val initialRequest = content.initialRequest
     private val clientForReconnection = initialRequest.attributes[SSEClientForReconnectionAttr]
-    private val callContext = content.callContext
-
     private val closed = atomic(false)
 
     private val callContext = content.callContext
