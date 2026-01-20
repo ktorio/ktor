@@ -19,6 +19,8 @@ import kotlin.jvm.JvmInline
  *
  * Properties correspond to the OpenAPI Operation object.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Operation)
+ *
  * @property operationId Unique string used to identify the operation.
  * @property tags Optional tags for this operation.
  * @property summary A short summary of what the operation does.
@@ -54,6 +56,8 @@ public data class Operation(
     public companion object {
         /**
          * Builds an [Operation] instance using the provided DSL [configure] block.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Operation.Companion.build)
          */
         public fun build(
             schemaInference: JsonSchemaInference = KotlinxJsonSchemaInference,
@@ -72,25 +76,47 @@ public data class Operation(
 
     /**
      * Builder for OpenAPI Operation object
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Operation.Builder)
      */
     @KtorDsl
     public class Builder(
         private val schemaInference: JsonSchemaInference,
         private val defaultContentTypes: List<ContentType>,
     ) : JsonSchemaInference by schemaInference {
-        /** A short summary of what the operation does. */
+        /**
+         * A short summary of what the operation does.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Operation.Builder.summary)
+         */
         public var summary: String? = null
 
-        /** A verbose explanation of the operation behavior. */
+        /**
+         * A verbose explanation of the operation behavior.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Operation.Builder.description)
+         */
         public var description: String? = null
 
-        /** Unique string used to identify the operation. */
+        /**
+         * Unique string used to identify the operation.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Operation.Builder.operationId)
+         */
         public var operationId: String? = null
 
-        /** Marks the operation as deprecated when true. */
+        /**
+         * Marks the operation as deprecated when true.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Operation.Builder.deprecated)
+         */
         public var deprecated: Boolean? = null
 
-        /** A URL to additional external documentation for this operation. */
+        /**
+         * A URL to additional external documentation for this operation.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Operation.Builder.externalDocs)
+         */
         public var externalDocs: ExternalDocs? = null
 
         // TODO remove these after KT-14663 is implemented
@@ -101,32 +127,66 @@ public data class Operation(
         private val _securityRequirements = mutableListOf<Map<String, List<String>>>()
         private val _callbacks = mutableMapOf<String, ReferenceOr<Callback>>()
 
-        /** Collected tags added to this operation. */
+        /**
+         * Collected tags added to this operation.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Operation.Builder.tags)
+         */
         public val tags: List<String> get() = _tags
 
-        /** Collected parameter definitions for this operation. */
+        /**
+         * Collected parameter definitions for this operation.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Operation.Builder.parameters)
+         */
         public val parameters: List<Parameter> get() = _parameters
 
-        /** Collected response definitions keyed by HTTP status code. */
+        /**
+         * Collected response definitions keyed by HTTP status code.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Operation.Builder.responses)
+         */
         public val responses: Responses? get() = _responses
 
-        /** Collected server definitions specific to this operation. */
+        /**
+         * Collected server definitions specific to this operation.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Operation.Builder.servers)
+         */
         public val servers: List<Server> get() = _servers
 
-        /** Declared security requirements for this operation. */
+        /**
+         * Declared security requirements for this operation.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Operation.Builder.securityRequirements)
+         */
         public val securityRequirements: List<Map<String, List<String>>> get() = _securityRequirements
 
-        /** Request body definition for this operation, if any. */
+        /**
+         * Request body definition for this operation, if any.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Operation.Builder.requestBody)
+         */
         public var requestBody: RequestBody? = null
 
-        /** Specification-extensions for this operation (keys must start with `x-`). */
+        /**
+         * Specification-extensions for this operation (keys must start with `x-`).
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Operation.Builder.extensions)
+         */
         public var extensions: MutableMap<String, GenericElement> = mutableMapOf()
 
-        /** Callback definitions for this operation, if any. */
+        /**
+         * Callback definitions for this operation, if any.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Operation.Builder.callbacks)
+         */
         public val callbacks: Map<String, ReferenceOr<Callback>> get() = _callbacks
 
         /**
          * Adds a tag to this operation.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Operation.Builder.tag)
          *
          * @param tag The tag name to add.
          */
@@ -136,6 +196,8 @@ public data class Operation(
 
         /**
          * Adds operation parameters using the [Parameters] DSL.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Operation.Builder.parameters)
          *
          * @param configure DSL to define one or more parameters.
          */
@@ -148,6 +210,8 @@ public data class Operation(
         /**
          * Defines a request body for this operation using the [RequestBody] DSL.
          *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Operation.Builder.requestBody)
+         *
          * @param configure DSL to configure the request body.
          */
         public fun requestBody(configure: RequestBody.Builder.() -> Unit) {
@@ -157,6 +221,8 @@ public data class Operation(
         /**
          * Adds possible responses returned by this operation using the [Responses] DSL.
          *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Operation.Builder.responses)
+         *
          * @param configure DSL to define one or more responses.
          */
         public fun responses(configure: Responses.Builder.() -> Unit) {
@@ -165,6 +231,8 @@ public data class Operation(
 
         /**
          * Adds a callback definition for this operation using the [Callback] DSL.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Operation.Builder.callback)
          */
         public fun callback(key: String, value: Callback) {
             _callbacks[key] = Value(value)
@@ -172,6 +240,8 @@ public data class Operation(
 
         /**
          * Adds server definitions specific to this operation using the [Servers] DSL.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Operation.Builder.servers)
          *
          * @param configure DSL to define one or more servers.
          */
@@ -182,6 +252,8 @@ public data class Operation(
         /**
          * Declares security requirements for this operation using the [Security] DSL.
          *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Operation.Builder.security)
+         *
          * @param configure DSL to declare one or more security requirements.
          */
         public fun security(configure: Security.Builder.() -> Unit) {
@@ -190,6 +262,8 @@ public data class Operation(
 
         /**
          * Adds a extension to this operation.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Operation.Builder.extension)
          *
          * @param name The extension name; must start with `x-`.
          * @param value The extension value.
@@ -222,6 +296,8 @@ public data class Operation(
 /**
  * A container for multiple operation [Parameter] definitions created via [Parameters.Builder].
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Parameters)
+ *
  * @property parameters The collected list of parameters.
  */
 @Serializable
@@ -230,6 +306,8 @@ public data class Parameters(
 ) {
     /**
      * DSL builder for assembling a list of [Parameter]s used by an operation.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Parameters.Builder)
      */
     @KtorDsl
     public class Builder(
@@ -238,13 +316,19 @@ public data class Parameters(
     ) {
         private val _parameters = mutableListOf<Parameter>()
 
-        /** The collected list of parameters. */
+        /**
+         * The collected list of parameters.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Parameters.Builder.parameters)
+         */
         public val parameters: List<Parameter> get() = _parameters
 
         /**
          * Adds a generic [Parameter] via the provided [configure] block.
          *
          * This is used internally for marking ambiguous parameter types (i.e., `call.parameters`)
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Parameters.Builder.parameter)
          *
          * @param configure DSL to configure the parameter.
          */
@@ -261,6 +345,8 @@ public data class Parameters(
         /**
          * Adds a required path parameter with the given [name].
          *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Parameters.Builder.path)
+         *
          * @param name The parameter name.
          * @param configure Optional DSL to further configure the parameter.
          */
@@ -276,6 +362,8 @@ public data class Parameters(
         /**
          * Adds a query parameter with the given [name].
          *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Parameters.Builder.query)
+         *
          * @param name The parameter name.
          * @param configure Optional DSL to further configure the parameter.
          */
@@ -290,6 +378,8 @@ public data class Parameters(
         /**
          * Adds a header parameter with the given [name].
          *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Parameters.Builder.header)
+         *
          * @param name The parameter name.
          * @param configure Optional DSL to further configure the parameter.
          */
@@ -303,6 +393,8 @@ public data class Parameters(
 
         /**
          * Adds a cookie parameter with the given [name].
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Parameters.Builder.cookie)
          *
          * @param name The parameter name.
          * @param configure Optional DSL to further configure the parameter.
@@ -324,6 +416,8 @@ public data class Parameters(
 
 /**
  * Describes a single operation parameter (path, query, header, or cookie).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Parameter)
  *
  * @property name The name of the parameter.
  * @property `in` The location of the parameter. One of: "query", "header", "path", or "cookie".
@@ -366,60 +460,122 @@ public data class Parameter(
         )
     }
 
-    /** Builder for constructing a [Parameter] instance. */
+    /**
+     * Builder for constructing a [Parameter] instance.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Parameter.Builder)
+     */
     @KtorDsl
     public class Builder(
         private val schemaInference: JsonSchemaInference,
         private val defaultContentTypes: List<ContentType>,
     ) : JsonSchemaInference by schemaInference {
-        /** The name of the parameter. */
+        /**
+         * The name of the parameter.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Parameter.Builder.name)
+         */
         public var name: String? = null
 
-        /** Location of the parameter: one of "query", "header", "path", or "cookie". */
+        /**
+         * Location of the parameter: one of "query", "header", "path", or "cookie".
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Parameter.Builder.in)
+         */
         public var `in`: ParameterType? = null
 
-        /** A brief description of the parameter. */
+        /**
+         * A brief description of the parameter.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Parameter.Builder.description)
+         */
         public var description: String? = null
 
-        /** Whether this parameter is mandatory. */
+        /**
+         * Whether this parameter is mandatory.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Parameter.Builder.required)
+         */
         public var required: Boolean = false
 
-        /** Marks the parameter as deprecated when true. */
+        /**
+         * Marks the parameter as deprecated when true.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Parameter.Builder.deprecated)
+         */
         public var deprecated: Boolean = false
 
-        /** The schema defining the parameter type. */
+        /**
+         * The schema defining the parameter type.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Parameter.Builder.schema)
+         */
         public var schema: JsonSchema? = null
 
         private val _content = mutableMapOf<ContentType, MediaType.Builder>()
 
-        /** Map of media type to [MediaType] object. */
+        /**
+         * Map of media type to [MediaType] object.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Parameter.Builder.content)
+         */
         public val content: Map<ContentType, MediaType> get() = _content.mapValues { it.value.build() }
 
-        /** Describes how the parameter value will be serialized (e.g., "matrix", "label", "form", "simple", "spaceDelimited", "pipeDelimited", "deepObject"). */
+        /**
+         * Describes how the parameter value will be serialized (e.g., "matrix", "label", "form", "simple", "spaceDelimited", "pipeDelimited", "deepObject").
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Parameter.Builder.style)
+         */
         public var style: String? = null
 
-        /** Specifies whether arrays and objects generate separate parameters for each value. */
+        /**
+         * Specifies whether arrays and objects generate separate parameters for each value.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Parameter.Builder.explode)
+         */
         public var explode: Boolean? = null
 
-        /** Determines if reserved characters are allowed without percent-encoding. Only applies to query parameters. */
+        /**
+         * Determines if reserved characters are allowed without percent-encoding. Only applies to query parameters.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Parameter.Builder.allowReserved)
+         */
         public var allowReserved: Boolean? = null
 
-        /** Allows sending a parameter with an empty value. Deprecated in OpenAPI 3.1, only applies to query parameters. */
+        /**
+         * Allows sending a parameter with an empty value. Deprecated in OpenAPI 3.1, only applies to query parameters.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Parameter.Builder.allowEmptyValue)
+         */
         public var allowEmptyValue: Boolean? = null
 
-        /** Example of the parameter's potential value. */
+        /**
+         * Example of the parameter's potential value.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Parameter.Builder.example)
+         */
         public var example: GenericElement? = null
 
-        /** Map of examples for the parameter. */
+        /**
+         * Map of examples for the parameter.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Parameter.Builder.examples)
+         */
         public var examples: MutableMap<String, ReferenceOr<ExampleObject>> = mutableMapOf()
 
-        /** Specification-extensions for this parameter (keys must start with `x-`). */
+        /**
+         * Specification-extensions for this parameter (keys must start with `x-`).
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Parameter.Builder.extensions)
+         */
         public val extensions: MutableMap<String, GenericElement> = mutableMapOf()
 
         /**
          * Provide a media type definition for the response body.
          *
          * This applies to all registered default content types, as defined in the ContentNegotiation plugin.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Parameter.Builder.content)
          */
         public fun content(configure: MediaType.Builder.() -> Unit) {
             for (contentType in defaultContentTypes) {
@@ -432,6 +588,8 @@ public data class Parameter(
         /**
          * Adds a media type definition for the response body using a ContentType receiver.
          *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Parameter.Builder.invoke)
+         *
          * @param configure DSL to configure the [MediaType].
          */
         public operator fun ContentType.invoke(configure: MediaType.Builder.() -> Unit = {}) {
@@ -440,6 +598,8 @@ public data class Parameter(
 
         /**
          * Adds a custom vendor-specific extension.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Parameter.Builder.extension)
          *
          * @param name The extension name; must start with `x-`.
          * @param value The extension value.
@@ -451,6 +611,8 @@ public data class Parameter(
 
         /**
          * Adds an example for this parameter.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Parameter.Builder.example)
          *
          * @param name The example identifier.
          * @param example The example object.
@@ -497,6 +659,8 @@ public typealias ResponsesByStatusCode = Map<Int, ReferenceOr<Response>>?
 /**
  * A container for named response objects keyed by HTTP status code or "default".
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Responses)
+ *
  * @property responses Map of status code (or "default") to a [Response].
  */
 @Serializable(Responses.Companion.Serializer::class)
@@ -526,7 +690,11 @@ public data class Responses(
             )
     }
 
-    /** Builder for collecting operation [Response]s keyed by status code. */
+    /**
+     * Builder for collecting operation [Response]s keyed by status code.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Responses.Builder)
+     */
     @KtorDsl
     public class Builder(
         private val schemaInference: JsonSchemaInference,
@@ -537,14 +705,24 @@ public data class Responses(
 
         public var default: Response.Builder? = null
 
-        /** Map of HTTP status code (or "default") to a response definition. */
+        /**
+         * Map of HTTP status code (or "default") to a response definition.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Responses.Builder.responses)
+         */
         public val responses: Map<Int, Response> get() = _responses.mapValues { it.value.build() }
 
-        /** Map of extension properties provided */
+        /**
+         * Map of extension properties provided
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Responses.Builder.extensions)
+         */
         public val extensions: Map<String, GenericElement> get() = _extensions
 
         /**
          * Adds a response for the given HTTP [statusCode].
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Responses.Builder.response)
          *
          * @param statusCode The HTTP status code as an Int.
          * @param configure DSL to configure the [Response].
@@ -558,6 +736,8 @@ public data class Responses(
         /**
          * Shorthand to add a response using this [HttpStatusCode] as the key.
          *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Responses.Builder.invoke)
+         *
          * @param configure Optional DSL to configure the [Response].
          */
         public operator fun HttpStatusCode.invoke(configure: Response.Builder.() -> Unit = {}) {
@@ -566,6 +746,8 @@ public data class Responses(
 
         /**
          * Adds the catch-all "default" response.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Responses.Builder.default)
          *
          * @param configure DSL to configure the default [Response].
          */
@@ -591,6 +773,8 @@ public data class Responses(
 /**
  * Describes a response returned by an operation including description, headers, content, and links.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Response)
+ *
  * @property description Human-readable description of the response.
  * @property headers Optional map of response header parameters.
  * @property content Map of media type to [MediaType] object, describing the response content.
@@ -614,16 +798,28 @@ public data class Response(
         )
     }
 
-    /** Builder for constructing a [Response] definition. */
+    /**
+     * Builder for constructing a [Response] definition.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Response.Builder)
+     */
     @KtorDsl
     public class Builder(
         private val schemaInference: JsonSchemaInference,
         private val defaultContentTypes: List<ContentType>,
     ) : JsonSchemaInference by schemaInference {
-        /** Human-readable description of the response. */
+        /**
+         * Human-readable description of the response.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Response.Builder.description)
+         */
         public var description: String = ""
 
-        /** Specification-extensions for this response (keys must start with `x-`). */
+        /**
+         * Specification-extensions for this response (keys must start with `x-`).
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Response.Builder.extensions)
+         */
         public val extensions: MutableMap<String, GenericElement> = mutableMapOf()
 
         private val _headers = mutableMapOf<String, Header>()
@@ -632,21 +828,29 @@ public data class Response(
 
         /**
          * Headers for this response.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Response.Builder.headers)
          */
         public val headers: Map<String, Header> get() = _headers
 
         /**
          * Content types and schemas for this response.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Response.Builder.content)
          */
         public val content: Map<ContentType, MediaType> get() = _content.mapValues { it.value.build() }
 
         /**
          * Links that can be followed from this response.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Response.Builder.links)
          */
         public val links: Map<String, Link> get() = _links
 
         /**
          * Defines response header parameters.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Response.Builder.headers)
          *
          * @param configure DSL to define the response headers.
          */
@@ -660,6 +864,8 @@ public data class Response(
          * Provide a media type definition for the response body.
          *
          * This applies to all registered default content types, as defined in the ContentNegotiation plugin.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Response.Builder.content)
          */
         public fun content(configure: MediaType.Builder.() -> Unit) {
             for (contentType in defaultContentTypes) {
@@ -672,6 +878,8 @@ public data class Response(
         /**
          * Adds a media type definition for the response body using a ContentType receiver.
          *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Response.Builder.invoke)
+         *
          * @param configure DSL to configure the [MediaType].
          */
         public operator fun ContentType.invoke(configure: MediaType.Builder.() -> Unit = {}) {
@@ -682,6 +890,8 @@ public data class Response(
          * Convenience property to add default content with a schema.
          *
          * When reading, this will return the first registered default content type's schema.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Response.Builder.schema)
          */
         public var schema: JsonSchema?
             get() = defaultContentTypes.firstOrNull()?.let { _content[it]?.schema }
@@ -689,6 +899,8 @@ public data class Response(
 
         /**
          * Adds a link that can be followed from this response.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Response.Builder.link)
          *
          * @param name The link identifier.
          * @param configure DSL to configure the [Link].
@@ -699,6 +911,8 @@ public data class Response(
 
         /**
          * Adds a extension to this response.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Response.Builder.extension)
          *
          * @param name The extension name; must start with `x-`.
          * @param value The extension value.
@@ -725,6 +939,8 @@ public data class Response(
  * Represents a possible design-time link for a response. The presence of a link does not guarantee
  * the caller's ability to successfully invoke it, but it does provide a known relationship and
  * traversal mechanism between responses and other operations.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Link)
  *
  * @property operationRef A relative or absolute URI reference to an OAS operation.
  * @property operationId The name of an existing, resolvable OAS operation, as defined with a unique operationId.
@@ -753,32 +969,66 @@ public data class Link(
         )
     }
 
-    /** Builder for constructing a [Link] instance. */
+    /**
+     * Builder for constructing a [Link] instance.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Link.Builder)
+     */
     @KtorDsl
     public class Builder {
-        /** A relative or absolute URI reference to an OAS operation. */
+        /**
+         * A relative or absolute URI reference to an OAS operation.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Link.Builder.operationRef)
+         */
         public var operationRef: String? = null
 
-        /** The name of an existing, resolvable OAS operation. */
+        /**
+         * The name of an existing, resolvable OAS operation.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Link.Builder.operationId)
+         */
         public var operationId: String? = null
 
-        /** A map of parameters to pass to the operation. */
+        /**
+         * A map of parameters to pass to the operation.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Link.Builder.parameters)
+         */
         public val parameters: MutableMap<String, GenericElement> = mutableMapOf()
 
-        /** A literal value or expression to use as a request body. */
+        /**
+         * A literal value or expression to use as a request body.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Link.Builder.requestBody)
+         */
         public var requestBody: GenericElement? = null
 
-        /** A description of the link. */
+        /**
+         * A description of the link.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Link.Builder.description)
+         */
         public var description: String? = null
 
-        /** A server object to be used by the target operation. */
+        /**
+         * A server object to be used by the target operation.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Link.Builder.server)
+         */
         public var server: Server? = null
 
-        /** Specification-extensions for this link (keys must start with `x-`). */
+        /**
+         * Specification-extensions for this link (keys must start with `x-`).
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Link.Builder.extensions)
+         */
         public val extensions: MutableMap<String, GenericElement> = mutableMapOf()
 
         /**
          * Adds a parameter to pass to the linked operation.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Link.Builder.parameter)
          *
          * @param name The parameter name.
          * @param value The parameter value or expression.
@@ -789,6 +1039,8 @@ public data class Link(
 
         /**
          * Adds a extension to this link.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Link.Builder.extension)
          *
          * @param name The extension name; must start with `x-`.
          * @param value The extension value.
@@ -822,12 +1074,16 @@ public data class Link(
  * a [PathItem] Object that describes a set of requests that may be initiated by the API provider
  * and the expected responses. The key value used to identify the path item object is an expression,
  * evaluated at runtime, that identifies a URL to use for the callback operation.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Callback)
  */
 @Serializable @JvmInline
 public value class Callback(public val value: Map<String, PathItem>)
 
 /**
  * Describes the request body for an operation including content types, schemas, and whether it is required.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.RequestBody)
  *
  * @property description Optional description for the request body.
  * @property content Map of media type to [MediaType] object, describing the request body content.
@@ -850,30 +1106,52 @@ public data class RequestBody(
         )
     }
 
-    /** Builder for constructing a [RequestBody] description. */
+    /**
+     * Builder for constructing a [RequestBody] description.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.RequestBody.Builder)
+     */
     @KtorDsl
     public class Builder(
         private val schemaInference: JsonSchemaInference,
         private val defaultContentTypes: List<ContentType>,
     ) : JsonSchemaInference by schemaInference {
-        /** Optional description of the request body. */
+        /**
+         * Optional description of the request body.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.RequestBody.Builder.description)
+         */
         public var description: String? = null
 
-        /** Whether the request body is required. */
+        /**
+         * Whether the request body is required.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.RequestBody.Builder.required)
+         */
         public var required: Boolean = false
 
         private val _content = mutableMapOf<ContentType, MediaType.Builder>()
 
-        /** Map of media type to [MediaType] object. */
+        /**
+         * Map of media type to [MediaType] object.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.RequestBody.Builder.content)
+         */
         public val content: Map<ContentType, MediaType> get() = _content.mapValues { it.value.build() }
 
-        /** Specification-extensions for this request body (keys must start with `x-`). */
+        /**
+         * Specification-extensions for this request body (keys must start with `x-`).
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.RequestBody.Builder.extensions)
+         */
         public val extensions: MutableMap<String, GenericElement> = mutableMapOf()
 
         /**
          * Provide a media type definition for the response body.
          *
          * This applies to all registered default content types, as defined in the ContentNegotiation plugin.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.RequestBody.Builder.content)
          */
         public fun content(configure: MediaType.Builder.() -> Unit) {
             for (contentType in defaultContentTypes) {
@@ -886,6 +1164,8 @@ public data class RequestBody(
         /**
          * Adds a media type definition for the request body using a ContentType receiver.
          *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.RequestBody.Builder.invoke)
+         *
          * @param configure DSL to configure the [MediaType].
          */
         public operator fun ContentType.invoke(configure: MediaType.Builder.() -> Unit = {}) {
@@ -896,6 +1176,8 @@ public data class RequestBody(
          * Convenience property to add default content with the given schema.
          *
          * When reading, this will return the first registered default content type's schema.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.RequestBody.Builder.schema)
          */
         public var schema: JsonSchema?
             get() = defaultContentTypes.firstOrNull()?.let { _content[it]?.schema }
@@ -903,6 +1185,8 @@ public data class RequestBody(
 
         /**
          * Adds a extension to this request body.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.RequestBody.Builder.extension)
          *
          * @param name The extension name; must start with `x-`.
          * @param value The extension value.
@@ -927,23 +1211,35 @@ public data class RequestBody(
 /**
  * Represents a list of security requirements (schemes with optional scopes) for an operation.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Security)
+ *
  * @property requirements The list of security requirement objects (scheme name to scopes).
  */
 @Serializable
 public data class Security(
     public val requirements: List<Map<String, List<String>>>
 ) {
-    /** Builder for collecting security requirements for an operation. */
+    /**
+     * Builder for collecting security requirements for an operation.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Security.Builder)
+     */
     @KtorDsl
     public class Builder {
         private val _requirements = mutableListOf<Map<String, List<String>>>()
 
-        /** The collected list of security requirement objects. */
+        /**
+         * The collected list of security requirement objects.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Security.Builder.requirements)
+         */
         public val requirements: List<Map<String, List<String>>> get() = _requirements
 
         /**
          * Adds a security requirement for the given [scheme] and [scopes].
          * Each call to this method creates an OR relationship (alternative).
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Security.Builder.requirement)
          *
          * @param scheme The name of the security scheme.
          * @param scopes Optional list of scopes required for the scheme.
@@ -957,6 +1253,8 @@ public data class Security(
          * Use this when multiple authentication schemes must be used simultaneously.
          * Each call to this method creates an OR relationship (alternative).
          *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Security.Builder.requirement)
+         *
          * @param schemes A map of scheme names to their required scopes.
          */
         public fun requirement(schemes: Map<String, List<String>>) {
@@ -966,18 +1264,26 @@ public data class Security(
         /**
          * Marks security as optional by adding an empty requirement object.
          * This allows requests without any authentication to succeed.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Security.Builder.optional)
          */
         public fun optional() {
             _requirements.add(emptyMap())
         }
 
-        /** Adds an HTTP Basic authentication requirement. */
+        /**
+         * Adds an HTTP Basic authentication requirement.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Security.Builder.basic)
+         */
         public fun basic() {
             requirement("basicAuth")
         }
 
         /**
          * Adds an API key requirement using the given parameter [name].
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Security.Builder.apiKey)
          *
          * @param name The API key parameter name.
          */
@@ -988,6 +1294,8 @@ public data class Security(
         /**
          * Adds an OAuth 2 requirement with optional [scopes].
          *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Security.Builder.oauth2)
+         *
          * @param scopes Optional OAuth scopes to require.
          */
         public fun oauth2(vararg scopes: String) {
@@ -996,6 +1304,8 @@ public data class Security(
 
         /**
          * Adds an OpenID Connect requirement with optional [scopes].
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Security.Builder.openIdConnect)
          *
          * @param scopes Optional OpenID Connect scopes to require.
          */
@@ -1013,22 +1323,34 @@ public data class Security(
 /**
  * A container for multiple [Server] definitions used by an operation.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Servers)
+ *
  * @property servers The list of server definitions.
  */
 @Serializable
 public data class Servers(
     public val servers: List<Server>
 ) {
-    /** Builder for collecting [Server] entries. */
+    /**
+     * Builder for collecting [Server] entries.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Servers.Builder)
+     */
     @KtorDsl
     public class Builder {
         private val _servers = mutableListOf<Server>()
 
-        /** Servers that can be used to service this operation. */
+        /**
+         * Servers that can be used to service this operation.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Servers.Builder.servers)
+         */
         public val servers: List<Server> get() = _servers
 
         /**
          * Adds a [Server] with the given [url].
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Servers.Builder.server)
          *
          * @param url The server URL.
          * @param configure Optional DSL to configure the server.
@@ -1052,6 +1374,8 @@ public data class Servers(
 /**
  * Describes a server that hosts the API.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Server)
+ *
  * @property url The URL of the target host.
  * @property description Optional description of the server.
  * @property extensions Specification-extensions for this server (keys must start with `x-`).
@@ -1071,19 +1395,37 @@ public data class Server(
         )
     }
 
-    /** Builder for constructing a [Server] definition. */
+    /**
+     * Builder for constructing a [Server] definition.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Server.Builder)
+     */
     public class Builder {
-        /** The URL of the target host. */
+        /**
+         * The URL of the target host.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Server.Builder.url)
+         */
         public var url: String? = null
 
-        /** Optional description of the server. */
+        /**
+         * Optional description of the server.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Server.Builder.description)
+         */
         public var description: String? = null
 
-        /** Specification-extensions for this server (keys must start with `x-`). */
+        /**
+         * Specification-extensions for this server (keys must start with `x-`).
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Server.Builder.extensions)
+         */
         public val extensions: MutableMap<String, GenericElement> = mutableMapOf()
 
         /**
          * Adds a extension to this server.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Server.Builder.extension)
          *
          * @param name The extension name; must start with `x-`.
          * @param value The extension value.
@@ -1108,6 +1450,8 @@ public data class Server(
 /**
  * Container for named headers attached to a response.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Headers)
+ *
  * @property headers Map of header name to its definition.
  */
 @Serializable
@@ -1118,11 +1462,17 @@ public data class Headers(
     public class Builder(private val schemaInference: JsonSchemaInference) {
         private val _headers = mutableMapOf<String, Header>()
 
-        /** Map of header name to its header definition. */
+        /**
+         * Map of header name to its header definition.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Headers.Builder.headers)
+         */
         public val headers: Map<String, Header> get() = _headers
 
         /**
          * Adds a header definition.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Headers.Builder.header)
          *
          * @param name Header name.
          * @param configure DSL to configure the header.
@@ -1141,6 +1491,8 @@ public data class Headers(
 /**
  * Header fields have the same meaning as for 'Param'. Style is always treated as [Style.simple], as
  * it is the only value allowed for headers.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Header)
  */
 @Serializable(Header.Companion.Serializer::class)
 @OptIn(ExperimentalSerializationApi::class)
@@ -1165,43 +1517,89 @@ public data class Header(
         )
     }
 
-    /** Builder for constructing a [Header] instance. */
+    /**
+     * Builder for constructing a [Header] instance.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Header.Builder)
+     */
     @KtorDsl
     public class Builder(private val schemaInference: JsonSchemaInference) : JsonSchemaInference by schemaInference {
-        /** A brief description of the header. */
+        /**
+         * A brief description of the header.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Header.Builder.description)
+         */
         public var description: String? = null
 
-        /** Whether this header is mandatory. */
+        /**
+         * Whether this header is mandatory.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Header.Builder.required)
+         */
         public var required: Boolean = false
 
-        /** Marks the header as deprecated when true. */
+        /**
+         * Marks the header as deprecated when true.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Header.Builder.deprecated)
+         */
         public var deprecated: Boolean = false
 
-        /** The schema defining the header type. */
+        /**
+         * The schema defining the header type.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Header.Builder.schema)
+         */
         public var schema: JsonSchema? = null
 
         private val _content = mutableMapOf<ContentType, MediaType>()
 
-        /** Map of media type to [MediaType] object. */
+        /**
+         * Map of media type to [MediaType] object.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Header.Builder.content)
+         */
         public val content: Map<ContentType, MediaType> get() = _content
 
-        /** Describes how the header value will be serialized (e.g., "matrix", "label", "form", "simple", "spaceDelimited", "pipeDelimited", "deepObject"). */
+        /**
+         * Describes how the header value will be serialized (e.g., "matrix", "label", "form", "simple", "spaceDelimited", "pipeDelimited", "deepObject").
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Header.Builder.style)
+         */
         public var style: String? = null
 
-        /** Specifies whether arrays and objects generate separate headers for each value. */
+        /**
+         * Specifies whether arrays and objects generate separate headers for each value.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Header.Builder.explode)
+         */
         public var explode: Boolean? = null
 
-        /** Example of the parameter's potential value. */
+        /**
+         * Example of the parameter's potential value.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Header.Builder.example)
+         */
         public var example: GenericElement? = null
 
-        /** Map of examples for the parameter. */
+        /**
+         * Map of examples for the parameter.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Header.Builder.examples)
+         */
         public var examples: MutableMap<String, ReferenceOr<ExampleObject>> = mutableMapOf()
 
-        /** Specification-extensions for this parameter (keys must start with `x-`). */
+        /**
+         * Specification-extensions for this parameter (keys must start with `x-`).
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Header.Builder.extensions)
+         */
         public val extensions: MutableMap<String, GenericElement> = mutableMapOf()
 
         /**
          * Adds a media type definition for the request body.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Header.Builder.invoke)
          *
          * @receiver the media type to assign
          * @param configure DSL to configure the [MediaType].
@@ -1213,6 +1611,8 @@ public data class Header(
         /**
          * Adds a custom vendor-specific extension.
          *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Header.Builder.extension)
+         *
          * @param name The extension name; must start with `x-`.
          * @param value The extension value.
          */
@@ -1223,6 +1623,8 @@ public data class Header(
 
         /**
          * Adds an example for this parameter.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Header.Builder.example)
          *
          * @param name The example identifier.
          * @param example The example object.

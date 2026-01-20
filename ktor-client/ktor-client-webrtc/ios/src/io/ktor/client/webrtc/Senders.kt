@@ -19,6 +19,8 @@ import kotlinx.cinterop.ExperimentalForeignApi
  *
  * Provides platform-safe access to RTP sender functionality including track management,
  * DTMF capabilities, and parameter configuration.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.IosRtpSender)
  */
 @OptIn(ExperimentalForeignApi::class)
 public class IosRtpSender(internal val nativeSender: RTCRtpSender) : WebRtc.RtpSender {
@@ -50,6 +52,8 @@ public class IosRtpSender(internal val nativeSender: RTCRtpSender) : WebRtc.RtpS
  *
  * Provides platform-safe API for sending DTMF tones with proper time unit conversion
  * from milliseconds to seconds for the native iOS implementation.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.IosDtmfSender)
  */
 @OptIn(ExperimentalForeignApi::class)
 public class IosDtmfSender(internal val nativeSender: RTCDtmfSenderProtocol) : WebRtc.DtmfSender {
@@ -70,6 +74,8 @@ public class IosDtmfSender(internal val nativeSender: RTCDtmfSenderProtocol) : W
  *
  * Provides type-safe access to RTP configuration, including encodings, codecs,
  * header extensions, and degradation preferences with proper enum mapping.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.IosRtpParameters)
  */
 @OptIn(ExperimentalForeignApi::class)
 public class IosRtpParameters(internal val nativeRtpParameters: RTCRtpParameters) : WebRtc.RtpParameters {
@@ -103,6 +109,8 @@ public class IosRtpParameters(internal val nativeRtpParameters: RTCRtpParameters
 
 /**
  * Returns implementation of the rtp sender that is used under the hood. Use it with caution.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.getNative)
  */
 @OptIn(ExperimentalForeignApi::class)
 public fun WebRtc.RtpSender.getNative(): RTCRtpSender {
@@ -111,6 +119,8 @@ public fun WebRtc.RtpSender.getNative(): RTCRtpSender {
 
 /**
  * Returns implementation of the dtmf sender that is used under the hood. Use it with caution.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.getNative)
  */
 @OptIn(ExperimentalForeignApi::class)
 public fun WebRtc.DtmfSender.getNative(): RTCDtmfSenderProtocol {
@@ -119,6 +129,8 @@ public fun WebRtc.DtmfSender.getNative(): RTCDtmfSenderProtocol {
 
 /**
  * Returns implementation of the rtp parameters that is used under the hood. Use it with caution.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.getNative)
  */
 @OptIn(ExperimentalForeignApi::class)
 public fun WebRtc.RtpParameters.getNative(): RTCRtpParameters {

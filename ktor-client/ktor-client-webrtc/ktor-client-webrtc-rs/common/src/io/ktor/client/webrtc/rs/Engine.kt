@@ -10,6 +10,8 @@ import uniffi.ktor_client_webrtc.*
 
 /**
  * Factory for creating WebRTC.rs based engines.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.rs.RustWebRtc)
  */
 public object RustWebRtc : WebRtcClientEngineFactory<WebRtcConfig> {
     override fun create(block: WebRtcConfig.() -> Unit): WebRtcEngine {
@@ -21,6 +23,8 @@ public object RustWebRtc : WebRtcClientEngineFactory<WebRtcConfig> {
 /**
  * Implementation of WebRtcEngine using Rust and webrtc.rs.
  * This is a simplified implementation that will be expanded once the UniFfi bindings are generated.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.rs.RustWebRtcEngine)
  */
 public class RustWebRtcEngine(
     config: WebRtcConfig,

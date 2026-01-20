@@ -169,6 +169,8 @@ public suspend fun ByteReadChannel.copyTo(channel: ByteWriteChannel): Long {
  * Reads bytes from this [ByteReadChannel] and writes them to the specified [sink].
  * If an exception is thrown, the channel and sink are closed.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readTo)
+ *
  * @param sink the destination to write bytes to
  * @param limit the maximum number of bytes to transfer, defaults to [Long.MAX_VALUE]
  * @return the number of bytes transferred
@@ -571,6 +573,8 @@ public suspend fun ByteReadChannel.readUTF8LineTo(
  * Reads UTF-8 characters until a line break is found or the channel is exhausted. Implicit line break
  * is assumed if the channel ends without a line break. Line break characters are not included in the result.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readLine)
+ *
  * @param lineEnding line ending mode. Accepts LF and CRLF by default.
  *
  * @return the line, or `null` if can't read from the channel
@@ -587,6 +591,8 @@ public suspend fun ByteReadChannel.readLine(
  *
  * Appends UTF-8 characters until a line break is found or the channel is exhausted. Implicit line break
  * is assumed if the channel ends without a line break. Line break characters are not included in the result.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readLineTo)
  *
  * @param out the buffer to append line to (line break characters are not appended)
  * @param lineEnding line ending mode. Accepts LF and CRLF by default.
@@ -616,6 +622,8 @@ public suspend fun ByteReadChannel.readLineTo(
  *
  * **Important**: This function consumes bytes from the channel even if it fails to complete.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readLineStrict)
+ *
  * @param lineEnding line ending mode. Accepts LF and CRLF by default.
  *
  * @return the line, or `null` if can't read from the channel
@@ -640,6 +648,8 @@ public suspend fun ByteReadChannel.readLineStrict(
  *
  * **Important**: This function consumes bytes from the channel and appends them to [out]
  * even if it fails to complete.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readLineStrictTo)
  *
  * @param out the buffer to append line to (line break characters are not appended)
  * @param limit maximum characters to append to [out]. Unlimited by default.

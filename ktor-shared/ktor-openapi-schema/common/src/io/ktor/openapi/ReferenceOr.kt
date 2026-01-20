@@ -7,7 +7,9 @@ package io.ktor.openapi
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.*
-import kotlinx.serialization.encoding.*
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.encoding.encodeStructure
 import kotlin.jvm.JvmInline
 
 private const val RefKey = $$"$ref"
@@ -16,11 +18,15 @@ private const val DynamicRefKey = $$"$dynamicRef"
 /**
  * Defines Union [A] | [Reference]. A lot of types like Header, Schema, MediaType, etc. can be
  * either a direct value or a reference to a definition.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.ReferenceOr)
  */
 @Serializable(with = ReferenceOr.Companion.Serializer::class)
 public sealed interface ReferenceOr<out A> {
     /**
      * A reference to a definition within the current document.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.ReferenceOr.Reference)
      *
      * @property ref Reference to a definition like #/components/schemas/Name
      * @property isDynamic Whether this reference is dynamic.
@@ -35,6 +41,8 @@ public sealed interface ReferenceOr<out A> {
     /**
      * Returns the value if this instance is of type [Value], or null if it is of type [Reference].
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.ReferenceOr.valueOrNull)
+     *
      * @return The value of type [A] if this is a [Value], or null if this is a [Reference].
      */
     public fun valueOrNull(): A? =
@@ -47,6 +55,8 @@ public sealed interface ReferenceOr<out A> {
      * Maps the value using the given function.
      *
      * In the case of Reference, this is a no-op.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.ReferenceOr.mapValue)
      */
     public fun <B> mapValue(mappingFunction: (A) -> B): ReferenceOr<B> =
         when (this) {
@@ -56,6 +66,8 @@ public sealed interface ReferenceOr<out A> {
 
     /**
      * Same as map, but for mapping to references.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.ReferenceOr.mapToReference)
      */
     public fun <B> mapToReference(mappingFunction: (A) -> ReferenceOr<B>): ReferenceOr<B> =
         when (this) {

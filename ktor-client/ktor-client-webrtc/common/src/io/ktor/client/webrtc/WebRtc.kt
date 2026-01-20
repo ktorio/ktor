@@ -10,11 +10,15 @@ import kotlinx.serialization.Serializable
  * An object containing WebRTC protocol entities and abstractions.
  * Provides the core types and interfaces needed for WebRTC peer-to-peer communication.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc)
+ *
  * @see [MDN WebRTC API](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API)
  */
 public object WebRtc {
     /**
      * Represents the state of the ICE connection.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.IceConnectionState)
      *
      * @see [MDN iceConnectionState](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/iceConnectionState)
      */
@@ -33,6 +37,8 @@ public object WebRtc {
     /**
      * Represents the state of the ICE gathering process.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.IceGatheringState)
+     *
      * @see [MDN iceGatheringState](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/iceGatheringState)
      */
     public enum class IceGatheringState {
@@ -43,6 +49,8 @@ public object WebRtc {
 
     /**
      * Represents the state of the peer connection.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.ConnectionState)
      *
      * @see [MDN connectionState](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/connectionState)
      */
@@ -58,6 +66,8 @@ public object WebRtc {
     /**
      * Represents the signaling state of the peer connection.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.SignalingState)
+     *
      * @see [MDN signalingState](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/signalingState)
      */
     public enum class SignalingState {
@@ -71,6 +81,8 @@ public object WebRtc {
 
     /**
      * Represents statistics about the WebRtc connection.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.Stats)
      *
      * @property id The unique identifier for this statistics object.
      * @property type The type of the statistics object.
@@ -88,6 +100,8 @@ public object WebRtc {
 
     /**
      * Represents an ICE server configuration for WebRtc connections.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.IceServer)
      *
      * @property urls The URLs of the ICE server.
      * @property username Optional username for the ICE server.
@@ -110,6 +124,8 @@ public object WebRtc {
     /**
      * Represents the bundle policy for media negotiation.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.BundlePolicy)
+     *
      * @see [MDN bundlePolicy](https://developer.mozilla.org/en-US/docs/Web/API/RTCConfiguration/bundlePolicy)
      */
     public enum class BundlePolicy {
@@ -121,6 +137,8 @@ public object WebRtc {
     /**
      * Represents the ICE candidate policy for the connection.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.IceTransportPolicy)
+     *
      * @see [MDN iceTransportPolicy](https://developer.mozilla.org/en-US/docs/Web/API/RTCConfiguration/iceTransportPolicy)
      */
     public enum class IceTransportPolicy {
@@ -131,6 +149,8 @@ public object WebRtc {
     /**
      * Represents the RTCP mux policy for the connection.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.RtcpMuxPolicy)
+     *
      * @see [MDN rtcpMuxPolicy](https://developer.mozilla.org/en-US/docs/Web/API/RTCConfiguration/rtcpMuxPolicy)
      */
     public enum class RtcpMuxPolicy {
@@ -140,6 +160,8 @@ public object WebRtc {
 
     /**
      * Represents an ICE candidate in the WebRtc connection process.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.IceCandidate)
      *
      * @property candidate The ICE candidate string in SDP format.
      * @property sdpMid The media stream identifier for the candidate.
@@ -157,6 +179,8 @@ public object WebRtc {
     /**
      * Represents a session description in the WebRtc connection process.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.SessionDescription)
+     *
      * @property type The type of the session description.
      * @property sdp The SDP (Session Description Protocol) string.
      *
@@ -171,6 +195,8 @@ public object WebRtc {
     /**
      * Represents the type of session description in the WebRtc connection process.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.SessionDescriptionType)
+     *
      * @see [MDN RTCSessionDescription](https://developer.mozilla.org/en-US/docs/Web/API/RTCSessionDescription)
      */
     @Serializable
@@ -183,6 +209,8 @@ public object WebRtc {
 
     /**
      * Interface for sending DTMF (Dual-Tone Multi-Frequency) tones.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DtmfSender)
      *
      * @property toneBuffer The tone buffer containing the tones to be played.
      * @property canInsertDtmf Whether DTMF tones can be inserted.
@@ -198,6 +226,8 @@ public object WebRtc {
     /**
      * Represents parameters for RTP header extensions.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.RtpHeaderExtensionParameters)
+     *
      * @property id The ID of the header extension.
      * @property uri The URI of the header extension.
      * @property encrypted Whether the header extension is encrypted.
@@ -212,6 +242,8 @@ public object WebRtc {
 
     /**
      * Interface representing parameters for RTP transmission.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.RtpParameters)
      *
      * @property transactionId The transaction ID for these parameters.
      * @property codecs The codecs used for transmission.
@@ -235,6 +267,8 @@ public object WebRtc {
     /**
      * Represents the degradation preference for media quality when bandwidth is constrained.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DegradationPreference)
+     *
      * @see [MDN degradationPreference](https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpParameters/degradationPreference)
      */
     public enum class DegradationPreference {
@@ -246,6 +280,8 @@ public object WebRtc {
 
     /**
      * Interface for sending RTP media.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.RtpSender)
      *
      * @property dtmf The DTMF sender associated with this RTP sender.
      * @property track The media track being sent.
@@ -265,12 +301,16 @@ public object WebRtc {
      * Abstract class representing a network channel which can be used for bidirectional peer-to-peer transfers
      * of arbitrary data. Every data channel is associated with an [WebRtcPeerConnection].
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DataChannel)
+     *
      * @see [MDN RTCDataChannel](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel)
      */
     public interface DataChannel : AutoCloseable {
         /**
          * Represents a message that can be received through a WebRTC data channel.
          * The message can contain either string data or binary data.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DataChannel.Message)
          *
          * @see [MDN RTCDataChannel.send()](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/send)
          * @see [MDN message event](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/message_event)
@@ -281,22 +321,30 @@ public object WebRtc {
 
             /**
              * Returns the text content of the message if it's a text message, otherwise returns null.
+             *
+             * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DataChannel.Message.textOrNull)
              */
             public fun textOrNull(): String? = (this as? Text)?.data
 
             /**
              * Returns the binary content of the message if it's a binary message, otherwise returns null.
+             *
+             * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DataChannel.Message.binaryOrNull)
              */
             public fun binaryOrNull(): ByteArray? = (this as? Binary)?.data
 
             /**
              * Returns the text content of the message if it's a text message, otherwise throws an exception.
+             *
+             * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DataChannel.Message.textOrThrow)
              */
             public fun textOrThrow(): String =
                 (this as? Text ?: error("Received a binary instead of string data.")).data
 
             /**
              * Returns the binary content of the message if it's a binary message, otherwise throws an exception.
+             *
+             * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DataChannel.Message.binaryOrThrow)
              */
             public fun binaryOrThrow(): ByteArray =
                 (this as? Binary ?: error("Received a string instead of binary data.")).data
@@ -304,6 +352,8 @@ public object WebRtc {
 
         /**
          * Represents the current state of a WebRTC data channel.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DataChannel.State)
          *
          * @see [MDN RTCDataChannel.readyState](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/readyState)
          */
@@ -320,12 +370,16 @@ public object WebRtc {
          * An ID number (between 0 and 65,534) which uniquely identifies the data channel.
          * It can be null when the data channel is created but not yet assigned an ID.
          *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DataChannel.id)
+         *
          * @see [MDN RTCDataChannel.id](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/id)
          */
         public val id: Int?
 
         /**
          * A string containing a name describing the data channel.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DataChannel.label)
          *
          * @see [MDN RTCDataChannel.label](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/label)
          */
@@ -334,12 +388,16 @@ public object WebRtc {
         /**
          * A state of the data channel's underlying data connection.
          *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DataChannel.state)
+         *
          * @see [MDN RTCDataChannel.readyState](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/readyState)
          */
         public val state: State
 
         /**
          * A number of bytes of data currently queued to be sent over the data channel.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DataChannel.bufferedAmount)
          *
          * @see [MDN RTCDataChannel.bufferedAmount](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/bufferedAmount)
          */
@@ -351,12 +409,16 @@ public object WebRtc {
          * falls to or below this value, a [DataChannelEvent.BufferedAmountLow] event is fired.
          * The default value is 0.
          *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DataChannel.bufferedAmountLowThreshold)
+         *
          * @see [MDN RTCDataChannel.bufferedAmountLowThreshold](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/bufferedAmountLowThreshold)
          */
         public val bufferedAmountLowThreshold: Long
 
         /**
          * The maximum number of milliseconds that attempts to transfer a message may take in unreliable mode.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DataChannel.maxPacketLifeTime)
          *
          * @see [MDN RTCDataChannel.maxPacketLifeTime](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/maxPacketLifeTime)
          */
@@ -366,12 +428,16 @@ public object WebRtc {
          * The maximum number of times the user agent should attempt to retransmit a message
          * which fails the first time in unreliable mode.
          *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DataChannel.maxRetransmits)
+         *
          * @see [MDN RTCDataChannel.maxRetransmits](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/maxRetransmits)
          */
         public val maxRetransmits: Int?
 
         /**
          * Indicates whether the data channel was negotiated by the application or the WebRTC layer.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DataChannel.negotiated)
          *
          * @see [MDN RTCDataChannel.negotiated](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/negotiated)
          */
@@ -381,12 +447,16 @@ public object WebRtc {
          * Indicates whether messages sent on the data channel are required to arrive at their destination
          * in the same order in which they were sent, or if they're allowed to arrive out-of-order.
          *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DataChannel.ordered)
+         *
          * @see [MDN RTCDataChannel.ordered](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/ordered)
          */
         public val ordered: Boolean
 
         /**
          * The name of the sub-protocol being used on the data channel, if any; otherwise, the empty string.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DataChannel.protocol)
          *
          * @see [MDN RTCDataChannel.protocol](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/protocol)
          */
@@ -395,11 +465,15 @@ public object WebRtc {
         /**
          * Sets the threshold for the buffered amount of data below which the buffer is considered to be "low."
          * When the buffered amount falls to or below this value, a [DataChannelEvent.BufferedAmountLow] event is fired.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DataChannel.setBufferedAmountLowThreshold)
          */
         public fun setBufferedAmountLowThreshold(threshold: Long)
 
         /**
          * Sends a text message through the data channel.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DataChannel.send)
          *
          * @param text The text message to send.
          * @see [MDN RTCDataChannel.send()](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/send)
@@ -408,6 +482,8 @@ public object WebRtc {
 
         /**
          * Sends binary data through the data channel.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DataChannel.send)
          *
          * @param bytes The binary data to send.
          * @see [MDN RTCDataChannel.send()](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/send)
@@ -419,6 +495,8 @@ public object WebRtc {
          *
          * This method will suspend the current coroutine until a message is received.
          * The message can be either text or binary data.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DataChannel.receive)
          */
         public suspend fun receive(): Message
 
@@ -427,6 +505,8 @@ public object WebRtc {
          *
          * This method suspends until a binary message is available. If the next message
          * in the channel is a text message instead of binary data, this method will throw an error.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DataChannel.receiveBinary)
          */
         public suspend fun receiveBinary(): ByteArray
 
@@ -435,6 +515,8 @@ public object WebRtc {
          *
          * This method suspends until a text message is available. If the next message
          * in the channel is binary data instead of text, this method will throw an error.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DataChannel.receiveText)
          */
         public suspend fun receiveText(): String
 
@@ -443,6 +525,8 @@ public object WebRtc {
          *
          * This method does not suspend and returns immediately. If a message is available,
          * it is returned; otherwise, null is returned.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DataChannel.tryReceive)
          */
         public fun tryReceive(): Message?
 
@@ -452,6 +536,8 @@ public object WebRtc {
          * This method does not suspend and returns immediately. If a binary message is available,
          * its data is returned; otherwise, null is returned. If the next message is a text message,
          * null is returned.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DataChannel.tryReceiveBinary)
          */
         public fun tryReceiveBinary(): ByteArray?
 
@@ -461,6 +547,8 @@ public object WebRtc {
          * This method does not suspend and returns immediately. If a text message is available,
          * its content is returned; otherwise, null is returned. If the next message is a binary message,
          * null is returned.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DataChannel.tryReceiveText)
          */
         public fun tryReceiveText(): String?
 
@@ -473,6 +561,8 @@ public object WebRtc {
          * - The underlying message receiving channel will be closed
          * - Any pending send operations may fail
          * - A [DataChannelEvent.Closed] event will be emitted
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DataChannel.closeTransport)
          */
         public fun closeTransport()
 
@@ -480,6 +570,8 @@ public object WebRtc {
          * Closes the data channel and releases all associated resources.
          * Automatically invokes `closeTransport`.
          * Accessing the channel after this operation could throw an exception.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DataChannel.close)
          */
         override fun close() {
             closeTransport()
@@ -489,12 +581,16 @@ public object WebRtc {
     /**
      * This exception indicates problems with creating, parsing, or validating SDP descriptions
      * during the WebRTC connection establishment process.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.SdpException)
      */
     public class SdpException(message: String?, cause: Throwable? = null) : RuntimeException(message, cause)
 
     /**
      * This exception indicates problems with ICE candidates gathering, processing, or connectivity
      * during the WebRTC peer connection establishment.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.IceException)
      */
     public class IceException(message: String?, cause: Throwable? = null) : RuntimeException(message, cause)
 }

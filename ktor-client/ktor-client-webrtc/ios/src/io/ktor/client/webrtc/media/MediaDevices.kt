@@ -30,6 +30,8 @@ import platform.Foundation.NSUUID.Companion.UUID
  * - [isCapturing] reflects the current capture state and can be checked at any time.
  * - Resources are typically allocated during [startCapture] and released during [stopCapture].
  * - [close] ensures cleanup of all resources and stops capture if still active.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.Capturer)
  */
 public interface Capturer : AutoCloseable {
     public val isCapturing: Boolean
@@ -39,6 +41,9 @@ public interface Capturer : AutoCloseable {
 
 public interface VideoCapturerFactory {
     /**
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.VideoCapturerFactory.create)
+     *
      * @param constraints Video track constraints specifying capture parameters
      * @param delegate Video capturer delegate for handling captured video frames
      * @return New Capturer instance configured with the provided parameters
@@ -58,6 +63,8 @@ public interface VideoCapturerFactory {
  * ## Platform Behavior
  * - **iOS**: Returns a factory that creates camera-based video capturers
  * - **Simulator**: Returns a factory that creates synthetic video capturers
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.defaultVideoCapturerFactory)
  */
 @InternalAPI
 public expect fun defaultVideoCapturerFactory(): VideoCapturerFactory
@@ -77,6 +84,8 @@ private const val GOOG_NOISE_SUPPRESSION = "googNoiseSuppression"
  * ## Lifecycle
  * - SSL initialization happens lazily when the first peer connection factory is accessed
  * - Video capturers are automatically started when video tracks are created
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.IosMediaDevices)
  *
  * @param videoCapturerFactory Factory for creating video capturer instances.
  *                            Defaults to platform-specific implementation

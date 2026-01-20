@@ -6,5 +6,7 @@ package io.ktor.openapi
 
 /**
  * A map of arbitrary extension properties, each key starting with "x-".
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.ExtensionProperties)
  */
 public typealias ExtensionProperties = Map<String, GenericElement>?

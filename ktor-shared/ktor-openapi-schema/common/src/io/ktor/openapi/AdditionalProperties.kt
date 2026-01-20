@@ -4,30 +4,36 @@
 
 package io.ktor.openapi
 
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.InternalSerializationApi
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.*
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.descriptors.buildSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.serializer
 import kotlin.jvm.JvmInline
 
 /**
  * Represents the OpenAPI Schema Object's additionalProperties field.
  * It can be either a boolean that allows or forbids additional properties,
  * or a schema reference describing the type of those additional properties.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.AdditionalProperties)
  */
 @Serializable(with = AdditionalProperties.Companion.Serializer::class)
 public sealed interface AdditionalProperties {
-    /** Wrapper for a boolean flag that allows or denies extra properties on an object schema. */
+    /**
+     * Wrapper for a boolean flag that allows or denies extra properties on an object schema.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.AdditionalProperties.Allowed)
+     */
     @JvmInline
     public value class Allowed(public val value: Boolean) : AdditionalProperties
 
-    /** Wrapper for a schema reference describing the type of additional properties. */
+    /**
+     * Wrapper for a schema reference describing the type of additional properties.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.AdditionalProperties.PSchema)
+     */
     @JvmInline
     public value class PSchema(public val value: ReferenceOr<JsonSchema>) : AdditionalProperties
 

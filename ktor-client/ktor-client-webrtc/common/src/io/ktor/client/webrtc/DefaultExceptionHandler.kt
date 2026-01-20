@@ -11,6 +11,8 @@ import kotlin.coroutines.CoroutineContext
 
 /**
  * Default coroutine exception handler that logs all errors except of [CancellationException].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.DefaultExceptionHandler)
  */
 public class DefaultExceptionHandler(private val name: String) : CoroutineExceptionHandler {
     override val key: CoroutineContext.Key<*> = CoroutineExceptionHandler.Key

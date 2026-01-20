@@ -14,6 +14,8 @@ public enum class LineEnding {
      * Recognizes LF (\n) and CRLF (\r\n) as line delimiters.
      *
      * This is the default and recommended for most use cases.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.LineEnding.Default)
      */
     Default,
 
@@ -21,6 +23,8 @@ public enum class LineEnding {
      * Recognizes LF (\n), CRLF (\r\n), and CR (\r) as line delimiters.
      *
      * It is recommended to use [Default] when possible as it is usually more efficient.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.LineEnding.Lenient)
      */
     Lenient,
 }

@@ -16,6 +16,8 @@ import uniffi.ktor_client_webrtc.RtcException
 
 /**
  * WebRtc data channel implementation based on the WebRTC.rs library.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.rs.RustWebRtcDataChannel)
  */
 public class RustWebRtcDataChannel(
     internal val inner: DataChannel,
@@ -118,6 +120,8 @@ public class RustWebRtcDataChannel(
 
 /**
  * Returns implementation of the data channel that is used under the hood. Use it with caution.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.rs.getNative)
  */
 public fun WebRtcDataChannel.getNative(): DataChannel {
     val channel = (this as? RustWebRtcDataChannel) ?: error("Wrong data channel implementation.")

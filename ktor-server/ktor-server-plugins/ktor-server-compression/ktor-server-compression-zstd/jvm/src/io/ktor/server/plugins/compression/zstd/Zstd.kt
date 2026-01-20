@@ -11,9 +11,9 @@ import io.ktor.utils.io.*
 /**
  * Appends the 'zstd' encoder with [block] configuration.
  *
- * @param level compression level, defaults to [ZstdEncoder.DEFAULT_COMPRESSION_LEVEL]
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.compression.zstd.zstd)
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.compression.zstd)
+ * @param level compression level, defaults to [ZstdEncoder.DEFAULT_COMPRESSION_LEVEL]
  */
 @OptIn(InternalAPI::class)
 public fun CompressionConfig.zstd(
@@ -25,6 +25,8 @@ public fun CompressionConfig.zstd(
 
 /**
  * Configure compression to use all algorithms, including 'zstd' with the provided compression level.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.compression.zstd.zstdStandard)
  *
  * @param level compression level, defaults to [ZstdEncoder.DEFAULT_COMPRESSION_LEVEL]
  */

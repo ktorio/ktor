@@ -4,26 +4,24 @@
 
 package io.ktor.server.routing.openapi
 
-import io.ktor.http.ContentType
-import io.ktor.http.fromFilePath
-import io.ktor.openapi.JsonSchemaInference
-import io.ktor.openapi.KotlinxJsonSchemaInference
-import io.ktor.openapi.OpenApiDoc
-import io.ktor.openapi.ReferenceOr
-import io.ktor.openapi.SecurityScheme
-import io.ktor.server.application.Application
-import io.ktor.server.routing.Route
-import io.ktor.server.routing.routingRoot
+import io.ktor.http.*
+import io.ktor.openapi.*
+import io.ktor.server.application.*
+import io.ktor.server.routing.*
 import kotlinx.serialization.json.Json
 
 /**
  * Sealed type for the different sources used for generating an OpenAPI document.
  *
  * This is used in the OpenAPI and Swagger plugins.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.OpenApiDocSource)
  */
 public sealed interface OpenApiDocSource {
     /**
      * Reads the OpenAPI document from the given source.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.OpenApiDocSource.read)
      *
      * @param application The application to read from.
      * @param defaults Optional base document to merge into the generated document.
@@ -32,6 +30,8 @@ public sealed interface OpenApiDocSource {
 
     /**
      * A static string source for an OpenAPI document.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.OpenApiDocSource.Text)
      *
      * @param content The text returned for the spec.
      */
@@ -49,6 +49,8 @@ public sealed interface OpenApiDocSource {
 
     /**
      * A file-based source for OpenAPI document.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.OpenApiDocSource.File)
      *
      * @param path The file path to read the document from.
      */
@@ -68,6 +70,8 @@ public sealed interface OpenApiDocSource {
 
     /**
      * A source for an OpenAPI document that is generated from the application's routing tree.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.OpenApiDocSource.Routing)
      *
      * @param contentType The content type of the generated document.
      * @param schemaInference The JSON schema inference strategy to use when building models. Defaults to [KotlinxJsonSchemaInference].
@@ -109,6 +113,8 @@ public sealed interface OpenApiDocSource {
 
     /**
      * A source for an OpenAPI document that is generated from the first available source.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.OpenApiDocSource.FirstOf)
      *
      * @param options The list of sources to try.
      */

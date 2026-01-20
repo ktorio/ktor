@@ -23,6 +23,8 @@ import kotlin.math.abs
  * to the requested width and height, adjusts frame rate to the maximum supported rate
  * that doesn't exceed the requested target.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.CameraVideoCapturer)
+ *
  * @param constraints Video track constraints specifying desired camera parameters
  * @param videoCapturerDelegate Delegate for handling captured video frames
  */
@@ -70,6 +72,8 @@ public class CameraVideoCapturer(
     public companion object : VideoCapturerFactory {
         /**
          * Default frames per-second rate used by the camera video capturer.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.CameraVideoCapturer.Companion.DEFAULT_FPS)
          */
         public const val DEFAULT_FPS: Double = 30.0
 

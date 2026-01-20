@@ -4,44 +4,18 @@
 
 package io.ktor.server.routing.openapi
 
-import io.ktor.http.ContentType
-import io.ktor.http.HttpMethod
-import io.ktor.openapi.JsonSchema
-import io.ktor.openapi.JsonSchemaInference
-import io.ktor.openapi.KotlinxJsonSchemaInference
-import io.ktor.openapi.OAuth2SecurityScheme
-import io.ktor.openapi.Operation
-import io.ktor.openapi.Parameter
-import io.ktor.openapi.PathItem
-import io.ktor.openapi.ReferenceOr
+import io.ktor.http.*
+import io.ktor.openapi.*
 import io.ktor.openapi.ReferenceOr.Companion.value
-import io.ktor.openapi.Response
-import io.ktor.openapi.Responses
-import io.ktor.openapi.SecurityScheme
-import io.ktor.server.auth.AuthenticateProvidersKey
-import io.ktor.server.auth.AuthenticationRouteSelector
-import io.ktor.server.auth.AuthenticationStrategy
-import io.ktor.server.http.content.DefaultContentTypesAttribute
-import io.ktor.server.routing.HttpHeaderRouteSelector
-import io.ktor.server.routing.HttpMethodRouteSelector
-import io.ktor.server.routing.OpenApiRoutePathFormat
-import io.ktor.server.routing.OptionalParameterRouteSelector
-import io.ktor.server.routing.ParameterRouteSelector
-import io.ktor.server.routing.PathSegmentOptionalParameterRouteSelector
-import io.ktor.server.routing.PathSegmentParameterRouteSelector
-import io.ktor.server.routing.Route
-import io.ktor.server.routing.RoutingNode
-import io.ktor.server.routing.application
-import io.ktor.server.routing.path
-import io.ktor.utils.io.InternalAPI
-import kotlin.collections.component1
-import kotlin.collections.component2
-import kotlin.collections.plus
-import kotlin.collections.set
-import kotlin.text.ifEmpty
+import io.ktor.server.auth.*
+import io.ktor.server.http.content.*
+import io.ktor.server.routing.*
+import io.ktor.utils.io.*
 
 /**
  * Finds all [PathItem]s under the given [Route], and extracts object schema as references.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.mapToPathItemsAndSchema)
  */
 public fun Sequence<Route>.mapToPathItemsAndSchema(): Pair<Map<String, PathItem>, Map<String, JsonSchema>> {
     val jsonSchema = mutableMapOf<String, JsonSchema>()
@@ -65,6 +39,8 @@ public fun Sequence<Route>.mapToPathItemsAndSchema(): Pair<Map<String, PathItem>
 
 /**
  * Converts the sequence of [Route]s to a map of [String] to [PathItem]s.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.mapToPathItems)
  */
 public fun Sequence<Route>.mapToPathItems(
     onOperation: OperationMapping = PopulateMediaTypeDefaults

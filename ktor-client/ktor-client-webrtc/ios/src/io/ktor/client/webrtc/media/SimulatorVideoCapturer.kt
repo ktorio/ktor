@@ -33,6 +33,8 @@ import kotlin.time.measureTime
  * video capture. This eliminates the need for real-time pixel calculations, significantly
  * improving frame generation speed.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.SimulatorVideoCapturer)
+ *
  * @param constraints Video track constraints specifying frame dimensions and rate
  * @param videoCapturerDelegate Delegate for handling captured video frames
  */
@@ -135,16 +137,22 @@ public class SimulatorVideoCapturer(
     public companion object Companion : VideoCapturerFactory {
         /**
          * Default frames per second rate used by the sample video capturer (15 FPS).
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.SimulatorVideoCapturer.Companion.DEFAULT_FPS)
          */
         public const val DEFAULT_FPS: Int = 15
 
         /**
          * Default video frame width in pixels (640px).
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.SimulatorVideoCapturer.Companion.DEFAULT_WIDTH)
          */
         public const val DEFAULT_WIDTH: Int = 640
 
         /**
          * Default video frame height in pixels (480px).
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.SimulatorVideoCapturer.Companion.DEFAULT_HEIGHT)
          */
         public const val DEFAULT_HEIGHT: Int = 480
 

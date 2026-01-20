@@ -13,6 +13,8 @@ import kotlinx.coroutines.cancel
 
 /**
  * Configuration for the [HttpRequestLifecycle] plugin.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.HttpRequestLifecycleConfig)
  */
 public class HttpRequestLifecycleConfig internal constructor() {
     /**
@@ -31,12 +33,16 @@ public class HttpRequestLifecycleConfig internal constructor() {
      *     cancelCallOnClose = true
      * }
      * ```
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.HttpRequestLifecycleConfig.cancelCallOnClose)
      */
     public var cancelCallOnClose: Boolean = false
 }
 
 /**
  * Internal attribute key for storing the connection close handler callback.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.HttpRequestCloseHandlerKey)
  */
 @InternalAPI
 public val HttpRequestCloseHandlerKey: AttributeKey<() -> Unit> = AttributeKey<() -> Unit>("HttpRequestCloseHandler")
@@ -82,6 +88,8 @@ public val HttpRequestCloseHandlerKey: AttributeKey<() -> Unit> = AttributeKey<(
  *     }
  * }
  * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.HttpRequestLifecycle)
  */
 @OptIn(InternalAPI::class)
 public val HttpRequestLifecycle: RouteScopedPlugin<HttpRequestLifecycleConfig> = createRouteScopedPlugin(

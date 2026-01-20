@@ -17,23 +17,31 @@ import kotlinx.serialization.modules.SerializersModule
 
 /**
  * A generalized element for deferred deserialization for use as an interoperable stand in for JSON and YAML nodes.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.GenericElement)
  */
 @Serializable(GenericElementSerializer::class)
 public interface GenericElement {
     public companion object {
         /**
          * An empty [GenericElement] with no entries.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.GenericElement.Companion.EmptyObject)
          */
         public val EmptyObject: GenericElement =
             GenericElementMap(emptyMap(), MapSerializer(String.serializer(), GenericElementSerializer()))
 
         /**
          * Returns the empty element if the given [element] is null, otherwise returns the element.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.GenericElement.Companion.orEmpty)
          */
         public fun GenericElement?.orEmpty(): GenericElement = this ?: EmptyObject
 
         /**
          * Encodes the provided item into a [GenericElement] using the specified serializer.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.GenericElement.Companion.encodeToElement)
          *
          * @param serializer The serializer to be used for encoding the item.
          * @param item The item to encode into a [GenericElement].
@@ -48,16 +56,22 @@ public interface GenericElement {
 
     /**
      * The serializer used to deserialize the element.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.GenericElement.elementSerializer)
      */
     public val elementSerializer: KSerializer<*>
 
     /**
      * The underlying element.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.GenericElement.element)
      */
     public val element: Any
 
     /**
      * Returns true if the element is a JSON object.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.GenericElement.isObject)
      */
     public fun isObject(): Boolean =
         elementSerializer.descriptor.kind == StructureKind.OBJECT ||
@@ -65,23 +79,31 @@ public interface GenericElement {
 
     /**
      * Returns true if the element is a JSON array.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.GenericElement.isArray)
      */
     public fun isArray(): Boolean =
         elementSerializer.descriptor.kind == StructureKind.LIST
 
     /**
      * Returns true if the element is a JSON primitive and is a string.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.GenericElement.isString)
      */
     public fun isString(): Boolean =
         elementSerializer.descriptor.kind == PrimitiveKind.STRING
 
     /**
      * Deserializes the element into the given [serializer].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.GenericElement.deserialize)
      */
     public fun <T> deserialize(serializer: DeserializationStrategy<T>): T
 
     /**
      * If this is a map, return a list of key-value entries.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.GenericElement.entries)
      *
      * @throws SerializationException if this is not a map.
      */
@@ -90,12 +112,16 @@ public interface GenericElement {
     /**
      * If this is a list, return all elements.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.GenericElement.items)
+     *
      * @throws SerializationException if this is not a list.
      */
     public fun items(): List<GenericElement>
 
     /**
      * Merges two elements into a single element with the keys of both.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.GenericElement.plus)
      */
     public operator fun plus(other: GenericElement): GenericElement =
         GenericElementMap((entries() + other.entries()).toMap())
@@ -103,12 +129,16 @@ public interface GenericElement {
 
 /**
  * Deserialize an element to the given type [T].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.asA)
  */
 public inline fun <reified T> GenericElement.asA(): T =
     deserialize(serializer<T>())
 
 /**
  * Convenience function for creating a [GenericElement] from a value of type [T].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.GenericElement)
  */
 public inline fun <reified T : Any> GenericElement(value: T): GenericElement =
     when (value) {
@@ -119,12 +149,16 @@ public inline fun <reified T : Any> GenericElement(value: T): GenericElement =
 
 /**
  * Create an object node [GenericElement] from the given [map].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.GenericElement)
  */
 public inline fun <reified T : Any> GenericElement(map: Map<String, T>): GenericElement =
     GenericElement(map.map { it.key to GenericElement(it.value) })
 
 /**
  * Create an object node [GenericElement] from the given [entries].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.GenericElement)
  */
 public fun GenericElement(entries: Collection<Pair<String, GenericElement>>): GenericElement =
     if (!entries.isEmpty() && entries.all { it.second is JsonGenericElement }) {
@@ -144,6 +178,8 @@ public fun GenericElement(entries: Collection<Pair<String, GenericElement>>): Ge
 
 /**
  * Adapter for custom [GenericElement] types when using different encoders / decoders.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.GenericElementSerialAdapter)
  */
 public interface GenericElementSerialAdapter {
     public fun <T> trySerializeToElement(encoder: Encoder, value: T, serializer: KSerializer<T>): GenericElement?
@@ -198,6 +234,8 @@ internal object GenericElementEncodingAdapter : GenericElementSerialAdapter {
 
 /**
  * A [GenericElement] implementation that wraps a value of type [T].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.GenericElementWrapper)
  */
 public class GenericElementWrapper<T : Any>(
     override val element: T,
@@ -233,6 +271,8 @@ public class GenericElementWrapper<T : Any>(
 
 /**
  * A [GenericElement] implementation that wraps a string value.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.GenericElementString)
  */
 public class GenericElementString(
     override val element: String,
@@ -240,6 +280,8 @@ public class GenericElementString(
 ) : GenericElement {
     /**
      * Deserializes the string element using strict type conversion.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.GenericElementString.deserialize)
      *
      * @throws NumberFormatException if converting to numeric type with invalid format
      * @throws IllegalArgumentException if converting to boolean with value other than "true"/"false"
@@ -552,6 +594,8 @@ internal expect val genericElementSerialAdapters: List<GenericElementSerialAdapt
 /**
  * A [GenericElement] serializer that delegates to the first registered [GenericElementSerialAdapter] that can
  * deserialize the element.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.GenericElementSerializer)
  */
 public class GenericElementSerializer : KSerializer<GenericElement> {
     @OptIn(InternalSerializationApi::class)

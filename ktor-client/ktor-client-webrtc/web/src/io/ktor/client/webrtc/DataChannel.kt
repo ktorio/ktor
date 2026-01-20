@@ -20,6 +20,8 @@ import kotlin.js.JsString
 /**
  * WebRtc data channel implementation for the JavaScript platform.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.JsWebRtcDataChannel)
+ *
  * @param channel Native browser RTCDataChannel.
  */
 public class JsWebRtcDataChannel(
@@ -116,6 +118,8 @@ public class JsWebRtcDataChannel(
 
 /**
  * Returns implementation of the data channel that is used under the hood. Use it with caution.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.getNative)
  */
 public fun WebRtcDataChannel.getNative(): RTCDataChannel {
     return (this as JsWebRtcDataChannel).channel

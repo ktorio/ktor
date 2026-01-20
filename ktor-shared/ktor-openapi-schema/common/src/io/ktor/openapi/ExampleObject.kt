@@ -14,6 +14,8 @@ import kotlinx.serialization.Serializable
  * Notes:
  * - Only one of [value] or [externalValue] should be present (per OpenAPI).
  * - [extensions] carries vendor-specific fields whose keys start with "x-".
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.ExampleObject)
  */
 @Serializable(ExampleObject.Companion.Serializer::class)
 @OptIn(ExperimentalSerializationApi::class)

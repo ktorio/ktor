@@ -10,7 +10,7 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.api.*
 import io.ktor.client.plugins.observer.*
 import io.ktor.client.request.*
-import io.ktor.client.request.forms.MultiPartFormDataContent
+import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
@@ -19,7 +19,10 @@ import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 private val ClientCallLogger = AttributeKey<HttpClientCallLogger>("CallLogger")
 private val DisableLogging = AttributeKey<Unit>("DisableLogging")
@@ -84,6 +87,8 @@ public class LoggingConfig {
      * The associated filter can be customized to handle specific logging requirements
      * such as hiding sensitive data, truncating long responses, or modifying the
      * format of the logged body content.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.logging.LoggingConfig.bodyFilter)
      */
     public var bodyFilter: LogBodyFilter = BinaryLogBodyFilter
 

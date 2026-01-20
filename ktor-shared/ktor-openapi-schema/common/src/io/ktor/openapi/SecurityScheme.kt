@@ -13,6 +13,8 @@ import kotlinx.serialization.encoding.Encoder
 /**
  * Defines a security scheme that can be used by the operations.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.SecurityScheme)
+ *
  * @property type The type of the security scheme.
  * @property description A short description for a security scheme.
  */
@@ -59,6 +61,8 @@ internal object SecuritySchemeSerializer : KSerializer<SecurityScheme> {
 /**
  * Describes an HTTP-based security scheme.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.HttpSecurityScheme)
+ *
  * @property type The type of the security scheme ([SecuritySchemeType.HTTP]).
  * @property scheme The name of the HTTP Authorization scheme.
  * @property bearerFormat A hint to the client to identify how the bearer token is formatted.
@@ -96,6 +100,8 @@ public data class HttpSecurityScheme(
  *
  * The API Key security scheme is used to authenticate requests using a single static API key
  * that can be passed in a header, query parameter, or cookie.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.ApiKeySecurityScheme)
  *
  * @property name The name of the header, query, or cookie parameter containing the API key.
  * @property in The location where the API key is passed (query, header, or cookie).
@@ -172,6 +178,8 @@ public data class OpenIdConnectSecurityScheme(
 
 /**
  * The type of the security scheme.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.SecuritySchemeType)
  */
 @Serializable
 public enum class SecuritySchemeType {
@@ -190,6 +198,8 @@ public enum class SecuritySchemeType {
 
 /**
  * The location of the API key for apiKey type security schemes.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.SecuritySchemeIn)
  */
 @Serializable
 public enum class SecuritySchemeIn {
@@ -205,6 +215,8 @@ public enum class SecuritySchemeIn {
 
 /**
  * Allows configuration of the supported OAuth Flows.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.OAuthFlows)
  *
  * @property implicit Configuration for the OAuth Implicit flow.
  * @property password Configuration for the OAuth Resource Owner Password flow.
@@ -232,6 +244,8 @@ public data class OAuthFlows(
 
 /**
  * Configuration details for a supported OAuth Flow.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.OAuthFlow)
  *
  * @property authorizationUrl The authorization URL to be used for this flow (oauth2 implicit and authorizationCode flows).
  * @property tokenUrl The token URL to be used for this flow (oauth2 password, clientCredentials, and authorizationCode flows).

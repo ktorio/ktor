@@ -12,6 +12,8 @@ import java.nio.ByteBuffer
 
 /**
  * WebRtc data channel implementation for the Android platform.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.AndroidWebRtcDataChannel)
  */
 public class AndroidWebRtcDataChannel(
     internal val nativeChannel: DataChannel,
@@ -127,6 +129,8 @@ public class AndroidWebRtcDataChannel(
 
 /**
  * Returns implementation of the data channel that is used under the hood. Use it with caution.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.getNative)
  */
 public fun WebRtcDataChannel.getNative(): DataChannel {
     return (this as AndroidWebRtcDataChannel).nativeChannel

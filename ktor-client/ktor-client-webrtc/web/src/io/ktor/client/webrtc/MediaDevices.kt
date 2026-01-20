@@ -24,6 +24,9 @@ private fun makeStreamConstraints(
 
 /**
  * MediaTrackFactory based on browser Navigator MediaDevices.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.NavigatorMediaDevices)
+ *
  * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices">MDN MediaDevices</a>
  **/
 public object NavigatorMediaDevices : MediaTrackFactory {
@@ -58,6 +61,8 @@ public object NavigatorMediaDevices : MediaTrackFactory {
 
 /**
  * Wrapper for MediaStreamTrack.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.JsMediaTrack)
  **/
 public abstract class JsMediaTrack(
     internal val nativeTrack: MediaStreamTrack
@@ -93,6 +98,8 @@ public class JsVideoTrack(nativeTrack: MediaStreamTrack) :
 
 /**
  * Returns implementation of the native media stream track used under the hood. Use it with caution.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.getNative)
  */
 public fun WebRtcMedia.Track.getNative(): MediaStreamTrack {
     return (this as JsMediaTrack).nativeTrack

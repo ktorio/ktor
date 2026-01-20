@@ -4,15 +4,18 @@
 
 package io.ktor.server.plugins.openapi
 
-import io.ktor.http.ContentType
-import io.ktor.openapi.OpenApiDoc
-import io.ktor.openapi.OpenApiDocDsl
-import io.ktor.server.routing.openapi.OpenApiDocSource
+import io.ktor.http.*
+import io.ktor.openapi.*
+import io.ktor.server.routing.openapi.*
 import io.ktor.server.routing.openapi.OpenApiDocSource.*
-import io.swagger.codegen.v3.*
-import io.swagger.codegen.v3.generators.html.*
-import io.swagger.parser.*
-import io.swagger.v3.parser.core.models.*
+import io.swagger.codegen.v3.ClientOptInput
+import io.swagger.codegen.v3.CodegenConfig
+import io.swagger.codegen.v3.DefaultGenerator
+import io.swagger.codegen.v3.Generator
+import io.swagger.codegen.v3.generators.html.StaticHtml2Codegen
+import io.swagger.codegen.v3.generators.html.StaticHtmlCodegen
+import io.swagger.parser.OpenAPIParser
+import io.swagger.v3.parser.core.models.ParseOptions
 
 /**
  * Configuration for OpenAPI endpoint.
@@ -26,6 +29,8 @@ public class OpenAPIConfig private constructor(
 
     /**
      * Defines the source of the OpenAPI specification.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.openapi.OpenAPIConfig.source)
      */
     public var source: OpenApiDocSource = FirstOf(
         File("openapi/documentation.yaml"),
@@ -36,6 +41,8 @@ public class OpenAPIConfig private constructor(
      * Specifies where the generated OpenAPI code will be saved to.
      *
      * Defaults to `docs`.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.openapi.OpenAPIConfig.outputPath)
      */
     public var outputPath: String = "docs"
 
