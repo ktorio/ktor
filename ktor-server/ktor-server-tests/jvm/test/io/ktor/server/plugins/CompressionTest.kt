@@ -8,12 +8,15 @@ import com.github.luben.zstd.ZstdInputStream
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.encoding.zstd.Zstd
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.http.*
 import io.ktor.server.http.content.*
 import io.ktor.server.plugins.cachingheaders.*
 import io.ktor.server.plugins.compression.*
+import io.ktor.server.plugins.compression.zstd.zstd
+import io.ktor.server.plugins.compression.zstd.zstdStandard
 import io.ktor.server.plugins.conditionalheaders.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -102,7 +105,9 @@ class CompressionTest {
 
     @Test
     fun testCompressionDefaultZstd() = testApplication {
-        install(Compression)
+        install(Compression) {
+            zstdStandard()
+        }
         routing {
             get("/") {
                 call.respondText(textToCompress)
@@ -366,9 +371,7 @@ class CompressionTest {
     @Test
     fun testCompressionLevelZstd() = testApplication {
         install(Compression) {
-            zstd {
-                compressionLevel = 20
-            }
+            zstd(level = 20)
         }
 
         routing {
@@ -538,7 +541,9 @@ class CompressionTest {
             }
         }
 
-        install(Compression)
+        install(Compression) {
+            zstdStandard()
+        }
         routing {
             get("/") {
                 call.respondText(content)
@@ -746,7 +751,9 @@ class CompressionTest {
 
     @Test
     fun testDecoding() = testApplication {
-        install(Compression)
+        install(Compression) {
+            zstdStandard()
+        }
         routing {
             post("/identity") {
                 val message = call.receiveText()

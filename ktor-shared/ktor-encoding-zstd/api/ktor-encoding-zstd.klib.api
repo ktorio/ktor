@@ -1,0 +1,18 @@
+// Klib ABI Dump
+// Targets: [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, js, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, wasmJs, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <io.ktor:ktor-encoding-zstd>
+final class io.ktor.encoding.zstd/ZstdEncoder : io.ktor.util/ContentEncoder, io.ktor.util/Encoder { // io.ktor.encoding.zstd/ZstdEncoder|null[0]
+    constructor <init>() // io.ktor.encoding.zstd/ZstdEncoder.<init>|<init>(){}[0]
+
+    final val name // io.ktor.encoding.zstd/ZstdEncoder.name|{}name[0]
+        final fun <get-name>(): kotlin/String // io.ktor.encoding.zstd/ZstdEncoder.name.<get-name>|<get-name>(){}[0]
+
+    final fun decode(io.ktor.utils.io/ByteReadChannel, kotlin.coroutines/CoroutineContext): io.ktor.utils.io/ByteReadChannel // io.ktor.encoding.zstd/ZstdEncoder.decode|decode(io.ktor.utils.io.ByteReadChannel;kotlin.coroutines.CoroutineContext){}[0]
+    final fun encode(io.ktor.utils.io/ByteReadChannel, kotlin.coroutines/CoroutineContext): io.ktor.utils.io/ByteReadChannel // io.ktor.encoding.zstd/ZstdEncoder.encode|encode(io.ktor.utils.io.ByteReadChannel;kotlin.coroutines.CoroutineContext){}[0]
+    final fun encode(io.ktor.utils.io/ByteWriteChannel, kotlin.coroutines/CoroutineContext): io.ktor.utils.io/ByteWriteChannel // io.ktor.encoding.zstd/ZstdEncoder.encode|encode(io.ktor.utils.io.ByteWriteChannel;kotlin.coroutines.CoroutineContext){}[0]
+}
