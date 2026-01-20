@@ -7,6 +7,7 @@ package io.ktor.server.routing
 import io.ktor.http.*
 import io.ktor.server.plugins.*
 import io.ktor.server.request.*
+import io.ktor.server.routing.RouteSelectorEvaluation.Companion.qualityTransparent
 
 /**
  * A result of a route evaluation against a call.
@@ -255,27 +256,37 @@ public abstract class RouteSelector {
 /**
  * Exposes a textual representation of the path fragment contributed by this selector.
  * Used for tooling (e.g., documentation generation).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RoutePathComponent)
  */
 public sealed interface RoutePathComponent
 
 /**
  * Exposes the parameter name contributed by this selector (query, header, or path).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RouteParameterComponent)
  */
 public interface RouteParameterComponent {
     /**
      * Represents the name, typically as a string value.
      * This variable can be used to store or retrieve a name, identifier, or label.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RouteParameterComponent.name)
      */
     public val name: String
 }
 
 /**
  * Exposes child selectors composing this selector (e.g., Or/And).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.CompositeRouteSelector)
  */
 public interface CompositeRouteSelector {
     /**
      * Provides a list of child route selectors that compose this composite route selector.
      * This is useful for accessing individual components of a composite route, such as in cases of logical "and" or "or" operations.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.CompositeRouteSelector.subSelectors)
      *
      * @return a list of [RouteSelector] instances representing the child selectors.
      */

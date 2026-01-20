@@ -19,6 +19,8 @@ import kotlin.reflect.KClass
  * the properties, see [JSON Schema Core](https://tools.ietf.org/html/draft-wright-json-schema-00)
  * and [JSON Schema Validation](https://tools.ietf.org/html/draft-wright-json-schema-validation-00).
  * Unless stated otherwise, the property definitions follow the JSON Schema.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema)
  */
 @Serializable
 public data class JsonSchema(
@@ -78,6 +80,8 @@ public data class JsonSchema(
      * - Custom serialization and deserialization are handled using the [Serializer] object.
      * - Deserialization parses a [GenericElement], which may represent different JSON structures.
      * - Serialization encodes the schema type into a compatible JSON format.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.SchemaType)
      */
     @Serializable(with = SchemaType.Serializer::class)
     public sealed interface SchemaType {
@@ -126,119 +130,187 @@ public data class JsonSchema(
 
     // Annotations scoped under JsonSchema for convenience / simplified naming
 
-    /** Skips the property from the inferred JSON schema model */
+    /**
+     * Skips the property from the inferred JSON schema model
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.Ignore)
+     */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.PROPERTY)
     @Retention(AnnotationRetention.RUNTIME)
     public annotation class Ignore
 
-    /** $id */
+    /**
+     * $id
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.Id)
+     */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS)
     @Retention(AnnotationRetention.RUNTIME)
     public annotation class Id(val value: String)
 
-    /** $anchor */
+    /**
+     * $anchor
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.Anchor)
+     */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS)
     @Retention(AnnotationRetention.RUNTIME)
     public annotation class Anchor(val value: String, val dynamic: Boolean = false)
 
-    /** title */
+    /**
+     * title
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.Title)
+     */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS)
     @Retention(AnnotationRetention.RUNTIME)
     public annotation class Title(val value: String)
 
-    /** description */
+    /**
+     * description
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.Description)
+     */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
     @Retention(AnnotationRetention.RUNTIME)
     public annotation class Description(val value: String)
 
-    /** type (e.g. "string", "object", "array") */
+    /**
+     * type (e.g. "string", "object", "array")
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.Type)
+     */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
     @Retention(AnnotationRetention.RUNTIME)
     public annotation class Type(val value: JsonType)
 
-    /** format (e.g. "date-time", "uuid") */
+    /**
+     * format (e.g. "date-time", "uuid")
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.Format)
+     */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
     @Retention(AnnotationRetention.RUNTIME)
     public annotation class Format(val value: String)
 
-    /** deprecated */
+    /**
+     * deprecated
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.DeprecatedSchema)
+     */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
     @Retention(AnnotationRetention.RUNTIME)
     public annotation class DeprecatedSchema
 
-    /** readOnly */
+    /**
+     * readOnly
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.ReadOnly)
+     */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
     @Retention(AnnotationRetention.RUNTIME)
     public annotation class ReadOnly
 
-    /** writeOnly */
+    /**
+     * writeOnly
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.WriteOnly)
+     */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
     @Retention(AnnotationRetention.RUNTIME)
     public annotation class WriteOnly
 
-    /** default (JSON literal as text) */
+    /**
+     * default (JSON literal as text)
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.Default)
+     */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
     @Retention(AnnotationRetention.RUNTIME)
     public annotation class Default(val value: String)
 
-    /** example (JSON literal as text) */
+    /**
+     * example (JSON literal as text)
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.Example)
+     */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
     @Retention(AnnotationRetention.RUNTIME)
     public annotation class Example(vararg val value: String)
 
-    /** enum (each entry is a JSON literal as text) */
+    /**
+     * enum (each entry is a JSON literal as text)
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.Enum)
+     */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
     @Retention(AnnotationRetention.RUNTIME)
     public annotation class Enum(vararg val value: String)
 
-    /** minLength */
+    /**
+     * minLength
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.MinLength)
+     */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
     @Retention(AnnotationRetention.RUNTIME)
     public annotation class MinLength(val value: Int)
 
-    /** maxLength */
+    /**
+     * maxLength
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.MaxLength)
+     */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
     @Retention(AnnotationRetention.RUNTIME)
     public annotation class MaxLength(val value: Int)
 
-    /** pattern */
+    /**
+     * pattern
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.Pattern)
+     */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
     @Retention(AnnotationRetention.RUNTIME)
     public annotation class Pattern(val value: String)
 
-    /** minimum (+ optional exclusivity) */
+    /**
+     * minimum (+ optional exclusivity)
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.Minimum)
+     */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
@@ -248,7 +320,11 @@ public data class JsonSchema(
         val exclusive: Boolean = false,
     )
 
-    /** maximum (+ optional exclusivity) */
+    /**
+     * maximum (+ optional exclusivity)
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.Maximum)
+     */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
@@ -258,49 +334,77 @@ public data class JsonSchema(
         val exclusive: Boolean = false,
     )
 
-    /** multipleOf */
+    /**
+     * multipleOf
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.MultipleOf)
+     */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
     @Retention(AnnotationRetention.RUNTIME)
     public annotation class MultipleOf(val value: Double)
 
-    /** minItems */
+    /**
+     * minItems
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.MinItems)
+     */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
     @Retention(AnnotationRetention.RUNTIME)
     public annotation class MinItems(val value: Int)
 
-    /** maxItems */
+    /**
+     * maxItems
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.MaxItems)
+     */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
     @Retention(AnnotationRetention.RUNTIME)
     public annotation class MaxItems(val value: Int)
 
-    /** uniqueItems */
+    /**
+     * uniqueItems
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.UniqueItems)
+     */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
     @Retention(AnnotationRetention.RUNTIME)
     public annotation class UniqueItems
 
-    /** minProperties */
+    /**
+     * minProperties
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.MinProperties)
+     */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
     @Retention(AnnotationRetention.RUNTIME)
     public annotation class MinProperties(val value: Int)
 
-    /** maxProperties */
+    /**
+     * maxProperties
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.MaxProperties)
+     */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
     @Retention(AnnotationRetention.RUNTIME)
     public annotation class MaxProperties(val value: Int)
 
-    /** required (property names) */
+    /**
+     * required (property names)
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.Required)
+     */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
@@ -310,6 +414,8 @@ public data class JsonSchema(
     /**
      * Sets `additionalProperties` to `true` or `false`.
      * Use [AdditionalPropertiesRef] if you need to define a schema for additional properties.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.AdditionalPropertiesAllowed)
      */
     @OptIn(ExperimentalSerializationApi::class)
     @SerialInfo
@@ -319,6 +425,8 @@ public data class JsonSchema(
 
     /**
      * Defines the schema for any additional properties not explicitly listed in `properties`.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.AdditionalPropertiesRef)
      *
      * @param value The Kotlin class to use as the schema for additional properties.
      */
@@ -331,6 +439,8 @@ public data class JsonSchema(
     /**
      * Validates the data against any of the provided schema references.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.AnyOfRefs)
+     *
      * @param value Variadic array of schema identifiers or references.
      */
     @OptIn(ExperimentalSerializationApi::class)
@@ -341,6 +451,8 @@ public data class JsonSchema(
 
     /**
      * Validates the data against exactly one of the provided schemas.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.OneOf)
      *
      * @param value Variadic array of Kotlin classes representing the possible schemas.
      */
@@ -353,6 +465,8 @@ public data class JsonSchema(
     /**
      * Ensures the data does not match the provided schema.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.Not)
+     *
      * @param value The Kotlin class representing the schema to negate.
      */
     @OptIn(ExperimentalSerializationApi::class)
@@ -363,6 +477,8 @@ public data class JsonSchema(
 
     /**
      * Defines the schema for items within an array.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.ItemsRef)
      *
      * @param value The Kotlin class representing the item schema.
      */
@@ -375,6 +491,8 @@ public data class JsonSchema(
     /**
      * Configures polymorphism using a discriminator property and optional explicit mappings.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.Discriminator)
+     *
      * @property property The name of the property in the payload used to identify the type.
      * @property mapping An array of [Mapping] annotations defining the relationship between
      * discriminator values and schema classes.
@@ -386,6 +504,8 @@ public data class JsonSchema(
     public annotation class Discriminator(val property: String, vararg val mapping: Mapping) {
         /**
          * Key-value pair for discriminator mappings (name -> $ref / schema id).
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.Discriminator.Mapping)
          */
         @Retention(AnnotationRetention.RUNTIME)
         public annotation class Mapping(
@@ -400,6 +520,8 @@ public data class JsonSchema(
  * differentiate between other schema that inherit this schema. The property name used MUST be defined
  * at this schema and it MUST be in the required property list. When used, the value MUST be the name of
  * this schema or any schema that inherits it.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchemaDiscriminator)
  */
 @Serializable
 public data class JsonSchemaDiscriminator(

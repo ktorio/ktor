@@ -14,6 +14,9 @@ import kotlin.time.Duration
  * Configuration for WebRtc connections.
  *
  * Provides settings for ICE servers, policies, and other parameters needed for WebRtc connections.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcConnectionConfig)
+ *
  * @see [MDN RTCPeerConnection config](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/RTCPeerConnection#configuration)
  */
 @KtorDsl
@@ -25,6 +28,8 @@ public open class WebRtcConnectionConfig {
      * `null` means there will be no statistics collected.
      * You can provide a custom [exceptionHandler] to handle exceptions during a statistics collection.
      * Defaults to `null`.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcConnectionConfig.statsRefreshRate)
      */
     public var statsRefreshRate: Duration? = null
 
@@ -32,45 +37,61 @@ public open class WebRtcConnectionConfig {
      * The size of the prefetched ICE candidate pool.
      * In some cases, this could speed up the connection establishment process.
      * Defaults to 0 (meaning no candidate prefetching will occur).
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcConnectionConfig.iceCandidatePoolSize)
      */
     public var iceCandidatePoolSize: Int = 0
 
     /**
      * Specifies how to handle negotiation of candidates when the remote peer is not compatible with the SDP BUNDLE standard.
      * Defaults to [WebRtc.BundlePolicy.BALANCED].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcConnectionConfig.bundlePolicy)
      */
     public var bundlePolicy: WebRtc.BundlePolicy = WebRtc.BundlePolicy.BALANCED
 
     /**
      * A string which specifies the RTCP mux policy to use when gathering ICE candidates to support non-multiplexed RTCP.
      * Defaults to [WebRtc.RtcpMuxPolicy.REQUIRE].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcConnectionConfig.rtcpMuxPolicy)
      */
     public var rtcpMuxPolicy: WebRtc.RtcpMuxPolicy = WebRtc.RtcpMuxPolicy.REQUIRE
 
     /**
      * Specifies the ICE transport policy to use when gathering ICE candidates.
      * Defaults to [WebRtc.IceTransportPolicy.ALL].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcConnectionConfig.iceTransportPolicy)
      */
     public var iceTransportPolicy: WebRtc.IceTransportPolicy = WebRtc.IceTransportPolicy.ALL
 
     /**
      * Replay for the shared flow of operations on remote tracks (additions, removals). Defaults to 10.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcConnectionConfig.remoteTracksReplay)
      */
     public var remoteTracksReplay: Int = 10
 
     /**
      * Replay for the shared flow of data channels events in the connection. Defaults to 10.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcConnectionConfig.dataChannelEventsReplay)
      */
     public var dataChannelEventsReplay: Int = 10
 
     /**
      * Replay for the shared flow of ICE candidates. Defaults to 20.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcConnectionConfig.iceCandidatesReplay)
      */
     public var iceCandidatesReplay: Int = 20
 
     /**
      * Custom coroutine exception handler that will be used to catch background exceptions (e.g., during a statistics
      * collection, emitting events). If no handler is provided [DefaultExceptionHandler] is used.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcConnectionConfig.exceptionHandler)
      */
     public var exceptionHandler: CoroutineExceptionHandler? = null
 }
@@ -80,24 +101,32 @@ public open class WebRtcConnectionConfig {
  *
  * Provides settings for the WebRtc engine, including the dispatcher to use for coroutines,
  * the media track factory, and default connection configuration.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcConfig)
  */
 @KtorDsl
 public open class WebRtcConfig {
     /**
      * Dispatcher that will be used for coroutines in the background (e.g., emit events).
      * Defaults to [Dispatchers.IO] if available, or [Dispatchers.Default].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcConfig.dispatcher)
      */
     public var dispatcher: CoroutineDispatcher? = null
 
     /**
      * Media track factory that will be used to create media tracks.
      * The specific engine chooses the default implementation.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcConfig.mediaTrackFactory)
      */
     public var mediaTrackFactory: MediaTrackFactory? = null
 
     /**
      * Default configuration for the [WebRtcPeerConnection] which is used
      * if no extra config is specified when creating the connection.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcConfig.defaultConnectionConfig)
      */
     public var defaultConnectionConfig: (WebRtcConnectionConfig.() -> Unit) = {}
 }
@@ -107,18 +136,24 @@ public open class WebRtcConfig {
  *
  * Provides the ability to create peer connections and media tracks.
  * Implementations of this interface handle the platform-specific WebRtc operations.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcEngine)
  */
 public interface WebRtcEngine : AutoCloseable, MediaTrackFactory {
     public val config: WebRtcConfig
 
     /**
      * Creates a new peer connection with the configured settings.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcEngine.createPeerConnection)
      */
     public suspend fun createPeerConnection(config: WebRtcConnectionConfig): WebRtcPeerConnection
 
     /**
      * Creates a new peer connection with the configured settings. If no configuration is provided,
      * the default configuration from [WebRtcConfig.defaultConnectionConfig] will be used.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcEngine.createPeerConnection)
      */
     public suspend fun createPeerConnection(
         config: (WebRtcConnectionConfig.() -> Unit) = this.config.defaultConnectionConfig
@@ -129,6 +164,8 @@ public interface WebRtcEngine : AutoCloseable, MediaTrackFactory {
 
 /**
  * Exception used as a cancellation cause when WebRtcEngine coroutine context is closed.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcEngineClosedException)
  */
 public class WebRtcEngineClosedException : CancellationException("WebRtc engine is closed.")
 
@@ -136,6 +173,8 @@ public class WebRtcEngineClosedException : CancellationException("WebRtc engine 
  * Base implementation of the WebRtcEngine interface.
  *
  * Provides common functionality for WebRtc engine implementations.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcEngineBase)
  *
  * @param engineName Name identifier for the engine, used in coroutine naming.
  */

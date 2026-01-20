@@ -5,7 +5,7 @@
 package io.ktor.openapi.reflect
 
 import io.ktor.openapi.*
-import io.ktor.utils.io.InternalAPI
+import io.ktor.utils.io.*
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import java.time.OffsetDateTime
@@ -24,12 +24,16 @@ import kotlin.time.Instant
  *
  * This interface allows overriding the default reflection behavior, such as changing property names,
  * filtering ignored fields, or handling specific nullability rules.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.reflect.SchemaReflectionAdapter)
  */
 public interface SchemaReflectionAdapter {
 
     /**
      * Provides a name for the given [type] to be used as a title in the JSON schema.
      * By default, returns the qualified name for non-generic classes.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.reflect.SchemaReflectionAdapter.getName)
      */
     public fun getName(type: KType): String? =
         if (type.arguments.isNotEmpty()) {
@@ -41,6 +45,8 @@ public interface SchemaReflectionAdapter {
     /**
      * Returns the collection of properties for a given [kClass] that should be included in the schema.
      * By default, returns all member properties.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.reflect.SchemaReflectionAdapter.getProperties)
      */
     public fun <T : Any> getProperties(kClass: KClass<T>): Collection<KProperty1<T, *>> =
         kClass.memberProperties
@@ -48,6 +54,8 @@ public interface SchemaReflectionAdapter {
     /**
      * Returns the schema property name for the given [property].
      * By default, returns the Kotlin property name.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.reflect.SchemaReflectionAdapter.getName)
      */
     public fun getName(property: KProperty1<*, *>): String =
         property.name
@@ -55,12 +63,16 @@ public interface SchemaReflectionAdapter {
     /**
      * Determines if the given [property] should be excluded from the generated schema.
      * By default, ignores properties annotated with [JsonSchema.Ignore].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.reflect.SchemaReflectionAdapter.isIgnored)
      */
     public fun isIgnored(property: KProperty1<*, *>): Boolean =
         property.annotations.any { it is JsonSchema.Ignore }
 
     /**
      * Determines if the given [type] should be marked as nullable in the OpenAPI schema.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.reflect.SchemaReflectionAdapter.isNullable)
      */
     public fun isNullable(type: KType): Boolean =
         type.isMarkedNullable
@@ -75,6 +87,8 @@ public interface SchemaReflectionAdapter {
  * Notes / limitations:
  * - No $ref/component extraction is done here (schemas are expanded inline).
  * - Cycles are guarded to avoid stack overflows, but will degrade to a generic OBJECT schema.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.reflect.ReflectionJsonSchemaInference)
  */
 public class ReflectionJsonSchemaInference(
     private val adapter: SchemaReflectionAdapter
@@ -88,6 +102,8 @@ public class ReflectionJsonSchemaInference(
 
     /**
      * Creates an object schema for [kClass] with properties inferred from Kotlin reflection.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.reflect.ReflectionJsonSchemaInference.schemaForClass)
      */
     public fun schemaForClass(kClass: KClass<*>): JsonSchema {
         return buildSchemaInternal(

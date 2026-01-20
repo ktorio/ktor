@@ -4,7 +4,7 @@
 
 package io.ktor.openapi
 
-import io.ktor.http.ContentType
+import io.ktor.http.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -15,6 +15,8 @@ import kotlinx.serialization.encoding.Encoder
 
 /**
  * Serializer for [ContentType] that uses [ContentType.toString] and [ContentType.parse]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.ContentTypeSerializer)
  */
 public object ContentTypeSerializer : KSerializer<ContentType> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("ContentType", PrimitiveKind.STRING)

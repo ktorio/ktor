@@ -42,6 +42,8 @@ public fun interface ETagProvider {
 
     /**
      * Provides an [EntityTagVersion] for the given resource or `null` if it cannot be provided.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.ETagProvider.provide)
      */
     public fun provide(resource: Any): EntityTagVersion?
 

@@ -25,7 +25,7 @@ import com.github.luben.zstd.Zstd as ZstdUtils
 /**
  * Implementation of [ContentEncoder] using zstd algorithm
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.ZstdEncoder)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.encoding.zstd.ZstdEncoder)
  */
 public actual class ZstdEncoder(
     compressionLevel: Int = DEFAULT_COMPRESSION_LEVEL
@@ -40,7 +40,7 @@ public actual class ZstdEncoder(
 /**
  * Implementation of Zstd [Encoder].
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.Zstd)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.encoding.zstd.Zstd)
  */
 public class Zstd(private val compressionLevel: Int) : Encoder {
 

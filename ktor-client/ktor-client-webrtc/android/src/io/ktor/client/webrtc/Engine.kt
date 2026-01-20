@@ -13,12 +13,16 @@ import org.webrtc.PeerConnectionFactory
 public class AndroidWebRtcEngineConfig : WebRtcConfig() {
     /**
      * Android application context needed to create media tracks.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.AndroidWebRtcEngineConfig.context)
      * */
     public var context: Context? = null
 
     /**
      * In Android WebRtc implementation PeerConnectionFactory is coupled with the MediaTrackFactory, so if you provide a
      * custom MediaTrackFactory, you should specify PeerConnectionFactory to initialize a PeerConnection.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.AndroidWebRtcEngineConfig.rtcFactory)
      * */
     public var rtcFactory: PeerConnectionFactory? = null
 }

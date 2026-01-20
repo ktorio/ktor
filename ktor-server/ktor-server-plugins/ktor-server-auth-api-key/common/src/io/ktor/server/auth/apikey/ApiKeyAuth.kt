@@ -9,10 +9,12 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
-import io.ktor.utils.io.InternalAPI
+import io.ktor.utils.io.*
 
 /**
  * Installs an API Key authentication mechanism.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.apikey.apiKey)
  *
  * @param name optional name for this authentication provider. If not specified, a default name will be used.
  * @param configure configuration block for setting up the API Key authentication provider.
@@ -26,6 +28,8 @@ public fun AuthenticationConfig.apiKey(
 
 /**
  * Installs an API Key authentication mechanism.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.apikey.apiKey)
  *
  * @param name optional name for this authentication provider. If not specified, a default name will be used.
  * @param description optional description for this authentication provider.
@@ -47,11 +51,15 @@ public fun AuthenticationConfig.apiKey(
  * The function receives the API key as a [String] parameter and should return an arbitrary
  * principal object (for example, a user or service identity) if authentication succeeds,
  * or null if authentication fails.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.apikey.ApiKeyAuthenticationFunction)
  */
 public typealias ApiKeyAuthenticationFunction = suspend ApplicationCall.(String) -> Any?
 
 /**
  * Alias for function signature that is called when authentication fails.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.apikey.ApiKeyAuthChallengeFunction)
  */
 public typealias ApiKeyAuthChallengeFunction = suspend (ApplicationCall) -> Unit
 
@@ -60,6 +68,8 @@ public typealias ApiKeyAuthChallengeFunction = suspend (ApplicationCall) -> Unit
  *
  * This provider extracts an API key from a specified header and validates it using
  * the configured authentication function.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.apikey.ApiKeyAuthenticationProvider)
  *
  * @param configuration the configuration for this authentication provider.
  */
@@ -100,6 +110,8 @@ public class ApiKeyAuthenticationProvider internal constructor(
     /**
      * Configuration for API Key authentication.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.apikey.ApiKeyAuthenticationProvider.Configuration)
+     *
      * @param name optional name for this authentication provider.
      * @param description optional description for this authentication provider.
      */
@@ -113,11 +125,15 @@ public class ApiKeyAuthenticationProvider internal constructor(
 
         /**
          * Name of the scheme used when challenge fails, see [AuthenticationContext.challenge].
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.apikey.ApiKeyAuthenticationProvider.Configuration.authScheme)
          */
         public var authScheme: String = "apiKey"
 
         /**
          * Name of the header that will be used as a source for the api key.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.apikey.ApiKeyAuthenticationProvider.Configuration.headerName)
          */
         public var headerName: String = ApiKeyAuth.DEFAULT_HEADER_NAME
 
@@ -125,6 +141,8 @@ public class ApiKeyAuthenticationProvider internal constructor(
          * Sets a validation function that will check the given API key retrieved from the [headerName] header
          * and return an arbitrary principal object (for example, a user or service identity) if authentication
          * succeeds, or null if authentication fails.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.apikey.ApiKeyAuthenticationProvider.Configuration.validate)
          *
          * @param body the validation function that receives the API key as a [String] parameter and returns
          * an arbitrary principal object or null.
@@ -136,6 +154,8 @@ public class ApiKeyAuthenticationProvider internal constructor(
         /**
          * A response to send back if authentication failed.
          *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.apikey.ApiKeyAuthenticationProvider.Configuration.challenge)
+         *
          * @param body the challenge function that handles authentication failures.
          */
         public fun challenge(body: ApiKeyAuthChallengeFunction) {
@@ -146,10 +166,14 @@ public class ApiKeyAuthenticationProvider internal constructor(
 
 /**
  * Constants related to API Key authentication.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.apikey.ApiKeyAuth)
  */
 public object ApiKeyAuth {
     /**
      * Default name of the header that will be used as a source for the API key.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.apikey.ApiKeyAuth.DEFAULT_HEADER_NAME)
      */
     public const val DEFAULT_HEADER_NAME: String = "X-Api-Key"
 }

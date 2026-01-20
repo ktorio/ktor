@@ -4,7 +4,7 @@
 
 package io.ktor.websocket
 
-import io.ktor.utils.io.InternalAPI
+import io.ktor.utils.io.*
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
@@ -18,11 +18,15 @@ import kotlinx.coroutines.channels.ChannelResult
 public enum class ChannelOverflow {
     /**
      * Suspends the sender when the channel reaches capacity.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.ChannelOverflow.SUSPEND)
      */
     SUSPEND,
 
     /**
      * Closes the channel once it reaches capacity. Existing elements remain readable.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.ChannelOverflow.CLOSE)
      */
     CLOSE
 }
@@ -39,7 +43,7 @@ public class ChannelOverflowException(message: String) : RuntimeException(messag
 /**
  * A configuration for a [kotlinx.coroutines.channels.Channel].
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.ChannelConfig)
  *
  * @property capacity: channel capacity.
  * @property onOverflow: overflow strategy.
@@ -106,7 +110,7 @@ internal class BoundedChannel<T>(
 /**
  * Creates a [Channel] using this configuration.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.Channel.Factory.from)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.from)
  */
 @OptIn(DelicateCoroutinesApi::class)
 @InternalAPI
@@ -125,34 +129,34 @@ public fun <T> Channel.Factory.from(config: ChannelConfig): Channel<T> = with(co
  * Use this to control backpressure behavior by limiting channel capacities
  * and specifying overflow strategies.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.IOChannelsConfig)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketChannelsConfig)
  */
 public class WebSocketChannelsConfig @InternalAPI public constructor() {
     /**
      * Configuration for the incoming channel.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.IOChannelsConfigBuilder.incoming)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketChannelsConfig.incoming)
      */
     public var incoming: ChannelConfig = ChannelConfig.UNLIMITED
 
     /**
      * Configuration for the outgoing channel.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.IOChannelsConfigBuilder.outgoing)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketChannelsConfig.outgoing)
      */
     public var outgoing: ChannelConfig = ChannelConfig.UNLIMITED
 
     /**
      * A configuration with unlimited buffer.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.unlimited)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketChannelsConfig.unlimited)
      */
     public fun unlimited(): ChannelConfig = ChannelConfig.UNLIMITED
 
     /**
      * A configuration with a specific [capacity] and [onOverflow] strategy.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.buffered)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketChannelsConfig.bounded)
      */
     public fun bounded(capacity: Int, onOverflow: ChannelOverflow = ChannelOverflow.SUSPEND): ChannelConfig =
         ChannelConfig(capacity, onOverflow)
@@ -161,7 +165,7 @@ public class WebSocketChannelsConfig @InternalAPI public constructor() {
         /**
          * A configuration with unlimited buffer for both incoming and outgoing channels.
          *
-         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.IOChannelsConfig.Companion.UNLIMITED)
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketChannelsConfig.Companion.UNLIMITED)
          */
         @OptIn(InternalAPI::class)
         public val UNLIMITED: WebSocketChannelsConfig = WebSocketChannelsConfig().apply {

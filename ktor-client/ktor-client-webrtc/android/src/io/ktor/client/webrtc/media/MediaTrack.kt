@@ -11,6 +11,8 @@ import org.webrtc.VideoTrack
 
 /**
  * Wrapper for org.webrtc.MediaStreamTrack.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.AndroidMediaTrack)
  **/
 public abstract class AndroidMediaTrack(
     internal val nativeTrack: MediaStreamTrack,
@@ -56,6 +58,8 @@ public class AndroidVideoTrack(nativeTrack: MediaStreamTrack, onDispose: (() -> 
 
 /**
  * Returns implementation of the native video stream track used under the hood. Use it with caution.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.getNative)
  */
 public fun WebRtcMedia.VideoTrack.getNative(): VideoTrack {
     return (this as AndroidMediaTrack).nativeTrack as VideoTrack
@@ -63,6 +67,8 @@ public fun WebRtcMedia.VideoTrack.getNative(): VideoTrack {
 
 /**
  * Returns implementation of the native audio stream track used under the hood. Use it with caution.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.getNative)
  */
 public fun WebRtcMedia.AudioTrack.getNative(): AudioTrack {
     return (this as AndroidMediaTrack).nativeTrack as AudioTrack

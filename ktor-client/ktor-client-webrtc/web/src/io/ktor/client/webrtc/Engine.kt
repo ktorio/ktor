@@ -12,6 +12,8 @@ public class JsWebRtcEngineConfig : WebRtcConfig()
 
 /**
  * Common WebRtc Engine factory interface for JS and WasmJS targets.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.JsWebRtc)
  **/
 public object JsWebRtc : WebRtcClientEngineFactory<JsWebRtcEngineConfig> {
     override fun create(block: JsWebRtcEngineConfig.() -> Unit): WebRtcEngine =

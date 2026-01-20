@@ -13,12 +13,16 @@ private val StringReference: ReferenceOr<JsonSchema> = ReferenceOr.Value(JsonSch
  * Mapping function for [Operation].
  *
  * Used in post-processing of the OpenAPI model.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.OperationMapping)
  */
 public fun interface OperationMapping {
     public fun map(operation: Operation): Operation
 
     /**
      * Combine multiple [OperationMapping] instances into a single mapping.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.OperationMapping.plus)
      *
      * @param other mapping to apply after this one.
      * @return composed mapping that applies this mapping then [other].
@@ -46,6 +50,8 @@ internal class JoinedOperationMapping(private val operations: List<OperationMapp
  * Defaults applied:
  * - Parameters: if `in` is missing, default to `query`.
  * - Parameters/Headers: if both `schema` and `content` are missing, set `schema` to `type/string`.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.PopulateMediaTypeDefaults)
  */
 public val PopulateMediaTypeDefaults: OperationMapping = OperationMapping { operation ->
     val hasMissingParamMediaInfo = operation.parameters.orEmpty()
@@ -116,6 +122,8 @@ public val PopulateMediaTypeDefaults: OperationMapping = OperationMapping { oper
 
 /**
  * Replace all JSON class schema values with component references.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.CollectSchemaReferences)
  */
 public class CollectSchemaReferences(private val schemaToComponent: (JsonSchema) -> String?) : OperationMapping {
     override fun map(operation: Operation): Operation =

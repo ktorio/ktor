@@ -11,6 +11,9 @@ import kotlin.js.toArray
 
 /**
  * WebRtc peer connection implementation for JavaScript platform.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.JsWebRtcPeerConnection)
+ *
  * @param connection The native RTCPeerConnection object.
  */
 public class JsWebRtcPeerConnection(
@@ -138,6 +141,8 @@ public class JsWebRtcPeerConnection(
 
 /**
  * Returns implementation of the peer connection that is used under the hood. Use it with caution.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.getNative)
  */
 public fun WebRtcPeerConnection.getNative(): RTCPeerConnection {
     return (this as JsWebRtcPeerConnection).connection

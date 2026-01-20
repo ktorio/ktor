@@ -17,6 +17,8 @@ import kotlin.coroutines.resumeWithException
 /**
  * iOS-specific implementation of a WebRTC peer connection.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.IosWebRtcConnection)
+ *
  * @param coroutineContext coroutine context used to deliver connection callbacks.
  * @param config configuration describing ICE servers, media constraints, and other connection options.
  * @param createConnection factory function that creates a native peer connection instance using a provided delegate.
@@ -239,6 +241,8 @@ public class IosWebRtcConnection(
 
 /**
  * Returns implementation of the peer connection that is used under the hood. Use it with caution.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.getNative)
  */
 @OptIn(ExperimentalForeignApi::class)
 public fun WebRtcPeerConnection.getNative(): RTCPeerConnection {

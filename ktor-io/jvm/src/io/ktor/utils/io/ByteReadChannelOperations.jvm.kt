@@ -5,11 +5,15 @@
 package io.ktor.utils.io
 
 import io.ktor.utils.io.core.*
-import kotlinx.io.*
-import kotlinx.io.bytestring.*
-import kotlinx.io.unsafe.*
-import java.nio.*
-import java.nio.channels.*
+import kotlinx.io.EOFException
+import kotlinx.io.InternalIoApi
+import kotlinx.io.UnsafeIoApi
+import kotlinx.io.bytestring.ByteString
+import kotlinx.io.readAtMostTo
+import kotlinx.io.unsafe.UnsafeBufferOperations
+import java.nio.ByteBuffer
+import java.nio.channels.SelectableChannel
+import java.nio.channels.WritableByteChannel
 
 /**
  * Creates a channel for reading from the specified byte buffer.
@@ -120,6 +124,8 @@ public suspend fun ByteReadChannel.skipDelimiter(delimiter: ByteString) {
 
 /**
  * Reads data from the [ByteReadChannel] into the provided [buffer] until the buffer is fully filled or EOF is reached.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readFully)
  *
  * @param buffer the [ByteBuffer] into which bytes are read from the channel.
  * @throws EOFException if the channel is closed or there are not enough bytes available to fill the [buffer].

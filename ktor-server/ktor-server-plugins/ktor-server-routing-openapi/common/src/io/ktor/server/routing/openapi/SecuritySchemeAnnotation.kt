@@ -8,20 +8,16 @@ import io.ktor.openapi.*
 import io.ktor.openapi.ReferenceOr.Companion.value
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
-import io.ktor.server.auth.apikey.ApiKeyAuthenticationProvider
-import io.ktor.server.sessions.SessionProvidersKey
-import io.ktor.server.sessions.SessionTransportCookie
-import io.ktor.server.sessions.SessionTransportHeader
+import io.ktor.server.auth.apikey.*
+import io.ktor.server.sessions.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
-import kotlin.collections.component1
-import kotlin.collections.component2
-import kotlin.collections.iterator
-import kotlin.collections.set
 
 /**
  * Attribute key for storing OpenAPI security scheme metadata for authentication providers.
  * Maps provider names to their corresponding SecurityScheme definitions.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.AuthSecuritySchemesAttributeKey)
  */
 public val AuthSecuritySchemesAttributeKey: AttributeKey<Map<String, SecurityScheme>> =
     AttributeKey("AuthSecuritySchemes")
@@ -33,6 +29,8 @@ internal val AuthSecuritySchemesCacheAttributeKey: AttributeKey<Map<String, Secu
  * Registers a security scheme for an authentication provider.
  * This metadata will be used to generate the OpenAPI specification.
  * It's not recommended to use this method after the application has started.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.registerSecurityScheme)
  *
  * @param providerName The name of the authentication provider. Defaults to "default".
  * @param securityScheme The OpenAPI security scheme definition.
@@ -48,6 +46,8 @@ public fun Application.registerSecurityScheme(
 
 /**
  * Retrieves all registered security schemes from the application.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.findSecuritySchemes)
  *
  * @param useCache Whether to use a cached value if available. Enabled by default.
  *
@@ -74,6 +74,8 @@ public fun Application.findSecuritySchemes(useCache: Boolean = true): Map<String
 
 /**
  * Retrieves all registered security schemes from the application.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.findSecuritySchemesOrRefs)
  *
  * @param useCache Whether to use a cached value if available. Enabled by default.
  *
@@ -175,6 +177,8 @@ internal expect fun Application.inferPlatformSpecificSecurityScheme(provider: Au
 /**
  * Registers a Basic HTTP authentication security scheme.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.registerBasicAuthSecurityScheme)
+ *
  * @param name The name of the security scheme. Defaults to "default".
  * @param description Optional description for the security scheme. Defaults to "HTTP Basic Authentication".
  */
@@ -187,6 +191,8 @@ public fun Application.registerBasicAuthSecurityScheme(
 
 /**
  * Registers a Bearer HTTP authentication security scheme.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.registerBearerAuthSecurityScheme)
  *
  * @param name The name of the security scheme. Defaults to "default".
  * @param description Optional description for the security scheme. Defaults to "HTTP Bearer Authentication".
@@ -206,6 +212,8 @@ public fun Application.registerBearerAuthSecurityScheme(
 /**
  * Registers an API Key authentication security scheme.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.registerApiKeySecurityScheme)
+ *
  * @param name The name of the security scheme. Defaults to "default".
  * @param keyName The name of the header, query, or cookie parameter.
  * @param keyLocation The location of the API key (header, query, or cookie).
@@ -224,6 +232,8 @@ public fun Application.registerApiKeySecurityScheme(
 /**
  * Registers an OAuth2 authentication security scheme.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.registerOAuth2SecurityScheme)
+ *
  * @param name The name of the security scheme. Defaults to "default".
  * @param flows The OAuth2 flows configuration.
  * @param description Optional description for the security scheme. Defaults to "OAuth2 Authentication".
@@ -238,6 +248,8 @@ public fun Application.registerOAuth2SecurityScheme(
 
 /**
  * Registers an OpenID Connect authentication security scheme.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.registerOpenIdConnectSecurityScheme)
  *
  * @param name The name of the security scheme. Defaults to "default".
  * @param openIdConnectUrl The OpenID Connect discovery URL.

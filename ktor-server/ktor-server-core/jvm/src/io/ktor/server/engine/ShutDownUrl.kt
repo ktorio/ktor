@@ -10,8 +10,11 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
-import kotlin.system.*
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlin.system.exitProcess
 
 /**
  * A plugin that allows you to configure a URL used to shut down the server. There are two ways to enable this plugin:
@@ -114,6 +117,8 @@ public class ShutDownUrl(
 
         /**
          * Internal config item for testing shutdown.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.ShutDownUrl.Config.exit)
          */
         public var exit: (Int) -> Unit = ::exitProcess
     }

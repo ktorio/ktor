@@ -4,18 +4,13 @@
 
 package io.ktor.client.webrtc
 
-import web.rtc.RTCDTMFSender
-import web.rtc.RTCRtcpParameters
-import web.rtc.RTCRtpCodecParameters
-import web.rtc.RTCRtpEncodingParameters
-import web.rtc.RTCRtpSendParameters
-import web.rtc.RTCRtpSender
-import web.rtc.replaceTrack
-import web.rtc.setParameters
+import web.rtc.*
 import kotlin.js.toArray
 
 /**
  * Wrapper for RTCRtpSender.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.JsRtpSender)
  */
 public class JsRtpSender(internal val nativeSender: RTCRtpSender) : WebRtc.RtpSender {
     override val dtmf: WebRtc.DtmfSender? get() = nativeSender.dtmf?.let { JsDtmfSender(it) }
@@ -45,6 +40,8 @@ public class JsRtpSender(internal val nativeSender: RTCRtpSender) : WebRtc.RtpSe
 
 /**
  * Wrapper for RTCRtpSender.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.JsDtmfSender)
  */
 public class JsDtmfSender(internal val nativeSender: RTCDTMFSender) : WebRtc.DtmfSender {
     override val toneBuffer: String
@@ -59,6 +56,8 @@ public class JsDtmfSender(internal val nativeSender: RTCDTMFSender) : WebRtc.Dtm
 
 /**
  * Wrapper for RTCRtpSendParameters.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.JsRtpParameters)
  */
 public class JsRtpParameters(internal val nativeRtpParameters: RTCRtpSendParameters) : WebRtc.RtpParameters {
     override val transactionId: String = nativeRtpParameters.transactionId
@@ -81,6 +80,8 @@ public class JsRtpParameters(internal val nativeRtpParameters: RTCRtpSendParamet
 
 /**
  * Returns implementation of the rtp sender that is used under the hood. Use it with caution.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.getNative)
  */
 public fun WebRtc.RtpSender.getNative(): RTCRtpSender {
     return (this as JsRtpSender).nativeSender
@@ -88,6 +89,8 @@ public fun WebRtc.RtpSender.getNative(): RTCRtpSender {
 
 /**
  * Returns implementation of the dtmf sender that is used under the hood. Use it with caution.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.getNative)
  */
 public fun WebRtc.DtmfSender.getNative(): RTCDTMFSender {
     return (this as JsDtmfSender).nativeSender
@@ -95,6 +98,8 @@ public fun WebRtc.DtmfSender.getNative(): RTCDTMFSender {
 
 /**
  * Returns implementation of the rtp parameters that is used under the hood. Use it with caution.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.getNative)
  */
 public fun WebRtc.RtpParameters.getNative(): RTCRtpSendParameters {
     return (this as JsRtpParameters).nativeRtpParameters

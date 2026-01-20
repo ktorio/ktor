@@ -290,6 +290,8 @@ private fun Route.createRouteFromRegexPath(regex: Regex): Route {
  * A route selector that matches a segment of the path against a specified regular expression [regex].
  * This selector allows flexible matching of URI path segments by using regex patterns.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.PathSegmentRegexRouteSelector)
+ *
  * @property regex regular expression for matching path segments
  */
 public class PathSegmentRegexRouteSelector(public val regex: Regex) : RouteSelector(), RoutePathComponent {

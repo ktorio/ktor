@@ -12,7 +12,11 @@ import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
-/** A single encoding definition applied to a single schema property. */
+/**
+ * A single encoding definition applied to a single schema property.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Encoding)
+ */
 @Serializable(Encoding.Companion.Serializer::class)
 @OptIn(ExperimentalSerializationApi::class)
 @KeepGeneratedSerializer

@@ -7,7 +7,7 @@ package io.ktor.server.auth
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.request.ApplicationRequest
+import io.ktor.server.request.*
 import io.ktor.util.*
 
 /**
@@ -96,6 +96,8 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
 
         /**
          * Constructor that accepts the old style authorizeUrlInterceptor for backward compatibility
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthServerSettings.OAuth2ServerSettings.OAuth2ServerSettings)
          */
         @Deprecated(level = DeprecationLevel.HIDDEN, message = "Compatibility with authorizeUrlInterceptor change")
         public constructor(

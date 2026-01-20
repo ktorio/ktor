@@ -54,6 +54,8 @@ public class RustRtpParameters(internal val inner: RtpParameters) : WebRtc.RtpPa
 
 /**
  * Returns implementation of the rtp sender that is used under the hood. Use it with caution.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.rs.getNative)
  */
 public fun WebRtc.RtpSender.getNative(): RtpSender {
     val sender = this as? RustRtpSender ?: error("Wrong Rtp sender implementation.")
@@ -62,6 +64,8 @@ public fun WebRtc.RtpSender.getNative(): RtpSender {
 
 /**
  * Returns implementation of the rtp parameters that is used under the hood. Use it with caution.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.rs.getNative)
  */
 public fun WebRtc.RtpParameters.getNative(): RtpParameters {
     val parameters = this as? RustRtpParameters ?: error("Wrong parameters implementation.")

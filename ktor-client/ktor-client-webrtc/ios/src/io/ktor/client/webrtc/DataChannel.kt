@@ -15,6 +15,8 @@ import platform.darwin.NSObject
 
 /**
  * WebRtc data channel implementation for the Ios platform.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.IosWebRtcDataChannel)
  */
 @OptIn(ExperimentalForeignApi::class)
 public class IosWebRtcDataChannel(
@@ -127,6 +129,8 @@ public class IosWebRtcDataChannel(
 
 /**
  * Returns implementation of the data channel that is used under the hood. Use it with caution.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.getNative)
  */
 @OptIn(ExperimentalForeignApi::class)
 public fun WebRtcDataChannel.getNative(): RTCDataChannel {

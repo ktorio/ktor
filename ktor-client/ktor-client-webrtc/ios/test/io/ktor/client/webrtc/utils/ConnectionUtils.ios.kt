@@ -19,5 +19,7 @@ actual fun createTestWebRtcClient(): WebRtcClient {
 
 /**
  * There are no camera or microphone on the iOS simulator.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.utils.grantPermissions)
  */
 actual fun grantPermissions(audio: Boolean, video: Boolean) {}

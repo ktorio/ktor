@@ -5,17 +5,14 @@
 package io.ktor.client.webrtc
 
 import io.ktor.utils.io.core.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 
 /**
  * Abstract class representing a peer-to-peer connection.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcPeerConnection)
  *
  * @see [MDN RTCPeerConnection](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection)
  */
@@ -25,6 +22,9 @@ public abstract class WebRtcPeerConnection private constructor(
 ) : Closeable, WebRtcConnectionEvents by events {
 
     /**
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcPeerConnection.WebRtcPeerConnection)
+     *
      * @param coroutineContext Coroutine context to fetch statistics and emit events.
      * @param config Configuration for the peer connection.
      */
@@ -46,16 +46,22 @@ public abstract class WebRtcPeerConnection private constructor(
 
     /**
      * The local session description for this connection.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcPeerConnection.localDescription)
      */
     public abstract val localDescription: WebRtc.SessionDescription?
 
     /**
      * The remote session description for this connection.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcPeerConnection.remoteDescription)
      */
     public abstract val remoteDescription: WebRtc.SessionDescription?
 
     /**
      * Creates an SDP offer for establishing a connection.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcPeerConnection.createOffer)
      *
      * @return The session description representing the offer.
      */
@@ -63,6 +69,8 @@ public abstract class WebRtcPeerConnection private constructor(
 
     /**
      * Creates an SDP answer in response to a received offer.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcPeerConnection.createAnswer)
      *
      * @return The session description representing the answer.
      */
@@ -75,21 +83,29 @@ public abstract class WebRtcPeerConnection private constructor(
 
     /**
      * Sets the local session description.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcPeerConnection.setLocalDescription)
      */
     public abstract suspend fun setLocalDescription(description: WebRtc.SessionDescription)
 
     /**
      * Sets the remote session description.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcPeerConnection.setRemoteDescription)
      */
     public abstract suspend fun setRemoteDescription(description: WebRtc.SessionDescription)
 
     /**
      * Adds a remote ICE candidate to this connection.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcPeerConnection.addIceCandidate)
      */
     public abstract suspend fun addIceCandidate(candidate: WebRtc.IceCandidate)
 
     /**
      * Adds a media track to this connection.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcPeerConnection.addTrack)
      *
      * @param track The media track to add.
      * @return An RTP sender for the added track.
@@ -99,12 +115,16 @@ public abstract class WebRtcPeerConnection private constructor(
     /**
      * Removes a track from this connection using its RTP sender.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcPeerConnection.removeTrack)
+     *
      * @param sender The RTP sender for the track to remove.
      */
     public abstract suspend fun removeTrack(sender: WebRtc.RtpSender)
 
     /**
      * Removes a track from this connection.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcPeerConnection.removeTrack)
      *
      * @param track The media track to remove.
      */
@@ -114,11 +134,15 @@ public abstract class WebRtcPeerConnection private constructor(
      * Restarts ICE negotiation for this connection.
      * Should emit `negotiationNeeded` event.
      * The next offer will be created with `iceRestart` option.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcPeerConnection.restartIce)
      */
     public abstract fun restartIce()
 
     /**
      * Returns data providing statistics about the overall connection.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcPeerConnection.getStatistics)
      */
     public abstract suspend fun getStatistics(): List<WebRtc.Stats>
 

@@ -3,14 +3,18 @@
  */
 package io.ktor.openapi
 
-import io.ktor.http.ContentType
-import io.ktor.openapi.ReferenceOr.Value
+import io.ktor.http.*
+import io.ktor.openapi.ReferenceOr.*
 import io.ktor.utils.io.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KeepGeneratedSerializer
 import kotlinx.serialization.Serializable
 
-/** Each Media Type Object provides schema and examples for the media type identified by its key. */
+/**
+ * Each Media Type Object provides schema and examples for the media type identified by its key.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.MediaType)
+ */
 @Serializable(MediaType.Companion.Serializer::class)
 @OptIn(ExperimentalSerializationApi::class)
 @KeepGeneratedSerializer
@@ -43,30 +47,54 @@ public data class MediaType(
 
         /**
          * Default content value for headers and cookies, etc.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.MediaType.Companion.Text)
          */
         public val Text: Map<ContentType, MediaType> = mapOf(ContentType.Text.Plain to MediaType())
     }
 
-    /** Builder for constructing a [MediaType] instance. */
+    /**
+     * Builder for constructing a [MediaType] instance.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.MediaType.Builder)
+     */
     @KtorDsl
     public class Builder(private val schemaInference: JsonSchemaInference) : JsonSchemaInference by schemaInference {
-        /** The schema defining the content. */
+        /**
+         * The schema defining the content.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.MediaType.Builder.schema)
+         */
         public var schema: JsonSchema? = null
 
         private val _examples = mutableMapOf<String, ReferenceOr<ExampleObject>>()
         private val _encoding = mutableMapOf<String, Encoding>()
 
-        /** Examples of the media type. */
+        /**
+         * Examples of the media type.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.MediaType.Builder.examples)
+         */
         public val examples: Map<String, ReferenceOr<ExampleObject>> get() = _examples
 
-        /** Encoding information for properties. */
+        /**
+         * Encoding information for properties.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.MediaType.Builder.encoding)
+         */
         public val encoding: Map<String, Encoding> get() = _encoding
 
-        /** Specification-extensions for this media type. */
+        /**
+         * Specification-extensions for this media type.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.MediaType.Builder.extensions)
+         */
         public val extensions: MutableMap<String, GenericElement> = mutableMapOf()
 
         /**
          * Adds an example for this media type.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.MediaType.Builder.example)
          *
          * @param name The example identifier.
          * @param example The example object.
@@ -78,6 +106,8 @@ public data class MediaType(
         /**
          * Adds encoding information for a property.
          *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.MediaType.Builder.encoding)
+         *
          * @param propertyName The property name.
          * @param encoding The encoding configuration.
          */
@@ -87,6 +117,8 @@ public data class MediaType(
 
         /**
          * Adds an extension.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.MediaType.Builder.extension)
          *
          * @param name The extension name; must start with `x-`.
          * @param value The extension value.

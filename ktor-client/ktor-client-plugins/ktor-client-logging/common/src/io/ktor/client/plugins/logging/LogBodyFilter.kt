@@ -14,11 +14,15 @@ import kotlinx.io.Buffer
  * Decides to include the body of a response in the logs (if body logging is enabled).
  *
  * The result can be a subset of the complete response, or some alternative format.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.logging.LogBodyFilter)
  */
 public interface LogBodyFilter {
     /**
      * Applies a filtering operation on the request body based on the specified parameters.
      * Determines how the request body should be included in the logs.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.logging.LogBodyFilter.filterRequest)
      *
      * @param url The URL of the request.
      * @param contentLength The length of the request content, or null if unknown.
@@ -39,6 +43,8 @@ public interface LogBodyFilter {
      * Applies a filtering operation on the response body based on the specified parameters.
      * Determines how the response body should be included in the logs.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.logging.LogBodyFilter.filterResponse)
+     *
      * @param url The URL of the request.
      * @param contentLength The length of the response content, or null if unknown.
      * @param contentType The content type of the response, or null if unspecified.
@@ -57,6 +63,8 @@ public interface LogBodyFilter {
 
 /**
  * Convenience interface for two-way filtering using a common method.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.logging.CommonLogBodyFilter)
  */
 public fun interface CommonLogBodyFilter : LogBodyFilter {
     override suspend fun filterRequest(
@@ -78,6 +86,8 @@ public fun interface CommonLogBodyFilter : LogBodyFilter {
     /**
      * Filters the body content using the provided parameters during both request and response processing.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.logging.CommonLogBodyFilter.filterAll)
+     *
      * @param contentLength The length of the content, or null if the length is unknown.
      * @param contentType The type of the content, or null if the type is not specified.
      * @param headers The headers associated with the content.
@@ -94,6 +104,8 @@ public fun interface CommonLogBodyFilter : LogBodyFilter {
 
 /**
  * A [LogBodyFilter] that filters out binary content.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.logging.BinaryLogBodyFilter)
  */
 public val BinaryLogBodyFilter: LogBodyFilter = object : CommonLogBodyFilter {
     override suspend fun filterAll(
@@ -166,12 +178,16 @@ public val BinaryLogBodyFilter: LogBodyFilter = object : CommonLogBodyFilter {
 
 /**
  * Represents the result of a body filtering process, which can determine the state of the body after processing.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.logging.BodyFilterResult)
  */
 public sealed interface BodyFilterResult {
     public val byteSize: Long? get() = null
 
     /**
      * Represents an empty body.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.logging.BodyFilterResult.Empty)
      */
     public object Empty : BodyFilterResult
 
@@ -180,6 +196,8 @@ public sealed interface BodyFilterResult {
      *
      * This result indicates that the body should not be processed further.
      * A reason for skipping can be optionally provided as well as the size of the body in bytes.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.logging.BodyFilterResult.Skip)
      *
      * @property reason An optional explanation for why the body processing was skipped.
      * @property byteSize The size of the body in bytes, or null if unknown.
@@ -194,6 +212,8 @@ public sealed interface BodyFilterResult {
      *
      * This interface defines the functionality to access the content of a body after filtering.
      * Implementations should specify how the content is stored and provide the ability to read it as a string.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.logging.BodyFilterResult.Content)
      */
     public interface Content : BodyFilterResult {
         public fun read(): String
@@ -205,6 +225,8 @@ public sealed interface BodyFilterResult {
      *
      * This class provides functionality to decode the content of a given [buffer] into a string
      * using the specified [charset]. It also includes the size of the buffer as its byte size.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.logging.BodyFilterResult.BufferContent)
      *
      * @property buffer The [Buffer] containing the content to be read.
      * @property charset The [Charset] used for decoding the buffer content into a string.

@@ -210,6 +210,8 @@ public class AndroidWebRtcPeerConnection(
 
 /**
  * Returns implementation of the peer connection that is used under the hood. Use it with caution.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.getNative)
  */
 public fun WebRtcPeerConnection.getNative(): PeerConnection {
     return (this as AndroidWebRtcPeerConnection).peerConnection

@@ -12,6 +12,8 @@ import io.ktor.utils.io.*
  * This client provides a high-level API for WebRTC communication, delegating actual implementation
  * to platform-specific engines. It supports creating peer connections, managing media tracks,
  * and handling WebRTC signaling.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcClient)
  */
 @ExperimentalKtorApi
 public class WebRtcClient(engine: WebRtcEngine) : WebRtcEngine by engine
@@ -21,6 +23,8 @@ public class WebRtcClient(engine: WebRtcEngine) : WebRtcEngine by engine
  *
  * Platform-specific WebRTC implementations provide their own factory implementing this interface,
  * allowing the creation of appropriate WebRtcEngine instances with platform-specific configurations.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcClientEngineFactory)
  *
  * @param T expected engine-specific configuration class that extends WebRtcConfig
  */
@@ -43,6 +47,9 @@ public fun interface WebRtcClientEngineFactory<out T : WebRtcConfig> {
  * ```kotlin
  * client.close()
  * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcClient)
+ *
  * @param block configuration block for the client
  */
 @ExperimentalKtorApi
