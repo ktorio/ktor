@@ -594,6 +594,11 @@ public final class io/ktor/utils/io/jvm/javaio/WritingKt {
 	public static synthetic fun copyTo$default (Lio/ktor/utils/io/ByteReadChannel;Ljava/io/OutputStream;JLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
+public final class io/ktor/utils/io/jvm/nio/ByteBufferHolder {
+	public fun <init> ()V
+	public final fun getOrCreate ([BII)Ljava/nio/ByteBuffer;
+}
+
 public final class io/ktor/utils/io/jvm/nio/ReadingKt {
 	public static final fun asSource (Ljava/nio/channels/ReadableByteChannel;)Lkotlinx/io/RawSource;
 	public static final fun toByteReadChannel (Ljava/nio/channels/ReadableByteChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
@@ -609,6 +614,7 @@ public final class io/ktor/utils/io/jvm/nio/WriteSuspendSession {
 }
 
 public final class io/ktor/utils/io/jvm/nio/WriteSuspendSessionKt {
+	public static final fun getThreadLocalByteBufferHolder ()Ljava/lang/ThreadLocal;
 	public static final fun writeSuspendSession (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun writeWhile (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }

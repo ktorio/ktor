@@ -9,12 +9,18 @@ package io.ktor.util
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.CaseInsensitiveMap)
  */
-public class CaseInsensitiveMap<Value : Any> : MutableMap<String, Value> {
-    private val delegate = mutableMapOf<CaseInsensitiveString, Value>()
+public class CaseInsensitiveMap<Value : Any>(
+    initialCapacity: Int = DEFAULT_INITIAL_CAPACITY
+) : MutableMap<String, Value> {
+    private val delegate = LinkedHashMap<CaseInsensitiveString, Value>(initialCapacity)
+
+    private companion object {
+        private const val DEFAULT_INITIAL_CAPACITY = 16
+    }
 
     override val size: Int get() = delegate.size
 
-    override fun containsKey(key: String): Boolean = delegate.containsKey(CaseInsensitiveString(key))
+    override fun containsKey(key: String): Boolean = delegate.containsKey(key.caseInsensitive())
 
     override fun containsValue(value: Value): Boolean = delegate.containsValue(value)
 

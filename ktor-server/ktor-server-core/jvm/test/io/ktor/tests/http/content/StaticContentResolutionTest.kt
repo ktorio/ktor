@@ -24,6 +24,16 @@ class StaticContentResolutionTest {
 
     private val baseUrl = StaticContentResolutionTest::class.java.classLoader.getResource("testjar.jar")
 
+    @Test
+    fun testExtensionFunction() {
+        assertEquals(".txt", "file.txt".extension())
+        assertEquals(".html", "path/to/file.html".extension())
+        assertEquals(".tar.gz", "path\\to\\file.tar.gz".extension())
+        assertEquals("", "noextension".extension())
+        assertEquals("", "path/to/noextension".extension())
+        assertEquals(".config", ".config".extension())
+    }
+
     @OptIn(InternalAPI::class)
     @Test
     fun testResourceClasspathResourceWithDirectoryInsideJar() {
