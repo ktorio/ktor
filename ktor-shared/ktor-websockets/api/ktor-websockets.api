@@ -1,3 +1,26 @@
+public final class io/ktor/websocket/ChannelConfig {
+	public static final field Companion Lio/ktor/websocket/ChannelConfig$Companion;
+	public final fun getCanSuspend ()Z
+	public final fun getCapacity ()I
+	public final fun getOnOverflow ()Lio/ktor/websocket/ChannelOverflow;
+}
+
+public final class io/ktor/websocket/ChannelConfig$Companion {
+	public final fun getUNLIMITED ()Lio/ktor/websocket/ChannelConfig;
+}
+
+public final class io/ktor/websocket/ChannelOverflow : java/lang/Enum {
+	public static final field CLOSE Lio/ktor/websocket/ChannelOverflow;
+	public static final field SUSPEND Lio/ktor/websocket/ChannelOverflow;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/ktor/websocket/ChannelOverflow;
+	public static fun values ()[Lio/ktor/websocket/ChannelOverflow;
+}
+
+public final class io/ktor/websocket/ChannelOverflowException : java/lang/RuntimeException {
+	public fun <init> (Ljava/lang/String;)V
+}
+
 public final class io/ktor/websocket/CloseReason {
 	public fun <init> (Lio/ktor/websocket/CloseReason$Codes;Ljava/lang/String;)V
 	public fun <init> (SLjava/lang/String;)V
@@ -56,7 +79,9 @@ public final class io/ktor/websocket/DefaultWebSocketSession$DefaultImpls {
 public final class io/ktor/websocket/DefaultWebSocketSessionKt {
 	public static final field PINGER_DISABLED J
 	public static final fun DefaultWebSocketSession (Lio/ktor/websocket/WebSocketSession;JJ)Lio/ktor/websocket/DefaultWebSocketSession;
+	public static final fun DefaultWebSocketSession (Lio/ktor/websocket/WebSocketSession;JJLio/ktor/websocket/WebSocketChannelsConfig;)Lio/ktor/websocket/DefaultWebSocketSession;
 	public static synthetic fun DefaultWebSocketSession$default (Lio/ktor/websocket/WebSocketSession;JJILjava/lang/Object;)Lio/ktor/websocket/DefaultWebSocketSession;
+	public static synthetic fun DefaultWebSocketSession$default (Lio/ktor/websocket/WebSocketSession;JJLio/ktor/websocket/WebSocketChannelsConfig;ILjava/lang/Object;)Lio/ktor/websocket/DefaultWebSocketSession;
 	public static final fun getPingInterval (Lio/ktor/websocket/DefaultWebSocketSession;)Lkotlin/time/Duration;
 	public static final fun getTimeout (Lio/ktor/websocket/DefaultWebSocketSession;)J
 	public static final fun setPingInterval-6Au4x4Y (Lio/ktor/websocket/DefaultWebSocketSession;Lkotlin/time/Duration;)V
@@ -189,13 +214,15 @@ public final class io/ktor/websocket/ProtocolViolationException : java/lang/Exce
 }
 
 public final class io/ktor/websocket/RawWebSocketCommonKt {
+	public static final synthetic fun RawWebSocket (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;JZLkotlin/coroutines/CoroutineContext;)Lio/ktor/websocket/WebSocketSession;
+	public static synthetic fun RawWebSocket$default (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;JZLkotlin/coroutines/CoroutineContext;ILjava/lang/Object;)Lio/ktor/websocket/WebSocketSession;
 	public static final fun readFrame (Lio/ktor/utils/io/ByteReadChannel;JILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun writeFrame (Lio/ktor/utils/io/ByteWriteChannel;Lio/ktor/websocket/Frame;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/websocket/RawWebSocketJvmKt {
-	public static final fun RawWebSocket (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;JZLkotlin/coroutines/CoroutineContext;)Lio/ktor/websocket/WebSocketSession;
-	public static synthetic fun RawWebSocket$default (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;JZLkotlin/coroutines/CoroutineContext;ILjava/lang/Object;)Lio/ktor/websocket/WebSocketSession;
+	public static final fun RawWebSocket (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;JZLkotlin/coroutines/CoroutineContext;Lio/ktor/websocket/WebSocketChannelsConfig;)Lio/ktor/websocket/WebSocketSession;
+	public static synthetic fun RawWebSocket$default (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;JZLkotlin/coroutines/CoroutineContext;Lio/ktor/websocket/WebSocketChannelsConfig;ILjava/lang/Object;)Lio/ktor/websocket/WebSocketSession;
 }
 
 public final class io/ktor/websocket/Serializer {
@@ -214,6 +241,26 @@ public final class io/ktor/websocket/SimpleFrameCollector {
 	public final fun handle (Ljava/nio/ByteBuffer;)V
 	public final fun start (ILjava/nio/ByteBuffer;)V
 	public final fun take (Ljava/lang/Integer;)Ljava/nio/ByteBuffer;
+}
+
+public final class io/ktor/websocket/WebSocketChannelsConfig {
+	public static final field Companion Lio/ktor/websocket/WebSocketChannelsConfig$Companion;
+	public fun <init> ()V
+	public final fun bounded (ILio/ktor/websocket/ChannelOverflow;)Lio/ktor/websocket/ChannelConfig;
+	public static synthetic fun bounded$default (Lio/ktor/websocket/WebSocketChannelsConfig;ILio/ktor/websocket/ChannelOverflow;ILjava/lang/Object;)Lio/ktor/websocket/ChannelConfig;
+	public final fun getIncoming ()Lio/ktor/websocket/ChannelConfig;
+	public final fun getOutgoing ()Lio/ktor/websocket/ChannelConfig;
+	public final fun setIncoming (Lio/ktor/websocket/ChannelConfig;)V
+	public final fun setOutgoing (Lio/ktor/websocket/ChannelConfig;)V
+	public final fun unlimited ()Lio/ktor/websocket/ChannelConfig;
+}
+
+public final class io/ktor/websocket/WebSocketChannelsConfig$Companion {
+	public final fun getUNLIMITED ()Lio/ktor/websocket/WebSocketChannelsConfig;
+}
+
+public final class io/ktor/websocket/WebSocketChannelsConfigKt {
+	public static final fun from (Lkotlinx/coroutines/channels/Channel$Factory;Lio/ktor/websocket/ChannelConfig;)Lkotlinx/coroutines/channels/Channel;
 }
 
 public final class io/ktor/websocket/WebSocketDeflateExtension : io/ktor/websocket/WebSocketExtension {
@@ -285,8 +332,9 @@ public final class io/ktor/websocket/WebSocketExtensionsConfig {
 }
 
 public final class io/ktor/websocket/WebSocketReader : kotlinx/coroutines/CoroutineScope {
-	public fun <init> (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;JLio/ktor/utils/io/pool/ObjectPool;)V
-	public synthetic fun <init> (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;JLio/ktor/utils/io/pool/ObjectPool;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;J)V
+	public fun <init> (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;JLio/ktor/utils/io/pool/ObjectPool;Lio/ktor/websocket/ChannelConfig;)V
+	public synthetic fun <init> (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;JLio/ktor/utils/io/pool/ObjectPool;Lio/ktor/websocket/ChannelConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getIncoming ()Lkotlinx/coroutines/channels/ReceiveChannel;
 	public final fun getMaxFrameSize ()J
@@ -322,8 +370,9 @@ public final class io/ktor/websocket/WebSocketSessionKt {
 }
 
 public final class io/ktor/websocket/WebSocketWriter : kotlinx/coroutines/CoroutineScope {
-	public fun <init> (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;ZLio/ktor/utils/io/pool/ObjectPool;)V
-	public synthetic fun <init> (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;ZLio/ktor/utils/io/pool/ObjectPool;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;ZLio/ktor/utils/io/pool/ObjectPool;)V
+	public fun <init> (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;ZLio/ktor/utils/io/pool/ObjectPool;Lio/ktor/websocket/ChannelConfig;)V
+	public synthetic fun <init> (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;ZLio/ktor/utils/io/pool/ObjectPool;Lio/ktor/websocket/ChannelConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun flush (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getMasking ()Z

@@ -18,6 +18,7 @@ import kotlin.coroutines.*
  * @param maxFrameSize is an initial [maxFrameSize] value for [WebSocketSession]
  * @param masking is an initial [masking] value for [WebSocketSession]
  * @param coroutineContext is a [CoroutineContext] to execute reading/writing from/to connection
+ * @param channelsConfig is a [WebSocketChannelsConfig] for the incoming and outgoing [Frame] queues
  */
 @Suppress("FunctionName")
 public actual fun RawWebSocket(
@@ -25,5 +26,13 @@ public actual fun RawWebSocket(
     output: ByteWriteChannel,
     maxFrameSize: Long,
     masking: Boolean,
-    coroutineContext: CoroutineContext
-): WebSocketSession = RawWebSocketCommon(input, output, maxFrameSize, masking, coroutineContext)
+    coroutineContext: CoroutineContext,
+    channelsConfig: WebSocketChannelsConfig,
+): WebSocketSession = RawWebSocketCommon(
+    input,
+    output,
+    maxFrameSize,
+    masking,
+    coroutineContext,
+    channelsConfig
+)

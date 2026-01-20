@@ -21,9 +21,16 @@ internal fun Application.webSockets() {
                             val text = frame.readText()
                             send(Frame.Text(text))
                         }
+
+                        is Frame.Close -> close()
                         is Frame.Binary -> send(Frame.Binary(fin = true, frame.data))
                         else -> error("Unsupported frame type: ${frame.frameType}.")
                     }
+                }
+            }
+            webSocket("receive-backpressure") {
+                for (i in 0..1000) {
+                    send(Frame.Text("Hello $i"))
                 }
             }
             webSocket("headers") {
@@ -62,6 +69,7 @@ internal fun Application.webSockets() {
                             val text = frame.readText()
                             send(Frame.Text(text))
                         }
+
                         is Frame.Binary -> send(Frame.Binary(fin = true, frame.data))
                         else -> error("Unsupported frame type: ${frame.frameType}.")
                     }

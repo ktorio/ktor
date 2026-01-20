@@ -84,11 +84,13 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
         requestData: HttpRequestData,
     ): HttpResponseData {
         val requestTime = GMTDate()
+        val wsConfig = requestData.attributes[WEBSOCKETS_KEY]
         val session = OkHttpWebsocketSession(
-            engine,
-            config.webSocketFactory ?: engine,
-            engineRequest,
-            callContext
+            engine = engine,
+            webSocketFactory = config.webSocketFactory ?: engine,
+            engineRequest = engineRequest,
+            coroutineContext = callContext,
+            channelsConfig = wsConfig.channelsConfig
         ).apply { start() }
 
         val originResponse = session.originResponse.await()

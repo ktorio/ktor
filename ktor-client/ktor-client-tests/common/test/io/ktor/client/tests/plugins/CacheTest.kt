@@ -801,7 +801,6 @@ class CacheTest : ClientLoader() {
             val privateUrl = Url("$TEST_SERVER/cache/private")
 
             suspend fun privateCache() = privateStorage.findAll(privateUrl)
-            suspend fun publicCache() = publicStorage.findAll(privateUrl)
 
             val firstPrivate = client.get(privateUrl).body<String>()
             assertEquals(firstPrivate, "private")

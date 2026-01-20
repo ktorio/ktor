@@ -34,6 +34,8 @@ final class io.ktor.server.websocket/WebSocketUpgrade : io.ktor.http.content/Out
 final class io.ktor.server.websocket/WebSockets : kotlinx.coroutines/CoroutineScope { // io.ktor.server.websocket/WebSockets|null[0]
     constructor <init>(kotlin/Long, kotlin/Long, kotlin/Long, kotlin/Boolean) // io.ktor.server.websocket/WebSockets.<init>|<init>(kotlin.Long;kotlin.Long;kotlin.Long;kotlin.Boolean){}[0]
 
+    final val channelsConfig // io.ktor.server.websocket/WebSockets.channelsConfig|{}channelsConfig[0]
+        final fun <get-channelsConfig>(): io.ktor.websocket/WebSocketChannelsConfig // io.ktor.server.websocket/WebSockets.channelsConfig.<get-channelsConfig>|<get-channelsConfig>(){}[0]
     final val contentConverter // io.ktor.server.websocket/WebSockets.contentConverter|{}contentConverter[0]
         final fun <get-contentConverter>(): io.ktor.serialization/WebsocketContentConverter? // io.ktor.server.websocket/WebSockets.contentConverter.<get-contentConverter>|<get-contentConverter>(){}[0]
     final val coroutineContext // io.ktor.server.websocket/WebSockets.coroutineContext|{}coroutineContext[0]
@@ -68,6 +70,7 @@ final class io.ktor.server.websocket/WebSockets : kotlinx.coroutines/CoroutineSc
             final fun <get-timeoutMillis>(): kotlin/Long // io.ktor.server.websocket/WebSockets.WebSocketOptions.timeoutMillis.<get-timeoutMillis>|<get-timeoutMillis>(){}[0]
             final fun <set-timeoutMillis>(kotlin/Long) // io.ktor.server.websocket/WebSockets.WebSocketOptions.timeoutMillis.<set-timeoutMillis>|<set-timeoutMillis>(kotlin.Long){}[0]
 
+        final fun channels(kotlin/Function1<io.ktor.websocket/WebSocketChannelsConfig, kotlin/Unit>) // io.ktor.server.websocket/WebSockets.WebSocketOptions.channels|channels(kotlin.Function1<io.ktor.websocket.WebSocketChannelsConfig,kotlin.Unit>){}[0]
         final fun extensions(kotlin/Function1<io.ktor.websocket/WebSocketExtensionsConfig, kotlin/Unit>) // io.ktor.server.websocket/WebSockets.WebSocketOptions.extensions|extensions(kotlin.Function1<io.ktor.websocket.WebSocketExtensionsConfig,kotlin.Unit>){}[0]
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.websocket
@@ -9,7 +9,6 @@ import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
 import kotlinx.io.*
 import java.nio.*
@@ -25,37 +24,47 @@ import kotlin.coroutines.*
  *
  * @param maxFrameSize maximum frame size that could be read
  */
+@OptIn(InternalAPI::class)
 public class WebSocketReader(
     private val byteChannel: ByteReadChannel,
     override val coroutineContext: CoroutineContext,
     public var maxFrameSize: Long,
-    pool: ObjectPool<ByteBuffer> = KtorDefaultPool
+    pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
+    queueConfig: ChannelConfig = ChannelConfig.UNLIMITED
 ) : CoroutineScope {
+
+    @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
+    public constructor(byteChannel: ByteReadChannel, coroutineContext: CoroutineContext, maxFrameSize: Long) :
+        this(byteChannel, coroutineContext, maxFrameSize)
+
     private var state = State.HEADER
     private val frameParser = FrameParser()
     private val collector = SimpleFrameCollector()
 
-    private val queue = Channel<Frame>(8)
+    private val queue = Channel.from<Frame>(queueConfig)
 
-    private val readerJob = launch(CoroutineName("ws-reader"), start = CoroutineStart.ATOMIC) {
-        val buffer = pool.borrow()
-        try {
-            readLoop(buffer)
-        } catch (expected: ClosedChannelException) {
-        } catch (expected: CancellationException) {
-        } catch (io: IOException) {
-            queue.cancel()
-        } catch (cause: FrameTooBigException) {
-            // Bypass exception via queue to prevent cancellation and handle it on the top level.
-            queue.close(cause)
-        } catch (cause: ProtocolViolationException) {
-            // same as above
-            queue.close(cause)
-        } catch (cause: Throwable) {
-            throw cause
-        } finally {
-            pool.recycle(buffer)
-            queue.close()
+    init {
+        launch(CoroutineName("ws-reader"), start = CoroutineStart.ATOMIC) {
+            val buffer = pool.borrow()
+            try {
+                readLoop(buffer)
+            } catch (_: ClosedChannelException) {
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                queue.cancel(cause = e)
+            } catch (e: IOException) {
+                queue.cancel(cause = kotlin.coroutines.cancellation.CancellationException(cause = e))
+            } catch (cause: FrameTooBigException) {
+                // Bypass exception via queue to prevent cancellation and handle it on the top level.
+                queue.close(cause)
+            } catch (cause: ProtocolViolationException) {
+                // same as above
+                queue.close(cause)
+            } catch (cause: Throwable) {
+                throw cause
+            } finally {
+                pool.recycle(buffer)
+                queue.close()
+            }
         }
     }
 

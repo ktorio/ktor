@@ -2,8 +2,8 @@
  * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-@file:kotlin.jvm.JvmMultifileClass
-@file:kotlin.jvm.JvmName("UtilsKt")
+@file:JvmMultifileClass
+@file:JvmName("UtilsKt")
 
 package io.ktor.websocket
 
@@ -19,5 +19,5 @@ internal fun ByteBuffer.xor(other: ByteBuffer) {
     }
 }
 
-internal actual val OUTGOING_CHANNEL_CAPACITY: Int
-    get() = System.getProperty("io.ktor.websocket.outgoingChannelCapacity")?.toInt() ?: 8
+internal actual val OUTGOING_CHANNEL_CAPACITY: Int?
+    get() = System.getProperty("io.ktor.websocket.outgoingChannelCapacity")?.toInt()

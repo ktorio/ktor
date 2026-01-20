@@ -1,5 +1,5 @@
 /*
-* Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+* Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
 package io.ktor.client.plugins.websocket
@@ -14,19 +14,23 @@ import org.khronos.webgl.*
 import org.w3c.dom.*
 import kotlin.coroutines.*
 
+@Suppress("UNUSED_PARAMETER")
 private fun tryGetEventDataAsString(data: JsAny): String? =
     js("typeof(data) === 'string' ? data : null")
 
+@Suppress("UNUSED_PARAMETER")
 private fun tryGetEventDataAsArrayBuffer(data: JsAny): ArrayBuffer? =
     js("data instanceof ArrayBuffer ? data : null")
 
+@OptIn(InternalAPI::class)
 internal class JsWebSocketSession(
     override val coroutineContext: CoroutineContext,
-    private val websocket: WebSocket
+    private val websocket: WebSocket,
+    channelsConfig: WebSocketChannelsConfig
 ) : DefaultWebSocketSession {
     private val _closeReason: CompletableDeferred<CloseReason> = CompletableDeferred()
-    private val _incoming: Channel<Frame> = Channel(Channel.UNLIMITED)
-    private val _outgoing: Channel<Frame> = Channel(Channel.UNLIMITED)
+    private val _incoming: Channel<Frame> = Channel.from(channelsConfig.incoming)
+    private val _outgoing: Channel<Frame> = Channel.from(channelsConfig.outgoing)
 
     override val incoming: ReceiveChannel<Frame> = _incoming
     override val outgoing: SendChannel<Frame> = _outgoing
@@ -52,13 +56,16 @@ internal class JsWebSocketSession(
         get() = Long.MAX_VALUE
         set(_) = throw WebSocketException("Max frame size switch is not supported in Js engine.")
 
-    init {
-        websocket.binaryType = BinaryType.ARRAYBUFFER
+    private inline fun runWhenOpen(crossinline block: () -> Unit) {
+        if (websocket.readyState == WebSocket.OPEN) {
+            return block()
+        }
+        websocket.addEventListener("open", callback = { _: JsAny -> block() })
+    }
 
-        websocket.addEventListener(
-            "message"
-        ) { it: JsAny ->
-            val event = it.unsafeCast<MessageEvent>()
+    init {
+        val onMessage: (JsAny) -> Unit = { e ->
+            val event = e.unsafeCast<MessageEvent>()
 
             val data = event.data
             if (data == null) {
@@ -84,25 +91,42 @@ internal class JsWebSocketSession(
             _incoming.trySend(frame)
         }
 
-        websocket.addEventListener(
-            "error"
-        ) { it: JsAny ->
-            val cause = WebSocketException("$it")
+        val onError: (JsAny) -> Unit = { e ->
+            val cause = WebSocketException("$e")
             _closeReason.completeExceptionally(cause)
             _incoming.close(cause)
             _outgoing.cancel()
         }
 
-        websocket.addEventListener(
-            "close"
-        ) { it: JsAny ->
-            val closeEvent = it.unsafeCast<CloseEvent>()
+        lateinit var onClose: (JsAny) -> Unit
+        onClose = { e ->
+            val closeEvent = e.unsafeCast<CloseEvent>()
             val reason = CloseReason(closeEvent.code, closeEvent.reason)
             _closeReason.complete(reason)
             _incoming.trySend(Frame.Close(reason))
             _incoming.close()
             _outgoing.cancel()
+            websocket.removeEventListener("close", callback = onClose)
         }
+
+        coroutineContext[Job]?.invokeOnCompletion { cause ->
+            runWhenOpen {
+                if (cause == null) {
+                    websocket.close()
+                } else {
+                    // We cannot use INTERNAL_ERROR similarly to other WebSocketSession implementations here
+                    // as sending it is not supported by browsers.
+                    websocket.close(CloseReason.Codes.NORMAL.code, "Client failed")
+                }
+            }
+            websocket.removeEventListener("message", callback = onMessage)
+            websocket.removeEventListener("error", callback = onError)
+        }
+
+        websocket.binaryType = BinaryType.ARRAYBUFFER
+        websocket.addEventListener("message", callback = onMessage)
+        websocket.addEventListener("error", callback = onError)
+        websocket.addEventListener("close", callback = onClose)
 
         launch {
             _outgoing.consumeEach {
@@ -112,6 +136,7 @@ internal class JsWebSocketSession(
 
                         websocket.send(text.decodeToString(0, 0 + text.size))
                     }
+
                     FrameType.BINARY -> {
                         val source = it.data.asJsArray()
                         val frameData = source.buffer.slice(
@@ -121,6 +146,7 @@ internal class JsWebSocketSession(
 
                         websocket.send(frameData)
                     }
+
                     FrameType.CLOSE -> {
                         val data = buildPacket { writeFully(it.data) }
                         val code = data.readShort()
@@ -132,6 +158,7 @@ internal class JsWebSocketSession(
                             websocket.close(code, reason)
                         }
                     }
+
                     FrameType.PING, FrameType.PONG -> {
                         // ignore
                     }
@@ -139,14 +166,8 @@ internal class JsWebSocketSession(
             }
         }
 
-        coroutineContext[Job]?.invokeOnCompletion { cause ->
-            if (cause == null) {
-                websocket.close()
-            } else {
-                // We cannot use INTERNAL_ERROR similarly to other WebSocketSession implementations here
-                // as sending it is not supported by browsers.
-                websocket.close(CloseReason.Codes.NORMAL.code, "Client failed")
-            }
+        require(!channelsConfig.incoming.canSuspend) {
+            "SUSPEND overflow strategy for incoming channel is not supported."
         }
     }
 
@@ -173,7 +194,6 @@ internal class JsWebSocketSession(
     @OptIn(InternalAPI::class)
     private fun Short.isReservedStatusCode(): Boolean {
         return CloseReason.Codes.byCode(this).let { resolved ->
-
             resolved == null || resolved == CloseReason.Codes.CLOSED_ABNORMALLY
         }
     }

@@ -49,8 +49,9 @@ internal class CurlClientEngine(
             val status = HttpStatusCode.fromValue(status)
 
             val responseBody: Any = if (data.isUpgradeRequest()) {
+                val wsConfig = data.attributes[WEBSOCKETS_KEY]
                 val websocket = responseBody as CurlWebSocketResponseBody
-                CurlWebSocketSession(websocket, callContext)
+                CurlWebSocketSession(websocket, callContext, wsConfig.channelsConfig.outgoing)
             } else {
                 val httpResponse = responseBody as CurlHttpResponseBody
                 data.attributes.getOrNull(ResponseAdapterAttributeKey)
