@@ -70,6 +70,8 @@ public abstract class AuthenticationProvider(config: Config) {
         public val name: String?,
         public val description: String? = null
     ) {
+        @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
+        protected constructor(name: String?) : this(name, description = null)
 
         /**
          * Authentication filters specifying if authentication is required for a particular [ApplicationCall].

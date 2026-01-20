@@ -143,10 +143,11 @@ public class BearerAuthProvider(
     private val nonCancellableRefresh: Boolean = false,
 ) : AuthProvider {
 
+    @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
     public constructor(
         refreshTokens: suspend (RefreshTokensParams) -> BearerTokens?,
         loadTokens: suspend () -> BearerTokens?,
-        sendWithoutRequestCallback: (HttpRequestBuilder) -> Boolean,
+        sendWithoutRequestCallback: (HttpRequestBuilder) -> Boolean = { true },
         realm: String?,
     ) : this(
         refreshTokens,
