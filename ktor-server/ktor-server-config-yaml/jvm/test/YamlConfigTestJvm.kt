@@ -63,7 +63,7 @@ class YamlConfigTestJvm {
         val content = $$"""
             ktor:
                 property: "$test.property"
-            """.trimIndent()
+        """.trimIndent()
         val yaml = Yaml.default.decodeFromString<YamlMap>(content)
         val config = YamlConfig.from(yaml)
 
@@ -75,7 +75,7 @@ class YamlConfigTestJvm {
     fun testEnvVarWithValueStartingWithDollar() = withProperty("TEST_DB_PASSWORD", $$"$123Password") {
         val content = $$"""
                 password: $TEST_DB_PASSWORD
-            """.trimIndent()
+        """.trimIndent()
         val yaml = Yaml.default.decodeFromString<YamlMap>(content)
         val config = YamlConfig.from(yaml)
         assertEquals($$"$123Password", config.property("password").getString())
