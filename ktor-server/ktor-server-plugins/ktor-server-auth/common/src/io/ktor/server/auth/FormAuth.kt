@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.auth
@@ -8,6 +8,7 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
+import io.ktor.utils.io.InternalAPI
 
 /**
  * A form-based authentication provider.
@@ -18,15 +19,18 @@ import io.ktor.server.response.*
  * @see [form]
  */
 public class FormAuthenticationProvider internal constructor(config: Config) : AuthenticationProvider(config) {
-    private val userParamName: String = config.userParamName
+    @InternalAPI
+    public val userParamName: String = config.userParamName
 
-    private val passwordParamName: String = config.passwordParamName
+    @InternalAPI
+    public val passwordParamName: String = config.passwordParamName
 
     private val challengeFunction: FormAuthChallengeFunction = config.challengeFunction
 
     private val authenticationFunction: AuthenticationFunction<UserPasswordCredential> =
         config.authenticationFunction
 
+    @OptIn(InternalAPI::class)
     override suspend fun onAuthenticate(context: AuthenticationContext) {
         val call = context.call
         val postParameters = runCatching { call.receiveNullable<Parameters>() }.getOrNull()
@@ -59,7 +63,10 @@ public class FormAuthenticationProvider internal constructor(config: Config) : A
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.FormAuthenticationProvider.Config)
      */
-    public class Config internal constructor(name: String?) : AuthenticationProvider.Config(name) {
+    public class Config internal constructor(
+        name: String?,
+        description: String?
+    ) : AuthenticationProvider.Config(name, description) {
         internal var authenticationFunction: AuthenticationFunction<UserPasswordCredential> = { null }
 
         internal var challengeFunction: FormAuthChallengeFunction = {
@@ -134,7 +141,22 @@ public fun AuthenticationConfig.form(
     name: String? = null,
     configure: FormAuthenticationProvider.Config.() -> Unit
 ) {
-    val provider = FormAuthenticationProvider.Config(name).apply(configure).build()
+    form(name, description = null, configure)
+}
+
+/**
+ * Installs the form-based [Authentication] provider with description.
+ * Form-based authentication uses a web form to collect credential information and authenticate a user.
+ * To learn how to configure it, see [Form-based authentication](https://ktor.io/docs/form.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.form)
+ */
+public fun AuthenticationConfig.form(
+    name: String? = null,
+    description: String? = null,
+    configure: FormAuthenticationProvider.Config.() -> Unit
+) {
+    val provider = FormAuthenticationProvider.Config(name, description).apply(configure).build()
     register(provider)
 }
 

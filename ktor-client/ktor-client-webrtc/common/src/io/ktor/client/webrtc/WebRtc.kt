@@ -7,10 +7,10 @@ package io.ktor.client.webrtc
 import kotlinx.serialization.Serializable
 
 /**
- * An object containing WebRtc protocol entities and abstractions.
- * Provides the core types and interfaces needed for WebRtc peer-to-peer communication.
+ * An object containing WebRTC protocol entities and abstractions.
+ * Provides the core types and interfaces needed for WebRTC peer-to-peer communication.
  *
- * @see [MDN WebRtc API](https://developer.mozilla.org/en-US/docs/Web/API/WebRtc_API)
+ * @see [MDN WebRTC API](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API)
  */
 public object WebRtc {
     /**
@@ -89,17 +89,23 @@ public object WebRtc {
     /**
      * Represents an ICE server configuration for WebRtc connections.
      *
-     * @property urls The URL(s) of the ICE server.
+     * @property urls The URLs of the ICE server.
      * @property username Optional username for the ICE server.
      * @property credential Optional credential for the ICE server.
      *
      * @see [MDN RTCIceServer](https://developer.mozilla.org/en-US/docs/Web/API/RTCIceServer)
      */
     public data class IceServer(
-        val urls: String,
+        val urls: List<String>,
         val username: String? = null,
         val credential: String? = null
-    )
+    ) {
+        public constructor(url: String, username: String? = null, credential: String? = null) : this(
+            urls = listOf(url),
+            username,
+            credential
+        )
+    }
 
     /**
      * Represents the bundle policy for media negotiation.

@@ -14,8 +14,8 @@ kotlin {
             api(projects.ktorCallId)
         }
         commonTest.dependencies {
-            api(projects.ktorServerTestHost)
-            api(projects.ktorServerCallId)
+            implementation(projects.ktorServerTestHost)
+            implementation(projects.ktorServerCallId)
         }
     }
 }

@@ -1,0 +1,108 @@
+public final class io/ktor/server/routing/openapi/CollectSchemaReferences : io/ktor/server/routing/openapi/OperationMapping {
+	public fun <init> (Lkotlin/jvm/functions/Function1;)V
+	public fun map (Lio/ktor/openapi/Operation;)Lio/ktor/openapi/Operation;
+	public fun plus (Lio/ktor/server/routing/openapi/OperationMapping;)Lio/ktor/server/routing/openapi/OperationMapping;
+}
+
+public final class io/ktor/server/routing/openapi/DescribeRouteKt {
+	public static final fun describe (Lio/ktor/server/routing/Route;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
+	public static final fun getJsonSchemaAttributeKey ()Lio/ktor/util/AttributeKey;
+	public static final fun getOperationDescribeAttributeKey ()Lio/ktor/util/AttributeKey;
+	public static final fun getOperationHiddenAttributeKey ()Lio/ktor/util/AttributeKey;
+	public static final fun hide (Lio/ktor/server/routing/Route;)Lio/ktor/server/routing/Route;
+}
+
+public abstract interface class io/ktor/server/routing/openapi/OpenApiDocSource {
+	public abstract fun read (Lio/ktor/server/application/Application;Lio/ktor/openapi/OpenApiDoc;)Lio/ktor/server/routing/openapi/OpenApiDocSource$Text;
+}
+
+public final class io/ktor/server/routing/openapi/OpenApiDocSource$File : io/ktor/server/routing/openapi/OpenApiDocSource {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun getContentType ()Lio/ktor/http/ContentType;
+	public final fun getPath ()Ljava/lang/String;
+	public fun read (Lio/ktor/server/application/Application;Lio/ktor/openapi/OpenApiDoc;)Lio/ktor/server/routing/openapi/OpenApiDocSource$Text;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/routing/openapi/OpenApiDocSource$FirstOf : io/ktor/server/routing/openapi/OpenApiDocSource {
+	public fun <init> (Ljava/util/List;)V
+	public fun <init> ([Lio/ktor/server/routing/openapi/OpenApiDocSource;)V
+	public final fun getOptions ()Ljava/util/List;
+	public fun read (Lio/ktor/server/application/Application;Lio/ktor/openapi/OpenApiDoc;)Lio/ktor/server/routing/openapi/OpenApiDocSource$Text;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/routing/openapi/OpenApiDocSource$Routing : io/ktor/server/routing/openapi/OpenApiDocSource {
+	public fun <init> ()V
+	public fun <init> (Lio/ktor/http/ContentType;Lio/ktor/openapi/JsonSchemaInference;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (Lio/ktor/http/ContentType;Lio/ktor/openapi/JsonSchemaInference;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getContentType ()Lio/ktor/http/ContentType;
+	public final fun getRoutes ()Lkotlin/jvm/functions/Function1;
+	public final fun getSchemaInference ()Lio/ktor/openapi/JsonSchemaInference;
+	public final fun getSecuritySchemes ()Lkotlin/jvm/functions/Function1;
+	public final fun getSerializeModel ()Lkotlin/jvm/functions/Function1;
+	public fun read (Lio/ktor/server/application/Application;Lio/ktor/openapi/OpenApiDoc;)Lio/ktor/server/routing/openapi/OpenApiDocSource$Text;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/routing/openapi/OpenApiDocSource$Text : io/ktor/server/routing/openapi/OpenApiDocSource {
+	public fun <init> (Ljava/lang/String;Lio/ktor/http/ContentType;)V
+	public synthetic fun <init> (Ljava/lang/String;Lio/ktor/http/ContentType;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getContent ()Ljava/lang/String;
+	public final fun getContentType ()Lio/ktor/http/ContentType;
+	public fun read (Lio/ktor/server/application/Application;Lio/ktor/openapi/OpenApiDoc;)Lio/ktor/server/routing/openapi/OpenApiDocSource$Text;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/routing/openapi/OpenApiDocUtilsKt {
+	public static final fun plus (Lio/ktor/openapi/OpenApiDoc;Lio/ktor/server/routing/Route;)Lio/ktor/openapi/OpenApiDoc;
+	public static final fun plus (Lio/ktor/openapi/OpenApiDoc;Ljava/util/Collection;)Lio/ktor/openapi/OpenApiDoc;
+	public static final fun plus (Lio/ktor/openapi/OpenApiDoc;Ljava/util/Map;)Lio/ktor/openapi/OpenApiDoc;
+	public static final fun plus (Lio/ktor/openapi/OpenApiDoc;Lkotlin/sequences/Sequence;)Lio/ktor/openapi/OpenApiDoc;
+}
+
+public final class io/ktor/server/routing/openapi/OpenApiRoutesKt {
+	public static final fun mapToPathItems (Lkotlin/sequences/Sequence;Lio/ktor/server/routing/openapi/OperationMapping;)Ljava/util/Map;
+	public static synthetic fun mapToPathItems$default (Lkotlin/sequences/Sequence;Lio/ktor/server/routing/openapi/OperationMapping;ILjava/lang/Object;)Ljava/util/Map;
+	public static final fun mapToPathItemsAndSchema (Lkotlin/sequences/Sequence;)Lkotlin/Pair;
+}
+
+public abstract interface class io/ktor/server/routing/openapi/OperationMapping {
+	public abstract fun map (Lio/ktor/openapi/Operation;)Lio/ktor/openapi/Operation;
+	public fun plus (Lio/ktor/server/routing/openapi/OperationMapping;)Lio/ktor/server/routing/openapi/OperationMapping;
+}
+
+public final class io/ktor/server/routing/openapi/OperationMapping$DefaultImpls {
+	public static fun plus (Lio/ktor/server/routing/openapi/OperationMapping;Lio/ktor/server/routing/openapi/OperationMapping;)Lio/ktor/server/routing/openapi/OperationMapping;
+}
+
+public final class io/ktor/server/routing/openapi/OperationMappingKt {
+	public static final fun getPopulateMediaTypeDefaults ()Lio/ktor/server/routing/openapi/OperationMapping;
+}
+
+public final class io/ktor/server/routing/openapi/SecuritySchemeAnnotationKt {
+	public static final fun findSecuritySchemes (Lio/ktor/server/application/Application;Z)Ljava/util/Map;
+	public static synthetic fun findSecuritySchemes$default (Lio/ktor/server/application/Application;ZILjava/lang/Object;)Ljava/util/Map;
+	public static final fun findSecuritySchemesOrRefs (Lio/ktor/server/application/Application;Z)Ljava/util/Map;
+	public static synthetic fun findSecuritySchemesOrRefs$default (Lio/ktor/server/application/Application;ZILjava/lang/Object;)Ljava/util/Map;
+	public static final fun getAuthSecuritySchemesAttributeKey ()Lio/ktor/util/AttributeKey;
+	public static final fun registerApiKeySecurityScheme (Lio/ktor/server/application/Application;Ljava/lang/String;Ljava/lang/String;Lio/ktor/openapi/SecuritySchemeIn;Ljava/lang/String;)V
+	public static synthetic fun registerApiKeySecurityScheme$default (Lio/ktor/server/application/Application;Ljava/lang/String;Ljava/lang/String;Lio/ktor/openapi/SecuritySchemeIn;Ljava/lang/String;ILjava/lang/Object;)V
+	public static final fun registerBasicAuthSecurityScheme (Lio/ktor/server/application/Application;Ljava/lang/String;Ljava/lang/String;)V
+	public static synthetic fun registerBasicAuthSecurityScheme$default (Lio/ktor/server/application/Application;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
+	public static final fun registerBearerAuthSecurityScheme (Lio/ktor/server/application/Application;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public static synthetic fun registerBearerAuthSecurityScheme$default (Lio/ktor/server/application/Application;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
+	public static final fun registerOAuth2SecurityScheme (Lio/ktor/server/application/Application;Ljava/lang/String;Lio/ktor/openapi/OAuthFlows;Ljava/lang/String;)V
+	public static synthetic fun registerOAuth2SecurityScheme$default (Lio/ktor/server/application/Application;Ljava/lang/String;Lio/ktor/openapi/OAuthFlows;Ljava/lang/String;ILjava/lang/Object;)V
+	public static final fun registerOpenIdConnectSecurityScheme (Lio/ktor/server/application/Application;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public static synthetic fun registerOpenIdConnectSecurityScheme$default (Lio/ktor/server/application/Application;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
+	public static final fun registerSecurityScheme (Lio/ktor/server/application/Application;Ljava/lang/String;Lio/ktor/openapi/SecurityScheme;)V
+}
+
+public final class io/ktor/server/routing/openapi/SecuritySchemeAnnotation_jvmKt {
+	public static final fun registerDigestAuthSecurityScheme (Lio/ktor/server/application/Application;Ljava/lang/String;Ljava/lang/String;)V
+	public static synthetic fun registerDigestAuthSecurityScheme$default (Lio/ktor/server/application/Application;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
+	public static final fun registerJWTSecurityScheme (Lio/ktor/server/application/Application;Ljava/lang/String;Ljava/lang/String;)V
+	public static synthetic fun registerJWTSecurityScheme$default (Lio/ktor/server/application/Application;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
+}
+

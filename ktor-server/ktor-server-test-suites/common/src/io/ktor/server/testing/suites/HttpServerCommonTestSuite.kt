@@ -22,6 +22,7 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.sse.*
 import io.ktor.server.test.base.*
 import io.ktor.server.testing.*
 import io.ktor.server.util.*
@@ -98,8 +99,9 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
         withUrl("/") {
             assertEquals(200, status.value)
             val body = call.response.bodyAsText()
-            assertTrue(body.contains("Name-1=[value-1, value-2]"))
-            assertTrue(body.contains("Name-2=[value]"))
+            val ignoreCase = call.response.version != HttpProtocolVersion.HTTP_1_1
+            assertTrue(body.contains("Name-1=[value-1, value-2]", ignoreCase))
+            assertTrue(body.contains("Name-2=[value]", ignoreCase))
         }
     }
 
@@ -130,7 +132,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
 
         withUrl("/") {
             assertEquals(200, status.value)
-            assertEquals("k1=v1; \$x-enc=URI_ENCODING", headers[HttpHeaders.SetCookie])
+            assertEquals($$"k1=v1; $x-enc=URI_ENCODING", headers[HttpHeaders.SetCookie])
         }
     }
 
@@ -176,6 +178,27 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
+    fun testQueryMethodWithBody() = runTest {
+        createAndStartServer {
+            query("/") {
+                call.respondText("Hello")
+            }
+        }
+
+        withUrl(
+            "/",
+            {
+                method = HttpMethod.Query
+                setBody(ByteArrayContent("some=data".toByteArray(), ContentType.Application.FormUrlEncoded))
+            }
+        ) {
+            assertEquals(HttpStatusCode.OK.value, status.value)
+            assertEquals("Hello", bodyAsText())
+        }
+    }
+
+    @Test
+    @Http1Only
     fun testRequestTwiceNoKeepAlive() = runTest {
         createAndStartServer {
             get("/") {
@@ -203,6 +226,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
+    @Http1Only
     fun testRequestTwiceWithKeepAlive() = runTest {
         createAndStartServer {
             get("/") {
@@ -505,7 +529,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
             parent = TestData("parent")
         ) {
             get("/") {
-                val testDataFromParent = kotlin.coroutines.coroutineContext[TestData]
+                val testDataFromParent = currentCoroutineContext()[TestData]
                 assertNotNull(testDataFromParent, "Context should contain test data from parent")
                 call.respond(HttpStatusCode.OK, testDataFromParent.name)
             }
@@ -739,7 +763,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
 
         withUrl("/") {
             assertEquals(HttpStatusCode.InternalServerError, status)
-            assertTrue(bodyAsText().isEmpty())
+            assertEquals("Test exception", bodyAsText())
         }
     }
 
@@ -763,7 +787,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
             withUrl("/") {
                 body<ByteArray>()
             }
-        } catch (cause: Throwable) {
+        } catch (_: Throwable) {
             // expected
         }
     }
@@ -790,8 +814,30 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
             withUrl("/") {
                 body<ByteArray>()
             }
-        } catch (cause: Throwable) {
+        } catch (_: Throwable) {
             // expected
+        }
+    }
+
+    @Test
+    fun testSSEDoesNotSendConnectionOnHttp2() = runTest {
+        createAndStartServer {
+            application.install(SSE)
+            application.routing {
+                sse("/") {
+                    send("hello")
+                }
+            }
+        }
+
+        withUrl("/", {
+            header(HttpHeaders.Accept, "text/event-stream")
+        }) {
+            if (version == HttpProtocolVersion.HTTP_2_0) {
+                assertNull(headers[HttpHeaders.Connection])
+            }
+            assertEquals("text/event-stream", headers[HttpHeaders.ContentType])
+            assertEquals("data: hello", bodyAsText().trim())
         }
     }
 

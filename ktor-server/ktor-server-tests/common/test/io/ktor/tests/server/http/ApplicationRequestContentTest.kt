@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.server.http
@@ -18,7 +18,9 @@ import io.ktor.server.testing.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class ApplicationRequestContentTest {
     @Test
@@ -202,7 +204,7 @@ class ApplicationRequestContentTest {
                 assertEquals("bodyContent", call.receiveText())
 
                 // this also works because we already have a byte array cached
-                assertEquals("bodyContent", call.receiveChannel().readUTF8Line())
+                assertEquals("bodyContent", call.receiveChannel().readLine())
             }
         }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.websocket
@@ -16,6 +16,7 @@ import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import io.ktor.websocket.*
+import io.ktor.websocket.WebSocketChannelsConfig
 
 private val REQUEST_EXTENSIONS_KEY = AttributeKey<List<WebSocketExtension<*>>>("Websocket extensions")
 
@@ -44,16 +45,18 @@ public data object WebSocketExtensionsCapability : HttpClientEngineCapability<Un
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.WebSockets)
  *
- * @property pingIntervalMillis - interval between [FrameType.PING] messages.
- * @property maxFrameSize - max size of a single websocket frame.
+ * @property pingIntervalMillis - interval between [FrameType.PING] messages
+ * @property maxFrameSize - max size of a single websocket frame
  * @property extensionsConfig - extensions configuration
  * @property contentConverter - converter for serialization/deserialization
+ * @property channelsConfig - configuration for the I/O frame channels
  */
 public class WebSockets internal constructor(
     public val pingIntervalMillis: Long,
     public val maxFrameSize: Long,
     private val extensionsConfig: WebSocketExtensionsConfig,
-    public val contentConverter: WebsocketContentConverter? = null
+    public val contentConverter: WebsocketContentConverter? = null,
+    public val channelsConfig: WebSocketChannelsConfig = WebSocketChannelsConfig.UNLIMITED,
 ) {
     /**
      * Client WebSocket plugin.
@@ -106,7 +109,8 @@ public class WebSockets internal constructor(
     internal fun convertSessionToDefault(session: WebSocketSession): DefaultWebSocketSession {
         if (session is DefaultWebSocketSession) return session
 
-        return DefaultWebSocketSession(session, pingIntervalMillis, timeoutMillis = pingIntervalMillis * 2).also {
+        val timeoutMillis = (pingIntervalMillis * 2)
+        return DefaultWebSocketSession(session, pingIntervalMillis, timeoutMillis, channelsConfig).also {
             it.maxFrameSize = this@WebSockets.maxFrameSize
         }
     }
@@ -118,7 +122,10 @@ public class WebSockets internal constructor(
      */
     @KtorDsl
     public class Config {
-        internal val extensionsConfig: WebSocketExtensionsConfig = WebSocketExtensionsConfig()
+        internal val extensionsConfig = WebSocketExtensionsConfig()
+
+        @OptIn(InternalAPI::class)
+        internal val channelsConfig = WebSocketChannelsConfig()
 
         /**
          * Sets interval of sending ping frames.
@@ -144,6 +151,26 @@ public class WebSockets internal constructor(
         public var contentConverter: WebsocketContentConverter? = null
 
         /**
+         * Configuration for the incoming and outgoing [Frame] queues.
+         * Both queues are unlimited by default, which may lead to OutOfMemoryError under high backpressure.
+         * Some engines don't support suspending limited-size incoming channels — check compatibility before using them.
+         *
+         * Caution: A bounded incoming channel with [ChannelOverflow.CLOSE] will close on overflow,
+         * possibly causing exceptions for any frames received afterward.
+         *
+         * ```kotlin
+         * channels {
+         *     incoming = unlimited()
+         *     outgoing = bounded(capacity = 512, onOverflow = ChannelOverflow.SUSPEND)
+         * }
+         * ```
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.WebSockets.Config.channels)
+         */
+        public fun channels(block: WebSocketChannelsConfig.() -> Unit) {
+            channelsConfig.apply(block)
+        }
+
+        /**
          * Configure WebSocket extensions.
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.WebSockets.Config.extensions)
@@ -154,7 +181,7 @@ public class WebSockets internal constructor(
     }
 
     /**
-     * Add WebSockets support for ktor http client.
+     * Add WebSockets support for a ktor http client.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.WebSockets.Plugin)
      */
@@ -167,7 +194,8 @@ public class WebSockets internal constructor(
                 config.pingIntervalMillis,
                 config.maxFrameSize,
                 config.extensionsConfig,
-                config.contentConverter
+                config.contentConverter,
+                config.channelsConfig,
             )
         }
 

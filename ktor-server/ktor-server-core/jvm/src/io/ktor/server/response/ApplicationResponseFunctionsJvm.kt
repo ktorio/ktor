@@ -94,6 +94,39 @@ public suspend fun ApplicationCall.respondPath(path: Path, configure: OutgoingCo
 }
 
 /**
+ * Responds to a client with contents of a resource loaded from the classpath.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.respondResource)
+ */
+public suspend fun ApplicationCall.respondResource(
+    resourcePath: String,
+    configure: OutgoingContent.() -> Unit = {}
+) {
+    val message = resolveResource(resourcePath) ?: throw IllegalArgumentException(
+        "Resource not found: $resourcePath"
+    )
+    message.apply(configure)
+    respond(message)
+}
+
+/**
+ * Responds to a client with contents of a resource loaded from the classpath.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.respondResource)
+ */
+public suspend fun ApplicationCall.respondResource(
+    resourcePath: String,
+    resourcePackage: String,
+    configure: OutgoingContent.() -> Unit = {}
+) {
+    val message = resolveResource(resourcePath, resourcePackage) ?: throw IllegalArgumentException(
+        "Resource not found: $resourcePath in package $resourcePackage"
+    )
+    message.apply(configure)
+    respond(message)
+}
+
+/**
  * Respond with text content writer.
  *
  * The [writer] parameter will be called later when engine is ready to produce content.

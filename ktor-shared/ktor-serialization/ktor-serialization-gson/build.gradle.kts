@@ -15,12 +15,12 @@ kotlin {
             api(libs.gson)
         }
         jvmTest.dependencies {
-            api(projects.ktorServerTestHost)
-            api(projects.ktorClientTests)
-            api(projects.ktorClientContentNegotiationTests)
-            api(projects.ktorSerializationTests)
+            implementation(projects.ktorServerTestHost)
+            implementation(projects.ktorClientTests)
+            implementation(projects.ktorClientContentNegotiationTests)
+            implementation(projects.ktorSerializationTests)
 
-            api(libs.logback.classic)
+            implementation(libs.logback.classic)
         }
     }
 }

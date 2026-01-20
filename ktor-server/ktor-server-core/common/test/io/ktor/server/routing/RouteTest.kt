@@ -103,6 +103,7 @@ class RouteTest {
 
                 route("/info", HttpMethod.Get) {
                     post("new") {}
+                    query("old") {}
 
                     handle {
                         call.respondText("OK")
@@ -111,7 +112,7 @@ class RouteTest {
             }
 
             val endpoints = root.getAllRoutes()
-            assertTrue { endpoints.size == 7 }
+            assertTrue { endpoints.size == 8 }
             val expected = setOf(
                 "/shop/customer/{id}/(method:GET)",
                 "/shop/customer/new/(method:POST)",
@@ -119,7 +120,8 @@ class RouteTest {
                 "/shop/order/shipment/(method:PUT)",
                 "/shop/order/shipment/(method:POST)",
                 "/info/(method:GET)",
-                "/info/(method:GET)/new/(method:POST)"
+                "/info/(method:GET)/new/(method:POST)",
+                "/info/(method:GET)/old/(method:QUERY)",
             )
             assertEquals(expected, endpoints.map { it.toString() }.toSet())
         }

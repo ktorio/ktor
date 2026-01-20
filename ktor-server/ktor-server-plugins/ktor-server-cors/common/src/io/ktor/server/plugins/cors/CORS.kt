@@ -87,7 +87,7 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
             return@onCall
         }
 
-        LOGGER.info { "${call.request.id()}: Start handler" }
+        LOGGER.trace { "${call.request.id()}: Start handler" }
 
         if (!allowsAnyHost || allowCredentials) {
             call.corsVary()
@@ -96,7 +96,7 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
         val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull()
 
         if (origin == null) {
-            LOGGER.info { "${call.request.id()}: Skip CORS handler because request lacks the Origin header" }
+            LOGGER.trace { "${call.request.id()}: Skip CORS handler because request lacks the Origin header" }
             return@onCall
         }
 
@@ -116,7 +116,7 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
 
             OriginCheckResult.SkipCORS -> return@onCall
             OriginCheckResult.Failed -> {
-                LOGGER.info { "${call.request.id()}: CORS check fails because Origin $origin does not match" }
+                LOGGER.trace { "${call.request.id()}: CORS check fails because Origin $origin does not match" }
                 call.respondCorsFailed()
                 return@onCall
             }
@@ -126,7 +126,7 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
             val contentType = call.request.header(HttpHeaders.ContentType)?.let { ContentType.parse(it) }
             if (contentType != null) {
                 if (contentType.withoutParameters() !in CORSConfig.CorsSimpleContentTypes) {
-                    LOGGER.info {
+                    LOGGER.trace {
                         "${call.request.id()}: CORS check fails because the requested content type $contentType " +
                             "is not in the list of the only allowed simple types ${CORSConfig.CorsSimpleContentTypes}"
                     }
@@ -137,7 +137,7 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
         }
 
         if (call.request.httpMethod == HttpMethod.Options) {
-            LOGGER.info { "${call.request.id()}: Start preflight handler" }
+            LOGGER.trace { "${call.request.id()}: Start preflight handler" }
             call.respondPreflight(
                 origin,
                 methodsListHeaderValue,
@@ -153,7 +153,7 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
         }
 
         if (!call.corsCheckCurrentMethod(methods)) {
-            LOGGER.info {
+            LOGGER.trace {
                 "${call.request.id()}: CORS check fails because HTTP method ${call.request.httpMethod.value} " +
                     "is not allowed. Allowed methods: $methods"
             }
@@ -161,7 +161,7 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
             return@onCall
         }
 
-        LOGGER.info { "${call.request.id()}: CORS check is succeeded" }
+        LOGGER.trace { "${call.request.id()}: CORS check is succeeded" }
 
         call.accessControlAllowOrigin(origin, allowsAnyHost, allowCredentials)
         call.accessControlAllowCredentials(allowCredentials)
@@ -193,11 +193,11 @@ private fun checkOrigin(
     originPredicates: List<(String) -> Boolean>
 ): OriginCheckResult = when {
     !isValidOrigin(origin) -> {
-        LOGGER.info { "${request.id()}: Skip CORS handler because Origin $origin is malformed" }
+        LOGGER.trace { "${request.id()}: Skip CORS handler because Origin $origin is malformed" }
         OriginCheckResult.SkipCORS
     }
     allowSameOrigin && isSameOrigin(origin, request.origin) -> {
-        LOGGER.info { "${request.id()}: Skip CORS handler because Origin $origin matches the server origin exactly" }
+        LOGGER.trace { "${request.id()}: Skip CORS handler because Origin $origin matches the server origin exactly" }
         OriginCheckResult.SkipCORS
     }
     !corsCheckOrigins(
@@ -233,13 +233,13 @@ private suspend fun ApplicationCall.respondPreflight(
         } ?: emptyList()
 
     if (!corsCheckRequestMethod(methods)) {
-        LOGGER.info { "${request.id()}: Preflight: Request method check fails" }
+        LOGGER.trace { "${request.id()}: Preflight: Request method check fails" }
         respond(HttpStatusCode.Forbidden)
         return
     }
 
     if (!corsCheckRequestHeaders(requestHeaders, allHeadersSet, headerPredicates)) {
-        LOGGER.info {
+        LOGGER.trace {
             val disallowedHeaders = requestHeaders.filterNot { header ->
                 header in allHeadersSet || headerMatchesAPredicate(header, headerPredicates)
             }
@@ -249,7 +249,7 @@ private suspend fun ApplicationCall.respondPreflight(
                 if (headerPredicates.isNotEmpty()) "Allowed Header predicates: $headerPredicates" else ""
         }
 
-        LOGGER.info { "${request.id()}: Preflight: Check on headers from Access-Control-Request-Headers fails" }
+        LOGGER.trace { "${request.id()}: Preflight: Check on headers from Access-Control-Request-Headers fails" }
         respond(HttpStatusCode.Forbidden)
         return
     }

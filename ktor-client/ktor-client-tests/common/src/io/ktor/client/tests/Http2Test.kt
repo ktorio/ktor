@@ -4,6 +4,7 @@
 
 package io.ktor.client.tests
 
+import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
@@ -48,13 +49,14 @@ abstract class Http2Test<T : HttpClientEngineConfig>(
         }
     }
 
-    protected fun TestClientBuilder<T>.configureClient() {
+    protected fun TestClientBuilder<T>.configureClient(configure: HttpClientConfig<T>.() -> Unit = {}) {
         config {
             engine {
                 enableHttp2()
                 if (!useH2c) disableCertificateValidation()
             }
             defaultRequest { url(testHost) }
+            configure()
         }
     }
 }

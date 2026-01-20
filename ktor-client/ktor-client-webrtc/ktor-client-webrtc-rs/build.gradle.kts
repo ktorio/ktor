@@ -8,9 +8,10 @@ import gobley.gradle.Variant
 description = "Ktor WebRTC Engine based on the WebRTC.rs and Gobley"
 
 plugins {
-    id("dev.gobley.rust") version "0.3.3"
-    id("dev.gobley.cargo") version "0.3.3"
-    id("dev.gobley.uniffi") version "0.3.3"
+    // Wait until 0.3.8 is released because of https://github.com/gobley/gobley/issues/259
+    id("dev.gobley.rust") version "0.3.5"
+    id("dev.gobley.cargo") version "0.3.5"
+    id("dev.gobley.uniffi") version "0.3.5"
     id("ktorbuild.project.library")
     kotlin("plugin.atomicfu") version libs.versions.kotlin.get()
 }
@@ -74,10 +75,5 @@ tasks.named {
 
 // macOS
 tasks.named { it.startsWith("cargoBuildMacOS") || it.startsWith("cinteropRustMacOS") }.configureEach {
-    onlyIf { GobleyHost.Platform.MacOS.isCurrent }
-}
-
-// ios
-tasks.named { it.startsWith("cargoBuildIos") || it.startsWith("cinteropIos") }.configureEach {
     onlyIf { GobleyHost.Platform.MacOS.isCurrent }
 }

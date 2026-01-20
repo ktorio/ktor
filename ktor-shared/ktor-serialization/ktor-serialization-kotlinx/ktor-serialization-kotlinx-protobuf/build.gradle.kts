@@ -16,10 +16,10 @@ kotlin {
             api(libs.kotlinx.serialization.protobuf)
         }
         jvmTest.dependencies {
-            api(projects.ktorClientContentNegotiationTests)
+            implementation(projects.ktorClientContentNegotiationTests)
         }
         commonTest.dependencies {
-            api(projects.ktorSerializationKotlinxTests)
+            implementation(projects.ktorSerializationKotlinxTests)
         }
     }
 }

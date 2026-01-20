@@ -15,9 +15,9 @@ kotlin {
             api(projects.ktorClientCore)
         }
         jvmTest.dependencies {
-            api(projects.ktorClientTests)
-            api(projects.ktorNetworkTls)
-            api(projects.ktorNetworkTlsCertificates)
+            implementation(projects.ktorClientTests)
+            implementation(projects.ktorNetworkTls)
+            implementation(projects.ktorNetworkTlsCertificates)
         }
     }
 }

@@ -15,6 +15,8 @@ import kotlin.jvm.JvmInline
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.LineEndingMode)
  */
+@Suppress("DEPRECATION")
+@Deprecated("Use LineEnding instead")
 @InternalAPI
 @JvmInline
 public value class LineEndingMode private constructor(private val mode: Int) {

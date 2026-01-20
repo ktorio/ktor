@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http
@@ -144,7 +144,7 @@ public class ContentType private constructor(
                     throw BadContentTypeFormatException(value)
                 }
 
-                val type = parts.substring(0, slash).trim()
+                val type = parts.take(slash).trim()
 
                 if (type.isEmpty()) {
                     throw BadContentTypeFormatException(value)
@@ -431,7 +431,29 @@ public fun ContentType.withCharsetIfNeeded(charset: Charset): ContentType =
 public fun HeaderValueWithParameters.charset(): Charset? = parameter("charset")?.let {
     try {
         Charsets.forName(it)
-    } catch (exception: IllegalArgumentException) {
+    } catch (_: IllegalArgumentException) {
         null
     }
+}
+
+private val textSubTypes = setOf(
+    "json",
+    "ld+json",
+    "xml",
+    "xhtml+xml",
+    "rss+xml",
+    "atom+xml",
+    "x-www-form-urlencoded",
+    "svg+xml"
+)
+
+/**
+ * Returns true if the content type represents textual data.
+ * For binary data, returns false.
+ */
+public fun ContentType.isTextType(): Boolean {
+    if (contentType == "text") return true
+    if (contentType == "application" && contentSubtype.lowercase() in textSubTypes) return true
+
+    return false
 }

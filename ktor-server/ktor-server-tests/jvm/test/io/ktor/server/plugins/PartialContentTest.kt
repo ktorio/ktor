@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.plugins
@@ -18,7 +18,7 @@ import io.ktor.server.testing.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import kotlinx.io.*
+import kotlinx.io.IOException
 import kotlin.test.*
 
 class PartialContentTest {
@@ -135,14 +135,14 @@ class PartialContentTest {
 
     private suspend fun ByteReadChannel.findLineWithBoundary(boundary: String): String? {
         do {
-            val line = readUTF8Line() ?: return null
+            val line = readLineStrict() ?: return null
             if (line.contains(boundary)) return line
         } while (true)
     }
 
     private suspend fun ByteReadChannel.scanHeaders() = Headers.build {
         do {
-            val line = readUTF8Line()
+            val line = readLineStrict()
             if (line.isNullOrBlank()) break
 
             val (header, value) = line.chomp(":") { throw IOException("Illegal header line $line") }

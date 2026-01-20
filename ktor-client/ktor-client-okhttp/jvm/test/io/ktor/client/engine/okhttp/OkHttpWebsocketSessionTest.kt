@@ -4,7 +4,7 @@
 
 package io.ktor.client.engine.okhttp
 
-import io.ktor.client.*
+import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.test.base.*
 import kotlinx.coroutines.Job

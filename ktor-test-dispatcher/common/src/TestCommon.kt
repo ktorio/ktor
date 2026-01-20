@@ -4,10 +4,16 @@
 
 package io.ktor.test.dispatcher
 
-import kotlinx.coroutines.*
-import kotlinx.coroutines.test.*
-import kotlin.coroutines.*
-import kotlin.time.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.test.TestDispatcher
+import kotlinx.coroutines.test.TestResult
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -36,6 +42,9 @@ public fun runTestWithRealTime(
     context: CoroutineContext = EmptyCoroutineContext,
     timeout: Duration = 60.seconds,
     testBody: suspend CoroutineScope.() -> Unit
-): TestResult = runTest(context, timeout) {
-    withContext(Dispatchers.Default.limitedParallelism(1), testBody)
+): TestResult {
+    val context = if (context[CoroutineDispatcher] is TestDispatcher) context else EmptyCoroutineContext
+    return runTest(context, timeout) {
+        withContext(Dispatchers.Default.limitedParallelism(1), testBody)
+    }
 }

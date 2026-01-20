@@ -1,5 +1,5 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+* Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
 package io.ktor.server.sessions
@@ -8,8 +8,10 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
+import io.ktor.utils.io.InternalAPI
 
-internal val SessionProvidersKey = AttributeKey<List<SessionProvider<*>>>("SessionProvidersKey")
+@InternalAPI
+public val SessionProvidersKey: AttributeKey<List<SessionProvider<*>>> = AttributeKey("SessionProvidersKey")
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.server.sessions.Sessions")
 
@@ -27,6 +29,7 @@ internal val LOGGER = KtorSimpleLogger("io.ktor.server.sessions.Sessions")
  *
  * @property providers list of session providers
  */
+@OptIn(InternalAPI::class)
 public val Sessions: RouteScopedPlugin<SessionsConfig> = createRouteScopedPlugin("Sessions", ::SessionsConfig) {
     val providers = pluginConfig.providers.toList()
     val sessionSupplier: suspend (ApplicationCall, List<SessionProvider<*>>) -> StatefulSession =

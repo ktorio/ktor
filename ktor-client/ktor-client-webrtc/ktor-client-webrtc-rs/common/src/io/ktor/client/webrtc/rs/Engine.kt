@@ -33,7 +33,7 @@ public class RustWebRtcEngine(
     override suspend fun createPeerConnection(config: WebRtcConnectionConfig): WebRtcPeerConnection {
         val nativeConfig = ConnectionConfig(
             iceServers = config.iceServers.map {
-                IceServer(listOf(it.urls), it.username ?: "", it.credential ?: "")
+                IceServer(it.urls, it.username ?: "", it.credential ?: "")
             },
             addDefaultTransceivers = true,
             iceCandidatePoolSize = config.iceCandidatePoolSize.toUByte(),

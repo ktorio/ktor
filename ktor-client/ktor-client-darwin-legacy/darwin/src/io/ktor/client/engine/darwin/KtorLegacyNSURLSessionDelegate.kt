@@ -18,6 +18,7 @@ import kotlin.coroutines.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.KtorLegacyNSURLSessionDelegate)
  */
+@Suppress("DEPRECATION")
 @OptIn(UnsafeNumber::class)
 public fun KtorLegacyNSURLSessionDelegate(): KtorLegacyNSURLSessionDelegate {
     return KtorLegacyNSURLSessionDelegate(null)
@@ -28,7 +29,7 @@ public fun KtorLegacyNSURLSessionDelegate(): KtorLegacyNSURLSessionDelegate {
  * If users set custom session in [DarwinLegacyClientEngineConfig.sessionAndDelegate],
  * they need to register this delegate in their session.
  * This can be done by registering it directly,
- * extending their custom delegate from it
+ * extending their custom delegate from it,
  * or by calling required methods from their custom delegate.
  *
  * For HTTP requests to work property, it's important that users call these functions:
@@ -39,6 +40,14 @@ public fun KtorLegacyNSURLSessionDelegate(): KtorLegacyNSURLSessionDelegate {
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.KtorLegacyNSURLSessionDelegate)
  */
 @OptIn(UnsafeNumber::class)
+@Deprecated(
+    message = "DarwinLegacy engine is deprecated. Consider using KtorNSURLSessionDelegate from Darwin engine instead.",
+    replaceWith = ReplaceWith(
+        "KtorNSURLSessionDelegate",
+        "io.ktor.client.engine.darwin.KtorNSURLSessionDelegate"
+    ),
+    level = DeprecationLevel.WARNING
+)
 public class KtorLegacyNSURLSessionDelegate(
     internal val challengeHandler: ChallengeHandler?
 ) : NSObject(), NSURLSessionDataDelegateProtocol {

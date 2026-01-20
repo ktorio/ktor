@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.plugins.bodylimit
@@ -13,8 +13,11 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.test.*
-import kotlin.test.*
+import kotlinx.coroutines.test.runTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 
 class RequestBodyLimitTest {
 
@@ -148,7 +151,7 @@ class RequestBodyLimitTest {
         assertFailsWith<PayloadTooLargeException> {
             ByteReadChannel("This is too long")
                 .applyLimit(5)
-                .readUTF8Line()
+                .readLine()
         }
     }
 
@@ -157,7 +160,7 @@ class RequestBodyLimitTest {
         val expected = "This is OK"
         val actual = ByteReadChannel(expected)
             .applyLimit(10)
-            .readUTF8Line()
+            .readLine()
         assertEquals(expected, actual)
     }
 
@@ -170,7 +173,7 @@ class RequestBodyLimitTest {
         }
         val actual = channelThatClosesAfterFirstCheck
             .applyLimit(10)
-            .readUTF8Line()
+            .readLine()
         assertNull(actual)
     }
 }

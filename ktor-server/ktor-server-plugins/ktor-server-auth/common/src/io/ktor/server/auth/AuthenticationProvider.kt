@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.auth
@@ -34,6 +34,13 @@ public abstract class AuthenticationProvider(config: Config) {
     public val name: String? = config.name
 
     /**
+     * A description of the provider that can be used for API documentation.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.AuthenticationProvider.description)
+     */
+    public val description: String? = config.description
+
+    /**
      * Authenticates a request based on [AuthenticationContext].
      * Implementations should either add a new [AuthenticationContext.principal] for successful authentication
      * or register [AuthenticationContext.challenge] for failed ones.
@@ -45,7 +52,7 @@ public abstract class AuthenticationProvider(config: Config) {
     /**
      * Authentication filters specifying if authentication is required for a particular [ApplicationCall].
      *
-     * If there is no filters, authentication is required. If any filter returns `true`, authentication is not required.
+     * If there are no filters, authentication is required. If any filter returns `true`, authentication is not required.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.AuthenticationProvider.skipWhen)
      */
@@ -56,14 +63,20 @@ public abstract class AuthenticationProvider(config: Config) {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.AuthenticationProvider.Config)
      *
-     * @property name is the name of the provider, or `null` for a default provider.
+     * @property name A name of the provider, or `null` for a default provider.
+     * @property description A description of the provider that can be used for API documentation.
      */
-    public open class Config protected constructor(public val name: String?) {
+    public open class Config protected constructor(
+        public val name: String?,
+        public val description: String? = null
+    ) {
+        @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
+        protected constructor(name: String?) : this(name, description = null)
 
         /**
          * Authentication filters specifying if authentication is required for a particular [ApplicationCall].
          *
-         * If there is no filters, authentication is required. If any filter returns `true`, authentication is not required.
+         * If there are no filters, authentication is required. If any filter returns `true`, authentication is not required.
          */
         internal var filterPredicates: MutableList<ApplicationCallPredicate>? = null
 

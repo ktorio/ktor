@@ -1,15 +1,17 @@
 /*
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
-@file:OptIn(ExperimentalWasmDsl::class)
+@file:OptIn(ExperimentalWasmDsl::class, ExperimentalKotlinGradlePluginApi::class)
 
-import ktorbuild.targets.optionalAndroidLibrary
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import ktorbuild.disableNativeCompileConfigurationCache
+import ktorbuild.targets.*
+import org.jetbrains.kotlin.gradle.*
 
 description = "Ktor WebRTC Client"
 
 plugins {
     id("ktorbuild.optional.android-library")
+    id("ktorbuild.optional.cocoapods")
     id("kotlinx-serialization")
     id("ktorbuild.project.library")
 }
@@ -19,8 +21,33 @@ kotlin {
 
     optionalAndroidLibrary {
         namespace = "io.ktor.client.webrtc"
-        compileSdk = 35
-        minSdk = 28
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+        minSdk = libs.versions.android.minSdk.get().toInt()
+    }
+
+    optionalCocoapods {
+        version = project.version.toString()
+        summary = "Ktor WebRTC Client"
+        homepage = "https://github.com/ktorio/ktor"
+        source = "https://github.com/ktorio/ktor"
+        authors = "JetBrains"
+        license = "https://www.apache.org/licenses/LICENSE-2.0"
+        ios.deploymentTarget = libs.versions.ios.deploymentTarget.get()
+
+        pod("WebRTC-SDK") {
+            version = libs.versions.ios.webrtc.sdk.get()
+            moduleName = "WebRTC"
+            packageName = "WebRTC"
+            extraOpts += listOf("-compiler-option", "-fmodules")
+            extraOpts += listOf("-compiler-option", "-DTARGET_OS_VISION=0")
+        }
+
+        framework {
+            baseName = "KtorWebRTC"
+            isStatic = true
+        }
+
+        noPodspec()
     }
 
     sourceSets {
@@ -37,8 +64,8 @@ kotlin {
             implementation(project(":ktor-test-dispatcher"))
         }
 
-        jsAndWasmSharedMain.dependencies {
-            implementation(kotlinWrappers.browser)
+        webMain.dependencies {
+            api(kotlinWrappers.browser)
         }
 
         wasmJs {
@@ -48,7 +75,9 @@ kotlin {
         }
 
         optional.androidMain.dependencies {
-            implementation(libs.stream.webrtc.android)
+            api(libs.stream.webrtc.android)
         }
     }
+
+    disableNativeCompileConfigurationCache()
 }

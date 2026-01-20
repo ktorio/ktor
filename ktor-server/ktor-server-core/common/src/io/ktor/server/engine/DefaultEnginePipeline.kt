@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.engine
@@ -10,8 +10,9 @@ import io.ktor.server.config.*
 import io.ktor.server.engine.internal.*
 import io.ktor.server.logging.*
 import io.ktor.server.plugins.*
+import io.ktor.server.request.httpVersion
 import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import io.ktor.server.routing.routingCallKey
 import io.ktor.util.cio.*
 import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
@@ -46,8 +47,13 @@ public fun defaultEnginePipeline(config: ApplicationConfig, developmentMode: Boo
             }
         } finally {
             try {
-                call.request.receiveChannel().discard()
-            } catch (ignore: Throwable) {
+                val version = HttpProtocolVersion.parse(call.request.httpVersion)
+                if (version.major == 1) {
+                    // In HTTP/1.1, we should read the entire request body to reuse the persistent connection
+                    // HTTP/2 and higher don't require draining the input to reuse it
+                    call.request.receiveChannel().discard()
+                }
+            } catch (_: Throwable) {
             }
         }
     }
@@ -62,9 +68,8 @@ public fun defaultEnginePipeline(config: ApplicationConfig, developmentMode: Boo
  */
 public suspend fun handleFailure(call: ApplicationCall, error: Throwable) {
     logError(call, error)
-    if (call.response.isSent) return
-
-    tryRespondError(call, defaultExceptionStatusCode(error) ?: HttpStatusCode.InternalServerError)
+    val statusCode = defaultExceptionStatusCode(error) ?: HttpStatusCode.InternalServerError
+    tryRespondError(call, statusCode, error.message)
 }
 
 /**
@@ -92,10 +97,14 @@ public fun defaultExceptionStatusCode(cause: Throwable): HttpStatusCode? = when 
     else -> null
 }
 
-private suspend fun tryRespondError(call: ApplicationCall, statusCode: HttpStatusCode) {
+private suspend fun tryRespondError(call: ApplicationCall, statusCode: HttpStatusCode, message: String?) {
+    if (call.response.isCommitted || call.response.isSent) return
     try {
-        call.respond(statusCode)
-    } catch (ignore: BaseApplicationResponse.ResponseAlreadySentException) {
+        when (message) {
+            null -> call.respond(statusCode)
+            else -> call.respond(statusCode, message)
+        }
+    } catch (_: BaseApplicationResponse.ResponseAlreadySentException) {
     }
 }
 
@@ -121,10 +130,10 @@ private fun ApplicationEnvironment.logFailure(call: ApplicationCall, cause: Thro
 
             else -> log.error("$status: $logString", cause)
         }
-    } catch (oom: OutOfMemoryError) {
+    } catch (_: OutOfMemoryError) {
         try {
             log.error(cause)
-        } catch (oomAttempt2: OutOfMemoryError) {
+        } catch (_: OutOfMemoryError) {
             printError("OutOfMemoryError: ")
             printError(cause.message)
             printError("\n")

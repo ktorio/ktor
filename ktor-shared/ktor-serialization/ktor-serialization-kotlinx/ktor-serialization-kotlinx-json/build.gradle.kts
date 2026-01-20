@@ -17,10 +17,10 @@ kotlin {
             api(libs.kotlinx.serialization.json.io)
         }
         jvmTest.dependencies {
-            api(projects.ktorClientContentNegotiationTests)
+            implementation(projects.ktorClientContentNegotiationTests)
         }
         commonTest.dependencies {
-            api(projects.ktorSerializationKotlinxTests)
+            implementation(projects.ktorSerializationKotlinxTests)
         }
     }
 }

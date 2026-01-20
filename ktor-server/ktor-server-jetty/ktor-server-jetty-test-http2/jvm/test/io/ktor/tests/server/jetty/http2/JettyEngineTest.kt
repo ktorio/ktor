@@ -34,6 +34,11 @@ class JettyEngineHttp2HttpServerJvmTest :
 
 class JettyEngineHttp2SustainabilityTest :
     SustainabilityTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty) {
+
+    override fun configure(configuration: JettyApplicationEngineBase.Configuration) {
+        configuration.callGroupSize = 5
+    }
+
     @Ignore
     override fun validateCallCoroutineContext() {}
 }

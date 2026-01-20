@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.websocket
@@ -18,6 +18,7 @@ import kotlin.coroutines.*
  * @param maxFrameSize is an initial [maxFrameSize] value for [WebSocketSession]
  * @param masking is an initial [masking] value for [WebSocketSession]
  * @param coroutineContext is a [CoroutineContext] to execute reading/writing from/to connection
+ * @param channelsConfig is a [WebSocketChannelsConfig] for the incoming and outgoing [Frame] queues
  */
 @Suppress("FunctionName")
 public actual fun RawWebSocket(
@@ -25,5 +26,6 @@ public actual fun RawWebSocket(
     output: ByteWriteChannel,
     maxFrameSize: Long,
     masking: Boolean,
-    coroutineContext: CoroutineContext
-): WebSocketSession = RawWebSocketCommon(input, output, maxFrameSize, masking, coroutineContext)
+    coroutineContext: CoroutineContext,
+    channelsConfig: WebSocketChannelsConfig,
+): WebSocketSession = RawWebSocketCommon(input, output, maxFrameSize, masking, coroutineContext, channelsConfig)

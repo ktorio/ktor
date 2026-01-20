@@ -11,7 +11,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
-import io.ktor.http.content.TextContent
+import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.engine.*
@@ -23,11 +23,12 @@ import io.ktor.server.testing.*
 import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
-import kotlinx.serialization.*
-import kotlinx.serialization.json.*
+import kotlinx.coroutines.*
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlin.test.*
 
 class OAuth2Test {
@@ -291,6 +292,148 @@ class OAuth2Test {
     }
 
     @Test
+    fun testRedirectWithMultipleProviders() = testApplication {
+        val testClient = testClient.await()
+
+        suspend fun resolveProvider(providerId: String): OAuthServerSettings.OAuth2ServerSettings {
+            delay(5)
+            return when (providerId) {
+                "provider1" -> OAuthServerSettings.OAuth2ServerSettings(
+                    name = "provider1-oauth2",
+                    authorizeUrl = "http://provider1-com/authorize",
+                    accessTokenUrl = "http://provider1-com/access_token",
+                    clientId = "provider1-id",
+                    clientSecret = "provider1-secret",
+                    requestMethod = HttpMethod.Post
+                )
+
+                "provider2" -> OAuthServerSettings.OAuth2ServerSettings(
+                    name = "provider2-oauth2",
+                    authorizeUrl = "http://provider2-com/authorize",
+                    accessTokenUrl = "http://provider2-com/access_token",
+                    clientId = "provider2-id",
+                    clientSecret = "provider2-secret",
+                    requestMethod = HttpMethod.Post
+                )
+
+                else -> error("Unsupported provider ID: $providerId")
+            }
+        }
+
+        install(Authentication) {
+            oauth("login") {
+                client = testClient
+                providerLookup = {
+                    val providerId = parameters["provider"] ?: error("Missing provider ID")
+                    resolveProvider(providerId)
+                }
+                urlProvider = {
+                    delay(5)
+                    "http://localhost/login/${parameters["provider"]}"
+                }
+            }
+        }
+
+        routing {
+            authenticate("login") {
+                get("/login/{provider}") {
+                    val providerId = call.parameters["provider"] ?: return@get call.respond(HttpStatusCode.BadRequest)
+                    call.respondText("OAuth config applied for provider: $providerId")
+                }
+            }
+        }
+
+        coroutineScope {
+            repeat(50) { index ->
+                launch {
+                    val provider = if (index % 2 == 0) "provider1" else "provider2"
+                    val result = noRedirectsClient().get("/login/$provider")
+                    assertEquals(HttpStatusCode.Found, result.status)
+                    val url = Url(
+                        result.headers[HttpHeaders.Location]
+                            ?: throw IllegalStateException("No location header in the response")
+                    )
+                    assertEquals("/authorize", url.encodedPath)
+                    assertEquals("$provider-com", url.host)
+
+                    val query = url.parameters
+                    assertEquals("$provider-id", query[OAuth2RequestParameters.ClientId])
+                    assertEquals("code", query[OAuth2RequestParameters.ResponseType])
+                    assertNotNull(query[OAuth2RequestParameters.State])
+                    assertEquals("http://localhost/login/$provider", query[OAuth2RequestParameters.RedirectUri])
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testFallback() = testApplication {
+        val errorMessage = "Invalid response!"
+        install(Authentication) {
+            oauth("login") {
+                client = this@testApplication.client
+                urlProvider = { "http://localhost/login" }
+                providerLookup = {
+                    OAuthServerSettings.OAuth2ServerSettings(
+                        name = "oauth2",
+                        authorizeUrl = "http://localhost/authorize",
+                        accessTokenUrl = "http://localhost/access_token",
+                        clientId = "clientId1",
+                        clientSecret = "clientSecret1",
+                        requestMethod = HttpMethod.Post,
+                        passParamsInURL = true
+                    )
+                }
+                fallback = { cause ->
+                    if (cause is OAuth2RedirectError) {
+                        respondRedirect("/login-after-fallback")
+                    } else if (cause.message.contains(errorMessage)) {
+                        respond(HttpStatusCode.Forbidden, cause.message)
+                    } else {
+                        response.header("Auth-Fallback", "Unknown error")
+                    }
+                }
+            }
+        }
+
+        routing {
+            post("/authorize") {
+                call.respondText("error=authorizeError", ContentType.Application.FormUrlEncoded)
+            }
+            post("/access_token") {
+                if (call.request.queryParameters[OAuth2RequestParameters.Code] == "code") {
+                    call.respondText("error=$errorMessage", ContentType.Application.FormUrlEncoded)
+                } else {
+                    call.respondText("error=error", ContentType.Application.FormUrlEncoded)
+                }
+            }
+            authenticate("login") {
+                get("/login") { }
+            }
+            get("/login-after-fallback") {
+                call.respondText("Redirected after fallback")
+            }
+        }
+
+        // exception during redirect, for example user denied access
+        client.get("/login?error=ERROR").apply {
+            assertEquals(status, HttpStatusCode.OK)
+            assertEquals("Redirected after fallback", bodyAsText())
+        }
+
+        // exception during token request
+        client.get("/login?code=code&state=state").apply {
+            assertEquals(status, HttpStatusCode.Forbidden)
+            assertTrue { bodyAsText().contains(errorMessage) }
+        }
+
+        // Unauthorized if not handled by fallback
+        client.get("/login?code=invalid&state=invalid").apply {
+            assertEquals(status, HttpStatusCode.Unauthorized)
+        }
+    }
+
+    @Test
     fun testRequestToken() = testApplication {
         application { module() }
         val result = client.get(
@@ -301,6 +444,84 @@ class OAuth2Test {
         )
 
         assertEquals(HttpStatusCode.OK, result.status)
+    }
+
+    @Test
+    fun testRequestTokenWithMultipleProviders() = testApplication {
+        val testClient = testClient.await()
+
+        suspend fun resolveProvider(providerId: String): OAuthServerSettings.OAuth2ServerSettings {
+            delay(5)
+            return when (providerId) {
+                "provider1" -> OAuthServerSettings.OAuth2ServerSettings(
+                    name = "provider1-oauth2",
+                    authorizeUrl = "http://provider1-com/authorize",
+                    accessTokenUrl = "http://provider1-com/oauth/access_token",
+                    clientId = "clientId1",
+                    clientSecret = "clientSecret1",
+                    requestMethod = HttpMethod.Post
+                )
+
+                "provider2" -> OAuthServerSettings.OAuth2ServerSettings(
+                    name = "provider2-oauth2",
+                    authorizeUrl = "http://provider2-com/authorize",
+                    accessTokenUrl = "http://provider2-com/oauth/access_token",
+                    clientId = "clientId1",
+                    clientSecret = "clientSecret1",
+                    requestMethod = HttpMethod.Post
+                )
+
+                else -> error("Unsupported provider ID: $providerId")
+            }
+        }
+
+        install(Authentication) {
+            oauth("login") {
+                client = testClient
+                providerLookup = {
+                    val providerId = parameters["provider"] ?: error("Missing provider ID")
+                    resolveProvider(providerId)
+                }
+                urlProvider = { "http://localhost/login" }
+            }
+
+            basic("resource") {
+                realm = "oauth2"
+                validate { }
+            }
+        }
+        routing {
+            authenticate("login") {
+                route("/login/{provider}") {
+                    handle {
+                        val providerId = call.parameters["provider"]
+                        call.respondText("OAuth config applied for provider: $providerId")
+                    }
+                }
+            }
+            authenticate("resource") {
+                get("/resource/{provider}") {
+                    call.respondText("ok")
+                }
+            }
+        }
+
+        coroutineScope {
+            repeat(50) { index ->
+                launch {
+                    val provider = if (index % 2 == 0) "provider1" else "provider2"
+                    val result = client.get(
+                        "/login/$provider?" + listOf(
+                            OAuth2RequestParameters.Code to "code1",
+                            OAuth2RequestParameters.State to "state1"
+                        ).formUrlEncode()
+                    )
+
+                    assertEquals(HttpStatusCode.OK, result.status)
+                    assertTrue(result.bodyAsText().contains(provider), "Expected response to contain: $provider")
+                }
+            }
+        }
     }
 
     @Test
@@ -366,11 +587,7 @@ class OAuth2Test {
             ).formUrlEncode()
         )
 
-        assertEquals(HttpStatusCode.Found, call.status)
-        assertNotNull(call.headers[HttpHeaders.Location])
-        assertTrue {
-            call.headers[HttpHeaders.Location]!!.startsWith("https://login-server-com/authorize")
-        }
+        assertEquals(HttpStatusCode.Unauthorized, call.status)
     }
 
     @Test

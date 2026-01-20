@@ -13,6 +13,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.test.dispatcher.runTestWithRealTime
 import io.ktor.util.logging.Logger
+import io.ktor.util.reflect.TypeInfo
 import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
@@ -558,6 +559,40 @@ class DependencyInjectionTest {
             closed.toList(),
             "Expected all dependencies to be closed in the correct order"
         )
+    }
+
+    @Test
+    fun `access to raw types`() = runTestDI({
+        conflictPolicy = DefaultConflictPolicy
+    }) {
+        val expectedService = GreetingServiceImpl()
+        dependencies {
+            provide<GreetingService> { expectedService }
+            provide<List<GreetingService>> { listOf(resolve()) }
+
+            // ambiguous for raw types
+            provide<Map<String, GreetingService>> { mapOf("hello" to resolve()) }
+            provide<Map<String, String>> { mapOf("hello" to "goodbye") }
+        }
+        val list: List<GreetingService> = dependencies.get(DependencyKey(TypeInfo(List::class)))
+        assertEquals(listOf(expectedService), list)
+        assertEquals(mapOf("hello" to "goodbye"), dependencies.resolve())
+        assertFailsWith<AmbiguousDependencyException> {
+            dependencies.get(DependencyKey(TypeInfo(Map::class)))
+        }
+    }
+
+    @Test
+    fun `override previous policy`() = runTestDI({
+        conflictPolicy = OverridePrevious
+    }) {
+        dependencies {
+            provide<GreetingService> { GreetingServiceImpl() }
+            provide<GreetingService> { BankGreetingService() }
+        }
+
+        val service: GreetingService = dependencies.resolve()
+        assertEquals(HELLO_CUSTOMER, service.hello())
     }
 
     @Suppress("UNCHECKED_CAST")

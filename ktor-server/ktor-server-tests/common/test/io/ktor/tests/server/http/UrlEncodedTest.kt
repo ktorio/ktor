@@ -14,8 +14,15 @@ import io.ktor.utils.io.charsets.*
 import kotlin.test.*
 
 class UrlEncodedTest {
-    suspend fun ApplicationRequest.parseUrlEncodedParameters(limit: Int = 1000): Parameters {
-        return call.receive<String>().parseUrlEncodedParameters(contentCharset() ?: Charsets.UTF_8, limit)
+    suspend fun ApplicationRequest.parseUrlEncodedParameters(
+        limit: Int = 1000,
+        plusIsSpace: Boolean = false
+    ): Parameters {
+        return call.receive<String>().parseUrlEncodedParameters(
+            contentCharset() ?: Charsets.UTF_8,
+            limit,
+            plusIsSpace
+        )
     }
 
     @Test
@@ -28,6 +35,34 @@ class UrlEncodedTest {
         }
         client.get {
             setBody("field1=%D0%A2%D0%B5%D1%81%D1%82")
+        }.bodyAsText()
+    }
+
+    @Test
+    fun plusIsSpace() = testApplication {
+        application {
+            intercept(ApplicationCallPipeline.Call) {
+                val parsed = call.request.parseUrlEncodedParameters(plusIsSpace = true)
+                assertEquals("a b", parsed["field1"])
+            }
+        }
+        client.post {
+            setBody("field1=a+b")
+            header(HttpHeaders.ContentType, "application/x-www-form-urlencoded")
+        }.bodyAsText()
+    }
+
+    @Test
+    fun plusIsNotSpace() = testApplication {
+        application {
+            intercept(ApplicationCallPipeline.Call) {
+                val parsed = call.request.parseUrlEncodedParameters(plusIsSpace = false)
+                assertEquals("a+b", parsed["field1"])
+            }
+        }
+        client.post {
+            setBody("field1=a+b")
+            header(HttpHeaders.ContentType, "application/x-www-form-urlencoded")
         }.bodyAsText()
     }
 

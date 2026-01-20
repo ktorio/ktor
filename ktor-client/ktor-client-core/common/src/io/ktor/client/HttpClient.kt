@@ -321,10 +321,10 @@ import kotlin.coroutines.CoroutineContext
  *
  * Example with manual engine specification:
  * ```
- * val client = HttpClient(Apache) // Explicitly uses Apache engine, bypassing service loader
+ * val client = HttpClient(Apache5) // Explicitly uses Apache5 engine, bypassing service loader
  * ```
  *
- * By directly setting the engine (e.g., `Apache`, `OkHttp`), you can optimize startup performance
+ * By directly setting the engine (e.g., `Apache5`, `OkHttp`), you can optimize startup performance
  * by preventing the default service loader mechanism.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClient)
@@ -633,10 +633,10 @@ public expect fun HttpClient(
  *
  * Example with manual engine specification:
  * ```
- * val client = HttpClient(Apache) // Explicitly uses Apache engine, bypassing service loader
+ * val client = HttpClient(Apache5) // Explicitly uses Apache5 engine, bypassing service loader
  * ```
  *
- * By directly setting the engine (e.g., `Apache`, `OkHttp`), you can optimize startup performance
+ * By directly setting the engine (e.g., `Apache5`, `OkHttp`), you can optimize startup performance
  * by preventing the default service loader mechanism.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClient)
@@ -958,10 +958,10 @@ public fun <T : HttpClientEngineConfig> HttpClient(
  *
  * Example with manual engine specification:
  * ```
- * val client = HttpClient(Apache) // Explicitly uses Apache engine, bypassing service loader
+ * val client = HttpClient(Apache5) // Explicitly uses Apache5 engine, bypassing service loader
  * ```
  *
- * By directly setting the engine (e.g., `Apache`, `OkHttp`), you can optimize startup performance
+ * By directly setting the engine (e.g., `Apache5`, `OkHttp`), you can optimize startup performance
  * by preventing the default service loader mechanism.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClient)
@@ -1271,10 +1271,10 @@ public fun HttpClient(
  *
  * Example with manual engine specification:
  * ```
- * val client = HttpClient(Apache) // Explicitly uses Apache engine, bypassing service loader
+ * val client = HttpClient(Apache5) // Explicitly uses Apache5 engine, bypassing service loader
  * ```
  *
- * By directly setting the engine (e.g., `Apache`, `OkHttp`), you can optimize startup performance
+ * By directly setting the engine (e.g., `Apache5`, `OkHttp`), you can optimize startup performance
  * by preventing the default service loader mechanism.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClient)

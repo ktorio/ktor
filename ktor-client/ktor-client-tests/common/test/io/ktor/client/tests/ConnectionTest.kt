@@ -50,7 +50,7 @@ class ConnectionTest : ClientLoader() {
     }
 
     @Test
-    fun testInvalidHostInDefaultRequest() = clientTests {
+    fun testInvalidHostInDefaultRequest() = clientTests(except("WinHttp")) {
         val testServer = TEST_SERVER.removePrefix("http://")
         config {
             defaultRequest {

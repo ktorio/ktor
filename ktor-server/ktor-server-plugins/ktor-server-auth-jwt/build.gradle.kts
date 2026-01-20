@@ -14,7 +14,7 @@ kotlin {
             api(libs.jwks.rsa)
         }
         jvmTest.dependencies {
-            api(libs.mockk)
+            implementation(libs.mockk)
         }
     }
 }

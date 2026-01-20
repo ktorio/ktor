@@ -6,9 +6,11 @@ package io.ktor.client.webrtc
 
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 
@@ -34,7 +36,7 @@ public abstract class WebRtcPeerConnection private constructor(
         val refreshRate = config.statsRefreshRate
         if (refreshRate != null) {
             coroutineScope.launch {
-                while (true) {
+                while (isActive) {
                     delay(duration = refreshRate)
                     events.emitStats(stats = getStatistics())
                 }
@@ -122,6 +124,14 @@ public abstract class WebRtcPeerConnection private constructor(
 
     public suspend fun awaitIceGatheringComplete() {
         iceGatheringState.first { it == WebRtc.IceGatheringState.COMPLETE }
+    }
+
+    /**
+     * Runs a [block] in the coroutine scope of the peer connection without extra dispatching.
+     * This should be used to run some background tasks without losing thrown exceptions.
+     */
+    protected inline fun runInConnectionScope(crossinline block: () -> Unit) {
+        coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) { block() }
     }
 
     override fun close() {

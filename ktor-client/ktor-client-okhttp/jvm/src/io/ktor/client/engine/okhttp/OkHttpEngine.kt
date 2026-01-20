@@ -6,6 +6,7 @@ package io.ktor.client.engine.okhttp
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
+import io.ktor.client.io.configurePlatform
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.sse.*
 import io.ktor.client.plugins.websocket.*
@@ -27,7 +28,6 @@ import kotlin.coroutines.CoroutineContext
 
 @OptIn(InternalAPI::class, DelicateCoroutinesApi::class)
 public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("ktor-okhttp") {
-
     override val supportedCapabilities: Set<HttpClientEngineCapability<*>> =
         setOf(HttpTimeoutCapability, WebSocketCapability, SSECapability)
 
@@ -41,6 +41,8 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
     private val clientCache = createLRUCache(::createOkHttpClient, {}, config.clientCacheSize)
 
     init {
+        configurePlatform()
+
         val parent = super.coroutineContext.job
         requestsJob = SilentSupervisor(parent)
         coroutineContext = super.coroutineContext + requestsJob
@@ -59,7 +61,7 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
-        val engineRequest = data.convertToOkHttpRequest(callContext)
+        val engineRequest = data.convertToOkHttpRequest(callContext, config)
 
         val requestEngine = clientCache[data.getCapabilityOrNull(HttpTimeoutCapability)]
             ?: error("OkHttpClient can't be constructed because HttpTimeout plugin is not installed")
@@ -82,11 +84,13 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
         requestData: HttpRequestData,
     ): HttpResponseData {
         val requestTime = GMTDate()
+        val wsConfig = requestData.attributes[WEBSOCKETS_KEY]
         val session = OkHttpWebsocketSession(
-            engine,
-            config.webSocketFactory ?: engine,
-            engineRequest,
-            callContext
+            engine = engine,
+            webSocketFactory = config.webSocketFactory ?: engine,
+            engineRequest = engineRequest,
+            coroutineContext = callContext,
+            channelsConfig = wsConfig.channelsConfig
         ).apply { start() }
 
         val originResponse = session.originResponse.await()
@@ -181,7 +185,7 @@ private fun mapExceptions(cause: Throwable, request: HttpRequestData): Throwable
 }
 
 @OptIn(InternalAPI::class)
-private fun HttpRequestData.convertToOkHttpRequest(callContext: CoroutineContext): Request {
+private fun HttpRequestData.convertToOkHttpRequest(callContext: CoroutineContext, config: OkHttpConfig): Request {
     val builder = Request.Builder()
 
     with(builder) {
@@ -190,7 +194,7 @@ private fun HttpRequestData.convertToOkHttpRequest(callContext: CoroutineContext
         forEachHeader(::addHeader)
 
         val bodyBytes = if (HttpMethod.permitsRequestBody(method.value)) {
-            body.convertToOkHttpBody(callContext)
+            body.convertToOkHttpBody(callContext, config)
         } else {
             null
         }
@@ -202,18 +206,34 @@ private fun HttpRequestData.convertToOkHttpRequest(callContext: CoroutineContext
 }
 
 @OptIn(DelicateCoroutinesApi::class)
-internal fun OutgoingContent.convertToOkHttpBody(callContext: CoroutineContext): RequestBody = when (this) {
+internal fun OutgoingContent.convertToOkHttpBody(
+    callContext: CoroutineContext,
+    config: OkHttpConfig,
+): RequestBody = when (this) {
     is OutgoingContent.ByteArrayContent -> bytes().let {
         it.toRequestBody(contentType.toString().toMediaTypeOrNull(), 0, it.size)
     }
 
-    is OutgoingContent.ReadChannelContent -> StreamRequestBody(contentLength) { readFrom() }
+    is OutgoingContent.ReadChannelContent -> {
+        StreamRequestBody(
+            callContext,
+            contentLength,
+            config.duplexStreamingEnabled,
+        ) { readFrom() }
+    }
+
     is OutgoingContent.WriteChannelContent -> {
-        StreamRequestBody(contentLength) { GlobalScope.writer(callContext) { writeTo(channel) }.channel }
+        StreamRequestBody(
+            callContext,
+            contentLength,
+            config.duplexStreamingEnabled,
+        ) {
+            GlobalScope.writer(callContext) { writeTo(channel) }.channel
+        }
     }
 
     is OutgoingContent.NoContent -> ByteArray(0).toRequestBody(null, 0, 0)
-    is OutgoingContent.ContentWrapper -> delegate().convertToOkHttpBody(callContext)
+    is OutgoingContent.ContentWrapper -> delegate().convertToOkHttpBody(callContext, config)
     is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(this)
 }
 

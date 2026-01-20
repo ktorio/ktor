@@ -23,7 +23,6 @@ import io.ktor.server.test.base.*
 import io.ktor.server.testing.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
 import io.ktor.utils.io.jvm.javaio.*
 import io.ktor.utils.io.streams.*
 import kotlinx.coroutines.*
@@ -40,7 +39,10 @@ import java.net.HttpURLConnection
 import java.net.Proxy
 import java.net.URL
 import java.util.*
-import java.util.concurrent.*
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.*
 
@@ -149,7 +151,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
     }
 
     @Test
-    @NoHttp2
+    @Http1Only
     @Ignore
     open fun testChunkedWrongLength() = runTest {
         val data = ByteArray(16 * 1024) { it.toByte() }
@@ -267,7 +269,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             withTimeout(timeMillis) {
                 parent.join()
             }
-        } catch (cause: TimeoutCancellationException) {
+        } catch (_: TimeoutCancellationException) {
             DebugProbes.printJob(parent)
             fail("Server did not shut down within timeout (${timeMillis / 1000}s)!")
         }
@@ -386,8 +388,8 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
         if (!file.exists()) {
             file.bufferedWriter().use { out ->
-                for (line in 1..9000000) {
-                    for (col in 1..(30 + rnd.nextInt(40))) {
+                repeat(9000000) {
+                    repeat(30 + rnd.nextInt(40)) {
                         out.append('a' + rnd.nextInt(25))
                     }
                     out.append('\n')
@@ -417,8 +419,8 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
         if (!file.exists()) {
             file.bufferedWriter().use { out ->
-                for (line in 1..9000000) {
-                    for (col in 1..(30 + rnd.nextInt(40))) {
+                repeat(9000000) {
+                    repeat(30 + rnd.nextInt(40)) {
                         out.append('a' + rnd.nextInt(25))
                     }
                     out.append('\n')
@@ -451,66 +453,23 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             get("/") {
                 call.respondTextWriter(ContentType.Text.Plain.withCharset(Charsets.ISO_8859_1)) {
                     TimeUnit.SECONDS.sleep(1)
-                    this.write("Deadlock ?")
+                    write("Deadlock ?")
                 }
             }
         }
 
-        val e = Executors.newCachedThreadPool()
-        try {
-            val q = LinkedBlockingQueue<String>()
-
-            val conns = (0..callGroupSize * 10).map {
-                e.submit(
-                    Callable<String> {
-                        try {
-                            URL("http://localhost:$port/").openConnection()
-                                .inputStream.bufferedReader().readLine().apply {} ?: "<empty>"
-                        } catch (t: Throwable) {
-                            "error: ${t.message}"
-                        }.apply {
-                            q.add(this)
-                        }
-                    }
-                )
-            }
-
-            TimeUnit.SECONDS.sleep(5)
-            var attempts = 7
-
-            fun dump() {
-//            val (valid, invalid) = conns.filter { it.isDone }.partition { it.get() == "Deadlock ?" }
-//
-//            println("Completed: ${valid.size} valid, ${invalid.size} invalid of ${conns.size} total [attempts $attempts]")
-            }
-
-            while (true) {
-                dump()
-
-                if (conns.all { it.isDone }) {
-                    break
-                } else if (q.poll(5, TimeUnit.SECONDS) == null) {
-                    if (attempts <= 0) {
-                        break
-                    }
-                    attempts--
-                } else {
-                    attempts = 7
+        val results = (0 until callGroupSize * 10).map {
+            async {
+                runCatching {
+                    val response = client.get("http://127.0.0.1:$port/") {}
+                    assertEquals(HttpStatusCode.OK, response.status)
+                    assertEquals("Deadlock ?", response.bodyAsText())
                 }
             }
+        }.awaitAll()
 
-            dump()
-
-            // Uncomment for debugging
-//        if (conns.any { !it.isDone }) {
-//             TimeUnit.SECONDS.sleep(500)
-//        }
-
-            assertTrue(conns.all { it.isDone })
-        } finally {
-            e.shutdownNow()
-        }
-        TimeUnit.SECONDS.sleep(10)
+        val failedCnt = results.count { it.isFailure }
+        assertEquals(0, failedCnt)
     }
 
     @Test
@@ -601,7 +560,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
     @Ignore("Flaky. To be investigated in KTOR-7811")
     @Test
-    @NoHttp2
+    @Http1Only
     fun testHeaderIsTooLong() = runTest {
         createAndStartServer {
             get("/") {
@@ -656,7 +615,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         }
         ApplicationCallPipeline(environment = createTestEnvironment()).items
             // fallback will reply with 404 and not 500
-            .filter { it != ApplicationCallPipeline.ApplicationPhase.Fallback }
+            .filter { it != ApplicationCallPipeline.Fallback }
             .forEach { phase ->
                 val server = createServer(log = logger) {
                     intercept(phase) {
@@ -766,10 +725,11 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
                     intercepted = false
                 }) {
-                    body<String>()
+                    val responseText = bodyAsText()
                     assertEquals(HttpStatusCode.InternalServerError, status, "Failed in phase $phase")
                     assertEquals(exceptions.size, 1, "Failed in phase $phase")
                     assertEquals("Failed in phase $phase", exceptions[0].message)
+                    assertTrue(responseText.contains("Failed in phase"))
                     exceptions.clear()
                 }
 
@@ -960,7 +920,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             }
         }
 
-        withUrl("") {
+        withUrl("/") {
             assertEquals(HttpStatusCode.InternalServerError, status)
             assertNotNull(loggedException)
             loggedException = null

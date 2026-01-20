@@ -1,3 +1,46 @@
+# 3.3.3
+> Published 26 November 2025
+
+### Improvements
+* [KTOR-6837](https://youtrack.jetbrains.com/issue/KTOR-6837) Discrepancies when parsing URL host with CIO and Darwin engines compared to the rest engines
+* [KTOR-9050](https://youtrack.jetbrains.com/issue/KTOR-9050) Logging: SimpleLogger should be an object, not a class
+* [KTOR-9094](https://youtrack.jetbrains.com/issue/KTOR-9094) Jetty Client: Support HTTP/2 over cleartext (h2c)
+* [KTOR-9120](https://youtrack.jetbrains.com/issue/KTOR-9120) OpenAPI gen: missing operationId for KDoc fields
+* [KTOR-3019](https://youtrack.jetbrains.com/issue/KTOR-3019) Improve logging for CORS plugin
+
+### Bugfixes
+* [KTOR-8671](https://youtrack.jetbrains.com/issue/KTOR-8671) Netty: RejectedExecutionException during shutdown on MacOS when dev mode is enabled
+* [KTOR-9096](https://youtrack.jetbrains.com/issue/KTOR-9096) Darwin: New SSE handlers stop responding after canceling few SSE sessions
+* [KTOR-9125](http://youtrack.jetbrains.com/issue/KTOR-9125) Double ResponseSent invocation when exception is thrown after respond
+* [KTOR-8878](https://youtrack.jetbrains.com/issue/KTOR-8878) OpenAPI: StackOverflowError when a response object has property with @Contextual serializer
+* [KTOR-8947](https://youtrack.jetbrains.com/issue/KTOR-8947) Java, ContentEncoding: IllegalHeaderNameException is thrown  for ":status" pseudo header with HTTP/2
+* [KTOR-9092](https://youtrack.jetbrains.com/issue/KTOR-9092) NettyHttp2Handler throws IllegalArgumentException: 'ktor.ApplicationCall' is already in use
+* [KTOR-8924](https://youtrack.jetbrains.com/issue/KTOR-8924) Curl: Client sends both Transfer-Encoding and Content-Length headers for DELETE requests with body
+* [KTOR-8838](https://youtrack.jetbrains.com/issue/KTOR-8838) Exception handling issue in client cache
+
+
+# 3.3.2
+> Published 5 November 2025
+
+### Improvements
+* WebRTC Client. Remove redundant targets ([KTOR-9062](https://youtrack.jetbrains.com/issue/KTOR-9062))
+* Add Socks proxy support to Darwin engine ([KTOR-8968](https://youtrack.jetbrains.com/issue/KTOR-8968))
+* Java: Improve error message when SOCKS proxy is used ([KTOR-2908](https://youtrack.jetbrains.com/issue/KTOR-2908))
+
+### Bugfixes
+* HttpRequestRetry: SendCountExceedException when max retries is more than maxSendCount of HttpSend ([KTOR-5850](https://youtrack.jetbrains.com/issue/KTOR-5850))
+* Darwin: The `maxFrameSize` option has no effect ([KTOR-6963](https://youtrack.jetbrains.com/issue/KTOR-6963))
+* OpenAPI: StackOverflowError when a response object has property with @Contextual serializer ([KTOR-8878](https://youtrack.jetbrains.com/issue/KTOR-8878))
+* OpenAPI gen: missing KDoc fields ([KTOR-9021](https://youtrack.jetbrains.com/issue/KTOR-9021))
+* Server call.request.path() returns routing selectors in path ([KTOR-7639](https://youtrack.jetbrains.com/issue/KTOR-7639))
+* StaticContent doesn't allow siblings ([KTOR-9012](https://youtrack.jetbrains.com/issue/KTOR-9012))
+* HttpCache: FileStorage doesn't use given dispatcher for all file operations ([KTOR-8832](https://youtrack.jetbrains.com/issue/KTOR-8832))
+* Curl: SOCKS proxy doesn't work ([KTOR-9008](https://youtrack.jetbrains.com/issue/KTOR-9008))
+* Netty: java.lang.VerifyError is thrown on Android since 3.3.0 ([KTOR-8916](https://youtrack.jetbrains.com/issue/KTOR-8916))
+* Response body channel is canceled while the body is being saved when having HttpRequestRetry and onDownload ([KTOR-8975](https://youtrack.jetbrains.com/issue/KTOR-8975))
+* HttpCache: InvalidCacheStateException when varyKeys stored in files contain uppercase letters since 3.3.0 ([KTOR-8970](https://youtrack.jetbrains.com/issue/KTOR-8970))
+
+
 # 3.3.1
 > Published 8 October 2025
 

@@ -23,7 +23,7 @@ public class AndroidRtpSender(internal val nativeSender: RtpSender) : WebRtc.Rtp
             }
             return
         }
-        val track = withTrack as? AndroidMediaTrack ?: error("Track should extend AndroidMediaTrack.")
+        val track = withTrack as AndroidMediaTrack
         if (!nativeSender.setTrack(track.nativeTrack, false)) {
             error("Failed to replace track.")
         }
@@ -34,8 +34,7 @@ public class AndroidRtpSender(internal val nativeSender: RtpSender) : WebRtc.Rtp
     }
 
     override suspend fun setParameters(parameters: WebRtc.RtpParameters) {
-        val parameters = parameters as? AndroidRtpParameters ?: error("Parameters should extend AndroidRtpParameters.")
-        nativeSender.parameters = parameters.nativeRtpParameters
+        nativeSender.parameters = (parameters as AndroidRtpParameters).nativeRtpParameters
     }
 }
 
@@ -74,22 +73,19 @@ public class AndroidRtpParameters(internal val nativeRtpParameters: RtpParameter
  * Returns implementation of the rtp sender that is used under the hood. Use it with caution.
  */
 public fun WebRtc.RtpSender.getNative(): RtpSender {
-    val sender = this as? AndroidRtpSender ?: error("Wrong Rtp sender implementation.")
-    return sender.nativeSender
+    return (this as AndroidRtpSender).nativeSender
 }
 
 /**
  * Returns implementation of the dtmf sender that is used under the hood. Use it with caution.
  */
 public fun WebRtc.DtmfSender.getNative(): DtmfSender {
-    val sender = this as? AndroidDtmfSender ?: error("Wrong Dtmf sender implementation.")
-    return sender.nativeSender
+    return (this as AndroidDtmfSender).nativeSender
 }
 
 /**
  * Returns implementation of the rtp parameters that is used under the hood. Use it with caution.
  */
 public fun WebRtc.RtpParameters.getNative(): RtpParameters {
-    val parameters = this as? AndroidRtpParameters ?: error("Wrong parameters implementation.")
-    return parameters.nativeRtpParameters
+    return (this as AndroidRtpParameters).nativeRtpParameters
 }

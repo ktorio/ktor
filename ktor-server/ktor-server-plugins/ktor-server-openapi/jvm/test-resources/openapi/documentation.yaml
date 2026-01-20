@@ -1,2 +1,18 @@
-hello:
-  world
+openapi: 3.1.1
+info:
+  version: 1.0.0
+  title: Books API from file
+  description: Sample API from file config
+paths:
+  /books:
+    get:
+      summary: List all books
+    post:
+      summary: Create a book
+  /books/{id}:
+    get:
+      summary: Get a book by id
+    put:
+      summary: Update a book
+components:
+  schemas: {}

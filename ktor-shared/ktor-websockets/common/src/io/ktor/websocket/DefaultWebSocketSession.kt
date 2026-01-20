@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.websocket
@@ -16,6 +16,7 @@ import kotlinx.io.*
 import kotlin.coroutines.*
 import kotlin.time.*
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.websocket.WebSocket")
 
@@ -53,7 +54,7 @@ public interface DefaultWebSocketSession : WebSocketSession {
 
     /**
      * A close reason for this session. It could be `null` if a session is terminated with no close reason
-     * (for example due to connection failure).
+     * (for example, due to connection failure).
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.DefaultWebSocketSession.closeReason)
      */
@@ -74,6 +75,10 @@ public interface DefaultWebSocketSession : WebSocketSession {
 /**
  * Creates [DefaultWebSocketSession] from a session.
  *
+ * @param session raw [WebSocketSession] to wrap.
+ * @param pingIntervalMillis interval between pings or [PINGER_DISABLED] to disable.
+ * @param timeoutMillis timeout for pings.
+ *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.DefaultWebSocketSession)
  */
 public fun DefaultWebSocketSession(
@@ -82,7 +87,39 @@ public fun DefaultWebSocketSession(
     timeoutMillis: Long = 15_000L,
 ): DefaultWebSocketSession {
     require(session !is DefaultWebSocketSession) { "Cannot wrap other DefaultWebSocketSession" }
-    return DefaultWebSocketSessionImpl(session, pingIntervalMillis, timeoutMillis)
+    return DefaultWebSocketSessionImpl(
+        raw = session,
+        pingIntervalMillis,
+        timeoutMillis,
+        incomingFramesConfig = ChannelConfig.UNLIMITED,
+        outgoingFramesConfig = OUTGOING_CHANNEL_CONFIG ?: ChannelConfig.UNLIMITED
+    )
+}
+
+/**
+ * Creates [DefaultWebSocketSession] from a session.
+ *
+ * @param session raw [WebSocketSession] to wrap.
+ * @param pingIntervalMillis interval between pings or [PINGER_DISABLED] to disable.
+ * @param timeoutMillis timeout for pings.
+ * @param channelsConfig configuration for the I/O frame channels.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.DefaultWebSocketSession)
+ */
+public fun DefaultWebSocketSession(
+    session: WebSocketSession,
+    pingIntervalMillis: Long = PINGER_DISABLED,
+    timeoutMillis: Long = 15_000L,
+    channelsConfig: WebSocketChannelsConfig = WebSocketChannelsConfig.UNLIMITED,
+): DefaultWebSocketSession {
+    require(session !is DefaultWebSocketSession) { "Cannot wrap other DefaultWebSocketSession" }
+    return DefaultWebSocketSessionImpl(
+        session,
+        pingIntervalMillis,
+        timeoutMillis,
+        incomingFramesConfig = channelsConfig.incoming,
+        outgoingFramesConfig = channelsConfig.outgoing,
+    )
 }
 
 private val IncomingProcessorCoroutineName = CoroutineName("ws-incoming-processor")
@@ -90,21 +127,34 @@ private val OutgoingProcessorCoroutineName = CoroutineName("ws-outgoing-processo
 
 private val NORMAL_CLOSE = CloseReason(CloseReason.Codes.NORMAL, "OK")
 
+private val OUTGOING_CHANNEL_CONFIG = OUTGOING_CHANNEL_CAPACITY?.let {
+    ChannelConfig(capacity = it, onOverflow = ChannelOverflow.SUSPEND)
+}
+
 /**
- * A default WebSocket session implementation that handles ping-pongs, close sequence and frame fragmentation.
+ * A default WebSocket session implementation that handles ping-pongs, close sequence, and frame fragmentation.
  */
 
+@OptIn(InternalAPI::class)
 internal class DefaultWebSocketSessionImpl(
     private val raw: WebSocketSession,
     pingIntervalMillis: Long,
-    timeoutMillis: Long
+    timeoutMillis: Long,
+    incomingFramesConfig: ChannelConfig,
+    outgoingFramesConfig: ChannelConfig,
 ) : DefaultWebSocketSession, WebSocketSession {
     private val pinger = atomic<SendChannel<Frame.Pong>?>(null)
     private val closeReasonRef = CompletableDeferred<CloseReason>()
-    private val filtered = Channel<Frame>(8)
-    private val outgoingToBeProcessed = Channel<Frame>(OUTGOING_CHANNEL_CAPACITY)
+
+    private val context = Job()
+    override val coroutineContext: CoroutineContext =
+        raw.coroutineContext.minusKey(Job) + context + CoroutineName("ws-default")
+
+    private val filtered = Channel.from<Frame>(incomingFramesConfig)
+
+    private val outgoingToBeProcessed = Channel.from<Frame>(outgoingFramesConfig)
+
     private val closed: AtomicBoolean = atomic(false)
-    private val context = Job(raw.coroutineContext[Job])
 
     private val _extensions: MutableList<WebSocketExtension<*>> = mutableListOf()
     private val started = atomic(false)
@@ -115,8 +165,6 @@ internal class DefaultWebSocketSessionImpl(
 
     override val extensions: List<WebSocketExtension<*>>
         get() = _extensions
-
-    override val coroutineContext: CoroutineContext = raw.coroutineContext + context + CoroutineName("ws-default")
 
     override var masking: Boolean
         get() = raw.masking
@@ -223,7 +271,7 @@ internal class DefaultWebSocketSessionImpl(
                                 frameBody = BytePacketBuilder()
                             }
 
-                            frameBody!!.writeFully(frame.data)
+                            frameBody.writeFully(frame.data)
                             return@consumeEach
                         }
 
@@ -235,11 +283,11 @@ internal class DefaultWebSocketSessionImpl(
                         frameBody!!.writeFully(frame.data)
                         val defragmented = Frame.byType(
                             fin = true,
-                            firstFrame!!.frameType,
-                            frameBody!!.build().readByteArray(),
-                            firstFrame!!.rsv1,
-                            firstFrame!!.rsv2,
-                            firstFrame!!.rsv3
+                            firstFrame.frameType,
+                            frameBody.build().readByteArray(),
+                            firstFrame.rsv1,
+                            firstFrame.rsv2,
+                            firstFrame.rsv3
                         )
 
                         firstFrame = null
@@ -247,7 +295,7 @@ internal class DefaultWebSocketSessionImpl(
                     }
                 }
             }
-        } catch (ignore: ClosedSendChannelException) {
+        } catch (_: ClosedSendChannelException) {
         } catch (cause: Throwable) {
             ponger.close()
             filtered.close(cause)
@@ -268,14 +316,15 @@ internal class DefaultWebSocketSessionImpl(
     ) {
         try {
             outgoingProcessorLoop()
-        } catch (ignore: ClosedSendChannelException) {
-        } catch (ignore: ClosedReceiveChannelException) {
-        } catch (ignore: CancellationException) {
+        } catch (_: ClosedSendChannelException) {
+        } catch (_: ClosedReceiveChannelException) {
+        } catch (_: CancellationException) {
             sendCloseSequence(CloseReason(CloseReason.Codes.NORMAL, ""))
-        } catch (ignore: ChannelIOException) {
+        } catch (_: ChannelIOException) {
         } catch (cause: Throwable) {
             outgoingToBeProcessed.cancel(CancellationException("Failed to send frame", cause))
             raw.closeExceptionally(cause)
+            return@launch
         } finally {
             outgoingToBeProcessed.cancel()
             raw.close()
@@ -397,4 +446,5 @@ public inline var DefaultWebSocketSession.timeout: Duration
         timeoutMillis = newDuration.inWholeMilliseconds
     }
 
-internal expect val OUTGOING_CHANNEL_CAPACITY: Int
+// TODO: drop in version 4, pass channel config only
+internal expect val OUTGOING_CHANNEL_CAPACITY: Int?

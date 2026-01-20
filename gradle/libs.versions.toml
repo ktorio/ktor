@@ -1,20 +1,20 @@
 [versions]
 
-kotlin = "2.2.21"
-android-gradlePlugin = "8.13.0"
+kotlin = "2.3.0"
+android-gradlePlugin = "8.13.2"
 androidx-test = "1.7.0"
 kotlinx-html = "0.12.0"
 kotlinx-datetime = "0.6.2"
-kotlinx-io = "0.8.0"
+kotlinx-io = "0.8.2"
 coroutines = "1.10.2"
 atomicfu = "0.29.0"
 serialization = "1.9.0"
 dokka = "2.1.0"
-kover = "0.9.3"
+kover = "0.9.4"
 kotlinter = "5.2.0"
 kotlinx-browser = "0.5.0"
 
-netty = "4.2.7.Final"
+netty = "4.2.9.Final"
 netty-tcnative = "2.0.74.Final"
 
 jetty = "9.4.58.v20250814"
@@ -22,40 +22,44 @@ jetty-jakarta = "12.0.29"
 jetty-alpn-api = "1.1.3.v20160715"
 jetty-alpn-openjdk8 = "9.4.58.v20250814"
 
-tomcat = "9.0.111"
-tomcat-jakarta = "10.1.48"
+tomcat = "9.0.113"
+tomcat-jakarta = "10.1.50"
 
 stream-webrtc-android = "1.3.10"
 
 apache = "4.1.5"
 apache5 = "5.5.1"
 apacheds = "2.0.0.AM27"
-okhttp = "5.2.1"
-okio = "3.16.2"
+okhttp = "5.3.2"
+okio = "3.16.4"
 
 json-simple = "1.1.1"
 gson = "2.13.2"
-jackson = "2.20.0"
+
+jackson = "2.20.1"
+jackson3 = "3.0.3"
 jackson-annotations = "2.20"
 
-junit = "5.14.0"
+junit = "5.14.2"
 slf4j = "2.0.17"
-logback = "1.5.20"
+logback = "1.5.24"
 
 dropwizard = "4.2.37"
-micrometer = "1.15.5"
+micrometer = "1.16.2"
 
 jansi = "2.4.2"
 typesafe = "1.4.5"
 
-mockk = "1.14.6"
+# Version 1.14.6 is not compatible with Java 11.
+# Wait until https://github.com/mockk/mockk/issues/1433 is resolved.
+mockk = "1.14.7"
 
 java-jwt = "4.5.0"
 
 jwks-rsa = "0.23.0"
 mustache = "0.9.14"
 freemarker = "2.3.34"
-pebble = "3.2.4"
+pebble = "4.1.0"
 velocity = "2.4.1"
 velocity-tools = "3.1"
 webjars-locator = "0.59"
@@ -67,22 +71,29 @@ javax-servlet = "4.0.1"
 jakarta-servlet = "5.0.0"
 
 ws = "8.18.3"
-xmlutil = "0.91.2"
+xmlutil = "0.91.3"
 yamlkt = "0.13.0"
 kaml = "0.79.0"
 
 swagger-codegen = "3.0.75"
 swagger-codegen-generators = "1.0.59"
-swagger-parser = "2.1.35"
+swagger-parser = "2.1.37"
 
 puppeteer = "24.16.1"
 tomlj = "1.1.1"
+
+zstd-jni = "1.5.7-6"
 
 # Keep it in sync with build-settings-logic/settings.gradle.kts
 develocity = "4.0.3" # Should be compatible with our server: ge.jetbrains.com
 develocity-commonCustomUserData = "2.4.0"
 gradleDoctor = "0.12.1"
 mavenPublishing = "0.34.0"
+
+android-compileSdk = "36"
+android-minSdk = "28"
+ios-deploymentTarget = "13.0"
+ios-webrtc-sdk = "137.7151.04"
 
 [libraries]
 
@@ -169,6 +180,11 @@ gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
 jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
 jackson-dataformat-smile = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-smile", version.ref = "jackson" }
+
+jackson3-databind = { module = "tools.jackson.core:jackson-databind", version.ref = "jackson3" }
+jackson3-module-kotlin = { module = "tools.jackson.module:jackson-module-kotlin", version.ref = "jackson3" }
+jackson3-dataformat-smile = { module = "tools.jackson.dataformat:jackson-dataformat-smile", version.ref = "jackson3" }
+
 jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson-annotations" }
 
 jansi = { module = "org.fusesource.jansi:jansi", version.ref = "jansi" }
@@ -224,6 +240,8 @@ develocity-commonCustomUserData = { module = "com.gradle:common-custom-user-data
 kotlinter = { module = "org.jmailen.gradle:kotlinter-gradle", version.ref = "kotlinter" }
 gradleDoctor = { module = "com.osacky.doctor:doctor-plugin", version.ref = "gradleDoctor" }
 mavenPublishing = { module = "com.vanniktech:gradle-maven-publish-plugin", version.ref = "mavenPublishing" }
+
+zstd-jni = { module = "com.github.luben:zstd-jni", version.ref = "zstd-jni" }
 
 [plugins]
 

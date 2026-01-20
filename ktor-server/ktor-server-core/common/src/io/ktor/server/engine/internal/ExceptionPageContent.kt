@@ -14,7 +14,7 @@ import io.ktor.utils.io.ByteReadChannel
 
 internal class ExceptionPageContent(call: ApplicationCall, cause: Throwable) : OutgoingContent.ReadChannelContent() {
 
-    override val status: HttpStatusCode?
+    override val status: HttpStatusCode
         get() = HttpStatusCode.InternalServerError
 
     private val responsePage: String = buildString {

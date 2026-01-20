@@ -10,6 +10,14 @@ kotlin {
     sourceSets {
         jvmMain.dependencies {
             implementation(projects.ktorServerHtmlBuilder)
+            implementation(projects.ktorServerRoutingOpenapi)
+
+            implementation(libs.kotlinx.serialization.core)
+            implementation(libs.kotlinx.serialization.json)
+            implementation(libs.kaml.serialization)
+        }
+        jvmTest.dependencies {
+            implementation(projects.ktorOpenapiSchemaReflect)
         }
     }
 }

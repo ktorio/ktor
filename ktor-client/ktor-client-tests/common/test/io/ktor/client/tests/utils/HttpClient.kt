@@ -19,5 +19,3 @@ internal fun HttpClient.supportedMethods(): List<HttpMethod> = when (engineName)
     "Js" -> allMethods - HttpMethod.Trace
     else -> allMethods
 }
-
-private val HttpMethod.Companion.Trace get() = HttpMethod("TRACE")

@@ -632,7 +632,7 @@ class ServerSentEventsTest : ClientLoader() {
                 }
             }
 
-            assertTrue(events.size == 7)
+            assertEquals(7, events.size)
             events.forEachIndexed { index, event ->
                 assertEquals(index + 1, event.id?.toInt())
             }
@@ -788,7 +788,7 @@ class ServerSentEventsTest : ClientLoader() {
         test { client ->
             try {
                 client.sse("$TEST_SERVER/sse/hello") {
-                    incoming.collect { it }
+                    incoming.collect { }
                     throw IllegalStateException("exception")
                 }
             } catch (e: SSEClientException) {
@@ -810,7 +810,7 @@ class ServerSentEventsTest : ClientLoader() {
                 client.sse(urlString = "$TEST_SERVER/sse/hello", {
                     bufferPolicy(SSEBufferPolicy.Off)
                 }) {
-                    incoming.collect { it }
+                    incoming.collect { }
                     throw IllegalStateException("exception")
                 }
             } catch (e: SSEClientException) {
@@ -842,7 +842,7 @@ class ServerSentEventsTest : ClientLoader() {
                         bufferPolicy(SSEBufferPolicy.LastLines(count))
                     }
                 ) {
-                    incoming.collect { it }
+                    incoming.collect { }
                     throw IllegalStateException("exception")
                 }
             } catch (e: SSEClientException) {
@@ -873,7 +873,7 @@ class ServerSentEventsTest : ClientLoader() {
                         bufferPolicy(SSEBufferPolicy.LastEvent)
                     }
                 ) {
-                    incoming.collect { it }
+                    incoming.collect { }
                     throw IllegalStateException("exception")
                 }
             } catch (e: SSEClientException) {
@@ -896,7 +896,7 @@ class ServerSentEventsTest : ClientLoader() {
                         bufferPolicy(SSEBufferPolicy.LastEvents(2))
                     }
                 ) {
-                    incoming.collect { it }
+                    incoming.collect {}
                     throw IllegalStateException("exception")
                 }
             } catch (e: SSEClientException) {
@@ -1003,6 +1003,28 @@ class ServerSentEventsTest : ClientLoader() {
                 job.cancel()
             }
             client.close()
+        }
+    }
+
+    @Test
+    fun testCancellingUnderlyingConnection() = clientTests(except("WinHttp")) {
+        config {
+            install(SSE)
+        }
+
+        test { client ->
+            val sseSession = client.sseSession("$TEST_SERVER/sse/active-sessions")
+            sseSession.incoming.collect {
+                assertEquals("ok", it.data)
+                sseSession.cancel()
+            }
+            withTimeout(5000) {
+                while (true) {
+                    val count = client.get("$TEST_SERVER/sse/active-sessions-count").bodyAsText().toInt()
+                    if (count == 0) break
+                    delay(100)
+                }
+            }
         }
     }
 

@@ -15,8 +15,8 @@ kotlin {
             api(libs.jackson.module.kotlin)
         }
         jvmTest.dependencies {
-            api(projects.ktorClientCio)
-            api(projects.ktorSerializationGson)
+            implementation(projects.ktorClientCio)
+            implementation(projects.ktorSerializationGson)
         }
     }
 }

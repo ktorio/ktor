@@ -1,0 +1,75 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "Test API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/messages": {
+      "get": {
+        "summary": "get messages",
+        "description": "Retrieves a list of messages.",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "description": "An encoded query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of messages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Message"
+                  }
+                }
+              }
+            },
+            "x-sample-message": {
+              "id": 1,
+              "content": "Hello, world!",
+              "timestamp": 16777216000
+            }
+          },
+          "400": {
+            "description": "Invalid query",
+            "content": {
+              "text/plain": {}
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Message": {
+        "type": "object",
+        "title": "io.ktor.server.routing.openapi.Message",
+        "required": [
+          "id",
+          "content",
+          "timestamp"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "content": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  }
+}

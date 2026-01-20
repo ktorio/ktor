@@ -78,7 +78,7 @@ public interface DependencyMap {
      * @param key The unique key that identifies the dependency to check.
      * @return `true` if the dependency identified by the key is present in the map; otherwise `false`
      */
-    public fun contains(key: DependencyKey): Boolean
+    public operator fun contains(key: DependencyKey): Boolean
 
     public fun getInitializer(key: DependencyKey): DependencyInitializer
 }

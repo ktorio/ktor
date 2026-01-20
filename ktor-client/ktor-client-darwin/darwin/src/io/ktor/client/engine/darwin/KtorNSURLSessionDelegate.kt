@@ -5,9 +5,14 @@
 package io.ktor.client.engine.darwin
 
 import io.ktor.client.engine.darwin.internal.*
+import io.ktor.client.plugins.websocket.WEBSOCKETS_KEY
 import io.ktor.client.request.*
 import io.ktor.util.collections.*
+import io.ktor.utils.io.InternalAPI
+import io.ktor.websocket.ChannelConfig
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.UnsafeNumber
+import kotlinx.cinterop.convert
 import kotlinx.coroutines.CompletableDeferred
 import platform.Foundation.*
 import platform.darwin.NSObject
@@ -71,9 +76,7 @@ public class KtorNSURLSessionDelegate(
             taskHandlers.remove(task)
         }
 
-        webSocketSessions[task]?.let {
-            it.didComplete(didCompleteWithError)
-        }
+        webSocketSessions[task]?.didComplete(didCompleteWithError)
     }
 
     override fun URLSession(
@@ -96,11 +99,23 @@ public class KtorNSURLSessionDelegate(
     }
 
     internal fun read(
+        request: HttpRequestData,
         task: NSURLSessionWebSocketTask,
         callContext: CoroutineContext
     ): CompletableDeferred<HttpResponseData> {
-        val taskHandler = DarwinWebsocketSession(callContext, task)
+        @OptIn(InternalAPI::class)
+        val wsConfig = request.attributes[WEBSOCKETS_KEY]
+        val taskHandler = DarwinWebsocketSession(
+            callContext,
+            task,
+            wsConfig.channelsConfig
+        )
         webSocketSessions[task] = taskHandler
+        // Fields MUST be assigned to the task BEFORE starting it.
+        // The "maximum message size" actually refers to the underlying buffer,
+        // so it will allow >= maxFrameSize, depending on how quickly our bytes are read to the buffer.
+        @OptIn(ExperimentalForeignApi::class)
+        task.setMaximumMessageSize(wsConfig.maxFrameSize.convert())
         return taskHandler.response
     }
 

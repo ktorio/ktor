@@ -46,4 +46,26 @@ class HeadersServerTest {
             assertEquals(listOf("close"), it.headers.getAll(HttpHeaders.Connection))
         }
     }
+
+    @Test
+    fun testMultipleHeaders() = testApplication {
+        val header = "X-Multi-Header"
+        val value = "Value1, Value2"
+        routing {
+            get("/") {
+                call.response.headers.append(header, value)
+                call.respondText("OK")
+            }
+        }
+
+        client.get("/") {
+            header(header, value)
+        }.apply {
+            val responseHeaders = headers.getSplitValues(header)!!
+            val requestHeaders = request.headers.getSplitValues(header)!!
+            assertEquals(2, responseHeaders.size)
+            assertEquals(listOf("Value1", "Value2"), responseHeaders)
+            assertEquals(requestHeaders, responseHeaders)
+        }
+    }
 }

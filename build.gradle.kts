@@ -10,8 +10,8 @@ plugins {
     id("ktorbuild.publish.verifier")
 }
 
-println("Build version: ${project.version}")
-println("Kotlin version: ${libs.versions.kotlin.get()}")
+logger.lifecycle("Build version: ${project.version}")
+logger.lifecycle("Kotlin version: ${libs.versions.kotlin.get()}")
 
 wirePackageJsonAggregationTasks()
 

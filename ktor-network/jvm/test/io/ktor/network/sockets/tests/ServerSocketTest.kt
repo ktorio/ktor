@@ -72,7 +72,7 @@ class ServerSocketTest : CoroutineScope {
     @Test
     fun testRead() {
         val server = server { client ->
-            assertEquals("123", client.openReadChannel().readUTF8Line())
+            assertEquals("123", client.openReadChannel().readLine())
         }
 
         client { socket ->

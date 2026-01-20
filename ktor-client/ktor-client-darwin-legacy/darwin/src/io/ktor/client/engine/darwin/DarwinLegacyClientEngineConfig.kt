@@ -26,6 +26,14 @@ public typealias ChallengeHandler = (
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.DarwinLegacyClientEngineConfig)
  */
+@Deprecated(
+    message = "DarwinLegacy engine is deprecated. Consider using DarwinClientEngineConfig instead.",
+    replaceWith = ReplaceWith(
+        "DarwinClientEngineConfig",
+        "io.ktor.client.engine.darwin.DarwinClientEngineConfig"
+    ),
+    level = DeprecationLevel.WARNING
+)
 public class DarwinLegacyClientEngineConfig : HttpClientEngineConfig() {
     /**
      * A request configuration.
@@ -73,6 +81,7 @@ public class DarwinLegacyClientEngineConfig : HttpClientEngineConfig() {
     /**
      * Specifies a session to use for making HTTP requests.
      */
+    @Suppress("DEPRECATION")
     internal var sessionAndDelegate: Pair<NSURLSession, KtorLegacyNSURLSessionDelegate>? = null
 
     /**
@@ -106,7 +115,7 @@ public class DarwinLegacyClientEngineConfig : HttpClientEngineConfig() {
     }
 
     /**
-     * Set a [session] to be used to make HTTP requests, [null] to create default session.
+     * Set a [session] to be used to make HTTP requests, null to create default session.
      * If the preconfigured session is set, [configureSession] block will be ignored.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.DarwinLegacyClientEngineConfig.usePreconfiguredSession)
@@ -126,6 +135,7 @@ public class DarwinLegacyClientEngineConfig : HttpClientEngineConfig() {
      *
      * @see [KtorLegacyNSURLSessionDelegate] for details.
      */
+    @Suppress("DEPRECATION")
     public fun usePreconfiguredSession(session: NSURLSession, delegate: KtorLegacyNSURLSessionDelegate) {
         sessionAndDelegate = session to delegate
     }

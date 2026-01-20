@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.websocket
@@ -7,7 +7,6 @@ package io.ktor.websocket
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
@@ -28,12 +27,37 @@ import kotlin.random.*
  * @param coroutineContext is a [CoroutineContext] to execute reading/writing from/to connection
  */
 @Suppress("FunctionName")
-public expect fun RawWebSocket(
+@Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
+public fun RawWebSocket(
     input: ByteReadChannel,
     output: ByteWriteChannel,
     maxFrameSize: Long = Int.MAX_VALUE.toLong(),
     masking: Boolean = false,
     coroutineContext: CoroutineContext
+): WebSocketSession =
+    RawWebSocket(input, output, maxFrameSize, masking, coroutineContext, WebSocketChannelsConfig.UNLIMITED)
+
+/**
+ * Creates a RAW web socket session from connection.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.RawWebSocket)
+ *
+ * @param input is a [ByteReadChannel] of connection
+ * @param output is a [ByteWriteChannel] of connection
+ * @param maxFrameSize is an initial [maxFrameSize] value for [WebSocketSession]
+ * @param masking is an initial [masking] value for [WebSocketSession]
+ * @param coroutineContext is a [CoroutineContext] to execute reading/writing from/to connection
+ * @param channelsConfig is a [WebSocketChannelsConfig] for the incoming and outgoing [Frame] queues
+ */
+@Suppress("FunctionName")
+public expect fun RawWebSocket(
+    input: ByteReadChannel,
+    output: ByteWriteChannel,
+    maxFrameSize: Long = Int.MAX_VALUE.toLong(),
+    masking: Boolean = false,
+    coroutineContext: CoroutineContext,
+    channelsConfig: WebSocketChannelsConfig = WebSocketChannelsConfig.UNLIMITED,
 ): WebSocketSession
 
 @OptIn(InternalAPI::class)
@@ -42,16 +66,16 @@ internal class RawWebSocketCommon(
     private val output: ByteWriteChannel,
     override var maxFrameSize: Long = Int.MAX_VALUE.toLong(),
     override var masking: Boolean = false,
-    coroutineContext: CoroutineContext
+    coroutineContext: CoroutineContext,
+    channelsConfig: WebSocketChannelsConfig,
 ) : WebSocketSession {
     private val socketJob: CompletableJob = Job(coroutineContext[Job])
+    override val coroutineContext: CoroutineContext = coroutineContext + socketJob + CoroutineName("raw-ws")
 
-    private val _incoming = Channel<Frame>(capacity = 8)
-    private val _outgoing = Channel<Any>(capacity = 8)
+    private val _incoming = Channel.from<Frame>(channelsConfig.incoming)
+    private val _outgoing = Channel.from<Any>(channelsConfig.outgoing)
 
     private var lastOpcode = 0
-
-    override val coroutineContext: CoroutineContext = coroutineContext + socketJob + CoroutineName("raw-ws")
     override val incoming: ReceiveChannel<Frame> get() = _incoming
     override val outgoing: SendChannel<Frame> get() = _outgoing
     override val extensions: List<WebSocketExtension<*>> get() = emptyList()
@@ -92,33 +116,35 @@ internal class RawWebSocketCommon(
         }
     }
 
-    private val readerJob = launch(CoroutineName("ws-reader"), start = CoroutineStart.ATOMIC) {
-        try {
-            while (true) {
-                val frame = input.readFrame(maxFrameSize, lastOpcode)
-                if (!frame.frameType.controlFrame) {
-                    lastOpcode = if (frame.fin) 0 else frame.frameType.opcode
+    init {
+        launch(CoroutineName("ws-reader"), start = CoroutineStart.ATOMIC) {
+            try {
+                while (true) {
+                    val frame = input.readFrame(maxFrameSize, lastOpcode)
+                    if (!frame.frameType.controlFrame) {
+                        lastOpcode = if (frame.fin) 0 else frame.frameType.opcode
+                    }
+                    _incoming.send(frame)
                 }
-                _incoming.send(frame)
+            } catch (cause: FrameTooBigException) {
+                _incoming.close(cause)
+                outgoing.send(Frame.Close(CloseReason(CloseReason.Codes.TOO_BIG, cause.message)))
+            } catch (cause: ProtocolViolationException) {
+                // same as above
+                _incoming.close(cause)
+                outgoing.send(Frame.Close(CloseReason(CloseReason.Codes.PROTOCOL_ERROR, cause.message)))
+            } catch (_: CancellationException) {
+                _incoming.cancel()
+            } catch (_: EOFException) {
+                // no more bytes is possible to read
+            } catch (_: ClosedReceiveChannelException) {
+                // no more bytes is possible to read
+            } catch (cause: Throwable) {
+                _incoming.close(cause)
+                throw cause
+            } finally {
+                _incoming.close()
             }
-        } catch (cause: FrameTooBigException) {
-            outgoing.send(Frame.Close(CloseReason(CloseReason.Codes.TOO_BIG, cause.message)))
-            _incoming.close(cause)
-        } catch (cause: ProtocolViolationException) {
-            // same as above
-            outgoing.send(Frame.Close(CloseReason(CloseReason.Codes.PROTOCOL_ERROR, cause.message)))
-            _incoming.close(cause)
-        } catch (cause: CancellationException) {
-            _incoming.cancel(cause)
-        } catch (eof: kotlinx.io.EOFException) {
-            // no more bytes is possible to read
-        } catch (eof: ClosedReceiveChannelException) {
-            // no more bytes is possible to read
-        } catch (cause: Throwable) {
-            _incoming.close(cause)
-            throw cause
-        } finally {
-            _incoming.close()
         }
     }
 
@@ -129,7 +155,7 @@ internal class RawWebSocketCommon(
     override suspend fun flush(): Unit = FlushRequest(coroutineContext[Job]).also {
         try {
             _outgoing.send(it)
-        } catch (closed: ClosedSendChannelException) {
+        } catch (_: ClosedSendChannelException) {
             it.complete()
             writerJob.join()
         } catch (sendFailure: Throwable) {

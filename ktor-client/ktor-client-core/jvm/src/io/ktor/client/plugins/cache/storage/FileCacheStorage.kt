@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.cache.storage
@@ -222,14 +222,14 @@ private class FileCacheStorage(
      * @return The reconstructed [CachedResponseData] instance.
      */
     private suspend fun readCache(channel: ByteReadChannel): CachedResponseData {
-        val url = channel.readUTF8Line()!!
-        val status = HttpStatusCode(channel.readInt(), channel.readUTF8Line()!!)
-        val version = HttpProtocolVersion.parse(channel.readUTF8Line()!!)
+        val url = channel.readLineStrict()!!
+        val status = HttpStatusCode(channel.readInt(), channel.readLineStrict()!!)
+        val version = HttpProtocolVersion.parse(channel.readLineStrict()!!)
         val headersCount = channel.readInt()
         val headers = HeadersBuilder()
-        for (j in 0 until headersCount) {
-            val key = channel.readUTF8Line()!!
-            val value = channel.readUTF8Line()!!
+        repeat(headersCount) {
+            val key = channel.readLineStrict()!!
+            val value = channel.readLineStrict()!!
             headers.append(key, value)
         }
         val requestTime = GMTDate(channel.readLong())
@@ -237,9 +237,9 @@ private class FileCacheStorage(
         val expirationTime = GMTDate(channel.readLong())
         val varyKeysCount = channel.readInt()
         val varyKeys = buildMap {
-            for (j in 0 until varyKeysCount) {
-                val key = channel.readUTF8Line()!!.lowercase()
-                val value = channel.readUTF8Line()!!
+            repeat(varyKeysCount) {
+                val key = channel.readLineStrict()!!.lowercase()
+                val value = channel.readLineStrict()!!
                 put(key, value)
             }
         }

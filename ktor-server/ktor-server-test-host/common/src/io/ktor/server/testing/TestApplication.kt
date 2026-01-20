@@ -453,10 +453,6 @@ public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
  *     assertEquals("Hello, world!", response.bodyAsText())
  * }
  * ```
- *
- * _Note: If you have the `application.conf` file in the `resources` folder,
- * [testApplication] loads all modules and properties specified in the configuration file automatically._
- *
  * You can learn more from [Testing](https://ktor.io/docs/testing.html).
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.testApplication)
@@ -502,7 +498,7 @@ public fun testApplication(block: suspend ApplicationTestBuilder.() -> Unit): Te
 public fun testApplication(
     parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
     block: suspend ApplicationTestBuilder.() -> Unit
-): TestResult = runTestWithRealTime {
+): TestResult = runTestWithRealTime(parentCoroutineContext) {
     runTestApplication(parentCoroutineContext, block)
 }
 

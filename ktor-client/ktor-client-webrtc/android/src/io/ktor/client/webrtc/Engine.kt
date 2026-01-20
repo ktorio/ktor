@@ -31,10 +31,9 @@ public class AndroidWebRtcEngine(
     MediaTrackFactory by mediaTrackFactory {
 
     private val localFactory: PeerConnectionFactory
-        get() {
-            return (config.rtcFactory ?: (mediaTrackFactory as AndroidMediaDevices).peerConnectionFactory)
-                ?: error("Please specify custom rtcFactory for custom MediaTrackFactory")
-        }
+        get() = config.rtcFactory
+            ?: (mediaTrackFactory as? AndroidMediaDevices)?.peerConnectionFactory
+            ?: error("Please specify custom rtcFactory for custom MediaTrackFactory")
 
     private fun WebRtc.IceServer.toNative(): PeerConnection.IceServer {
         return PeerConnection.IceServer
@@ -55,8 +54,13 @@ public class AndroidWebRtcEngine(
         }
 
         val coroutineContext = createConnectionContext(config.exceptionHandler)
-        return AndroidWebRtcPeerConnection(coroutineContext, config).initialize { observer ->
+        return AndroidWebRtcPeerConnection(coroutineContext, config) { observer ->
             localFactory.createPeerConnection(rtcConfig, observer)
         }
     }
+}
+
+public object AndroidWebRtc : WebRtcClientEngineFactory<AndroidWebRtcEngineConfig> {
+    override fun create(block: AndroidWebRtcEngineConfig.() -> Unit): WebRtcEngine =
+        AndroidWebRtcEngine(AndroidWebRtcEngineConfig().apply(block))
 }

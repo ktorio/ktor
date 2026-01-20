@@ -329,7 +329,7 @@ class LoggingMockedTests {
                         val ch = it.bodyAsChannel()
                         while (!ch.isClosedForRead) {
                             ch.awaitContent()
-                            send(ch.readUTF8Line())
+                            send(ch.readLineStrict())
                         }
                     }
                 }

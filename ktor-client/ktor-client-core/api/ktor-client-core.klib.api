@@ -237,6 +237,7 @@ final class <#A: io.ktor.client.engine/HttpClientEngineConfig> io.ktor.client/Ht
         final fun <set-useDefaultTransformers>(kotlin/Boolean) // io.ktor.client/HttpClientConfig.useDefaultTransformers.<set-useDefaultTransformers>|<set-useDefaultTransformers>(kotlin.Boolean){}[0]
 
     final fun <#A1: kotlin/Any, #B1: kotlin/Any> install(io.ktor.client.plugins/HttpClientPlugin<#A1, #B1>, kotlin/Function1<#A1, kotlin/Unit> = ...) // io.ktor.client/HttpClientConfig.install|install(io.ktor.client.plugins.HttpClientPlugin<0:0,0:1>;kotlin.Function1<0:0,kotlin.Unit>){0§<kotlin.Any>;1§<kotlin.Any>}[0]
+    final fun <#A1: kotlin/Any, #B1: kotlin/Any> installOrReplace(io.ktor.client.plugins/HttpClientPlugin<#A1, #B1>, kotlin/Function1<#A1, kotlin/Unit> = ...) // io.ktor.client/HttpClientConfig.installOrReplace|installOrReplace(io.ktor.client.plugins.HttpClientPlugin<0:0,0:1>;kotlin.Function1<0:0,kotlin.Unit>){0§<kotlin.Any>;1§<kotlin.Any>}[0]
     final fun clone(): io.ktor.client/HttpClientConfig<#A> // io.ktor.client/HttpClientConfig.clone|clone(){}[0]
     final fun engine(kotlin/Function1<#A, kotlin/Unit>) // io.ktor.client/HttpClientConfig.engine|engine(kotlin.Function1<1:0,kotlin.Unit>){}[0]
     final fun install(io.ktor.client/HttpClient) // io.ktor.client/HttpClientConfig.install|install(io.ktor.client.HttpClient){}[0]
@@ -319,6 +320,25 @@ final class io.ktor.client.call/UnsupportedContentTypeException : kotlin/Illegal
 
 final class io.ktor.client.call/UnsupportedUpgradeProtocolException : kotlin/IllegalArgumentException { // io.ktor.client.call/UnsupportedUpgradeProtocolException|null[0]
     constructor <init>(io.ktor.http/Url) // io.ktor.client.call/UnsupportedUpgradeProtocolException.<init>|<init>(io.ktor.http.Url){}[0]
+}
+
+final class io.ktor.client.content/ObservableContent : io.ktor.http.content/OutgoingContent.ReadChannelContent { // io.ktor.client.content/ObservableContent|null[0]
+    constructor <init>(io.ktor.http.content/OutgoingContent, kotlin.coroutines/CoroutineContext, io.ktor.client.content/ProgressListener) // io.ktor.client.content/ObservableContent.<init>|<init>(io.ktor.http.content.OutgoingContent;kotlin.coroutines.CoroutineContext;io.ktor.client.content.ProgressListener){}[0]
+
+    final val contentLength // io.ktor.client.content/ObservableContent.contentLength|{}contentLength[0]
+        final fun <get-contentLength>(): kotlin/Long? // io.ktor.client.content/ObservableContent.contentLength.<get-contentLength>|<get-contentLength>(){}[0]
+    final val contentType // io.ktor.client.content/ObservableContent.contentType|{}contentType[0]
+        final fun <get-contentType>(): io.ktor.http/ContentType? // io.ktor.client.content/ObservableContent.contentType.<get-contentType>|<get-contentType>(){}[0]
+    final val delegate // io.ktor.client.content/ObservableContent.delegate|{}delegate[0]
+        final fun <get-delegate>(): io.ktor.http.content/OutgoingContent // io.ktor.client.content/ObservableContent.delegate.<get-delegate>|<get-delegate>(){}[0]
+    final val headers // io.ktor.client.content/ObservableContent.headers|{}headers[0]
+        final fun <get-headers>(): io.ktor.http/Headers // io.ktor.client.content/ObservableContent.headers.<get-headers>|<get-headers>(){}[0]
+    final val status // io.ktor.client.content/ObservableContent.status|{}status[0]
+        final fun <get-status>(): io.ktor.http/HttpStatusCode? // io.ktor.client.content/ObservableContent.status.<get-status>|<get-status>(){}[0]
+
+    final fun <#A1: kotlin/Any> getProperty(io.ktor.util/AttributeKey<#A1>): #A1? // io.ktor.client.content/ObservableContent.getProperty|getProperty(io.ktor.util.AttributeKey<0:0>){0§<kotlin.Any>}[0]
+    final fun <#A1: kotlin/Any> setProperty(io.ktor.util/AttributeKey<#A1>, #A1?) // io.ktor.client.content/ObservableContent.setProperty|setProperty(io.ktor.util.AttributeKey<0:0>;0:0?){0§<kotlin.Any>}[0]
+    final fun readFrom(): io.ktor.utils.io/ByteReadChannel // io.ktor.client.content/ObservableContent.readFrom|readFrom(){}[0]
 }
 
 final class io.ktor.client.engine/ClientEngineClosedException : kotlin/IllegalStateException { // io.ktor.client.engine/ClientEngineClosedException|null[0]
@@ -621,6 +641,8 @@ final class io.ktor.client.plugins.websocket/WebSockets { // io.ktor.client.plug
     constructor <init>() // io.ktor.client.plugins.websocket/WebSockets.<init>|<init>(){}[0]
     constructor <init>(kotlin/Long = ..., kotlin/Long = ...) // io.ktor.client.plugins.websocket/WebSockets.<init>|<init>(kotlin.Long;kotlin.Long){}[0]
 
+    final val channelsConfig // io.ktor.client.plugins.websocket/WebSockets.channelsConfig|{}channelsConfig[0]
+        final fun <get-channelsConfig>(): io.ktor.websocket/WebSocketChannelsConfig // io.ktor.client.plugins.websocket/WebSockets.channelsConfig.<get-channelsConfig>|<get-channelsConfig>(){}[0]
     final val contentConverter // io.ktor.client.plugins.websocket/WebSockets.contentConverter|{}contentConverter[0]
         final fun <get-contentConverter>(): io.ktor.serialization/WebsocketContentConverter? // io.ktor.client.plugins.websocket/WebSockets.contentConverter.<get-contentConverter>|<get-contentConverter>(){}[0]
     final val maxFrameSize // io.ktor.client.plugins.websocket/WebSockets.maxFrameSize|{}maxFrameSize[0]
@@ -641,6 +663,7 @@ final class io.ktor.client.plugins.websocket/WebSockets { // io.ktor.client.plug
             final fun <get-pingIntervalMillis>(): kotlin/Long // io.ktor.client.plugins.websocket/WebSockets.Config.pingIntervalMillis.<get-pingIntervalMillis>|<get-pingIntervalMillis>(){}[0]
             final fun <set-pingIntervalMillis>(kotlin/Long) // io.ktor.client.plugins.websocket/WebSockets.Config.pingIntervalMillis.<set-pingIntervalMillis>|<set-pingIntervalMillis>(kotlin.Long){}[0]
 
+        final fun channels(kotlin/Function1<io.ktor.websocket/WebSocketChannelsConfig, kotlin/Unit>) // io.ktor.client.plugins.websocket/WebSockets.Config.channels|channels(kotlin.Function1<io.ktor.websocket.WebSocketChannelsConfig,kotlin.Unit>){}[0]
         final fun extensions(kotlin/Function1<io.ktor.websocket/WebSocketExtensionsConfig, kotlin/Unit>) // io.ktor.client.plugins.websocket/WebSockets.Config.extensions|extensions(kotlin.Function1<io.ktor.websocket.WebSocketExtensionsConfig,kotlin.Unit>){}[0]
     }
 
@@ -696,6 +719,7 @@ final class io.ktor.client.plugins/DefaultRequest { // io.ktor.client.plugins/De
 final class io.ktor.client.plugins/HttpCallValidatorConfig { // io.ktor.client.plugins/HttpCallValidatorConfig|null[0]
     constructor <init>() // io.ktor.client.plugins/HttpCallValidatorConfig.<init>|<init>(){}[0]
 
+    final fun handleResponseException(kotlin.coroutines/SuspendFunction1<kotlin/Throwable, kotlin/Unit>) // io.ktor.client.plugins/HttpCallValidatorConfig.handleResponseException|handleResponseException(kotlin.coroutines.SuspendFunction1<kotlin.Throwable,kotlin.Unit>){}[0]
     final fun handleResponseException(kotlin.coroutines/SuspendFunction2<kotlin/Throwable, io.ktor.client.request/HttpRequest, kotlin/Unit>) // io.ktor.client.plugins/HttpCallValidatorConfig.handleResponseException|handleResponseException(kotlin.coroutines.SuspendFunction2<kotlin.Throwable,io.ktor.client.request.HttpRequest,kotlin.Unit>){}[0]
     final fun handleResponseExceptionWithRequest(kotlin.coroutines/SuspendFunction2<kotlin/Throwable, io.ktor.client.request/HttpRequest, kotlin/Unit>) // io.ktor.client.plugins/HttpCallValidatorConfig.handleResponseExceptionWithRequest|handleResponseExceptionWithRequest(kotlin.coroutines.SuspendFunction2<kotlin.Throwable,io.ktor.client.request.HttpRequest,kotlin.Unit>){}[0]
     final fun validateResponse(kotlin.coroutines/SuspendFunction1<io.ktor.client.statement/HttpResponse, kotlin/Unit>) // io.ktor.client.plugins/HttpCallValidatorConfig.validateResponse|validateResponse(kotlin.coroutines.SuspendFunction1<io.ktor.client.statement.HttpResponse,kotlin.Unit>){}[0]
@@ -887,6 +911,8 @@ final class io.ktor.client.request.forms/ChannelProvider { // io.ktor.client.req
 }
 
 final class io.ktor.client.request.forms/FormBuilder { // io.ktor.client.request.forms/FormBuilder|null[0]
+    constructor <init>() // io.ktor.client.request.forms/FormBuilder.<init>|<init>(){}[0]
+
     final fun <#A1: kotlin/Any> append(io.ktor.client.request.forms/FormPart<#A1>) // io.ktor.client.request.forms/FormBuilder.append|append(io.ktor.client.request.forms.FormPart<0:0>){0§<kotlin.Any>}[0]
     final fun <#A1: kotlin/Any> append(kotlin/String, #A1, io.ktor.http/Headers = ...) // io.ktor.client.request.forms/FormBuilder.append|append(kotlin.String;0:0;io.ktor.http.Headers){0§<kotlin.Any>}[0]
     final fun append(kotlin/String, io.ktor.client.request.forms/ChannelProvider, io.ktor.http/Headers = ...) // io.ktor.client.request.forms/FormBuilder.append|append(kotlin.String;io.ktor.client.request.forms.ChannelProvider;io.ktor.http.Headers){}[0]
@@ -899,6 +925,7 @@ final class io.ktor.client.request.forms/FormBuilder { // io.ktor.client.request
     final fun append(kotlin/String, kotlin/String, io.ktor.http/Headers = ...) // io.ktor.client.request.forms/FormBuilder.append|append(kotlin.String;kotlin.String;io.ktor.http.Headers){}[0]
     final fun append(kotlin/String, kotlinx.io/Source, io.ktor.http/Headers = ...) // io.ktor.client.request.forms/FormBuilder.append|append(kotlin.String;kotlinx.io.Source;io.ktor.http.Headers){}[0]
     final fun appendInput(kotlin/String, io.ktor.http/Headers = ..., kotlin/Long? = ..., kotlin/Function0<kotlinx.io/Source>) // io.ktor.client.request.forms/FormBuilder.appendInput|appendInput(kotlin.String;io.ktor.http.Headers;kotlin.Long?;kotlin.Function0<kotlinx.io.Source>){}[0]
+    final fun build(): kotlin.collections/List<io.ktor.client.request.forms/FormPart<*>> // io.ktor.client.request.forms/FormBuilder.build|build(){}[0]
 }
 
 final class io.ktor.client.request.forms/FormDataContent : io.ktor.http.content/OutgoingContent.ByteArrayContent { // io.ktor.client.request.forms/FormDataContent|null[0]
@@ -930,6 +957,8 @@ final class io.ktor.client.request.forms/MultiPartFormDataContent : io.ktor.http
         final fun <get-boundary>(): kotlin/String // io.ktor.client.request.forms/MultiPartFormDataContent.boundary.<get-boundary>|<get-boundary>(){}[0]
     final val contentType // io.ktor.client.request.forms/MultiPartFormDataContent.contentType|{}contentType[0]
         final fun <get-contentType>(): io.ktor.http/ContentType // io.ktor.client.request.forms/MultiPartFormDataContent.contentType.<get-contentType>|<get-contentType>(){}[0]
+    final val parts // io.ktor.client.request.forms/MultiPartFormDataContent.parts|{}parts[0]
+        final fun <get-parts>(): kotlin.collections/List<io.ktor.http.content/PartData> // io.ktor.client.request.forms/MultiPartFormDataContent.parts.<get-parts>|<get-parts>(){}[0]
 
     final var contentLength // io.ktor.client.request.forms/MultiPartFormDataContent.contentLength|{}contentLength[0]
         final fun <get-contentLength>(): kotlin/Long? // io.ktor.client.request.forms/MultiPartFormDataContent.contentLength.<get-contentLength>|<get-contentLength>(){}[0]
@@ -1483,6 +1512,7 @@ final fun (io.ktor.client/HttpClientConfig<*>).io.ktor.client.plugins/Charsets(k
 final fun (io.ktor.client/HttpClientConfig<*>).io.ktor.client.plugins/CurlUserAgent() // io.ktor.client.plugins/CurlUserAgent|CurlUserAgent@io.ktor.client.HttpClientConfig<*>(){}[0]
 final fun (io.ktor.client/HttpClientConfig<*>).io.ktor.client.plugins/HttpResponseValidator(kotlin/Function1<io.ktor.client.plugins/HttpCallValidatorConfig, kotlin/Unit>) // io.ktor.client.plugins/HttpResponseValidator|HttpResponseValidator@io.ktor.client.HttpClientConfig<*>(kotlin.Function1<io.ktor.client.plugins.HttpCallValidatorConfig,kotlin.Unit>){}[0]
 final fun (io.ktor.client/HttpClientConfig<*>).io.ktor.client.plugins/addDefaultResponseValidation() // io.ktor.client.plugins/addDefaultResponseValidation|addDefaultResponseValidation@io.ktor.client.HttpClientConfig<*>(){}[0]
+final fun (io.ktor.client/HttpClientConfig<*>).io.ktor.client.plugins/defaultRequest(kotlin/Boolean = ..., kotlin/Function1<io.ktor.client.plugins/DefaultRequest.DefaultRequestBuilder, kotlin/Unit>) // io.ktor.client.plugins/defaultRequest|defaultRequest@io.ktor.client.HttpClientConfig<*>(kotlin.Boolean;kotlin.Function1<io.ktor.client.plugins.DefaultRequest.DefaultRequestBuilder,kotlin.Unit>){}[0]
 final fun (io.ktor.client/HttpClientConfig<*>).io.ktor.client.plugins/defaultRequest(kotlin/Function1<io.ktor.client.plugins/DefaultRequest.DefaultRequestBuilder, kotlin/Unit>) // io.ktor.client.plugins/defaultRequest|defaultRequest@io.ktor.client.HttpClientConfig<*>(kotlin.Function1<io.ktor.client.plugins.DefaultRequest.DefaultRequestBuilder,kotlin.Unit>){}[0]
 final fun (io.ktor.http.content/OutgoingContent).io.ktor.client.utils/wrapHeaders(kotlin/Function1<io.ktor.http/Headers, io.ktor.http/Headers>): io.ktor.http.content/OutgoingContent // io.ktor.client.utils/wrapHeaders|wrapHeaders@io.ktor.http.content.OutgoingContent(kotlin.Function1<io.ktor.http.Headers,io.ktor.http.Headers>){}[0]
 final fun (io.ktor.http/Cookie).io.ktor.client.plugins.cookies/fillDefaults(io.ktor.http/Url): io.ktor.http/Cookie // io.ktor.client.plugins.cookies/fillDefaults|fillDefaults@io.ktor.http.Cookie(io.ktor.http.Url){}[0]
@@ -1503,6 +1533,7 @@ final fun <#A: kotlin/Any, #B: kotlin/Any> (io.ktor.client/HttpClient).io.ktor.c
 final fun <#A: kotlin/Any, #B: kotlin/Any> (io.ktor.client/HttpClient).io.ktor.client.plugins/pluginOrNull(io.ktor.client.plugins/HttpClientPlugin<#A, #B>): #B? // io.ktor.client.plugins/pluginOrNull|pluginOrNull@io.ktor.client.HttpClient(io.ktor.client.plugins.HttpClientPlugin<0:0,0:1>){0§<kotlin.Any>;1§<kotlin.Any>}[0]
 final fun <#A: kotlin/Any> io.ktor.client.plugins.api/createClientPlugin(kotlin/String, kotlin/Function0<#A>, kotlin/Function1<io.ktor.client.plugins.api/ClientPluginBuilder<#A>, kotlin/Unit>): io.ktor.client.plugins.api/ClientPlugin<#A> // io.ktor.client.plugins.api/createClientPlugin|createClientPlugin(kotlin.String;kotlin.Function0<0:0>;kotlin.Function1<io.ktor.client.plugins.api.ClientPluginBuilder<0:0>,kotlin.Unit>){0§<kotlin.Any>}[0]
 final fun io.ktor.client.engine/mergeHeaders(io.ktor.http/Headers, io.ktor.http.content/OutgoingContent, kotlin/Function2<kotlin/String, kotlin/String, kotlin/Unit>) // io.ktor.client.engine/mergeHeaders|mergeHeaders(io.ktor.http.Headers;io.ktor.http.content.OutgoingContent;kotlin.Function2<kotlin.String,kotlin.String,kotlin.Unit>){}[0]
+final fun io.ktor.client.io/configurePlatform() // io.ktor.client.io/configurePlatform|configurePlatform(){}[0]
 final fun io.ktor.client.network.sockets/SocketTimeoutException(kotlin/String, kotlin/Throwable? = ...): io.ktor.client.network.sockets/SocketTimeoutException // io.ktor.client.network.sockets/SocketTimeoutException|SocketTimeoutException(kotlin.String;kotlin.Throwable?){}[0]
 final fun io.ktor.client.plugins.api/createClientPlugin(kotlin/String, kotlin/Function1<io.ktor.client.plugins.api/ClientPluginBuilder<kotlin/Unit>, kotlin/Unit>): io.ktor.client.plugins.api/ClientPlugin<kotlin/Unit> // io.ktor.client.plugins.api/createClientPlugin|createClientPlugin(kotlin.String;kotlin.Function1<io.ktor.client.plugins.api.ClientPluginBuilder<kotlin.Unit>,kotlin.Unit>){}[0]
 final fun io.ktor.client.plugins.websocket/WebSockets(kotlin.time/Duration?, kotlin/Long = ...): io.ktor.client.plugins.websocket/WebSockets // io.ktor.client.plugins.websocket/WebSockets|WebSockets(kotlin.time.Duration?;kotlin.Long){}[0]
@@ -1512,7 +1543,6 @@ final fun io.ktor.client.plugins/SocketTimeoutException(io.ktor.client.request/H
 final fun io.ktor.client.plugins/convertLongTimeoutToIntWithInfiniteAsZero(kotlin/Long): kotlin/Int // io.ktor.client.plugins/convertLongTimeoutToIntWithInfiniteAsZero|convertLongTimeoutToIntWithInfiniteAsZero(kotlin.Long){}[0]
 final fun io.ktor.client.plugins/convertLongTimeoutToLongWithInfiniteAsZero(kotlin/Long): kotlin/Long // io.ktor.client.plugins/convertLongTimeoutToLongWithInfiniteAsZero|convertLongTimeoutToLongWithInfiniteAsZero(kotlin.Long){}[0]
 final fun io.ktor.client.request.forms/formData(kotlin/Array<out io.ktor.client.request.forms/FormPart<*>>...): kotlin.collections/List<io.ktor.http.content/PartData> // io.ktor.client.request.forms/formData|formData(kotlin.Array<out|io.ktor.client.request.forms.FormPart<*>>...){}[0]
-final fun io.ktor.client.request.forms/formData(kotlin/Function1<io.ktor.client.request.forms/FormBuilder, kotlin/Unit>): kotlin.collections/List<io.ktor.http.content/PartData> // io.ktor.client.request.forms/formData|formData(kotlin.Function1<io.ktor.client.request.forms.FormBuilder,kotlin.Unit>){}[0]
 final fun io.ktor.client.request/request(kotlin/Function1<io.ktor.client.request/HttpRequestBuilder, kotlin/Unit>): io.ktor.client.request/HttpRequestBuilder // io.ktor.client.request/request|request(kotlin.Function1<io.ktor.client.request.HttpRequestBuilder,kotlin.Unit>){}[0]
 final fun io.ktor.client.utils/buildHeaders(kotlin/Function1<io.ktor.http/HeadersBuilder, kotlin/Unit> = ...): io.ktor.http/Headers // io.ktor.client.utils/buildHeaders|buildHeaders(kotlin.Function1<io.ktor.http.HeadersBuilder,kotlin.Unit>){}[0]
 final fun io.ktor.client/HttpClient(io.ktor.client.engine/HttpClientEngine, kotlin/Function1<io.ktor.client/HttpClientConfig<*>, kotlin/Unit>): io.ktor.client/HttpClient // io.ktor.client/HttpClient|HttpClient(io.ktor.client.engine.HttpClientEngine;kotlin.Function1<io.ktor.client.HttpClientConfig<*>,kotlin.Unit>){}[0]
@@ -1523,6 +1553,7 @@ final inline fun <#A: kotlin/Any?> io.ktor.client.plugins/unwrapRequestTimeoutEx
 final inline fun <#A: reified kotlin/Any?> (io.ktor.client.plugins.sse/SSESessionWithDeserialization).io.ktor.client.plugins.sse/deserialize(io.ktor.sse/TypedServerSentEvent<kotlin/String>): #A? // io.ktor.client.plugins.sse/deserialize|deserialize@io.ktor.client.plugins.sse.SSESessionWithDeserialization(io.ktor.sse.TypedServerSentEvent<kotlin.String>){0§<kotlin.Any?>}[0]
 final inline fun <#A: reified kotlin/Any?> (io.ktor.client.plugins.sse/SSESessionWithDeserialization).io.ktor.client.plugins.sse/deserialize(kotlin/String?): #A? // io.ktor.client.plugins.sse/deserialize|deserialize@io.ktor.client.plugins.sse.SSESessionWithDeserialization(kotlin.String?){0§<kotlin.Any?>}[0]
 final inline fun <#A: reified kotlin/Any?> (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.request/setBody(#A) // io.ktor.client.request/setBody|setBody@io.ktor.client.request.HttpRequestBuilder(0:0){0§<kotlin.Any?>}[0]
+final inline fun io.ktor.client.request.forms/formData(kotlin/Function1<io.ktor.client.request.forms/FormBuilder, kotlin/Unit>): kotlin.collections/List<io.ktor.http.content/PartData> // io.ktor.client.request.forms/formData|formData(kotlin.Function1<io.ktor.client.request.forms.FormBuilder,kotlin.Unit>){}[0]
 final suspend fun (io.ktor.client.call/HttpClientCall).io.ktor.client.call/save(): io.ktor.client.call/HttpClientCall // io.ktor.client.call/save|save@io.ktor.client.call.HttpClientCall(){}[0]
 final suspend fun (io.ktor.client.plugins.cache.storage/CacheStorage).io.ktor.client.plugins.cache.storage/store(io.ktor.client.statement/HttpResponse): io.ktor.client.plugins.cache.storage/CachedResponseData // io.ktor.client.plugins.cache.storage/store|store@io.ktor.client.plugins.cache.storage.CacheStorage(io.ktor.client.statement.HttpResponse){}[0]
 final suspend fun (io.ktor.client.plugins.cache.storage/CacheStorage).io.ktor.client.plugins.cache.storage/store(io.ktor.client.statement/HttpResponse, kotlin.collections/Map<kotlin/String, kotlin/String>, kotlin/Boolean = ...): io.ktor.client.plugins.cache.storage/CachedResponseData // io.ktor.client.plugins.cache.storage/store|store@io.ktor.client.plugins.cache.storage.CacheStorage(io.ktor.client.statement.HttpResponse;kotlin.collections.Map<kotlin.String,kotlin.String>;kotlin.Boolean){}[0]
@@ -1636,6 +1667,9 @@ final suspend inline fun (io.ktor.client/HttpClient).io.ktor.client.request/prep
 final suspend inline fun (io.ktor.client/HttpClient).io.ktor.client.request/preparePut(io.ktor.http/Url, kotlin/Function1<io.ktor.client.request/HttpRequestBuilder, kotlin/Unit> = ...): io.ktor.client.statement/HttpStatement // io.ktor.client.request/preparePut|preparePut@io.ktor.client.HttpClient(io.ktor.http.Url;kotlin.Function1<io.ktor.client.request.HttpRequestBuilder,kotlin.Unit>){}[0]
 final suspend inline fun (io.ktor.client/HttpClient).io.ktor.client.request/preparePut(kotlin/Function1<io.ktor.client.request/HttpRequestBuilder, kotlin/Unit>): io.ktor.client.statement/HttpStatement // io.ktor.client.request/preparePut|preparePut@io.ktor.client.HttpClient(kotlin.Function1<io.ktor.client.request.HttpRequestBuilder,kotlin.Unit>){}[0]
 final suspend inline fun (io.ktor.client/HttpClient).io.ktor.client.request/preparePut(kotlin/String, kotlin/Function1<io.ktor.client.request/HttpRequestBuilder, kotlin/Unit> = ...): io.ktor.client.statement/HttpStatement // io.ktor.client.request/preparePut|preparePut@io.ktor.client.HttpClient(kotlin.String;kotlin.Function1<io.ktor.client.request.HttpRequestBuilder,kotlin.Unit>){}[0]
+final suspend inline fun (io.ktor.client/HttpClient).io.ktor.client.request/prepareQuery(io.ktor.client.request/HttpRequestBuilder): io.ktor.client.statement/HttpStatement // io.ktor.client.request/prepareQuery|prepareQuery@io.ktor.client.HttpClient(io.ktor.client.request.HttpRequestBuilder){}[0]
+final suspend inline fun (io.ktor.client/HttpClient).io.ktor.client.request/prepareQuery(kotlin/Function1<io.ktor.client.request/HttpRequestBuilder, kotlin/Unit>): io.ktor.client.statement/HttpStatement // io.ktor.client.request/prepareQuery|prepareQuery@io.ktor.client.HttpClient(kotlin.Function1<io.ktor.client.request.HttpRequestBuilder,kotlin.Unit>){}[0]
+final suspend inline fun (io.ktor.client/HttpClient).io.ktor.client.request/prepareQuery(kotlin/String, kotlin/Function1<io.ktor.client.request/HttpRequestBuilder, kotlin/Unit> = ...): io.ktor.client.statement/HttpStatement // io.ktor.client.request/prepareQuery|prepareQuery@io.ktor.client.HttpClient(kotlin.String;kotlin.Function1<io.ktor.client.request.HttpRequestBuilder,kotlin.Unit>){}[0]
 final suspend inline fun (io.ktor.client/HttpClient).io.ktor.client.request/prepareRequest(io.ktor.client.request/HttpRequestBuilder = ...): io.ktor.client.statement/HttpStatement // io.ktor.client.request/prepareRequest|prepareRequest@io.ktor.client.HttpClient(io.ktor.client.request.HttpRequestBuilder){}[0]
 final suspend inline fun (io.ktor.client/HttpClient).io.ktor.client.request/prepareRequest(io.ktor.http/Url, kotlin/Function1<io.ktor.client.request/HttpRequestBuilder, kotlin/Unit> = ...): io.ktor.client.statement/HttpStatement // io.ktor.client.request/prepareRequest|prepareRequest@io.ktor.client.HttpClient(io.ktor.http.Url;kotlin.Function1<io.ktor.client.request.HttpRequestBuilder,kotlin.Unit>){}[0]
 final suspend inline fun (io.ktor.client/HttpClient).io.ktor.client.request/prepareRequest(kotlin/Function1<io.ktor.client.request/HttpRequestBuilder, kotlin/Unit>): io.ktor.client.statement/HttpStatement // io.ktor.client.request/prepareRequest|prepareRequest@io.ktor.client.HttpClient(kotlin.Function1<io.ktor.client.request.HttpRequestBuilder,kotlin.Unit>){}[0]
@@ -1644,6 +1678,9 @@ final suspend inline fun (io.ktor.client/HttpClient).io.ktor.client.request/put(
 final suspend inline fun (io.ktor.client/HttpClient).io.ktor.client.request/put(io.ktor.http/Url, kotlin/Function1<io.ktor.client.request/HttpRequestBuilder, kotlin/Unit> = ...): io.ktor.client.statement/HttpResponse // io.ktor.client.request/put|put@io.ktor.client.HttpClient(io.ktor.http.Url;kotlin.Function1<io.ktor.client.request.HttpRequestBuilder,kotlin.Unit>){}[0]
 final suspend inline fun (io.ktor.client/HttpClient).io.ktor.client.request/put(kotlin/Function1<io.ktor.client.request/HttpRequestBuilder, kotlin/Unit>): io.ktor.client.statement/HttpResponse // io.ktor.client.request/put|put@io.ktor.client.HttpClient(kotlin.Function1<io.ktor.client.request.HttpRequestBuilder,kotlin.Unit>){}[0]
 final suspend inline fun (io.ktor.client/HttpClient).io.ktor.client.request/put(kotlin/String, kotlin/Function1<io.ktor.client.request/HttpRequestBuilder, kotlin/Unit> = ...): io.ktor.client.statement/HttpResponse // io.ktor.client.request/put|put@io.ktor.client.HttpClient(kotlin.String;kotlin.Function1<io.ktor.client.request.HttpRequestBuilder,kotlin.Unit>){}[0]
+final suspend inline fun (io.ktor.client/HttpClient).io.ktor.client.request/query(io.ktor.client.request/HttpRequestBuilder): io.ktor.client.statement/HttpResponse // io.ktor.client.request/query|query@io.ktor.client.HttpClient(io.ktor.client.request.HttpRequestBuilder){}[0]
+final suspend inline fun (io.ktor.client/HttpClient).io.ktor.client.request/query(kotlin/Function1<io.ktor.client.request/HttpRequestBuilder, kotlin/Unit>): io.ktor.client.statement/HttpResponse // io.ktor.client.request/query|query@io.ktor.client.HttpClient(kotlin.Function1<io.ktor.client.request.HttpRequestBuilder,kotlin.Unit>){}[0]
+final suspend inline fun (io.ktor.client/HttpClient).io.ktor.client.request/query(kotlin/String, kotlin/Function1<io.ktor.client.request/HttpRequestBuilder, kotlin/Unit> = ...): io.ktor.client.statement/HttpResponse // io.ktor.client.request/query|query@io.ktor.client.HttpClient(kotlin.String;kotlin.Function1<io.ktor.client.request.HttpRequestBuilder,kotlin.Unit>){}[0]
 final suspend inline fun (io.ktor.client/HttpClient).io.ktor.client.request/request(io.ktor.client.request/HttpRequestBuilder = ...): io.ktor.client.statement/HttpResponse // io.ktor.client.request/request|request@io.ktor.client.HttpClient(io.ktor.client.request.HttpRequestBuilder){}[0]
 final suspend inline fun (io.ktor.client/HttpClient).io.ktor.client.request/request(io.ktor.http/Url, kotlin/Function1<io.ktor.client.request/HttpRequestBuilder, kotlin/Unit> = ...): io.ktor.client.statement/HttpResponse // io.ktor.client.request/request|request@io.ktor.client.HttpClient(io.ktor.http.Url;kotlin.Function1<io.ktor.client.request.HttpRequestBuilder,kotlin.Unit>){}[0]
 final suspend inline fun (io.ktor.client/HttpClient).io.ktor.client.request/request(kotlin/Function1<io.ktor.client.request/HttpRequestBuilder, kotlin/Unit>): io.ktor.client.statement/HttpResponse // io.ktor.client.request/request|request@io.ktor.client.HttpClient(kotlin.Function1<io.ktor.client.request.HttpRequestBuilder,kotlin.Unit>){}[0]

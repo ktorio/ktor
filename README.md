@@ -7,11 +7,11 @@
 
 </div>
 
-[![Official JetBrains project](http://jb.gg/badges/official.svg)](https://confluence.jetbrains.com/display/ALL/JetBrains+on+GitHub)
+[![Official JetBrains project](https://jb.gg/badges/official.svg)](https://confluence.jetbrains.com/display/ALL/JetBrains+on+GitHub)
 [![Maven Central](https://img.shields.io/maven-central/v/io.ktor/ktor-server)](https://central.sonatype.com/search?namespace=io.ktor)
-[![Kotlin](https://img.shields.io/badge/kotlin-2.2.20-blue.svg?logo=kotlin)](http://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/kotlin-2.3.0-blue.svg?logo=kotlin)](https://kotlinlang.org)
 [![Slack channel](https://img.shields.io/badge/chat-slack-green.svg?logo=slack)](https://kotlinlang.slack.com/messages/ktor/)
-[![GitHub License](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0)
+[![GitHub License](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](https://www.apache.org/licenses/LICENSE-2.0)
 [![Contribute with Gitpod](https://img.shields.io/badge/Contribute%20with-Gitpod-908a85?logo=gitpod)](https://gitpod.io/#https://github.com/ktorio/ktor)
 
 Ktor is an asynchronous framework for creating microservices, web applications and more. Written in Kotlin from the
@@ -113,7 +113,7 @@ from the community.
 
 ## Documentation
 
-Please visit [ktor.io](http://ktor.io) for Quick Start and detailed explanations of features, usage and machinery.
+Please visit [ktor.io](https://ktor.io) for Quick Start and detailed explanations of features, usage and machinery.
 
 * Getting started with [Gradle](https://ktor.io/docs/gradle.html)
 * Getting started with [Maven](https://ktor.io/docs/maven.html)

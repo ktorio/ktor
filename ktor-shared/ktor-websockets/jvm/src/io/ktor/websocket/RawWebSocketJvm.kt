@@ -25,6 +25,7 @@ import kotlin.properties.*
  * @param maxFrameSize is an initial [maxFrameSize] value for [WebSocketSession]
  * @param masking is an initial [masking] value for [WebSocketSession]
  * @param coroutineContext is a [CoroutineContext] to execute reading/writing from/to connection
+ * @param channelsConfig is a [WebSocketChannelsConfig] for the incoming and outgoing [Frame] queues
  */
 @Suppress("FunctionName")
 public actual fun RawWebSocket(
@@ -32,21 +33,31 @@ public actual fun RawWebSocket(
     output: ByteWriteChannel,
     maxFrameSize: Long,
     masking: Boolean,
-    coroutineContext: CoroutineContext
-): WebSocketSession = RawWebSocketJvm(input, output, maxFrameSize, masking, coroutineContext)
+    coroutineContext: CoroutineContext,
+    channelsConfig: WebSocketChannelsConfig
+): WebSocketSession = RawWebSocketJvm(
+    input,
+    output,
+    maxFrameSize,
+    masking,
+    coroutineContext,
+    channelsConfig,
+)
 
+@OptIn(InternalAPI::class)
 internal class RawWebSocketJvm(
     input: ByteReadChannel,
     output: ByteWriteChannel,
     maxFrameSize: Long = Int.MAX_VALUE.toLong(),
     masking: Boolean = false,
     coroutineContext: CoroutineContext,
-    pool: ObjectPool<ByteBuffer> = KtorDefaultPool
+    channelsConfig: WebSocketChannelsConfig,
+    pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
 ) : WebSocketSession {
     private val socketJob: CompletableJob = Job(coroutineContext[Job])
-    private val filtered = Channel<Frame>(Channel.RENDEZVOUS)
-
     override val coroutineContext: CoroutineContext = coroutineContext + socketJob + CoroutineName("raw-ws")
+
+    private val filtered = Channel.from<Frame>(channelsConfig.incoming)
     override val incoming: ReceiveChannel<Frame> get() = filtered
     override val outgoing: SendChannel<Frame> get() = writer.outgoing
 
@@ -61,8 +72,17 @@ internal class RawWebSocketJvm(
         writer.masking = newValue
     }
 
-    internal val writer: WebSocketWriter = WebSocketWriter(output, this.coroutineContext, masking, pool)
-    internal val reader: WebSocketReader = WebSocketReader(input, this.coroutineContext, maxFrameSize, pool)
+    internal val writer: WebSocketWriter =
+        WebSocketWriter(
+            writeChannel = output,
+            coroutineContext = this.coroutineContext,
+            masking = masking,
+            pool = pool,
+            queueConfig = channelsConfig.outgoing
+        )
+
+    internal val reader: WebSocketReader =
+        WebSocketReader(input, this.coroutineContext, maxFrameSize, pool, queueConfig = channelsConfig.incoming)
 
     init {
         launch {

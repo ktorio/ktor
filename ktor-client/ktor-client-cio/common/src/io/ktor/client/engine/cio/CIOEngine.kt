@@ -5,6 +5,7 @@
 package io.ktor.client.engine.cio
 
 import io.ktor.client.engine.*
+import io.ktor.client.io.configurePlatform
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.sse.*
 import io.ktor.client.plugins.websocket.*
@@ -55,6 +56,8 @@ internal class CIOEngine(
     }
 
     init {
+        configurePlatform()
+
         val parentContext = super.coroutineContext
         val parent = parentContext[Job]!!
 

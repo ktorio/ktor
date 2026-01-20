@@ -61,6 +61,7 @@ projects {
 
         nested("ktor-server-plugins") {
             +"ktor-server-auth"
+            +"ktor-server-auth-api-key"
             +"ktor-server-auth-jwt"
             +"ktor-server-auth-ldap"
             +"ktor-server-auto-head-response"
@@ -68,7 +69,9 @@ projects {
             +"ktor-server-caching-headers"
             +"ktor-server-call-id"
             +"ktor-server-call-logging"
-            +"ktor-server-compression"
+            +"ktor-server-compression" including {
+                +"ktor-server-compression-zstd"
+            }
             +"ktor-server-conditional-headers"
             +"ktor-server-content-negotiation"
             +"ktor-server-cors"
@@ -103,6 +106,7 @@ projects {
             +"ktor-server-velocity"
             +"ktor-server-webjars"
             +"ktor-server-websockets"
+            +"ktor-server-routing-openapi"
         }
     }
 
@@ -171,6 +175,7 @@ projects {
             }
             +"ktor-serialization-gson"
             +"ktor-serialization-jackson"
+            +"ktor-serialization-jackson3"
             +"ktor-serialization-tests"
         }
         +"ktor-sse"
@@ -180,6 +185,10 @@ projects {
         +"ktor-websocket-serialization"
         +"ktor-websockets"
         +"ktor-test-base"
+        +"ktor-openapi-schema" including {
+            +"ktor-openapi-schema-reflect"
+        }
+        +"ktor-encoding-zstd"
     }
 
     +"ktor-network" including {

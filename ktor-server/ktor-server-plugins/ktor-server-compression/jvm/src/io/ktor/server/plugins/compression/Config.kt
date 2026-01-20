@@ -43,7 +43,7 @@ public data class CompressionEncoderConfig(
     /**
      * A priority of an encoder.
      */
-    val priority: Double
+    val priority: Double,
 )
 
 /**
@@ -81,6 +81,7 @@ public class CompressionConfig : ConditionsHolderBuilder {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.compression.CompressionConfig.encoder)
      */
+    @OptIn(InternalAPI::class)
     public fun encoder(
         encoder: ContentEncoder,
         block: CompressionEncoderBuilder.() -> Unit = {}
@@ -137,13 +138,13 @@ public interface ConditionsHolderBuilder {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.compression.CompressionEncoderBuilder)
  *
- * @property name of encoder
  * @property encoder instance
  */
 @Suppress("MemberVisibilityCanBePrivate")
-public class CompressionEncoderBuilder internal constructor(
+public class CompressionEncoderBuilder @InternalAPI constructor(
     public val encoder: ContentEncoder
 ) : ConditionsHolderBuilder {
+
     /**
      * A list of conditions for this encoder
      *
