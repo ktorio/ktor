@@ -74,10 +74,14 @@ class YamlConfigTestJvm {
     @Test
     fun testEnvVarWithValueStartingWithDollar() = withProperty("TEST_DB_PASSWORD", $$"$123Password") {
         val content = $$"""
-                password: $TEST_DB_PASSWORD
+                password1: $TEST_DB_PASSWORD
+                password2: $TEST_DB_PASSWORD
+                password3: $password1
         """.trimIndent()
         val yaml = Yaml.default.decodeFromString<YamlMap>(content)
         val config = YamlConfig.from(yaml)
-        assertEquals($$"$123Password", config.property("password").getString())
+        assertEquals($$"$123Password", config.property("password1").getString())
+        assertEquals($$"$123Password", config.property("password2").getString())
+        assertEquals($$"$123Password", config.property("password3").getString())
     }
 }
