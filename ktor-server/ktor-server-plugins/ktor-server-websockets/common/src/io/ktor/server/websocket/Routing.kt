@@ -14,7 +14,6 @@ import io.ktor.utils.io.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
-import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Binds RAW WebSocket at the current route + [path] optionally checking the for WebSocket [protocol] (ignored if `null`)
@@ -196,7 +195,7 @@ private suspend fun WebSocketServerSession.proceedWebSocket(handler: suspend Def
     val session = DefaultWebSocketSession(
         this,
         webSockets.pingIntervalMillis,
-        webSockets.timeoutMillis.milliseconds,
+        webSockets.timeoutMillis,
         webSockets.channelsConfig,
     ).apply {
         val extensions = call.attributes[WebSockets.EXTENSIONS_KEY]

@@ -17,7 +17,6 @@ import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import io.ktor.websocket.*
 import io.ktor.websocket.WebSocketChannelsConfig
-import kotlin.time.Duration.Companion.milliseconds
 
 private val REQUEST_EXTENSIONS_KEY = AttributeKey<List<WebSocketExtension<*>>>("Websocket extensions")
 
@@ -110,7 +109,7 @@ public class WebSockets internal constructor(
     internal fun convertSessionToDefault(session: WebSocketSession): DefaultWebSocketSession {
         if (session is DefaultWebSocketSession) return session
 
-        val timeoutMillis = (pingIntervalMillis * 2).milliseconds
+        val timeoutMillis = (pingIntervalMillis * 2)
         return DefaultWebSocketSession(session, pingIntervalMillis, timeoutMillis, channelsConfig).also {
             it.maxFrameSize = this@WebSockets.maxFrameSize
         }
