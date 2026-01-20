@@ -43,16 +43,22 @@ class WebSocketBackpressureTest : ClientLoader() {
 
             test { client ->
                 client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
-                    val sendJob = launch {
+                    val receivedAllFrames = CompletableDeferred<Unit>()
+                    val sendJob = this@test.launch {
                         repeat(FRAMES_COUNT) { i -> send("message $i") }
+                        // don't close the connection until all frames are received back
+                        receivedAllFrames.await()
                         close()
                     }
-                    val receiveJob = launch {
-                        var expectedIndex = 1
+                    val receiveJob = this@test.launch {
+                        var expectedIndex = 0
                         for (frame in incoming) {
+                            if (frame is Frame.Close) break
                             if (frame !is Frame.Text) continue
-                            assertEquals("message ${expectedIndex++}", frame.readText())
+                            if (++expectedIndex == FRAMES_COUNT) break
                         }
+                        assertEquals(FRAMES_COUNT, expectedIndex)
+                        receivedAllFrames.complete(Unit)
                     }
                     listOf(sendJob, receiveJob).joinAll()
                 }
