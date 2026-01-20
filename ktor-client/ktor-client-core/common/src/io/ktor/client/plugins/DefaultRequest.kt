@@ -232,6 +232,17 @@ public class DefaultRequest private constructor(private val block: DefaultReques
             }
 
         /**
+         * Executes a [block] that configures the [HeadersBuilder] associated to this request.
+         *
+         * This member function shadows the top-level `io.ktor.http.headers` function to ensure
+         * that `headers { }` blocks correctly modify the builder's headers instead of creating
+         * a new Headers instance that gets discarded.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.DefaultRequest.DefaultRequestBuilder.headers)
+         */
+        public fun headers(block: HeadersBuilder.() -> Unit): HeadersBuilder = headers.apply(block)
+
+        /**
          * Sets attributes using [block].
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.DefaultRequest.DefaultRequestBuilder.setAttributes)
