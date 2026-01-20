@@ -31,9 +31,6 @@ kotlin {
         commonTest.dependencies {
             implementation(projects.ktorTestDispatcher)
         }
-        jvmMain.dependencies {
-            compileOnly(libs.zstd.jni)
-        }
         jvmTest.dependencies {
             implementation(projects.ktorTestBase)
         }

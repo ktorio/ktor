@@ -201,6 +201,13 @@ io.ktor:ktor-client/.jar
 io.ktor:ktor-client/javadoc.jar
 io.ktor:ktor-client/kotlin-tooling-metadata.json
 io.ktor:ktor-client/sources.jar
+io.ktor:ktor-encoding-zstd-jvm/.jar
+io.ktor:ktor-encoding-zstd-jvm/javadoc.jar
+io.ktor:ktor-encoding-zstd-jvm/sources.jar
+io.ktor:ktor-encoding-zstd/.jar
+io.ktor:ktor-encoding-zstd/javadoc.jar
+io.ktor:ktor-encoding-zstd/kotlin-tooling-metadata.json
+io.ktor:ktor-encoding-zstd/sources.jar
 io.ktor:ktor-events-jvm/.jar
 io.ktor:ktor-events-jvm/javadoc.jar
 io.ktor:ktor-events-jvm/sources.jar
@@ -421,6 +428,13 @@ io.ktor:ktor-server-cio/sources.jar
 io.ktor:ktor-server-compression-jvm/.jar
 io.ktor:ktor-server-compression-jvm/javadoc.jar
 io.ktor:ktor-server-compression-jvm/sources.jar
+io.ktor:ktor-server-compression-zstd-jvm/.jar
+io.ktor:ktor-server-compression-zstd-jvm/javadoc.jar
+io.ktor:ktor-server-compression-zstd-jvm/sources.jar
+io.ktor:ktor-server-compression-zstd/.jar
+io.ktor:ktor-server-compression-zstd/javadoc.jar
+io.ktor:ktor-server-compression-zstd/kotlin-tooling-metadata.json
+io.ktor:ktor-server-compression-zstd/sources.jar
 io.ktor:ktor-server-compression/.jar
 io.ktor:ktor-server-compression/javadoc.jar
 io.ktor:ktor-server-compression/kotlin-tooling-metadata.json

@@ -20,6 +20,7 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import java.nio.ByteBuffer
 import kotlin.coroutines.CoroutineContext
+import com.github.luben.zstd.Zstd as ZstdUtils
 
 /**
  * Implementation of [ContentEncoder] using zstd algorithm
@@ -32,6 +33,7 @@ public actual class ZstdEncoder(
     public companion object {
         public const val DEFAULT_COMPRESSION_LEVEL: Int = 3
     }
+
     actual override val name: String = "zstd"
 }
 
@@ -72,20 +74,51 @@ public class Zstd(private val compressionLevel: Int) : Encoder {
 
         try {
             while (!isClosedForRead) {
-                inputBuf.clear()
                 val bytesRead = readAvailable(inputBuf)
-                if (bytesRead <= 0) continue
+                if (bytesRead <= 0 && inputBuf.position() == 0) {
+                    if (isClosedForRead) break
+                    continue
+                }
 
-                val decompressedSize = ctx.decompressByteArray(
-                    outputBuf.array(),
-                    0,
-                    outputBuf.capacity(),
-                    inputBuf.array(),
-                    0,
-                    bytesRead
-                )
+                inputBuf.flip()
 
-                destination.writeFully(outputBuf.array(), 0, decompressedSize)
+                while (inputBuf.hasRemaining()) {
+                    val frameSize = ZstdUtils.getFrameContentSize(
+                        inputBuf.array(),
+                        inputBuf.arrayOffset() + inputBuf.position(),
+                        inputBuf.remaining()
+                    )
+
+                    if (frameSize > outputBuf.capacity()) {
+                        val tempOutput = ByteArray(frameSize.toInt())
+                        val compressedData = ByteArray(inputBuf.remaining())
+                        inputBuf.get(compressedData)
+
+                        val decompressedSize = ZstdUtils.decompress(tempOutput, compressedData).toInt()
+                        destination.writeFully(tempOutput, 0, decompressedSize)
+                        break
+                    }
+
+                    outputBuf.clear()
+                    val decompressedSize = ctx.decompressByteArray(
+                        outputBuf.array(),
+                        outputBuf.arrayOffset(),
+                        outputBuf.capacity(),
+                        inputBuf.array(),
+                        inputBuf.arrayOffset() + inputBuf.position(),
+                        inputBuf.remaining()
+                    )
+
+                    if (decompressedSize > 0) {
+                        destination.writeFully(outputBuf.array(), 0, decompressedSize)
+                        // Update position: decompressByteArray for streaming context doesn't return consumed size easily.
+                        // In this loop, we consume the remaining input chunk.
+                        inputBuf.position(inputBuf.limit())
+                    } else {
+                        break
+                    }
+                }
+                inputBuf.compact()
             }
         } finally {
             ctx.close()
@@ -109,16 +142,22 @@ public class Zstd(private val compressionLevel: Int) : Encoder {
                 val bytesRead = readAvailable(inputBuf)
                 if (bytesRead <= 0) continue
 
+                val maxCompressedSize = ZstdUtils.compressBound(bytesRead.toLong()).toInt()
+                val outArray = if (maxCompressedSize > outputBuf.capacity()) {
+                    ByteArray(maxCompressedSize)
+                } else {
+                    outputBuf.array()
+                }
                 val compressedSize = ctx.compressByteArray(
-                    outputBuf.array(),
+                    outArray,
                     0,
-                    outputBuf.capacity(),
+                    outArray.size,
                     inputBuf.array(),
                     0,
                     bytesRead
                 )
 
-                destination.writeFully(outputBuf.array(), 0, compressedSize)
+                destination.writeFully(outArray, 0, compressedSize)
             }
         } finally {
             ctx.close()

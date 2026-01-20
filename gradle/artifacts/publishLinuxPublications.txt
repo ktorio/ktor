@@ -90,6 +90,12 @@ io.ktor:ktor-client-websockets-linuxarm64/sources.jar
 io.ktor:ktor-client-websockets-linuxx64/.klib
 io.ktor:ktor-client-websockets-linuxx64/javadoc.jar
 io.ktor:ktor-client-websockets-linuxx64/sources.jar
+io.ktor:ktor-encoding-zstd-linuxarm64/.klib
+io.ktor:ktor-encoding-zstd-linuxarm64/javadoc.jar
+io.ktor:ktor-encoding-zstd-linuxarm64/sources.jar
+io.ktor:ktor-encoding-zstd-linuxx64/.klib
+io.ktor:ktor-encoding-zstd-linuxx64/javadoc.jar
+io.ktor:ktor-encoding-zstd-linuxx64/sources.jar
 io.ktor:ktor-events-linuxarm64/.klib
 io.ktor:ktor-events-linuxarm64/javadoc.jar
 io.ktor:ktor-events-linuxarm64/sources.jar
