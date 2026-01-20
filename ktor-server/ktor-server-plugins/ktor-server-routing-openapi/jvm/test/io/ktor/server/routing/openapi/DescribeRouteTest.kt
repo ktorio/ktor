@@ -56,23 +56,16 @@ class DescribeRouteTest {
         install(ContentNegotiation) {
             json(jsonFormat)
         }
+        @OptIn(ExperimentalKtorApi::class)
         routing {
             // get all path items
             get("/routes") {
                 call.respond(
-                    generateOpenApiDoc(
-                        base = OpenApiDoc(info = OpenApiInfo("Test API", "1.0.0")),
-                        routes = call.application.routingRoot.descendants(),
-                    ).let {
-                        it.copy(
-                            paths = it.paths - "/routes"
-                        )
-                    }
+                    OpenApiDoc(info = OpenApiInfo("Test API", "1.0.0")) +
+                        call.application.routingRoot.descendants()
                 )
-            }
+            }.hide()
 
-            // example REST API route
-            @OptIn(ExperimentalKtorApi::class)
             get("/messages") {
                 call.respond(listOf(testMessage))
             }.describe {
@@ -115,20 +108,15 @@ class DescribeRouteTest {
         install(ContentNegotiation) {
             json(jsonFormat)
         }
+        @OptIn(ExperimentalKtorApi::class)
         routing {
             get("/routes") {
                 call.respond(
-                    generateOpenApiDoc(
-                        base = OpenApiDoc(info = OpenApiInfo("Test API", "1.0.0")),
-                        routes = call.application.routingRoot.descendants(),
-                    ).let {
-                        it.copy(
-                            paths = it.paths - "/routes"
-                        )
-                    }
+                    OpenApiDoc(info = OpenApiInfo("Test API", "1.0.0")) +
+                        call.application.routingRoot.descendants()
                 )
-            }
-            @OptIn(ExperimentalKtorApi::class)
+            }.hide()
+
             get("/messages") {
                 call.response.header("X-Sample-Message", "test")
                 call.respond(listOf(testMessage))
@@ -161,7 +149,7 @@ class DescribeRouteTest {
         }
         routing {
             get("/routes") {
-                val pathItems = call.application.routingRoot.descendants().findPathItems() - "/routes"
+                val pathItems = call.application.routingRoot.descendants().mapToPathItems() - "/routes"
                 call.respond(pathItems)
             }
             @OptIn(ExperimentalKtorApi::class)
@@ -252,23 +240,15 @@ class DescribeRouteTest {
         install(ContentNegotiation) {
             serialization(ContentType.Application.Yaml, yamlFormat)
         }
+        @OptIn(ExperimentalKtorApi::class)
         routing {
-            // get all path items
             get("/routes") {
                 call.respond(
-                    generateOpenApiDoc(
-                        base = OpenApiDoc(info = OpenApiInfo("Test API", "1.0.0")),
-                        routes = call.application.routingRoot.descendants(),
-                    ).let {
-                        it.copy(
-                            paths = it.paths - "/routes"
-                        )
-                    }
+                    OpenApiDoc(info = OpenApiInfo("Test API", "1.0.0")) +
+                        call.application.routingRoot.descendants()
                 )
-            }
+            }.hide()
 
-            // example REST API route
-            @OptIn(ExperimentalKtorApi::class)
             get("/messages") {
                 call.respond(listOf(testMessage))
             }.describe {
@@ -315,22 +295,15 @@ class DescribeRouteTest {
             }
             bearer("bearer-auth") {}
         }
+        @OptIn(ExperimentalKtorApi::class)
         routing {
             get("/routes") {
                 call.respond(
-                    generateOpenApiDoc(
-                        base = OpenApiDoc(
-                            info = OpenApiInfo("Test API", "1.0.0"),
-                            components = Components(
-                                securitySchemes = call.application.findSecuritySchemes(
-                                    useCache = true
-                                )
-                            )
-                        ),
-                        routes = call.application.routingRoot.descendants()
-                    )
+                    OpenApiDoc(info = OpenApiInfo("Test API", "1.0.0")) +
+                        call.application.routingRoot.descendants() +
+                        call.application.findSecuritySchemes()
                 )
-            }
+            }.hide()
 
             authenticate("basic-auth") {
                 get("/basic") {
@@ -443,6 +416,7 @@ class DescribeRouteTest {
                 keyLocation = SecuritySchemeIn.HEADER,
             )
         }
+        @OptIn(ExperimentalKtorApi::class)
         routing {
             authenticate("api-key") {
                 get("/test") {
@@ -451,19 +425,11 @@ class DescribeRouteTest {
             }
             get("/routes") {
                 call.respond(
-                    generateOpenApiDoc(
-                        base = OpenApiDoc(
-                            info = OpenApiInfo("Test API", "1.0.0"),
-                            components = Components(
-                                securitySchemes = call.application.findSecuritySchemes(
-                                    useCache = true
-                                )
-                            )
-                        ),
-                        routes = call.application.routingRoot.descendants(),
-                    )
+                    OpenApiDoc(info = OpenApiInfo("Test API", "1.0.0")) +
+                        call.application.routingRoot.descendants() +
+                        call.application.findSecuritySchemes()
                 )
-            }
+            }.hide()
         }
 
         val routesResponse = client.get("/routes")
@@ -496,7 +462,7 @@ class DescribeRouteTest {
                 client = this@testApplication.client
             }
         }
-
+        @OptIn(ExperimentalKtorApi::class)
         routing {
             authenticate("oauth") {
                 get("/test") {
@@ -505,19 +471,11 @@ class DescribeRouteTest {
             }
             get("/routes") {
                 call.respond(
-                    generateOpenApiDoc(
-                        base = OpenApiDoc(
-                            info = OpenApiInfo("Test API", "1.0.0"),
-                            components = Components(
-                                securitySchemes = call.application.findSecuritySchemes(
-                                    useCache = true
-                                )
-                            )
-                        ),
-                        routes = call.application.routingRoot.descendants(),
-                    )
+                    OpenApiDoc(info = OpenApiInfo("Test API", "1.0.0")) +
+                        call.application.routingRoot.descendants() +
+                        call.application.findSecuritySchemes()
                 )
-            }
+            }.hide()
         }
 
         val routesResponse = client.get("/routes")
@@ -612,21 +570,14 @@ class DescribeRouteTest {
                     call.respond("authenticated")
                 }
             }
+            @OptIn(ExperimentalKtorApi::class)
             get("/routes") {
                 call.respond(
-                    generateOpenApiDoc(
-                        base = OpenApiDoc(
-                            info = OpenApiInfo("Test API", "1.0.0"),
-                            components = Components(
-                                securitySchemes = call.application.findSecuritySchemes(
-                                    useCache = true
-                                )
-                            )
-                        ),
-                        routes = call.application.routingRoot.descendants()
-                    )
+                    OpenApiDoc(info = OpenApiInfo("Test API", "1.0.0")) +
+                        call.application.routingRoot.descendants() +
+                        call.application.findSecuritySchemes()
                 )
-            }
+            }.hide()
         }
     }
 }

@@ -1830,12 +1830,12 @@ public class io/ktor/server/routing/RoutingNode : io/ktor/server/application/App
 
 public final class io/ktor/server/routing/RoutingNodeKt {
 	public static final fun getAllRoutes (Lio/ktor/server/routing/RoutingNode;)Ljava/util/List;
-	public static final fun getPath (Lio/ktor/server/routing/RoutingNode;)Ljava/lang/String;
+	public static final fun getPath (Lio/ktor/server/routing/Route;)Ljava/lang/String;
 	public static final fun insertPhaseAfter (Lio/ktor/server/routing/Route;Lio/ktor/util/pipeline/PipelinePhase;Lio/ktor/util/pipeline/PipelinePhase;)V
 	public static final fun insertPhaseBefore (Lio/ktor/server/routing/Route;Lio/ktor/util/pipeline/PipelinePhase;Lio/ktor/util/pipeline/PipelinePhase;)V
 	public static final fun intercept (Lio/ktor/server/routing/Route;Lio/ktor/util/pipeline/PipelinePhase;Lkotlin/jvm/functions/Function3;)V
-	public static final fun path (Lio/ktor/server/routing/RoutingNode;Lio/ktor/server/routing/RoutePathFormat;)Ljava/lang/String;
-	public static synthetic fun path$default (Lio/ktor/server/routing/RoutingNode;Lio/ktor/server/routing/RoutePathFormat;ILjava/lang/Object;)Ljava/lang/String;
+	public static final fun path (Lio/ktor/server/routing/Route;Lio/ktor/server/routing/RoutePathFormat;)Ljava/lang/String;
+	public static synthetic fun path$default (Lio/ktor/server/routing/Route;Lio/ktor/server/routing/RoutePathFormat;ILjava/lang/Object;)Ljava/lang/String;
 }
 
 public final class io/ktor/server/routing/RoutingPath {

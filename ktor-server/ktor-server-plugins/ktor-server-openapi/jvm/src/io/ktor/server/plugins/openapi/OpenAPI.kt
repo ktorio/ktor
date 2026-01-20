@@ -8,7 +8,8 @@ import io.ktor.server.application.*
 import io.ktor.server.http.content.*
 import io.ktor.server.routing.*
 import io.ktor.server.routing.openapi.OpenApiDocSource
-import io.ktor.server.routing.openapi.OpenApiDocSource.Companion.readOpenApiSource
+import io.ktor.server.routing.openapi.hide
+import io.ktor.utils.io.ExperimentalKtorApi
 import io.swagger.codegen.v3.ClientOpts
 import io.swagger.codegen.v3.generators.html.StaticHtml2Codegen
 import java.io.File
@@ -36,7 +37,7 @@ public fun Route.openAPI(
     block: OpenAPIConfig.() -> Unit = {}
 ): Route = openAPI(path) {
     block()
-    source = OpenApiDocSource.FileSource(swaggerFile)
+    source = OpenApiDocSource.File(swaggerFile)
 }
 
 /**
@@ -57,11 +58,12 @@ public fun Route.openAPI(
     block: OpenAPIConfig.() -> Unit = {}
 ): Route {
     val outputPath = OpenAPIConfig().apply(block).outputPath
+    @OptIn(ExperimentalKtorApi::class)
     return staticFiles(path, File(outputPath)).apply {
         install(OpenAPI) {
             block()
         }
-    }
+    }.hide()
 }
 
 /**
@@ -73,9 +75,9 @@ internal val OpenAPI: RouteScopedPlugin<OpenAPIConfig> = createRouteScopedPlugin
 
 private fun Application.generateFilesBeforeStartup(config: OpenAPIConfig) {
     monitor.subscribe(ApplicationModulesLoaded) {
-        val (apiDocument) = readOpenApiSource(config.source, config.buildBaseDoc())
+        val apiDocument = config.source.read(this, config.buildBaseDoc())
             ?: error("Failed to read OpenAPI document from ${config.source}")
-        config.generateFiles(apiDocument)
+        config.generateFiles(apiDocument.content)
     }
 }
 

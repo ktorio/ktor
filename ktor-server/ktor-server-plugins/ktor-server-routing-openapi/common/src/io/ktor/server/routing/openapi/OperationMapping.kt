@@ -17,6 +17,12 @@ private val StringReference: ReferenceOr<JsonSchema> = ReferenceOr.Value(JsonSch
 public fun interface OperationMapping {
     public fun map(operation: Operation): Operation
 
+    /**
+     * Combine multiple [OperationMapping] instances into a single mapping.
+     *
+     * @param other mapping to apply after this one.
+     * @return composed mapping that applies this mapping then [other].
+     */
     public operator fun plus(other: OperationMapping): OperationMapping =
         JoinedOperationMapping(listOf(this, other))
 }

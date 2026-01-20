@@ -12,7 +12,6 @@ import web.rtc.RTCRtpSendParameters
 import web.rtc.RTCRtpSender
 import web.rtc.replaceTrack
 import web.rtc.setParameters
-import kotlin.js.ExperimentalWasmJsInterop
 import kotlin.js.toArray
 
 /**

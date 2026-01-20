@@ -353,6 +353,7 @@ public data class Parameter(
     public val style: String? = null,
     public val explode: Boolean? = null,
     public val allowReserved: Boolean? = null,
+    @Deprecated("Deprecated in OpenAPI 3.1")
     public val allowEmptyValue: Boolean? = null,
     public val example: GenericElement? = null,
     public val examples: Map<String, ReferenceOr<ExampleObject>>? = null,
