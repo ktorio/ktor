@@ -69,7 +69,9 @@ projects {
             +"ktor-server-caching-headers"
             +"ktor-server-call-id"
             +"ktor-server-call-logging"
-            +"ktor-server-compression"
+            +"ktor-server-compression" including {
+                +"ktor-server-compression-zstd"
+            }
             +"ktor-server-conditional-headers"
             +"ktor-server-content-negotiation"
             +"ktor-server-cors"
@@ -186,6 +188,7 @@ projects {
         +"ktor-openapi-schema" including {
             +"ktor-openapi-schema-reflect"
         }
+        +"ktor-encoding-zstd"
     }
 
     +"ktor-network" including {

@@ -1,0 +1,23 @@
+public final class io/ktor/encoding/zstd/Zstd : io/ktor/util/Encoder {
+	public fun <init> (I)V
+	public fun decode (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+	public fun encode (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+	public fun encode (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteWriteChannel;
+}
+
+public final class io/ktor/encoding/zstd/ZstdEncoder : io/ktor/util/ContentEncoder, io/ktor/util/Encoder {
+	public static final field Companion Lio/ktor/encoding/zstd/ZstdEncoder$Companion;
+	public static final field DEFAULT_COMPRESSION_LEVEL I
+	public fun <init> ()V
+	public fun <init> (I)V
+	public synthetic fun <init> (IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun decode (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+	public fun encode (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+	public fun encode (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteWriteChannel;
+	public fun getName ()Ljava/lang/String;
+	public fun predictCompressedLength (J)Ljava/lang/Long;
+}
+
+public final class io/ktor/encoding/zstd/ZstdEncoder$Companion {
+}
+
