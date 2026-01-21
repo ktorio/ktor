@@ -408,31 +408,30 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
                         append("Transfer-Encoding: chunked\r\n")
                         append("\r\n")
                         append("5;ext=\"pwned\r\nlol\"\r\n")
-                        append("hello\n\r\n")
+                        append("hello\r\n")
                         append("0\r\n\r\n")
                     }
                 )
                 out.flush()
 
-                assertEquals("HTTP/1.1 200 OK", input.readLine())
-                var sb = StringBuilder()
+                val firstLine = input.readLine()
+                assertEquals("HTTP/1.1 200 OK", firstLine)
+                val sb = StringBuilder()
                 var line = input.readLine()
+                var contentLength = 0
                 while (true) {
                     sb.appendLine(line)
                     if (':' in line) {
                         if (line.startsWith("Content-Length:")) {
-                            assertEquals(
-                                5,
-                                line.substringAfter(":").trim().toInt(),
-                                "Expected Content-Length: 5; Response:\n:$sb"
-                            )
+                            contentLength = line.substringAfter(":").trim().toInt()
                         }
                         line = input.readLine()
                     } else if (line.isEmpty()) {
-                        val actual = CharArray(5)
+                        val actual = CharArray(contentLength)
                             .also { input.read(it) }
                             .let { String(it) }
                         assertEquals("hello", actual, "Expected echoed content; Response:\n:$sb\n$actual")
+                        break
                     }
                 }
             } finally {

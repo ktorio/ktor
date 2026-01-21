@@ -7,23 +7,14 @@ package io.ktor.http.cio
 import io.ktor.http.cio.internals.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.io.EOFException
 import kotlinx.io.IOException
-import kotlinx.io.bytestring.ByteString
 import kotlin.coroutines.CoroutineContext
 
 private const val MAX_CHUNK_SIZE_LENGTH = 128
-private const val CHUNK_BUFFER_POOL_SIZE = 2048
-
-private val ChunkSizeBufferPool: ObjectPool<StringBuilder> =
-    object : DefaultPool<StringBuilder>(CHUNK_BUFFER_POOL_SIZE) {
-        override fun produceInstance(): StringBuilder = StringBuilder(MAX_CHUNK_SIZE_LENGTH)
-        override fun clearInstance(instance: StringBuilder) = instance.apply { clear() }
-    }
 
 /**
  * Decoder job type
@@ -91,10 +82,10 @@ public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) 
 }
 
 private suspend fun ByteReadChannel.skipCrLf() {
-    when (readByte()) {
+    when (val b = readByte()) {
         CR -> if (readByte() != LF) throw IOException("Expected LF")
         LF -> return
-        else -> throw IOException("Expected CR")
+        else -> throw IOException("Expected CRLF but found 0x${b.toString(16)}")
     }
 }
 
@@ -108,22 +99,32 @@ private suspend fun parseChunkSize(input: ByteReadChannel): Long {
     var result = 0L
     var inExtension = false
     var inQuotes = false
+    var afterCr = false
     var i = 0
     while (i++ < MAX_CHUNK_SIZE_LENGTH) {
         val byte = input.readByte()
         if (inQuotes && byte != QUOTE) continue
-        when (byte) {
-            CR -> continue
-            LF -> return result
-            QUOTE -> inQuotes = !inQuotes
-            SEMICOLON -> inExtension = true
-            else -> {
-                if (inExtension) continue // always ignore extensions
-                val intValue = byte.toInt() and 0xffff
-                val digit = if (intValue < 0xff) HexTable[intValue] else -1L
-                if (digit == -1L) throw IOException("Invalid chunk size character: 0x${intValue.toString(16)}")
-                result = (result shl 4) or digit
+        try {
+            when (byte) {
+                CR -> continue
+                LF -> {
+                    if (!afterCr) {
+                        throw IOException("Illegal newline character in chunk size")
+                    }
+                    return result
+                }
+                QUOTE -> inQuotes = !inQuotes
+                SEMICOLON -> inExtension = true
+                else -> {
+                    if (inExtension) continue // always ignore extensions
+                    val intValue = byte.toInt() and 0xffff
+                    val digit = if (intValue < 0xff) HexTable[intValue] else -1L
+                    if (digit == -1L) throw IOException("Invalid chunk size character: 0x${intValue.toString(16)}")
+                    result = (result shl 4) or digit
+                }
             }
+        } finally {
+            afterCr = byte == CR
         }
     }
     throw IOException("Chunk size limit exceeded")
