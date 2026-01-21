@@ -147,6 +147,7 @@ public final class io/ktor/http/cio/Response : io/ktor/http/cio/HttpMessage {
 }
 
 public final class io/ktor/http/cio/internals/CharsKt {
+	public static final fun getHexTable ()[J
 	public static final fun parseDecLong (Ljava/lang/CharSequence;)J
 }
 

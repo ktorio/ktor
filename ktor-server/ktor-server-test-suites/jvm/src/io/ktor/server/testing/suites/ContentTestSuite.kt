@@ -388,6 +388,50 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
+    open fun funkyChunked() = runTest {
+        // echo the request
+        createAndStartServer {
+            handle {
+                val content = call.receiveText()
+                call.respondText(content)
+            }
+        }
+
+        socket {
+            val out = getOutputStream().bufferedWriter()
+            val input = getInputStream().bufferedReader()
+            try {
+                out.write(
+                    buildString {
+                        append("POST / HTTP/1.1\r\n")
+                        append("Host: localhost\r\n")
+                        append("Transfer-Encoding: chunked\r\n")
+                        append("\r\n")
+                        append("6;ext=\"pwned\r\nlol\"\r\n")
+                        append("hello\n\r\n")
+                        append("0\r\n\r\n")
+                    }
+                )
+                out.flush()
+
+                assertEquals("HTTP/1.1 200 OK", input.readLine())
+                var line = input.readLine()
+                while (true) {
+                    if (line.isEmpty() || ':' in line) {
+                        line = input.readLine()
+                    } else {
+                        assertEquals("hello", line)
+                        break
+                    }
+                }
+            } finally {
+                out.close()
+                input.close()
+            }
+        }
+    }
+
+    @Test
     fun testStreamNoFlush() = runTest {
         createAndStartServer {
             handle {

@@ -144,6 +144,22 @@ class ChunkedTest {
     }
 
     @Test
+    fun testExtensions() = runTest {
+        val bodyText = "3;foo=\"ba\r\nr\"\r\n" +
+            "123\r\n" +
+            "2;a=1\r\n" +
+            "45\r\n" +
+            "0\r\n\r\n"
+
+        val ch = ByteReadChannel(bodyText)
+        val parsed = ByteChannel()
+
+        decodeChunked(ch, parsed)
+
+        assertEquals("12345", parsed.readLine())
+    }
+
+    @Test
     fun testEncodeEmpty() = runBlocking {
         val encoded = ByteChannel()
 

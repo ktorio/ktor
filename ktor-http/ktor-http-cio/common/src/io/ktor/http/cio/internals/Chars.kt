@@ -36,7 +36,8 @@ private inline fun Int.toLowerCase() =
 internal val DefaultHttpMethods =
     AsciiCharTree.build(HttpMethod.DefaultMethods, { it.value.length }, { m, idx -> m.value[idx] })
 
-private val HexTable = (0..0xff).map { v ->
+@InternalAPI
+public val HexTable: LongArray = (0..0xff).map { v ->
     when {
         v in 0x30..0x39 -> v - 0x30L
         v >= 'a'.code.toLong() && v <= 'f'.code.toLong() -> v - 'a'.code.toLong() + 10
@@ -49,6 +50,7 @@ internal val HexLetterTable: ByteArray = (0..0xf).map {
     if (it < 0xa) (0x30 + it).toByte() else ('a' + it - 0x0a).code.toByte()
 }.toByteArray()
 
+@OptIn(InternalAPI::class)
 internal fun CharSequence.parseHexLong(): Long {
     var result = 0L
     val table = HexTable

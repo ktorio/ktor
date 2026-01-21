@@ -12,6 +12,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.io.EOFException
+import kotlinx.io.IOException
+import kotlinx.io.bytestring.ByteString
 import kotlin.coroutines.CoroutineContext
 
 private const val MAX_CHUNK_SIZE_LENGTH = 128
@@ -65,38 +67,66 @@ public fun CoroutineScope.decodeChunked(input: ByteReadChannel, contentLength: L
  */
 @OptIn(InternalAPI::class)
 public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) {
-    val chunkSizeBuffer = ChunkSizeBufferPool.borrow()
     var totalBytesCopied = 0L
 
     try {
-        while (input.readLineStrictTo(chunkSizeBuffer, MAX_CHUNK_SIZE_LENGTH.toLong()) >= 0) {
-            if (chunkSizeBuffer.isEmpty()) {
-                throw EOFException("Invalid chunk size: empty")
+        while (!input.exhausted()) {
+            val chunkSize = parseChunkSize(input)
+            if (chunkSize == 0L) {
+                input.skipCrLf()
+                break
             }
 
-            val chunkSize =
-                if (chunkSizeBuffer.length == 1 && chunkSizeBuffer[0] == '0') 0 else chunkSizeBuffer.parseHexLong()
-
-            if (chunkSize > 0) {
-                input.copyTo(out, chunkSize)
-                out.flush()
-                totalBytesCopied += chunkSize
-            }
-
-            chunkSizeBuffer.clear()
-            if (input.readLineStrictTo(chunkSizeBuffer, limit = 0) == -1L) {
-                throw EOFException("Invalid chunk: content block of size $chunkSize ended unexpectedly")
-            }
-
-            if (chunkSize == 0L) break
+            input.copyTo(out, chunkSize)
+            input.skipCrLf()
+            out.flush()
+            totalBytesCopied += chunkSize
         }
     } catch (t: Throwable) {
         out.close(t)
         throw t
     } finally {
-        ChunkSizeBufferPool.recycle(chunkSizeBuffer)
         out.flushAndClose()
     }
+}
+
+private suspend fun ByteReadChannel.skipCrLf() {
+    when (readByte()) {
+        CR -> if (readByte() != LF) throw IOException("Expected LF")
+        LF -> return
+        else -> throw IOException("Expected CR")
+    }
+}
+
+private const val CR = '\r'.code.toByte()
+private const val LF = '\n'.code.toByte()
+private const val SEMICOLON = ';'.code.toByte()
+private const val QUOTE = '"'.code.toByte()
+
+@OptIn(InternalAPI::class)
+private suspend fun parseChunkSize(input: ByteReadChannel): Long {
+    var result = 0L
+    var inExtension = false
+    var inQuotes = false
+    var i = 0
+    while (i++ < MAX_CHUNK_SIZE_LENGTH) {
+        val byte = input.readByte()
+        if (inQuotes && byte != QUOTE) continue
+        when (byte) {
+            CR -> continue
+            LF -> return result
+            QUOTE -> inQuotes = !inQuotes
+            SEMICOLON -> inExtension = true
+            else -> {
+                if (inExtension) continue // always ignore extensions
+                val intValue = byte.toInt() and 0xffff
+                val digit = if (intValue < 0xff) HexTable[intValue] else -1L
+                if (digit == -1L) throw IOException("Invalid chunk size character: 0x${intValue.toString(16)}")
+                result = (result shl 4) or digit
+            }
+        }
+    }
+    throw IOException("Chunk size limit exceeded")
 }
 
 /**
