@@ -389,7 +389,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
 
     @Test
     open fun funkyChunked() = runTest {
-        // echo the request
+        // echo the request body
         createAndStartServer {
             handle {
                 val content = call.receiveText()
@@ -407,7 +407,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
                         append("Host: localhost\r\n")
                         append("Transfer-Encoding: chunked\r\n")
                         append("\r\n")
-                        append("6;ext=\"pwned\r\nlol\"\r\n")
+                        append("5;ext=\"pwned\r\nlol\"\r\n")
                         append("hello\n\r\n")
                         append("0\r\n\r\n")
                     }
@@ -415,13 +415,24 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
                 out.flush()
 
                 assertEquals("HTTP/1.1 200 OK", input.readLine())
+                var sb = StringBuilder()
                 var line = input.readLine()
                 while (true) {
-                    if (line.isEmpty() || ':' in line) {
+                    sb.appendLine(line)
+                    if (':' in line) {
+                        if (line.startsWith("Content-Length:")) {
+                            assertEquals(
+                                5,
+                                line.substringAfter(":").trim().toInt(),
+                                "Expected Content-Length: 5; Response:\n:$sb"
+                            )
+                        }
                         line = input.readLine()
-                    } else {
-                        assertEquals("hello", line)
-                        break
+                    } else if (line.isEmpty()) {
+                        val actual = CharArray(5)
+                            .also { input.read(it) }
+                            .let { String(it) }
+                        assertEquals("hello", actual, "Expected echoed content; Response:\n:$sb\n$actual")
                     }
                 }
             } finally {
