@@ -7,28 +7,33 @@ package io.ktor.openapi
 import io.ktor.openapi.AdditionalProperties.*
 import io.ktor.openapi.JsonSchema.*
 import io.ktor.openapi.ReferenceOr.*
-import io.ktor.utils.io.InternalAPI
+import io.ktor.utils.io.*
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
-import kotlin.collections.mutableSetOf
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
 
 /**
  * Context interface for creating schema from type metadata.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchemaInference)
  */
 public fun interface JsonSchemaInference {
     /**
      * Builds a [JsonSchema] for the given [type].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchemaInference.buildSchema)
      */
     public fun buildSchema(type: KType): JsonSchema
 }
 
 /**
  * Infers JSON schema from kotlinx-serialization descriptors.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.KotlinxJsonSchemaInference)
  */
 public val KotlinxJsonSchemaInference: JsonSchemaInference = JsonSchemaInference { type ->
     serializer(type)
@@ -50,6 +55,8 @@ public val KotlinxJsonSchemaInference: JsonSchemaInference = JsonSchemaInference
  * - Primitives (STRING, BOOLEAN, INT, LONG, FLOAT, DOUBLE, etc.): Maps to corresponding JSON types
  * - ENUM: Maps to string schema with enum values
  * - CONTEXTUAL: Returns a generic object schema (actual type resolution requires serialization context)
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.buildJsonSchema)
  *
  * @return A [JsonSchema] object representing the JSON Schema for this descriptor.
  *
@@ -250,6 +257,8 @@ public fun JsonType.orNullable(isNullable: Boolean): SchemaType =
  * Create an instance of JsonSchema from the provided properties and supplied annotations.
  *
  * This is used internally for different inference strategies.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.jsonSchemaFromAnnotations)
  */
 @InternalAPI
 public fun jsonSchemaFromAnnotations(
@@ -357,6 +366,8 @@ private inline fun <reified T : Annotation> List<Annotation>.firstInstanceOf(): 
  *
  * This function attempts to infer the schema from the type's [KSerializer].
  * If the type is not serializable, returns a Schema representing a non-serializable type.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.jsonSchema)
  *
  * @return A [JsonSchema] object representing the JSON Schema for type [T].
  */

@@ -283,21 +283,29 @@ public typealias RoutingHandler = suspend RoutingContext.() -> Unit
 public interface Route : TreeLike<Route> {
     /**
      * The containing application's environment.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.Route.environment)
      */
     public val environment: ApplicationEnvironment
 
     /**
      * Key-value store of route metadata, scoped to the lifetime of the application.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.Route.attributes)
      */
     public val attributes: Attributes
 
     /**
      * Optional selector for filtering on requests.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.Route.selector)
      */
     public val selector: RouteSelector? get() = null
 
     /**
      * Children of the current route.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.Route.children)
      */
     override val children: Iterable<Route> get() = emptyList()
 
@@ -386,6 +394,8 @@ public val Route.path: String
 /**
  * Constructs the full path of the routing node by combining the path of the parent node
  * and the formatted path of this node's selector, using the provided format.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.path)
  *
  * @param format formats each selector in the node's lineage. Defaults to [RoutePathFormat.Default].
  * @return the full path of the routing node as a string.

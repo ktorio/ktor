@@ -4,10 +4,9 @@
 
 package io.ktor.server.plugins.swagger
 
-import io.ktor.http.ContentType
-import io.ktor.openapi.OpenApiDoc
-import io.ktor.openapi.OpenApiDocDsl
-import io.ktor.server.routing.openapi.OpenApiDocSource
+import io.ktor.http.*
+import io.ktor.openapi.*
+import io.ktor.server.routing.openapi.*
 
 /**
  * A configuration for the Swagger UI endpoint.
@@ -23,6 +22,8 @@ public class SwaggerConfig private constructor(
 
     /**
      * Defines the source of the OpenAPI specification.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.swagger.SwaggerConfig.source)
      */
     public var source: OpenApiDocSource = OpenApiDocSource.FirstOf(
         OpenApiDocSource.File("openapi/documentation.yaml"),
@@ -31,6 +32,8 @@ public class SwaggerConfig private constructor(
 
     /**
      * Relative path from the swagger URL root to the specification file.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.swagger.SwaggerConfig.remotePath)
      */
     public var remotePath: String = "documentation.yaml"
 
@@ -70,6 +73,8 @@ public class SwaggerConfig private constructor(
 
     /**
      * Swagger favicon location
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.swagger.SwaggerConfig.faviconLocation)
      */
     public var faviconLocation: String = "https://unpkg.com/swagger-ui-dist@$version/favicon-32x32.png"
 

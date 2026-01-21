@@ -1258,7 +1258,7 @@ private fun HttpClient.mapToSSEException(call: HttpClientCall?, body: ByteArray?
  * }
  * ```
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.SSEConfig.sseBufferPolicy)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.bufferPolicy)
  */
 public fun HttpRequestBuilder.bufferPolicy(policy: SSEBufferPolicy) {
     attributes.put(sseBufferPolicyAttr, policy)

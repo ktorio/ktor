@@ -9,11 +9,15 @@ package io.ktor.client.webrtc
  * Media Capturing is platform- and implementation-specific,
  * so here we encapsulate only the essential parts for the WebRtc communication.
  * The links describe the standard browser API, though some platforms could have different behaviors.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcMedia)
  */
 public object WebRtcMedia {
 
     /**
      * Constraints for video tracks.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcMedia.VideoTrackConstraints)
      *
      * @property width The width of the video in pixels.
      * @property height The height of the video in pixels.
@@ -35,6 +39,8 @@ public object WebRtcMedia {
 
     /**
      * Constraints for audio tracks.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcMedia.AudioTrackConstraints)
      *
      * @property volume The volume of the audio.
      * @property sampleRate The sample rate of the audio in Hz.
@@ -61,6 +67,8 @@ public object WebRtcMedia {
     /**
      * Interface representing a media track.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcMedia.Track)
+     *
      * @property id The unique identifier of the track.
      * @property kind The type of the track (audio or video).
      * @property enabled Whether the track is enabled.
@@ -74,12 +82,16 @@ public object WebRtcMedia {
 
         /**
          * Enables or disables the track.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcMedia.Track.enable)
          */
         public fun enable(enabled: Boolean)
     }
 
     /**
      * Enum representing the type of media track.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcMedia.TrackType)
      *
      * @see [MDN MediaStreamTrack.kind](https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack/kind)
      */
@@ -91,12 +103,16 @@ public object WebRtcMedia {
     /**
      * Interface representing a video track.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcMedia.VideoTrack)
+     *
      * @see [MDN MediaStreamTrack](https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack)
      */
     public interface VideoTrack : Track
 
     /**
      * Interface representing an audio track.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcMedia.AudioTrack)
      *
      * @see [MDN MediaStreamTrack](https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack)
      */
@@ -105,32 +121,44 @@ public object WebRtcMedia {
     /**
      * Enum representing the facing mode of a camera.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcMedia.FacingMode)
+     *
      * @see [MDN facingMode](https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints/facingMode)
      */
     public enum class FacingMode {
         /**
          * Front-facing camera (selfie camera).
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcMedia.FacingMode.USER)
          */
         USER,
 
         /**
          * Back-facing camera (environment camera).
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcMedia.FacingMode.ENVIRONMENT)
          */
         ENVIRONMENT,
 
         /**
          * Camera facing to the left of the user.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcMedia.FacingMode.LEFT)
          */
         LEFT,
 
         /**
          * Camera facing to the right of the user.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcMedia.FacingMode.RIGHT)
          */
         RIGHT
     }
 
     /**
      * Enum representing the resize mode for video tracks.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcMedia.ResizeMode)
      *
      * @see [MDN resizeMode](https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints/resizeMode)
      */
@@ -144,6 +172,8 @@ public object WebRtcMedia {
      *
      * This exception is typically thrown when the application cannot access microphone,
      * camera, or other media devices due to missing user permissions.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcMedia.PermissionException)
      */
     public class PermissionException(mediaType: String?) :
         RuntimeException("You should grant $mediaType permission for this operation to work.")
@@ -153,6 +183,8 @@ public object WebRtcMedia {
      *
      * This exception indicates problems with initializing, accessing, or using media devices
      * such as cameras or microphones, typically due to hardware or driver issues rather than permissions.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcMedia.DeviceException)
      */
     public class DeviceException(message: String?, cause: Throwable? = null) : RuntimeException(message, cause)
 }
@@ -162,6 +194,8 @@ public object WebRtcMedia {
  *
  * This interface abstracts the platform-specific details of creating media tracks,
  * allowing clients to request audio and video tracks without dealing with platform differences.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.MediaTrackFactory)
  */
 public interface MediaTrackFactory {
     public suspend fun createAudioTrack(constraints: WebRtcMedia.AudioTrackConstraints): WebRtcMedia.AudioTrack

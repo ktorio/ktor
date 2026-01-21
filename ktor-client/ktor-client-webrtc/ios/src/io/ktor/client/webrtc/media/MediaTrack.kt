@@ -16,6 +16,8 @@ import kotlinx.cinterop.ExperimentalForeignApi
  * Provides a bridge between the common WebRTC API and iOS-specific WebRTC implementation,
  * handling track identification, state management, and proper disposal of native resources.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.IosMediaTrack)
+ *
  * @property nativeTrack The underlying iOS RTCMediaStreamTrack instance
  * @property id Unique identifier for this track
  * @property kind Type of media track (audio or video)
@@ -66,6 +68,8 @@ public abstract class IosMediaTrack(
  *
  * Handles audio-specific functionality and provides proper resource cleanup when disposed.
  * Call [close] to properly dispose of native resources when the track is no longer needed.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.IosAudioTrack)
  */
 @OptIn(ExperimentalForeignApi::class)
 public class IosAudioTrack(nativeTrack: RTCMediaStreamTrack, onDispose: () -> Unit = {}) :
@@ -77,6 +81,8 @@ public class IosAudioTrack(nativeTrack: RTCMediaStreamTrack, onDispose: () -> Un
  *
  * Handles video-specific functionality and provides proper resource cleanup when disposed.
  * Call [close] to properly dispose of native resources when the track is no longer needed.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.IosVideoTrack)
  */
 @OptIn(ExperimentalForeignApi::class)
 public class IosVideoTrack(nativeTrack: RTCMediaStreamTrack, onDispose: () -> Unit = {}) :
@@ -85,6 +91,8 @@ public class IosVideoTrack(nativeTrack: RTCMediaStreamTrack, onDispose: () -> Un
 
 /**
  * Returns implementation of the native video stream track used under the hood. Use it with caution.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.getNative)
  */
 @OptIn(ExperimentalForeignApi::class)
 public fun WebRtcMedia.VideoTrack.getNative(): RTCVideoTrack {
@@ -93,6 +101,8 @@ public fun WebRtcMedia.VideoTrack.getNative(): RTCVideoTrack {
 
 /**
  * Returns implementation of the native audio stream track used under the hood. Use it with caution.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.getNative)
  */
 @OptIn(ExperimentalForeignApi::class)
 public fun WebRtcMedia.AudioTrack.getNative(): RTCAudioTrack {

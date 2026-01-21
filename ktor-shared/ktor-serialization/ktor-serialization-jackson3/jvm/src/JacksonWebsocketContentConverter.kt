@@ -18,7 +18,7 @@ import tools.jackson.module.kotlin.jacksonObjectMapper
 /**
  * A jackson converter for the [WebSockets] plugin
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.jackson.JacksonWebsocketContentConverter)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.jackson3.JacksonWebsocketContentConverter)
  */
 public class JacksonWebsocketContentConverter(
     private val objectMapper: ObjectMapper = jacksonObjectMapper()

@@ -13,29 +13,39 @@ import io.ktor.utils.io.*
 
 /**
  * Attribute key for including OpenAPI metadata on a [Route].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.OperationDescribeAttributeKey)
  */
 public val OperationDescribeAttributeKey: AttributeKey<List<RouteOperationFunction>> =
     AttributeKey("OperationDescribe")
 
 /**
  * Attribute key for hiding the given [Route] from OpenAPI documentation.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.OperationHiddenAttributeKey)
  */
 public val OperationHiddenAttributeKey: AttributeKey<Unit> =
     AttributeKey("OperationHidden")
 
 /**
  * Attribute key for [io.ktor.server.application.Application] JSON schema inference override.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.JsonSchemaAttributeKey)
  */
 public val JsonSchemaAttributeKey: AttributeKey<JsonSchemaInference> =
     AttributeKey("JsonSchemaInference")
 
 /**
  * Function that configures an OpenAPI [Operation].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.RouteOperationFunction)
  */
 public typealias RouteOperationFunction = Operation.Builder.() -> Unit
 
 /**
  * Annotate a [Route] with an OpenAPI [Operation].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.describe)
  *
  * @param configure configures the operation metadata
  * @return the current route for chaining expressions
@@ -53,6 +63,8 @@ public fun Route.describe(configure: RouteOperationFunction): Route {
 
 /**
  * Hide a [Route] from OpenAPI documentation.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.hide)
  *
  * @return the current route for chaining expressions
  */

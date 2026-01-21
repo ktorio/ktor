@@ -4,17 +4,14 @@
 
 package io.ktor.server.routing.openapi
 
-import io.ktor.openapi.Components
-import io.ktor.openapi.OpenApiDoc
-import io.ktor.openapi.ReferenceOr
-import io.ktor.openapi.SecurityScheme
-import io.ktor.server.routing.Route
-import kotlin.collections.orEmpty
-import kotlin.collections.plus
+import io.ktor.openapi.*
+import io.ktor.server.routing.*
 
 /**
  * Combines the current `OpenApiDoc` instance with a sequence of routes, resulting in a new `OpenApiDoc`
  * containing the updated paths and components based on the provided routes.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.plus)
  *
  * @param routes A sequence of [Route]s whose information is used to resolve path items and schemas.
  * @return A new [OpenApiDoc] instance with the combined paths and components from the original instance and the provided routes.
@@ -34,6 +31,8 @@ public operator fun OpenApiDoc.plus(routes: Sequence<Route>): OpenApiDoc {
 /**
  * Overload for [OpenApiDoc.plus] that accepts a [Collection] of [Route]s.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.plus)
+ *
  * @param routes A collection of [Route]s whose information is used to resolve path items and schemas.
  * @return A new [OpenApiDoc] instance with the combined paths and components from the original instance and the provided routes.
  */
@@ -42,6 +41,8 @@ public operator fun OpenApiDoc.plus(routes: Collection<Route>): OpenApiDoc =
 
 /**
  * Combines the current [OpenApiDoc] instance with a single [Route].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.plus)
  *
  * @param route An instance of [Route] that will be used to resolve path items and schemas.
  * @return A new [OpenApiDoc] instance with the combined paths and components from the original instance and the provided route.
@@ -54,6 +55,8 @@ public operator fun OpenApiDoc.plus(route: Route): OpenApiDoc = plus(sequenceOf(
  * This method updates the existing security schemes in the `components` section of the current
  * instance by merging them with the provided [securitySchemes]. If there are no existing security
  * schemes, the provided [securitySchemes] will be set as the new security schemes for the `components`.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.plus)
  *
  * @param securitySchemes A map of additional security schemes to include, where the keys are
  * the scheme names and the values are references or definitions of [SecurityScheme] objects.

@@ -14,6 +14,8 @@ import uniffi.ktor_client_webrtc.MediaStreamTrack
 
 /**
  * Wrapper for uniffi.ktor_client_webrtc.MediaStreamTrack.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.rs.RustMediaTrack)
  **/
 public abstract class RustMediaTrack(
     internal val inner: MediaStreamTrack,
@@ -82,6 +84,8 @@ public class RustVideoTrack(
 
 /**
  * Returns implementation of the native video stream track used under the hood. Use it with caution.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.rs.getNative)
  */
 public fun WebRtcMedia.Track.getNative(): MediaStreamTrack {
     val track = this as? RustMediaTrack ?: error("Wrong track implementation.")

@@ -4,8 +4,8 @@
 
 package io.ktor.openapi
 
-import io.ktor.openapi.JsonSchema.SchemaType
-import io.ktor.openapi.JsonSchema.SchemaType.JsonTypeSerializer
+import io.ktor.openapi.JsonSchema.*
+import io.ktor.openapi.JsonSchema.SchemaType.*
 import kotlinx.serialization.Serializable
 
 /**
@@ -21,36 +21,50 @@ import kotlinx.serialization.Serializable
 public enum class JsonType : SchemaType {
     /**
      * An ordered list of instances.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonType.ARRAY)
      */
     ARRAY,
 
     /**
      * An unordered set of properties.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonType.OBJECT)
      */
     OBJECT,
 
     /**
      * Any numeric value, including integers and floating-point numbers.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonType.NUMBER)
      */
     NUMBER,
 
     /**
      * A true or false value.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonType.BOOLEAN)
      */
     BOOLEAN,
 
     /**
      * A numeric value with no fractional part.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonType.INTEGER)
      */
     INTEGER,
 
     /**
      * A null value.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonType.NULL)
      */
     NULL,
 
     /**
      * A sequence of characters.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonType.STRING)
      */
     STRING
 }

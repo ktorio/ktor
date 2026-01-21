@@ -15,6 +15,8 @@ import kotlinx.cinterop.ExperimentalForeignApi
 /**
  * Configuration for the iOS WebRTC engine that extends the base WebRTC configuration.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.IosWebRtcEngineConfig)
+ *
  * @property rtcFactory Optional custom [RTCPeerConnectionFactory] for creating peer connections.
  * If not provided, the factory from the [MediaTrackFactory] will be used.
  */
@@ -28,6 +30,8 @@ public class IosWebRtcEngineConfig : WebRtcConfig() {
  *
  * This engine provides iOS-specific WebRTC functionality by wrapping the native iOS WebRTC framework
  * and implementing the common WebRTC engine interface.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.IosWebRtcEngine)
  *
  * @param config The iOS-specific WebRTC engine configuration
  * @param mediaTrackFactory Factory for creating media tracks, defaults to IosMediaDevices if not specified in config
@@ -71,6 +75,8 @@ public class IosWebRtcEngine(
 
 /**
  * Factory object for creating iOS WebRTC engine instances.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.IosWebRtc)
  */
 public object IosWebRtc : WebRtcClientEngineFactory<IosWebRtcEngineConfig> {
     override fun create(block: IosWebRtcEngineConfig.() -> Unit): WebRtcEngine =

@@ -19,6 +19,8 @@ import kotlin.coroutines.resumeWithException
 
 /**
  * MediaDevicesFactory based on the org.webrtc, which uses Android Camera2 API
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.AndroidMediaDevices)
  **/
 public class AndroidMediaDevices(
     private val context: Context,

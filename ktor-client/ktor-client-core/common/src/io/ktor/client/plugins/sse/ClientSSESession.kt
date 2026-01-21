@@ -47,6 +47,8 @@ public interface SSESession : CoroutineScope {
 
     /**
      * Returns a diagnostic buffer of SSE data that has already been processed by this session.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.SSESession.bodyBuffer)
      */
     @InternalAPI
     public fun bodyBuffer(): ByteArray = EMPTY
@@ -107,6 +109,8 @@ public interface SSESessionWithDeserialization : CoroutineScope {
 
     /**
      * Returns a diagnostic buffer of SSE data that has already been processed by this session.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.SSESessionWithDeserialization.bodyBuffer)
      */
     @InternalAPI
     public fun bodyBuffer(): ByteArray = EMPTY

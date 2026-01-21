@@ -15,12 +15,16 @@ import kotlinx.serialization.Serializable
  * A small interface exposing the OpenAPI document builder state.
  *
  * This is used in the OpenAPI and Swagger plugins for providing details in the resulting generated document.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.OpenApiDocDsl)
  */
 public interface OpenApiDocDsl {
     /**
      * OpenAPI specification version to be written into the resulting document.
      *
      * This corresponds to the top-level `openapi` field (for example, `"3.1.1"`).
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.OpenApiDocDsl.openapiVersion)
      */
     public var openapiVersion: String
 
@@ -28,6 +32,8 @@ public interface OpenApiDocDsl {
      * Required OpenAPI "Info Object" describing the API (title, version, optional description, etc.).
      *
      * This corresponds to the top-level `info` section.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.OpenApiDocDsl.info)
      */
     public var info: OpenApiInfo
 
@@ -35,6 +41,8 @@ public interface OpenApiDocDsl {
      * Configures one or more servers for this API using the [Servers] DSL.
      *
      * Servers describe base URLs where the API can be accessed (for example, production and staging).
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.OpenApiDocDsl.servers)
      *
      * @param configure DSL block used to add server entries.
      */
@@ -45,6 +53,8 @@ public interface OpenApiDocDsl {
      *
      * These requirements apply to operations by default unless overridden at the operation level.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.OpenApiDocDsl.security)
+     *
      * @param configure DSL block used to declare security requirements.
      */
     public fun security(configure: Security.Builder.() -> Unit)
@@ -54,6 +64,8 @@ public interface OpenApiDocDsl {
      *
      * Tags are typically used by documentation tooling to group operations.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.OpenApiDocDsl.tag)
+     *
      * @param tag The tag name.
      */
     public fun tag(tag: String)
@@ -62,6 +74,8 @@ public interface OpenApiDocDsl {
      * Optional reusable components for the document (schemas, responses, parameters, request bodies, etc.).
      *
      * This corresponds to the top-level `components` section.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.OpenApiDocDsl.components)
      */
     public var components: Components?
 
@@ -69,6 +83,8 @@ public interface OpenApiDocDsl {
      * Optional external documentation for the entire API.
      *
      * This corresponds to the top-level `externalDocs` section.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.OpenApiDocDsl.externalDocs)
      */
     public var externalDocs: ExternalDocs?
 
@@ -76,6 +92,8 @@ public interface OpenApiDocDsl {
      * Specification extensions for the document.
      *
      * In OpenAPI, extension keys must start with `x-` (for example, `x-company-metadata`).
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.OpenApiDocDsl.extensions)
      */
     public val extensions: MutableMap<String, GenericElement>
 }
@@ -129,11 +147,15 @@ public data class OpenApiDoc(
          * which influences the structure, features, and behavior of the OpenAPI document generation.
          *
          * The value adheres to the official OpenAPI Specification versioning format.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.OpenApiDoc.Companion.OPENAPI_VERSION)
          */
         public const val OPENAPI_VERSION: String = "3.1.1"
 
         /**
          * Builds an [OpenApiDoc] instance using the provided DSL [configure] block.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.OpenApiDoc.Companion.build)
          */
         public fun build(configure: Builder.() -> Unit): OpenApiDoc {
             return Builder().apply(configure).build()
@@ -150,6 +172,8 @@ public data class OpenApiDoc(
      *
      * This does not include builder DSL for path items and webhooks.  These are generally handled on the routes
      * themselves, then resolved later at runtime.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.OpenApiDoc.Builder)
      */
     @KtorDsl
     public class Builder : OpenApiDocDsl {
@@ -167,16 +191,22 @@ public data class OpenApiDoc(
 
         /**
          * A list of servers configured for this API.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.OpenApiDoc.Builder.servers)
          */
         public val servers: List<Server> get() = _servers
 
         /**
          * A list of tags configured for this API.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.OpenApiDoc.Builder.tags)
          */
         public val tags: List<String> get() = _tags
 
         /**
          * A list of security requirements configured for this API.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.OpenApiDoc.Builder.securityRequirements)
          */
         public val securityRequirements: List<Map<String, List<String>>> get() = _securityRequirements
 
@@ -195,6 +225,8 @@ public data class OpenApiDoc(
         /**
          * Adds a specification-extension to this OpenAPI document.
          *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.OpenApiDoc.Builder.extension)
+         *
          * @param name The extension name; must start with `x-`.
          * @param value The extension value.
          */
@@ -205,6 +237,8 @@ public data class OpenApiDoc(
 
         /**
          * Builds an instance of [OpenApiDoc] based on the current state of the [Builder].
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.OpenApiDoc.Builder.build)
          *
          * @return An instance of [OpenApiDoc].
          */
@@ -229,12 +263,16 @@ public data class OpenApiDoc(
  * Lists the required security schemes to execute this operation. The object can have multiple
  * security schemes declared in it which are all required (that is, there is a logical AND between
  * the schemes).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.SecurityRequirement)
  */
 public typealias SecurityRequirement = Map<String, List<String>>
 
 /**
  * The object provides metadata about the API. The metadata MAY be used by the clients if needed,
  * and MAY be presented in editing or documentation generation tools for convenience.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.OpenApiInfo)
  */
 @Serializable(OpenApiInfo.Companion.Serializer::class)
 @OptIn(ExperimentalSerializationApi::class)
@@ -268,7 +306,11 @@ public data class OpenApiInfo(
         )
     }
 
-    /** Contact information for the exposed API. */
+    /**
+     * Contact information for the exposed API.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.OpenApiInfo.Contact)
+     */
     @Serializable
     public data class Contact(
         /** The identifying name of the contact person/organization. */
@@ -282,7 +324,11 @@ public data class OpenApiInfo(
         public val email: String? = null,
     )
 
-    /** License information for the exposed API. */
+    /**
+     * License information for the exposed API.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.OpenApiInfo.License)
+     */
     @Serializable
     public data class License(
         /** The license name used for the API. */
@@ -297,6 +343,8 @@ public data class OpenApiInfo(
 /**
  * Allows adding metadata to a single tag that is used by @Operation@. It is not mandatory to have
  * a @Tag@ per tag used there.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Tag)
  */
 @Serializable
 public data class Tag(
@@ -315,6 +363,8 @@ public data class Tag(
  * Holds a set of reusable objects for different aspects of the OAS. All objects defined within the
  * component object will have no effect on the API unless they are explicitly referenced from
  * properties outside the component object.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Components)
  */
 @Serializable(Components.Companion.Serializer::class)
 @OptIn(ExperimentalSerializationApi::class)
@@ -342,6 +392,8 @@ public data class Components(
 
     /**
      * Returns true if this object has no properties.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Components.isEmpty)
      */
     public fun isEmpty(): Boolean =
         schemas.isNullOrEmpty() &&
@@ -359,6 +411,8 @@ public data class Components(
 
     /**
      * Returns true if this object has at least one property.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Components.isNotEmpty)
      */
     public fun isNotEmpty(): Boolean = !isEmpty()
 }

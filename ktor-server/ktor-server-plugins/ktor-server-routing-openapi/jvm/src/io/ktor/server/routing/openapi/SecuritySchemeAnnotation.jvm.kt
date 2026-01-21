@@ -4,12 +4,10 @@
 
 package io.ktor.server.routing.openapi
 
-import io.ktor.openapi.HttpSecurityScheme
-import io.ktor.openapi.SecurityScheme
-import io.ktor.server.application.Application
-import io.ktor.server.auth.AuthenticationProvider
-import io.ktor.server.auth.DigestAuthenticationProvider
-import io.ktor.server.auth.jwt.JWTAuthenticationProvider
+import io.ktor.openapi.*
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 
 internal actual fun Application.inferPlatformSpecificSecurityScheme(provider: AuthenticationProvider): SecurityScheme? {
     return when {
@@ -36,6 +34,8 @@ private fun inferJwtScheme(provider: AuthenticationProvider): SecurityScheme? {
 /**
  * Registers a Digest HTTP authentication security scheme.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.registerDigestAuthSecurityScheme)
+ *
  * @param name The name of the security scheme. Defaults to "default".
  * @param description Optional description for the security scheme. Defaults to [HttpSecurityScheme.DEFAULT_DIGEST_DESCRIPTION].
  */
@@ -48,6 +48,8 @@ public fun Application.registerDigestAuthSecurityScheme(
 
 /**
  * Registers a JWT Bearer authentication security scheme.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.registerJWTSecurityScheme)
  *
  * @param name The name of the security scheme. Defaults to "default".
  * @param description Optional description for the security scheme. Defaults to [HttpSecurityScheme.DEFAULT_JWT_DESCRIPTION].

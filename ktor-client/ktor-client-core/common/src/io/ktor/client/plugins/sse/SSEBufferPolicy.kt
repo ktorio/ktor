@@ -11,10 +11,14 @@ import io.ktor.sse.*
  *
  * The buffer represents already processed data (no re-reading from the network).
  * It is intended for logging and error analysis when failures happen.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.SSEBufferPolicy)
  */
 public sealed interface SSEBufferPolicy {
     /**
      * Disable buffer capture.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.SSEBufferPolicy.Off)
      */
     public data object Off : SSEBufferPolicy
 
@@ -22,6 +26,8 @@ public sealed interface SSEBufferPolicy {
      * Keep the last [count] completed SSE events in the diagnostic buffer.
      *
      * The session appends an event when it encounters an empty line (SSE event boundary).
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.SSEBufferPolicy.LastEvents)
      */
     public data class LastEvents(val count: Int) : SSEBufferPolicy {
         init {
@@ -32,6 +38,8 @@ public sealed interface SSEBufferPolicy {
     /**
      * Keep the last [count] text lines of the stream in the buffer.
      * Includes blank lines that delimit SSE events, comment lines, etc.).
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.SSEBufferPolicy.LastLines)
      */
     public data class LastLines(val count: Int) : SSEBufferPolicy {
         init {
@@ -42,6 +50,8 @@ public sealed interface SSEBufferPolicy {
     /**
      * Keep only the last completed event.
      * Shorthand for `LastEvents(1)`.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.SSEBufferPolicy.LastEvent)
      */
     public data object LastEvent : SSEBufferPolicy
 
@@ -49,6 +59,8 @@ public sealed interface SSEBufferPolicy {
      * Keep everything that has been processed so far.
      *
      * Note: Use with care for long-lived streams.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.SSEBufferPolicy.All)
      */
     public data object All : SSEBufferPolicy
 }

@@ -150,6 +150,8 @@ public class RustWebRtcConnection(
 
 /**
  * Returns implementation of the rtp parameters that is used under the hood. Use it with caution.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.rs.getNative)
  */
 public fun WebRtcPeerConnection.getNative(): PeerConnection {
     val parameters = this as? RustWebRtcConnection ?: error("Wrong connection implementation.")

@@ -119,7 +119,7 @@ public class BearerAuthConfig {
      * When enabled, token refresh function is executed in a NonCancellable coroutine context.
      * This prevents cancellation of the originating request from rolling back a successful token refresh.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.BearerAuthConfig.nonCancellableRefresh)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.BearerAuthConfig.nonCancellableRefresh)
      */
     public var nonCancellableRefresh: Boolean = false
 }

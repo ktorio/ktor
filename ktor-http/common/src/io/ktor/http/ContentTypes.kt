@@ -211,11 +211,19 @@ public class ContentType private constructor(
         public val ProblemJson: ContentType = ContentType(TYPE, "problem+json")
         public val ProblemXml: ContentType = ContentType(TYPE, "problem+xml")
 
-        /** Checks that the given [contentType] has type `application/`. */
+        /**
+         * Checks that the given [contentType] has type `application/`.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Application.contains)
+         */
         public operator fun contains(contentType: CharSequence): Boolean =
             contentType.startsWith("$TYPE/", ignoreCase = true)
 
-        /** Checks that the given [contentType] has type `application/`. */
+        /**
+         * Checks that the given [contentType] has type `application/`.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Application.contains)
+         */
         public operator fun contains(contentType: ContentType): Boolean = contentType.match(Any)
     }
 
@@ -233,11 +241,19 @@ public class ContentType private constructor(
         public val MPEG: ContentType = ContentType(TYPE, "mpeg")
         public val OGG: ContentType = ContentType(TYPE, "ogg")
 
-        /** Checks that the given [contentType] has type `audio/`. */
+        /**
+         * Checks that the given [contentType] has type `audio/`.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Audio.contains)
+         */
         public operator fun contains(contentType: CharSequence): Boolean =
             contentType.startsWith("$TYPE/", ignoreCase = true)
 
-        /** Checks that the given [contentType] has type `audio/`. */
+        /**
+         * Checks that the given [contentType] has type `audio/`.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Audio.contains)
+         */
         public operator fun contains(contentType: ContentType): Boolean = contentType.match(Any)
     }
 
@@ -265,11 +281,19 @@ public class ContentType private constructor(
         public val WEBP: ContentType = ContentType(TYPE, "webp")
         public val XIcon: ContentType = ContentType(TYPE, "x-icon")
 
-        /** Checks that the given [contentType] has type `image/`. */
+        /**
+         * Checks that the given [contentType] has type `image/`.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Image.contains)
+         */
         public operator fun contains(contentSubtype: String): Boolean =
             contentSubtype.startsWith("$TYPE/", ignoreCase = true)
 
-        /** Checks that the given [contentType] has type `image/`. */
+        /**
+         * Checks that the given [contentType] has type `image/`.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Image.contains)
+         */
         public operator fun contains(contentType: ContentType): Boolean = contentType.match(Any)
     }
 
@@ -285,11 +309,19 @@ public class ContentType private constructor(
         public val Any: ContentType = ContentType(TYPE, "*")
         public val Http: ContentType = ContentType(TYPE, "http")
 
-        /** Checks that the given [contentType] has type `message/`. */
+        /**
+         * Checks that the given [contentType] has type `message/`.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Message.contains)
+         */
         public operator fun contains(contentSubtype: String): Boolean =
             contentSubtype.startsWith("$TYPE/", ignoreCase = true)
 
-        /** Checks that the given [contentType] has type `message/`. */
+        /**
+         * Checks that the given [contentType] has type `message/`.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Message.contains)
+         */
         public operator fun contains(contentType: ContentType): Boolean = contentType.match(Any)
     }
 
@@ -311,11 +343,19 @@ public class ContentType private constructor(
         public val Encrypted: ContentType = ContentType(TYPE, "encrypted")
         public val ByteRanges: ContentType = ContentType(TYPE, "byteranges")
 
-        /** Checks that the given [contentType] has type `multipart/`. */
+        /**
+         * Checks that the given [contentType] has type `multipart/`.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.MultiPart.contains)
+         */
         public operator fun contains(contentType: CharSequence): Boolean =
             contentType.startsWith("$TYPE/", ignoreCase = true)
 
-        /** Checks that the given [contentType] has type `multipart/`. */
+        /**
+         * Checks that the given [contentType] has type `multipart/`.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.MultiPart.contains)
+         */
         public operator fun contains(contentType: ContentType): Boolean = contentType.match(Any)
     }
 
@@ -338,11 +378,19 @@ public class ContentType private constructor(
         public val Xml: ContentType = ContentType(TYPE, "xml")
         public val EventStream: ContentType = ContentType(TYPE, "event-stream")
 
-        /** Checks that the given [contentType] has type `text/`. */
+        /**
+         * Checks that the given [contentType] has type `text/`.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Text.contains)
+         */
         public operator fun contains(contentType: CharSequence): Boolean =
             contentType.startsWith("$TYPE/", ignoreCase = true)
 
-        /** Checks that the given [contentType] has type `text/`. */
+        /**
+         * Checks that the given [contentType] has type `text/`.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Text.contains)
+         */
         public operator fun contains(contentType: ContentType): Boolean = contentType.match(Any)
     }
 
@@ -361,11 +409,19 @@ public class ContentType private constructor(
         public val OGG: ContentType = ContentType(TYPE, "ogg")
         public val QuickTime: ContentType = ContentType(TYPE, "quicktime")
 
-        /** Checks that the given [contentType] has type `video/`. */
+        /**
+         * Checks that the given [contentType] has type `video/`.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Video.contains)
+         */
         public operator fun contains(contentType: CharSequence): Boolean =
             contentType.startsWith("$TYPE/", ignoreCase = true)
 
-        /** Checks that the given [contentType] has type `video/`. */
+        /**
+         * Checks that the given [contentType] has type `video/`.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Video.contains)
+         */
         public operator fun contains(contentType: ContentType): Boolean = contentType.match(Any)
     }
 
@@ -386,11 +442,19 @@ public class ContentType private constructor(
         public val Woff: ContentType = ContentType(TYPE, "woff")
         public val Woff2: ContentType = ContentType(TYPE, "woff2")
 
-        /** Checks that the given [contentType] has type `font/`. */
+        /**
+         * Checks that the given [contentType] has type `font/`.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Font.contains)
+         */
         public operator fun contains(contentType: CharSequence): Boolean =
             contentType.startsWith("$TYPE/", ignoreCase = true)
 
-        /** Checks that the given [contentType] has type `font/`. */
+        /**
+         * Checks that the given [contentType] has type `font/`.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Font.contains)
+         */
         public operator fun contains(contentType: ContentType): Boolean = contentType.match(Any)
     }
 }
@@ -450,6 +514,8 @@ private val textSubTypes = setOf(
 /**
  * Returns true if the content type represents textual data.
  * For binary data, returns false.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.isTextType)
  */
 public fun ContentType.isTextType(): Boolean {
     if (contentType == "text") return true

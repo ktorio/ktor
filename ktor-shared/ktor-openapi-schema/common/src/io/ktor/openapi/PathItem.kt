@@ -4,8 +4,8 @@
 
 package io.ktor.openapi
 
-import io.ktor.http.ContentType
-import io.ktor.utils.io.KtorDsl
+import io.ktor.http.*
+import io.ktor.utils.io.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KeepGeneratedSerializer
 import kotlinx.serialization.Serializable
@@ -14,6 +14,8 @@ import kotlinx.serialization.Serializable
  * Describes the operations, parameters, and servers available for a single API path, as defined by the
  * OpenAPI Specification Path Item Object. This is a container that aggregates the HTTP operations
  * (GET, PUT, POST, DELETE, OPTIONS, HEAD, PATCH, TRACE) and common metadata that apply to the path.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.PathItem)
  */
 @Serializable(PathItem.Companion.Serializer::class)
 @OptIn(ExperimentalSerializationApi::class)
@@ -67,7 +69,11 @@ public data class PathItem(
         private val schemaInference: JsonSchemaInference,
         private val defaultContentTypes: List<ContentType>,
     ) {
-        /** A short summary of the path item */
+        /**
+         * A short summary of the path item
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.PathItem.Builder.summary)
+         */
         public var summary: String? = null
         public var description: String? = null
         private var put: Operation? = null
@@ -85,16 +91,22 @@ public data class PathItem(
 
         /**
          * A list of parameters that are applicable for all the operations described under this path.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.PathItem.Builder.parameters)
          */
         public val parameters: List<Parameter> get() = _parameters
 
         /**
          * A list of servers configured for this path.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.PathItem.Builder.servers)
          */
         public val servers: List<Server> get() = _servers
 
         /**
          * Adds parameters using the [Parameters] DSL.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.PathItem.Builder.parameters)
          *
          * @param configure DSL to define one or more parameters.
          */
@@ -107,6 +119,8 @@ public data class PathItem(
         /**
          * Adds server definitions specific to this operation using the [Servers] DSL.
          *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.PathItem.Builder.servers)
+         *
          * @param configure DSL to define one or more servers.
          */
         public fun servers(configure: Servers.Builder.() -> Unit) {
@@ -115,6 +129,8 @@ public data class PathItem(
 
         /**
          * Sets the DELETE operation for this path item with the Operation DSL.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.PathItem.Builder.delete)
          */
         public fun delete(configure: Operation.Builder.() -> Unit) {
             delete = buildOperation(configure)
@@ -122,6 +138,8 @@ public data class PathItem(
 
         /**
          * Sets the OPTIONS operation for this path item with the Operation DSL.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.PathItem.Builder.options)
          */
         public fun options(configure: Operation.Builder.() -> Unit) {
             options = buildOperation(configure)
@@ -129,6 +147,8 @@ public data class PathItem(
 
         /**
          * Sets the GET operation for this path item with the Operation DSL.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.PathItem.Builder.get)
          */
         public fun get(configure: Operation.Builder.() -> Unit) {
             get = buildOperation(configure)
@@ -136,6 +156,8 @@ public data class PathItem(
 
         /**
          * Sets the HEAD operation for this path item with the Operation DSL.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.PathItem.Builder.head)
          */
         public fun head(configure: Operation.Builder.() -> Unit) {
             head = buildOperation(configure)
@@ -143,6 +165,8 @@ public data class PathItem(
 
         /**
          * Sets the PATCH operation for this path item with the Operation DSL.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.PathItem.Builder.patch)
          */
         public fun patch(configure: Operation.Builder.() -> Unit) {
             patch = buildOperation(configure)
@@ -150,6 +174,8 @@ public data class PathItem(
 
         /**
          * Sets the TRACE operation for this path item with the Operation DSL.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.PathItem.Builder.trace)
          */
         public fun trace(configure: Operation.Builder.() -> Unit) {
             trace = buildOperation(configure)
@@ -157,6 +183,8 @@ public data class PathItem(
 
         /**
          * Sets the PUT operation for this path item with the Operation DSL.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.PathItem.Builder.put)
          */
         public fun put(configure: Operation.Builder.() -> Unit) {
             put = buildOperation(configure)
@@ -164,6 +192,8 @@ public data class PathItem(
 
         /**
          * Sets the POST operation for this path item with the Operation DSL.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.PathItem.Builder.post)
          */
         public fun post(configure: Operation.Builder.() -> Unit) {
             post = buildOperation(configure)

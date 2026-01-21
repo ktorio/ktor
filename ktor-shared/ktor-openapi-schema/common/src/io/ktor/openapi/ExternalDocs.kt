@@ -6,7 +6,11 @@ package io.ktor.openapi
 
 import kotlinx.serialization.Serializable
 
-/** Allows referencing an external resource for extended documentation. */
+/**
+ * Allows referencing an external resource for extended documentation.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.ExternalDocs)
+ */
 @Serializable
 public data class ExternalDocs(
     /**

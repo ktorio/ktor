@@ -12,7 +12,7 @@ import kotlin.coroutines.CoroutineContext
 /**
  * Implementation of [ContentEncoder] using zstd algorithm
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.ZstdEncoder)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.encoding.zstd.ZstdEncoder)
  */
 public expect class ZstdEncoder : ContentEncoder {
     override val name: String

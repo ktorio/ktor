@@ -4,7 +4,7 @@
 
 package io.ktor.client.io
 
-import io.ktor.utils.io.InternalAPI
+import io.ktor.utils.io.*
 
 private const val VM_NAME_PROPERTY = "java.vm.name"
 private const val IO_POOL_SIZE_PROPERTY = "kotlinx.io.pool.size.bytes"
@@ -19,6 +19,8 @@ private const val MIN_PROCESS_MEMORY = 10_000_000
  * The default for non-Android VMs is 4MB.
  *
  * @link https://developer.android.com/reference/java/lang/System#getProperties()
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.io.configurePlatform)
  */
 @InternalAPI
 public actual fun configurePlatform() {

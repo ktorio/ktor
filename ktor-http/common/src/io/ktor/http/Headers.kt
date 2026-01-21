@@ -113,6 +113,8 @@ public class HeadersSingleImpl(
  * If [splitInsideQuotes] is true, the function ignores quotes entirely and splits everywhere the [separator] appears.
  * Otherwise, [separator] that occurs inside a double-quoted string isn't treated as a split point.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.getSplitValues)
+ *
  *  @param name The header name.
  *  @param separator The character on which to split (e.g., ',' or ';').
  *  @param splitInsideQuotes If `true`, quotes are ignored and splitting occurs at every [separator].

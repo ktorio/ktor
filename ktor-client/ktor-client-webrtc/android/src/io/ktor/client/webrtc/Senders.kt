@@ -4,7 +4,7 @@
 
 package io.ktor.client.webrtc
 
-import io.ktor.client.webrtc.media.AndroidMediaTrack
+import io.ktor.client.webrtc.media.*
 import org.webrtc.DtmfSender
 import org.webrtc.RtpParameters
 import org.webrtc.RtpSender
@@ -71,6 +71,8 @@ public class AndroidRtpParameters(internal val nativeRtpParameters: RtpParameter
 
 /**
  * Returns implementation of the rtp sender that is used under the hood. Use it with caution.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.getNative)
  */
 public fun WebRtc.RtpSender.getNative(): RtpSender {
     return (this as AndroidRtpSender).nativeSender
@@ -78,6 +80,8 @@ public fun WebRtc.RtpSender.getNative(): RtpSender {
 
 /**
  * Returns implementation of the dtmf sender that is used under the hood. Use it with caution.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.getNative)
  */
 public fun WebRtc.DtmfSender.getNative(): DtmfSender {
     return (this as AndroidDtmfSender).nativeSender
@@ -85,6 +89,8 @@ public fun WebRtc.DtmfSender.getNative(): DtmfSender {
 
 /**
  * Returns implementation of the rtp parameters that is used under the hood. Use it with caution.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.getNative)
  */
 public fun WebRtc.RtpParameters.getNative(): RtpParameters {
     return (this as AndroidRtpParameters).nativeRtpParameters
