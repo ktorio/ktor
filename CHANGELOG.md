@@ -4,18 +4,19 @@
 ### Features
 
 * [KTOR-8316](https://youtrack.jetbrains.com/issue/KTOR-8316) Support OpenAPI specification for the Ktor Client and Server Application
-* [KTOR-9087](https://youtrack.jetbrains.com/issue/KTOR-9087) Generate JSON schema for type references when using Jackson and Gson
+  * [KTOR-9085](https://youtrack.jetbrains.com/issue/KTOR-9085) Read OpenAPI security details from authentication plugin 
+  * [KTOR-8993](https://youtrack.jetbrains.com/issue/KTOR-8993) Use runtime-generated spec for OpenAPI / Swagger plugins
+  * [KTOR-9086](https://youtrack.jetbrains.com/issue/KTOR-9086) Read OpenAPI default content type information from ContentNegotiation plugin
+  * [KTOR-8859](https://youtrack.jetbrains.com/issue/KTOR-8859) Routing documentation compiler plugin
+  * [KTOR-8936](https://youtrack.jetbrains.com/issue/KTOR-8936) Routing documentation runtime API
+  * [KTOR-9087](https://youtrack.jetbrains.com/issue/KTOR-9087) Generate JSON schema for type references when using Jackson and Gson
 * [KTOR-7075](https://youtrack.jetbrains.com/issue/KTOR-7075) Zstd support
 * [KTOR-9209](https://youtrack.jetbrains.com/issue/KTOR-9209) Support Jackson 3
 * [KTOR-9198](https://youtrack.jetbrains.com/issue/KTOR-9198) Auth/Bearer: Make BearerAuthProvider detect disguised Bearer scheme
-* [KTOR-9085](https://youtrack.jetbrains.com/issue/KTOR-9085) Read OpenAPI security details from authentication plugin
-* [KTOR-8993](https://youtrack.jetbrains.com/issue/KTOR-8993) Use runtime-generated spec for OpenAPI / Swagger plugins
-* [KTOR-9189](https://youtrack.jetbrains.com/issue/KTOR-9189) Annotate `Route`s security based on the `Authentication` plugin.
 * [KTOR-8927](https://youtrack.jetbrains.com/issue/KTOR-8927) Support for `respondResource`
 * [KTOR-9162](https://youtrack.jetbrains.com/issue/KTOR-9162) Auth API key plugin
 * [KTOR-7882](https://youtrack.jetbrains.com/issue/KTOR-7882) Support HTTP QUERY method
 * [KTOR-8195](https://youtrack.jetbrains.com/issue/KTOR-8195) Partial HTML response
-* [KTOR-9086](https://youtrack.jetbrains.com/issue/KTOR-9086) Read OpenAPI default content type information from ContentNegotiation plugin
 * [KTOR-8985](https://youtrack.jetbrains.com/issue/KTOR-8985) EngineMain: Support reading trust store settings from the configuration
 * [KTOR-9066](https://youtrack.jetbrains.com/issue/KTOR-9066) Add duplex streaming for OkHttpClient
 * [KTOR-8180](https://youtrack.jetbrains.com/issue/KTOR-8180) Auth: Provide control over tokens to user code
@@ -24,8 +25,6 @@
 * [KTOR-9157](https://youtrack.jetbrains.com/issue/KTOR-9157) Support SIGINT on web and SIGTERM on Native
 
 ### Improvements
-* [KTOR-8859](https://youtrack.jetbrains.com/issue/KTOR-8859) Routing documentation compiler plugin
-* [KTOR-8936](https://youtrack.jetbrains.com/issue/KTOR-8936) Routing documentation runtime API
 * [KTOR-8890](https://youtrack.jetbrains.com/issue/KTOR-8890) Rename target jsAndWasmShared to web
 * [KTOR-9242](https://youtrack.jetbrains.com/issue/KTOR-9242) Upgrade to Kotlin 2.3
 * [KTOR-9243](https://youtrack.jetbrains.com/issue/KTOR-9243) Update libcurl to 8.18.0
@@ -54,7 +53,6 @@
 * [KTOR-9210](https://youtrack.jetbrains.com/issue/KTOR-9210) Zstd support import changes fixes
 * [KTOR-9190](https://youtrack.jetbrains.com/issue/KTOR-9190) "Unresolved classifier: platform/posix/pthread_mutex_t" when executing :ktor-io:commonizeCInterop on latest main branch
 * [KTOR-8945](https://youtrack.jetbrains.com/issue/KTOR-8945) ByteReadChannel.readUTF8Line doesn't throw TooLongLineException when the limit is reached
-* [KTOR-8972](https://youtrack.jetbrains.com/issue/KTOR-8972) `buildOpenApi` task is getting invoked during test tasks
 * [KTOR-8339](https://youtrack.jetbrains.com/issue/KTOR-8339) Curl: `caPath` is not set by default in the Curl client on linuxArm64
 * [KTOR-9188](https://youtrack.jetbrains.com/issue/KTOR-9188) WebRTC. `IceServer.urls` should be a list.
 * [KTOR-9148](https://youtrack.jetbrains.com/issue/KTOR-9148) Logging: Body logging of multipart/form-data requests hangs when OkHttp format is on
