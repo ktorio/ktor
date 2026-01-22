@@ -94,6 +94,40 @@ private const val LF = '\n'.code.toByte()
 private const val SEMICOLON = ';'.code.toByte()
 private const val QUOTE = '"'.code.toByte()
 
+/**
+ * Parse a single HTTP/1.1 chunk-size line as defined by the chunked transfer coding.
+ *
+ * The input is expected to be positioned at the first byte of the chunk-size line and this
+ * function consumes bytes up to and including the terminating CRLF. The returned [Long] is the
+ * numeric size of the chunk body in bytes.
+ *
+ * Parsing rules and state machine:
+ * - The chunk size itself is parsed as a hexadecimal number from the beginning of the line up
+ *   to (but not including) the first `;` (start of chunk extensions) or CR.
+ * - After the first `;` is seen, [inExtension] is set to `true` and all subsequent characters
+ *   (including any additional `;`) are treated as part of the extension section and ignored for
+ *   size calculation.
+ * - Chunk extensions may contain quoted strings (`"..."`). When a `"` is seen, [inQuotes] is
+ *   toggled. While [inQuotes] is `true`, every byte other than `"` is skipped without further
+  *   interpretation so that extension parameters cannot affect the parsed size.
+ * - CR/LF handling is strict: `LF` must be immediately preceded by `CR`. A bare `LF` or `LF`
+ *   occurring without a prior `CR` causes an [IOException], preventing acceptance of malformed
+ *   or obfuscated input.
+ * - The [afterCr] flag tracks whether the last processed byte was a `CR` so that the following
+ *   `LF` can be recognized as a valid line terminator.
+ *
+ * Security and robustness considerations (see KTOR-9263):
+ * - Only standard hexadecimal digits are accepted before the first `;`. Any other character in
+ *   this region results in an [IOException].
+ * - Chunk extensions and their contents are always ignored for the purpose of computing the size,
+ *   but are fully consumed from the stream, including quoted strings, to keep the parser in sync.
+ * - A hard upper bound of [MAX_CHUNK_SIZE_LENGTH] bytes is enforced for the entire line to
+ *   mitigate resource exhaustion and to reject overly long or maliciously crafted chunk-size
+ *   headers.
+ *
+ * This function is intentionally strict and should be modified with care, as relaxing these
+ * checks may reintroduce parsing ambiguities or security vulnerabilities.
+ */
 @OptIn(InternalAPI::class)
 private suspend fun parseChunkSize(input: ByteReadChannel): Long {
     var result = 0L
