@@ -36,8 +36,7 @@ private inline fun Int.toLowerCase() =
 internal val DefaultHttpMethods =
     AsciiCharTree.build(HttpMethod.DefaultMethods, { it.value.length }, { m, idx -> m.value[idx] })
 
-@InternalAPI
-public val HexTable: LongArray = (0..0xff).map { v ->
+internal val HexTable: LongArray = (0..0xff).map { v ->
     when {
         v in 0x30..0x39 -> v - 0x30L
         v >= 'a'.code.toLong() && v <= 'f'.code.toLong() -> v - 'a'.code.toLong() + 10
@@ -49,20 +48,6 @@ public val HexTable: LongArray = (0..0xff).map { v ->
 internal val HexLetterTable: ByteArray = (0..0xf).map {
     if (it < 0xa) (0x30 + it).toByte() else ('a' + it - 0x0a).code.toByte()
 }.toByteArray()
-
-@OptIn(InternalAPI::class)
-internal fun CharSequence.parseHexLong(): Long {
-    var result = 0L
-    val table = HexTable
-    for (i in indices) {
-        val v = this[i].code and 0xffff
-        val digit = if (v < 0xff) table[v] else -1L
-        if (digit == -1L) hexNumberFormatException(this, i)
-        result = (result shl 4) or digit
-    }
-
-    return result
-}
 
 /**
  * Converts [CharSequence] representation in decimal format to [Long]

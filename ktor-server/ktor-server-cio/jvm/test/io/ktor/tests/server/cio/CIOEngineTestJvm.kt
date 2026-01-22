@@ -24,11 +24,6 @@ class CIOContentTest : ContentTestSuite<CIOApplicationEngine, CIOApplicationEngi
         enableHttp2 = false
         enableSsl = false
     }
-
-    @Test
-    override fun funkyChunked() {
-        super.funkyChunked()
-    }
 }
 
 class CIOHttpServerJvmTest : HttpServerJvmTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {

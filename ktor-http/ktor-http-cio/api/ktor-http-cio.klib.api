@@ -167,9 +167,6 @@ sealed class io.ktor.http.cio/MultipartEvent { // io.ktor.http.cio/MultipartEven
     }
 }
 
-final val io.ktor.http.cio.internals/HexTable // io.ktor.http.cio.internals/HexTable|{}HexTable[0]
-    final fun <get-HexTable>(): kotlin/LongArray // io.ktor.http.cio.internals/HexTable.<get-HexTable>|<get-HexTable>(){}[0]
-
 final fun (kotlin/CharSequence).io.ktor.http.cio.internals/parseDecLong(): kotlin/Long // io.ktor.http.cio.internals/parseDecLong|parseDecLong@kotlin.CharSequence(){}[0]
 final fun (kotlinx.coroutines/CoroutineScope).io.ktor.http.cio/decodeChunked(io.ktor.utils.io/ByteReadChannel): io.ktor.utils.io/WriterJob // io.ktor.http.cio/decodeChunked|decodeChunked@kotlinx.coroutines.CoroutineScope(io.ktor.utils.io.ByteReadChannel){}[0]
 final fun (kotlinx.coroutines/CoroutineScope).io.ktor.http.cio/decodeChunked(io.ktor.utils.io/ByteReadChannel, kotlin/Long): io.ktor.utils.io/WriterJob // io.ktor.http.cio/decodeChunked|decodeChunked@kotlinx.coroutines.CoroutineScope(io.ktor.utils.io.ByteReadChannel;kotlin.Long){}[0]

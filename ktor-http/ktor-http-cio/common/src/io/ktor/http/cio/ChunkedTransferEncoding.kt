@@ -82,11 +82,8 @@ public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) 
 }
 
 private suspend fun ByteReadChannel.skipCrLf() {
-    when (val b = readByte()) {
-        CR -> if (readByte() != LF) throw IOException("Expected LF")
-        LF -> return
-        else -> throw IOException("Expected CRLF but found 0x${b.toString(16)}")
-    }
+    if (readByte() != CR) throw IOException("Expected CR")
+    if (readByte() != LF) throw IOException("Expected LF")
 }
 
 private const val CR = '\r'.code.toByte()
@@ -109,7 +106,7 @@ private const val QUOTE = '"'.code.toByte()
  *   size calculation.
  * - Chunk extensions may contain quoted strings (`"..."`). When a `"` is seen, [inQuotes] is
  *   toggled. While [inQuotes] is `true`, every byte other than `"` is skipped without further
-  *   interpretation so that extension parameters cannot affect the parsed size.
+ *   interpretation so that extension parameters cannot affect the parsed size.
  * - CR/LF handling is strict: `LF` must be immediately preceded by `CR`. A bare `LF` or `LF`
  *   occurring without a prior `CR` causes an [IOException], preventing acceptance of malformed
  *   or obfuscated input.
@@ -130,30 +127,35 @@ private const val QUOTE = '"'.code.toByte()
  */
 @OptIn(InternalAPI::class)
 private suspend fun parseChunkSize(input: ByteReadChannel): Long {
+    val buffer = input.readBuffer
     var result = 0L
     var inExtension = false
     var inQuotes = false
     var afterCr = false
     var i = 0
     while (i++ < MAX_CHUNK_SIZE_LENGTH) {
-        val byte = input.readByte()
+        if (buffer.exhausted() && !input.awaitContent()) throw EOFException()
+        val byte = buffer.readByte()
         if (inQuotes && byte != QUOTE) continue
         try {
             when (byte) {
-                CR -> continue
+                CR -> continue // set in finally block
                 LF -> {
-                    if (!afterCr) {
-                        throw IOException("Illegal newline character in chunk size")
-                    }
+                    if (!afterCr) throw IOException("Illegal newline character in chunk size")
+                    if (i < 3) throw IOException("Empty chunk size")
                     return result
                 }
                 QUOTE -> inQuotes = !inQuotes
-                SEMICOLON -> inExtension = true
+                SEMICOLON -> {
+                    if (i == 1) throw IOException("Empty chunk size")
+                    inExtension = true
+                }
                 else -> {
                     if (inExtension) continue // always ignore extensions
-                    val intValue = byte.toInt() and 0xffff
+                    val intValue = byte.toInt() and 0xff
                     val digit = if (intValue < 0xff) HexTable[intValue] else -1L
                     if (digit == -1L) throw IOException("Invalid chunk size character: 0x${intValue.toString(16)}")
+                    if ((result and -0x1000000000000000L) != 0L) throw IOException("Chunk size overflow")
                     result = (result shl 4) or digit
                 }
             }
