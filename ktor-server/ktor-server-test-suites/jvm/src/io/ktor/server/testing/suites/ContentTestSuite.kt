@@ -388,6 +388,60 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
+    open fun funkyChunked() = runTest {
+        // echo the request body
+        createAndStartServer {
+            handle {
+                val content = call.receiveText()
+                call.respondText(content)
+            }
+        }
+
+        socket {
+            val out = getOutputStream().bufferedWriter()
+            val input = getInputStream().bufferedReader()
+            try {
+                out.write(
+                    buildString {
+                        append("POST / HTTP/1.1\r\n")
+                        append("Host: localhost\r\n")
+                        append("Transfer-Encoding: chunked\r\n")
+                        append("\r\n")
+                        append("5;ext=\"pwned\r\nlol\"\r\n")
+                        append("hello\r\n")
+                        append("0\r\n\r\n")
+                    }
+                )
+                out.flush()
+
+                val firstLine = input.readLine()
+                assertEquals("HTTP/1.1 200 OK", firstLine)
+                val sb = StringBuilder()
+                var line = input.readLine()
+                var contentLength = 0
+                while (true) {
+                    sb.appendLine(line)
+                    if (':' in line) {
+                        if (line.startsWith("Content-Length:")) {
+                            contentLength = line.substringAfter(":").trim().toInt()
+                        }
+                        line = input.readLine()
+                    } else if (line.isEmpty()) {
+                        val actual = CharArray(contentLength)
+                            .also { input.read(it) }
+                            .let { String(it) }
+                        assertEquals("hello", actual, "Expected echoed content; Response:\n:$sb\n$actual")
+                        break
+                    }
+                }
+            } finally {
+                out.close()
+                input.close()
+            }
+        }
+    }
+
+    @Test
     fun testStreamNoFlush() = runTest {
         createAndStartServer {
             handle {

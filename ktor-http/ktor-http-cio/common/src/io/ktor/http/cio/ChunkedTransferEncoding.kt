@@ -7,21 +7,14 @@ package io.ktor.http.cio
 import io.ktor.http.cio.internals.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.io.EOFException
+import kotlinx.io.IOException
 import kotlin.coroutines.CoroutineContext
 
 private const val MAX_CHUNK_SIZE_LENGTH = 128
-private const val CHUNK_BUFFER_POOL_SIZE = 2048
-
-private val ChunkSizeBufferPool: ObjectPool<StringBuilder> =
-    object : DefaultPool<StringBuilder>(CHUNK_BUFFER_POOL_SIZE) {
-        override fun produceInstance(): StringBuilder = StringBuilder(MAX_CHUNK_SIZE_LENGTH)
-        override fun clearInstance(instance: StringBuilder) = instance.apply { clear() }
-    }
 
 /**
  * Decoder job type
@@ -65,38 +58,112 @@ public fun CoroutineScope.decodeChunked(input: ByteReadChannel, contentLength: L
  */
 @OptIn(InternalAPI::class)
 public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) {
-    val chunkSizeBuffer = ChunkSizeBufferPool.borrow()
     var totalBytesCopied = 0L
 
     try {
-        while (input.readLineStrictTo(chunkSizeBuffer, MAX_CHUNK_SIZE_LENGTH.toLong()) >= 0) {
-            if (chunkSizeBuffer.isEmpty()) {
-                throw EOFException("Invalid chunk size: empty")
+        while (!input.exhausted()) {
+            val chunkSize = parseChunkSize(input)
+            if (chunkSize == 0L) {
+                input.skipCrLf()
+                break
             }
 
-            val chunkSize =
-                if (chunkSizeBuffer.length == 1 && chunkSizeBuffer[0] == '0') 0 else chunkSizeBuffer.parseHexLong()
-
-            if (chunkSize > 0) {
-                input.copyTo(out, chunkSize)
-                out.flush()
-                totalBytesCopied += chunkSize
-            }
-
-            chunkSizeBuffer.clear()
-            if (input.readLineStrictTo(chunkSizeBuffer, limit = 0) == -1L) {
-                throw EOFException("Invalid chunk: content block of size $chunkSize ended unexpectedly")
-            }
-
-            if (chunkSize == 0L) break
+            input.copyTo(out, chunkSize)
+            input.skipCrLf()
+            out.flush()
+            totalBytesCopied += chunkSize
         }
     } catch (t: Throwable) {
         out.close(t)
         throw t
     } finally {
-        ChunkSizeBufferPool.recycle(chunkSizeBuffer)
         out.flushAndClose()
     }
+}
+
+private suspend fun ByteReadChannel.skipCrLf() {
+    if (readByte() != CR) throw IOException("Expected CR")
+    if (readByte() != LF) throw IOException("Expected LF")
+}
+
+private const val CR = '\r'.code.toByte()
+private const val LF = '\n'.code.toByte()
+private const val SEMICOLON = ';'.code.toByte()
+private const val QUOTE = '"'.code.toByte()
+
+/**
+ * Parse a single HTTP/1.1 chunk-size line as defined by the chunked transfer coding.
+ *
+ * The input is expected to be positioned at the first byte of the chunk-size line and this
+ * function consumes bytes up to and including the terminating CRLF. The returned [Long] is the
+ * numeric size of the chunk body in bytes.
+ *
+ * Parsing rules and state machine:
+ * - The chunk size itself is parsed as a hexadecimal number from the beginning of the line up
+ *   to (but not including) the first `;` (start of chunk extensions) or CR.
+ * - After the first `;` is seen, [inExtension] is set to `true` and all subsequent characters
+ *   (including any additional `;`) are treated as part of the extension section and ignored for
+ *   size calculation.
+ * - Chunk extensions may contain quoted strings (`"..."`). When a `"` is seen, [inQuotes] is
+ *   toggled. While [inQuotes] is `true`, every byte other than `"` is skipped without further
+ *   interpretation so that extension parameters cannot affect the parsed size.
+ * - CR/LF handling is strict: `LF` must be immediately preceded by `CR`. A bare `LF` or `LF`
+ *   occurring without a prior `CR` causes an [IOException], preventing acceptance of malformed
+ *   or obfuscated input.
+ * - The [afterCr] flag tracks whether the last processed byte was a `CR` so that the following
+ *   `LF` can be recognized as a valid line terminator.
+ *
+ * Security and robustness considerations (see KTOR-9263):
+ * - Only standard hexadecimal digits are accepted before the first `;`. Any other character in
+ *   this region results in an [IOException].
+ * - Chunk extensions and their contents are always ignored for the purpose of computing the size,
+ *   but are fully consumed from the stream, including quoted strings, to keep the parser in sync.
+ * - A hard upper bound of [MAX_CHUNK_SIZE_LENGTH] bytes is enforced for the entire line to
+ *   mitigate resource exhaustion and to reject overly long or maliciously crafted chunk-size
+ *   headers.
+ *
+ * This function is intentionally strict and should be modified with care, as relaxing these
+ * checks may reintroduce parsing ambiguities or security vulnerabilities.
+ */
+@OptIn(InternalAPI::class)
+private suspend fun parseChunkSize(input: ByteReadChannel): Long {
+    val buffer = input.readBuffer
+    var result = 0L
+    var inExtension = false
+    var inQuotes = false
+    var afterCr = false
+    var i = 0
+    while (i++ < MAX_CHUNK_SIZE_LENGTH) {
+        if (buffer.exhausted() && !input.awaitContent()) throw EOFException()
+        val byte = buffer.readByte()
+        if (inQuotes && byte != QUOTE) continue
+        try {
+            when (byte) {
+                CR -> continue // set in finally block
+                LF -> {
+                    if (!afterCr) throw IOException("Illegal newline character in chunk size")
+                    if (i < 3) throw IOException("Empty chunk size")
+                    return result
+                }
+                QUOTE -> inQuotes = !inQuotes
+                SEMICOLON -> {
+                    if (i == 1) throw IOException("Empty chunk size")
+                    inExtension = true
+                }
+                else -> {
+                    if (inExtension) continue // always ignore extensions
+                    val intValue = byte.toInt() and 0xff
+                    val digit = if (intValue < 0xff) HexTable[intValue] else -1L
+                    if (digit == -1L) throw IOException("Invalid chunk size character: 0x${intValue.toString(16)}")
+                    if ((result and -0x1000000000000000L) != 0L) throw IOException("Chunk size overflow")
+                    result = (result shl 4) or digit
+                }
+            }
+        } finally {
+            afterCr = byte == CR
+        }
+    }
+    throw IOException("Chunk size limit exceeded")
 }
 
 /**
