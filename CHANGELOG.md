@@ -50,8 +50,6 @@
 ### Bugfixes
 * [KTOR-9258](https://youtrack.jetbrains.com/issue/KTOR-9258) headers { } block does not affect the request in `defaultRequest` due to function name collision with io.ktor.http.headers
 * [KTOR-9235](https://youtrack.jetbrains.com/issue/KTOR-9235) HttpCookies: Support parsing non-compilant `Expires` dates of Set-Cookie header
-* [KTOR-9210](https://youtrack.jetbrains.com/issue/KTOR-9210) Zstd support import changes fixes
-* [KTOR-9190](https://youtrack.jetbrains.com/issue/KTOR-9190) "Unresolved classifier: platform/posix/pthread_mutex_t" when executing :ktor-io:commonizeCInterop on latest main branch
 * [KTOR-8945](https://youtrack.jetbrains.com/issue/KTOR-8945) ByteReadChannel.readUTF8Line doesn't throw TooLongLineException when the limit is reached
 * [KTOR-8339](https://youtrack.jetbrains.com/issue/KTOR-8339) Curl: `caPath` is not set by default in the Curl client on linuxArm64
 * [KTOR-9188](https://youtrack.jetbrains.com/issue/KTOR-9188) WebRTC. `IceServer.urls` should be a list.
