@@ -45,9 +45,13 @@ public fun Sequence<Route>.mapToPathItemsAndSchema(): Pair<Map<String, PathItem>
 public fun Sequence<Route>.mapToPathItems(
     onOperation: OperationMapping = PopulateMediaTypeDefaults
 ): Map<String, PathItem> {
-    return mapNotNull {
-        if (it.attributes.contains(OperationHiddenAttributeKey)) return@mapNotNull null
-        it.asPathItem(onOperation)
+    return mapNotNull { node ->
+        val isHidden = node.lineage()
+            .any { OperationHiddenAttributeKey in it.attributes }
+        if (isHidden) {
+            return@mapNotNull null
+        }
+        node.asPathItem(onOperation)
     }.fold(mutableMapOf()) { map, (route, pathItem) ->
         map.also {
             if (route in map) {

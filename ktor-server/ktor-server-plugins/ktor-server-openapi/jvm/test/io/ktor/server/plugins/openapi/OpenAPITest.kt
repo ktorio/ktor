@@ -20,6 +20,7 @@ import io.ktor.utils.io.ExperimentalKtorApi
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 
 class OpenAPITest {
 
@@ -99,6 +100,7 @@ class OpenAPITest {
             assertEquals(HttpStatusCode.OK, response.status)
             val responseText = response.bodyAsText()
             assertContains(responseText, "Books API from routes")
+            assertFalse("/routes/docs" in responseText)
             for (description in descriptions) {
                 assertContains(responseText, description, message = "Response should contain '$description'")
             }
