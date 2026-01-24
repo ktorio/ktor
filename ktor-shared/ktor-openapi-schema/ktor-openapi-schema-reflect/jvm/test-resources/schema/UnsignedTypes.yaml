@@ -1,0 +1,10 @@
+type: object
+title: io.ktor.openapi.reflect.UnsignedTypes
+required:
+  - unsignedInt
+  - unsignedLong
+properties:
+  unsignedInt:
+    type: integer
+  unsignedLong:
+    type: integer
