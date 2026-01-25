@@ -183,10 +183,10 @@ internal class NettyHttpResponsePipeline(
         // Track streaming responses count
         val contentType = when (responseMessage) {
             is HttpResponse -> responseMessage.headers().get(HttpHeaders.ContentType)
-            is Http2HeadersFrame -> responseMessage.headers().get(HttpHeaders.ContentType)?.toString()
+            is Http2HeadersFrame -> responseMessage.headers().get("content-type")?.toString()
             else -> null
         }
-        if (contentType?.contains("text/event-stream") == true) {
+        if (contentType?.contains("text/event-stream", ignoreCase = true) == true) {
             call.isStreamingResponse = true
             httpHandlerState.streamingResponses.incrementAndGet()
         }
