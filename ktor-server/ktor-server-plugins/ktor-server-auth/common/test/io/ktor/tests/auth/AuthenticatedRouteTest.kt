@@ -32,7 +32,9 @@ class AuthenticatedRouteTest {
                 validate { credentials ->
                     if (credentials.name == credentials.password) {
                         UserPrincipal(credentials.name)
-                    } else null
+                    } else {
+                        null
+                    }
                 }
             }
         }
@@ -125,7 +127,9 @@ class AuthenticatedRouteTest {
                 validate { credentials ->
                     if (credentials.name == credentials.password) {
                         UserPrincipal(credentials.name)
-                    } else null
+                    } else {
+                        null
+                    }
                 }
             }
         }
@@ -165,7 +169,9 @@ class AuthenticatedRouteTest {
                 validate { credentials ->
                     if (credentials.name == credentials.password) {
                         UserPrincipal(credentials.name)
-                    } else null
+                    } else {
+                        null
+                    }
                 }
             }
         }
@@ -179,7 +185,7 @@ class AuthenticatedRouteTest {
         }
 
         val response = client.get("/user")
-        assertEquals(response.status, HttpStatusCode.Unauthorized)
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
         assertEquals("", response.bodyAsText())
     }
 }

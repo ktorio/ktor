@@ -817,6 +817,16 @@ public final synthetic class io/ktor/openapi/JsonSchema$Not$Impl : io/ktor/opena
 	public final synthetic fun value ()Ljava/lang/Class;
 }
 
+public abstract interface annotation class io/ktor/openapi/JsonSchema$Nullable : java/lang/annotation/Annotation {
+	public abstract fun value ()Z
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$Nullable$Impl : io/ktor/openapi/JsonSchema$Nullable {
+	public fun <init> (Z)V
+	public synthetic fun <init> (ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final synthetic fun value ()Z
+}
+
 public abstract interface annotation class io/ktor/openapi/JsonSchema$OneOf : java/lang/annotation/Annotation {
 	public abstract fun value ()[Ljava/lang/Class;
 }
