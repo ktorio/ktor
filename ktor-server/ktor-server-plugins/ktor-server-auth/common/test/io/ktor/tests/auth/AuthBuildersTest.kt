@@ -14,9 +14,9 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import io.ktor.server.testing.*
-import io.ktor.util.*
 import io.ktor.utils.io.InternalAPI
 import kotlinx.serialization.*
+import kotlin.io.encoding.Base64
 import kotlin.test.*
 
 class AuthBuildersTest {
@@ -92,7 +92,7 @@ class AuthBuildersTest {
             header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
             header(
                 HttpHeaders.Authorization,
-                HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
+                HttpAuthHeader.Single("basic", Base64.encode("second:".encodeToByteArray())).render()
             )
         }.let { call ->
             assertEquals(HttpStatusCode.OK, call.status)
@@ -102,7 +102,7 @@ class AuthBuildersTest {
             header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
             header(
                 HttpHeaders.Authorization,
-                HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
+                HttpAuthHeader.Single("basic", Base64.encode("second:".encodeToByteArray())).render()
             )
             setBody("user=first&password=p")
         }.let { call ->
@@ -152,7 +152,7 @@ class AuthBuildersTest {
             header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
             header(
                 HttpHeaders.Authorization,
-                HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
+                HttpAuthHeader.Single("basic", Base64.encode("second:".encodeToByteArray())).render()
             )
         }.let {
             assertEquals(HttpStatusCode.Unauthorized, it.status)
@@ -162,7 +162,7 @@ class AuthBuildersTest {
             header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
             header(
                 HttpHeaders.Authorization,
-                HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
+                HttpAuthHeader.Single("basic", Base64.encode("second:".encodeToByteArray())).render()
             )
             setBody("user=first&password=p")
         }.let {
@@ -213,7 +213,7 @@ class AuthBuildersTest {
             header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
             header(
                 HttpHeaders.Authorization,
-                HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
+                HttpAuthHeader.Single("basic", Base64.encode("second:".encodeToByteArray())).render()
             )
         }.let {
             assertEquals(HttpStatusCode.Unauthorized, it.status)
@@ -223,7 +223,7 @@ class AuthBuildersTest {
             header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
             header(
                 HttpHeaders.Authorization,
-                HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
+                HttpAuthHeader.Single("basic", Base64.encode("second:".encodeToByteArray())).render()
             )
             setBody("user=first&password=p")
         }.let {
@@ -276,7 +276,7 @@ class AuthBuildersTest {
             header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
             header(
                 HttpHeaders.Authorization,
-                HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
+                HttpAuthHeader.Single("basic", Base64.encode("second:".encodeToByteArray())).render()
             )
         }.let {
             assertEquals(HttpStatusCode.Unauthorized, it.status)
@@ -286,7 +286,7 @@ class AuthBuildersTest {
             header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
             header(
                 HttpHeaders.Authorization,
-                HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
+                HttpAuthHeader.Single("basic", Base64.encode("second:".encodeToByteArray())).render()
             )
             setBody("user=first&password=p")
         }.let {
@@ -338,7 +338,7 @@ class AuthBuildersTest {
             header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
             header(
                 HttpHeaders.Authorization,
-                HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
+                HttpAuthHeader.Single("basic", Base64.encode("second:".encodeToByteArray())).render()
             )
         }.let {
             assertEquals(HttpStatusCode.Unauthorized, it.status)
@@ -348,7 +348,7 @@ class AuthBuildersTest {
             header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
             header(
                 HttpHeaders.Authorization,
-                HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
+                HttpAuthHeader.Single("basic", Base64.encode("second:".encodeToByteArray())).render()
             )
             setBody("user=first&password=p")
         }.let {
@@ -399,7 +399,7 @@ class AuthBuildersTest {
             header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
             header(
                 HttpHeaders.Authorization,
-                HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
+                HttpAuthHeader.Single("basic", Base64.encode("second:".encodeToByteArray())).render()
             )
         }.let {
             assertEquals(HttpStatusCode.OK, it.status)
@@ -410,7 +410,7 @@ class AuthBuildersTest {
             header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
             header(
                 HttpHeaders.Authorization,
-                HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
+                HttpAuthHeader.Single("basic", Base64.encode("second:".encodeToByteArray())).render()
             )
             setBody("user=first&password=p")
         }.let {
@@ -462,7 +462,7 @@ class AuthBuildersTest {
             header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
             header(
                 HttpHeaders.Authorization,
-                HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
+                HttpAuthHeader.Single("basic", Base64.encode("second:".encodeToByteArray())).render()
             )
         }.let {
             assertEquals(HttpStatusCode.OK, it.status)
@@ -473,7 +473,7 @@ class AuthBuildersTest {
             header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
             header(
                 HttpHeaders.Authorization,
-                HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
+                HttpAuthHeader.Single("basic", Base64.encode("second:".encodeToByteArray())).render()
             )
             setBody("user=first&password=p")
         }.let {
@@ -527,7 +527,7 @@ class AuthBuildersTest {
             header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
             header(
                 HttpHeaders.Authorization,
-                HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
+                HttpAuthHeader.Single("basic", Base64.encode("second:".encodeToByteArray())).render()
             )
         }.let { call ->
             assertEquals(HttpStatusCode.OK, call.status)
@@ -537,7 +537,7 @@ class AuthBuildersTest {
             header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
             header(
                 HttpHeaders.Authorization,
-                HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
+                HttpAuthHeader.Single("basic", Base64.encode("second:".encodeToByteArray())).render()
             )
             setBody("user=first&password=p")
         }.let { call ->
@@ -570,7 +570,7 @@ class AuthBuildersTest {
         client.post("/first") {
             header(
                 HttpHeaders.Authorization,
-                HttpAuthHeader.Single("basic", "first:".encodeBase64()).render()
+                HttpAuthHeader.Single("basic", Base64.encode("first:".encodeToByteArray())).render()
             )
         }.let {
             assertEquals(HttpStatusCode.OK, it.status)
@@ -580,7 +580,7 @@ class AuthBuildersTest {
         client.post("/second") {
             header(
                 HttpHeaders.Authorization,
-                HttpAuthHeader.Single("basic", "second:".encodeBase64()).render()
+                HttpAuthHeader.Single("basic", Base64.encode("second:".encodeToByteArray())).render()
             )
         }.let {
             assertEquals(HttpStatusCode.OK, it.status)
@@ -590,7 +590,7 @@ class AuthBuildersTest {
         client.post("/first") {
             header(
                 HttpHeaders.Authorization,
-                HttpAuthHeader.Single("second", "second:".encodeBase64()).render()
+                HttpAuthHeader.Single("second", Base64.encode("second:".encodeToByteArray())).render()
             )
         }.let {
             assertEquals(HttpStatusCode.Unauthorized, it.status)
@@ -598,7 +598,7 @@ class AuthBuildersTest {
         client.post("/second") {
             header(
                 HttpHeaders.Authorization,
-                HttpAuthHeader.Single("basic", "first:".encodeBase64()).render()
+                HttpAuthHeader.Single("basic", Base64.encode("first:".encodeToByteArray())).render()
             )
         }.let {
             assertEquals(HttpStatusCode.Unauthorized, it.status)
@@ -897,7 +897,7 @@ class AuthBuildersTest {
         client.get("/id1") {
             headers.append(
                 HttpHeaders.Authorization,
-                HttpAuthHeader.Single("basic", "aaa:bbb".encodeBase64()).render()
+                HttpAuthHeader.Single("basic", Base64.encode("aaa:bbb".encodeToByteArray())).render()
             )
         }.let { response ->
             assertEquals(HttpStatusCode.OK, response.status)
@@ -1042,7 +1042,7 @@ class AuthBuildersTest {
     private fun HttpRequestBuilder.addBasicAuth(name: String = "tester") {
         header(
             HttpHeaders.Authorization,
-            HttpAuthHeader.Single("basic", "$name:".encodeBase64()).render()
+            HttpAuthHeader.Single("basic", Base64.encode("$name:".encodeToByteArray())).render()
         )
     }
 

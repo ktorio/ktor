@@ -17,9 +17,9 @@ import org.apache.http.nio.*
 import org.apache.http.nio.ContentEncoder
 import java.nio.*
 import kotlin.coroutines.*
+import kotlin.io.encoding.Base64
 import kotlin.test.*
 
-@Suppress("BlockingMethodInNonBlockingContext")
 class RequestProducerTest {
 
     @OptIn(InternalAPI::class)
@@ -195,7 +195,7 @@ class RequestProducerTest {
                 }
             }
 
-            assertEquals(expected.encodeBase64(), result.await().encodeBase64())
+            assertEquals(Base64.encode(expected), Base64.encode(result.await()))
             producer.close()
         }
     }

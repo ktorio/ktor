@@ -6,13 +6,10 @@ package test.server
 
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.io.readByteArray
 
 fun makeArray(size: Int): ByteArray = ByteArray(size) { it.toByte() }
-
-fun makeString(size: Int): String = CharArray(size) { it.toChar() }.concatToString().encodeBase64().take(size)
 
 suspend fun PartData.makeString(): String = buildString {
     val part = this@makeString
