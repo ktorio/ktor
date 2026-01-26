@@ -89,17 +89,17 @@ public class HttpSend private constructor(
                         .trimMargin()
                 }
                 context.setBody(content)
-                val maxRetriesFromRetryPlugin = context.attributes.getOrNull(MaxRetriesPerRequestAttributeKey)
-                val maxRetries = if (maxRetriesFromRetryPlugin != null) {
-                    if (maxRetriesFromRetryPlugin < Int.MAX_VALUE) {
-                        maxRetriesFromRetryPlugin + 1 // +1 for the initial request
+                val maxRetries = context.attributes.getOrNull(MaxRetriesPerRequestAttributeKey)
+                val maxSendCount = if (maxRetries != null && maxRetries > plugin.maxSendCount) {
+                    if (maxRetries < Int.MAX_VALUE) {
+                        maxRetries + 1 // +1 for the initial request
                     } else {
-                        maxRetriesFromRetryPlugin
+                        maxRetries
                     }
                 } else {
                     plugin.maxSendCount
                 }
-                val realSender: Sender = DefaultSender(maxRetries, scope)
+                val realSender: Sender = DefaultSender(maxSendCount, scope)
                 var interceptedSender = realSender
                 for (interceptor in plugin.interceptors.reversed()) {
                     interceptedSender = InterceptedSender(interceptor, interceptedSender)

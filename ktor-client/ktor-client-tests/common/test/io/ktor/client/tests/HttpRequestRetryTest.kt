@@ -549,6 +549,30 @@ class HttpRequestRetryTest {
     }
 
     @Test
+    fun testMaxSendCountGreaterThanMaxRetries() = testWithEngine(MockEngine) {
+        config {
+            engine {
+                addHandler { request ->
+                    if (request.url.toString().endsWith("/ok")) {
+                        respondOk()
+                    } else {
+                        respondRedirect("/ok")
+                    }
+                }
+            }
+
+            install(HttpRequestRetry) {
+                retryOnServerErrors(maxRetries = 0)
+                delayMillis { 0L }
+            }
+        }
+
+        test { client ->
+            assertEquals(HttpStatusCode.OK, client.get("/").status)
+        }
+    }
+
+    @Test
     fun testRetryWithMaxValueDoesNotFailAllRequests() = testWithEngine(MockEngine) {
         val maxRetriesCount = Int.MAX_VALUE
         config {
