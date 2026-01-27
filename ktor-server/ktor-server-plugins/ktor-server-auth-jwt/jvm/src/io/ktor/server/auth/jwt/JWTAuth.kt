@@ -181,7 +181,10 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
     private val schemes: JWTAuthSchemes = config.schemes
     private val authHeader: (ApplicationCall) -> HttpAuthHeader? = config.authHeader
     private val verifier: ((HttpAuthHeader) -> JWTVerifier?) = config.verifier
-    private val authenticationFunction = config.authenticationFunction
+    private val authenticationFunction = config.authenticationFunction ?: throw IllegalArgumentException(
+        "JWT auth validate function is not specified. Use jwt { validate { ... } } to fix."
+    )
+
     private val challengeFunction: JWTAuthChallengeFunction = config.challenge
 
     override suspend fun onAuthenticate(context: AuthenticationContext) {
@@ -230,11 +233,7 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
         name: String?,
         description: String?
     ) : AuthenticationProvider.Config(name, description) {
-        internal var authenticationFunction: AuthenticationFunction<JWTCredential> = {
-            throw NotImplementedError(
-                "JWT auth validate function is not specified. Use jwt { validate { ... } } to fix."
-            )
-        }
+        internal var authenticationFunction: AuthenticationFunction<JWTCredential>? = null
 
         internal var schemes = JWTAuthSchemes("Bearer")
 
@@ -368,6 +367,9 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
 
         /**
          * Allows you to perform additional validations on the JWT payload.
+         *
+         * This callback is required. If you do not configure it, the provider initialization
+         * throws an [IllegalArgumentException].
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.JWTAuthenticationProvider.Config.validate)
          *
