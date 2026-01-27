@@ -375,6 +375,16 @@ class JWTAuthTest {
     }
 
     @Test
+    fun testVerifyNotProvided() = testApplication {
+        configureServer {
+            jwt {}
+        }
+        assertFailsWith<IllegalArgumentException> {
+            startApplication()
+        }
+    }
+
+    @Test
     fun authHeaderFromCookie(): Unit = testApplication {
         configureServer {
             jwt {
