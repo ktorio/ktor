@@ -90,7 +90,7 @@ public class HttpSend private constructor(
                 }
                 context.setBody(content)
                 val maxRetries = context.attributes.getOrNull(MaxRetriesPerRequestAttributeKey)
-                val maxSendCount = if (maxRetries != null && maxRetries > plugin.maxSendCount) {
+                val maxSendCount = if (maxRetries != null && maxRetries >= plugin.maxSendCount) {
                     if (maxRetries < Int.MAX_VALUE) {
                         maxRetries + 1 // +1 for the initial request
                     } else {
