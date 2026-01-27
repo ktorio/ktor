@@ -67,7 +67,8 @@ internal class JettyKtorHandler(
     ): Boolean {
         try {
             val application = applicationProvider()
-            application.launch(handlerContext) {
+
+            val job = application.launch(handlerContext) {
                 val call = JettyApplicationCall(
                     application,
                     request,
@@ -82,13 +83,24 @@ internal class JettyKtorHandler(
                     pipeline.execute(call)
                     callback.succeeded()
                 } catch (cancelled: kotlinx.coroutines.CancellationException) {
-                    Response.writeError(request, response, callback, HttpStatus.GONE_410, cancelled.message, cancelled)
+                    if (response.isCommitted || runCatching {
+                            Response.writeError(
+                                request,
+                                response,
+                                callback,
+                                HttpStatus.GONE_410,
+                                cancelled.message,
+                                cancelled
+                            )
+                        }.isFailure
+                    ) {
+                        callback.failed(cancelled)
+                    }
                 } catch (channelFailed: ChannelIOException) {
                     callback.failed(channelFailed)
                 } catch (error: Throwable) {
                     logError(call, error)
-                    if (!response.isCommitted) {
-                        try {
+                    if (response.isCommitted || runCatching {
                             Response.writeError(
                                 request,
                                 response,
@@ -97,13 +109,16 @@ internal class JettyKtorHandler(
                                 error.message,
                                 error
                             )
-                        } catch (_: Throwable) {
-                            callback.failed(error)
-                        }
-                    } else {
+                        }.isFailure
+                    ) {
                         callback.failed(error)
                     }
                 }
+            }
+
+            request.addIdleTimeoutListener { timeoutException ->
+                job.cancel(CancellationException("Jetty idle timeout expired", timeoutException))
+                false // False allows additional listeners to be notified if added.
             }
         } catch (ex: Throwable) {
             environment.log.error("Application cannot fulfill the request", ex)
