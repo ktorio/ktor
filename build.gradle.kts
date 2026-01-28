@@ -14,15 +14,6 @@ plugins {
 logger.lifecycle("Build version: ${project.version}")
 logger.lifecycle("Kotlin version: ${libs.versions.kotlin.get()}")
 
-subprojects {
-
-    configurations.all {
-        resolutionStrategy {
-            force("commons-beanutils:commons-beanutils:1.11.0")
-        }
-    }
-}
-
 wirePackageJsonAggregationTasks()
 
 configureYarn()
