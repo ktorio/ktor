@@ -14,20 +14,41 @@ import io.ktor.server.routing.*
 import io.ktor.server.test.base.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.streams.*
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.yield
+import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.assertInstanceOf
+import java.util.concurrent.TimeoutException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 class JettyIdleTimeoutTest : EngineTestBase<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty) {
+
+    init {
+        enableSsl = false
+    }
 
     override fun configure(configuration: JettyApplicationEngineBase.Configuration) {
         super.configure(configuration)
         configuration.idleTimeout = 100.milliseconds
+    }
+
+    /**
+     * For this test we want to test how an unhanded CancellationException is handled,
+     * so we override afterTest to avoid the test framework interpreting it as a failed test condition.
+     */
+    override fun afterTest() {
+        try {
+            super.afterTest()
+        } catch (e: CancellationException) {
+            if (this.testName == ::idleTimeoutCancelsCoroutineContext.name && e.unwrapRootCause() is TimeoutException) {
+                return
+            }
+            throw e
+        }
     }
 
     @Test
@@ -83,7 +104,7 @@ class JettyIdleTimeoutTest : EngineTestBase<JettyApplicationEngine, JettyApplica
     @Test
     fun idleTimeoutResponseWriter(): Unit = runTest {
         val responseMessage = "Hello, world!".toByteArray()
-        var writeError = CompletableDeferred<Exception>()
+        val writeError = CompletableDeferred<Exception>()
 
         createAndStartServer {
             get("/hello") {
@@ -127,6 +148,40 @@ class JettyIdleTimeoutTest : EngineTestBase<JettyApplicationEngine, JettyApplica
             }
             assertTrue { response.endsWith("Hello") }
             assertIs<Exception>(writeError.await())
+            writeError.await().printStackTrace()
+        }
+    }
+
+    @Test
+    fun idleTimeoutCancelsCoroutineContext(): Unit = runTest {
+        val requestCancelled = CompletableDeferred<CancellationException>()
+
+        createAndStartServer {
+            get("/slow") {
+                try {
+                    // Server processing takes longer than idle timeout
+                    delay(1000.milliseconds)
+                } catch (e: CancellationException) {
+                    // User code should never typically catch a CancellationException,
+                    // without rethrowing as it interferes with structured concurrency.
+                    requestCancelled.complete(e)
+                    throw e
+                }
+            }
+        }
+
+        withUrl("/slow") {
+            assertEquals(HttpStatusCode.InternalServerError, status)
+        }
+
+        withTimeout(5.seconds) {
+            assertInstanceOf<TimeoutException>(requestCancelled.await().unwrapRootCause())
         }
     }
 }
+
+/**
+ * Structured concurrency propagates cancellation through the job hierarchy, adding a wrapper at each level. In this
+ * case, there are consistently two levels to unwrap.
+ */
+private fun CancellationException.unwrapRootCause() = cause?.cause
