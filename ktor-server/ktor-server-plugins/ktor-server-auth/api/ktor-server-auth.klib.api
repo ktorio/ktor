@@ -202,6 +202,10 @@ final class io.ktor.server.auth/BearerTokenCredential { // io.ktor.server.auth/B
     final fun toString(): kotlin/String // io.ktor.server.auth/BearerTokenCredential.toString|toString(){}[0]
 }
 
+final class io.ktor.server.auth/DiscoveryException : kotlin/RuntimeException { // io.ktor.server.auth/DiscoveryException|null[0]
+    constructor <init>(kotlin/String, kotlin/Throwable? = ...) // io.ktor.server.auth/DiscoveryException.<init>|<init>(kotlin.String;kotlin.Throwable?){}[0]
+}
+
 final class io.ktor.server.auth/DynamicProviderConfig : io.ktor.server.auth/AuthenticationProvider.Config { // io.ktor.server.auth/DynamicProviderConfig|null[0]
     constructor <init>(kotlin/String?, kotlin/String? = ...) // io.ktor.server.auth/DynamicProviderConfig.<init>|<init>(kotlin.String?;kotlin.String?){}[0]
 
@@ -278,6 +282,35 @@ final class io.ktor.server.auth/OAuthAuthenticationProvider : io.ktor.server.aut
         final var urlProvider // io.ktor.server.auth/OAuthAuthenticationProvider.Config.urlProvider|{}urlProvider[0]
             final fun <get-urlProvider>(): kotlin.coroutines/SuspendFunction2<io.ktor.server.application/ApplicationCall, io.ktor.server.auth/OAuthServerSettings, kotlin/String> // io.ktor.server.auth/OAuthAuthenticationProvider.Config.urlProvider.<get-urlProvider>|<get-urlProvider>(){}[0]
             final fun <set-urlProvider>(kotlin.coroutines/SuspendFunction2<io.ktor.server.application/ApplicationCall, io.ktor.server.auth/OAuthServerSettings, kotlin/String>) // io.ktor.server.auth/OAuthAuthenticationProvider.Config.urlProvider.<set-urlProvider>|<set-urlProvider>(kotlin.coroutines.SuspendFunction2<io.ktor.server.application.ApplicationCall,io.ktor.server.auth.OAuthServerSettings,kotlin.String>){}[0]
+    }
+}
+
+final class io.ktor.server.auth/OpenIdConfiguration { // io.ktor.server.auth/OpenIdConfiguration|null[0]
+    constructor <init>(kotlin/String, kotlin/String) // io.ktor.server.auth/OpenIdConfiguration.<init>|<init>(kotlin.String;kotlin.String){}[0]
+
+    final val issuer // io.ktor.server.auth/OpenIdConfiguration.issuer|{}issuer[0]
+        final fun <get-issuer>(): kotlin/String // io.ktor.server.auth/OpenIdConfiguration.issuer.<get-issuer>|<get-issuer>(){}[0]
+    final val jwksUri // io.ktor.server.auth/OpenIdConfiguration.jwksUri|{}jwksUri[0]
+        final fun <get-jwksUri>(): kotlin/String // io.ktor.server.auth/OpenIdConfiguration.jwksUri.<get-jwksUri>|<get-jwksUri>(){}[0]
+
+    final fun component1(): kotlin/String // io.ktor.server.auth/OpenIdConfiguration.component1|component1(){}[0]
+    final fun component2(): kotlin/String // io.ktor.server.auth/OpenIdConfiguration.component2|component2(){}[0]
+    final fun copy(kotlin/String = ..., kotlin/String = ...): io.ktor.server.auth/OpenIdConfiguration // io.ktor.server.auth/OpenIdConfiguration.copy|copy(kotlin.String;kotlin.String){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.server.auth/OpenIdConfiguration.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.ktor.server.auth/OpenIdConfiguration.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.ktor.server.auth/OpenIdConfiguration.toString|toString(){}[0]
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<io.ktor.server.auth/OpenIdConfiguration> { // io.ktor.server.auth/OpenIdConfiguration.$serializer|null[0]
+        final val descriptor // io.ktor.server.auth/OpenIdConfiguration.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // io.ktor.server.auth/OpenIdConfiguration.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // io.ktor.server.auth/OpenIdConfiguration.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): io.ktor.server.auth/OpenIdConfiguration // io.ktor.server.auth/OpenIdConfiguration.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, io.ktor.server.auth/OpenIdConfiguration) // io.ktor.server.auth/OpenIdConfiguration.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;io.ktor.server.auth.OpenIdConfiguration){}[0]
+    }
+
+    final object Companion { // io.ktor.server.auth/OpenIdConfiguration.Companion|null[0]
+        final fun serializer(): kotlinx.serialization/KSerializer<io.ktor.server.auth/OpenIdConfiguration> // io.ktor.server.auth/OpenIdConfiguration.Companion.serializer|serializer(){}[0]
     }
 }
 
@@ -646,4 +679,5 @@ final inline fun <#A: reified kotlin/Any> (io.ktor.server.application/Applicatio
 final inline fun <#A: reified kotlin/Any> (io.ktor.server.application/ApplicationCall).io.ktor.server.auth/principal(kotlin/String?): #A? // io.ktor.server.auth/principal|principal@io.ktor.server.application.ApplicationCall(kotlin.String?){0§<kotlin.Any>}[0]
 final inline fun <#A: reified kotlin/Any> (io.ktor.server.auth/AuthenticationConfig).io.ktor.server.auth/session(kotlin/String? = ...) // io.ktor.server.auth/session|session@io.ktor.server.auth.AuthenticationConfig(kotlin.String?){0§<kotlin.Any>}[0]
 final inline fun <#A: reified kotlin/Any> (io.ktor.server.auth/AuthenticationConfig).io.ktor.server.auth/session(kotlin/String? = ..., noinline kotlin/Function1<io.ktor.server.auth/SessionAuthenticationProvider.Config<#A>, kotlin/Unit>) // io.ktor.server.auth/session|session@io.ktor.server.auth.AuthenticationConfig(kotlin.String?;kotlin.Function1<io.ktor.server.auth.SessionAuthenticationProvider.Config<0:0>,kotlin.Unit>){0§<kotlin.Any>}[0]
+final suspend fun (io.ktor.client/HttpClient).io.ktor.server.auth/fetchOpenIdConfiguration(kotlin/String): io.ktor.server.auth/OpenIdConfiguration // io.ktor.server.auth/fetchOpenIdConfiguration|fetchOpenIdConfiguration@io.ktor.client.HttpClient(kotlin.String){}[0]
 final suspend fun io.ktor.server.auth/verifyWithOAuth2(io.ktor.server.auth/UserPasswordCredential, io.ktor.client/HttpClient, io.ktor.server.auth/OAuthServerSettings.OAuth2ServerSettings): io.ktor.server.auth/OAuthAccessTokenResponse.OAuth2 // io.ktor.server.auth/verifyWithOAuth2|verifyWithOAuth2(io.ktor.server.auth.UserPasswordCredential;io.ktor.client.HttpClient;io.ktor.server.auth.OAuthServerSettings.OAuth2ServerSettings){}[0]

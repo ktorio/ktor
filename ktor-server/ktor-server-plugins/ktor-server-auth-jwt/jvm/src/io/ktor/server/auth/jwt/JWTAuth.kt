@@ -388,6 +388,56 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
             challenge = block
         }
 
+        /**
+         * Configures JWT authentication using OpenID Connect discovery.
+         *
+         * This function will:
+         * 1. Set up a JWT verifier with the fetched keys. Keys are cached and rate-limited by default, see [JwkProviderBuilder].
+         * 2. Validate issuer and audience claims automatically. You still need to specify `validate` function before `jwk`.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.JWTAuthenticationProvider.Config.jwk)
+         *
+         * @param configure Configuration block for [JwkConfig]
+         *
+         * Example:
+         * ```kotlin
+         * val config = httpClient.fetchOpenIdConfiguration("https://accounts.google.com")
+         * install(Authentication) {
+         *     jwt {
+         *         validate { credential ->
+         *             // check if user exists in database
+         *             val userId = credential.subject
+         *             database.findUser(userId)?.let { UserPrincipal(it) }
+         *         }
+         *         jwk {
+         *             openIdConfig = config
+         *             audience = "my-app-client-id"
+         *         }
+         *     }
+         * }
+         * ```
+         *
+         * @see JwkConfig
+         * @see fetchOpenIdConfiguration
+         */
+        public fun jwk(configure: JwkConfig.() -> Unit) {
+            val config = JwkConfig().apply(configure)
+            val jwkProvider = config.toJwkProvider()
+            val issuer = config.openIdConfig?.issuer!!
+
+            verifier(jwkProvider, issuer, config.jwtConfigure)
+
+            val customValidation = requireNotNull(authenticationFunction) {
+                "JWT auth validate function is not specified. Use jwt { validate { ... } } to fix."
+            }
+            validate { credential ->
+                val issuerMatches = credential.issuer == issuer
+                val audienceMatches = config.audience?.let { credential.audience.contains(it) } ?: true
+                if (!issuerMatches || !audienceMatches) return@validate null
+                customValidation.invoke(this, credential)
+            }
+        }
+
         internal fun build() = JWTAuthenticationProvider(this)
     }
 }

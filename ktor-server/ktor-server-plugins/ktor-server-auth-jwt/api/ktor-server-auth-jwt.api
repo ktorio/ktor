@@ -1,3 +1,8 @@
+public final class io/ktor/server/auth/jwt/DiscoveryException : java/lang/RuntimeException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
 public final class io/ktor/server/auth/jwt/JWTAuthKt {
 	public static final fun jwt (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public static final fun jwt (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
@@ -15,6 +20,7 @@ public final class io/ktor/server/auth/jwt/JWTAuthenticationProvider$Config : io
 	public static synthetic fun authSchemes$default (Lio/ktor/server/auth/jwt/JWTAuthenticationProvider$Config;Ljava/lang/String;[Ljava/lang/String;ILjava/lang/Object;)V
 	public final fun challenge (Lkotlin/jvm/functions/Function4;)V
 	public final fun getRealm ()Ljava/lang/String;
+	public final fun jwk (Lkotlin/jvm/functions/Function1;)V
 	public final fun setRealm (Ljava/lang/String;)V
 	public final fun validate (Lkotlin/jvm/functions/Function3;)V
 	public final fun verifier (Lcom/auth0/jwk/JwkProvider;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
@@ -55,5 +61,23 @@ public abstract class io/ktor/server/auth/jwt/JWTPayloadHolder {
 
 public final class io/ktor/server/auth/jwt/JWTPrincipal : io/ktor/server/auth/jwt/JWTPayloadHolder {
 	public fun <init> (Lcom/auth0/jwt/interfaces/Payload;)V
+}
+
+public final class io/ktor/server/auth/jwt/JwkConfig {
+	public final fun cache-HG0u8IE (JJ)V
+	public final fun disableCache ()V
+	public final fun disableRateLimit ()V
+	public final fun getAudience ()Ljava/lang/String;
+	public final fun getJwtConfigure ()Lkotlin/jvm/functions/Function1;
+	public final fun getOpenIdConfig ()Lio/ktor/server/auth/OpenIdConfiguration;
+	public final fun jwkProviderFactory (Lkotlin/jvm/functions/Function1;)V
+	public final fun rateLimit-HG0u8IE (JJ)V
+	public final fun setAudience (Ljava/lang/String;)V
+	public final fun setJwtConfigure (Lkotlin/jvm/functions/Function1;)V
+	public final fun setOpenIdConfig (Lio/ktor/server/auth/OpenIdConfiguration;)V
+}
+
+public final class io/ktor/server/auth/jwt/JwkDiscoveryKt {
+	public static final fun fetchOpenIdConfiguration (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 

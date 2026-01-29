@@ -4,6 +4,7 @@
 
 plugins {
     id("ktorbuild.project.server-plugin")
+    id("kotlinx-serialization")
 }
 
 kotlin {
@@ -15,7 +16,8 @@ kotlin {
         }
         jvmTest.dependencies {
             implementation(libs.mockk)
+            implementation(projects.ktorServerCio)
+            implementation(projects.ktorClientMock)
         }
     }
 }
-
