@@ -89,7 +89,7 @@ public data class Operation(
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Operation.Builder.summary)
          */
-        public var summary: String? = null
+        public var summary: String? = ""
 
         /**
          * A verbose explanation of the operation behavior.
