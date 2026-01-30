@@ -32,5 +32,12 @@ if(DEFINED ENV{TOOLCHAIN_LLVM_HOME})
     endif()
 endif()
 
+if(CMAKE_CROSSCOMPILING)
+    # Set CA paths for curl as they're not inferred automatically when cross-compiling
+    # Use standard Linux paths that match native builds
+    set(CURL_CA_BUNDLE "/etc/ssl/certs/ca-certificates.crt")
+    set(CURL_CA_PATH "/etc/ssl/certs")
+endif()
+
 # Include default vcpkg toolchain for VCPKG_ variables
 include("$ENV{VCPKG_ROOT}/scripts/toolchains/linux.cmake")
