@@ -430,10 +430,10 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
                 "JWT auth verifier should not be specified when using jwk."
             }
             require(authenticationFunction == null) {
-                "JWT auth validate function should not be specified when using jwk. Use jwt { validate { ... } } to fix."
+                "JWT auth validate function should not be specified when using jwk. Use jwt { jwk { validate { ... } } } instead."
             }
             val validateCredential = requireNotNull(config.validateCredential) {
-                "JWT auth validate function is not specified. Use jwt { validate { ... } } to fix."
+                "JWT auth validate function is not specified. Use jwt { jwk { validate { ... } } } to fix."
             }
             val openId = requireNotNull(config.openIdConfig) {
                 "OpenID configuration is not specified"
