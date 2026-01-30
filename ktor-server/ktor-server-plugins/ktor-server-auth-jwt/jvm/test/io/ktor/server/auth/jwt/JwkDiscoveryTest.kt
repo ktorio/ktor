@@ -9,8 +9,6 @@ import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.SigningKeyNotFoundException
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import io.ktor.client.*
-import io.ktor.client.engine.mock.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.auth.*
@@ -19,7 +17,6 @@ import io.ktor.server.engine.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -35,7 +32,6 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFails
 import kotlin.test.assertFailsWith
 import kotlin.time.Duration.Companion.seconds
 
@@ -54,73 +50,6 @@ internal data class JwksKeys(val keys: List<JwksKey>)
 
 class JwkDiscoveryTest {
     private val discoveryJson = Json { ignoreUnknownKeys = true }
-
-    private fun String.toConfigUrl() = "$this/.well-known/openid-configuration"
-
-    @Test
-    fun testFetchOpenIdConfigurationWithMockProviders() = testApplication {
-        val googleIssuer = "https://accounts.google.com"
-        val auth0Issuer = "https://example.auth0.com"
-        val keycloakIssuer = "https://keycloak.example/realms/demo"
-
-        val responses = mapOf(
-            googleIssuer.toConfigUrl() to OpenIdConfiguration(
-                googleIssuer,
-                jwksUri = "https://www.googleapis.com/oauth2/v3/certs"
-            ),
-            auth0Issuer.toConfigUrl() to OpenIdConfiguration(
-                auth0Issuer,
-                jwksUri = "https://example.auth0.com/.well-known/jwks.json"
-            ),
-            keycloakIssuer.toConfigUrl() to OpenIdConfiguration(
-                keycloakIssuer,
-                jwksUri = "https://keycloak.example/realms/demo/protocol/openid-connect/certs"
-            )
-        ).mapValues { discoveryJson.encodeToString(it.value) }
-
-        val engine = MockEngine { request ->
-            val responseBody =
-                responses[request.url.toString()] ?: return@MockEngine respondError(HttpStatusCode.NotFound)
-            respond(
-                content = responseBody,
-                headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-            )
-        }
-        val client = HttpClient(engine)
-
-        val googleConfig = client.fetchOpenIdConfiguration(googleIssuer)
-        assertEquals("https://www.googleapis.com/oauth2/v3/certs", googleConfig.jwksUri)
-
-        val auth0Config = client.fetchOpenIdConfiguration(auth0Issuer)
-        assertEquals("https://example.auth0.com/.well-known/jwks.json", auth0Config.jwksUri)
-
-        val keycloakConfig = client.fetchOpenIdConfiguration(keycloakIssuer)
-        assertEquals(
-            "https://keycloak.example/realms/demo/protocol/openid-connect/certs",
-            keycloakConfig.jwksUri
-        )
-    }
-
-    @Test
-    fun testFetchOpenIdConfigurationFails(): Unit = runBlocking {
-        var counter = 0
-        val engine = MockEngine {
-            respond(
-                content = when {
-                    counter++ == 0 -> "not json"
-                    else -> "{}"
-                },
-                headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-            )
-        }
-        val client = HttpClient(engine) { expectSuccess = false }
-        assertFails {
-            client.fetchOpenIdConfiguration("https://issuer.example")
-        }
-        assertFails {
-            client.fetchOpenIdConfiguration("https://issuer.example")
-        }
-    }
 
     @Test
     fun testJwkDiscoveryRotation() = testApplication {
@@ -143,6 +72,8 @@ class JwkDiscoveryTest {
                     validate { JWTPrincipal(it.payload) }
                     openIdConfig = OpenIdConfiguration(
                         issuer = issuer,
+                        authorizationEndpoint = "$issuer/authorize",
+                        tokenEndpoint = "$issuer/token",
                         jwksUri = "$issuer/.well-known/openid-configuration"
                     )
                 }
@@ -203,6 +134,8 @@ class JwkDiscoveryTest {
 
                 val openIdConfig = OpenIdConfiguration(
                     issuer = issuerUrl,
+                    authorizationEndpoint = "$issuerUrl/authorize",
+                    tokenEndpoint = "$issuerUrl/token",
                     jwksUri = "$issuerUrl/jwks"
                 )
 
@@ -279,6 +212,8 @@ class JwkDiscoveryTest {
             val jwkProvider = JwkConfig().apply {
                 openIdConfig = OpenIdConfiguration(
                     issuer = "http://issuer.example",
+                    authorizationEndpoint = "http://issuer.example/authorize",
+                    tokenEndpoint = "http://issuer.example/token",
                     jwksUri = "http://127.0.0.1:$port"
                 )
                 cache(maxEntries = 1, duration = 1.seconds)

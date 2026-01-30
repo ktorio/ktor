@@ -132,6 +132,83 @@ public fun AuthenticationConfig.oauth(
 }
 
 /**
+ * Installs the OAuth [Authentication] provider using OpenID Connect discovery configuration.
+ *
+ * This overload simplifies OAuth setup by using an [OpenIdConfiguration] obtained from
+ * [HttpClient.fetchOpenIdConfiguration]. The following settings are autoconfigured from the discovery document:
+ *
+ * **Auto-configured from [OpenIdConfiguration]:**
+ * - `authorizeUrl` - from [OpenIdConfiguration.authorizationEndpoint]
+ * - `accessTokenUrl` - from [OpenIdConfiguration.tokenEndpoint]
+ * - `defaultScopes` - from [OpenIdConfiguration.scopesSupported] (only "openid", "profile", "email" if available)
+ *
+ * **Must be configured manually:**
+ * - [OpenIdOAuthConfig.clientId] - OAuth client ID from your identity provider
+ * - [OpenIdOAuthConfig.clientSecret] - OAuth client secret from your identity provider
+ * - [OpenIdOAuthConfig.urlProvider] - callback URL for OAuth redirect
+ *
+ * **Optional configuration:**
+ * - [OpenIdOAuthConfig.client] - HTTP client for making OAuth requests
+ * - [OpenIdOAuthConfig.defaultScopes] - override autoconfigured scopes
+ * - [OpenIdOAuthConfig.requestMethod] - HTTP method for token requests (default: POST)
+ * - [OpenIdOAuthConfig.extraAuthParameters] - additional parameters for authorization request
+ * - [OpenIdOAuthConfig.extraTokenParameters] - additional parameters for token request
+ * - [OpenIdOAuthConfig.onStateCreated] - callback when OAuth state is created
+ * - [OpenIdOAuthConfig.fallback] - error handler for authentication failures
+ *
+ * Example:
+ * ```kotlin
+ * val openIdConfig = httpClient.fetchOpenIdConfiguration("https://accounts.google.com")
+ * install(Authentication) {
+ *     oauth("auth-oauth-google", openIdConfig) {
+ *         clientId = "your-client-id"
+ *         clientSecret = "your-client-secret"
+ *         urlProvider = { "http://localhost:8080/callback" }
+ *     }
+ * }
+ * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oauth)
+ *
+ * @param name optional provider name for use with [authenticate]
+ * @param openIdConfiguration the OpenID Connect discovery configuration
+ * @param configure configuration block for additional OAuth settings
+ */
+public fun AuthenticationConfig.oauth(
+    name: String? = null,
+    openIdConfiguration: OpenIdConfiguration,
+    configure: OpenIdOAuthConfig.() -> Unit
+) {
+    oauth(name, description = null, openIdConfiguration, configure)
+}
+
+/**
+ * Installs the OAuth [Authentication] provider using OpenID Connect discovery configuration with description.
+ * The same configuration as [AuthenticationConfig.oauth] but with an additional description parameter.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oauth)
+ *
+ * @see [AuthenticationConfig.oauth]
+ */
+public fun AuthenticationConfig.oauth(
+    name: String? = null,
+    description: String? = null,
+    openIdConfiguration: OpenIdConfiguration,
+    configure: OpenIdOAuthConfig.() -> Unit
+) {
+    val openIdConfig = OpenIdOAuthConfig(openIdConfiguration).apply(configure)
+    val urlProviderFn = requireNotNull(openIdConfig.urlProvider) {
+        "urlProvider must be specified"
+    }
+    oauth(name, description) {
+        urlProvider = urlProviderFn
+        fallback = openIdConfig.fallback
+        settings = openIdConfig.toServerSettings()
+        openIdConfig.client?.let { this.client = it }
+    }
+}
+
+/**
  * Error container for when the upstream identity provider does not respond with the token credentials and instead
  * responds with error query parameters.
  *
@@ -155,6 +232,7 @@ internal suspend fun OAuthAuthenticationProvider.oauth2(authProviderName: String
             callbackResponse,
             context
         )
+
         is OAuthCallback.Error -> OAuth2RedirectError(callbackResponse.error, callbackResponse.errorDescription)
         else -> AuthenticationFailedCause.NoCredentials
     }
