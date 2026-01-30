@@ -6,6 +6,7 @@ package io.ktor.server.auth.jwt
 
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
+import io.ktor.server.auth.AuthenticationFunction
 import io.ktor.server.auth.OpenIdConfiguration
 import java.net.URI
 import java.util.concurrent.TimeUnit
@@ -80,6 +81,7 @@ public class JwkConfig internal constructor() {
     internal var rateLimitEnabled: Boolean = true
     internal var rateLimitConfig: RateLimitConfig? = null
     internal var jwkProviderFactory: ((String) -> JwkProvider)? = null
+    internal var validateCredential: AuthenticationFunction<JWTCredential>? = null
 
     /**
      * Configures caching for fetched JSON Web Keys.
@@ -115,6 +117,7 @@ public class JwkConfig internal constructor() {
      * @param refillDuration Time window for the rate limit bucket
      */
     public fun rateLimit(bucketSize: Long, refillDuration: Duration) {
+        rateLimitEnabled = true
         rateLimitConfig = RateLimitConfig(bucketSize, refillDuration)
     }
 
@@ -138,6 +141,21 @@ public class JwkConfig internal constructor() {
      */
     public fun jwkProviderFactory(factory: (String) -> JwkProvider) {
         jwkProviderFactory = factory
+    }
+
+    /**
+     * Sets a validation function that checks [JWTCredential] after successful JWT verification.
+     * This function is required when using the [jwk] DSL and allows you to implement custom
+     * validation logic beyond standard JWT signature and claims verification.
+     *
+     * The validation function receives a [JWTCredential] and should return a [JWTPrincipal] if
+     * validation succeeds, or null if validation fails (which results in 401 Unauthorized).
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.JwkConfig.validate)
+     *
+     */
+    public fun validate(validate: AuthenticationFunction<JWTCredential>) {
+        validateCredential = validate
     }
 }
 

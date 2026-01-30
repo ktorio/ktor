@@ -180,7 +180,7 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
     private val realm: String = config.realm
     private val schemes: JWTAuthSchemes = config.schemes
     private val authHeader: (ApplicationCall) -> HttpAuthHeader? = config.authHeader
-    private val verifier: ((HttpAuthHeader) -> JWTVerifier?) = config.verifier
+    private val verifier: ((HttpAuthHeader) -> JWTVerifier?) = config.verifier ?: { null }
     private val authenticationFunction = config.authenticationFunction ?: throw IllegalArgumentException(
         "JWT auth validate function is not specified. Use jwt { validate { ... } } to fix."
     )
@@ -240,7 +240,7 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
         internal var authHeader: (ApplicationCall) -> HttpAuthHeader? =
             { call -> call.request.parseAuthorizationHeaderOrNull() }
 
-        internal var verifier: ((HttpAuthHeader) -> JWTVerifier?) = { null }
+        internal var verifier: ((HttpAuthHeader) -> JWTVerifier?)? = null
 
         internal var challenge: JWTAuthChallengeFunction = { scheme, realm ->
             call.respond(
@@ -393,25 +393,29 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
          *
          * This function will:
          * 1. Set up a JWT verifier with the fetched keys. Keys are cached and rate-limited by default, see [JwkProviderBuilder].
-         * 2. Validate issuer and audience claims automatically. You still need to specify `validate` function before `jwk`.
+         * 2. Validate issuer and audience claims automatically.
+         * You still need to specify `validate` function inside of `jwk`, but not inside of `jwt`.
+         *
+         * You should not set `jwt.verifier` or `jwt.validate` when `jwk` autoconfiguration is used.
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.JWTAuthenticationProvider.Config.jwk)
          *
-         * @param configure Configuration block for [JwkConfig]
+         * @param configure Configuration block for [JwkConfig] to set up OpenID configuration and audience validation
+         * @throws IllegalArgumentException if the [JwkConfig] function is not valid
          *
          * Example:
          * ```kotlin
          * val config = httpClient.fetchOpenIdConfiguration("https://accounts.google.com")
          * install(Authentication) {
          *     jwt {
-         *         validate { credential ->
-         *             // check if user exists in database
-         *             val userId = credential.subject
-         *             database.findUser(userId)?.let { UserPrincipal(it) }
-         *         }
          *         jwk {
          *             openIdConfig = config
          *             audience = "my-app-client-id"
+         *             validate {
+         *                 // check if user exists in database
+         *                 val userId = credentials.subject
+         *                 database.findUser(userId)?.let { UserPrincipal(it) }
+         *             }
          *         }
          *     }
          * }
@@ -422,19 +426,40 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
          */
         public fun jwk(configure: JwkConfig.() -> Unit) {
             val config = JwkConfig().apply(configure)
-            val jwkProvider = config.toJwkProvider()
-            val issuer = config.openIdConfig?.issuer!!
-
-            verifier(jwkProvider, issuer, config.jwtConfigure)
-
-            val customValidation = requireNotNull(authenticationFunction) {
+            require(verifier == null) {
+                "JWT auth verifier should not be specified when using jwk."
+            }
+            require(authenticationFunction == null) {
+                "JWT auth validate function should not be specified when using jwk. Use jwt { validate { ... } } to fix."
+            }
+            val validateCredential = requireNotNull(config.validateCredential) {
                 "JWT auth validate function is not specified. Use jwt { validate { ... } } to fix."
             }
-            validate { credential ->
-                val issuerMatches = credential.issuer == issuer
-                val audienceMatches = config.audience?.let { credential.audience.contains(it) } ?: true
-                if (!issuerMatches || !audienceMatches) return@validate null
-                customValidation.invoke(this, credential)
+            val openId = requireNotNull(config.openIdConfig) {
+                "OpenID configuration is not specified"
+            }
+
+            val issuer = openId.issuer
+            val jwkProvider = config.toJwkProvider()
+            verifier(jwkProvider, issuer, config.jwtConfigure)
+
+            validate { credentials ->
+                if (credentials.issuer != issuer) {
+                    JWTLogger.trace("Issuer mismatch: expected '{}', got '{}'", issuer, credentials.issuer)
+                    return@validate null
+                }
+
+                val audienceMatches = config.audience?.let { credentials.audience.contains(it) } ?: true
+                if (!audienceMatches) {
+                    JWTLogger.trace(
+                        "Audience mismatch: expected '{}', got '{}'",
+                        config.audience,
+                        credentials.audience
+                    )
+                    return@validate null
+                }
+
+                this.validateCredential(credentials)
             }
         }
 

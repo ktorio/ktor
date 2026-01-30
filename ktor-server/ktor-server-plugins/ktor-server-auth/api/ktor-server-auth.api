@@ -573,6 +573,37 @@ public final class io/ktor/server/auth/OpenIdConfigurationKt {
 	public static final fun fetchOpenIdConfiguration (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public final class io/ktor/server/auth/OpenIdOAuthConfig {
+	public field clientId Ljava/lang/String;
+	public field clientSecret Ljava/lang/String;
+	public field urlProvider Lkotlin/jvm/functions/Function3;
+	public fun <init> (Lio/ktor/server/auth/OpenIdConfiguration;)V
+	public final fun getAccessTokenRequiresBasicAuth ()Z
+	public final fun getClient ()Lio/ktor/client/HttpClient;
+	public final fun getClientId ()Ljava/lang/String;
+	public final fun getClientSecret ()Ljava/lang/String;
+	public final fun getDefaultScopes ()Ljava/util/List;
+	public final fun getExtraAuthParameters ()Ljava/util/List;
+	public final fun getExtraTokenParameters ()Ljava/util/List;
+	public final fun getFallback ()Lkotlin/jvm/functions/Function3;
+	public final fun getNonceManager ()Lio/ktor/util/NonceManager;
+	public final fun getOnStateCreated ()Lkotlin/jvm/functions/Function3;
+	public final fun getRequestMethod ()Lio/ktor/http/HttpMethod;
+	public final fun getUrlProvider ()Lkotlin/jvm/functions/Function3;
+	public final fun setAccessTokenRequiresBasicAuth (Z)V
+	public final fun setClient (Lio/ktor/client/HttpClient;)V
+	public final fun setClientId (Ljava/lang/String;)V
+	public final fun setClientSecret (Ljava/lang/String;)V
+	public final fun setDefaultScopes (Ljava/util/List;)V
+	public final fun setExtraAuthParameters (Ljava/util/List;)V
+	public final fun setExtraTokenParameters (Ljava/util/List;)V
+	public final fun setFallback (Lkotlin/jvm/functions/Function3;)V
+	public final fun setNonceManager (Lio/ktor/util/NonceManager;)V
+	public final fun setOnStateCreated (Lkotlin/jvm/functions/Function3;)V
+	public final fun setRequestMethod (Lio/ktor/http/HttpMethod;)V
+	public final fun setUrlProvider (Lkotlin/jvm/functions/Function3;)V
+}
+
 public abstract interface class io/ktor/server/auth/Principal {
 }
 

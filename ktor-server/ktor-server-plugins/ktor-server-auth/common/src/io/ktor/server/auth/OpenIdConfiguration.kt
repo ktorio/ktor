@@ -5,6 +5,7 @@
 package io.ktor.server.auth
 
 import io.ktor.client.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -15,7 +16,11 @@ import kotlinx.serialization.json.Json
 /**
  * OpenID Connect discovery document containing OAuth 2.0 authorization server metadata.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.OpenIdConfiguration)
+ * This class represents the metadata returned from the `/.well-known/openid-configuration` endpoint
+ * as defined in the [OpenID Connect Discovery 1.0](https://openid.net/specs/openid-connect-discovery-1_0.html)
+ * specification.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OpenIdConfiguration)
  *
  * @property issuer The authorization server's issuer identifier URL
  * @property jwksUri URL of the JSON Web Key Set document containing the server's public keys
@@ -39,7 +44,7 @@ private val discoveryJson = Json {
  * It is not required to apply `ContentNegotiation` plugin to the client.
  * JSON deserialization will be handled automatically.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.fetchOpenIdConfiguration)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.fetchOpenIdConfiguration)
  *
  * @param issuer The issuer URL (e.g., "https://accounts.google.com")
  * @throws DiscoveryException if the request fails or the response is invalid
@@ -52,19 +57,19 @@ private val discoveryJson = Json {
  * ```
  */
 public suspend fun HttpClient.fetchOpenIdConfiguration(issuer: String): OpenIdConfiguration {
-    val response = get {
-        url.takeFrom(issuer)
-        url.appendPathSegments(".well-known", "openid-configuration")
+    val config = runCatching {
+        val response = get {
+            expectSuccess = true
+            url.takeFrom(issuer)
+            url.appendPathSegments(".well-known", "openid-configuration")
+        }
+        val body = response.bodyAsText()
+        discoveryJson.decodeFromString<OpenIdConfiguration>(body)
+    }.getOrElse {
+        throw DiscoveryException("Failed to fetch OpenID configuration from $issuer", it)
     }
-    if (!response.status.isSuccess()) {
-        val message = "OpenID configuration request failed with status ${response.status.value} from $issuer"
-        throw DiscoveryException(message)
-    }
-    val body = response.bodyAsText()
-    val config = discoveryJson.decodeFromString<OpenIdConfiguration>(body)
     if (config.jwksUri.isBlank()) {
-        val discoveryUrl = response.request.url.toString()
-        throw DiscoveryException("OpenID configuration from $discoveryUrl is missing jwks_uri")
+        throw DiscoveryException("OpenID configuration from $issuer is missing jwks_uri")
     }
     return config
 }
@@ -72,6 +77,7 @@ public suspend fun HttpClient.fetchOpenIdConfiguration(issuer: String): OpenIdCo
 /**
  * Base exception for OpenID Connect discovery failures.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.DiscoveryException)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.DiscoveryException)
+ *
  */
 public class DiscoveryException(message: String, cause: Throwable? = null) : RuntimeException(message, cause)

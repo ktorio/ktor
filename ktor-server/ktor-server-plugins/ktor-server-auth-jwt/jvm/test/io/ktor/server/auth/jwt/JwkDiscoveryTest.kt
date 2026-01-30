@@ -19,7 +19,6 @@ import io.ktor.server.engine.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.SerialName
@@ -66,16 +65,11 @@ class JwkDiscoveryTest {
 
         val responses = mapOf(
             googleIssuer.toConfigUrl() to OpenIdConfiguration(
-                googleIssuer,
-                jwksUri = "https://www.googleapis.com/oauth2/v3/certs"
-            ),
-            auth0Issuer.toConfigUrl() to OpenIdConfiguration(
-                auth0Issuer,
-                jwksUri = "https://example.auth0.com/.well-known/jwks.json"
-            ),
-            keycloakIssuer.toConfigUrl() to OpenIdConfiguration(
-                keycloakIssuer,
-                jwksUri = "https://keycloak.example/realms/demo/protocol/openid-connect/certs"
+                googleIssuer, jwksUri = "https://www.googleapis.com/oauth2/v3/certs"
+            ), auth0Issuer.toConfigUrl() to OpenIdConfiguration(
+                auth0Issuer, jwksUri = "https://example.auth0.com/.well-known/jwks.json"
+            ), keycloakIssuer.toConfigUrl() to OpenIdConfiguration(
+                keycloakIssuer, jwksUri = "https://keycloak.example/realms/demo/protocol/openid-connect/certs"
             )
         ).mapValues { discoveryJson.encodeToString(it.value) }
 
@@ -97,8 +91,7 @@ class JwkDiscoveryTest {
 
         val keycloakConfig = client.fetchOpenIdConfiguration(keycloakIssuer)
         assertEquals(
-            "https://keycloak.example/realms/demo/protocol/openid-connect/certs",
-            keycloakConfig.jwksUri
+            "https://keycloak.example/realms/demo/protocol/openid-connect/certs", keycloakConfig.jwksUri
         )
     }
 
@@ -110,8 +103,7 @@ class JwkDiscoveryTest {
                 content = when {
                     counter++ == 0 -> "not json"
                     else -> "{}"
-                },
-                headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                }, headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
             )
         }
         val client = HttpClient(engine) { expectSuccess = false }
@@ -138,11 +130,13 @@ class JwkDiscoveryTest {
 
         install(Authentication) {
             jwt {
-                validate { JWTPrincipal(it.payload) }
                 jwk {
-                    this.openIdConfig = OpenIdConfiguration(issuer, "$issuer/.well-known/openid-configuration")
                     this.audience = audience
-                    this.jwkProviderFactory { jwkProvider }
+                    jwkProviderFactory { jwkProvider }
+                    validate { JWTPrincipal(it.payload) }
+                    openIdConfig = OpenIdConfiguration(
+                        issuer = issuer, jwksUri = "$issuer/.well-known/openid-configuration"
+                    )
                 }
             }
         }
@@ -182,6 +176,81 @@ class JwkDiscoveryTest {
     }
 
     @Test
+    fun testJwkDiscoveryWithValidation() {
+        val keyId = "test-key-1"
+        val keyPair = rsaKeyPair()
+        val jwksJson = jwksJsonFor(keyPair, keyId)
+
+        withServer(
+            configure = {
+                get("/jwks") {
+                    call.respondText(
+                        text = jwksJson, contentType = ContentType.Application.Json
+                    )
+                }
+            }) { port ->
+            testApplication {
+                val issuerUrl = "http://127.0.0.1:$port"
+                val audience = "test-audience"
+
+                val openIdConfig = OpenIdConfiguration(
+                    issuer = issuerUrl, jwksUri = "$issuerUrl/jwks"
+                )
+
+                install(Authentication) {
+                    jwt("jwt-auth") {
+                        jwk {
+                            this.audience = audience
+                            this.openIdConfig = openIdConfig
+                            validate { credential ->
+                                when (credential.subject) {
+                                    "valid-user" -> JWTPrincipal(credential.payload)
+                                    else -> null
+                                }
+                            }
+                        }
+                    }
+                }
+
+                routing {
+                    authenticate("jwt-auth") {
+                        get("/protected") {
+                            val principal = call.principal<JWTPrincipal>()
+                            call.respondText("Hello ${principal?.subject}")
+                        }
+                    }
+                }
+
+                val validToken = tokenFor(
+                    keyId = keyId,
+                    issuer = issuerUrl,
+                    audience = audience,
+                    subject = "valid-user",
+                    algorithm = keyPair.algorithm
+                )
+
+                val validResponse = client.get("/protected") {
+                    headers.append(HttpHeaders.Authorization, "Bearer $validToken")
+                }
+                assertEquals(HttpStatusCode.OK, validResponse.status)
+
+                val invalidToken = tokenFor(
+                    keyId = keyId,
+                    issuer = issuerUrl,
+                    audience = audience,
+                    subject = "invalid-user",
+                    algorithm = keyPair.algorithm
+                )
+
+                val invalidResponse = client.get("/protected") {
+                    headers.append(HttpHeaders.Authorization, "Bearer $invalidToken")
+                }
+                assertEquals(HttpStatusCode.Unauthorized, invalidResponse.status)
+            }
+        }
+    }
+
+    @Test
     fun testJwkProviderFetchesAndCaches() {
         val keyPair = rsaKeyPair()
         val keyId = "kid-1"
@@ -193,17 +262,13 @@ class JwkDiscoveryTest {
                 get {
                     fetchCount.incrementAndGet()
                     call.respondText(
-                        text = jwksJson,
-                        status = HttpStatusCode.OK,
-                        contentType = ContentType.Application.Json
+                        text = jwksJson, status = HttpStatusCode.OK, contentType = ContentType.Application.Json
                     )
                 }
-            }
-        ) { port ->
+            }) { port ->
             val jwkProvider = JwkConfig().apply {
                 openIdConfig = OpenIdConfiguration(
-                    issuer = "http://issuer.example",
-                    jwksUri = "http://127.0.0.1:$port"
+                    issuer = "http://issuer.example", jwksUri = "http://127.0.0.1:$port"
                 )
                 cache(maxEntries = 1, duration = 1.seconds)
             }.toJwkProvider()
@@ -280,8 +345,13 @@ class JwkDiscoveryTest {
             return Algorithm.RSA256(publicKey, privateKey)
         }
 
-    private fun tokenFor(issuer: String, audience: String, keyId: String, algorithm: Algorithm): String =
-        JWT.create().withIssuer(issuer).withAudience(audience).withKeyId(keyId).sign(algorithm)
+    private fun tokenFor(
+        issuer: String, audience: String, keyId: String, algorithm: Algorithm, subject: String? = null
+    ): String {
+        val jwt = JWT.create().withIssuer(issuer).withAudience(audience).withKeyId(keyId)
+        if (subject != null) jwt.withSubject(subject)
+        return jwt.sign(algorithm)
+    }
 
     private fun base64Url(value: ByteArray): String = Base64.getUrlEncoder().withoutPadding().encodeToString(value)
 
