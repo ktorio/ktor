@@ -991,7 +991,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         assertTrue(routingJob.isActive, "Routing job should be active")
 
         // Stop the server
-        server.stop(1, 10, TimeUnit.SECONDS)
+        server.stop(1, 5, TimeUnit.SECONDS)
 
         // Verify both jobs are canceled
         assertTrue(applicationJob.isCancelled, "Application job should be canceled")
