@@ -106,7 +106,43 @@ private fun toUpperCasePreservingASCII(ch: Char): Char = when (ch) {
     else -> ch.lowercaseChar()
 }
 
-internal fun String.caseInsensitive(): CaseInsensitiveString = CaseInsensitiveString(this)
+/**
+ * Cache of pre-computed CaseInsensitiveString instances for common HTTP header names.
+ * Reduces allocations for frequently used headers.
+ */
+private val commonHeaderNames: Map<String, CaseInsensitiveString> = buildCommonHeaderCache()
+
+private fun buildCommonHeaderCache(): Map<String, CaseInsensitiveString> {
+    val headers = arrayOf(
+        "Accept", "Accept-Charset", "Accept-Encoding", "Accept-Language", "Accept-Ranges",
+        "Age", "Allow", "Authorization", "Cache-Control", "Connection",
+        "Content-Disposition", "Content-Encoding", "Content-Language", "Content-Length",
+        "Content-Location", "Content-Range", "Content-Type", "Cookie", "Date",
+        "ETag", "Expect", "Expires", "From", "Host",
+        "If-Match", "If-Modified-Since", "If-None-Match", "If-Range", "If-Unmodified-Since",
+        "Last-Modified", "Location", "Max-Forwards", "Origin", "Pragma",
+        "Proxy-Authenticate", "Proxy-Authorization", "Range", "Referer", "Retry-After",
+        "Server", "Set-Cookie", "Transfer-Encoding", "Upgrade", "User-Agent",
+        "Vary", "Via", "Warning", "WWW-Authenticate",
+        "Access-Control-Allow-Origin", "Access-Control-Allow-Methods",
+        "Access-Control-Allow-Headers", "Access-Control-Allow-Credentials",
+        "Access-Control-Expose-Headers", "Access-Control-Max-Age",
+        "Access-Control-Request-Method", "Access-Control-Request-Headers",
+        "X-Forwarded-For", "X-Forwarded-Host", "X-Forwarded-Proto", "X-Request-ID"
+    )
+    val result = HashMap<String, CaseInsensitiveString>(headers.size * 2)
+    for (header in headers) {
+        result[header] = CaseInsensitiveString(header)
+        val lower = header.lowercase()
+        if (lower != header) {
+            result[lower] = CaseInsensitiveString(lower)
+        }
+    }
+    return result
+}
+
+internal fun String.caseInsensitive(): CaseInsensitiveString =
+    commonHeaderNames[this] ?: CaseInsensitiveString(this)
 
 internal class CaseInsensitiveString(val content: String) {
     private val hash: Int

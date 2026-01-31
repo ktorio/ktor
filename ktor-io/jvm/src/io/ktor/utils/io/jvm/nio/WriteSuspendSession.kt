@@ -10,6 +10,36 @@ import kotlinx.io.*
 import kotlinx.io.unsafe.*
 import java.nio.*
 
+/**
+ * Thread-local holder for ByteBuffer reuse in writeWhile operations.
+ * Avoids allocating a new ByteBuffer on every iteration when the backing array is the same.
+ */
+@InternalAPI
+public class ByteBufferHolder {
+    private var cachedArray: ByteArray? = null
+    private var cachedBuffer: ByteBuffer? = null
+
+    public fun getOrCreate(array: ByteArray, start: Int, endExclusive: Int): ByteBuffer {
+        val cached = cachedBuffer
+        return if (cached != null && cachedArray === array) {
+            cached.limit(endExclusive)
+            cached.position(start)
+            cached
+        } else {
+            val newBuffer = ByteBuffer.wrap(array)
+            newBuffer.limit(endExclusive)
+            newBuffer.position(start)
+            cachedArray = array
+            cachedBuffer = newBuffer
+            newBuffer
+        }
+    }
+}
+
+@InternalAPI
+public val threadLocalByteBufferHolder: ThreadLocal<ByteBufferHolder> =
+    ThreadLocal.withInitial { ByteBufferHolder() }
+
 public class WriteSuspendSession(public val channel: ByteWriteChannel) {
     private val byteBuffer = ByteBuffer.allocate(8192)
 
@@ -49,10 +79,11 @@ public suspend fun ByteWriteChannel.writeSuspendSession(block: suspend WriteSusp
 @OptIn(UnsafeIoApi::class, InternalAPI::class, InternalIoApi::class)
 public suspend inline fun ByteWriteChannel.writeWhile(crossinline block: (ByteBuffer) -> Boolean) {
     var done = false
+    val bufferHolder = threadLocalByteBufferHolder.get()
 
     while (!done) {
         UnsafeBufferOperations.writeToTail(writeBuffer.buffer, 1) { array, start, endExclusive ->
-            val buffer = ByteBuffer.wrap(array, start, endExclusive - start)
+            val buffer = bufferHolder.getOrCreate(array, start, endExclusive)
             done = !block(buffer)
             buffer.position() - start
         }
