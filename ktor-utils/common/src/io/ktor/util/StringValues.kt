@@ -180,12 +180,44 @@ public open class StringValuesImpl(
     values: Map<String, List<String>> = emptyMap()
 ) : StringValues {
 
-    protected val values: Map<String, List<String>>
+    // Parallel arrays for zero-allocation iteration
+    private val keyStorage: Array<String>
+    private val valueStorage: Array<List<String>>
+    private val entryCount: Int
+
+    // Hash table for O(1) lookup - stores indices into parallel arrays
+    private val hashBuckets: IntArray
+    private val hashNext: IntArray // collision chain
 
     init {
-        val newMap: MutableMap<String, List<String>> = if (caseInsensitiveName) caseInsensitiveMap() else mutableMapOf()
-        values.forEach { (key, value) -> newMap[key] = List(value.size) { value[it] } }
-        this.values = newMap
+        entryCount = values.size
+        if (entryCount == 0) {
+            keyStorage = emptyArray()
+            valueStorage = emptyArray()
+            hashBuckets = IntArray(0)
+            hashNext = IntArray(0)
+        } else {
+            keyStorage = arrayOfNulls<String>(entryCount) as Array<String>
+            valueStorage = arrayOfNulls<List<String>>(entryCount) as Array<List<String>>
+
+            // Size hash table to next power of two, minimum 4
+            val tableSize = tableSizeFor(entryCount)
+            hashBuckets = IntArray(tableSize) { -1 }
+            hashNext = IntArray(entryCount) { -1 }
+
+            var i = 0
+            for ((key, value) in values) {
+                keyStorage[i] = key
+                valueStorage[i] = List(value.size) { value[it] }
+
+                // Insert into hash table
+                val hash = computeHash(key)
+                val bucket = hash and (tableSize - 1)
+                hashNext[i] = hashBuckets[bucket]
+                hashBuckets[bucket] = i
+                i++
+            }
+        }
     }
 
     override operator fun get(name: String): String? = listForKey(name)?.firstOrNull()
@@ -196,17 +228,53 @@ public open class StringValuesImpl(
 
     override fun contains(name: String, value: String): Boolean = listForKey(name)?.contains(value) ?: false
 
-    override fun names(): Set<String> = values.keys.unmodifiable()
-
-    override fun isEmpty(): Boolean = values.isEmpty()
-
-    override fun entries(): Set<Map.Entry<String, List<String>>> = values.entries.unmodifiable()
-
-    override fun forEach(body: (String, List<String>) -> Unit) {
-        for ((key, value) in values) body(key, value)
+    override fun names(): Set<String> {
+        if (entryCount == 0) return emptySet()
+        val result = linkedSetOf<String>()
+        for (i in 0 until entryCount) {
+            result.add(keyStorage[i])
+        }
+        return result
     }
 
-    private fun listForKey(name: String): List<String>? = values[name]
+    override fun isEmpty(): Boolean = entryCount == 0
+
+    override fun entries(): Set<Map.Entry<String, List<String>>> {
+        if (entryCount == 0) return emptySet()
+        val result = linkedSetOf<Map.Entry<String, List<String>>>()
+        for (i in 0 until entryCount) {
+            result.add(StringValuesEntry(keyStorage[i], valueStorage[i]))
+        }
+        return result
+    }
+
+    override fun forEach(body: (String, List<String>) -> Unit) {
+        // Direct array iteration - no iterator allocation!
+        for (i in 0 until entryCount) {
+            body(keyStorage[i], valueStorage[i])
+        }
+    }
+
+    private fun listForKey(name: String): List<String>? {
+        if (entryCount == 0) return null
+        val hash = computeHash(name)
+        var idx = hashBuckets[hash and (hashBuckets.size - 1)]
+        while (idx >= 0) {
+            if (keyStorage[idx].equals(name, caseInsensitiveName)) {
+                return valueStorage[idx]
+            }
+            idx = hashNext[idx]
+        }
+        return null
+    }
+
+    private fun computeHash(key: String): Int {
+        return if (caseInsensitiveName) {
+            caseInsensitiveHashCode(key)
+        } else {
+            key.hashCode()
+        }
+    }
 
     override fun toString(): String = "StringValues(case=${!caseInsensitiveName}) ${entries()}"
 
@@ -218,6 +286,37 @@ public open class StringValuesImpl(
     }
 
     override fun hashCode(): Int = entriesHashCode(entries(), 31 * caseInsensitiveName.hashCode())
+
+    private class StringValuesEntry(
+        override val key: String,
+        override val value: List<String>
+    ) : Map.Entry<String, List<String>> {
+        override fun equals(other: Any?): Boolean =
+            other is Map.Entry<*, *> && other.key == key && other.value == value
+
+        override fun hashCode(): Int = key.hashCode() xor value.hashCode()
+        override fun toString(): String = "$key=$value"
+    }
+
+    private companion object {
+        private fun tableSizeFor(size: Int): Int {
+            var n = size - 1
+            n = n or (n ushr 1)
+            n = n or (n ushr 2)
+            n = n or (n ushr 4)
+            n = n or (n ushr 8)
+            n = n or (n ushr 16)
+            return if (n < 4) 4 else n + 1
+        }
+
+        private fun caseInsensitiveHashCode(s: String): Int {
+            var h = 0
+            for (i in 0 until s.length) {
+                h = 31 * h + s[i].lowercaseChar().code
+            }
+            return h
+        }
+    }
 }
 
 @Suppress("KDocMissingDocumentation", "DEPRECATION")

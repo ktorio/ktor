@@ -87,7 +87,12 @@ public abstract class NettyApplicationCall(
     }
 
     private fun finishComplete() {
-        responseWriteJob.cancel()
+        // Only cancel if not already completed to avoid unnecessary JobCancellationException allocation.
+        // This is always called when responseWriteJob.isCompleted is true (from finish()) or after
+        // responseWriteJob.join() completes (from finishSuspend()), so skip the redundant cancel().
+        if (!responseWriteJob.isCompleted) {
+            responseWriteJob.cancel()
+        }
         request.close()
         releaseRequestMessage()
     }
