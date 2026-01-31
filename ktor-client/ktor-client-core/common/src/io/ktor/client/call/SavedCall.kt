@@ -8,10 +8,24 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlinx.io.readByteArray
 import kotlin.coroutines.CoroutineContext
+
+/**
+ * Marker interface for responses that have their body stored as a byte array.
+ * This allows optimized access without copying through ByteReadChannel.
+ */
+@InternalAPI
+public interface SavedResponseBody {
+    /**
+     * The response body as a byte array.
+     * Callers should not modify this array.
+     */
+    public val savedBody: ByteArray
+}
 
 /**
  * Saves the entire content of this [HttpClientCall] to memory and returns a new [HttpClientCall]
@@ -61,11 +75,14 @@ internal class SavedHttpRequest(
     origin: HttpRequest
 ) : HttpRequest by origin
 
+@OptIn(InternalAPI::class)
 internal class SavedHttpResponse(
     override val call: SavedHttpCall,
     private val body: ByteArray,
     origin: HttpResponse
-) : HttpResponse() {
+) : HttpResponse(), SavedResponseBody {
+
+    override val savedBody: ByteArray get() = body
     override val status: HttpStatusCode = origin.status
 
     override val version: HttpProtocolVersion = origin.version
