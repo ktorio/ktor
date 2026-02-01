@@ -47,6 +47,11 @@ abstract interface <#A: out kotlin/Any, #B: kotlin/Any> io.ktor.client.plugins/H
     abstract fun prepare(kotlin/Function1<#A, kotlin/Unit> = ...): #B // io.ktor.client.plugins/HttpClientPlugin.prepare|prepare(kotlin.Function1<1:0,kotlin.Unit>){}[0]
 }
 
+abstract interface io.ktor.client.call/SavedResponseBody { // io.ktor.client.call/SavedResponseBody|null[0]
+    abstract val savedBody // io.ktor.client.call/SavedResponseBody.savedBody|{}savedBody[0]
+        abstract fun <get-savedBody>(): kotlin/ByteArray // io.ktor.client.call/SavedResponseBody.savedBody.<get-savedBody>|<get-savedBody>(){}[0]
+}
+
 abstract interface io.ktor.client.engine/HttpClientEngine : io.ktor.utils.io.core/Closeable, kotlinx.coroutines/CoroutineScope { // io.ktor.client.engine/HttpClientEngine|null[0]
     abstract val config // io.ktor.client.engine/HttpClientEngine.config|{}config[0]
         abstract fun <get-config>(): io.ktor.client.engine/HttpClientEngineConfig // io.ktor.client.engine/HttpClientEngine.config.<get-config>|<get-config>(){}[0]

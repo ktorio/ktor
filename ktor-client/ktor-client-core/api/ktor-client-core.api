@@ -105,6 +105,10 @@ public final class io/ktor/client/call/SavedCallKt {
 	public static final fun save (Lio/ktor/client/call/HttpClientCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public abstract interface class io/ktor/client/call/SavedResponseBody {
+	public abstract fun getSavedBody ()[B
+}
+
 public final class io/ktor/client/call/UnsupportedContentTypeException : java/lang/IllegalStateException {
 	public fun <init> (Lio/ktor/http/content/OutgoingContent;)V
 }
