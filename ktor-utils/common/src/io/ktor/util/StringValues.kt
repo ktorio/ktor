@@ -189,6 +189,21 @@ public open class StringValuesImpl(
     private val hashBuckets: IntArray
     private val hashNext: IntArray // collision chain
 
+    /**
+     * Provides access to the underlying values as a Map.
+     * Reconstructs the map from internal storage for binary compatibility.
+     */
+    @Suppress("unused")
+    protected val values: Map<String, List<String>>
+        get() {
+            if (entryCount == 0) return emptyMap()
+            val result = LinkedHashMap<String, List<String>>(entryCount)
+            for (i in 0 until entryCount) {
+                result[keyStorage[i]] = valueStorage[i]
+            }
+            return result
+        }
+
     init {
         entryCount = values.size
         if (entryCount == 0) {
