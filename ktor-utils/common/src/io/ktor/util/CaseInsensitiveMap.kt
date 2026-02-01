@@ -87,25 +87,70 @@ public class CaseInsensitiveMap<Value : Any> : MutableMap<String, Value> {
         @Suppress("UNCHECKED_CAST")
         val oldValue = valueStorage[index] as Value?
 
+        // Invalidate the insertionOrder entry for the removed index to prevent duplicate iteration
+        for (i in 0 until insertionCount) {
+            if (insertionOrder[i] == index) {
+                insertionOrder[i] = -1
+                break
+            }
+        }
+
         // Mark as deleted and rehash following entries
         keyStorage[index] = null
         valueStorage[index] = null
         _size--
 
         // Rehash entries that might have been displaced
+        // For rehashed entries, update their insertionOrder to point to the new index
         var nextIndex = (index + 1) and (keyStorage.size - 1)
         while (keyStorage[nextIndex] != null) {
             val rehashKey = keyStorage[nextIndex]!!
             val rehashValue = valueStorage[nextIndex]
+            val oldRehashIndex = nextIndex
+
             keyStorage[nextIndex] = null
             valueStorage[nextIndex] = null
             _size--
             @Suppress("UNCHECKED_CAST")
-            put(rehashKey, rehashValue as Value)
+            val newIndex = putWithoutTrackingOrderReturnIndex(rehashKey, rehashValue as Value)
+
+            // Update insertionOrder to point to new index (not invalidate)
+            for (i in 0 until insertionCount) {
+                if (insertionOrder[i] == oldRehashIndex) {
+                    insertionOrder[i] = newIndex
+                    break
+                }
+            }
+
             nextIndex = (nextIndex + 1) and (keyStorage.size - 1)
         }
 
         return oldValue
+    }
+
+    /**
+     * Internal put that doesn't track insertion order.
+     * Used during rehashing in remove() to avoid duplicate entries in insertionOrder.
+     * Returns the index where the entry was placed.
+     */
+    private fun putWithoutTrackingOrderReturnIndex(key: String, value: Value): Int {
+        val hash = caseInsensitiveHashCode(key)
+        var index = hash and (keyStorage.size - 1)
+
+        while (true) {
+            val existingKey = keyStorage[index]
+            if (existingKey == null) {
+                keyStorage[index] = key
+                valueStorage[index] = value
+                _size++
+                return index
+            }
+            if (existingKey.equals(key, ignoreCase = true)) {
+                valueStorage[index] = value
+                return index
+            }
+            index = (index + 1) and (keyStorage.size - 1)
+        }
     }
 
     override val keys: MutableSet<String>
