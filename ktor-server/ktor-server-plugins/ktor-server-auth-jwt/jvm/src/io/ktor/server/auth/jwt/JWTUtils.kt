@@ -89,6 +89,7 @@ internal suspend fun verifyAndValidate(
     jwtVerifier: JWTVerifier?,
     token: HttpAuthHeader,
     schemes: JWTAuthSchemes,
+    prevalidate: suspend ApplicationCall.(JWTCredential) -> Boolean,
     validate: suspend ApplicationCall.(JWTCredential) -> Any?
 ): Any? {
     val jwt = try {
@@ -100,7 +101,7 @@ internal suspend fun verifyAndValidate(
 
     val payload = jwt.parsePayload()
     val credentials = JWTCredential(payload)
-    val principal = validate(call, credentials)
+    val principal = if (prevalidate(call, credentials)) validate(call, credentials) else null
 
     if (principal == null) {
         JWTLogger.debug("JWT validation failed: Custom validation returned null")
