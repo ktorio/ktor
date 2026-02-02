@@ -70,6 +70,5 @@ public final class io/ktor/server/auth/jwt/JwkConfig {
 	public final fun setAudience (Ljava/lang/String;)V
 	public final fun setJwtConfigure (Lkotlin/jvm/functions/Function1;)V
 	public final fun setOpenIdConfig (Lio/ktor/server/auth/OpenIdConfiguration;)V
-	public final fun validate (Lkotlin/jvm/functions/Function3;)V
 }
 

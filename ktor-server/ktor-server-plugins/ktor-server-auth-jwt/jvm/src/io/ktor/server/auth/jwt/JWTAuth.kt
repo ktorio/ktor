@@ -167,6 +167,8 @@ public class JWTPrincipal(payload: Payload) : JWTPayloadHolder(payload)
  */
 public typealias JWTConfigureFunction = Verification.() -> Unit
 
+internal typealias PreAuthenticationFunction<C> = suspend ApplicationCall.(credentials: C) -> Boolean
+
 /**
  * A JWT [Authentication] provider.
  *
@@ -181,9 +183,12 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
     private val schemes: JWTAuthSchemes = config.schemes
     private val authHeader: (ApplicationCall) -> HttpAuthHeader? = config.authHeader
     private val verifier: ((HttpAuthHeader) -> JWTVerifier?) = config.verifier ?: { null }
-    private val authenticationFunction = config.authenticationFunction ?: throw IllegalArgumentException(
+    private val authenticationFunction = requireNotNull(config.authenticationFunction) {
         "JWT auth validate function is not specified. Use jwt { validate { ... } } to fix."
-    )
+    }
+
+    private val preAuthenticationFunction: PreAuthenticationFunction<JWTCredential> =
+        config.preAuthenticationFunction ?: { true }
 
     private val challengeFunction: JWTAuthChallengeFunction = config.challenge
 
@@ -204,7 +209,14 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
                 return
             }
 
-            val principal = verifyAndValidate(call, jwtVerifier, token, schemes, authenticationFunction)
+            val principal = verifyAndValidate(
+                call,
+                jwtVerifier,
+                token,
+                schemes,
+                prevalidate = preAuthenticationFunction,
+                validate = authenticationFunction
+            )
             if (principal != null) {
                 context.principal(name, principal)
                 return
@@ -234,6 +246,8 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
         description: String?
     ) : AuthenticationProvider.Config(name, description) {
         internal var authenticationFunction: AuthenticationFunction<JWTCredential>? = null
+
+        internal var preAuthenticationFunction: PreAuthenticationFunction<JWTCredential>? = null
 
         internal var schemes = JWTAuthSchemes("Bearer")
 
@@ -394,9 +408,7 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
          * This function will:
          * 1. Set up a JWT verifier with the fetched keys. Keys are cached and rate-limited by default, see [JwkProviderBuilder].
          * 2. Validate issuer and audience claims automatically.
-         * You still need to specify `validate` function inside of `jwk`, but not inside of `jwt`.
-         *
-         * You should not set `jwt.verifier` or `jwt.validate` when `jwk` autoconfiguration is used.
+         * You still need to specify `validate` function inside of `jwt`.
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.JWTAuthenticationProvider.Config.jwk)
          *
@@ -411,11 +423,11 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
          *         jwk {
          *             openIdConfig = config
          *             audience = "my-app-client-id"
-         *             validate {
-         *                 // check if user exists in database
-         *                 val userId = credentials.subject
-         *                 database.findUser(userId)?.let { UserPrincipal(it) }
-         *             }
+         *         }
+         *         validate {
+         *             // check if user exists in database
+         *             val userId = credentials.subject
+         *             database.findUser(userId)?.let { UserPrincipal(it) }
          *         }
          *     }
          * }
@@ -426,27 +438,21 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
          */
         public fun jwk(configure: JwkConfig.() -> Unit) {
             val config = JwkConfig().apply(configure)
-            require(verifier == null) {
-                "JWT auth verifier should not be specified when using jwk."
-            }
-            require(authenticationFunction == null) {
-                "JWT auth validate function should not be specified when using jwk. Use jwt { jwk { validate { ... } } } instead."
-            }
-            val validateCredential = requireNotNull(config.validateCredential) {
-                "JWT auth validate function is not specified. Use jwt { jwk { validate { ... } } } to fix."
-            }
             val openId = requireNotNull(config.openIdConfig) {
                 "OpenID configuration is not specified"
+            }
+            require(verifier == null) {
+                "JWT auth verifier should not be specified when using jwk."
             }
 
             val issuer = openId.issuer
             val jwkProvider = config.toJwkProvider()
             verifier(jwkProvider, issuer, config.jwtConfigure)
 
-            validate { credentials ->
+            preAuthenticationFunction = validation@{ credentials ->
                 if (credentials.issuer != issuer) {
                     JWTLogger.trace("Issuer mismatch: expected '{}', got '{}'", issuer, credentials.issuer)
-                    return@validate null
+                    return@validation false
                 }
 
                 val audienceMatches = config.audience?.let { credentials.audience.contains(it) } ?: true
@@ -456,10 +462,8 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
                         config.audience,
                         credentials.audience
                     )
-                    return@validate null
                 }
-
-                this.validateCredential(credentials)
+                audienceMatches
             }
         }
 

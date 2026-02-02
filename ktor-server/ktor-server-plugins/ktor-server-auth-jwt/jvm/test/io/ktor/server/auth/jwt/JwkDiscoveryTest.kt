@@ -255,6 +255,32 @@ class JwkDiscoveryTest {
                     headers.append(HttpHeaders.Authorization, "Bearer $invalidToken")
                 }
                 assertEquals(HttpStatusCode.Unauthorized, invalidResponse.status)
+
+                val invalidAudience = tokenFor(
+                    keyId = keyId,
+                    issuer = issuerUrl,
+                    audience = "invalid-audience",
+                    subject = "valid-user",
+                    algorithm = keyPair.algorithm
+                )
+
+                val invalidAudienceResponse = client.get("/protected") {
+                    headers.append(HttpHeaders.Authorization, "Bearer $invalidAudience")
+                }
+                assertEquals(HttpStatusCode.Unauthorized, invalidAudienceResponse.status)
+
+                val invalidIssuer = tokenFor(
+                    keyId = keyId,
+                    issuer = "invalid-issuer",
+                    audience = audience,
+                    subject = "valid-user",
+                    algorithm = keyPair.algorithm
+                )
+
+                val invalidIssuerResponse = client.get("/protected") {
+                    headers.append(HttpHeaders.Authorization, "Bearer $invalidIssuer")
+                }
+                assertEquals(HttpStatusCode.Unauthorized, invalidIssuerResponse.status)
             }
         }
     }
