@@ -12,7 +12,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import kotlin.test.*
 
-class OpenIdOAuthTest {
+class OpenIdOAuthConfigurationTest {
 
     private fun ApplicationTestBuilder.noRedirectsClient() = createClient { followRedirects = false }
 
@@ -182,31 +182,29 @@ class OpenIdOAuthTest {
     }
 
     @Test
-    fun testOAuthWithOpenIdConfigurationMissingClientId() {
-        val openIdConfig = OpenIdConfiguration(
+    fun testOAuthWithOpenIdConfigurationMissingClientId() = testApplication {
+        val openIdConfiguration = OpenIdConfiguration(
             issuer = "https://test-issuer.example.com",
             authorizationEndpoint = "https://test-issuer.example.com/authorize",
             tokenEndpoint = "https://test-issuer.example.com/token",
             jwksUri = "https://test-issuer.example.com/.well-known/jwks.json",
         )
-
         assertFailsWith<IllegalArgumentException>("clientId must be specified") {
-            testApplication {
-                install(Authentication) {
-                    oauth("test-openid", openIdConfig) {
-                        client = this@testApplication.client
-                        // clientId is not set
-                        clientSecret = "test-client-secret"
-                        urlProvider = { "http://localhost/callback" }
-                    }
+            install(Authentication) {
+                oauth("test-openid", openIdConfiguration) {
+                    client = this@testApplication.client
+                    // clientId is not set
+                    clientSecret = "test-client-secret"
+                    urlProvider = { "http://localhost/callback" }
                 }
             }
+            startApplication()
         }
     }
 
     @Test
-    fun testOAuthWithOpenIdConfigurationMissingFields() {
-        val openIdConfig = OpenIdConfiguration(
+    fun testOAuthWithOpenIdConfigurationMissingUrlProvider() = testApplication {
+        val openIdConfiguration = OpenIdConfiguration(
             issuer = "https://test-issuer.example.com",
             authorizationEndpoint = "https://test-issuer.example.com/authorize",
             tokenEndpoint = "https://test-issuer.example.com/token",
@@ -214,29 +212,37 @@ class OpenIdOAuthTest {
         )
 
         assertFailsWith<IllegalArgumentException>("urlProvider must be specified") {
-            testApplication {
-                install(Authentication) {
-                    oauth("test-openid", openIdConfig) {
-                        client = this@testApplication.client
-                        clientId = "test-client-id"
-                        clientSecret = "test-client-secret"
-                        // urlProvider is not set
-                    }
+            install(Authentication) {
+                oauth("test-openid", openIdConfiguration) {
+                    client = this@testApplication.client
+                    clientId = "test-client-id"
+                    clientSecret = "test-client-secret"
+                    // urlProvider is not set
                 }
             }
+            startApplication()
         }
+    }
+
+    @Test
+    fun testAuthWithOpenIdConfigurationMissingClientSecret() = testApplication {
+        val openIdConfiguration = OpenIdConfiguration(
+            issuer = "https://test-issuer.example.com",
+            authorizationEndpoint = "https://test-issuer.example.com/authorize",
+            tokenEndpoint = "https://test-issuer.example.com/token",
+            jwksUri = "https://test-issuer.example.com/.well-known/jwks.json",
+        )
 
         assertFailsWith<IllegalArgumentException>("clientSecret must be specified") {
-            testApplication {
-                install(Authentication) {
-                    oauth("test-openid", openIdConfig) {
-                        client = this@testApplication.client
-                        clientId = "test-client-id"
-                        // clientSecret is not set
-                        urlProvider = { "http://localhost/callback" }
-                    }
+            install(Authentication) {
+                oauth("test-openid", openIdConfiguration) {
+                    client = this@testApplication.client
+                    clientId = "test-client-id"
+                    // clientSecret is not set
+                    urlProvider = { "http://localhost/callback" }
                 }
             }
+            startApplication()
         }
     }
 

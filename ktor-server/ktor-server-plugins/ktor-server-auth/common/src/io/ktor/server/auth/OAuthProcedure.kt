@@ -9,6 +9,7 @@ import io.ktor.server.application.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.InternalAPI
+import kotlin.jvm.JvmName
 
 private val Logger: Logger = KtorSimpleLogger("io.ktor.auth.oauth")
 
@@ -174,6 +175,7 @@ public fun AuthenticationConfig.oauth(
  * @param openIdConfiguration the OpenID Connect discovery configuration
  * @param configure configuration block for additional OAuth settings
  */
+@JvmName("oauthWithOpenId")
 public fun AuthenticationConfig.oauth(
     name: String? = null,
     openIdConfiguration: OpenIdConfiguration,
@@ -190,6 +192,7 @@ public fun AuthenticationConfig.oauth(
  *
  * @see [AuthenticationConfig.oauth]
  */
+@JvmName("oauthWithOpenId")
 public fun AuthenticationConfig.oauth(
     name: String? = null,
     description: String? = null,
@@ -200,11 +203,14 @@ public fun AuthenticationConfig.oauth(
     val urlProviderFn = requireNotNull(openIdConfig.urlProvider) {
         "urlProvider must be specified"
     }
+    val httpClient = requireNotNull(openIdConfig.client) {
+        "client must be specified"
+    }
     oauth(name, description) {
+        client = httpClient
         urlProvider = urlProviderFn
         fallback = openIdConfig.fallback
         settings = openIdConfig.toServerSettings()
-        openIdConfig.client?.let { this.client = it }
     }
 }
 

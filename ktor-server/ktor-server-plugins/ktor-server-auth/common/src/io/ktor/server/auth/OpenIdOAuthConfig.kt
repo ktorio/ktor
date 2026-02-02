@@ -25,7 +25,7 @@ public class OpenIdOAuthConfig(
     private val openIdConfiguration: OpenIdConfiguration
 ) {
     /**
-     * HTTP client used for OAuth requests. Defaults to a new [HttpClient] instance.
+     * HTTP client used for OAuth requests.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OpenIdOAuthConfig.client)
      */
@@ -63,9 +63,7 @@ public class OpenIdOAuthConfig(
     /**
      * OAuth scopes to request during authorization.
      *
-     * If not set, defaults to intersection of ["openid", "profile", "email"] with
-     * [OpenIdConfiguration.scopesSupported]. If [OpenIdConfiguration.scopesSupported] is null,
-     * defaults to ["openid"].
+     * If not set, defaults to [OpenIdConfiguration.scopesSupported] or ["openid"] if not specified.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OpenIdOAuthConfig.defaultScopes)
      */

@@ -485,14 +485,14 @@ public final class io/ktor/server/auth/OAuthGrantTypes {
 
 public final class io/ktor/server/auth/OAuthProcedureKt {
 	public static final fun getOAuthKey ()Ljava/lang/Object;
-	public static final fun oauth (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lio/ktor/server/auth/OpenIdConfiguration;Lkotlin/jvm/functions/Function1;)V
-	public static final fun oauth (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Ljava/lang/String;Lio/ktor/server/auth/OpenIdConfiguration;Lkotlin/jvm/functions/Function1;)V
 	public static final fun oauth (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public static final fun oauth (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
-	public static synthetic fun oauth$default (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lio/ktor/server/auth/OpenIdConfiguration;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
-	public static synthetic fun oauth$default (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Ljava/lang/String;Lio/ktor/server/auth/OpenIdConfiguration;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public static synthetic fun oauth$default (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public static synthetic fun oauth$default (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun oauthWithOpenId (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lio/ktor/server/auth/OpenIdConfiguration;Lkotlin/jvm/functions/Function1;)V
+	public static final fun oauthWithOpenId (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Ljava/lang/String;Lio/ktor/server/auth/OpenIdConfiguration;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun oauthWithOpenId$default (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lio/ktor/server/auth/OpenIdConfiguration;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static synthetic fun oauthWithOpenId$default (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Ljava/lang/String;Lio/ktor/server/auth/OpenIdConfiguration;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public static final fun staticSettings (Lio/ktor/server/auth/OAuthAuthenticationProvider;)Lio/ktor/server/auth/OAuthServerSettings;
 }
 
