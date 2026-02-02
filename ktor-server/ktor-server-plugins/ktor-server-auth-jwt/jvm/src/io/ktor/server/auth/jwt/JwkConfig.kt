@@ -7,6 +7,7 @@ package io.ktor.server.auth.jwt
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
 import io.ktor.server.auth.*
+import io.ktor.utils.io.KtorDsl
 import java.net.URI
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
@@ -26,6 +27,7 @@ import kotlin.time.toJavaDuration
  * @see JWTAuthenticationProvider.Config.jwk
  * @see io.ktor.server.auth.fetchOpenIdConfiguration
  */
+@KtorDsl
 public class JwkConfig internal constructor() {
     internal data class CacheConfig(
         val size: Long,

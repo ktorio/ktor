@@ -167,8 +167,6 @@ public class JWTPrincipal(payload: Payload) : JWTPayloadHolder(payload)
  */
 public typealias JWTConfigureFunction = Verification.() -> Unit
 
-internal typealias PreAuthenticationFunction<C> = suspend ApplicationCall.(credentials: C) -> Boolean
-
 /**
  * A JWT [Authentication] provider.
  *
@@ -183,12 +181,12 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
     private val schemes: JWTAuthSchemes = config.schemes
     private val authHeader: (ApplicationCall) -> HttpAuthHeader? = config.authHeader
     private val verifier: ((HttpAuthHeader) -> JWTVerifier?) = config.verifier ?: { null }
-    private val authenticationFunction = requireNotNull(config.authenticationFunction) {
+    private val validateCredentials = requireNotNull(config.validateCredentials) {
         "JWT auth validate function is not specified. Use jwt { validate { ... } } to fix."
     }
 
-    private val preAuthenticationFunction: PreAuthenticationFunction<JWTCredential> =
-        config.preAuthenticationFunction ?: { true }
+    private val prevalidateCredentials: ApplicationCall.(JWTCredential) -> Boolean =
+        config.prevalidateCredentials ?: { true }
 
     private val challengeFunction: JWTAuthChallengeFunction = config.challenge
 
@@ -209,14 +207,8 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
                 return
             }
 
-            val principal = verifyAndValidate(
-                call,
-                jwtVerifier,
-                token,
-                schemes,
-                prevalidate = preAuthenticationFunction,
-                validate = authenticationFunction
-            )
+            val principal =
+                verifyAndValidate(call, jwtVerifier, token, schemes, prevalidateCredentials, validateCredentials)
             if (principal != null) {
                 context.principal(name, principal)
                 return
@@ -245,9 +237,9 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
         name: String?,
         description: String?
     ) : AuthenticationProvider.Config(name, description) {
-        internal var authenticationFunction: AuthenticationFunction<JWTCredential>? = null
+        internal var validateCredentials: AuthenticationFunction<JWTCredential>? = null
 
-        internal var preAuthenticationFunction: PreAuthenticationFunction<JWTCredential>? = null
+        internal var prevalidateCredentials: (ApplicationCall.(JWTCredential) -> Boolean)? = null
 
         internal var schemes = JWTAuthSchemes("Bearer")
 
@@ -390,7 +382,7 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
          * @return a principal (usually an instance of [JWTPrincipal]) or `null`
          */
         public fun validate(validate: suspend ApplicationCall.(JWTCredential) -> Any?) {
-            authenticationFunction = validate
+            validateCredentials = validate
         }
 
         /**
@@ -449,7 +441,7 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
             val jwkProvider = config.toJwkProvider()
             verifier(jwkProvider, issuer, config.jwtConfigure)
 
-            preAuthenticationFunction = validation@{ credentials ->
+            prevalidateCredentials = validation@{ credentials ->
                 if (credentials.issuer != issuer) {
                     JWTLogger.trace("Issuer mismatch: expected '{}', got '{}'", issuer, credentials.issuer)
                     return@validation false
