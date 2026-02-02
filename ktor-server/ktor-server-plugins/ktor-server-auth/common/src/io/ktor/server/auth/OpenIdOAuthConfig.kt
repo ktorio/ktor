@@ -9,6 +9,7 @@ import io.ktor.http.HttpMethod
 import io.ktor.server.application.ApplicationCall
 import io.ktor.util.GenerateOnlyNonceManager
 import io.ktor.util.NonceManager
+import io.ktor.utils.io.KtorDsl
 
 /**
  * Configuration class for OAuth authentication using OpenID Connect discovery.
@@ -21,6 +22,7 @@ import io.ktor.util.NonceManager
  *
  * @property openIdConfiguration The OpenID Connect discovery configuration
  */
+@KtorDsl
 public class OpenIdOAuthConfig(
     private val openIdConfiguration: OpenIdConfiguration
 ) {

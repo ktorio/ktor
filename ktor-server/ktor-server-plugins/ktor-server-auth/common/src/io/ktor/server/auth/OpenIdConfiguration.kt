@@ -49,24 +49,24 @@ import kotlinx.serialization.json.Json
  * @property claimsSupported List of claim names supported by the server (optional)
  */
 @Serializable
-public data class OpenIdConfiguration(
-    val issuer: String,
+public class OpenIdConfiguration(
+    public val issuer: String,
     @SerialName("authorization_endpoint")
-    val authorizationEndpoint: String,
+    public val authorizationEndpoint: String,
     @SerialName("token_endpoint")
-    val tokenEndpoint: String,
+    public val tokenEndpoint: String,
     @SerialName("userinfo_endpoint")
-    val userInfoEndpoint: String? = null,
+    public val userInfoEndpoint: String? = null,
     @SerialName("jwks_uri")
-    val jwksUri: String,
+    public val jwksUri: String,
     @SerialName("scopes_supported")
-    val scopesSupported: List<String>? = null,
+    public val scopesSupported: List<String>? = null,
     @SerialName("response_types_supported")
-    val responseTypesSupported: List<String>? = null,
+    public val responseTypesSupported: List<String>? = null,
     @SerialName("token_endpoint_auth_methods_supported")
-    val tokenEndpointAuthMethodsSupported: List<String>? = null,
+    public val tokenEndpointAuthMethodsSupported: List<String>? = null,
     @SerialName("claims_supported")
-    val claimsSupported: List<String>? = null,
+    public val claimsSupported: List<String>? = null,
 )
 
 private val discoveryJson = Json {
