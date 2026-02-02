@@ -11,7 +11,6 @@ import io.ktor.client.engine.*
 import io.ktor.client.engine.apache5.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.engine.java.*
-import io.ktor.client.engine.jetty.*
 import io.ktor.client.engine.okhttp.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
@@ -87,12 +86,15 @@ class ThroughputBenchmarkTest {
             "Tomcat" to Tomcat
         )
 
+        // Note: Jetty client is excluded because it only supports HTTP/2 (uses HTTP2Client),
+        // and none of these servers have HTTP/2 cleartext (H2C) enabled by default.
+        // Testing Jetty client would require enabling H2C on each server, which adds
+        // configuration complexity not relevant to throughput benchmarking.
         private val clientEngines: List<Pair<String, HttpClientEngineFactory<*>>> = listOf(
             "CIO" to io.ktor.client.engine.cio.CIO,
             "OkHttp" to OkHttp,
             "Apache5" to Apache5,
-            "Java" to Java,
-            "Jetty" to io.ktor.client.engine.jetty.Jetty
+            "Java" to Java
         )
 
         @JvmStatic
