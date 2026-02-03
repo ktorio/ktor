@@ -56,6 +56,9 @@ public class CaseInsensitiveMap<Value : Any> : MutableMap<String, Value> {
         while (true) {
             val existingKey = keyStorage[index]
             if (existingKey == null) {
+                if (insertionCount == insertionOrder.size) {
+                    compactInsertionOrder()
+                }
                 // Empty slot, insert here
                 keyStorage[index] = key
                 valueStorage[index] = value
@@ -164,7 +167,7 @@ public class CaseInsensitiveMap<Value : Any> : MutableMap<String, Value> {
 
     override fun equals(other: Any?): Boolean {
         if (other === this) return true
-        if (other !is Map<*, *>) return false
+        if (other !is CaseInsensitiveMap<*>) return false
         if (other.size != _size) return false
         for (i in keyStorage.indices) {
             val k = keyStorage[i]
@@ -228,11 +231,32 @@ public class CaseInsensitiveMap<Value : Any> : MutableMap<String, Value> {
         }
     }
 
+    private fun compactInsertionOrder() {
+        if (insertionCount == 0) return
+        var writeIndex = 0
+        for (i in 0 until insertionCount) {
+            val idx = insertionOrder[i]
+            if (idx >= 0 && keyStorage[idx] != null) {
+                insertionOrder[writeIndex++] = idx
+            }
+        }
+        for (i in writeIndex until insertionOrder.size) {
+            insertionOrder[i] = -1
+        }
+        insertionCount = writeIndex
+    }
+
     private inner class KeySet : AbstractMutableSet<String>() {
         override val size: Int get() = _size
 
         override fun add(element: String): Boolean =
             throw UnsupportedOperationException()
+
+        override fun contains(element: String): Boolean =
+            this@CaseInsensitiveMap.containsKey(element)
+
+        override fun remove(element: String): Boolean =
+            this@CaseInsensitiveMap.remove(element) != null
 
         override fun iterator(): MutableIterator<String> = object : MutableIterator<String> {
             private var orderIndex = 0
