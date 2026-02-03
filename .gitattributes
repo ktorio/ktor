@@ -1,2 +1,6 @@
 # Prevent merges from clobbering version
 VERSION merge=ours
+
+# Enforce LF line endings for the most text files
+* text=auto eol=lf
+*.bat text eol=crlf
