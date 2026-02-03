@@ -37,21 +37,17 @@ public actual fun GMTDate(timestamp: Long?): GMTDate {
  * Uses direct arithmetic instead of Calendar to avoid GregorianCalendar allocation.
  */
 private fun timestampToGMTDate(timestamp: Long): GMTDate {
-    // Total seconds since epoch
-    val totalSeconds = timestamp / 1000
-    val millis = (timestamp % 1000).toInt()
+    // Total seconds since epoch (floor division for negative timestamps)
+    val totalSeconds = Math.floorDiv(timestamp, 1000L)
 
     // Time of day
-    val secondOfDay = (totalSeconds % 86400 + 86400) % 86400 // Handle negative timestamps
+    val secondOfDay = Math.floorMod(totalSeconds, 86400L)
     val seconds = (secondOfDay % 60).toInt()
     val minutes = ((secondOfDay / 60) % 60).toInt()
     val hours = (secondOfDay / 3600).toInt()
 
     // Days since epoch (Jan 1, 1970 was a Thursday)
-    var days = (totalSeconds / 86400).toInt()
-    if (totalSeconds < 0 && totalSeconds % 86400 != 0L) {
-        days-- // Correct for negative timestamps
-    }
+    val days = Math.floorDiv(totalSeconds, 86400L).toInt()
 
     // Day of week: Jan 1, 1970 was Thursday (index 3 in our enum where Monday=0)
     val dayOfWeek = WeekDay.from(((days % 7) + 3 + 7) % 7)
