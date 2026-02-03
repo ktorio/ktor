@@ -81,7 +81,7 @@ val suppressGradlePluginVersionWarning by tasks.registering {
                 writeText(
                     embeddedKotlinPlugin.readText()
                         // This is the key change: converting 'warn' into 'info'.
-                        .replace("\n        warn(\n", "\n        info(\n")
+                        .replace("\n        warn(warning)", "\n        info(warning)")
                         // Mark internal things as internal to prevent compiler warnings about unused code,
                         // and to stop them leaking into build scripts.
                         .replace("\n\nfun Logger.", "\n\nprivate fun Logger.")
