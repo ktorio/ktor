@@ -64,9 +64,9 @@ internal class RawSourceChannel(
         get() = buffer
 
     override suspend fun awaitContent(min: Int): Boolean {
-        if (closedToken != null) return true
+        if (closedToken != null) return buffer.size >= min
 
-        withContext(coroutineContext) {
+        return  withContext(coroutineContext) {
             var result = 0L
             while (buffer.remaining < min && result >= 0) {
                 result = try {
@@ -81,9 +81,8 @@ internal class RawSourceChannel(
                 job.complete()
                 closedToken = CloseToken(null)
             }
+            buffer.size >= min
         }
-
-        return buffer.remaining >= min
     }
 
     override fun cancel(cause: Throwable?) {
