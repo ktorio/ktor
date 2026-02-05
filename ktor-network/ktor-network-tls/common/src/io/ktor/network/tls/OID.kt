@@ -59,7 +59,7 @@ public data class OID(public val identifier: String) {
             "SHA256withECDSA" -> ECDSAwithSHA256Encryption
             "SHA384withRSA" -> RSAwithSHA384Encryption
             "SHA256withRSA" -> RSAwithSHA256Encryption
-            else -> error("Could't find OID for $algorithm")
+            else -> error("Couldn't find OID for $algorithm")
         }
     }
 }
