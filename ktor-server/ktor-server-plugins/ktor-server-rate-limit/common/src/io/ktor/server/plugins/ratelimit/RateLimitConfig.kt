@@ -8,11 +8,10 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
-import kotlin.jvm.*
-import kotlin.time.*
+import kotlin.jvm.JvmInline
+import kotlin.time.Duration
 
 /**
  * A config for the [RateLimit] plugin.
@@ -79,12 +78,12 @@ public class RateLimitProviderConfig(internal val name: RateLimitName) {
             is RateLimiter.State.Available -> {
                 call.response.headers.appendIfAbsent("X-RateLimit-Limit", state.limit.toString())
                 call.response.headers.appendIfAbsent("X-RateLimit-Remaining", state.remainingTokens.toString())
-                call.response.headers.appendIfAbsent("X-RateLimit-Reset", (state.refillAtTimeMillis / 1000).toString())
+                call.response.headers.appendIfAbsent("X-RateLimit-Reset", formatHeaderSeconds(state.refillAtTimeMillis))
             }
 
             is RateLimiter.State.Exhausted -> {
                 if (!call.response.headers.contains(HttpHeaders.RetryAfter)) {
-                    call.response.header(HttpHeaders.RetryAfter, state.toWait.inWholeSeconds.toString())
+                    call.response.header(HttpHeaders.RetryAfter, state.toWait.formatHeaderSeconds())
                 }
             }
         }
@@ -161,3 +160,12 @@ public class RateLimitProviderConfig(internal val name: RateLimitName) {
         modifyResponse = block
     }
 }
+
+private fun Duration.formatHeaderSeconds(): String = formatHeaderSeconds(inWholeMilliseconds)
+
+/**
+ * Converts milliseconds to seconds using ceiling division.
+ * This ensures that fractional seconds are always rounded up.
+ */
+private fun formatHeaderSeconds(milliseconds: Long): String =
+    ((milliseconds + 999) / 1000).toString()
