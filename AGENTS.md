@@ -75,7 +75,7 @@ Linting:
 
 ### Naming
 - Follow Kotlin conventions unless the surrounding package has a strong established pattern.
-- Tests: prefer descriptive class names in backticks: `describe what is being tested`.
+- Tests: prefer descriptive test names in backticks: `describe what is being tested`.
 
 ### Types and API design
 - Prefer `internal` by default; keep the public surface intentional.
