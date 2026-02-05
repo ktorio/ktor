@@ -6,6 +6,12 @@ plugins {
     id("ktorbuild.project.server-plugin")
 }
 
+configurations.all {
+    resolutionStrategy {
+        force("commons-beanutils:commons-beanutils:1.11.0")
+    }
+}
+
 kotlin {
     sourceSets {
         jvmMain.dependencies {
