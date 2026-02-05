@@ -100,4 +100,24 @@ class CurlWebSocketTests : ClientEngineTest<CurlClientEngineConfig>(Curl) {
             assertEquals(200, response.status.value)
         }
     }
+
+    @Test
+    fun testReceiveLargeTextFrame() = testClient {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            val payloadSize = 24000
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/text?size=$payloadSize") {
+                val frame = incoming.receive()
+
+                assertTrue(frame is Frame.Text, "Expected Frame.Text but got ${frame.frameType}")
+                assertTrue(frame.fin, "Expected fin=true but got fin=false")
+
+                val text = frame.readText()
+                assertEquals(payloadSize, text.length, "Unexpected payload size")
+            }
+        }
+    }
 }
