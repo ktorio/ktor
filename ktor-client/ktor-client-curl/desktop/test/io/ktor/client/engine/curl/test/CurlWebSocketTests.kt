@@ -13,7 +13,10 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class CurlWebSocketTests : ClientEngineTest<CurlClientEngineConfig>(Curl) {
 
@@ -35,7 +38,6 @@ class CurlWebSocketTests : ClientEngineTest<CurlClientEngineConfig>(Curl) {
         }
     }
 
-    @Ignore // TODO: for some reason we doesn't get a response
     @Test
     fun testEmptyFrame() = testClient {
         config {
