@@ -39,7 +39,7 @@ public class DigestAuthenticationProvider internal constructor(
 
     private val algorithms: List<DigestAlgorithm> = config.algorithms
 
-    private val defaultAlgorithm: DigestAlgorithm = algorithms.firstOrNull() ?: DigestAlgorithm.MD5
+    private val defaultAlgorithm: DigestAlgorithm = algorithms.firstOrNull() ?: DigestAlgorithm.SHA_512_256
 
     private val qopValues = config.supportedQop.map { it.value }
 
@@ -52,18 +52,6 @@ public class DigestAuthenticationProvider internal constructor(
     private val userNameRealmPasswordDigestProvider: DigestProviderFunctionV2 = config.digestProvider
 
     private val authenticationFunction: AuthenticationFunction<DigestCredential> = config.authenticationFunction
-
-    init {
-        if (config.strictRfc7616Mode) {
-            require(algorithms.none { it == DigestAlgorithm.MD5 || it == DigestAlgorithm.MD5_SESS }) {
-                "When `strictRfc7616Mode` is enabled, MD5 algorithms are prohibited. " +
-                    "Use SHA-256 or SHA-512-256 instead."
-            }
-            require(charset == Charsets.UTF_8) {
-                "When `strictRfc7616Mode` is enabled, charset must be UTF-8."
-            }
-        }
-    }
 
     override suspend fun onAuthenticate(context: AuthenticationContext) {
         val call = context.call
@@ -235,7 +223,8 @@ public class DigestAuthenticationProvider internal constructor(
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.DigestAuthenticationProvider.Config.algorithms)
          */
-        public var algorithms: List<DigestAlgorithm> = listOf(DigestAlgorithm.MD5)
+        @Suppress("DEPRECATION")
+        public var algorithms: List<DigestAlgorithm> = listOf(DigestAlgorithm.SHA_512_256, DigestAlgorithm.MD5)
 
         /**
          * List of supported Quality of Protection (qop) options.
@@ -263,20 +252,6 @@ public class DigestAuthenticationProvider internal constructor(
         public var charset: Charset? = null
 
         internal var userHashResolver: UserHashResolverFunction? = null
-
-        /**
-         * Enables strict RFC 7616 compliance mode and prohibits MD5.
-         *
-         * When enabled:
-         * - MD5 and MD5-sess algorithms are prohibited (SHA-256 or SHA-512-256 required)
-         * - UTF-8 charset is required
-         *
-         * **Recommendation**: Enable this mode for new implementations to enforce modern security standards.
-         * Use SHA-512-256 for optimal security when this mode is enabled.
-         *
-         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.DigestAuthenticationProvider.Config.strictRfc7616Mode)
-         */
-        public var strictRfc7616Mode: Boolean = false
 
         /**
          * [NonceManager] to be used to generate nonce values.
@@ -348,6 +323,16 @@ public class DigestAuthenticationProvider internal constructor(
          */
         public fun userHashResolver(resolver: UserHashResolverFunction) {
             userHashResolver = resolver
+        }
+
+        /**
+         * Enables strict RFC 7616 compliance mode by setting the algorithms to SHA-512-256 and SHA-256, and charset to UTF-8.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.DigestAuthenticationProvider.Config.strictRfc7616Mode)
+         */
+        public fun strictRfc7616Mode() {
+            algorithms = listOf(DigestAlgorithm.SHA_512_256, DigestAlgorithm.SHA_256)
+            charset = Charsets.UTF_8
         }
     }
 }

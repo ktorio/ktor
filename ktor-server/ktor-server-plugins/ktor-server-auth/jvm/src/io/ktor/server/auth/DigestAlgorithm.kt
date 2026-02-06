@@ -27,9 +27,11 @@ public enum class DigestAlgorithm(
     public val isSession: Boolean
 ) {
     /** MD5 algorithm - deprecated, use only for backward compatibility with legacy systems */
+    @Deprecated("MD5 is deprecated because it is not secure")
     MD5("MD5", "MD5", false),
 
     /** MD5 session variant - deprecated, use only for backward compatibility with legacy systems */
+    @Deprecated("MD5-sess is deprecated because it is not secure")
     MD5_SESS("MD5-sess", "MD5", true),
 
     /** SHA-256 algorithm - minimum recommended for production use */
@@ -48,6 +50,7 @@ public enum class DigestAlgorithm(
      * Creates a [MessageDigest] instance for this algorithm.
      *
      * @return A new MessageDigest configured for this algorithm's hash function
+     * @throws [java.security.NoSuchAlgorithmException] If the algorithm is not supported by the JVM
      */
     public fun toDigester(): MessageDigest = MessageDigest.getInstance(hashName)
 
@@ -89,7 +92,7 @@ public enum class DigestQop(public val value: String) {
          * @return The corresponding [DigestQop] or null if not recognized
          */
         public fun from(value: String): DigestQop? {
-            return entries.find { it.value == value }
+            return entries.find { it.value.equals(value, ignoreCase = true) }
         }
     }
 }

@@ -19,6 +19,7 @@ import kotlin.text.Charsets
 /**
  * Tests for RFC 7616 (HTTP Digest Access Authentication) support.
  */
+@Suppress("DEPRECATION")
 class DigestRFC7616Test {
 
     private fun computeHA1(
@@ -55,7 +56,6 @@ class DigestRFC7616Test {
         nc: String = "00000001",
         qop: String = "auth",
         userHash: Boolean = false,
-        charset: String? = null
     ) = DigestCredential(
         realm = realm,
         userName = userName,
@@ -68,7 +68,6 @@ class DigestRFC7616Test {
         cnonce = cnonce,
         qop = qop,
         userHash = userHash,
-        charset = charset
     )
 
     private fun buildAuthHeader(
@@ -104,8 +103,8 @@ class DigestRFC7616Test {
                 this.realm = realm
                 this.algorithms = algorithms
                 this.supportedQop = qop
-                if (strictRfc7616Mode) this.strictRfc7616Mode = true
                 charset?.let { this.charset = it }
+                if (strictRfc7616Mode) strictRfc7616Mode()
                 userHashResolver?.let { resolver -> this.userHashResolver(resolver) }
                 digestProvider { userName, providerRealm, algorithm ->
                     users[userName]?.let { password ->
@@ -432,38 +431,14 @@ class DigestRFC7616Test {
     }
 
     @Test
-    fun testStrictModeValidation() {
-        // MD5 prohibited
-        assertFailsWith<IllegalArgumentException> {
-            testApplication {
-                setupDigestAuth(
-                    algorithms = listOf(DigestAlgorithm.MD5),
-                    strictRfc7616Mode = true,
-                    charset = Charsets.UTF_8
-                )
-            }
+    fun testStrictMode() {
+        val config = DigestAuthenticationProvider.Config(name = "digest-auth", description = null).apply {
+            strictRfc7616Mode()
         }
-
-        // MD5-sess prohibited
-        assertFailsWith<IllegalArgumentException> {
-            testApplication {
-                setupDigestAuth(
-                    algorithms = listOf(DigestAlgorithm.MD5_SESS),
-                    strictRfc7616Mode = true,
-                    charset = Charsets.UTF_8
-                )
-            }
-        }
-
-        // UTF-8 required
-        assertFailsWith<IllegalArgumentException> {
-            testApplication {
-                setupDigestAuth(
-                    algorithms = listOf(DigestAlgorithm.SHA_256),
-                    strictRfc7616Mode = true
-                )
-            }
-        }
+        assertEquals(2, config.algorithms.size)
+        assertContains(config.algorithms, DigestAlgorithm.SHA_256)
+        assertContains(config.algorithms, DigestAlgorithm.SHA_512_256)
+        assertEquals(config.charset, Charsets.UTF_8)
     }
 
     @Test
