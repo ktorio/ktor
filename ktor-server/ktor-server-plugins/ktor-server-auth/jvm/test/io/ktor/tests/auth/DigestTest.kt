@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.auth
@@ -14,6 +14,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
+import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.test.*
 import java.security.*
 import kotlin.test.*
@@ -337,7 +338,8 @@ class DigestTest {
 
             val challenge = client.get("/").let { response ->
                 assertEquals(HttpStatusCode.Unauthorized, response.status)
-                parseAuthorizationHeader(response.headers[HttpHeaders.WWWAuthenticate]!!)
+                @OptIn(InternalAPI::class)
+                parseAuthorizationHeaders(response.headers[HttpHeaders.WWWAuthenticate]!!)[0]
             }
 
             val nonce = (challenge as? HttpAuthHeader.Parameterized)?.parameter("nonce")
