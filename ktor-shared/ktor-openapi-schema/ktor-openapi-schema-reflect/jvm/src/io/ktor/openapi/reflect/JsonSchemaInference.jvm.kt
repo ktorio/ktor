@@ -257,6 +257,7 @@ public class ReflectionJsonSchemaInference(
         Boolean::class -> jsonSchemaFromAnnotations(annotations, ::schemaRefForClass, type = JsonType.BOOLEAN)
 
         Byte::class, Short::class, Int::class, Long::class,
+        UByte::class, UShort::class, UInt::class, ULong::class,
         java.lang.Byte::class, java.lang.Short::class, Integer::class, java.lang.Long::class ->
             jsonSchemaFromAnnotations(annotations, ::schemaRefForClass, type = JsonType.INTEGER)
 
@@ -298,7 +299,12 @@ public class ReflectionJsonSchemaInference(
             annotations,
             ::schemaRefForClass,
             type = JsonType.STRING.orNullable(nullable),
-            format = "date-time"
+        )
+
+        kotlin.time.Duration::class -> jsonSchemaFromAnnotations(
+            annotations,
+            ::schemaRefForClass,
+            type = JsonType.STRING.orNullable(nullable),
         )
 
         LocalDate::class -> jsonSchemaFromAnnotations(

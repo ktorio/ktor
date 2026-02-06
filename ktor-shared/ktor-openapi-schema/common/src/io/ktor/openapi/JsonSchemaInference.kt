@@ -74,6 +74,12 @@ public fun SerialDescriptor.buildJsonSchema(
     }
     val annotations = includeAnnotations + annotations
 
+    // For inline descriptors, use the delegate descriptor
+    if (this.isInline) {
+        return this.getElementDescriptor(0)
+            .buildJsonSchema(visiting = visiting)
+    }
+
     return when (kind) {
         StructureKind.CLASS, StructureKind.OBJECT -> {
             visiting += nonNullSerialName

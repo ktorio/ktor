@@ -14,6 +14,9 @@ import kotlinx.serialization.encodeToString
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 abstract class AbstractSchemaInferenceTest(
     val inference: JsonSchemaInference
@@ -105,6 +108,14 @@ abstract class AbstractSchemaInferenceTest(
         )
     }
 
+    @Test
+    open fun `unsigned types`() =
+        assertSchemaMatches<UnsignedTypes>()
+
+    @Test
+    fun `time types`() =
+        assertSchemaMatches<TimeTypes>()
+
     private inline fun <reified T : Any> assertSchemaMatches() {
         val schema = inference.jsonSchema<T>()
         val expected = readSchemaYaml<T>()
@@ -157,6 +168,19 @@ enum class Color {
 }
 
 @Serializable
+data class UnsignedTypes(
+    val unsignedInt: UInt,
+    val unsignedLong: ULong
+)
+
+@OptIn(ExperimentalTime::class)
+@Serializable
+data class TimeTypes(
+    val instant: Instant,
+    val duration: Duration
+)
+
+@Serializable
 sealed class Shape {
     @Serializable
     data class Circle(val radius: Double) : Shape()
@@ -197,4 +221,7 @@ data class LogicalOperatorsData(
 )
 
 @Serializable
-data class TreeNode(val name: String, val parent: TreeNode?)
+data class TreeNode(
+    val name: String,
+    val parent: TreeNode?
+)
