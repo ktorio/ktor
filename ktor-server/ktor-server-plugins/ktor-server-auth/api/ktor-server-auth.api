@@ -4,6 +4,20 @@ public final class io/ktor/server/auth/AuthenticateProvidersRegistration {
 	public final fun getStrategy ()Lio/ktor/server/auth/AuthenticationStrategy;
 }
 
+public final class io/ktor/server/auth/AuthenticatedRoute {
+	public static final synthetic fun box-impl (Lio/ktor/server/routing/Route;)Lio/ktor/server/auth/AuthenticatedRoute;
+	public static fun constructor-impl (Lio/ktor/server/routing/Route;)Lio/ktor/server/routing/Route;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Lio/ktor/server/routing/Route;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Lio/ktor/server/routing/Route;Lio/ktor/server/routing/Route;)Z
+	public final fun getRoute ()Lio/ktor/server/routing/Route;
+	public fun hashCode ()I
+	public static fun hashCode-impl (Lio/ktor/server/routing/Route;)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Lio/ktor/server/routing/Route;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Lio/ktor/server/routing/Route;
+}
+
 public final class io/ktor/server/auth/Authentication {
 	public static final field Companion Lio/ktor/server/auth/Authentication$Companion;
 	public fun <init> (Lio/ktor/server/auth/AuthenticationConfig;)V
