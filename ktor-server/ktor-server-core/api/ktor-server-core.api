@@ -1752,6 +1752,7 @@ public final class io/ktor/server/routing/Routing$DefaultImpls {
 
 public final class io/ktor/server/routing/RoutingBuilderKt {
 	public static final fun accept (Lio/ktor/server/routing/Route;[Lio/ktor/http/ContentType;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
+	public static final fun contentType (Lio/ktor/server/routing/Route;Lio/ktor/http/ContentType;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
 	public static final fun contentType (Lio/ktor/server/routing/Route;[Lio/ktor/http/ContentType;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
 	public static final fun createRouteFromPath (Lio/ktor/server/routing/Route;Ljava/lang/String;)Lio/ktor/server/routing/Route;
 	public static final fun delete (Lio/ktor/server/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function2;)Lio/ktor/server/routing/Route;
