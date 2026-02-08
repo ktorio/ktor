@@ -83,8 +83,8 @@ public fun HttpClient.defaultTransformers() {
             }
 
             ByteArray::class -> {
-                // Optimize: if response already has bytes cached, use them directly
-                val bytes = (response as? SavedResponseBody)?.savedBody ?: body.toByteArray()
+                // Optimize: allow responses to provide cached bytes directly
+                val bytes = response.bodyAsByteArray(body)
                 checkContentLength(
                     contentLength = context.response.contentLength(),
                     bodySize = bytes.size.toLong(),
