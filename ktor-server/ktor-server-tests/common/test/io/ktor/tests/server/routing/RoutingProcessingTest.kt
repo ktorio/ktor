@@ -624,7 +624,7 @@ class RoutingProcessingTest {
             assertEquals(HttpStatusCode.UnsupportedMediaType, it.status)
         }
 
-        client.post("/nested") {
+        client.post("/multiple") {
             header(HttpHeaders.ContentType, "application/json")
         }.let {
             assertEquals("ok", it.bodyAsText())
