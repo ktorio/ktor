@@ -4,7 +4,7 @@
 
 plugins {
     // Keep it in sync with libs.versions.toml
-    id("com.gradle.develocity") version "4.0.3"
+    id("com.gradle.develocity") version "4.2.2"
 }
 
 @Suppress("UnstableApiUsage")
