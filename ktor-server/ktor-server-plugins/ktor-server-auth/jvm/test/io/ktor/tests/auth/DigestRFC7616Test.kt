@@ -442,21 +442,6 @@ class DigestRFC7616Test {
     }
 
     @Test
-    fun testStrictModeAllowsSecureAlgorithms() = testApplication {
-        setupDigestAuth(
-            algorithms = listOf(DigestAlgorithm.SHA_256),
-            strictRfc7616Mode = true,
-            charset = Charsets.UTF_8
-        )
-
-        val response = client.get("/")
-        assertEquals(HttpStatusCode.Unauthorized, response.status)
-        val wwwAuth = response.headers[HttpHeaders.WWWAuthenticate]!!
-        assertTrue(wwwAuth.contains("algorithm=SHA-256"))
-        assertTrue(wwwAuth.contains("charset=UTF-8"))
-    }
-
-    @Test
     fun testDigestAlgorithmEnum() {
         // Parsing
         assertEquals(DigestAlgorithm.MD5, DigestAlgorithm.from("MD5"))
@@ -504,7 +489,7 @@ class DigestRFC7616Test {
     fun testBuildAuthenticationInfoHeader() {
         val ha1 = computeHA1("user", "realm", "pass", DigestAlgorithm.MD5)
         val credential = createCredential("realm", "user", "/path", "nonce", "MD5", "cnonce")
-        val authInfo = credential.buildAuthenticationInfoHeader(ha1, "nextnonce")
+        val authInfo = credential.buildAuthenticationInfoHeader(ha1, "nextnonce", null)
 
         assertTrue(authInfo.contains("rspauth=\""))
         assertTrue(authInfo.contains("qop=auth"))

@@ -103,6 +103,7 @@ class DigestTest {
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun testVerify() = runTest {
         val authHeaderContent = """
             Digest
@@ -366,6 +367,7 @@ class DigestTest {
             val userRealmPassDigest =
                 digest(MessageDigest.getInstance("MD5"), "Mufasa:testrealm@host.com:Circle Of Life")
 
+            @Suppress("DEPRECATION")
             val expectedDigest = authHeader.toDigestCredential().expectedDigest(
                 HttpMethod.Get,
                 MessageDigest.getInstance("MD5"),

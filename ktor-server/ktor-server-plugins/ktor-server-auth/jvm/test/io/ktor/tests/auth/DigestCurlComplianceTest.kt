@@ -43,15 +43,22 @@ class DigestCurlComplianceTest {
 
         private var server: EmbeddedServer<NettyApplicationEngine, NettyApplicationEngine.Configuration>? = null
         private var serverPort: Int = 0
+
+        private var curlVersion: Pair<Int, Int>? = null
     }
 
-    private fun isCurlAvailable(): Boolean = runCatching {
+    private fun getCurlVersion(): Pair<Int, Int>? = runCatching {
         val process = ProcessBuilder("curl", "--version")
             .redirectErrorStream(true)
             .start()
-        val exitCode = process.waitFor()
-        exitCode == 0
-    }.getOrDefault(false)
+        val output = process.inputStream.bufferedReader().readText()
+        process.waitFor()
+
+        val versionRegex = """curl (\d+)\.(\d+)\.(\d+)""".toRegex()
+        val match = versionRegex.find(output) ?: return@runCatching null
+        val (major, minor, _) = match.destructured
+        major.toInt() to minor.toInt()
+    }.getOrDefault(null)
 
     private fun findFreePort(): Int = ServerSocket(0).use { socket -> socket.localPort }
 
@@ -73,8 +80,7 @@ class DigestCurlComplianceTest {
 
     @BeforeAll
     fun setupServer() {
-        assertTrue(isCurlAvailable(), "curl is not available in PATH, skipping tests")
-
+        curlVersion = getCurlVersion() ?: return
         serverPort = findFreePort()
 
         val basicProvider: DigestProviderFunctionV2 = { userName, providerRealm, algorithm ->
@@ -271,8 +277,16 @@ class DigestCurlComplianceTest {
     private fun runCurl(
         url: String,
         options: List<String> = emptyList(),
-        timeout: Duration = 30.seconds
+        timeout: Duration = 30.seconds,
+        minimumVersion: Pair<Int, Int>? = null
     ): CurlResult {
+        val version = curlVersion
+        assertTrue(version != null, "curl is not available in PATH")
+        minimumVersion?.let { (major, minor) ->
+            val ok = version.first > major || (version.first == major && version.second >= minor)
+            assertTrue(ok, "curl version must be >= $major.$minor got ${version.first}.${version.second}")
+        }
+
         val command = mutableListOf("curl", "-v")
         command.addAll(options)
         command.add(url)
@@ -299,11 +313,12 @@ class DigestCurlComplianceTest {
         user: String = TEST_USER,
         password: String = TEST_PASS,
         extraOptions: List<String> = emptyList(),
-        expectSuccess: Boolean = true
+        expectSuccess: Boolean = true,
+        minimumVersion: Pair<Int, Int>? = null
     ): CurlResult {
         val options = mutableListOf("--digest", "--user", "$user:$password")
         options.addAll(extraOptions)
-        val result = runCurl("http://127.0.0.1:$serverPort$path", options)
+        val result = runCurl("http://127.0.0.1:$serverPort$path", options, minimumVersion = minimumVersion)
         if (expectSuccess) {
             assertEquals(200, result.getStatusCode(), "Server should return 200 OK")
         } else {
@@ -323,7 +338,7 @@ class DigestCurlComplianceTest {
 
     @Test
     fun testSHA512_256Negotiation() {
-        val result = runDigestCurl("/sha512-256")
+        val result = runDigestCurl("/sha512-256", minimumVersion = 8 to 7)
         assertContains(result.stdout, "OK - SHA-512-256", message = "Response body should confirm SHA-512-256")
 
         val authHeader = result.getAuthorizationHeader()

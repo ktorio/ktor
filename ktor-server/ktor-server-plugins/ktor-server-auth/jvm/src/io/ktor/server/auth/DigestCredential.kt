@@ -44,10 +44,6 @@ public class DigestCredential(
     public val userHash: Boolean = false,
     public val charset: Charset = Charsets.ISO_8859_1
 ) {
-    internal val digestAlgorithm = algorithm?.let { DigestAlgorithm.from(it) } ?: DigestAlgorithm.MD5
-
-    internal val digester = digestAlgorithm.toDigester()
-
     @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
     public constructor(
         realm: String,
@@ -61,7 +57,6 @@ public class DigestCredential(
         cnonce: String?,
         qop: String?,
     ) : this(realm, userName, digestUri, nonce, opaque, nonceCount, algorithm, response, cnonce, qop)
-
 
     /**
      * Creates a copy of this DigestCredential, optionally replacing some properties.
@@ -149,6 +144,14 @@ public class DigestCredential(
             ")"
     }
 }
+
+// Algorithm is optional in RFC 2617 (MD5 is used by default), but required in RFC 7616
+@Suppress("Deprecation")
+internal val DigestCredential.digestAlgorithm
+    get() = algorithm?.let { DigestAlgorithm.from(it) } ?: DigestAlgorithm.MD5
+
+internal val DigestCredential.digester
+    get() = digestAlgorithm.toDigester()
 
 /**
  * Converts [HttpAuthHeader] to [DigestCredential].
@@ -256,10 +259,8 @@ public fun DigestCredential.expectedDigest(
     return computeDigestResponse(method, ha1Hex, entityBodyHash)
 }
 
-internal fun DigestCredential.digest(data: String): ByteArray {
-    digester.reset()
-    return digester.digest(data.toByteArray(charset))
-}
+internal fun DigestCredential.digest(data: String): ByteArray =
+    digester.digest(data.toByteArray(charset))
 
 private fun DigestCredential.computeDigestResponse(
     method: HttpMethod,
@@ -270,10 +271,9 @@ private fun DigestCredential.computeDigestResponse(
     // For qop=auth (or no qop): H(A2) = H(method:uri)
     // For qop=auth-int: H(A2) = H(method:uri:H(entity-body))
     val methodValue = method.value.toUpperCasePreservingASCIIRules()
-    val a2 = if (qop == DigestQop.AUTH_INT.value && entityBodyHash != null) {
-        "$methodValue:$digestUri:${hex(entityBodyHash)}"
-    } else {
-        "$methodValue:$digestUri"
+    val a2 = when (qop) {
+        DigestQop.AUTH_INT.value -> "$methodValue:$digestUri:${hex(entityBodyHash!!)}"
+        else -> "$methodValue:$digestUri"
     }
     val ha2 = hex(digest(a2))
 
@@ -282,7 +282,7 @@ private fun DigestCredential.computeDigestResponse(
     // With qop: response = H(H(A1):nonce:nc:cnonce:qop:H(A2))
     val hashParameters = when (qop) {
         null -> listOf(ha1Hex, nonce, ha2)
-        else -> listOf(ha1Hex, nonce, nonceCount, cnonce, qop, ha2)
+        else -> listOf(ha1Hex, nonce, nonceCount!!, cnonce!!, qop, ha2)
     }.joinToString(":")
 
     return digest(hashParameters)
@@ -315,37 +315,30 @@ internal fun DigestCredential.computeHA1(userNameRealmPasswordDigest: ByteArray)
  * - rspauth = H(HA1:nonce:nc:cnonce:qop:H(A2))
  * - where A2 = ":uri" for auth, or ":uri:H(response-body)" for auth-int
  *
- * Note: For auth-int, this implementation uses an empty response body hash since
- * the response body is not available at header generation time. This is a known
- * limitation that affects integrity verification of the response body.
- *
  * @param ha1 The computed HA1 value (already adjusted for session algorithms if applicable)
  * @param nextNonce The next nonce value for the client to use
- * @param responseBodyHash Optional hash of the response body for auth-int (defaults to empty body hash)
+ * @param responseBodyHash Optional hash of the response body (must be specified when qop is auth-int)
  * @return The formatted Authentication-Info header value
+ * @throws NullPointerException if [responseBodyHash] is not specified but [qop] is auth-int
  */
 internal fun DigestCredential.buildAuthenticationInfoHeader(
     ha1: ByteArray,
     nextNonce: String,
-    responseBodyHash: ByteArray? = null
+    responseBodyHash: ByteArray?
 ): String {
     // Compute rspauth: H(HA1:nonce:nc:cnonce:qop:H(A2))
     // A2 for rspauth uses empty method per RFC 7616 Section 3.4.3:
     // If the qop value is "auth" or is unspecified, then A2 is: A2 = ":" request-uri
     // If the qop value is "auth-int", then A2 is: A2 = ":" request-uri ":" H(entity-body)
     val a2 = when (qop) {
-        DigestQop.AUTH_INT.value -> {
-            val bodyHash = responseBodyHash ?: digest("")
-            ":$digestUri:${hex(bodyHash)}"
-        }
-
+        DigestQop.AUTH_INT.value -> ":$digestUri:${hex(bytes = responseBodyHash!!)}"
         else -> ":$digestUri"
     }
     val ha2 = hex(digest(a2))
     val ha1Hex = hex(ha1)
 
     // Calculate rspauth with qop (always present when this function is called)
-    val rspAuthInput = "$ha1Hex:$nonce:$nonceCount:$cnonce:$qop:$ha2"
+    val rspAuthInput = "$ha1Hex:$nonce:${nonceCount!!}:${cnonce!!}:$qop:$ha2"
     val rspAuth = hex(digest(rspAuthInput))
 
     return buildString {
