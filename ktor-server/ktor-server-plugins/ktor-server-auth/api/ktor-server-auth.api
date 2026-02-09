@@ -251,7 +251,8 @@ public final class io/ktor/server/auth/DigestCredential {
 public final class io/ktor/server/auth/DynamicProviderConfig : io/ktor/server/auth/AuthenticationProvider$Config {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun authenticate (Lkotlin/jvm/functions/Function1;)V
+	public final synthetic fun authenticate (Lkotlin/jvm/functions/Function1;)V
+	public final fun authenticate (Lkotlin/jvm/functions/Function2;)V
 }
 
 public final class io/ktor/server/auth/ForbiddenResponse : io/ktor/http/content/OutgoingContent$NoContent {
