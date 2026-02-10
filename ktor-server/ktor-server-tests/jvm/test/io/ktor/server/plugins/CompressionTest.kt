@@ -7,10 +7,14 @@ package io.ktor.server.plugins
 import com.github.luben.zstd.ZstdInputStream
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.client.request.forms.MultiPartFormDataContent
+import io.ktor.client.request.forms.formData
 import io.ktor.client.statement.*
 import io.ktor.encoding.zstd.Zstd
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.serialization.kotlinx.json.json
+import io.ktor.server.application.install
 import io.ktor.server.http.*
 import io.ktor.server.http.content.*
 import io.ktor.server.plugins.cachingheaders.*
@@ -18,6 +22,7 @@ import io.ktor.server.plugins.compression.*
 import io.ktor.server.plugins.compression.zstd.zstd
 import io.ktor.server.plugins.compression.zstd.zstdStandard
 import io.ktor.server.plugins.conditionalheaders.*
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -29,7 +34,9 @@ import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestResult
 import kotlinx.io.readByteArray
+import kotlinx.serialization.Serializable
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.zip.GZIPInputStream
@@ -964,6 +971,120 @@ class CompressionTest {
             header(HttpHeaders.AcceptEncoding, "gzip")
         }
         assertContentEquals(compressed, response.body<ByteArray>())
+    }
+
+    @Test
+    fun `body should be decompressed by compression plugin before receiving as ByteArray`() = testApplication {
+        application {
+            install(Compression) {
+                mode = CompressionConfig.Mode.DecompressRequest
+                gzip()
+            }
+
+            routing {
+                post("/") {
+                    val body = call.receive<ByteArray>()
+                    call.respond(body)
+                }
+            }
+        }
+
+        val expectedBody = "deadbeef".hexToByteArray()
+
+        val responseBytes = client.post("/") {
+            val compressedBody = GZip.encode(ByteReadChannel(expectedBody)).readRemaining().readByteArray()
+            setBody(compressedBody)
+            header(HttpHeaders.ContentEncoding, "gzip")
+        }.bodyAsBytes()
+
+        assertEquals(expectedBody.toHexString(), responseBytes.toHexString())
+    }
+
+    @Test
+    fun `body should be decompressed by compression plugin before receiving as multipart`() = testApplication {
+        application {
+            install(Compression) {
+                mode = CompressionConfig.Mode.DecompressRequest
+                gzip()
+            }
+
+            routing {
+                post("/multipart") {
+                    call.respondText(
+                        buildString {
+                            appendLine("START")
+                            call.receiveMultipart().forEachPart { partData ->
+                                if (partData is PartData.FormItem) {
+                                    appendLine("${partData.name}=${partData.value}")
+                                }
+                                partData.dispose()
+                            }
+                            appendLine("END")
+                        }
+                    )
+                }
+            }
+        }
+        val multipart = MultiPartFormDataContent(
+            formData {
+                append("test", "test")
+            }
+        )
+        val channel = ByteChannel()
+
+        val multipartBytes = coroutineScope {
+            launch {
+                multipart.writeTo(channel)
+            }
+            channel.toByteArray()
+        }
+        val responseText = client.post("/multipart") {
+            val compressedBody = GZip.encode(ByteReadChannel(multipartBytes)).readRemaining().readByteArray()
+            setBody(compressedBody)
+            header(
+                HttpHeaders.ContentType,
+                ContentType.MultiPart.FormData.withParameter("boundary", multipart.boundary)
+            )
+            header(HttpHeaders.ContentEncoding, "gzip")
+        }.bodyAsText()
+
+        assertEquals("START\ntest=test\nEND\n", responseText)
+    }
+
+    @Test
+    fun `body should be decompressed by compression plugin before receiving with content negotiation`() {
+        testApplication {
+            @Serializable
+            data class JsonBody(val test: String)
+
+            application {
+                install(ContentNegotiation) {
+                    json()
+                }
+
+                install(Compression) {
+                    mode = CompressionConfig.Mode.DecompressRequest
+                    gzip()
+                }
+
+                routing {
+                    post("/json") {
+                        val body = call.receive<JsonBody>()
+                        call.respondText(body.test)
+                    }
+                }
+            }
+            val expectedText = "This is a test"
+            val responseText = client.post("/json") {
+                val compressedBody = GZip.encode(
+                    ByteReadChannel("""{"test": "$expectedText"}""".toByteArray())
+                ).readRemaining().readByteArray()
+                setBody(compressedBody)
+                header(HttpHeaders.ContentType, ContentType.Application.Json)
+                header(HttpHeaders.ContentEncoding, "gzip")
+            }.bodyAsText()
+            assertEquals(expectedText, responseText)
+        }
     }
 
     private suspend fun ApplicationTestBuilder.handleAndAssert(
