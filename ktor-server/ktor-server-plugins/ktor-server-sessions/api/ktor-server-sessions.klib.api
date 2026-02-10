@@ -31,7 +31,7 @@ abstract interface io.ktor.server.sessions/CurrentSession { // io.ktor.server.se
     abstract fun findName(kotlin.reflect/KClass<*>): kotlin/String // io.ktor.server.sessions/CurrentSession.findName|findName(kotlin.reflect.KClass<*>){}[0]
     abstract fun get(kotlin/String): kotlin/Any? // io.ktor.server.sessions/CurrentSession.get|get(kotlin.String){}[0]
     abstract fun set(kotlin/String, kotlin/Any?) // io.ktor.server.sessions/CurrentSession.set|set(kotlin.String;kotlin.Any?){}[0]
-    abstract suspend fun clear(kotlin/String, kotlin/String) // io.ktor.server.sessions/CurrentSession.clear|clear(kotlin.String;kotlin.String){}[0]
+    open suspend fun clear(kotlin/String, kotlin/String) // io.ktor.server.sessions/CurrentSession.clear|clear(kotlin.String;kotlin.String){}[0]
 }
 
 abstract interface io.ktor.server.sessions/SessionStorage { // io.ktor.server.sessions/SessionStorage|null[0]

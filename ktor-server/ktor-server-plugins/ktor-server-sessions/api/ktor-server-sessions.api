@@ -51,10 +51,14 @@ public class io/ktor/server/sessions/CookieSessionBuilder {
 
 public abstract interface class io/ktor/server/sessions/CurrentSession {
 	public abstract fun clear (Ljava/lang/String;)V
-	public abstract fun clear (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun clear (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun findName (Lkotlin/reflect/KClass;)Ljava/lang/String;
 	public abstract fun get (Ljava/lang/String;)Ljava/lang/Object;
 	public abstract fun set (Ljava/lang/String;Ljava/lang/Object;)V
+}
+
+public final class io/ktor/server/sessions/CurrentSession$DefaultImpls {
+	public static fun clear (Lio/ktor/server/sessions/CurrentSession;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/sessions/DirectoryStorageKt {

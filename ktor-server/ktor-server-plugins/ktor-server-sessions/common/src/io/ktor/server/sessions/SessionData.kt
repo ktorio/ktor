@@ -60,8 +60,11 @@ public interface CurrentSession {
      * @param sessionId the session ID to invalidate
      * @throws IllegalStateException if no session provider is registered with for [name]
      * or the session provider doesn't use session IDs
+     * @throws UnsupportedOperationException if the session provider doesn't support clearing by ID
      */
-    public suspend fun clear(name: String, sessionId: String)
+    public suspend fun clear(name: String, sessionId: String) {
+        throw UnsupportedOperationException("Session clearing is not supported by this session provider")
+    }
 
     /**
      * Finds a session name for the specified [type] or fails if it's not found.

@@ -875,7 +875,9 @@ class SessionTest {
                 val sessionId = call.sessionId<TestUserSession>()
                 if (sessionId != null) {
                     val userId = call.sessions.get<TestUserSession>()?.userId
-                    userId?.let { userSessions[it]!!.add(sessionId) }
+                    if (userId != null) {
+                        userSessions.getOrPut(userId) { mutableSetOf() }.add(sessionId)
+                    }
                     call.respondText("Exclusive session: $sessionId")
                 } else {
                     call.respondText("No session")
