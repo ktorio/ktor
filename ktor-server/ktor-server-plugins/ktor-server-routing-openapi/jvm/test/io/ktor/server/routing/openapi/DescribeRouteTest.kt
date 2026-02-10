@@ -138,6 +138,7 @@ class DescribeRouteTest {
 
         val routesResponse = client.get("/routes")
         val responseText = routesResponse.bodyAsText()
+        assertContains(responseText, "\"summary\": \"\"")
         assertContains(responseText, "\"X-First\"")
         assertContains(responseText, "\"X-Second\"")
     }
