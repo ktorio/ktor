@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.sessions
@@ -50,6 +50,18 @@ public interface CurrentSession {
      * @throws IllegalStateException if no session provider is registered with for [name]
      */
     public fun clear(name: String)
+
+    /**
+     * Clears a session with the specified [sessionId] for the session [name].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CurrentSession.clear)
+     *
+     * @param name the session name
+     * @param sessionId the session ID to invalidate
+     * @throws IllegalStateException if no session provider is registered with for [name]
+     * or the session provider doesn't use session IDs
+     */
+    public suspend fun clear(name: String, sessionId: String)
 
     /**
      * Finds a session name for the specified [type] or fails if it's not found.
@@ -130,6 +142,33 @@ public inline fun <reified T : Any> CurrentSession.clear(): Unit = clear(T::clas
 public fun <T : Any> CurrentSession.clear(klass: KClass<T>): Unit = clear(findName(klass))
 
 /**
+ * Clears a session with the specified [sessionId] for the session type [T].
+ * This method allows clearing sessions by ID without needing the session instance.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.clear)
+ *
+ * @param sessionId the session ID to invalidate
+ * @throws IllegalStateException if no session provider is registered for the type [T]
+ * or the session provider for type [T] doesn't use session IDs
+ */
+public suspend inline fun <reified T : Any> CurrentSession.clear(sessionId: String): Unit =
+    clear(T::class, sessionId)
+
+/**
+ * Clears a session with the specified [sessionId] for the session type [klass].
+ * This method allows clearing sessions by ID without needing the session instance.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.clear)
+ *
+ * @param klass the session class type
+ * @param sessionId the session ID to invalidate
+ * @throws IllegalStateException if no session provider is registered for the type [klass]
+ * or the session provider for type [klass] doesn't use session IDs
+ */
+public suspend fun <T : Any> CurrentSession.clear(klass: KClass<T>, sessionId: String): Unit =
+    clear(findName(klass), sessionId)
+
+/**
  * Gets or generates a new session instance using [generator] with the type [T] (or [name] if specified)
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.getOrSet)
@@ -196,6 +235,14 @@ internal data class SessionData(
             providerData[name] ?: throw IllegalStateException("Session data for `$name` was not registered")
         providerData.oldValue = null
         providerData.newValue = null
+    }
+
+    override suspend fun clear(name: String, sessionId: String) {
+        val providerData =
+            providerData[name] ?: throw IllegalStateException("Session data for `$name` was not registered")
+        val tracker = providerData.provider.tracker as? SessionTrackerById
+            ?: throw IllegalStateException("Session provider `$name` doesn't use session IDs")
+        tracker.clearById(sessionId)
     }
 }
 

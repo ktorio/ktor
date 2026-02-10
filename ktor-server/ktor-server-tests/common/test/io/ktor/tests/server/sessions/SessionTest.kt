@@ -1,9 +1,10 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.server.sessions
+package io.ktor.tests.server.sessions
 
+import io.ktor.client.HttpClient
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -11,12 +12,13 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.sessions.*
 import io.ktor.server.sessions.serialization.*
 import io.ktor.server.testing.*
-import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.Serializable
+import kotlin.io.encoding.Base64
 import kotlin.random.Random
 import kotlin.test.*
 import kotlin.time.Duration.Companion.days
@@ -143,7 +145,7 @@ class SessionTest {
             assertNotNull(sessionCookie, "No session cookie found")
             assertEquals(CookieEncoding.BASE64_ENCODING, sessionCookie.encoding)
 
-            sessionParam = sessionCookie.value.encodeBase64()
+            sessionParam = Base64.encode(sessionCookie.value.encodeToByteArray())
         }
 
         client.get("/2") {
@@ -741,6 +743,183 @@ class SessionTest {
             assertEquals(HttpStatusCode.OK, status)
             assertEquals(TestUserSessionCustom.serialize(expected), bodyAsText())
         }
+    }
+
+    @Test
+    fun testCustomSessionIdProvider() = testApplication {
+        val sessionStorage = SessionStorageMemory()
+        var customIdCounter = 1000
+
+        install(Sessions) {
+            cookie<TestUserSession>(cookieName, sessionStorage) {
+                identity { call ->
+                    val userAgent = call.request.headers["User-Agent"] ?: "unknown"
+                    "custom-${customIdCounter++}-${userAgent.take(5)}"
+                }
+            }
+        }
+        routing {
+            get("/create") {
+                call.sessions.set(TestUserSession("user123", listOf("item1")))
+                call.respondText("Session created")
+            }
+            get("/get") {
+                val session = call.sessions.get<TestUserSession>()
+                call.respondText(session?.userId ?: "no session")
+            }
+        }
+
+        val sessionId1 = client.get("/create") {
+            header("User-Agent", "TestBrowser/1.0")
+        }.cookies[cookieName]!!.value
+        assertEquals(sessionId1, "custom-1000-TestB")
+
+        val sessionId2 = client.get("/create") {
+            header("User-Agent", "MobileBrowser/2.0")
+        }.cookies[cookieName]!!.value
+        assertEquals(sessionId2, "custom-1001-Mobil")
+
+        client.get("/get") {
+            header(HttpHeaders.Cookie, "$cookieName=$sessionId1")
+        }.apply {
+            assertEquals("user123", bodyAsText())
+        }
+    }
+
+    private suspend fun HttpClient.getWithCookie(url: String, cookie: String): HttpResponse =
+        get(url) { header(HttpHeaders.Cookie, "$cookieName=$cookie") }
+
+    @Test
+    fun testClearSessionById() = testApplication {
+        val sessionStorage = SessionStorageMemory()
+
+        install(Sessions) {
+            cookie<TestUserSession>(cookieName, sessionStorage)
+        }
+        routing {
+            post("/login/{userId}") {
+                val userId = call.parameters["userId"]!!
+                call.sessions.set(TestUserSession(userId, emptyList()))
+                call.respondText("Logged in as $userId")
+            }
+            post("/clear-session/{sessionId}") {
+                val sessionId = call.parameters["sessionId"]!!
+                call.sessions.clear<TestUserSession>(sessionId)
+                call.respondText("Session $sessionId cleared")
+            }
+            get("/check") {
+                val session = call.sessions.get<TestUserSession>()
+                call.respondText(session?.userId ?: "no session")
+            }
+        }
+
+        val sessionId1 = client.post("/login/user1").cookies[cookieName]!!.value
+        val sessionId2 = client.post("/login/user2").cookies[cookieName]!!.value
+
+        // Verify the session works
+        client.getWithCookie("/check", sessionId1)
+            .apply { assertEquals("user1", bodyAsText()) }
+
+        client.post("/clear-session/$sessionId1")
+
+        // the first session should be cleared
+        client.getWithCookie("/check", sessionId1)
+            .apply { assertEquals("no session", bodyAsText()) }
+
+        // the second session should not be affected
+        client.getWithCookie("/check", sessionId2)
+            .apply { assertEquals("user2", bodyAsText()) }
+    }
+
+    @Test
+    fun testClearSessionByIdForMultipleDevices() = testApplication {
+        val sessionStorage = SessionStorageMemory()
+        val userSessions = mutableMapOf<String, MutableSet<String>>()
+
+        install(Sessions) {
+            cookie<TestUserSession>(cookieName, sessionStorage)
+        }
+        routing {
+            post("/login/{userId}") {
+                val userId = call.parameters["userId"]!!
+                call.sessions.set(TestUserSession(userId, emptyList()))
+                call.respondText("Login successful")
+            }
+            get("/session-id") {
+                val sessionId = call.sessionId<TestUserSession>()
+                if (sessionId != null) {
+                    // Track sessions by user
+                    val userId = call.sessions.get<TestUserSession>()?.userId
+                    if (userId != null) {
+                        userSessions.getOrPut(userId) { mutableSetOf() }.add(sessionId)
+                    }
+                    call.respondText("Session: $sessionId")
+                } else {
+                    call.respondText("No session")
+                }
+            }
+            post("/login-exclusive/{userId}") {
+                val userId = call.parameters["userId"]!!
+
+                // Clear all existing sessions for this user
+                userSessions[userId]?.forEach { oldSessionId ->
+                    call.sessions.clear<TestUserSession>(oldSessionId)
+                }
+                userSessions[userId]?.clear()
+
+                // Create a new session
+                call.sessions.set(TestUserSession(userId, emptyList()))
+                call.respondText("Logged in exclusively")
+            }
+            get("/exclusive-session-id") {
+                val sessionId = call.sessionId<TestUserSession>()
+                if (sessionId != null) {
+                    val userId = call.sessions.get<TestUserSession>()?.userId
+                    userId?.let { userSessions[it]!!.add(sessionId) }
+                    call.respondText("Exclusive session: $sessionId")
+                } else {
+                    call.respondText("No session")
+                }
+            }
+            get("/check") {
+                val session = call.sessions.get<TestUserSession>()
+                call.respondText(session?.userId ?: "no session")
+            }
+        }
+
+        // User logs in from device 1
+        val cookie1 = client.post("/login/alice").cookies[cookieName]!!.value
+        client.getWithCookie("/session-id", cookie1)
+
+        // Verify device 1 session works
+        client.getWithCookie("/check", cookie1)
+            .apply { assertEquals("alice", bodyAsText()) }
+
+        // User logs in from device 2
+        val cookie2 = client.post("/login/alice").cookies[cookieName]!!.value
+        client.getWithCookie("/session-id", cookie2)
+
+        // Both sessions should work
+        client.getWithCookie("/check", cookie1)
+            .apply { assertEquals("alice", bodyAsText()) }
+
+        client.getWithCookie("/check", cookie2)
+            .apply { assertEquals("alice", bodyAsText()) }
+
+        // User logs in exclusively from device 3 (invalidating all others)
+        val cookie3 = client.post("/login-exclusive/alice").cookies[cookieName]!!.value
+        client.getWithCookie("/exclusive-session-id", cookie3)
+
+        // Old sessions should be invalid
+        client.getWithCookie("/check", cookie1)
+            .apply { assertEquals("no session", bodyAsText()) }
+
+        client.getWithCookie("/check", cookie2)
+            .apply { assertEquals("no session", bodyAsText()) }
+
+        // New session should work
+        client.getWithCookie("/check", cookie3)
+            .apply { assertEquals("alice", bodyAsText()) }
     }
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.sessions
@@ -75,6 +75,15 @@ internal class BlockingDeferredSessionData(
         val providerData = providerDataDeferred.awaitBlocking()
         providerData.oldValue = null
         providerData.newValue = null
+    }
+
+    override suspend fun clear(name: String, sessionId: String) {
+        val providerDataDeferred =
+            providerData[name] ?: throw IllegalStateException("Session data for `$name` was not registered")
+        val providerData = providerDataDeferred.awaitBlocking()
+        val tracker = providerData.provider.tracker as? SessionTrackerById
+            ?: throw IllegalStateException("Session provider `$name` doesn't use session IDs")
+        tracker.clearById(sessionId)
     }
 
     private fun Deferred<SessionProviderData<*>>.awaitBlocking() =

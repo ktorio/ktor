@@ -33,8 +33,9 @@ public final class io/ktor/server/sessions/CookieConfiguration {
 
 public final class io/ktor/server/sessions/CookieIdSessionBuilder : io/ktor/server/sessions/CookieSessionBuilder {
 	public fun <init> (Lkotlin/reflect/KClass;Lkotlin/reflect/KType;)V
-	public final fun getSessionIdProvider ()Lkotlin/jvm/functions/Function0;
-	public final fun identity (Lkotlin/jvm/functions/Function0;)V
+	public final fun getSessionIdProvider ()Lkotlin/jvm/functions/Function1;
+	public final synthetic fun identity (Lkotlin/jvm/functions/Function0;)V
+	public final fun identity (Lkotlin/jvm/functions/Function1;)V
 }
 
 public class io/ktor/server/sessions/CookieSessionBuilder {
@@ -50,6 +51,7 @@ public class io/ktor/server/sessions/CookieSessionBuilder {
 
 public abstract interface class io/ktor/server/sessions/CurrentSession {
 	public abstract fun clear (Ljava/lang/String;)V
+	public abstract fun clear (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun findName (Lkotlin/reflect/KClass;)Ljava/lang/String;
 	public abstract fun get (Ljava/lang/String;)Ljava/lang/Object;
 	public abstract fun set (Ljava/lang/String;Ljava/lang/Object;)V
@@ -62,8 +64,9 @@ public final class io/ktor/server/sessions/DirectoryStorageKt {
 
 public final class io/ktor/server/sessions/HeaderIdSessionBuilder : io/ktor/server/sessions/HeaderSessionBuilder {
 	public fun <init> (Lkotlin/reflect/KClass;Lkotlin/reflect/KType;)V
-	public final fun getSessionIdProvider ()Lkotlin/jvm/functions/Function0;
-	public final fun identity (Lkotlin/jvm/functions/Function0;)V
+	public final fun getSessionIdProvider ()Lkotlin/jvm/functions/Function1;
+	public final synthetic fun identity (Lkotlin/jvm/functions/Function0;)V
+	public final fun identity (Lkotlin/jvm/functions/Function1;)V
 }
 
 public class io/ktor/server/sessions/HeaderSessionBuilder {
@@ -96,6 +99,7 @@ public final class io/ktor/server/sessions/SameSiteKt {
 
 public final class io/ktor/server/sessions/SessionDataKt {
 	public static final fun clear (Lio/ktor/server/sessions/CurrentSession;Lkotlin/reflect/KClass;)V
+	public static final fun clear (Lio/ktor/server/sessions/CurrentSession;Lkotlin/reflect/KClass;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun get (Lio/ktor/server/sessions/CurrentSession;Lkotlin/reflect/KClass;)Ljava/lang/Object;
 	public static final fun getSessions (Lio/ktor/server/application/ApplicationCall;)Lio/ktor/server/sessions/CurrentSession;
 	public static final fun set (Lio/ktor/server/sessions/CurrentSession;Ljava/lang/Object;Lkotlin/reflect/KClass;)V
@@ -152,10 +156,12 @@ public abstract interface class io/ktor/server/sessions/SessionTracker {
 }
 
 public final class io/ktor/server/sessions/SessionTrackerById : io/ktor/server/sessions/SessionTracker {
-	public fun <init> (Lkotlin/reflect/KClass;Lio/ktor/server/sessions/SessionSerializer;Lio/ktor/server/sessions/SessionStorage;Lkotlin/jvm/functions/Function0;)V
+	public synthetic fun <init> (Lkotlin/reflect/KClass;Lio/ktor/server/sessions/SessionSerializer;Lio/ktor/server/sessions/SessionStorage;Lkotlin/jvm/functions/Function0;)V
+	public fun <init> (Lkotlin/reflect/KClass;Lio/ktor/server/sessions/SessionSerializer;Lio/ktor/server/sessions/SessionStorage;Lkotlin/jvm/functions/Function1;)V
 	public fun clear (Lio/ktor/server/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun clearById (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getSerializer ()Lio/ktor/server/sessions/SessionSerializer;
-	public final fun getSessionIdProvider ()Lkotlin/jvm/functions/Function0;
+	public final fun getSessionIdProvider ()Lkotlin/jvm/functions/Function1;
 	public final fun getStorage ()Lio/ktor/server/sessions/SessionStorage;
 	public final fun getType ()Lkotlin/reflect/KClass;
 	public fun load (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;

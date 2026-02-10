@@ -1,9 +1,10 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+* Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
 package io.ktor.server.sessions
 
+import io.ktor.server.application.*
 import io.ktor.util.reflect.*
 import kotlin.reflect.*
 
@@ -333,8 +334,13 @@ public class CookieIdSessionBuilder<S : Any> @PublishedApi internal constructor(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CookieIdSessionBuilder.identity)
      */
-    public fun identity(f: () -> String) {
+    public fun identity(f: (ApplicationCall) -> String) {
         sessionIdProvider = f
+    }
+
+    @Deprecated("Use identity function that accepts ApplicationCall parameter", level = DeprecationLevel.HIDDEN)
+    public fun identity(f: () -> String) {
+        sessionIdProvider = { f() }
     }
 
     /**
@@ -342,7 +348,7 @@ public class CookieIdSessionBuilder<S : Any> @PublishedApi internal constructor(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CookieIdSessionBuilder.sessionIdProvider)
      */
-    public var sessionIdProvider: () -> String = { generateSessionId() }
+    public var sessionIdProvider: (ApplicationCall) -> String = { generateSessionId() }
         private set
 }
 
@@ -412,7 +418,6 @@ internal constructor(
     public val type: KClass<S>,
     public val typeInfo: KType
 ) {
-
     /**
      * Specifies a serializer used to serialize session data.
      *
@@ -456,8 +461,13 @@ internal constructor(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.HeaderIdSessionBuilder.identity)
      */
-    public fun identity(f: () -> String) {
+    public fun identity(f: (ApplicationCall) -> String) {
         sessionIdProvider = f
+    }
+
+    @Deprecated("Use identity function that accepts ApplicationCall parameter", level = DeprecationLevel.HIDDEN)
+    public fun identity(f: () -> String) {
+        sessionIdProvider = { f() }
     }
 
     /**
@@ -465,6 +475,6 @@ internal constructor(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.HeaderIdSessionBuilder.sessionIdProvider)
      */
-    public var sessionIdProvider: () -> String = { generateSessionId() }
+    public var sessionIdProvider: (ApplicationCall) -> String = { generateSessionId() }
         private set
 }
