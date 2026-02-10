@@ -19,7 +19,8 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
 abstract class AbstractSchemaInferenceTest(
-    val inference: JsonSchemaInference
+    val inference: JsonSchemaInference,
+    val overrideKey: String,
 ) {
     private val yaml = Yaml(
         configuration = YamlConfiguration(
@@ -116,16 +117,22 @@ abstract class AbstractSchemaInferenceTest(
     fun `time types`() =
         assertSchemaMatches<TimeTypes>()
 
+    @Test
+    fun `value classes`() =
+        assertSchemaMatches<Email>()
+
     private inline fun <reified T : Any> assertSchemaMatches() {
         val schema = inference.jsonSchema<T>()
         val expected = readSchemaYaml<T>()
         assertEquals(expected, yaml.encodeToString(schema))
     }
 
-    private inline fun <reified T> readSchemaYaml(): String {
-        val expectedFileName = "/schema/${T::class.simpleName}.yaml"
-        val resource = this.javaClass.getResource(expectedFileName)
-            ?: error("Missing expected schema file: $expectedFileName")
+    private inline fun <reified T> readSchemaYaml(useFallback: Boolean = false): String {
+        val standardFile = "/schema/${T::class.simpleName}.yaml"
+        val overrideFile = "/schema/${T::class.simpleName}.$overrideKey.yaml"
+        val resource = this.javaClass.getResource(overrideFile)
+            ?: this.javaClass.getResource(standardFile)
+            ?: error("Missing expected schema file: $standardFile")
         return resource.readText().trim()
     }
 }
@@ -198,7 +205,7 @@ data class AnnotatedUser(
     @Pattern("^[a-z0-9_]+$")
     val username: String,
     @Pattern(".+@.+\\..+")
-    val email: String,
+    val email: Email,
     @ReadOnly
     val createdAt: String
 )
@@ -225,3 +232,7 @@ data class TreeNode(
     val name: String,
     val parent: TreeNode?
 )
+
+@JvmInline
+@Serializable
+value class Email(val value: String)

@@ -1,0 +1,10 @@
+type: object
+title: io.ktor.openapi.reflect.TimeTypes
+required:
+  - instant
+  - duration
+properties:
+  instant:
+    type: string
+  duration:
+    type: integer

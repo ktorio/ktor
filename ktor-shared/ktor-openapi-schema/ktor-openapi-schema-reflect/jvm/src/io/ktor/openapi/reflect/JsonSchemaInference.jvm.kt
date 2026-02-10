@@ -14,6 +14,7 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.KType
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.full.starProjectedType
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
@@ -132,6 +133,18 @@ public class ReflectionJsonSchemaInference(
 
             // Nullability: OpenAPI schema has a `nullable` flag
             val nullable = adapter.isNullable(type)
+
+            // Value classes (inline) should be represented as their underlying value
+            if (kClass.isValue) {
+                kClass.underlyingValueClassTypeOrNull()?.let { underlyingType ->
+                    val unboxedSchema = buildSchemaInternal(
+                        underlyingType,
+                        visiting,
+                        includeAnnotations + kClass.annotations
+                    )
+                    return unboxedSchema.nonNullable(nullable)
+                }
+            }
 
             // Primitives / common JDK types
             val primitiveSchema = primitiveSchemaOrNull(kClass, includeAnnotations, nullable)
@@ -301,12 +314,6 @@ public class ReflectionJsonSchemaInference(
             type = JsonType.STRING.orNullable(nullable),
         )
 
-        kotlin.time.Duration::class -> jsonSchemaFromAnnotations(
-            annotations,
-            ::schemaRefForClass,
-            type = JsonType.STRING.orNullable(nullable),
-        )
-
         LocalDate::class -> jsonSchemaFromAnnotations(
             annotations,
             ::schemaRefForClass,
@@ -322,6 +329,15 @@ public class ReflectionJsonSchemaInference(
         )
 
         else -> null
+    }
+
+    private fun KClass<*>.underlyingValueClassTypeOrNull(): KType? {
+        val ctorParam = primaryConstructor?.parameters?.singleOrNull()
+            ?: return null
+
+        // Prefer the backing property type when available (better chance of having resolved type args)
+        val propType = memberProperties.firstOrNull { it.name == ctorParam.name }?.returnType
+        return propType ?: ctorParam.type
     }
 
     private fun KClass<*>.starProjectedTypeOrNull(): KType? = try {
