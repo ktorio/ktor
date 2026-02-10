@@ -77,7 +77,10 @@ public fun SerialDescriptor.buildJsonSchema(
     // For inline descriptors, use the delegate descriptor
     if (this.isInline) {
         return this.getElementDescriptor(0)
-            .buildJsonSchema(visiting = visiting)
+            .buildJsonSchema(
+                visiting = visiting,
+                includeAnnotations = includeAnnotations
+            )
     }
 
     return when (kind) {
