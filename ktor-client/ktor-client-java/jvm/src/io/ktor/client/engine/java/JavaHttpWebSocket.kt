@@ -82,11 +82,11 @@ internal class JavaHttpWebSocket(
 
     override var masking: Boolean
         get() = true
-        set(_) {}
+        set(_) = throw WebSocketException("Masking switch is not supported in Java engine.")
 
     override var maxFrameSize: Long
         get() = Long.MAX_VALUE
-        set(_) {}
+        set(_) = throw WebSocketException("Max frame size switch is not supported in Java engine.")
 
     override val incoming: ReceiveChannel<Frame>
         get() = _incoming

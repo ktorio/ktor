@@ -5,6 +5,7 @@
 package io.ktor.client.engine.darwin.internal
 
 import io.ktor.client.engine.darwin.*
+import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.date.*
@@ -45,7 +46,7 @@ internal class DarwinWebsocketSession(
 
     override var masking: Boolean
         get() = true
-        set(_) {}
+        set(_) = throw WebSocketException("Masking switch is not supported in Darwin engine.")
 
     @OptIn(ExperimentalForeignApi::class)
     override var maxFrameSize: Long
