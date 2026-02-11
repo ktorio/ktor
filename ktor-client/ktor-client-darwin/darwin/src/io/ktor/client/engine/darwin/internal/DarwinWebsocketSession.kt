@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.darwin.internal
@@ -8,13 +8,14 @@ import io.ktor.client.engine.darwin.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.date.*
-import io.ktor.utils.io.InternalAPI
+import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.websocket.*
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.UnsafeNumber
 import kotlinx.cinterop.convert
 import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
@@ -22,6 +23,7 @@ import kotlinx.coroutines.channels.consumeEach
 import kotlinx.io.readByteArray
 import platform.Foundation.*
 import platform.darwin.NSInteger
+import platform.posix.EMSGSIZE
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -204,7 +206,7 @@ internal class DarwinWebsocketSession(
             return
         }
 
-        val exception = DarwinHttpRequestException(error)
+        val exception = convertWebsocketError(error)
         response.completeExceptionally(exception)
         socketJob.completeExceptionally(exception)
     }
@@ -239,7 +241,7 @@ private suspend fun NSURLSessionWebSocketTask.receiveMessage(): NSURLSessionWebS
                     return@receiveMessageWithCompletionHandler
                 }
 
-                it.resumeWithException(DarwinHttpRequestException(error))
+                it.resumeWithException(convertWebsocketError(error))
                 return@receiveMessageWithCompletionHandler
             }
             if (message == null) {
@@ -254,3 +256,11 @@ private suspend fun NSURLSessionWebSocketTask.receiveMessage(): NSURLSessionWebS
 @OptIn(UnsafeNumber::class)
 @Suppress("REDUNDANT_CALL_OF_CONVERSION_METHOD")
 internal fun NSURLSessionTask.getStatusCode() = (response() as NSHTTPURLResponse?)?.statusCode?.toInt()
+
+@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+private fun convertWebsocketError(error: NSError): Exception = when {
+    error.domain == NSPOSIXErrorDomain && error.code.convert<Int>() == EMSGSIZE -> {
+        FrameTooBigException(frameSize = -1L, DarwinHttpRequestException(error))
+    }
+    else -> DarwinHttpRequestException(error)
+}
