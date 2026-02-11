@@ -37,8 +37,10 @@ internal class CurlWebSocketSession(
         set(_) {}
 
     override var maxFrameSize: Long
-        get() = Long.MAX_VALUE
-        set(_) {}
+        get() = websocket.maxFrameSize
+        set(value) {
+            websocket.maxFrameSize = value
+        }
 
     override val incoming: ReceiveChannel<Frame>
         get() = websocket.incoming

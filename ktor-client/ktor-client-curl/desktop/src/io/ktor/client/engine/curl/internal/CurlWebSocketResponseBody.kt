@@ -34,6 +34,17 @@ internal class CurlWebSocketResponseBody(
         get() = _incoming
 
     /**
+     * Maximum size of a WebSocket frame in bytes. Frames exceeding this size will cause
+     * the connection to be aborted with an error.
+     */
+    var maxFrameSize: Long = Long.MAX_VALUE
+
+    /**
+     * Exception that occurred during frame processing, to be propagated when closing the channel.
+     */
+    private var pendingException: Throwable? = null
+
+    /**
      * Buffer for collecting WebSocket frame data that libcurl splits across multiple write callbacks
      * due to its internal buffering (~4KB chunks). `null` when no frame is being collected.
      */
@@ -69,6 +80,13 @@ internal class CurlWebSocketResponseBody(
         val offset = meta.offset
         val bytesLeft = meta.bytesleft
 
+        val totalFrameSize = offset + chunk.size + bytesLeft
+        if (totalFrameSize > maxFrameSize) {
+            frameDataBuffer = null
+            pendingException = FrameTooBigException(totalFrameSize)
+            return false
+        }
+
         // Fast path: complete frame in a single chunk
         if (offset == 0L && bytesLeft == 0L) {
             return handleIncomingFrame(dataFrame(chunk, flags))
@@ -99,7 +117,8 @@ internal class CurlWebSocketResponseBody(
     override fun close(cause: Throwable?) {
         if (!closed.compareAndSet(expect = false, update = true)) return
         frameDataBuffer = null
-        _incoming.close()
+        val actualCause = pendingException ?: cause
+        _incoming.close(actualCause)
     }
 }
 
