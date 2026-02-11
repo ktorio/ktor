@@ -7,9 +7,9 @@ kotlinx-html = "0.12.0"
 kotlinx-datetime = "0.6.2"
 kotlinx-io = "0.8.2"
 coroutines = "1.10.2"
-atomicfu = "0.29.0"
+atomicfu = "0.31.0"
 serialization = "1.9.0"
-dokka = "2.1.0"
+dokka = "2.2.0-Beta"
 kover = "0.9.4"
 kotlinter = "5.2.0"
 kotlinx-browser = "0.5.0"
@@ -85,10 +85,10 @@ tomlj = "1.1.1"
 zstd-jni = "1.5.7-6"
 
 # Keep it in sync with build-settings-logic/settings.gradle.kts
-develocity = "4.0.3" # Should be compatible with our server: ge.jetbrains.com
+develocity = "4.2.2" # Should be compatible with our server: ge.jetbrains.com
 develocity-commonCustomUserData = "2.4.0"
 gradleDoctor = "0.12.1"
-mavenPublishing = "0.34.0"
+mavenPublishing = "0.36.0"
 
 android-compileSdk = "36"
 android-minSdk = "28"

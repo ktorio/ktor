@@ -44,7 +44,7 @@ private fun RepositoryHandler.configureRepositories() {
 
     exclusiveContent {
         forRepository {
-            maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap") { name = "KtorEAP" }
+            maven("https://packages.jetbrains.team/maven/p/ktor/eap") { name = "KtorEAP" }
         }
         filter { includeVersionByRegex("io.ktor", ".+", ".+-eap-\\d+") }
     }

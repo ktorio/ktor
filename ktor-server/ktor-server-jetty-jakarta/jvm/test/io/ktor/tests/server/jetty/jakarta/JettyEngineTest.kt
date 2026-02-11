@@ -13,7 +13,12 @@ class JettyCompressionTest :
 
 class JettyJakartaContentTest : ContentTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(
     Jetty
-)
+) {
+    @Ignore // KTOR-9263
+    override fun funkyChunked() {
+        super.funkyChunked()
+    }
+}
 
 class JettyHttpServerCommonTest :
     HttpServerCommonTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty) {

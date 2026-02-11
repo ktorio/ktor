@@ -138,6 +138,7 @@ class DescribeRouteTest {
 
         val routesResponse = client.get("/routes")
         val responseText = routesResponse.bodyAsText()
+        assertContains(responseText, "\"summary\": \"\"")
         assertContains(responseText, "\"X-First\"")
         assertContains(responseText, "\"X-Second\"")
     }
@@ -561,6 +562,42 @@ class DescribeRouteTest {
         assertEquals(1, security.size)
         assertEquals(true, security[0].containsKey("jwt-auth"))
         assertEquals(emptyList(), security[0]["jwt-auth"])
+    }
+
+    @Test
+    fun `hide removes branch of routing tree`() = testApplication {
+        install(ContentNegotiation) {
+            json(jsonFormat)
+        }
+        @OptIn(ExperimentalKtorApi::class)
+        routing {
+            route("/hidden") {
+                post("/foo") {
+                    call.respond("hidden")
+                }
+                route("/sub") {
+                    get {
+                        call.respond("hidden")
+                    }
+                }
+                get("/routes") {
+                    call.respond(
+                        OpenApiDoc(info = OpenApiInfo("Foo", "1.0.0")) +
+                            call.application.routingRoot.descendants()
+                    )
+                }
+            }.hide()
+
+            route("/showing") {
+                get("/messages") {
+                    call.respond(listOf(Message(1L, "Message", 128734L)))
+                }
+            }
+        }
+
+        val routesResponse = client.get("/hidden/routes")
+        val responseText = routesResponse.bodyAsText()
+        assertFalse("hidden" in responseText)
     }
 
     private fun TestApplicationBuilder.openApiTestRoutes(authProvider: String) {

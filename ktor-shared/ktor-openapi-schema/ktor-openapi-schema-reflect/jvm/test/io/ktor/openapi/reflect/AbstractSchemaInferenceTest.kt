@@ -14,9 +14,13 @@ import kotlinx.serialization.encodeToString
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 abstract class AbstractSchemaInferenceTest(
-    val inference: JsonSchemaInference
+    val inference: JsonSchemaInference,
+    val overrideKey: String,
 ) {
     private val yaml = Yaml(
         configuration = YamlConfiguration(
@@ -105,16 +109,30 @@ abstract class AbstractSchemaInferenceTest(
         )
     }
 
+    @Test
+    open fun `unsigned types`() =
+        assertSchemaMatches<UnsignedTypes>()
+
+    @Test
+    fun `time types`() =
+        assertSchemaMatches<TimeTypes>()
+
+    @Test
+    fun `value classes`() =
+        assertSchemaMatches<Email>()
+
     private inline fun <reified T : Any> assertSchemaMatches() {
         val schema = inference.jsonSchema<T>()
         val expected = readSchemaYaml<T>()
         assertEquals(expected, yaml.encodeToString(schema))
     }
 
-    private inline fun <reified T> readSchemaYaml(): String {
-        val expectedFileName = "/schema/${T::class.simpleName}.yaml"
-        val resource = this.javaClass.getResource(expectedFileName)
-            ?: error("Missing expected schema file: $expectedFileName")
+    private inline fun <reified T> readSchemaYaml(useFallback: Boolean = false): String {
+        val standardFile = "/schema/${T::class.simpleName}.yaml"
+        val overrideFile = "/schema/${T::class.simpleName}.$overrideKey.yaml"
+        val resource = this.javaClass.getResource(overrideFile)
+            ?: this.javaClass.getResource(standardFile)
+            ?: error("Missing expected schema file: $standardFile")
         return resource.readText().trim()
     }
 }
@@ -157,6 +175,19 @@ enum class Color {
 }
 
 @Serializable
+data class UnsignedTypes(
+    val unsignedInt: UInt,
+    val unsignedLong: ULong
+)
+
+@OptIn(ExperimentalTime::class)
+@Serializable
+data class TimeTypes(
+    val instant: Instant,
+    val duration: Duration
+)
+
+@Serializable
 sealed class Shape {
     @Serializable
     data class Circle(val radius: Double) : Shape()
@@ -174,7 +205,7 @@ data class AnnotatedUser(
     @Pattern("^[a-z0-9_]+$")
     val username: String,
     @Pattern(".+@.+\\..+")
-    val email: String,
+    val email: Email,
     @ReadOnly
     val createdAt: String
 )
@@ -197,4 +228,11 @@ data class LogicalOperatorsData(
 )
 
 @Serializable
-data class TreeNode(val name: String, val parent: TreeNode?)
+data class TreeNode(
+    val name: String,
+    val parent: TreeNode?
+)
+
+@JvmInline
+@Serializable
+value class Email(val value: String)
