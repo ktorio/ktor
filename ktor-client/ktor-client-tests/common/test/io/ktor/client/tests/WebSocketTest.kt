@@ -21,10 +21,15 @@ import io.ktor.utils.io.charsets.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.Json
 import kotlin.test.*
 import kotlin.time.Duration.Companion.seconds
 
 internal val ENGINES_WITHOUT_WS = listOf("Android", "Apache", "Apache5", "DarwinLegacy")
+internal val ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE = listOf("OkHttp", "Js", "Java", "Curl", "WinHttp")
+
+// TODO: KTOR-9328 Options `maxFrameSize` and `masking` are silently ignored on some engines
+internal val ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE_SILENTLY = listOf("Java", "Curl", "WinHttp")
 
 private const val TEST_SIZE: Int = 100
 
@@ -465,6 +470,112 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
 
                 val frame = incoming.receive() as Frame.Text
                 assertEquals("hello", frame.readText())
+            }
+        }
+    }
+
+    @Test
+    fun testEmptyFrame() = clientTests {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                send(Frame.Text(""))
+
+                val actual = incoming.receive()
+
+                assertTrue(actual is Frame.Text)
+                assertEquals("", actual.readText())
+            }
+        }
+    }
+
+    @Test
+    fun testReceiveLargeFrame() = clientTests {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            val payloadSize = 24000
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/text?size=$payloadSize") {
+                val frame = incoming.receive()
+
+                assertTrue(frame is Frame.Text, "Expected Frame.Text but got ${frame.frameType}")
+                assertTrue(frame.fin, "Expected fin=true but got fin=false")
+
+                val text = frame.readText()
+                assertEquals(payloadSize, text.length, "Unexpected payload size")
+            }
+        }
+    }
+
+    @Test
+    fun testMaxFrameSizeSupported() = clientTests(except(ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE)) {
+        config {
+            install(WebSockets) {
+                maxFrameSize = 10
+            }
+        }
+
+        val shortMessage = "abc"
+        val longMessage = "def".repeat(500)
+        test { client ->
+            // TODO: KTOR-9411 Darwin throws DarwinHttpRequestException instead of FrameTooBigException
+            // Replace Exception with FrameTooBigException after fix.
+            assertFailsWith<Exception> {
+                client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                    send(shortMessage)
+                    assertEquals(shortMessage, (incoming.receive() as Frame.Text).readText())
+                    send(longMessage)
+                    incoming.receive() // This should throw FrameTooBigException
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testMaxFrameSizeNotSupported() = clientTests(
+        only(ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE - ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE_SILENTLY)
+    ) {
+        config {
+            install(WebSockets) {
+                maxFrameSize = 10
+            }
+
+            test { client ->
+                val exception = assertFailsWith<WebSocketException> {
+                    client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                        fail("Unreachable")
+                    }
+                }
+                assertContains(exception.message!!, "Max frame size switch is not supported")
+            }
+        }
+    }
+
+    @Test
+    fun testWebSocketHeaders() = clientTests {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/headers") {
+                val actual = incoming.receive()
+
+                assertTrue(actual is Frame.Text)
+
+                val headersString = actual.readText()
+                val headers = Json.decodeFromString<Map<String, List<String>>>(headersString)
+
+                assertEquals(listOf("Upgrade"), headers["Connection"])
+                assertEquals(listOf("websocket"), headers["Upgrade"])
+                assertEquals(listOf("13"), headers["Sec-WebSocket-Version"])
+                val webSocketKey = assertNotNull(headers["Sec-WebSocket-Key"])
+                assertTrue(webSocketKey.single().isNotEmpty())
             }
         }
     }
