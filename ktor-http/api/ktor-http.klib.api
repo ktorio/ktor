@@ -205,6 +205,54 @@ abstract class io.ktor.http/HeaderValueWithParameters { // io.ktor.http/HeaderVa
     }
 }
 
+final class io.ktor.http.auth/DigestAlgorithm { // io.ktor.http.auth/DigestAlgorithm|null[0]
+    constructor <init>(kotlin/String, kotlin/String, kotlin/Boolean) // io.ktor.http.auth/DigestAlgorithm.<init>|<init>(kotlin.String;kotlin.String;kotlin.Boolean){}[0]
+
+    final val hashName // io.ktor.http.auth/DigestAlgorithm.hashName|{}hashName[0]
+        final fun <get-hashName>(): kotlin/String // io.ktor.http.auth/DigestAlgorithm.hashName.<get-hashName>|<get-hashName>(){}[0]
+    final val isSession // io.ktor.http.auth/DigestAlgorithm.isSession|{}isSession[0]
+        final fun <get-isSession>(): kotlin/Boolean // io.ktor.http.auth/DigestAlgorithm.isSession.<get-isSession>|<get-isSession>(){}[0]
+    final val name // io.ktor.http.auth/DigestAlgorithm.name|{}name[0]
+        final fun <get-name>(): kotlin/String // io.ktor.http.auth/DigestAlgorithm.name.<get-name>|<get-name>(){}[0]
+
+    final object Companion { // io.ktor.http.auth/DigestAlgorithm.Companion|null[0]
+        final val DEFAULT_ALGORITHMS // io.ktor.http.auth/DigestAlgorithm.Companion.DEFAULT_ALGORITHMS|{}DEFAULT_ALGORITHMS[0]
+            final fun <get-DEFAULT_ALGORITHMS>(): kotlin.collections/List<io.ktor.http.auth/DigestAlgorithm> // io.ktor.http.auth/DigestAlgorithm.Companion.DEFAULT_ALGORITHMS.<get-DEFAULT_ALGORITHMS>|<get-DEFAULT_ALGORITHMS>(){}[0]
+        final val MD5 // io.ktor.http.auth/DigestAlgorithm.Companion.MD5|{}MD5[0]
+            final fun <get-MD5>(): io.ktor.http.auth/DigestAlgorithm // io.ktor.http.auth/DigestAlgorithm.Companion.MD5.<get-MD5>|<get-MD5>(){}[0]
+        final val MD5_SESS // io.ktor.http.auth/DigestAlgorithm.Companion.MD5_SESS|{}MD5_SESS[0]
+            final fun <get-MD5_SESS>(): io.ktor.http.auth/DigestAlgorithm // io.ktor.http.auth/DigestAlgorithm.Companion.MD5_SESS.<get-MD5_SESS>|<get-MD5_SESS>(){}[0]
+        final val SHA_256 // io.ktor.http.auth/DigestAlgorithm.Companion.SHA_256|{}SHA_256[0]
+            final fun <get-SHA_256>(): io.ktor.http.auth/DigestAlgorithm // io.ktor.http.auth/DigestAlgorithm.Companion.SHA_256.<get-SHA_256>|<get-SHA_256>(){}[0]
+        final val SHA_256_SESS // io.ktor.http.auth/DigestAlgorithm.Companion.SHA_256_SESS|{}SHA_256_SESS[0]
+            final fun <get-SHA_256_SESS>(): io.ktor.http.auth/DigestAlgorithm // io.ktor.http.auth/DigestAlgorithm.Companion.SHA_256_SESS.<get-SHA_256_SESS>|<get-SHA_256_SESS>(){}[0]
+        final val SHA_512_256 // io.ktor.http.auth/DigestAlgorithm.Companion.SHA_512_256|{}SHA_512_256[0]
+            final fun <get-SHA_512_256>(): io.ktor.http.auth/DigestAlgorithm // io.ktor.http.auth/DigestAlgorithm.Companion.SHA_512_256.<get-SHA_512_256>|<get-SHA_512_256>(){}[0]
+        final val SHA_512_256_SESS // io.ktor.http.auth/DigestAlgorithm.Companion.SHA_512_256_SESS|{}SHA_512_256_SESS[0]
+            final fun <get-SHA_512_256_SESS>(): io.ktor.http.auth/DigestAlgorithm // io.ktor.http.auth/DigestAlgorithm.Companion.SHA_512_256_SESS.<get-SHA_512_256_SESS>|<get-SHA_512_256_SESS>(){}[0]
+
+        final fun from(kotlin/String): io.ktor.http.auth/DigestAlgorithm? // io.ktor.http.auth/DigestAlgorithm.Companion.from|from(kotlin.String){}[0]
+    }
+}
+
+final class io.ktor.http.auth/DigestQop { // io.ktor.http.auth/DigestQop|null[0]
+    constructor <init>(kotlin/String) // io.ktor.http.auth/DigestQop.<init>|<init>(kotlin.String){}[0]
+
+    final val value // io.ktor.http.auth/DigestQop.value|{}value[0]
+        final fun <get-value>(): kotlin/String // io.ktor.http.auth/DigestQop.value.<get-value>|<get-value>(){}[0]
+
+    final object Companion { // io.ktor.http.auth/DigestQop.Companion|null[0]
+        final val AUTH // io.ktor.http.auth/DigestQop.Companion.AUTH|{}AUTH[0]
+            final fun <get-AUTH>(): io.ktor.http.auth/DigestQop // io.ktor.http.auth/DigestQop.Companion.AUTH.<get-AUTH>|<get-AUTH>(){}[0]
+        final val AUTH_INT // io.ktor.http.auth/DigestQop.Companion.AUTH_INT|{}AUTH_INT[0]
+            final fun <get-AUTH_INT>(): io.ktor.http.auth/DigestQop // io.ktor.http.auth/DigestQop.Companion.AUTH_INT.<get-AUTH_INT>|<get-AUTH_INT>(){}[0]
+        final val DEFAULT_QOPS // io.ktor.http.auth/DigestQop.Companion.DEFAULT_QOPS|{}DEFAULT_QOPS[0]
+            final fun <get-DEFAULT_QOPS>(): kotlin.collections/List<io.ktor.http.auth/DigestQop> // io.ktor.http.auth/DigestQop.Companion.DEFAULT_QOPS.<get-DEFAULT_QOPS>|<get-DEFAULT_QOPS>(){}[0]
+
+        final fun from(kotlin/String): io.ktor.http.auth/DigestQop? // io.ktor.http.auth/DigestQop.Companion.from|from(kotlin.String){}[0]
+    }
+}
+
 final class io.ktor.http.content/ByteArrayContent : io.ktor.http.content/OutgoingContent.ByteArrayContent { // io.ktor.http.content/ByteArrayContent|null[0]
     constructor <init>(kotlin/ByteArray, io.ktor.http/ContentType? = ..., io.ktor.http/HttpStatusCode? = ...) // io.ktor.http.content/ByteArrayContent.<init>|<init>(kotlin.ByteArray;io.ktor.http.ContentType?;io.ktor.http.HttpStatusCode?){}[0]
 
@@ -1256,8 +1304,8 @@ sealed class io.ktor.http.auth/HttpAuthHeader { // io.ktor.http.auth/HttpAuthHea
     final object Companion { // io.ktor.http.auth/HttpAuthHeader.Companion|null[0]
         final fun basicAuthChallenge(kotlin/String, io.ktor.utils.io.charsets/Charset?): io.ktor.http.auth/HttpAuthHeader.Parameterized // io.ktor.http.auth/HttpAuthHeader.Companion.basicAuthChallenge|basicAuthChallenge(kotlin.String;io.ktor.utils.io.charsets.Charset?){}[0]
         final fun bearerAuthChallenge(kotlin/String, kotlin/String? = ...): io.ktor.http.auth/HttpAuthHeader // io.ktor.http.auth/HttpAuthHeader.Companion.bearerAuthChallenge|bearerAuthChallenge(kotlin.String;kotlin.String?){}[0]
+        final fun digestAuthChallenge(kotlin/String, kotlin/String = ..., kotlin.collections/List<kotlin/String> = ..., kotlin/String? = ..., kotlin/Boolean? = ..., io.ktor.http.auth/DigestAlgorithm = ..., io.ktor.utils.io.charsets/Charset? = ..., kotlin/Boolean = ..., kotlin.collections/List<kotlin/String> = ...): io.ktor.http.auth/HttpAuthHeader.Parameterized // io.ktor.http.auth/HttpAuthHeader.Companion.digestAuthChallenge|digestAuthChallenge(kotlin.String;kotlin.String;kotlin.collections.List<kotlin.String>;kotlin.String?;kotlin.Boolean?;io.ktor.http.auth.DigestAlgorithm;io.ktor.utils.io.charsets.Charset?;kotlin.Boolean;kotlin.collections.List<kotlin.String>){}[0]
         final fun digestAuthChallenge(kotlin/String, kotlin/String = ..., kotlin.collections/List<kotlin/String> = ..., kotlin/String? = ..., kotlin/Boolean? = ..., kotlin/String = ...): io.ktor.http.auth/HttpAuthHeader.Parameterized // io.ktor.http.auth/HttpAuthHeader.Companion.digestAuthChallenge|digestAuthChallenge(kotlin.String;kotlin.String;kotlin.collections.List<kotlin.String>;kotlin.String?;kotlin.Boolean?;kotlin.String){}[0]
-        final fun digestAuthChallenge(kotlin/String, kotlin/String = ..., kotlin.collections/List<kotlin/String> = ..., kotlin/String? = ..., kotlin/Boolean? = ..., kotlin/String = ..., io.ktor.utils.io.charsets/Charset? = ..., kotlin/Boolean = ..., kotlin.collections/List<kotlin/String> = ...): io.ktor.http.auth/HttpAuthHeader.Parameterized // io.ktor.http.auth/HttpAuthHeader.Companion.digestAuthChallenge|digestAuthChallenge(kotlin.String;kotlin.String;kotlin.collections.List<kotlin.String>;kotlin.String?;kotlin.Boolean?;kotlin.String;io.ktor.utils.io.charsets.Charset?;kotlin.Boolean;kotlin.collections.List<kotlin.String>){}[0]
     }
 
     final object Parameters { // io.ktor.http.auth/HttpAuthHeader.Parameters|null[0]

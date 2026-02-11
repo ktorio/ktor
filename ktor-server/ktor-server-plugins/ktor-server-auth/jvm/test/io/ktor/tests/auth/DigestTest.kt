@@ -123,7 +123,7 @@ class DigestTest {
 
         val p = "Circle Of Life"
         val userNameRealmPassword = "${digest.userName}:${digest.realm}:$p"
-        val digester = MessageDigest.getInstance(digest.algorithm ?: "MD5")
+        val digester = digest.digestAlgorithm.toDigester()
 
         assertEquals(
             digest.response,

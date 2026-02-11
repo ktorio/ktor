@@ -6,6 +6,8 @@ package io.ktor.tests.auth
 
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.http.auth.DigestAlgorithm
+import io.ktor.http.auth.DigestQop
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -36,8 +38,7 @@ class DigestRFC7616Test {
 
     private fun digest(algorithm: DigestAlgorithm, data: String, charset: Charset = Charsets.UTF_8): ByteArray {
         val digester = algorithm.toDigester()
-        digester.update(data.toByteArray(charset))
-        return digester.digest()
+        return digester.digest(data.toByteArray(charset))
     }
 
     private fun computeUserHash(username: String, realm: String, algorithm: DigestAlgorithm): String {
@@ -51,7 +52,7 @@ class DigestRFC7616Test {
         userName: String,
         digestUri: String,
         nonce: String,
-        algorithm: String?,
+        algorithm: String,
         cnonce: String,
         nc: String = "00000001",
         qop: String = "auth",
@@ -63,7 +64,7 @@ class DigestRFC7616Test {
         nonce = nonce,
         opaque = null,
         nonceCount = nc,
-        algorithm = algorithm,
+        digestAlgorithm = DigestAlgorithm.from(algorithm)!!,
         response = "",
         cnonce = cnonce,
         qop = qop,
@@ -96,14 +97,12 @@ class DigestRFC7616Test {
         users: Map<String, String> = mapOf("user" to "pass"),
         userHashResolver: UserHashResolverFunction? = null,
         strictRfc7616Mode: Boolean = false,
-        charset: java.nio.charset.Charset? = null
     ) {
         install(Authentication) {
             digest {
                 this.realm = realm
                 this.algorithms = algorithms
                 this.supportedQop = qop
-                charset?.let { this.charset = it }
                 if (strictRfc7616Mode) strictRfc7616Mode()
                 userHashResolver?.let { resolver -> this.userHashResolver(resolver) }
                 digestProvider { userName, providerRealm, algorithm ->
@@ -151,7 +150,7 @@ class DigestRFC7616Test {
         val realmMd5 = "testrealm@host.com"
         val passwordMd5 = "Circle Of Life"
         val ha1Md5 = digest(DigestAlgorithm.MD5, "$userName:$realmMd5:$passwordMd5", Charsets.ISO_8859_1)
-        val credentialMd5 = createCredential(realmMd5, userName, "/dir/index.html", nonce, null, cnonce)
+        val credentialMd5 = createCredential(realmMd5, userName, "/dir/index.html", nonce, "MD5", cnonce)
         assertEquals("6629fae49393a05397450978507c4ef1", hex(credentialMd5.expectedDigest(HttpMethod.Get, ha1Md5)))
     }
 
@@ -191,8 +190,6 @@ class DigestRFC7616Test {
         assertEquals(hex(expectedMd5), hex(credentialMd5Sess.expectedDigest(HttpMethod.Get, baseHa1Md5)))
     }
 
-    // ==================== QoP Tests ====================
-
     @Test
     fun testQopAuthInt() {
         val realm = "api@example.org"
@@ -206,7 +203,7 @@ class DigestRFC7616Test {
 
         val credential = DigestCredential(
             realm = realm, userName = "user", digestUri = "/api/data", nonce = "abc123",
-            opaque = null, nonceCount = "00000001", algorithm = "SHA-256",
+            opaque = null, nonceCount = "00000001", digestAlgorithm = DigestAlgorithm.SHA_256,
             response = hex(expectedResponse), cnonce = "xyz789", qop = "auth-int"
         )
 
@@ -227,8 +224,6 @@ class DigestRFC7616Test {
         assertTrue(wwwAuth.contains("auth"))
         assertTrue(wwwAuth.contains("auth-int"))
     }
-
-    // ==================== Userhash Tests ====================
 
     @Test
     fun testComputeUserHash() {
@@ -319,7 +314,7 @@ class DigestRFC7616Test {
 
     @Test
     fun testUserhashAdvertisedInChallenge() = testApplication {
-        setupDigestAuth(userHashResolver = { _: String, _: String, _: DigestAlgorithm -> "userhash" })
+        setupDigestAuth(userHashResolver = { _, _, _ -> "userhash" })
 
         val response = client.get("/")
         assertEquals(HttpStatusCode.Unauthorized, response.status)
@@ -339,8 +334,6 @@ class DigestRFC7616Test {
         assertTrue(challenges.any { it.contains("algorithm=MD5") })
     }
 
-    // ==================== Header Syntax Tests ====================
-
     @Test
     fun testChallengeHeaderSyntax() = testApplication {
         setupDigestAuth()
@@ -352,8 +345,6 @@ class DigestRFC7616Test {
         assertFalse(wwwAuth.contains("algorithm=\"SHA-256\""), "algorithm should not be quoted")
         assertTrue(wwwAuth.contains("qop=\"auth\""), "qop should be quoted per RFC 7616")
     }
-
-    // ==================== Authentication-Info Header Tests ====================
 
     @Test
     fun testAuthenticationInfoHeader() = testApplication {
@@ -419,11 +410,9 @@ class DigestRFC7616Test {
         assertTrue(authInfo.contains("rspauth=\"$expectedRspauth\""))
     }
 
-    // ==================== Charset Tests ====================
-
     @Test
     fun testCharsetUTF8InChallenge() = testApplication {
-        setupDigestAuth(charset = Charsets.UTF_8)
+        setupDigestAuth()
 
         val response = client.get("/")
         assertEquals(HttpStatusCode.Unauthorized, response.status)
@@ -435,8 +424,7 @@ class DigestRFC7616Test {
         val config = DigestAuthenticationProvider.Config(name = "digest-auth", description = null).apply {
             strictRfc7616Mode()
         }
-        assertEquals(2, config.algorithms.size)
-        assertContains(config.algorithms, DigestAlgorithm.SHA_256)
+        assertEquals(1, config.algorithms.size)
         assertContains(config.algorithms, DigestAlgorithm.SHA_512_256)
         assertEquals(config.charset, Charsets.UTF_8)
     }

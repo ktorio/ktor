@@ -18,7 +18,7 @@ import java.security.MessageDigest
  * @see [digest]
  *
  * @property realm A digest authentication realm identifying the protection space
- * @property userName The username, or userhash if [userHash] is true
+ * @property userName The username, or userHash if [userHash] is true
  * @property digestUri The request URI (an absolute URI or `*`)
  * @property nonce A server-specified unique value for this authentication round
  * @property opaque A string of data that should be returned by the client unchanged
@@ -28,7 +28,6 @@ import java.security.MessageDigest
  * @property cnonce Client nonce, must be sent if [qop] is specified
  * @property qop Quality of protection ("auth" or "auth-int")
  * @property userHash Whether the [userName] field contains a hashed username instead of plaintext
- * @property charset The character encoding used (typically "UTF-8" or "ISO-8859-1")
  */
 public class DigestCredential(
     public val realm: String,
@@ -37,13 +36,14 @@ public class DigestCredential(
     public val nonce: String,
     public val opaque: String?,
     public val nonceCount: String?,
-    public val algorithm: String?,
+    public val digestAlgorithm: DigestAlgorithm,
     public val response: String,
     public val cnonce: String?,
     public val qop: String?,
     public val userHash: Boolean = false,
-    public val charset: Charset = Charsets.ISO_8859_1
+    public val charset: Charset = Charsets.UTF_8
 ) {
+
     @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
     public constructor(
         realm: String,
@@ -56,11 +56,15 @@ public class DigestCredential(
         response: String,
         cnonce: String?,
         qop: String?,
-    ) : this(realm, userName, digestUri, nonce, opaque, nonceCount, algorithm, response, cnonce, qop)
+    ) : this(
+        realm, userName, digestUri, nonce, opaque, nonceCount, algorithm.toDigestAlgorithm(), response, cnonce, qop
+    )
 
-    /**
-     * Creates a copy of this DigestCredential, optionally replacing some properties.
-     */
+    @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
+    public val DigestCredential.algorithm: String?
+        get() = digestAlgorithm.name
+
+    @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
     public fun copy(
         realm: String = this.realm,
         userName: String = this.userName,
@@ -68,87 +72,138 @@ public class DigestCredential(
         nonce: String = this.nonce,
         opaque: String? = this.opaque,
         nonceCount: String? = this.nonceCount,
-        algorithm: String? = this.algorithm,
+        algorithm: String? = this.digestAlgorithm.name,
         response: String = this.response,
         cnonce: String? = this.cnonce,
         qop: String? = this.qop
     ): DigestCredential = DigestCredential(
-        realm, userName, digestUri, nonce, opaque, nonceCount, algorithm,
-        response, cnonce, qop, userHash, charset
+        realm,
+        userName,
+        digestUri,
+        nonce,
+        opaque,
+        nonceCount,
+        algorithm.toDigestAlgorithm(),
+        response,
+        cnonce,
+        qop,
+        userHash,
+        charset
     )
 
-    /**
-     * Returns the values of all properties in the order they were declared.
-     */
+    public fun copy(
+        realm: String = this.realm,
+        userName: String = this.userName,
+        digestUri: String = this.digestUri,
+        nonce: String = this.nonce,
+        opaque: String? = this.opaque,
+        nonceCount: String? = this.nonceCount,
+        digestAlgorithm: DigestAlgorithm = this.digestAlgorithm,
+        response: String = this.response,
+        cnonce: String? = this.cnonce,
+        qop: String? = this.qop,
+        userHash: Boolean = this.userHash,
+        charset: Charset = this.charset
+    ): DigestCredential = DigestCredential(
+        realm,
+        userName,
+        digestUri,
+        nonce,
+        opaque,
+        nonceCount,
+        digestAlgorithm,
+        response,
+        cnonce,
+        qop,
+        userHash,
+        charset
+    )
+
+    @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
     public operator fun component1(): String = realm
+
+    @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
     public operator fun component2(): String = userName
+
+    @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
     public operator fun component3(): String = digestUri
+
+    @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
     public operator fun component4(): String = nonce
+
+    @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
     public operator fun component5(): String? = opaque
+
+    @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
     public operator fun component6(): String? = nonceCount
-    public operator fun component7(): String? = algorithm
+
+    @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
+    public operator fun component7(): String = digestAlgorithm.name
+
+    @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
     public operator fun component8(): String = response
+
+    @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
     public operator fun component9(): String? = cnonce
+
+    @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
     public operator fun component10(): String? = qop
+
+    override fun toString(): String {
+        return "DigestCredential(realm='$realm', userName='$userName', digestUri='$digestUri', nonce='$nonce', " +
+            "opaque=$opaque, nonceCount=$nonceCount, algorithm=$digestAlgorithm, response='$response', " +
+            "cnonce=$cnonce, qop=$qop, userHash=$userHash)"
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is DigestCredential) return false
 
+        if (userHash != other.userHash) return false
         if (realm != other.realm) return false
         if (userName != other.userName) return false
         if (digestUri != other.digestUri) return false
         if (nonce != other.nonce) return false
         if (opaque != other.opaque) return false
         if (nonceCount != other.nonceCount) return false
-        if (algorithm != other.algorithm) return false
+        if (digestAlgorithm != other.digestAlgorithm) return false
         if (response != other.response) return false
         if (cnonce != other.cnonce) return false
         if (qop != other.qop) return false
-        if (userHash != other.userHash) return false
         if (charset != other.charset) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = realm.hashCode()
+        var result = userHash.hashCode()
+        result = 31 * result + realm.hashCode()
         result = 31 * result + userName.hashCode()
         result = 31 * result + digestUri.hashCode()
         result = 31 * result + nonce.hashCode()
         result = 31 * result + (opaque?.hashCode() ?: 0)
         result = 31 * result + (nonceCount?.hashCode() ?: 0)
-        result = 31 * result + (algorithm?.hashCode() ?: 0)
+        result = 31 * result + digestAlgorithm.hashCode()
         result = 31 * result + response.hashCode()
         result = 31 * result + (cnonce?.hashCode() ?: 0)
         result = 31 * result + (qop?.hashCode() ?: 0)
-        result = 31 * result + userHash.hashCode()
         result = 31 * result + charset.hashCode()
         return result
     }
-
-    override fun toString(): String {
-        return "DigestCredential(" +
-            "realm='$realm', " +
-            "userName='$userName', " +
-            "digestUri='$digestUri', " +
-            "nonce='$nonce', " +
-            "opaque=$opaque, " +
-            "nonceCount=$nonceCount, " +
-            "algorithm=$algorithm, " +
-            "response='$response', " +
-            "cnonce=$cnonce, " +
-            "qop=$qop, " +
-            "userHash=$userHash, " +
-            "charset=$charset" +
-            ")"
-    }
 }
 
-// Algorithm is optional in RFC 2617 (MD5 is used by default), but required in RFC 7616
-@Suppress("Deprecation")
-internal val DigestCredential.digestAlgorithm
-    get() = algorithm?.let { DigestAlgorithm.from(it) } ?: DigestAlgorithm.MD5
+// helper for deprecated methods
+private fun String?.toDigestAlgorithm(): DigestAlgorithm =
+    requireNotNull(DigestAlgorithm.from(this ?: "MD5")) { "Unsupported algorithm: $this" }
+
+/**
+ * Creates a [MessageDigest] instance for this algorithm.
+ *
+ * @return A new MessageDigest configured for this algorithm's hash function
+ * @throws [java.security.NoSuchAlgorithmException] If the algorithm is not supported by the JVM
+ */
+public fun DigestAlgorithm.toDigester(): MessageDigest =
+    MessageDigest.getInstance(hashName)
 
 internal val DigestCredential.digester
     get() = digestAlgorithm.toDigester()
@@ -169,21 +224,26 @@ public fun HttpAuthHeader.Parameterized.toDigestCredential(
         username != null -> username
         else -> error("Missing username parameter in digest authentication header")
     }
-    val charset = parameter("charset")?.let { Charsets.forName(it) } ?: defaultCharset
+    val algorithmName = parameter("algorithm") ?: "MD5"
+    val algorithm = DigestAlgorithm.from(algorithmName) ?: error("Invalid algorithm in digest authentication header")
+    val charsetParam = parameter("charset")
+    require(charsetParam == null || charsetParam == Charsets.UTF_8.name()) {
+        "Unsupported charset in digest authentication header"
+    }
 
     return DigestCredential(
-        parameter("realm")!!,
+        parameter("realm") ?: error("Missing realm parameter in digest authentication header"),
         decodedUserName,
-        parameter("uri")!!,
-        parameter("nonce")!!,
+        parameter("uri") ?: error("Missing uri parameter in digest authentication header"),
+        parameter("nonce") ?: error("Missing nonce parameter in digest authentication header"),
         parameter("opaque"),
         parameter("nc"),
-        parameter("algorithm"),
-        parameter("response")!!,
+        algorithm,
+        parameter("response") ?: error("Missing response parameter in digest authentication header"),
         parameter("cnonce"),
         parameter("qop"),
         userHash,
-        charset
+        charsetParam?.let { Charsets.UTF_8 } ?: defaultCharset
     )
 }
 
@@ -198,8 +258,7 @@ internal fun decodeHeaderParameterWithEncoding(value: String): String {
     }
     val charsetName = value.substring(0, firstQuoteIndex)
     val encodedValue = value.substring(lastQuoteIndex + 1)
-    val charset = runCatching { Charsets.forName(charsetName) }
-        .getOrDefault(Charsets.UTF_8)
+    val charset = runCatching { Charsets.forName(charsetName) }.getOrDefault(Charsets.UTF_8)
     return encodedValue.decodeURLPart(charset = charset)
 }
 
@@ -213,6 +272,9 @@ public suspend fun DigestCredential.verifier(
     method: HttpMethod,
     userNameRealmPasswordDigest: suspend (String, String) -> ByteArray?
 ): Boolean {
+    check(!userHash) {
+        "verifier() does not support userhash credentials; resolve the username first"
+    }
     val userNameRealmPasswordDigestResult = userNameRealmPasswordDigest(userName, realm)
     // here we do null-check in the end because it should always be time-constant comparison due to security reasons
     val ha1 = userNameRealmPasswordDigestResult ?: ByteArray(0)
@@ -319,7 +381,7 @@ internal fun DigestCredential.computeHA1(userNameRealmPasswordDigest: ByteArray)
  * @param nextNonce The next nonce value for the client to use
  * @param responseBodyHash Optional hash of the response body (must be specified when qop is auth-int)
  * @return The formatted Authentication-Info header value
- * @throws NullPointerException if [responseBodyHash] is not specified but [qop] is auth-int
+ * @throws NullPointerException if [responseBodyHash] is not specified but qop is auth-int
  */
 internal fun DigestCredential.buildAuthenticationInfoHeader(
     ha1: ByteArray,

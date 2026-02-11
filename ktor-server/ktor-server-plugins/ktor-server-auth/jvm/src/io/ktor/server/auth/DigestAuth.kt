@@ -37,19 +37,21 @@ public class DigestAuthenticationProvider internal constructor(
 
     private val realm: String = config.realm
 
-    private val algorithms: List<DigestAlgorithm> = config.algorithms
-
-    private val defaultAlgorithm: DigestAlgorithm = algorithms.firstOrNull() ?: DigestAlgorithm.SHA_512_256
+    private val algorithms: List<DigestAlgorithm> = config.algorithms.also {
+        require(it.isNotEmpty()) { "At least one algorithm must be specified" }
+    }
 
     private val qopValues = config.supportedQop.map { it.value }
 
-    private val charset: Charset? = config.charset
+    private val charset: Charset = config.charset
 
     private val userHashResolver: UserHashResolverFunction? = config.userHashResolver
 
     private val nonceManager: NonceManager = config.nonceManager
 
-    private val userNameRealmPasswordDigestProvider: DigestProviderFunctionV2 = config.digestProvider
+    private val userNameRealmPasswordDigestProvider: DigestProviderFunctionV2 = requireNotNull(config.digestProvider) {
+        "Digest provider function should be specified"
+    }
 
     private val authenticationFunction: AuthenticationFunction<DigestCredential> = config.authenticationFunction
 
@@ -64,15 +66,13 @@ public class DigestAuthenticationProvider internal constructor(
             }
         }
 
-        val algorithmName = (credentials?.algorithm ?: defaultAlgorithm.algorithmName)
-        val algorithm = DigestAlgorithm.from(algorithmName)
-
         // Store HA1 for use in the Authentication-Info header
         var verifiedHa1: ByteArray? = null
         var verifiedBodyHash: ByteArray? = null
 
-        val verify: suspend (DigestCredential, String) -> Boolean = { credential, actualUserName ->
-            val userDigest = userNameRealmPasswordDigestProvider(actualUserName, credential.realm, algorithm!!)
+        val verify: suspend (DigestCredential) -> Boolean = { credential ->
+            val userDigest =
+                userNameRealmPasswordDigestProvider(credential.userName, credential.realm, credential.digestAlgorithm)
             val ha1 = credential.computeHA1(userNameRealmPasswordDigest = userDigest ?: ByteArray(0))
             val entityBodyHash = when {
                 credentials?.qop == DigestQop.AUTH_INT.value -> call.computeBodyHash(credential.digester)
@@ -83,26 +83,21 @@ public class DigestAuthenticationProvider internal constructor(
             credential.verifyWithHA1(call.request.local.method, ha1, entityBodyHash) && userDigest != null
         }
 
-        val principal = credentials?.let { credential ->
-            // Resolve actual username when userhash is enabled
-            val resolvedUserName: String? = when {
-                algorithm == null -> null
-                credential.userHash -> userHashResolver?.invoke(credentials.userName, credentials.realm, algorithm)
-                else -> credentials.userName
-            }
+        suspend fun DigestCredential.resolveUserHash(): DigestCredential? {
+            if (!userHash) return this
+            val userName = userHashResolver?.invoke(userName, realm, digestAlgorithm) ?: return null
+            return copy(userName = userName, userHash = false)
+        }
 
-            if (resolvedUserName != null &&
-                algorithms.any { it == algorithm } &&
+        val principal = credentials?.let { c ->
+            val credential = c.resolveUserHash() ?: return@let null
+            if (algorithms.any { it === credential.digestAlgorithm } &&
                 credential.realm == realm &&
                 nonceManager.verifyNonce(credential.nonce) &&
                 validateQop(credential.qop) &&
-                verify(credential, resolvedUserName)
+                verify(credential)
             ) {
-                val credentialForAuth = when {
-                    credential.userHash -> credential.copy(userName = resolvedUserName)
-                    else -> credential
-                }
-                call.authenticationFunction(credentialForAuth)
+                call.authenticationFunction(credential)
             } else {
                 null
             }
@@ -120,12 +115,12 @@ public class DigestAuthenticationProvider internal constructor(
                     val supportsUserHash = userHashResolver != null
                     val challenges = algorithms.map { algorithm ->
                         HttpAuthHeader.digestAuthChallenge(
-                            realm,
-                            algorithm = algorithm.algorithmName,
                             nonce = nonceManager.newNonce(),
-                            charset = charset,
                             userhash = supportsUserHash,
-                            qop = qopValues
+                            charset = charset.takeIf { it == Charsets.UTF_8 }, // only UTF-8 can be advertised
+                            algorithm = algorithm,
+                            qop = qopValues,
+                            realm = realm
                         )
                     }
                     call.respond(UnauthorizedResponse(*challenges.toTypedArray()))
@@ -180,10 +175,7 @@ public class DigestAuthenticationProvider internal constructor(
         name: String?,
         description: String?
     ) : AuthenticationProvider.Config(name, description) {
-        internal var digestProvider: DigestProviderFunctionV2 = { userName, realm, algorithm ->
-            val digester = algorithm.toDigester()
-            digester.digest("$userName:$realm".toByteArray(Charsets.UTF_8))
-        }
+        internal var digestProvider: DigestProviderFunctionV2? = null
 
         internal var authenticationFunction: AuthenticationFunction<DigestCredential> = { UserIdPrincipal(it.userName) }
 
@@ -200,14 +192,11 @@ public class DigestAuthenticationProvider internal constructor(
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.DigestAuthenticationProvider.Config.algorithmName)
          */
         @Deprecated("Use algorithms instead", ReplaceWith("algorithms"))
-        public var algorithmName: String?
-            get() = algorithms.firstOrNull()?.hashName
+        public var algorithmName: String
+            get() = algorithms.first().hashName
             set(value) {
-                algorithms = when {
-                    value == null -> listOf()
-                    else -> DigestAlgorithm.from(value)?.let { listOf(it) }
-                        ?: error("Unsupported digest algorithm: $value")
-                }
+                val digestAlgorithm = DigestAlgorithm.from(value) ?: error("Unsupported digest algorithm: $value")
+                algorithms = listOf(digestAlgorithm)
             }
 
         /**
@@ -226,7 +215,6 @@ public class DigestAuthenticationProvider internal constructor(
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.DigestAuthenticationProvider.Config.algorithms)
          */
-        @Suppress("DEPRECATION")
         public var algorithms: List<DigestAlgorithm> = defaultAlgorithms
 
         /**
@@ -252,7 +240,7 @@ public class DigestAuthenticationProvider internal constructor(
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.DigestAuthenticationProvider.Config.charset)
          */
-        public var charset: Charset? = null
+        public var charset: Charset = Charsets.UTF_8
 
         internal var userHashResolver: UserHashResolverFunction? = null
 
@@ -334,19 +322,19 @@ public class DigestAuthenticationProvider internal constructor(
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.DigestAuthenticationProvider.Config.strictRfc7616Mode)
          */
         public fun strictRfc7616Mode() {
-            if (algorithms != defaultAlgorithms) {
-                LOGGER.warn("Defined algorithms are overridden in strictRfc7616Mode")
+            @Suppress("DEPRECATION")
+            if (DigestAlgorithm.MD5 in algorithms) {
+                if (algorithms !== defaultAlgorithms) {
+                    LOGGER.warn("MD5 algorithms are overridden in strictRfc7616Mode")
+                }
+                algorithms = algorithms.filter { it != DigestAlgorithm.MD5 && it != DigestAlgorithm.MD5_SESS }
             }
-            if (charset != null && charset != Charsets.UTF_8) {
+            if (charset != Charsets.UTF_8) {
                 LOGGER.warn("Defined charset is overridden in strictRfc7616Mode")
             }
-            algorithms = strictAlgorithms
-            charset = Charsets.UTF_8
         }
 
         internal companion object {
-            val strictAlgorithms = listOf(DigestAlgorithm.SHA_512_256, DigestAlgorithm.SHA_256)
-
             @Suppress("DEPRECATION")
             val defaultAlgorithms = listOf(DigestAlgorithm.SHA_512_256, DigestAlgorithm.MD5)
         }
