@@ -29,11 +29,13 @@ import io.ktor.server.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
 import kotlinx.io.readByteArray
 import kotlin.coroutines.AbstractCoroutineContextElement
 import kotlin.coroutines.CoroutineContext
 import kotlin.test.*
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 import kotlin.use
 
 abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
@@ -839,6 +841,42 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
             assertEquals("text/event-stream", headers[HttpHeaders.ContentType])
             assertEquals("data: hello", bodyAsText().trim())
         }
+    }
+
+    @Test
+    open fun testFlushDuringActiveSSEConnection() = runTest {
+        val sseIsActive = Channel<Unit>(Channel.UNLIMITED)
+
+        createAndStartServer {
+            application.install(SSE)
+            application.routing {
+                sse("/sse") {
+                    send("active")
+                    sseIsActive.send(Unit)
+                    delay(5.seconds)
+                }
+                get("/regular") {
+                    sseIsActive.receive()
+                    call.respondText("ok")
+                }
+            }
+        }
+
+        val sseJob = launch {
+            withUrl("/sse", {
+                header(HttpHeaders.Accept, "text/event-stream")
+            }) {
+                bodyAsText()
+            }
+        }
+
+        withUrl("/regular") {
+            withTimeout(3.seconds) {
+                assertEquals("ok", bodyAsText())
+            }
+        }
+
+        sseJob.cancelAndJoin()
     }
 
     @Test
