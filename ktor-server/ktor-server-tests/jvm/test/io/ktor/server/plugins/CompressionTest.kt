@@ -909,7 +909,7 @@ class CompressionTest {
                 val body = call.receive<ByteArray>()
 
                 assertNull(call.request.headers[HttpHeaders.ContentEncoding])
-                assertContentEquals(compressed, body)
+                assertContentEquals(textToCompressAsBytes, body)
 
                 call.respond(textToCompressAsBytes)
             }
@@ -936,7 +936,7 @@ class CompressionTest {
 
                 assertEquals("gzip", call.request.appliedDecoders.first())
                 assertNull(call.request.headers[HttpHeaders.ContentEncoding])
-                assertContentEquals(compressed, body)
+                assertContentEquals(textToCompressAsBytes, body)
 
                 call.respond(textToCompressAsBytes)
             }
