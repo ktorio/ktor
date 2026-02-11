@@ -5,6 +5,7 @@
 package io.ktor.client.engine.curl.internal
 
 import io.ktor.client.engine.curl.*
+import io.ktor.client.plugins.websocket.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.websocket.*
@@ -34,7 +35,7 @@ internal class CurlWebSocketSession(
     override val coroutineContext: CoroutineContext = callContext + socketJob + CoroutineName("curl-ws")
     override var masking: Boolean
         get() = true
-        set(_) {}
+        set(_) = throw WebSocketException("Masking switch is not supported in Curl engine.")
 
     override var maxFrameSize: Long
         get() = websocket.maxFrameSize
