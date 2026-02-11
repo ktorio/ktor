@@ -1,5 +1,8 @@
 type: object
 title: io.ktor.openapi.reflect.Shape
+oneOf:
+  - $ref: "#/components/schemas/Circle"
+  - $ref: "#/components/schemas/Rectangle"
 discriminator:
   propertyName: type
   mapping:

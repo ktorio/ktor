@@ -134,15 +134,19 @@ public fun SerialDescriptor.buildJsonSchema(
             if (elementsCount == 2) {
                 val discriminatorProperty = getElementName(0)
                 val value = getElementDescriptor(1)
-                val sealedTypes = (0..<value.elementsCount).associate { i ->
-                    value.getElementName(i) to ReferenceOr.schema(value.getElementName(i).substringAfterLast('.')).ref
+                val elementNamesList = (0..<value.elementsCount).map(value::getElementName)
+                val sealedTypeRefs = elementNamesList.map { element ->
+                    ReferenceOr.schema(element.substringAfterLast('.'))
                 }
+                val discriminatorMapping = elementNamesList.zip(sealedTypeRefs.map { it.ref }).toMap()
+
                 jsonSchemaFromAnnotations(
                     annotations = annotations,
                     reflectSchema = reflectJsonSchema,
                     type = JsonType.OBJECT.orNullable(isNullable),
                     title = serialName.takeIf { includeTitle },
-                    discriminator = JsonSchemaDiscriminator(discriminatorProperty, sealedTypes),
+                    oneOf = sealedTypeRefs,
+                    discriminator = JsonSchemaDiscriminator(discriminatorProperty, discriminatorMapping),
                 )
             } else {
                 jsonSchemaFromAnnotations(
@@ -282,6 +286,7 @@ public fun jsonSchemaFromAnnotations(
     enum: List<GenericElement?>? = null,
     format: String? = null,
     discriminator: JsonSchemaDiscriminator? = null,
+    oneOf: List<ReferenceOr<JsonSchema>>? = null,
 ): JsonSchema {
     fun parseJsonLiteralToGenericElement(text: String): GenericElement {
         val element: JsonElement = Json.parseToJsonElement(text)
@@ -318,7 +323,7 @@ public fun jsonSchemaFromAnnotations(
             ?.takeIf { it.isNotEmpty() },
         oneOf = annotations.firstInstanceOf<OneOf>()?.value
             ?.map { it.reflectSchema() }
-            ?.takeIf { it.isNotEmpty() },
+            ?.takeIf { it.isNotEmpty() } ?: oneOf,
         not = annotations.firstInstanceOf<Not>()?.value?.reflectSchema(),
         properties = properties,
         additionalProperties =

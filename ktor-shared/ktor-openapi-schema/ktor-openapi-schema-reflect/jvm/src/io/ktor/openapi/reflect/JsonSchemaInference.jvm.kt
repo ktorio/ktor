@@ -170,18 +170,20 @@ public class ReflectionJsonSchemaInference(
             // Sealed classes
             if (kClass.isSealed) {
                 val sealedSubclasses = kClass.sealedSubclasses
-                val mapping = sealedSubclasses
+                val discriminatorMapping = sealedSubclasses
                     .filter { it.qualifiedName != null && it.simpleName != null }
                     .associate { subclass ->
                         subclass.qualifiedName!! to "#/components/schemas/${subclass.simpleName}"
                     }
+                val sealedReferences = discriminatorMapping.values.map { ReferenceOr.Reference(it) }
 
                 return jsonSchemaFromAnnotations(
                     title = adapter.getName(type),
                     annotations = includeAnnotations + kClass.annotations,
                     reflectSchema = ::schemaRefForClass,
                     type = JsonType.OBJECT.orNullable(nullable),
-                    discriminator = JsonSchemaDiscriminator("type", mapping),
+                    oneOf = sealedReferences,
+                    discriminator = JsonSchemaDiscriminator("type", discriminatorMapping),
                 )
             }
 
