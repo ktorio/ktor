@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.test.base
@@ -24,7 +24,13 @@ private typealias ClientTestFailure = TestFailure<HttpClientEngineFactory<*>>
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.test.base.ClientLoader)
  */
-abstract class ClientLoader(private val timeout: Duration = 1.minutes) {
+abstract class ClientLoader(
+    rule: EngineSelectionRule = EngineSelectionRule { true },
+    private val timeout: Duration = 1.minutes,
+) {
+
+    private val engines = enginesToTest.filter { rule.shouldRun(it.engineName) }
+
     /**
      * Perform test against all clients from dependencies.
      *
@@ -36,7 +42,7 @@ abstract class ClientLoader(private val timeout: Duration = 1.minutes) {
         timeout: Duration = this.timeout,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
     ): TestResult {
-        val (selectedEngines, skippedEngines) = enginesToTest
+        val (selectedEngines, skippedEngines) = engines
             .partition { rule.shouldRun(it.engineName) }
         val reporter = TestReporter()
 
@@ -88,20 +94,21 @@ abstract class ClientLoader(private val timeout: Duration = 1.minutes) {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.test.base.ClientLoader.only)
      */
-    fun only(engine: String): EngineSelectionRule {
-        val pattern = EnginePattern.parse(engine)
-        return EngineSelectionRule { pattern.matches(it) }
-    }
+    fun only(engine: String): EngineSelectionRule = only(listOf(engine))
 
     /**
      * Includes the set of [engines] for the test
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.test.base.ClientLoader.only)
      */
-    fun only(vararg engines: String): EngineSelectionRule {
-        val includePatterns = engines.map(EnginePattern::parse)
-        return EngineSelectionRule { engineName -> includePatterns.any { it.matches(engineName) } }
-    }
+    fun only(vararg engines: String): EngineSelectionRule = only(engines.asList())
+
+    /**
+     * Includes the set of [engines] for the test
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.test.base.ClientLoader.only)
+     */
+    fun only(engines: List<String>): EngineSelectionRule = EngineSelectionRule.only(engines)
 
     /**
      * Excludes the specified [engines] from test execution.
@@ -123,10 +130,7 @@ abstract class ClientLoader(private val timeout: Duration = 1.minutes) {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.test.base.ClientLoader.except)
      */
-    fun except(engines: List<String>): EngineSelectionRule {
-        val skipPatterns = engines.map(EnginePattern::parse)
-        return EngineSelectionRule { engineName -> skipPatterns.none { it.matches(engineName) } }
-    }
+    fun except(engines: List<String>): EngineSelectionRule = EngineSelectionRule.except(engines)
 
     private class TestReporter {
         private val lines: MutableList<String> = mutableListOf()
@@ -213,6 +217,28 @@ internal val HttpClientEngineFactory<*>.engineName: String
  */
 fun interface EngineSelectionRule {
     fun shouldRun(engineName: String): Boolean
+
+    companion object {
+        /**
+         * Includes the set of [engines] for the test
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.test.base.EngineSelectionRule.only)
+         */
+        fun only(engines: List<String>): EngineSelectionRule {
+            val includePatterns = engines.map(EnginePattern::parse)
+            return EngineSelectionRule { engineName -> includePatterns.any { it.matches(engineName) } }
+        }
+
+        /**
+         * Excludes the specified [engines] from test execution.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.test.base.EngineSelectionRule.except)
+         */
+        fun except(engines: List<String>): EngineSelectionRule {
+            val skipPatterns = engines.map(EnginePattern::parse)
+            return EngineSelectionRule { engineName -> skipPatterns.none { it.matches(engineName) } }
+        }
+    }
 }
 
 private data class EnginePattern(
