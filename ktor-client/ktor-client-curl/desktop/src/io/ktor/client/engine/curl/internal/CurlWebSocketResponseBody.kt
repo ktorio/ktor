@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.curl.internal
@@ -56,11 +56,11 @@ internal class CurlWebSocketResponseBody(
     override fun onBodyChunkReceived(buffer: CPointer<ByteVar>, size: size_t, count: size_t): Int {
         if (closed.value) return 0
 
-        val bytesRead = (size * count).toInt()
         val meta = curl_ws_meta(curl)?.pointed ?: error("Missing WebSocket frame metadata")
-        val chunkData = buffer.readBytes(bytesRead)
+        val chunkSize = meta.len.toInt()
+        val chunkData = buffer.readBytes(chunkSize)
 
-        return if (processFrameChunk(chunkData, meta)) bytesRead else 0
+        return if (processFrameChunk(chunkData, meta)) chunkSize else 0
     }
 
     private fun processFrameChunk(chunk: ByteArray, meta: curl_ws_frame): Boolean {
