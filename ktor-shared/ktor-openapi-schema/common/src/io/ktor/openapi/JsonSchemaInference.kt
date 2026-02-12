@@ -46,7 +46,7 @@ public val KotlinxJsonSchemaInference: JsonSchemaInference = KotlinxSerializerJs
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.KotlinxSerializerJsonSchemaInference)
  */
-public class KotlinxSerializerJsonSchemaInference(private val module: SerializersModule): JsonSchemaInference {
+public class KotlinxSerializerJsonSchemaInference(private val module: SerializersModule) : JsonSchemaInference {
     public companion object {
         /**
          * Default instance of KotlinxSerializerJsonSchemaInference using an empty serializers module.
@@ -72,8 +72,10 @@ public class KotlinxSerializerJsonSchemaInference(private val module: Serializer
         visiting: MutableSet<String>,
     ): JsonSchema {
         val reflectJsonSchema: KClass<*>.() -> ReferenceOr<JsonSchema> = {
-            Value(module.serializer(this, emptyList(), false)
-                .descriptor.buildJsonSchema(includeTitle, visiting = visiting))
+            Value(
+                module.serializer(this, emptyList(), false)
+                    .descriptor.buildJsonSchema(includeTitle, visiting = visiting)
+            )
         }
         val annotations = includeAnnotations + descriptor.annotations
         val isNullable = descriptor.isNullable
@@ -137,19 +139,27 @@ public class KotlinxSerializerJsonSchemaInference(private val module: Serializer
             PolymorphicKind.SEALED -> {
                 if (descriptor.elementsCount == 2) {
                     val discriminatorProperty = descriptor.getElementName(0)
-                    val value = descriptor.getElementDescriptor(1)
-                    val elementNamesList = (0..<value.elementsCount).map(value::getElementName)
-                    val sealedTypeRefs = elementNamesList.map { element ->
-                        ReferenceOr.schema(element.substringAfterLast('.'))
-                    }
-                    val discriminatorMapping = elementNamesList.zip(sealedTypeRefs.map { it.ref }).toMap()
+                    val sealedElementsDescriptor = descriptor.getElementDescriptor(1)
+                    val sealedElementsSchema = (0..<sealedElementsDescriptor.elementsCount)
+                        .map { i ->
+                            Value(
+                                buildSchemaFromDescriptor(
+                                    sealedElementsDescriptor.getElementDescriptor(i),
+                                    includeTitle = true,
+                                    visiting = visiting,
+                                )
+                            )
+                        }
+                    val discriminatorMapping = (0..<sealedElementsDescriptor.elementsCount)
+                        .map(sealedElementsDescriptor::getElementName)
+                        .associateWith { fqName -> ReferenceOr.schema(fqName.substringAfterLast('.')).ref }
 
                     jsonSchemaFromAnnotations(
                         annotations = annotations,
                         reflectSchema = reflectJsonSchema,
                         type = JsonType.OBJECT.orNullable(isNullable),
                         title = descriptor.serialName.takeIf { includeTitle },
-                        oneOf = sealedTypeRefs,
+                        oneOf = sealedElementsSchema,
                         discriminator = JsonSchemaDiscriminator(discriminatorProperty, discriminatorMapping),
                     )
                 } else {

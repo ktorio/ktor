@@ -159,19 +159,29 @@ public class CollectSchemaReferences(private val schemaToComponent: (JsonSchema)
 
     /**
      * We use the "title" field for referencing types to schema definitions.
+     *
+     * This applies a "depth-first" transformation on the schema to extract all nested references first.
      */
     private fun collectSchema(schema: JsonSchema): ReferenceOr<JsonSchema> {
-        return schemaToComponent(schema)?.let { ref ->
-            ReferenceOr.schema(ref)
-        } ?: ReferenceOr.value(
-            schema.copy(
-                allOf = schema.allOf?.map { it.mapToReference(::collectSchema) },
-                anyOf = schema.anyOf?.map { it.mapToReference(::collectSchema) },
-                oneOf = schema.oneOf?.map { it.mapToReference(::collectSchema) },
-                not = schema.not?.mapToReference(::collectSchema),
-                properties = schema.properties?.mapValues { (_, value) -> value.mapToReference(::collectSchema) },
-                items = schema.items?.mapToReference(::collectSchema),
-            )
+        val nestedSchema = schema.copy(
+            allOf = schema.allOf?.map { it.mapToReference(::collectSchema) },
+            anyOf = schema.anyOf?.map { it.mapToReference(::collectSchema) },
+            oneOf = schema.oneOf?.map { it.mapToReference(::collectSchema) },
+            not = schema.not?.mapToReference(::collectSchema),
+            properties = schema.properties?.mapValues { (_, value) -> value.mapToReference(::collectSchema) },
+            items = schema.items?.mapToReference(::collectSchema),
+            additionalProperties = when (val ap = schema.additionalProperties) {
+                is AdditionalProperties.PSchema -> AdditionalProperties.PSchema(
+                    ap.value.mapToReference(::collectSchema)
+                )
+                else -> ap
+            },
         )
+        return schemaToComponent(nestedSchema)
+            ?.let(::schemaRef)
+            ?: ReferenceOr.value(nestedSchema)
     }
+
+    private fun schemaRef(title: String): ReferenceOr<JsonSchema> =
+        ReferenceOr.schema(title)
 }
