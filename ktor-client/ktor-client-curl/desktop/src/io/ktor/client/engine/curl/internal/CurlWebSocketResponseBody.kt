@@ -4,6 +4,7 @@
 
 package io.ktor.client.engine.curl.internal
 
+import io.ktor.client.engine.curl.internal.Libcurl.WRITEFUNC_ERROR
 import io.ktor.utils.io.*
 import io.ktor.websocket.*
 import kotlinx.atomicfu.atomic
@@ -53,14 +54,14 @@ internal class CurlWebSocketResponseBody(
         }
     }
 
-    override fun onBodyChunkReceived(buffer: CPointer<ByteVar>, size: size_t, count: size_t): Int {
-        if (closed.value) return 0
+    override fun onBodyChunkReceived(buffer: CPointer<ByteVar>, size: size_t, count: size_t): size_t {
+        if (closed.value) return 0.convert()
 
-        val meta = curl_ws_meta(curl)?.pointed ?: error("Missing WebSocket frame metadata")
+        val meta = curl_ws_meta(curl)?.pointed ?: return WRITEFUNC_ERROR
         val chunkSize = meta.len.toInt()
         val chunkData = buffer.readBytes(chunkSize)
 
-        return if (processFrameChunk(chunkData, meta)) chunkSize else 0
+        return if (processFrameChunk(chunkData, meta)) chunkSize.convert() else WRITEFUNC_ERROR
     }
 
     private fun processFrameChunk(chunk: ByteArray, meta: curl_ws_frame): Boolean {
@@ -93,7 +94,7 @@ internal class CurlWebSocketResponseBody(
             frameDataBuffer = Buffer()
         }
 
-        val buffer = checkNotNull(frameDataBuffer) { "Buffer is missing, but $offset > 0" }
+        val buffer = frameDataBuffer ?: return false
         buffer.write(chunk)
 
         // Last chunk: complete and emit the frame
