@@ -88,17 +88,18 @@ private fun Route.operation(): Operation? {
     val defaultContentTypes = application.attributes.getOrNull(DefaultContentTypesAttribute)
         ?: listOf(ContentType.Application.Json)
 
-    return lineage().fold(null) { acc, node ->
+    // Merge operations from top to bottom, selectors to describe calls
+    return lineage().toList().asReversed().fold(null) { acc: Operation?, node: Route ->
         val current = mergeNullable(
-            node.operationFromAnnotateCalls(schemaInference, defaultContentTypes),
             node.operationFromSelector(),
-            Operation::plus
+            node.operationFromDescribeCalls(schemaInference, defaultContentTypes),
+            Operation::plus,
         )
         mergeNullable(acc, current, Operation::plus)
     }
 }
 
-private fun Route.operationFromAnnotateCalls(
+private fun Route.operationFromDescribeCalls(
     schemaInference: JsonSchemaInference,
     defaultContentTypes: List<ContentType>
 ): Operation? = attributes.getOrNull(OperationDescribeAttributeKey)
@@ -210,34 +211,34 @@ private fun newPathItem(method: HttpMethod, operation: Operation): PathItem? =
 
 private operator fun Operation.plus(other: Operation): Operation =
     Operation(
-        tags = mergeNullable(tags, other.tags) { a, b -> a + b },
-        summary = summary?.takeIf { it.isNotEmpty() } ?: other.summary?.takeIf { it.isNotEmpty() } ?: "",
-        description = description ?: other.description,
-        externalDocs = externalDocs ?: other.externalDocs,
-        operationId = operationId ?: other.operationId,
+        tags = mergeNullable(tags, other.tags) { a, b -> (a + b).distinct() },
+        summary = other.summary?.takeIf { it.isNotEmpty() } ?: summary?.takeIf { it.isNotEmpty() } ?: "",
+        description = other.description ?: description,
+        externalDocs = other.externalDocs ?: externalDocs,
+        operationId = other.operationId ?: operationId,
         parameters = mergeParameters(parameters, other.parameters),
-        requestBody = requestBody ?: other.requestBody,
+        requestBody = other.requestBody ?: requestBody,
         responses = mergeNullable(responses, other.responses) { a, b -> a + b },
-        deprecated = deprecated ?: other.deprecated,
+        deprecated = other.deprecated ?: deprecated,
         security = mergeNullable(security, other.security) { a, b -> a + b },
         servers = mergeNullable(servers, other.servers) { a, b -> a + b },
-        extensions = mergeNullable(extensions, other.extensions) { a, b -> b + a }
+        extensions = mergeNullable(extensions, other.extensions) { a, b -> a + b }
     )
 
 private operator fun PathItem.plus(other: PathItem): PathItem =
     PathItem(
-        summary = summary ?: other.summary,
-        get = get ?: other.get,
-        put = put ?: other.put,
-        post = post ?: other.post,
-        delete = delete ?: other.delete,
-        options = options ?: other.options,
-        head = head ?: other.head,
-        patch = patch ?: other.patch,
-        trace = trace ?: other.trace,
+        summary = other.summary ?: summary,
+        get = other.get ?: get,
+        put = other.put ?: put,
+        post = other.post ?: post,
+        delete = other.delete ?: delete,
+        options = other.options ?: options,
+        head = other.head ?: head,
+        patch = other.patch ?: patch,
+        trace = other.trace ?: trace,
         servers = mergeNullable(servers, other.servers) { a, b -> a + b },
         parameters = mergeParameters(parameters, other.parameters),
-        extensions = mergeNullable(extensions, other.extensions) { a, b -> b + a }
+        extensions = mergeNullable(extensions, other.extensions) { a, b -> a + b }
     )
 
 private fun mergeParameters(parameters: List<ReferenceOr<Parameter>>?, otherParameters: List<ReferenceOr<Parameter>>?) =
@@ -249,7 +250,7 @@ private fun mergeParameters(parameters: List<ReferenceOr<Parameter>>?, otherPara
 
 private operator fun Responses.plus(other: Responses): Responses =
     Responses(
-        default = default ?: other.default,
+        default = other.default ?: default,
         responses = mergeNullable(responses, other.responses) { a, b ->
             val byStatusCode = (a.entries + b.entries).groupBy({ it.key }) { it.value }
             byStatusCode.map { (statusCode, responseList) ->
@@ -261,34 +262,34 @@ private operator fun Responses.plus(other: Responses): Responses =
                 }.first()
             }.toMap()
         },
-        extensions = mergeNullable(extensions, other.extensions) { a, b -> b + a }
+        extensions = mergeNullable(extensions, other.extensions) { a, b -> a + b }
     )
 
 private operator fun Response.plus(other: Response): Response =
     Response(
-        description = description.ifEmpty { null } ?: other.description,
-        headers = mergeNullable(headers, other.headers) { a, b -> b + a },
-        content = mergeNullable(content, other.content) { a, b -> b + a },
-        links = mergeNullable(links, other.links) { a, b -> b + a },
-        extensions = mergeNullable(extensions, other.extensions) { a, b -> b + a }
+        description = other.description.ifEmpty { null } ?: description,
+        headers = mergeNullable(headers, other.headers) { a, b -> a + b },
+        content = mergeNullable(content, other.content) { a, b -> a + b },
+        links = mergeNullable(links, other.links) { a, b -> a + b },
+        extensions = mergeNullable(extensions, other.extensions) { a, b -> a + b }
     )
 
 private operator fun Parameter.plus(other: Parameter): Parameter =
     Parameter(
         name = name,
         `in` = `in` ?: other.`in`,
-        description = description ?: other.description,
+        description = other.description ?: description,
         required = required || other.required,
         deprecated = deprecated || other.deprecated,
-        schema = schema ?: other.schema,
-        content = mergeNullable(content, other.content) { a, b -> b + a },
-        style = style ?: other.style,
-        explode = explode ?: other.explode,
-        allowReserved = allowReserved ?: other.allowReserved,
-        allowEmptyValue = allowEmptyValue ?: other.allowEmptyValue,
-        example = example ?: other.example,
-        examples = mergeNullable(examples, other.examples) { a, b -> b + a },
-        extensions = mergeNullable(extensions, other.extensions) { a, b -> b + a }
+        schema = other.schema ?: schema,
+        content = mergeNullable(content, other.content) { a, b -> a + b },
+        style = other.style ?: style,
+        explode = other.explode ?: explode,
+        allowReserved = other.allowReserved ?: allowReserved,
+        allowEmptyValue = other.allowEmptyValue ?: allowEmptyValue,
+        example = other.example ?: example,
+        examples = mergeNullable(examples, other.examples) { a, b -> a + b },
+        extensions = mergeNullable(extensions, other.extensions) { a, b -> a + b }
     )
 
 /**
