@@ -489,6 +489,10 @@ public final class io/ktor/server/auth/OAuthProcedureKt {
 	public static final fun oauth (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun oauth$default (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public static synthetic fun oauth$default (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun oauthWithOpenId (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lio/ktor/server/auth/OpenIdConfiguration;Lkotlin/jvm/functions/Function1;)V
+	public static final fun oauthWithOpenId (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Ljava/lang/String;Lio/ktor/server/auth/OpenIdConfiguration;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun oauthWithOpenId$default (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lio/ktor/server/auth/OpenIdConfiguration;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static synthetic fun oauthWithOpenId$default (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Ljava/lang/String;Lio/ktor/server/auth/OpenIdConfiguration;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public static final fun staticSettings (Lio/ktor/server/auth/OAuthAuthenticationProvider;)Lio/ktor/server/auth/OAuthServerSettings;
 }
 
@@ -542,16 +546,17 @@ public final class io/ktor/server/auth/OAuthVersion : java/lang/Enum {
 
 public final class io/ktor/server/auth/OpenIdConfiguration {
 	public static final field Companion Lio/ktor/server/auth/OpenIdConfiguration$Companion;
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun component2 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lio/ktor/server/auth/OpenIdConfiguration;
-	public static synthetic fun copy$default (Lio/ktor/server/auth/OpenIdConfiguration;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/server/auth/OpenIdConfiguration;
-	public fun equals (Ljava/lang/Object;)Z
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getAuthorizationEndpoint ()Ljava/lang/String;
+	public final fun getClaimsSupported ()Ljava/util/List;
 	public final fun getIssuer ()Ljava/lang/String;
 	public final fun getJwksUri ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
+	public final fun getResponseTypesSupported ()Ljava/util/List;
+	public final fun getScopesSupported ()Ljava/util/List;
+	public final fun getTokenEndpoint ()Ljava/lang/String;
+	public final fun getTokenEndpointAuthMethodsSupported ()Ljava/util/List;
+	public final fun getUserInfoEndpoint ()Ljava/lang/String;
 }
 
 public final synthetic class io/ktor/server/auth/OpenIdConfiguration$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
@@ -571,6 +576,34 @@ public final class io/ktor/server/auth/OpenIdConfiguration$Companion {
 
 public final class io/ktor/server/auth/OpenIdConfigurationKt {
 	public static final fun fetchOpenIdConfiguration (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/auth/OpenIdOAuthConfig {
+	public fun <init> (Lio/ktor/server/auth/OpenIdConfiguration;)V
+	public final fun getAccessTokenRequiresBasicAuth ()Z
+	public final fun getClient ()Lio/ktor/client/HttpClient;
+	public final fun getClientId ()Ljava/lang/String;
+	public final fun getClientSecret ()Ljava/lang/String;
+	public final fun getDefaultScopes ()Ljava/util/List;
+	public final fun getExtraAuthParameters ()Ljava/util/List;
+	public final fun getExtraTokenParameters ()Ljava/util/List;
+	public final fun getFallback ()Lkotlin/jvm/functions/Function3;
+	public final fun getNonceManager ()Lio/ktor/util/NonceManager;
+	public final fun getOnStateCreated ()Lkotlin/jvm/functions/Function3;
+	public final fun getRequestMethod ()Lio/ktor/http/HttpMethod;
+	public final fun getUrlProvider ()Lkotlin/jvm/functions/Function3;
+	public final fun setAccessTokenRequiresBasicAuth (Z)V
+	public final fun setClient (Lio/ktor/client/HttpClient;)V
+	public final fun setClientId (Ljava/lang/String;)V
+	public final fun setClientSecret (Ljava/lang/String;)V
+	public final fun setDefaultScopes (Ljava/util/List;)V
+	public final fun setExtraAuthParameters (Ljava/util/List;)V
+	public final fun setExtraTokenParameters (Ljava/util/List;)V
+	public final fun setFallback (Lkotlin/jvm/functions/Function3;)V
+	public final fun setNonceManager (Lio/ktor/util/NonceManager;)V
+	public final fun setOnStateCreated (Lkotlin/jvm/functions/Function3;)V
+	public final fun setRequestMethod (Lio/ktor/http/HttpMethod;)V
+	public final fun setUrlProvider (Lkotlin/jvm/functions/Function3;)V
 }
 
 public abstract interface class io/ktor/server/auth/Principal {
