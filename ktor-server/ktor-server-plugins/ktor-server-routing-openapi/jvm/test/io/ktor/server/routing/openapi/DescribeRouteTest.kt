@@ -36,7 +36,7 @@ class DescribeRouteTest {
     private val jwtAudience = "test-audience"
     private val jwtAlgorithm = Algorithm.HMAC256(jwtSecret)
 
-    val testMessage = Message(1L, "Hello, world!", 16777216000)
+    val testMessage = Message.DM(1L, "Hello, world!", 16777216000)
 
     @OptIn(ExperimentalSerializationApi::class)
     val jsonFormat = Json {
@@ -590,7 +590,7 @@ class DescribeRouteTest {
 
             route("/showing") {
                 get("/messages") {
-                    call.respond(listOf(Message(1L, "Message", 128734L)))
+                    call.respond(listOf(Message.DM(1L, "Message", 128734L)))
                 }
             }
         }
@@ -620,8 +620,22 @@ class DescribeRouteTest {
 }
 
 @Serializable
-data class Message(
-    val id: Long,
-    val content: String,
+sealed interface Message {
+    val id: Long
+    val content: String
     val timestamp: Long
-)
+
+    @Serializable
+    class DM(
+        override val id: Long,
+        override val content: String,
+        override val timestamp: Long
+    ) : Message
+
+    @Serializable
+    class Post(
+        override val id: Long,
+        override val content: String,
+        override val timestamp: Long
+    ) : Message
+}
