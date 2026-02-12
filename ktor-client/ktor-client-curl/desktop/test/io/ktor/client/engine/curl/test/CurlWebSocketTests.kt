@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.curl.test
@@ -12,11 +12,13 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.seconds
 
 class CurlWebSocketTests : ClientEngineTest<CurlClientEngineConfig>(Curl) {
 
@@ -119,6 +121,34 @@ class CurlWebSocketTests : ClientEngineTest<CurlClientEngineConfig>(Curl) {
 
                 val text = frame.readText()
                 assertEquals(payloadSize, text.length, "Unexpected payload size")
+            }
+        }
+    }
+
+    @Test
+    fun testWebSocketLargeFrameStressTest() = testClient {
+        config {
+            install(WebSockets)
+        }
+        test { client ->
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                repeat(10) { iteration ->
+                    val sizes = listOf(4000, 8000, 16000, 24000, 32000)
+
+                    for (size in sizes) {
+                        val payload = "x".repeat(size)
+                        send(Frame.Text(payload))
+
+                        val received = withTimeout(5.seconds) {
+                            incoming.receive()
+                        }
+
+                        assertTrue(received is Frame.Text,
+                            "Iteration $iteration, size $size: Expected Text frame")
+                        assertEquals(size, received.readText().length,
+                            "Iteration $iteration, size $size: Payload size mismatch")
+                    }
+                }
             }
         }
     }

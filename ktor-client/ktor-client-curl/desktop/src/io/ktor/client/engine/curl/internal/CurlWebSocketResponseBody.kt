@@ -56,7 +56,7 @@ internal class CurlWebSocketResponseBody(
     override fun onBodyChunkReceived(buffer: CPointer<ByteVar>, size: size_t, count: size_t): Int {
         if (closed.value) return 0
 
-        val meta = curl_ws_meta(curl)?.pointed ?: error("Missing WebSocket frame metadata")
+        val meta = checkNotNull(curl_ws_meta(curl)?.pointed) { "Missing WebSocket frame metadata" }
         val chunkSize = meta.len.toInt()
         val chunkData = buffer.readBytes(chunkSize)
 

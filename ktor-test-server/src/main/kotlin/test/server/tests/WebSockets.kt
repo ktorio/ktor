@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package test.server.tests
@@ -15,6 +15,9 @@ internal fun Application.webSockets() {
     routing {
         route("websockets") {
             webSocket("echo") {
+                // Allow large incoming frames for testing purposes
+                maxFrameSize = Int.MAX_VALUE.toLong()
+
                 for (frame in incoming) {
                     when (frame) {
                         is Frame.Text -> {
