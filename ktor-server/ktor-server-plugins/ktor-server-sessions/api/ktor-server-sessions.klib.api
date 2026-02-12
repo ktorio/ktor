@@ -54,21 +54,23 @@ abstract interface io.ktor.server.sessions/SessionTransportTransformer { // io.k
 final class <#A: kotlin/Any> io.ktor.server.sessions/CookieIdSessionBuilder : io.ktor.server.sessions/CookieSessionBuilder<#A> { // io.ktor.server.sessions/CookieIdSessionBuilder|null[0]
     constructor <init>(kotlin.reflect/KClass<#A>, kotlin.reflect/KType) // io.ktor.server.sessions/CookieIdSessionBuilder.<init>|<init>(kotlin.reflect.KClass<1:0>;kotlin.reflect.KType){}[0]
 
-    final var sessionIdProvider // io.ktor.server.sessions/CookieIdSessionBuilder.sessionIdProvider|{}sessionIdProvider[0]
-        final fun <get-sessionIdProvider>(): kotlin/Function1<io.ktor.server.application/ApplicationCall, kotlin/String> // io.ktor.server.sessions/CookieIdSessionBuilder.sessionIdProvider.<get-sessionIdProvider>|<get-sessionIdProvider>(){}[0]
+    final val sessionIdProvider // io.ktor.server.sessions/CookieIdSessionBuilder.sessionIdProvider|{}sessionIdProvider[0]
+        final fun <get-sessionIdProvider>(): kotlin/Function0<kotlin/String> // io.ktor.server.sessions/CookieIdSessionBuilder.sessionIdProvider.<get-sessionIdProvider>|<get-sessionIdProvider>(){}[0]
 
     final fun identity(kotlin/Function0<kotlin/String>) // io.ktor.server.sessions/CookieIdSessionBuilder.identity|identity(kotlin.Function0<kotlin.String>){}[0]
     final fun identity(kotlin/Function1<io.ktor.server.application/ApplicationCall, kotlin/String>) // io.ktor.server.sessions/CookieIdSessionBuilder.identity|identity(kotlin.Function1<io.ktor.server.application.ApplicationCall,kotlin.String>){}[0]
+    final fun provideSessionId(io.ktor.server.application/ApplicationCall): kotlin/String // io.ktor.server.sessions/CookieIdSessionBuilder.provideSessionId|provideSessionId(io.ktor.server.application.ApplicationCall){}[0]
 }
 
 final class <#A: kotlin/Any> io.ktor.server.sessions/HeaderIdSessionBuilder : io.ktor.server.sessions/HeaderSessionBuilder<#A> { // io.ktor.server.sessions/HeaderIdSessionBuilder|null[0]
     constructor <init>(kotlin.reflect/KClass<#A>, kotlin.reflect/KType) // io.ktor.server.sessions/HeaderIdSessionBuilder.<init>|<init>(kotlin.reflect.KClass<1:0>;kotlin.reflect.KType){}[0]
 
-    final var sessionIdProvider // io.ktor.server.sessions/HeaderIdSessionBuilder.sessionIdProvider|{}sessionIdProvider[0]
-        final fun <get-sessionIdProvider>(): kotlin/Function1<io.ktor.server.application/ApplicationCall, kotlin/String> // io.ktor.server.sessions/HeaderIdSessionBuilder.sessionIdProvider.<get-sessionIdProvider>|<get-sessionIdProvider>(){}[0]
+    final val sessionIdProvider // io.ktor.server.sessions/HeaderIdSessionBuilder.sessionIdProvider|{}sessionIdProvider[0]
+        final fun <get-sessionIdProvider>(): kotlin/Function0<kotlin/String> // io.ktor.server.sessions/HeaderIdSessionBuilder.sessionIdProvider.<get-sessionIdProvider>|<get-sessionIdProvider>(){}[0]
 
     final fun identity(kotlin/Function0<kotlin/String>) // io.ktor.server.sessions/HeaderIdSessionBuilder.identity|identity(kotlin.Function0<kotlin.String>){}[0]
     final fun identity(kotlin/Function1<io.ktor.server.application/ApplicationCall, kotlin/String>) // io.ktor.server.sessions/HeaderIdSessionBuilder.identity|identity(kotlin.Function1<io.ktor.server.application.ApplicationCall,kotlin.String>){}[0]
+    final fun provideSessionId(io.ktor.server.application/ApplicationCall): kotlin/String // io.ktor.server.sessions/HeaderIdSessionBuilder.provideSessionId|provideSessionId(io.ktor.server.application.ApplicationCall){}[0]
 }
 
 final class <#A: kotlin/Any> io.ktor.server.sessions/SessionProvider { // io.ktor.server.sessions/SessionProvider|null[0]

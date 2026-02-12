@@ -6,6 +6,7 @@ package io.ktor.server.sessions
 
 import io.ktor.server.application.*
 import io.ktor.util.reflect.*
+import io.ktor.utils.io.InternalAPI
 import kotlin.reflect.*
 
 /**
@@ -33,6 +34,7 @@ public fun <S : Any> SessionsConfig.cookie(name: String, typeInfo: TypeInfo, sto
 }
 
 @PublishedApi
+@OptIn(InternalAPI::class)
 internal fun <S : Any> SessionsConfig.cookie(
     name: String,
     builder: CookieIdSessionBuilder<S>,
@@ -40,7 +42,7 @@ internal fun <S : Any> SessionsConfig.cookie(
     storage: SessionStorage
 ) {
     val transport = SessionTransportCookie(name, builder.cookie, builder.transformers)
-    val tracker = SessionTrackerById(sessionType, builder.serializer, storage, builder.sessionIdProvider)
+    val tracker = SessionTrackerById(sessionType, builder.serializer, storage, builder::provideSessionId)
     val provider = SessionProvider(name, sessionType, transport, tracker)
     register(provider)
 }
@@ -141,6 +143,7 @@ public fun <S : Any> SessionsConfig.header(
 }
 
 @PublishedApi
+@OptIn(InternalAPI::class)
 internal fun <S : Any> SessionsConfig.header(
     name: String,
     sessionType: KClass<S>,
@@ -153,7 +156,7 @@ internal fun <S : Any> SessionsConfig.header(
             sessionType,
             builder.serializer,
             storage,
-            builder.sessionIdProvider
+            builder::provideSessionId
         )
 
         else -> SessionTrackerByValue(sessionType, builder.serializer)
@@ -329,18 +332,22 @@ public class CookieIdSessionBuilder<S : Any> @PublishedApi internal constructor(
     typeInfo: KType
 ) : CookieSessionBuilder<S>(type, typeInfo) {
 
+    private var _sessionIdProvider: (ApplicationCall?) -> String = { generateSessionId() }
+
+    @Deprecated("Use identity function that accepts ApplicationCall parameter", level = DeprecationLevel.WARNING)
+    public fun identity(f: () -> String) {
+        _sessionIdProvider = { f() }
+    }
+
     /**
      * Registers a function used to generate a session ID.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CookieIdSessionBuilder.identity)
      */
     public fun identity(f: (ApplicationCall) -> String) {
-        sessionIdProvider = f
-    }
-
-    @Deprecated("Use identity function that accepts ApplicationCall parameter", level = DeprecationLevel.HIDDEN)
-    public fun identity(f: () -> String) {
-        sessionIdProvider = { f() }
+        _sessionIdProvider = { call ->
+            f(requireNotNull(call) { "ApplicationCall is required for this sessionIdProvider" })
+        }
     }
 
     /**
@@ -348,8 +355,11 @@ public class CookieIdSessionBuilder<S : Any> @PublishedApi internal constructor(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CookieIdSessionBuilder.sessionIdProvider)
      */
-    public var sessionIdProvider: (ApplicationCall) -> String = { generateSessionId() }
-        private set
+    @Deprecated("Use identity function that accepts ApplicationCall parameter", level = DeprecationLevel.WARNING)
+    public val sessionIdProvider: () -> String = { _sessionIdProvider(null) }
+
+    @InternalAPI
+    public fun provideSessionId(call: ApplicationCall): String = _sessionIdProvider(call)
 }
 
 /**
@@ -455,26 +465,32 @@ internal constructor(
     type: KClass<S>,
     typeInfo: KType
 ) : HeaderSessionBuilder<S>(type, typeInfo) {
+    private var _sessionIdProvider: (ApplicationCall?) -> String = { generateSessionId() }
 
     /**
      * Registers a function used to generate a session ID.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.HeaderIdSessionBuilder.identity)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CookieIdSessionBuilder.identity)
      */
     public fun identity(f: (ApplicationCall) -> String) {
-        sessionIdProvider = f
+        _sessionIdProvider = { call ->
+            f(requireNotNull(call) { "ApplicationCall is required for this sessionIdProvider" })
+        }
     }
 
-    @Deprecated("Use identity function that accepts ApplicationCall parameter", level = DeprecationLevel.HIDDEN)
+    @Deprecated("Use identity function that accepts ApplicationCall parameter", level = DeprecationLevel.WARNING)
     public fun identity(f: () -> String) {
-        sessionIdProvider = { f() }
+        _sessionIdProvider = { f() }
     }
 
     /**
      * A function used to provide a current session ID.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.HeaderIdSessionBuilder.sessionIdProvider)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CookieIdSessionBuilder.sessionIdProvider)
      */
-    public var sessionIdProvider: (ApplicationCall) -> String = { generateSessionId() }
-        private set
+    @Deprecated("Use identity function that accepts ApplicationCall parameter", level = DeprecationLevel.WARNING)
+    public val sessionIdProvider: () -> String = { _sessionIdProvider(null) }
+
+    @InternalAPI
+    public fun provideSessionId(call: ApplicationCall): String = _sessionIdProvider(call)
 }
