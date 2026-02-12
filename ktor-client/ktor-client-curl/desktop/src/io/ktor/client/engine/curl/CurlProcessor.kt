@@ -1,13 +1,11 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.curl
 
 import io.ktor.client.engine.curl.CurlTask.*
 import io.ktor.client.engine.curl.internal.*
-import io.ktor.util.*
-import io.ktor.utils.io.*
 import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.IntVar
@@ -20,9 +18,9 @@ import kotlin.coroutines.cancellation.CancellationException
 
 @OptIn(ExperimentalForeignApi::class)
 internal class CurlProcessor(coroutineContext: CoroutineContext) {
-    @OptIn(InternalAPI::class)
-    private val curlDispatcher: CloseableCoroutineDispatcher =
-        Dispatchers.createFixedThreadDispatcher("curl-dispatcher", 1)
+
+    @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
+    private val curlDispatcher = newSingleThreadContext("curl-dispatcher")
 
     private var curlApi: CurlMultiApiHandler? by atomic(null)
     private val closed = atomic(false)
@@ -51,6 +49,13 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
         return result.await()
     }
 
+    suspend fun sendWebSocketFrame(websocket: CurlWebSocketResponseBody, flags: Int, data: ByteArray) {
+        val result = Job()
+        taskQueue.send(SendWebSocketFrame(websocket, flags, data, result))
+        curlApi!!.wakeup()
+        result.join()
+    }
+
     @OptIn(DelicateCoroutinesApi::class)
     private fun runEventLoop(): Job = curlScope.launch(CoroutineName("curl-processor-loop")) {
         memScoped {
@@ -73,6 +78,8 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
 
             when (task) {
                 is SendRequest -> handleSendRequest(api, task)
+                is SendWebSocketFrame ->
+                    api.sendWebSocketFrame(task.websocket, task.flags, task.data, task.completionHandler)
             }
         }
     }
@@ -113,10 +120,17 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
     }
 }
 
-internal sealed interface CurlTask {
+private sealed interface CurlTask {
 
     data class SendRequest(
         val requestData: CurlRequestData,
         val completionHandler: CompletableDeferred<CurlSuccess>,
+    ) : CurlTask
+
+    class SendWebSocketFrame(
+        val websocket: CurlWebSocketResponseBody,
+        val flags: Int,
+        val data: ByteArray,
+        val completionHandler: CompletableJob,
     ) : CurlTask
 }
