@@ -6,4 +6,7 @@ package io.ktor.openapi.reflect
 
 import io.ktor.openapi.*
 
-class KotlinxJsonSchemaInferenceTest : AbstractSchemaInferenceTest(KotlinxJsonSchemaInference, "kotlinx")
+class KotlinxJsonSchemaInferenceTest : AbstractSchemaInferenceTest(
+    KotlinxSerializerJsonSchemaInference.Default,
+    "kotlinx"
+)

@@ -84,7 +84,7 @@ private fun Route.method(): HttpMethod? =
 
 private fun Route.operation(): Operation? {
     val schemaInference = application.attributes.getOrNull(JsonSchemaAttributeKey)
-        ?: KotlinxJsonSchemaInference
+        ?: KotlinxSerializerJsonSchemaInference.Default
     val defaultContentTypes = application.attributes.getOrNull(DefaultContentTypesAttribute)
         ?: listOf(ContentType.Application.Json)
 
