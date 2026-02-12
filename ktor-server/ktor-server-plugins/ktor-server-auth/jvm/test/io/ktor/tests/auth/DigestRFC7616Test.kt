@@ -6,8 +6,7 @@ package io.ktor.tests.auth
 
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.http.auth.DigestAlgorithm
-import io.ktor.http.auth.DigestQop
+import io.ktor.http.auth.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -31,14 +30,11 @@ class DigestRFC7616Test {
         algorithm: DigestAlgorithm = DigestAlgorithm.MD5,
         charset: Charset = Charsets.UTF_8
     ): ByteArray {
-        val digester = algorithm.toDigester()
-        digester.update("$userName:$realm:$password".toByteArray(charset))
-        return digester.digest()
+        return algorithm.toDigester().digest("$userName:$realm:$password".toByteArray(charset))
     }
 
     private fun digest(algorithm: DigestAlgorithm, data: String, charset: Charset = Charsets.UTF_8): ByteArray {
-        val digester = algorithm.toDigester()
-        return digester.digest(data.toByteArray(charset))
+        return algorithm.toDigester().digest(data.toByteArray(charset))
     }
 
     private fun computeUserHash(username: String, realm: String, algorithm: DigestAlgorithm): String {

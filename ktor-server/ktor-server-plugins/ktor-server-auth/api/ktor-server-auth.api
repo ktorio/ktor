@@ -231,23 +231,23 @@ public final class io/ktor/server/auth/DigestAuthenticationProvider$Config : io/
 public final class io/ktor/server/auth/DigestCredential {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/auth/DigestAlgorithm;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLjava/nio/charset/Charset;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/auth/DigestAlgorithm;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLjava/nio/charset/Charset;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final synthetic fun component1 ()Ljava/lang/String;
-	public final synthetic fun component10 ()Ljava/lang/String;
-	public final synthetic fun component2 ()Ljava/lang/String;
-	public final synthetic fun component3 ()Ljava/lang/String;
-	public final synthetic fun component4 ()Ljava/lang/String;
-	public final synthetic fun component5 ()Ljava/lang/String;
-	public final synthetic fun component6 ()Ljava/lang/String;
-	public final synthetic fun component7 ()Ljava/lang/String;
-	public final synthetic fun component8 ()Ljava/lang/String;
-	public final synthetic fun component9 ()Ljava/lang/String;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component10 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()Ljava/lang/String;
+	public final fun component8 ()Ljava/lang/String;
+	public final fun component9 ()Ljava/lang/String;
 	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/auth/DigestAlgorithm;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLjava/nio/charset/Charset;)Lio/ktor/server/auth/DigestCredential;
-	public final synthetic fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lio/ktor/server/auth/DigestCredential;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lio/ktor/server/auth/DigestCredential;
 	public static synthetic fun copy$default (Lio/ktor/server/auth/DigestCredential;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/auth/DigestAlgorithm;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLjava/nio/charset/Charset;ILjava/lang/Object;)Lio/ktor/server/auth/DigestCredential;
 	public static synthetic fun copy$default (Lio/ktor/server/auth/DigestCredential;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/server/auth/DigestCredential;
 	public fun equals (Ljava/lang/Object;)Z
-	public final synthetic fun getAlgorithm (Lio/ktor/server/auth/DigestCredential;)Ljava/lang/String;
+	public final fun getAlgorithm ()Ljava/lang/String;
 	public final fun getCharset ()Ljava/nio/charset/Charset;
 	public final fun getCnonce ()Ljava/lang/String;
 	public final fun getDigestAlgorithm ()Lio/ktor/http/auth/DigestAlgorithm;
@@ -269,7 +269,6 @@ public final class io/ktor/server/auth/DigestCredentialKt {
 	public static synthetic fun expectedDigest$default (Lio/ktor/server/auth/DigestCredential;Lio/ktor/http/HttpMethod;[B[BILjava/lang/Object;)[B
 	public static final fun toDigestCredential (Lio/ktor/http/auth/HttpAuthHeader$Parameterized;Ljava/nio/charset/Charset;)Lio/ktor/server/auth/DigestCredential;
 	public static synthetic fun toDigestCredential$default (Lio/ktor/http/auth/HttpAuthHeader$Parameterized;Ljava/nio/charset/Charset;ILjava/lang/Object;)Lio/ktor/server/auth/DigestCredential;
-	public static final fun toDigester (Lio/ktor/http/auth/DigestAlgorithm;)Ljava/security/MessageDigest;
 	public static final fun verifier (Lio/ktor/server/auth/DigestCredential;Lio/ktor/http/HttpMethod;Lkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 

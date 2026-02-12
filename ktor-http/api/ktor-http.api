@@ -1253,6 +1253,10 @@ public final class io/ktor/http/auth/DigestAlgorithm$Companion {
 	public final fun getSHA_512_256_SESS ()Lio/ktor/http/auth/DigestAlgorithm;
 }
 
+public final class io/ktor/http/auth/DigestAlgorithm_jvmKt {
+	public static final fun toDigester (Lio/ktor/http/auth/DigestAlgorithm;)Ljava/security/MessageDigest;
+}
+
 public final class io/ktor/http/auth/DigestQop {
 	public static final field Companion Lio/ktor/http/auth/DigestQop$Companion;
 	public fun <init> (Ljava/lang/String;)V

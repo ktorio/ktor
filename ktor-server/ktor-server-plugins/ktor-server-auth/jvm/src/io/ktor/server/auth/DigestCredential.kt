@@ -44,7 +44,7 @@ public class DigestCredential(
     public val charset: Charset = Charsets.UTF_8
 ) {
 
-    @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
+    @Deprecated("Maintained for backwards compatibility", level = DeprecationLevel.WARNING)
     public constructor(
         realm: String,
         userName: String,
@@ -57,14 +57,22 @@ public class DigestCredential(
         cnonce: String?,
         qop: String?,
     ) : this(
-        realm, userName, digestUri, nonce, opaque, nonceCount, algorithm.toDigestAlgorithm(), response, cnonce, qop
+        realm = realm,
+        userName = userName,
+        digestUri = digestUri,
+        nonce = nonce,
+        opaque = opaque, nonceCount = nonceCount,
+        digestAlgorithm = algorithm.toDigestAlgorithm(),
+        response = response,
+        cnonce = cnonce,
+        qop = qop
     )
 
-    @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
-    public val DigestCredential.algorithm: String?
+    @Deprecated("Maintained for backward compatibility", level = DeprecationLevel.WARNING)
+    public val algorithm: String?
         get() = digestAlgorithm.name
 
-    @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
+    @Deprecated("Maintained for backward compatibility", level = DeprecationLevel.WARNING)
     public fun copy(
         realm: String = this.realm,
         userName: String = this.userName,
@@ -77,18 +85,18 @@ public class DigestCredential(
         cnonce: String? = this.cnonce,
         qop: String? = this.qop
     ): DigestCredential = DigestCredential(
-        realm,
-        userName,
-        digestUri,
-        nonce,
-        opaque,
-        nonceCount,
-        algorithm.toDigestAlgorithm(),
-        response,
-        cnonce,
-        qop,
-        userHash,
-        charset
+        realm = realm,
+        userName = userName,
+        digestUri = digestUri,
+        nonce = nonce,
+        opaque = opaque,
+        nonceCount = nonceCount,
+        digestAlgorithm = algorithm.toDigestAlgorithm(),
+        response = response,
+        cnonce = cnonce,
+        qop = qop,
+        userHash = userHash,
+        charset = charset
     )
 
     public fun copy(
@@ -105,48 +113,48 @@ public class DigestCredential(
         userHash: Boolean = this.userHash,
         charset: Charset = this.charset
     ): DigestCredential = DigestCredential(
-        realm,
-        userName,
-        digestUri,
-        nonce,
-        opaque,
-        nonceCount,
-        digestAlgorithm,
-        response,
-        cnonce,
-        qop,
-        userHash,
-        charset
+        realm = realm,
+        userName = userName,
+        digestUri = digestUri,
+        nonce = nonce,
+        opaque = opaque,
+        nonceCount = nonceCount,
+        digestAlgorithm = digestAlgorithm,
+        response = response,
+        cnonce = cnonce,
+        qop = qop,
+        userHash = userHash,
+        charset = charset
     )
 
-    @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
+    @Deprecated("Maintained for backward compatibility", level = DeprecationLevel.WARNING)
     public operator fun component1(): String = realm
 
-    @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
+    @Deprecated("Maintained for backward compatibility", level = DeprecationLevel.WARNING)
     public operator fun component2(): String = userName
 
-    @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
+    @Deprecated("Maintained for backward compatibility", level = DeprecationLevel.WARNING)
     public operator fun component3(): String = digestUri
 
-    @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
+    @Deprecated("Maintained for backward compatibility", level = DeprecationLevel.WARNING)
     public operator fun component4(): String = nonce
 
-    @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
+    @Deprecated("Maintained for backward compatibility", level = DeprecationLevel.WARNING)
     public operator fun component5(): String? = opaque
 
-    @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
+    @Deprecated("Maintained for backward compatibility", level = DeprecationLevel.WARNING)
     public operator fun component6(): String? = nonceCount
 
-    @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
+    @Deprecated("Maintained for backward compatibility", level = DeprecationLevel.WARNING)
     public operator fun component7(): String = digestAlgorithm.name
 
-    @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
+    @Deprecated("Maintained for backward compatibility", level = DeprecationLevel.WARNING)
     public operator fun component8(): String = response
 
-    @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
+    @Deprecated("Maintained for backward compatibility", level = DeprecationLevel.WARNING)
     public operator fun component9(): String? = cnonce
 
-    @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
+    @Deprecated("Maintained for backward compatibility", level = DeprecationLevel.WARNING)
     public operator fun component10(): String? = qop
 
     override fun toString(): String {
@@ -192,21 +200,12 @@ public class DigestCredential(
     }
 }
 
+internal val DigestCredential.digester
+    get() = digestAlgorithm.toDigester()
+
 // helper for deprecated methods
 private fun String?.toDigestAlgorithm(): DigestAlgorithm =
     requireNotNull(DigestAlgorithm.from(this ?: "MD5")) { "Unsupported algorithm: $this" }
-
-/**
- * Creates a [MessageDigest] instance for this algorithm.
- *
- * @return A new MessageDigest configured for this algorithm's hash function
- * @throws [java.security.NoSuchAlgorithmException] If the algorithm is not supported by the JVM
- */
-public fun DigestAlgorithm.toDigester(): MessageDigest =
-    MessageDigest.getInstance(hashName)
-
-internal val DigestCredential.digester
-    get() = digestAlgorithm.toDigester()
 
 /**
  * Converts [HttpAuthHeader] to [DigestCredential].
@@ -217,33 +216,39 @@ public fun HttpAuthHeader.Parameterized.toDigestCredential(
     defaultCharset: Charset = Charsets.UTF_8
 ): DigestCredential {
     val userHash = parameter("userhash")?.toBoolean() ?: false
-    val username = parameter("username")
     val usernameStar = parameter("username*")
+    val username = parameter("username")
     val decodedUserName = when {
         usernameStar != null -> decodeHeaderParameterWithEncoding(usernameStar)
-        username != null -> username
-        else -> error("Missing username parameter in digest authentication header")
+        else -> requireNotNull(username) { "Missing username parameter in digest authentication header" }
     }
+
     val algorithmName = parameter("algorithm") ?: "MD5"
-    val algorithm = DigestAlgorithm.from(algorithmName) ?: error("Invalid algorithm in digest authentication header")
+    val algorithm = requireNotNull(DigestAlgorithm.from(algorithmName)) {
+        "Invalid algorithm in digest authentication header"
+    }
+
     val charsetParam = parameter("charset")
+    // only UTF-8 can be advertised though default charset is not specified in RFC 2617
     require(charsetParam == null || charsetParam == Charsets.UTF_8.name()) {
         "Unsupported charset in digest authentication header"
     }
 
     return DigestCredential(
-        parameter("realm") ?: error("Missing realm parameter in digest authentication header"),
-        decodedUserName,
-        parameter("uri") ?: error("Missing uri parameter in digest authentication header"),
-        parameter("nonce") ?: error("Missing nonce parameter in digest authentication header"),
-        parameter("opaque"),
-        parameter("nc"),
-        algorithm,
-        parameter("response") ?: error("Missing response parameter in digest authentication header"),
-        parameter("cnonce"),
-        parameter("qop"),
-        userHash,
-        charsetParam?.let { Charsets.UTF_8 } ?: defaultCharset
+        realm = requireNotNull(parameter("realm")) { "Missing realm parameter in digest authentication header" },
+        userName = decodedUserName,
+        digestUri = requireNotNull(parameter("uri")) { "Missing uri parameter in digest authentication header" },
+        nonce = requireNotNull(parameter("nonce")) { "Missing nonce parameter in digest authentication header" },
+        opaque = parameter("opaque"),
+        nonceCount = parameter("nc"),
+        digestAlgorithm = algorithm,
+        response = requireNotNull(parameter("response")) {
+            "Missing response parameter in digest authentication header"
+        },
+        cnonce = parameter("cnonce"),
+        qop = parameter("qop"),
+        userHash = userHash,
+        charset = charsetParam?.let { Charsets.UTF_8 } ?: defaultCharset
     )
 }
 

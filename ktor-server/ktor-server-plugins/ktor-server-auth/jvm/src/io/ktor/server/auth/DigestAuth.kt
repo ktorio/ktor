@@ -1,5 +1,5 @@
 /*
-* Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+* Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
 package io.ktor.server.auth
@@ -60,7 +60,7 @@ public class DigestAuthenticationProvider internal constructor(
         val authorizationHeader = call.request.parseAuthorizationHeader()
         val credentials = authorizationHeader?.let { authHeader ->
             if (authHeader.authScheme == AuthScheme.Digest && authHeader is HttpAuthHeader.Parameterized) {
-                authHeader.toDigestCredential(defaultCharset = charset ?: Charsets.ISO_8859_1)
+                authHeader.toDigestCredential(defaultCharset = charset)
             } else {
                 null
             }
@@ -195,7 +195,9 @@ public class DigestAuthenticationProvider internal constructor(
         public var algorithmName: String
             get() = algorithms.first().hashName
             set(value) {
-                val digestAlgorithm = DigestAlgorithm.from(value) ?: error("Unsupported digest algorithm: $value")
+                val digestAlgorithm = requireNotNull(DigestAlgorithm.from(value)) {
+                    "Unsupported digest algorithm: $value"
+                }
                 algorithms = listOf(digestAlgorithm)
             }
 
@@ -323,7 +325,7 @@ public class DigestAuthenticationProvider internal constructor(
          */
         public fun strictRfc7616Mode() {
             @Suppress("DEPRECATION")
-            if (DigestAlgorithm.MD5 in algorithms) {
+            if (DigestAlgorithm.MD5 in algorithms || DigestAlgorithm.MD5_SESS in algorithms) {
                 if (algorithms !== defaultAlgorithms) {
                     LOGGER.warn("MD5 algorithms are overridden in strictRfc7616Mode")
                 }
@@ -422,7 +424,7 @@ public fun HttpAuthHeader.Parameterized.toDigestCredential(): DigestCredential =
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.verifier)
  */
-@Deprecated(message = "Use [DigestCredential.verifier] without digester.")
+@Deprecated(message = "Use [DigestCredential.verifier] without digester.", level = DeprecationLevel.WARNING)
 public suspend fun DigestCredential.verifier(
     method: HttpMethod,
     digester: MessageDigest,
@@ -440,7 +442,7 @@ public suspend fun DigestCredential.verifier(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.expectedDigest)
  */
-@Deprecated(message = "Use [DigestCredential.expectedDigest] without digester.")
+@Deprecated(message = "Use [DigestCredential.expectedDigest] without digester.", level = DeprecationLevel.WARNING)
 public fun DigestCredential.expectedDigest(
     method: HttpMethod,
     digester: MessageDigest,
