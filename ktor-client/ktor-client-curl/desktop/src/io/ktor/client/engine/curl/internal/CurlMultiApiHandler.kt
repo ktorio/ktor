@@ -12,9 +12,12 @@ import io.ktor.utils.io.core.*
 import io.ktor.utils.io.locks.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CompletableJob
 import kotlinx.io.readByteArray
 import libcurl.*
 import platform.posix.getenv
+import platform.posix.size_t
+import platform.posix.size_tVar
 
 @OptIn(ExperimentalForeignApi::class)
 private class RequestHolder(
@@ -347,6 +350,43 @@ internal class CurlMultiApiHandler : Closeable {
 
     fun wakeup() {
         curl_multi_wakeup(multiHandle)
+    }
+
+    fun sendWebSocketFrame(
+        websocket: CurlWebSocketResponseBody,
+        flags: Int,
+        data: ByteArray,
+        completionHandler: CompletableJob
+    ) {
+        try {
+            trySendWebSocketFrame(websocket.easyHandle, flags, data)
+            completionHandler.complete()
+        } catch (cause: Throwable) {
+            completionHandler.completeExceptionally(cause)
+        }
+    }
+
+    private fun trySendWebSocketFrame(
+        easyHandle: EasyHandle,
+        flags: Int,
+        data: ByteArray,
+    ) = memScoped {
+        val dataSize: size_t = data.size.convert()
+        val sent = alloc<size_tVar>()
+        data.usePinned { pinned ->
+            val address = if (data.isEmpty()) null else pinned.addressOf(0)
+            val status = curl_ws_send(
+                curl = easyHandle,
+                buffer = address,
+                buflen = dataSize,
+                sent = sent.ptr,
+                fragsize = 0,
+                flags = flags.convert()
+            )
+            if ((flags and CURLWS_CLOSE) == 0) {
+                status.verify()
+            }
+        }
     }
 
     private fun unpauseEasyHandle(easyHandle: EasyHandle) {

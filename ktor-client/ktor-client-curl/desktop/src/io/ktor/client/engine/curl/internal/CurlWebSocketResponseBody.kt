@@ -15,11 +15,10 @@ import kotlinx.io.Buffer
 import kotlinx.io.readByteArray
 import libcurl.*
 import platform.posix.size_t
-import platform.posix.size_tVar
 
 @OptIn(InternalAPI::class, ExperimentalForeignApi::class)
 internal class CurlWebSocketResponseBody(
-    private val curl: EasyHandle,
+    internal val easyHandle: EasyHandle,
     incomingFramesConfig: ChannelConfig
 ) : CurlResponseBodyData {
 
@@ -40,24 +39,10 @@ internal class CurlWebSocketResponseBody(
      */
     private var frameDataBuffer: Buffer? = null
 
-    @OptIn(ExperimentalForeignApi::class)
-    fun sendFrame(flags: Int, data: ByteArray) = memScoped {
-        if (closed.value) return@memScoped
-
-        val sent = alloc<size_tVar>()
-        data.usePinned { pinned ->
-            val address = if (data.isEmpty()) null else pinned.addressOf(0)
-            val status = curl_ws_send(curl, address, data.size.convert(), sent.ptr, 0, flags.convert())
-            if ((flags and CURLWS_CLOSE) == 0) {
-                status.verify()
-            }
-        }
-    }
-
     override fun onBodyChunkReceived(buffer: CPointer<ByteVar>, size: size_t, count: size_t): size_t {
         if (closed.value) return 0.convert()
 
-        val meta = curl_ws_meta(curl)?.pointed ?: return WRITEFUNC_ERROR
+        val meta = curl_ws_meta(easyHandle)?.pointed ?: return WRITEFUNC_ERROR
         val chunkSize = meta.len.toInt()
         val chunkData = buffer.readBytes(chunkSize)
 
