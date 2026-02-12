@@ -212,7 +212,7 @@ private fun newPathItem(method: HttpMethod, operation: Operation): PathItem? =
 private operator fun Operation.plus(other: Operation): Operation =
     Operation(
         tags = mergeNullable(tags, other.tags) { a, b -> (a + b).distinct() },
-        summary = summary?.takeIf { it.isNotEmpty() } ?: other.summary?.takeIf { it.isNotEmpty() } ?: "",
+        summary = other.summary?.takeIf { it.isNotEmpty() } ?: summary?.takeIf { it.isNotEmpty() } ?: "",
         description = other.description ?: description,
         externalDocs = other.externalDocs ?: externalDocs,
         operationId = other.operationId ?: operationId,
