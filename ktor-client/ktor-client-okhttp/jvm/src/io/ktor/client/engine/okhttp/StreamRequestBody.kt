@@ -5,6 +5,7 @@
 package io.ktor.client.engine.okhttp
 
 import io.ktor.utils.io.*
+import io.ktor.utils.io.jvm.javaio.toInputStream
 import io.ktor.utils.io.streams.asByteWriteChannel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
