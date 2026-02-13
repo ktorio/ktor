@@ -16,7 +16,6 @@ import kotlinx.coroutines.CompletableJob
 import kotlinx.io.readByteArray
 import libcurl.*
 import platform.posix.getenv
-import platform.posix.size_t
 import platform.posix.size_tVar
 
 @OptIn(ExperimentalForeignApi::class)
@@ -371,20 +370,31 @@ internal class CurlMultiApiHandler : Closeable {
         flags: Int,
         data: ByteArray,
     ) = memScoped {
-        val dataSize: size_t = data.size.convert()
+        var offset = 0
         val sent = alloc<size_tVar>()
         data.usePinned { pinned ->
-            val address = if (data.isEmpty()) null else pinned.addressOf(0)
-            val status = curl_ws_send(
-                curl = easyHandle,
-                buffer = address,
-                buflen = dataSize,
-                sent = sent.ptr,
-                fragsize = 0,
-                flags = flags.convert()
-            )
-            if ((flags and CURLWS_CLOSE) == 0) {
-                status.verify()
+            while (true) {
+                val bufferStart = if (data.isNotEmpty()) pinned.addressOf(offset) else null
+                val remaining = if (data.isNotEmpty()) data.size - offset else 0
+
+                val status = curl_ws_send(
+                    curl = easyHandle,
+                    buffer = bufferStart,
+                    buflen = remaining.convert(),
+                    sent = sent.ptr,
+                    fragsize = 0,
+                    flags = flags.convert(),
+                )
+
+                when (status) {
+                    CURLE_OK -> {
+                        offset += sent.value.toInt()
+                        if (data.isEmpty() || offset == data.size) break
+                    }
+
+                    // TODO: Handle CURLE_AGAIN
+                    else -> status.verify()
+                }
             }
         }
     }
