@@ -4,21 +4,27 @@
 
 package io.ktor.client.engine.curl.internal
 
-import io.ktor.utils.io.InternalAPI
+import io.ktor.client.engine.curl.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.websocket.*
-import kotlinx.atomicfu.*
-import kotlinx.cinterop.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
+import kotlinx.atomicfu.atomic
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.launch
 import libcurl.*
-import kotlin.coroutines.*
+import kotlin.coroutines.CoroutineContext
 
 @OptIn(InternalAPI::class, ExperimentalForeignApi::class)
 internal class CurlWebSocketSession(
     private val websocket: CurlWebSocketResponseBody,
     callContext: CoroutineContext,
-    outgoingFramesConfig: ChannelConfig
+    outgoingFramesConfig: ChannelConfig,
+    private val curlProcessor: CurlProcessor,
 ) : WebSocketSession, Closeable {
 
     private val closed = atomic(false)
@@ -48,7 +54,7 @@ internal class CurlWebSocketSession(
             close(it)
         }
 
-        launch {
+        launch(CoroutineName("curl-ws-outgoing")) {
             while (!closed.value) {
                 val frame = _outgoing.receive()
                 sendNextFrame(frame)
@@ -56,31 +62,24 @@ internal class CurlWebSocketSession(
         }
     }
 
-    private fun sendNextFrame(frame: Frame) {
+    private suspend fun sendNextFrame(frame: Frame) {
         val flags = if (frame.fin) 0 else CURLWS_CONT
         when (frame.frameType) {
-            FrameType.BINARY -> {
-                websocket.sendFrame(CURLWS_BINARY or flags, frame.data)
-            }
-
-            FrameType.TEXT -> {
-                websocket.sendFrame(CURLWS_TEXT or flags, frame.data)
-            }
+            FrameType.BINARY -> sendFrame(CURLWS_BINARY or flags, frame.data)
+            FrameType.TEXT -> sendFrame(CURLWS_TEXT or flags, frame.data)
+            FrameType.PING -> sendFrame(CURLWS_PING or flags, frame.data)
+            FrameType.PONG -> sendFrame(CURLWS_PONG or flags, frame.data)
 
             FrameType.CLOSE -> {
-                websocket.sendFrame(CURLWS_CLOSE or flags, frame.data)
+                sendFrame(CURLWS_CLOSE or flags, frame.data)
                 close(null)
                 socketJob.complete()
             }
-
-            FrameType.PING -> {
-                websocket.sendFrame(CURLWS_PING or flags, frame.data)
-            }
-
-            FrameType.PONG -> {
-                websocket.sendFrame(CURLWS_PONG or flags, frame.data)
-            }
         }
+    }
+
+    private suspend fun sendFrame(flags: Int, data: ByteArray) {
+        curlProcessor.sendWebSocketFrame(websocket, flags, data)
     }
 
     override suspend fun flush() = Unit
