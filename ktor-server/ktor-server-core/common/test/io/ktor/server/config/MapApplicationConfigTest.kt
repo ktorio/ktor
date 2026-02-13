@@ -9,6 +9,19 @@ import kotlin.test.*
 class MapApplicationConfigTest {
 
     @Test
+    fun testKeys() {
+        val config = MapApplicationConfig()
+        config.put("simple", "123")
+        config.put("foo.plain", "value")
+        config.put("foo.complex.some", "value1")
+        config.put("foo.complex.some2", "value2")
+        assertEquals(
+            setOf("simple", "foo.plain", "foo.complex.some", "foo.complex.some2"),
+            config.keys(),
+        )
+    }
+
+    @Test
     fun testMapApplicationConfig() {
         val mapConfig = MapApplicationConfig()
         mapConfig.put("auth.hashAlgorithm", "SHA-256")
@@ -75,7 +88,6 @@ class MapApplicationConfigTest {
 
         val keys = mapConfig.keys()
         assertEquals(
-            keys,
             setOf(
                 "auth.hashAlgorithm",
                 "auth.salt",
@@ -84,7 +96,8 @@ class MapApplicationConfigTest {
                 "auth.listValues",
                 "auth.data.value1",
                 "auth.data.value2"
-            )
+            ),
+            keys
         )
     }
 
@@ -100,7 +113,7 @@ class MapApplicationConfigTest {
 
         val nestedConfig = mapConfig.config("auth.nested")
         val keys = nestedConfig.keys()
-        assertEquals(keys, setOf("data.value1", "data.value2", "list"))
+        assertEquals(setOf("data.value1", "data.value2", "list"), keys)
         assertEquals("1", nestedConfig.property("data.value1").getString())
         assertEquals("2", nestedConfig.property("data.value2").getString())
         assertEquals(listOf("a", "b"), nestedConfig.property("list").getList())
