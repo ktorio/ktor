@@ -692,10 +692,10 @@ public data class HttpHeaderRouteSelector(
 
 /**
  * Evaluates a route against a `Content-Type` in the [HttpHeaders.ContentType] request header.
- * @param contentType is an instance of [ContentType]
+ * @param contentTypes a list of [ContentType]
  */
 internal data class ContentTypeHeaderRouteSelector(
-    val contentType: ContentType
+    val contentTypes: List<ContentType>
 ) : RouteSelector() {
 
     private val failedEvaluation = RouteSelectorEvaluation.Failure(
@@ -707,13 +707,14 @@ internal data class ContentTypeHeaderRouteSelector(
         val headers = context.call.request.header(HttpHeaders.ContentType)
         val parsedHeaders = parseAndSortContentTypeHeader(headers)
 
-        val header = parsedHeaders.firstOrNull { ContentType.parse(it.value).match(contentType) }
-            ?: return failedEvaluation
+        val header = parsedHeaders.firstOrNull { header ->
+            contentTypes.any { it.isCompatibleWith(ContentType.parse(header.value)) }
+        } ?: return failedEvaluation
 
         return RouteSelectorEvaluation.Success(header.quality)
     }
 
-    override fun toString(): String = "(contentType = $contentType)"
+    override fun toString(): String = "(contentTypes = $contentTypes)"
 }
 
 /**
