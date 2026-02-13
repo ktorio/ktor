@@ -31,6 +31,7 @@ abstract interface io.ktor.server.sessions/CurrentSession { // io.ktor.server.se
     abstract fun findName(kotlin.reflect/KClass<*>): kotlin/String // io.ktor.server.sessions/CurrentSession.findName|findName(kotlin.reflect.KClass<*>){}[0]
     abstract fun get(kotlin/String): kotlin/Any? // io.ktor.server.sessions/CurrentSession.get|get(kotlin.String){}[0]
     abstract fun set(kotlin/String, kotlin/Any?) // io.ktor.server.sessions/CurrentSession.set|set(kotlin.String;kotlin.Any?){}[0]
+    open suspend fun clear(kotlin/String, kotlin/String) // io.ktor.server.sessions/CurrentSession.clear|clear(kotlin.String;kotlin.String){}[0]
 }
 
 abstract interface io.ktor.server.sessions/SessionStorage { // io.ktor.server.sessions/SessionStorage|null[0]
@@ -57,6 +58,9 @@ final class <#A: kotlin/Any> io.ktor.server.sessions/CookieIdSessionBuilder : io
         final fun <get-sessionIdProvider>(): kotlin/Function0<kotlin/String> // io.ktor.server.sessions/CookieIdSessionBuilder.sessionIdProvider.<get-sessionIdProvider>|<get-sessionIdProvider>(){}[0]
 
     final fun identity(kotlin/Function0<kotlin/String>) // io.ktor.server.sessions/CookieIdSessionBuilder.identity|identity(kotlin.Function0<kotlin.String>){}[0]
+    final fun identity(kotlin/Function0<kotlin/String>, kotlin/Unit = ...) // io.ktor.server.sessions/CookieIdSessionBuilder.identity|identity(kotlin.Function0<kotlin.String>;kotlin.Unit){}[0]
+    final fun identity(kotlin/Function1<io.ktor.server.application/ApplicationCall, kotlin/String>) // io.ktor.server.sessions/CookieIdSessionBuilder.identity|identity(kotlin.Function1<io.ktor.server.application.ApplicationCall,kotlin.String>){}[0]
+    final fun provideSessionId(io.ktor.server.application/ApplicationCall): kotlin/String // io.ktor.server.sessions/CookieIdSessionBuilder.provideSessionId|provideSessionId(io.ktor.server.application.ApplicationCall){}[0]
 }
 
 final class <#A: kotlin/Any> io.ktor.server.sessions/HeaderIdSessionBuilder : io.ktor.server.sessions/HeaderSessionBuilder<#A> { // io.ktor.server.sessions/HeaderIdSessionBuilder|null[0]
@@ -66,6 +70,9 @@ final class <#A: kotlin/Any> io.ktor.server.sessions/HeaderIdSessionBuilder : io
         final fun <get-sessionIdProvider>(): kotlin/Function0<kotlin/String> // io.ktor.server.sessions/HeaderIdSessionBuilder.sessionIdProvider.<get-sessionIdProvider>|<get-sessionIdProvider>(){}[0]
 
     final fun identity(kotlin/Function0<kotlin/String>) // io.ktor.server.sessions/HeaderIdSessionBuilder.identity|identity(kotlin.Function0<kotlin.String>){}[0]
+    final fun identity(kotlin/Function0<kotlin/String>, kotlin/Unit = ...) // io.ktor.server.sessions/HeaderIdSessionBuilder.identity|identity(kotlin.Function0<kotlin.String>;kotlin.Unit){}[0]
+    final fun identity(kotlin/Function1<io.ktor.server.application/ApplicationCall, kotlin/String>) // io.ktor.server.sessions/HeaderIdSessionBuilder.identity|identity(kotlin.Function1<io.ktor.server.application.ApplicationCall,kotlin.String>){}[0]
+    final fun provideSessionId(io.ktor.server.application/ApplicationCall): kotlin/String // io.ktor.server.sessions/HeaderIdSessionBuilder.provideSessionId|provideSessionId(io.ktor.server.application.ApplicationCall){}[0]
 }
 
 final class <#A: kotlin/Any> io.ktor.server.sessions/SessionProvider { // io.ktor.server.sessions/SessionProvider|null[0]
@@ -85,11 +92,12 @@ final class <#A: kotlin/Any> io.ktor.server.sessions/SessionProvider { // io.kto
 
 final class <#A: kotlin/Any> io.ktor.server.sessions/SessionTrackerById : io.ktor.server.sessions/SessionTracker<#A> { // io.ktor.server.sessions/SessionTrackerById|null[0]
     constructor <init>(kotlin.reflect/KClass<#A>, io.ktor.server.sessions/SessionSerializer<#A>, io.ktor.server.sessions/SessionStorage, kotlin/Function0<kotlin/String>) // io.ktor.server.sessions/SessionTrackerById.<init>|<init>(kotlin.reflect.KClass<1:0>;io.ktor.server.sessions.SessionSerializer<1:0>;io.ktor.server.sessions.SessionStorage;kotlin.Function0<kotlin.String>){}[0]
+    constructor <init>(kotlin.reflect/KClass<#A>, io.ktor.server.sessions/SessionSerializer<#A>, io.ktor.server.sessions/SessionStorage, kotlin/Function1<io.ktor.server.application/ApplicationCall, kotlin/String>) // io.ktor.server.sessions/SessionTrackerById.<init>|<init>(kotlin.reflect.KClass<1:0>;io.ktor.server.sessions.SessionSerializer<1:0>;io.ktor.server.sessions.SessionStorage;kotlin.Function1<io.ktor.server.application.ApplicationCall,kotlin.String>){}[0]
 
     final val serializer // io.ktor.server.sessions/SessionTrackerById.serializer|{}serializer[0]
         final fun <get-serializer>(): io.ktor.server.sessions/SessionSerializer<#A> // io.ktor.server.sessions/SessionTrackerById.serializer.<get-serializer>|<get-serializer>(){}[0]
     final val sessionIdProvider // io.ktor.server.sessions/SessionTrackerById.sessionIdProvider|{}sessionIdProvider[0]
-        final fun <get-sessionIdProvider>(): kotlin/Function0<kotlin/String> // io.ktor.server.sessions/SessionTrackerById.sessionIdProvider.<get-sessionIdProvider>|<get-sessionIdProvider>(){}[0]
+        final fun <get-sessionIdProvider>(): kotlin/Function1<io.ktor.server.application/ApplicationCall, kotlin/String> // io.ktor.server.sessions/SessionTrackerById.sessionIdProvider.<get-sessionIdProvider>|<get-sessionIdProvider>(){}[0]
     final val storage // io.ktor.server.sessions/SessionTrackerById.storage|{}storage[0]
         final fun <get-storage>(): io.ktor.server.sessions/SessionStorage // io.ktor.server.sessions/SessionTrackerById.storage.<get-storage>|<get-storage>(){}[0]
     final val type // io.ktor.server.sessions/SessionTrackerById.type|{}type[0]
@@ -98,6 +106,7 @@ final class <#A: kotlin/Any> io.ktor.server.sessions/SessionTrackerById : io.kto
     final fun toString(): kotlin/String // io.ktor.server.sessions/SessionTrackerById.toString|toString(){}[0]
     final fun validate(#A) // io.ktor.server.sessions/SessionTrackerById.validate|validate(1:0){}[0]
     final suspend fun clear(io.ktor.server.application/ApplicationCall) // io.ktor.server.sessions/SessionTrackerById.clear|clear(io.ktor.server.application.ApplicationCall){}[0]
+    final suspend fun clearById(kotlin/String) // io.ktor.server.sessions/SessionTrackerById.clearById|clearById(kotlin.String){}[0]
     final suspend fun load(io.ktor.server.application/ApplicationCall, kotlin/String?): #A? // io.ktor.server.sessions/SessionTrackerById.load|load(io.ktor.server.application.ApplicationCall;kotlin.String?){}[0]
     final suspend fun store(io.ktor.server.application/ApplicationCall, #A): kotlin/String // io.ktor.server.sessions/SessionTrackerById.store|store(io.ktor.server.application.ApplicationCall;1:0){}[0]
 }
@@ -313,3 +322,5 @@ final inline fun <#A: reified kotlin/Any> (io.ktor.server.sessions/SessionsConfi
 final inline fun <#A: reified kotlin/Any> io.ktor.server.sessions.serialization/KotlinxBackwardCompatibleSessionSerializer(kotlinx.serialization.modules/SerializersModule = ...): io.ktor.server.sessions/SessionSerializer<#A> // io.ktor.server.sessions.serialization/KotlinxBackwardCompatibleSessionSerializer|KotlinxBackwardCompatibleSessionSerializer(kotlinx.serialization.modules.SerializersModule){0§<kotlin.Any>}[0]
 final inline fun <#A: reified kotlin/Any> io.ktor.server.sessions.serialization/KotlinxSessionSerializer(kotlinx.serialization/StringFormat): io.ktor.server.sessions/SessionSerializer<#A> // io.ktor.server.sessions.serialization/KotlinxSessionSerializer|KotlinxSessionSerializer(kotlinx.serialization.StringFormat){0§<kotlin.Any>}[0]
 final inline fun <#A: reified kotlin/Any> io.ktor.server.sessions/defaultSessionSerializer(): io.ktor.server.sessions/SessionSerializer<#A> // io.ktor.server.sessions/defaultSessionSerializer|defaultSessionSerializer(){0§<kotlin.Any>}[0]
+final suspend fun <#A: kotlin/Any> (io.ktor.server.sessions/CurrentSession).io.ktor.server.sessions/clear(kotlin.reflect/KClass<#A>, kotlin/String) // io.ktor.server.sessions/clear|clear@io.ktor.server.sessions.CurrentSession(kotlin.reflect.KClass<0:0>;kotlin.String){0§<kotlin.Any>}[0]
+final suspend inline fun <#A: reified kotlin/Any> (io.ktor.server.sessions/CurrentSession).io.ktor.server.sessions/clear(kotlin/String) // io.ktor.server.sessions/clear|clear@io.ktor.server.sessions.CurrentSession(kotlin.String){0§<kotlin.Any>}[0]
