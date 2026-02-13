@@ -949,20 +949,25 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                         .takeIf { currentThread !== initialThread }
                 }
 
-                call.respondText("""
+                call.respondText(
+                    """
                     Hierarchy preserved: ${jobsOutOfHierarchy ?: "true"}
                     Thread unchanged: ${threadDiff ?: "true"}
-                """.trimIndent())
+                    """.trimIndent()
+                )
             }
         }
 
         try {
             withUrl("") {
                 val bodyText = body<String>()
-                assertEquals("""
+                assertEquals(
+                    """
                     Hierarchy preserved: true
                     Thread unchanged: true
-                """.trimIndent(), bodyText)
+                    """.trimIndent(),
+                    bodyText
+                )
             }
         } finally {
             dispatcher.close()

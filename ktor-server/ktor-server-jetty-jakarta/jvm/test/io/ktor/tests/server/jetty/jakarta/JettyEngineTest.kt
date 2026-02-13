@@ -40,7 +40,11 @@ class JettyHttpServerJvmTest : HttpServerJvmTestSuite<JettyApplicationEngine, Je
 }
 
 class JettySustainabilityTest :
-    SustainabilityTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
+    SustainabilityTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty) {
+    // thread affinity is not accounted for in Jetty
+    @Ignore
+    override fun validateCallCoroutineContext() {}
+}
 
 class JettyConfigTest : ConfigTestSuite(Jetty)
 
