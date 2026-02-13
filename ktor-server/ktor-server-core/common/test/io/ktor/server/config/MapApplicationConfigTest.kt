@@ -22,6 +22,16 @@ class MapApplicationConfigTest {
     }
 
     @Test
+    fun testComplexPathList() {
+        val config = MapApplicationConfig()
+        config.put("foo.bar", listOf("a", "b", "c"))
+        val map = config.toMap()
+        val list = (map["foo"] as Map<*, *>)["bar"]
+        assertIs<List<String>>(list)
+        assertContentEquals(listOf("a", "b", "c"), list)
+    }
+
+    @Test
     fun testMapApplicationConfig() {
         val mapConfig = MapApplicationConfig()
         mapConfig.put("auth.hashAlgorithm", "SHA-256")

@@ -5,23 +5,29 @@
 package io.ktor.server.config
 
 import io.ktor.util.reflect.*
+import io.ktor.utils.io.InternalAPI
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.AbstractDecoder
+import kotlinx.serialization.encoding.CompositeDecoder
+import kotlinx.serialization.modules.EmptySerializersModule
+import kotlinx.serialization.modules.SerializersModule
 import io.ktor.server.config.ApplicationConfigValue.Type as ValueType
 
 public open class MapApplicationConfig : ApplicationConfig {
-    internal var values = mutableListOf<String>()
-    internal var valueType: ValueType = ValueType.NULL
-    internal var children = mutableMapOf<String, MapApplicationConfig>()
+    internal val values = mutableListOf<String>()
+    internal var valueType: ValueType = ValueType.OBJECT
+    internal val children = mutableMapOf<String, MapApplicationConfig>()
 
     internal constructor(map: MutableMap<String, String>, path: String = "") {
-
+        for ((p, value) in map) {
+            put(p, value)
+        }
     }
 
-    public constructor(values: Collection<Pair<String, String>>) : this(values.toMap().toMutableMap(), "") {
-
-    }
-
+    public constructor(values: Collection<Pair<String, String>>) : this(values.toMap().toMutableMap(), "")
     public constructor(vararg values: Pair<String, String>) : this(mutableMapOf(*values), "")
-    public constructor() : this(mutableMapOf<String, String>(), "")
+//    public constructor() : this(mutableMapOf<String, String>(), "")
 
     override fun property(path: String): ApplicationConfigValue {
         return propertyOrNull(path) ?: throw ApplicationConfigurationException(
@@ -95,7 +101,7 @@ public open class MapApplicationConfig : ApplicationConfig {
 
             val path = if (prefix.isEmpty()) key else "$prefix.$key"
 
-            if (config.valueType == ValueType.NULL) {
+            if (config.valueType == ValueType.OBJECT) {
                 set.addAll(config.keys(path))
             } else {
                 set.add(path)
@@ -113,22 +119,18 @@ public open class MapApplicationConfig : ApplicationConfig {
     }
 
     internal fun put(path: String, type: ValueType, values: Iterable<String>) {
-        var config: MapApplicationConfig? = this
+        var config: MapApplicationConfig = this
         for (key in path.split('.')) {
-            if (config?.children == null) {
-                config?.children = mutableMapOf()
+            if (config.valueType != ValueType.OBJECT) {
+                return
             }
 
-            config = config?.children?.getOrPut(key) { MapApplicationConfig() }
+            config = config.children.getOrPut(key) { MapApplicationConfig() }
         }
 
-        if (config != null) {
-            config.valueType = type
-            if (type == ValueType.SINGLE) {
-                config.values.clear()
-            }
-            config.values.addAll(values)
-        }
+        config.valueType = type
+        config.values.clear()
+        config.values.addAll(values)
     }
 
     /**
@@ -188,15 +190,42 @@ public open class MapApplicationConfig : ApplicationConfig {
     }
 
     internal companion object {
+        @Suppress("UNCHECKED_CAST")
         internal fun Map<String, Any?>.flatten(prefix: String = ""): Sequence<Pair<String, String>> {
-            TODO("Not yet implemented")
+            return sequence {
+                for ((key, value) in entries) {
+                    val path = if (prefix.isEmpty()) key else "$prefix.$key"
+                    when (value) {
+                        null -> continue
+                        is List<*> -> yieldAll(value.flatten(path))
+                        is Map<*, *> -> yieldAll((value as Map<String, Any?>).flatten(path))
+                        else -> yield(path to value.toString())
+                    }
+                }
+            }
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        internal fun List<Any?>.flatten(prefix: String): Sequence<Pair<String, String>> {
+            return sequence {
+                for (i in indices) {
+                    val path = if (prefix.isEmpty()) i.toString() else "$prefix.$i"
+                    when (val element = get(i)) {
+                        null -> continue
+                        is List<*> -> yieldAll(element.flatten(path))
+                        is Map<*, *> -> yieldAll((element as Map<String, Any?>).flatten(path))
+                        else -> yield(path to element.toString())
+                    }
+                }
+                yield((if (prefix.isEmpty()) "size" else "$prefix.size") to size.toString())
+            }
         }
     }
 }
 
 internal class MapApplicationConfigValue(
     private val path: String,
-    private val config: MapApplicationConfig
+    internal val config: MapApplicationConfig
 ): ApplicationConfigValue {
     override val type: ValueType = config.valueType
 
@@ -221,11 +250,49 @@ internal class MapApplicationConfigValue(
     }
 
     override fun getMap(): Map<String, Any?> {
-        TODO("Not yet implemented")
+        return config.toMap()
     }
 
+    @OptIn(InternalAPI::class)
     override fun getAs(type: TypeInfo): Any? {
-        TODO("Not yet implemented")
+        return type.serializer()
+            .deserialize(MapConfigValueDecoder(this))
+    }
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+internal class MapConfigValueDecoder(
+    private val root: MapApplicationConfigValue,
+    override val serializersModule: SerializersModule = EmptySerializersModule()
+) : AbstractDecoder() {
+    override fun decodeInt(): Int = decodeString().toInt()
+    override fun decodeLong(): Long = decodeString().toLong()
+    override fun decodeFloat(): Float = decodeString().toFloat()
+    override fun decodeDouble(): Double = decodeString().toDouble()
+    override fun decodeBoolean(): Boolean = decodeString().toBoolean()
+    override fun decodeChar(): Char = decodeString().single()
+    override fun decodeByte(): Byte = decodeString().toByte()
+    override fun decodeShort(): Short = decodeString().toShort()
+
+    override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
+        elementIndex = 0
+        current = root
+        return this
+    }
+
+    override fun decodeString(): String = current.getString()
+
+    private var elementIndex = 0
+    private var current: ApplicationConfigValue = root
+
+    override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
+        if (elementIndex >= descriptor.elementsCount) return CompositeDecoder.DECODE_DONE
+
+        val idx = elementIndex++
+        val name = descriptor.getElementName(idx)
+
+        current = root.config.property(name)
+        return idx
     }
 }
 
