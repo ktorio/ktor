@@ -425,7 +425,10 @@ public sealed class HttpAuthHeader(public val authScheme: String) {
             domain: List<String> = emptyList(),
             opaque: String? = null,
             stale: Boolean? = null,
-            algorithm: String = "MD5"
+            algorithm: DigestAlgorithm = DigestAlgorithm.SHA_256,
+            charset: Charset? = null,
+            userhash: Boolean = false,
+            qop: List<String> = emptyList()
         ): Parameterized = Parameterized(
             authScheme = AuthScheme.Digest,
             parameters = linkedMapOf<String, String>().apply {
@@ -440,10 +443,34 @@ public sealed class HttpAuthHeader(public val authScheme: String) {
                 if (stale != null) {
                     put("stale", stale.toString())
                 }
-                put("algorithm", algorithm)
+                put("algorithm", algorithm.name)
+                if (charset != null) {
+                    put("charset", charset.name.toUpperCasePreservingASCIIRules())
+                }
+                if (userhash) {
+                    put("userhash", "true")
+                }
+                if (qop.isNotEmpty()) {
+                    put("qop", qop.joinToString(",").quote())
+                }
             },
             encoding = HeaderValueEncoding.QUOTED_WHEN_REQUIRED
         )
+
+        @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.WARNING)
+        public fun digestAuthChallenge(
+            realm: String,
+            nonce: String = generateNonce(),
+            domain: List<String> = emptyList(),
+            opaque: String? = null,
+            stale: Boolean? = null,
+            algorithm: String = "MD5"
+        ): Parameterized {
+            val algorithm = requireNotNull(DigestAlgorithm.from(algorithm)) {
+                "Unsupported algorithm: $algorithm"
+            }
+            return digestAuthChallenge(realm, nonce, domain, opaque, stale, algorithm, charset = null)
+        }
     }
 
     /**

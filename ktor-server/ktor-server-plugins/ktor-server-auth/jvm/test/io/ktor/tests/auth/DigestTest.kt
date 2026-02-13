@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.auth
@@ -14,6 +14,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
+import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.test.*
 import java.security.*
 import kotlin.test.*
@@ -102,6 +103,7 @@ class DigestTest {
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun testVerify() = runTest {
         val authHeaderContent = """
             Digest
@@ -121,7 +123,7 @@ class DigestTest {
 
         val p = "Circle Of Life"
         val userNameRealmPassword = "${digest.userName}:${digest.realm}:$p"
-        val digester = MessageDigest.getInstance(digest.algorithm ?: "MD5")
+        val digester = digest.digestAlgorithm.toDigester()
 
         assertEquals(
             digest.response,
@@ -337,7 +339,8 @@ class DigestTest {
 
             val challenge = client.get("/").let { response ->
                 assertEquals(HttpStatusCode.Unauthorized, response.status)
-                parseAuthorizationHeader(response.headers[HttpHeaders.WWWAuthenticate]!!)
+                @OptIn(InternalAPI::class)
+                parseAuthorizationHeaders(response.headers[HttpHeaders.WWWAuthenticate]!!)[0]
             }
 
             val nonce = (challenge as? HttpAuthHeader.Parameterized)?.parameter("nonce")
@@ -364,6 +367,7 @@ class DigestTest {
             val userRealmPassDigest =
                 digest(MessageDigest.getInstance("MD5"), "Mufasa:testrealm@host.com:Circle Of Life")
 
+            @Suppress("DEPRECATION")
             val expectedDigest = authHeader.toDigestCredential().expectedDigest(
                 HttpMethod.Get,
                 MessageDigest.getInstance("MD5"),
