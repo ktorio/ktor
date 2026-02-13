@@ -10,7 +10,7 @@ import kotlin.test.*
 class HttpStatusCodeTest {
     @Test
     fun httpStatusCodeAll() {
-        assertEquals(53, HttpStatusCode.allStatusCodes.size)
+        assertEquals(54, HttpStatusCode.allStatusCodes.size)
     }
 
     @Test
