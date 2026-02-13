@@ -13,10 +13,10 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.serialization.*
 import io.ktor.server.testing.*
-import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.Serializable
+import kotlin.io.encoding.Base64
 import kotlin.random.Random
 import kotlin.test.*
 import kotlin.time.Duration.Companion.days
@@ -143,7 +143,7 @@ class SessionTest {
             assertNotNull(sessionCookie, "No session cookie found")
             assertEquals(CookieEncoding.BASE64_ENCODING, sessionCookie.encoding)
 
-            sessionParam = sessionCookie.value.encodeBase64()
+            sessionParam = Base64.encode(sessionCookie.value.encodeToByteArray())
         }
 
         client.get("/2") {
