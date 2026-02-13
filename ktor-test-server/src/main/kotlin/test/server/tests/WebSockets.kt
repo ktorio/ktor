@@ -75,6 +75,11 @@ internal fun Application.webSockets() {
                     }
                 }
             }
+            webSocket("text") {
+                val size = call.request.queryParameters["size"]?.toIntOrNull() ?: error("No size provided")
+                val payload = "x".repeat(size)
+                send(Frame.Text(payload))
+            }
             get("500") {
                 throw IllegalStateException()
             }
