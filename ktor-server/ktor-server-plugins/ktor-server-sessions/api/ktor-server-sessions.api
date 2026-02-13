@@ -34,8 +34,10 @@ public final class io/ktor/server/sessions/CookieConfiguration {
 public final class io/ktor/server/sessions/CookieIdSessionBuilder : io/ktor/server/sessions/CookieSessionBuilder {
 	public fun <init> (Lkotlin/reflect/KClass;Lkotlin/reflect/KType;)V
 	public final fun getSessionIdProvider ()Lkotlin/jvm/functions/Function0;
-	public final fun identity (Lkotlin/jvm/functions/Function0;)V
+	public final synthetic fun identity (Lkotlin/jvm/functions/Function0;)V
+	public final fun identity (Lkotlin/jvm/functions/Function0;Lkotlin/Unit;)V
 	public final fun identity (Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun identity$default (Lio/ktor/server/sessions/CookieIdSessionBuilder;Lkotlin/jvm/functions/Function0;Lkotlin/Unit;ILjava/lang/Object;)V
 	public final fun provideSessionId (Lio/ktor/server/application/ApplicationCall;)Ljava/lang/String;
 }
 
@@ -70,8 +72,10 @@ public final class io/ktor/server/sessions/DirectoryStorageKt {
 public final class io/ktor/server/sessions/HeaderIdSessionBuilder : io/ktor/server/sessions/HeaderSessionBuilder {
 	public fun <init> (Lkotlin/reflect/KClass;Lkotlin/reflect/KType;)V
 	public final fun getSessionIdProvider ()Lkotlin/jvm/functions/Function0;
-	public final fun identity (Lkotlin/jvm/functions/Function0;)V
+	public final synthetic fun identity (Lkotlin/jvm/functions/Function0;)V
+	public final fun identity (Lkotlin/jvm/functions/Function0;Lkotlin/Unit;)V
 	public final fun identity (Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun identity$default (Lio/ktor/server/sessions/HeaderIdSessionBuilder;Lkotlin/jvm/functions/Function0;Lkotlin/Unit;ILjava/lang/Object;)V
 	public final fun provideSessionId (Lio/ktor/server/application/ApplicationCall;)Ljava/lang/String;
 }
 

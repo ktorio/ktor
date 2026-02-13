@@ -334,11 +334,6 @@ public class CookieIdSessionBuilder<S : Any> @PublishedApi internal constructor(
 
     private var _sessionIdProvider: (ApplicationCall?) -> String = { generateSessionId() }
 
-    @Deprecated("Use identity function that accepts ApplicationCall parameter", level = DeprecationLevel.WARNING)
-    public fun identity(f: () -> String) {
-        _sessionIdProvider = { f() }
-    }
-
     /**
      * Registers a function used to generate a session ID.
      *
@@ -346,8 +341,20 @@ public class CookieIdSessionBuilder<S : Any> @PublishedApi internal constructor(
      */
     public fun identity(f: (ApplicationCall) -> String) {
         _sessionIdProvider = { call ->
-            f(requireNotNull(call) { "ApplicationCall is required for this sessionIdProvider" })
+            requireNotNull(call) {
+                "ApplicationCall is required for this sessionIdProvider. Please use identity((ApplicationCall) -> String) instead."
+            }.let { f(it) }
         }
+    }
+
+    @Deprecated("Use identity function that accepts ApplicationCall parameter", level = DeprecationLevel.HIDDEN)
+    public fun identity(f: () -> String) {
+        _sessionIdProvider = { f() }
+    }
+
+    @Deprecated("Use identity function that accepts ApplicationCall parameter", level = DeprecationLevel.WARNING)
+    public fun identity(f: () -> String, @Suppress("UNUSED_PARAMETER") dummy: Unit = Unit) {
+        _sessionIdProvider = { f() }
     }
 
     /**
@@ -356,7 +363,8 @@ public class CookieIdSessionBuilder<S : Any> @PublishedApi internal constructor(
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CookieIdSessionBuilder.sessionIdProvider)
      */
     @Deprecated("Use identity function that accepts ApplicationCall parameter", level = DeprecationLevel.WARNING)
-    public val sessionIdProvider: () -> String = { _sessionIdProvider(null) }
+    public var sessionIdProvider: () -> String = { _sessionIdProvider(null) }
+        private set(_) = error("Read only property")
 
     @InternalAPI
     public fun provideSessionId(call: ApplicationCall): String = _sessionIdProvider(call)
@@ -470,26 +478,35 @@ internal constructor(
     /**
      * Registers a function used to generate a session ID.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CookieIdSessionBuilder.identity)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.HeaderIdSessionBuilder.identity)
      */
     public fun identity(f: (ApplicationCall) -> String) {
         _sessionIdProvider = { call ->
-            f(requireNotNull(call) { "ApplicationCall is required for this sessionIdProvider" })
+            requireNotNull(call) {
+                "ApplicationCall is required for this sessionIdProvider. Please use identity((ApplicationCall) -> String) instead."
+            }.let { f(it) }
         }
     }
 
-    @Deprecated("Use identity function that accepts ApplicationCall parameter", level = DeprecationLevel.WARNING)
+    @Deprecated("Use identity function that accepts ApplicationCall parameter", level = DeprecationLevel.HIDDEN)
     public fun identity(f: () -> String) {
+        _sessionIdProvider = { f() }
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    @Deprecated("Use identity function that accepts ApplicationCall parameter", level = DeprecationLevel.WARNING)
+    public fun identity(f: () -> String, @Suppress("UNUSED_PARAMETER") dummy: Unit = Unit) {
         _sessionIdProvider = { f() }
     }
 
     /**
      * A function used to provide a current session ID.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CookieIdSessionBuilder.sessionIdProvider)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.HeaderIdSessionBuilder.sessionIdProvider)
      */
     @Deprecated("Use identity function that accepts ApplicationCall parameter", level = DeprecationLevel.WARNING)
-    public val sessionIdProvider: () -> String = { _sessionIdProvider(null) }
+    public var sessionIdProvider: () -> String = { _sessionIdProvider(null) }
+        private set(_) = error("Read only property")
 
     @InternalAPI
     public fun provideSessionId(call: ApplicationCall): String = _sessionIdProvider(call)
