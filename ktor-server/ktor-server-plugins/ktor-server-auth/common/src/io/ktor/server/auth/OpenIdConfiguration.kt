@@ -9,6 +9,7 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -106,7 +107,7 @@ private val discoveryJson = Json {
  * ```
  */
 public suspend fun HttpClient.fetchOpenIdConfiguration(issuer: String): OpenIdConfiguration {
-    val config = runCatching {
+    val config = try {
         val response = get {
             expectSuccess = true
             url.takeFrom(issuer)
@@ -114,8 +115,10 @@ public suspend fun HttpClient.fetchOpenIdConfiguration(issuer: String): OpenIdCo
         }
         val body = response.bodyAsText()
         discoveryJson.decodeFromString<OpenIdConfiguration>(body)
-    }.getOrElse {
-        throw DiscoveryException("Failed to fetch OpenID configuration from $issuer", it)
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Throwable) {
+        throw DiscoveryException("Failed to fetch OpenID configuration from $issuer", e)
     }
     if (config.jwksUri.isBlank()) {
         throw DiscoveryException("OpenID configuration from $issuer is missing jwks_uri")

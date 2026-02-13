@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.auth
@@ -147,9 +147,9 @@ public fun AuthenticationConfig.oauth(
  * - [OpenIdOAuthConfig.clientId] - OAuth client ID from your identity provider
  * - [OpenIdOAuthConfig.clientSecret] - OAuth client secret from your identity provider
  * - [OpenIdOAuthConfig.urlProvider] - callback URL for OAuth redirect
+ * - [OpenIdOAuthConfig.client] - HTTP client for making OAuth requests
  *
  * **Optional configuration:**
- * - [OpenIdOAuthConfig.client] - HTTP client for making OAuth requests
  * - [OpenIdOAuthConfig.defaultScopes] - override autoconfigured scopes
  * - [OpenIdOAuthConfig.requestMethod] - HTTP method for token requests (default: POST)
  * - [OpenIdOAuthConfig.extraAuthParameters] - additional parameters for authorization request
