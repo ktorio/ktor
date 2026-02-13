@@ -64,18 +64,18 @@ class JwkDiscoveryTest {
         val jwk2 = jwkFor(keyPair2, kid2)
         val jwkProvider = RotatingJwkProvider(mapOf(kid1 to jwk1))
 
+        val openIdConfig = OpenIdConfiguration(
+            issuer = issuer,
+            authorizationEndpoint = "$issuer/authorize",
+            tokenEndpoint = "$issuer/token",
+            jwksUri = "$issuer/.well-known/openid-configuration"
+        )
         install(Authentication) {
             jwt {
-                jwk {
+                jwk(openIdConfig) {
                     this.audience = audience
                     jwkProviderFactory { jwkProvider }
                     validate { JWTPrincipal(it.payload) }
-                    openIdConfig = OpenIdConfiguration(
-                        issuer = issuer,
-                        authorizationEndpoint = "$issuer/authorize",
-                        tokenEndpoint = "$issuer/token",
-                        jwksUri = "$issuer/.well-known/openid-configuration"
-                    )
                 }
             }
         }
@@ -141,9 +141,8 @@ class JwkDiscoveryTest {
 
                 install(Authentication) {
                     jwt("jwt-auth") {
-                        jwk {
+                        jwk(openIdConfig) {
                             this.audience = audience
-                            this.openIdConfig = openIdConfig
                             validate { credential ->
                                 when (credential.subject) {
                                     "valid-user" -> JWTPrincipal(credential.payload)
@@ -236,14 +235,8 @@ class JwkDiscoveryTest {
             }
         }) { port ->
             val jwkProvider = JwkConfig().apply {
-                openIdConfig = OpenIdConfiguration(
-                    issuer = "http://issuer.example",
-                    authorizationEndpoint = "http://issuer.example/authorize",
-                    tokenEndpoint = "http://issuer.example/token",
-                    jwksUri = "http://127.0.0.1:$port"
-                )
                 cache(maxEntries = 1, duration = 1.seconds)
-            }.toJwkProvider()
+            }.toJwkProvider("http://127.0.0.1:$port")
 
             val jwk = jwkProvider.get(keyId)
             assertEquals(1, fetchCount.get())

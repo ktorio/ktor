@@ -404,7 +404,8 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.JWTAuthenticationProvider.Config.jwk)
          *
-         * @param configure Configuration block for [JwkConfig] to set up OpenID configuration and audience validation
+         * @param openIdConfig OpenID configuration fetched from the discovery endpoint
+         * @param configure Configuration block for [JwkConfig] to set up audience validation and other JWT verification options
          * @throws IllegalArgumentException if the [JwkConfig] function is not valid
          *
          * Example:
@@ -412,11 +413,10 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
          * val config = httpClient.fetchOpenIdConfiguration("https://accounts.google.com")
          * install(Authentication) {
          *     jwt {
-         *         jwk {
-         *             openIdConfig = config
+         *         jwk(config) {
          *             audience = "my-app-client-id"
          *         }
-         *         validate {
+         *         validate { credentials ->
          *             // check if user exists in database
          *             val userId = credentials.subject
          *             database.findUser(userId)?.let { UserPrincipal(it) }
@@ -428,17 +428,14 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
          * @see JwkConfig
          * @see fetchOpenIdConfiguration
          */
-        public fun jwk(configure: JwkConfig.() -> Unit) {
+        public fun jwk(openIdConfig: OpenIdConfiguration, configure: JwkConfig.() -> Unit) {
             val config = JwkConfig().apply(configure)
-            val openId = requireNotNull(config.openIdConfig) {
-                "OpenID configuration is not specified"
-            }
             require(verifier == null) {
                 "JWT auth verifier should not be specified when using jwk."
             }
 
-            val issuer = openId.issuer
-            val jwkProvider = config.toJwkProvider()
+            val issuer = openIdConfig.issuer
+            val jwkProvider = config.toJwkProvider(openIdConfig.jwksUri)
             verifier(jwkProvider, issuer, config.jwtConfigure)
 
             prevalidateCredentials = validation@{ credentials ->

@@ -6,11 +6,12 @@ package io.ktor.server.auth.jwt
 
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
-import io.ktor.server.auth.*
-import io.ktor.utils.io.KtorDsl
+import io.ktor.utils.io.*
 import java.net.URI
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.toJavaDuration
 
 /**
@@ -50,17 +51,6 @@ public class JwkConfig internal constructor() {
     }
 
     /**
-     * OpenID Connect configuration retrieved from the authorization server.
-     * This can be set to the result of [io.ktor.server.auth.fetchOpenIdConfiguration].
-     * The configuration contains the issuer URL and JWKS URI needed for token verification.
-     *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.JwkConfig.openIdConfig)
-     *
-     * @see io.ktor.server.auth.fetchOpenIdConfiguration
-     */
-    public var openIdConfig: OpenIdConfiguration? = null
-
-    /**
      * Expected audience claim value for JWT validation.
      * If set, only tokens with a matching `aud` claim will be accepted.
      *
@@ -89,10 +79,10 @@ public class JwkConfig internal constructor() {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.JwkConfig.cache)
      *
-     * @param maxEntries Maximum number of keys to cache
-     * @param duration How long cached keys remain valid before being refreshed
+     * @param maxEntries Maximum number of keys to cache, defaults to 5
+     * @param duration How long cached keys remain valid before being refreshed, defaults to 10 hours
      */
-    public fun cache(maxEntries: Long, duration: Duration) {
+    public fun cache(maxEntries: Long = 5, duration: Duration = 10.hours) {
         cacheEnabled = true
         cacheConfig = CacheConfig(maxEntries, duration)
     }
@@ -113,10 +103,10 @@ public class JwkConfig internal constructor() {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.JwkConfig.rateLimit)
      *
-     * @param bucketSize Maximum number of requests allowed in the time window
-     * @param refillDuration Time window for the rate limit bucket
+     * @param bucketSize Maximum number of requests allowed in the time window, defaults to 10
+     * @param refillDuration Time window for the rate limit bucket, defaults to 1 minute
      */
-    public fun rateLimit(bucketSize: Long, refillDuration: Duration) {
+    public fun rateLimit(bucketSize: Long = 10, refillDuration: Duration = 1.minutes) {
         rateLimitEnabled = true
         rateLimitConfig = RateLimitConfig(bucketSize, refillDuration)
     }
@@ -144,10 +134,7 @@ public class JwkConfig internal constructor() {
     }
 }
 
-internal fun JwkConfig.toJwkProvider(): JwkProvider {
-    val jwksUri = requireNotNull(openIdConfig?.jwksUri) {
-        "`JwkConfig.openIdConfig.jwksUri` is not specified"
-    }
+internal fun JwkConfig.toJwkProvider(jwksUri: String): JwkProvider {
     jwkProviderFactory?.let { factory ->
         return factory(jwksUri)
     }
