@@ -215,6 +215,7 @@ public class NettyApplicationEngine(
 
             val userContext =
                 NettyApplicationCallHandler.CallHandlerCoroutineName +
+                    NettyDispatcher +
                     DefaultUncaughtExceptionHandler(environment.log)
 
             childHandler(

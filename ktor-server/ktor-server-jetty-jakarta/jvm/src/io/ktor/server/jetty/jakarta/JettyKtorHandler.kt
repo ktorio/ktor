@@ -18,10 +18,10 @@ import org.eclipse.jetty.util.Callback
 import java.util.concurrent.*
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.coroutines.CoroutineContext
+import kotlin.math.absoluteValue
 
 private val JettyCallHandlerCoroutineName = CoroutineName("jetty-call-handler")
 private val JettyKtorCounter = AtomicLong()
-private const val THREAD_KEEP_ALIVE_TIME = 1L
 
 @OptIn(InternalAPI::class)
 internal class JettyKtorHandler(
@@ -31,30 +31,26 @@ internal class JettyKtorHandler(
     private val applicationProvider: () -> Application
 ) : Handler.Abstract() {
     private val environmentName = configuration.connectors.joinToString("-") { it.port.toString() }
-    private val queue: BlockingQueue<Runnable> = SynchronousQueue()
-    private val rejectedExecutionHandler =
-        // Always run on caller thread when pool is full or during shutdown.
-        // Unlike `ThreadPoolExecutor.CallerRunsPolicy` which discards tasks during shutdown,
-        // this ensures cancellation can propagate through the dispatcher.
-        RejectedExecutionHandler { r, _ -> r.run() }
-    private val executor = ThreadPoolExecutor(
-        configuration.callGroupSize,
-        configuration.callGroupSize * 8,
-        THREAD_KEEP_ALIVE_TIME,
-        TimeUnit.MINUTES,
-        queue,
-        { r -> Thread(r, "ktor-jetty-$environmentName-${JettyKtorCounter.incrementAndGet()}") },
-        rejectedExecutionHandler
-    )
-    private val dispatcher = executor.asCoroutineDispatcher()
-    private val handlerContext: CoroutineContext = dispatcher +
+    private val handlerContext: CoroutineContext =
         DefaultUncaughtExceptionHandler(environment.log) +
-        JettyCallHandlerCoroutineName
+            JettyCallHandlerCoroutineName
+
+    // Thread-affinity pool: N single-thread dispatchers, shared across calls.
+    private val executors: Array<ExecutorService> =
+        Array(configuration.callGroupSize) { i ->
+            Executors.newSingleThreadExecutor { r ->
+                Thread(r, "ktor-jetty-$environmentName-$i").apply { isDaemon = true }
+            }
+        }
+    private val dispatchers: Array<CoroutineDispatcher> =
+        Array(configuration.callGroupSize) { i ->
+            executors[i].asCoroutineDispatcher()
+        }
 
     override fun destroy() {
         try {
             super.destroy()
-            executor.shutdownNow()
+            executors.forEach { it.shutdownNow() }
         } finally {
             handlerContext.cancel()
         }
@@ -67,13 +63,17 @@ internal class JettyKtorHandler(
     ): Boolean {
         try {
             val application = applicationProvider()
-            application.launch(handlerContext) {
+
+            val threadIndex = JettyKtorCounter.incrementAndGet().hashCode().absoluteValue % dispatchers.size
+            val callDispatcher = dispatchers[threadIndex]
+
+            application.launch(handlerContext + callDispatcher) {
                 val call = JettyApplicationCall(
                     application,
                     request,
                     response,
-                    executor = executor,
-                    userContext = application.coroutineContext,
+                    executor = executors[threadIndex],
+                    userContext = currentCoroutineContext(),
                     coroutineContext = currentCoroutineContext(),
                     idleTimeout = configuration.idleTimeout
                 )
