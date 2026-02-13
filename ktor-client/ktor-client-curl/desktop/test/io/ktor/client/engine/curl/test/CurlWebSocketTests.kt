@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.curl.test
@@ -17,8 +17,9 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.seconds
 
-class CurlWebSocketTests : ClientEngineTest<CurlClientEngineConfig>(Curl) {
+class CurlWebSocketTests : ClientEngineTest<CurlClientEngineConfig>(Curl, timeout = 10.seconds) {
 
     @Test
     fun testEcho() = testClient {
