@@ -132,8 +132,7 @@ internal class MergedApplicationConfig(
         val secondMap = second.getMap()
         val mergedMap = secondMap.merge(firstMap)
         val flattenedMap = mergedMap.flatten().toMap().toMutableMap()
-        // TODO: Fix
-//        return MapApplicationConfigValue("", MapApplicationConfig(flattenedMap, ""))
-        return MapApplicationConfigValue("", ObjectNode())
+
+        return MapApplicationConfigValue("", MapApplicationConfig(flattenedMap).node)
     }
 }

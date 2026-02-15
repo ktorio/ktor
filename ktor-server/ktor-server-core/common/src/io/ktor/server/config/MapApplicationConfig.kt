@@ -13,6 +13,7 @@ import kotlinx.serialization.encoding.AbstractDecoder
 import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
+import kotlin.collections.toMap
 import kotlin.jvm.JvmInline
 import io.ktor.server.config.ApplicationConfigValue.Type as ValueType
 
@@ -254,15 +255,14 @@ internal class MapApplicationConfigValue(
 
     @OptIn(InternalAPI::class)
     override fun getAs(type: TypeInfo): Any? {
-        TODO()
-//        return type.serializer()
-//            .deserialize(ConfigValueDecoder(this))
+        return type.serializer()
+            .deserialize(ConfigValueDecoder(node))
     }
 }
 
 @OptIn(ExperimentalSerializationApi::class)
 internal class ConfigValueDecoder(
-    private val root: MapApplicationConfigValue,
+    private val root: Node,
     override val serializersModule: SerializersModule = EmptySerializersModule()
 ) : AbstractDecoder() {
     override fun decodeInt(): Int = decodeString().toInt()
@@ -273,22 +273,33 @@ internal class ConfigValueDecoder(
     override fun decodeChar(): Char = decodeString().single()
     override fun decodeByte(): Byte = decodeString().toByte()
     override fun decodeShort(): Short = decodeString().toShort()
-    override fun decodeString(): String = current.getString()
+    override fun decodeString(): String = (current as? StrNode)?.str ?: ""
+    override fun decodeEnum(enumDescriptor: SerialDescriptor): Int =
+        enumDescriptor.getElementIndex(decodeString())
+
 
     override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
         val kind = descriptor.kind as? StructureKind ?: error("Expected structure but found ${descriptor.kind}")
 
-        return if (kind is StructureKind.LIST) {
-            ListNodeDecoder(current.getList(), serializersModule)
-        } else {
-            elementIndex = 0
-            current = root
-            this
+        return when (kind) {
+            is StructureKind.LIST -> {
+                ListNodeDecoder(current, serializersModule)
+            }
+
+            is StructureKind.MAP -> {
+                MapDecoder(current, serializersModule)
+            }
+
+            else -> {
+                elementIndex = 0
+                current = root
+                this
+            }
         }
     }
 
     private var elementIndex = 0
-    private var current: MapApplicationConfigValue = root
+    private var current: Node = root
 
     override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
         if (elementIndex >= descriptor.elementsCount) return CompositeDecoder.DECODE_DONE
@@ -296,16 +307,34 @@ internal class ConfigValueDecoder(
         val idx = elementIndex++
         val name = descriptor.getElementName(idx)
 
-//        current = current.config.property(name) as MapApplicationConfigValue
-        return idx
+        return if (descriptor.isElementOptional(idx)) {
+            decodeElementIndex(descriptor)
+        } else if (root is ObjectNode) {
+            val childNode = root.children[name] ?: return CompositeDecoder.DECODE_DONE
+            current = childNode
+            idx
+        } else {
+            CompositeDecoder.DECODE_DONE
+        }
     }
 
     private class ListNodeDecoder(
-        private val items: List<String>,
+        root: Node,
         override val serializersModule: SerializersModule
     ) : AbstractDecoder() {
         private var index = 0
-        private lateinit var current: String
+        private var nodeList: List<Node> = when (root) {
+            is ListNode -> {
+                root.strList.map { StrNode(it) }
+            }
+            is ObjectNode -> {
+                root.getSyntheticList()
+            }
+            else -> {
+                null
+            }
+        } ?: emptyList()
+        private lateinit var current: Node
 
         override fun decodeInt(): Int = decodeString().toInt()
         override fun decodeLong(): Long = decodeString().toLong()
@@ -315,20 +344,73 @@ internal class ConfigValueDecoder(
         override fun decodeChar(): Char = decodeString().single()
         override fun decodeByte(): Byte = decodeString().toByte()
         override fun decodeShort(): Short = decodeString().toShort()
-        override fun decodeString(): String = current
+        override fun decodeString(): String = (current as? StrNode)?.str ?: ""
+        override fun decodeEnum(enumDescriptor: SerialDescriptor): Int =
+            enumDescriptor.getElementIndex(decodeString())
 
-        override fun decodeCollectionSize(descriptor: SerialDescriptor): Int = items.size
+        override fun decodeCollectionSize(descriptor: SerialDescriptor): Int = nodeList.size
 
         override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
-            if (index >= items.size) return CompositeDecoder.DECODE_DONE
+            if (index >= nodeList.size) return CompositeDecoder.DECODE_DONE
             val idx = index++
-            current = items[idx]
+            current = nodeList[idx]
             return idx
         }
 
-//        override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
-//            return ConfigValueDecoder(current, serializersModule).beginStructure(descriptor)
-//        }
+        override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
+            return ConfigValueDecoder(current, serializersModule).beginStructure(descriptor)
+        }
+    }
+
+    private class MapDecoder(
+        root: Node,
+        override val serializersModule: SerializersModule
+    ): AbstractDecoder() {
+        private var elementIndex = 0
+
+        private val entries: List<Pair<String, Node>> = when (root) {
+            is ObjectNode -> root.children.entries.map { it.key to it.value }
+            is ListNode -> root.strList.mapIndexed { i, s -> i.toString() to StrNode(s) } // TODO: Check
+            else -> emptyList()
+        }
+
+        private lateinit var current: Node
+
+        override fun decodeCollectionSize(descriptor: SerialDescriptor): Int = entries.size
+
+        override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
+            val pairCount = entries.size
+            val totalElements = pairCount * 2
+            if (elementIndex >= totalElements) return CompositeDecoder.DECODE_DONE
+
+            val idx = elementIndex++
+            val pair = entries[idx / 2]
+
+            current = if (idx % 2 == 0) {
+                StrNode(pair.first)
+            } else {
+                pair.second
+            }
+
+            return idx
+        }
+
+        override fun decodeString(): String = (current as? StrNode)?.str ?: ""
+
+        override fun decodeInt(): Int = decodeString().toInt()
+        override fun decodeLong(): Long = decodeString().toLong()
+        override fun decodeFloat(): Float = decodeString().toFloat()
+        override fun decodeDouble(): Double = decodeString().toDouble()
+        override fun decodeBoolean(): Boolean = decodeString().toBoolean()
+        override fun decodeChar(): Char = decodeString().single()
+        override fun decodeByte(): Byte = decodeString().toByte()
+        override fun decodeShort(): Short = decodeString().toShort()
+        override fun decodeEnum(enumDescriptor: SerialDescriptor): Int =
+            enumDescriptor.getElementIndex(decodeString())
+
+        override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
+            return ConfigValueDecoder(current, serializersModule).beginStructure(descriptor)
+        }
     }
 }
 
