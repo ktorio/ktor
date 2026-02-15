@@ -8,20 +8,124 @@ import io.ktor.util.reflect.*
 import io.ktor.utils.io.InternalAPI
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.StructureKind
 import kotlinx.serialization.encoding.AbstractDecoder
 import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
+import kotlin.jvm.JvmInline
 import io.ktor.server.config.ApplicationConfigValue.Type as ValueType
 
-public open class MapApplicationConfig : ApplicationConfig {
-    internal val values = mutableListOf<String>()
-    internal var valueType: ValueType = ValueType.OBJECT
-    internal val children = mutableMapOf<String, MapApplicationConfig>()
+internal sealed interface Node
+@JvmInline
+internal value class StrNode(val str: String) : Node
+@JvmInline
+internal value class ObjectNode(val children: MutableMap<String, Node> = mutableMapOf()) : Node
+@JvmInline
+internal value class ListNode(val strList: List<String>) : Node
 
-    internal constructor(map: MutableMap<String, String>, path: String = "") {
+internal fun Node.findChildNode(path: String): Node? {
+    var current: Node? = this
+    for (key in path.split('.')) {
+        if (current !is ObjectNode) {
+            return null
+        }
+
+        current = current.children[key]
+    }
+
+    return current
+}
+
+internal fun Node.putNode(path: String, node: Node): ObjectNode? {
+    if (this !is ObjectNode) return null
+    if (path.isEmpty()) return null
+    val keys = path.split('.')
+
+    var parent: ObjectNode = this
+    for (i in 0..<keys.size-1) {
+        var child = parent.children[keys[i]]
+
+        if (child !is ObjectNode) {
+            child = ObjectNode()
+            parent.children[keys[i]] = child
+        }
+
+        parent = child
+    }
+
+    parent.children[keys.last()] = node
+    return parent
+}
+
+internal fun Node.allPaths(prefix: String = ""): Set<String> {
+    val set = mutableSetOf<String>()
+
+    if (this is ObjectNode) {
+        for (key in children.keys) {
+            val childNode = children[key] ?: continue
+
+            val path = if (prefix.isEmpty()) key else "$prefix.$key"
+
+            if (childNode is ObjectNode) {
+                val list = childNode.getSyntheticList()
+
+                if (list == null) {
+                    set.addAll(childNode.allPaths(path))
+                } else {
+                    set.add(path)
+                }
+            } else {
+                set.add(path)
+            }
+        }
+    }
+    return set
+}
+
+internal fun Node.toMap(): Map<String, Any?> {
+    val map = mutableMapOf<String, Any?>()
+    if (this !is ObjectNode) return map
+
+    for (key in children.keys) {
+        val child = children[key] ?: continue
+
+        when (child) {
+            is StrNode -> {
+                map[key] = child.str
+            }
+            is ListNode -> {
+                map[key] = child.strList.map { it }
+            }
+            is ObjectNode -> {
+                val list = child.getSyntheticList()
+
+                if (list != null) {
+                    map[key] = list.map { it.toMap() }
+                } else {
+                    map[key] = child.toMap()
+                }
+            }
+        }
+    }
+
+    return map
+}
+
+private fun Node.getSyntheticList(): List<Node>? {
+    if (this !is ObjectNode) return null
+    val size = (children["size"] as? StrNode)?.str?.toIntOrNull() ?: return null
+
+    return (0..<size).map { children[it.toString()] ?: throw ApplicationConfigurationException("Missing $it index") }
+}
+
+
+public open class MapApplicationConfig private constructor(
+    internal val node: Node
+): ApplicationConfig {
+    internal constructor(map: MutableMap<String, String>, path: String = ""): this(ObjectNode()) {
         for ((p, value) in map) {
-            put(p, value)
+            node.putNode(p, StrNode(value))
         }
     }
 
@@ -36,14 +140,8 @@ public open class MapApplicationConfig : ApplicationConfig {
     }
 
     override fun propertyOrNull(path: String): ApplicationConfigValue? {
-        var current: MapApplicationConfig? = this
-        for (key in path.split('.')) {
-            current = current?.children?.get(key)
-
-            if (current == null) return null
-        }
-
-        return MapApplicationConfigValue(path, current!!)
+        val child = node.findChildNode(path) ?: return null
+        return MapApplicationConfigValue(path, child)
     }
 
     override fun config(path: String): ApplicationConfig {
@@ -51,142 +149,36 @@ public open class MapApplicationConfig : ApplicationConfig {
     }
 
     override fun configList(path: String): List<ApplicationConfig> {
-        val config = configOrNull(path) ?: throw ApplicationConfigurationException("Property $path not found")
+        val child = node.findChildNode(path) ?: return emptyList()
+        val list = child.getSyntheticList()
 
-        return (0..<config.getSize(path)).map { i ->
-            config.config(i.toString())
+        if (list != null) {
+            return list.map { MapApplicationConfig(it) }
         }
+
+        // TODO: Actual type
+        throw ApplicationConfigurationException("Expected a list of configs at $path")
     }
 
     private fun configOrNull(path: String): MapApplicationConfig? {
-        var current: MapApplicationConfig? = this
-        for (key in path.split('.')) {
-            current = current?.children?.get(key)
-
-            if (current == null) break
-        }
-
-        return current
+        val child = node.findChildNode(path) ?: return null
+        return MapApplicationConfig(child)
     }
 
     override fun keys(): Set<String> {
-        return keys("")
-    }
-
-    private fun keys(prefix: String): Set<String> {
-        val set = mutableSetOf<String>()
-
-        if (children.containsKey("size")) {
-            val size = if (children["size"]?.valueType == ValueType.SINGLE) {
-                children["size"]?.values?.first()?.toIntOrNull()
-            } else {
-                null
-            }
-
-            if (size != null) {
-                var isList = true
-                for (i in 0 until size) {
-                    isList = isList && (children.containsKey(i.toString()))
-                }
-
-                if (isList) {
-                    set.add(prefix)
-                    return set
-                }
-            }
-        }
-
-        for (key in children.keys) {
-            val config = children[key] ?: continue
-
-            val path = if (prefix.isEmpty()) key else "$prefix.$key"
-
-            if (config.valueType == ValueType.OBJECT) {
-                set.addAll(config.keys(path))
-            } else {
-                set.add(path)
-            }
-        }
-        return set
+        return node.allPaths()
     }
 
     public fun put(path: String, value: String) {
-        put(path, ValueType.SINGLE, listOf(value))
+        node.putNode(path, StrNode(value))
     }
 
     public fun put(path: String, values: Iterable<String>) {
-        put(path, ValueType.LIST, values)
-    }
-
-    internal fun put(path: String, type: ValueType, values: Iterable<String>) {
-        var config: MapApplicationConfig = this
-        for (key in path.split('.')) {
-            if (config.valueType != ValueType.OBJECT) {
-                return
-            }
-
-            config = config.children.getOrPut(key) { MapApplicationConfig() }
-        }
-
-        config.valueType = type
-        config.values.clear()
-        config.values.addAll(values)
-    }
-
-    /**
-     * Gets the "size" property from this config and tries to interpret it as an integer
-     * Uses [path] for exception messages
-     */
-    internal fun getSize(path: String? = null): Int {
-        val sizePath = if (path == null) "size" else "$path.size"
-        if (children["size"] == null) {
-            throw ApplicationConfigurationException("Property $sizePath not found")
-        }
-
-        if (children["size"]?.valueType != ValueType.SINGLE) {
-            throw ApplicationConfigurationException("Expected $sizePath to be a string")
-        }
-
-        return children["size"]?.values?.first()?.toIntOrNull()
-            ?: throw ApplicationConfigurationException("Expected $sizePath to be a numeric string")
+        node.putNode(path, ListNode(values.toList()))
     }
 
     override fun toMap(): Map<String, Any?> {
-        val map = mutableMapOf<String, Any?>()
-
-        for (key in children.keys) {
-            val config = children[key] ?: continue
-
-            when (config.valueType) {
-                ValueType.SINGLE -> {
-                    map[key] = config.values.first()
-                }
-                ValueType.LIST -> {
-                    map[key] = config.values
-                }
-                else -> {
-                    val size: Int? = try {
-                        config.getSize(key) // TODO: Proper path
-                    } catch (_: ApplicationConfigurationException) {
-                        null
-                    }
-
-                    if (size != null) {
-                        val maps = (0 until size).map { i->
-                            config.configOrNull(i.toString())
-                                ?: throw ApplicationConfigurationException("Element $i not found of a list with size $size")
-                        }.map {
-                            it.toMap()
-                        }
-                        map[key] = maps
-                    } else {
-                        map[key] = config.toMap()
-                    }
-                }
-            }
-        }
-
-        return map
+        return node.toMap()
     }
 
     internal companion object {
@@ -225,43 +217,51 @@ public open class MapApplicationConfig : ApplicationConfig {
 
 internal class MapApplicationConfigValue(
     private val path: String,
-    internal val config: MapApplicationConfig
+    internal val node: Node
 ): ApplicationConfigValue {
-    override val type: ValueType = config.valueType
+    override val type: ValueType = when (node) {
+        is StrNode -> ValueType.SINGLE
+        is ListNode -> ValueType.LIST
+        is ObjectNode -> ValueType.OBJECT
+    }
 
     override fun getString(): String {
-        if (config.valueType == ValueType.SINGLE) {
-            return config.values.first()
+        if (node !is StrNode) {
+            throw ApplicationConfigurationException("Path $path does not contain a string")
         }
 
-        throw ApplicationConfigurationException("Path $path does not contain a string")
+        return node.str
     }
 
     override fun getList(): List<String> {
-        if (config.valueType == ValueType.LIST) {
-            return config.values
+        if (node is ListNode) {
+            return node.strList
+        } else {
+            val list = node.getSyntheticList()
+            if (list != null) {
+                return list.map {
+                    if (it is StrNode) it.str else "" // TODO: Test empty string and compare with current behavior
+                }
+            }
         }
 
-        val size = config.getSize(path)
-        return (0..<size).map { i ->
-            config.propertyOrNull(i.toString())?.getString()
-                ?: throw ApplicationConfigurationException("Element $path.$i not found of a list with size $size")
-        }
+        throw ApplicationConfigurationException("Path $path does not contain a list")
     }
 
     override fun getMap(): Map<String, Any?> {
-        return config.toMap()
+        return node.toMap()
     }
 
     @OptIn(InternalAPI::class)
     override fun getAs(type: TypeInfo): Any? {
-        return type.serializer()
-            .deserialize(MapConfigValueDecoder(this))
+        TODO()
+//        return type.serializer()
+//            .deserialize(ConfigValueDecoder(this))
     }
 }
 
 @OptIn(ExperimentalSerializationApi::class)
-internal class MapConfigValueDecoder(
+internal class ConfigValueDecoder(
     private val root: MapApplicationConfigValue,
     override val serializersModule: SerializersModule = EmptySerializersModule()
 ) : AbstractDecoder() {
@@ -273,17 +273,22 @@ internal class MapConfigValueDecoder(
     override fun decodeChar(): Char = decodeString().single()
     override fun decodeByte(): Byte = decodeString().toByte()
     override fun decodeShort(): Short = decodeString().toShort()
-
-    override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
-        elementIndex = 0
-        current = root
-        return this
-    }
-
     override fun decodeString(): String = current.getString()
 
+    override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
+        val kind = descriptor.kind as? StructureKind ?: error("Expected structure but found ${descriptor.kind}")
+
+        return if (kind is StructureKind.LIST) {
+            ListNodeDecoder(current.getList(), serializersModule)
+        } else {
+            elementIndex = 0
+            current = root
+            this
+        }
+    }
+
     private var elementIndex = 0
-    private var current: ApplicationConfigValue = root
+    private var current: MapApplicationConfigValue = root
 
     override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
         if (elementIndex >= descriptor.elementsCount) return CompositeDecoder.DECODE_DONE
@@ -291,8 +296,39 @@ internal class MapConfigValueDecoder(
         val idx = elementIndex++
         val name = descriptor.getElementName(idx)
 
-        current = root.config.property(name)
+//        current = current.config.property(name) as MapApplicationConfigValue
         return idx
+    }
+
+    private class ListNodeDecoder(
+        private val items: List<String>,
+        override val serializersModule: SerializersModule
+    ) : AbstractDecoder() {
+        private var index = 0
+        private lateinit var current: String
+
+        override fun decodeInt(): Int = decodeString().toInt()
+        override fun decodeLong(): Long = decodeString().toLong()
+        override fun decodeFloat(): Float = decodeString().toFloat()
+        override fun decodeDouble(): Double = decodeString().toDouble()
+        override fun decodeBoolean(): Boolean = decodeString().toBoolean()
+        override fun decodeChar(): Char = decodeString().single()
+        override fun decodeByte(): Byte = decodeString().toByte()
+        override fun decodeShort(): Short = decodeString().toShort()
+        override fun decodeString(): String = current
+
+        override fun decodeCollectionSize(descriptor: SerialDescriptor): Int = items.size
+
+        override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
+            if (index >= items.size) return CompositeDecoder.DECODE_DONE
+            val idx = index++
+            current = items[idx]
+            return idx
+        }
+
+//        override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
+//            return ConfigValueDecoder(current, serializersModule).beginStructure(descriptor)
+//        }
     }
 }
 
