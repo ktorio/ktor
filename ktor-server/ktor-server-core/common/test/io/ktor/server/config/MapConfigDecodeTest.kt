@@ -83,7 +83,12 @@ class MapConfigDecodeTest {
         mapConfig.put("x.nested.1.byte", "2")
         mapConfig.put("x.nested.1.short", "2")
 
-        // TODO: Direct getAs
+        assertEquals(listOf("one", "two", "three"), mapConfig.property("x.strings").getAs())
+        assertEquals(listOf(1, 2), mapConfig.property("x.ints").getAs())
+        val nested = mapConfig.property("x.nested").getAs<List<SimpleConfig>>()
+        assertEquals(2, nested.size)
+        assertEquals("first", nested[0].string)
+        assertEquals("second", nested[1].string)
 
         val config = mapConfig.property("x").getAs<ListConfig>()
 
@@ -120,7 +125,16 @@ class MapConfigDecodeTest {
         mapConfig.put("x.configMap.second.byte", "2")
         mapConfig.put("x.configMap.second.short", "2")
 
-        // TODO: Direct getAs
+        assertEquals(
+            mapOf("first" to "one", "second" to "two"),
+            mapConfig.property("x.stringMap").getAs()
+        )
+        assertEquals(mapOf("first" to 1, "second" to 2), mapConfig.property("x.intMap").getAs())
+
+        val configMap = mapConfig.property("x.configMap").getAs<Map<String, SimpleConfig>>()
+        assertEquals(2, configMap.size)
+        assertEquals("test1", configMap["first"]?.string)
+        assertEquals("test2", configMap["second"]?.string)
 
         val config = mapConfig.property("x").getAs<MapConfig>()
         assertEquals(mapOf("first" to "one", "second" to "two"), config.stringMap)
@@ -178,6 +192,10 @@ class MapConfigDecodeTest {
 
         assertFailsWith<NumberFormatException> {
             config.property("x").getAs<SimpleConfig>()
+        }
+
+        assertFailsWith<NumberFormatException> {
+            config.property("x.int").getAs<Int?>()
         }
     }
 
