@@ -247,7 +247,7 @@ class MapConfigDecodeTest {
     fun testOptionals() {
         val mapConfig = MapApplicationConfig()
         mapConfig.put("x.streetName", "Test street")
-        mapConfig.put("x.postalCode","12345")
+        mapConfig.put("x.postalCode", "12345")
         mapConfig.put("x.municipality", "Test municipality")
 
         val config = mapConfig.property("x").getAs<Address>()

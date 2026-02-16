@@ -19,10 +19,13 @@ import kotlin.jvm.JvmInline
 import io.ktor.server.config.ApplicationConfigValue.Type as ValueType
 
 internal sealed interface Node
+
 @JvmInline
 internal value class StrNode(val str: String) : Node
+
 @JvmInline
 internal value class ObjectNode(val children: MutableMap<String, Node> = mutableMapOf()) : Node
+
 @JvmInline
 internal value class ListNode(val strList: List<String>) : Node
 
@@ -45,7 +48,7 @@ internal fun Node.putNode(path: String, node: Node): ObjectNode? {
     val keys = path.split('.')
 
     var parent: ObjectNode = this
-    for (i in 0..<keys.size-1) {
+    for (i in 0..<keys.size - 1) {
         var child = parent.children[keys[i]]
 
         if (child !is ObjectNode) {
@@ -151,11 +154,10 @@ internal fun Node.typeName(): String {
     }
 }
 
-
 public open class MapApplicationConfig private constructor(
     internal val node: Node
-): ApplicationConfig {
-    internal constructor(map: MutableMap<String, String>, path: String = ""): this(ObjectNode()) {
+) : ApplicationConfig {
+    internal constructor(map: MutableMap<String, String>, path: String = "") : this(ObjectNode()) {
         for ((p, value) in map) {
             node.putNode(p, StrNode(value))
         }
@@ -257,7 +259,7 @@ public open class MapApplicationConfig private constructor(
 internal class MapApplicationConfigValue(
     private val path: String,
     internal val node: Node
-): ApplicationConfigValue {
+) : ApplicationConfigValue {
     override val type: ValueType = when (node) {
         is StrNode -> ValueType.SINGLE
         is ListNode -> ValueType.LIST
@@ -300,7 +302,7 @@ internal class MapApplicationConfigValue(
 @OptIn(ExperimentalSerializationApi::class)
 internal abstract class AbstractConfigValueDecoder(
     override val serializersModule: SerializersModule = EmptySerializersModule()
-): AbstractDecoder() {
+) : AbstractDecoder() {
     override fun decodeInt(): Int = decodeString().toInt()
     override fun decodeLong(): Long = decodeString().toLong()
     override fun decodeFloat(): Float = decodeString().toFloat()
@@ -379,7 +381,8 @@ internal class ConfigValueDecoder(
 
                 if (size != null) {
                     (0..<size).map { idx ->
-                        root.children[idx.toString()] ?: throw SerializationException("Missing list element at \"$path.$idx\"")
+                        root.children[idx.toString()]
+                            ?: throw SerializationException("Missing list element at \"$path.$idx\"")
                     }
                 } else {
                     emptyList()
@@ -412,7 +415,7 @@ internal class ConfigValueDecoder(
         root: Node,
         private val path: String,
         override val serializersModule: SerializersModule
-    ): AbstractConfigValueDecoder(serializersModule) {
+    ) : AbstractConfigValueDecoder(serializersModule) {
         private var elementIndex = 0
 
         private val entries: List<Pair<String, Node>> = when (root) {
