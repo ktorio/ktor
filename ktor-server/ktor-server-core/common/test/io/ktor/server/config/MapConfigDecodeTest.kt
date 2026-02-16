@@ -4,12 +4,7 @@
 
 package io.ktor.server.config
 
-import io.ktor.server.config.MapDecoderTest.Address
-import io.ktor.server.config.MapDecoderTest.EnumConfig
-import io.ktor.server.config.MapDecoderTest.ListConfig
-import io.ktor.server.config.MapDecoderTest.MapConfig
-import io.ktor.server.config.MapDecoderTest.SimpleConfig
-import io.ktor.server.config.MapDecoderTest.TestEnum
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -17,6 +12,55 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class MapConfigDecodeTest {
+
+    @Serializable
+    data class SimpleConfig(
+        val string: String,
+        val int: Int,
+        val long: Long,
+        val float: Float,
+        val double: Double,
+        val boolean: Boolean,
+        val char: Char,
+        val byte: Byte,
+        val short: Short
+    )
+
+    @Serializable
+    data class ListConfig(
+        val strings: List<String>,
+        val ints: List<Int>,
+        val nested: List<SimpleConfig>
+    )
+
+    @Serializable
+    data class MapConfig(
+        val stringMap: Map<String, String>,
+        val intMap: Map<String, Int>,
+        val configMap: Map<String, SimpleConfig>
+    )
+
+    @Serializable
+    enum class TestEnum {
+        ONE,
+        TWO,
+        THREE
+    }
+
+    @Serializable
+    data class EnumConfig(
+        val enum: TestEnum,
+        val enumList: List<TestEnum>,
+        val enumMap: Map<String, TestEnum>
+    )
+
+    @Serializable
+    data class Address(
+        val streetName: String,
+        val postalCode: String,
+        val unitNumber: String? = null,
+        val municipality: String,
+    )
 
     @Test
     fun testSimpleTypes() {
@@ -211,5 +255,82 @@ class MapConfigDecodeTest {
         assertEquals("12345", config.postalCode)
         assertEquals("Test municipality", config.municipality)
         assertEquals(null, config.unitNumber)
+    }
+
+    @Test
+    fun testDecodeListToMap() {
+        val mapConfig = MapApplicationConfig()
+        mapConfig.put("str-list", listOf("a", "b", "c"))
+
+        mapConfig.put("list.size", "2")
+        mapConfig.put("list.0", "a")
+        mapConfig.put("list.1", "b")
+
+        mapConfig.put("broken-list.size", "5")
+
+        assertEquals(
+            mapOf("size" to "3", "0" to "a", "1" to "b", "2" to "c"),
+            mapConfig.property("str-list").getAs<Map<String, String>>()
+        )
+        assertEquals(
+            mapOf("size" to "2", "0" to "a", "1" to "b"),
+            mapConfig.property("list").getAs<Map<String, String>>()
+        )
+        assertEquals(
+            mapOf("size" to "5"),
+            mapConfig.property("broken-list").getAs<Map<String, String>>()
+        )
+    }
+
+    @Serializable
+    data class MyConfig(val brokenList: List<String>)
+
+    @Test
+    fun testDecodeToList() {
+        val mapConfig = MapApplicationConfig()
+        mapConfig.put("str-list", listOf("a", "b", "c"))
+
+        mapConfig.put("list.size", "2")
+        mapConfig.put("list.0", "a")
+        mapConfig.put("list.1", "b")
+
+        mapConfig.put("x.brokenList.size", "5")
+
+        mapConfig.put("obj.key1", "value1")
+        mapConfig.put("obj.key2", "value2")
+
+        mapConfig.put("simple", "plain")
+
+        assertEquals(
+            listOf("a", "b", "c"),
+            mapConfig.property("str-list").getAs()
+        )
+        assertEquals(
+            listOf("a", "b"),
+            mapConfig.property("list").getAs()
+        )
+
+        assertFailsWith<ApplicationConfigurationException> {
+            mapConfig.property("x.brokenList").getAs<List<String>>()
+        }.let {
+            assertEquals("Expected list of string values at \"x.brokenList\", got config object", it.message)
+        }
+
+        assertFailsWith<SerializationException> {
+            mapConfig.property("x").getAs<MyConfig>()
+        }.let {
+            assertEquals("Missing list element at \"x.brokenList.0\"", it.message)
+        }
+
+        assertEquals(
+            emptyList(),
+            mapConfig.property("obj").getAs<List<Pair<String, String>>>()
+        )
+
+        assertFailsWith<ApplicationConfigurationException> {
+            mapConfig.property("simple").getAs<List<String>>()
+        }.let {
+            assertEquals("Expected list of string values at \"simple\", got string value", it.message)
+        }
     }
 }
