@@ -1414,23 +1414,25 @@ sealed class io.ktor.http.content/PartData { // io.ktor.http.content/PartData|nu
         final fun <get-headers>(): io.ktor.http/Headers // io.ktor.http.content/PartData.headers.<get-headers>|<get-headers>(){}[0]
     final val name // io.ktor.http.content/PartData.name|{}name[0]
         final fun <get-name>(): kotlin/String? // io.ktor.http.content/PartData.name.<get-name>|<get-name>(){}[0]
+    final val release // io.ktor.http.content/PartData.release|{}release[0]
+        final fun <get-release>(): kotlin.coroutines/SuspendFunction0<kotlin/Unit> // io.ktor.http.content/PartData.release.<get-release>|<get-release>(){}[0]
 
     final class BinaryChannelItem : io.ktor.http.content/PartData { // io.ktor.http.content/PartData.BinaryChannelItem|null[0]
-        constructor <init>(kotlin/Function0<io.ktor.utils.io/ByteReadChannel>, io.ktor.http/Headers) // io.ktor.http.content/PartData.BinaryChannelItem.<init>|<init>(kotlin.Function0<io.ktor.utils.io.ByteReadChannel>;io.ktor.http.Headers){}[0]
+        constructor <init>(kotlin/Function0<io.ktor.utils.io/ByteReadChannel>, io.ktor.http/Headers, kotlin.coroutines/SuspendFunction0<kotlin/Unit> = ...) // io.ktor.http.content/PartData.BinaryChannelItem.<init>|<init>(kotlin.Function0<io.ktor.utils.io.ByteReadChannel>;io.ktor.http.Headers;kotlin.coroutines.SuspendFunction0<kotlin.Unit>){}[0]
 
         final val provider // io.ktor.http.content/PartData.BinaryChannelItem.provider|{}provider[0]
             final fun <get-provider>(): kotlin/Function0<io.ktor.utils.io/ByteReadChannel> // io.ktor.http.content/PartData.BinaryChannelItem.provider.<get-provider>|<get-provider>(){}[0]
     }
 
     final class BinaryItem : io.ktor.http.content/PartData { // io.ktor.http.content/PartData.BinaryItem|null[0]
-        constructor <init>(kotlin/Function0<kotlinx.io/Source>, kotlin/Function0<kotlin/Unit>, io.ktor.http/Headers) // io.ktor.http.content/PartData.BinaryItem.<init>|<init>(kotlin.Function0<kotlinx.io.Source>;kotlin.Function0<kotlin.Unit>;io.ktor.http.Headers){}[0]
+        constructor <init>(kotlin/Function0<kotlinx.io/Source>, kotlin/Function0<kotlin/Unit>, io.ktor.http/Headers, kotlin.coroutines/SuspendFunction0<kotlin/Unit> = ...) // io.ktor.http.content/PartData.BinaryItem.<init>|<init>(kotlin.Function0<kotlinx.io.Source>;kotlin.Function0<kotlin.Unit>;io.ktor.http.Headers;kotlin.coroutines.SuspendFunction0<kotlin.Unit>){}[0]
 
         final val provider // io.ktor.http.content/PartData.BinaryItem.provider|{}provider[0]
             final fun <get-provider>(): kotlin/Function0<kotlinx.io/Source> // io.ktor.http.content/PartData.BinaryItem.provider.<get-provider>|<get-provider>(){}[0]
     }
 
     final class FileItem : io.ktor.http.content/PartData { // io.ktor.http.content/PartData.FileItem|null[0]
-        constructor <init>(kotlin/Function0<io.ktor.utils.io/ByteReadChannel>, kotlin/Function0<kotlin/Unit>, io.ktor.http/Headers) // io.ktor.http.content/PartData.FileItem.<init>|<init>(kotlin.Function0<io.ktor.utils.io.ByteReadChannel>;kotlin.Function0<kotlin.Unit>;io.ktor.http.Headers){}[0]
+        constructor <init>(kotlin/Function0<io.ktor.utils.io/ByteReadChannel>, kotlin/Function0<kotlin/Unit>, io.ktor.http/Headers, kotlin.coroutines/SuspendFunction0<kotlin/Unit> = ...) // io.ktor.http.content/PartData.FileItem.<init>|<init>(kotlin.Function0<io.ktor.utils.io.ByteReadChannel>;kotlin.Function0<kotlin.Unit>;io.ktor.http.Headers;kotlin.coroutines.SuspendFunction0<kotlin.Unit>){}[0]
 
         final val originalFileName // io.ktor.http.content/PartData.FileItem.originalFileName|{}originalFileName[0]
             final fun <get-originalFileName>(): kotlin/String? // io.ktor.http.content/PartData.FileItem.originalFileName.<get-originalFileName>|<get-originalFileName>(){}[0]
@@ -1439,7 +1441,7 @@ sealed class io.ktor.http.content/PartData { // io.ktor.http.content/PartData|nu
     }
 
     final class FormItem : io.ktor.http.content/PartData { // io.ktor.http.content/PartData.FormItem|null[0]
-        constructor <init>(kotlin/String, kotlin/Function0<kotlin/Unit>, io.ktor.http/Headers) // io.ktor.http.content/PartData.FormItem.<init>|<init>(kotlin.String;kotlin.Function0<kotlin.Unit>;io.ktor.http.Headers){}[0]
+        constructor <init>(kotlin/String, kotlin/Function0<kotlin/Unit>, io.ktor.http/Headers, kotlin.coroutines/SuspendFunction0<kotlin/Unit> = ...) // io.ktor.http.content/PartData.FormItem.<init>|<init>(kotlin.String;kotlin.Function0<kotlin.Unit>;io.ktor.http.Headers;kotlin.coroutines.SuspendFunction0<kotlin.Unit>){}[0]
 
         final val value // io.ktor.http.content/PartData.FormItem.value|{}value[0]
             final fun <get-value>(): kotlin/String // io.ktor.http.content/PartData.FormItem.value.<get-value>|<get-value>(){}[0]
