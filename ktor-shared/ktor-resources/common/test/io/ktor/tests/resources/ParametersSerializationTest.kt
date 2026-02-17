@@ -179,7 +179,10 @@ class ParametersSerializationTest {
     @Resource("v1")
     private data object V1 {
         @Resource("api")
-        data class Api(val parent: V1)
+        data class Api(val parent: V1) {
+            @Resource("users/{user}")
+            data class User(val user: String, val parent: Api, val search: String? = null)
+        }
     }
 
     @Test
