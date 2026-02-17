@@ -974,6 +974,7 @@ public final class io/ktor/openapi/JsonSchemaInferenceKt {
 	public static final fun buildJsonSchema (Lkotlinx/serialization/descriptors/SerialDescriptor;ZLjava/util/List;Ljava/util/Set;)Lio/ktor/openapi/JsonSchema;
 	public static synthetic fun buildJsonSchema$default (Lkotlinx/serialization/descriptors/SerialDescriptor;ZLjava/util/List;Ljava/util/Set;ILjava/lang/Object;)Lio/ktor/openapi/JsonSchema;
 	public static final fun getKotlinxJsonSchemaInference ()Lio/ktor/openapi/JsonSchemaInference;
+	public static final fun getKotlinxSerializerDefaultFormats ()Lkotlin/jvm/functions/Function1;
 	public static final fun jsonSchemaFromAnnotations (Ljava/util/List;Lkotlin/jvm/functions/Function1;Lio/ktor/openapi/JsonSchema$SchemaType;Ljava/lang/String;Ljava/util/List;Lio/ktor/openapi/ReferenceOr;Ljava/util/Map;Lio/ktor/openapi/AdditionalProperties;Ljava/util/List;Ljava/lang/String;Lio/ktor/openapi/JsonSchemaDiscriminator;Ljava/util/List;)Lio/ktor/openapi/JsonSchema;
 	public static synthetic fun jsonSchemaFromAnnotations$default (Ljava/util/List;Lkotlin/jvm/functions/Function1;Lio/ktor/openapi/JsonSchema$SchemaType;Ljava/lang/String;Ljava/util/List;Lio/ktor/openapi/ReferenceOr;Ljava/util/Map;Lio/ktor/openapi/AdditionalProperties;Ljava/util/List;Ljava/lang/String;Lio/ktor/openapi/JsonSchemaDiscriminator;Ljava/util/List;ILjava/lang/Object;)Lio/ktor/openapi/JsonSchema;
 	public static final fun nonNullable (Lio/ktor/openapi/JsonSchema;Z)Lio/ktor/openapi/JsonSchema;
@@ -1001,7 +1002,8 @@ public final class io/ktor/openapi/JsonType$Companion {
 
 public final class io/ktor/openapi/KotlinxSerializerJsonSchemaInference : io/ktor/openapi/JsonSchemaInference {
 	public static final field Companion Lio/ktor/openapi/KotlinxSerializerJsonSchemaInference$Companion;
-	public fun <init> (Lkotlinx/serialization/modules/SerializersModule;)V
+	public fun <init> (Lkotlinx/serialization/modules/SerializersModule;Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (Lkotlinx/serialization/modules/SerializersModule;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun buildSchema (Lkotlin/reflect/KType;)Lio/ktor/openapi/JsonSchema;
 }
 
