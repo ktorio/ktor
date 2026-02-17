@@ -32,7 +32,7 @@ public class CIOMultipartDataBase(
         parseMultipart(channel, contentType, contentLength, formFieldLimit)
 
     override suspend fun readPart(): PartData? {
-        previousPart?.dispose?.invoke()
+        previousPart?.release()
 
         while (true) {
             val event = events.tryReceive().getOrNull() ?: break

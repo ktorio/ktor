@@ -61,7 +61,7 @@ public fun ApplicationReceivePipeline.installDefaultTransformations() {
                                     }
                                 }
 
-                                part.dispose()
+                                part.release()
                             }
                         }
                     }
