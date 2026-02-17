@@ -18,6 +18,7 @@ import kotlinx.io.EOFException
 import kotlinx.io.IOException
 import kotlinx.io.Source
 import kotlinx.io.bytestring.ByteString
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * Represents a multipart content starting event. Every part need to be completely consumed or released via [release]
@@ -31,7 +32,15 @@ public sealed class MultipartEvent {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.MultipartEvent.release)
      */
+    @Deprecated("Use releaseSuspend instead", level = DeprecationLevel.WARNING)
     public abstract fun release()
+
+    /**
+     * Release underlying data/packet.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.MultipartEvent.releaseSuspend)
+     */
+    public abstract suspend fun releaseSuspend()
 
     /**
      * Represents a multipart content preamble. A multipart stream could have at most one preamble.
@@ -44,6 +53,9 @@ public sealed class MultipartEvent {
         public val body: Source
     ) : MultipartEvent() {
         override fun release() {
+            body.close()
+        }
+        override suspend fun releaseSuspend() {
             body.close()
         }
     }
@@ -73,6 +85,10 @@ public sealed class MultipartEvent {
 
             body.discardBlocking()
         }
+        override suspend fun releaseSuspend() {
+            headers.await().release()
+            body.discard()
+        }
     }
 
     /**
@@ -86,6 +102,9 @@ public sealed class MultipartEvent {
         public val body: Source
     ) : MultipartEvent() {
         override fun release() {
+            body.close()
+        }
+        override suspend fun releaseSuspend() {
             body.close()
         }
     }
@@ -229,7 +248,7 @@ private fun CoroutineScope.parseMultipart(
             headersMap = parsePartHeadersImpl(countedInput)
             if (!headers.complete(headersMap)) {
                 headersMap.release()
-                throw kotlin.coroutines.cancellation.CancellationException(
+                throw CancellationException(
                     "Multipart processing has been cancelled"
                 )
             }

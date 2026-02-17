@@ -1514,32 +1514,37 @@ public final class io/ktor/http/content/OutputStreamContent : io/ktor/http/conte
 }
 
 public abstract class io/ktor/http/content/PartData {
-	public synthetic fun <init> (Lkotlin/jvm/functions/Function0;Lio/ktor/http/Headers;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lkotlin/jvm/functions/Function0;Lio/ktor/http/Headers;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getContentDisposition ()Lio/ktor/http/ContentDisposition;
 	public final fun getContentType ()Lio/ktor/http/ContentType;
 	public final fun getDispose ()Lkotlin/jvm/functions/Function0;
 	public final fun getHeaders ()Lio/ktor/http/Headers;
 	public final fun getName ()Ljava/lang/String;
+	public final fun getRelease ()Lkotlin/jvm/functions/Function1;
 }
 
 public final class io/ktor/http/content/PartData$BinaryChannelItem : io/ktor/http/content/PartData {
-	public fun <init> (Lkotlin/jvm/functions/Function0;Lio/ktor/http/Headers;)V
+	public fun <init> (Lkotlin/jvm/functions/Function0;Lio/ktor/http/Headers;Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (Lkotlin/jvm/functions/Function0;Lio/ktor/http/Headers;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getProvider ()Lkotlin/jvm/functions/Function0;
 }
 
 public final class io/ktor/http/content/PartData$BinaryItem : io/ktor/http/content/PartData {
-	public fun <init> (Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lio/ktor/http/Headers;)V
+	public fun <init> (Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lio/ktor/http/Headers;Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lio/ktor/http/Headers;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getProvider ()Lkotlin/jvm/functions/Function0;
 }
 
 public final class io/ktor/http/content/PartData$FileItem : io/ktor/http/content/PartData {
-	public fun <init> (Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lio/ktor/http/Headers;)V
+	public fun <init> (Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lio/ktor/http/Headers;Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lio/ktor/http/Headers;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getOriginalFileName ()Ljava/lang/String;
 	public final fun getProvider ()Lkotlin/jvm/functions/Function0;
 }
 
 public final class io/ktor/http/content/PartData$FormItem : io/ktor/http/content/PartData {
-	public fun <init> (Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lio/ktor/http/Headers;)V
+	public fun <init> (Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lio/ktor/http/Headers;Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lio/ktor/http/Headers;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getValue ()Ljava/lang/String;
 }
 
