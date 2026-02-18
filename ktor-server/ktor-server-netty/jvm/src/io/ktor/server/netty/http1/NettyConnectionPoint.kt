@@ -2,6 +2,9 @@
  * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+// ABOUTME: Netty HTTP/1.x request connection point implementation.
+// ABOUTME: Provides host, port, scheme, and remote address information for incoming requests.
+
 package io.ktor.server.netty.http1
 
 import io.ktor.http.*
@@ -27,7 +30,8 @@ internal class NettyConnectionPoint(
     override val method: HttpMethod
         get() = HttpMethod.parse(request.method().name())
 
-    override val scheme by lazy { if (context.pipeline().context("ssl") == null) "http" else "https" }
+    override val scheme: String
+        get() = if (context.pipeline().context("ssl") == null) "http" else "https"
 
     @Deprecated(
         "Use localHost or serverHost instead",

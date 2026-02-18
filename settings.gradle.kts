@@ -208,6 +208,7 @@ projects {
     +"ktor-java-modules-test"
     +"ktor-dokka"
     +"ktor-version-catalog"
+    +"ktor-throughput-benchmark"
 }
 
 // region Project hierarchy DSL
