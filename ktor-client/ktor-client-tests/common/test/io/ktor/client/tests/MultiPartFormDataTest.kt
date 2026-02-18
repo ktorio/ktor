@@ -85,7 +85,7 @@ class MultiPartFormDataTest : ClientLoader() {
                     }
                     else -> fail("Unexpected part type: ${part::class.simpleName}")
                 }
-                part.dispose()
+                part.release()
             }
 
             assertTrue(textFound, "Text part not found")

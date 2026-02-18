@@ -88,12 +88,14 @@ public final class io/ktor/http/cio/HttpParserKt {
 
 public abstract class io/ktor/http/cio/MultipartEvent {
 	public abstract fun release ()V
+	public abstract fun releaseSuspend (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/http/cio/MultipartEvent$Epilogue : io/ktor/http/cio/MultipartEvent {
 	public fun <init> (Lkotlinx/io/Source;)V
 	public final fun getBody ()Lkotlinx/io/Source;
 	public fun release ()V
+	public fun releaseSuspend (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/http/cio/MultipartEvent$MultipartPart : io/ktor/http/cio/MultipartEvent {
@@ -101,12 +103,14 @@ public final class io/ktor/http/cio/MultipartEvent$MultipartPart : io/ktor/http/
 	public final fun getBody ()Lio/ktor/utils/io/ByteReadChannel;
 	public final fun getHeaders ()Lkotlinx/coroutines/Deferred;
 	public fun release ()V
+	public fun releaseSuspend (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/http/cio/MultipartEvent$Preamble : io/ktor/http/cio/MultipartEvent {
 	public fun <init> (Lkotlinx/io/Source;)V
 	public final fun getBody ()Lkotlinx/io/Source;
 	public fun release ()V
+	public fun releaseSuspend (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/http/cio/MultipartKt {
