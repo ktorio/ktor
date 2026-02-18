@@ -16,6 +16,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.test.base.*
+import io.ktor.test.dispatcher.runTestWithRealTime
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.io.asSource
@@ -90,7 +91,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
         withUrl("/") {
             assertEquals(200, status.value)
             assertEquals(ContentType.Application.OctetStream, contentType())
-            assertTrue(byteArrayOf(25, 37, 42).contentEquals(readRawBytes()))
+            assertEquals(listOf(25, 37, 42).map(Int::toByte), readRawBytes().toList())
         }
     }
 
@@ -837,7 +838,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun outputStreamIsStreamedToConsumer() = runTest {
+    fun outputStreamIsStreamedToConsumer() = runTestWithRealTime {
         var readingStarted = false
 
         createAndStartServer {
@@ -846,6 +847,9 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
                     var count = 0
                     while (!readingStarted) {
                         write(++count)
+                        if (count % 100 == 0) {
+                            flush()
+                        }
                         assertFalse(count > 10_000_000)
                     }
                 }
