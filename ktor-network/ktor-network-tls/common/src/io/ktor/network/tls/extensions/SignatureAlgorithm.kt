@@ -6,7 +6,7 @@ package io.ktor.network.tls.extensions
 
 import io.ktor.network.tls.*
 import io.ktor.utils.io.core.*
-import kotlinx.io.*
+import kotlinx.io.Source
 
 // See also: https://www.iana.org/assignments/tls-parameters/tls-parameters.txt
 
@@ -91,7 +91,7 @@ public data class HashAndSign(val hash: HashAlgorithm, val sign: SignatureAlgori
     public companion object
 }
 
-@Suppress("CONFLICTING_OVERLOADS", "ktlint:standard:function-naming")
+@Suppress("ktlint:standard:function-naming")
 internal fun HashAndSign(hashValue: Byte, signValue: Byte, oidValue: String? = null): HashAndSign? {
     val hash = HashAlgorithm.byCode(hashValue)
     val sign = SignatureAlgorithm.byCode(signValue) ?: return null
