@@ -5,14 +5,8 @@
 package io.ktor.openapi.reflect
 
 import io.ktor.openapi.*
-import kotlin.test.Test
 
 class KotlinxJsonSchemaInferenceTest : AbstractSchemaInferenceTest(
     KotlinxSerializerJsonSchemaInference.Default,
     "kotlinx"
-) {
-    @Test
-    override fun `time types`() {
-        super.`time types`()
-    }
-}
+)

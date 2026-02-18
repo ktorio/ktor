@@ -48,13 +48,13 @@ public val KotlinxJsonSchemaInference: JsonSchemaInference get() = KotlinxSerial
 public val KotlinxSerializerDefaultFormats: (SerialDescriptor) -> String? = { type ->
     when (type.nonNullSerialName) {
         "kotlin.uuid.Uuid" -> "uuid"
-        "kotlin.time.Instant",
         "kotlinx.datetime.LocalDate" -> "date"
         "kotlinx.datetime.LocalTime" -> "time"
-        "kotlinx.datetime.LocalDateTime" -> "date-time"
         "kotlinx.datetime.TimeZone" -> "time-zone"
         "kotlinx.datetime.UtcOffset" -> "utc-offset"
-        "kotlinx.datetime.Instant" -> "date-time"
+        "kotlin.time.Instant",
+        "kotlinx.datetime.Instant",
+        "kotlinx.datetime.LocalDateTime" -> "date-time"
         "kotlin.time.Duration",
         "kotlinx.datetime.DatePeriod",
         "kotlinx.datetime.DateTimePeriod" -> "duration"
