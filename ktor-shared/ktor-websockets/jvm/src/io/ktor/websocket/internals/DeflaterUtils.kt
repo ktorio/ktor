@@ -45,6 +45,7 @@ internal fun Inflater.inflateFully(data: ByteArray): ByteArray =
 
 internal fun Inflater.inflateFully(data: ByteArray, maxOutputSize: Int): ByteArray {
     require(maxOutputSize >= 0) { "maxOutputSize should be >= 0" }
+    reset()
 
     val dataToInflate = data + EMPTY_CHUNK
     setInput(dataToInflate)
@@ -53,27 +54,34 @@ internal fun Inflater.inflateFully(data: ByteArray, maxOutputSize: Int): ByteArr
 
     val packet = buildPacket {
         KtorDefaultPool.useInstance { buffer ->
-            val limit = dataToInflate.size + bytesRead
-            while (bytesRead < limit) {
+            while (true) {
+                if (finished()) break
+
                 buffer.clear()
-
-                val beforeBytesRead = bytesRead
                 val inflated = inflate(buffer.array(), buffer.position(), buffer.limit())
-                val afterBytesRead = bytesRead
 
-                if (inflated == 0 && afterBytesRead == beforeBytesRead) {
-                    throw IOException("Inflater made no progress: bytesRead=$afterBytesRead, limit=$limit")
+                if (inflated > 0) {
+                    buffer.position(buffer.position() + inflated)
+                    buffer.flip()
+
+                    totalWritten += buffer.remaining().toLong()
+                    if (totalWritten > maxOutputSize.toLong()) {
+                        throw IOException("Inflated data exceeds limit: $totalWritten > $maxOutputSize")
+                    }
+
+                    writeFully(buffer)
+                    continue
                 }
 
-                buffer.position(buffer.position() + inflated)
-                buffer.flip()
-
-                totalWritten += buffer.remaining().toLong()
-                if (totalWritten > maxOutputSize.toLong()) {
-                    throw IOException("Inflated data exceeds limit: $totalWritten > $maxOutputSize")
+                if (needsDictionary()) {
+                    throw IOException("Inflater needs a preset dictionary")
                 }
 
-                writeFully(buffer)
+                if (needsInput()) {
+                    break
+                }
+
+                throw IOException("Inflater made no progress; data probably corrupted")
             }
         }
     }

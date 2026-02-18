@@ -94,7 +94,7 @@ class WebSocketDeflateTest {
     }
 
     @Test
-    fun zeroSpin() {
+    fun `prevents infinite loop`() {
         val dict = ByteArray(64) { 7 }
         val original = ByteArray(1024) { 1 }
 
@@ -118,13 +118,13 @@ class WebSocketDeflateTest {
         assertNotNull(error)
         assertContains(
             error,
-            "Inflater made no progress",
+            "Inflater needs a preset dictionary",
             message = "Expected zero spin failure, got: $error"
         )
     }
 
     @Test
-    fun zipBomb() {
+    fun `checks for max inflate size`() {
         val bombLikePlaintext = ByteArray(32 * 1024 * 1024) { 0 } // highly compressible, big after inflate
 
         val deflater = Deflater(Deflater.DEFAULT_COMPRESSION, false)
@@ -142,5 +142,4 @@ class WebSocketDeflateTest {
             message = "Expected size limit failure, got: $error"
         )
     }
-
 }
