@@ -54,7 +54,7 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
     val allowNonSimpleContentTypes: Boolean = pluginConfig.allowNonSimpleContentTypes
     val headersList = pluginConfig.headers.filterNot { it in CORSConfig.CorsSimpleRequestHeaders }
         .let { if (allowNonSimpleContentTypes) it + HttpHeaders.ContentType else it }
-    val methodsListHeaderValue = methods.filterNot { it in CORSConfig.CorsDefaultMethods }
+    val methodsListHeaderValue = methods.distinct()
         .map { it.value }
         .sorted()
         .joinToString(", ")
