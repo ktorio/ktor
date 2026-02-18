@@ -10,6 +10,7 @@ plugins {
     id("ktorbuild.publish.verifier")
 }
 
+
 logger.lifecycle("Build version: ${project.version}")
 logger.lifecycle("Kotlin version: ${libs.versions.kotlin.get()}")
 
