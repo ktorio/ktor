@@ -1,17 +1,17 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.netty
 
 import io.ktor.util.cio.*
 import io.ktor.util.logging.*
-import io.netty.channel.*
-import io.netty.util.concurrent.*
+import io.netty.channel.ChannelHandlerContext
 import io.netty.util.concurrent.Future
+import io.netty.util.concurrent.GenericFutureListener
 import kotlinx.coroutines.*
-import java.io.*
-import java.util.concurrent.*
+import java.io.IOException
+import java.util.concurrent.ExecutionException
 import kotlin.coroutines.*
 
 private val LOG = KtorSimpleLogger("io.ktor.server.netty.CIO")
@@ -70,6 +70,12 @@ public suspend fun <T> Future<T>.suspendAwait(exception: (Throwable, Continuatio
     }
 }
 
+/**
+ * The netty executor handles async execution with thread affinity, so we use it
+ * by default for the user context dispatcher.  There are some scenarios where the
+ * underlying netty channel is closed prematurely, in which case we fallback to the
+ * caller thread.
+ */
 internal object NettyDispatcher : CoroutineDispatcher() {
     override fun isDispatchNeeded(context: CoroutineContext): Boolean {
         return !context[CurrentContextKey]!!.context.executor().inEventLoop()
@@ -77,12 +83,15 @@ internal object NettyDispatcher : CoroutineDispatcher() {
 
     override fun dispatch(context: CoroutineContext, block: Runnable) {
         val nettyContext = context[CurrentContextKey]!!.context
-        val result = runCatching {
-            nettyContext.executor().execute(block)
-        }
-
-        if (result.isFailure) {
-            LOG.error("Failed to dispatch", result.exceptionOrNull())
+        val executor = nettyContext.executor()
+        if (executor.isShuttingDown) {
+            Dispatchers.IO.dispatch(context, block)
+        } else {
+            try {
+                executor.execute(block)
+            } catch (cause: Throwable) {
+                LOG.error("Failed to dispatch", cause)
+            }
         }
     }
 

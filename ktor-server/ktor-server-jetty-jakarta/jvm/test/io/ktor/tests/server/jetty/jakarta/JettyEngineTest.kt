@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.tests.server.jetty.jakarta
 
@@ -10,11 +10,15 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.servlet.jakarta.*
 import io.ktor.server.testing.suites.*
-import jakarta.servlet.http.*
-import org.eclipse.jetty.server.*
-import org.eclipse.jetty.server.handler.*
-import org.eclipse.jetty.util.component.*
-import kotlin.test.*
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
+import org.eclipse.jetty.server.Request
+import org.eclipse.jetty.server.Server
+import org.eclipse.jetty.server.handler.DefaultHandler
+import org.eclipse.jetty.util.component.LifeCycle
+import kotlin.test.Ignore
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class JettyCompressionTest :
     CompressionTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
@@ -87,7 +91,11 @@ class JettyHttpServerJvmTest : HttpServerJvmTestSuite<JettyApplicationEngine, Je
 }
 
 class JettySustainabilityTest :
-    SustainabilityTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
+    SustainabilityTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty) {
+    // thread affinity is not accounted for in Jetty
+    @Ignore
+    override fun validateCallCoroutineContext() {}
+}
 
 class JettyConfigTest : ConfigTestSuite(Jetty)
 

@@ -1,12 +1,12 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.tests.server.jetty.http2.jakarta
 
 import io.ktor.server.jetty.jakarta.*
 import io.ktor.server.testing.suites.*
-import kotlin.test.*
+import kotlin.test.Ignore
 
 class JettyEngineHttp2CompressionTest :
     CompressionTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
@@ -33,7 +33,11 @@ class JettyEngineHttp2HttpServerJvmTest :
 }
 
 class JettyEngineHttp2SustainabilityTest :
-    SustainabilityTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
+    SustainabilityTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty) {
+    @Ignore
+    override fun validateCallCoroutineContext() {
+    }
+}
 
 class JettyEngineServerPluginsTest :
     ServerPluginsTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty) {

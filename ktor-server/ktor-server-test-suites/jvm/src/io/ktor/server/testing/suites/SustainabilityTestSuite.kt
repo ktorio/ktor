@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.testing.suites
@@ -960,6 +960,53 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             assertEquals(HttpStatusCode.InternalServerError, status)
             assertNotNull(loggedException)
             loggedException = null
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    open fun validateCallCoroutineContext() = runTest {
+        val threadPool = Executors.newSingleThreadExecutor { r -> Thread(r, "Custom thread") }
+        val dispatcher = threadPool.asCoroutineDispatcher()
+        createAndStartServer {
+            get {
+                val applicationJob = application.coroutineContext.job
+                val handlerJob = currentCoroutineContext().job
+                val callJob = call.coroutineContext.job
+                val jobsOutOfHierarchy: String? = listOfNotNull(
+                    "call job".takeIf { applicationJob !in generateSequence(callJob) { it.parent }.toList() },
+                    "handler job".takeIf { applicationJob !in generateSequence(handlerJob) { it.parent }.toList() },
+                ).firstOrNull()
+                val initialThread = Thread.currentThread()
+                withContext(dispatcher) { delay(100) }
+                val threadDiff = Thread.currentThread().let { currentThread ->
+                    "${initialThread.name} --> ${currentThread.name}"
+                        .takeIf { currentThread !== initialThread }
+                }
+
+                call.respondText(
+                    """
+                    Hierarchy preserved: ${jobsOutOfHierarchy ?: "true"}
+                    Thread unchanged: ${threadDiff ?: "true"}
+                    """.trimIndent()
+                )
+            }
+        }
+
+        try {
+            withUrl("") {
+                val bodyText = body<String>()
+                assertEquals(
+                    """
+                    Hierarchy preserved: true
+                    Thread unchanged: true
+                    """.trimIndent(),
+                    bodyText
+                )
+            }
+        } finally {
+            dispatcher.close()
+            threadPool.shutdownNow()
         }
     }
 

@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.server.netty
 
@@ -207,6 +207,7 @@ public class NettyApplicationEngine(
 
             val userContext = applicationProvider().coroutineContext +
                 NettyApplicationCallHandler.CallHandlerCoroutineName +
+                NettyDispatcher +
                 DefaultUncaughtExceptionHandler(environment.log)
 
             childHandler(
