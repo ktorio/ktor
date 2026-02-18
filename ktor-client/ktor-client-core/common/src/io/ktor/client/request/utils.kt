@@ -5,8 +5,8 @@
 package io.ktor.client.request
 
 import io.ktor.http.*
-import io.ktor.util.*
 import io.ktor.util.date.*
+import kotlin.io.encoding.Base64
 
 /**
  * Gets the associated URL's host.
@@ -98,7 +98,7 @@ public fun HttpMessageBuilder.accept(contentType: ContentType): Unit =
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.basicAuth)
  */
 public fun HttpMessageBuilder.basicAuth(username: String, password: String): Unit =
-    header(HttpHeaders.Authorization, "Basic ${"$username:$password".encodeBase64()}")
+    header(HttpHeaders.Authorization, "Basic ${Base64.encode("$username:$password".encodeToByteArray())}")
 
 /**
  * Appends the [HttpHeaders.Authorization] to Bearer Authorization with the provided [token].
