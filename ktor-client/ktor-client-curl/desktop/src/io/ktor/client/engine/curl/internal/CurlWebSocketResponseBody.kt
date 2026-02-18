@@ -1,9 +1,10 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.curl.internal
 
+import io.ktor.client.engine.curl.internal.Libcurl.WRITEFUNC_ERROR
 import io.ktor.utils.io.*
 import io.ktor.websocket.*
 import kotlinx.atomicfu.atomic
@@ -14,11 +15,10 @@ import kotlinx.io.Buffer
 import kotlinx.io.readByteArray
 import libcurl.*
 import platform.posix.size_t
-import platform.posix.size_tVar
 
 @OptIn(InternalAPI::class, ExperimentalForeignApi::class)
 internal class CurlWebSocketResponseBody(
-    private val curl: EasyHandle,
+    internal val easyHandle: EasyHandle,
     incomingFramesConfig: ChannelConfig
 ) : CurlResponseBodyData {
 
@@ -39,28 +39,14 @@ internal class CurlWebSocketResponseBody(
      */
     private var frameDataBuffer: Buffer? = null
 
-    @OptIn(ExperimentalForeignApi::class)
-    fun sendFrame(flags: Int, data: ByteArray) = memScoped {
-        if (closed.value) return@memScoped
+    override fun onBodyChunkReceived(buffer: CPointer<ByteVar>, size: size_t, count: size_t): size_t {
+        if (closed.value) return 0.convert()
 
-        val sent = alloc<size_tVar>()
-        data.usePinned { pinned ->
-            val address = if (data.isEmpty()) null else pinned.addressOf(0)
-            val status = curl_ws_send(curl, address, data.size.convert(), sent.ptr, 0, flags.convert())
-            if ((flags and CURLWS_CLOSE) == 0) {
-                status.verify()
-            }
-        }
-    }
+        val meta = curl_ws_meta(easyHandle)?.pointed ?: return WRITEFUNC_ERROR
+        val chunkSize = meta.len.toInt()
+        val chunkData = buffer.readBytes(chunkSize)
 
-    override fun onBodyChunkReceived(buffer: CPointer<ByteVar>, size: size_t, count: size_t): Int {
-        if (closed.value) return 0
-
-        val bytesRead = (size * count).toInt()
-        val meta = curl_ws_meta(curl)?.pointed ?: error("Missing WebSocket frame metadata")
-        val chunkData = buffer.readBytes(bytesRead)
-
-        return if (processFrameChunk(chunkData, meta)) bytesRead else 0
+        return if (processFrameChunk(chunkData, meta)) chunkSize.convert() else WRITEFUNC_ERROR
     }
 
     private fun processFrameChunk(chunk: ByteArray, meta: curl_ws_frame): Boolean {
@@ -93,7 +79,7 @@ internal class CurlWebSocketResponseBody(
             frameDataBuffer = Buffer()
         }
 
-        val buffer = checkNotNull(frameDataBuffer) { "Buffer is missing, but $offset > 0" }
+        val buffer = frameDataBuffer ?: return false
         buffer.write(chunk)
 
         // Last chunk: complete and emit the frame

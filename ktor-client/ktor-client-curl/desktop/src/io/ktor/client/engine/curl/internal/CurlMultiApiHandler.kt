@@ -1,20 +1,22 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.curl.internal
 
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
-import io.ktor.client.plugins.websocket.WEBSOCKETS_KEY
+import io.ktor.client.plugins.websocket.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.locks.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CompletableJob
 import kotlinx.io.readByteArray
 import libcurl.*
 import platform.posix.getenv
+import platform.posix.size_tVar
 
 @OptIn(ExperimentalForeignApi::class)
 private class RequestHolder(
@@ -127,11 +129,11 @@ internal class CurlMultiApiHandler : Closeable {
         return if (proxyType == ProxyType.SOCKS) url.replaceFirst("socks://", "socks5://") else url
     }
 
-    internal fun cancelRequest(easyHandle: EasyHandle, cause: Throwable) {
+    fun cancelRequest(easyHandle: EasyHandle, cause: Throwable) {
         cancelledHandles += Pair(easyHandle, cause)
     }
 
-    internal fun perform(transfersRunning: IntVarOf<Int>) {
+    fun perform(transfersRunning: IntVarOf<Int>) {
         if (activeHandles.isEmpty()) return
 
         synchronized(easyHandlesToUnpauseLock) {
@@ -150,7 +152,7 @@ internal class CurlMultiApiHandler : Closeable {
         }
     }
 
-    internal fun hasHandlers(): Boolean = activeHandles.isNotEmpty()
+    fun hasHandlers(): Boolean = activeHandles.isNotEmpty()
 
     private fun setupMethod(
         easyHandle: EasyHandle,
@@ -347,6 +349,54 @@ internal class CurlMultiApiHandler : Closeable {
 
     fun wakeup() {
         curl_multi_wakeup(multiHandle)
+    }
+
+    fun sendWebSocketFrame(
+        websocket: CurlWebSocketResponseBody,
+        flags: Int,
+        data: ByteArray,
+        completionHandler: CompletableJob
+    ) {
+        try {
+            trySendWebSocketFrame(websocket.easyHandle, flags, data)
+            completionHandler.complete()
+        } catch (cause: Throwable) {
+            completionHandler.completeExceptionally(cause)
+        }
+    }
+
+    private fun trySendWebSocketFrame(
+        easyHandle: EasyHandle,
+        flags: Int,
+        data: ByteArray,
+    ) = memScoped {
+        var offset = 0
+        val sent = alloc<size_tVar>()
+        data.usePinned { pinned ->
+            while (true) {
+                val bufferStart = if (data.isNotEmpty()) pinned.addressOf(offset) else null
+                val remaining = if (data.isNotEmpty()) data.size - offset else 0
+
+                val status = curl_ws_send(
+                    curl = easyHandle,
+                    buffer = bufferStart,
+                    buflen = remaining.convert(),
+                    sent = sent.ptr,
+                    fragsize = 0,
+                    flags = flags.convert(),
+                )
+
+                when (status) {
+                    CURLE_OK -> {
+                        offset += sent.value.toInt()
+                        if (data.isEmpty() || offset == data.size) break
+                    }
+
+                    // TODO: Handle CURLE_AGAIN
+                    else -> status.verify()
+                }
+            }
+        }
     }
 
     private fun unpauseEasyHandle(easyHandle: EasyHandle) {
