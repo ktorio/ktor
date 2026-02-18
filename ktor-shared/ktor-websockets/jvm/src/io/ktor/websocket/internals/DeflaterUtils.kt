@@ -7,6 +7,7 @@ package io.ktor.websocket.internals
 import io.ktor.util.cio.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
+import io.ktor.websocket.MAX_INFLATED_FRAME_SIZE
 import kotlinx.io.*
 import java.nio.*
 import java.util.zip.*
@@ -39,18 +40,38 @@ internal fun Deflater.deflateFully(data: ByteArray): ByteArray {
     }.readByteArray()
 }
 
-internal fun Inflater.inflateFully(data: ByteArray): ByteArray {
+internal fun Inflater.inflateFully(data: ByteArray): ByteArray =
+    inflateFully(data, MAX_INFLATED_FRAME_SIZE)
+
+internal fun Inflater.inflateFully(data: ByteArray, maxOutputSize: Int): ByteArray {
+    require(maxOutputSize >= 0) { "maxOutputSize should be >= 0" }
+
     val dataToInflate = data + EMPTY_CHUNK
     setInput(dataToInflate)
+
+    var totalWritten: Long = 0
 
     val packet = buildPacket {
         KtorDefaultPool.useInstance { buffer ->
             val limit = dataToInflate.size + bytesRead
             while (bytesRead < limit) {
                 buffer.clear()
+
+                val beforeBytesRead = bytesRead
                 val inflated = inflate(buffer.array(), buffer.position(), buffer.limit())
+                val afterBytesRead = bytesRead
+
+                if (inflated == 0 && afterBytesRead == beforeBytesRead) {
+                    throw IOException("Inflater made no progress: bytesRead=$afterBytesRead, limit=$limit")
+                }
+
                 buffer.position(buffer.position() + inflated)
                 buffer.flip()
+
+                totalWritten += buffer.remaining().toLong()
+                if (totalWritten > maxOutputSize.toLong()) {
+                    throw IOException("Inflated data exceeds limit: $totalWritten > $maxOutputSize")
+                }
 
                 writeFully(buffer)
             }
