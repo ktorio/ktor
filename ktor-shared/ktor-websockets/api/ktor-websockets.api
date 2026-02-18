@@ -289,9 +289,11 @@ public final class io/ktor/websocket/WebSocketDeflateExtension$Config {
 	public final fun configureProtocols (Lkotlin/jvm/functions/Function1;)V
 	public final fun getClientNoContextTakeOver ()Z
 	public final fun getCompressionLevel ()I
+	public final fun getMaxInflatedFrameSize ()I
 	public final fun getServerNoContextTakeOver ()Z
 	public final fun setClientNoContextTakeOver (Z)V
 	public final fun setCompressionLevel (I)V
+	public final fun setMaxInflatedFrameSize (I)V
 	public final fun setServerNoContextTakeOver (Z)V
 }
 

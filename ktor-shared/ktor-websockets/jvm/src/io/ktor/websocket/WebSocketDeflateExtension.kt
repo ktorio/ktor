@@ -17,6 +17,7 @@ private const val PERMESSAGE_DEFLATE = "permessage-deflate"
 
 private const val MAX_WINDOW_BITS: Int = 15
 private const val MIN_WINDOW_BITS: Int = 8
+internal const val MAX_INFLATED_FRAME_SIZE: Int = 256 * 1024 * 1024 // 256 MiB
 
 /**
  * Compress and decompress WebSocket frames to reduce amount of transferred bytes.
@@ -145,7 +146,7 @@ public class WebSocketDeflateExtension internal constructor(
         if (!frame.isCompressed() && !decompressIncoming) return frame
         decompressIncoming = true
 
-        val inflated = inflater.inflateFully(frame.data)
+        val inflated = inflater.inflateFully(frame.data, config.maxInflatedFrameSize)
         if (incomingNoContextTakeover) {
             inflater.reset()
         }
@@ -183,6 +184,11 @@ public class WebSocketDeflateExtension internal constructor(
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketDeflateExtension.Config.compressionLevel)
          */
         public var compressionLevel: Int = Deflater.DEFAULT_COMPRESSION
+
+        /**
+         * Maximum inflated size of an inbound frame.
+         */
+        public var maxInflatedFrameSize: Int = MAX_INFLATED_FRAME_SIZE
 
         internal var manualConfig: (MutableList<WebSocketExtensionHeader>) -> Unit = {}
 
