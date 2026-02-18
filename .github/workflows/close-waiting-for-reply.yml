@@ -15,6 +15,7 @@ jobs:
       - uses: actions/stale@v10
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+          operations-per-run: '200'
           only-issue-labels: "wait for response"
           days-before-stale: -1
           days-before-close: 30
