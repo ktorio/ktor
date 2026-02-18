@@ -60,7 +60,7 @@ public data class Operation(
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Operation.Companion.build)
          */
         public fun build(
-            schemaInference: JsonSchemaInference = KotlinxJsonSchemaInference,
+            schemaInference: JsonSchemaInference = KotlinxSerializerJsonSchemaInference.Default,
             defaultContentTypes: List<ContentType> = listOf(ContentType.Application.Json),
             configure: Builder.() -> Unit
         ): Operation {

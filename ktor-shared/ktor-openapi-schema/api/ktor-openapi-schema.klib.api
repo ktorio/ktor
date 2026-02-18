@@ -1096,7 +1096,7 @@ final class io.ktor.openapi/JsonSchemaDiscriminator { // io.ktor.openapi/JsonSch
 }
 
 final class io.ktor.openapi/KotlinxSerializerJsonSchemaInference : io.ktor.openapi/JsonSchemaInference { // io.ktor.openapi/KotlinxSerializerJsonSchemaInference|null[0]
-    constructor <init>(kotlinx.serialization.modules/SerializersModule) // io.ktor.openapi/KotlinxSerializerJsonSchemaInference.<init>|<init>(kotlinx.serialization.modules.SerializersModule){}[0]
+    constructor <init>(kotlinx.serialization.modules/SerializersModule, kotlin/Function1<kotlinx.serialization.descriptors/SerialDescriptor, kotlin/String?> = ...) // io.ktor.openapi/KotlinxSerializerJsonSchemaInference.<init>|<init>(kotlinx.serialization.modules.SerializersModule;kotlin.Function1<kotlinx.serialization.descriptors.SerialDescriptor,kotlin.String?>){}[0]
 
     final fun buildSchema(kotlin.reflect/KType): io.ktor.openapi/JsonSchema // io.ktor.openapi/KotlinxSerializerJsonSchemaInference.buildSchema|buildSchema(kotlin.reflect.KType){}[0]
 
@@ -2390,6 +2390,8 @@ final object io.ktor.openapi/ContentTypeSerializer : kotlinx.serialization/KSeri
 
 final val io.ktor.openapi/KotlinxJsonSchemaInference // io.ktor.openapi/KotlinxJsonSchemaInference|{}KotlinxJsonSchemaInference[0]
     final fun <get-KotlinxJsonSchemaInference>(): io.ktor.openapi/JsonSchemaInference // io.ktor.openapi/KotlinxJsonSchemaInference.<get-KotlinxJsonSchemaInference>|<get-KotlinxJsonSchemaInference>(){}[0]
+final val io.ktor.openapi/KotlinxSerializerDefaultFormats // io.ktor.openapi/KotlinxSerializerDefaultFormats|{}KotlinxSerializerDefaultFormats[0]
+    final fun <get-KotlinxSerializerDefaultFormats>(): kotlin/Function1<kotlinx.serialization.descriptors/SerialDescriptor, kotlin/String?> // io.ktor.openapi/KotlinxSerializerDefaultFormats.<get-KotlinxSerializerDefaultFormats>|<get-KotlinxSerializerDefaultFormats>(){}[0]
 
 final fun (io.ktor.openapi/JsonSchema).io.ktor.openapi/nonNullable(kotlin/Boolean): io.ktor.openapi/JsonSchema // io.ktor.openapi/nonNullable|nonNullable@io.ktor.openapi.JsonSchema(kotlin.Boolean){}[0]
 final fun (io.ktor.openapi/JsonType).io.ktor.openapi/orNullable(kotlin/Boolean): io.ktor.openapi/JsonSchema.SchemaType // io.ktor.openapi/orNullable|orNullable@io.ktor.openapi.JsonType(kotlin.Boolean){}[0]

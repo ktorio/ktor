@@ -17,6 +17,11 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
+import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * Context interface for creating schema from type metadata.
@@ -37,7 +42,25 @@ public fun interface JsonSchemaInference {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.KotlinxJsonSchemaInference)
  */
-public val KotlinxJsonSchemaInference: JsonSchemaInference = KotlinxSerializerJsonSchemaInference.Default
+public val KotlinxJsonSchemaInference: JsonSchemaInference get() = KotlinxSerializerJsonSchemaInference.Default
+
+@OptIn(ExperimentalUuidApi::class, ExperimentalTime::class)
+public val KotlinxSerializerDefaultFormats: (SerialDescriptor) -> String? = { type ->
+    when (type.nonNullSerialName) {
+        "kotlin.uuid.Uuid" -> "uuid"
+        "kotlinx.datetime.LocalDate" -> "date"
+        "kotlinx.datetime.LocalTime" -> "time"
+        "kotlinx.datetime.TimeZone" -> "time-zone"
+        "kotlinx.datetime.UtcOffset" -> "utc-offset"
+        "kotlin.time.Instant",
+        "kotlinx.datetime.Instant",
+        "kotlinx.datetime.LocalDateTime" -> "date-time"
+        "kotlin.time.Duration",
+        "kotlinx.datetime.DatePeriod",
+        "kotlinx.datetime.DateTimePeriod" -> "duration"
+        else -> null
+    }
+}
 
 /**
  * Infers JSON schema from kotlinx-serialization descriptors using the supplied module.
@@ -46,7 +69,10 @@ public val KotlinxJsonSchemaInference: JsonSchemaInference = KotlinxSerializerJs
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.KotlinxSerializerJsonSchemaInference)
  */
-public class KotlinxSerializerJsonSchemaInference(private val module: SerializersModule) : JsonSchemaInference {
+public class KotlinxSerializerJsonSchemaInference(
+    private val module: SerializersModule,
+    private val formats: (SerialDescriptor) -> String? = KotlinxSerializerDefaultFormats,
+) : JsonSchemaInference {
     public companion object {
         /**
          * Default instance of KotlinxSerializerJsonSchemaInference using an empty serializers module.
@@ -202,6 +228,7 @@ public class KotlinxSerializerJsonSchemaInference(private val module: Serializer
                     annotations = annotations,
                     reflectSchema = reflectJsonSchema,
                     type = JsonType.STRING.orNullable(isNullable),
+                    format = descriptor.takeIf { it.nonNullSerialName != "kotlin.String" }?.let(formats)
                 )
 
             PrimitiveKind.BOOLEAN ->

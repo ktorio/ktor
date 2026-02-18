@@ -6,5 +6,7 @@ required:
 properties:
   instant:
     type: string
+    format: date-time
   duration:
     type: string
+    format: duration
