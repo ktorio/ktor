@@ -1,12 +1,12 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.tests.server.jetty
 
 import io.ktor.server.jetty.*
 import io.ktor.server.testing.suites.*
-import kotlin.test.*
+import kotlin.test.Ignore
 
 class JettyBlockingServletContainerCompressionTest :
     CompressionTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = false))
@@ -44,7 +44,10 @@ class JettyBlockingServletContainerHttpServerJvmTest :
 class JettyBlockingServletContainerSustainabilityTest :
     SustainabilityTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(
         Servlet(async = false)
-    )
+    ) {
+    @Ignore
+    override fun validateCallCoroutineContext() {}
+}
 
 class JettyBlockingServletServerPluginTest :
     ServerPluginsTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(

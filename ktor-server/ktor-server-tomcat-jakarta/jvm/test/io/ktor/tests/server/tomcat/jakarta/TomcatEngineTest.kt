@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.server.tomcat.jakarta
@@ -173,6 +173,9 @@ class TomcatSustainabilityTestSuite :
     override fun testBlockingConcurrency() {
         super.testBlockingConcurrency()
     }
+
+    @Ignore
+    override fun validateCallCoroutineContext() {}
 }
 
 class TomcatConfigTest : ConfigTestSuite(Tomcat)

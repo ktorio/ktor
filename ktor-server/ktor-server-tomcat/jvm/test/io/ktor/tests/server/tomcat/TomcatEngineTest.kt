@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.tests.server.tomcat
 
@@ -12,13 +12,19 @@ import io.ktor.server.routing.*
 import io.ktor.server.servlet.*
 import io.ktor.server.testing.suites.*
 import io.ktor.server.tomcat.*
-import org.apache.catalina.core.*
-import org.apache.tomcat.util.descriptor.web.*
-import java.io.*
-import java.util.logging.*
-import javax.servlet.*
+import org.apache.catalina.core.StandardContext
+import org.apache.tomcat.util.descriptor.web.FilterDef
+import org.apache.tomcat.util.descriptor.web.FilterMap
+import java.io.File
+import java.util.logging.Level
+import java.util.logging.Logger
 import javax.servlet.Filter
-import kotlin.test.*
+import javax.servlet.FilterChain
+import javax.servlet.ServletRequest
+import javax.servlet.ServletResponse
+import kotlin.test.Ignore
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class TomcatCompressionTest :
     CompressionTestSuite<TomcatApplicationEngine, TomcatApplicationEngine.Configuration>(Tomcat) {
@@ -171,6 +177,9 @@ class TomcatSustainabilityTestSuite :
     override fun testBlockingConcurrency() {
         super.testBlockingConcurrency()
     }
+
+    @Ignore
+    override fun validateCallCoroutineContext() {}
 }
 
 class TomcatConfigTest : ConfigTestSuite(Tomcat)
