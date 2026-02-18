@@ -34,6 +34,7 @@ public abstract class NettyApplicationCall(
     private val messageReleased = atomic(false)
 
     internal var isByteBufferContent = false
+    internal var isStreamingResponse = false
 
     /**
      * Returns http content object with [buf] content if [isByteBufferContent] is false,
