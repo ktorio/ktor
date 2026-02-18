@@ -271,7 +271,7 @@ final class <#A: kotlin/Any> io.ktor.util/AttributeKey { // io.ktor.util/Attribu
 }
 
 final class <#A: kotlin/Any> io.ktor.util/CaseInsensitiveMap : kotlin.collections/MutableMap<kotlin/String, #A> { // io.ktor.util/CaseInsensitiveMap|null[0]
-    constructor <init>() // io.ktor.util/CaseInsensitiveMap.<init>|<init>(){}[0]
+    constructor <init>(kotlin/Int = ...) // io.ktor.util/CaseInsensitiveMap.<init>|<init>(kotlin.Int){}[0]
 
     final val entries // io.ktor.util/CaseInsensitiveMap.entries|{}entries[0]
         final fun <get-entries>(): kotlin.collections/MutableSet<kotlin.collections/MutableMap.MutableEntry<kotlin/String, #A>> // io.ktor.util/CaseInsensitiveMap.entries.<get-entries>|<get-entries>(){}[0]

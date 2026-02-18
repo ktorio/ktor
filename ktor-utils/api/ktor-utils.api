@@ -69,6 +69,8 @@ public final class io/ktor/util/CacheKt {
 
 public final class io/ktor/util/CaseInsensitiveMap : java/util/Map, kotlin/jvm/internal/markers/KMutableMap {
 	public fun <init> ()V
+	public fun <init> (I)V
+	public synthetic fun <init> (IILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun clear ()V
 	public final fun containsKey (Ljava/lang/Object;)Z
 	public fun containsKey (Ljava/lang/String;)Z

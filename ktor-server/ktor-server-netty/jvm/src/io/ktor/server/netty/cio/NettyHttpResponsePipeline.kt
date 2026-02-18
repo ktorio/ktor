@@ -32,6 +32,18 @@ internal class NettyHttpResponsePipeline(
     private val isDataNotFlushed: AtomicBoolean = atomic(false)
 
     /**
+     * Holder for last read message to avoid ObjectRef allocation when capturing mutable vars.
+     * Only accessed from single coroutine context, so no synchronization needed.
+     */
+    private var lastReadMessage: Any? = null
+    private var lastReadBytesCount: Int = 0
+
+    /**
+     * Cached dispatcher to avoid allocating ExecutorCoroutineDispatcherImpl per request.
+     */
+    private val executorDispatcher = context.executor().asCoroutineDispatcher()
+
+    /**
      * Represents promise which is marked as success when the last read request is handled.
      * Marked as fail when last read request is failed.
      * Default value is success on purpose to start first request handle
@@ -197,7 +209,7 @@ internal class NettyHttpResponsePipeline(
             else -> -1
         }
 
-        launch(context.executor().asCoroutineDispatcher(), start = CoroutineStart.UNDISPATCHED) {
+        launch(executorDispatcher, start = CoroutineStart.UNDISPATCHED) {
             respondWithBodyAndTrailerMessage(
                 call,
                 response,
@@ -327,18 +339,9 @@ internal class NettyHttpResponsePipeline(
                 continue
             }
 
-            var message: Any? = null
-            channel.read { array, startIndex, endIndex ->
-                val rc = endIndex - startIndex
-                val buf = context.alloc().buffer(rc)
-                val idx = buf.writerIndex()
-                buf.setBytes(idx, array, startIndex, rc)
-                buf.writerIndex(idx + rc)
-                unflushedBytes += rc
-
-                message = call.prepareMessage(buf, false)
-                rc
-            }
+            readAndPrepareMessage(channel, call)
+            val message = lastReadMessage!!
+            unflushedBytes += lastReadBytesCount
 
             if (shouldFlush.invoke(channel, unflushedBytes)) {
                 context.read()
@@ -355,6 +358,26 @@ internal class NettyHttpResponsePipeline(
 
         val lastMessage = response.prepareTrailerMessage() ?: call.prepareEndOfStreamMessage(false)
         handleLastResponseMessage(call, lastMessage, lastFuture)
+    }
+
+    /**
+     * Reads from channel and prepares a message, storing results in [lastReadMessage] and [lastReadBytesCount].
+     * Uses class fields instead of a callback to avoid ObjectRef allocation from capturing mutable vars.
+     */
+    private suspend inline fun readAndPrepareMessage(
+        channel: ByteReadChannel,
+        call: NettyApplicationCall
+    ) {
+        channel.read { array, startIndex, endIndex ->
+            val rc = endIndex - startIndex
+            val buf = context.alloc().buffer(rc)
+            val idx = buf.writerIndex()
+            buf.setBytes(idx, array, startIndex, rc)
+            buf.writerIndex(idx + rc)
+            lastReadBytesCount = rc
+            lastReadMessage = call.prepareMessage(buf, false)
+            rc
+        }
     }
 }
 
