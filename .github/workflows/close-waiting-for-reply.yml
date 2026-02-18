@@ -19,6 +19,7 @@ jobs:
           only-issue-labels: "wait for response"
           days-before-stale: -1
           days-before-close: 30
+          close-issue-reason: "not planned"
           close-issue-message: >
             Our team has requested additional information for this issue which was not provided within 30 days.
             The ticket is now automatically closed. Feel free to reopen or comment with the requested info.
