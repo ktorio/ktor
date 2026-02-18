@@ -83,13 +83,15 @@ internal object NettyDispatcher : CoroutineDispatcher() {
 
     override fun dispatch(context: CoroutineContext, block: Runnable) {
         val nettyContext = context[CurrentContextKey]!!.context
-        try {
-            // This can throw an exception when dispatching coroutines
-            // after the netty channel is closed
-            nettyContext.executor().execute(block)
-        } catch (cause: Throwable) {
-            LOG.warn("Failed to dispatch; falling back to caller thread", cause)
-            block.run()
+        val executor = nettyContext.executor()
+        if (executor.isShuttingDown) {
+            Dispatchers.IO.dispatch(context, block)
+        } else {
+            try {
+                executor.execute(block)
+            } catch (cause: Throwable) {
+                LOG.error("Failed to dispatch", cause)
+            }
         }
     }
 
