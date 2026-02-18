@@ -401,6 +401,8 @@ final val io.ktor.server.plugins.di/Supertypes // io.ktor.server.plugins.di/Supe
     final fun <get-Supertypes>(): io.ktor.server.plugins.di/DependencyKeyCovariance // io.ktor.server.plugins.di/Supertypes.<get-Supertypes>|<get-Supertypes>(){}[0]
 final val io.ktor.server.plugins.di/Unnamed // io.ktor.server.plugins.di/Unnamed|{}Unnamed[0]
     final fun <get-Unnamed>(): io.ktor.server.plugins.di/DependencyKeyCovariance // io.ktor.server.plugins.di/Unnamed.<get-Unnamed>|<get-Unnamed>(){}[0]
+final val io.ktor.server.plugins.di/dependencies // io.ktor.server.plugins.di/dependencies|@io.ktor.server.routing.Route{}dependencies[0]
+    final fun (io.ktor.server.routing/Route).<get-dependencies>(): io.ktor.server.plugins.di/DependencyRegistry // io.ktor.server.plugins.di/dependencies.<get-dependencies>|<get-dependencies>@io.ktor.server.routing.Route(){}[0]
 
 final var io.ktor.server.plugins.di/dependencies // io.ktor.server.plugins.di/dependencies|@io.ktor.server.application.Application{}dependencies[0]
     final fun (io.ktor.server.application/Application).<get-dependencies>(): io.ktor.server.plugins.di/DependencyRegistry // io.ktor.server.plugins.di/dependencies.<get-dependencies>|<get-dependencies>@io.ktor.server.application.Application(){}[0]
