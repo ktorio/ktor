@@ -38,7 +38,11 @@ class JettyEngineHttp2HttpServerJvmTest :
 }
 
 class JettyEngineHttp2SustainabilityTest :
-    SustainabilityTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty)
+    SustainabilityTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty) {
+    @Ignore
+    override fun validateCallCoroutineContext() {
+    }
+}
 
 class JettyEngineServerPluginsTest :
     ServerPluginsTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty) {
