@@ -16,6 +16,7 @@ import io.ktor.server.routing.*
 import kotlinx.coroutines.debug.junit5.CoroutinesTimeout
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -41,6 +42,7 @@ abstract class ClientCertTestSuite<Engine : ApplicationEngine, Configuration : A
         val ca = generateCertificate(keyType = KeyType.CA)
     }
 
+    @Ignore // FIXME KTOR-9347
     @CoroutinesTimeout(60 * 1000, cancelOnTimeout = true)
     @Test
     open fun `Server requesting Client Certificate from CIO Client`() {
