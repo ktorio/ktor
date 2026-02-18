@@ -14,9 +14,14 @@ public class DynamicProviderConfig(
     description: String? = null
 ) : AuthenticationProvider.Config(name, description) {
 
-    private lateinit var authenticateFunction: (context: AuthenticationContext) -> Unit
+    private lateinit var authenticateFunction: suspend (context: AuthenticationContext) -> Unit
 
+    @Deprecated("Use suspend argument", level = DeprecationLevel.HIDDEN)
     public fun authenticate(block: (context: AuthenticationContext) -> Unit) {
+        authenticateFunction = { ctx -> block(ctx) }
+    }
+
+    public fun authenticate(block: suspend (context: AuthenticationContext) -> Unit) {
         authenticateFunction = block
     }
 
