@@ -9,12 +9,16 @@
     <option name="links">
       <list>
         <IssueNavigationLink>
-          <option name="issueRegexp" value="[A-Z]+\-\d+" />
+          <option name="issueRegexp" value="(?:KTOR|KT|TW)\-\d+" />
           <option name="linkRegexp" value="http://youtrack.jetbrains.com/issue/$0" />
         </IssueNavigationLink>
         <IssueNavigationLink>
           <option name="issueRegexp" value="#(\d+)" />
           <option name="linkRegexp" value="https://github.com/ktorio/ktor/issues/$1" />
+        </IssueNavigationLink>
+        <IssueNavigationLink>
+          <option name="issueRegexp" value="RFC[ -]?(\d+)" />
+          <option name="linkRegexp" value="https://rfc-editor.org/rfc/rfc$1" />
         </IssueNavigationLink>
       </list>
     </option>
