@@ -1,9 +1,10 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-import com.fasterxml.jackson.databind.*
-import com.fasterxml.jackson.dataformat.smile.*
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.dataformat.smile.SmileFactory
 import com.fasterxml.jackson.module.kotlin.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -15,9 +16,11 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import kotlinx.coroutines.flow.*
-import java.nio.charset.*
-import kotlin.test.*
+import kotlinx.coroutines.flow.flowOf
+import java.nio.charset.Charset
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 class ServerJacksonTest : AbstractServerSerializationTest() {
     private val objectMapper = jacksonObjectMapper()
@@ -60,6 +63,7 @@ class ServerJacksonTest : AbstractServerSerializationTest() {
 
         client.get("/") {
             header(HttpHeaders.Accept, "application/json")
+            @Suppress("DEPRECATION")
             header(HttpHeaders.AcceptCharset, "UTF-16")
         }.let { response ->
             assertEquals(HttpStatusCode.OK, response.status)
