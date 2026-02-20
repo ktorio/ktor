@@ -1,35 +1,20 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.logging
 
 import io.ktor.client.*
 import io.ktor.client.engine.mock.*
-import io.ktor.client.plugins.HttpResponseValidator
-import io.ktor.client.plugins.compression.ContentEncoding
-import io.ktor.client.plugins.onUpload
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.compression.*
 import io.ktor.client.request.*
-import io.ktor.client.request.forms.ChannelProvider
-import io.ktor.client.request.forms.InputProvider
-import io.ktor.client.request.forms.MultiPartFormDataContent
-import io.ktor.client.request.forms.formData
-import io.ktor.client.statement.bodyAsBytes
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
-import io.ktor.http.Headers
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.content.OutgoingContent
-import io.ktor.http.content.TextContent
-import io.ktor.http.contentType
-import io.ktor.util.GZipEncoder
-import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.ByteWriteChannel
-import io.ktor.utils.io.InternalAPI
-import io.ktor.utils.io.readText
-import io.ktor.utils.io.writeFully
-import io.ktor.utils.io.writeStringUtf8
+import io.ktor.client.request.forms.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.http.content.*
+import io.ktor.util.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.test.runTest
 import kotlinx.io.Buffer
@@ -37,11 +22,7 @@ import kotlinx.io.readByteArray
 import org.junit.jupiter.api.BeforeEach
 import java.net.UnknownHostException
 import kotlin.coroutines.CoroutineContext
-import kotlin.test.Test
-import kotlin.test.assertContentEquals
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 class OkHttpFormatTest {
     class LogRecorder : Logger {
@@ -345,7 +326,6 @@ class OkHttpFormatTest {
         client.get("/")
 
         log.assertLogEqual("--> GET /")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
             .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
@@ -363,7 +343,6 @@ class OkHttpFormatTest {
         log.assertLogEqual("--> POST /post")
             .assertLogEqual("Content-Type: text/plain")
             .assertLogEqual("Content-Length: 5")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END POST")
             .assertLogMatch(Regex("""<-- 200 OK /post \(\d+ms\)"""))
@@ -383,7 +362,6 @@ class OkHttpFormatTest {
         }
 
         log.assertLogEqual("--> POST /post")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END POST")
             .assertLogMatch(Regex("""<-- 200 OK /post \(\d+ms\)"""))
@@ -408,7 +386,6 @@ class OkHttpFormatTest {
 
         log.assertLogEqual("--> GET /")
             .assertLogEqual("Custom-Request: value")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
             .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
@@ -426,7 +403,6 @@ class OkHttpFormatTest {
         client.get("/")
 
         log.assertLogEqual("--> GET /")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
             .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
@@ -447,7 +423,6 @@ class OkHttpFormatTest {
         log.assertLogEqual("--> POST /")
             .assertLogEqual("Content-Type: text/plain")
             .assertLogEqual("Content-Length: 5")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END POST")
             .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
@@ -472,7 +447,6 @@ class OkHttpFormatTest {
         client.get("/")
 
         log.assertLogEqual("--> GET /")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
             .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
@@ -508,7 +482,6 @@ class OkHttpFormatTest {
 
             log.assertLogEqual("--> POST /")
                 .assertLogEqual("Accept-Encoding: gzip")
-                .assertLogEqual("Accept-Charset: UTF-8")
                 .assertLogEqual("Accept: */*")
                 .assertLogEqual("--> END POST")
                 .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, unknown-byte body\)"""))
@@ -530,7 +503,6 @@ class OkHttpFormatTest {
     }) { client ->
         client.get("/")
         log.assertLogEqual("--> GET /")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
             .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
@@ -553,7 +525,6 @@ class OkHttpFormatTest {
     }) { client ->
         client.get("/")
         log.assertLogEqual("--> GET /")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
             .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
@@ -576,7 +547,6 @@ class OkHttpFormatTest {
 
         client.get("/")
         log.assertLogEqual("--> GET /")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
             .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
@@ -607,7 +577,6 @@ class OkHttpFormatTest {
 
             log.assertLogEqual("--> GET /")
                 .assertLogEqual("Accept-Encoding: gzip")
-                .assertLogEqual("Accept-Charset: UTF-8")
                 .assertLogEqual("Accept: */*")
                 .assertLogEqual("--> END GET")
                 .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
@@ -622,7 +591,6 @@ class OkHttpFormatTest {
     fun bodyGet() = testWithLevel(LogLevel.BODY, handle = { respondWithLength() }) { client ->
         client.get("/")
         log.assertLogEqual("--> GET /")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
             .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
@@ -643,7 +611,6 @@ class OkHttpFormatTest {
     }) { client ->
         client.get("/")
         log.assertLogEqual("--> GET /")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
             .assertLogMatch(Regex("""<-- 204 No Content / \(\d+ms\)"""))
@@ -664,7 +631,6 @@ class OkHttpFormatTest {
     }) { client ->
         client.get("/")
         log.assertLogEqual("--> GET /")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
             .assertLogMatch(Regex("""<-- 205 Reset Content / \(\d+ms\)"""))
@@ -681,7 +647,6 @@ class OkHttpFormatTest {
         log.assertLogEqual("--> POST /")
             .assertLogEqual("Content-Type: text/plain; charset=UTF-8")
             .assertLogEqual("Content-Length: 4")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("")
             .assertLogEqual("test")
@@ -700,7 +665,6 @@ class OkHttpFormatTest {
         }
         log.assertLogEqual("--> POST / (unknown-byte body)")
             .assertLogEqual("Content-Type: text/plain")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("")
             .assertLogEqual("test")
@@ -722,7 +686,6 @@ class OkHttpFormatTest {
         }
         log.assertLogEqual("--> POST / (unknown-byte body)")
             .assertLogEqual("Content-Type: text/plain")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("")
             .assertLogEqual("test")
@@ -740,7 +703,6 @@ class OkHttpFormatTest {
         }
         log.assertLogEqual("--> POST / (unknown-byte body)")
             .assertLogEqual("Content-Type: application/octet-stream")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("")
             .assertLogEqual("--> END POST (binary body omitted)")
@@ -761,7 +723,6 @@ class OkHttpFormatTest {
             })
         }
         log.assertLogEqual("--> POST / (unknown-byte body)")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("")
             .assertLogEqual("--> END POST (binary body omitted)")
@@ -781,7 +742,6 @@ class OkHttpFormatTest {
             })
         }
         log.assertLogEqual("--> POST / (2-byte body)")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("")
             .assertLogEqual("--> END POST (binary 2-byte body omitted)")
@@ -795,7 +755,6 @@ class OkHttpFormatTest {
     fun bodyGetWithResponseBody() = testWithLevel(LogLevel.BODY, handle = { respondWithLength("hello!") }) { client ->
         client.get("/")
         log.assertLogEqual("--> GET /")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
             .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
@@ -814,7 +773,6 @@ class OkHttpFormatTest {
     ) { client ->
         client.get("/")
         log.assertLogEqual("--> GET /")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
             .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
@@ -848,7 +806,6 @@ class OkHttpFormatTest {
     }) { client ->
         client.get("/")
         log.assertLogEqual("--> GET /")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
             .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
@@ -869,7 +826,6 @@ class OkHttpFormatTest {
     }) { client ->
         client.get("/")
         log.assertLogEqual("--> GET /")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
             .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
@@ -891,7 +847,6 @@ class OkHttpFormatTest {
     }) { client ->
         client.get("/")
         log.assertLogEqual("--> GET /")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
             .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
@@ -914,7 +869,6 @@ class OkHttpFormatTest {
     }) { client ->
         client.get("/")
         log.assertLogEqual("--> GET /")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
             .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
@@ -929,7 +883,6 @@ class OkHttpFormatTest {
     fun allResponseBody() = testWithLevel(LogLevel.ALL, handle = { respondWithLength("hello!") }) { client ->
         client.get("/")
         log.assertLogEqual("--> GET /")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
             .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
@@ -985,7 +938,6 @@ class OkHttpFormatTest {
             log.assertLogEqual("--> GET /")
                 .assertLogEqual("SeNsItIvE: ██")
                 .assertLogEqual("Not-Sensitive: value")
-                .assertLogEqual("Accept-Charset: UTF-8")
                 .assertLogEqual("Accept: */*")
                 .assertLogEqual("--> END GET")
                 .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
@@ -1023,7 +975,6 @@ class OkHttpFormatTest {
             assertEquals("response body", response.bodyAsText())
 
             log.assertLogEqual("--> GET /")
-                .assertLogEqual("Accept-Charset: UTF-8")
                 .assertLogEqual("Accept: */*")
                 .assertLogEqual("--> END GET")
                 .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
@@ -1043,7 +994,6 @@ class OkHttpFormatTest {
     ) { client ->
         client.get("/")
         log.assertLogEqual("--> GET /")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
             .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
@@ -1074,7 +1024,6 @@ class OkHttpFormatTest {
         log.assertLogEqual("--> POST /")
             .assertLogEqual("Content-Length: 29")
             .assertLogEqual("Content-Encoding: gzip")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("")
             .assertLogEqual("--> END POST (encoded 29-byte body omitted)")
@@ -1096,7 +1045,6 @@ class OkHttpFormatTest {
         }
         log.assertLogEqual("--> POST /")
             .assertLogEqual("Content-Encoding: gzip")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("")
             .assertLogEqual("--> END POST (encoded body omitted)")
@@ -1127,7 +1075,6 @@ class OkHttpFormatTest {
         client.head("/")
 
         log.assertLogEqual("--> HEAD /")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END HEAD")
             .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
@@ -1141,7 +1088,6 @@ class OkHttpFormatTest {
         client.post("/")
 
         log.assertLogEqual("--> POST / (0-byte body)")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("")
             .assertLogEqual("--> END POST")
@@ -1156,7 +1102,6 @@ class OkHttpFormatTest {
         client.get("/")
 
         log.assertLogEqual("--> GET /")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
             .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
@@ -1179,7 +1124,6 @@ class OkHttpFormatTest {
         log.assertLogEqual("--> POST /")
             .assertLogEqual("Content-Type: application/octet-stream")
             .assertLogEqual("Content-Length: 7777")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("")
             .assertLogEqual("--> END POST (binary 7777-byte body omitted)")
@@ -1214,7 +1158,6 @@ class OkHttpFormatTest {
 
         log.assertLogEqual("--> POST /")
             .assertLogEqual("Content-Encoding: gzip")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END POST")
             .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
@@ -1241,7 +1184,6 @@ class OkHttpFormatTest {
 
         log.assertLogEqual("--> POST /")
             .assertLogEqual("Content-Length: 8388608")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("")
             .assertLogEqual("b".repeat(8 * 1024 * 1024))
@@ -1296,7 +1238,6 @@ class OkHttpFormatTest {
         log.assertLogEqual("--> POST /")
             .assertLogEqual("Content-Type: multipart/form-data; boundary=WebAppBoundary")
             .assertLogEqual("Content-Length: 10487458")
-            .assertLogEqual("Accept-Charset: UTF-8")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("")
             .assertLogEqual("--WebAppBoundary")

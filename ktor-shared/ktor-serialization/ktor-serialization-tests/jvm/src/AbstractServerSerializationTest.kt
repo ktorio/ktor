@@ -148,7 +148,7 @@ public abstract class AbstractServerSerializationTest {
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals("""{"id":1,"title":"Hello, World!","unicode":"$uc"}""", response.bodyAsText())
             val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
-            assertEquals(ContentType.Application.Json.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
+            assertEquals(ContentType.Application.Json, ContentType.parse(contentTypeText))
         }
 
         client.post("/map") {
