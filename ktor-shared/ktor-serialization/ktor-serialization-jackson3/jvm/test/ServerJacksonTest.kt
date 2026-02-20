@@ -6,21 +6,22 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson3.*
-import io.ktor.serialization.jackson3.JacksonConverter
 import io.ktor.serialization.test.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import kotlinx.coroutines.flow.*
-import tools.jackson.databind.*
-import tools.jackson.dataformat.smile.*
+import kotlinx.coroutines.flow.flowOf
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.SerializationFeature
+import tools.jackson.dataformat.smile.SmileFactory
+import tools.jackson.dataformat.smile.SmileMapper
 import tools.jackson.module.kotlin.*
-import tools.jackson.module.kotlin.jacksonObjectMapper
-import tools.jackson.module.kotlin.jacksonTypeRef
-import java.nio.charset.*
-import kotlin.test.*
+import java.nio.charset.Charset
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 class ServerJacksonTest : AbstractServerSerializationTest() {
     private val objectMapper = jacksonObjectMapper()
@@ -63,6 +64,7 @@ class ServerJacksonTest : AbstractServerSerializationTest() {
 
         client.get("/") {
             header(HttpHeaders.Accept, "application/json")
+            @Suppress("DEPRECATION")
             header(HttpHeaders.AcceptCharset, "UTF-16")
         }.let { response ->
             assertEquals(HttpStatusCode.OK, response.status)

@@ -1,8 +1,10 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.http
+
+import io.ktor.http.HttpHeaders.UnsafeHeadersList
 
 @Suppress(
     "unused",
@@ -15,6 +17,8 @@ public object HttpHeaders {
     // The list is taken from https://www.iana.org/assignments/message-headers/message-headers.xml#perm-headers
 
     public const val Accept: String = "Accept"
+    @Deprecated("The Accept-Charset request header has been deprecated in RFC 9110. " +
+        "UTF-8 should be used by default in modern applications.")
     public const val AcceptCharset: String = "Accept-Charset"
     public const val AcceptEncoding: String = "Accept-Encoding"
     public const val AcceptLanguage: String = "Accept-Language"
@@ -184,6 +188,7 @@ public object HttpHeaders {
     @Deprecated("Use Accept constant instead.", ReplaceWith("Accept"), DeprecationLevel.ERROR)
     public fun getAccept(): String = Accept
 
+    @Suppress("DEPRECATION")
     @Deprecated("Use AcceptCharset constant instead.", ReplaceWith("AcceptCharset"), DeprecationLevel.ERROR)
     public fun getAcceptCharset(): String = AcceptCharset
 

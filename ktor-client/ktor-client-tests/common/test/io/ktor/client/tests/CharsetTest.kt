@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests
@@ -16,7 +16,9 @@ import io.ktor.http.content.*
 import io.ktor.utils.io.charsets.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
+@Suppress("DEPRECATION")
 class CharsetTest {
 
     @Test
@@ -25,7 +27,7 @@ class CharsetTest {
             engine {
                 // get handler
                 addHandler { request ->
-                    assertEquals("UTF-8", request.headers[HttpHeaders.AcceptCharset])
+                    assertAcceptCharsetNotSet(request)
 
                     respond(
                         "Content",
@@ -38,7 +40,7 @@ class CharsetTest {
 
                 // post handler
                 addHandler { request ->
-                    assertEquals("UTF-8", request.headers[HttpHeaders.AcceptCharset])
+                    assertAcceptCharsetNotSet(request)
 
                     val requestContent = request.body as TextContent
                     assertEquals(ContentType.Text.Plain.withCharset(Charsets.UTF_8), requestContent.contentType)
@@ -46,6 +48,47 @@ class CharsetTest {
 
                     respondOk()
                 }
+            }
+        }
+
+        test { client ->
+            val response = client.get {}.body<String>()
+            assertEquals("Content", response)
+            client.post { setBody("Hello, Test!") }
+        }
+    }
+
+    @Test
+    fun testOnlyUtf8Charset() = testWithEngine(MockEngine) {
+        config {
+            engine {
+                // get handler
+                addHandler { request ->
+                    assertAcceptCharsetNotSet(request)
+
+                    respond(
+                        "Content",
+                        HttpStatusCode.OK,
+                        buildHeaders {
+                            append(HttpHeaders.ContentType, ContentType.Text.Plain.withCharset(Charsets.UTF_8))
+                        }
+                    )
+                }
+
+                // post handler
+                addHandler { request ->
+                    assertAcceptCharsetNotSet(request)
+
+                    val requestContent = request.body as TextContent
+                    assertEquals(ContentType.Text.Plain.withCharset(Charsets.UTF_8), requestContent.contentType)
+                    assertEquals("Hello, Test!", requestContent.text)
+
+                    respondOk()
+                }
+            }
+
+            Charsets {
+                register(Charsets.UTF_8)
             }
         }
 
@@ -188,7 +231,7 @@ class CharsetTest {
             engine {
                 // get handler
                 addHandler { request ->
-                    assertEquals("UTF-8", request.headers[HttpHeaders.AcceptCharset])
+                    assertAcceptCharsetNotSet(request)
 
                     respond(
                         "Content",
@@ -216,7 +259,7 @@ class CharsetTest {
             engine {
                 // get handler
                 addHandler { request ->
-                    assertEquals("UTF-8", request.headers[HttpHeaders.AcceptCharset])
+                    assertAcceptCharsetNotSet(request)
 
                     respond(
                         "Content",
@@ -236,5 +279,9 @@ class CharsetTest {
             val response = client.get { }.bodyAsText()
             assertEquals("Content", response)
         }
+    }
+
+    private fun assertAcceptCharsetNotSet(request: HttpRequestData) {
+        assertNull(request.headers[HttpHeaders.AcceptCharset], "Accept-Charset header should not be set")
     }
 }
