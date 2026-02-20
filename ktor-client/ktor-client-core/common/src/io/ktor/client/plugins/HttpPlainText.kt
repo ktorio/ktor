@@ -123,6 +123,7 @@ public val HttpPlainText: ClientPlugin<HttpPlainTextConfig> =
             return body.readText(charset = actualCharset)
         }
 
+        @Suppress("DEPRECATION")
         fun HttpRequestBuilder.addAcceptCharsetHeader(value: String?) {
             if (value == null || headers[HttpHeaders.AcceptCharset] != null) return
             LOGGER.trace("Adding Accept-Charset=$value to $url")

@@ -1,18 +1,17 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.serialization
 
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.util.*
-import io.ktor.util.pipeline.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
-import io.ktor.utils.io.core.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 
 /**
  * A custom content converter that could be registered in [ContentNegotiation] plugin for any particular content type
@@ -74,6 +73,7 @@ public fun Headers.suitableCharset(defaultCharset: Charset = Charsets.UTF_8): Ch
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.suitableCharsetOrNull)
  */
 public fun Headers.suitableCharsetOrNull(defaultCharset: Charset = Charsets.UTF_8): Charset? {
+    @Suppress("DEPRECATION")
     for ((charset, _) in parseAndSortHeader(get(HttpHeaders.AcceptCharset))) {
         when {
             charset == "*" -> return defaultCharset
