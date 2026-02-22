@@ -9,6 +9,12 @@ plugins {
 }
 
 kotlin {
+    js {
+        compilerOptions {
+            target = "es2015"
+        }
+    }
+
     sourceSets {
         commonMain.dependencies {
             api(projects.ktorClientCio)

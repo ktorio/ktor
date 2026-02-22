@@ -35,7 +35,7 @@ public class ServerConfigBuilder(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ServerConfigBuilder.watchPaths)
      */
-    public var watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH)
+    public var watchPaths: List<String> = defaultWatchPaths()
 
     /**
      * Application's root path (prefix, context path in servlet container).
@@ -80,6 +80,8 @@ public class ServerConfigBuilder(
     internal fun build(): ServerConfig =
         ServerConfig(environment, modules.toList(), watchPaths, rootPath, developmentMode, parentCoroutineContext)
 }
+
+internal expect fun defaultWatchPaths(): List<String>
 
 /**
  * Core configuration for a running server.
