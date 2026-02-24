@@ -74,6 +74,14 @@ public abstract class HttpResponse : HttpMessage, CoroutineScope {
     @InternalAPI
     public abstract val rawContent: ByteReadChannel
 
+    /**
+     * Reads the response body as a byte array using the provided [channel].
+     * This is an internal hook for default transformers to avoid extra allocations
+     * when the response already has the body cached.
+     */
+    @InternalAPI
+    public open suspend fun bodyAsByteArray(channel: ByteReadChannel): ByteArray = channel.toByteArray()
+
     override fun toString(): String = "HttpResponse[${request.url}, $status]"
 }
 
