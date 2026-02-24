@@ -28,7 +28,7 @@ class CaseInsensitiveMapTest {
     }
 
     @Test
-    fun insertionOrderDoesNotOverflowOnChurn() {
+    fun `insertion order does not overflow on churn`() {
         repeat(32) { i ->
             map["k$i"] = "v$i"
             map.remove("K$i")
@@ -40,7 +40,7 @@ class CaseInsensitiveMapTest {
     }
 
     @Test
-    fun keySetOperationsAreCaseInsensitive() {
+    fun `keySet operations are case-insensitive`() {
         map["Content-Type"] = "text/plain"
 
         assertTrue("content-type" in map.keys)
@@ -49,7 +49,7 @@ class CaseInsensitiveMapTest {
     }
 
     @Test
-    fun equalsAndHashCodeAreCaseInsensitiveWithinMap() {
+    fun `equals and hashCode are case-insensitive within map`() {
         val other = CaseInsensitiveMap<String>()
         map["Foo"] = "1"
         other["fOO"] = "1"
@@ -58,6 +58,6 @@ class CaseInsensitiveMapTest {
         assertEquals(map.hashCode(), other.hashCode())
 
         val regular = hashMapOf("Foo" to "1")
-        assertTrue(map != regular)
+        assertEquals<Map<String, String>>(map, regular)
     }
 }

@@ -197,7 +197,8 @@ public open class StringValuesImpl(
     protected val values: Map<String, List<String>>
         get() {
             if (entryCount == 0) return emptyMap()
-            val result = LinkedHashMap<String, List<String>>(entryCount)
+            val result: MutableMap<String, List<String>> =
+                if (caseInsensitiveName) caseInsensitiveMap() else LinkedHashMap(entryCount)
             for (i in 0 until entryCount) {
                 result[keyStorage[i]] = valueStorage[i]
             }

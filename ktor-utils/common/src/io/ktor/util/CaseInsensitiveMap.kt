@@ -49,13 +49,19 @@ public class CaseInsensitiveMap<Value : Any> : MutableMap<String, Value> {
     }
 
     override fun put(key: String, value: Value): Value? {
-        ensureCapacity()
         val hash = caseInsensitiveHashCode(key)
         var index = hash and (keyStorage.size - 1)
 
         while (true) {
             val existingKey = keyStorage[index]
             if (existingKey == null) {
+                // New key: ensure capacity before inserting
+                ensureCapacity()
+                // Recompute index after potential resize
+                index = hash and (keyStorage.size - 1)
+                while (keyStorage[index] != null) {
+                    index = (index + 1) and (keyStorage.size - 1)
+                }
                 if (insertionCount == insertionOrder.size) {
                     compactInsertionOrder()
                 }
@@ -68,7 +74,7 @@ public class CaseInsensitiveMap<Value : Any> : MutableMap<String, Value> {
                 return null
             }
             if (existingKey.equals(key, ignoreCase = true)) {
-                // Key exists, replace value
+                // Key exists, replace value without resizing
                 @Suppress("UNCHECKED_CAST")
                 val oldValue = valueStorage[index] as Value?
                 valueStorage[index] = value
@@ -167,13 +173,21 @@ public class CaseInsensitiveMap<Value : Any> : MutableMap<String, Value> {
 
     override fun equals(other: Any?): Boolean {
         if (other === this) return true
-        if (other !is CaseInsensitiveMap<*>) return false
+        if (other !is Map<*, *>) return false
         if (other.size != _size) return false
         for (i in keyStorage.indices) {
             val k = keyStorage[i]
             if (k != null) {
                 val v = valueStorage[i]
-                if (other[k] != v) return false
+                val otherValue = if (other is CaseInsensitiveMap<*>) {
+                    other[k]
+                } else {
+                    // For regular maps, find the key case-insensitively
+                    other.entries.firstOrNull { (key, _) ->
+                        (key as? String)?.equals(k, ignoreCase = true) == true
+                    }?.value
+                }
+                if (v != otherValue) return false
             }
         }
         return true
@@ -250,7 +264,7 @@ public class CaseInsensitiveMap<Value : Any> : MutableMap<String, Value> {
         override val size: Int get() = _size
 
         override fun add(element: String): Boolean =
-            throw UnsupportedOperationException()
+            throw UnsupportedOperationException("CaseInsensitiveMap.keys is read-only")
 
         override fun contains(element: String): Boolean =
             this@CaseInsensitiveMap.containsKey(element)
@@ -287,7 +301,7 @@ public class CaseInsensitiveMap<Value : Any> : MutableMap<String, Value> {
             }
 
             override fun remove() {
-                val key = lastKey ?: throw IllegalStateException()
+                val key = lastKey ?: throw IllegalStateException("next() must be called before remove()")
                 this@CaseInsensitiveMap.remove(key)
                 lastKey = null
             }
@@ -298,7 +312,7 @@ public class CaseInsensitiveMap<Value : Any> : MutableMap<String, Value> {
         override val size: Int get() = _size
 
         override fun add(element: Value): Boolean =
-            throw UnsupportedOperationException()
+            throw UnsupportedOperationException("CaseInsensitiveMap.values is read-only")
 
         override fun iterator(): MutableIterator<Value> = object : MutableIterator<Value> {
             private var orderIndex = 0
@@ -330,7 +344,7 @@ public class CaseInsensitiveMap<Value : Any> : MutableMap<String, Value> {
             }
 
             override fun remove() {
-                val key = lastKey ?: throw IllegalStateException()
+                val key = lastKey ?: throw IllegalStateException("next() must be called before remove()")
                 this@CaseInsensitiveMap.remove(key)
                 lastKey = null
             }
@@ -341,7 +355,7 @@ public class CaseInsensitiveMap<Value : Any> : MutableMap<String, Value> {
         override val size: Int get() = _size
 
         override fun add(element: MutableMap.MutableEntry<String, Value>): Boolean =
-            throw UnsupportedOperationException()
+            throw UnsupportedOperationException("CaseInsensitiveMap.entries is read-only")
 
         override fun iterator(): MutableIterator<MutableMap.MutableEntry<String, Value>> =
             object : MutableIterator<MutableMap.MutableEntry<String, Value>> {
@@ -373,7 +387,7 @@ public class CaseInsensitiveMap<Value : Any> : MutableMap<String, Value> {
                 }
 
                 override fun remove() {
-                    val key = lastKey ?: throw IllegalStateException()
+                    val key = lastKey ?: throw IllegalStateException("next() must be called before remove()")
                     this@CaseInsensitiveMap.remove(key)
                     lastKey = null
                 }
