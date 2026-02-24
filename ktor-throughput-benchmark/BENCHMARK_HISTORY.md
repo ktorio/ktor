@@ -21,6 +21,7 @@ python ktor-throughput-benchmark/scripts/profile_benchmark.py --bigfile
 ```
 
 ### Current Results (LocalFileContent)
+
 | Metric | Value |
 |--------|-------|
 | Throughput | 1332 MB/s (10.66 Gbps) |
