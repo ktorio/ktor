@@ -10,6 +10,7 @@ package io.ktor.benchmark.throughput
 import io.ktor.client.engine.apache5.*
 import io.ktor.server.netty.*
 import kotlinx.coroutines.runBlocking
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -41,6 +42,15 @@ fun main() {
         useFileContent = System.getProperty("benchmark.use.file")
             ?.toBoolean() ?: true
     )
+
+    require(config.fileSizeMB > 0) { "benchmark.filesize.mb must be > 0 (was ${config.fileSizeMB})" }
+    require(config.warmupDuration > Duration.ZERO) {
+        "benchmark.warmup.seconds must be > 0 (was ${config.warmupDuration})"
+    }
+    require(config.measurementDuration > Duration.ZERO) {
+        "benchmark.duration.seconds must be > 0 (was ${config.measurementDuration})"
+    }
+    require(config.concurrency > 0) { "benchmark.concurrency must be > 0 (was ${config.concurrency})" }
 
     println("=== Big File Transfer Benchmark ===")
     println("File size:    ${config.fileSizeMB} MB")

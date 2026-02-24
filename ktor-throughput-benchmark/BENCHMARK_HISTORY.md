@@ -119,7 +119,7 @@ Localhost loopback typically supports 10-40 Gbps. Results within expected range.
 | StringValuesImpl.forEach iterator | ~300 | Eliminated |
 | RoutingResolveTrace | ~300 | Eliminated |
 | JobCancellationException | ~2,755 | Eliminated |
-| SynchronizedLazyImpl | ~477 | ~440 (reduced)
+| SynchronizedLazyImpl | ~477 | ~440 (reduced) |
 
 ---
 

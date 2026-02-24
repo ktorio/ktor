@@ -101,7 +101,6 @@ public class BigFileTransferBenchmark(
         clientEngineFactory: HttpClientEngineFactory<TClientConfig>
     ): BigFileResult = coroutineScope {
         val port = findFreePort()
-        val expectedSize = if (config.useFileContent) testFile.length() else inMemoryData.size.toLong()
 
         val server = embeddedServer(serverEngineFactory, port = port) {
             routing {
@@ -123,11 +122,11 @@ public class BigFileTransferBenchmark(
 
                 // Warmup
                 println("Warmup phase (${config.warmupDuration})...")
-                runTransferPhase(client, baseUrl, expectedSize, config.warmupDuration)
+                runTransferPhase(client, baseUrl, config.warmupDuration)
 
                 // Measurement
                 println("Measurement phase (${config.measurementDuration})...")
-                runTransferPhase(client, baseUrl, expectedSize, config.measurementDuration)
+                runTransferPhase(client, baseUrl, config.measurementDuration)
             }
         } finally {
             server.stop(gracePeriodMillis = 0, timeoutMillis = 1000)
@@ -137,7 +136,6 @@ public class BigFileTransferBenchmark(
     private suspend fun runTransferPhase(
         client: HttpClient,
         baseUrl: String,
-        expectedSize: Long,
         duration: Duration
     ): BigFileResult = coroutineScope {
         val bytesTransferred = AtomicLong(0)

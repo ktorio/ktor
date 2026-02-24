@@ -16,7 +16,7 @@ End-to-end throughput benchmarks for Ktor client and server engines. Measures re
 ./gradlew :ktor-throughput-benchmark:runBigFile
 
 # Run benchmark tests
-./gradlew :ktor-throughput-benchmark:test
+./gradlew :ktor-throughput-benchmark:jvmTest
 ```
 
 ## Configuration (System Properties)
@@ -44,38 +44,38 @@ Example with custom config:
 
 ```bash
 # CPU profiling (default) — runs Netty+Apache5 benchmark with async-profiler attached
-python ktor-throughput-benchmark/scripts/profile_benchmark.py
+python3 ktor-throughput-benchmark/scripts/profile_benchmark.py
 
 # Memory allocation profiling
-python ktor-throughput-benchmark/scripts/profile_benchmark.py --alloc
+python3 ktor-throughput-benchmark/scripts/profile_benchmark.py --alloc
 
 # Big file transfer profiling
-python ktor-throughput-benchmark/scripts/profile_benchmark.py --bigfile
+python3 ktor-throughput-benchmark/scripts/profile_benchmark.py --bigfile
 
 # Custom durations
-python ktor-throughput-benchmark/scripts/profile_benchmark.py --warmup 10 --duration 60 --profile-duration 50
+python3 ktor-throughput-benchmark/scripts/profile_benchmark.py --warmup 10 --duration 60 --profile-duration 50
 ```
 
 ### Hotspot Analysis
 
 ```bash
 # Analyze default profile output (method-level hotspots)
-python ktor-throughput-benchmark/scripts/analyze_hotspots.py
+python3 ktor-throughput-benchmark/scripts/analyze_hotspots.py
 
 # Analyze specific file
-python ktor-throughput-benchmark/scripts/analyze_hotspots.py build/profile-cpu.collapsed
+python3 ktor-throughput-benchmark/scripts/analyze_hotspots.py build/profile-cpu.collapsed
 
 # Class-level aggregation
-python ktor-throughput-benchmark/scripts/analyze_hotspots.py --by-class
+python3 ktor-throughput-benchmark/scripts/analyze_hotspots.py --by-class
 
 # Package-level aggregation
-python ktor-throughput-benchmark/scripts/analyze_hotspots.py --by-package
+python3 ktor-throughput-benchmark/scripts/analyze_hotspots.py --by-package
 
 # Filter to Ktor packages only
-python ktor-throughput-benchmark/scripts/analyze_hotspots.py --filter io/ktor
+python3 ktor-throughput-benchmark/scripts/analyze_hotspots.py --filter io/ktor
 
 # Exclude JDK internals
-python ktor-throughput-benchmark/scripts/analyze_hotspots.py --exclude java/,sun/,jdk/
+python3 ktor-throughput-benchmark/scripts/analyze_hotspots.py --exclude java/,sun/,jdk/
 ```
 
 ### Manual async-profiler

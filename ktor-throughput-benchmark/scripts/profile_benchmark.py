@@ -103,6 +103,11 @@ def find_benchmark_pid(timeout: int = 30) -> int:
                         print(f"Found benchmark process: PID {pid}", file=sys.stderr)
                         return pid
 
+        except FileNotFoundError:
+            raise RuntimeError(
+                "jps not found. Ensure a JDK is installed and JAVA_HOME/bin is on your PATH.\n"
+                "  jps is part of the JDK (not the JRE)."
+            )
         except subprocess.CalledProcessError:
             pass
 

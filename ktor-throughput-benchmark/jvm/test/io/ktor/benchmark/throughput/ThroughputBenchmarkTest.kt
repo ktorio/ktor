@@ -23,12 +23,13 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import java.util.stream.Stream
 import kotlin.test.assertEquals
+import kotlin.time.Duration.Companion.seconds
 
 class ThroughputBenchmarkTest {
 
     @ParameterizedTest(name = "download: {0} -> {1}")
     @MethodSource("engineCombinations")
-    fun downloadThroughput(
+    fun `download throughput`(
         serverName: String,
         clientName: String,
         serverFactory: ApplicationEngineFactory<*, *>,
@@ -39,7 +40,7 @@ class ThroughputBenchmarkTest {
 
     @ParameterizedTest(name = "upload: {0} -> {1}")
     @MethodSource("engineCombinations")
-    fun uploadThroughput(
+    fun `upload throughput`(
         serverName: String,
         clientName: String,
         serverFactory: ApplicationEngineFactory<*, *>,
@@ -60,7 +61,13 @@ class ThroughputBenchmarkTest {
         serverName: String,
         clientName: String
     ) {
-        val benchmark = ThroughputBenchmark()
+        val benchmark = ThroughputBenchmark(
+            BenchmarkConfig(
+                warmupDuration = 1.seconds,
+                measurementDuration = 5.seconds,
+                concurrency = 4
+            )
+        )
 
         val result = runBlocking {
             benchmark.run(

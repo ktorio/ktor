@@ -43,6 +43,8 @@ public enum class BenchmarkScenario {
  * 3. Running a warmup phase
  * 4. Running the measurement phase with concurrent coroutines
  * 5. Computing latency percentiles from collected samples
+ *
+ * @param config Benchmark configuration controlling warmup/measurement durations, concurrency, and payload size.
  */
 public class ThroughputBenchmark(
     private val config: BenchmarkConfig = BenchmarkConfig()
