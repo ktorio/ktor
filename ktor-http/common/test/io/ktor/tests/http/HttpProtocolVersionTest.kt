@@ -25,18 +25,8 @@ class HttpProtocolVersionTest {
     }
 
     @Test
-    fun `parse returns cached HTTP 2_0 instance for short form`() {
-        assertSame(HttpProtocolVersion.HTTP_2_0, HttpProtocolVersion.parse("HTTP/2"))
-    }
-
-    @Test
     fun `parse returns cached HTTP 3_0 instance`() {
         assertSame(HttpProtocolVersion.HTTP_3_0, HttpProtocolVersion.parse("HTTP/3.0"))
-    }
-
-    @Test
-    fun `parse returns cached HTTP 3_0 instance for short form`() {
-        assertSame(HttpProtocolVersion.HTTP_3_0, HttpProtocolVersion.parse("HTTP/3"))
     }
 
     @Test

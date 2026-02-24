@@ -80,8 +80,8 @@ public data class HttpProtocolVersion(val name: String, val major: Int, val mino
             // Fast path: check common versions first to avoid allocation
             if (value == "HTTP/1.1") return HTTP_1_1
             if (value == "HTTP/1.0") return HTTP_1_0
-            if (value == "HTTP/2.0" || value == "HTTP/2") return HTTP_2_0
-            if (value == "HTTP/3.0" || value == "HTTP/3") return HTTP_3_0
+            if (value == "HTTP/2.0") return HTTP_2_0
+            if (value == "HTTP/3.0") return HTTP_3_0
 
             // Slow path: parse unknown versions (format: protocol/major.minor)
             val (protocol, major, minor) = value.split("/", ".").also {
