@@ -5,12 +5,13 @@
 package io.ktor.client.plugins
 
 import io.ktor.client.*
-import io.ktor.client.call.checkContentLength
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.http.content.*
+import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
@@ -82,7 +83,8 @@ public fun HttpClient.defaultTransformers() {
             }
 
             ByteArray::class -> {
-                val bytes = body.toByteArray()
+                // Optimize: allow responses to provide cached bytes directly
+                val bytes = response.bodyAsByteArray(body)
                 checkContentLength(
                     contentLength = context.response.contentLength(),
                     bodySize = bytes.size.toLong(),
