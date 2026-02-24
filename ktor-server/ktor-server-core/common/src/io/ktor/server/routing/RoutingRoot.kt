@@ -45,8 +45,10 @@ public class RoutingRoot(
     }
 
     private fun addDefaultTracing() {
-        tracers.add {
-            if (LOGGER.isTraceEnabled) {
+        // Only add the tracer if trace logging is enabled to avoid allocating
+        // RoutingResolveTrace and RoutingResolveTraceEntry objects on every request
+        if (LOGGER.isTraceEnabled) {
+            tracers.add {
                 LOGGER.trace(it.buildText())
             }
         }
