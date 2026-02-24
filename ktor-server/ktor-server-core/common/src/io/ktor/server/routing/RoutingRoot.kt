@@ -49,7 +49,7 @@ public class RoutingRoot(
         // RoutingResolveTrace and RoutingResolveTraceEntry objects on every request
         if (LOGGER.isTraceEnabled) {
             tracers.add {
-                LOGGER.trace(it.buildText())
+                LOGGER.trace { it.buildText() }
             }
         }
     }
