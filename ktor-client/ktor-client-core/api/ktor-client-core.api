@@ -1568,6 +1568,7 @@ public final class io/ktor/client/statement/HttpReceivePipeline$Phases {
 
 public abstract class io/ktor/client/statement/HttpResponse : io/ktor/http/HttpMessage, kotlinx/coroutines/CoroutineScope {
 	public fun <init> ()V
+	public fun bodyAsByteArray (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getCall ()Lio/ktor/client/call/HttpClientCall;
 	public abstract fun getRawContent ()Lio/ktor/utils/io/ByteReadChannel;
 	public abstract fun getRequestTime ()Lio/ktor/util/date/GMTDate;
