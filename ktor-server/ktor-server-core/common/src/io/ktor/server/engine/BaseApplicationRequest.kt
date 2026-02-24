@@ -21,7 +21,7 @@ public abstract class BaseApplicationRequest(final override val call: PipelineCa
     protected abstract val engineReceiveChannel: ByteReadChannel
     private val receiveChannel: AtomicRef<ByteReadChannel?> = atomic(null)
 
-    final override val headers: Headers by lazy { DelegateHeaders(engineHeaders) }
+    final override val headers: Headers by lazy(LazyThreadSafetyMode.NONE) { DelegateHeaders(engineHeaders) }
 
     override val pipeline: ApplicationReceivePipeline = ApplicationReceivePipeline(
         call.application.developmentMode
