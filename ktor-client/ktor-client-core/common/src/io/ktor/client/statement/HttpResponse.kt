@@ -78,6 +78,9 @@ public abstract class HttpResponse : HttpMessage, CoroutineScope {
      * Reads the response body as a byte array using the provided [channel].
      * This is an internal hook for default transformers to avoid extra allocations
      * when the response already has the body cached.
+     *
+     * @param channel The [ByteReadChannel] providing the response body bytes.
+     * @return The response body as a [ByteArray].
      */
     @InternalAPI
     public open suspend fun bodyAsByteArray(channel: ByteReadChannel): ByteArray = channel.toByteArray()
