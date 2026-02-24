@@ -32,7 +32,7 @@ class GMTDateCalendarTest {
     }
 
     @Test
-    fun testEpochTimestamp() {
+    fun `epoch timestamp is 1970-01-01 00_00_00 GMT`() {
         val date = GMTDate(0L)
         assertEquals(1970, date.year)
         assertEquals(Month.JANUARY, date.month)
@@ -45,7 +45,7 @@ class GMTDateCalendarTest {
     }
 
     @Test
-    fun testLeapYear2000() {
+    fun `leap year 2000 Feb 29 is handled correctly`() {
         // Feb 29, 2000 12:00:00 GMT - leap year divisible by 400
         val timestamp = 951825600000L
         val date = GMTDate(timestamp)
@@ -57,7 +57,7 @@ class GMTDateCalendarTest {
     }
 
     @Test
-    fun testNonLeapYear1900() {
+    fun `1900 is not a leap year`() {
         // March 1, 1900 00:00:00 GMT - not a leap year (divisible by 100 but not 400)
         val timestamp = -2203891200000L
         val date = GMTDate(timestamp)
@@ -68,7 +68,7 @@ class GMTDateCalendarTest {
     }
 
     @Test
-    fun testLeapYear2024() {
+    fun `leap year 2024 Feb 29 with time components`() {
         // Feb 29, 2024 15:30:45 GMT
         val timestamp = 1709220645000L
         val date = GMTDate(timestamp)
@@ -83,7 +83,7 @@ class GMTDateCalendarTest {
     }
 
     @Test
-    fun testYearBoundary() {
+    fun `year boundary between 2023 and 2024`() {
         // Dec 31, 2023 23:59:59 GMT
         val timestamp = 1704067199000L
         val date = GMTDate(timestamp)
@@ -108,7 +108,7 @@ class GMTDateCalendarTest {
     }
 
     @Test
-    fun testAllMonths() {
+    fun `all month boundaries in 2023`() {
         // Verify each month boundary in 2023 (non-leap year)
         val monthTimestamps = listOf(
             1672531200000L to Pair(Month.JANUARY, 1), // Jan 1
@@ -134,7 +134,7 @@ class GMTDateCalendarTest {
     }
 
     @Test
-    fun testDayOfWeekProgression() {
+    fun `day of week progresses correctly from epoch`() {
         // Starting from epoch (Thursday), verify day of week progression
         val thursdayTimestamp = 0L
         val fridayTimestamp = 86400000L
@@ -154,7 +154,7 @@ class GMTDateCalendarTest {
     }
 
     @Test
-    fun testMatchesCalendarImplementation() {
+    fun `matches Calendar implementation for various timestamps`() {
         // Verify our implementation matches Calendar for various timestamps
         val gmtTimezone = TimeZone.getTimeZone("GMT")
         val testTimestamps = listOf(
