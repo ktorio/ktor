@@ -181,6 +181,8 @@ gh pr create --title "<ISSUE-ID> <Short fix description>" --body "$(cat <<'EOF'
 - Fixes <link-to-issue>
 - <1-2 bullet points describing the root cause and fix>
 
+Closes <issue-reference>
+
 ## Test plan
 - Added failing reproducer test that validates the fix
 - All existing tests in the module continue to pass
@@ -190,8 +192,9 @@ EOF
 )"
 ```
 
-For YouTrack issues, link as: `https://youtrack.jetbrains.com/issue/KTOR-XXXX`
-For GitHub issues, link as: `#NUMBER` (GitHub auto-links these)
+The `Closes` line auto-closes the issue when the PR is merged:
+- For GitHub issues: `Closes #NUMBER`
+- For YouTrack issues: `Closes KTOR-XXXX`
 
 Report the PR URL to the user when done.
 
