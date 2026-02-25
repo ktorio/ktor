@@ -18,8 +18,25 @@ The user provides one of:
 Parse the input to determine the source:
 
 1. **GitHub**: Extract the number, fetch via `gh issue view NUMBER --repo ktorio/ktor`
-2. **YouTrack ID** (pattern `KTOR-\d+`): Fetch the issue page via WebFetch from `https://youtrack.jetbrains.com/issue/KTOR-XXXX`
-3. **YouTrack URL**: Fetch directly via WebFetch. Extract the KTOR-XXXX ID from the URL.
+2. **YouTrack ID** (pattern `KTOR-\d+`): Fetch via the YouTrack REST API (see below)
+3. **YouTrack URL**: Extract the `KTOR-XXXX` ID from the URL, then fetch via the YouTrack REST API (see below)
+
+### Fetching YouTrack Issues via REST API
+
+Use `curl` (via Bash tool) to call the YouTrack REST API. No authentication is needed for public JetBrains issues:
+
+```bash
+curl -s -H 'Accept: application/json' \
+  'https://youtrack.jetbrains.com/api/issues/KTOR-XXXX?fields=idReadable,summary,description,customFields(name,value(name))'
+```
+
+This returns structured JSON with:
+- `idReadable`: the issue ID (e.g., `KTOR-9352`)
+- `summary`: issue title
+- `description`: full issue description (Markdown)
+- `customFields`: array of custom fields (Type, Priority, State, Subsystem, etc.)
+
+Parse the JSON response to extract the information needed for the fix.
 
 From the issue, extract:
 - **Title and description** of the bug
