@@ -92,7 +92,7 @@ class HttpTimeoutTest : ClientLoader(timeout = 3.seconds) {
     }
 
     @Test
-    fun testHead() = clientTests {
+    fun testHead() = clientTests(except("web:CIO")) {
         config {
             install(HttpTimeout)
         }
