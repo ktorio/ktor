@@ -101,9 +101,15 @@ public fun SerialDescriptor.buildJsonSchema(
                     required.add(name)
                 }
 
+                // Container types (LIST, MAP) share the same serial name regardless of their
+                // type arguments, so the visiting guard would incorrectly treat different
+                // parameterized lists (e.g. List<Dto2> and List<Dto3>) as recursive references.
+                val isContainerType = elementDescriptor.kind == StructureKind.LIST ||
+                    elementDescriptor.kind == StructureKind.MAP
+
                 try {
-                    // recursion guard
-                    properties[name] = if (!visiting.add(elementName)) {
+                    // recursion guard (only for uniquely-named types)
+                    properties[name] = if (!isContainerType && !visiting.add(elementName)) {
                         ReferenceOr.schema(elementName)
                             .nonNullable(elementDescriptor.isNullable)
                     } else {
@@ -115,7 +121,9 @@ public fun SerialDescriptor.buildJsonSchema(
                         )
                     }
                 } finally {
-                    visiting.remove(elementName)
+                    if (!isContainerType) {
+                        visiting.remove(elementName)
+                    }
                 }
             }
             visiting.remove(nonNullSerialName)
