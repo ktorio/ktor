@@ -90,10 +90,17 @@ Place the test appropriately:
 - If no test suite exists for this area, create a new test class following the module's conventions
 - For integration tests, place near other integration tests in the module
 - For unit tests, place near other unit tests
+- If the bug is platform-specific, place the test in the corresponding platform source set (e.g., `jvm/test`, `native/test`)
+- If the bug affects common/shared code, place the test in `common/test` so it runs on all platforms
 
 After writing the test, run it to confirm it fails:
 ```bash
 ./gradlew :module-name:jvmTest --tests "fully.qualified.TestClassName.methodName"
+```
+
+If the test is in `common/test` or touches multiplatform code, also run on other affected platforms:
+```bash
+./gradlew :module-name:allTests
 ```
 
 If the test passes (bug is already fixed or test doesn't reproduce correctly):
@@ -132,10 +139,16 @@ Run the reproducer test to confirm it passes:
 ./gradlew :module-name:jvmTest --tests "fully.qualified.TestClassName.methodName"
 ```
 
-Then run the full test suite for the affected module:
-```bash
-./gradlew :module-name:jvmTest
-```
+Then run the full test suite for the affected module. Choose the scope based on where the changes are:
+
+- **JVM-only changes** (test and fix both in `jvm/`):
+  ```bash
+  ./gradlew :module-name:jvmTest
+  ```
+- **Common/multiplatform changes** (test or fix in `common/`, or the bug affects multiple platforms):
+  ```bash
+  ./gradlew :module-name:allTests
+  ```
 
 If any tests fail, investigate and fix. Do not skip or disable tests.
 
