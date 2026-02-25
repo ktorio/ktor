@@ -177,3 +177,46 @@ For YouTrack issues, link as: `https://youtrack.jetbrains.com/issue/KTOR-XXXX`
 For GitHub issues, link as: `#NUMBER` (GitHub auto-links these)
 
 Report the PR URL to the user when done.
+
+## Step 11: Documentation Issue (if needed)
+
+Assess whether the fix changes behavior that users rely on or that is described in the Ktor documentation. A documentation update is needed when:
+- A public API signature changed (new parameter, changed default, new overload)
+- Behavior that users observe changed (different error message, different default, different timing)
+- A workaround that users might have adopted is no longer necessary
+- A new feature or configuration option was added as part of the fix
+
+If none of the above apply (e.g., an internal-only fix, a crash fix with no API change), skip this step.
+
+When documentation is needed, create a GitHub issue in the `ktorio/ktor-documentation` repository:
+
+```bash
+gh issue create --repo ktorio/ktor-documentation \
+  --title "Document behavior change: <ISSUE-ID> <short description>" \
+  --body "$(cat <<'EOF'
+## Context
+
+PR: <link-to-the-PR-created-in-step-10>
+Issue: <link-to-the-original-issue>
+
+## What changed
+
+<1-3 sentences explaining what behavior changed and why>
+
+## What should be documented
+
+<Describe specifically what a technical writer should add or update in the docs.
+Include the affected API, module, and any relevant configuration options.>
+
+## Suggested code snippet
+
+```kotlin
+// Include a short usage example if relevant, showing the correct new usage
+```
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+EOF
+)"
+```
+
+Report the documentation issue URL to the user alongside the PR URL.
