@@ -375,6 +375,35 @@ class JWTAuthTest {
     }
 
     @Test
+    fun `KTOR-9352 makeAlgorithm with EC key type and null algorithm`() {
+        val ecKeyPair = KeyPairGenerator.getInstance("EC").apply {
+            initialize(256, SecureRandom())
+        }.generateKeyPair()
+        val ecAlgorithm = Algorithm.ECDSA256(ecKeyPair.public as ECPublicKey, ecKeyPair.private as ECPrivateKey)
+
+        val token = JWT.create()
+            .withAudience(audience)
+            .withIssuer(issuer)
+            .withKeyId(kid)
+            .sign(ecAlgorithm)
+
+        val jwk = mockk<Jwk> {
+            every { algorithm } returns null
+            every { type } returns "EC"
+            every { publicKey } returns ecKeyPair.public
+        }
+        val provider = mockk<JwkProvider> {
+            every { this@mockk.get(kid) } returns jwk
+        }
+
+        val decodedKid = JWT.decode(token).keyId
+        val resolvedJwk = provider.get(decodedKid)
+        val resolvedAlgorithm = resolvedJwk.makeAlgorithm()
+        val verifier = JWT.require(resolvedAlgorithm).withIssuer(issuer).build()
+        verifier.verify(token)
+    }
+
+    @Test
     fun testVerifyNotProvided() = testApplication {
         configureServer {
             jwt {}
