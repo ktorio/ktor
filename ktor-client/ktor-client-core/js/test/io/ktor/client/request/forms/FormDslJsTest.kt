@@ -16,11 +16,11 @@ import kotlin.test.*
 class FormDslJsTest {
 
     @Test
-    fun `KTOR-1915 append Blob to form data`() = runTest {
+    fun `KTOR-1915 appendBlob creates form part from Blob`() = runTest {
         val blob = Blob(arrayOf("hello world"), BlobPropertyBag("text/plain"))
 
         val parts = formData {
-            append("file", blob)
+            appendBlob("file", blob)
         }
 
         val data = MultiPartFormDataContent(parts, boundary = "boundary")
@@ -31,11 +31,11 @@ class FormDslJsTest {
     }
 
     @Test
-    fun `KTOR-1915 append Blob with filename to form data`() = runTest {
+    fun `KTOR-1915 appendBlob with filename and content type`() = runTest {
         val blob = Blob(arrayOf("file content"), BlobPropertyBag("application/octet-stream"))
 
         val parts = formData {
-            append("upload", blob, "test.txt", ContentType.Text.Plain)
+            appendBlob("upload", blob, "test.txt", ContentType.Text.Plain)
         }
 
         val data = MultiPartFormDataContent(parts, boundary = "boundary")
@@ -48,12 +48,12 @@ class FormDslJsTest {
     }
 
     @Test
-    fun `KTOR-1915 append Blob preserves size in Content-Length`() = runTest {
+    fun `KTOR-1915 appendBlob preserves size in Content-Length`() = runTest {
         val content = "test content"
         val blob = Blob(arrayOf(content), BlobPropertyBag("text/plain"))
 
         val parts = formData {
-            append("data", blob)
+            appendBlob("data", blob)
         }
 
         val data = MultiPartFormDataContent(parts, boundary = "boundary")

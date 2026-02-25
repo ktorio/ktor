@@ -2368,6 +2368,12 @@ final val io.ktor.client.engine.js/initHook // io.ktor.client.engine.js/initHook
     final fun <get-initHook>(): dynamic // io.ktor.client.engine.js/initHook.<get-initHook>|<get-initHook>(){}[0]
 
 // Targets: [js]
+final fun (io.ktor.client.request.forms/FormBuilder).io.ktor.client.request.forms/appendBlob(kotlin/String, org.w3c.files/Blob, io.ktor.http/Headers = ...) // io.ktor.client.request.forms/appendBlob|appendBlob@io.ktor.client.request.forms.FormBuilder(kotlin.String;org.w3c.files.Blob;io.ktor.http.Headers){}[0]
+
+// Targets: [js]
+final fun (io.ktor.client.request.forms/FormBuilder).io.ktor.client.request.forms/appendBlob(kotlin/String, org.w3c.files/Blob, kotlin/String, io.ktor.http/ContentType? = ...) // io.ktor.client.request.forms/appendBlob|appendBlob@io.ktor.client.request.forms.FormBuilder(kotlin.String;org.w3c.files.Blob;kotlin.String;io.ktor.http.ContentType?){}[0]
+
+// Targets: [js]
 final inline fun (io.ktor.client.fetch/Uint8Array).io.ktor.client.fetch/get(kotlin/Number): kotlin/Number? // io.ktor.client.fetch/get|get@io.ktor.client.fetch.Uint8Array(kotlin.Number){}[0]
 
 // Targets: [js]
