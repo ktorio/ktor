@@ -227,7 +227,7 @@ public class SamlConfig internal constructor(
      *
      * @see NameIdFormat for available formats
      */
-    public var nameIdFormat: NameIdFormat = NameIdFormat.Unspecified
+    public var nameIdFormat: NameIdFormat? = NameIdFormat.Unspecified
 
     /**
      * Whether to force re-authentication at the IdP.

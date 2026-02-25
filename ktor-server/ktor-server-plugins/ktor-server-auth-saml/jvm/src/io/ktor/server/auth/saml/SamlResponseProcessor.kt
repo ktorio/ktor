@@ -28,8 +28,8 @@ import kotlin.io.encoding.Base64
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
+import kotlin.time.toJavaDuration
 import kotlin.time.toKotlinInstant
 
 /**
@@ -218,7 +218,7 @@ internal class SamlResponseProcessor(
      */
     private fun buildValidationContext(expectedRequestId: String?): ValidationContext {
         val params = mutableMapOf<String, Any>()
-        params[SAML2AssertionValidationParameters.CLOCK_SKEW] = clockSkew.inWholeMilliseconds
+        params[SAML2AssertionValidationParameters.CLOCK_SKEW] = clockSkew.toJavaDuration()
         params[SAML2AssertionValidationParameters.VALID_ISSUERS] = setOf(idpMetadata.entityId)
         params[SAML2AssertionValidationParameters.COND_VALID_AUDIENCES] = setOf(spEntityId)
         params[SAML2AssertionValidationParameters.SC_VALID_RECIPIENTS] = setOf(acsUrl)
@@ -241,14 +241,12 @@ internal class SamlResponseProcessor(
     private suspend fun Assertion.checkReplay() {
         val assertionId = samlRequire(id) { "Assertion must have an ID" }
         val expirationTime = conditions?.notOnOrAfter?.toKotlinInstant()
-            ?: (Clock.System.now() + 300.seconds) // Default 5 minutes if not specified
+            ?: (Clock.System.now() + RESPONSE_LIFETIME)
 
-        if (replayCache.isReplayed(assertionId)) {
-            logger.warn("Replay attack detected: assertion ID=$assertionId")
-            throw SamlValidationException("Assertion has already been processed (replay attack)")
+        val recorded = replayCache.tryRecordAssertion(assertionId, expirationTime)
+        samlAssert(recorded) {
+            "Assertion has already been processed (replay attack)"
         }
-
-        replayCache.recordAssertion(assertionId, expirationTime)
     }
 }
 

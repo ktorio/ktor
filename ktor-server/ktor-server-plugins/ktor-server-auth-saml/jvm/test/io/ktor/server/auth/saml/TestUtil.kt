@@ -4,9 +4,11 @@
 
 package io.ktor.server.auth.saml
 
-import io.ktor.network.tls.certificates.*
+import io.ktor.network.tls.certificates.generateCertificate
+import io.ktor.network.tls.certificates.saveToFile
 import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport
 import org.opensaml.core.xml.io.MarshallingException
+import org.opensaml.core.xml.schema.XSString
 import org.opensaml.saml.common.SAMLVersion
 import org.opensaml.saml.saml2.core.*
 import org.opensaml.saml.saml2.encryption.Encrypter
@@ -68,9 +70,7 @@ object SamlTestUtils {
                 keyPassword.toCharArray(),
                 arrayOf(certificate)
             )
-            file.outputStream().use { output ->
-                keyStore.store(output, storePassword.toCharArray())
-            }
+            keyStore.saveToFile(file, storePassword)
         }
     }
 
@@ -249,9 +249,15 @@ object SamlTestUtils {
 
         val attributeStatement = if (attributes.isNotEmpty()) {
             builderFactory.build<AttributeStatement>(AttributeStatement.DEFAULT_ELEMENT_NAME) {
-                attributes.forEach { (name, _) ->
+                attributes.forEach { (name, values) ->
                     val attribute = builderFactory.build<Attribute>(Attribute.DEFAULT_ELEMENT_NAME) {
                         this.name = name
+                    }
+                    values.forEach { value ->
+                        val v = builderFactory.buildXmlObject<XSString>(AttributeValue.DEFAULT_ELEMENT_NAME) {
+                            this.value = value
+                        }
+                        attribute.attributeValues.add(v)
                     }
                     this.attributes.add(attribute)
                 }

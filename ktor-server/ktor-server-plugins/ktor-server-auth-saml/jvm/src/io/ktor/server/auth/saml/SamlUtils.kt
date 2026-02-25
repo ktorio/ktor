@@ -210,14 +210,14 @@ internal fun signQueryString(
 }
 
 /**
- * Checks if [value] is not null, throwing [SamlValidationException] with message from [lazyMessage] if it is null.
+ * Checks if [value] is not null, throwing [SamlValidationException] with a message from [lazyMessage] if it is null.
  */
 internal inline fun <T : Any> samlRequire(value: T?, crossinline lazyMessage: () -> String): T {
     return value ?: throw SamlValidationException(lazyMessage())
 }
 
 /**
- * Checks if [value] is true, throwing [SamlValidationException] with message from [lazyMessage] if it is false.
+ * Checks if [value] is true, throwing [SamlValidationException] with a message from [lazyMessage] if it is false.
  */
 internal inline fun samlAssert(value: Boolean, crossinline lazyMessage: () -> String) {
     if (!value) {

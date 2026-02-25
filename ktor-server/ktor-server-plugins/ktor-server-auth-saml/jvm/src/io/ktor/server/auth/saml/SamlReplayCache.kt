@@ -49,6 +49,12 @@ public interface SamlReplayCache : AutoCloseable {
      * @param expirationTime The expiration time of the assertion (used for cache eviction)
      */
     public suspend fun recordAssertion(assertionId: String, expirationTime: Instant)
+
+    /**
+     * Atomically checks if an assertion ID has been seen and records it if not.
+     * This method combines [isReplayed] and [recordAssertion] into a single atomic operation.
+     */
+    public suspend fun tryRecordAssertion(assertionId: String, expirationTime: Instant): Boolean
 }
 
 /**
@@ -127,12 +133,24 @@ public class InMemorySamlReplayCache(
         cleanupJob.cancel()
     }
 
-    override suspend fun isReplayed(assertionId: String): Boolean = mutex.withLock {
-        val cachedExpiration = cache[assertionId] ?: return@withLock false
-        cachedExpiration > Clock.System.now()
+    override suspend fun isReplayed(assertionId: String): Boolean =
+        mutex.withLock { isReplayedImpl(assertionId) }
+
+    override suspend fun recordAssertion(assertionId: String, expirationTime: Instant): Unit =
+        mutex.withLock { recordAssertionImpl(assertionId, expirationTime) }
+
+    override suspend fun tryRecordAssertion(assertionId: String, expirationTime: Instant): Boolean = mutex.withLock {
+        if (isReplayedImpl(assertionId)) return false
+        recordAssertionImpl(assertionId, expirationTime)
+        return true
     }
 
-    override suspend fun recordAssertion(assertionId: String, expirationTime: Instant): Unit = mutex.withLock {
+    private fun isReplayedImpl(assertionId: String): Boolean {
+        val cachedExpiration = cache[assertionId] ?: return false
+        return cachedExpiration > Clock.System.now()
+    }
+
+    private fun recordAssertionImpl(assertionId: String, expirationTime: Instant) {
         // Enforce maximum cache size
         if (cache.size >= maxSize) {
             // Remove some expired entries first
@@ -151,7 +169,6 @@ public class InMemorySamlReplayCache(
                 toRemove.forEach { cache.remove(it) }
             }
         }
-
         cache[assertionId] = expirationTime
     }
 }

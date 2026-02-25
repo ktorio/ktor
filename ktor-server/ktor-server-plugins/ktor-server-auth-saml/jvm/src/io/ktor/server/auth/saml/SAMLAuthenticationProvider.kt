@@ -47,10 +47,11 @@ public class SamlAuthenticationProvider internal constructor(
     private val idpMetadata = requireNotNull(config.idp) {
         "IdP metadata must be configured. Use idp = parseSamlIdpMetadata(...) to set it."
     }
-    private val allowedRelayStateUrls = config.allowedRelayStateUrls.also {
+    private val relayValidator = config.allowedRelayStateUrls.let {
         if (it == null) {
             logger.warn("RelayState validation is disabled. This is unsafe in production.")
         }
+        RelayValidator(allowedRelayStateUrls = it)
     }
     private val requestedAuthnContext = config.requestedAuthnContext
 
@@ -165,7 +166,7 @@ public class SamlAuthenticationProvider internal constructor(
 
             when {
                 relayState.isNullOrBlank() -> return
-                isRelayStateAllowed(relayState) -> call.respondRedirect(url = relayState)
+                relayValidator.validate(url = relayState) -> call.respondRedirect(url = relayState)
                 else -> logger.warn("RelayState URL not in allowlist, ignoring: $relayState")
             }
         } catch (e: CancellationException) {
@@ -284,8 +285,6 @@ public class SamlAuthenticationProvider internal constructor(
                 signatureParam = parameters["Signature"],
                 signatureAlgorithmParam = parameters["SigAlg"],
             )
-
-            logger.info("Processing IdP-initiated logout for NameID: ${logoutRequest.nameId}")
             call.sessions.clear<SamlSession>()
 
             val idpSloUrl = requireNotNull(idpMetadata.sloUrl) { "IdP SLO URL not found" }
@@ -341,7 +340,7 @@ public class SamlAuthenticationProvider internal constructor(
 
             // Redirect to RelayState or respond with success
             val relayState = parameters["RelayState"]
-            if (!relayState.isNullOrBlank() && isRelayStateAllowed(relayState)) {
+            if (!relayState.isNullOrBlank() && relayValidator.validate(url = relayState)) {
                 call.respondRedirect(relayState)
             } else {
                 call.respond(HttpStatusCode.OK, "Logout completed")
@@ -351,14 +350,62 @@ public class SamlAuthenticationProvider internal constructor(
             call.respond(HttpStatusCode.BadRequest, "Invalid logout response")
         }
     }
+}
 
-    private fun isRelayStateAllowed(url: String): Boolean = when {
+internal class RelayValidator(private val allowedRelayStateUrls: List<String>?) {
+    /**
+     * Validates that the relay state URL is allowed for redirect.
+     */
+    fun validate(url: String): Boolean = when {
         allowedRelayStateUrls == null -> true
-        // Reject scheme-relative URLs (//example.com), backslashes, and control characters
+        // Reject dangerous patterns
         url.startsWith("//") || url.contains("\\") || url.any { it.isISOControl() } -> false
-        // Allow only relative paths starting with a single "/"
-        url.startsWith("/") -> true
-        else -> allowedRelayStateUrls.any { prefix -> url.startsWith(prefix) }
+        // Allow relative paths
+        url.startsWith("/") -> {
+            if (allowedRelayStateUrls.isEmpty()) return true
+            val pathPrefixes = allowedRelayStateUrls.filter { it.startsWith("/") && !it.startsWith("//") }
+            pathPrefixes.any { prefix ->
+                url.startsWith(prefix) && (url == prefix || prefix.endsWith("/"))
+            }
+        }
+        // Validate absolute URLs
+        else -> {
+            allowedRelayStateUrls.any { prefix -> isAllowedAbsoluteRelayState(url, prefix) }
+        }
+    }
+
+    /**
+     * Validates an absolute URL against an allowed prefix.
+     * Checks a scheme, host, port, and path with segment boundary validation.
+     */
+    private fun isAllowedAbsoluteRelayState(targetUrl: String, allowedPrefix: String): Boolean {
+        val target = runCatching { Url(targetUrl) }.getOrNull() ?: return false
+        val allowed = runCatching { Url(allowedPrefix) }.getOrNull() ?: return false
+
+        // Reject URLs with userinfo (user:pass@host) - bypass technique
+        if (target.user != null || target.password != null) return false
+
+        // Only allow http and https schemes
+        if (target.protocol.name !in listOf("http", "https")) return false
+        if (allowed.protocol.name !in listOf("http", "https")) return false
+
+        // Exact protocol match (case-insensitive)
+        if (!target.protocol.name.equals(allowed.protocol.name, ignoreCase = true)) return false
+
+        // Exact host match (case-insensitive per RFC 3986)
+        if (!target.host.equals(allowed.host, ignoreCase = true)) return false
+
+        // Exact port match
+        if (target.port != allowed.port) return false
+
+        // Path prefix match with segment boundary check
+        val allowedPath = allowed.encodedPath.ifBlank { "/" }
+        val targetPath = target.encodedPath.ifBlank { "/" }
+
+        if (!targetPath.startsWith(allowedPath)) return false
+        if (targetPath == allowedPath) return true
+        if (allowedPath.endsWith("/")) return true
+        return targetPath.getOrNull(allowedPath.length) == '/'
     }
 }
 

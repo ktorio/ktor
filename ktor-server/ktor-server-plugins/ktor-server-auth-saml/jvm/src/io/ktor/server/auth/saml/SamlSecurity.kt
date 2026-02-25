@@ -66,7 +66,8 @@ public object SamlCrypto {
             ?: throw KeyStoreException("Key with alias '$keyAlias' not found or is not a PrivateKey")
         val certificateChain = keyStore.getCertificateChain(keyAlias)
             ?: throw KeyStoreException("Certificate chain for alias '$keyAlias' not found")
-        val certificate = certificateChain.first() as X509Certificate
+        val certificate = certificateChain.first() as? X509Certificate
+            ?: throw KeyStoreException("First certificate in chain is not an X509Certificate")
         return BasicX509Credential(certificate).also { it.setPrivateKey(key) }
     }
 }

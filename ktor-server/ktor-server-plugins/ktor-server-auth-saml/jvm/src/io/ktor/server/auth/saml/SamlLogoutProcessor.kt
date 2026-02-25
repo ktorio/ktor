@@ -112,12 +112,11 @@ internal class SamlLogoutProcessor(
         }
         validateIssueInstant(issueInstant, "LogoutRequest")
 
-        // Replay protection for LogoutRequest IDs
-        samlAssert(!replayCache.isReplayed(requestId)) {
+        val expirationTime = Clock.System.now() + LOGOUT_MESSAGE_LIFETIME + clockSkew
+        val recorded = replayCache.tryRecordAssertion(assertionId = requestId, expirationTime)
+        samlAssert(recorded) {
             "LogoutRequest has already been processed (replay attack)"
         }
-        val expirationTime = Clock.System.now() + LOGOUT_MESSAGE_LIFETIME + clockSkew
-        replayCache.recordAssertion(requestId, expirationTime)
 
         val destination = logoutRequest.destination
         samlAssert(!requireDestination || destination != null) { "LogoutRequest Destination is not present" }

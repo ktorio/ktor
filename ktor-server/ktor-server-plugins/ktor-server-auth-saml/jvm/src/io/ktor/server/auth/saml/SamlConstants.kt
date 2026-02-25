@@ -14,7 +14,8 @@ import org.opensaml.saml.saml2.core.NameIDType
  *
  * @property uri The URI string representing the NameID format
  */
-public class NameIdFormat(
+@JvmInline
+public value class NameIdFormat(
     public val uri: String
 ) {
     public companion object {
@@ -47,7 +48,7 @@ public class NameIdFormat(
 
 /**
  * Represents a signature algorithm for SAML XML signatures.
- *
+ * Two signature algorithms with the same URI are considered equivalent.
  * This class provides type-safe constants for common signature algorithms used in SAML.
  *
  * @property uri The URI string representing the signature algorithm (XML Signature standard)
@@ -57,6 +58,14 @@ public class SignatureAlgorithm(
     public val uri: String,
     public val jcaAlgorithm: String
 ) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is SignatureAlgorithm) return false
+        return uri == other.uri
+    }
+
+    override fun hashCode(): Int = uri.hashCode()
+
     public companion object {
         /**
          * RSA with SHA-256 signature algorithm.
@@ -129,7 +138,8 @@ public class SignatureAlgorithm(
  *
  * @property uri The URI string representing the digest algorithm (XML Signature standard)
  */
-public class DigestAlgorithm(
+@JvmInline
+public value class DigestAlgorithm(
     public val uri: String
 ) {
     public companion object {
@@ -252,7 +262,8 @@ public object SamlAlgorithms {
  *
  * @property uri The URI string representing the AuthnContext class reference
  */
-public class SamlAuthnContext(
+@JvmInline
+public value class SamlAuthnContext(
     public val uri: String
 ) {
     public companion object {
