@@ -42,6 +42,16 @@ private fun RepositoryHandler.configureRepositories() {
     mavenCentral()
     mavenLocal()
 
+    // Shibboleth Nexus repository for OpenSAML 5.x artifacts
+    maven("https://build.shibboleth.net/maven/releases/") {
+        name = "Shibboleth"
+        content {
+            includeGroup("org.opensaml")
+            includeGroup("net.shibboleth")
+            includeGroup("net.shibboleth.utilities")
+        }
+    }
+
     exclusiveContent {
         forRepository {
             maven("https://packages.jetbrains.team/maven/p/ktor/eap") { name = "KtorEAP" }

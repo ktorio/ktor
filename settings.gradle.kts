@@ -64,6 +64,7 @@ projects {
             +"ktor-server-auth-api-key"
             +"ktor-server-auth-jwt"
             +"ktor-server-auth-ldap"
+            +"ktor-server-auth-saml"
             +"ktor-server-auto-head-response"
             +"ktor-server-body-limit"
             +"ktor-server-caching-headers"
