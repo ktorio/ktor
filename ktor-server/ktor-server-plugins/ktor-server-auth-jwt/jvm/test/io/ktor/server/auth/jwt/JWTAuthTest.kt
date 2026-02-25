@@ -579,6 +579,7 @@ class JWTAuthTest {
     private fun getJwkProviderNullAlgorithmMock(): JwkProvider {
         val jwk = mockk<Jwk> {
             every { algorithm } returns null
+            every { type } returns "RSA"
             every { publicKey } returns keyPair.public
         }
         return mockk {
