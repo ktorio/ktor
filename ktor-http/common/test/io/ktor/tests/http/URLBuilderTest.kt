@@ -508,6 +508,48 @@ internal class URLBuilderTest {
         assertTrue(URLBuilder("hello/world").isRelativePath)
     }
 
+    @Test
+    fun `KTOR-2832 URLBuilder with bare hostname parses host correctly`() {
+        val url = URLBuilder("localhost")
+        assertEquals("localhost", url.host)
+        assertEquals(emptyList(), url.pathSegments)
+        assertEquals("http://localhost", url.buildString())
+    }
+
+    @Test
+    fun `KTOR-2832 URLBuilder with domain name parses host correctly`() {
+        val url = URLBuilder("google.com")
+        assertEquals("google.com", url.host)
+        assertEquals(emptyList(), url.pathSegments)
+        assertEquals("http://google.com", url.buildString())
+    }
+
+    @Test
+    fun `KTOR-2832 URLBuilder with host and port parses correctly`() {
+        val url = URLBuilder("localhost:8080")
+        assertEquals("localhost", url.host)
+        assertEquals(8080, url.port)
+        assertEquals(URLProtocol.HTTP, url.protocol)
+        assertEquals("http://localhost:8080", url.buildString())
+    }
+
+    @Test
+    fun `KTOR-2832 URLBuilder with host and path parses correctly`() {
+        val url = URLBuilder("example.com/api/v1")
+        assertEquals("example.com", url.host)
+        assertEquals("/api/v1", url.encodedPath)
+        assertEquals("http://example.com/api/v1", url.buildString())
+    }
+
+    @Test
+    fun `KTOR-2832 URLBuilder with host port and path parses correctly`() {
+        val url = URLBuilder("localhost:8080/api/v1")
+        assertEquals("localhost", url.host)
+        assertEquals(8080, url.port)
+        assertEquals("/api/v1", url.encodedPath)
+        assertEquals("http://localhost:8080/api/v1", url.buildString())
+    }
+
     /**
      * Checks that the given [url] and the result of [URLBuilder.buildString] is equal (case insensitive).
      */
