@@ -27,7 +27,7 @@ Use the YouTrack MCP tools to fetch issue details. Call `mcp__youtrack__get_issu
 
 If the YouTrack MCP server is not configured (tool calls fail), instruct the user to set it up:
 
-```
+```bash
 claude mcp add --header "Authorization: Bearer <token>" --transport http youtrack https://youtrack.jetbrains.com/mcp
 ```
 
@@ -38,6 +38,7 @@ From the issue, extract:
 - **Steps to reproduce** (if provided)
 - **Expected vs actual behavior**
 - **Affected module(s)** — identify which Ktor Gradle module is relevant
+- **Issue comments** — read through comments as they might contain useful information (reproduction details, workarounds, related context)
 - **Issue ID** for branch naming and commit messages (e.g., `KTOR-9352` or `#123`)
 
 ## Step 1: Assign Issue and Set In Progress
@@ -52,22 +53,9 @@ If any of these calls fail because the YouTrack MCP is not configured, inform th
 
 Skip this step for GitHub-only issues.
 
-## Step 2: Create branch
+## Step 2: Understand the Codebase Context
 
-Create a new branch from the current `main`:
-
-```
-git checkout main && git pull && git checkout -b claude/<issue-id>-<short-description>
-```
-
-Branch naming rules:
-- For YouTrack issues: `claude/KTOR-9352-short-description`
-- For GitHub issues: `claude/123-short-description`
-- The short description is 2 words max, lowercase, hyphenated, derived from the issue title
-
-## Step 3: Understand the Codebase Context
-
-Before writing a reproducer, understand the affected area:
+Before creating a branch, understand the affected area:
 - Identify the Gradle module from the issue description or affected APIs
 - Read existing tests in that module to understand test patterns and conventions
 - Identify whether this needs a unit test or integration test based on the bug nature
@@ -77,6 +65,21 @@ Use the Explore agent or direct file reads to understand:
 - The relevant source code where the bug likely lives
 - Existing test infrastructure (test utilities, base classes, server setup patterns)
 - How similar tests are structured in the same module
+
+## Step 3: Create branch
+
+Determine the base branch:
+- Use `release/3.x` for bug fixes that do **not** introduce new public APIs (patch release)
+- Use `main` for fixes that require new public APIs or are targeted at the next minor release
+
+```bash
+git checkout <base-branch> && git pull && git checkout -b claude/<issue-id>-<short-description>
+```
+
+Branch naming rules:
+- For YouTrack issues: `claude/KTOR-9352-short-description`
+- For GitHub issues: `claude/123-short-description`
+- The short description is 3 words max, lowercase, hyphenated, derived from the issue title
 
 ## Step 4: Write a Failing Reproducer Test
 
@@ -90,7 +93,7 @@ Place the test appropriately:
 - If no test suite exists for this area, create a new test class following the module's conventions
 - For integration tests, place near other integration tests in the module
 - For unit tests, place near other unit tests
-- If the bug is platform-specific, place the test in the corresponding platform source set (e.g., `jvm/test`, `native/test`)
+- If the bug is platform-specific, place the test in the corresponding platform source set (e.g., `jvm/test`, `posix/test`)
 - If the bug affects common/shared code, place the test in `common/test` so it runs on all platforms
 
 After writing the test, run it to confirm it fails:
@@ -111,7 +114,7 @@ If the test passes (bug is already fixed or test doesn't reproduce correctly):
 ## Step 5: Commit the Reproducer
 
 Stage and commit the failing test:
-```
+```bash
 git add <test-file>
 git commit -m "<ISSUE-ID> Add failing test for <short bug description>
 
@@ -178,7 +181,7 @@ If no public API changed, skip this step.
 
 ## Step 10: Commit the Fix
 
-```
+```bash
 git add <changed-files>
 git commit -m "<ISSUE-ID> <Imperative description of the fix>
 
@@ -193,7 +196,7 @@ Push the branch and create a PR:
 git push -u origin claude/<issue-id>-<short-description>
 ```
 
-Create the PR targeting `main`:
+Create the PR targeting the base branch chosen in Step 3 (`main` or `release/3.x`):
 ```bash
 gh pr create --title "<ISSUE-ID> <Short fix description>" --body "$(cat <<'EOF'
 ## Summary
@@ -211,9 +214,9 @@ EOF
 )"
 ```
 
-The `Closes` line auto-closes the issue when the PR is merged:
+The `Closes` line auto-closes the issue when the PR is merged **for GitHub issues only**:
 - For GitHub issues: `Closes #NUMBER`
-- For YouTrack issues: `Closes KTOR-XXXX`
+- For YouTrack issues: include `KTOR-XXXX` as a plain cross-reference (GitHub will not close YouTrack tickets automatically)
 
 Report the PR URL to the user when done.
 
@@ -235,13 +238,13 @@ If none of the above apply (e.g., an internal-only fix, a crash fix with no API 
 
 When documentation is needed, create a GitHub issue in the `ktorio/ktor-documentation` repository:
 
-```bash
+````bash
 gh issue create --repo ktorio/ktor-documentation \
   --title "Document behavior change: <ISSUE-ID> <short description>" \
   --body "$(cat <<'EOF'
 ## Context
 
-PR: <link-to-the-PR-created-in-step-10>
+PR: <link-to-the-PR-created-in-step-11>
 Issue: <link-to-the-original-issue>
 
 ## What changed
@@ -262,6 +265,6 @@ Include the affected API, module, and any relevant configuration options.>
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 EOF
 )"
-```
+````
 
 Report the documentation issue URL to the user alongside the PR URL.
