@@ -6,6 +6,12 @@ plugins {
     id("ktorbuild.project.server-plugin")
 }
 
+configurations.all {
+    resolutionStrategy {
+        force("org.apache.commons:commons-lang3:3.20.0")
+    }
+}
+
 kotlin {
     sourceSets {
         jvmMain.dependencies {
