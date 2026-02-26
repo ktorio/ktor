@@ -16,7 +16,7 @@ import kotlin.test.*
 class FormDslJsTest {
 
     @Test
-    fun `KTOR-1915 appendBlob creates form part from Blob`() = runTest {
+    fun `appendBlob creates form part from Blob`() = runTest {
         val blob = Blob(arrayOf("hello world"), BlobPropertyBag("text/plain"))
 
         val parts = formData {
@@ -31,7 +31,7 @@ class FormDslJsTest {
     }
 
     @Test
-    fun `KTOR-1915 appendBlob with filename and content type`() = runTest {
+    fun `appendBlob with filename and content type`() = runTest {
         val blob = Blob(arrayOf("file content"), BlobPropertyBag("application/octet-stream"))
 
         val parts = formData {
@@ -48,7 +48,7 @@ class FormDslJsTest {
     }
 
     @Test
-    fun `KTOR-1915 appendBlob preserves size in Content-Length`() = runTest {
+    fun `appendBlob preserves size in Content-Length`() = runTest {
         val content = "test content"
         val blob = Blob(arrayOf(content), BlobPropertyBag("text/plain"))
 
@@ -59,7 +59,7 @@ class FormDslJsTest {
         val data = MultiPartFormDataContent(parts, boundary = "boundary")
         val result = data.readString()
 
-        assertTrue(result.contains("Content-Length: ${content.length}"))
+        assertTrue(result.contains("Content-Length: ${content.encodeToByteArray().size}"))
     }
 
     private suspend fun MultiPartFormDataContent.readString(): String {
