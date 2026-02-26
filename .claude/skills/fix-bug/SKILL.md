@@ -155,8 +155,7 @@ If any tests fail, investigate and fix. Do not skip or disable tests.
 ## Step 8: Format and Lint
 
 ```bash
-./gradlew :module-name:formatKotlin
-./gradlew :module-name:lintKotlin
+./gradlew :module-name:formatKotlin :module-name:lintKotlin
 ```
 
 Fix any lint issues before proceeding.
