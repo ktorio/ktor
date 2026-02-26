@@ -32,8 +32,6 @@ class UrlTest {
         val full = Url("https://ktor.io/docs")
         val absoluteWithTrailing = Url("/docs/")
         val absolute = Url("/docs")
-        val relative = Url("docs")
-        val relativeWithTrailing = Url("docs/")
         val empty = Url("https://ktor.io")
         val emptyWithTrailing = Url("http://ktor.io/")
 
@@ -41,10 +39,17 @@ class UrlTest {
         assertContentEquals(expected, full.segments)
         assertContentEquals(expected, absolute.segments)
         assertContentEquals(expected, absoluteWithTrailing.segments)
-        assertContentEquals(expected, relative.segments)
-        assertContentEquals(expected, relativeWithTrailing.segments)
         assertContentEquals(emptyList<String>(), empty.segments)
         assertContentEquals(emptyList(), emptyWithTrailing.segments)
+
+        // Schemeless strings like "docs" are now parsed as host, not path
+        val schemelessHost = Url("docs")
+        assertEquals("docs", schemelessHost.host)
+        assertContentEquals(emptyList(), schemelessHost.segments)
+
+        val schemelessHostWithTrailing = Url("docs/")
+        assertEquals("docs", schemelessHostWithTrailing.host)
+        assertContentEquals(emptyList(), schemelessHostWithTrailing.segments)
     }
 
     @Test
@@ -346,9 +351,11 @@ class UrlTest {
 
     @Test
     fun testIsRelative() {
-        assertTrue(Url("hello").isRelativePath)
         assertTrue(Url("").isRelativePath)
-        assertTrue(Url("hello/world").isRelativePath)
+        // Schemeless strings are now parsed as authority, so "hello" becomes host=hello with no path
+        assertTrue(Url("hello").isRelativePath)
+        // "hello/world" becomes host=hello, path=/world which is an absolute path
+        assertFalse(Url("hello/world").isRelativePath)
     }
 
     @Test
@@ -358,7 +365,8 @@ class UrlTest {
         assertEquals("https", url.protocol.name)
         assertEquals("ktor.io", url.host)
 
-        assertEquals(null, parseUrl("incorrecturl"))
+        // Schemeless strings are now parsed as host, so "incorrecturl" becomes a valid URL with host
+        assertNotNull(parseUrl("incorrecturl"))
         assertEquals(null, parseUrl("http://localhost:7000Value"))
         assertEquals(null, parseUrl("https://example.com?url=https%3A%2F%2Fwww.google.com%2"))
     }
@@ -375,10 +383,10 @@ class UrlTest {
         assertEquals("about", aboutVersionUrl.protocol.name)
         assertEquals("version", aboutVersionUrl.host)
 
+        // Bare "about" without colon is treated as a host name, not the "about:" scheme
         val urlHttp = Url("about")
-        assertEquals("localhost", urlHttp.host)
+        assertEquals("about", urlHttp.host)
         assertEquals(URLProtocol.HTTP, urlHttp.protocol)
-        assertTrue(urlHttp.rawSegments.contains("about"))
     }
 
     @Test

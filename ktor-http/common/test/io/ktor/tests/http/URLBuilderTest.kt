@@ -386,13 +386,10 @@ internal class URLBuilderTest {
 
     @Test
     fun testPathSegments() {
-        val cases = mapOf(
+        // Absolute paths (starting with '/') are parsed as path-only URLs
+        val absolutePathCases = mapOf(
             "" to listOf(),
             "/" to listOf(""),
-            "a" to listOf("a"),
-            "a/" to listOf("a", ""),
-            "a/b/" to listOf("a", "b", ""),
-            "a/b/c/" to listOf("a", "b", "c", ""),
 
             "/a/" to listOf("", "a", ""),
             "/a/b/" to listOf("", "a", "b", ""),
@@ -403,15 +400,31 @@ internal class URLBuilderTest {
             "/a/b/c" to listOf("", "a", "b", "c")
         )
 
-        cases.forEach { (path, segments) ->
+        absolutePathCases.forEach { (path, segments) ->
             val builder = URLBuilder(path)
             val url = builder.build()
 
-            assertEquals(segments, builder.pathSegments)
-            assertEquals(path, builder.encodedPath)
+            assertEquals(segments, builder.pathSegments, "pathSegments for '$path'")
+            assertEquals(path, builder.encodedPath, "encodedPath for '$path'")
 
-            assertEquals(segments, url.rawSegments)
+            assertEquals(segments, url.rawSegments, "rawSegments for '$path'")
         }
+    }
+
+    @Test
+    fun testSchemelessStringsParsedAsHost() {
+        // Schemeless strings without a leading '/' are treated as authority (host + optional path)
+        val builder1 = URLBuilder("a")
+        assertEquals("a", builder1.host)
+        assertEquals(emptyList(), builder1.pathSegments)
+
+        val builder2 = URLBuilder("a/b/c")
+        assertEquals("a", builder2.host)
+        assertEquals(listOf("", "b", "c"), builder2.pathSegments)
+
+        val builder3 = URLBuilder("a/")
+        assertEquals("a", builder3.host)
+        assertEquals(listOf(""), builder3.pathSegments)
     }
 
     @Test
@@ -503,9 +516,11 @@ internal class URLBuilderTest {
 
     @Test
     fun testIsRelative() {
-        assertTrue(URLBuilder("hello").isRelativePath)
         assertTrue(URLBuilder("").isRelativePath)
-        assertTrue(URLBuilder("hello/world").isRelativePath)
+        // Schemeless strings are now parsed as authority, so "hello" becomes host=hello with no path
+        assertTrue(URLBuilder("hello").isRelativePath)
+        // "hello/world" becomes host=hello, path=/world which is an absolute path
+        assertFalse(URLBuilder("hello/world").isRelativePath)
     }
 
     @Test

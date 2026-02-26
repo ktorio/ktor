@@ -49,10 +49,49 @@ public fun parseUrl(urlString: String): Url? {
 /**
  * Construct [URLBuilder] from [urlString].
  *
+ * Unlike [takeFrom], which resolves the given string as a relative URL against an existing builder state,
+ * this function treats [urlString] as a standalone URL. When no scheme is present and the string does not
+ * start with `/`, the string is interpreted as an authority (host with optional port and path) rather than
+ * a relative path.
+ *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.URLBuilder)
  */
 @Suppress("FunctionName")
-public fun URLBuilder(urlString: String): URLBuilder = URLBuilder().takeFrom(urlString)
+public fun URLBuilder(urlString: String): URLBuilder {
+    val trimmed = urlString.trim()
+    if (trimmed.isEmpty()) return URLBuilder()
+
+    // Strings that start with '/' are absolute paths or authority references (like "//host")
+    if (trimmed.startsWith('/')) {
+        return URLBuilder().takeFrom(trimmed)
+    }
+
+    // Strings that contain "://" have an explicit scheme
+    if (trimmed.contains("://")) {
+        return URLBuilder().takeFrom(trimmed)
+    }
+
+    // Check for special schemes that don't use "://" (e.g., "mailto:user@host", "data:...", "tel:...")
+    val colonIndex = trimmed.indexOf(':')
+    if (colonIndex > 0) {
+        val potentialScheme = trimmed.substring(0, colonIndex).lowercase()
+        if (potentialScheme in SPECIAL_SCHEMES_WITHOUT_AUTHORITY) {
+            return URLBuilder().takeFrom(trimmed)
+        }
+
+        // If what follows the colon up to the next delimiter is purely numeric, treat as host:port
+        val afterColon = trimmed.substring(colonIndex + 1).takeWhile { it != '/' && it != '?' && it != '#' }
+        if (afterColon.isEmpty() || !afterColon.all { it.isDigit() }) {
+            // Non-numeric after colon — likely a scheme:payload pattern, pass through as-is
+            return URLBuilder().takeFrom(trimmed)
+        }
+    }
+
+    // No scheme detected — treat the string as an authority (host[:port][/path][?query][#fragment])
+    return URLBuilder().takeFrom("//$trimmed")
+}
+
+private val SPECIAL_SCHEMES_WITHOUT_AUTHORITY = setOf("mailto", "data", "tel", "about")
 
 /**
  * Construct [URLBuilder] from [url].
