@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:Suppress("UnstableApiUsage")
@@ -21,6 +21,7 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.dsl.JsModuleKind
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinHierarchyBuilder
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
@@ -207,7 +208,14 @@ internal fun KotlinMultiplatformExtension.addTargets(targets: KtorTargets, isCI:
         androidLibrary { addTests(targets, allowDeviceTest = !isCI) }
     }
 
-    if (targets.hasJs) js { addSubTargets(targets) }
+    if (targets.hasJs) js {
+        addSubTargets(targets)
+        // These options are effective only for running JS tests
+        compilerOptions {
+            target.set("es2015")
+            moduleKind.set(JsModuleKind.MODULE_ES)
+        }
+    }
     @OptIn(ExperimentalWasmDsl::class)
     if (targets.hasWasmJs) wasmJs { addSubTargets(targets) }
 
