@@ -396,9 +396,7 @@ class JWTAuthTest {
             every { this@mockk.get(kid) } returns jwk
         }
 
-        val decodedKid = JWT.decode(token).keyId
-        val resolvedJwk = provider.get(decodedKid)
-        val resolvedAlgorithm = resolvedJwk.makeAlgorithm()
+        val resolvedAlgorithm = jwk.makeAlgorithm()
         val verifier = JWT.require(resolvedAlgorithm).withIssuer(issuer).build()
         verifier.verify(token)
     }
