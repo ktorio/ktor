@@ -402,6 +402,54 @@ class JWTAuthTest {
     }
 
     @Test
+    fun `KTOR-9352 makeAlgorithm with EC P-384 key and null algorithm`() {
+        val ecKeyPair = KeyPairGenerator.getInstance("EC").apply {
+            initialize(java.security.spec.ECGenParameterSpec("secp384r1"))
+        }.generateKeyPair()
+        val ecAlgorithm = Algorithm.ECDSA384(ecKeyPair.public as ECPublicKey, ecKeyPair.private as ECPrivateKey)
+
+        val token = JWT.create()
+            .withAudience(audience)
+            .withIssuer(issuer)
+            .withKeyId(kid)
+            .sign(ecAlgorithm)
+
+        val jwk = mockk<Jwk> {
+            every { algorithm } returns null
+            every { type } returns "EC"
+            every { publicKey } returns ecKeyPair.public
+        }
+
+        val resolvedAlgorithm = jwk.makeAlgorithm()
+        val verifier = JWT.require(resolvedAlgorithm).withIssuer(issuer).build()
+        verifier.verify(token)
+    }
+
+    @Test
+    fun `KTOR-9352 makeAlgorithm with EC P-521 key and null algorithm`() {
+        val ecKeyPair = KeyPairGenerator.getInstance("EC").apply {
+            initialize(java.security.spec.ECGenParameterSpec("secp521r1"))
+        }.generateKeyPair()
+        val ecAlgorithm = Algorithm.ECDSA512(ecKeyPair.public as ECPublicKey, ecKeyPair.private as ECPrivateKey)
+
+        val token = JWT.create()
+            .withAudience(audience)
+            .withIssuer(issuer)
+            .withKeyId(kid)
+            .sign(ecAlgorithm)
+
+        val jwk = mockk<Jwk> {
+            every { algorithm } returns null
+            every { type } returns "EC"
+            every { publicKey } returns ecKeyPair.public
+        }
+
+        val resolvedAlgorithm = jwk.makeAlgorithm()
+        val verifier = JWT.require(resolvedAlgorithm).withIssuer(issuer).build()
+        verifier.verify(token)
+    }
+
+    @Test
     fun testVerifyNotProvided() = testApplication {
         configureServer {
             jwt {}
