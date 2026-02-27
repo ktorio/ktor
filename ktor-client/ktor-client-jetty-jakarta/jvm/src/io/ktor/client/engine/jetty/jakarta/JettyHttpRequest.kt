@@ -86,7 +86,7 @@ internal suspend fun HTTP2Client.connect(
 }
 
 @OptIn(InternalAPI::class)
-private fun HttpRequestData.prepareHeadersFrame(): HeadersFrame {
+internal fun HttpRequestData.prepareHeadersFrame(): HeadersFrame {
     val rawHeaders = HttpFields.build()
     forEachHeader(rawHeaders::add)
 

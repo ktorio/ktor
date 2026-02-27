@@ -5,6 +5,7 @@
 package io.ktor.client.engine.java
 
 import io.ktor.client.request.*
+import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
@@ -17,6 +18,25 @@ import kotlin.test.*
 import kotlin.test.Test
 
 class RequestProducerTest {
+
+    @OptIn(InternalAPI::class)
+    @Test
+    fun `KTOR-7416 custom Host header is preserved in request`() {
+        val request = HttpRequestData(
+            Url("http://127.0.0.1/"),
+            HttpMethod.Get,
+            Headers.build {
+                append(HttpHeaders.Host, "CustomHost")
+            },
+            EmptyContent,
+            Job(),
+            Attributes()
+        ).convertToHttpRequest(EmptyCoroutineContext)
+
+        val hostHeader = request.headers().firstValue("Host")
+        assertTrue(hostHeader.isPresent, "Host header should be present in the request")
+        assertEquals("CustomHost", hostHeader.get())
+    }
 
     @OptIn(InternalAPI::class)
     @Test
