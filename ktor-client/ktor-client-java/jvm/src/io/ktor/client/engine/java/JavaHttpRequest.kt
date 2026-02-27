@@ -26,7 +26,6 @@ internal val DISALLOWED_HEADERS = TreeSet(String.CASE_INSENSITIVE_ORDER).apply {
             HttpHeaders.Date,
             HttpHeaders.Expect,
             HttpHeaders.From,
-            HttpHeaders.Host,
             HttpHeaders.Upgrade,
             HttpHeaders.Via,
             HttpHeaders.Warning

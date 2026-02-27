@@ -22,6 +22,10 @@ class RequestProducerTest {
     @OptIn(InternalAPI::class)
     @Test
     fun `KTOR-7416 custom Host header is preserved in request`() {
+        // Reference the Java engine factory to trigger its init block which sets up
+        // the JDK system property allowing the Host header
+        Java
+
         val request = HttpRequestData(
             Url("http://127.0.0.1/"),
             HttpMethod.Get,

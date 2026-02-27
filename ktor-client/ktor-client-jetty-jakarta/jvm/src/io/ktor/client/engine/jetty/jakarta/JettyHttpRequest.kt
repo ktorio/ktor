@@ -90,10 +90,16 @@ internal fun HttpRequestData.prepareHeadersFrame(): HeadersFrame {
     val rawHeaders = HttpFields.build()
     forEachHeader(rawHeaders::add)
 
+    val customHost = headers[HttpHeaders.Host]
+    val authority = customHost ?: "${url.host}:${url.port}"
+
+    // Remove the Host header from raw headers to avoid duplication with :authority
+    rawHeaders.remove(HttpHeaders.Host)
+
     val meta = MetaData.Request(
         method.value,
         url.protocol.name,
-        HostPortHttpField("${url.host}:${url.port}"),
+        HostPortHttpField(authority),
         url.fullPath,
         HttpVersion.HTTP_2,
         rawHeaders,
