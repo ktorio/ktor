@@ -163,26 +163,40 @@ public fun SerialDescriptor.buildJsonSchema(
         }
 
         StructureKind.LIST -> {
+            val itemDescriptor = getElementDescriptor(0)
+            val itemName = itemDescriptor.nonNullSerialName
+            val itemSchema = if (itemName in visiting) {
+                ReferenceOr.schema(itemName)
+            } else {
+                Value(itemDescriptor.buildJsonSchema(visiting = visiting))
+            }
             jsonSchemaFromAnnotations(
                 annotations = annotations,
                 reflectSchema = reflectJsonSchema,
                 type = JsonType.ARRAY.orNullable(isNullable),
-                items = Value(getElementDescriptor(0).buildJsonSchema(visiting = visiting)),
+                items = itemSchema,
             )
         }
 
         StructureKind.MAP -> {
+            val additionalProps = if (elementsCount > 1) {
+                val valueDescriptor = getElementDescriptor(1)
+                val valueName = valueDescriptor.nonNullSerialName
+                if (valueName in visiting) {
+                    PSchema(ReferenceOr.schema(valueName))
+                } else {
+                    PSchema(
+                        Value(valueDescriptor.buildJsonSchema(visiting = visiting))
+                    )
+                }
+            } else {
+                Allowed(true)
+            }
             jsonSchemaFromAnnotations(
                 annotations = annotations,
                 reflectSchema = reflectJsonSchema,
                 type = JsonType.OBJECT.orNullable(isNullable),
-                additionalProperties = if (elementsCount > 1) {
-                    PSchema(
-                        Value(getElementDescriptor(1).buildJsonSchema(visiting = visiting))
-                    )
-                } else {
-                    Allowed(true)
-                },
+                additionalProperties = additionalProps,
             )
         }
 

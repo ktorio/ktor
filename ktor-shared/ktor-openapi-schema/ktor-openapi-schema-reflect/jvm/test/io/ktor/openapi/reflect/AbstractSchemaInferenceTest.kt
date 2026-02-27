@@ -145,6 +145,29 @@ abstract class AbstractSchemaInferenceTest(
     }
 
     @Test
+    fun `recursive type in list does not stack overflow`() {
+        val schema = inference.jsonSchema<RecursiveNode>()
+        val schemaYaml = yaml.encodeToString(schema)
+        assertEquals(
+            $$"""
+                type: object
+                title: io.ktor.openapi.reflect.RecursiveNode
+                required:
+                  - name
+                  - children
+                properties:
+                  name:
+                    type: string
+                  children:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/io.ktor.openapi.reflect.RecursiveNode"
+            """.trimIndent(),
+            schemaYaml
+        )
+    }
+
+    @Test
     fun `value classes`() =
         assertSchemaMatches<Email>()
 
@@ -277,4 +300,10 @@ data class MiddleWithList(
 @Serializable
 data class LeafItem(
     val someValue: Int
+)
+
+@Serializable
+data class RecursiveNode(
+    val name: String,
+    val children: List<RecursiveNode>
 )
