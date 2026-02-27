@@ -103,8 +103,9 @@ class CORSTest {
         client.get("/") {
             header(HttpHeaders.Origin, "http://other-host")
         }.let { call ->
-            assertEquals(HttpStatusCode.Forbidden, call.status)
-            assertEquals("", call.bodyAsText())
+            assertEquals(HttpStatusCode.OK, call.status)
+            assertNull(call.headers[HttpHeaders.AccessControlAllowOrigin])
+            assertEquals("OK", call.bodyAsText())
         }
     }
 
@@ -145,7 +146,9 @@ class CORSTest {
         client.get("/1") {
             header(HttpHeaders.Origin, "http://other-host")
         }.let { response ->
-            assertEquals(HttpStatusCode.Forbidden, response.status)
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertNull(response.headers[HttpHeaders.AccessControlAllowOrigin])
+            assertEquals("OK", response.bodyAsText())
         }
 
         client.get("/2") {
@@ -189,8 +192,9 @@ class CORSTest {
         client.get("/") {
             header(HttpHeaders.Origin, "http://my-host:90")
         }.let { call ->
-            assertEquals(HttpStatusCode.Forbidden, call.status)
-            assertEquals("", call.bodyAsText())
+            assertEquals(HttpStatusCode.OK, call.status)
+            assertNull(call.headers[HttpHeaders.AccessControlAllowOrigin])
+            assertEquals("OK", call.bodyAsText())
         }
     }
 
@@ -281,8 +285,9 @@ class CORSTest {
         client.get("/") {
             header(HttpHeaders.Origin, "http://other-host")
         }.let { call ->
-            assertEquals(HttpStatusCode.Forbidden, call.status)
-            assertEquals("", call.bodyAsText())
+            assertEquals(HttpStatusCode.OK, call.status)
+            assertNull(call.headers[HttpHeaders.AccessControlAllowOrigin])
+            assertEquals("OK", call.bodyAsText())
         }
     }
 
@@ -317,8 +322,9 @@ class CORSTest {
         client.get("/") {
             header(HttpHeaders.Origin, "http://other.my-host")
         }.let { call ->
-            assertEquals(HttpStatusCode.Forbidden, call.status)
-            assertEquals("", call.bodyAsText())
+            assertEquals(HttpStatusCode.OK, call.status)
+            assertNull(call.headers[HttpHeaders.AccessControlAllowOrigin])
+            assertEquals("OK", call.bodyAsText())
         }
     }
 
@@ -445,7 +451,9 @@ class CORSTest {
         client.get("/") {
             header(HttpHeaders.Origin, "http://localhost:8080")
         }.let { call ->
-            assertEquals(HttpStatusCode.Forbidden, call.status)
+            assertEquals(HttpStatusCode.OK, call.status)
+            assertNull(call.headers[HttpHeaders.AccessControlAllowOrigin])
+            assertEquals("OK", call.bodyAsText())
         }
     }
 
@@ -464,13 +472,17 @@ class CORSTest {
         client.get("/") {
             header(HttpHeaders.Origin, "http://localhost")
         }.let { call ->
-            assertEquals(HttpStatusCode.Forbidden, call.status)
+            assertEquals(HttpStatusCode.OK, call.status)
+            assertNull(call.headers[HttpHeaders.AccessControlAllowOrigin])
+            assertEquals("OK", call.bodyAsText())
         }
 
         client.get("/") {
             header(HttpHeaders.Origin, "http://localhost:8080")
         }.let { call ->
-            assertEquals(HttpStatusCode.Forbidden, call.status)
+            assertEquals(HttpStatusCode.OK, call.status)
+            assertNull(call.headers[HttpHeaders.AccessControlAllowOrigin])
+            assertEquals("OK", call.bodyAsText())
         }
     }
 
@@ -512,7 +524,9 @@ class CORSTest {
             header(HttpHeaders.Origin, "http://my-host")
             header(HttpHeaders.ContentType, "application/json") // non-simple Content-Type value
         }.let { call ->
-            assertEquals(HttpStatusCode.Forbidden, call.status)
+            assertEquals(HttpStatusCode.OK, call.status)
+            assertNull(call.headers[HttpHeaders.AccessControlAllowOrigin])
+            assertEquals("OK", call.bodyAsText())
         }
 
         client.post("/") {
@@ -552,7 +566,8 @@ class CORSTest {
                 "${HttpHeaders.Accept},${HttpHeaders.ContentType}"
             )
         }.let { call ->
-            assertEquals(HttpStatusCode.Forbidden, call.status)
+            assertEquals(HttpStatusCode.OK, call.status)
+            assertNull(call.headers[HttpHeaders.AccessControlAllowOrigin])
         }
     }
 
@@ -582,7 +597,8 @@ class CORSTest {
             header(HttpHeaders.Origin, "http://my-host")
             header(HttpHeaders.AccessControlRequestMethod, "PUT")
         }.let { call ->
-            assertEquals(HttpStatusCode.Forbidden, call.status)
+            assertEquals(HttpStatusCode.OK, call.status)
+            assertNull(call.headers[HttpHeaders.AccessControlAllowOrigin])
         }
 
         // simple request header is always allowed
@@ -602,7 +618,8 @@ class CORSTest {
             header(HttpHeaders.AccessControlRequestMethod, "GET")
             header(HttpHeaders.AccessControlRequestHeaders, HttpHeaders.ContentType)
         }.let { call ->
-            assertEquals(HttpStatusCode.Forbidden, call.status)
+            assertEquals(HttpStatusCode.OK, call.status)
+            assertNull(call.headers[HttpHeaders.AccessControlAllowOrigin])
         }
 
         // custom header that is not allowed
@@ -611,7 +628,8 @@ class CORSTest {
             header(HttpHeaders.AccessControlRequestMethod, "GET")
             header(HttpHeaders.AccessControlRequestHeaders, HttpHeaders.ALPN)
         }.let { call ->
-            assertEquals(HttpStatusCode.Forbidden, call.status)
+            assertEquals(HttpStatusCode.OK, call.status)
+            assertNull(call.headers[HttpHeaders.AccessControlAllowOrigin])
         }
 
         // custom header that is allowed
@@ -654,7 +672,7 @@ class CORSTest {
             header(HttpHeaders.Origin, "http://my-host")
             header(HttpHeaders.AccessControlRequestMethod, "PUT")
         }.let { call ->
-            assertEquals(HttpStatusCode.Forbidden, call.status)
+            assertEquals(HttpStatusCode.OK, call.status)
             assertEquals(null, call.headers[HttpHeaders.AccessControlAllowOrigin])
         }
 
@@ -873,7 +891,8 @@ class CORSTest {
             header(HttpHeaders.AccessControlRequestMethod, "GET")
             header(HttpHeaders.AccessControlRequestHeaders, "x-header1")
         }.let { call ->
-            assertEquals(HttpStatusCode.Forbidden, call.status)
+            assertEquals(HttpStatusCode.OK, call.status)
+            assertNull(call.headers[HttpHeaders.AccessControlAllowOrigin])
         }
     }
 
@@ -971,13 +990,15 @@ class CORSTest {
         client.get("/") {
             header(HttpHeaders.Origin, "http://localhost:3000/")
         }.let {
-            assertEquals(HttpStatusCode.Forbidden, it.status)
+            assertEquals(HttpStatusCode.OK, it.status)
+            assertNull(it.headers[HttpHeaders.AccessControlAllowOrigin])
         }
 
         client.get("/") {
             header(HttpHeaders.Origin, "http://localhost:3000")
         }.let {
-            assertEquals(HttpStatusCode.Forbidden, it.status)
+            assertEquals(HttpStatusCode.OK, it.status)
+            assertNull(it.headers[HttpHeaders.AccessControlAllowOrigin])
         }
     }
 
@@ -1044,7 +1065,7 @@ class CORSTest {
             client.get { headers.append(HttpHeaders.Origin, "http://foo.bar.domain.com") }.status
         )
         assertEquals(
-            HttpStatusCode.Forbidden,
+            HttpStatusCode.OK,
             client.get { headers.append(HttpHeaders.Origin, "http://domain.net") }.status
         )
         assertEquals(
@@ -1056,11 +1077,11 @@ class CORSTest {
             client.get { headers.append(HttpHeaders.Origin, "https://www.domain.com") }.status
         )
         assertEquals(
-            HttpStatusCode.Forbidden,
+            HttpStatusCode.OK,
             client.get { headers.append(HttpHeaders.Origin, "https://domain.net") }.status
         )
         assertEquals(
-            HttpStatusCode.Forbidden,
+            HttpStatusCode.OK,
             client.get { headers.append(HttpHeaders.Origin, "sftp://domain.com") }.status
         )
     }
@@ -1098,7 +1119,7 @@ class CORSTest {
             }.status
         )
         assertEquals(
-            HttpStatusCode.Forbidden,
+            HttpStatusCode.OK,
             client.get {
                 headers.append(
                     HttpHeaders.Origin,
@@ -1204,15 +1225,17 @@ class CORSTest {
         client.get("/") {
             header(HttpHeaders.Origin, "https://forbidden-host")
         }.let { call ->
-            assertEquals(HttpStatusCode.Forbidden, call.status)
-            assertEquals("", call.bodyAsText())
+            assertEquals(HttpStatusCode.OK, call.status)
+            assertNull(call.headers[HttpHeaders.AccessControlAllowOrigin])
+            assertEquals("OK", call.bodyAsText())
         }
 
         client.get("/") {
             header(HttpHeaders.Origin, "http://allowed-host")
         }.let { call ->
-            assertEquals(HttpStatusCode.Forbidden, call.status)
-            assertEquals("", call.bodyAsText())
+            assertEquals(HttpStatusCode.OK, call.status)
+            assertNull(call.headers[HttpHeaders.AccessControlAllowOrigin])
+            assertEquals("OK", call.bodyAsText())
         }
     }
 
@@ -1253,8 +1276,9 @@ class CORSTest {
         client.get("/") {
             header(HttpHeaders.Origin, "https://host.net")
         }.let { call ->
-            assertEquals(HttpStatusCode.Forbidden, call.status)
-            assertEquals("", call.bodyAsText())
+            assertEquals(HttpStatusCode.OK, call.status)
+            assertNull(call.headers[HttpHeaders.AccessControlAllowOrigin])
+            assertEquals("OK", call.bodyAsText())
         }
     }
 
@@ -1342,7 +1366,8 @@ class CORSTest {
             header(HttpHeaders.Origin, "https://example.com")
             header(HttpHeaders.AccessControlRequestMethod, "GET")
         }.let { response ->
-            assertEquals(response.status, HttpStatusCode.Forbidden)
+            assertEquals(response.status, HttpStatusCode.OK)
+            assertNull(response.headers[HttpHeaders.AccessControlAllowOrigin])
         }
 
         client.options("/") {
@@ -1358,7 +1383,8 @@ class CORSTest {
             header(HttpHeaders.Origin, "https://another.com")
             header(HttpHeaders.AccessControlRequestMethod, "GET")
         }.let { response ->
-            assertEquals(response.status, HttpStatusCode.Forbidden)
+            assertEquals(response.status, HttpStatusCode.OK)
+            assertNull(response.headers[HttpHeaders.AccessControlAllowOrigin])
         }
     }
 
@@ -1510,7 +1536,8 @@ class CORSTest {
             header(HttpHeaders.Origin, "https://example.com")
             header(HttpHeaders.AccessControlRequestMethod, "PATCH")
         }.let { response ->
-            assertEquals(response.status, HttpStatusCode.Forbidden)
+            assertEquals(response.status, HttpStatusCode.OK)
+            assertNull(response.headers[HttpHeaders.AccessControlAllowOrigin])
         }
 
         client.options("/other") {
@@ -1526,7 +1553,8 @@ class CORSTest {
             header(HttpHeaders.Origin, "https://example.com")
             header(HttpHeaders.AccessControlRequestMethod, "PUT")
         }.let { response ->
-            assertEquals(response.status, HttpStatusCode.Forbidden)
+            assertEquals(response.status, HttpStatusCode.OK)
+            assertNull(response.headers[HttpHeaders.AccessControlAllowOrigin])
         }
     }
 
@@ -1589,7 +1617,8 @@ class CORSTest {
             header(HttpHeaders.Origin, "https://example.com")
             header(HttpHeaders.AccessControlRequestMethod, "GET")
         }.let { response ->
-            assertEquals(response.status, HttpStatusCode.Forbidden)
+            assertEquals(response.status, HttpStatusCode.OK)
+            assertNull(response.headers[HttpHeaders.AccessControlAllowOrigin])
         }
     }
 
