@@ -494,7 +494,7 @@ class WebSocketTest {
     }
 
     @Test
-    fun `KTOR-9354 webSocket builder returns Route`() = testApplication {
+    fun `webSocket builder returns Route`() = testApplication {
         install(WebSockets)
 
         routing {
