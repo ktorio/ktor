@@ -139,7 +139,7 @@ abstract class AbstractSchemaInferenceTest(
     }
 
     @Test
-    fun `KTOR-9351 nested classes with lists produce correct schema`() {
+    fun `nested classes with lists produce correct schema`() {
         val schema = inference.jsonSchema<OuterWithNestedLists>()
 
         // The outer schema should have an "items" property that is an array
