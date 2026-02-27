@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.websocket.internals
@@ -7,10 +7,13 @@ package io.ktor.websocket.internals
 import io.ktor.util.cio.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
-import io.ktor.websocket.MAX_INFLATED_FRAME_SIZE
-import kotlinx.io.*
-import java.nio.*
-import java.util.zip.*
+import io.ktor.websocket.*
+import kotlinx.io.IOException
+import kotlinx.io.Sink
+import kotlinx.io.readByteArray
+import java.nio.ByteBuffer
+import java.util.zip.Deflater
+import java.util.zip.Inflater
 
 private val PADDED_EMPTY_CHUNK: ByteArray = byteArrayOf(0, 0, 0, 0xff.toByte(), 0xff.toByte())
 private val EMPTY_CHUNK: ByteArray = byteArrayOf(0, 0, 0xff.toByte(), 0xff.toByte())
@@ -45,7 +48,6 @@ internal fun Inflater.inflateFully(data: ByteArray): ByteArray =
 
 internal fun Inflater.inflateFully(data: ByteArray, maxOutputSize: Int): ByteArray {
     require(maxOutputSize >= 0) { "maxOutputSize should be >= 0" }
-    reset()
 
     val dataToInflate = data + EMPTY_CHUNK
     setInput(dataToInflate)
