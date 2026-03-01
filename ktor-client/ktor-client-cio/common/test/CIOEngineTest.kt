@@ -172,6 +172,26 @@ class CIOEngineTest : ClientEngineTest<CIOEngineConfig>(CIO) {
     }
 
     @Test
+    fun `KTOR-9373 close engine with active endpoints does not throw ConcurrentModificationException`() = testClient {
+        test { client ->
+            // Make requests to multiple distinct endpoints to populate the endpoints map
+            val jobs = (1..5).map { i ->
+                client.async {
+                    runCatching {
+                        client.get("$TEST_SERVER/content/hello?i=$i")
+                    }
+                }
+            }
+            jobs.forEach { it.await() }
+
+            // Closing the client triggers CIOEngine.close(), which:
+            // 1. Calls super.close() - cancels child coroutines (including Endpoint timeout coroutines)
+            // 2. Iterates endpoints.forEach - but onDone callbacks from cancelled coroutines may
+            //    concurrently remove entries from the map, causing ConcurrentModificationException on Native
+        }
+    }
+
+    @Test
     fun testErrorMessageWhenServerDontRespondWithUpgrade() = testClient {
         config {
             install(WebSockets)
