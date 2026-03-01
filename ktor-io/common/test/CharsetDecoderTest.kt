@@ -57,7 +57,11 @@ class CharsetDecoderTest {
     fun `KTOR-9372 decoding valid UTF-8 followed by truncated sequence should not hang`() {
         // Valid "Hello" followed by an incomplete 2-byte sequence
         val data = byteArrayOf(
-            0x48, 0x65, 0x6C, 0x6C, 0x6F, // "Hello"
+            0x48,
+            0x65,
+            0x6C,
+            0x6C,
+            0x6F, // "Hello"
             0xC2.toByte() // incomplete 2-byte sequence
         )
         val source = buildPacket { writeFully(data) }

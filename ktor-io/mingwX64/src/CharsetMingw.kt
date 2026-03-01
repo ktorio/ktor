@@ -123,6 +123,7 @@ public actual fun CharsetDecoder.decode(input: Source, dst: Appendable, max: Int
                 val outbytesleft = alloc<size_tVar>()
 
                 while (!input.exhausted() && copied < max) {
+                    var bytesConsumed = 0
                     UnsafeBufferOperations.readFromHead(input.buffer) { data, startIndex, endIndex ->
                         data.usePinned {
                             inbuf.value = it.addressOf(startIndex).reinterpret()
@@ -143,8 +144,13 @@ public actual fun CharsetDecoder.decode(input: Source, dst: Appendable, max: Int
 
                             val consumed = (endIndex - startIndex - inbytesleft.value.toInt())
                             copied += consumed
+                            bytesConsumed = consumed
                             consumed
                         }
+                    }
+
+                    if (bytesConsumed == 0) {
+                        throw MalformedInputException("Incomplete or truncated byte sequence at input")
                     }
                 }
             }
