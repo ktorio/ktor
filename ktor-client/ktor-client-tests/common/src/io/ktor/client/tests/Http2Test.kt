@@ -19,7 +19,7 @@ abstract class Http2Test<T : HttpClientEngineConfig>(
     private val useH2c: Boolean = true,
 ) : ClientEngineTest<T>(factory) {
 
-    private val testHost = if (useH2c) "http://localhost:8084" else "https://localhost:8089"
+    private val testHost = if (useH2c) "http://localhost:8084" else "https://localhost:8085"
 
     protected open fun T.enableHttp2() {}
 

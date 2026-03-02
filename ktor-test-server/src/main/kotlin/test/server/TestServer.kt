@@ -23,6 +23,7 @@ private const val DEFAULT_TLS_PORT: Int = 8089
 private const val HTTP_PROXY_PORT: Int = 8082
 private const val SOCKS_PROXY_PORT: Int = 8083
 private const val HTTP2_SERVER_PORT: Int = 8084
+private const val HTTP2_TLS_SERVER_PORT: Int = 8085
 
 internal fun startServer(): Closeable {
     val scope = CloseableGroup()
@@ -39,6 +40,7 @@ internal fun startServer(): Closeable {
 
         scope.use(embeddedServer(CIO, DEFAULT_PORT, module = Application::tests))
         scope.use(setupHttp2Server(HTTP2_SERVER_PORT, module = Application::tests))
+        scope.use(setupHttp2TlsServer(HTTP2_TLS_SERVER_PORT, module = Application::tests))
         scope.use(setupTLSServer(DEFAULT_TLS_PORT, module = Application::tlsTests))
 
         Thread.sleep(1000)
@@ -87,3 +89,27 @@ private fun setupHttp2Server(
     },
     module = module,
 )
+
+private fun setupHttp2TlsServer(
+    @Suppress("SameParameterValue") port: Int,
+    module: suspend Application.() -> Unit,
+): EmbeddedServer<*, *> {
+    val file = File.createTempFile("server", "certificate")
+    val testKeyStore = generateCertificate(file)
+    return embeddedServer(
+        factory = Netty,
+        configure = {
+            sslConnector(
+                keyStore = testKeyStore,
+                keyAlias = "mykey",
+                keyStorePassword = { "changeit".toCharArray() },
+                privateKeyPassword = { "changeit".toCharArray() }
+            ) {
+                this.port = port
+                this.keyStorePath = file
+            }
+            enableHttp2 = true
+        },
+        module = module,
+    )
+}
