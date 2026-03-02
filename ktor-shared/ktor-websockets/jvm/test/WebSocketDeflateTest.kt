@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.tests.websocket
 
@@ -91,6 +91,21 @@ class WebSocketDeflateTest {
         val actual = String(message)
         val expected = "Hello, World!"
         assertEquals(expected, actual)
+    }
+
+    @Test
+    fun `keeps inflater context between messages`() {
+        val firstMessage = "aaaaabbbbb".repeat(128).encodeToByteArray()
+        val secondMessage = "aaaaabbbbb".repeat(128).encodeToByteArray()
+
+        val firstCompressed = deflater.deflateFully(firstMessage)
+        val secondCompressed = deflater.deflateFully(secondMessage)
+
+        val firstInflated = inflater.inflateFully(firstCompressed)
+        val secondInflated = inflater.inflateFully(secondCompressed)
+
+        assertContentEquals(firstMessage, firstInflated)
+        assertContentEquals(secondMessage, secondInflated)
     }
 
     @Test
