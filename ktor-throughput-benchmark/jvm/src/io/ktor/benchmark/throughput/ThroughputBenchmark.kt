@@ -23,7 +23,9 @@ import java.net.ServerSocket
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.nanoseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeSource
 
 /**
@@ -67,7 +69,7 @@ public class ThroughputBenchmark(
         serverEngineFactory: ApplicationEngineFactory<TServerEngine, TServerConfig>,
         clientEngineFactory: HttpClientEngineFactory<TClientConfig>,
         scenario: BenchmarkScenario
-    ): BenchmarkResult = coroutineScope {
+    ): BenchmarkResult {
         val port = findFreePort()
 
         val server = embeddedServer(serverEngineFactory, port = port) {
@@ -85,8 +87,10 @@ public class ThroughputBenchmark(
         server.start(wait = false)
 
         try {
-            HttpClient(clientEngineFactory).use { client ->
+            return HttpClient(clientEngineFactory).use { client ->
                 val baseUrl = "http://127.0.0.1:$port"
+
+                waitForServerReady(client, baseUrl)
 
                 // Warmup phase
                 runPhase(client, baseUrl, scenario, config.warmupDuration, collectLatencies = false)
@@ -95,8 +99,26 @@ public class ThroughputBenchmark(
                 runPhase(client, baseUrl, scenario, config.measurementDuration, collectLatencies = true)
             }
         } finally {
-            server.stop(gracePeriodMillis = 0, timeoutMillis = 1000)
+            withContext(NonCancellable) {
+                server.stop(gracePeriodMillis = 0, timeoutMillis = 1000)
+            }
         }
+    }
+
+    private suspend fun waitForServerReady(client: HttpClient, baseUrl: String) {
+        val timeout = 10.seconds
+        val retryDelay = 50.milliseconds
+        val start = TimeSource.Monotonic.markNow()
+
+        while (start.elapsedNow() < timeout) {
+            try {
+                client.get("$baseUrl/download")
+                return
+            } catch (_: Exception) {
+                delay(retryDelay)
+            }
+        }
+        error("Server did not become ready within $timeout")
     }
 
     private suspend fun runPhase(

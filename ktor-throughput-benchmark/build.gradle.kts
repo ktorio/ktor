@@ -66,10 +66,5 @@ kotlin {
             // Coroutines
             implementation(libs.kotlinx.coroutines.core)
         }
-
-        jvmTest.dependencies {
-            implementation(libs.kotlin.test.junit5)
-            implementation(libs.junit)
-        }
     }
 }
