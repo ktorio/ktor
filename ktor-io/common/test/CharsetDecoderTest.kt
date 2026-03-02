@@ -13,7 +13,7 @@ import kotlin.test.*
 class CharsetDecoderTest {
 
     @Test
-    fun `KTOR-9372 decoding truncated UTF-8 should not cause infinite loop`() {
+    fun `decoding truncated UTF-8 should not cause infinite loop`() {
         // Incomplete 2-byte UTF-8 sequence: 0xC2 expects a continuation byte (0x80-0xBF)
         val truncated = byteArrayOf(0xC2.toByte())
         val source = buildPacket { writeFully(truncated) }
@@ -28,7 +28,7 @@ class CharsetDecoderTest {
     }
 
     @Test
-    fun `KTOR-9372 decoding truncated 3-byte UTF-8 should not cause infinite loop`() {
+    fun `decoding truncated 3-byte UTF-8 should not cause infinite loop`() {
         // Incomplete 3-byte UTF-8 sequence: 0xE0 0xA0 expects one more continuation byte
         val truncated = byteArrayOf(0xE0.toByte(), 0xA0.toByte())
         val source = buildPacket { writeFully(truncated) }
@@ -41,7 +41,7 @@ class CharsetDecoderTest {
     }
 
     @Test
-    fun `KTOR-9372 decoding truncated 4-byte UTF-8 should not cause infinite loop`() {
+    fun `decoding truncated 4-byte UTF-8 should not cause infinite loop`() {
         // Incomplete 4-byte UTF-8 sequence: 0xF0 0x90 0x80 expects one more continuation byte
         val truncated = byteArrayOf(0xF0.toByte(), 0x90.toByte(), 0x80.toByte())
         val source = buildPacket { writeFully(truncated) }
@@ -54,7 +54,7 @@ class CharsetDecoderTest {
     }
 
     @Test
-    fun `KTOR-9372 decoding valid UTF-8 followed by truncated sequence should not hang`() {
+    fun `decoding valid UTF-8 followed by truncated sequence should not hang`() {
         // Valid "Hello" followed by an incomplete 2-byte sequence
         val data = byteArrayOf(
             0x48,
