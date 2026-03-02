@@ -6,16 +6,10 @@ package io.ktor.encoding.zstd
 
 import com.github.luben.zstd.ZstdCompressCtx
 import com.github.luben.zstd.ZstdDecompressCtx
-import io.ktor.util.ContentEncoder
-import io.ktor.util.Encoder
-import io.ktor.util.cio.KtorDefaultPool
-import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.ByteWriteChannel
-import io.ktor.utils.io.pool.ObjectPool
-import io.ktor.utils.io.readAvailable
-import io.ktor.utils.io.reader
-import io.ktor.utils.io.writeFully
-import io.ktor.utils.io.writer
+import io.ktor.util.*
+import io.ktor.util.cio.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import java.nio.ByteBuffer
@@ -69,61 +63,49 @@ public class Zstd(private val compressionLevel: Int) : Encoder {
         pool: ObjectPool<ByteBuffer> = KtorDefaultPool
     ) {
         val inputBuf = pool.borrow()
-        val outputBuf = pool.borrow()
         val ctx = ZstdDecompressCtx()
 
         try {
             while (!isClosedForRead) {
                 val bytesRead = readAvailable(inputBuf)
-                if (bytesRead <= 0 && inputBuf.position() == 0) {
-                    if (isClosedForRead) break
-                    continue
-                }
+                if (bytesRead <= 0) continue
 
                 inputBuf.flip()
-
                 while (inputBuf.hasRemaining()) {
-                    val frameSize = ZstdUtils.getFrameContentSize(
+                    val srcOffset = inputBuf.arrayOffset() + inputBuf.position()
+                    val srcLength = inputBuf.remaining()
+
+                    val frameCompressedSize = ZstdUtils.findFrameCompressedSize(
                         inputBuf.array(),
-                        inputBuf.arrayOffset() + inputBuf.position(),
-                        inputBuf.remaining()
-                    )
+                        srcOffset,
+                        srcLength
+                    ).toInt()
+                    // inputBuf does not contain the whole frame - wait for more data
+                    if (frameCompressedSize > srcLength) break
 
-                    if (frameSize > outputBuf.capacity()) {
-                        val tempOutput = ByteArray(frameSize.toInt())
-                        val compressedData = ByteArray(inputBuf.remaining())
-                        inputBuf.get(compressedData)
-
-                        val decompressedSize = ZstdUtils.decompress(tempOutput, compressedData).toInt()
-                        destination.writeFully(tempOutput, 0, decompressedSize)
-                        break
-                    }
-
-                    outputBuf.clear()
-                    val decompressedSize = ctx.decompressByteArray(
-                        outputBuf.array(),
-                        outputBuf.arrayOffset(),
-                        outputBuf.capacity(),
+                    val frameContentSize = ZstdUtils.getFrameContentSize(
                         inputBuf.array(),
-                        inputBuf.arrayOffset() + inputBuf.position(),
-                        inputBuf.remaining()
+                        srcOffset,
+                        frameCompressedSize
+                    ).toInt()
+                    val outArray = ByteArray(frameContentSize)
+                    ctx.decompressByteArray(
+                        outArray,
+                        0,
+                        frameContentSize,
+                        inputBuf.array(),
+                        srcOffset,
+                        frameCompressedSize
                     )
-
-                    if (decompressedSize > 0) {
-                        destination.writeFully(outputBuf.array(), 0, decompressedSize)
-                        // Update position: decompressByteArray for streaming context doesn't return consumed size easily.
-                        // In this loop, we consume the remaining input chunk.
-                        inputBuf.position(inputBuf.limit())
-                    } else {
-                        break
-                    }
+                    destination.writeFully(outArray)
+                    inputBuf.position(inputBuf.position() + frameCompressedSize)
                 }
+
                 inputBuf.compact()
             }
         } finally {
             ctx.close()
             pool.recycle(inputBuf)
-            pool.recycle(outputBuf)
         }
     }
 
