@@ -63,6 +63,17 @@ public final class io/ktor/server/auth/saml/SamlAlgorithms {
 	public final fun getRECOMMENDED_SIGNATURE_ALGORITHMS ()Ljava/util/Set;
 }
 
+public final class io/ktor/server/auth/saml/SamlAuthKt {
+	public static final fun saml (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public static final fun saml (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun saml$default (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static synthetic fun saml$default (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+}
+
+public final class io/ktor/server/auth/saml/SamlAuthenticationProvider : io/ktor/server/auth/AuthenticationProvider {
+	public fun onAuthenticate (Lio/ktor/server/auth/AuthenticationContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public final class io/ktor/server/auth/saml/SamlAuthnContext {
 	public static final field Companion Lio/ktor/server/auth/saml/SamlAuthnContext$Companion;
 	public static final synthetic fun box-impl (Ljava/lang/String;)Lio/ktor/server/auth/saml/SamlAuthnContext;
@@ -189,10 +200,39 @@ public final class io/ktor/server/auth/saml/SamlPrincipal {
 	public final fun hasAttribute (Ljava/lang/String;)Z
 }
 
+public final class io/ktor/server/auth/saml/SamlRedirectResult {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun getMessageId ()Ljava/lang/String;
+	public final fun getRedirectUrl ()Ljava/lang/String;
+}
+
 public abstract interface class io/ktor/server/auth/saml/SamlReplayCache : java/lang/AutoCloseable {
 	public abstract fun isReplayed (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun recordAssertion (Ljava/lang/String;Lkotlin/time/Instant;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun tryRecordAssertion (Ljava/lang/String;Lkotlin/time/Instant;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/auth/saml/SamlSession {
+	public static final field Companion Lio/ktor/server/auth/saml/SamlSession$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getLogoutRequestId ()Ljava/lang/String;
+	public final fun getRequestId ()Ljava/lang/String;
+}
+
+public final synthetic class io/ktor/server/auth/saml/SamlSession$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/ktor/server/auth/saml/SamlSession$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/server/auth/saml/SamlSession;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/server/auth/saml/SamlSession;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/auth/saml/SamlSession$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
 public final class io/ktor/server/auth/saml/SamlSpMetadata {
@@ -218,6 +258,11 @@ public final class io/ktor/server/auth/saml/SamlSpMetadata {
 	public final fun setWantAssertionsSigned (Z)V
 	public final fun supportContact (Lkotlin/jvm/functions/Function1;)V
 	public final fun technicalContact (Lkotlin/jvm/functions/Function1;)V
+}
+
+public final class io/ktor/server/auth/saml/SamlValidationException : java/lang/Exception {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
 public final class io/ktor/server/auth/saml/SignatureAlgorithm {
