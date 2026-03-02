@@ -280,25 +280,25 @@ class RoutingTracingTest {
 
         assertEquals(
             $$"""
-    Trace for [route, port]
-    /, segment:0 -> SUCCESS @ /
-      /bar, segment:0 -> FAILURE "Selector didn't match" @ /bar
-      /baz, segment:0 -> FAILURE "Selector didn't match" @ /baz
-      /{param}, segment:1 -> SUCCESS; Parameters [param=[route]] @ /{param}
-        /{param} [(method:GET)], segment:1 -> FAILURE "Not all segments matched" @ /{param} [(method:GET)]
-        /{param}/x, segment:1 -> FAILURE "Selector didn't match" @ /{param}/x
-      /*, segment:1 -> SUCCESS @ /*
-        /*/extra, segment:1 -> FAILURE "Selector didn't match" @ /*/extra
-      / [(header:a = x)], segment:0 -> FAILURE "Selector didn't match" @ / [(header:a = x)]
-      / [(header:b = x)], segment:0 -> FAILURE "Selector didn't match" @ / [(header:b = x)]
-      /route, segment:1 -> SUCCESS @ /route
-        /route [LocalPortRouteSelector(port=80)], segment:1 -> SUCCESS; Parameters [$LocalPort=[80]] @ /route [LocalPortRouteSelector(port=80)]
-          /route/port [LocalPortRouteSelector(port=80)], segment:2 -> SUCCESS @ /route/port [LocalPortRouteSelector(port=80)]
-            /route/port [LocalPortRouteSelector(port=80), (method:GET)], segment:2 -> SUCCESS @ /route/port [LocalPortRouteSelector(port=80), (method:GET)]
-    Matched routes:
-      "" -> "route" -> "LocalPortRouteSelector(port=80)" -> "port" -> "(method:GET)"
-    Routing resolve result:
-      SUCCESS; Parameters [$LocalPort=[80]] @ /route/port [LocalPortRouteSelector(port=80), (method:GET)]
+            Trace for [route, port]
+            /, segment:0 -> SUCCESS @ /
+              /bar, segment:0 -> FAILURE "Selector didn't match" @ /bar
+              /baz, segment:0 -> FAILURE "Selector didn't match" @ /baz
+              /{param}, segment:1 -> SUCCESS; Parameters [param=[route]] @ /{param}
+                /{param} [(method:GET)], segment:1 -> FAILURE "Not all segments matched" @ /{param} [(method:GET)]
+                /{param}/x, segment:1 -> FAILURE "Selector didn't match" @ /{param}/x
+              /*, segment:1 -> SUCCESS @ /*
+                /*/extra, segment:1 -> FAILURE "Selector didn't match" @ /*/extra
+              / [(header:a = x)], segment:0 -> FAILURE "Selector didn't match" @ / [(header:a = x)]
+              / [(header:b = x)], segment:0 -> FAILURE "Selector didn't match" @ / [(header:b = x)]
+              /route, segment:1 -> SUCCESS @ /route
+                /route [(port:80)], segment:1 -> SUCCESS; Parameters [$LocalPort=[80]] @ /route [(port:80)]
+                  /route/port [(port:80)], segment:2 -> SUCCESS @ /route/port [(port:80)]
+                    /route/port [(port:80), (method:GET)], segment:2 -> SUCCESS @ /route/port [(port:80), (method:GET)]
+            Matched routes:
+              "" -> "route" -> "(port:80)" -> "port" -> "(method:GET)"
+            Routing resolve result:
+              SUCCESS; Parameters [$LocalPort=[80]] @ /route/port [(port:80), (method:GET)]
             """.trimIndent(),
             trace()
         )
