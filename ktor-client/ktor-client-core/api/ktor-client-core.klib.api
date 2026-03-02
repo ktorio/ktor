@@ -1453,6 +1453,8 @@ final val io.ktor.client.statement/content // io.ktor.client.statement/content|@
     final fun (io.ktor.client.statement/HttpResponse).<get-content>(): io.ktor.utils.io/ByteReadChannel // io.ktor.client.statement/content.<get-content>|<get-content>@io.ktor.client.statement.HttpResponse(){}[0]
 final val io.ktor.client.statement/request // io.ktor.client.statement/request|@io.ktor.client.statement.HttpResponse{}request[0]
     final fun (io.ktor.client.statement/HttpResponse).<get-request>(): io.ktor.client.request/HttpRequest // io.ktor.client.statement/request.<get-request>|<get-request>@io.ktor.client.statement.HttpResponse(){}[0]
+final val io.ktor.client.statement/useEngineDispatcher // io.ktor.client.statement/useEngineDispatcher|{}useEngineDispatcher[0]
+    final fun <get-useEngineDispatcher>(): kotlin/Boolean // io.ktor.client.statement/useEngineDispatcher.<get-useEngineDispatcher>|<get-useEngineDispatcher>(){}[0]
 final val io.ktor.client.utils/HttpRequestCreated // io.ktor.client.utils/HttpRequestCreated|{}HttpRequestCreated[0]
     final fun <get-HttpRequestCreated>(): io.ktor.events/EventDefinition<io.ktor.client.request/HttpRequestBuilder> // io.ktor.client.utils/HttpRequestCreated.<get-HttpRequestCreated>|<get-HttpRequestCreated>(){}[0]
 final val io.ktor.client.utils/HttpRequestIsReadyForSending // io.ktor.client.utils/HttpRequestIsReadyForSending|{}HttpRequestIsReadyForSending[0]

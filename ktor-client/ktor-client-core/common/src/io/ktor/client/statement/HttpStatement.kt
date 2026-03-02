@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.statement
@@ -47,8 +47,16 @@ public class HttpStatement(
      * The response object should not be accessed outside of [block] as it will be canceled upon
      * block completion.
      *
-     * The [block] is executed on the engine's dispatcher, making it safe to perform IO operations
-     * such as reading the response content and writing it into a file.
+     * ## Dispatcher Behavior
+     * On non-JVM platforms (Web, Native), the [block] is executed on the engine's dispatcher,
+     * making it safe to perform IO operations such as reading the response content and writing it into a file.
+     *
+     * On JVM, the [block] runs on the caller's dispatcher by default for backward compatibility.
+     * To enable engine dispatcher switching on JVM, set the system property:
+     * `-Dio.ktor.client.statement.useEngineDispatcher=true`
+     *
+     * **Note:** Starting from Ktor 4.0, dispatcher switching will be enabled by default on all platforms.
+     * It is recommended to opt-in early to ensure compatibility with the upcoming release.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.HttpStatement.execute)
      *
@@ -59,7 +67,11 @@ public class HttpStatement(
         val response = fetchStreamingResponse()
 
         try {
-            return withContext(response.coroutineContext[ContinuationInterceptor]!!) {
+            return if (useEngineDispatcher) {
+                withContext(response.coroutineContext[ContinuationInterceptor]!!) {
+                    block(response)
+                }
+            } else {
                 block(response)
             }
         } finally {
@@ -114,8 +126,16 @@ public class HttpStatement(
      * Once [block] completes, the resources associated with the response are automatically cleaned up, freeing
      * any network or memory resources held by the response.
      *
-     * The [block] is executed on the engine's dispatcher, making it safe to perform IO operations
-     * such as writing to a file.
+     * ## Dispatcher Behavior
+     * On non-JVM platforms (Web, Native), the [block] is executed on the engine's dispatcher,
+     * making it safe to perform IO operations such as writing to a file.
+     *
+     * On JVM, the [block] runs on the caller's dispatcher by default for backward compatibility.
+     * To enable engine dispatcher switching on JVM, set the system property:
+     * `-Dio.ktor.client.statement.useEngineDispatcher=true`
+     *
+     * **Note:** Starting from Ktor 4.0, dispatcher switching will be enabled by default on all platforms.
+     * It is recommended to opt-in early to ensure compatibility with the upcoming release.
      *
      * ## Usage Example
      * ```
@@ -140,7 +160,12 @@ public class HttpStatement(
     ): R = unwrapRequestTimeoutException {
         val response: HttpResponse = fetchStreamingResponse()
         try {
-            return withContext(response.coroutineContext[ContinuationInterceptor]!!) {
+            return if (useEngineDispatcher) {
+                withContext(response.coroutineContext[ContinuationInterceptor]!!) {
+                    val result = response.body<T>()
+                    block(result)
+                }
+            } else {
                 val result = response.body<T>()
                 block(result)
             }
