@@ -4,7 +4,8 @@
 
 package io.ktor.server.auth.saml
 
-import io.ktor.network.tls.certificates.*
+import io.ktor.network.tls.certificates.generateCertificate
+import io.ktor.network.tls.certificates.saveToFile
 import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport
 import org.opensaml.core.xml.io.MarshallingException
 import org.opensaml.core.xml.schema.XSString
@@ -95,6 +96,27 @@ object SamlTestUtils {
 
         val credential = BasicX509Credential(certificate, privateKey)
         credential.entityId = "test-entity"
+
+        return TestCredentials(credential, keyPair, certificate)
+    }
+
+    /**
+     * Generates ECDSA test credentials for signing only (cannot be used for encryption).
+     */
+    fun generateEcdsaTestCredentials(): TestCredentials {
+        val keyStore = generateCertificate(
+            algorithm = "SHA256withECDSA",
+            keyAlias = KEY_ALIAS,
+            keyPassword = KEY_PASSWORD,
+            keySizeInBits = 256
+        )
+
+        val privateKey = keyStore.getKey(KEY_ALIAS, KEY_PASSWORD.toCharArray()) as PrivateKey
+        val certificate = keyStore.getCertificate(KEY_ALIAS) as X509Certificate
+        val keyPair = KeyPair(certificate.publicKey, privateKey)
+
+        val credential = BasicX509Credential(certificate, privateKey)
+        credential.entityId = "test-entity-ecdsa"
 
         return TestCredentials(credential, keyPair, certificate)
     }
@@ -488,6 +510,22 @@ object SamlTestUtils {
             sloUrl = sloUrl,
             signingCredentials = listOf(credentials.credential)
         )
+    }
+
+    /**
+     * Creates a temporary keystore file from test credentials.
+     * The file is marked for deletion on JVM exit.
+     */
+    fun createTempKeyStore(
+        credentials: TestCredentials,
+        storePassword: String = "test-pass",
+        keyAlias: String = "test-key",
+        keyPassword: String = "test-pass"
+    ): java.io.File {
+        val file = java.io.File.createTempFile("test-keystore", ".jks")
+        file.deleteOnExit()
+        credentials.saveToKeyStore(file, storePassword, keyAlias, keyPassword)
+        return file
     }
 
     /**
