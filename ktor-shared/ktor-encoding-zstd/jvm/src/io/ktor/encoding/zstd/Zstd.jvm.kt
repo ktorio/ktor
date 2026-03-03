@@ -13,6 +13,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
+import kotlinx.io.EOFException
 import java.nio.ByteBuffer
 import kotlin.coroutines.CoroutineContext
 import com.github.luben.zstd.Zstd as ZstdUtils
@@ -105,6 +106,10 @@ public class Zstd(private val compressionLevel: Int) : Encoder {
                 }
 
                 inputBuf.compact()
+            }
+            inputBuf.flip()
+            if (inputBuf.hasRemaining()) {
+                throw EOFException("Incomplete zstd frame at end of stream")
             }
         } finally {
             ctx.close()
