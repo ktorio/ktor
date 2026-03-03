@@ -2774,6 +2774,12 @@ final fun (io.ktor.client.fetch/Uint8Array).io.ktor.client.fetch/get(kotlin/Int)
 final fun (io.ktor.client.fetch/Uint8Array).io.ktor.client.fetch/set(kotlin/Int, kotlin/Byte) // io.ktor.client.fetch/set|set@io.ktor.client.fetch.Uint8Array(kotlin.Int;kotlin.Byte){}[0]
 
 // Targets: [wasmJs]
+final fun (io.ktor.client.request.forms/FormBuilder).io.ktor.client.request.forms/appendBlob(kotlin/String, io.ktor.client.fetch/Blob, io.ktor.http/Headers = ...) // io.ktor.client.request.forms/appendBlob|appendBlob@io.ktor.client.request.forms.FormBuilder(kotlin.String;io.ktor.client.fetch.Blob;io.ktor.http.Headers){}[0]
+
+// Targets: [wasmJs]
+final fun (io.ktor.client.request.forms/FormBuilder).io.ktor.client.request.forms/appendBlob(kotlin/String, io.ktor.client.fetch/Blob, kotlin/String, io.ktor.http/ContentType? = ...) // io.ktor.client.request.forms/appendBlob|appendBlob@io.ktor.client.request.forms.FormBuilder(kotlin.String;io.ktor.client.fetch.Blob;kotlin.String;io.ktor.http.ContentType?){}[0]
+
+// Targets: [wasmJs]
 final fun <#A: kotlin.js/JsAny> io.ktor.client.utils/makeJsCall(kotlin.js/JsAny, kotlin/Array<out kotlin.js/JsAny>...): #A // io.ktor.client.utils/makeJsCall|makeJsCall(kotlin.js.JsAny;kotlin.Array<out|kotlin.js.JsAny>...){0§<kotlin.js.JsAny>}[0]
 
 // Targets: [wasmJs]
