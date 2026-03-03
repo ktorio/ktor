@@ -18,7 +18,7 @@ private const val DEFAULT_BUFFER_SIZE = 4098
 class ZstdTest {
 
     @Test
-    fun testEncodeDecodeChunkedContent() = runTest {
+    fun `decode handles payload split into multiple zstd frames`() = runTest {
         val string = "zstd".repeat(DEFAULT_BUFFER_SIZE)
         val encodedReadChannel = ZstdEncoder().encode(ByteReadChannel(string.toByteArray()))
         val decodedReadChannel = ZstdEncoder().decode(encodedReadChannel)
