@@ -6,6 +6,7 @@ package io.ktor.encoding.zstd
 
 import com.github.luben.zstd.ZstdCompressCtx
 import com.github.luben.zstd.ZstdDecompressCtx
+import com.github.luben.zstd.ZstdException
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
@@ -75,11 +76,13 @@ public class Zstd(private val compressionLevel: Int) : Encoder {
                     val srcOffset = inputBuf.arrayOffset() + inputBuf.position()
                     val srcLength = inputBuf.remaining()
 
-                    val frameCompressedSize = ZstdUtils.findFrameCompressedSize(
-                        inputBuf.array(),
-                        srcOffset,
-                        srcLength
-                    ).toInt()
+                    val frameCompressedSize = try {
+                        ZstdUtils.findFrameCompressedSize(inputBuf.array(), srcOffset, srcLength).toInt()
+                    } catch (_: ZstdException) {
+                        // an exception could be thrown if the rest of inputBuf does not contain a whole frame,
+                        // so we need to break to read the next chunk
+                        break
+                    }
                     // inputBuf does not contain the whole frame - wait for more data
                     if (frameCompressedSize > srcLength) break
 
