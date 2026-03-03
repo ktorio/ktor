@@ -22,16 +22,15 @@
 * [KTOR-9330](https://youtrack.jetbrains.com/issue/KTOR-9330) OpenAPI: Cannot override kotlinx.serialization module
 * [KTOR-9320](https://youtrack.jetbrains.com/issue/KTOR-9320) OpenAPI: jsonSchema<T>() does not unwrap Kotlin value classes (inline classes)
 * [KTOR-9352](https://youtrack.jetbrains.com/issue/KTOR-9352) Authentication: Creating JWT verifier fails for JWK with `kty=EC` and `alg=null`
-* [KTOR-9344](https://youtrack.jetbrains.com/issue/KTOR-9344) Flow invariant error happens after update to Ktor 3.4.0
+* [KTOR-9344](https://youtrack.jetbrains.com/issue/KTOR-9344) Flow invariant error happens after update to Ktor 3.4.0 [![Breaking change](https://img.shields.io/badge/[Imactful%20change]-magenta?style=flat-square)](#)
 * [KTOR-9362](https://youtrack.jetbrains.com/issue/KTOR-9362) testApplication: Race condition in timeout coroutine when response is streaming
 * [KTOR-9274](https://youtrack.jetbrains.com/issue/KTOR-9274) Curl: Undefined symbol errors when linking on Linux since 3.4.0
 * [KTOR-8782](https://youtrack.jetbrains.com/issue/KTOR-8782) NodeJS CIO: "Module 'os' could not be imported" error on resolving WORKING_DIRECTORY_PATH with es2015 target
 * [KTOR-9348](https://youtrack.jetbrains.com/issue/KTOR-9348) String.decodeBase64String fails to decode when the input has no padding since 3.4.0
 * [KTOR-9318](https://youtrack.jetbrains.com/issue/KTOR-9318) CIO engine rejects valid certificates with unsupported signature algorithms
-* [KTOR-9347](https://youtrack.jetbrains.com/issue/KTOR-9347) Fix flaky client cert test
 * [KTOR-9331](https://youtrack.jetbrains.com/issue/KTOR-9331) Curl: Segfaults when working with WebSockets
 * [KTOR-9334](https://youtrack.jetbrains.com/issue/KTOR-9334) Coroutines in route handlers are dispatched with Dispatchers.Unconfined since 3.2.0
-* [KTOR-9339](https://youtrack.jetbrains.com/issue/KTOR-9339) StreamResetException is not propagated to the caller of StreamRequestBody.writeTo since 3.4.0
+* [KTOR-9339](https://youtrack.jetbrains.com/issue/KTOR-9339) StreamResetException is not propagated to the caller of StreamRequestBody.writeTo since 3.4.0 [![Breaking change](https://img.shields.io/badge/[Regression%20fix]-green?style=flat-square)](#)
 * [KTOR-9329](https://youtrack.jetbrains.com/issue/KTOR-9329) HTMX: "on" attributes extension not working
 * [KTOR-9316](https://youtrack.jetbrains.com/issue/KTOR-9316) WasmJS bad get and set implementations for Uint8Array and ArrayLike
 * [KTOR-9272](https://youtrack.jetbrains.com/issue/KTOR-9272) JSON schema inference does not recognize unsigned types
