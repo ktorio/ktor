@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:Suppress("UnstableApiUsage")
@@ -44,7 +44,7 @@ private fun RepositoryHandler.configureRepositories() {
 
     exclusiveContent {
         forRepository {
-            maven("https://packages.jetbrains.team/maven/p/ktor/eap") { name = "KtorEAP" }
+            maven("https://redirector.kotlinlang.org/maven/ktor-eap") { name = "KtorEAP" }
         }
         filter { includeVersionByRegex("io.ktor", ".+", ".+-eap-\\d+") }
     }
