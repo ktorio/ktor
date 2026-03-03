@@ -22,7 +22,7 @@
 * [KTOR-9330](https://youtrack.jetbrains.com/issue/KTOR-9330) OpenAPI: Cannot override kotlinx.serialization module
 * [KTOR-9320](https://youtrack.jetbrains.com/issue/KTOR-9320) OpenAPI: jsonSchema<T>() does not unwrap Kotlin value classes (inline classes)
 * [KTOR-9352](https://youtrack.jetbrains.com/issue/KTOR-9352) Authentication: Creating JWT verifier fails for JWK with `kty=EC` and `alg=null`
-* [KTOR-9344](https://youtrack.jetbrains.com/issue/KTOR-9344) Flow invariant error happens after update to Ktor 3.4.0 [![Breaking change](https://img.shields.io/badge/[Imactful%20change]-magenta?style=flat-square)](#)
+* [KTOR-9344](https://youtrack.jetbrains.com/issue/KTOR-9344) Flow invariant error happens after update to Ktor 3.4.0 [![Breaking change](https://img.shields.io/badge/[Impactful%20change]-magenta?style=flat-square)](#)
 * [KTOR-9362](https://youtrack.jetbrains.com/issue/KTOR-9362) testApplication: Race condition in timeout coroutine when response is streaming
 * [KTOR-9274](https://youtrack.jetbrains.com/issue/KTOR-9274) Curl: Undefined symbol errors when linking on Linux since 3.4.0
 * [KTOR-8782](https://youtrack.jetbrains.com/issue/KTOR-8782) NodeJS CIO: "Module 'os' could not be imported" error on resolving WORKING_DIRECTORY_PATH with es2015 target
