@@ -23,6 +23,10 @@ kotlin {
     jvmToolchain(21)
 }
 
+tasks.validatePlugins {
+    enableStricterValidation = true
+}
+
 //region Workaround for https://github.com/gradle/gradle/issues/13020
 // We have a dependency on Kotlin Gradle Plugin and Gradle _always_ logs an annoying warning because of that:
 //  Unsupported Kotlin plugin version.
