@@ -14,6 +14,7 @@ import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.io.EOFException
+import kotlinx.io.IOException
 import java.nio.ByteBuffer
 import kotlin.coroutines.CoroutineContext
 import com.github.luben.zstd.Zstd as ZstdUtils
@@ -87,11 +88,11 @@ public class Zstd(private val compressionLevel: Int) : Encoder {
                     // inputBuf does not contain the whole frame - wait for more data
                     if (frameCompressedSize > srcLength) break
 
-                    val frameContentSize = ZstdUtils.getFrameContentSize(
-                        inputBuf.array(),
+                    val frameContentSize = getFrameContentSize(
+                        inputBuf,
                         srcOffset,
                         frameCompressedSize
-                    ).toInt()
+                    )
                     val outArray = ByteArray(frameContentSize)
                     ctx.decompressByteArray(
                         outArray,
@@ -115,6 +116,25 @@ public class Zstd(private val compressionLevel: Int) : Encoder {
             ctx.close()
             pool.recycle(inputBuf)
         }
+    }
+
+    private fun getFrameContentSize(
+        inputBuf: ByteBuffer,
+        srcOffset: Int,
+        frameCompressedSize: Int
+    ): Int {
+        val frameContentSize = ZstdUtils.getFrameContentSize(
+            inputBuf.array(),
+            srcOffset,
+            frameCompressedSize
+        )
+        if (ZstdUtils.isError(frameContentSize)) {
+            throw IOException("Invalid zstd frame: ${ZstdUtils.getErrorName(frameContentSize)}")
+        }
+        if (frameContentSize == -1L) {
+            throw IOException("Content size is unknown")
+        }
+        return frameContentSize.toInt()
     }
 
     private suspend fun ByteReadChannel.encodeTo(
