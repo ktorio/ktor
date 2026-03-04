@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:Suppress("unused")
@@ -125,6 +125,7 @@ public fun ApplicationRequest.acceptLanguageItems(): List<HeaderValue> =
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.acceptCharset)
  */
+@Suppress("DEPRECATION")
 public fun ApplicationRequest.acceptCharset(): String? = header(HttpHeaders.AcceptCharset)
 
 /**
@@ -132,6 +133,7 @@ public fun ApplicationRequest.acceptCharset(): String? = header(HttpHeaders.Acce
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.acceptCharsetItems)
  */
+@Suppress("DEPRECATION")
 public fun ApplicationRequest.acceptCharsetItems(): List<HeaderValue> =
     parseAndSortHeader(header(HttpHeaders.AcceptCharset))
 
