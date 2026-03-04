@@ -61,7 +61,7 @@ public class Zstd(private val compressionLevel: Int) : Encoder {
         source.decodeTo(channel, KtorDefaultPool)
     }.channel
 
-    private suspend fun ByteReadChannel.decodeTo(
+    internal suspend fun ByteReadChannel.decodeTo(
         destination: ByteWriteChannel,
         pool: ObjectPool<ByteBuffer> = KtorDefaultPool
     ) {

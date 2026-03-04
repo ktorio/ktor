@@ -4,8 +4,10 @@
 
 package io.ktor.encoding.zstd
 
-import io.ktor.util.cio.KtorDefaultPool
+import io.ktor.encoding.zstd.ZstdEncoder.Companion.DEFAULT_COMPRESSION_LEVEL
+import io.ktor.util.cio.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -22,6 +24,21 @@ class ZstdTest {
         val string = "zstd".repeat(DEFAULT_BUFFER_SIZE)
         val encodedReadChannel = ZstdEncoder().encode(ByteReadChannel(string.toByteArray()))
         val decodedReadChannel = ZstdEncoder().decode(encodedReadChannel)
+        val decodedString = decodedReadChannel.readRemaining().readText()
+
+        assertEquals(string, decodedString)
+    }
+
+    @Test
+    fun `decode handles zstd frames that span multiple buffer reads`() = runTest {
+        val string = "zstd".repeat(DEFAULT_BUFFER_SIZE)
+
+        val encodedReadChannel = Zstd(DEFAULT_COMPRESSION_LEVEL).encode(ByteReadChannel(string.toByteArray()))
+        val decodedReadChannel = ByteChannel()
+        with(Zstd(DEFAULT_COMPRESSION_LEVEL)) {
+            encodedReadChannel.decodeTo(decodedReadChannel, ByteBufferPool(capacity = 10, bufferSize = 32))
+        }
+        decodedReadChannel.close()
         val decodedString = decodedReadChannel.readRemaining().readText()
 
         assertEquals(string, decodedString)
