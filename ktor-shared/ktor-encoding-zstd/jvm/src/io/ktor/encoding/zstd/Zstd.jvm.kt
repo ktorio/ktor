@@ -137,6 +137,9 @@ public class Zstd(private val compressionLevel: Int) : Encoder {
         if (frameContentSize == -1L) {
             throw IOException("Content size is unknown")
         }
+        if (frameContentSize > Int.MAX_VALUE) {
+            throw IOException("Zstd frame content size $frameContentSize exceeds Int.MAX_VALUE")
+        }
         return frameContentSize.toInt()
     }
 
