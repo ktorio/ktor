@@ -127,10 +127,6 @@ internal fun ApplicationCall.corsCheckRequestMethod(methods: Set<HttpMethod>): B
     return requestMethod != null && requestMethod in methods
 }
 
-internal suspend fun ApplicationCall.respondCorsFailed() {
-    respond(HttpStatusCode.Forbidden)
-}
-
 internal fun isValidOrigin(origin: String): Boolean {
     if (origin.isEmpty()) return false
     if (origin == "null") return true

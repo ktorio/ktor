@@ -117,7 +117,9 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
             OriginCheckResult.SkipCORS -> return@onCall
             OriginCheckResult.Failed -> {
                 LOGGER.trace { "${call.request.id()}: CORS check fails because Origin $origin does not match" }
-                call.respondCorsFailed()
+                if (call.request.httpMethod == HttpMethod.Options) {
+                    call.respond(HttpStatusCode.OK)
+                }
                 return@onCall
             }
         }
@@ -130,7 +132,9 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
                         "${call.request.id()}: CORS check fails because the requested content type $contentType " +
                             "is not in the list of the only allowed simple types ${CORSConfig.CorsSimpleContentTypes}"
                     }
-                    call.respondCorsFailed()
+                    if (call.request.httpMethod == HttpMethod.Options) {
+                        call.respond(HttpStatusCode.OK)
+                    }
                     return@onCall
                 }
             }
@@ -157,7 +161,6 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
                 "${call.request.id()}: CORS check fails because HTTP method ${call.request.httpMethod.value} " +
                     "is not allowed. Allowed methods: $methods"
             }
-            call.respondCorsFailed()
             return@onCall
         }
 
@@ -234,7 +237,7 @@ private suspend fun ApplicationCall.respondPreflight(
 
     if (!corsCheckRequestMethod(methods)) {
         LOGGER.trace { "${request.id()}: Preflight: Request method check fails" }
-        respond(HttpStatusCode.Forbidden)
+        respond(HttpStatusCode.OK)
         return
     }
 
@@ -250,7 +253,7 @@ private suspend fun ApplicationCall.respondPreflight(
         }
 
         LOGGER.trace { "${request.id()}: Preflight: Check on headers from Access-Control-Request-Headers fails" }
-        respond(HttpStatusCode.Forbidden)
+        respond(HttpStatusCode.OK)
         return
     }
 
