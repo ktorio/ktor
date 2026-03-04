@@ -18,7 +18,12 @@ import kotlinx.coroutines.flow.*
  * @property dispose to be invoked when this part is no longer needed
  * @property headers of this part, could be inaccurate on some engines
  */
-public sealed class PartData(public val dispose: () -> Unit, public val headers: Headers) {
+public sealed class PartData(
+    @Deprecated("Use release instead", level = DeprecationLevel.WARNING)
+    public val dispose: () -> Unit,
+    public val headers: Headers,
+    public val release: suspend () -> Unit,
+) {
     /**
      * Represents a multipart form item.
      *
@@ -26,8 +31,13 @@ public sealed class PartData(public val dispose: () -> Unit, public val headers:
      *
      * @property value of this field
      */
-    public class FormItem(public val value: String, dispose: () -> Unit, partHeaders: Headers) :
-        PartData(dispose, partHeaders)
+    public class FormItem(
+        public val value: String,
+        dispose: () -> Unit,
+        partHeaders: Headers,
+        release: suspend () -> Unit = {},
+    ) :
+        PartData(dispose, partHeaders, release)
 
     /**
      * Represents a file item.
@@ -40,8 +50,9 @@ public sealed class PartData(public val dispose: () -> Unit, public val headers:
     public class FileItem(
         public val provider: () -> ByteReadChannel,
         dispose: () -> Unit,
-        partHeaders: Headers
-    ) : PartData(dispose, partHeaders) {
+        partHeaders: Headers,
+        release: suspend () -> Unit = {},
+    ) : PartData(dispose, partHeaders, release) {
         /**
          * Original file name if present
          *
@@ -61,8 +72,9 @@ public sealed class PartData(public val dispose: () -> Unit, public val headers:
     public class BinaryItem(
         public val provider: () -> Input,
         dispose: () -> Unit,
-        partHeaders: Headers
-    ) : PartData(dispose, partHeaders)
+        partHeaders: Headers,
+        release: suspend () -> Unit = {},
+    ) : PartData(dispose, partHeaders, release)
 
     /**
      * Represents a binary part with a provider that supplies [ByteReadChannel].
@@ -73,8 +85,9 @@ public sealed class PartData(public val dispose: () -> Unit, public val headers:
      */
     public class BinaryChannelItem(
         public val provider: () -> ByteReadChannel,
-        partHeaders: Headers
-    ) : PartData({}, partHeaders)
+        partHeaders: Headers,
+        release: suspend () -> Unit = {},
+    ) : PartData({}, partHeaders, release)
 
     /**
      * Parsed `Content-Disposition` header or `null` if missing.
