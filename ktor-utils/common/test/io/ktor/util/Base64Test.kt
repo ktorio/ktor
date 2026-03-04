@@ -6,6 +6,7 @@ package io.ktor.util
 
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class Base64Test {
 
     @Test
@@ -26,13 +27,13 @@ class Base64Test {
             "MuIElmIHlvdSBhcmUgbm90IHN1cmUgaG93IHRvIHNvbHZlIGEgS29hbiwgb3IgeW91J3JlIGxvb2tpbmcgZm9yIG" +
             "EgbW9yZSBlbGVnYW50IHNvbHV0aW9uLCBjaGVjayBvdXQgS290bGluIGlkaW9tcy4="
 
-        assertEquals(encodedText, text.encodeBase64())
+        assertEquals(encodedText, text.encodeToByteArray().encodeBase64())
         assertEquals(text, encodedText.decodeBase64String())
     }
 
     @Test
     fun encodeEmptyTest() {
-        assertEquals("", "".encodeBase64())
+        assertEquals("", "".encodeToByteArray().encodeBase64())
         assertEquals("", "".decodeBase64String())
     }
 
@@ -47,7 +48,7 @@ class Base64Test {
         )
 
         cases.forEach { (text, encodedText) ->
-            assertEquals(encodedText, text.encodeBase64())
+            assertEquals(encodedText, text.encodeToByteArray().encodeBase64())
             assertEquals(text, encodedText.decodeBase64String())
         }
     }
