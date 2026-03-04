@@ -25,6 +25,7 @@ import io.netty.buffer.Unpooled
 import io.netty.handler.codec.http.HttpResponseStatus
 import io.netty.handler.codec.http2.*
 import io.netty.handler.codec.http2.Http2CodecUtil.readUnsignedInt
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlin.test.Ignore
 import kotlin.test.Test
@@ -389,6 +390,176 @@ class NettyH2cEnabledTest :
             require(total < maxBytes) { "HTTP/1.1 headers exceed $maxBytes bytes" }
         }
     }
+}
+
+class NettyH2cFlushTest :
+    EngineTestBase<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
+
+    init {
+        enableSsl = false
+        enableHttp2 = true
+    }
+
+    override fun configure(configuration: NettyApplicationEngine.Configuration) {
+        configuration.enableH2c = true
+    }
+
+    companion object {
+        private const val SSE_STREAM_ID = 3
+        private const val REGULAR_STREAM_ID = 5
+    }
+
+    @Test
+    fun testH2FlushDuringActiveSSE() = runTest {
+        val server = createServer {
+            routing {
+                get("/sse") {
+                    call.respond(object : io.ktor.http.content.OutgoingContent.WriteChannelContent() {
+                        override val contentType = ContentType.Text.EventStream
+                        override suspend fun writeTo(channel: ByteWriteChannel) {
+                            channel.writeStringUtf8("data: active\n\n")
+                            channel.flush()
+                            delay(30_000) // keep response open — SSE stays active
+                        }
+                    })
+                }
+                get("/regular") {
+                    call.respondText("ok")
+                }
+            }
+        }
+        server.start(wait = false)
+
+        try {
+            SelectorManager().use { selector ->
+                aSocket(selector).tcp().connect("127.0.0.1", port).use { socket ->
+                    val writer = socket.openWriteChannel()
+                    val reader = socket.openReadChannel()
+
+                    // HTTP/2 connection preface
+                    writer.writeStringUtf8("PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n")
+                    writer.flush()
+
+                    // Send client SETTINGS
+                    writer.writeFully(h2Frame(null, Http2FrameTypes.SETTINGS, Http2Flags(), 0))
+                    writer.flush()
+
+                    // Read server SETTINGS
+                    val serverSettings = reader.readH2Frame()
+                    assertEquals(Http2FrameTypes.SETTINGS, serverSettings.frameType)
+
+                    // Read server SETTINGS ACK
+                    val serverAck = reader.readH2Frame()
+                    assertEquals(Http2FrameTypes.SETTINGS, serverAck.frameType)
+                    assertTrue(serverAck.flags.ack())
+
+                    // Send client SETTINGS ACK
+                    writer.writeFully(h2Frame(null, Http2FrameTypes.SETTINGS, Http2Flags().ack(true), 0))
+                    writer.flush()
+
+                    // Send SSE request on stream 3 (keeps connection busy)
+                    writer.writeFully(h2HeadersFrame("/sse", SSE_STREAM_ID))
+                    writer.flush()
+
+                    // Wait for SSE DATA on the wire — once we receive it, the SSE's
+                    // writeAndFlush on the child channel is complete and respondWithBigBody
+                    // is suspended in awaitContent(). No more flushes from SSE.
+                    withTimeout(5_000) {
+                        waitForDataOnStream(reader, SSE_STREAM_ID)
+                    }
+
+                    // Send regular request on stream 5 (same TCP connection = same handler state)
+                    writer.writeFully(h2HeadersFrame("/regular", REGULAR_STREAM_ID))
+                    writer.flush()
+
+                    // Without the fix, this hangs: the regular response is written to the
+                    // channel but never flushed because flushIfNeeded() checks
+                    // activeRequests == 0, which is false (SSE stream is still active).
+                    val regularData = withTimeout(3_000) {
+                        readResponseForStream(reader, REGULAR_STREAM_ID)
+                    }
+
+                    assertEquals("ok", regularData)
+                }
+            }
+        } finally {
+            server.stop()
+        }
+    }
+
+    private suspend fun waitForDataOnStream(reader: ByteReadChannel, targetStreamId: Int) {
+        while (true) {
+            val frame = reader.readH2Frame()
+            if (frame.streamId == targetStreamId && frame.frameType == Http2FrameTypes.DATA) {
+                return
+            }
+        }
+    }
+
+    private suspend fun readResponseForStream(reader: ByteReadChannel, targetStreamId: Int): String {
+        var body = ""
+        while (true) {
+            val frame = reader.readH2Frame()
+            if (frame.streamId == targetStreamId) {
+                when (frame.frameType) {
+                    Http2FrameTypes.DATA -> {
+                        body += String(frame.payload, Charsets.UTF_8)
+                        if (frame.flags.endOfStream()) return body
+                    }
+                    Http2FrameTypes.HEADERS -> {
+                        if (frame.flags.endOfStream()) return body
+                    }
+                }
+            }
+            // Skip frames for other streams (SSE, window updates, etc.)
+        }
+    }
+
+    private fun h2HeadersFrame(path: String, streamId: Int): ByteArray {
+        val headers = DefaultHttp2Headers().apply {
+            method("GET")
+            path(path)
+            scheme("http")
+        }
+        val encodedHeaders = Unpooled.buffer()
+        DefaultHttp2HeadersEncoder().encodeHeaders(streamId, headers, encodedHeaders)
+        return h2Frame(
+            encodedHeaders,
+            Http2FrameTypes.HEADERS,
+            Http2Flags().endOfHeaders(true).endOfStream(true),
+            streamId
+        )
+    }
+
+    private fun h2Frame(payload: ByteBuf?, type: Byte, flags: Http2Flags, streamId: Int): ByteArray {
+        val buf = Unpooled.buffer()
+        val payloadLength = payload?.readableBytes() ?: 0
+        buf.writeMedium(payloadLength)
+        buf.writeByte(type.toInt())
+        buf.writeByte(flags.value().toInt())
+        buf.writeInt(streamId)
+        payload?.let { buf.writeBytes(it) }
+        val frame = ByteArray(buf.readableBytes())
+        buf.readBytes(frame)
+        return frame
+    }
+
+    private suspend fun ByteReadChannel.readH2Frame(): H2Frame {
+        val header = Unpooled.wrappedBuffer(readByteArray(9))
+        val payloadLength = header.readUnsignedMedium()
+        val frameType = header.readByte()
+        val flags = Http2Flags(header.readUnsignedByte())
+        val streamId = readUnsignedInt(header)
+        val payload = if (payloadLength > 0) readByteArray(payloadLength) else ByteArray(0)
+        return H2Frame(frameType, flags, streamId, payload)
+    }
+
+    data class H2Frame(
+        val frameType: Byte,
+        val flags: Http2Flags,
+        val streamId: Int,
+        val payload: ByteArray,
+    )
 }
 
 class NettyHttpRequestLifecycleTest :
