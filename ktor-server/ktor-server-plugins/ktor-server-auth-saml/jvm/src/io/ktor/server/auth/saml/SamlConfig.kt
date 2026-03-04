@@ -78,14 +78,14 @@ public class SamlConfig internal constructor(
      *
      * ## Example
      * ```kotlin
-     * val sp = SamlSpMetadata {
+     * val spMetadata = SamlSpMetadata {
      *     spEntityId = "https://myapp.example.com/saml/metadata"
      *     acsUrl = "https://myapp.example.com/saml/acs"
-     *     keyStore { ... }
+     *     signingCredential = SamlCrypto.loadCredential(...)
      * }
      *
      * saml("saml-auth") {
-     *     sp = sp
+     *     sp = spMetadata
      *     idp = parseSamlIdpMetadata(xmlString)
      * }
      * ```

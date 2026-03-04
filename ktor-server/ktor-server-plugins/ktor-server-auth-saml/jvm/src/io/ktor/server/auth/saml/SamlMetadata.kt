@@ -366,8 +366,8 @@ private fun EntityDescriptor.extractIdPMetadata(validateCertificateExpiration: B
 
     // Extract signing certificates
     val signingCredentials = idpDescriptor.extractSigningCredentials(validateCertificateExpiration)
-    if (signingCredentials.isEmpty()) {
-        LOGGER.warn("No signing certificates found in IdP metadata. Signature verification will fail.")
+    require(signingCredentials.isNotEmpty()) {
+        "No signing certificates found in IdP metadata. Signature verification will fail."
     }
 
     return IdPMetadata(

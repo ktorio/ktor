@@ -4,6 +4,7 @@
 
 package io.ktor.server.auth.saml
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
@@ -60,7 +61,7 @@ class InMemorySamlReplayCacheTest {
             val assertionsPerCoroutine = 100
 
             val jobs = (0 until coroutineCount).map { coroutineIndex ->
-                launch {
+                launch(Dispatchers.Default) {
                     repeat(assertionsPerCoroutine) { assertionIndex ->
                         val assertionId = "coroutine-$coroutineIndex-assertion-$assertionIndex"
                         cache.recordAssertion(assertionId, expirationTime)
