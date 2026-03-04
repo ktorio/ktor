@@ -16,13 +16,14 @@ import kotlin.coroutines.*
 internal class NettyHttp1ApplicationCall(
     application: Application,
     context: ChannelHandlerContext,
-    httpRequest: HttpRequest,
+    val httpRequest: HttpRequest,
     requestBodyChannel: ByteReadChannel?,
     engineContext: CoroutineContext,
     userContext: CoroutineContext,
 ) : NettyApplicationCall(application, context, httpRequest), CoroutineScope {
 
-    override val coroutineContext: CoroutineContext = userContext
+    override var coroutineContext: CoroutineContext = userContext
+        internal set
 
     override val request = NettyHttp1ApplicationRequest(
         this,
