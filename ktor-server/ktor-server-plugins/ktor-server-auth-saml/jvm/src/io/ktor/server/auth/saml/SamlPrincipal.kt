@@ -9,8 +9,6 @@ import org.opensaml.saml.saml2.core.*
 /**
  * Represents an unverified SAML credential extracted from a SAML response.
  *
- * It should only be used during the authentication process and never exposed to application code.
- *
  * @property response The SAML response containing the assertion
  * @property assertion The SAML assertion (maybe decrypted)
  */
@@ -139,14 +137,15 @@ public class SamlPrincipal(
     public fun hasAttribute(name: String): Boolean = attributes.containsKey(name)
 }
 
-private fun Assertion.buildAttributesMap() = buildMap {
+private fun Assertion.buildAttributesMap(): Map<String, List<String>> = buildMap {
     attributeStatements.forEach { attributeStatement ->
         attributeStatement.attributes.forEach { attribute ->
+            val name = attribute.name ?: return@forEach
             val values = attribute.attributeValues.mapNotNull { attributeValue ->
                 attributeValue.dom?.textContent
             }
             if (values.isNotEmpty()) {
-                put(attribute.name!!, values)
+                put(name, this[name].orEmpty() + values)
             }
         }
     }
