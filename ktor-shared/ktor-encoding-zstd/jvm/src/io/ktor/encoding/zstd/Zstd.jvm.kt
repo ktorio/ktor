@@ -107,6 +107,9 @@ public class Zstd(private val compressionLevel: Int) : Encoder {
                 }
 
                 inputBuf.compact()
+                if (!inputBuf.hasRemaining()) {
+                    throw IOException("Zstd frame exceeds buffer capacity of ${inputBuf.capacity()} bytes")
+                }
             }
             inputBuf.flip()
             if (inputBuf.hasRemaining()) {
