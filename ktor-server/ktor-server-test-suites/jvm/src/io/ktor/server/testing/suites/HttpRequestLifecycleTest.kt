@@ -1,13 +1,15 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.testing.suites
 
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.server.application.install
 import io.ktor.server.engine.*
 import io.ktor.server.http.*
+import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.test.base.*
@@ -38,16 +40,17 @@ abstract class HttpRequestLifecycleTest<TEngine : ApplicationEngine, TConfigurat
         }
     }
 
-    @Test
     @OptIn(ExperimentalAtomicApi::class)
-    fun testClientDisconnectionCancelsRequest() = runTest {
+    private fun testDisconnection(
+        startServerWithRoute: suspend (suspend RoutingContext.() -> Unit) -> Unit
+    ) = runTest {
         val requestStartedCnt = AtomicInt(0)
         val requestCancelledCnt = AtomicInt(0)
 
         val requestStarted = Channel<Int>(Channel.UNLIMITED)
         val requestCancelled = Channel<Int>(Channel.UNLIMITED)
 
-        cancellableRoute {
+        startServerWithRoute {
             requestStarted.send(requestStartedCnt.incrementAndFetch())
             try {
                 // very long operation
@@ -101,6 +104,13 @@ abstract class HttpRequestLifecycleTest<TEngine : ApplicationEngine, TConfigurat
     }
 
     @Test
+    fun testClientDisconnectionCancelsRequest() {
+        testDisconnection { configureRoute ->
+            cancellableRoute(configureRoute)
+        }
+    }
+
+    @Test
     fun testHttpRequestLifecycleSuccess() = runTest {
         val requestCompleted = CompletableDeferred<Unit>()
 
@@ -148,6 +158,52 @@ abstract class HttpRequestLifecycleTest<TEngine : ApplicationEngine, TConfigurat
 
         withTimeout(10.seconds) {
             requestCompleted.await()
+        }
+    }
+
+    @Test
+    fun testHttpRequestLifecycleWithCallLogging() = runTest {
+        val server = createServer {
+            install(HttpRequestLifecycle) {
+                cancelCallOnClose = true
+            }
+            install(CallLogging) {
+                mdc("something") { "something else" }
+            }
+            routing {
+                get("/hello") {
+                    call.respondText("world")
+                }
+            }
+        }
+        startServer(server)
+
+        client = createApacheClient()
+        client.use {
+            repeat(20) {
+                withUrl("/hello") {
+                    assertEquals(HttpStatusCode.OK, status)
+                    assertEquals("world", bodyAsText())
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testHttpRequestLifecycleCancelWithCallLogging() {
+        testDisconnection { configureRoute ->
+            val server = createServer {
+                install(HttpRequestLifecycle) {
+                    cancelCallOnClose = true
+                }
+                install(CallLogging) {
+                    mdc("something") { "something else" }
+                }
+                routing {
+                    get { configureRoute() }
+                }
+            }
+            startServer(server)
         }
     }
 }
