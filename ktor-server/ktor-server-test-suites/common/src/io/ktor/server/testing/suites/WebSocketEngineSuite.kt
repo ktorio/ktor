@@ -683,6 +683,34 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     }
 
     @Test
+    fun testWebSocketSessionCancelledOnServerStop() = runTest {
+        val sessionStarted = CompletableDeferred<Unit>()
+        val sessionCancelled = CompletableDeferred<Unit>()
+
+        createAndStartServer {
+            webSocket("/") {
+                sessionStarted.complete(Unit)
+                try {
+                    incoming.consumeEach {}
+                } finally {
+                    sessionCancelled.complete(Unit)
+                }
+            }
+        }
+
+        useSocket {
+            negotiateHttpWebSocket()
+
+            sessionStarted.await()
+            server!!.stop(0, 0)
+
+            withTimeout(5000) {
+                sessionCancelled.await()
+            }
+        }
+    }
+
+    @Test
     fun testCorruptFrameWithBadOpcode() = runTest {
         createAndStartServer {
             application.routing {
