@@ -2368,6 +2368,12 @@ final val io.ktor.client.engine.js/initHook // io.ktor.client.engine.js/initHook
     final fun <get-initHook>(): dynamic // io.ktor.client.engine.js/initHook.<get-initHook>|<get-initHook>(){}[0]
 
 // Targets: [js]
+final fun (io.ktor.client.request.forms/FormBuilder).io.ktor.client.request.forms/appendBlob(kotlin/String, org.w3c.files/Blob, io.ktor.http/Headers = ...) // io.ktor.client.request.forms/appendBlob|appendBlob@io.ktor.client.request.forms.FormBuilder(kotlin.String;org.w3c.files.Blob;io.ktor.http.Headers){}[0]
+
+// Targets: [js]
+final fun (io.ktor.client.request.forms/FormBuilder).io.ktor.client.request.forms/appendBlob(kotlin/String, org.w3c.files/Blob, kotlin/String, io.ktor.http/ContentType? = ...) // io.ktor.client.request.forms/appendBlob|appendBlob@io.ktor.client.request.forms.FormBuilder(kotlin.String;org.w3c.files.Blob;kotlin.String;io.ktor.http.ContentType?){}[0]
+
+// Targets: [js]
 final inline fun (io.ktor.client.fetch/Uint8Array).io.ktor.client.fetch/get(kotlin/Number): kotlin/Number? // io.ktor.client.fetch/get|get@io.ktor.client.fetch.Uint8Array(kotlin.Number){}[0]
 
 // Targets: [js]
@@ -2766,6 +2772,12 @@ final fun (io.ktor.client.fetch/Uint8Array).io.ktor.client.fetch/get(kotlin/Int)
 
 // Targets: [wasmJs]
 final fun (io.ktor.client.fetch/Uint8Array).io.ktor.client.fetch/set(kotlin/Int, kotlin/Byte) // io.ktor.client.fetch/set|set@io.ktor.client.fetch.Uint8Array(kotlin.Int;kotlin.Byte){}[0]
+
+// Targets: [wasmJs]
+final fun (io.ktor.client.request.forms/FormBuilder).io.ktor.client.request.forms/appendBlob(kotlin/String, io.ktor.client.fetch/Blob, io.ktor.http/Headers = ...) // io.ktor.client.request.forms/appendBlob|appendBlob@io.ktor.client.request.forms.FormBuilder(kotlin.String;io.ktor.client.fetch.Blob;io.ktor.http.Headers){}[0]
+
+// Targets: [wasmJs]
+final fun (io.ktor.client.request.forms/FormBuilder).io.ktor.client.request.forms/appendBlob(kotlin/String, io.ktor.client.fetch/Blob, kotlin/String, io.ktor.http/ContentType? = ...) // io.ktor.client.request.forms/appendBlob|appendBlob@io.ktor.client.request.forms.FormBuilder(kotlin.String;io.ktor.client.fetch.Blob;kotlin.String;io.ktor.http.ContentType?){}[0]
 
 // Targets: [wasmJs]
 final fun <#A: kotlin.js/JsAny> io.ktor.client.utils/makeJsCall(kotlin.js/JsAny, kotlin/Array<out kotlin.js/JsAny>...): #A // io.ktor.client.utils/makeJsCall|makeJsCall(kotlin.js.JsAny;kotlin.Array<out|kotlin.js.JsAny>...){0§<kotlin.js.JsAny>}[0]
