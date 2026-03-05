@@ -22,6 +22,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
 import kotlinx.io.*
 import kotlin.random.*
+import kotlin.coroutines.*
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
@@ -654,6 +655,34 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     }
 
     @Test
+    fun testWebSocketSessionInheritsServerCoroutineContext() = runTest {
+        val result = CompletableDeferred<Boolean>()
+
+        val customElement = object : AbstractCoroutineContextElement(CustomTestElement) {}
+
+        createAndStartServer(parent = customElement) {
+            webSocket("/") {
+                val hasElement = coroutineContext[CustomTestElement] != null
+                result.complete(hasElement)
+            }
+        }
+
+        useSocket {
+            negotiateHttpWebSocket()
+
+            output.apply {
+                // close frame with code 1000
+                writeHex("0x88 0x02 0x03 0xe8")
+                flush()
+            }
+
+            assertCloseFrame()
+        }
+
+        assertTrue(result.await(), "WebSocket session should inherit custom coroutine context elements from server")
+    }
+
+    @Test
     fun testCorruptFrameWithBadOpcode() = runTest {
         createAndStartServer {
             application.routing {
@@ -829,6 +858,8 @@ internal suspend fun ByteWriteChannel.writeFrameTest(frame: Frame, masking: Bool
 }
 
 internal fun Boolean.flagAt(at: Int) = if (this) 1 shl at else 0
+
+private object CustomTestElement : CoroutineContext.Key<AbstractCoroutineContextElement>
 
 private fun Source.mask(maskKey: Int): Source = withMemory(4) { maskMemory ->
     maskMemory.storeIntAt(0, maskKey)
