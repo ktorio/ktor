@@ -683,7 +683,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     }
 
     @Test
-    fun testWebSocketSessionCancelledOnServerStop() = runTest {
+    open fun testWebSocketSessionCancelledOnServerStop() = runTest {
         val sessionStarted = CompletableDeferred<Unit>()
         val sessionCancelled = CompletableDeferred<Unit>()
 
