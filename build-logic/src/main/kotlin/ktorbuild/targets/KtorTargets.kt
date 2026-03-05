@@ -7,10 +7,10 @@
 package ktorbuild.targets
 
 import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
-import com.android.build.api.dsl.androidLibrary
 import ktorbuild.internal.KotlinHierarchyTracker
 import ktorbuild.internal.KtorBuildProblems
 import ktorbuild.internal.TrackedKotlinHierarchyTemplate
+import ktorbuild.internal.android
 import ktorbuild.internal.gradle.projectGradleProperties
 import ktorbuild.internal.gradle.projectTargetDirectories
 import org.gradle.api.file.ProjectLayout
@@ -204,7 +204,7 @@ internal fun KotlinMultiplatformExtension.addTargets(targets: KtorTargets, isCI:
     if (targets.hasJvm) jvm()
     if (targets.hasAndroidJvm && project.hasAndroidPlugin()) {
         // device tests are not configured on the CI yet
-        androidLibrary { addTests(targets, allowDeviceTest = !isCI) }
+        android { addTests(targets, allowDeviceTest = !isCI) }
     }
 
     if (targets.hasJs) js { addSubTargets(targets) }
