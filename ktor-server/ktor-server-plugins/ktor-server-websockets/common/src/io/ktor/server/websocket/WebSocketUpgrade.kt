@@ -95,8 +95,7 @@ public class WebSocketUpgrade(
             output,
             plugin.maxFrameSize,
             plugin.masking,
-            coroutineContext = call.coroutineContext.minusKey(Job) + engineContext +
-                (coroutineContext[Job] ?: EmptyCoroutineContext),
+            coroutineContext = call.coroutineContext + engineContext,
             channelsConfig = plugin.channelsConfig
         )
 
