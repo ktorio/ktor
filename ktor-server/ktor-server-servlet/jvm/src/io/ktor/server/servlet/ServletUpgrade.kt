@@ -74,6 +74,7 @@ private val ServletUpgradeCoroutineName = CoroutineName("servlet-upgrade")
 // this class is instantiated by a servlet container
 // so we can't pass [UpgradeRequest] through a constructor
 // we also can't make it internal due to the same reason
+@OptIn(InternalCoroutinesApi::class)
 @InternalAPI
 public class ServletUpgradeHandler : HttpUpgradeHandler, CoroutineScope {
     @Volatile
@@ -90,7 +91,7 @@ public class ServletUpgradeHandler : HttpUpgradeHandler, CoroutineScope {
         }
 
         upgradeJob = Job(up.engineContext[Job])
-        upgradeJob.invokeOnCompletion {
+        upgradeJob.invokeOnCompletion(onCancelling = true) {
             webConnection.close()
         }
 

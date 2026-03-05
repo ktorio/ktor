@@ -18,8 +18,4 @@ class TomcatWebSocketTest :
     @Ignore
     override fun testFragmentedFlagsFromTheFirstFrame() {
     }
-
-    @Ignore
-    override fun testWebSocketSessionCancelledOnServerStop() {
-    }
 }
