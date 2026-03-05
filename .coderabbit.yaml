@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: en-US
+early_access: true
+reviews:
+  auto_review:
+    base_branches:
+      - main
+      - release/*
