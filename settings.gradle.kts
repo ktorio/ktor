@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 enableFeaturePreview("STABLE_CONFIGURATION_CACHE")
@@ -8,7 +8,6 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 pluginManagement {
     // Add repositories required for build-settings-logic
     repositories {
-        google()
         gradlePluginPortal()
 
         // Should be in sync with ktorsettings.kotlin-user-project

@@ -1,13 +1,14 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:Suppress("UnstableApiUsage")
 
 pluginManagement {
     repositories {
-        gradlePluginPortal()
-        configureRepositories()
+        configureRepositories {
+            gradlePluginPortal()
+        }
     }
 }
 
@@ -31,20 +32,24 @@ dependencyResolutionManagement {
     }
 }
 
-private fun RepositoryHandler.configureRepositories() {
+private fun RepositoryHandler.configureRepositories(configure: RepositoryHandler.() -> Unit = {}) {
+    // Google repository should go first as it has a content filter that handles all Android dependencies
+    // before trying to resolve them via other repositories
     google {
         content {
             includeGroupAndSubgroups("androidx")
             includeGroupAndSubgroups("com.google")
             includeGroupAndSubgroups("com.android")
+            excludeGroup("com.google.code.gson")
         }
     }
+    configure()
     mavenCentral()
     mavenLocal()
 
     exclusiveContent {
         forRepository {
-            maven("https://packages.jetbrains.team/maven/p/ktor/eap") { name = "KtorEAP" }
+            maven("https://redirector.kotlinlang.org/maven/ktor-eap") { name = "KtorEAP" }
         }
         filter { includeVersionByRegex("io.ktor", ".+", ".+-eap-\\d+") }
     }
