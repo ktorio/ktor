@@ -98,36 +98,31 @@ internal class SamlResponseProcessor(
      * @throws SamlValidationException if validation fails
      */
     suspend fun processResponse(samlResponseBase64: String, expectedRequestId: String?): SamlCredential {
-        val samlResponseXml = String(bytes = Base64.decode(samlResponseBase64))
-        val response = parseResponse(samlResponseXml).also { it.validate(expectedRequestId) }
+        val response = parseResponse(samlResponseBase64).also { it.validate(expectedRequestId) }
         val assertion = response.extractAssertion().also { it.validate(expectedRequestId) }
         return SamlCredential(response, assertion)
     }
 
-    private fun parseResponse(xml: String): Response = withValidationException {
-        val document: Document = LibSaml.parserPool.parse(ByteArrayInputStream(xml.toByteArray()))
+    private fun parseResponse(samlResponseBase64: String): Response = withValidationException {
+        val xmlStream = ByteArrayInputStream(Base64.decode(source = samlResponseBase64))
+        val document: Document = LibSaml.parserPool.parse(xmlStream)
         document.documentElement.unmarshall<Response>()
     }
 
     private fun Response.validate(expectedRequestId: String?) {
         val statusCode = status?.statusCode?.value
-        if (statusCode != StatusCode.SUCCESS) {
+        samlAssert(statusCode == StatusCode.SUCCESS) {
             val statusMessage = status?.statusMessage?.value ?: "No message"
-            throw SamlValidationException("SAML response status is not Success: $statusCode - $statusMessage")
+            "SAML response status is not Success: $statusCode - $statusMessage"
         }
 
-        when {
-            expectedRequestId != null -> {
-                samlAssert(inResponseTo == expectedRequestId) { "InResponseTo mismatch" }
-            }
-
-            !allowIdpInitiatedSso -> throw SamlValidationException("IdP-initiated SSO is not allowed.")
+        if (expectedRequestId != null) {
+            samlAssert(inResponseTo == expectedRequestId) { "InResponseTo mismatch" }
+        } else {
+            samlAssert(allowIdpInitiatedSso) { "IdP-initiated SSO is not allowed." }
         }
 
-        val issuer = issuer?.value
-        samlAssert(issuer == idpMetadata.entityId) { "Response issuer mismatch" }
-
-        val destination = destination
+        samlAssert(issuer?.value == idpMetadata.entityId) { "Response issuer mismatch" }
         samlAssert(!requireDestination || destination != null) { "Response Destination is not present" }
         samlAssert(destination == null || destination == acsUrl) { "Response Destination mismatch" }
 

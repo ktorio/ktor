@@ -164,12 +164,15 @@ internal class SamlLogoutProcessor(
         signatureParam: String? = null,
         signatureAlgorithmParam: String? = null
     ): LogoutResult {
-        val responseXml = samlResponseBase64.decodeSamlMessage(isDeflated = binding == SamlBinding.HttpRedirect)
-        val document: Document = LibSaml.parserPool.parse(responseXml.toByteArray().inputStream())
-        val logoutResponse = document.documentElement.unmarshall<LogoutResponse>()
+        val logoutResponse = withValidationException {
+            val responseXml = samlResponseBase64.decodeSamlMessage(isDeflated = binding == SamlBinding.HttpRedirect)
+            val document: Document = LibSaml.parserPool.parse(responseXml.toByteArray().inputStream())
+            document.documentElement.unmarshall<LogoutResponse>()
+        }
 
         val inResponseTo = logoutResponse.inResponseTo
-        samlAssert(expectedRequestId == null || inResponseTo == expectedRequestId) { "InResponseTo mismatch" }
+        samlRequire(expectedRequestId) { "Unexpected logout response" }
+        samlAssert(inResponseTo == expectedRequestId) { "InResponseTo mismatch" }
 
         // Issuer is required for security - ensures the response is from the expected IdP
         val issuer = samlRequire(logoutResponse.issuer?.value) { "LogoutResponse Issuer is required" }
