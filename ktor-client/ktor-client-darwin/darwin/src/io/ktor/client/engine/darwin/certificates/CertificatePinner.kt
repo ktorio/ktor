@@ -173,8 +173,8 @@ public data class CertificatePinner(
             throw TlsPeerUnverifiedException("Unknown certificates")
         }
 
-        if (!hasOnePinnedCertificate(certificates)) {
-            val message = buildErrorMessage(certificates, hostname)
+        if (!hasOnePinnedCertificate(certificates, matchingPins)) {
+            val message = buildErrorMessage(certificates, hostname, matchingPins)
             throw TlsPeerUnverifiedException(message)
         }
         return true
@@ -185,14 +185,15 @@ public data class CertificatePinner(
      */
     @OptIn(ExperimentalForeignApi::class)
     private fun hasOnePinnedCertificate(
-        certificates: List<SecCertificateRef>
+        certificates: List<SecCertificateRef>,
+        pins: Collection<PinnedCertificate>
     ): Boolean = certificates.any { certificate ->
         val publicKey = certificate.getPublicKeyBytes() ?: return@any false
         // Lazily compute the hashes for each public key.
         var sha1: String? = null
         var sha256: String? = null
 
-        pinnedCertificates.any { pin ->
+        pins.any { pin ->
             when (pin.hashAlgorithm) {
                 CertificatesInfo.HASH_ALGORITHM_SHA_256 -> {
                     if (sha256 == null) {
@@ -221,7 +222,8 @@ public data class CertificatePinner(
     @OptIn(ExperimentalForeignApi::class)
     private fun buildErrorMessage(
         certificates: List<SecCertificateRef>,
-        hostname: String
+        hostname: String,
+        matchingPins: Collection<PinnedCertificate>
     ): String = buildString {
         append("Certificate pinning failure!")
         append("\n  Peer certificate chain:")
@@ -237,7 +239,7 @@ public data class CertificatePinner(
         append("\n  Pinned certificates for ")
         append(hostname)
         append(":")
-        for (pin in pinnedCertificates) {
+        for (pin in matchingPins) {
             append("\n    ")
             append(pin)
         }
