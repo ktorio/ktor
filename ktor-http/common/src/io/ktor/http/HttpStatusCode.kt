@@ -92,6 +92,7 @@ public data class HttpStatusCode(val value: Int, val description: String) : Comp
         public val FailedDependency: HttpStatusCode = HttpStatusCode(424, "Failed Dependency")
         public val TooEarly: HttpStatusCode = HttpStatusCode(425, "Too Early")
         public val UpgradeRequired: HttpStatusCode = HttpStatusCode(426, "Upgrade Required")
+        public val PreconditionRequired: HttpStatusCode = HttpStatusCode(428, "Precondition Required")
         public val TooManyRequests: HttpStatusCode = HttpStatusCode(429, "Too Many Requests")
 
         public val RequestHeaderFieldTooLarge: HttpStatusCode =
@@ -163,6 +164,7 @@ internal fun allStatusCodes(): List<HttpStatusCode> = listOf(
     HttpStatusCode.Gone,
     HttpStatusCode.LengthRequired,
     HttpStatusCode.PreconditionFailed,
+    HttpStatusCode.PreconditionRequired,
     HttpStatusCode.PayloadTooLarge,
     HttpStatusCode.RequestURITooLong,
     HttpStatusCode.UnsupportedMediaType,
