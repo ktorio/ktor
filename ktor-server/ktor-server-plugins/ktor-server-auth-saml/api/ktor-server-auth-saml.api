@@ -68,6 +68,10 @@ public final class io/ktor/server/auth/saml/SamlAuthKt {
 	public static final fun saml (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun saml$default (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public static synthetic fun saml$default (Lio/ktor/server/auth/AuthenticationConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun samlLogout (Lio/ktor/server/application/ApplicationCall;Lio/ktor/server/auth/saml/SamlPrincipal;Lio/ktor/server/auth/saml/SamlSpMetadata;Ljava/lang/String;Ljava/lang/String;Lio/ktor/server/auth/saml/SignatureAlgorithm;)Lio/ktor/server/auth/saml/SamlRedirectResult;
+	public static final fun samlLogout (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;Ljava/lang/String;Lio/ktor/server/auth/saml/SamlSpMetadata;Ljava/lang/String;Ljava/lang/String;Lio/ktor/server/auth/saml/SignatureAlgorithm;)Lio/ktor/server/auth/saml/SamlRedirectResult;
+	public static synthetic fun samlLogout$default (Lio/ktor/server/application/ApplicationCall;Lio/ktor/server/auth/saml/SamlPrincipal;Lio/ktor/server/auth/saml/SamlSpMetadata;Ljava/lang/String;Ljava/lang/String;Lio/ktor/server/auth/saml/SignatureAlgorithm;ILjava/lang/Object;)Lio/ktor/server/auth/saml/SamlRedirectResult;
+	public static synthetic fun samlLogout$default (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;Ljava/lang/String;Lio/ktor/server/auth/saml/SamlSpMetadata;Ljava/lang/String;Ljava/lang/String;Lio/ktor/server/auth/saml/SignatureAlgorithm;ILjava/lang/Object;)Lio/ktor/server/auth/saml/SamlRedirectResult;
 }
 
 public final class io/ktor/server/auth/saml/SamlAuthenticationProvider : io/ktor/server/auth/AuthenticationProvider {

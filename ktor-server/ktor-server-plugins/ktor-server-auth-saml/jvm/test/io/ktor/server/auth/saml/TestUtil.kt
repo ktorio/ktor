@@ -8,6 +8,7 @@ import io.ktor.network.tls.certificates.*
 import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport
 import org.opensaml.core.xml.io.MarshallingException
 import org.opensaml.core.xml.schema.XSString
+import org.opensaml.saml.common.SAMLVersion
 import org.opensaml.saml.saml2.core.*
 import org.opensaml.saml.saml2.encryption.Encrypter
 import org.opensaml.security.credential.Credential
@@ -351,5 +352,286 @@ object SamlTestUtils {
             this.status = status
             encryptedAssertions.add(encryptedAssertion)
         }
+    }
+
+    /**
+     * Creates a test IdP metadata with SLO support.
+     */
+    fun createTestIdPMetadata(
+        entityId: String = "https://idp.example.com",
+        ssoUrl: String = "https://idp.example.com/sso",
+        sloUrl: String? = "https://idp.example.com/slo"
+    ): IdPMetadata {
+        val credentials = generateTestCredentials()
+        return IdPMetadata(
+            entityId = entityId,
+            ssoUrl = ssoUrl,
+            sloUrl = sloUrl,
+            signingCredentials = listOf(credentials.credential)
+        )
+    }
+
+    /**
+     * Creates a SAML LogoutResponse XML.
+     *
+     * @param inResponseTo The ID of the LogoutRequest being responded to
+     * @param statusCode The SAML status code
+     * @param statusMessage Optional status message
+     * @param issuer The issuer entity ID (null to omit Issuer element)
+     * @param destination The destination URL
+     * @param issueInstant Custom IssueInstant (defaults to current time)
+     */
+    fun createLogoutResponse(
+        inResponseTo: String,
+        statusCode: String,
+        statusMessage: String? = null,
+        issuer: String? = null,
+        destination: String,
+        issueInstant: Instant = Clock.System.now()
+    ): String {
+        LibSaml.ensureInitialized()
+        val builderFactory = XMLObjectProviderRegistrySupport.getBuilderFactory()
+
+        val issuerObj = issuer?.let {
+            builderFactory.build<Issuer>(Issuer.DEFAULT_ELEMENT_NAME) {
+                value = it
+            }
+        }
+
+        val statusCodeObj = builderFactory.build<StatusCode>(StatusCode.DEFAULT_ELEMENT_NAME) {
+            value = statusCode
+        }
+
+        val statusMessageObj = statusMessage?.let {
+            builderFactory.build<StatusMessage>(StatusMessage.DEFAULT_ELEMENT_NAME) {
+                value = it
+            }
+        }
+
+        val status = builderFactory.build<Status>(Status.DEFAULT_ELEMENT_NAME) {
+            this.statusCode = statusCodeObj
+            statusMessageObj?.let { this.statusMessage = it }
+        }
+
+        val logoutResponse = builderFactory.build<LogoutResponse>(LogoutResponse.DEFAULT_ELEMENT_NAME) {
+            id = generateSecureSamlId()
+            this.issueInstant = issueInstant.toJavaInstant()
+            this.inResponseTo = inResponseTo
+            this.destination = destination
+            version = SAMLVersion.VERSION_20
+            issuerObj?.let { this.issuer = it }
+            this.status = status
+        }
+
+        return logoutResponse.marshalToString()
+    }
+
+    /**
+     * Base64 encodes a string for HTTP-POST binding.
+     */
+    fun encodeForPost(xml: String): String = Base64.encode(source = xml.toByteArray())
+
+    /**
+     * Creates a SAML LogoutRequest XML for testing IdP-initiated logout.
+     */
+    fun createLogoutRequest(
+        issuer: String? = null,
+        destination: String,
+        nameId: String,
+        nameIdFormat: String? = null,
+        sessionIndex: String? = null,
+        issueInstant: Instant = Clock.System.now(),
+        requestId: String = generateSecureSamlId()
+    ): String {
+        LibSaml.ensureInitialized()
+        val builderFactory = XMLObjectProviderRegistrySupport.getBuilderFactory()
+
+        val issuerObj = issuer?.let {
+            builderFactory.build<Issuer>(Issuer.DEFAULT_ELEMENT_NAME) {
+                value = it
+            }
+        }
+
+        val nameIdObj = builderFactory.build<NameID>(NameID.DEFAULT_ELEMENT_NAME) {
+            value = nameId
+            nameIdFormat?.let { format = it }
+        }
+
+        val sessionIndexElement = sessionIndex?.let {
+            builderFactory.build<SessionIndex>(SessionIndex.DEFAULT_ELEMENT_NAME) {
+                value = it
+            }
+        }
+
+        val logoutRequest = builderFactory.build<LogoutRequest>(LogoutRequest.DEFAULT_ELEMENT_NAME) {
+            id = requestId
+            this.issueInstant = issueInstant.toJavaInstant()
+            this.destination = destination
+            version = SAMLVersion.VERSION_20
+            issuerObj?.let { this.issuer = it }
+            this.nameID = nameIdObj
+            sessionIndexElement?.let { sessionIndexes.add(it) }
+        }
+
+        return logoutRequest.marshalToString()
+    }
+
+    fun createTestIdPMetadataWithSlo(
+        entityId: String = "https://idp.example.com",
+        ssoUrl: String = "https://idp.example.com/sso",
+        sloUrl: String = "https://idp.example.com/slo",
+        credentials: TestCredentials = sharedIdpCredentials
+    ): IdPMetadata {
+        return IdPMetadata(
+            entityId = entityId,
+            ssoUrl = ssoUrl,
+            sloUrl = sloUrl,
+            signingCredentials = listOf(credentials.credential)
+        )
+    }
+
+    /**
+     * Result of creating a signed SAML message for HTTP-Redirect binding.
+     *
+     * @property fullQueryString The complete query string including the Signature parameter
+     * @property samlMessageBase64 The Base64-encoded (and deflated) SAML message
+     */
+    data class SignedRedirectMessage(
+        val fullQueryString: String,
+        val samlMessageBase64: String,
+        val signatureBase64: String,
+        val signatureAlgorithmUri: String,
+    )
+
+    /**
+     * Creates a signed LogoutRequest for HTTP-Redirect binding testing.
+     *
+     * This creates the exact query string that would be signed by an IdP,
+     * preserving the encoding to ensure signature verification succeeds.
+     *
+     * @param credentials The signing credentials
+     * @param issuer The issuer entity ID
+     * @param destination The SP's SLO URL
+     * @param nameId The NameID of the subject to log out
+     * @param sessionIndex Optional session index
+     * @param relayState Optional RelayState
+     * @param signatureAlgorithm The signature algorithm to use
+     * @return SignedRedirectMessage containing all components needed for verification
+     */
+    fun createSignedLogoutRequestRedirect(
+        credentials: TestCredentials,
+        issuer: String = "https://idp.example.com",
+        destination: String = "https://sp.example.com/saml/slo",
+        nameId: String = "user@example.com",
+        sessionIndex: String? = "_session123",
+        relayState: String? = null,
+        signatureAlgorithm: SignatureAlgorithm = SignatureAlgorithm.RSA_SHA256
+    ): SignedRedirectMessage {
+        LibSaml.ensureInitialized()
+
+        val logoutRequestXml = createLogoutRequest(
+            issuer = issuer,
+            destination = destination,
+            nameId = nameId,
+            sessionIndex = sessionIndex
+        )
+
+        // Deflate and Base64 encode for HTTP-Redirect binding
+        val samlMessageBase64 = logoutRequestXml.toByteArray().deflateForRedirect()
+
+        // Build the query string in the order required by SAML spec
+        val enc = "UTF-8"
+        val queryParts = mutableListOf<String>()
+        queryParts.add("SAMLRequest=${java.net.URLEncoder.encode(samlMessageBase64, enc)}")
+        if (relayState != null) {
+            queryParts.add("RelayState=${java.net.URLEncoder.encode(relayState, enc)}")
+        }
+        queryParts.add("SigAlg=${java.net.URLEncoder.encode(signatureAlgorithm.uri, enc)}")
+        val queryStringWithoutSignature = queryParts.joinToString("&")
+
+        // Sign the query string
+        val signature = signQueryString(queryStringWithoutSignature, credentials.credential, signatureAlgorithm)
+        val fullQueryString = "$queryStringWithoutSignature&Signature=${java.net.URLEncoder.encode(signature, enc)}"
+
+        return SignedRedirectMessage(
+            fullQueryString = fullQueryString,
+            samlMessageBase64 = samlMessageBase64,
+            signatureBase64 = signature,
+            signatureAlgorithmUri = signatureAlgorithm.uri
+        )
+    }
+
+    /**
+     * Creates a signed LogoutResponse for HTTP-Redirect binding testing.
+     *
+     * @param credentials The signing credentials
+     * @param inResponseTo The ID of the LogoutRequest being responded to
+     * @param statusCode The SAML status code
+     * @param issuer The issuer entity ID
+     * @param destination The SP's SLO URL
+     * @param relayState Optional RelayState
+     * @param signatureAlgorithm The signature algorithm to use
+     * @return SignedRedirectMessage containing all components needed for verification
+     */
+    fun createSignedLogoutResponseRedirect(
+        credentials: TestCredentials,
+        inResponseTo: String = "_request123",
+        statusCode: String = StatusCode.SUCCESS,
+        issuer: String = "https://idp.example.com",
+        destination: String = "https://sp.example.com/saml/slo",
+        relayState: String? = null,
+        signatureAlgorithm: SignatureAlgorithm = SignatureAlgorithm.RSA_SHA256
+    ): SignedRedirectMessage {
+        LibSaml.ensureInitialized()
+
+        val logoutResponseXml = createLogoutResponse(
+            inResponseTo = inResponseTo,
+            statusCode = statusCode,
+            issuer = issuer,
+            destination = destination
+        )
+
+        // Deflate and Base64 encode for HTTP-Redirect binding
+        val samlMessageBase64 = logoutResponseXml.toByteArray().deflateForRedirect()
+
+        // Build the query string in the order required by SAML spec
+        val enc = "UTF-8"
+        val queryParts = mutableListOf<String>()
+        queryParts.add("SAMLResponse=${java.net.URLEncoder.encode(samlMessageBase64, enc)}")
+        if (relayState != null) {
+            queryParts.add("RelayState=${java.net.URLEncoder.encode(relayState, enc)}")
+        }
+        queryParts.add("SigAlg=${java.net.URLEncoder.encode(signatureAlgorithm.uri, enc)}")
+        val queryStringWithoutSignature = queryParts.joinToString("&")
+
+        // Sign the query string
+        val signature = signQueryString(queryStringWithoutSignature, credentials.credential, signatureAlgorithm)
+        val fullQueryString = "$queryStringWithoutSignature&Signature=${java.net.URLEncoder.encode(signature, enc)}"
+
+        return SignedRedirectMessage(
+            fullQueryString = fullQueryString,
+            samlMessageBase64 = samlMessageBase64,
+            signatureBase64 = signature,
+            signatureAlgorithmUri = signatureAlgorithm.uri
+        )
+    }
+
+    /**
+     * Deflates and Base64 encodes bytes for HTTP-Redirect binding.
+     */
+    private fun ByteArray.deflateForRedirect(): String {
+        val deflater = java.util.zip.Deflater(java.util.zip.Deflater.DEFAULT_COMPRESSION, true)
+        deflater.setInput(this)
+        deflater.finish()
+
+        val outputStream = java.io.ByteArrayOutputStream()
+        val buffer = ByteArray(1024)
+        while (!deflater.finished()) {
+            val count = deflater.deflate(buffer)
+            outputStream.write(buffer, 0, count)
+        }
+        deflater.end()
+
+        return Base64.encode(source = outputStream.toByteArray())
     }
 }

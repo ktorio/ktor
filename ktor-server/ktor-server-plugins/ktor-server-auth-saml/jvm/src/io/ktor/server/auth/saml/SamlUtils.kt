@@ -20,6 +20,8 @@ import java.net.URLEncoder
 import java.security.Signature
 import java.util.zip.Deflater
 import java.util.zip.DeflaterOutputStream
+import java.util.zip.Inflater
+import java.util.zip.InflaterInputStream
 import javax.xml.namespace.QName
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.dom.DOMSource
@@ -80,8 +82,32 @@ internal fun String.encodeSamlMessage(deflate: Boolean): String {
     }
     val bytesOut = ByteArrayOutputStream()
     val deflater = Deflater(Deflater.DEFLATED, true)
-    DeflaterOutputStream(bytesOut, deflater).use { it.write(bytes) }
+    try {
+        DeflaterOutputStream(bytesOut, deflater).use { it.write(bytes) }
+    } finally {
+        deflater.end()
+    }
     return Base64.encode(source = bytesOut.toByteArray())
+}
+
+/**
+ * Decodes a Base64-encoded SAML message.
+ *
+ * @param isDeflated Whether the message is deflated (HTTP-Redirect binding: true, HTTP-POST: false)
+ * @return Decoded XML string
+ */
+internal fun String.decodeSamlMessage(isDeflated: Boolean): String {
+    val decodedBytes = Base64.decode(source = this)
+    if (!isDeflated) {
+        return decodedBytes.toString(Charsets.UTF_8)
+    }
+    val inflater = Inflater(true)
+    try {
+        val inflaterInputStream = InflaterInputStream(decodedBytes.inputStream(), inflater)
+        return inflaterInputStream.readBytes().toString(Charsets.UTF_8)
+    } finally {
+        inflater.end()
+    }
 }
 
 @Suppress("UNCHECKED_CAST")
