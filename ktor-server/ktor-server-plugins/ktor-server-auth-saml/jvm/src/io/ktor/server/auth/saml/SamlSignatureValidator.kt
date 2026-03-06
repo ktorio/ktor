@@ -108,6 +108,7 @@ internal class SamlSignatureVerifier(
             throw SamlValidationException("Invalid Base64 signature", e)
         }
 
+        // signature should be the last parameter
         val signatureIdx = queryString.indexOf("&Signature=")
         val queryStringWithoutSignature = if (signatureIdx >= 0) {
             queryString.substring(0, signatureIdx).toByteArray(Charsets.UTF_8)
