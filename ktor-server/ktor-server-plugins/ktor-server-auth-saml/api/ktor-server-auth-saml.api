@@ -187,6 +187,10 @@ public final class io/ktor/server/auth/saml/SamlCrypto {
 	public static synthetic fun loadCredential$default (Lio/ktor/server/auth/saml/SamlCrypto;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lorg/opensaml/security/x509/BasicX509Credential;
 }
 
+public final class io/ktor/server/auth/saml/SamlMetadataGeneratorKt {
+	public static final fun toXml (Lio/ktor/server/auth/saml/SamlSpMetadata;)Ljava/lang/String;
+}
+
 public final class io/ktor/server/auth/saml/SamlMetadataKt {
 	public static final fun SamlSpMetadata (Lkotlin/jvm/functions/Function1;)Lio/ktor/server/auth/saml/SamlSpMetadata;
 	public static final fun parseSamlIdpMetadata (Ljava/lang/String;Z)Lio/ktor/server/auth/saml/IdPMetadata;
