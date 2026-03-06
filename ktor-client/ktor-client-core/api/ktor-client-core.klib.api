@@ -218,6 +218,7 @@ abstract class io.ktor.client.statement/HttpResponse : io.ktor.http/HttpMessage,
         abstract fun <get-version>(): io.ktor.http/HttpProtocolVersion // io.ktor.client.statement/HttpResponse.version.<get-version>|<get-version>(){}[0]
 
     open fun toString(): kotlin/String // io.ktor.client.statement/HttpResponse.toString|toString(){}[0]
+    open suspend fun bodyAsByteArray(io.ktor.utils.io/ByteReadChannel): kotlin/ByteArray // io.ktor.client.statement/HttpResponse.bodyAsByteArray|bodyAsByteArray(io.ktor.utils.io.ByteReadChannel){}[0]
 }
 
 final class <#A: io.ktor.client.engine/HttpClientEngineConfig> io.ktor.client/HttpClientConfig { // io.ktor.client/HttpClientConfig|null[0]
