@@ -171,10 +171,11 @@ public final class io/ktor/server/sessions/SessionTrackerById : io/ktor/server/s
 	public fun clear (Lio/ktor/server/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun clearById (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getSerializer ()Lio/ktor/server/sessions/SessionSerializer;
-	public final fun getSessionIdProvider ()Lkotlin/jvm/functions/Function1;
+	public final fun getSessionIdProvider ()Lkotlin/jvm/functions/Function0;
 	public final fun getStorage ()Lio/ktor/server/sessions/SessionStorage;
 	public final fun getType ()Lkotlin/reflect/KClass;
 	public fun load (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun provideSessionId (Lio/ktor/server/application/ApplicationCall;)Ljava/lang/String;
 	public fun store (Lio/ktor/server/application/ApplicationCall;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun toString ()Ljava/lang/String;
 	public fun validate (Ljava/lang/Object;)V
