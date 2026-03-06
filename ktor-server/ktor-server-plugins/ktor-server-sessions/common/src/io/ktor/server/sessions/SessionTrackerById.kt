@@ -82,14 +82,25 @@ internal fun ApplicationCall.sessionId(name: String): String? {
  * @property type is a session instance type
  * @property serializer session serializer
  * @property storage session storage to store session
- * @property sessionIdProvider is a function that generates session IDs based on the [ApplicationCall]
  */
-public class SessionTrackerById<S : Any>(
+public class SessionTrackerById<S : Any> private constructor(
     public val type: KClass<S>,
     public val serializer: SessionSerializer<S>,
     public val storage: SessionStorage,
-    public val sessionIdProvider: (ApplicationCall) -> String
 ) : SessionTracker<S> {
+
+    @Deprecated("Use sessionIdProviderByCall")
+    private var _sessionIdProvider: (() -> String)? = null
+    private var sessionIdProviderByCall: ((ApplicationCall) -> String)? = null
+
+    public constructor(
+        type: KClass<S>,
+        serializer: SessionSerializer<S>,
+        storage: SessionStorage,
+        sessionIdProvider: (ApplicationCall) -> String
+    ) : this(type, serializer, storage) {
+        sessionIdProviderByCall = sessionIdProvider
+    }
 
     @Deprecated(
         "Use constructor that accepts ApplicationCall parameter in sessionIdProvider",
@@ -100,9 +111,24 @@ public class SessionTrackerById<S : Any>(
         serializer: SessionSerializer<S>,
         storage: SessionStorage,
         sessionIdProvider: () -> String
-    ) : this(type, serializer, storage, sessionIdProvider = { sessionIdProvider() })
+    ) : this(type, serializer, storage) {
+        @Suppress("DEPRECATION")
+        _sessionIdProvider = sessionIdProvider
+    }
 
     internal val sessionIdKey: AttributeKey<String> = AttributeKey("SessionId")
+
+    @Suppress("DEPRECATION")
+    @Deprecated("Use provideSessionId(call)")
+    public val sessionIdProvider: () -> String
+        get() = checkNotNull(_sessionIdProvider) { "Session ID provider is not configured" }
+
+    @Suppress("DEPRECATION")
+    public fun provideSessionId(call: ApplicationCall): String {
+        sessionIdProviderByCall?.let { return it(call) }
+        _sessionIdProvider?.let { return it() }
+        throw IllegalStateException("Session ID provider is not configured")
+    }
 
     override suspend fun load(call: ApplicationCall, transport: String?): S? {
         val sessionId = transport ?: return null
@@ -125,7 +151,7 @@ public class SessionTrackerById<S : Any>(
     }
 
     override suspend fun store(call: ApplicationCall, value: S): String {
-        val sessionId = call.attributes.computeIfAbsent(sessionIdKey) { sessionIdProvider(call) }
+        val sessionId = call.attributes.computeIfAbsent(sessionIdKey) { provideSessionId(call) }
         val serialized = serializer.serialize(value)
         storage.write(sessionId, serialized)
         return sessionId
