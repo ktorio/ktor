@@ -266,7 +266,7 @@ class SamlResponseProcessorTest {
             issuerEntityId = IDP_ENTITY_ID,
             audienceEntityId = SP_ENTITY_ID,
             notBefore = Clock.System.now() + 10.minutes,
-            notOnOrAfter = Clock.System.now() - 20.minutes
+            notOnOrAfter = Clock.System.now() + 20.minutes
         )
 
         val response = SamlTestUtils.createTestResponse(
