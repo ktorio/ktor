@@ -123,24 +123,69 @@ class SamlLogoutIntegrationTest {
     fun `test LogoutResponse processing with success and failure status`() = testApplication {
         configureSamlAuth(enableSingleLogout = true)
 
+        val testClient = noRedirectsClient()
+
+        // Initiate SP-initiated logout to populate session with logoutRequestId
+        val initiateResponse = testClient.get("/test-logout")
+        assertEquals(HttpStatusCode.Found, initiateResponse.status)
+        val sessionCookie = initiateResponse.headers[HttpHeaders.SetCookie]
+        assertNotNull(sessionCookie, "Session cookie should be set")
+        val logoutRequestId = initiateResponse.headers["X-Logout-Request-Id"]
+        assertNotNull(logoutRequestId, "LogoutRequest ID should be returned in header")
+
+        // Test SUCCESS case: InResponseTo matches the stored logoutRequestId
         val successResponseXml = SamlTestUtils.createLogoutResponse(
-            inResponseTo = "_test_request_id",
+            inResponseTo = logoutRequestId,
             statusCode = StatusCode.SUCCESS,
             issuer = IDP_ENTITY_ID,
             destination = SLO_URL
         )
         val successBase64 = SamlTestUtils.encodeForPost(successResponseXml)
 
-        val successResponse = client.post(SLO_PATH) {
+        val successResponse = testClient.post(SLO_PATH) {
             contentType(ContentType.Application.FormUrlEncoded)
+            header(HttpHeaders.Cookie, sessionCookie.substringBefore(";"))
             setBody("SAMLResponse=${successBase64.encodeURLParameter()}")
         }
 
         assertEquals(HttpStatusCode.OK, successResponse.status)
         assertTrue(successResponse.bodyAsText().contains("Logout completed"))
 
+        // Test FAILURE case: InResponseTo does NOT match the stored logoutRequestId
+        // Re-initiate logout to get a fresh session with logoutRequestId
+        val reinitiateResponse = testClient.get("/test-logout")
+        assertEquals(HttpStatusCode.Found, reinitiateResponse.status)
+        val freshSessionCookie = reinitiateResponse.headers[HttpHeaders.SetCookie]
+        assertNotNull(freshSessionCookie)
+
+        val mismatchedResponseXml = SamlTestUtils.createLogoutResponse(
+            inResponseTo = "_different_request_id",
+            statusCode = StatusCode.SUCCESS,
+            issuer = IDP_ENTITY_ID,
+            destination = SLO_URL
+        )
+        val mismatchedBase64 = SamlTestUtils.encodeForPost(mismatchedResponseXml)
+
+        val mismatchedResponse = testClient.post(SLO_PATH) {
+            contentType(ContentType.Application.FormUrlEncoded)
+            header(HttpHeaders.Cookie, freshSessionCookie.substringBefore(";"))
+            setBody("SAMLResponse=${mismatchedBase64.encodeURLParameter()}")
+        }
+
+        // Mismatched InResponseTo should result in BadRequest (InResponseTo mismatch is caught as validation error)
+        assertEquals(HttpStatusCode.BadRequest, mismatchedResponse.status)
+        assertTrue(mismatchedResponse.bodyAsText().contains("Invalid logout response"))
+
+        // Test IdP failure case: InResponseTo matches but IdP reports failure status
+        val reinitiateResponse2 = testClient.get("/test-logout")
+        assertEquals(HttpStatusCode.Found, reinitiateResponse2.status)
+        val freshSessionCookie2 = reinitiateResponse2.headers[HttpHeaders.SetCookie]
+        assertNotNull(freshSessionCookie2)
+        val logoutRequestId2 = reinitiateResponse2.headers["X-Logout-Request-Id"]
+        assertNotNull(logoutRequestId2)
+
         val failureResponseXml = SamlTestUtils.createLogoutResponse(
-            inResponseTo = "_test_request",
+            inResponseTo = logoutRequestId2,
             statusCode = StatusCode.RESPONDER,
             statusMessage = "Logout failed at IdP",
             issuer = IDP_ENTITY_ID,
@@ -148,8 +193,9 @@ class SamlLogoutIntegrationTest {
         )
         val failureBase64 = SamlTestUtils.encodeForPost(failureResponseXml)
 
-        val failureResponse = client.post(SLO_PATH) {
+        val failureResponse = testClient.post(SLO_PATH) {
             contentType(ContentType.Application.FormUrlEncoded)
+            header(HttpHeaders.Cookie, freshSessionCookie2.substringBefore(";"))
             setBody("SAMLResponse=${failureBase64.encodeURLParameter()}")
         }
 
@@ -162,16 +208,27 @@ class SamlLogoutIntegrationTest {
     fun `test LogoutResponse with RelayState redirects`() = testApplication {
         configureSamlAuth(enableSingleLogout = true)
 
+        val testClient = noRedirectsClient()
+
+        // Initiate SP-initiated logout to populate session with logoutRequestId
+        val initiateResponse = testClient.get("/test-logout")
+        assertEquals(HttpStatusCode.Found, initiateResponse.status)
+        val sessionCookie = initiateResponse.headers[HttpHeaders.SetCookie]
+        assertNotNull(sessionCookie)
+        val logoutRequestId = initiateResponse.headers["X-Logout-Request-Id"]
+        assertNotNull(logoutRequestId)
+
         val logoutResponseXml = SamlTestUtils.createLogoutResponse(
-            inResponseTo = "_test_request",
+            inResponseTo = logoutRequestId,
             statusCode = StatusCode.SUCCESS,
             issuer = IDP_ENTITY_ID,
             destination = SLO_URL
         )
         val base64Response = SamlTestUtils.encodeForPost(logoutResponseXml)
 
-        val response = noRedirectsClient().post(SLO_PATH) {
+        val response = testClient.post(SLO_PATH) {
             contentType(ContentType.Application.FormUrlEncoded)
+            header(HttpHeaders.Cookie, sessionCookie.substringBefore(";"))
             setBody("SAMLResponse=${base64Response.encodeURLParameter()}&RelayState=/post-logout-page")
         }
 
@@ -327,6 +384,8 @@ class SamlLogoutIntegrationTest {
                         spMetadata = spMetadata,
                         sessionIndex = "_session123"
                     )
+                    // Include the messageId in a header for tests to use when constructing LogoutResponse
+                    call.response.header("X-Logout-Request-Id", result.messageId)
                     call.respondRedirect(result.redirectUrl)
                 }
 

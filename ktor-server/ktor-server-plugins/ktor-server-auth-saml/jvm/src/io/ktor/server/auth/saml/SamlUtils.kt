@@ -82,7 +82,11 @@ internal fun String.encodeSamlMessage(deflate: Boolean): String {
     }
     val bytesOut = ByteArrayOutputStream()
     val deflater = Deflater(Deflater.DEFLATED, true)
-    DeflaterOutputStream(bytesOut, deflater).use { it.write(bytes) }
+    try {
+        DeflaterOutputStream(bytesOut, deflater).use { it.write(bytes) }
+    } finally {
+        deflater.end()
+    }
     return Base64.encode(source = bytesOut.toByteArray())
 }
 
@@ -98,8 +102,12 @@ internal fun String.decodeSamlMessage(isDeflated: Boolean): String {
         return decodedBytes.toString(Charsets.UTF_8)
     }
     val inflater = Inflater(true)
-    val inflaterInputStream = InflaterInputStream(decodedBytes.inputStream(), inflater)
-    return inflaterInputStream.readBytes().toString(Charsets.UTF_8)
+    try {
+        val inflaterInputStream = InflaterInputStream(decodedBytes.inputStream(), inflater)
+        return inflaterInputStream.readBytes().toString(Charsets.UTF_8)
+    } finally {
+        inflater.end()
+    }
 }
 
 @Suppress("UNCHECKED_CAST")
