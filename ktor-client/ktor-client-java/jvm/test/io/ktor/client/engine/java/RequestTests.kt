@@ -24,7 +24,6 @@ import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
 
 class RequestTests : TestWithKtor() {
 
@@ -53,10 +52,13 @@ class RequestTests : TestWithKtor() {
                 )
             }
 
-            get("/headers") {
-                val headers = call.request.headers.entries()
-                    .joinToString("\n") { (key, values) -> "$key: ${values.joinToString(", ")}" }
-                call.respondText(headers)
+            route("/headers") {
+                handle {
+                    val contentLength = call.request.header(HttpHeaders.ContentLength)
+                    call.response.header("X-Request-Method", call.request.httpMethod.value)
+                    call.response.header("X-Request-Content-Length", contentLength ?: "absent")
+                    call.respondText("OK")
+                }
             }
         }
     }
@@ -119,16 +121,29 @@ class RequestTests : TestWithKtor() {
     }
 
     @Test
-    fun `get request does not send Content-Length header`() {
+    fun `GET request does not send Content-Length header`() {
         val response = HttpClient(Java).use { client ->
             runBlocking {
-                client.get("$testUrl/headers").body<String>()
+                client.get("$testUrl/headers")
             }
         }
 
-        assertFalse(
-            response.contains("Content-Length: 0", ignoreCase = true),
-            "GET request should not contain Content-Length: 0 header. Received headers:\n$response"
+        assertEquals("GET", response.headers["X-Request-Method"])
+        assertEquals(
+            "absent",
+            response.headers["X-Request-Content-Length"],
+            "GET request should not send Content-Length header"
         )
+    }
+
+    @Test
+    fun `OPTIONS request uses correct HTTP method`() {
+        val response = HttpClient(Java).use { client ->
+            runBlocking {
+                client.options("$testUrl/headers")
+            }
+        }
+
+        assertEquals("OPTIONS", response.headers["X-Request-Method"])
     }
 }
