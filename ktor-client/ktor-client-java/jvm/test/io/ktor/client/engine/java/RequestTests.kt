@@ -119,7 +119,7 @@ class RequestTests : TestWithKtor() {
     }
 
     @Test
-    fun testGetRequestDoesNotSendContentLengthHeader() {
+    fun `get request does not send Content-Length header`() {
         val response = HttpClient(Java).use { client ->
             runBlocking {
                 client.get("$testUrl/headers").body<String>()

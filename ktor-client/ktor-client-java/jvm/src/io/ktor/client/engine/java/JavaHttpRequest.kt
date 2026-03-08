@@ -51,7 +51,9 @@ internal fun HttpRequestData.convertToHttpRequest(callContext: CoroutineContext)
             }
         }
 
-        if (method.supportsRequestBody || body !is OutgoingContent.NoContent) {
+        if (method == HttpMethod.Get && body is OutgoingContent.NoContent) {
+            // Leave builder as default GET to avoid Content-Length: 0 (JDK bug)
+        } else {
             method(method.value, body.convertToHttpRequestBody(callContext))
         }
     }
