@@ -24,6 +24,7 @@ import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 
 class RequestTests : TestWithKtor() {
 
@@ -50,6 +51,12 @@ class RequestTests : TestWithKtor() {
                         }
                     }
                 )
+            }
+
+            get("/headers") {
+                val headers = call.request.headers.entries()
+                    .joinToString("\n") { (key, values) -> "$key: ${values.joinToString(", ")}" }
+                call.respondText(headers)
             }
         }
     }
@@ -109,5 +116,19 @@ class RequestTests : TestWithKtor() {
         }
 
         assertEquals(payload, response)
+    }
+
+    @Test
+    fun testGetRequestDoesNotSendContentLengthHeader() {
+        val response = HttpClient(Java).use { client ->
+            runBlocking {
+                client.get("$testUrl/headers").body<String>()
+            }
+        }
+
+        assertFalse(
+            response.contains("Content-Length: 0", ignoreCase = true),
+            "GET request should not contain Content-Length: 0 header. Received headers:\n$response"
+        )
     }
 }

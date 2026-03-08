@@ -51,7 +51,9 @@ internal fun HttpRequestData.convertToHttpRequest(callContext: CoroutineContext)
             }
         }
 
-        method(method.value, body.convertToHttpRequestBody(callContext))
+        if (method.supportsRequestBody || body !is OutgoingContent.NoContent) {
+            method(method.value, body.convertToHttpRequestBody(callContext))
+        }
     }
 
     return builder.build()
