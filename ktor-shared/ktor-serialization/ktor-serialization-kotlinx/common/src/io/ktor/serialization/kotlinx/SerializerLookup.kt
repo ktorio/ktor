@@ -9,6 +9,7 @@ import io.ktor.utils.io.*
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
 import kotlinx.serialization.modules.*
+import kotlin.reflect.*
 
 @InternalSerializationApi
 @ExperimentalSerializationApi
@@ -25,7 +26,33 @@ public fun SerializersModule.serializerForTypeInfo(typeInfo: TypeInfo): KSeriali
                 null // fallback to a simple case because of
                 // https://github.com/Kotlin/kotlinx.serialization/issues/1870
             } else {
-                module.serializerOrNull(type)
+                module.serializerOrNull(type) ?: run {
+                    var lookupFailed = false
+                    val nonSerializableArgs = type.arguments
+                        .mapNotNull { it.type }
+                        .filter { argType ->
+                            try {
+                                module.serializerOrNull(argType) == null
+                            } catch (_: Throwable) {
+                                lookupFailed = true
+                                false
+                            }
+                        }
+                    if (lookupFailed) return@run null
+                    if (nonSerializableArgs.isNotEmpty()) {
+                        val argNames = nonSerializableArgs.joinToString {
+                            val classifier = it.classifier
+                            if (classifier is KClass<*>) "'${classifier.simpleName}'" else "'$it'"
+                        }
+                        throw SerializationException(
+                            "Serializer for class '${typeInfo.type.simpleName}' is not found. " +
+                                "Ensure that the following type " +
+                                (if (nonSerializableArgs.size == 1) "parameter is" else "parameters are") +
+                                " marked as '@Serializable': $argNames"
+                        )
+                    }
+                    null
+                }
             }
         }
         ?: module.getContextual(typeInfo.type)?.maybeNullable(typeInfo)
