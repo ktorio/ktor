@@ -4,8 +4,7 @@
 
 package io.ktor.server.auth.saml
 
-import io.ktor.network.tls.certificates.generateCertificate
-import io.ktor.network.tls.certificates.saveToFile
+import io.ktor.network.tls.certificates.*
 import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport
 import org.opensaml.core.xml.io.MarshallingException
 import org.opensaml.core.xml.schema.XSString
