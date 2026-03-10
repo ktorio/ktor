@@ -9,7 +9,7 @@ import ktorbuild.internal.publish.*
 
 plugins {
     id("com.vanniktech.maven.publish")
-    id("signing") apply false
+    id("signing")
 }
 
 addProjectTag(ProjectTag.Published)

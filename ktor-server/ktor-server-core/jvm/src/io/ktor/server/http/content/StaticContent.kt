@@ -964,4 +964,6 @@ public interface FileSystemPaths {
 private object TailcardSelector : RouteSelector() {
     override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation =
         RouteSelectorEvaluation.Success(quality = RouteSelectorEvaluation.qualityTailcard)
+
+    override fun toString(): String = "(static-content)"
 }

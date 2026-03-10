@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.darwin.internal
@@ -56,7 +56,7 @@ internal class DarwinSession(
     }
 
     override fun close() {
-        if (!closed.compareAndSet(false, true)) return
+        if (!closed.compareAndSet(expect = false, update = true)) return
         session.finishTasksAndInvalidate()
     }
 }

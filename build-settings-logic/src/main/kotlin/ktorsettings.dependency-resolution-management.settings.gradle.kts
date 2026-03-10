@@ -6,8 +6,9 @@
 
 pluginManagement {
     repositories {
-        gradlePluginPortal()
-        configureRepositories()
+        configureRepositories {
+            gradlePluginPortal()
+        }
     }
 }
 
@@ -31,14 +32,18 @@ dependencyResolutionManagement {
     }
 }
 
-private fun RepositoryHandler.configureRepositories() {
+private fun RepositoryHandler.configureRepositories(configure: RepositoryHandler.() -> Unit = {}) {
+    // Google repository should go first as it has a content filter that handles all Android dependencies
+    // before trying to resolve them via other repositories
     google {
         content {
             includeGroupAndSubgroups("androidx")
             includeGroupAndSubgroups("com.google")
             includeGroupAndSubgroups("com.android")
+            excludeGroup("com.google.code.gson")
         }
     }
+    configure()
     mavenCentral()
     mavenLocal()
 

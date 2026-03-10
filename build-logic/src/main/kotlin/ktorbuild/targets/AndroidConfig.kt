@@ -6,8 +6,8 @@
 package ktorbuild.targets
 
 import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
-import com.android.build.api.dsl.androidLibrary
 import dependencies
+import ktorbuild.internal.android
 import ktorbuild.internal.kotlin
 import ktorbuild.internal.libs
 import optional
@@ -17,9 +17,9 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
 private const val ANDROID_PLUGIN_ID = "com.android.kotlin.multiplatform.library"
 
-fun KotlinMultiplatformExtension.optionalAndroidLibrary(action: KotlinMultiplatformAndroidLibraryTarget.() -> Unit) {
+fun KotlinMultiplatformExtension.optionalAndroid(action: KotlinMultiplatformAndroidLibraryTarget.() -> Unit) {
     project.pluginManager.withPlugin(ANDROID_PLUGIN_ID) {
-        androidLibrary(action)
+        android(action)
     }
 }
 
