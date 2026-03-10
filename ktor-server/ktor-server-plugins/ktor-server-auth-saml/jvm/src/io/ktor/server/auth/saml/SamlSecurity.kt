@@ -62,14 +62,20 @@ public object SamlCrypto {
         keyPassword: String,
         keystoreType: String = "JKS"
     ): BasicX509Credential {
-        val keyStore = loadKeyStore(keystorePath, keystorePassword, keystoreType)
-        val key = keyStore.getKey(keyAlias, keyPassword.toCharArray()) as? PrivateKey
-            ?: throw KeyStoreException("Key with alias '$keyAlias' not found or is not a PrivateKey")
-        val certificateChain = keyStore.getCertificateChain(keyAlias)
-            ?: throw KeyStoreException("Certificate chain for alias '$keyAlias' not found")
-        val certificate = certificateChain.first() as? X509Certificate
-            ?: throw KeyStoreException("First certificate in chain is not an X509Certificate")
-        return BasicX509Credential(certificate).also { it.setPrivateKey(key) }
+        try {
+            val keyStore = loadKeyStore(keystorePath, keystorePassword, keystoreType)
+            val key = keyStore.getKey(keyAlias, keyPassword.toCharArray()) as? PrivateKey
+                ?: throw KeyStoreException("Key with alias '$keyAlias' not found or is not a PrivateKey")
+            val certificateChain = keyStore.getCertificateChain(keyAlias)
+                ?: throw KeyStoreException("Certificate chain for alias '$keyAlias' not found")
+            val certificate = certificateChain.firstOrNull() as? X509Certificate
+                ?: throw KeyStoreException("First certificate in chain is not an X509Certificate")
+            return BasicX509Credential(certificate).also { it.setPrivateKey(key) }
+        } catch (e: KeyStoreException) {
+            throw e
+        } catch (e: Throwable) {
+            throw KeyStoreException("Failed to load credential", e)
+        }
     }
 }
 

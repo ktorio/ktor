@@ -292,6 +292,11 @@ public class SamlAuthenticationProvider internal constructor(
             val samlResponse = parameters["SAMLResponse"]
 
             when {
+                samlRequest != null && samlResponse != null -> {
+                    logger.debug("SLO endpoint failed. Both `SAMLRequest` and `SAMLRequest` are present")
+                    call.respond(HttpStatusCode.BadRequest, "Malformed SAML request")
+                }
+
                 samlRequest != null -> handleIdpLogoutRequest(samlRequest, parameters)
                 samlResponse != null -> handleLogoutResponse(samlResponse, parameters)
                 else -> {

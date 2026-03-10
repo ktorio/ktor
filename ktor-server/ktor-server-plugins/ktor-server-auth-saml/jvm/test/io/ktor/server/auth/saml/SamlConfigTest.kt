@@ -4,6 +4,9 @@
 
 package io.ktor.server.auth.saml
 
+import io.ktor.network.tls.certificates.*
+import java.security.cert.X509Certificate
+import kotlin.io.encoding.Base64
 import kotlin.test.*
 import kotlin.time.Duration.Companion.seconds
 
@@ -50,11 +53,29 @@ class SamlConfigTest {
     }
 
     companion object {
+        private val TEST_KEY_STORE = buildKeyStore {
+            certificate("test") {
+                password = "test"
+            }
+        }
+
+        private val TEST_CERTIFICATE = TEST_KEY_STORE.getCertificate("test") as X509Certificate
+
+        private val TEST_CERTIFICATE_BASE64 = Base64.encode(TEST_CERTIFICATE.encoded)
+
         private val MINIMAL_IDP_METADATA = """
         <?xml version="1.0" encoding="UTF-8"?>
         <EntityDescriptor xmlns="urn:oasis:names:tc:SAML:2.0:metadata"
+                          xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
                           entityID="https://idp.example.com">
             <IDPSSODescriptor protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+                <KeyDescriptor use="signing">
+                    <ds:KeyInfo>
+                        <ds:X509Data>
+                            <ds:X509Certificate>$TEST_CERTIFICATE_BASE64</ds:X509Certificate>
+                        </ds:X509Data>
+                    </ds:KeyInfo>
+                </KeyDescriptor>
                 <SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
                                      Location="https://idp.example.com/sso"/>
             </IDPSSODescriptor>
