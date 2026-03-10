@@ -332,8 +332,8 @@ public class IdPMetadata internal constructor() {
     public var sloUrlPost: String? = null
 
     internal fun validate() {
-        requireNotNull(entityId) { "Entity ID cannot be null" }
-        requireNotNull(ssoUrl) { "SSO URL cannot be null" }
+        require(!entityId.isNullOrBlank()) { "Non-empty Entity ID should be specified." }
+        require(!ssoUrl.isNullOrBlank()) { "Non-empty SSO URL should be specified." }
         require(signingCredentials.isNotEmpty()) {
             "No signing certificates found in IdP metadata. Signature verification will fail."
         }
