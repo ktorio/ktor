@@ -279,29 +279,74 @@ public class SamlContactPerson {
  *
  * This class extracts and holds the essential information from SAML metadata
  * needed for the SP to interact with the IdP.
- *
- * @property entityId The IdP's entity ID
- * @property ssoUrl The Single Sign-On service URL (default binding - HTTP-Redirect or HTTP-POST)
- * @property sloUrl The Single Logout service URL (default binding - HTTP-Redirect or HTTP-POST), null if not available
  */
-public class IdPMetadata internal constructor(
-    public val entityId: String,
-    public val ssoUrl: String,
-    public val sloUrl: String?,
-    internal val signingCredentials: List<Credential>,
-    private val ssoUrlRedirect: String? = null,
-    private val ssoUrlPost: String? = null,
-    private val sloUrlRedirect: String? = null,
-    private val sloUrlPost: String? = null
-) {
+public class IdPMetadata internal constructor() {
+    /**
+     * The IdP's entity ID - a unique identifier for the Identity Provider.
+     * Required.
+     */
+    public var entityId: String? = null
+
+    /**
+     * The Single Sign-On service URL (default binding).
+     * This is the endpoint where SAML authentication requests should be sent.
+     * Required.
+     */
+    public var ssoUrl: String? = null
+
+    /**
+     * The Single Logout service URL (default binding).
+     * This is the endpoint where SAML logout requests and responses should be sent.
+     * Optional.
+     */
+    public var sloUrl: String? = null
+
+    /**
+     * List of signing credentials (certificates) used to verify signatures from the IdP.
+     * At least one credential is required for signature verification.
+     */
+    public var signingCredentials: List<Credential> = emptyList()
+
+    /**
+     * SSO URL for HTTP-Redirect binding.
+     * Falls back to [ssoUrl] if not specified.
+     */
+    public var ssoUrlRedirect: String? = null
+
+    /**
+     * SSO URL for HTTP-POST binding.
+     * Falls back to [ssoUrl] if not specified.
+     */
+    public var ssoUrlPost: String? = null
+
+    /**
+     * SLO URL for HTTP-Redirect binding.
+     * Falls back to [sloUrl] if not specified.
+     */
+    public var sloUrlRedirect: String? = null
+
+    /**
+     * SLO URL for HTTP-POST binding.
+     * Falls back to [sloUrl] if not specified.
+     */
+    public var sloUrlPost: String? = null
+
+    internal fun validate() {
+        requireNotNull(entityId) { "Entity ID cannot be null" }
+        requireNotNull(ssoUrl) { "SSO URL cannot be null" }
+        require(signingCredentials.isNotEmpty()) {
+            "No signing certificates found in IdP metadata. Signature verification will fail."
+        }
+    }
+
     /**
      * Returns the SSO URL for the specified binding.
      * Falls back to the default ssoUrl if binding-specific URL is not available.
      */
     internal fun getSsoUrlFor(binding: SamlBinding): String {
         return when (binding) {
-            SamlBinding.HttpRedirect -> ssoUrlRedirect ?: ssoUrl
-            SamlBinding.HttpPost -> ssoUrlPost ?: ssoUrl
+            SamlBinding.HttpRedirect -> checkNotNull(ssoUrlRedirect ?: ssoUrl)
+            SamlBinding.HttpPost -> checkNotNull(ssoUrlPost ?: ssoUrl)
         }
     }
 
@@ -315,6 +360,35 @@ public class IdPMetadata internal constructor(
             SamlBinding.HttpPost -> sloUrlPost ?: sloUrl
         }
     }
+}
+
+/**
+ * Creates a new SAML Identity Provider metadata configuration.
+ *
+ * This factory function allows creating a standalone [IdPMetadata] instance programmatically.
+ * Typically used for testing or when IdP metadata needs to be constructed from non-XML sources.
+ * For production use, prefer [parseSamlIdpMetadata] to parse actual IdP metadata XML.
+ *
+ * ## Example Usage
+ *
+ * ```kotlin
+ * val idp = IdPMetadata {
+ *     entityId = "https://idp.example.com"
+ *     ssoUrl = "https://idp.example.com/sso"
+ *     sloUrl = "https://idp.example.com/slo"
+ *     signingCredentials = listOf(credential)
+ * }
+ * ```
+ *
+ * @param configure Configuration block for IdP metadata settings
+ * @return A configured [IdPMetadata] instance
+ * @throws IllegalArgumentException if [IdPMetadata.entityId] or [IdPMetadata.ssoUrl] is null
+ * @throws IllegalArgumentException if [IdPMetadata.signingCredentials] is empty
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.saml.IdPMetadata)
+ */
+public fun IdPMetadata(configure: IdPMetadata.() -> Unit): IdPMetadata {
+    return IdPMetadata().apply(configure).also { it.validate() }
 }
 
 private val CERT_EXPIRY_WARNING_THRESHOLD = 30.days
@@ -366,20 +440,17 @@ private fun EntityDescriptor.extractIdPMetadata(validateCertificateExpiration: B
 
     // Extract signing certificates
     val signingCredentials = idpDescriptor.extractSigningCredentials(validateCertificateExpiration)
-    require(signingCredentials.isNotEmpty()) {
-        "No signing certificates found in IdP metadata. Signature verification will fail."
-    }
 
-    return IdPMetadata(
-        entityId = entityId,
-        ssoUrl = ssoUrl,
-        sloUrl = sloUrl,
-        signingCredentials = signingCredentials,
-        ssoUrlRedirect = ssoUrlRedirect,
-        ssoUrlPost = ssoUrlPost,
-        sloUrlRedirect = sloUrlRedirect,
-        sloUrlPost = sloUrlPost
-    )
+    return IdPMetadata {
+        this.entityId = entityId
+        this.ssoUrl = ssoUrl
+        this.sloUrl = sloUrl
+        this.signingCredentials = signingCredentials
+        this.ssoUrlRedirect = ssoUrlRedirect
+        this.ssoUrlPost = ssoUrlPost
+        this.sloUrlRedirect = sloUrlRedirect
+        this.sloUrlPost = sloUrlPost
+    }
 }
 
 private fun IDPSSODescriptor.extractSigningCredentials(
@@ -430,9 +501,7 @@ private fun X509Certificate.validate() {
     if (timeUntilExpiry < CERT_EXPIRY_WARNING_THRESHOLD) {
         val daysUntilExpiry = timeUntilExpiry.inWholeDays
         LOGGER.warn(
-            "IdP signing certificate is expiring soon! Subject: $subjectX500Principal, " +
-                "Expires: $notAfter (in $daysUntilExpiry days). " +
-                "Contact your IdP administrator to renew the certificate."
+            "IdP signing certificate is expiring soon! Subject: $subjectX500Principal, Expires: $notAfter (in $daysUntilExpiry days). Contact your IdP administrator to renew the certificate."
         )
     }
 }
