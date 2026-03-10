@@ -4,8 +4,10 @@
 
 package io.ktor.server.auth.saml
 
+import io.ktor.network.tls.certificates.buildKeyStore
 import kotlinx.coroutines.runBlocking
 import org.opensaml.saml.saml2.core.StatusCode
+import kotlin.io.encoding.Base64
 import kotlin.test.*
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
@@ -127,8 +129,17 @@ class SamlLogoutTest {
         val withSloUrl = parseSamlIdpMetadata(
             """
             <?xml version="1.0"?>
-            <EntityDescriptor xmlns="urn:oasis:names:tc:SAML:2.0:metadata" entityID="https://idp.example.com">
+            <EntityDescriptor xmlns="urn:oasis:names:tc:SAML:2.0:metadata"
+                              xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+                              entityID="https://idp.example.com">
                 <IDPSSODescriptor protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+                    <KeyDescriptor use="signing">
+                        <ds:KeyInfo>
+                            <ds:X509Data>
+                                <ds:X509Certificate>$TEST_CERTIFICATE_BASE64</ds:X509Certificate>
+                            </ds:X509Data>
+                        </ds:KeyInfo>
+                    </KeyDescriptor>
                     <SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://idp.example.com/sso"/>
                     <SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://idp.example.com/slo"/>
                     <SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://idp.example.com/slo-post"/>
@@ -144,8 +155,17 @@ class SamlLogoutTest {
         val withoutSloUrl = parseSamlIdpMetadata(
             """
             <?xml version="1.0"?>
-            <EntityDescriptor xmlns="urn:oasis:names:tc:SAML:2.0:metadata" entityID="https://idp.example.com">
+            <EntityDescriptor xmlns="urn:oasis:names:tc:SAML:2.0:metadata"
+                              xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+                              entityID="https://idp.example.com">
                 <IDPSSODescriptor protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+                    <KeyDescriptor use="signing">
+                        <ds:KeyInfo>
+                            <ds:X509Data>
+                                <ds:X509Certificate>$TEST_CERTIFICATE_BASE64</ds:X509Certificate>
+                            </ds:X509Data>
+                        </ds:KeyInfo>
+                    </KeyDescriptor>
                     <SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://idp.example.com/sso"/>
                 </IDPSSODescriptor>
             </EntityDescriptor>
@@ -174,7 +194,7 @@ class SamlLogoutTest {
 
         val signedRequest = SamlTestUtils.createSignedLogoutRequestRedirect(
             credentials = credentials,
-            issuer = idpMetadata.entityId,
+            issuer = idpMetadata.entityId!!,
             destination = "https://sp.example.com/saml/slo",
             nameId = "user@example.com",
             sessionIndex = "_session123"
@@ -193,7 +213,7 @@ class SamlLogoutTest {
             credentials = credentials,
             inResponseTo = "_request123",
             statusCode = StatusCode.SUCCESS,
-            issuer = idpMetadata.entityId,
+            issuer = idpMetadata.entityId!!,
             destination = "https://sp.example.com/saml/slo"
         )
         val responseResult = processor.processResponse(
@@ -226,7 +246,7 @@ class SamlLogoutTest {
 
         val wrongKey = SamlTestUtils.createSignedLogoutRequestRedirect(
             credentials = signingCredentials,
-            issuer = idpMetadata.entityId,
+            issuer = idpMetadata.entityId!!,
             destination = "https://sp.example.com/saml/slo",
             nameId = "user@example.com"
         )
@@ -252,7 +272,7 @@ class SamlLogoutTest {
         )
         val signedMessage = SamlTestUtils.createSignedLogoutRequestRedirect(
             credentials = validCredentials,
-            issuer = validMetadata.entityId,
+            issuer = validMetadata.entityId!!,
             destination = "https://sp.example.com/saml/slo",
             nameId = "user@example.com"
         )
@@ -465,4 +485,16 @@ class SamlLogoutTest {
         clockSkew = clockSkew,
         replayCache = InMemorySamlReplayCache()
     )
+
+    companion object {
+        private val TEST_CERTIFICATE_BASE64: String by lazy {
+            val keyStore = buildKeyStore {
+                certificate("test") {
+                    password = "test"
+                }
+            }
+            val cert = keyStore.getCertificate("test") as java.security.cert.X509Certificate
+            Base64.encode(cert.encoded)
+        }
+    }
 }
