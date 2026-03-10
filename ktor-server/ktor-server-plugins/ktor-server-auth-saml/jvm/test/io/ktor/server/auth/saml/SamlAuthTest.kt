@@ -329,19 +329,19 @@ class SamlAuthTest {
         val idp1Credentials = idpCredentials
         val idp2Credentials = SamlTestUtils.generateTestCredentials()
 
-        val idp1Metadata = IdPMetadata(
-            entityId = "https://idp1.example.com",
-            ssoUrl = "https://idp1.example.com/sso",
-            sloUrl = null,
+        val idp1Metadata = IdPMetadata {
+            entityId = "https://idp1.example.com"
+            ssoUrl = "https://idp1.example.com/sso"
+            sloUrl = null
             signingCredentials = listOf(idp1Credentials.credential)
-        )
+        }
 
-        val idp2Metadata = IdPMetadata(
-            entityId = "https://idp2.example.com",
-            ssoUrl = "https://idp2.example.com/sso",
-            sloUrl = null,
+        val idp2Metadata = IdPMetadata {
+            entityId = "https://idp2.example.com"
+            ssoUrl = "https://idp2.example.com/sso"
+            sloUrl = null
             signingCredentials = listOf(idp2Credentials.credential)
-        )
+        }
 
         // Sessions plugin is required for SAML auth to store the request ID
         install(Sessions) {
@@ -470,12 +470,12 @@ class SamlAuthTest {
                         )
                     }
                 }
-                idp = IdPMetadata(
-                    entityId = IDP_ENTITY_ID,
-                    ssoUrl = IDP_SSO_URL,
-                    sloUrl = null,
+                idp = IdPMetadata {
+                    entityId = IDP_ENTITY_ID
+                    ssoUrl = IDP_SSO_URL
+                    sloUrl = null
                     signingCredentials = listOf(idpCredentials.credential)
-                )
+                }
                 this.allowIdpInitiatedSso = allowIdpInitiatedSso
                 this.requireDestination = requireDestination
                 this.authnRequestBinding = authnRequestBinding
