@@ -52,12 +52,12 @@ class SamlResponseProcessorTest {
 
     @Test
     fun `test decrypt fails without decryption credential`() = runTest {
-        val idpMetadata = IdPMetadata(
-            entityId = IDP_ENTITY_ID,
-            ssoUrl = "https://idp.example.com/sso",
-            sloUrl = null,
+        val idpMetadata = IdPMetadata {
+            entityId = IDP_ENTITY_ID
+            ssoUrl = "https://idp.example.com/sso"
+            sloUrl = null
             signingCredentials = listOf(idpCredentials.credential)
-        )
+        }
         val processor = SamlResponseProcessor(
             spEntityId = SP_ENTITY_ID,
             acsUrl = ACS_URL,
@@ -266,7 +266,7 @@ class SamlResponseProcessorTest {
             issuerEntityId = IDP_ENTITY_ID,
             audienceEntityId = SP_ENTITY_ID,
             notBefore = Clock.System.now() + 10.minutes,
-            notOnOrAfter = Clock.System.now() - 20.minutes
+            notOnOrAfter = Clock.System.now() + 20.minutes
         )
 
         val response = SamlTestUtils.createTestResponse(
@@ -606,12 +606,12 @@ class SamlResponseProcessorTest {
         acsUrl: String = ACS_URL,
         allowIdpInitiatedSso: Boolean = true
     ): SamlResponseProcessor {
-        val idpMetadata = IdPMetadata(
-            entityId = IDP_ENTITY_ID,
-            ssoUrl = "https://idp.example.com/sso",
-            sloUrl = null,
+        val idpMetadata = IdPMetadata {
+            entityId = IDP_ENTITY_ID
+            ssoUrl = "https://idp.example.com/sso"
+            sloUrl = null
             signingCredentials = listOf(idpCredentials.credential)
-        )
+        }
         return SamlResponseProcessor(
             spEntityId = SP_ENTITY_ID,
             acsUrl = acsUrl,

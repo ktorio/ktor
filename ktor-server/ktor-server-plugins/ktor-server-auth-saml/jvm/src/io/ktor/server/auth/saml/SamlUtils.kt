@@ -236,6 +236,8 @@ internal inline fun samlAssert(value: Boolean, crossinline lazyMessage: () -> St
 internal inline fun <T> withValidationException(crossinline block: () -> T): T {
     try {
         return block()
+    } catch (e: SamlValidationException) {
+        throw e
     } catch (e: Exception) {
         throw SamlValidationException("SAML validation failed", e)
     }

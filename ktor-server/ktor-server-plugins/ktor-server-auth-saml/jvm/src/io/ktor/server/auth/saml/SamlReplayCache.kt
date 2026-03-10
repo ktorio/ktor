@@ -53,6 +53,10 @@ public interface SamlReplayCache : AutoCloseable {
     /**
      * Atomically checks if an assertion ID has been seen and records it if not.
      * This method combines [isReplayed] and [recordAssertion] into a single atomic operation.
+     *
+     * `@param` assertionId The unique assertion ID to check and record
+     * `@param` expirationTime The expiration time of the assertion (used for cache eviction)
+     * `@return` true if the assertion was not seen before and was recorded; false if replay detected
      */
     public suspend fun tryRecordAssertion(assertionId: String, expirationTime: Instant): Boolean
 }
@@ -93,6 +97,7 @@ public interface SamlReplayCache : AutoCloseable {
  *
  * @property maxSize Maximum number of assertion IDs to cache (default: 10,000).
  *                   When this limit is reached, the oldest entries are evicted.
+ * @param parentScope Optional parent scope for cleanup coroutine lifecycle management
  */
 @OptIn(ExperimentalTime::class)
 public class InMemorySamlReplayCache(

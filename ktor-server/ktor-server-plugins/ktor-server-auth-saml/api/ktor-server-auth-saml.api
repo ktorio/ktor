@@ -21,8 +21,21 @@ public final class io/ktor/server/auth/saml/DigestAlgorithm$Companion {
 
 public final class io/ktor/server/auth/saml/IdPMetadata {
 	public final fun getEntityId ()Ljava/lang/String;
+	public final fun getSigningCredentials ()Ljava/util/List;
 	public final fun getSloUrl ()Ljava/lang/String;
+	public final fun getSloUrlPost ()Ljava/lang/String;
+	public final fun getSloUrlRedirect ()Ljava/lang/String;
 	public final fun getSsoUrl ()Ljava/lang/String;
+	public final fun getSsoUrlPost ()Ljava/lang/String;
+	public final fun getSsoUrlRedirect ()Ljava/lang/String;
+	public final fun setEntityId (Ljava/lang/String;)V
+	public final fun setSigningCredentials (Ljava/util/List;)V
+	public final fun setSloUrl (Ljava/lang/String;)V
+	public final fun setSloUrlPost (Ljava/lang/String;)V
+	public final fun setSloUrlRedirect (Ljava/lang/String;)V
+	public final fun setSsoUrl (Ljava/lang/String;)V
+	public final fun setSsoUrlPost (Ljava/lang/String;)V
+	public final fun setSsoUrlRedirect (Ljava/lang/String;)V
 }
 
 public final class io/ktor/server/auth/saml/InMemorySamlReplayCache : io/ktor/server/auth/saml/SamlReplayCache {
@@ -188,6 +201,7 @@ public final class io/ktor/server/auth/saml/SamlCrypto {
 }
 
 public final class io/ktor/server/auth/saml/SamlMetadataKt {
+	public static final fun IdPMetadata (Lkotlin/jvm/functions/Function1;)Lio/ktor/server/auth/saml/IdPMetadata;
 	public static final fun SamlSpMetadata (Lkotlin/jvm/functions/Function1;)Lio/ktor/server/auth/saml/SamlSpMetadata;
 	public static final fun parseSamlIdpMetadata (Ljava/lang/String;Z)Lio/ktor/server/auth/saml/IdPMetadata;
 	public static synthetic fun parseSamlIdpMetadata$default (Ljava/lang/String;ZILjava/lang/Object;)Lio/ktor/server/auth/saml/IdPMetadata;
