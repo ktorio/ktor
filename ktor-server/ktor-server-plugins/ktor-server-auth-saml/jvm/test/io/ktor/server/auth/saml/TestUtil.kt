@@ -363,12 +363,12 @@ object SamlTestUtils {
         sloUrl: String? = "https://idp.example.com/slo"
     ): IdPMetadata {
         val credentials = generateTestCredentials()
-        return IdPMetadata(
-            entityId = entityId,
-            ssoUrl = ssoUrl,
-            sloUrl = sloUrl,
-            signingCredentials = listOf(credentials.credential)
-        )
+        return IdPMetadata {
+            this.entityId = entityId
+            this.ssoUrl = ssoUrl
+            this.sloUrl = sloUrl
+            this.signingCredentials = listOf(credentials.credential)
+        }
     }
 
     /**
@@ -482,12 +482,12 @@ object SamlTestUtils {
         sloUrl: String = "https://idp.example.com/slo",
         credentials: TestCredentials = sharedIdpCredentials
     ): IdPMetadata {
-        return IdPMetadata(
-            entityId = entityId,
-            ssoUrl = ssoUrl,
-            sloUrl = sloUrl,
-            signingCredentials = listOf(credentials.credential)
-        )
+        return IdPMetadata {
+            this.entityId = entityId
+            this.ssoUrl = ssoUrl
+            this.sloUrl = sloUrl
+            this.signingCredentials = listOf(credentials.credential)
+        }
     }
 
     /**
