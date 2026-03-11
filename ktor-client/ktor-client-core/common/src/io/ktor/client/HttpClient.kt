@@ -1305,28 +1305,28 @@ public class HttpClient(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClient.requestPipeline)
      */
-    public val requestPipeline: HttpRequestPipeline = HttpRequestPipeline()
+    public val requestPipeline: HttpRequestPipeline = HttpRequestPipeline(userConfig.developmentMode)
 
     /**
      * A pipeline used for processing all responses sent by the server.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClient.responsePipeline)
      */
-    public val responsePipeline: HttpResponsePipeline = HttpResponsePipeline()
+    public val responsePipeline: HttpResponsePipeline = HttpResponsePipeline(userConfig.developmentMode)
 
     /**
      * A pipeline used for sending a request.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClient.sendPipeline)
      */
-    public val sendPipeline: HttpSendPipeline = HttpSendPipeline()
+    public val sendPipeline: HttpSendPipeline = HttpSendPipeline(userConfig.developmentMode)
 
     /**
      * A pipeline used for receiving a request.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClient.receivePipeline)
      */
-    public val receivePipeline: HttpReceivePipeline = HttpReceivePipeline()
+    public val receivePipeline: HttpReceivePipeline = HttpReceivePipeline(userConfig.developmentMode)
 
     /**
      * Typed attributes used as a lightweight container for this client.

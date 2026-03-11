@@ -15,7 +15,7 @@ import io.ktor.util.reflect.*
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.HttpResponsePipeline)
  */
 public class HttpResponsePipeline(
-    override val developmentMode: Boolean = true
+    override val developmentMode: Boolean = false
 ) : Pipeline<HttpResponseContainer, HttpClientCall>(
     Receive,
     Parse,
@@ -67,7 +67,7 @@ public class HttpResponsePipeline(
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.HttpReceivePipeline)
  */
 public class HttpReceivePipeline(
-    override val developmentMode: Boolean = true
+    override val developmentMode: Boolean = false
 ) : Pipeline<HttpResponse, Unit>(Before, State, After) {
     public companion object Phases {
         /**

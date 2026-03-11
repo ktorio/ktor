@@ -14,7 +14,7 @@ import io.ktor.util.pipeline.*
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.HttpRequestPipeline)
  */
 public class HttpRequestPipeline(
-    override val developmentMode: Boolean = true
+    override val developmentMode: Boolean = false
 ) : Pipeline<Any, HttpRequestBuilder>(Before, State, Transform, Render, Send) {
     /**
      * All interceptors accept payload as [subject] and try to convert it to [OutgoingContent].
@@ -66,7 +66,7 @@ public class HttpRequestPipeline(
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.HttpSendPipeline)
  */
 public class HttpSendPipeline(
-    override val developmentMode: Boolean = true
+    override val developmentMode: Boolean = false
 ) : Pipeline<Any, HttpRequestBuilder>(Before, State, Monitoring, Engine, Receive) {
 
     public companion object Phases {
