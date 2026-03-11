@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests
@@ -22,6 +22,8 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
+import org.junit.jupiter.api.assertThrows
 import java.util.concurrent.ArrayBlockingQueue
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.CoroutineContext
@@ -205,5 +207,27 @@ abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) :
         }
     }
 
-    private class SendException : RuntimeException("Error on write")
+    @Test
+    fun testStreamingResponseExceptionImmediatelyCancels() = runBlocking {
+        val client = HttpClient(factory) {
+            install(HttpTimeout) {
+                requestTimeoutMillis = HttpTimeoutConfig.INFINITE_TIMEOUT_MS
+                socketTimeoutMillis = HttpTimeoutConfig.INFINITE_TIMEOUT_MS
+                connectTimeoutMillis = HttpTimeoutConfig.INFINITE_TIMEOUT_MS
+            }
+        }
+
+        val exception = assertThrows<IllegalStateException> {
+            withTimeout(2000) {
+                client.prepareGet("http://localhost:$serverPort/sse/delay/60000").execute { response ->
+                    // Headers are received immediately
+                    assertEquals(HttpStatusCode.OK, response.status)
+
+                    // Throw an exception while waiting for the body
+                    throw IllegalStateException("Test exception from execute block")
+                }
+            }
+        }
+        assertEquals("Test exception from execute block", exception.message)
+    }
 }
