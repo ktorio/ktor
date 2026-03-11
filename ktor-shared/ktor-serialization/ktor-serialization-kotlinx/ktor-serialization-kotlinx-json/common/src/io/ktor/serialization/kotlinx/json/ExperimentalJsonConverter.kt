@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.serialization.kotlinx.json
@@ -13,9 +13,13 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlinx.io.Buffer
-import kotlinx.serialization.*
-import kotlinx.serialization.json.*
-import kotlinx.serialization.json.io.*
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.io.decodeFromSource
+import kotlinx.serialization.json.io.encodeToSink
 
 @OptIn(ExperimentalSerializationApi::class, InternalSerializationApi::class, InternalAPI::class)
 public class ExperimentalJsonConverter(private val format: Json) : ContentConverter {
@@ -29,7 +33,7 @@ public class ExperimentalJsonConverter(private val format: Json) : ContentConver
     ): OutgoingContent {
         val serializer = try {
             format.serializersModule.serializerForTypeInfo(typeInfo)
-        } catch (cause: SerializationException) {
+        } catch (_: SerializationException) {
             guessSerializer(value, format.serializersModule)
         }
         val buffer = Buffer().also {
@@ -40,8 +44,11 @@ public class ExperimentalJsonConverter(private val format: Json) : ContentConver
             )
         }
         return ChannelWriterContent(
-            { writeBuffer.transferFrom(buffer) },
-            contentType,
+            body = {
+                // copy buffer for replayability using copy-on-write segment sharing
+                writeBuffer.transferFrom(buffer.copy())
+            },
+            contentType = contentType,
             contentLength = buffer.remaining
         )
     }
