@@ -14,6 +14,23 @@ import java.nio.*
 import kotlin.coroutines.*
 import kotlin.properties.*
 
+@Suppress("FunctionName")
+@Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
+public fun RawWebSocket(
+    input: ByteReadChannel,
+    output: ByteWriteChannel,
+    maxFrameSize: Long = Int.MAX_VALUE.toLong(),
+    masking: Boolean = false,
+    coroutineContext: CoroutineContext
+): WebSocketSession = RawWebSocket(
+    input,
+    output,
+    maxFrameSize,
+    masking,
+    coroutineContext,
+    WebSocketChannelsConfig.UNLIMITED
+)
+
 /**
  * Creates a RAW web socket session from connection
  *
