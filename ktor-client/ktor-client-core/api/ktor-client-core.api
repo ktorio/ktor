@@ -1623,6 +1623,7 @@ public final class io/ktor/client/statement/HttpResponsePipeline$Phases {
 public final class io/ktor/client/statement/HttpStatement {
 	public fun <init> (Lio/ktor/client/request/HttpRequestBuilder;Lio/ktor/client/HttpClient;)V
 	public final fun cleanup (Lio/ktor/client/statement/HttpResponse;Ljava/lang/Throwable;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final synthetic fun cleanup (Lio/ktor/client/statement/HttpResponse;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun cleanup$default (Lio/ktor/client/statement/HttpStatement;Lio/ktor/client/statement/HttpResponse;Ljava/lang/Throwable;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public final fun execute (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun execute (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;

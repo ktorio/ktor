@@ -213,6 +213,11 @@ public class HttpStatement(
         return result
     }
 
+    @PublishedApi
+    @OptIn(InternalAPI::class)
+    @Deprecated("Use cleanup(cause) instead", level = DeprecationLevel.HIDDEN)
+    internal suspend fun HttpResponse.cleanup(): Unit = cleanup(cause = null)
+
     /**
      * Completes [HttpResponse] and releases resources.
      *
@@ -226,7 +231,7 @@ public class HttpStatement(
 
         job.apply {
             if (cause != null) {
-                cancel(CancellationException("Request failed", cause))
+                cancel(CancellationException("Exception occurred during request execution", cause))
             } else {
                 complete()
             }
