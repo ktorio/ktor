@@ -4,12 +4,12 @@
 
 package io.ktor.client.request.forms
 
-import io.ktor.client.fetch.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.runTest
 import kotlinx.io.readByteArray
+import org.w3c.files.Blob
 import kotlin.test.*
 
 @Suppress("UNUSED_PARAMETER")
