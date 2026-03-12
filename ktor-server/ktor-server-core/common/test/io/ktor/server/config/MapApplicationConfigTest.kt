@@ -4,6 +4,7 @@
 
 package io.ktor.server.config
 
+import kotlinx.serialization.*
 import kotlin.test.*
 
 class MapApplicationConfigTest {
@@ -138,4 +139,23 @@ class MapApplicationConfigTest {
         @Suppress("UNCHECKED_CAST")
         assertEquals("a1", (map["nested"] as Map<String, Map<String, String>>)["config"]!!["value"])
     }
+
+    @Test
+    fun testGetAsFromRoot() {
+        val config = MapApplicationConfig(
+            "host" to "0.0.0.0",
+            "port" to "8080"
+        )
+
+        assertEquals(
+            RootConfig(host = "0.0.0.0", port = 8080),
+            config.getAs()
+        )
+    }
+
+    @Serializable
+    data class RootConfig(
+        val host: String,
+        val port: Int
+    )
 }
