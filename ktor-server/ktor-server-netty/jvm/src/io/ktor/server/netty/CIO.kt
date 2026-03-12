@@ -70,26 +70,6 @@ public suspend fun <T> Future<T>.suspendAwait(exception: (Throwable, Continuatio
     }
 }
 
-internal object NettyDispatcher : CoroutineDispatcher() {
-    override fun isDispatchNeeded(context: CoroutineContext): Boolean {
-        return !context[CurrentContextKey]!!.context.executor().inEventLoop()
-    }
-
-    override fun dispatch(context: CoroutineContext, block: Runnable) {
-        val nettyContext = context[CurrentContextKey]!!.context
-        val result = runCatching {
-            nettyContext.executor().execute(block)
-        }
-
-        if (result.isFailure) {
-            LOG.error("Failed to dispatch", result.exceptionOrNull())
-        }
-    }
-
-    class CurrentContext(val context: ChannelHandlerContext) : AbstractCoroutineContextElement(CurrentContextKey)
-    object CurrentContextKey : CoroutineContext.Key<CurrentContext>
-}
-
 private class CoroutineListener<T, F : Future<T>>(
     private val future: F,
     private val continuation: CancellableContinuation<T>,
