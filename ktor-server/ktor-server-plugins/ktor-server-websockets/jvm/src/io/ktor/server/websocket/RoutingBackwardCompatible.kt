@@ -2,6 +2,9 @@
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+@file:kotlin.jvm.JvmMultifileClass
+@file:kotlin.jvm.JvmName("RoutingKt")
+
 package io.ktor.server.websocket
 
 import io.ktor.server.routing.*
