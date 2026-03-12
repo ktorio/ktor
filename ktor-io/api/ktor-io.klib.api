@@ -345,6 +345,10 @@ open class io.ktor.utils.io.charsets/MalformedInputException : kotlinx.io/IOExce
     constructor <init>(kotlin/String) // io.ktor.utils.io.charsets/MalformedInputException.<init>|<init>(kotlin.String){}[0]
 }
 
+open class io.ktor.utils.io.errors/UnknownServiceException : kotlinx.io/IOException { // io.ktor.utils.io.errors/UnknownServiceException|null[0]
+    constructor <init>(kotlin/String) // io.ktor.utils.io.errors/UnknownServiceException.<init>|<init>(kotlin.String){}[0]
+}
+
 open class io.ktor.utils.io/ClosedByteChannelException : kotlinx.io/IOException { // io.ktor.utils.io/ClosedByteChannelException|null[0]
     constructor <init>(kotlin/Throwable? = ...) // io.ktor.utils.io/ClosedByteChannelException.<init>|<init>(kotlin.Throwable?){}[0]
 }
