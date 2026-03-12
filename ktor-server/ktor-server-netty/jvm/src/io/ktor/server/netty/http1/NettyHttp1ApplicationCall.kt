@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.netty.http1
@@ -19,11 +19,8 @@ internal class NettyHttp1ApplicationCall(
     val httpRequest: HttpRequest,
     requestBodyChannel: ByteReadChannel?,
     engineContext: CoroutineContext,
-    userContext: CoroutineContext,
+    override val coroutineContext: CoroutineContext,
 ) : NettyApplicationCall(application, context, httpRequest), CoroutineScope {
-
-    override var coroutineContext: CoroutineContext = userContext
-        internal set
 
     override val request = NettyHttp1ApplicationRequest(
         this,
@@ -37,7 +34,7 @@ internal class NettyHttp1ApplicationCall(
         this,
         context,
         engineContext,
-        userContext,
+        coroutineContext,
         httpRequest.protocolVersion()
     )
 

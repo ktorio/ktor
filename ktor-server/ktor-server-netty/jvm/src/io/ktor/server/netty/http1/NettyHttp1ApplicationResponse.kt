@@ -79,7 +79,6 @@ internal class NettyHttp1ApplicationResponse(
     override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
         val nettyContext = context
         val nettyChannel = nettyContext.channel()
-        val userAppContext = userContext + NettyDispatcher.CurrentContext(nettyContext)
 
         val bodyHandler = nettyContext.pipeline().get(RequestBodyHandler::class.java)
         val upgradedReadChannel = bodyHandler.upgrade()
@@ -104,7 +103,7 @@ internal class NettyHttp1ApplicationResponse(
             upgradedReadChannel,
             upgradedWriteChannel,
             engineContext,
-            userAppContext
+            userContext
         )
 
         job.invokeOnCompletion {

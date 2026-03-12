@@ -12,8 +12,8 @@ import io.ktor.server.netty.*
 import io.ktor.server.netty.NettyApplicationCallHandler.CallHandlerCoroutineName
 import io.ktor.server.netty.cio.*
 import io.ktor.server.response.*
-import io.ktor.util.pipeline.execute
-import io.ktor.utils.io.InternalAPI
+import io.ktor.util.pipeline.*
+import io.ktor.utils.io.*
 import io.netty.channel.ChannelHandler
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
@@ -62,8 +62,6 @@ internal class NettyHttp2Handler(
                     val e = if (message.errorCode() == 0L) null else Http2ClosedChannelException(message.errorCode())
                     r.contentActor.close(e)
                 }
-                // Handle connection close to the stream
-                onStreamClose(context)
             }
             else -> context.fireChannelRead(message)
         }
@@ -104,29 +102,30 @@ internal class NettyHttp2Handler(
     }
 
     private fun startHttp2(context: ChannelHandlerContext, headers: Http2Headers) {
+        val callJob = Job(parent = userCoroutineContext[Job])
+        val callContext = userCoroutineContext + CallHandlerCoroutineName + callJob
         val call = NettyHttp2ApplicationCall(
             application = application,
             context = context,
             headers = headers,
             handler = this@NettyHttp2Handler,
             engineContext = handlerJob + Dispatchers.Unconfined,
-            userContext = userCoroutineContext // initial context
+            coroutineContext = callContext
         )
         context.applicationCall = call
 
-        // Reserve response slot synchronously on the I / O thread for proper ordering
-        // call.coroutineContext should be updated with the proper value later
+        // Reserve response slot synchronously on the I/O thread for proper ordering
         responseWriter.processResponse(call)
 
         callEventGroup.execute {
-            val userScope = CoroutineScope(userCoroutineContext)
-            val callContext = CallHandlerCoroutineName + NettyDispatcher.CurrentContext(context)
-            userScope.launch(callContext, start = CoroutineStart.UNDISPATCHED) callJob@{
-                call.coroutineContext = this@callJob.coroutineContext
+            val callScope = CoroutineScope(context = callContext)
+            callScope.launch(callContext, start = CoroutineStart.UNDISPATCHED) {
                 try {
                     enginePipeline.execute(call)
                 } catch (error: Throwable) {
                     handleFailure(call, error)
+                } finally {
+                    callJob.complete()
                 }
             }
         }
@@ -240,7 +239,7 @@ internal class NettyHttp2Handler(
         }
     }
 
-    fun cancel() {
+    internal fun cancel() {
         handlerJob.cancel()
     }
 

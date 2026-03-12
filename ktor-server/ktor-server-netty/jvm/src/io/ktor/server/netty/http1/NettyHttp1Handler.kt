@@ -40,9 +40,6 @@ internal class NettyHttp1Handler(
     private val state = NettyHttpHandlerState(runningLimit)
 
     @Volatile
-    private var currentJob: Job? = null
-
-    @Volatile
     private var currentCall: NettyHttp1ApplicationCall? = null
 
     override fun channelActive(context: ChannelHandlerContext) {
@@ -115,10 +112,13 @@ internal class NettyHttp1Handler(
             }
 
             is ReadTimeoutException -> {
-                currentJob?.let {
-                    context.respond408RequestTimeoutHttp1()
-                    it.cancel(CancellationException(cause))
+                val callContext = currentCall?.coroutineContext
+                if (callContext == null) {
+                    context.fireExceptionCaught(cause)
+                    return
                 }
+                context.respond408RequestTimeoutHttp1()
+                callContext.cancel(CancellationException(cause))
             }
 
             else -> {
@@ -135,31 +135,32 @@ internal class NettyHttp1Handler(
     }
 
     private fun handleRequest(context: ChannelHandlerContext, message: HttpRequest) {
-        val call = prepareCallFromRequest(context, message)
+        val userAppContext = applicationProvider().coroutineContext + userContext
+        val callJob = Job(parent = userAppContext[Job])
+
+        val callContext = userAppContext + CallHandlerCoroutineName + callJob
+        val call = prepareCallFromRequest(context, message, callContext = callContext)
+        currentCall = call
 
         // Fire channel read for custom handlers added to the pipeline
         context.fireChannelRead(call)
 
-        // Reserve response slot synchronously on the I / O thread for proper ordering
-        // call.coroutineContext should be updated with the proper value later
+        // Reserve response slot synchronously on the I/O thread for proper ordering
         responseWriter.processResponse(call)
 
         callEventGroup.execute {
-            val userScope = CoroutineScope(applicationProvider().coroutineContext + userContext)
-            val callContext = CallHandlerCoroutineName + NettyDispatcher.CurrentContext(context)
-
-            currentCall = call
-            currentJob = userScope.launch(callContext, start = CoroutineStart.UNDISPATCHED) callJob@{
-                call.coroutineContext = this@callJob.coroutineContext
-
-                if (!call.request.isValid()) {
-                    call.respondError400BadRequest()
-                    return@callJob
-                }
+            val callScope = CoroutineScope(context = callContext)
+            callScope.launch(start = CoroutineStart.UNDISPATCHED) {
                 try {
+                    if (!call.request.isValid()) {
+                        call.respondError400BadRequest()
+                        return@launch
+                    }
                     enginePipeline.execute(call)
                 } catch (error: Throwable) {
                     handleFailure(call, error)
+                } finally {
+                    callJob.complete()
                 }
             }
         }
@@ -171,7 +172,8 @@ internal class NettyHttp1Handler(
      */
     private fun prepareCallFromRequest(
         context: ChannelHandlerContext,
-        message: HttpRequest
+        message: HttpRequest,
+        callContext: CoroutineContext
     ): NettyHttp1ApplicationCall {
         val requestBodyChannel = when {
             message is LastHttpContent && !message.content().isReadable -> null
@@ -190,7 +192,7 @@ internal class NettyHttp1Handler(
             httpRequest = message,
             requestBodyChannel = requestBodyChannel,
             engineContext = engineContext,
-            userContext = userContext // initial context
+            coroutineContext = callContext
         )
     }
 
