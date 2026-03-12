@@ -82,7 +82,7 @@ internal class SavedHttpResponse(
     @OptIn(InternalAPI::class)
     override suspend fun bodyAsByteArray(channel: ByteReadChannel): ByteArray {
         channel.cancel()
-        return body
+        return body.copyOf()
     }
 
     @OptIn(InternalAPI::class)
