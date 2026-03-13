@@ -6,15 +6,17 @@ package io.ktor.client.tests.utils
 
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlinx.io.readByteArray
+import kotlin.io.encoding.Base64
 
 fun makeArray(size: Int): ByteArray = ByteArray(size) { it.toByte() }
 
-fun makeString(size: Int): String = CharArray(size) { it.toChar() }.concatToString().encodeBase64().take(size)
+fun makeString(size: Int): String = Base64.encode(
+    CharArray(size) { it.toChar() }.concatToString().encodeToByteArray()
+).take(size)
 
 suspend fun List<PartData>.makeString(): String = buildString {
     val list = this@makeString
