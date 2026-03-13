@@ -10,9 +10,11 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.test.base.*
 import io.ktor.client.tests.utils.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.job
+import kotlinx.coroutines.withTimeout
 import kotlinx.io.readByteArray
 import kotlin.test.*
 
@@ -69,6 +71,38 @@ class HttpStatementTest : ClientLoader() {
             }.apply {
                 assertTrue(call.coroutineContext.job.isCompleted)
             }
+        }
+    }
+
+    @Test
+    fun testStreamingResponseExceptionCancelsImmediately() = clientTests {
+        test { client ->
+            val exception = assertFailsWith<IllegalStateException> {
+                withTimeout(2000) {
+                    client.prepareGet("$TEST_SERVER/content/stream?delay=60000").execute { response ->
+                        // Headers are received, throw exception while waiting for body
+                        throw IllegalStateException("Test exception from execute block")
+                    }
+                }
+            }
+            assertEquals("Test exception from execute block", exception.message)
+        }
+    }
+
+    @Test
+    fun testStreamingResponseExceptionInBodyCancelsImmediately() = clientTests {
+        test { client ->
+            val exception = assertFailsWith<IllegalStateException> {
+                withTimeout(2000) {
+                    client.prepareGet(
+                        "$TEST_SERVER/content/stream?delay=60000"
+                    ).body<ByteReadChannel, Unit> { channel ->
+                        // Throw exception while channel is open
+                        throw IllegalStateException("Test exception from body block")
+                    }
+                }
+            }
+            assertEquals("Test exception from body block", exception.message)
         }
     }
 }

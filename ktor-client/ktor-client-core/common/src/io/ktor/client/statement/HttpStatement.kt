@@ -9,6 +9,7 @@ import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableJob
 import kotlinx.coroutines.job
 import kotlinx.coroutines.withContext
@@ -66,6 +67,7 @@ public class HttpStatement(
     public suspend fun <T> execute(block: suspend (response: HttpResponse) -> T): T = unwrapRequestTimeoutException {
         val response = fetchStreamingResponse()
 
+        var callFailure: Throwable? = null
         try {
             return if (useEngineDispatcher) {
                 withContext(response.coroutineContext[ContinuationInterceptor]!!) {
@@ -74,8 +76,11 @@ public class HttpStatement(
             } else {
                 block(response)
             }
+        } catch (cause: Throwable) {
+            callFailure = cause
+            throw cause
         } finally {
-            response.cleanup()
+            response.cleanup(callFailure)
         }
     }
 
@@ -159,6 +164,7 @@ public class HttpStatement(
         crossinline block: suspend (response: T) -> R
     ): R = unwrapRequestTimeoutException {
         val response: HttpResponse = fetchStreamingResponse()
+        var callFailure: Throwable? = null
         try {
             return if (useEngineDispatcher) {
                 withContext(response.coroutineContext[ContinuationInterceptor]!!) {
@@ -169,8 +175,11 @@ public class HttpStatement(
                 val result = response.body<T>()
                 block(result)
             }
+        } catch (cause: Throwable) {
+            callFailure = cause
+            throw cause
         } finally {
-            response.cleanup()
+            response.cleanup(callFailure)
         }
     }
 
@@ -199,21 +208,33 @@ public class HttpStatement(
         // Save the body again to make sure that it is replayable after pipeline execution
         // We need this because wrongly implemented plugins could make response body non-replayable
         val result = call.save().response
-        call.response.cleanup()
+        call.response.cleanup(cause = null)
 
         return result
     }
 
+    @PublishedApi
+    @OptIn(InternalAPI::class)
+    @Deprecated("Use cleanup(cause) instead", level = DeprecationLevel.HIDDEN)
+    internal suspend fun HttpResponse.cleanup(): Unit = cleanup(cause = null)
+
     /**
      * Completes [HttpResponse] and releases resources.
+     *
+     * @param cause If not null, cancels the response job with this cause to immediately interrupt
+     * any pending network operations.
      */
     @PublishedApi
     @OptIn(InternalAPI::class)
-    internal suspend fun HttpResponse.cleanup() {
+    internal suspend fun HttpResponse.cleanup(cause: Throwable?) {
         val job = coroutineContext.job as CompletableJob
 
         job.apply {
-            complete()
+            if (cause != null) {
+                cancel(CancellationException("Exception occurred during request execution", cause))
+            } else {
+                complete()
+            }
             // If the response is saved, the underlying channel is already closed and
             // calling `rawContent` would create a new one
             if (!isSaved) {
