@@ -19,6 +19,7 @@ import io.netty.handler.timeout.ReadTimeoutException
 import io.netty.util.concurrent.EventExecutorGroup
 import kotlinx.coroutines.*
 import java.io.IOException
+import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -39,8 +40,7 @@ internal class NettyHttp1Handler(
 
     private val state = NettyHttpHandlerState(runningLimit)
 
-    @Volatile
-    private var currentCall: NettyHttp1ApplicationCall? = null
+    private val activeCalls = ConcurrentLinkedQueue<NettyHttp1ApplicationCall>()
 
     override fun channelActive(context: ChannelHandlerContext) {
         responseWriter = NettyHttpResponsePipeline(
@@ -95,8 +95,8 @@ internal class NettyHttp1Handler(
         if (context.channel().isActive) {
             return
         }
-        currentCall?.let { call ->
-            currentCall = null
+        while (true) {
+            val call = activeCalls.poll() ?: break
             @OptIn(InternalAPI::class)
             call.attributes.getOrNull(HttpRequestCloseHandlerKey)?.invoke()
         }
@@ -112,13 +112,14 @@ internal class NettyHttp1Handler(
             }
 
             is ReadTimeoutException -> {
-                val callContext = currentCall?.coroutineContext
-                if (callContext == null) {
+                if (activeCalls.isEmpty()) {
                     context.fireExceptionCaught(cause)
                     return
                 }
                 context.respond408RequestTimeoutHttp1()
-                callContext.cancel(CancellationException(cause))
+                activeCalls.forEach { call ->
+                    call.coroutineContext.cancel(CancellationException(cause))
+                }
             }
 
             else -> {
@@ -140,7 +141,7 @@ internal class NettyHttp1Handler(
 
         val callContext = userAppContext + CallHandlerCoroutineName + callJob
         val call = prepareCallFromRequest(context, message, callContext = callContext)
-        currentCall = call
+        activeCalls.add(call)
 
         // Fire channel read for custom handlers added to the pipeline
         context.fireChannelRead(call)
@@ -160,6 +161,7 @@ internal class NettyHttp1Handler(
                 } catch (error: Throwable) {
                     handleFailure(call, error)
                 } finally {
+                    activeCalls.remove(call)
                     callJob.complete()
                 }
             }
