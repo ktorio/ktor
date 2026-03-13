@@ -148,7 +148,7 @@ internal fun buildMultipart(
 
         append("--$boundary--\r\n")
     } finally {
-        parts.forEach { it.dispose() }
+        parts.forEach { it.release() }
     }
 }.channel
 
