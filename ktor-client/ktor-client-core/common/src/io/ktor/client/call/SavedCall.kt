@@ -8,6 +8,7 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlinx.io.readByteArray
@@ -77,6 +78,12 @@ internal class SavedHttpResponse(
     override val headers: Headers = origin.headers
 
     override val coroutineContext: CoroutineContext = origin.coroutineContext
+
+    @OptIn(InternalAPI::class)
+    override suspend fun bodyAsByteArray(channel: ByteReadChannel): ByteArray {
+        channel.cancel()
+        return body.copyOf()
+    }
 
     @OptIn(InternalAPI::class)
     override val rawContent: ByteReadChannel get() = ByteReadChannel(body)
