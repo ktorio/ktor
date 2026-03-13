@@ -1,13 +1,12 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.network.sockets.nodejs
 
 import io.ktor.network.sockets.*
-import org.khronos.webgl.*
-
-internal actual fun nodeNet(): NodeNet? = js("eval('require')('node:net')").unsafeCast<NodeNet?>()
+import org.khronos.webgl.ArrayBuffer
+import org.khronos.webgl.Int8Array
 
 internal actual fun TcpCreateConnectionOptions(
     block: TcpCreateConnectionOptions.() -> Unit
