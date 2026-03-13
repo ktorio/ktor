@@ -208,7 +208,7 @@ public class HttpStatement(
         // Save the body again to make sure that it is replayable after pipeline execution
         // We need this because wrongly implemented plugins could make response body non-replayable
         val result = call.save().response
-        call.response.cleanup()
+        call.response.cleanup(cause = null)
 
         return result
     }
@@ -226,7 +226,7 @@ public class HttpStatement(
      */
     @PublishedApi
     @OptIn(InternalAPI::class)
-    internal suspend fun HttpResponse.cleanup(cause: Throwable? = null) {
+    internal suspend fun HttpResponse.cleanup(cause: Throwable?) {
         val job = coroutineContext.job as CompletableJob
 
         job.apply {
