@@ -185,6 +185,15 @@ actual constructor(
             return baseClassLoader
         }
 
+        if (!baseClassLoader.supportsAutoReload()) {
+            environment.log.warn(
+                "Auto-reload is disabled: application is loaded by ${baseClassLoader.javaClass.name}, " +
+                    "which is not a standard URLClassLoader. This typically happens when running inside " +
+                    "a fat-JAR (e.g. Spring Boot Launcher, Amper). Set ktor.development=false to suppress this warning."
+            )
+            return baseClassLoader
+        }
+
         val allUrls = baseClassLoader.allURLs()
         val jre = File(System.getProperty("java.home")).parent
         val debugUrls = allUrls.map { it.file }
