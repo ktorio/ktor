@@ -18,6 +18,9 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
+import java.io.OutputStreamWriter
+import java.net.InetSocketAddress
+import java.net.Socket
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.concurrent.atomics.incrementAndFetch
@@ -205,5 +208,71 @@ abstract class HttpRequestLifecycleTest<TEngine : ApplicationEngine, TConfigurat
             }
             startServer(server)
         }
+    }
+
+    @Test
+    @OptIn(ExperimentalAtomicApi::class)
+    open fun testPipelinedRequestsCancelledOnDisconnect() = runTest {
+        val pipelinedCount = 10
+        val allStarted = Channel<Unit>(pipelinedCount)
+        val cancelledCount = AtomicInt(0)
+        val allCancelled = CompletableDeferred<Unit>()
+
+        val server = createServer {
+            install(HttpRequestLifecycle) {
+                cancelCallOnClose = true
+            }
+            routing {
+                get("/slow") {
+                    allStarted.send(Unit)
+                    try {
+                        repeat(100) {
+                            delay(200.milliseconds)
+                        }
+                        call.respondText("Done")
+                    } catch (e: CancellationException) {
+                        val count = cancelledCount.incrementAndFetch()
+                        if (count == pipelinedCount) {
+                            allCancelled.complete(Unit)
+                        }
+                        throw e
+                    }
+                }
+            }
+        }
+        startServer(server)
+
+        // Use a raw socket to send pipelined HTTP/1.1 requests
+        val socket = Socket()
+        socket.tcpNoDelay = true
+        socket.connect(InetSocketAddress("127.0.0.1", port))
+
+        try {
+            val writer = OutputStreamWriter(socket.getOutputStream(), Charsets.US_ASCII)
+            repeat(pipelinedCount) {
+                writer.write("GET /slow HTTP/1.1\r\n")
+                writer.write("Host: localhost:$port\r\n")
+                writer.write("Connection: keep-alive\r\n")
+                writer.write("\r\n")
+            }
+            writer.flush()
+
+            // Wait for all requests to start processing on the server
+            withTimeout(10.seconds) {
+                repeat(pipelinedCount) {
+                    allStarted.receive()
+                }
+            }
+        } finally {
+            // Abruptly close the connection
+            socket.setSoLinger(true, 0)
+            socket.close()
+        }
+
+        // Verify that ALL pipelined requests were cancelled, not just the last one
+        withTimeout(10.seconds) {
+            allCancelled.await()
+        }
+        assertEquals(pipelinedCount, cancelledCount.load())
     }
 }
