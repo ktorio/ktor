@@ -31,10 +31,10 @@ internal class TestEngineWebsocketSession(
     suspend fun run() {
         suspendCancellableCoroutine { cont ->
             outgoing.invokeOnClose { ex ->
-                if (ex == null) {
-                    cont.resume(Unit)
-                } else {
-                    cont.resumeWithException(ex)
+                when {
+                    !cont.isActive -> return@invokeOnClose
+                    ex == null -> cont.resume(Unit)
+                    else -> cont.resumeWithException(ex)
                 }
             }
         }
