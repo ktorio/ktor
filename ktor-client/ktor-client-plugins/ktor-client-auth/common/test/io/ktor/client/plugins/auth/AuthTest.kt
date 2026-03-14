@@ -23,7 +23,7 @@ import kotlin.test.*
 class AuthTest : ClientLoader() {
 
     @Test
-    fun testDigestAuthLegacy() = clientTests(except("Js", "native:*")) {
+    fun testDigestAuthLegacy() = clientTests(except("native:*")) {
         config {
             install(Auth) {
                 digest {
@@ -43,7 +43,7 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
-    fun testDigestAuth() = clientTests(except("Js", "native:*")) {
+    fun testDigestAuth() = clientTests(except("native:*")) {
         config {
             install(Auth) {
                 digest {
@@ -60,7 +60,7 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
-    fun testDigestAuthPerRealm() = clientTests(except("Js", "native:*")) {
+    fun testDigestAuthPerRealm() = clientTests(except("native:*")) {
         config {
             install(Auth) {
                 digest {
@@ -84,7 +84,7 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
-    fun testDigestAuthSHA256() = clientTests(except("Js", "native:*")) {
+    fun testDigestAuthSHA256() = clientTests(except("native:*")) {
         config {
             install(Auth) {
                 digest {
