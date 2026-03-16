@@ -16,7 +16,6 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
 import io.netty.handler.codec.http.*
 import io.netty.handler.timeout.ReadTimeoutException
-import io.netty.util.concurrent.EventExecutorGroup
 import kotlinx.coroutines.*
 import java.io.IOException
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -27,7 +26,6 @@ internal class NettyHttp1Handler(
     private val applicationProvider: () -> Application,
     private val enginePipeline: EnginePipeline,
     private val environment: ApplicationEnvironment,
-    private val callEventGroup: EventExecutorGroup,
     private val engineContext: CoroutineContext,
     private val userContext: CoroutineContext,
     private val runningLimit: Int
@@ -139,7 +137,7 @@ internal class NettyHttp1Handler(
         val userAppContext = applicationProvider().coroutineContext + userContext
         val callJob = Job(parent = userAppContext[Job])
 
-        val callContext = userAppContext + CallHandlerCoroutineName + callJob
+        val callContext = userAppContext + NettyDispatcher.CurrentContext(context) + callJob + CallHandlerCoroutineName
         val call = prepareCallFromRequest(context, message, callContext = callContext)
         activeCalls.add(call)
 
@@ -149,7 +147,7 @@ internal class NettyHttp1Handler(
         // Reserve response slot synchronously on the I/O thread for proper ordering
         responseWriter.processResponse(call)
 
-        callEventGroup.execute {
+        context.executor().execute {
             val callScope = CoroutineScope(context = callContext)
             callScope.launch(start = CoroutineStart.UNDISPATCHED) {
                 try {

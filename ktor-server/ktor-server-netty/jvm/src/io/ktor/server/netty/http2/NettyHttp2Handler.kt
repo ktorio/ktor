@@ -19,7 +19,6 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
 import io.netty.handler.codec.http2.*
 import io.netty.util.AttributeKey
-import io.netty.util.concurrent.EventExecutorGroup
 import kotlinx.coroutines.*
 import java.lang.reflect.Field
 import java.nio.channels.ClosedChannelException
@@ -29,7 +28,6 @@ import kotlin.coroutines.CoroutineContext
 internal class NettyHttp2Handler(
     private val enginePipeline: EnginePipeline,
     private val application: Application,
-    private val callEventGroup: EventExecutorGroup,
     private val userCoroutineContext: CoroutineContext,
     runningLimit: Int
 ) : ChannelInboundHandlerAdapter() {
@@ -103,7 +101,8 @@ internal class NettyHttp2Handler(
 
     private fun startHttp2(context: ChannelHandlerContext, headers: Http2Headers) {
         val callJob = Job(parent = userCoroutineContext[Job])
-        val callContext = userCoroutineContext + CallHandlerCoroutineName + callJob
+        val callContext =
+            userCoroutineContext + NettyDispatcher.CurrentContext(context) + callJob + CallHandlerCoroutineName
         val call = NettyHttp2ApplicationCall(
             application = application,
             context = context,
@@ -117,9 +116,9 @@ internal class NettyHttp2Handler(
         // Reserve response slot synchronously on the I/O thread for proper ordering
         responseWriter.processResponse(call)
 
-        callEventGroup.execute {
+        context.executor().execute {
             val callScope = CoroutineScope(context = callContext)
-            callScope.launch(callContext, start = CoroutineStart.UNDISPATCHED) {
+            callScope.launch(start = CoroutineStart.UNDISPATCHED) {
                 try {
                     enginePipeline.execute(call)
                 } catch (error: Throwable) {
