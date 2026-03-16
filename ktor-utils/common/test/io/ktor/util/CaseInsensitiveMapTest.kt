@@ -57,7 +57,10 @@ class CaseInsensitiveMapTest {
         assertEquals(map, other)
         assertEquals(map.hashCode(), other.hashCode())
 
+        // CaseInsensitiveMap does not claim equality with regular maps to
+        // preserve the equals/hashCode contract (case-insensitive hashing
+        // would differ from regular map hashing).
         val regular = hashMapOf("Foo" to "1")
-        assertEquals<Map<String, String>>(map, regular)
+        assertNotEquals<Map<String, String>>(map, regular)
     }
 }

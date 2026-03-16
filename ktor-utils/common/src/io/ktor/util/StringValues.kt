@@ -206,13 +206,14 @@ public open class StringValuesImpl(
         }
 
     init {
-        entryCount = values.size
-        if (entryCount == 0) {
+        if (values.isEmpty()) {
+            entryCount = 0
             keyStorage = emptyArray()
             valueStorage = emptyArray()
             hashBuckets = IntArray(0)
             hashNext = IntArray(0)
-        } else {
+        } else if (!caseInsensitiveName) {
+            entryCount = values.size
             keyStorage = arrayOfNulls<String>(entryCount) as Array<String>
             valueStorage = arrayOfNulls<List<String>>(entryCount) as Array<List<String>>
 
@@ -227,6 +228,38 @@ public open class StringValuesImpl(
                 valueStorage[i] = List(value.size) { value[it] }
 
                 // Insert into hash table
+                val hash = computeHash(key)
+                val bucket = hash and (tableSize - 1)
+                hashNext[i] = hashBuckets[bucket]
+                hashBuckets[bucket] = i
+                i++
+            }
+        } else {
+            // Case-insensitive mode: deduplicate keys, merging values for keys
+            // that differ only by case. The first occurrence's casing is kept.
+            val deduped = caseInsensitiveMap<List<String>>()
+            for ((key, value) in values) {
+                val existing = deduped[key]
+                if (existing != null) {
+                    deduped[key] = existing + value
+                } else {
+                    deduped[key] = value
+                }
+            }
+
+            entryCount = deduped.size
+            keyStorage = arrayOfNulls<String>(entryCount) as Array<String>
+            valueStorage = arrayOfNulls<List<String>>(entryCount) as Array<List<String>>
+
+            val tableSize = tableSizeFor(entryCount)
+            hashBuckets = IntArray(tableSize) { -1 }
+            hashNext = IntArray(entryCount) { -1 }
+
+            var i = 0
+            for ((key, value) in deduped) {
+                keyStorage[i] = key
+                valueStorage[i] = List(value.size) { value[it] }
+
                 val hash = computeHash(key)
                 val bucket = hash and (tableSize - 1)
                 hashNext[i] = hashBuckets[bucket]

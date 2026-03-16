@@ -173,21 +173,13 @@ public class CaseInsensitiveMap<Value : Any> : MutableMap<String, Value> {
 
     override fun equals(other: Any?): Boolean {
         if (other === this) return true
-        if (other !is Map<*, *>) return false
+        if (other !is CaseInsensitiveMap<*>) return false
         if (other.size != _size) return false
         for (i in keyStorage.indices) {
             val k = keyStorage[i]
             if (k != null) {
                 val v = valueStorage[i]
-                val otherValue = if (other is CaseInsensitiveMap<*>) {
-                    other[k]
-                } else {
-                    // For regular maps, find the key case-insensitively
-                    other.entries.firstOrNull { (key, _) ->
-                        (key as? String)?.equals(k, ignoreCase = true) == true
-                    }?.value
-                }
-                if (v != otherValue) return false
+                if (other[k] != v) return false
             }
         }
         return true
@@ -312,7 +304,7 @@ public class CaseInsensitiveMap<Value : Any> : MutableMap<String, Value> {
         override val size: Int get() = _size
 
         override fun add(element: Value): Boolean =
-            throw UnsupportedOperationException("CaseInsensitiveMap.values is read-only")
+            throw UnsupportedOperationException("CaseInsensitiveMap.values does not support add")
 
         override fun iterator(): MutableIterator<Value> = object : MutableIterator<Value> {
             private var orderIndex = 0
