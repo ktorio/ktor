@@ -152,6 +152,16 @@ private fun ContentEncoding.Context.encode(call: PipelineCall, options: Compress
     }
 
     transformBody { message ->
+        // Most compression algorithms (e.g. gzip, deflate, brotli) cannot compress streaming responses
+        // incrementally without buffering the entire body, which defeats the purpose of streaming.
+        if (message is OutgoingContent.WriteChannelContent) {
+            LOGGER.warn(
+                "Compressing a WriteChannelContent response for ${call.request.uri}. " +
+                    "Compression will buffer the entire body before sending, which defeats the purpose of streaming. " +
+                    "Consider suppressing compression for this route."
+            )
+        }
+
         if (options.conditions.any { !it(call, message) }) {
             LOGGER.trace("Skip compression for ${call.request.uri} because preconditions doesn't meet.")
             return@transformBody null
