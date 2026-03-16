@@ -54,6 +54,27 @@ class SavedCallTest {
     }
 
     @Test
+    fun `mutating returned byte array does not affect subsequent reads`() = runTest {
+        val expectedBody = "immutable body"
+        val client = HttpClient(MockEngine) {
+            engine {
+                addHandler { respond(expectedBody, HttpStatusCode.OK) }
+            }
+        }
+
+        val savedCall = client.get("http://localhost/test").call.save()
+
+        val firstRead = savedCall.body<ByteArray>()
+        // Mutate every byte in the returned array
+        for (i in firstRead.indices) {
+            firstRead[i] = 0
+        }
+
+        val secondRead = savedCall.body<ByteArray>()
+        assertContentEquals(expectedBody.encodeToByteArray(), secondRead)
+    }
+
+    @Test
     fun `saved call allows double receive`() = runTest {
         val expectedBody = "test body"
         val client = HttpClient(MockEngine) {
