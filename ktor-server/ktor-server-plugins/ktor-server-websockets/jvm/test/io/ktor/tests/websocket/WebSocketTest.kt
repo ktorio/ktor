@@ -9,6 +9,7 @@ import io.ktor.client.plugins.websocket.*
 import io.ktor.client.plugins.websocket.cio.*
 import io.ktor.serialization.*
 import io.ktor.server.application.*
+import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.server.websocket.*
 import io.ktor.server.websocket.WebSockets
@@ -490,6 +491,19 @@ class WebSocketTest {
         val frame = incoming.receive()
         assertTrue(frame is Frame.Text)
         return frame.readText()
+    }
+
+    @Test
+    fun `webSocket builder returns Route`() = testApplication {
+        install(WebSockets)
+
+        routing {
+            val wsRoute: Route = webSocket("/ws") {}
+            assertNotNull(wsRoute)
+
+            val wsRawRoute: Route = webSocketRaw("/ws-raw") {}
+            assertNotNull(wsRawRoute)
+        }
     }
 }
 
