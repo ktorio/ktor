@@ -116,6 +116,9 @@ internal class NettyHttp2Handler(
         // Reserve response slot synchronously on the I/O thread for proper ordering
         responseWriter.processResponse(call)
 
+        // Defer coroutine start to the next event loop tick via context.executor().execute so that
+        // channelRead returns and Netty can deliver subsequent Http2DataFrame messages.
+        // Without this, the coroutine runs on the event loop, blocking data frame delivery and causing EOFException.
         context.executor().execute {
             val callScope = CoroutineScope(context = callContext)
             callScope.launch(start = CoroutineStart.UNDISPATCHED) {

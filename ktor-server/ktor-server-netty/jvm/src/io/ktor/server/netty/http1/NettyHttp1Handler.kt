@@ -147,6 +147,10 @@ internal class NettyHttp1Handler(
         // Reserve response slot synchronously on the I/O thread for proper ordering
         responseWriter.processResponse(call)
 
+        // Defer coroutine start to the next event loop tick so that channelReadComplete() fires first
+        // This allows the response pipeline to detect that the request body is still being received and flush headers
+        // early instead of buffering them, which is required when the client waits for response headers
+        // before sending the request body
         context.executor().execute {
             val callScope = CoroutineScope(context = callContext)
             callScope.launch(start = CoroutineStart.UNDISPATCHED) {
