@@ -149,7 +149,7 @@ class MapApplicationConfigTest {
 
         assertEquals(
             RootConfig(host = "0.0.0.0", port = 8080),
-            config.getAs()
+            config.getAs<RootConfig>()
         )
     }
 

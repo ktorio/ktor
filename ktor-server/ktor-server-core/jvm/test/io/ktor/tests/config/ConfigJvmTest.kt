@@ -52,11 +52,8 @@ class ConfigJvmTest {
     }
 
     @Test
-    fun testLoadYamlFromFileAsRootSerializable() = withSystemProperties(
-        "HOST" to "127.0.0.1",
-        "PORT" to "9000"
-    ) {
-        val file = Files.createTempFile("ConfigJvmTest", ".yaml")
+    fun testLoadYamlFromFileAsRootSerializable() {
+        val file = Files.createTempFile("ConfigJvmTest", "my.config.yaml")
         file.writeText(
             """
             host: "${'$'}HOST:0.0.0.0"
@@ -66,21 +63,6 @@ class ConfigJvmTest {
 
         val config = ApplicationConfig(file.absolutePathString()).getAs<RootConfig>()
         assertEquals(RootConfig(host = "127.0.0.1", port = 9000), config)
-    }
-
-    private fun withSystemProperties(vararg properties: Pair<String, String>, block: () -> Unit) {
-        val originalValues = properties.associate { (key, _) -> key to System.getProperty(key) }
-        try {
-            properties.forEach { (key, value) -> System.setProperty(key, value) }
-            block()
-        } finally {
-            originalValues.forEach { (key, originalValue) ->
-                when (originalValue) {
-                    null -> System.clearProperty(key)
-                    else -> System.setProperty(key, originalValue)
-                }
-            }
-        }
     }
 
     @Serializable
