@@ -15,7 +15,6 @@ import org.opensaml.saml.saml2.core.StatusCode
 import org.opensaml.security.x509.BasicX509Credential
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.net.URI
 
 /**
  * SAML 2.0 authentication provider for Ktor Server.
@@ -48,12 +47,7 @@ public class SamlAuthenticationProvider internal constructor(
     private val idpMetadata = requireNotNull(config.idp) {
         "IdP metadata must be configured. Use idp = parseSamlIdpMetadata(...) to set it."
     }
-    private val relayValidator = config.allowedRelayStateUrls.let {
-        if (it == null) {
-            logger.warn("RelayState validation is disabled. This is unsafe in production.")
-        }
-        RelayValidator(allowedRelayStateUrls = it)
-    }
+    private val relayStateValidator = config.relayStateValidator
     private val requestedAuthnContext = config.requestedAuthnContext
 
     private val authenticationFunction = requireNotNull(config.authenticationFunction) {
@@ -206,8 +200,8 @@ public class SamlAuthenticationProvider internal constructor(
 
             when {
                 relayState.isNullOrBlank() -> return
-                relayValidator.validate(url = relayState) -> call.respondRedirect(url = relayState)
-                else -> logger.warn("RelayState URL not in allowlist, ignoring: $relayState")
+                relayStateValidator.validate(url = relayState) -> call.respondRedirect(url = relayState)
+                else -> logger.warn("RelayState URL validation failed, ignoring: $relayState")
             }
         } catch (e: CancellationException) {
             throw e
@@ -293,7 +287,7 @@ public class SamlAuthenticationProvider internal constructor(
 
             when {
                 samlRequest != null && samlResponse != null -> {
-                    logger.debug("SLO endpoint failed. Both `SAMLRequest` and `SAMLRequest` are present")
+                    logger.debug("SLO endpoint failed. Both `SAMLRequest` and `SAMLResponse` are present")
                     call.respond(HttpStatusCode.BadRequest, "Malformed SAML request")
                 }
 
@@ -332,12 +326,22 @@ public class SamlAuthenticationProvider internal constructor(
             call.sessions.clear<SamlSession>()
 
             val idpSloUrl = requireNotNull(idpMetadata.sloUrl) { "IdP SLO URL not found" }
+            val validatedRelayState = parameters["RelayState"].takeIf { relayState ->
+                when {
+                    relayState.isNullOrBlank() -> false
+                    relayStateValidator.validate(relayState) -> true
+                    else -> {
+                        logger.warn("RelayState URL validation failed in IdP logout request, ignoring: $relayState")
+                        false
+                    }
+                }
+            }
             val logoutResponse = buildLogoutResponseRedirect(
                 spEntityId = spEntityId,
                 idpSloUrl = idpSloUrl,
                 inResponseTo = logoutRequest.requestId,
                 statusCodeValue = StatusCode.SUCCESS,
-                relayState = parameters["RelayState"],
+                relayState = validatedRelayState,
                 signingCredential = signingCredential,
                 signatureAlgorithm = config.signatureAlgorithm
             )
@@ -384,74 +388,18 @@ public class SamlAuthenticationProvider internal constructor(
 
             // Redirect to RelayState or respond with success
             val relayState = parameters["RelayState"]
-            if (!relayState.isNullOrBlank() && relayValidator.validate(url = relayState)) {
+            if (!relayState.isNullOrBlank() && relayStateValidator.validate(url = relayState)) {
                 call.respondRedirect(relayState)
             } else {
+                if (!relayState.isNullOrBlank()) {
+                    logger.warn("RelayState URL validation failed in IdP logout response, ignoring: $relayState")
+                }
                 call.respond(HttpStatusCode.OK, "Logout completed")
             }
         } catch (e: SamlValidationException) {
             logger.debug("LogoutResponse validation failed", e)
             call.respond(HttpStatusCode.BadRequest, "Invalid logout response")
         }
-    }
-}
-
-internal class RelayValidator(private val allowedRelayStateUrls: List<String>?) {
-    /**
-     * Validates that the relay state URL is allowed for redirect.
-     */
-    fun validate(url: String): Boolean = when {
-        allowedRelayStateUrls == null -> true
-        // Reject dangerous patterns
-        url.startsWith("//") || url.contains("\\") || url.any { it.isISOControl() } -> false
-        // Allow relative paths
-        url.startsWith("/") -> {
-            val normalized = URI(url).normalize().toString()
-            if (normalized.startsWith("//") || !normalized.startsWith("/")) return false
-            if (allowedRelayStateUrls.isEmpty()) return true
-            val pathPrefixes = allowedRelayStateUrls.filter { it.startsWith("/") && !it.startsWith("//") }
-            pathPrefixes.any { prefix ->
-                normalized.startsWith(prefix) && (normalized == prefix || prefix.endsWith("/"))
-            }
-        }
-        // Validate absolute URLs
-        else -> {
-            allowedRelayStateUrls.any { prefix -> isAllowedAbsoluteRelayState(url, prefix) }
-        }
-    }
-
-    /**
-     * Validates an absolute URL against an allowed prefix.
-     * Checks a scheme, host, port, and path with segment boundary validation.
-     */
-    private fun isAllowedAbsoluteRelayState(targetUrl: String, allowedPrefix: String): Boolean {
-        val target = runCatching { Url(targetUrl) }.getOrNull() ?: return false
-        val allowed = runCatching { Url(allowedPrefix) }.getOrNull() ?: return false
-
-        // Reject URLs with userinfo (user:pass@host) - bypass technique
-        if (target.user != null || target.password != null) return false
-
-        // Only allow http and https schemes
-        if (target.protocol.name !in listOf("http", "https")) return false
-        if (allowed.protocol.name !in listOf("http", "https")) return false
-
-        // Exact protocol match (case-insensitive)
-        if (!target.protocol.name.equals(allowed.protocol.name, ignoreCase = true)) return false
-
-        // Exact host match (case-insensitive per RFC 3986)
-        if (!target.host.equals(allowed.host, ignoreCase = true)) return false
-
-        // Exact port match
-        if (target.port != allowed.port) return false
-
-        // Path prefix match with segment boundary check
-        val allowedPath = allowed.encodedPath.ifBlank { "/" }
-        val targetPath = target.encodedPath.ifBlank { "/" }
-
-        if (!targetPath.startsWith(allowedPath)) return false
-        if (targetPath == allowedPath) return true
-        if (allowedPath.endsWith("/")) return true
-        return targetPath.getOrNull(allowedPath.length) == '/'
     }
 }
 
