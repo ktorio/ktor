@@ -11,10 +11,10 @@ import io.ktor.server.response.*
 import io.ktor.server.sessions.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.Serializable
+import org.opensaml.saml.saml2.core.StatusCode
 import org.opensaml.security.x509.BasicX509Credential
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.net.URI
 
 /**
  * SAML 2.0 authentication provider for Ktor Server.
@@ -47,12 +47,7 @@ public class SamlAuthenticationProvider internal constructor(
     private val idpMetadata = requireNotNull(config.idp) {
         "IdP metadata must be configured. Use idp = parseSamlIdpMetadata(...) to set it."
     }
-    private val relayValidator = config.allowedRelayStateUrls.let {
-        if (it == null) {
-            logger.warn("RelayState validation is disabled. This is unsafe in production.")
-        }
-        RelayValidator(allowedRelayStateUrls = it)
-    }
+    private val relayStateValidator = config.relayStateValidator
     private val requestedAuthnContext = config.requestedAuthnContext
 
     private val authenticationFunction = requireNotNull(config.authenticationFunction) {
@@ -137,6 +132,21 @@ public class SamlAuthenticationProvider internal constructor(
     private val acsPath = Url(acsUrl).encodedPath
     private val sloPath = if (isAbsoluteUrl(sloUrl)) Url(sloUrl).encodedPath else sloUrl
 
+    private val enableSingleLogout = config.enableSingleLogout
+    private val logoutProcessor: SamlLogoutProcessor? by lazy {
+        if (!enableSingleLogout) return@lazy null
+        SamlLogoutProcessor(
+            sloUrl = sloUrl,
+            idpMetadata = idpMetadata,
+            replayCache = replayCache,
+            clockSkew = config.clockSkew,
+            signatureVerifier = signatureVerifier,
+            requireDestination = config.requireDestination,
+            requireSignedLogoutRequest = config.requireSignedLogoutRequest,
+            requireSignedLogoutResponse = config.requireSignedResponse,
+        )
+    }
+
     init {
         require(config.clockSkew.isPositive()) { "clockSkew must be positive, got: ${config.clockSkew}" }
         require(acsPath != sloPath) { "acsPath and sloPath must be different, got: $acsPath" }
@@ -148,6 +158,7 @@ public class SamlAuthenticationProvider internal constructor(
             request.httpMethod == HttpMethod.Post && request.path() == acsPath ->
                 context.handleSamlCallback()
 
+            enableSingleLogout && request.path() == sloPath -> context.handleSloEndpoint()
             else -> context.handleChallenge()
         }
     }
@@ -189,8 +200,8 @@ public class SamlAuthenticationProvider internal constructor(
 
             when {
                 relayState.isNullOrBlank() -> return
-                relayValidator.validate(url = relayState) -> call.respondRedirect(url = relayState)
-                else -> logger.warn("RelayState URL not in allowlist, ignoring: $relayState")
+                relayStateValidator.validate(url = relayState) -> call.respondRedirect(url = relayState)
+                else -> logger.warn("RelayState URL validation failed, ignoring: $relayState")
             }
         } catch (e: CancellationException) {
             throw e
@@ -255,64 +266,140 @@ public class SamlAuthenticationProvider internal constructor(
             }
         }
     }
-}
 
-internal class RelayValidator(private val allowedRelayStateUrls: List<String>?) {
     /**
-     * Validates that the relay state URL is allowed for redirect.
+     * Handles the Single Logout (SLO) endpoint.
+     * Routes to either LogoutRequest or LogoutResponse handling based on the parameters.
      */
-    fun validate(url: String): Boolean = when {
-        allowedRelayStateUrls == null -> true
-        // Reject dangerous patterns
-        url.startsWith("//") || url.contains("\\") || url.any { it.isISOControl() } -> false
-        // Allow relative paths
-        url.startsWith("/") -> {
-            val normalized = URI(url).normalize().toString()
-            if (normalized.startsWith("//") || !normalized.startsWith("/")) return false
-            if (allowedRelayStateUrls.isEmpty()) return true
-            val pathPrefixes = allowedRelayStateUrls.filter { it.startsWith("/") && !it.startsWith("//") }
-            pathPrefixes.any { prefix ->
-                normalized.startsWith(prefix) && (normalized == prefix || prefix.endsWith("/"))
+    private suspend fun AuthenticationContext.handleSloEndpoint() {
+        try {
+            val parameters = when (call.request.httpMethod) {
+                HttpMethod.Get -> call.request.queryParameters
+                HttpMethod.Post -> call.receiveParameters()
+                else -> {
+                    logger.debug("SLO endpoint called with unsupported method: {}", call.request.httpMethod)
+                    return call.respond(HttpStatusCode.MethodNotAllowed)
+                }
             }
-        }
-        // Validate absolute URLs
-        else -> {
-            allowedRelayStateUrls.any { prefix -> isAllowedAbsoluteRelayState(url, prefix) }
+
+            val samlRequest = parameters["SAMLRequest"]
+            val samlResponse = parameters["SAMLResponse"]
+
+            when {
+                samlRequest != null && samlResponse != null -> {
+                    logger.debug("SLO endpoint failed. Both `SAMLRequest` and `SAMLResponse` are present")
+                    call.respond(HttpStatusCode.BadRequest, "Malformed SAML request")
+                }
+
+                samlRequest != null -> handleIdpLogoutRequest(samlRequest, parameters)
+                samlResponse != null -> handleLogoutResponse(samlResponse, parameters)
+                else -> {
+                    logger.debug("SLO endpoint called without SAMLRequest or SAMLResponse")
+                    call.respond(HttpStatusCode.BadRequest, "Missing SAMLRequest or SAMLResponse parameter")
+                }
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            logger.debug("SLO endpoint error", e)
+            call.respond(HttpStatusCode.InternalServerError, "Logout processing failed")
         }
     }
 
     /**
-     * Validates an absolute URL against an allowed prefix.
-     * Checks a scheme, host, port, and path with segment boundary validation.
+     * Handles IdP-initiated LogoutRequest.
+     * Processes the request, terminates the local session, and sends back a LogoutResponse.
      */
-    private fun isAllowedAbsoluteRelayState(targetUrl: String, allowedPrefix: String): Boolean {
-        val target = runCatching { Url(targetUrl) }.getOrNull() ?: return false
-        val allowed = runCatching { Url(allowedPrefix) }.getOrNull() ?: return false
+    private suspend fun AuthenticationContext.handleIdpLogoutRequest(
+        samlRequestBase64: String,
+        parameters: Parameters
+    ) {
+        val processor = checkNotNull(logoutProcessor)
+        try {
+            val logoutRequest = processor.processRequest(
+                samlRequestBase64 = samlRequestBase64,
+                binding = call.request.samlBinding(),
+                queryString = call.request.queryString(),
+                signatureParam = parameters["Signature"],
+                signatureAlgorithmParam = parameters["SigAlg"],
+            )
+            call.sessions.clear<SamlSession>()
 
-        // Reject URLs with userinfo (user:pass@host) - bypass technique
-        if (target.user != null || target.password != null) return false
+            val idpSloUrl = requireNotNull(idpMetadata.sloUrl) { "IdP SLO URL not found" }
+            val validatedRelayState = parameters["RelayState"].takeIf { relayState ->
+                when {
+                    relayState.isNullOrBlank() -> false
+                    relayStateValidator.validate(relayState) -> true
+                    else -> {
+                        logger.warn("RelayState URL validation failed in IdP logout request, ignoring: $relayState")
+                        false
+                    }
+                }
+            }
+            val logoutResponse = buildLogoutResponseRedirect(
+                spEntityId = spEntityId,
+                idpSloUrl = idpSloUrl,
+                inResponseTo = logoutRequest.requestId,
+                statusCodeValue = StatusCode.SUCCESS,
+                relayState = validatedRelayState,
+                signingCredential = signingCredential,
+                signatureAlgorithm = config.signatureAlgorithm
+            )
 
-        // Only allow http and https schemes
-        if (target.protocol.name !in listOf("http", "https")) return false
-        if (allowed.protocol.name !in listOf("http", "https")) return false
+            call.respondRedirect(logoutResponse.redirectUrl)
+        } catch (e: SamlValidationException) {
+            logger.error("IdP LogoutRequest validation failed", e)
+            call.respond(HttpStatusCode.BadRequest, "Invalid logout request")
+        }
+    }
 
-        // Exact protocol match (case-insensitive)
-        if (!target.protocol.name.equals(allowed.protocol.name, ignoreCase = true)) return false
+    /**
+     * Handles LogoutResponse from IdP (after SP-initiated logout).
+     * Validates the response and completes the logout process.
+     */
+    private suspend fun AuthenticationContext.handleLogoutResponse(
+        samlResponseBase64: String,
+        parameters: Parameters
+    ) {
+        val processor = checkNotNull(logoutProcessor) { "Logout response processor not initialized" }
 
-        // Exact host match (case-insensitive per RFC 3986)
-        if (!target.host.equals(allowed.host, ignoreCase = true)) return false
+        try {
+            val session = call.sessions.get<SamlSession>()
+            val expectedRequestId = session?.logoutRequestId
 
-        // Exact port match
-        if (target.port != allowed.port) return false
+            val result = processor.processResponse(
+                samlResponseBase64 = samlResponseBase64,
+                expectedRequestId = expectedRequestId,
+                binding = call.request.samlBinding(),
+                queryString = call.request.queryString(),
+                signatureParam = parameters["Signature"],
+                signatureAlgorithmParam = parameters["SigAlg"],
+            )
 
-        // Path prefix match with segment boundary check
-        val allowedPath = allowed.encodedPath.ifBlank { "/" }
-        val targetPath = target.encodedPath.ifBlank { "/" }
+            // Clear the SAML session regardless of status
+            call.sessions.clear<SamlSession>()
 
-        if (!targetPath.startsWith(allowedPath)) return false
-        if (targetPath == allowedPath) return true
-        if (allowedPath.endsWith("/")) return true
-        return targetPath.getOrNull(allowedPath.length) == '/'
+            if (!result.isSuccess) {
+                val statusMessage = result.statusMessage ?: "No message"
+                logger.warn("IdP logout failed with status ${result.statusCode}: $statusMessage")
+                call.respond(HttpStatusCode.BadGateway, "IdP logout failed: $statusMessage")
+                return
+            }
+
+            // Redirect to RelayState or respond with success
+            val relayState = parameters["RelayState"]
+            if (!relayState.isNullOrBlank() && relayStateValidator.validate(url = relayState)) {
+                call.respondRedirect(relayState)
+            } else {
+                if (!relayState.isNullOrBlank()) {
+                    logger.warn("RelayState URL validation failed in IdP logout response, ignoring: $relayState")
+                }
+                call.respond(HttpStatusCode.OK, "Logout completed")
+            }
+        } catch (e: SamlValidationException) {
+            logger.debug("LogoutResponse validation failed", e)
+            call.respond(HttpStatusCode.BadRequest, "Invalid logout response")
+        }
     }
 }
 
@@ -342,4 +429,10 @@ private val SAML_AUTH_KEY: Any = "SAMLAuth"
 
 private fun isAbsoluteUrl(url: String): Boolean {
     return url.startsWith("http://") || url.startsWith("https://")
+}
+
+private fun ApplicationRequest.samlBinding(): SamlBinding = when (httpMethod) {
+    HttpMethod.Post -> SamlBinding.HttpPost
+    HttpMethod.Get -> SamlBinding.HttpRedirect
+    else -> error("Unsupported HTTP method: $httpMethod")
 }

@@ -4,7 +4,9 @@
 
 package io.ktor.server.auth.saml
 
+import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.sessions.*
 
 /**
  * Installs SAML 2.0 authentication.
@@ -96,4 +98,78 @@ public fun AuthenticationConfig.saml(
         .let { SamlAuthenticationProvider(it) }
 
     register(provider)
+}
+
+/**
+ * Initiates SP-initiated SAML Single Logout.
+ *
+ * @param principal The authenticated SAML principal containing NameID and session info
+ * @param spMetadata The Service Provider metadata containing the entity ID and signing credential
+ * @param idpSloUrl The IdP's SLO URL
+ * @param relayState Optional URL to redirect to after logout completes
+ * @param signatureAlgorithm The signature algorithm to use for signing the LogoutRequest
+ * @return [SamlRedirectResult] containing the request ID and redirect URL to the IdP
+ */
+public fun ApplicationCall.samlLogout(
+    principal: SamlPrincipal,
+    spMetadata: SamlSpMetadata,
+    idpSloUrl: String,
+    relayState: String? = null,
+    signatureAlgorithm: SignatureAlgorithm = SignatureAlgorithm.RSA_SHA256
+): SamlRedirectResult = samlLogout(
+    nameId = principal.nameId,
+    idpSloUrl = idpSloUrl,
+    spMetadata = spMetadata,
+    sessionIndex = principal.sessionIndex,
+    relayState = relayState,
+    signatureAlgorithm = signatureAlgorithm
+)
+
+/**
+ * Initiates SP-initiated SAML Single Logout with explicit NameID.
+ *
+ * @param nameId The NameID of the user to log out
+ * @param idpSloUrl The IdP's SLO URL
+ * @param spMetadata The Service Provider metadata containing the entity ID and signing credential
+ * @param sessionIndex The session index from the AuthnStatement (optional but recommended)
+ * @param relayState Optional URL to redirect to after logout completes
+ * @param signatureAlgorithm The signature algorithm to use for signing the LogoutRequest
+ * @return [SamlRedirectResult] containing the request ID and redirect URL to the IdP
+ */
+public fun ApplicationCall.samlLogout(
+    nameId: String,
+    idpSloUrl: String,
+    spMetadata: SamlSpMetadata,
+    sessionIndex: String?,
+    relayState: String? = null,
+    signatureAlgorithm: SignatureAlgorithm = SignatureAlgorithm.RSA_SHA256
+): SamlRedirectResult {
+    LibSaml.ensureInitialized()
+
+    val spEntityId = spMetadata.spEntityId
+    require(!spEntityId.isNullOrBlank()) { "spEntityId must not be blank for logout" }
+    require(nameId.isNotBlank()) { "nameId must not be blank for logout" }
+    require(idpSloUrl.isNotBlank()) { "idpSloUrl must not be blank for logout" }
+
+    val result = buildLogoutRequestRedirect(
+        nameId = nameId,
+        idpSloUrl = idpSloUrl,
+        relayState = relayState,
+        spEntityId = spEntityId,
+        sessionIndex = sessionIndex,
+        signingCredential = spMetadata.signingCredential,
+        signatureAlgorithm = signatureAlgorithm
+    )
+
+    // Store the logout request ID in the session for InResponseTo validation
+    val currentSession = checkNotNull(sessions.get<SamlSession>()) {
+        "No current session found. Did you forget to call authenticate() or sessions.install()?"
+    }
+    val newSession = SamlSession(
+        requestId = currentSession.requestId,
+        logoutRequestId = result.messageId
+    )
+    sessions.set(newSession)
+
+    return result
 }
