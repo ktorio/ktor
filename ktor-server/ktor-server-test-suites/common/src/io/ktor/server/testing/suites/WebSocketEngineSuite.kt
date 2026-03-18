@@ -684,6 +684,9 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
 
     @Test
     open fun testWebSocketSessionCancelledOnServerStop() = runTest {
+        // server.stop() calls runBlocking internally, which is unsupported on JS/WASM
+        if (PlatformUtils.IS_JS || PlatformUtils.IS_WASM_JS) return@runTest
+
         val sessionStarted = CompletableDeferred<Unit>()
         val sessionCancelled = CompletableDeferred<Unit>()
 
