@@ -7,7 +7,6 @@ package io.ktor.tests.resources
 import io.ktor.http.Url
 import io.ktor.resources.*
 import io.ktor.resources.serialization.*
-import io.ktor.tests.resources.ParametersSerializationTest.V1
 import kotlin.test.*
 
 class UrlDeserializationTest {
