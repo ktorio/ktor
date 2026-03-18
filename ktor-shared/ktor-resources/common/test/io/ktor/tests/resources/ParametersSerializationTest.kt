@@ -188,5 +188,6 @@ class ParametersSerializationTest {
     @Test
     fun testQueryParamsDoNotContainsObjectParent() {
         assertEquals(emptySet(), resourcesFormat.encodeToQueryParameters(serializer = serializer<V1.Api>()))
+        assertEquals(setOf(ResourcesFormat.Parameter("search", true)), resourcesFormat.encodeToQueryParameters(serializer = serializer<V1.Api.User>()))
     }
 }
