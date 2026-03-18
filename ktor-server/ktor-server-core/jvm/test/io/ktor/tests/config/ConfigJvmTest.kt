@@ -56,8 +56,8 @@ class ConfigJvmTest {
         val file = Files.createTempFile("ConfigJvmTest", "my.config.yaml")
         file.writeText(
             """
-            host: "${'$'}HOST:0.0.0.0"
-            port: "${'$'}PORT:8080"
+            host: "127.0.0.1"
+            port: "9000"
             """.trimIndent()
         )
 
