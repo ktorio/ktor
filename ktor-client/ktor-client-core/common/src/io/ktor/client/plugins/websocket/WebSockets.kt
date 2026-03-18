@@ -16,7 +16,6 @@ import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import io.ktor.websocket.*
-import io.ktor.websocket.WebSocketChannelsConfig
 
 private val REQUEST_EXTENSIONS_KEY = AttributeKey<List<WebSocketExtension<*>>>("Websocket extensions")
 
@@ -64,8 +63,8 @@ public class WebSockets internal constructor(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.WebSockets.WebSockets)
      *
-     * @property pingIntervalMillis - interval between [FrameType.PING] messages.
-     * @property maxFrameSize - max size of a single websocket frame.
+     * @param pingIntervalMillis - interval between [FrameType.PING] messages.
+     * @param maxFrameSize - max size of a single websocket frame.
      */
     public constructor(
         pingIntervalMillis: Long = PINGER_DISABLED,
