@@ -74,7 +74,6 @@ private val ServletUpgradeCoroutineName = CoroutineName("servlet-upgrade")
 // this class is instantiated by a servlet container
 // so we can't pass [UpgradeRequest] through a constructor
 // we also can't make it internal due to the same reason
-@OptIn(InternalCoroutinesApi::class)
 @InternalAPI
 public class ServletUpgradeHandler : HttpUpgradeHandler, CoroutineScope {
     @Volatile
@@ -85,6 +84,7 @@ public class ServletUpgradeHandler : HttpUpgradeHandler, CoroutineScope {
 
     override val coroutineContext: CoroutineContext get() = upgradeJob
 
+    @OptIn(InternalCoroutinesApi::class)
     override fun init(webConnection: WebConnection?) {
         if (webConnection == null) {
             throw IllegalArgumentException("Upgrade processing requires WebConnection instance")
