@@ -9,10 +9,14 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
-import org.khronos.webgl.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.channels.consumeEach
+import org.khronos.webgl.ArrayBuffer
+import org.khronos.webgl.Uint8Array
 import org.w3c.dom.*
-import kotlin.coroutines.*
+import kotlin.coroutines.CoroutineContext
 
 @Suppress("UNUSED_PARAMETER")
 private fun tryGetEventDataAsString(data: JsAny): String? =
