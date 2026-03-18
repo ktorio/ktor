@@ -35,7 +35,7 @@ public actual fun Digest(name: String): Digest = object : Digest {
     }
 
     override suspend fun build(): ByteArray {
-        val combined = state.reduce { a, b -> a + b }
+        val combined = state.reduceOrNull { a, b -> a + b } ?: ByteArray(0)
         val digestBuffer = try {
             _crypto.subtle.digest(name, combined.toJsArray()).awaitBuffer()
         } catch (e: JsException) {

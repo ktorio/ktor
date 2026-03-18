@@ -10,6 +10,14 @@ import kotlin.test.*
 class DigestTest {
 
     @Test
+    fun digestBuildWithEmptyInput() = runTest {
+        // RFC 1321: MD5("") = d41d8cd98f00b204e9800998ecf8427e
+        val digest = Digest("MD5")
+        val result = hex(digest.build())
+        assertEquals("d41d8cd98f00b204e9800998ecf8427e", result)
+    }
+
+    @Test
     fun md5Rfc1321TestVectors() = runTest {
         // Test vectors from RFC 1321, Appendix A.5
         val vectors = listOf(
