@@ -15,6 +15,7 @@ import io.ktor.http.auth.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
+import kotlinx.coroutines.*
 import java.security.interfaces.*
 import java.util.*
 
@@ -54,7 +55,7 @@ internal fun AuthenticationContext.bearerChallenge(
     }
 }
 
-internal fun getVerifier(
+internal suspend fun getVerifier(
     jwkProvider: JwkProvider,
     issuer: String?,
     token: HttpAuthHeader,
@@ -63,7 +64,9 @@ internal fun getVerifier(
 ): JWTVerifier? {
     val jwk = token.getBlob(schemes)?.let { blob ->
         try {
-            jwkProvider.get(JWT.decode(blob).keyId)
+            withContext(Dispatchers.IO) {
+                jwkProvider.get(JWT.decode(blob).keyId)
+            }
         } catch (cause: JwkException) {
             JWTLogger.trace("Failed to get JWK", cause)
             null
@@ -86,7 +89,7 @@ internal fun getVerifier(
     }.apply(jwtConfigure).build()
 }
 
-internal fun getVerifier(
+internal suspend fun getVerifier(
     jwkProvider: JwkProvider,
     token: HttpAuthHeader,
     schemes: JWTAuthSchemes,

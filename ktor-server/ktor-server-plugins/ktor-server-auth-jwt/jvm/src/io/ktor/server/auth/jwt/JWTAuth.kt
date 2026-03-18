@@ -180,7 +180,7 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
     private val realm: String = config.realm
     private val schemes: JWTAuthSchemes = config.schemes
     private val authHeader: (ApplicationCall) -> HttpAuthHeader? = config.authHeader
-    private val verifier: ((HttpAuthHeader) -> JWTVerifier?) = config.verifier
+    private val verifier: suspend ((HttpAuthHeader) -> JWTVerifier?) = config.verifier
     private val authenticationFunction = config.authenticationFunction ?: throw IllegalArgumentException(
         "JWT auth validate function is not specified. Use jwt { validate { ... } } to fix."
     )
@@ -240,7 +240,7 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
         internal var authHeader: (ApplicationCall) -> HttpAuthHeader? =
             { call -> call.request.parseAuthorizationHeaderOrNull() }
 
-        internal var verifier: ((HttpAuthHeader) -> JWTVerifier?) = { null }
+        internal var verifier: suspend ((HttpAuthHeader) -> JWTVerifier?) = { null }
 
         internal var challenge: JWTAuthChallengeFunction = { scheme, realm ->
             call.respond(
@@ -297,7 +297,17 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.JWTAuthenticationProvider.Config.verifier)
          */
+        @Deprecated("Use suspend verifier instead", level = DeprecationLevel.HIDDEN)
         public fun verifier(verifier: (HttpAuthHeader) -> JWTVerifier?) {
+            this.verifier = { header -> verifier(header) }
+        }
+
+        /**
+         * Provides a [JWTVerifier] used to verify a token format and signature.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.JWTAuthenticationProvider.Config.verifier)
+         */
+        public fun verifier(verifier: suspend (HttpAuthHeader) -> JWTVerifier?) {
             this.verifier = verifier
         }
 
