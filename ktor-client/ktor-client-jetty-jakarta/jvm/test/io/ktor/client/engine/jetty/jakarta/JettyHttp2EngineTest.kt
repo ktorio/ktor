@@ -26,7 +26,7 @@ class JettyHttp2EngineTest {
 
     @OptIn(InternalAPI::class)
     @Test
-    fun `KTOR-7416 custom Host header overrides default in headers frame`() {
+    fun `custom Host header overrides default in headers frame`() {
         val requestData = HttpRequestData(
             Url("http://127.0.0.1:8080/test"),
             HttpMethod.Get,

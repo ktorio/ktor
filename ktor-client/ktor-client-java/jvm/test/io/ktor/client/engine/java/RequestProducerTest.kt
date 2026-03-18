@@ -19,13 +19,18 @@ import kotlin.test.Test
 
 class RequestProducerTest {
 
+    companion object {
+        init {
+            // Trigger the Java engine factory init block which sets the JDK system property
+            // allowing the Host header. This must happen before any test calls convertToHttpRequest,
+            // because the JDK caches the restricted headers set on first HttpClient class load.
+            Java
+        }
+    }
+
     @OptIn(InternalAPI::class)
     @Test
-    fun `KTOR-7416 custom Host header is preserved in request`() {
-        // Reference the Java engine factory to trigger its init block which sets up
-        // the JDK system property allowing the Host header
-        Java
-
+    fun `custom Host header is preserved in request`() {
         val request = HttpRequestData(
             Url("http://127.0.0.1/"),
             HttpMethod.Get,
