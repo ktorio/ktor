@@ -13,19 +13,25 @@ package io.ktor.util
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.CaseInsensitiveMap)
  */
 public class CaseInsensitiveMap<Value : Any> : MutableMap<String, Value> {
-    private var keyStorage: Array<String?> = arrayOfNulls(INITIAL_CAPACITY)
-    private var valueStorage: Array<Any?> = arrayOfNulls(INITIAL_CAPACITY)
+    private var keyStorage: Array<String?> = EMPTY_STRING_ARRAY
+    private var valueStorage: Array<Any?> = EMPTY_ANY_ARRAY
     private var _size: Int = 0
 
     // Track insertion order for iteration (like LinkedHashMap)
-    private var insertionOrder: IntArray = IntArray(INITIAL_CAPACITY) { -1 }
+    private var insertionOrder: IntArray = EMPTY_INT_ARRAY
     private var insertionCount: Int = 0
+
+    // Cached collection views to avoid allocations on every access
+    private var cachedKeySet: KeySet? = null
+    private var cachedEntrySet: EntrySet? = null
+    private var cachedValueCollection: ValueCollection? = null
 
     override val size: Int get() = _size
 
     override fun containsKey(key: String): Boolean = findIndex(key) >= 0
 
     override fun containsValue(value: Value): Boolean {
+        if (_size == 0) return false
         for (i in valueStorage.indices) {
             if (keyStorage[i] != null && valueStorage[i] == value) return true
         }
@@ -41,14 +47,23 @@ public class CaseInsensitiveMap<Value : Any> : MutableMap<String, Value> {
     override fun isEmpty(): Boolean = _size == 0
 
     override fun clear() {
-        keyStorage.fill(null)
-        valueStorage.fill(null)
-        insertionOrder.fill(-1)
-        _size = 0
-        insertionCount = 0
+        if (_size > 0) {
+            keyStorage.fill(null)
+            valueStorage.fill(null)
+            insertionOrder.fill(-1)
+            _size = 0
+            insertionCount = 0
+        }
     }
 
     override fun put(key: String, value: Value): Value? {
+        // Lazy-initialize arrays on first insertion
+        if (keyStorage === EMPTY_STRING_ARRAY) {
+            keyStorage = arrayOfNulls(INITIAL_CAPACITY)
+            valueStorage = arrayOfNulls(INITIAL_CAPACITY)
+            insertionOrder = IntArray(INITIAL_CAPACITY) { -1 }
+        }
+
         val hash = caseInsensitiveHashCode(key)
         var index = hash and (keyStorage.size - 1)
 
@@ -163,13 +178,13 @@ public class CaseInsensitiveMap<Value : Any> : MutableMap<String, Value> {
     }
 
     override val keys: MutableSet<String>
-        get() = KeySet()
+        get() = cachedKeySet ?: KeySet().also { cachedKeySet = it }
 
     override val entries: MutableSet<MutableMap.MutableEntry<String, Value>>
-        get() = EntrySet()
+        get() = cachedEntrySet ?: EntrySet().also { cachedEntrySet = it }
 
     override val values: MutableCollection<Value>
-        get() = ValueCollection()
+        get() = cachedValueCollection ?: ValueCollection().also { cachedValueCollection = it }
 
     override fun equals(other: Any?): Boolean {
         if (other === this) return true
@@ -197,6 +212,7 @@ public class CaseInsensitiveMap<Value : Any> : MutableMap<String, Value> {
     }
 
     private fun findIndex(key: String): Int {
+        if (_size == 0) return -1
         val hash = caseInsensitiveHashCode(key)
         var index = hash and (keyStorage.size - 1)
 
@@ -411,7 +427,12 @@ public class CaseInsensitiveMap<Value : Any> : MutableMap<String, Value> {
     }
 
     private companion object {
-        private const val INITIAL_CAPACITY = 16
+        private const val INITIAL_CAPACITY = 8
+
+        // Shared empty arrays to avoid allocating per-instance until first put()
+        private val EMPTY_STRING_ARRAY: Array<String?> = emptyArray()
+        private val EMPTY_ANY_ARRAY: Array<Any?> = emptyArray()
+        private val EMPTY_INT_ARRAY: IntArray = IntArray(0)
 
         /**
          * Computes case-insensitive hash code inline without allocating wrapper objects.
