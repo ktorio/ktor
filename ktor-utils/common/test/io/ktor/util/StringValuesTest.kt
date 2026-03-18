@@ -53,6 +53,21 @@ class StringValuesTest {
     }
 
     @Test
+    fun `case-insensitive constructor deduplicates keys that differ by case`() {
+        val sv = StringValuesImpl(
+            caseInsensitiveName = true,
+            values = mapOf("A" to listOf("1"), "a" to listOf("2"))
+        )
+
+        // Keys differing only by case should be merged into one entry,
+        // keeping the first occurrence's casing.
+        assertEquals(setOf("A"), sv.names())
+        assertEquals(listOf("1", "2"), sv.getAll("a"))
+        assertEquals(listOf("1", "2"), sv.getAll("A"))
+        assertEquals(1, sv.entries().size)
+    }
+
+    @Test
     fun addEmptyValuesListAddsKey() {
         val map = StringValues.build {
             appendAll("key", emptyList())

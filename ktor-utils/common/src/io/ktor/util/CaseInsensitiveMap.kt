@@ -256,7 +256,7 @@ public class CaseInsensitiveMap<Value : Any> : MutableMap<String, Value> {
         override val size: Int get() = _size
 
         override fun add(element: String): Boolean =
-            throw UnsupportedOperationException("CaseInsensitiveMap.keys is read-only")
+            throw UnsupportedOperationException("CaseInsensitiveMap.keys does not support add")
 
         override fun contains(element: String): Boolean =
             this@CaseInsensitiveMap.containsKey(element)
@@ -347,7 +347,7 @@ public class CaseInsensitiveMap<Value : Any> : MutableMap<String, Value> {
         override val size: Int get() = _size
 
         override fun add(element: MutableMap.MutableEntry<String, Value>): Boolean =
-            throw UnsupportedOperationException("CaseInsensitiveMap.entries is read-only")
+            throw UnsupportedOperationException("CaseInsensitiveMap.entries does not support add")
 
         override fun iterator(): MutableIterator<MutableMap.MutableEntry<String, Value>> =
             object : MutableIterator<MutableMap.MutableEntry<String, Value>> {
