@@ -139,6 +139,56 @@ abstract class AbstractSchemaInferenceTest(
     }
 
     @Test
+    fun `nested classes with lists produce correct schema`() {
+        val schema = inference.jsonSchema<OuterWithNestedLists>()
+
+        // The outer schema should have an "items" property that is an array
+        val itemsProp = schema.properties?.get("items")?.valueOrNull()
+        assertNotNull(itemsProp, "Expected 'items' property in schema")
+        assertEquals(JsonType.ARRAY, itemsProp.type)
+
+        // The items of that array should be an object (MiddleWithList), not a $ref to kotlin.collections.ArrayList
+        val middleSchema = itemsProp.items?.valueOrNull()
+        assertNotNull(middleSchema, "Expected items schema for MiddleWithList")
+        assertEquals(JsonType.OBJECT, middleSchema.type)
+
+        // MiddleWithList should have a "children" property that is an array
+        val childrenProp = middleSchema.properties?.get("children")?.valueOrNull()
+        assertNotNull(childrenProp, "Expected 'children' property in MiddleWithList schema")
+        assertEquals(JsonType.ARRAY, childrenProp.type)
+
+        // The items of "children" should be an object with "someValue" integer property,
+        // NOT a $ref to "kotlin.collections.ArrayList"
+        val leafSchema = childrenProp.items?.valueOrNull()
+        assertNotNull(leafSchema, "Expected items schema for LeafItem, got a \$ref instead")
+        assertEquals(JsonType.OBJECT, leafSchema.type)
+        assertNotNull(leafSchema.properties?.get("someValue"), "Expected 'someValue' property in LeafItem schema")
+    }
+
+    @Test
+    fun `recursive type in list does not stack overflow`() {
+        val schema = inference.jsonSchema<RecursiveNode>()
+        val schemaYaml = yaml.encodeToString(schema)
+        assertEquals(
+            $$"""
+                type: object
+                title: io.ktor.openapi.reflect.RecursiveNode
+                required:
+                  - name
+                  - children
+                properties:
+                  name:
+                    type: string
+                  children:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/io.ktor.openapi.reflect.RecursiveNode"
+            """.trimIndent(),
+            schemaYaml
+        )
+    }
+
+    @Test
     fun `value classes`() =
         assertSchemaMatches<Email>()
 
@@ -266,3 +316,24 @@ data class TreeNode(
 @JvmInline
 @Serializable
 value class Email(val value: String)
+
+@Serializable
+data class OuterWithNestedLists(
+    val items: List<MiddleWithList>
+)
+
+@Serializable
+data class MiddleWithList(
+    val children: List<LeafItem>
+)
+
+@Serializable
+data class LeafItem(
+    val someValue: Int
+)
+
+@Serializable
+data class RecursiveNode(
+    val name: String,
+    val children: List<RecursiveNode>
+)

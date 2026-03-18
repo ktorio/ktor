@@ -133,9 +133,15 @@ public class KotlinxSerializerJsonSchemaInference(
                         required.add(name)
                     }
 
+                    // Container types (LIST, MAP) share the same serial name regardless of their
+                    // type arguments, so the visiting guard would incorrectly treat different
+                    // parameterized lists (e.g. List<Dto2> and List<Dto3>) as recursive references.
+                    val isContainerType = elementDescriptor.kind == StructureKind.LIST ||
+                        elementDescriptor.kind == StructureKind.MAP
+
                     try {
-                        // recursion guard
-                        properties[name] = if (!visiting.add(elementName)) {
+                        // recursion guard (only for uniquely-named types)
+                        properties[name] = if (!isContainerType && !visiting.add(elementName)) {
                             ReferenceOr.schema(elementName)
                                 .nonNullable(elementDescriptor.isNullable)
                         } else {
@@ -147,7 +153,9 @@ public class KotlinxSerializerJsonSchemaInference(
                             )
                         }
                     } finally {
-                        visiting.remove(elementName)
+                        if (!isContainerType) {
+                            visiting.remove(elementName)
+                        }
                     }
                 }
                 visiting.remove(descriptor.nonNullSerialName)
@@ -199,26 +207,40 @@ public class KotlinxSerializerJsonSchemaInference(
             }
 
             StructureKind.LIST -> {
+                val itemDescriptor = descriptor.getElementDescriptor(0)
+                val itemName = itemDescriptor.nonNullSerialName
+                val itemSchema = if (itemName in visiting) {
+                    ReferenceOr.schema(itemName)
+                } else {
+                    Value(itemDescriptor.buildJsonSchema(visiting = visiting))
+                }
                 jsonSchemaFromAnnotations(
                     annotations = annotations,
                     reflectSchema = reflectJsonSchema,
                     type = JsonType.ARRAY.orNullable(isNullable),
-                    items = Value(descriptor.getElementDescriptor(0).buildJsonSchema(visiting = visiting)),
+                    items = itemSchema,
                 )
             }
 
             StructureKind.MAP -> {
+                val additionalProps = if (descriptor.elementsCount > 1) {
+                    val valueDescriptor = descriptor.getElementDescriptor(1)
+                    val valueName = valueDescriptor.nonNullSerialName
+                    if (valueName in visiting) {
+                        PSchema(ReferenceOr.schema(valueName))
+                    } else {
+                        PSchema(
+                            Value(valueDescriptor.buildJsonSchema(visiting = visiting))
+                        )
+                    }
+                } else {
+                    Allowed(true)
+                }
                 jsonSchemaFromAnnotations(
                     annotations = annotations,
                     reflectSchema = reflectJsonSchema,
                     type = JsonType.OBJECT.orNullable(isNullable),
-                    additionalProperties = if (descriptor.elementsCount > 1) {
-                        PSchema(
-                            Value(descriptor.getElementDescriptor(1).buildJsonSchema(visiting = visiting))
-                        )
-                    } else {
-                        Allowed(true)
-                    },
+                    additionalProperties = additionalProps,
                 )
             }
 

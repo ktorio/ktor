@@ -195,14 +195,20 @@ public class ReflectionJsonSchemaInference(
             // Arrays / Iterables
             if (kClass == Array<Any>::class || kClass.java.isArray || kClass.isSubclassOf(Iterable::class)) {
                 val itemType = type.arguments.firstOrNull()?.type
-                val itemSchema = itemType?.let { buildSchemaInternal(it, visiting) }
-                    ?: JsonSchema(type = JsonType.OBJECT)
+                val itemTypeName = itemType?.let { adapter.getName(it) }
+                val itemRef = if (itemTypeName != null && itemTypeName in visiting) {
+                    ReferenceOr.schema(itemTypeName)
+                } else {
+                    val itemSchema = itemType?.let { buildSchemaInternal(it, visiting) }
+                        ?: JsonSchema(type = JsonType.OBJECT)
+                    ReferenceOr.Value(itemSchema)
+                }
 
                 return jsonSchemaFromAnnotations(
                     annotations = includeAnnotations,
                     reflectSchema = ::schemaRefForClass,
                     type = JsonType.ARRAY.orNullable(nullable),
-                    items = ReferenceOr.Value(itemSchema),
+                    items = itemRef,
                 )
             }
 
@@ -210,11 +216,16 @@ public class ReflectionJsonSchemaInference(
             if (kClass.isSubclassOf(Map::class)) {
                 // key type ignored
                 val valueType = type.arguments.getOrNull(1)?.type
+                val valueTypeName = valueType?.let { adapter.getName(it) }
 
                 // JSON object keys are strings; if key isn't String, we still produce an object schema.
-                val additional = valueType?.let { v ->
-                    AdditionalProperties.PSchema(ReferenceOr.Value(buildSchemaInternal(v, visiting)))
-                } ?: AdditionalProperties.Allowed(true)
+                val additional = if (valueTypeName != null && valueTypeName in visiting) {
+                    AdditionalProperties.PSchema(ReferenceOr.schema(valueTypeName))
+                } else {
+                    valueType?.let { v ->
+                        AdditionalProperties.PSchema(ReferenceOr.Value(buildSchemaInternal(v, visiting)))
+                    } ?: AdditionalProperties.Allowed(true)
+                }
 
                 return jsonSchemaFromAnnotations(
                     annotations = includeAnnotations,
