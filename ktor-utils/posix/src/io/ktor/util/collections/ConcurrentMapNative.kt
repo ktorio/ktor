@@ -43,7 +43,7 @@ public actual class ConcurrentMap<Key, Value> public actual constructor(
     actual override fun isEmpty(): Boolean = synchronized(lock) { delegate.isEmpty() }
 
     actual override val entries: MutableSet<MutableMap.MutableEntry<Key, Value>>
-        get() = synchronized(lock) { LinkedHashSet(delegate.entries) }
+        get() = synchronized(lock) { LinkedHashMap(delegate).entries }
 
     actual override val keys: MutableSet<Key>
         get() = synchronized(lock) { LinkedHashSet(delegate.keys) }
