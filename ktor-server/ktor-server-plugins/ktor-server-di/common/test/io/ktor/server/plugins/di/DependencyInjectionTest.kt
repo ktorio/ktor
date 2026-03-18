@@ -596,7 +596,7 @@ class DependencyInjectionTest {
     }
 
     @Test
-    fun `KTOR-8751 named dependency override in testApplication`() = testApplication {
+    fun `named dependency override in testApplication`() = testApplication {
         application {
             // Override the named dependency BEFORE registering the original
             dependencies.key<GreetingService>("s1") {
@@ -624,7 +624,7 @@ class DependencyInjectionTest {
     }
 
     @Test
-    fun `KTOR-8751 shutdown does not throw for ambiguous covariant entries`() = runTest {
+    fun `shutdown does not throw for ambiguous covariant entries`() = runTest {
         val errorLogs = mutableListOf<String>()
         val warnLogs = mutableListOf<String>()
         // Use DefaultConflictPolicy (as in production) to reproduce the shutdown issue
