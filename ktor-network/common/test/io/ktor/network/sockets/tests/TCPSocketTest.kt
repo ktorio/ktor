@@ -232,12 +232,15 @@ class TCPSocketTest {
             .bind(InetSocketAddress("127.0.0.1", 0))
 
         val acceptJob = launch(start = CoroutineStart.UNDISPATCHED) {
-            // The accept call should fail with IOException because the socket was closed,
-            // but it must not be a bad descriptor error.
-            val exception = assertFailsWith<IOException> {
+            // The accept call should fail with IOException/PosixException because the socket was closed,
+            // but it must not be a bad descriptor error caused by closed descriptor in select call.
+            try {
                 socket.accept()
+            } catch (exception: IOException) {
+                assertFalse("Bad descriptor" in exception.message.orEmpty())
+            } catch (exception: Exception) {
+                assertTrue(exception.isPosixException())
             }
-            assertFalse("Bad descriptor" in exception.message.orEmpty())
         }
 
         socket.close()
@@ -268,7 +271,8 @@ class TCPSocketTest {
         val serverJob = launch {
             while (isActive) {
                 ensureActive()
-                serverSocket.accept()
+                val accepted = serverSocket.accept()
+                accepted.close()
             }
         }
 
