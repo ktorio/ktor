@@ -10,8 +10,6 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.network.selector.*
-import io.ktor.network.sockets.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.routing.*
@@ -20,8 +18,6 @@ import io.ktor.util.logging.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 import kotlin.time.Duration.Companion.seconds
-
-private val TEST_SELECTOR_MANAGER = SelectorManager()
 
 actual abstract class EngineTestBase<
     TEngine : ApplicationEngine,
@@ -41,15 +37,7 @@ actual constructor(
     @Retention
     protected actual annotation class Http1Only actual constructor()
 
-    protected actual var port: Int = findFreePort()
-
-    private fun findFreePort(): Int = runBlocking {
-        val socket = aSocket(TEST_SELECTOR_MANAGER).tcp().bind()
-        val port = socket.use { it.port }
-        socket.awaitClosed()
-        port
-    }
-
+    protected actual var port: Int = 0
     protected actual var sslPort: Int = 0
     protected actual var server: EmbeddedServer<TEngine, TConfiguration>? = null
 
@@ -71,22 +59,17 @@ actual constructor(
         parent: CoroutineContext,
         routingConfigurer: Route.() -> Unit
     ): EmbeddedServer<TEngine, TConfiguration> {
-        var lastFailures = emptyList<Throwable>()
-        for (attempt in 1..5) {
-            val server = createServer(log, parent) {
-                plugins(this, routingConfigurer)
-            }
-
-            lastFailures = startServer(server)
-            if (lastFailures.isEmpty()) {
-                return server
-            }
-
-            port = findFreePort()
-            server.stop(1L, 1L)
+        val server = createServer(log, parent) {
+            plugins(this, routingConfigurer)
         }
 
-        error(lastFailures)
+        val failures = startServer(server)
+        if (failures.isNotEmpty()) {
+            server.stop(1L, 1L)
+            error(failures)
+        }
+
+        return server
     }
 
     protected open fun createServer(
@@ -94,7 +77,6 @@ actual constructor(
         parent: CoroutineContext = EmptyCoroutineContext,
         module: Application.() -> Unit
     ): EmbeddedServer<TEngine, TConfiguration> {
-        val savedPort = this.port
         val environment = applicationEnvironment {
             val delegate = KtorSimpleLogger("io.ktor.test")
             this.log = log ?: object : Logger by delegate {
@@ -115,7 +97,7 @@ actual constructor(
         }
 
         return embeddedServer(applicationEngineFactory, properties) {
-            connector { port = savedPort }
+            connector { port = 0 }
             shutdownGracePeriod = 1000
             shutdownTimeout = 1000
         }
@@ -136,7 +118,15 @@ actual constructor(
         return try {
             starting.join()
             @OptIn(ExperimentalCoroutinesApi::class)
-            starting.getCompletionExceptionOrNull()?.let { listOf(it) } ?: emptyList()
+            val result = starting.getCompletionExceptionOrNull()
+            if (result != null) {
+                listOf(result)
+            } else {
+                @OptIn(ExperimentalCoroutinesApi::class)
+                val connectors = starting.getCompleted()
+                connectors.firstOrNull()?.let { port = it.port }
+                emptyList()
+            }
         } catch (t: Throwable) {
             starting.cancel()
             listOf(t)
