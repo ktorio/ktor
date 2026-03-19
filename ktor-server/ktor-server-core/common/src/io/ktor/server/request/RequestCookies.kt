@@ -25,7 +25,7 @@ public open class RequestCookies(protected val request: ApplicationRequest) {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.RequestCookies.rawCookies)
      */
-    public val rawCookies: Map<String, String> by lazy { fetchCookies() }
+    public val rawCookies: Map<String, String> by lazy(LazyThreadSafetyMode.NONE) { fetchCookies() }
 
     /**
      * Gets a [name] cookie value decoded using an [encoding] strategy.
