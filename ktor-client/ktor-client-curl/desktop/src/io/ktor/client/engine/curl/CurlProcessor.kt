@@ -149,6 +149,7 @@ private sealed interface CurlTask {
         val completionHandler: CompletableJob,
     ) : CurlTask
 
+    @OptIn(ExperimentalForeignApi::class)
     class CancelWebSocket(
         val easyHandle: EasyHandle,
     ) : CurlTask
