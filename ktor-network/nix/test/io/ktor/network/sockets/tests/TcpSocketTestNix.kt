@@ -85,8 +85,15 @@ class TcpSocketTestNix {
             close(descriptor)
         }
 
-        assertFailsWith<IOException> {
+        // On Linux, closing a descriptor during select can cause a PosixException (EINVAL)
+        // rather than IOException, so accept both exception types.
+        try {
             socket.accept()
+            fail("Expected an exception from accept()")
+        } catch (exception: IOException) {
+            // expected
+        } catch (exception: Exception) {
+            assertTrue(exception.isPosixException())
         }
 
         socket.close()
@@ -110,8 +117,15 @@ class TcpSocketTestNix {
                 close(descriptor)
             }
 
-            assertFailsWith<IOException> {
+            // On Linux, closing a descriptor during select can cause a PosixException (EINVAL)
+            // rather than IOException, so accept both exception types.
+            try {
                 socket.accept()
+                fail("Expected an exception from accept()")
+            } catch (exception: IOException) {
+                // expected
+            } catch (exception: Exception) {
+                assertTrue(exception.isPosixException())
             }
 
             socket.close()
