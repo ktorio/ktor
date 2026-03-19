@@ -105,6 +105,25 @@ class CurlWebSocketTests : ClientEngineTest<CurlClientEngineConfig>(Curl, timeou
     }
 
     @Test
+    fun testHttpRequestAfterWebSocketClose() = testClient {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                send(Frame.Text("Hello"))
+                incoming.receive()
+            }
+
+            // After closing a WebSocket session, the curl easy handle should be cleaned up
+            // so that subsequent HTTP requests are not blocked by a stale handle.
+            val response = client.get(TEST_SERVER)
+            assertEquals(200, response.status.value)
+        }
+    }
+
+    @Test
     fun testReceiveLargeTextFrame() = testClient {
         config {
             install(WebSockets)
