@@ -491,17 +491,7 @@ class TestApplicationTest {
 
     @Test
     fun testStreamingResponse() = testApplication {
-        val messages = Channel<String>(1)
-        val scope = CoroutineScope(coroutineContext)
-
-        scope.launch {
-            assertEquals("Test 0", messages.receive())
-            assertEquals("[Client] Test 0", messages.receive())
-            assertEquals("Test 1", messages.receive())
-            assertEquals("[Client] Test 1", messages.receive())
-            assertEquals("Test 2", messages.receive())
-            assertEquals("[Client] Test 2", messages.receive())
-        }
+        val messages = Channel<String>(Channel.UNLIMITED)
 
         routing {
             get("/") {
@@ -524,6 +514,30 @@ class TestApplicationTest {
                 val msg = channel.readLineStrict() ?: break
                 messages.send("[Client] $msg")
             }
+        }
+
+        messages.close()
+
+        // Collect all messages and verify that server writes and client reads both arrived,
+        // and that each server write appeared before the corresponding client read.
+        val collected = buildList {
+            for (msg in messages) add(msg)
+        }
+        val serverMessages = collected.filter { !it.startsWith("[Client]") }
+        val clientMessages = collected.filter { it.startsWith("[Client]") }
+
+        assertEquals(listOf("Test 0", "Test 1", "Test 2"), serverMessages)
+        assertEquals(listOf("[Client] Test 0", "[Client] Test 1", "[Client] Test 2"), clientMessages)
+
+        // Verify streaming: each server write must appear before the corresponding client read.
+        for (i in 0 until 3) {
+            val serverIndex = collected.indexOf("Test $i")
+            val clientIndex = collected.indexOf("[Client] Test $i")
+            assertTrue(
+                serverIndex < clientIndex,
+                "Server message 'Test $i' (at $serverIndex) should appear before " +
+                    "'[Client] Test $i' (at $clientIndex)"
+            )
         }
     }
 

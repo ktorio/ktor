@@ -75,7 +75,14 @@ internal class SignalPoint : Closeable {
             closed = true
 
             close(writeDescriptor)
-            readFromPipe()
+            // Drain remaining data from the pipe before closing the read end.
+            // The read may fail with EBADF if an external caller closed a descriptor that
+            // the OS later reassigned to our pipe fd, so tolerate errors here.
+            try {
+                readFromPipe()
+            } catch (_: Exception) {
+                // Ignore errors during close — the pipe is being torn down anyway.
+            }
             close(readDescriptor)
         }
     }
