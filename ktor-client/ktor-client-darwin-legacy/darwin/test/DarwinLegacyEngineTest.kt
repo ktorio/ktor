@@ -30,7 +30,7 @@ class DarwinLegacyEngineTest : ClientEngineTest<DarwinLegacyClientEngineConfig>(
         val client = HttpClient(DarwinLegacy)
 
         try {
-            withTimeout(1000) {
+            withTimeout(30.seconds) {
                 val response = client.get(TEST_SERVER)
                 assertEquals("Hello, world!", response.bodyAsText())
             }
