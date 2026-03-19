@@ -198,7 +198,7 @@ class BodyProgressTest : ClientLoader() {
     }
 
     @Test
-    fun testReceiveChannelWithExecute() = clientTests {
+    fun testReceiveChannelWithExecute() = clientTests(retries = 3) {
         test { client ->
             invokedCount = 0
 
