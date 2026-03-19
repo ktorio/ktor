@@ -199,7 +199,8 @@ public suspend inline fun ApplicationCall.receiveChannel(): ByteReadChannel = re
  * Represents the limit for form field size in bytes for an [ApplicationCall].
  * This limit determines the maximum size allowed for form field data in a request.
  *
- * The default value is 65536 bytes (64 KB).
+ * The default value is 50 MiB.
+ * On JVM, default value can be set using the system property `io.ktor.server.request.formFieldLimit`.
  *
  * To get the value of the formFieldLimit, use the getter:
  * ```
