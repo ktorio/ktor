@@ -222,10 +222,10 @@ data class DogDTO(val age: Int, val name: String)
 data class ErrorDTO(val message: String = "Some default error")
 
 // Not marked as @Serializable intentionally — used to verify helpful error messages
-data class NonSerializableDTO(val value: Int)
+private data class NonSerializableDTO(val value: Int)
 
 @Serializable
-data class SerializableBox<T>(val value: T)
+private data class SerializableBox<T>(val value: T)
 
 sealed class Either<out L, out R> {
 

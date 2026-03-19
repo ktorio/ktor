@@ -45,10 +45,12 @@ public fun SerializersModule.serializerForTypeInfo(typeInfo: TypeInfo): KSeriali
                             if (classifier is KClass<*>) "'${classifier.simpleName}'" else "'$it'"
                         }
                         throw SerializationException(
-                            "Serializer for class '${typeInfo.type.simpleName}' is not found. " +
-                                "Ensure that the following type " +
-                                (if (nonSerializableArgs.size == 1) "parameter is" else "parameters are") +
-                                " marked as '@Serializable': $argNames"
+                            "Serializer for type " +
+                                (if (nonSerializableArgs.size == 1) "argument $argNames is" else "arguments $argNames are") +
+                                " not found for '${typeInfo.type.simpleName}'. " +
+                                "Ensure that the listed " +
+                                (if (nonSerializableArgs.size == 1) "type is" else "types are") +
+                                " marked as '@Serializable'."
                         )
                     }
                     null
