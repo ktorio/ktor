@@ -137,6 +137,14 @@ internal class CurlMultiApiHandler : Closeable {
     fun perform(transfersRunning: IntVarOf<Int>) {
         if (activeHandles.isEmpty()) return
 
+        // Process cancelled handles before performing to remove stale handles
+        // (e.g., closed WebSocket sessions) and prevent them from blocking curl_multi_poll.
+        if (cancelledHandles.isNotEmpty()) {
+            handleCompleted()
+        }
+
+        if (activeHandles.isEmpty()) return
+
         synchronized(easyHandlesToUnpauseLock) {
             var handle = easyHandlesToUnpause.removeFirstOrNull()
             while (handle != null) {
