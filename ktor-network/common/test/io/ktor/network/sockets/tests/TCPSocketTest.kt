@@ -241,6 +241,7 @@ class TCPSocketTest {
                 assertFalse("Bad descriptor" in exception.message.orEmpty())
             } catch (exception: Exception) {
                 assertTrue(exception.isPosixException())
+                assertFalse("Bad descriptor" in exception.message.orEmpty())
             }
         }
 
