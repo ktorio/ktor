@@ -213,9 +213,9 @@ internal class CurlMultiApiHandler : Closeable {
 
     private fun handleCompleted() {
         for (cancellation in cancelledHandles) {
-            val cancelled = processCancelledEasyHandle(cancellation.first, cancellation.second)
-            val handler = activeHandles.remove(cancellation.first)!!
-            handler.responseCompletable.completeExceptionally(cancelled.cause)
+            val handler = activeHandles.remove(cancellation.first) ?: continue
+            processCancelledEasyHandle(cancellation.first, cancellation.second)
+            handler.responseCompletable.completeExceptionally(cancellation.second)
             handler.dispose()
         }
         cancelledHandles.clear()
