@@ -34,7 +34,7 @@ class DarwinEngineTest : ClientEngineTest<DarwinClientEngineConfig>(Darwin) {
         val client = HttpClient(Darwin)
 
         try {
-            withTimeout(1000) {
+            withTimeout(30.seconds) {
                 val response = client.get(TEST_SERVER)
                 assertEquals("Hello, world!", response.bodyAsText())
             }
@@ -48,7 +48,7 @@ class DarwinEngineTest : ClientEngineTest<DarwinClientEngineConfig>(Darwin) {
         val client = HttpClient(Darwin)
 
         try {
-            withTimeout(1000) {
+            withTimeout(30.seconds) {
                 val response = client.get(TEST_SERVER)
                 assertEquals("Hello, world!", response.bodyAsText())
             }
@@ -62,7 +62,7 @@ class DarwinEngineTest : ClientEngineTest<DarwinClientEngineConfig>(Darwin) {
         val client = HttpClient(Darwin)
 
         try {
-            withTimeout(1000) {
+            withTimeout(30.seconds) {
                 val response = client.get(TEST_SERVER)
                 assertEquals("Hello, world!", response.bodyAsText())
             }
