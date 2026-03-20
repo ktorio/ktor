@@ -213,7 +213,9 @@ class TCPSocketTest {
             val exception = assertFailsWith<IOException> {
                 socket.accept()
             }
-            assertFalse("Bad descriptor" in exception.message.orEmpty())
+            val containsBadDescriptor = generateSequence(exception as Throwable?) { it.cause }
+                .any { "Bad descriptor" in it.message.orEmpty() }
+            assertFalse(containsBadDescriptor)
         }
         delay(100) // Make sure socket is awaiting connection using ACCEPT
 
@@ -234,7 +236,9 @@ class TCPSocketTest {
             val exception = assertFailsWith<IOException> {
                 socket.accept()
             }
-            assertFalse("Bad descriptor" in exception.message.orEmpty())
+            val containsBadDescriptor = generateSequence(exception as Throwable?) { it.cause }
+                .any { "Bad descriptor" in it.message.orEmpty() }
+            assertFalse(containsBadDescriptor)
         }
 
         socket.close()
