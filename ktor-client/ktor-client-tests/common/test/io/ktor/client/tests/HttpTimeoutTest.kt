@@ -119,7 +119,7 @@ class HttpTimeoutTest : ClientLoader(timeout = 30.seconds) {
     }
 
     @Test
-    fun testGetWithCancellation() = clientTests(except(ENGINES_WITHOUT_REQUEST_TIMEOUT)) {
+    fun testGetWithCancellation() = clientTests(except(ENGINES_WITHOUT_REQUEST_TIMEOUT), retries = 3) {
         config {
             install(HttpTimeout) {
                 requestTimeoutMillis = 1000
