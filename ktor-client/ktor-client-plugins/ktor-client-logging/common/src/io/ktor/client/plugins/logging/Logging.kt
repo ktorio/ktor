@@ -624,7 +624,9 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
             proceed()
         } catch (cause: Throwable) {
             val log = StringBuilder()
-            val callLogger = call.attributes[ClientCallLogger]
+            // ClientCallLogger may be absent for cached responses (SendHook is skipped by HttpCache).
+            val callLogger = call.attributes.getOrNull(ClientCallLogger)
+                ?: HttpClientCallLogger(logger).also { it.closeRequestLog() }
             logResponseException(log, call.request, cause)
             callLogger.logResponseException(log.toString())
             callLogger.closeResponseLog()
