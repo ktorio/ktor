@@ -683,10 +683,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     }
 
     @Test
-    open fun testWebSocketSessionCancelledOnServerStop() = runTest {
-        // server.stop() calls runBlocking internally, which is unsupported on JS/WASM
-        if (PlatformUtils.IS_JS || PlatformUtils.IS_WASM_JS) return@runTest
-
+    fun testWebSocketSessionCancelledOnServerStop() = runTest {
         val sessionStarted = CompletableDeferred<Unit>()
         val sessionCancelled = CompletableDeferred<Unit>()
 
@@ -705,7 +702,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
             negotiateHttpWebSocket()
 
             sessionStarted.await()
-            server!!.stop(0, 0)
+            server!!.stopSuspend(0, 0)
 
             withTimeout(5000) {
                 sessionCancelled.await()
