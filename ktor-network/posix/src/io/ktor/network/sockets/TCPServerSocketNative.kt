@@ -10,7 +10,7 @@ import io.ktor.utils.io.errors.PosixException
 import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
-import kotlinx.io.*
+import kotlinx.io.IOException
 import platform.posix.*
 import kotlin.coroutines.*
 
@@ -52,7 +52,10 @@ internal class TCPServerSocketNative(
                 isWouldBlockError(error) -> {
                     selector.select(this@TCPServerSocketNative, SelectInterest.ACCEPT)
                 }
-                else -> throw PosixException.forSocketError(error)
+                else -> {
+                    val posixException = PosixException.forSocketError(error)
+                    throw IOException("Accept failed", posixException)
+                }
             }
         }
         buildOrCloseSocket(clientDescriptor) {

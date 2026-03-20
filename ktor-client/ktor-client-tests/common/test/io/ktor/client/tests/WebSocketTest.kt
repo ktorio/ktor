@@ -544,15 +544,15 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
             install(WebSockets) {
                 maxFrameSize = 10
             }
+        }
 
-            test { client ->
-                val exception = assertFailsWith<WebSocketException> {
-                    client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
-                        fail("Unreachable")
-                    }
+        test { client ->
+            val exception = assertFailsWith<WebSocketException> {
+                client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                    fail("Unreachable")
                 }
-                assertContains(exception.message!!, "Max frame size switch is not supported")
             }
+            assertContains(exception.message!!, "Max frame size switch is not supported")
         }
     }
 
