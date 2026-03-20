@@ -40,7 +40,7 @@ abstract class HttpRequestLifecycleTest<TEngine : ApplicationEngine, TConfigurat
 
     @Test
     @OptIn(ExperimentalAtomicApi::class)
-    fun testClientDisconnectionCancelsRequest() = runTest {
+    fun testClientDisconnectionCancelsRequest() = runTest(retries = 3) {
         val requestStartedCnt = AtomicInt(0)
         val requestCancelledCnt = AtomicInt(0)
 

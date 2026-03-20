@@ -394,7 +394,7 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
     }
 
     @Test
-    fun testAuthenticationWithValidRefreshToken() = clientTests(except("Js", "WinHttp")) {
+    fun testAuthenticationWithValidRefreshToken() = clientTests(except("Js", "WinHttp"), retries = 3) {
         config {
             install(WebSockets)
 

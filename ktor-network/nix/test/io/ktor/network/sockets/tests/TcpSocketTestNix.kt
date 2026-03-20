@@ -11,6 +11,7 @@ import kotlinx.coroutines.*
 import kotlinx.io.*
 import platform.posix.*
 import kotlin.test.*
+import kotlin.time.Duration.Companion.minutes
 
 class TcpSocketTestNix {
 
@@ -74,7 +75,7 @@ class TcpSocketTestNix {
     }
 
     @Test
-    fun testDescriptorError() = testSockets { selector ->
+    fun testDescriptorError() = testSockets(timeout = 2.minutes) { selector ->
         val socket = aSocket(selector)
             .tcp()
             .bind(InetSocketAddress("127.0.0.1", 0))

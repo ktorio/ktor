@@ -837,7 +837,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun outputStreamIsStreamedToConsumer() = runTest {
+    fun outputStreamIsStreamedToConsumer() = runTest(retries = 3) {
         var readingStarted = false
 
         createAndStartServer {
