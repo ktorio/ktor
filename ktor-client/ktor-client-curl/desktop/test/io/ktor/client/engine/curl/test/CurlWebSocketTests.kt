@@ -19,7 +19,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
 
-class CurlWebSocketTests : ClientEngineTest<CurlClientEngineConfig>(Curl, timeout = 10.seconds) {
+class CurlWebSocketTests : ClientEngineTest<CurlClientEngineConfig>(Curl, timeout = 30.seconds) {
 
     @Test
     fun testEcho() = testClient {

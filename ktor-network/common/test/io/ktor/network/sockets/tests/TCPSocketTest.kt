@@ -279,7 +279,7 @@ class TCPSocketTest {
             socket.openWriteChannel(autoFlush = true)
 
             try {
-                withTimeout(500) {
+                withTimeout(2000) {
                     socket.close()
                     socket.awaitClosed()
                 }

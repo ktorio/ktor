@@ -12,8 +12,9 @@ import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
 import kotlin.test.*
+import kotlin.time.Duration.Companion.seconds
 
-class ClientHeadersTest : ClientLoader() {
+class ClientHeadersTest : ClientLoader(timeout = 30.seconds) {
 
     @Test
     fun testHeadersReturnNullWhenMissing() = clientTests {

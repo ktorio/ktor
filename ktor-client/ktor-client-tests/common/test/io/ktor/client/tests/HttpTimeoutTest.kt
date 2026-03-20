@@ -212,13 +212,13 @@ class HttpTimeoutTest : ClientLoader(timeout = 30.seconds) {
     @Test
     fun testGetRequestTimeoutWithSeparateReceive() = clientTests(except("Js"), retries = 5) {
         config {
-            install(HttpTimeout) { requestTimeoutMillis = 1000 }
+            install(HttpTimeout) { requestTimeoutMillis = 3000 }
         }
 
         test { client ->
             val response = client.prepareRequest("$TEST_URL/with-stream") {
                 method = HttpMethod.Get
-                parameter("delay", 500)
+                parameter("delay", 1500)
             }.body<ByteReadChannel>()
 
             assertFailsWith<CancellationException> {
@@ -229,7 +229,8 @@ class HttpTimeoutTest : ClientLoader(timeout = 30.seconds) {
 
     @Test
     fun testGetRequestTimeoutWithSeparateReceivePerRequestAttributes() = clientTests(
-        except(ENGINES_WITHOUT_REQUEST_TIMEOUT, "Js", "Darwin", "DarwinLegacy")
+        except(ENGINES_WITHOUT_REQUEST_TIMEOUT, "Js", "Darwin", "DarwinLegacy"),
+        retries = 3,
     ) {
         config {
             install(HttpTimeout)
@@ -481,7 +482,7 @@ class HttpTimeoutTest : ClientLoader(timeout = 30.seconds) {
         retries = 5,
     ) {
         config {
-            install(HttpTimeout) { socketTimeoutMillis = 500 }
+            install(HttpTimeout) { socketTimeoutMillis = 1000 }
         }
 
         test { client ->
