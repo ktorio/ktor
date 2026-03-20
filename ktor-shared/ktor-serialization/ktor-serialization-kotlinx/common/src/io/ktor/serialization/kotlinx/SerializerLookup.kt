@@ -26,39 +26,55 @@ public fun SerializersModule.serializerForTypeInfo(typeInfo: TypeInfo): KSeriali
                 null // fallback to a simple case because of
                 // https://github.com/Kotlin/kotlinx.serialization/issues/1870
             } else {
-                module.serializerOrNull(type) ?: run {
-                    var lookupFailed = false
-                    val nonSerializableArgs = type.arguments
-                        .mapNotNull { it.type }
-                        .filter { argType ->
-                            try {
-                                module.serializerOrNull(argType) == null
-                            } catch (_: Throwable) {
-                                lookupFailed = true
-                                false
-                            }
-                        }
-                    if (lookupFailed) return@run null
-                    if (nonSerializableArgs.isNotEmpty()) {
-                        val argNames = nonSerializableArgs.joinToString {
-                            val classifier = it.classifier
-                            if (classifier is KClass<*>) "'${classifier.simpleName}'" else "'$it'"
-                        }
-                        throw SerializationException(
-                            "Serializer for type " +
-                                (if (nonSerializableArgs.size == 1) "argument $argNames is" else "arguments $argNames are") +
-                                " not found for '${typeInfo.type.simpleName}'. " +
-                                "Ensure that the listed " +
-                                (if (nonSerializableArgs.size == 1) "type is" else "types are") +
-                                " marked as '@Serializable'."
-                        )
-                    }
-                    null
-                }
+                module.serializerOrNull(type) ?: checkTypeParameters(type, typeInfo, module)
             }
         }
         ?: module.getContextual(typeInfo.type)?.maybeNullable(typeInfo)
         ?: typeInfo.type.serializer().maybeNullable(typeInfo)
+}
+
+/**
+ * Inspects the type arguments of [type] to detect any that lack a serializer.
+ * If found, throws a [SerializationException] with an actionable message naming the problematic arguments.
+ * Returns `null` if all arguments have serializers or if a lookup error prevents a definitive result.
+ *
+ * Note: only checks a single layer of parameterization; nested generics (e.g. `List<List<T>>`)
+ * are not recursively validated.
+ */
+private fun checkTypeParameters(type: KType, typeInfo: TypeInfo, module: SerializersModule): KSerializer<*>? {
+    var lookupFailed = false
+    val nonSerializableArgs = type.arguments
+        .mapNotNull { it.type }
+        .filter { argType ->
+            try {
+                module.serializerOrNull(argType) == null
+            } catch (_: Throwable) {
+                // If lookup itself throws, we cannot reliably determine the cause; fall through
+                lookupFailed = true
+                false
+            }
+        }
+
+    // If any argument lookup threw an exception, defer to the default error path
+    if (lookupFailed) return null
+
+    if (nonSerializableArgs.isNotEmpty()) {
+        val argNames = nonSerializableArgs.joinToString {
+            val classifier = it.classifier
+            if (classifier is KClass<*>) "'${classifier.simpleName}'" else "'$it'"
+        }
+        // Lead with the problematic type arguments to make the error immediately actionable
+        throw SerializationException(
+            "Type " +
+                (if (nonSerializableArgs.size == 1) "argument $argNames is" else "arguments $argNames are") +
+                " not serializable (used as a type parameter for '${typeInfo.type.simpleName}'). " +
+                "Ensure the listed " +
+                (if (nonSerializableArgs.size == 1) "type is" else "types are") +
+                " marked as '@Serializable'."
+        )
+    }
+
+    return null
 }
 
 private fun <T : Any> KSerializer<T>.maybeNullable(typeInfo: TypeInfo): KSerializer<*> {

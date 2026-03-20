@@ -175,7 +175,7 @@ class JsonSerializationTest : AbstractSerializationTest<Json>() {
     }
 
     @Test
-    fun testDeserializeListWithNonSerializableTypeShowsHelpfulError() = testSuspend {
+    fun `deserialize list with non-serializable type shows helpful error`() = testSuspend {
         if (!PlatformUtils.IS_JVM) return@testSuspend
 
         val testSerializer = KotlinxSerializationConverter(defaultSerializationFormat)
@@ -195,7 +195,7 @@ class JsonSerializationTest : AbstractSerializationTest<Json>() {
     }
 
     @Test
-    fun testDeserializeGenericBoxWithNonSerializableTypeShowsHelpfulError() = testSuspend {
+    fun `deserialize generic box with non-serializable type shows helpful error`() = testSuspend {
         if (!PlatformUtils.IS_JVM) return@testSuspend
 
         val testSerializer = KotlinxSerializationConverter(defaultSerializationFormat)
