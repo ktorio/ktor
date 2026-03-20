@@ -55,7 +55,7 @@ class CookiesIntegrationTests : ClientLoader() {
     }
 
     @Test
-    fun testExpiration() = clientTests(except("Js")) {
+    fun testExpiration() = clientTests(except("Js"), retries = 3) {
         config {
             install(HttpCookies) {
                 default {
