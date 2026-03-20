@@ -29,7 +29,6 @@ import io.ktor.server.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.Channel
 import kotlinx.io.readByteArray
 import kotlin.coroutines.AbstractCoroutineContextElement
 import kotlin.coroutines.CoroutineContext
@@ -845,18 +844,18 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
 
     @Test
     open fun testFlushDuringActiveSSEConnection() = runTest {
-        val sseIsActive = Channel<Unit>(Channel.UNLIMITED)
+        val sseIsActive = Job()
 
         createAndStartServer {
             application.install(SSE)
             application.routing {
                 sse("/sse") {
                     send("active")
-                    sseIsActive.send(Unit)
+                    sseIsActive.complete()
                     delay(5.seconds)
                 }
                 get("/regular") {
-                    sseIsActive.receive()
+                    sseIsActive.join()
                     call.respondText("ok")
                 }
             }
