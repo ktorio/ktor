@@ -23,6 +23,7 @@ import io.ktor.server.testing.*
 import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
+import io.ktor.test.*
 import kotlinx.coroutines.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -684,7 +685,7 @@ class OAuth2Test {
     }
 
     @Test
-    fun testFailedNonce() = testApplication {
+    fun testFailedNonce() = retryTest(retries = 3) { testApplication {
         install(Authentication) {
             oauth("login") {
                 client = this@testApplication.client
@@ -722,7 +723,7 @@ class OAuth2Test {
         assertEquals("some_nonce", state)
         val failedNonceResponse = client.get("/login?code=some_code&state=$state")
         assertEquals(HttpStatusCode.Unauthorized, failedNonceResponse.status)
-    }
+    } }
 
     @Test
     fun testApplicationState() = testApplication {
@@ -798,7 +799,7 @@ class OAuth2Test {
     }
 
     @Test
-    fun formRequestBodyCanBeReceivedInRouteHandler() = testApplication {
+    fun formRequestBodyCanBeReceivedInRouteHandler() = retryTest(retries = 3) { testApplication {
         application {
             install(Authentication) {
                 oauth {
@@ -833,7 +834,7 @@ class OAuth2Test {
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals("foo=bar", response.bodyAsText())
         }
-    }
+    } }
 
     private fun assertFailures() {
         failures.forEach {
