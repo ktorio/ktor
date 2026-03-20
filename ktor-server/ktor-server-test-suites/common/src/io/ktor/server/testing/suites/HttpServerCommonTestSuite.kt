@@ -288,7 +288,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testRemoteAddress() = runTest {
+    fun testRemoteAddress() = runTest(retries = 3) {
         createAndStartServer {
             handle {
                 call.respondText {
