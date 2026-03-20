@@ -27,11 +27,18 @@ import kotlin.reflect.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.util.getValue)
  *
- * @throws MissingRequestParameterException if no values associated with name
+ * If [R] is nullable and no values are associated with the delegated property name, returns `null`.
+ *
+ * @throws MissingRequestParameterException if no values associated with name and [R] is not nullable
  * @throws ParameterConversionException when conversion from String to [R] fails
  */
-public inline operator fun <reified R : Any> Parameters.getValue(thisRef: Any?, property: KProperty<*>): R {
-    return getOrFail<R>(property.name)
+public inline operator fun <reified R> Parameters.getValue(thisRef: Any?, property: KProperty<*>): R {
+    val typeInfo = typeInfo<R>()
+    return if (typeInfo.kotlinType?.isMarkedNullable == true && get(property.name) == null) {
+        null as R
+    } else {
+        getOrFailImpl(property.name, typeInfo)
+    }
 }
 
 /**
@@ -60,7 +67,7 @@ public inline fun <reified R : Any> Parameters.getOrFail(name: String): R {
 }
 
 @PublishedApi
-internal fun <R : Any> Parameters.getOrFailImpl(name: String, typeInfo: TypeInfo): R {
+internal fun <R> Parameters.getOrFailImpl(name: String, typeInfo: TypeInfo): R {
     val values = getAll(name) ?: throw MissingRequestParameterException(name)
     return try {
         @Suppress("UNCHECKED_CAST")
