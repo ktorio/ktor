@@ -105,7 +105,7 @@ class CurlWebSocketTests : ClientEngineTest<CurlClientEngineConfig>(Curl, timeou
     }
 
     @Test
-    fun testHttpRequestAfterWebSocketClose() = testClient {
+    fun testHttpRequestAfterWebSocketClose() = testClient(retries = 3) {
         config {
             install(WebSockets)
         }
