@@ -54,23 +54,20 @@ private fun checkTypeParameters(type: KType, typeInfo: TypeInfo, module: Seriali
 
 if (nonSerializableArgs.isEmpty()) return null
 
-    if (nonSerializableArgs.isNotEmpty()) {
-        val argNames = nonSerializableArgs.joinToString {
-            val classifier = it.classifier
-            if (classifier is KClass<*>) "'${classifier.simpleName}'" else "'$it'"
+    // Format message with the failed type parameters
+    val argNames = nonSerializableArgs.joinToString {
+        when(val clz = it.classifier) {
+            is KClass<*> -> "'${clz.simpleName}'"
+            else -> "'$it'"
         }
-        // Lead with the problematic type arguments to make the error immediately actionable
-        throw SerializationException(
-            "Type " +
-                (if (nonSerializableArgs.size == 1) "argument $argNames is" else "arguments $argNames are") +
-                " not serializable (used as a type parameter for '${typeInfo.type.simpleName}'). " +
-                "Ensure the listed " +
-                (if (nonSerializableArgs.size == 1) "type is" else "types are") +
-                " marked as '@Serializable'."
-        )
     }
-
-    return null
+    val (s, be) =
+        if (nonSerializableArgs.size == 1) "" to "is"
+        else "s" to "are"
+    throw SerializationException(
+        "Serializer for type argument$s $argNames $be not found for '${typeInfo.type.simpleName}'. " +
+            "Ensure that the listed type$s $be marked as '@Serializable'."
+    )
 }
 
 private fun <T : Any> KSerializer<T>.maybeNullable(typeInfo: TypeInfo): KSerializer<*> {
