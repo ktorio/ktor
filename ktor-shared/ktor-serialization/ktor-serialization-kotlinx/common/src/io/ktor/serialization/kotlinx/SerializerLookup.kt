@@ -52,8 +52,7 @@ private fun checkTypeParameters(type: KType, typeInfo: TypeInfo, module: Seriali
             }
         }
 
-    // If any argument lookup threw an exception, defer to the default error path
-    if (lookupFailed) return null
+if (nonSerializableArgs.isEmpty()) return null
 
     if (nonSerializableArgs.isNotEmpty()) {
         val argNames = nonSerializableArgs.joinToString {
