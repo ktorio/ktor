@@ -42,16 +42,13 @@ public fun SerializersModule.serializerForTypeInfo(typeInfo: TypeInfo): KSeriali
  * are not recursively validated.
  */
 private fun checkTypeParameters(type: KType, typeInfo: TypeInfo, module: SerializersModule): KSerializer<*>? {
-    var lookupFailed = false
     val nonSerializableArgs = type.arguments
-        .mapNotNull { it.type }
-        .filter { argType ->
+        .mapNotNull { arg ->
             try {
-                module.serializerOrNull(argType) == null
-            } catch (_: Throwable) {
+                arg.type?.takeIf { module.serializerOrNull(it) == null }
+            } catch (_: Exception) {
                 // If lookup itself throws, we cannot reliably determine the cause; fall through
-                lookupFailed = true
-                false
+                return null
             }
         }
 
