@@ -9,6 +9,7 @@ import io.ktor.utils.io.*
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
 import kotlinx.serialization.modules.*
+import kotlin.reflect.*
 
 @InternalSerializationApi
 @ExperimentalSerializationApi
@@ -25,11 +26,51 @@ public fun SerializersModule.serializerForTypeInfo(typeInfo: TypeInfo): KSeriali
                 null // fallback to a simple case because of
                 // https://github.com/Kotlin/kotlinx.serialization/issues/1870
             } else {
-                module.serializerOrNull(type)
+                module.serializerOrNull(type) ?: checkTypeParameters(type, typeInfo, module)
             }
         }
         ?: module.getContextual(typeInfo.type)?.maybeNullable(typeInfo)
         ?: typeInfo.type.serializer().maybeNullable(typeInfo)
+}
+
+/**
+ * Inspects the type arguments of [type] to detect any that lack a serializer.
+ * If found, throws a [SerializationException] with an actionable message naming the problematic arguments.
+ * Returns `null` if all arguments have serializers or if a lookup error prevents a definitive result.
+ *
+ * Note: only checks a single layer of parameterization; nested generics (e.g. `List<List<T>>`)
+ * are not recursively validated.
+ */
+private fun checkTypeParameters(type: KType, typeInfo: TypeInfo, module: SerializersModule): KSerializer<*>? {
+    val nonSerializableArgs = type.arguments
+        .mapNotNull { arg ->
+            try {
+                arg.type?.takeIf { module.serializerOrNull(it) == null }
+            } catch (_: Exception) {
+                // If lookup itself throws, we cannot reliably determine the cause; fall through
+                return null
+            }
+        }
+
+    if (nonSerializableArgs.isEmpty()) return null
+
+    // Format message with the failed type parameters
+    val argNames = nonSerializableArgs.joinToString {
+        when (val clz = it.classifier) {
+            is KClass<*> -> "'${clz.simpleName}'"
+            else -> "'$it'"
+        }
+    }
+    val (s, be) =
+        if (nonSerializableArgs.size == 1) {
+            "" to "is"
+        } else {
+            "s" to "are"
+        }
+    throw SerializationException(
+        "Serializer for type argument$s $argNames $be not found for '${typeInfo.type.simpleName}'. " +
+            "Ensure that the listed type$s $be marked as '@Serializable'."
+    )
 }
 
 private fun <T : Any> KSerializer<T>.maybeNullable(typeInfo: TypeInfo): KSerializer<*> {
