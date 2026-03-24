@@ -6,6 +6,4 @@
 import org.jetbrains.kotlin.gradle.dsl.abi.*
 import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
 
-kotlinExtension.abiValidation {
-    enabled = true
-}
+kotlinExtension.abiValidation {}
