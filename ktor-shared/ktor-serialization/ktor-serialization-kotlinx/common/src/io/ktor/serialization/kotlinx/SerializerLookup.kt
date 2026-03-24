@@ -52,7 +52,7 @@ private fun checkTypeParameters(type: KType, typeInfo: TypeInfo, module: Seriali
             }
         }
 
-if (nonSerializableArgs.isEmpty()) return null
+    if (nonSerializableArgs.isEmpty()) return null
 
     // Format message with the failed type parameters
     val argNames = nonSerializableArgs.joinToString {
