@@ -230,10 +230,10 @@ public class HttpStatement(
         val job = coroutineContext.job as CompletableJob
 
         job.apply {
-            if (cause != null) {
-                cancel(CancellationException("Exception occurred during request execution", cause))
-            } else {
-                complete()
+            when (cause) {
+                null -> complete()
+                is CancellationException -> cancel(cause)
+                else -> cancel(CancellationException("Exception occurred during request execution", cause))
             }
             // If the response is saved, the underlying channel is already closed and
             // calling `rawContent` would create a new one

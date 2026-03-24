@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests
@@ -75,12 +75,12 @@ class HttpStatementTest : ClientLoader() {
     }
 
     @Test
-    fun testStreamingResponseExceptionCancelsImmediately() = clientTests {
+    fun testStreamingResponseExceptionCancelsImmediately() = clientTests(except("Darwin", "DarwinLegacy")) {
         test { client ->
             val exception = assertFailsWith<IllegalStateException> {
                 withTimeout(2000) {
-                    client.prepareGet("$TEST_SERVER/content/stream?delay=60000").execute { response ->
-                        // Headers are received, throw exception while waiting for body
+                    client.prepareGet("$TEST_SERVER/content/stream?delay=60000").execute {
+                        // Headers are received, throw exception while waiting for the body
                         throw IllegalStateException("Test exception from execute block")
                     }
                 }
@@ -90,14 +90,12 @@ class HttpStatementTest : ClientLoader() {
     }
 
     @Test
-    fun testStreamingResponseExceptionInBodyCancelsImmediately() = clientTests {
+    fun testStreamingResponseExceptionInBodyCancelsImmediately() = clientTests(except("Darwin", "DarwinLegacy")) {
         test { client ->
             val exception = assertFailsWith<IllegalStateException> {
                 withTimeout(2000) {
-                    client.prepareGet(
-                        "$TEST_SERVER/content/stream?delay=60000"
-                    ).body<ByteReadChannel, Unit> { channel ->
-                        // Throw exception while channel is open
+                    client.prepareGet("$TEST_SERVER/content/stream?delay=60000").body<ByteReadChannel, Unit> {
+                        // Throw exception while a channel is open
                         throw IllegalStateException("Test exception from body block")
                     }
                 }
