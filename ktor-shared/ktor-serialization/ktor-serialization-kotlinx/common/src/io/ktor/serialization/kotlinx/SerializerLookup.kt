@@ -56,14 +56,17 @@ private fun checkTypeParameters(type: KType, typeInfo: TypeInfo, module: Seriali
 
     // Format message with the failed type parameters
     val argNames = nonSerializableArgs.joinToString {
-        when(val clz = it.classifier) {
+        when (val clz = it.classifier) {
             is KClass<*> -> "'${clz.simpleName}'"
             else -> "'$it'"
         }
     }
     val (s, be) =
-        if (nonSerializableArgs.size == 1) "" to "is"
-        else "s" to "are"
+        if (nonSerializableArgs.size == 1) {
+            "" to "is"
+        } else {
+            "s" to "are"
+        }
     throw SerializationException(
         "Serializer for type argument$s $argNames $be not found for '${typeInfo.type.simpleName}'. " +
             "Ensure that the listed type$s $be marked as '@Serializable'."
