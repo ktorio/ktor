@@ -265,7 +265,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
     suspend fun logRequestOkHttpFormat(request: HttpRequestBuilder, logLines: MutableList<String>): OutgoingContent? {
         if (isNone()) return null
 
-        val uri = URLBuilder().takeFrom(request.url).build().pathQuery()
+        val uri = URLBuilder().takeFrom(request.url).build().toString()
         val body = request.body
         val headers = HeadersBuilder().apply {
             if (body is OutgoingContent &&
@@ -390,18 +390,18 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         val startLine = when {
             response.headers[HttpHeaders.TransferEncoding] == "chunked" &&
                 (isInfo() || isHeaders()) ->
-                "<-- ${response.status} ${request.url.pathQuery()} (${duration}ms, unknown-byte body)"
+                "<-- ${response.status} ${request.url} (${duration}ms, unknown-byte body)"
 
             isInfo() && contentLength != null ->
-                "<-- ${response.status} ${request.url.pathQuery()} (${duration}ms, $contentLength-byte body)"
+                "<-- ${response.status} ${request.url} (${duration}ms, $contentLength-byte body)"
 
             isBody() ||
                 (isInfo() && contentLength == null) ||
                 (isHeaders() && contentLength != null) ||
                 (response.headers[HttpHeaders.ContentEncoding] == "gzip") ->
-                "<-- ${response.status} ${request.url.pathQuery()} (${duration}ms)"
+                "<-- ${response.status} ${request.url} (${duration}ms)"
 
-            else -> "<-- ${response.status} ${request.url.pathQuery()} (${duration}ms, unknown-byte body)"
+            else -> "<-- ${response.status} ${request.url} (${duration}ms, unknown-byte body)"
         }
 
         logLines.add(startLine)
@@ -651,21 +651,6 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
         }
     }
     ResponseObserver.install(responseObserver, client)
-}
-
-private fun Url.pathQuery(): String {
-    return buildString {
-        if (encodedPath.isEmpty()) {
-            append("/")
-        } else {
-            append(encodedPath)
-        }
-
-        if (!encodedQuery.isEmpty()) {
-            append("?")
-            append(encodedQuery)
-        }
-    }
 }
 
 private fun computeRequestBodySize(content: Any): Long {
