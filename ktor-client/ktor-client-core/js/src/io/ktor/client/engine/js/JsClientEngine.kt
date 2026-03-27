@@ -132,7 +132,10 @@ internal class JsClientEngine(
 private suspend fun WebSocket.awaitConnection(): WebSocket = suspendCancellableCoroutine { continuation ->
     if (continuation.isCancelled) return@suspendCancellableCoroutine
 
-    val eventListener = { event: Event ->
+    lateinit var eventListener: (Event) -> Unit
+    eventListener = { event: Event ->
+        removeEventListener("open", callback = eventListener)
+        removeEventListener("error", callback = eventListener)
         when (event.type) {
             "open" -> continuation.resume(this)
             "error" -> {
