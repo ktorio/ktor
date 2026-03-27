@@ -74,8 +74,11 @@ class HttpStatementTest : ClientLoader() {
         }
     }
 
+    // Darwin/DarwinLegacy: NSURLSession buffers the first 512 bytes before calling didReceiveResponse/didReceiveData,
+    // so the test times out waiting for enough data to arrive unless the content type is octet/stream or application/json.
+    // See: https://developer.apple.com/forums/thread/64875
     @Test
-    fun testStreamingResponseExceptionCancelsImmediately() = clientTests(except("Darwin", "DarwinLegacy")) {
+    fun testStreamingResponseExceptionCancelsImmediately() = clientTests {
         test { client ->
             val exception = assertFailsWith<IllegalStateException> {
                 withTimeout(2000) {
@@ -90,7 +93,7 @@ class HttpStatementTest : ClientLoader() {
     }
 
     @Test
-    fun testStreamingResponseExceptionInBodyCancelsImmediately() = clientTests(except("Darwin", "DarwinLegacy")) {
+    fun testStreamingResponseExceptionInBodyCancelsImmediately() = clientTests {
         test { client ->
             val exception = assertFailsWith<IllegalStateException> {
                 withTimeout(2000) {
