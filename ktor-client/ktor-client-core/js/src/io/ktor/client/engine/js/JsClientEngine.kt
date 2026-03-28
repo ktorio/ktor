@@ -4,7 +4,7 @@
 
 package io.ktor.client.engine.js
 
-import io.ktor.client.FetchOptions
+import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.engine.js.compatibility.*
 import io.ktor.client.plugins.*
@@ -132,33 +132,19 @@ internal class JsClientEngine(
 private suspend fun WebSocket.awaitConnection(): WebSocket = suspendCancellableCoroutine { continuation ->
     if (continuation.isCancelled) return@suspendCancellableCoroutine
 
-    lateinit var eventListener: (Event) -> Unit
-    eventListener = { event: Event ->
-        removeEventListener("open", callback = eventListener)
-        removeEventListener("error", callback = eventListener)
+    val disposable = addEventListener<Event>("open", "error", once = true) { event ->
         when (event.type) {
             "open" -> continuation.resume(this)
-            "error" -> {
-                continuation.resumeWithException(WebSocketException(event.asString()))
-            }
+            "error" -> continuation.resumeWithException(WebSocketException(event.asString()))
         }
     }
 
-    addEventListener("open", callback = eventListener)
-    addEventListener("error", callback = eventListener)
-
-    continuation.invokeOnCancellation {
-        removeEventListener("open", callback = eventListener)
-        removeEventListener("error", callback = eventListener)
-
-        if (it != null) {
+    continuation.invokeOnCancellation { cause ->
+        disposable.dispose()
+        if (cause != null) {
             this@awaitConnection.close()
         }
     }
-}
-
-private fun Event.asString(): String = buildString {
-    append(JSON.stringify(this@asString, arrayOf("message", "target", "type", "isTrusted")))
 }
 
 @OptIn(InternalAPI::class)

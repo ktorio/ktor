@@ -2,7 +2,7 @@
  * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.client.engine.js
+package io.ktor.client.utils
 
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -14,6 +14,7 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.io.readByteArray
 import org.khronos.webgl.Uint8Array
+import org.w3c.dom.events.Event
 import org.w3c.fetch.FOLLOW
 import org.w3c.fetch.MANUAL
 import org.w3c.fetch.RequestRedirect
@@ -55,3 +56,5 @@ private suspend fun getBodyBytes(content: OutgoingContent, callContext: Coroutin
 }
 
 internal fun <T> buildObject(block: T.() -> Unit): T = (js("{}") as T).apply(block)
+
+internal actual fun Event.asString(): String = JSON.stringify(this, arrayOf("message", "target", "type", "isTrusted"))
