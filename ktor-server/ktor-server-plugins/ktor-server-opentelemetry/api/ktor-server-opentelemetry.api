@@ -1,0 +1,25 @@
+public final class io/ktor/server/plugins/opentelemetry/OpenTelemetryConfig {
+ public fun <init> ()V
+ public final fun captureRequestHeaders ([Ljava/lang/String;)V
+ public final fun captureResponseHeaders ([Ljava/lang/String;)V
+ public final fun filter (Lkotlin/jvm/functions/Function1;)V
+ public final fun getInstrumentationName ()Ljava/lang/String;
+ public final fun getInstrumentationVersion ()Ljava/lang/String;
+ public final fun getMeterProvider ()Lio/opentelemetry/api/metrics/MeterProvider;
+ public final fun getOpenTelemetry ()Lio/opentelemetry/api/OpenTelemetry;
+ public final fun getPropagators ()Lio/opentelemetry/context/propagation/TextMapPropagator;
+ public final fun getTracerProvider ()Lio/opentelemetry/api/trace/TracerProvider;
+ public final fun setInstrumentationName (Ljava/lang/String;)V
+ public final fun setInstrumentationVersion (Ljava/lang/String;)V
+ public final fun setMeterProvider (Lio/opentelemetry/api/metrics/MeterProvider;)V
+ public final fun setOpenTelemetry (Lio/opentelemetry/api/OpenTelemetry;)V
+ public final fun setPropagators (Lio/opentelemetry/context/propagation/TextMapPropagator;)V
+ public final fun setTracerProvider (Lio/opentelemetry/api/trace/TracerProvider;)V
+ public final fun spanName (Lkotlin/jvm/functions/Function1;)V
+ public final fun transformRoute (Lkotlin/jvm/functions/Function1;)V
+}
+
+public final class io/ktor/server/plugins/opentelemetry/OpenTelemetryKt {
+ public static final fun getOpenTelemetry ()Lio/ktor/server/application/ApplicationPlugin;
+}
+

@@ -90,6 +90,7 @@ projects {
             +"ktor-server-method-override"
             +"ktor-server-metrics"
             +"ktor-server-metrics-micrometer"
+            +"ktor-server-opentelemetry"
             +"ktor-server-mustache"
             +"ktor-server-openapi"
             +"ktor-server-partial-content"
@@ -155,6 +156,7 @@ projects {
                 +"ktor-client-serialization"
             }
             +"ktor-client-logging"
+            +"ktor-client-opentelemetry"
             +"ktor-client-resources"
             +"ktor-client-websockets"
         }

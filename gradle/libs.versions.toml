@@ -46,6 +46,7 @@ logback = "1.5.24"
 
 dropwizard = "4.2.37"
 micrometer = "1.16.2"
+opentelemetry = "1.46.0"
 
 jansi = "2.4.2"
 typesafe = "1.4.5"
@@ -210,6 +211,9 @@ okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 dropwizard-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "dropwizard" }
 dropwizard-jvm = { module = "io.dropwizard.metrics:metrics-jvm", version.ref = "dropwizard" }
 micrometer = { module = "io.micrometer:micrometer-core", version.ref = "micrometer" }
+opentelemetry-api = { module = "io.opentelemetry:opentelemetry-api", version.ref = "opentelemetry" }
+opentelemetry-sdk = { module = "io.opentelemetry:opentelemetry-sdk", version.ref = "opentelemetry" }
+opentelemetry-sdk-testing = { module = "io.opentelemetry:opentelemetry-sdk-testing", version.ref = "opentelemetry" }
 
 mustache = { module = "com.github.spullara.mustache.java:compiler", version.ref = "mustache" }
 freemarker = { module = "org.freemarker:freemarker", version.ref = "freemarker" }
