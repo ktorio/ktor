@@ -114,7 +114,7 @@ fun Application.module() {
 
 This produces a distributed trace:
 
-```
+```text
 [Server] GET /api/users/{id}
   └── [Client] HTTP GET  →  user-service
 ```

@@ -115,7 +115,8 @@ public class OpenTelemetryClientConfig {
 
 private object RequestBuilderHeadersSetter : TextMapSetter<HttpRequestBuilder> {
     override fun set(carrier: HttpRequestBuilder?, key: String, value: String) {
-        carrier?.header(key, value)
+        carrier?.headers?.remove(key)
+        carrier?.headers?.append(key, value)
     }
 }
 
@@ -225,12 +226,33 @@ public val OpenTelemetry: ClientPlugin<OpenTelemetryClientConfig> =
 
                 call
             } catch (cause: Throwable) {
+                val response = (cause as? ResponseException)?.response
+                val statusCode = response?.status?.value
+                
                 span.recordException(cause)
                 span.setStatus(StatusCode.ERROR, cause.message ?: "")
                 span.setAttribute(
                     OtelAttributeKey.stringKey("error.type"),
                     cause::class.qualifiedName ?: "unknown"
                 )
+                if (statusCode != null) {
+                    span.setAttribute(OtelAttributeKey.longKey("http.response.status_code"), statusCode.toLong())
+                    span.setAttribute(OtelAttributeKey.stringKey("error.type"), statusCode.toString())
+                    for (headerName in responseHeaders) {
+                        val values = response.headers.getAll(headerName)
+                        if (!values.isNullOrEmpty()) {
+                            span.setAttribute(
+                                OtelAttributeKey.stringArrayKey("http.response.header.$headerName"),
+                                values
+                            )
+                        }
+                    }
+                } else {
+                    span.setAttribute(
+                        OtelAttributeKey.stringKey("error.type"),
+                        cause::class.qualifiedName ?: "unknown"
+                    )
+                }
                 span.end()
 
                 val durationSeconds = (System.nanoTime() - startTime) / 1_000_000_000.0
