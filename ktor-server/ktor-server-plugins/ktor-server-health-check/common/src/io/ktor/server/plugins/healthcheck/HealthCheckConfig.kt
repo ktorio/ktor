@@ -36,8 +36,28 @@ public class HealthCheckConfig {
      * @param path the URL path for the readiness endpoint (e.g., "/ready")
      * @param block builder for adding individual health checks
      */
+public class HealthCheckConfig {
+    internal val endpoints = mutableListOf<HealthCheckEndpoint>()
+
+    private fun addEndpoint(path: String, block: HealthCheckBuilder.() -> Unit) {
+        val normalizedPath = path.ensureLeadingSlash()
+        require(endpoints.none { it.path == normalizedPath }) {
+            "Health check endpoint path '$normalizedPath' is already configured"
+        }
+        endpoints += HealthCheckEndpoint(normalizedPath, HealthCheckBuilder().apply(block).checks.toList())
+    }
+
+    /**
+     * Configures a readiness endpoint at the given [path].
+     *
+     * Readiness checks determine whether the application is ready to serve requests.
+     * Failed readiness checks prevent Kubernetes from routing traffic to the pod.
+     *
+     * `@param` path the URL path for the readiness endpoint (e.g., "/ready")
+     * `@param` block builder for adding individual health checks
+     */
     public fun readiness(path: String, block: HealthCheckBuilder.() -> Unit) {
-        endpoints += HealthCheckEndpoint(path.ensureLeadingSlash(), HealthCheckBuilder().apply(block).checks.toList())
+        addEndpoint(path, block)
     }
 
     /**
@@ -46,11 +66,13 @@ public class HealthCheckConfig {
      * Liveness checks determine whether the application is still running.
      * Failed liveness checks cause Kubernetes to restart the container.
      *
-     * @param path the URL path for the liveness endpoint (e.g., "/health")
-     * @param block builder for adding individual health checks
+     * `@param` path the URL path for the liveness endpoint (e.g., "/health")
+     * `@param` block builder for adding individual health checks
      */
     public fun liveness(path: String, block: HealthCheckBuilder.() -> Unit) {
-        endpoints += HealthCheckEndpoint(path.ensureLeadingSlash(), HealthCheckBuilder().apply(block).checks.toList())
+        addEndpoint(path, block)
+    }
+}
     }
 }
 
