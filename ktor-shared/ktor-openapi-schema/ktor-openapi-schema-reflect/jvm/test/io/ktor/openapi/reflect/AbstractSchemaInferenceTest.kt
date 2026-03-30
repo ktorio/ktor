@@ -196,6 +196,10 @@ abstract class AbstractSchemaInferenceTest(
     fun `value classes`() =
         assertSchemaMatches<Email>()
 
+    @Test
+    fun `nested generics`() =
+        assertSchemaMatches<Response<Page<Country>>>()
+
     private inline fun <reified T : Any> assertSchemaMatches() {
         val schema = inference.jsonSchema<T>()
         val expected = readSchemaYaml<T>()
@@ -357,3 +361,14 @@ data class IntLiteral(val value: Int) : Expression
 
 @Serializable
 data class StringLiteral(val value: String) : Expression
+
+@Serializable
+data class Response<T>(
+    val data: T
+)
+
+@Serializable
+data class Page<out E>(
+    val items: List<E>,
+    val total: Int,
+)

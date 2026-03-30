@@ -12,6 +12,9 @@ import java.time.OffsetDateTime
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.KType
+import kotlin.reflect.KTypeParameter
+import kotlin.reflect.KTypeProjection
+import kotlin.reflect.full.createType
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
@@ -139,7 +142,7 @@ public class ReflectionJsonSchemaInference(
 
         // Value classes (inline) should be represented as their underlying value
         if (kClass.isValue) {
-            kClass.underlyingValueClassTypeOrNull()?.let { underlyingType ->
+            kClass.underlyingValueClassTypeOrNull(type)?.let { underlyingType ->
                 val unboxedSchema = buildSchemaInternal(
                     underlyingType,
                     visiting,
@@ -236,7 +239,8 @@ public class ReflectionJsonSchemaInference(
                 if (adapter.isIgnored(prop)) continue
 
                 val propertyName = adapter.getName(prop)
-                val propertyIsNullable = adapter.isNullable(prop.returnType)
+                val resolvedPropertyType = swapTypeArgs(prop.returnType, type)
+                val propertyIsNullable = adapter.isNullable(resolvedPropertyType)
 
                 properties[propertyName] = buildSchemaOrRef(prop.returnType, visiting, prop.annotations)
 
@@ -286,6 +290,48 @@ public class ReflectionJsonSchemaInference(
                 visiting.remove(name)
             }
         }
+    }
+
+    private fun KClass<*>.underlyingValueClassTypeOrNull(ownerType: KType): KType? {
+        val ctorParam = primaryConstructor?.parameters?.singleOrNull()
+            ?: return null
+
+        val propType = memberProperties.firstOrNull { it.name == ctorParam.name }?.returnType
+            ?: ctorParam.type
+
+        return swapTypeArgs(propType, ownerType)
+    }
+
+    private fun swapTypeArgs(propertyType: KType, ownerType: KType): KType {
+        val ownerClass = ownerType.classifier as? KClass<*> ?: return propertyType
+        val typeParameters = ownerClass.typeParameters
+        if (typeParameters.isEmpty() || ownerType.arguments.isEmpty()) return propertyType
+
+        val substitution = typeParameters
+            .zip(ownerType.arguments)
+            .mapNotNull { (param, arg) -> arg.type?.let { param to it } }
+            .toMap()
+
+        if (substitution.isEmpty()) return propertyType
+
+        fun substitute(type: KType): KType {
+            val classifier = type.classifier
+            if (classifier is KTypeParameter) {
+                return substitution[classifier] ?: type
+            }
+
+            val kClass = classifier as? KClass<*> ?: return type
+            if (type.arguments.isEmpty()) return type
+
+            val newArgs = type.arguments.map { projection ->
+                val argType = projection.type ?: return@map projection
+                KTypeProjection(projection.variance, substitute(argType))
+            }
+
+            return kClass.createType(newArgs, type.isMarkedNullable)
+        }
+
+        return substitute(propertyType)
     }
 
     @OptIn(
@@ -374,15 +420,6 @@ public class ReflectionJsonSchemaInference(
         )
 
         else -> null
-    }
-
-    private fun KClass<*>.underlyingValueClassTypeOrNull(): KType? {
-        val ctorParam = primaryConstructor?.parameters?.singleOrNull()
-            ?: return null
-
-        // Prefer the backing property type when available (better chance of having resolved type args)
-        val propType = memberProperties.firstOrNull { it.name == ctorParam.name }?.returnType
-        return propType ?: ctorParam.type
     }
 
     private fun KClass<*>.starProjectedTypeOrNull(): KType? = try {
