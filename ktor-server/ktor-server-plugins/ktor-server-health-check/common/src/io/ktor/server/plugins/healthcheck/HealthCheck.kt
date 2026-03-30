@@ -105,8 +105,22 @@ private fun buildHealthResponse(overallUp: Boolean, results: List<CheckResult>):
     append("]}")
 }
 
-private fun String.escapeJson(): String = replace("\\", "\\\\")
-    .replace("\"", "\\\"")
-    .replace("\n", "\\n")
-    .replace("\r", "\\r")
-    .replace("\t", "\\t")
+private fun String.escapeJson(): String = buildString(length) {
+    for (ch in this@escapeJson) {
+        when (ch) {
+            '\\' -> append("\\\\")
+            '"' -> append("\\\"")
+            '\b' -> append("\\b")
+            '\u000C' -> append("\\f")
+            '\n' -> append("\\n")
+            '\r' -> append("\\r")
+            '\t' -> append("\\t")
+            else -> if (ch.code < 0x20) {
+                append("\\u")
+                append(ch.code.toString(16).padStart(4, '0'))
+            } else {
+                append(ch)
+            }
+        }
+    }
+}
