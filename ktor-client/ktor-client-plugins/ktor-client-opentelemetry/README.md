@@ -88,7 +88,7 @@ Automatically injects trace context headers into outgoing requests using the con
 
 ### Server-client context propagation
 
-When used together with [ktor-server-opentelemetry](../../ktor-server/ktor-server-plugins/ktor-server-opentelemetry), trace context flows automatically from incoming server requests to outgoing client requests. The server plugin propagates the OTEL context through Kotlin coroutines, so client spans created inside a request handler automatically become children of the server span:
+When used together with [ktor-server-opentelemetry](../../../ktor-server/ktor-server-plugins/ktor-server-opentelemetry), trace context flows automatically from incoming server requests to outgoing client requests. The server plugin propagates the OTEL context through Kotlin coroutines, so client spans created inside a request handler automatically become children of the server span:
 
 ```kotlin
 fun Application.module() {
