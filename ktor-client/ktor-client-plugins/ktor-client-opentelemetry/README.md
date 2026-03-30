@@ -84,7 +84,7 @@ Creates a `CLIENT` span for each outgoing HTTP request with attributes:
 
 ### Trace context injection
 
-Automatically injects trace context headers into outgoing requests using the configured `TextMapPropagator`. With W3C Trace Context (default), the `traceparent` and `tracestate` headers are added to every outgoing request.
+Automatically injects trace context headers into outgoing requests that pass the configured `filter`, using the configured `TextMapPropagator`. With W3C Trace Context (default), the `traceparent` and `tracestate` headers are added to each traced request.
 
 ### Server-client context propagation
 
