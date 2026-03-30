@@ -5,6 +5,7 @@
 package io.ktor.server.plugins.healthcheck
 
 import io.ktor.server.application.*
+import io.ktor.utils.io.*
 
 /**
  * Configuration for the [HealthCheck] plugin.
@@ -27,18 +28,6 @@ import io.ktor.server.application.*
 public class HealthCheckConfig {
     internal val endpoints = mutableListOf<HealthCheckEndpoint>()
 
-    /**
-     * Configures a readiness endpoint at the given [path].
-     *
-     * Readiness checks determine whether the application is ready to serve traffic.
-     * Failed readiness checks cause Kubernetes to stop routing requests to the pod.
-     *
-     * @param path the URL path for the readiness endpoint (e.g., "/ready")
-     * @param block builder for adding individual health checks
-     */
-public class HealthCheckConfig {
-    internal val endpoints = mutableListOf<HealthCheckEndpoint>()
-
     private fun addEndpoint(path: String, block: HealthCheckBuilder.() -> Unit) {
         val normalizedPath = path.ensureLeadingSlash()
         require(endpoints.none { it.path == normalizedPath }) {
@@ -53,8 +42,8 @@ public class HealthCheckConfig {
      * Readiness checks determine whether the application is ready to serve requests.
      * Failed readiness checks prevent Kubernetes from routing traffic to the pod.
      *
-     * `@param` path the URL path for the readiness endpoint (e.g., "/ready")
-     * `@param` block builder for adding individual health checks
+     * @param path the URL path for the readiness endpoint (e.g., "/ready")
+     * @param block builder for adding individual health checks
      */
     public fun readiness(path: String, block: HealthCheckBuilder.() -> Unit) {
         addEndpoint(path, block)
@@ -66,13 +55,11 @@ public class HealthCheckConfig {
      * Liveness checks determine whether the application is still running.
      * Failed liveness checks cause Kubernetes to restart the container.
      *
-     * `@param` path the URL path for the liveness endpoint (e.g., "/health")
-     * `@param` block builder for adding individual health checks
+     * @param path the URL path for the liveness endpoint (e.g., "/health")
+     * @param block builder for adding individual health checks
      */
     public fun liveness(path: String, block: HealthCheckBuilder.() -> Unit) {
         addEndpoint(path, block)
-    }
-}
     }
 }
 

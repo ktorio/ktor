@@ -79,7 +79,7 @@ private suspend fun evaluateCheck(namedCheck: NamedCheck): CheckResult =
     } catch (cause: CancellationException) {
         throw cause
     } catch (cause: Exception) {
-        CheckResult(namedCheck.name, CheckStatus.DOWN, "Health Check Failed")
+        CheckResult(namedCheck.name, CheckStatus.DOWN, cause.message ?: "Health Check Failed")
     }
 
 internal enum class CheckStatus { UP, DOWN }
