@@ -50,7 +50,7 @@ val client = HttpClient(CIO) {
 val client = HttpClient(CIO) {
     install(OpenTelemetry) {
         openTelemetry = otel
-        captureRequestHeaders("Authorization", "X-Api-Key")
+        captureRequestHeaders("X-Request-ID", "X-Correlation-ID")
         captureResponseHeaders("X-RateLimit-Remaining")
     }
 }
