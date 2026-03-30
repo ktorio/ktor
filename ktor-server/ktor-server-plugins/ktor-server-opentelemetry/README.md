@@ -104,7 +104,7 @@ Span names are automatically updated from the initial `GET /users/42` to `GET /u
 
 Extracts incoming trace context from request headers using the configured `TextMapPropagator` (W3C Trace Context by default). The extracted context is set as the parent of the server span, enabling distributed traces across services.
 
-The OTEL context is propagated through Kotlin coroutines via a `ThreadContextElement`, so `Context.current()` returns the correct context inside request handlers. This enables automatic parent span detection when using the [ktor-client-opentelemetry](../../ktor-client/ktor-client-plugins/ktor-client-opentelemetry) plugin for outgoing requests.
+The OTEL context is propagated through Kotlin coroutines via a `ThreadContextElement`, so `Context.current()` returns the correct context inside request handlers. This enables automatic parent span detection when using the [ktor-client-opentelemetry](../../../ktor-client/ktor-client-plugins/ktor-client-opentelemetry) plugin for outgoing requests.
 
 ### Metrics
 
