@@ -232,6 +232,17 @@ public val OpenTelemetry: ClientPlugin<OpenTelemetryClientConfig> =
                     cause::class.qualifiedName ?: "unknown"
                 )
                 span.end()
+
+                val durationSeconds = (System.nanoTime() - startTime) / 1_000_000_000.0
+                requestDuration.record(
+                    durationSeconds,
+                    OtelAttributes.builder()
+                        .put("http.request.method", request.method.value)
+                        .put("server.address", request.url.host)
+                        .put("error.type", cause::class.qualifiedName ?: "unknown")
+                        .build()
+                )
+
                 throw cause
             }
         }
