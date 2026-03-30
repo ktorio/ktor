@@ -1,3 +1,33 @@
+# 3.4.2
+> Published 27 March 2026
+
+### Improvements
+* [KTOR-9327](https://youtrack.jetbrains.com/issue/KTOR-9327) Curl: The WebSockets maxFrameSize option does not have an effect
+* [KTOR-9383](https://youtrack.jetbrains.com/issue/KTOR-9383) CaseInsensitiveString: reduce allocations
+* [KTOR-9385](https://youtrack.jetbrains.com/issue/KTOR-9385) Netty: Allocation micro-optimizations
+* [KTOR-9403](https://youtrack.jetbrains.com/issue/KTOR-9403) Darwin: Unnecessary ByteArray copy for each received response chunk
+* [KTOR-9412](https://youtrack.jetbrains.com/issue/KTOR-9412) KDoc for `formFieldLimit` documents incorrect default value (64 KB instead of 50 MiB)
+
+### Bugfixes
+* [KTOR-9351](https://youtrack.jetbrains.com/issue/KTOR-9351) OpenAPI: Incorrect schema generated for nested classes with lists
+* [KTOR-9361](https://youtrack.jetbrains.com/issue/KTOR-9361) WebSockets: `JsWebSocketSession._closeReason` is completed twice
+* [KTOR-9437](https://youtrack.jetbrains.com/issue/KTOR-9437) Fix GraalVM Compatibility
+* [KTOR-9424](https://youtrack.jetbrains.com/issue/KTOR-9424) Logging: OkHttp format should log the full requested URL
+* [KTOR-8540](https://youtrack.jetbrains.com/issue/KTOR-8540) Logging: IllegalStateException is thrown when response is cached and deserialization fails
+* [KTOR-9370](https://youtrack.jetbrains.com/issue/KTOR-9370) OpenAPI: NoSuchMethodError - getLOCAL_FUNCTION_FOR_LAMBDA with Kotlin 2.3.20-*
+* [KTOR-9421](https://youtrack.jetbrains.com/issue/KTOR-9421) Netty: active SSE connection blocks HTTP/2 response flushing for other requests
+* [KTOR-3390](https://youtrack.jetbrains.com/issue/KTOR-3390) JS browser: "Failed to execute 'digest' on 'SubtleCrypto'" error when using digest auth
+* [KTOR-5977](https://youtrack.jetbrains.com/issue/KTOR-5977) Compression: The encoders buffer streaming response
+* [KTOR-9393](https://youtrack.jetbrains.com/issue/KTOR-9393) Certificate pinning matches against all pins instead of hostname-scoped pins
+* [KTOR-8751](https://youtrack.jetbrains.com/issue/KTOR-8751) DI: AmbiguousDependencyException when named dependency is overridden in testApplication
+* [KTOR-9039](https://youtrack.jetbrains.com/issue/KTOR-9039) Bearer Auth: Request body transformed with jsonIO isn't sent over again after refreshToken request
+* [KTOR-9404](https://youtrack.jetbrains.com/issue/KTOR-9404) Darwin: Memory leak in KtorNSURLSessionDelegate
+* [KTOR-9399](https://youtrack.jetbrains.com/issue/KTOR-9399) LinkageError when running Ktor app with development mode inside Spring Boot / Amper fat-JAR
+* [KTOR-9402](https://youtrack.jetbrains.com/issue/KTOR-9402) NoSuchMethodError on RawWebSocket after 3.4.0
+* [KTOR-9372](https://youtrack.jetbrains.com/issue/KTOR-9372) Frame.Text.readText() causes infinite loop and 100% CPU on Kotlin/Native when WebSocket frame data is malformed or connection drops unexpectedly
+* [KTOR-9387](https://youtrack.jetbrains.com/issue/KTOR-9387) ZstdEncoder decode fails when source data is split into multiple Zstd frames
+
+
 # 3.4.1
 > Published 3 March 2026
 
