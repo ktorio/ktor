@@ -227,7 +227,6 @@ public val OpenTelemetry: ClientPlugin<OpenTelemetryClientConfig> =
                 call
             } catch (cause: Throwable) {
                 val response = (cause as? ResponseException)?.response
-                val statusCode = response?.status?.value
 
                 span.recordException(cause)
                 span.setStatus(StatusCode.ERROR, cause.message ?: "")
@@ -235,7 +234,8 @@ public val OpenTelemetry: ClientPlugin<OpenTelemetryClientConfig> =
                     OtelAttributeKey.stringKey("error.type"),
                     cause::class.qualifiedName ?: "unknown"
                 )
-                if (statusCode != null) {
+                if (response != null) {
+                    val statusCode = response.status.value
                     span.setAttribute(OtelAttributeKey.longKey("http.response.status_code"), statusCode.toLong())
                     span.setAttribute(OtelAttributeKey.stringKey("error.type"), statusCode.toString())
                     for (headerName in responseHeaders) {
