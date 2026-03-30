@@ -228,7 +228,7 @@ public val OpenTelemetry: ClientPlugin<OpenTelemetryClientConfig> =
             } catch (cause: Throwable) {
                 val response = (cause as? ResponseException)?.response
                 val statusCode = response?.status?.value
-                
+
                 span.recordException(cause)
                 span.setStatus(StatusCode.ERROR, cause.message ?: "")
                 span.setAttribute(
