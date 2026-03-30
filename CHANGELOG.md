@@ -16,7 +16,7 @@
 * [KTOR-8540](https://youtrack.jetbrains.com/issue/KTOR-8540) Logging: IllegalStateException is thrown when response is cached and deserialization fails
 * [KTOR-9370](https://youtrack.jetbrains.com/issue/KTOR-9370) OpenAPI: NoSuchMethodError - getLOCAL_FUNCTION_FOR_LAMBDA with Kotlin 2.3.20-*
 * [KTOR-9421](https://youtrack.jetbrains.com/issue/KTOR-9421) Netty: active SSE connection blocks HTTP/2 response flushing for other requests
-* [KTOR-3390](https://youtrack.jetbrains.com/issue/KTOR-3390) Js browser: "Failed to execute 'digest' on 'SubtleCrypto'" error when using digest authentification
+* [KTOR-3390](https://youtrack.jetbrains.com/issue/KTOR-3390) JS browser: "Failed to execute 'digest' on 'SubtleCrypto'" error when using digest auth
 * [KTOR-5977](https://youtrack.jetbrains.com/issue/KTOR-5977) Compression: The encoders buffer streaming response
 * [KTOR-9393](https://youtrack.jetbrains.com/issue/KTOR-9393) Certificate pinning matches against all pins instead of hostname-scoped pins
 * [KTOR-8751](https://youtrack.jetbrains.com/issue/KTOR-8751) DI: AmbiguousDependencyException when named dependency is overridden in testApplication
