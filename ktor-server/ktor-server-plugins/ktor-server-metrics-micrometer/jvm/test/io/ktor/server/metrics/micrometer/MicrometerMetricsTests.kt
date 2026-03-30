@@ -10,6 +10,7 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.metrics.dropwizard.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
@@ -400,6 +401,103 @@ class MicrometerMetricsTests {
             val configurableGauge = find(activeRequestsGaugeName).gauge()
             assertEquals(gauge, configurableGauge)
         }
+    }
+
+    @Test
+    fun `can filter calls from metrics`() = testApplication {
+        val testRegistry = SimpleMeterRegistry()
+
+        install(MicrometerMetrics) {
+            registry = testRegistry
+            filter { call -> call.request.uri != "/health" }
+        }
+
+        routing {
+            get("/uri") {
+                call.respond("hello")
+            }
+            get("/health") {
+                call.respond("ok")
+            }
+        }
+
+        client.get("/uri")
+        client.get("/health")
+
+        val timers = testRegistry.find(requestTimeTimerName).timers()
+        assertEquals(1, timers.size)
+        timers.first().assertTag("route", "/uri")
+        testRegistry.assertActive(0.0)
+    }
+
+    @Test
+    fun `filter excludes calls from active gauge`() = testApplication {
+        val testRegistry = SimpleMeterRegistry()
+
+        install(MicrometerMetrics) {
+            registry = testRegistry
+            filter { call -> call.request.uri != "/health" }
+        }
+
+        routing {
+            get("/health") {
+                testRegistry.assertActive(0.0)
+                call.respond("ok")
+            }
+            get("/uri") {
+                testRegistry.assertActive(1.0)
+                call.respond("hello")
+            }
+        }
+
+        client.get("/health")
+        client.get("/uri")
+    }
+
+    @Test
+    fun `multiple filters work as union`() = testApplication {
+        val testRegistry = SimpleMeterRegistry()
+
+        install(MicrometerMetrics) {
+            registry = testRegistry
+            filter { call -> call.request.uri.startsWith("/api") }
+            filter { call -> call.request.uri.startsWith("/admin") }
+        }
+
+        routing {
+            get("/api/data") { call.respond("data") }
+            get("/admin/panel") { call.respond("panel") }
+            get("/health") { call.respond("ok") }
+        }
+
+        client.get("/api/data")
+        client.get("/admin/panel")
+        client.get("/health")
+
+        val timers = testRegistry.find(requestTimeTimerName).timers()
+        assertEquals(2, timers.size)
+        val routes = timers.map { it.id.getTag("route") }.toSet()
+        assertEquals(setOf("/api/data", "/admin/panel"), routes)
+    }
+
+    @Test
+    fun `no filters means all calls are recorded`() = testApplication {
+        val testRegistry = SimpleMeterRegistry()
+
+        install(MicrometerMetrics) {
+            registry = testRegistry
+        }
+
+        routing {
+            get("/uri") { call.respond("hello") }
+            get("/health") { call.respond("ok") }
+        }
+
+        client.get("/uri")
+        client.get("/health")
+
+        val timers = testRegistry.find(requestTimeTimerName).timers()
+        assertEquals(2, timers.size)
     }
 
     @Test
