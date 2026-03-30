@@ -1,0 +1,29 @@
+public final class io/ktor/client/plugins/circuitbreaker/CircuitBreakerConfig {
+ public fun <init> ()V
+ public final fun global (Lkotlin/jvm/functions/Function1;)V
+ public final fun register (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+ public final fun routeRequests (Lkotlin/jvm/functions/Function1;)V
+}
+
+public final class io/ktor/client/plugins/circuitbreaker/CircuitBreakerKt {
+ public static final fun circuitBreaker (Lio/ktor/client/request/HttpRequestBuilder;Ljava/lang/String;)V
+ public static final fun getCircuitBreaker ()Lio/ktor/client/plugins/api/ClientPlugin;
+}
+
+public final class io/ktor/client/plugins/circuitbreaker/CircuitBreakerOpenException : java/lang/IllegalStateException {
+ public synthetic fun <init> (Ljava/lang/String;JLkotlin/jvm/internal/DefaultConstructorMarker;)V
+ public final fun getCircuitBreakerName ()Ljava/lang/String;
+ public final fun getResetTimeout-UwyO8pc ()J
+}
+
+public final class io/ktor/client/plugins/circuitbreaker/ServiceCircuitBreakerConfig {
+ public fun <init> ()V
+ public final fun getFailureThreshold ()I
+ public final fun getHalfOpenRequests ()I
+ public final fun getResetTimeout-UwyO8pc ()J
+ public final fun isFailure (Lkotlin/jvm/functions/Function1;)V
+ public final fun setFailureThreshold (I)V
+ public final fun setHalfOpenRequests (I)V
+ public final fun setResetTimeout-LRDsOJo (J)V
+}
+

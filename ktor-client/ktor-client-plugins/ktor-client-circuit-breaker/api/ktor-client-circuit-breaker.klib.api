@@ -1,0 +1,45 @@
+// Klib ABI Dump
+// Targets: [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, js, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, wasmJs, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <io.ktor:ktor-client-circuit-breaker>
+final class io.ktor.client.plugins.circuitbreaker/CircuitBreakerConfig { // io.ktor.client.plugins.circuitbreaker/CircuitBreakerConfig|null[0]
+    constructor <init>() // io.ktor.client.plugins.circuitbreaker/CircuitBreakerConfig.<init>|<init>(){}[0]
+
+    final fun global(kotlin/Function1<io.ktor.client.plugins.circuitbreaker/ServiceCircuitBreakerConfig, kotlin/Unit>) // io.ktor.client.plugins.circuitbreaker/CircuitBreakerConfig.global|global(kotlin.Function1<io.ktor.client.plugins.circuitbreaker.ServiceCircuitBreakerConfig,kotlin.Unit>){}[0]
+    final fun register(kotlin/String, kotlin/Function1<io.ktor.client.plugins.circuitbreaker/ServiceCircuitBreakerConfig, kotlin/Unit>) // io.ktor.client.plugins.circuitbreaker/CircuitBreakerConfig.register|register(kotlin.String;kotlin.Function1<io.ktor.client.plugins.circuitbreaker.ServiceCircuitBreakerConfig,kotlin.Unit>){}[0]
+    final fun routeRequests(kotlin/Function1<io.ktor.client.request/HttpRequestBuilder, kotlin/String?>) // io.ktor.client.plugins.circuitbreaker/CircuitBreakerConfig.routeRequests|routeRequests(kotlin.Function1<io.ktor.client.request.HttpRequestBuilder,kotlin.String?>){}[0]
+}
+
+final class io.ktor.client.plugins.circuitbreaker/CircuitBreakerOpenException : kotlin/IllegalStateException { // io.ktor.client.plugins.circuitbreaker/CircuitBreakerOpenException|null[0]
+    constructor <init>(kotlin/String, kotlin.time/Duration) // io.ktor.client.plugins.circuitbreaker/CircuitBreakerOpenException.<init>|<init>(kotlin.String;kotlin.time.Duration){}[0]
+
+    final val circuitBreakerName // io.ktor.client.plugins.circuitbreaker/CircuitBreakerOpenException.circuitBreakerName|{}circuitBreakerName[0]
+        final fun <get-circuitBreakerName>(): kotlin/String // io.ktor.client.plugins.circuitbreaker/CircuitBreakerOpenException.circuitBreakerName.<get-circuitBreakerName>|<get-circuitBreakerName>(){}[0]
+    final val resetTimeout // io.ktor.client.plugins.circuitbreaker/CircuitBreakerOpenException.resetTimeout|{}resetTimeout[0]
+        final fun <get-resetTimeout>(): kotlin.time/Duration // io.ktor.client.plugins.circuitbreaker/CircuitBreakerOpenException.resetTimeout.<get-resetTimeout>|<get-resetTimeout>(){}[0]
+}
+
+final class io.ktor.client.plugins.circuitbreaker/ServiceCircuitBreakerConfig { // io.ktor.client.plugins.circuitbreaker/ServiceCircuitBreakerConfig|null[0]
+    constructor <init>() // io.ktor.client.plugins.circuitbreaker/ServiceCircuitBreakerConfig.<init>|<init>(){}[0]
+
+    final var failureThreshold // io.ktor.client.plugins.circuitbreaker/ServiceCircuitBreakerConfig.failureThreshold|{}failureThreshold[0]
+        final fun <get-failureThreshold>(): kotlin/Int // io.ktor.client.plugins.circuitbreaker/ServiceCircuitBreakerConfig.failureThreshold.<get-failureThreshold>|<get-failureThreshold>(){}[0]
+        final fun <set-failureThreshold>(kotlin/Int) // io.ktor.client.plugins.circuitbreaker/ServiceCircuitBreakerConfig.failureThreshold.<set-failureThreshold>|<set-failureThreshold>(kotlin.Int){}[0]
+    final var halfOpenRequests // io.ktor.client.plugins.circuitbreaker/ServiceCircuitBreakerConfig.halfOpenRequests|{}halfOpenRequests[0]
+        final fun <get-halfOpenRequests>(): kotlin/Int // io.ktor.client.plugins.circuitbreaker/ServiceCircuitBreakerConfig.halfOpenRequests.<get-halfOpenRequests>|<get-halfOpenRequests>(){}[0]
+        final fun <set-halfOpenRequests>(kotlin/Int) // io.ktor.client.plugins.circuitbreaker/ServiceCircuitBreakerConfig.halfOpenRequests.<set-halfOpenRequests>|<set-halfOpenRequests>(kotlin.Int){}[0]
+    final var resetTimeout // io.ktor.client.plugins.circuitbreaker/ServiceCircuitBreakerConfig.resetTimeout|{}resetTimeout[0]
+        final fun <get-resetTimeout>(): kotlin.time/Duration // io.ktor.client.plugins.circuitbreaker/ServiceCircuitBreakerConfig.resetTimeout.<get-resetTimeout>|<get-resetTimeout>(){}[0]
+        final fun <set-resetTimeout>(kotlin.time/Duration) // io.ktor.client.plugins.circuitbreaker/ServiceCircuitBreakerConfig.resetTimeout.<set-resetTimeout>|<set-resetTimeout>(kotlin.time.Duration){}[0]
+
+    final fun isFailure(kotlin/Function1<io.ktor.client.statement/HttpResponse, kotlin/Boolean>) // io.ktor.client.plugins.circuitbreaker/ServiceCircuitBreakerConfig.isFailure|isFailure(kotlin.Function1<io.ktor.client.statement.HttpResponse,kotlin.Boolean>){}[0]
+}
+
+final val io.ktor.client.plugins.circuitbreaker/CircuitBreaker // io.ktor.client.plugins.circuitbreaker/CircuitBreaker|{}CircuitBreaker[0]
+    final fun <get-CircuitBreaker>(): io.ktor.client.plugins.api/ClientPlugin<io.ktor.client.plugins.circuitbreaker/CircuitBreakerConfig> // io.ktor.client.plugins.circuitbreaker/CircuitBreaker.<get-CircuitBreaker>|<get-CircuitBreaker>(){}[0]
+
+final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.plugins.circuitbreaker/circuitBreaker(kotlin/String) // io.ktor.client.plugins.circuitbreaker/circuitBreaker|circuitBreaker@io.ktor.client.request.HttpRequestBuilder(kotlin.String){}[0]

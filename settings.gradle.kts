@@ -145,6 +145,7 @@ projects {
             +"ktor-client-auth"
             +"ktor-client-bom-remover"
             +"ktor-client-call-id"
+            +"ktor-client-circuit-breaker"
             +"ktor-client-content-negotiation" including {
                 +"ktor-client-content-negotiation-tests"
             }
