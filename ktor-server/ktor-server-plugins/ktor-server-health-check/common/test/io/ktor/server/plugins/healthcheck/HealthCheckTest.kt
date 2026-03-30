@@ -117,12 +117,17 @@ class HealthCheckTest {
             }
         }
 
+        routing {
+            post("/health") { call.respondText("posted") }
+        }
+
         val getResponse = client.get("/health")
         assertEquals(HttpStatusCode.OK, getResponse.status)
         assertContains(getResponse.bodyAsText(), "\"status\":\"UP\"")
 
         val postResponse = client.post("/health")
-        assertFalse(postResponse.bodyAsText().contains("\"status\":\"UP\""))
+        assertEquals(HttpStatusCode.OK, postResponse.status)
+        assertEquals("posted", postResponse.bodyAsText())
     }
 
     @Test

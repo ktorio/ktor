@@ -76,8 +76,10 @@ private suspend fun evaluateCheck(namedCheck: NamedCheck): CheckResult =
     try {
         val healthy = namedCheck.check()
         CheckResult(namedCheck.name, if (healthy) CheckStatus.UP else CheckStatus.DOWN)
+    } catch (cause: CancellationException) {
+        throw cause
     } catch (cause: Exception) {
-        CheckResult(namedCheck.name, CheckStatus.DOWN, cause.message)
+        CheckResult(namedCheck.name, CheckStatus.DOWN, "Health Check Failed")
     }
 
 internal enum class CheckStatus { UP, DOWN }
