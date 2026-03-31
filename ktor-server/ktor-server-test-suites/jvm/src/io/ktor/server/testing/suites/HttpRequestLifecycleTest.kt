@@ -1,13 +1,15 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.testing.suites
 
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.server.application.install
 import io.ktor.server.engine.*
 import io.ktor.server.http.*
+import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.test.base.*
@@ -16,6 +18,9 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
+import java.io.OutputStreamWriter
+import java.net.InetSocketAddress
+import java.net.Socket
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.concurrent.atomics.incrementAndFetch
@@ -38,16 +43,17 @@ abstract class HttpRequestLifecycleTest<TEngine : ApplicationEngine, TConfigurat
         }
     }
 
-    @Test
     @OptIn(ExperimentalAtomicApi::class)
-    fun testClientDisconnectionCancelsRequest() = runTest {
+    private fun testDisconnection(
+        startServerWithRoute: suspend (suspend RoutingContext.() -> Unit) -> Unit
+    ) = runTest {
         val requestStartedCnt = AtomicInt(0)
         val requestCancelledCnt = AtomicInt(0)
 
         val requestStarted = Channel<Int>(Channel.UNLIMITED)
         val requestCancelled = Channel<Int>(Channel.UNLIMITED)
 
-        cancellableRoute {
+        startServerWithRoute {
             requestStarted.send(requestStartedCnt.incrementAndFetch())
             try {
                 // very long operation
@@ -101,6 +107,13 @@ abstract class HttpRequestLifecycleTest<TEngine : ApplicationEngine, TConfigurat
     }
 
     @Test
+    fun testClientDisconnectionCancelsRequest() {
+        testDisconnection { configureRoute ->
+            cancellableRoute(configureRoute)
+        }
+    }
+
+    @Test
     fun testHttpRequestLifecycleSuccess() = runTest {
         val requestCompleted = CompletableDeferred<Unit>()
 
@@ -149,5 +162,117 @@ abstract class HttpRequestLifecycleTest<TEngine : ApplicationEngine, TConfigurat
         withTimeout(10.seconds) {
             requestCompleted.await()
         }
+    }
+
+    @Test
+    fun testHttpRequestLifecycleWithCallLogging() = runTest {
+        val server = createServer {
+            install(HttpRequestLifecycle) {
+                cancelCallOnClose = true
+            }
+            install(CallLogging) {
+                mdc("something") { "something else" }
+            }
+            routing {
+                get("/hello") {
+                    call.respondText("world")
+                }
+            }
+        }
+        startServer(server)
+
+        client = createApacheClient()
+        client.use {
+            repeat(20) {
+                withUrl("/hello") {
+                    assertEquals(HttpStatusCode.OK, status)
+                    assertEquals("world", bodyAsText())
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testHttpRequestLifecycleCancelWithCallLogging() {
+        testDisconnection { configureRoute ->
+            val server = createServer {
+                install(HttpRequestLifecycle) {
+                    cancelCallOnClose = true
+                }
+                install(CallLogging) {
+                    mdc("something") { "something else" }
+                }
+                routing {
+                    get { configureRoute() }
+                }
+            }
+            startServer(server)
+        }
+    }
+
+    @Test
+    @OptIn(ExperimentalAtomicApi::class)
+    open fun testPipelinedRequestsCancelledOnDisconnect() = runTest {
+        val pipelinedCount = 10
+        val allStarted = Channel<Unit>(pipelinedCount)
+        val cancelledCount = AtomicInt(0)
+        val allCancelled = CompletableDeferred<Unit>()
+
+        val server = createServer {
+            install(HttpRequestLifecycle) {
+                cancelCallOnClose = true
+            }
+            routing {
+                get("/slow") {
+                    allStarted.send(Unit)
+                    try {
+                        repeat(100) {
+                            delay(200.milliseconds)
+                        }
+                        call.respondText("Done")
+                    } catch (e: CancellationException) {
+                        val count = cancelledCount.incrementAndFetch()
+                        if (count == pipelinedCount) {
+                            allCancelled.complete(Unit)
+                        }
+                        throw e
+                    }
+                }
+            }
+        }
+        startServer(server)
+
+        // Use a raw socket to send pipelined HTTP/1.1 requests
+        val socket = Socket()
+        socket.tcpNoDelay = true
+        socket.connect(InetSocketAddress("127.0.0.1", port))
+
+        try {
+            val writer = OutputStreamWriter(socket.getOutputStream(), Charsets.US_ASCII)
+            repeat(pipelinedCount) {
+                writer.write("GET /slow HTTP/1.1\r\n")
+                writer.write("Host: localhost:$port\r\n")
+                writer.write("Connection: keep-alive\r\n")
+                writer.write("\r\n")
+            }
+            writer.flush()
+
+            // Wait for all requests to start processing on the server
+            withTimeout(10.seconds) {
+                repeat(pipelinedCount) {
+                    allStarted.receive()
+                }
+            }
+        } finally {
+            // Abruptly close the connection
+            socket.setSoLinger(true, 0)
+            socket.close()
+        }
+
+        // Verify that ALL pipelined requests were cancelled, not just the last one
+        withTimeout(10.seconds) {
+            allCancelled.await()
+        }
+        assertEquals(pipelinedCount, cancelledCount.load())
     }
 }

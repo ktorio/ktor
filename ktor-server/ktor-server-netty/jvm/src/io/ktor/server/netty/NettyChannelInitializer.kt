@@ -34,7 +34,6 @@ import io.netty.handler.timeout.ReadTimeoutException
 import io.netty.handler.timeout.ReadTimeoutHandler
 import io.netty.handler.timeout.WriteTimeoutHandler
 import io.netty.util.concurrent.EventExecutorGroup
-import kotlinx.coroutines.cancel
 import java.io.FileInputStream
 import java.nio.channels.ClosedChannelException
 import java.security.KeyStore
@@ -186,7 +185,6 @@ public class NettyChannelInitializer(
                 val handler = NettyHttp2Handler(
                     enginePipeline,
                     application,
-                    callEventGroup,
                     application.coroutineContext + userContext,
                     runningLimit
                 )
@@ -202,7 +200,6 @@ public class NettyChannelInitializer(
                 val handler = NettyHttp2Handler(
                     enginePipeline,
                     applicationProvider(),
-                    callEventGroup,
                     userContext,
                     runningLimit
                 )
@@ -232,7 +229,6 @@ public class NettyChannelInitializer(
                             applicationProvider,
                             enginePipeline,
                             environment,
-                            callEventGroup,
                             engineContext,
                             userContext,
                             runningLimit
@@ -266,7 +262,6 @@ public class NettyChannelInitializer(
                     applicationProvider,
                     enginePipeline,
                     environment,
-                    callEventGroup,
                     engineContext,
                     userContext,
                     runningLimit
@@ -330,14 +325,14 @@ public class NettyChannelInitializer(
                 if (SslProvider.isAlpnSupported(SslProvider.OPENSSL)) {
                     return SslProvider.OPENSSL
                 }
-            } catch (ignore: Throwable) {
+            } catch (_: Throwable) {
             }
 
             try {
                 if (SslProvider.isAlpnSupported(SslProvider.JDK)) {
                     return SslProvider.JDK
                 }
-            } catch (ignore: Throwable) {
+            } catch (_: Throwable) {
             }
 
             return null

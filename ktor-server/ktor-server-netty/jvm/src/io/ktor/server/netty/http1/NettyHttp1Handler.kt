@@ -1,34 +1,36 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.netty.http1
 
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
+import io.ktor.server.http.*
 import io.ktor.server.netty.*
+import io.ktor.server.netty.NettyApplicationCallHandler.CallHandlerCoroutineName
 import io.ktor.server.netty.cio.*
+import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
-import io.netty.channel.*
+import io.netty.channel.ChannelHandlerContext
+import io.netty.channel.ChannelInboundHandlerAdapter
 import io.netty.handler.codec.http.*
-import io.netty.handler.timeout.*
-import io.netty.util.concurrent.*
+import io.netty.handler.timeout.ReadTimeoutException
 import kotlinx.coroutines.*
-import java.io.*
-import kotlin.coroutines.*
+import java.io.IOException
+import java.util.concurrent.ConcurrentLinkedQueue
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.cancellation.CancellationException
 
 internal class NettyHttp1Handler(
     private val applicationProvider: () -> Application,
     private val enginePipeline: EnginePipeline,
     private val environment: ApplicationEnvironment,
-    private val callEventGroup: EventExecutorGroup,
     private val engineContext: CoroutineContext,
     private val userContext: CoroutineContext,
     private val runningLimit: Int
-) : ChannelInboundHandlerAdapter(), CoroutineScope {
+) : ChannelInboundHandlerAdapter() {
     private val handlerJob = CompletableDeferred<Nothing>()
-
-    override val coroutineContext: CoroutineContext get() = handlerJob
 
     private var skipEmpty = false
 
@@ -36,24 +38,19 @@ internal class NettyHttp1Handler(
 
     private val state = NettyHttpHandlerState(runningLimit)
 
+    private val activeCalls = ConcurrentLinkedQueue<NettyHttp1ApplicationCall>()
+
     override fun channelActive(context: ChannelHandlerContext) {
         responseWriter = NettyHttpResponsePipeline(
-            context,
-            state,
-            coroutineContext
+            context = context,
+            httpHandlerState = state,
+            coroutineContext = handlerJob
         )
 
         context.channel().config().isAutoRead = false
         context.channel().read()
         context.pipeline().apply {
             addLast(RequestBodyHandler(context))
-            addLast(
-                callEventGroup,
-                NettyApplicationCallHandler(
-                    applicationProvider().coroutineContext + userContext,
-                    enginePipeline
-                )
-            )
         }
         context.fireChannelActive()
     }
@@ -63,8 +60,8 @@ internal class NettyHttp1Handler(
             state.isCurrentRequestFullyRead.compareAndSet(expect = false, update = true)
         }
 
-        when {
-            message is HttpRequest -> {
+        when (message) {
+            is HttpRequest -> {
                 if (message !is LastHttpContent) {
                     state.isCurrentRequestFullyRead.compareAndSet(expect = true, update = false)
                 }
@@ -75,7 +72,7 @@ internal class NettyHttp1Handler(
                 callReadIfNeeded(context)
             }
 
-            message is LastHttpContent && !message.content().isReadable && skipEmpty -> {
+            is LastHttpContent if !message.content().isReadable && skipEmpty -> {
                 skipEmpty = false
                 message.release()
                 callReadIfNeeded(context)
@@ -88,9 +85,19 @@ internal class NettyHttp1Handler(
     }
 
     override fun channelInactive(context: ChannelHandlerContext) {
-        val handler = context.pipeline().remove(NettyApplicationCallHandler::class.java)
-        handler?.onConnectionClose(context)
+        onConnectionClose(context)
         context.fireChannelInactive()
+    }
+
+    private fun onConnectionClose(context: ChannelHandlerContext) {
+        if (context.channel().isActive) {
+            return
+        }
+        while (true) {
+            val call = activeCalls.poll() ?: break
+            @OptIn(InternalAPI::class)
+            call.attributes.getOrNull(HttpRequestCloseHandlerKey)?.invoke()
+        }
     }
 
     @Suppress("OverridingDeprecatedMember")
@@ -103,7 +110,14 @@ internal class NettyHttp1Handler(
             }
 
             is ReadTimeoutException -> {
-                context.fireExceptionCaught(cause)
+                if (activeCalls.isEmpty()) {
+                    context.fireExceptionCaught(cause)
+                    return
+                }
+                context.respond408RequestTimeoutHttp1()
+                activeCalls.forEach { call ->
+                    call.coroutineContext.cancel(CancellationException(cause))
+                }
             }
 
             else -> {
@@ -120,10 +134,40 @@ internal class NettyHttp1Handler(
     }
 
     private fun handleRequest(context: ChannelHandlerContext, message: HttpRequest) {
-        val call = prepareCallFromRequest(context, message)
+        val userAppContext = applicationProvider().coroutineContext + userContext
+        val callJob = Job(parent = userAppContext[Job])
 
+        val callContext = userAppContext + NettyDispatcher.CurrentContext(context) + callJob + CallHandlerCoroutineName
+        val call = prepareCallFromRequest(context, message, callContext = callContext)
+        activeCalls.add(call)
+
+        // Fire channel read for custom handlers added to the pipeline
         context.fireChannelRead(call)
+
+        // Reserve response slot synchronously on the I/O thread for proper ordering
         responseWriter.processResponse(call)
+
+        // Defer coroutine start to the next event loop tick so that channelReadComplete() fires first
+        // This allows the response pipeline to detect that the request body is still being received and flush headers
+        // early instead of buffering them, which is required when the client waits for response headers
+        // before sending the request body
+        context.executor().execute {
+            val callScope = CoroutineScope(context = callContext)
+            callScope.launch(start = CoroutineStart.UNDISPATCHED) {
+                try {
+                    if (!call.request.isValid()) {
+                        call.respondError400BadRequest()
+                        return@launch
+                    }
+                    enginePipeline.execute(call)
+                } catch (error: Throwable) {
+                    handleFailure(call, error)
+                } finally {
+                    activeCalls.remove(call)
+                    callJob.complete()
+                }
+            }
+        }
     }
 
     /**
@@ -132,7 +176,8 @@ internal class NettyHttp1Handler(
      */
     private fun prepareCallFromRequest(
         context: ChannelHandlerContext,
-        message: HttpRequest
+        message: HttpRequest,
+        callContext: CoroutineContext
     ): NettyHttp1ApplicationCall {
         val requestBodyChannel = when {
             message is LastHttpContent && !message.content().isReadable -> null
@@ -145,15 +190,13 @@ internal class NettyHttp1Handler(
 
             else -> prepareRequestContentChannel(context, message)
         }
-
-        val application = applicationProvider()
         return NettyHttp1ApplicationCall(
-            application,
-            context,
-            message,
-            requestBodyChannel,
-            engineContext,
-            application.coroutineContext + userContext
+            application = applicationProvider(),
+            context = context,
+            httpRequest = message,
+            requestBodyChannel = requestBodyChannel,
+            engineContext = engineContext,
+            coroutineContext = callContext
         )
     }
 
