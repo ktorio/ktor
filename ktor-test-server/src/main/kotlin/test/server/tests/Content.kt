@@ -110,6 +110,9 @@ internal fun Application.contentTestServer() {
                 val delay = call.parameters["delay"]?.toLong() ?: 0L
                 call.respond(
                     object : OutgoingContent.WriteChannelContent() {
+                        override val contentType: ContentType
+                            get() = ContentType.Application.OctetStream
+
                         override suspend fun writeTo(channel: ByteWriteChannel) {
                             while (true) {
                                 channel.writeInt(42)
