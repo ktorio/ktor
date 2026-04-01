@@ -1,6 +1,8 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
+
+import ktorbuild.*
 
 plugins {
     id("ktorbuild.project.server-plugin")
@@ -18,4 +20,9 @@ kotlin {
             implementation(projects.ktorServerContentNegotiation)
         }
     }
+}
+
+dependencies.constraints {
+    commonsLang3()
+    commonsBeanutils()
 }

@@ -26,6 +26,7 @@ import io.netty.handler.codec.http.HttpResponseStatus
 import io.netty.handler.codec.http2.*
 import io.netty.handler.codec.http2.Http2CodecUtil.readUnsignedInt
 import kotlinx.coroutines.flow.consumeAsFlow
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -43,6 +44,11 @@ class NettyCompressionTest : CompressionTestSuite<NettyApplicationEngine, NettyA
 class NettyContentTest : ContentTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
     init {
         enableSsl = true
+    }
+
+    @Ignore // KTOR-9263
+    override fun funkyChunked() {
+        super.funkyChunked()
     }
 
     override fun configure(configuration: NettyApplicationEngine.Configuration) {

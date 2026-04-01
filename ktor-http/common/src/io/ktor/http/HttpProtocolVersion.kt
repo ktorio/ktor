@@ -77,10 +77,14 @@ public data class HttpProtocolVersion(val name: String, val major: Int, val mino
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.HttpProtocolVersion.Companion.parse)
          */
         public fun parse(value: CharSequence): HttpProtocolVersion {
-            /**
-             * Format: protocol/major.minor
-             */
-                val (protocol, major, minor) = value.split("/", ".").also {
+            // Fast path: check common versions first to avoid allocation
+            if (value == "HTTP/1.1") return HTTP_1_1
+            if (value == "HTTP/1.0") return HTTP_1_0
+            if (value == "HTTP/2.0") return HTTP_2_0
+            if (value == "HTTP/3.0") return HTTP_3_0
+
+            // Slow path: parse unknown versions (format: protocol/major.minor)
+            val (protocol, major, minor) = value.split("/", ".").also {
                 check(it.size == 3) {
                     "Failed to parse HttpProtocolVersion. Expected format: protocol/major.minor, but actual: $value"
                 }

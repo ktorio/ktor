@@ -19,5 +19,6 @@ class ReflectionJsonSchemaInferenceTest : AbstractSchemaInferenceTest(
             val props = kClass.memberProperties.associateBy { it.name }
             return constructorParams.mapNotNull { props[it] }
         }
-    })
+    }),
+    "reflect"
 )

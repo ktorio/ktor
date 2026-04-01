@@ -19,6 +19,8 @@ kotlin {
         jvmTest.dependencies {
             implementation(projects.ktorServerContentNegotiation)
             implementation(projects.ktorSerializationJackson)
+            implementation(projects.ktorServerNetty)
+            implementation(libs.apache.client5)
         }
     }
 }

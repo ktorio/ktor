@@ -58,7 +58,7 @@ public fun Source.encodeBase64(): String = Base64.encode(readByteArray())
 public fun String.decodeBase64String(): String = decodeBase64Bytes().decodeToString()
 
 /**
- * Decode [String] from base64 format
+ * Decode [String] from base64 format with optional padding
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.decodeBase64Bytes)
  */
@@ -68,10 +68,11 @@ public fun String.decodeBase64String(): String = decodeBase64Bytes().decodeToStr
     replaceWith = ReplaceWith("Base64.decode(this)", "kotlin.io.encoding.Base64")
 )
 public fun String.decodeBase64Bytes(): ByteArray =
-    runCatching { Base64.decode(this) }.getOrElse { Base64.UrlSafe.decode(this) }
+    runCatching { Base64.withPadding(Base64.PaddingOption.PRESENT_OPTIONAL).decode(this) }
+        .getOrElse { Base64.UrlSafe.withPadding(Base64.PaddingOption.PRESENT_OPTIONAL).decode(this) }
 
 /**
- * Decode [ByteReadPacket] from base64 format
+ * Decode [ByteReadPacket] from base64 format with optional padding
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.decodeBase64Bytes)
  */
@@ -82,6 +83,7 @@ public fun String.decodeBase64Bytes(): ByteArray =
 )
 public fun Source.decodeBase64Bytes(): Input = buildPacket {
     val raw = readByteArray()
-    val decoded = runCatching { Base64.decode(raw) }.getOrElse { Base64.UrlSafe.decode(raw) }
+    val decoded = runCatching { Base64.withPadding(Base64.PaddingOption.PRESENT_OPTIONAL).decode(raw) }
+        .getOrElse { Base64.UrlSafe.withPadding(Base64.PaddingOption.PRESENT_OPTIONAL).decode(raw) }
     writeFully(decoded)
 }

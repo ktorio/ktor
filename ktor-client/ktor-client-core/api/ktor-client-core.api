@@ -1552,6 +1552,10 @@ public final class io/ktor/client/statement/DefaultHttpResponse : io/ktor/client
 	public fun getVersion ()Lio/ktor/http/HttpProtocolVersion;
 }
 
+public final class io/ktor/client/statement/DispatcherSwitching_jvmKt {
+	public static final fun getUseEngineDispatcher ()Z
+}
+
 public final class io/ktor/client/statement/HttpReceivePipeline : io/ktor/util/pipeline/Pipeline {
 	public static final field Phases Lio/ktor/client/statement/HttpReceivePipeline$Phases;
 	public fun <init> ()V

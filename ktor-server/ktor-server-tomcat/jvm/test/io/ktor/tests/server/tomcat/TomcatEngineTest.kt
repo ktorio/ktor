@@ -52,6 +52,11 @@ class TomcatContentTest : ContentTestSuite<TomcatApplicationEngine, TomcatApplic
     @Ignore
     override fun testMultipartFileUploadLarge() {
     }
+
+    @Ignore // KTOR-9263
+    override fun funkyChunked() {
+        super.funkyChunked()
+    }
 }
 
 class TomcatHttpServerCommonTest :

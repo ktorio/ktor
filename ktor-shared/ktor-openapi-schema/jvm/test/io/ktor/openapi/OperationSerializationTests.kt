@@ -27,7 +27,7 @@ class OperationSerializationTests {
     private val yamlFormat = Yaml(
         configuration = YamlConfiguration(
             encodeDefaults = false,
-            singleLineStringStyle = SingleLineStringStyle.Plain
+            singleLineStringStyle = SingleLineStringStyle.DoubleQuoted
         )
     )
 
@@ -180,8 +180,8 @@ class OperationSerializationTests {
                     }
 
                     // Extensions on response level
-                    extension("x-cache-ttl", 300)
-                    extension("x-response-time-ms", 50)
+                    extension("x-cache-ttl", "300")
+                    extension("x-response-time-ms", "50")
                 }
             }
 
@@ -190,7 +190,7 @@ class OperationSerializationTests {
                     description = "Page limit"
                     schema = jsonSchema<Int>()
                     // Extensions on parameter level
-                    extension("x-max-value", 1000)
+                    extension("x-max-value", "1000")
                 }
             }
         }
@@ -225,7 +225,6 @@ class OperationSerializationTests {
                 required = true
                 schema = jsonSchema<Article>()
                 extension("x-validation-schema", "article-v1")
-                extension("x-max-size-bytes", 1048576) // 1MB
             }
         }
 

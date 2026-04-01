@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.testing.suites
@@ -29,7 +29,7 @@ abstract class ClientCertTestSuite<Engine : ApplicationEngine, Configuration : A
 ) {
     open fun sslConnectorBuilder(): EngineSSLConnectorBuilder = EngineSSLConnectorBuilder(
         keyAlias = "mykey",
-        keyStore = ca.generateCertificate(keyType = KeyType.Server),
+        keyStore = ca.generateCertificate(algorithm = ALGORITHM, keyType = KeyType.Server),
         keyStorePassword = { "changeit".toCharArray() },
         privateKeyPassword = { "changeit".toCharArray() },
     ).apply {
@@ -38,13 +38,14 @@ abstract class ClientCertTestSuite<Engine : ApplicationEngine, Configuration : A
     }
 
     companion object {
-        val ca = generateCertificate(keyType = KeyType.CA)
+        private const val ALGORITHM = "SHA256withRSA"
+        val ca = generateCertificate(algorithm = ALGORITHM, keyType = KeyType.CA)
     }
 
     @CoroutinesTimeout(60 * 1000, cancelOnTimeout = true)
     @Test
     open fun `Server requesting Client Certificate from CIO Client`() {
-        val clientKeys = ca.generateCertificate(keyType = KeyType.Client)
+        val clientKeys = ca.generateCertificate(algorithm = ALGORITHM, keyType = KeyType.Client)
 
         val client = HttpClient(CIO) {
             engine {

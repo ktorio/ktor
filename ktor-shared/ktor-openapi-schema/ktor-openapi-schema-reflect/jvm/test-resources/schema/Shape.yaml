@@ -1,5 +1,23 @@
 type: object
 title: io.ktor.openapi.reflect.Shape
+oneOf:
+  - type: object
+    title: io.ktor.openapi.reflect.Shape.Circle
+    required:
+      - radius
+    properties:
+      radius:
+        type: number
+  - type: object
+    title: io.ktor.openapi.reflect.Shape.Rectangle
+    required:
+      - width
+      - height
+    properties:
+      width:
+        type: number
+      height:
+        type: number
 discriminator:
   propertyName: type
   mapping:

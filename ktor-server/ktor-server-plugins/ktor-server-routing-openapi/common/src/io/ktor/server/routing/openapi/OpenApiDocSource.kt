@@ -74,7 +74,7 @@ public sealed interface OpenApiDocSource {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.OpenApiDocSource.Routing)
      *
      * @param contentType The content type of the generated document.
-     * @param schemaInference The JSON schema inference strategy to use when building models. Defaults to [KotlinxJsonSchemaInference].
+     * @param schemaInference The JSON schema inference strategy to use when building models. Defaults to [KotlinxSerializerJsonSchemaInference.Default].
      * @param securitySchemes Producer for security schemes to be included in the document. Defaults to all registered security schemes.
      * @param serializeModel Function for serializing the OpenAPI document to a string. Defaults to kotlinx-serialization for JSON or YAML.
      * @param routes Producer for routes to be included in the document.  Defaults to the full routing tree.

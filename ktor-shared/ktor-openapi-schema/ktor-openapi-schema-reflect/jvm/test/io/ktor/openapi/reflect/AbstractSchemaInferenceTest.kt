@@ -14,9 +14,16 @@ import kotlinx.serialization.encodeToString
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 abstract class AbstractSchemaInferenceTest(
-    val inference: JsonSchemaInference
+    val inference: JsonSchemaInference,
+    val overrideKey: String,
 ) {
     private val yaml = Yaml(
         configuration = YamlConfiguration(
@@ -47,8 +54,18 @@ abstract class AbstractSchemaInferenceTest(
         assertSchemaMatches<LogicalOperatorsData>()
 
     @Test
-    fun `other validation rules`() =
+    fun `other validation rules`() {
         assertSchemaMatches<AnnotatedUser>()
+        @OptIn(ExperimentalUuidApi::class, ExperimentalTime::class)
+        assertExampleMatches(
+            AnnotatedUser(
+                id = Uuid.parse("550e8400-e29b-41d4-a716-446655440000"),
+                username = "Timber Calhoun",
+                email = Email("tcalhoun@mail.com"),
+                createdAt = Instant.parse("2023-02-03T23:23:23Z")
+            )
+        )
+    }
 
     @Test
     fun `array inference`() {
@@ -105,6 +122,26 @@ abstract class AbstractSchemaInferenceTest(
         )
     }
 
+    @Test
+    open fun `unsigned types`() =
+        assertSchemaMatches<UnsignedTypes>()
+
+    @OptIn(ExperimentalTime::class)
+    @Test
+    open fun `time types`() {
+        assertSchemaMatches<TimeTypes>()
+        assertExampleMatches(
+            TimeTypes(
+                Instant.parse("2023-02-03T23:23:23Z"),
+                17.days
+            )
+        )
+    }
+
+    @Test
+    fun `value classes`() =
+        assertSchemaMatches<Email>()
+
     private inline fun <reified T : Any> assertSchemaMatches() {
         val schema = inference.jsonSchema<T>()
         val expected = readSchemaYaml<T>()
@@ -112,10 +149,19 @@ abstract class AbstractSchemaInferenceTest(
     }
 
     private inline fun <reified T> readSchemaYaml(): String {
-        val expectedFileName = "/schema/${T::class.simpleName}.yaml"
-        val resource = this.javaClass.getResource(expectedFileName)
-            ?: error("Missing expected schema file: $expectedFileName")
+        val standardFile = "/schema/${T::class.simpleName}.yaml"
+        val overrideFile = "/schema/${T::class.simpleName}.$overrideKey.yaml"
+        val resource = this.javaClass.getResource(overrideFile)
+            ?: this.javaClass.getResource(standardFile)
+            ?: error("Missing expected schema file: $standardFile")
         return resource.readText().trim()
+    }
+
+    private inline fun <reified T> assertExampleMatches(value: T) {
+        val expectedFile = "/schema/${T::class.simpleName}.example.yaml"
+        val resource = this.javaClass.getResource(expectedFile)
+            ?: error("Missing expected schema file: $expectedFile")
+        assertEquals(resource.readText().trim(), yaml.encodeToString(value))
     }
 }
 
@@ -157,6 +203,19 @@ enum class Color {
 }
 
 @Serializable
+data class UnsignedTypes(
+    val unsignedInt: UInt,
+    val unsignedLong: ULong
+)
+
+@OptIn(ExperimentalTime::class)
+@Serializable
+data class TimeTypes(
+    val instant: Instant,
+    val duration: Duration
+)
+
+@Serializable
 sealed class Shape {
     @Serializable
     data class Circle(val radius: Double) : Shape()
@@ -165,18 +224,20 @@ sealed class Shape {
     data class Rectangle(val width: Double, val height: Double) : Shape()
 }
 
+@OptIn(ExperimentalUuidApi::class, ExperimentalTime::class)
 @Serializable
 data class AnnotatedUser(
     @Description("The user's unique identifier")
-    val id: Int,
+    val id: Uuid,
     @MinLength(3)
     @MaxLength(20)
     @Pattern("^[a-z0-9_]+$")
     val username: String,
     @Pattern(".+@.+\\..+")
-    val email: String,
+    @Format("email")
+    val email: Email,
     @ReadOnly
-    val createdAt: String
+    val createdAt: Instant
 )
 
 @Serializable
@@ -197,4 +258,11 @@ data class LogicalOperatorsData(
 )
 
 @Serializable
-data class TreeNode(val name: String, val parent: TreeNode?)
+data class TreeNode(
+    val name: String,
+    val parent: TreeNode?
+)
+
+@JvmInline
+@Serializable
+value class Email(val value: String)

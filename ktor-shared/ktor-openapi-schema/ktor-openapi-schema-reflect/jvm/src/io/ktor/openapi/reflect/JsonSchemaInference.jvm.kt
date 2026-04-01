@@ -14,9 +14,13 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.KType
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.full.starProjectedType
+import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * An adapter used by [ReflectionJsonSchemaInference] to customize how Kotlin types and properties
@@ -139,6 +143,18 @@ public class ReflectionJsonSchemaInference(
                 return primitiveSchema
             }
 
+            // Value classes (inline) should be represented as their underlying value
+            if (kClass.isValue) {
+                kClass.underlyingValueClassTypeOrNull()?.let { underlyingType ->
+                    val unboxedSchema = buildSchemaInternal(
+                        underlyingType,
+                        visiting,
+                        includeAnnotations + kClass.annotations
+                    )
+                    return unboxedSchema.nonNullable(nullable)
+                }
+            }
+
             // Enums
             if (kClass.java.isEnum) {
                 val values = kClass.java.enumConstants
@@ -157,7 +173,10 @@ public class ReflectionJsonSchemaInference(
             // Sealed classes
             if (kClass.isSealed) {
                 val sealedSubclasses = kClass.sealedSubclasses
-                val mapping = sealedSubclasses
+                val sealedSubclassSchema = sealedSubclasses.map {
+                    ReferenceOr.Value(buildSchemaInternal(it.starProjectedType, visiting))
+                }
+                val discriminatorMapping = sealedSubclasses
                     .filter { it.qualifiedName != null && it.simpleName != null }
                     .associate { subclass ->
                         subclass.qualifiedName!! to "#/components/schemas/${subclass.simpleName}"
@@ -168,7 +187,8 @@ public class ReflectionJsonSchemaInference(
                     annotations = includeAnnotations + kClass.annotations,
                     reflectSchema = ::schemaRefForClass,
                     type = JsonType.OBJECT.orNullable(nullable),
-                    discriminator = JsonSchemaDiscriminator("type", mapping),
+                    oneOf = sealedSubclassSchema,
+                    discriminator = JsonSchemaDiscriminator("type", discriminatorMapping),
                 )
             }
 
@@ -242,7 +262,11 @@ public class ReflectionJsonSchemaInference(
         }
     }
 
-    @OptIn(ExperimentalTime::class, InternalAPI::class)
+    @OptIn(
+        ExperimentalTime::class,
+        ExperimentalUuidApi::class,
+        InternalAPI::class,
+    )
     private fun primitiveSchemaOrNull(
         kClass: KClass<*>,
         annotations: List<Annotation>,
@@ -257,6 +281,7 @@ public class ReflectionJsonSchemaInference(
         Boolean::class -> jsonSchemaFromAnnotations(annotations, ::schemaRefForClass, type = JsonType.BOOLEAN)
 
         Byte::class, Short::class, Int::class, Long::class,
+        UByte::class, UShort::class, UInt::class, ULong::class,
         java.lang.Byte::class, java.lang.Short::class, Integer::class, java.lang.Long::class ->
             jsonSchemaFromAnnotations(annotations, ::schemaRefForClass, type = JsonType.INTEGER)
 
@@ -264,7 +289,13 @@ public class ReflectionJsonSchemaInference(
         java.lang.Float::class, java.lang.Double::class ->
             jsonSchemaFromAnnotations(annotations, ::schemaRefForClass, type = JsonType.NUMBER)
 
-        // Java time
+        Uuid::class -> jsonSchemaFromAnnotations(
+            annotations,
+            ::schemaRefForClass,
+            type = JsonType.STRING.orNullable(nullable),
+            format = "uuid"
+        )
+
         java.time.Instant::class -> jsonSchemaFromAnnotations(
             annotations,
             ::schemaRefForClass,
@@ -286,15 +317,9 @@ public class ReflectionJsonSchemaInference(
             format = "date"
         )
 
-        java.time.LocalDateTime::class -> jsonSchemaFromAnnotations(
-            annotations,
-            ::schemaRefForClass,
-            type = JsonType.STRING.orNullable(nullable),
-            format = "date-time"
-        )
-
-        // Kotlinx datetime
-        kotlinx.datetime.Instant::class, Instant::class -> jsonSchemaFromAnnotations(
+        java.time.LocalDateTime::class,
+        kotlinx.datetime.Instant::class,
+        Instant::class -> jsonSchemaFromAnnotations(
             annotations,
             ::schemaRefForClass,
             type = JsonType.STRING.orNullable(nullable),
@@ -315,7 +340,23 @@ public class ReflectionJsonSchemaInference(
             format = "date-time"
         )
 
+        Duration::class -> jsonSchemaFromAnnotations(
+            annotations,
+            ::schemaRefForClass,
+            type = JsonType.STRING,
+            format = "duration"
+        )
+
         else -> null
+    }
+
+    private fun KClass<*>.underlyingValueClassTypeOrNull(): KType? {
+        val ctorParam = primaryConstructor?.parameters?.singleOrNull()
+            ?: return null
+
+        // Prefer the backing property type when available (better chance of having resolved type args)
+        val propType = memberProperties.firstOrNull { it.name == ctorParam.name }?.returnType
+        return propType ?: ctorParam.type
     }
 
     private fun KClass<*>.starProjectedTypeOrNull(): KType? = try {

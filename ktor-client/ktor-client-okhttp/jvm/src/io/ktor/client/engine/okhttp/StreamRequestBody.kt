@@ -5,11 +5,11 @@
 package io.ktor.client.engine.okhttp
 
 import io.ktor.utils.io.*
+import io.ktor.utils.io.jvm.javaio.toInputStream
 import io.ktor.utils.io.streams.asByteWriteChannel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import okhttp3.*
 import okio.*
 import kotlin.coroutines.CoroutineContext
@@ -26,17 +26,28 @@ internal class StreamRequestBody(
     override fun contentType(): MediaType? = null
 
     override fun writeTo(sink: BufferedSink) {
-        val job = CoroutineScope(callContext).launch(Dispatchers.IO) {
+        if (duplex) {
+            CoroutineScope(callContext).launch(Dispatchers.IO) {
+                try {
+                    val channel = block()
+                    channel.copyTo(sink.outputStream().asByteWriteChannel())
+                } catch (cause: IOException) {
+                    throw cause
+                } catch (cause: Throwable) {
+                    throw StreamAdapterIOException(cause)
+                }
+            }
+        } else {
             try {
-                val channel = block()
-                channel.copyTo(sink.outputStream().asByteWriteChannel())
+                block().toInputStream().source().use {
+                    sink.writeAll(it)
+                }
             } catch (cause: IOException) {
                 throw cause
             } catch (cause: Throwable) {
                 throw StreamAdapterIOException(cause)
             }
         }
-        if (!duplex) runBlocking { job.join() }
     }
 
     override fun contentLength(): Long = contentLength ?: -1

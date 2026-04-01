@@ -1,10 +1,11 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.network.sockets.nodejs
 
 import io.ktor.network.sockets.*
+import kotlin.js.JsModule
 
 // js.Error
 internal external interface JsError {
@@ -24,13 +25,8 @@ internal external interface NodeNet {
     fun createServer(options: CreateServerOptions): Server
 }
 
-internal expect fun nodeNet(): NodeNet?
-
-internal val nodeNet by lazy {
-    requireNotNull(runCatching { nodeNet() }.getOrNull()) {
-        "Node.js net module is not available. Please verify that you are using Node.js"
-    }
-}
+@JsModule("node:net")
+internal external val nodeNet: NodeNet
 
 internal fun CreateConnectionOptions(
     remoteAddress: SocketAddress,

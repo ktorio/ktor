@@ -32,9 +32,9 @@ paths:
             "text/plain": {}
 components:
   schemas:
-    "Message":
+    "DM":
       type: "object"
-      title: "io.ktor.server.routing.openapi.Message"
+      title: "io.ktor.server.routing.openapi.Message.DM"
       required:
       - "id"
       - "content"
@@ -46,3 +46,28 @@ components:
           type: "string"
         "timestamp":
           type: "integer"
+    "Post":
+      type: "object"
+      title: "io.ktor.server.routing.openapi.Message.Post"
+      required:
+      - "id"
+      - "content"
+      - "timestamp"
+      properties:
+        "id":
+          type: "integer"
+        "content":
+          type: "string"
+        "timestamp":
+          type: "integer"
+    "Message":
+      type: "object"
+      title: "io.ktor.server.routing.openapi.Message"
+      oneOf:
+      - $ref: "#/components/schemas/DM"
+      - $ref: "#/components/schemas/Post"
+      discriminator:
+        propertyName: "type"
+        mapping:
+          "io.ktor.server.routing.openapi.Message.DM": "#/components/schemas/DM"
+          "io.ktor.server.routing.openapi.Message.Post": "#/components/schemas/Post"

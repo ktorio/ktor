@@ -61,16 +61,16 @@ public class HxAttributes(override val map: DelegatingMap) : StringMapDelegate {
         get() = On(map)
 
     public fun on(event: String, script: String) {
-        map["hx-on:$event"] = script
+        map["hx-on::$event"] = script
     }
 
     @JvmInline
     public value class On(private val attributes: MutableMap<String, String>) {
         public operator fun set(event: String, script: String?) {
             if (script == null) {
-                attributes.remove("${HxAttributeKeys.On}:$event")
+                attributes.remove("${HxAttributeKeys.On}::$event")
             } else {
-                attributes["${HxAttributeKeys.On}:$event"] = script
+                attributes["${HxAttributeKeys.On}::$event"] = script
             }
         }
 

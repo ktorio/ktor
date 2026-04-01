@@ -3,9 +3,9 @@
  */
 
 import ktorbuild.createCInterop
-import ktorbuild.targets.hostTarget
+import ktorbuild.targets.sourceSet
 import ktorbuild.vcpkg.*
-import org.jetbrains.kotlin.konan.target.HostManager
+import org.jetbrains.kotlin.konan.target.*
 
 plugins {
     id("ktorbuild.project.library")
@@ -40,22 +40,24 @@ kotlin {
 //region Libcurl tasks
 // Register `libcurlUpdate` task updating libcurl binaries for the current host OS and architecture.
 // This task should be run on each platform separately to update libcurl for all platforms.
-val hostTarget = HostManager.hostTarget
-if (hostTarget != null) {
-    val libcurlInstall = registerVcpkgInstallTask("libcurl", hostTarget) {
-        // Link against system zlib (except for Windows)
-        if (hostTarget != "mingwX64") overlayPorts.add("ports/zlib")
-    }
+// To build linuxArm64 binaries, the flag `-Pvcpkg.target=linux_arm64` should be passed.
+val target = providers.gradleProperty("vcpkg.target")
+    .map { KonanTarget.predefinedTargets.getValue(it) }
+    .orNull ?: HostManager.host
 
-    val libcurlUpdateHeaders = registerSyncHeadersTask(
-        "libcurlUpdateHeaders",
-        from = libcurlInstall,
-        into = includeDir,
-        library = "curl"
-    )
+val libcurlInstall = registerVcpkgInstallTask("libcurl", target) {
+    // Link against system zlib (except for Windows)
+    if (target != KonanTarget.MINGW_X64) overlayPorts.add("ports/zlib")
+}
 
-    registerSyncBinariesTask("libcurlUpdate", from = libcurlInstall, into = libraryPath(hostTarget)) {
-        dependsOn(libcurlUpdateHeaders)
-    }
+val libcurlUpdateHeaders = registerSyncHeadersTask(
+    "libcurlUpdateHeaders",
+    from = libcurlInstall,
+    into = includeDir,
+    library = "curl"
+)
+
+registerSyncBinariesTask("libcurlUpdate", from = libcurlInstall, into = libraryPath(target.sourceSet)) {
+    dependsOn(libcurlUpdateHeaders)
 }
 //endregion

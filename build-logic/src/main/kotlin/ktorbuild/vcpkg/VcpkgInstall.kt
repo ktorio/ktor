@@ -1,14 +1,16 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package ktorbuild.vcpkg
 
+import ktorbuild.internal.gradle.loadProperties
 import ktorbuild.internal.withLimitedParallelism
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.ProjectLayout
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
@@ -17,7 +19,7 @@ import org.gradle.api.tasks.*
 import org.gradle.process.ExecOperations
 import org.gradle.process.ExecSpec
 import org.gradle.work.DisableCachingByDefault
-import org.jetbrains.kotlin.konan.target.HostManager
+import org.jetbrains.kotlin.konan.target.*
 import org.jetbrains.kotlin.konan.util.DependencyDirectories
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -34,14 +36,18 @@ abstract class VcpkgInstall @Inject constructor(
     internal abstract val manifestDir: DirectoryProperty
 
     @get:Input
-    @get:Optional
-    protected abstract val toolchainDirectory: Property<File>
+    internal abstract val target: Property<KonanTarget>
 
     @get:Input
     internal abstract val triplet: Property<String>
 
     @get:Input
     abstract val overlayPorts: ListProperty<String>
+
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.NONE)
+    @get:Optional
+    internal abstract val nativeDirectoryLocation: RegularFileProperty
 
     private val installDir: Provider<Directory> = layout.buildDirectory.dir("vcpkg")
     private val outputDirProperty: DirectoryProperty = objects.directoryProperty()
@@ -59,25 +65,21 @@ abstract class VcpkgInstall @Inject constructor(
      *
      * The directory should contain a vcpkg.json manifest file.
      */
-    fun install(manifestPath: String, target: String) {
-        val triplet = targetToTriplet(target)
+    fun install(manifestPath: String, target: KonanTarget) {
+        this.target.set(target)
+        val triplet = target.triplet()
         this.manifestDir.set(project.file(manifestPath))
         this.triplet.set(triplet)
         outputDirProperty.set(installDir.map { it.dir(triplet) })
-
-        val toolchainDirectoryName = getToolchainDirName(target)
-        if (toolchainDirectoryName != null) {
-            toolchainDirectory.set(DependencyDirectories.defaultDependenciesRoot.resolve(toolchainDirectoryName))
-        }
     }
 
-    private fun targetToTriplet(target: String): String = when (target) {
-        "macosArm64" -> "arm64-osx"
-        "macosX64" -> "x64-osx"
-        "linuxX64" -> "x64-linux"
-        "linuxArm64" -> "arm64-linux"
-        "mingwX64" -> "x64-mingw-static"
-        else -> error("Unsupported target: $target")
+    private fun KonanTarget.triplet(): String = when (this) {
+        KonanTarget.MACOS_ARM64 -> "arm64-osx"
+        KonanTarget.MACOS_X64 -> "x64-osx"
+        KonanTarget.LINUX_ARM64 -> "arm64-linux"
+        KonanTarget.LINUX_X64 -> "x64-linux"
+        KonanTarget.MINGW_X64 -> "x64-mingw-static"
+        else -> error("Unsupported target: $this")
     }
 
     @TaskAction
@@ -110,29 +112,52 @@ abstract class VcpkgInstall @Inject constructor(
 
         execOps.exec {
             commandLine(commandLine)
-            if (toolchainDirectory.isPresent) setToolchainDir(toolchainDirectory.get())
+            configureToolchain()
         }
     }
 
-    private fun ExecSpec.setToolchainDir(toolchainDirectory: File) {
-        check(toolchainDirectory.exists()) {
-            """
-            Toolchain directory does not exist: $toolchainDirectory
-            Run `./gradlew downloadKotlinNativeDistribution` to download toolchain.
-            """.trimIndent()
-        }
-        environment("TOOLCHAIN_DIR", toolchainDirectory.absolutePath)
-        environment("TOOLCHAIN_TARGET", toolchainDirectory.name.substringBefore("-gcc"))
+    private fun ExecSpec.configureToolchain() {
+        val nativeDirectoryLocationFile = nativeDirectoryLocation.orNull ?: return
+        val nativeDirectoryLocation = nativeDirectoryLocationFile.asFile.readText().trim()
+        val konanProperties = File(nativeDirectoryLocation, "konan/konan.properties").loadProperties()
+        val configurables = loadConfigurables(
+            target.get(),
+            konanProperties,
+            DependencyDirectories.defaultDependenciesRoot.absolutePath,
+        )
+        val gccConfigurables = configurables as? GccConfigurables
+
+        val llvmHome = configurables.absoluteLlvmHome
+        val sysroot = configurables.absoluteTargetSysRoot
+        val triple = configurables.targetTriple.toString()
+        val linker = configurables.absoluteLinkerOrNull
+        val gccToolchain = gccConfigurables?.absoluteGccToolchain
+        val libGcc = gccConfigurables?.libGcc?.let { File(sysroot).resolve(it).canonicalPath }
+
+        logger.info(
+            "Using toolchain: " +
+                "llvmHome=$llvmHome, " +
+                "sysroot=$sysroot, " +
+                "triple=$triple, " +
+                "linker=$linker, " +
+                "gccToolchain=$gccToolchain, " +
+                "libGcc=$libGcc"
+        )
+        environment("TOOLCHAIN_LLVM_HOME", llvmHome)
+        environment("TOOLCHAIN_SYSROOT", sysroot)
+        environment("TOOLCHAIN_TRIPLE", triple)
+        linker?.let { environment("TOOLCHAIN_LINKER", it) }
+        gccToolchain?.let { environment("TOOLCHAIN_GCC_TOOLCHAIN", it) }
+        libGcc?.let { environment("TOOLCHAIN_LIBGCC", it) }
     }
 }
 
-// See: https://github.com/JetBrains/kotlin/blob/v2.2.21/kotlin-native/konan/konan.properties#L68-L71
-private fun getToolchainDirName(target: String): String? = when (target) {
-    "linuxX64" -> "x86_64-unknown-linux-gnu-gcc-8.3.0-glibc-2.19-kernel-4.9-2"
-    "linuxArm64" -> "aarch64-unknown-linux-gnu-gcc-8.3.0-glibc-2.25-kernel-4.9-2"
-    "mingwX64" -> "llvm-19-x86_64-windows-essentials-134"
-    else -> null
-}
+private val Configurables.absoluteLinkerOrNull: String?
+    get() = when (this) {
+        is GccConfigurables -> absoluteLinker
+        is MingwConfigurables -> absoluteLinker
+        else -> null
+    }
 
 private fun ExecOperations.which(command: String): String? {
     val whichCommandOutputStream = ByteArrayOutputStream()

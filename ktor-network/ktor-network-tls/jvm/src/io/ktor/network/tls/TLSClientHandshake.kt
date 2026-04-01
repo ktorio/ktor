@@ -11,16 +11,23 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import kotlinx.io.*
-import java.security.*
-import java.security.cert.*
+import kotlinx.io.Sink
+import kotlinx.io.Source
+import kotlinx.io.readByteArray
+import java.security.KeyFactory
+import java.security.KeyPairGenerator
+import java.security.SecureRandom
+import java.security.Signature
 import java.security.cert.Certificate
-import java.security.interfaces.*
-import java.security.spec.*
-import javax.crypto.*
-import javax.crypto.spec.*
-import javax.security.auth.x500.*
-import kotlin.coroutines.*
+import java.security.cert.X509Certificate
+import java.security.interfaces.ECPublicKey
+import java.security.spec.ECGenParameterSpec
+import java.security.spec.ECPoint
+import java.security.spec.ECPublicKeySpec
+import javax.crypto.KeyAgreement
+import javax.crypto.spec.SecretKeySpec
+import javax.security.auth.x500.X500Principal
+import kotlin.coroutines.CoroutineContext
 import kotlin.use
 
 internal class TLSClientHandshake(
@@ -248,13 +255,7 @@ internal class TLSClientHandshake(
 
                     val manager = config.trustManager
                     manager.checkServerTrusted(x509s.toTypedArray(), exchangeType.jvmName)
-
-                    serverCertificate = x509s.firstOrNull { certificate ->
-                        SupportedSignatureAlgorithms.any {
-                            val oid = it.oid?.identifier ?: return@any false
-                            oid.equals(certificate.sigAlgOID, ignoreCase = true)
-                        }
-                    } ?: throw TLSException("No suitable server certificate received: $certs")
+                    serverCertificate = x509s.first()
 
                     if (config.serverName != null) {
                         verifyHostnameInCertificate(config.serverName, serverCertificate)

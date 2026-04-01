@@ -1,3 +1,45 @@
+# 3.4.1
+> Published 3 March 2026
+
+### Improvements
+* [KTOR-9382](https://youtrack.jetbrains.com/issue/KTOR-9382) HttpProtocolVersion.parse: fast path for common versions
+* [KTOR-9381](https://youtrack.jetbrains.com/issue/KTOR-9381) GMTDate: reduce allocations
+* [KTOR-8971](https://youtrack.jetbrains.com/issue/KTOR-8971) Support "operationId" in Kdoc for OpenAPI spec. gen.
+* [KTOR-9333](https://youtrack.jetbrains.com/issue/KTOR-9333) WebSockets: Infinite spin and potential OOM vulnerabilities in the Inflater.inflateFully method
+* [KTOR-5616](https://youtrack.jetbrains.com/issue/KTOR-5616) Ktor always adds by default an Accept-Charset header
+* [KTOR-9291](https://youtrack.jetbrains.com/issue/KTOR-9291) OpenAPI: handle atypical route functions
+* [KTOR-9293](https://youtrack.jetbrains.com/issue/KTOR-9293) OpenAPI describe needs defaults
+* [KTOR-9304](https://youtrack.jetbrains.com/issue/KTOR-9304) OpenAPI: Order of path parameters is not preserved in the spec
+* [KTOR-9353](https://youtrack.jetbrains.com/issue/KTOR-9353) Routing: TailcardSelector missing toString(), which clutters the logs
+
+### Bugfixes
+* [KTOR-9281](https://youtrack.jetbrains.com/issue/KTOR-9281) OpenApi code inference misses lambda argument bodies
+* [KTOR-9273](https://youtrack.jetbrains.com/issue/KTOR-9273) OpenAPI static content path appears in resulting model
+* [KTOR-9004](https://youtrack.jetbrains.com/issue/KTOR-9004) OpenAPI: No respective formats detected for serializable types like UUID or Instant
+* [KTOR-9305](https://youtrack.jetbrains.com/issue/KTOR-9305) OpenAPI: "No mapping for symbol: VAR FOR_LOOP_VARIABLE" error with codeInferenceEnabled=true
+* [KTOR-9279](https://youtrack.jetbrains.com/issue/KTOR-9279) OpenAPI: UnsupportedOperationException for a function with a reified type parameter codeInferenceEnabled = true
+* [KTOR-9289](https://youtrack.jetbrains.com/issue/KTOR-9289) OpenAPI: Resource routes  are missing inferred and comment-based documentation
+* [KTOR-9330](https://youtrack.jetbrains.com/issue/KTOR-9330) OpenAPI: Cannot override kotlinx.serialization module
+* [KTOR-9320](https://youtrack.jetbrains.com/issue/KTOR-9320) OpenAPI: jsonSchema<T>() does not unwrap Kotlin value classes (inline classes)
+* [KTOR-9352](https://youtrack.jetbrains.com/issue/KTOR-9352) Authentication: Creating JWT verifier fails for JWK with `kty=EC` and `alg=null`
+* [KTOR-9344](https://youtrack.jetbrains.com/issue/KTOR-9344) Flow invariant error happens after update to Ktor 3.4.0 [![](https://img.shields.io/badge/[Impactful%20change]-orange?style=flat-square)](#)
+* [KTOR-9362](https://youtrack.jetbrains.com/issue/KTOR-9362) testApplication: Race condition in timeout coroutine when response is streaming
+* [KTOR-9274](https://youtrack.jetbrains.com/issue/KTOR-9274) Curl: Undefined symbol errors when linking on Linux since 3.4.0
+* [KTOR-8782](https://youtrack.jetbrains.com/issue/KTOR-8782) NodeJS CIO: "Module 'os' could not be imported" error on resolving WORKING_DIRECTORY_PATH with es2015 target
+* [KTOR-9348](https://youtrack.jetbrains.com/issue/KTOR-9348) String.decodeBase64String fails to decode when the input has no padding since 3.4.0
+* [KTOR-9318](https://youtrack.jetbrains.com/issue/KTOR-9318) CIO engine rejects valid certificates with unsupported signature algorithms
+* [KTOR-9331](https://youtrack.jetbrains.com/issue/KTOR-9331) Curl: Segfaults when working with WebSockets
+* [KTOR-9334](https://youtrack.jetbrains.com/issue/KTOR-9334) Coroutines in route handlers are dispatched with Dispatchers.Unconfined since 3.2.0
+* [KTOR-9339](https://youtrack.jetbrains.com/issue/KTOR-9339) StreamResetException is not propagated to the caller of StreamRequestBody.writeTo since 3.4.0 [![](https://img.shields.io/badge/[Regression%20fix]-green?style=flat-square)](#)
+* [KTOR-9329](https://youtrack.jetbrains.com/issue/KTOR-9329) HTMX: "on" attributes extension not working
+* [KTOR-9316](https://youtrack.jetbrains.com/issue/KTOR-9316) WasmJS bad get and set implementations for Uint8Array and ArrayLike
+* [KTOR-9272](https://youtrack.jetbrains.com/issue/KTOR-9272) JSON schema inference does not recognize unsigned types
+* [KTOR-9211](https://youtrack.jetbrains.com/issue/KTOR-9211) SendCountExceedException when request is sent twice with maxRetries = 0 since 3.3.2
+* [KTOR-9285](https://youtrack.jetbrains.com/issue/KTOR-9285) RateLimit: Milliseconds in the Retry-After header are truncated
+* [KTOR-7512](https://youtrack.jetbrains.com/issue/KTOR-7512) JWT: Docs for `validate` method claim that it's optional, but it isn't
+* [KTOR-9269](https://youtrack.jetbrains.com/issue/KTOR-9269) Incorrect dependency declaration in swagger / openapi
+* [KTOR-9372](https://youtrack.jetbrains.com/issue/KTOR-9372) Frame.Text.readText() causes infinite loop and 100% CPU on Kotlin/Native when WebSocket frame data is malformed or connection drops unexpectedly
+
 # 3.4.0
 > Published 22 January 2026
 
@@ -33,7 +75,7 @@
 * [KTOR-9199](https://youtrack.jetbrains.com/issue/KTOR-9199) Make HttpHeaders strings const
 * [KTOR-9208](https://youtrack.jetbrains.com/issue/KTOR-9208) Expose plusIsSpace in parseUrlEncodedParameters
 * [KTOR-2404](https://youtrack.jetbrains.com/issue/KTOR-2404) Ktor Oauth2 feature sends 401 response when the client secret is invalid
-* [KTOR-9097](https://youtrack.jetbrains.com/issue/KTOR-9097) Java: Use HTTP/2 by default
+* [KTOR-9097](https://youtrack.jetbrains.com/issue/KTOR-9097) Java: Use HTTP/2 by default [![](https://img.shields.io/badge/[Impactful%20change]-orange?style=flat-square)](#)
 * [KTOR-8740](https://youtrack.jetbrains.com/issue/KTOR-8740) HTMX: Missing DSL for some attributes
 * [KTOR-9171](https://youtrack.jetbrains.com/issue/KTOR-9171) Redesign  ByteReadChannel.readUTF8Line API
 * [KTOR-4219](https://youtrack.jetbrains.com/issue/KTOR-4219) Make readUTF8LineTo return number of read symbols instead of boolean

@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.plugins
 
@@ -10,12 +10,11 @@ import io.ktor.client.plugins.api.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import kotlin.math.*
+import kotlin.math.roundToInt
 
 private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.HttpPlainText")
 
@@ -68,7 +67,7 @@ public class HttpPlainTextConfig {
  * [HttpClient] plugin that encodes [String] request bodies to [TextContent]
  * and processes the response body as [String].
  *
- * To configure charsets set following properties in [HttpPlainText.Config].
+ * To configure charsets, use properties in [HttpPlainTextConfig].
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpPlainText)
  */
@@ -81,24 +80,28 @@ public val HttpPlainText: ClientPlugin<HttpPlainTextConfig> =
             .filter { !pluginConfig.charsetQuality.containsKey(it) }
             .sortedBy { it.name }
 
-        val acceptCharsetHeader = buildString {
-            withoutQuality.forEach {
-                if (isNotEmpty()) append(",")
-                append(it.name)
+        // RFC-9110 assumes UTF-8 as the default encoding. The Accept-Charset header is deprecated,
+        // so we shouldn't add it if the user didn't specify any charset configuration
+        val hasRegisteredCharsets = pluginConfig.charsets.any { it != Charsets.UTF_8 } ||
+            pluginConfig.charsetQuality.keys.any { it != Charsets.UTF_8 }
+        val acceptCharsetHeader = if (hasRegisteredCharsets) {
+            buildString {
+                withoutQuality.forEach {
+                    if (isNotEmpty()) append(",")
+                    append(it.name)
+                }
+
+                withQuality.forEach { (charset, quality) ->
+                    if (isNotEmpty()) append(",")
+
+                    check(quality in 0.0..1.0)
+
+                    val truncatedQuality = (100 * quality).roundToInt() / 100.0
+                    append("${charset.name};q=$truncatedQuality")
+                }
             }
-
-            withQuality.forEach { (charset, quality) ->
-                if (isNotEmpty()) append(",")
-
-                check(quality in 0.0..1.0)
-
-                val truncatedQuality = (100 * quality).roundToInt() / 100.0
-                append("${charset.name};q=$truncatedQuality")
-            }
-
-            if (isEmpty()) {
-                append(responseCharsetFallback.name)
-            }
+        } else {
+            null
         }
 
         val requestCharset = pluginConfig.sendCharset
@@ -122,14 +125,14 @@ public val HttpPlainText: ClientPlugin<HttpPlainTextConfig> =
             return body.readText(charset = actualCharset)
         }
 
-        fun addCharsetHeaders(context: HttpRequestBuilder) {
-            if (context.headers[HttpHeaders.AcceptCharset] != null) return
-            LOGGER.trace("Adding Accept-Charset=$acceptCharsetHeader to ${context.url}")
-            context.headers[HttpHeaders.AcceptCharset] = acceptCharsetHeader
+        fun HttpRequestBuilder.addAcceptCharsetHeader(value: String?) {
+            if (value == null || headers[HttpHeaders.AcceptCharset] != null) return
+            LOGGER.trace("Adding Accept-Charset=$value to $url")
+            headers[HttpHeaders.AcceptCharset] = value
         }
 
         on(RenderRequestHook) { request, content ->
-            addCharsetHeaders(request)
+            request.addAcceptCharsetHeader(acceptCharsetHeader)
 
             if (content !is String) return@on null
 

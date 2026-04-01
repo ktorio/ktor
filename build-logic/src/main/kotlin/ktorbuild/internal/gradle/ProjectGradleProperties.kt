@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package ktorbuild.internal.gradle
@@ -28,7 +28,7 @@ internal abstract class ProjectGradleProperties : ValueSource<Map<String, String
         parameters.projectDirectory.get()
             .walkUpToRoot(parameters.rootDirectory.get())
             .map { it.resolve(Project.GRADLE_PROPERTIES) }
-            .mapNotNull(File::loadProperties)
+            .mapNotNull(File::tryLoadPropertiesAsMap)
             // Properties closer to the current project take precedence
             .forEach(properties::putAllAbsent)
 
@@ -65,11 +65,15 @@ internal fun ProviderFactory.projectGradleProperties(projectLayout: ProjectLayou
 }
 
 //region Utils
-internal fun File.loadProperties(): Map<String, String>? {
+internal fun File.tryLoadPropertiesAsMap(): Map<String, String>? {
     if (!exists()) return null
+    @Suppress("UNCHECKED_CAST")
+    return loadProperties().toMap() as Map<String, String>
+}
+
+internal fun File.loadProperties(): Properties {
     return bufferedReader().use {
-        @Suppress("UNCHECKED_CAST")
-        Properties().apply { load(it) }.toMap() as Map<String, String>
+        Properties().apply { load(it) }
     }
 }
 

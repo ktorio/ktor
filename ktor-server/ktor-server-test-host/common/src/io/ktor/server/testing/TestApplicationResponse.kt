@@ -120,14 +120,18 @@ public class TestApplicationResponse(
             val socketTimeoutMillis = timeoutAttributes?.socketTimeoutMillis
             if (socketTimeoutMillis != null) {
                 val killJob = launch {
-                    var cur = counted.totalBytesWritten
-                    while (job.isActive) {
-                        delay(socketTimeoutMillis)
-                        val next = counted.totalBytesWritten
-                        if (cur == next) {
-                            counted.cancel(SocketTimeoutException("Socket timeout elapsed"))
+                    try {
+                        var cur = counted.totalBytesWritten
+                        while (job.isActive) {
+                            delay(socketTimeoutMillis)
+                            val next = counted.totalBytesWritten
+                            if (cur == next) {
+                                counted.cancel(SocketTimeoutException("Socket timeout elapsed"))
+                            }
+                            cur = next
                         }
-                        cur = next
+                    } catch (_: ClosedWriteChannelException) {
+                        // Do nothing since the channel is already closed
                     }
                 }
                 job.invokeOnCompletion {

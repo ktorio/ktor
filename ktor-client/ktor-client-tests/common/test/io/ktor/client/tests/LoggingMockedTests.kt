@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests
@@ -34,7 +34,6 @@ class LoggingMockedTests {
             "METHOD: GET",
             "COMMON HEADERS",
             "-> Accept: */*",
-            "-> Accept-Charset: UTF-8",
             "CONTENT HEADERS",
             "-> Content-Length: 0",
             "BODY Content-Type: null",
@@ -99,7 +98,6 @@ class LoggingMockedTests {
             "METHOD: GET",
             "COMMON HEADERS",
             "-> Accept: */*",
-            "-> Accept-Charset: UTF-8",
             "CONTENT HEADERS",
             "-> Content-Length: 0",
             "BODY Content-Type: null",
@@ -155,7 +153,6 @@ class LoggingMockedTests {
             "METHOD: POST",
             "COMMON HEADERS",
             "-> Accept: */*",
-            "-> Accept-Charset: UTF-8",
             "CONTENT HEADERS",
             "!!!-> Content-Type: multipart/form-data; " +
                 "boundary=27e7dfaa-451f2057-3dabbd0c2b3cae572a4935af6a57b2d4bb335c34480373360863",
@@ -224,7 +221,6 @@ class LoggingMockedTests {
             "METHOD: GET",
             "COMMON HEADERS",
             "-> Accept: */*",
-            "-> Accept-Charset: UTF-8",
             "CONTENT HEADERS",
             "-> Content-Length: 0",
             "BODY Content-Type: null",
@@ -269,7 +265,6 @@ class LoggingMockedTests {
             line("METHOD: GET")
             line("COMMON HEADERS")
             line("-> Accept: */*")
-            line("-> Accept-Charset: UTF-8")
             line("-> Authorization: <secret>")
             line("-> Sanitized: ***")
             line("CONTENT HEADERS")

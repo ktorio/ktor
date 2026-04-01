@@ -41,6 +41,7 @@ import java.net.URL
 import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
@@ -930,26 +931,47 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     open fun validateCallCoroutineContext() = runTest {
+        val threadPool = Executors.newSingleThreadExecutor { r -> Thread(r, "Custom thread") }
+        val dispatcher = threadPool.asCoroutineDispatcher()
         createAndStartServer {
             get {
                 val applicationJob = application.coroutineContext.job
+                val handlerJob = currentCoroutineContext().job
                 val callJob = call.coroutineContext.job
-                val hierarchy = generateSequence(callJob) { it.parent }.toList()
+                val jobsOutOfHierarchy: String? = listOfNotNull(
+                    "call job".takeIf { applicationJob !in generateSequence(callJob) { it.parent }.toList() },
+                    "handler job".takeIf { applicationJob !in generateSequence(handlerJob) { it.parent }.toList() },
+                ).firstOrNull()
+                val initialThread = Thread.currentThread()
+                withContext(dispatcher) { delay(100) }
+                val threadDiff = Thread.currentThread().let { currentThread ->
+                    "${initialThread.name} --> ${currentThread.name}"
+                        .takeIf { currentThread !== initialThread }
+                }
+
                 call.respondText(
                     """
-                    Hierarchy preserved: ${callJob != applicationJob && applicationJob in hierarchy}
+                    Hierarchy preserved: ${jobsOutOfHierarchy ?: "true"}
+                    Thread unchanged: ${threadDiff ?: "true"}
                     """.trimIndent()
                 )
             }
         }
 
-        withUrl("") {
-            assertEquals(
-                """
-                Hierarchy preserved: true
-                """.trimIndent(),
-                body()
-            )
+        try {
+            withUrl("") {
+                val bodyText = body<String>()
+                assertEquals(
+                    """
+                    Hierarchy preserved: true
+                    Thread unchanged: true
+                    """.trimIndent(),
+                    bodyText
+                )
+            }
+        } finally {
+            dispatcher.close()
+            threadPool.shutdownNow()
         }
     }
 

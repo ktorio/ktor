@@ -37,7 +37,7 @@ class Base64Test {
     }
 
     @Test
-    fun paddingTest() {
+    fun encodeDecodeWithPaddingTest() {
         val cases = mapOf(
             "This" to "VGhpcw==",
             "Thi" to "VGhp",
@@ -48,6 +48,21 @@ class Base64Test {
 
         cases.forEach { (text, encodedText) ->
             assertEquals(encodedText, text.encodeBase64())
+            assertEquals(text, encodedText.decodeBase64String())
+        }
+    }
+
+    @Test
+    fun decodeWithoutPaddingTest() {
+        val cases = mapOf(
+            "This" to "VGhpcw",
+            "Thi" to "VGhp",
+            "Th" to "VGg",
+            "T" to "VA",
+            "" to ""
+        )
+
+        cases.forEach { (text, encodedText) ->
             assertEquals(text, encodedText.decodeBase64String())
         }
     }
