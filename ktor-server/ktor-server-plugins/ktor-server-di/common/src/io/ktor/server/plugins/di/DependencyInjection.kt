@@ -159,7 +159,12 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
                 }
             }
             monitor.subscribe(ApplicationStopping) {
-                for (key in dependencyMap.keys.reversed()) {
+                for ((key, initializer) in dependencyMap.entries.reversed()) {
+                    if (initializer is DependencyInitializer.Ambiguous ||
+                        initializer is DependencyInitializer.Missing
+                    ) {
+                        continue
+                    }
                     try {
                         val instance = registry.getDeferred<Any?>(key).tryGetCompleted() ?: continue
                         registry.shutdownHooks[key]?.invoke(instance)

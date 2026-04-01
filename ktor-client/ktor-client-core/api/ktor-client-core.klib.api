@@ -1175,6 +1175,7 @@ final class io.ktor.client.statement/HttpStatement { // io.ktor.client.statement
 
     final fun toString(): kotlin/String // io.ktor.client.statement/HttpStatement.toString|toString(){}[0]
     final suspend fun (io.ktor.client.statement/HttpResponse).cleanup() // io.ktor.client.statement/HttpStatement.cleanup|cleanup@io.ktor.client.statement.HttpResponse(){}[0]
+    final suspend fun (io.ktor.client.statement/HttpResponse).cleanup(kotlin/Throwable?) // io.ktor.client.statement/HttpStatement.cleanup|cleanup@io.ktor.client.statement.HttpResponse(kotlin.Throwable?){}[0]
     final suspend fun <#A1: kotlin/Any?> execute(kotlin.coroutines/SuspendFunction1<io.ktor.client.statement/HttpResponse, #A1>): #A1 // io.ktor.client.statement/HttpStatement.execute|execute(kotlin.coroutines.SuspendFunction1<io.ktor.client.statement.HttpResponse,0:0>){0§<kotlin.Any?>}[0]
     final suspend fun execute(): io.ktor.client.statement/HttpResponse // io.ktor.client.statement/HttpStatement.execute|execute(){}[0]
     final suspend fun fetchResponse(): io.ktor.client.statement/HttpResponse // io.ktor.client.statement/HttpStatement.fetchResponse|fetchResponse(){}[0]
@@ -1970,6 +1971,12 @@ final object io.ktor.client.engine.js/Js : io.ktor.client.engine/HttpClientEngin
     final fun hashCode(): kotlin/Int // io.ktor.client.engine.js/Js.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // io.ktor.client.engine.js/Js.toString|toString(){}[0]
 }
+
+// Targets: [js, wasmJs]
+final fun (io.ktor.client.request.forms/FormBuilder).io.ktor.client.request.forms/appendBlob(kotlin/String, org.w3c.files/Blob, io.ktor.http/Headers = ...) // io.ktor.client.request.forms/appendBlob|appendBlob@io.ktor.client.request.forms.FormBuilder(kotlin.String;org.w3c.files.Blob;io.ktor.http.Headers){}[0]
+
+// Targets: [js, wasmJs]
+final fun (io.ktor.client.request.forms/FormBuilder).io.ktor.client.request.forms/appendBlob(kotlin/String, org.w3c.files/Blob, kotlin/String, io.ktor.http/ContentType? = ...) // io.ktor.client.request.forms/appendBlob|appendBlob@io.ktor.client.request.forms.FormBuilder(kotlin.String;org.w3c.files.Blob;kotlin.String;io.ktor.http.ContentType?){}[0]
 
 // Targets: [js, wasmJs]
 final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client/fetchOptions(kotlin/Function1<io.ktor.client.fetch/RequestInit, kotlin/Unit>) // io.ktor.client/fetchOptions|fetchOptions@io.ktor.client.request.HttpRequestBuilder(kotlin.Function1<io.ktor.client.fetch.RequestInit,kotlin.Unit>){}[0]

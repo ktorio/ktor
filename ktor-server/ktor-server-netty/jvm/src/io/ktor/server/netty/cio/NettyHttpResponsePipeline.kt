@@ -43,13 +43,13 @@ internal class NettyHttpResponsePipeline(
     /** Flush if all is true:
      * - there is some unflushed data
      * - nothing to read from the channel
-     * - there are no active requests
+     * - there are no active non-streaming requests
      */
     internal fun flushIfNeeded() {
         if (
             isDataNotFlushed.value &&
             httpHandlerState.isChannelReadCompleted.value &&
-            httpHandlerState.activeRequests.value == 0L
+            httpHandlerState.activeRequests.value == httpHandlerState.streamingResponses.value
         ) {
             context.flush()
             isDataNotFlushed.compareAndSet(expect = true, update = false)
@@ -140,6 +140,9 @@ internal class NettyHttpResponsePipeline(
             null
         }
 
+        if (call.isStreamingResponse) {
+            httpHandlerState.streamingResponses.decrementAndGet()
+        }
         httpHandlerState.onLastResponseMessage(context)
         call.finishedEvent.setSuccess()
 
@@ -176,6 +179,17 @@ internal class NettyHttpResponsePipeline(
     private fun handleRequestMessage(call: NettyApplicationCall) {
         val responseMessage = call.response.responseMessage
         val response = call.response
+
+        // Track streaming responses count
+        val contentType = when (responseMessage) {
+            is HttpResponse -> responseMessage.headers().get(HttpHeaders.ContentType)
+            is Http2HeadersFrame -> responseMessage.headers().get("content-type")?.toString()
+            else -> null
+        }
+        if (contentType?.contains("text/event-stream", ignoreCase = true) == true) {
+            call.isStreamingResponse = true
+            httpHandlerState.streamingResponses.incrementAndGet()
+        }
 
         val requestMessageFuture = if (response.isUpgradeResponse()) {
             respondWithUpgrade(call, responseMessage)

@@ -173,6 +173,46 @@ class JsonSerializationTest : AbstractSerializationTest<Json>() {
             ) as Sequence<*>
         )
     }
+
+    @Test
+    fun `deserialize list with non-serializable type shows helpful error`() = testSuspend {
+        if (!PlatformUtils.IS_JVM) return@testSuspend
+
+        val testSerializer = KotlinxSerializationConverter(defaultSerializationFormat)
+        val json = """[{"value":1}]"""
+        val exception = assertFailsWith<SerializationException> {
+            testSerializer.deserialize(
+                Charsets.UTF_8,
+                typeInfo<List<NonSerializableDTO>>(),
+                ByteReadChannel(json.toByteArray())
+            )
+        }
+        assertContains(
+            exception.message.orEmpty(),
+            "'NonSerializableDTO'",
+            message = "Error message should mention the non-serializable type parameter"
+        )
+    }
+
+    @Test
+    fun `deserialize generic box with non-serializable type shows helpful error`() = testSuspend {
+        if (!PlatformUtils.IS_JVM) return@testSuspend
+
+        val testSerializer = KotlinxSerializationConverter(defaultSerializationFormat)
+        val json = """{"value":{"value":1}}"""
+        val exception = assertFailsWith<SerializationException> {
+            testSerializer.deserialize(
+                Charsets.UTF_8,
+                typeInfo<SerializableBox<NonSerializableDTO>>(),
+                ByteReadChannel(json.toByteArray())
+            )
+        }
+        assertContains(
+            exception.message.orEmpty(),
+            "'NonSerializableDTO'",
+            message = "Error message should mention the non-serializable type parameter"
+        )
+    }
 }
 
 @Serializable
@@ -180,6 +220,12 @@ data class DogDTO(val age: Int, val name: String)
 
 @Serializable
 data class ErrorDTO(val message: String = "Some default error")
+
+// Not marked as @Serializable intentionally — used to verify helpful error messages
+private data class NonSerializableDTO(val value: Int)
+
+@Serializable
+private data class SerializableBox<T>(val value: T)
 
 sealed class Either<out L, out R> {
 
