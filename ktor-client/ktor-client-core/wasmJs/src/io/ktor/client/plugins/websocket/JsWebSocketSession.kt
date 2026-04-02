@@ -16,6 +16,7 @@ import kotlinx.coroutines.channels.consumeEach
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
 import org.w3c.dom.*
+import org.w3c.dom.events.Event
 import kotlin.coroutines.CoroutineContext
 
 @Suppress("UNUSED_PARAMETER")
@@ -64,13 +65,11 @@ internal class JsWebSocketSession(
         if (websocket.readyState == WebSocket.OPEN) {
             return block()
         }
-        websocket.addEventListener("open", callback = { _: JsAny -> block() })
+        websocket.addEventListener<Event>("open", once = true) { block() }
     }
 
     init {
-        val onMessage: (JsAny) -> Unit = { e ->
-            val event = e.unsafeCast<MessageEvent>()
-
+        val onMessage = websocket.addEventListener<MessageEvent>("message") { event ->
             val data = event.data
             if (data == null) {
                 val error = IllegalStateException("Empty message - no data for: ${event.type}")
@@ -95,22 +94,19 @@ internal class JsWebSocketSession(
             _incoming.trySend(frame)
         }
 
-        val onError: (JsAny) -> Unit = { e ->
-            val cause = WebSocketException("$e")
+        val onError = websocket.addEventListener<ErrorEvent>("error") { event ->
+            val cause = WebSocketException(event.asString())
             _closeReason.completeExceptionally(cause)
             _incoming.close(cause)
             _outgoing.cancel()
         }
 
-        lateinit var onClose: (JsAny) -> Unit
-        onClose = { e ->
-            val closeEvent = e.unsafeCast<CloseEvent>()
-            val reason = CloseReason(closeEvent.code, closeEvent.reason)
+        websocket.addEventListener<CloseEvent>("close", once = true) { event ->
+            val reason = CloseReason(event.code, event.reason)
             _closeReason.complete(reason)
             _incoming.trySend(Frame.Close(reason))
             _incoming.close()
             _outgoing.cancel()
-            websocket.removeEventListener("close", callback = onClose)
         }
 
         coroutineContext[Job]?.invokeOnCompletion { cause ->
@@ -123,14 +119,11 @@ internal class JsWebSocketSession(
                     websocket.close(CloseReason.Codes.NORMAL.code, "Client failed")
                 }
             }
-            websocket.removeEventListener("message", callback = onMessage)
-            websocket.removeEventListener("error", callback = onError)
+            onMessage.dispose()
+            onError.dispose()
         }
 
         websocket.binaryType = BinaryType.ARRAYBUFFER
-        websocket.addEventListener("message", callback = onMessage)
-        websocket.addEventListener("error", callback = onError)
-        websocket.addEventListener("close", callback = onClose)
 
         launch {
             _outgoing.consumeEach {

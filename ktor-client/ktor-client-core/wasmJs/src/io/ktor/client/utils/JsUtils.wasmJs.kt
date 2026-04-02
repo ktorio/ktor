@@ -4,8 +4,10 @@
 
 package io.ktor.client.utils
 
-import org.khronos.webgl.*
-import kotlin.js.*
+import org.khronos.webgl.Uint8Array
+import org.khronos.webgl.get
+import org.w3c.dom.events.Event
+import kotlin.js.Promise
 
 internal fun <T : JsAny> makeJsObject(): T = js("{ return {}; }")
 
@@ -48,3 +50,9 @@ internal fun Uint8Array.asByteArray(): ByteArray =
 private fun toJsArrayImpl(vararg x: Byte): Uint8Array = js("new Uint8Array(x)")
 
 internal fun ByteArray.asJsArray(): Uint8Array = toJsArrayImpl(*this)
+
+internal actual fun Event.asString(): String = eventAsString(this)
+
+@Suppress("unused") // used in JS code
+private fun eventAsString(event: Event): String =
+    js("JSON.stringify(event, ['message', 'target', 'type', 'isTrusted'])")
