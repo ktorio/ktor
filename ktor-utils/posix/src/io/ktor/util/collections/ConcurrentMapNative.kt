@@ -43,13 +43,15 @@ public actual class ConcurrentMap<Key, Value> public actual constructor(
     actual override fun isEmpty(): Boolean = delegate.isEmpty()
 
     actual override val entries: MutableSet<MutableMap.MutableEntry<Key, Value>>
-        get() = synchronized(lock) { delegate.entries }
+        get() = synchronized(lock) {
+            LinkedHashSet(delegate.entries.map { DetachedMutableEntry(it.key, it.value) })
+        }
 
     actual override val keys: MutableSet<Key>
-        get() = synchronized(lock) { delegate.keys }
+        get() = synchronized(lock) { LinkedHashSet(delegate.keys) }
 
     actual override val values: MutableCollection<Value>
-        get() = synchronized(lock) { delegate.values }
+        get() = synchronized(lock) { ArrayList(delegate.values) }
 
     actual override fun clear() {
         synchronized(lock) {
@@ -81,4 +83,20 @@ public actual class ConcurrentMap<Key, Value> public actual constructor(
     }
 
     override fun toString(): String = "ConcurrentMapNative by $delegate"
+}
+
+private class DetachedMutableEntry<K, V>(
+    override val key: K,
+    value: V
+) : MutableMap.MutableEntry<K, V> {
+    private var currentValue: V = value
+
+    override val value: V
+        get() = currentValue
+
+    override fun setValue(newValue: V): V {
+        val oldValue = currentValue
+        currentValue = newValue
+        return oldValue
+    }
 }
