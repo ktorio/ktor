@@ -70,9 +70,9 @@ properties:
     discriminator:
       propertyName: type
       mapping:
-        io.ktor.openapi.reflect.Address: "#/components/schemas/Address"
-        io.ktor.openapi.reflect.Country: "#/components/schemas/Country"
-        io.ktor.openapi.reflect.Municipality: "#/components/schemas/Municipality"
+        io.ktor.openapi.reflect.Address: "#/components/schemas/io.ktor.openapi.reflect.Address"
+        io.ktor.openapi.reflect.Country: "#/components/schemas/io.ktor.openapi.reflect.Country"
+        io.ktor.openapi.reflect.Municipality: "#/components/schemas/io.ktor.openapi.reflect.Municipality"
   nonColorValue:
     type: string
     not:
