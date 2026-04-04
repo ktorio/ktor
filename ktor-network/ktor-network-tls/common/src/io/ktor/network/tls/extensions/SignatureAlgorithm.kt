@@ -146,8 +146,9 @@ internal fun Source.readHashAndSign(): HashAndSign? {
  *
  * @param hash the numeric code of the hash algorithm
  * @param sign the numeric code of the signature algorithm
- * @return a [HashAndSign] instance, or null if the hash algorithm is unknown
+ * @return a [HashAndSign] instance, or null if the signature algorithm is unknown
  * @throws IllegalStateException if [sign] is the anonymous signature code
+ * @throws TLSException if [hash] is an unknown hash algorithm code
  */
 public fun HashAndSign.Companion.byCode(hash: Byte, sign: Byte): HashAndSign? {
     check(sign != SignatureAlgorithm.ANON.code) { "Anonymous signature not allowed." }
