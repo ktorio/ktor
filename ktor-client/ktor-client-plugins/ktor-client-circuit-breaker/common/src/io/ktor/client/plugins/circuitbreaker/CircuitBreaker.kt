@@ -172,7 +172,12 @@ internal class CircuitBreakerInstance(
 
                 CircuitState.HALF_OPEN -> {
                     if (halfOpenAttempts >= config.halfOpenRequests) {
-                        throw CircuitBreakerOpenException(name, config.resetTimeout)
+                        throw CircuitBreakerHalfOpenSaturatedException(
+                            name,
+                            config.resetTimeout,
+                            halfOpenAttempts,
+                            config.halfOpenRequests
+                        )
                     }
                     halfOpenAttempts++
                 }
@@ -260,6 +265,26 @@ public class CircuitBreakerOpenException(
 ) : IllegalStateException(
     "Circuit breaker '$circuitBreakerName' is OPEN. " +
         "Requests are rejected until the reset timeout ($resetTimeout) elapses."
+)
+
+/**
+ * Thrown when a request is rejected because the associated circuit breaker is HALF_OPEN
+ * and has already consumed all allowed trial requests.
+ *
+ * @property circuitBreakerName the name of the circuit breaker that rejected the request
+ * @property resetTimeout the configured duration used for the half-open probe window
+ * @property halfOpenAttempts the current number of half-open attempts already in flight or consumed
+ * @property halfOpenRequests the configured maximum number of half-open trial requests
+ */
+public class CircuitBreakerHalfOpenSaturatedException(
+    public val circuitBreakerName: String,
+    public val resetTimeout: Duration,
+    public val halfOpenAttempts: Int,
+    public val halfOpenRequests: Int
+) : IllegalStateException(
+    "Circuit breaker '$circuitBreakerName' is HALF_OPEN and saturated. " +
+        "Requests are rejected until an in-flight probe finishes or the reset timeout ($resetTimeout) elapses. " +
+        "Current half-open attempts: $halfOpenAttempts/$halfOpenRequests."
 )
 
 private val CircuitBreakerNameKey: AttributeKey<String> = AttributeKey("CircuitBreakerName")
