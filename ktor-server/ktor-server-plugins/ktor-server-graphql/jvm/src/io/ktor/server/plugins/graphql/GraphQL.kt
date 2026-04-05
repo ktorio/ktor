@@ -61,11 +61,23 @@ public fun Route.graphQL(block: GraphQLConfig.() -> Unit): Route {
 
     val route = route(config.endpoint) {
         post {
-            val body = call.receiveText()
-            val request = json.decodeFromString<GraphQLRequest>(body)
+            val request = try {
+                json.decodeFromString<GraphQLRequest>(call.receiveText())
+            } catch (cause: SerializationException) {
+                val errorResponse = GraphQLResponse(
+                    errors = listOf(GraphQLError(message = "Invalid GraphQL request body"))
+                )
+                call.respondText(
+                    text = json.encodeToString(errorResponse),
+                    contentType = ContentType.Application.Json,
+                    status = HttpStatusCode.BadRequest,
+                )
+                return@post
+            }
             val response = executeGraphQL(graphql, request, call, contextFactory)
             val responseJson = json.encodeToString(response)
             call.respondText(responseJson, ContentType.Application.Json)
+        }
         }
     }
 
