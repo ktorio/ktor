@@ -177,8 +177,7 @@ internal fun jsonElementToJavaValue(element: JsonElement): Any? = when (element)
         element.isString -> element.content
         element.content.equals("true", ignoreCase = true) -> true
         element.content.equals("false", ignoreCase = true) -> false
-        element.content.contains('.') -> element.content.toDoubleOrNull() ?: element.content
-        else -> element.content.toLongOrNull() ?: element.content
+        else -> element.content.toLongOrNull() ?: element.content.toDoubleOrNull() ?: element.content
     }
     is JsonObject -> element.mapValues { (_, v) -> jsonElementToJavaValue(v) }
     is JsonArray -> element.map { jsonElementToJavaValue(it) }
