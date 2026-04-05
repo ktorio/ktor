@@ -327,12 +327,12 @@ public val CircuitBreaker: ClientPlugin<CircuitBreakerConfig> = createClientPlug
     }
 
     suspend fun getInstance(name: String): CircuitBreakerInstance {
-        instances[name]?.let { return it }
         return instancesMutex.withLock {
             instances.getOrPut(name) {
                 CircuitBreakerInstance(name, config.globalConfig, timeSource)
             }
         }
+    }
     }
 
     fun resolveCircuitName(request: HttpRequestBuilder): String? {
