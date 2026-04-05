@@ -113,13 +113,13 @@ internal suspend fun executeGraphQL(
     val executionResult = try {
         graphql.executeAsync(inputBuilder.build()).await()
     } catch (
-        @Suppress("TooGenericExceptionCaught")
+        `@Suppress`("TooGenericExceptionCaught")
         e: Exception
     ) {
         LOGGER.error("GraphQL execution failed", e)
         return GraphQLResponse(
             errors = listOf(
-                GraphQLError(message = e.message ?: "Internal server error")
+                GraphQLError(message = "Internal server error")
             )
         )
     }
