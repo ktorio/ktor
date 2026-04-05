@@ -333,7 +333,6 @@ public val CircuitBreaker: ClientPlugin<CircuitBreakerConfig> = createClientPlug
             }
         }
     }
-    }
 
     fun resolveCircuitName(request: HttpRequestBuilder): String? {
         request.attributes.getOrNull(CircuitBreakerNameKey)?.let { return it }
