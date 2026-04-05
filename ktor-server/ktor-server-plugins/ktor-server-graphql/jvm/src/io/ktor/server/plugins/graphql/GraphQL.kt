@@ -187,7 +187,9 @@ internal fun jsonElementToJavaValue(element: JsonElement): Any? = when (element)
 internal fun jsonElementMapToJavaMap(map: Map<String, JsonElement>): Map<String, Any?> =
     map.mapValues { (_, v) -> jsonElementToJavaValue(v) }
 
-internal fun buildGraphiQLPage(graphqlEndpoint: String): String = """
+internal fun buildGraphiQLPage(graphqlEndpoint: String): String {
+    val encodedEndpoint = Json.encodeToString(graphqlEndpoint)
+    return """
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -202,7 +204,7 @@ internal fun buildGraphiQLPage(graphqlEndpoint: String): String = """
     <script crossorigin src="https://unpkg.com/react-dom/umd/react-dom.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/graphiql/graphiql.min.js"></script>
     <script>
-        const fetcher = GraphiQL.createFetcher({ url: '$graphqlEndpoint' });
+        const fetcher = GraphiQL.createFetcher({ url: '$encodedEndpoint' });
         ReactDOM.render(
             React.createElement(GraphiQL, { fetcher: fetcher }),
             document.getElementById('graphiql'),
@@ -211,3 +213,4 @@ internal fun buildGraphiQLPage(graphqlEndpoint: String): String = """
 </body>
 </html>
 """.trimIndent()
+}
