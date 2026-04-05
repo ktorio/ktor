@@ -81,6 +81,7 @@ projects {
             +"ktor-server-double-receive"
             +"ktor-server-forwarded-header"
             +"ktor-server-freemarker"
+            +"ktor-server-graphql"
             +"ktor-server-hsts"
             +"ktor-server-html-builder"
             +"ktor-server-htmx"

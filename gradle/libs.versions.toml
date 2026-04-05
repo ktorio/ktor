@@ -75,6 +75,8 @@ xmlutil = "0.91.3"
 yamlkt = "0.13.0"
 kaml = "0.79.0"
 
+graphql-java = "25.0"
+
 swagger-codegen = "3.0.75"
 swagger-codegen-generators = "1.0.59"
 swagger-parser = "2.1.37"
@@ -228,6 +230,8 @@ jakarta-servlet = { module = "jakarta.servlet:jakarta.servlet-api", version.ref 
 xmlutil-serialization = { module = "io.github.pdvrieze.xmlutil:serialization", version.ref = "xmlutil" }
 yamlkt-serialization = { module = "net.mamoe.yamlkt:yamlkt", version.ref = "yamlkt" }
 kaml-serialization = { module = "com.charleskorn.kaml:kaml", version.ref = "kaml" }
+
+graphql-java = { module = "com.graphql-java:graphql-java", version.ref = "graphql-java" }
 
 swagger-codegen = { module = "io.swagger.codegen.v3:swagger-codegen", version.ref = "swagger-codegen" }
 swagger-codegen-generators = { module = "io.swagger.codegen.v3:swagger-codegen-generators", version.ref = "swagger-codegen-generators" }
