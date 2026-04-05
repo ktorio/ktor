@@ -142,5 +142,5 @@ try {
 
 ## Interaction with other plugins
 
-- **HttpRequestRetry** -- Install `HttpRequestRetry` *before* `CircuitBreaker` so the circuit breaker wraps the retry logic. This way the circuit sees the final outcome after all retries, and `CircuitBreakerOpenException` is not retried.
+- **HttpRequestRetry** -- Install `CircuitBreaker` *before* `HttpRequestRetry` so the circuit breaker wraps the retry logic. This way the circuit sees the final outcome after all retries, and `CircuitBreakerOpenException` is not retried.
 - **HttpTimeout** -- Timeout exceptions are counted as circuit breaker failures.
