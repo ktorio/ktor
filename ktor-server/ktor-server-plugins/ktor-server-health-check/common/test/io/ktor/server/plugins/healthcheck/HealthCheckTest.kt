@@ -27,7 +27,6 @@ class HealthCheckTest {
             val body = response.bodyAsText()
             assertContains(body, "\"status\":\"UP\"")
             assertContains(body, "\"name\":\"alive\"")
-            assertContains(body, "\"status\":\"UP\"")
         }
     }
 
