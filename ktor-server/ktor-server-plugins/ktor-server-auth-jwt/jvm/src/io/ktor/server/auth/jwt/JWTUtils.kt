@@ -56,7 +56,7 @@ internal fun AuthenticationContext.bearerChallenge(
 
 internal fun getVerifier(
     jwkProvider: JwkProvider,
-    issuer: String?,
+    issuers: List<String>,
     token: HttpAuthHeader,
     schemes: JWTAuthSchemes,
     jwtConfigure: Verification.() -> Unit
@@ -80,9 +80,10 @@ internal fun getVerifier(
         return null
     }
 
-    return when (issuer) {
-        null -> JWT.require(algorithm)
-        else -> JWT.require(algorithm).withIssuer(issuer)
+    return JWT.require(algorithm).apply {
+        if (issuers.isNotEmpty()) {
+            withIssuer(*issuers.toTypedArray())
+        }
     }.apply(jwtConfigure).build()
 }
 
@@ -92,7 +93,7 @@ internal fun getVerifier(
     schemes: JWTAuthSchemes,
     configure: JWTConfigureFunction
 ): JWTVerifier? {
-    return getVerifier(jwkProvider, null, token, schemes, configure)
+    return getVerifier(jwkProvider, emptyList(), token, schemes, configure)
 }
 
 internal suspend fun verifyAndValidate(

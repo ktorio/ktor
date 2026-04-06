@@ -192,6 +192,30 @@ class JWTAuthTest {
     }
 
     @Test
+    fun `testJwtMultipleIssuers accepts any valid issuer`() = testApplication {
+        val secondIssuer = "https://second-issuer/"
+        configureServerJwtMultipleIssuers(listOf(issuer, secondIssuer))
+
+        val tokenFromFirst = "Bearer " + JWT.create().withAudience(audience).withIssuer(issuer).sign(algorithm)
+        val responseFirst = handleRequestWithToken(tokenFromFirst)
+        assertEquals(HttpStatusCode.OK, responseFirst.status)
+
+        val tokenFromSecond = "Bearer " + JWT.create().withAudience(audience).withIssuer(secondIssuer).sign(algorithm)
+        val responseSecond = handleRequestWithToken(tokenFromSecond)
+        assertEquals(HttpStatusCode.OK, responseSecond.status)
+    }
+
+    @Test
+    fun `testJwtMultipleIssuers rejects invalid issuer`() = testApplication {
+        val secondIssuer = "https://second-issuer/"
+        configureServerJwtMultipleIssuers(listOf(issuer, secondIssuer))
+
+        val token = "Bearer " + JWT.create().withAudience(audience).withIssuer("wrong").sign(algorithm)
+        val response = handleRequestWithToken(token)
+        verifyResponseUnauthorized(response)
+    }
+
+    @Test
     fun testJwkNoAuth() = testApplication {
         configureServerJwk()
 
@@ -588,6 +612,20 @@ class JWTAuthTest {
                     }
                 }
                 extra()
+            }
+        }
+
+    private fun ApplicationTestBuilder.configureServerJwtMultipleIssuers(issuers: List<String>) =
+        configureServer {
+            jwt {
+                this@jwt.realm = this@JWTAuthTest.realm
+                verifier(issuers, audience, algorithm)
+                validate { credential ->
+                    when {
+                        credential.audience.contains(audience) -> JWTPrincipal(credential.payload)
+                        else -> null
+                    }
+                }
             }
         }
 

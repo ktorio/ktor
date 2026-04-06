@@ -311,7 +311,20 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
          * @param [configure] function is applied during [JWTVerifier] construction
          */
         public fun verifier(jwkProvider: JwkProvider, issuer: String, configure: JWTConfigureFunction = {}) {
-            verifier = { token -> getVerifier(jwkProvider, issuer, token, schemes, configure) }
+            verifier = { token -> getVerifier(jwkProvider, listOf(issuer), token, schemes, configure) }
+        }
+
+        /**
+         * Provides a [JWTVerifier] used to verify a token format and signature.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.JWTAuthenticationProvider.Config.verifier)
+         *
+         * @param [jwkProvider] provides the JSON Web Key
+         * @param [issuers] the list of acceptable issuers of the JSON Web Token
+         * @param [configure] function is applied during [JWTVerifier] construction
+         */
+        public fun verifier(jwkProvider: JwkProvider, issuers: List<String>, configure: JWTConfigureFunction = {}) {
+            verifier = { token -> getVerifier(jwkProvider, issuers, token, schemes, configure) }
         }
 
         /**
@@ -346,6 +359,31 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
                 .require(algorithm)
                 .withAudience(audience)
                 .withIssuer(issuer)
+
+            verification.apply(block)
+            verifier(verification.build())
+        }
+
+        /**
+         * Provides a [JWTVerifier] used to verify a token format and signature.
+         *
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.JWTAuthenticationProvider.Config.verifier)
+         *
+         * @param [issuers] the list of acceptable issuers of the JSON Web Token
+         * @param [audience] restriction
+         * @param [algorithm] for validations of token signatures
+         */
+        public fun verifier(
+            issuers: List<String>,
+            audience: String,
+            algorithm: Algorithm,
+            block: Verification.() -> Unit = {}
+        ) {
+            val verification: Verification = JWT
+                .require(algorithm)
+                .withAudience(audience)
+                .withIssuer(*issuers.toTypedArray())
 
             verification.apply(block)
             verifier(verification.build())
