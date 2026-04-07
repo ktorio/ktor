@@ -206,55 +206,57 @@ public class ReflectionJsonSchemaInference(
                 additionalProperties = additional,
             )
         }
-        adapter.getName(type)?.let(visiting::add)
-
-        // Sealed classes
-        if (kClass.isSealed) {
-            val sealedSubclasses = kClass.sealedSubclasses
-            val sealedSubclassSchema = sealedSubclasses.map {
-                buildSchemaOrRef(it.starProjectedType, visiting)
-            }
-            val discriminatorMapping = sealedSubclasses
-                .filter { it.qualifiedName != null }
-                .associate { subclass ->
-                    subclass.qualifiedName!! to "#/components/schemas/${subclass.qualifiedName}"
+        val typeName = adapter.getName(type)?.also(visiting::add)
+        try {
+            if (kClass.isSealed) {
+                val sealedSubclasses = kClass.sealedSubclasses
+                val sealedSubclassSchema = sealedSubclasses.map {
+                    buildSchemaOrRef(it.starProjectedType, visiting)
                 }
+                val discriminatorMapping = sealedSubclasses
+                    .filter { it.qualifiedName != null }
+                    .associate { subclass ->
+                        subclass.qualifiedName!! to "#/components/schemas/${subclass.qualifiedName}"
+                    }
+
+                return jsonSchemaFromAnnotations(
+                    title = typeName,
+                    annotations = includeAnnotations + kClass.annotations,
+                    reflectSchema = ::schemaRefForClass,
+                    type = JsonType.OBJECT.orNullable(nullable),
+                    oneOf = sealedSubclassSchema,
+                    discriminator = JsonSchemaDiscriminator("type", discriminatorMapping),
+                )
+            }
+
+            val properties = mutableMapOf<String, ReferenceOr<JsonSchema>>()
+            val required = mutableListOf<String>()
+
+            for (prop in adapter.getProperties(kClass)) {
+                if (adapter.isIgnored(prop)) continue
+
+                val propertyName = adapter.getName(prop)
+                val propertyIsNullable = adapter.isNullable(prop.returnType)
+
+                properties[propertyName] = buildSchemaOrRef(prop.returnType, visiting, prop.annotations)
+
+                // Required: non-nullable properties are required (best effort; default values are not detectable reliably)
+                if (!propertyIsNullable) {
+                    required += propertyName
+                }
+            }
 
             return jsonSchemaFromAnnotations(
-                title = adapter.getName(type),
+                title = typeName,
                 annotations = includeAnnotations + kClass.annotations,
                 reflectSchema = ::schemaRefForClass,
-                type = JsonType.OBJECT.orNullable(nullable),
-                oneOf = sealedSubclassSchema,
-                discriminator = JsonSchemaDiscriminator("type", discriminatorMapping),
-            )
+                type = JsonType.OBJECT,
+                properties = properties.takeIf { it.isNotEmpty() },
+                required = required.takeIf { it.isNotEmpty() },
+            ).nonNullable(nullable)
+        } finally {
+            typeName?.let(visiting::remove)
         }
-
-        val properties = mutableMapOf<String, ReferenceOr<JsonSchema>>()
-        val required = mutableListOf<String>()
-
-        for (prop in adapter.getProperties(kClass)) {
-            if (adapter.isIgnored(prop)) continue
-
-            val propertyName = adapter.getName(prop)
-            val propertyIsNullable = adapter.isNullable(prop.returnType)
-
-            properties[propertyName] = buildSchemaOrRef(prop.returnType, visiting, prop.annotations)
-
-            // Required: non-nullable properties are required (best effort; default values are not detectable reliably)
-            if (!propertyIsNullable) {
-                required += propertyName
-            }
-        }
-
-        return jsonSchemaFromAnnotations(
-            title = adapter.getName(type),
-            annotations = includeAnnotations + kClass.annotations,
-            reflectSchema = ::schemaRefForClass,
-            type = JsonType.OBJECT,
-            properties = properties.takeIf { it.isNotEmpty() },
-            required = required.takeIf { it.isNotEmpty() },
-        ).nonNullable(nullable)
     }
 
     private fun buildSchemaOrRef(
@@ -264,25 +266,25 @@ public class ReflectionJsonSchemaInference(
     ): ReferenceOr<JsonSchema> {
         val name = adapter.getName(type)
         val nullable = adapter.isNullable(type)
-        return try {
-            if (name != null && !visiting.add(name)) {
-                if (nullable) {
-                    ReferenceOr.Value(
-                        JsonSchema(
-                            oneOf = listOf(
-                                ReferenceOr.schema(name),
-                                ReferenceOr.Value(JsonSchema(type = JsonType.NULL))
-                            )
+        return if (name != null && !visiting.add(name)) {
+            if (nullable) {
+                ReferenceOr.Value(
+                    JsonSchema(
+                        oneOf = listOf(
+                            ReferenceOr.schema(name),
+                            ReferenceOr.Value(JsonSchema(type = JsonType.NULL))
                         )
                     )
-                } else {
-                    ReferenceOr.schema(name)
-                }
+                )
             } else {
-                ReferenceOr.Value(buildSchemaInternal(type, visiting, includeAnnotations))
+                ReferenceOr.schema(name)
             }
-        } finally {
-            name?.let(visiting::remove)
+        } else {
+            try {
+                ReferenceOr.Value(buildSchemaInternal(type, visiting, includeAnnotations))
+            } finally {
+                visiting.remove(name)
+            }
         }
     }
 

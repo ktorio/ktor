@@ -36,42 +36,7 @@ properties:
     type: object
     title: io.ktor.openapi.reflect.Expression
     oneOf:
-      - type: object
-        title: io.ktor.openapi.reflect.BinaryExpression
-        required:
-          - left
-          - operator
-          - right
-        properties:
-          left:
-            $ref: "#/components/schemas/io.ktor.openapi.reflect.Expression"
-          operator:
-            type: string
-          right:
-            type: object
-            title: io.ktor.openapi.reflect.Expression
-            oneOf:
-              - $ref: "#/components/schemas/io.ktor.openapi.reflect.BinaryExpression"
-              - type: object
-                title: io.ktor.openapi.reflect.IntLiteral
-                required:
-                  - value
-                properties:
-                  value:
-                    type: integer
-              - type: object
-                title: io.ktor.openapi.reflect.StringLiteral
-                required:
-                  - value
-                properties:
-                  value:
-                    type: string
-            discriminator:
-              propertyName: type
-              mapping:
-                io.ktor.openapi.reflect.BinaryExpression: "#/components/schemas/io.ktor.openapi.reflect.BinaryExpression"
-                io.ktor.openapi.reflect.IntLiteral: "#/components/schemas/io.ktor.openapi.reflect.IntLiteral"
-                io.ktor.openapi.reflect.StringLiteral: "#/components/schemas/io.ktor.openapi.reflect.StringLiteral"
+      - $ref: "#/components/schemas/io.ktor.openapi.reflect.BinaryExpression"
       - type: object
         title: io.ktor.openapi.reflect.IntLiteral
         required:

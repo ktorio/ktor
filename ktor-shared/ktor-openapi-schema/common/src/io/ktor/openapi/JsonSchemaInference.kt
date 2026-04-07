@@ -137,6 +137,7 @@ public class KotlinxSerializerJsonSchemaInference(
                         descriptor.getElementAnnotations(i),
                     )
                 }
+                visiting -= descriptor.nonNullSerialName
 
                 jsonSchemaFromAnnotations(
                     annotations = annotations,
@@ -202,11 +203,13 @@ public class KotlinxSerializerJsonSchemaInference(
             StructureKind.MAP -> {
                 val additionalProps = if (descriptor.elementsCount > 1) {
                     val valueDescriptor = descriptor.getElementDescriptor(1)
-                    PSchema(buildSchemaOrReference(
-                        descriptor = valueDescriptor,
-                        title = valueDescriptor.nonNullSerialName,
-                        visiting = visiting,
-                    ))
+                    PSchema(
+                        buildSchemaOrReference(
+                            descriptor = valueDescriptor,
+                            title = valueDescriptor.nonNullSerialName,
+                            visiting = visiting,
+                        )
+                    )
                 } else {
                     Allowed(true)
                 }
@@ -269,27 +272,33 @@ public class KotlinxSerializerJsonSchemaInference(
         }
     }
 
+    /**
+     * Generally builds a schema for the given type, unless it is already being processed, in which case a reference is
+     * returned, so that we do not overflow the stack.
+     */
     @OptIn(InternalAPI::class)
     private fun buildSchemaOrReference(
         descriptor: SerialDescriptor,
         title: String,
         visiting: MutableSet<String>,
         annotations: List<Annotation> = emptyList(),
-    ): ReferenceOr<JsonSchema> = try {
-        // recursion guard (only for uniquely-named types)
+    ): ReferenceOr<JsonSchema> =
         if (!descriptor.isContainerType() && !visiting.add(title)) {
             ReferenceOr.schema(title)
                 .nonNullable(descriptor.isNullable)
         } else {
-            Value(buildSchemaFromDescriptor(
-                descriptor = descriptor,
-                includeAnnotations = annotations,
-                visiting = visiting,
-            ))
+            try {
+                Value(
+                    buildSchemaFromDescriptor(
+                        descriptor = descriptor,
+                        includeAnnotations = annotations,
+                        visiting = visiting,
+                    )
+                )
+            } finally {
+                visiting.remove(title)
+            }
         }
-    } finally {
-        visiting.remove(title)
-    }
 
     private fun SerialDescriptor.isContainerType() =
         kind == StructureKind.LIST || kind == StructureKind.MAP

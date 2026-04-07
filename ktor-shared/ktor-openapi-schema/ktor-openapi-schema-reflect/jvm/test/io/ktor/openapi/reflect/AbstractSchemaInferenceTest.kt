@@ -353,7 +353,7 @@ data class BinaryExpression(
 ) : Expression
 
 @Serializable
-data class IntLiteral(val value: Int): Expression
+data class IntLiteral(val value: Int) : Expression
 
 @Serializable
-data class StringLiteral(val value: String): Expression
+data class StringLiteral(val value: String) : Expression
