@@ -15,7 +15,7 @@ import kotlin.time.Duration.Companion.seconds
 class HttpTimeoutVirtualTimeTest {
 
     @Test
-    fun testRequestTimeoutRespectsVirtualTimeInRunTest() = runTest(timeout = 5.seconds) {
+    fun `request timeout respects virtual time in runTest`() = runTest(timeout = 5.seconds) {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {
@@ -27,10 +27,12 @@ class HttpTimeoutVirtualTimeTest {
             }
         }
 
-        assertFailsWith<HttpRequestTimeoutException> {
-            client.get("http://localhost/test")
+        try {
+            assertFailsWith<HttpRequestTimeoutException> {
+                client.get("http://localhost/test")
+            }
+        } finally {
+            client.close()
         }
-
-        client.close()
     }
 }
