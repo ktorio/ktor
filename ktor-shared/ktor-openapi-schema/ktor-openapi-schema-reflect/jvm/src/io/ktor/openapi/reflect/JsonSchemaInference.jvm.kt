@@ -145,7 +145,7 @@ public class ReflectionJsonSchemaInference(
                     visiting,
                     includeAnnotations + kClass.annotations
                 )
-                return unboxedSchema.nonNullable(nullable)
+                return unboxedSchema.wrapIfNullable(nullable)
             }
         }
 
@@ -159,7 +159,7 @@ public class ReflectionJsonSchemaInference(
             return jsonSchemaFromAnnotations(
                 annotations = includeAnnotations + kClass.annotations,
                 reflectSchema = ::schemaRefForClass,
-                type = JsonType.STRING.orNullable(nullable),
+                type = JsonType.STRING.wrapIfNullable(nullable),
                 enum = values,
             )
         }
@@ -179,7 +179,7 @@ public class ReflectionJsonSchemaInference(
             return jsonSchemaFromAnnotations(
                 annotations = includeAnnotations,
                 reflectSchema = ::schemaRefForClass,
-                type = JsonType.ARRAY.orNullable(nullable),
+                type = JsonType.ARRAY.wrapIfNullable(nullable),
                 items = itemRef,
             )
         }
@@ -202,7 +202,7 @@ public class ReflectionJsonSchemaInference(
             return jsonSchemaFromAnnotations(
                 annotations = includeAnnotations,
                 reflectSchema = ::schemaRefForClass,
-                type = JsonType.OBJECT.orNullable(nullable),
+                type = JsonType.OBJECT.wrapIfNullable(nullable),
                 additionalProperties = additional,
             )
         }
@@ -223,7 +223,7 @@ public class ReflectionJsonSchemaInference(
                     title = typeName,
                     annotations = includeAnnotations + kClass.annotations,
                     reflectSchema = ::schemaRefForClass,
-                    type = JsonType.OBJECT.orNullable(nullable),
+                    type = JsonType.OBJECT.wrapIfNullable(nullable),
                     oneOf = sealedSubclassSchema,
                     discriminator = JsonSchemaDiscriminator("type", discriminatorMapping),
                 )
@@ -253,7 +253,7 @@ public class ReflectionJsonSchemaInference(
                 type = JsonType.OBJECT,
                 properties = properties.takeIf { it.isNotEmpty() },
                 required = required.takeIf { it.isNotEmpty() },
-            ).nonNullable(nullable)
+            ).wrapIfNullable(nullable)
         } finally {
             typeName?.let(visiting::remove)
         }
@@ -301,7 +301,7 @@ public class ReflectionJsonSchemaInference(
         String::class, Char::class -> jsonSchemaFromAnnotations(
             annotations,
             ::schemaRefForClass,
-            type = JsonType.STRING.orNullable(nullable)
+            type = JsonType.STRING.wrapIfNullable(nullable)
         )
 
         Boolean::class -> jsonSchemaFromAnnotations(annotations, ::schemaRefForClass, type = JsonType.BOOLEAN)
@@ -318,28 +318,28 @@ public class ReflectionJsonSchemaInference(
         Uuid::class -> jsonSchemaFromAnnotations(
             annotations,
             ::schemaRefForClass,
-            type = JsonType.STRING.orNullable(nullable),
+            type = JsonType.STRING.wrapIfNullable(nullable),
             format = "uuid"
         )
 
         java.time.Instant::class -> jsonSchemaFromAnnotations(
             annotations,
             ::schemaRefForClass,
-            type = JsonType.STRING.orNullable(nullable),
+            type = JsonType.STRING.wrapIfNullable(nullable),
             format = "date-time"
         )
 
         OffsetDateTime::class -> jsonSchemaFromAnnotations(
             annotations,
             ::schemaRefForClass,
-            type = JsonType.STRING.orNullable(nullable),
+            type = JsonType.STRING.wrapIfNullable(nullable),
             format = "date-time"
         )
 
         java.time.LocalDate::class -> jsonSchemaFromAnnotations(
             annotations,
             ::schemaRefForClass,
-            type = JsonType.STRING.orNullable(nullable),
+            type = JsonType.STRING.wrapIfNullable(nullable),
             format = "date"
         )
 
@@ -348,21 +348,21 @@ public class ReflectionJsonSchemaInference(
         Instant::class -> jsonSchemaFromAnnotations(
             annotations,
             ::schemaRefForClass,
-            type = JsonType.STRING.orNullable(nullable),
+            type = JsonType.STRING.wrapIfNullable(nullable),
             format = "date-time"
         )
 
         LocalDate::class -> jsonSchemaFromAnnotations(
             annotations,
             ::schemaRefForClass,
-            type = JsonType.STRING.orNullable(nullable),
+            type = JsonType.STRING.wrapIfNullable(nullable),
             format = "date"
         )
 
         LocalDateTime::class -> jsonSchemaFromAnnotations(
             annotations,
             ::schemaRefForClass,
-            type = JsonType.STRING.orNullable(nullable),
+            type = JsonType.STRING.wrapIfNullable(nullable),
             format = "date-time"
         )
 
