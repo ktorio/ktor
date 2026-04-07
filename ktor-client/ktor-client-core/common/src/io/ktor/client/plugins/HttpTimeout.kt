@@ -149,6 +149,7 @@ public val HttpTimeout: ClientPlugin<HttpTimeoutConfig> = createClientPlugin(
             socketTimeoutMillis != null
 
     on(Send) { request ->
+        val callerContext = currentCoroutineContext()
         val supportsRequestTimeout = request.supportsRequestTimeout
         var configuration = request.getCapabilityOrNull(HttpTimeoutCapability)
         if (configuration == null && hasNotNullTimeouts(supportsRequestTimeout)) {
@@ -162,7 +163,7 @@ public val HttpTimeout: ClientPlugin<HttpTimeoutConfig> = createClientPlugin(
 
             if (supportsRequestTimeout) {
                 this.requestTimeoutMillis = this.requestTimeoutMillis ?: requestTimeoutMillis
-                applyRequestTimeout(request, this.requestTimeoutMillis)
+                CoroutineScope(callerContext).applyRequestTimeout(request, this.requestTimeoutMillis)
             }
         }
         proceed(request)
