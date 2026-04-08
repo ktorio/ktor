@@ -14,10 +14,40 @@ import kotlin.coroutines.intrinsics.intercepted
 import kotlin.coroutines.intrinsics.suspendCoroutineUninterceptedOrReturn
 import kotlin.coroutines.resumeWithException
 
+/**
+ * Executes pipeline [interceptors] with minimal overhead on the hot path.
+ *
+ * Instead of resuming each interceptor through a separate continuation step, it continues directly
+ * to the next one until one suspends and stores only the state needed to resume later.
+ * This reduces allocations and avoids unnecessary rescheduling through the dispatcher.
+ *
+ * ## Implementation Notes
+ *
+ * ### Shared continuation
+ *
+ * All interceptors are started with the same [continuation] instance, so they all complete back
+ * into the same pipeline driver and the whole pipeline can be advanced as one state machine.
+ *
+ * ### Saved caller continuations
+ *
+ * When [proceed] invokes the next interceptor, it saves the caller continuation in [suspensions].
+ * When downstream work completes, [resumeRootWith] pops and resumes the top saved continuation, so
+ * each [proceed] returns to its caller after later interceptors finish.
+ *
+ * ### Current coroutine context
+ *
+ * The shared [continuation] resolves [Continuation.context] from the top saved continuation, so
+ * each interceptor sees the coroutine context of the caller that last invoked [proceed].
+ *
+ * ### Conditional redispatch
+ *
+ * [resumeRootWith] resumes saved continuations directly when execution is already in the right
+ * thread, and otherwise resumes them through the intercepted continuation.
+ */
 internal class SuspendFunctionGun<TSubject : Any, TContext : Any>(
     initial: TSubject,
     context: TContext,
-    private val blocks: List<PipelineInterceptor<TSubject, TContext>>
+    private val interceptors: List<PipelineInterceptor<TSubject, TContext>>
 ) : PipelineContext<TSubject, TContext>(context) {
 
     override val coroutineContext: CoroutineContext get() = continuation.context
@@ -55,44 +85,39 @@ internal class SuspendFunctionGun<TSubject : Any, TContext : Any>(
 
         override val context: CoroutineContext
             get() {
-                val continuation = suspensions[lastSuspensionIndex]
-                if (continuation !== this && continuation != null) return continuation.context
-
-                var index = lastSuspensionIndex - 1
-                while (index >= 0) {
-                    val cont = suspensions[index--]
+                for (index in lastSuspensionIndex downTo 0) {
+                    val cont = suspensions[index]
                     if (cont !== this && cont != null) return cont.context
                 }
-
                 error("Not started")
             }
 
         override fun resumeWith(result: Result<Unit>) {
-            if (result.isFailure) {
-                resumeRootWith(Result.failure(result.exceptionOrNull()!!))
+            result.onFailure { exception ->
+                resumeRootWith(Result.failure(exception))
                 return
             }
 
-            loop(false)
+            loop(direct = false)
         }
     }
 
     override var subject: TSubject = initial
 
-    private val suspensions: Array<Continuation<TSubject>?> = arrayOfNulls(blocks.size)
+    private val suspensions: Array<Continuation<TSubject>?> = arrayOfNulls(interceptors.size)
     private var lastSuspensionIndex: Int = -1
     private var index = 0
 
     override fun finish() {
-        index = blocks.size
+        index = interceptors.size
     }
 
     override suspend fun proceed(): TSubject = suspendCoroutineUninterceptedOrReturn { continuation ->
-        if (index == blocks.size) return@suspendCoroutineUninterceptedOrReturn subject
+        if (index == interceptors.size) return@suspendCoroutineUninterceptedOrReturn subject
 
         addContinuation(continuation)
 
-        if (loop(true)) {
+        if (loop(direct = true)) {
             discardLastRootContinuation()
             return@suspendCoroutineUninterceptedOrReturn subject
         }
@@ -107,21 +132,27 @@ internal class SuspendFunctionGun<TSubject : Any, TContext : Any>(
 
     override suspend fun execute(initial: TSubject): TSubject {
         index = 0
-        if (index == blocks.size) return initial
+        if (index == interceptors.size) return initial
         subject = initial
 
-        if (lastSuspensionIndex >= 0) throw IllegalStateException("Already started")
-
+        check(lastSuspensionIndex < 0) { "Already started" }
         return proceed()
     }
 
     /**
-     * @return `true` if it is possible to return result immediately
+     * Runs the remaining [interceptors] until one suspends or the pipeline completes.
+     * Returns `true` when the caller can return [subject] immediately, without going through
+     * [resumeRootWith].
+     *
+     * [direct] is used when [loop] is entered from [proceed], while execution is still moving
+     * forward through [interceptors] and completion can be returned directly to the current caller.
+     * When [loop] is entered later from the shared [continuation], completion must be delivered
+     * through [resumeRootWith] instead.
      */
     private fun loop(direct: Boolean): Boolean {
         do {
             val currentIndex = index // it is important to read index every time
-            if (currentIndex == blocks.size) {
+            if (currentIndex == interceptors.size) {
                 if (!direct) {
                     resumeRootWith(Result.success(subject))
                     return false
@@ -131,7 +162,7 @@ internal class SuspendFunctionGun<TSubject : Any, TContext : Any>(
             }
 
             index = currentIndex + 1 // it is important to increase it before function invocation
-            val next = blocks[currentIndex]
+            val next = interceptors[currentIndex]
 
             try {
                 val result = pipelineStartCoroutineUninterceptedOrReturn(next, this, subject, continuation)
@@ -144,7 +175,7 @@ internal class SuspendFunctionGun<TSubject : Any, TContext : Any>(
     }
 
     private fun resumeRootWith(result: Result<TSubject>) {
-        if (lastSuspensionIndex < 0) error("No more continuations to resume")
+        check(lastSuspensionIndex >= 0) { "No more continuations to resume" }
         val next = suspensions[lastSuspensionIndex]!!
         suspensions[lastSuspensionIndex--] = null
 
@@ -156,16 +187,17 @@ internal class SuspendFunctionGun<TSubject : Any, TContext : Any>(
             else -> next.intercepted()
         }
 
-        if (!result.isFailure) {
-            toResume.resumeWith(result)
-        } else {
-            val exception = recoverStackTraceBridge(result.exceptionOrNull()!!, next)
-            toResume.resumeWithException(exception)
+        when (val exception = result.exceptionOrNull()) {
+            null -> toResume.resumeWith(result)
+            else -> {
+                val recoveredException = recoverStackTraceBridge(exception, next)
+                toResume.resumeWithException(recoveredException)
+            }
         }
     }
 
     private fun discardLastRootContinuation() {
-        if (lastSuspensionIndex < 0) throw IllegalStateException("No more continuations to resume")
+        check(lastSuspensionIndex >= 0) { "No more continuations to resume" }
         suspensions[lastSuspensionIndex--] = null
     }
 
