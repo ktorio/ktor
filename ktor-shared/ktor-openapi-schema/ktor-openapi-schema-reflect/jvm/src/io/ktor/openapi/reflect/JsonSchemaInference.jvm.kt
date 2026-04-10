@@ -119,119 +119,113 @@ public class ReflectionJsonSchemaInference(
     public fun schemaRefForClass(kClass: KClass<*>): ReferenceOr<JsonSchema> =
         ReferenceOr.Value(schemaForClass(kClass))
 
-    // ----------------------------
-    // Implementation
-    // ----------------------------
-
     @OptIn(InternalAPI::class)
     private fun buildSchemaInternal(
         type: KType,
         visiting: MutableSet<String>,
         includeAnnotations: List<Annotation> = emptyList()
     ): JsonSchema {
+        val kClass = type.classifier as? KClass<*>
+            ?: return JsonSchema(type = JsonType.OBJECT)
+
+        // Nullability: OpenAPI schema has a `nullable` flag
+        val nullable = adapter.isNullable(type)
+
+        // Primitives / common JDK types
+        val primitiveSchema = primitiveSchemaOrNull(kClass, includeAnnotations, nullable)
+        if (primitiveSchema != null) {
+            return primitiveSchema
+        }
+
+        // Value classes (inline) should be represented as their underlying value
+        if (kClass.isValue) {
+            kClass.underlyingValueClassTypeOrNull()?.let { underlyingType ->
+                val unboxedSchema = buildSchemaInternal(
+                    underlyingType,
+                    visiting,
+                    includeAnnotations + kClass.annotations
+                )
+                return unboxedSchema.wrapIfNullable(nullable)
+            }
+        }
+
+        // Enums
+        if (kClass.java.isEnum) {
+            val values = kClass.java.enumConstants
+                ?.map { it.toString() }
+                .orEmpty()
+                .map { GenericElement<String>(it) }
+
+            return jsonSchemaFromAnnotations(
+                annotations = includeAnnotations + kClass.annotations,
+                reflectSchema = ::schemaRefForClass,
+                type = JsonType.STRING.wrapIfNullable(nullable),
+                enum = values,
+            )
+        }
+
+        // Arrays / Iterables
+        if (kClass == Array<Any>::class || kClass.java.isArray || kClass.isSubclassOf(Iterable::class)) {
+            val itemType = type.arguments.firstOrNull()?.type
+            val itemTypeName = itemType?.let { adapter.getName(it) }
+            val itemRef = if (itemTypeName != null && itemTypeName in visiting) {
+                ReferenceOr.schema(itemTypeName)
+            } else {
+                val itemSchema = itemType?.let { buildSchemaInternal(it, visiting) }
+                    ?: JsonSchema(type = JsonType.OBJECT)
+                ReferenceOr.Value(itemSchema)
+            }
+
+            return jsonSchemaFromAnnotations(
+                annotations = includeAnnotations,
+                reflectSchema = ::schemaRefForClass,
+                type = JsonType.ARRAY.wrapIfNullable(nullable),
+                items = itemRef,
+            )
+        }
+
+        // Map -> object with additionalProperties
+        if (kClass.isSubclassOf(Map::class)) {
+            // key type ignored
+            val valueType = type.arguments.getOrNull(1)?.type
+            val valueTypeName = valueType?.let { adapter.getName(it) }
+
+            // JSON object keys are strings; if key isn't String, we still produce an object schema.
+            val additional = if (valueTypeName != null && valueTypeName in visiting) {
+                AdditionalProperties.PSchema(ReferenceOr.schema(valueTypeName))
+            } else {
+                valueType?.let { v ->
+                    AdditionalProperties.PSchema(ReferenceOr.Value(buildSchemaInternal(v, visiting)))
+                } ?: AdditionalProperties.Allowed(true)
+            }
+
+            return jsonSchemaFromAnnotations(
+                annotations = includeAnnotations,
+                reflectSchema = ::schemaRefForClass,
+                type = JsonType.OBJECT.wrapIfNullable(nullable),
+                additionalProperties = additional,
+            )
+        }
         val typeName = adapter.getName(type)?.also(visiting::add)
         try {
-            val kClass = type.classifier as? KClass<*>
-                ?: return JsonSchema(type = JsonType.OBJECT)
-
-            // Nullability: OpenAPI schema has a `nullable` flag
-            val nullable = adapter.isNullable(type)
-
-            // Primitives / common JDK types
-            val primitiveSchema = primitiveSchemaOrNull(kClass, includeAnnotations, nullable)
-            if (primitiveSchema != null) {
-                return primitiveSchema
-            }
-
-            // Value classes (inline) should be represented as their underlying value
-            if (kClass.isValue) {
-                kClass.underlyingValueClassTypeOrNull()?.let { underlyingType ->
-                    val unboxedSchema = buildSchemaInternal(
-                        underlyingType,
-                        visiting,
-                        includeAnnotations + kClass.annotations
-                    )
-                    return unboxedSchema.nonNullable(nullable)
-                }
-            }
-
-            // Enums
-            if (kClass.java.isEnum) {
-                val values = kClass.java.enumConstants
-                    ?.map { it.toString() }
-                    .orEmpty()
-                    .map { GenericElement<String>(it) }
-
-                return jsonSchemaFromAnnotations(
-                    annotations = includeAnnotations + kClass.annotations,
-                    reflectSchema = ::schemaRefForClass,
-                    type = JsonType.STRING.orNullable(nullable),
-                    enum = values,
-                )
-            }
-
-            // Sealed classes
             if (kClass.isSealed) {
                 val sealedSubclasses = kClass.sealedSubclasses
                 val sealedSubclassSchema = sealedSubclasses.map {
-                    ReferenceOr.Value(buildSchemaInternal(it.starProjectedType, visiting))
+                    buildSchemaOrRef(it.starProjectedType, visiting)
                 }
                 val discriminatorMapping = sealedSubclasses
-                    .filter { it.qualifiedName != null && it.simpleName != null }
+                    .filter { it.qualifiedName != null }
                     .associate { subclass ->
-                        subclass.qualifiedName!! to "#/components/schemas/${subclass.simpleName}"
+                        subclass.qualifiedName!! to "#/components/schemas/${subclass.qualifiedName}"
                     }
 
                 return jsonSchemaFromAnnotations(
-                    title = adapter.getName(type),
+                    title = typeName,
                     annotations = includeAnnotations + kClass.annotations,
                     reflectSchema = ::schemaRefForClass,
-                    type = JsonType.OBJECT.orNullable(nullable),
+                    type = JsonType.OBJECT.wrapIfNullable(nullable),
                     oneOf = sealedSubclassSchema,
                     discriminator = JsonSchemaDiscriminator("type", discriminatorMapping),
-                )
-            }
-
-            // Arrays / Iterables
-            if (kClass == Array<Any>::class || kClass.java.isArray || kClass.isSubclassOf(Iterable::class)) {
-                val itemType = type.arguments.firstOrNull()?.type
-                val itemTypeName = itemType?.let { adapter.getName(it) }
-                val itemRef = if (itemTypeName != null && itemTypeName in visiting) {
-                    ReferenceOr.schema(itemTypeName)
-                } else {
-                    val itemSchema = itemType?.let { buildSchemaInternal(it, visiting) }
-                        ?: JsonSchema(type = JsonType.OBJECT)
-                    ReferenceOr.Value(itemSchema)
-                }
-
-                return jsonSchemaFromAnnotations(
-                    annotations = includeAnnotations,
-                    reflectSchema = ::schemaRefForClass,
-                    type = JsonType.ARRAY.orNullable(nullable),
-                    items = itemRef,
-                )
-            }
-
-            // Map -> object with additionalProperties
-            if (kClass.isSubclassOf(Map::class)) {
-                // key type ignored
-                val valueType = type.arguments.getOrNull(1)?.type
-                val valueTypeName = valueType?.let { adapter.getName(it) }
-
-                // JSON object keys are strings; if key isn't String, we still produce an object schema.
-                val additional = if (valueTypeName != null && valueTypeName in visiting) {
-                    AdditionalProperties.PSchema(ReferenceOr.schema(valueTypeName))
-                } else {
-                    valueType?.let { v ->
-                        AdditionalProperties.PSchema(ReferenceOr.Value(buildSchemaInternal(v, visiting)))
-                    } ?: AdditionalProperties.Allowed(true)
-                }
-
-                return jsonSchemaFromAnnotations(
-                    annotations = includeAnnotations,
-                    reflectSchema = ::schemaRefForClass,
-                    type = JsonType.OBJECT.orNullable(nullable),
-                    additionalProperties = additional,
                 )
             }
 
@@ -242,15 +236,9 @@ public class ReflectionJsonSchemaInference(
                 if (adapter.isIgnored(prop)) continue
 
                 val propertyName = adapter.getName(prop)
-                val typeName = adapter.getName(prop.returnType)
                 val propertyIsNullable = adapter.isNullable(prop.returnType)
 
-                properties[propertyName] = if (typeName != null && !visiting.add(typeName)) {
-                    ReferenceOr.schema(typeName).nonNullable(propertyIsNullable)
-                } else {
-                    val propSchema = buildSchemaInternal(prop.returnType, visiting, prop.annotations)
-                    ReferenceOr.Value(propSchema)
-                }
+                properties[propertyName] = buildSchemaOrRef(prop.returnType, visiting, prop.annotations)
 
                 // Required: non-nullable properties are required (best effort; default values are not detectable reliably)
                 if (!propertyIsNullable) {
@@ -259,16 +247,43 @@ public class ReflectionJsonSchemaInference(
             }
 
             return jsonSchemaFromAnnotations(
-                title = adapter.getName(type),
+                title = typeName,
                 annotations = includeAnnotations + kClass.annotations,
                 reflectSchema = ::schemaRefForClass,
                 type = JsonType.OBJECT,
                 properties = properties.takeIf { it.isNotEmpty() },
                 required = required.takeIf { it.isNotEmpty() },
-            ).nonNullable(nullable)
+            ).wrapIfNullable(nullable)
         } finally {
-            if (typeName != null) {
-                visiting.remove(typeName)
+            typeName?.let(visiting::remove)
+        }
+    }
+
+    private fun buildSchemaOrRef(
+        type: KType,
+        visiting: MutableSet<String>,
+        includeAnnotations: List<Annotation> = emptyList(),
+    ): ReferenceOr<JsonSchema> {
+        val name = adapter.getName(type)
+        val nullable = adapter.isNullable(type)
+        return if (name != null && !visiting.add(name)) {
+            if (nullable) {
+                ReferenceOr.Value(
+                    JsonSchema(
+                        oneOf = listOf(
+                            ReferenceOr.schema(name),
+                            ReferenceOr.Value(JsonSchema(type = JsonType.NULL))
+                        )
+                    )
+                )
+            } else {
+                ReferenceOr.schema(name)
+            }
+        } else {
+            try {
+                ReferenceOr.Value(buildSchemaInternal(type, visiting, includeAnnotations))
+            } finally {
+                visiting.remove(name)
             }
         }
     }
@@ -286,7 +301,7 @@ public class ReflectionJsonSchemaInference(
         String::class, Char::class -> jsonSchemaFromAnnotations(
             annotations,
             ::schemaRefForClass,
-            type = JsonType.STRING.orNullable(nullable)
+            type = JsonType.STRING.wrapIfNullable(nullable)
         )
 
         Boolean::class -> jsonSchemaFromAnnotations(annotations, ::schemaRefForClass, type = JsonType.BOOLEAN)
@@ -303,28 +318,28 @@ public class ReflectionJsonSchemaInference(
         Uuid::class -> jsonSchemaFromAnnotations(
             annotations,
             ::schemaRefForClass,
-            type = JsonType.STRING.orNullable(nullable),
+            type = JsonType.STRING.wrapIfNullable(nullable),
             format = "uuid"
         )
 
         java.time.Instant::class -> jsonSchemaFromAnnotations(
             annotations,
             ::schemaRefForClass,
-            type = JsonType.STRING.orNullable(nullable),
+            type = JsonType.STRING.wrapIfNullable(nullable),
             format = "date-time"
         )
 
         OffsetDateTime::class -> jsonSchemaFromAnnotations(
             annotations,
             ::schemaRefForClass,
-            type = JsonType.STRING.orNullable(nullable),
+            type = JsonType.STRING.wrapIfNullable(nullable),
             format = "date-time"
         )
 
         java.time.LocalDate::class -> jsonSchemaFromAnnotations(
             annotations,
             ::schemaRefForClass,
-            type = JsonType.STRING.orNullable(nullable),
+            type = JsonType.STRING.wrapIfNullable(nullable),
             format = "date"
         )
 
@@ -333,21 +348,21 @@ public class ReflectionJsonSchemaInference(
         Instant::class -> jsonSchemaFromAnnotations(
             annotations,
             ::schemaRefForClass,
-            type = JsonType.STRING.orNullable(nullable),
+            type = JsonType.STRING.wrapIfNullable(nullable),
             format = "date-time"
         )
 
         LocalDate::class -> jsonSchemaFromAnnotations(
             annotations,
             ::schemaRefForClass,
-            type = JsonType.STRING.orNullable(nullable),
+            type = JsonType.STRING.wrapIfNullable(nullable),
             format = "date"
         )
 
         LocalDateTime::class -> jsonSchemaFromAnnotations(
             annotations,
             ::schemaRefForClass,
-            type = JsonType.STRING.orNullable(nullable),
+            type = JsonType.STRING.wrapIfNullable(nullable),
             format = "date-time"
         )
 

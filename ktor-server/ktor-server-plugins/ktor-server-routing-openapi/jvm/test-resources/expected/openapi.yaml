@@ -34,7 +34,7 @@ components:
   schemas:
     "DM":
       type: "object"
-      title: "io.ktor.server.routing.openapi.Message.DM"
+      title: "DM"
       required:
       - "id"
       - "content"
@@ -48,7 +48,7 @@ components:
           type: "integer"
     "Post":
       type: "object"
-      title: "io.ktor.server.routing.openapi.Message.Post"
+      title: "Post"
       required:
       - "id"
       - "content"
@@ -62,7 +62,7 @@ components:
           type: "integer"
     "Message":
       type: "object"
-      title: "io.ktor.server.routing.openapi.Message"
+      title: "Message"
       oneOf:
       - $ref: "#/components/schemas/DM"
       - $ref: "#/components/schemas/Post"

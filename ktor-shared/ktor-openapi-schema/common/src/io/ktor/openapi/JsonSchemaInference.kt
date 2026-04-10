@@ -17,11 +17,8 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
-import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
 import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 /**
  * Context interface for creating schema from type metadata.
@@ -133,32 +130,14 @@ public class KotlinxSerializerJsonSchemaInference(
                         required.add(name)
                     }
 
-                    // Container types (LIST, MAP) share the same serial name regardless of their
-                    // type arguments, so the visiting guard would incorrectly treat different
-                    // parameterized lists (e.g. List<Dto2> and List<Dto3>) as recursive references.
-                    val isContainerType = elementDescriptor.kind == StructureKind.LIST ||
-                        elementDescriptor.kind == StructureKind.MAP
-
-                    try {
-                        // recursion guard (only for uniquely-named types)
-                        properties[name] = if (!isContainerType && !visiting.add(elementName)) {
-                            ReferenceOr.schema(elementName)
-                                .nonNullable(elementDescriptor.isNullable)
-                        } else {
-                            Value(
-                                elementDescriptor.buildJsonSchema(
-                                    includeAnnotations = descriptor.getElementAnnotations(i),
-                                    visiting = visiting,
-                                )
-                            )
-                        }
-                    } finally {
-                        if (!isContainerType) {
-                            visiting.remove(elementName)
-                        }
-                    }
+                    properties[name] = buildSchemaOrReference(
+                        elementDescriptor,
+                        elementName,
+                        visiting,
+                        descriptor.getElementAnnotations(i),
+                    )
                 }
-                visiting.remove(descriptor.nonNullSerialName)
+                visiting -= descriptor.nonNullSerialName
 
                 jsonSchemaFromAnnotations(
                     annotations = annotations,
@@ -167,7 +146,7 @@ public class KotlinxSerializerJsonSchemaInference(
                     title = descriptor.nonNullSerialName.takeIf { includeTitle },
                     properties = properties,
                     required = required.takeIf { it.isNotEmpty() },
-                ).nonNullable(isNullable)
+                ).wrapIfNullable(isNullable)
             }
 
             PolymorphicKind.SEALED -> {
@@ -176,22 +155,21 @@ public class KotlinxSerializerJsonSchemaInference(
                     val sealedElementsDescriptor = descriptor.getElementDescriptor(1)
                     val sealedElementsSchema = (0..<sealedElementsDescriptor.elementsCount)
                         .map { i ->
-                            Value(
-                                buildSchemaFromDescriptor(
-                                    sealedElementsDescriptor.getElementDescriptor(i),
-                                    includeTitle = true,
-                                    visiting = visiting,
-                                )
+                            buildSchemaOrReference(
+                                descriptor = sealedElementsDescriptor.getElementDescriptor(i),
+                                title = sealedElementsDescriptor.getElementName(i),
+                                visiting = visiting,
+                                annotations = sealedElementsDescriptor.getElementAnnotations(i),
                             )
                         }
                     val discriminatorMapping = (0..<sealedElementsDescriptor.elementsCount)
                         .map(sealedElementsDescriptor::getElementName)
-                        .associateWith { fqName -> ReferenceOr.schema(fqName.substringAfterLast('.')).ref }
+                        .associateWith { fqName -> ReferenceOr.schema(fqName).ref }
 
                     jsonSchemaFromAnnotations(
                         annotations = annotations,
                         reflectSchema = reflectJsonSchema,
-                        type = JsonType.OBJECT.orNullable(isNullable),
+                        type = JsonType.OBJECT.wrapIfNullable(isNullable),
                         title = descriptor.serialName.takeIf { includeTitle },
                         oneOf = sealedElementsSchema,
                         discriminator = JsonSchemaDiscriminator(discriminatorProperty, discriminatorMapping),
@@ -200,7 +178,7 @@ public class KotlinxSerializerJsonSchemaInference(
                     jsonSchemaFromAnnotations(
                         annotations = annotations,
                         reflectSchema = reflectJsonSchema,
-                        type = JsonType.OBJECT.orNullable(isNullable),
+                        type = JsonType.OBJECT.wrapIfNullable(isNullable),
                         title = descriptor.serialName.takeIf { includeTitle },
                     )
                 }
@@ -209,15 +187,15 @@ public class KotlinxSerializerJsonSchemaInference(
             StructureKind.LIST -> {
                 val itemDescriptor = descriptor.getElementDescriptor(0)
                 val itemName = itemDescriptor.nonNullSerialName
-                val itemSchema = if (itemName in visiting) {
-                    ReferenceOr.schema(itemName)
-                } else {
-                    Value(itemDescriptor.buildJsonSchema(visiting = visiting))
-                }
+                val itemSchema = buildSchemaOrReference(
+                    descriptor = itemDescriptor,
+                    title = itemName,
+                    visiting = visiting,
+                )
                 jsonSchemaFromAnnotations(
                     annotations = annotations,
                     reflectSchema = reflectJsonSchema,
-                    type = JsonType.ARRAY.orNullable(isNullable),
+                    type = JsonType.ARRAY.wrapIfNullable(isNullable),
                     items = itemSchema,
                 )
             }
@@ -225,21 +203,20 @@ public class KotlinxSerializerJsonSchemaInference(
             StructureKind.MAP -> {
                 val additionalProps = if (descriptor.elementsCount > 1) {
                     val valueDescriptor = descriptor.getElementDescriptor(1)
-                    val valueName = valueDescriptor.nonNullSerialName
-                    if (valueName in visiting) {
-                        PSchema(ReferenceOr.schema(valueName))
-                    } else {
-                        PSchema(
-                            Value(valueDescriptor.buildJsonSchema(visiting = visiting))
+                    PSchema(
+                        buildSchemaOrReference(
+                            descriptor = valueDescriptor,
+                            title = valueDescriptor.nonNullSerialName,
+                            visiting = visiting,
                         )
-                    }
+                    )
                 } else {
                     Allowed(true)
                 }
                 jsonSchemaFromAnnotations(
                     annotations = annotations,
                     reflectSchema = reflectJsonSchema,
-                    type = JsonType.OBJECT.orNullable(isNullable),
+                    type = JsonType.OBJECT.wrapIfNullable(isNullable),
                     additionalProperties = additionalProps,
                 )
             }
@@ -249,7 +226,7 @@ public class KotlinxSerializerJsonSchemaInference(
                 jsonSchemaFromAnnotations(
                     annotations = annotations,
                     reflectSchema = reflectJsonSchema,
-                    type = JsonType.STRING.orNullable(isNullable),
+                    type = JsonType.STRING.wrapIfNullable(isNullable),
                     format = descriptor.takeIf { it.nonNullSerialName != "kotlin.String" }?.let(formats)
                 )
 
@@ -257,28 +234,28 @@ public class KotlinxSerializerJsonSchemaInference(
                 jsonSchemaFromAnnotations(
                     annotations = annotations,
                     reflectSchema = reflectJsonSchema,
-                    type = JsonType.BOOLEAN.orNullable(isNullable),
+                    type = JsonType.BOOLEAN.wrapIfNullable(isNullable),
                 )
 
             PrimitiveKind.BYTE, PrimitiveKind.SHORT, PrimitiveKind.INT, PrimitiveKind.LONG ->
                 jsonSchemaFromAnnotations(
                     annotations = annotations,
                     reflectSchema = reflectJsonSchema,
-                    type = JsonType.INTEGER.orNullable(isNullable),
+                    type = JsonType.INTEGER.wrapIfNullable(isNullable),
                 )
 
             PrimitiveKind.FLOAT, PrimitiveKind.DOUBLE ->
                 jsonSchemaFromAnnotations(
                     annotations = annotations,
                     reflectSchema = reflectJsonSchema,
-                    type = JsonType.NUMBER.orNullable(isNullable),
+                    type = JsonType.NUMBER.wrapIfNullable(isNullable),
                 )
 
             SerialKind.ENUM -> {
                 jsonSchemaFromAnnotations(
                     annotations = annotations,
                     reflectSchema = reflectJsonSchema,
-                    type = JsonType.STRING.orNullable(isNullable),
+                    type = JsonType.STRING.wrapIfNullable(isNullable),
                     enum = List(descriptor.elementsCount) { i -> GenericElement<String>(descriptor.getElementName(i)) },
                 )
             }
@@ -289,11 +266,42 @@ public class KotlinxSerializerJsonSchemaInference(
                 jsonSchemaFromAnnotations(
                     annotations = annotations,
                     reflectSchema = reflectJsonSchema,
-                    type = JsonType.OBJECT.orNullable(isNullable),
+                    type = JsonType.OBJECT.wrapIfNullable(isNullable),
                 )
             }
         }
     }
+
+    /**
+     * Generally builds a schema for the given type, unless it is already being processed, in which case a reference is
+     * returned, so that we do not overflow the stack.
+     */
+    @OptIn(InternalAPI::class)
+    private fun buildSchemaOrReference(
+        descriptor: SerialDescriptor,
+        title: String,
+        visiting: MutableSet<String>,
+        annotations: List<Annotation> = emptyList(),
+    ): ReferenceOr<JsonSchema> =
+        if (!descriptor.isContainerType() && !visiting.add(title)) {
+            ReferenceOr.schema(title)
+                .wrapIfNullable(descriptor.isNullable)
+        } else {
+            try {
+                Value(
+                    buildSchemaFromDescriptor(
+                        descriptor = descriptor,
+                        includeAnnotations = annotations,
+                        visiting = visiting,
+                    )
+                )
+            } finally {
+                visiting.remove(title)
+            }
+        }
+
+    private fun SerialDescriptor.isContainerType() =
+        kind == StructureKind.LIST || kind == StructureKind.MAP
 }
 
 /**
@@ -330,13 +338,13 @@ public fun SerialDescriptor.buildJsonSchema(
 private val SerialDescriptor.nonNullSerialName get() = serialName.trimEnd('?')
 
 @InternalAPI
-public fun ReferenceOr<JsonSchema>.nonNullable(isNullable: Boolean): ReferenceOr<JsonSchema> =
+public fun ReferenceOr<JsonSchema>.wrapIfNullable(isNullable: Boolean): ReferenceOr<JsonSchema> =
     if (isNullable) {
         Value(
             JsonSchema(
                 oneOf = listOf(
                     this,
-                    Value(JsonSchema(type = JsonType.NULL),)
+                    Value(JsonSchema(type = JsonType.NULL))
                 )
             )
         )
@@ -345,12 +353,12 @@ public fun ReferenceOr<JsonSchema>.nonNullable(isNullable: Boolean): ReferenceOr
     }
 
 @InternalAPI
-public fun JsonSchema.nonNullable(isNullable: Boolean): JsonSchema =
+public fun JsonSchema.wrapIfNullable(isNullable: Boolean): JsonSchema =
     if (isNullable) {
         JsonSchema(
             oneOf = listOf(
                 Value(this),
-                Value(JsonSchema(type = JsonType.NULL),)
+                Value(JsonSchema(type = JsonType.NULL))
             )
         )
     } else {
@@ -358,7 +366,7 @@ public fun JsonSchema.nonNullable(isNullable: Boolean): JsonSchema =
     }
 
 @InternalAPI
-public fun JsonType.orNullable(isNullable: Boolean): SchemaType =
+public fun JsonType.wrapIfNullable(isNullable: Boolean): SchemaType =
     if (isNullable) SchemaType.AnyOf(listOf(this, JsonType.NULL)) else this
 
 /**
@@ -429,7 +437,7 @@ public fun jsonSchemaFromAnnotations(
             JsonSchemaDiscriminator(
                 annotation.property,
                 annotation.mapping.associate {
-                    it.key to "#/components/schemas/${it.ref.simpleName}"
+                    it.key to "#/components/schemas/${typeName(it)}"
                 }
             )
         } ?: discriminator,
@@ -466,6 +474,8 @@ public fun jsonSchemaFromAnnotations(
             ?.takeIf { it.isNotEmpty() }?.takeIf { it.size > 1 },
     )
 }
+
+internal expect fun typeName(mapping: Discriminator.Mapping): String?
 
 private inline fun <reified T : Annotation> List<Annotation>.firstInstanceOf(): T? =
     filterIsInstance<T>().firstOrNull()

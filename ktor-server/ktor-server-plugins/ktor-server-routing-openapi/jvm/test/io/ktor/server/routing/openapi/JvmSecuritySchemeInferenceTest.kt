@@ -9,9 +9,6 @@ import com.auth0.jwt.algorithms.Algorithm
 import io.ktor.openapi.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
-import io.ktor.server.routing.openapi.findSecuritySchemes
-import io.ktor.server.routing.openapi.registerDigestAuthSecurityScheme
-import io.ktor.server.routing.openapi.registerJWTSecurityScheme
 import io.ktor.server.testing.*
 import java.security.MessageDigest
 import kotlin.test.Test
