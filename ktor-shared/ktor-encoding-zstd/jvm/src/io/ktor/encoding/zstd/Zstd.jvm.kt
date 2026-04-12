@@ -6,18 +6,14 @@ package io.ktor.encoding.zstd
 
 import com.github.luben.zstd.ZstdCompressCtx
 import com.github.luben.zstd.ZstdDecompressCtx
-import com.github.luben.zstd.ZstdException
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
-import kotlinx.io.EOFException
-import kotlinx.io.IOException
 import java.nio.ByteBuffer
 import kotlin.coroutines.CoroutineContext
-import com.github.luben.zstd.Zstd as ZstdUtils
 
 /**
  * Implementation of [ContentEncoder] using zstd algorithm
@@ -44,13 +40,13 @@ public class Zstd(private val compressionLevel: Int) : Encoder {
     @OptIn(DelicateCoroutinesApi::class)
     override fun encode(source: ByteReadChannel, coroutineContext: CoroutineContext): ByteReadChannel =
         GlobalScope.writer(coroutineContext, autoFlush = true) {
-            source.encodeTo(channel, KtorDefaultPool, compressionLevel)
+            source.encodeTo(channel, KtorDefaultDirectPool, compressionLevel)
         }.channel
 
     @OptIn(DelicateCoroutinesApi::class)
     override fun encode(source: ByteWriteChannel, coroutineContext: CoroutineContext): ByteWriteChannel =
         GlobalScope.reader(coroutineContext, autoFlush = true) {
-            channel.encodeTo(source, KtorDefaultPool, compressionLevel)
+            channel.encodeTo(source, KtorDefaultDirectPool, compressionLevel)
         }.channel
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -58,14 +54,15 @@ public class Zstd(private val compressionLevel: Int) : Encoder {
         source: ByteReadChannel,
         coroutineContext: CoroutineContext
     ): ByteReadChannel = GlobalScope.writer(coroutineContext) {
-        source.decodeTo(channel, KtorDefaultPool)
+        source.decodeTo(channel, KtorDefaultDirectPool)
     }.channel
 
     internal suspend fun ByteReadChannel.decodeTo(
         destination: ByteWriteChannel,
-        pool: ObjectPool<ByteBuffer> = KtorDefaultPool
+        pool: ObjectPool<ByteBuffer> = KtorDefaultDirectPool
     ) {
         val inputBuf = pool.borrow()
+        val outputBuf = pool.borrow()
         val ctx = ZstdDecompressCtx()
 
         try {
@@ -74,73 +71,23 @@ public class Zstd(private val compressionLevel: Int) : Encoder {
                 if (bytesRead <= 0) continue
 
                 inputBuf.flip()
+
                 while (inputBuf.hasRemaining()) {
-                    val srcOffset = inputBuf.arrayOffset() + inputBuf.position()
-                    val srcLength = inputBuf.remaining()
+                    outputBuf.clear()
+                    ctx.decompressDirectByteBufferStream(outputBuf, inputBuf)
 
-                    val frameCompressedSize = try {
-                        ZstdUtils.findFrameCompressedSize(inputBuf.array(), srcOffset, srcLength).toInt()
-                    } catch (_: ZstdException) {
-                        // an exception could be thrown if the rest of inputBuf does not contain a whole frame,
-                        // so we need to break to read the next chunk
-                        break
-                    }
-                    // inputBuf does not contain the whole frame - wait for more data
-                    if (frameCompressedSize > srcLength) break
-
-                    val frameContentSize = getFrameContentSize(
-                        inputBuf,
-                        srcOffset,
-                        frameCompressedSize
-                    )
-                    val outArray = ByteArray(frameContentSize)
-                    ctx.decompressByteArray(
-                        outArray,
-                        0,
-                        frameContentSize,
-                        inputBuf.array(),
-                        srcOffset,
-                        frameCompressedSize
-                    )
-                    destination.writeFully(outArray)
-                    inputBuf.position(inputBuf.position() + frameCompressedSize)
+                    outputBuf.flip()
+                    destination.writeFully(outputBuf)
                 }
 
                 inputBuf.compact()
-                if (!inputBuf.hasRemaining()) {
-                    throw IOException("Zstd frame exceeds buffer capacity of ${inputBuf.capacity()} bytes")
-                }
             }
             inputBuf.flip()
-            if (inputBuf.hasRemaining()) {
-                throw EOFException("Incomplete zstd frame at end of stream")
-            }
         } finally {
             ctx.close()
             pool.recycle(inputBuf)
+            pool.recycle(outputBuf)
         }
-    }
-
-    private fun getFrameContentSize(
-        inputBuf: ByteBuffer,
-        srcOffset: Int,
-        frameCompressedSize: Int
-    ): Int {
-        val frameContentSize = ZstdUtils.getFrameContentSize(
-            inputBuf.array(),
-            srcOffset,
-            frameCompressedSize
-        )
-        if (ZstdUtils.isError(frameContentSize)) {
-            throw IOException("Invalid zstd frame: ${ZstdUtils.getErrorName(frameContentSize)}")
-        }
-        if (frameContentSize == -1L) {
-            throw IOException("Content size is unknown")
-        }
-        if (frameContentSize > Int.MAX_VALUE) {
-            throw IOException("Zstd frame content size $frameContentSize exceeds Int.MAX_VALUE")
-        }
-        return frameContentSize.toInt()
     }
 
     private suspend fun ByteReadChannel.encodeTo(
@@ -155,25 +102,14 @@ public class Zstd(private val compressionLevel: Int) : Encoder {
         try {
             while (!isClosedForRead) {
                 inputBuf.clear()
+                outputBuf.clear()
                 val bytesRead = readAvailable(inputBuf)
                 if (bytesRead <= 0) continue
+                inputBuf.flip()
 
-                val maxCompressedSize = ZstdUtils.compressBound(bytesRead.toLong()).toInt()
-                val outArray = if (maxCompressedSize > outputBuf.capacity()) {
-                    ByteArray(maxCompressedSize)
-                } else {
-                    outputBuf.array()
-                }
-                val compressedSize = ctx.compressByteArray(
-                    outArray,
-                    0,
-                    outArray.size,
-                    inputBuf.array(),
-                    0,
-                    bytesRead
-                )
-
-                destination.writeFully(outArray, 0, compressedSize)
+                ctx.compress(outputBuf, inputBuf).toLong()
+                outputBuf.flip()
+                destination.writeFully(outputBuf)
             }
         } finally {
             ctx.close()
