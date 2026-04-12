@@ -107,7 +107,7 @@ public class Zstd(private val compressionLevel: Int) : Encoder {
                 if (bytesRead <= 0) continue
                 inputBuf.flip()
 
-                ctx.compress(outputBuf, inputBuf).toLong()
+                ctx.compress(outputBuf, inputBuf)
                 outputBuf.flip()
                 destination.writeFully(outputBuf)
             }
