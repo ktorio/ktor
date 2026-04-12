@@ -14,8 +14,6 @@ import kotlinx.io.*
 
 private val digits = "0123456789abcdef".toCharArray()
 
-internal const val NONCE_SIZE_IN_BYTES = 16
-
 /**
  * Encode [bytes] as a HEX string with no spaces, newlines and `0x` prefixes.
  *
@@ -53,20 +51,42 @@ public fun hex(s: String): ByteArray {
 }
 
 /**
- * Generates a nonce string. Could block if the system's entropy source is empty
+ * Generates a nonce string 32 characters long. Could block if the system's entropy source is empty
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.generateNonce)
  */
-public expect fun generateNonce(): String
+@Deprecated(
+    "Use generateNonceBlocking in blocking contexts and generateNonceSuspend in non-blocking contexts",
+    replaceWith = ReplaceWith("generateNonceBlocking()")
+)
+public fun generateNonce(): String = generateNonceBlocking(32)
+
+/**
+ * Generates a nonce string [length] characters long. Could suspend if the system's entropy source is empty.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.generateNonce)
+ */
+public expect suspend fun generateNonceSuspend(length: Int = 32): String
+
+/**
+ * Generates a nonce string [length] characters long. Could block if the system's entropy source is empty.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.generateNonce)
+ */
+public expect fun generateNonceBlocking(length: Int = 32): String
 
 /**
  * Generates a nonce bytes of [size]. Could block if the system's entropy source is empty
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.generateNonce)
  */
+@Deprecated(
+    "Use generateNonceBlocking in blocking contexts and generateNonceSuspend in non-blocking contexts",
+    replaceWith = ReplaceWith("generateNonceBlocking(size).toByteArray()", "io.ktor.utils.io.core.toByteArray")
+)
 public fun generateNonce(size: Int): ByteArray = buildPacket {
     while (this.size < size) {
-        writeText(generateNonce())
+        writeText(generateNonceBlocking())
     }
 }.readByteArray(size)
 

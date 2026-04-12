@@ -58,32 +58,46 @@ private value class DigestImpl(val delegate: MessageDigest) : Digest {
 }
 
 /**
- * Generates a nonce string 16 characters long. Could block if the system's entropy source is empty
+ * Generates a nonce string [length] characters long. Could block if the system's entropy source is empty.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.generateNonce)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.generateNonceSuspend)
  */
-public actual fun generateNonce(): String {
+public actual suspend fun generateNonceSuspend(length: Int): String {
+    ensureNonceGeneratorRunning()
+
+    val nonce = seedChannel.receive()
+
+    if (nonce.length >= length) {
+        return nonce.substring(0, length)
+    }
+
+    return generateNonceLoop(nonce, length)
+}
+
+/**
+ * Generates a nonce string [length] characters long. Could block if the system's entropy source is empty.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.generateNonceBlocking)
+ */
+public actual fun generateNonceBlocking(length: Int): String {
     val nonce = seedChannel.tryReceive().getOrNull()
 
-    if (nonce != null && nonce.length >= 32) {
-        return nonce.substring(0, 32)
+    if (nonce != null && nonce.length >= length) {
+        return nonce.substring(0, length)
     }
 
-    return generateNonceBlocking(nonce, 32)
-}
-
-private fun generateNonceBlocking(initial: String?, length: Int): String {
     ensureNonceGeneratorRunning()
-    return runBlocking {
-        buildString(length) {
-            if (initial != null) {
-                append(initial)
-            }
 
-            while (length > this.length) {
-                val toAppend = seedChannel.receive()
-                append(toAppend, 0, (length - this.length).coerceAtMost(toAppend.length))
-            }
-        }.substring(0, length)
-    }
+    return runBlocking { generateNonceLoop(nonce, length) }
 }
+
+private suspend fun generateNonceLoop(initial: String?, length: Int) = buildString(length) {
+    if (initial != null) {
+        append(initial)
+    }
+
+    while (length > this.length) {
+        val toAppend = seedChannel.receive()
+        append(toAppend, 0, (length - this.length).coerceAtMost(toAppend.length))
+    }
+}.substring(0, length)
