@@ -99,4 +99,11 @@ private class DetachedMutableEntry<K, V>(
         currentValue = newValue
         return oldValue
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (other !is Map.Entry<*, *>) return false
+        return key == other.key && value == other.value
+    }
+
+    override fun hashCode(): Int = key.hashCode() xor value.hashCode()
 }
