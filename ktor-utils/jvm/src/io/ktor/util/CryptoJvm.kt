@@ -64,14 +64,26 @@ private value class DigestImpl(val delegate: MessageDigest) : Digest {
  */
 public actual fun generateNonce(): String {
     val nonce = seedChannel.tryReceive().getOrNull()
-    if (nonce != null) return nonce
 
-    return generateNonceBlocking()
+    if (nonce != null && nonce.length >= 32) {
+        return nonce.substring(0, 32)
+    }
+
+    return generateNonceBlocking(nonce, 32)
 }
 
-private fun generateNonceBlocking(): String {
+private fun generateNonceBlocking(initial: String?, length: Int): String {
     ensureNonceGeneratorRunning()
     return runBlocking {
-        seedChannel.receive()
+        buildString(length) {
+            if (initial != null) {
+                append(initial)
+            }
+
+            while (length > this.length) {
+                val toAppend = seedChannel.receive()
+                append(toAppend, 0, (length - this.length).coerceAtMost(toAppend.length))
+            }
+        }.substring(0, length)
     }
 }

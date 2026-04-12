@@ -8,6 +8,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import org.slf4j.*
 import java.security.*
+import kotlin.random.asKotlinRandom
 
 private const val SHA1PRNG = "SHA1PRNG"
 
@@ -23,20 +24,32 @@ private const val SECURE_NONCE_COUNT = 8
 
 private const val INSECURE_NONCE_COUNT_FACTOR = 4
 
+private const val NONCE_SIZE_IN_BYTES = 16
+
+private const val RANDOM_BYTES_CHUNK_SIZE = 16
+
 internal val seedChannel: Channel<String> = Channel(1024)
 
 private val NonceGeneratorCoroutineName = CoroutineName("nonce-generator")
 
 @OptIn(DelicateCoroutinesApi::class)
+@Suppress("CoroutineContextWithJob")
 private val nonceGeneratorJob = GlobalScope.launch(
     context = Dispatchers.Default + NonCancellable + NonceGeneratorCoroutineName,
     start = CoroutineStart.LAZY
 ) {
     val seedChannel = seedChannel
     var lastReseed = 0L
-    val previousRoundNonceList = ArrayList<String>()
+    // empty strings are fine, because generateNonce cares about the string length
+    val randomNonces =
+        Array(
+            SECURE_NONCE_COUNT * NONCE_SIZE_IN_BYTES * INSECURE_NONCE_COUNT_FACTOR * 2 / RANDOM_BYTES_CHUNK_SIZE * 2
+        ) {
+            ""
+        }
     val secureInstance = lookupSecureRandom()
     val weakRandom = SecureRandom.getInstance(SHA1PRNG)
+    val weakKotlinRandom = weakRandom.asKotlinRandom() // we need a kotlin random for kotlin.collections.shuffle
 
     val secureBytes = ByteArray(SECURE_NONCE_COUNT * NONCE_SIZE_IN_BYTES)
     val weakBytes = ByteArray(secureBytes.size * INSECURE_NONCE_COUNT_FACTOR)
@@ -67,19 +80,29 @@ private val nonceGeneratorJob = GlobalScope.launch(
                 weakRandom.setSeed(secureBytes)
             }
 
-            // concat entries with entries from the previous round
-            // and shuffle with weak random (reseeded)
-            val randomNonceList = (hex(weakBytes).chunked(16) + previousRoundNonceList).shuffled(weakRandom)
+            /*
+            concat entries with entries from the previous round
 
-            // send first part to the channel
-            for (index in 0 until randomNonceList.size / 2) {
-                seedChannel.send(randomNonceList[index])
+            realistically, hex.length here could be a constant as it *should* always be the same length
+            but it's just easier to use hex.length
+
+            we're only setting the first 1/2 elements in randomNonces not the full array,
+            the remaining elements are preserved from the last iteration
+
+            we overwrite the first half of the elements,
+            as those are the ones that were previously sent to the channel
+             */
+            val hex = weakBytes.toHexString()
+            for (index in 0..<hex.length / RANDOM_BYTES_CHUNK_SIZE) {
+                val offset = index * RANDOM_BYTES_CHUNK_SIZE
+                randomNonces[index] = hex.substring(offset, offset + RANDOM_BYTES_CHUNK_SIZE)
             }
+            // and shuffle with weak random (reseeded)
+            randomNonces.shuffle(weakKotlinRandom) // shuffle array in-place to avoid extra allocations
 
-            // stash the second part for the next round
-            previousRoundNonceList.clear()
-            for (index in randomNonceList.size / 2 until randomNonceList.size) {
-                previousRoundNonceList.add(randomNonceList[index])
+            // send first half to the channel
+            for (index in 0 until randomNonces.size / 2) {
+                seedChannel.send(randomNonces[index])
             }
         }
     } catch (t: Throwable) {
@@ -102,9 +125,21 @@ private fun lookupSecureRandom(): SecureRandom {
         getInstanceOrNull(name)?.let { return it }
     }
 
-    LoggerFactory.getLogger("io.ktor.util.random")
-        .warn("None of the ${SECURE_RANDOM_PROVIDERS.joinToString(separator = ", ")} found, fallback to default")
+    val logger = LoggerFactory.getLogger("io.ktor.util.random")
 
+    logger.warn("None of the ${SECURE_RANDOM_PROVIDERS.joinToString()} found, falling back to the JDK strong default")
+
+    // try JVM-determined strong instances
+    // on OpenJDK, this is set to Windows-PRNG:SunMSCAPI and DRBG:SUN on Windows and NativePRNGBlocking:SUN and DRBG:SUN otherwise.
+    try {
+        return SecureRandom.getInstanceStrong()
+    } catch (_: NoSuchAlgorithmException) {
+        // ignored
+    }
+
+    logger.warn("None of the JDK determined strong SecureRandom providers were available, falling back to the default")
+
+    // fallback (*should* never be null)
     return getInstanceOrNull() ?: error("No SecureRandom implementation found")
 }
 
@@ -114,6 +149,6 @@ private fun getInstanceOrNull(name: String? = null) = try {
     } else {
         SecureRandom()
     }
-} catch (notFound: NoSuchAlgorithmException) {
+} catch (_: NoSuchAlgorithmException) {
     null
 }
