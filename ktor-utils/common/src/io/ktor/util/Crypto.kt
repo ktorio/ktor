@@ -19,6 +19,10 @@ private val digits = "0123456789abcdef".toCharArray()
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.hex)
  */
+@Deprecated(
+    "prefer kotlin.text.toHexString",
+    replaceWith = ReplaceWith("bytes.toHexString()", imports = ["kotlin.text.toHexString"]),
+)
 public fun hex(bytes: ByteArray): String {
     val result = CharArray(bytes.size * 2)
     var resultIndex = 0
@@ -38,6 +42,10 @@ public fun hex(bytes: ByteArray): String {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.hex)
  */
+@Deprecated(
+    "prefer kotlin.text.hexToByteArray",
+    replaceWith = ReplaceWith("s.hexToByteArray()", imports = ["kotlin.text.hexToByteArray"]),
+)
 public fun hex(s: String): ByteArray {
     val result = ByteArray(s.length / 2)
     for (idx in result.indices) {

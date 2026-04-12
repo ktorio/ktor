@@ -8,6 +8,7 @@ import kotlin.test.*
 
 class HashFunctionTest {
     @Test
+    @Suppress("DEPRECATION")
     fun sha1() {
         assertEquals(
             "a9993e364706816aba3e25717850c26c9cd0d89d",
