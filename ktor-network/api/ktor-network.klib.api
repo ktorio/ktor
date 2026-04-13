@@ -123,6 +123,7 @@ final class io.ktor.network.sockets/Datagram { // io.ktor.network.sockets/Datagr
 }
 
 final class io.ktor.network.sockets/InetSocketAddress : io.ktor.network.sockets/SocketAddress { // io.ktor.network.sockets/InetSocketAddress|null[0]
+    constructor <init>(kotlin/ByteArray, kotlin/Int) // io.ktor.network.sockets/InetSocketAddress.<init>|<init>(kotlin.ByteArray;kotlin.Int){}[0]
     constructor <init>(kotlin/String, kotlin/Int) // io.ktor.network.sockets/InetSocketAddress.<init>|<init>(kotlin.String;kotlin.Int){}[0]
 
     final val hostname // io.ktor.network.sockets/InetSocketAddress.hostname|{}hostname[0]

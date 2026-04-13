@@ -24,6 +24,19 @@ public actual class InetSocketAddress internal constructor(
     public actual constructor(hostname: String, port: Int) :
         this(java.net.InetSocketAddress(hostname, port))
 
+    public actual constructor(address: ByteArray, port: Int) : this(
+        java.net.InetSocketAddress(
+            java.net.InetAddress.getByAddress(
+                address.also {
+                    require(it.size == 4 || it.size == 16) {
+                        "Invalid IP address byte array length: ${it.size}. Expected 4 (IPv4) or 16 (IPv6)."
+                    }
+                }
+            ),
+            port
+        )
+    )
+
     public actual operator fun component1(): String = hostname
 
     public actual operator fun component2(): Int = port
