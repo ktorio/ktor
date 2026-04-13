@@ -1177,6 +1177,14 @@ public class io/ktor/server/request/RequestCookies {
 	protected final fun getRequest ()Lio/ktor/server/request/ApplicationRequest;
 }
 
+public final class io/ktor/server/request/RequireRequestParameterKt {
+	public static final fun requireCookie (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;Lio/ktor/http/CookieEncoding;)Ljava/lang/String;
+	public static synthetic fun requireCookie$default (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;Lio/ktor/http/CookieEncoding;ILjava/lang/Object;)Ljava/lang/String;
+	public static final fun requireHeader (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;)Ljava/lang/String;
+	public static final fun requirePathParameter (Lio/ktor/server/routing/RoutingCall;Ljava/lang/String;)Ljava/lang/String;
+	public static final fun requireQueryParameter (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;)Ljava/lang/String;
+}
+
 public abstract interface class io/ktor/server/response/ApplicationResponse {
 	public abstract fun getCall ()Lio/ktor/server/application/ApplicationCall;
 	public abstract fun getCookies ()Lio/ktor/server/response/ResponseCookies;
