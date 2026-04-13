@@ -36,6 +36,16 @@ public expect class InetSocketAddress(
     hostname: String,
     port: Int
 ) : SocketAddress {
+
+    /**
+     * Creates an [InetSocketAddress] from raw IP address bytes and a port number.
+     *
+     * @param address the raw IP address bytes in network byte order: 4 bytes for IPv4 or 16 bytes for IPv6.
+     * @param port the port number.
+     * @throws IllegalArgumentException if [address] is neither 4 nor 16 bytes long.
+     */
+    public constructor(address: ByteArray, port: Int)
+
     /**
      * The hostname of the socket address.
      *
