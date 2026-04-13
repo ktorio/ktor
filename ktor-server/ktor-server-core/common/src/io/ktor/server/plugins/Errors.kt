@@ -36,16 +36,19 @@ public class NotFoundException(message: String? = "Resource not found") : Except
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.MissingRequestParameterException)
  *
  * @property parameterName of missing request parameter
+ * @property parameterType the type of the missing parameter (e.g., "query", "header", "cookie", "path")
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 public class MissingRequestParameterException(
-    public val parameterName: String
-) : BadRequestException("Request parameter $parameterName is missing"),
+    public val parameterName: String,
+    public val parameterType: String = "request"
+) : BadRequestException("Request $parameterType parameter $parameterName is missing"),
     CopyableThrowable<MissingRequestParameterException> {
 
-    override fun createCopy(): MissingRequestParameterException = MissingRequestParameterException(parameterName).also {
-        it.initCauseBridge(this)
-    }
+    override fun createCopy(): MissingRequestParameterException =
+        MissingRequestParameterException(parameterName, parameterType).also {
+            it.initCauseBridge(this)
+        }
 }
 
 /**

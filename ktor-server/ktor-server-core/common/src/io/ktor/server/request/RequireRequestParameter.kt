@@ -2,8 +2,6 @@
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-@file:Suppress("unused")
-
 package io.ktor.server.request
 
 import io.ktor.http.*
@@ -17,7 +15,7 @@ import io.ktor.server.routing.*
  * @throws MissingRequestParameterException if no query parameter with [name] is present
  */
 public fun ApplicationCall.requireQueryParameter(name: String): String {
-    return request.queryParameters[name] ?: throw MissingRequestParameterException(name)
+    return request.queryParameters[name] ?: throw MissingRequestParameterException(name, "query")
 }
 
 /**
@@ -26,7 +24,7 @@ public fun ApplicationCall.requireQueryParameter(name: String): String {
  * @throws MissingRequestParameterException if no header with [name] is present
  */
 public fun ApplicationCall.requireHeader(name: String): String {
-    return request.headers[name] ?: throw MissingRequestParameterException(name)
+    return request.headers[name] ?: throw MissingRequestParameterException(name, "header")
 }
 
 /**
@@ -38,7 +36,7 @@ public fun ApplicationCall.requireCookie(
     name: String,
     encoding: CookieEncoding = CookieEncoding.URI_ENCODING
 ): String {
-    return request.cookies[name, encoding] ?: throw MissingRequestParameterException(name)
+    return request.cookies[name, encoding] ?: throw MissingRequestParameterException(name, "cookie")
 }
 
 /**
@@ -47,5 +45,5 @@ public fun ApplicationCall.requireCookie(
  * @throws MissingRequestParameterException if no path parameter with [name] is present
  */
 public fun RoutingCall.requirePathParameter(name: String): String {
-    return pathParameters[name] ?: throw MissingRequestParameterException(name)
+    return pathParameters[name] ?: throw MissingRequestParameterException(name, "path")
 }
