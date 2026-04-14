@@ -1009,10 +1009,12 @@ public abstract class io/ktor/server/plugins/ContentTransformationException : ja
 }
 
 public final class io/ktor/server/plugins/MissingRequestParameterException : io/ktor/server/plugins/BadRequestException, kotlinx/coroutines/CopyableThrowable {
-	public fun <init> (Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun createCopy ()Lio/ktor/server/plugins/MissingRequestParameterException;
 	public synthetic fun createCopy ()Ljava/lang/Throwable;
 	public final fun getParameterName ()Ljava/lang/String;
+	public final fun getParameterType ()Ljava/lang/String;
 }
 
 public final class io/ktor/server/plugins/MutableOriginConnectionPoint : io/ktor/http/RequestConnectionPoint {
@@ -1175,6 +1177,14 @@ public class io/ktor/server/request/RequestCookies {
 	public static synthetic fun get$default (Lio/ktor/server/request/RequestCookies;Ljava/lang/String;Lio/ktor/http/CookieEncoding;ILjava/lang/Object;)Ljava/lang/String;
 	public final fun getRawCookies ()Ljava/util/Map;
 	protected final fun getRequest ()Lio/ktor/server/request/ApplicationRequest;
+}
+
+public final class io/ktor/server/request/RequireRequestParameterKt {
+	public static final fun requireCookie (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;Lio/ktor/http/CookieEncoding;)Ljava/lang/String;
+	public static synthetic fun requireCookie$default (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;Lio/ktor/http/CookieEncoding;ILjava/lang/Object;)Ljava/lang/String;
+	public static final fun requireHeader (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;)Ljava/lang/String;
+	public static final fun requirePathParameter (Lio/ktor/server/routing/RoutingCall;Ljava/lang/String;)Ljava/lang/String;
+	public static final fun requireQueryParameter (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;)Ljava/lang/String;
 }
 
 public abstract interface class io/ktor/server/response/ApplicationResponse {
