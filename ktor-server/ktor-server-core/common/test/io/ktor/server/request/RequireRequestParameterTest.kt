@@ -87,6 +87,22 @@ class RequireRequestParameterTest {
     }
 
     @Test
+    fun `requireCookie returns value with explicit encoding`() = testApplication {
+        routing {
+            get("/test") {
+                val value = call.requireCookie("session", CookieEncoding.RAW)
+                call.respondText(value)
+            }
+        }
+
+        val response = client.get("/test") {
+            header(HttpHeaders.Cookie, "session=abc123")
+        }
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("abc123", response.bodyAsText())
+    }
+
+    @Test
     fun `requireCookie returns 400 when missing`() = testApplication {
         routing {
             get("/test") {
