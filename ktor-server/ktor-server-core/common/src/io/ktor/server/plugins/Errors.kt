@@ -41,8 +41,11 @@ public class NotFoundException(message: String? = "Resource not found") : Except
 @OptIn(ExperimentalCoroutinesApi::class)
 public class MissingRequestParameterException(
     public val parameterName: String,
-    public val parameterType: String = "request"
-) : BadRequestException("Request $parameterType parameter $parameterName is missing"),
+    public val parameterType: String? = null
+) : BadRequestException(
+    parameterType?.let { "Request $it parameter $parameterName is missing" }
+        ?: "Request parameter $parameterName is missing"
+),
     CopyableThrowable<MissingRequestParameterException> {
 
     override fun createCopy(): MissingRequestParameterException =

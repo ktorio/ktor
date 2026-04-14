@@ -686,12 +686,12 @@ final class io.ktor.server.plugins/CannotTransformContentToTypeException : io.kt
 }
 
 final class io.ktor.server.plugins/MissingRequestParameterException : io.ktor.server.plugins/BadRequestException, kotlinx.coroutines/CopyableThrowable<io.ktor.server.plugins/MissingRequestParameterException> { // io.ktor.server.plugins/MissingRequestParameterException|null[0]
-    constructor <init>(kotlin/String, kotlin/String = ...) // io.ktor.server.plugins/MissingRequestParameterException.<init>|<init>(kotlin.String;kotlin.String){}[0]
+    constructor <init>(kotlin/String, kotlin/String? = ...) // io.ktor.server.plugins/MissingRequestParameterException.<init>|<init>(kotlin.String;kotlin.String?){}[0]
 
     final val parameterName // io.ktor.server.plugins/MissingRequestParameterException.parameterName|{}parameterName[0]
         final fun <get-parameterName>(): kotlin/String // io.ktor.server.plugins/MissingRequestParameterException.parameterName.<get-parameterName>|<get-parameterName>(){}[0]
     final val parameterType // io.ktor.server.plugins/MissingRequestParameterException.parameterType|{}parameterType[0]
-        final fun <get-parameterType>(): kotlin/String // io.ktor.server.plugins/MissingRequestParameterException.parameterType.<get-parameterType>|<get-parameterType>(){}[0]
+        final fun <get-parameterType>(): kotlin/String? // io.ktor.server.plugins/MissingRequestParameterException.parameterType.<get-parameterType>|<get-parameterType>(){}[0]
 
     final fun createCopy(): io.ktor.server.plugins/MissingRequestParameterException // io.ktor.server.plugins/MissingRequestParameterException.createCopy|createCopy(){}[0]
 }
