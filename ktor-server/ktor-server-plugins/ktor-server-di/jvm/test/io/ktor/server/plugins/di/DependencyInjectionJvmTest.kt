@@ -388,6 +388,39 @@ class DependencyInjectionJvmTest {
     }
 
     @Test
+    fun `function reference annotations`() {
+        testConfigFile(
+            extraConfig = """
+                database {
+                    url="jdbc:h2:mem:test"
+                    username=admin
+                    password=abc123
+                }
+            """.trimIndent(),
+            test = {
+                assertEquals(HttpStatusCode.OK, client.get("/data").status)
+            }
+        ) {
+            dependencies {
+                provide(::FakeLogger)
+                provide(::dataSource)
+            }
+            restModule(dependencies.resolve())
+        }
+    }
+
+    @Test
+    fun `missing parameters on function references`() = runTestDI {
+        dependencies {
+            provide(::FakeLogger)
+            provide(::dataSource)
+        }
+        assertFailsWith<MissingDependencyException> {
+            restModule(dependencies.resolve())
+        }
+    }
+
+    @Test
     fun `resolve flexible and nullable types`() = runTestDI {
         fun getString(): String? = "hello"
 

@@ -14,6 +14,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
 
 /**
  * A Ktor application plugin for managing the registration and resolution of module dependencies.
@@ -212,6 +213,11 @@ internal expect fun loadMapExtensions(): List<DependencyMapExtension>
 public object NoReflection : DependencyReflection {
     override suspend fun <T : Any> create(kClass: KClass<T>, init: suspend (DependencyKey) -> Any): T =
         throw DependencyInjectionException("A call to create a new instance was attempted, but reflection is disabled")
+
+    override suspend fun <T> call(kFunction: KFunction<T>, init: suspend (DependencyKey) -> Any): T =
+        throw DependencyInjectionException(
+            "A dynamic call to function ${kFunction.name} was attempted, but reflection is disabled"
+        )
 }
 
 /**

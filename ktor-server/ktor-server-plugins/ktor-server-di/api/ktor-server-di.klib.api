@@ -55,6 +55,7 @@ abstract interface io.ktor.server.plugins.di/DependencyProvider { // io.ktor.ser
 
 abstract interface io.ktor.server.plugins.di/DependencyReflection { // io.ktor.server.plugins.di/DependencyReflection|null[0]
     abstract suspend fun <#A1: kotlin/Any> create(kotlin.reflect/KClass<#A1>, kotlin.coroutines/SuspendFunction1<io.ktor.server.plugins.di/DependencyKey, kotlin/Any>): #A1 // io.ktor.server.plugins.di/DependencyReflection.create|create(kotlin.reflect.KClass<0:0>;kotlin.coroutines.SuspendFunction1<io.ktor.server.plugins.di.DependencyKey,kotlin.Any>){0§<kotlin.Any>}[0]
+    abstract suspend fun <#A1: kotlin/Any?> call(kotlin.reflect/KFunction<#A1>, kotlin.coroutines/SuspendFunction1<io.ktor.server.plugins.di/DependencyKey, kotlin/Any>): #A1 // io.ktor.server.plugins.di/DependencyReflection.call|call(kotlin.reflect.KFunction<0:0>;kotlin.coroutines.SuspendFunction1<io.ktor.server.plugins.di.DependencyKey,kotlin.Any>){0§<kotlin.Any?>}[0]
 }
 
 abstract interface io.ktor.server.plugins.di/DependencyResolver : io.ktor.server.plugins.di/MutableDependencyMap, kotlinx.coroutines/CoroutineScope { // io.ktor.server.plugins.di/DependencyResolver|null[0]
@@ -369,6 +370,7 @@ open class io.ktor.server.plugins.di/DependencyInjectionException : kotlin/Runti
 
 final object io.ktor.server.plugins.di/NoReflection : io.ktor.server.plugins.di/DependencyReflection { // io.ktor.server.plugins.di/NoReflection|null[0]
     final suspend fun <#A1: kotlin/Any> create(kotlin.reflect/KClass<#A1>, kotlin.coroutines/SuspendFunction1<io.ktor.server.plugins.di/DependencyKey, kotlin/Any>): #A1 // io.ktor.server.plugins.di/NoReflection.create|create(kotlin.reflect.KClass<0:0>;kotlin.coroutines.SuspendFunction1<io.ktor.server.plugins.di.DependencyKey,kotlin.Any>){0§<kotlin.Any>}[0]
+    final suspend fun <#A1: kotlin/Any?> call(kotlin.reflect/KFunction<#A1>, kotlin.coroutines/SuspendFunction1<io.ktor.server.plugins.di/DependencyKey, kotlin/Any>): #A1 // io.ktor.server.plugins.di/NoReflection.call|call(kotlin.reflect.KFunction<0:0>;kotlin.coroutines.SuspendFunction1<io.ktor.server.plugins.di.DependencyKey,kotlin.Any>){0§<kotlin.Any?>}[0]
 }
 
 final object io.ktor.server.plugins.di/PropertyQualifier { // io.ktor.server.plugins.di/PropertyQualifier|null[0]
