@@ -65,9 +65,7 @@ internal class CurlMultiApiHandler : Closeable {
                 wsConfig.maxFrameSize,
             )
         } else {
-            CurlHttpResponseBody(request.executionContext) {
-                unpauseEasyHandle(easyHandle)
-            }
+            CurlHttpResponseBody(request.executionContext)
         }
         val responseData = CurlResponseBuilder(request, bodyStartedReceiving, responseBody)
         val responseDataRef = responseData.asStablePointer()
