@@ -4,10 +4,10 @@
 
 package ktorbuild.vcpkg
 
+import ktorbuild.internal.gradle.maybeNamed
 import org.gradle.api.Project
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
 import org.jetbrains.kotlin.gradle.targets.native.internal.KotlinNativeDownloadTask
 import org.jetbrains.kotlin.konan.target.KonanTarget
@@ -18,8 +18,11 @@ fun Project.registerVcpkgInstallTask(
     target: KonanTarget,
     configure: VcpkgInstall.() -> Unit = {}
 ): TaskProvider<VcpkgInstall> {
-    val downloadKotlinNative = tasks.named<KotlinNativeDownloadTask>("downloadKotlinNativeDistribution")
+    val downloadKotlinNative = tasks.maybeNamed<KotlinNativeDownloadTask>("downloadKotlinNativeDistribution")
     return tasks.register<VcpkgInstall>("${library}Install") {
+        onlyIf("Kotlin distribution should be available") { downloadKotlinNative != null }
+        if (downloadKotlinNative == null) return@register
+
         install(library, target)
         // Do not configure Toolchain on macOS as Konan uses native tools there
         if (!target.family.isAppleFamily) {
