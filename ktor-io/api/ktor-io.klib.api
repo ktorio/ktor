@@ -217,6 +217,8 @@ final class io.ktor.utils.io/ByteChannel : io.ktor.utils.io/BufferedByteWriteCha
         final fun <get-autoFlush>(): kotlin/Boolean // io.ktor.utils.io/ByteChannel.autoFlush.<get-autoFlush>|<get-autoFlush>(){}[0]
     final val closedCause // io.ktor.utils.io/ByteChannel.closedCause|{}closedCause[0]
         final fun <get-closedCause>(): kotlin/Throwable? // io.ktor.utils.io/ByteChannel.closedCause.<get-closedCause>|<get-closedCause>(){}[0]
+    final val hasFreeSpace // io.ktor.utils.io/ByteChannel.hasFreeSpace|{}hasFreeSpace[0]
+        final fun <get-hasFreeSpace>(): kotlin/Boolean // io.ktor.utils.io/ByteChannel.hasFreeSpace.<get-hasFreeSpace>|<get-hasFreeSpace>(){}[0]
     final val isClosedForRead // io.ktor.utils.io/ByteChannel.isClosedForRead|{}isClosedForRead[0]
         final fun <get-isClosedForRead>(): kotlin/Boolean // io.ktor.utils.io/ByteChannel.isClosedForRead.<get-isClosedForRead>|<get-isClosedForRead>(){}[0]
     final val isClosedForWrite // io.ktor.utils.io/ByteChannel.isClosedForWrite|{}isClosedForWrite[0]

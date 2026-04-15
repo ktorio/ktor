@@ -154,7 +154,7 @@ internal class CurlMultiApiHandler : Closeable {
         synchronized(easyHandlesToUnpauseLock) {
             var handle = easyHandlesToUnpause.removeFirstOrNull()
             while (handle != null) {
-                curl_easy_pause(handle, CURLPAUSE_CONT)
+                if (handle in activeHandles) curl_easy_pause(handle, CURLPAUSE_CONT)
                 handle = easyHandlesToUnpause.removeFirstOrNull()
             }
         }

@@ -32,6 +32,22 @@ public class ByteChannel(public override val autoFlush: Boolean = false) : ByteR
     @Volatile
     private var flushBufferSize = 0
 
+    /**
+     * Indicates whether there is free space available in the channel for additional write operations.
+     *
+     * This property checks if the current size of the flush buffer is less than the predefined maximum channel size.
+     * If true, it means there is space available for more data to be written to the channel without requiring
+     * an immediate flush.
+     *
+     * Note: This is an internal API and subject to change or removal without notice. If you need to use this property,
+     * please share your use case with us at [KTOR-9579](https://youtrack.jetbrains.com/issue/KTOR-9579).
+     *
+     * @return `true` if there is free space in the flush buffer; `false` otherwise.
+     */
+    @InternalAPI
+    public val hasFreeSpace: Boolean
+        get() = flushBufferSize < CHANNEL_MAX_SIZE
+
     @OptIn(InternalAPI::class)
     private val flushBufferMutex = SynchronizedObject()
 
@@ -98,10 +114,10 @@ public class ByteChannel(public override val autoFlush: Boolean = false) : ByteR
         rethrowCloseCauseIfNeeded()
 
         flushWriteBuffer()
-        if (flushBufferSize < CHANNEL_MAX_SIZE) return
+        if (hasFreeSpace) return
 
         sleepWhile(Slot::Write) {
-            flushBufferSize >= CHANNEL_MAX_SIZE && _closedCause.value == null
+            !hasFreeSpace && _closedCause.value == null
         }
     }
 

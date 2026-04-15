@@ -38,7 +38,7 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
         }
 
         runEventLoop().invokeOnCompletion { cause ->
-            cause?.let { curlScope.cancel(cause = CancellationException(cause)) }
+            cause?.let { curlScope.cancel(cause = cause as? CancellationException ?: CancellationException(cause)) }
         }
     }
 

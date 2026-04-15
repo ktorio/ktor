@@ -133,7 +133,7 @@ class ExceptionsTest : ClientLoader() {
     }
 
     @Test
-    fun testErrorOnResponseCoroutine() = clientTests(except("Curl", "Darwin", "DarwinLegacy"), timeout = 2.seconds) {
+    fun testErrorOnResponseCoroutine() = clientTests(except("Darwin", "DarwinLegacy"), timeout = 2.seconds) {
         test { client ->
             val requestBuilder = HttpRequestBuilder()
             requestBuilder.url.takeFrom("$TEST_SERVER/download/infinite")
