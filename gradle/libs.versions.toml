@@ -136,6 +136,7 @@ dokka-plugin-versioning = { module = "org.jetbrains.dokka:versioning-plugin", ve
 
 netty-handler = { module = "io.netty:netty-handler", version.ref = "netty" }
 netty-codec-http2 = { module = "io.netty:netty-codec-http2", version.ref = "netty" }
+netty-codec-http3 = { module = "io.netty:netty-codec-http3", version.ref = "netty" }
 netty-transport-native-kqueue = { module = "io.netty:netty-transport-native-kqueue", version.ref = "netty" }
 netty-transport-native-epoll = { module = "io.netty:netty-transport-native-epoll", version.ref = "netty" }
 netty-tcnative = { module = "io.netty:netty-tcnative", version.ref = "netty-tcnative" }

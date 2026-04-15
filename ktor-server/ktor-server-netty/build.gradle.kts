@@ -29,6 +29,7 @@ kotlin {
             api(projects.ktorServerCore)
 
             api(libs.netty.codec.http2)
+            api(libs.netty.codec.http3)
             api(libs.jetty.alpn.api)
 
             api(libs.netty.transport.native.kqueue)
