@@ -65,7 +65,7 @@ internal class CurlMultiApiHandler : Closeable {
                 wsConfig.maxFrameSize,
             )
         } else {
-            CurlHttpResponseBody(request.executionContext) {
+            CurlHttpResponseBody(request.callContext) {
                 unpauseEasyHandle(easyHandle)
             }
         }
@@ -144,7 +144,7 @@ internal class CurlMultiApiHandler : Closeable {
     fun perform(transfersRunning: IntVarOf<Int>) {
         if (activeHandles.isEmpty()) return
 
-        // Process cancelled handles before performing prevent them from blocking curl_multi_poll.
+        // Process cancelled handles before performing to prevent them from blocking curl_multi_poll.
         if (cancelledHandles.isNotEmpty()) {
             handleCompleted()
         }
@@ -204,7 +204,7 @@ internal class CurlMultiApiHandler : Closeable {
     private fun setupUploadContent(easyHandle: EasyHandle, request: CurlRequestData): COpaquePointer {
         val requestPointer = CurlRequestBodyData(
             body = request.content,
-            callContext = request.executionContext,
+            callContext = request.callContext,
             onUnpause = {
                 unpauseEasyHandle(easyHandle)
             }
