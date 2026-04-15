@@ -85,6 +85,7 @@ public final class io/ktor/server/netty/NettyApplicationEngine$Configuration : i
 	public final fun getConfigureBootstrap ()Lkotlin/jvm/functions/Function1;
 	public final fun getEnableH2c ()Z
 	public final fun getEnableHttp2 ()Z
+	public final fun getEnableHttp3 ()Z
 	public final fun getHttpServerCodec ()Lkotlin/jvm/functions/Function0;
 	public final fun getMaxChunkSize ()I
 	public final fun getMaxHeaderSize ()I
@@ -98,6 +99,7 @@ public final class io/ktor/server/netty/NettyApplicationEngine$Configuration : i
 	public final fun setConfigureBootstrap (Lkotlin/jvm/functions/Function1;)V
 	public final fun setEnableH2c (Z)V
 	public final fun setEnableHttp2 (Z)V
+	public final fun setEnableHttp3 (Z)V
 	public final fun setHttpServerCodec (Lkotlin/jvm/functions/Function0;)V
 	public final fun setMaxChunkSize (I)V
 	public final fun setMaxHeaderSize (I)V
