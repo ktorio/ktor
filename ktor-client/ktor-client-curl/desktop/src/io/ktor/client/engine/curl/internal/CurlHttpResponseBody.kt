@@ -68,6 +68,10 @@ internal class CurlHttpResponseBody(
 
     override fun close(cause: Throwable?) {
         if (bodyChannel.isClosedForWrite) return
-        bodyChannel.close(cause)
+        if (cause != null) {
+            bodyChannel.cancel(cause)
+        } else {
+            bodyChannel.close()
+        }
     }
 }
