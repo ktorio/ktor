@@ -7,12 +7,14 @@
 package ktorbuild.targets
 
 import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
+import ktorbuild.KtorSyncMode
 import ktorbuild.internal.KotlinHierarchyTracker
 import ktorbuild.internal.KtorBuildProblems
 import ktorbuild.internal.TrackedKotlinHierarchyTemplate
 import ktorbuild.internal.android
 import ktorbuild.internal.gradle.projectGradleProperties
 import ktorbuild.internal.gradle.projectTargetDirectories
+import ktorbuild.isLightSync
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.problems.ProblemReporter
 import org.gradle.api.problems.Problems
@@ -69,9 +71,26 @@ abstract class KtorTargets @Inject internal constructor(
     private val targetStates: MutableMap<String, Boolean> by lazy {
         loadDefaults(providers.projectGradleProperties(layout, "target.").get())
     }
-    private var targetStatesAccessed: Boolean = false
 
     private val targetDirectories: Provider<Set<String>> = providers.projectTargetDirectories(layout)
+
+    private val isIdeaSync: Provider<Boolean> =
+        providers.systemProperty("idea.sync.active")
+            .map(String::toBoolean)
+            .orElse(false)
+
+    private val syncModeProvider: Provider<KtorSyncMode> = isIdeaSync.flatMap { sync ->
+        if (sync) {
+            providers.gradleProperty("ktorbuild.syncMode")
+                .map(KtorSyncMode::parse)
+                .orElse(KtorSyncMode.Light())
+        } else {
+            null
+        }
+    }
+
+    val syncMode: KtorSyncMode?
+        get() = syncModeProvider.orNull
 
     val hasJvm: Boolean get() = isEnabled("jvm")
     val hasJs: Boolean get() = isEnabled("js")
@@ -85,6 +104,26 @@ abstract class KtorTargets @Inject internal constructor(
     val hasDarwin: Boolean get() = resolveTargets("darwin").any(::isEnabled)
     val hasAndroidNative: Boolean get() = resolveTargets("androidNative").any(::isEnabled)
 
+    private var filter: (String) -> Boolean = defaultFilter
+    private var filterFrozen: Boolean = false
+
+    init {
+        syncMode?.let(::applySyncMode)
+    }
+
+    private fun applySyncMode(syncMode: KtorSyncMode) {
+        if (syncMode !is KtorSyncMode.Light) return
+        val posixTargets = resolveTargets("posix")
+        filter = { it !in posixTargets || it in syncMode.extraTargets }
+
+    }
+
+    /** Applies a filter to the target list. The given [predicate] is combined with the existing filter. */
+    internal fun filterTargets(predicate: (String) -> Boolean) {
+        check(!filterFrozen) { "Can't change filter after targets have been finalized." }
+        filter = { filter(it) && predicate(it) }
+    }
+
     /**
      * Determines if the specified [target] is enabled.
      *
@@ -96,25 +135,16 @@ abstract class KtorTargets @Inject internal constructor(
      * For sub-targets (e.g., 'js.browser'), the state is inherited from the parent target
      * unless explicitly configured in `gradle.properties`.
      */
-    fun isEnabled(target: String): Boolean = targetStates.getOrPut(target) {
-        targetStatesAccessed = true
-
-        // Sub-targets inherit parent state
-        if (target.contains(".")) {
-            isEnabled(target.substringBefore("."))
-        } else {
-            hierarchyTracker.targetSourceSets.getValue(target).any { it in targetDirectories.get() }
+    fun isEnabled(target: String): Boolean {
+        val value = targetStates.getOrPut(target) {
+            // Sub-targets inherit parent state
+            if (target.contains(".")) {
+                isEnabled(target.substringBefore("."))
+            } else {
+                hierarchyTracker.targetSourceSets.getValue(target).any { it in targetDirectories.get() }
+            }
         }
-    }
-
-    /**
-     * Sets the state of the specified [target] to the given [value].
-     *
-     * This function takes effect only if used before first [isEnabled] call.
-     */
-    internal operator fun set(target: String, value: Boolean) {
-        check(!targetStatesAccessed) { "Can't change target state after it has been accessed." }
-        for (sourceSet in resolveTargets(target)) targetStates[sourceSet] = value
+        return if (value) filter(target) else false
     }
 
     private fun loadDefaults(rawDefaults: Map<String, String>): MutableMap<String, Boolean> {
@@ -126,7 +156,12 @@ abstract class KtorTargets @Inject internal constructor(
         return defaults
     }
 
+    internal fun finalize() {
+        filterFrozen = true
+    }
+
     companion object {
+        private val defaultFilter: (String) -> Boolean = { true }
         private val hierarchyTracker = KotlinHierarchyTracker()
 
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
@@ -201,6 +236,9 @@ abstract class KtorTargets @Inject internal constructor(
 }
 
 internal fun KotlinMultiplatformExtension.addTargets(targets: KtorTargets, isCI: Boolean) {
+    targets.finalize()
+    if (targets.isLightSync) targets.ensureTargetsNotEmpty()
+
     if (targets.hasJvm) jvm()
     if (targets.hasAndroidJvm && project.hasAndroidPlugin()) {
         // device tests are not configured on the CI yet
@@ -240,11 +278,18 @@ internal fun KotlinMultiplatformExtension.addTargets(targets: KtorTargets, isCI:
     if (targets.isEnabled("mingwX64")) mingwX64()
     if (targets.isEnabled("watchosDeviceArm64")) watchosDeviceArm64()
 
-    freezeSourceSets()
+    freezeSourceSets(targets.isLightSync)
     flattenSourceSetsStructure()
 }
 
-private const val IGNORE_EXTRA_SOURCE_SETS_PROPERTY = "ktor.ignoreExtraSourceSets"
+/** Registers a JVM target to avoid the case when all targets in the module disabled. */
+context(kotlin: KotlinMultiplatformExtension)
+private fun KtorTargets.ensureTargetsNotEmpty() {
+    val hasNoTargets = KtorTargets.resolveTargets("common").none { isEnabled(it) }
+    if (hasNoTargets) kotlin.jvm()
+}
+
+private const val IGNORE_EXTRA_SOURCE_SETS_PROPERTY = "ktorbuild.ignoreExtraSourceSets"
 
 /**
  * Ensures that no additional source sets have been added after the initial automatic configuration phase.
@@ -252,9 +297,11 @@ private const val IGNORE_EXTRA_SOURCE_SETS_PROPERTY = "ktor.ignoreExtraSourceSet
  * By default, it throws an [IllegalStateException] if extra source sets are detected.
  * When [IGNORE_EXTRA_SOURCE_SETS_PROPERTY] property is set to `true`, extra source sets are ignored instead.
  */
-private fun KotlinMultiplatformExtension.freezeSourceSets() {
+private fun KotlinMultiplatformExtension.freezeSourceSets(isLightSync: Boolean) {
     val problemReporter = project.serviceOf<Problems>().reporter
-    val ignoreExtraSourceSets = project.providers.gradleProperty(IGNORE_EXTRA_SOURCE_SETS_PROPERTY).orNull.toBoolean()
+    val ignoreExtraSourceSets = project.providers.gradleProperty(IGNORE_EXTRA_SOURCE_SETS_PROPERTY)
+        .map(String::toBoolean)
+        .getOrElse(isLightSync)
     val extraSourceSets = mutableSetOf<KotlinSourceSet>()
 
     sourceSets.whenObjectAdded { extraSourceSets.add(this) }
