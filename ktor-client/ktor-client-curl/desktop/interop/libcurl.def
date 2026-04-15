@@ -1,4 +1,4 @@
-# curl version = 8.10.1
+# curl version = 8.18.0
 package = libcurl
 headers = curl/curl.h
 headerFilter = curl/*
