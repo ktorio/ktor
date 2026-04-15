@@ -103,7 +103,7 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
         val (requestData, completionHandler) = task
         val requestHandler = api.scheduleRequest(requestData, completionHandler)
 
-        val requestCleaner = requestData.executionContext.invokeOnCompletion { cause ->
+        val requestCleaner = requestData.callContext.invokeOnCompletion { cause ->
             if (cause == null) return@invokeOnCompletion
             cancelRequest(requestHandler, cause)
         }
