@@ -13,6 +13,7 @@ import io.ktor.utils.io.locks.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CompletableJob
+import kotlinx.coroutines.Job
 import kotlinx.io.readByteArray
 import libcurl.*
 import platform.posix.getenv
@@ -52,7 +53,11 @@ internal class CurlMultiApiHandler : Closeable {
         curl_multi_cleanup(multiHandle).verify()
     }
 
-    fun scheduleRequest(request: CurlRequestData, deferred: CompletableDeferred<CurlSuccess>): EasyHandle {
+    fun scheduleRequest(
+        request: CurlRequestData,
+        deferred: CompletableDeferred<CurlSuccess>,
+        callContext: Job,
+    ): EasyHandle {
         val easyHandle = curl_easy_init()
             ?: error("Could not initialize an easy handle")
 
@@ -65,7 +70,7 @@ internal class CurlMultiApiHandler : Closeable {
                 wsConfig.maxFrameSize,
             )
         } else {
-            CurlHttpResponseBody(request.executionContext)
+            CurlHttpResponseBody(callContext)
         }
         val responseData = CurlResponseBuilder(request, bodyStartedReceiving, responseBody)
         val responseDataRef = responseData.asStablePointer()

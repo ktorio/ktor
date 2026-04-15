@@ -15,6 +15,7 @@ import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.job
 
 internal class CurlClientEngine(
     override val config: CurlClientEngineConfig
@@ -31,7 +32,7 @@ internal class CurlClientEngine(
         val requestTime = GMTDate()
 
         val curlRequest = data.toCurlRequest(config)
-        val responseData = curlProcessor.executeRequest(curlRequest)
+        val responseData = curlProcessor.executeRequest(curlRequest, callContext.job)
 
         return with(responseData) {
             val headerBytes = ByteReadChannel(headersBytes).apply {

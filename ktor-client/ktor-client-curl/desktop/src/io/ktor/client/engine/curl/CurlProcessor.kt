@@ -42,9 +42,9 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
         }
     }
 
-    suspend fun executeRequest(request: CurlRequestData): CurlSuccess {
+    suspend fun executeRequest(request: CurlRequestData, callContext: Job): CurlSuccess {
         val result = CompletableDeferred<CurlSuccess>()
-        taskQueue.send(SendRequest(request, result))
+        taskQueue.send(SendRequest(request, result, callContext))
         curlApi!!.wakeup()
         return result.await()
     }
@@ -100,8 +100,8 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
     }
 
     private fun handleSendRequest(api: CurlMultiApiHandler, task: SendRequest) {
-        val (requestData, completionHandler) = task
-        val requestHandler = api.scheduleRequest(requestData, completionHandler)
+        val (requestData, completionHandler, callContext) = task
+        val requestHandler = api.scheduleRequest(requestData, completionHandler, callContext)
 
         val requestCleaner = requestData.executionContext.invokeOnCompletion { cause ->
             if (cause == null) return@invokeOnCompletion
@@ -140,6 +140,7 @@ private sealed interface CurlTask {
     data class SendRequest(
         val requestData: CurlRequestData,
         val completionHandler: CompletableDeferred<CurlSuccess>,
+        val callContext: Job,
     ) : CurlTask
 
     class SendWebSocketFrame(
