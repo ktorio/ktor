@@ -12,8 +12,6 @@ import kotlinx.io.Buffer
 import kotlinx.io.Sink
 import kotlinx.io.Source
 import kotlin.contracts.ExperimentalContracts
-import kotlin.contracts.InvocationKind
-import kotlin.contracts.contract
 
 /**
  * A multipart form item. Use it to build a form in client.
@@ -229,9 +227,6 @@ public inline fun FormBuilder.append(
     size: Long? = null,
     crossinline bodyBuilder: Sink.() -> Unit
 ) {
-    contract {
-        callsInPlace(bodyBuilder, InvocationKind.EXACTLY_ONCE)
-    }
     append(FormPart(key, InputProvider(size) { buildPacket { bodyBuilder() } }, headers))
 }
 
@@ -271,10 +266,6 @@ public fun FormBuilder.append(
     size: Long? = null,
     bodyBuilder: Sink.() -> Unit
 ) {
-    contract {
-        callsInPlace(bodyBuilder, InvocationKind.EXACTLY_ONCE)
-    }
-
     val headersBuilder = HeadersBuilder()
     headersBuilder[HttpHeaders.ContentDisposition] = "filename=${filename.escapeIfNeeded()}"
     contentType?.run { headersBuilder[HttpHeaders.ContentType] = this.toString() }
