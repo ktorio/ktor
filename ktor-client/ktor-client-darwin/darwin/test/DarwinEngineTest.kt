@@ -308,7 +308,7 @@ class DarwinEngineTest : ClientEngineTest<DarwinClientEngineConfig>(Darwin) {
         val request = HttpRequestBuilder().apply {
             url(TEST_WEBSOCKET_SERVER)
             body = object : ClientUpgradeContent() {
-                override fun verify(headers: Headers) {}
+                override fun verify(headers: Headers) = Unit
             }
         }.build()
 
