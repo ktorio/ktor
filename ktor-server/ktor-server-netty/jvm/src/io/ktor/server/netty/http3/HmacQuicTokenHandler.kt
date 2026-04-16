@@ -4,9 +4,12 @@
 
 package io.ktor.server.netty.http3
 
+import io.ktor.util.cio.*
+import io.ktor.utils.io.pool.useInstance
 import io.netty.buffer.*
 import io.netty.handler.codec.quic.*
 import java.net.*
+import java.nio.*
 import java.security.*
 import javax.crypto.*
 
@@ -44,28 +47,32 @@ private const val TIMESTAMP_LENGTH = 8
  * The destination connection id is appended after the HMAC so that the QUIC
  * implementation can extract it at the offset returned by [validateToken].
  *
- * @param key the secret key used for HMAC signing and validation.
+ * @param keyGen the secret key used for HMAC signing and validation.
  *   If not provided, a random 256-bit key is generated.
  * @param tokenLifetimeMillis maximum age of a valid token in milliseconds.
  */
 internal class HmacQuicTokenHandler(
-    key: SecretKey = generateDefaultKey(),
+    keyGen: () -> SecretKey = ::generateDefaultKey,
     private val tokenLifetimeMillis: Long = TOKEN_LIFETIME_MS,
 ) : QuicTokenHandler {
 
-    private val secretKey: SecretKey = key
+    private val secretKey: SecretKey by lazy(keyGen)
 
     override fun writeToken(out: ByteBuf, dcid: ByteBuf, address: InetSocketAddress): Boolean {
         val timestamp = System.currentTimeMillis()
 
-        val dcidBytes = ByteArray(dcid.readableBytes())
-        dcid.getBytes(dcid.readerIndex(), dcidBytes)
+        KtorDefaultPool.useInstance { dcidBuffer ->
+            dcidBuffer.clear()
+            dcidBuffer.limit(dcid.readableBytes())
+            dcid.getBytes(dcid.readerIndex(), dcidBuffer.array(), 0, dcid.readableBytes())
 
-        val mac = computeHmac(timestamp, address, dcidBytes)
+            val mac = computeHmac(timestamp, address, dcidBuffer)
 
-        out.writeLong(timestamp)
-        out.writeBytes(mac)
-        out.writeBytes(dcid, dcid.readerIndex(), dcid.readableBytes())
+            out.writeLong(timestamp)
+            out.writeBytes(mac)
+            out.writeBytes(dcid, dcid.readerIndex(), dcid.readableBytes())
+        }
+
         return true
     }
 
@@ -83,10 +90,13 @@ internal class HmacQuicTokenHandler(
         token.getBytes(token.readerIndex() + TIMESTAMP_LENGTH, receivedMac)
 
         val dcidLength = readable - headerLength
-        val dcidBytes = ByteArray(dcidLength)
-        token.getBytes(token.readerIndex() + headerLength, dcidBytes)
 
-        val expectedMac = computeHmac(timestamp, address, dcidBytes)
+        val expectedMac = KtorDefaultPool.useInstance { dcidBuffer ->
+            dcidBuffer.clear()
+            dcidBuffer.limit(dcidLength)
+            token.getBytes(token.readerIndex() + headerLength, dcidBuffer.array(), 0, dcidLength)
+            computeHmac(timestamp, address, dcidBuffer)
+        }
 
         if (!MessageDigest.isEqual(receivedMac, expectedMac)) return -1
 
@@ -95,28 +105,38 @@ internal class HmacQuicTokenHandler(
 
     override fun maxTokenLength(): Int = TIMESTAMP_LENGTH + HMAC_LENGTH + Quic.MAX_CONN_ID_LEN
 
-    private fun computeHmac(timestamp: Long, address: InetSocketAddress, dcidBytes: ByteArray): ByteArray {
+    private fun computeHmac(timestamp: Long, address: InetSocketAddress, dcidBytes: ByteBuffer): ByteArray {
         val mac = Mac.getInstance("HmacSHA256")
         mac.init(secretKey)
 
-        val timestampBytes = ByteArray(TIMESTAMP_LENGTH)
-        for (i in 0 until TIMESTAMP_LENGTH) {
-            timestampBytes[i] = (timestamp shr (56 - i * 8) and 0xFF).toByte()
+        KtorDefaultPool.useInstance { timestampBuffer ->
+            timestampBuffer.clear()
+            timestampBuffer.limit(TIMESTAMP_LENGTH)
+            timestampBuffer.putLong(0, timestamp)
+            timestampBuffer.position(0)
+            timestampBuffer.limit(TIMESTAMP_LENGTH)
+
+            mac.update(timestampBuffer)
+
+            KtorDefaultPool.useInstance { portBuffer ->
+                portBuffer.clear()
+                portBuffer.limit(4)
+
+                val port = address.port
+                portBuffer.put(0, (port shr 24 and 0xFF).toByte())
+                portBuffer.put(1, (port shr 16 and 0xFF).toByte())
+                portBuffer.put(2, (port shr 8 and 0xFF).toByte())
+                portBuffer.put(3, (port and 0xFF).toByte())
+                portBuffer.position(0)
+                portBuffer.limit(4)
+
+                mac.update(address.address.address)
+                mac.update(portBuffer)
+                mac.update(dcidBytes)
+
+                return mac.doFinal()
+            }
         }
-        mac.update(timestampBytes)
-        mac.update(address.address.address)
-
-        val portBytes = ByteArray(4)
-        val port = address.port
-        portBytes[0] = (port shr 24 and 0xFF).toByte()
-        portBytes[1] = (port shr 16 and 0xFF).toByte()
-        portBytes[2] = (port shr 8 and 0xFF).toByte()
-        portBytes[3] = (port and 0xFF).toByte()
-        mac.update(portBytes)
-
-        mac.update(dcidBytes)
-
-        return mac.doFinal()
     }
 
     internal companion object {
