@@ -108,7 +108,7 @@ internal class ApacheResponseConsumer(
             }
         }
 
-        launch {
+        launch(CoroutineName("apache-response-consumer")) {
             for (message in messagesQueue) {
                 when (message) {
                     is CloseChannel -> close()
