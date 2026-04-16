@@ -17,6 +17,23 @@ import kotlinx.coroutines.channels.*
 import java.net.*
 import kotlin.coroutines.*
 
+/**
+ * Completes the trailer headers deferred with the given [Http3Headers], closing the content actor
+ * to signal that no more data frames are expected after trailers.
+ */
+internal fun NettyHttp3ApplicationRequest.receiveTrailers(trailerHeaders: Http3Headers) {
+    val headers = Headers.build {
+        trailerHeaders.forEach { (name, value) ->
+            val nameStr = name.toString()
+            if (nameStr.isNotEmpty() && nameStr[0] != ':') {
+                append(nameStr, value.toString())
+            }
+        }
+    }
+    requestTrailers.complete(headers)
+    contentActor.close()
+}
+
 internal class NettyHttp3ApplicationRequest(
     call: PipelineCall,
     coroutineContext: CoroutineContext,
@@ -64,4 +81,6 @@ internal class NettyHttp3ApplicationRequest(
     )
 
     override val cookies: RequestCookies = NettyApplicationRequestCookies(this)
+
+    internal val requestTrailers: CompletableDeferred<Headers> = CompletableDeferred()
 }

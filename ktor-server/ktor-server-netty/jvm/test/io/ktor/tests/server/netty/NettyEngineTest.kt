@@ -692,6 +692,48 @@ class NettyHttp3Test :
         }
     }
 
+    @Test
+    fun `test HTTP3 POST request with trailers does not break stream`() = runTest {
+        createAndStartServer {
+            application.routing {
+                post("/echo-with-trailers") {
+                    val text = call.receiveText()
+                    call.respondText(text)
+                }
+            }
+        }
+
+        withHttp3Client { quicChannel ->
+            val responseHandler = Http3ResponseHandler()
+            val stream = Http3.newRequestStream(quicChannel, responseHandler).sync().getNow()
+
+            val headers = DefaultHttp3Headers().apply {
+                method("POST")
+                path("/echo-with-trailers")
+                scheme("https")
+                authority("localhost:$sslPort")
+            }
+            stream.writeAndFlush(DefaultHttp3HeadersFrame(headers)).sync()
+
+            val body = "Hello with trailers"
+            val buf = Unpooled.copiedBuffer(body, Charsets.UTF_8)
+            stream.writeAndFlush(DefaultHttp3DataFrame(buf)).sync()
+
+            // Send trailing HEADERS frame (trailers)
+            val trailers = DefaultHttp3Headers().apply {
+                add("x-checksum", "abc123")
+            }
+            stream.writeAndFlush(DefaultHttp3HeadersFrame(trailers)).sync()
+
+            stream.shutdownOutput().sync()
+
+            val response = responseHandler.responseQueue.poll(10, TimeUnit.SECONDS)
+                ?: error("Timed out waiting for HTTP/3 response")
+            assertEquals("200", response.status)
+            assertEquals(body, response.body)
+        }
+    }
+
     private data class Http3Response(
         val status: String,
         val headers: Map<String, String>,
