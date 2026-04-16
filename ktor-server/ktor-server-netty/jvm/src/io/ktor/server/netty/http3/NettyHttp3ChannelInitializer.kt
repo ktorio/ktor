@@ -23,7 +23,8 @@ internal class NettyHttp3ChannelInitializer(
     private val callEventGroup: EventExecutorGroup,
     private val userContext: CoroutineContext,
     private val runningLimit: Int,
-    private val quicSslContext: QuicSslContext
+    private val quicSslContext: QuicSslContext,
+    private val quicTokenHandler: QuicTokenHandler
 ) : ChannelInitializer<DatagramChannel>() {
 
     override fun initChannel(ch: DatagramChannel) {
@@ -39,7 +40,7 @@ internal class NettyHttp3ChannelInitializer(
 
         val quicServerCodec = Http3.newQuicServerCodecBuilder()
             .sslContext(quicSslContext)
-            .tokenHandler(InsecureQuicTokenHandler.INSTANCE)
+            .tokenHandler(quicTokenHandler)
             .maxIdleTimeout(30_000, java.util.concurrent.TimeUnit.MILLISECONDS)
             .initialMaxData(10_000_000)
             .initialMaxStreamDataBidirectionalLocal(1_000_000)

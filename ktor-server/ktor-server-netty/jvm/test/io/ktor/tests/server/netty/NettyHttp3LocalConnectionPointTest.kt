@@ -164,6 +164,61 @@ class NettyHttp3LocalConnectionPointTest {
         assertEquals(234, point.serverPort)
     }
 
+    @Test
+    fun `test host from IPv6 authority with port`() {
+        val point = point {
+            authority("[::1]:8443")
+        }
+
+        assertEquals("[::1]", point.host)
+        assertEquals(8443, point.port)
+    }
+
+    @Test
+    fun `test host from IPv6 authority without port`() {
+        val point = point {
+            authority("[::1]")
+        }
+
+        assertEquals("[::1]", point.host)
+        assertEquals(80, point.port)
+    }
+
+    @Test
+    fun `test server host and port from IPv6 authority`() {
+        val point = point(
+            remoteAddress = InetSocketAddress("remote", 123),
+            localAddress = InetSocketAddress("local", 234),
+        ) {
+            authority("[::1]:8443")
+        }
+        assertEquals("[::1]", point.serverHost)
+        assertEquals(8443, point.serverPort)
+    }
+
+    @Test
+    fun `test server host and port from IPv6 authority without port`() {
+        val point = point(
+            remoteAddress = InetSocketAddress("remote", 123),
+            localAddress = InetSocketAddress("local", 234),
+        ) {
+            scheme("https")
+            authority("[::1]")
+        }
+        assertEquals("[::1]", point.serverHost)
+        assertEquals(234, point.serverPort)
+    }
+
+    @Test
+    fun `test host from full IPv6 authority with port`() {
+        val point = point {
+            authority("[2001:db8::1]:9090")
+        }
+
+        assertEquals("[2001:db8::1]", point.host)
+        assertEquals(9090, point.port)
+    }
+
     private fun point(
         localAddress: InetSocketAddress? = null,
         remoteAddress: InetSocketAddress? = null,
