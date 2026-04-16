@@ -479,7 +479,7 @@ class DigestApacheClientIntegrationTest {
      */
     private fun computeUserHash(username: String, realm: String, algorithm: DigestAlgorithm): String {
         val digester = algorithm.toDigester()
-        return hex(digester.digest("$username:$realm".toByteArray(Charsets.UTF_8)))
+        return digester.digest("$username:$realm".toByteArray(Charsets.UTF_8)).toHexString()
     }
 
     companion object {

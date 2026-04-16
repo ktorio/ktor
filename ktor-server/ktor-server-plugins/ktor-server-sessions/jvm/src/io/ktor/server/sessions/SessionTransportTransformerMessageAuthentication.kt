@@ -4,7 +4,6 @@
 
 package io.ktor.server.sessions
 
-import io.ktor.util.*
 import java.security.*
 import javax.crypto.*
 import javax.crypto.spec.*
@@ -46,6 +45,6 @@ public class SessionTransportTransformerMessageAuthentication(
         val mac = Mac.getInstance(algorithm)
         mac.init(keySpec)
 
-        return hex(mac.doFinal(value.toByteArray()))
+        return mac.doFinal(value.toByteArray()).toHexString()
     }
 }

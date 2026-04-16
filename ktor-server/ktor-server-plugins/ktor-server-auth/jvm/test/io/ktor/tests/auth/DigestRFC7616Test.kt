@@ -11,7 +11,6 @@ import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import io.ktor.util.*
 import io.ktor.utils.io.charsets.Charset
 import java.security.MessageDigest
 import kotlin.test.*
@@ -40,7 +39,7 @@ class DigestRFC7616Test {
     private fun computeUserHash(username: String, realm: String, algorithm: DigestAlgorithm): String {
         val digester = algorithm.toDigester()
         digester.update("$username:$realm".toByteArray(Charsets.UTF_8))
-        return hex(digester.digest())
+        return digester.digest().toHexString()
     }
 
     private fun createCredential(
@@ -128,26 +127,29 @@ class DigestRFC7616Test {
 
         // Test SHA-256 HA1
         val ha1Sha256 = digest(DigestAlgorithm.SHA_256, "$userName:$realm:$password")
-        assertEquals("4e4b0731c5b9505beb5a6778cae26063644cebafe6969275be09e7bca2b4da6e", hex(ha1Sha256))
+        assertEquals("4e4b0731c5b9505beb5a6778cae26063644cebafe6969275be09e7bca2b4da6e", ha1Sha256.toHexString())
 
         // Test SHA-256 response
         val credentialSha256 = createCredential(realm, userName, "/dir/index.html", nonce, "SHA-256", cnonce)
         assertEquals(
             "1065210cae09a9f712a625aae28b6119cbb2bb852820f94706624b43328c7b0d",
-            hex(credentialSha256.expectedDigest(HttpMethod.Get, ha1Sha256))
+            credentialSha256.expectedDigest(HttpMethod.Get, ha1Sha256).toHexString()
         )
 
         // Test SHA-512-256 produces the correct length
         val ha1Sha512 = digest(DigestAlgorithm.SHA_512_256, "$userName:$realm:$password")
         val credentialSha512 = createCredential(realm, userName, "/dir/index.html", nonce, "SHA-512-256", cnonce)
-        assertEquals(64, hex(credentialSha512.expectedDigest(HttpMethod.Get, ha1Sha512)).length)
+        assertEquals(64, credentialSha512.expectedDigest(HttpMethod.Get, ha1Sha512).toHexString().length)
 
         // Test MD5 legacy compatibility (RFC 2617)
         val realmMd5 = "testrealm@host.com"
         val passwordMd5 = "Circle Of Life"
         val ha1Md5 = digest(DigestAlgorithm.MD5, "$userName:$realmMd5:$passwordMd5", Charsets.ISO_8859_1)
         val credentialMd5 = createCredential(realmMd5, userName, "/dir/index.html", nonce, "MD5", cnonce)
-        assertEquals("6629fae49393a05397450978507c4ef1", hex(credentialMd5.expectedDigest(HttpMethod.Get, ha1Md5)))
+        assertEquals(
+            "6629fae49393a05397450978507c4ef1",
+            credentialMd5.expectedDigest(HttpMethod.Get, ha1Md5).toHexString()
+        )
     }
 
     @Test
@@ -160,14 +162,17 @@ class DigestRFC7616Test {
 
         // Test SHA-256-sess
         val baseHa1Sha256 = digest(DigestAlgorithm.SHA_256, "$userName:$realm:$password")
-        val sessionHa1Sha256 = digest(DigestAlgorithm.SHA_256, "${hex(baseHa1Sha256)}:$nonce:$cnonce")
+        val sessionHa1Sha256 = digest(DigestAlgorithm.SHA_256, "${baseHa1Sha256.toHexString()}:$nonce:$cnonce")
         val credentialSha256Sess = createCredential(realm, userName, "/", nonce, "SHA-256-sess", cnonce)
         val ha2Sha256 = digest(DigestAlgorithm.SHA_256, "GET:/")
         val expectedSha256 = digest(
             DigestAlgorithm.SHA_256,
-            "${hex(sessionHa1Sha256)}:$nonce:00000001:$cnonce:auth:${hex(ha2Sha256)}"
+            "${sessionHa1Sha256.toHexString()}:$nonce:00000001:$cnonce:auth:${ha2Sha256.toHexString()}"
         )
-        assertEquals(hex(expectedSha256), hex(credentialSha256Sess.expectedDigest(HttpMethod.Get, baseHa1Sha256)))
+        assertEquals(
+            expectedSha256.toHexString(),
+            credentialSha256Sess.expectedDigest(HttpMethod.Get, baseHa1Sha256).toHexString()
+        )
 
         // Test MD5-sess
         val realmMd5 = "testrealm@host.com"
@@ -175,15 +180,22 @@ class DigestRFC7616Test {
         val nonceMd5 = "dcd98b7102dd2f0e8b11d0f600bfb0c093"
         val cnonceMd5 = "0a4f113b"
         val baseHa1Md5 = digest(DigestAlgorithm.MD5, "$userName:$realmMd5:$passwordMd5", Charsets.ISO_8859_1)
-        val sessionHa1Md5 = digest(DigestAlgorithm.MD5, "${hex(baseHa1Md5)}:$nonceMd5:$cnonceMd5", Charsets.ISO_8859_1)
+        val sessionHa1Md5 = digest(
+            DigestAlgorithm.MD5,
+            "${baseHa1Md5.toHexString()}:$nonceMd5:$cnonceMd5",
+            Charsets.ISO_8859_1
+        )
         val credentialMd5Sess = createCredential(realmMd5, userName, "/dir/index.html", nonceMd5, "MD5-sess", cnonceMd5)
         val ha2Md5 = digest(DigestAlgorithm.MD5, "GET:/dir/index.html", Charsets.ISO_8859_1)
         val expectedMd5 = digest(
             DigestAlgorithm.MD5,
-            "${hex(sessionHa1Md5)}:$nonceMd5:00000001:$cnonceMd5:auth:${hex(ha2Md5)}",
+            "${sessionHa1Md5.toHexString()}:$nonceMd5:00000001:$cnonceMd5:auth:${ha2Md5.toHexString()}",
             Charsets.ISO_8859_1
         )
-        assertEquals(hex(expectedMd5), hex(credentialMd5Sess.expectedDigest(HttpMethod.Get, baseHa1Md5)))
+        assertEquals(
+            expectedMd5.toHexString(),
+            credentialMd5Sess.expectedDigest(HttpMethod.Get, baseHa1Md5).toHexString()
+        )
     }
 
     @Test
@@ -194,18 +206,21 @@ class DigestRFC7616Test {
 
         val ha1 = digest(algorithm, "user:$realm:pass")
         val entityBodyHash = algorithm.toDigester().apply { update(entityBody.toByteArray()) }.digest()
-        val ha2 = digest(algorithm, "POST:/api/data:${hex(entityBodyHash)}")
-        val expectedResponse = digest(algorithm, "${hex(ha1)}:abc123:00000001:xyz789:auth-int:${hex(ha2)}")
+        val ha2 = digest(algorithm, "POST:/api/data:${entityBodyHash.toHexString()}")
+        val expectedResponse = digest(
+            algorithm,
+            "${ha1.toHexString()}:abc123:00000001:xyz789:auth-int:${ha2.toHexString()}"
+        )
 
         val credential = DigestCredential(
             realm = realm, userName = "user", digestUri = "/api/data", nonce = "abc123",
             opaque = null, nonceCount = "00000001", digestAlgorithm = DigestAlgorithm.SHA_256,
-            response = hex(expectedResponse), cnonce = "xyz789", qop = "auth-int"
+            response = expectedResponse.toHexString(), cnonce = "xyz789", qop = "auth-int"
         )
 
         assertEquals(
             credential.response,
-            hex(credential.expectedDigest(HttpMethod.Post, ha1, entityBodyHash))
+            credential.expectedDigest(HttpMethod.Post, ha1, entityBodyHash).toHexString()
         )
     }
 
@@ -228,7 +243,7 @@ class DigestRFC7616Test {
         val algorithm = DigestAlgorithm.SHA_256
 
         val userhash = computeUserHash(username, realm, algorithm)
-        val expected = hex(digest(algorithm, "$username:$realm"))
+        val expected = digest(algorithm, "$username:$realm").toHexString()
 
         assertEquals(expected, userhash)
         assertEquals(64, userhash.length)
@@ -252,7 +267,7 @@ class DigestRFC7616Test {
         val userhash = computeUserHash("Mufasa", realm, DigestAlgorithm.SHA_256)
         val ha1 = computeHA1("Mufasa", realm, "CircleOfLife", DigestAlgorithm.SHA_256)
         val credential = createCredential(realm, userhash, "/", nonce, "SHA-256", cnonce, userHash = true)
-        val response = hex(credential.expectedDigest(HttpMethod.Get, ha1))
+        val response = credential.expectedDigest(HttpMethod.Get, ha1).toHexString()
 
         // Test successful userhash authentication
         val authResponse = client.get("/") {
@@ -351,7 +366,7 @@ class DigestRFC7616Test {
         val nc = "00000001"
         val ha1 = computeHA1("user", "test", "pass", DigestAlgorithm.MD5)
         val credential = createCredential("test", "user", "/", nonce, "MD5", cnonce)
-        val response = hex(credential.expectedDigest(HttpMethod.Get, ha1))
+        val response = credential.expectedDigest(HttpMethod.Get, ha1).toHexString()
 
         val authResponse = client.get("/") {
             header(HttpHeaders.Authorization, buildAuthHeader("user", "test", nonce, "/", response, "MD5", nc, cnonce))
@@ -366,9 +381,13 @@ class DigestRFC7616Test {
         assertTrue(authInfo.contains("cnonce=\"$cnonce\""))
 
         // Verify rspauth value
-        val ha2ForRspauth = hex(digest(DigestAlgorithm.MD5, ":/", Charsets.ISO_8859_1))
+        val ha2ForRspauth = digest(DigestAlgorithm.MD5, ":/", Charsets.ISO_8859_1).toHexString()
         val expectedRspauth =
-            hex(digest(DigestAlgorithm.MD5, "${hex(ha1)}:$nonce:$nc:$cnonce:auth:$ha2ForRspauth", Charsets.ISO_8859_1))
+            digest(
+                DigestAlgorithm.MD5,
+                "${ha1.toHexString()}:$nonce:$nc:$cnonce:auth:$ha2ForRspauth",
+                Charsets.ISO_8859_1
+            ).toHexString()
         assertTrue(authInfo.contains("rspauth=\"$expectedRspauth\""))
     }
 
@@ -387,9 +406,9 @@ class DigestRFC7616Test {
             update(data.toByteArray(Charsets.ISO_8859_1))
         }.digest()
 
-        val sessionHa1 = md5("${hex(baseHa1)}:$nonce:$cnonce")
+        val sessionHa1 = md5("${baseHa1.toHexString()}:$nonce:$cnonce")
         val ha2 = md5("GET:/")
-        val response = hex(md5("${hex(sessionHa1)}:$nonce:$nc:$cnonce:auth:${hex(ha2)}"))
+        val response = md5("${sessionHa1.toHexString()}:$nonce:$nc:$cnonce:auth:${ha2.toHexString()}").toHexString()
 
         val authResponse = client.get("/") {
             header(
@@ -402,7 +421,8 @@ class DigestRFC7616Test {
         val authInfo = authResponse.headers["Authentication-Info"]!!
         assertTrue(authInfo.contains("rspauth="))
 
-        val expectedRspauth = hex(md5("${hex(sessionHa1)}:$nonce:$nc:$cnonce:auth:${hex(md5(":/"))}"))
+        val expectedRspauth =
+            md5("${sessionHa1.toHexString()}:$nonce:$nc:$cnonce:auth:${md5(":/").toHexString()}").toHexString()
         assertTrue(authInfo.contains("rspauth=\"$expectedRspauth\""))
     }
 
@@ -465,7 +485,7 @@ class DigestRFC7616Test {
         // Session: returns H(baseDigest:nonce:cnonce)
         val credentialSess = createCredential("realm", "user", "/", "nonce", "MD5-sess", "cnonce")
         val digester = MessageDigest.getInstance("MD5")
-        digester.update("${hex(baseDigest)}:nonce:cnonce".toByteArray(Charsets.ISO_8859_1))
+        digester.update("${baseDigest.toHexString()}:nonce:cnonce".toByteArray(Charsets.ISO_8859_1))
         assertContentEquals(digester.digest(), credentialSess.computeHA1(baseDigest))
     }
 
@@ -481,9 +501,9 @@ class DigestRFC7616Test {
         assertTrue(authInfo.contains("cnonce=\"cnonce\""))
         assertTrue(authInfo.contains("nextnonce=\"nextnonce\""))
 
-        val ha2 = hex(digest(DigestAlgorithm.MD5, ":/path", Charsets.ISO_8859_1))
-        val rspauthInput = "${hex(ha1)}:nonce:00000001:cnonce:auth:$ha2"
-        val expectedRspauth = hex(digest(DigestAlgorithm.MD5, rspauthInput, Charsets.ISO_8859_1))
+        val ha2 = digest(DigestAlgorithm.MD5, ":/path", Charsets.ISO_8859_1).toHexString()
+        val rspauthInput = "${ha1.toHexString()}:nonce:00000001:cnonce:auth:$ha2"
+        val expectedRspauth = digest(DigestAlgorithm.MD5, rspauthInput, Charsets.ISO_8859_1).toHexString()
         assertTrue(authInfo.contains("rspauth=\"$expectedRspauth\""))
     }
 

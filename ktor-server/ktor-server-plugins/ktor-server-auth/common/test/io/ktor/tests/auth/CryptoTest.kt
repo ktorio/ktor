@@ -18,6 +18,7 @@ class CryptoTest {
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun testHex() {
         assertEquals("00af", hex(byteArrayOf(0, 0xaf.toByte())))
         assertEquals(byteArrayOf(0, 0xaf.toByte()), hex("00af"))

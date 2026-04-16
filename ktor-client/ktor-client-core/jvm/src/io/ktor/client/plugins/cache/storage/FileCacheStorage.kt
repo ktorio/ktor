@@ -113,7 +113,9 @@ private class FileCacheStorage(
         deleteCache(urlHex)
     }
 
-    private fun key(url: Url) = hex(MessageDigest.getInstance("SHA-256").digest(url.toString().encodeToByteArray()))
+    private fun key(url: Url): String {
+        return MessageDigest.getInstance("SHA-256").digest(url.toString().encodeToByteArray()).toHexString()
+    }
 
     private suspend fun readCache(urlHex: String): Set<CachedResponseData> {
         val mutex = mutexes.computeIfAbsent(urlHex) { Mutex() }
