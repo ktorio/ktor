@@ -317,6 +317,7 @@ class DarwinEngineTest : ClientEngineTest<DarwinClientEngineConfig>(Darwin) {
         assertFailsWith<IllegalStateException> {
             session.execute(request, coroutineContext)
         }
+        return@runBlocking
     }
 
     private fun stringToNSUrlString(value: String): String {
