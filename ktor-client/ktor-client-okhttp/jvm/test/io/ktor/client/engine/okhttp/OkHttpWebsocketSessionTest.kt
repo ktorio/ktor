@@ -13,6 +13,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
+import java.util.concurrent.TimeUnit
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -35,6 +36,46 @@ class OkHttpWebsocketSessionTest {
             job.complete()
         }
         runBlocking { job.join() }
+    }
+
+    @Test
+    fun `pingIntervalMillis is applied from ktor WebSockets config`() {
+        val client = OkHttpClient()
+        val request = Request.Builder().url("ws://localhost").build()
+        val session = OkHttpWebsocketSession(client, client, request, Job(), WebSockets(pingIntervalMillis = 15_000L))
+        assertEquals(15_000L, session.pingIntervalMillis)
+    }
+
+    @Test
+    fun `pingIntervalMillis falls back to engine value when ktor config is disabled`() {
+        val pingInterval = 10_000L
+        val client = OkHttpClient.Builder()
+            .pingInterval(pingInterval, TimeUnit.MILLISECONDS)
+            .build()
+        val request = Request.Builder().url("ws://localhost").build()
+        val session = OkHttpWebsocketSession(client, client, request, Job(), WebSockets())
+        assertEquals(pingInterval, session.pingIntervalMillis)
+    }
+
+    @Test
+    fun `ktor config takes priority over engine value`() {
+        val engineInterval = 10_000L
+        val ktorInterval = 5_000L
+        val client = OkHttpClient.Builder()
+            .pingInterval(engineInterval, TimeUnit.MILLISECONDS)
+            .build()
+        val request = Request.Builder().url("ws://localhost").build()
+        val session =
+            OkHttpWebsocketSession(client, client, request, Job(), WebSockets(pingIntervalMillis = ktorInterval))
+        assertEquals(ktorInterval, session.pingIntervalMillis)
+    }
+
+    @Test
+    fun `pingIntervalMillis defaults to zero when nothing configured`() {
+        val client = OkHttpClient()
+        val request = Request.Builder().url("ws://localhost").build()
+        val session = OkHttpWebsocketSession(client, client, request, Job())
+        assertEquals(0L, session.pingIntervalMillis)
     }
 
     @Test
