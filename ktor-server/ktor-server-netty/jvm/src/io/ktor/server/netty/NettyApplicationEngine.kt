@@ -30,6 +30,7 @@ import io.netty.handler.codec.http.HttpObjectDecoder
 import io.netty.handler.codec.http.HttpServerCodec
 import io.netty.handler.codec.quic.QuicSslContext
 import io.netty.handler.codec.quic.QuicSslContextBuilder
+import io.netty.handler.codec.quic.QuicTokenHandler
 import kotlinx.coroutines.CompletableJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import java.net.BindException
@@ -164,6 +165,19 @@ public class NettyApplicationEngine(
         public var enableHttp3: Boolean = false
 
         /**
+         * The [QuicTokenHandler] used to generate and validate QUIC retry tokens
+         * when HTTP/3 is enabled. By default, a secure HMAC-SHA256-based handler
+         * is used that cryptographically signs tokens with a randomly generated key
+         * and rejects forged or expired tokens.
+         *
+         * Callers may replace this with a custom [QuicTokenHandler] implementation
+         * to use a different signing strategy or integrate with external token services.
+         *
+         * Only takes effect when [enableHttp3] is `true`.
+         */
+        public var quicTokenHandler: QuicTokenHandler = HmacQuicTokenHandler()
+
+        /**
          * Default function to configure Netty's
          */
         private fun defaultHttpServerCodec() = HttpServerCodec(
@@ -293,7 +307,8 @@ public class NettyApplicationEngine(
                     callEventGroup,
                     userContext,
                     configuration.runningLimit,
-                    quicSslContext
+                    quicSslContext,
+                    configuration.quicTokenHandler
                 )
             )
         }

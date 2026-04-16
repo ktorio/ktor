@@ -39,15 +39,14 @@ internal class HttpMultiplexedConnectionPoint(
         level = DeprecationLevel.ERROR
     )
     override val host: String
-        get() = pseudoAuthority?.toString()?.substringBefore(":") ?: "localhost"
+        get() = pseudoAuthority?.toString()?.let { parseAuthorityHost(it) } ?: "localhost"
 
     @Deprecated(
         "Use localPort or serverPort instead",
         level = DeprecationLevel.ERROR
     )
     override val port: Int
-        get() = pseudoAuthority?.toString()
-            ?.substringAfter(":", "")?.takeIf { it.isNotEmpty() }?.toInt()
+        get() = pseudoAuthority?.toString()?.let { parseAuthorityPort(it) }
             ?: localNetworkAddress?.port
             ?: 80
 
@@ -56,7 +55,7 @@ internal class HttpMultiplexedConnectionPoint(
     override val serverHost: String
         get() = pseudoAuthority
             ?.toString()
-            ?.substringBefore(":")
+            ?.let { parseAuthorityHost(it) }
             ?: localHost
     override val localAddress: String
         get() = localNetworkAddress?.hostString ?: "localhost"
@@ -68,7 +67,7 @@ internal class HttpMultiplexedConnectionPoint(
     override val serverPort: Int
         get() = pseudoAuthority
             ?.toString()
-            ?.substringAfter(":", defaultPort.toString())?.toInt()
+            ?.let { parseAuthorityPort(it) }
             ?: localPort
 
     override val remoteHost: String
@@ -79,6 +78,27 @@ internal class HttpMultiplexedConnectionPoint(
         get() = remoteNetworkAddress?.port ?: 0
     override val remoteAddress: String
         get() = remoteNetworkAddress?.hostString ?: "unknown"
+
+    private fun parseAuthorityHost(authority: String): String {
+        if (authority.startsWith("[")) {
+            val closingBracket = authority.indexOf(']')
+            if (closingBracket != -1) return authority.substring(0, closingBracket + 1)
+        }
+        val lastColon = authority.lastIndexOf(':')
+        return if (lastColon > 0) authority.substring(0, lastColon) else authority
+    }
+
+    private fun parseAuthorityPort(authority: String): Int? {
+        if (authority.startsWith("[")) {
+            val afterBracket = authority.substringAfter("]:", "")
+            return afterBracket.takeIf { it.isNotEmpty() }?.toIntOrNull()
+        }
+        val lastColon = authority.lastIndexOf(':')
+        if (lastColon > 0) {
+            return authority.substring(lastColon + 1).toIntOrNull()
+        }
+        return null
+    }
 
     override fun toString(): String =
         "HttpMultiplexedConnectionPoint(uri=$uri, method=$method, version=$version, localAddress=$localAddress, " +
