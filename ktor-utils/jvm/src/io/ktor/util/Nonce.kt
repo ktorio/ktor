@@ -24,10 +24,6 @@ private const val SECURE_NONCE_COUNT = 8
 
 private const val INSECURE_NONCE_COUNT_FACTOR = 4
 
-private const val NONCE_SIZE_IN_BYTES = 16
-
-private const val RANDOM_BYTES_CHUNK_SIZE = 16
-
 internal val seedChannel: Channel<String> = Channel(1024)
 
 private val NonceGeneratorCoroutineName = CoroutineName("nonce-generator")
@@ -40,13 +36,11 @@ private val nonceGeneratorJob = GlobalScope.launch(
 ) {
     val seedChannel = seedChannel
     var lastReseed = 0L
-    // empty strings are fine, because generateNonce cares about the string length
-    val randomNonces =
-        Array(
-            SECURE_NONCE_COUNT * NONCE_SIZE_IN_BYTES * INSECURE_NONCE_COUNT_FACTOR * 2 / RANDOM_BYTES_CHUNK_SIZE * 2
-        ) {
-            ""
-        }
+    // empty strings are fine, because we only send non-empty strings
+    val randomNonces: Array<String> = Array(
+        SECURE_NONCE_COUNT * NONCE_SIZE_IN_BYTES * INSECURE_NONCE_COUNT_FACTOR * 2 / NONCE_SIZE_IN_CHARS * 2
+    ) { "" }
+
     val secureInstance = lookupSecureRandom()
     val weakRandom = SecureRandom.getInstance(SHA1PRNG)
     val weakKotlinRandom = weakRandom.asKotlinRandom() // we need a kotlin random for kotlin.collections.shuffle
@@ -93,16 +87,19 @@ private val nonceGeneratorJob = GlobalScope.launch(
             as those are the ones that were previously sent to the channel
              */
             val hex = weakBytes.toHexString()
-            for (index in 0..<hex.length / RANDOM_BYTES_CHUNK_SIZE) {
-                val offset = index * RANDOM_BYTES_CHUNK_SIZE
-                randomNonces[index] = hex.substring(offset, offset + RANDOM_BYTES_CHUNK_SIZE)
+            for (index in 0..<hex.length / NONCE_SIZE_IN_CHARS) {
+                val offset = index * NONCE_SIZE_IN_CHARS
+                randomNonces[index] = hex.substring(offset, offset + NONCE_SIZE_IN_CHARS)
             }
             // and shuffle with weak random (reseeded)
             randomNonces.shuffle(weakKotlinRandom) // shuffle array in-place to avoid extra allocations
 
             // send first half to the channel
             for (index in 0 until randomNonces.size / 2) {
-                seedChannel.send(randomNonces[index])
+                val nonce = randomNonces[index]
+                if (nonce.isNotEmpty()) {
+                    seedChannel.send(randomNonces[index])
+                }
             }
         }
     } catch (t: Throwable) {

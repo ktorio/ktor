@@ -71,7 +71,11 @@ public actual suspend fun generateNonceSuspend(length: Int): String {
         return nonce.substring(0, length)
     }
 
-    return generateNonceLoop(nonce, length)
+    return if (length <= NONCE_SIZE_IN_CHARS) {
+        seedChannel.receive().substring(0, length)
+    } else {
+        generateNonceLong(nonce, length)
+    }
 }
 
 /**
@@ -88,10 +92,16 @@ public actual fun generateNonceBlocking(length: Int): String {
 
     ensureNonceGeneratorRunning()
 
-    return runBlocking { generateNonceLoop(nonce, length) }
+    return runBlocking {
+        if (length <= NONCE_SIZE_IN_CHARS) {
+            seedChannel.receive().substring(0, length)
+        } else {
+            generateNonceLong(nonce, length)
+        }
+    }
 }
 
-private suspend fun generateNonceLoop(initial: String?, length: Int) = buildString(length) {
+private suspend fun generateNonceLong(initial: CharSequence?, length: Int) = buildString(length) {
     if (initial != null) {
         append(initial)
     }
