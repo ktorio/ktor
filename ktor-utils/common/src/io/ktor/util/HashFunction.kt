@@ -333,7 +333,7 @@ internal class Sha256 : HashFunction {
         h7 += h
     }
 
-    /* ktlint-disable */
+    @Suppress("ktlint")
     override fun digest(): ByteArray {
         val unprocessed = this.unprocessed
         var unprocessedLimit = this.unprocessedLimit
@@ -403,7 +403,6 @@ internal class Sha256 : HashFunction {
             (h       ).toByte()
         )
     }
-    /* ktlint-enable */
 
     private fun reset() {
         messageLength = 0L

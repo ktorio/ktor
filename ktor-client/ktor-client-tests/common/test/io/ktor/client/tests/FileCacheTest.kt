@@ -11,12 +11,12 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.test.base.*
 import io.ktor.http.*
+import io.ktor.util.date.GMTDate
+import io.ktor.utils.io.core.toByteArray
 import kotlinx.io.files.*
 import kotlin.test.*
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
-import io.ktor.util.date.GMTDate
-import io.ktor.utils.io.core.toByteArray
 
 class FileCacheTest : ClientLoader() {
     private val tmpDirPath = temporaryDirectoryPath()
@@ -140,8 +140,8 @@ class FileCacheTest : ClientLoader() {
 
     @Test
     fun testUpgradeOldCacheVersionWithCaseSensitiveVary() = clientTests {
-        val file = Files.createTempDirectory("cache-test-public-upgrade").toFile()
-        val publicStorage = FileStorage(file)
+        val path = Path(SystemTemporaryDirectory, "cache-test-public-upgrade")
+        val publicStorage = FileStorage(SystemFileSystem, path)
         config {
             install(HttpCache) {
                 publicStorage(publicStorage)

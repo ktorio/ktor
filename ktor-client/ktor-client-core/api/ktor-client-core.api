@@ -699,8 +699,8 @@ public final class io/ktor/client/plugins/cache/storage/CachedResponseData {
 }
 
 public final class io/ktor/client/plugins/cache/storage/FileCacheStorageKt {
-	public static final fun FileStorage (Ljava/io/File;Lkotlinx/coroutines/CoroutineDispatcher;)Lio/ktor/client/plugins/cache/storage/CacheStorage;
-	public static synthetic fun FileStorage$default (Ljava/io/File;Lkotlinx/coroutines/CoroutineDispatcher;ILjava/lang/Object;)Lio/ktor/client/plugins/cache/storage/CacheStorage;
+	public static final fun FileStorage (Lkotlinx/io/files/FileSystem;Lkotlinx/io/files/Path;Lkotlinx/coroutines/CoroutineDispatcher;)Lio/ktor/client/plugins/cache/storage/CacheStorage;
+	public static synthetic fun FileStorage$default (Lkotlinx/io/files/FileSystem;Lkotlinx/io/files/Path;Lkotlinx/coroutines/CoroutineDispatcher;ILjava/lang/Object;)Lio/ktor/client/plugins/cache/storage/CacheStorage;
 }
 
 public abstract class io/ktor/client/plugins/cache/storage/HttpCacheStorage {
@@ -720,6 +720,11 @@ public final class io/ktor/client/plugins/cache/storage/HttpCacheStorageKt {
 	public static final fun store (Lio/ktor/client/plugins/cache/storage/CacheStorage;Lio/ktor/client/statement/HttpResponse;Ljava/util/Map;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun store (Lio/ktor/client/plugins/cache/storage/CacheStorage;Lio/ktor/client/statement/HttpResponse;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun store$default (Lio/ktor/client/plugins/cache/storage/CacheStorage;Lio/ktor/client/statement/HttpResponse;Ljava/util/Map;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class io/ktor/client/plugins/cache/storage/JvmFileCacheStorageKt {
+	public static final fun FileStorage (Ljava/io/File;Lkotlinx/coroutines/CoroutineDispatcher;)Lio/ktor/client/plugins/cache/storage/CacheStorage;
+	public static synthetic fun FileStorage$default (Ljava/io/File;Lkotlinx/coroutines/CoroutineDispatcher;ILjava/lang/Object;)Lio/ktor/client/plugins/cache/storage/CacheStorage;
 }
 
 public final class io/ktor/client/plugins/cookies/AcceptAllCookiesStorage : io/ktor/client/plugins/cookies/CookiesStorage {

@@ -1003,6 +1003,7 @@ final fun io.ktor.util/generateNonce(kotlin/Int): kotlin/ByteArray // io.ktor.ut
 final fun io.ktor.util/hex(kotlin/ByteArray): kotlin/String // io.ktor.util/hex|hex(kotlin.ByteArray){}[0]
 final fun io.ktor.util/hex(kotlin/String): kotlin/ByteArray // io.ktor.util/hex|hex(kotlin.String){}[0]
 final fun io.ktor.util/sha1(kotlin/ByteArray): kotlin/ByteArray // io.ktor.util/sha1|sha1(kotlin.ByteArray){}[0]
+final fun io.ktor.util/sha256(kotlin/ByteArray): kotlin/ByteArray // io.ktor.util/sha256|sha256(kotlin.ByteArray){}[0]
 final fun io.ktor.util/valuesOf(): io.ktor.util/StringValues // io.ktor.util/valuesOf|valuesOf(){}[0]
 final fun io.ktor.util/valuesOf(kotlin.collections/Map<kotlin/String, kotlin.collections/Iterable<kotlin/String>>, kotlin/Boolean = ...): io.ktor.util/StringValues // io.ktor.util/valuesOf|valuesOf(kotlin.collections.Map<kotlin.String,kotlin.collections.Iterable<kotlin.String>>;kotlin.Boolean){}[0]
 final fun io.ktor.util/valuesOf(kotlin/Array<out kotlin/Pair<kotlin/String, kotlin.collections/List<kotlin/String>>>..., kotlin/Boolean = ...): io.ktor.util/StringValues // io.ktor.util/valuesOf|valuesOf(kotlin.Array<out|kotlin.Pair<kotlin.String,kotlin.collections.List<kotlin.String>>>...;kotlin.Boolean){}[0]

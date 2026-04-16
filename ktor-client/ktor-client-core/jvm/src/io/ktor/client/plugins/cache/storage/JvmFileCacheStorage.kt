@@ -11,6 +11,7 @@ import io.ktor.util.collections.*
 import io.ktor.util.date.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.CancellationException
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.*
@@ -121,6 +122,7 @@ private class JvmFileCacheStorage(
                 }
             }
         } catch (cause: Exception) {
+            if (cause is CancellationException) currentCoroutineContext().ensureActive()
             LOGGER.trace { "Exception during saving a cache to a file: ${cause.stackTraceToString()}" }
         } finally {
             channel.close()
@@ -172,14 +174,14 @@ private class JvmFileCacheStorage(
     }
 
     private suspend fun readCache(channel: ByteReadChannel): CachedResponseData {
-        val url = channel.readUTF8Line()!!
-        val status = HttpStatusCode(channel.readInt(), channel.readUTF8Line()!!)
-        val version = HttpProtocolVersion.parse(channel.readUTF8Line()!!)
+        val url = channel.readLineStrict()!!
+        val status = HttpStatusCode(channel.readInt(), channel.readLineStrict()!!)
+        val version = HttpProtocolVersion.parse(channel.readLineStrict()!!)
         val headersCount = channel.readInt()
         val headers = HeadersBuilder()
         for (j in 0 until headersCount) {
-            val key = channel.readUTF8Line()!!
-            val value = channel.readUTF8Line()!!
+            val key = channel.readLineStrict()!!
+            val value = channel.readLineStrict()!!
             headers.append(key, value)
         }
         val requestTime = GMTDate(channel.readLong())
@@ -187,9 +189,9 @@ private class JvmFileCacheStorage(
         val expirationTime = GMTDate(channel.readLong())
         val varyKeysCount = channel.readInt()
         val varyKeys = buildMap {
-            for (j in 0 until varyKeysCount) {
-                val key = channel.readUTF8Line()!!
-                val value = channel.readUTF8Line()!!
+            repeat(varyKeysCount) {
+                val key = channel.readLineStrict()!!.lowercase()
+                val value = channel.readLineStrict()!!
                 put(key, value)
             }
         }

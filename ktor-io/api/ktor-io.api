@@ -543,6 +543,10 @@ public final class io/ktor/utils/io/core/PacketKt {
 	public static final fun isNotEmpty (Lkotlinx/io/Source;)Z
 }
 
+public final class io/ktor/utils/io/core/ReadingKt {
+	public static final fun toByteReadChannel (Lkotlinx/io/RawSource;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+}
+
 public final class io/ktor/utils/io/core/StringsKt {
 	public static final fun String ([BIILjava/nio/charset/Charset;)Ljava/lang/String;
 	public static synthetic fun String$default ([BIILjava/nio/charset/Charset;ILjava/lang/Object;)Ljava/lang/String;
@@ -560,6 +564,11 @@ public final class io/ktor/utils/io/core/StringsKt {
 	public static final fun writeText (Lkotlinx/io/Sink;[CIILjava/nio/charset/Charset;)V
 	public static synthetic fun writeText$default (Lkotlinx/io/Sink;Ljava/lang/CharSequence;IILjava/nio/charset/Charset;ILjava/lang/Object;)V
 	public static synthetic fun writeText$default (Lkotlinx/io/Sink;[CIILjava/nio/charset/Charset;ILjava/lang/Object;)V
+}
+
+public final class io/ktor/utils/io/core/WritingKt {
+	public static final fun copyTo (Lio/ktor/utils/io/ByteReadChannel;Lkotlinx/io/RawSink;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun copyTo$default (Lio/ktor/utils/io/ByteReadChannel;Lkotlinx/io/RawSink;JLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class io/ktor/utils/io/core/internal/ChunkBufferJvmKt {
