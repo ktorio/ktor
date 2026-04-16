@@ -421,7 +421,7 @@ public sealed class HttpAuthHeader(public val authScheme: String) {
          */
         public fun digestAuthChallenge(
             realm: String,
-            nonce: String = generateNonce(),
+            nonce: String = generateNonceBlocking(),
             domain: List<String> = emptyList(),
             opaque: String? = null,
             stale: Boolean? = null,
@@ -460,7 +460,7 @@ public sealed class HttpAuthHeader(public val authScheme: String) {
         @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.WARNING)
         public fun digestAuthChallenge(
             realm: String,
-            nonce: String = generateNonce(),
+            nonce: String = generateNonceBlocking(),
             domain: List<String> = emptyList(),
             opaque: String? = null,
             stale: Boolean? = null,

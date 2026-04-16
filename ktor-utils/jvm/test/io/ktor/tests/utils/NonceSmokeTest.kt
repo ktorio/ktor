@@ -13,7 +13,7 @@ class NonceSmokeTest {
         val nonceSet = HashSet<String>(4096)
 
         repeat(4096) {
-            nonceSet.add(generateNonce())
+            nonceSet.add(generateNonceBlocking())
         }
 
         assertTrue { nonceSet.size == 4096 }

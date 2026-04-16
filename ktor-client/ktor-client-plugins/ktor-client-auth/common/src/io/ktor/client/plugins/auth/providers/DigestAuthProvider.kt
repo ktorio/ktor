@@ -119,7 +119,7 @@ public class DigestAuthProvider(
 
     private val qop = atomic<String?>(null)
     private val opaque = atomic<String?>(null)
-    private val clientNonce = generateNonce()
+    private val clientNonce = generateNonceBlocking()
 
     private val requestCounter = atomic(0)
 

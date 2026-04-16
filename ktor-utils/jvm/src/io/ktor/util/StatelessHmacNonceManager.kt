@@ -23,7 +23,7 @@ public class StatelessHmacNonceManager(
     public val keySpec: SecretKeySpec,
     public val algorithm: String = "HmacSHA256",
     public val timeoutMillis: Long = 60000,
-    public val nonceGenerator: () -> String = { generateNonce() }
+    public val nonceGenerator: () -> String = { generateNonceBlocking() }
 ) : NonceManager {
     /**
      * Helper constructor that makes a secret key from [key] ByteArray
@@ -34,7 +34,7 @@ public class StatelessHmacNonceManager(
         key: ByteArray,
         algorithm: String = "HmacSHA256",
         timeoutMillis: Long = 60000,
-        nonceGenerator: () -> String = { generateNonce() }
+        nonceGenerator: () -> String = { generateNonceBlocking() }
     ) : this(
         SecretKeySpec(
             key,

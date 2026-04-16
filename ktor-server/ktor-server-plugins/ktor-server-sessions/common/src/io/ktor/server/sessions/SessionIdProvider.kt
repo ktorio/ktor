@@ -11,4 +11,4 @@ import io.ktor.util.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.generateSessionId)
  */
-public fun generateSessionId(): String = generateNonce() + generateNonce()
+public fun generateSessionId(): String = generateNonceBlocking(64)
