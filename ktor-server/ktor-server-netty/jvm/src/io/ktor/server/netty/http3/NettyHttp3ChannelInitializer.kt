@@ -11,6 +11,7 @@ import io.netty.channel.socket.*
 import io.netty.handler.codec.http3.*
 import io.netty.handler.codec.quic.*
 import io.netty.util.concurrent.*
+import java.util.concurrent.TimeUnit
 import kotlin.coroutines.*
 
 /**
@@ -24,7 +25,13 @@ internal class NettyHttp3ChannelInitializer(
     private val userContext: CoroutineContext,
     private val runningLimit: Int,
     private val quicSslContext: QuicSslContext,
-    private val quicTokenHandler: QuicTokenHandler
+    private val quicTokenHandler: QuicTokenHandler,
+    private val quicMaxIdleTimeoutMillis: Long,
+    private val quicInitialMaxData: Long,
+    private val quicInitialMaxStreamDataBidirectionalLocal: Long,
+    private val quicInitialMaxStreamDataBidirectionalRemote: Long,
+    private val quicInitialMaxStreamsBidirectional: Long,
+    private val configureQuicServerCodec: QuicServerCodecBuilder.() -> Unit
 ) : ChannelInitializer<DatagramChannel>() {
 
     override fun initChannel(ch: DatagramChannel) {
@@ -41,11 +48,12 @@ internal class NettyHttp3ChannelInitializer(
         val quicServerCodec = Http3.newQuicServerCodecBuilder()
             .sslContext(quicSslContext)
             .tokenHandler(quicTokenHandler)
-            .maxIdleTimeout(30_000, java.util.concurrent.TimeUnit.MILLISECONDS)
-            .initialMaxData(10_000_000)
-            .initialMaxStreamDataBidirectionalLocal(1_000_000)
-            .initialMaxStreamDataBidirectionalRemote(1_000_000)
-            .initialMaxStreamsBidirectional(100)
+            .maxIdleTimeout(quicMaxIdleTimeoutMillis, TimeUnit.MILLISECONDS)
+            .initialMaxData(quicInitialMaxData)
+            .initialMaxStreamDataBidirectionalLocal(quicInitialMaxStreamDataBidirectionalLocal)
+            .initialMaxStreamDataBidirectionalRemote(quicInitialMaxStreamDataBidirectionalRemote)
+            .initialMaxStreamsBidirectional(quicInitialMaxStreamsBidirectional)
+            .apply(configureQuicServerCodec)
             .handler(Http3ServerConnectionHandler(streamInitializer))
             .build()
 

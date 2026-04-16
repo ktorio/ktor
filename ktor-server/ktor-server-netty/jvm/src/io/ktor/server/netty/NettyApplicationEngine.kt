@@ -28,6 +28,7 @@ import io.netty.channel.socket.nio.NioDatagramChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.handler.codec.http.HttpObjectDecoder
 import io.netty.handler.codec.http.HttpServerCodec
+import io.netty.handler.codec.quic.QuicServerCodecBuilder
 import io.netty.handler.codec.quic.QuicSslContext
 import io.netty.handler.codec.quic.QuicSslContextBuilder
 import io.netty.handler.codec.quic.QuicTokenHandler
@@ -178,6 +179,56 @@ public class NettyApplicationEngine(
         public var quicTokenHandler: QuicTokenHandler = HmacQuicTokenHandler()
 
         /**
+         * Maximum idle timeout for QUIC connections in milliseconds.
+         * If no data is exchanged within this period, the connection is closed.
+         *
+         * Only takes effect when [enableHttp3] is `true`.
+         */
+        public var quicMaxIdleTimeoutMillis: Long = 30_000
+
+        /**
+         * The initial value for the maximum amount of data that can be sent
+         * on the entire QUIC connection, in bytes.
+         *
+         * Only takes effect when [enableHttp3] is `true`.
+         */
+        public var quicInitialMaxData: Long = 10_000_000
+
+        /**
+         * The initial flow-control limit for locally-initiated bidirectional
+         * QUIC streams, in bytes.
+         *
+         * Only takes effect when [enableHttp3] is `true`.
+         */
+        public var quicInitialMaxStreamDataBidirectionalLocal: Long = 1_000_000
+
+        /**
+         * The initial flow-control limit for remotely-initiated bidirectional
+         * QUIC streams, in bytes.
+         *
+         * Only takes effect when [enableHttp3] is `true`.
+         */
+        public var quicInitialMaxStreamDataBidirectionalRemote: Long = 1_000_000
+
+        /**
+         * The initial maximum number of bidirectional streams that the remote
+         * peer is allowed to open.
+         *
+         * Only takes effect when [enableHttp3] is `true`.
+         */
+        public var quicInitialMaxStreamsBidirectional: Long = 100
+
+        /**
+         * User-provided function to configure the QUIC server codec builder
+         * used when HTTP/3 is enabled. This lambda is invoked on the
+         * [QuicServerCodecBuilder] after all default settings have been applied,
+         * allowing callers to override or add any QUIC transport parameters.
+         *
+         * Only takes effect when [enableHttp3] is `true`.
+         */
+        public var configureQuicServerCodec: QuicServerCodecBuilder.() -> Unit = {}
+
+        /**
          * Default function to configure Netty's
          */
         private fun defaultHttpServerCodec() = HttpServerCodec(
@@ -311,7 +362,13 @@ public class NettyApplicationEngine(
                     userContext,
                     configuration.runningLimit,
                     quicSslContext,
-                    configuration.quicTokenHandler
+                    configuration.quicTokenHandler,
+                    configuration.quicMaxIdleTimeoutMillis,
+                    configuration.quicInitialMaxData,
+                    configuration.quicInitialMaxStreamDataBidirectionalLocal,
+                    configuration.quicInitialMaxStreamDataBidirectionalRemote,
+                    configuration.quicInitialMaxStreamsBidirectional,
+                    configuration.configureQuicServerCodec
                 )
             )
         }

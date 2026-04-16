@@ -83,6 +83,7 @@ public final class io/ktor/server/netty/NettyApplicationEngine$Configuration : i
 	public fun <init> ()V
 	public final fun getChannelPipelineConfig ()Lkotlin/jvm/functions/Function1;
 	public final fun getConfigureBootstrap ()Lkotlin/jvm/functions/Function1;
+	public final fun getConfigureQuicServerCodec ()Lkotlin/jvm/functions/Function1;
 	public final fun getEnableH2c ()Z
 	public final fun getEnableHttp2 ()Z
 	public final fun getEnableHttp3 ()Z
@@ -90,6 +91,11 @@ public final class io/ktor/server/netty/NettyApplicationEngine$Configuration : i
 	public final fun getMaxChunkSize ()I
 	public final fun getMaxHeaderSize ()I
 	public final fun getMaxInitialLineLength ()I
+	public final fun getQuicInitialMaxData ()J
+	public final fun getQuicInitialMaxStreamDataBidirectionalLocal ()J
+	public final fun getQuicInitialMaxStreamDataBidirectionalRemote ()J
+	public final fun getQuicInitialMaxStreamsBidirectional ()J
+	public final fun getQuicMaxIdleTimeoutMillis ()J
 	public final fun getQuicTokenHandler ()Lio/netty/handler/codec/quic/QuicTokenHandler;
 	public final fun getRequestReadTimeoutSeconds ()I
 	public final fun getResponseWriteTimeoutSeconds ()I
@@ -98,6 +104,7 @@ public final class io/ktor/server/netty/NettyApplicationEngine$Configuration : i
 	public final fun getTcpKeepAlive ()Z
 	public final fun setChannelPipelineConfig (Lkotlin/jvm/functions/Function1;)V
 	public final fun setConfigureBootstrap (Lkotlin/jvm/functions/Function1;)V
+	public final fun setConfigureQuicServerCodec (Lkotlin/jvm/functions/Function1;)V
 	public final fun setEnableH2c (Z)V
 	public final fun setEnableHttp2 (Z)V
 	public final fun setEnableHttp3 (Z)V
@@ -105,6 +112,11 @@ public final class io/ktor/server/netty/NettyApplicationEngine$Configuration : i
 	public final fun setMaxChunkSize (I)V
 	public final fun setMaxHeaderSize (I)V
 	public final fun setMaxInitialLineLength (I)V
+	public final fun setQuicInitialMaxData (J)V
+	public final fun setQuicInitialMaxStreamDataBidirectionalLocal (J)V
+	public final fun setQuicInitialMaxStreamDataBidirectionalRemote (J)V
+	public final fun setQuicInitialMaxStreamsBidirectional (J)V
+	public final fun setQuicMaxIdleTimeoutMillis (J)V
 	public final fun setQuicTokenHandler (Lio/netty/handler/codec/quic/QuicTokenHandler;)V
 	public final fun setRequestReadTimeoutSeconds (I)V
 	public final fun setResponseWriteTimeoutSeconds (I)V
