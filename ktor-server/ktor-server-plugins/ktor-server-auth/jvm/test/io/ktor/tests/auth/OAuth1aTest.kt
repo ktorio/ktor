@@ -275,18 +275,52 @@ class OAuth1aFlowTest {
         }
     }
 
+    @Test
+    fun testFallbackExceptionDuringRequestToken() = testApplication {
+        configureServer(
+            "http://localhost/login?redirected=true",
+            mutateSettings = {
+                OAuthServerSettings.OAuth1aServerSettings(
+                    name,
+                    requestTokenUrl,
+                    authorizeUrl,
+                    accessTokenUrl,
+                    "badConsumerKey",
+                    consumerSecret
+                )
+            },
+            fallbackSetting = { respond(HttpStatusCode.BadRequest) }
+        )
+
+        val response = client.get("/login")
+        waitExecutor()
+        assertEquals(HttpStatusCode.BadRequest, response.status)
+    }
+
+    @Test
+    fun testFallbackUnauthorizedByDefault() = testApplication {
+        configureServer("http://localhost/login", fallbackSetting = { response.header("Test-Fallback", "true") })
+        val response = client.get("/login")
+        waitExecutor()
+
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
+        assertEquals("true", response.headers["Test-Fallback"])
+    }
+
     private suspend fun ApplicationTestBuilder.configureServer(
         redirectUrl: String = "http://localhost/login?redirected=true",
         mutateSettings: OAuthServerSettings.OAuth1aServerSettings.() ->
-        OAuthServerSettings.OAuth1aServerSettings = { this }
+        OAuthServerSettings.OAuth1aServerSettings = { this },
+        fallbackSetting: suspend ApplicationCall.(AuthenticationFailedCause.Error) -> Unit = {}
     ) {
         val testClient = testClient!!.await()
 
         install(Authentication) {
             oauth {
                 client = testClient
-                providerLookup = { settings.mutateSettings() }
+                providerLookup = { this@OAuth1aFlowTest.settings.mutateSettings() }
                 urlProvider = { redirectUrl }
+                fallback = fallbackSetting
             }
         }
 

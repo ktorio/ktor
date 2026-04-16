@@ -17,6 +17,13 @@ public data class HttpProtocolVersion(val name: String, val major: Int, val mino
     @Suppress("PublicApiImplicitType")
     public companion object {
         /**
+         * HTTP/3.0 version.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.HttpProtocolVersion.Companion.HTTP_3_0)
+         */
+        public val HTTP_3_0: HttpProtocolVersion = HttpProtocolVersion("HTTP", 3, 0)
+
+        /**
          * HTTP/2.0 version.
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.HttpProtocolVersion.Companion.HTTP_2_0)
@@ -60,6 +67,7 @@ public data class HttpProtocolVersion(val name: String, val major: Int, val mino
             name == "HTTP" && major == 1 && minor == 0 -> HTTP_1_0
             name == "HTTP" && major == 1 && minor == 1 -> HTTP_1_1
             name == "HTTP" && major == 2 && minor == 0 -> HTTP_2_0
+            name == "HTTP" && major == 3 && minor == 0 -> HTTP_3_0
             else -> HttpProtocolVersion(name, major, minor)
         }
 
@@ -69,10 +77,14 @@ public data class HttpProtocolVersion(val name: String, val major: Int, val mino
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.HttpProtocolVersion.Companion.parse)
          */
         public fun parse(value: CharSequence): HttpProtocolVersion {
-            /**
-             * Format: protocol/major.minor
-             */
-                val (protocol, major, minor) = value.split("/", ".").also {
+            // Fast path: check common versions first to avoid allocation
+            if (value == "HTTP/1.1") return HTTP_1_1
+            if (value == "HTTP/1.0") return HTTP_1_0
+            if (value == "HTTP/2.0") return HTTP_2_0
+            if (value == "HTTP/3.0") return HTTP_3_0
+
+            // Slow path: parse unknown versions (format: protocol/major.minor)
+            val (protocol, major, minor) = value.split("/", ".").also {
                 check(it.size == 3) {
                     "Failed to parse HttpProtocolVersion. Expected format: protocol/major.minor, but actual: $value"
                 }

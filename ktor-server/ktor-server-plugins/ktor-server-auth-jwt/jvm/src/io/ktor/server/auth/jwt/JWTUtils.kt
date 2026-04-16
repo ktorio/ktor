@@ -15,6 +15,7 @@ import io.ktor.http.auth.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
+import kotlinx.coroutines.*
 import java.security.interfaces.*
 import java.util.*
 
@@ -25,7 +26,18 @@ internal fun Jwk.makeAlgorithm(): Algorithm = when (algorithm) {
     "ES256" -> Algorithm.ECDSA256(publicKey as ECPublicKey, null)
     "ES384" -> Algorithm.ECDSA384(publicKey as ECPublicKey, null)
     "ES512" -> Algorithm.ECDSA512(publicKey as ECPublicKey, null)
-    null -> Algorithm.RSA256(publicKey as RSAPublicKey, null)
+    null -> when (type) {
+        "EC" -> {
+            val ecKey = publicKey as ECPublicKey
+            when (ecKey.params.order.bitLength()) {
+                in 249..258 -> Algorithm.ECDSA256(ecKey, null)
+                in 379..388 -> Algorithm.ECDSA384(ecKey, null)
+                in 518..527 -> Algorithm.ECDSA512(ecKey, null)
+                else -> Algorithm.ECDSA256(ecKey, null)
+            }
+        }
+        else -> Algorithm.RSA256(publicKey as RSAPublicKey, null)
+    }
     else -> throw IllegalArgumentException("Unsupported algorithm $algorithm")
 }
 
@@ -43,7 +55,7 @@ internal fun AuthenticationContext.bearerChallenge(
     }
 }
 
-internal fun getVerifier(
+internal suspend fun getVerifier(
     jwkProvider: JwkProvider,
     issuer: String?,
     token: HttpAuthHeader,
@@ -52,7 +64,9 @@ internal fun getVerifier(
 ): JWTVerifier? {
     val jwk = token.getBlob(schemes)?.let { blob ->
         try {
-            jwkProvider.get(JWT.decode(blob).keyId)
+            withContext(Dispatchers.IO) {
+                jwkProvider.get(JWT.decode(blob).keyId)
+            }
         } catch (cause: JwkException) {
             JWTLogger.trace("Failed to get JWK", cause)
             null
@@ -75,7 +89,7 @@ internal fun getVerifier(
     }.apply(jwtConfigure).build()
 }
 
-internal fun getVerifier(
+internal suspend fun getVerifier(
     jwkProvider: JwkProvider,
     token: HttpAuthHeader,
     schemes: JWTAuthSchemes,

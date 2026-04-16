@@ -6,7 +6,7 @@ package io.ktor.http
 
 import io.ktor.util.*
 
-internal const val INITIAL_MIMES_LIST_SIZE: Int = 1215
+internal const val INITIAL_MIMES_LIST_SIZE: Int = 1216
 
 private val rawMimes: String
     get() = """
@@ -731,6 +731,7 @@ audio/x-au,au
 audio/x-gsm,gsd gsm
 audio/x-jam,jam
 audio/x-liveaudio,lam
+audio/x-matroska,mka
 audio/x-mid,mid midi
 audio/x-midi,midi
 audio/x-mod,mod
@@ -764,6 +765,7 @@ font/ttf,ttf
 font/woff,woff
 font/woff2,woff2
 i-world/i-vrml,ivr
+image/apng,apng
 image/avif,avif avifs
 image/bmp,bm bmp
 image/cgm,cgm
@@ -777,6 +779,7 @@ image/heif,heif
 image/ief,ief iefs
 image/jpeg,jfif jfif-tbnl jpe jpeg jpg
 image/jutvision,jut
+image/jxl,jxl
 image/ktx,ktx
 image/naplps,nap naplps
 image/pict,pic pict
@@ -934,9 +937,8 @@ video/jpeg,jpgv
 video/jpm,jpm
 video/mj2,mj2
 video/mp4,m4v mp4
-application/mp4,mp4
+application/mp4,mp4s
 video/mpeg,m1v m2v mp2 mpe mpeg mpg
-audio/mpeg,mpg
 video/msvideo,avi
 video/ogg,ogv
 video/quicktime,moov mov qt
@@ -966,7 +968,6 @@ video/x-flv,flv
 video/x-gl,gl
 video/x-isvideo,isu
 video/x-matroska,mkv
-audio/x-matroska,mkv
 video/x-motion-jpeg,mjpg
 video/x-mpeg,mp2
 video/x-mpeq2a,mp2

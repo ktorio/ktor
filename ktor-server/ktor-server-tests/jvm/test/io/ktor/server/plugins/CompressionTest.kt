@@ -4,16 +4,25 @@
 
 package io.ktor.server.plugins
 
+import com.github.luben.zstd.ZstdInputStream
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.client.request.forms.MultiPartFormDataContent
+import io.ktor.client.request.forms.formData
 import io.ktor.client.statement.*
+import io.ktor.encoding.zstd.Zstd
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.serialization.kotlinx.json.json
+import io.ktor.server.application.install
 import io.ktor.server.http.*
 import io.ktor.server.http.content.*
 import io.ktor.server.plugins.cachingheaders.*
 import io.ktor.server.plugins.compression.*
+import io.ktor.server.plugins.compression.zstd.zstd
+import io.ktor.server.plugins.compression.zstd.zstdStandard
 import io.ktor.server.plugins.conditionalheaders.*
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -25,7 +34,9 @@ import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestResult
 import kotlinx.io.readByteArray
+import kotlinx.serialization.Serializable
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.zip.GZIPInputStream
@@ -100,6 +111,20 @@ class CompressionTest {
     }
 
     @Test
+    fun testCompressionDefaultZstd() = testApplication {
+        install(Compression) {
+            zstdStandard()
+        }
+        routing {
+            get("/") {
+                call.respondText(textToCompress)
+            }
+        }
+
+        handleAndAssert("/", "zstd,gzip,deflate", "zstd", textToCompress)
+    }
+
+    @Test
     fun testAcceptStarContentEncodingGzip() = testApplication {
         install(Compression) {
             gzip()
@@ -155,6 +180,21 @@ class CompressionTest {
         }
 
         handleAndAssert("/", "*", "deflate", textToCompress)
+    }
+
+    @Test
+    fun testAcceptStarContentEncodingZstd() = testApplication {
+        install(Compression) {
+            zstd()
+        }
+
+        routing {
+            get("/") {
+                call.respondText(textToCompress)
+            }
+        }
+
+        handleAndAssert("/", "*", "zstd", textToCompress)
     }
 
     @Test
@@ -221,7 +261,6 @@ class CompressionTest {
             header(HttpHeaders.AcceptEncoding, "*")
         }
         assertEquals(HttpStatusCode.Found, response.status)
-        assertEquals(textToCompress, response.bodyAsText())
     }
 
     @Test
@@ -272,6 +311,30 @@ class CompressionTest {
     }
 
     @Test
+    fun testMinSizeZstd() = testApplication {
+        install(Compression) {
+            zstd()
+            minimumSize(10)
+        }
+
+        routing {
+            get("/small") {
+                call.respondText("0123")
+            }
+            get("/big") {
+                call.respondText("01234567890123456789")
+            }
+            get("/stream") {
+                call.respondText("stream content")
+            }
+        }
+
+        handleAndAssert("/big", "zstd,gzip,deflate", "zstd", "01234567890123456789")
+        handleAndAssert("/small", "zstd,gzip,deflate", null, "0123")
+        handleAndAssert("/stream", "gzip,zstd,deflate", "zstd", "stream content")
+    }
+
+    @Test
     fun testMimeTypes() = testApplication {
         install(Compression) {
             default()
@@ -310,6 +373,21 @@ class CompressionTest {
         handleAndAssert("/?e=1", "gzip", "gzip", textToCompress)
         handleAndAssert("/?e", "gzip", null, textToCompress)
         handleAndAssert("/?e", "gzip,deflate", "deflate", textToCompress)
+    }
+
+    @Test
+    fun testCompressionLevelZstd() = testApplication {
+        install(Compression) {
+            zstd(level = 20)
+        }
+
+        routing {
+            get("/") {
+                call.respondText(textToCompress)
+            }
+        }
+
+        handleAndAssert("/", "zstd", "zstd", textToCompress)
     }
 
     @Test
@@ -361,6 +439,7 @@ class CompressionTest {
         install(Compression) {
             gzip()
             deflate()
+            zstd()
         }
 
         routing {
@@ -371,8 +450,10 @@ class CompressionTest {
 
         handleAndAssert("/", "gzip", "gzip", textToCompress)
         handleAndAssert("/", "deflate", "deflate", textToCompress)
-        handleAndAssert("/", "gzip;q=1,deflate;q=0.1", "gzip", textToCompress)
-        handleAndAssert("/", "gzip;q=0.1,deflate;q=1", "deflate", textToCompress)
+        handleAndAssert("/", "zstd", "zstd", textToCompress)
+        handleAndAssert("/", "gzip;q=1,zstd;q=0.5,deflate;q=0.1", "gzip", textToCompress)
+        handleAndAssert("/", "gzip;q=0.1,zstd;q=0.5,deflate;q=1", "deflate", textToCompress)
+        handleAndAssert("/", "gzip;q=0.1,zstd;q=1,deflate;q=0.2", "zstd", textToCompress)
     }
 
     @Test
@@ -467,7 +548,9 @@ class CompressionTest {
             }
         }
 
-        install(Compression)
+        install(Compression) {
+            zstdStandard()
+        }
         routing {
             get("/") {
                 call.respondText(content)
@@ -476,6 +559,7 @@ class CompressionTest {
 
         handleAndAssert("/", "deflate", "deflate", content)
         handleAndAssert("/", "gzip", "gzip", content)
+        handleAndAssert("/", "zstd", "zstd", content)
     }
 
     @Test
@@ -656,8 +740,27 @@ class CompressionTest {
     }
 
     @Test
+    fun basicZstdEncodeDecodeTest() = testApplication {
+        Zstd(compressionLevel = 3).let { defaultCompressionLevelZstd ->
+            val compressed = defaultCompressionLevelZstd.encode(ByteReadChannel(textToCompressAsBytes))
+            val decompressed = defaultCompressionLevelZstd.decode(compressed)
+
+            assertEquals(textToCompress, String(decompressed.toByteArray()))
+        }
+
+        Zstd(compressionLevel = 10).let { customCompressionLevelZstd ->
+            val compressed = customCompressionLevelZstd.encode(ByteReadChannel(textToCompressAsBytes))
+            val decompressed = customCompressionLevelZstd.decode(compressed)
+
+            assertEquals(textToCompress, String(decompressed.toByteArray()))
+        }
+    }
+
+    @Test
     fun testDecoding() = testApplication {
-        install(Compression)
+        install(Compression) {
+            zstdStandard()
+        }
         routing {
             post("/identity") {
                 val message = call.receiveText()
@@ -680,10 +783,16 @@ class CompressionTest {
                 assertEquals(listOf("deflate"), call.request.appliedDecoders)
                 call.respond(message)
             }
+            post("/zstd") {
+                val message = call.receiveText()
+                assertNull(call.request.headers[HttpHeaders.ContentEncoding])
+                assertEquals(listOf("zstd"), call.request.appliedDecoders)
+                call.respond(message)
+            }
             post("/multiple") {
                 val message = call.receiveText()
                 assertNull(call.request.headers[HttpHeaders.ContentEncoding])
-                assertEquals(listOf("identity", "deflate", "gzip"), call.request.appliedDecoders)
+                assertEquals(listOf("identity", "deflate", "gzip", "zstd"), call.request.appliedDecoders)
                 call.respond(message)
             }
             post("/unknown") {
@@ -711,9 +820,27 @@ class CompressionTest {
         }
         assertEquals(textToCompress, responseDeflate.bodyAsText())
 
+        val responseZstd = client.post("/zstd") {
+            setBody(Zstd(compressionLevel = 3).encode(ByteReadChannel(textToCompressAsBytes)))
+            header(HttpHeaders.ContentEncoding, "zstd")
+        }
+        assertEquals(textToCompress, responseZstd.bodyAsText())
+
         val responseMultiple = client.post("/multiple") {
-            setBody(Identity.encode(Deflate.encode(GZip.encode(ByteReadChannel(textToCompressAsBytes)))))
-            header(HttpHeaders.ContentEncoding, "identity,deflate,gzip")
+            setBody(
+                Identity.encode(
+                    Deflate.encode(
+                        GZip.encode(
+                            Zstd(compressionLevel = 3).encode(
+                                ByteReadChannel(
+                                    textToCompressAsBytes
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+            header(HttpHeaders.ContentEncoding, "identity,deflate,gzip,zstd")
         }
         assertEquals(textToCompress, responseMultiple.bodyAsText())
 
@@ -782,7 +909,7 @@ class CompressionTest {
                 val body = call.receive<ByteArray>()
 
                 assertNull(call.request.headers[HttpHeaders.ContentEncoding])
-                assertContentEquals(compressed, body)
+                assertContentEquals(textToCompressAsBytes, body)
 
                 call.respond(textToCompressAsBytes)
             }
@@ -809,7 +936,7 @@ class CompressionTest {
 
                 assertEquals("gzip", call.request.appliedDecoders.first())
                 assertNull(call.request.headers[HttpHeaders.ContentEncoding])
-                assertContentEquals(compressed, body)
+                assertContentEquals(textToCompressAsBytes, body)
 
                 call.respond(textToCompressAsBytes)
             }
@@ -846,6 +973,120 @@ class CompressionTest {
         assertContentEquals(compressed, response.body<ByteArray>())
     }
 
+    @Test
+    fun `body should be decompressed by compression plugin before receiving as ByteArray`() = testApplication {
+        application {
+            install(Compression) {
+                mode = CompressionConfig.Mode.DecompressRequest
+                gzip()
+            }
+
+            routing {
+                post("/") {
+                    val body = call.receive<ByteArray>()
+                    call.respond(body)
+                }
+            }
+        }
+
+        val expectedBody = "deadbeef".hexToByteArray()
+
+        val responseBytes = client.post("/") {
+            val compressedBody = GZip.encode(ByteReadChannel(expectedBody)).readRemaining().readByteArray()
+            setBody(compressedBody)
+            header(HttpHeaders.ContentEncoding, "gzip")
+        }.bodyAsBytes()
+
+        assertEquals(expectedBody.toHexString(), responseBytes.toHexString())
+    }
+
+    @Test
+    fun `body should be decompressed by compression plugin before receiving as multipart`() = testApplication {
+        application {
+            install(Compression) {
+                mode = CompressionConfig.Mode.DecompressRequest
+                gzip()
+            }
+
+            routing {
+                post("/multipart") {
+                    call.respondText(
+                        buildString {
+                            appendLine("START")
+                            call.receiveMultipart().forEachPart { partData ->
+                                if (partData is PartData.FormItem) {
+                                    appendLine("${partData.name}=${partData.value}")
+                                }
+                                partData.dispose()
+                            }
+                            appendLine("END")
+                        }
+                    )
+                }
+            }
+        }
+        val multipart = MultiPartFormDataContent(
+            formData {
+                append("test", "test")
+            }
+        )
+        val channel = ByteChannel()
+
+        val multipartBytes = coroutineScope {
+            launch {
+                multipart.writeTo(channel)
+            }
+            channel.toByteArray()
+        }
+        val responseText = client.post("/multipart") {
+            val compressedBody = GZip.encode(ByteReadChannel(multipartBytes)).readRemaining().readByteArray()
+            setBody(compressedBody)
+            header(
+                HttpHeaders.ContentType,
+                ContentType.MultiPart.FormData.withParameter("boundary", multipart.boundary)
+            )
+            header(HttpHeaders.ContentEncoding, "gzip")
+        }.bodyAsText()
+
+        assertEquals("START\ntest=test\nEND\n", responseText)
+    }
+
+    @Test
+    fun `body should be decompressed by compression plugin before receiving with content negotiation`() {
+        testApplication {
+            @Serializable
+            data class JsonBody(val test: String)
+
+            application {
+                install(ContentNegotiation) {
+                    json()
+                }
+
+                install(Compression) {
+                    mode = CompressionConfig.Mode.DecompressRequest
+                    gzip()
+                }
+
+                routing {
+                    post("/json") {
+                        val body = call.receive<JsonBody>()
+                        call.respondText(body.test)
+                    }
+                }
+            }
+            val expectedText = "This is a test"
+            val responseText = client.post("/json") {
+                val compressedBody = GZip.encode(
+                    ByteReadChannel("""{"test": "$expectedText"}""".toByteArray())
+                ).readRemaining().readByteArray()
+                setBody(compressedBody)
+                header(HttpHeaders.ContentType, ContentType.Application.Json)
+                header(HttpHeaders.ContentEncoding, "gzip")
+            }.bodyAsText()
+            assertEquals(expectedText, responseText)
+        }
+    }
+
     private suspend fun ApplicationTestBuilder.handleAndAssert(
         url: String,
         acceptHeader: String?,
@@ -870,6 +1111,11 @@ class CompressionTest {
 
                 "deflate" -> {
                     assertEquals(expectedContent, response.readDeflate())
+                    assertNull(response.headers[HttpHeaders.ContentLength])
+                }
+
+                "zstd" -> {
+                    assertEquals(expectedContent, response.readZstd())
                     assertNull(response.headers[HttpHeaders.ContentLength])
                 }
 
@@ -898,4 +1144,5 @@ class CompressionTest {
         InflaterInputStream(bodyAsChannel().toInputStream(), Inflater(true)).reader().readText()
 
     private suspend fun HttpResponse.readGzip() = GZIPInputStream(bodyAsChannel().toInputStream()).reader().readText()
+    private suspend fun HttpResponse.readZstd() = ZstdInputStream(bodyAsChannel().toInputStream()).reader().readText()
 }

@@ -55,7 +55,6 @@ public interface ClientProvider {
      *
      * @see [testApplication]
      */
-    @KtorDsl
     public fun createClient(block: HttpClientConfig<out HttpClientEngineConfig>.() -> Unit): HttpClient
 }
 
@@ -85,7 +84,11 @@ public class TestApplication internal constructor(
     internal val server by lazy { createServer() }
     private val applicationStarting by lazy { Job(server.engine.coroutineContext[Job]) }
 
-    /** Returns an instance of [Application] behind this test application. */
+    /**
+     * Returns an instance of [Application] behind this test application.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplication.application)
+     */
     public val application: Application get() = server.application
 
     /**
@@ -129,7 +132,6 @@ public class TestApplication internal constructor(
  *
  * @see [testApplication]
  */
-@KtorDsl
 public fun TestApplication(
     block: TestApplicationBuilder.() -> Unit
 ): TestApplication {
@@ -156,7 +158,6 @@ public class ExternalServicesBuilder internal constructor(private val testApplic
      *
      * @see [testApplication]
      */
-    @KtorDsl
     public fun hosts(vararg hosts: String, block: Application.() -> Unit) {
         check(hosts.isNotEmpty()) { "hosts can not be empty" }
 
@@ -222,7 +223,6 @@ public open class TestApplicationBuilder {
      *
      * @see [testApplication]
      */
-    @KtorDsl
     public fun externalServices(block: ExternalServicesBuilder.() -> Unit) {
         checkNotBuilt()
         externalServices.block()
@@ -235,7 +235,6 @@ public open class TestApplicationBuilder {
      *
      * @see [testApplication]
      */
-    @KtorDsl
     public fun engine(block: TestApplicationEngine.Configuration.() -> Unit) {
         checkNotBuilt()
         val oldBuilder = engineConfig
@@ -252,7 +251,6 @@ public open class TestApplicationBuilder {
      *
      * @see [testApplication]
      */
-    @KtorDsl
     public fun serverConfig(block: ServerConfigBuilder.() -> Unit) {
         checkNotBuilt()
         val oldBuilder = applicationProperties
@@ -269,7 +267,6 @@ public open class TestApplicationBuilder {
      *
      * @see [testApplication]
      */
-    @KtorDsl
     public fun environment(block: ApplicationEnvironmentBuilder.() -> Unit) {
         checkNotBuilt()
         val oldBuilder = environmentBuilder
@@ -299,7 +296,6 @@ public open class TestApplicationBuilder {
      *
      * @see [testApplication]
      */
-    @KtorDsl
     public fun application(block: suspend Application.() -> Unit) {
         checkNotBuilt()
         applicationModules.add(block)
@@ -310,11 +306,11 @@ public open class TestApplicationBuilder {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationBuilder.install)
      */
-    @Suppress("UNCHECKED_CAST")
-    @KtorDsl
+    @Suppress("UNCHECKED_CAST", "ktlint:standard:no-consecutive-comments", "ktlint:standard:value-parameter-comment")
+    // TODO KTOR-8809: Uncomment the KtorDsl annotation
     public fun <P : Pipeline<*, PipelineCall>, B : Any, F : Any> install(
         plugin: Plugin<P, B, F>,
-        configure: B.() -> Unit = {}
+        configure: /* @KtorDsl */ B.() -> Unit = {}
     ) {
         checkNotBuilt()
         applicationModules.add { install(plugin as Plugin<ApplicationCallPipeline, B, F>, configure) }
@@ -325,7 +321,6 @@ public open class TestApplicationBuilder {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationBuilder.routing)
      */
-    @KtorDsl
     public fun routing(configuration: Route.() -> Unit) {
         checkNotBuilt()
         applicationModules.add { routing(configuration) }
@@ -338,12 +333,15 @@ public open class TestApplicationBuilder {
      * If one path is provided, the corresponding configuration file is loaded.
      * If multiple paths are provided, the configurations are merged in the given order.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationBuilder.configure)
+     *
      * @param configPaths Optional paths to configuration files.
      */
-    @KtorDsl
+    @Suppress("ktlint:standard:no-consecutive-comments", "ktlint:standard:value-parameter-comment")
+    // TODO KTOR-8809: Uncomment the KtorDsl annotation
     public fun configure(
         vararg configPaths: String,
-        overrides: (MutableMap<String, String>.() -> Unit)? = null
+        overrides: /* @KtorDsl */ (MutableMap<String, String>.() -> Unit)? = null
     ) {
         checkNotBuilt()
         environment {
@@ -418,7 +416,6 @@ public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
         testApplication.start()
     }
 
-    @KtorDsl
     override fun createClient(
         block: HttpClientConfig<out HttpClientEngineConfig>.() -> Unit
     ): HttpClient = HttpClient(DelegatingTestClientEngine) {
@@ -456,15 +453,10 @@ public class ApplicationTestBuilder : TestApplicationBuilder(), ClientProvider {
  *     assertEquals("Hello, world!", response.bodyAsText())
  * }
  * ```
- *
- * _Note: If you have the `application.conf` file in the `resources` folder,
- * [testApplication] loads all modules and properties specified in the configuration file automatically._
- *
  * You can learn more from [Testing](https://ktor.io/docs/testing.html).
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.testApplication)
  */
-@KtorDsl
 public fun testApplication(block: suspend ApplicationTestBuilder.() -> Unit): TestResult {
     return testApplication(EmptyCoroutineContext, block)
 }
@@ -503,17 +495,15 @@ public fun testApplication(block: suspend ApplicationTestBuilder.() -> Unit): Te
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.testApplication)
  */
-@KtorDsl
 public fun testApplication(
     parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
     block: suspend ApplicationTestBuilder.() -> Unit
-): TestResult = runTestWithRealTime {
+): TestResult = runTestWithRealTime(parentCoroutineContext) {
     runTestApplication(parentCoroutineContext, block)
 }
 
 // allows running multiple servers during one test
 // not really needed outside ktor probably
-@KtorDsl
 public suspend fun runTestApplication(
     parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
     block: suspend ApplicationTestBuilder.() -> Unit

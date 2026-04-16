@@ -1,0 +1,28 @@
+public final class io/ktor/openapi/reflect/ReflectionJsonSchemaInference : io/ktor/openapi/JsonSchemaInference {
+	public static final field Companion Lio/ktor/openapi/reflect/ReflectionJsonSchemaInference$Companion;
+	public fun <init> (Lio/ktor/openapi/reflect/SchemaReflectionAdapter;)V
+	public fun buildSchema (Lkotlin/reflect/KType;)Lio/ktor/openapi/JsonSchema;
+	public final fun schemaForClass (Lkotlin/reflect/KClass;)Lio/ktor/openapi/JsonSchema;
+	public final fun schemaRefForClass (Lkotlin/reflect/KClass;)Lio/ktor/openapi/ReferenceOr;
+}
+
+public final class io/ktor/openapi/reflect/ReflectionJsonSchemaInference$Companion {
+	public final fun getDefault ()Lio/ktor/openapi/JsonSchemaInference;
+}
+
+public abstract interface class io/ktor/openapi/reflect/SchemaReflectionAdapter {
+	public fun getName (Lkotlin/reflect/KProperty1;)Ljava/lang/String;
+	public fun getName (Lkotlin/reflect/KType;)Ljava/lang/String;
+	public fun getProperties (Lkotlin/reflect/KClass;)Ljava/util/Collection;
+	public fun isIgnored (Lkotlin/reflect/KProperty1;)Z
+	public fun isNullable (Lkotlin/reflect/KType;)Z
+}
+
+public final class io/ktor/openapi/reflect/SchemaReflectionAdapter$DefaultImpls {
+	public static fun getName (Lio/ktor/openapi/reflect/SchemaReflectionAdapter;Lkotlin/reflect/KProperty1;)Ljava/lang/String;
+	public static fun getName (Lio/ktor/openapi/reflect/SchemaReflectionAdapter;Lkotlin/reflect/KType;)Ljava/lang/String;
+	public static fun getProperties (Lio/ktor/openapi/reflect/SchemaReflectionAdapter;Lkotlin/reflect/KClass;)Ljava/util/Collection;
+	public static fun isIgnored (Lio/ktor/openapi/reflect/SchemaReflectionAdapter;Lkotlin/reflect/KProperty1;)Z
+	public static fun isNullable (Lio/ktor/openapi/reflect/SchemaReflectionAdapter;Lkotlin/reflect/KType;)Z
+}
+

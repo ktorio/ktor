@@ -36,13 +36,12 @@ public fun interface ProgressListener {
     public suspend fun onProgress(bytesSentTotal: Long, contentLength: Long?)
 }
 
-internal class ObservableContent(
-    private val delegate: OutgoingContent,
+@InternalAPI
+public class ObservableContent(
+    public val delegate: OutgoingContent,
     private val callContext: CoroutineContext,
     private val listener: ProgressListener
 ) : OutgoingContent.ReadChannelContent() {
-
-    private val content: ByteReadChannel = getContent(delegate)
 
     @OptIn(DelicateCoroutinesApi::class)
     private fun getContent(delegate: OutgoingContent): ByteReadChannel = when (delegate) {
@@ -68,5 +67,5 @@ internal class ObservableContent(
     override fun <T : Any> getProperty(key: AttributeKey<T>): T? = delegate.getProperty(key)
     override fun <T : Any> setProperty(key: AttributeKey<T>, value: T?): Unit = delegate.setProperty(key, value)
 
-    override fun readFrom(): ByteReadChannel = content.observable(callContext, contentLength, listener)
+    override fun readFrom(): ByteReadChannel = getContent(delegate).observable(callContext, contentLength, listener)
 }

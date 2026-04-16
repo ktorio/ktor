@@ -130,7 +130,10 @@ public val Webjars: ApplicationPlugin<WebjarsConfig> = createApplicationPlugin("
             }
             call.respond(content)
         } catch (multipleFiles: MultipleMatchesException) {
-            call.respond(HttpStatusCode.InternalServerError)
+            when (val message = multipleFiles.message) {
+                null -> call.respond(HttpStatusCode.InternalServerError)
+                else -> call.respond(HttpStatusCode.InternalServerError, message)
+            }
         } catch (_: IllegalArgumentException) {
         }
     }

@@ -24,6 +24,7 @@ public abstract interface class io/ktor/server/plugins/di/DependencyConflictPoli
 public final class io/ktor/server/plugins/di/DependencyConflictPolicyKt {
 	public static final fun getDefaultConflictPolicy ()Lio/ktor/server/plugins/di/DependencyConflictPolicy;
 	public static final fun getIgnoreConflicts ()Lio/ktor/server/plugins/di/DependencyConflictPolicy;
+	public static final fun getOverridePrevious ()Lio/ktor/server/plugins/di/DependencyConflictPolicy;
 }
 
 public abstract interface class io/ktor/server/plugins/di/DependencyConflictResult {
@@ -70,7 +71,7 @@ public final class io/ktor/server/plugins/di/DependencyConflictResult$Replace : 
 
 public abstract interface class io/ktor/server/plugins/di/DependencyInitializer {
 	public abstract fun getKey ()Lio/ktor/server/plugins/di/DependencyKey;
-	public abstract fun getOriginKey ()Lio/ktor/server/plugins/di/DependencyKey;
+	public fun getOriginKey ()Lio/ktor/server/plugins/di/DependencyKey;
 	public abstract fun resolve (Lio/ktor/server/plugins/di/DependencyResolver;)Lkotlinx/coroutines/Deferred;
 }
 
@@ -212,6 +213,7 @@ public final class io/ktor/server/plugins/di/DependencyKeyCovarianceKt {
 	public static final fun getDefaultKeyCovariance ()Lio/ktor/server/plugins/di/DependencyKeyCovariance;
 	public static final fun getNullables ()Lio/ktor/server/plugins/di/DependencyKeyCovariance;
 	public static final fun getOutTypeArgumentsSupertypes ()Lio/ktor/server/plugins/di/DependencyKeyCovariance;
+	public static final fun getRawTypes ()Lio/ktor/server/plugins/di/DependencyKeyCovariance;
 	public static final fun getSupertypes ()Lio/ktor/server/plugins/di/DependencyKeyCovariance;
 	public static final fun getUnnamed ()Lio/ktor/server/plugins/di/DependencyKeyCovariance;
 	public static final fun plus (Lio/ktor/server/plugins/di/DependencyKeyCovariance;Lio/ktor/server/plugins/di/DependencyKeyCovariance;)Lio/ktor/server/plugins/di/DependencyKeyCovariance;
@@ -293,10 +295,10 @@ public final class io/ktor/server/plugins/di/DependencyResolution_jvmKt {
 }
 
 public abstract interface class io/ktor/server/plugins/di/DependencyResolver : io/ktor/server/plugins/di/MutableDependencyMap, kotlinx/coroutines/CoroutineScope {
-	public abstract fun get (Lio/ktor/server/plugins/di/DependencyKey;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun getDeferred (Lio/ktor/server/plugins/di/DependencyKey;)Lkotlinx/coroutines/Deferred;
+	public fun get (Lio/ktor/server/plugins/di/DependencyKey;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getDeferred (Lio/ktor/server/plugins/di/DependencyKey;)Lkotlinx/coroutines/Deferred;
 	public abstract fun getReflection ()Lio/ktor/server/plugins/di/DependencyReflection;
-	public abstract fun named (Ljava/lang/String;)Lio/ktor/server/plugins/di/DependencyResolverContext;
+	public fun named (Ljava/lang/String;)Lio/ktor/server/plugins/di/DependencyResolverContext;
 }
 
 public final class io/ktor/server/plugins/di/DependencyResolver$DefaultImpls {
@@ -370,6 +372,10 @@ public abstract interface annotation class io/ktor/server/plugins/di/annotations
 
 public abstract interface annotation class io/ktor/server/plugins/di/annotations/Property : java/lang/annotation/Annotation {
 	public abstract fun value ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/plugins/di/utils/TypesKt {
+	public static final fun toRawType (Lio/ktor/util/reflect/TypeInfo;)Lio/ktor/util/reflect/TypeInfo;
 }
 
 public final class io/ktor/server/plugins/di/utils/Types_jvmKt {

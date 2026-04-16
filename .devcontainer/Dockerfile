@@ -1,13 +1,19 @@
 # syntax=docker/dockerfile:1
+# check=skip=FromPlatformFlagConstDisallowed
 
-FROM eclipse-temurin:21.0.7_6-jdk-noble AS dev
+# Enforce linux/amd64 platform because of two reasons:
+# 1. Chrome doesn't provide arm64 binaries for Linux (https://issues.chromium.org/issues/374811603)
+# 2. Kotlin/Native doesn't support linux/arm64 as a host platform (KT-36871)
+FROM --platform=linux/amd64 eclipse-temurin:21.0.8_9-jdk-noble AS dev
 
 ARG USERNAME=developer
 ARG USER_UID=1001
 ARG USER_GID=$USER_UID
 
 # Use Bash in "strict mode" to run scripts
-SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
+SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
+
+COPY chrome-dependencies.txt /tmp/chrome-dependencies.txt
 
 RUN <<EOT
   # Add Adoptium repository to download Eclipse Temurin JDK
@@ -22,18 +28,14 @@ RUN <<EOT
   apt-get install --yes --no-install-recommends \
     git util-linux openssh-server \
     ca-certificates curl fonts-liberation \
-    libasound2t64 libatk-bridge2.0-0 libatk1.0-0 libc6 libcairo2 libcups2 libcurl4 libcurl4-gnutls-dev \
-    libdbus-1-3 libexpat1 libfontconfig1 libgbm1 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libncurses6 libnspr4 \
-    libnss3 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 \
-    libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 lsb-release \
-    nodejs npm \
+    $(grep --invert-match '^#' /tmp/chrome-dependencies.txt | tr '\n' ' ') \
     temurin-8-jdk temurin-11-jdk temurin-17-jdk \
     zip unzip wget xdg-utils sudo
   apt-get clean
-  rm -rf /var/lib/apt/lists/*
+  rm -rf /var/lib/apt/lists/* /tmp/chrome-dependencies.txt
 EOT
 
-# Create non-root user
+# Create a non-root user
 RUN <<EOT
   groupadd --gid $USER_GID $USERNAME
   useradd --uid $USER_UID --gid $USER_GID --create-home $USERNAME
@@ -47,6 +49,50 @@ ENV HOME=/home/$USERNAME \
     SHELL=/bin/bash
 WORKDIR $HOME
 
+# Common variables
+ENV KTOR_DEV="true"
+ARG local_bin="$HOME/.local/bin"
+ENV PATH="$local_bin:$PATH"
+
+# Install Node.js
+ARG node_version="22"
+ARG nvm_version="0.40.3"
+ENV NVM_DIR="$HOME/.nvm"
+
+RUN <<EOT
+  # Install NVM
+  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v$nvm_version/install.sh | bash
+  source $NVM_DIR/nvm.sh
+
+  # Install Node and Yarn Classic
+  nvm install "$node_version"
+  npm install -g yarn
+
+  # Make Node.js binaries available without "source $NVM_DIR/nvm.sh"
+  # This should be done *after* installation of Yarn
+  mkdir --parents "$local_bin"
+  ln -s "$NVM_BIN"/* "$local_bin"
+
+  # Print versions
+  echo "Node $(node --version)"
+  echo "NPM $(npm --version)"
+  echo "Yarn $(yarn --version)"
+EOT
+
+# Install Chrome
+ENV CHROME_BIN="$local_bin/chrome"
+
+RUN <<EOT
+  source $NVM_DIR/nvm.sh
+  browsers_dir="$HOME/.cache/browsers"
+
+  npx @puppeteer/browsers install chrome@stable --path "$browsers_dir"
+
+  # Make Chrome binary visible for Karma
+  chrome_bin_path=$(npx @puppeteer/browsers list --path "$browsers_dir" | head -n1 | sed 's/.* //')
+  ln -s "$chrome_bin_path" "$CHROME_BIN"
+EOT
+
 # Change shell back to bash from jshell
 CMD ["/bin/bash"]
 
@@ -57,7 +103,7 @@ FROM dev AS dev-android
 # Specify build tools version.
 # Use the latest available version by default.
 # https://developer.android.com/tools/releases/build-tools
-ARG build_tools="35.0.0"
+ARG build_tools="36.0.0"
 ENV ANDROID_BUILD_TOOLS_VERSION=$build_tools
 
 # Define Android environment variables
@@ -69,10 +115,10 @@ ENV PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin"
 ENV PATH="$PATH:$ANDROID_HOME/platform-tools"
 ENV PATH="$PATH:$ANDROID_HOME/build-tools/$ANDROID_BUILD_TOOLS_VERSION"
 
-# Commandline Tools revisions: https://dl.google.com/android/repository/repository2-3.xml
+# Commandline Tools revisions: https://dl.google.com/android/repository/repository2-3.xml (search for "cmdline-tools;latest")
 # NOTE: Remember to update cmdline-tools-package.xml on commandlinetools update.
-ARG commandlinetools_url=https://dl.google.com/android/repository/commandlinetools-linux-12266719_latest.zip
-ARG commandlinetools_sha1=47e61d3bb57b5e907a74f225a767a767a8b4d7a5
+ARG commandlinetools_url=https://dl.google.com/android/repository/commandlinetools-linux-13114758_latest.zip
+ARG commandlinetools_sha1=5fdcc763663eefb86a5b8879697aa6088b041e70
 
 WORKDIR $ANDROID_HOME
 RUN <<EOF

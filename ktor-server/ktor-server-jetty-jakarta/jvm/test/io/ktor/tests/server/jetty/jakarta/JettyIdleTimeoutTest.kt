@@ -40,7 +40,11 @@ class JettyIdleTimeoutTest : EngineTestBase<JettyApplicationEngine, JettyApplica
                     val receiveChannel = call.receiveChannel()
                     val requestBody = receiveChannel.readRemaining().readText()
                     call.respond(requestBody)
-                } catch (_: TimeoutCancellationException) {
+                } catch (e: Exception) {
+                    assertTrue {
+                        e is TimeoutCancellationException ||
+                            e is java.util.concurrent.TimeoutException
+                    }
                     call.respondText(
                         "Timed out while receiving request body",
                         ContentType.Text.Plain,

@@ -22,6 +22,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
 
+@Suppress("DEPRECATION")
 class DarwinLegacyEngineTest : ClientEngineTest<DarwinLegacyClientEngineConfig>(DarwinLegacy) {
 
     @Test

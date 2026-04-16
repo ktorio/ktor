@@ -15,8 +15,8 @@ kotlin {
             api(projects.ktorSse)
         }
         commonTest.dependencies {
-            api(projects.ktorSerializationKotlinx)
-            api(projects.ktorSerializationKotlinxJson)
+            implementation(projects.ktorSerializationKotlinx)
+            implementation(projects.ktorSerializationKotlinxJson)
         }
     }
 }

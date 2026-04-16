@@ -10,14 +10,6 @@ plugins {
     id("ktorbuild.project.server-plugin")
 }
 
-kotlin {
-    sourceSets {
-        commonMain.dependencies {
-            api(libs.kotlinx.datetime)
-        }
-    }
-}
-
 val generateKtorVersionFile by tasks.registering {
     val ktorVersion = project.version
     inputs.property("ktor_version", ktorVersion)

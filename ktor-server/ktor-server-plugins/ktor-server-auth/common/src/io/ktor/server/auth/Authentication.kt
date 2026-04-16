@@ -1,5 +1,5 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+* Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
 package io.ktor.server.auth
@@ -25,8 +25,23 @@ public class AuthenticationConfig(providers: Map<String?, AuthenticationProvider
      * @throws IllegalArgumentException if a provider with the same name is already installed.
      */
     public fun provider(name: String? = null, configure: DynamicProviderConfig.() -> Unit) {
+        provider(name, description = null, configure)
+    }
+
+    /**
+     * Registers a provider with the specified [name] and [description] and allows you to [configure] it.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.AuthenticationConfig.provider)
+     *
+     * @throws IllegalArgumentException if a provider with the same name is already installed.
+     */
+    public fun provider(
+        name: String? = null,
+        description: String? = null,
+        configure: DynamicProviderConfig.() -> Unit
+    ) {
         requireProviderNotRegistered(name)
-        val configuration = DynamicProviderConfig(name).apply(configure)
+        val configuration = DynamicProviderConfig(name, description).apply(configure)
         val provider = configuration.buildProvider()
         providers[provider.name] = provider
     }
@@ -115,6 +130,9 @@ public class Authentication(internal var config: AuthenticationConfig) {
         }
     }
 }
+
+@InternalAPI
+public fun Authentication.configuration(): AuthenticationConfig = config
 
 /**
  * Retrieves an [AuthenticationContext] for `this` call.

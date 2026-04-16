@@ -11,7 +11,6 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinHierarchyBuilder
 import org.jetbrains.kotlin.gradle.plugin.KotlinHierarchyTemplate
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
-import org.jetbrains.kotlin.konan.target.REMOVED_TARGET_MESSAGE
 
 private typealias GroupedSourceSets = MutableMap<String, MutableSet<String>>
 
@@ -29,6 +28,7 @@ fun TrackedKotlinHierarchyTemplate(
 interface KotlinHierarchyTracker {
     val targetSourceSets: Map<String, Set<String>>
     val groups: Map<String, Set<String>>
+    fun addTarget(name: String)
 }
 
 fun KotlinHierarchyTracker(): KotlinHierarchyTracker = KotlinHierarchyTrackerImpl.getOrCreate(
@@ -112,7 +112,7 @@ private class KotlinHierarchyTrackerImpl(
     }
     //endregion
 
-    //region Actual targets
+    //region Targets
     override fun withJs() = addTarget("js")
     override fun withJvm() = addTarget("jvm")
 
@@ -120,9 +120,6 @@ private class KotlinHierarchyTrackerImpl(
     override fun withWasm() = withWasmJs()
     override fun withWasmJs() = addTarget("wasmJs")
     override fun withWasmWasi() = addTarget("wasmWasi")
-
-    @Deprecated("Renamed to 'withAndroidTarget'", replaceWith = ReplaceWith("withAndroidTarget()"))
-    override fun withAndroid() = withAndroidTarget()
     override fun withAndroidTarget() = addTarget("android")
     override fun withAndroidNativeX64() = addTarget("androidNativeX64")
     override fun withAndroidNativeX86() = addTarget("androidNativeX86")
@@ -148,30 +145,7 @@ private class KotlinHierarchyTrackerImpl(
     override fun withMingwX64() = addTarget("mingwX64")
     //endregion
 
-    //region Removed targets
-    @Deprecated(REMOVED_TARGET_MESSAGE, level = DeprecationLevel.ERROR)
-    override fun withIosArm32() = error("Target removed")
-
-    @Deprecated(REMOVED_TARGET_MESSAGE, level = DeprecationLevel.ERROR)
-    override fun withWatchosX86() = error("Target removed")
-
-    @Deprecated(REMOVED_TARGET_MESSAGE, level = DeprecationLevel.ERROR)
-    override fun withMingwX86() = error("Target removed")
-
-    @Deprecated(REMOVED_TARGET_MESSAGE, level = DeprecationLevel.ERROR)
-    override fun withLinuxArm32Hfp() = error("Target removed")
-
-    @Deprecated(REMOVED_TARGET_MESSAGE, level = DeprecationLevel.ERROR)
-    override fun withLinuxMips32() = error("Target removed")
-
-    @Deprecated(REMOVED_TARGET_MESSAGE, level = DeprecationLevel.ERROR)
-    override fun withLinuxMipsel32() = error("Target removed")
-
-    @Deprecated(REMOVED_TARGET_MESSAGE, level = DeprecationLevel.ERROR)
-    override fun withWasm32() = error("Target removed")
-    //endregion
-
-    private fun addTarget(name: String) {
+    override fun addTarget(name: String) {
         if (groupName == null) return
         check(!targetsFrozen) { "Can't add targets to already declared group: $groupName" }
 

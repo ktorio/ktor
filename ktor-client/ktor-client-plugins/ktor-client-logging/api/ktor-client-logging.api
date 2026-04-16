@@ -1,5 +1,61 @@
+public abstract interface class io/ktor/client/plugins/logging/BodyFilterResult {
+	public fun getByteSize ()Ljava/lang/Long;
+}
+
+public final class io/ktor/client/plugins/logging/BodyFilterResult$BufferContent : io/ktor/client/plugins/logging/BodyFilterResult$Content {
+	public fun <init> (Lkotlinx/io/Buffer;Ljava/nio/charset/Charset;J)V
+	public synthetic fun <init> (Lkotlinx/io/Buffer;Ljava/nio/charset/Charset;JILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getByteSize ()Ljava/lang/Long;
+	public fun read ()Ljava/lang/String;
+}
+
+public abstract interface class io/ktor/client/plugins/logging/BodyFilterResult$Content : io/ktor/client/plugins/logging/BodyFilterResult {
+	public abstract fun read ()Ljava/lang/String;
+}
+
+public final class io/ktor/client/plugins/logging/BodyFilterResult$Content$DefaultImpls {
+	public static fun getByteSize (Lio/ktor/client/plugins/logging/BodyFilterResult$Content;)Ljava/lang/Long;
+}
+
+public final class io/ktor/client/plugins/logging/BodyFilterResult$DefaultImpls {
+	public static fun getByteSize (Lio/ktor/client/plugins/logging/BodyFilterResult;)Ljava/lang/Long;
+}
+
+public final class io/ktor/client/plugins/logging/BodyFilterResult$Empty : io/ktor/client/plugins/logging/BodyFilterResult {
+	public static final field INSTANCE Lio/ktor/client/plugins/logging/BodyFilterResult$Empty;
+	public fun getByteSize ()Ljava/lang/Long;
+}
+
+public final class io/ktor/client/plugins/logging/BodyFilterResult$Skip : io/ktor/client/plugins/logging/BodyFilterResult {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/lang/Long;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Long;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getByteSize ()Ljava/lang/Long;
+	public final fun getReason ()Ljava/lang/String;
+}
+
+public abstract interface class io/ktor/client/plugins/logging/CommonLogBodyFilter : io/ktor/client/plugins/logging/LogBodyFilter {
+	public abstract fun filterAll (Ljava/lang/Long;Lio/ktor/http/ContentType;Lio/ktor/http/Headers;Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun filterRequest (Lio/ktor/http/Url;Ljava/lang/Long;Lio/ktor/http/ContentType;Lio/ktor/http/Headers;Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun filterResponse (Lio/ktor/http/Url;Ljava/lang/Long;Lio/ktor/http/ContentType;Lio/ktor/http/Headers;Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/client/plugins/logging/CommonLogBodyFilter$DefaultImpls {
+	public static fun filterRequest (Lio/ktor/client/plugins/logging/CommonLogBodyFilter;Lio/ktor/http/Url;Ljava/lang/Long;Lio/ktor/http/ContentType;Lio/ktor/http/Headers;Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun filterResponse (Lio/ktor/client/plugins/logging/CommonLogBodyFilter;Lio/ktor/http/Url;Ljava/lang/Long;Lio/ktor/http/ContentType;Lio/ktor/http/Headers;Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public final class io/ktor/client/plugins/logging/KtorMDCContext_jvmKt {
 	public static final fun MDCContext ()Lkotlin/coroutines/CoroutineContext$Element;
+}
+
+public abstract interface class io/ktor/client/plugins/logging/LogBodyFilter {
+	public abstract fun filterRequest (Lio/ktor/http/Url;Ljava/lang/Long;Lio/ktor/http/ContentType;Lio/ktor/http/Headers;Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun filterResponse (Lio/ktor/http/Url;Ljava/lang/Long;Lio/ktor/http/ContentType;Lio/ktor/http/Headers;Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/client/plugins/logging/LogBodyFilterKt {
+	public static final fun getBinaryLogBodyFilter ()Lio/ktor/client/plugins/logging/LogBodyFilter;
 }
 
 public final class io/ktor/client/plugins/logging/LogLevel : java/lang/Enum {
@@ -37,11 +93,13 @@ public final class io/ktor/client/plugins/logging/LoggerKt {
 public final class io/ktor/client/plugins/logging/LoggingConfig {
 	public fun <init> ()V
 	public final fun filter (Lkotlin/jvm/functions/Function1;)V
+	public final fun getBodyFilter ()Lio/ktor/client/plugins/logging/LogBodyFilter;
 	public final fun getFormat ()Lio/ktor/client/plugins/logging/LoggingFormat;
 	public final fun getLevel ()Lio/ktor/client/plugins/logging/LogLevel;
 	public final fun getLogger ()Lio/ktor/client/plugins/logging/Logger;
 	public final fun sanitizeHeader (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun sanitizeHeader$default (Lio/ktor/client/plugins/logging/LoggingConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public final fun setBodyFilter (Lio/ktor/client/plugins/logging/LogBodyFilter;)V
 	public final fun setFormat (Lio/ktor/client/plugins/logging/LoggingFormat;)V
 	public final fun setLevel (Lio/ktor/client/plugins/logging/LogLevel;)V
 	public final fun setLogger (Lio/ktor/client/plugins/logging/Logger;)V

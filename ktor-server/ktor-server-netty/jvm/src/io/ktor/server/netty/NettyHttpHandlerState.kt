@@ -10,6 +10,7 @@ import kotlinx.atomicfu.*
 internal class NettyHttpHandlerState(private val runningLimit: Int) {
 
     internal val activeRequests: AtomicLong = atomic(0L)
+    internal val streamingResponses: AtomicLong = atomic(0L)
     internal val isCurrentRequestFullyRead: AtomicBoolean = atomic(false)
     internal val isChannelReadCompleted: AtomicBoolean = atomic(false)
     internal val skippedRead: AtomicBoolean = atomic(false)

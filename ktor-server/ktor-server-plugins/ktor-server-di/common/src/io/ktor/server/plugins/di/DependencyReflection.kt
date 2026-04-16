@@ -8,10 +8,14 @@ import kotlin.reflect.KClass
 
 /**
  * Provides reflection to dependency injection so that it may create new instances from class references.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyReflection)
  */
 public interface DependencyReflection {
     /**
      * Creates a new instance of the specified class using the provided initialization logic.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyReflection.create)
      *
      * @param T The type of the instance to be created.
      * @param kClass The class reference for the type of object to instantiate.
@@ -27,6 +31,8 @@ public interface DependencyReflection {
  * This function uses the `DependencyReflection` mechanism to dynamically
  * construct an instance of the requested type, resolving dependencies as needed.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.create)
+ *
  * @return An instance of the type [T].
  */
 public suspend inline fun <reified T : Any> DependencyResolver.create(): T =
@@ -35,6 +41,8 @@ public suspend inline fun <reified T : Any> DependencyResolver.create(): T =
 /**
  * Creates or retrieves an instance of the specified type [T] from the [DependencyResolver].
  * If the instance does not already exist, it is created using reflection.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.create)
  *
  * @param T The type of the instance to be created or retrieved.
  * @param kClass The class reference representing the type of object to create or retrieve.

@@ -14,6 +14,14 @@ import javax.net.ssl.SSLContext
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.apache.ApacheEngineConfig)
  */
+@Deprecated(
+    message = "Apache engine is deprecated. Consider using Apache5EngineConfig instead.",
+    replaceWith = ReplaceWith(
+        "Apache5EngineConfig",
+        "io.ktor.client.engine.apache5.Apache5EngineConfig"
+    ),
+    level = DeprecationLevel.WARNING
+)
 public class ApacheEngineConfig : HttpClientEngineConfig() {
     /**
      * Specifies whether to follow redirects automatically.

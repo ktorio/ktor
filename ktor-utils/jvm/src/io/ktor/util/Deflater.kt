@@ -8,10 +8,15 @@ import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.pool.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import java.nio.ByteBuffer
-import java.util.zip.*
-import kotlin.coroutines.*
+import java.util.zip.CRC32
+import java.util.zip.Checksum
+import java.util.zip.Deflater
+import kotlin.coroutines.CoroutineContext
 
 internal const val GZIP_MAGIC: Short = 0x8b1f.toShort()
 internal val GZIP_HEADER_PADDING: ByteArray = ByteArray(7)
@@ -97,6 +102,9 @@ private suspend fun ByteReadChannel.deflateTo(
     }
 }
 
+private val DeflateWriterCoroutineName = CoroutineName("encoder-deflate-writer")
+private val DeflateReaderCoroutineName = CoroutineName("encoder-deflate-reader")
+
 /**
  * Launch a coroutine on [coroutineContext] that does deflate compression
  * optionally doing CRC and writing GZIP header and trailer if [gzip] = `true`
@@ -108,7 +116,7 @@ public fun ByteReadChannel.deflated(
     gzip: Boolean = true,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
     coroutineContext: CoroutineContext = Dispatchers.Unconfined
-): ByteReadChannel = GlobalScope.writer(coroutineContext, autoFlush = true) {
+): ByteReadChannel = GlobalScope.writer(coroutineContext + DeflateWriterCoroutineName, autoFlush = true) {
     this@deflated.deflateTo(channel, gzip, pool)
 }.channel
 
@@ -123,6 +131,6 @@ public fun ByteWriteChannel.deflated(
     gzip: Boolean = true,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
     coroutineContext: CoroutineContext = Dispatchers.Unconfined
-): ByteWriteChannel = GlobalScope.reader(coroutineContext, autoFlush = true) {
+): ByteWriteChannel = GlobalScope.reader(coroutineContext + DeflateReaderCoroutineName, autoFlush = true) {
     channel.deflateTo(this@deflated, gzip, pool)
 }.channel

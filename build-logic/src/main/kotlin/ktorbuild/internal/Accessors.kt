@@ -4,11 +4,15 @@
 
 package ktorbuild.internal
 
+import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
 import ktorbuild.KtorBuildExtension
 import org.gradle.api.Project
+import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.kotlin.dsl.getByType
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
+import org.jetbrains.kotlin.gradle.dsl.abi.AbiValidationVariantSpec
 
 /*
  * Gradle doesn't generate accessors for plugins defined in this module,
@@ -19,5 +23,14 @@ internal val Project.ktorBuild: KtorBuildExtension get() = extensions.getByType(
 
 internal val Project.java: JavaPluginExtension get() = extensions.getByType()
 
+internal val Project.kotlin: KotlinMultiplatformExtension get() = extensions.getByType()
+
 internal fun Project.kotlin(configure: KotlinMultiplatformExtension.() -> Unit) =
     extensions.configure("kotlin", configure)
+
+internal fun KotlinProjectExtension.abiValidation(configure: AbiValidationVariantSpec.() -> Unit) =
+    extensions.configure("abiValidation", configure)
+
+internal fun KotlinMultiplatformExtension.android(action: KotlinMultiplatformAndroidLibraryTarget.() -> Unit) {
+    (this as ExtensionAware).extensions.configure("android", action)
+}

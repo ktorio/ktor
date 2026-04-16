@@ -48,6 +48,15 @@ internal fun Application.contentTestServer() {
                     }
                 )
             }
+
+            post("/pseudo-auth") {
+                if (call.request.headers.contains("respond")) {
+                    val content = call.request.receiveChannel().toByteArray()
+                    call.respond(content.size.toString())
+                } else {
+                    call.respond(HttpStatusCode.Forbidden)
+                }
+            }
             post("/echo") {
                 val content = call.request.receiveChannel().toByteArray()
                 call.respond(content)
@@ -101,6 +110,9 @@ internal fun Application.contentTestServer() {
                 val delay = call.parameters["delay"]?.toLong() ?: 0L
                 call.respond(
                     object : OutgoingContent.WriteChannelContent() {
+                        override val contentType: ContentType
+                            get() = ContentType.Application.OctetStream
+
                         override suspend fun writeTo(channel: ByteWriteChannel) {
                             while (true) {
                                 channel.writeInt(42)

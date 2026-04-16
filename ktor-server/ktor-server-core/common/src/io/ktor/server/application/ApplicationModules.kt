@@ -16,6 +16,8 @@ internal val ApplicationEnvironment.moduleConfigReferences: List<String> get() =
 
 /**
  * Selected mode of loading application modules.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.startupMode)
  */
 public val ApplicationEnvironment.startupMode: ApplicationStartupMode get() =
     when (val text = config.propertyOrNull("ktor.application.startup")?.getString()?.lowercase()) {
@@ -26,12 +28,16 @@ public val ApplicationEnvironment.startupMode: ApplicationStartupMode get() =
 
 /**
  * Configuration for the timeout on loading modules.  Defaults to 10 seconds.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.startupTimeout)
  */
 public val ApplicationEnvironment.startupTimeout: Duration get() =
     config.propertyOrNull("ktor.application.startupTimeoutMillis")?.getString()?.toLong()?.milliseconds ?: 10.seconds
 
 /**
  * Pre-defined methods for loading modules on server startup.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationStartupMode)
  */
 public enum class ApplicationStartupMode {
     SEQUENTIAL,

@@ -5,8 +5,8 @@
 package io.ktor.client.engine.jetty.jakarta
 
 import io.ktor.client.engine.*
-import org.eclipse.jetty.http2.client.*
-import org.eclipse.jetty.util.ssl.*
+import org.eclipse.jetty.http2.client.HTTP2Client
+import org.eclipse.jetty.util.ssl.SslContextFactory
 
 /**
  * A configuration for the [Jetty] client engine.

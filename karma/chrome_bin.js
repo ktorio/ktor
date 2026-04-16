@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 config.set({
@@ -14,7 +14,9 @@ config.set({
                 "--disable-web-security",
                 "--disable-setuid-sandbox",
                 "--enable-logging",
-                "--v=1"
+                "--v=1",
+                "--use-fake-device-for-media-stream",
+                "--use-fake-ui-for-media-stream"
             ]
         }
     },
@@ -24,7 +26,19 @@ config.set({
             // Disable timeout as we use individual timeouts for tests
             timeout: 0
         }
+    },
+    "webpack": {
+        // Workaround for Node.js built-in modules in browser tests.
+        // ktor-client-tests depends on ktor-network, which uses @JsModule("node:net") for Node.js socket support.
+        // Webpack cannot resolve the "node:" protocol in browser builds, so we stub it with an empty object.
+        // The Node.js socket code paths are not executed in browser tests anyway.
+        externals: {
+            'node:net': '{}'
+        }
     }
 });
 
-process.env.CHROME_BIN = require('puppeteer').executablePath();
+// CHROME_BIN might be already defined, otherwise use puppeteer to get the path
+if (!process.env.CHROME_BIN) {
+    process.env.CHROME_BIN = require('puppeteer').executablePath();
+}

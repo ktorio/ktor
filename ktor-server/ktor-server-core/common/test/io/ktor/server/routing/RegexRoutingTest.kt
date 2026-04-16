@@ -189,6 +189,29 @@ class RegexRoutingTest {
     }
 
     @Test
+    fun testQuery() = testApplication {
+        application {
+            routing {
+                query(Regex("/tag/(?<name>.+)")) {
+                    val name = call.parameters["name"]!!
+                    call.respondText(name)
+                }
+
+                query<String>(Regex("/.+/hello")) {
+                    call.respondText(it)
+                }
+            }
+        }
+
+        val post = client.query("/tag/abc 123").bodyAsText()
+        assertEquals("abc 123", post)
+        val typedPost = client.query("/qwe/rty/hello") {
+            setBody("abc")
+        }.bodyAsText()
+        assertEquals("abc", typedPost)
+    }
+
+    @Test
     fun testOnlyValidGroups() = testApplication {
         application {
             routing {

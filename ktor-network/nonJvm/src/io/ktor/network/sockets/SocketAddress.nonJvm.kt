@@ -10,6 +10,9 @@ public actual class InetSocketAddress actual constructor(
     public actual val hostname: String,
     public actual val port: Int
 ) : SocketAddress() {
+
+    public actual constructor(address: ByteArray, port: Int) : this(address.toIpString(), port)
+
     public actual fun resolveAddress(): ByteArray? {
         return platformResolveAddress()
     }
@@ -97,6 +100,8 @@ public actual class UnixSocketAddress actual constructor(
         /**
          * Checks if Unix domain sockets are supported on the current platform.
          *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.UnixSocketAddress.Companion.isSupported)
+         *
          * @return `true` if Unix domain sockets are supported, `false` otherwise.
          */
         public actual fun isSupported(): Boolean = isUnixSocketSupported()
@@ -106,3 +111,16 @@ public actual class UnixSocketAddress actual constructor(
 internal expect fun isUnixSocketSupported(): Boolean
 
 internal expect fun InetSocketAddress.platformResolveAddress(): ByteArray?
+
+internal fun ByteArray.toIpString(): String {
+    require(size == 4 || size == 16) {
+        "Invalid IP address byte array length: $size. Expected 4 (IPv4) or 16 (IPv6)."
+    }
+    return when (size) {
+        4 -> joinToString(".") { it.toUByte().toString() }
+        else -> (0 until 8).joinToString(":") { i ->
+            val value = ((this[i * 2].toInt() and 0xFF) shl 8) or (this[i * 2 + 1].toInt() and 0xFF)
+            value.toString(16).padStart(4, '0')
+        }
+    }
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.auth
@@ -7,6 +7,7 @@ package io.ktor.server.auth
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.request.*
 import io.ktor.util.*
 
 /**
@@ -59,6 +60,7 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
      *
      * @property authorizeUrl OAuth server authorization page URL
      * @property accessTokenUrl OAuth server access token request URL
+     * @property refreshUrl OAuth server refresh token request URL (optional, only used for API Docs)
      * @property requestMethod HTTP request method to be used to acquire access token (see vendors documentation)
      * @property clientId client id parameter (provided by OAuth server vendor)
      * @property clientSecret client secret parameter (provided by OAuth server vendor)
@@ -69,28 +71,71 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
      * @property authorizeUrlInterceptor an interceptor function to customize authorization URL
      * @property extraAuthParameters extra parameters to send during authentication
      * @property extraTokenParameters extra parameters to send with getting access token call
-     * @property accessTokenInterceptor an interceptor function to customize access token request
+     * @property accessTokenInterceptor an interceptor function to customize the access token request
      */
     public class OAuth2ServerSettings(
         name: String,
         public val authorizeUrl: String,
         public val accessTokenUrl: String,
+        public val refreshUrl: String? = null,
         public val requestMethod: HttpMethod = HttpMethod.Get,
-
         public val clientId: String,
         public val clientSecret: String,
         public val defaultScopes: List<String> = emptyList(),
+        // TODO: merge `defaultScopes` and `defaultScopeDescriptions` in the next major release
+        public val defaultScopeDescriptions: Map<String, String> = emptyMap(),
         public val accessTokenRequiresBasicAuth: Boolean = false,
-
         public val nonceManager: NonceManager = GenerateOnlyNonceManager,
-
-        public val authorizeUrlInterceptor: URLBuilder.() -> Unit = {},
+        public val authorizeUrlInterceptor: URLBuilder.(ApplicationRequest) -> Unit = {},
         public val passParamsInURL: Boolean = false,
         public val extraAuthParameters: List<Pair<String, String>> = emptyList(),
         public val extraTokenParameters: List<Pair<String, String>> = emptyList(),
         public val accessTokenInterceptor: HttpRequestBuilder.() -> Unit = {},
         public val onStateCreated: suspend (call: ApplicationCall, state: String) -> Unit = { _, _ -> }
-    ) : OAuthServerSettings(name, OAuthVersion.V20)
+    ) : OAuthServerSettings(name, OAuthVersion.V20) {
+
+        /**
+         * Constructor that accepts the old style authorizeUrlInterceptor for backward compatibility
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthServerSettings.OAuth2ServerSettings.OAuth2ServerSettings)
+         */
+        @Deprecated(level = DeprecationLevel.HIDDEN, message = "Compatibility with authorizeUrlInterceptor change")
+        public constructor(
+            name: String,
+            authorizeUrl: String,
+            accessTokenUrl: String,
+            requestMethod: HttpMethod = HttpMethod.Get,
+            clientId: String,
+            clientSecret: String,
+            defaultScopes: List<String> = emptyList(),
+            accessTokenRequiresBasicAuth: Boolean = false,
+            nonceManager: NonceManager = GenerateOnlyNonceManager,
+            authorizeUrlInterceptor: URLBuilder.() -> Unit = {},
+            passParamsInURL: Boolean = false,
+            extraAuthParameters: List<Pair<String, String>> = emptyList(),
+            extraTokenParameters: List<Pair<String, String>> = emptyList(),
+            accessTokenInterceptor: HttpRequestBuilder.() -> Unit = {},
+            onStateCreated: suspend (call: ApplicationCall, state: String) -> Unit = { _, _ -> }
+        ) : this(
+            name,
+            authorizeUrl,
+            accessTokenUrl,
+            refreshUrl = null,
+            requestMethod,
+            clientId,
+            clientSecret,
+            defaultScopes,
+            defaultScopeDescriptions = emptyMap(),
+            accessTokenRequiresBasicAuth,
+            nonceManager,
+            authorizeUrlInterceptor = { _: ApplicationRequest -> authorizeUrlInterceptor() },
+            passParamsInURL,
+            extraAuthParameters,
+            extraTokenParameters,
+            accessTokenInterceptor,
+            onStateCreated
+        )
+    }
 }
 
 /**
@@ -100,7 +145,7 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
  */
 public sealed class OAuthCallback {
     /**
-     * An OAuth1a token pair callback parameters.
+     * OAuth1a token pair callback parameters.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthCallback.TokenPair)
      *

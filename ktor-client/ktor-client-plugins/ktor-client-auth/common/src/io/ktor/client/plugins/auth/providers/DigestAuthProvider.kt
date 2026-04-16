@@ -208,7 +208,7 @@ public class DigestAuthProvider(
     }
 
     override suspend fun refreshToken(response: HttpResponse): Boolean {
-        tokenHolder.setToken(credentials)
+        tokenHolder.setToken(false, credentials)
         return true
     }
 
@@ -231,8 +231,7 @@ public class DigestAuthProvider(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.DigestAuthProvider.clearToken)
      */
-    @InternalAPI // TODO KTOR-8180: Provide control over tokens to user code
-    public fun clearToken() {
+    public override fun clearToken() {
         tokenHolder.clearToken()
     }
 }

@@ -37,6 +37,10 @@ actual constructor(
     @Retention
     protected actual annotation class Http2Only actual constructor()
 
+    @Target(AnnotationTarget.FUNCTION)
+    @Retention
+    protected actual annotation class Http1Only actual constructor()
+
     protected actual var port: Int = findFreePort()
 
     private fun findFreePort(): Int = runBlocking {

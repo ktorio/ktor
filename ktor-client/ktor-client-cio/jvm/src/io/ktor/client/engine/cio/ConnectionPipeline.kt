@@ -82,7 +82,8 @@ internal actual class ConnectionPipeline actual constructor(
 
                     val status = HttpStatusCode(rawResponse.status, rawResponse.statusText.toString())
                     val method = task.request.method
-                    val contentLength = rawResponse.headers[HttpHeaders.ContentLength]?.toString()?.toLong() ?: -1L
+                    val contentLength =
+                        rawResponse.headers[HttpHeaders.ContentLength]?.toString()?.toLongOrNull() ?: -1L
                     val transferEncoding = rawResponse.headers[HttpHeaders.TransferEncoding]
                     val chunked = transferEncoding == "chunked"
                     val connectionType = ConnectionOptions.parse(rawResponse.headers[HttpHeaders.Connection])

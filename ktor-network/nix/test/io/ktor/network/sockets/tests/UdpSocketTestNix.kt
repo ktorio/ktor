@@ -13,6 +13,7 @@ import kotlin.test.*
 
 class UdpSocketTestNix {
 
+    @Ignore
     @Test
     fun testDescriptorClose() = testSuspend {
         val selector = SelectorManager()

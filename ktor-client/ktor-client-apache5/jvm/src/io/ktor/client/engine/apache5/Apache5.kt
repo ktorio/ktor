@@ -12,13 +12,13 @@ import io.ktor.client.engine.*
  *
  * To create the client with this engine, pass it to the `HttpClient` constructor:
  * ```kotlin
- * val client = HttpClient(Apache)
+ * val client = HttpClient(Apache5)
  * ```
- * To configure the engine, pass settings exposed by [ApacheEngineConfig] to the `engine` method:
+ * To configure the engine, pass settings exposed by [Apache5EngineConfig] to the `engine` method:
  * ```kotlin
- * val client = HttpClient(Apache) {
+ * val client = HttpClient(Apache5) {
  *     engine {
- *         // this: ApacheEngineConfig
+ *         // this: Apache5EngineConfig
  *     }
  * }
  * ```

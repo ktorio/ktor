@@ -1,13 +1,14 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.network.sockets.nodejs
 
 import io.ktor.network.sockets.*
-import org.khronos.webgl.*
-
-internal actual fun nodeNet(): NodeNet? = js("eval('require')('node:net')")
+import org.khronos.webgl.Int8Array
+import org.khronos.webgl.Uint8Array
+import org.khronos.webgl.get
+import org.khronos.webgl.set
 
 internal actual fun TcpCreateConnectionOptions(
     block: TcpCreateConnectionOptions.() -> Unit
@@ -39,7 +40,7 @@ internal actual fun ByteArray.toJsBuffer(fromIndex: Int, toIndex: Int): JsBuffer
 }
 
 internal actual fun JsBuffer.toByteArray(): ByteArray {
-    val array = Int8Array(justCast<ArrayBuffer>(this))
+    val array = justCast<Uint8Array>(this)
     val bytes = ByteArray(array.length)
 
     repeat(array.length) { index ->

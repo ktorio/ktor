@@ -1,5 +1,5 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+* Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
 package io.ktor.http
@@ -10,7 +10,7 @@ package io.ktor.http
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.HttpStatusCode)
  *
  * @param value is a numeric code.
- * @param description is free form description of a status.
+ * @param description is a free form description of a status.
  */
 @Suppress("unused")
 public data class HttpStatusCode(val value: Int, val description: String) : Comparable<HttpStatusCode> {
@@ -186,7 +186,7 @@ internal fun allStatusCodes(): List<HttpStatusCode> = listOf(
 )
 
 /**
- * Checks if a given status code is a success code according to HTTP standards.
+ * Checks if a given status code is a success code, according to HTTP standards.
  *
  * Codes from 200 to 299 are considered to be successful.
  *

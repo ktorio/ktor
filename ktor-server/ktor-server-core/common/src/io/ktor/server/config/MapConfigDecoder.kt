@@ -59,6 +59,8 @@ internal class MapConfigDecoder(
         return if (map.containsPrefix(fullPath)) {
             currentPath = fullPath
             newIndex
+        } else if (descriptor.isElementOptional(newIndex)) {
+            decodeElementIndex(descriptor)
         } else {
             CompositeDecoder.DECODE_DONE
         }

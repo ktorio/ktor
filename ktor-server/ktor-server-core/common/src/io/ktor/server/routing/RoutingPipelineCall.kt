@@ -28,6 +28,21 @@ public class RoutingPipelineCall(
     responsePipeline: ApplicationSendPipeline,
     public val pathParameters: Parameters
 ) : PipelineCall, CoroutineScope {
+    @Deprecated(level = DeprecationLevel.WARNING, message = "Use explicit coroutineContext instead.")
+    public constructor(
+        engineCall: PipelineCall,
+        route: RoutingNode,
+        receivePipeline: ApplicationReceivePipeline,
+        responsePipeline: ApplicationSendPipeline,
+        pathParameters: Parameters
+    ) : this(
+        engineCall,
+        route,
+        engineCall.coroutineContext,
+        receivePipeline,
+        responsePipeline,
+        pathParameters
+    )
 
     override val application: Application get() = engineCall.application
     override val attributes: Attributes get() = engineCall.attributes

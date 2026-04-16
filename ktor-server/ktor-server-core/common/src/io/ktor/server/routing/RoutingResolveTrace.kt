@@ -45,7 +45,7 @@ public open class RoutingResolveTraceEntry(
         children?.forEach { it.buildText(builder, indent + 1) }
     }
 
-    override fun toString(): String = "$route, segment:$segmentIndex -> $result"
+    override fun toString(): String = "${route.render()}, segment:$segmentIndex -> $result"
 }
 
 /**
@@ -167,4 +167,35 @@ private class Stack<E> {
         }
         return tower.last()
     }
+}
+
+internal fun RoutingNode.render(): String {
+    val path = path.ifEmpty { "/" }
+    val constraints = buildConstraints()
+    return if (constraints.isEmpty()) path else "$path [$constraints]"
+}
+
+private fun RoutingNode.buildConstraints(): String {
+    val parentConstraints = parent?.buildConstraints()
+    if (selector.isPathElement()) {
+        return parentConstraints ?: ""
+    }
+
+    val selectorElement = selector.toString()
+    return when {
+        parentConstraints == null || parentConstraints.isEmpty() -> selectorElement
+        selectorElement.isEmpty() -> parentConstraints
+        else -> "$parentConstraints, $selectorElement"
+    }
+}
+
+internal fun RouteSelector.isPathElement(): Boolean = when (this) {
+    is PathSegmentConstantRouteSelector,
+    is PathSegmentParameterRouteSelector,
+    is PathSegmentOptionalParameterRouteSelector,
+    is PathSegmentTailcardRouteSelector,
+    is PathSegmentWildcardRouteSelector,
+    is PathSegmentRegexRouteSelector -> true
+
+    else -> false
 }

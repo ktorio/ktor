@@ -26,4 +26,41 @@ class CaseInsensitiveMapTest {
         map["Content-Type"] = "text/plain"
         assertEquals("text/plain", map["Content-Type"])
     }
+
+    @Test
+    fun `insertion order does not overflow on churn`() {
+        repeat(32) { i ->
+            map["k$i"] = "v$i"
+            map.remove("K$i")
+        }
+        assertTrue(map.isEmpty())
+
+        map["final"] = "value"
+        assertEquals("value", map["FINAL"])
+    }
+
+    @Test
+    fun `keySet operations are case-insensitive`() {
+        map["Content-Type"] = "text/plain"
+
+        assertTrue("content-type" in map.keys)
+        assertTrue(map.keys.remove("CONTENT-TYPE"))
+        assertTrue(map.isEmpty())
+    }
+
+    @Test
+    fun `equals and hashCode are case-insensitive within map`() {
+        val other = CaseInsensitiveMap<String>()
+        map["Foo"] = "1"
+        other["fOO"] = "1"
+
+        assertEquals(map, other)
+        assertEquals(map.hashCode(), other.hashCode())
+
+        // CaseInsensitiveMap.equals rejects non-CaseInsensitiveMap instances to
+        // preserve the equals/hashCode contract (case-insensitive hashing
+        // would differ from regular map hashing).
+        val regular = hashMapOf("Foo" to "1")
+        assertFalse(map.equals(regular), "CaseInsensitiveMap should not equal a regular map")
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.jetty.jakarta
@@ -23,10 +23,13 @@ import org.eclipse.jetty.http.HttpVersion
 import org.eclipse.jetty.http.MetaData
 import org.eclipse.jetty.http2.api.Session
 import org.eclipse.jetty.http2.client.HTTP2Client
-import org.eclipse.jetty.http2.client.HTTP2ClientSession
+import org.eclipse.jetty.http2.client.internal.HTTP2ClientSession
 import org.eclipse.jetty.http2.frames.HeadersFrame
 import org.eclipse.jetty.http2.frames.SettingsFrame
+import org.eclipse.jetty.io.Transport
 import org.eclipse.jetty.util.Callback
+import org.eclipse.jetty.util.Promise
+import org.eclipse.jetty.util.ssl.SslContextFactory
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import kotlin.coroutines.CoroutineContext
@@ -65,23 +68,38 @@ internal suspend fun HttpRequestData.executeRequest(
     )
 }
 
+internal val NoopListener = object : Session.Listener {}
+
 internal suspend fun HTTP2Client.connect(
     url: Url,
     config: JettyEngineConfig
-): Session = withPromise { promise ->
-    val factory = if (url.protocol.isSecure()) config.sslContextFactory else null
-    connect(factory, InetSocketAddress(url.host, url.port), Session.Listener.Adapter(), promise)
+): Session = withPromise { promise: Promise<Session> ->
+    connect(
+        Transport.TCP_IP,
+        // Allow HTTP/2 over plaintext (h2c)
+        config.sslContextFactory.takeUnless { url.protocol == URLProtocol.HTTP } as SslContextFactory.Client?,
+        InetSocketAddress(url.host, url.port),
+        NoopListener,
+        promise,
+        mutableMapOf<String, Object>() as Map<String, Object>
+    )
 }
 
 @OptIn(InternalAPI::class)
-private fun HttpRequestData.prepareHeadersFrame(): HeadersFrame {
+internal fun HttpRequestData.prepareHeadersFrame(): HeadersFrame {
     val rawHeaders = HttpFields.build()
     forEachHeader(rawHeaders::add)
+
+    val customHost = headers[HttpHeaders.Host]
+    val authority = customHost ?: "${url.host}:${url.port}"
+
+    // Remove the Host header from raw headers to avoid duplication with :authority
+    rawHeaders.remove(HttpHeaders.Host)
 
     val meta = MetaData.Request(
         method.value,
         url.protocol.name,
-        HostPortHttpField("${url.host}:${url.port}"),
+        HostPortHttpField(authority),
         url.fullPath,
         HttpVersion.HTTP_2,
         rawHeaders,
@@ -99,11 +117,13 @@ private fun sendRequestBody(request: JettyHttp2Request, content: OutgoingContent
             request.write(ByteBuffer.wrap(content.bytes()))
             request.endBody()
         }
+
         is OutgoingContent.ReadChannelContent -> writeRequest(content.readFrom(), request, callContext)
         is OutgoingContent.WriteChannelContent -> {
             val source = GlobalScope.writer(callContext) { content.writeTo(channel) }.channel
             writeRequest(source, request, callContext)
         }
+
         is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(content)
         is OutgoingContent.ContentWrapper -> sendRequestBody(request, content.delegate(), callContext)
     }

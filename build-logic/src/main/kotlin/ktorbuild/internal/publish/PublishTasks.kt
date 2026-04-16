@@ -7,14 +7,19 @@ package ktorbuild.internal.publish
 import ktorbuild.internal.capitalized
 import ktorbuild.targets.KtorTargets
 import org.gradle.api.Project
+import org.gradle.api.Task
+import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.tasks.AbstractPublishToMaven
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
 import org.gradle.api.publish.plugins.PublishingPlugin
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.kotlin.dsl.the
 import org.gradle.kotlin.dsl.withType
 
 private val jvmAndCommonPublications = setOf(
     "jvm",
+    "android",
     "androidRelease",
     "androidDebug",
     "metadata",
@@ -22,7 +27,7 @@ private val jvmAndCommonPublications = setOf(
     "maven",
 )
 
-private val jsPublications = KtorTargets.resolveTargets("jsAndWasmShared")
+private val webPublications = KtorTargets.resolveTargets("web")
 private val linuxPublications = KtorTargets.resolveTargets("linux")
 private val windowsPublications = KtorTargets.resolveTargets("windows")
 private val darwinPublications = KtorTargets.resolveTargets("darwin")
@@ -34,7 +39,7 @@ internal fun AbstractPublishToMaven.isAvailableForPublication(publicationName: S
         in windowsPublications -> os.isWindows
         in darwinPublications -> os.isMacOsX
         in jvmAndCommonPublications,
-        in jsPublications,
+        in webPublications,
         in androidNativePublications -> true
 
         else -> {
@@ -53,24 +58,42 @@ internal fun Project.registerCommonPublishTask() {
  * in the project.
  */
 internal fun Project.registerTargetsPublishTasks(targets: KtorTargets) = with(targets) {
-    if (hasJs || hasWasmJs) registerAggregatingPublishTask("Js", jsPublications)
+    if (hasWeb) {
+        val publishWebPublications = registerAggregatingPublishTask("Web", webPublications)
+        // Add an alias for the old task name
+        tasks.register("publishJsPublications") { dependsOn(publishWebPublications) }
+    }
     if (hasLinux) registerAggregatingPublishTask("Linux", linuxPublications)
     if (hasWindows) registerAggregatingPublishTask("Windows", windowsPublications)
     if (hasDarwin) registerAggregatingPublishTask("Darwin", darwinPublications)
     if (hasAndroidNative) registerAggregatingPublishTask("AndroidNative", androidNativePublications)
 }
 
-private fun Project.registerAggregatingPublishTask(name: String, publications: Set<String>) {
-    tasks.register("publish${name}Publications") {
+private fun Project.registerAggregatingPublishTask(name: String, publications: Set<String>): TaskProvider<Task> {
+    return tasks.register("publish${name}Publications") {
         group = PublishingPlugin.PUBLISH_TASK_GROUP
 
-        val repositoryName = providers.gradleProperty("repository").orElse(MAVEN_REPO_DEFAULT_NAME)
-        val taskNames = publications
-            .map { "publish${it.capitalized()}PublicationTo${repositoryName.get().capitalized()}Repository" }
-            .toSet()
+        val taskNames = provider {
+            val repositoryName = publishing.inferRepositoryName().capitalized()
+            publications
+                .map { "publish${it.capitalized()}PublicationTo${repositoryName}Repository" }
+                .toSet()
+        }
 
-        dependsOn(tasks.withType<PublishToMavenRepository>().named { it in taskNames })
+        dependsOn(tasks.withType<PublishToMavenRepository>().named { it in taskNames.get() })
     }
 }
 
-private const val MAVEN_REPO_DEFAULT_NAME = "maven"
+private fun PublishingExtension.inferRepositoryName(): String {
+    val repositoryNames = repositories.map { it.name }.filter { it != MAVEN_REPO_DEFAULT_NAME }
+    check(repositoryNames.size <= 1) {
+        "Publishing repository can't be inferred. Multiple repositories are defined: $repositoryNames"
+    }
+
+    return repositoryNames.singleOrNull() ?: MAVEN_REPO_DEFAULT_NAME
+}
+
+private val Project.publishing: PublishingExtension
+    get() = the()
+
+private const val MAVEN_REPO_DEFAULT_NAME = "MavenLocal"

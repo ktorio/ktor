@@ -51,7 +51,7 @@ public data class ContentTypeWithQuality(val contentType: ContentType, val quali
  * - Serializing/deserializing the content in a specific format.
  *    Ktor supports the following formats out-of-the-box: `JSON`, `XML`, `CBOR` and `ProtoBuf`.
  *
- * You can learn more from [Content negotiation and serialization](https://ktor.io/docs/serialization.html).
+ * You can learn more from [Content negotiation and serialization](https://ktor.io/docs/server-serialization.html).
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.contentnegotiation.ContentNegotiation)
  */
@@ -61,6 +61,9 @@ public val ContentNegotiation: RouteScopedPlugin<ContentNegotiationConfig> = cre
 ) {
     convertRequestBody()
     convertResponseBody()
+
+    // register default content types for application metadata, used in OpenAPI
+    application.attributes[DefaultContentTypesAttribute] = pluginConfig.registrations.map { it.contentType }.distinct()
 }
 
 /**

@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.engine.java
 
@@ -10,11 +10,17 @@ import io.ktor.client.plugins.sse.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
-import java.net.*
-import java.net.http.*
-import java.time.*
-import java.time.temporal.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.asExecutor
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.job
+import java.net.InetSocketAddress
+import java.net.Proxy
+import java.net.ProxySelector
+import java.net.http.HttpClient
+import java.time.Duration
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEngineBase("ktor-java") {
 
@@ -73,22 +79,19 @@ public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEng
 
     private fun HttpClient.Builder.setupProxy() {
         val proxy = config.proxy ?: return
-
-        when (val type = proxy.type()) {
-            Proxy.Type.SOCKS,
-            Proxy.Type.HTTP -> {
-                val address = proxy.address()
-
-                check(address is InetSocketAddress) {
-                    "Only http proxy is supported for Java HTTP engine."
-                }
-
-                proxy(ProxySelector.of(address))
-            }
-
-            Proxy.Type.DIRECT -> proxy(HttpClient.Builder.NO_PROXY)
-            else -> error("Java HTTP engine does not currently support $type proxies.")
+        val proxyType = proxy.type()
+        if (proxyType == Proxy.Type.DIRECT) {
+            proxy(HttpClient.Builder.NO_PROXY)
+            return
         }
+
+        val address = proxy.address()
+        // See: https://bugs.openjdk.org/browse/JDK-8214516
+        check(proxyType == Proxy.Type.HTTP && address is InetSocketAddress) {
+            "Only HTTP proxy is supported for Java HTTP engine, but configured $proxyType."
+        }
+
+        proxy(ProxySelector.of(address))
     }
 }
 

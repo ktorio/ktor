@@ -12,14 +12,11 @@ import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
-import kotlin.coroutines.*
+import kotlinx.coroutines.job
 
 internal class WinHttpClientEngine(
     override val config: WinHttpClientEngineConfig
 ) : HttpClientEngineBase("ktor-winhttp") {
-
-    override val dispatcher: CoroutineDispatcher = Dispatchers.Unconfined
 
     override val supportedCapabilities = setOf(HttpTimeoutCapability, WebSocketCapability, SSECapability)
 

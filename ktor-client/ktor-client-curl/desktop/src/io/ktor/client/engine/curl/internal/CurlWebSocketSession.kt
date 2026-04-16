@@ -1,27 +1,35 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.curl.internal
 
+import io.ktor.client.engine.curl.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.websocket.*
-import kotlinx.atomicfu.*
-import kotlinx.cinterop.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
+import kotlinx.atomicfu.atomic
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.launch
 import libcurl.*
-import kotlin.coroutines.*
+import kotlin.coroutines.CoroutineContext
 
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(InternalAPI::class, ExperimentalForeignApi::class)
 internal class CurlWebSocketSession(
     private val websocket: CurlWebSocketResponseBody,
-    callContext: CoroutineContext
+    callContext: CoroutineContext,
+    outgoingFramesConfig: ChannelConfig,
+    private val curlProcessor: CurlProcessor,
 ) : WebSocketSession, Closeable {
 
     private val closed = atomic(false)
     private val socketJob = Job(callContext[Job])
-    private val _outgoing = Channel<Frame>(Channel.UNLIMITED)
+    private val _outgoing = Channel.from<Frame>(outgoingFramesConfig)
 
     override val coroutineContext: CoroutineContext = callContext + socketJob + CoroutineName("curl-ws")
     override var masking: Boolean
@@ -46,7 +54,7 @@ internal class CurlWebSocketSession(
             close(it)
         }
 
-        launch {
+        launch(CoroutineName("curl-ws-outgoing")) {
             while (!closed.value) {
                 val frame = _outgoing.receive()
                 sendNextFrame(frame)
@@ -54,35 +62,24 @@ internal class CurlWebSocketSession(
         }
     }
 
-    private fun sendNextFrame(frame: Frame) {
+    private suspend fun sendNextFrame(frame: Frame) {
         val flags = if (frame.fin) 0 else CURLWS_CONT
         when (frame.frameType) {
-            FrameType.BINARY -> {
-                websocket.sendFrame(CURLWS_BINARY or flags, frame.data)
-            }
-
-            FrameType.TEXT -> {
-                websocket.sendFrame(CURLWS_TEXT or flags, frame.data)
-            }
+            FrameType.BINARY -> sendFrame(CURLWS_BINARY or flags, frame.data)
+            FrameType.TEXT -> sendFrame(CURLWS_TEXT or flags, frame.data)
+            FrameType.PING -> sendFrame(CURLWS_PING or flags, frame.data)
+            FrameType.PONG -> sendFrame(CURLWS_PONG or flags, frame.data)
 
             FrameType.CLOSE -> {
-                websocket.sendFrame(CURLWS_CLOSE or flags, frame.data)
+                sendFrame(CURLWS_CLOSE or flags, frame.data)
                 close(null)
                 socketJob.complete()
             }
-
-            FrameType.PING -> {
-                websocket.sendFrame(CURLWS_PING or flags, frame.data)
-            }
-
-            FrameType.PONG -> {
-                websocket.sendFrame(CURLWS_PONG or flags, frame.data)
-            }
-
-            else -> {
-                throw IllegalArgumentException("Unknown frame type: $frame")
-            }
         }
+    }
+
+    private suspend fun sendFrame(flags: Int, data: ByteArray) {
+        curlProcessor.sendWebSocketFrame(websocket, flags, data)
     }
 
     override suspend fun flush() = Unit
@@ -103,7 +100,7 @@ internal class CurlWebSocketSession(
     private fun close(cause: Throwable?) {
         if (!closed.compareAndSet(expect = false, update = true)) return
 
-        websocket.close()
+        websocket.close(cause)
         _outgoing.cancel()
     }
 }

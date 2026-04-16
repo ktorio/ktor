@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.logging
@@ -32,20 +32,21 @@ public expect val Logger.Companion.DEFAULT: Logger
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.logging.SIMPLE)
  */
-public val Logger.Companion.SIMPLE: Logger get() = SimpleLogger()
+public val Logger.Companion.SIMPLE: Logger get() = SimpleLogger
 
 /**
  * Empty [Logger] for test purpose.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.logging.EMPTY)
  */
-public val Logger.Companion.EMPTY: Logger
-    get() = object : Logger {
-        override fun log(message: String) {}
-    }
+public val Logger.Companion.EMPTY: Logger get() = EmptyLogger
 
-private class SimpleLogger : Logger {
+private object SimpleLogger : Logger {
     override fun log(message: String) {
         println("HttpClient: $message")
     }
+}
+
+private object EmptyLogger : Logger {
+    override fun log(message: String) {}
 }

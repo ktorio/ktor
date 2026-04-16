@@ -13,6 +13,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.test.dispatcher.runTestWithRealTime
 import io.ktor.util.logging.Logger
+import io.ktor.util.reflect.TypeInfo
 import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
@@ -557,6 +558,120 @@ class DependencyInjectionTest {
             listOf(closer2, closer1, autoCloseable),
             closed.toList(),
             "Expected all dependencies to be closed in the correct order"
+        )
+    }
+
+    @Test
+    fun `access to raw types`() = runTestDI({
+        conflictPolicy = DefaultConflictPolicy
+    }) {
+        val expectedService = GreetingServiceImpl()
+        dependencies {
+            provide<GreetingService> { expectedService }
+            provide<List<GreetingService>> { listOf(resolve()) }
+
+            // ambiguous for raw types
+            provide<Map<String, GreetingService>> { mapOf("hello" to resolve()) }
+            provide<Map<String, String>> { mapOf("hello" to "goodbye") }
+        }
+        val list: List<GreetingService> = dependencies.get(DependencyKey(TypeInfo(List::class)))
+        assertEquals(listOf(expectedService), list)
+        assertEquals(mapOf("hello" to "goodbye"), dependencies.resolve())
+        assertFailsWith<AmbiguousDependencyException> {
+            dependencies.get(DependencyKey(TypeInfo(Map::class)))
+        }
+    }
+
+    @Test
+    fun `override previous policy`() = runTestDI({
+        conflictPolicy = OverridePrevious
+    }) {
+        dependencies {
+            provide<GreetingService> { GreetingServiceImpl() }
+            provide<GreetingService> { BankGreetingService() }
+        }
+
+        val service: GreetingService = dependencies.resolve()
+        assertEquals(HELLO_CUSTOMER, service.hello())
+    }
+
+    @Test
+    fun `named dependency override in testApplication`() = testApplication {
+        application {
+            // Override the named dependency BEFORE registering the original
+            dependencies.key<GreetingService>("s1") {
+                provide { BankGreetingService() }
+            }
+
+            // Register concrete implementations that both implement GreetingService
+            dependencies {
+                key<GreetingServiceImpl> {
+                    provide { GreetingServiceImpl() }
+                }
+                key<BankGreetingService> {
+                    provide { BankGreetingService() }
+                }
+                // Provide the named interface binding
+                provide<GreetingService>("s1") {
+                    resolve<GreetingServiceImpl>()
+                }
+            }
+
+            // Resolving the named dependency should use the test override
+            val service: GreetingService = dependencies.resolve("s1")
+            assertEquals(HELLO_CUSTOMER, service.hello())
+        }
+    }
+
+    @Test
+    fun `shutdown does not throw for ambiguous covariant entries`() = runTest {
+        val errorLogs = mutableListOf<String>()
+        val warnLogs = mutableListOf<String>()
+        // Use DefaultConflictPolicy (as in production) to reproduce the shutdown issue
+        runTestApplication {
+            environment {
+                log = object : Logger by log {
+                    override fun error(message: String) {
+                        errorLogs += message
+                    }
+
+                    override fun warn(message: String) {
+                        warnLogs += message
+                    }
+
+                    override fun warn(message: String, cause: Throwable) {
+                        warnLogs += message
+                    }
+                }
+            }
+            install(DI) {
+                conflictPolicy = DefaultConflictPolicy
+            }
+            application {
+                // Register two concrete types that both implement the same interface
+                dependencies {
+                    key<GreetingServiceImpl> {
+                        provide { GreetingServiceImpl() }
+                    }
+                    key<BankGreetingService> {
+                        provide { BankGreetingService() }
+                    }
+                    // Provide a named interface binding
+                    provide<GreetingService>("s1") {
+                        resolve<GreetingServiceImpl>()
+                    }
+                }
+
+                // Resolve the named dependency
+                val service: GreetingService = dependencies.resolve("s1")
+                assertEquals(HELLO, service.hello())
+            }
+        }
+        // Application shutdown should NOT produce any AmbiguousDependencyException warnings
+        val ambiguousWarnings = warnLogs.filter { "cleanup" in it.lowercase() || "ambiguous" in it.lowercase() }
+        assertTrue(
+            ambiguousWarnings.isEmpty(),
+            "Expected no AmbiguousDependencyException during shutdown, but got: $ambiguousWarnings"
         )
     }
 

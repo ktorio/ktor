@@ -4,7 +4,7 @@
 
 package io.ktor.server.plugins.di
 
-import io.ktor.server.application.Application
+import io.ktor.server.application.*
 
 /**
  * Extension interface for dependency maps.
@@ -23,6 +23,8 @@ public interface DependencyMapExtension {
      * Gets the dependency map for the specified application.
      *
      * This will be executed upon the first call to the [DependencyRegistry] for the application.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyMapExtension.get)
      */
     public fun get(application: Application): DependencyMap
 }

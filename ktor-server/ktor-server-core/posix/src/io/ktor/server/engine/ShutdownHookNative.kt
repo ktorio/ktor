@@ -21,10 +21,21 @@ private val shutdownHook: AtomicReference<() -> Unit> = AtomicReference {}
  */
 @OptIn(ExperimentalForeignApi::class)
 internal actual fun EmbeddedServer<*, *>.platformAddShutdownHook(stop: () -> Unit) {
-    shutdownHook.value = stop
+    val shouldStop = AtomicReference(true)
+    shutdownHook.value = {
+        if (shouldStop.compareAndSet(true, false)) {
+            stop()
+        }
+    }
 
     signal(
         SIGINT,
+        staticCFunction<Int, Unit> {
+            shutdownHook.value()
+        }
+    )
+    signal(
+        SIGTERM,
         staticCFunction<Int, Unit> {
             shutdownHook.value()
         }

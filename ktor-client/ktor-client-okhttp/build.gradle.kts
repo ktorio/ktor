@@ -12,11 +12,10 @@ kotlin {
         jvmMain.dependencies {
             api(projects.ktorClientCore)
             api(libs.okhttp)
-            api(libs.okhttp.sse)
             api(libs.okio)
         }
         jvmTest.dependencies {
-            api(projects.ktorClientTests)
+            implementation(projects.ktorClientTests)
         }
     }
 }

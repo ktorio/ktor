@@ -1,5 +1,5 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+* Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
 package io.ktor.websocket
@@ -15,21 +15,32 @@ import kotlin.coroutines.*
 
 /**
  * Class that processes written [outgoing] Websocket [Frame],
- * serializes them and writes the bits into the [writeChannel].
+ * serializes them, and writes the bits into the [writeChannel].
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketWriter)
  *
  * @property masking: whether it will mask serialized frames.
  * @property pool: [ByteBuffer] pool to be used by this writer
+ * @param queueConfig: configuration for the internal [Frame] queue.
  */
+@OptIn(InternalAPI::class)
 public class WebSocketWriter(
     private val writeChannel: ByteWriteChannel,
     override val coroutineContext: CoroutineContext,
     public var masking: Boolean = false,
-    public val pool: ObjectPool<ByteBuffer> = KtorDefaultPool
+    public val pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
+    queueConfig: ChannelConfig = ChannelConfig.UNLIMITED,
 ) : CoroutineScope {
 
-    private val queue = Channel<Any>(capacity = 8)
+    @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
+    public constructor(
+        writeChannel: ByteWriteChannel,
+        coroutineContext: CoroutineContext,
+        masking: Boolean,
+        pool: ObjectPool<ByteBuffer>
+    ) : this(writeChannel, coroutineContext, masking, pool)
+
+    private val queue = Channel.from<Any>(queueConfig)
 
     private val serializer = Serializer()
 
@@ -52,7 +63,7 @@ public class WebSocketWriter(
                     is Frame -> if (drainQueueAndSerialize(message, buffer)) break@loop
                     is FlushRequest -> {
                         // we don't need writeChannel.flush() here as
-                        // we do flush at end of every drainQueueAndSerialize
+                        // we do flush at the end of every drainQueueAndSerialize
                         message.complete()
                     }
                     else -> throw IllegalArgumentException("unknown message $message")
@@ -154,14 +165,14 @@ public class WebSocketWriter(
     public suspend fun send(frame: Frame): Unit = queue.send(frame)
 
     /**
-     * Ensures all enqueued messages has been written
+     * Ensures all enqueued messages have been written
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketWriter.flush)
      */
     public suspend fun flush(): Unit = FlushRequest(coroutineContext[Job]).also {
         try {
             queue.send(it)
-        } catch (closed: ClosedSendChannelException) {
+        } catch (_: ClosedSendChannelException) {
             it.complete()
             writeLoopJob.join()
         } catch (sendFailure: Throwable) {

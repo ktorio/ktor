@@ -2,10 +2,6 @@
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-repositories {
-    google()
-}
-
 plugins {
     id("com.android.library")
     id("kotlin-android-extensions")
@@ -31,7 +27,7 @@ kotlin {
             dependencies {
                 implementation(projects.ktorClientCio)
                 implementation(libs.kotlin.test.junit5)
-                implementation("org.mockito:mockito-core:5.18.0")
+                implementation("org.mockito:mockito-core:5.21.0")
             }
         }
     }

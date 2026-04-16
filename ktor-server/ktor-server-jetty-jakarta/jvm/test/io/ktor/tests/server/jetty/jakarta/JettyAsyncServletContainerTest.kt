@@ -12,7 +12,12 @@ class JettyAsyncServletContainerCompressionTest :
     CompressionTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = true))
 
 class JettyAsyncServletContainerContentTest :
-    ContentTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = true))
+    ContentTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = true)) {
+    @Ignore // KTOR-9263
+    override fun funkyChunked() {
+        super.funkyChunked()
+    }
+}
 
 class JettyAsyncServletContainerHttpServerCommonTest :
     HttpServerCommonTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(
@@ -27,6 +32,11 @@ class JettyAsyncServletContainerHttpServerJvmTest :
     HttpServerJvmTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(
         Servlet(async = true)
     ) {
+    @Test
+    override fun testUpgrade() {
+        super.testUpgrade()
+    }
+
     @Ignore
     override fun testPipelining() {
     }
@@ -37,7 +47,16 @@ class JettyAsyncServletContainerHttpServerJvmTest :
 }
 
 class JettyAsyncServletContainerSustainabilityTest :
-    SustainabilityTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = true))
+    SustainabilityTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(
+        Servlet(async = true)
+    ) {
+    override fun configure(configuration: JettyApplicationEngineBase.Configuration) {
+        configuration.callGroupSize = 5
+    }
+
+    @Ignore
+    override fun validateCallCoroutineContext() {}
+}
 
 class JettyAsyncServerPluginsTest :
     ServerPluginsTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(

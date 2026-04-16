@@ -9,6 +9,7 @@ package io.ktor.client.tests
 import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.api.*
 import io.ktor.client.plugins.cache.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
@@ -27,6 +28,7 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.seconds
 
 private val DOUBLE_TEST_ARRAY = ByteArray(16 * 1025) { 1 }
 private val TEST_ARRAY = ByteArray(8 * 1025) { 1 }
@@ -116,6 +118,37 @@ class BodyProgressTest : ClientLoader() {
             }
             assertContentEquals(DOUBLE_TEST_ARRAY, response.body())
             assertTrue(invokedCount > 2)
+        }
+    }
+
+    @OptIn(InternalAPI::class)
+    @Test
+    fun testRequestBodyRemainReusableWhenObserving() = clientTests(except("web:*"), timeout = 5.seconds) {
+        test { client ->
+            client.plugin(HttpSend).intercept { request ->
+                val call = execute(request)
+
+                if (call.response.status != HttpStatusCode.OK) {
+                    val builder = HttpRequestBuilder()
+                    builder.takeFromWithExecutionContext(request)
+                    builder.header("respond", "true")
+                    execute(builder)
+                } else {
+                    call
+                }
+            }
+
+            val bodySize = 10 * 1024
+            val response: HttpResponse = client.post("$TEST_SERVER/content/pseudo-auth") {
+                setBody(object : OutgoingContent.ReadChannelContent() {
+                    override val contentLength: Long?
+                        get() = bodySize.toLong()
+                    override fun readFrom(): ByteReadChannel = ByteReadChannel(ByteArray(bodySize))
+                })
+                onUpload { _, _ -> }
+            }
+
+            assertEquals(bodySize.toString(), response.bodyAsText())
         }
     }
 
@@ -265,6 +298,42 @@ class BodyProgressTest : ClientLoader() {
             client.get("$TEST_SERVER/compression/gzip-large") {
                 onDownload { _, length -> assertTrue(length == null || length > 0) }
             }
+        }
+    }
+
+    @Test
+    fun testOnDownloadChannelReplayable() = clientTests {
+        val cancelRawContentPlugin = createClientPlugin("CancelRawContentPlugin") {
+            on(Send) { request ->
+                // Proceed with the request - this runs the full request/response pipeline:
+                // 1. Request is sent and response received
+                // 2. Response goes through the receive pipeline
+                //    - SaveBody saves it (makes it replayable)
+                //    - BodyProgress wraps rawContent with an observable channel (and should keep it replayable)
+                val call = proceed(request)
+                val response = call.response
+                assertTrue(response.isSaved, "The response is not saved")
+
+                // Now check if the channel still replayable by reading it twice
+                assertContentEquals(TEST_ARRAY, response.body<ByteArray>())
+                assertContentEquals(TEST_ARRAY, response.body<ByteArray>())
+
+                call
+            }
+        }
+
+        config {
+            install(cancelRawContentPlugin)
+        }
+
+        test { client ->
+            val response = client.post("$TEST_SERVER/content/echo") {
+                setBody(TEST_ARRAY)
+                onDownload { _, _ -> } // Enable observable channel wrapping
+            }
+
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertContentEquals(TEST_ARRAY, response.body())
         }
     }
 }

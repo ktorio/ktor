@@ -1,13 +1,14 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:Suppress("UnstableApiUsage")
 
 pluginManagement {
     repositories {
-        gradlePluginPortal()
-        configureRepositories()
+        configureRepositories {
+            gradlePluginPortal()
+        }
     }
 }
 
@@ -18,28 +19,37 @@ dependencyResolutionManagement {
 
     versionCatalogs {
         create("libs") {
-            if (file("../gradle/libs.versions.toml").exists()) {
+            if (!file("gradle/libs.versions.toml").exists() && file("../gradle/libs.versions.toml").exists()) {
                 from(files("../gradle/libs.versions.toml"))
             }
 
             downgradeTestDependencies()
         }
+
+        create("kotlinWrappers") {
+            from("org.jetbrains.kotlin-wrappers:kotlin-wrappers-catalog:2026.1.9")
+        }
     }
 }
 
-private fun RepositoryHandler.configureRepositories() {
+private fun RepositoryHandler.configureRepositories(configure: RepositoryHandler.() -> Unit = {}) {
+    // Google repository should go first as it has a content filter that handles all Android dependencies
+    // before trying to resolve them via other repositories
     google {
         content {
+            includeGroupAndSubgroups("androidx")
             includeGroupAndSubgroups("com.google")
             includeGroupAndSubgroups("com.android")
+            excludeGroup("com.google.code.gson")
         }
     }
+    configure()
     mavenCentral()
     mavenLocal()
 
     exclusiveContent {
         forRepository {
-            maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap") { name = "KtorEAP" }
+            maven("https://packages.jetbrains.team/maven/p/ktor/eap") { name = "KtorEAP" }
         }
         filter { includeVersionByRegex("io.ktor", ".+", ".+-eap-\\d+") }
     }

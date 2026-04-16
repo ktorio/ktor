@@ -18,13 +18,13 @@ private val initHook = DarwinLegacy
  *
  * To create the client with this engine, pass it to the `HttpClient` constructor:
  * ```kotlin
- * val client = HttpClient(Darwin)
+ * val client = HttpClient(DarwinLegacy)
  * ```
- * To configure the engine, pass settings exposed by [DarwinClientEngineConfig] to the `engine` method:
+ * To configure the engine, pass settings exposed by [DarwinLegacyClientEngineConfig] to the `engine` method:
  * ```kotlin
- * val client = HttpClient(Darwin) {
+ * val client = HttpClient(DarwinLegacy) {
  *     engine {
- *         // this: DarwinClientEngineConfig
+ *         // this: DarwinLegacyClientEngineConfig
  *     }
  * }
  * ```
@@ -34,6 +34,15 @@ private val initHook = DarwinLegacy
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.DarwinLegacy)
  */
 @OptIn(InternalAPI::class)
+@Deprecated(
+    message = "DarwinLegacy engine is deprecated. Consider using Darwin engine instead.",
+    replaceWith = ReplaceWith(
+        "Darwin",
+        "io.ktor.client.engine.darwin.Darwin"
+    ),
+    level = DeprecationLevel.WARNING
+)
+@Suppress("Deprecation")
 public data object DarwinLegacy : HttpClientEngineFactory<DarwinLegacyClientEngineConfig> {
     init {
         engines.append(this)

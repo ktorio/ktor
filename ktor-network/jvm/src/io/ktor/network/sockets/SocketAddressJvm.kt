@@ -4,7 +4,7 @@
 
 package io.ktor.network.sockets
 
-import java.lang.reflect.*
+import java.lang.reflect.Method
 
 public actual sealed class SocketAddress {
     internal abstract val address: java.net.SocketAddress
@@ -23,6 +23,19 @@ public actual class InetSocketAddress internal constructor(
 
     public actual constructor(hostname: String, port: Int) :
         this(java.net.InetSocketAddress(hostname, port))
+
+    public actual constructor(address: ByteArray, port: Int) : this(
+        java.net.InetSocketAddress(
+            java.net.InetAddress.getByAddress(
+                address.also {
+                    require(it.size == 4 || it.size == 16) {
+                        "Invalid IP address byte array length: ${it.size}. Expected 4 (IPv4) or 16 (IPv6)."
+                    }
+                }
+            ),
+            port
+        )
+    )
 
     public actual operator fun component1(): String = hostname
 
@@ -119,6 +132,8 @@ public actual class UnixSocketAddress internal constructor(
 
         /**
          * Checks if Unix domain sockets are supported on the current platform.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.UnixSocketAddress.Companion.isSupported)
          *
          * @return `true` if Unix domain sockets are supported, `false` otherwise.
          */

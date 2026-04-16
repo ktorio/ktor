@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.testing.suites
@@ -33,10 +33,11 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
     private val errors = mutableListOf<Throwable>()
+    private var pluginConfiguration: (WebSockets.WebSocketOptions.() -> Unit) = {}
     override val timeout = 30.seconds
 
     override fun plugins(application: Application, routingConfig: Route.() -> Unit) {
-        application.install(WebSockets)
+        application.install(WebSockets, pluginConfiguration)
         super.plugins(application, routingConfig)
     }
 
@@ -264,7 +265,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                     val frame = incoming.receive()
                     assertIs<Frame.Text>(frame)
                     collected.send(frame.readText())
-                } catch (cancelled: CancellationException) {
+                } catch (_: CancellationException) {
                 } catch (t: Throwable) {
                     errors.add(t)
                 }
@@ -300,7 +301,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                 try {
                     incoming.consumeEach {
                     }
-                } catch (cancelled: CancellationException) {
+                } catch (_: CancellationException) {
                 } catch (t: Throwable) {
                     errors.add(t)
                 }
@@ -310,7 +311,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         useSocket {
             negotiateHttpWebSocket()
 
-            for (i in 1..5) {
+            repeat(5) {
                 val frame = input.readFrame(Long.MAX_VALUE, 0)
 
                 assertEquals(FrameType.PING, frame.frameType)
@@ -347,7 +348,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                             collected.send(frame.readText())
                         }
                     }
-                } catch (cancelled: CancellationException) {
+                } catch (_: CancellationException) {
                 } catch (t: Throwable) {
                     errors.add(t)
                     collected.send(t.toString())
@@ -398,7 +399,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                             collected.send(frame.readText())
                         }
                     }
-                } catch (cancelled: CancellationException) {
+                } catch (_: CancellationException) {
                 } catch (cause: Throwable) {
                     errors.add(cause)
                     collected.send(cause.toString())
@@ -526,7 +527,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                     }
 
                     assertEquals(expectedCount, counter - 1, "Not all frames received")
-                } catch (cancelled: CancellationException) {
+                } catch (_: CancellationException) {
                 } catch (t: Throwable) {
                     errors.add(t)
                 }
@@ -656,7 +657,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     fun testCorruptFrameWithBadOpcode() = runTest {
         createAndStartServer {
             application.routing {
-                webSocket("/") {
+                webSocketRaw("/") {
                     runCatching {
                         for (frame in incoming) {
                             outgoing.send(frame)
@@ -769,12 +770,12 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     }
 
     private suspend inline fun useSocket(block: Connection.() -> Unit) {
-        SelectorManager().use {
-            aSocket(it).tcp().connect("localhost", port) {
+        SelectorManager().use { selector ->
+            aSocket(selector).tcp().connect("localhost", port) {
                 noDelay = true
                 socketTimeout = 4.minutes.inWholeMilliseconds
-            }.use {
-                val connection = it.connection()
+            }.use { socket ->
+                val connection = socket.connection()
                 try {
                     block(connection)
                     // for native, output should be closed explicitly

@@ -12,8 +12,8 @@ kotlin {
             api(libs.thymeleaf)
         }
         jvmTest.dependencies {
-            api(projects.ktorServerConditionalHeaders)
-            api(projects.ktorServerCompression)
+            implementation(projects.ktorServerConditionalHeaders)
+            implementation(projects.ktorServerCompression)
             implementation(projects.ktorServerContentNegotiation)
         }
     }

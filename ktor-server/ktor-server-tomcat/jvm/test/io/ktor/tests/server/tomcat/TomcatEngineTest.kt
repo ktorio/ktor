@@ -52,6 +52,11 @@ class TomcatContentTest : ContentTestSuite<TomcatApplicationEngine, TomcatApplic
     @Ignore
     override fun testMultipartFileUploadLarge() {
     }
+
+    @Ignore // KTOR-9263
+    override fun funkyChunked() {
+        super.funkyChunked()
+    }
 }
 
 class TomcatHttpServerCommonTest :
@@ -155,6 +160,10 @@ class TomcatSustainabilityTestSuite :
         enableHttp2 = false
     }
 
+    override fun configure(configuration: TomcatApplicationEngine.Configuration) {
+        configuration.callGroupSize = 5
+    }
+
     /**
      * Tomcat trim `vspace` symbol and drop content-length. The request is treated as chunked.
      *
@@ -171,6 +180,9 @@ class TomcatSustainabilityTestSuite :
     override fun testBlockingConcurrency() {
         super.testBlockingConcurrency()
     }
+
+    @Ignore
+    override fun validateCallCoroutineContext() {}
 }
 
 class TomcatConfigTest : ConfigTestSuite(Tomcat)

@@ -15,11 +15,11 @@ import java.net.http.*
 public class JavaHttpConfig : HttpClientEngineConfig() {
 
     /**
-     * An HTTP version to use.
+     * An HTTP version to use. The default is [HttpClient.Version.HTTP_2].
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.java.JavaHttpConfig.protocolVersion)
      */
-    public var protocolVersion: HttpClient.Version = HttpClient.Version.HTTP_1_1
+    public var protocolVersion: HttpClient.Version = HttpClient.Version.HTTP_2
 
     internal var config: HttpClient.Builder.() -> Unit = {
         followRedirects(HttpClient.Redirect.NEVER)

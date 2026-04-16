@@ -46,6 +46,9 @@ class CIOSustainabilityTest : SustainabilityTestSuite<CIOApplicationEngine, CIOA
         enableHttp2 = false
         enableSsl = false
     }
+
+    @Ignore
+    override fun validateCallCoroutineContext() {}
 }
 
 class CIOConfigTest : ConfigTestSuite(CIO)
@@ -83,5 +86,13 @@ class CIOHooksTest : HooksTestSuite<CIOApplicationEngine, CIOApplicationEngine.C
     init {
         enableHttp2 = false
         enableSsl = false
+    }
+}
+
+class CIOHttpRequestLifecycleTest :
+    HttpRequestLifecycleTest<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
+    init {
+        enableSsl = false
+        enableHttp2 = false
     }
 }

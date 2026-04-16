@@ -2,9 +2,11 @@
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+package io.ktor.client.engine.darwin
+
 import io.ktor.client.*
-import io.ktor.client.engine.darwin.*
 import io.ktor.client.engine.darwin.internal.*
+import io.ktor.client.engine.darwin.utils.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -17,8 +19,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
-import platform.Foundation.*
 import platform.Foundation.NSHTTPCookieStorage.Companion.sharedHTTPCookieStorage
+import platform.Foundation.NSOperationQueue
+import platform.Foundation.NSURLSession
+import platform.Foundation.NSURLSessionConfiguration
+import platform.Foundation.setValue
 import kotlin.test.*
 import kotlin.time.Duration.Companion.seconds
 
@@ -218,12 +223,7 @@ class DarwinEngineTest : ClientEngineTest<DarwinClientEngineConfig>(Darwin) {
             engine {
                 handleChallenge { _, _, challenge, completionHandler ->
                     customChallengeCalled = true
-                    challenge.protectionSpace.serverTrust?.let {
-                        if (challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust) {
-                            val credential = NSURLCredential.credentialForTrust(it)
-                            completionHandler(NSURLSessionAuthChallengeUseCredential, credential)
-                        }
-                    }
+                    trustAnyCertificate(challenge, completionHandler)
                 }
             }
 
@@ -255,6 +255,29 @@ class DarwinEngineTest : ClientEngineTest<DarwinClientEngineConfig>(Darwin) {
                         for (frame in incoming) {
                         }
                     }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testWebSocketMaxFrameSize() = testClient {
+        config {
+            install(WebSockets) {
+                maxFrameSize = 10
+            }
+        }
+
+        val shortMessage = "abc"
+        val longMessage = "def".repeat(500)
+        test { client ->
+            assertFailsWith<DarwinHttpRequestException> {
+                client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                    send(shortMessage)
+                    assertEquals(shortMessage, (incoming.receive() as Frame.Text).readText())
+                    send(longMessage)
+                    val frame = incoming.receive() as Frame.Text
+                    assertEquals(longMessage, frame.readText())
                 }
             }
         }

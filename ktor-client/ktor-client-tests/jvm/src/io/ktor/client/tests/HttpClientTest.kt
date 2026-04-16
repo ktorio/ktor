@@ -20,6 +20,7 @@ import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import java.util.concurrent.ArrayBlockingQueue
 import kotlin.coroutines.Continuation
@@ -73,6 +74,21 @@ abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) :
                     messages.close()
                     call.respond("OK")
                 }
+                get("delay/{time}") {
+                    val time = call.parameters["time"]?.toLongOrNull() ?: 0L
+
+                    val body = object : OutgoingContent.WriteChannelContent() {
+                        override val contentType: ContentType
+                            get() = ContentType.Text.EventStream
+
+                        override suspend fun writeTo(channel: ByteWriteChannel) {
+                            delay(time)
+                            channel.writeStringUtf8("data: hello\n")
+                            channel.flush()
+                        }
+                    }
+                    call.respond(body)
+                }
             }
         }
     }
@@ -95,11 +111,11 @@ abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) :
                     setBody(TextContent("hello\n", ContentType.Text.Plain))
                 }
 
-                assertEquals("hello", body.readUTF8Line())
+                assertEquals("hello", body.readLineStrict())
             }
 
             client.get("http://localhost:$serverPort/sse/done")
-            assertEquals(null, body.readUTF8Line())
+            assertEquals(null, body.readLineStrict())
         }
     }
 

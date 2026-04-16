@@ -113,10 +113,6 @@ gradle.afterProject {
                 "-Xreport-all-warnings",
                 // Output kotlin.git-searchable names of reported diagnostics
                 "-Xrender-internal-diagnostic-names",
-                // Opt into additional warning-reporting compilation checks
-                "-Wextra",
-                // Opt into additional compilation checks hidden from users
-                "-Xuse-fir-experimental-checkers",
             ) + kotlinAdditionalCliOptions
 
             freeCompilerArgs.addAll(argsToAdd)
@@ -126,7 +122,7 @@ gradle.afterProject {
 
     if (buildSnapshotTrain) {
         if (name == "ktor-client") {
-            println("Manifest of kotlin-compiler-embeddable.jar")
+            logger.lifecycle("Manifest of kotlin-compiler-embeddable.jar")
             printManifest()
         }
         filterTests()
@@ -183,7 +179,7 @@ private fun Project.printManifest() {
                 .matching { include("META-INF/MANIFEST.MF") }
                 .files.first()
 
-            manifest.useLines { println(it) }
+            manifest.useLines { logger.lifecycle(it.toString()) }
         }
     }
 }

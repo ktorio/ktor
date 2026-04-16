@@ -75,7 +75,7 @@ class CurlProxyTest : ClientEngineTest<CurlClientEngineConfig>(Curl) {
             client.get(TEST_SERVER_HTTPS).let { response ->
                 assertEquals(HttpStatusCode.OK, response.status)
                 assertEquals("Hello, TLS!", response.bodyAsText())
-                assertEquals("text/plain;charset=utf-8", response.headers[HttpHeaders.ContentType])
+                assertEquals("text/plain; charset=UTF-8", response.headers[HttpHeaders.ContentType])
                 assertEquals("TLS test server", response.headers["X-Comment"])
             }
         }

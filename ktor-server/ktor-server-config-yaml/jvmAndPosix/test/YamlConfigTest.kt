@@ -114,9 +114,9 @@ class YamlConfigTest {
 
     @Test
     fun testEnvironmentVariable() {
-        val content = """
+        val content = $$"""
             ktor:
-                variable: ${'$'}PATH
+                variable: $PATH
         """.trimIndent()
         val yaml = Yaml.default.decodeFromString<YamlMap>(content)
         val config = YamlConfig.from(yaml)
@@ -128,9 +128,9 @@ class YamlConfigTest {
 
     @Test
     fun testEnvVarCurlyBraces() {
-        val content = """
+        val content = $$"""
             ktor:
-                variable: ${'$'}{PATH}
+                variable: ${PATH}
         """.trimIndent()
         val yaml = Yaml.default.decodeFromString<YamlMap>(content)
         val config = YamlConfig.from(yaml)
@@ -142,9 +142,9 @@ class YamlConfigTest {
 
     @Test
     fun testMissingEnvironmentVariable() {
-        val content = """
+        val content = $$"""
             ktor:
-                variable: ${'$'}NON_EXISTING_VARIABLE
+                variable: $NON_EXISTING_VARIABLE
         """.trimIndent()
         val yaml = Yaml.default.decodeFromString<YamlMap>(content)
         assertFailsWith<ApplicationConfigurationException> {
@@ -154,9 +154,9 @@ class YamlConfigTest {
 
     @Test
     fun testMissingEnvVarCurlyBraces() {
-        val content = """
+        val content = $$"""
             ktor:
-                variable: ${'$'}{NON_EXISTING}
+                variable: ${NON_EXISTING}
         """.trimIndent()
         val yaml = Yaml.default.decodeFromString<YamlMap>(content)
         val cause = assertFailsWith<ApplicationConfigurationException> {
@@ -171,13 +171,13 @@ class YamlConfigTest {
 
     @Test
     fun testSelfReference() {
-        val content = """
+        val content = $$"""
             value:
               my: "My value"
             
             config:
               database:
-                value: ${'$'}value.my
+                value: $value.my
         """.trimIndent()
         val yaml = Yaml.default.decodeFromString<YamlMap>(content)
         val config = YamlConfig.from(yaml)
@@ -189,13 +189,13 @@ class YamlConfigTest {
 
     @Test
     fun testSelfRefCurlyBraces() {
-        val content = """
+        val content = $$"""
             value:
               my: "My value"
             
             config:
               database:
-                value: ${'$'}{value.my}
+                value: ${value.my}
         """.trimIndent()
         val yaml = Yaml.default.decodeFromString<YamlMap>(content)
         val config = YamlConfig.from(yaml)
@@ -207,13 +207,13 @@ class YamlConfigTest {
 
     @Test
     fun testSelfReferenceMissing() {
-        val content = """
+        val content = $$"""
             value:
               my: "My value"
             
             config:
               database:
-                value: ${'$'}value.missing
+                value: $value.missing
         """.trimIndent()
         val yaml = Yaml.default.decodeFromString<YamlMap>(content)
         assertFailsWith<ApplicationConfigurationException> {
@@ -223,13 +223,13 @@ class YamlConfigTest {
 
     @Test
     fun testSelfRefMissingCurlyBraces() {
-        val content = """
+        val content = $$"""
             value:
               my: "My value"
             
             config:
               database:
-                value: ${'$'}{value.missing}
+                value: ${value.missing}
         """.trimIndent()
         val yaml = Yaml.default.decodeFromString<YamlMap>(content)
         val cause = assertFailsWith<ApplicationConfigurationException> {
@@ -244,9 +244,9 @@ class YamlConfigTest {
 
     @Test
     fun testMissingEnvironmentVariableWithDefault() {
-        val content = """
+        val content = $$"""
             ktor:
-                variable: "${'$'}NON_EXISTING_VARIABLE:DEFAULT_VALUE"
+                variable: "$NON_EXISTING_VARIABLE:DEFAULT_VALUE"
         """.trimIndent()
         val yaml = Yaml.default.decodeFromString<YamlMap>(content)
         val config = YamlConfig.from(yaml)
@@ -255,9 +255,9 @@ class YamlConfigTest {
 
     @Test
     fun testMissingEnvVarWithDefaultCurlyBraces() {
-        val content = """
+        val content = $$"""
             ktor:
-                variable: "${'$'}{NON_EXISTING:DEFAULT}"
+                variable: "${NON_EXISTING:DEFAULT}"
         """.trimIndent()
         val yaml = Yaml.default.decodeFromString<YamlMap>(content)
         val config = YamlConfig.from(yaml)
@@ -268,7 +268,7 @@ class YamlConfigTest {
     fun testOptionalMissingEnvironmentVariable() {
         val content = """
             ktor:
-                variable: "${'$'}?NON_EXISTING_VARIABLE"
+                variable: "$?NON_EXISTING_VARIABLE"
         """.trimIndent()
         val yaml = Yaml.default.decodeFromString<YamlMap>(content)
         val config = YamlConfig.from(yaml)
@@ -277,9 +277,9 @@ class YamlConfigTest {
 
     @Test
     fun testOptionalMissingEnvVarCurlyBraces() {
-        val content = """
+        val content = $$"""
             ktor:
-                variable: "${'$'}{?NON_EXISTING_VARIABLE}"
+                variable: "${?NON_EXISTING_VARIABLE}"
         """.trimIndent()
         val yaml = Yaml.default.decodeFromString<YamlMap>(content)
         val config = YamlConfig.from(yaml)
@@ -290,7 +290,7 @@ class YamlConfigTest {
     fun testOptionalExistingEnvironmentVariable() {
         val content = """
             ktor:
-                variable: "${'$'}?PATH"
+                variable: "$?PATH"
         """.trimIndent()
         val yaml = Yaml.default.decodeFromString<YamlMap>(content)
         val config = YamlConfig.from(yaml)
@@ -302,9 +302,9 @@ class YamlConfigTest {
 
     @Test
     fun testOptionalExistingEnvVarCurlyBraces() {
-        val content = """
+        val content = $$"""
             ktor:
-                variable: "${'$'}{?PATH}"
+                variable: "${?PATH}"
         """.trimIndent()
         val yaml = Yaml.default.decodeFromString<YamlMap>(content)
         val config = YamlConfig.from(yaml)
@@ -316,9 +316,9 @@ class YamlConfigTest {
 
     @Test
     fun testExistingEnvironmentVariableWithDefault() {
-        val content = """
+        val content = $$"""
             ktor:
-                variable: "${'$'}PATH:DEFAULT_VALUE"
+                variable: "$PATH:DEFAULT_VALUE"
         """.trimIndent()
         val yaml = Yaml.default.decodeFromString<YamlMap>(content)
         val config = YamlConfig.from(yaml)
@@ -331,9 +331,9 @@ class YamlConfigTest {
 
     @Test
     fun testExistingEnvVarWithDefaultCurlyBraces() {
-        val content = """
+        val content = $$"""
             ktor:
-                variable: "${'$'}{PATH:DEFAULT_VALUE}"
+                variable: "${PATH:DEFAULT_VALUE}"
         """.trimIndent()
         val yaml = Yaml.default.decodeFromString<YamlMap>(content)
         val config = YamlConfig.from(yaml)
@@ -346,9 +346,9 @@ class YamlConfigTest {
 
     @Test
     fun testMalformedVarCurlyBraces() {
-        val content = """
+        val content = $$"""
             ktor:
-                variable: "${'$'}{some_name"
+                variable: "${some_name"
         """.trimIndent()
 
         val yaml = Yaml.default.decodeFromString<YamlMap>(content)
@@ -504,6 +504,44 @@ class YamlConfigTest {
             AppConfig(expectedDeployment, expectedSecurity, expectedDatabase),
             mergedConfig.property("app").getAs()
         )
+    }
+
+    @Test
+    fun testNestedSelfReference() {
+        val content = $$"""
+            a: $b
+            b: $c
+            c: foo
+        """.trimIndent()
+        val yaml = Yaml.default.decodeFromString<YamlMap>(content)
+        val config = YamlConfig.from(yaml)
+        assertEquals("foo", config.property("a").getString())
+    }
+
+    @Test
+    fun testDeepNestedSelfReference() {
+        val content = $$"""
+            a: $b
+            b: $c
+            c: $d
+            d: foo
+        """.trimIndent()
+        val yaml = Yaml.default.decodeFromString<YamlMap>(content)
+        val config = YamlConfig.from(yaml)
+        assertEquals("foo", config.property("a").getString())
+    }
+
+    @Test
+    fun testSelfReferenceCycle() {
+        val content = $$"""
+            a: $b
+            b: $a
+        """.trimIndent()
+        val yaml = Yaml.default.decodeFromString<YamlMap>(content)
+        val cause = assertFailsWith<ApplicationConfigurationException> {
+            YamlConfig.from(yaml)
+        }
+        assertTrue(cause.message!!.contains("Cycle detected"))
     }
 
     @Serializable

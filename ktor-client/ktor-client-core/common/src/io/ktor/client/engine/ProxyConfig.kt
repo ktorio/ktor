@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine
@@ -59,7 +59,7 @@ public expect object ProxyBuilder {
     public fun http(url: Url): ProxyConfig
 
     /**
-     * Creates a socks proxy from [host] and [port].
+     * Creates a SOCKS proxy from [host] and [port].
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.ProxyBuilder.socks)
      */

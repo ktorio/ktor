@@ -5,19 +5,21 @@
 package io.ktor.network.tls
 
 import io.ktor.network.util.*
-import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import kotlinx.io.*
-import java.security.*
+import kotlinx.io.Sink
+import kotlinx.io.Source
+import java.security.MessageDigest
 
 internal fun Digest(): Digest = Digest(BytePacketBuilder())
 
 @JvmInline
 internal value class Digest(val state: Sink) : Closeable {
 
-    fun update(packet: Source) = synchronized(state) {
-        if (packet.exhausted()) return
-        state.writePacket(packet.copy())
+    fun update(packet: Source) {
+        synchronized(state) {
+            if (packet.exhausted()) return
+            state.writePacket(packet.copy())
+        }
     }
 
     fun doHash(hashName: String): ByteArray = synchronized(state) {

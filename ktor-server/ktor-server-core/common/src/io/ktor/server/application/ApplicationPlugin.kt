@@ -8,7 +8,8 @@ import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.util.internal.*
 import io.ktor.util.pipeline.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CopyableThrowable
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 /**
  * Defines an installable [Plugin](https://ktor.io/docs/plugins.html).
@@ -168,6 +169,10 @@ private fun <B : Any, F : Any> RoutingNode.installIntoRoute(
     val installed = plugin.install(fakePipeline, configure)
     pluginRegistry.put(plugin.key, installed)
 
+    for (child in fakePipeline.children) { // We need to transfer nodes added into the fake pipeline
+        copyChildrenRecursively(child)
+    }
+
     mergePhases(fakePipeline)
     receivePipeline.mergePhases(fakePipeline.receivePipeline)
     sendPipeline.mergePhases(fakePipeline.sendPipeline)
@@ -179,7 +184,19 @@ private fun <B : Any, F : Any> RoutingNode.installIntoRoute(
     return installed
 }
 
-private fun <B : Any, F : Any, TSubject, TContext, P : Pipeline<TSubject, TContext>> P.addAllInterceptors(
+private fun Route.copyChildrenRecursively(child: RoutingNode) {
+    val copiedChild = createChild(child.selector)
+
+    for (handler in child.handlers) {
+        copiedChild.handle(handler)
+    }
+
+    for (ch in child.children) {
+        copiedChild.copyChildrenRecursively(ch)
+    }
+}
+
+private fun <B : Any, F : Any, TSubject : Any, TContext : Any, P : Pipeline<TSubject, TContext>> P.addAllInterceptors(
     fakePipeline: P,
     plugin: BaseRouteScopedPlugin<B, F>,
     pluginInstance: F

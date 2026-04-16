@@ -6,12 +6,17 @@ package io.ktor.server.plugins.di
 
 import kotlinx.atomicfu.AtomicRef
 import kotlinx.atomicfu.atomic
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
 
 /**
  * Wraps the logic for creating a new instance of a dependency.
  *
  * Concrete types of this sealed interface are used to include some metadata regarding how they were registered.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyInitializer)
  */
 public sealed interface DependencyInitializer {
     public val key: DependencyKey
@@ -23,6 +28,8 @@ public sealed interface DependencyInitializer {
      *
      * This includes caching of the instance value so resolved covariant keys do not trigger the creation multiple times.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyInitializer.Explicit)
+     *
      * @property key The unique identifier of the dependency associated with this creation function.
      * @property init A lambda that implements the creation logic for the dependency.
      */
@@ -30,16 +37,23 @@ public sealed interface DependencyInitializer {
         public override val key: DependencyKey,
         private val init: suspend DependencyResolver.() -> Any?
     ) : DependencyInitializer {
-        private var deferred: Deferred<Any?>? = null
+        private val deferred: AtomicRef<Deferred<Any?>?> = atomic(null)
 
         override fun resolve(resolver: DependencyResolver): Deferred<Any?> {
-            if (deferred == null) {
-                deferred = resolver.withCycleDetection {
-                    async { init() }
+            return deferred.value ?: run {
+                val newValue = resolver.lazyAsyncInit()
+                if (deferred.compareAndSet(null, newValue)) {
+                    newValue
+                } else {
+                    deferred.value!!
                 }
             }
-            return deferred!!
         }
+
+        private fun DependencyResolver.lazyAsyncInit(): Deferred<Any?> =
+            withCycleDetection {
+                async(start = CoroutineStart.LAZY) { init() }
+            }
 
         private fun <T> DependencyResolver.withCycleDetection(resolve: DependencyResolver.() -> T): T {
             val safeWrapper = when (this) {
@@ -55,6 +69,8 @@ public sealed interface DependencyInitializer {
 
     /**
      * Represents an implicitly registered dependency creation function that delegates to its explicit parent.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyInitializer.Implicit)
      *
      * @property origin The instance of [Explicit] that this class delegates creation logic to.
      * @property distance The distance from the original key.
@@ -88,6 +104,8 @@ public sealed interface DependencyInitializer {
      * Represents a specific implementation of [DependencyInitializer] that throws an exception
      * when there are multiple dependencies matching the given key, leading to an ambiguity.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyInitializer.Ambiguous)
+     *
      * @property key The key for the dependency that caused the ambiguity.
      * @property functions A set of provider functions that caused the ambiguity.
      *
@@ -103,6 +121,8 @@ public sealed interface DependencyInitializer {
              * Instantiate a new [Ambiguous], if the provided functions are unique.
              *
              * This also will flatten any provided `AmbiguousInitializer`s.
+             *
+             * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyInitializer.Ambiguous.Companion.of)
              *
              * @param key The associated dependency key.
              * @param functions The functions to include in the resulting function.
@@ -149,6 +169,8 @@ public sealed interface DependencyInitializer {
      *
      * This should only be used when using the concurrent startup process, otherwise consumers may suspend indefinitely.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyInitializer.Missing)
+     *
      * @property key The key for the dependency that caused the exception.
      *
      * @throws MissingDependencyException Always thrown when attempting to create a dependency
@@ -167,6 +189,8 @@ public sealed interface DependencyInitializer {
          * We pipe the result of the provided function into the current function.
          *
          * This allows for suspending consumers to wait for a provider to supply a true function.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyInitializer.Missing.provide)
          */
         public fun provide(other: DependencyInitializer) {
             if (delegate.compareAndSet(null, other)) {
@@ -184,6 +208,8 @@ public sealed interface DependencyInitializer {
     /**
      * Represents a value-based dependency initializer, which resolves to a given value.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyInitializer.Value)
+     *
      * @property key A unique identifier for this dependency.
      * @property value The actual value to be resolved when this dependency is accessed.
      */
@@ -200,6 +226,8 @@ public sealed interface DependencyInitializer {
      *
      * This class is used to resolve a dependency with a `null` value, indicating that
      * the dependency is intentionally absent or uninitialized.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyInitializer.Null)
      *
      * @property key The unique key associated with the dependency being resolved.
      */

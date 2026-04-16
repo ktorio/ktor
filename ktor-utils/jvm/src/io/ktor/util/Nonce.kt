@@ -29,7 +29,7 @@ private val NonceGeneratorCoroutineName = CoroutineName("nonce-generator")
 
 @OptIn(DelicateCoroutinesApi::class)
 private val nonceGeneratorJob = GlobalScope.launch(
-    context = Dispatchers.IO + NonCancellable + NonceGeneratorCoroutineName,
+    context = Dispatchers.Default + NonCancellable + NonceGeneratorCoroutineName,
     start = CoroutineStart.LAZY
 ) {
     val seedChannel = seedChannel

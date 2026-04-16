@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.darwin.internal.legacy
@@ -10,13 +10,15 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
+import kotlinx.coroutines.job
 import platform.Foundation.*
 import kotlin.coroutines.*
 
 @OptIn(UnsafeNumber::class)
+@Suppress("DEPRECATION")
 internal class DarwinLegacySession(
     private val config: DarwinLegacyClientEngineConfig,
-    private val requestQueue: NSOperationQueue?
+    requestQueue: NSOperationQueue?
 ) : Closeable {
     private val closed = atomic(false)
 
@@ -31,6 +33,12 @@ internal class DarwinLegacySession(
         val task = session.dataTaskWithRequest(nativeRequest)
         val response = delegate.read(request, callContext, task)
 
+        callContext.job.invokeOnCompletion { cause ->
+            if (cause != null) {
+                task.cancel()
+            }
+        }
+
         task.resume()
 
         try {
@@ -42,12 +50,13 @@ internal class DarwinLegacySession(
     }
 
     override fun close() {
-        if (!closed.compareAndSet(false, true)) return
+        if (!closed.compareAndSet(expect = false, update = true)) return
         session.finishTasksAndInvalidate()
     }
 }
 
 @OptIn(UnsafeNumber::class)
+@Suppress("DEPRECATION")
 internal fun createSession(
     config: DarwinLegacyClientEngineConfig,
     requestQueue: NSOperationQueue?

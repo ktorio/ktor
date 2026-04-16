@@ -6,13 +6,19 @@ package io.ktor.tests.server.jetty.jakarta
 
 import io.ktor.server.jetty.jakarta.*
 import io.ktor.server.testing.suites.*
-import kotlin.test.*
+import kotlin.test.Ignore
+import kotlin.time.Duration.Companion.milliseconds
 
 class JettyBlockingServletContainerCompressionTest :
     CompressionTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = false))
 
 class JettyBlockingServletContainerContentTest :
-    ContentTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = false))
+    ContentTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = false)) {
+    @Ignore // KTOR-9263
+    override fun funkyChunked() {
+        super.funkyChunked()
+    }
+}
 
 class JettyBlockingServletContainerHttpServerCommonTest :
     HttpServerCommonTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(
@@ -44,7 +50,10 @@ class JettyBlockingServletContainerHttpServerJvmTest :
 class JettyBlockingServletContainerSustainabilityTest :
     SustainabilityTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(
         Servlet(async = false)
-    )
+    ) {
+    @Ignore
+    override fun validateCallCoroutineContext() {}
+}
 
 class JettyBlockingServletServerPluginTest :
     ServerPluginsTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(

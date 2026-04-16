@@ -9,8 +9,8 @@ plugins {
 }
 
 kotlin {
-    // The minimal JVM version required for Jetty 10+
-    jvmToolchain(11)
+    // The minimal JVM version required for Jetty 12+
+    jvmToolchain(17)
 
     sourceSets {
         jvmMain.dependencies {
@@ -18,18 +18,20 @@ kotlin {
             api(projects.ktorServerServletJakarta)
             api(libs.jetty.server.jakarta)
             api(libs.jetty.servlets.jakarta)
+            api(libs.jetty.servlet.websocket.jakarta)
+            api(libs.jakarta.servlet)
             api(libs.jetty.alpn.server.jakarta)
             api(libs.jetty.alpn.java.server.jakarta)
-            api(libs.jetty.alpn.openjdk8.server)
             api(libs.jetty.http2.server.jakarta)
         }
         jvmTest.dependencies {
-            api(libs.kotlin.test.junit5)
-            api(projects.ktorServerCore)
-            api(projects.ktorServerTestBase)
-            api(projects.ktorServerTestSuites)
+            implementation(libs.kotlin.test.junit5)
+            implementation(projects.ktorServerCore)
+            implementation(projects.ktorServerTestBase)
+            implementation(projects.ktorServerTestSuites)
 
-            api(libs.jetty.servlet.jakarta)
+            implementation(libs.jetty.servlet.jakarta)
+            implementation(libs.jetty.servlet.websocket.jakarta)
         }
     }
 }

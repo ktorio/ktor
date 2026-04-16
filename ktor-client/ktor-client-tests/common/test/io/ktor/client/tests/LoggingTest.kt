@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests
@@ -20,11 +20,7 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
-import kotlin.test.fail
+import kotlin.test.*
 
 @OptIn(DelicateCoroutinesApi::class)
 class LoggingTest : ClientLoader() {
@@ -80,7 +76,6 @@ class LoggingTest : ClientLoader() {
             "METHOD: GET",
             "COMMON HEADERS",
             "-> Accept: */*",
-            "-> Accept-Charset: UTF-8",
             "CONTENT HEADERS",
             "-> Content-Length: 0",
             "BODY Content-Type: null",
@@ -110,7 +105,6 @@ class LoggingTest : ClientLoader() {
             line("METHOD: GET")
             line("COMMON HEADERS")
             line("-> Accept: */*")
-            line("-> Accept-Charset: UTF-8")
             line("CONTENT HEADERS")
             line("-> Content-Length: 0")
             line("RESPONSE: 200 OK")
@@ -150,7 +144,6 @@ class LoggingTest : ClientLoader() {
             "METHOD: POST",
             "COMMON HEADERS",
             "-> Accept: */*",
-            "-> Accept-Charset: UTF-8",
             "CONTENT HEADERS",
             "-> Content-Length: 13",
             "-> Content-Type: text/plain; charset=UTF-8",
@@ -206,7 +199,6 @@ class LoggingTest : ClientLoader() {
             "METHOD: POST",
             "COMMON HEADERS",
             "-> Accept: */*",
-            "-> Accept-Charset: UTF-8",
             "CONTENT HEADERS",
             "-> Content-Length: 2",
             "-> Content-Type: application/octet-stream",
@@ -262,7 +254,6 @@ class LoggingTest : ClientLoader() {
             "METHOD: POST",
             "COMMON HEADERS",
             "-> Accept: */*",
-            "-> Accept-Charset: UTF-8",
             "CONTENT HEADERS",
             "-> Content-Length: 4",
             "-> Content-Type: text/plain; charset=UTF-8",
@@ -312,7 +303,6 @@ class LoggingTest : ClientLoader() {
             "METHOD: POST",
             "COMMON HEADERS",
             "-> Accept: */*",
-            "-> Accept-Charset: UTF-8",
             "CONTENT HEADERS",
             "-> Content-Length: 4",
             "-> Content-Type: application/octet-stream",
@@ -364,7 +354,6 @@ class LoggingTest : ClientLoader() {
             "METHOD: GET",
             "COMMON HEADERS",
             "-> Accept: */*",
-            "-> Accept-Charset: UTF-8",
             "-> Accept-Encoding: gzip,deflate,identity",
             "CONTENT HEADERS",
             "-> Content-Length: 0",
@@ -512,7 +501,6 @@ class LoggingTest : ClientLoader() {
             "METHOD: POST",
             "COMMON HEADERS",
             "-> Accept: application/json",
-            "-> Accept-Charset: UTF-8",
             "CONTENT HEADERS",
             "-> Content-Length: 15",
             "-> Content-Type: application/json",
@@ -581,7 +569,6 @@ class LoggingTest : ClientLoader() {
             val iter = lines.iterator()
 
             assertEquals("--> GET /content/binary", iter.next())
-            assertEquals("Accept-Charset: UTF-8", iter.next())
             assertEquals("Accept: */*", iter.next())
             assertEquals("--> END GET", iter.next())
             assertMatch(Regex("<-- 200 OK /content/binary \\(\\d+ms\\)"), iter.next())

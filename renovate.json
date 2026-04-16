@@ -17,7 +17,7 @@
         "io.ktor:*"
       ],
       "registryUrls": [
-        "https://maven.pkg.jetbrains.space/public/p/ktor/eap",
+        "https://packages.jetbrains.team/maven/p/ktor/eap",
         "https://repo.maven.apache.org/maven2"
       ],
       "fetchChangeLogs": "off",
@@ -87,6 +87,18 @@
         "org.junit.jupiter:junit-jupiter"
       ],
       "automerge": true
+    },
+    {
+      "groupName": "Gobley",
+      "matchPackageNames": ["dev.gobley.**"]
+    },
+    {
+      "groupName": "Rust Dependencies",
+      "matchManagers": ["cargo"]
+    },
+    {
+      "groupName": "GitHub Actions",
+      "matchManagers": ["github-actions"]
     }
   ]
 }

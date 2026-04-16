@@ -5,6 +5,7 @@
 package io.ktor.client.engine.cio
 
 import io.ktor.client.engine.*
+import io.ktor.client.io.configurePlatform
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.sse.*
 import io.ktor.client.plugins.websocket.*
@@ -55,6 +56,8 @@ internal class CIOEngine(
     }
 
     init {
+        configurePlatform()
+
         val parentContext = super.coroutineContext
         val parent = parentContext[Job]!!
 
@@ -107,12 +110,16 @@ internal class CIOEngine(
     }
 
     private fun selectEndpoint(url: Url, proxy: ProxyConfig?, unixSocket: UnixSocketSettings?): Endpoint {
+        val url = url.rebuildIfNeeded()
+
         val host: String
         val port: Int
         val protocol: URLProtocol = url.protocol
 
-        if (proxy != null) {
-            val proxyAddress = proxy.resolveAddress()
+        val actualProxy = proxy ?: lookupGlobalProxy(url)
+
+        if (actualProxy != null) {
+            val proxyAddress = actualProxy.resolveAddress()
             host = proxyAddress.hostname
             port = proxyAddress.port
         } else {
@@ -127,7 +134,7 @@ internal class CIOEngine(
             Endpoint(
                 host,
                 port,
-                proxy,
+                actualProxy,
                 secure,
                 config,
                 connectionFactory,
@@ -136,5 +143,13 @@ internal class CIOEngine(
                 unixSocket,
             )
         }
+    }
+}
+
+internal fun Url.rebuildIfNeeded(): Url {
+    return if (host.contains('/') || host.contains("?") || host.contains("#")) {
+        Url(this.toString())
+    } else {
+        this
     }
 }

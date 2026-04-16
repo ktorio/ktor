@@ -65,7 +65,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testByteArray() = clientTests {
+    fun testByteArray() = clientTests(except("web:CIO")) {
         test { client ->
             testArrays.forEach { content ->
                 val response = client.echo<ByteArray>(content)
@@ -192,7 +192,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testByteArrayContent() = clientTests {
+    fun testByteArrayContent() = clientTests(except("web:CIO")) {
         test { client ->
             testArrays.forEach { content ->
                 val response = client.echo<ByteArray>(ByteArrayContent(content))

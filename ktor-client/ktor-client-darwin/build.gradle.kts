@@ -14,9 +14,9 @@ kotlin {
             api(projects.ktorNetworkTls)
         }
         darwinTest.dependencies {
-            api(projects.ktorClientTests)
-            api(projects.ktorClientLogging)
-            api(projects.ktorClientJson)
+            implementation(projects.ktorClientTests)
+            implementation(projects.ktorClientLogging)
+            implementation(projects.ktorClientJson)
         }
     }
 }

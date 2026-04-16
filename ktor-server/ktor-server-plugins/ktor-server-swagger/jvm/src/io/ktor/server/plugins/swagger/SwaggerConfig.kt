@@ -4,20 +4,45 @@
 
 package io.ktor.server.plugins.swagger
 
+import io.ktor.http.*
+import io.ktor.openapi.*
+import io.ktor.server.routing.openapi.*
+
 /**
  * A configuration for the Swagger UI endpoint.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.swagger.SwaggerConfig)
  */
-public class SwaggerConfig {
+public class SwaggerConfig private constructor(
+    private val docBuilder: OpenApiDoc.Builder
+) : OpenApiDocDsl by docBuilder {
+    public constructor() : this(OpenApiDoc.Builder())
+
     internal var customStyle: String? = null
+
+    /**
+     * Defines the source of the OpenAPI specification.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.swagger.SwaggerConfig.source)
+     */
+    public var source: OpenApiDocSource = OpenApiDocSource.FirstOf(
+        OpenApiDocSource.File("openapi/documentation.yaml"),
+        OpenApiDocSource.Routing(contentType = ContentType.Application.Yaml),
+    )
+
+    /**
+     * Relative path from the swagger URL root to the specification file.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.swagger.SwaggerConfig.remotePath)
+     */
+    public var remotePath: String = "documentation.yaml"
 
     /**
      * Specifies a Swagger UI version to use.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.swagger.SwaggerConfig.version)
      */
-    public var version: String = "5.17.12"
+    public var version: String = "5.31.0"
 
     /**
      * Specifies a URL for a custom CSS applied to a Swagger UI.
@@ -46,8 +71,16 @@ public class SwaggerConfig {
      */
     public var deepLinking: Boolean = false
 
-    /*
+    /**
      * Swagger favicon location
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.swagger.SwaggerConfig.faviconLocation)
      */
     public var faviconLocation: String = "https://unpkg.com/swagger-ui-dist@$version/favicon-32x32.png"
+
+    /**
+     * Base document is built for route-based OpenAPI generation.
+     */
+    internal fun buildBaseDoc(): OpenApiDoc =
+        docBuilder.build()
 }

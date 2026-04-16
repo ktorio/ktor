@@ -1,6 +1,8 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
+
+import ktorbuild.*
 
 plugins {
     id("ktorbuild.project.server-plugin")
@@ -13,9 +15,14 @@ kotlin {
             api(libs.velocity.tools)
         }
         jvmTest.dependencies {
-            api(projects.ktorServerConditionalHeaders)
-            api(projects.ktorServerCompression)
+            implementation(projects.ktorServerConditionalHeaders)
+            implementation(projects.ktorServerCompression)
             implementation(projects.ktorServerContentNegotiation)
         }
     }
+}
+
+dependencies.constraints {
+    commonsLang3()
+    commonsBeanutils()
 }

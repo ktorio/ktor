@@ -17,7 +17,9 @@ import io.ktor.client.request.prepareOptions
 import io.ktor.client.request.preparePatch
 import io.ktor.client.request.preparePost
 import io.ktor.client.request.preparePut
+import io.ktor.client.request.prepareQuery
 import io.ktor.client.request.put
+import io.ktor.client.request.query
 import io.ktor.http.HttpMethod
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -41,6 +43,10 @@ class BuildMethodsTest {
 
         client.post("/") {
             assertEquals(HttpMethod.Post, method)
+        }
+
+        client.post {
+            method = HttpMethod.Get
         }
 
         client.preparePost("/") {
@@ -71,6 +77,10 @@ class BuildMethodsTest {
             assertEquals(HttpMethod.Put, method)
         }
 
+        client.put {
+            method = HttpMethod.Get
+        }
+
         client.preparePut("/") {
             assertEquals(HttpMethod.Put, method)
         }.execute()
@@ -97,6 +107,10 @@ class BuildMethodsTest {
 
         client.delete("/") {
             assertEquals(HttpMethod.Delete, method)
+        }
+
+        client.delete {
+            method = HttpMethod.Get
         }
 
         client.prepareDelete("/") {
@@ -127,6 +141,10 @@ class BuildMethodsTest {
             assertEquals(HttpMethod.Options, method)
         }
 
+        client.options {
+            method = HttpMethod.Get
+        }
+
         client.prepareOptions("/") {
             assertEquals(HttpMethod.Options, method)
         }.execute()
@@ -153,6 +171,10 @@ class BuildMethodsTest {
 
         client.patch("/") {
             assertEquals(HttpMethod.Patch, method)
+        }
+
+        client.patch {
+            method = HttpMethod.Get
         }
 
         client.preparePatch("/") {
@@ -183,6 +205,10 @@ class BuildMethodsTest {
             assertEquals(HttpMethod.Head, method)
         }
 
+        client.head {
+            method = HttpMethod.Get
+        }
+
         client.prepareHead("/") {
             assertEquals(HttpMethod.Head, method)
         }.execute()
@@ -211,12 +237,48 @@ class BuildMethodsTest {
             assertEquals(HttpMethod.Get, method)
         }
 
+        client.get {
+            method = HttpMethod.Post
+        }
+
         client.prepareGet("/") {
             assertEquals(HttpMethod.Get, method)
         }.execute()
 
         client.prepareGet {
             assertEquals(HttpMethod.Get, method)
+        }.execute()
+    }
+
+    @Test
+    fun queryMethodWithinBuilder() = runTest {
+        val client = HttpClient(MockEngine) {
+            engine {
+                addHandler { request ->
+                    assertEquals(HttpMethod.Query, request.method)
+                    respondOk()
+                }
+            }
+        }
+
+        client.query {
+            assertEquals(HttpMethod.Query, method)
+        }
+
+        client.query("/") {
+            assertEquals(HttpMethod.Query, method)
+        }
+
+        client.query {
+            method = HttpMethod.Query
+        }
+
+        client.prepareQuery("/") {
+            assertEquals(HttpMethod.Query, method)
+        }.execute()
+
+        client.prepareQuery {
+            assertEquals(HttpMethod.Query, method)
         }.execute()
     }
 }

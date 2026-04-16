@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.server.netty.http2
 
@@ -10,14 +10,16 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.netty.cio.*
 import io.ktor.server.response.*
-import io.netty.channel.*
+import io.netty.channel.ChannelHandler
+import io.netty.channel.ChannelHandlerContext
+import io.netty.channel.ChannelInboundHandlerAdapter
 import io.netty.handler.codec.http2.*
-import io.netty.util.*
-import io.netty.util.concurrent.*
+import io.netty.util.AttributeKey
+import io.netty.util.concurrent.EventExecutorGroup
 import kotlinx.coroutines.*
-import java.lang.reflect.*
-import java.nio.channels.*
-import kotlin.coroutines.*
+import java.lang.reflect.Field
+import java.nio.channels.ClosedChannelException
+import kotlin.coroutines.CoroutineContext
 
 @ChannelHandler.Sharable
 internal class NettyHttp2Handler(
@@ -160,7 +162,7 @@ internal class NettyHttp2Handler(
         try {
             Http2FrameCodec::class.javaObjectType.getDeclaredField("streamKey")
                 .also { it.isAccessible = true }
-        } catch (cause: Throwable) {
+        } catch (_: Throwable) {
             null
         }
     }
@@ -174,7 +176,7 @@ internal class NettyHttp2Handler(
 
         try {
             function.invoke(this, streamKey, childStream)
-        } catch (cause: Throwable) {
+        } catch (_: Throwable) {
             return false
         }
 
@@ -187,7 +189,7 @@ internal class NettyHttp2Handler(
     private tailrec fun Class<*>.findIdField(): Field {
         val idField = try {
             getDeclaredField("id")
-        } catch (t: NoSuchFieldException) {
+        } catch (_: NoSuchFieldException) {
             null
         }
         if (idField != null) {
@@ -212,7 +214,7 @@ internal class NettyHttp2Handler(
     }
 
     companion object {
-        private val ApplicationCallKey = AttributeKey.newInstance<NettyHttp2ApplicationCall>("ktor.ApplicationCall")
+        private val ApplicationCallKey = AttributeKey.valueOf<NettyHttp2ApplicationCall>("ktor.ApplicationCall")
 
         private var ChannelHandlerContext.applicationCall: NettyHttp2ApplicationCall?
             get() = channel().attr(ApplicationCallKey).get()

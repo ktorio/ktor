@@ -21,6 +21,9 @@ import kotlin.coroutines.EmptyCoroutineContext
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ServerConfigBuilder)
  */
+@Suppress("ktlint:standard:no-consecutive-comments")
+// TODO KTOR-8809: Uncomment the annotation
+// @KtorDsl
 public class ServerConfigBuilder(
     public val environment: ApplicationEnvironment
 ) {
@@ -32,7 +35,7 @@ public class ServerConfigBuilder(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ServerConfigBuilder.watchPaths)
      */
-    public var watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH)
+    public var watchPaths: List<String> = defaultWatchPaths()
 
     /**
      * Application's root path (prefix, context path in servlet container).
@@ -77,6 +80,8 @@ public class ServerConfigBuilder(
     internal fun build(): ServerConfig =
         ServerConfig(environment, modules.toList(), watchPaths, rootPath, developmentMode, parentCoroutineContext)
 }
+
+internal expect fun defaultWatchPaths(): List<String>
 
 /**
  * Core configuration for a running server.
@@ -150,7 +155,7 @@ public class Application internal constructor(
     /**
      * Called by [ApplicationEngine] when [Application] is terminated.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.Application.dispose)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.Application.disposeAndJoin)
      */
     @InternalAPI
     @Suppress("DEPRECATION_ERROR")

@@ -1,12 +1,11 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.curl
 
+import io.ktor.client.engine.curl.CurlTask.*
 import io.ktor.client.engine.curl.internal.*
-import io.ktor.util.*
-import io.ktor.utils.io.*
 import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.IntVar
@@ -15,22 +14,19 @@ import kotlinx.cinterop.memScoped
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.cancellation.CancellationException
 
-internal class RequestContainer(
-    val requestData: CurlRequestData,
-    val completionHandler: CompletableDeferred<CurlSuccess>
-)
-
+@OptIn(ExperimentalForeignApi::class)
 internal class CurlProcessor(coroutineContext: CoroutineContext) {
-    @OptIn(InternalAPI::class)
-    private val curlDispatcher: CloseableCoroutineDispatcher =
-        Dispatchers.createFixedThreadDispatcher("curl-dispatcher", 1)
+
+    @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
+    private val curlDispatcher = newSingleThreadContext("curl-dispatcher")
 
     private var curlApi: CurlMultiApiHandler? by atomic(null)
     private val closed = atomic(false)
 
     private val curlScope = CoroutineScope(coroutineContext + curlDispatcher)
-    private val requestQueue: Channel<RequestContainer> = Channel(Channel.UNLIMITED)
+    private val taskQueue: Channel<CurlTask> = Channel(Channel.UNLIMITED)
 
     init {
         val init = curlScope.launch {
@@ -41,49 +37,64 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
             init.join()
         }
 
-        runEventLoop()
+        runEventLoop().invokeOnCompletion { cause ->
+            cause?.let { curlScope.cancel(cause = CancellationException(cause)) }
+        }
     }
 
     suspend fun executeRequest(request: CurlRequestData): CurlSuccess {
         val result = CompletableDeferred<CurlSuccess>()
-        requestQueue.send(RequestContainer(request, result))
+        taskQueue.send(SendRequest(request, result))
         curlApi!!.wakeup()
         return result.await()
     }
 
-    @OptIn(DelicateCoroutinesApi::class, ExperimentalForeignApi::class)
-    private fun runEventLoop() {
-        curlScope.launch {
-            memScoped {
-                val transfersRunning = alloc<IntVar>()
-                val api = curlApi!!
-                while (!requestQueue.isClosedForReceive) {
-                    drainRequestQueue(api)
-                    api.perform(transfersRunning)
-                }
+    suspend fun sendWebSocketFrame(websocket: CurlWebSocketResponseBody, flags: Int, data: ByteArray) {
+        val result = Job()
+        taskQueue.send(SendWebSocketFrame(websocket, flags, data, result))
+        curlApi!!.wakeup()
+        result.join()
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    private fun runEventLoop(): Job = curlScope.launch(CoroutineName("curl-processor-loop")) {
+        memScoped {
+            val transfersRunning = alloc<IntVar>()
+            val api = curlApi!!
+            while (!taskQueue.isClosedForReceive) {
+                drainTaskQueue(api)
+                api.perform(transfersRunning)
             }
         }
     }
 
-    @OptIn(ExperimentalForeignApi::class)
-    private suspend fun drainRequestQueue(api: CurlMultiApiHandler) {
+    private suspend fun drainTaskQueue(api: CurlMultiApiHandler) {
         while (true) {
-            val container = if (api.hasHandlers()) {
-                requestQueue.tryReceive()
+            val task = if (api.hasHandlers()) {
+                taskQueue.tryReceive()
             } else {
-                requestQueue.receiveCatching()
+                taskQueue.receiveCatching()
             }.getOrNull() ?: break
 
-            val requestHandler = api.scheduleRequest(container.requestData, container.completionHandler)
-
-            val requestCleaner = container.requestData.executionContext.invokeOnCompletion { cause ->
-                if (cause == null) return@invokeOnCompletion
-                cancelRequest(requestHandler, cause)
+            when (task) {
+                is SendRequest -> handleSendRequest(api, task)
+                is SendWebSocketFrame ->
+                    api.sendWebSocketFrame(task.websocket, task.flags, task.data, task.completionHandler)
             }
+        }
+    }
 
-            container.completionHandler.invokeOnCompletion {
-                requestCleaner.dispose()
-            }
+    private fun handleSendRequest(api: CurlMultiApiHandler, task: SendRequest) {
+        val (requestData, completionHandler) = task
+        val requestHandler = api.scheduleRequest(requestData, completionHandler)
+
+        val requestCleaner = requestData.executionContext.invokeOnCompletion { cause ->
+            if (cause == null) return@invokeOnCompletion
+            cancelRequest(requestHandler, cause)
+        }
+
+        completionHandler.invokeOnCompletion {
+            requestCleaner.dispose()
         }
     }
 
@@ -91,7 +102,7 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
     fun close() {
         if (!closed.compareAndSet(false, true)) return
 
-        requestQueue.close()
+        taskQueue.close()
         curlApi!!.wakeup()
 
         GlobalScope.launch(curlDispatcher) {
@@ -102,10 +113,24 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
         }
     }
 
-    @OptIn(ExperimentalForeignApi::class)
     private fun cancelRequest(easyHandle: EasyHandle, cause: Throwable) {
         curlScope.launch {
             curlApi!!.cancelRequest(easyHandle, cause)
         }
     }
+}
+
+private sealed interface CurlTask {
+
+    data class SendRequest(
+        val requestData: CurlRequestData,
+        val completionHandler: CompletableDeferred<CurlSuccess>,
+    ) : CurlTask
+
+    class SendWebSocketFrame(
+        val websocket: CurlWebSocketResponseBody,
+        val flags: Int,
+        val data: ByteArray,
+        val completionHandler: CompletableJob,
+    ) : CurlTask
 }

@@ -7,10 +7,15 @@ package io.ktor.util
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import kotlinx.coroutines.*
-import java.nio.*
-import java.util.zip.*
-import kotlin.coroutines.*
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import java.nio.ByteBuffer
+import java.util.zip.CRC32
+import java.util.zip.Checksum
+import java.util.zip.Deflater
+import java.util.zip.Inflater
+import kotlin.coroutines.CoroutineContext
 
 private const val GZIP_HEADER_SIZE: Int = 10
 
@@ -67,14 +72,17 @@ public val GZip: Encoder = object : Encoder {
         inflate(source, coroutineContext = coroutineContext)
 }
 
+private val InflateWriterCoroutineName = CoroutineName("encoder-inflate-writer")
+
 @OptIn(DelicateCoroutinesApi::class)
 private fun inflate(
     source: ByteReadChannel,
     gzip: Boolean = true,
     coroutineContext: CoroutineContext
-): ByteReadChannel = GlobalScope.writer(coroutineContext) {
+): ByteReadChannel = GlobalScope.writer(coroutineContext + InflateWriterCoroutineName) {
     val readBuffer = KtorDefaultPool.borrow()
     val writeBuffer = KtorDefaultPool.borrow()
+
     val inflater = Inflater(true)
     val checksum = CRC32()
 
@@ -116,7 +124,6 @@ private fun inflate(
         while (!source.isClosedForRead) {
             if (source.readAvailable(readBuffer) <= 0) continue
             readBuffer.flip()
-
             inflater.setInput(readBuffer.array(), readBuffer.position(), readBuffer.remaining())
 
             while (!inflater.needsInput() && !inflater.finished()) {

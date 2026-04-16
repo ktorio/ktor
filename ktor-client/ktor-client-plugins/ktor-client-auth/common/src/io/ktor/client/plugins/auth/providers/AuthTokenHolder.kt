@@ -11,11 +11,20 @@ import kotlin.concurrent.Volatile
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 
-internal class AuthTokenHolder<T>(private val loadTokens: suspend () -> T?) {
+internal class AuthTokenHolder<T>(
+    private val loadTokens: suspend () -> T?,
+    private val cacheTokens: Boolean = true
+) {
 
-    @Volatile private var value: T? = null
+    constructor(
+        loadTokens: suspend () -> T?,
+    ) : this(loadTokens, true)
 
-    @Volatile private var isLoadRequest = false
+    @Volatile
+    private var value: T? = null
+
+    @Volatile
+    private var isLoadRequest = false
 
     private val mutex = Mutex()
 
@@ -27,8 +36,13 @@ internal class AuthTokenHolder<T>(private val loadTokens: suspend () -> T?) {
     /**
      * Returns a cached value if any. Otherwise, computes a value using [loadTokens] and caches it.
      * Only one [loadToken] call can be executed at a time. The other calls are suspended and have no effect on the cached value.
+     * If [cacheTokens] is false, always calls [loadTokens] without caching.
      */
     internal suspend fun loadToken(): T? {
+        if (!cacheTokens) {
+            return loadTokens()
+        }
+
         if (value != null) return value // Hot path
         val prevValue = value
 
@@ -64,19 +78,27 @@ internal class AuthTokenHolder<T>(private val loadTokens: suspend () -> T?) {
      * Replaces the current cached value with one computed with [block].
      * Only one [loadToken] or [setToken] call can be executed at a time,
      * although the resumed [setToken] call recomputes the value cached by [loadToken].
+     *
+     * If [nonCancellable] is `true`, both the computation and the cache update
+     * are executed in a `NonCancellable` context to prevent cancellation from
+     * rolling back a successful token refresh.
      */
-    internal suspend fun setToken(block: suspend () -> T?): T? {
+    internal suspend fun setToken(nonCancellable: Boolean = false, block: suspend () -> T?): T? {
         val prevValue = value
         val lockedByLoad = isLoadRequest
 
-        return mutex.withLock {
-            if (prevValue == value || lockedByLoad) { // Raced first
-                value = withContext(coroutineContext + setTokenMarker) {
-                    block()
+        val context = if (nonCancellable) {
+            coroutineContext + NonCancellable + setTokenMarker
+        } else {
+            coroutineContext + setTokenMarker
+        }
+        return withContext(context) {
+            mutex.withLock {
+                if (prevValue == value || lockedByLoad) { // Raced first
+                    value = block()
                 }
+                value
             }
-
-            value
         }
     }
 

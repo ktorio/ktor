@@ -37,7 +37,7 @@ class UnixSocketTest {
             }
 
             val serverInput = serverConnection.openReadChannel()
-            val message = serverInput.readUTF8Line()
+            val message = serverInput.readLineStrict()
             assertEquals("Hello, world", message)
 
             val serverOutput = serverConnection.openWriteChannel()
@@ -46,7 +46,7 @@ class UnixSocketTest {
                 serverOutput.flush()
 
                 val clientInput = clientConnection.openReadChannel()
-                val echo = clientInput.readUTF8Line()
+                val echo = clientInput.readLineStrict()
 
                 assertEquals("Hello From Server", echo)
             } finally {

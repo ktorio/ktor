@@ -5,7 +5,7 @@
 package io.ktor.client.tests
 
 import io.ktor.client.*
-import io.ktor.client.engine.apache.*
+import io.ktor.client.engine.apache5.Apache5
 import io.ktor.client.request.*
 import io.ktor.client.test.base.*
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -22,7 +22,7 @@ class ExceptionsJvmTest {
 
     @Test
     fun testConnectionCloseException(): Unit = runBlocking {
-        val client = HttpClient(Apache)
+        val client = HttpClient(Apache5)
 
         client.use {
             assertFailsWith<IOException> {
@@ -57,7 +57,7 @@ class ExceptionsJvmTest {
             server.close()
         }
 
-        HttpClient(Apache).use { client ->
+        HttpClient(Apache5).use { client ->
             repeat(100) {
                 assertFailsWith<IOException> {
                     client.get("http://127.0.0.1:$port")

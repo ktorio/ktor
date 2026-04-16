@@ -801,7 +801,6 @@ class CacheTest : ClientLoader() {
             val privateUrl = Url("$TEST_SERVER/cache/private")
 
             suspend fun privateCache() = privateStorage.findAll(privateUrl)
-            suspend fun publicCache() = publicStorage.findAll(privateUrl)
 
             val firstPrivate = client.get(privateUrl).body<String>()
             assertEquals(firstPrivate, "private")
@@ -854,6 +853,71 @@ class CacheTest : ClientLoader() {
 
             assertEquals(first.bodyAsText(), second.bodyAsText())
             assertEquals(storage.findAll(Url("$TEST_SERVER/cache/different-vary")).size, 1)
+        }
+    }
+
+    @Test
+    fun testVaryHeader() = clientTests {
+        val publicStorage = CacheStorage.Unlimited()
+        val privateStorage = CacheStorage.Unlimited()
+        config {
+            install(HttpCache) {
+                publicStorage(publicStorage)
+                privateStorage(privateStorage)
+            }
+        }
+
+        test { client ->
+            val url = Url("$TEST_SERVER/cache/vary-header")
+
+            client.get(url) {
+                header("Accept", "application/json")
+            }
+            client.get(url) {
+                header("Accept", "application/json")
+                header("Accept", "application/cbor")
+            }
+
+            assertEquals(2, publicStorage.findAll(url).size)
+        }
+    }
+
+    @Test
+    fun testCaseSensitiveInVary() = clientTests {
+        val publicStorage = CacheStorage.Unlimited()
+        val privateStorage = CacheStorage.Unlimited()
+        config {
+            install(HttpCache) {
+                publicStorage(publicStorage)
+                privateStorage(privateStorage)
+            }
+        }
+
+        test { client ->
+            val url = Url("$TEST_SERVER/cache/vary-header-case-sensitive")
+
+            var count = 1
+            val response1 = client.get(url) {
+                header(HttpHeaders.AcceptLanguage, "en-US")
+                header("Count", count++)
+            }.bodyAsText()
+
+            val response2 = client.get(url) {
+                header(HttpHeaders.AcceptLanguage, "en-US")
+                header("Count", count++)
+            }.bodyAsText()
+
+            val response3 = client.get(url) {
+                headers {
+                    append(HttpHeaders.CacheControl, "only-if-cached, max-stale=10000")
+                    append(HttpHeaders.AcceptLanguage, "en-US")
+                    header("Count", count++)
+                }
+            }.bodyAsText()
+
+            assertEquals("1", response1)
+            assertEquals("2", response2)
+            assertEquals("2", response3)
         }
     }
 

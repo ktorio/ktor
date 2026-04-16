@@ -5,7 +5,7 @@
 package io.ktor.utils.io.charsets
 
 import kotlinx.io.*
-import org.khronos.webgl.Int8Array
+import org.khronos.webgl.toInt8Array
 
 /**
  * Find a charset by name.
@@ -130,9 +130,9 @@ public actual fun CharsetDecoder.decode(input: Source, dst: Appendable, max: Int
     val decoder = Decoder(charset.name, true)
 
     val count = minOf(input.buffer.size, max.toLong())
-    val array = input.readByteArray(count.toInt()) as Int8Array
+    val array = input.readByteArray(count.toInt())
     val result = try {
-        decoder.decode(array)
+        decoder.decode(array.toInt8Array())
     } catch (cause: Throwable) {
         throw MalformedInputException("Failed to decode bytes: ${cause.message ?: "no cause provided"}")
     }

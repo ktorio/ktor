@@ -18,11 +18,11 @@ kotlin {
             api(projects.ktorNetworkTls)
         }
         commonTest.dependencies {
-            api(projects.ktorClientTests)
+            implementation(projects.ktorClientTests)
         }
         jvmTest.dependencies {
-            api(projects.ktorNetworkTlsCertificates)
-            api(projects.ktorTestBase)
+            implementation(projects.ktorNetworkTlsCertificates)
+            implementation(projects.ktorTestBase)
             implementation(libs.mockk)
         }
     }

@@ -19,9 +19,9 @@ kotlin {
         }
 
         jvmTest.dependencies {
-            api(projects.ktorServerConfigYaml)
+            implementation(projects.ktorServerConfigYaml)
             implementation(libs.mockk)
-            implementation(libs.jakarta.servlet)
+            implementation(libs.jetty.servlet.jakarta)
         }
     }
 }

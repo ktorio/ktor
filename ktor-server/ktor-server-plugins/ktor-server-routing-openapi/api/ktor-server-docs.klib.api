@@ -1,0 +1,13 @@
+// Klib ABI Dump
+// Targets: [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, js, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, wasmJs, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <io.ktor:ktor-server-docs>
+final val io.ktor.annotate/EndpointAnnotationAttributeKey // io.ktor.annotate/EndpointAnnotationAttributeKey|{}EndpointAnnotationAttributeKey[0]
+    final fun <get-EndpointAnnotationAttributeKey>(): io.ktor.util/AttributeKey<io.ktor.openapi/Operation> // io.ktor.annotate/EndpointAnnotationAttributeKey.<get-EndpointAnnotationAttributeKey>|<get-EndpointAnnotationAttributeKey>(){}[0]
+
+final fun (io.ktor.server.routing/Route).io.ktor.annotate/annotate(kotlin/Function1<io.ktor.openapi/Operation.Builder, kotlin/Unit>): io.ktor.server.routing/Route // io.ktor.annotate/annotate|annotate@io.ktor.server.routing.Route(kotlin.Function1<io.ktor.openapi.Operation.Builder,kotlin.Unit>){}[0]
+final fun (io.ktor.server.routing/RoutingNode).io.ktor.annotate/findPathItems(): kotlin.collections/Map<kotlin/String, io.ktor.openapi/PathItem> // io.ktor.annotate/findPathItems|findPathItems@io.ktor.server.routing.RoutingNode(){}[0]

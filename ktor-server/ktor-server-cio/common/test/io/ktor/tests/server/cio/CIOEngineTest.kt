@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.server.cio
@@ -90,8 +90,9 @@ class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApp
             val body = "Hello world"
 
             writePostHeaders(writeChannel, body.length)
-            val continueResponse = readChannel.readUTF8Line()
+            val continueResponse = readChannel.readLineStrict()
             assertEquals("HTTP/1.1 100 Continue", continueResponse)
+            assertEquals("", readChannel.readLineStrict())
 
             writePostBody(writeChannel, body)
             val response = readAvailable(readChannel)
@@ -205,7 +206,7 @@ class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApp
     @Test
     fun testLotsOfHeaders() = runTest {
         val count = 500
-        val implicitHeadersCount = 4
+        val implicitHeadersCount = 3
 
         createAndStartServer {
             get("/headers") {

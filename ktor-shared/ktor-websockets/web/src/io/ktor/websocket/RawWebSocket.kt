@@ -1,0 +1,38 @@
+/*
+ * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
+package io.ktor.websocket
+
+import io.ktor.utils.io.*
+import kotlin.coroutines.*
+
+/**
+ * Creates a RAW web socket session from connection
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.RawWebSocket)
+ *
+ * @param input is a [ByteReadChannel] of connection
+ * @param output is a [ByteWriteChannel] of connection
+ * @param maxFrameSize is an initial [maxFrameSize] value for [WebSocketSession]
+ * @param masking is an initial [masking] value for [WebSocketSession]
+ * @param coroutineContext is a [CoroutineContext] to execute reading/writing from/to connection
+ * @param channelsConfig is a [WebSocketChannelsConfig] for the incoming and outgoing [Frame] queues
+ */
+@Suppress("FunctionName")
+public actual fun RawWebSocket(
+    input: ByteReadChannel,
+    output: ByteWriteChannel,
+    maxFrameSize: Long,
+    masking: Boolean,
+    coroutineContext: CoroutineContext,
+    channelsConfig: WebSocketChannelsConfig,
+): WebSocketSession = RawWebSocketCommon(
+    input,
+    output,
+    maxFrameSize,
+    masking,
+    coroutineContext,
+    channelsConfig
+)

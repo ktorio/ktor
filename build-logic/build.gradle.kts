@@ -10,11 +10,12 @@ dependencies {
     implementation(libs.kotlin.gradlePlugin)
     implementation(libs.kotlin.serialization)
     implementation(libs.kotlinx.atomicfu.gradlePlugin)
-    implementation(libs.kotlinx.binaryCompatibilityValidator)
     implementation(libs.dokka.gradlePlugin)
     implementation(libs.develocity)
     implementation(libs.gradleDoctor)
     implementation(libs.kotlinter)
+    implementation(libs.mavenPublishing)
+    implementation(libs.android.gradlePlugin)
 
     // A hack to make version catalogs accessible from buildSrc sources
     // https://github.com/gradle/gradle/issues/15383#issuecomment-779893192
@@ -27,5 +28,10 @@ kotlin {
 
     compilerOptions {
         allWarningsAsErrors = true
+        freeCompilerArgs.add("-Xcontext-parameters")
     }
+}
+
+tasks.validatePlugins {
+    enableStricterValidation = true
 }

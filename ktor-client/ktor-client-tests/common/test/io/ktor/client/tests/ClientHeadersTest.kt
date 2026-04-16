@@ -8,10 +8,10 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.test.base.*
+import io.ktor.client.tests.utils.*
 import io.ktor.http.*
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
+import io.ktor.utils.io.*
+import kotlin.test.*
 
 class ClientHeadersTest : ClientLoader() {
 
@@ -121,6 +121,28 @@ class ClientHeadersTest : ClientLoader() {
 
             val post = client.post("$TEST_SERVER/headers").bodyAsText()
             assertEquals("0", post)
+        }
+    }
+
+    @Test
+    fun `Transfer-Encoding is not sent with Content-Length`() = clientTests {
+        test { client ->
+            suspend fun testWithMethod(method: HttpMethod) {
+                val response = client.request("$TEST_SERVER/echo/headers") {
+                    this.method = method
+                    setBody("Hello")
+                }
+
+                assertEquals(HttpStatusCode.OK, response.status)
+                val body = response.bodyAsText()
+                assertContains(body.lines(), "content-length: [5]")
+                assertTrue("$method: Shouldn't send the Transfer-Encoding header") { "transfer-encoding" !in body }
+            }
+
+            @OptIn(InternalAPI::class)
+            client.supportedMethods()
+                .filter { it.supportsRequestBody }
+                .forEach { testWithMethod(it) }
         }
     }
 }

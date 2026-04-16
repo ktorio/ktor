@@ -70,6 +70,12 @@ public suspend fun <T> Future<T>.suspendAwait(exception: (Throwable, Continuatio
     }
 }
 
+/**
+ * The netty executor handles async execution with thread affinity, so we use it
+ * by default for the user context dispatcher.  There are some scenarios where the
+ * underlying netty channel is closed prematurely, in which case we fallback to the
+ * caller thread.
+ */
 internal object NettyDispatcher : CoroutineDispatcher() {
     override fun isDispatchNeeded(context: CoroutineContext): Boolean {
         return !context[CurrentContextKey]!!.context.executor().inEventLoop()
@@ -77,12 +83,15 @@ internal object NettyDispatcher : CoroutineDispatcher() {
 
     override fun dispatch(context: CoroutineContext, block: Runnable) {
         val nettyContext = context[CurrentContextKey]!!.context
-        val result = runCatching {
-            nettyContext.executor().execute(block)
-        }
-
-        if (result.isFailure) {
-            LOG.error("Failed to dispatch", result.exceptionOrNull())
+        val executor = nettyContext.executor()
+        if (executor.isShuttingDown) {
+            Dispatchers.IO.dispatch(context, block)
+        } else {
+            try {
+                executor.execute(block)
+            } catch (cause: Throwable) {
+                LOG.error("Failed to dispatch", cause)
+            }
         }
     }
 

@@ -11,7 +11,7 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.cancel
 
 /**
  * HttpSend pipeline interceptor function
@@ -89,8 +89,17 @@ public class HttpSend private constructor(
                         .trimMargin()
                 }
                 context.setBody(content)
-
-                val realSender: Sender = DefaultSender(plugin.maxSendCount, scope)
+                val maxRetries = context.attributes.getOrNull(MaxRetriesPerRequestAttributeKey)
+                val maxSendCount = if (maxRetries != null && maxRetries >= plugin.maxSendCount) {
+                    if (maxRetries < Int.MAX_VALUE) {
+                        maxRetries + 1 // +1 for the initial request
+                    } else {
+                        maxRetries
+                    }
+                } else {
+                    plugin.maxSendCount
+                }
+                val realSender: Sender = DefaultSender(maxSendCount, scope)
                 var interceptedSender = realSender
                 for (interceptor in plugin.interceptors.reversed()) {
                     interceptedSender = InterceptedSender(interceptor, interceptedSender)

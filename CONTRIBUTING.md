@@ -41,7 +41,8 @@ Up to 12 GB of free RAM is required to build the project.
 This amount can be reduced by decreasing the `Xmx` value in `gradle.properties`.
 Read the comments in `gradle.properties` for more details.
 
-If targeting macOS and/or iOS, install `Xcode` and `Xcode command line tools` on macOS.
+On macOS, install [Xcode and Xcode Command line tools](https://developer.apple.com/download/) to build Apple targets.
+Launch it and accept the license terms first.
 
 <details>
 <summary>Requirements for Ktor before 3.1.0</summary>
@@ -75,6 +76,32 @@ libraries such as `libncurses`.
 
 </details>
 
+#### Optional: Android SDK
+
+The Android SDK is optional for building Ktor.
+If the Android SDK is not available, Android targets will be automatically excluded from the build.
+
+To install the Android SDK, use [Android Studio](https://developer.android.com/studio) or [sdkmanager](https://developer.android.com/tools/sdkmanager).
+
+To enable Android targets,
+define the path to the Android SDK in the `ANDROID_HOME` environment variable or `sdk.dir` in the `local.properties` file:
+```properties
+sdk.dir=/path/to/android/sdk
+```
+
+#### Optional: CocoaPods for Apple targets
+
+CocoaPods is optional for building Ktor.
+If CocoaPods is not available on macOS, Apple targets will be automatically excluded from modules that require CocoaPods dependencies (e.g., `ktor-client-webrtc`).
+Other modules will continue to build Apple targets normally.
+
+To install CocoaPods, follow the [Kotlin Multiplatform CocoaPods setup guide](https://www.jetbrains.com/help/kotlin-multiplatform-dev/multiplatform-cocoapods-overview.html).
+
+You can also specify the path to the `pod` executable using the `kotlin.native.cocoapods.bin` property in `local.properties`:
+```properties
+kotlin.native.cocoapods.bin=/path/to/pod/binary
+```
+
 #### Referencing artifacts locally
 
 There are two ways to reference artifacts from the development Ktor locally in another project, which is usually
@@ -92,12 +119,37 @@ To import into IntelliJ IDEA, just open up the `Ktor` project folder. IntelliJ I
 that it is a Gradle project and import it. It's important that you make sure that all building and test operations
 are delegated to Gradle under [Gradle Settings](https://www.jetbrains.com/help/idea/gradle-settings.html).
 
+#### Working with Rust-based Modules Locally
+
+The `ktor-client-webrtc-rs` module utilizes Rust components internally. To develop with this module in your local environment, you'll need to complete the following setup steps:
+
+**Prerequisites:**
+- Install Rust and Cargo on your system
+- Configure your build environment by adding `ktorbuild.rustCompilation=true` to your global `gradle.properties` file
+  > ⚠️ **Important:** This setting should remain local to your development environment—do not commit this change to version control
+
+**Additional Dependencies:**
+Depending on your target platforms, you may need to install additional dependencies for Rust cross-compilation. For comprehensive guidance on cross-compilation requirements and troubleshooting, refer to the [Gobley cross-compilation documentation](https://gobley.dev/docs/cross-compilation-tips).
+
+### Branching Strategy
+
+Ktor uses the following branches:
+
+* **`main`** – Next minor or major release. Target for new features and breaking changes.
+* **`release/*`** – Next patch release. Target for bug fixes.
+
+> [!TIP]
+> Switch your branch base between `main` and `release/*`:
+> ```bash
+> ./switch-base-branch.sh [--dry-run] [--help]
+> ```
+
 ### Pull Requests
 
-Contributions are made using Github [pull requests](https://help.github.com/en/articles/about-pull-requests):
+Contributions are made using GitHub [pull requests](https://help.github.com/en/articles/about-pull-requests):
 
 1. Fork the Ktor repository and work on your fork.
-2. [Create](https://github.com/ktorio/ktor/compare) a new PR with a request to merge to the **main** branch.
+2. [Create](https://github.com/ktorio/ktor/compare) a new PR with a request to merge to the appropriate branch (see [Branching Strategy](#branching-strategy)).
 3. Ensure that the description is clear and refers to an existing ticket/bug if applicable, prefixing the description with
    KTOR-{NUM}, where {NUM} refers to the YouTrack issue.
 4. When contributing a new feature, provide motivation and use-cases describing why

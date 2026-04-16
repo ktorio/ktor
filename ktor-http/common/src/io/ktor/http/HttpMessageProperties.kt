@@ -73,7 +73,7 @@ public fun HttpMessageBuilder.vary(): List<String>? = headers.getAll(HttpHeaders
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.contentLength)
  */
-public fun HttpMessageBuilder.contentLength(): Long? = headers[HttpHeaders.ContentLength]?.toLong()
+public fun HttpMessageBuilder.contentLength(): Long? = headers[HttpHeaders.ContentLength]?.toLongOrNull()
 
 /**
  * Parse `Content-Type` header value.
@@ -110,7 +110,7 @@ public fun HttpMessage.vary(): List<String>? = headers.getAll(HttpHeaders.Vary)?
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.contentLength)
  */
-public fun HttpMessage.contentLength(): Long? = headers[HttpHeaders.ContentLength]?.toLong()
+public fun HttpMessage.contentLength(): Long? = headers[HttpHeaders.ContentLength]?.toLongOrNull()
 
 /**
  * Parse `Set-Cookie` header value.

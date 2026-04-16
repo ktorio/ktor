@@ -19,6 +19,7 @@ public final class io/ktor/server/plugins/compression/CompressionConfig$Mode : j
 }
 
 public final class io/ktor/server/plugins/compression/CompressionEncoderBuilder : io/ktor/server/plugins/compression/ConditionsHolderBuilder {
+	public fun <init> (Lio/ktor/util/ContentEncoder;)V
 	public fun getConditions ()Ljava/util/ArrayList;
 	public synthetic fun getConditions ()Ljava/util/List;
 	public final fun getEncoder ()Lio/ktor/util/ContentEncoder;

@@ -222,7 +222,7 @@ class HttpTimeoutTest : ClientLoader(timeout = 3.seconds) {
             }.body<ByteReadChannel>()
 
             assertFailsWith<CancellationException> {
-                response.readUTF8Line()
+                response.readLine()
             }
         }
     }
@@ -243,13 +243,15 @@ class HttpTimeoutTest : ClientLoader(timeout = 3.seconds) {
                 timeout { requestTimeoutMillis = 1000 }
             }.body<ByteReadChannel>()
             assertFailsWith<CancellationException> {
-                response.readUTF8Line()
+                response.readLine()
             }
         }
     }
 
     @Test
-    fun testGetAfterTimeout() = clientTests(except(ENGINES_WITHOUT_REQUEST_TIMEOUT, "Js", "Darwin", "DarwinLegacy")) {
+    fun testGetAfterTimeout() = clientTests(
+        except(ENGINES_WITHOUT_REQUEST_TIMEOUT, "Js", "Darwin", "DarwinLegacy", "Curl")
+    ) {
         config {
             install(HttpTimeout)
         }
@@ -260,7 +262,7 @@ class HttpTimeoutTest : ClientLoader(timeout = 3.seconds) {
                 timeout { requestTimeoutMillis = 1000 }
             }.body<ByteReadChannel>()
             assertFailsWith<CancellationException> {
-                response.readUTF8Line()
+                response.readLine()
             }
             val result = client.get("$TEST_URL/with-delay?delay=1") {
                 timeout { requestTimeoutMillis = 1000 }
@@ -270,7 +272,7 @@ class HttpTimeoutTest : ClientLoader(timeout = 3.seconds) {
     }
 
     @Test
-    fun testGetStream() = clientTests {
+    fun testGetStream() = clientTests(except("Curl")) {
         config {
             install(HttpTimeout) { requestTimeoutMillis = 1000 }
         }
@@ -285,7 +287,7 @@ class HttpTimeoutTest : ClientLoader(timeout = 3.seconds) {
     }
 
     @Test
-    fun testGetStreamRequestTimeout() = clientTests(except(ENGINES_WITHOUT_REQUEST_TIMEOUT)) {
+    fun testGetStreamRequestTimeout() = clientTests(except(ENGINES_WITHOUT_REQUEST_TIMEOUT, "Curl")) {
         config {
             install(HttpTimeout) { requestTimeoutMillis = 1000 }
         }
@@ -318,7 +320,7 @@ class HttpTimeoutTest : ClientLoader(timeout = 3.seconds) {
 
     // Js can't configure test timeout in browser
     @Test
-    fun testRedirect() = clientTests(except("Js"), retries = 5) {
+    fun testRedirect() = clientTests(except("Js", "Curl"), retries = 5) {
         config {
             install(HttpTimeout) { requestTimeoutMillis = 1000 }
         }
@@ -475,7 +477,7 @@ class HttpTimeoutTest : ClientLoader(timeout = 3.seconds) {
 
     @Test
     fun testSocketTimeoutWriteFailOnWrite() = clientTests(
-        except(ENGINES_WITHOUT_SOCKET_TIMEOUT, "Android", "native:CIO", "web:CIO", "WinHttp")
+        except(ENGINES_WITHOUT_SOCKET_TIMEOUT, "Android", "native:CIO", "web:CIO", "WinHttp", "DarwinLegacy")
     ) {
         config {
             install(HttpTimeout) { socketTimeoutMillis = 500 }

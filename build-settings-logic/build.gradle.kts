@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:Suppress("UnstableApiUsage")
@@ -23,6 +23,10 @@ kotlin {
     jvmToolchain(21)
 }
 
+tasks.validatePlugins {
+    enableStricterValidation = true
+}
+
 //region Workaround for https://github.com/gradle/gradle/issues/13020
 // We have a dependency on Kotlin Gradle Plugin and Gradle _always_ logs an annoying warning because of that:
 //  Unsupported Kotlin plugin version.
@@ -36,7 +40,6 @@ val kotlinDslPluginSources: Configuration by configurations.creating {
     isCanBeConsumed = false
     isCanBeResolved = false
     isCanBeDeclared = true
-    isVisible = false
     defaultDependencies {
         add(project.dependencies.create("org.gradle.kotlin:gradle-kotlin-dsl-plugins:$expectedKotlinDslPluginsVersion"))
     }
@@ -47,7 +50,6 @@ val kotlinDslPluginSourcesResolver: Configuration by configurations.creating {
     isCanBeConsumed = false
     isCanBeResolved = true
     isCanBeDeclared = false
-    isVisible = false
     extendsFrom(kotlinDslPluginSources)
     attributes {
         attribute(DOCS_TYPE_ATTRIBUTE, objects.named(SOURCES))
@@ -83,7 +85,7 @@ val suppressGradlePluginVersionWarning by tasks.registering {
                 writeText(
                     embeddedKotlinPlugin.readText()
                         // This is the key change: converting 'warn' into 'info'.
-                        .replace("\n        warn(\n", "\n        info(\n")
+                        .replace("\n        warn(warning)", "\n        info(warning)")
                         // Mark internal things as internal to prevent compiler warnings about unused code,
                         // and to stop them leaking into build scripts.
                         .replace("\n\nfun Logger.", "\n\nprivate fun Logger.")
@@ -91,6 +93,10 @@ val suppressGradlePluginVersionWarning by tasks.registering {
                             "*/\nabstract class EmbeddedKotlinPlugin",
                             "*/\ninternal abstract class EmbeddedKotlinPlugin"
                         )
+                        // Convert parameter into receiver
+                        .replace(".configureEach { swift ->", ".configureEach {")
+                        .replace("swift.withDependencies { dependencies ->", "withDependencies {")
+                        .replace("dependencies.clear()", "clear()")
                 )
             }
         }

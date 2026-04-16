@@ -28,6 +28,8 @@ public object EngineMain {
     /**
      * Creates an instance of the embedded Netty server without starting it.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.EngineMain.createServer)
+     *
      * @param args Command line arguments for configuring the server.
      * @return An instance of [EmbeddedServer] with the specified configuration.
      */
@@ -67,6 +69,12 @@ public object EngineMain {
         }
         deploymentConfig.propertyOrNull("maxChunkSize")?.getString()?.toInt()?.let {
             maxChunkSize = it
+        }
+        deploymentConfig.propertyOrNull("enableHttp2")?.getString()?.toBoolean()?.let {
+            enableHttp2 = it
+        }
+        deploymentConfig.propertyOrNull("enableH2c")?.getString()?.toBoolean()?.let {
+            enableH2c = it
         }
     }
 }

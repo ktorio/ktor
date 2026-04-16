@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.routing
@@ -9,10 +9,11 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
+import io.ktor.util.collections.*
 import io.ktor.util.pipeline.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
-import kotlin.coroutines.*
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Describes a node in a routing tree.
@@ -29,7 +30,7 @@ import kotlin.coroutines.*
 @KtorDsl
 public open class RoutingNode(
     public override val parent: RoutingNode?,
-    public val selector: RouteSelector,
+    public override val selector: RouteSelector,
     developmentMode: Boolean = false,
     environment: ApplicationEnvironment
 ) : ApplicationCallPipeline(developmentMode, environment), Route {
@@ -39,7 +40,7 @@ public open class RoutingNode(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RoutingNode.children)
      */
-    public val children: List<RoutingNode> get() = childList
+    public override val children: List<RoutingNode> get() = childList
 
     private val childList: MutableList<RoutingNode> = mutableListOf()
 
@@ -129,6 +130,9 @@ public open class RoutingNode(
         cachedPipeline = pipeline
         pipeline
     }
+
+    public fun hasHandler(): Boolean =
+        handlers.isNotEmpty()
 
     override fun toString(): String {
         return when (val parentRoute = parent?.toString()) {
@@ -254,6 +258,9 @@ public class RoutingCall internal constructor(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RoutingContext)
  */
+@Suppress("ktlint:standard:no-consecutive-comments")
+// TODO KTOR-8809: Uncomment the annotation
+// @KtorDsl
 public class RoutingContext(
     public val call: RoutingCall
 )
@@ -270,10 +277,37 @@ public typealias RoutingHandler = suspend RoutingContext.() -> Unit
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.Route)
  */
-public interface Route {
+@Suppress("ktlint:standard:no-consecutive-comments")
+// TODO KTOR-8809: Uncomment the annotation
+// @KtorDsl
+public interface Route : TreeLike<Route> {
+    /**
+     * The containing application's environment.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.Route.environment)
+     */
     public val environment: ApplicationEnvironment
+
+    /**
+     * Key-value store of route metadata, scoped to the lifetime of the application.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.Route.attributes)
+     */
     public val attributes: Attributes
-    public val parent: Route?
+
+    /**
+     * Optional selector for filtering on requests.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.Route.selector)
+     */
+    public val selector: RouteSelector? get() = null
+
+    /**
+     * Children of the current route.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.Route.children)
+     */
+    override val children: Iterable<Route> get() = emptyList()
 
     /**
      * Installs a handler into this route which is called when the route is selected for a call.
@@ -352,33 +386,30 @@ private fun RoutingNode.getAllRoutes(endpoints: MutableList<RoutingNode>) {
 /**
  * String representation of the path matched by this route.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RoutingNode.path)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.path)
  */
-public val RoutingNode.path: String
+public val Route.path: String
     get() = path()
 
-private fun RoutingNode.path(): String {
-    val parentPath = parent?.path()
-    val selectorElement = selector.toPathElement()
+/**
+ * Constructs the full path of the routing node by combining the path of the parent node
+ * and the formatted path of this node's selector, using the provided format.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.path)
+ *
+ * @param format formats each selector in the node's lineage. Defaults to [RoutePathFormat.Default].
+ * @return the full path of the routing node as a string.
+ */
+public fun Route.path(format: RoutePathFormat = RoutePathFormat.Default): String {
+    val parentPath = parent?.path(format)
+    val pathComponent = selector as? RoutePathComponent ?: return parentPath.orEmpty()
+    val formattedPath = format.format(pathComponent)
     return when {
-        parentPath == null -> selectorElement
-        selectorElement.isEmpty() -> parentPath
-        parentPath.endsWith('/') || selectorElement.startsWith('/') -> "$parentPath$selectorElement"
-        else -> "$parentPath/$selectorElement"
+        parentPath == null -> formattedPath
+        formattedPath.isEmpty() -> parentPath
+        parentPath.endsWith('/') || formattedPath.startsWith('/') -> "$parentPath$formattedPath"
+        else -> "$parentPath/$formattedPath"
     }
-}
-
-private fun RouteSelector.toPathElement(): String = when (this) {
-    is PathSegmentConstantRouteSelector,
-    is PathSegmentParameterRouteSelector,
-    is PathSegmentOptionalParameterRouteSelector,
-    is PathSegmentTailcardRouteSelector,
-    is PathSegmentWildcardRouteSelector,
-    is PathSegmentRegexRouteSelector -> toString()
-
-    is TrailingSlashRouteSelector -> "/"
-
-    else -> ""
 }
 
 @Deprecated("Please use route scoped plugins instead")

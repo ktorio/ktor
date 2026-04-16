@@ -22,8 +22,16 @@ class YamlConfigTestJvm {
     }
 
     @Test
-    fun testLoadCustomConfig() {
+    fun testLoadCustomConfigWithYamlSuffix() {
         val path = YamlConfigTestJvm::class.java.classLoader.getResource("application-custom.yaml").toURI().path
+        val config = YamlConfig(path)!!
+        assertEquals("2345", config.property("ktor.deployment.port").getString())
+        assertEquals(listOf("c", "d", "e"), config.property("ktor.auth.users").getList())
+    }
+
+    @Test
+    fun testLoadCustomConfigWithYmlSuffix() {
+        val path = YamlConfigTestJvm::class.java.classLoader.getResource("application-custom.yml").toURI().path
         val config = YamlConfig(path)!!
         assertEquals("2345", config.property("ktor.deployment.port").getString())
         assertEquals(listOf("c", "d", "e"), config.property("ktor.auth.users").getList())
@@ -37,27 +45,43 @@ class YamlConfigTestJvm {
         }
     }
 
-    @Test
-    fun testSystemPropertyConfig() {
-        val originalValue = System.getProperty("test.property")
+    private fun withProperty(key: String, value: String, block: () -> Unit) {
+        val originalValue = System.getProperty(key)
         try {
-            System.setProperty("test.property", "systemValue")
-
-            val content = """
-            ktor:
-                property: "${'$'}test.property"
-            """.trimIndent()
-            val yaml = Yaml.default.decodeFromString<YamlMap>(content)
-            val config = YamlConfig.from(yaml)
-
-            val value = config.property("ktor.property").getString()
-            assertEquals("systemValue", value)
+            System.setProperty(key, value)
+            block()
         } finally {
-            if (originalValue != null) {
-                System.setProperty("test.property", originalValue)
-            } else {
-                System.clearProperty("test.property")
+            when (originalValue) {
+                null -> System.clearProperty(key)
+                else -> System.setProperty(key, originalValue)
             }
         }
+    }
+
+    @Test
+    fun testSystemPropertyConfig() = withProperty("test.property", "systemValue") {
+        val content = $$"""
+            ktor:
+                property: "$test.property"
+        """.trimIndent()
+        val yaml = Yaml.default.decodeFromString<YamlMap>(content)
+        val config = YamlConfig.from(yaml)
+
+        val value = config.property("ktor.property").getString()
+        assertEquals("systemValue", value)
+    }
+
+    @Test
+    fun testEnvVarWithValueStartingWithDollar() = withProperty("TEST_DB_PASSWORD", $$"$123Password") {
+        val content = $$"""
+                password1: $TEST_DB_PASSWORD
+                password2: $TEST_DB_PASSWORD
+                password3: $password1
+        """.trimIndent()
+        val yaml = Yaml.default.decodeFromString<YamlMap>(content)
+        val config = YamlConfig.from(yaml)
+        assertEquals($$"$123Password", config.property("password1").getString())
+        assertEquals($$"$123Password", config.property("password2").getString())
+        assertEquals($$"$123Password", config.property("password3").getString())
     }
 }

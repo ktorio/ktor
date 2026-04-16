@@ -17,6 +17,14 @@ import java.util.concurrent.atomic.AtomicInteger
 
 internal val counter = AtomicInteger(0)
 
+/**
+ * Registers test routes under `/cache` that exercise caching and conditional header behaviors.
+ *
+ * Installs the `CachingHeaders` and `ConditionalHeaders` plugins and declares endpoints used in tests:
+ * handlers for various `Cache-Control` directives, `Expires`, `ETag`, `Last-Modified`, and `Vary`
+ * header scenarios, including endpoints that return 304 Not Modified responses and case-sensitive
+ * vary-header behaviors.
+ */
 internal fun Application.cacheTestServer() {
     routing {
         route("/cache") {
@@ -126,6 +134,33 @@ internal fun Application.cacheTestServer() {
                     call.response.header("Vary", "X-Requested-With")
                     call.respond(HttpStatusCode.NotModified)
                 }
+            }
+            get("/vary-header") {
+                call.response.header("Vary", "Accept")
+                call.respondText { "OK" }
+            }
+
+            get("/vary-header-case-sensitive") {
+                when (call.request.headers["Count"]?.toIntOrNull() ?: 0) {
+                    1 -> {
+                        call.response.header(HttpHeaders.CacheControl, "max-age=0")
+                        call.response.header(HttpHeaders.Vary, "Accept-Language")
+                        call.respond("1")
+                    }
+
+                    2 -> {
+                        call.response.header(HttpHeaders.CacheControl, "max-age=0")
+                        call.response.header(HttpHeaders.Vary, "accept-language")
+                        call.respond("2")
+                    }
+
+                    else -> error("Should not be invoked")
+                }
+            }
+
+            get("/vary-header-not-modified") {
+                call.response.header(HttpHeaders.Vary, HttpHeaders.AcceptLanguage)
+                call.respond(HttpStatusCode.NotModified)
             }
         }
     }

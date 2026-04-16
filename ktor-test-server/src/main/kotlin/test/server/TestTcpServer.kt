@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package test.server
@@ -22,7 +22,7 @@ internal class TestTcpServer(val port: Int, handler: suspend (Socket) -> Unit) :
             server = aSocket(selector).tcp().bind(port = port)
             while (isActive) {
                 val socket = try {
-                    server?.accept()
+                    server.accept()
                 } catch (cause: Throwable) {
                     println("Test server is fail to accept: $cause")
                     cause.printStackTrace()
@@ -31,7 +31,7 @@ internal class TestTcpServer(val port: Int, handler: suspend (Socket) -> Unit) :
 
                 launch {
                     try {
-                        socket?.use { handler(it) }
+                        socket.use { handler(it) }
                     } catch (cause: Throwable) {
                         println("Exception in tcp server: $cause")
                         cause.printStackTrace()

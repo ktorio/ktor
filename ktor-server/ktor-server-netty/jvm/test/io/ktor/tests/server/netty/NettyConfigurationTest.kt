@@ -62,7 +62,7 @@ class NettyConfigurationTest {
 
         engine.start(wait = false)
         engine.stop(10, 10)
-        verify { parentGroup.shutdownGracefully(10, 10, TimeUnit.MILLISECONDS) }
+        verify { parentGroup.shutdownGracefully(0, 10, TimeUnit.MILLISECONDS) }
         verify { childGroup.shutdownGracefully(10, 10, TimeUnit.MILLISECONDS) }
     }
 
@@ -106,7 +106,7 @@ class NettyConfigurationTest {
         return mockk {
             every { register(channel) } returns stubResolvedFuture(channel)
             every { shutdownGracefully(any(), any(), any()) } returns mockk {
-                every { await() } returns mockk()
+                every { sync() } returns mockk()
             }
         }
     }

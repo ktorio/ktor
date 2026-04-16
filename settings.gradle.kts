@@ -60,6 +60,7 @@ projects {
 
         nested("ktor-server-plugins") {
             +"ktor-server-auth"
+            +"ktor-server-auth-api-key"
             +"ktor-server-auth-jwt"
             +"ktor-server-auth-ldap"
             +"ktor-server-auto-head-response"
@@ -67,7 +68,9 @@ projects {
             +"ktor-server-caching-headers"
             +"ktor-server-call-id"
             +"ktor-server-call-logging"
-            +"ktor-server-compression"
+            +"ktor-server-compression" including {
+                +"ktor-server-compression-zstd"
+            }
             +"ktor-server-conditional-headers"
             +"ktor-server-content-negotiation"
             +"ktor-server-cors"
@@ -102,6 +105,7 @@ projects {
             +"ktor-server-velocity"
             +"ktor-server-webjars"
             +"ktor-server-websockets"
+            +"ktor-server-routing-openapi"
         }
     }
 
@@ -125,6 +129,17 @@ projects {
 
         +"ktor-client-test-base"
         +"ktor-client-tests"
+
+        +"ktor-client-webrtc" including {
+            // Include `ktor-client-webrtc-rs` if rust compilation is enabled in `gradle.properties` for local builds
+            // or if the `RUST_COMPILATION` environment variable is set to `true` for the CI.
+            val compileRust = providers.environmentVariable("KTOR_RUST_COMPILATION")
+                .orElse(providers.gradleProperty("ktorbuild.rustCompilation"))
+                .orNull.toBoolean()
+            if (compileRust) {
+                +"ktor-client-webrtc-rs" // requires `cargo` to be installed
+            }
+        }
 
         nested("ktor-client-plugins") {
             +"ktor-client-auth"
@@ -159,6 +174,7 @@ projects {
             }
             +"ktor-serialization-gson"
             +"ktor-serialization-jackson"
+            +"ktor-serialization-jackson3"
             +"ktor-serialization-tests"
         }
         +"ktor-sse"
@@ -168,6 +184,10 @@ projects {
         +"ktor-websocket-serialization"
         +"ktor-websockets"
         +"ktor-test-base"
+        +"ktor-openapi-schema" including {
+            +"ktor-openapi-schema-reflect"
+        }
+        +"ktor-encoding-zstd"
     }
 
     +"ktor-network" including {

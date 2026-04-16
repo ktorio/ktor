@@ -30,7 +30,7 @@ class ClassCastExceptionTest : EngineTestBase<CIOApplicationEngine, CIOApplicati
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.tests.server.cio.ClassCastExceptionTest.testClassCastException)
      */
     @Test
-    @NoHttp2
+    @Http1Only
     fun testClassCastException(): Unit = runBlocking {
         val exceptionHandler = CoroutineExceptionHandler { _, cause ->
             cancel("Uncaught failure", cause)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.darwin.internal
@@ -25,13 +25,13 @@ internal class DarwinSession(
     private val session = sessionAndDelegate.first
     private val delegate = sessionAndDelegate.second
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalAPI::class, ExperimentalForeignApi::class)
     internal suspend fun execute(request: HttpRequestData, callContext: CoroutineContext): HttpResponseData {
         val nativeRequest = request.toNSUrlRequest()
             .apply(config.requestConfig)
         val (task, response) = if (request.isUpgradeRequest()) {
             val task = session.webSocketTaskWithRequest(nativeRequest)
-            val response = delegate.read(task, callContext)
+            val response = delegate.read(request, task, callContext)
             task to response
         } else {
             val task = session.dataTaskWithRequest(nativeRequest)
@@ -56,7 +56,7 @@ internal class DarwinSession(
     }
 
     override fun close() {
-        if (!closed.compareAndSet(false, true)) return
+        if (!closed.compareAndSet(expect = false, update = true)) return
         session.finishTasksAndInvalidate()
     }
 }

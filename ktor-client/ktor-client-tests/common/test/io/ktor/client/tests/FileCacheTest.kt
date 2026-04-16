@@ -15,6 +15,8 @@ import kotlinx.io.files.*
 import kotlin.test.*
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
+import io.ktor.util.date.GMTDate
+import io.ktor.utils.io.core.toByteArray
 
 class FileCacheTest : ClientLoader() {
     private val tmpDirPath = temporaryDirectoryPath()
@@ -133,6 +135,48 @@ class FileCacheTest : ClientLoader() {
 
             val second = client.get("${TEST_SERVER}/cache/cache_${"a".repeat(3000)}")
             assertEquals("abc", second.bodyAsText())
+        }
+    }
+
+    @Test
+    fun testUpgradeOldCacheVersionWithCaseSensitiveVary() = clientTests {
+        val file = Files.createTempDirectory("cache-test-public-upgrade").toFile()
+        val publicStorage = FileStorage(file)
+        config {
+            install(HttpCache) {
+                publicStorage(publicStorage)
+            }
+        }
+
+        test { client ->
+            val url = Url("$TEST_SERVER/cache/vary-header-not-modified")
+
+            // Prepopulate the cache with an entry that uses a capitalized "Accept-Language" vary key.
+            val now = GMTDate()
+            publicStorage.store(
+                url,
+                CachedResponseData(
+                    url = url,
+                    statusCode = HttpStatusCode.OK,
+                    requestTime = now,
+                    responseTime = now,
+                    version = HttpProtocolVersion.HTTP_1_1,
+                    expires = now,
+                    headers = headers {
+                        append(HttpHeaders.Vary, HttpHeaders.AcceptLanguage)
+                    },
+                    varyKeys = mapOf(
+                        HttpHeaders.AcceptLanguage to "en-US"
+                    ),
+                    body = "OK".toByteArray(),
+                )
+            )
+
+            val response = client.get(url) {
+                header(HttpHeaders.AcceptLanguage, "en-US")
+            }.bodyAsText()
+
+            assertEquals("OK", response)
         }
     }
 

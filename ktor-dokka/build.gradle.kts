@@ -3,33 +3,31 @@
  */
 
 import ktorbuild.*
-import java.time.Year
 
 plugins {
     id("ktorbuild.base")
     id("ktorbuild.dokka")
 }
 
-val projectVersion = project.version.toString()
+// Strip patch version (e.g., 3.0.3 -> 3.0.x, 3.3.0-rc.1 -> 3.3.x)
+val apiVersion = project.version.toString()
+    .replace(Regex("""^(\d+\.\d+)\..*$"""), "$1.x")
+
 val dokkaVersionsDirectory = resolveVersionsDirectory()
 
 dokka {
     moduleName = "Ktor"
 
     pluginsConfiguration {
-        html {
-            customAssets.from("assets/logo-icon.svg")
-            footerMessage = "© ${Year.now()} JetBrains s.r.o and contributors. Apache License 2.0"
-        }
-
         versioning {
-            version = projectVersion
+            version = apiVersion
             if (dokkaVersionsDirectory != null) olderVersionsDir = dokkaVersionsDirectory
+            olderVersionsDirName = "" // Put versions in the docs root directory
         }
     }
 
     dokkaPublications.html {
-        if (dokkaVersionsDirectory != null) outputDirectory = dokkaVersionsDirectory.resolve(projectVersion)
+        if (dokkaVersionsDirectory != null) outputDirectory = dokkaVersionsDirectory.resolve(apiVersion)
     }
 }
 

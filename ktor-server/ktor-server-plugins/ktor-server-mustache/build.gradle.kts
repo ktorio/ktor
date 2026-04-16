@@ -12,8 +12,8 @@ kotlin {
             api(libs.mustache)
         }
         jvmTest.dependencies {
-            api(projects.ktorServerCompression)
-            api(projects.ktorServerConditionalHeaders)
+            implementation(projects.ktorServerCompression)
+            implementation(projects.ktorServerConditionalHeaders)
             implementation(projects.ktorServerContentNegotiation)
         }
     }

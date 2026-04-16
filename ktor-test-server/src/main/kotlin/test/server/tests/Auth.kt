@@ -178,6 +178,16 @@ internal fun Application.authTestServer() {
 
                     call.respond("OK")
                 }
+                get("different-header") {
+                    val token = call.request.headers[HttpHeaders.Authorization]
+                    if (token.isNullOrEmpty() || token.contains("invalid")) {
+                        call.response.header(HttpHeaders.WWWAuthenticate, "Basic realm=\"TestServer\"")
+                        call.respond(HttpStatusCode.Unauthorized)
+                        return@get
+                    }
+
+                    call.respond("OK")
+                }
             }
 
             route("multiple") {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.curl.test
@@ -13,9 +13,13 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.seconds
 
-class CurlWebSocketTests : ClientEngineTest<CurlClientEngineConfig>(Curl) {
+class CurlWebSocketTests : ClientEngineTest<CurlClientEngineConfig>(Curl, timeout = 10.seconds) {
 
     @Test
     fun testEcho() = testClient {
@@ -35,7 +39,6 @@ class CurlWebSocketTests : ClientEngineTest<CurlClientEngineConfig>(Curl) {
         }
     }
 
-    @Ignore // TODO: for some reason we doesn't get a response
     @Test
     fun testEmptyFrame() = testClient {
         config {
@@ -98,6 +101,26 @@ class CurlWebSocketTests : ClientEngineTest<CurlClientEngineConfig>(Curl) {
 
             val response = client.get(TEST_SERVER)
             assertEquals(200, response.status.value)
+        }
+    }
+
+    @Test
+    fun testReceiveLargeTextFrame() = testClient {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            val payloadSize = 24000
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/text?size=$payloadSize") {
+                val frame = incoming.receive()
+
+                assertTrue(frame is Frame.Text, "Expected Frame.Text but got ${frame.frameType}")
+                assertTrue(frame.fin, "Expected fin=true but got fin=false")
+
+                val text = frame.readText()
+                assertEquals(payloadSize, text.length, "Unexpected payload size")
+            }
         }
     }
 }

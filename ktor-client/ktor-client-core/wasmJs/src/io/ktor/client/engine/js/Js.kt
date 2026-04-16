@@ -1,11 +1,11 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.js
 
 import io.ktor.client.engine.*
-import io.ktor.client.fetch.RequestInit
+import io.ktor.client.fetch.*
 import io.ktor.client.utils.*
 import io.ktor.utils.io.*
 
@@ -26,7 +26,7 @@ import io.ktor.utils.io.*
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.js.Js)
  */
 public actual data object Js : HttpClientEngineFactory<JsClientEngineConfig> {
-    override fun create(block: JsClientEngineConfig.() -> Unit): HttpClientEngine =
+    actual override fun create(block: JsClientEngineConfig.() -> Unit): HttpClientEngine =
         JsClientEngine(JsClientEngineConfig().apply(block))
 }
 
@@ -41,6 +41,8 @@ public actual open class JsClientEngineConfig : HttpClientEngineConfig() {
     /**
      * Provides access to the underlying fetch options of the engine.
      * It allows setting credentials, cache, mode, redirect, referrer, integrity, keepalive, signal, window.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.js.JsClientEngineConfig.configureRequest)
      */
     public fun configureRequest(block: RequestInit.() -> Unit) {
         requestInit = block

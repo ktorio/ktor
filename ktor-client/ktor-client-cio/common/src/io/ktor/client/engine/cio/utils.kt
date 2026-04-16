@@ -1,11 +1,12 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.cio
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
+import io.ktor.client.plugins.websocket.WEBSOCKETS_KEY
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
@@ -41,7 +42,7 @@ internal suspend fun writeHeaders(
     val builder = RequestResponseBuilder()
 
     val method = request.method
-    val url = request.url
+    val url = request.url.rebuildIfNeeded()
     val headers = request.headers
     val body = request.body
 
@@ -177,7 +178,7 @@ internal suspend fun readResponse(
 
     rawResponse.use {
         val status = HttpStatusCode(rawResponse.status, rawResponse.statusText.toString())
-        val contentLength = rawResponse.headers[HttpHeaders.ContentLength]?.toString()?.toLong() ?: -1L
+        val contentLength = rawResponse.headers[HttpHeaders.ContentLength]?.toString()?.toLongOrNull() ?: -1L
         val transferEncoding = rawResponse.headers[HttpHeaders.TransferEncoding]?.toString()
         val connectionType = ConnectionOptions.parse(rawResponse.headers[HttpHeaders.Connection])
 
@@ -186,7 +187,14 @@ internal suspend fun readResponse(
         val version = HttpProtocolVersion.parse(rawResponse.version)
 
         if (status == HttpStatusCode.SwitchingProtocols) {
-            val session = RawWebSocket(input, output, masking = true, coroutineContext = callContext)
+            val wsConfig = request.attributes[WEBSOCKETS_KEY]
+            val session = RawWebSocket(
+                input = input,
+                output = output,
+                masking = true,
+                coroutineContext = callContext,
+                channelsConfig = wsConfig.channelsConfig
+            )
             return@withContext HttpResponseData(status, requestTime, headers, version, session, callContext)
         }
 

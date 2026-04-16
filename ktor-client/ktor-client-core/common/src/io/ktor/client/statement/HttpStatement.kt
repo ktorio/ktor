@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.statement
@@ -9,7 +9,11 @@ import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableJob
+import kotlinx.coroutines.job
+import kotlinx.coroutines.withContext
+import kotlin.coroutines.ContinuationInterceptor
 
 /**
  * Represents a prepared HTTP request statement for [HttpClient].
@@ -36,27 +40,47 @@ public class HttpStatement(
     /**
      * Executes the HTTP statement and invokes the provided [block] with the streaming [HttpResponse].
      *
-     * The [response] holds an open network connection until [block] completes.
-     * You can access the response body incrementally (streaming) or load it entirely with [body<T>()].
+     * The response holds an open network connection until [block] completes.
+     * You can access the response body incrementally (streaming) or load it entirely with `body<T>()`.
      *
-     * After [block] finishes, the [response] is finalized based on the engine's configuration—either discarded
+     * After [block] finishes, the response is finalized based on the engine's configuration—either discarded
      * or released.
-     * The [response] object should not be accessed outside of [block] as it will be canceled upon
+     * The response object should not be accessed outside of [block] as it will be canceled upon
      * block completion.
      *
+     * ## Dispatcher Behavior
+     * On non-JVM platforms (Web, Native), the [block] is executed on the engine's dispatcher,
+     * making it safe to perform IO operations such as reading the response content and writing it into a file.
+     *
+     * On JVM, the [block] runs on the caller's dispatcher by default for backward compatibility.
+     * To enable engine dispatcher switching on JVM, set the system property:
+     * `-Dio.ktor.client.statement.useEngineDispatcher=true`
+     *
+     * **Note:** Starting from Ktor 4.0, dispatcher switching will be enabled by default on all platforms.
+     * It is recommended to opt-in early to ensure compatibility with the upcoming release.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.HttpStatement.execute)
      *
      * @param block A suspend function that receives the [HttpResponse] for streaming.
-     * @return The result of executing [block] with the streaming [response].
+     * @return The result of executing [block] with the streaming response.
      */
     public suspend fun <T> execute(block: suspend (response: HttpResponse) -> T): T = unwrapRequestTimeoutException {
         val response = fetchStreamingResponse()
 
+        var callFailure: Throwable? = null
         try {
-            return block(response)
+            return if (useEngineDispatcher) {
+                withContext(response.coroutineContext[ContinuationInterceptor]!!) {
+                    block(response)
+                }
+            } else {
+                block(response)
+            }
+        } catch (cause: Throwable) {
+            callFailure = cause
+            throw cause
         } finally {
-            response.cleanup()
+            response.cleanup(callFailure)
         }
     }
 
@@ -102,10 +126,21 @@ public class HttpStatement(
      *
      * This function is particularly useful for handling streaming responses, allowing you to process data on-the-fly
      * while the network connection remains open.
-     * The [block] receives the streamed [response] and can be used to perform operations on the data as it arrives.
+     * The [block] receives the streamed response and can be used to perform operations on the data as it arrives.
      *
      * Once [block] completes, the resources associated with the response are automatically cleaned up, freeing
      * any network or memory resources held by the response.
+     *
+     * ## Dispatcher Behavior
+     * On non-JVM platforms (Web, Native), the [block] is executed on the engine's dispatcher,
+     * making it safe to perform IO operations such as writing to a file.
+     *
+     * On JVM, the [block] runs on the caller's dispatcher by default for backward compatibility.
+     * To enable engine dispatcher switching on JVM, set the system property:
+     * `-Dio.ktor.client.statement.useEngineDispatcher=true`
+     *
+     * **Note:** Starting from Ktor 4.0, dispatcher switching will be enabled by default on all platforms.
+     * It is recommended to opt-in early to ensure compatibility with the upcoming release.
      *
      * ## Usage Example
      * ```
@@ -117,11 +152,10 @@ public class HttpStatement(
      * // Resources are released automatically after block completes
      * ```
      *
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.HttpStatement.body)
      *
-     * @param block A suspend function that handles the streamed [response] of type [T].
-     * @return The result of [block] applied to the streaming [response].
+     * @param block A suspend function that handles the streamed response of type [T].
+     * @return The result of [block] applied to the streaming response.
      *
      * @note For streaming types (such as [ByteReadChannel]), ensure processing completes within [block], as resources
      * will be cleaned up automatically once [block] finishes.
@@ -130,11 +164,22 @@ public class HttpStatement(
         crossinline block: suspend (response: T) -> R
     ): R = unwrapRequestTimeoutException {
         val response: HttpResponse = fetchStreamingResponse()
+        var callFailure: Throwable? = null
         try {
-            val result = response.body<T>()
-            return block(result)
+            return if (useEngineDispatcher) {
+                withContext(response.coroutineContext[ContinuationInterceptor]!!) {
+                    val result = response.body<T>()
+                    block(result)
+                }
+            } else {
+                val result = response.body<T>()
+                block(result)
+            }
+        } catch (cause: Throwable) {
+            callFailure = cause
+            throw cause
         } finally {
-            response.cleanup()
+            response.cleanup(callFailure)
         }
     }
 
@@ -163,24 +208,40 @@ public class HttpStatement(
         // Save the body again to make sure that it is replayable after pipeline execution
         // We need this because wrongly implemented plugins could make response body non-replayable
         val result = call.save().response
-        call.response.cleanup()
+        call.response.cleanup(cause = null)
 
         return result
     }
 
+    @PublishedApi
+    @OptIn(InternalAPI::class)
+    @Deprecated("Use cleanup(cause) instead", level = DeprecationLevel.HIDDEN)
+    internal suspend fun HttpResponse.cleanup(): Unit = cleanup(cause = null)
+
     /**
      * Completes [HttpResponse] and releases resources.
+     *
+     * @param cause If not null, cancels the response job with this cause to immediately interrupt
+     * any pending network operations.
      */
     @PublishedApi
     @OptIn(InternalAPI::class)
-    internal suspend fun HttpResponse.cleanup() {
-        val job = coroutineContext[Job]!! as CompletableJob
+    internal suspend fun HttpResponse.cleanup(cause: Throwable?) {
+        val job = coroutineContext.job as CompletableJob
 
         job.apply {
-            complete()
-            try {
-                rawContent.cancel()
-            } catch (_: Throwable) {
+            when (cause) {
+                null -> complete()
+                is CancellationException -> cancel(cause)
+                else -> cancel(CancellationException("Exception occurred during request execution", cause))
+            }
+            // If the response is saved, the underlying channel is already closed and
+            // calling `rawContent` would create a new one
+            if (!isSaved) {
+                try {
+                    rawContent.cancel()
+                } catch (_: Throwable) {
+                }
             }
             join()
         }

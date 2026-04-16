@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.darwin
@@ -11,8 +11,7 @@ import io.ktor.client.plugins.sse.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
-import platform.Foundation.*
+import platform.Foundation.NSOperationQueue
 
 @OptIn(InternalAPI::class)
 internal class DarwinClientEngine(override val config: DarwinClientEngineConfig) : HttpClientEngineBase("ktor-darwin") {
@@ -22,8 +21,6 @@ internal class DarwinClientEngine(override val config: DarwinClientEngineConfig)
         else -> queue
     }
 
-    override val dispatcher = Dispatchers.Unconfined
-
     override val supportedCapabilities = setOf(HttpTimeoutCapability, WebSocketCapability, SSECapability)
 
     private val session = DarwinSession(config, requestQueue)
@@ -31,5 +28,10 @@ internal class DarwinClientEngine(override val config: DarwinClientEngineConfig)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
         return session.execute(data, callContext)
+    }
+
+    override fun close() {
+        super.close()
+        session.close()
     }
 }

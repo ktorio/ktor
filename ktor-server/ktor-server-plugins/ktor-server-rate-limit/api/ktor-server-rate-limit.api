@@ -42,6 +42,7 @@ public final class io/ktor/server/plugins/ratelimit/RateLimitRouteSelector : io/
 public abstract interface class io/ktor/server/plugins/ratelimit/RateLimiter {
 	public static final field Companion Lio/ktor/server/plugins/ratelimit/RateLimiter$Companion;
 	public abstract fun tryConsume (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun tryConsume$default (Lio/ktor/server/plugins/ratelimit/RateLimiter;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/plugins/ratelimit/RateLimiter$Companion {

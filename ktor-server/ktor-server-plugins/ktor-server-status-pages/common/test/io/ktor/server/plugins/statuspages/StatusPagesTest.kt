@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.plugins.statuspages
@@ -9,6 +9,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.plugins.*
 import io.ktor.server.plugins.callid.*
 import io.ktor.server.request.*
@@ -82,7 +83,7 @@ class StatusPagesTest {
         client.get("/missing").bodyAsText().let { response ->
             try {
                 assertEquals("class io.ktor.server.http.content.HttpStatusCodeContent", response)
-            } catch (cause: Throwable) {
+            } catch (_: Throwable) {
                 // for JS/Wasm
                 assertEquals("class HttpStatusCodeContent", response)
             }
@@ -91,7 +92,7 @@ class StatusPagesTest {
         client.get("/notFound").bodyAsText().let { response ->
             try {
                 assertEquals("class io.ktor.http.content.TextContent", response)
-            } catch (cause: Throwable) {
+            } catch (_: Throwable) {
                 // for JS/Wasm
                 assertEquals("class TextContent", response)
             }
@@ -400,15 +401,15 @@ class StatusPagesTest {
         }
 
         client.get("/bad-request").let { response ->
-            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals(HttpStatusCode.BadRequest, response.status)
             assertEquals("BadRequest", response.bodyAsText())
         }
         client.get("/media-type-not-supported").let { response ->
-            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals(HttpStatusCode.UnsupportedMediaType, response.status)
             assertEquals("UnsupportedMediaType", response.bodyAsText())
         }
         client.get("/not-found").let { response ->
-            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals(HttpStatusCode.NotFound, response.status)
             assertEquals("NotFound", response.bodyAsText())
         }
     }
@@ -566,5 +567,61 @@ class StatusPagesTest {
         assertEquals(HttpStatusCode.InternalServerError, responseWithRoute.status)
         assertEquals("Custom-Value", responseWithRoute.headers["Custom-Header"])
         assertEquals("body", responseWithRoute.bodyAsText())
+    }
+
+    @Test
+    fun testHeadersOfOutgoingContent() = testApplication {
+        install(StatusPages) {
+            status(HttpStatusCode.Unauthorized) { call, _ ->
+                if (call.response.headers[HttpHeaders.WWWAuthenticate] == "Basic realm=myRealm, charset=UTF-8") {
+                    call.respond(HttpStatusCode.OK)
+                } else {
+                    call.respond(HttpStatusCode.InternalServerError)
+                }
+            }
+            status(HttpStatusCode.OK) { call, _ ->
+                assertEquals("Custom-Value-Response", call.response.headers["Custom-Header-Response"])
+                assertEquals("Custom-Value-Content", call.response.headers["Custom-Header-Content"])
+            }
+        }
+
+        install(Authentication) {
+            basic {
+                realm = "myRealm"
+                validate {
+                    null
+                }
+            }
+        }
+
+        routing {
+            authenticate {
+                get("/auth") {
+                    throw IllegalStateException("This should not be called")
+                }
+            }
+
+            get("/custom-headers") {
+                call.response.headers.append("Custom-Header-Response", "Custom-Value-Response")
+                call.respond(object : OutgoingContent.ReadChannelContent() {
+                    override val status: HttpStatusCode
+                        get() = HttpStatusCode.OK
+                    override fun readFrom() = ByteReadChannel("hello world")
+                    override val headers: Headers
+                        get() = Headers.build {
+                            append("Custom-Header-Content", "Custom-Value-Content")
+                        }
+                })
+            }
+        }
+
+        assertEquals(HttpStatusCode.OK, client.get("/auth").status)
+
+        client.get("/custom-headers").apply {
+            assertEquals(HttpStatusCode.OK, status)
+            assertEquals("hello world", bodyAsText())
+            assertEquals("Custom-Value-Content", headers["Custom-Header-Content"])
+            assertEquals("Custom-Value-Response", headers["Custom-Header-Response"])
+        }
     }
 }

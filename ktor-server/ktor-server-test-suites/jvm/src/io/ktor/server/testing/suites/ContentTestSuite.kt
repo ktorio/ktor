@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.testing.suites
@@ -118,10 +118,10 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
         val file =
             listOf(File("jvm"), File("ktor-server/ktor-server/jvm"))
                 .filter { it.exists() }
-                .flatMap { it.walkBottomUp().filter { it.extension == "kt" }.asIterable() }
+                .flatMap { it.walkBottomUp().filter { f -> f.extension == "kt" }.asIterable() }
                 .first()
 
-        testLog.trace("test file is $file")
+        testLog.trace("test file is {}", file)
 
         createAndStartServer {
             handle {
@@ -159,7 +159,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
             }
         ) {
             assertEquals(HttpStatusCode.PartialContent.value, status.value)
-            assertEquals(fileContentHead.substring(0, 1), bodyAsText())
+            assertEquals(fileContentHead.take(1), bodyAsText())
         }
         withUrl(
             "/",
@@ -233,7 +233,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
                 .walkBottomUp()
                 .filter { it.extension == "class" }
                 .first()
-        testLog.trace("test file is $file")
+        testLog.trace("test file is {}", file)
 
         createAndStartServer {
             handle {
@@ -285,7 +285,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    @NoHttp2
+    @Http1Only
     open fun testChunked() = runTest {
         val data = ByteArray(16 * 1024) { it.toByte() }
         val size = data.size.toLong()
@@ -388,6 +388,60 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
+    open fun funkyChunked() = runTest {
+        // echo the request body
+        createAndStartServer {
+            handle {
+                val content = call.receiveText()
+                call.respondText(content)
+            }
+        }
+
+        socket {
+            val out = getOutputStream().bufferedWriter()
+            val input = getInputStream().bufferedReader()
+            try {
+                out.write(
+                    buildString {
+                        append("POST / HTTP/1.1\r\n")
+                        append("Host: localhost\r\n")
+                        append("Transfer-Encoding: chunked\r\n")
+                        append("\r\n")
+                        append("5;ext=\"pwned\r\nlol\"\r\n")
+                        append("hello\r\n")
+                        append("0\r\n\r\n")
+                    }
+                )
+                out.flush()
+
+                val firstLine = input.readLine()
+                assertEquals("HTTP/1.1 200 OK", firstLine)
+                val sb = StringBuilder()
+                var line = input.readLine()
+                var contentLength = 0
+                while (true) {
+                    sb.appendLine(line)
+                    if (':' in line) {
+                        if (line.startsWith("Content-Length:")) {
+                            contentLength = line.substringAfter(":").trim().toInt()
+                        }
+                        line = input.readLine()
+                    } else if (line.isEmpty()) {
+                        val actual = CharArray(contentLength)
+                            .also { input.read(it) }
+                            .let { String(it) }
+                        assertEquals("hello", actual, "Expected echoed content; Response:\n:$sb\n$actual")
+                        break
+                    }
+                }
+            } finally {
+                out.close()
+                input.close()
+            }
+        }
+    }
+
+    @Test
     fun testStreamNoFlush() = runTest {
         createAndStartServer {
             handle {
@@ -438,16 +492,12 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
             assertEquals(0xfe, bytes[1].toInt() and 0xff)
             assertEquals(0xba, bytes[2].toInt() and 0xff)
             assertEquals(0xbe, bytes[3].toInt() and 0xff)
-
-            discardRemaining()
         }
         withUrl("/files/${ContentTestSuite::class.simpleName}.class2") {
             assertEquals(HttpStatusCode.NotFound.value, status.value)
-            discardRemaining()
         }
         withUrl("/wefwefwefw") {
             assertEquals(HttpStatusCode.NotFound.value, status.value)
-            discardRemaining()
         }
     }
 
@@ -568,7 +618,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    @NoHttp2
+    @Http1Only
     open fun testMultipartFileUpload() = runTest {
         createAndStartServer {
             post("/") {
@@ -634,7 +684,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    @NoHttp2
+    @Http1Only
     open fun testMultipartFileUploadLarge() = runTest {
         val numberOfLines = 10000
 
@@ -661,7 +711,6 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
 
                     part.dispose()
                 }
-
                 call.respondText(response.toString())
             }
         }
@@ -782,6 +831,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
         }
 
         withUrl("/?auto") {
+            assertEquals(200, status.value)
             assertEquals("", bodyAsText())
         }
     }
@@ -848,7 +898,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
             assertEquals(testString, bodyAsText(), "Buffered input stream content mismatch")
         }
         withUrl("/truncated") {
-            assertEquals(testString.substring(0, 20), bodyAsText(), "Buffered input stream content mismatch")
+            assertEquals(testString.take(20), bodyAsText(), "Buffered input stream content mismatch")
         }
     }
 

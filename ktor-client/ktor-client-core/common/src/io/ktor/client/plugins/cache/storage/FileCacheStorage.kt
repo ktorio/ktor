@@ -1,10 +1,9 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.cache.storage
 
-import io.ktor.client.engine.*
 import io.ktor.client.plugins.cache.*
 import io.ktor.http.*
 import io.ktor.util.*
@@ -12,11 +11,14 @@ import io.ktor.util.collections.*
 import io.ktor.util.date.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.CancellationException
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.sync.*
-import kotlinx.io.*
-import kotlinx.io.files.*
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.io.buffered
+import kotlinx.io.files.FileSystem
+import kotlinx.io.files.Path
 
 /**
  * Creates storage that uses file system to store cache data.
@@ -53,25 +55,25 @@ private class FileCacheStorage(
         }
     }
 
-    override suspend fun findAll(url: Url): Set<CachedResponseData> {
-        return readCache(key(url)).toSet()
+    override suspend fun findAll(url: Url): Set<CachedResponseData> = withContext(dispatcher) {
+        readCache(key(url)).toSet()
     }
 
-    override suspend fun find(url: Url, varyKeys: Map<String, String>): CachedResponseData? {
+    override suspend fun find(url: Url, varyKeys: Map<String, String>): CachedResponseData? = withContext(dispatcher) {
         val data = readCache(key(url))
-        return data.find {
+        data.find {
             varyKeys.all { (key, value) -> it.varyKeys[key] == value }
         }
     }
 
-    override suspend fun remove(url: Url, varyKeys: Map<String, String>) {
+    override suspend fun remove(url: Url, varyKeys: Map<String, String>) = withContext(dispatcher) {
         val urlHex = key(url)
         updateCache(urlHex) { caches ->
             caches.filterNot { it.varyKeys == varyKeys }
         }
     }
 
-    override suspend fun removeAll(url: Url) {
+    override suspend fun removeAll(url: Url) = withContext(dispatcher) {
         val urlHex = key(url)
         deleteCache(urlHex)
     }
@@ -108,22 +110,27 @@ private class FileCacheStorage(
         }
     }
 
-    private suspend fun writeCacheUnsafe(urlHex: String, caches: List<CachedResponseData>) = coroutineScope {
+    private suspend fun writeCacheUnsafe(urlHex: String, caches: List<CachedResponseData>) {
         val channel = ByteChannel()
         try {
-            val path = Path(directoryPath, urlHex)
-            fileSystem.sink(path).buffered().use { output ->
-                launch {
-                    channel.writeInt(caches.size)
-                    for (cache in caches) {
-                        writeCache(channel, cache)
+            coroutineScope {
+                val path = Path(directoryPath, urlHex)
+                fileSystem.sink(path).buffered().use { output ->
+                    launch {
+                        channel.writeInt(caches.size)
+                        for (cache in caches) {
+                            writeCache(channel, cache)
+                        }
+                        channel.close()
                     }
-                    channel.close()
+                    channel.copyTo(output)
                 }
-                channel.copyTo(output)
             }
         } catch (cause: Exception) {
+            if (cause is CancellationException) currentCoroutineContext().ensureActive()
             LOGGER.trace { "Exception during saving a cache to a file: ${cause.stackTraceToString()}" }
+        } finally {
+            channel.close()
         }
     }
 
@@ -171,15 +178,24 @@ private class FileCacheStorage(
         channel.writeFully(cache.body)
     }
 
+    /**
+     * Deserialize a single [CachedResponseData] from the provided [ByteReadChannel].
+     *
+     * Reads the cached-entry fields in the stored binary format: request URL, HTTP status and version,
+     * headers, request/response/expiration timestamps, vary keys (converted to lowercase), and the body bytes.
+     *
+     * @param channel Source channel positioned at the start of a serialized cache entry.
+     * @return The reconstructed [CachedResponseData] instance.
+     */
     private suspend fun readCache(channel: ByteReadChannel): CachedResponseData {
-        val url = channel.readUTF8Line()!!
-        val status = HttpStatusCode(channel.readInt(), channel.readUTF8Line()!!)
-        val version = HttpProtocolVersion.parse(channel.readUTF8Line()!!)
+        val url = channel.readLineStrict()!!
+        val status = HttpStatusCode(channel.readInt(), channel.readLineStrict()!!)
+        val version = HttpProtocolVersion.parse(channel.readLineStrict()!!)
         val headersCount = channel.readInt()
         val headers = HeadersBuilder()
-        for (j in 0 until headersCount) {
-            val key = channel.readUTF8Line()!!
-            val value = channel.readUTF8Line()!!
+        repeat(headersCount) {
+            val key = channel.readLineStrict()!!
+            val value = channel.readLineStrict()!!
             headers.append(key, value)
         }
         val requestTime = GMTDate(channel.readLong())
@@ -187,9 +203,9 @@ private class FileCacheStorage(
         val expirationTime = GMTDate(channel.readLong())
         val varyKeysCount = channel.readInt()
         val varyKeys = buildMap {
-            for (j in 0 until varyKeysCount) {
-                val key = channel.readUTF8Line()!!
-                val value = channel.readUTF8Line()!!
+            repeat(varyKeysCount) {
+                val key = channel.readLineStrict()!!.lowercase()
+                val value = channel.readLineStrict()!!
                 put(key, value)
             }
         }

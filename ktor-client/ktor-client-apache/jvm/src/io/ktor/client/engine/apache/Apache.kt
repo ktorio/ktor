@@ -27,6 +27,14 @@ import io.ktor.client.engine.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.apache.Apache)
  */
+@Deprecated(
+    message = "Apache engine is deprecated. Consider using Apache5 engine instead.",
+    replaceWith = ReplaceWith(
+        "Apache5",
+        "io.ktor.client.engine.apache5.Apache5"
+    ),
+    level = DeprecationLevel.WARNING
+)
 public data object Apache : HttpClientEngineFactory<ApacheEngineConfig> {
     override fun create(block: ApacheEngineConfig.() -> Unit): HttpClientEngine {
         val config = ApacheEngineConfig().apply(block)
@@ -34,6 +42,10 @@ public data object Apache : HttpClientEngineFactory<ApacheEngineConfig> {
     }
 }
 
+@Deprecated(
+    message = "Apache engine is deprecated. Consider using Apache5 engine instead.",
+    level = DeprecationLevel.WARNING
+)
 public class ApacheEngineContainer : HttpClientEngineContainer {
     override val factory: HttpClientEngineFactory<*> = Apache
 
