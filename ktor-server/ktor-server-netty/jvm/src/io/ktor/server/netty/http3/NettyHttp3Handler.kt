@@ -56,11 +56,10 @@ internal class NettyHttp3Handler(
     }
 
     override fun channelRead(context: ChannelHandlerContext, frame: Http3DataFrame) {
-        context.applicationCall?.request?.let { request ->
-            if (!request.contentActor.trySend(frame).isSuccess) {
-                frame.release()
-            }
-        } ?: frame.release()
+        val request = context.applicationCall?.request
+        if (request == null || !request.contentActor.trySend(frame).isSuccess) {
+            frame.release()
+        }
     }
 
     override fun channelInputClosed(context: ChannelHandlerContext) {
