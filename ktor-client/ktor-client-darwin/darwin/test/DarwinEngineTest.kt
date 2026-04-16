@@ -289,7 +289,7 @@ class DarwinEngineTest : ClientEngineTest<DarwinClientEngineConfig>(Darwin) {
 
         // Executing on a closed session must throw a catchable Kotlin exception,
         // not crash with SIGABRT from an NSException on the invalidated NSURLSession
-        assertFailsWith<IllegalStateException> {
+        assertFailsWith<CancellationException> {
             session.execute(request, coroutineContext)
         }
         return@runBlocking
@@ -314,7 +314,7 @@ class DarwinEngineTest : ClientEngineTest<DarwinClientEngineConfig>(Darwin) {
 
         // WebSocket execute on a closed session must throw a catchable Kotlin exception,
         // not crash with SIGABRT from an NSException on the invalidated NSURLSession
-        assertFailsWith<IllegalStateException> {
+        assertFailsWith<CancellationException> {
             session.execute(request, coroutineContext)
         }
         return@runBlocking
