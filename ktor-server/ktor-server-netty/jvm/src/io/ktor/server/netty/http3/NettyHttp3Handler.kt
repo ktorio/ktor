@@ -45,13 +45,21 @@ internal class NettyHttp3Handler(
 
     override fun channelRead(context: ChannelHandlerContext, frame: Http3HeadersFrame) {
         state.isChannelReadCompleted.compareAndSet(expect = true, update = false)
-        state.activeRequests.incrementAndGet()
-        startHttp3(context, frame.headers())
+
+        val existingCall = context.applicationCall
+        if (existingCall == null) {
+            state.activeRequests.incrementAndGet()
+            startHttp3(context, frame.headers())
+        } else {
+            existingCall.request.receiveTrailers(frame.headers())
+        }
     }
 
     override fun channelRead(context: ChannelHandlerContext, frame: Http3DataFrame) {
-        context.applicationCall?.request?.apply {
-            contentActor.trySend(frame).isSuccess
+        context.applicationCall?.request?.let { request ->
+            if (!request.contentActor.trySend(frame).isSuccess) {
+                frame.release()
+            }
         } ?: frame.release()
     }
 
