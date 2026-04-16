@@ -15,7 +15,6 @@ import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import platform.Foundation.*
 import kotlin.coroutines.*
-import kotlin.coroutines.cancellation.CancellationException
 
 @OptIn(UnsafeNumber::class)
 internal class DarwinSession(
@@ -76,7 +75,7 @@ internal class DarwinSession(
     }
 
     private fun cancelIfClosed() {
-        if (closed.value) throw CancellationException("Darwin session is closed")
+        check(!closed.value) { "Darwin session is closed" }
     }
 }
 
