@@ -276,7 +276,6 @@ class DarwinEngineTest : ClientEngineTest<DarwinClientEngineConfig>(Darwin) {
         assertSame(thrownException, challengeException, "Expected exception to be rethrown")
     }
 
-    // Issue: KTOR-9497
     @Test
     fun testExecuteAfterSessionCloseThrowsCatchableException() = runBlocking {
         val config = DarwinClientEngineConfig()
@@ -295,7 +294,6 @@ class DarwinEngineTest : ClientEngineTest<DarwinClientEngineConfig>(Darwin) {
         return@runBlocking
     }
 
-    // Issue: KTOR-9497
     @OptIn(InternalAPI::class)
     @Test
     fun testWebSocketExecuteAfterSessionCloseThrowsCatchableException() = runBlocking {

@@ -22,7 +22,7 @@ internal class DarwinSession(
     requestQueue: NSOperationQueue?
 ) : Closeable {
     private val closed = atomic(false)
-    private val closedLock = SynchronizedObject()
+    private val sessionLock = SynchronizedObject()
 
     private val sessionAndDelegate = config.sessionAndDelegate ?: createSession(config, requestQueue)
     private val session = sessionAndDelegate.first
@@ -60,7 +60,7 @@ internal class DarwinSession(
 
     private inline fun <T> withSession(block: NSURLSession.() -> T): T {
         cancelIfClosed()
-        return synchronized(closedLock) {
+        return synchronized(sessionLock) {
             cancelIfClosed()
             block(session)
         }
@@ -68,7 +68,7 @@ internal class DarwinSession(
 
     override fun close() {
         if (closed.value) return
-        synchronized(closedLock) {
+        synchronized(sessionLock) {
             if (!closed.compareAndSet(expect = false, update = true)) return
             session.finishTasksAndInvalidate()
         }
