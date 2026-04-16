@@ -236,6 +236,9 @@ public class NettyApplicationEngine(
     }
     private val http3Bootstraps: List<Bootstrap> by lazy {
         if (!configuration.enableHttp3) return@lazy emptyList()
+        require(configuration.connectors.any { it is EngineSSLConnectorConfig }) {
+            "Netty HTTP/3 requires at least one SSL connector. Add an SSL connector or disable enableHttp3."
+        }
         configuration.connectors
             .filterIsInstance<EngineSSLConnectorConfig>()
             .map { createHttp3Bootstrap(it) }
