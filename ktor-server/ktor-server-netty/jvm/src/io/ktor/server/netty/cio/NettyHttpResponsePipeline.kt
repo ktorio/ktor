@@ -210,9 +210,7 @@ internal class NettyHttpResponsePipeline(
             responseChannel === ByteReadChannel.Empty -> 0
             responseMessage is HttpResponse -> responseMessage.headers().getInt("Content-Length", -1)
             responseMessage is Http2HeadersFrame -> responseMessage.headers().getInt("content-length", -1)
-            responseMessage is Http3HeadersFrame -> {
-                responseMessage.headers().get("content-length")?.toString()?.toIntOrNull() ?: -1
-            }
+            responseMessage is Http3HeadersFrame -> responseMessage.headers().getInt("content-length", -1)
             else -> -1
         }
 

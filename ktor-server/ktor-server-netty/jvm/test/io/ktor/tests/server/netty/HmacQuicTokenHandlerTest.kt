@@ -86,7 +86,7 @@ class HmacQuicTokenHandlerTest {
     @Test
     fun `expired token is rejected`() {
         val shortLivedHandler = HmacQuicTokenHandler(
-            key = HmacQuicTokenHandler.generateDefaultKey(),
+            keyGen = HmacQuicTokenHandler::generateDefaultKey,
             tokenLifetimeMillis = 1
         )
 
