@@ -12,6 +12,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.test.base.*
 import io.ktor.http.*
+import io.ktor.utils.io.*
 import io.ktor.websocket.*
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.UnsafeNumber
@@ -273,6 +274,49 @@ class DarwinEngineTest : ClientEngineTest<DarwinClientEngineConfig>(Darwin) {
 
         val thrownException = assertFails { client.get(TEST_SERVER_TLS) }
         assertSame(thrownException, challengeException, "Expected exception to be rethrown")
+    }
+
+    // Issue: KTOR-9497
+    @Test
+    fun testExecuteAfterSessionCloseThrowsCatchableException() = runBlocking {
+        val config = DarwinClientEngineConfig()
+        val session = DarwinSession(config, null)
+        session.close()
+
+        val request = HttpRequestBuilder().apply {
+            url(TEST_SERVER)
+        }.build()
+
+        // Executing on a closed session must throw a catchable Kotlin exception,
+        // not crash with SIGABRT from an NSException on the invalidated NSURLSession
+        assertFailsWith<IllegalStateException> {
+            session.execute(request, coroutineContext)
+        }
+        return@runBlocking
+    }
+
+    // Issue: KTOR-9497
+    @OptIn(InternalAPI::class)
+    @Test
+    fun testWebSocketExecuteAfterSessionCloseThrowsCatchableException() = runBlocking {
+        val config = DarwinClientEngineConfig()
+        val session = DarwinSession(config, null)
+        session.close()
+
+        // ClientUpgradeContent body is needed to trigger the webSocketTaskWithRequest branch
+        // in DarwinSession.execute(), since isUpgradeRequest() checks `body is ClientUpgradeContent`
+        val request = HttpRequestBuilder().apply {
+            url(TEST_WEBSOCKET_SERVER)
+            body = object : ClientUpgradeContent() {
+                override fun verify(headers: Headers) {}
+            }
+        }.build()
+
+        // WebSocket execute on a closed session must throw a catchable Kotlin exception,
+        // not crash with SIGABRT from an NSException on the invalidated NSURLSession
+        assertFailsWith<IllegalStateException> {
+            session.execute(request, coroutineContext)
+        }
     }
 
     private fun stringToNSUrlString(value: String): String {
