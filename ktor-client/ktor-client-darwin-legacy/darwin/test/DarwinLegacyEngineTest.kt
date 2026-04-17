@@ -9,8 +9,11 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.test.base.*
 import io.ktor.http.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
 import platform.Foundation.NSHTTPCookieStorage.Companion.sharedHTTPCookieStorage
 import platform.Foundation.NSOperationQueue
@@ -20,6 +23,7 @@ import platform.Foundation.setValue
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.test.fail
 import kotlin.time.Duration.Companion.seconds
 
 @Suppress("DEPRECATION")
@@ -135,6 +139,38 @@ class DarwinLegacyEngineTest : ClientEngineTest<DarwinLegacyClientEngineConfig>(
             val response = client.get("$TEST_SERVER/headers/echo?headerName=XCustomHeader")
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals("my header value", response.bodyAsText())
+        }
+    }
+
+    @Test
+    fun testExecuteAfterSessionClose() = runTest {
+        val config = DarwinLegacyClientEngineConfig()
+        val session = DarwinLegacySession(config, null)
+
+        session.close()
+        launch {
+            val request = request { url(TEST_SERVER) }.build()
+            session.execute(request, coroutineContext)
+            fail("Execution expected to be cancelled")
+        }
+    }
+
+    @OptIn(InternalAPI::class)
+    @Test
+    fun testWebSocketExecuteAfterSessionClose() = runTest {
+        val config = DarwinLegacyClientEngineConfig()
+        val session = DarwinLegacySession(config, null)
+
+        session.close()
+        launch {
+            val request = request {
+                url(TEST_WEBSOCKET_SERVER)
+                body = object : ClientUpgradeContent() {
+                    override fun verify(headers: Headers) = Unit
+                }
+            }.build()
+            session.execute(request, coroutineContext)
+            fail("Execution expected to be cancelled")
         }
     }
 

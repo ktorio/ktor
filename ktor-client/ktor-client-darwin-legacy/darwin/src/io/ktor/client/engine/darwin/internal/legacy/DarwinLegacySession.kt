@@ -8,11 +8,16 @@ import io.ktor.client.engine.darwin.*
 import io.ktor.client.request.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import kotlinx.atomicfu.*
-import kotlinx.cinterop.*
+import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
+import kotlinx.cinterop.UnsafeNumber
 import kotlinx.coroutines.job
-import platform.Foundation.*
-import kotlin.coroutines.*
+import platform.Foundation.NSOperationQueue
+import platform.Foundation.NSURLSession
+import platform.Foundation.NSURLSessionConfiguration
+import platform.Foundation.NSURLSessionTaskStateRunning
+import kotlin.coroutines.CoroutineContext
 
 @OptIn(UnsafeNumber::class)
 @Suppress("DEPRECATION")
@@ -21,6 +26,7 @@ internal class DarwinLegacySession(
     requestQueue: NSOperationQueue?
 ) : Closeable {
     private val closed = atomic(false)
+    private val sessionLock = SynchronizedObject()
 
     private val sessionAndDelegate = config.sessionAndDelegate ?: createSession(config, requestQueue)
     private val session = sessionAndDelegate.first
@@ -30,7 +36,7 @@ internal class DarwinLegacySession(
     internal suspend fun execute(request: HttpRequestData, callContext: CoroutineContext): HttpResponseData {
         val nativeRequest = request.toNSUrlRequest()
             .apply(config.requestConfig)
-        val task = session.dataTaskWithRequest(nativeRequest)
+        val task = withSession { dataTaskWithRequest(nativeRequest) }
         val response = delegate.read(request, callContext, task)
 
         callContext.job.invokeOnCompletion { cause ->
@@ -49,9 +55,24 @@ internal class DarwinLegacySession(
         }
     }
 
+    private inline fun <T> withSession(block: NSURLSession.() -> T): T {
+        cancelIfClosed()
+        return synchronized(sessionLock) {
+            cancelIfClosed()
+            block(session)
+        }
+    }
+
     override fun close() {
-        if (!closed.compareAndSet(expect = false, update = true)) return
-        session.finishTasksAndInvalidate()
+        if (closed.value) return
+        synchronized(sessionLock) {
+            if (!closed.compareAndSet(expect = false, update = true)) return
+            session.finishTasksAndInvalidate()
+        }
+    }
+
+    private fun cancelIfClosed() {
+        if (closed.value) throw CancellationException("Darwin session is closed")
     }
 }
 
