@@ -67,8 +67,8 @@ internal class NettyApplicationCallHandler(
                     }
             }
         }
-        if (callJob is CompletableJob) {
-            currentJob!!.invokeOnCompletion { callJob.complete() }
+        (callJob as? CompletableJob)?.let { job ->
+            currentJob!!.invokeOnCompletion { job.complete() }
         }
     }
 

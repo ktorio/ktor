@@ -126,7 +126,7 @@ abstract class HttpRequestLifecycleTest<TEngine : ApplicationEngine, TConfigurat
     @Test
     fun testServerAvailableAfterClientDisconnection() = runTest {
         val requestStarted = Channel<Unit>(Channel.UNLIMITED)
-        val requestCancelled = CompletableDeferred<Unit>()
+        val requestCancelled = Channel<Unit>(Channel.UNLIMITED)
 
         createAndStartServer {
             install(plugin = HttpRequestLifecycle) {
@@ -140,7 +140,7 @@ abstract class HttpRequestLifecycleTest<TEngine : ApplicationEngine, TConfigurat
                         delay(200.milliseconds)
                     }
                 } catch (_: CancellationException) {
-                    requestCancelled.complete(Unit)
+                    requestCancelled.send(Unit)
                 }
             }
             get("/health") {
@@ -148,28 +148,64 @@ abstract class HttpRequestLifecycleTest<TEngine : ApplicationEngine, TConfigurat
             }
         }
 
-        // Step 1: Make a request and disconnect the client to trigger cancellation
+        // HTTP/1 plain text
         client = createApacheClient()
         client.use {
             val requestJob = launch {
                 runCatching { withHttp1("http://127.0.0.1:$port/slow", port, {}, {}) }
             }
-            withTimeout(10.seconds) {
-                requestStarted.receive()
-            }
+            withTimeout(10.seconds) { requestStarted.receive() }
             requestJob.cancel()
         }
+        withTimeout(10.seconds) { requestCancelled.receive() }
 
-        withTimeout(10.seconds) {
-            requestCancelled.await()
-        }
-
-        // Step 2: Verify the server still accepts new requests
         client = createApacheClient()
         client.use {
             withHttp1("http://127.0.0.1:$port/health", port, {}) {
                 assertEquals(HttpStatusCode.OK, status)
                 assertEquals("OK", bodyAsText())
+            }
+        }
+
+        if (enableSsl) {
+            // HTTP/1 over SSL
+            client = createApacheClient()
+            client.use {
+                val requestJob = launch {
+                    runCatching { withHttp1("https://127.0.0.1:$sslPort/slow", sslPort, {}, {}) }
+                }
+                withTimeout(10.seconds) { requestStarted.receive() }
+                requestJob.cancel()
+            }
+            withTimeout(10.seconds) { requestCancelled.receive() }
+
+            client = createApacheClient()
+            client.use {
+                withHttp1("https://127.0.0.1:$sslPort/health", sslPort, {}) {
+                    assertEquals(HttpStatusCode.OK, status)
+                    assertEquals("OK", bodyAsText())
+                }
+            }
+        }
+
+        if (enableSsl && enableHttp2) {
+            // HTTP/2 over SSL
+            client = createApacheClient()
+            client.use {
+                val requestJob = launch {
+                    runCatching { withHttp2("https://127.0.0.1:$sslPort/slow", sslPort, {}, {}) }
+                }
+                withTimeout(10.seconds) { requestStarted.receive() }
+                requestJob.cancel()
+            }
+            withTimeout(10.seconds) { requestCancelled.receive() }
+
+            client = createApacheClient()
+            client.use {
+                withHttp2("https://127.0.0.1:$sslPort/health", sslPort, {}) {
+                    assertEquals(HttpStatusCode.OK, status)
+                    assertEquals("OK", bodyAsText())
+                }
             }
         }
     }
