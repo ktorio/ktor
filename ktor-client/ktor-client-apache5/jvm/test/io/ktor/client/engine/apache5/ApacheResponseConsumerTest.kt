@@ -10,6 +10,7 @@ import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.test.*
 import org.apache.hc.core5.concurrent.FutureCallback
 import org.apache.hc.core5.http.ContentType
 import org.apache.hc.core5.http.impl.BasicEntityDetails
@@ -20,13 +21,14 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
 
 class ApacheResponseConsumerTest {
 
     @Test
-    fun `FutureCallback completed is called when response with body is fully consumed`() = runBlocking {
+    fun `FutureCallback completed is called when response with body is fully consumed`() = runTest(
+        timeout = 10.seconds
+    ) {
         val callbackResult = CompletableDeferred<Unit>()
         val callback = trackingCallback(onCompleted = { callbackResult.complete(Unit) })
 
@@ -44,12 +46,11 @@ class ApacheResponseConsumerTest {
         responseConsumer.consume(ByteBuffer.wrap("hello".toByteArray()))
         responseConsumer.streamEnd(null)
 
-        withTimeout(5.seconds) { callbackResult.await() }
-        assertTrue(callbackResult.isCompleted)
+        callbackResult.await()
     }
 
     @Test
-    fun `FutureCallback completed is called for response without body`() = runBlocking {
+    fun `FutureCallback completed is called for response without body`() = runTest(timeout = 10.seconds) {
         val callbackResult = CompletableDeferred<Unit>()
         val callback = trackingCallback(onCompleted = { callbackResult.complete(Unit) })
 
@@ -59,12 +60,11 @@ class ApacheResponseConsumerTest {
 
         responseConsumer.consumeResponse(BasicHttpResponse(204), null, null, callback)
 
-        withTimeout(5.seconds) { callbackResult.await() }
-        assertTrue(callbackResult.isCompleted)
+        callbackResult.await()
     }
 
     @Test
-    fun `FutureCallback failed is called on error`() = runBlocking {
+    fun `FutureCallback failed is called on error`() = runTest(timeout = 10.seconds) {
         val failureException = CompletableDeferred<Exception>()
         val callback = trackingCallback(onFailed = { failureException.complete(it) })
 
@@ -82,13 +82,13 @@ class ApacheResponseConsumerTest {
         val cause = IOException("connection reset")
         responseConsumer.failed(cause)
 
-        val received = withTimeout(5.seconds) { failureException.await() }
+        val received = failureException.await()
         assertNotNull(received)
         assertEquals("connection reset", received.message)
     }
 
     @Test
-    fun `FutureCallback is called at most once when both streamEnd and failed fire`() = runBlocking {
+    fun `FutureCallback is called at most once when both streamEnd and failed fire`() = runTest(timeout = 10.seconds) {
         val terminalCallCount = AtomicInteger(0)
         val firstTerminal = CompletableDeferred<Unit>()
         val callback = object : FutureCallback<Unit> {
@@ -102,10 +102,11 @@ class ApacheResponseConsumerTest {
                 firstTerminal.complete(Unit)
             }
 
-            override fun cancelled() {}
+            override fun cancelled() = Unit
         }
 
-        val consumerContext = Dispatchers.Default + Job()
+        val parentJob = Job()
+        val consumerContext = Dispatchers.Default + parentJob
         val bodyConsumer = ApacheResponseConsumer(consumerContext, requestData)
         val responseConsumer = BasicResponseConsumer(bodyConsumer)
 
@@ -116,12 +117,13 @@ class ApacheResponseConsumerTest {
             callback,
         )
 
-        responseConsumer.consume(ByteBuffer.wrap("hello".toByteArray()))
-        responseConsumer.streamEnd(null) // will eventually call close() → completed()
-        responseConsumer.failed(IOException("network error")) // may also call failed()
+        responseConsumer.streamEnd(null) // enqueues CloseChannel → close() runs asynchronously
+        responseConsumer.failed(IOException("network error")) // may also invoke the callback
 
-        withTimeout(5.seconds) { firstTerminal.await() }
-        delay(100) // give a chance for a second invocation to sneak in
+        // Close the queue so the message-queue coroutine finishes after processing CloseChannel,
+        // then join consumerJob (child of parentJob) which waits for all its children too.
+        responseConsumer.releaseResources()
+        parentJob.children.forEach { it.join() }
 
         assertEquals(1, terminalCallCount.get(), "FutureCallback must be invoked exactly once")
     }
@@ -132,7 +134,7 @@ class ApacheResponseConsumerTest {
     ) = object : FutureCallback<Unit> {
         override fun completed(result: Unit) = onCompleted()
         override fun failed(ex: Exception) = onFailed(ex)
-        override fun cancelled() {}
+        override fun cancelled() = Unit
     }
 
     @OptIn(InternalAPI::class)
