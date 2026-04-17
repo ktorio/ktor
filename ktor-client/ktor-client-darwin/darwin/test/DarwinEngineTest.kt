@@ -16,10 +16,8 @@ import io.ktor.utils.io.*
 import io.ktor.websocket.*
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.UnsafeNumber
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.*
+import kotlinx.coroutines.test.runTest
 import platform.Foundation.NSHTTPCookieStorage.Companion.sharedHTTPCookieStorage
 import platform.Foundation.NSOperationQueue
 import platform.Foundation.NSURLSession
@@ -277,45 +275,35 @@ class DarwinEngineTest : ClientEngineTest<DarwinClientEngineConfig>(Darwin) {
     }
 
     @Test
-    fun testExecuteAfterSessionCloseThrowsCatchableException() = runBlocking {
+    fun testExecuteAfterSessionClose() = runTest {
         val config = DarwinClientEngineConfig()
         val session = DarwinSession(config, null)
+
         session.close()
-
-        val request = HttpRequestBuilder().apply {
-            url(TEST_SERVER)
-        }.build()
-
-        // Executing on a closed session must throw a catchable Kotlin exception,
-        // not crash with SIGABRT from an NSException on the invalidated NSURLSession
-        assertFailsWith<IllegalStateException> {
+        launch {
+            val request = request { url(TEST_SERVER) }.build()
             session.execute(request, coroutineContext)
+            fail("Execution expected to be cancelled")
         }
-        return@runBlocking
     }
 
     @OptIn(InternalAPI::class)
     @Test
-    fun testWebSocketExecuteAfterSessionCloseThrowsCatchableException() = runBlocking {
+    fun testWebSocketExecuteAfterSessionClose() = runTest {
         val config = DarwinClientEngineConfig()
         val session = DarwinSession(config, null)
+
         session.close()
-
-        // ClientUpgradeContent body is needed to trigger the webSocketTaskWithRequest branch
-        // in DarwinSession.execute(), since isUpgradeRequest() checks `body is ClientUpgradeContent`
-        val request = HttpRequestBuilder().apply {
-            url(TEST_WEBSOCKET_SERVER)
-            body = object : ClientUpgradeContent() {
-                override fun verify(headers: Headers) = Unit
-            }
-        }.build()
-
-        // WebSocket execute on a closed session must throw a catchable Kotlin exception,
-        // not crash with SIGABRT from an NSException on the invalidated NSURLSession
-        assertFailsWith<IllegalStateException> {
+        launch {
+            val request = request {
+                url(TEST_WEBSOCKET_SERVER)
+                body = object : ClientUpgradeContent() {
+                    override fun verify(headers: Headers) = Unit
+                }
+            }.build()
             session.execute(request, coroutineContext)
+            fail("Execution expected to be cancelled")
         }
-        return@runBlocking
     }
 
     private fun stringToNSUrlString(value: String): String {

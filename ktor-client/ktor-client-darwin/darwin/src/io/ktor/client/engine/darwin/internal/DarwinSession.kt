@@ -8,13 +8,17 @@ import io.ktor.client.engine.darwin.*
 import io.ktor.client.request.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import kotlinx.atomicfu.*
+import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
-import kotlinx.cinterop.*
-import kotlinx.coroutines.*
-import platform.Foundation.*
-import kotlin.coroutines.*
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.UnsafeNumber
+import kotlinx.coroutines.job
+import platform.Foundation.NSOperationQueue
+import platform.Foundation.NSURLSession
+import platform.Foundation.NSURLSessionConfiguration
+import platform.Foundation.NSURLSessionTaskStateRunning
+import kotlin.coroutines.CoroutineContext
 
 @OptIn(UnsafeNumber::class)
 internal class DarwinSession(
@@ -75,7 +79,7 @@ internal class DarwinSession(
     }
 
     private fun cancelIfClosed() {
-        check(!closed.value) { "Darwin session is closed" }
+        if (closed.value) throw CancellationException("Darwin session is closed")
     }
 }
 
