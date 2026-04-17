@@ -93,8 +93,7 @@ internal class ApacheResponseConsumer(
     @Volatile
     private var capacityChannel: CapacityChannel? = null
 
-    @Volatile
-    private var streamResultCallback: FutureCallback<Unit>? = null
+    private val streamResultCallback = atomic<FutureCallback<Unit>?>(null)
 
     private val messagesQueue = Channel<Any>(capacity = UNLIMITED)
 
@@ -152,20 +151,20 @@ internal class ApacheResponseConsumer(
     }
 
     override fun streamStart(entityDetails: EntityDetails, resultCallback: FutureCallback<Unit>) {
-        streamResultCallback = resultCallback
+        streamResultCallback.value = resultCallback
     }
 
     override fun failed(cause: Exception) {
         val mappedCause = mapCause(cause, requestData)
         consumerJob.completeExceptionally(mappedCause)
         responseChannel.cancel(mappedCause)
-        streamResultCallback?.failed(cause)
+        streamResultCallback.getAndSet(null)?.failed(cause)
     }
 
     internal fun close() {
         channel.close()
         consumerJob.complete()
-        streamResultCallback?.completed(Unit)
+        streamResultCallback.getAndSet(null)?.completed(Unit)
     }
 
     override fun getContent() = Unit

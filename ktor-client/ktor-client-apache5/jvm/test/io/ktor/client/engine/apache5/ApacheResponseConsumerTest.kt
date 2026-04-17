@@ -16,6 +16,7 @@ import org.apache.hc.core5.http.impl.BasicEntityDetails
 import org.apache.hc.core5.http.message.BasicHttpResponse
 import java.io.IOException
 import java.nio.ByteBuffer
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -84,6 +85,45 @@ class ApacheResponseConsumerTest {
         val received = withTimeout(5.seconds) { failureException.await() }
         assertNotNull(received)
         assertEquals("connection reset", received.message)
+    }
+
+    @Test
+    fun `FutureCallback is called at most once when both streamEnd and failed fire`() = runBlocking {
+        val terminalCallCount = AtomicInteger(0)
+        val firstTerminal = CompletableDeferred<Unit>()
+        val callback = object : FutureCallback<Unit> {
+            override fun completed(result: Unit) {
+                terminalCallCount.incrementAndGet()
+                firstTerminal.complete(Unit)
+            }
+
+            override fun failed(ex: Exception) {
+                terminalCallCount.incrementAndGet()
+                firstTerminal.complete(Unit)
+            }
+
+            override fun cancelled() {}
+        }
+
+        val consumerContext = Dispatchers.Default + Job()
+        val bodyConsumer = ApacheResponseConsumer(consumerContext, requestData)
+        val responseConsumer = BasicResponseConsumer(bodyConsumer)
+
+        responseConsumer.consumeResponse(
+            BasicHttpResponse(200),
+            BasicEntityDetails(5, ContentType.TEXT_PLAIN),
+            null,
+            callback,
+        )
+
+        responseConsumer.consume(ByteBuffer.wrap("hello".toByteArray()))
+        responseConsumer.streamEnd(null) // will eventually call close() → completed()
+        responseConsumer.failed(IOException("network error")) // may also call failed()
+
+        withTimeout(5.seconds) { firstTerminal.await() }
+        delay(100) // give a chance for a second invocation to sneak in
+
+        assertEquals(1, terminalCallCount.get(), "FutureCallback must be invoked exactly once")
     }
 
     private fun trackingCallback(
