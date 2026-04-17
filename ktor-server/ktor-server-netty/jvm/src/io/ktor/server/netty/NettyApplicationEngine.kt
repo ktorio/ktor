@@ -403,6 +403,9 @@ public class NettyApplicationEngine(
         } catch (cause: Throwable) {
             terminate()
             throw cause
+        } catch (cause: Throwable) {
+            stop(0, 0)
+            throw cause
         }
 
         monitor.raiseCatching(ServerReady, environment, environment.log)
