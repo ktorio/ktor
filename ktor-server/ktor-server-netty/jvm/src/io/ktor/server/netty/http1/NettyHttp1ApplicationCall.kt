@@ -22,7 +22,7 @@ internal class NettyHttp1ApplicationCall(
     userContext: CoroutineContext,
 ) : NettyApplicationCall(application, context, httpRequest), CoroutineScope {
 
-    override val coroutineContext: CoroutineContext = userContext
+    override val coroutineContext: CoroutineContext = userContext + Job(userContext[Job])
 
     override val request = NettyHttp1ApplicationRequest(
         this,

@@ -9,6 +9,7 @@ import io.ktor.server.netty.*
 import io.netty.buffer.*
 import io.netty.channel.*
 import io.netty.handler.codec.http2.*
+import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 internal class NettyHttp2ApplicationCall(
@@ -20,7 +21,7 @@ internal class NettyHttp2ApplicationCall(
     userContext: CoroutineContext
 ) : NettyApplicationCall(application, context, headers) {
 
-    override val coroutineContext: CoroutineContext = userContext
+    override val coroutineContext: CoroutineContext = userContext + Job(userContext[Job])
 
     override val request = NettyHttp2ApplicationRequest(this, engineContext, context, headers)
     override val response = NettyHttp2ApplicationResponse(this, handler, context, engineContext, userContext)

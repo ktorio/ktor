@@ -124,6 +124,57 @@ abstract class HttpRequestLifecycleTest<TEngine : ApplicationEngine, TConfigurat
     }
 
     @Test
+    fun testServerAvailableAfterClientDisconnection() = runTest {
+        val requestStarted = Channel<Unit>(Channel.UNLIMITED)
+        val requestCancelled = CompletableDeferred<Unit>()
+
+        createAndStartServer {
+            install(plugin = HttpRequestLifecycle) {
+                cancelCallOnClose = true
+            }
+            get("/slow") {
+                requestStarted.send(Unit)
+                try {
+                    repeat(100) {
+                        call.coroutineContext.ensureActive()
+                        delay(200.milliseconds)
+                    }
+                } catch (_: CancellationException) {
+                    requestCancelled.complete(Unit)
+                }
+            }
+            get("/health") {
+                call.respondText("OK")
+            }
+        }
+
+        // Step 1: Make a request and disconnect the client to trigger cancellation
+        client = createApacheClient()
+        client.use {
+            val requestJob = launch {
+                runCatching { withHttp1("http://127.0.0.1:$port/slow", port, {}, {}) }
+            }
+            withTimeout(10.seconds) {
+                requestStarted.receive()
+            }
+            requestJob.cancel()
+        }
+
+        withTimeout(10.seconds) {
+            requestCancelled.await()
+        }
+
+        // Step 2: Verify the server still accepts new requests
+        client = createApacheClient()
+        client.use {
+            withHttp1("http://127.0.0.1:$port/health", port, {}) {
+                assertEquals(HttpStatusCode.OK, status)
+                assertEquals("OK", bodyAsText())
+            }
+        }
+    }
+
+    @Test
     fun testHttpRequestLifecycleWithStream() = runTest {
         val requestCompleted = CompletableDeferred<Unit>()
 

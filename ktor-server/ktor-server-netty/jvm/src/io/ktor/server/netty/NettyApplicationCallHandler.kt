@@ -50,9 +50,10 @@ internal class NettyApplicationCallHandler(
 
     private fun handleRequest(context: ChannelHandlerContext, call: PipelineCall) {
         val callContext = CallHandlerCoroutineName + NettyDispatcher.CurrentContext(context)
+        val callJob = call.coroutineContext[Job]
 
         currentCall = call
-        currentJob = launch(callContext, start = CoroutineStart.UNDISPATCHED) {
+        currentJob = launch(callContext + (callJob ?: EmptyCoroutineContext), start = CoroutineStart.UNDISPATCHED) {
             when {
                 call is NettyHttp1ApplicationCall && !call.request.isValid() -> {
                     respondError400BadRequest(call)
@@ -65,6 +66,9 @@ internal class NettyApplicationCallHandler(
                         handleFailure(call, error)
                     }
             }
+        }
+        if (callJob is CompletableJob) {
+            currentJob!!.invokeOnCompletion { callJob.complete() }
         }
     }
 
