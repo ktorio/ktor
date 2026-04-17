@@ -90,6 +90,7 @@ internal class HmacQuicTokenHandler(
         token.getBytes(token.readerIndex() + TIMESTAMP_LENGTH, receivedMac)
 
         val dcidLength = readable - headerLength
+        if (dcidLength !in 0..Quic.MAX_CONN_ID_LEN) return -1
 
         val expectedMac = KtorDefaultPool.useInstance { dcidBuffer ->
             dcidBuffer.clear()
