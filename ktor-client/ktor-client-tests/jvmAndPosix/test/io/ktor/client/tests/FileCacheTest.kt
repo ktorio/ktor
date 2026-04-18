@@ -11,10 +11,15 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.test.base.*
 import io.ktor.http.*
-import io.ktor.util.date.GMTDate
-import io.ktor.utils.io.core.toByteArray
-import kotlinx.io.files.*
-import kotlin.test.*
+import io.ktor.util.date.*
+import io.ktor.utils.io.core.*
+import kotlinx.io.files.FileSystem
+import kotlinx.io.files.Path
+import kotlinx.io.files.SystemFileSystem
+import kotlinx.io.files.SystemTemporaryDirectory
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -24,7 +29,7 @@ class FileCacheTest : ClientLoader() {
     private val privateStorage = FileStorage(SystemFileSystem, Path(tmpDirPath, "cache-test-private"))
 
     @Test
-    fun testVaryHeader() = clientTests(except("Js")) {
+    fun testVaryHeader() = clientTests {
         config {
             install(HttpCache.Companion) {
                 publicStorage(this@FileCacheTest.publicStorage)
@@ -82,7 +87,7 @@ class FileCacheTest : ClientLoader() {
     }
 
     @Test
-    fun testReuseCacheStorage() = clientTests(except("Js")) {
+    fun testReuseCacheStorage() = clientTests {
         config {
             install(HttpCache.Companion) {
                 publicStorage(this@FileCacheTest.publicStorage)
@@ -105,7 +110,7 @@ class FileCacheTest : ClientLoader() {
     }
 
     @Test
-    fun testLongPath() = clientTests(except("Js")) {
+    fun testLongPath() = clientTests {
         config {
             install(HttpCache.Companion) {
                 publicStorage(this@FileCacheTest.publicStorage)
@@ -119,7 +124,7 @@ class FileCacheTest : ClientLoader() {
     }
 
     @Test
-    fun testSkipCacheIfException() = clientTests(except("Js")) {
+    fun testSkipCacheIfException() = clientTests {
         val path = Path(SystemTemporaryDirectory, "cache-test-public-deleted")
         val publicStorage = FileStorage(SystemFileSystem, path)
         config {
