@@ -40,7 +40,7 @@ public actual fun sha1(bytes: ByteArray): ByteArray =
 /**
  * Compute SHA-256 hash for the specified [bytes]
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.sha1)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.sha256)
  */
 public actual fun sha256(bytes: ByteArray): ByteArray =
     MessageDigest.getInstance("SHA-256").digest(bytes)

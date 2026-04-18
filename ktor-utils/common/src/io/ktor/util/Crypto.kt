@@ -80,7 +80,7 @@ public expect fun sha1(bytes: ByteArray): ByteArray
 /**
  * Compute SHA-256 hash for the specified [bytes]
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.sha1)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.sha256)
  */
 public expect fun sha256(bytes: ByteArray): ByteArray
 
