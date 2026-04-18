@@ -703,6 +703,11 @@ public final class io/ktor/client/plugins/cache/storage/FileCacheStorageKt {
 	public static synthetic fun FileStorage$default (Ljava/io/File;Lkotlinx/coroutines/CoroutineDispatcher;ILjava/lang/Object;)Lio/ktor/client/plugins/cache/storage/CacheStorage;
 }
 
+public final class io/ktor/client/plugins/cache/storage/FileStorageKt {
+	public static final fun FileStorage (Lkotlinx/io/files/FileSystem;Lkotlinx/io/files/Path;Lkotlinx/coroutines/CoroutineDispatcher;)Lio/ktor/client/plugins/cache/storage/CacheStorage;
+	public static synthetic fun FileStorage$default (Lkotlinx/io/files/FileSystem;Lkotlinx/io/files/Path;Lkotlinx/coroutines/CoroutineDispatcher;ILjava/lang/Object;)Lio/ktor/client/plugins/cache/storage/CacheStorage;
+}
+
 public abstract class io/ktor/client/plugins/cache/storage/HttpCacheStorage {
 	public static final field Companion Lio/ktor/client/plugins/cache/storage/HttpCacheStorage$Companion;
 	public fun <init> ()V

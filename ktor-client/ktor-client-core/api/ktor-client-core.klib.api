@@ -1697,6 +1697,9 @@ final suspend inline fun <#A: reified kotlin/Any?> (io.ktor.client.statement/Htt
 // Targets: [native]
 final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.request/unixSocket(kotlin/String) // io.ktor.client.request/unixSocket|unixSocket@io.ktor.client.request.HttpRequestBuilder(kotlin.String){}[0]
 
+// Targets: [native]
+final fun io.ktor.client.plugins.cache.storage/FileStorage(kotlinx.io.files/FileSystem, kotlinx.io.files/Path, kotlinx.coroutines/CoroutineDispatcher = ...): io.ktor.client.plugins.cache.storage/CacheStorage // io.ktor.client.plugins.cache.storage/FileStorage|FileStorage(kotlinx.io.files.FileSystem;kotlinx.io.files.Path;kotlinx.coroutines.CoroutineDispatcher){}[0]
+
 // Targets: [js, wasmJs]
 abstract interface io.ktor.client.fetch/AbortSignal : io.ktor.client.fetch/EventTarget { // io.ktor.client.fetch/AbortSignal|null[0]
     abstract var aborted // io.ktor.client.fetch/AbortSignal.aborted|{}aborted[0]
