@@ -44,7 +44,10 @@ internal class RawSourceChannel(
         get() = buffer
 
     override suspend fun awaitContent(min: Int): Boolean {
-        if (closedToken != null) return true
+        if (closedToken != null) {
+            closedCause?.let { throw it }
+            return buffer.remaining >= min
+        }
 
         withContext(coroutineContext) {
             var result = 0L
