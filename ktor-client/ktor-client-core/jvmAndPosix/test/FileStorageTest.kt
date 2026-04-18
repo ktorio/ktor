@@ -1,14 +1,27 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-import io.ktor.client.plugins.cache.storage.*
-import io.ktor.http.*
-import io.ktor.util.date.*
-import kotlinx.coroutines.test.*
-import kotlinx.io.files.*
-import kotlin.test.*
-import kotlin.uuid.*
+import io.ktor.client.plugins.cache.storage.CachedResponseData
+import io.ktor.client.plugins.cache.storage.FileStorage
+import io.ktor.http.HttpProtocolVersion
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.Url
+import io.ktor.http.headersOf
+import io.ktor.util.date.GMTDate
+import kotlinx.coroutines.test.runTest
+import kotlinx.io.files.FileSystem
+import kotlinx.io.files.Path
+import kotlinx.io.files.SystemFileSystem
+import kotlinx.io.files.SystemTemporaryDirectory
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 class FileStorageTest {
     private lateinit var tempDirectory: Path
@@ -84,10 +97,10 @@ class FileStorageTest {
 
     private fun data(varyKeys: Map<String, String> = emptyMap()) = CachedResponseData(
         Url("http://example.com"),
-        HttpStatusCode.OK,
+        HttpStatusCode.Companion.OK,
         GMTDate(),
         GMTDate(),
-        HttpProtocolVersion.HTTP_1_1,
+        HttpProtocolVersion.Companion.HTTP_1_1,
         GMTDate(),
         headersOf(),
         varyKeys,
@@ -97,7 +110,7 @@ class FileStorageTest {
     companion object {
         @OptIn(ExperimentalUuidApi::class)
         private fun temporaryDirectoryPath(): Path {
-            return Path(SystemTemporaryDirectory, Uuid.random().toString())
+            return Path(SystemTemporaryDirectory, Uuid.Companion.random().toString())
         }
 
         private fun FileSystem.deleteRecursively(directory: Path) {

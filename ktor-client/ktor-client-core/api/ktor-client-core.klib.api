@@ -1540,7 +1540,6 @@ final fun io.ktor.client.engine/mergeHeaders(io.ktor.http/Headers, io.ktor.http.
 final fun io.ktor.client.io/configurePlatform() // io.ktor.client.io/configurePlatform|configurePlatform(){}[0]
 final fun io.ktor.client.network.sockets/SocketTimeoutException(kotlin/String, kotlin/Throwable? = ...): io.ktor.client.network.sockets/SocketTimeoutException // io.ktor.client.network.sockets/SocketTimeoutException|SocketTimeoutException(kotlin.String;kotlin.Throwable?){}[0]
 final fun io.ktor.client.plugins.api/createClientPlugin(kotlin/String, kotlin/Function1<io.ktor.client.plugins.api/ClientPluginBuilder<kotlin/Unit>, kotlin/Unit>): io.ktor.client.plugins.api/ClientPlugin<kotlin/Unit> // io.ktor.client.plugins.api/createClientPlugin|createClientPlugin(kotlin.String;kotlin.Function1<io.ktor.client.plugins.api.ClientPluginBuilder<kotlin.Unit>,kotlin.Unit>){}[0]
-final fun io.ktor.client.plugins.cache.storage/FileStorage(kotlinx.io.files/FileSystem, kotlinx.io.files/Path, kotlinx.coroutines/CoroutineDispatcher = ...): io.ktor.client.plugins.cache.storage/CacheStorage // io.ktor.client.plugins.cache.storage/FileStorage|FileStorage(kotlinx.io.files.FileSystem;kotlinx.io.files.Path;kotlinx.coroutines.CoroutineDispatcher){}[0]
 final fun io.ktor.client.plugins.websocket/WebSockets(kotlin.time/Duration?, kotlin/Long = ...): io.ktor.client.plugins.websocket/WebSockets // io.ktor.client.plugins.websocket/WebSockets|WebSockets(kotlin.time.Duration?;kotlin.Long){}[0]
 final fun io.ktor.client.plugins/ConnectTimeoutException(io.ktor.client.request/HttpRequestData, kotlin/Throwable? = ...): io.ktor.client.network.sockets/ConnectTimeoutException // io.ktor.client.plugins/ConnectTimeoutException|ConnectTimeoutException(io.ktor.client.request.HttpRequestData;kotlin.Throwable?){}[0]
 final fun io.ktor.client.plugins/ConnectTimeoutException(kotlin/String, kotlin/Long?, kotlin/Throwable? = ...): io.ktor.client.network.sockets/ConnectTimeoutException // io.ktor.client.plugins/ConnectTimeoutException|ConnectTimeoutException(kotlin.String;kotlin.Long?;kotlin.Throwable?){}[0]
@@ -1697,6 +1696,9 @@ final suspend inline fun <#A: reified kotlin/Any?> (io.ktor.client.statement/Htt
 
 // Targets: [native]
 final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.request/unixSocket(kotlin/String) // io.ktor.client.request/unixSocket|unixSocket@io.ktor.client.request.HttpRequestBuilder(kotlin.String){}[0]
+
+// Targets: [native]
+final fun io.ktor.client.plugins.cache.storage/FileStorage(kotlinx.io.files/FileSystem, kotlinx.io.files/Path, kotlinx.coroutines/CoroutineDispatcher = ...): io.ktor.client.plugins.cache.storage/CacheStorage // io.ktor.client.plugins.cache.storage/FileStorage|FileStorage(kotlinx.io.files.FileSystem;kotlinx.io.files.Path;kotlinx.coroutines.CoroutineDispatcher){}[0]
 
 // Targets: [js, wasmJs]
 abstract interface io.ktor.client.fetch/AbortSignal : io.ktor.client.fetch/EventTarget { // io.ktor.client.fetch/AbortSignal|null[0]
