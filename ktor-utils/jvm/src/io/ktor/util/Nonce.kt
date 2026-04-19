@@ -8,7 +8,9 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import org.slf4j.*
 import java.security.*
-import kotlin.random.asKotlinRandom
+import kotlin.random.*
+
+private val logger = LoggerFactory.getLogger("io.ktor.util.random")
 
 private const val SHA1PRNG = "SHA1PRNG"
 
@@ -18,15 +20,19 @@ private val SECURE_RANDOM_PROVIDERS: List<String> = listOf(
     "DRBG"
 )
 
-private const val SECURE_RESEED_PERIOD = 30_000
+private const val SYSTEM_PROPERTY_PREFIX = "io.ktor.random.secure"
 
-private const val SECURE_NONCE_COUNT = 8
+// Note: these defaults are just random guesses, and were not chosen through any benchmarks.
 
-private const val SECURE_RESEED_BYTES = 128
+private val SECURE_RESEED_PERIOD = getSystemPropertyInt("reseed-period", 30_000)
 
-private const val INSECURE_NONCE_COUNT_FACTOR = 4
+private val SECURE_NONCE_COUNT = getSystemPropertyInt("nonce.buffer-size", 32)
 
-internal val nonceChannel: Channel<String> = Channel(1024)
+private val SECURE_RESEED_BYTES = getSystemPropertyInt("reseed-bytes", 256)
+
+private val INSECURE_NONCE_COUNT_FACTOR = getSystemPropertyInt("insecure-factor", 4)
+
+internal val nonceChannel: Channel<String> = Channel(getSystemPropertyInt("nonce.channel-size", 128))
 
 private val NonceGeneratorCoroutineName = CoroutineName("nonce-generator")
 
@@ -115,15 +121,13 @@ internal fun ensureNonceGeneratorRunning() {
 }
 
 private fun lookupSecureRandom(): SecureRandom {
-    System.getProperty("io.ktor.random.secure.random.provider")?.let { name ->
+    System.getProperty("$SYSTEM_PROPERTY_PREFIX.random.provider")?.let { name ->
         getInstanceOrNull(name)?.let { return it }
     }
 
     for (name in SECURE_RANDOM_PROVIDERS) {
         getInstanceOrNull(name)?.let { return it }
     }
-
-    val logger = LoggerFactory.getLogger("io.ktor.util.random")
 
     logger.warn("None of the ${SECURE_RANDOM_PROVIDERS.joinToString()} found, falling back to the JDK strong default")
 
@@ -149,4 +153,16 @@ private fun getInstanceOrNull(name: String? = null) = try {
     }
 } catch (_: NoSuchAlgorithmException) {
     null
+}
+
+private fun getSystemPropertyInt(key: String, default: Int): Int {
+    val property = System.getProperty("$SYSTEM_PROPERTY_PREFIX.$key", null)
+    if (property != null) {
+        try {
+            return property.toInt()
+        } catch (_: NumberFormatException) {
+            logger.warn("Invalid integer '$property' for property $SYSTEM_PROPERTY_PREFIX.$key, falling back to default")
+        }
+    }
+    return default
 }
