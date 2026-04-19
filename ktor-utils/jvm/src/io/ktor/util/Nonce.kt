@@ -26,7 +26,7 @@ private const val SYSTEM_PROPERTY_PREFIX = "io.ktor.random.secure"
 
 private val SECURE_RESEED_PERIOD = getSystemPropertyInt("reseed-period", 30_000)
 
-private val SECURE_NONCE_COUNT = getSystemPropertyInt("nonce.buffer-size", 32)
+private val SECURE_NONCE_COUNT = getSystemPropertyInt("nonce.buffer-size", 64)
 
 private val SECURE_RESEED_BYTES = getSystemPropertyInt("reseed-bytes", 256)
 
@@ -52,8 +52,8 @@ private val nonceGeneratorJob = GlobalScope.launch(
     val weakRandom = SecureRandom.getInstance(SHA1PRNG)
     val weakKotlinRandom = weakRandom.asKotlinRandom() // we need a kotlin random for kotlin.collections.shuffle
 
-    val secureBytes = ByteArray(SECURE_NONCE_COUNT * NONCE_SIZE_IN_BYTES)
-    val weakBytes = ByteArray(secureBytes.size * INSECURE_NONCE_COUNT_FACTOR)
+    val secureBytes = ByteArray(SECURE_NONCE_COUNT * NONCE_SIZE_IN_BYTES / INSECURE_NONCE_COUNT_FACTOR)
+    val weakBytes = ByteArray(SECURE_NONCE_COUNT * NONCE_SIZE_IN_BYTES)
 
     weakRandom.setSeed(strongRandom.generateSeed(SECURE_RESEED_BYTES))
 
