@@ -42,6 +42,9 @@ public actual class ConcurrentMap<Key, Value> public actual constructor(
 
     actual override fun isEmpty(): Boolean = delegate.isEmpty()
 
+    // Native returns detached snapshots instead of live views to avoid reintroducing
+    // ConcurrentModificationException when callers iterate outside the map lock.
+    // See https://github.com/ktorio/ktor/issues/5480.
     actual override val entries: MutableSet<MutableMap.MutableEntry<Key, Value>>
         get() = synchronized(lock) {
             LinkedHashSet(delegate.entries.map { DetachedMutableEntry(it.key, it.value) })
