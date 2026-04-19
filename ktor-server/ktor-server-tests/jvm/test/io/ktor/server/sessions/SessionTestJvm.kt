@@ -20,7 +20,7 @@ class SessionTestJvm {
 
     @Test
     fun testSessionByValueMac() = testApplication {
-        val key = "03515606058610610561058".hexToByteArray()
+        val key = "003515606058610610561058".hexToByteArray()
 
         install(Sessions) {
             cookie<TestUserSession>(cookieName) {
