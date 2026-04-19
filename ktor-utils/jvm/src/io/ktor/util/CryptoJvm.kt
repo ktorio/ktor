@@ -65,14 +65,14 @@ private value class DigestImpl(val delegate: MessageDigest) : Digest {
 public actual suspend fun generateNonceSuspend(length: Int): String {
     ensureNonceGeneratorRunning()
 
-    val nonce = seedChannel.receive()
+    val nonce = nonceChannel.receive()
 
     if (nonce.length >= length) {
         return nonce.substring(0, length)
     }
 
     return if (length <= NONCE_SIZE_IN_CHARS) {
-        seedChannel.receive().substring(0, length)
+        nonceChannel.receive().substring(0, length)
     } else {
         generateNonceLong(nonce, length)
     }
@@ -84,7 +84,7 @@ public actual suspend fun generateNonceSuspend(length: Int): String {
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.generateNonceBlocking)
  */
 public actual fun generateNonceBlocking(length: Int): String {
-    val nonce = seedChannel.tryReceive().getOrNull()
+    val nonce = nonceChannel.tryReceive().getOrNull()
 
     if (nonce != null && nonce.length >= length) {
         return nonce.substring(0, length)
@@ -94,7 +94,7 @@ public actual fun generateNonceBlocking(length: Int): String {
 
     return runBlocking {
         if (length <= NONCE_SIZE_IN_CHARS) {
-            seedChannel.receive().substring(0, length)
+            nonceChannel.receive().substring(0, length)
         } else {
             generateNonceLong(nonce, length)
         }
@@ -107,7 +107,7 @@ private suspend fun generateNonceLong(initial: CharSequence?, length: Int) = bui
     }
 
     while (length > this.length) {
-        val toAppend = seedChannel.receive()
+        val toAppend = nonceChannel.receive()
         append(toAppend, 0, (length - this.length).coerceAtMost(toAppend.length))
     }
 }.substring(0, length)

@@ -22,9 +22,11 @@ private const val SECURE_RESEED_PERIOD = 30_000
 
 private const val SECURE_NONCE_COUNT = 8
 
+private const val SECURE_RESEED_BYTES = 128
+
 private const val INSECURE_NONCE_COUNT_FACTOR = 4
 
-internal val seedChannel: Channel<String> = Channel(1024)
+internal val nonceChannel: Channel<String> = Channel(1024)
 
 private val NonceGeneratorCoroutineName = CoroutineName("nonce-generator")
 
@@ -34,26 +36,25 @@ private val nonceGeneratorJob = GlobalScope.launch(
     context = Dispatchers.Default + NonCancellable + NonceGeneratorCoroutineName,
     start = CoroutineStart.LAZY
 ) {
-    val seedChannel = seedChannel
+    val nonceChannel = nonceChannel
     var lastReseed = 0L
     // empty strings are fine, because we only send non-empty strings
-    val randomNonces: Array<String> = Array(
-        SECURE_NONCE_COUNT * NONCE_SIZE_IN_BYTES * INSECURE_NONCE_COUNT_FACTOR * 2 / NONCE_SIZE_IN_CHARS * 2
-    ) { "" }
+    val randomNonces = arrayOfNulls<String>(SECURE_NONCE_COUNT * 2)
 
-    val secureInstance = lookupSecureRandom()
+    val strongRandom = lookupSecureRandom()
+    // note that technically the SHA1PRNG is not in the jvm spec, so this will fail on JVMs without the SHA1PRNG.
     val weakRandom = SecureRandom.getInstance(SHA1PRNG)
     val weakKotlinRandom = weakRandom.asKotlinRandom() // we need a kotlin random for kotlin.collections.shuffle
 
     val secureBytes = ByteArray(SECURE_NONCE_COUNT * NONCE_SIZE_IN_BYTES)
     val weakBytes = ByteArray(secureBytes.size * INSECURE_NONCE_COUNT_FACTOR)
 
-    weakRandom.setSeed(secureInstance.generateSeed(secureBytes.size))
+    weakRandom.setSeed(strongRandom.generateSeed(SECURE_RESEED_BYTES))
 
     try {
         while (true) {
             // fill both
-            secureInstance.nextBytes(secureBytes)
+            strongRandom.nextBytes(secureBytes)
             weakRandom.nextBytes(weakBytes)
 
             // mix secure and weak
@@ -68,7 +69,7 @@ private val nonceGeneratorJob = GlobalScope.launch(
 
             if (currentTime - lastReseed > SECURE_RESEED_PERIOD) {
                 weakRandom.setSeed(lastReseed - currentTime)
-                weakRandom.setSeed(secureInstance.generateSeed(secureBytes.size))
+                weakRandom.setSeed(strongRandom.generateSeed(SECURE_RESEED_BYTES))
                 lastReseed = currentTime
             } else {
                 weakRandom.setSeed(secureBytes)
@@ -96,16 +97,16 @@ private val nonceGeneratorJob = GlobalScope.launch(
 
             // send first half to the channel
             for (index in 0 until randomNonces.size / 2) {
-                val nonce = randomNonces[index]
+                val nonce = randomNonces[index] ?: continue
                 if (nonce.isNotEmpty()) {
-                    seedChannel.send(randomNonces[index])
+                    nonceChannel.send(nonce)
                 }
             }
         }
     } catch (t: Throwable) {
-        seedChannel.close(t)
+        nonceChannel.close(t)
     } finally {
-        seedChannel.close()
+        nonceChannel.close()
     }
 }
 
