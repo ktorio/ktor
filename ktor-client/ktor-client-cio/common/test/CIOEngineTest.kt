@@ -172,6 +172,20 @@ class CIOEngineTest : ClientEngineTest<CIOEngineConfig>(CIO) {
     }
 
     @Test
+    fun `close engine with active endpoints does not throw ConcurrentModificationException`() = testClient {
+        test { client ->
+            val jobs = (1..5).map { i ->
+                client.async {
+                    runCatching {
+                        client.get("$TEST_SERVER/content/hello?i=$i")
+                    }
+                }
+            }
+            jobs.forEach { it.await() }
+        }
+    }
+
+    @Test
     fun testErrorMessageWhenServerDontRespondWithUpgrade() = testClient {
         config {
             install(WebSockets)
