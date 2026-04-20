@@ -105,6 +105,11 @@ public class RoutingRoot(
         application.monitor.raise(RoutingCallStarted, routingCall)
         try {
             routingCallPipeline.execute(routingApplicationCall)
+            if (!routingApplicationCall.isHandled) {
+                routingApplicationCall.response.status()?.let { status ->
+                    routingApplicationCall.respond(status)
+                }
+            }
         } catch (cause: Throwable) {
             routingCall.attributes.put(routingCallKey, routingCall)
             throw cause

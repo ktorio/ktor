@@ -1,0 +1,27 @@
+type: object
+required:
+  - data
+properties:
+  data:
+    type: object
+    required:
+      - items
+      - total
+    properties:
+      items:
+        type: array
+        items:
+          type: object
+          title: io.ktor.openapi.reflect.Country
+          required:
+            - name
+            - code
+          properties:
+            name:
+              type: string
+              pattern: '[A-Za-z''-,]+'
+            code:
+              type: string
+              pattern: '[A-Z]{3}'
+      total:
+        type: integer

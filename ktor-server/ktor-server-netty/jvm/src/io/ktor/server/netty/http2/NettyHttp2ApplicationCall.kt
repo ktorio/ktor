@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.netty.http2
@@ -17,13 +17,11 @@ internal class NettyHttp2ApplicationCall(
     val headers: Http2Headers,
     handler: NettyHttp2Handler,
     engineContext: CoroutineContext,
-    userContext: CoroutineContext
+    override val coroutineContext: CoroutineContext
 ) : NettyApplicationCall(application, context, headers) {
 
-    override val coroutineContext: CoroutineContext = userContext
-
     override val request = NettyHttp2ApplicationRequest(this, engineContext, context, headers)
-    override val response = NettyHttp2ApplicationResponse(this, handler, context, engineContext, userContext)
+    override val response = NettyHttp2ApplicationResponse(this, handler, context, engineContext, coroutineContext)
 
     init {
         putResponseAttribute()

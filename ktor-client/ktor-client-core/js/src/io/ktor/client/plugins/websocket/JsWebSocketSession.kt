@@ -4,14 +4,20 @@
 
 package io.ktor.client.plugins.websocket
 
+import io.ktor.client.utils.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
-import org.khronos.webgl.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.channels.consumeEach
+import org.khronos.webgl.ArrayBuffer
+import org.khronos.webgl.Int8Array
 import org.w3c.dom.*
-import kotlin.coroutines.*
+import org.w3c.dom.events.Event
+import kotlin.coroutines.CoroutineContext
 
 @OptIn(InternalAPI::class)
 @Suppress("CAST_NEVER_SUCCEEDS")
@@ -52,12 +58,11 @@ internal class JsWebSocketSession(
         if (websocket.readyState == WebSocket.OPEN) {
             return block()
         }
-        websocket.addEventListener("open", callback = { block() })
+        websocket.addEventListener<Event>("open", once = true) { block() }
     }
 
     init {
-        val onMessage: (org.w3c.dom.events.Event) -> Unit = { e ->
-            val event = e.unsafeCast<MessageEvent>()
+        val onMessage = websocket.addEventListener<MessageEvent>("message") { event ->
             val frame: Frame = when (val data = event.data) {
                 is ArrayBuffer -> Frame.Binary(true, Int8Array(data).unsafeCast<ByteArray>())
                 is String -> Frame.Text(data)
@@ -70,21 +75,19 @@ internal class JsWebSocketSession(
             _incoming.trySend(frame)
         }
 
-        val onError: (org.w3c.dom.events.Event) -> Unit = { e ->
-            val cause = WebSocketException("$e")
+        val onError = websocket.addEventListener<ErrorEvent>("error") { event ->
+            val cause = WebSocketException(event.asString())
             _closeReason.completeExceptionally(cause)
             _incoming.close(cause)
             _outgoing.cancel()
         }
 
-        lateinit var onClose: (dynamic) -> Unit
-        onClose = { e ->
-            val reason = CloseReason(e.code as Short, e.reason as String)
+        websocket.addEventListener<CloseEvent>("close", once = true) { event ->
+            val reason = CloseReason(event.code, event.reason)
             _closeReason.complete(reason)
             _incoming.trySend(Frame.Close(reason))
             _incoming.close()
             _outgoing.cancel()
-            websocket.removeEventListener("close", callback = onClose)
         }
 
         // we must not throw exceptions before this
@@ -99,14 +102,11 @@ internal class JsWebSocketSession(
                     websocket.close(CloseReason.Codes.NORMAL.code, "Client failed")
                 }
             }
-            websocket.removeEventListener("message", callback = onMessage)
-            websocket.removeEventListener("error", callback = onError)
+            onMessage.dispose()
+            onError.dispose()
         }
 
         websocket.binaryType = BinaryType.ARRAYBUFFER
-        websocket.addEventListener("message", callback = onMessage)
-        websocket.addEventListener("error", callback = onError)
-        websocket.addEventListener("close", callback = onClose)
 
         launch {
             _outgoing.consumeEach {

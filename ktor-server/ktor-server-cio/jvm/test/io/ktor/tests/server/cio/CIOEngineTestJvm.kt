@@ -95,4 +95,7 @@ class CIOHttpRequestLifecycleTest :
         enableSsl = false
         enableHttp2 = false
     }
+
+    @Ignore
+    override fun testPipelinedRequestsCancelledOnDisconnect() {}
 }

@@ -185,9 +185,10 @@ public fun CoroutineScope.startServerConnectionPipeline(
             if (isLastHttpRequest(version, connectionOptions)) break
         }
     } catch (_: IOException) {
-        // already handled
-        coroutineContext.cancel()
+        // Connection error - also triggers onClose below
     } finally {
+        // Invoke onClose to allow HttpRequestLifecycle plugin to cancel
+        // the call coroutine with proper ConnectionClosedException cause.
         handlerScope?.onClose?.invoke()
         actorChannel.close()
     }

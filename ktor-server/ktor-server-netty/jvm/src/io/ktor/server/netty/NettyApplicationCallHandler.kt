@@ -1,126 +1,26 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+* Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
 package io.ktor.server.netty
 
 import io.ktor.http.*
-import io.ktor.http.HttpHeaders
 import io.ktor.server.application.*
-import io.ktor.server.engine.*
-import io.ktor.server.http.HttpRequestCloseHandlerKey
 import io.ktor.server.netty.http1.*
-import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
-import io.netty.channel.*
-import io.netty.handler.codec.http.*
-import io.netty.handler.timeout.*
-import kotlinx.coroutines.*
-import kotlin.coroutines.*
-import kotlin.coroutines.cancellation.*
+import io.netty.channel.ChannelHandlerContext
+import io.netty.handler.codec.http.DefaultFullHttpResponse
+import io.netty.handler.codec.http.HttpResponseStatus
+import io.netty.handler.codec.http.HttpVersion
+import kotlinx.coroutines.CoroutineName
 
 private const val CHUNKED_VALUE = "chunked"
 
-internal class NettyApplicationCallHandler(
-    userCoroutineContext: CoroutineContext,
-    private val enginePipeline: EnginePipeline
-) : ChannelInboundHandlerAdapter(), CoroutineScope {
-    private var currentJob: Job? = null
-    private var currentCall: PipelineCall? = null
-
-    override val coroutineContext: CoroutineContext = userCoroutineContext
-
-    override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
-        when (msg) {
-            is PipelineCall -> handleRequest(ctx, msg)
-            else -> ctx.fireChannelRead(msg)
-        }
-    }
-
-    internal fun onConnectionClose(context: ChannelHandlerContext) {
-        if (context.channel().isActive) {
-            return
-        }
-        currentCall?.let {
-            currentCall = null
-            @OptIn(InternalAPI::class)
-            it.attributes.getOrNull(HttpRequestCloseHandlerKey)?.invoke()
-        }
-    }
-
-    private fun handleRequest(context: ChannelHandlerContext, call: PipelineCall) {
-        val callContext = CallHandlerCoroutineName + NettyDispatcher.CurrentContext(context)
-
-        currentCall = call
-        currentJob = launch(callContext, start = CoroutineStart.UNDISPATCHED) {
-            when {
-                call is NettyHttp1ApplicationCall && !call.request.isValid() -> {
-                    respondError400BadRequest(call)
-                }
-
-                else ->
-                    try {
-                        enginePipeline.execute(call)
-                    } catch (error: Throwable) {
-                        handleFailure(call, error)
-                    }
-            }
-        }
-    }
-
-    override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
-        when (cause) {
-            is ReadTimeoutException -> {
-                currentJob?.let {
-                    respond408RequestTimeout(ctx)
-                    it.cancel(CancellationException(cause))
-                } ?: ctx.fireExceptionCaught(cause)
-            }
-
-            else -> ctx.fireExceptionCaught(cause)
-        }
-    }
-
-    override fun channelInactive(ctx: ChannelHandlerContext) {
-        onConnectionClose(ctx)
-        ctx.fireChannelInactive()
-    }
-
-    private fun respond408RequestTimeout(ctx: ChannelHandlerContext) {
-        val response = DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.REQUEST_TIMEOUT)
-        response.headers().add(HttpHeaders.ContentLength, "0")
-        response.headers().add(HttpHeaders.Connection, "close")
-        ctx.writeAndFlush(response)
-        ctx.close()
-    }
-
-    private suspend fun respondError400BadRequest(call: NettyHttp1ApplicationCall) {
-        logCause(call)
-
-        val causeMessage = call.failureCause?.message?.toByteArray(charset = Charsets.UTF_8)
-        val content = if (causeMessage != null) ByteReadChannel(causeMessage) else ByteReadChannel.Empty
-        val contentLength = causeMessage?.size ?: 0
-
-        call.response.status(HttpStatusCode.BadRequest)
-        call.response.headers.append(HttpHeaders.ContentLength, contentLength.toString(), safeOnly = false)
-        if (contentLength > 0) {
-            call.response.headers.append(HttpHeaders.ContentType, "text/plain; charset=utf-8", safeOnly = false)
-        }
-        call.response.headers.append(HttpHeaders.Connection, "close", safeOnly = false)
-        call.response.sendResponse(chunked = false, content)
-        call.finish()
-    }
-
-    private fun logCause(call: NettyHttp1ApplicationCall) {
-        if (call.application.log.isTraceEnabled) {
-            val cause = call.failureCause ?: return
-            call.application.log.trace("Failed to decode request", cause)
-        }
-    }
-
-    companion object {
-        internal val CallHandlerCoroutineName = CoroutineName("call-handler")
-    }
+/**
+ * Contains shared constants and helper functions for Netty call handling.
+ */
+internal object NettyApplicationCallHandler {
+    internal val CallHandlerCoroutineName = CoroutineName("call-handler")
 }
 
 internal fun NettyHttp1ApplicationRequest.isValid(): Boolean {
@@ -133,6 +33,41 @@ internal fun NettyHttp1ApplicationRequest.isValid(): Boolean {
     val encodings = headers.getAll(HttpHeaders.TransferEncoding) ?: return true
     return encodings.hasValidTransferEncoding()
 }
+
+internal fun ChannelHandlerContext.respond408RequestTimeoutHttp1() {
+    val response = DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.REQUEST_TIMEOUT)
+    response.headers().add(HttpHeaders.ContentLength, "0")
+    response.headers().add(HttpHeaders.Connection, "close")
+    writeAndFlush(response)
+    close()
+}
+
+internal suspend fun NettyHttp1ApplicationCall.respondError400BadRequest() {
+    logCause()
+
+    val causeMessage = failureCause?.message?.toByteArray(charset = Charsets.UTF_8)
+    val content = if (causeMessage != null) ByteReadChannel(causeMessage) else ByteReadChannel.Empty
+    val contentLength = causeMessage?.size ?: 0
+
+    response.status(HttpStatusCode.BadRequest)
+    response.headers.append(HttpHeaders.ContentLength, contentLength.toString(), safeOnly = false)
+    if (contentLength > 0) {
+        response.headers.append(HttpHeaders.ContentType, "text/plain; charset=utf-8", safeOnly = false)
+    }
+    response.headers.append(HttpHeaders.Connection, "close", safeOnly = false)
+    response.sendResponse(chunked = false, content)
+    finish()
+}
+
+private fun NettyHttp1ApplicationCall.logCause() {
+    if (application.log.isTraceEnabled) {
+        val cause = failureCause ?: return
+        application.log.trace("Failed to decode request", cause)
+    }
+}
+
+private val NettyHttp1ApplicationCall.failureCause: Throwable?
+    get() = httpRequest.decoderResult()?.cause()
 
 internal fun List<String>.hasValidTransferEncoding(): Boolean {
     forEachIndexed { headerIndex, header ->
@@ -162,6 +97,3 @@ internal fun List<String>.hasValidTransferEncoding(): Boolean {
 }
 
 private fun Char.isSeparator(): Boolean = (this == ' ' || this == ',')
-
-private val NettyHttp1ApplicationCall.failureCause: Throwable?
-    get() = request.httpRequest.decoderResult()?.cause()

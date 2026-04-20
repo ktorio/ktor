@@ -12,13 +12,12 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.test.base.*
 import io.ktor.http.*
+import io.ktor.utils.io.*
 import io.ktor.websocket.*
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.UnsafeNumber
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.*
+import kotlinx.coroutines.test.runTest
 import platform.Foundation.NSHTTPCookieStorage.Companion.sharedHTTPCookieStorage
 import platform.Foundation.NSOperationQueue
 import platform.Foundation.NSURLSession
@@ -273,6 +272,38 @@ class DarwinEngineTest : ClientEngineTest<DarwinClientEngineConfig>(Darwin) {
 
         val thrownException = assertFails { client.get(TEST_SERVER_TLS) }
         assertSame(thrownException, challengeException, "Expected exception to be rethrown")
+    }
+
+    @Test
+    fun testExecuteAfterSessionClose() = runTest {
+        val config = DarwinClientEngineConfig()
+        val session = DarwinSession(config, null)
+
+        session.close()
+        launch {
+            val request = request { url(TEST_SERVER) }.build()
+            session.execute(request, coroutineContext)
+            fail("Execution expected to be cancelled")
+        }
+    }
+
+    @OptIn(InternalAPI::class)
+    @Test
+    fun testWebSocketExecuteAfterSessionClose() = runTest {
+        val config = DarwinClientEngineConfig()
+        val session = DarwinSession(config, null)
+
+        session.close()
+        launch {
+            val request = request {
+                url(TEST_WEBSOCKET_SERVER)
+                body = object : ClientUpgradeContent() {
+                    override fun verify(headers: Headers) = Unit
+                }
+            }.build()
+            session.execute(request, coroutineContext)
+            fail("Execution expected to be cancelled")
+        }
     }
 
     private fun stringToNSUrlString(value: String): String {

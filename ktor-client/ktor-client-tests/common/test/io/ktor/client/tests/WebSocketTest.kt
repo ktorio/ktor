@@ -23,6 +23,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import kotlin.test.*
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 internal val ENGINES_WITHOUT_WS = listOf("Android", "Apache", "Apache5", "DarwinLegacy")
@@ -458,6 +459,29 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
     }
 
     @Test
+    fun testParallelSessions() = clientTests {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            val websocketInitialized = Job()
+
+            launch {
+                client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                    websocketInitialized.complete()
+                    delay(20.milliseconds)
+                }
+            }
+
+            websocketInitialized.join()
+
+            val response = client.get(TEST_SERVER)
+            assertEquals(200, response.status.value)
+        }
+    }
+
+    @Test
     fun testHttpDuringWebSocketConnection() = clientTests {
         config {
             install(WebSockets)
@@ -577,6 +601,23 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
                 val webSocketKey = assertNotNull(headers["Sec-WebSocket-Key"])
                 assertTrue(webSocketKey.single().isNotEmpty())
             }
+        }
+    }
+
+    @Test
+    fun testHttpRequestAfterWebSocketClose() = clientTests {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                send(Frame.Text("Hello"))
+                incoming.receive()
+            }
+
+            val response = client.get(TEST_SERVER)
+            assertEquals(200, response.status.value)
         }
     }
 }

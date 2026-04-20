@@ -158,6 +158,48 @@ class SwaggerTest {
     }
 
     @Test
+    fun testInvalidDocExpansionIgnored() = testApplication {
+        routing {
+            swaggerUI("swagger")
+        }
+
+        val response = client.get("/swagger") {
+            parameter("docExpansion", "'; alert('Hey')")
+        }.bodyAsText()
+        assertEquals(
+            """
+            <!DOCTYPE html>
+            <html>
+              <head>
+                <title>Swagger UI</title>
+                <link href="https://unpkg.com/swagger-ui-dist@5.31.0/swagger-ui.css" rel="stylesheet">
+                <link href="https://unpkg.com/swagger-ui-dist@5.31.0/favicon-32x32.png" rel="icon" type="image/x-icon">
+              </head>
+              <body>
+                <div id="swagger-ui"></div>
+                <script src="https://unpkg.com/swagger-ui-dist@5.31.0/swagger-ui-bundle.js" crossorigin="anonymous"></script>
+                <script src="https://unpkg.com/swagger-ui-dist@5.31.0/swagger-ui-standalone-preset.js" crossorigin="anonymous"></script>
+                <script>window.onload = function() {
+                window.ui = SwaggerUIBundle({
+                    url: '/swagger/documentation.yaml',
+                    dom_id: '#swagger-ui',
+                    deepLinking: false,
+                    presets: [
+                        SwaggerUIBundle.presets.apis,
+                        SwaggerUIStandalonePreset
+                    ],
+                    layout: 'StandaloneLayout'
+                });
+            }</script>
+              </body>
+            </html>
+            
+            """.trimIndent(),
+            response
+        )
+    }
+
+    @Test
     fun testSwaggerFileIsServed() = testApplication {
         routing {
             swaggerUI("openapi")

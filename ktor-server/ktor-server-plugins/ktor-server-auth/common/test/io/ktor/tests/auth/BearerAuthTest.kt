@@ -156,6 +156,32 @@ class BearerAuthTest {
         assertEquals("", response.bodyAsText())
     }
 
+    @Test
+    fun `principal is retrievable by provider name`() = testApplication {
+        val providerName = "my-bearer"
+        install(Authentication) {
+            bearer(providerName) {
+                authenticate { UserIdPrincipal("admin") }
+            }
+        }
+
+        routing {
+            authenticate(providerName) {
+                get("/") {
+                    val principal = call.principal<UserIdPrincipal>(providerName)
+                    call.respondText(principal?.name ?: "missing")
+                }
+            }
+        }
+
+        val response = client.get("/") {
+            withToken("any-token")
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("admin", response.bodyAsText())
+    }
+
     private fun HttpRequestBuilder.withToken(token: String) {
         header(HttpHeaders.Authorization, "${AuthScheme.Bearer} $token")
     }

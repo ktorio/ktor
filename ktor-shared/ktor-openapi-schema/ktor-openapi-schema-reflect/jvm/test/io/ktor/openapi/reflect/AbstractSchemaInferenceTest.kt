@@ -189,8 +189,16 @@ abstract class AbstractSchemaInferenceTest(
     }
 
     @Test
+    fun `recursive class does not stack overflow`() =
+        assertSchemaMatches<BinaryExpression>()
+
+    @Test
     fun `value classes`() =
         assertSchemaMatches<Email>()
+
+    @Test
+    fun `nested generics`() =
+        assertSchemaMatches<Response<Page<Country>>>()
 
     private inline fun <reified T : Any> assertSchemaMatches() {
         val schema = inference.jsonSchema<T>()
@@ -336,4 +344,31 @@ data class LeafItem(
 data class RecursiveNode(
     val name: String,
     val children: List<RecursiveNode>
+)
+
+@Serializable
+sealed interface Expression
+
+@Serializable
+data class BinaryExpression(
+    val left: Expression,
+    val operator: String,
+    val right: Expression
+) : Expression
+
+@Serializable
+data class IntLiteral(val value: Int) : Expression
+
+@Serializable
+data class StringLiteral(val value: String) : Expression
+
+@Serializable
+data class Response<T>(
+    val data: T
+)
+
+@Serializable
+data class Page<out E>(
+    val items: List<E>,
+    val total: Int,
 )

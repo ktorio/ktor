@@ -52,7 +52,7 @@
     "schemas": {
       "DM": {
         "type": "object",
-        "title": "io.ktor.server.routing.openapi.Message.DM",
+        "title": "DM",
         "required": [
           "id",
           "content",
@@ -72,7 +72,7 @@
       },
       "Post": {
         "type": "object",
-        "title": "io.ktor.server.routing.openapi.Message.Post",
+        "title": "Post",
         "required": [
           "id",
           "content",
@@ -92,7 +92,7 @@
       },
       "Message": {
         "type": "object",
-        "title": "io.ktor.server.routing.openapi.Message",
+        "title": "Message",
         "oneOf": [
           {
             "$ref": "#/components/schemas/DM"
