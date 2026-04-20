@@ -6,7 +6,6 @@ package io.ktor.network.sockets.tests
 
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
-import io.ktor.test.*
 import io.ktor.test.dispatcher.*
 import kotlinx.coroutines.*
 import kotlinx.io.*
@@ -76,7 +75,7 @@ class TcpSocketTestNix {
     }
 
     @Test
-    fun testDescriptorError() = retryTest(retries = 3) {
+    fun testDescriptorError() = testSuspend {
         testSockets(timeout = 2.minutes) { selector ->
             val socket = aSocket(selector)
                 .tcp()
