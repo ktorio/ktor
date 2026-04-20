@@ -6,6 +6,8 @@ package io.ktor.http.content
 
 import io.ktor.http.*
 import io.ktor.http.content.PartData.*
+import io.ktor.http.content.PartData.BinaryItem
+import io.ktor.http.content.PartData.FileItem
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.flow.*
@@ -36,8 +38,14 @@ public sealed class PartData(
         dispose: () -> Unit,
         partHeaders: Headers,
         release: suspend () -> Unit = {},
-    ) :
-        PartData(dispose, partHeaders, release)
+    ) : PartData(dispose, partHeaders, release) {
+        @Deprecated("Binary compatability", level = DeprecationLevel.HIDDEN)
+        public constructor(
+            value: String,
+            dispose: () -> Unit,
+            partHeaders: Headers
+        ) : this(value, dispose, partHeaders, {})
+    }
 
     /**
      * Represents a file item.
@@ -53,6 +61,13 @@ public sealed class PartData(
         partHeaders: Headers,
         release: suspend () -> Unit = {},
     ) : PartData(dispose, partHeaders, release) {
+        @Deprecated("Binary compatability", level = DeprecationLevel.HIDDEN)
+        public constructor(
+            provider: () -> ByteReadChannel,
+            dispose: () -> Unit,
+            partHeaders: Headers
+        ) : this(provider, dispose, partHeaders, {})
+
         /**
          * Original file name if present
          *
@@ -74,7 +89,14 @@ public sealed class PartData(
         dispose: () -> Unit,
         partHeaders: Headers,
         release: suspend () -> Unit = {},
-    ) : PartData(dispose, partHeaders, release)
+    ) : PartData(dispose, partHeaders, release) {
+        @Deprecated("Binary compatability", level = DeprecationLevel.HIDDEN)
+        public constructor(
+            provider: () -> Input,
+            dispose: () -> Unit,
+            partHeaders: Headers
+        ) : this(provider, dispose, partHeaders, {})
+    }
 
     /**
      * Represents a binary part with a provider that supplies [ByteReadChannel].
@@ -86,8 +108,7 @@ public sealed class PartData(
     public class BinaryChannelItem(
         public val provider: () -> ByteReadChannel,
         partHeaders: Headers,
-        release: suspend () -> Unit = {},
-    ) : PartData({}, partHeaders, release)
+    ) : PartData({}, partHeaders, {})
 
     /**
      * Parsed `Content-Disposition` header or `null` if missing.
