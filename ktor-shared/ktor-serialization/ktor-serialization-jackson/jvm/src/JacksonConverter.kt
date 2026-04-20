@@ -35,6 +35,17 @@ public class JacksonConverter(
     private val streamBody: Boolean = true,
 ) : ContentConverter {
 
+    @Deprecated(
+        "Use constructor(objectMapper, streamBody) instead",
+        replaceWith = ReplaceWith("JacksonConverter(objectMapper, streamBody = streamRequestBody)"),
+        level = DeprecationLevel.WARNING
+    )
+    public constructor(
+        objectMapper: ObjectMapper = jacksonObjectMapper(),
+        streamRequestBody: Boolean = true,
+        dummy: Unit = Unit
+    ) : this(objectMapper, streamBody = streamRequestBody)
+
     override suspend fun serialize(
         contentType: ContentType,
         charset: Charset,
@@ -177,3 +188,29 @@ public fun Configuration.jackson(
     val converter = JacksonConverter(mapper, streamBody)
     register(contentType, converter)
 }
+
+/**
+ * Registers the `application/json` content type to the [ContentNegotiation] plugin using Jackson.
+ *
+ * You can learn more from the corresponding [client](https://ktor.io/docs/client-serialization.html#-3bcvpz_158) and [server](https://ktor.io/docs/server-serialization.html#-230zkf_175) documentation.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.jackson.jackson)
+ *
+ * @param contentType the content type to send with a request
+ * @param streamRequestBody if set to true, will stream request body, without keeping it whole in memory.
+ * This will set `Transfer-Encoding: chunked` header.
+ * @param block a configuration block for [ObjectMapper]
+ */
+@Deprecated(
+    "Use jackson(contentType, streamBody, block) instead",
+    replaceWith = ReplaceWith("jackson(contentType, streamBody = streamRequestBody, block)"),
+    level = DeprecationLevel.WARNING
+)
+public fun Configuration.jackson(
+    contentType: ContentType = ContentType.Application.Json,
+    streamRequestBody: Boolean = true,
+    @Suppress("UNUSED_PARAMETER")
+    dummy: Unit = Unit,
+    block: ObjectMapper.() -> Unit = {}
+): Unit = jackson(contentType, streamRequestBody, block)
