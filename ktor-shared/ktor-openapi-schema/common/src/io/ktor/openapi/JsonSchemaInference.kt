@@ -74,7 +74,7 @@ public class KotlinxSerializerJsonSchemaInference(
         /**
          * Default instance of KotlinxSerializerJsonSchemaInference using an empty serializers module.
          */
-        public val Default: KotlinxSerializerJsonSchemaInference get() =
+        public val Default: KotlinxSerializerJsonSchemaInference =
             KotlinxSerializerJsonSchemaInference(EmptySerializersModule())
     }
     private val kTypeLookup = mutableMapOf<String, KType>()

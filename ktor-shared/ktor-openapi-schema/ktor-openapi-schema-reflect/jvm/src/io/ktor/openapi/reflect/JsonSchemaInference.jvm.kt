@@ -242,7 +242,7 @@ public class ReflectionJsonSchemaInference(
                 val resolvedPropertyType = swapTypeArgs(prop.returnType, type)
                 val propertyIsNullable = adapter.isNullable(resolvedPropertyType)
 
-                properties[propertyName] = buildSchemaOrRef(prop.returnType, visiting, prop.annotations)
+                properties[propertyName] = buildSchemaOrRef(resolvedPropertyType, visiting, prop.annotations)
 
                 // Required: non-nullable properties are required (best effort; default values are not detectable reliably)
                 if (!propertyIsNullable) {
