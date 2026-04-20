@@ -419,6 +419,9 @@ public fun jsonSchemaFromAnnotations(
         default = annotations.firstInstanceOf<Default>()?.value?.let { parseJsonLiteralToGenericElement(it) },
         format = annotations.firstInstanceOf<Format>()?.value ?: format,
         items = annotations.firstInstanceOf<ItemsRef>()?.value?.reflectSchema() ?: items,
+        prefixItems = annotations.firstInstanceOf<PrefixItemsRef>()?.value
+            ?.map { it.reflectSchema() }
+            ?.takeIf { it.isNotEmpty() },
         maximum = annotations.firstInstanceOf<Maximum>()?.takeIf { !it.exclusive }?.value,
         exclusiveMaximum = annotations.firstInstanceOf<Maximum>()?.takeIf { it.exclusive }?.value,
         minimum = annotations.firstInstanceOf<Minimum>()?.takeIf { !it.exclusive }?.value,
