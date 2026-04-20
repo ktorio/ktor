@@ -75,6 +75,7 @@ public sealed class MultipartEvent {
         public val headers: Deferred<HttpHeadersMap>,
         public val body: ByteReadChannel
     ) : MultipartEvent() {
+        @Deprecated("Use releaseSuspend instead", level = DeprecationLevel.WARNING)
         @OptIn(ExperimentalCoroutinesApi::class)
         override fun release() {
             headers.invokeOnCompletion { t ->
@@ -86,8 +87,11 @@ public sealed class MultipartEvent {
             body.discardBlocking()
         }
         override suspend fun releaseSuspend() {
-            headers.await().release()
-            body.discard()
+            try {
+                headers.await().release()
+            } finally {
+                body.discard()
+            }
         }
     }
 
