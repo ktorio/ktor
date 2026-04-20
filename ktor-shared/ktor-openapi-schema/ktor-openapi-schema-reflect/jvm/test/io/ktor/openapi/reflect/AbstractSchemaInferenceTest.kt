@@ -50,6 +50,14 @@ abstract class AbstractSchemaInferenceTest(
         assertSchemaMatches<ContainerTestData>()
 
     @Test
+    fun `items ref annotation`() =
+        assertSchemaMatches<ItemsRefData>()
+
+    @Test
+    fun `prefix items ref annotation`() =
+        assertSchemaMatches<PrefixItemsRefData>()
+
+    @Test
     fun `logical operators`() =
         assertSchemaMatches<LogicalOperatorsData>()
 
@@ -266,3 +274,15 @@ data class TreeNode(
 @JvmInline
 @Serializable
 value class Email(val value: String)
+
+@Serializable
+data class ItemsRefData(
+    @JsonSchema.ItemsRef(Country::class)
+    val locations: List<String>,
+)
+
+@Serializable
+data class PrefixItemsRefData(
+    @JsonSchema.PrefixItemsRef(Address::class, Country::class)
+    val mixedTuple: List<String>,
+)
