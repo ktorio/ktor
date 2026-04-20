@@ -29,12 +29,12 @@ import kotlin.text.*
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.jackson3.JacksonConverter)
  *
  * @param objectMapper a configured instance of [ObjectMapper]
- * @param streamRequestBody if set to true, will stream request body, without keeping it whole in memory.
+ * @param streamBody if set to true, will stream request/response body, without keeping it whole in memory.
  * This will set `Transfer-Encoding: chunked` header.
  */
 public class JacksonConverter(
     private val objectMapper: ObjectMapper = jacksonObjectMapper(),
-    private val streamRequestBody: Boolean = true
+    private val streamBody: Boolean = true
 ) : ContentConverter {
 
     override suspend fun serialize(
@@ -43,7 +43,7 @@ public class JacksonConverter(
         typeInfo: TypeInfo,
         value: Any?
     ): OutgoingContent {
-        if (!streamRequestBody && typeInfo.type != Flow::class) {
+        if (!streamBody && typeInfo.type != Flow::class) {
             return TextContent(
                 objectMapper.writeValueAsString(value),
                 contentType.withCharsetIfNeeded(charset)
@@ -148,14 +148,14 @@ public class JacksonConverter(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.jackson3.jackson)
  *
- * @param contentType the content type to send with request
- * @param streamRequestBody if set to true, will stream request body, without keeping it whole in memory.
+ * @param contentType the content type to send with a request
+ * @param streamBody if set to true, will stream request/response body, without keeping it whole in memory.
  * This will set `Transfer-Encoding: chunked` header.
  * @param block a configuration block for [JsonMapper.Builder]
  */
 public fun Configuration.jackson(
     contentType: ContentType = ContentType.Application.Json,
-    streamRequestBody: Boolean = true,
+    streamBody: Boolean = true,
     block: JsonMapper.Builder.() -> Unit = {}
 ) {
     val builder = JsonMapper.builder()
@@ -170,6 +170,6 @@ public fun Configuration.jackson(
     builder.apply(block)
     val mapper = builder.build()
 
-    val converter = JacksonConverter(mapper, streamRequestBody)
+    val converter = JacksonConverter(mapper, streamBody)
     register(contentType, converter)
 }
