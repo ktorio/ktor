@@ -22,15 +22,17 @@ internal class OkHttpWebsocketSession(
     private val webSocketFactory: WebSocket.Factory,
     engineRequest: Request,
     override val coroutineContext: CoroutineContext,
-    channelsConfig: WebSocketChannelsConfig = WebSocketChannelsConfig.UNLIMITED,
+    wsConfig: WebSockets = WebSockets(),
 ) : DefaultWebSocketSession, WebSocketListener() {
     // Deferred reference to "this", completed only after the object successfully constructed.
     private val self = CompletableDeferred<OkHttpWebsocketSession>()
 
     internal val originResponse: CompletableDeferred<Response> = CompletableDeferred()
 
-    override var pingIntervalMillis: Long
-        get() = engine.pingIntervalMillis.toLong()
+    private val channelsConfig: WebSocketChannelsConfig = wsConfig.channelsConfig
+
+    override var pingIntervalMillis: Long =
+        engine.pingIntervalMillis.toLong().takeIf { it != PINGER_DISABLED } ?: wsConfig.pingIntervalMillis
         set(_) = throw WebSocketException(
             "OkHttp doesn't support dynamic ping interval. You could switch it in the engine configuration."
         )
