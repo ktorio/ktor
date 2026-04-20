@@ -18,8 +18,8 @@ public class WinHttpClientEngineConfig : HttpClientEngineConfig() {
     public var protocolVersion: HttpProtocolVersion = HttpProtocolVersion.HTTP_2_0
 
     /**
-     * A value that allows to set required security protocol versions.
-     * By default will be used system setting.
+     * A value that allows setting the required security protocol versions.
+     * By default, the system setting will be used.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.winhttp.WinHttpClientEngineConfig.securityProtocols)
      */
