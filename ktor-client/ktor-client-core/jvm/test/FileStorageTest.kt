@@ -81,6 +81,22 @@ class FileStorageTest {
         assertEquals(0, storage.findAll(Url("http://example.com")).size)
     }
 
+    @Test
+    fun testClear() = runTest {
+        val storage = FileStorage(tempDirectory)
+        storage.store(Url("http://example.com"), data())
+        storage.store(Url("http://example.com"), data(mapOf("key" to "value")))
+        storage.store(Url("http://other.com"), data())
+
+        assertEquals(2, storage.findAll(Url("http://example.com")).size)
+        assertEquals(1, storage.findAll(Url("http://other.com")).size)
+
+        storage.clear()
+
+        assertEquals(0, storage.findAll(Url("http://example.com")).size)
+        assertEquals(0, storage.findAll(Url("http://other.com")).size)
+    }
+
     private fun data(varyKeys: Map<String, String> = emptyMap()) = CachedResponseData(
         Url("http://example.com"),
         HttpStatusCode.OK,

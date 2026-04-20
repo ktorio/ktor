@@ -138,6 +138,14 @@ public class HttpCache private constructor(
         }
     }
 
+    /**
+     * Removes all entries from both public and private cache storages.
+     */
+    public suspend fun clearAllCaches() {
+        publicStorageNew.clear()
+        privateStorageNew.clear()
+    }
+
     public companion object : HttpClientPlugin<Config, HttpCache> {
         override val key: AttributeKey<HttpCache> = AttributeKey("HttpCache")
 

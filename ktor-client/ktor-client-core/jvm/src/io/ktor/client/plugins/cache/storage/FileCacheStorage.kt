@@ -70,6 +70,11 @@ internal class CachingCacheStorage(
         delegate.removeAll(url)
         store.remove(url)
     }
+
+    override suspend fun clear() {
+        delegate.clear()
+        store.clear()
+    }
 }
 
 private class FileCacheStorage(
@@ -111,6 +116,18 @@ private class FileCacheStorage(
     override suspend fun removeAll(url: Url) = withContext(dispatcher) {
         val urlHex = key(url)
         deleteCache(urlHex)
+    }
+
+    override suspend fun clear(): Unit = withContext(dispatcher) {
+        val files = directory.listFiles() ?: return@withContext
+        for (file in files) {
+            try {
+                file.delete()
+            } catch (cause: Exception) {
+                LOGGER.trace { "Exception during cache deletion in a file: ${cause.stackTraceToString()}" }
+            }
+        }
+        mutexes.clear()
     }
 
     private fun key(url: Url) = hex(MessageDigest.getInstance("SHA-256").digest(url.toString().encodeToByteArray()))

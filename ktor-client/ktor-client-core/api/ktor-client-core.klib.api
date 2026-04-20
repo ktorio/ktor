@@ -65,6 +65,7 @@ abstract interface io.ktor.client.plugins.cache.storage/CacheStorage { // io.kto
     abstract suspend fun remove(io.ktor.http/Url, kotlin.collections/Map<kotlin/String, kotlin/String>) // io.ktor.client.plugins.cache.storage/CacheStorage.remove|remove(io.ktor.http.Url;kotlin.collections.Map<kotlin.String,kotlin.String>){}[0]
     abstract suspend fun removeAll(io.ktor.http/Url) // io.ktor.client.plugins.cache.storage/CacheStorage.removeAll|removeAll(io.ktor.http.Url){}[0]
     abstract suspend fun store(io.ktor.http/Url, io.ktor.client.plugins.cache.storage/CachedResponseData) // io.ktor.client.plugins.cache.storage/CacheStorage.store|store(io.ktor.http.Url;io.ktor.client.plugins.cache.storage.CachedResponseData){}[0]
+    open suspend fun clear() // io.ktor.client.plugins.cache.storage/CacheStorage.clear|clear(){}[0]
 
     final object Companion { // io.ktor.client.plugins.cache.storage/CacheStorage.Companion|null[0]
         final val Disabled // io.ktor.client.plugins.cache.storage/CacheStorage.Companion.Disabled|{}Disabled[0]
@@ -409,6 +410,8 @@ final class io.ktor.client.plugins.cache.storage/CachedResponseData { // io.ktor
 }
 
 final class io.ktor.client.plugins.cache/HttpCache { // io.ktor.client.plugins.cache/HttpCache|null[0]
+    final suspend fun clearAllCaches() // io.ktor.client.plugins.cache/HttpCache.clearAllCaches|clearAllCaches(){}[0]
+
     final class Config { // io.ktor.client.plugins.cache/HttpCache.Config|null[0]
         constructor <init>() // io.ktor.client.plugins.cache/HttpCache.Config.<init>|<init>(){}[0]
 
