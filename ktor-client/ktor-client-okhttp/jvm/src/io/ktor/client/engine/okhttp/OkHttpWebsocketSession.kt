@@ -32,7 +32,7 @@ internal class OkHttpWebsocketSession(
     private val channelsConfig: WebSocketChannelsConfig = wsConfig.channelsConfig
 
     override var pingIntervalMillis: Long =
-        wsConfig.pingIntervalMillis.takeIf { it != PINGER_DISABLED } ?: engine.pingIntervalMillis.toLong()
+        engine.pingIntervalMillis.toLong().takeIf { it != PINGER_DISABLED } ?: wsConfig.pingIntervalMillis
         set(_) = throw WebSocketException(
             "OkHttp doesn't support dynamic ping interval. You could switch it in the engine configuration."
         )

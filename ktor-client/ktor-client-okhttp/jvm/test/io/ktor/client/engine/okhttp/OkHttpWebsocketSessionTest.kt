@@ -58,7 +58,7 @@ class OkHttpWebsocketSessionTest {
     }
 
     @Test
-    fun `ktor config takes priority over engine value`() {
+    fun `engine value takes priority over ktor config`() {
         val engineInterval = 10_000L
         val ktorInterval = 5_000L
         val client = OkHttpClient.Builder()
@@ -67,7 +67,7 @@ class OkHttpWebsocketSessionTest {
         val request = Request.Builder().url("ws://localhost").build()
         val session =
             OkHttpWebsocketSession(client, client, request, Job(), WebSockets(pingIntervalMillis = ktorInterval))
-        assertEquals(ktorInterval, session.pingIntervalMillis)
+        assertEquals(engineInterval, session.pingIntervalMillis)
     }
 
     @Test
