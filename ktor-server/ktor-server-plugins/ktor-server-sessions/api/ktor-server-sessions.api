@@ -44,10 +44,12 @@ public final class io/ktor/server/sessions/CookieIdSessionBuilder : io/ktor/serv
 public class io/ktor/server/sessions/CookieSessionBuilder {
 	public fun <init> (Lkotlin/reflect/KClass;Lkotlin/reflect/KType;)V
 	public final fun getCookie ()Lio/ktor/server/sessions/CookieConfiguration;
+	public final fun getSendOnlyIfModified ()Z
 	public final fun getSerializer ()Lio/ktor/server/sessions/SessionSerializer;
 	public final fun getTransformers ()Ljava/util/List;
 	public final fun getType ()Lkotlin/reflect/KClass;
 	public final fun getTypeInfo ()Lkotlin/reflect/KType;
+	public final fun setSendOnlyIfModified (Z)V
 	public final fun setSerializer (Lio/ktor/server/sessions/SessionSerializer;)V
 	public final fun transform (Lio/ktor/server/sessions/SessionTransportTransformer;)V
 }
@@ -81,10 +83,12 @@ public final class io/ktor/server/sessions/HeaderIdSessionBuilder : io/ktor/serv
 
 public class io/ktor/server/sessions/HeaderSessionBuilder {
 	public fun <init> (Lkotlin/reflect/KClass;Lkotlin/reflect/KType;)V
+	public final fun getSendOnlyIfModified ()Z
 	public final fun getSerializer ()Lio/ktor/server/sessions/SessionSerializer;
 	public final fun getTransformers ()Ljava/util/List;
 	public final fun getType ()Lkotlin/reflect/KClass;
 	public final fun getTypeInfo ()Lkotlin/reflect/KType;
+	public final fun setSendOnlyIfModified (Z)V
 	public final fun setSerializer (Lio/ktor/server/sessions/SessionSerializer;)V
 	public final fun transform (Lio/ktor/server/sessions/SessionTransportTransformer;)V
 }
@@ -126,9 +130,11 @@ public final class io/ktor/server/sessions/SessionNotYetConfiguredException : ja
 public final class io/ktor/server/sessions/SessionProvider {
 	public fun <init> (Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/server/sessions/SessionTransport;Lio/ktor/server/sessions/SessionTracker;)V
 	public final fun getName ()Ljava/lang/String;
+	public final fun getSendOnlyIfModified ()Z
 	public final fun getTracker ()Lio/ktor/server/sessions/SessionTracker;
 	public final fun getTransport ()Lio/ktor/server/sessions/SessionTransport;
 	public final fun getType ()Lkotlin/reflect/KClass;
+	public final fun setSendOnlyIfModified (Z)V
 	public fun toString ()Ljava/lang/String;
 }
 
