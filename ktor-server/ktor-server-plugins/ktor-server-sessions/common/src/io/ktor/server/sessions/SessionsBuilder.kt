@@ -43,8 +43,7 @@ internal fun <S : Any> SessionsConfig.cookie(
 ) {
     val transport = SessionTransportCookie(name, builder.cookie, builder.transformers)
     val tracker = SessionTrackerById(sessionType, builder.serializer, storage, builder::provideSessionId)
-    val provider = SessionProvider(name, sessionType, transport, tracker)
-    provider.sendOnlyIfModified = builder.sendOnlyIfModified
+    val provider = SessionProvider(name, sessionType, transport, tracker, builder.sendOnlyIfModified)
     register(provider)
 }
 
@@ -162,8 +161,7 @@ internal fun <S : Any> SessionsConfig.header(
 
         else -> SessionTrackerByValue(sessionType, builder.serializer)
     }
-    val provider = SessionProvider(name, sessionType, transport, tracker)
-    provider.sendOnlyIfModified = builder.sendOnlyIfModified
+    val provider = SessionProvider(name, sessionType, transport, tracker, builder.sendOnlyIfModified)
     register(provider)
 }
 
@@ -253,8 +251,7 @@ internal fun <S : Any> SessionsConfig.cookie(
 ) {
     val transport = SessionTransportCookie(name, builder.cookie, builder.transformers)
     val tracker = SessionTrackerByValue(sessionType, builder.serializer)
-    val provider = SessionProvider(name, sessionType, transport, tracker)
-    provider.sendOnlyIfModified = builder.sendOnlyIfModified
+    val provider = SessionProvider(name, sessionType, transport, tracker, builder.sendOnlyIfModified)
     register(provider)
 }
 

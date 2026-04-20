@@ -76,20 +76,18 @@ final class <#A: kotlin/Any> io.ktor.server.sessions/HeaderIdSessionBuilder : io
 }
 
 final class <#A: kotlin/Any> io.ktor.server.sessions/SessionProvider { // io.ktor.server.sessions/SessionProvider|null[0]
-    constructor <init>(kotlin/String, kotlin.reflect/KClass<#A>, io.ktor.server.sessions/SessionTransport, io.ktor.server.sessions/SessionTracker<#A>) // io.ktor.server.sessions/SessionProvider.<init>|<init>(kotlin.String;kotlin.reflect.KClass<1:0>;io.ktor.server.sessions.SessionTransport;io.ktor.server.sessions.SessionTracker<1:0>){}[0]
+    constructor <init>(kotlin/String, kotlin.reflect/KClass<#A>, io.ktor.server.sessions/SessionTransport, io.ktor.server.sessions/SessionTracker<#A>, kotlin/Boolean = ...) // io.ktor.server.sessions/SessionProvider.<init>|<init>(kotlin.String;kotlin.reflect.KClass<1:0>;io.ktor.server.sessions.SessionTransport;io.ktor.server.sessions.SessionTracker<1:0>;kotlin.Boolean){}[0]
 
     final val name // io.ktor.server.sessions/SessionProvider.name|{}name[0]
         final fun <get-name>(): kotlin/String // io.ktor.server.sessions/SessionProvider.name.<get-name>|<get-name>(){}[0]
+    final val sendOnlyIfModified // io.ktor.server.sessions/SessionProvider.sendOnlyIfModified|{}sendOnlyIfModified[0]
+        final fun <get-sendOnlyIfModified>(): kotlin/Boolean // io.ktor.server.sessions/SessionProvider.sendOnlyIfModified.<get-sendOnlyIfModified>|<get-sendOnlyIfModified>(){}[0]
     final val tracker // io.ktor.server.sessions/SessionProvider.tracker|{}tracker[0]
         final fun <get-tracker>(): io.ktor.server.sessions/SessionTracker<#A> // io.ktor.server.sessions/SessionProvider.tracker.<get-tracker>|<get-tracker>(){}[0]
     final val transport // io.ktor.server.sessions/SessionProvider.transport|{}transport[0]
         final fun <get-transport>(): io.ktor.server.sessions/SessionTransport // io.ktor.server.sessions/SessionProvider.transport.<get-transport>|<get-transport>(){}[0]
     final val type // io.ktor.server.sessions/SessionProvider.type|{}type[0]
         final fun <get-type>(): kotlin.reflect/KClass<#A> // io.ktor.server.sessions/SessionProvider.type.<get-type>|<get-type>(){}[0]
-
-    final var sendOnlyIfModified // io.ktor.server.sessions/SessionProvider.sendOnlyIfModified|{}sendOnlyIfModified[0]
-        final fun <get-sendOnlyIfModified>(): kotlin/Boolean // io.ktor.server.sessions/SessionProvider.sendOnlyIfModified.<get-sendOnlyIfModified>|<get-sendOnlyIfModified>(){}[0]
-        final fun <set-sendOnlyIfModified>(kotlin/Boolean) // io.ktor.server.sessions/SessionProvider.sendOnlyIfModified.<set-sendOnlyIfModified>|<set-sendOnlyIfModified>(kotlin.Boolean){}[0]
 
     final fun toString(): kotlin/String // io.ktor.server.sessions/SessionProvider.toString|toString(){}[0]
 }

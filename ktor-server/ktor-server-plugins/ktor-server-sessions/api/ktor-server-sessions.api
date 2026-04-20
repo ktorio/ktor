@@ -128,13 +128,13 @@ public final class io/ktor/server/sessions/SessionNotYetConfiguredException : ja
 }
 
 public final class io/ktor/server/sessions/SessionProvider {
-	public fun <init> (Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/server/sessions/SessionTransport;Lio/ktor/server/sessions/SessionTracker;)V
+	public fun <init> (Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/server/sessions/SessionTransport;Lio/ktor/server/sessions/SessionTracker;Z)V
+	public synthetic fun <init> (Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/server/sessions/SessionTransport;Lio/ktor/server/sessions/SessionTracker;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getName ()Ljava/lang/String;
 	public final fun getSendOnlyIfModified ()Z
 	public final fun getTracker ()Lio/ktor/server/sessions/SessionTracker;
 	public final fun getTransport ()Lio/ktor/server/sessions/SessionTransport;
 	public final fun getType ()Lkotlin/reflect/KClass;
-	public final fun setSendOnlyIfModified (Z)V
 	public fun toString ()Ljava/lang/String;
 }
 

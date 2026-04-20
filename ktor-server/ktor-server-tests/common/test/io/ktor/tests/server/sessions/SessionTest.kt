@@ -953,6 +953,45 @@ class SessionTest {
         }
     }
 
+    @Test
+    fun `sendOnlyIfModified detects in-place mutation of same instance`() = testApplication {
+        install(Sessions) {
+            cookie<MutableSession>(cookieName) {
+                sendOnlyIfModified = true
+            }
+        }
+
+        routing {
+            get("/set") {
+                call.sessions.set(MutableSession(mutableListOf("a")))
+                call.respondText("ok")
+            }
+            get("/mutate") {
+                val session = call.sessions.get<MutableSession>()!!
+                session.items.add("b")
+                call.sessions.set(session)
+                call.respondText("ok")
+            }
+        }
+
+        // First request: create session
+        val sessionParam = client.get("/set").let { response ->
+            val sessionCookie = response.cookies[cookieName]
+            assertNotNull(sessionCookie, "New session must send Set-Cookie")
+            sessionCookie.value
+        }
+
+        // Second request: mutate in-place and re-set the same instance → must send Set-Cookie
+        client.get("/mutate") {
+            header(HttpHeaders.Cookie, "$cookieName=${sessionParam.encodeURLParameter()}")
+        }.let { response ->
+            assertNotNull(
+                response.cookies[cookieName],
+                "In-place mutated session must send Set-Cookie"
+            )
+        }
+    }
+
     private suspend fun HttpClient.getWithCookie(url: String, cookie: String): HttpResponse =
         get(url) { header(HttpHeaders.Cookie, "$cookieName=$cookie") }
 
@@ -1100,6 +1139,9 @@ data class TestUserSession(val userId: String, val cart: List<String>)
 
 @Serializable
 data class TestUserSessionB(val userId: String, val cart: List<String>)
+
+@Serializable
+data class MutableSession(val items: MutableList<String>)
 
 // Custom serializer should work without kotlinx-serialization
 data class TestUserSessionCustom(val userId: String, val cart: List<String>) {
