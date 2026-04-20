@@ -14,7 +14,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
 
 /**
- * Shortcut that allows to easily wrap engine factory into Stetho tracer.
+ * Shortcut that allows easily wrapping an engine factory into a Stetho tracer.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugin.tracing.Stetho)
  */

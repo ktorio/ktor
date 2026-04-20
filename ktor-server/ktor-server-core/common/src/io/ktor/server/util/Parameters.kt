@@ -11,7 +11,7 @@ import io.ktor.util.reflect.*
 import kotlin.reflect.*
 
 /**
- * Operator function that allows to delegate variables by call parameters.
+ * Operator function that allows delegating variables to call parameters.
  * It does conversion to type [R] using [DefaultConversionService]
  *
  * Example
