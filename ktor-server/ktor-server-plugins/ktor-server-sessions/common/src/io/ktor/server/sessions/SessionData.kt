@@ -261,6 +261,9 @@ internal suspend fun <S : Any> SessionProviderData<S>.sendSessionData(call: Appl
     val newValue = newValue
     when {
         newValue != null -> {
+            if (provider.sendOnlyIfModified && incoming && newValue !== oldValue && newValue == oldValue) {
+                return
+            }
             val wrapped = provider.tracker.store(call, newValue)
             provider.transport.send(call, wrapped)
         }

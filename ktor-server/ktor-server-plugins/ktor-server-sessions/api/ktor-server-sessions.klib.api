@@ -76,10 +76,12 @@ final class <#A: kotlin/Any> io.ktor.server.sessions/HeaderIdSessionBuilder : io
 }
 
 final class <#A: kotlin/Any> io.ktor.server.sessions/SessionProvider { // io.ktor.server.sessions/SessionProvider|null[0]
-    constructor <init>(kotlin/String, kotlin.reflect/KClass<#A>, io.ktor.server.sessions/SessionTransport, io.ktor.server.sessions/SessionTracker<#A>) // io.ktor.server.sessions/SessionProvider.<init>|<init>(kotlin.String;kotlin.reflect.KClass<1:0>;io.ktor.server.sessions.SessionTransport;io.ktor.server.sessions.SessionTracker<1:0>){}[0]
+    constructor <init>(kotlin/String, kotlin.reflect/KClass<#A>, io.ktor.server.sessions/SessionTransport, io.ktor.server.sessions/SessionTracker<#A>, kotlin/Boolean = ...) // io.ktor.server.sessions/SessionProvider.<init>|<init>(kotlin.String;kotlin.reflect.KClass<1:0>;io.ktor.server.sessions.SessionTransport;io.ktor.server.sessions.SessionTracker<1:0>;kotlin.Boolean){}[0]
 
     final val name // io.ktor.server.sessions/SessionProvider.name|{}name[0]
         final fun <get-name>(): kotlin/String // io.ktor.server.sessions/SessionProvider.name.<get-name>|<get-name>(){}[0]
+    final val sendOnlyIfModified // io.ktor.server.sessions/SessionProvider.sendOnlyIfModified|{}sendOnlyIfModified[0]
+        final fun <get-sendOnlyIfModified>(): kotlin/Boolean // io.ktor.server.sessions/SessionProvider.sendOnlyIfModified.<get-sendOnlyIfModified>|<get-sendOnlyIfModified>(){}[0]
     final val tracker // io.ktor.server.sessions/SessionProvider.tracker|{}tracker[0]
         final fun <get-tracker>(): io.ktor.server.sessions/SessionTracker<#A> // io.ktor.server.sessions/SessionProvider.tracker.<get-tracker>|<get-tracker>(){}[0]
     final val transport // io.ktor.server.sessions/SessionProvider.transport|{}transport[0]
@@ -231,6 +233,9 @@ open class <#A: kotlin/Any> io.ktor.server.sessions/CookieSessionBuilder { // io
     final val typeInfo // io.ktor.server.sessions/CookieSessionBuilder.typeInfo|{}typeInfo[0]
         final fun <get-typeInfo>(): kotlin.reflect/KType // io.ktor.server.sessions/CookieSessionBuilder.typeInfo.<get-typeInfo>|<get-typeInfo>(){}[0]
 
+    final var sendOnlyIfModified // io.ktor.server.sessions/CookieSessionBuilder.sendOnlyIfModified|{}sendOnlyIfModified[0]
+        final fun <get-sendOnlyIfModified>(): kotlin/Boolean // io.ktor.server.sessions/CookieSessionBuilder.sendOnlyIfModified.<get-sendOnlyIfModified>|<get-sendOnlyIfModified>(){}[0]
+        final fun <set-sendOnlyIfModified>(kotlin/Boolean) // io.ktor.server.sessions/CookieSessionBuilder.sendOnlyIfModified.<set-sendOnlyIfModified>|<set-sendOnlyIfModified>(kotlin.Boolean){}[0]
     final var serializer // io.ktor.server.sessions/CookieSessionBuilder.serializer|{}serializer[0]
         final fun <get-serializer>(): io.ktor.server.sessions/SessionSerializer<#A> // io.ktor.server.sessions/CookieSessionBuilder.serializer.<get-serializer>|<get-serializer>(){}[0]
         final fun <set-serializer>(io.ktor.server.sessions/SessionSerializer<#A>) // io.ktor.server.sessions/CookieSessionBuilder.serializer.<set-serializer>|<set-serializer>(io.ktor.server.sessions.SessionSerializer<1:0>){}[0]
@@ -248,6 +253,9 @@ open class <#A: kotlin/Any> io.ktor.server.sessions/HeaderSessionBuilder { // io
     final val typeInfo // io.ktor.server.sessions/HeaderSessionBuilder.typeInfo|{}typeInfo[0]
         final fun <get-typeInfo>(): kotlin.reflect/KType // io.ktor.server.sessions/HeaderSessionBuilder.typeInfo.<get-typeInfo>|<get-typeInfo>(){}[0]
 
+    final var sendOnlyIfModified // io.ktor.server.sessions/HeaderSessionBuilder.sendOnlyIfModified|{}sendOnlyIfModified[0]
+        final fun <get-sendOnlyIfModified>(): kotlin/Boolean // io.ktor.server.sessions/HeaderSessionBuilder.sendOnlyIfModified.<get-sendOnlyIfModified>|<get-sendOnlyIfModified>(){}[0]
+        final fun <set-sendOnlyIfModified>(kotlin/Boolean) // io.ktor.server.sessions/HeaderSessionBuilder.sendOnlyIfModified.<set-sendOnlyIfModified>|<set-sendOnlyIfModified>(kotlin.Boolean){}[0]
     final var serializer // io.ktor.server.sessions/HeaderSessionBuilder.serializer|{}serializer[0]
         final fun <get-serializer>(): io.ktor.server.sessions/SessionSerializer<#A> // io.ktor.server.sessions/HeaderSessionBuilder.serializer.<get-serializer>|<get-serializer>(){}[0]
         final fun <set-serializer>(io.ktor.server.sessions/SessionSerializer<#A>) // io.ktor.server.sessions/HeaderSessionBuilder.serializer.<set-serializer>|<set-serializer>(io.ktor.server.sessions.SessionSerializer<1:0>){}[0]

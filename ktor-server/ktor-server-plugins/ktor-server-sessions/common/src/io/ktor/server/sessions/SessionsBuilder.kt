@@ -43,7 +43,7 @@ internal fun <S : Any> SessionsConfig.cookie(
 ) {
     val transport = SessionTransportCookie(name, builder.cookie, builder.transformers)
     val tracker = SessionTrackerById(sessionType, builder.serializer, storage, builder::provideSessionId)
-    val provider = SessionProvider(name, sessionType, transport, tracker)
+    val provider = SessionProvider(name, sessionType, transport, tracker, builder.sendOnlyIfModified)
     register(provider)
 }
 
@@ -161,7 +161,7 @@ internal fun <S : Any> SessionsConfig.header(
 
         else -> SessionTrackerByValue(sessionType, builder.serializer)
     }
-    val provider = SessionProvider(name, sessionType, transport, tracker)
+    val provider = SessionProvider(name, sessionType, transport, tracker, builder.sendOnlyIfModified)
     register(provider)
 }
 
@@ -251,7 +251,7 @@ internal fun <S : Any> SessionsConfig.cookie(
 ) {
     val transport = SessionTransportCookie(name, builder.cookie, builder.transformers)
     val tracker = SessionTrackerByValue(sessionType, builder.serializer)
-    val provider = SessionProvider(name, sessionType, transport, tracker)
+    val provider = SessionProvider(name, sessionType, transport, tracker, builder.sendOnlyIfModified)
     register(provider)
 }
 
@@ -416,6 +416,16 @@ internal constructor(
     }
 
     /**
+     * When set to `true`, session data is not re-sent if unchanged from the incoming value.
+     * This avoids unnecessary `Set-Cookie` headers but prevents cookie expiration refresh.
+     * Session classes should properly implement `equals()` for this to work correctly.
+     * Default: `false`.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CookieSessionBuilder.sendOnlyIfModified)
+     */
+    public var sendOnlyIfModified: Boolean = false
+
+    /**
      * Gets a configuration used to specify additional cookie attributes for [Sessions].
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CookieSessionBuilder.cookie)
@@ -442,6 +452,16 @@ internal constructor(
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.HeaderSessionBuilder.serializer)
      */
     public var serializer: SessionSerializer<S> = defaultSessionSerializer(typeInfo)
+
+    /**
+     * When set to `true`, session data is not re-sent if unchanged from the incoming value.
+     * This avoids unnecessary session headers but prevents session expiration refresh.
+     * Session classes should properly implement `equals()` for this to work correctly.
+     * Default: `false`.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.HeaderSessionBuilder.sendOnlyIfModified)
+     */
+    public var sendOnlyIfModified: Boolean = false
 
     private val _transformers = mutableListOf<SessionTransportTransformer>()
 
