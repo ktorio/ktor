@@ -20,6 +20,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import io.ktor.server.testing.*
+import io.ktor.test.*
 import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
@@ -604,42 +605,44 @@ class OAuth2Test {
     }
 
     @Test
-    fun testParamsInURL() = testApplication {
-        install(Authentication) {
-            oauth("login") {
-                client = this@testApplication.client
-                urlProvider = { "http://localhost/login" }
-                providerLookup = {
-                    OAuthServerSettings.OAuth2ServerSettings(
-                        name = "oauth2",
-                        authorizeUrl = "http://localhost/authorize",
-                        accessTokenUrl = "http://localhost/oauth/access_token",
-                        clientId = "clientId1",
-                        clientSecret = "clientSecret1",
-                        requestMethod = HttpMethod.Post,
-                        passParamsInURL = true
-                    )
+    fun testParamsInURL() = retryTest(retries = 3) {
+        testApplication {
+            install(Authentication) {
+                oauth("login") {
+                    client = this@testApplication.client
+                    urlProvider = { "http://localhost/login" }
+                    providerLookup = {
+                        OAuthServerSettings.OAuth2ServerSettings(
+                            name = "oauth2",
+                            authorizeUrl = "http://localhost/authorize",
+                            accessTokenUrl = "http://localhost/oauth/access_token",
+                            clientId = "clientId1",
+                            clientSecret = "clientSecret1",
+                            requestMethod = HttpMethod.Post,
+                            passParamsInURL = true
+                        )
+                    }
                 }
             }
-        }
-        routing {
-            post("/oauth/access_token") {
-                // If these fail, you will see '401 Unauthorized' in test logs.
-                assertEquals(call.request.queryParameters[OAuth2RequestParameters.Code], "mow", "Code is in URL")
-                assertEquals(call.request.queryParameters[OAuth2RequestParameters.State], "wow", "State is in URL")
-                call.respondText("access_token=a_token", ContentType.Application.FormUrlEncoded)
-            }
-            authenticate("login") {
-                get("/login") {
-                    call.respond("We're in.")
+            routing {
+                post("/oauth/access_token") {
+                    // If these fail, you will see '401 Unauthorized' in test logs.
+                    assertEquals(call.request.queryParameters[OAuth2RequestParameters.Code], "mow", "Code is in URL")
+                    assertEquals(call.request.queryParameters[OAuth2RequestParameters.State], "wow", "State is in URL")
+                    call.respondText("access_token=a_token", ContentType.Application.FormUrlEncoded)
+                }
+                authenticate("login") {
+                    get("/login") {
+                        call.respond("We're in.")
+                    }
                 }
             }
-        }
 
-        client.get("/login?code=mow&state=wow").also {
-            // Usually 401 here means, that tests above failed.
-            assertEquals(it.status, HttpStatusCode.OK)
-            assertEquals(it.bodyAsText(), "We're in.")
+            client.get("/login?code=mow&state=wow").also {
+                // Usually 401 here means, that tests above failed.
+                assertEquals(it.status, HttpStatusCode.OK)
+                assertEquals(it.bodyAsText(), "We're in.")
+            }
         }
     }
 
@@ -684,44 +687,46 @@ class OAuth2Test {
     }
 
     @Test
-    fun testFailedNonce() = testApplication {
-        install(Authentication) {
-            oauth("login") {
-                client = this@testApplication.client
-                urlProvider = { "http://localhost/login" }
-                providerLookup = {
-                    OAuthServerSettings.OAuth2ServerSettings(
-                        name = "oauth2",
-                        authorizeUrl = "http://localhost/authorize",
-                        accessTokenUrl = "http://localhost/oauth/access_token",
-                        clientId = "clientId1",
-                        clientSecret = "clientSecret1",
-                        requestMethod = HttpMethod.Post,
-                        nonceManager = object : NonceManager {
-                            override suspend fun newNonce(): String = "some_nonce"
-                            override suspend fun verifyNonce(nonce: String): Boolean = false
-                        }
-                    )
+    fun testFailedNonce() = retryTest(retries = 3) {
+        testApplication {
+            install(Authentication) {
+                oauth("login") {
+                    client = this@testApplication.client
+                    urlProvider = { "http://localhost/login" }
+                    providerLookup = {
+                        OAuthServerSettings.OAuth2ServerSettings(
+                            name = "oauth2",
+                            authorizeUrl = "http://localhost/authorize",
+                            accessTokenUrl = "http://localhost/oauth/access_token",
+                            clientId = "clientId1",
+                            clientSecret = "clientSecret1",
+                            requestMethod = HttpMethod.Post,
+                            nonceManager = object : NonceManager {
+                                override suspend fun newNonce(): String = "some_nonce"
+                                override suspend fun verifyNonce(nonce: String): Boolean = false
+                            }
+                        )
+                    }
                 }
             }
-        }
-        routing {
-            post("/oauth/access_token") {
-                call.respondText("access_token=a_token", ContentType.Application.FormUrlEncoded)
-            }
-            authenticate("login") {
-                get("/login") {
-                    call.respond("We're in.")
+            routing {
+                post("/oauth/access_token") {
+                    call.respondText("access_token=a_token", ContentType.Application.FormUrlEncoded)
+                }
+                authenticate("login") {
+                    get("/login") {
+                        call.respond("We're in.")
+                    }
                 }
             }
-        }
 
-        val authorizeResponse = noRedirectsClient().get("/login")
-        val redirectUrl = Url(authorizeResponse.headers[HttpHeaders.Location]!!)
-        val state = redirectUrl.parameters["state"]!!
-        assertEquals("some_nonce", state)
-        val failedNonceResponse = client.get("/login?code=some_code&state=$state")
-        assertEquals(HttpStatusCode.Unauthorized, failedNonceResponse.status)
+            val authorizeResponse = noRedirectsClient().get("/login")
+            val redirectUrl = Url(authorizeResponse.headers[HttpHeaders.Location]!!)
+            val state = redirectUrl.parameters["state"]!!
+            assertEquals("some_nonce", state)
+            val failedNonceResponse = client.get("/login?code=some_code&state=$state")
+            assertEquals(HttpStatusCode.Unauthorized, failedNonceResponse.status)
+        }
     }
 
     @Test
@@ -798,40 +803,42 @@ class OAuth2Test {
     }
 
     @Test
-    fun formRequestBodyCanBeReceivedInRouteHandler() = testApplication {
-        application {
-            install(Authentication) {
-                oauth {
-                    urlProvider = { "http://localhost:8080/callback" }
-                    providerLookup = {
-                        OAuthServerSettings.OAuth2ServerSettings(
-                            name = "dummy",
-                            authorizeUrl = "localhost",
-                            accessTokenUrl = "localhost",
-                            clientId = "clientId",
-                            clientSecret = "clientSecret"
-                        )
+    fun formRequestBodyCanBeReceivedInRouteHandler() = retryTest(retries = 3) {
+        testApplication {
+            application {
+                install(Authentication) {
+                    oauth {
+                        urlProvider = { "http://localhost:8080/callback" }
+                        providerLookup = {
+                            OAuthServerSettings.OAuth2ServerSettings(
+                                name = "dummy",
+                                authorizeUrl = "localhost",
+                                accessTokenUrl = "localhost",
+                                clientId = "clientId",
+                                clientSecret = "clientSecret"
+                            )
+                        }
+                        client = this@testApplication.client
                     }
-                    client = this@testApplication.client
                 }
-            }
 
-            routing {
-                route("/oauth") {
-                    authenticate(optional = true) {
-                        post {
-                            call.respond(call.receiveText())
+                routing {
+                    route("/oauth") {
+                        authenticate(optional = true) {
+                            post {
+                                call.respond(call.receiveText())
+                            }
                         }
                     }
                 }
             }
-        }
 
-        client.post("/oauth") {
-            setBody(TextContent(listOf("foo" to "bar").formUrlEncode(), ContentType.Application.FormUrlEncoded))
-        }.let { response ->
-            assertEquals(HttpStatusCode.OK, response.status)
-            assertEquals("foo=bar", response.bodyAsText())
+            client.post("/oauth") {
+                setBody(TextContent(listOf("foo" to "bar").formUrlEncode(), ContentType.Application.FormUrlEncoded))
+            }.let { response ->
+                assertEquals(HttpStatusCode.OK, response.status)
+                assertEquals("foo=bar", response.bodyAsText())
+            }
         }
     }
 

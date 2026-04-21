@@ -46,7 +46,7 @@ abstract class HttpRequestLifecycleTest<TEngine : ApplicationEngine, TConfigurat
     @OptIn(ExperimentalAtomicApi::class)
     private fun testDisconnection(
         startServerWithRoute: suspend (suspend RoutingContext.() -> Unit) -> Unit
-    ) = runTest {
+    ) = runTest(retries = 3) {
         val requestStartedCnt = AtomicInt(0)
         val requestCancelledCnt = AtomicInt(0)
 

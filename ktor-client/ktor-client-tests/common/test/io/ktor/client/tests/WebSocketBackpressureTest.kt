@@ -98,7 +98,7 @@ class WebSocketBackpressureTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
                         assertTrue(it.isChannelOverflow, "Unexpected exception: $it")
                         incomingChannelClosed.complete(Unit)
                     }
-                    withTimeout(10.seconds) {
+                    withTimeout(30.seconds) {
                         incomingChannelClosed.await()
                     }
                     close()

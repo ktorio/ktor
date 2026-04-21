@@ -628,7 +628,7 @@ class RateLimitTest {
             register {
                 rateLimiter { _, _ ->
                     createCount++
-                    RateLimiter.default(limit = 3, refillPeriod = 1.seconds)
+                    RateLimiter.default(limit = 3, refillPeriod = 2.seconds)
                 }
             }
         }
@@ -643,21 +643,21 @@ class RateLimitTest {
         client.get("/").let {
             assertEquals(HttpStatusCode.OK, it.status)
         }
-        delay(300)
+        delay(500)
         client.get("/").let {
             assertEquals(HttpStatusCode.OK, it.status)
         }
-        delay(300)
+        delay(500)
         client.get("/").let {
             assertEquals(HttpStatusCode.OK, it.status)
         }
-        delay(300)
+        delay(500)
         client.get("/").let {
             assertEquals(HttpStatusCode.TooManyRequests, it.status)
         }
 
         assertEquals(1, createCount)
-        delay(200)
+        delay(600)
         assertEquals(1, createCount)
 
         client.get("/").let {

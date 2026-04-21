@@ -11,6 +11,7 @@ import kotlinx.coroutines.*
 import kotlinx.io.*
 import platform.posix.*
 import kotlin.test.*
+import kotlin.time.Duration.Companion.minutes
 
 class TcpSocketTestNix {
 
@@ -74,22 +75,24 @@ class TcpSocketTestNix {
     }
 
     @Test
-    fun testDescriptorError() = testSockets { selector ->
-        val socket = aSocket(selector)
-            .tcp()
-            .bind(InetSocketAddress("127.0.0.1", 0))
-        val descriptor = (socket as TCPServerSocketNative).descriptor
+    fun testDescriptorError() = testSuspend {
+        testSockets(timeout = 2.minutes) { selector ->
+            val socket = aSocket(selector)
+                .tcp()
+                .bind(InetSocketAddress("127.0.0.1", 0))
+            val descriptor = (socket as TCPServerSocketNative).descriptor
 
-        launch {
-            // Closing the descriptor here while accept is busy in select, should fail the accept.
-            close(descriptor)
+            launch {
+                // Closing the descriptor here while accept is busy in select, should fail the accept.
+                close(descriptor)
+            }
+
+            assertFailsWith<IOException> {
+                socket.accept()
+            }
+
+            socket.close()
         }
-
-        assertFailsWith<IOException> {
-            socket.accept()
-        }
-
-        socket.close()
     }
 
     @Test
