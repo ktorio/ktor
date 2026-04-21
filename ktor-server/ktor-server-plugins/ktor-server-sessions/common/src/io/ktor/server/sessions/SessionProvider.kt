@@ -15,7 +15,7 @@ import kotlin.reflect.*
  * @param transport specifies the [SessionTransport] for this provider
  * @param tracker specifies the [SessionTracker] for this provider
  * @param sendOnlyIfModified when set to `true`, session data is not re-sent if unchanged from the incoming value.
- * This avoids unnecessary `Set-Cookie` headers but prevents cookie expiration refresh.
+ * This avoids unnecessary session response headers. For cookie sessions, this also prevents cookie expiration refresh.
  * Session classes should properly implement `equals()` for this to work correctly.
  * Default: `false`.
  * @property name session name
@@ -29,6 +29,7 @@ public class SessionProvider<S : Any>(
     public val sendOnlyIfModified: Boolean = false
 ) {
     override fun toString(): String {
-        return "SessionProvider(name = $name, type = $type, transport = $transport, tracker = $tracker)"
+        return "SessionProvider(name = $name, type = $type, transport = $transport, tracker = $tracker, " +
+            "sendOnlyIfModified = $sendOnlyIfModified)"
     }
 }
