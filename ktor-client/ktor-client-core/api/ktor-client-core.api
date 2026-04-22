@@ -165,6 +165,8 @@ public final class io/ktor/client/engine/HttpClientEngine$DefaultImpls {
 }
 
 public abstract class io/ktor/client/engine/HttpClientEngineBase : io/ktor/client/engine/HttpClientEngine {
+	public static final synthetic field clientRefCount$FU$internal Ljava/util/concurrent/atomic/AtomicIntegerFieldUpdater;
+	public synthetic field clientRefCount$internal I
 	public fun <init> (Ljava/lang/String;)V
 	public fun close ()V
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
