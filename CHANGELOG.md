@@ -1,3 +1,20 @@
+# 3.4.3
+> Published 22 April 2026
+
+### Bugfixes
+* [KTOR-9451](https://youtrack.jetbrains.com/issue/KTOR-9451) OpenAPI schema inference not working for custom nested generics
+* [KTOR-9490](https://youtrack.jetbrains.com/issue/KTOR-9490) OpenAPI: Self-referential schema $ref uses FQN while schema is registered with a simple name
+* [KTOR-9463](https://youtrack.jetbrains.com/issue/KTOR-9463) OpenAPI: schema inference StackOverflow
+* [KTOR-8938](https://youtrack.jetbrains.com/issue/KTOR-8938) WebSockets: WebSockets handler does not inherit server coroutine context
+* [KTOR-8989](https://youtrack.jetbrains.com/issue/KTOR-8989) Shared engine is closed when a client created with `config` method is closed
+* [KTOR-9485](https://youtrack.jetbrains.com/issue/KTOR-9485) Apache5: FutureCallback never called, breaking Java agent instrumentation
+* [KTOR-9497](https://youtrack.jetbrains.com/issue/KTOR-9497) Darwin: SIGABRT crash when `close()` races with in-flight `execute()` since 3.4.2
+* [KTOR-9431](https://youtrack.jetbrains.com/issue/KTOR-9431) SuspendFunctionGun: ThreadContextElement leaks across requests when interceptor suspends
+* [KTOR-9423](https://youtrack.jetbrains.com/issue/KTOR-9423) CannotTransformContentToTypeException leaks internal class names in response body
+* [KTOR-9461](https://youtrack.jetbrains.com/issue/KTOR-9461) Incorrect link to the OWASP cheatsheet in the KDoc for CSRF plugin
+* [KTOR-9476](https://youtrack.jetbrains.com/issue/KTOR-9476) Unable to update/remove session data if no response content
+
+
 # 3.4.2
 > Published 27 March 2026
 
