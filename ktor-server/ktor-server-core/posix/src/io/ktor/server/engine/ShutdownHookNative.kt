@@ -13,11 +13,10 @@ internal actual val SHUTDOWN_HOOK_ENABLED = true
 private val shutdownHook: AtomicReference<() -> Unit> = AtomicReference {}
 
 /**
- * Adds automatic application shutdown hooks management. Should be used **before** starting the engine.
- * Once application termination noticed, [stop] block will be executed.
- * Please note that a shutdown hook only registered when the application is running. If the application
- * is already stopped then there will be no hook and no [stop] function invocation possible.
- * So [stop] block will be called once or never.
+ * Registers a POSIX signal handler for shutdown. Each call replaces the previous callback;
+ * only the last registered [stop] block is kept; the built-in [EmbeddedServer.start] hook typically wins.
+ * The listener is not removed on normal stop, but the [stop] block still runs at most once.
+ * Please note that a shutdown hook is only registered when the application is running.
  */
 @OptIn(ExperimentalForeignApi::class)
 internal actual fun EmbeddedServer<*, *>.platformAddShutdownHook(stop: () -> Unit) {

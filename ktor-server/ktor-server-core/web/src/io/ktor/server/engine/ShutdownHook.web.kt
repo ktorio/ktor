@@ -11,11 +11,10 @@ import kotlin.js.*
 internal actual val SHUTDOWN_HOOK_ENABLED = true
 
 /**
- * Adds automatic application shutdown hooks management. Should be used **before** starting the server.
- * Once application termination noticed, [stop] block will be executed.
- * Please note that a shutdown hook only registered when the application is running. If the application
- * is already stopped then there will be no hook and no [stop] function invocation possible.
- * So [stop] block will be called once or never.
+ * Registers process event listeners for shutdown. Each call adds independent listeners;
+ * all are executed on termination in registration order per signal type.
+ * The listeners are not removed on normal stop, but the [stop] block still runs at most once.
+ * Please note that a shutdown hook is only registered when the application is running.
  */
 internal actual fun EmbeddedServer<*, *>.platformAddShutdownHook(stop: () -> Unit) {
     addProcessShutdownHook(stop)

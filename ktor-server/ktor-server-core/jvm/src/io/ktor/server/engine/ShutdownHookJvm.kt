@@ -10,12 +10,11 @@ import java.util.concurrent.atomic.*
 internal actual val SHUTDOWN_HOOK_ENABLED = System.getProperty("io.ktor.server.engine.ShutdownHook", "true") == "true"
 
 /**
- * Configures automatic management of JVM shutdown hooks for terminating an application.
- * This function should be invoked before starting the server.
- * Once the JVM termination is detected, the [stop] block will be executed.
- * Please note that a shutdown hook is registered only while the application is running.
- * If the application has already stopped, the hook won't be registered, and invoking [stop] will have no effect.
- * Therefore, the [stop] block will be called either once or not at all.
+ * Registers a JVM shutdown hook. Each call adds an independent hook; all are executed on termination.
+ * Hooks run concurrently; execution order is not specified.
+ * On normal stop, the hook is removed via [Runtime.removeShutdownHook] when [ApplicationStopping] is raised.
+ * The [stop] block runs at most once.
+ * Please note that a shutdown hook is only registered when the application is running.
  */
 internal actual fun EmbeddedServer<*, *>.platformAddShutdownHook(stop: () -> Unit) {
     val hook = ShutdownHook(stop)
