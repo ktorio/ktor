@@ -20,10 +20,12 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
+import io.netty.channel.Channel
 import kotlinx.coroutines.*
 import java.net.BindException
 import java.net.ServerSocket
 import java.util.concurrent.ExecutorService
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -178,12 +180,14 @@ class NettySpecificTest {
         val shouldRespond = CompletableDeferred<Unit>()
         val callFinished = CompletableDeferred<Unit>()
         val appStarted = CompletableDeferred<Application>()
+        val channel : AtomicReference<Channel> = AtomicReference(null)
 
         val serverJob = launch(Dispatchers.IO) {
             val server = embeddedServer(Netty, port = 0) {
                 routing {
                     get("/test") {
                         handlerStarted.complete(Unit)
+                        channel.set((call.pipelineCall.engineCall as NettyApplicationCall).context.channel())
                         shouldRespond.await()
 
                         // responseReady is only completed once call.respond() runs;
@@ -221,7 +225,11 @@ class NettySpecificTest {
             }
 
             // Give Netty time to process the channel-inactive event
-            delay(300.milliseconds)
+            withTimeout(20.seconds) {
+                while (channel.get() == null || channel.get().isActive) {
+                    delay(10.milliseconds)
+                }
+            }
 
             // Now let the handler try to respond to the already-closed channel
             shouldRespond.complete(Unit)
