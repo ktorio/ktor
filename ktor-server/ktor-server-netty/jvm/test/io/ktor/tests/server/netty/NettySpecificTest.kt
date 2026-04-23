@@ -20,11 +20,14 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
+import io.netty.channel.Channel
 import kotlinx.coroutines.*
 import java.net.BindException
 import java.net.ServerSocket
 import java.util.concurrent.ExecutorService
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.test.*
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 class NettySpecificTest {
@@ -166,6 +169,74 @@ class NettySpecificTest {
                 assertEquals(earlyHints, client.get("/info-channel-writer").status)
                 assertEquals(earlyHints, client.get("/info-read-channel").status)
             }
+        } finally {
+            serverJob.cancel()
+        }
+    }
+
+    @Test
+    fun `call finishes when channel becomes inactive before response is sent`() = runTestWithRealTime {
+        val handlerStarted = CompletableDeferred<Unit>()
+        val shouldRespond = CompletableDeferred<Unit>()
+        val callFinished = CompletableDeferred<Unit>()
+        val appStarted = CompletableDeferred<Application>()
+        val channel: AtomicReference<Channel> = AtomicReference(null)
+
+        val serverJob = launch(Dispatchers.IO) {
+            val server = embeddedServer(Netty, port = 0) {
+                routing {
+                    get("/test") {
+                        handlerStarted.complete(Unit)
+                        channel.set((call.pipelineCall.engineCall as NettyApplicationCall).context.channel())
+                        shouldRespond.await()
+
+                        // responseReady is only completed once call.respond() runs;
+                        // if it is never completed, finishedEvent is never set and
+                        // responseWriteJob.join() in call.finish() hangs forever.
+                        (call.pipelineCall.engineCall as NettyApplicationCall).finishedEvent.addListener {
+                            callFinished.complete(Unit)
+                        }
+
+                        call.respond(HttpStatusCode.OK, "Hello")
+                    }
+                }
+            }
+            server.monitor.subscribe(ApplicationStarted) { app ->
+                appStarted.complete(app)
+            }
+            server.start(wait = true)
+        }
+
+        try {
+            val serverApp = withTimeout(10.seconds) { appStarted.await() }
+            val connector = serverApp.engine.resolvedConnectors()[0]
+
+            SelectorManager().use { manager ->
+                val socket = aSocket(manager).tcp().connect(connector.host, connector.port)
+                val writeChannel = socket.openWriteChannel()
+                writeChannel.writeStringUtf8("GET /test HTTP/1.1\r\n")
+                writeChannel.writeStringUtf8("Host: ${connector.host}:${connector.port}\r\n")
+                writeChannel.writeStringUtf8("Connection: close\r\n\r\n")
+                writeChannel.flush()
+
+                // Wait until the handler is running, then close the connection
+                withTimeout(5.seconds) { handlerStarted.await() }
+                socket.close()
+            }
+
+            // Give Netty time to process the channel-inactive event
+            withTimeout(20.seconds) {
+                while (channel.get() == null || channel.get().isActive) {
+                    delay(10.milliseconds)
+                }
+            }
+
+            // Now let the handler try to respond to the already-closed channel
+            shouldRespond.complete(Unit)
+
+            // finishedEvent must be resolved (success or failure) — if responseReady is
+            // never completed, this deferred hangs forever and the test times out
+            withTimeout(20.seconds) { callFinished.await() }
         } finally {
             serverJob.cancel()
         }
