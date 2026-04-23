@@ -914,22 +914,24 @@ class StaticContentTest {
     @Test
     fun testServeEncodedFileBr() = testApplication {
         val ext = "json"
-        val temp = File.createTempFile("testServeEncodedFile", ".$ext.br")
+        val tempDir = Files.createTempDirectory("testServeEncodedFile").toFile()
 
-        File(basedir, "plugins/StaticContentTest.kt".replaceSeparators()).copyTo(temp, true)
+        val originalFile = File(basedir, "plugins/StaticContentTest.kt".replaceSeparators())
+        originalFile.copyTo(tempDir.resolve("file.$ext.br"), true)
+        originalFile.copyTo(tempDir.resolve("file.$ext"), true)
 
         routing {
             static {
                 preCompressed {
-                    files(temp.parentFile)
+                    files(tempDir)
                 }
             }
         }
 
-        client.get("/${temp.nameWithoutExtension}") {
+        client.get("/file.$ext") {
             header(HttpHeaders.AcceptEncoding, "br, gzip, deflate, identity")
         }.let { response ->
-            assertEquals(temp.readText(), response.bodyAsText())
+            assertEquals(originalFile.readText(), response.bodyAsText())
             assertEquals(ContentType.defaultForFileExtension(ext), response.contentType())
             assertEquals("br", response.headers[HttpHeaders.ContentEncoding].orEmpty())
         }
@@ -938,22 +940,24 @@ class StaticContentTest {
     @Test
     fun testServeEncodedFileGz() = testApplication {
         val ext = "js"
-        val temp = File.createTempFile("testServeEncodedFile", ".$ext.gz")
+        val tempDir = Files.createTempDirectory("testServeEncodedFile").toFile()
 
-        File(basedir, "plugins/StaticContentTest.kt".replaceSeparators()).copyTo(temp, true)
+        val originalFile = File(basedir, "plugins/StaticContentTest.kt".replaceSeparators())
+        originalFile.copyTo(tempDir.resolve("file.$ext.gz"), true)
+        originalFile.copyTo(tempDir.resolve("file.$ext"), true)
 
         routing {
             static {
                 preCompressed {
-                    files(temp.parentFile)
+                    files(tempDir)
                 }
             }
         }
 
-        client.get("/${temp.nameWithoutExtension}") {
+        client.get("/file.$ext") {
             header(HttpHeaders.AcceptEncoding, "br, gzip, deflate, identity")
         }.let { response ->
-            assertEquals(temp.readText(), response.bodyAsText())
+            assertEquals(originalFile.readText(), response.bodyAsText())
             assertEquals(ContentType.defaultForFileExtension(ext), response.contentType())
             assertEquals("gzip", response.headers[HttpHeaders.ContentEncoding].orEmpty())
         }
@@ -964,22 +968,24 @@ class StaticContentTest {
     fun testSuppressCompressionIfAlreadyCompressed() = testApplication {
         install(Compression)
         val ext = "js"
-        val temp = File.createTempFile("testServeEncodedFile", ".$ext.gz")
+        val tempDir = Files.createTempDirectory("testServeEncodedFile").toFile()
 
-        File(basedir, "plugins/StaticContentTest.kt".replaceSeparators()).copyTo(temp, true)
+        val originalFile = File(basedir, "plugins/StaticContentTest.kt".replaceSeparators())
+        originalFile.copyTo(tempDir.resolve("file.$ext.gz"), true)
+        originalFile.copyTo(tempDir.resolve("file.$ext"), true)
 
         routing {
             static {
                 preCompressed {
-                    files(temp.parentFile)
+                    files(tempDir)
                 }
             }
         }
 
-        client.get("/${temp.nameWithoutExtension}") {
+        client.get("/file.$ext") {
             header(HttpHeaders.AcceptEncoding, "gzip")
         }.let { response ->
-            assertEquals(temp.readText(), response.bodyAsText())
+            assertEquals(originalFile.readText(), response.bodyAsText())
             assertEquals(ContentType.defaultForFileExtension(ext), response.contentType())
             assertEquals("gzip", response.headers[HttpHeaders.ContentEncoding].orEmpty())
         }
@@ -989,33 +995,34 @@ class StaticContentTest {
     fun testCompressedTypesOrder() = testApplication {
         val ext = "js"
         val cType = ContentType.defaultForFileExtension(ext)
+        val tempDir = Files.createTempDirectory("testServeEncodedFile").toFile()
 
-        val tempgz = File.createTempFile("testServeEncodedFile", ".$ext.gz")
-        val publicFile = tempgz.nameWithoutExtension
-        File(basedir, "plugins/StaticContentTest.kt".replaceSeparators()).copyTo(tempgz, true)
-        tempgz.copyTo(File(tempgz.parentFile, "$publicFile.br"), true)
+        val originalFile = File(basedir, "plugins/StaticContentTest.kt".replaceSeparators())
+        originalFile.copyTo(tempDir.resolve("file.$ext.br"), true)
+        originalFile.copyTo(tempDir.resolve("file.$ext.gz"), true)
+        originalFile.copyTo(tempDir.resolve("file.$ext"), true)
 
         routing {
             static("firstgz") {
                 preCompressed(CompressedFileType.GZIP, CompressedFileType.BROTLI) {
-                    files(tempgz.parentFile)
+                    files(tempDir)
                 }
             }
             static("firstbr") {
                 preCompressed(CompressedFileType.BROTLI, CompressedFileType.GZIP) {
-                    files(tempgz.parentFile)
+                    files(tempDir)
                 }
             }
         }
 
-        client.get("/firstgz/$publicFile") {
+        client.get("/firstgz/file.$ext") {
             header(HttpHeaders.AcceptEncoding, "gzip, br")
         }.let { response ->
             assertEquals(cType, response.contentType())
             assertEquals("gzip", response.headers[HttpHeaders.ContentEncoding].orEmpty())
         }
 
-        client.get("/firstbr/$publicFile") {
+        client.get("/firstbr/file.$ext") {
             header(HttpHeaders.AcceptEncoding, "gzip, br")
         }.let { response ->
             assertEquals(cType, response.contentType())
@@ -1025,14 +1032,15 @@ class StaticContentTest {
 
     @Test
     fun testPreCompressedConfiguresImperatively() = testApplication {
-        val tempFile = File.createTempFile("testServeEncodedFile", ".dummy")
-        val publicFile = tempFile.nameWithoutExtension
-        val gzDir = File(tempFile.parentFile, "js").also { it.mkdirs() }
-        val brDir = File(tempFile.parentFile, "css").also { it.mkdirs() }
+        val tempDir = Files.createTempDirectory("testServeEncodedFile").toFile()
+        val gzDir = File(tempDir, "js").also { it.mkdirs() }
+        val brDir = File(tempDir, "css").also { it.mkdirs() }
 
         File(basedir, "plugins/StaticContentTest.kt".replaceSeparators()).run {
-            copyTo(File(gzDir, "$publicFile.js.gz"), true)
-            copyTo(File(brDir, "$publicFile.css.br"), true)
+            copyTo(File(gzDir, "file.js"), true)
+            copyTo(File(gzDir, "file.js.gz"), true)
+            copyTo(File(brDir, "file.css"), true)
+            copyTo(File(brDir, "file.css.br"), true)
         }
 
         routing {
@@ -1046,14 +1054,14 @@ class StaticContentTest {
             }
         }
 
-        client.get("/assets/$publicFile.js") {
+        client.get("/assets/file.js") {
             header(HttpHeaders.AcceptEncoding, "gzip, br")
         }.let { response ->
             assertEquals(ContentType.defaultForFileExtension("js"), response.contentType())
             assertEquals("gzip", response.headers[HttpHeaders.ContentEncoding].orEmpty())
         }
 
-        client.get("/assets/$publicFile.css") {
+        client.get("/assets/file.css") {
             header(HttpHeaders.AcceptEncoding, "gzip, br")
         }.let { response ->
             assertEquals(ContentType.defaultForFileExtension("css"), response.contentType())
@@ -1063,13 +1071,14 @@ class StaticContentTest {
 
     @Test
     fun testPreCompressedConfiguresNested() = testApplication {
-        val tempFile = File.createTempFile("testServeEncodedFile", ".dummy")
-        val publicFile = tempFile.nameWithoutExtension
-        val cssDir = File(tempFile.parentFile, "css").also { it.mkdirs() }
+        val tempDir = Files.createTempDirectory("testServeEncodedFile").toFile()
+        val cssDir = File(tempDir, "css").also { it.mkdirs() }
 
         File(basedir, "plugins/StaticContentTest.kt".replaceSeparators()).run {
-            copyTo(File(cssDir, "$publicFile.js.gz"), true)
-            copyTo(File(cssDir, "$publicFile.css.br"), true)
+            copyTo(File(cssDir, "file.js"), true)
+            copyTo(File(cssDir, "file.js.gz"), true)
+            copyTo(File(cssDir, "file.css"), true)
+            copyTo(File(cssDir, "file.css.br"), true)
         }
 
         routing {
@@ -1082,14 +1091,14 @@ class StaticContentTest {
             }
         }
 
-        client.get("/assets/$publicFile.js") {
+        client.get("/assets/file.js") {
             header(HttpHeaders.AcceptEncoding, "gzip, br")
         }.let { response ->
             assertEquals(ContentType.defaultForFileExtension("js"), response.contentType())
             assertEquals("gzip", response.headers[HttpHeaders.ContentEncoding].orEmpty())
         }
 
-        client.get("/assets/$publicFile.css") {
+        client.get("/assets/file.css") {
             header(HttpHeaders.AcceptEncoding, "gzip, br")
         }.let { response ->
             assertEquals(ContentType.defaultForFileExtension("css"), response.contentType())
