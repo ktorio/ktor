@@ -308,7 +308,7 @@ class StaticContentTest {
     @Test
     fun testStaticFilesExclude() = testApplication {
         routing {
-            staticFiles("static", basedir, "/plugins/StaticContentTest.kt") {
+            staticFiles("static", basedir, "CookiesTest.kt") {
                 exclude { it.path.contains("CookiesTest") }
                 exclude { it.path.contains("PartialContentTest") }
                 extensions("kt")
@@ -327,6 +327,9 @@ class StaticContentTest {
 
         val responseFileNoExtension = client.get("static/plugins/CookiesTest")
         assertEquals(HttpStatusCode.Forbidden, responseFileNoExtension.status)
+
+        val responseFileIndex = client.get("static/plugins/")
+        assertEquals(HttpStatusCode.Forbidden, responseFileIndex.status)
     }
 
     @Test
@@ -537,9 +540,10 @@ class StaticContentTest {
     @Test
     fun testStaticPathExclude() = testApplication {
         routing {
-            staticFileSystem("static", "jvm/test-resources/public") {
+            staticFileSystem("static", "jvm/test-resources/public", "index.txt") {
                 exclude { it.pathString.contains("ignore") }
-                extensions("txt")
+                exclude { it.pathString.contains("secret") }
+                extensions("secret.txt", "txt")
             }
         }
 
@@ -549,11 +553,20 @@ class StaticContentTest {
         assertEquals(ContentType.Text.Plain, responseFile.contentType()!!.withoutParameters())
         assertNull(responseFile.headers[HttpHeaders.CacheControl])
 
+        val responseFileFallbackExtension = client.get("static/has-fallback")
+        assertEquals(HttpStatusCode.OK, responseFileFallbackExtension.status)
+        assertEquals("has-fallback.txt", responseFileFallbackExtension.bodyAsText().trim())
+        assertEquals(ContentType.Text.Plain, responseFileFallbackExtension.contentType()!!.withoutParameters())
+        assertNull(responseFileFallbackExtension.headers[HttpHeaders.CacheControl])
+
         val responseIgnoreFile = client.get("static/ignore.txt")
         assertEquals(HttpStatusCode.Forbidden, responseIgnoreFile.status)
 
         val responseIgnoreFileNoExtension = client.get("static/ignore")
         assertEquals(HttpStatusCode.Forbidden, responseIgnoreFileNoExtension.status)
+
+        val responseIgnoreFileIndex = client.get("static/ignored/")
+        assertEquals(HttpStatusCode.Forbidden, responseIgnoreFileIndex.status)
     }
 
     @Test
@@ -747,9 +760,10 @@ class StaticContentTest {
     @Test
     fun testStaticResourcesExclude() = testApplication {
         routing {
-            staticResources("static", "public") {
+            staticResources("static", "public", "index.txt") {
                 exclude { it.path.contains("ignore") }
-                extensions("txt")
+                exclude { it.path.contains("secret") }
+                extensions("secret.txt", "txt")
             }
         }
 
@@ -759,11 +773,20 @@ class StaticContentTest {
         assertEquals(ContentType.Text.Plain, responseFile.contentType()!!.withoutParameters())
         assertNull(responseFile.headers[HttpHeaders.CacheControl])
 
+        val responseFileFallbackExtension = client.get("static/has-fallback")
+        assertEquals(HttpStatusCode.OK, responseFileFallbackExtension.status)
+        assertEquals("has-fallback.txt", responseFileFallbackExtension.bodyAsText().trim())
+        assertEquals(ContentType.Text.Plain, responseFileFallbackExtension.contentType()!!.withoutParameters())
+        assertNull(responseFileFallbackExtension.headers[HttpHeaders.CacheControl])
+
         val responseIgnoreFile = client.get("static/ignore.txt")
         assertEquals(HttpStatusCode.Forbidden, responseIgnoreFile.status)
 
         val responseIgnoreFileNoExtension = client.get("static/ignore")
         assertEquals(HttpStatusCode.Forbidden, responseIgnoreFileNoExtension.status)
+
+        val responseIgnoreFileIndex = client.get("static/ignored/")
+        assertEquals(HttpStatusCode.Forbidden, responseIgnoreFileIndex.status)
     }
 
     @Test
