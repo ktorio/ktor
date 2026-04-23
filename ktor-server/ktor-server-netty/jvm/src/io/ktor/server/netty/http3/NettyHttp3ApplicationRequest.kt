@@ -63,7 +63,7 @@ internal class NettyHttp3ApplicationRequest(
     }
 
     @OptIn(ObsoleteCoroutinesApi::class)
-    val contentActor = actor<Http3DataFrame>(
+    val contentActor = actor(
         Dispatchers.Unconfined,
         kotlinx.coroutines.channels.Channel.UNLIMITED
     ) {

@@ -14,19 +14,18 @@ internal suspend fun ReceiveChannel<Http2DataFrame>.http2frameLoop(bc: ByteWrite
     try {
         while (true) {
             val message = receive()
-            val content = message.content() ?: Unpooled.EMPTY_BUFFER
-
             try {
+                val content = message.content() ?: Unpooled.EMPTY_BUFFER
                 transferByteBuf(content, bc)
             } finally {
-                content.release()
+                message.release()
             }
 
             if (message.isEndStream) {
                 break
             }
         }
-    } catch (closed: ClosedReceiveChannelException) {
+    } catch (expected: ClosedReceiveChannelException) {
     } catch (t: Throwable) {
         bc.close(t)
     } finally {
