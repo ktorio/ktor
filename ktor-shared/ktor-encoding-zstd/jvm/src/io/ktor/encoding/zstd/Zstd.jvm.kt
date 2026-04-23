@@ -92,7 +92,7 @@ public class Zstd(private val compressionLevel: Int) : Encoder {
 
     private suspend fun ByteReadChannel.encodeTo(
         destination: ByteWriteChannel,
-        pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
+        pool: ObjectPool<ByteBuffer> = KtorDefaultDirectPool,
         compressionLevel: Int,
     ) {
         val inputBuf = pool.borrow()
