@@ -33,6 +33,9 @@ public abstract class NettyApplicationResponse(
 
     internal var responseChannel: ByteReadChannel = ByteReadChannel.Empty
 
+    private val canRespond: Boolean
+        get() = !responseMessageSent && context.channel().isActive
+
     override suspend fun respondOutgoingContent(content: OutgoingContent) {
         try {
             super.respondOutgoingContent(content)
@@ -51,10 +54,8 @@ public abstract class NettyApplicationResponse(
         // because it should've been set by commitHeaders earlier
         val chunked = headers[HttpHeaders.TransferEncoding] == "chunked"
 
-        if (responseMessageSent) return
-
-        if (!context.channel().isActive) {
-            cancel()
+        if (!canRespond) {
+            cancelInChannelNotActive()
             return
         }
 
@@ -116,10 +117,8 @@ public abstract class NettyApplicationResponse(
     }
 
     internal fun sendResponse(chunked: Boolean = true, content: ByteReadChannel) {
-        if (responseMessageSent) return
-
-        if (!context.channel().isActive) {
-            cancel()
+        if (!canRespond) {
+            cancelInChannelNotActive()
             return
         }
 
@@ -150,6 +149,12 @@ public abstract class NettyApplicationResponse(
         ensureResponseSent()
         // we don't need to suspendAwait() here as it handled in NettyApplicationCall
         // while close only does flush() and doesn't terminate connection
+    }
+
+    private fun cancelInChannelNotActive() {
+        if (!context.channel().isActive) {
+            cancel()
+        }
     }
 
     public fun cancel() {
