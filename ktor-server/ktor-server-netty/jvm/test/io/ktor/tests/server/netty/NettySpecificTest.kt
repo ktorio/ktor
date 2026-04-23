@@ -180,7 +180,7 @@ class NettySpecificTest {
         val shouldRespond = CompletableDeferred<Unit>()
         val callFinished = CompletableDeferred<Unit>()
         val appStarted = CompletableDeferred<Application>()
-        val channel : AtomicReference<Channel> = AtomicReference(null)
+        val channel: AtomicReference<Channel> = AtomicReference(null)
 
         val serverJob = launch(Dispatchers.IO) {
             val server = embeddedServer(Netty, port = 0) {
