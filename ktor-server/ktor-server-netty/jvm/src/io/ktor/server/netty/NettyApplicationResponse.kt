@@ -55,7 +55,7 @@ public abstract class NettyApplicationResponse(
         val chunked = headers[HttpHeaders.TransferEncoding] == "chunked"
 
         if (!canRespond) {
-            cancelInChannelNotActive()
+            cancelIfChannelNotActive()
             return
         }
 
@@ -118,7 +118,7 @@ public abstract class NettyApplicationResponse(
 
     internal fun sendResponse(chunked: Boolean = true, content: ByteReadChannel) {
         if (!canRespond) {
-            cancelInChannelNotActive()
+            cancelIfChannelNotActive()
             return
         }
 
@@ -151,7 +151,7 @@ public abstract class NettyApplicationResponse(
         // while close only does flush() and doesn't terminate connection
     }
 
-    private fun cancelInChannelNotActive() {
+    private fun cancelIfChannelNotActive() {
         if (!context.channel().isActive) {
             cancel()
         }
