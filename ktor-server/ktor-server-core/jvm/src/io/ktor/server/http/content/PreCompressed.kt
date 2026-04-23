@@ -26,8 +26,10 @@ import kotlin.io.path.*
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.CompressedFileType)
  */
 public enum class CompressedFileType(public val extension: String, public val encoding: String = extension) {
+    ZSTD("zst", "zstd"),
     BROTLI("br"),
-    GZIP("gz", "gzip")
+    GZIP("gz", "gzip"),
+    DEFLATE("deflate"),
 }
 
 internal val compressedKey = AttributeKey<List<CompressedFileType>>("StaticContentCompressed")
