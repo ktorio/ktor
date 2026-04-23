@@ -111,7 +111,6 @@ internal class HmacQuicTokenHandler(
         mac.init(secretKey)
 
         KtorDefaultPool.useInstance { timestampBuffer ->
-            timestampBuffer.clear()
             timestampBuffer.limit(TIMESTAMP_LENGTH)
             timestampBuffer.putLong(0, timestamp)
             timestampBuffer.position(0)

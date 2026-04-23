@@ -14,15 +14,14 @@ internal suspend fun ReceiveChannel<Http3DataFrame>.http3frameLoop(bc: ByteWrite
     try {
         while (true) {
             val message = receive()
-            val content = message.content() ?: Unpooled.EMPTY_BUFFER
-
             try {
+                val content = message.content() ?: Unpooled.EMPTY_BUFFER
                 transferByteBuf(content, bc)
             } finally {
-                content.release()
+                message.release()
             }
         }
-    } catch (closed: ClosedReceiveChannelException) {
+    } catch (expected: ClosedReceiveChannelException) {
     } catch (t: Throwable) {
         bc.close(t)
     } finally {
