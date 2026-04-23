@@ -498,6 +498,7 @@ public final class io/ktor/util/ThrowableKt {
 }
 
 public final class io/ktor/util/cio/ByteBufferPoolKt {
+	public static final fun getKtorDefaultDirectPool ()Lio/ktor/utils/io/pool/ObjectPool;
 	public static final fun getKtorDefaultPool ()Lio/ktor/utils/io/pool/ObjectPool;
 }
 

@@ -36,7 +36,9 @@ class ZstdTest {
         val encodedReadChannel = Zstd(DEFAULT_COMPRESSION_LEVEL).encode(ByteReadChannel(string.toByteArray()))
         val decodedReadChannel = ByteChannel()
         with(Zstd(DEFAULT_COMPRESSION_LEVEL)) {
-            encodedReadChannel.decodeTo(decodedReadChannel, ByteBufferPool(capacity = 10, bufferSize = 32))
+            // the absolute smallest possible zstd frame is 6 bytes,
+            // so use 5 bytes to be sure we're smaller than that
+            encodedReadChannel.decodeTo(decodedReadChannel, DirectByteBufferPool(capacity = 10, bufferSize = 5))
         }
         decodedReadChannel.close()
         val decodedString = decodedReadChannel.readRemaining().readText()
