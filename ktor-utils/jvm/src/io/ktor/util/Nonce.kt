@@ -161,7 +161,9 @@ private fun getSystemPropertyInt(key: String, default: Int): Int {
         try {
             return property.toInt()
         } catch (_: NumberFormatException) {
-            logger.warn("Invalid integer '$property' for property $SYSTEM_PROPERTY_PREFIX.$key, falling back to default")
+            logger.warn(
+                "Invalid integer '$property' for property $SYSTEM_PROPERTY_PREFIX.$key, falling back to default"
+            )
         }
     }
     return default
