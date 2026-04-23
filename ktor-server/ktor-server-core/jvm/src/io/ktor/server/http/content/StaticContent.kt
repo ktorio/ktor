@@ -73,11 +73,11 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
     internal var contentType: (Resource) -> ContentType = defaultContentType
     internal var cacheControl: (Resource) -> List<CacheControl> = { emptyList() }
     internal var modifier: suspend (Resource, ApplicationCall) -> Unit = { _, _ -> }
-    internal var exclude: (Resource) -> Boolean = { false }
-    internal var extensions: List<String> = emptyList()
+    internal var exclude: MutableList<(Resource) -> Boolean> = mutableListOf()
+    internal var extensions: Array<String> = emptyArray()
     internal var defaultPath: String? = null
     internal var fallback: suspend (String, ApplicationCall) -> Unit = { _, _ -> }
-    internal var preCompressedFileTypes: List<CompressedFileType> = emptyList()
+    internal var preCompressedFileTypes: Array<CompressedFileType> = emptyArray()
     internal var autoHeadResponse: Boolean = false
     internal var lastModifiedExtractor: (Resource) -> GMTDate? = { null }
     internal var etagExtractor: ETagProvider = ETagProvider { null }
@@ -96,7 +96,7 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.StaticContentConfig.preCompressed)
      */
     public fun preCompressed(vararg types: CompressedFileType) {
-        preCompressedFileTypes = types.toList()
+        preCompressedFileTypes = types.toList().toTypedArray() // workaround for annoying cast warnings
     }
 
     /**
@@ -221,14 +221,7 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.StaticContentConfig.exclude)
      */
     public fun exclude(block: (Resource) -> Boolean) {
-        val oldBlock = exclude
-        exclude = {
-            if (oldBlock(it)) {
-                true
-            } else {
-                block(it)
-            }
-        }
+        exclude.add(block)
     }
 
     /**
@@ -239,7 +232,7 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.StaticContentConfig.extensions)
      */
     public fun extensions(vararg extensions: String) {
-        this.extensions = extensions.toList()
+        this.extensions = extensions.toList().toTypedArray()
     }
 }
 
@@ -268,7 +261,7 @@ public fun Route.staticFiles(
     val cacheControl = staticRoute.cacheControl
     val extensions = staticRoute.extensions
     val modify = staticRoute.modifier
-    val exclude = staticRoute.exclude
+    val exclude = staticRoute.exclude.flattenExcludeFunctions()
     val defaultPath = staticRoute.defaultPath
     val fallback = staticRoute.fallback
     val lastModified = staticRoute.lastModifiedExtractor
@@ -316,7 +309,7 @@ public fun Route.staticResources(
     val cacheControl = staticRoute.cacheControl
     val extensions = staticRoute.extensions
     val modifier = staticRoute.modifier
-    val exclude = staticRoute.exclude
+    val exclude = staticRoute.exclude.flattenExcludeFunctions()
     val defaultPath = staticRoute.defaultPath
     val fallback = staticRoute.fallback
     val lastModified = staticRoute.lastModifiedExtractor
@@ -434,7 +427,7 @@ public fun Route.staticFileSystem(
     val cacheControl = staticRoute.cacheControl
     val extensions = staticRoute.extensions
     val modify = staticRoute.modifier
-    val exclude = staticRoute.exclude
+    val exclude = staticRoute.exclude.flattenExcludeFunctions()
     val defaultPath = staticRoute.defaultPath
     val fallback = staticRoute.fallback
     val lastModified = staticRoute.lastModifiedExtractor
@@ -455,6 +448,21 @@ public fun Route.staticFileSystem(
             defaultPath = defaultPath,
             fallback = fallback,
         )
+    }
+}
+
+private fun <Resource : Any> List<(Resource) -> Boolean>.flattenExcludeFunctions(): (Resource) -> Boolean {
+    when {
+        isEmpty() -> return { false }
+        size == 1 -> return this.first()
+        else -> return exclude@{ it ->
+            for (function in this) {
+                if (function(it))
+                    return@exclude true
+            }
+
+            return@exclude false
+        }
     }
 }
 
@@ -543,7 +551,7 @@ public fun Route.default(localPath: String): Unit = default(File(localPath))
 @Deprecated("Please use `staticFiles` instead")
 public fun Route.default(localPath: File) {
     val file = staticRootFolder.combine(localPath)
-    val compressedTypes = staticContentEncodedTypes
+    val compressedTypes = staticContentEncodedTypes?.toTypedArray() ?: emptyArray()
     get {
         call.respondStaticFile(file, compressedTypes)
     }
@@ -567,7 +575,7 @@ public fun Route.file(remotePath: String, localPath: String = remotePath): Unit 
 @Deprecated("Please use `staticFiles` instead")
 public fun Route.file(remotePath: String, localPath: File) {
     val file = staticRootFolder.combine(localPath)
-    val compressedTypes = staticContentEncodedTypes
+    val compressedTypes = staticContentEncodedTypes?.toTypedArray() ?: emptyArray()
     get(remotePath) {
         call.respondStaticFile(file, compressedTypes)
     }
@@ -590,7 +598,7 @@ public fun Route.files(folder: String): Unit = files(File(folder))
 @Deprecated("Please use `staticFiles` instead")
 public fun Route.files(folder: File) {
     val dir = staticRootFolder.combine(folder)
-    val compressedTypes = staticContentEncodedTypes
+    val compressedTypes = staticContentEncodedTypes?.toTypedArray() ?: emptyArray()
     get("{$pathParameterName...}") {
         val relativePath = call.parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return@get
         val file = dir.combineSafe(relativePath)
@@ -631,7 +639,7 @@ private fun String?.combinePackage(resourcePackage: String?) = when {
 
 @Deprecated("Please use `staticResources` instead")
 public fun Route.resource(remotePath: String, resource: String = remotePath, resourcePackage: String? = null) {
-    val compressedTypes = staticContentEncodedTypes
+    val compressedTypes = staticContentEncodedTypes?.toTypedArray() ?: emptyArray()
     val packageName = staticBasePackage.combinePackage(resourcePackage)
     get(remotePath) {
         call.respondStaticResource(
@@ -651,7 +659,7 @@ public fun Route.resource(remotePath: String, resource: String = remotePath, res
 @Deprecated("Please use `staticResources` instead")
 public fun Route.resources(resourcePackage: String? = null) {
     val packageName = staticBasePackage.combinePackage(resourcePackage)
-    val compressedTypes = staticContentEncodedTypes
+    val compressedTypes = staticContentEncodedTypes?.toTypedArray() ?: emptyArray()
     get("{$pathParameterName...}") {
         val relativePath = call.parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return@get
         call.respondStaticResource(
@@ -671,7 +679,7 @@ public fun Route.resources(resourcePackage: String? = null) {
 @Deprecated("Please use `staticResources` instead")
 public fun Route.defaultResource(resource: String, resourcePackage: String? = null) {
     val packageName = staticBasePackage.combinePackage(resourcePackage)
-    val compressedTypes = staticContentEncodedTypes
+    val compressedTypes = staticContentEncodedTypes?.toTypedArray() ?: emptyArray()
     get {
         call.respondStaticResource(
             requestedResource = resource,
@@ -713,30 +721,32 @@ private fun Route.staticContentRoute(
 private suspend fun ApplicationCall.respondStaticFile(
     index: String?,
     dir: File,
-    compressedTypes: List<CompressedFileType>?,
+    compressedTypes: Array<CompressedFileType>,
     contentType: (File) -> ContentType,
     cacheControl: (File) -> List<CacheControl>,
     lastModified: (File) -> GMTDate?,
     etag: ETagProvider,
     modify: suspend (File, ApplicationCall) -> Unit,
     exclude: (File) -> Boolean,
-    extensions: List<String>,
+    extensions: Array<String>,
     defaultPath: String?,
     fallback: suspend (String, ApplicationCall) -> Unit,
 ) {
-    val relativePath = parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return
+    val relativePath = relativePath() ?: return
     val requestedFile = dir.combineSafe(relativePath)
 
-    suspend fun checkExclude(file: File): Boolean {
-        if (!exclude(file)) return false
-        respond(HttpStatusCode.Forbidden)
-        return true
-    }
+    if (exclude(requestedFile))
+        return respond(HttpStatusCode.Forbidden)
 
     val isDirectory = requestedFile.isDirectory
     if (index != null && isDirectory) {
+        val indexFile = File(requestedFile, index)
+
+        if (exclude(indexFile))
+            return respond(HttpStatusCode.Forbidden)
+
         respondStaticFile(
-            File(requestedFile, index),
+            indexFile,
             compressedTypes,
             contentType,
             cacheControl,
@@ -745,16 +755,27 @@ private suspend fun ApplicationCall.respondStaticFile(
             modify
         )
     } else if (!isDirectory) {
-        if (checkExclude(requestedFile)) return
-
         respondStaticFile(requestedFile, compressedTypes, contentType, cacheControl, lastModified, etag, modify)
+
         if (isHandled) return
+
+        var forbiddenPath = false
+
         for (extension in extensions) {
             val fileWithExtension = File("${requestedFile.path}.$extension")
-            if (checkExclude(fileWithExtension)) return
+
+            if (exclude(fileWithExtension)) {
+                forbiddenPath = true
+                continue
+            }
+
             respondStaticFile(fileWithExtension, compressedTypes, contentType, cacheControl, lastModified, etag, modify)
+
             if (isHandled) return
         }
+
+        if (forbiddenPath)
+            return respond(HttpStatusCode.Forbidden)
     }
 
     if (isHandled) return
@@ -778,31 +799,33 @@ private suspend fun ApplicationCall.respondStaticPath(
     fileSystem: FileSystemPaths,
     index: String?,
     basePath: String?,
-    compressedTypes: List<CompressedFileType>?,
+    compressedTypes: Array<CompressedFileType>,
     contentType: (Path) -> ContentType,
     cacheControl: (Path) -> List<CacheControl>,
     lastModified: (Path) -> GMTDate?,
     etag: ETagProvider,
     modify: suspend (Path, ApplicationCall) -> Unit,
     exclude: (Path) -> Boolean,
-    extensions: List<String>,
+    extensions: Array<String>,
     defaultPath: String?,
     fallback: suspend (String, ApplicationCall) -> Unit,
 ) {
-    val relativePath = parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return
+    val relativePath = relativePath() ?: return
     val requestedPath = fileSystem.getPath(basePath.orEmpty()).combineSafe(fileSystem.getPath(relativePath))
 
-    suspend fun checkExclude(path: Path): Boolean {
-        if (!exclude(path)) return false
-        respond(HttpStatusCode.Forbidden)
-        return true
-    }
+    if (exclude(requestedPath))
+        return respond(HttpStatusCode.Forbidden)
 
     val isDirectory = requestedPath.isDirectory()
     if (index != null && isDirectory) {
+        val indexPath = requestedPath.resolve(index)
+
+        if (exclude(indexPath))
+           return respond(HttpStatusCode.Forbidden)
+
         respondStaticPath(
             fileSystem,
-            requestedPath.resolve(index),
+            indexPath,
             compressedTypes,
             contentType,
             cacheControl,
@@ -811,8 +834,6 @@ private suspend fun ApplicationCall.respondStaticPath(
             etag
         )
     } else if (!isDirectory) {
-        if (checkExclude(requestedPath)) return
-
         respondStaticPath(
             fileSystem,
             requestedPath,
@@ -823,10 +844,19 @@ private suspend fun ApplicationCall.respondStaticPath(
             lastModified,
             etag
         )
+
         if (isHandled) return
+
+        var forbiddenPath = false
+
         for (extension in extensions) {
             val pathWithExtension = fileSystem.getPath("${requestedPath.pathString}.$extension")
-            if (checkExclude(pathWithExtension)) return
+
+            if (exclude(pathWithExtension)) {
+                forbiddenPath = true
+                continue
+            }
+
             respondStaticPath(
                 fileSystem,
                 pathWithExtension,
@@ -837,8 +867,12 @@ private suspend fun ApplicationCall.respondStaticPath(
                 lastModified,
                 etag
             )
+
             if (isHandled) return
         }
+
+        if (forbiddenPath)
+            return respond(HttpStatusCode.Forbidden)
     }
 
     if (isHandled) return
@@ -862,18 +896,22 @@ private suspend fun ApplicationCall.respondStaticPath(
 private suspend fun ApplicationCall.respondStaticResource(
     index: String?,
     basePackage: String?,
-    compressedTypes: List<CompressedFileType>?,
+    compressedTypes: Array<CompressedFileType>,
     contentType: (URL) -> ContentType,
     cacheControl: (URL) -> List<CacheControl>,
     lastModified: (URL) -> GMTDate?,
     etag: ETagProvider,
     modifier: suspend (URL, ApplicationCall) -> Unit,
     exclude: (URL) -> Boolean,
-    extensions: List<String>,
+    extensions: Array<String>,
     defaultPath: String?,
     fallback: suspend (String, ApplicationCall) -> Unit,
 ) {
-    val relativePath = parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return
+    val relativePath = relativePath() ?: return
+    val relativeResourceUrl = application.resolveResourceURL(relativePath, basePackage)
+
+    if (relativeResourceUrl != null && exclude(relativeResourceUrl))
+       return respond(HttpStatusCode.Forbidden)
 
     respondStaticResource(
         requestedResource = relativePath,
@@ -883,36 +921,55 @@ private suspend fun ApplicationCall.respondStaticResource(
         cacheControl = cacheControl,
         modifier = modifier,
         lastModified = lastModified,
-        etag = etag,
-        exclude = exclude
+        etag = etag
     )
 
     if (isHandled) return
+
+    var forbiddenPath = false
+
     for (extension in extensions) {
+        val resourceWithExtension = "$relativePath.$extension"
+        val resourceWithExtensionUrl = application.resolveResourceURL(resourceWithExtension, basePackage) ?: continue
+
+        if (exclude(resourceWithExtensionUrl)) {
+            forbiddenPath = true
+            continue
+        }
+
         respondStaticResource(
-            requestedResource = "$relativePath.$extension",
+            requestedResource = resourceWithExtension,
             packageName = basePackage,
             compressedTypes = compressedTypes,
             contentType = contentType,
             cacheControl = cacheControl,
             modifier = modifier,
             lastModified = lastModified,
-            etag = etag,
-            exclude = exclude
+            etag = etag
         )
+
         if (isHandled) return
     }
 
+    if (forbiddenPath)
+        return respond(HttpStatusCode.Forbidden)
+
     if (index != null) {
+        val indexResource = "$relativePath${File.separator}$index"
+        val indexResourceUrl = application.resolveResourceURL(indexResource, basePackage)
+
+        if (indexResourceUrl != null && exclude(indexResourceUrl))
+           return respond(HttpStatusCode.Forbidden)
+
         respondStaticResource(
-            requestedResource = "$relativePath${File.separator}$index",
+            requestedResource = indexResource,
             packageName = basePackage,
             compressedTypes = compressedTypes,
             contentType = contentType,
             cacheControl = cacheControl,
             modifier = modifier,
             lastModified = lastModified,
-            etag = etag,
+            etag = etag
         )
     }
 
@@ -932,6 +989,18 @@ private suspend fun ApplicationCall.respondStaticResource(
 
     if (isHandled) return
     fallback(relativePath, this)
+}
+
+private fun ApplicationCall.relativePath(): String? {
+    val paths = parameters.getAll(pathParameterName) ?: return null
+    return buildString(paths.sumOf { it.length } + (paths.size - 1).coerceAtLeast(0) * File.separator.length) {
+        var count = 0
+        for (element in paths) {
+            if (++count > 1)
+                append(File.separator)
+            append(element)
+        }
+    }
 }
 
 /**

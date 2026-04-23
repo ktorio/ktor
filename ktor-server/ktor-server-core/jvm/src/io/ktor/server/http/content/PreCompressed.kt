@@ -60,27 +60,27 @@ internal class PreCompressedResponse(
 internal fun bestCompressionFit(
     file: File,
     acceptEncoding: List<HeaderValue>,
-    compressedTypes: List<CompressedFileType>?
+    compressedTypes: Array<CompressedFileType>
 ): CompressedFileType? {
     val acceptedEncodings = acceptEncoding.map { it.value }.toSet()
     // We respect the order in compressedTypes, not the one in Accept header
     return compressedTypes
-        ?.filter { it.encoding in acceptedEncodings }
-        ?.firstOrNull { File("${file.absolutePath}.${it.extension}").isFile }
+        .filter { it.encoding in acceptedEncodings }
+        .firstOrNull { File("${file.absolutePath}.${it.extension}").isFile }
 }
 
 internal fun bestCompressionFit(
     fileSystem: FileSystemPaths,
     path: Path,
     acceptEncoding: List<HeaderValue>,
-    compressedTypes: List<CompressedFileType>?
+    compressedTypes: Array<CompressedFileType>
 ): Pair<Path, CompressedFileType>? {
     val acceptedEncodings = acceptEncoding.map { it.value }.toSet()
     // We respect the order in compressedTypes, not the one in Accept header
     return compressedTypes
-        ?.filter { it.encoding in acceptedEncodings }
-        ?.map { fileSystem.getPath("${path.pathString}.${it.extension}") to it }
-        ?.firstOrNull { it.first.exists() }
+        .filter { it.encoding in acceptedEncodings }
+        .map { fileSystem.getPath("${path.pathString}.${it.extension}") to it }
+        .firstOrNull { it.first.exists() }
 }
 
 internal class CompressedResource(
@@ -94,15 +94,15 @@ internal fun bestCompressionFit(
     resource: String,
     packageName: String?,
     acceptEncoding: List<HeaderValue>,
-    compressedTypes: List<CompressedFileType>?,
+    compressedTypes: Array<CompressedFileType>,
     contentType: (URL) -> ContentType
 ): CompressedResource? {
     val acceptedEncodings = acceptEncoding.map { it.value }.toSet()
     // We respect the order in compressedTypes, not the one in Accept header
     return compressedTypes
-        ?.asSequence()
-        ?.filter { it.encoding in acceptedEncodings }
-        ?.mapNotNull {
+        .asSequence()
+        .filter { it.encoding in acceptedEncodings }
+        .mapNotNull {
             val compressed = "$resource.${it.extension}"
             val resolved = call.application.resolveResource(compressed, packageName) { url ->
                 val requestPath = url.path.replace(
@@ -113,12 +113,12 @@ internal fun bestCompressionFit(
             } ?: return@mapNotNull null
             CompressedResource(resolved.first, resolved.second, it)
         }
-        ?.firstOrNull()
+        .firstOrNull()
 }
 
 internal suspend fun ApplicationCall.respondStaticFile(
     requestedFile: File,
-    compressedTypes: List<CompressedFileType>?,
+    compressedTypes: Array<CompressedFileType>,
     contentType: (File) -> ContentType = { ContentType.defaultForFile(it) },
     cacheControl: (File) -> List<CacheControl> = { emptyList() },
     lastModified: (File) -> GMTDate? = { null },
@@ -158,7 +158,7 @@ internal suspend fun ApplicationCall.respondStaticFile(
 internal suspend fun ApplicationCall.respondStaticPath(
     fileSystem: FileSystemPaths,
     requestedPath: Path,
-    compressedTypes: List<CompressedFileType>?,
+    compressedTypes: Array<CompressedFileType>,
     contentType: (Path) -> ContentType = { ContentType.defaultForPath(it) },
     cacheControl: (Path) -> List<CacheControl> = { emptyList() },
     modify: suspend (Path, ApplicationCall) -> Unit = { _, _ -> },
@@ -195,13 +195,12 @@ internal suspend fun ApplicationCall.respondStaticPath(
 internal suspend fun ApplicationCall.respondStaticResource(
     requestedResource: String,
     packageName: String?,
-    compressedTypes: List<CompressedFileType>?,
+    compressedTypes: Array<CompressedFileType>,
     contentType: (URL) -> ContentType = { ContentType.defaultForFileExtension(it.path.extension()) },
     cacheControl: (URL) -> List<CacheControl> = { emptyList() },
     modifier: suspend (URL, ApplicationCall) -> Unit = { _, _ -> },
     lastModified: (URL) -> GMTDate? = { null },
     etag: ETagProvider = ETagProvider { null },
-    exclude: (URL) -> Boolean = { false }
 ) {
     attributes.put(StaticFileLocationProperty, requestedResource)
     val bestCompressionFit = bestCompressionFit(
@@ -214,10 +213,6 @@ internal suspend fun ApplicationCall.respondStaticResource(
     )
 
     if (bestCompressionFit != null) {
-        if (exclude(bestCompressionFit.url)) {
-            respond(HttpStatusCode.Forbidden)
-            return
-        }
         suppressCompression()
         val cacheControlValues = cacheControl(bestCompressionFit.url).joinToString(", ")
         if (cacheControlValues.isNotEmpty()) response.header(HttpHeaders.CacheControl, cacheControlValues)
@@ -240,10 +235,6 @@ internal suspend fun ApplicationCall.respondStaticResource(
         mimeResolve = contentType
     )
     if (content != null) {
-        if (exclude(content.first)) {
-            respond(HttpStatusCode.Forbidden)
-            return
-        }
         val cacheControlValues = cacheControl(content.first).joinToString(", ")
         if (cacheControlValues.isNotEmpty()) response.header(HttpHeaders.CacheControl, cacheControlValues)
         modifier(content.first, this)
