@@ -157,6 +157,10 @@ Contributions are made using GitHub [pull requests](https://help.github.com/en/a
 5. If the contribution requires updates to documentation (be it updating existing contents or creating new one), please
    file a new ticket on [YouTrack](https://youtrack.jetbrains.com/issues/KTOR).
 6. Make sure any code contributed is covered by tests and no existing tests are broken.
+7. Before submitting your PR, ensure to invoke the following Gradle tasks:
+   1. `./gradlew updateKotlinAbi` - this will update the ABI snapshot with any public API changes
+   2. `./gradlew formatKotlin` - this will reformat the code to follow the style guide
+   3. `./gradlew checkKotlinAbi lintKotlin` - checks the output of the previous tasks
 
 ### Style guides
 
