@@ -85,8 +85,8 @@ tomlj = "1.1.1"
 zstd-jni = "1.5.7-6"
 
 # Keep it in sync with build-settings-logic/settings.gradle.kts
-develocity = "4.2.2" # Should be compatible with our server: ge.jetbrains.com
-develocity-commonCustomUserData = "2.4.0"
+develocity = "4.3.2" # Should be compatible with our server: ge.jetbrains.com
+develocity-commonCustomUserData = "2.6.0"
 gradleDoctor = "0.12.1"
 mavenPublishing = "0.36.0"
 
