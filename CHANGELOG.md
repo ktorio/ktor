@@ -13,7 +13,7 @@
 * [KTOR-9423](https://youtrack.jetbrains.com/issue/KTOR-9423) CannotTransformContentToTypeException leaks internal class names in response body
 * [KTOR-9461](https://youtrack.jetbrains.com/issue/KTOR-9461) Incorrect link to the OWASP cheatsheet in the KDoc for CSRF plugin
 * [KTOR-9476](https://youtrack.jetbrains.com/issue/KTOR-9476) Unable to update/remove session data if no response content
-
+* [KTOR-9343](https://youtrack.jetbrains.com/issue/KTOR-9343) HttpRequestLifecycle plugin with `cancelCallOnClose` on, cancels subsequent requests when CallLogging plugin with callIdMdc is installed
 
 # 3.4.2
 > Published 27 March 2026
