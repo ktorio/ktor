@@ -1141,7 +1141,7 @@ class CompressionTest {
 
     private suspend fun HttpResponse.readIdentity() = bodyAsChannel().toInputStream().reader().readText()
     private suspend fun HttpResponse.readDeflate() =
-        InflaterInputStream(bodyAsChannel().toInputStream(), Inflater(true)).reader().readText()
+        InflaterInputStream(bodyAsChannel().toInputStream()).reader().readText()
 
     private suspend fun HttpResponse.readGzip() = GZIPInputStream(bodyAsChannel().toInputStream()).reader().readText()
     private suspend fun HttpResponse.readZstd() = ZstdInputStream(bodyAsChannel().toInputStream()).reader().readText()

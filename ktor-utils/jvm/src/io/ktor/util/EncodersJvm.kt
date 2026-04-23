@@ -83,7 +83,7 @@ private fun inflate(
     val readBuffer = KtorDefaultPool.borrow()
     val writeBuffer = KtorDefaultPool.borrow()
 
-    val inflater = Inflater(true)
+    val inflater = Inflater(gzip)
     val checksum = CRC32()
 
     if (gzip) {
