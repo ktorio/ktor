@@ -8,7 +8,7 @@ This file is the primary playbook for agentic coding tools working in this repos
 1. Code compiles: `./gradlew :module-name:assemble`
 2. Tests pass: `./gradlew :module-name:jvmTest` (and other platforms if touched)
 3. Code is formatted and linting passes: run `./gradlew :module-name:formatKotlin`, then `./gradlew :module-name:lintKotlin`
-4. ABI validated: `./gradlew :module-name:updateLegacyAbi` (if public/protected API changed)
+4. ABI validated: `./gradlew :module-name:updateKotlinAbi` (if public/protected API changed)
 
 Always prefer **module-specific** commands (`:module-name:task`) over project-wide commands.
 
@@ -128,8 +128,8 @@ All public API changes must be tracked in `/api/` directories within modules.
 
 ### Validation commands
 ```bash
-./gradlew :module-name:checkLegacyAbi    # Validate ABI compatibility
-./gradlew :module-name:updateLegacyAbi   # Update ABI signature files after changes
+./gradlew :module-name:checkKotlinAbi    # Validate ABI compatibility
+./gradlew :module-name:updateKotlinAbi   # Update ABI signature files after changes
 ```
 
 ### Rules
