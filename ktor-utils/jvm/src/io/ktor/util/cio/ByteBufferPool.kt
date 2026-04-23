@@ -5,7 +5,7 @@
 package io.ktor.util.cio
 
 import io.ktor.utils.io.pool.*
-import java.nio.*
+import java.nio.ByteBuffer
 
 internal const val DEFAULT_BUFFER_SIZE = 4098
 internal const val DEFAULT_KTOR_POOL_SIZE = 2048
@@ -22,4 +22,5 @@ public val KtorDefaultPool: ObjectPool<ByteBuffer> = ByteBufferPool(DEFAULT_KTOR
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.cio.KtorDefaultDirectPool)
  */
-public val KtorDefaultDirectPool: ObjectPool<ByteBuffer> = DirectByteBufferPool(DEFAULT_KTOR_POOL_SIZE, DEFAULT_BUFFER_SIZE)
+public val KtorDefaultDirectPool: ObjectPool<ByteBuffer> =
+    DirectByteBufferPool(DEFAULT_KTOR_POOL_SIZE, DEFAULT_BUFFER_SIZE)
