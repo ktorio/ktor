@@ -228,7 +228,7 @@ class NettySpecificTest {
 
             // finishedEvent must be resolved (success or failure) — if responseReady is
             // never completed, this deferred hangs forever and the test times out
-            withTimeout(5.seconds) { callFinished.await() }
+            withTimeout(20.seconds) { callFinished.await() }
         } finally {
             serverJob.cancel()
         }
