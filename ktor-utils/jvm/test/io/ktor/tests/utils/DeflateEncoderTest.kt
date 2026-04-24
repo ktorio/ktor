@@ -20,7 +20,7 @@ class DeflateEncoderTest {
     @Test
     fun `decode handles zlib-wrapped deflate`() = runBlocking {
         val original = "Hello, zlib-wrapped deflate!".toByteArray(Charsets.UTF_8)
-        val compressed = deflateWithZibWrapping(original)
+        val compressed = deflateWithZlibWrapping(original)
 
         val decoded = Deflate.decode(ByteReadChannel(compressed))
             .readRemaining().readByteArray()
@@ -65,7 +65,7 @@ class DeflateEncoderTest {
         repeat(10_000) { iteration ->
             val original = random.nextBytes(random.nextInt(0, 128))
 
-            val zlibCompressed = deflateWithZibWrapping(original)
+            val zlibCompressed = deflateWithZlibWrapping(original)
             assertContentEquals(
                 original,
                 Deflate.decode(ByteReadChannel(zlibCompressed)).readRemaining().readByteArray(),
@@ -81,7 +81,7 @@ class DeflateEncoderTest {
         }
     }
 
-    private fun deflateWithZibWrapping(data: ByteArray): ByteArray = ByteArrayOutputStream().also { baos ->
+    private fun deflateWithZlibWrapping(data: ByteArray): ByteArray = ByteArrayOutputStream().also { baos ->
         DeflaterOutputStream(baos).use { it.write(data) }
     }.toByteArray()
 
