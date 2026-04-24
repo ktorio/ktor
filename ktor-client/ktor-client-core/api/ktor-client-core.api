@@ -256,6 +256,10 @@ public final class io/ktor/client/plugins/BodyProgressKt {
 	public static final fun onUpload (Lio/ktor/client/request/HttpRequestBuilder;Lio/ktor/client/content/ProgressListener;)V
 }
 
+public final class io/ktor/client/plugins/CleartextTrafficKt {
+	public static final fun getCleartextTraffic ()Lio/ktor/client/plugins/api/ClientPlugin;
+}
+
 public final class io/ktor/client/plugins/ClientRequestException : io/ktor/client/plugins/ResponseException {
 	public fun <init> (Lio/ktor/client/statement/HttpResponse;Ljava/lang/String;)V
 	public fun getMessage ()Ljava/lang/String;
