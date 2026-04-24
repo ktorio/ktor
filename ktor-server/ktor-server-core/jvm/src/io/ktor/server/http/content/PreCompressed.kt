@@ -53,7 +53,11 @@ internal class PreCompressedResponse(
             appendFiltered(original.headers) { name, _ -> !name.equals(HttpHeaders.ContentLength, true) }
             append(HttpHeaders.ContentEncoding, compressedType.encoding)
 
-            append(HttpHeaders.Vary, HttpHeaders.AcceptEncoding)
+            set(
+                HttpHeaders.Vary,
+                original.headers[HttpHeaders.Vary]?.plus(", ${HttpHeaders.AcceptEncoding}")
+                    ?: HttpHeaders.AcceptEncoding
+            )
         }
     }
 
@@ -81,9 +85,13 @@ internal fun bestCompressionFit(
             continue
 
         val compressedFile = File("${file.absolutePath}.${compressedType.extension}")
+
+        if (!compressedFile.isFile)
+            continue
+
         val compressedSize = compressedFile.length()
 
-        if (compressedFile.isFile && smallestSize > compressedSize) {
+        if (smallestSize > compressedSize) {
             smallestType = compressedType
             smallestFile = compressedFile
             smallestSize = compressedSize
@@ -114,9 +122,13 @@ internal fun bestCompressionFit(
             continue
 
         val compressedPath = fileSystem.getPath("${path.pathString}.${compressedType.extension}")
+
+        if (!compressedPath.isRegularFile())
+            continue
+
         val compressedSize = compressedPath.fileSize()
 
-        if (compressedPath.isRegularFile() && smallestSize > compressedSize) {
+        if (smallestSize > compressedSize) {
             smallestType = compressedType
             smallestPath = compressedPath
             smallestSize = compressedSize
