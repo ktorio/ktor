@@ -20,9 +20,7 @@ class DeflateEncoderTest {
     @Test
     fun `decode handles zlib-wrapped deflate`() = runBlocking {
         val original = "Hello, zlib-wrapped deflate!".toByteArray(Charsets.UTF_8)
-        val compressed = ByteArrayOutputStream().also { baos ->
-            DeflaterOutputStream(baos).use { it.write(original) }
-        }.toByteArray()
+        val compressed = deflateWithZibWrapping(original)
 
         val decoded = Deflate.decode(ByteReadChannel(compressed))
             .readRemaining().readByteArray()
@@ -33,9 +31,7 @@ class DeflateEncoderTest {
     @Test
     fun `decode handles raw deflate`() = runBlocking {
         val original = "Hello, raw deflate!".toByteArray(Charsets.UTF_8)
-        val compressed = ByteArrayOutputStream().also { baos ->
-            DeflaterOutputStream(baos, Deflater(Deflater.DEFAULT_COMPRESSION, true)).use { it.write(original) }
-        }.toByteArray()
+        val compressed = deflateRaw(original)
 
         val decoded = Deflate.decode(ByteReadChannel(compressed))
             .readRemaining().readByteArray()
@@ -69,18 +65,14 @@ class DeflateEncoderTest {
         repeat(10_000) { iteration ->
             val original = random.nextBytes(random.nextInt(0, 128))
 
-            val zlibCompressed = ByteArrayOutputStream().also { baos ->
-                DeflaterOutputStream(baos).use { it.write(original) }
-            }.toByteArray()
+            val zlibCompressed = deflateWithZibWrapping(original)
             assertContentEquals(
                 original,
                 Deflate.decode(ByteReadChannel(zlibCompressed)).readRemaining().readByteArray(),
                 "zlib decode failed at iteration $iteration"
             )
 
-            val rawCompressed = ByteArrayOutputStream().also { baos ->
-                DeflaterOutputStream(baos, Deflater(Deflater.DEFAULT_COMPRESSION, true)).use { it.write(original) }
-            }.toByteArray()
+            val rawCompressed = deflateRaw(original)
             assertContentEquals(
                 original,
                 Deflate.decode(ByteReadChannel(rawCompressed)).readRemaining().readByteArray(),
@@ -88,4 +80,12 @@ class DeflateEncoderTest {
             )
         }
     }
+
+    private fun deflateWithZibWrapping(data: ByteArray): ByteArray = ByteArrayOutputStream().also { baos ->
+        DeflaterOutputStream(baos).use { it.write(data) }
+    }.toByteArray()
+
+    private fun deflateRaw(data: ByteArray): ByteArray = ByteArrayOutputStream().also { baos ->
+        DeflaterOutputStream(baos, Deflater(Deflater.DEFAULT_COMPRESSION,true)).use { it.write(data) }
+    }.toByteArray()
 }
