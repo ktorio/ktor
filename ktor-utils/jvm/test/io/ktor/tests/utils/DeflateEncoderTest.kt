@@ -86,6 +86,8 @@ class DeflateEncoderTest {
     }.toByteArray()
 
     private fun deflateRaw(data: ByteArray): ByteArray = ByteArrayOutputStream().also { baos ->
-        DeflaterOutputStream(baos, Deflater(Deflater.DEFAULT_COMPRESSION, true)).use { it.write(data) }
+        val rawDeflater = Deflater(Deflater.DEFAULT_COMPRESSION, true)
+        DeflaterOutputStream(baos, rawDeflater).use { it.write(data) }
+        rawDeflater.end()
     }.toByteArray()
 }
