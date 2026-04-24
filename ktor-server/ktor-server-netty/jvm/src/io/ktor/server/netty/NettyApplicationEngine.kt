@@ -7,24 +7,36 @@ package io.ktor.server.netty
 import io.ktor.events.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
+import io.ktor.server.netty.http3.*
 import io.ktor.util.network.*
 import io.ktor.util.pipeline.*
+import io.netty.bootstrap.Bootstrap
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.Channel
 import io.netty.channel.ChannelOption
 import io.netty.channel.ChannelPipeline
 import io.netty.channel.EventLoopGroup
 import io.netty.channel.epoll.Epoll
+import io.netty.channel.epoll.EpollDatagramChannel
 import io.netty.channel.epoll.EpollServerSocketChannel
 import io.netty.channel.kqueue.KQueue
+import io.netty.channel.kqueue.KQueueDatagramChannel
 import io.netty.channel.kqueue.KQueueServerSocketChannel
+import io.netty.channel.socket.DatagramChannel
 import io.netty.channel.socket.ServerSocketChannel
+import io.netty.channel.socket.nio.NioDatagramChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.handler.codec.http.HttpObjectDecoder
 import io.netty.handler.codec.http.HttpServerCodec
+import io.netty.handler.codec.quic.QuicServerCodecBuilder
+import io.netty.handler.codec.quic.QuicSslContext
+import io.netty.handler.codec.quic.QuicSslContextBuilder
+import io.netty.handler.codec.quic.QuicTokenHandler
 import kotlinx.coroutines.CompletableJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import java.net.BindException
+import java.security.PrivateKey
+import java.security.cert.X509Certificate
 import java.util.concurrent.TimeUnit
 import kotlin.reflect.KClass
 import kotlin.system.measureTimeMillis
@@ -147,6 +159,76 @@ public class NettyApplicationEngine(
         public var channelPipelineConfig: ChannelPipeline.() -> Unit = {}
 
         /**
+         * If set to `true`, enables HTTP/3 protocol (over QUIC/UDP) for Netty engine.
+         * Requires an SSL connector to be configured (HTTP/3 always uses TLS).
+         * The HTTP/3 endpoint will listen on the same port as the SSL connector but over UDP.
+         */
+        public var enableHttp3: Boolean = false
+
+        /**
+         * The [QuicTokenHandler] used to generate and validate QUIC retry tokens
+         * when HTTP/3 is enabled. By default, a secure HMAC-SHA256-based handler
+         * is used that cryptographically signs tokens with a randomly generated key
+         * and rejects forged or expired tokens.
+         *
+         * Callers may replace this with a custom [QuicTokenHandler] implementation
+         * to use a different signing strategy or integrate with external token services.
+         *
+         * Only takes effect when [enableHttp3] is `true`.
+         */
+        public var quicTokenHandler: QuicTokenHandler = HmacQuicTokenHandler()
+
+        /**
+         * Maximum idle timeout for QUIC connections in milliseconds.
+         * If no data is exchanged within this period, the connection is closed.
+         *
+         * Only takes effect when [enableHttp3] is `true`.
+         */
+        public var quicMaxIdleTimeoutMillis: Long = 30_000
+
+        /**
+         * The initial value for the maximum amount of data that can be sent
+         * on the entire QUIC connection, in bytes.
+         *
+         * Only takes effect when [enableHttp3] is `true`.
+         */
+        public var quicInitialMaxData: Long = 10_000_000
+
+        /**
+         * The initial flow-control limit for locally-initiated bidirectional
+         * QUIC streams, in bytes.
+         *
+         * Only takes effect when [enableHttp3] is `true`.
+         */
+        public var quicInitialMaxStreamDataBidirectionalLocal: Long = 1_000_000
+
+        /**
+         * The initial flow-control limit for remotely-initiated bidirectional
+         * QUIC streams, in bytes.
+         *
+         * Only takes effect when [enableHttp3] is `true`.
+         */
+        public var quicInitialMaxStreamDataBidirectionalRemote: Long = 1_000_000
+
+        /**
+         * The initial maximum number of bidirectional streams that the remote
+         * peer is allowed to open.
+         *
+         * Only takes effect when [enableHttp3] is `true`.
+         */
+        public var quicInitialMaxStreamsBidirectional: Long = 100
+
+        /**
+         * User-provided function to configure the QUIC server codec builder
+         * used when HTTP/3 is enabled. This lambda is invoked on the
+         * [QuicServerCodecBuilder] after all default settings have been applied,
+         * allowing callers to override or add any QUIC transport parameters.
+         *
+         * Only takes effect when [enableHttp3] is `true`.
+         */
+        public var configureQuicServerCodec: QuicServerCodecBuilder.() -> Unit = {}
+
+        /**
          * Default function to configure Netty's
          */
         private fun defaultHttpServerCodec() = HttpServerCodec(
@@ -199,8 +281,18 @@ public class NettyApplicationEngine(
     private var cancellationJob: CompletableJob? = null
 
     private var channels: List<Channel>? = null
+    private var http3Channels: List<Channel>? = null
     internal val bootstraps: List<ServerBootstrap> by lazy {
         configuration.connectors.map(::createBootstrap)
+    }
+    private val http3Bootstraps: List<Bootstrap> by lazy {
+        if (!configuration.enableHttp3) return@lazy emptyList()
+        require(configuration.connectors.any { it is EngineSSLConnectorConfig }) {
+            "Netty HTTP/3 requires at least one SSL connector. Add an SSL connector or disable enableHttp3."
+        }
+        configuration.connectors
+            .filterIsInstance<EngineSSLConnectorConfig>()
+            .map { createHttp3Bootstrap(it) }
     }
 
     private fun createBootstrap(connector: EngineConnectorConfig): ServerBootstrap {
@@ -242,6 +334,46 @@ public class NettyApplicationEngine(
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
+    private fun createHttp3Bootstrap(connector: EngineSSLConnectorConfig): Bootstrap {
+        val chain = connector.keyStore.getCertificateChain(connector.keyAlias).toList() as List<X509Certificate>
+        val certs = chain.toTypedArray()
+        val password = connector.privateKeyPassword()
+        val pk = connector.keyStore.getKey(connector.keyAlias, password) as PrivateKey
+        password.fill('\u0000')
+
+        val quicSslContext: QuicSslContext = QuicSslContextBuilder.forServer(pk, null, *certs)
+            .applicationProtocols(*io.netty.handler.codec.http3.Http3.supportedApplicationProtocols())
+            .build()
+
+        val userContext =
+            NettyApplicationCallHandler.CallHandlerCoroutineName +
+                NettyDispatcher +
+                DefaultUncaughtExceptionHandler(environment.log)
+
+        return Bootstrap().apply {
+            group(workerEventGroup)
+            channel(getDatagramChannelClass().java)
+            handler(
+                NettyHttp3ChannelInitializer(
+                    applicationProvider,
+                    pipeline,
+                    callEventGroup,
+                    userContext,
+                    configuration.runningLimit,
+                    quicSslContext,
+                    configuration.quicTokenHandler,
+                    configuration.quicMaxIdleTimeoutMillis,
+                    configuration.quicInitialMaxData,
+                    configuration.quicInitialMaxStreamDataBidirectionalLocal,
+                    configuration.quicInitialMaxStreamDataBidirectionalRemote,
+                    configuration.quicInitialMaxStreamsBidirectional,
+                    configuration.configureQuicServerCodec
+                )
+            )
+        }
+    }
+
     init {
         pipeline.insertPhaseAfter(EnginePipeline.Call, AFTER_CALL_PHASE)
         pipeline.intercept(AFTER_CALL_PHASE) {
@@ -254,11 +386,25 @@ public class NettyApplicationEngine(
             channels = bootstraps.zip(configuration.connectors)
                 .map { it.first.bind(it.second.host, it.second.port) }
                 .map { it.sync().channel() }
+
             val connectors = channels!!.zip(configuration.connectors)
                 .map { it.second.withPort(it.first.localAddress().port) }
+
+            // Bind HTTP/3 (QUIC/UDP) on the same resolved port as the TCP SSL connector.
+            // TCP and UDP can share the same port number since they are different protocols.
+            val resolvedSslConnectors = channels!!.zip(configuration.connectors)
+                .filter { it.second is EngineSSLConnectorConfig }
+                .map { it.second.host to (it.first.localAddress() as java.net.InetSocketAddress).port }
+            http3Channels = http3Bootstraps.zip(resolvedSslConnectors)
+                .map { (bootstrap, hostPort) -> bootstrap.bind(hostPort.first, hostPort.second) }
+                .map { it.sync().channel() }
+
             resolvedConnectorsDeferred.complete(connectors)
         } catch (cause: BindException) {
             terminate()
+            throw cause
+        } catch (cause: Throwable) {
+            stop(0, 0)
             throw cause
         }
 
@@ -271,7 +417,8 @@ public class NettyApplicationEngine(
         )
 
         if (wait) {
-            channels?.map { it.closeFuture() }?.forEach { it.sync() }
+            val allChannels = (channels.orEmpty() + http3Channels.orEmpty())
+            allChannels.map { it.closeFuture() }.forEach { it.sync() }
             stop(configuration.shutdownGracePeriod, configuration.shutdownTimeout)
         }
         return this
@@ -297,7 +444,8 @@ public class NettyApplicationEngine(
         monitor.raise(ApplicationStopPreparing, environment)
 
         val channelsCloseTime = measureTimeMillis {
-            val channelFutures = channels?.mapNotNull { if (it.isOpen) it.close() else null }.orEmpty()
+            val allChannels = (channels.orEmpty() + http3Channels.orEmpty())
+            val channelFutures = allChannels.mapNotNull { if (it.isOpen) it.close() else null }
             channelFutures.forEach { future ->
                 withStopException { future.sync() }
             }
@@ -341,4 +489,10 @@ internal fun getChannelClass(): KClass<out ServerSocketChannel> = when {
     KQueue.isAvailable() -> KQueueServerSocketChannel::class
     Epoll.isAvailable() -> EpollServerSocketChannel::class
     else -> NioServerSocketChannel::class
+}
+
+internal fun getDatagramChannelClass(): KClass<out DatagramChannel> = when {
+    KQueue.isAvailable() -> KQueueDatagramChannel::class
+    Epoll.isAvailable() -> EpollDatagramChannel::class
+    else -> NioDatagramChannel::class
 }

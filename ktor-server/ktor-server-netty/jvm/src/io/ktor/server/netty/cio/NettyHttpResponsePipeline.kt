@@ -11,6 +11,7 @@ import io.ktor.utils.io.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http2.*
+import io.netty.handler.codec.http3.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import java.io.*
@@ -184,6 +185,7 @@ internal class NettyHttpResponsePipeline(
         val contentType = when (responseMessage) {
             is HttpResponse -> responseMessage.headers().get(HttpHeaders.ContentType)
             is Http2HeadersFrame -> responseMessage.headers().get("content-type")?.toString()
+            is Http3HeadersFrame -> responseMessage.headers().get("content-type")?.toString()
             else -> null
         }
         if (contentType?.contains("text/event-stream", ignoreCase = true) == true) {
@@ -208,6 +210,7 @@ internal class NettyHttpResponsePipeline(
             responseChannel === ByteReadChannel.Empty -> 0
             responseMessage is HttpResponse -> responseMessage.headers().getInt("Content-Length", -1)
             responseMessage is Http2HeadersFrame -> responseMessage.headers().getInt("content-length", -1)
+            responseMessage is Http3HeadersFrame -> responseMessage.headers().getInt("content-length", -1)
             else -> -1
         }
 
