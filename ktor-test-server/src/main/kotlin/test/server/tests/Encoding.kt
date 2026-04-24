@@ -12,17 +12,28 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
+import java.io.ByteArrayOutputStream
+import java.util.zip.DeflaterOutputStream
 import kotlinx.io.readByteArray
 
 internal fun Application.encodingTestServer() {
     routing {
         route("/compression") {
             route("/deflate") {
-                install(Compression) {
-                    deflate()
-                    minimumSize(0)
+                get {
+                    val content = "Compressed response!".toByteArray(Charsets.UTF_8)
+                    val baos = ByteArrayOutputStream()
+                    DeflaterOutputStream(baos).use { it.write(content) }
+                    val compressed = baos.toByteArray()
+                    call.respond(object : OutgoingContent.ReadChannelContent() {
+                        override val contentType = ContentType.Text.Plain.withCharset(Charsets.UTF_8)
+                        override val headers = Headers.build {
+                            append(HttpHeaders.ContentEncoding, "deflate")
+                            append(HttpHeaders.Vary, HttpHeaders.AcceptEncoding)
+                        }
+                        override fun readFrom() = ByteReadChannel(compressed)
+                    })
                 }
-                setCompressionEndpoints()
             }
             route("/gzip") {
                 install(Compression) {
