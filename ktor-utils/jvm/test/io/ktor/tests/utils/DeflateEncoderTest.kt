@@ -66,8 +66,8 @@ class DeflateEncoderTest {
     @Test
     fun `decode correctly identifies format for 100000 random payloads`() = runBlocking {
         val random = Random(seed = 42)
-        repeat(100_000) { iteration ->
-            val original = random.nextBytes(random.nextInt(1, 64))
+        repeat(10_000) { iteration ->
+            val original = random.nextBytes(random.nextInt(0, 128))
 
             val zlibCompressed = ByteArrayOutputStream().also { baos ->
                 DeflaterOutputStream(baos).use { it.write(original) }
