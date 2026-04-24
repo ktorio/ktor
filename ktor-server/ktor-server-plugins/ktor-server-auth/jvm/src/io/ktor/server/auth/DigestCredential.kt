@@ -294,10 +294,10 @@ internal fun DigestCredential.verifyWithHA1(
     ha1: ByteArray,
     entityBodyHash: ByteArray? = null
 ): Boolean {
-    val ha1Hex = hex(bytes = ha1)
+    val ha1Hex = ha1.toHexString()
     val validDigest = computeDigestResponse(method, ha1Hex, entityBodyHash)
     val incoming: ByteArray = try {
-        hex(response)
+        response.hexToByteArray()
     } catch (_: NumberFormatException) {
         return false
     }
@@ -322,7 +322,7 @@ public fun DigestCredential.expectedDigest(
     userNameRealmPasswordDigest: ByteArray,
     entityBodyHash: ByteArray? = null
 ): ByteArray {
-    val ha1Hex = hex(bytes = computeHA1(userNameRealmPasswordDigest))
+    val ha1Hex = computeHA1(userNameRealmPasswordDigest).toHexString()
     return computeDigestResponse(method, ha1Hex, entityBodyHash)
 }
 
@@ -339,10 +339,10 @@ private fun DigestCredential.computeDigestResponse(
     // For qop=auth-int: H(A2) = H(method:uri:H(entity-body))
     val methodValue = method.value.toUpperCasePreservingASCIIRules()
     val a2 = when (qop) {
-        DigestQop.AUTH_INT.value -> "$methodValue:$digestUri:${hex(entityBodyHash!!)}"
+        DigestQop.AUTH_INT.value -> "$methodValue:$digestUri:${entityBodyHash!!.toHexString()}"
         else -> "$methodValue:$digestUri"
     }
-    val ha2 = hex(digest(a2))
+    val ha2 = digest(a2).toHexString()
 
     // Final response calculation per RFC 7616 Section 3.4.1
     // Without qop: response = H(H(A1):nonce:H(A2))
@@ -368,7 +368,7 @@ internal fun DigestCredential.computeHA1(userNameRealmPasswordDigest: ByteArray)
     if (!digestAlgorithm.isSession || cnonce == null) {
         return userNameRealmPasswordDigest
     }
-    val baseHa1 = hex(bytes = userNameRealmPasswordDigest)
+    val baseHa1 = userNameRealmPasswordDigest.toHexString()
     return digest("$baseHa1:$nonce:$cnonce")
 }
 
@@ -398,15 +398,15 @@ internal fun DigestCredential.buildAuthenticationInfoHeader(
     // If the qop value is "auth" or is unspecified, then A2 is: A2 = ":" request-uri
     // If the qop value is "auth-int", then A2 is: A2 = ":" request-uri ":" H(entity-body)
     val a2 = when (qop) {
-        DigestQop.AUTH_INT.value -> ":$digestUri:${hex(bytes = responseBodyHash!!)}"
+        DigestQop.AUTH_INT.value -> ":$digestUri:${responseBodyHash!!.toHexString()}"
         else -> ":$digestUri"
     }
-    val ha2 = hex(digest(a2))
-    val ha1Hex = hex(ha1)
+    val ha2 = digest(a2).toHexString()
+    val ha1Hex = ha1.toHexString()
 
     // Calculate rspauth with qop (always present when this function is called)
     val rspAuthInput = "$ha1Hex:$nonce:${nonceCount!!}:${cnonce!!}:$qop:$ha2"
-    val rspAuth = hex(digest(rspAuthInput))
+    val rspAuth = digest(rspAuthInput).toHexString()
 
     return buildString {
         append("rspauth=\"$rspAuth\"")

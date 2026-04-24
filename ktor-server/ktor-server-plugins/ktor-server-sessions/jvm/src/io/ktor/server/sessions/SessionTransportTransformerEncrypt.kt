@@ -4,7 +4,6 @@
 
 package io.ktor.server.sessions
 
-import io.ktor.util.*
 import org.slf4j.*
 import java.security.*
 import javax.crypto.*
@@ -81,16 +80,16 @@ public class SessionTransportTransformerEncrypt(
         try {
             val encryptedAndMac = transportValue.substringAfterLast('/', "")
             val macHex = encryptedAndMac.substringAfterLast(':', "")
-            val encrypted = hex(encryptedAndMac.substringBeforeLast(':'))
-            val macCheck = hex(mac(encrypted)) == macHex
+            val encrypted = encryptedAndMac.substringBeforeLast(':').hexToByteArray()
+            val macCheck = mac(encrypted).toHexString() == macHex
             if (!macCheck && !backwardCompatibleRead) {
                 return null
             }
 
-            val iv = hex(transportValue.substringBeforeLast('/'))
+            val iv = transportValue.substringBeforeLast('/').hexToByteArray()
             val decrypted = decrypt(iv, encrypted)
 
-            if (!macCheck && hex(mac(decrypted)) != macHex) {
+            if (!macCheck && mac(decrypted).toHexString() != macHex) {
                 return null
             }
 
@@ -110,7 +109,7 @@ public class SessionTransportTransformerEncrypt(
         val decrypted = transportValue.toByteArray(charset)
         val encrypted = encrypt(iv, decrypted)
         val mac = mac(encrypted)
-        return "${hex(iv)}/${hex(encrypted)}:${hex(mac)}"
+        return "${iv.toHexString()}/${encrypted.toHexString()}:${mac.toHexString()}"
     }
 
     private fun encrypt(initVector: ByteArray, decrypted: ByteArray): ByteArray {

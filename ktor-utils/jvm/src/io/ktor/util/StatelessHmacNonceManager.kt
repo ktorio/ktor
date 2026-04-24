@@ -23,7 +23,7 @@ public class StatelessHmacNonceManager(
     public val keySpec: SecretKeySpec,
     public val algorithm: String = "HmacSHA256",
     public val timeoutMillis: Long = 60000,
-    public val nonceGenerator: () -> String = { generateNonce() }
+    public val nonceGenerator: () -> String = { generateNonceBlocking() }
 ) : NonceManager {
     /**
      * Helper constructor that makes a secret key from [key] ByteArray
@@ -34,7 +34,7 @@ public class StatelessHmacNonceManager(
         key: ByteArray,
         algorithm: String = "HmacSHA256",
         timeoutMillis: Long = 60000,
-        nonceGenerator: () -> String = { generateNonce() }
+        nonceGenerator: () -> String = { generateNonceBlocking() }
     ) : this(
         SecretKeySpec(
             key,
@@ -57,12 +57,10 @@ public class StatelessHmacNonceManager(
         val random = nonceGenerator()
         val time = System.nanoTime().toString(16).padStart(16, '0')
 
-        val mac = hex(
-            Mac.getInstance(algorithm).apply {
-                init(keySpec)
-                update("$random:$time".toByteArray(Charsets.ISO_8859_1))
-            }.doFinal()
-        )
+        val mac = Mac.getInstance(algorithm).apply {
+            init(keySpec)
+            update("$random:$time".toByteArray(Charsets.ISO_8859_1))
+        }.doFinal().toHexString()
 
         return "$random+$time+$mac"
     }
@@ -79,12 +77,10 @@ public class StatelessHmacNonceManager(
         val nanoTime = time.toLong(16)
         if (nanoTime + TimeUnit.MILLISECONDS.toNanos(timeoutMillis) < System.nanoTime()) return false
 
-        val computedMac = hex(
-            Mac.getInstance(algorithm).apply {
-                init(keySpec)
-                update("$random:$time".toByteArray(Charsets.ISO_8859_1))
-            }.doFinal()
-        )
+        val computedMac = Mac.getInstance(algorithm).apply {
+            init(keySpec)
+            update("$random:$time".toByteArray(Charsets.ISO_8859_1))
+        }.doFinal().toHexString()
 
         var validCount = 0
         for (i in 0 until minOf(computedMac.length, mac.length)) {

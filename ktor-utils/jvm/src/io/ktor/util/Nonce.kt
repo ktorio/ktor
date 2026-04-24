@@ -8,6 +8,9 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import org.slf4j.*
 import java.security.*
+import kotlin.random.*
+
+private val logger = LoggerFactory.getLogger("io.ktor.util.random")
 
 private const val SHA1PRNG = "SHA1PRNG"
 
@@ -17,36 +20,47 @@ private val SECURE_RANDOM_PROVIDERS: List<String> = listOf(
     "DRBG"
 )
 
-private const val SECURE_RESEED_PERIOD = 30_000
+private const val SYSTEM_PROPERTY_PREFIX = "io.ktor.random.secure"
 
-private const val SECURE_NONCE_COUNT = 8
+// Note: these defaults are just random guesses, and were not chosen through any benchmarks.
 
-private const val INSECURE_NONCE_COUNT_FACTOR = 4
+private val SECURE_RESEED_PERIOD = getSystemPropertyInt("reseed-period", 30_000)
 
-internal val seedChannel: Channel<String> = Channel(1024)
+private val SECURE_NONCE_COUNT = getSystemPropertyInt("nonce.buffer-size", 64)
+
+private val SECURE_RESEED_BYTES = getSystemPropertyInt("reseed-bytes", 256)
+
+private val INSECURE_NONCE_COUNT_FACTOR = getSystemPropertyInt("insecure-factor", 4)
+
+internal val nonceChannel: Channel<String> = Channel(getSystemPropertyInt("nonce.channel-size", 128))
 
 private val NonceGeneratorCoroutineName = CoroutineName("nonce-generator")
 
 @OptIn(DelicateCoroutinesApi::class)
+@Suppress("CoroutineContextWithJob")
 private val nonceGeneratorJob = GlobalScope.launch(
     context = Dispatchers.Default + NonCancellable + NonceGeneratorCoroutineName,
     start = CoroutineStart.LAZY
 ) {
-    val seedChannel = seedChannel
+    val nonceChannel = nonceChannel
     var lastReseed = 0L
-    val previousRoundNonceList = ArrayList<String>()
-    val secureInstance = lookupSecureRandom()
+    // empty strings are fine, because we only send non-empty strings
+    val randomNonces = arrayOfNulls<String>(SECURE_NONCE_COUNT * 2)
+
+    val strongRandom = lookupSecureRandom()
+    // note that technically the SHA1PRNG is not in the jvm spec, so this will fail on JVMs without the SHA1PRNG.
     val weakRandom = SecureRandom.getInstance(SHA1PRNG)
+    val weakKotlinRandom = weakRandom.asKotlinRandom() // we need a kotlin random for kotlin.collections.shuffle
 
-    val secureBytes = ByteArray(SECURE_NONCE_COUNT * NONCE_SIZE_IN_BYTES)
-    val weakBytes = ByteArray(secureBytes.size * INSECURE_NONCE_COUNT_FACTOR)
+    val secureBytes = ByteArray(SECURE_NONCE_COUNT * NONCE_SIZE_IN_BYTES / INSECURE_NONCE_COUNT_FACTOR)
+    val weakBytes = ByteArray(SECURE_NONCE_COUNT * NONCE_SIZE_IN_BYTES)
 
-    weakRandom.setSeed(secureInstance.generateSeed(secureBytes.size))
+    weakRandom.setSeed(strongRandom.generateSeed(SECURE_RESEED_BYTES))
 
     try {
         while (true) {
             // fill both
-            secureInstance.nextBytes(secureBytes)
+            strongRandom.nextBytes(secureBytes)
             weakRandom.nextBytes(weakBytes)
 
             // mix secure and weak
@@ -61,31 +75,44 @@ private val nonceGeneratorJob = GlobalScope.launch(
 
             if (currentTime - lastReseed > SECURE_RESEED_PERIOD) {
                 weakRandom.setSeed(lastReseed - currentTime)
-                weakRandom.setSeed(secureInstance.generateSeed(secureBytes.size))
+                weakRandom.setSeed(strongRandom.generateSeed(SECURE_RESEED_BYTES))
                 lastReseed = currentTime
             } else {
                 weakRandom.setSeed(secureBytes)
             }
 
-            // concat entries with entries from the previous round
-            // and shuffle with weak random (reseeded)
-            val randomNonceList = (hex(weakBytes).chunked(16) + previousRoundNonceList).shuffled(weakRandom)
+            /*
+            concat entries with entries from the previous round
 
-            // send first part to the channel
-            for (index in 0 until randomNonceList.size / 2) {
-                seedChannel.send(randomNonceList[index])
+            realistically, hex.length here could be a constant as it *should* always be the same length
+            but it's just easier to use hex.length
+
+            we're only setting the first 1/2 elements in randomNonces not the full array,
+            the remaining elements are preserved from the last iteration
+
+            we overwrite the first half of the elements,
+            as those are the ones that were previously sent to the channel
+             */
+            val hex = weakBytes.toHexString()
+            for (index in 0..<hex.length / NONCE_SIZE_IN_CHARS) {
+                val offset = index * NONCE_SIZE_IN_CHARS
+                randomNonces[index] = hex.substring(offset, offset + NONCE_SIZE_IN_CHARS)
             }
+            // and shuffle with weak random (reseeded)
+            randomNonces.shuffle(weakKotlinRandom) // shuffle array in-place to avoid extra allocations
 
-            // stash the second part for the next round
-            previousRoundNonceList.clear()
-            for (index in randomNonceList.size / 2 until randomNonceList.size) {
-                previousRoundNonceList.add(randomNonceList[index])
+            // send first half to the channel
+            for (index in 0 until randomNonces.size / 2) {
+                val nonce = randomNonces[index] ?: continue
+                if (nonce.isNotEmpty()) {
+                    nonceChannel.send(nonce)
+                }
             }
         }
     } catch (t: Throwable) {
-        seedChannel.close(t)
+        nonceChannel.close(t)
     } finally {
-        seedChannel.close()
+        nonceChannel.close()
     }
 }
 
@@ -94,7 +121,7 @@ internal fun ensureNonceGeneratorRunning() {
 }
 
 private fun lookupSecureRandom(): SecureRandom {
-    System.getProperty("io.ktor.random.secure.random.provider")?.let { name ->
+    System.getProperty("$SYSTEM_PROPERTY_PREFIX.random.provider")?.let { name ->
         getInstanceOrNull(name)?.let { return it }
     }
 
@@ -102,9 +129,19 @@ private fun lookupSecureRandom(): SecureRandom {
         getInstanceOrNull(name)?.let { return it }
     }
 
-    LoggerFactory.getLogger("io.ktor.util.random")
-        .warn("None of the ${SECURE_RANDOM_PROVIDERS.joinToString(separator = ", ")} found, fallback to default")
+    logger.warn("None of the ${SECURE_RANDOM_PROVIDERS.joinToString()} found, falling back to the JDK strong default")
 
+    // try JVM-determined strong instances
+    // on OpenJDK, this is set to Windows-PRNG:SunMSCAPI and DRBG:SUN on Windows and NativePRNGBlocking:SUN and DRBG:SUN otherwise.
+    try {
+        return SecureRandom.getInstanceStrong()
+    } catch (_: NoSuchAlgorithmException) {
+        // ignored
+    }
+
+    logger.warn("None of the JDK determined strong SecureRandom providers were available, falling back to the default")
+
+    // fallback (*should* never be null)
     return getInstanceOrNull() ?: error("No SecureRandom implementation found")
 }
 
@@ -114,6 +151,20 @@ private fun getInstanceOrNull(name: String? = null) = try {
     } else {
         SecureRandom()
     }
-} catch (notFound: NoSuchAlgorithmException) {
+} catch (_: NoSuchAlgorithmException) {
     null
+}
+
+private fun getSystemPropertyInt(key: String, default: Int): Int {
+    val property = System.getProperty("$SYSTEM_PROPERTY_PREFIX.$key", null)
+    if (property != null) {
+        try {
+            return property.toInt()
+        } catch (_: NumberFormatException) {
+            logger.warn(
+                "Invalid integer '$property' for property $SYSTEM_PROPERTY_PREFIX.$key, falling back to default"
+            )
+        }
+    }
+    return default
 }

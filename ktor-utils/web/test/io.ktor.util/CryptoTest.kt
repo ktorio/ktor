@@ -18,6 +18,6 @@ class CryptoTest {
         checkMsCrypto()
         defineCrypto()
         deleteCrypto()
-        assertEquals(32, generateNonce().length)
+        assertEquals(32, generateNonceBlocking().length)
     }
 }

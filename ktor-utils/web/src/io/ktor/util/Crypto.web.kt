@@ -11,12 +11,19 @@ import kotlin.js.*
 /**
  * Generates a nonce string.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.generateNonce)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.generateNonceSuspend)
  */
-public actual fun generateNonce(): String {
-    val buffer = ByteArray(NONCE_SIZE_IN_BYTES).toJsArray()
+public actual suspend fun generateNonceSuspend(length: Int): String = generateNonceBlocking(length)
+
+/**
+ * Generates a nonce string.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.generateNonceBlocking)
+ */
+public actual fun generateNonceBlocking(length: Int): String {
+    val buffer = ByteArray(length / 2 + 1).toJsArray()
     _crypto.getRandomValues(buffer)
-    return hex(buffer.toByteArray())
+    return buffer.toByteArray().toHexString().substring(0, length)
 }
 
 /**

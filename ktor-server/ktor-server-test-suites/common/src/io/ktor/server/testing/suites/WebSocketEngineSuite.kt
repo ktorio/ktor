@@ -12,7 +12,6 @@ import io.ktor.server.engine.*
 import io.ktor.server.routing.*
 import io.ktor.server.test.base.*
 import io.ktor.server.websocket.*
-import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
@@ -721,14 +720,14 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                     break@loop
                 }
 
-                else -> fail("Unexpected frame $frame: \n${hex(frame.data)}")
+                else -> fail("Unexpected frame $frame: \n${frame.data.toHexString()}")
             }
         }
     }
 
     private suspend fun ByteWriteChannel.writeHex(hex: String) = writeFully(fromHexDump(hex))
 
-    private fun fromHexDump(hex: String) = hex(hex.replace("0x", "").replace("\\s+".toRegex(), ""))
+    private fun fromHexDump(hex: String) = hex.replace("0x", "").replace("\\s+".toRegex(), "").hexToByteArray()
 
     //
     private suspend fun ByteReadChannel.parseStatus(): HttpStatusCode {
