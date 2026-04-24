@@ -20,6 +20,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.date.*
+import org.junit.jupiter.api.io.TempDir
 import kotlinx.coroutines.delay
 import java.io.File
 import java.io.FileOutputStream
@@ -333,8 +334,7 @@ class StaticContentTest {
     }
 
     @Test
-    fun testStaticFilesPreCompressed() = testApplication {
-        val filesDir = Files.createTempDirectory("assets").toFile()
+    fun testStaticFilesPreCompressed(@TempDir filesDir: File) = testApplication {
         val tempFile = File(filesDir, "testServeEncodedFile.txt")
         val brFile = File(filesDir, "testServeEncodedFile.txt.br")
         val gzFile = File(filesDir, "testServeEncodedFile.txt.gz")
@@ -912,9 +912,8 @@ class StaticContentTest {
     }
 
     @Test
-    fun testServeEncodedFileBr() = testApplication {
+    fun testServeEncodedFileBr(@TempDir tempDir: File) = testApplication {
         val ext = "json"
-        val tempDir = Files.createTempDirectory("testServeEncodedFile").toFile()
 
         val originalFile = File(basedir, "plugins/StaticContentTest.kt".replaceSeparators())
         originalFile.copyTo(tempDir.resolve("file.$ext.br"), true)
@@ -938,9 +937,8 @@ class StaticContentTest {
     }
 
     @Test
-    fun testServeEncodedFileGz() = testApplication {
+    fun testServeEncodedFileGz(@TempDir tempDir: File) = testApplication {
         val ext = "js"
-        val tempDir = Files.createTempDirectory("testServeEncodedFile").toFile()
 
         val originalFile = File(basedir, "plugins/StaticContentTest.kt".replaceSeparators())
         originalFile.copyTo(tempDir.resolve("file.$ext.gz"), true)
@@ -965,10 +963,9 @@ class StaticContentTest {
 
     // a.k.a testServeEncodedFileGzWithCompressionNoRecompress
     @Test
-    fun testSuppressCompressionIfAlreadyCompressed() = testApplication {
+    fun testSuppressCompressionIfAlreadyCompressed(@TempDir tempDir: File) = testApplication {
         install(Compression)
         val ext = "js"
-        val tempDir = Files.createTempDirectory("testServeEncodedFile").toFile()
 
         val originalFile = File(basedir, "plugins/StaticContentTest.kt".replaceSeparators())
         originalFile.copyTo(tempDir.resolve("file.$ext.gz"), true)
@@ -992,10 +989,9 @@ class StaticContentTest {
     }
 
     @Test
-    fun testCompressedTypesOrder() = testApplication {
+    fun testCompressedTypesOrder(@TempDir tempDir: File) = testApplication {
         val ext = "js"
         val cType = ContentType.defaultForFileExtension(ext)
-        val tempDir = Files.createTempDirectory("testServeEncodedFile").toFile()
 
         val originalFile = File(basedir, "plugins/StaticContentTest.kt".replaceSeparators())
         originalFile.copyTo(tempDir.resolve("file.$ext.br"), true)
@@ -1031,8 +1027,7 @@ class StaticContentTest {
     }
 
     @Test
-    fun testPreCompressedConfiguresImperatively() = testApplication {
-        val tempDir = Files.createTempDirectory("testServeEncodedFile").toFile()
+    fun testPreCompressedConfiguresImperatively(@TempDir tempDir: File) = testApplication {
         val gzDir = File(tempDir, "js").also { it.mkdirs() }
         val brDir = File(tempDir, "css").also { it.mkdirs() }
 
@@ -1070,8 +1065,7 @@ class StaticContentTest {
     }
 
     @Test
-    fun testPreCompressedConfiguresNested() = testApplication {
-        val tempDir = Files.createTempDirectory("testServeEncodedFile").toFile()
+    fun testPreCompressedConfiguresNested(@TempDir tempDir: File) = testApplication {
         val cssDir = File(tempDir, "css").also { it.mkdirs() }
 
         File(basedir, "plugins/StaticContentTest.kt".replaceSeparators()).run {
@@ -1486,7 +1480,7 @@ class StaticContentTest {
     }
 
     @Test
-    fun `test custom ETag and LastModified with ConditionalHeaders`() = testApplication {
+    fun `test custom ETag and LastModified with ConditionalHeaders`(@TempDir filesDir: File) = testApplication {
         val date = GMTDate()
         val etag = "etag"
 
@@ -1505,7 +1499,6 @@ class StaticContentTest {
                 configure(etag, date)
             }
 
-            val filesDir = Files.createTempDirectory("assets").toFile()
             val file = File(filesDir, "file.txt")
             val brFile = File(filesDir, "file.txt.br")
             file.writeText("file.txt")
@@ -1567,8 +1560,7 @@ class StaticContentTest {
     }
 
     @Test
-    fun `test strong etag`() = testApplication {
-        val filesDir = Files.createTempDirectory("etag-strong").toFile()
+    fun `test strong etag`(@TempDir filesDir: File) = testApplication {
         File(filesDir, "test.txt").apply { writeText("test.txt") }
         File(filesDir, "test.txt.br").apply { writeText("test.txt.br") }
         File(filesDir, "test.txt.gz").apply { writeText("test.txt.gz") }
