@@ -74,6 +74,7 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
     internal var cacheControl: (Resource) -> List<CacheControl> = { emptyList() }
     internal var modifier: suspend (Resource, ApplicationCall) -> Unit = { _, _ -> }
     internal var exclude: MutableList<(Resource) -> Boolean> = mutableListOf()
+    internal var filter: MutableList<(call: ApplicationCall) -> Boolean> = mutableListOf()
     internal var extensions: Array<String> = emptyArray()
     internal var defaultPath: String? = null
     internal var fallback: suspend (String, ApplicationCall) -> Unit = { _, _ -> }
@@ -213,7 +214,9 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
 
     /**
      * Configures resources that should not be served.
-     * If this block returns `true` for [Resource], [Application] will respond with [HttpStatusCode.Forbidden].
+     *
+     * If this block returns `true` for [Resource], the [Application] will
+     * respond with [HttpStatusCode.Forbidden].
      * Can be invoked multiple times.
      * For files, [Resource] is a requested [File].
      * For resources, [Resource] is a [URL] to a requested resource.
@@ -222,6 +225,22 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
      */
     public fun exclude(block: (Resource) -> Boolean) {
         exclude.add(block)
+    }
+
+    /**
+     * Configures calls that should be skipped.
+     *
+     * If this block returns `true` for [ApplicationCall], the [Application]
+     * will not handle any static content.
+     *
+     * Useful if, for example, you are serving static content at the root
+     * domain, but don't want to serve static content for any requests to the
+     * `/api` route.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.StaticContentConfig.exclude)
+     */
+    public fun filter(block: (call: ApplicationCall) -> Boolean) {
+        filter.add(block)
     }
 
     /**
@@ -262,11 +281,16 @@ public fun Route.staticFiles(
     val extensions = staticRoute.extensions
     val modify = staticRoute.modifier
     val exclude = staticRoute.exclude.flattenExcludeFunctions()
+    val filter = staticRoute.filter.flattenExcludeFunctions()
     val defaultPath = staticRoute.defaultPath
     val fallback = staticRoute.fallback
     val lastModified = staticRoute.lastModifiedExtractor
     val etag = staticRoute.etagExtractor
     return staticContentRoute(remotePath, autoHead) {
+        if (!filter(this)) {
+            return@staticContentRoute
+        }
+
         respondStaticFile(
             index = index,
             dir = dir,
@@ -310,11 +334,16 @@ public fun Route.staticResources(
     val extensions = staticRoute.extensions
     val modifier = staticRoute.modifier
     val exclude = staticRoute.exclude.flattenExcludeFunctions()
+    val filter = staticRoute.filter.flattenExcludeFunctions()
     val defaultPath = staticRoute.defaultPath
     val fallback = staticRoute.fallback
     val lastModified = staticRoute.lastModifiedExtractor
     val etag = staticRoute.etagExtractor
     return staticContentRoute(remotePath, autoHead) {
+        if (!filter(this)) {
+            return@staticContentRoute
+        }
+
         respondStaticResource(
             index = index,
             basePackage = basePackage,
@@ -428,11 +457,16 @@ public fun Route.staticFileSystem(
     val extensions = staticRoute.extensions
     val modify = staticRoute.modifier
     val exclude = staticRoute.exclude.flattenExcludeFunctions()
+    val filter = staticRoute.filter.flattenExcludeFunctions()
     val defaultPath = staticRoute.defaultPath
     val fallback = staticRoute.fallback
     val lastModified = staticRoute.lastModifiedExtractor
     val etag = staticRoute.etagExtractor
     return staticContentRoute(remotePath, autoHead) {
+        if (!filter(this)) {
+            return@staticContentRoute
+        }
+
         respondStaticPath(
             fileSystem = fileSystem,
             index = index,
