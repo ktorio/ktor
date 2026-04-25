@@ -457,8 +457,9 @@ private fun <Resource : Any> List<(Resource) -> Boolean>.flattenExcludeFunctions
         size == 1 -> return this.first()
         else -> return exclude@{ it ->
             for (function in this) {
-                if (function(it))
+                if (function(it)) {
                     return@exclude true
+                }
             }
 
             return@exclude false
@@ -735,15 +736,17 @@ private suspend fun ApplicationCall.respondStaticFile(
     val relativePath = relativePath() ?: return
     val requestedFile = dir.combineSafe(relativePath)
 
-    if (exclude(requestedFile))
+    if (exclude(requestedFile)) {
         return respond(HttpStatusCode.Forbidden)
+    }
 
     val isDirectory = requestedFile.isDirectory
     if (index != null && isDirectory) {
         val indexFile = File(requestedFile, index)
 
-        if (exclude(indexFile))
+        if (exclude(indexFile)) {
             return respond(HttpStatusCode.Forbidden)
+        }
 
         respondStaticFile(
             indexFile,
@@ -774,8 +777,9 @@ private suspend fun ApplicationCall.respondStaticFile(
             if (isHandled) return
         }
 
-        if (forbiddenPath)
+        if (forbiddenPath) {
             return respond(HttpStatusCode.Forbidden)
+        }
     }
 
     if (isHandled) return
@@ -813,15 +817,17 @@ private suspend fun ApplicationCall.respondStaticPath(
     val relativePath = relativePath() ?: return
     val requestedPath = fileSystem.getPath(basePath.orEmpty()).combineSafe(fileSystem.getPath(relativePath))
 
-    if (exclude(requestedPath))
+    if (exclude(requestedPath)) {
         return respond(HttpStatusCode.Forbidden)
+    }
 
     val isDirectory = requestedPath.isDirectory()
     if (index != null && isDirectory) {
         val indexPath = requestedPath.resolve(index)
 
-        if (exclude(indexPath))
-           return respond(HttpStatusCode.Forbidden)
+        if (exclude(indexPath)) {
+            return respond(HttpStatusCode.Forbidden)
+        }
 
         respondStaticPath(
             fileSystem,
@@ -871,8 +877,9 @@ private suspend fun ApplicationCall.respondStaticPath(
             if (isHandled) return
         }
 
-        if (forbiddenPath)
+        if (forbiddenPath) {
             return respond(HttpStatusCode.Forbidden)
+        }
     }
 
     if (isHandled) return
@@ -910,8 +917,9 @@ private suspend fun ApplicationCall.respondStaticResource(
     val relativePath = relativePath() ?: return
     val relativeResourceUrl = application.resolveResourceURL(relativePath, basePackage)
 
-    if (relativeResourceUrl != null && exclude(relativeResourceUrl))
-       return respond(HttpStatusCode.Forbidden)
+    if (relativeResourceUrl != null && exclude(relativeResourceUrl)) {
+        return respond(HttpStatusCode.Forbidden)
+    }
 
     respondStaticResource(
         requestedResource = relativePath,
@@ -951,15 +959,17 @@ private suspend fun ApplicationCall.respondStaticResource(
         if (isHandled) return
     }
 
-    if (forbiddenPath)
+    if (forbiddenPath) {
         return respond(HttpStatusCode.Forbidden)
+    }
 
     if (index != null) {
         val indexResource = "$relativePath${File.separator}$index"
         val indexResourceUrl = application.resolveResourceURL(indexResource, basePackage)
 
-        if (indexResourceUrl != null && exclude(indexResourceUrl))
-           return respond(HttpStatusCode.Forbidden)
+        if (indexResourceUrl != null && exclude(indexResourceUrl)) {
+            return respond(HttpStatusCode.Forbidden)
+        }
 
         respondStaticResource(
             requestedResource = indexResource,
@@ -996,8 +1006,9 @@ private fun ApplicationCall.relativePath(): String? {
     return buildString(paths.sumOf { it.length } + (paths.size - 1).coerceAtLeast(0) * File.separator.length) {
         var count = 0
         for (element in paths) {
-            if (++count > 1)
+            if (++count > 1) {
                 append(File.separator)
+            }
             append(element)
         }
     }

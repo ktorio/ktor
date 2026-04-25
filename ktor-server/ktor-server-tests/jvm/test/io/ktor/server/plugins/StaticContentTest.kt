@@ -20,8 +20,8 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.date.*
-import org.junit.jupiter.api.io.TempDir
 import kotlinx.coroutines.delay
+import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.file.FileSystems
@@ -418,13 +418,15 @@ class StaticContentTest {
             expectEncodedResponse: Boolean = true,
         ) {
             val response = client.get(path) {
-                if (type != null)
+                if (type != null) {
                     header(HttpHeaders.AcceptEncoding, type.encoding)
+                }
             }
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals(content, response.bodyAsText().trim())
-            if (type != null && expectEncodedResponse)
+            if (type != null && expectEncodedResponse) {
                 assertEquals(type.encoding, response.headers[HttpHeaders.ContentEncoding])
+            }
             assertEquals(ContentType.Text.Plain, response.contentType()!!.withoutParameters())
         }
 
@@ -481,7 +483,6 @@ class StaticContentTest {
         val responseFilesNotFound = client.head("staticFiles/not-existing")
         assertEquals(HttpStatusCode.NotFound, responseFilesNotFound.status)
 
-
         val responsePathIndex = client.get("staticFileSystem")
         assertEquals(HttpStatusCode.OK, responsePathIndex.status)
         assertEquals("index", responsePathIndex.bodyAsText().trim())
@@ -492,7 +493,6 @@ class StaticContentTest {
 
         val responsePathNotFound = client.head("staticFileSystem/not-existing")
         assertEquals(HttpStatusCode.NotFound, responsePathNotFound.status)
-
 
         val responseResourcesIndex = client.get("staticResources")
         assertEquals(HttpStatusCode.OK, responseResourcesIndex.status)

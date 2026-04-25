@@ -77,17 +77,20 @@ internal fun bestCompressionFit(
     var smallestFile: File? = null
     var smallestSize: Long = Long.MAX_VALUE
 
-    if (compressedTypes.isEmpty())
+    if (compressedTypes.isEmpty()) {
         return null
+    }
 
     for (compressedType in compressedTypes) {
-        if (compressedType.encoding !in acceptedEncodings)
+        if (compressedType.encoding !in acceptedEncodings) {
             continue
+        }
 
         val compressedFile = File("${file.absolutePath}.${compressedType.extension}")
 
-        if (!compressedFile.isFile)
+        if (!compressedFile.isFile) {
             continue
+        }
 
         val compressedSize = compressedFile.length()
 
@@ -114,17 +117,20 @@ internal fun bestCompressionFit(
     var smallestPath: Path? = null
     var smallestSize: Long = Long.MAX_VALUE
 
-    if (compressedTypes.isEmpty())
+    if (compressedTypes.isEmpty()) {
         return null
+    }
 
     for (compressedType in compressedTypes) {
-        if (compressedType.encoding !in acceptedEncodings)
+        if (compressedType.encoding !in acceptedEncodings) {
             continue
+        }
 
         val compressedPath = fileSystem.getPath("${path.pathString}.${compressedType.extension}")
 
-        if (!compressedPath.isRegularFile())
+        if (!compressedPath.isRegularFile()) {
             continue
+        }
 
         val compressedSize = compressedPath.fileSize()
 
@@ -155,12 +161,14 @@ internal fun bestCompressionFit(
     val acceptedEncodings = acceptEncoding.mapTo(HashSet(acceptEncoding.size)) { it.value }
     // We respect the order in compressedTypes, not the one in Accept header
 
-    if (compressedTypes.isEmpty())
+    if (compressedTypes.isEmpty()) {
         return null
+    }
 
     for (compressedType in compressedTypes) {
-        if (compressedType.encoding !in acceptedEncodings)
+        if (compressedType.encoding !in acceptedEncodings) {
             continue
+        }
 
         val compressed = "$resource.${compressedType.extension}"
         val resolved = call.application.resolveResource(compressed, packageName) { url ->
@@ -186,8 +194,9 @@ internal suspend fun ApplicationCall.respondStaticFile(
     etag: ETagProvider = ETagProvider { null },
     modify: suspend (File, ApplicationCall) -> Unit = { _, _ -> }
 ) {
-    if (!requestedFile.isFile)
+    if (!requestedFile.isFile) {
         return
+    }
 
     attributes.put(StaticFileLocationProperty, requestedFile.path)
 
@@ -229,8 +238,9 @@ internal suspend fun ApplicationCall.respondStaticPath(
     lastModified: (Path) -> GMTDate? = { null },
     etag: ETagProvider = ETagProvider { null },
 ) {
-    if (!requestedPath.exists())
+    if (!requestedPath.exists()) {
         return
+    }
 
     attributes.put(StaticFileLocationProperty, requestedPath.toString())
 
@@ -328,6 +338,7 @@ private fun <Resource : Any, Content : OutgoingContent> Content.provideVersions(
 }
 
 private fun ApplicationResponse.addCacheControlHeader(cacheControlValues: String) {
-    if (cacheControlValues.isNotEmpty())
+    if (cacheControlValues.isNotEmpty()) {
         header(HttpHeaders.CacheControl, cacheControlValues)
+    }
 }
