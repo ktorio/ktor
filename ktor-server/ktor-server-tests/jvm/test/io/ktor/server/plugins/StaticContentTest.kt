@@ -1404,6 +1404,7 @@ class StaticContentTest {
             val etag = response.headers[HttpHeaders.ETag] ?: fail("no ETag")
             assertEquals(expectedEtag.quote(), etag)
             assertEquals(expectedDate.toHttpDate(), response.headers[HttpHeaders.LastModified])
+            assertEquals(1, response.headers.getAll(HttpHeaders.LastModified)?.size)
         }
 
         testCustomEtagAndLastModified("staticFiles/plugins/PartialContentTest.kt", etag, date)
