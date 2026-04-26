@@ -4,7 +4,6 @@
 
 package io.ktor.server.http.content
 
-import com.sun.nio.file.SensitivityWatchEventModifier
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
@@ -407,13 +406,10 @@ private class ReloadingZipFileSystem(
     init {
         zip.parent.register(
             watchService,
-            arrayOf(
-                StandardWatchEventKinds.ENTRY_CREATE,
-                StandardWatchEventKinds.ENTRY_DELETE,
-                StandardWatchEventKinds.ENTRY_MODIFY,
-                StandardWatchEventKinds.OVERFLOW
-            ),
-            SensitivityWatchEventModifier.HIGH
+            StandardWatchEventKinds.ENTRY_CREATE,
+            StandardWatchEventKinds.ENTRY_DELETE,
+            StandardWatchEventKinds.ENTRY_MODIFY,
+            StandardWatchEventKinds.OVERFLOW
         )
     }
 
