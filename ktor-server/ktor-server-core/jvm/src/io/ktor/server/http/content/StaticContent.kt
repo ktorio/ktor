@@ -286,7 +286,7 @@ public fun Route.staticFiles(
     val lastModified = staticRoute.lastModifiedExtractor
     val etag = staticRoute.etagExtractor
     return staticContentRoute(remotePath, autoHead) {
-        if (!filter(this)) {
+        if (filter(this)) {
             return@staticContentRoute
         }
 
@@ -339,7 +339,7 @@ public fun Route.staticResources(
     val lastModified = staticRoute.lastModifiedExtractor
     val etag = staticRoute.etagExtractor
     return staticContentRoute(remotePath, autoHead) {
-        if (!filter(this)) {
+        if (filter(this)) {
             return@staticContentRoute
         }
 
@@ -459,7 +459,7 @@ public fun Route.staticFileSystem(
     val lastModified = staticRoute.lastModifiedExtractor
     val etag = staticRoute.etagExtractor
     return staticContentRoute(remotePath, autoHead) {
-        if (!filter(this)) {
+        if (filter(this)) {
             return@staticContentRoute
         }
 
