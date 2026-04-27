@@ -483,8 +483,8 @@ private class ReloadingZipFileSystem(
 /**
  * Sets up [RoutingRoot] to serve [fileSystem] as static content.
  * All paths inside [basePath] will be accessible recursively at "[remotePath]/path/to/resource".
- * If requested path doesn't exist and [index] is not `null`,
- * then response will be [index] path in the requested package.
+ * If the requested file is a directory and [index] is not `null`,
+ * then response will be [index] file in the requested directory.
  *
  * If requested path doesn't exist and no [index] specified, response will be 404 Not Found.
  *
@@ -497,6 +497,34 @@ public fun Route.staticFileSystem(
     basePath: String?,
     index: String? = "index.html",
     fileSystem: FileSystemPaths = FileSystems.getDefault().paths(),
+    block: StaticContentConfig<Path>.() -> Unit = {}
+): Route {
+    return staticFileSystem(
+        remotePath,
+        if (basePath != null) fileSystem.getPath(basePath) else null,
+        if (index != null) fileSystem.getPath(index) else null,
+        fileSystem,
+        block
+    )
+}
+
+/**
+ * Sets up [RoutingRoot] to serve [fileSystem] as static content.
+ * All paths inside [dir] will be accessible recursively at "[remotePath]/path/to/resource".
+ * If the requested file is a directory and [index] is not `null`,
+ * then response will be [index] file in the requested directory.
+ *
+ * If requested path doesn't exist and no [index] specified, response will be 404 Not Found.
+ *
+ * You can use [block] for additional set up.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.staticFileSystem)
+ */
+public fun Route.staticFileSystem(
+    remotePath: String,
+    dir: Path?,
+    index: Path? = Path("index.html"),
+    fileSystem: FileSystemPaths = (dir?.fileSystem ?: FileSystems.getDefault()).paths(),
     block: StaticContentConfig<Path>.() -> Unit = {}
 ): Route {
     val staticRoute = StaticContentConfig<Path>().apply(block)
@@ -513,7 +541,9 @@ public fun Route.staticFileSystem(
     val lastModified = staticRoute.lastModifiedExtractor
     val etag = staticRoute.etagExtractor
 
-    val defaultPath = defaultPathString?.let { fileSystem.getPath(basePath ?: "", defaultPathString) }
+    val defaultPath = defaultPathString?.let {
+        dir?.resolve(defaultPathString) ?: fileSystem.getPath(defaultPathString)
+    }
     var defaultFile: CachedStaticFile? = null
     var defaultCompressedFiles: Array<Pair<CachedStaticFile, CompressedFileType>>? = null
 
@@ -538,7 +568,7 @@ public fun Route.staticFileSystem(
 
             defaultCompressedFiles = buildList {
                 for (compressedType in compressedTypes) {
-                    val path = fileSystem.getPath("${defaultPath.pathString}.${compressedType.extension}")
+                    val path = defaultPath.resolveSibling("${defaultPath.pathString}.${compressedType.extension}")
 
                     if (path.exists()) {
                         val bytes = path.readBytes()
@@ -574,7 +604,7 @@ public fun Route.staticFileSystem(
             updateDefaultFile()
 
             val defaultCompressedPaths = compressedTypes.map { type ->
-                fileSystem.getPath(basePath ?: "", "$defaultPathString.${type.extension}")
+                defaultPath.resolveSibling("${defaultPath.pathString}.${type.extension}")
             }.toTypedArray()
 
             val job = watchForUpdates(
@@ -609,7 +639,7 @@ public fun Route.staticFileSystem(
         respondStaticPath(
             fileSystem = fileSystem,
             index = index,
-            basePath = basePath,
+            dir = dir,
             compressedTypes = compressedTypes,
             contentType = contentType,
             cacheControl = cacheControl,
@@ -1036,8 +1066,8 @@ private suspend fun ApplicationCall.respondStaticFile(
 
 private suspend fun ApplicationCall.respondStaticPath(
     fileSystem: FileSystemPaths,
-    index: String?,
-    basePath: String?,
+    index: Path?,
+    dir: Path?,
     compressedTypes: Array<CompressedFileType>,
     contentType: (Path) -> ContentType,
     cacheControl: (Path) -> List<CacheControl>,
@@ -1048,7 +1078,7 @@ private suspend fun ApplicationCall.respondStaticPath(
     extensions: Array<String>,
 ) {
     val relativePath = relativePath() ?: return
-    val requestedPath = fileSystem.getPath(basePath.orEmpty()).combineSafe(fileSystem.getPath(relativePath))
+    val requestedPath = (dir ?: fileSystem.getPath("")).combineSafe(fileSystem.getPath(relativePath))
 
     if (exclude(requestedPath)) {
         return respond(HttpStatusCode.Forbidden)

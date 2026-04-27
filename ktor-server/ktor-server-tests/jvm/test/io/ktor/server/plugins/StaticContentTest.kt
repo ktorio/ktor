@@ -36,8 +36,6 @@ import kotlin.io.path.name
 import kotlin.io.path.pathString
 import kotlin.io.path.writeText
 import kotlin.test.*
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 
 class StaticContentTest {
     val basedir =
@@ -611,7 +609,7 @@ class StaticContentTest {
                 default("default.txt")
             }
             staticFileSystem("static_no_index", "jvm/test-resources/public", null)
-            staticFileSystem("static_no_base_path", null)
+            staticFileSystem("static_no_base_path", basePath = null)
         }
 
         val responseIndex = client.get("static")
