@@ -13,14 +13,13 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.util.date.*
+import kotlinx.coroutines.*
 import java.io.File
 import java.net.URL
-import java.nio.file.FileSystem
-import java.nio.file.FileSystems
-import java.nio.file.Path
-import java.nio.file.StandardWatchEventKinds
-import kotlin.io.path.isDirectory
-import kotlin.io.path.pathString
+import java.nio.file.*
+import java.util.*
+import java.util.concurrent.TimeUnit
+import kotlin.io.path.*
 
 /**
  * Attribute to assign the path of a static file served in the response.  The main use of this attribute is to indicate
@@ -255,6 +254,32 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
 }
 
 /**
+ * Used for pre-compressed static files which are stored in memory.
+ */
+internal data class CachedStaticFile(
+    val path: Path,
+    val bytes: ByteArray,
+    val cacheControl: List<CacheControl>,
+    val contentType: ContentType,
+    val etag: EntityTagVersion?,
+    val lastModified: GMTDate?,
+) {
+    override fun equals(other: Any?) = when {
+        this === other -> true
+        other !is CachedStaticFile -> false
+        path != other.path -> false
+        !bytes.contentEquals(other.bytes) -> false
+        cacheControl != other.cacheControl -> false
+        contentType != other.contentType -> false
+        etag != other.etag -> false
+        lastModified != other.lastModified -> false
+        else -> true
+    }
+
+    override fun hashCode() = Objects.hash(path, bytes, cacheControl, contentType, etag, lastModified)
+}
+
+/**
  * Sets up [RoutingRoot] to serve static files.
  * All files inside [dir] will be accessible recursively at "[remotePath]/path/to/file".
  * If the requested file is a directory and [index] is not `null`,
@@ -304,6 +329,22 @@ public fun Route.staticFiles(
             defaultPath = defaultPath,
             fallback = fallback,
         )
+
+        if (isHandled) return@staticContentRoute
+        if (defaultPath != null) {
+            respondStaticFile(
+                File(dir, defaultPath),
+                compressedTypes,
+                contentType,
+                cacheControl,
+                lastModified,
+                etag,
+                modify
+            )
+        }
+
+        if (isHandled) return@staticContentRoute
+        fallback(relativePath() ?: return@staticContentRoute, this)
     }
 }
 
@@ -357,6 +398,23 @@ public fun Route.staticResources(
             defaultPath = defaultPath,
             fallback = fallback,
         )
+
+        if (isHandled) return@staticContentRoute
+        if (defaultPath != null) {
+            respondStaticResource(
+                requestedResource = defaultPath,
+                packageName = basePackage,
+                compressedTypes = compressedTypes,
+                contentType = contentType,
+                cacheControl = cacheControl,
+                modifier = modifier,
+                lastModified = lastModified,
+                etag = etag,
+            )
+        }
+
+        if (isHandled) return@staticContentRoute
+        fallback(relativePath() ?: return@staticContentRoute, this)
     }
 }
 
@@ -454,10 +512,99 @@ public fun Route.staticFileSystem(
     val modify = staticRoute.modifier
     val exclude = staticRoute.exclude.flattenExcludeFunctions()
     val filter = staticRoute.filter.flattenExcludeFunctions()
-    val defaultPath = staticRoute.defaultPath
+    val defaultPathString = staticRoute.defaultPath
     val fallback = staticRoute.fallback
     val lastModified = staticRoute.lastModifiedExtractor
     val etag = staticRoute.etagExtractor
+
+    val defaultPath = defaultPathString?.let { fileSystem.getPath(basePath ?: "", defaultPathString) }
+    var defaultFile: CachedStaticFile? = null
+    var defaultCompressedFiles: Array<Pair<CachedStaticFile, CompressedFileType>>? = null
+
+    if (defaultPath != null && defaultPath.exists() && defaultPath.isRegularFile()) {
+        fun updateDefaultFile() {
+            if (defaultPath.exists()) {
+                val bytes = defaultPath.readBytes()
+                defaultFile = CachedStaticFile(
+                    defaultPath,
+                    bytes,
+                    cacheControl(defaultPath),
+                    contentType(defaultPath),
+                    etag.provide(defaultPath),
+                    lastModified(defaultPath),
+                )
+            } else {
+                // file may have been deleted, so reset defaultFile & defaultCompressedFiles
+                defaultFile = null
+                defaultCompressedFiles = null
+                return
+            }
+
+            defaultCompressedFiles = buildList {
+                for (compressedType in compressedTypes) {
+                    val path = fileSystem.getPath("${defaultPath.pathString}.${compressedType.extension}")
+
+                    if (path.exists()) {
+                        val bytes = path.readBytes()
+                        add(
+                            CachedStaticFile(
+                                path,
+                                bytes,
+                                cacheControl(defaultPath),
+                                contentType(defaultPath),
+                                etag.provide(path),
+                                lastModified(path),
+                            ) to compressedType
+                        )
+                    }
+                }
+            }.toTypedArray()
+        }
+
+        val watchService = try {
+            defaultPath.parent.fileSystem.newWatchService()
+        } catch (_: Exception) {
+            null
+        }
+
+        val watchKey = defaultPath.parent.tryRegister(
+            watchService,
+            StandardWatchEventKinds.ENTRY_CREATE,
+            StandardWatchEventKinds.ENTRY_DELETE,
+            StandardWatchEventKinds.ENTRY_MODIFY,
+        )
+
+        if (watchService != null && watchKey != null) {
+            updateDefaultFile()
+
+            val defaultCompressedPaths = compressedTypes.map { type ->
+                fileSystem.getPath(basePath ?: "", "$defaultPathString.${type.extension}")
+            }.toTypedArray()
+
+            val job = watchForUpdates(
+                watchService,
+                defaultPath.parent,
+                { it.isDefaultFile(defaultPath, defaultCompressedPaths) },
+                { updateDefaultFile() },
+            )
+
+            application.monitor.subscribe(ApplicationStopping) {
+                try {
+                    runBlocking {
+                        job.cancelAndJoin()
+                    }
+                } catch (_: Exception) {
+                    // ignored
+                }
+                try {
+                    watchService.close()
+                } catch (_: ClosedWatchServiceException) {
+                    // ignored
+                }
+            }
+        }
+    }
+
     return staticContentRoute(remotePath, autoHead) {
         if (filter(this)) {
             return@staticContentRoute
@@ -475,9 +622,89 @@ public fun Route.staticFileSystem(
             modify = modify,
             exclude = exclude,
             extensions = extensions,
-            defaultPath = defaultPath,
-            fallback = fallback,
         )
+
+        if (isHandled) return@staticContentRoute
+        if (defaultPath != null) {
+            val cachedFile = defaultFile
+            val cachedCompressedFiles = defaultCompressedFiles
+            if (cachedFile != null && cachedCompressedFiles != null) {
+                // watcher was able to be registered & default file exists
+                respondCachedStaticPath(defaultPath, cachedFile, cachedCompressedFiles, modify)
+            } else {
+                // watcher might have failed to register or default file was deleted/doesn't exist
+                respondStaticPath(
+                    fileSystem,
+                    defaultPath,
+                    compressedTypes,
+                    contentType,
+                    cacheControl,
+                    modify,
+                    lastModified,
+                    etag
+                )
+            }
+        }
+
+        if (isHandled) return@staticContentRoute
+        fallback(relativePath() ?: return@staticContentRoute, this)
+    }
+}
+
+private fun Path.isDefaultFile(defaultPath: Path, compressedPaths: Array<Path>): Boolean {
+    return isRegularFile() &&
+        (defaultPath.isSameFileAs(this) || compressedPaths.any { path -> path.isSameFileAs(this) })
+}
+
+@OptIn(DelicateCoroutinesApi::class)
+private fun watchForUpdates(
+    watchService: WatchService,
+    relativePath: Path,
+    validate: (Path) -> Boolean,
+    onUpdate: () -> Unit
+): Job = GlobalScope.launch(Dispatchers.IO) {
+    while (this.isActive) {
+        yield()
+
+        val key = try {
+            watchService.poll(100, TimeUnit.MILLISECONDS) ?: continue
+        } catch (_: ClosedWatchServiceException) {
+            break
+        }
+
+        for (event in key.pollEvents()) {
+            // this is a safe cast, as it's always a WatchEvent<Path>,
+            // unless it's a StandardWatchEventKinds.OVERFLOW.
+            // but if that is the case, then we never use the context.
+            @Suppress("UNCHECKED_CAST")
+            event as WatchEvent<Path>
+
+            val shouldUpdateFiles = when (event.kind()) {
+                StandardWatchEventKinds.OVERFLOW -> true
+
+                StandardWatchEventKinds.ENTRY_CREATE,
+                StandardWatchEventKinds.ENTRY_DELETE,
+                StandardWatchEventKinds.ENTRY_MODIFY -> validate(relativePath.resolve(event.context()))
+
+                else -> false
+            }
+
+            if (shouldUpdateFiles) {
+                onUpdate()
+                break
+            }
+        }
+
+        key.reset()
+    }
+}
+
+@Suppress("SameParameterValue")
+private fun Path.tryRegister(watchService: WatchService?, vararg events: WatchEvent.Kind<*>): WatchKey? {
+    return try {
+        this.register(watchService ?: return null, events)
+    } catch (_: Exception) {
+        null
     }
 }
 
@@ -811,22 +1038,6 @@ private suspend fun ApplicationCall.respondStaticFile(
             return respond(HttpStatusCode.Forbidden)
         }
     }
-
-    if (isHandled) return
-    if (defaultPath != null) {
-        respondStaticFile(
-            File(dir, defaultPath),
-            compressedTypes,
-            contentType,
-            cacheControl,
-            lastModified,
-            etag,
-            modify
-        )
-    }
-
-    if (isHandled) return
-    fallback(relativePath, this)
 }
 
 private suspend fun ApplicationCall.respondStaticPath(
@@ -841,8 +1052,6 @@ private suspend fun ApplicationCall.respondStaticPath(
     modify: suspend (Path, ApplicationCall) -> Unit,
     exclude: (Path) -> Boolean,
     extensions: Array<String>,
-    defaultPath: String?,
-    fallback: suspend (String, ApplicationCall) -> Unit,
 ) {
     val relativePath = relativePath() ?: return
     val requestedPath = fileSystem.getPath(basePath.orEmpty()).combineSafe(fileSystem.getPath(relativePath))
@@ -911,23 +1120,6 @@ private suspend fun ApplicationCall.respondStaticPath(
             return respond(HttpStatusCode.Forbidden)
         }
     }
-
-    if (isHandled) return
-    if (defaultPath != null) {
-        respondStaticPath(
-            fileSystem,
-            fileSystem.getPath(basePath ?: "", defaultPath),
-            compressedTypes,
-            contentType,
-            cacheControl,
-            modify,
-            lastModified,
-            etag
-        )
-    }
-
-    if (isHandled) return
-    fallback(relativePath, this)
 }
 
 private suspend fun ApplicationCall.respondStaticResource(
@@ -1012,23 +1204,6 @@ private suspend fun ApplicationCall.respondStaticResource(
             etag = etag
         )
     }
-
-    if (isHandled) return
-    if (defaultPath != null) {
-        respondStaticResource(
-            requestedResource = defaultPath,
-            packageName = basePackage,
-            compressedTypes = compressedTypes,
-            contentType = contentType,
-            cacheControl = cacheControl,
-            modifier = modifier,
-            lastModified = lastModified,
-            etag = etag,
-        )
-    }
-
-    if (isHandled) return
-    fallback(relativePath, this)
 }
 
 private fun ApplicationCall.relativePath(): String? {

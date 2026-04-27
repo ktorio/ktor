@@ -15,7 +15,6 @@ import io.ktor.util.date.GMTDate
 import java.io.*
 import java.net.*
 import java.nio.file.*
-import kotlin.collections.plus
 import kotlin.io.path.*
 
 /**
@@ -44,25 +43,42 @@ internal class PreCompressedResponse(
     override val contentLength get() = original.contentLength
     override val contentType get() = original.contentType
     override val status get() = original.status
-    override fun readFrom() = original.readFrom()
-    override fun readFrom(range: LongRange) = original.readFrom(range)
-    override val headers by lazy(LazyThreadSafetyMode.NONE) {
-        if (compressedType == null) return@lazy original.headers
-
-        Headers.build {
-            appendFiltered(original.headers) { name, _ -> !name.equals(HttpHeaders.ContentLength, true) }
-            append(HttpHeaders.ContentEncoding, compressedType.encoding)
-
-            set(
-                HttpHeaders.Vary,
-                original.headers[HttpHeaders.Vary]?.plus(", ${HttpHeaders.AcceptEncoding}")
-                    ?: HttpHeaders.AcceptEncoding
-            )
-        }
-    }
+    override val headers by lazy(LazyThreadSafetyMode.NONE) { original.preCompressedHeaders(compressedType) }
 
     override fun <T : Any> getProperty(key: AttributeKey<T>) = original.getProperty(key)
     override fun <T : Any> setProperty(key: AttributeKey<T>, value: T?) = original.setProperty(key, value)
+
+    override fun readFrom() = original.readFrom()
+    override fun readFrom(range: LongRange) = original.readFrom(range)
+}
+
+internal class PreCompressedBytesResponse(
+    private val original: ByteArrayContent,
+    private val compressedType: CompressedFileType?,
+) : OutgoingContent.ByteArrayContent() {
+    override val contentLength get() = original.contentLength
+    override val contentType get() = original.contentType
+    override val status get() = original.status
+    override val headers by lazy(LazyThreadSafetyMode.NONE) { original.preCompressedHeaders(compressedType) }
+
+    override fun <T : Any> getProperty(key: AttributeKey<T>) = original.getProperty(key)
+    override fun <T : Any> setProperty(key: AttributeKey<T>, value: T?) = original.setProperty(key, value)
+
+    override fun bytes(): ByteArray = original.bytes()
+}
+
+private fun OutgoingContent.preCompressedHeaders(compressedType: CompressedFileType?): Headers {
+    if (compressedType == null) return headers
+
+    return Headers.build {
+        appendFiltered(headers) { name, _ -> !name.equals(HttpHeaders.ContentLength, true) }
+        append(HttpHeaders.ContentEncoding, compressedType.encoding)
+
+        set(
+            HttpHeaders.Vary,
+            headers[HttpHeaders.Vary]?.plus(", ${HttpHeaders.AcceptEncoding}") ?: HttpHeaders.AcceptEncoding
+        )
+    }
 }
 
 internal fun bestCompressionFit(
@@ -117,10 +133,6 @@ internal fun bestCompressionFit(
     var smallestPath: Path? = null
     var smallestSize: Long = Long.MAX_VALUE
 
-    if (compressedTypes.isEmpty()) {
-        return null
-    }
-
     for (compressedType in compressedTypes) {
         if (compressedType.encoding !in acceptedEncodings) {
             continue
@@ -142,6 +154,32 @@ internal fun bestCompressionFit(
     }
 
     return (smallestPath ?: return null) to (smallestType ?: return null)
+}
+
+internal fun bestCompressionFit(
+    acceptEncoding: List<HeaderValue>,
+    compressedFiles: Array<Pair<CachedStaticFile, CompressedFileType>>
+): Pair<CachedStaticFile, CompressedFileType>? {
+    val acceptedEncodings = acceptEncoding.mapTo(HashSet(acceptEncoding.size)) { it.value }
+
+    // Find the smallest file in the accepted encodings
+    var smallest: Pair<CachedStaticFile, CompressedFileType>? = null
+    var smallestSize: Int = Int.MAX_VALUE
+
+    for (compressedFile in compressedFiles) {
+        val (file, compressedType) = compressedFile
+
+        if (compressedType.encoding !in acceptedEncodings) {
+            continue
+        }
+
+        if (smallestSize > file.bytes.size) {
+            smallest = compressedFile
+            smallestSize = file.bytes.size
+        }
+    }
+
+    return smallest
 }
 
 internal class CompressedResource(
@@ -273,6 +311,41 @@ internal suspend fun ApplicationCall.respondStaticPath(
     }
 }
 
+internal suspend fun ApplicationCall.respondCachedStaticPath(
+    requestedPath: Path,
+    cachedFile: CachedStaticFile,
+    cachedCompressedFiles: Array<Pair<CachedStaticFile, CompressedFileType>>,
+    modify: suspend (Path, ApplicationCall) -> Unit = { _, _ -> }
+) {
+    attributes.put(StaticFileLocationProperty, requestedPath.toString())
+
+    val cacheControlValues = cachedFile.cacheControl.joinToString(", ")
+
+    response.addCacheControlHeader(cacheControlValues)
+
+    val bestCompressionFit = bestCompressionFit(request.acceptEncodingItems(), cachedCompressedFiles)
+
+    if (bestCompressionFit == null) {
+        modify(requestedPath, this)
+
+        val content = ByteArrayContent(cachedFile.bytes, cachedFile.contentType)
+            .provideVersions(cachedFile.etag, cachedFile.lastModified)
+
+        respond(content)
+    } else {
+        suppressCompression()
+
+        modify(requestedPath, this)
+
+        val (compressedFile, compression) = bestCompressionFit
+
+        val localFileContent = ByteArrayContent(compressedFile.bytes, compressedFile.contentType)
+            .provideVersions(compressedFile.etag, compressedFile.lastModified)
+
+        respond(PreCompressedBytesResponse(localFileContent, compression))
+    }
+}
+
 internal suspend fun ApplicationCall.respondStaticResource(
     requestedResource: String,
     packageName: String?,
@@ -331,9 +404,16 @@ private fun <Resource : Any, Content : OutgoingContent> Content.provideVersions(
     etag: ETagProvider,
     lastModified: (Resource) -> GMTDate?,
     resource: Resource,
+): Content = provideVersions(etag.provide(resource), lastModified(resource))
+
+private fun <Content : OutgoingContent> Content.provideVersions(
+    etag: EntityTagVersion?,
+    lastModified: GMTDate?,
 ): Content {
-    etag.provide(resource)?.let { versions += it }
-    lastModified(resource)?.let { versions += LastModifiedVersion(it) }
+    val newVersions = versions.toMutableList()
+    if (etag != null) newVersions.add(etag)
+    if (lastModified != null) newVersions.add(LastModifiedVersion(lastModified))
+    versions = newVersions
     return this
 }
 

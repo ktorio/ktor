@@ -25,13 +25,19 @@ import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.file.FileSystems
+import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardWatchEventKinds
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+import kotlin.io.path.absolutePathString
+import kotlin.io.path.deleteIfExists
 import kotlin.io.path.name
 import kotlin.io.path.pathString
+import kotlin.io.path.writeText
 import kotlin.test.*
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 class StaticContentTest {
     val basedir =
@@ -1477,6 +1483,63 @@ class StaticContentTest {
         assertNotEquals(idEtag, brEtag)
         assertNotEquals(idEtag, gzEtag)
         assertNotEquals(gzEtag, brEtag)
+    }
+
+    @Test
+    fun testDefaultFileCaching(@TempDir tempDir: Path) = testApplication {
+        val indexFile = tempDir.resolve("index.txt")
+        val indexBrFile = tempDir.resolve("index.txt.br")
+
+        routing {
+            staticFileSystem("static", tempDir.absolutePathString()) {
+                default("index.txt")
+                preCompressed(CompressedFileType.BROTLI)
+            }
+        }
+
+        val testWatchService = tempDir.fileSystem.newWatchService()
+        tempDir.register(
+            testWatchService,
+            StandardWatchEventKinds.ENTRY_CREATE,
+            StandardWatchEventKinds.ENTRY_DELETE,
+            StandardWatchEventKinds.ENTRY_MODIFY,
+        )
+
+        indexFile.writeText("index.txt")
+        indexBrFile.writeText("index.txt.br")
+
+        suspend fun ApplicationTestBuilder.testResponse(
+            url: String,
+            content: String,
+            type: CompressedFileType? = null
+        ) {
+            val response = client.get(url) {
+                headers {
+                    if (type != null) append(HttpHeaders.AcceptEncoding, type.encoding)
+                }
+            }
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals(content, response.bodyAsText())
+            if (type != null) {
+                assertEquals(type.encoding, response.headers[HttpHeaders.ContentEncoding])
+            }
+        }
+
+        testResponse("static/error", "index.txt")
+        testResponse("static/error", "index.txt.br", CompressedFileType.BROTLI)
+
+        indexFile.deleteIfExists()
+        indexBrFile.deleteIfExists()
+
+        indexFile.writeText("new.txt")
+        indexBrFile.writeText("new.txt.br")
+
+        // Wait for the watch service to detect the change
+        testWatchService.take()
+        delay(3000)
+
+        testResponse("static/error", "new.txt")
+        testResponse("static/error", "new.txt.br", CompressedFileType.BROTLI)
     }
 }
 
