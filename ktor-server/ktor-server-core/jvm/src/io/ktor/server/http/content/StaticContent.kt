@@ -813,6 +813,7 @@ public fun Route.preCompressed(
     "This property only used in deprecated functions `files`, `file` and `default`. " +
         "Please use `staticFiles` or `staticResources` instead"
 )
+@Suppress("DEPRECATION")
 public var Route.staticRootFolder: File?
     get() = attributes.getOrNull(staticRootFolderKey) ?: parent?.staticRootFolder
     set(value) {
@@ -852,6 +853,7 @@ public fun Route.static(remotePath: String, configure: Route.() -> Unit): Route 
  */
 
 @Deprecated("Please use `staticFiles` instead")
+@Suppress("DEPRECATION")
 public fun Route.default(localPath: String): Unit = default(File(localPath))
 
 /**
@@ -860,6 +862,7 @@ public fun Route.default(localPath: String): Unit = default(File(localPath))
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.default)
  */
 @Deprecated("Please use `staticFiles` instead")
+@Suppress("DEPRECATION")
 public fun Route.default(localPath: File) {
     val file = staticRootFolder.combine(localPath)
     val compressedTypes = staticContentEncodedTypes?.toTypedArray() ?: emptyArray()
@@ -875,6 +878,7 @@ public fun Route.default(localPath: File) {
  */
 
 @Deprecated("Please use `staticFiles` instead")
+@Suppress("DEPRECATION")
 public fun Route.file(remotePath: String, localPath: String = remotePath): Unit =
     file(remotePath, File(localPath))
 
@@ -884,6 +888,7 @@ public fun Route.file(remotePath: String, localPath: String = remotePath): Unit 
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.file)
  */
 @Deprecated("Please use `staticFiles` instead")
+@Suppress("DEPRECATION")
 public fun Route.file(remotePath: String, localPath: File) {
     val file = staticRootFolder.combine(localPath)
     val compressedTypes = staticContentEncodedTypes?.toTypedArray() ?: emptyArray()
@@ -899,6 +904,7 @@ public fun Route.file(remotePath: String, localPath: File) {
  */
 
 @Deprecated("Please use `staticFiles` instead")
+@Suppress("DEPRECATION")
 public fun Route.files(folder: String): Unit = files(File(folder))
 
 /**
@@ -907,6 +913,7 @@ public fun Route.files(folder: String): Unit = files(File(folder))
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.files)
  */
 @Deprecated("Please use `staticFiles` instead")
+@Suppress("DEPRECATION")
 public fun Route.files(folder: File) {
     val dir = staticRootFolder.combine(folder)
     val compressedTypes = staticContentEncodedTypes?.toTypedArray() ?: emptyArray()
@@ -926,6 +933,7 @@ private val staticBasePackageName = AttributeKey<String>("BasePackage")
  */
 
 @Deprecated("Please use `staticResources` instead")
+@Suppress("DEPRECATION")
 public var Route.staticBasePackage: String?
     get() = attributes.getOrNull(staticBasePackageName) ?: parent?.staticBasePackage
     set(value) {
@@ -949,6 +957,7 @@ private fun String?.combinePackage(resourcePackage: String?) = when {
  */
 
 @Deprecated("Please use `staticResources` instead")
+@Suppress("DEPRECATION")
 public fun Route.resource(remotePath: String, resource: String = remotePath, resourcePackage: String? = null) {
     val compressedTypes = staticContentEncodedTypes?.toTypedArray() ?: emptyArray()
     val packageName = staticBasePackage.combinePackage(resourcePackage)
@@ -968,6 +977,7 @@ public fun Route.resource(remotePath: String, resource: String = remotePath, res
  */
 
 @Deprecated("Please use `staticResources` instead")
+@Suppress("DEPRECATION")
 public fun Route.resources(resourcePackage: String? = null) {
     val packageName = staticBasePackage.combinePackage(resourcePackage)
     val compressedTypes = staticContentEncodedTypes?.toTypedArray() ?: emptyArray()
@@ -988,6 +998,7 @@ public fun Route.resources(resourcePackage: String? = null) {
  */
 
 @Deprecated("Please use `staticResources` instead")
+@Suppress("DEPRECATION")
 public fun Route.defaultResource(resource: String, resourcePackage: String? = null) {
     val packageName = staticBasePackage.combinePackage(resourcePackage)
     val compressedTypes = staticContentEncodedTypes?.toTypedArray() ?: emptyArray()
