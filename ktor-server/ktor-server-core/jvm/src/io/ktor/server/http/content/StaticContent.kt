@@ -482,6 +482,28 @@ private class ReloadingZipFileSystem(
 
 /**
  * Sets up [RoutingRoot] to serve [fileSystem] as static content.
+ * All paths inside [dir] will be accessible recursively at "[remotePath]/path/to/resource".
+ * If the requested file is a directory and [index] is not `null`,
+ * then response will be [index] file in the requested directory.
+ *
+ * If requested path doesn't exist and no [index] specified, response will be 404 Not Found.
+ *
+ * You can use [block] for additional set up.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.staticFileSystem)
+ */
+public fun Route.staticPaths(
+    remotePath: String,
+    dir: Path?,
+    index: Path? = Path("index.html"),
+    fileSystem: FileSystemPaths = FileSystems.getDefault().paths(),
+    block: StaticContentConfig<Path>.() -> Unit = {}
+): Route {
+    return staticFileSystem(remotePath, dir, index, fileSystem, block)
+}
+
+/**
+ * Sets up [RoutingRoot] to serve [fileSystem] as static content.
  * All paths inside [basePath] will be accessible recursively at "[remotePath]/path/to/resource".
  * If the requested file is a directory and [index] is not `null`,
  * then response will be [index] file in the requested directory.
