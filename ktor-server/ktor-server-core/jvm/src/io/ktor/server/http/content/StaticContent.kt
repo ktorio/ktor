@@ -326,8 +326,6 @@ public fun Route.staticFiles(
             modify = modify,
             exclude = exclude,
             extensions = extensions,
-            defaultPath = defaultPath,
-            fallback = fallback,
         )
 
         if (isHandled) return@staticContentRoute
@@ -395,8 +393,6 @@ public fun Route.staticResources(
             modifier = modifier,
             exclude = exclude,
             extensions = extensions,
-            defaultPath = defaultPath,
-            fallback = fallback,
         )
 
         if (isHandled) return@staticContentRoute
@@ -987,8 +983,6 @@ private suspend fun ApplicationCall.respondStaticFile(
     modify: suspend (File, ApplicationCall) -> Unit,
     exclude: (File) -> Boolean,
     extensions: Array<String>,
-    defaultPath: String?,
-    fallback: suspend (String, ApplicationCall) -> Unit,
 ) {
     val relativePath = relativePath() ?: return
     val requestedFile = dir.combineSafe(relativePath)
@@ -1133,8 +1127,6 @@ private suspend fun ApplicationCall.respondStaticResource(
     modifier: suspend (URL, ApplicationCall) -> Unit,
     exclude: (URL) -> Boolean,
     extensions: Array<String>,
-    defaultPath: String?,
-    fallback: suspend (String, ApplicationCall) -> Unit,
 ) {
     val relativePath = relativePath() ?: return
     val relativeResourceUrl = application.resolveResourceURL(relativePath, basePackage)
