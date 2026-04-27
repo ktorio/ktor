@@ -310,12 +310,14 @@ public fun Route.staticFiles(
     val fallback = staticRoute.fallback
     val lastModified = staticRoute.lastModifiedExtractor
     val etag = staticRoute.etagExtractor
+
     return staticContentRoute(remotePath, autoHead) {
-        if (filter(this)) {
-            return@staticContentRoute
-        }
+        if (filter(this)) return@staticContentRoute
+
+        val relativePath = relativePath() ?: return@staticContentRoute
 
         respondStaticFile(
+            relativePath = relativePath,
             index = index,
             dir = dir,
             compressedTypes = compressedTypes,
@@ -342,7 +344,7 @@ public fun Route.staticFiles(
         }
 
         if (isHandled) return@staticContentRoute
-        fallback(relativePath() ?: return@staticContentRoute, this)
+        fallback(relativePath, this)
     }
 }
 
@@ -377,12 +379,14 @@ public fun Route.staticResources(
     val fallback = staticRoute.fallback
     val lastModified = staticRoute.lastModifiedExtractor
     val etag = staticRoute.etagExtractor
+
     return staticContentRoute(remotePath, autoHead) {
-        if (filter(this)) {
-            return@staticContentRoute
-        }
+        if (filter(this)) return@staticContentRoute
+
+        val relativePath = relativePath() ?: return@staticContentRoute
 
         respondStaticResource(
+            relativePath = relativePath,
             index = index,
             basePackage = basePackage,
             compressedTypes = compressedTypes,
@@ -410,7 +414,7 @@ public fun Route.staticResources(
         }
 
         if (isHandled) return@staticContentRoute
-        fallback(relativePath() ?: return@staticContentRoute, this)
+        fallback(relativePath, this)
     }
 }
 
@@ -654,11 +658,12 @@ public fun Route.staticFileSystem(
     }
 
     return staticContentRoute(remotePath, autoHead) {
-        if (filter(this)) {
-            return@staticContentRoute
-        }
+        if (filter(this)) return@staticContentRoute
+
+        val relativePath = relativePath() ?: return@staticContentRoute
 
         respondStaticPath(
+            relativePath = relativePath,
             fileSystem = fileSystem,
             index = index,
             dir = dir,
@@ -695,7 +700,7 @@ public fun Route.staticFileSystem(
         }
 
         if (isHandled) return@staticContentRoute
-        fallback(relativePath() ?: return@staticContentRoute, this)
+        fallback(relativePath, this)
     }
 }
 
@@ -1025,6 +1030,7 @@ private fun Route.staticContentRoute(
 }
 
 private suspend fun ApplicationCall.respondStaticFile(
+    relativePath: String,
     index: String?,
     dir: File,
     compressedTypes: Array<CompressedFileType>,
@@ -1036,7 +1042,6 @@ private suspend fun ApplicationCall.respondStaticFile(
     exclude: (File) -> Boolean,
     extensions: Array<String>,
 ) {
-    val relativePath = relativePath() ?: return
     val requestedFile = dir.combineSafe(relativePath)
 
     if (exclude(requestedFile)) {
@@ -1087,6 +1092,7 @@ private suspend fun ApplicationCall.respondStaticFile(
 }
 
 private suspend fun ApplicationCall.respondStaticPath(
+    relativePath: String,
     fileSystem: FileSystemPaths,
     index: Path?,
     dir: Path?,
@@ -1099,7 +1105,6 @@ private suspend fun ApplicationCall.respondStaticPath(
     exclude: (Path) -> Boolean,
     extensions: Array<String>,
 ) {
-    val relativePath = relativePath() ?: return
     val requestedPath = (dir ?: fileSystem.getPath("")).combineSafe(fileSystem.getPath(relativePath))
 
     if (exclude(requestedPath)) {
@@ -1169,6 +1174,7 @@ private suspend fun ApplicationCall.respondStaticPath(
 }
 
 private suspend fun ApplicationCall.respondStaticResource(
+    relativePath: String,
     index: String?,
     basePackage: String?,
     compressedTypes: Array<CompressedFileType>,
@@ -1180,7 +1186,6 @@ private suspend fun ApplicationCall.respondStaticResource(
     exclude: (URL) -> Boolean,
     extensions: Array<String>,
 ) {
-    val relativePath = relativePath() ?: return
     val relativeResourceUrl = application.resolveResourceURL(relativePath, basePackage)
 
     if (relativeResourceUrl != null && exclude(relativeResourceUrl)) {
