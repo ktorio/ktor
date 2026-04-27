@@ -82,7 +82,7 @@ class FileStorageTest {
     }
 
     @Test
-    fun testClear() = runTest {
+    fun `clear removes entries for all cached URLs`() = runTest {
         val storage = FileStorage(tempDirectory)
         storage.store(Url("http://example.com"), data())
         storage.store(Url("http://example.com"), data(mapOf("key" to "value")))

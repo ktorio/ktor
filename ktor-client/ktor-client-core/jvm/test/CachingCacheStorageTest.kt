@@ -101,7 +101,7 @@ class CachingCacheStorageTest {
     }
 
     @Test
-    fun testClearRemovesBothDelegateAndInMemoryCache(): Unit = runBlocking {
+    fun `clear removes both delegate and in-memory cache`(): Unit = runBlocking {
         val delegate = InMemoryCacheStorage()
         val storage = CachingCacheStorage(delegate)
 

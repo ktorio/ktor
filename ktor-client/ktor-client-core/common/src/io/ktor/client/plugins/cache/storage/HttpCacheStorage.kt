@@ -115,6 +115,8 @@ public interface CacheStorage {
 
     /**
      * Removes all entries from this cache storage.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cache.storage.CacheStorage.clear)
      */
     public suspend fun clear() {}
 
