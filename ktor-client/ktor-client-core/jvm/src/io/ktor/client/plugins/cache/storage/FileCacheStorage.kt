@@ -92,6 +92,9 @@ private class FileCacheStorage(
     private val mutexes = ConcurrentMap<String, Mutex>()
     private val semaphore = Semaphore(MAX_PERMITS)
 
+    // Serializes concurrent clear() calls so they cannot deadlock by splitting the semaphore permits.
+    private val clearMutex = Mutex()
+
     init {
         directory.mkdirs()
     }
@@ -137,21 +140,23 @@ private class FileCacheStorage(
     }
 
     override suspend fun clear(): Unit = withContext(dispatcher) {
-        var acquired = 0
-        try {
-            repeat(MAX_PERMITS) {
-                semaphore.acquire()
-                acquired++
-            }
-            val files = directory.listFiles() ?: return@withContext
-            for (file in files) {
-                if (!file.delete()) {
-                    LOGGER.trace { "Failed to delete cache file: ${file.name}" }
+        clearMutex.withLock {
+            var acquired = 0
+            try {
+                repeat(MAX_PERMITS) {
+                    semaphore.acquire()
+                    acquired++
                 }
+                val files = directory.listFiles() ?: return@withLock
+                for (file in files) {
+                    if (!file.delete()) {
+                        LOGGER.trace { "Failed to delete cache file: ${file.name}" }
+                    }
+                }
+                mutexes.clear()
+            } finally {
+                repeat(acquired) { semaphore.release() }
             }
-            mutexes.clear()
-        } finally {
-            repeat(acquired) { semaphore.release() }
         }
     }
 
