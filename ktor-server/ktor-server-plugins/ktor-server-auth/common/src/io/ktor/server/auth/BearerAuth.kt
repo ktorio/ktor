@@ -45,7 +45,7 @@ public class BearerAuthenticationProvider internal constructor(config: Config) :
                 return
             }
 
-        context.principal(principal)
+        context.principal(name, principal)
     }
 
     /**

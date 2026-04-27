@@ -7,6 +7,20 @@ package io.ktor.server.engine
 import java.lang.reflect.*
 import java.net.*
 
+/**
+ * Returns `true` if this classloader is compatible with Ktor's auto-reload mechanism.
+ *
+ * Auto-reload uses [OverridingClassLoader], which extends [URLClassLoader] and therefore requires
+ * a standard URL-based classpath. Non-standard classloaders — such as Spring Boot's
+ * `LaunchedClassLoader` or Amper's fat-JAR launcher — use custom URL schemes (e.g. `jar:nested:/`)
+ * that [URLClassLoader] cannot handle, leading to duplicate class identities and [LinkageError].
+ *
+ * JDK's built-in `AppClassLoader` is not a [URLClassLoader] since JDK 11 but is still compatible.
+ */
+internal fun ClassLoader.supportsAutoReload(): Boolean =
+    this is URLClassLoader ||
+        javaClass.name == "jdk.internal.loader.ClassLoaders\$AppClassLoader"
+
 internal fun ClassLoader.allURLs(): Set<URL> {
     val parentUrls = parent?.allURLs() ?: emptySet()
     if (this is URLClassLoader) {

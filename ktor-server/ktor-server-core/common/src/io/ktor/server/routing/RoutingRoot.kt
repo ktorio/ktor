@@ -45,9 +45,11 @@ public class RoutingRoot(
     }
 
     private fun addDefaultTracing() {
-        tracers.add {
-            if (LOGGER.isTraceEnabled) {
-                LOGGER.trace(it.buildText())
+        // Only add the tracer if trace logging is enabled to avoid allocating
+        // RoutingResolveTrace and RoutingResolveTraceEntry objects on every request
+        if (LOGGER.isTraceEnabled) {
+            tracers.add {
+                LOGGER.trace { it.buildText() }
             }
         }
     }
@@ -103,6 +105,11 @@ public class RoutingRoot(
         application.monitor.raise(RoutingCallStarted, routingCall)
         try {
             routingCallPipeline.execute(routingApplicationCall)
+            if (!routingApplicationCall.isHandled) {
+                routingApplicationCall.response.status()?.let { status ->
+                    routingApplicationCall.respond(status)
+                }
+            }
         } catch (cause: Throwable) {
             routingCall.attributes.put(routingCallKey, routingCall)
             throw cause

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.engine
@@ -91,7 +91,8 @@ public suspend fun logError(call: ApplicationCall, error: Throwable) {
 public fun defaultExceptionStatusCode(cause: Throwable): HttpStatusCode? = when (cause) {
     is BadRequestException -> HttpStatusCode.BadRequest
     is NotFoundException -> HttpStatusCode.NotFound
-    is UnsupportedMediaTypeException -> HttpStatusCode.UnsupportedMediaType
+    is UnsupportedMediaTypeException,
+    is CannotTransformContentToTypeException -> HttpStatusCode.UnsupportedMediaType
     is PayloadTooLargeException -> HttpStatusCode.PayloadTooLarge
     is TimeoutException, is TimeoutCancellationException -> HttpStatusCode.GatewayTimeout
     else -> null
@@ -126,7 +127,8 @@ private fun ApplicationEnvironment.logFailure(call: ApplicationCall, cause: Thro
             is BadRequestException,
             is NotFoundException,
             is PayloadTooLargeException,
-            is UnsupportedMediaTypeException -> log.debug(infoString, cause)
+            is UnsupportedMediaTypeException,
+            is CannotTransformContentToTypeException -> log.debug(infoString, cause)
 
             else -> log.error("$status: $logString", cause)
         }

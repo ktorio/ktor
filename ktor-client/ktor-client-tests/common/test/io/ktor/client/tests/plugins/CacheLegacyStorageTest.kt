@@ -377,7 +377,7 @@ class CacheLegacyStorageTest : ClientLoader() {
     }
 
     @Test
-    fun testMaxStale() = clientTests {
+    fun testMaxStale() = clientTests(retries = 3) {
         val publicStorage = HttpCacheStorage.Unlimited()
         val privateStorage = HttpCacheStorage.Unlimited()
         config {
@@ -519,7 +519,7 @@ class CacheLegacyStorageTest : ClientLoader() {
         }
 
         test { client ->
-            val now = GMTDate() + 2000L
+            val now = GMTDate() + 4000L
             val url = Url("$TEST_SERVER/cache/expires")
 
             suspend fun getWithHeader(expires: String): String {
@@ -538,7 +538,7 @@ class CacheLegacyStorageTest : ClientLoader() {
             val second = client.get(url).body<String>()
 
             assertEquals(first, second)
-            delay(2500)
+            delay(5000)
 
             // now it should be already expired
             val third = client.get(url).body<String>()

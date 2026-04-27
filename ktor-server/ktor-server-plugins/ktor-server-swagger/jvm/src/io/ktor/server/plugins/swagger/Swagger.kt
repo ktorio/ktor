@@ -17,6 +17,8 @@ import kotlinx.coroutines.async
 import kotlinx.html.*
 import java.io.File
 
+private val docExpansionValues = listOf("list", "full", "none")
+
 /**
  * Creates a `get` endpoint with [SwaggerUI] at [path] rendered from the OpenAPI file located at [swaggerFile].
  *
@@ -111,7 +113,9 @@ public fun Route.swaggerUI(
             val fullPath = call.request.path()
             val docExpansion = runCatching {
                 call.request.queryParameters.getOrFail<String>("docExpansion")
-            }.getOrNull()
+            }.getOrNull()?.takeIf {
+                it in docExpansionValues
+            }
 
             call.respondHtml {
                 head {

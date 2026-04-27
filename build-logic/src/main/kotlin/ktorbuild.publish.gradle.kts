@@ -6,6 +6,10 @@ import com.vanniktech.maven.publish.MavenPublishBaseExtension
 import ktorbuild.*
 import ktorbuild.internal.*
 import ktorbuild.internal.publish.*
+import org.gradle.api.Project
+import org.gradle.api.publish.maven.tasks.AbstractPublishToMaven
+import org.gradle.kotlin.dsl.*
+import org.gradle.plugins.signing.Sign
 
 plugins {
     id("com.vanniktech.maven.publish")
@@ -54,11 +58,14 @@ publishing {
 registerCommonPublishTask()
 
 plugins.withId("ktorbuild.kmp") {
-    tasks.withType<AbstractPublishToMaven>().configureEach {
-        val os = ktorBuild.os.get()
-        // Workaround for https://github.com/gradle/gradle/issues/22641
-        val predicate = provider { isAvailableForPublication(publication.name, os) }
-        onlyIf("Available for publication on $os") { predicate.get() }
+    // Don't allow cross-compilation on CI, but it is okay to use it locally
+    if (ktorBuild.isCI.get()) {
+        tasks.withType<AbstractPublishToMaven>().configureEach {
+            val os = ktorBuild.os.get()
+            // Workaround for https://github.com/gradle/gradle/issues/22641
+            val predicate = provider { isAvailableForPublication(publication.name, os) }
+            onlyIf("Available for publication on $os") { predicate.get() }
+        }
     }
 
     registerTargetsPublishTasks(ktorBuild.targets)

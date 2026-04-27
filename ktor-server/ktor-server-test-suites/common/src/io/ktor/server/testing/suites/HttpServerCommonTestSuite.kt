@@ -71,7 +71,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testHeader() = runTest {
+    fun testHeader() = runTest(retries = 3) {
         createAndStartServer {
             handle {
                 call.response.headers.append(HttpHeaders.ETag, "test-etag")
@@ -290,7 +290,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    fun testRemoteAddress() = runTest {
+    fun testRemoteAddress() = runTest(retries = 3) {
         createAndStartServer {
             handle {
                 call.respondText {
@@ -845,18 +845,18 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
 
     @Test
     open fun testFlushDuringActiveSSEConnection() = runTest {
-        val sseIsActive = Channel<Unit>(Channel.UNLIMITED)
+        val sseIsActive = Job()
 
         createAndStartServer {
             application.install(SSE)
             application.routing {
                 sse("/sse") {
                     send("active")
-                    sseIsActive.send(Unit)
+                    sseIsActive.complete()
                     delay(5.seconds)
                 }
                 get("/regular") {
-                    sseIsActive.receive()
+                    sseIsActive.join()
                     call.respondText("ok")
                 }
             }

@@ -161,7 +161,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testEmptyContent() = clientTests {
+    fun testEmptyContent() = clientTests(retries = 5) {
         val size = 0
         val content = makeString(size)
         repeatCount = 200

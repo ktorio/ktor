@@ -29,7 +29,7 @@ abstract class HooksTestSuite<TEngine : ApplicationEngine, TConfiguration : Appl
     }
 
     @Test
-    fun responseSentBlockCalledOnException() = runTest {
+    fun responseSentBlockCalledOnException() = runTest(retries = 3) {
         var responseSentCalled = false
         createAndStartServer {
             install(

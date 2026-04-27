@@ -29,7 +29,7 @@ private fun Project.registerPackageJsonAggregationTask(target: String) {
  * This function should be called on the root project.
  * Issue: https://youtrack.jetbrains.com/issue/KT-55701
  */
-fun Project.wirePackageJsonAggregationTasks() {
+internal fun Project.wirePackageJsonAggregationTasks() {
     tasks.named { it == "kotlinPackageJsonUmbrella" }
         .configureEach { dependsOnPackageJsonAggregation("js") }
     tasks.named { it == "kotlinWasmPackageJsonUmbrella" }

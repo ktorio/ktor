@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.apache5
@@ -93,6 +93,8 @@ internal class ApacheResponseConsumer(
     @Volatile
     private var capacityChannel: CapacityChannel? = null
 
+    private val streamResultCallback = atomic<FutureCallback<Unit>?>(null)
+
     private val messagesQueue = Channel<Any>(capacity = UNLIMITED)
 
     internal val responseChannel: ByteReadChannel = channel
@@ -105,7 +107,7 @@ internal class ApacheResponseConsumer(
             }
         }
 
-        launch(coroutineContext) {
+        launch(CoroutineName("apache-response-consumer")) {
             for (message in messagesQueue) {
                 when (message) {
                     is CloseChannel -> close()
@@ -114,13 +116,13 @@ internal class ApacheResponseConsumer(
                         val written = message.remaining()
                         channel.writeFully(message)
                         channel.flush()
-                        when (capacityChannel) {
+                        when (val channel = capacityChannel) {
                             null -> capacity.addAndGet(written)
-                            else -> capacityChannel!!.update(written)
+                            else -> channel.update(written)
                         }
                     }
 
-                    else -> throw IllegalStateException("Unknown message $message")
+                    else -> error("Unknown message $message")
                 }
             }
         }
@@ -148,17 +150,21 @@ internal class ApacheResponseConsumer(
         messagesQueue.trySend(CloseChannel)
     }
 
-    override fun streamStart(entityDetails: EntityDetails, resultCallback: FutureCallback<Unit>) {}
+    override fun streamStart(entityDetails: EntityDetails, resultCallback: FutureCallback<Unit>) {
+        streamResultCallback.value = resultCallback
+    }
 
     override fun failed(cause: Exception) {
         val mappedCause = mapCause(cause, requestData)
         consumerJob.completeExceptionally(mappedCause)
         responseChannel.cancel(mappedCause)
+        streamResultCallback.getAndSet(null)?.failed(cause)
     }
 
     internal fun close() {
         channel.close()
         consumerJob.complete()
+        streamResultCallback.getAndSet(null)?.completed(Unit)
     }
 
     override fun getContent() = Unit

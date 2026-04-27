@@ -225,14 +225,14 @@ public class RoutingCall internal constructor(
     override val coroutineContext: CoroutineContext
         get() = pipelineCall.coroutineContext
 
-    public override val request: RoutingRequest by lazy {
+    public override val request: RoutingRequest by lazy(LazyThreadSafetyMode.NONE) {
         RoutingRequest(
             pathVariables = pipelineCall.pathParameters,
             request = pipelineCall.request,
             call = this
         )
     }
-    public override val response: RoutingResponse by lazy {
+    public override val response: RoutingResponse by lazy(LazyThreadSafetyMode.NONE) {
         RoutingResponse(
             applicationResponse = pipelineCall.response,
             call = this

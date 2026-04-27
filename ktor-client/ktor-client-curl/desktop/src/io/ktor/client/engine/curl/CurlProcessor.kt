@@ -56,6 +56,19 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
         result.join()
     }
 
+    /**
+     * Cancels a WebSocket easy handle by enqueuing a cancellation task.
+     * Called when a WebSocket session is closed to ensure the curl easy handle
+     * is removed from the multi handle, preventing stale handles from blocking
+     * the event loop.
+     */
+    fun cancelWebSocket(easyHandle: EasyHandle) {
+        val sent = taskQueue.trySend(CancelWebSocket(easyHandle))
+        if (sent.isSuccess) {
+            curlApi!!.wakeup()
+        }
+    }
+
     @OptIn(DelicateCoroutinesApi::class)
     private fun runEventLoop(): Job = curlScope.launch(CoroutineName("curl-processor-loop")) {
         memScoped {
@@ -80,6 +93,8 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
                 is SendRequest -> handleSendRequest(api, task)
                 is SendWebSocketFrame ->
                     api.sendWebSocketFrame(task.websocket, task.flags, task.data, task.completionHandler)
+                is CancelWebSocket ->
+                    api.cancelRequest(task.easyHandle, CancellationException("WebSocket session closed"))
             }
         }
     }
@@ -132,5 +147,10 @@ private sealed interface CurlTask {
         val flags: Int,
         val data: ByteArray,
         val completionHandler: CompletableJob,
+    ) : CurlTask
+
+    @OptIn(ExperimentalForeignApi::class)
+    class CancelWebSocket(
+        val easyHandle: EasyHandle,
     ) : CurlTask
 }

@@ -7,11 +7,11 @@ package io.ktor.client.engine.darwin
 import io.ktor.client.engine.darwin.internal.legacy.*
 import io.ktor.client.request.*
 import io.ktor.util.collections.*
-import kotlinx.cinterop.*
-import kotlinx.coroutines.*
+import kotlinx.cinterop.UnsafeNumber
+import kotlinx.coroutines.CompletableDeferred
 import platform.Foundation.*
-import platform.darwin.*
-import kotlin.coroutines.*
+import platform.darwin.NSObject
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Creates an instance of [KtorLegacyNSURLSessionDelegate]
@@ -52,18 +52,18 @@ public class KtorLegacyNSURLSessionDelegate(
     internal val challengeHandler: ChallengeHandler?
 ) : NSObject(), NSURLSessionDataDelegateProtocol {
 
-    internal val taskHandlers: ConcurrentMap<NSURLSessionTask, DarwinLegacyTaskHandler> =
+    internal val taskHandlers: ConcurrentMap<ULong, DarwinLegacyTaskHandler> =
         ConcurrentMap(initialCapacity = 32)
 
     override fun URLSession(session: NSURLSession, dataTask: NSURLSessionDataTask, didReceiveData: NSData) {
-        val taskHandler = taskHandlers[dataTask] ?: return
+        val taskHandler = taskHandlers[dataTask.id] ?: return
         taskHandler.receiveData(dataTask, didReceiveData)
     }
 
     override fun URLSession(session: NSURLSession, task: NSURLSessionTask, didCompleteWithError: NSError?) {
-        val taskHandler = taskHandlers[task] ?: return
+        val taskHandler = taskHandlers[task.id] ?: return
         taskHandler.complete(task, didCompleteWithError)
-        taskHandlers.remove(task)
+        taskHandlers.remove(task.id)
     }
 
     internal fun read(
@@ -72,7 +72,7 @@ public class KtorLegacyNSURLSessionDelegate(
         task: NSURLSessionTask
     ): CompletableDeferred<HttpResponseData> {
         val taskHandler = DarwinLegacyTaskHandler(request, callContext)
-        taskHandlers[task] = taskHandler
+        taskHandlers[task.id] = taskHandler
         return taskHandler.response
     }
 

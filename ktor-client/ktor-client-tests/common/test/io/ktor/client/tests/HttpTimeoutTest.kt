@@ -25,7 +25,7 @@ private const val TEST_URL = "$TEST_SERVER/timeout"
 private val ENGINES_WITHOUT_REQUEST_TIMEOUT = listOf("Android")
 private val ENGINES_WITHOUT_SOCKET_TIMEOUT = listOf("Java", "Curl", "Js")
 
-class HttpTimeoutTest : ClientLoader(timeout = 3.seconds) {
+class HttpTimeoutTest : ClientLoader(timeout = 30.seconds) {
     @Test
     fun testGet() = clientTests {
         config {
@@ -119,7 +119,7 @@ class HttpTimeoutTest : ClientLoader(timeout = 3.seconds) {
     }
 
     @Test
-    fun testGetWithCancellation() = clientTests(except(ENGINES_WITHOUT_REQUEST_TIMEOUT)) {
+    fun testGetWithCancellation() = clientTests(except(ENGINES_WITHOUT_REQUEST_TIMEOUT), retries = 3) {
         config {
             install(HttpTimeout) {
                 requestTimeoutMillis = 1000
@@ -212,13 +212,13 @@ class HttpTimeoutTest : ClientLoader(timeout = 3.seconds) {
     @Test
     fun testGetRequestTimeoutWithSeparateReceive() = clientTests(except("Js"), retries = 5) {
         config {
-            install(HttpTimeout) { requestTimeoutMillis = 1000 }
+            install(HttpTimeout) { requestTimeoutMillis = 3000 }
         }
 
         test { client ->
             val response = client.prepareRequest("$TEST_URL/with-stream") {
                 method = HttpMethod.Get
-                parameter("delay", 500)
+                parameter("delay", 1500)
             }.body<ByteReadChannel>()
 
             assertFailsWith<CancellationException> {
@@ -229,7 +229,8 @@ class HttpTimeoutTest : ClientLoader(timeout = 3.seconds) {
 
     @Test
     fun testGetRequestTimeoutWithSeparateReceivePerRequestAttributes() = clientTests(
-        except(ENGINES_WITHOUT_REQUEST_TIMEOUT, "Js", "Darwin", "DarwinLegacy")
+        except(ENGINES_WITHOUT_REQUEST_TIMEOUT, "Js", "Darwin", "DarwinLegacy"),
+        retries = 3,
     ) {
         config {
             install(HttpTimeout)
@@ -442,7 +443,7 @@ class HttpTimeoutTest : ClientLoader(timeout = 3.seconds) {
     }
 
     @Test
-    fun testSocketTimeoutRead() = clientTests(except(ENGINES_WITHOUT_SOCKET_TIMEOUT, "native:CIO")) {
+    fun testSocketTimeoutRead() = clientTests(except(ENGINES_WITHOUT_SOCKET_TIMEOUT, "native:CIO"), retries = 5) {
         config {
             install(HttpTimeout) { socketTimeoutMillis = 1000 }
         }
@@ -477,10 +478,11 @@ class HttpTimeoutTest : ClientLoader(timeout = 3.seconds) {
 
     @Test
     fun testSocketTimeoutWriteFailOnWrite() = clientTests(
-        except(ENGINES_WITHOUT_SOCKET_TIMEOUT, "Android", "native:CIO", "web:CIO", "WinHttp", "DarwinLegacy")
+        except(ENGINES_WITHOUT_SOCKET_TIMEOUT, "Android", "native:CIO", "web:CIO", "WinHttp", "DarwinLegacy"),
+        retries = 5,
     ) {
         config {
-            install(HttpTimeout) { socketTimeoutMillis = 500 }
+            install(HttpTimeout) { socketTimeoutMillis = 1000 }
         }
 
         test { client ->

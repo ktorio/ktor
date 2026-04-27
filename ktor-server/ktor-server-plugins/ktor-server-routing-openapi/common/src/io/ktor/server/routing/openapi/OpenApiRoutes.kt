@@ -18,22 +18,41 @@ import io.ktor.utils.io.*
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.mapToPathItemsAndSchema)
  */
 public fun Sequence<Route>.mapToPathItemsAndSchema(): Pair<Map<String, PathItem>, Map<String, JsonSchema>> {
+    // unqualifiedTitle -> original qualified title, for conflict detection without relying on stored schema title
+    val qualifiedNameMap = mutableMapOf<String, String>()
+    // original qualified title -> component name, for rewriting discriminator $ref values after collection
+    val nameMapping = mutableMapOf<String, String>()
     val jsonSchema = mutableMapOf<String, JsonSchema>()
     val pathItems = mapToPathItems(
         PopulateMediaTypeDefaults + CollectSchemaReferences { schema ->
             val title = schema.title ?: return@CollectSchemaReferences null
             val unqualifiedTitle = title.substringAfterLast('.')
-            val existingTitle = jsonSchema[unqualifiedTitle]?.title ?: title
-            // if the shortened title is already in use, use the full title instead
-            if (existingTitle != title) {
-                jsonSchema[title] = schema
+            val existingQualifiedTitle = qualifiedNameMap[unqualifiedTitle] ?: title
+            // if the shortened title is already in use by a different type, use the full title instead
+            val componentName = if (existingQualifiedTitle != title) {
+                jsonSchema[title] = schema.copy(title = title)
                 title
             } else {
-                jsonSchema[unqualifiedTitle] = schema
+                qualifiedNameMap[unqualifiedTitle] = title
+                jsonSchema[unqualifiedTitle] = schema.copy(title = unqualifiedTitle)
                 unqualifiedTitle
             }
+            nameMapping[title] = componentName
+            componentName
         }
     )
+    // Rewrite discriminator mapping $ref values to use the simplified component names
+    for ((key, schema) in jsonSchema.toMap()) {
+        val discriminator = schema.discriminator ?: continue
+        val mapping = discriminator.mapping ?: continue
+        val updatedMapping = mapping.mapValues { (_, refValue) ->
+            val refSchemaName = refValue.removePrefix("#/components/schemas/")
+            "#/components/schemas/${nameMapping[refSchemaName] ?: refSchemaName}"
+        }
+        if (updatedMapping != mapping) {
+            jsonSchema[key] = schema.copy(discriminator = discriminator.copy(mapping = updatedMapping))
+        }
+    }
     return pathItems to jsonSchema
 }
 

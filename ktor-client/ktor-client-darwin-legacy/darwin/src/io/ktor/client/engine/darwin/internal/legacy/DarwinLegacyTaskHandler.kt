@@ -8,12 +8,16 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.CancellationException
-import kotlinx.cinterop.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.UnsafeNumber
+import kotlinx.cinterop.convert
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.consumeEach
 import platform.Foundation.*
-import kotlin.coroutines.*
+import kotlin.coroutines.CoroutineContext
 
 @OptIn(DelicateCoroutinesApi::class)
 internal class DarwinLegacyTaskHandler(
@@ -23,7 +27,7 @@ internal class DarwinLegacyTaskHandler(
     val response: CompletableDeferred<HttpResponseData> = CompletableDeferred()
 
     private val requestTime: GMTDate = GMTDate()
-    private val bodyChunks = Channel<ByteArray>(Channel.UNLIMITED)
+    private val bodyChunks = Channel<NSData>(Channel.UNLIMITED)
 
     private val body: ByteReadChannel = GlobalScope.writer(callContext) {
         try {
@@ -43,10 +47,9 @@ internal class DarwinLegacyTaskHandler(
             response.complete(result.toResponseData(requestData))
         }
 
-        val content = data.toByteArray()
         try {
-            bodyChunks.trySend(content).isSuccess
-        } catch (cause: CancellationException) {
+            bodyChunks.trySend(data).getOrThrow()
+        } catch (_: Throwable) {
             dataTask.cancel()
         }
     }

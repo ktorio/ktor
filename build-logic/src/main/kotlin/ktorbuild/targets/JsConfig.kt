@@ -105,8 +105,7 @@ internal fun Project.configureJsTestTasks(target: String) {
     tasks.maybeNamed("${target}BrowserTest") { onlyIf { false } }
 }
 
-fun Project.configureNodeJs() {
-    @Suppress("UnstableApiUsage")
+internal fun Project.configureNodeJs() {
     val nodeVersion = providers.fileContents(layout.settingsDirectory.file(".nvmrc"))
         .asText
         .map { it.trim() }
@@ -120,7 +119,7 @@ private fun BaseNodeJsEnvSpec.configure(nodeVersion: Provider<String>) {
     if (isKtorDevEnvironment) download = false
 }
 
-fun Project.configureYarn() {
+internal fun Project.configureYarn() {
     plugins.withType<YarnPlugin> { the<YarnRootEnvSpec>().configure() }
     plugins.withType<WasmYarnPlugin> { the<WasmYarnRootEnvSpec>().configure() }
 }

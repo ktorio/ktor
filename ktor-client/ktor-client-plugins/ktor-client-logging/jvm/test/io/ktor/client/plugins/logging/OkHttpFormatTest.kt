@@ -79,8 +79,8 @@ class OkHttpFormatTest {
     fun basicGet() = testWithLevel(LogLevel.INFO, handle = { respondWithLength() }) { client ->
         client.get("/")
 
-        log.assertLogEqual("--> GET /")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 0-byte body\)"""))
+        log.assertLogEqual("--> GET http://localhost/")
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
     }
 
@@ -90,8 +90,8 @@ class OkHttpFormatTest {
             setBody("hello")
         }
 
-        log.assertLogEqual("--> POST / (5-byte body)")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 0-byte body\)"""))
+        log.assertLogEqual("--> POST http://localhost/ (5-byte body)")
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
     }
 
@@ -102,8 +102,8 @@ class OkHttpFormatTest {
     ) { client ->
         client.get("/")
 
-        log.assertLogEqual("--> GET /")
-            .assertLogMatch(Regex("""<-- 404 Not Found / \(\d+ms, 0-byte body\)"""))
+        log.assertLogEqual("--> GET http://localhost/")
+            .assertLogMatch(Regex("""<-- 404 Not Found http://localhost/ \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
     }
 
@@ -111,8 +111,8 @@ class OkHttpFormatTest {
     fun basicGetNonRoot() = testWithLevel(LogLevel.INFO, handle = { respondWithLength() }) { client ->
         client.get("/some/resource")
 
-        log.assertLogEqual("--> GET /some/resource")
-            .assertLogMatch(Regex("""<-- 200 OK /some/resource \(\d+ms, 0-byte body\)"""))
+        log.assertLogEqual("--> GET http://localhost/some/resource")
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/some/resource \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
     }
 
@@ -120,8 +120,8 @@ class OkHttpFormatTest {
     fun basicGetQuery() = testWithLevel(LogLevel.INFO, handle = { respondWithLength() }) { client ->
         client.get("/?a=1&b=2&c=3")
 
-        log.assertLogEqual("--> GET /?a=1&b=2&c=3")
-            .assertLogMatch(Regex("""<-- 200 OK /\?a=1&b=2&c=3 \(\d+ms, 0-byte body\)"""))
+        log.assertLogEqual("--> GET http://localhost?a=1&b=2&c=3")
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost\?a=1&b=2&c=3 \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
     }
 
@@ -129,8 +129,8 @@ class OkHttpFormatTest {
     fun basicGetNonEmptyBody() = testWithLevel(LogLevel.INFO, handle = { respondWithLength("hello") }) { client ->
         client.get("/")
 
-        log.assertLogEqual("--> GET /")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 5-byte body\)"""))
+        log.assertLogEqual("--> GET http://localhost/")
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms, 5-byte body\)"""))
             .assertNoMoreLogs()
     }
 
@@ -138,8 +138,8 @@ class OkHttpFormatTest {
     fun basicPostNoBody() = testWithLevel(LogLevel.INFO, handle = { respondWithLength() }) { client ->
         client.post("/")
 
-        log.assertLogEqual("--> POST / (0-byte body)")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 0-byte body\)"""))
+        log.assertLogEqual("--> POST http://localhost/ (0-byte body)")
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
     }
 
@@ -159,8 +159,8 @@ class OkHttpFormatTest {
             })
         }
 
-        log.assertLogEqual("--> POST / (0-byte body)")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 0-byte body\)"""))
+        log.assertLogEqual("--> POST http://localhost/ (0-byte body)")
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
     }
 
@@ -172,8 +172,8 @@ class OkHttpFormatTest {
             })
         }
 
-        log.assertLogEqual("--> POST / (unknown-byte body)")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 0-byte body\)"""))
+        log.assertLogEqual("--> POST http://localhost/ (unknown-byte body)")
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
     }
 
@@ -190,8 +190,8 @@ class OkHttpFormatTest {
             })
         }
 
-        log.assertLogEqual("--> POST / (11-byte body)")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 0-byte body\)"""))
+        log.assertLogEqual("--> POST http://localhost/ (11-byte body)")
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
     }
 
@@ -205,8 +205,8 @@ class OkHttpFormatTest {
 
         assertEquals("hello", response.bodyAsText())
 
-        log.assertLogEqual("--> POST / (unknown-byte body)")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 5-byte body\)"""))
+        log.assertLogEqual("--> POST http://localhost/ (unknown-byte body)")
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms, 5-byte body\)"""))
             .assertNoMoreLogs()
     }
 
@@ -220,8 +220,8 @@ class OkHttpFormatTest {
             })
         }
 
-        log.assertLogEqual("--> POST / (unknown-byte body)")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 0-byte body\)"""))
+        log.assertLogEqual("--> POST http://localhost/ (unknown-byte body)")
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
     }
 
@@ -240,8 +240,8 @@ class OkHttpFormatTest {
             })
         }
 
-        log.assertLogEqual("--> POST / (11-byte body)")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 0-byte body\)"""))
+        log.assertLogEqual("--> POST http://localhost/ (11-byte body)")
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
     }
 
@@ -250,8 +250,8 @@ class OkHttpFormatTest {
         respond("", headers = Headers.build { append(HttpHeaders.ContentLength, "10") })
     }) { client ->
         client.prepareGet("/").execute {
-            log.assertLogEqual("--> GET /")
-                .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 10-byte body\)"""))
+            log.assertLogEqual("--> GET http://localhost/")
+                .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms, 10-byte body\)"""))
                 .assertNoMoreLogs()
         }
     }
@@ -268,8 +268,8 @@ class OkHttpFormatTest {
         )
     }) { client ->
         client.prepareGet("/").execute {
-            log.assertLogEqual("--> GET /")
-                .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 29-byte body\)"""))
+            log.assertLogEqual("--> GET http://localhost/")
+                .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms, 29-byte body\)"""))
                 .assertNoMoreLogs()
         }
     }
@@ -300,8 +300,8 @@ class OkHttpFormatTest {
             val response = client.get("/")
             assertEquals("a".repeat(1024), response.bodyAsText())
 
-            log.assertLogEqual("--> GET /")
-                .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            log.assertLogEqual("--> GET http://localhost/")
+                .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
                 .assertNoMoreLogs()
         }
     }
@@ -316,8 +316,8 @@ class OkHttpFormatTest {
         )
     }) { client ->
         client.get("/")
-        log.assertLogEqual("--> GET /")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, unknown-byte body\)"""))
+        log.assertLogEqual("--> GET http://localhost/")
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms, unknown-byte body\)"""))
             .assertNoMoreLogs()
     }
 
@@ -325,10 +325,10 @@ class OkHttpFormatTest {
     fun headersGet() = testWithLevel(LogLevel.HEADERS, handle = { respondWithLength() }) { client ->
         client.get("/")
 
-        log.assertLogEqual("--> GET /")
+        log.assertLogEqual("--> GET http://localhost/")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 0")
             .assertLogEqual("<-- END HTTP")
             .assertNoMoreLogs()
@@ -340,12 +340,12 @@ class OkHttpFormatTest {
             setBody(TextContent(text = "hello", contentType = ContentType.Text.Plain))
         }
 
-        log.assertLogEqual("--> POST /post")
+        log.assertLogEqual("--> POST http://localhost/post")
             .assertLogEqual("Content-Type: text/plain")
             .assertLogEqual("Content-Length: 5")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END POST")
-            .assertLogMatch(Regex("""<-- 200 OK /post \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/post \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 0")
             .assertLogEqual("<-- END HTTP")
             .assertNoMoreLogs()
@@ -361,10 +361,10 @@ class OkHttpFormatTest {
             })
         }
 
-        log.assertLogEqual("--> POST /post")
+        log.assertLogEqual("--> POST http://localhost/post")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END POST")
-            .assertLogMatch(Regex("""<-- 200 OK /post \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/post \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 0")
             .assertLogEqual("<-- END HTTP")
             .assertNoMoreLogs()
@@ -384,11 +384,11 @@ class OkHttpFormatTest {
             header("Custom-Request", "value")
         }
 
-        log.assertLogEqual("--> GET /")
+        log.assertLogEqual("--> GET http://localhost/")
             .assertLogEqual("Custom-Request: value")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
             .assertLogEqual("Custom-Response: value")
             .assertLogEqual("Content-Length: 5")
             .assertLogEqual("Content-Type: text/plain")
@@ -402,10 +402,10 @@ class OkHttpFormatTest {
     }) { client ->
         client.get("/")
 
-        log.assertLogEqual("--> GET /")
+        log.assertLogEqual("--> GET http://localhost/")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 4")
             .assertLogEqual("Content-Type: text/html")
             .assertLogEqual("<-- END HTTP")
@@ -420,12 +420,12 @@ class OkHttpFormatTest {
             setBody(TextContent(text = "hello", contentType = ContentType.Text.Plain))
         }
 
-        log.assertLogEqual("--> POST /")
+        log.assertLogEqual("--> POST http://localhost/")
             .assertLogEqual("Content-Type: text/plain")
             .assertLogEqual("Content-Length: 5")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END POST")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 3")
             .assertLogEqual("Content-Type: text/plain")
             .assertLogEqual("<-- END HTTP")
@@ -446,10 +446,10 @@ class OkHttpFormatTest {
     }) { client ->
         client.get("/")
 
-        log.assertLogEqual("--> GET /")
+        log.assertLogEqual("--> GET http://localhost/")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
             .assertLogEqual("Content-Encoding: gzip")
             .assertLogEqual("Content-Length: 29")
             .assertLogEqual("<-- END HTTP")
@@ -480,11 +480,11 @@ class OkHttpFormatTest {
         }.use { client ->
             client.post("/")
 
-            log.assertLogEqual("--> POST /")
+            log.assertLogEqual("--> POST http://localhost/")
                 .assertLogEqual("Accept-Encoding: gzip")
                 .assertLogEqual("Accept: */*")
                 .assertLogEqual("--> END POST")
-                .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, unknown-byte body\)"""))
+                .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms, unknown-byte body\)"""))
                 .assertLogEqual("<-- END HTTP")
                 .assertNoMoreLogs()
         }
@@ -502,10 +502,10 @@ class OkHttpFormatTest {
         )
     }) { client ->
         client.get("/")
-        log.assertLogEqual("--> GET /")
+        log.assertLogEqual("--> GET http://localhost/")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
             .assertLogEqual("Content-Encoding: gzip")
             .assertLogEqual("Content-Length: 55")
             .assertLogEqual("")
@@ -524,10 +524,10 @@ class OkHttpFormatTest {
         )
     }) { client ->
         client.get("/")
-        log.assertLogEqual("--> GET /")
+        log.assertLogEqual("--> GET http://localhost/")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
             .assertLogEqual("Content-Encoding: br")
             .assertLogEqual("Content-Length: 2")
             .assertLogEqual("")
@@ -546,10 +546,10 @@ class OkHttpFormatTest {
     }) { client ->
 
         client.get("/")
-        log.assertLogEqual("--> GET /")
+        log.assertLogEqual("--> GET http://localhost/")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 2")
             .assertLogEqual("")
             .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, binary 2-byte body omitted\)"""))
@@ -575,11 +575,11 @@ class OkHttpFormatTest {
         }.use { client ->
             client.get("/")
 
-            log.assertLogEqual("--> GET /")
+            log.assertLogEqual("--> GET http://localhost/")
                 .assertLogEqual("Accept-Encoding: gzip")
                 .assertLogEqual("Accept: */*")
                 .assertLogEqual("--> END GET")
-                .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+                .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
                 .assertLogEqual("")
                 .assertLogEqual("response".repeat(1024))
                 .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 8192-byte body\)"""))
@@ -590,10 +590,10 @@ class OkHttpFormatTest {
     @Test
     fun bodyGet() = testWithLevel(LogLevel.BODY, handle = { respondWithLength() }) { client ->
         client.get("/")
-        log.assertLogEqual("--> GET /")
+        log.assertLogEqual("--> GET http://localhost/")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 0")
             .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
@@ -610,10 +610,10 @@ class OkHttpFormatTest {
         )
     }) { client ->
         client.get("/")
-        log.assertLogEqual("--> GET /")
+        log.assertLogEqual("--> GET http://localhost/")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
-            .assertLogMatch(Regex("""<-- 204 No Content / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 204 No Content http://localhost/ \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 0")
             .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
@@ -630,10 +630,10 @@ class OkHttpFormatTest {
         )
     }) { client ->
         client.get("/")
-        log.assertLogEqual("--> GET /")
+        log.assertLogEqual("--> GET http://localhost/")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
-            .assertLogMatch(Regex("""<-- 205 Reset Content / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 205 Reset Content http://localhost/ \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 0")
             .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
@@ -644,14 +644,14 @@ class OkHttpFormatTest {
         client.post("/") {
             setBody("test")
         }
-        log.assertLogEqual("--> POST /")
+        log.assertLogEqual("--> POST http://localhost/")
             .assertLogEqual("Content-Type: text/plain; charset=UTF-8")
             .assertLogEqual("Content-Length: 4")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("")
             .assertLogEqual("test")
             .assertLogEqual("--> END POST (4-byte body)")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 0")
             .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
@@ -663,13 +663,13 @@ class OkHttpFormatTest {
             setBody(ByteReadChannel("test"))
             contentType(ContentType.Text.Plain)
         }
-        log.assertLogEqual("--> POST / (unknown-byte body)")
+        log.assertLogEqual("--> POST http://localhost/ (unknown-byte body)")
             .assertLogEqual("Content-Type: text/plain")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("")
             .assertLogEqual("test")
             .assertLogEqual("--> END POST (4-byte body)")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 0")
             .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
@@ -684,13 +684,13 @@ class OkHttpFormatTest {
             setBody(ByteReadChannel("test"))
             contentType(ContentType.Text.Plain)
         }
-        log.assertLogEqual("--> POST / (unknown-byte body)")
+        log.assertLogEqual("--> POST http://localhost/ (unknown-byte body)")
             .assertLogEqual("Content-Type: text/plain")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("")
             .assertLogEqual("test")
             .assertLogEqual("--> END POST (4-byte body)")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 0")
             .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
@@ -701,12 +701,12 @@ class OkHttpFormatTest {
         client.post("/") {
             setBody(ByteReadChannel(byteArrayOf(0xC3.toByte(), 0x28)))
         }
-        log.assertLogEqual("--> POST / (unknown-byte body)")
+        log.assertLogEqual("--> POST http://localhost/ (unknown-byte body)")
             .assertLogEqual("Content-Type: application/octet-stream")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("")
             .assertLogEqual("--> END POST (binary body omitted)")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 0")
             .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
@@ -722,11 +722,11 @@ class OkHttpFormatTest {
                 }
             })
         }
-        log.assertLogEqual("--> POST / (unknown-byte body)")
+        log.assertLogEqual("--> POST http://localhost/ (unknown-byte body)")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("")
             .assertLogEqual("--> END POST (binary body omitted)")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 0")
             .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
@@ -741,11 +741,11 @@ class OkHttpFormatTest {
                 }
             })
         }
-        log.assertLogEqual("--> POST / (2-byte body)")
+        log.assertLogEqual("--> POST http://localhost/ (2-byte body)")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("")
             .assertLogEqual("--> END POST (binary 2-byte body omitted)")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 0")
             .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
@@ -754,10 +754,10 @@ class OkHttpFormatTest {
     @Test
     fun bodyGetWithResponseBody() = testWithLevel(LogLevel.BODY, handle = { respondWithLength("hello!") }) { client ->
         client.get("/")
-        log.assertLogEqual("--> GET /")
+        log.assertLogEqual("--> GET http://localhost/")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 6")
             .assertLogEqual("Content-Type: text/plain")
             .assertLogEqual("")
@@ -772,10 +772,10 @@ class OkHttpFormatTest {
         handle = { respondChunked(ByteReadChannel("hello!")) }
     ) { client ->
         client.get("/")
-        log.assertLogEqual("--> GET /")
+        log.assertLogEqual("--> GET http://localhost/")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
             .assertLogEqual("Transfer-Encoding: chunked")
             .assertLogEqual("Content-Type: text/plain")
             .assertLogEqual("")
@@ -805,10 +805,10 @@ class OkHttpFormatTest {
         )
     }) { client ->
         client.get("/")
-        log.assertLogEqual("--> GET /")
+        log.assertLogEqual("--> GET http://localhost/")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
             .assertLogEqual("Transfer-Encoding: chunked")
             .assertLogEqual("Content-Type: text/event-stream")
             .assertLogEqual("<-- END HTTP (streaming)")
@@ -825,10 +825,10 @@ class OkHttpFormatTest {
         )
     }) { client ->
         client.get("/")
-        log.assertLogEqual("--> GET /")
+        log.assertLogEqual("--> GET http://localhost/")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
             .assertLogEqual("Content-Type: text/html; charset=0")
             .assertLogEqual("")
             .assertLogEqual("test")
@@ -846,10 +846,10 @@ class OkHttpFormatTest {
         )
     }) { client ->
         client.get("/")
-        log.assertLogEqual("--> GET /")
+        log.assertLogEqual("--> GET http://localhost/")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
             .assertLogEqual("Content-Type: image/png; charset=utf-8")
             .assertLogEqual("")
             .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, binary body omitted\)"""))
@@ -868,10 +868,10 @@ class OkHttpFormatTest {
         )
     }) { client ->
         client.get("/")
-        log.assertLogEqual("--> GET /")
+        log.assertLogEqual("--> GET http://localhost/")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
             .assertLogEqual("Content-Type: image/png; charset=utf-8")
             .assertLogEqual("Content-Length: 8")
             .assertLogEqual("")
@@ -882,10 +882,10 @@ class OkHttpFormatTest {
     @Test
     fun allResponseBody() = testWithLevel(LogLevel.ALL, handle = { respondWithLength("hello!") }) { client ->
         client.get("/")
-        log.assertLogEqual("--> GET /")
+        log.assertLogEqual("--> GET http://localhost/")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 6")
             .assertLogEqual("Content-Type: text/plain")
             .assertLogEqual("")
@@ -904,7 +904,7 @@ class OkHttpFormatTest {
             client.get("/")
         }
 
-        log.assertLogEqual("--> GET /")
+        log.assertLogEqual("--> GET http://localhost/")
             .assertLogEqual("<-- HTTP FAILED: java.net.UnknownHostException: reason")
             .assertNoMoreLogs()
     }
@@ -935,12 +935,12 @@ class OkHttpFormatTest {
                 header("SeNsItIvE", "value")
                 header("Not-Sensitive", "value")
             }
-            log.assertLogEqual("--> GET /")
+            log.assertLogEqual("--> GET http://localhost/")
                 .assertLogEqual("SeNsItIvE: ██")
                 .assertLogEqual("Not-Sensitive: value")
                 .assertLogEqual("Accept: */*")
                 .assertLogEqual("--> END GET")
-                .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+                .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
                 .assertLogEqual("SeNsItIvE: ██")
                 .assertLogEqual("Not-Sensitive: value")
                 .assertLogEqual("Content-Length: 0")
@@ -974,10 +974,10 @@ class OkHttpFormatTest {
             val response = client.get("/")
             assertEquals("response body", response.bodyAsText())
 
-            log.assertLogEqual("--> GET /")
+            log.assertLogEqual("--> GET http://localhost/")
                 .assertLogEqual("Accept: */*")
                 .assertLogEqual("--> END GET")
-                .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+                .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
                 .assertLogEqual("Content-Length: 13")
                 .assertLogEqual("Content-Type: text/plain")
                 .assertLogEqual("")
@@ -993,10 +993,10 @@ class OkHttpFormatTest {
         handle = { respondWithLength("привет") }
     ) { client ->
         client.get("/")
-        log.assertLogEqual("--> GET /")
+        log.assertLogEqual("--> GET http://localhost/")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 12")
             .assertLogEqual("Content-Type: text/plain")
             .assertLogEqual("")
@@ -1021,13 +1021,13 @@ class OkHttpFormatTest {
                     get() = 29
             })
         }
-        log.assertLogEqual("--> POST /")
+        log.assertLogEqual("--> POST http://localhost/")
             .assertLogEqual("Content-Length: 29")
             .assertLogEqual("Content-Encoding: gzip")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("")
             .assertLogEqual("--> END POST (encoded 29-byte body omitted)")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 0")
             .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
@@ -1043,12 +1043,12 @@ class OkHttpFormatTest {
                 }
             })
         }
-        log.assertLogEqual("--> POST /")
+        log.assertLogEqual("--> POST http://localhost/")
             .assertLogEqual("Content-Encoding: gzip")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("")
             .assertLogEqual("--> END POST (encoded body omitted)")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 0")
             .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
@@ -1065,8 +1065,8 @@ class OkHttpFormatTest {
             })
         }
 
-        log.assertLogEqual("--> POST /")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms, 0-byte body\)"""))
+        log.assertLogEqual("--> POST http://localhost/")
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
     }
 
@@ -1074,10 +1074,10 @@ class OkHttpFormatTest {
     fun bodyHead() = testWithLevel(LogLevel.BODY, handle = { respondWithLength() }) { client ->
         client.head("/")
 
-        log.assertLogEqual("--> HEAD /")
+        log.assertLogEqual("--> HEAD http://localhost/")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END HEAD")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 0")
             .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
@@ -1087,11 +1087,11 @@ class OkHttpFormatTest {
     fun bodyEmptyPost() = testWithLevel(LogLevel.BODY, handle = { respondWithLength() }) { client ->
         client.post("/")
 
-        log.assertLogEqual("--> POST / (0-byte body)")
+        log.assertLogEqual("--> POST http://localhost/ (0-byte body)")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("")
             .assertLogEqual("--> END POST")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 0")
             .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
@@ -1101,10 +1101,10 @@ class OkHttpFormatTest {
     fun bodyEmptyResponseBody() = testWithLevel(LogLevel.BODY, handle = { respondWithLength() }) { client ->
         client.get("/")
 
-        log.assertLogEqual("--> GET /")
+        log.assertLogEqual("--> GET http://localhost/")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END GET")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 0")
             .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()
@@ -1121,13 +1121,13 @@ class OkHttpFormatTest {
 
         assertContentEquals(genBinary(10 * 1024), data)
 
-        log.assertLogEqual("--> POST /")
+        log.assertLogEqual("--> POST http://localhost/")
             .assertLogEqual("Content-Type: application/octet-stream")
             .assertLogEqual("Content-Length: 7777")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("")
             .assertLogEqual("--> END POST (binary 7777-byte body omitted)")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 10240")
             .assertLogEqual("Content-Type: application/octet-stream")
             .assertLogEqual("")
@@ -1156,11 +1156,11 @@ class OkHttpFormatTest {
             })
         }
 
-        log.assertLogEqual("--> POST /")
+        log.assertLogEqual("--> POST http://localhost/")
             .assertLogEqual("Content-Encoding: gzip")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("--> END POST")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 0")
             .assertLogEqual("<-- END HTTP")
             .assertNoMoreLogs()
@@ -1182,13 +1182,13 @@ class OkHttpFormatTest {
             headers.append("Content-Length", (8 * 1024 * 1024).toString(10))
         }
 
-        log.assertLogEqual("--> POST /")
+        log.assertLogEqual("--> POST http://localhost/")
             .assertLogEqual("Content-Length: 8388608")
             .assertLogEqual("Accept: */*")
             .assertLogEqual("")
             .assertLogEqual("b".repeat(8 * 1024 * 1024))
             .assertLogEqual("--> END POST (8388608-byte body)")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 16777216")
             .assertLogEqual("")
             .assertLogEqual("a".repeat(16 * 1024 * 1024))
@@ -1235,7 +1235,7 @@ class OkHttpFormatTest {
             onUpload { _, _ -> }
         }
 
-        log.assertLogEqual("--> POST /")
+        log.assertLogEqual("--> POST http://localhost/")
             .assertLogEqual("Content-Type: multipart/form-data; boundary=WebAppBoundary")
             .assertLogEqual("Content-Length: 10487458")
             .assertLogEqual("Accept: */*")
@@ -1263,7 +1263,7 @@ class OkHttpFormatTest {
             .assertLogEqual("binary 1234-byte body omitted")
             .assertLogEqual("--WebAppBoundary--")
             .assertLogEqual("--> END POST")
-            .assertLogMatch(Regex("""<-- 200 OK / \(\d+ms\)"""))
+            .assertLogMatch(Regex("""<-- 200 OK http://localhost/ \(\d+ms\)"""))
             .assertLogEqual("Content-Length: 0")
             .assertLogMatch(Regex("""<-- END HTTP \(\d+ms, 0-byte body\)"""))
             .assertNoMoreLogs()

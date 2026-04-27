@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.serialization.kotlinx.test.json
@@ -10,12 +10,12 @@ import io.ktor.serialization.*
 import io.ktor.serialization.kotlinx.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.serialization.kotlinx.test.*
-import io.ktor.test.dispatcher.*
 import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
@@ -33,7 +33,7 @@ class JsonSerializationTest : AbstractSerializationTest<Json>() {
     }
 
     @Test
-    fun testJsonElements() = testSuspend {
+    fun testJsonElements() = runTest {
         val testSerializer = KotlinxSerializationConverter(defaultSerializationFormat)
         testSerializer.testSerialize(
             buildJsonObject {
@@ -67,7 +67,7 @@ class JsonSerializationTest : AbstractSerializationTest<Json>() {
     }
 
     @Test
-    fun testContextual() = testSuspend {
+    fun testContextual() = runTest {
         val serializer = KotlinxSerializationConverter(
             Json {
                 prettyPrint = true
@@ -111,7 +111,7 @@ class JsonSerializationTest : AbstractSerializationTest<Json>() {
     }
 
     @Test
-    fun testExtraFields() = testSuspend {
+    fun testExtraFields() = runTest {
         val testSerializer = KotlinxSerializationConverter(defaultSerializationFormat)
         val dogExtraFieldJson = """{"age": 8,"name":"Auri","color":"Black"}"""
         assertFailsWith<JsonConvertException> {
@@ -124,7 +124,7 @@ class JsonSerializationTest : AbstractSerializationTest<Json>() {
     }
 
     @Test
-    fun testList() = testSuspend {
+    fun testList() = runTest {
         val testSerializer = KotlinxSerializationConverter(defaultSerializationFormat)
         val dogListJson = """[{"age": 8,"name":"Auri"}]"""
         assertEquals(
@@ -138,7 +138,7 @@ class JsonSerializationTest : AbstractSerializationTest<Json>() {
     }
 
     @Test
-    fun testListsWithExperimentApi() = testSuspend {
+    fun testListsWithExperimentApi() = runTest {
         val testSerializer = ExperimentalJsonConverter(defaultSerializationFormat)
         val expected = listOf(DogDTO(8, "Auri"))
         val serialized = testSerializer.serialize(
@@ -159,8 +159,31 @@ class JsonSerializationTest : AbstractSerializationTest<Json>() {
     }
 
     @Test
-    fun testSequence() = testSuspend {
-        if (!PlatformUtils.IS_JVM) return@testSuspend
+    fun testContentIsReplayable() = runTest {
+        val testSerializer = ExperimentalJsonConverter(defaultSerializationFormat)
+        val expected = DogDTO(8, "Auri")
+        val content = testSerializer.serialize(
+            ContentType.Application.Json,
+            Charsets.UTF_8,
+            typeInfo<DogDTO>(),
+            expected
+        )
+
+        // Verify content can be written multiple times (replayable)
+        // This is important for auth retry scenarios where the request body needs to be resent
+        val firstWrite = content.toByteArray().decodeToString()
+        val secondWrite = content.toByteArray().decodeToString()
+        val thirdWrite = content.toByteArray().decodeToString()
+
+        val expectedJson = """{"age":8,"name":"Auri"}"""
+        assertEquals(expectedJson, firstWrite)
+        assertEquals(expectedJson, secondWrite)
+        assertEquals(expectedJson, thirdWrite)
+    }
+
+    @Test
+    fun testSequence() = runTest {
+        if (!PlatformUtils.IS_JVM) return@runTest
 
         val testSerializer = KotlinxSerializationConverter(defaultSerializationFormat)
         val dogListJson = """[{"age":8,"name":"Auri"}]"""
@@ -175,8 +198,8 @@ class JsonSerializationTest : AbstractSerializationTest<Json>() {
     }
 
     @Test
-    fun `deserialize list with non-serializable type shows helpful error`() = testSuspend {
-        if (!PlatformUtils.IS_JVM) return@testSuspend
+    fun `deserialize list with non-serializable type shows helpful error`() = runTest {
+        if (!PlatformUtils.IS_JVM) return@runTest
 
         val testSerializer = KotlinxSerializationConverter(defaultSerializationFormat)
         val json = """[{"value":1}]"""
@@ -195,8 +218,8 @@ class JsonSerializationTest : AbstractSerializationTest<Json>() {
     }
 
     @Test
-    fun `deserialize generic box with non-serializable type shows helpful error`() = testSuspend {
-        if (!PlatformUtils.IS_JVM) return@testSuspend
+    fun `deserialize generic box with non-serializable type shows helpful error`() = runTest {
+        if (!PlatformUtils.IS_JVM) return@runTest
 
         val testSerializer = KotlinxSerializationConverter(defaultSerializationFormat)
         val json = """{"value":{"value":1}}"""
@@ -251,7 +274,7 @@ class EitherSerializer<L, R>(
 
         return try {
             Either.Right(decoder.json.decodeFromJsonElement(rightSerializer, element))
-        } catch (throwable: Throwable) {
+        } catch (_: Throwable) {
             Either.Left(decoder.json.decodeFromJsonElement(leftSerializer, element))
         }
     }

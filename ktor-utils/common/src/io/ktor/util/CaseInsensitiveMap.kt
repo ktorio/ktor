@@ -388,7 +388,8 @@ public class CaseInsensitiveMap<Value : Any> : MutableMap<String, Value> {
                     if (!hasNext()) throw NoSuchElementException()
                     val idx = insertionOrder[orderIndex]
                     lastKey = keyStorage[idx]!!
-                    val entry = MapEntry(idx)
+                    @Suppress("UNCHECKED_CAST")
+                    val entry = MapEntry(lastKey!!, valueStorage[idx] as Value)
                     orderIndex++
                     advance()
                     return entry
@@ -402,26 +403,26 @@ public class CaseInsensitiveMap<Value : Any> : MutableMap<String, Value> {
             }
     }
 
-    private inner class MapEntry(private val index: Int) : MutableMap.MutableEntry<String, Value> {
-        override val key: String get() = keyStorage[index]!!
-
-        @Suppress("UNCHECKED_CAST")
-        override val value: Value get() = valueStorage[index] as Value
+    private inner class MapEntry(
+        override val key: String,
+        private var _value: Value,
+    ) : MutableMap.MutableEntry<String, Value> {
+        override val value: Value get() = _value
 
         override fun setValue(newValue: Value): Value {
-            @Suppress("UNCHECKED_CAST")
-            val old = valueStorage[index] as Value
-            valueStorage[index] = newValue
+            val old = _value
+            _value = newValue
+            val index = findIndex(key)
+            if (index >= 0) valueStorage[index] = newValue
             return old
         }
 
         override fun equals(other: Any?): Boolean {
             if (other !is Map.Entry<*, *>) return false
-            return key.equals(other.key as? String ?: return false, ignoreCase = true) &&
-                value == other.value
+            return key == other.key && value == other.value
         }
 
-        override fun hashCode(): Int = caseInsensitiveHashCode(key) xor value.hashCode()
+        override fun hashCode(): Int = key.hashCode() xor value.hashCode()
 
         override fun toString(): String = "$key=$value"
     }

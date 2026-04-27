@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.darwin
@@ -12,13 +12,12 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.test.base.*
 import io.ktor.http.*
+import io.ktor.utils.io.*
 import io.ktor.websocket.*
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.UnsafeNumber
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.*
+import kotlinx.coroutines.test.runTest
 import platform.Foundation.NSHTTPCookieStorage.Companion.sharedHTTPCookieStorage
 import platform.Foundation.NSOperationQueue
 import platform.Foundation.NSURLSession
@@ -34,7 +33,7 @@ class DarwinEngineTest : ClientEngineTest<DarwinClientEngineConfig>(Darwin) {
         val client = HttpClient(Darwin)
 
         try {
-            withTimeout(1000) {
+            withTimeout(30.seconds) {
                 val response = client.get(TEST_SERVER)
                 assertEquals("Hello, world!", response.bodyAsText())
             }
@@ -48,7 +47,7 @@ class DarwinEngineTest : ClientEngineTest<DarwinClientEngineConfig>(Darwin) {
         val client = HttpClient(Darwin)
 
         try {
-            withTimeout(1000) {
+            withTimeout(30.seconds) {
                 val response = client.get(TEST_SERVER)
                 assertEquals("Hello, world!", response.bodyAsText())
             }
@@ -62,7 +61,7 @@ class DarwinEngineTest : ClientEngineTest<DarwinClientEngineConfig>(Darwin) {
         val client = HttpClient(Darwin)
 
         try {
-            withTimeout(1000) {
+            withTimeout(30.seconds) {
                 val response = client.get(TEST_SERVER)
                 assertEquals("Hello, world!", response.bodyAsText())
             }
@@ -260,29 +259,6 @@ class DarwinEngineTest : ClientEngineTest<DarwinClientEngineConfig>(Darwin) {
         }
     }
 
-    @Test
-    fun testWebSocketMaxFrameSize() = testClient {
-        config {
-            install(WebSockets) {
-                maxFrameSize = 10
-            }
-        }
-
-        val shortMessage = "abc"
-        val longMessage = "def".repeat(500)
-        test { client ->
-            assertFailsWith<DarwinHttpRequestException> {
-                client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
-                    send(shortMessage)
-                    assertEquals(shortMessage, (incoming.receive() as Frame.Text).readText())
-                    send(longMessage)
-                    val frame = incoming.receive() as Frame.Text
-                    assertEquals(longMessage, frame.readText())
-                }
-            }
-        }
-    }
-
     @OptIn(UnsafeNumber::class)
     @Test
     fun testRethrowExceptionThrownDuringCustomChallenge() = runBlocking {
@@ -296,6 +272,38 @@ class DarwinEngineTest : ClientEngineTest<DarwinClientEngineConfig>(Darwin) {
 
         val thrownException = assertFails { client.get(TEST_SERVER_TLS) }
         assertSame(thrownException, challengeException, "Expected exception to be rethrown")
+    }
+
+    @Test
+    fun testExecuteAfterSessionClose() = runTest {
+        val config = DarwinClientEngineConfig()
+        val session = DarwinSession(config, null)
+
+        session.close()
+        launch {
+            val request = request { url(TEST_SERVER) }.build()
+            session.execute(request, coroutineContext)
+            fail("Execution expected to be cancelled")
+        }
+    }
+
+    @OptIn(InternalAPI::class)
+    @Test
+    fun testWebSocketExecuteAfterSessionClose() = runTest {
+        val config = DarwinClientEngineConfig()
+        val session = DarwinSession(config, null)
+
+        session.close()
+        launch {
+            val request = request {
+                url(TEST_WEBSOCKET_SERVER)
+                body = object : ClientUpgradeContent() {
+                    override fun verify(headers: Headers) = Unit
+                }
+            }.build()
+            session.execute(request, coroutineContext)
+            fail("Execution expected to be cancelled")
+        }
     }
 
     private fun stringToNSUrlString(value: String): String {

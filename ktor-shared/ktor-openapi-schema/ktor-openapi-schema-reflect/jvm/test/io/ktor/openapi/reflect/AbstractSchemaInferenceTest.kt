@@ -147,8 +147,66 @@ abstract class AbstractSchemaInferenceTest(
     }
 
     @Test
+    fun `nested classes with lists produce correct schema`() {
+        val schema = inference.jsonSchema<OuterWithNestedLists>()
+
+        // The outer schema should have an "items" property that is an array
+        val itemsProp = schema.properties?.get("items")?.valueOrNull()
+        assertNotNull(itemsProp, "Expected 'items' property in schema")
+        assertEquals(JsonType.ARRAY, itemsProp.type)
+
+        // The items of that array should be an object (MiddleWithList), not a $ref to kotlin.collections.ArrayList
+        val middleSchema = itemsProp.items?.valueOrNull()
+        assertNotNull(middleSchema, "Expected items schema for MiddleWithList")
+        assertEquals(JsonType.OBJECT, middleSchema.type)
+
+        // MiddleWithList should have a "children" property that is an array
+        val childrenProp = middleSchema.properties?.get("children")?.valueOrNull()
+        assertNotNull(childrenProp, "Expected 'children' property in MiddleWithList schema")
+        assertEquals(JsonType.ARRAY, childrenProp.type)
+
+        // The items of "children" should be an object with "someValue" integer property,
+        // NOT a $ref to "kotlin.collections.ArrayList"
+        val leafSchema = childrenProp.items?.valueOrNull()
+        assertNotNull(leafSchema, "Expected items schema for LeafItem, got a \$ref instead")
+        assertEquals(JsonType.OBJECT, leafSchema.type)
+        assertNotNull(leafSchema.properties?.get("someValue"), "Expected 'someValue' property in LeafItem schema")
+    }
+
+    @Test
+    fun `recursive type in list does not stack overflow`() {
+        val schema = inference.jsonSchema<RecursiveNode>()
+        val schemaYaml = yaml.encodeToString(schema)
+        assertEquals(
+            $$"""
+                type: object
+                title: io.ktor.openapi.reflect.RecursiveNode
+                required:
+                  - name
+                  - children
+                properties:
+                  name:
+                    type: string
+                  children:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/io.ktor.openapi.reflect.RecursiveNode"
+            """.trimIndent(),
+            schemaYaml
+        )
+    }
+
+    @Test
+    fun `recursive class does not stack overflow`() =
+        assertSchemaMatches<BinaryExpression>()
+
+    @Test
     fun `value classes`() =
         assertSchemaMatches<Email>()
+
+    @Test
+    fun `nested generics`() =
+        assertSchemaMatches<Response<Page<Country>>>()
 
     private inline fun <reified T : Any> assertSchemaMatches() {
         val schema = inference.jsonSchema<T>()
@@ -285,4 +343,52 @@ data class ItemsRefData(
 data class PrefixItemsRefData(
     @JsonSchema.PrefixItemsRef(Address::class, Country::class)
     val mixedTuple: List<String>,
+)
+
+@Serializable
+data class OuterWithNestedLists(
+    val items: List<MiddleWithList>
+)
+
+@Serializable
+data class MiddleWithList(
+    val children: List<LeafItem>
+)
+
+@Serializable
+data class LeafItem(
+    val someValue: Int
+)
+
+@Serializable
+data class RecursiveNode(
+    val name: String,
+    val children: List<RecursiveNode>
+)
+
+@Serializable
+sealed interface Expression
+
+@Serializable
+data class BinaryExpression(
+    val left: Expression,
+    val operator: String,
+    val right: Expression
+) : Expression
+
+@Serializable
+data class IntLiteral(val value: Int) : Expression
+
+@Serializable
+data class StringLiteral(val value: String) : Expression
+
+@Serializable
+data class Response<T>(
+    val data: T
+)
+
+@Serializable
+data class Page<out E>(
+    val items: List<E>,
+    val total: Int,
 )

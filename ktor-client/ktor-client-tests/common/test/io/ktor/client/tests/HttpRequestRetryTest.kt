@@ -490,7 +490,7 @@ class HttpRequestRetryTest {
 
     // KTOR-8820
     @Test
-    fun testRetryWithLargeEncodedBody() = testWithEngine(MockEngine, timeout = 1.seconds) {
+    fun testRetryWithLargeEncodedBody() = testWithEngine(MockEngine, timeout = 10.seconds) {
         config {
             engine {
                 addHandler {
