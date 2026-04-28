@@ -23,13 +23,13 @@ private const val HTTP_PROXY_PORT: Int = 8082
 private const val SOCKS_PROXY_PORT: Int = 8083
 private const val HTTP2_SERVER_PORT: Int = 8084
 
-internal fun startServer(scope: CoroutineScope) {
+internal fun startServer(scope: CoroutineScope, verbose: Boolean) {
     TestTcpServer(HTTP_PROXY_PORT, scope, ::tcpServerHandler)
     TestTcpServer(SOCKS_PROXY_PORT, scope, ::socksServerHandler)
 
     val servers = listOf(
-        embeddedServer(CIO, DEFAULT_PORT, module = Application::tests),
-        setupHttp2Server(HTTP2_SERVER_PORT, module = Application::tests),
+        embeddedServer(CIO, DEFAULT_PORT, module = { tests(verbose) }),
+        setupHttp2Server(HTTP2_SERVER_PORT, module = { tests(verbose) }),
         setupTLSServer(DEFAULT_TLS_PORT, module = Application::tlsTests),
     )
 
