@@ -13,8 +13,8 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
-// We can't make this value too small as tests become flaky
-private val singleTestDuration = 100.milliseconds
+// We can't make this value too small as tests become flaky on slow CI (especially Windows)
+private val singleTestDuration = 200.milliseconds
 
 class RunTestWithDataTest {
 
@@ -160,7 +160,7 @@ class RunTestWithDataTest {
                     listOf(
                         "Test 1: attempt 0 failed: First attempt failed",
                         "Test 1: attempt 1 succeeded",
-                        "Test 2: attempt 0 failed: After waiting for 100ms, the test body did not run to completion",
+                        "Test 2: attempt 0 failed: After waiting for 200ms, the test body did not run to completion",
                         "Test 2: attempt 1 succeeded",
                         "Test 3: attempt 0 succeeded",
                     ),
