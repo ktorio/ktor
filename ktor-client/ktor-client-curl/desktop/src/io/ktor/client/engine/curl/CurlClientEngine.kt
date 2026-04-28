@@ -48,7 +48,7 @@ internal class CurlClientEngine(
 
             val status = HttpStatusCode.fromValue(status)
 
-            val responseBody: Any = if (data.isUpgradeRequest()) {
+            val responseBody: Any = if (data.isUpgradeRequest() && status == HttpStatusCode.SwitchingProtocols) {
                 val wsConfig = data.attributes[WEBSOCKETS_KEY]
                 val websocket = responseBody as CurlWebSocketResponseBody
                 CurlWebSocketSession(
@@ -57,6 +57,11 @@ internal class CurlClientEngine(
                     wsConfig.channelsConfig.outgoing,
                     curlProcessor,
                 )
+            } else if (data.isUpgradeRequest()) {
+                // Server rejected the upgrade (e.g., 401 Unauthorized). The easy handle is already
+                // cleaned up by this point — don't create a WebSocket session or cancelWebSocket
+                // would enqueue a stale handle that may be reallocated for the retry request.
+                ByteReadChannel.Empty
             } else {
                 val httpResponse = responseBody as CurlHttpResponseBody
                 data.attributes.getOrNull(ResponseAdapterAttributeKey)
