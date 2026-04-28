@@ -62,8 +62,8 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
      * is removed from the multi handle, preventing stale handles from blocking
      * the event loop.
      */
-    fun cancelWebSocket(easyHandle: EasyHandle) {
-        val sent = taskQueue.trySend(CancelWebSocket(easyHandle))
+    fun cancelWebSocket(websocket: CurlWebSocketResponseBody) {
+        val sent = taskQueue.trySend(CancelWebSocket(websocket))
         if (sent.isSuccess) {
             curlApi!!.wakeup()
         }
@@ -94,7 +94,7 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
                 is SendWebSocketFrame ->
                     api.sendWebSocketFrame(task.websocket, task.flags, task.data, task.completionHandler)
                 is CancelWebSocket ->
-                    api.cancelRequest(task.easyHandle, CancellationException("WebSocket session closed"))
+                    api.cancelWebSocket(task.websocket, CancellationException("WebSocket session closed"))
             }
         }
     }
@@ -149,8 +149,7 @@ private sealed interface CurlTask {
         val completionHandler: CompletableJob,
     ) : CurlTask
 
-    @OptIn(ExperimentalForeignApi::class)
     class CancelWebSocket(
-        val easyHandle: EasyHandle,
+        val websocket: CurlWebSocketResponseBody,
     ) : CurlTask
 }

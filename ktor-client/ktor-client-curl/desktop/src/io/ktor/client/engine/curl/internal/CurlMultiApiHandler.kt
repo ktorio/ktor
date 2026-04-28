@@ -42,7 +42,7 @@ internal class CurlMultiApiHandler : Closeable {
     private val easyHandlesToUnpause = mutableListOf<EasyHandle>()
 
     override fun close() {
-        if (activeHandles.isNotEmpty()) handleCompleted()
+        if (activeHandles.isNotEmpty() || cancelledHandles.isNotEmpty()) handleCompleted()
         for ((handle, holder) in activeHandles) {
             cleanupEasyHandle(handle)
             holder.dispose()
@@ -134,11 +134,20 @@ internal class CurlMultiApiHandler : Closeable {
         cancelledHandles += Pair(easyHandle, cause)
     }
 
+    fun cancelWebSocket(websocket: CurlWebSocketResponseBody, cause: Throwable) {
+        val easyHandle = websocket.easyHandle
+        val handler = activeHandles[easyHandle] ?: return
+        if (handler.responseWrapper.get() !== websocket) return
+        activeHandles.remove(easyHandle)
+        processCancelledEasyHandle(easyHandle, cause)
+        handler.responseCompletable.completeExceptionally(cause)
+        handler.dispose()
+    }
+
     fun perform(transfersRunning: IntVarOf<Int>) {
         if (activeHandles.isEmpty()) return
 
-        // Process cancelled handles before performing to remove stale handles
-        // (e.g., closed WebSocket sessions) and prevent them from blocking curl_multi_poll.
+        // Process cancelled handles before performing to prevent them from blocking curl_multi_poll.
         if (cancelledHandles.isNotEmpty()) {
             handleCompleted()
         }
