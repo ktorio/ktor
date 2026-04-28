@@ -104,6 +104,6 @@ internal class CurlWebSocketSession(
 
         websocket.close(cause)
         _outgoing.cancel()
-        curlProcessor.cancelWebSocket(websocket.easyHandle)
+        curlProcessor.cancelWebSocket(websocket)
     }
 }
