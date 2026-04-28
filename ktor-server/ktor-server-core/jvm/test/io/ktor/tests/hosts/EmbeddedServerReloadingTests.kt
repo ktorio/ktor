@@ -605,6 +605,35 @@ class EmbeddedServerReloadingTests {
     }
 
     @Test
+    fun `reload preserves previous application when module fails to load`() {
+        var moduleCallCount = 0
+        val props = serverConfig {
+            developmentMode = false
+            module {
+                val callIndex = moduleCallCount++
+                if (callIndex == 0) {
+                    attributes.put(TestKey, "first-load")
+                } else {
+                    error("Simulated reload failure on call #$callIndex")
+                }
+            }
+        }
+        val server = EmbeddedServer(props, DummyEngineFactory)
+
+        server.start()
+        val initialApp = server.application
+        assertEquals("first-load", initialApp.attributes[TestKey])
+
+        assertFailsWith<IllegalStateException> { server.reload() }
+        assertEquals(2, moduleCallCount)
+
+        val appAfterFailedReload = server.application
+        assertEquals("first-load", appAfterFailedReload.attributes[TestKey])
+
+        server.stop()
+    }
+
+    @Test
     fun `application is available before environment start`() {
         val env = dummyEnv()
         val props = serverConfig(env)

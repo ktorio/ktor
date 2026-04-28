@@ -91,16 +91,16 @@ actual constructor(
     }
 
     /**
-     * Reload application: destroy it first and then create again
+     * Reload application: build a new instance first, then dispose of the previous one.
+     *
+     * If the new application cannot be created (for example, because the user code throws during
+     * module loading), the previous instance is preserved and the failure is rethrown.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.EmbeddedServer.reload)
      */
     public fun reload() {
         applicationInstanceLock.write {
-            destroyApplication()
-            val (application, classLoader) = createApplication()
-            applicationInstance = application
-            applicationClassLoader = classLoader
+            reloadApplication()
         }
     }
 
@@ -116,13 +116,60 @@ actual constructor(
         }
 
         applicationInstanceLock.write {
-            destroyApplication()
-            val (application, classLoader) = createApplication()
-            applicationInstance = application
-            applicationClassLoader = classLoader
+            try {
+                reloadApplication()
+            } catch (cause: Throwable) {
+                environment.log.error(
+                    "Auto-reload failed; continuing to serve the previously loaded application.",
+                    cause,
+                )
+            }
         }
 
         return@read applicationInstance ?: error("EmbeddedServer was stopped")
+    }
+
+    /**
+     * Build a new application and swap it in, disposing of the previous one only on success.
+     *
+     * On failure the previous application, its class loader, and the registered watch keys
+     * are left intact so the server keeps serving requests against the last known-good code.
+     *
+     * Must be called while holding the write lock on [applicationInstanceLock].
+     */
+    private fun reloadApplication() {
+        val previousApplication = applicationInstance
+        val previousClassLoader = applicationClassLoader
+        val previousWatchKeys = packageWatchKeys
+
+        val (newApplication, newClassLoader) = try {
+            createApplication()
+        } catch (cause: Throwable) {
+            // createClassLoader -> watchUrls() may have already replaced packageWatchKeys before
+            // instantiateAndConfigureApplication() failed. Cancel those freshly-registered keys
+            // (they belong to a class loader we are discarding) and restore the previous ones.
+            if (packageWatchKeys !== previousWatchKeys) {
+                packageWatchKeys.forEach { it.cancel() }
+                packageWatchKeys = previousWatchKeys
+            }
+            throw cause
+        }
+
+        if (previousApplication != null) {
+            safeRaiseEvent(ApplicationStopping, previousApplication)
+            try {
+                destroyBlocking(previousApplication, previousClassLoader)
+            } catch (e: Throwable) {
+                environment.log.error("Failed to destroy previous application instance.", e)
+            }
+            safeRaiseEvent(ApplicationStopped, previousApplication)
+        }
+        if (packageWatchKeys !== previousWatchKeys) {
+            previousWatchKeys.forEach { it.cancel() }
+        }
+
+        applicationInstance = newApplication
+        applicationClassLoader = newClassLoader
     }
 
     private fun getFileChanges(): List<WatchEvent<*>>? {
