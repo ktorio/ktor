@@ -160,7 +160,7 @@ public abstract class NettyApplicationResponse(
     public fun cancel() {
         if (!responseMessageSent) {
             responseChannel = ByteReadChannel.Empty
-            responseReady.setFailure(CancellationException("Response was cancelled"))
+            responseReady.tryFailure(CancellationException("Response was cancelled"))
             responseMessageSent = true
         }
     }

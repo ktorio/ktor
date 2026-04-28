@@ -174,7 +174,6 @@ class NettySpecificTest {
         }
     }
 
-    @Ignore // KTOR-9536
     @Test
     fun `call finishes when channel becomes inactive before response is sent`() = runTestWithRealTime {
         val handlerStarted = CompletableDeferred<Unit>()
