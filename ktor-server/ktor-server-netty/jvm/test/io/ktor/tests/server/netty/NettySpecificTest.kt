@@ -4,6 +4,10 @@
 
 package io.ktor.tests.server.netty
 
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
@@ -16,14 +20,20 @@ import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.server.netty.http1.NettyHttp1Handler
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
+import io.mockk.mockk
+import io.netty.channel.embedded.EmbeddedChannel
 import kotlinx.coroutines.*
+import org.slf4j.LoggerFactory
+import java.io.IOException
 import java.net.BindException
 import java.net.ServerSocket
 import java.util.concurrent.ExecutorService
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.test.*
 import kotlin.time.Duration.Companion.seconds
 
@@ -168,6 +178,53 @@ class NettySpecificTest {
             }
         } finally {
             serverJob.cancel()
+        }
+    }
+
+    @Test
+    fun `KTOR-646 client-disconnect IOException is logged at TRACE not DEBUG`() {
+        val logger = LoggerFactory.getLogger("io.ktor.tests.server.netty.KTOR-646") as Logger
+        val previousLevel = logger.level
+        val listAppender = ListAppender<ILoggingEvent>().apply { start() }
+        logger.level = Level.TRACE
+        logger.addAppender(listAppender)
+
+        val environment = applicationEnvironment { log = logger }
+        val handler = NettyHttp1Handler(
+            applicationProvider = { mockk(relaxed = true) },
+            enginePipeline = mockk(relaxed = true),
+            environment = environment,
+            engineContext = EmptyCoroutineContext,
+            userContext = EmptyCoroutineContext,
+            runningLimit = 32
+        )
+
+        // EmbeddedChannel without firing the full pipeline lifecycle: we only
+        // want to exercise exceptionCaught. Use a fresh channel and add only
+        // this handler so RequestBodyHandler isn't installed via channelActive.
+        val channel = EmbeddedChannel()
+        channel.pipeline().addLast(handler)
+        try {
+            channel.pipeline().fireExceptionCaught(IOException("Connection reset by peer"))
+
+            logger.detachAppender(listAppender)
+
+            val ioOpFailedEvents = listAppender.list.filter { it.formattedMessage == "I/O operation failed" }
+            assertEquals(
+                1,
+                ioOpFailedEvents.size,
+                "Expected one 'I/O operation failed' log entry for client-disconnect IOException, " +
+                    "got ${ioOpFailedEvents.size}"
+            )
+            assertEquals(
+                Level.TRACE,
+                ioOpFailedEvents.single().level,
+                "Client-disconnect IOException must be logged at TRACE to avoid noise in DEBUG logs"
+            )
+        } finally {
+            logger.detachAppender(listAppender)
+            logger.level = previousLevel
+            channel.finishAndReleaseAll()
         }
     }
 
