@@ -7,6 +7,7 @@ package io.ktor.utils.io
 import io.ktor.utils.io.locks.*
 import kotlinx.atomicfu.AtomicRef
 import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.io.Buffer
 import kotlinx.io.Sink
@@ -38,6 +39,7 @@ public class ByteChannel(public override val autoFlush: Boolean = false) : ByteR
     private val _readBuffer = Buffer()
     private val _writeBuffer = Buffer()
     private val _closedCause = atomic<CloseToken?>(null)
+    private val closeHandler = atomic<((Throwable?) -> Unit)?>(null)
 
     @InternalAPI
     override val readBuffer: Source
@@ -143,6 +145,24 @@ public class ByteChannel(public override val autoFlush: Boolean = false) : ByteR
         closeSlot(wrappedCause)
     }
 
+    internal fun invokeOnClose(handler: (cause: Throwable?) -> Unit): DisposableHandle {
+        val existingCause = _closedCause.value
+        if (existingCause != null) {
+            handler(existingCause.wrapCause())
+            return DisposableHandle {}
+        }
+        if (!closeHandler.compareAndSet(null, handler)) {
+            error("Only one invokeOnClose handler is supported per channel")
+        }
+        // Guard against race: channel closed between the check above and the CAS
+        val cause = _closedCause.value
+        if (cause != null && closeHandler.compareAndSet(handler, null)) {
+            handler(cause.wrapCause())
+            return DisposableHandle {}
+        }
+        return DisposableHandle { closeHandler.compareAndSet(handler, null) }
+    }
+
     override fun toString(): String = "ByteChannel[${hashCode()}]"
 
     private suspend inline fun <reified TaskType : Slot.Task> sleepWhile(
@@ -175,6 +195,7 @@ public class ByteChannel(public override val autoFlush: Boolean = false) : ByteR
         val closeContinuation = if (cause != null) Slot.Closed(cause) else Slot.CLOSED
         val continuation = suspensionSlot.getAndSet(closeContinuation)
         if (continuation is Slot.Task) continuation.resume(cause)
+        closeHandler.getAndSet(null)?.invoke(cause)
     }
 
     private inline fun <reified TaskType : Slot.Task> trySuspend(

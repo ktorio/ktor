@@ -15,10 +15,11 @@ import io.ktor.http.*
 import io.ktor.test.dispatcher.*
 import io.ktor.util.*
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlin.reflect.KClass
 import kotlin.test.*
+import kotlin.time.Duration.Companion.seconds
 
 class ExceptionsTest : ClientLoader() {
 
@@ -132,24 +133,23 @@ class ExceptionsTest : ClientLoader() {
     }
 
     @Test
-    fun testErrorOnResponseCoroutine() = clientTests(except("Curl", "CIO", "Darwin", "DarwinLegacy")) {
+    fun testErrorOnResponseCoroutine() = clientTests(except("Curl", "Darwin", "DarwinLegacy"), timeout = 2.seconds) {
         test { client ->
             val requestBuilder = HttpRequestBuilder()
             requestBuilder.url.takeFrom("$TEST_SERVER/download/infinite")
 
             assertFailsWith<IllegalStateException> {
                 client.prepareGet(requestBuilder).execute { response ->
-                    try {
+                    runCatching {
                         CoroutineScope(response.coroutineContext).launch {
                             throw IllegalStateException("failed on receive")
                         }.join()
-                    } catch (cause: Exception) {
                     }
                     response.body<String>()
                 }
             }
 
-            assertTrue(requestBuilder.executionContext[Job]!!.isActive)
+            assertTrue(requestBuilder.executionContext.job.isActive)
         }
     }
 }

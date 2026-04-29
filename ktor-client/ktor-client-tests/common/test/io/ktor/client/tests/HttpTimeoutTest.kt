@@ -81,13 +81,12 @@ class HttpTimeoutTest : ClientLoader(timeout = 30.seconds) {
                 parameter("delay", 60000)
             }
 
-            val exception = assertFails {
+            assertFailsWith<TimeoutCancellationException> {
                 withTimeout(500.milliseconds) {
                     client.request(requestBuilder).body<String>()
                 }
             }
 
-            assertTrue { exception is TimeoutCancellationException }
             assertTrue { requestBuilder.executionContext.getActiveChildren().none() }
         }
     }
@@ -120,24 +119,24 @@ class HttpTimeoutTest : ClientLoader(timeout = 30.seconds) {
     }
 
     @Test
-    fun testGetWithCancellation() = clientTests(except(ENGINES_WITHOUT_REQUEST_TIMEOUT), retries = 3) {
+    fun testGetWithCancellation() = clientTests(except(ENGINES_WITHOUT_REQUEST_TIMEOUT)) {
         config {
             install(HttpTimeout) {
                 requestTimeoutMillis = 1000
             }
+        }
 
-            test { client ->
-                val requestBuilder = HttpRequestBuilder().apply {
-                    method = HttpMethod.Get
-                    url("$TEST_URL/with-stream")
-                    parameter("delay", 2000)
-                }
+        test { client ->
+            val requestBuilder = request {
+                method = HttpMethod.Get
+                url("$TEST_URL/with-stream")
+                parameter("delay", 2000)
+            }
 
-                client.prepareRequest(requestBuilder).body<ByteReadChannel>().cancel()
+            client.prepareRequest(requestBuilder).body<ByteReadChannel>().cancel()
 
-                waitForCondition("all children to be cancelled") {
-                    requestBuilder.executionContext.getActiveChildren().none()
-                }
+            waitForCondition("all children to be cancelled", timeout = 500.milliseconds) {
+                requestBuilder.executionContext.getActiveChildren().none()
             }
         }
     }

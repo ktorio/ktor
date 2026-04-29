@@ -412,6 +412,7 @@ final fun (io.ktor.utils.io/ByteChannel).io.ktor.utils.io/attachJob(io.ktor.util
 final fun (io.ktor.utils.io/ByteChannel).io.ktor.utils.io/attachJob(kotlinx.coroutines/Job) // io.ktor.utils.io/attachJob|attachJob@io.ktor.utils.io.ByteChannel(kotlinx.coroutines.Job){}[0]
 final fun (io.ktor.utils.io/ByteChannel).io.ktor.utils.io/cancel() // io.ktor.utils.io/cancel|cancel@io.ktor.utils.io.ByteChannel(){}[0]
 final fun (io.ktor.utils.io/ByteChannel).io.ktor.utils.io/rethrowCloseCauseIfNeeded() // io.ktor.utils.io/rethrowCloseCauseIfNeeded|rethrowCloseCauseIfNeeded@io.ktor.utils.io.ByteChannel(){}[0]
+final fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/attachWriterJob(io.ktor.utils.io/WriterJob) // io.ktor.utils.io/attachWriterJob|attachWriterJob@io.ktor.utils.io.ByteReadChannel(io.ktor.utils.io.WriterJob){}[0]
 final fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/cancel() // io.ktor.utils.io/cancel|cancel@io.ktor.utils.io.ByteReadChannel(){}[0]
 final fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/counted(): io.ktor.utils.io/CountedByteReadChannel // io.ktor.utils.io/counted|counted@io.ktor.utils.io.ByteReadChannel(){}[0]
 final fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/readAvailable(kotlin/Int, kotlin/Function1<kotlinx.io/Buffer, kotlin/Int>): kotlin/Int // io.ktor.utils.io/readAvailable|readAvailable@io.ktor.utils.io.ByteReadChannel(kotlin.Int;kotlin.Function1<kotlinx.io.Buffer,kotlin.Int>){}[0]

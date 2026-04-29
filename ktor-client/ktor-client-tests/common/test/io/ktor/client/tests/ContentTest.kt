@@ -342,10 +342,9 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    @Ignore
-    fun testDownloadStreamChannelWithCancel() = clientTests {
+    fun testDownloadStreamChannelWithCancel() = clientTests(timeout = 1.seconds) {
         test { client ->
-            val content = client.get("$TEST_SERVER/content/stream").body<ByteReadChannel>()
+            val content = client.prepareGet("$TEST_SERVER/content/stream?delay=5000").body<ByteReadChannel>()
             content.cancel()
         }
     }
@@ -393,9 +392,8 @@ class ContentTest : ClientLoader() {
         }
     }
 
-    // Flaky on Apache: KTOR-9544
     @Test
-    fun testBodyChannelCancelledWhenCallerScopeIsCancelled() = clientTests(except("Apache5")) {
+    fun testBodyChannelCancelledWhenCallerScopeIsCancelled() = clientTests {
         test { client ->
             val bodyDeferred = CompletableDeferred<ByteReadChannel>()
             coroutineScope {

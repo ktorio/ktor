@@ -8,12 +8,11 @@ import kotlinx.coroutines.delay
 import kotlin.test.assertTrue
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeSource
 
 suspend fun waitForCondition(
     description: String,
-    timeout: Duration = 10.seconds,
+    timeout: Duration,
     delay: Duration = (timeout / 10).coerceAtMost(100.milliseconds),
     condition: () -> Boolean,
 ) {

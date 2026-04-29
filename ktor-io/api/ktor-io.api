@@ -37,6 +37,7 @@ public final class io/ktor/utils/io/ByteChannelCtorKt {
 public final class io/ktor/utils/io/ByteChannelUtilsKt {
 	public static final fun attachJob (Lio/ktor/utils/io/ByteChannel;Lio/ktor/utils/io/ChannelJob;)V
 	public static final fun attachJob (Lio/ktor/utils/io/ByteChannel;Lkotlinx/coroutines/Job;)V
+	public static final fun attachWriterJob (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/WriterJob;)V
 }
 
 public abstract interface class io/ktor/utils/io/ByteReadChannel {
