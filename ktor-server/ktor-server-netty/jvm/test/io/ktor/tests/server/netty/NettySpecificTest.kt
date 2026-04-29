@@ -174,7 +174,6 @@ class NettySpecificTest {
         }
     }
 
-    @Ignore // KTOR-9536
     @Test
     fun `call finishes when channel becomes inactive before response is sent`() = runTestWithRealTime {
         val handlerStarted = CompletableDeferred<Unit>()
@@ -237,6 +236,92 @@ class NettySpecificTest {
 
             // finishedEvent must be resolved (success or failure) — if responseReady is
             // never completed, this deferred hangs forever and the test times out
+            withTimeout(20.seconds) { callFinished.await() }
+        } finally {
+            serverJob.cancel()
+        }
+    }
+
+    /**
+     * Regression test for the fix changing `responseReady.setFailure` to `responseReady.tryFailure`
+     * in [io.ktor.server.netty.NettyApplicationResponse.cancel].
+     *
+     * When a channel becomes inactive, Netty's pipeline may already mark the [responseReady]
+     * promise as failed before our code runs. Previously, calling [cancel] in that state would
+     * invoke [ChannelPromise.setFailure] on an already-completed promise, which throws
+     * [IllegalStateException]. The fix uses [ChannelPromise.tryFailure], which is a safe no-op
+     * when the promise is already done.
+     *
+     * This test verifies that when a channel becomes inactive while TWO concurrent coroutines
+     * both attempt to cancel the response, neither throws an exception and the call still
+     * finishes cleanly.
+     */
+    @Test
+    fun `cancel is safe when called concurrently after channel becomes inactive`() = runTestWithRealTime {
+        val handlerStarted = CompletableDeferred<Unit>()
+        val shouldCancel = CompletableDeferred<Unit>()
+        val callFinished = CompletableDeferred<Unit>()
+        val appStarted = CompletableDeferred<Application>()
+        val channelRef: AtomicReference<Channel> = AtomicReference(null)
+
+        val serverJob = launch(Dispatchers.IO) {
+            val server = embeddedServer(Netty, port = 0) {
+                routing {
+                    get("/test") {
+                        val engineCall = call.pipelineCall.engineCall as NettyApplicationCall
+                        channelRef.set(engineCall.context.channel())
+                        handlerStarted.complete(Unit)
+
+                        engineCall.finishedEvent.addListener {
+                            callFinished.complete(Unit)
+                        }
+
+                        shouldCancel.await()
+
+                        // Call cancel() twice concurrently: simulates the race between the Netty
+                        // pipeline's channel-inactive handler and the application's own cleanup.
+                        // Both calls must be safe — neither should throw even if the promise is
+                        // already in a terminal state.
+                        val response = engineCall.response
+                        coroutineScope {
+                            launch { response.cancel() }
+                            launch { response.cancel() }
+                        }
+                    }
+                }
+            }
+            server.monitor.subscribe(ApplicationStarted) { app ->
+                appStarted.complete(app)
+            }
+            server.start(wait = true)
+        }
+
+        try {
+            val serverApp = withTimeout(10.seconds) { appStarted.await() }
+            val connector = serverApp.engine.resolvedConnectors()[0]
+
+            SelectorManager().use { manager ->
+                val socket = aSocket(manager).tcp().connect(connector.host, connector.port)
+                val writeChannel = socket.openWriteChannel()
+                writeChannel.writeStringUtf8("GET /test HTTP/1.1\r\n")
+                writeChannel.writeStringUtf8("Host: ${connector.host}:${connector.port}\r\n")
+                writeChannel.writeStringUtf8("Connection: close\r\n\r\n")
+                writeChannel.flush()
+
+                withTimeout(5.seconds) { handlerStarted.await() }
+                socket.close()
+            }
+
+            // Wait for the channel to become truly inactive before triggering cancellation
+            withTimeout(20.seconds) {
+                while (channelRef.get() == null || channelRef.get().isActive) {
+                    delay(10.milliseconds)
+                }
+            }
+
+            shouldCancel.complete(Unit)
+
+            // The call must finish — if tryFailure throws, finishedEvent is never set and this times out
             withTimeout(20.seconds) { callFinished.await() }
         } finally {
             serverJob.cancel()
