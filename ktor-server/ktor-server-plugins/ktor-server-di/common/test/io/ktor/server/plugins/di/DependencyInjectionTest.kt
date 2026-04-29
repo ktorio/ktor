@@ -4,34 +4,26 @@
 
 package io.ktor.server.plugins.di
 
-import io.ktor.client.request.get
-import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.bodyAsText
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.server.application.*
-import io.ktor.server.response.respondText
+import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import io.ktor.test.dispatcher.runTestWithRealTime
-import io.ktor.util.logging.Logger
-import io.ktor.util.reflect.TypeInfo
+import io.ktor.test.dispatcher.*
+import io.ktor.util.logging.*
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.CancellationException
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.awaitCancellation
-import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.joinAll
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.Serializable
 import kotlin.reflect.KClass
 import kotlin.test.*
+import kotlin.time.Duration.Companion.milliseconds
 
 internal const val HELLO = "Hello, world!"
 internal const val HELLO_CUSTOMER = "Hello, customer!"
@@ -311,20 +303,22 @@ class DependencyInjectionTest {
     fun `async support`() = testApplication(Dispatchers.Unconfined) {
         val greeter = GreetingServiceImpl()
         val bank = BankServiceImpl()
+        val bankResolved = Job()
         val resolutionChannel = Channel<String>(Channel.UNLIMITED)
 
         application {
             dependencies {
                 provide<GreetingService> {
-                    delay(100)
+                    bankResolved.join()
                     greeter.also {
                         resolutionChannel.trySend("greeting").getOrThrow()
                     }
                 }
                 provide<BankService> {
-                    delay(50)
+                    delay(50.milliseconds)
                     bank.also {
                         resolutionChannel.trySend("bank").getOrThrow()
+                        bankResolved.complete()
                     }
                 }
                 provide<BankTeller> {
@@ -374,11 +368,11 @@ class DependencyInjectionTest {
         val bank = BankServiceImpl()
 
         val fetchGreetingService: suspend () -> GreetingService = {
-            delay(100)
+            delay(100.milliseconds)
             greeter
         }
         val fetchBankService: suspend () -> BankService = {
-            delay(50)
+            delay(50.milliseconds)
             bank
         }
 
@@ -433,7 +427,7 @@ class DependencyInjectionTest {
                     routing {
                         get("/hello") {
                             call.launch {
-                                delay(50)
+                                delay(50.milliseconds)
                                 registryDeferred.complete(dependencies)
                             }
                             val service: GreetingService = dependencies.resolve()
