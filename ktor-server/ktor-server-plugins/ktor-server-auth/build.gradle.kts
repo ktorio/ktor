@@ -10,11 +10,17 @@ plugins {
 }
 
 kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xcontext-parameters")
+    }
     sourceSets {
         commonMain.dependencies {
             api(projects.ktorClientCore)
             api(projects.ktorServerSessions)
             api(libs.kotlinx.serialization.json)
+        }
+        commonTest.dependencies {
+            implementation(projects.ktorServerTestHost)
         }
         jvmTest.dependencies {
             implementation(projects.ktorServerContentNegotiation)
