@@ -393,9 +393,8 @@ class ContentTest : ClientLoader() {
         }
     }
 
-    // Flaky on Apache: KTOR-9544
     @Test
-    fun testBodyChannelCancelledWhenCallerScopeIsCancelled() = clientTests(except("Apache5")) {
+    fun testBodyChannelCancelledWhenCallerScopeIsCancelled() = clientTests {
         test { client ->
             val bodyDeferred = CompletableDeferred<ByteReadChannel>()
             coroutineScope {
