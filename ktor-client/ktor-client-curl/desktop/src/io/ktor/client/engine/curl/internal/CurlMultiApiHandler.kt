@@ -138,16 +138,13 @@ internal class CurlMultiApiHandler : Closeable {
         val easyHandle = websocket.easyHandle
         val handler = activeHandles[easyHandle] ?: return
         if (handler.responseWrapper.get() !== websocket) return
-        activeHandles.remove(easyHandle)
-        processCancelledEasyHandle(easyHandle, cause)
-        handler.responseCompletable.completeExceptionally(cause)
-        handler.dispose()
+        removeEasyHandle(easyHandle, cause)
     }
 
     fun perform(transfersRunning: IntVarOf<Int>) {
         if (activeHandles.isEmpty()) return
 
-        // Process cancelled handles before performing to prevent them from blocking curl_multi_poll.
+        // Process cancelled handles before performing prevent them from blocking curl_multi_poll.
         if (cancelledHandles.isNotEmpty()) {
             handleCompleted()
         }
@@ -221,11 +218,8 @@ internal class CurlMultiApiHandler : Closeable {
     }
 
     private fun handleCompleted() {
-        for (cancellation in cancelledHandles) {
-            val handler = activeHandles.remove(cancellation.first) ?: continue
-            processCancelledEasyHandle(cancellation.first, cancellation.second)
-            handler.responseCompletable.completeExceptionally(cancellation.second)
-            handler.dispose()
+        for ((easyHandle, cause) in cancelledHandles) {
+            removeEasyHandle(easyHandle, cause)
         }
         cancelledHandles.clear()
 
@@ -253,6 +247,16 @@ internal class CurlMultiApiHandler : Closeable {
                     activeHandles.remove(easyHandle)!!.dispose()
                 }
             } while (messagesLeft.value != 0)
+        }
+    }
+
+    private fun removeEasyHandle(easyHandle: EasyHandle, cause: Throwable) {
+        val handler = activeHandles.remove(easyHandle) ?: return
+        try {
+            processCancelledEasyHandle(easyHandle, cause)
+        } finally {
+            handler.responseCompletable.completeExceptionally(cause)
+            handler.dispose()
         }
     }
 
