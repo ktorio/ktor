@@ -18,6 +18,7 @@ import java.util.zip.Inflater
 import kotlin.coroutines.CoroutineContext
 
 private const val GZIP_HEADER_SIZE: Int = 10
+private const val ZLIB_HEADER_SIZE: Int = 2
 
 // GZIP header flags bits
 private object GzipHeaderFlags {
@@ -83,7 +84,24 @@ private fun inflate(
     val readBuffer = KtorDefaultPool.borrow()
     val writeBuffer = KtorDefaultPool.borrow()
 
-    val inflater = Inflater(true)
+    val nowrap = if (gzip) {
+        // GZIP format does not have a zlib header, so we need to use nowrap mode
+        true
+    } else {
+        val header = source.peek(ZLIB_HEADER_SIZE)?.toByteArray()
+        if (header == null) {
+            // Unable to read zlib header, assume it's a raw deflate stream
+            true
+        } else {
+            // Check if the header is a valid zlib header
+            val cmf = header[0].toInt() and 0xFF
+            val flg = header[1].toInt() and 0xFF
+            val isZlibHeader = (cmf and 0x0F) == Deflater.DEFLATED && (cmf ushr 4) <= 7 && ((cmf shl 8) + flg) % 31 == 0
+            !isZlibHeader
+        }
+    }
+
+    val inflater = Inflater(nowrap)
     val checksum = CRC32()
 
     if (gzip) {

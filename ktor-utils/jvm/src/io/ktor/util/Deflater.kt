@@ -68,7 +68,7 @@ private suspend fun ByteReadChannel.deflateTo(
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ) {
     val crc = CRC32()
-    val deflater = Deflater(Deflater.DEFAULT_COMPRESSION, true)
+    val deflater = Deflater(Deflater.DEFAULT_COMPRESSION, gzip)
     val input = pool.borrow()
     val compressed = pool.borrow()
 
