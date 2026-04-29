@@ -24,3 +24,15 @@ public final class io/ktor/server/auth/apikey/ApiKeyAuthenticationProvider$Confi
 	public final fun validate (Lkotlin/jvm/functions/Function3;)V
 }
 
+public final class io/ktor/server/auth/typesafe/TypedApiKeyAuthConfig {
+	public fun <init> ()V
+	public final fun buildProvider (Ljava/lang/String;)Lio/ktor/server/auth/apikey/ApiKeyAuthenticationProvider;
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getHeaderName ()Ljava/lang/String;
+	public final fun getOnUnauthorized ()Lkotlin/jvm/functions/Function3;
+	public final fun setDescription (Ljava/lang/String;)V
+	public final fun setHeaderName (Ljava/lang/String;)V
+	public final fun setOnUnauthorized (Lkotlin/jvm/functions/Function3;)V
+	public final fun validate (Lkotlin/jvm/functions/Function3;)V
+}
+
