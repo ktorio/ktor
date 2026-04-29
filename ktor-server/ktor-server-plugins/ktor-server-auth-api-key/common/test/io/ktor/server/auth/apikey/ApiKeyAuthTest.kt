@@ -105,7 +105,10 @@ class ApiKeyAuthTest {
 
         val module = buildApplicationModule {
             headerName = header
-            challenge { call -> call.respond(errorStatus) }
+            challenge { call ->
+                call.authentication.allErrors
+                call.respond(errorStatus)
+            }
             validate { header -> header.takeIf { it == apiKey }?.let { ApiKeyPrincipal(it) } }
         }
         testApplication {
