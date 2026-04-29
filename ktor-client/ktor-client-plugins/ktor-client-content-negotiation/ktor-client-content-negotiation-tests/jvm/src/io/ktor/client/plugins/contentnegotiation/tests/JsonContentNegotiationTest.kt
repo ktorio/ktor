@@ -15,6 +15,11 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.util.reflect.TypeInfo
+import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.charsets.Charset
+import io.ktor.utils.io.readRemaining
+import io.ktor.utils.io.readText
 import kotlinx.serialization.*
 import kotlin.test.*
 
@@ -319,6 +324,43 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals("""{"value":{"value":"abc"}}""", response.bodyAsText())
         }
+    }
+
+    @Test
+    open fun testContentNegotiationWithSuffix() = testApplication {
+        routing {
+            get {
+                call.respondText(contentType = ContentType.Application.ProblemJson) { "123" }
+            }
+        }
+        val response = createClient {
+            install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
+                register(
+                    ContentType.Application.Json,
+                    object : ContentConverter {
+                        override suspend fun serialize(
+                            contentType: ContentType,
+                            charset: Charset,
+                            typeInfo: TypeInfo,
+                            value: Any?
+                        ): OutgoingContent? {
+                            return TextContent("serialized", contentType = contentType)
+                        }
+
+                        override suspend fun deserialize(
+                            charset: Charset,
+                            typeInfo: TypeInfo,
+                            content: ByteReadChannel
+                        ): Any? {
+                            return content.readRemaining().readText().toInt()
+                        }
+                    }
+                )
+            }
+        }.get {}
+        val responseBody = response.body<Int>()
+
+        assertEquals(123, responseBody)
     }
 }
 
