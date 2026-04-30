@@ -165,7 +165,7 @@ public typealias ForbiddenHandler = suspend (ApplicationCall, Set<AuthRole>) -> 
  */
 @ExperimentalKtorApi
 public fun <P : Any, R : AuthRole> Route.authenticateWith(
-    scheme: RoleBasedAuthScheme<P, R, *>,
+    scheme: RoleBasedAuthScheme<P, R>,
     roles: Set<R>,
     onUnauthorized: UnauthorizedHandler? = null,
     onForbidden: ForbiddenHandler? = null,

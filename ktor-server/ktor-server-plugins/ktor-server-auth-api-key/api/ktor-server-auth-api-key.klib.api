@@ -6,21 +6,21 @@
 // - Show declarations: true
 
 // Library unique name: <io.ktor:ktor-server-auth-api-key>
-final class <#A: kotlin/Any> io.ktor.server.auth.typesafe/TypedApiKeyAuthConfig { // io.ktor.server.auth.typesafe/TypedApiKeyAuthConfig|null[0]
-    constructor <init>() // io.ktor.server.auth.typesafe/TypedApiKeyAuthConfig.<init>|<init>(){}[0]
+final class <#A: kotlin/Any> io.ktor.server.auth.apikey.typesafe/TypedApiKeyAuthConfig { // io.ktor.server.auth.apikey.typesafe/TypedApiKeyAuthConfig|null[0]
+    constructor <init>() // io.ktor.server.auth.apikey.typesafe/TypedApiKeyAuthConfig.<init>|<init>(){}[0]
 
-    final var description // io.ktor.server.auth.typesafe/TypedApiKeyAuthConfig.description|{}description[0]
-        final fun <get-description>(): kotlin/String? // io.ktor.server.auth.typesafe/TypedApiKeyAuthConfig.description.<get-description>|<get-description>(){}[0]
-        final fun <set-description>(kotlin/String?) // io.ktor.server.auth.typesafe/TypedApiKeyAuthConfig.description.<set-description>|<set-description>(kotlin.String?){}[0]
-    final var headerName // io.ktor.server.auth.typesafe/TypedApiKeyAuthConfig.headerName|{}headerName[0]
-        final fun <get-headerName>(): kotlin/String // io.ktor.server.auth.typesafe/TypedApiKeyAuthConfig.headerName.<get-headerName>|<get-headerName>(){}[0]
-        final fun <set-headerName>(kotlin/String) // io.ktor.server.auth.typesafe/TypedApiKeyAuthConfig.headerName.<set-headerName>|<set-headerName>(kotlin.String){}[0]
-    final var onUnauthorized // io.ktor.server.auth.typesafe/TypedApiKeyAuthConfig.onUnauthorized|{}onUnauthorized[0]
-        final fun <get-onUnauthorized>(): kotlin.coroutines/SuspendFunction2<io.ktor.server.application/ApplicationCall, io.ktor.server.auth/AuthenticationFailedCause, kotlin/Unit>? // io.ktor.server.auth.typesafe/TypedApiKeyAuthConfig.onUnauthorized.<get-onUnauthorized>|<get-onUnauthorized>(){}[0]
-        final fun <set-onUnauthorized>(kotlin.coroutines/SuspendFunction2<io.ktor.server.application/ApplicationCall, io.ktor.server.auth/AuthenticationFailedCause, kotlin/Unit>?) // io.ktor.server.auth.typesafe/TypedApiKeyAuthConfig.onUnauthorized.<set-onUnauthorized>|<set-onUnauthorized>(kotlin.coroutines.SuspendFunction2<io.ktor.server.application.ApplicationCall,io.ktor.server.auth.AuthenticationFailedCause,kotlin.Unit>?){}[0]
+    final var description // io.ktor.server.auth.apikey.typesafe/TypedApiKeyAuthConfig.description|{}description[0]
+        final fun <get-description>(): kotlin/String? // io.ktor.server.auth.apikey.typesafe/TypedApiKeyAuthConfig.description.<get-description>|<get-description>(){}[0]
+        final fun <set-description>(kotlin/String?) // io.ktor.server.auth.apikey.typesafe/TypedApiKeyAuthConfig.description.<set-description>|<set-description>(kotlin.String?){}[0]
+    final var headerName // io.ktor.server.auth.apikey.typesafe/TypedApiKeyAuthConfig.headerName|{}headerName[0]
+        final fun <get-headerName>(): kotlin/String // io.ktor.server.auth.apikey.typesafe/TypedApiKeyAuthConfig.headerName.<get-headerName>|<get-headerName>(){}[0]
+        final fun <set-headerName>(kotlin/String) // io.ktor.server.auth.apikey.typesafe/TypedApiKeyAuthConfig.headerName.<set-headerName>|<set-headerName>(kotlin.String){}[0]
+    final var onUnauthorized // io.ktor.server.auth.apikey.typesafe/TypedApiKeyAuthConfig.onUnauthorized|{}onUnauthorized[0]
+        final fun <get-onUnauthorized>(): kotlin.coroutines/SuspendFunction2<io.ktor.server.application/ApplicationCall, io.ktor.server.auth/AuthenticationFailedCause, kotlin/Unit>? // io.ktor.server.auth.apikey.typesafe/TypedApiKeyAuthConfig.onUnauthorized.<get-onUnauthorized>|<get-onUnauthorized>(){}[0]
+        final fun <set-onUnauthorized>(kotlin.coroutines/SuspendFunction2<io.ktor.server.application/ApplicationCall, io.ktor.server.auth/AuthenticationFailedCause, kotlin/Unit>?) // io.ktor.server.auth.apikey.typesafe/TypedApiKeyAuthConfig.onUnauthorized.<set-onUnauthorized>|<set-onUnauthorized>(kotlin.coroutines.SuspendFunction2<io.ktor.server.application.ApplicationCall,io.ktor.server.auth.AuthenticationFailedCause,kotlin.Unit>?){}[0]
 
-    final fun buildProvider(kotlin/String): io.ktor.server.auth.apikey/ApiKeyAuthenticationProvider // io.ktor.server.auth.typesafe/TypedApiKeyAuthConfig.buildProvider|buildProvider(kotlin.String){}[0]
-    final fun validate(kotlin.coroutines/SuspendFunction2<io.ktor.server.application/ApplicationCall, kotlin/String, #A?>) // io.ktor.server.auth.typesafe/TypedApiKeyAuthConfig.validate|validate(kotlin.coroutines.SuspendFunction2<io.ktor.server.application.ApplicationCall,kotlin.String,1:0?>){}[0]
+    final fun buildProvider(kotlin/String): io.ktor.server.auth.apikey/ApiKeyAuthenticationProvider // io.ktor.server.auth.apikey.typesafe/TypedApiKeyAuthConfig.buildProvider|buildProvider(kotlin.String){}[0]
+    final fun validate(kotlin.coroutines/SuspendFunction2<io.ktor.server.application/ApplicationCall, kotlin/String, #A?>) // io.ktor.server.auth.apikey.typesafe/TypedApiKeyAuthConfig.validate|validate(kotlin.coroutines.SuspendFunction2<io.ktor.server.application.ApplicationCall,kotlin.String,1:0?>){}[0]
 }
 
 final class io.ktor.server.auth.apikey/ApiKeyAuthenticationProvider : io.ktor.server.auth/AuthenticationProvider { // io.ktor.server.auth.apikey/ApiKeyAuthenticationProvider|null[0]
@@ -49,4 +49,4 @@ final object io.ktor.server.auth.apikey/ApiKeyAuth { // io.ktor.server.auth.apik
 
 final fun (io.ktor.server.auth/AuthenticationConfig).io.ktor.server.auth.apikey/apiKey(kotlin/String? = ..., kotlin/Function1<io.ktor.server.auth.apikey/ApiKeyAuthenticationProvider.Configuration, kotlin/Unit>) // io.ktor.server.auth.apikey/apiKey|apiKey@io.ktor.server.auth.AuthenticationConfig(kotlin.String?;kotlin.Function1<io.ktor.server.auth.apikey.ApiKeyAuthenticationProvider.Configuration,kotlin.Unit>){}[0]
 final fun (io.ktor.server.auth/AuthenticationConfig).io.ktor.server.auth.apikey/apiKey(kotlin/String? = ..., kotlin/String? = ..., kotlin/Function1<io.ktor.server.auth.apikey/ApiKeyAuthenticationProvider.Configuration, kotlin/Unit>) // io.ktor.server.auth.apikey/apiKey|apiKey@io.ktor.server.auth.AuthenticationConfig(kotlin.String?;kotlin.String?;kotlin.Function1<io.ktor.server.auth.apikey.ApiKeyAuthenticationProvider.Configuration,kotlin.Unit>){}[0]
-final inline fun <#A: reified kotlin/Any> io.ktor.server.auth.typesafe/apiKey(kotlin/String, kotlin/Function1<io.ktor.server.auth.typesafe/TypedApiKeyAuthConfig<#A>, kotlin/Unit>): io.ktor.server.auth.typesafe/DefaultAuthScheme<#A, io.ktor.server.auth.typesafe/DefaultAuthenticatedContext<#A>> // io.ktor.server.auth.typesafe/apiKey|apiKey(kotlin.String;kotlin.Function1<io.ktor.server.auth.typesafe.TypedApiKeyAuthConfig<0:0>,kotlin.Unit>){0§<kotlin.Any>}[0]
+final inline fun <#A: reified kotlin/Any> io.ktor.server.auth.apikey.typesafe/apiKey(kotlin/String, kotlin/Function1<io.ktor.server.auth.apikey.typesafe/TypedApiKeyAuthConfig<#A>, kotlin/Unit>): io.ktor.server.auth.typesafe/DefaultAuthScheme<#A, io.ktor.server.auth.typesafe/DefaultAuthenticatedContext<#A>> // io.ktor.server.auth.apikey.typesafe/apiKey|apiKey(kotlin.String;kotlin.Function1<io.ktor.server.auth.apikey.typesafe.TypedApiKeyAuthConfig<0:0>,kotlin.Unit>){0§<kotlin.Any>}[0]

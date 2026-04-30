@@ -2,15 +2,17 @@
  * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.server.auth.typesafe
+package io.ktor.server.auth.jwt.typesafe
 
+import io.ktor.server.auth.typesafe.DefaultAuthScheme
+import io.ktor.server.auth.typesafe.DefaultAuthenticatedContext
 import io.ktor.utils.io.*
 
 /**
  * Creates a typed JWT authentication scheme.
  *
  * The [validate][TypedJwtAuthConfig.validate] callback returns a principal of type [P]. Use the returned scheme with
- * [authenticateWith] to protect routes and access [principal] without casts.
+ * [io.ktor.server.auth.typesafe.authenticateWith] to protect routes and access [io.ktor.server.auth.typesafe.principal] without casts.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.jwt)
  *
@@ -24,5 +26,9 @@ public inline fun <reified P : Any> jwt(
     configure: TypedJwtAuthConfig<P>.() -> Unit
 ): DefaultAuthScheme<P, DefaultAuthenticatedContext<P>> {
     val typedConfig = TypedJwtAuthConfig<P>().apply(configure)
-    return DefaultAuthScheme.withDefaultContext(name, typedConfig.buildProvider(name), typedConfig.onUnauthorized)
+    return DefaultAuthScheme.Companion.withDefaultContext(
+        name,
+        typedConfig.buildProvider(name),
+        typedConfig.onUnauthorized
+    )
 }

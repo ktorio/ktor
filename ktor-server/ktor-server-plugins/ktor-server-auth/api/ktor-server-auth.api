@@ -697,7 +697,6 @@ public final class io/ktor/server/auth/typesafe/OptionalAuthenticatedContext : i
 }
 
 public final class io/ktor/server/auth/typesafe/RoleBasedAuthScheme : io/ktor/server/auth/typesafe/AuthScheme {
-	public fun <init> (Lio/ktor/server/auth/typesafe/DefaultAuthScheme;Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function3;Lio/ktor/server/auth/typesafe/RolesCacheStrategy;Lkotlin/jvm/functions/Function3;)V
 	public synthetic fun createAuthenticatedContext (Lio/ktor/server/routing/Route;)Lio/ktor/server/auth/typesafe/AuthenticatedContext;
 	public fun createAuthenticatedContext (Lio/ktor/server/routing/Route;)Lio/ktor/server/auth/typesafe/RoleBasedContext;
 	public final fun getBase ()Lio/ktor/server/auth/typesafe/DefaultAuthScheme;
@@ -705,26 +704,12 @@ public final class io/ktor/server/auth/typesafe/RoleBasedAuthScheme : io/ktor/se
 }
 
 public final class io/ktor/server/auth/typesafe/RoleBasedAuthSchemeKt {
-	public static final fun withRoles (Lio/ktor/server/auth/typesafe/DefaultAuthScheme;Lio/ktor/server/auth/typesafe/RolesCacheStrategy;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;)Lio/ktor/server/auth/typesafe/RoleBasedAuthScheme;
 	public static final fun withRoles (Lio/ktor/server/auth/typesafe/DefaultAuthScheme;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;)Lio/ktor/server/auth/typesafe/RoleBasedAuthScheme;
-	public static synthetic fun withRoles$default (Lio/ktor/server/auth/typesafe/DefaultAuthScheme;Lio/ktor/server/auth/typesafe/RolesCacheStrategy;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;ILjava/lang/Object;)Lio/ktor/server/auth/typesafe/RoleBasedAuthScheme;
 	public static synthetic fun withRoles$default (Lio/ktor/server/auth/typesafe/DefaultAuthScheme;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;ILjava/lang/Object;)Lio/ktor/server/auth/typesafe/RoleBasedAuthScheme;
 }
 
 public final class io/ktor/server/auth/typesafe/RoleBasedContext : io/ktor/server/auth/typesafe/DefaultAuthenticatedContext {
 	public final fun roles (Lio/ktor/server/routing/RoutingContext;)Ljava/util/Set;
-}
-
-public abstract class io/ktor/server/auth/typesafe/RolesCacheStrategy {
-}
-
-public final class io/ktor/server/auth/typesafe/RolesCacheStrategy$PerCall : io/ktor/server/auth/typesafe/RolesCacheStrategy {
-	public static final field INSTANCE Lio/ktor/server/auth/typesafe/RolesCacheStrategy$PerCall;
-}
-
-public final class io/ktor/server/auth/typesafe/RolesCacheStrategy$PerKey : io/ktor/server/auth/typesafe/RolesCacheStrategy {
-	public fun <init> (Lkotlin/jvm/functions/Function1;)V
-	public final fun getExtractKey ()Lkotlin/jvm/functions/Function1;
 }
 
 public final class io/ktor/server/auth/typesafe/RouteBuildersKt {
