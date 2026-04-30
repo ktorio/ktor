@@ -15,7 +15,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
 import kotlin.test.*
-import io.ktor.server.auth.typesafe.apiKey as typedApiKey
+import io.ktor.server.auth.apikey.typesafe.apiKey as typedApiKey
 
 class TypedApiKeyAuthTest {
 
