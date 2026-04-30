@@ -83,11 +83,11 @@ internal class ApacheResponseConsumer(
     private val requestData: HttpRequestData
 ) : AsyncEntityConsumer<Unit>, CoroutineScope {
 
-    private val consumerJob = Job(parentContext[Job])
+    private val consumerJob = Job(parentContext.job)
     override val coroutineContext: CoroutineContext = parentContext + consumerJob
 
     private val channel = ByteChannel().also {
-        it.attachJob(consumerJob)
+        it.attachJob(parentContext.job)
     }
 
     @Volatile
@@ -101,7 +101,7 @@ internal class ApacheResponseConsumer(
     private val capacity = atomic(channel.availableForWrite)
 
     init {
-        coroutineContext[Job]?.invokeOnCompletion(onCancelling = true) { cause ->
+        parentContext.job.invokeOnCompletion(onCancelling = true) { cause ->
             if (cause != null) {
                 responseChannel.cancel(cause)
             }
@@ -140,9 +140,11 @@ internal class ApacheResponseConsumer(
     }
 
     override fun consume(src: ByteBuffer) {
-        if (channel.isClosedForWrite) {
-            channel.closedCause?.let { throw it }
-        }
+        // Silently discard when the channel is closed (e.g. caller scope was cancelled).
+        // Throwing here (even IOException per the interface contract) causes Apache to invoke its
+        // error-recovery path mid-body-stream, which either corrupts the connection pool state or
+        // triggers a retry on an already-shutdown scheduler (RejectedExecutionException).
+        if (channel.isClosedForWrite) return
         messagesQueue.trySend(src.copy())
     }
 
