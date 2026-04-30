@@ -6,6 +6,7 @@
 
 package io.ktor.tests.auth.typesafe
 
+import io.ktor.client.plugins.cookies.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -14,20 +15,16 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import io.ktor.server.testing.*
-import io.ktor.utils.io.ExperimentalKtorApi
+import io.ktor.utils.io.*
 import kotlinx.serialization.Serializable
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertIs
+import kotlin.test.*
 
 @Serializable
-data class UserSession(val username: String)
+data class UserSession(val username: String, val visits: Int = 0)
 
 private class EmailContext(
-    private val config: AuthenticatedContextConfig<TestUser>
-) : AuthenticatedContext<TestUser> {
-    override fun principal(context: RoutingContext): TestUser = config.principal(context)
-
+    defaultContext: DefaultAuthenticatedContext<TestUser>
+) : AuthenticatedContext<TestUser> by defaultContext {
     fun email(context: RoutingContext): String = principal(context).email
 }
 
@@ -129,12 +126,12 @@ class BasicSchemesTest {
         }
 
         install(Sessions) {
-            cookie<UserSession>("test_session")
+            cookie(sessionScheme)
         }
 
         routing {
             get("/set-session") {
-                call.sessions.set(UserSession("alice"))
+                call.sessions.set(sessionScheme, UserSession("Alice"))
                 call.respondText("ok")
             }
             authenticateWith(sessionScheme) {
@@ -148,11 +145,214 @@ class BasicSchemesTest {
         assertEquals(HttpStatusCode.Unauthorized, client.get("/protected").status)
 
         // With session → 200
-        val cookieClient = createClient { install(io.ktor.client.plugins.cookies.HttpCookies) }
+        val cookieClient = createClient { install(HttpCookies) }
         cookieClient.get("/set-session")
         val response = cookieClient.get("/protected")
         assertEquals(HttpStatusCode.OK, response.status)
-        assertEquals("alice", response.bodyAsText())
+        assertEquals("Alice", response.bodyAsText())
+    }
+
+    @Test
+    fun `session scheme exposes stored session and mapped principal`() = testApplication {
+        val sessionScheme = session<UserSession, TestUser>("test-session-principal") {
+            validate { session ->
+                TestUser(session.username, "${session.username}@test.com")
+            }
+        }
+
+        install(Sessions) {
+            cookie(sessionScheme)
+        }
+
+        routing {
+            get("/set-session") {
+                call.sessions.set(sessionScheme, UserSession("Alice", visits = 3))
+                call.respondText("ok")
+            }
+            authenticateWith(sessionScheme) {
+                assertIs<SessionAuthenticatedContext<UserSession, TestUser>>(authenticatedContext())
+
+                get("/protected") {
+                    call.respondText("${session.username}:${session.visits}:${principal.email}")
+                }
+            }
+        }
+
+        val cookieClient = createClient { install(HttpCookies) }
+        cookieClient.get("/set-session")
+        val response = cookieClient.get("/protected")
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("Alice:3:Alice@test.com", response.bodyAsText())
+    }
+
+    @Test
+    fun `session scheme updates and clears typed session`() = testApplication {
+        val sessionScheme = session<UserSession, TestUser>("test-session-update") {
+            validate { session -> TestUser(session.username, "${session.username}@test.com") }
+        }
+
+        install(Sessions) {
+            cookie(sessionScheme)
+        }
+
+        routing {
+            get("/set-session") {
+                call.sessions.set(sessionScheme, UserSession("Alice"))
+                call.respondText("ok")
+            }
+            authenticateWith(sessionScheme) {
+                get("/touch") {
+                    val updated = updateSession { current -> current.copy(visits = current.visits + 1) }
+                    call.respondText("${principal.name}:${updated.visits}:${session.visits}")
+                }
+                get("/rename") {
+                    session = session.copy(username = "bob")
+                    call.respondText("${principal.name}:${session.username}")
+                }
+                get("/logout") {
+                    clearSession()
+                    call.respondText("bye")
+                }
+            }
+        }
+
+        val cookieClient = createClient { install(HttpCookies) }
+        cookieClient.get("/set-session")
+
+        val firstTouch = cookieClient.get("/touch")
+        assertEquals(HttpStatusCode.OK, firstTouch.status)
+        assertEquals("Alice:1:1", firstTouch.bodyAsText())
+
+        val secondTouch = cookieClient.get("/touch")
+        assertEquals(HttpStatusCode.OK, secondTouch.status)
+        assertEquals("Alice:2:2", secondTouch.bodyAsText())
+
+        val rename = cookieClient.get("/rename")
+        assertEquals(HttpStatusCode.OK, rename.status)
+        assertEquals("Alice:bob", rename.bodyAsText())
+
+        val afterRename = cookieClient.get("/touch")
+        assertEquals(HttpStatusCode.OK, afterRename.status)
+        assertEquals("bob:3:3", afterRename.bodyAsText())
+
+        val logout = cookieClient.get("/logout")
+        assertEquals(HttpStatusCode.OK, logout.status)
+        assertEquals("bye", logout.bodyAsText())
+        assertEquals(HttpStatusCode.Unauthorized, cookieClient.get("/touch").status)
+    }
+
+    @Test
+    fun `session scheme requires Sessions to be installed before typed route`() = testApplication {
+        val sessionScheme = session<UserSession>("missing-session") {
+            validate { session -> session }
+        }
+
+        routing {
+            authenticateWith(sessionScheme) {
+                get("/protected") {
+                    call.respondText(principal.username)
+                }
+            }
+        }
+
+        val failure = assertFailsWith<IllegalStateException> {
+            startApplication()
+        }
+
+        assertContains(failure.message.orEmpty(), "requires Sessions to be installed before authenticateWith")
+    }
+
+    @Test
+    fun `session scheme requires matching Sessions provider before typed route`() = testApplication {
+        val sessionScheme = session<UserSession>("missing-session-provider") {
+            validate { session -> session }
+        }
+
+        install(Sessions) {
+            cookie<UserSession>("other-session")
+        }
+
+        routing {
+            authenticateWith(sessionScheme) {
+                get("/protected") {
+                    call.respondText(principal.username)
+                }
+            }
+        }
+
+        val failure = assertFailsWith<IllegalStateException> {
+            startApplication()
+        }
+
+        assertContains(
+            failure.message.orEmpty(),
+            "requires a Sessions provider named `missing-session-provider`"
+        )
+    }
+
+    @Test
+    fun `session scheme requires Sessions before optional typed route`() = testApplication {
+        val sessionScheme = session<UserSession>("missing-optional-session") {
+            validate { session -> session }
+        }
+
+        routing {
+            authenticateWith(sessionScheme.optional()) {
+                get("/protected") {
+                    call.respondText(principal?.username.orEmpty())
+                }
+            }
+        }
+
+        val failure = assertFailsWith<IllegalStateException> {
+            startApplication()
+        }
+
+        assertContains(failure.message.orEmpty(), "requires Sessions to be installed before authenticateWith")
+    }
+
+    @Test
+    fun `session scheme requires Sessions before role typed route`() = testApplication {
+        val sessionScheme = session<UserSession>("missing-role-session") {
+            validate { session -> session }
+        }.withRoles {
+            setOf(TestRole.User)
+        }
+
+        routing {
+            authenticateWith(sessionScheme, roles = setOf(TestRole.User)) {
+                get("/protected") {
+                    call.respondText(principal.username)
+                }
+            }
+        }
+
+        val failure = assertFailsWith<IllegalStateException> {
+            startApplication()
+        }
+
+        assertContains(failure.message.orEmpty(), "requires Sessions to be installed before authenticateWith")
+    }
+
+    @Test
+    fun `session scheme requires Sessions before any-of typed route`() = testApplication {
+        val sessionScheme = session<UserSession>("missing-any-of-session") {
+            validate { session -> session }
+        }
+
+        routing {
+            authenticateWithAnyOf<UserSession>(sessionScheme) {
+                get("/protected") {
+                    call.respondText(principal.username)
+                }
+            }
+        }
+
+        val failure = assertFailsWith<IllegalStateException> {
+            startApplication()
+        }
+
+        assertContains(failure.message.orEmpty(), "requires Sessions to be installed before authenticateWith")
     }
 
     @Test
@@ -176,9 +376,9 @@ class BasicSchemesTest {
         }
 
         val userResp = client.get("/user") {
-            header(HttpHeaders.Authorization, basicAuthHeader("alice"))
+            header(HttpHeaders.Authorization, basicAuthHeader("Alice"))
         }
-        assertEquals("alice@test.com", userResp.bodyAsText())
+        assertEquals("Alice@test.com", userResp.bodyAsText())
 
         val adminResp = client.get("/admin") {
             header(HttpHeaders.Authorization, bearerAuthHeader("token"))
@@ -209,9 +409,9 @@ class BasicSchemesTest {
         }
 
         val response = client.get("/custom") {
-            header(HttpHeaders.Authorization, basicAuthHeader("alice"))
+            header(HttpHeaders.Authorization, basicAuthHeader("Alice"))
         }
         assertEquals(HttpStatusCode.OK, response.status)
-        assertEquals("alice@test.com:alice", response.bodyAsText())
+        assertEquals("Alice@test.com:Alice", response.bodyAsText())
     }
 }
