@@ -1,0 +1,255 @@
+public final class io/ktor/server/auth/saml/DigestAlgorithm {
+	public static final field Companion Lio/ktor/server/auth/saml/DigestAlgorithm$Companion;
+	public static final synthetic fun box-impl (Ljava/lang/String;)Lio/ktor/server/auth/saml/DigestAlgorithm;
+	public static fun constructor-impl (Ljava/lang/String;)Ljava/lang/String;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Ljava/lang/String;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/lang/String;Ljava/lang/String;)Z
+	public final fun getUri ()Ljava/lang/String;
+	public fun hashCode ()I
+	public static fun hashCode-impl (Ljava/lang/String;)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Ljava/lang/String;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/auth/saml/DigestAlgorithm$Companion {
+	public final fun getSHA256-x-8ZtNE ()Ljava/lang/String;
+	public final fun getSHA384-x-8ZtNE ()Ljava/lang/String;
+	public final fun getSHA512-x-8ZtNE ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/auth/saml/IdPMetadata {
+	public final fun getEntityId ()Ljava/lang/String;
+	public final fun getSigningCredentials ()Ljava/util/List;
+	public final fun getSloUrl ()Ljava/lang/String;
+	public final fun getSloUrlPost ()Ljava/lang/String;
+	public final fun getSloUrlRedirect ()Ljava/lang/String;
+	public final fun getSsoUrl ()Ljava/lang/String;
+	public final fun getSsoUrlPost ()Ljava/lang/String;
+	public final fun getSsoUrlRedirect ()Ljava/lang/String;
+	public final fun setEntityId (Ljava/lang/String;)V
+	public final fun setSigningCredentials (Ljava/util/List;)V
+	public final fun setSloUrl (Ljava/lang/String;)V
+	public final fun setSloUrlPost (Ljava/lang/String;)V
+	public final fun setSloUrlRedirect (Ljava/lang/String;)V
+	public final fun setSsoUrl (Ljava/lang/String;)V
+	public final fun setSsoUrlPost (Ljava/lang/String;)V
+	public final fun setSsoUrlRedirect (Ljava/lang/String;)V
+}
+
+public final class io/ktor/server/auth/saml/InMemorySamlReplayCache : io/ktor/server/auth/saml/SamlReplayCache {
+	public fun <init> ()V
+	public fun <init> (ILkotlinx/coroutines/CoroutineScope;)V
+	public synthetic fun <init> (ILkotlinx/coroutines/CoroutineScope;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun close ()V
+	public fun isReplayed (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun recordAssertion (Ljava/lang/String;Lkotlin/time/Instant;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun tryRecordAssertion (Ljava/lang/String;Lkotlin/time/Instant;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/auth/saml/NameIdFormat {
+	public static final field Companion Lio/ktor/server/auth/saml/NameIdFormat$Companion;
+	public static final synthetic fun box-impl (Ljava/lang/String;)Lio/ktor/server/auth/saml/NameIdFormat;
+	public static fun constructor-impl (Ljava/lang/String;)Ljava/lang/String;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Ljava/lang/String;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/lang/String;Ljava/lang/String;)Z
+	public final fun getUri ()Ljava/lang/String;
+	public fun hashCode ()I
+	public static fun hashCode-impl (Ljava/lang/String;)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Ljava/lang/String;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/auth/saml/NameIdFormat$Companion {
+	public final fun getEmail-yVcJgns ()Ljava/lang/String;
+	public final fun getPersistent-yVcJgns ()Ljava/lang/String;
+	public final fun getTransient-yVcJgns ()Ljava/lang/String;
+	public final fun getUnspecified-yVcJgns ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/auth/saml/SamlAlgorithms {
+	public static final field INSTANCE Lio/ktor/server/auth/saml/SamlAlgorithms;
+	public final fun getRECOMMENDED_DIGEST_ALGORITHMS ()Ljava/util/Set;
+	public final fun getRECOMMENDED_SIGNATURE_ALGORITHMS ()Ljava/util/Set;
+}
+
+public final class io/ktor/server/auth/saml/SamlAuthnContext {
+	public static final field Companion Lio/ktor/server/auth/saml/SamlAuthnContext$Companion;
+	public static final synthetic fun box-impl (Ljava/lang/String;)Lio/ktor/server/auth/saml/SamlAuthnContext;
+	public static fun constructor-impl (Ljava/lang/String;)Ljava/lang/String;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Ljava/lang/String;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/lang/String;Ljava/lang/String;)Z
+	public final fun getUri ()Ljava/lang/String;
+	public fun hashCode ()I
+	public static fun hashCode-impl (Ljava/lang/String;)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Ljava/lang/String;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/auth/saml/SamlAuthnContext$Companion {
+	public final fun getKerberos-FTtBDRg ()Ljava/lang/String;
+	public final fun getMultiFactor-FTtBDRg ()Ljava/lang/String;
+	public final fun getPassword-FTtBDRg ()Ljava/lang/String;
+	public final fun getPasswordProtectedTransport-FTtBDRg ()Ljava/lang/String;
+	public final fun getX509-FTtBDRg ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/auth/saml/SamlBinding : java/lang/Enum {
+	public static final field HttpPost Lio/ktor/server/auth/saml/SamlBinding;
+	public static final field HttpRedirect Lio/ktor/server/auth/saml/SamlBinding;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/ktor/server/auth/saml/SamlBinding;
+	public static fun values ()[Lio/ktor/server/auth/saml/SamlBinding;
+}
+
+public final class io/ktor/server/auth/saml/SamlChallengeContext {
+	public fun <init> (Lio/ktor/server/application/ApplicationCall;)V
+	public final fun getCall ()Lio/ktor/server/application/ApplicationCall;
+}
+
+public final class io/ktor/server/auth/saml/SamlConfig : io/ktor/server/auth/AuthenticationProvider$Config {
+	public final fun challenge (Lkotlin/jvm/functions/Function3;)V
+	public final fun getAllowIdpInitiatedSso ()Z
+	public final fun getAllowedDigestAlgorithms ()Ljava/util/Set;
+	public final fun getAllowedRelayStateUrls ()Ljava/util/List;
+	public final fun getAllowedSignatureAlgorithms ()Ljava/util/Set;
+	public final fun getAuthnRequestBinding ()Lio/ktor/server/auth/saml/SamlBinding;
+	public final fun getClockSkew-UwyO8pc ()J
+	public final fun getDigestAlgorithm-x-8ZtNE ()Ljava/lang/String;
+	public final fun getEnableSingleLogout ()Z
+	public final fun getForceAuthn ()Z
+	public final fun getIdp ()Lio/ktor/server/auth/saml/IdPMetadata;
+	public final fun getNameIdFormat-W8VwlJw ()Ljava/lang/String;
+	public final fun getRequestedAuthnContext-4ml6bek ()Ljava/lang/String;
+	public final fun getRequireDestination ()Z
+	public final fun getRequireSignedLogoutRequest ()Z
+	public final fun getRequireSignedResponse ()Z
+	public final fun getSignatureAlgorithm ()Lio/ktor/server/auth/saml/SignatureAlgorithm;
+	public final fun getSp ()Lio/ktor/server/auth/saml/SamlSpMetadata;
+	public final fun replayCache (Lio/ktor/server/auth/saml/SamlReplayCache;)V
+	public final fun setAllowIdpInitiatedSso (Z)V
+	public final fun setAllowedDigestAlgorithms (Ljava/util/Set;)V
+	public final fun setAllowedRelayStateUrls (Ljava/util/List;)V
+	public final fun setAllowedSignatureAlgorithms (Ljava/util/Set;)V
+	public final fun setAuthnRequestBinding (Lio/ktor/server/auth/saml/SamlBinding;)V
+	public final fun setClockSkew-LRDsOJo (J)V
+	public final fun setDigestAlgorithm-ADi-r4o (Ljava/lang/String;)V
+	public final fun setEnableSingleLogout (Z)V
+	public final fun setForceAuthn (Z)V
+	public final fun setIdp (Lio/ktor/server/auth/saml/IdPMetadata;)V
+	public final fun setNameIdFormat-eInvKLk (Ljava/lang/String;)V
+	public final fun setRequestedAuthnContext-Br-yMbY (Ljava/lang/String;)V
+	public final fun setRequireDestination (Z)V
+	public final fun setRequireSignedLogoutRequest (Z)V
+	public final fun setRequireSignedResponse (Z)V
+	public final fun setSignatureAlgorithm (Lio/ktor/server/auth/saml/SignatureAlgorithm;)V
+	public final fun setSp (Lio/ktor/server/auth/saml/SamlSpMetadata;)V
+	public final fun validate (Lkotlin/jvm/functions/Function3;)V
+}
+
+public final class io/ktor/server/auth/saml/SamlConfigKt {
+	public static final fun SamlConfig (Lkotlin/jvm/functions/Function1;)Lio/ktor/server/auth/saml/SamlConfig;
+}
+
+public final class io/ktor/server/auth/saml/SamlContactPerson {
+	public fun <init> ()V
+	public final fun getEmailAddress ()Ljava/lang/String;
+	public final fun getGivenName ()Ljava/lang/String;
+	public final fun getSurname ()Ljava/lang/String;
+	public final fun getTelephoneNumber ()Ljava/lang/String;
+	public final fun setEmailAddress (Ljava/lang/String;)V
+	public final fun setGivenName (Ljava/lang/String;)V
+	public final fun setSurname (Ljava/lang/String;)V
+	public final fun setTelephoneNumber (Ljava/lang/String;)V
+}
+
+public final class io/ktor/server/auth/saml/SamlCredential {
+	public fun <init> (Lorg/opensaml/saml/saml2/core/Response;Lorg/opensaml/saml/saml2/core/Assertion;)V
+	public final fun getAssertion ()Lorg/opensaml/saml/saml2/core/Assertion;
+	public final fun getAttribute (Ljava/lang/String;)Ljava/lang/String;
+	public final fun getAttributeValues (Ljava/lang/String;)Ljava/util/List;
+	public final fun getAttributes ()Ljava/util/Map;
+	public final fun getNameId ()Ljava/lang/String;
+	public final fun getResponse ()Lorg/opensaml/saml/saml2/core/Response;
+	public final fun hasAttribute (Ljava/lang/String;)Z
+}
+
+public final class io/ktor/server/auth/saml/SamlCrypto {
+	public static final field INSTANCE Lio/ktor/server/auth/saml/SamlCrypto;
+	public final fun loadCredential (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/opensaml/security/x509/BasicX509Credential;
+	public static synthetic fun loadCredential$default (Lio/ktor/server/auth/saml/SamlCrypto;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lorg/opensaml/security/x509/BasicX509Credential;
+}
+
+public final class io/ktor/server/auth/saml/SamlMetadataKt {
+	public static final fun IdPMetadata (Lkotlin/jvm/functions/Function1;)Lio/ktor/server/auth/saml/IdPMetadata;
+	public static final fun SamlSpMetadata (Lkotlin/jvm/functions/Function1;)Lio/ktor/server/auth/saml/SamlSpMetadata;
+	public static final fun parseSamlIdpMetadata (Ljava/lang/String;Z)Lio/ktor/server/auth/saml/IdPMetadata;
+	public static synthetic fun parseSamlIdpMetadata$default (Ljava/lang/String;ZILjava/lang/Object;)Lio/ktor/server/auth/saml/IdPMetadata;
+}
+
+public final class io/ktor/server/auth/saml/SamlPrincipal {
+	public fun <init> (Lorg/opensaml/saml/saml2/core/Assertion;)V
+	public final fun getAssertion ()Lorg/opensaml/saml/saml2/core/Assertion;
+	public final fun getAttribute (Ljava/lang/String;)Ljava/lang/String;
+	public final fun getAttributeValues (Ljava/lang/String;)Ljava/util/List;
+	public final fun getAttributes ()Ljava/util/Map;
+	public final fun getNameId ()Ljava/lang/String;
+	public final fun getSessionIndex ()Ljava/lang/String;
+	public final fun hasAttribute (Ljava/lang/String;)Z
+}
+
+public abstract interface class io/ktor/server/auth/saml/SamlReplayCache : java/lang/AutoCloseable {
+	public abstract fun isReplayed (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun recordAssertion (Ljava/lang/String;Lkotlin/time/Instant;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun tryRecordAssertion (Ljava/lang/String;Lkotlin/time/Instant;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/auth/saml/SamlSpMetadata {
+	public final fun getAcsUrl ()Ljava/lang/String;
+	public final fun getEncryptionCredential ()Lorg/opensaml/security/x509/BasicX509Credential;
+	public final fun getOrganizationDisplayName ()Ljava/lang/String;
+	public final fun getOrganizationName ()Ljava/lang/String;
+	public final fun getOrganizationUrl ()Ljava/lang/String;
+	public final fun getSigningCredential ()Lorg/opensaml/security/x509/BasicX509Credential;
+	public final fun getSloUrl ()Ljava/lang/String;
+	public final fun getSpEntityId ()Ljava/lang/String;
+	public final fun getSupportedNameIdFormats ()Ljava/util/List;
+	public final fun getWantAssertionsSigned ()Z
+	public final fun setAcsUrl (Ljava/lang/String;)V
+	public final fun setEncryptionCredential (Lorg/opensaml/security/x509/BasicX509Credential;)V
+	public final fun setOrganizationDisplayName (Ljava/lang/String;)V
+	public final fun setOrganizationName (Ljava/lang/String;)V
+	public final fun setOrganizationUrl (Ljava/lang/String;)V
+	public final fun setSigningCredential (Lorg/opensaml/security/x509/BasicX509Credential;)V
+	public final fun setSloUrl (Ljava/lang/String;)V
+	public final fun setSpEntityId (Ljava/lang/String;)V
+	public final fun setSupportedNameIdFormats (Ljava/util/List;)V
+	public final fun setWantAssertionsSigned (Z)V
+	public final fun supportContact (Lkotlin/jvm/functions/Function1;)V
+	public final fun technicalContact (Lkotlin/jvm/functions/Function1;)V
+}
+
+public final class io/ktor/server/auth/saml/SignatureAlgorithm {
+	public static final field Companion Lio/ktor/server/auth/saml/SignatureAlgorithm$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getJcaAlgorithm ()Ljava/lang/String;
+	public final fun getUri ()Ljava/lang/String;
+	public fun hashCode ()I
+}
+
+public final class io/ktor/server/auth/saml/SignatureAlgorithm$Companion {
+	public final fun from (Ljava/lang/String;)Lio/ktor/server/auth/saml/SignatureAlgorithm;
+	public final fun getECDSA_SHA256 ()Lio/ktor/server/auth/saml/SignatureAlgorithm;
+	public final fun getECDSA_SHA384 ()Lio/ktor/server/auth/saml/SignatureAlgorithm;
+	public final fun getECDSA_SHA512 ()Lio/ktor/server/auth/saml/SignatureAlgorithm;
+	public final fun getRSA_SHA256 ()Lio/ktor/server/auth/saml/SignatureAlgorithm;
+	public final fun getRSA_SHA384 ()Lio/ktor/server/auth/saml/SignatureAlgorithm;
+	public final fun getRSA_SHA512 ()Lio/ktor/server/auth/saml/SignatureAlgorithm;
+}
+

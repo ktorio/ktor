@@ -57,6 +57,9 @@ mockk = "1.14.7"
 java-jwt = "4.5.1"
 
 jwks-rsa = "0.23.0"
+
+# OpenSAML 5.x for SAML 2.0 authentication
+opensaml = "5.1.2"
 mustache = "0.9.14"
 freemarker = "2.3.34"
 pebble = "4.1.0"
@@ -191,6 +194,18 @@ jansi = { module = "org.fusesource.jansi:jansi", version.ref = "jansi" }
 typesafe-config = { module = "com.typesafe:config", version.ref = "typesafe" }
 java-jwt = { module = "com.auth0:java-jwt", version.ref = "java-jwt" }
 jwks-rsa = { module = "com.auth0:jwks-rsa", version.ref = "jwks-rsa" }
+
+# OpenSAML 5.x artifacts (API/Implementation split)
+opensaml-core-api = { module = "org.opensaml:opensaml-core-api", version.ref = "opensaml" }
+opensaml-core-impl = { module = "org.opensaml:opensaml-core-impl", version.ref = "opensaml" }
+opensaml-saml-api = { module = "org.opensaml:opensaml-saml-api", version.ref = "opensaml" }
+opensaml-saml-impl = { module = "org.opensaml:opensaml-saml-impl", version.ref = "opensaml" }
+opensaml-security-api = { module = "org.opensaml:opensaml-security-api", version.ref = "opensaml" }
+opensaml-security-impl = { module = "org.opensaml:opensaml-security-impl", version.ref = "opensaml" }
+opensaml-xmlsec-api = { module = "org.opensaml:opensaml-xmlsec-api", version.ref = "opensaml" }
+opensaml-xmlsec-impl = { module = "org.opensaml:opensaml-xmlsec-impl", version.ref = "opensaml" }
+opensaml-messaging-api = { module = "org.opensaml:opensaml-messaging-api", version.ref = "opensaml" }
+opensaml-messaging-impl = { module = "org.opensaml:opensaml-messaging-impl", version.ref = "opensaml" }
 
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 

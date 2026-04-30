@@ -379,6 +379,13 @@ io.ktor:ktor-server-auth-ldap/.jar
 io.ktor:ktor-server-auth-ldap/javadoc.jar
 io.ktor:ktor-server-auth-ldap/kotlin-tooling-metadata.json
 io.ktor:ktor-server-auth-ldap/sources.jar
+io.ktor:ktor-server-auth-saml-jvm/.jar
+io.ktor:ktor-server-auth-saml-jvm/javadoc.jar
+io.ktor:ktor-server-auth-saml-jvm/sources.jar
+io.ktor:ktor-server-auth-saml/.jar
+io.ktor:ktor-server-auth-saml/javadoc.jar
+io.ktor:ktor-server-auth-saml/kotlin-tooling-metadata.json
+io.ktor:ktor-server-auth-saml/sources.jar
 io.ktor:ktor-server-auth/.jar
 io.ktor:ktor-server-auth/javadoc.jar
 io.ktor:ktor-server-auth/kotlin-tooling-metadata.json
