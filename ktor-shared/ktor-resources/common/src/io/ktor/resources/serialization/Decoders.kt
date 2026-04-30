@@ -22,9 +22,6 @@ internal class ParametersDecoder(
     private lateinit var currentName: String
 
     override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
-        if (!parameterNames.hasNext()) {
-            return CompositeDecoder.DECODE_DONE
-        }
         while (parameterNames.hasNext()) {
             currentName = parameterNames.next()
             val elementIndex = descriptor.getElementIndex(currentName)
@@ -111,6 +108,8 @@ private class ListLikeDecoder(
     private var currentIndex = -1
 
     private val elementsCount = parameters.getAll(parameterName)?.size ?: 0
+
+    override fun decodeCollectionSize(descriptor: SerialDescriptor): Int = elementsCount
 
     override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
         if (++currentIndex == elementsCount) {
