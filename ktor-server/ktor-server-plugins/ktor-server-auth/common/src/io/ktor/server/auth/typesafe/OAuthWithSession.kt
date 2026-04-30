@@ -114,10 +114,6 @@ public class OAuthWithSessionScheme<S : Any, P : Any> @PublishedApi internal con
     internal val sessionFactory: suspend (OAuthAccessTokenResponse) -> S?,
     internal var principalFactory: suspend (S) -> P?,
 ) {
-
-    internal fun createAuthenticatedContext(route: Route): SessionAuthenticatedContext<S, P> =
-        sessionScheme.createAuthenticatedContext(route)
-
     public companion object {
         @PublishedApi
         internal fun <S : Any, P : Any> from(
