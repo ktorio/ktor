@@ -182,8 +182,8 @@ class NettySpecificTest {
     }
 
     @Test
-    fun `KTOR-646 client-disconnect IOException is logged at TRACE not DEBUG`() {
-        val logger = LoggerFactory.getLogger("io.ktor.tests.server.netty.KTOR-646") as Logger
+    fun `client disconnect is logged at trace level`() {
+        val logger = LoggerFactory.getLogger("io.ktor.tests.server.netty.ClientDisconnectLogging") as Logger
         val previousLevel = logger.level
         val listAppender = ListAppender<ILoggingEvent>().apply { start() }
         logger.level = Level.TRACE
@@ -206,8 +206,6 @@ class NettySpecificTest {
         channel.pipeline().addLast(handler)
         try {
             channel.pipeline().fireExceptionCaught(IOException("Connection reset by peer"))
-
-            logger.detachAppender(listAppender)
 
             val ioOpFailedEvents = listAppender.list.filter { it.formattedMessage == "I/O operation failed" }
             assertEquals(
