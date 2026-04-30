@@ -121,6 +121,7 @@ public class TypedDigestAuthConfig<P : Any> @PublishedApi internal constructor()
      * @param digest provides a digest for a username and realm, or `null` when the user is unknown.
      */
     public fun digestProvider(digest: DigestProviderFunction) {
+        digestProviderFn = null
         legacyDigestProviderFn = digest
     }
 
@@ -132,6 +133,7 @@ public class TypedDigestAuthConfig<P : Any> @PublishedApi internal constructor()
      * @param digest provides a digest for a username, realm, and algorithm, or `null` when the user is unknown.
      */
     public fun digestProvider(digest: DigestProviderFunctionV2) {
+        legacyDigestProviderFn = null
         digestProviderFn = digest
     }
 
@@ -168,8 +170,12 @@ public class TypedDigestAuthConfig<P : Any> @PublishedApi internal constructor()
         config.charset = charset
         config.nonceManager = nonceManager
         validateFn?.let { fn -> config.validate { credential -> fn(credential) } }
-        digestProviderFn?.let { config.digestProvider(it) }
-        legacyDigestProviderFn?.let { config.digestProvider(it) }
+        val digestProvider = digestProviderFn
+        if (digestProvider != null) {
+            config.digestProvider(digestProvider)
+        } else {
+            legacyDigestProviderFn?.let { config.digestProvider(it) }
+        }
         userHashResolverFn?.let { config.userHashResolver(it) }
         if (strictMode) config.strictRfc7616Mode()
         return DigestAuthenticationProvider(config)

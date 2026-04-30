@@ -145,12 +145,17 @@ internal fun <P : Any> createTypedMultiAuthInterceptor(
                 }
 
                 logAuthenticationFailed(call, provider)
-                failures[scheme.name] = schemeContext.allFailures.firstOrNull()
-                    ?: AuthenticationFailedCause.NoCredentials
+                failures[scheme.name] = schemeContext.lastFailureOrNoCredentials()
             }
             onUnauthorized(call, failures)
         }
     }
+}
+
+private fun AuthenticationContext.lastFailureOrNoCredentials(): AuthenticationFailedCause {
+    return challenge.register.lastOrNull()?.first
+        ?: allFailures.lastOrNull()
+        ?: AuthenticationFailedCause.NoCredentials
 }
 
 private fun logAuthenticationAttempt(call: ApplicationCall, provider: AuthenticationProvider) {

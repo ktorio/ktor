@@ -32,7 +32,7 @@ public typealias UnauthorizedHandler = suspend (ApplicationCall, AuthenticationF
  * @param P the principal type produced by this scheme.
  * @param C the context type available inside authenticated routes.
  */
-@OptIn(ExperimentalKtorApi::class)
+@ExperimentalKtorApi
 public interface AuthScheme<P : Any, C : AuthenticatedContext<*>> {
     /**
      * Name that identifies this authentication scheme.
