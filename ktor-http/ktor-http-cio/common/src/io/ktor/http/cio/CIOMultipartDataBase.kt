@@ -32,7 +32,7 @@ public class CIOMultipartDataBase(
         parseMultipart(channel, contentType, contentLength, formFieldLimit)
 
     override suspend fun readPart(): PartData? {
-        previousPart?.dispose?.invoke()
+        previousPart?.release()
 
         while (true) {
             val event = events.tryReceive().getOrNull() ?: break
@@ -61,12 +61,12 @@ public class CIOMultipartDataBase(
             when (event) {
                 is MultipartEvent.MultipartPart -> partToData(event)
                 else -> {
-                    event.release()
+                    event.releaseSuspend()
                     null
                 }
             }
         } catch (cause: Throwable) {
-            event.release()
+            event.releaseSuspend()
             throw cause
         }
     }
@@ -81,14 +81,15 @@ public class CIOMultipartDataBase(
         if (filename == null) {
             val packet = body.readRemaining()
             packet.use {
-                return PartData.FormItem(it.readText(), { part.release() }, CIOHeaders(headers))
+                return PartData.FormItem(it.readText(), part::release, CIOHeaders(headers), part::releaseSuspend)
             }
         }
 
         return PartData.FileItem(
             { part.body },
-            { part.release() },
-            CIOHeaders(headers)
+            part::release,
+            CIOHeaders(headers),
+            part::releaseSuspend
         )
     }
 }

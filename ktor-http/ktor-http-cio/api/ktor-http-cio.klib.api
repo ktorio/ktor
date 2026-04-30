@@ -136,6 +136,7 @@ final class io.ktor.http.cio/Response : io.ktor.http.cio/HttpMessage { // io.kto
 
 sealed class io.ktor.http.cio/MultipartEvent { // io.ktor.http.cio/MultipartEvent|null[0]
     abstract fun release() // io.ktor.http.cio/MultipartEvent.release|release(){}[0]
+    abstract suspend fun releaseSuspend() // io.ktor.http.cio/MultipartEvent.releaseSuspend|releaseSuspend(){}[0]
 
     final class Epilogue : io.ktor.http.cio/MultipartEvent { // io.ktor.http.cio/MultipartEvent.Epilogue|null[0]
         constructor <init>(kotlinx.io/Source) // io.ktor.http.cio/MultipartEvent.Epilogue.<init>|<init>(kotlinx.io.Source){}[0]
@@ -144,6 +145,7 @@ sealed class io.ktor.http.cio/MultipartEvent { // io.ktor.http.cio/MultipartEven
             final fun <get-body>(): kotlinx.io/Source // io.ktor.http.cio/MultipartEvent.Epilogue.body.<get-body>|<get-body>(){}[0]
 
         final fun release() // io.ktor.http.cio/MultipartEvent.Epilogue.release|release(){}[0]
+        final suspend fun releaseSuspend() // io.ktor.http.cio/MultipartEvent.Epilogue.releaseSuspend|releaseSuspend(){}[0]
     }
 
     final class MultipartPart : io.ktor.http.cio/MultipartEvent { // io.ktor.http.cio/MultipartEvent.MultipartPart|null[0]
@@ -155,6 +157,7 @@ sealed class io.ktor.http.cio/MultipartEvent { // io.ktor.http.cio/MultipartEven
             final fun <get-headers>(): kotlinx.coroutines/Deferred<io.ktor.http.cio/HttpHeadersMap> // io.ktor.http.cio/MultipartEvent.MultipartPart.headers.<get-headers>|<get-headers>(){}[0]
 
         final fun release() // io.ktor.http.cio/MultipartEvent.MultipartPart.release|release(){}[0]
+        final suspend fun releaseSuspend() // io.ktor.http.cio/MultipartEvent.MultipartPart.releaseSuspend|releaseSuspend(){}[0]
     }
 
     final class Preamble : io.ktor.http.cio/MultipartEvent { // io.ktor.http.cio/MultipartEvent.Preamble|null[0]
@@ -164,6 +167,7 @@ sealed class io.ktor.http.cio/MultipartEvent { // io.ktor.http.cio/MultipartEven
             final fun <get-body>(): kotlinx.io/Source // io.ktor.http.cio/MultipartEvent.Preamble.body.<get-body>|<get-body>(){}[0]
 
         final fun release() // io.ktor.http.cio/MultipartEvent.Preamble.release|release(){}[0]
+        final suspend fun releaseSuspend() // io.ktor.http.cio/MultipartEvent.Preamble.releaseSuspend|releaseSuspend(){}[0]
     }
 }
 
