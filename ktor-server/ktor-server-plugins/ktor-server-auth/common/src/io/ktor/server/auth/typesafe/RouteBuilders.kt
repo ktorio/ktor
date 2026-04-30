@@ -8,9 +8,8 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
-import io.ktor.util.reflect.TypeInfo
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
-import kotlin.reflect.KClass
 
 /**
  * Builds a route with an authenticated context receiver.
@@ -58,11 +57,9 @@ public fun <P : Any, C : AuthenticatedContext<P>> Route.authenticateWith(
     onUnauthorized: UnauthorizedHandler? = null,
     build: AuthenticatedRouteBuilder<C>
 ): Route {
-    application.registerSchemeIfNeeded(scheme)
     val selector = AuthenticationRouteSelector(listOf(scheme.name))
     val route = createChild(selector)
-    scheme.install(route, onUnauthorized)
-    with(scheme.createAuthenticatedContext(route)) {
+    with(scheme.install(route, onUnauthorized)) {
         route.build()
     }
     return route
@@ -103,27 +100,25 @@ public inline fun <reified P : Any> Route.authenticateWithAnyOf(
     noinline onUnauthorized: MultiUnauthorizedHandler? = null,
     noinline build: AuthenticatedRouteBuilder<DefaultAuthenticatedContext<P>>
 ): Route {
-    return authenticateWithAnyOf(schemes.toList(), P::class, onUnauthorized, build)
+    return authenticateWithAnyOf(schemes.toList(), principalType = TypeInfo(P::class), onUnauthorized, build)
 }
 
 @OptIn(ExperimentalKtorApi::class)
 @PublishedApi
 internal fun <P : Any> Route.authenticateWithAnyOf(
     schemes: List<DefaultAuthScheme<out P, *>>,
-    klass: KClass<P>,
+    principalType: TypeInfo,
     onUnauthorized: MultiUnauthorizedHandler? = null,
     build: AuthenticatedRouteBuilder<DefaultAuthenticatedContext<P>>
 ): Route {
     require(schemes.isNotEmpty()) {
         "At least one scheme must be specified"
     }
-    for (scheme in schemes) application.registerSchemeIfNeeded(scheme)
     val names = schemes.map { it.name }
     val route = createChild(selector = AuthenticationRouteSelector(names))
     val principalKeyName = "TypesafeAuth:${names.joinToString(",")}:Principal"
-    val principalKey = AttributeKey<P>(principalKeyName, TypeInfo(klass))
-    route.install(createTypedMultiAuthInterceptor(schemes, principalKey, onUnauthorized, route))
-    with(DefaultAuthenticatedContext(principalKey)) {
+    val principalKey = AttributeKey<P>(principalKeyName, principalType)
+    with(route.installTypedMultiAuthInterceptor(schemes, principalKey, onUnauthorized)) {
         route.build()
     }
     return route
@@ -171,18 +166,9 @@ public fun <P : Any, R : AuthRole> Route.authenticateWith(
     onForbidden: ForbiddenHandler? = null,
     build: AuthenticatedRouteBuilder<RoleBasedContext<P, R>>
 ): Route {
-    application.registerSchemeIfNeeded(scheme.base)
     val route = createChild(selector = AuthenticationRouteSelector(names = listOf(scheme.base.name)))
-
-    route.install(
-        scheme.base.createTypedAuthPlugin(
-            route = route,
-            kind = "Roles",
-            onUnauthorized = onUnauthorized ?: scheme.base.onUnauthorized,
-            onAccepted = { call -> scheme.validateRoles(call, roles, onForbidden) }
-        )
-    )
-    with(scheme.createAuthenticatedContext(route)) {
+    val context = scheme.install(route, roles, onUnauthorized, onForbidden)
+    with(context) {
         route.build()
     }
     return route
@@ -204,10 +190,8 @@ public fun <P : Any> Route.authenticateWith(
     scheme: OptionalAuthScheme<P>,
     build: AuthenticatedRouteBuilder<OptionalAuthenticatedContext<P>>
 ): Route {
-    application.registerSchemeIfNeeded(scheme.base)
     val route = createChild(AuthenticationRouteSelector(listOf(scheme.name)))
-    scheme.installAuthInterceptor(route)
-    with(scheme.createAuthenticatedContext(route)) {
+    with(scheme.install(route)) {
         route.build()
     }
     return route
@@ -229,10 +213,8 @@ public fun <B : Any, P : B, AP : B> Route.authenticateWith(
     scheme: AnonymousAuthScheme<B, P, AP>,
     build: AuthenticatedRouteBuilder<DefaultAuthenticatedContext<B>>
 ): Route {
-    application.registerSchemeIfNeeded(scheme.base)
     val route = createChild(AuthenticationRouteSelector(listOf(scheme.name)))
-    scheme.install(route)
-    with(scheme.createAuthenticatedContext(route)) {
+    with(scheme.install(route)) {
         route.build()
     }
     return route
