@@ -104,7 +104,7 @@ internal class NettyHttp1Handler(
     override fun exceptionCaught(context: ChannelHandlerContext, cause: Throwable) {
         when (cause) {
             is IOException -> {
-                environment.log.debug("I/O operation failed", cause)
+                environment.log.trace("I/O operation failed", cause)
                 handlerJob.cancel()
                 context.close()
             }
