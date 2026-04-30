@@ -42,7 +42,7 @@ internal class CurlMultiApiHandler : Closeable {
     private val easyHandlesToUnpause = mutableListOf<EasyHandle>()
 
     override fun close() {
-        if (activeHandles.isNotEmpty()) handleCompleted()
+        if (activeHandles.isNotEmpty() || cancelledHandles.isNotEmpty()) handleCompleted()
         for ((handle, holder) in activeHandles) {
             cleanupEasyHandle(handle)
             holder.dispose()
@@ -65,7 +65,7 @@ internal class CurlMultiApiHandler : Closeable {
                 wsConfig.maxFrameSize,
             )
         } else {
-            CurlHttpResponseBody(request.executionContext) {
+            CurlHttpResponseBody(request.callContext) {
                 unpauseEasyHandle(easyHandle)
             }
         }
@@ -134,11 +134,17 @@ internal class CurlMultiApiHandler : Closeable {
         cancelledHandles += Pair(easyHandle, cause)
     }
 
+    fun cancelWebSocket(websocket: CurlWebSocketResponseBody, cause: Throwable) {
+        val easyHandle = websocket.easyHandle
+        val handler = activeHandles[easyHandle] ?: return
+        if (handler.responseWrapper.get() !== websocket) return
+        removeEasyHandle(easyHandle, cause)
+    }
+
     fun perform(transfersRunning: IntVarOf<Int>) {
         if (activeHandles.isEmpty()) return
 
-        // Process cancelled handles before performing to remove stale handles
-        // (e.g., closed WebSocket sessions) and prevent them from blocking curl_multi_poll.
+        // Process cancelled handles before performing to prevent them from blocking curl_multi_poll.
         if (cancelledHandles.isNotEmpty()) {
             handleCompleted()
         }
@@ -198,7 +204,7 @@ internal class CurlMultiApiHandler : Closeable {
     private fun setupUploadContent(easyHandle: EasyHandle, request: CurlRequestData): COpaquePointer {
         val requestPointer = CurlRequestBodyData(
             body = request.content,
-            callContext = request.executionContext,
+            callContext = request.callContext,
             onUnpause = {
                 unpauseEasyHandle(easyHandle)
             }
@@ -212,11 +218,8 @@ internal class CurlMultiApiHandler : Closeable {
     }
 
     private fun handleCompleted() {
-        for (cancellation in cancelledHandles) {
-            val handler = activeHandles.remove(cancellation.first) ?: continue
-            processCancelledEasyHandle(cancellation.first, cancellation.second)
-            handler.responseCompletable.completeExceptionally(cancellation.second)
-            handler.dispose()
+        for ((easyHandle, cause) in cancelledHandles) {
+            removeEasyHandle(easyHandle, cause)
         }
         cancelledHandles.clear()
 
@@ -244,6 +247,16 @@ internal class CurlMultiApiHandler : Closeable {
                     activeHandles.remove(easyHandle)!!.dispose()
                 }
             } while (messagesLeft.value != 0)
+        }
+    }
+
+    private fun removeEasyHandle(easyHandle: EasyHandle, cause: Throwable) {
+        val handler = activeHandles.remove(easyHandle) ?: return
+        try {
+            processCancelledEasyHandle(easyHandle, cause)
+        } finally {
+            handler.responseCompletable.completeExceptionally(cause)
+            handler.dispose()
         }
     }
 

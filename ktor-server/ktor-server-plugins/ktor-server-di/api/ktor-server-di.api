@@ -241,11 +241,13 @@ public abstract interface class io/ktor/server/plugins/di/DependencyProvider {
 }
 
 public abstract interface class io/ktor/server/plugins/di/DependencyReflection {
+	public abstract fun call (Lkotlin/reflect/KFunction;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun create (Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public class io/ktor/server/plugins/di/DependencyReflectionJvm : io/ktor/server/plugins/di/DependencyReflection {
 	public fun <init> ()V
+	public fun call (Lkotlin/reflect/KFunction;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun create (Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun findConstructors (Lkotlin/reflect/KClass;)Ljava/util/Collection;
 	public final fun mapParameters (Ljava/util/List;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -352,6 +354,7 @@ public abstract interface class io/ktor/server/plugins/di/MutableDependencyMap :
 
 public final class io/ktor/server/plugins/di/NoReflection : io/ktor/server/plugins/di/DependencyReflection {
 	public static final field INSTANCE Lio/ktor/server/plugins/di/NoReflection;
+	public fun call (Lkotlin/reflect/KFunction;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun create (Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 

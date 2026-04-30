@@ -5,6 +5,7 @@
 package io.ktor.server.plugins.di
 
 import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
 
 /**
  * Provides reflection to dependency injection so that it may create new instances from class references.
@@ -24,6 +25,19 @@ public interface DependencyReflection {
      * @return A new instance of the specified class.
      */
     public suspend fun <T : Any> create(kClass: KClass<T>, init: suspend (DependencyKey) -> Any): T
+
+    /**
+     * Invokes the specified function and provides the necessary dependencies for its parameters
+     * using the provided initialization logic.
+     *
+     * @param T The return type of the function to be invoked.
+     * @param kFunction The function reference to invoke. The parameters of this function
+     *                  will be resolved using dependency injection.
+     * @param init A lambda function that resolves dependencies required for the function invocation
+     *             using a `DependencyKey`.
+     * @return The result of the function invocation.
+     */
+    public suspend fun <T> call(kFunction: KFunction<T>, init: suspend (DependencyKey) -> Any): T
 }
 
 /**
