@@ -60,4 +60,8 @@ internal class UnlimitedStorage : CacheStorage {
     override suspend fun removeAll(url: Url) {
         store.remove(url)
     }
+
+    override suspend fun clear() {
+        store.clear()
+    }
 }

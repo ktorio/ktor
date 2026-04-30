@@ -138,6 +138,20 @@ public class HttpCache private constructor(
         }
     }
 
+    /**
+     * Removes all entries from both public and private cache storages.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cache.HttpCache.clearAllCaches)
+     */
+    public suspend fun clearAllCaches() {
+        check(!useOldStorage) {
+            "clearAllCaches() is not supported with deprecated HttpCacheStorage. " +
+                "Please migrate to the new CacheStorage API."
+        }
+        privateStorageNew.clear()
+        publicStorageNew.clear()
+    }
+
     public companion object : HttpClientPlugin<Config, HttpCache> {
         override val key: AttributeKey<HttpCache> = AttributeKey("HttpCache")
 
