@@ -4,34 +4,54 @@
 
 package test.server
 
+import kotlinx.coroutines.*
 import org.gradle.api.Project
 import org.gradle.api.logging.Logging
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.kotlin.dsl.registerIfAbsent
-import java.io.Closeable
 
-abstract class TestServerService : BuildService<BuildServiceParameters.None>, AutoCloseable {
+abstract class TestServerService : BuildService<TestServerService.Parameters>, AutoCloseable {
 
     private val logger = Logging.getLogger("TestServerService")
-    private val server: Closeable
+    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     init {
+        startServer()
+    }
+
+    private fun startServer() {
         logger.lifecycle("Starting test server...")
-        server = startServer()
+        try {
+            startServer(scope, parameters.verbose.get())
+        } catch (cause: Throwable) {
+            scope.cancel()
+            throw cause
+        }
         logger.lifecycle("Test server started.")
     }
 
     override fun close() {
         logger.lifecycle("Stopping test server...")
-        server.close()
+        scope.cancel()
+        runBlocking { scope.coroutineContext.job.join() }
         logger.lifecycle("Test server stopped.")
+    }
+
+    interface Parameters : BuildServiceParameters {
+        val verbose: Property<Boolean>
     }
 
     companion object {
         fun registerIfAbsent(project: Project): Provider<TestServerService> {
-            return project.gradle.sharedServices.registerIfAbsent("testServer", TestServerService::class)
+            val verbose = project.providers.gradleProperty("ktorbuild.testServer.verbose")
+                .map { it.toBoolean() }
+                .orElse(false)
+            return project.gradle.sharedServices.registerIfAbsent("testServer", TestServerService::class) {
+                parameters.verbose.set(verbose)
+            }
         }
     }
 }

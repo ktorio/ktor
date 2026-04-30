@@ -7,45 +7,44 @@ package test.server
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import kotlinx.coroutines.*
-import java.io.Closeable
-import kotlin.coroutines.CoroutineContext
 
-@OptIn(DelicateCoroutinesApi::class)
-internal class TestTcpServer(val port: Int, handler: suspend (Socket) -> Unit) : CoroutineScope, Closeable {
+internal class TestTcpServer(
+    val port: Int,
+    scope: CoroutineScope,
+    private val handler: suspend (Socket) -> Unit,
+) {
     private val selector = ActorSelectorManager(Dispatchers.IO)
-    override val coroutineContext: CoroutineContext
+
+    private val serverSocket = runBlocking { aSocket(selector).tcp().bind(port = port) }
 
     init {
-        var server: ServerSocket? = null
-
-        coroutineContext = GlobalScope.launch {
-            server = aSocket(selector).tcp().bind(port = port)
-            while (isActive) {
-                val socket = try {
-                    server.accept()
-                } catch (cause: Throwable) {
-                    println("Test server is fail to accept: $cause")
-                    cause.printStackTrace()
-                    continue
-                }
-
-                launch {
-                    try {
-                        socket.use { handler(it) }
-                    } catch (cause: Throwable) {
-                        println("Exception in tcp server: $cause")
-                        cause.printStackTrace()
-                    }
-                }
-            }
-        }.apply {
-            invokeOnCompletion {
-                server?.close()
-            }
+        scope.launch {
+            serverSocket.use { it.serve() }
+        }.invokeOnCompletion {
+            selector.close()
         }
     }
 
-    override fun close() {
-        coroutineContext.cancel()
+    private suspend fun ServerSocket.serve() = coroutineScope {
+        while (isActive) {
+            val socket = try {
+                accept()
+            } catch (cause: Throwable) {
+                if (cause is CancellationException) throw cause
+                println("Test server failed to accept: $cause")
+                cause.printStackTrace()
+                continue
+            }
+
+            launch {
+                try {
+                    socket.use { handler(it) }
+                } catch (cause: Throwable) {
+                    if (cause is CancellationException) throw cause
+                    println("Exception in tcp server: $cause")
+                    cause.printStackTrace()
+                }
+            }
+        }
     }
 }
