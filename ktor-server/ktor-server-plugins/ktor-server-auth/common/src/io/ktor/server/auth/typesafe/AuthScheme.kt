@@ -51,6 +51,8 @@ public interface AuthScheme<P : Any, C : AuthenticatedContext<*>> {
     public fun createAuthenticatedContext(route: Route): C
 }
 
+private val RegisteredSchemesKey = AttributeKey<MutableSet<String>>("TypesafeAuthRegisteredSchemes")
+
 /**
  * Default [AuthScheme] implementation created by typed authentication builders.
  *
@@ -68,7 +70,7 @@ public open class DefaultAuthScheme<P : Any, C : AuthenticatedContext<P>>(
     internal val principalType: KClass<P>,
     internal val provider: AuthenticationProvider,
     internal val onUnauthorized: UnauthorizedHandler?,
-    internal val contextFactory: (AuthenticatedContextConfig<P>) -> C
+    internal val contextFactory: (DefaultAuthenticatedContext<P>) -> C
 ) : AuthScheme<P, C> {
     internal val principalKey = AttributeKey<P>("TypesafeAuth:$name:Principal", TypeInfo(principalType))
 
@@ -86,16 +88,37 @@ public open class DefaultAuthScheme<P : Any, C : AuthenticatedContext<P>>(
     }
 
     override fun createAuthenticatedContext(route: Route): C {
-        return contextFactory(AuthenticatedContextConfig(principalKey))
+        return contextFactory(DefaultAuthenticatedContext(principalKey))
     }
 
-    internal fun install(route: Route, onUnauthorized: UnauthorizedHandler?) {
+    private fun Application.registerSchemeIfNeeded() {
+        val registered = attributes.computeIfAbsent(RegisteredSchemesKey) { mutableSetOf() }
+        if (name in registered) return
+        authentication { setup(this) }
+        registered.add(name)
+    }
+
+    internal open fun preinstall(route: Route) {
+        route.application.registerSchemeIfNeeded()
+    }
+
+    internal fun install(
+        route: Route,
+        onUnauthorized: UnauthorizedHandler? = null,
+        kind: String = "Scheme",
+        optional: Boolean = false,
+        onAccepted: (suspend (ApplicationCall) -> Unit)? = null
+    ): C {
+        preinstall(route)
         val plugin = createTypedAuthPlugin(
             route = route,
-            kind = "Scheme",
+            kind = kind,
             onUnauthorized = onUnauthorized ?: this@DefaultAuthScheme.onUnauthorized,
+            optional = optional,
+            onAccepted = onAccepted,
         )
         route.install(plugin)
+        return createAuthenticatedContext(route)
     }
 
     internal fun principalFrom(ctx: AuthenticationContext): P? {
@@ -126,10 +149,11 @@ public open class DefaultAuthScheme<P : Any, C : AuthenticatedContext<P>>(
         ): DefaultAuthScheme<P, DefaultAuthenticatedContext<P>> {
             return DefaultAuthScheme(
                 name = name,
-                principalType = P::class,
                 provider = provider,
-                onUnauthorized = onUnauthorized
-            ) { config -> DefaultAuthenticatedContext(config.principalKey) }
+                principalType = P::class,
+                onUnauthorized = onUnauthorized,
+                contextFactory = { it }
+            )
         }
     }
 }

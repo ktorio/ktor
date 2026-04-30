@@ -4,8 +4,11 @@
 
 package io.ktor.server.auth.typesafe
 
-import io.ktor.server.auth.*
+import io.ktor.util.*
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
+import kotlin.jvm.JvmName
+import kotlin.reflect.*
 
 /**
  * Creates a typed Basic authentication scheme.
@@ -73,8 +76,63 @@ public inline fun <reified P : Any> form(
 /**
  * Creates a typed Session authentication scheme.
  *
- * The session value is validated as [P] and the accepted value becomes the route [principal]. Use this scheme with
- * [authenticateWith] after installing and configuring [io.ktor.server.sessions.Sessions].
+ * The session value [S] is validated and mapped to a route principal [P]. Use this scheme with [authenticateWith]
+ * after installing and configuring [io.ktor.server.sessions.Sessions].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.session)
+ *
+ * @param name name that identifies the Session authentication scheme.
+ * @param configure configures Session authentication for this scheme.
+ * @return a typed authentication scheme that produces principals of type [P].
+ */
+@ExperimentalKtorApi
+@JvmName("sessionWithPrincipal")
+public inline fun <reified S : Any, reified P : Any> session(
+    name: String,
+    noinline configure: TypedSessionAuthConfig<S, P>.() -> Unit
+): SessionAuthScheme<S, P> {
+    return buildSessionAuthScheme(
+        name = name,
+        sessionTypeInfo = typeInfo<S>(),
+        principalType = P::class,
+        configure = configure
+    )
+}
+
+@PublishedApi
+@OptIn(ExperimentalKtorApi::class)
+internal fun <S : Any, P : Any> buildSessionAuthScheme(
+    name: String,
+    sessionTypeInfo: TypeInfo,
+    principalType: KClass<P>,
+    configure: TypedSessionAuthConfig<S, P>.() -> Unit
+): SessionAuthScheme<S, P> {
+    val typedConfig = TypedSessionAuthConfig<S, P>().apply(configure)
+
+    @Suppress("UNCHECKED_CAST")
+    val sessionType = sessionTypeInfo.type as KClass<S>
+    val sessionKey = AttributeKey<S>("TypesafeAuth:$name:Session", sessionTypeInfo)
+    val provider = typedConfig.buildProvider(
+        name = name,
+        sessionType = sessionType,
+        sessionKey = sessionKey
+    )
+    return SessionAuthScheme(
+        name = name,
+        sessionType = sessionType,
+        sessionTypeInfo = sessionTypeInfo,
+        principalType = principalType,
+        provider = provider,
+        onUnauthorized = typedConfig.onUnauthorized,
+        sessionKey = sessionKey
+    )
+}
+
+/**
+ * Creates a typed Session authentication scheme where the stored session is also the route principal.
+ *
+ * Use the returned route context to read, update, or clear the authenticated [session] value without calling
+ * `call.sessions` directly.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.session)
  *
@@ -85,9 +143,7 @@ public inline fun <reified P : Any> form(
 @ExperimentalKtorApi
 public inline fun <reified P : Any> session(
     name: String,
-    configure: TypedSessionAuthConfig<P>.() -> Unit
-): DefaultAuthScheme<P, DefaultAuthenticatedContext<P>> {
-    val typedConfig = TypedSessionAuthConfig<P>().apply(configure)
-    val provider = typedConfig.buildProvider(name, type = P::class)
-    return DefaultAuthScheme.withDefaultContext(name, provider, typedConfig.onUnauthorized)
+    noinline configure: TypedSessionAuthConfig<P, P>.() -> Unit
+): SessionAuthScheme<P, P> {
+    return session<P, P>(name, configure)
 }
