@@ -58,3 +58,28 @@ public final class io/ktor/server/auth/jwt/JWTPrincipal : io/ktor/server/auth/jw
 	public fun <init> (Lcom/auth0/jwt/interfaces/Payload;)V
 }
 
+public final class io/ktor/server/auth/jwt/typesafe/TypedJwtAuthConfig {
+	public fun <init> ()V
+	public final fun authHeader (Lkotlin/jvm/functions/Function1;)V
+	public final fun authSchemes (Ljava/lang/String;[Ljava/lang/String;)V
+	public static synthetic fun authSchemes$default (Lio/ktor/server/auth/jwt/typesafe/TypedJwtAuthConfig;Ljava/lang/String;[Ljava/lang/String;ILjava/lang/Object;)V
+	public final fun buildProvider (Ljava/lang/String;)Lio/ktor/server/auth/jwt/JWTAuthenticationProvider;
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getOnUnauthorized ()Lkotlin/jvm/functions/Function3;
+	public final fun getRealm ()Ljava/lang/String;
+	public final fun setDescription (Ljava/lang/String;)V
+	public final fun setOnUnauthorized (Lkotlin/jvm/functions/Function3;)V
+	public final fun setRealm (Ljava/lang/String;)V
+	public final fun validate (Lkotlin/jvm/functions/Function3;)V
+	public final fun verifier (Lcom/auth0/jwk/JwkProvider;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public final fun verifier (Lcom/auth0/jwk/JwkProvider;Lkotlin/jvm/functions/Function1;)V
+	public final fun verifier (Lcom/auth0/jwt/JWTVerifier;)V
+	public final fun verifier (Ljava/lang/String;Ljava/lang/String;Lcom/auth0/jwt/algorithms/Algorithm;Lkotlin/jvm/functions/Function1;)V
+	public final fun verifier (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public final fun verifier (Lkotlin/jvm/functions/Function2;)V
+	public static synthetic fun verifier$default (Lio/ktor/server/auth/jwt/typesafe/TypedJwtAuthConfig;Lcom/auth0/jwk/JwkProvider;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static synthetic fun verifier$default (Lio/ktor/server/auth/jwt/typesafe/TypedJwtAuthConfig;Lcom/auth0/jwk/JwkProvider;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static synthetic fun verifier$default (Lio/ktor/server/auth/jwt/typesafe/TypedJwtAuthConfig;Ljava/lang/String;Ljava/lang/String;Lcom/auth0/jwt/algorithms/Algorithm;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static synthetic fun verifier$default (Lio/ktor/server/auth/jwt/typesafe/TypedJwtAuthConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+}
+

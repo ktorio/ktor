@@ -7,6 +7,9 @@ plugins {
 }
 
 kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xcontext-parameters")
+    }
     sourceSets {
         jvmMain.dependencies {
             api(projects.ktorServerAuth)
@@ -18,4 +21,3 @@ kotlin {
         }
     }
 }
-

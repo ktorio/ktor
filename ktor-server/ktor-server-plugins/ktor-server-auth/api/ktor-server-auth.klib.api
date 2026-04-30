@@ -29,6 +29,22 @@ final enum class io.ktor.server.auth/OAuthVersion : kotlin/Enum<io.ktor.server.a
     final fun values(): kotlin/Array<io.ktor.server.auth/OAuthVersion> // io.ktor.server.auth/OAuthVersion.values|values#static(){}[0]
 }
 
+abstract interface <#A: kotlin/Any, #B: io.ktor.server.auth.typesafe/AuthenticatedContext<*>> io.ktor.server.auth.typesafe/AuthScheme { // io.ktor.server.auth.typesafe/AuthScheme|null[0]
+    abstract val name // io.ktor.server.auth.typesafe/AuthScheme.name|{}name[0]
+        abstract fun <get-name>(): kotlin/String // io.ktor.server.auth.typesafe/AuthScheme.name.<get-name>|<get-name>(){}[0]
+
+    abstract fun createAuthenticatedContext(io.ktor.server.routing/Route): #B // io.ktor.server.auth.typesafe/AuthScheme.createAuthenticatedContext|createAuthenticatedContext(io.ktor.server.routing.Route){}[0]
+}
+
+abstract interface <#A: kotlin/Any?> io.ktor.server.auth.typesafe/AuthenticatedContext { // io.ktor.server.auth.typesafe/AuthenticatedContext|null[0]
+    abstract fun principal(io.ktor.server.routing/RoutingContext): #A // io.ktor.server.auth.typesafe/AuthenticatedContext.principal|principal(io.ktor.server.routing.RoutingContext){}[0]
+}
+
+abstract interface io.ktor.server.auth.typesafe/AuthRole { // io.ktor.server.auth.typesafe/AuthRole|null[0]
+    abstract val name // io.ktor.server.auth.typesafe/AuthRole.name|{}name[0]
+        abstract fun <get-name>(): kotlin/String // io.ktor.server.auth.typesafe/AuthRole.name.<get-name>|<get-name>(){}[0]
+}
+
 abstract interface io.ktor.server.auth/Credential // io.ktor.server.auth/Credential|null[0]
 
 abstract interface io.ktor.server.auth/Principal // io.ktor.server.auth/Principal|null[0]
@@ -56,6 +72,130 @@ abstract class io.ktor.server.auth/AuthenticationProvider { // io.ktor.server.au
 
         final fun skipWhen(kotlin/Function1<io.ktor.server.application/ApplicationCall, kotlin/Boolean>) // io.ktor.server.auth/AuthenticationProvider.Config.skipWhen|skipWhen(kotlin.Function1<io.ktor.server.application.ApplicationCall,kotlin.Boolean>){}[0]
     }
+}
+
+final class <#A: kotlin/Any, #B: #A, #C: #A> io.ktor.server.auth.typesafe/AnonymousAuthScheme : io.ktor.server.auth.typesafe/AuthScheme<#B, io.ktor.server.auth.typesafe/DefaultAuthenticatedContext<#A>> { // io.ktor.server.auth.typesafe/AnonymousAuthScheme|null[0]
+    constructor <init>(io.ktor.server.auth.typesafe/DefaultAuthScheme<#B, *>, kotlin.coroutines/SuspendFunction1<io.ktor.server.application/ApplicationCall, #C>) // io.ktor.server.auth.typesafe/AnonymousAuthScheme.<init>|<init>(io.ktor.server.auth.typesafe.DefaultAuthScheme<1:1,*>;kotlin.coroutines.SuspendFunction1<io.ktor.server.application.ApplicationCall,1:2>){}[0]
+
+    final val base // io.ktor.server.auth.typesafe/AnonymousAuthScheme.base|{}base[0]
+        final fun <get-base>(): io.ktor.server.auth.typesafe/DefaultAuthScheme<#B, *> // io.ktor.server.auth.typesafe/AnonymousAuthScheme.base.<get-base>|<get-base>(){}[0]
+    final val name // io.ktor.server.auth.typesafe/AnonymousAuthScheme.name|{}name[0]
+        final fun <get-name>(): kotlin/String // io.ktor.server.auth.typesafe/AnonymousAuthScheme.name.<get-name>|<get-name>(){}[0]
+
+    final fun createAuthenticatedContext(io.ktor.server.routing/Route): io.ktor.server.auth.typesafe/DefaultAuthenticatedContext<#A> // io.ktor.server.auth.typesafe/AnonymousAuthScheme.createAuthenticatedContext|createAuthenticatedContext(io.ktor.server.routing.Route){}[0]
+}
+
+final class <#A: kotlin/Any, #B: io.ktor.server.auth.typesafe/AuthRole> io.ktor.server.auth.typesafe/RoleBasedAuthScheme : io.ktor.server.auth.typesafe/AuthScheme<#A, io.ktor.server.auth.typesafe/RoleBasedContext<#A, #B>> { // io.ktor.server.auth.typesafe/RoleBasedAuthScheme|null[0]
+    final val base // io.ktor.server.auth.typesafe/RoleBasedAuthScheme.base|{}base[0]
+        final fun <get-base>(): io.ktor.server.auth.typesafe/DefaultAuthScheme<#A, *> // io.ktor.server.auth.typesafe/RoleBasedAuthScheme.base.<get-base>|<get-base>(){}[0]
+    final val name // io.ktor.server.auth.typesafe/RoleBasedAuthScheme.name|{}name[0]
+        final fun <get-name>(): kotlin/String // io.ktor.server.auth.typesafe/RoleBasedAuthScheme.name.<get-name>|<get-name>(){}[0]
+
+    final fun createAuthenticatedContext(io.ktor.server.routing/Route): io.ktor.server.auth.typesafe/RoleBasedContext<#A, #B> // io.ktor.server.auth.typesafe/RoleBasedAuthScheme.createAuthenticatedContext|createAuthenticatedContext(io.ktor.server.routing.Route){}[0]
+}
+
+final class <#A: kotlin/Any, #B: io.ktor.server.auth.typesafe/AuthRole> io.ktor.server.auth.typesafe/RoleBasedContext : io.ktor.server.auth.typesafe/DefaultAuthenticatedContext<#A> { // io.ktor.server.auth.typesafe/RoleBasedContext|null[0]
+    final fun roles(io.ktor.server.routing/RoutingContext): kotlin.collections/Set<#B> // io.ktor.server.auth.typesafe/RoleBasedContext.roles|roles(io.ktor.server.routing.RoutingContext){}[0]
+}
+
+final class <#A: kotlin/Any, #B: kotlin/Any> io.ktor.server.auth.typesafe/SessionAuthScheme : io.ktor.server.auth.typesafe/DefaultAuthScheme<#B, io.ktor.server.auth.typesafe/SessionAuthenticatedContext<#A, #B>> // io.ktor.server.auth.typesafe/SessionAuthScheme|null[0]
+
+final class <#A: kotlin/Any, #B: kotlin/Any> io.ktor.server.auth.typesafe/SessionAuthenticatedContext : io.ktor.server.auth.typesafe/AuthenticatedContext<#B> { // io.ktor.server.auth.typesafe/SessionAuthenticatedContext|null[0]
+    constructor <init>(io.ktor.server.auth.typesafe/DefaultAuthenticatedContext<#B>, io.ktor.util/AttributeKey<#A>, kotlin/String) // io.ktor.server.auth.typesafe/SessionAuthenticatedContext.<init>|<init>(io.ktor.server.auth.typesafe.DefaultAuthenticatedContext<1:1>;io.ktor.util.AttributeKey<1:0>;kotlin.String){}[0]
+
+    final fun clearSession(io.ktor.server.routing/RoutingContext) // io.ktor.server.auth.typesafe/SessionAuthenticatedContext.clearSession|clearSession(io.ktor.server.routing.RoutingContext){}[0]
+    final fun principal(io.ktor.server.routing/RoutingContext): #B // io.ktor.server.auth.typesafe/SessionAuthenticatedContext.principal|principal(io.ktor.server.routing.RoutingContext){}[0]
+    final fun session(io.ktor.server.routing/RoutingContext): #A // io.ktor.server.auth.typesafe/SessionAuthenticatedContext.session|session(io.ktor.server.routing.RoutingContext){}[0]
+    final fun setSession(io.ktor.server.routing/RoutingContext, #A) // io.ktor.server.auth.typesafe/SessionAuthenticatedContext.setSession|setSession(io.ktor.server.routing.RoutingContext;1:0){}[0]
+    final fun updateSession(io.ktor.server.routing/RoutingContext, kotlin/Function1<#A, #A>): #A // io.ktor.server.auth.typesafe/SessionAuthenticatedContext.updateSession|updateSession(io.ktor.server.routing.RoutingContext;kotlin.Function1<1:0,1:0>){}[0]
+}
+
+final class <#A: kotlin/Any, #B: kotlin/Any> io.ktor.server.auth.typesafe/TypedSessionAuthConfig { // io.ktor.server.auth.typesafe/TypedSessionAuthConfig|null[0]
+    constructor <init>() // io.ktor.server.auth.typesafe/TypedSessionAuthConfig.<init>|<init>(){}[0]
+
+    final var description // io.ktor.server.auth.typesafe/TypedSessionAuthConfig.description|{}description[0]
+        final fun <get-description>(): kotlin/String? // io.ktor.server.auth.typesafe/TypedSessionAuthConfig.description.<get-description>|<get-description>(){}[0]
+        final fun <set-description>(kotlin/String?) // io.ktor.server.auth.typesafe/TypedSessionAuthConfig.description.<set-description>|<set-description>(kotlin.String?){}[0]
+    final var onUnauthorized // io.ktor.server.auth.typesafe/TypedSessionAuthConfig.onUnauthorized|{}onUnauthorized[0]
+        final fun <get-onUnauthorized>(): kotlin.coroutines/SuspendFunction2<io.ktor.server.application/ApplicationCall, io.ktor.server.auth/AuthenticationFailedCause, kotlin/Unit>? // io.ktor.server.auth.typesafe/TypedSessionAuthConfig.onUnauthorized.<get-onUnauthorized>|<get-onUnauthorized>(){}[0]
+        final fun <set-onUnauthorized>(kotlin.coroutines/SuspendFunction2<io.ktor.server.application/ApplicationCall, io.ktor.server.auth/AuthenticationFailedCause, kotlin/Unit>?) // io.ktor.server.auth.typesafe/TypedSessionAuthConfig.onUnauthorized.<set-onUnauthorized>|<set-onUnauthorized>(kotlin.coroutines.SuspendFunction2<io.ktor.server.application.ApplicationCall,io.ktor.server.auth.AuthenticationFailedCause,kotlin.Unit>?){}[0]
+
+    final fun buildProvider(kotlin/String, kotlin.reflect/KClass<#A>, io.ktor.util/AttributeKey<#A>): io.ktor.server.auth/SessionAuthenticationProvider<#A> // io.ktor.server.auth.typesafe/TypedSessionAuthConfig.buildProvider|buildProvider(kotlin.String;kotlin.reflect.KClass<1:0>;io.ktor.util.AttributeKey<1:0>){}[0]
+    final fun validate(kotlin.coroutines/SuspendFunction2<io.ktor.server.application/ApplicationCall, #A, #B?>) // io.ktor.server.auth.typesafe/TypedSessionAuthConfig.validate|validate(kotlin.coroutines.SuspendFunction2<io.ktor.server.application.ApplicationCall,1:0,1:1?>){}[0]
+}
+
+final class <#A: kotlin/Any> io.ktor.server.auth.typesafe/OptionalAuthScheme : io.ktor.server.auth.typesafe/AuthScheme<#A, io.ktor.server.auth.typesafe/OptionalAuthenticatedContext<#A>> { // io.ktor.server.auth.typesafe/OptionalAuthScheme|null[0]
+    constructor <init>(io.ktor.server.auth.typesafe/DefaultAuthScheme<#A, *>) // io.ktor.server.auth.typesafe/OptionalAuthScheme.<init>|<init>(io.ktor.server.auth.typesafe.DefaultAuthScheme<1:0,*>){}[0]
+
+    final val base // io.ktor.server.auth.typesafe/OptionalAuthScheme.base|{}base[0]
+        final fun <get-base>(): io.ktor.server.auth.typesafe/DefaultAuthScheme<#A, *> // io.ktor.server.auth.typesafe/OptionalAuthScheme.base.<get-base>|<get-base>(){}[0]
+    final val name // io.ktor.server.auth.typesafe/OptionalAuthScheme.name|{}name[0]
+        final fun <get-name>(): kotlin/String // io.ktor.server.auth.typesafe/OptionalAuthScheme.name.<get-name>|<get-name>(){}[0]
+
+    final fun createAuthenticatedContext(io.ktor.server.routing/Route): io.ktor.server.auth.typesafe/OptionalAuthenticatedContext<#A> // io.ktor.server.auth.typesafe/OptionalAuthScheme.createAuthenticatedContext|createAuthenticatedContext(io.ktor.server.routing.Route){}[0]
+}
+
+final class <#A: kotlin/Any> io.ktor.server.auth.typesafe/OptionalAuthenticatedContext : io.ktor.server.auth.typesafe/AuthenticatedContext<#A?> { // io.ktor.server.auth.typesafe/OptionalAuthenticatedContext|null[0]
+    final fun principal(io.ktor.server.routing/RoutingContext): #A? // io.ktor.server.auth.typesafe/OptionalAuthenticatedContext.principal|principal(io.ktor.server.routing.RoutingContext){}[0]
+}
+
+final class <#A: kotlin/Any> io.ktor.server.auth.typesafe/TypedBasicAuthConfig { // io.ktor.server.auth.typesafe/TypedBasicAuthConfig|null[0]
+    constructor <init>() // io.ktor.server.auth.typesafe/TypedBasicAuthConfig.<init>|<init>(){}[0]
+
+    final var charset // io.ktor.server.auth.typesafe/TypedBasicAuthConfig.charset|{}charset[0]
+        final fun <get-charset>(): io.ktor.utils.io.charsets/Charset? // io.ktor.server.auth.typesafe/TypedBasicAuthConfig.charset.<get-charset>|<get-charset>(){}[0]
+        final fun <set-charset>(io.ktor.utils.io.charsets/Charset?) // io.ktor.server.auth.typesafe/TypedBasicAuthConfig.charset.<set-charset>|<set-charset>(io.ktor.utils.io.charsets.Charset?){}[0]
+    final var description // io.ktor.server.auth.typesafe/TypedBasicAuthConfig.description|{}description[0]
+        final fun <get-description>(): kotlin/String? // io.ktor.server.auth.typesafe/TypedBasicAuthConfig.description.<get-description>|<get-description>(){}[0]
+        final fun <set-description>(kotlin/String?) // io.ktor.server.auth.typesafe/TypedBasicAuthConfig.description.<set-description>|<set-description>(kotlin.String?){}[0]
+    final var onUnauthorized // io.ktor.server.auth.typesafe/TypedBasicAuthConfig.onUnauthorized|{}onUnauthorized[0]
+        final fun <get-onUnauthorized>(): kotlin.coroutines/SuspendFunction2<io.ktor.server.application/ApplicationCall, io.ktor.server.auth/AuthenticationFailedCause, kotlin/Unit>? // io.ktor.server.auth.typesafe/TypedBasicAuthConfig.onUnauthorized.<get-onUnauthorized>|<get-onUnauthorized>(){}[0]
+        final fun <set-onUnauthorized>(kotlin.coroutines/SuspendFunction2<io.ktor.server.application/ApplicationCall, io.ktor.server.auth/AuthenticationFailedCause, kotlin/Unit>?) // io.ktor.server.auth.typesafe/TypedBasicAuthConfig.onUnauthorized.<set-onUnauthorized>|<set-onUnauthorized>(kotlin.coroutines.SuspendFunction2<io.ktor.server.application.ApplicationCall,io.ktor.server.auth.AuthenticationFailedCause,kotlin.Unit>?){}[0]
+    final var realm // io.ktor.server.auth.typesafe/TypedBasicAuthConfig.realm|{}realm[0]
+        final fun <get-realm>(): kotlin/String // io.ktor.server.auth.typesafe/TypedBasicAuthConfig.realm.<get-realm>|<get-realm>(){}[0]
+        final fun <set-realm>(kotlin/String) // io.ktor.server.auth.typesafe/TypedBasicAuthConfig.realm.<set-realm>|<set-realm>(kotlin.String){}[0]
+
+    final fun buildProvider(kotlin/String): io.ktor.server.auth/BasicAuthenticationProvider // io.ktor.server.auth.typesafe/TypedBasicAuthConfig.buildProvider|buildProvider(kotlin.String){}[0]
+    final fun validate(kotlin.coroutines/SuspendFunction2<io.ktor.server.application/ApplicationCall, io.ktor.server.auth/UserPasswordCredential, #A?>) // io.ktor.server.auth.typesafe/TypedBasicAuthConfig.validate|validate(kotlin.coroutines.SuspendFunction2<io.ktor.server.application.ApplicationCall,io.ktor.server.auth.UserPasswordCredential,1:0?>){}[0]
+}
+
+final class <#A: kotlin/Any> io.ktor.server.auth.typesafe/TypedBearerAuthConfig { // io.ktor.server.auth.typesafe/TypedBearerAuthConfig|null[0]
+    constructor <init>() // io.ktor.server.auth.typesafe/TypedBearerAuthConfig.<init>|<init>(){}[0]
+
+    final var description // io.ktor.server.auth.typesafe/TypedBearerAuthConfig.description|{}description[0]
+        final fun <get-description>(): kotlin/String? // io.ktor.server.auth.typesafe/TypedBearerAuthConfig.description.<get-description>|<get-description>(){}[0]
+        final fun <set-description>(kotlin/String?) // io.ktor.server.auth.typesafe/TypedBearerAuthConfig.description.<set-description>|<set-description>(kotlin.String?){}[0]
+    final var onUnauthorized // io.ktor.server.auth.typesafe/TypedBearerAuthConfig.onUnauthorized|{}onUnauthorized[0]
+        final fun <get-onUnauthorized>(): kotlin.coroutines/SuspendFunction2<io.ktor.server.application/ApplicationCall, io.ktor.server.auth/AuthenticationFailedCause, kotlin/Unit>? // io.ktor.server.auth.typesafe/TypedBearerAuthConfig.onUnauthorized.<get-onUnauthorized>|<get-onUnauthorized>(){}[0]
+        final fun <set-onUnauthorized>(kotlin.coroutines/SuspendFunction2<io.ktor.server.application/ApplicationCall, io.ktor.server.auth/AuthenticationFailedCause, kotlin/Unit>?) // io.ktor.server.auth.typesafe/TypedBearerAuthConfig.onUnauthorized.<set-onUnauthorized>|<set-onUnauthorized>(kotlin.coroutines.SuspendFunction2<io.ktor.server.application.ApplicationCall,io.ktor.server.auth.AuthenticationFailedCause,kotlin.Unit>?){}[0]
+    final var realm // io.ktor.server.auth.typesafe/TypedBearerAuthConfig.realm|{}realm[0]
+        final fun <get-realm>(): kotlin/String? // io.ktor.server.auth.typesafe/TypedBearerAuthConfig.realm.<get-realm>|<get-realm>(){}[0]
+        final fun <set-realm>(kotlin/String?) // io.ktor.server.auth.typesafe/TypedBearerAuthConfig.realm.<set-realm>|<set-realm>(kotlin.String?){}[0]
+
+    final fun authHeader(kotlin/Function1<io.ktor.server.application/ApplicationCall, io.ktor.http.auth/HttpAuthHeader?>) // io.ktor.server.auth.typesafe/TypedBearerAuthConfig.authHeader|authHeader(kotlin.Function1<io.ktor.server.application.ApplicationCall,io.ktor.http.auth.HttpAuthHeader?>){}[0]
+    final fun authSchemes(kotlin/String = ..., kotlin/Array<out kotlin/String>...) // io.ktor.server.auth.typesafe/TypedBearerAuthConfig.authSchemes|authSchemes(kotlin.String;kotlin.Array<out|kotlin.String>...){}[0]
+    final fun authenticate(kotlin.coroutines/SuspendFunction2<io.ktor.server.application/ApplicationCall, io.ktor.server.auth/BearerTokenCredential, #A?>) // io.ktor.server.auth.typesafe/TypedBearerAuthConfig.authenticate|authenticate(kotlin.coroutines.SuspendFunction2<io.ktor.server.application.ApplicationCall,io.ktor.server.auth.BearerTokenCredential,1:0?>){}[0]
+    final fun buildProvider(kotlin/String): io.ktor.server.auth/BearerAuthenticationProvider // io.ktor.server.auth.typesafe/TypedBearerAuthConfig.buildProvider|buildProvider(kotlin.String){}[0]
+}
+
+final class <#A: kotlin/Any> io.ktor.server.auth.typesafe/TypedFormAuthConfig { // io.ktor.server.auth.typesafe/TypedFormAuthConfig|null[0]
+    constructor <init>() // io.ktor.server.auth.typesafe/TypedFormAuthConfig.<init>|<init>(){}[0]
+
+    final var description // io.ktor.server.auth.typesafe/TypedFormAuthConfig.description|{}description[0]
+        final fun <get-description>(): kotlin/String? // io.ktor.server.auth.typesafe/TypedFormAuthConfig.description.<get-description>|<get-description>(){}[0]
+        final fun <set-description>(kotlin/String?) // io.ktor.server.auth.typesafe/TypedFormAuthConfig.description.<set-description>|<set-description>(kotlin.String?){}[0]
+    final var onUnauthorized // io.ktor.server.auth.typesafe/TypedFormAuthConfig.onUnauthorized|{}onUnauthorized[0]
+        final fun <get-onUnauthorized>(): kotlin.coroutines/SuspendFunction2<io.ktor.server.application/ApplicationCall, io.ktor.server.auth/AuthenticationFailedCause, kotlin/Unit>? // io.ktor.server.auth.typesafe/TypedFormAuthConfig.onUnauthorized.<get-onUnauthorized>|<get-onUnauthorized>(){}[0]
+        final fun <set-onUnauthorized>(kotlin.coroutines/SuspendFunction2<io.ktor.server.application/ApplicationCall, io.ktor.server.auth/AuthenticationFailedCause, kotlin/Unit>?) // io.ktor.server.auth.typesafe/TypedFormAuthConfig.onUnauthorized.<set-onUnauthorized>|<set-onUnauthorized>(kotlin.coroutines.SuspendFunction2<io.ktor.server.application.ApplicationCall,io.ktor.server.auth.AuthenticationFailedCause,kotlin.Unit>?){}[0]
+    final var passwordParamName // io.ktor.server.auth.typesafe/TypedFormAuthConfig.passwordParamName|{}passwordParamName[0]
+        final fun <get-passwordParamName>(): kotlin/String // io.ktor.server.auth.typesafe/TypedFormAuthConfig.passwordParamName.<get-passwordParamName>|<get-passwordParamName>(){}[0]
+        final fun <set-passwordParamName>(kotlin/String) // io.ktor.server.auth.typesafe/TypedFormAuthConfig.passwordParamName.<set-passwordParamName>|<set-passwordParamName>(kotlin.String){}[0]
+    final var userParamName // io.ktor.server.auth.typesafe/TypedFormAuthConfig.userParamName|{}userParamName[0]
+        final fun <get-userParamName>(): kotlin/String // io.ktor.server.auth.typesafe/TypedFormAuthConfig.userParamName.<get-userParamName>|<get-userParamName>(){}[0]
+        final fun <set-userParamName>(kotlin/String) // io.ktor.server.auth.typesafe/TypedFormAuthConfig.userParamName.<set-userParamName>|<set-userParamName>(kotlin.String){}[0]
+
+    final fun buildProvider(kotlin/String): io.ktor.server.auth/FormAuthenticationProvider // io.ktor.server.auth.typesafe/TypedFormAuthConfig.buildProvider|buildProvider(kotlin.String){}[0]
+    final fun validate(kotlin.coroutines/SuspendFunction2<io.ktor.server.application/ApplicationCall, io.ktor.server.auth/UserPasswordCredential, #A?>) // io.ktor.server.auth.typesafe/TypedFormAuthConfig.validate|validate(kotlin.coroutines.SuspendFunction2<io.ktor.server.application.ApplicationCall,io.ktor.server.auth.UserPasswordCredential,1:0?>){}[0]
 }
 
 final class <#A: kotlin/Any> io.ktor.server.auth/SessionAuthenticationProvider : io.ktor.server.auth/AuthenticationProvider { // io.ktor.server.auth/SessionAuthenticationProvider|null[0]
@@ -344,6 +484,28 @@ final class io.ktor.server.auth/UserPasswordCredential { // io.ktor.server.auth/
     final fun toString(): kotlin/String // io.ktor.server.auth/UserPasswordCredential.toString|toString(){}[0]
 }
 
+open class <#A: kotlin/Any, #B: io.ktor.server.auth.typesafe/AuthenticatedContext<#A>> io.ktor.server.auth.typesafe/DefaultAuthScheme : io.ktor.server.auth.typesafe/AuthScheme<#A, #B> { // io.ktor.server.auth.typesafe/DefaultAuthScheme|null[0]
+    constructor <init>(kotlin/String, kotlin.reflect/KClass<#A>, io.ktor.server.auth/AuthenticationProvider, kotlin.coroutines/SuspendFunction2<io.ktor.server.application/ApplicationCall, io.ktor.server.auth/AuthenticationFailedCause, kotlin/Unit>?, kotlin/Function1<io.ktor.server.auth.typesafe/DefaultAuthenticatedContext<#A>, #B>) // io.ktor.server.auth.typesafe/DefaultAuthScheme.<init>|<init>(kotlin.String;kotlin.reflect.KClass<1:0>;io.ktor.server.auth.AuthenticationProvider;kotlin.coroutines.SuspendFunction2<io.ktor.server.application.ApplicationCall,io.ktor.server.auth.AuthenticationFailedCause,kotlin.Unit>?;kotlin.Function1<io.ktor.server.auth.typesafe.DefaultAuthenticatedContext<1:0>,1:1>){}[0]
+
+    open val name // io.ktor.server.auth.typesafe/DefaultAuthScheme.name|{}name[0]
+        open fun <get-name>(): kotlin/String // io.ktor.server.auth.typesafe/DefaultAuthScheme.name.<get-name>|<get-name>(){}[0]
+
+    open fun createAuthenticatedContext(io.ktor.server.routing/Route): #B // io.ktor.server.auth.typesafe/DefaultAuthScheme.createAuthenticatedContext|createAuthenticatedContext(io.ktor.server.routing.Route){}[0]
+
+    final object Companion { // io.ktor.server.auth.typesafe/DefaultAuthScheme.Companion|null[0]
+        final inline fun <#A2: reified kotlin/Any> withDefaultContext(kotlin/String, io.ktor.server.auth/AuthenticationProvider, noinline kotlin.coroutines/SuspendFunction2<io.ktor.server.application/ApplicationCall, io.ktor.server.auth/AuthenticationFailedCause, kotlin/Unit>?): io.ktor.server.auth.typesafe/DefaultAuthScheme<#A2, io.ktor.server.auth.typesafe/DefaultAuthenticatedContext<#A2>> // io.ktor.server.auth.typesafe/DefaultAuthScheme.Companion.withDefaultContext|withDefaultContext(kotlin.String;io.ktor.server.auth.AuthenticationProvider;kotlin.coroutines.SuspendFunction2<io.ktor.server.application.ApplicationCall,io.ktor.server.auth.AuthenticationFailedCause,kotlin.Unit>?){0§<kotlin.Any>}[0]
+    }
+}
+
+open class <#A: kotlin/Any> io.ktor.server.auth.typesafe/DefaultAuthenticatedContext : io.ktor.server.auth.typesafe/AuthenticatedContext<#A> { // io.ktor.server.auth.typesafe/DefaultAuthenticatedContext|null[0]
+    constructor <init>(io.ktor.util/AttributeKey<#A>) // io.ktor.server.auth.typesafe/DefaultAuthenticatedContext.<init>|<init>(io.ktor.util.AttributeKey<1:0>){}[0]
+
+    final val principalKey // io.ktor.server.auth.typesafe/DefaultAuthenticatedContext.principalKey|{}principalKey[0]
+        final fun <get-principalKey>(): io.ktor.util/AttributeKey<#A> // io.ktor.server.auth.typesafe/DefaultAuthenticatedContext.principalKey.<get-principalKey>|<get-principalKey>(){}[0]
+
+    open fun principal(io.ktor.server.routing/RoutingContext): #A // io.ktor.server.auth.typesafe/DefaultAuthenticatedContext.principal|principal(io.ktor.server.routing.RoutingContext){}[0]
+}
+
 sealed class io.ktor.server.auth/AuthenticationFailedCause { // io.ktor.server.auth/AuthenticationFailedCause|null[0]
     open class Error : io.ktor.server.auth/AuthenticationFailedCause { // io.ktor.server.auth/AuthenticationFailedCause.Error|null[0]
         constructor <init>(kotlin/String) // io.ktor.server.auth/AuthenticationFailedCause.Error.<init>|<init>(kotlin.String){}[0]
@@ -615,6 +777,10 @@ final object io.ktor.server.auth/OAuthGrantTypes { // io.ktor.server.auth/OAuthG
 final const val io.ktor.server.auth/SessionAuthChallengeKey // io.ktor.server.auth/SessionAuthChallengeKey|{}SessionAuthChallengeKey[0]
     final fun <get-SessionAuthChallengeKey>(): kotlin/String // io.ktor.server.auth/SessionAuthChallengeKey.<get-SessionAuthChallengeKey>|<get-SessionAuthChallengeKey>(){}[0]
 
+final val io.ktor.server.auth.typesafe/principal // io.ktor.server.auth.typesafe/principal|(io.ktor.server.auth.typesafe.AuthenticatedContext<0:0>)@io.ktor.server.routing.RoutingContext{0§<kotlin.Any?>}principal[0]
+    final fun <#A1: kotlin/Any?> (context(io.ktor.server.auth.typesafe/AuthenticatedContext<#A1>), io.ktor.server.routing/RoutingContext).<get-principal>(): #A1 // io.ktor.server.auth.typesafe/principal.<get-principal>|<get-principal>(io.ktor.server.auth.typesafe.AuthenticatedContext<0:0>)@io.ktor.server.routing.RoutingContext(){0§<kotlin.Any?>}[0]
+final val io.ktor.server.auth.typesafe/roles // io.ktor.server.auth.typesafe/roles|(io.ktor.server.auth.typesafe.RoleBasedContext<*,0:0>)@io.ktor.server.routing.RoutingContext{0§<io.ktor.server.auth.typesafe.AuthRole>}roles[0]
+    final fun <#A1: io.ktor.server.auth.typesafe/AuthRole> (context(io.ktor.server.auth.typesafe/RoleBasedContext<*, #A1>), io.ktor.server.routing/RoutingContext).<get-roles>(): kotlin.collections/Set<#A1> // io.ktor.server.auth.typesafe/roles.<get-roles>|<get-roles>(io.ktor.server.auth.typesafe.RoleBasedContext<*,0:0>)@io.ktor.server.routing.RoutingContext(){0§<io.ktor.server.auth.typesafe.AuthRole>}[0]
 final val io.ktor.server.auth/AuthenticateProvidersKey // io.ktor.server.auth/AuthenticateProvidersKey|{}AuthenticateProvidersKey[0]
     final fun <get-AuthenticateProvidersKey>(): io.ktor.util/AttributeKey<io.ktor.server.auth/AuthenticateProvidersRegistration> // io.ktor.server.auth/AuthenticateProvidersKey.<get-AuthenticateProvidersKey>|<get-AuthenticateProvidersKey>(){}[0]
 final val io.ktor.server.auth/AuthenticationInterceptors // io.ktor.server.auth/AuthenticationInterceptors|{}AuthenticationInterceptors[0]
@@ -623,6 +789,10 @@ final val io.ktor.server.auth/OAuthKey // io.ktor.server.auth/OAuthKey|{}OAuthKe
     final fun <get-OAuthKey>(): kotlin/Any // io.ktor.server.auth/OAuthKey.<get-OAuthKey>|<get-OAuthKey>(){}[0]
 final val io.ktor.server.auth/authentication // io.ktor.server.auth/authentication|@io.ktor.server.application.ApplicationCall{}authentication[0]
     final fun (io.ktor.server.application/ApplicationCall).<get-authentication>(): io.ktor.server.auth/AuthenticationContext // io.ktor.server.auth/authentication.<get-authentication>|<get-authentication>@io.ktor.server.application.ApplicationCall(){}[0]
+
+final var io.ktor.server.auth.typesafe/session // io.ktor.server.auth.typesafe/session|(io.ktor.server.auth.typesafe.SessionAuthenticatedContext<0:0,*>)@io.ktor.server.routing.RoutingContext{0§<kotlin.Any>}session[0]
+    final fun <#A1: kotlin/Any> (context(io.ktor.server.auth.typesafe/SessionAuthenticatedContext<#A1, *>), io.ktor.server.routing/RoutingContext).<get-session>(): #A1 // io.ktor.server.auth.typesafe/session.<get-session>|<get-session>(io.ktor.server.auth.typesafe.SessionAuthenticatedContext<0:0,*>)@io.ktor.server.routing.RoutingContext(){0§<kotlin.Any>}[0]
+    final fun <#A1: kotlin/Any> (context(io.ktor.server.auth.typesafe/SessionAuthenticatedContext<#A1, *>), io.ktor.server.routing/RoutingContext).<set-session>(#A1) // io.ktor.server.auth.typesafe/session.<set-session>|<set-session>(io.ktor.server.auth.typesafe.SessionAuthenticatedContext<0:0,*>)@io.ktor.server.routing.RoutingContext(0:0){0§<kotlin.Any>}[0]
 
 final fun (io.ktor.server.application/Application).io.ktor.server.auth/authentication(kotlin/Function1<io.ktor.server.auth/AuthenticationConfig, kotlin/Unit>) // io.ktor.server.auth/authentication|authentication@io.ktor.server.application.Application(kotlin.Function1<io.ktor.server.auth.AuthenticationConfig,kotlin.Unit>){}[0]
 final fun (io.ktor.server.auth/Authentication).io.ktor.server.auth/configuration(): io.ktor.server.auth/AuthenticationConfig // io.ktor.server.auth/configuration|configuration@io.ktor.server.auth.Authentication(){}[0]
@@ -640,11 +810,39 @@ final fun (io.ktor.server.request/ApplicationRequest).io.ktor.server.auth/basicA
 final fun (io.ktor.server.request/ApplicationRequest).io.ktor.server.auth/parseAuthorizationHeader(): io.ktor.http.auth/HttpAuthHeader? // io.ktor.server.auth/parseAuthorizationHeader|parseAuthorizationHeader@io.ktor.server.request.ApplicationRequest(){}[0]
 final fun (io.ktor.server.routing/Route).io.ktor.server.auth/authenticate(kotlin/Array<out kotlin/String?>... = ..., io.ktor.server.auth/AuthenticationStrategy, kotlin/Function1<io.ktor.server.routing/Route, kotlin/Unit>): io.ktor.server.routing/Route // io.ktor.server.auth/authenticate|authenticate@io.ktor.server.routing.Route(kotlin.Array<out|kotlin.String?>...;io.ktor.server.auth.AuthenticationStrategy;kotlin.Function1<io.ktor.server.routing.Route,kotlin.Unit>){}[0]
 final fun (io.ktor.server.routing/Route).io.ktor.server.auth/authenticate(kotlin/Array<out kotlin/String?>... = ..., kotlin/Boolean = ..., kotlin/Function1<io.ktor.server.routing/Route, kotlin/Unit>): io.ktor.server.routing/Route // io.ktor.server.auth/authenticate|authenticate@io.ktor.server.routing.Route(kotlin.Array<out|kotlin.String?>...;kotlin.Boolean;kotlin.Function1<io.ktor.server.routing.Route,kotlin.Unit>){}[0]
+final fun <#A: kotlin/Any, #B: #A, #C: #A> (io.ktor.server.auth.typesafe/DefaultAuthScheme<#B, *>).io.ktor.server.auth.typesafe/optional(kotlin.coroutines/SuspendFunction1<io.ktor.server.application/ApplicationCall, #C>): io.ktor.server.auth.typesafe/AnonymousAuthScheme<#A, #B, #C> // io.ktor.server.auth.typesafe/optional|optional@io.ktor.server.auth.typesafe.DefaultAuthScheme<0:1,*>(kotlin.coroutines.SuspendFunction1<io.ktor.server.application.ApplicationCall,0:2>){0§<kotlin.Any>;1§<0:0>;2§<0:0>}[0]
+final fun <#A: kotlin/Any, #B: #A, #C: #A> (io.ktor.server.routing/Route).io.ktor.server.auth.typesafe/authenticateWith(io.ktor.server.auth.typesafe/AnonymousAuthScheme<#A, #B, #C>, kotlin/Function2<io.ktor.server.auth.typesafe/DefaultAuthenticatedContext<#A>, io.ktor.server.routing/Route, kotlin/Unit>): io.ktor.server.routing/Route // io.ktor.server.auth.typesafe/authenticateWith|authenticateWith@io.ktor.server.routing.Route(io.ktor.server.auth.typesafe.AnonymousAuthScheme<0:0,0:1,0:2>;kotlin.Function2<io.ktor.server.auth.typesafe.DefaultAuthenticatedContext<0:0>,io.ktor.server.routing.Route,kotlin.Unit>){0§<kotlin.Any>;1§<0:0>;2§<0:0>}[0]
+final fun <#A: kotlin/Any, #B: io.ktor.server.auth.typesafe/AuthRole> (io.ktor.server.auth.typesafe/DefaultAuthScheme<#A, *>).io.ktor.server.auth.typesafe/withRoles(kotlin.coroutines/SuspendFunction2<io.ktor.server.application/ApplicationCall, kotlin.collections/Set<#B>, kotlin/Unit> = ..., kotlin.coroutines/SuspendFunction2<io.ktor.server.application/ApplicationCall, #A, kotlin.collections/Set<#B>>): io.ktor.server.auth.typesafe/RoleBasedAuthScheme<#A, #B> // io.ktor.server.auth.typesafe/withRoles|withRoles@io.ktor.server.auth.typesafe.DefaultAuthScheme<0:0,*>(kotlin.coroutines.SuspendFunction2<io.ktor.server.application.ApplicationCall,kotlin.collections.Set<0:1>,kotlin.Unit>;kotlin.coroutines.SuspendFunction2<io.ktor.server.application.ApplicationCall,0:0,kotlin.collections.Set<0:1>>){0§<kotlin.Any>;1§<io.ktor.server.auth.typesafe.AuthRole>}[0]
+final fun <#A: kotlin/Any, #B: io.ktor.server.auth.typesafe/AuthRole> (io.ktor.server.routing/Route).io.ktor.server.auth.typesafe/authenticateWith(io.ktor.server.auth.typesafe/RoleBasedAuthScheme<#A, #B>, kotlin.collections/Set<#B>, kotlin.coroutines/SuspendFunction2<io.ktor.server.application/ApplicationCall, io.ktor.server.auth/AuthenticationFailedCause, kotlin/Unit>? = ..., kotlin.coroutines/SuspendFunction2<io.ktor.server.application/ApplicationCall, kotlin.collections/Set<io.ktor.server.auth.typesafe/AuthRole>, kotlin/Unit>? = ..., kotlin/Function2<io.ktor.server.auth.typesafe/RoleBasedContext<#A, #B>, io.ktor.server.routing/Route, kotlin/Unit>): io.ktor.server.routing/Route // io.ktor.server.auth.typesafe/authenticateWith|authenticateWith@io.ktor.server.routing.Route(io.ktor.server.auth.typesafe.RoleBasedAuthScheme<0:0,0:1>;kotlin.collections.Set<0:1>;kotlin.coroutines.SuspendFunction2<io.ktor.server.application.ApplicationCall,io.ktor.server.auth.AuthenticationFailedCause,kotlin.Unit>?;kotlin.coroutines.SuspendFunction2<io.ktor.server.application.ApplicationCall,kotlin.collections.Set<io.ktor.server.auth.typesafe.AuthRole>,kotlin.Unit>?;kotlin.Function2<io.ktor.server.auth.typesafe.RoleBasedContext<0:0,0:1>,io.ktor.server.routing.Route,kotlin.Unit>){0§<kotlin.Any>;1§<io.ktor.server.auth.typesafe.AuthRole>}[0]
+final fun <#A: kotlin/Any, #B: io.ktor.server.auth.typesafe/AuthenticatedContext<#A>> (io.ktor.server.routing/Route).io.ktor.server.auth.typesafe/authenticateWith(io.ktor.server.auth.typesafe/DefaultAuthScheme<#A, #B>, kotlin.coroutines/SuspendFunction2<io.ktor.server.application/ApplicationCall, io.ktor.server.auth/AuthenticationFailedCause, kotlin/Unit>? = ..., kotlin/Function2<#B, io.ktor.server.routing/Route, kotlin/Unit>): io.ktor.server.routing/Route // io.ktor.server.auth.typesafe/authenticateWith|authenticateWith@io.ktor.server.routing.Route(io.ktor.server.auth.typesafe.DefaultAuthScheme<0:0,0:1>;kotlin.coroutines.SuspendFunction2<io.ktor.server.application.ApplicationCall,io.ktor.server.auth.AuthenticationFailedCause,kotlin.Unit>?;kotlin.Function2<0:1,io.ktor.server.routing.Route,kotlin.Unit>){0§<kotlin.Any>;1§<io.ktor.server.auth.typesafe.AuthenticatedContext<0:0>>}[0]
+final fun <#A: kotlin/Any, #B: kotlin/Any> (io.ktor.server.sessions/CurrentSession).io.ktor.server.auth.typesafe/set(io.ktor.server.auth.typesafe/SessionAuthScheme<#A, #B>, #A?) // io.ktor.server.auth.typesafe/set|set@io.ktor.server.sessions.CurrentSession(io.ktor.server.auth.typesafe.SessionAuthScheme<0:0,0:1>;0:0?){0§<kotlin.Any>;1§<kotlin.Any>}[0]
+final fun <#A: kotlin/Any, #B: kotlin/Any> (io.ktor.server.sessions/SessionsConfig).io.ktor.server.auth.typesafe/cookie(io.ktor.server.auth.typesafe/SessionAuthScheme<#A, #B>) // io.ktor.server.auth.typesafe/cookie|cookie@io.ktor.server.sessions.SessionsConfig(io.ktor.server.auth.typesafe.SessionAuthScheme<0:0,0:1>){0§<kotlin.Any>;1§<kotlin.Any>}[0]
+final fun <#A: kotlin/Any, #B: kotlin/Any> (io.ktor.server.sessions/SessionsConfig).io.ktor.server.auth.typesafe/cookie(io.ktor.server.auth.typesafe/SessionAuthScheme<#A, #B>, io.ktor.server.sessions/SessionStorage) // io.ktor.server.auth.typesafe/cookie|cookie@io.ktor.server.sessions.SessionsConfig(io.ktor.server.auth.typesafe.SessionAuthScheme<0:0,0:1>;io.ktor.server.sessions.SessionStorage){0§<kotlin.Any>;1§<kotlin.Any>}[0]
+final fun <#A: kotlin/Any, #B: kotlin/Any> (io.ktor.server.sessions/SessionsConfig).io.ktor.server.auth.typesafe/cookie(io.ktor.server.auth.typesafe/SessionAuthScheme<#A, #B>, io.ktor.server.sessions/SessionStorage, kotlin/Function1<io.ktor.server.sessions/CookieIdSessionBuilder<#A>, kotlin/Unit>) // io.ktor.server.auth.typesafe/cookie|cookie@io.ktor.server.sessions.SessionsConfig(io.ktor.server.auth.typesafe.SessionAuthScheme<0:0,0:1>;io.ktor.server.sessions.SessionStorage;kotlin.Function1<io.ktor.server.sessions.CookieIdSessionBuilder<0:0>,kotlin.Unit>){0§<kotlin.Any>;1§<kotlin.Any>}[0]
+final fun <#A: kotlin/Any, #B: kotlin/Any> (io.ktor.server.sessions/SessionsConfig).io.ktor.server.auth.typesafe/cookie(io.ktor.server.auth.typesafe/SessionAuthScheme<#A, #B>, kotlin/Function1<io.ktor.server.sessions/CookieSessionBuilder<#A>, kotlin/Unit>) // io.ktor.server.auth.typesafe/cookie|cookie@io.ktor.server.sessions.SessionsConfig(io.ktor.server.auth.typesafe.SessionAuthScheme<0:0,0:1>;kotlin.Function1<io.ktor.server.sessions.CookieSessionBuilder<0:0>,kotlin.Unit>){0§<kotlin.Any>;1§<kotlin.Any>}[0]
+final fun <#A: kotlin/Any, #B: kotlin/Any> (io.ktor.server.sessions/SessionsConfig).io.ktor.server.auth.typesafe/header(io.ktor.server.auth.typesafe/SessionAuthScheme<#A, #B>) // io.ktor.server.auth.typesafe/header|header@io.ktor.server.sessions.SessionsConfig(io.ktor.server.auth.typesafe.SessionAuthScheme<0:0,0:1>){0§<kotlin.Any>;1§<kotlin.Any>}[0]
+final fun <#A: kotlin/Any, #B: kotlin/Any> (io.ktor.server.sessions/SessionsConfig).io.ktor.server.auth.typesafe/header(io.ktor.server.auth.typesafe/SessionAuthScheme<#A, #B>, io.ktor.server.sessions/SessionStorage) // io.ktor.server.auth.typesafe/header|header@io.ktor.server.sessions.SessionsConfig(io.ktor.server.auth.typesafe.SessionAuthScheme<0:0,0:1>;io.ktor.server.sessions.SessionStorage){0§<kotlin.Any>;1§<kotlin.Any>}[0]
+final fun <#A: kotlin/Any, #B: kotlin/Any> (io.ktor.server.sessions/SessionsConfig).io.ktor.server.auth.typesafe/header(io.ktor.server.auth.typesafe/SessionAuthScheme<#A, #B>, io.ktor.server.sessions/SessionStorage, kotlin/Function1<io.ktor.server.sessions/HeaderIdSessionBuilder<#A>, kotlin/Unit>) // io.ktor.server.auth.typesafe/header|header@io.ktor.server.sessions.SessionsConfig(io.ktor.server.auth.typesafe.SessionAuthScheme<0:0,0:1>;io.ktor.server.sessions.SessionStorage;kotlin.Function1<io.ktor.server.sessions.HeaderIdSessionBuilder<0:0>,kotlin.Unit>){0§<kotlin.Any>;1§<kotlin.Any>}[0]
+final fun <#A: kotlin/Any, #B: kotlin/Any> (io.ktor.server.sessions/SessionsConfig).io.ktor.server.auth.typesafe/header(io.ktor.server.auth.typesafe/SessionAuthScheme<#A, #B>, kotlin/Function1<io.ktor.server.sessions/HeaderSessionBuilder<#A>, kotlin/Unit>) // io.ktor.server.auth.typesafe/header|header@io.ktor.server.sessions.SessionsConfig(io.ktor.server.auth.typesafe.SessionAuthScheme<0:0,0:1>;kotlin.Function1<io.ktor.server.sessions.HeaderSessionBuilder<0:0>,kotlin.Unit>){0§<kotlin.Any>;1§<kotlin.Any>}[0]
+final fun <#A: kotlin/Any, #B: kotlin/Any> io.ktor.server.auth.typesafe/buildSessionAuthScheme(kotlin/String, io.ktor.util.reflect/TypeInfo, kotlin.reflect/KClass<#B>, kotlin/Function1<io.ktor.server.auth.typesafe/TypedSessionAuthConfig<#A, #B>, kotlin/Unit>): io.ktor.server.auth.typesafe/SessionAuthScheme<#A, #B> // io.ktor.server.auth.typesafe/buildSessionAuthScheme|buildSessionAuthScheme(kotlin.String;io.ktor.util.reflect.TypeInfo;kotlin.reflect.KClass<0:1>;kotlin.Function1<io.ktor.server.auth.typesafe.TypedSessionAuthConfig<0:0,0:1>,kotlin.Unit>){0§<kotlin.Any>;1§<kotlin.Any>}[0]
+final fun <#A: kotlin/Any> (context(io.ktor.server.auth.typesafe/SessionAuthenticatedContext<#A, *>), io.ktor.server.routing/RoutingContext).io.ktor.server.auth.typesafe/clearSession() // io.ktor.server.auth.typesafe/clearSession|clearSession(io.ktor.server.auth.typesafe.SessionAuthenticatedContext<0:0,*>)@io.ktor.server.routing.RoutingContext(){0§<kotlin.Any>}[0]
+final fun <#A: kotlin/Any> (context(io.ktor.server.auth.typesafe/SessionAuthenticatedContext<#A, *>), io.ktor.server.routing/RoutingContext).io.ktor.server.auth.typesafe/setSession(#A) // io.ktor.server.auth.typesafe/setSession|setSession(io.ktor.server.auth.typesafe.SessionAuthenticatedContext<0:0,*>)@io.ktor.server.routing.RoutingContext(0:0){0§<kotlin.Any>}[0]
+final fun <#A: kotlin/Any> (context(io.ktor.server.auth.typesafe/SessionAuthenticatedContext<#A, *>), io.ktor.server.routing/RoutingContext).io.ktor.server.auth.typesafe/updateSession(kotlin/Function1<#A, #A>): #A // io.ktor.server.auth.typesafe/updateSession|updateSession(io.ktor.server.auth.typesafe.SessionAuthenticatedContext<0:0,*>)@io.ktor.server.routing.RoutingContext(kotlin.Function1<0:0,0:0>){0§<kotlin.Any>}[0]
+final fun <#A: kotlin/Any> (io.ktor.server.auth.typesafe/DefaultAuthScheme<#A, *>).io.ktor.server.auth.typesafe/optional(): io.ktor.server.auth.typesafe/OptionalAuthScheme<#A> // io.ktor.server.auth.typesafe/optional|optional@io.ktor.server.auth.typesafe.DefaultAuthScheme<0:0,*>(){0§<kotlin.Any>}[0]
 final fun <#A: kotlin/Any> (io.ktor.server.auth/AuthenticationConfig).io.ktor.server.auth/session(kotlin/String? = ..., kotlin.reflect/KClass<#A>) // io.ktor.server.auth/session|session@io.ktor.server.auth.AuthenticationConfig(kotlin.String?;kotlin.reflect.KClass<0:0>){0§<kotlin.Any>}[0]
 final fun <#A: kotlin/Any> (io.ktor.server.auth/AuthenticationConfig).io.ktor.server.auth/session(kotlin/String?, kotlin.reflect/KClass<#A>, kotlin/Function1<io.ktor.server.auth/SessionAuthenticationProvider.Config<#A>, kotlin/Unit>) // io.ktor.server.auth/session|session@io.ktor.server.auth.AuthenticationConfig(kotlin.String?;kotlin.reflect.KClass<0:0>;kotlin.Function1<io.ktor.server.auth.SessionAuthenticationProvider.Config<0:0>,kotlin.Unit>){0§<kotlin.Any>}[0]
+final fun <#A: kotlin/Any> (io.ktor.server.routing/Route).io.ktor.server.auth.typesafe/authenticateWith(io.ktor.server.auth.typesafe/OptionalAuthScheme<#A>, kotlin/Function2<io.ktor.server.auth.typesafe/OptionalAuthenticatedContext<#A>, io.ktor.server.routing/Route, kotlin/Unit>): io.ktor.server.routing/Route // io.ktor.server.auth.typesafe/authenticateWith|authenticateWith@io.ktor.server.routing.Route(io.ktor.server.auth.typesafe.OptionalAuthScheme<0:0>;kotlin.Function2<io.ktor.server.auth.typesafe.OptionalAuthenticatedContext<0:0>,io.ktor.server.routing.Route,kotlin.Unit>){0§<kotlin.Any>}[0]
+final fun <#A: kotlin/Any> (io.ktor.server.routing/Route).io.ktor.server.auth.typesafe/authenticateWithAnyOf(kotlin.collections/List<io.ktor.server.auth.typesafe/DefaultAuthScheme<out #A, *>>, io.ktor.util.reflect/TypeInfo, kotlin.coroutines/SuspendFunction2<io.ktor.server.application/ApplicationCall, kotlin.collections/Map<kotlin/String, io.ktor.server.auth/AuthenticationFailedCause>, kotlin/Unit>? = ..., kotlin/Function2<io.ktor.server.auth.typesafe/DefaultAuthenticatedContext<#A>, io.ktor.server.routing/Route, kotlin/Unit>): io.ktor.server.routing/Route // io.ktor.server.auth.typesafe/authenticateWithAnyOf|authenticateWithAnyOf@io.ktor.server.routing.Route(kotlin.collections.List<io.ktor.server.auth.typesafe.DefaultAuthScheme<out|0:0,*>>;io.ktor.util.reflect.TypeInfo;kotlin.coroutines.SuspendFunction2<io.ktor.server.application.ApplicationCall,kotlin.collections.Map<kotlin.String,io.ktor.server.auth.AuthenticationFailedCause>,kotlin.Unit>?;kotlin.Function2<io.ktor.server.auth.typesafe.DefaultAuthenticatedContext<0:0>,io.ktor.server.routing.Route,kotlin.Unit>){0§<kotlin.Any>}[0]
+final fun <#A: kotlin/Any?, #B: io.ktor.server.auth.typesafe/AuthenticatedContext<#A>> (context(#B)).io.ktor.server.auth.typesafe/authenticatedContext(): #B // io.ktor.server.auth.typesafe/authenticatedContext|authenticatedContext(0:1)(){0§<kotlin.Any?>;1§<io.ktor.server.auth.typesafe.AuthenticatedContext<0:0>>}[0]
 final inline fun <#A: kotlin/Any> (io.ktor.server.auth/AuthenticationConfig).io.ktor.server.auth/session(kotlin/String?, kotlin/String?, kotlin.reflect/KClass<#A>, kotlin/Function1<io.ktor.server.auth/SessionAuthenticationProvider.Config<#A>, kotlin/Unit>) // io.ktor.server.auth/session|session@io.ktor.server.auth.AuthenticationConfig(kotlin.String?;kotlin.String?;kotlin.reflect.KClass<0:0>;kotlin.Function1<io.ktor.server.auth.SessionAuthenticationProvider.Config<0:0>,kotlin.Unit>){0§<kotlin.Any>}[0]
+final inline fun <#A: reified kotlin/Any, #B: reified kotlin/Any> io.ktor.server.auth.typesafe/session(kotlin/String, noinline kotlin/Function1<io.ktor.server.auth.typesafe/TypedSessionAuthConfig<#A, #B>, kotlin/Unit>): io.ktor.server.auth.typesafe/SessionAuthScheme<#A, #B> // io.ktor.server.auth.typesafe/session|session(kotlin.String;kotlin.Function1<io.ktor.server.auth.typesafe.TypedSessionAuthConfig<0:0,0:1>,kotlin.Unit>){0§<kotlin.Any>;1§<kotlin.Any>}[0]
 final inline fun <#A: reified kotlin/Any> (io.ktor.server.application/ApplicationCall).io.ktor.server.auth/principal(): #A? // io.ktor.server.auth/principal|principal@io.ktor.server.application.ApplicationCall(){0§<kotlin.Any>}[0]
 final inline fun <#A: reified kotlin/Any> (io.ktor.server.application/ApplicationCall).io.ktor.server.auth/principal(kotlin/String?): #A? // io.ktor.server.auth/principal|principal@io.ktor.server.application.ApplicationCall(kotlin.String?){0§<kotlin.Any>}[0]
 final inline fun <#A: reified kotlin/Any> (io.ktor.server.auth/AuthenticationConfig).io.ktor.server.auth/session(kotlin/String? = ...) // io.ktor.server.auth/session|session@io.ktor.server.auth.AuthenticationConfig(kotlin.String?){0§<kotlin.Any>}[0]
 final inline fun <#A: reified kotlin/Any> (io.ktor.server.auth/AuthenticationConfig).io.ktor.server.auth/session(kotlin/String? = ..., noinline kotlin/Function1<io.ktor.server.auth/SessionAuthenticationProvider.Config<#A>, kotlin/Unit>) // io.ktor.server.auth/session|session@io.ktor.server.auth.AuthenticationConfig(kotlin.String?;kotlin.Function1<io.ktor.server.auth.SessionAuthenticationProvider.Config<0:0>,kotlin.Unit>){0§<kotlin.Any>}[0]
+final inline fun <#A: reified kotlin/Any> (io.ktor.server.routing/Route).io.ktor.server.auth.typesafe/authenticateWithAnyOf(kotlin/Array<out io.ktor.server.auth.typesafe/DefaultAuthScheme<out #A, *>>..., noinline kotlin.coroutines/SuspendFunction2<io.ktor.server.application/ApplicationCall, kotlin.collections/Map<kotlin/String, io.ktor.server.auth/AuthenticationFailedCause>, kotlin/Unit>? = ..., noinline kotlin/Function2<io.ktor.server.auth.typesafe/DefaultAuthenticatedContext<#A>, io.ktor.server.routing/Route, kotlin/Unit>): io.ktor.server.routing/Route // io.ktor.server.auth.typesafe/authenticateWithAnyOf|authenticateWithAnyOf@io.ktor.server.routing.Route(kotlin.Array<out|io.ktor.server.auth.typesafe.DefaultAuthScheme<out|0:0,*>>...;kotlin.coroutines.SuspendFunction2<io.ktor.server.application.ApplicationCall,kotlin.collections.Map<kotlin.String,io.ktor.server.auth.AuthenticationFailedCause>,kotlin.Unit>?;kotlin.Function2<io.ktor.server.auth.typesafe.DefaultAuthenticatedContext<0:0>,io.ktor.server.routing.Route,kotlin.Unit>){0§<kotlin.Any>}[0]
+final inline fun <#A: reified kotlin/Any> io.ktor.server.auth.typesafe/basic(kotlin/String, kotlin/Function1<io.ktor.server.auth.typesafe/TypedBasicAuthConfig<#A>, kotlin/Unit>): io.ktor.server.auth.typesafe/DefaultAuthScheme<#A, io.ktor.server.auth.typesafe/DefaultAuthenticatedContext<#A>> // io.ktor.server.auth.typesafe/basic|basic(kotlin.String;kotlin.Function1<io.ktor.server.auth.typesafe.TypedBasicAuthConfig<0:0>,kotlin.Unit>){0§<kotlin.Any>}[0]
+final inline fun <#A: reified kotlin/Any> io.ktor.server.auth.typesafe/bearer(kotlin/String, kotlin/Function1<io.ktor.server.auth.typesafe/TypedBearerAuthConfig<#A>, kotlin/Unit>): io.ktor.server.auth.typesafe/DefaultAuthScheme<#A, io.ktor.server.auth.typesafe/DefaultAuthenticatedContext<#A>> // io.ktor.server.auth.typesafe/bearer|bearer(kotlin.String;kotlin.Function1<io.ktor.server.auth.typesafe.TypedBearerAuthConfig<0:0>,kotlin.Unit>){0§<kotlin.Any>}[0]
+final inline fun <#A: reified kotlin/Any> io.ktor.server.auth.typesafe/form(kotlin/String, kotlin/Function1<io.ktor.server.auth.typesafe/TypedFormAuthConfig<#A>, kotlin/Unit>): io.ktor.server.auth.typesafe/DefaultAuthScheme<#A, io.ktor.server.auth.typesafe/DefaultAuthenticatedContext<#A>> // io.ktor.server.auth.typesafe/form|form(kotlin.String;kotlin.Function1<io.ktor.server.auth.typesafe.TypedFormAuthConfig<0:0>,kotlin.Unit>){0§<kotlin.Any>}[0]
+final inline fun <#A: reified kotlin/Any> io.ktor.server.auth.typesafe/session(kotlin/String, noinline kotlin/Function1<io.ktor.server.auth.typesafe/TypedSessionAuthConfig<#A, #A>, kotlin/Unit>): io.ktor.server.auth.typesafe/SessionAuthScheme<#A, #A> // io.ktor.server.auth.typesafe/session|session(kotlin.String;kotlin.Function1<io.ktor.server.auth.typesafe.TypedSessionAuthConfig<0:0,0:0>,kotlin.Unit>){0§<kotlin.Any>}[0]
 final suspend fun io.ktor.server.auth/verifyWithOAuth2(io.ktor.server.auth/UserPasswordCredential, io.ktor.client/HttpClient, io.ktor.server.auth/OAuthServerSettings.OAuth2ServerSettings): io.ktor.server.auth/OAuthAccessTokenResponse.OAuth2 // io.ktor.server.auth/verifyWithOAuth2|verifyWithOAuth2(io.ktor.server.auth.UserPasswordCredential;io.ktor.client.HttpClient;io.ktor.server.auth.OAuthServerSettings.OAuth2ServerSettings){}[0]

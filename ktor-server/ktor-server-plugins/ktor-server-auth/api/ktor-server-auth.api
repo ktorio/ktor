@@ -637,3 +637,200 @@ public final class io/ktor/server/auth/UserPasswordCredential {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class io/ktor/server/auth/typesafe/AnonymousAuthScheme : io/ktor/server/auth/typesafe/AuthScheme {
+	public fun <init> (Lio/ktor/server/auth/typesafe/DefaultAuthScheme;Lkotlin/jvm/functions/Function2;)V
+	public synthetic fun createAuthenticatedContext (Lio/ktor/server/routing/Route;)Lio/ktor/server/auth/typesafe/AuthenticatedContext;
+	public fun createAuthenticatedContext (Lio/ktor/server/routing/Route;)Lio/ktor/server/auth/typesafe/DefaultAuthenticatedContext;
+	public final fun getBase ()Lio/ktor/server/auth/typesafe/DefaultAuthScheme;
+	public fun getName ()Ljava/lang/String;
+}
+
+public abstract interface class io/ktor/server/auth/typesafe/AuthRole {
+	public abstract fun getName ()Ljava/lang/String;
+}
+
+public abstract interface class io/ktor/server/auth/typesafe/AuthScheme {
+	public abstract fun createAuthenticatedContext (Lio/ktor/server/routing/Route;)Lio/ktor/server/auth/typesafe/AuthenticatedContext;
+	public abstract fun getName ()Ljava/lang/String;
+}
+
+public abstract interface class io/ktor/server/auth/typesafe/AuthenticatedContext {
+	public abstract fun principal (Lio/ktor/server/routing/RoutingContext;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/auth/typesafe/BasicTypedProviderKt {
+	public static final fun buildSessionAuthScheme (Ljava/lang/String;Lio/ktor/util/reflect/TypeInfo;Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/auth/typesafe/SessionAuthScheme;
+}
+
+public class io/ktor/server/auth/typesafe/DefaultAuthScheme : io/ktor/server/auth/typesafe/AuthScheme {
+	public static final field Companion Lio/ktor/server/auth/typesafe/DefaultAuthScheme$Companion;
+	public fun <init> (Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/server/auth/AuthenticationProvider;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function1;)V
+	public fun createAuthenticatedContext (Lio/ktor/server/routing/Route;)Lio/ktor/server/auth/typesafe/AuthenticatedContext;
+	public fun getName ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/auth/typesafe/DefaultAuthScheme$Companion {
+}
+
+public class io/ktor/server/auth/typesafe/DefaultAuthenticatedContext : io/ktor/server/auth/typesafe/AuthenticatedContext {
+	public fun <init> (Lio/ktor/util/AttributeKey;)V
+	public final fun getPrincipalKey ()Lio/ktor/util/AttributeKey;
+	public fun principal (Lio/ktor/server/routing/RoutingContext;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/auth/typesafe/OptionalAuthScheme : io/ktor/server/auth/typesafe/AuthScheme {
+	public fun <init> (Lio/ktor/server/auth/typesafe/DefaultAuthScheme;)V
+	public synthetic fun createAuthenticatedContext (Lio/ktor/server/routing/Route;)Lio/ktor/server/auth/typesafe/AuthenticatedContext;
+	public fun createAuthenticatedContext (Lio/ktor/server/routing/Route;)Lio/ktor/server/auth/typesafe/OptionalAuthenticatedContext;
+	public final fun getBase ()Lio/ktor/server/auth/typesafe/DefaultAuthScheme;
+	public fun getName ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/auth/typesafe/OptionalAuthSchemeKt {
+	public static final fun optional (Lio/ktor/server/auth/typesafe/DefaultAuthScheme;)Lio/ktor/server/auth/typesafe/OptionalAuthScheme;
+	public static final fun optional (Lio/ktor/server/auth/typesafe/DefaultAuthScheme;Lkotlin/jvm/functions/Function2;)Lio/ktor/server/auth/typesafe/AnonymousAuthScheme;
+}
+
+public final class io/ktor/server/auth/typesafe/OptionalAuthenticatedContext : io/ktor/server/auth/typesafe/AuthenticatedContext {
+	public fun principal (Lio/ktor/server/routing/RoutingContext;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/auth/typesafe/RoleBasedAuthScheme : io/ktor/server/auth/typesafe/AuthScheme {
+	public synthetic fun createAuthenticatedContext (Lio/ktor/server/routing/Route;)Lio/ktor/server/auth/typesafe/AuthenticatedContext;
+	public fun createAuthenticatedContext (Lio/ktor/server/routing/Route;)Lio/ktor/server/auth/typesafe/RoleBasedContext;
+	public final fun getBase ()Lio/ktor/server/auth/typesafe/DefaultAuthScheme;
+	public fun getName ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/auth/typesafe/RoleBasedAuthSchemeKt {
+	public static final fun withRoles (Lio/ktor/server/auth/typesafe/DefaultAuthScheme;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;)Lio/ktor/server/auth/typesafe/RoleBasedAuthScheme;
+	public static synthetic fun withRoles$default (Lio/ktor/server/auth/typesafe/DefaultAuthScheme;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;ILjava/lang/Object;)Lio/ktor/server/auth/typesafe/RoleBasedAuthScheme;
+}
+
+public final class io/ktor/server/auth/typesafe/RoleBasedContext : io/ktor/server/auth/typesafe/DefaultAuthenticatedContext {
+	public final fun roles (Lio/ktor/server/routing/RoutingContext;)Ljava/util/Set;
+}
+
+public final class io/ktor/server/auth/typesafe/RouteBuildersKt {
+	public static final fun authenticateWith (Lio/ktor/server/routing/Route;Lio/ktor/server/auth/typesafe/AnonymousAuthScheme;Lkotlin/jvm/functions/Function2;)Lio/ktor/server/routing/Route;
+	public static final fun authenticateWith (Lio/ktor/server/routing/Route;Lio/ktor/server/auth/typesafe/DefaultAuthScheme;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function2;)Lio/ktor/server/routing/Route;
+	public static final fun authenticateWith (Lio/ktor/server/routing/Route;Lio/ktor/server/auth/typesafe/OptionalAuthScheme;Lkotlin/jvm/functions/Function2;)Lio/ktor/server/routing/Route;
+	public static final fun authenticateWith (Lio/ktor/server/routing/Route;Lio/ktor/server/auth/typesafe/RoleBasedAuthScheme;Ljava/util/Set;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function2;)Lio/ktor/server/routing/Route;
+	public static synthetic fun authenticateWith$default (Lio/ktor/server/routing/Route;Lio/ktor/server/auth/typesafe/DefaultAuthScheme;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)Lio/ktor/server/routing/Route;
+	public static synthetic fun authenticateWith$default (Lio/ktor/server/routing/Route;Lio/ktor/server/auth/typesafe/RoleBasedAuthScheme;Ljava/util/Set;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)Lio/ktor/server/routing/Route;
+	public static final fun authenticateWithAnyOf (Lio/ktor/server/routing/Route;Ljava/util/List;Lio/ktor/util/reflect/TypeInfo;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function2;)Lio/ktor/server/routing/Route;
+	public static synthetic fun authenticateWithAnyOf$default (Lio/ktor/server/routing/Route;Ljava/util/List;Lio/ktor/util/reflect/TypeInfo;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)Lio/ktor/server/routing/Route;
+}
+
+public final class io/ktor/server/auth/typesafe/ScopesKt {
+	public static final fun authenticatedContext (Lio/ktor/server/auth/typesafe/AuthenticatedContext;)Lio/ktor/server/auth/typesafe/AuthenticatedContext;
+	public static final fun clearSession (Lio/ktor/server/auth/typesafe/SessionAuthenticatedContext;Lio/ktor/server/routing/RoutingContext;)V
+	public static final fun getPrincipal (Lio/ktor/server/auth/typesafe/AuthenticatedContext;Lio/ktor/server/routing/RoutingContext;)Ljava/lang/Object;
+	public static final fun getRoles (Lio/ktor/server/auth/typesafe/RoleBasedContext;Lio/ktor/server/routing/RoutingContext;)Ljava/util/Set;
+	public static final fun getSession (Lio/ktor/server/auth/typesafe/SessionAuthenticatedContext;Lio/ktor/server/routing/RoutingContext;)Ljava/lang/Object;
+	public static final fun setAuthenticatedSession (Lio/ktor/server/auth/typesafe/SessionAuthenticatedContext;Lio/ktor/server/routing/RoutingContext;Ljava/lang/Object;)V
+	public static final fun setSession (Lio/ktor/server/auth/typesafe/SessionAuthenticatedContext;Lio/ktor/server/routing/RoutingContext;Ljava/lang/Object;)V
+	public static final fun updateSession (Lio/ktor/server/auth/typesafe/SessionAuthenticatedContext;Lio/ktor/server/routing/RoutingContext;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/auth/typesafe/SessionAuthScheme : io/ktor/server/auth/typesafe/DefaultAuthScheme {
+}
+
+public final class io/ktor/server/auth/typesafe/SessionAuthSessionsConfigKt {
+	public static final fun cookie (Lio/ktor/server/sessions/SessionsConfig;Lio/ktor/server/auth/typesafe/SessionAuthScheme;)V
+	public static final fun cookie (Lio/ktor/server/sessions/SessionsConfig;Lio/ktor/server/auth/typesafe/SessionAuthScheme;Lio/ktor/server/sessions/SessionStorage;)V
+	public static final fun cookie (Lio/ktor/server/sessions/SessionsConfig;Lio/ktor/server/auth/typesafe/SessionAuthScheme;Lio/ktor/server/sessions/SessionStorage;Lkotlin/jvm/functions/Function1;)V
+	public static final fun cookie (Lio/ktor/server/sessions/SessionsConfig;Lio/ktor/server/auth/typesafe/SessionAuthScheme;Lkotlin/jvm/functions/Function1;)V
+	public static final fun header (Lio/ktor/server/sessions/SessionsConfig;Lio/ktor/server/auth/typesafe/SessionAuthScheme;)V
+	public static final fun header (Lio/ktor/server/sessions/SessionsConfig;Lio/ktor/server/auth/typesafe/SessionAuthScheme;Lio/ktor/server/sessions/SessionStorage;)V
+	public static final fun header (Lio/ktor/server/sessions/SessionsConfig;Lio/ktor/server/auth/typesafe/SessionAuthScheme;Lio/ktor/server/sessions/SessionStorage;Lkotlin/jvm/functions/Function1;)V
+	public static final fun header (Lio/ktor/server/sessions/SessionsConfig;Lio/ktor/server/auth/typesafe/SessionAuthScheme;Lkotlin/jvm/functions/Function1;)V
+	public static final fun set (Lio/ktor/server/sessions/CurrentSession;Lio/ktor/server/auth/typesafe/SessionAuthScheme;Ljava/lang/Object;)V
+}
+
+public final class io/ktor/server/auth/typesafe/SessionAuthenticatedContext : io/ktor/server/auth/typesafe/AuthenticatedContext {
+	public fun <init> (Lio/ktor/server/auth/typesafe/DefaultAuthenticatedContext;Lio/ktor/util/AttributeKey;Ljava/lang/String;)V
+	public final fun clearSession (Lio/ktor/server/routing/RoutingContext;)V
+	public fun principal (Lio/ktor/server/routing/RoutingContext;)Ljava/lang/Object;
+	public final fun session (Lio/ktor/server/routing/RoutingContext;)Ljava/lang/Object;
+	public final fun setSession (Lio/ktor/server/routing/RoutingContext;Ljava/lang/Object;)V
+	public final fun updateSession (Lio/ktor/server/routing/RoutingContext;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/auth/typesafe/TypedBasicAuthConfig {
+	public fun <init> ()V
+	public final fun buildProvider (Ljava/lang/String;)Lio/ktor/server/auth/BasicAuthenticationProvider;
+	public final fun getCharset ()Ljava/nio/charset/Charset;
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getOnUnauthorized ()Lkotlin/jvm/functions/Function3;
+	public final fun getRealm ()Ljava/lang/String;
+	public final fun setCharset (Ljava/nio/charset/Charset;)V
+	public final fun setDescription (Ljava/lang/String;)V
+	public final fun setOnUnauthorized (Lkotlin/jvm/functions/Function3;)V
+	public final fun setRealm (Ljava/lang/String;)V
+	public final fun validate (Lkotlin/jvm/functions/Function3;)V
+}
+
+public final class io/ktor/server/auth/typesafe/TypedBearerAuthConfig {
+	public fun <init> ()V
+	public final fun authHeader (Lkotlin/jvm/functions/Function1;)V
+	public final fun authSchemes (Ljava/lang/String;[Ljava/lang/String;)V
+	public static synthetic fun authSchemes$default (Lio/ktor/server/auth/typesafe/TypedBearerAuthConfig;Ljava/lang/String;[Ljava/lang/String;ILjava/lang/Object;)V
+	public final fun authenticate (Lkotlin/jvm/functions/Function3;)V
+	public final fun buildProvider (Ljava/lang/String;)Lio/ktor/server/auth/BearerAuthenticationProvider;
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getOnUnauthorized ()Lkotlin/jvm/functions/Function3;
+	public final fun getRealm ()Ljava/lang/String;
+	public final fun setDescription (Ljava/lang/String;)V
+	public final fun setOnUnauthorized (Lkotlin/jvm/functions/Function3;)V
+	public final fun setRealm (Ljava/lang/String;)V
+}
+
+public final class io/ktor/server/auth/typesafe/TypedDigestAuthConfig {
+	public fun <init> ()V
+	public final fun buildProvider (Ljava/lang/String;)Lio/ktor/server/auth/DigestAuthenticationProvider;
+	public final fun digestProvider (Lkotlin/jvm/functions/Function3;)V
+	public final fun digestProvider (Lkotlin/jvm/functions/Function4;)V
+	public final fun getAlgorithms ()Ljava/util/List;
+	public final fun getCharset ()Ljava/nio/charset/Charset;
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getNonceManager ()Lio/ktor/util/NonceManager;
+	public final fun getOnUnauthorized ()Lkotlin/jvm/functions/Function3;
+	public final fun getRealm ()Ljava/lang/String;
+	public final fun getSupportedQop ()Ljava/util/List;
+	public final fun setAlgorithms (Ljava/util/List;)V
+	public final fun setCharset (Ljava/nio/charset/Charset;)V
+	public final fun setDescription (Ljava/lang/String;)V
+	public final fun setNonceManager (Lio/ktor/util/NonceManager;)V
+	public final fun setOnUnauthorized (Lkotlin/jvm/functions/Function3;)V
+	public final fun setRealm (Ljava/lang/String;)V
+	public final fun setSupportedQop (Ljava/util/List;)V
+	public final fun strictRfc7616Mode ()V
+	public final fun userHashResolver (Lkotlin/jvm/functions/Function4;)V
+	public final fun validate (Lkotlin/jvm/functions/Function3;)V
+}
+
+public final class io/ktor/server/auth/typesafe/TypedFormAuthConfig {
+	public fun <init> ()V
+	public final fun buildProvider (Ljava/lang/String;)Lio/ktor/server/auth/FormAuthenticationProvider;
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getOnUnauthorized ()Lkotlin/jvm/functions/Function3;
+	public final fun getPasswordParamName ()Ljava/lang/String;
+	public final fun getUserParamName ()Ljava/lang/String;
+	public final fun setDescription (Ljava/lang/String;)V
+	public final fun setOnUnauthorized (Lkotlin/jvm/functions/Function3;)V
+	public final fun setPasswordParamName (Ljava/lang/String;)V
+	public final fun setUserParamName (Ljava/lang/String;)V
+	public final fun validate (Lkotlin/jvm/functions/Function3;)V
+}
+
+public final class io/ktor/server/auth/typesafe/TypedSessionAuthConfig {
+	public fun <init> ()V
+	public final fun buildProvider (Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/util/AttributeKey;)Lio/ktor/server/auth/SessionAuthenticationProvider;
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getOnUnauthorized ()Lkotlin/jvm/functions/Function3;
+	public final fun setDescription (Ljava/lang/String;)V
+	public final fun setOnUnauthorized (Lkotlin/jvm/functions/Function3;)V
+	public final fun validate (Lkotlin/jvm/functions/Function3;)V
+}
+
