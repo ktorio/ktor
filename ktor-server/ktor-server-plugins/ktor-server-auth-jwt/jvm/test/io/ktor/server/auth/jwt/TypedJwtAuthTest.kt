@@ -18,7 +18,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
 import kotlin.test.*
-import io.ktor.server.auth.typesafe.jwt as typedJwt
+import io.ktor.server.auth.jwt.typesafe.jwt as typedJwt
 
 class TypedJwtAuthTest {
 

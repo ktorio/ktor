@@ -2,20 +2,21 @@
  * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.server.auth.typesafe
+package io.ktor.server.auth.apikey.typesafe
 
 import io.ktor.server.application.*
 import io.ktor.server.auth.apikey.*
+import io.ktor.server.auth.typesafe.UnauthorizedHandler
 import io.ktor.utils.io.*
 
 /**
  * Configures a typed API key authentication scheme.
  *
  * Unlike [ApiKeyAuthenticationProvider.Configuration], [validate] returns [P] so routes protected by
- * [authenticateWith] can read [principal] as the configured type.
+ * [io.ktor.server.auth.typesafe.authenticateWith] can read [io.ktor.server.auth.typesafe.principal] as the configured type.
  *
  * This config does not expose provider-level `challenge`. Set [onUnauthorized] or pass `onUnauthorized` to
- * [authenticateWith] to customize failure responses.
+ * [io.ktor.server.auth.typesafe.authenticateWith] to customize failure responses.
  *
  * Challenge strategy: a route-level `onUnauthorized` is used first, then [onUnauthorized]. If neither is configured,
  * API key authentication responds with `401 Unauthorized` and uses the scheme name as the authentication challenge key.
@@ -44,7 +45,7 @@ public class TypedApiKeyAuthConfig<P : Any> @PublishedApi internal constructor()
     /**
      * Default handler for authentication failures.
      *
-     * A route-level `onUnauthorized` passed to [authenticateWith] overrides this handler. If both are `null`, API key
+     * A route-level `onUnauthorized` passed to [io.ktor.server.auth.typesafe.authenticateWith] overrides this handler. If both are `null`, API key
      * authentication sends the default challenge described by this configuration.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedApiKeyAuthConfig.onUnauthorized)

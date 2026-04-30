@@ -21,6 +21,15 @@ import kotlin.test.assertTrue
 
 class UnauthorizedAndChallengesTest {
 
+    private class FailTwiceProvider(name: String) : AuthenticationProvider(Config(name)) {
+        private class Config(name: String) : AuthenticationProvider.Config(name)
+
+        override suspend fun onAuthenticate(context: AuthenticationContext) {
+            context.challenge("first", AuthenticationFailedCause.NoCredentials) { _, _ -> }
+            context.challenge("last", AuthenticationFailedCause.InvalidCredentials) { _, _ -> }
+        }
+    }
+
     @Test
     fun `default challenge sends WWW-Authenticate header`() = testApplication {
         val scheme = basic<TestUser>("challenge-test") {
@@ -151,5 +160,30 @@ class UnauthorizedAndChallengesTest {
         val response = client.get("/data")
         assertEquals(HttpStatusCode.Unauthorized, response.status)
         assertEquals("anyof-basic=NoCredentials;anyof-bearer=NoCredentials", response.bodyAsText())
+    }
+
+    @Test
+    fun `authenticateWithAnyOf reports final failure per scheme`() = testApplication {
+        val scheme = DefaultAuthScheme.withDefaultContext<TestUser>(
+            name = "final-failure",
+            provider = FailTwiceProvider("final-failure"),
+            onUnauthorized = null
+        )
+
+        routing {
+            authenticateWithAnyOf(
+                scheme,
+                onUnauthorized = { call, failures ->
+                    val cause = failures.getValue("final-failure")
+                    call.respondText(cause::class.simpleName!!, status = HttpStatusCode.Unauthorized)
+                }
+            ) {
+                get("/data") { call.respondText(principal.email) }
+            }
+        }
+
+        val response = client.get("/data")
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
+        assertEquals("InvalidCredentials", response.bodyAsText())
     }
 }

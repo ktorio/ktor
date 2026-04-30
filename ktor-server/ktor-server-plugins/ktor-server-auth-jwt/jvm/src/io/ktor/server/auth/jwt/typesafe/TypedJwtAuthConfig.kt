@@ -2,7 +2,7 @@
  * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.server.auth.typesafe
+package io.ktor.server.auth.jwt.typesafe
 
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwt.JWTVerifier
@@ -17,11 +17,11 @@ import io.ktor.utils.io.*
 /**
  * Configures a typed JWT authentication scheme.
  *
- * Unlike [JWTAuthenticationProvider.Config], [validate] returns [P] so routes protected by [authenticateWith] can read
- * [principal] as the configured type.
+ * Unlike [JWTAuthenticationProvider.Config], [validate] returns [P] so routes protected by [io.ktor.server.auth.typesafe.authenticateWith] can read
+ * [io.ktor.server.auth.typesafe.principal] as the configured type.
  *
  * This config does not expose provider-level `challenge`. Set [onUnauthorized] or pass `onUnauthorized` to
- * [authenticateWith] to customize failure responses.
+ * [io.ktor.server.auth.typesafe.authenticateWith] to customize failure responses.
  *
  * Challenge strategy: a route-level `onUnauthorized` is used first, then [onUnauthorized]. If neither is configured,
  * JWT authentication responds to missing or invalid credentials with a `WWW-Authenticate` challenge for the default
@@ -51,7 +51,7 @@ public class TypedJwtAuthConfig<P : Any> @PublishedApi internal constructor() {
     /**
      * Default handler for authentication failures.
      *
-     * A route-level `onUnauthorized` passed to [authenticateWith] overrides this handler. If both are `null`, JWT
+     * A route-level `onUnauthorized` passed to [io.ktor.server.auth.typesafe.authenticateWith] overrides this handler. If both are `null`, JWT
      * authentication sends the default challenge described by this configuration.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedJwtAuthConfig.onUnauthorized)
