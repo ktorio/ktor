@@ -6,14 +6,15 @@ package io.ktor.server.auth.typesafe
 
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlin.reflect.KClass
 
 /**
  * Configures a typed Session authentication scheme.
  *
- * Unlike [SessionAuthenticationProvider.Config], [validate] returns [P] so routes protected by [authenticateWith] can
- * read [principal] as the configured type.
+ * Unlike [SessionAuthenticationProvider.Config], [validate] returns [P] from a stored session value [S], so routes
+ * protected by [authenticateWith] can read [principal] as [P] and [session] as [S].
  *
  * This config does not expose provider-level `challenge`. Set [onUnauthorized] or pass `onUnauthorized` to
  * [authenticateWith] to customize failure responses.
@@ -23,11 +24,12 @@ import kotlin.reflect.KClass
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedSessionAuthConfig)
  *
- * @param P the session and principal type.
+ * @param S the stored session type.
+ * @param P the principal type exposed to authenticated routes.
  */
 @ExperimentalKtorApi
 @KtorDsl
-public class TypedSessionAuthConfig<P : Any> @PublishedApi internal constructor() {
+public class TypedSessionAuthConfig<S : Any, P : Any> @PublishedApi internal constructor() {
     /**
      * Human-readable description of this authentication scheme.
      *
@@ -45,7 +47,7 @@ public class TypedSessionAuthConfig<P : Any> @PublishedApi internal constructor(
      */
     public var onUnauthorized: (suspend (ApplicationCall, AuthenticationFailedCause) -> Unit)? = null
 
-    private var validateFn: (suspend ApplicationCall.(P) -> P?)? = null
+    private var validateFn: (suspend ApplicationCall.(S) -> P?)? = null
 
     /**
      * Sets a validation function for the session value.
@@ -57,14 +59,27 @@ public class TypedSessionAuthConfig<P : Any> @PublishedApi internal constructor(
      * @param body validation function called with the session value read by the [io.ktor.server.sessions.Sessions]
      * plugin.
      */
-    public fun validate(body: suspend ApplicationCall.(P) -> P?) {
+    public fun validate(body: suspend ApplicationCall.(S) -> P?) {
         validateFn = body
     }
 
     @PublishedApi
-    internal fun buildProvider(name: String, type: KClass<P>): SessionAuthenticationProvider<P> {
-        val config = SessionAuthenticationProvider.Config(name, description, type)
-        validateFn?.let { fn -> config.validate { session -> fn(session) } }
+    internal fun buildProvider(
+        name: String,
+        sessionType: KClass<S>,
+        sessionKey: AttributeKey<S>
+    ): SessionAuthenticationProvider<S> {
+        val config = SessionAuthenticationProvider.Config(name, description, sessionType)
+        config.sessionName = name
+        validateFn?.let { fn ->
+            config.validate { session ->
+                val principal = fn(session)
+                if (principal != null) {
+                    attributes.put(sessionKey, session)
+                }
+                principal
+            }
+        }
         return config.buildProvider()
     }
 }
