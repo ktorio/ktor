@@ -21,6 +21,7 @@ import io.ktor.server.routing.*
 import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
 import io.netty.channel.Channel
+import io.netty.channel.EventLoopGroup
 import kotlinx.coroutines.*
 import java.net.BindException
 import java.net.ServerSocket
@@ -295,6 +296,50 @@ class NettySpecificTest {
             }
         } finally {
             serverJob.cancel()
+        }
+    }
+
+    @Test
+    fun `request handler runs on call event group`() = runTestWithRealTime {
+        val handlerThread = AtomicReference<Thread>()
+
+        val server = embeddedServer(
+            factory = Netty,
+            rootConfig = serverConfig {
+                module {
+                    routing {
+                        get("/") {
+                            handlerThread.set(Thread.currentThread())
+                            call.respondText("ok")
+                        }
+                    }
+                }
+            },
+            configure = {
+                connector { port = 0 }
+                // This issue is not relevant if call and worker groups are shared
+                shareWorkGroup = false
+            }
+        )
+        server.startSuspend(wait = false)
+
+        try {
+            val connector = server.engine.resolvedConnectors().first()
+            HttpClient(CIO).use { it.get("http://${connector.host}:${connector.port}/") }
+
+            // Ugly, but we'd like to access the call event group somehow
+            val callEventGroup = NettyApplicationEngine::class.java
+                .getDeclaredMethod("getCallEventGroup")
+                .apply { isAccessible = true }
+                .invoke(server.engine) as EventLoopGroup
+
+            val thread = handlerThread.get()
+            assertTrue(
+                callEventGroup.any { it.inEventLoop(thread) },
+                "Handler ran on '${thread.name}', not on any call event group thread"
+            )
+        } finally {
+            server.stopSuspend(0L, 0L)
         }
     }
 }
