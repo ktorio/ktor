@@ -26,13 +26,20 @@ public class SessionAuthenticationProvider<T : Any> private constructor(
 ) : AuthenticationProvider(config) {
     public val type: KClass<T> = config.type
 
+    private val sessionName: String? = config.sessionName
+
     private val challengeFunction: SessionAuthChallengeFunction<T> = config.challengeFunction
 
     private val validator: AuthenticationFunction<T> = config.validator
 
     override suspend fun onAuthenticate(context: AuthenticationContext) {
         val call = context.call
-        val session = call.sessions.get(type)
+        val sessionName = sessionName
+        val session = if (sessionName == null) {
+            call.sessions.get(type)
+        } else {
+            call.sessions.getSessionByName(sessionName)
+        }
         val principal = session?.let { validator(call, it) }
 
         if (principal != null) {
@@ -55,6 +62,15 @@ public class SessionAuthenticationProvider<T : Any> private constructor(
         }
     }
 
+    private fun CurrentSession.getSessionByName(sessionName: String): T? {
+        val session = get(sessionName) ?: return null
+        check(type.isInstance(session)) {
+            "Session provider `$sessionName` returned `$session`, but session type `$type` was expected."
+        }
+        @Suppress("UNCHECKED_CAST")
+        return session as T
+    }
+
     /**
      * A configuration for the [session] authentication provider.
      *
@@ -65,6 +81,8 @@ public class SessionAuthenticationProvider<T : Any> private constructor(
         description: String?,
         internal val type: KClass<T>
     ) : AuthenticationProvider.Config(name, description) {
+        internal var sessionName: String? = null
+
         internal var validator: AuthenticationFunction<T> = UninitializedValidator
 
         internal var challengeFunction: SessionAuthChallengeFunction<T> = { call.respond(UnauthorizedResponse()) }

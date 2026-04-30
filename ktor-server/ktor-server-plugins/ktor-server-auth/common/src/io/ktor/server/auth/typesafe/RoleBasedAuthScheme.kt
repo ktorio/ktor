@@ -98,6 +98,21 @@ public class RoleBasedAuthScheme<P : Any, R : AuthRole> internal constructor(
     override fun createAuthenticatedContext(route: Route): RoleBasedContext<P, R> =
         RoleBasedContext(base.principalKey, rolesKey)
 
+    internal fun install(
+        route: Route,
+        roles: Set<R>,
+        onUnauthorized: UnauthorizedHandler?,
+        onForbidden: ForbiddenHandler?
+    ): RoleBasedContext<P, R> {
+        base.install(
+            route = route,
+            kind = "Roles",
+            onUnauthorized = onUnauthorized,
+            onAccepted = { call -> validateRoles(call, roles, onForbidden) }
+        )
+        return createAuthenticatedContext(route)
+    }
+
     internal suspend fun validateRoles(
         call: ApplicationCall,
         requiredRoles: Set<R>,

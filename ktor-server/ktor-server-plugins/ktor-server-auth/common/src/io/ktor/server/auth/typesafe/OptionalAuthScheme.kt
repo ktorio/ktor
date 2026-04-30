@@ -84,15 +84,13 @@ public class OptionalAuthScheme<P : Any>(
     override fun createAuthenticatedContext(route: Route): OptionalAuthenticatedContext<P> =
         OptionalAuthenticatedContext(base.principalKey)
 
-    internal fun installAuthInterceptor(route: Route) {
-        route.install(
-            base.createTypedAuthPlugin(
-                route = route,
-                kind = "Optional",
-                onUnauthorized = null,
-                optional = true
-            )
+    internal fun install(route: Route): OptionalAuthenticatedContext<P> {
+        base.install(
+            route = route,
+            kind = "Optional",
+            optional = true
         )
+        return createAuthenticatedContext(route)
     }
 }
 
@@ -118,22 +116,20 @@ public class AnonymousAuthScheme<B : Any, P : B, AP : B>(
     override fun createAuthenticatedContext(route: Route): DefaultAuthenticatedContext<B> =
         DefaultAuthenticatedContext(principalKey)
 
-    internal fun install(route: Route) {
-        route.install(
-            base.createTypedAuthPlugin(
-                route = route,
-                kind = "Anonymous",
-                onUnauthorized = null,
-                optional = true,
-                onAccepted = { call ->
-                    val ctx = call.authentication
-                    val principal: B = base.principalFrom(ctx) ?: anonymousFactory(call).also { anonymous ->
-                        // Use ctx.principal directly; anonymous type AP may differ from base type P.
-                        ctx.principal(provider = base.name, principal = anonymous)
-                    }
-                    call.attributes.put(principalKey, principal)
+    internal fun install(route: Route): DefaultAuthenticatedContext<B> {
+        base.install(
+            route = route,
+            kind = "Anonymous",
+            optional = true,
+            onAccepted = { call ->
+                val ctx = call.authentication
+                val principal: B = base.principalFrom(ctx) ?: anonymousFactory(call).also { anonymous ->
+                    // Use ctx.principal directly; anonymous type AP may differ from base type P.
+                    ctx.principal(provider = base.name, principal = anonymous)
                 }
-            )
+                call.attributes.put(principalKey, principal)
+            }
         )
+        return createAuthenticatedContext(route)
     }
 }

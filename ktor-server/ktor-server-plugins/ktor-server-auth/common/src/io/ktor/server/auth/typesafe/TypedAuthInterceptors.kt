@@ -90,6 +90,18 @@ internal fun DefaultAuthScheme<*, *>.createTypedAuthPlugin(
         }
     }
 
+internal fun <P : Any> Route.installTypedMultiAuthInterceptor(
+    schemes: List<DefaultAuthScheme<out P, *>>,
+    principalKey: AttributeKey<P>,
+    onUnauthorized: MultiUnauthorizedHandler?
+): DefaultAuthenticatedContext<P> {
+    for (scheme in schemes) {
+        scheme.preinstall(route = this)
+    }
+    install(createTypedMultiAuthInterceptor(schemes, principalKey, onUnauthorized, route = this))
+    return DefaultAuthenticatedContext(principalKey)
+}
+
 internal fun <P : Any> createTypedMultiAuthInterceptor(
     schemes: List<DefaultAuthScheme<out P, *>>,
     principalKey: AttributeKey<P>,

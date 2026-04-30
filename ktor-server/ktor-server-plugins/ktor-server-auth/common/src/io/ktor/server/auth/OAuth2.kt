@@ -21,8 +21,7 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.io.*
 import kotlinx.serialization.json.*
-
-private val Logger: Logger = KtorSimpleLogger("io.ktor.auth.oauth")
+import kotlin.io.encoding.Base64
 
 internal suspend fun ApplicationCall.oauth2HandleCallback(): OAuthCallback? {
     val params = when (request.contentType()) {
@@ -189,7 +188,7 @@ private suspend fun oauth2RequestAccessToken(
                 HttpHeaders.Authorization,
                 HttpAuthHeader.Single(
                     AuthScheme.Basic,
-                    "$clientId:$clientSecret".toByteArray(Charsets.ISO_8859_1).encodeBase64()
+                    Base64.encode("$clientId:$clientSecret".toByteArray(Charsets.ISO_8859_1))
                 ).render()
             )
         }
