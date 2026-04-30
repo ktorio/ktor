@@ -395,7 +395,7 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
     }
 
     @Test
-    fun testAuthenticationWithValidRefreshToken() = clientTests(except("Js", "WinHttp"), retries = 5) {
+    fun testAuthenticationWithValidRefreshToken() = clientTests(except("Js", "WinHttp")) {
         config {
             install(WebSockets)
 
@@ -417,7 +417,7 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
     }
 
     @Test
-    fun testAuthenticationWithValidInitialToken() = clientTests(except("Js", "Darwin"), retries = 5) {
+    fun testAuthenticationWithValidInitialToken() = clientTests(except("Js", "Darwin")) {
         config {
             install(WebSockets)
 
@@ -438,7 +438,7 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
     }
 
     @Test
-    fun testAuthenticationWithInvalidToken() = clientTests(except("Js", "WinHttp"), retries = 5) {
+    fun testAuthenticationWithInvalidToken() = clientTests(except("Js", "WinHttp")) {
         config {
             install(WebSockets)
 
