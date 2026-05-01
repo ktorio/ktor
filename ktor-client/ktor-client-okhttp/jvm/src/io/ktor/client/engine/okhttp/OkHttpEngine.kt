@@ -152,6 +152,7 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
         }
         builder.apply(config.config)
         config.proxy?.let { builder.proxy(it) }
+        config.dns?.let { builder.dns(it) }
         timeoutExtension?.let {
             builder.setupTimeoutAttributes(it)
         }
