@@ -1,8 +1,10 @@
 public final class io/ktor/server/sse/Heartbeat {
 	public fun <init> ()V
 	public final fun getEvent ()Lio/ktor/sse/ServerSentEvent;
+	public final fun getEventProvider ()Lkotlin/jvm/functions/Function1;
 	public final fun getPeriod-UwyO8pc ()J
 	public final fun setEvent (Lio/ktor/sse/ServerSentEvent;)V
+	public final fun setEventProvider (Lkotlin/jvm/functions/Function1;)V
 	public final fun setPeriod-LRDsOJo (J)V
 }
 
