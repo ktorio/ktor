@@ -237,7 +237,7 @@ private fun AuthenticationConfig.findProvider(configurationName: String?): Authe
 /**
  *  A resolution strategy for nested authentication providers.
  *  [AuthenticationStrategy.Optional] - if the client provides no authentication,
- *  a call continues but with a null [Principal].
+ *  a call continues but with a null principal.
  *  [AuthenticationStrategy.FirstSuccessful] - client must provide authentication data for at least one provider
  *  registered for this route
  *  [AuthenticationStrategy.Required] - client must provide authentication data for all providers registered for
@@ -257,7 +257,7 @@ public enum class AuthenticationStrategy { Optional, FirstSuccessful, Required }
  *
  * @param configurations names of authentication providers defined in the [Authentication] plugin configuration.
  * @param optional when set, if the client provides no authentication,
- * a call continues but with a null [Principal].
+ * a call continues but with a null authenticated value.
  * @throws MissingApplicationPluginException if no [Authentication] plugin installed first.
  * @throws IllegalArgumentException if there are no registered providers referred by [configurations] names.
  */
@@ -284,7 +284,7 @@ public fun Route.authenticate(
  * @param configurations names of authentication providers defined in the [Authentication] plugin configuration.
  * @param strategy defines resolution strategy for nested authentication providers.
  *  [AuthenticationStrategy.Optional] - if the client provides no authentication,
- *  a call continues but with a null [Principal].
+ *  a call continues but with a null authenticated value.
  *  [AuthenticationStrategy.FirstSuccessful] - client must provide authentication data for at least one provider
  *  registered for this route
  *  [AuthenticationStrategy.Required] - client must provide authentication data for all providers registered for

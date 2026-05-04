@@ -19,7 +19,8 @@ import kotlin.reflect.*
  *
  * @property type of session
  * @property challengeFunction to be used if there is no session
- * @property validator applied to an application all and session providing a [Principal]
+ * @property validator applied to an application call and session providing an authenticated principal or null
+ * if credentials are invalid
  */
 public class SessionAuthenticationProvider<T : Any> private constructor(
     config: Config<T>

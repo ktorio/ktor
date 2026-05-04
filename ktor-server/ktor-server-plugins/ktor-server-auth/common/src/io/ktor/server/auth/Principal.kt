@@ -15,11 +15,13 @@ import kotlin.reflect.*
 public interface Credential
 
 /**
- * A marker interface indicating that a class represents an authenticated principal.
+ * A deprecated marker interface that is no longer required for authenticated principals.
+ *
+ * Remove this interface from principal classes, or use [Any] when a principal type is still needed.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.Principal)
  */
-@Deprecated("This interface can be safely removed")
+@Deprecated("Principal is not required anymore. Remove this interface or replace it with Any.")
 public interface Principal
 
 internal class CombinedPrincipal {
