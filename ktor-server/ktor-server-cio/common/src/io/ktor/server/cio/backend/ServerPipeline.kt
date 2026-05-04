@@ -16,6 +16,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.io.Buffer
 import kotlinx.io.IOException
 import kotlinx.io.InternalIoApi
 import kotlinx.io.Source
@@ -194,10 +195,9 @@ public fun CoroutineScope.startServerConnectionPipeline(
     }
 }
 
-@OptIn(InternalIoApi::class)
 private fun String?.toBadRequestPacket(): Source {
     if (this == null) {
-        return BadRequestPacket.buffer.copy()
+        return buildBadRequestPacket()
     }
     val bytes = encodeToByteArray()
     return RequestResponseBuilder().apply {
@@ -245,11 +245,14 @@ private val BadRequestPacketCommon = RequestResponseBuilder().apply {
     headerLine("Content-Type", "text/plain; charset=utf-8")
 }.build().buffer.readByteArray()
 
-private val BadRequestPacket = RequestResponseBuilder().apply {
+@OptIn(InternalIoApi::class)
+private val BadRequestPacketBytes: ByteArray = RequestResponseBuilder().apply {
     responseLine("HTTP/1.0", HttpStatusCode.BadRequest.value, "Bad Request")
     headerLine("Connection", "close")
     emptyLine()
-}.build()
+}.build().buffer.readByteArray()
+
+internal fun buildBadRequestPacket(): Source = Buffer().apply { write(BadRequestPacketBytes) }
 
 internal fun isLastHttpRequest(version: HttpProtocolVersion, connectionOptions: ConnectionOptions?): Boolean {
     return when {
