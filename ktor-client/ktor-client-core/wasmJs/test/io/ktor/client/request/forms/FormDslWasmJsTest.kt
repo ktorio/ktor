@@ -29,7 +29,7 @@ class FormDslWasmJsTest {
         val data = MultiPartFormDataContent(parts, boundary = "boundary")
         val result = data.readString()
 
-        assertTrue(result.contains("Content-Disposition: form-data; name=file"))
+        assertTrue(result.contains("Content-Disposition: form-data; name=\"file\""))
         assertTrue(result.contains("hello world"))
     }
 
@@ -44,8 +44,8 @@ class FormDslWasmJsTest {
         val data = MultiPartFormDataContent(parts, boundary = "boundary")
         val result = data.readString()
 
-        assertTrue(result.contains("Content-Disposition: form-data; name=upload"))
-        assertTrue(result.contains("filename=test.txt"))
+        assertTrue(result.contains("Content-Disposition: form-data; name=\"upload\""))
+        assertTrue(result.contains("filename=\"test.txt\""))
         assertTrue(result.contains("Content-Type: text/plain"))
         assertTrue(result.contains("file content"))
     }

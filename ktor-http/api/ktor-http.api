@@ -431,6 +431,7 @@ public final class io/ktor/http/HeaderValueWithParameters$Companion {
 public final class io/ktor/http/HeaderValueWithParametersKt {
 	public static final fun append (Lio/ktor/util/StringValuesBuilder;Ljava/lang/String;Lio/ktor/http/HeaderValueWithParameters;)V
 	public static final fun escapeIfNeeded (Ljava/lang/String;)Ljava/lang/String;
+	public static final fun isQuoted (Ljava/lang/String;)Z
 	public static final fun quote (Ljava/lang/String;)Ljava/lang/String;
 }
 

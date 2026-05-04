@@ -28,6 +28,9 @@ public data class FormPart<T : Any>(val key: String, val value: T, val headers: 
 /**
  * Builds a multipart form from [values].
  *
+ * Each [FormPart.key] is emitted as a quoted-string in the `Content-Disposition: form-data; name=...` header,
+ * matching the WHATWG HTML form-submission specification used by browsers, curl, OkHttp and other major clients.
+ *
  * Example: [Upload a file](https://ktor.io/docs/request.html#upload_file).
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.formData)
@@ -38,7 +41,7 @@ public fun formData(vararg values: FormPart<*>): List<PartData> {
 
     values.forEach { (key, value, headers) ->
         val partHeaders = HeadersBuilder().apply {
-            append(HttpHeaders.ContentDisposition, "form-data; name=${key.escapeIfNeeded()}")
+            append(HttpHeaders.ContentDisposition, "form-data; name=${key.quoteForMultipart()}")
             appendAll(headers)
         }
 
@@ -255,6 +258,9 @@ public class ChannelProvider(public val size: Long? = null, public val block: ()
 /**
  * Appends a form part with the specified [key], [filename], and optional [contentType] using [bodyBuilder] for its body.
  *
+ * The [filename] is emitted as a quoted-string in the `Content-Disposition: ...; filename=...` header,
+ * matching the WHATWG HTML form-submission specification used by browsers, curl, OkHttp and other major clients.
+ *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.append)
  */
 
@@ -267,9 +273,12 @@ public fun FormBuilder.append(
     bodyBuilder: Sink.() -> Unit
 ) {
     val headersBuilder = HeadersBuilder()
-    headersBuilder[HttpHeaders.ContentDisposition] = "filename=${filename.escapeIfNeeded()}"
+    headersBuilder[HttpHeaders.ContentDisposition] = "filename=${filename.quoteForMultipart()}"
     contentType?.run { headersBuilder[HttpHeaders.ContentType] = this.toString() }
     val headers = headersBuilder.build()
 
     append(key, headers, size, bodyBuilder)
 }
+
+@OptIn(InternalAPI::class)
+internal fun String.quoteForMultipart(): String = if (isQuoted()) this else quote()
