@@ -252,20 +252,16 @@ class MultiPartFormDataContentTest {
     fun `filename parameter is always quoted in Content-Disposition`() = runTest {
         val data = MultiPartFormDataContent(
             formData {
-                append(
-                    key = "image",
-                    value = ByteArray(3) { 0 },
-                    headers = Headers.build {
-                        append(HttpHeaders.ContentDisposition, "filename=picture.jpg")
-                    },
-                )
+                append(key = "image", filename = "picture.jpg", size = 3) {
+                    write(ByteArray(3) { 0 })
+                }
             },
             boundary = "boundary",
         )
 
         val rendered = data.readString()
         assertContains(rendered, "name=\"image\"")
-        assertContains(rendered, "filename=picture.jpg")
+        assertContains(rendered, "filename=\"picture.jpg\"")
     }
 
     @Test
