@@ -336,7 +336,7 @@ class ServerSentEventsTest {
     }
 
     @Test
-    fun testHeartbeatEventProvider() = testApplication {
+    fun `heartbeat uses eventProvider on every tick`() = testApplication {
         install(SSE)
         routing {
             sse {
@@ -379,7 +379,7 @@ class ServerSentEventsTest {
     }
 
     @Test
-    fun testHeartbeatEventProviderTakesPrecedenceOverEvent() = testApplication {
+    fun `eventProvider takes precedence over static heartbeat event`() = testApplication {
         install(SSE)
         routing {
             sse {
