@@ -203,12 +203,24 @@ internal class Endpoint(
 
         connections.incrementAndGet()
 
+        val resolver = config.dnsResolver
+        val resolvedHost: String? = if (unixSocket == null && proxy == null && resolver != null) {
+            val resolved = resolver(host)
+            if (resolved.isEmpty()) {
+                connections.decrementAndGet()
+                throw FailToConnectException()
+            }
+            resolved.first()
+        } else {
+            null
+        }
+
         try {
             repeat(connectAttempts) {
-                val address = if (unixSocket != null) {
-                    UnixSocketAddress(unixSocket.path)
-                } else {
-                    InetSocketAddress(host, port)
+                val address = when {
+                    unixSocket != null -> UnixSocketAddress(unixSocket.path)
+                    resolvedHost != null -> InetSocketAddress(resolvedHost, port)
+                    else -> InetSocketAddress(host, port)
                 }
 
                 val connect: suspend CoroutineScope.() -> Socket = {
@@ -248,9 +260,11 @@ internal class Endpoint(
 
                         else -> InetSocketAddress(requestData.url.host, requestData.url.port)
                     }
+                    // realAddress.hostname is an IP literal when dnsResolver was applied; preserve SNI.
+                    val sniHostname = if (resolvedHost != null) host else realAddress.hostname
                     val tlsSocket = connection.tls(coroutineContext) {
                         takeFrom(config.https)
-                        serverName = serverName ?: realAddress.hostname
+                        serverName = serverName ?: sniHostname
                     }
                     return address to tlsSocket.connection()
                 } catch (cause: Throwable) {

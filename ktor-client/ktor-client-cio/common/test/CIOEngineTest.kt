@@ -201,6 +201,50 @@ class CIOEngineTest : ClientEngineTest<CIOEngineConfig>(CIO) {
     }
 
     @Test
+    fun testDnsResolverIsInvokedAndUsedForConnection() = testClient {
+        val resolvedHosts = mutableListOf<String>()
+        config {
+            engine {
+                dnsResolver = { hostname ->
+                    resolvedHosts += hostname
+                    listOf(TEST_SERVER_SOCKET_HOST)
+                }
+            }
+        }
+
+        withServerSocket { client, socket ->
+            launch {
+                val serverPort = (socket.localAddress as InetSocketAddress).port
+                client.get { url(host = "example.invalid", port = serverPort, path = "/") }
+            }
+
+            socket.accept().use {
+                val readChannel = it.openReadChannel()
+                val writeChannel = it.openWriteChannel()
+                readAvailableLines(readChannel)
+                writeOkResponse(writeChannel)
+            }
+
+            assertEquals(listOf("example.invalid"), resolvedHosts)
+        }
+    }
+
+    @Test
+    fun testDnsResolverEmptyResultFailsConnection() = testClient {
+        config {
+            engine {
+                dnsResolver = { emptyList() }
+            }
+        }
+
+        test { client ->
+            assertFailsWith<FailToConnectException> {
+                client.get { url(host = "example.invalid", port = 0, path = "/") }
+            }
+        }
+    }
+
+    @Test
     fun `test ignore invalid Content-Length with Connection close`() = runTest {
         val serverResponse = getResponse(connection = "close")
         val response = readResponse(GMTDate.START, anyRequest, serverResponse, ByteChannel(), coroutineContext)
