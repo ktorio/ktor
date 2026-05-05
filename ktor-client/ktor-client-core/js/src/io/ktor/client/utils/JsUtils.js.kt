@@ -20,6 +20,8 @@ import org.w3c.fetch.MANUAL
 import org.w3c.fetch.RequestRedirect
 import kotlin.coroutines.CoroutineContext
 
+// Prefixed to avoid a name collision with Vue's `toRaw` export when bundled by Vite (KTOR-9549).
+@JsName("ktor_toRaw")
 @OptIn(InternalAPI::class)
 internal suspend fun HttpRequestData.toRaw(
     clientConfig: HttpClientConfig<*>,
