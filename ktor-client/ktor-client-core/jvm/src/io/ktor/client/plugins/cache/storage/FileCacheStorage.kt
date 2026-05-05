@@ -13,11 +13,11 @@ import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
 import io.ktor.utils.io.jvm.javaio.*
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.sync.withPermit
 import java.io.File
 import java.security.MessageDigest
 
@@ -85,22 +85,20 @@ private class FileCacheStorage(
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : CacheStorage {
 
-    private companion object {
-        private const val MAX_PERMITS = 1000
-    }
-
     private val mutexes = ConcurrentMap<String, Mutex>()
-    private val semaphore = Semaphore(MAX_PERMITS)
 
-    // Serializes concurrent clear() calls so they cannot deadlock by splitting the semaphore permits.
-    private val clearMutex = Mutex()
+    // Read/write coordination: clear() holds accessGate for its full duration, so new readers
+    // cannot enter while files are being deleted, and waits for in-flight readers to drain.
+    private val accessGate = Mutex()
+    private val activeReaders = atomic(0)
+    private val readersDrained = Channel<Unit>(Channel.CONFLATED)
 
     init {
         directory.mkdirs()
     }
 
     override suspend fun store(url: Url, data: CachedResponseData): Unit = withContext(dispatcher) {
-        semaphore.withPermit {
+        withReadAccess {
             val urlHex = key(url)
             updateCache(urlHex) { caches ->
                 caches.filterNot { it.varyKeys == data.varyKeys } + data
@@ -109,13 +107,13 @@ private class FileCacheStorage(
     }
 
     override suspend fun findAll(url: Url): Set<CachedResponseData> = withContext(dispatcher) {
-        semaphore.withPermit {
+        withReadAccess {
             readCache(key(url)).toSet()
         }
     }
 
     override suspend fun find(url: Url, varyKeys: Map<String, String>): CachedResponseData? = withContext(dispatcher) {
-        semaphore.withPermit {
+        withReadAccess {
             val data = readCache(key(url))
             data.find {
                 varyKeys.all { (key, value) -> it.varyKeys[key] == value }
@@ -124,7 +122,7 @@ private class FileCacheStorage(
     }
 
     override suspend fun remove(url: Url, varyKeys: Map<String, String>) = withContext(dispatcher) {
-        semaphore.withPermit {
+        withReadAccess {
             val urlHex = key(url)
             updateCache(urlHex) { caches ->
                 caches.filterNot { it.varyKeys == varyKeys }
@@ -133,29 +131,34 @@ private class FileCacheStorage(
     }
 
     override suspend fun removeAll(url: Url) = withContext(dispatcher) {
-        semaphore.withPermit {
+        withReadAccess {
             val urlHex = key(url)
             deleteCache(urlHex)
         }
     }
 
     override suspend fun clear(): Unit = withContext(dispatcher) {
-        clearMutex.withLock {
-            var acquired = 0
-            try {
-                repeat(MAX_PERMITS) {
-                    semaphore.acquire()
-                    acquired++
+        accessGate.withLock {
+            while (activeReaders.value > 0) {
+                readersDrained.receive()
+            }
+            val files = directory.listFiles() ?: return@withLock
+            for (file in files) {
+                if (!file.delete()) {
+                    LOGGER.trace { "Failed to delete cache file: ${file.name}" }
                 }
-                val files = directory.listFiles() ?: return@withLock
-                for (file in files) {
-                    if (!file.delete()) {
-                        LOGGER.trace { "Failed to delete cache file: ${file.name}" }
-                    }
-                }
-                mutexes.clear()
-            } finally {
-                repeat(acquired) { semaphore.release() }
+            }
+            mutexes.clear()
+        }
+    }
+
+    private suspend inline fun <T> withReadAccess(block: () -> T): T {
+        accessGate.withLock { activeReaders.incrementAndGet() }
+        try {
+            return block()
+        } finally {
+            if (activeReaders.decrementAndGet() == 0) {
+                readersDrained.trySend(Unit)
             }
         }
     }
