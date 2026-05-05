@@ -72,24 +72,33 @@ public class CIOMultipartDataBase(
     }
 
     private suspend fun partToData(part: MultipartEvent.MultipartPart): PartData {
-        val headers = part.headers.await()
+        val rawHeaders = part.headers.await()
+        // Snapshot headers into a non-pooled instance so that PartData remains
+        // valid after MultipartPart.releaseSuspend() recycles the pooled HttpHeadersMap.
+        val partHeaders = rawHeaders.snapshot()
 
-        val contentDisposition = headers["Content-Disposition"]?.let { ContentDisposition.parse(it.toString()) }
+        val contentDisposition = partHeaders[HttpHeaders.ContentDisposition]?.let { ContentDisposition.parse(it) }
         val filename = contentDisposition?.parameter("filename")
 
         val body = part.body
         if (filename == null) {
             val packet = body.readRemaining()
             packet.use {
-                return PartData.FormItem(it.readText(), part::release, CIOHeaders(headers), part::releaseSuspend)
+                return PartData.FormItem(it.readText(), part::release, partHeaders, part::releaseSuspend)
             }
         }
 
         return PartData.FileItem(
             { part.body },
             part::release,
-            CIOHeaders(headers),
+            partHeaders,
             part::releaseSuspend
         )
+    }
+
+    private fun HttpHeadersMap.snapshot(): Headers = Headers.build {
+        for (offset in offsets()) {
+            append(nameAtOffset(offset).toString(), valueAtOffset(offset).toString())
+        }
     }
 }
