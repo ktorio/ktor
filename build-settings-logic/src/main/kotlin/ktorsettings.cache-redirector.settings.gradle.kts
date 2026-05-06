@@ -10,7 +10,7 @@ import java.net.URI
 private val ProviderFactory.isCIRun: Provider<Boolean>
     get() = gradleProperty("teamcity").map { true }
         .orElse(environmentVariable("TEAMCITY_VERSION").map { true })
-        .orElse(false)
+        .orElse(providers.isCIRun)
 
 /**
  * Enable cache redirector if explicitly set via project property,
@@ -20,7 +20,8 @@ private val Settings.useCacheRedirector: Provider<Boolean>
     get() = providers
         .gradleProperty("ktorbuild.useCacheRedirector")
         .map { it.toBoolean() }
-        .orElse(providers.isCIRun)
+        // TODO re-enable when it's behaving
+        .orElse(false)
 
 // Repository override section
 
