@@ -20,7 +20,7 @@ private val Settings.useCacheRedirector: Provider<Boolean>
     get() = providers
         .gradleProperty("ktorbuild.useCacheRedirector")
         .map { it.toBoolean() }
-        .orElse(providers.isCIRun)
+        .orElse(false)
 
 // Repository override section
 
