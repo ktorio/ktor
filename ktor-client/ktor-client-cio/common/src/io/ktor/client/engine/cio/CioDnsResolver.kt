@@ -107,7 +107,9 @@ private fun buildDnsQuery(id: Int, hostname: String, qtype: Short): Source = bui
     writeShort(0) // ANCOUNT
     writeShort(0) // NSCOUNT
     writeShort(0) // ARCOUNT
-    for (label in hostname.split('.')) {
+    // RFC 1035 §3.1: an FQDN may carry a trailing dot for the root label; strip it so
+    // split('.') doesn't produce an empty trailing label that fails the length check.
+    for (label in hostname.removeSuffix(".").split('.')) {
         val bytes = label.encodeToByteArray()
         require(bytes.size in 1..63) { "Invalid DNS label '$label' in '$hostname'" }
         writeByte(bytes.size.toByte())

@@ -105,6 +105,19 @@ class DnsResolverTest {
     }
 
     @Test
+    fun testCioDnsResolverAcceptsFqdnWithTrailingDot() = runBlocking {
+        withFakeDnsServer { server, port ->
+            val resolved = async {
+                CioDnsResolver(server = "127.0.0.1", port = port, timeout = 2.seconds)
+                    .invoke("example.com.")
+            }
+            server.replyWithA("203.0.113.99")
+            server.replyEmpty()
+            assertEquals(listOf("203.0.113.99"), resolved.await())
+        }
+    }
+
+    @Test
     fun testJvmDnsResolverIsCooperativelyCancellable() = runBlocking<Unit> {
         // Smoke test only. A strong test for `runInterruptible` interrupting an in-flight blocking
         // `InetAddress.getAllByName` call would need a hostname whose DNS lookup blocks for tens of
