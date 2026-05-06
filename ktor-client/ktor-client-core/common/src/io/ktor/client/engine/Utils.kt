@@ -105,7 +105,9 @@ internal suspend inline fun attachToUserJob(callJob: Job) {
 
     val cleanupHandler = userJob.invokeOnCompletion(onCancelling = true) { cause ->
         cause ?: return@invokeOnCompletion
-        callJob.cancel(kotlinx.coroutines.CancellationException(cause.message))
+        val cancellation = cause as? kotlinx.coroutines.CancellationException
+            ?: kotlinx.coroutines.CancellationException(cause.message)
+        callJob.cancel(cancellation)
     }
 
     callJob.invokeOnCompletion {
