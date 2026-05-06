@@ -203,19 +203,16 @@ internal class Endpoint(
 
         connections.incrementAndGet()
 
-        val resolver = config.dnsResolver
-        val resolvedHost: String? = if (unixSocket == null && proxy == null && resolver != null) {
-            val resolved = resolver(host)
-            if (resolved.isEmpty()) {
-                connections.decrementAndGet()
-                throw FailToConnectException()
-            }
-            resolved.first()
-        } else {
-            null
-        }
-
         try {
+            val resolver = config.dnsResolver
+            val resolvedHost: String? = if (unixSocket == null && proxy == null && resolver != null) {
+                val resolved = resolver(host)
+                if (resolved.isEmpty()) throw FailToConnectException()
+                resolved.first()
+            } else {
+                null
+            }
+
             repeat(connectAttempts) {
                 val address = when {
                     unixSocket != null -> UnixSocketAddress(unixSocket.path)

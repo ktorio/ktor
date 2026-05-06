@@ -245,6 +245,47 @@ class CIOEngineTest : ClientEngineTest<CIOEngineConfig>(CIO) {
     }
 
     @Test
+    fun testDnsResolverThrowingDoesNotLeakConnectionSlot() = testClient {
+        var attempts = 0
+        config {
+            engine {
+                pipelining = true
+                endpoint { maxConnectionsPerRoute = 1 }
+                dnsResolver = {
+                    attempts++
+                    if (attempts == 1) error("simulated DNS failure")
+                    listOf(TEST_SERVER_SOCKET_HOST)
+                }
+            }
+        }
+
+        withServerSocket { client, socket ->
+            val serverPort = (socket.localAddress as InetSocketAddress).port
+
+            val firstFailure = assertFails {
+                client.get { url(host = "example.invalid", port = serverPort, path = "/") }
+            }
+            assertContains(firstFailure.message ?: "", "simulated DNS failure")
+
+            // With pipelining enabled and maxConnectionsPerRoute=1, a leaked counter from the
+            // failed first request would block this second request forever in deliveryPoint.send,
+            // because no pipeline was ever created and the per-route slot is still held.
+            launch {
+                socket.accept().use {
+                    val readChannel = it.openReadChannel()
+                    val writeChannel = it.openWriteChannel()
+                    readAvailableLines(readChannel)
+                    writeOkResponse(writeChannel)
+                }
+            }
+            val response = withTimeout(5.seconds) {
+                client.get { url(host = "example.invalid", port = serverPort, path = "/") }
+            }
+            assertEquals(HttpStatusCode.OK, response.status)
+        }
+    }
+
+    @Test
     fun `test ignore invalid Content-Length with Connection close`() = runTest {
         val serverResponse = getResponse(connection = "close")
         val response = readResponse(GMTDate.START, anyRequest, serverResponse, ByteChannel(), coroutineContext)
