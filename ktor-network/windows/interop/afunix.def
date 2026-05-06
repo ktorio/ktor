@@ -16,3 +16,8 @@ struct sockaddr_un {
   char sun_path[UNIX_PATH_MAX];
 } SOCKADDR_UN, *PSOCKADDR_UN;
 #endif
+
+// K/N interop interprets 'const char*' as a String, but we should be able to pass any pointer here
+static int ktor_setsockopt_raw(SOCKET s, int level, int optname, const void* optval, int optlen) {
+    return setsockopt(s, level, optname, (const char*)optval, optlen);
+}
