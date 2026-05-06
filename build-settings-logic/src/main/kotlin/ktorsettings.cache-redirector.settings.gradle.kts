@@ -10,7 +10,7 @@ import java.net.URI
 private val ProviderFactory.isCIRun: Provider<Boolean>
     get() = gradleProperty("teamcity").map { true }
         .orElse(environmentVariable("TEAMCITY_VERSION").map { true })
-        .orElse(providers.isCIRun)
+        .orElse(false)
 
 /**
  * Enable cache redirector if explicitly set via project property,
