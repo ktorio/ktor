@@ -5,13 +5,17 @@
 package io.ktor.server.netty.http3
 
 import io.ktor.util.cio.*
-import io.ktor.utils.io.pool.useInstance
-import io.netty.buffer.*
-import io.netty.handler.codec.quic.*
-import java.net.*
-import java.nio.*
-import java.security.*
-import javax.crypto.*
+import io.ktor.utils.io.pool.*
+import io.netty.buffer.ByteBuf
+import io.netty.handler.codec.quic.Quic
+import io.netty.handler.codec.quic.QuicTokenHandler
+import java.net.InetSocketAddress
+import java.nio.ByteBuffer
+import java.security.MessageDigest
+import java.security.SecureRandom
+import javax.crypto.KeyGenerator
+import javax.crypto.Mac
+import javax.crypto.SecretKey
 
 /**
  * Maximum age of a valid token in milliseconds (default: 60 seconds).
@@ -47,7 +51,7 @@ private const val TIMESTAMP_LENGTH = 8
  * The destination connection id is appended after the HMAC so that the QUIC
  * implementation can extract it at the offset returned by [validateToken].
  *
- * @param keyGen the secret key used for HMAC signing and validation.
+ * @param keyGen a function for providing the secret key used in HMAC signing and validation.
  *   If not provided, a random 256-bit key is generated.
  * @param tokenLifetimeMillis maximum age of a valid token in milliseconds.
  */

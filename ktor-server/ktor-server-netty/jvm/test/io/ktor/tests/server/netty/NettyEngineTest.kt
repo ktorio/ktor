@@ -579,12 +579,13 @@ class NettyHttp3Test :
         enableSsl = true
     }
 
+    @OptIn(ExperimentalKtorApi::class)
     override fun configure(configuration: NettyApplicationEngine.Configuration) {
-        configuration.enableHttp3 = true
+        configuration.enableHttp3()
     }
 
     @Test
-    fun `test HTTP3 simple GET request`() = runTest {
+    fun `simple GET request`() = runTest {
         createAndStartServer {
             application.routing {
                 get("/") {
@@ -601,7 +602,7 @@ class NettyHttp3Test :
     }
 
     @Test
-    fun `test HTTP3 request with query parameters`() = runTest {
+    fun `request with query parameters`() = runTest {
         createAndStartServer {
             application.routing {
                 get("/greet") {
@@ -619,7 +620,7 @@ class NettyHttp3Test :
     }
 
     @Test
-    fun `test HTTP3 POST request with body`() = runTest {
+    fun `POST request with body`() = runTest {
         createAndStartServer {
             application.routing {
                 post("/echo") {
@@ -638,7 +639,7 @@ class NettyHttp3Test :
     }
 
     @Test
-    fun `test HTTP3 response headers`() = runTest {
+    fun `response headers`() = runTest {
         createAndStartServer {
             application.routing {
                 get("/headers") {
@@ -657,7 +658,7 @@ class NettyHttp3Test :
     }
 
     @Test
-    fun `test HTTP3 404 response`() = runTest {
+    fun `404 response`() = runTest {
         createAndStartServer {
             application.routing {
                 get("/exists") {
@@ -673,7 +674,7 @@ class NettyHttp3Test :
     }
 
     @Test
-    fun `test HTTP3 multiple sequential requests on same connection`() = runTest {
+    fun `multiple sequential requests on same connection`() = runTest {
         createAndStartServer {
             application.routing {
                 get("/count/{n}") {
@@ -693,7 +694,7 @@ class NettyHttp3Test :
     }
 
     @Test
-    fun `test HTTP3 POST request with trailers does not break stream`() = runTest {
+    fun `POST request with trailers does not break stream`() = runTest {
         createAndStartServer {
             application.routing {
                 post("/echo-with-trailers") {

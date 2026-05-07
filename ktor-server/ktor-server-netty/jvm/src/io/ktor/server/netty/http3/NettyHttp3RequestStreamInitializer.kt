@@ -6,10 +6,9 @@ package io.ktor.server.netty.http3
 
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
-import io.netty.channel.*
-import io.netty.handler.codec.quic.*
-import io.netty.util.concurrent.*
-import kotlin.coroutines.*
+import io.netty.channel.ChannelInitializer
+import io.netty.handler.codec.quic.QuicStreamChannel
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Initializer for HTTP/3 request streams. Creates a new [NettyHttp3Handler] for each
@@ -23,7 +22,6 @@ import kotlin.coroutines.*
 internal class NettyHttp3RequestStreamInitializer(
     private val enginePipeline: EnginePipeline,
     private val application: Application,
-    private val callEventGroup: EventExecutorGroup,
     private val userCoroutineContext: CoroutineContext,
     private val runningLimit: Int
 ) : ChannelInitializer<QuicStreamChannel>() {
@@ -33,7 +31,6 @@ internal class NettyHttp3RequestStreamInitializer(
             NettyHttp3Handler(
                 enginePipeline,
                 application,
-                callEventGroup,
                 userCoroutineContext,
                 runningLimit
             )

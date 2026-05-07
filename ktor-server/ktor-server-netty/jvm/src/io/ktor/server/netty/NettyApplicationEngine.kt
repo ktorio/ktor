@@ -10,6 +10,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.http3.*
 import io.ktor.util.network.*
 import io.ktor.util.pipeline.*
+import io.ktor.utils.io.ExperimentalKtorApi
 import io.netty.bootstrap.Bootstrap
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.Channel
@@ -28,10 +29,8 @@ import io.netty.channel.socket.nio.NioDatagramChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.handler.codec.http.HttpObjectDecoder
 import io.netty.handler.codec.http.HttpServerCodec
-import io.netty.handler.codec.quic.QuicServerCodecBuilder
 import io.netty.handler.codec.quic.QuicSslContext
 import io.netty.handler.codec.quic.QuicSslContextBuilder
-import io.netty.handler.codec.quic.QuicTokenHandler
 import kotlinx.coroutines.CompletableJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import java.net.BindException
@@ -159,74 +158,29 @@ public class NettyApplicationEngine(
         public var channelPipelineConfig: ChannelPipeline.() -> Unit = {}
 
         /**
-         * If set to `true`, enables HTTP/3 protocol (over QUIC/UDP) for Netty engine.
+         * Holds the HTTP/3 configuration when HTTP/3 is enabled, or `null` when disabled.
+         *
+         * Configured via [enableHttp3].
+         */
+        internal var http3Configuration: NettyHttp3Configuration? = null
+            private set
+
+        /**
+         * Enables the HTTP/3 protocol (over QUIC/UDP) for the Netty engine.
+         *
          * Requires an SSL connector to be configured (HTTP/3 always uses TLS).
          * The HTTP/3 endpoint will listen on the same port as the SSL connector but over UDP.
-         */
-        public var enableHttp3: Boolean = false
-
-        /**
-         * The [QuicTokenHandler] used to generate and validate QUIC retry tokens
-         * when HTTP/3 is enabled. By default, a secure HMAC-SHA256-based handler
-         * is used that cryptographically signs tokens with a randomly generated key
-         * and rejects forged or expired tokens.
          *
-         * Callers may replace this with a custom [QuicTokenHandler] implementation
-         * to use a different signing strategy or integrate with external token services.
+         * QUIC- and HTTP/3-specific options can be customized through the [configure] lambda,
+         * which receives a [NettyHttp3Configuration] as its receiver. These options apply only
+         * to the HTTP/3 transport and have no effect on HTTP/1.1 or HTTP/2.
          *
-         * Only takes effect when [enableHttp3] is `true`.
+         * Calling this function multiple times replaces the previous configuration.
          */
-        public var quicTokenHandler: QuicTokenHandler = HmacQuicTokenHandler()
-
-        /**
-         * Maximum idle timeout for QUIC connections in milliseconds.
-         * If no data is exchanged within this period, the connection is closed.
-         *
-         * Only takes effect when [enableHttp3] is `true`.
-         */
-        public var quicMaxIdleTimeoutMillis: Long = 30_000
-
-        /**
-         * The initial value for the maximum amount of data that can be sent
-         * on the entire QUIC connection, in bytes.
-         *
-         * Only takes effect when [enableHttp3] is `true`.
-         */
-        public var quicInitialMaxData: Long = 10_000_000
-
-        /**
-         * The initial flow-control limit for locally-initiated bidirectional
-         * QUIC streams, in bytes.
-         *
-         * Only takes effect when [enableHttp3] is `true`.
-         */
-        public var quicInitialMaxStreamDataBidirectionalLocal: Long = 1_000_000
-
-        /**
-         * The initial flow-control limit for remotely-initiated bidirectional
-         * QUIC streams, in bytes.
-         *
-         * Only takes effect when [enableHttp3] is `true`.
-         */
-        public var quicInitialMaxStreamDataBidirectionalRemote: Long = 1_000_000
-
-        /**
-         * The initial maximum number of bidirectional streams that the remote
-         * peer is allowed to open.
-         *
-         * Only takes effect when [enableHttp3] is `true`.
-         */
-        public var quicInitialMaxStreamsBidirectional: Long = 100
-
-        /**
-         * User-provided function to configure the QUIC server codec builder
-         * used when HTTP/3 is enabled. This lambda is invoked on the
-         * [QuicServerCodecBuilder] after all default settings have been applied,
-         * allowing callers to override or add any QUIC transport parameters.
-         *
-         * Only takes effect when [enableHttp3] is `true`.
-         */
-        public var configureQuicServerCodec: QuicServerCodecBuilder.() -> Unit = {}
+        @ExperimentalKtorApi
+        public fun enableHttp3(configure: NettyHttp3Configuration.() -> Unit = {}) {
+            http3Configuration = NettyHttp3Configuration().apply(configure)
+        }
 
         /**
          * Default function to configure Netty's
@@ -286,13 +240,13 @@ public class NettyApplicationEngine(
         configuration.connectors.map(::createBootstrap)
     }
     private val http3Bootstraps: List<Bootstrap> by lazy {
-        if (!configuration.enableHttp3) return@lazy emptyList()
+        val http3Configuration = configuration.http3Configuration ?: return@lazy emptyList()
         require(configuration.connectors.any { it is EngineSSLConnectorConfig }) {
             "Netty HTTP/3 requires at least one SSL connector. Add an SSL connector or disable enableHttp3."
         }
         configuration.connectors
             .filterIsInstance<EngineSSLConnectorConfig>()
-            .map { createHttp3Bootstrap(it) }
+            .map { createHttp3Bootstrap(it, http3Configuration) }
     }
 
     private fun createBootstrap(connector: EngineConnectorConfig): ServerBootstrap {
@@ -335,7 +289,10 @@ public class NettyApplicationEngine(
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun createHttp3Bootstrap(connector: EngineSSLConnectorConfig): Bootstrap {
+    private fun createHttp3Bootstrap(
+        connector: EngineSSLConnectorConfig,
+        http3Configuration: NettyHttp3Configuration
+    ): Bootstrap {
         val chain = connector.keyStore.getCertificateChain(connector.keyAlias).toList() as List<X509Certificate>
         val certs = chain.toTypedArray()
         val password = connector.privateKeyPassword()
@@ -358,17 +315,10 @@ public class NettyApplicationEngine(
                 NettyHttp3ChannelInitializer(
                     applicationProvider,
                     pipeline,
-                    callEventGroup,
                     userContext,
                     configuration.runningLimit,
                     quicSslContext,
-                    configuration.quicTokenHandler,
-                    configuration.quicMaxIdleTimeoutMillis,
-                    configuration.quicInitialMaxData,
-                    configuration.quicInitialMaxStreamDataBidirectionalLocal,
-                    configuration.quicInitialMaxStreamDataBidirectionalRemote,
-                    configuration.quicInitialMaxStreamsBidirectional,
-                    configuration.configureQuicServerCodec
+                    http3Configuration
                 )
             )
         }

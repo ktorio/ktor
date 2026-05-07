@@ -7,18 +7,21 @@ package io.ktor.server.netty.http3
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.server.netty.NettyApplicationCallHandler.CallHandlerCoroutineName
 import io.ktor.server.netty.cio.*
-import io.netty.channel.*
-import io.netty.handler.codec.http3.*
-import io.netty.util.*
-import io.netty.util.concurrent.*
+import io.ktor.util.pipeline.*
+import io.netty.channel.ChannelHandlerContext
+import io.netty.handler.codec.http3.Http3DataFrame
+import io.netty.handler.codec.http3.Http3Headers
+import io.netty.handler.codec.http3.Http3HeadersFrame
+import io.netty.handler.codec.http3.Http3RequestStreamInboundHandler
+import io.netty.util.AttributeKey
 import kotlinx.coroutines.*
-import kotlin.coroutines.*
+import kotlin.coroutines.CoroutineContext
 
 internal class NettyHttp3Handler(
     private val enginePipeline: EnginePipeline,
     private val application: Application,
-    private val callEventGroup: EventExecutorGroup,
     private val userCoroutineContext: CoroutineContext,
     runningLimit: Int
 ) : Http3RequestStreamInboundHandler(), CoroutineScope {
@@ -37,9 +40,6 @@ internal class NettyHttp3Handler(
             coroutineContext
         )
 
-        context.pipeline()?.apply {
-            addLast(callEventGroup, NettyApplicationCallHandler(userCoroutineContext, enginePipeline))
-        }
         context.fireChannelActive()
     }
 
@@ -75,24 +75,39 @@ internal class NettyHttp3Handler(
         context.fireChannelReadComplete()
     }
 
-    @Suppress("OVERRIDE_DEPRECATION")
+    @Suppress("OverridingDeprecatedMember")
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
         application.log.error("HTTP/3 stream exception", cause)
         ctx.close()
     }
 
     private fun startHttp3(context: ChannelHandlerContext, headers: Http3Headers) {
+        val callJob = Job(parent = userCoroutineContext[Job])
+        val callContext =
+            userCoroutineContext + NettyDispatcher.CurrentContext(context) + callJob + CallHandlerCoroutineName
         val call = NettyHttp3ApplicationCall(
             application,
             context,
             headers,
             handlerJob + Dispatchers.Unconfined,
-            userCoroutineContext
+            callContext
         )
         context.applicationCall = call
 
-        context.fireChannelRead(call)
         responseWriter.processResponse(call)
+
+        context.executor().execute {
+            val callScope = CoroutineScope(context = callContext)
+            callScope.launch(start = CoroutineStart.UNDISPATCHED) {
+                try {
+                    enginePipeline.execute(call)
+                } catch (error: Throwable) {
+                    handleFailure(call, error)
+                } finally {
+                    callJob.complete()
+                }
+            }
+        }
     }
 
     companion object {

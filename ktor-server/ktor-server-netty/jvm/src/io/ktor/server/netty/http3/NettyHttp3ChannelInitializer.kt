@@ -6,13 +6,13 @@ package io.ktor.server.netty.http3
 
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
-import io.netty.channel.*
-import io.netty.channel.socket.*
-import io.netty.handler.codec.http3.*
-import io.netty.handler.codec.quic.*
-import io.netty.util.concurrent.*
+import io.netty.channel.ChannelInitializer
+import io.netty.channel.socket.DatagramChannel
+import io.netty.handler.codec.http3.Http3
+import io.netty.handler.codec.http3.Http3ServerConnectionHandler
+import io.netty.handler.codec.quic.QuicSslContext
 import java.util.concurrent.TimeUnit
-import kotlin.coroutines.*
+import kotlin.coroutines.CoroutineContext
 
 /**
  * A [ChannelInitializer] for QUIC/HTTP3 that configures the [DatagramChannel] pipeline
@@ -21,17 +21,10 @@ import kotlin.coroutines.*
 internal class NettyHttp3ChannelInitializer(
     private val applicationProvider: () -> Application,
     private val enginePipeline: EnginePipeline,
-    private val callEventGroup: EventExecutorGroup,
     private val userContext: CoroutineContext,
     private val runningLimit: Int,
     private val quicSslContext: QuicSslContext,
-    private val quicTokenHandler: QuicTokenHandler,
-    private val quicMaxIdleTimeoutMillis: Long,
-    private val quicInitialMaxData: Long,
-    private val quicInitialMaxStreamDataBidirectionalLocal: Long,
-    private val quicInitialMaxStreamDataBidirectionalRemote: Long,
-    private val quicInitialMaxStreamsBidirectional: Long,
-    private val configureQuicServerCodec: QuicServerCodecBuilder.() -> Unit
+    private val http3Configuration: NettyHttp3Configuration
 ) : ChannelInitializer<DatagramChannel>() {
 
     override fun initChannel(ch: DatagramChannel) {
@@ -40,20 +33,19 @@ internal class NettyHttp3ChannelInitializer(
         val streamInitializer = NettyHttp3RequestStreamInitializer(
             enginePipeline,
             application,
-            callEventGroup,
             userContext,
             runningLimit
         )
 
         val quicServerCodec = Http3.newQuicServerCodecBuilder()
             .sslContext(quicSslContext)
-            .tokenHandler(quicTokenHandler)
-            .maxIdleTimeout(quicMaxIdleTimeoutMillis, TimeUnit.MILLISECONDS)
-            .initialMaxData(quicInitialMaxData)
-            .initialMaxStreamDataBidirectionalLocal(quicInitialMaxStreamDataBidirectionalLocal)
-            .initialMaxStreamDataBidirectionalRemote(quicInitialMaxStreamDataBidirectionalRemote)
-            .initialMaxStreamsBidirectional(quicInitialMaxStreamsBidirectional)
-            .apply(configureQuicServerCodec)
+            .tokenHandler(http3Configuration.quicTokenHandler)
+            .maxIdleTimeout(http3Configuration.quicMaxIdleTimeoutMillis.inWholeMilliseconds, TimeUnit.MILLISECONDS)
+            .initialMaxData(http3Configuration.quicInitialMaxData)
+            .initialMaxStreamDataBidirectionalLocal(http3Configuration.quicInitialMaxStreamDataBidirectionalLocal)
+            .initialMaxStreamDataBidirectionalRemote(http3Configuration.quicInitialMaxStreamDataBidirectionalRemote)
+            .initialMaxStreamsBidirectional(http3Configuration.quicInitialMaxStreamsBidirectional)
+            .apply(http3Configuration.configureQuicServerCodec)
             .handler(Http3ServerConnectionHandler(streamInitializer))
             .build()
 
