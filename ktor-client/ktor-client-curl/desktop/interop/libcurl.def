@@ -1,11 +1,11 @@
-# curl version = 8.18.0
+# curl version = 8.20.0
 package = libcurl
 headers = curl/curl.h
 headerFilter = curl/*
 
 # libcurl uses native Schannel for TLS on Windows
 # There is no libz by default installed on Windows, so we need to include it statically
-staticLibraries.mingw = libcurl.a libnghttp2.a libzlib.a
+staticLibraries.mingw = libcurl.a libnghttp2.a libzs.a
 compilerOpts.mingw = -DCURL_STATICLIB
 linkerOpts.mingw = -liphlpapi -lsecur32 -lcrypt32 -lws2_32
 

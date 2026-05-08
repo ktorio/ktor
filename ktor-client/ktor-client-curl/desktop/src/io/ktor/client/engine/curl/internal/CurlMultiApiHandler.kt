@@ -401,7 +401,7 @@ internal class CurlMultiApiHandler : Closeable {
 
                 val status = curl_ws_send(
                     curl = easyHandle,
-                    buffer = bufferStart,
+                    buffer_arg = bufferStart,
                     buflen = remaining.convert(),
                     sent = sent.ptr,
                     fragsize = 0,
