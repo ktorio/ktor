@@ -5,6 +5,7 @@
 package io.ktor.utils.io.jvm.javaio
 
 import io.ktor.utils.io.*
+import io.ktor.utils.io.CloseToken.Companion.wrapCause
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.*

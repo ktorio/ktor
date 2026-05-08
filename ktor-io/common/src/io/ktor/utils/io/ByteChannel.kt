@@ -4,6 +4,8 @@
 
 package io.ktor.utils.io
 
+import io.ktor.utils.io.CloseToken.Companion.throwOrNull
+import io.ktor.utils.io.CloseToken.Companion.wrapCause
 import io.ktor.utils.io.locks.*
 import kotlinx.atomicfu.AtomicRef
 import kotlinx.atomicfu.atomic

@@ -13,15 +13,19 @@ internal val CLOSED = CloseToken(null)
 @OptIn(ExperimentalCoroutinesApi::class)
 internal class CloseToken(private val origin: Throwable?) {
 
-    fun wrapCause(wrap: (Throwable) -> Throwable = ::ClosedByteChannelException): Throwable? {
-        return when (origin) {
-            null -> null
-            is CopyableThrowable<*> -> origin.createCopy()
-            is CancellationException -> CancellationException(origin.message, origin)
-            else -> wrap(origin)
+    companion object {
+        inline fun CloseToken.wrapCause(
+            wrap: (Throwable) -> Throwable = ::ClosedByteChannelException
+        ): Throwable? {
+            return when (origin) {
+                null -> null
+                is CopyableThrowable<*> -> origin.createCopy()
+                is CancellationException -> CancellationException(origin.message, origin)
+                else -> wrap(origin)
+            }
         }
-    }
 
-    fun throwOrNull(wrap: (Throwable) -> Throwable): Unit? =
-        wrapCause(wrap)?.let { throw it }
+        inline fun CloseToken.throwOrNull(wrap: (Throwable) -> Throwable): Unit? =
+            wrapCause(wrap)?.let { throw it }
+    }
 }
