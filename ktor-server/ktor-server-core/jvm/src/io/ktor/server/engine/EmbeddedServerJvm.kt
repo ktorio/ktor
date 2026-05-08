@@ -492,7 +492,8 @@ actual constructor(
 }
 
 internal fun checkUrlMatches(url: URL, pattern: String): Boolean {
-    val urlPath = url.path?.replace(File.separatorChar, '/') ?: return false
+    val rawPath = url.path ?: return false
+    val urlPath = URLDecoder.decode(rawPath, "utf-8").replace(File.separatorChar, '/')
     val normalizedPattern = pattern.replace(File.separatorChar, '/')
     return urlPath.contains(normalizedPattern, ignoreCase = true)
 }
