@@ -185,9 +185,11 @@ public class UnsupportedFrameTypeException(
     }
 }
 
-@OptIn(InternalAPI::class)
-private fun CloseReason.isReserved() = CloseReason.Codes.byCode(code).let { recognized ->
-    recognized == null || recognized == CloseReason.Codes.CLOSED_ABNORMALLY
+// RFC 6455 §7.4.1: codes 1004-1006 and 1015-2999 are reserved and MUST NOT be sent.
+// Codes 3000-3999 (library/framework) and 4000-4999 (application private) are allowed.
+private fun CloseReason.isReserved(): Boolean {
+    val intCode = code.toInt()
+    return intCode in 1004..1006 || intCode in 1015..2999
 }
 
 private val DEFAULT_CLOSE_REASON_ERROR: CloseReason =

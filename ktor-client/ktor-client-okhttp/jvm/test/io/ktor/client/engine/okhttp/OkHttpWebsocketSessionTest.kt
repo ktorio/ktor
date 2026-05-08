@@ -7,12 +7,16 @@ package io.ktor.client.engine.okhttp
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.test.base.*
+import io.ktor.websocket.*
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
+import okio.ByteString
 import java.util.concurrent.TimeUnit
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -79,6 +83,27 @@ class OkHttpWebsocketSessionTest {
     }
 
     @Test
+    fun `Frame Close with application-private code is forwarded to OkHttp`() = runBlocking {
+        val (code, reason) = captureCloseFor(CloseReason(4002.toShort(), "custom-disconnect"))
+        assertEquals(4002, code)
+        assertEquals("custom-disconnect", reason)
+    }
+
+    @Test
+    fun `Frame Close with library-registered code is forwarded to OkHttp`() = runBlocking {
+        val (code, reason) = captureCloseFor(CloseReason(3500.toShort(), "library-code"))
+        assertEquals(3500, code)
+        assertEquals("library-code", reason)
+    }
+
+    @Test
+    fun `Frame Close with reserved code 1006 falls back to default`() = runBlocking {
+        val (code, reason) = captureCloseFor(CloseReason(1006.toShort(), "should-be-replaced"))
+        assertEquals(1011, code)
+        assertEquals("Client failure", reason)
+    }
+
+    @Test
     fun testWebSocketFactory() {
         val client = HttpClient(OkHttp) {
             install(WebSockets)
@@ -98,3 +123,25 @@ class OkHttpWebsocketSessionTest {
 }
 
 private class FactoryUsedException : Exception()
+
+private suspend fun captureCloseFor(reason: CloseReason): Pair<Int, String?> {
+    val captured = CompletableDeferred<Pair<Int, String?>>()
+    val socket = object : WebSocket {
+        override fun cancel() = Unit
+        override fun close(code: Int, reason: String?): Boolean {
+            captured.complete(code to reason)
+            return true
+        }
+        override fun queueSize(): Long = 0
+        override fun request(): Request = Request.Builder().url("ws://localhost").build()
+        override fun send(text: String): Boolean = true
+        override fun send(bytes: ByteString): Boolean = true
+    }
+    val factory = WebSocket.Factory { _, _ -> socket }
+    val client = OkHttpClient()
+    val request = Request.Builder().url("ws://localhost").build()
+    val session = OkHttpWebsocketSession(client, factory, request, Job())
+    session.start()
+    session.outgoing.send(Frame.Close(reason))
+    return withTimeout(5_000) { captured.await() }
+}
