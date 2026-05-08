@@ -4,6 +4,7 @@
 
 package io.ktor.utils.io
 
+import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.Job
 
 /**
@@ -11,11 +12,10 @@ import kotlinx.coroutines.Job
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.attachJob)
  */
+@OptIn(InternalCoroutinesApi::class)
 public fun ByteChannel.attachJob(job: Job) {
-    job.invokeOnCompletion {
-        if (it != null) {
-            cancel(it)
-        }
+    job.invokeOnCompletion(onCancelling = true) {
+        if (it != null) cancel(it)
     }
 }
 

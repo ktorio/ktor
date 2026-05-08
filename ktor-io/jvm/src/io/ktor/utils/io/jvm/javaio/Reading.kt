@@ -64,7 +64,8 @@ internal class RawSourceChannel(
         get() = buffer
 
     init {
-        job.invokeOnCompletion { cause ->
+        @OptIn(InternalCoroutinesApi::class)
+        job.invokeOnCompletion(onCancelling = true) { cause ->
             if (cause != null) closeSource(cause.asCancellationException())
         }
     }
