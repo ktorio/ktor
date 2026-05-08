@@ -9,13 +9,12 @@ import io.ktor.utils.io.CloseToken.Companion.wrapCause
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.io.*
 import kotlinx.io.Buffer
-import kotlinx.io.EOFException
-import kotlinx.io.IOException
-import java.io.*
-import java.nio.*
-import kotlin.coroutines.*
+import java.io.InputStream
+import java.nio.ByteBuffer
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Open a channel and launch a coroutine to copy bytes from the input stream to the channel.
@@ -46,7 +45,7 @@ public fun InputStream.toByteReadChannel(
 
 internal class RawSourceChannel(
     private val source: RawSource,
-    private val parent: CoroutineContext
+    parent: CoroutineContext
 ) : ByteReadChannel {
     private var closedToken: CloseToken? = null
     private val buffer = Buffer()
@@ -64,9 +63,16 @@ internal class RawSourceChannel(
     override val readBuffer: Source
         get() = buffer
 
+    init {
+        job.invokeOnCompletion { cause ->
+            if (cause != null) closeSource(cause.asCancellationException())
+        }
+    }
+
+    @OptIn(InternalAPI::class)
     override suspend fun awaitContent(min: Int): Boolean {
         if (closedToken != null) {
-            closedCause?.let { throw it }
+            rethrowCloseCauseIfNeeded()
             return buffer.remaining >= min
         }
 
@@ -75,15 +81,19 @@ internal class RawSourceChannel(
             while (buffer.remaining < min && result >= 0) {
                 result = try {
                     source.readAtMostTo(buffer, Long.MAX_VALUE)
-                } catch (cause: EOFException) {
+                } catch (_: EOFException) {
                     -1L
+                } catch (cause: IOException) {
+                    rethrowCloseCauseIfNeeded()
+                    throw cause
                 }
             }
 
             if (result == -1L) {
                 source.close()
                 job.complete()
-                closedToken = CloseToken(null)
+                rethrowCloseCauseIfNeeded()
+                closedToken = CLOSED
             }
         }
 
@@ -92,8 +102,17 @@ internal class RawSourceChannel(
 
     override fun cancel(cause: Throwable?) {
         if (closedToken != null) return
-        job.cancel(cause?.message ?: "Channel was cancelled", cause)
-        source.close()
-        closedToken = CloseToken(IOException(cause?.message ?: "Channel was cancelled", cause))
+        val cause = cause?.asCancellationException()
+        job.cancel(cause)
+        closeSource(cause)
     }
+
+    private fun closeSource(cause: CancellationException?) {
+        if (closedToken != null) return
+        closedToken = CloseToken(cause)
+        source.close()
+    }
+
+    private fun Throwable.asCancellationException(): CancellationException =
+        this as? CancellationException ?: CancellationException(message ?: "Channel was cancelled", this)
 }
