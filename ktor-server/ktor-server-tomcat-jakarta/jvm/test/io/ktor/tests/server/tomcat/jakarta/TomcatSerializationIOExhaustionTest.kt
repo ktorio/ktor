@@ -54,7 +54,7 @@ class TomcatJacksonIOExhaustionTest :
                 jackson {}
             }
             install(HttpTimeout) {
-                requestTimeoutMillis = 60_000
+                requestTimeoutMillis = 30_000
             }
         }
 

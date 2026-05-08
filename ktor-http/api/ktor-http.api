@@ -1512,6 +1512,7 @@ public final class io/ktor/http/content/OutputStreamContent : io/ktor/http/conte
 	public fun getContentType ()Lio/ktor/http/ContentType;
 	public fun getStatus ()Lio/ktor/http/HttpStatusCode;
 	public fun writeTo (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun writeTo (Ljava/io/OutputStream;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract class io/ktor/http/content/PartData {

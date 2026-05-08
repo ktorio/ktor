@@ -52,9 +52,7 @@ public abstract class ServletApplicationResponse(
     @OptIn(InternalAPI::class)
     override suspend fun respondWriteChannelContent(content: OutgoingContent.WriteChannelContent) {
         if (content is OutputStreamContent) {
-            servletResponse.outputStream.use { stream ->
-                content.writeTo(stream)
-            }
+            content.writeTo(servletResponse.outputStream)
             return
         }
         super.respondWriteChannelContent(content)
