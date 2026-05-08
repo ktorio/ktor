@@ -66,6 +66,20 @@ class NettySpecificTest {
     }
 
     @Test
+    fun `start cleans up resources on non-BindException failure`() {
+        val server = embeddedServer(Netty, port = 70000) {}
+
+        assertFailsWith<IllegalArgumentException> {
+            server.start(wait = false)
+        }
+
+        assertTrue(
+            server.engine.bootstraps.all { (it.config().group() as ExecutorService).isTerminated },
+            "event loop groups must be terminated when bind fails with a non-BindException"
+        )
+    }
+
+    @Test
     fun testStartMultipleConnectorsOnUsedPort() = runTestWithRealTime {
         val socket = ServerSocket(0)
         val port = socket.localPort
