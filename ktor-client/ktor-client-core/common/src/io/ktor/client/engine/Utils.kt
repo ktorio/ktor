@@ -9,6 +9,7 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
@@ -105,8 +106,7 @@ internal suspend inline fun attachToUserJob(callJob: Job) {
 
     val cleanupHandler = userJob.invokeOnCompletion(onCancelling = true) { cause ->
         cause ?: return@invokeOnCompletion
-        val cancellation = cause as? kotlinx.coroutines.CancellationException
-            ?: kotlinx.coroutines.CancellationException(cause.message)
+        val cancellation = cause as? CancellationException ?: CancellationException(cause.message)
         callJob.cancel(cancellation)
     }
 

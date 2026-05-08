@@ -4,32 +4,25 @@
 
 package io.ktor.client.engine
 
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
+import org.junit.jupiter.api.assertThrows
 import kotlin.test.Test
-import kotlin.test.assertTrue
 
-class AttachToUserJobTimeoutTest {
+class AttachToUserJobTest {
 
     @Test
     fun `attachToUserJob preserves TimeoutCancellationException subtype`(): Unit = runBlocking {
         val callJob = Job()
-        val callJobCause = CompletableDeferred<Throwable?>()
-        callJob.invokeOnCompletion { callJobCause.complete(it) }
 
-        try {
+        assertThrows<TimeoutCancellationException> {
             withTimeout(50) {
                 attachToUserJob(callJob)
                 awaitCancellation()
             }
-        } catch (_: TimeoutCancellationException) {
         }
-
-        val cause = callJobCause.await()
-        assertTrue(cause is TimeoutCancellationException, "Expected TimeoutCancellationException, was $cause")
     }
 }
