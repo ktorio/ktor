@@ -9,6 +9,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.Parameters
 import io.ktor.http.RequestConnectionPoint
 import io.ktor.http.content.OutgoingContent
+import io.ktor.http.content.OutputStreamContent
 import io.ktor.http.parseQueryString
 import io.ktor.http.withEmptyStringForValuelessKeys
 import io.ktor.server.application.*
@@ -24,6 +25,7 @@ import io.ktor.utils.io.pool.ByteBufferPool
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.io.InternalIoApi
+import org.eclipse.jetty.io.Content
 import org.eclipse.jetty.io.EndPoint
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Response
@@ -184,6 +186,17 @@ public class JettyApplicationCall(
             suspendCancellableCoroutine { continuation ->
                 response.write(true, emptyBuffer, continuation.asCallback())
             }
+        }
+
+        @OptIn(InternalAPI::class)
+        override suspend fun respondWriteChannelContent(content: OutgoingContent.WriteChannelContent) {
+            if (content is OutputStreamContent) {
+                Content.Sink.asOutputStream(response).use { stream ->
+                    content.writeTo(stream)
+                }
+                return
+            }
+            super.respondWriteChannelContent(content)
         }
 
         override suspend fun responseChannel(): ByteWriteChannel =
