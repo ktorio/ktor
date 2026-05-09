@@ -54,7 +54,7 @@ typesafe = "1.4.5"
 # Wait until https://github.com/mockk/mockk/issues/1433 is resolved.
 mockk = "1.14.9"
 
-java-jwt = "4.5.1"
+java-jwt = "4.5.2"
 
 jwks-rsa = "0.23.0"
 mustache = "0.9.14"
