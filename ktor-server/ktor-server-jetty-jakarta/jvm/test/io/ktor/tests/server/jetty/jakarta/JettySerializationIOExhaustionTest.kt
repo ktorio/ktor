@@ -49,16 +49,14 @@ class JettyJacksonIOExhaustionTest :
 
         val concurrentRequests = 50
 
-        val client = HttpClient(CIO) {
+        HttpClient(CIO) {
             install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
                 jackson {}
             }
             install(HttpTimeout) {
                 requestTimeoutMillis = 60_000
             }
-        }
-
-        try {
+        }.use { client ->
             withTimeout(60.seconds) {
                 coroutineScope {
                     val results = (1..concurrentRequests).map { i ->
@@ -75,8 +73,6 @@ class JettyJacksonIOExhaustionTest :
                     }
                 }
             }
-        } finally {
-            client.close()
         }
     }
 }

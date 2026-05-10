@@ -190,13 +190,12 @@ public class JettyApplicationCall(
 
         @OptIn(InternalAPI::class)
         override suspend fun respondWriteChannelContent(content: OutgoingContent.WriteChannelContent) {
-            if (content is OutputStreamContent) {
-                Content.Sink.asOutputStream(response).use { stream ->
+            when (content) {
+                is OutputStreamContent -> Content.Sink.asOutputStream(response).use { stream ->
                     content.writeTo(stream)
                 }
-                return
+                else -> super.respondWriteChannelContent(content)
             }
-            super.respondWriteChannelContent(content)
         }
 
         override suspend fun responseChannel(): ByteWriteChannel =
