@@ -134,5 +134,4 @@ class ReceiveBlockingPrimitiveTest {
             application.dispose()
         }
     }
-
 }

@@ -122,7 +122,8 @@ abstract class KtorTargets @Inject internal constructor(
     /** Applies a filter to the target list. The given [predicate] is combined with the existing filter. */
     internal fun filterTargets(predicate: (String) -> Boolean) {
         check(!filterFrozen) { "Can't change filter after targets have been finalized." }
-        filter = { filter(it) && predicate(it) }
+        val previousFilter = filter
+        filter = { previousFilter(it) && predicate(it) }
     }
 
     /**
