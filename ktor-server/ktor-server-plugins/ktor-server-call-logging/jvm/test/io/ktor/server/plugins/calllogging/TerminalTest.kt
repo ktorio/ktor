@@ -22,7 +22,7 @@ class TerminalTest {
 
     @Order(0)
     @Test
-    fun test1() = testApplication {
+    fun triggerAnsiInstall() = testApplication {
         application {
             install(CallLogging)
             routing {
@@ -34,7 +34,7 @@ class TerminalTest {
 
     @Order(1)
     @Test
-    fun test2() {
+    fun verifyOutAndErrStreams() {
         assertIsNot<AnsiPrintStream>(System.out)
         assertIsNot<AnsiPrintStream>(System.err)
         println("Test passes") // To observe System.out

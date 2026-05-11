@@ -66,7 +66,7 @@ public val CallLogging: ApplicationPlugin<CallLoggingConfig> = createApplication
 
     var ansiInstalled = false
     try {
-        if (pluginConfig.isColorsEnabled && !AnsiConsole.isInstalled()) {
+        if (pluginConfig.isColorsEnabled) {
             AnsiConsole.systemInstall()
             ansiInstalled = true
         }
