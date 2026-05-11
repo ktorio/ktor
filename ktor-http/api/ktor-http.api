@@ -571,6 +571,8 @@ public final class io/ktor/http/HttpHeaders {
 	public static final field Server Ljava/lang/String;
 	public static final field SetCookie Ljava/lang/String;
 	public static final field StrictTransportSecurity Ljava/lang/String;
+	public static final field TDMPolicy Ljava/lang/String;
+	public static final field TDMReservation Ljava/lang/String;
 	public static final field TE Ljava/lang/String;
 	public static final field Timeout Ljava/lang/String;
 	public static final field Trailer Ljava/lang/String;
