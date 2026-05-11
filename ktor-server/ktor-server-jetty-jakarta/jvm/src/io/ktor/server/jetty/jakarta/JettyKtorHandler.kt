@@ -83,19 +83,7 @@ internal class JettyKtorHandler(
                     pipeline.execute(call)
                     callback.succeeded()
                 } catch (cancelled: kotlinx.coroutines.CancellationException) {
-                    if (response.isCommitted || runCatching {
-                            Response.writeError(
-                                request,
-                                response,
-                                callback,
-                                HttpStatus.GONE_410,
-                                cancelled.message,
-                                cancelled
-                            )
-                        }.isFailure
-                    ) {
-                        callback.failed(cancelled)
-                    }
+                    tryWriteError(response, request, callback, cancelled)
                 } catch (channelFailed: ChannelIOException) {
                     callback.failed(channelFailed)
                 } catch (error: Throwable) {

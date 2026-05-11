@@ -37,7 +37,7 @@ class JettyIdleTimeoutTest : EngineTestBase<JettyApplicationEngine, JettyApplica
     }
 
     /**
-     * For this test we want to test how an unhanded CancellationException is handled,
+     * For this test we want to test how an unhandled CancellationException is handled,
      * so we override afterTest to avoid the test framework interpreting it as a failed test condition.
      */
     override fun afterTest() {
