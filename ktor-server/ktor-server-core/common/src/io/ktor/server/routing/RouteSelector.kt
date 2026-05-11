@@ -829,7 +829,15 @@ private fun ContentType.isCompatibleWith(other: ContentType): Boolean = when {
     else -> this.match(other)
 }
 
-private fun HeaderValue.toContentType(): ContentType =
-    params.asSequence()
-        .filter { it.name != "q" }
-        .fold(ContentType.parse(value)) { acc, p -> acc.withParameter(p.name, p.value) }
+private fun HeaderValue.toContentType(): ContentType {
+    val contentType = ContentType.parse(value)
+    return if (params.isEmpty())
+        contentType
+    else {
+        ContentType(
+            contentType.contentType,
+            contentType.contentSubtype,
+            params.filter { it.name != "q" }
+        )
+    }
+}
