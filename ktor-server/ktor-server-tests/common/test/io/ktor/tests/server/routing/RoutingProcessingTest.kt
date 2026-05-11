@@ -644,6 +644,75 @@ class RoutingProcessingTest {
     }
 
     @Test
+    fun testContentTypeHeaderWithParameters() = testApplication {
+        val soapWithAction = ContentType.parse("application/soap+xml; action=foo")
+        routing {
+            route("/") {
+                contentType(soapWithAction) {
+                    handle {
+                        call.respond("matched")
+                    }
+                }
+                contentType(ContentType.Application.Any) {
+                    handle {
+                        call.respond("fallback")
+                    }
+                }
+            }
+        }
+
+        client.get("/") {
+            header(HttpHeaders.ContentType, "application/soap+xml; action=foo")
+        }.let {
+            assertEquals("matched", it.bodyAsText())
+        }
+
+        client.get("/") {
+            header(HttpHeaders.ContentType, "application/soap+xml; action=bar")
+        }.let {
+            assertEquals("fallback", it.bodyAsText())
+        }
+
+        client.get("/") {
+            header(HttpHeaders.ContentType, "application/soap+xml")
+        }.let {
+            assertEquals("fallback", it.bodyAsText())
+        }
+    }
+
+    @Test
+    fun testAcceptHeaderWithParameters() = testApplication {
+        val soapWithAction = ContentType.parse("application/soap+xml; action=foo")
+        routing {
+            route("/") {
+                accept(soapWithAction) {
+                    handle {
+                        call.respond("matched")
+                    }
+                }
+            }
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Accept, "application/soap+xml; action=foo")
+        }.let {
+            assertEquals("matched", it.bodyAsText())
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Accept, "application/soap+xml; action=bar")
+        }.let {
+            assertEquals(HttpStatusCode.NotAcceptable, it.status)
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Accept, "application/soap+xml; action=foo; q=0.5")
+        }.let {
+            assertEquals("matched", it.bodyAsText())
+        }
+    }
+
+    @Test
     fun testTransparentSelectorWithHandler() = testApplication {
         routing {
             route("") {
