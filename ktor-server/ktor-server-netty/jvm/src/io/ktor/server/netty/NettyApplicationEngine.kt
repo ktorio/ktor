@@ -24,7 +24,6 @@ import io.netty.handler.codec.http.HttpObjectDecoder
 import io.netty.handler.codec.http.HttpServerCodec
 import kotlinx.coroutines.CompletableJob
 import kotlinx.coroutines.asCoroutineDispatcher
-import java.net.BindException
 import java.util.concurrent.TimeUnit
 import kotlin.reflect.KClass
 import kotlin.system.measureTimeMillis
@@ -257,11 +256,8 @@ public class NettyApplicationEngine(
             val connectors = channels!!.zip(configuration.connectors)
                 .map { it.second.withPort(it.first.localAddress().port) }
             resolvedConnectorsDeferred.complete(connectors)
-        } catch (cause: BindException) {
-            terminate()
-            throw cause
         } catch (cause: Throwable) {
-            stop(0, 0)
+            terminate()
             throw cause
         }
 
