@@ -191,6 +191,10 @@ public class NettyChannelInitializer(
                 )
 
                 pipeline.addLast(Http2MultiplexCodecBuilder.forServer(handler).build())
+                // Swallow connection-level Http2Frame messages (e.g. SETTINGS, PING, GOAWAY) that the
+                // Http2MultiplexCodec forwards down the parent pipeline. Without this, those frames
+                // would reach Netty's tail handler and trigger "Discarded inbound message" warnings.
+                pipeline.addLast(NettyHttp2ConnectionSink)
                 pipeline.channel().closeFuture().addListener {
                     handler.cancel()
                 }
@@ -221,6 +225,12 @@ public class NettyChannelInitializer(
                 )
 
                 pipeline.addLast("cleartextUpgradeHandler", cleartextHttp2ServerUpgradeHandler)
+                // Swallow connection-level Http2Frame messages (e.g. SETTINGS, PING, GOAWAY) once the
+                // connection has been upgraded to HTTP/2 and the multiplex codec is forwarding them down
+                // the parent pipeline. Without this, those frames would reach Netty's tail handler and
+                // trigger "Discarded inbound message" warnings. For requests that remain HTTP/1.1, this
+                // sink is a no-op.
+                pipeline.addLast(NettyHttp2ConnectionSink)
 
                 pipeline.addLast(object : SimpleChannelInboundHandler<HttpMessage>() {
                     @Throws(Exception::class)

@@ -409,7 +409,62 @@ class NettySpecificTest {
     }
 
     @Test
-    fun `no messages are discarded from the netty pipeline`() = runTestWithRealTime {
+    fun `no messages are discarded from the netty pipeline for HTTP1`() = noDiscardedMessagesTest(enableH2c = false) {
+        val connector = engine.resolvedConnectors().first()
+        val sendUrl = "http://${connector.host}:${connector.port}/send"
+        HttpClient(CIO).use { client ->
+            repeat(5) { i ->
+                client.post(sendUrl) {
+                    contentType(ContentType.Application.Json)
+                    setBody("{\"foo\":\"bar-$i\"}")
+                }.bodyAsText()
+            }
+        }
+    }
+
+    @Test
+    fun `no messages are discarded from the netty pipeline for HTTP2`() = noDiscardedMessagesTest(enableH2c = true) {
+        val connector = engine.resolvedConnectors().first()
+        SelectorManager().use { selector ->
+            aSocket(selector).tcp().connect(connector.host, connector.port).use { socket ->
+                val writer = socket.openWriteChannel()
+                val reader = socket.openReadChannel()
+
+                // HTTP/2 prior-knowledge: send connection preface and an initial SETTINGS
+                writer.writeStringUtf8("PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n")
+                writer.writeFully(http2SettingsFrameBytes(ack = false))
+                writer.flush()
+
+                // Drain initial server frames (SETTINGS and SETTINGS-ACK)
+                readHttp2FrameRaw(reader)
+                readHttp2FrameRaw(reader)
+                writer.writeFully(http2SettingsFrameBytes(ack = true))
+                writer.flush()
+
+                repeat(5) { i ->
+                    val streamId = 1 + i * 2
+                    writer.writeFully(http2GetHeadersFrameBytes(streamId, "/ping"))
+                    writer.flush()
+
+                    // Read response frames until END_STREAM on this stream
+                    var endStream = false
+                    while (!endStream) {
+                        val frame = readHttp2FrameRaw(reader)
+                        if (frame.streamId == streamId &&
+                            (frame.flags.toInt() and 0x1) != 0
+                        ) {
+                            endStream = true
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun noDiscardedMessagesTest(
+        enableH2c: Boolean,
+        block: suspend EmbeddedServer<NettyApplicationEngine, NettyApplicationEngine.Configuration>.() -> Unit,
+    ) = runTestWithRealTime {
         val pipelineLogger = LoggerFactory.getLogger("io.netty.channel.DefaultChannelPipeline") as Logger
         val previousLevel = pipelineLogger.level
         val logEvents = ListAppender<ILoggingEvent>().apply {
@@ -419,25 +474,29 @@ class NettySpecificTest {
         pipelineLogger.level = Level.DEBUG
         pipelineLogger.addAppender(logEvents)
 
-        val server = embeddedServer(Netty, 0) {
-            routing {
-                post("/send") {
-                    call.respondText(call.receive())
+        val server = embeddedServer(
+            factory = Netty,
+            rootConfig = serverConfig {
+                module {
+                    routing {
+                        post("/send") {
+                            call.respondText(call.receive())
+                        }
+                        get("/ping") {
+                            call.respondText("pong")
+                        }
+                    }
                 }
+            },
+            configure = {
+                connector { port = 0 }
+                this.enableH2c = enableH2c
             }
-        }
+        )
         server.startSuspend()
         try {
-            val connector = server.engine.resolvedConnectors().first()
-            val sendUrl = "http://${connector.host}:${connector.port}/send"
-            val client = HttpClient(CIO)
+            server.block()
 
-            repeat(5) { i ->
-                client.post(sendUrl) {
-                    contentType(ContentType.Application.Json)
-                    setBody("{\"foo\":\"bar-$i\"}")
-                }.bodyAsText()
-            }
             val discarded = logEvents.list.filter {
                 it.message.orEmpty().contains("Discarded inbound message")
             }
@@ -453,5 +512,61 @@ class NettySpecificTest {
             logEvents.stop()
             pipelineLogger.level = previousLevel
         }
+    }
+
+    private class Http2RawFrame(
+        val frameType: Byte,
+        val flags: Byte,
+        val streamId: Int,
+        val payload: ByteArray,
+    )
+
+    private suspend fun readHttp2FrameRaw(channel: ByteReadChannel): Http2RawFrame {
+        val header = channel.readByteArray(9)
+        val payloadLength = ((header[0].toInt() and 0xFF) shl 16) or
+            ((header[1].toInt() and 0xFF) shl 8) or
+            (header[2].toInt() and 0xFF)
+        val frameType = header[3]
+        val flags = header[4]
+        val streamId = ((header[5].toInt() and 0x7F) shl 24) or
+            ((header[6].toInt() and 0xFF) shl 16) or
+            ((header[7].toInt() and 0xFF) shl 8) or
+            (header[8].toInt() and 0xFF)
+        val payload = channel.readByteArray(payloadLength)
+        return Http2RawFrame(frameType, flags, streamId, payload)
+    }
+
+    private fun http2SettingsFrameBytes(ack: Boolean): ByteArray =
+        buildHttp2Frame(type = 0x4, flags = if (ack) 0x1 else 0x0, streamId = 0, payload = ByteArray(0))
+
+    private fun http2GetHeadersFrameBytes(streamId: Int, path: String): ByteArray {
+        // Encode HEADERS payload using Netty's HPACK encoder via DefaultHttp2HeadersEncoder
+        val headers = io.netty.handler.codec.http2.DefaultHttp2Headers().also {
+            it.method("GET")
+            it.path(path)
+            it.scheme("http")
+        }
+        val encoded = io.netty.buffer.Unpooled.buffer()
+        io.netty.handler.codec.http2.DefaultHttp2HeadersEncoder().encodeHeaders(streamId, headers, encoded)
+        val payload = ByteArray(encoded.readableBytes())
+        encoded.readBytes(payload)
+        // END_HEADERS (0x4) | END_STREAM (0x1)
+        return buildHttp2Frame(type = 0x1, flags = 0x5, streamId = streamId, payload = payload)
+    }
+
+    private fun buildHttp2Frame(type: Int, flags: Int, streamId: Int, payload: ByteArray): ByteArray {
+        val length = payload.size
+        val buf = ByteArray(9 + length)
+        buf[0] = ((length shr 16) and 0xFF).toByte()
+        buf[1] = ((length shr 8) and 0xFF).toByte()
+        buf[2] = (length and 0xFF).toByte()
+        buf[3] = (type and 0xFF).toByte()
+        buf[4] = (flags and 0xFF).toByte()
+        buf[5] = ((streamId shr 24) and 0x7F).toByte()
+        buf[6] = ((streamId shr 16) and 0xFF).toByte()
+        buf[7] = ((streamId shr 8) and 0xFF).toByte()
+        buf[8] = (streamId and 0xFF).toByte()
+        payload.copyInto(buf, destinationOffset = 9)
+        return buf
     }
 }

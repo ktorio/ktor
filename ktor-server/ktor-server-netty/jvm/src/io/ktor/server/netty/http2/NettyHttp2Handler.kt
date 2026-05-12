@@ -19,6 +19,7 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
 import io.netty.handler.codec.http2.*
 import io.netty.util.AttributeKey
+import io.netty.util.ReferenceCountUtil
 import io.netty.util.concurrent.EventExecutorGroup
 import kotlinx.coroutines.*
 import java.lang.reflect.Field
@@ -74,6 +75,12 @@ internal class NettyHttp2Handler(
             coroutineContext = handlerJob
         )
 
+        // Append a tail sink that consumes NettyHttp2ApplicationCall messages forwarded by this handler
+        // via fireChannelRead(call). This prevents Netty's tail handler from logging
+        // "Discarded inbound message" warnings for calls that pass through any user-added
+        // channelPipelineConfig handlers. The call lifecycle is driven by startHttp2, so the sink
+        // only needs to drop the call without further action.
+        context.pipeline().addLast(NettyHttp2ApplicationCallSink)
         context.fireChannelActive()
     }
 
@@ -117,6 +124,9 @@ internal class NettyHttp2Handler(
             coroutineContext = callContext
         )
         context.applicationCall = call
+
+        // Fire channel read for custom handlers added to the pipeline
+        context.fireChannelRead(call)
 
         // Reserve response slot synchronously on the I/O thread for proper ordering
         responseWriter.processResponse(call)
@@ -260,5 +270,40 @@ internal class NettyHttp2Handler(
             set(newValue) {
                 channel().attr(ApplicationCallKey).set(newValue)
             }
+    }
+}
+
+/**
+ * A no-op tail handler that swallows [NettyHttp2ApplicationCall] messages forwarded by
+ * [NettyHttp2Handler.startHttp2] via [ChannelHandlerContext.fireChannelRead]. Its sole purpose is to
+ * prevent Netty's default tail handler from logging a "Discarded inbound message ... at the tail of the
+ * pipeline" warning. Non-call messages are propagated unchanged so they can reach Netty's tail and be
+ * released/handled normally.
+ */
+@ChannelHandler.Sharable
+internal object NettyHttp2ApplicationCallSink : ChannelInboundHandlerAdapter() {
+    override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
+        if (msg is NettyHttp2ApplicationCall) return
+        ctx.fireChannelRead(msg)
+    }
+}
+
+/**
+ * A no-op tail handler installed on the HTTP/2 *connection* (parent) pipeline that swallows
+ * connection-level [Http2Frame] messages (e.g. SETTINGS, PING, GOAWAY) which Netty's
+ * [Http2MultiplexCodec] forwards down the parent pipeline after handling them.
+ *
+ * Without this sink, those frames reach Netty's default tail handler and trigger
+ * "Discarded inbound message ... at the tail of the pipeline" warnings. Non-frame messages are
+ * propagated unchanged so they can reach Netty's tail and be released/handled normally.
+ */
+@ChannelHandler.Sharable
+internal object NettyHttp2ConnectionSink : ChannelInboundHandlerAdapter() {
+    override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
+        if (msg is Http2Frame) {
+            ReferenceCountUtil.release(msg)
+            return
+        }
+        ctx.fireChannelRead(msg)
     }
 }
