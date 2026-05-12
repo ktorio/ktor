@@ -185,6 +185,7 @@ public class NettyChannelInitializer(
                 val handler = NettyHttp2Handler(
                     enginePipeline,
                     application,
+                    callEventGroup,
                     application.coroutineContext + userContext,
                     runningLimit
                 )
@@ -200,6 +201,7 @@ public class NettyChannelInitializer(
                 val handler = NettyHttp2Handler(
                     enginePipeline,
                     applicationProvider(),
+                    callEventGroup,
                     userContext,
                     runningLimit
                 )
@@ -229,6 +231,7 @@ public class NettyChannelInitializer(
                             applicationProvider,
                             enginePipeline,
                             environment,
+                            callEventGroup,
                             engineContext,
                             userContext,
                             runningLimit
@@ -262,6 +265,7 @@ public class NettyChannelInitializer(
                     applicationProvider,
                     enginePipeline,
                     environment,
+                    callEventGroup,
                     engineContext,
                     userContext,
                     runningLimit

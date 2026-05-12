@@ -12,10 +12,14 @@ import io.ktor.server.netty.NettyApplicationCallHandler.CallHandlerCoroutineName
 import io.ktor.server.netty.cio.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
+import io.netty.channel.ChannelHandler
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
 import io.netty.handler.codec.http.*
 import io.netty.handler.timeout.ReadTimeoutException
+import io.netty.util.AttributeKey
+import io.netty.util.concurrent.EventExecutor
+import io.netty.util.concurrent.EventExecutorGroup
 import kotlinx.coroutines.*
 import java.io.IOException
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -26,6 +30,7 @@ internal class NettyHttp1Handler(
     private val applicationProvider: () -> Application,
     private val enginePipeline: EnginePipeline,
     private val environment: ApplicationEnvironment,
+    private val callEventGroup: EventExecutorGroup,
     private val engineContext: CoroutineContext,
     private val userContext: CoroutineContext,
     private val runningLimit: Int
@@ -51,6 +56,12 @@ internal class NettyHttp1Handler(
         context.channel().read()
         context.pipeline().apply {
             addLast(RequestBodyHandler(context))
+            // Append a tail sink that consumes NettyHttp1ApplicationCall messages forwarded by this handler
+            // via fireChannelRead(call). This prevents Netty's tail handler from logging
+            // "Discarded inbound message" warnings for calls that pass through any user-added
+            // channelPipelineConfig handlers. The call lifecycle is driven by handleRequest, so the sink
+            // only needs to drop the call without further action.
+            addLast(NettyHttp1ApplicationCallSink)
         }
         context.fireChannelActive()
     }
@@ -137,7 +148,11 @@ internal class NettyHttp1Handler(
         val userAppContext = applicationProvider().coroutineContext + userContext
         val callJob = Job(parent = userAppContext[Job])
 
-        val callContext = userAppContext + NettyDispatcher.CurrentContext(context) + callJob + CallHandlerCoroutineName
+        val callExecutor = pinnedCallExecutor(context)
+        val callContext = userAppContext +
+            NettyDispatcher.CurrentContext(context, callExecutor) +
+            callJob +
+            CallHandlerCoroutineName
         val call = prepareCallFromRequest(context, message, callContext = callContext)
         activeCalls.add(call)
 
@@ -147,11 +162,13 @@ internal class NettyHttp1Handler(
         // Reserve response slot synchronously on the I/O thread for proper ordering
         responseWriter.processResponse(call)
 
-        // Defer coroutine start to the next event loop tick so that channelReadComplete() fires first
+        // Defer coroutine start to the next event loop tick so that channelReadComplete() fires first.
         // This allows the response pipeline to detect that the request body is still being received and flush headers
         // early instead of buffering them, which is required when the client waits for response headers
-        // before sending the request body
-        context.executor().execute {
+        // before sending the request body.
+        // Dispatching to the call event group also ensures user handler code does not run on the I/O worker
+        // event loop.
+        callExecutor.execute {
             val callScope = CoroutineScope(context = callContext)
             callScope.launch(start = CoroutineStart.UNDISPATCHED) {
                 try {
@@ -221,5 +238,39 @@ internal class NettyHttp1Handler(
         } else {
             state.skippedRead.value = true
         }
+    }
+
+    /**
+     * Returns the [EventExecutor] from [callEventGroup] pinned to the given channel.
+     * The executor is selected once per channel and stored as a channel attribute, ensuring that all calls on a
+     * given connection are dispatched onto a single thread for the lifetime of the connection. This preserves
+     * thread affinity across coroutine suspensions.
+     */
+    private fun pinnedCallExecutor(context: ChannelHandlerContext): EventExecutor {
+        val attr = context.channel().attr(PinnedCallExecutorKey)
+        val existing = attr.get()
+        if (existing != null) return existing
+        val picked = callEventGroup.next()
+        return if (attr.compareAndSet(null, picked)) picked else attr.get()
+    }
+
+    companion object {
+        private val PinnedCallExecutorKey: AttributeKey<EventExecutor> =
+            AttributeKey.valueOf("ktor.netty.pinnedCallExecutor")
+    }
+}
+
+/**
+ * A no-op tail handler that swallows [NettyHttp1ApplicationCall] messages forwarded by
+ * [NettyHttp1Handler.handleRequest] via [ChannelHandlerContext.fireChannelRead]. Its sole purpose is to
+ * prevent Netty's default tail handler from logging a "Discarded inbound message ... at the tail of the
+ * pipeline" warning. Non-call messages are propagated unchanged so they can reach Netty's tail and be
+ * released/handled normally.
+ */
+@ChannelHandler.Sharable
+internal object NettyHttp1ApplicationCallSink : ChannelInboundHandlerAdapter() {
+    override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
+        if (msg is NettyHttp1ApplicationCall) return
+        ctx.fireChannelRead(msg)
     }
 }

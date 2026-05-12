@@ -19,6 +19,8 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
 import io.netty.handler.codec.http2.*
 import io.netty.util.AttributeKey
+import io.netty.util.concurrent.EventExecutor
+import io.netty.util.concurrent.EventExecutorGroup
 import kotlinx.coroutines.*
 import java.lang.reflect.Field
 import java.nio.channels.ClosedChannelException
@@ -28,6 +30,7 @@ import kotlin.coroutines.CoroutineContext
 internal class NettyHttp2Handler(
     private val enginePipeline: EnginePipeline,
     private val application: Application,
+    private val callEventGroup: EventExecutorGroup,
     private val userCoroutineContext: CoroutineContext,
     runningLimit: Int
 ) : ChannelInboundHandlerAdapter() {
@@ -101,8 +104,11 @@ internal class NettyHttp2Handler(
 
     private fun startHttp2(context: ChannelHandlerContext, headers: Http2Headers) {
         val callJob = Job(parent = userCoroutineContext[Job])
-        val callContext =
-            userCoroutineContext + NettyDispatcher.CurrentContext(context) + callJob + CallHandlerCoroutineName
+        val callExecutor = pinnedCallExecutor(context)
+        val callContext = userCoroutineContext +
+            NettyDispatcher.CurrentContext(context, callExecutor) +
+            callJob +
+            CallHandlerCoroutineName
         val call = NettyHttp2ApplicationCall(
             application = application,
             context = context,
@@ -116,10 +122,12 @@ internal class NettyHttp2Handler(
         // Reserve response slot synchronously on the I/O thread for proper ordering
         responseWriter.processResponse(call)
 
-        // Defer coroutine start to the next event loop tick via context.executor().execute so that
-        // channelRead returns and Netty can deliver subsequent Http2DataFrame messages.
-        // Without this, the coroutine runs on the event loop, blocking data frame delivery and causing EOFException.
-        context.executor().execute {
+        // Defer coroutine start to the next event loop tick so that channelRead returns and Netty can
+        // deliver subsequent Http2DataFrame messages. Without this, the coroutine runs on the event loop,
+        // blocking data frame delivery and causing EOFException.
+        // Dispatching to the call event group also ensures user handler code does not run on the I/O worker
+        // event loop, matching the behavior prior to KTOR-9343.
+        callExecutor.execute {
             val callScope = CoroutineScope(context = callContext)
             callScope.launch(start = CoroutineStart.UNDISPATCHED) {
                 try {
@@ -245,8 +253,25 @@ internal class NettyHttp2Handler(
         handlerJob.cancel()
     }
 
+    /**
+     * Returns the [EventExecutor] from [callEventGroup] pinned to the given channel.
+     * The executor is selected once per channel and stored as a channel attribute, ensuring that all calls on a
+     * given stream are dispatched onto a single thread for the lifetime of the stream. This preserves
+     * thread affinity across coroutine suspensions, matching the behavior prior to KTOR-9343.
+     */
+    private fun pinnedCallExecutor(context: ChannelHandlerContext): EventExecutor {
+        val attr = context.channel().attr(PinnedCallExecutorKey)
+        val existing = attr.get()
+        if (existing != null) return existing
+        val picked = callEventGroup.next()
+        return if (attr.compareAndSet(null, picked)) picked else attr.get()
+    }
+
     companion object {
         private val ApplicationCallKey = AttributeKey.valueOf<NettyHttp2ApplicationCall>("ktor.ApplicationCall")
+
+        private val PinnedCallExecutorKey: AttributeKey<EventExecutor> =
+            AttributeKey.valueOf("ktor.netty.pinnedCallExecutor.http2")
 
         private var ChannelHandlerContext.applicationCall: NettyHttp2ApplicationCall?
             get() = channel().attr(ApplicationCallKey).get()
