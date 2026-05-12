@@ -14,7 +14,7 @@ kover = "0.9.4"
 kotlinter = "5.2.0"
 kotlinx-browser = "0.5.0"
 
-netty = "4.2.12.Final"
+netty = "4.2.13.Final"
 netty-tcnative = "2.0.76.Final"
 
 jetty = "9.4.58.v20250814"
@@ -135,6 +135,7 @@ dokka-gradlePlugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", versi
 dokka-plugin-versioning = { module = "org.jetbrains.dokka:versioning-plugin", version.ref = "dokka" }
 
 netty-handler = { module = "io.netty:netty-handler", version.ref = "netty" }
+netty-codec = { module = "io.netty:netty-codec", version.ref = "netty" }
 netty-codec-http2 = { module = "io.netty:netty-codec-http2", version.ref = "netty" }
 netty-transport-native-kqueue = { module = "io.netty:netty-transport-native-kqueue", version.ref = "netty" }
 netty-transport-native-epoll = { module = "io.netty:netty-transport-native-epoll", version.ref = "netty" }

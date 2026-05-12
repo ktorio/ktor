@@ -12,6 +12,7 @@ import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.network.selector.*
@@ -21,19 +22,24 @@ import io.ktor.server.application.hooks.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.netty.http1.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
 import io.mockk.mockk
 import io.netty.channel.Channel
+import io.netty.channel.EventLoopGroup
 import io.netty.channel.embedded.EmbeddedChannel
+import io.netty.channel.nio.NioEventLoopGroup
 import kotlinx.coroutines.*
+import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.net.BindException
 import java.net.ServerSocket
 import java.util.concurrent.ExecutorService
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.test.*
@@ -261,10 +267,12 @@ class NettySpecificTest {
         logger.addAppender(listAppender)
 
         val environment = applicationEnvironment { log = logger }
+        val callEventGroup = NioEventLoopGroup(1)
         val handler = NettyHttp1Handler(
             applicationProvider = { mockk(relaxed = true) },
             enginePipeline = mockk(relaxed = true),
             environment = environment,
+            callEventGroup = callEventGroup,
             engineContext = EmptyCoroutineContext,
             userContext = EmptyCoroutineContext,
             runningLimit = 32
@@ -294,6 +302,7 @@ class NettySpecificTest {
             logger.detachAppender(listAppender)
             logger.level = previousLevel
             channel.finishAndReleaseAll()
+            callEventGroup.shutdownGracefully()
         }
     }
 
@@ -333,7 +342,7 @@ class NettySpecificTest {
                     writeChannel.writeStringUtf8("Connection: close\r\n\r\n")
                     writeChannel.flush()
 
-                    withTimeout(5000) {
+                    withTimeout(5000.milliseconds) {
                         readChannel.awaitContent()
 
                         val responseLines = mutableListOf<String>()
@@ -350,6 +359,50 @@ class NettySpecificTest {
             }
         } finally {
             serverJob.cancel()
+        }
+    }
+
+    @Test
+    fun `request handler runs on call event group`() = runTestWithRealTime {
+        val handlerThread = AtomicReference<Thread>()
+
+        val server = embeddedServer(
+            factory = Netty,
+            rootConfig = serverConfig {
+                module {
+                    routing {
+                        get("/") {
+                            handlerThread.set(Thread.currentThread())
+                            call.respondText("ok")
+                        }
+                    }
+                }
+            },
+            configure = {
+                connector { port = 0 }
+                // This issue is not relevant if call and worker groups are shared
+                shareWorkGroup = false
+            }
+        )
+        server.startSuspend(wait = false)
+
+        try {
+            val connector = server.engine.resolvedConnectors().first()
+            HttpClient(CIO).use { it.get("http://${connector.host}:${connector.port}/") }
+
+            // Ugly, but we'd like to access the call event group somehow
+            val callEventGroup = NettyApplicationEngine::class.java
+                .getDeclaredMethod("getCallEventGroup")
+                .apply { isAccessible = true }
+                .invoke(server.engine) as EventLoopGroup
+
+            val thread = handlerThread.get()
+            assertTrue(
+                callEventGroup.any { it.inEventLoop(thread) },
+                "Handler ran on '${thread.name}', not on any call event group thread"
+            )
+        } finally {
+            server.stopSuspend()
         }
     }
 }
