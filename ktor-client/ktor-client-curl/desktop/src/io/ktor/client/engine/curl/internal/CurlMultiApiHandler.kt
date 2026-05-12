@@ -127,7 +127,7 @@ internal class CurlMultiApiHandler : Closeable {
     }
 
     private fun fixProxyUrl(url: String, proxyType: ProxyType): String {
-        return if (proxyType == ProxyType.SOCKS) url.replaceFirst("socks://", "socks5://") else url
+        return if (proxyType == ProxyType.SOCKS) url.replaceFirst("socks://", "socks5h://") else url
     }
 
     fun cancelRequest(easyHandle: EasyHandle, cause: Throwable) {
