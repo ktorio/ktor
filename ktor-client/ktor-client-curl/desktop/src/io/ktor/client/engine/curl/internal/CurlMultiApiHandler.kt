@@ -284,16 +284,23 @@ internal class CurlMultiApiHandler : Closeable {
         try {
             val responseDataRef = alloc<COpaquePointerVar>()
             val httpStatusCode = alloc<LongVar>()
+            val proxyCode = alloc<CURLproxycode.Var>()
 
             easyHandle.apply {
                 getInfo(CURLINFO_RESPONSE_CODE, httpStatusCode.ptr)
                 getInfo(CURLINFO_PRIVATE, responseDataRef.ptr)
+                getInfo(CURLINFO_PROXY_ERROR, proxyCode.ptr)
             }
 
             val responseBuilder = responseDataRef.value!!.fromCPointer<CurlResponseBuilder>()
             try {
-                collectFailedResponse(message, responseBuilder.request, result, httpStatusCode.value)
-                    ?: collectSuccessResponse(easyHandle)!!
+                collectFailedResponse(
+                    message = message,
+                    request = responseBuilder.request,
+                    result = result,
+                    httpStatusCode = httpStatusCode.value,
+                    proxyCode = proxyCode.value
+                ) ?: collectSuccessResponse(easyHandle)!!
             } finally {
                 responseBuilder.responseBody.close()
                 responseBuilder.headersBytes.close()
@@ -307,7 +314,8 @@ internal class CurlMultiApiHandler : Closeable {
         message: CURLMSG?,
         request: CurlRequestData,
         result: CURLcode,
-        httpStatusCode: Long
+        httpStatusCode: Long,
+        proxyCode: CURLproxycode,
     ): CurlFail? {
         curl_slist_free_all(request.headers)
 
@@ -325,13 +333,19 @@ internal class CurlMultiApiHandler : Closeable {
             return CurlFail(ConnectTimeoutException(request.url, request.connectTimeout))
         }
 
-        val errorMessage = curl_easy_strerror(result)?.toKStringFromUtf8()
+        val errorMessage = result.errorMessage
 
         if (result == CURLE_PEER_FAILED_VERIFICATION) {
             return CurlFail(
                 IllegalStateException(
                     "TLS verification failed for request: $request. Reason: $errorMessage"
                 )
+            )
+        }
+
+        if (result == CURLE_PROXY && proxyCode != CURLproxycode.CURLPX_OK) {
+            return CurlFail(
+                IllegalStateException("Proxy handshake error for request: $request. Reason: $proxyCode")
             )
         }
 
