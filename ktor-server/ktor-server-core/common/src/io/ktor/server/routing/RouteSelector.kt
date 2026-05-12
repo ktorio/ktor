@@ -831,9 +831,9 @@ private fun ContentType.isCompatibleWith(other: ContentType): Boolean = when {
 
 private fun HeaderValue.toContentType(): ContentType {
     val contentType = ContentType.parse(value)
-    return if (params.isEmpty())
+    return if (params.isEmpty()) {
         contentType
-    else {
+    } else {
         ContentType(
             contentType.contentType,
             contentType.contentSubtype,
