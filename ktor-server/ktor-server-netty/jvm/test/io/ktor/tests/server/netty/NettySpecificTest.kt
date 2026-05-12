@@ -12,7 +12,7 @@ import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.network.selector.*
@@ -22,7 +22,7 @@ import io.ktor.server.application.hooks.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.netty.http1.*
-import io.ktor.server.request.*
+import io.ktor.server.request.receive
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.test.dispatcher.*
@@ -39,10 +39,12 @@ import java.io.IOException
 import java.net.BindException
 import java.net.ServerSocket
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.EmptyCoroutineContext
-import kotlin.test.*
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
@@ -403,6 +405,55 @@ class NettySpecificTest {
             )
         } finally {
             server.stopSuspend()
+        }
+    }
+
+    @Test
+    fun `pipeline should not discard inbound messages`() = runTestWithRealTime {
+        // Netty logs "Discarded inbound message ... at the tail of the pipeline" at DEBUG level,
+        // so we need to capture DEBUG events from this logger to detect the issue (KTOR-9531).
+        val pipelineLogger = LoggerFactory.getLogger("io.netty.channel.DefaultChannelPipeline") as Logger
+        val previousLevel = pipelineLogger.level
+        val logEvents = ListAppender<ILoggingEvent>().apply {
+            context = pipelineLogger.loggerContext
+            start()
+        }
+        pipelineLogger.level = Level.DEBUG
+        pipelineLogger.addAppender(logEvents)
+
+        val server = embeddedServer(Netty, 0) {
+            routing {
+                post("/send") {
+                    call.respondText(call.receive())
+                }
+            }
+        }
+        server.startSuspend()
+        try {
+            val connector = server.engine.resolvedConnectors().first()
+            val sendUrl = "http://${connector.host}:${connector.port}/send"
+            val client = HttpClient(CIO)
+
+            repeat(5) { i ->
+                client.post(sendUrl) {
+                    contentType(ContentType.Application.Json)
+                    setBody("{\"foo\":\"bar-$i\"}")
+                }.bodyAsText()
+            }
+            val discarded = logEvents.list.filter {
+                it.message.orEmpty().contains("Discarded inbound message")
+            }
+
+            assertTrue(
+                discarded.isEmpty(),
+                "Netty pipeline discarded ${discarded.size} inbound messages." +
+                    "First message: ${discarded.firstOrNull()?.formattedMessage}"
+            )
+        } finally {
+            server.stopSuspend(0L, 0L)
+            pipelineLogger.detachAppender(logEvents)
+            logEvents.stop()
+            pipelineLogger.level = previousLevel
         }
     }
 }
