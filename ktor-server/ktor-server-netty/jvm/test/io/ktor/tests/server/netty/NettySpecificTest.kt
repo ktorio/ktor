@@ -409,9 +409,7 @@ class NettySpecificTest {
     }
 
     @Test
-    fun `pipeline should not discard inbound messages`() = runTestWithRealTime {
-        // Netty logs "Discarded inbound message ... at the tail of the pipeline" at DEBUG level,
-        // so we need to capture DEBUG events from this logger to detect the issue (KTOR-9531).
+    fun `no messages are discarded from the netty pipeline`() = runTestWithRealTime {
         val pipelineLogger = LoggerFactory.getLogger("io.netty.channel.DefaultChannelPipeline") as Logger
         val previousLevel = pipelineLogger.level
         val logEvents = ListAppender<ILoggingEvent>().apply {

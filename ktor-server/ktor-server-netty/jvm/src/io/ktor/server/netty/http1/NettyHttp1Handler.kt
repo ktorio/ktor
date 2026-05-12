@@ -17,8 +17,6 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
 import io.netty.handler.codec.http.*
 import io.netty.handler.timeout.ReadTimeoutException
-import io.netty.util.AttributeKey
-import io.netty.util.concurrent.EventExecutor
 import io.netty.util.concurrent.EventExecutorGroup
 import kotlinx.coroutines.*
 import java.io.IOException
@@ -148,7 +146,7 @@ internal class NettyHttp1Handler(
         val userAppContext = applicationProvider().coroutineContext + userContext
         val callJob = Job(parent = userAppContext[Job])
 
-        val callExecutor = pinnedCallExecutor(context)
+        val callExecutor = pinnedCallExecutor(context, callEventGroup)
         val callContext = userAppContext +
             NettyDispatcher.CurrentContext(context, callExecutor) +
             callJob +
@@ -238,25 +236,6 @@ internal class NettyHttp1Handler(
         } else {
             state.skippedRead.value = true
         }
-    }
-
-    /**
-     * Returns the [EventExecutor] from [callEventGroup] pinned to the given channel.
-     * The executor is selected once per channel and stored as a channel attribute, ensuring that all calls on a
-     * given connection are dispatched onto a single thread for the lifetime of the connection. This preserves
-     * thread affinity across coroutine suspensions.
-     */
-    private fun pinnedCallExecutor(context: ChannelHandlerContext): EventExecutor {
-        val attr = context.channel().attr(PinnedCallExecutorKey)
-        val existing = attr.get()
-        if (existing != null) return existing
-        val picked = callEventGroup.next()
-        return if (attr.compareAndSet(null, picked)) picked else attr.get()
-    }
-
-    companion object {
-        private val PinnedCallExecutorKey: AttributeKey<EventExecutor> =
-            AttributeKey.valueOf("ktor.netty.pinnedCallExecutor")
     }
 }
 

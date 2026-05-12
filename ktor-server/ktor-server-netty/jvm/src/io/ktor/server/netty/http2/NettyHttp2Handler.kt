@@ -19,7 +19,6 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
 import io.netty.handler.codec.http2.*
 import io.netty.util.AttributeKey
-import io.netty.util.concurrent.EventExecutor
 import io.netty.util.concurrent.EventExecutorGroup
 import kotlinx.coroutines.*
 import java.lang.reflect.Field
@@ -104,7 +103,7 @@ internal class NettyHttp2Handler(
 
     private fun startHttp2(context: ChannelHandlerContext, headers: Http2Headers) {
         val callJob = Job(parent = userCoroutineContext[Job])
-        val callExecutor = pinnedCallExecutor(context)
+        val callExecutor = pinnedCallExecutor(context, callEventGroup)
         val callContext = userCoroutineContext +
             NettyDispatcher.CurrentContext(context, callExecutor) +
             callJob +
@@ -126,7 +125,7 @@ internal class NettyHttp2Handler(
         // deliver subsequent Http2DataFrame messages. Without this, the coroutine runs on the event loop,
         // blocking data frame delivery and causing EOFException.
         // Dispatching to the call event group also ensures user handler code does not run on the I/O worker
-        // event loop, matching the behavior prior to KTOR-9343.
+        // event loop.
         callExecutor.execute {
             val callScope = CoroutineScope(context = callContext)
             callScope.launch(start = CoroutineStart.UNDISPATCHED) {
@@ -253,25 +252,8 @@ internal class NettyHttp2Handler(
         handlerJob.cancel()
     }
 
-    /**
-     * Returns the [EventExecutor] from [callEventGroup] pinned to the given channel.
-     * The executor is selected once per channel and stored as a channel attribute, ensuring that all calls on a
-     * given stream are dispatched onto a single thread for the lifetime of the stream. This preserves
-     * thread affinity across coroutine suspensions, matching the behavior prior to KTOR-9343.
-     */
-    private fun pinnedCallExecutor(context: ChannelHandlerContext): EventExecutor {
-        val attr = context.channel().attr(PinnedCallExecutorKey)
-        val existing = attr.get()
-        if (existing != null) return existing
-        val picked = callEventGroup.next()
-        return if (attr.compareAndSet(null, picked)) picked else attr.get()
-    }
-
     companion object {
         private val ApplicationCallKey = AttributeKey.valueOf<NettyHttp2ApplicationCall>("ktor.ApplicationCall")
-
-        private val PinnedCallExecutorKey: AttributeKey<EventExecutor> =
-            AttributeKey.valueOf("ktor.netty.pinnedCallExecutor.http2")
 
         private var ChannelHandlerContext.applicationCall: NettyHttp2ApplicationCall?
             get() = channel().attr(ApplicationCallKey).get()
