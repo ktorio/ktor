@@ -122,8 +122,8 @@ public object ResponseBodyReadyForSend :
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.hooks.ResponseSent)
  */
-public object ResponseSent : Hook<(ApplicationCall) -> Unit> {
-    override fun install(pipeline: ApplicationCallPipeline, handler: (ApplicationCall) -> Unit) {
+public object ResponseSent : Hook<suspend (ApplicationCall) -> Unit> {
+    override fun install(pipeline: ApplicationCallPipeline, handler: suspend (ApplicationCall) -> Unit) {
         pipeline.sendPipeline.intercept(ApplicationSendPipeline.Engine) {
             proceed()
             handler(call)
