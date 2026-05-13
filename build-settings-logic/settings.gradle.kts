@@ -5,6 +5,11 @@
 pluginManagement {
     repositories {
         maven("https://cache-redirector.jetbrains.com/plugins.gradle.org/m2")
+        gradlePluginPortal()
+        
+        // Consistent with dependencyResolutionManagement
+        val kotlinRepoUrl = providers.gradleProperty("kotlin_repo_url").orNull
+        if (kotlinRepoUrl != null) maven(kotlinRepoUrl) { name = "KotlinDev" }
     }
 }
 
