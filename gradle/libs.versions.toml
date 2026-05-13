@@ -48,7 +48,7 @@ dropwizard = "4.2.37"
 micrometer = "1.16.5"
 
 jansi = "2.4.2"
-typesafe = "1.4.5"
+typesafe = "1.4.8"
 
 # Version 1.14.6 is not compatible with Java 11.
 # Wait until https://github.com/mockk/mockk/issues/1433 is resolved.
