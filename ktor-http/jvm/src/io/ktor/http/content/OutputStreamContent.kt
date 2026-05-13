@@ -41,6 +41,8 @@ public class OutputStreamContent(
      * [ByteWriteChannel.toOutputStream].
      *
      * The caller is responsible for closing the [stream] after this method returns.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.OutputStreamContent.writeTo)
      */
     @InternalAPI
     public suspend fun writeTo(stream: OutputStream) {

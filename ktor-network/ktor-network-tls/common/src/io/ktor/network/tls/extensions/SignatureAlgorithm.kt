@@ -142,7 +142,7 @@ internal fun Source.readHashAndSign(): HashAndSign? {
  * First searches for a matching algorithm pair in [SupportedSignatureAlgorithms].
  * If not found, creates a new [HashAndSign] instance with the given codes.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.extensions.HashAndSign.Companion.byCode)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.extensions.byCode)
  *
  * @param hash the numeric code of the hash algorithm
  * @param sign the numeric code of the signature algorithm

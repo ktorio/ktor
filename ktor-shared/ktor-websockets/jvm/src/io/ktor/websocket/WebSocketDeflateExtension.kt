@@ -187,6 +187,8 @@ public class WebSocketDeflateExtension internal constructor(
 
         /**
          * Maximum inflated size of an inbound frame.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketDeflateExtension.Config.maxInflatedFrameSize)
          */
         public var maxInflatedFrameSize: Int = MAX_INFLATED_FRAME_SIZE
 

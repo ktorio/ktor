@@ -76,14 +76,14 @@ public fun generateNonce(): String = generateNonceBlocking(NONCE_SIZE_IN_CHARS)
 /**
  * Generates a nonce string [length] characters long. Could suspend if the system's entropy source is empty.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.generateNonce)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.generateNonceSuspend)
  */
 public expect suspend fun generateNonceSuspend(length: Int = NONCE_SIZE_IN_CHARS): String
 
 /**
  * Generates a nonce string [length] characters long. Could block if the system's entropy source is empty.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.generateNonce)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.generateNonceBlocking)
  */
 public expect fun generateNonceBlocking(length: Int = NONCE_SIZE_IN_CHARS): String
 
