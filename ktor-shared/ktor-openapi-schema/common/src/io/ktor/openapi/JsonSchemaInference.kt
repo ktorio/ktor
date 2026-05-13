@@ -73,6 +73,8 @@ public class KotlinxSerializerJsonSchemaInference(
     public companion object {
         /**
          * Default instance of KotlinxSerializerJsonSchemaInference using an empty serializers module.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.KotlinxSerializerJsonSchemaInference.Companion.Default)
          */
         public val Default: KotlinxSerializerJsonSchemaInference =
             KotlinxSerializerJsonSchemaInference(EmptySerializersModule())

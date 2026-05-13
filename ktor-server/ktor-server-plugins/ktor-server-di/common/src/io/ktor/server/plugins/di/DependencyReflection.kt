@@ -30,6 +30,8 @@ public interface DependencyReflection {
      * Invokes the specified function and provides the necessary dependencies for its parameters
      * using the provided initialization logic.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyReflection.call)
+     *
      * @param T The return type of the function to be invoked.
      * @param kFunction The function reference to invoke. The parameters of this function
      *                  will be resolved using dependency injection.

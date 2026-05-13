@@ -9,6 +9,8 @@ import java.security.MessageDigest
 /**
  * Creates a [MessageDigest] instance for this algorithm.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.toDigester)
+ *
  * @return A new MessageDigest configured for this algorithm's hash function
  * @throws [java.security.NoSuchAlgorithmException] If the algorithm is not supported by the JVM
  */

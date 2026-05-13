@@ -30,6 +30,8 @@ public fun ByteChannel.attachJob(job: ChannelJob) {
 
 /**
  * Ensures that when the [WriterJob]'s output channel is canceled, this [ByteReadChannel] is also canceled.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.attachWriterJob)
  */
 @InternalAPI
 public fun ByteReadChannel.attachWriterJob(writerJob: WriterJob) {

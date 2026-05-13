@@ -40,6 +40,8 @@ public expect class InetSocketAddress(
     /**
      * Creates an [InetSocketAddress] from raw IP address bytes and a port number.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.InetSocketAddress.InetSocketAddress)
+     *
      * @param address the raw IP address bytes in network byte order: 4 bytes for IPv4 or 16 bytes for IPv6.
      * @param port the port number.
      * @throws IllegalArgumentException if [address] is neither 4 nor 16 bytes long.
