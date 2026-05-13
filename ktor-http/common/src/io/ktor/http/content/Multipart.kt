@@ -17,8 +17,9 @@ import kotlinx.coroutines.flow.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.PartData)
  *
- * @property dispose to be invoked when this part is no longer needed
+ * @property dispose former blocking call to close the part; use release instead
  * @property headers of this part, could be inaccurate on some engines
+ * @property release to be invoked when this part is no longer needed
  */
 public sealed class PartData(
     @Deprecated("Use release instead", level = DeprecationLevel.WARNING)
@@ -39,7 +40,7 @@ public sealed class PartData(
         partHeaders: Headers,
         release: suspend () -> Unit = {},
     ) : PartData(dispose, partHeaders, release) {
-        @Deprecated("Binary compatability", level = DeprecationLevel.HIDDEN)
+        @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
         public constructor(
             value: String,
             dispose: () -> Unit,

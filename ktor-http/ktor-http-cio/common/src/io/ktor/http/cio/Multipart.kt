@@ -79,7 +79,7 @@ public sealed class MultipartEvent {
         @OptIn(ExperimentalCoroutinesApi::class)
         override fun release() {
             headers.invokeOnCompletion { t ->
-                if (t != null) {
+                if (t == null) {
                     headers.getCompleted().release()
                 }
             }
