@@ -335,6 +335,89 @@ class ServerSentEventsTest {
         }
     }
 
+    @Test
+    fun `heartbeat uses eventProvider on every tick`() = testApplication {
+        install(SSE)
+        routing {
+            sse {
+                var counter = 0
+                heartbeat {
+                    period = 10.milliseconds
+                    eventProvider = {
+                        ServerSentEvent(data = "beat-${counter++}")
+                    }
+                }
+
+                repeat(4) {
+                    send("Hello")
+                    delay(10.milliseconds)
+                }
+            }
+        }
+
+        val client = createSseClient()
+
+        val beats = mutableListOf<String>()
+        var hellos = 0
+        withTimeout(5_000) {
+            client.sse {
+                incoming.collect { event ->
+                    val data = event.data ?: return@collect
+                    if (data == "Hello") {
+                        hellos++
+                    } else if (data.startsWith("beat-")) {
+                        beats += data
+                    }
+                    if (hellos > 3 && beats.size > 3) {
+                        cancel()
+                    }
+                }
+            }
+        }
+        // Provider is invoked on each tick, so each emitted beat must be unique.
+        assertEquals(beats, beats.distinct())
+    }
+
+    @Test
+    fun `eventProvider takes precedence over static heartbeat event`() = testApplication {
+        install(SSE)
+        routing {
+            sse {
+                heartbeat {
+                    period = 10.milliseconds
+                    event = ServerSentEvent(data = "static")
+                    eventProvider = {
+                        ServerSentEvent(data = "dynamic")
+                    }
+                }
+
+                repeat(4) {
+                    send("Hello")
+                    delay(10.milliseconds)
+                }
+            }
+        }
+
+        val client = createSseClient()
+
+        var dynamic = 0
+        var hellos = 0
+        withTimeout(5_000) {
+            client.sse {
+                incoming.collect { event ->
+                    when (event.data) {
+                        "Hello" -> hellos++
+                        "dynamic" -> dynamic++
+                        "static" -> error("static event must not be emitted when eventProvider is set")
+                    }
+                    if (hellos > 3 && dynamic > 3) {
+                        cancel()
+                    }
+                }
+            }
+        }
+    }
+
     private fun ApplicationTestBuilder.createSseClient(): HttpClient {
         val client = createClient {
             install(io.ktor.client.plugins.sse.SSE)

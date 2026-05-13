@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.apache5
@@ -77,21 +77,22 @@ internal class BasicResponseConsumer(private val dataConsumer: ApacheResponseCon
     }
 }
 
-@OptIn(InternalCoroutinesApi::class)
 internal class ApacheResponseConsumer(
     parentContext: CoroutineContext,
     private val requestData: HttpRequestData
 ) : AsyncEntityConsumer<Unit>, CoroutineScope {
 
-    private val consumerJob = Job(parentContext[Job])
+    private val consumerJob = Job(parentContext.job)
     override val coroutineContext: CoroutineContext = parentContext + consumerJob
 
-    private val channel = ByteChannel().also {
-        it.attachJob(consumerJob)
+    private val channel = ByteChannel().apply {
+        attachJob(consumerJob)
     }
 
     @Volatile
     private var capacityChannel: CapacityChannel? = null
+
+    private val streamResultCallback = atomic<FutureCallback<Unit>?>(null)
 
     private val messagesQueue = Channel<Any>(capacity = UNLIMITED)
 
@@ -99,13 +100,7 @@ internal class ApacheResponseConsumer(
     private val capacity = atomic(channel.availableForWrite)
 
     init {
-        coroutineContext[Job]?.invokeOnCompletion(onCancelling = true) { cause ->
-            if (cause != null) {
-                responseChannel.cancel(cause)
-            }
-        }
-
-        launch(coroutineContext) {
+        launch(CoroutineName("apache-response-consumer")) {
             for (message in messagesQueue) {
                 when (message) {
                     is CloseChannel -> close()
@@ -114,13 +109,13 @@ internal class ApacheResponseConsumer(
                         val written = message.remaining()
                         channel.writeFully(message)
                         channel.flush()
-                        when (capacityChannel) {
+                        when (val channel = capacityChannel) {
                             null -> capacity.addAndGet(written)
-                            else -> capacityChannel!!.update(written)
+                            else -> channel.update(written)
                         }
                     }
 
-                    else -> throw IllegalStateException("Unknown message $message")
+                    else -> error("Unknown message $message")
                 }
             }
         }
@@ -138,9 +133,11 @@ internal class ApacheResponseConsumer(
     }
 
     override fun consume(src: ByteBuffer) {
-        if (channel.isClosedForWrite) {
-            channel.closedCause?.let { throw it }
-        }
+        // Silently discard when the channel is closed (e.g. caller scope was cancelled).
+        // Throwing here (even IOException per the interface contract) causes Apache to invoke its
+        // error-recovery path mid-body-stream, which either corrupts the connection pool state or
+        // triggers a retry on an already-shutdown scheduler (RejectedExecutionException).
+        if (channel.isClosedForWrite) return
         messagesQueue.trySend(src.copy())
     }
 
@@ -148,17 +145,21 @@ internal class ApacheResponseConsumer(
         messagesQueue.trySend(CloseChannel)
     }
 
-    override fun streamStart(entityDetails: EntityDetails, resultCallback: FutureCallback<Unit>) {}
+    override fun streamStart(entityDetails: EntityDetails, resultCallback: FutureCallback<Unit>) {
+        streamResultCallback.value = resultCallback
+    }
 
     override fun failed(cause: Exception) {
         val mappedCause = mapCause(cause, requestData)
         consumerJob.completeExceptionally(mappedCause)
         responseChannel.cancel(mappedCause)
+        streamResultCallback.getAndSet(null)?.failed(cause)
     }
 
     internal fun close() {
         channel.close()
         consumerJob.complete()
+        streamResultCallback.getAndSet(null)?.completed(Unit)
     }
 
     override fun getContent() = Unit

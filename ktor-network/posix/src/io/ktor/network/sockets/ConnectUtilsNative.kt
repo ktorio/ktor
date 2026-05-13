@@ -7,9 +7,10 @@ package io.ktor.network.sockets
 import io.ktor.network.selector.*
 import io.ktor.network.util.*
 import io.ktor.utils.io.errors.*
-import kotlinx.cinterop.*
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.convert
 import kotlinx.io.IOException
-import platform.posix.*
+import platform.posix.SOCK_STREAM
 
 private const val DEFAULT_BACKLOG_SIZE = 50
 
@@ -28,7 +29,7 @@ internal actual suspend fun tcpConnect(
 
             val socket = buildOrCloseSocket(descriptor) {
                 assignOptions(descriptor, socketOptions)
-                nonBlocking(descriptor)
+                nonBlocking(descriptor).check()
 
                 TCPSocketNative(
                     selector,
@@ -64,7 +65,7 @@ internal actual suspend fun tcpBind(
 
     buildOrCloseSocket(descriptor) {
         assignOptions(descriptor, socketOptions)
-        nonBlocking(descriptor)
+        nonBlocking(descriptor).check()
 
         address.nativeAddress { pointer, size ->
             ktor_bind(descriptor, pointer, size).check()

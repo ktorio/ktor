@@ -128,6 +128,7 @@ public class MicrometerMetricsConfig {
         DistributionStatisticConfig.Builder().percentiles(0.5, 0.9, 0.95, 0.99).build()
 
     internal var timerBuilder: Timer.Builder.(ApplicationCall, Throwable?) -> Unit = { _, _ -> }
+    internal val filters = mutableListOf<(ApplicationCall) -> Boolean>()
 
     /**
      * Configures micrometer timers.
@@ -137,6 +138,25 @@ public class MicrometerMetricsConfig {
      */
     public fun timers(block: Timer.Builder.(ApplicationCall, Throwable?) -> Unit) {
         timerBuilder = block
+    }
+
+    /**
+     * Adds a filter to exclude certain calls from metrics collection.
+     * When filters are configured, a call must match at least one filter to be recorded.
+     * If no filters are configured, all calls are recorded.
+     *
+     * Example:
+     * ```kotlin
+     * install(MicrometerMetrics) {
+     *     registry = prometheusMeterRegistry
+     *     filter { call -> call.request.uri !in setOf("/health", "/metrics") }
+     * }
+     * ```
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.metrics.micrometer.MicrometerMetricsConfig.filter)
+     */
+    public fun filter(predicate: (ApplicationCall) -> Boolean) {
+        filters.add(predicate)
     }
 
     internal var transformRoute: (RoutingNode) -> String = { it.path }
@@ -188,6 +208,7 @@ public val MicrometerMetrics: ApplicationPlugin<MicrometerMetricsConfig> =
         val metricName = pluginConfig.metricName
         val activeRequestsGaugeName = "$metricName.active"
         val registry = pluginConfig.registry
+        val filters = pluginConfig.filters
 
         registry.config().meterFilter(object : MeterFilter {
             override fun configure(id: Meter.Id, config: DistributionStatisticConfig): DistributionStatisticConfig =
@@ -216,7 +237,7 @@ public val MicrometerMetrics: ApplicationPlugin<MicrometerMetricsConfig> =
 
         @OptIn(InternalAPI::class)
         on(Metrics) { call ->
-            if (call.request.httpMethod in DefaultMethods) {
+            if (call.request.httpMethod in DefaultMethods && (filters.isEmpty() || filters.any { it(call) })) {
                 active?.incrementAndGet()
                 call.attributes.put(measureKey, CallMeasure(Timer.start(registry)))
             }

@@ -1,10 +1,12 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.server.sessions
 
+import io.ktor.server.application.*
 import io.ktor.util.reflect.*
+import io.ktor.utils.io.InternalAPI
 import kotlin.reflect.*
 
 /**
@@ -32,6 +34,7 @@ public fun <S : Any> SessionsConfig.cookie(name: String, typeInfo: TypeInfo, sto
 }
 
 @PublishedApi
+@OptIn(InternalAPI::class)
 internal fun <S : Any> SessionsConfig.cookie(
     name: String,
     builder: CookieIdSessionBuilder<S>,
@@ -39,8 +42,8 @@ internal fun <S : Any> SessionsConfig.cookie(
     storage: SessionStorage
 ) {
     val transport = SessionTransportCookie(name, builder.cookie, builder.transformers)
-    val tracker = SessionTrackerById(sessionType, builder.serializer, storage, builder.sessionIdProvider)
-    val provider = SessionProvider(name, sessionType, transport, tracker)
+    val tracker = SessionTrackerById(sessionType, builder.serializer, storage, builder::provideSessionId)
+    val provider = SessionProvider(name, sessionType, transport, tracker, builder.sendOnlyIfModified)
     register(provider)
 }
 
@@ -140,6 +143,7 @@ public fun <S : Any> SessionsConfig.header(
 }
 
 @PublishedApi
+@OptIn(InternalAPI::class)
 internal fun <S : Any> SessionsConfig.header(
     name: String,
     sessionType: KClass<S>,
@@ -152,12 +156,12 @@ internal fun <S : Any> SessionsConfig.header(
             sessionType,
             builder.serializer,
             storage,
-            builder.sessionIdProvider
+            builder::provideSessionId
         )
 
         else -> SessionTrackerByValue(sessionType, builder.serializer)
     }
-    val provider = SessionProvider(name, sessionType, transport, tracker)
+    val provider = SessionProvider(name, sessionType, transport, tracker, builder.sendOnlyIfModified)
     register(provider)
 }
 
@@ -247,7 +251,7 @@ internal fun <S : Any> SessionsConfig.cookie(
 ) {
     val transport = SessionTransportCookie(name, builder.cookie, builder.transformers)
     val tracker = SessionTrackerByValue(sessionType, builder.serializer)
-    val provider = SessionProvider(name, sessionType, transport, tracker)
+    val provider = SessionProvider(name, sessionType, transport, tracker, builder.sendOnlyIfModified)
     register(provider)
 }
 
@@ -328,13 +332,29 @@ public class CookieIdSessionBuilder<S : Any> @PublishedApi internal constructor(
     typeInfo: KType
 ) : CookieSessionBuilder<S>(type, typeInfo) {
 
+    private var _sessionIdProvider: (ApplicationCall?) -> String = { generateSessionId() }
+
     /**
      * Registers a function used to generate a session ID.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CookieIdSessionBuilder.identity)
      */
+    public fun identity(f: (ApplicationCall) -> String) {
+        _sessionIdProvider = { call ->
+            requireNotNull(call) {
+                "ApplicationCall is required for this sessionIdProvider. Please use identity((ApplicationCall) -> String) instead."
+            }.let { f(it) }
+        }
+    }
+
+    @Deprecated("Use identity function that accepts ApplicationCall parameter", level = DeprecationLevel.HIDDEN)
     public fun identity(f: () -> String) {
-        sessionIdProvider = f
+        _sessionIdProvider = { f() }
+    }
+
+    @Deprecated("Use identity function that accepts ApplicationCall parameter", level = DeprecationLevel.WARNING)
+    public fun identity(f: () -> String, @Suppress("UNUSED_PARAMETER") dummy: Unit = Unit) {
+        _sessionIdProvider = { f() }
     }
 
     /**
@@ -342,8 +362,12 @@ public class CookieIdSessionBuilder<S : Any> @PublishedApi internal constructor(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CookieIdSessionBuilder.sessionIdProvider)
      */
-    public var sessionIdProvider: () -> String = { generateSessionId() }
-        private set
+    @Deprecated("Use identity function that accepts ApplicationCall parameter", level = DeprecationLevel.WARNING)
+    public var sessionIdProvider: () -> String = { _sessionIdProvider(null) }
+        private set(_) = error("Read only property")
+
+    @InternalAPI
+    public fun provideSessionId(call: ApplicationCall): String = _sessionIdProvider(call)
 }
 
 /**
@@ -392,6 +416,16 @@ internal constructor(
     }
 
     /**
+     * When set to `true`, session data is not re-sent if unchanged from the incoming value.
+     * This avoids unnecessary `Set-Cookie` headers but prevents cookie expiration refresh.
+     * Session classes should properly implement `equals()` for this to work correctly.
+     * Default: `false`.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CookieSessionBuilder.sendOnlyIfModified)
+     */
+    public var sendOnlyIfModified: Boolean = false
+
+    /**
      * Gets a configuration used to specify additional cookie attributes for [Sessions].
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.CookieSessionBuilder.cookie)
@@ -412,13 +446,22 @@ internal constructor(
     public val type: KClass<S>,
     public val typeInfo: KType
 ) {
-
     /**
      * Specifies a serializer used to serialize session data.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.HeaderSessionBuilder.serializer)
      */
     public var serializer: SessionSerializer<S> = defaultSessionSerializer(typeInfo)
+
+    /**
+     * When set to `true`, session data is not re-sent if unchanged from the incoming value.
+     * This avoids unnecessary session headers but prevents session expiration refresh.
+     * Session classes should properly implement `equals()` for this to work correctly.
+     * Default: `false`.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.HeaderSessionBuilder.sendOnlyIfModified)
+     */
+    public var sendOnlyIfModified: Boolean = false
 
     private val _transformers = mutableListOf<SessionTransportTransformer>()
 
@@ -450,14 +493,30 @@ internal constructor(
     type: KClass<S>,
     typeInfo: KType
 ) : HeaderSessionBuilder<S>(type, typeInfo) {
+    private var _sessionIdProvider: (ApplicationCall?) -> String = { generateSessionId() }
 
     /**
      * Registers a function used to generate a session ID.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.HeaderIdSessionBuilder.identity)
      */
+    public fun identity(f: (ApplicationCall) -> String) {
+        _sessionIdProvider = { call ->
+            requireNotNull(call) {
+                "ApplicationCall is required for this sessionIdProvider. Please use identity((ApplicationCall) -> String) instead."
+            }.let { f(it) }
+        }
+    }
+
+    @Deprecated("Use identity function that accepts ApplicationCall parameter", level = DeprecationLevel.HIDDEN)
     public fun identity(f: () -> String) {
-        sessionIdProvider = f
+        _sessionIdProvider = { f() }
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    @Deprecated("Use identity function that accepts ApplicationCall parameter", level = DeprecationLevel.WARNING)
+    public fun identity(f: () -> String, @Suppress("UNUSED_PARAMETER") dummy: Unit = Unit) {
+        _sessionIdProvider = { f() }
     }
 
     /**
@@ -465,6 +524,10 @@ internal constructor(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.HeaderIdSessionBuilder.sessionIdProvider)
      */
-    public var sessionIdProvider: () -> String = { generateSessionId() }
-        private set
+    @Deprecated("Use identity function that accepts ApplicationCall parameter", level = DeprecationLevel.WARNING)
+    public var sessionIdProvider: () -> String = { _sessionIdProvider(null) }
+        private set(_) = error("Read only property")
+
+    @InternalAPI
+    public fun provideSessionId(call: ApplicationCall): String = _sessionIdProvider(call)
 }

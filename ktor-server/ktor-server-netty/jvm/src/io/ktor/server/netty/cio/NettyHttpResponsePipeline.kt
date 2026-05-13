@@ -8,13 +8,20 @@ import io.ktor.http.*
 import io.ktor.server.netty.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
-import io.netty.channel.*
-import io.netty.handler.codec.http.*
-import io.netty.handler.codec.http2.*
-import kotlinx.atomicfu.*
-import kotlinx.coroutines.*
-import java.io.*
-import kotlin.coroutines.*
+import io.netty.channel.ChannelFuture
+import io.netty.channel.ChannelHandlerContext
+import io.netty.channel.ChannelPromise
+import io.netty.handler.codec.http.FullHttpResponse
+import io.netty.handler.codec.http.HttpResponse
+import io.netty.handler.codec.http2.Http2HeadersFrame
+import kotlinx.atomicfu.AtomicBoolean
+import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.launch
+import java.io.IOException
+import kotlin.coroutines.CoroutineContext
 
 private const val UNFLUSHED_LIMIT = 65536
 
@@ -43,13 +50,13 @@ internal class NettyHttpResponsePipeline(
     /** Flush if all is true:
      * - there is some unflushed data
      * - nothing to read from the channel
-     * - there are no active requests
+     * - there are no active non-streaming requests
      */
     internal fun flushIfNeeded() {
         if (
             isDataNotFlushed.value &&
             httpHandlerState.isChannelReadCompleted.value &&
-            httpHandlerState.activeRequests.value == 0L
+            httpHandlerState.activeRequests.value == httpHandlerState.streamingResponses.value
         ) {
             context.flush()
             isDataNotFlushed.compareAndSet(expect = true, update = false)
@@ -140,6 +147,9 @@ internal class NettyHttpResponsePipeline(
             null
         }
 
+        if (call.isStreamingResponse) {
+            httpHandlerState.streamingResponses.decrementAndGet()
+        }
         httpHandlerState.onLastResponseMessage(context)
         call.finishedEvent.setSuccess()
 
@@ -196,6 +206,9 @@ internal class NettyHttpResponsePipeline(
             responseMessage is Http2HeadersFrame -> responseMessage.headers().getInt("content-length", -1)
             else -> -1
         }
+
+        call.isStreamingResponse = true
+        httpHandlerState.streamingResponses.incrementAndGet()
 
         launch(context.executor().asCoroutineDispatcher(), start = CoroutineStart.UNDISPATCHED) {
             respondWithBodyAndTrailerMessage(

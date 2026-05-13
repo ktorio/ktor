@@ -27,7 +27,8 @@ internal class NettyConnectionPoint(
     override val method: HttpMethod
         get() = HttpMethod.parse(request.method().name())
 
-    override val scheme by lazy { if (context.pipeline().context("ssl") == null) "http" else "https" }
+    override val scheme: String
+        get() = if (context.pipeline().context("ssl") == null) "http" else "https"
 
     @Deprecated(
         "Use localHost or serverHost instead",

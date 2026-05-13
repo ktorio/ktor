@@ -13,8 +13,11 @@ import io.ktor.server.testing.*
 import io.ktor.util.*
 import io.ktor.util.collections.*
 import io.ktor.util.date.*
-import kotlinx.coroutines.*
-import kotlin.test.*
+import kotlinx.coroutines.delay
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
@@ -36,14 +39,10 @@ class RateLimitTest {
         }
 
         repeat(10) {
-            client.get("/").let {
-                assertEquals(HttpStatusCode.OK, it.status)
-            }
+            client.get("/").assertOk()
         }
 
-        client.get("/").let {
-            assertEquals(HttpStatusCode.TooManyRequests, it.status)
-        }
+        client.get("/").assertTooManyRequests()
     }
 
     @Test
@@ -58,14 +57,10 @@ class RateLimitTest {
         }
 
         repeat(10) {
-            client.get("/").let {
-                assertEquals(HttpStatusCode.OK, it.status)
-            }
+            client.get("/").assertOk()
         }
 
-        client.get("/").let {
-            assertEquals(HttpStatusCode.TooManyRequests, it.status)
-        }
+        client.get("/").assertTooManyRequests()
     }
 
     @Test
@@ -100,31 +95,19 @@ class RateLimitTest {
         }
 
         repeat(10) {
-            client.get("/a").let {
-                assertEquals(HttpStatusCode.OK, it.status)
-            }
+            client.get("/a").assertOk()
         }
-        client.get("/a").let {
-            assertEquals(HttpStatusCode.TooManyRequests, it.status)
-        }
+        client.get("/a").assertTooManyRequests()
 
         repeat(5) {
-            client.get("/b").let {
-                assertEquals(HttpStatusCode.OK, it.status)
-            }
+            client.get("/b").assertOk()
         }
-        client.get("/b").let {
-            assertEquals(HttpStatusCode.TooManyRequests, it.status)
-        }
+        client.get("/b").assertTooManyRequests()
 
         repeat(3) {
-            client.get("/c").let {
-                assertEquals(HttpStatusCode.OK, it.status)
-            }
+            client.get("/c").assertOk()
         }
-        client.get("/c").let {
-            assertEquals(HttpStatusCode.TooManyRequests, it.status)
-        }
+        client.get("/c").assertTooManyRequests()
     }
 
     @Test
@@ -152,26 +135,16 @@ class RateLimitTest {
         }
 
         repeat(6) {
-            client.get("/default").let {
-                assertEquals(HttpStatusCode.OK, it.status)
-            }
+            client.get("/default").assertOk()
         }
-        client.get("/default").let {
-            assertEquals(HttpStatusCode.TooManyRequests, it.status)
-        }
-        client.get("/custom").let {
-            assertEquals(HttpStatusCode.TooManyRequests, it.status)
-        }
+        client.get("/default").assertTooManyRequests()
+        client.get("/custom").assertTooManyRequests()
 
         time += 7000
         repeat(5) {
-            client.get("/custom").let {
-                assertEquals(HttpStatusCode.OK, it.status)
-            }
+            client.get("/custom").assertOk()
         }
-        client.get("/custom").let {
-            assertEquals(HttpStatusCode.TooManyRequests, it.status)
-        }
+        client.get("/custom").assertTooManyRequests()
     }
 
     @Test
@@ -196,23 +169,15 @@ class RateLimitTest {
         }
 
         repeat(5) {
-            client.get("/a").let {
-                assertEquals(HttpStatusCode.OK, it.status)
-            }
+            client.get("/a").assertOk()
         }
-        client.get("/a").let {
-            assertEquals(HttpStatusCode.TooManyRequests, it.status)
-        }
+        client.get("/a").assertTooManyRequests()
 
         time += 7000
         repeat(4) {
-            client.get("/a").let {
-                assertEquals(HttpStatusCode.OK, it.status)
-            }
+            client.get("/a").assertOk()
         }
-        client.get("/a").let {
-            assertEquals(HttpStatusCode.TooManyRequests, it.status)
-        }
+        client.get("/a").assertTooManyRequests()
     }
 
     @Test
@@ -234,23 +199,15 @@ class RateLimitTest {
         }
 
         repeat(10) {
-            client.get("/a").let {
-                assertEquals(HttpStatusCode.OK, it.status)
-            }
+            client.get("/a").assertOk()
         }
-        client.get("/a").let {
-            assertEquals(HttpStatusCode.TooManyRequests, it.status)
-        }
+        client.get("/a").assertTooManyRequests()
 
         time += 5000
         repeat(10) {
-            client.get("/a").let {
-                assertEquals(HttpStatusCode.OK, it.status)
-            }
+            client.get("/a").assertOk()
         }
-        client.get("/a").let {
-            assertEquals(HttpStatusCode.TooManyRequests, it.status)
-        }
+        client.get("/a").assertTooManyRequests()
     }
 
     @Test
@@ -270,24 +227,16 @@ class RateLimitTest {
         }
 
         repeat(10) {
-            client.get("/").let {
-                assertEquals(HttpStatusCode.OK, it.status)
-            }
+            client.get("/").assertOk()
         }
-        client.get("/").let {
-            assertEquals(HttpStatusCode.TooManyRequests, it.status)
-        }
+        client.get("/").assertTooManyRequests()
 
         time += 5.seconds.inWholeMilliseconds
 
         repeat(10) {
-            client.get("/").let {
-                assertEquals(HttpStatusCode.OK, it.status)
-            }
+            client.get("/").assertOk()
         }
-        client.get("/").let {
-            assertEquals(HttpStatusCode.TooManyRequests, it.status)
-        }
+        client.get("/").assertTooManyRequests()
     }
 
     @Test
@@ -333,16 +282,10 @@ class RateLimitTest {
         }
 
         repeat(2) {
-            client.get("/?price=4").let {
-                assertEquals(HttpStatusCode.OK, it.status)
-            }
+            client.get("/?price=4").assertOk()
         }
-        client.get("/?price=3").let {
-            assertEquals(HttpStatusCode.TooManyRequests, it.status)
-        }
-        client.get("/?price=2").let {
-            assertEquals(HttpStatusCode.OK, it.status)
-        }
+        client.get("/?price=3").assertTooManyRequests()
+        client.get("/?price=2").assertOk()
     }
 
     @Test
@@ -362,21 +305,13 @@ class RateLimitTest {
         }
 
         repeat(10) {
-            client.get("/?key=1").let {
-                assertEquals(HttpStatusCode.OK, it.status)
-            }
+            client.get("/?key=1").assertOk()
         }
         repeat(10) {
-            client.get("/?key=2").let {
-                assertEquals(HttpStatusCode.OK, it.status)
-            }
+            client.get("/?key=2").assertOk()
         }
-        client.get("/?key=1").let {
-            assertEquals(HttpStatusCode.TooManyRequests, it.status)
-        }
-        client.get("/?key=2").let {
-            assertEquals(HttpStatusCode.TooManyRequests, it.status)
-        }
+        client.get("/?key=1").assertTooManyRequests()
+        client.get("/?key=2").assertTooManyRequests()
     }
 
     @Test
@@ -398,21 +333,13 @@ class RateLimitTest {
         }
 
         repeat(10) {
-            client.get("/?key=key1").let {
-                assertEquals(HttpStatusCode.OK, it.status)
-            }
+            client.get("/?key=key1").assertOk()
         }
         repeat(5) {
-            client.get("/?key=key2").let {
-                assertEquals(HttpStatusCode.OK, it.status)
-            }
+            client.get("/?key=key2").assertOk()
         }
-        client.get("/?key=key1").let {
-            assertEquals(HttpStatusCode.TooManyRequests, it.status)
-        }
-        client.get("/?key=key2").let {
-            assertEquals(HttpStatusCode.TooManyRequests, it.status)
-        }
+        client.get("/?key=key1").assertTooManyRequests()
+        client.get("/?key=key2").assertTooManyRequests()
     }
 
     @Test
@@ -440,29 +367,24 @@ class RateLimitTest {
         }
 
         repeat(5) {
-            client.get("/a").let {
-                assertEquals(HttpStatusCode.OK, it.status)
-            }
+            client.get("/a").assertOk()
         }
         repeat(5) {
-            client.get("/b").let {
-                assertEquals(HttpStatusCode.OK, it.status)
-            }
+            client.get("/b").assertOk()
         }
-        client.get("/a").let {
-            assertEquals(HttpStatusCode.TooManyRequests, it.status)
-        }
-        client.get("/b").let {
-            assertEquals(HttpStatusCode.TooManyRequests, it.status)
-        }
+        client.get("/a").assertTooManyRequests()
+        client.get("/b").assertTooManyRequests()
     }
 
     @Test
     fun testAddsAdditionalHeadersToResponse() = testApplication {
+        val refillPeriod = 5.seconds
         var time = getTimeMillis()
+        val expectedRateLimitReset = (time + 999) / 1000 + refillPeriod.inWholeSeconds
+
         install(RateLimit) {
             register {
-                rateLimiter(limit = 10, refillPeriod = 5.seconds) { time }
+                rateLimiter(limit = 10, refillPeriod) { time }
                 requestWeight { call, _ -> call.request.queryParameters["price"]!!.toInt() }
             }
         }
@@ -478,14 +400,14 @@ class RateLimitTest {
             assertEquals(HttpStatusCode.OK, it.status)
             assertEquals("2", it.headers["X-RateLimit-Remaining"])
             assertEquals("10", it.headers["X-RateLimit-Limit"])
-            assertEquals(time / 1000 + 5, it.headers["X-RateLimit-Reset"]!!.toLong())
+            assertEquals(expectedRateLimitReset, it.headers["X-RateLimit-Reset"]!!.toLong())
         }
         time += 2000
         client.get("/?price=1").let {
             assertEquals(HttpStatusCode.OK, it.status)
             assertEquals("1", it.headers["X-RateLimit-Remaining"])
             assertEquals("10", it.headers["X-RateLimit-Limit"])
-            assertEquals(time / 1000 + 3, it.headers["X-RateLimit-Reset"]!!.toLong())
+            assertEquals(expectedRateLimitReset, it.headers["X-RateLimit-Reset"]!!.toLong())
         }
         client.get("/?price=8").let {
             assertEquals(HttpStatusCode.TooManyRequests, it.status)
@@ -622,7 +544,7 @@ class RateLimitTest {
             register {
                 rateLimiter { _, _ ->
                     createCount++
-                    RateLimiter.default(limit = 3, refillPeriod = 1.seconds)
+                    RateLimiter.default(limit = 3, refillPeriod = 500.milliseconds)
                 }
             }
         }
@@ -634,29 +556,15 @@ class RateLimitTest {
             }
         }
 
-        client.get("/").let {
-            assertEquals(HttpStatusCode.OK, it.status)
+        repeat(3) {
+            client.get("/").assertOk()
         }
-        delay(300)
-        client.get("/").let {
-            assertEquals(HttpStatusCode.OK, it.status)
-        }
-        delay(300)
-        client.get("/").let {
-            assertEquals(HttpStatusCode.OK, it.status)
-        }
-        delay(300)
-        client.get("/").let {
-            assertEquals(HttpStatusCode.TooManyRequests, it.status)
-        }
+        client.get("/").assertTooManyRequests()
 
-        assertEquals(1, createCount)
-        delay(200)
+        delay(1.seconds)
         assertEquals(1, createCount)
 
-        client.get("/").let {
-            assertEquals(HttpStatusCode.OK, it.status)
-        }
+        client.get("/").assertOk()
         assertEquals(2, createCount)
     }
 
@@ -685,21 +593,13 @@ class RateLimitTest {
             }
         }
 
-        client.get("/").let {
-            assertEquals(HttpStatusCode.OK, it.status)
-        }
+        client.get("/").assertOk()
         time += 60
-        client.get("/").let {
-            assertEquals(HttpStatusCode.OK, it.status)
-        }
+        client.get("/").assertOk()
         time += 60
-        client.get("/").let {
-            assertEquals(HttpStatusCode.OK, it.status)
-        }
+        client.get("/").assertOk()
         time += 60
-        client.get("/").let {
-            assertEquals(HttpStatusCode.TooManyRequests, it.status)
-        }
+        client.get("/").assertTooManyRequests()
         assertEquals(1, rateLimitersRegistry.size)
         rateLimitersRegistry[rateLimitersRegistry.keys.first()] = RateLimiter.default(
             limit = 3,
@@ -708,13 +608,11 @@ class RateLimitTest {
 
         assertEquals(1, createCount)
         assertEquals(1, rateLimitersRegistry.size)
-        delay(550)
+        delay(550.milliseconds)
         assertEquals(1, rateLimitersRegistry.size)
         assertEquals(1, createCount)
 
-        client.get("/").let {
-            assertEquals(HttpStatusCode.OK, it.status)
-        }
+        client.get("/").assertOk()
         assertEquals(1, rateLimitersRegistry.size)
         assertEquals(1, createCount)
     }
@@ -744,4 +642,82 @@ class RateLimitTest {
         val response = client.get("/a")
         assertEquals("RateLimitName(name=limit1), RateLimitName(name=limit2)", response.bodyAsText())
     }
+
+    @Test
+    fun testRefillAtTimeMillisHeaderUsesCeiling() = testApplication {
+        var time = 1000L // Start at 1 second
+        install(RateLimit) {
+            register {
+                rateLimiter(limit = 1, refillPeriod = 1500.milliseconds) { time }
+            }
+        }
+
+        routing {
+            rateLimit {
+                get("/") {
+                    call.respond("OK")
+                }
+            }
+        }
+
+        // The first request succeeds, refill time is at ${time} + 1500ms = 2500ms
+        client.get("/").let {
+            assertEquals(HttpStatusCode.OK, it.status)
+            assertEquals("3", it.headers["X-RateLimit-Reset"])
+        }
+
+        // Test with different time that produces exact seconds (no fractional part)
+        time = 2500L
+        client.get("/").let {
+            assertEquals(HttpStatusCode.OK, it.status)
+            assertEquals("4", it.headers["X-RateLimit-Reset"])
+        }
+    }
+
+    @Test
+    fun testRetryAfterHeaderUsesCeiling() = testApplication {
+        var time = getTimeMillis()
+        install(RateLimit) {
+            register {
+                rateLimiter(limit = 10, refillPeriod = 5.seconds) { time }
+                requestWeight { call, _ -> call.request.queryParameters["price"]!!.toInt() }
+            }
+        }
+        routing {
+            rateLimit {
+                get("/") {
+                    call.respond("OK")
+                }
+            }
+        }
+
+        client.get("/?price=10").let {
+            assertEquals(HttpStatusCode.OK, it.status)
+            assertEquals("0", it.headers["X-RateLimit-Remaining"])
+        }
+
+        // Try to consume more - should be rate limited with 5 seconds
+        client.get("/?price=1").let {
+            assertEquals(HttpStatusCode.TooManyRequests, it.status)
+            assertEquals("5", it.headers[HttpHeaders.RetryAfter])
+        }
+
+        // Advance time by 1ms, so 4999ms remaining until refill
+        time += 1
+        client.get("/?price=1").let {
+            assertEquals(HttpStatusCode.TooManyRequests, it.status)
+            assertEquals("5", it.headers[HttpHeaders.RetryAfter])
+        }
+
+        // Advance to 2500ms elapsed (2500ms remaining until refill)
+        time += 2499
+        client.get("/?price=1").let {
+            assertEquals(HttpStatusCode.TooManyRequests, it.status)
+            assertEquals("3", it.headers[HttpHeaders.RetryAfter])
+        }
+    }
 }
+
+private fun HttpResponse.assertOk(): HttpResponse = assertStatus(HttpStatusCode.OK)
+private fun HttpResponse.assertTooManyRequests(): HttpResponse = assertStatus(HttpStatusCode.TooManyRequests)
+private fun HttpResponse.assertStatus(expected: HttpStatusCode): HttpResponse = apply { assertEquals(expected, status) }

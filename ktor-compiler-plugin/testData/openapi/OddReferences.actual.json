@@ -1,0 +1,112 @@
+{
+    "openapi": "3.1.1",
+    "info": {
+        "title": "OpenAPI Document",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/higher-scope": {
+            "get": {
+                "summary": "Referencing from a higher scope",
+                "parameters": [
+                    {
+                        "name": "fileScoped",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "publicConstant",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "",
+                        "content": {
+                            "text/csv": {}
+                        }
+                    }
+                }
+            }
+        },
+        "/external-return": {
+            "get": {
+                "summary": "Local declarations; external function return",
+                "responses": {
+                    "202": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CustomResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/reassignment": {
+            "get": {
+                "summary": "Reassignment; branches",
+                "parameters": [
+                    {
+                        "name": "plain",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/message+json": {}
+                        }
+                    }
+                }
+            }
+        },
+        "/function-lambda": {
+            "get": {
+                "summary": "Calls with lambda argument",
+                "responses": {
+                    "202": {
+                        "description": "",
+                        "content": {
+                            "text/csv": {}
+                        }
+                    }
+                }
+            }
+        },
+        "/set-cookies": {
+            "get": {
+                "summary": "Local variables that can't be extracted",
+                "responses": {}
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "CustomResponse": {
+                "type": "object",
+                "title": "CustomResponse",
+                "required": [
+                    "message"
+                ],
+                "properties": {
+                    "message": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    }
+}

@@ -4,6 +4,10 @@
 
 package io.ktor.tests.server.netty
 
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
@@ -16,15 +20,24 @@ import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.server.netty.http1.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
+import io.mockk.mockk
+import io.netty.channel.Channel
+import io.netty.channel.embedded.EmbeddedChannel
 import kotlinx.coroutines.*
+import org.slf4j.LoggerFactory
+import java.io.IOException
 import java.net.BindException
 import java.net.ServerSocket
 import java.util.concurrent.ExecutorService
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.test.*
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 class NettySpecificTest {
@@ -50,6 +63,20 @@ class NettySpecificTest {
         }
 
         assertTrue(server.engine.bootstraps.all { (it.config().group() as ExecutorService).isTerminated })
+    }
+
+    @Test
+    fun `start cleans up resources on non-BindException failure`() {
+        val server = embeddedServer(Netty, port = 70000) {}
+
+        assertFailsWith<IllegalArgumentException> {
+            server.start(wait = false)
+        }
+
+        assertTrue(
+            server.engine.bootstraps.all { (it.config().group() as ExecutorService).isTerminated },
+            "event loop groups must be terminated when bind fails with a non-BindException"
+        )
     }
 
     @Test
@@ -168,6 +195,119 @@ class NettySpecificTest {
             }
         } finally {
             serverJob.cancel()
+        }
+    }
+
+    @Test
+    fun `call finishes when channel becomes inactive before response is sent`() = runTestWithRealTime {
+        val handlerStarted = CompletableDeferred<Unit>()
+        val shouldRespond = CompletableDeferred<Unit>()
+        val callFinished = CompletableDeferred<Unit>()
+        val appStarted = CompletableDeferred<Application>()
+        val channel: AtomicReference<Channel> = AtomicReference(null)
+
+        val serverJob = launch(Dispatchers.IO) {
+            val server = embeddedServer(Netty, port = 0) {
+                routing {
+                    get("/test") {
+                        handlerStarted.complete(Unit)
+                        channel.set((call.pipelineCall.engineCall as NettyApplicationCall).context.channel())
+                        shouldRespond.await()
+
+                        // responseReady is only completed once call.respond() runs;
+                        // if it is never completed, finishedEvent is never set and
+                        // responseWriteJob.join() in call.finish() hangs forever.
+                        (call.pipelineCall.engineCall as NettyApplicationCall).finishedEvent.addListener {
+                            callFinished.complete(Unit)
+                        }
+
+                        call.respond(HttpStatusCode.OK, "Hello")
+                    }
+                }
+            }
+            server.monitor.subscribe(ApplicationStarted) { app ->
+                appStarted.complete(app)
+            }
+            server.start(wait = true)
+        }
+
+        try {
+            val serverApp = withTimeout(10.seconds) { appStarted.await() }
+            val connector = serverApp.engine.resolvedConnectors()[0]
+
+            SelectorManager().use { manager ->
+                val socket = aSocket(manager).tcp().connect(connector.host, connector.port)
+                val writeChannel = socket.openWriteChannel()
+                writeChannel.writeStringUtf8("GET /test HTTP/1.1\r\n")
+                writeChannel.writeStringUtf8("Host: ${connector.host}:${connector.port}\r\n")
+                writeChannel.writeStringUtf8("Connection: close\r\n\r\n")
+                writeChannel.flush()
+
+                // Wait until the handler is running, then close the connection
+                withTimeout(5.seconds) { handlerStarted.await() }
+                socket.close()
+            }
+
+            // Give Netty time to process the channel-inactive event
+            withTimeout(20.seconds) {
+                while (channel.get() == null || channel.get().isActive) {
+                    delay(10.milliseconds)
+                }
+            }
+
+            // Now let the handler try to respond to the already-closed channel
+            shouldRespond.complete(Unit)
+
+            // finishedEvent must be resolved (success or failure) — if responseReady is
+            // never completed, this deferred hangs forever and the test times out
+            withTimeout(20.seconds) { callFinished.await() }
+        } finally {
+            serverJob.cancel()
+        }
+    }
+
+    @Test
+    fun `client disconnect is logged at trace level`() {
+        val logger = LoggerFactory.getLogger("io.ktor.tests.server.netty.ClientDisconnectLogging") as Logger
+        val previousLevel = logger.level
+        val listAppender = ListAppender<ILoggingEvent>().apply { start() }
+        logger.level = Level.TRACE
+        logger.addAppender(listAppender)
+
+        val environment = applicationEnvironment { log = logger }
+        val handler = NettyHttp1Handler(
+            applicationProvider = { mockk(relaxed = true) },
+            enginePipeline = mockk(relaxed = true),
+            environment = environment,
+            engineContext = EmptyCoroutineContext,
+            userContext = EmptyCoroutineContext,
+            runningLimit = 32
+        )
+
+        // EmbeddedChannel without firing the full pipeline lifecycle: we only
+        // want to exercise exceptionCaught. Use a fresh channel and add only
+        // this handler so RequestBodyHandler isn't installed via channelActive.
+        val channel = EmbeddedChannel()
+        channel.pipeline().addLast(handler)
+        try {
+            channel.pipeline().fireExceptionCaught(IOException("Connection reset by peer"))
+
+            val ioOpFailedEvents = listAppender.list.filter { it.formattedMessage == "I/O operation failed" }
+            assertEquals(
+                1,
+                ioOpFailedEvents.size,
+                "Expected one 'I/O operation failed' log entry for client-disconnect IOException, " +
+                    "got ${ioOpFailedEvents.size}"
+            )
+            assertEquals(
+                Level.TRACE,
+                ioOpFailedEvents.single().level,
+                "Client-disconnect IOException must be logged at TRACE to avoid noise in DEBUG logs"
+            )
+        } finally {
+            logger.detachAppender(listAppender)
+            logger.level = previousLevel
+            channel.finishAndReleaseAll()
         }
     }
 

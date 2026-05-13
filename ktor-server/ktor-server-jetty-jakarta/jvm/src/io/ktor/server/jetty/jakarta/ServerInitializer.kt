@@ -22,7 +22,7 @@ internal fun Server.initializeServer(
             sendDateHeader = false
 
             if (ktorConnector.type == ConnectorType.HTTPS) {
-                addCustomizer(SecureRequestCustomizer())
+                addCustomizer(SecureRequestCustomizer().apply(configuration.secureRequestCustomizer))
             }
         }.apply(configuration.httpConfiguration)
 

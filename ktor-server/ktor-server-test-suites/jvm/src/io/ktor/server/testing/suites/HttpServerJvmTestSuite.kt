@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.testing.suites
@@ -17,12 +17,16 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.streams.*
 import kotlinx.coroutines.*
-import java.net.*
-import java.nio.*
-import java.time.*
-import java.util.concurrent.atomic.*
-import kotlin.coroutines.*
-import kotlin.test.*
+import java.net.InetSocketAddress
+import java.net.Socket
+import java.nio.ByteBuffer
+import java.time.ZonedDateTime
+import java.util.concurrent.atomic.AtomicLong
+import kotlin.coroutines.CoroutineContext
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import kotlin.text.toByteArray
 import kotlin.time.Duration.Companion.seconds
 import kotlin.use
@@ -107,7 +111,6 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
             builder.append("POST /?d=$id HTTP/1.1\r\n")
             builder.append("Host: localhost\r\n")
             builder.append("Connection: keep-alive\r\n")
-            builder.append("Accept-Charset: UTF-8\r\n")
             builder.append("Accept: */*\r\n")
             builder.append("Content-Type: text/plain; charset=UTF-8\r\n")
             builder.append("content-length: ${13 + id.toString().length}\r\n")
@@ -118,7 +121,6 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
         builder.append("POST /?d=16 HTTP/1.1\r\n")
         builder.append("Host: localhost\r\n")
         builder.append("Connection: close\r\n")
-        builder.append("Accept-Charset: UTF-8\r\n")
         builder.append("Accept: */*\r\n")
         builder.append("Content-Type: text/plain; charset=UTF-8\r\n")
         builder.append("content-length: 15\r\n")

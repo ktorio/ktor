@@ -27,15 +27,23 @@ class HxAttributesTest {
                             target = "#replaceMe"
                             swap = HxSwap.outerHtml
                             trigger = "click[console.log('Hello!')||true]"
+                            on("before-request", "alert('hey')")
                         }
                     }
                 }
             }
         }
+        val expectedAttributes = listOf(
+            "hx-get=\"/?page=1\"",
+            "hx-target=\"#replaceMe\"",
+            "hx-swap=\"outerHTML\"",
+            "hx-trigger=\"click[console.log('Hello!')||true]\"",
+            "hx-on::before-request=\"alert('hey')\""
+        ).joinToString(" ")
         assertEquals(
             """
             <html>
-              <body><button hx-get="/?page=1" hx-target="#replaceMe" hx-swap="outerHTML" hx-trigger="click[console.log('Hello!')||true]"></button></body>
+              <body><button $expectedAttributes></button></body>
             </html>
             """.trimIndent(),
             actual.trim()

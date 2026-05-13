@@ -114,6 +114,7 @@ public class HttpRequestRetryConfig {
     /**
      * Specifies retry logic for failed requests. The [block] accepts [HttpRequestBuilder]
      * and [Throwable] and should return true if this request should be retried.
+     * Note that, to retry on timeout exceptions, [HttpTimeout] plugin should be installed after [HttpRequestRetry].
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpRequestRetryConfig.retryOnExceptionIf)
      */

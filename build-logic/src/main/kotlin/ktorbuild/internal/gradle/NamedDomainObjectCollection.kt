@@ -4,16 +4,19 @@
 
 package ktorbuild.internal.gradle
 
-import org.gradle.api.NamedDomainObjectCollection
-import org.gradle.api.NamedDomainObjectProvider
+import org.gradle.api.Task
+import org.gradle.api.tasks.TaskCollection
+import org.gradle.api.tasks.TaskProvider
 
-internal fun <T : Any> NamedDomainObjectCollection<T>.maybeNamed(name: String): NamedDomainObjectProvider<T>? {
+@Suppress("UNCHECKED_CAST")
+@JvmName("maybeNamedTyped")
+internal fun <T : Task> TaskCollection<Task>.maybeNamed(name: String): TaskProvider<T>? =
+    maybeNamed(name) as? TaskProvider<T>
+
+internal fun TaskCollection<Task>.maybeNamed(name: String): TaskProvider<Task>? {
     return if (name in names) named(name) else null
 }
 
-internal fun <T : Any> NamedDomainObjectCollection<T>.maybeNamed(name: String, configure: T.() -> Unit) {
+internal fun TaskCollection<Task>.maybeNamed(name: String, configure: Task.() -> Unit) {
     if (name in names) named(name).configure(configure)
 }
-
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-internal inline fun <reified T> NamedDomainObjectCollection<*>.findByName(name: String): T? = findByName(name) as? T

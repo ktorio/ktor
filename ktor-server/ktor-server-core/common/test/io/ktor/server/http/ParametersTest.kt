@@ -5,6 +5,7 @@
 package io.ktor.server.http
 
 import io.ktor.http.*
+import io.ktor.server.plugins.*
 import io.ktor.server.util.*
 import kotlin.test.*
 
@@ -49,6 +50,33 @@ class ParametersTest {
         val multiple: List<Long> by parameters
 
         assertEquals(listOf(3L, 4L), multiple)
+    }
+
+    @Test
+    fun testNullableValues() {
+        val another: Int? by parameters
+        val missing: String? by parameters
+
+        assertEquals(2, another)
+        assertEquals(null, missing)
+    }
+
+    @Test
+    fun testNullableValueConversionFailure() {
+        val parameters = parametersOf("value" to listOf("a"))
+
+        assertFailsWith<ParameterConversionException> {
+            val value: Int? by parameters
+            value
+        }
+    }
+
+    @Test
+    fun testMissingNonNullValue() {
+        assertFailsWith<MissingRequestParameterException> {
+            val missing: String by parameters
+            missing
+        }
     }
 
     @Test

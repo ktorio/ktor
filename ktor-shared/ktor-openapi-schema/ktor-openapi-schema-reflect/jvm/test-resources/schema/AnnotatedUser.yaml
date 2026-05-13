@@ -7,8 +7,9 @@ required:
   - createdAt
 properties:
   id:
-    type: integer
+    type: string
     description: The user's unique identifier
+    format: uuid
   username:
     type: string
     maxLength: 20
@@ -16,7 +17,9 @@ properties:
     pattern: ^[a-z0-9_]+$
   email:
     type: string
+    format: email
     pattern: .+@.+\..+
   createdAt:
     type: string
     readOnly: true
+    format: date-time

@@ -22,6 +22,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.reflect.typeOf
 import kotlin.test.*
 
 class StatusPagesTest {
@@ -622,6 +623,28 @@ class StatusPagesTest {
             assertEquals("hello world", bodyAsText())
             assertEquals("Custom-Value-Content", headers["Custom-Header-Content"])
             assertEquals("Custom-Value-Response", headers["Custom-Header-Response"])
+        }
+    }
+
+    @Test
+    fun testCannotTransformContentToTypeException() = testApplication {
+        application {
+            install(StatusPages) {
+                exception<CannotTransformContentToTypeException> { call, _ ->
+                    call.respondText("Custom Unsupported Media Type", status = HttpStatusCode.UnsupportedMediaType)
+                }
+            }
+
+            routing {
+                post("/") {
+                    throw CannotTransformContentToTypeException(typeOf<String>())
+                }
+            }
+        }
+
+        client.post("/").let { response ->
+            assertEquals(HttpStatusCode.UnsupportedMediaType, response.status)
+            assertEquals("Custom Unsupported Media Type", response.bodyAsText())
         }
     }
 }

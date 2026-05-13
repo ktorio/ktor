@@ -118,6 +118,7 @@ public abstract class io/ktor/server/servlet/jakarta/ServletApplicationResponse 
 	protected final fun getCompleted ()Z
 	public fun getHeaders ()Lio/ktor/server/response/ResponseHeaders;
 	protected final fun getServletResponse ()Ljakarta/servlet/http/HttpServletResponse;
+	protected fun respondWriteChannelContent (Lio/ktor/http/content/OutgoingContent$WriteChannelContent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun responseChannel (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected final fun setCompleted (Z)V
 	protected fun setStatus (Lio/ktor/http/HttpStatusCode;)V

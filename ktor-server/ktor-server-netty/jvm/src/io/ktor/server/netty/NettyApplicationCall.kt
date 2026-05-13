@@ -34,6 +34,7 @@ public abstract class NettyApplicationCall(
     private val messageReleased = atomic(false)
 
     internal var isByteBufferContent = false
+    internal var isStreamingResponse = false
 
     /**
      * Returns http content object with [buf] content if [isByteBufferContent] is false,
@@ -87,7 +88,13 @@ public abstract class NettyApplicationCall(
     }
 
     private fun finishComplete() {
-        responseWriteJob.cancel()
+        // Avoid allocating JobCancellationException on the happy path (responseWriteJob already
+        // completed via finish() or finishSuspend()). On error paths — ensureResponseSent() failure
+        // or outer-coroutine cancellation during join() — the job may still be active and must be
+        // cancelled to release its resources.
+        if (!responseWriteJob.isCompleted) {
+            responseWriteJob.cancel()
+        }
         request.close()
         releaseRequestMessage()
     }

@@ -18,22 +18,41 @@ import io.ktor.utils.io.*
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.mapToPathItemsAndSchema)
  */
 public fun Sequence<Route>.mapToPathItemsAndSchema(): Pair<Map<String, PathItem>, Map<String, JsonSchema>> {
+    // unqualifiedTitle -> original qualified title, for conflict detection without relying on stored schema title
+    val qualifiedNameMap = mutableMapOf<String, String>()
+    // original qualified title -> component name, for rewriting discriminator $ref values after collection
+    val nameMapping = mutableMapOf<String, String>()
     val jsonSchema = mutableMapOf<String, JsonSchema>()
     val pathItems = mapToPathItems(
         PopulateMediaTypeDefaults + CollectSchemaReferences { schema ->
             val title = schema.title ?: return@CollectSchemaReferences null
             val unqualifiedTitle = title.substringAfterLast('.')
-            val existingTitle = jsonSchema[unqualifiedTitle]?.title ?: title
-            // if the shortened title is already in use, use the full title instead
-            if (existingTitle != title) {
-                jsonSchema[title] = schema
+            val existingQualifiedTitle = qualifiedNameMap[unqualifiedTitle] ?: title
+            // if the shortened title is already in use by a different type, use the full title instead
+            val componentName = if (existingQualifiedTitle != title) {
+                jsonSchema[title] = schema.copy(title = title)
                 title
             } else {
-                jsonSchema[unqualifiedTitle] = schema
+                qualifiedNameMap[unqualifiedTitle] = title
+                jsonSchema[unqualifiedTitle] = schema.copy(title = unqualifiedTitle)
                 unqualifiedTitle
             }
+            nameMapping[title] = componentName
+            componentName
         }
     )
+    // Rewrite discriminator mapping $ref values to use the simplified component names
+    for ((key, schema) in jsonSchema.toMap()) {
+        val discriminator = schema.discriminator ?: continue
+        val mapping = discriminator.mapping ?: continue
+        val updatedMapping = mapping.mapValues { (_, refValue) ->
+            val refSchemaName = refValue.removePrefix("#/components/schemas/")
+            "#/components/schemas/${nameMapping[refSchemaName] ?: refSchemaName}"
+        }
+        if (updatedMapping != mapping) {
+            jsonSchema[key] = schema.copy(discriminator = discriminator.copy(mapping = updatedMapping))
+        }
+    }
     return pathItems to jsonSchema
 }
 
@@ -45,9 +64,13 @@ public fun Sequence<Route>.mapToPathItemsAndSchema(): Pair<Map<String, PathItem>
 public fun Sequence<Route>.mapToPathItems(
     onOperation: OperationMapping = PopulateMediaTypeDefaults
 ): Map<String, PathItem> {
-    return mapNotNull {
-        if (it.attributes.contains(OperationHiddenAttributeKey)) return@mapNotNull null
-        it.asPathItem(onOperation)
+    return mapNotNull { node ->
+        val isHidden = node.lineage()
+            .any { OperationHiddenAttributeKey in it.attributes }
+        if (isHidden) {
+            return@mapNotNull null
+        }
+        node.asPathItem(onOperation)
     }.fold(mutableMapOf()) { map, (route, pathItem) ->
         map.also {
             if (route in map) {
@@ -80,21 +103,22 @@ private fun Route.method(): HttpMethod? =
 
 private fun Route.operation(): Operation? {
     val schemaInference = application.attributes.getOrNull(JsonSchemaAttributeKey)
-        ?: KotlinxJsonSchemaInference
+        ?: KotlinxSerializerJsonSchemaInference.Default
     val defaultContentTypes = application.attributes.getOrNull(DefaultContentTypesAttribute)
         ?: listOf(ContentType.Application.Json)
 
-    return lineage().fold(null) { acc, node ->
+    // Merge operations from top to bottom, selectors to describe calls
+    return lineage().toList().asReversed().fold(null) { acc: Operation?, node: Route ->
         val current = mergeNullable(
-            node.operationFromAnnotateCalls(schemaInference, defaultContentTypes),
             node.operationFromSelector(),
-            Operation::plus
+            node.operationFromDescribeCalls(schemaInference, defaultContentTypes),
+            Operation::plus,
         )
         mergeNullable(acc, current, Operation::plus)
     }
 }
 
-private fun Route.operationFromAnnotateCalls(
+private fun Route.operationFromDescribeCalls(
     schemaInference: JsonSchemaInference,
     defaultContentTypes: List<ContentType>
 ): Operation? = attributes.getOrNull(OperationDescribeAttributeKey)
@@ -206,34 +230,34 @@ private fun newPathItem(method: HttpMethod, operation: Operation): PathItem? =
 
 private operator fun Operation.plus(other: Operation): Operation =
     Operation(
-        tags = mergeNullable(tags, other.tags) { a, b -> a + b },
-        summary = summary ?: other.summary,
-        description = description ?: other.description,
-        externalDocs = externalDocs ?: other.externalDocs,
-        operationId = operationId ?: other.operationId,
+        tags = mergeNullable(tags, other.tags) { a, b -> (a + b).distinct() },
+        summary = other.summary?.takeIf { it.isNotEmpty() } ?: summary?.takeIf { it.isNotEmpty() } ?: "",
+        description = other.description ?: description,
+        externalDocs = other.externalDocs ?: externalDocs,
+        operationId = other.operationId ?: operationId,
         parameters = mergeParameters(parameters, other.parameters),
-        requestBody = requestBody ?: other.requestBody,
+        requestBody = other.requestBody ?: requestBody,
         responses = mergeNullable(responses, other.responses) { a, b -> a + b },
-        deprecated = deprecated ?: other.deprecated,
+        deprecated = other.deprecated ?: deprecated,
         security = mergeNullable(security, other.security) { a, b -> a + b },
         servers = mergeNullable(servers, other.servers) { a, b -> a + b },
-        extensions = mergeNullable(extensions, other.extensions) { a, b -> b + a }
+        extensions = mergeNullable(extensions, other.extensions) { a, b -> a + b }
     )
 
 private operator fun PathItem.plus(other: PathItem): PathItem =
     PathItem(
-        summary = summary ?: other.summary,
-        get = get ?: other.get,
-        put = put ?: other.put,
-        post = post ?: other.post,
-        delete = delete ?: other.delete,
-        options = options ?: other.options,
-        head = head ?: other.head,
-        patch = patch ?: other.patch,
-        trace = trace ?: other.trace,
+        summary = other.summary ?: summary,
+        get = other.get ?: get,
+        put = other.put ?: put,
+        post = other.post ?: post,
+        delete = other.delete ?: delete,
+        options = other.options ?: options,
+        head = other.head ?: head,
+        patch = other.patch ?: patch,
+        trace = other.trace ?: trace,
         servers = mergeNullable(servers, other.servers) { a, b -> a + b },
         parameters = mergeParameters(parameters, other.parameters),
-        extensions = mergeNullable(extensions, other.extensions) { a, b -> b + a }
+        extensions = mergeNullable(extensions, other.extensions) { a, b -> a + b }
     )
 
 private fun mergeParameters(parameters: List<ReferenceOr<Parameter>>?, otherParameters: List<ReferenceOr<Parameter>>?) =
@@ -245,7 +269,7 @@ private fun mergeParameters(parameters: List<ReferenceOr<Parameter>>?, otherPara
 
 private operator fun Responses.plus(other: Responses): Responses =
     Responses(
-        default = default ?: other.default,
+        default = other.default ?: default,
         responses = mergeNullable(responses, other.responses) { a, b ->
             val byStatusCode = (a.entries + b.entries).groupBy({ it.key }) { it.value }
             byStatusCode.map { (statusCode, responseList) ->
@@ -257,34 +281,34 @@ private operator fun Responses.plus(other: Responses): Responses =
                 }.first()
             }.toMap()
         },
-        extensions = mergeNullable(extensions, other.extensions) { a, b -> b + a }
+        extensions = mergeNullable(extensions, other.extensions) { a, b -> a + b }
     )
 
 private operator fun Response.plus(other: Response): Response =
     Response(
-        description = description.ifEmpty { null } ?: other.description,
-        headers = mergeNullable(headers, other.headers) { a, b -> b + a },
-        content = mergeNullable(content, other.content) { a, b -> b + a },
-        links = mergeNullable(links, other.links) { a, b -> b + a },
-        extensions = mergeNullable(extensions, other.extensions) { a, b -> b + a }
+        description = other.description.ifEmpty { null } ?: description,
+        headers = mergeNullable(headers, other.headers) { a, b -> a + b },
+        content = mergeNullable(content, other.content) { a, b -> a + b },
+        links = mergeNullable(links, other.links) { a, b -> a + b },
+        extensions = mergeNullable(extensions, other.extensions) { a, b -> a + b }
     )
 
 private operator fun Parameter.plus(other: Parameter): Parameter =
     Parameter(
         name = name,
         `in` = `in` ?: other.`in`,
-        description = description ?: other.description,
+        description = other.description ?: description,
         required = required || other.required,
         deprecated = deprecated || other.deprecated,
-        schema = schema ?: other.schema,
-        content = mergeNullable(content, other.content) { a, b -> b + a },
-        style = style ?: other.style,
-        explode = explode ?: other.explode,
-        allowReserved = allowReserved ?: other.allowReserved,
-        allowEmptyValue = allowEmptyValue ?: other.allowEmptyValue,
-        example = example ?: other.example,
-        examples = mergeNullable(examples, other.examples) { a, b -> b + a },
-        extensions = mergeNullable(extensions, other.extensions) { a, b -> b + a }
+        schema = other.schema ?: schema,
+        content = mergeNullable(content, other.content) { a, b -> a + b },
+        style = other.style ?: style,
+        explode = other.explode ?: explode,
+        allowReserved = other.allowReserved ?: allowReserved,
+        allowEmptyValue = other.allowEmptyValue ?: allowEmptyValue,
+        example = other.example ?: example,
+        examples = mergeNullable(examples, other.examples) { a, b -> a + b },
+        extensions = mergeNullable(extensions, other.extensions) { a, b -> a + b }
     )
 
 /**

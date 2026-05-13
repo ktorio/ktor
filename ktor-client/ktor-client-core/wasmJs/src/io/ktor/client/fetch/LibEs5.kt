@@ -157,16 +157,16 @@ public external interface Uint8Array : JsAny {
 }
 
 @Suppress("UNUSED_PARAMETER")
-internal fun getMethodImplForUint8Array(obj: Uint8Array, index: Int): Byte = js("return obj[index];")
+private fun getMethodImplForUint8Array(obj: Uint8Array, index: Int): Byte = js("obj[index]")
 
 public operator fun Uint8Array.get(index: Int): Byte = getMethodImplForUint8Array(this, index)
 
 @Suppress("UNUSED_PARAMETER")
-internal fun setMethodImplForUint8Array(
+private fun setMethodImplForUint8Array(
     obj: Uint8Array,
     index: Int,
     value: Byte
-): Unit = js("obj[index] = value;")
+): Unit = js("obj[index] = value")
 
 public operator fun Uint8Array.set(index: Int, value: Byte): Unit =
     setMethodImplForUint8Array(this, index, value)
@@ -188,15 +188,15 @@ public external interface ArrayLike<T : JsAny?> : JsAny {
 }
 
 @Suppress("UNUSED_PARAMETER")
-internal fun <T : JsAny?> getMethodImplForArrayLike(obj: ArrayLike<T>, index: Int): T =
-    js("return obj[index];")
+private fun <T : JsAny?> getMethodImplForArrayLike(obj: ArrayLike<T>, index: Int): T =
+    js("obj[index]")
 
 public operator fun <T : JsAny?> ArrayLike<T>.get(index: Int): T =
     getMethodImplForArrayLike(this, index)
 
 @Suppress("UNUSED_PARAMETER")
-internal fun <T : JsAny?> setMethodImplForArrayLike(obj: ArrayLike<T>, index: Int, value: T): Unit =
-    js("obj[index] = value;")
+private fun <T : JsAny?> setMethodImplForArrayLike(obj: ArrayLike<T>, index: Int, value: T): Unit =
+    js("obj[index] = value")
 
 public operator fun <T : JsAny?> ArrayLike<T>.set(index: Int, value: T): Unit =
     setMethodImplForArrayLike(this, index, value)

@@ -111,7 +111,7 @@ class ClientJacksonTest : AbstractClientContentNegotiationTest() {
     fun testNotChunkedEncodingIfSet() = testWithEngine(CIO) {
         config {
             install(ContentNegotiation) {
-                jackson(streamRequestBody = false)
+                jackson(streamBody = false)
             }
         }
 

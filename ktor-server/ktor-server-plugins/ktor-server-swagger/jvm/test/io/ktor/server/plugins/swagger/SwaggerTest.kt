@@ -7,18 +7,13 @@ package io.ktor.server.plugins.swagger
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.openapi.OpenApiInfo
-import io.ktor.openapi.jsonSchema
-import io.ktor.openapi.reflect.ReflectionJsonSchemaInference
-import io.ktor.server.response.respond
-import io.ktor.server.routing.get
-import io.ktor.server.routing.openapi.OpenApiDocSource
-import io.ktor.server.routing.openapi.describe
-import io.ktor.server.routing.post
-import io.ktor.server.routing.put
-import io.ktor.server.routing.route
+import io.ktor.openapi.*
+import io.ktor.openapi.reflect.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import io.ktor.server.routing.openapi.*
 import io.ktor.server.testing.*
-import io.ktor.utils.io.ExperimentalKtorApi
+import io.ktor.utils.io.*
 import kotlinx.serialization.Serializable
 import kotlin.test.Test
 import kotlin.test.assertContains
@@ -152,6 +147,48 @@ class SwaggerTest {
                     ],
                     layout: 'StandaloneLayout',
                     docExpansion: 'list'
+                });
+            }</script>
+              </body>
+            </html>
+            
+            """.trimIndent(),
+            response
+        )
+    }
+
+    @Test
+    fun testInvalidDocExpansionIgnored() = testApplication {
+        routing {
+            swaggerUI("swagger")
+        }
+
+        val response = client.get("/swagger") {
+            parameter("docExpansion", "'; alert('Hey')")
+        }.bodyAsText()
+        assertEquals(
+            """
+            <!DOCTYPE html>
+            <html>
+              <head>
+                <title>Swagger UI</title>
+                <link href="https://unpkg.com/swagger-ui-dist@5.31.0/swagger-ui.css" rel="stylesheet">
+                <link href="https://unpkg.com/swagger-ui-dist@5.31.0/favicon-32x32.png" rel="icon" type="image/x-icon">
+              </head>
+              <body>
+                <div id="swagger-ui"></div>
+                <script src="https://unpkg.com/swagger-ui-dist@5.31.0/swagger-ui-bundle.js" crossorigin="anonymous"></script>
+                <script src="https://unpkg.com/swagger-ui-dist@5.31.0/swagger-ui-standalone-preset.js" crossorigin="anonymous"></script>
+                <script>window.onload = function() {
+                window.ui = SwaggerUIBundle({
+                    url: '/swagger/documentation.yaml',
+                    dom_id: '#swagger-ui',
+                    deepLinking: false,
+                    presets: [
+                        SwaggerUIBundle.presets.apis,
+                        SwaggerUIStandalonePreset
+                    ],
+                    layout: 'StandaloneLayout'
                 });
             }</script>
               </body>

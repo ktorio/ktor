@@ -41,7 +41,7 @@ public interface NonceManager {
  */
 public object GenerateOnlyNonceManager : NonceManager {
     override suspend fun newNonce(): String {
-        return generateNonce()
+        return generateNonceSuspend()
     }
 
     override suspend fun verifyNonce(nonce: String): Boolean {

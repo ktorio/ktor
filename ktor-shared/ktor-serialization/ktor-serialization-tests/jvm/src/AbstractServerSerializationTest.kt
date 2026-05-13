@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.serialization.test
@@ -12,10 +12,12 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import kotlinx.coroutines.flow.*
-import kotlinx.serialization.*
-import java.nio.charset.*
-import kotlin.test.*
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.serialization.Serializable
+import java.nio.charset.Charset
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 public abstract class AbstractServerSerializationTest {
     private val uc = "\u0422"
@@ -114,6 +116,7 @@ public abstract class AbstractServerSerializationTest {
     @Test
     public fun testListAcceptUtf16(): Unit = withTestSerializingApplication {
         client.get("/list") {
+            @Suppress("DEPRECATION")
             header(HttpHeaders.AcceptCharset, "UTF-16")
         }.let { response -> verifyListResponse(response, Charsets.UTF_16) }
     }
@@ -129,6 +132,7 @@ public abstract class AbstractServerSerializationTest {
     @Test
     public open fun testFlowAcceptUtf16(): Unit = withTestSerializingApplication {
         client.get("/flow") {
+            @Suppress("DEPRECATION")
             header(HttpHeaders.AcceptCharset, "UTF-16")
         }.let { response -> verifyListResponse(response, Charsets.UTF_16) }
     }
@@ -148,7 +152,7 @@ public abstract class AbstractServerSerializationTest {
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals("""{"id":1,"title":"Hello, World!","unicode":"$uc"}""", response.bodyAsText())
             val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
-            assertEquals(ContentType.Application.Json.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
+            assertEquals(ContentType.Application.Json, ContentType.parse(contentTypeText))
         }
 
         client.post("/map") {

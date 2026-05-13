@@ -4,7 +4,6 @@
 
 package io.ktor.websocket
 
-import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.ClosedByteChannelException
 import io.ktor.utils.io.charsets.*
@@ -70,7 +69,7 @@ internal fun CoroutineScope.pinger(
                 }
 
                 random.nextBytes(pingIdBytes)
-                val pingMessage = "[ping ${hex(pingIdBytes)} ping]"
+                val pingMessage = "[ping ${pingIdBytes.toHexString()} ping]"
 
                 val rc = withTimeoutOrNull(timeoutMillis) {
                     LOGGER.trace("WebSocket Pinger: sending ping frame")

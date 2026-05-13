@@ -6,20 +6,22 @@ package io.ktor.client.tests.utils
 
 import kotlinx.coroutines.delay
 import kotlin.test.assertTrue
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.TimeSource
 
 suspend fun waitForCondition(
-    description: String? = null,
-    waitIncrement: Long = 200L,
-    waitLimit: Long = 10_000L,
+    description: String,
+    timeout: Duration,
+    delay: Duration = (timeout / 10).coerceAtMost(100.milliseconds),
     condition: () -> Boolean,
 ) {
-    var waitTime = 0L
-    while (waitTime < waitLimit) {
+    val timeMark = TimeSource.Monotonic.markNow() + timeout
+    while (timeMark.hasNotPassedNow()) {
         if (condition()) {
             return
         }
-        delay(waitIncrement)
-        waitTime += waitIncrement
+        delay(delay)
     }
-    assertTrue(condition(), "Timed out after ${waitLimit / 1000}s waiting for ${description ?: condition}")
+    assertTrue(condition(), "Timed out after $timeout waiting for $description")
 }

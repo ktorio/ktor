@@ -4,6 +4,7 @@
 
 package io.ktor.utils.io
 
+import io.ktor.utils.io.CloseToken.Companion.wrapCause
 import kotlinx.io.IOException
 import kotlinx.io.InternalIoApi
 import kotlinx.io.Source

@@ -22,6 +22,7 @@ kotlin {
             implementation(projects.ktorServerCompressionZstd)
             implementation(libs.zstd.jni)
             implementation(projects.ktorServerSse)
+            implementation(projects.ktorSerializationKotlinxJson)
         }
     }
 }

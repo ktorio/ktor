@@ -1000,6 +1000,7 @@ final fun io.ktor.util/Digest(kotlin/String): io.ktor.util/Digest // io.ktor.uti
 final fun io.ktor.util/SilentSupervisor(kotlinx.coroutines/Job? = ...): kotlin.coroutines/CoroutineContext // io.ktor.util/SilentSupervisor|SilentSupervisor(kotlinx.coroutines.Job?){}[0]
 final fun io.ktor.util/generateNonce(): kotlin/String // io.ktor.util/generateNonce|generateNonce(){}[0]
 final fun io.ktor.util/generateNonce(kotlin/Int): kotlin/ByteArray // io.ktor.util/generateNonce|generateNonce(kotlin.Int){}[0]
+final fun io.ktor.util/generateNonceBlocking(kotlin/Int = ...): kotlin/String // io.ktor.util/generateNonceBlocking|generateNonceBlocking(kotlin.Int){}[0]
 final fun io.ktor.util/hex(kotlin/ByteArray): kotlin/String // io.ktor.util/hex|hex(kotlin.ByteArray){}[0]
 final fun io.ktor.util/hex(kotlin/String): kotlin/ByteArray // io.ktor.util/hex|hex(kotlin.String){}[0]
 final fun io.ktor.util/sha1(kotlin/ByteArray): kotlin/ByteArray // io.ktor.util/sha1|sha1(kotlin.ByteArray){}[0]
@@ -1022,6 +1023,7 @@ final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.util.cio/toByteArra
 final suspend fun <#A: kotlin.coroutines/CoroutineContext.Element> io.ktor.util.debug/useContextElementInDebugMode(kotlin.coroutines/CoroutineContext.Key<#A>, kotlin/Function1<#A, kotlin/Unit>) // io.ktor.util.debug/useContextElementInDebugMode|useContextElementInDebugMode(kotlin.coroutines.CoroutineContext.Key<0:0>;kotlin.Function1<0:0,kotlin.Unit>){0§<kotlin.coroutines.CoroutineContext.Element>}[0]
 final suspend fun <#A: kotlin/Any?> io.ktor.util.debug/addToContextInDebugMode(kotlin/String, kotlin.coroutines/SuspendFunction0<#A>): #A // io.ktor.util.debug/addToContextInDebugMode|addToContextInDebugMode(kotlin.String;kotlin.coroutines.SuspendFunction0<0:0>){0§<kotlin.Any?>}[0]
 final suspend fun <#A: kotlin/Any?> io.ktor.util.debug/initContextInDebugMode(kotlin.coroutines/SuspendFunction0<#A>): #A // io.ktor.util.debug/initContextInDebugMode|initContextInDebugMode(kotlin.coroutines.SuspendFunction0<0:0>){0§<kotlin.Any?>}[0]
+final suspend fun io.ktor.util/generateNonceSuspend(kotlin/Int = ...): kotlin/String // io.ktor.util/generateNonceSuspend|generateNonceSuspend(kotlin.Int){}[0]
 final suspend inline fun <#A: kotlin/Any> (io.ktor.util.pipeline/Pipeline<kotlin/Unit, #A>).io.ktor.util.pipeline/execute(#A) // io.ktor.util.pipeline/execute|execute@io.ktor.util.pipeline.Pipeline<kotlin.Unit,0:0>(0:0){0§<kotlin.Any>}[0]
 
 // Targets: [native]

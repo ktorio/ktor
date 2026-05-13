@@ -37,10 +37,6 @@ The project requires JDK 21.
 Make sure you have it installed before attempting to build the project.
 If you use IntelliJ IDEA, you should also select JDK 21 in **"Project Structure" > "Project" > "SDK"**
 
-Up to 12 GB of free RAM is required to build the project.
-This amount can be reduced by decreasing the `Xmx` value in `gradle.properties`.
-Read the comments in `gradle.properties` for more details.
-
 On macOS, install [Xcode and Xcode Command line tools](https://developer.apple.com/download/) to build Apple targets.
 Launch it and accept the license terms first.
 
@@ -115,9 +111,25 @@ includeBuild("/PATH/TO/KTOR")
 
 #### Importing into IntelliJ IDEA
 
-To import into IntelliJ IDEA, just open up the `Ktor` project folder. IntelliJ IDEA should automatically detect
-that it is a Gradle project and import it. It's important that you make sure that all building and test operations
-are delegated to Gradle under [Gradle Settings](https://www.jetbrains.com/help/idea/gradle-settings.html).
+Open the `Ktor` project folder — IntelliJ IDEA will detect it as a Gradle project and import it automatically.
+Make sure all building and test operations are delegated to Gradle under [Gradle Settings](https://www.jetbrains.com/help/idea/gradle-settings.html).
+
+##### IDE sync mode
+
+By default, IDE sync uses **light mode**, which excludes native targets to reduce memory consumption and sync time.
+This is sufficient for working on JVM or web targets.
+
+When working on native targets in the IDE, enable them via `ktorbuild.syncMode` in `~/.gradle/gradle.properties`:
+
+```properties
+# Include a specific native target alongside JVM/JS
+ktorbuild.syncMode=light+macosArm64
+
+# Include all targets (requires 10 GB of RAM for Gradle Daemon)
+ktorbuild.syncMode=full
+```
+
+See the **Performance** section in `gradle.properties` for all available options and tuning tips.
 
 #### Working with Rust-based Modules Locally
 
@@ -157,6 +169,10 @@ Contributions are made using GitHub [pull requests](https://help.github.com/en/a
 5. If the contribution requires updates to documentation (be it updating existing contents or creating new one), please
    file a new ticket on [YouTrack](https://youtrack.jetbrains.com/issues/KTOR).
 6. Make sure any code contributed is covered by tests and no existing tests are broken.
+7. Before submitting your PR, ensure to invoke the following Gradle tasks:
+   1. `./gradlew updateKotlinAbi` - this will update the ABI snapshot with any public API changes
+   2. `./gradlew formatKotlin` - this will reformat the code to follow the style guide
+   3. `./gradlew checkKotlinAbi lintKotlin` - checks the output of the previous tasks
 
 ### Style guides
 

@@ -39,8 +39,8 @@ class TestEngineMultipartTest {
             provider = { ByteReadChannel(bytes) },
             extraFileAssertions = { file ->
                 assertEquals(
-                    hex(bytes),
-                    hex(file.provider().readRemaining().readByteArray())
+                    bytes.toHexString(),
+                    file.provider().readRemaining().readByteArray().toHexString()
                 )
             }
         )
@@ -66,7 +66,7 @@ class TestEngineMultipartTest {
 
             assertEquals("fileField", file.name)
             assertEquals("file.bin", file.originalFileName)
-            assertEquals(hex(bytes), hex(file.provider().readRemaining().readByteArray()))
+            assertEquals(bytes.toHexString(), file.provider().readRemaining().readByteArray().toHexString())
 
             file.dispose()
         }) {

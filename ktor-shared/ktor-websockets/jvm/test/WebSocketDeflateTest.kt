@@ -1,13 +1,15 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.tests.websocket
 
 import io.ktor.websocket.*
 import io.ktor.websocket.internals.*
-import java.util.zip.*
-import kotlin.random.*
+import kotlinx.io.IOException
+import java.util.zip.Deflater
+import java.util.zip.Inflater
+import kotlin.random.Random
 import kotlin.test.*
 
 class WebSocketDeflateTest {
@@ -89,5 +91,70 @@ class WebSocketDeflateTest {
         val actual = String(message)
         val expected = "Hello, World!"
         assertEquals(expected, actual)
+    }
+
+    @Test
+    fun `keeps inflater context between messages`() {
+        val firstMessage = "aaaaabbbbb".repeat(128).encodeToByteArray()
+        val secondMessage = "aaaaabbbbb".repeat(128).encodeToByteArray()
+
+        val firstCompressed = deflater.deflateFully(firstMessage)
+        val secondCompressed = deflater.deflateFully(secondMessage)
+
+        val firstInflated = inflater.inflateFully(firstCompressed)
+        val secondInflated = inflater.inflateFully(secondCompressed)
+
+        assertContentEquals(firstMessage, firstInflated)
+        assertContentEquals(secondMessage, secondInflated)
+    }
+
+    @Test
+    fun `prevents infinite loop`() {
+        val dict = ByteArray(64) { 7 }
+        val original = ByteArray(1024) { 1 }
+
+        val deflater = Deflater(Deflater.DEFAULT_COMPRESSION, false).apply {
+            setDictionary(dict)
+            setInput(original)
+            finish()
+        }
+
+        val buf = ByteArray(4096)
+        val n = deflater.deflate(buf)
+        val dictCompressed = buf.copyOf(n)
+
+        val payload = dictCompressed + ByteArray(64) { 0x13 }
+        val inflater = Inflater(false)
+
+        val error = assertFailsWith<IOException> {
+            inflater.inflateFully(payload)
+        }.message
+
+        assertNotNull(error)
+        assertContains(
+            error,
+            "Inflater needs a preset dictionary",
+            message = "Expected zero spin failure, got: $error"
+        )
+    }
+
+    @Test
+    fun `checks for max inflate size`() {
+        val bombLikePlaintext = ByteArray(32 * 1024 * 1024) { 0 } // highly compressible, big after inflate
+
+        val deflater = Deflater(Deflater.DEFAULT_COMPRESSION, false)
+        val compressed = deflater.deflateFully(bombLikePlaintext)
+
+        val inflater = Inflater(false)
+        val error = assertFailsWith<IOException> {
+            inflater.inflateFully(compressed, maxOutputSize = 1 * 1024 * 1024) // 1 MiB cap
+        }.message
+
+        assertNotNull(error)
+        assertContains(
+            error,
+            "Inflated data exceeds limit",
+            message = "Expected size limit failure, got: $error"
+        )
     }
 }

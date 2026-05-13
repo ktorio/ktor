@@ -4,15 +4,10 @@
 
 package io.ktor.client.engine.curl.internal
 
-import kotlinx.cinterop.*
-import platform.posix.*
-
-@OptIn(ExperimentalForeignApi::class)
-internal fun ByteArray.copyToBuffer(buffer: CPointer<ByteVar>, size: ULong, position: Int = 0) {
-    usePinned { pinned ->
-        memcpy(buffer, pinned.addressOf(position), size.convert())
-    }
-}
+import kotlinx.cinterop.COpaquePointer
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.StableRef
+import kotlinx.cinterop.asStableRef
 
 @OptIn(ExperimentalForeignApi::class)
 internal inline fun <T : Any> T.asStablePointer(): COpaquePointer = StableRef.create(this).asCPointer()

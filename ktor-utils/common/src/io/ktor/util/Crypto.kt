@@ -16,11 +16,17 @@ private val digits = "0123456789abcdef".toCharArray()
 
 internal const val NONCE_SIZE_IN_BYTES = 16
 
+internal const val NONCE_SIZE_IN_CHARS = NONCE_SIZE_IN_BYTES * 2
+
 /**
  * Encode [bytes] as a HEX string with no spaces, newlines and `0x` prefixes.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.hex)
  */
+@Deprecated(
+    "prefer kotlin.text.toHexString",
+    replaceWith = ReplaceWith("bytes.toHexString()", imports = ["kotlin.text.toHexString"]),
+)
 public fun hex(bytes: ByteArray): String {
     val result = CharArray(bytes.size * 2)
     var resultIndex = 0
@@ -40,6 +46,10 @@ public fun hex(bytes: ByteArray): String {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.hex)
  */
+@Deprecated(
+    "prefer kotlin.text.hexToByteArray",
+    replaceWith = ReplaceWith("s.hexToByteArray()", imports = ["kotlin.text.hexToByteArray"]),
+)
 public fun hex(s: String): ByteArray {
     val result = ByteArray(s.length / 2)
     for (idx in result.indices) {
@@ -53,20 +63,42 @@ public fun hex(s: String): ByteArray {
 }
 
 /**
- * Generates a nonce string. Could block if the system's entropy source is empty
+ * Generates a nonce string 32 characters long. Could block if the system's entropy source is empty
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.generateNonce)
  */
-public expect fun generateNonce(): String
+@Deprecated(
+    "Use generateNonceBlocking in blocking contexts and generateNonceSuspend in non-blocking contexts",
+    replaceWith = ReplaceWith("generateNonceBlocking()")
+)
+public fun generateNonce(): String = generateNonceBlocking(NONCE_SIZE_IN_CHARS)
+
+/**
+ * Generates a nonce string [length] characters long. Could suspend if the system's entropy source is empty.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.generateNonce)
+ */
+public expect suspend fun generateNonceSuspend(length: Int = NONCE_SIZE_IN_CHARS): String
+
+/**
+ * Generates a nonce string [length] characters long. Could block if the system's entropy source is empty.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.generateNonce)
+ */
+public expect fun generateNonceBlocking(length: Int = NONCE_SIZE_IN_CHARS): String
 
 /**
  * Generates a nonce bytes of [size]. Could block if the system's entropy source is empty
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.generateNonce)
  */
+@Deprecated(
+    "Use generateNonceBlocking in blocking contexts and generateNonceSuspend in non-blocking contexts",
+    replaceWith = ReplaceWith("generateNonceBlocking(size).toByteArray()", "io.ktor.utils.io.core.toByteArray")
+)
 public fun generateNonce(size: Int): ByteArray = buildPacket {
     while (this.size < size) {
-        writeText(generateNonce())
+        writeText(generateNonceBlocking())
     }
 }.readByteArray(size)
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests
@@ -43,7 +43,7 @@ class DispatcherTest : ClientLoader() {
     }
 
     @Test
-    fun `test HttpStatement_execute uses the engine dispatcher`() = clientTests {
+    fun `test HttpStatement_execute uses the engine dispatcher on non-JVM platforms`() = clientTests(except("jvm:*")) {
         test { client ->
             client.prepareGet("$TEST_SERVER/").execute {
                 val currentDispatcher = currentCoroutineContext()[ContinuationInterceptor]
@@ -53,11 +53,39 @@ class DispatcherTest : ClientLoader() {
     }
 
     @Test
-    fun `test HttpStatement_body uses the engine dispatcher`() = clientTests {
+    fun `test HttpStatement_body uses the engine dispatcher on non-JVM platforms`() = clientTests(except("jvm:*")) {
         test { client ->
             client.prepareGet("$TEST_SERVER/").body { _: String ->
                 val currentDispatcher = currentCoroutineContext()[ContinuationInterceptor]
                 assertEquals(client.engine.dispatcher, currentDispatcher)
+            }
+        }
+    }
+
+    @Test
+    fun `test HttpStatement_execute stays on caller dispatcher on JVM by default`() = clientTests(only("jvm:*")) {
+        val testDispatcher = Dispatchers.Default.limitedParallelism(1)
+
+        test { client ->
+            kotlinx.coroutines.withContext(testDispatcher) {
+                client.prepareGet("$TEST_SERVER/").execute {
+                    val currentDispatcher = currentCoroutineContext()[ContinuationInterceptor]
+                    assertEquals(testDispatcher, currentDispatcher)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `test HttpStatement_body stays on caller dispatcher on JVM by default`() = clientTests(only("jvm:*")) {
+        val testDispatcher = Dispatchers.Default.limitedParallelism(1)
+
+        test { client ->
+            kotlinx.coroutines.withContext(testDispatcher) {
+                client.prepareGet("$TEST_SERVER/").body { _: String ->
+                    val currentDispatcher = currentCoroutineContext()[ContinuationInterceptor]
+                    assertEquals(testDispatcher, currentDispatcher)
+                }
             }
         }
     }

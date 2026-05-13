@@ -490,7 +490,7 @@ class HttpRequestRetryTest {
 
     // KTOR-8820
     @Test
-    fun testRetryWithLargeEncodedBody() = testWithEngine(MockEngine, timeout = 1.seconds) {
+    fun testRetryWithLargeEncodedBody() = testWithEngine(MockEngine, timeout = 10.seconds) {
         config {
             engine {
                 addHandler {
@@ -545,6 +545,60 @@ class HttpRequestRetryTest {
         test { client ->
             assertEquals(HttpStatusCode.OK, client.get("/").status)
             assertEquals(maxRetriesCount, counter)
+        }
+    }
+
+    @Test
+    fun testMaxSendCountGreaterThanMaxRetries() = testWithEngine(MockEngine) {
+        config {
+            engine {
+                addHandler { request ->
+                    if (request.url.toString().endsWith("/ok")) {
+                        respondOk()
+                    } else {
+                        respondRedirect("/ok")
+                    }
+                }
+            }
+
+            install(HttpRequestRetry) {
+                retryOnServerErrors(maxRetries = 0)
+                delayMillis { 0L }
+            }
+        }
+
+        test { client ->
+            assertEquals(HttpStatusCode.OK, client.get("/").status)
+        }
+    }
+
+    @Test
+    fun testMaxSendCountEqualToMaxRetries() = testWithEngine(MockEngine) {
+        var counter = 0
+        config {
+            engine {
+                addHandler {
+                    if (counter < 2) {
+                        counter++
+                        respondError(HttpStatusCode.InternalServerError)
+                    } else {
+                        respondOk()
+                    }
+                }
+            }
+
+            install(HttpRequestRetry) {
+                retryOnServerErrors(maxRetries = 2)
+                delayMillis { 0L }
+            }
+            install(HttpSend) {
+                maxSendCount = 2
+            }
+        }
+
+        test { client ->
+            assertEquals(HttpStatusCode.OK, client.get("/").status)
+            assertEquals(2, counter)
         }
     }
 

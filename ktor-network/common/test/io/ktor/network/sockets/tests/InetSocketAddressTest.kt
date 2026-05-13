@@ -6,9 +6,7 @@ package io.ktor.network.sockets.tests
 
 import io.ktor.network.sockets.*
 import io.ktor.util.*
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.test.assertContentEquals
+import kotlin.test.*
 
 class InetSocketAddressTest {
 
@@ -31,6 +29,37 @@ class InetSocketAddressTest {
             val address = InetSocketAddress(hostname, 8080)
             val resolved = address.resolveAddress()
             assertContentEquals(expectedBytes, resolved, "Unexpected bytes for the address '$hostname'")
+        }
+    }
+
+    @Test
+    fun `construct from IPv4 byte array`() {
+        // Address resolving is not supported on JS and WASM platforms
+        if (PlatformUtils.IS_JS || PlatformUtils.IS_WASM_JS) return
+
+        val bytes = byteArrayOf(127, 0, 0, 1)
+        val address = InetSocketAddress(bytes, 8080)
+
+        assertEquals(8080, address.port)
+        assertContentEquals(bytes, address.resolveAddress())
+    }
+
+    @Test
+    fun `construct from IPv6 byte array`() {
+        // Address resolving is not supported on JS and WASM platforms
+        if (PlatformUtils.IS_JS || PlatformUtils.IS_WASM_JS) return
+
+        val bytes = byteArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)
+        val address = InetSocketAddress(bytes, 8080)
+
+        assertEquals(8080, address.port)
+        assertContentEquals(bytes, address.resolveAddress())
+    }
+
+    @Test
+    fun `construct from invalid byte array length throws exception`() {
+        assertFailsWith<IllegalArgumentException> {
+            InetSocketAddress(byteArrayOf(1, 2, 3), 8080)
         }
     }
 }

@@ -4,8 +4,10 @@
 
 package ktorbuild.internal
 
+import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
 import ktorbuild.KtorBuildExtension
 import org.gradle.api.Project
+import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.kotlin.dsl.getByType
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
@@ -28,3 +30,7 @@ internal fun Project.kotlin(configure: KotlinMultiplatformExtension.() -> Unit) 
 
 internal fun KotlinProjectExtension.abiValidation(configure: AbiValidationVariantSpec.() -> Unit) =
     extensions.configure("abiValidation", configure)
+
+internal fun KotlinMultiplatformExtension.android(action: KotlinMultiplatformAndroidLibraryTarget.() -> Unit) {
+    (this as ExtensionAware).extensions.configure("android", action)
+}

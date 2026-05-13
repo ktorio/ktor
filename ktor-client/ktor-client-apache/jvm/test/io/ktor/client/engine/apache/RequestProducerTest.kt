@@ -6,25 +6,33 @@ package io.ktor.client.engine.apache
 
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.http.HttpHeaders
 import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.test.*
-import org.apache.http.*
-import org.apache.http.nio.*
+import io.ktor.utils.io.core.writeByteBuffer
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runTest
+import org.apache.http.HttpEntityEnclosingRequest
 import org.apache.http.nio.ContentEncoder
-import java.nio.*
-import kotlin.coroutines.*
-import kotlin.test.*
+import org.apache.http.nio.IOControl
+import java.nio.ByteBuffer
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.test.Test
+import kotlin.test.assertContentEquals
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.text.toByteArray
 
-@Suppress("BlockingMethodInNonBlockingContext")
 class RequestProducerTest {
 
     @OptIn(InternalAPI::class)
     @Test
-    fun testHeadersMerge() = runBlocking {
+    fun testHeadersMerge() = runTest {
         val request = ApacheRequestProducer(
             HttpRequestData(
                 Url("http://127.0.0.1/"),
@@ -46,7 +54,7 @@ class RequestProducerTest {
     }
 
     @Test
-    fun testProducingByteArrayContent() = runBlocking {
+    fun testProducingByteArrayContent() = runTest {
         val bytes = "x".repeat(10000).toByteArray()
         val producer = producer(ByteArrayContent(bytes), coroutineContext)
 
@@ -58,7 +66,7 @@ class RequestProducerTest {
         }
 
         while (!encoder.isCompleted) {
-            if (ioctrl.outputSuspended) continue
+            ioctrl.awaitOutputResumed()
             producer.produceContent(encoder, ioctrl)
         }
 
@@ -67,7 +75,7 @@ class RequestProducerTest {
     }
 
     @Test
-    fun testProducingNoContent() = runBlocking {
+    fun testProducingNoContent() = runTest {
         val producer = producer(object : OutgoingContent.NoContent() {}, coroutineContext)
 
         val encoder = TestEncoder()
@@ -78,7 +86,7 @@ class RequestProducerTest {
         }
 
         while (!encoder.isCompleted) {
-            if (ioctrl.outputSuspended) continue
+            ioctrl.awaitOutputResumed()
             producer.produceContent(encoder, ioctrl)
         }
 
@@ -86,7 +94,6 @@ class RequestProducerTest {
         producer.close()
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testProducingReadChannelContent() = runTest {
         val content = ByteChannel(true)
@@ -98,7 +105,7 @@ class RequestProducerTest {
         val encoder = TestEncoder()
         val ioctrl = TestIOControl()
 
-        GlobalScope.launch {
+        launch {
             content.writeStringUtf8("x")
             delay(10)
             content.writeStringUtf8("x")
@@ -117,7 +124,7 @@ class RequestProducerTest {
         }
 
         while (!encoder.isCompleted) {
-            if (ioctrl.outputSuspended) continue
+            ioctrl.awaitOutputResumed()
             producer.produceContent(encoder, ioctrl)
         }
 
@@ -125,7 +132,6 @@ class RequestProducerTest {
         producer.close()
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testProducingWriteChannelContent() = runTest {
         val body = ChannelWriterContent(
@@ -152,9 +158,9 @@ class RequestProducerTest {
             encoder.channel.readRemaining().readText()
         }
 
-        GlobalScope.launch {
+        launch {
             while (!encoder.isCompleted) {
-                if (ioctrl.outputSuspended) continue
+                ioctrl.awaitOutputResumed()
                 producer.produceContent(encoder, ioctrl)
             }
         }
@@ -163,16 +169,17 @@ class RequestProducerTest {
         producer.close()
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     @Test
-    fun testProducingWriteChannelContentOnScale() = runBlocking {
-        val sampleSize = 4 * 1024 * 1024
-        val expected = (0 until sampleSize).map { it.toByte() }.toByteArray()
+    fun testProducingWriteChannelContentOnScale() = runTest {
+        val chunk = ByteArray(4 * 1024) { it.toByte() }
+        val chunkCount = 1024
+        val sampleSize = chunkCount * chunk.size
+        val expected = ByteArray(sampleSize) { (it % chunk.size).toByte() }
         repeat(1000) {
             val body = ChannelWriterContent(
                 body = {
-                    for (i in 0 until sampleSize) {
-                        writeByte(i.toByte())
+                    repeat(chunkCount) {
+                        writeFully(chunk)
                     }
                 },
                 contentType = null
@@ -188,14 +195,14 @@ class RequestProducerTest {
                 result
             }
 
-            GlobalScope.launch {
+            launch {
                 while (!encoder.isCompleted) {
-                    if (ioctrl.outputSuspended) continue
+                    ioctrl.awaitOutputResumed()
                     producer.produceContent(encoder, ioctrl)
                 }
             }
 
-            assertEquals(expected.encodeBase64(), result.await().encodeBase64())
+            assertContentEquals(expected, result.await())
             producer.close()
         }
     }
@@ -227,9 +234,12 @@ class RequestProducerTest {
 private class TestEncoder : ContentEncoder {
     val channel = ByteChannel()
 
-    override fun write(src: ByteBuffer): Int = runBlocking {
-        channel.writeAvailable(src)
-        src.limit()
+    @OptIn(InternalAPI::class)
+    override fun write(src: ByteBuffer): Int {
+        val remaining = src.remaining()
+        channel.writeBuffer.writeByteBuffer(src)
+        channel.flushWriteBuffer()
+        return remaining
     }
 
     override fun complete() {
@@ -240,6 +250,7 @@ private class TestEncoder : ContentEncoder {
 }
 
 private class TestIOControl : IOControl {
+    private val outputResumedChannel = Channel<Unit>(Channel.UNLIMITED)
 
     @Volatile
     var inputSuspended = false
@@ -259,6 +270,7 @@ private class TestIOControl : IOControl {
 
     override fun requestOutput() {
         outputSuspended = false
+        outputResumedChannel.trySend(Unit)
     }
 
     override fun suspendOutput() {
@@ -266,5 +278,10 @@ private class TestIOControl : IOControl {
     }
 
     override fun shutdown() {
+    }
+
+    suspend fun awaitOutputResumed() {
+        if (!outputSuspended) return
+        outputResumedChannel.receive()
     }
 }

@@ -1,66 +1,77 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.curl.internal
 
+import io.ktor.client.engine.curl.internal.Libcurl.WRITEFUNC_ERROR
+import io.ktor.client.engine.curl.internal.Libcurl.WRITEFUNC_PAUSE
 import io.ktor.utils.io.*
-import kotlinx.atomicfu.*
-import kotlinx.cinterop.*
-import kotlinx.coroutines.*
-import libcurl.*
-import platform.posix.*
+import io.ktor.utils.io.core.*
+import kotlinx.cinterop.ByteVar
+import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.convert
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import platform.posix.size_t
+import kotlin.concurrent.Volatile
+import kotlin.coroutines.CoroutineContext
 
 internal class CurlHttpResponseBody(
-    private val callContext: Job,
-    private val onUnpause: () -> Unit
-) : CurlResponseBodyData {
-    private val bytesWritten = atomic(0)
+    callContext: Job,
+    private val onUnpause: () -> Unit,
+) : CurlResponseBodyData, CoroutineScope {
 
-    val bodyChannel = ByteChannel(true).apply {
-        attachJob(callContext)
+    private val job = Job(callContext)
+    override val coroutineContext: CoroutineContext = job
+
+    val bodyChannel = ByteChannel().apply {
+        attachJob(job)
     }
 
-    @OptIn(ExperimentalForeignApi::class)
-    override fun onBodyChunkReceived(buffer: CPointer<ByteVar>, size: size_t, count: size_t): Int {
+    @Volatile
+    private var paused = false
+
+    @OptIn(ExperimentalForeignApi::class, InternalAPI::class)
+    override fun onBodyChunkReceived(buffer: CPointer<ByteVar>, size: size_t, count: size_t): size_t {
         if (bodyChannel.isClosedForWrite) {
-            return if (bodyChannel.closedCause != null) -1 else 0
+            return if (bodyChannel.closedCause != null) WRITEFUNC_ERROR else 0.convert()
         }
+        if (paused) return WRITEFUNC_PAUSE
 
-        val chunkSize = (size * count).toInt()
+        val chunkSize = (size * count).toLong()
+        return try {
+            bodyChannel.writeBuffer.writeFully(buffer, 0L, chunkSize)
+            bodyChannel.flushWriteBuffer()
+            if (!bodyChannel.hasFreeSpace) pauseUntilFreeSpaceAvailable()
+            chunkSize.convert()
+        } catch (_: Throwable) {
+            WRITEFUNC_ERROR
+        }
+    }
 
-        // TODO: delete `runBlocking` with fix of https://youtrack.jetbrains.com/issue/KTOR-6030/Migrate-to-new-kotlinx.io-library
-        val written = try {
-            runBlocking {
-                bodyChannel.writeFully(buffer, 0, chunkSize)
-            }
-            chunkSize
-        } catch (cause: Throwable) {
-            return -1
-        }
-        if (written > 0) {
-            bytesWritten.addAndGet(written)
-        }
-        if (bytesWritten.value == chunkSize) {
-            bytesWritten.value = 0
-            return chunkSize
-        }
-
-        CoroutineScope(callContext).launch {
+    private fun pauseUntilFreeSpaceAvailable() {
+        paused = true
+        launch {
             try {
                 bodyChannel.awaitFreeSpace()
+            } catch (cause: CancellationException) {
+                throw cause
             } catch (_: Throwable) {
                 // no op, error will be handled on next write on cURL thread
             } finally {
+                paused = false
                 onUnpause()
             }
         }
-
-        return CURL_WRITEFUNC_PAUSE
     }
 
     override fun close(cause: Throwable?) {
         if (bodyChannel.isClosedForWrite) return
         bodyChannel.close(cause)
+        cancel(cause as? CancellationException ?: CancellationException(cause))
     }
 }

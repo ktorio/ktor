@@ -1,0 +1,20 @@
+type: object
+title: io.ktor.openapi.reflect.ItemsRefData
+required:
+  - locations
+properties:
+  locations:
+    type: array
+    items:
+      type: object
+      title: io.ktor.openapi.reflect.Country
+      required:
+        - name
+        - code
+      properties:
+        name:
+          type: string
+          pattern: '[A-Za-z''-,]+'
+        code:
+          type: string
+          pattern: '[A-Z]{3}'

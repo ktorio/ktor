@@ -431,6 +431,7 @@ public final class io/ktor/http/HeaderValueWithParameters$Companion {
 public final class io/ktor/http/HeaderValueWithParametersKt {
 	public static final fun append (Lio/ktor/util/StringValuesBuilder;Ljava/lang/String;Lio/ktor/http/HeaderValueWithParameters;)V
 	public static final fun escapeIfNeeded (Ljava/lang/String;)Ljava/lang/String;
+	public static final fun isQuoted (Ljava/lang/String;)Z
 	public static final fun quote (Ljava/lang/String;)Ljava/lang/String;
 }
 
@@ -570,6 +571,8 @@ public final class io/ktor/http/HttpHeaders {
 	public static final field Server Ljava/lang/String;
 	public static final field SetCookie Ljava/lang/String;
 	public static final field StrictTransportSecurity Ljava/lang/String;
+	public static final field TDMPolicy Ljava/lang/String;
+	public static final field TDMReservation Ljava/lang/String;
 	public static final field TE Ljava/lang/String;
 	public static final field Timeout Ljava/lang/String;
 	public static final field Trailer Ljava/lang/String;
@@ -1234,6 +1237,42 @@ public final class io/ktor/http/auth/AuthScheme {
 	public static final field OAuth Ljava/lang/String;
 }
 
+public final class io/ktor/http/auth/DigestAlgorithm {
+	public static final field Companion Lio/ktor/http/auth/DigestAlgorithm$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Z)V
+	public final fun getHashName ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
+	public final fun isSession ()Z
+}
+
+public final class io/ktor/http/auth/DigestAlgorithm$Companion {
+	public final fun from (Ljava/lang/String;)Lio/ktor/http/auth/DigestAlgorithm;
+	public final fun getDEFAULT_ALGORITHMS ()Ljava/util/List;
+	public final fun getMD5 ()Lio/ktor/http/auth/DigestAlgorithm;
+	public final fun getMD5_SESS ()Lio/ktor/http/auth/DigestAlgorithm;
+	public final fun getSHA_256 ()Lio/ktor/http/auth/DigestAlgorithm;
+	public final fun getSHA_256_SESS ()Lio/ktor/http/auth/DigestAlgorithm;
+	public final fun getSHA_512_256 ()Lio/ktor/http/auth/DigestAlgorithm;
+	public final fun getSHA_512_256_SESS ()Lio/ktor/http/auth/DigestAlgorithm;
+}
+
+public final class io/ktor/http/auth/DigestAlgorithm_jvmKt {
+	public static final fun toDigester (Lio/ktor/http/auth/DigestAlgorithm;)Ljava/security/MessageDigest;
+}
+
+public final class io/ktor/http/auth/DigestQop {
+	public static final field Companion Lio/ktor/http/auth/DigestQop$Companion;
+	public fun <init> (Ljava/lang/String;)V
+	public final fun getValue ()Ljava/lang/String;
+}
+
+public final class io/ktor/http/auth/DigestQop$Companion {
+	public final fun from (Ljava/lang/String;)Lio/ktor/http/auth/DigestQop;
+	public final fun getAUTH ()Lio/ktor/http/auth/DigestQop;
+	public final fun getAUTH_INT ()Lio/ktor/http/auth/DigestQop;
+	public final fun getDEFAULT_QOPS ()Ljava/util/List;
+}
+
 public final class io/ktor/http/auth/HeaderValueEncoding : java/lang/Enum {
 	public static final field QUOTED_ALWAYS Lio/ktor/http/auth/HeaderValueEncoding;
 	public static final field QUOTED_WHEN_REQUIRED Lio/ktor/http/auth/HeaderValueEncoding;
@@ -1256,7 +1295,9 @@ public final class io/ktor/http/auth/HttpAuthHeader$Companion {
 	public final fun basicAuthChallenge (Ljava/lang/String;Ljava/nio/charset/Charset;)Lio/ktor/http/auth/HttpAuthHeader$Parameterized;
 	public final fun bearerAuthChallenge (Ljava/lang/String;Ljava/lang/String;)Lio/ktor/http/auth/HttpAuthHeader;
 	public static synthetic fun bearerAuthChallenge$default (Lio/ktor/http/auth/HttpAuthHeader$Companion;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/http/auth/HttpAuthHeader;
+	public final fun digestAuthChallenge (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/Boolean;Lio/ktor/http/auth/DigestAlgorithm;Ljava/nio/charset/Charset;ZLjava/util/List;)Lio/ktor/http/auth/HttpAuthHeader$Parameterized;
 	public final fun digestAuthChallenge (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/String;)Lio/ktor/http/auth/HttpAuthHeader$Parameterized;
+	public static synthetic fun digestAuthChallenge$default (Lio/ktor/http/auth/HttpAuthHeader$Companion;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/Boolean;Lio/ktor/http/auth/DigestAlgorithm;Ljava/nio/charset/Charset;ZLjava/util/List;ILjava/lang/Object;)Lio/ktor/http/auth/HttpAuthHeader$Parameterized;
 	public static synthetic fun digestAuthChallenge$default (Lio/ktor/http/auth/HttpAuthHeader$Companion;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/http/auth/HttpAuthHeader$Parameterized;
 }
 
@@ -1473,6 +1514,7 @@ public final class io/ktor/http/content/OutputStreamContent : io/ktor/http/conte
 	public fun getContentType ()Lio/ktor/http/ContentType;
 	public fun getStatus ()Lio/ktor/http/HttpStatusCode;
 	public fun writeTo (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun writeTo (Ljava/io/OutputStream;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract class io/ktor/http/content/PartData {

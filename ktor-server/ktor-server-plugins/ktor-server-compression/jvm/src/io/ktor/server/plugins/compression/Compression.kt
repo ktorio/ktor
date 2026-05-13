@@ -71,14 +71,14 @@ public val Compression: RouteScopedPlugin<CompressionConfig> = createRouteScoped
         encode(call, options)
     }
 
-    onCallReceive { call ->
-        if (!mode.request) return@onCallReceive
+    on(ContentDecoding) { call ->
+        if (!mode.request) return@on
         decode(call, options)
     }
 }
 
 @OptIn(InternalAPI::class)
-private suspend fun OnCallReceiveContext<CompressionConfig>.decode(call: PipelineCall, options: CompressionOptions) {
+private suspend fun ContentDecoding.Context.decode(call: PipelineCall, options: CompressionOptions) {
     val encodingRaw = call.request.headers[HttpHeaders.ContentEncoding]
     if (call.isDecompressionSuppressed) {
         LOGGER.trace("Skip decompression for ${call.request.uri} because it is suppressed.")
@@ -171,6 +171,17 @@ private fun ContentEncoding.Context.encode(call: PipelineCall, options: Compress
         }
 
         LOGGER.trace("Encoding body for ${call.request.uri} using ${encoderOptions.encoder.name}.")
+
+        // Most compression algorithms (e.g. gzip, deflate, brotli) cannot compress streaming responses
+        // incrementally without buffering the entire body, which defeats the purpose of streaming.
+        if (message is OutgoingContent.WriteChannelContent) {
+            LOGGER.warn(
+                "Compressing a WriteChannelContent response for ${call.request.uri}. " +
+                    "Compression will buffer the entire body before sending, which defeats the purpose of streaming. " +
+                    "Consider suppressing compression for this route with call.suppressCompression()."
+            )
+        }
+
         return@transformBody message.compressed(encoderOptions.encoder)
     }
 }

@@ -43,6 +43,7 @@ public fun runTestWithRealTime(
     timeout: Duration = 60.seconds,
     testBody: suspend CoroutineScope.() -> Unit
 ): TestResult {
+    @OptIn(ExperimentalStdlibApi::class)
     val context = if (context[CoroutineDispatcher] is TestDispatcher) context else EmptyCoroutineContext
     return runTest(context, timeout) {
         withContext(Dispatchers.Default.limitedParallelism(1), testBody)

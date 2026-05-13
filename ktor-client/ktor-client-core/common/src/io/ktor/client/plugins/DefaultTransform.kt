@@ -5,7 +5,7 @@
 package io.ktor.client.plugins
 
 import io.ktor.client.*
-import io.ktor.client.call.checkContentLength
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -14,9 +14,11 @@ import io.ktor.http.content.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
-import kotlinx.io.*
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.job
+import kotlinx.io.Source
 
 private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.defaultTransformers")
 
@@ -96,10 +98,11 @@ public fun HttpClient.defaultTransformers() {
                 // the response job could be already completed, so the job holder
                 // could be canceled immediately, but it doesn't matter
                 // since the copying job is running under the client job
-                val responseJobHolder = Job(response.coroutineContext[Job])
+                val responseJobHolder = Job(response.coroutineContext.job)
                 val channel: ByteReadChannel = writer(this@defaultTransformers.coroutineContext) {
                     try {
                         body.copyTo(channel, limit = Long.MAX_VALUE)
+                        body.rethrowCloseCauseIfNeeded()
                     } catch (cause: CancellationException) {
                         response.cancel(cause)
                         throw cause
@@ -111,6 +114,7 @@ public fun HttpClient.defaultTransformers() {
                     writerJob.invokeOnCompletion {
                         responseJobHolder.complete()
                     }
+                    body.attachWriterJob(writerJob)
                 }.channel
 
                 proceedWith(HttpResponseContainer(info, channel))

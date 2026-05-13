@@ -1,21 +1,21 @@
 [versions]
 
-kotlin = "2.3.0"
-android-gradlePlugin = "8.13.2"
+kotlin = "2.3.21"
+android-gradlePlugin = "9.1.0"
 androidx-test = "1.7.0"
 kotlinx-html = "0.12.0"
 kotlinx-datetime = "0.6.2"
 kotlinx-io = "0.8.2"
 coroutines = "1.10.2"
-atomicfu = "0.29.0"
+atomicfu = "0.32.1"
 serialization = "1.9.0"
-dokka = "2.1.0"
+dokka = "2.2.0-Beta"
 kover = "0.9.4"
 kotlinter = "5.2.0"
 kotlinx-browser = "0.5.0"
 
-netty = "4.2.9.Final"
-netty-tcnative = "2.0.74.Final"
+netty = "4.2.12.Final"
+netty-tcnative = "2.0.76.Final"
 
 jetty = "9.4.58.v20250814"
 jetty-jakarta = "12.0.29"
@@ -36,9 +36,9 @@ okio = "3.16.4"
 json-simple = "1.1.1"
 gson = "2.13.2"
 
-jackson = "2.20.1"
-jackson3 = "3.0.3"
-jackson-annotations = "2.20"
+jackson = "2.21.0"
+jackson3 = "3.1.0"
+jackson-annotations = "2.21"
 
 junit = "5.14.2"
 slf4j = "2.0.17"
@@ -54,7 +54,7 @@ typesafe = "1.4.5"
 # Wait until https://github.com/mockk/mockk/issues/1433 is resolved.
 mockk = "1.14.7"
 
-java-jwt = "4.5.0"
+java-jwt = "4.5.1"
 
 jwks-rsa = "0.23.0"
 mustache = "0.9.14"
@@ -82,13 +82,13 @@ swagger-parser = "2.1.37"
 puppeteer = "24.16.1"
 tomlj = "1.1.1"
 
-zstd-jni = "1.5.7-6"
+zstd-jni = "1.5.7-7"
 
 # Keep it in sync with build-settings-logic/settings.gradle.kts
-develocity = "4.0.3" # Should be compatible with our server: ge.jetbrains.com
-develocity-commonCustomUserData = "2.4.0"
+develocity = "4.3.2" # Should be compatible with our server: ge.jetbrains.com
+develocity-commonCustomUserData = "2.6.0"
 gradleDoctor = "0.12.1"
-mavenPublishing = "0.34.0"
+mavenPublishing = "0.36.0"
 
 android-compileSdk = "36"
 android-minSdk = "28"
@@ -107,6 +107,12 @@ kotlin-serialization = { module = "org.jetbrains.kotlin:kotlin-serialization", v
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-test-junit5 = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin" }
+kotlin-compiler = { module = "org.jetbrains.kotlin:kotlin-compiler", version.ref = "kotlin" }
+kotlin-compilerEmbeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlin" }
+kotlin-compilerTestFramework = { module = "org.jetbrains.kotlin:kotlin-compiler-internal-test-framework", version.ref = "kotlin" }
+kotlin-script-runtime = { module = "org.jetbrains.kotlin:kotlin-script-runtime", version.ref = "kotlin" }
+kotlin-annotations-jvm = { module = "org.jetbrains.kotlin:kotlin-annotations-jvm", version.ref = "kotlin" }
+kotlinx-serialization-compiler-embedded = { module = "org.jetbrains.kotlin:kotlin-serialization-compiler-plugin-embeddable", version.ref = "kotlin" }
 
 kotlinx-atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
 kotlinx-atomicfu-gradlePlugin = { module = "org.jetbrains.kotlinx:atomicfu-gradle-plugin", version.ref = "atomicfu" }
@@ -248,3 +254,5 @@ zstd-jni = { module = "com.github.luben:zstd-jni", version.ref = "zstd-jni" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 
 doctor = { id = "com.osacky.doctor", version.ref = "gradleDoctor" }
+
+buildconfig = { id = "com.github.gmazzo.buildconfig", version = "6.0.7" }

@@ -1,22 +1,33 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package ktorbuild.vcpkg
 
+import ktorbuild.internal.gradle.maybeNamed
 import org.gradle.api.Project
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.register
+import org.jetbrains.kotlin.gradle.targets.native.internal.KotlinNativeDownloadTask
+import org.jetbrains.kotlin.konan.target.KonanTarget
 import java.io.File
 
 fun Project.registerVcpkgInstallTask(
     library: String,
-    target: String,
+    target: KonanTarget,
     configure: VcpkgInstall.() -> Unit = {}
 ): TaskProvider<VcpkgInstall> {
+    val downloadKotlinNative = tasks.maybeNamed<KotlinNativeDownloadTask>("downloadKotlinNativeDistribution")
     return tasks.register<VcpkgInstall>("${library}Install") {
+        onlyIf("Kotlin distribution should be available") { downloadKotlinNative != null }
+        if (downloadKotlinNative == null) return@register
+
         install(library, target)
+        // Do not configure Toolchain on macOS as Konan uses native tools there
+        if (!target.family.isAppleFamily) {
+            nativeDirectoryLocation.set(downloadKotlinNative.flatMap { it.nativeDirectoryLocation })
+        }
         configure()
     }
 }

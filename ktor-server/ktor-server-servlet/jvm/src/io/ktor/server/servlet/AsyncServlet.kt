@@ -125,7 +125,9 @@ public open class AsyncServletApplicationResponse(
         (call.request as AsyncServletApplicationRequest).upgraded()
         completed = true
 
-        servletUpgradeImpl.performUpgrade(upgrade, servletRequest, servletResponse, engineContext, userContext)
+        val servletJob = coroutineContext[Job]?.parent
+        val upgradeEngineContext = if (servletJob != null) engineContext + servletJob else engineContext
+        servletUpgradeImpl.performUpgrade(upgrade, servletRequest, servletResponse, upgradeEngineContext, userContext)
     }
 
     @UseHttp2Push

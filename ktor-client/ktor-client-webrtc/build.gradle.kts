@@ -19,7 +19,7 @@ plugins {
 kotlin {
     jvmToolchain(17)
 
-    optionalAndroidLibrary {
+    optionalAndroid {
         namespace = "io.ktor.client.webrtc"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()

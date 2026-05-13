@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.server.sessions
 
@@ -82,15 +82,53 @@ internal fun ApplicationCall.sessionId(name: String): String? {
  * @property type is a session instance type
  * @property serializer session serializer
  * @property storage session storage to store session
- * @property sessionIdProvider is a function that generates session IDs
  */
-public class SessionTrackerById<S : Any>(
+public class SessionTrackerById<S : Any> private constructor(
     public val type: KClass<S>,
     public val serializer: SessionSerializer<S>,
     public val storage: SessionStorage,
-    public val sessionIdProvider: () -> String
 ) : SessionTracker<S> {
+
+    @Deprecated("Use sessionIdProviderByCall")
+    private var _sessionIdProvider: (() -> String)? = null
+    private var sessionIdProviderByCall: ((ApplicationCall) -> String)? = null
+
+    public constructor(
+        type: KClass<S>,
+        serializer: SessionSerializer<S>,
+        storage: SessionStorage,
+        sessionIdProvider: (ApplicationCall) -> String
+    ) : this(type, serializer, storage) {
+        sessionIdProviderByCall = sessionIdProvider
+    }
+
+    @Deprecated(
+        "Use constructor that accepts ApplicationCall parameter in sessionIdProvider",
+        level = DeprecationLevel.HIDDEN
+    )
+    public constructor(
+        type: KClass<S>,
+        serializer: SessionSerializer<S>,
+        storage: SessionStorage,
+        sessionIdProvider: () -> String
+    ) : this(type, serializer, storage) {
+        @Suppress("DEPRECATION")
+        _sessionIdProvider = sessionIdProvider
+    }
+
     internal val sessionIdKey: AttributeKey<String> = AttributeKey("SessionId")
+
+    @Suppress("DEPRECATION")
+    @Deprecated("Use provideSessionId(call)")
+    public val sessionIdProvider: () -> String
+        get() = checkNotNull(_sessionIdProvider) { "Session ID provider is not configured" }
+
+    @Suppress("DEPRECATION")
+    public fun provideSessionId(call: ApplicationCall): String {
+        sessionIdProviderByCall?.let { return it(call) }
+        _sessionIdProvider?.let { return it() }
+        throw IllegalStateException("Session ID provider is not configured")
+    }
 
     override suspend fun load(call: ApplicationCall, transport: String?): S? {
         val sessionId = transport ?: return null
@@ -113,7 +151,7 @@ public class SessionTrackerById<S : Any>(
     }
 
     override suspend fun store(call: ApplicationCall, value: S): String {
-        val sessionId = call.attributes.computeIfAbsent(sessionIdKey, sessionIdProvider)
+        val sessionId = call.attributes.computeIfAbsent(sessionIdKey) { provideSessionId(call) }
         val serialized = serializer.serialize(value)
         storage.write(sessionId, serialized)
         return sessionId
@@ -124,6 +162,17 @@ public class SessionTrackerById<S : Any>(
         if (sessionId != null) {
             storage.invalidate(sessionId)
         }
+    }
+
+    /**
+     * Clears a session with the specified [sessionId] from the storage without needing access to the [ApplicationCall].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.SessionTrackerById.clearById)
+     *
+     * @param sessionId the session ID to invalidate
+     */
+    public suspend fun clearById(sessionId: String) {
+        storage.invalidate(sessionId)
     }
 
     override fun validate(value: S) {

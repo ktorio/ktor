@@ -58,20 +58,56 @@ private value class DigestImpl(val delegate: MessageDigest) : Digest {
 }
 
 /**
- * Generates a nonce string 16 characters long. Could block if the system's entropy source is empty
+ * Generates a nonce string [length] characters long. Could block if the system's entropy source is empty.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.generateNonce)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.generateNonceSuspend)
  */
-public actual fun generateNonce(): String {
-    val nonce = seedChannel.tryReceive().getOrNull()
-    if (nonce != null) return nonce
-
-    return generateNonceBlocking()
-}
-
-private fun generateNonceBlocking(): String {
+public actual suspend fun generateNonceSuspend(length: Int): String {
     ensureNonceGeneratorRunning()
-    return runBlocking {
-        seedChannel.receive()
+
+    val nonce = nonceChannel.receive()
+
+    if (nonce.length >= length) {
+        return nonce.substring(0, length)
+    }
+
+    return if (length <= NONCE_SIZE_IN_CHARS) {
+        nonceChannel.receive().substring(0, length)
+    } else {
+        generateNonceLong(nonce, length)
     }
 }
+
+/**
+ * Generates a nonce string [length] characters long. Could block if the system's entropy source is empty.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.generateNonceBlocking)
+ */
+public actual fun generateNonceBlocking(length: Int): String {
+    val nonce = nonceChannel.tryReceive().getOrNull()
+
+    if (nonce != null && nonce.length >= length) {
+        return nonce.substring(0, length)
+    }
+
+    ensureNonceGeneratorRunning()
+
+    return runBlocking {
+        if (length <= NONCE_SIZE_IN_CHARS) {
+            nonceChannel.receive().substring(0, length)
+        } else {
+            generateNonceLong(nonce, length)
+        }
+    }
+}
+
+private suspend fun generateNonceLong(initial: CharSequence?, length: Int) = buildString(length) {
+    if (initial != null) {
+        append(initial)
+    }
+
+    while (length > this.length) {
+        val toAppend = nonceChannel.receive()
+        append(toAppend, 0, (length - this.length).coerceAtMost(toAppend.length))
+    }
+}.substring(0, length)

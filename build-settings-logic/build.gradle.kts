@@ -23,6 +23,10 @@ kotlin {
     jvmToolchain(21)
 }
 
+tasks.validatePlugins {
+    enableStricterValidation = true
+}
+
 //region Workaround for https://github.com/gradle/gradle/issues/13020
 // We have a dependency on Kotlin Gradle Plugin and Gradle _always_ logs an annoying warning because of that:
 //  Unsupported Kotlin plugin version.
@@ -81,7 +85,7 @@ val suppressGradlePluginVersionWarning by tasks.registering {
                 writeText(
                     embeddedKotlinPlugin.readText()
                         // This is the key change: converting 'warn' into 'info'.
-                        .replace("\n        warn(\n", "\n        info(\n")
+                        .replace("\n        warn(warning)", "\n        info(warning)")
                         // Mark internal things as internal to prevent compiler warnings about unused code,
                         // and to stop them leaking into build scripts.
                         .replace("\n\nfun Logger.", "\n\nprivate fun Logger.")

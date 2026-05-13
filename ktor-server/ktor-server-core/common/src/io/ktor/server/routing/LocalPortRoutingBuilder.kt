@@ -49,6 +49,8 @@ public data class LocalPortRouteSelector(val port: Int) : RouteSelector() {
             RouteSelectorEvaluation.Failed
         }
 
+    override fun toString(): String = "(port:$port)"
+
     public companion object {
         /**
          * A parameter name for [ApplicationCall.parameters] for a request host.

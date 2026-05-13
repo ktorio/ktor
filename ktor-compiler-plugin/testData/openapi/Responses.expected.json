@@ -1,0 +1,979 @@
+{
+    "openapi": "3.1.1",
+    "info": {
+        "title": "OpenAPI Document",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/json": {
+            "get": {
+                "summary": "",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                }
+            }
+        },
+        "/binary": {
+            "get": {
+                "summary": "",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "headers": {
+                            "X-Question": {
+                                "content": {
+                                    "text/plain": {}
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/octet-stream": {}
+                        }
+                    }
+                }
+            }
+        },
+        "/file": {
+            "get": {
+                "summary": "",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "headers": {
+                            "Content-Disposition": {
+                                "content": {
+                                    "text/plain": {}
+                                }
+                            }
+                        },
+                        "content": {
+                            "*/*": {}
+                        }
+                    }
+                }
+            }
+        },
+        "/audio": {
+            "get": {
+                "summary": "",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "audio/mpeg": {}
+                        }
+                    }
+                }
+            }
+        },
+        "/api/dudes": {
+            "post": {
+                "summary": "Create a new dude",
+                "requestBody": {
+                    "description": "Dude creation request",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DudeRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created dude",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Dude"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "get": {
+                "summary": "Get list of dudes",
+                "responses": {
+                    "200": {
+                        "description": "List of dudes",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Dude"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/dudes/{id}": {
+            "get": {
+                "summary": "Get a specific dude",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Dude ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dude details",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Dude"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Dude not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/status/ok": {
+            "get": {
+                "summary": "OK response",
+                "responses": {
+                    "200": {
+                        "description": "OK response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/status/created": {
+            "get": {
+                "summary": "Created response",
+                "parameters": [
+                    {
+                        "name": "Location",
+                        "in": "header",
+                        "description": "URI of created resource",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Resource created",
+                        "headers": {
+                            "Location": {
+                                "content": {
+                                    "text/plain": {}
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/status/accepted": {
+            "get": {
+                "summary": "Accepted response",
+                "responses": {
+                    "202": {
+                        "description": "Request accepted for processing",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/status/no-content": {
+            "get": {
+                "summary": "No Content response",
+                "responses": {
+                    "204": {
+                        "description": "Operation successful, no content returned"
+                    }
+                }
+            }
+        },
+        "/status/bad-request": {
+            "get": {
+                "summary": "Bad Request response",
+                "responses": {
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/status/unauthorized": {
+            "get": {
+                "summary": "Unauthorized response",
+                "responses": {
+                    "401": {
+                        "description": "Authentication required",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/status/forbidden": {
+            "get": {
+                "summary": "Forbidden response",
+                "responses": {
+                    "403": {
+                        "description": "Permission denied",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/status/not-found": {
+            "get": {
+                "summary": "Not Found response",
+                "responses": {
+                    "404": {
+                        "description": "Resource not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/status/method-not-allowed": {
+            "get": {
+                "summary": "Method Not Allowed response",
+                "responses": {
+                    "405": {
+                        "description": "Method not allowed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/status/server-error": {
+            "get": {
+                "summary": "Internal Server Error response",
+                "responses": {
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/content-types/text": {
+            "get": {
+                "summary": "Plain text response",
+                "parameters": [
+                    {
+                        "name": "Content-Type",
+                        "in": "header",
+                        "description": "text/plain",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Plain text",
+                        "content": {
+                            "text/plain": {}
+                        }
+                    }
+                }
+            }
+        },
+        "/content-types/html": {
+            "get": {
+                "summary": "HTML response",
+                "parameters": [
+                    {
+                        "name": "Content-Type",
+                        "in": "header",
+                        "description": "text/html",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "HTML content",
+                        "content": {
+                            "text/html": {}
+                        }
+                    }
+                }
+            }
+        },
+        "/content-types/xml": {
+            "get": {
+                "summary": "XML response",
+                "parameters": [
+                    {
+                        "name": "Content-Type",
+                        "in": "header",
+                        "description": "application/xml",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "XML content",
+                        "content": {
+                            "application/xml": {}
+                        }
+                    }
+                }
+            }
+        },
+        "/content-types/csv": {
+            "get": {
+                "summary": "CSV response",
+                "parameters": [
+                    {
+                        "name": "Content-Type",
+                        "in": "header",
+                        "description": "text/csv",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "CSV content",
+                        "content": {
+                            "text/csv": {}
+                        }
+                    }
+                }
+            }
+        },
+        "/complex/parameterized": {
+            "get": {
+                "summary": "Parameterized type responses",
+                "responses": {
+                    "200": {
+                        "description": "An ApiResponse parameterized with DudeDetails",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "data",
+                                        "status",
+                                        "timestamp"
+                                    ],
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/DudeDetails"
+                                        },
+                                        "status": {
+                                            "type": "string"
+                                        },
+                                        "timestamp": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/complex/map": {
+            "get": {
+                "summary": "Map response",
+                "responses": {
+                    "200": {
+                        "description": "Map response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/complex/array": {
+            "get": {
+                "summary": "Array response",
+                "responses": {
+                    "200": {
+                        "description": "Array response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/polymorphic/animals/{id}": {
+            "get": {
+                "summary": "Get animal by ID",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Animal ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Animal details (can be Dog or Cat)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Animal"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Animal not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/polymorphic/animals": {
+            "get": {
+                "summary": "Get list of animals",
+                "responses": {
+                    "200": {
+                        "description": "List of animals (mixed Dogs and Cats)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Animal"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/results/operation": {
+            "get": {
+                "summary": "Operation with multiple possible outcomes",
+                "parameters": [
+                    {
+                        "name": "success",
+                        "in": "query",
+                        "description": "Should the operation succeed",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "includeWarning",
+                        "in": "query",
+                        "description": "Include warning in response",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "success",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "includeWarning",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Operation succeeded",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "207": {
+                        "description": "Operation partially succeeded",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PartialSuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Operation failed - client error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseError"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Operation failed - server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/headers/rate-limit": {
+            "get": {
+                "summary": "Response with custom headers",
+                "parameters": [
+                    {
+                        "name": "X-Rate-Limit-Limit",
+                        "in": "header",
+                        "description": "Maximum number of requests",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "X-Rate-Limit-Remaining",
+                        "in": "header",
+                        "description": "Remaining requests in the current period",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "X-Rate-Limit-Reset",
+                        "in": "header",
+                        "description": "Time when the rate limit resets",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK with headers",
+                        "headers": {
+                            "X-Rate-Limit-Limit": {
+                                "content": {
+                                    "text/plain": {}
+                                }
+                            },
+                            "X-Rate-Limit-Remaining": {
+                                "content": {
+                                    "text/plain": {}
+                                }
+                            },
+                            "X-Rate-Limit-Reset": {
+                                "content": {
+                                    "text/plain": {}
+                                }
+                            }
+                        },
+                        "content": {
+                            "text/plain": {}
+                        }
+                    }
+                }
+            }
+        },
+        "/headers/cache": {
+            "get": {
+                "summary": "Response with cache control headers",
+                "parameters": [
+                    {
+                        "name": "Cache-Control",
+                        "in": "header",
+                        "description": "Caching directives",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "ETag",
+                        "in": "header",
+                        "description": "Entity tag for cache validation",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "Last-Modified",
+                        "in": "header",
+                        "description": "Last modification date",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK with cache headers",
+                        "headers": {
+                            "Cache-Control": {
+                                "content": {
+                                    "text/plain": {}
+                                }
+                            },
+                            "ETag": {
+                                "content": {
+                                    "text/plain": {}
+                                }
+                            },
+                            "Last-Modified": {
+                                "content": {
+                                    "text/plain": {}
+                                }
+                            }
+                        },
+                        "content": {
+                            "text/plain": {}
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Dude": {
+                "type": "object",
+                "title": "Dude",
+                "required": [
+                    "id",
+                    "name"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                }
+            },
+            "DudeRequest": {
+                "type": "object",
+                "title": "DudeRequest",
+                "required": [
+                    "name"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    }
+                }
+            },
+            "ResponseError": {
+                "type": "object",
+                "title": "ResponseError",
+                "required": [
+                    "code",
+                    "message"
+                ],
+                "properties": {
+                    "code": {
+                        "type": "string"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "details": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "Stats": {
+                "type": "object",
+                "title": "Stats",
+                "required": [
+                    "posts",
+                    "followers",
+                    "following"
+                ],
+                "properties": {
+                    "posts": {
+                        "type": "integer"
+                    },
+                    "followers": {
+                        "type": "integer"
+                    },
+                    "following": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "DudeDetails": {
+                "type": "object",
+                "title": "DudeDetails",
+                "required": [
+                    "dude",
+                    "stats",
+                    "metadata"
+                ],
+                "properties": {
+                    "dude": {
+                        "$ref": "#/components/schemas/Dude"
+                    },
+                    "stats": {
+                        "$ref": "#/components/schemas/Stats"
+                    },
+                    "metadata": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "Cat": {
+                "type": "object",
+                "title": "Cat",
+                "required": [
+                    "id",
+                    "name",
+                    "lives"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "lives": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "Dog": {
+                "type": "object",
+                "title": "Dog",
+                "required": [
+                    "id",
+                    "name",
+                    "breed"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "breed": {
+                        "type": "string"
+                    }
+                }
+            },
+            "Animal": {
+                "type": "object",
+                "title": "Animal",
+                "oneOf": [
+                    {
+                        "$ref": "#/components/schemas/Cat"
+                    },
+                    {
+                        "$ref": "#/components/schemas/Dog"
+                    }
+                ],
+                "discriminator": {
+                    "propertyName": "type",
+                    "mapping": {
+                        "openapi.Cat": "#/components/schemas/Cat",
+                        "openapi.Dog": "#/components/schemas/Dog"
+                    }
+                }
+            },
+            "SuccessResponse": {
+                "type": "object",
+                "title": "SuccessResponse",
+                "required": [
+                    "message",
+                    "data"
+                ],
+                "properties": {
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "PartialSuccessResponse": {
+                "type": "object",
+                "title": "PartialSuccessResponse",
+                "required": [
+                    "message",
+                    "warnings"
+                ],
+                "properties": {
+                    "message": {
+                        "type": "string"
+                    },
+                    "warnings": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

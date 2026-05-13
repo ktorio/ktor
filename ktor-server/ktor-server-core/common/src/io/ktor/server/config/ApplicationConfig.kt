@@ -5,7 +5,9 @@
 package io.ktor.server.config
 
 import io.ktor.server.application.*
+import io.ktor.server.config.MapApplicationConfig.Companion.flatten
 import io.ktor.util.reflect.*
+import io.ktor.utils.io.*
 
 /**
  * Represents an application config node
@@ -154,6 +156,26 @@ public inline fun <reified E> Application.property(key: String): E =
  */
 public inline fun <reified E> Application.propertyOrNull(key: String): E? =
     environment.config.propertyOrNull(key)?.getAs<E>()
+
+/**
+ * Converts the application config to the given type.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.getAs)
+ */
+@OptIn(InternalAPI::class)
+public fun ApplicationConfig.getAs(type: TypeInfo): Any? =
+    when (type) {
+        typeInfo<Map<String, Any?>>() -> toMap()
+        else -> type.serializer().deserialize(MapConfigDecoder(toMap().flatten().toMap()))
+    }
+
+/**
+ * Converts the application config to the given type parameter.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.getAs)
+ */
+public inline fun <reified E> ApplicationConfig.getAs(): E =
+    getAs(typeInfo<E>()) as E
 
 /**
  * Converts the application config value to the given type parameter.

@@ -4,9 +4,12 @@
 
 package io.ktor.utils.io
 
+import io.ktor.utils.io.CloseToken.Companion.throwOrNull
+import io.ktor.utils.io.CloseToken.Companion.wrapCause
 import io.ktor.utils.io.locks.*
 import kotlinx.atomicfu.AtomicRef
 import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.io.Buffer
 import kotlinx.io.Sink
@@ -29,6 +32,22 @@ public class ByteChannel(public override val autoFlush: Boolean = false) : ByteR
     @Volatile
     private var flushBufferSize = 0
 
+    /**
+     * Indicates whether there is free space available in the channel for additional write operations.
+     *
+     * This property checks if the current size of the flush buffer is less than the predefined maximum channel size.
+     * If true, it means there is space available for more data to be written to the channel without requiring
+     * an immediate flush.
+     *
+     * Note: This is an internal API and subject to change or removal without notice. If you need to use this property,
+     * please share your use case with us at [KTOR-9579](https://youtrack.jetbrains.com/issue/KTOR-9579).
+     *
+     * @return `true` if there is free space in the flush buffer; `false` otherwise.
+     */
+    @InternalAPI
+    public val hasFreeSpace: Boolean
+        get() = flushBufferSize < CHANNEL_MAX_SIZE
+
     @OptIn(InternalAPI::class)
     private val flushBufferMutex = SynchronizedObject()
 
@@ -38,6 +57,7 @@ public class ByteChannel(public override val autoFlush: Boolean = false) : ByteR
     private val _readBuffer = Buffer()
     private val _writeBuffer = Buffer()
     private val _closedCause = atomic<CloseToken?>(null)
+    private val closeHandler = atomic<((Throwable?) -> Unit)?>(null)
 
     @InternalAPI
     override val readBuffer: Source
@@ -94,10 +114,10 @@ public class ByteChannel(public override val autoFlush: Boolean = false) : ByteR
         rethrowCloseCauseIfNeeded()
 
         flushWriteBuffer()
-        if (flushBufferSize < CHANNEL_MAX_SIZE) return
+        if (hasFreeSpace) return
 
         sleepWhile(Slot::Write) {
-            flushBufferSize >= CHANNEL_MAX_SIZE && _closedCause.value == null
+            !hasFreeSpace && _closedCause.value == null
         }
     }
 
@@ -143,6 +163,24 @@ public class ByteChannel(public override val autoFlush: Boolean = false) : ByteR
         closeSlot(wrappedCause)
     }
 
+    internal fun invokeOnClose(handler: (cause: Throwable?) -> Unit): DisposableHandle {
+        val existingCause = _closedCause.value
+        if (existingCause != null) {
+            handler(existingCause.wrapCause())
+            return DisposableHandle {}
+        }
+        if (!closeHandler.compareAndSet(null, handler)) {
+            error("Only one invokeOnClose handler is supported per channel")
+        }
+        // Guard against race: channel closed between the check above and the CAS
+        val cause = _closedCause.value
+        if (cause != null && closeHandler.compareAndSet(handler, null)) {
+            handler(cause.wrapCause())
+            return DisposableHandle {}
+        }
+        return DisposableHandle { closeHandler.compareAndSet(handler, null) }
+    }
+
     override fun toString(): String = "ByteChannel[${hashCode()}]"
 
     private suspend inline fun <reified TaskType : Slot.Task> sleepWhile(
@@ -175,6 +213,7 @@ public class ByteChannel(public override val autoFlush: Boolean = false) : ByteR
         val closeContinuation = if (cause != null) Slot.Closed(cause) else Slot.CLOSED
         val continuation = suspensionSlot.getAndSet(closeContinuation)
         if (continuation is Slot.Task) continuation.resume(cause)
+        closeHandler.getAndSet(null)?.invoke(cause)
     }
 
     private inline fun <reified TaskType : Slot.Task> trySuspend(

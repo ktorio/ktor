@@ -5,7 +5,6 @@
 pluginManagement {
     // Add repositories required for build-settings-logic
     repositories {
-        google()
         gradlePluginPortal()
 
         // Should be in sync with ktorsettings.kotlin-user-project
@@ -23,7 +22,7 @@ plugins {
 dependencyResolutionManagement {
     versionCatalogs {
         create("ktorLibs") {
-            from("io.ktor:ktor-version-catalog:3.3.3-eap-1444")
+            from("io.ktor:ktor-version-catalog:3.4.3")
         }
     }
 }
