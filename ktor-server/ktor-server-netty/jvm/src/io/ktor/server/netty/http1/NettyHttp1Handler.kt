@@ -43,7 +43,19 @@ internal class NettyHttp1Handler(
 
     private val activeCalls = ConcurrentLinkedQueue<NettyHttp1ApplicationCall>()
 
+    private var activated = false
+
     override fun channelActive(context: ChannelHandlerContext) {
+        // channelActive may be fired more than once on this handler (for example, when the pipeline is
+        // reconfigured during an HTTP/2 cleartext upgrade or via an explicit fireChannelActive call
+        // after adding the handler). Guard against re-adding the body handler and the tail sink, which
+        // must be present exactly once per pipeline.
+        if (activated) {
+            context.fireChannelActive()
+            return
+        }
+        activated = true
+
         responseWriter = NettyHttpResponsePipeline(
             context = context,
             httpHandlerState = state,

@@ -80,7 +80,9 @@ internal class NettyHttp2Handler(
         // "Discarded inbound message" warnings for calls that pass through any user-added
         // channelPipelineConfig handlers. The call lifecycle is driven by startHttp2, so the sink
         // only needs to drop the call without further action.
-        context.pipeline().addLast(NettyHttp2ApplicationCallSink)
+        if (context.pipeline().get(NettyHttp2ApplicationCallSink::class.java) == null) {
+            context.pipeline().addLast(NettyHttp2ApplicationCallSink)
+        }
         context.fireChannelActive()
     }
 
