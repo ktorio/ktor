@@ -356,6 +356,8 @@ public final class io/ktor/http/CookieEncoding : java/lang/Enum {
 public final class io/ktor/http/CookieKt {
 	public static final fun decodeCookieValue (Ljava/lang/String;Lio/ktor/http/CookieEncoding;)Ljava/lang/String;
 	public static final fun encodeCookieValue (Ljava/lang/String;Lio/ktor/http/CookieEncoding;)Ljava/lang/String;
+	public static final fun parseClientCookies (Ljava/lang/String;Z)Ljava/util/List;
+	public static synthetic fun parseClientCookies$default (Ljava/lang/String;ZILjava/lang/Object;)Ljava/util/List;
 	public static final fun parseClientCookiesHeader (Ljava/lang/String;Z)Ljava/util/Map;
 	public static synthetic fun parseClientCookiesHeader$default (Ljava/lang/String;ZILjava/lang/Object;)Ljava/util/Map;
 	public static final fun parseServerSetCookieHeader (Ljava/lang/String;)Lio/ktor/http/Cookie;
