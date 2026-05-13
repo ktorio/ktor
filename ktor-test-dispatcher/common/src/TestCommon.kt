@@ -11,6 +11,7 @@ import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.ContinuationInterceptor
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.time.Duration
@@ -43,8 +44,7 @@ public fun runTestWithRealTime(
     timeout: Duration = 60.seconds,
     testBody: suspend CoroutineScope.() -> Unit
 ): TestResult {
-    @OptIn(ExperimentalStdlibApi::class)
-    val context = if (context[CoroutineDispatcher] is TestDispatcher) context else EmptyCoroutineContext
+    val context = if (context[ContinuationInterceptor] is TestDispatcher) context else EmptyCoroutineContext
     return runTest(context, timeout) {
         withContext(Dispatchers.Default.limitedParallelism(1), testBody)
     }
