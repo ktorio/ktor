@@ -34,7 +34,7 @@ okhttp = "5.3.2"
 okio = "3.16.4"
 
 json-simple = "1.1.1"
-gson = "2.13.2"
+gson = "2.14.0"
 
 jackson = "2.21.3"
 jackson3 = "3.1.3"
