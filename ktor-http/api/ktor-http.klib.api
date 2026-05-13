@@ -1963,6 +1963,7 @@ final fun io.ktor.http/parametersOf(kotlin/String, kotlin.collections/List<kotli
 final fun io.ktor.http/parametersOf(kotlin/String, kotlin/String): io.ktor.http/Parameters // io.ktor.http/parametersOf|parametersOf(kotlin.String;kotlin.String){}[0]
 final fun io.ktor.http/parseAndSortContentTypeHeader(kotlin/String?): kotlin.collections/List<io.ktor.http/HeaderValue> // io.ktor.http/parseAndSortContentTypeHeader|parseAndSortContentTypeHeader(kotlin.String?){}[0]
 final fun io.ktor.http/parseAndSortHeader(kotlin/String?): kotlin.collections/List<io.ktor.http/HeaderValue> // io.ktor.http/parseAndSortHeader|parseAndSortHeader(kotlin.String?){}[0]
+final fun io.ktor.http/parseClientCookies(kotlin/String, kotlin/Boolean = ...): kotlin.collections/List<kotlin/Pair<kotlin/String, kotlin/String>> // io.ktor.http/parseClientCookies|parseClientCookies(kotlin.String;kotlin.Boolean){}[0]
 final fun io.ktor.http/parseClientCookiesHeader(kotlin/String, kotlin/Boolean = ...): kotlin.collections/Map<kotlin/String, kotlin/String> // io.ktor.http/parseClientCookiesHeader|parseClientCookiesHeader(kotlin.String;kotlin.Boolean){}[0]
 final fun io.ktor.http/parseHeaderValue(kotlin/String?): kotlin.collections/List<io.ktor.http/HeaderValue> // io.ktor.http/parseHeaderValue|parseHeaderValue(kotlin.String?){}[0]
 final fun io.ktor.http/parseHeaderValue(kotlin/String?, kotlin/Boolean): kotlin.collections/List<io.ktor.http/HeaderValue> // io.ktor.http/parseHeaderValue|parseHeaderValue(kotlin.String?;kotlin.Boolean){}[0]
