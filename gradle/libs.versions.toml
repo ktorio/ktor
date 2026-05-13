@@ -75,9 +75,9 @@ xmlutil = "0.91.3"
 yamlkt = "0.13.0"
 kaml = "0.79.0"
 
-swagger-codegen = "3.0.75"
-swagger-codegen-generators = "1.0.59"
-swagger-parser = "2.1.37"
+swagger-codegen = "3.0.79"
+swagger-codegen-generators = "1.0.61"
+swagger-parser = "2.1.42"
 
 puppeteer = "24.16.1"
 tomlj = "1.1.1"
