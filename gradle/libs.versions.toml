@@ -47,7 +47,7 @@ logback = "1.5.32"
 dropwizard = "4.2.37"
 micrometer = "1.16.5"
 
-jansi = "2.4.2"
+jansi = "2.4.3"
 typesafe = "1.4.8"
 
 # Version 1.14.6 is not compatible with Java 11.
