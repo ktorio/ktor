@@ -15,7 +15,7 @@ kotlinter = "5.2.0"
 kotlinx-browser = "0.5.0"
 
 netty = "4.2.13.Final"
-netty-tcnative = "2.0.76.Final"
+netty-tcnative = "2.0.77.Final"
 
 jetty = "9.4.58.v20250814"
 jetty-jakarta = "12.0.35"
