@@ -127,7 +127,23 @@ public class MicrometerMetricsConfig {
     public var distributionStatisticConfig: DistributionStatisticConfig =
         DistributionStatisticConfig.Builder().percentiles(0.5, 0.9, 0.95, 0.99).build()
 
+    /**
+     * Controls whether the plugin registers a [MeterFilter] that applies [distributionStatisticConfig]
+     * to its request timers.
+     *
+     * Set to `false` if you register meters with [registry] before installing this plugin: Micrometer
+     * emits a warning when a [MeterFilter] is configured after a [Meter] has already been registered.
+     * When disabled, configure distribution statistics on the [registry] yourself before installing
+     * the plugin, otherwise [distributionStatisticConfig] has no effect.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.metrics.micrometer.MicrometerMetricsConfig.registerDistributionStatisticConfig)
+     *
+     * @see [MicrometerMetrics]
+     */
+    public var registerDistributionStatisticConfig: Boolean = true
+
     internal var timerBuilder: Timer.Builder.(ApplicationCall, Throwable?) -> Unit = { _, _ -> }
+    internal val filters = mutableListOf<(ApplicationCall) -> Boolean>()
 
     /**
      * Configures micrometer timers.
@@ -137,6 +153,25 @@ public class MicrometerMetricsConfig {
      */
     public fun timers(block: Timer.Builder.(ApplicationCall, Throwable?) -> Unit) {
         timerBuilder = block
+    }
+
+    /**
+     * Adds a filter to exclude certain calls from metrics collection.
+     * When filters are configured, a call must match at least one filter to be recorded.
+     * If no filters are configured, all calls are recorded.
+     *
+     * Example:
+     * ```kotlin
+     * install(MicrometerMetrics) {
+     *     registry = prometheusMeterRegistry
+     *     filter { call -> call.request.uri !in setOf("/health", "/metrics") }
+     * }
+     * ```
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.metrics.micrometer.MicrometerMetricsConfig.filter)
+     */
+    public fun filter(predicate: (ApplicationCall) -> Boolean) {
+        filters.add(predicate)
     }
 
     internal var transformRoute: (RoutingNode) -> String = { it.path }
@@ -188,11 +223,14 @@ public val MicrometerMetrics: ApplicationPlugin<MicrometerMetricsConfig> =
         val metricName = pluginConfig.metricName
         val activeRequestsGaugeName = "$metricName.active"
         val registry = pluginConfig.registry
+        val filters = pluginConfig.filters
 
-        registry.config().meterFilter(object : MeterFilter {
-            override fun configure(id: Meter.Id, config: DistributionStatisticConfig): DistributionStatisticConfig =
-                if (id.name == metricName) pluginConfig.distributionStatisticConfig.merge(config) else config
-        })
+        if (pluginConfig.registerDistributionStatisticConfig) {
+            registry.config().meterFilter(object : MeterFilter {
+                override fun configure(id: Meter.Id, config: DistributionStatisticConfig): DistributionStatisticConfig =
+                    if (id.name == metricName) pluginConfig.distributionStatisticConfig.merge(config) else config
+            })
+        }
 
         val active = registry.gauge(activeRequestsGaugeName, AtomicInteger(0))
         val measureKey = AttributeKey<CallMeasure>("micrometerMetrics")
@@ -216,7 +254,7 @@ public val MicrometerMetrics: ApplicationPlugin<MicrometerMetricsConfig> =
 
         @OptIn(InternalAPI::class)
         on(Metrics) { call ->
-            if (call.request.httpMethod in DefaultMethods) {
+            if (call.request.httpMethod in DefaultMethods && (filters.isEmpty() || filters.any { it(call) })) {
                 active?.incrementAndGet()
                 call.attributes.put(measureKey, CallMeasure(Timer.start(registry)))
             }

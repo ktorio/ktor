@@ -205,6 +205,7 @@ final class io.ktor.server.auth/BearerTokenCredential { // io.ktor.server.auth/B
 final class io.ktor.server.auth/DynamicProviderConfig : io.ktor.server.auth/AuthenticationProvider.Config { // io.ktor.server.auth/DynamicProviderConfig|null[0]
     constructor <init>(kotlin/String?, kotlin/String? = ...) // io.ktor.server.auth/DynamicProviderConfig.<init>|<init>(kotlin.String?;kotlin.String?){}[0]
 
+    final fun authenticate(kotlin.coroutines/SuspendFunction1<io.ktor.server.auth/AuthenticationContext, kotlin/Unit>) // io.ktor.server.auth/DynamicProviderConfig.authenticate|authenticate(kotlin.coroutines.SuspendFunction1<io.ktor.server.auth.AuthenticationContext,kotlin.Unit>){}[0]
     final fun authenticate(kotlin/Function1<io.ktor.server.auth/AuthenticationContext, kotlin/Unit>) // io.ktor.server.auth/DynamicProviderConfig.authenticate|authenticate(kotlin.Function1<io.ktor.server.auth.AuthenticationContext,kotlin.Unit>){}[0]
 }
 

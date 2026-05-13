@@ -13,26 +13,25 @@ import kotlin.reflect.*
 /**
  * Operator function that allows to delegate variables by call parameters.
  * It does conversion to type [R] using [DefaultConversionService]
+ * If [R] is nullable and no values are associated with the delegated property name, returns `null`.
  *
  * Example
  *
  * ```
- * get("/") {
- *     val page: Int by call.request.queryParameters
- *     val query: String by call.request.queryParameters
+ * get("/{path}") {
+ *     val path: Int by call.pathParameters
+ *     val query: String? by call.queryParameters
  *     // ...
  * }
  * ```
  *
+ * @throws MissingRequestParameterException if no values associated with name and [R] is not nullable
+ * @throws ParameterConversionException when conversion from String to [R] fails
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.util.getValue)
- *
- * @throws MissingRequestParameterException if no values associated with name
- * @throws ParameterConversionException when conversion from String to [R] fails
  */
-public inline operator fun <reified R : Any> Parameters.getValue(thisRef: Any?, property: KProperty<*>): R {
-    return getOrFail<R>(property.name)
-}
+public inline operator fun <reified R> Parameters.getValue(thisRef: Any?, property: KProperty<*>): R =
+    getOrFail<R>(property.name)
 
 /**
  * Get parameters value associated with this [name] or fail with [MissingRequestParameterException]
@@ -42,9 +41,8 @@ public inline operator fun <reified R : Any> Parameters.getValue(thisRef: Any?, 
  * @throws MissingRequestParameterException if no values associated with this [name]
  */
 @Suppress("NOTHING_TO_INLINE")
-public inline fun Parameters.getOrFail(name: String): String {
-    return get(name) ?: throw MissingRequestParameterException(name)
-}
+public inline fun Parameters.getOrFail(name: String): String =
+    get(name) ?: throw MissingRequestParameterException(name)
 
 /**
  * Get parameter value associated with this [name] converting to type [R] using [DefaultConversionService]
@@ -55,17 +53,20 @@ public inline fun Parameters.getOrFail(name: String): String {
  * @throws MissingRequestParameterException if no values associated with this [name]
  * @throws ParameterConversionException when conversion from String to [R] fails
  */
-public inline fun <reified R : Any> Parameters.getOrFail(name: String): R {
-    return getOrFailImpl(name, typeInfo<R>())
-}
+public inline fun <reified R> Parameters.getOrFail(name: String): R =
+    getOrFailImpl(name, typeInfo<R>())
 
 @PublishedApi
-internal fun <R : Any> Parameters.getOrFailImpl(name: String, typeInfo: TypeInfo): R {
-    val values = getAll(name) ?: throw MissingRequestParameterException(name)
-    return try {
-        @Suppress("UNCHECKED_CAST")
-        DefaultConversionService.fromValues(values, typeInfo) as R
-    } catch (cause: Exception) {
-        throw ParameterConversionException(name, typeInfo.type.simpleName ?: typeInfo.type.toString(), cause)
+internal fun <R> Parameters.getOrFailImpl(name: String, typeInfo: TypeInfo): R {
+    return if (typeInfo.kotlinType?.isMarkedNullable == true && get(name) == null) {
+        null as R
+    } else {
+        val values = getAll(name) ?: throw MissingRequestParameterException(name)
+        try {
+            @Suppress("UNCHECKED_CAST")
+            DefaultConversionService.fromValues(values, typeInfo) as R
+        } catch (cause: Exception) {
+            throw ParameterConversionException(name, typeInfo.type.simpleName ?: typeInfo.type.toString(), cause)
+        }
     }
 }

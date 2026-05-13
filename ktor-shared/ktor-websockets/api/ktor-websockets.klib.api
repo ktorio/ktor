@@ -167,6 +167,7 @@ final class io.ktor.websocket/CloseReason { // io.ktor.websocket/CloseReason|nul
 
 final class io.ktor.websocket/FrameTooBigException : kotlin/Exception, kotlinx.coroutines/CopyableThrowable<io.ktor.websocket/FrameTooBigException> { // io.ktor.websocket/FrameTooBigException|null[0]
     constructor <init>(kotlin/Long) // io.ktor.websocket/FrameTooBigException.<init>|<init>(kotlin.Long){}[0]
+    constructor <init>(kotlin/Long, kotlin/Throwable? = ...) // io.ktor.websocket/FrameTooBigException.<init>|<init>(kotlin.Long;kotlin.Throwable?){}[0]
 
     final val frameSize // io.ktor.websocket/FrameTooBigException.frameSize|{}frameSize[0]
         final fun <get-frameSize>(): kotlin/Long // io.ktor.websocket/FrameTooBigException.frameSize.<get-frameSize>|<get-frameSize>(){}[0]

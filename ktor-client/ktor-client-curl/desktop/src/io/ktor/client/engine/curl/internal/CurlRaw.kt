@@ -11,7 +11,7 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.util.Attributes
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.cinterop.CPointer
@@ -24,7 +24,10 @@ import libcurl.curl_slist
 import kotlin.coroutines.coroutineContext
 
 @OptIn(ExperimentalForeignApi::class, InternalAPI::class)
-internal suspend fun HttpRequestData.toCurlRequest(config: CurlClientEngineConfig): CurlRequestData = CurlRequestData(
+internal suspend fun HttpRequestData.toCurlRequest(
+    config: CurlClientEngineConfig,
+    callContext: Job,
+): CurlRequestData = CurlRequestData(
     protocol = url.protocol.name,
     url = url.toString(),
     method = method.value,
@@ -33,13 +36,13 @@ internal suspend fun HttpRequestData.toCurlRequest(config: CurlClientEngineConfi
     content = body.toByteChannel(),
     contentLength = body.contentLength ?: headers[HttpHeaders.ContentLength]?.toLongOrNull() ?: -1L,
     connectTimeout = getCapabilityOrNull(HttpTimeoutCapability)?.connectTimeoutMillis,
-    executionContext = executionContext,
+    callContext = callContext,
     isUpgradeRequest = isUpgradeRequest(),
     forceProxyTunneling = config.forceProxyTunneling,
     sslVerify = config.sslVerify,
     caInfo = config.caInfo,
     caPath = config.caPath,
-    attributes = attributes
+    attributes = attributes,
 )
 
 internal class CurlRequestData @OptIn(ExperimentalForeignApi::class) constructor(
@@ -51,7 +54,7 @@ internal class CurlRequestData @OptIn(ExperimentalForeignApi::class) constructor
     val content: ByteReadChannel,
     val contentLength: Long,
     val connectTimeout: Long?,
-    val executionContext: Job,
+    val callContext: Job,
     val isUpgradeRequest: Boolean,
     val forceProxyTunneling: Boolean,
     val sslVerify: Boolean,

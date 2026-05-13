@@ -1,9 +1,10 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.server.sessions
+package io.ktor.tests.server.sessions
 
+import io.ktor.client.HttpClient
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -11,12 +12,13 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.sessions.*
 import io.ktor.server.sessions.serialization.*
 import io.ktor.server.testing.*
-import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.Serializable
+import kotlin.io.encoding.Base64
 import kotlin.random.Random
 import kotlin.test.*
 import kotlin.time.Duration.Companion.days
@@ -143,7 +145,7 @@ class SessionTest {
             assertNotNull(sessionCookie, "No session cookie found")
             assertEquals(CookieEncoding.BASE64_ENCODING, sessionCookie.encoding)
 
-            sessionParam = sessionCookie.value.encodeBase64()
+            sessionParam = Base64.encode(sessionCookie.value.encodeToByteArray())
         }
 
         client.get("/2") {
@@ -744,6 +746,391 @@ class SessionTest {
     }
 
     @Test
+    fun testCustomSessionIdProvider() = testApplication {
+        val sessionStorage = SessionStorageMemory()
+        var customIdCounter = 1000
+
+        install(Sessions) {
+            cookie<TestUserSession>(cookieName, sessionStorage) {
+                identity { call ->
+                    val userAgent = call.request.headers["User-Agent"] ?: "unknown"
+                    "custom-${customIdCounter++}-${userAgent.take(5)}"
+                }
+            }
+        }
+        routing {
+            get("/create") {
+                call.sessions.set(TestUserSession("user123", listOf("item1")))
+                call.respondText("Session created")
+            }
+            get("/get") {
+                val session = call.sessions.get<TestUserSession>()
+                call.respondText(session?.userId ?: "no session")
+            }
+        }
+
+        val sessionId1 = client.get("/create") {
+            header("User-Agent", "TestBrowser/1.0")
+        }.cookies[cookieName]!!.value
+        assertEquals(sessionId1, "custom-1000-TestB")
+
+        val sessionId2 = client.get("/create") {
+            header("User-Agent", "MobileBrowser/2.0")
+        }.cookies[cookieName]!!.value
+        assertEquals(sessionId2, "custom-1001-Mobil")
+
+        client.get("/get") {
+            header(HttpHeaders.Cookie, "$cookieName=$sessionId1")
+        }.apply {
+            assertEquals("user123", bodyAsText())
+        }
+    }
+
+    @Test
+    fun `sendOnlyIfModified cookie session does not resend unchanged value`() = testApplication {
+        install(Sessions) {
+            cookie<TestUserSession>(cookieName) {
+                sendOnlyIfModified = true
+            }
+        }
+
+        routing {
+            get("/set") {
+                call.sessions.set(TestUserSession("id1", listOf("a")))
+                call.respondText("ok")
+            }
+            get("/same") {
+                call.sessions.set(TestUserSession("id1", listOf("a")))
+                call.respondText("ok")
+            }
+            get("/different") {
+                call.sessions.set(TestUserSession("id2", listOf("b")))
+                call.respondText("ok")
+            }
+        }
+
+        // First request: new session → must send Set-Cookie
+        val sessionParam = client.get("/set").let { response ->
+            val sessionCookie = response.cookies[cookieName]
+            assertNotNull(sessionCookie, "New session must send Set-Cookie")
+            sessionCookie.value
+        }
+
+        // Second request: same value → must NOT send Set-Cookie
+        client.get("/same") {
+            header(HttpHeaders.Cookie, "$cookieName=${sessionParam.encodeURLParameter()}")
+        }.let { response ->
+            assertNull(response.cookies[cookieName], "Unchanged session must not resend Set-Cookie")
+        }
+
+        // Third request: different value → must send Set-Cookie
+        client.get("/different") {
+            header(HttpHeaders.Cookie, "$cookieName=${sessionParam.encodeURLParameter()}")
+        }.let { response ->
+            assertNotNull(response.cookies[cookieName], "Changed session must send Set-Cookie")
+        }
+    }
+
+    @Test
+    fun `sendOnlyIfModified default false still resends unchanged session`() = testApplication {
+        install(Sessions) {
+            cookie<TestUserSession>(cookieName)
+        }
+
+        routing {
+            get("/set") {
+                call.sessions.set(TestUserSession("id1", listOf("a")))
+                call.respondText("ok")
+            }
+            get("/same") {
+                call.sessions.set(TestUserSession("id1", listOf("a")))
+                call.respondText("ok")
+            }
+        }
+
+        val sessionParam = client.get("/set").let { response ->
+            val sessionCookie = response.cookies[cookieName]
+            assertNotNull(sessionCookie)
+            sessionCookie.value
+        }
+
+        // Default behavior: resend even if unchanged
+        client.get("/same") {
+            header(HttpHeaders.Cookie, "$cookieName=${sessionParam.encodeURLParameter()}")
+        }.let { response ->
+            assertNotNull(response.cookies[cookieName], "Default must resend Set-Cookie even if unchanged")
+        }
+    }
+
+    @Test
+    fun `sendOnlyIfModified with server storage does not rewrite unchanged session`() = testApplication {
+        val storage = SessionStorageMemory()
+        install(Sessions) {
+            cookie<TestUserSession>(cookieName, storage) {
+                sendOnlyIfModified = true
+            }
+        }
+
+        routing {
+            get("/set") {
+                call.sessions.set(TestUserSession("id1", listOf("a")))
+                call.respondText("ok")
+            }
+            get("/same") {
+                call.sessions.set(TestUserSession("id1", listOf("a")))
+                call.respondText("ok")
+            }
+            get("/different") {
+                call.sessions.set(TestUserSession("id2", listOf("b")))
+                call.respondText("ok")
+            }
+        }
+
+        val sessionId = client.get("/set").let { response ->
+            val sessionCookie = response.cookies[cookieName]
+            assertNotNull(sessionCookie, "New session must send Set-Cookie")
+            sessionCookie.value
+        }
+
+        // Same value → no Set-Cookie
+        client.get("/same") {
+            header(HttpHeaders.Cookie, "$cookieName=$sessionId")
+        }.let { response ->
+            assertNull(response.cookies[cookieName], "Unchanged session must not resend Set-Cookie")
+        }
+
+        // Different value → Set-Cookie
+        client.get("/different") {
+            header(HttpHeaders.Cookie, "$cookieName=$sessionId")
+        }.let { response ->
+            assertNotNull(response.cookies[cookieName], "Changed session must send Set-Cookie")
+        }
+    }
+
+    @Test
+    fun `sendOnlyIfModified header session does not resend unchanged value`() = testApplication {
+        val headerName = "X-Session"
+        install(Sessions) {
+            header<TestUserSession>(headerName) {
+                sendOnlyIfModified = true
+            }
+        }
+
+        routing {
+            get("/set") {
+                call.sessions.set(TestUserSession("id1", listOf("a")))
+                call.respondText("ok")
+            }
+            get("/same") {
+                call.sessions.set(TestUserSession("id1", listOf("a")))
+                call.respondText("ok")
+            }
+            get("/different") {
+                call.sessions.set(TestUserSession("id2", listOf("b")))
+                call.respondText("ok")
+            }
+        }
+
+        // First request: new session → must send header
+        val sessionValue = client.get("/set").let { response ->
+            val header = response.headers[headerName]
+            assertNotNull(header, "New session must send header")
+            header
+        }
+
+        // Same value → no header
+        client.get("/same") {
+            header(headerName, sessionValue)
+        }.let { response ->
+            assertNull(response.headers[headerName], "Unchanged session must not resend header")
+        }
+
+        // Different value → header sent
+        client.get("/different") {
+            header(headerName, sessionValue)
+        }.let { response ->
+            assertNotNull(response.headers[headerName], "Changed session must send header")
+        }
+    }
+
+    @Test
+    fun `sendOnlyIfModified detects in-place mutation of same instance`() = testApplication {
+        install(Sessions) {
+            cookie<MutableSession>(cookieName) {
+                sendOnlyIfModified = true
+            }
+        }
+
+        routing {
+            get("/set") {
+                call.sessions.set(MutableSession(mutableListOf("a")))
+                call.respondText("ok")
+            }
+            get("/mutate") {
+                val session = call.sessions.get<MutableSession>()!!
+                session.items.add("b")
+                call.sessions.set(session)
+                call.respondText("ok")
+            }
+        }
+
+        // First request: create session
+        val sessionParam = client.get("/set").let { response ->
+            val sessionCookie = response.cookies[cookieName]
+            assertNotNull(sessionCookie, "New session must send Set-Cookie")
+            sessionCookie.value
+        }
+
+        // Second request: mutate in-place and re-set the same instance → must send Set-Cookie
+        client.get("/mutate") {
+            header(HttpHeaders.Cookie, "$cookieName=${sessionParam.encodeURLParameter()}")
+        }.let { response ->
+            assertNotNull(
+                response.cookies[cookieName],
+                "In-place mutated session must send Set-Cookie"
+            )
+        }
+    }
+
+    private suspend fun HttpClient.getWithCookie(url: String, cookie: String): HttpResponse =
+        get(url) { header(HttpHeaders.Cookie, "$cookieName=$cookie") }
+
+    @Test
+    fun testClearSessionById() = testApplication {
+        val sessionStorage = SessionStorageMemory()
+
+        install(Sessions) {
+            cookie<TestUserSession>(cookieName, sessionStorage)
+        }
+        routing {
+            post("/login/{userId}") {
+                val userId = call.parameters["userId"]!!
+                call.sessions.set(TestUserSession(userId, emptyList()))
+                call.respondText("Logged in as $userId")
+            }
+            post("/clear-session/{sessionId}") {
+                val sessionId = call.parameters["sessionId"]!!
+                call.sessions.clear<TestUserSession>(sessionId)
+                call.respondText("Session $sessionId cleared")
+            }
+            get("/check") {
+                val session = call.sessions.get<TestUserSession>()
+                call.respondText(session?.userId ?: "no session")
+            }
+        }
+
+        val sessionId1 = client.post("/login/user1").cookies[cookieName]!!.value
+        val sessionId2 = client.post("/login/user2").cookies[cookieName]!!.value
+
+        // Verify the session works
+        client.getWithCookie("/check", sessionId1)
+            .apply { assertEquals("user1", bodyAsText()) }
+
+        client.post("/clear-session/$sessionId1")
+
+        // the first session should be cleared
+        client.getWithCookie("/check", sessionId1)
+            .apply { assertEquals("no session", bodyAsText()) }
+
+        // the second session should not be affected
+        client.getWithCookie("/check", sessionId2)
+            .apply { assertEquals("user2", bodyAsText()) }
+    }
+
+    @Test
+    fun testClearSessionByIdForMultipleDevices() = testApplication {
+        val sessionStorage = SessionStorageMemory()
+        val userSessions = mutableMapOf<String, MutableSet<String>>()
+
+        install(Sessions) {
+            cookie<TestUserSession>(cookieName, sessionStorage)
+        }
+        routing {
+            post("/login/{userId}") {
+                val userId = call.parameters["userId"]!!
+                call.sessions.set(TestUserSession(userId, emptyList()))
+                call.respondText("Login successful")
+            }
+            get("/session-id") {
+                val sessionId = call.sessionId<TestUserSession>()
+                if (sessionId != null) {
+                    // Track sessions by user
+                    val userId = call.sessions.get<TestUserSession>()?.userId
+                    if (userId != null) {
+                        userSessions.getOrPut(userId) { mutableSetOf() }.add(sessionId)
+                    }
+                    call.respondText("Session: $sessionId")
+                } else {
+                    call.respondText("No session")
+                }
+            }
+            post("/login-exclusive/{userId}") {
+                val userId = call.parameters["userId"]!!
+
+                // Clear all existing sessions for this user
+                userSessions[userId]?.forEach { oldSessionId ->
+                    call.sessions.clear<TestUserSession>(oldSessionId)
+                }
+                userSessions[userId]?.clear()
+
+                // Create a new session
+                call.sessions.set(TestUserSession(userId, emptyList()))
+                call.respondText("Logged in exclusively")
+            }
+            get("/exclusive-session-id") {
+                val sessionId = call.sessionId<TestUserSession>()
+                if (sessionId != null) {
+                    val userId = call.sessions.get<TestUserSession>()?.userId
+                    if (userId != null) {
+                        userSessions.getOrPut(userId) { mutableSetOf() }.add(sessionId)
+                    }
+                    call.respondText("Exclusive session: $sessionId")
+                } else {
+                    call.respondText("No session")
+                }
+            }
+            get("/check") {
+                val session = call.sessions.get<TestUserSession>()
+                call.respondText(session?.userId ?: "no session")
+            }
+        }
+
+        // User logs in from device 1
+        val cookie1 = client.post("/login/alice").cookies[cookieName]!!.value
+        client.getWithCookie("/session-id", cookie1)
+
+        // Verify device 1 session works
+        client.getWithCookie("/check", cookie1)
+            .apply { assertEquals("alice", bodyAsText()) }
+
+        // User logs in from device 2
+        val cookie2 = client.post("/login/alice").cookies[cookieName]!!.value
+        client.getWithCookie("/session-id", cookie2)
+
+        // Both sessions should work
+        client.getWithCookie("/check", cookie1)
+            .apply { assertEquals("alice", bodyAsText()) }
+
+        client.getWithCookie("/check", cookie2)
+            .apply { assertEquals("alice", bodyAsText()) }
+
+        // User logs in exclusively from device 3 (invalidating all others)
+        val cookie3 = client.post("/login-exclusive/alice").cookies[cookieName]!!.value
+        client.getWithCookie("/exclusive-session-id", cookie3)
+
+        // Old sessions should be invalid
+        client.getWithCookie("/check", cookie1)
+            .apply { assertEquals("no session", bodyAsText()) }
+
+        client.getWithCookie("/check", cookie2)
+            .apply { assertEquals("no session", bodyAsText()) }
+
+        // New session should work
+        client.getWithCookie("/check", cookie3)
+            .apply { assertEquals("alice", bodyAsText()) }
+    }
+
+    @Test
     fun `scoped session sends Set-Cookie header without explicit respond`() = testApplication {
         routing {
             route("/scoped") {
@@ -774,6 +1161,9 @@ data class TestUserSession(val userId: String, val cart: List<String>)
 
 @Serializable
 data class TestUserSessionB(val userId: String, val cart: List<String>)
+
+@Serializable
+data class MutableSession(val items: MutableList<String>)
 
 // Custom serializer should work without kotlinx-serialization
 data class TestUserSessionCustom(val userId: String, val cart: List<String>) {

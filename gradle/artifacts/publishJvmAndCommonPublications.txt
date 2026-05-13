@@ -201,6 +201,11 @@ io.ktor:ktor-client/.jar
 io.ktor:ktor-client/javadoc.jar
 io.ktor:ktor-client/kotlin-tooling-metadata.json
 io.ktor:ktor-client/sources.jar
+io.ktor:ktor-compiler-plugin/.jar
+io.ktor:ktor-compiler-plugin/javadoc.jar
+io.ktor:ktor-compiler-plugin/sources.jar
+io.ktor:ktor-compiler-plugin/test-fixtures-sources.jar
+io.ktor:ktor-compiler-plugin/test-fixtures.jar
 io.ktor:ktor-encoding-zstd-jvm/.jar
 io.ktor:ktor-encoding-zstd-jvm/javadoc.jar
 io.ktor:ktor-encoding-zstd-jvm/sources.jar

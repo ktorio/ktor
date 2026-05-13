@@ -49,7 +49,7 @@ class MultiPartFormDataContentTest {
         assertEquals(
             listOf(
                 "--boundary",
-                "Content-Disposition: form-data; name=channel",
+                "Content-Disposition: form-data; name=\"channel\"",
                 "",
                 "",
                 "--boundary--",
@@ -72,7 +72,7 @@ class MultiPartFormDataContentTest {
         assertEquals(
             listOf(
                 "--boundary",
-                "Content-Disposition: form-data; name=channel",
+                "Content-Disposition: form-data; name=\"channel\"",
                 "Content-Length: 4",
                 "",
                 "body",
@@ -95,7 +95,7 @@ class MultiPartFormDataContentTest {
         assertEquals(
             listOf(
                 "--boundary",
-                "Content-Disposition: form-data; name=not_a_forty_two",
+                "Content-Disposition: form-data; name=\"not_a_forty_two\"",
                 "Content-Length: 4",
                 "",
                 "1337", // note quotes
@@ -118,7 +118,7 @@ class MultiPartFormDataContentTest {
         assertEquals(
             listOf(
                 "--boundary",
-                "Content-Disposition: form-data; name=is_forty_two",
+                "Content-Disposition: form-data; name=\"is_forty_two\"",
                 "Content-Length: 5",
                 "",
                 "false", // note quotes
@@ -223,7 +223,7 @@ class MultiPartFormDataContentTest {
         assertEquals(
             listOf(
                 "--boundary",
-                "Content-Disposition: form-data; name=channel",
+                "Content-Disposition: form-data; name=\"channel\"",
                 "",
                 "k".repeat(4089),
                 "--boundary--",
@@ -231,6 +231,51 @@ class MultiPartFormDataContentTest {
             ).joinToString(separator = "\r\n"),
             data.readString()
         )
+    }
+
+    @Test
+    fun `name parameter is always quoted in Content-Disposition`() = runTest {
+        val data = MultiPartFormDataContent(
+            formData {
+                append("photo", "value")
+            },
+            boundary = "boundary",
+        )
+
+        assertContains(
+            data.readString(),
+            "Content-Disposition: form-data; name=\"photo\"",
+        )
+    }
+
+    @Test
+    fun `filename parameter is always quoted in Content-Disposition`() = runTest {
+        val data = MultiPartFormDataContent(
+            formData {
+                append(key = "image", filename = "picture.jpg", size = 3) {
+                    write(ByteArray(3) { 0 })
+                }
+            },
+            boundary = "boundary",
+        )
+
+        val rendered = data.readString()
+        assertContains(rendered, "name=\"image\"")
+        assertContains(rendered, "filename=\"picture.jpg\"")
+    }
+
+    @Test
+    fun `pre-quoted name is not double quoted`() = runTest {
+        val data = MultiPartFormDataContent(
+            formData {
+                append("\"photo\"", "value")
+            },
+            boundary = "boundary",
+        )
+
+        val rendered = data.readString()
+        assertContains(rendered, "name=\"photo\"")
+        assertFalse(rendered.contains("name=\"\\\"photo\\\"\""), "name should not be double-quoted, got: $rendered")
     }
 
     @Test

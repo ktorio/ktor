@@ -19,11 +19,13 @@ import io.ktor.http.content.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.io.readByteArray
 import kotlin.test.*
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 private val testSize = listOf(
     0,
@@ -280,7 +282,7 @@ class ContentTest : ClientLoader() {
                 }
             ).body<String>()
 
-            assertContains(response, "Content-Disposition: form-data; name=channel")
+            assertContains(response, "Content-Disposition: form-data; name=\"channel\"")
             assertContains(response, "from channel")
         }
     }
@@ -340,10 +342,9 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    @Ignore
-    fun testDownloadStreamChannelWithCancel() = clientTests {
+    fun testDownloadStreamChannelWithCancel() = clientTests(timeout = 1.seconds) {
         test { client ->
-            val content = client.get("$TEST_SERVER/content/stream").body<ByteReadChannel>()
+            val content = client.prepareGet("$TEST_SERVER/content/stream?delay=5000").body<ByteReadChannel>()
             content.cancel()
         }
     }
@@ -383,11 +384,32 @@ class ContentTest : ClientLoader() {
     @Test
     fun testDownloadStreamArrayWithTimeout() = clientTests {
         test { client ->
-            val result: ByteArray? = withTimeoutOrNull(100) {
+            val result: ByteArray? = withTimeoutOrNull(100.milliseconds) {
                 client.get("$TEST_SERVER/content/stream").body<ByteArray>()
             }
 
             assertNull(result)
+        }
+    }
+
+    @Test
+    fun testBodyChannelCancelledWhenCallerScopeIsCancelled() = clientTests {
+        test { client ->
+            val bodyDeferred = CompletableDeferred<ByteReadChannel>()
+            coroutineScope {
+                val job = launch {
+                    val body = client.prepareGet("$TEST_SERVER/content/stream?delay=5000").body<ByteReadChannel>()
+                    bodyDeferred.complete(body)
+                    awaitCancellation()
+                }
+                val body = bodyDeferred.await()
+
+                val cause = CancellationException("Test exception")
+                job.cancel(cause)
+
+                waitForCondition("body to be closed", timeout = 2.seconds) { body.closedCause != null }
+                assertEquals(cause.message, body.closedCause!!.message)
+            }
         }
     }
 
@@ -407,7 +429,7 @@ class ContentTest : ClientLoader() {
                 HttpResponseValidator {
                     validateResponse { response ->
                         val channel = response.rawContent
-                        for (i in 0..100) {
+                        repeat(100) {
                             assertEquals(expected, channel.readByteArray(expected.length).decodeToString())
                         }
                     }

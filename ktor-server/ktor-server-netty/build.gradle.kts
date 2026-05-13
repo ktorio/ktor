@@ -28,6 +28,7 @@ kotlin {
         jvmMain.dependencies {
             api(projects.ktorServerCore)
 
+            api(libs.netty.codec)
             api(libs.netty.codec.http2)
             api(libs.jetty.alpn.api)
 

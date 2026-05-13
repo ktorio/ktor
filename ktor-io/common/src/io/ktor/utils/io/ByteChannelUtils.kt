@@ -4,7 +4,7 @@
 
 package io.ktor.utils.io
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Job
 
 /**
  * Ensures that when the given job is canceled, the ByteChannel is canceled with the same exception.
@@ -26,4 +26,14 @@ public fun ByteChannel.attachJob(job: Job) {
  */
 public fun ByteChannel.attachJob(job: ChannelJob) {
     attachJob(job.job)
+}
+
+/**
+ * Ensures that when the [WriterJob]'s output channel is canceled, this [ByteReadChannel] is also canceled.
+ */
+@InternalAPI
+public fun ByteReadChannel.attachWriterJob(writerJob: WriterJob) {
+    (writerJob.channel as? ByteChannel)?.invokeOnClose { cause ->
+        if (cause != null) cancel(cause)
+    }
 }

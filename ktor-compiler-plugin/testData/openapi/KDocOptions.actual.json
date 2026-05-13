@@ -1,0 +1,281 @@
+{
+    "openapi": "3.1.1",
+    "info": {
+        "title": "OpenAPI Document",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/type-references": {
+            "get": {
+                "tags": [
+                    "references"
+                ],
+                "summary": "This endpoint is for testing type references.",
+                "responses": {
+                    "429": {
+                        "description": "Is it tea time already?",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "format": "date-time"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/attributes": {
+            "get": {
+                "tags": [
+                    "attributes"
+                ],
+                "summary": "Let's use some attributes.",
+                "parameters": [
+                    {
+                        "name": "query",
+                        "in": "query",
+                        "description": "my input",
+                        "schema": {
+                            "type": "string",
+                            "pattern": "[a-z0-9_&+]+"
+                        }
+                    },
+                    {
+                        "name": "count",
+                        "in": "query",
+                        "description": "",
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 100.0,
+                            "minimum": 1.0
+                        }
+                    },
+                    {
+                        "name": "query",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "count",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/OpenApiInfo"
+                                },
+                                "maxItems": 10
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OpenApiInfo"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/parameters/{id}": {
+            "get": {
+                "summary": "Let's try some parameters.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "The user ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "X-Rate-Limit-Limit",
+                        "in": "header",
+                        "description": "The number of allowed requests in the current period",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "token",
+                        "in": "cookie",
+                        "description": "A token",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "x-sensitive": "true"
+                    },
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "A search query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "X-Type",
+                        "in": "header",
+                        "description": "The type of a thing",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Contact": {
+                "type": "object",
+                "title": "Contact",
+                "properties": {
+                    "name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "url": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "email": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                }
+            },
+            "License": {
+                "type": "object",
+                "title": "License",
+                "required": [
+                    "name"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "url": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "identifier": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                }
+            },
+            "OpenApiInfo": {
+                "type": "object",
+                "title": "OpenApiInfo",
+                "required": [
+                    "title",
+                    "version"
+                ],
+                "properties": {
+                    "title": {
+                        "type": "string"
+                    },
+                    "version": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "termsOfService": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "contact": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/Contact"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "license": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/License"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "extensions": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "additionalProperties": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -32,7 +32,7 @@ public class CIOMultipartDataBase(
         parseMultipart(channel, contentType, contentLength, formFieldLimit)
 
     override suspend fun readPart(): PartData? {
-        previousPart?.dispose?.invoke()
+        previousPart?.release()
 
         while (true) {
             val event = events.tryReceive().getOrNull() ?: break
@@ -61,34 +61,44 @@ public class CIOMultipartDataBase(
             when (event) {
                 is MultipartEvent.MultipartPart -> partToData(event)
                 else -> {
-                    event.release()
+                    event.releaseSuspend()
                     null
                 }
             }
         } catch (cause: Throwable) {
-            event.release()
+            event.releaseSuspend()
             throw cause
         }
     }
 
     private suspend fun partToData(part: MultipartEvent.MultipartPart): PartData {
-        val headers = part.headers.await()
+        val rawHeaders = part.headers.await()
+        // Snapshot headers into a non-pooled instance so that PartData remains
+        // valid after MultipartPart.releaseSuspend() recycles the pooled HttpHeadersMap.
+        val partHeaders = rawHeaders.snapshot()
 
-        val contentDisposition = headers["Content-Disposition"]?.let { ContentDisposition.parse(it.toString()) }
+        val contentDisposition = partHeaders[HttpHeaders.ContentDisposition]?.let { ContentDisposition.parse(it) }
         val filename = contentDisposition?.parameter("filename")
 
         val body = part.body
         if (filename == null) {
             val packet = body.readRemaining()
             packet.use {
-                return PartData.FormItem(it.readText(), { part.release() }, CIOHeaders(headers))
+                return PartData.FormItem(it.readText(), part::release, partHeaders, part::releaseSuspend)
             }
         }
 
         return PartData.FileItem(
             { part.body },
-            { part.release() },
-            CIOHeaders(headers)
+            part::release,
+            partHeaders,
+            part::releaseSuspend
         )
+    }
+
+    private fun HttpHeadersMap.snapshot(): Headers = Headers.build {
+        for (offset in offsets()) {
+            append(nameAtOffset(offset).toString(), valueAtOffset(offset).toString())
+        }
     }
 }

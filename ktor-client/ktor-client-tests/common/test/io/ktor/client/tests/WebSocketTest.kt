@@ -395,7 +395,7 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
     }
 
     @Test
-    fun testAuthenticationWithValidRefreshToken() = clientTests(except("Js", "WinHttp"), retries = 5) {
+    fun testAuthenticationWithValidRefreshToken() = clientTests(except("Js", "WinHttp")) {
         config {
             install(WebSockets)
 
@@ -417,7 +417,7 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
     }
 
     @Test
-    fun testAuthenticationWithValidInitialToken() = clientTests(except("Js", "Darwin"), retries = 5) {
+    fun testAuthenticationWithValidInitialToken() = clientTests(except("Js", "Darwin")) {
         config {
             install(WebSockets)
 
@@ -438,7 +438,7 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
     }
 
     @Test
-    fun testAuthenticationWithInvalidToken() = clientTests(except("Js", "WinHttp"), retries = 5) {
+    fun testAuthenticationWithInvalidToken() = clientTests(except("Js", "WinHttp")) {
         config {
             install(WebSockets)
 
@@ -547,9 +547,7 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
         val shortMessage = "abc"
         val longMessage = "def".repeat(500)
         test { client ->
-            // TODO: KTOR-9411 Darwin throws DarwinHttpRequestException instead of FrameTooBigException
-            // Replace Exception with FrameTooBigException after fix.
-            assertFailsWith<Exception> {
+            assertFailsWith<FrameTooBigException> {
                 client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
                     send(shortMessage)
                     assertEquals(shortMessage, (incoming.receive() as Frame.Text).readText())

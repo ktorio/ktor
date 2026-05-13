@@ -1,6 +1,6 @@
 [versions]
 
-kotlin = "2.3.0"
+kotlin = "2.3.21"
 android-gradlePlugin = "9.1.0"
 androidx-test = "1.7.0"
 kotlinx-html = "0.12.0"
@@ -14,7 +14,7 @@ kover = "0.9.4"
 kotlinter = "5.2.0"
 kotlinx-browser = "0.5.0"
 
-netty = "4.2.12.Final"
+netty = "4.2.13.Final"
 netty-tcnative = "2.0.76.Final"
 
 jetty = "9.4.58.v20250814"
@@ -82,7 +82,7 @@ swagger-parser = "2.1.37"
 puppeteer = "24.16.1"
 tomlj = "1.1.1"
 
-zstd-jni = "1.5.7-6"
+zstd-jni = "1.5.7-7"
 
 # Keep it in sync with build-settings-logic/settings.gradle.kts
 develocity = "4.3.2" # Should be compatible with our server: ge.jetbrains.com
@@ -107,6 +107,12 @@ kotlin-serialization = { module = "org.jetbrains.kotlin:kotlin-serialization", v
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-test-junit5 = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin" }
+kotlin-compiler = { module = "org.jetbrains.kotlin:kotlin-compiler", version.ref = "kotlin" }
+kotlin-compilerEmbeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlin" }
+kotlin-compilerTestFramework = { module = "org.jetbrains.kotlin:kotlin-compiler-internal-test-framework", version.ref = "kotlin" }
+kotlin-script-runtime = { module = "org.jetbrains.kotlin:kotlin-script-runtime", version.ref = "kotlin" }
+kotlin-annotations-jvm = { module = "org.jetbrains.kotlin:kotlin-annotations-jvm", version.ref = "kotlin" }
+kotlinx-serialization-compiler-embedded = { module = "org.jetbrains.kotlin:kotlin-serialization-compiler-plugin-embeddable", version.ref = "kotlin" }
 
 kotlinx-atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
 kotlinx-atomicfu-gradlePlugin = { module = "org.jetbrains.kotlinx:atomicfu-gradle-plugin", version.ref = "atomicfu" }
@@ -135,6 +141,7 @@ dokka-gradlePlugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", versi
 dokka-plugin-versioning = { module = "org.jetbrains.dokka:versioning-plugin", version.ref = "dokka" }
 
 netty-handler = { module = "io.netty:netty-handler", version.ref = "netty" }
+netty-codec = { module = "io.netty:netty-codec", version.ref = "netty" }
 netty-codec-http2 = { module = "io.netty:netty-codec-http2", version.ref = "netty" }
 netty-transport-native-kqueue = { module = "io.netty:netty-transport-native-kqueue", version.ref = "netty" }
 netty-transport-native-epoll = { module = "io.netty:netty-transport-native-epoll", version.ref = "netty" }
@@ -248,3 +255,5 @@ zstd-jni = { module = "com.github.luben:zstd-jni", version.ref = "zstd-jni" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 
 doctor = { id = "com.osacky.doctor", version.ref = "gradleDoctor" }
+
+buildconfig = { id = "com.github.gmazzo.buildconfig", version = "6.0.7" }

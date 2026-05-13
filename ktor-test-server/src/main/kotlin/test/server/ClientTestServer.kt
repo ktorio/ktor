@@ -15,7 +15,7 @@ import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import test.server.tests.*
 
-internal fun Application.tests() {
+internal fun Application.tests(verbose: Boolean) {
     install(WebSockets) {
         maxFrameSize = 4 * 1024L
 
@@ -23,10 +23,13 @@ internal fun Application.tests() {
             install(WebSocketDeflateExtension)
         }
     }
-    install(StatusPages) {
-        exception<Throwable> { call, cause ->
-            cause.printStackTrace()
-            call.respondText("An exception occurred in the test server", status = HttpStatusCode.InternalServerError)
+
+    if (verbose) {
+        install(StatusPages) {
+            exception<Throwable> { call, cause ->
+                cause.printStackTrace()
+                call.respondText("An exception occurred in the test server", status = HttpStatusCode.InternalServerError)
+            }
         }
     }
 

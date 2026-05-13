@@ -5,6 +5,7 @@
 package io.ktor.utils.io.jvm.javaio
 
 import io.ktor.utils.io.*
+import io.ktor.utils.io.CloseToken.Companion.wrapCause
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.*
@@ -64,7 +65,10 @@ internal class RawSourceChannel(
         get() = buffer
 
     override suspend fun awaitContent(min: Int): Boolean {
-        if (closedToken != null) return true
+        if (closedToken != null) {
+            closedCause?.let { throw it }
+            return buffer.remaining >= min
+        }
 
         withContext(coroutineContext) {
             var result = 0L

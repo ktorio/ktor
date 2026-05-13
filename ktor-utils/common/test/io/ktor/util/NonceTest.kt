@@ -10,8 +10,8 @@ class NonceTest {
 
     @Test
     fun testGenerateNonce() {
-        val nonce1 = generateNonce()
-        val nonce2 = generateNonce()
+        val nonce1 = generateNonceBlocking()
+        val nonce2 = generateNonceBlocking()
         assertNotEquals(nonce1, nonce2)
     }
 }

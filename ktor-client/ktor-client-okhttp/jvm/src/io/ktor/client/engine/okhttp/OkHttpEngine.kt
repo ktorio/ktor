@@ -90,7 +90,7 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
             webSocketFactory = config.webSocketFactory ?: engine,
             engineRequest = engineRequest,
             coroutineContext = callContext,
-            channelsConfig = wsConfig.channelsConfig
+            wsConfig = wsConfig,
         ).apply { start() }
 
         val originResponse = session.originResponse.await()
@@ -147,10 +147,12 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
 
     private fun createOkHttpClient(timeoutExtension: HttpTimeoutConfig?): OkHttpClient {
         val builder = (config.preconfigured ?: okHttpClientPrototype).newBuilder()
-
-        builder.dispatcher(Dispatcher())
+        if (config.preconfigured == null) {
+            builder.dispatcher(Dispatcher())
+        }
         builder.apply(config.config)
         config.proxy?.let { builder.proxy(it) }
+        config.dns?.let { builder.dns(it) }
         timeoutExtension?.let {
             builder.setupTimeoutAttributes(it)
         }

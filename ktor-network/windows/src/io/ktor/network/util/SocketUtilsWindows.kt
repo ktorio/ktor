@@ -27,7 +27,6 @@ import platform.posix.ioctlsocket
 import platform.posix.listen
 import platform.posix.recv
 import platform.posix.recvfrom
-import platform.posix.setsockopt
 import platform.posix.shutdown
 import platform.posix.socket
 import platform.windows.*
@@ -248,11 +247,11 @@ internal actual fun ktor_setsockopt(
     __optval: CPointer<*>?,
     __optlen: UInt
 ): Int {
-    return setsockopt(
+    return ktor_setsockopt_raw(
         __fd.convert(),
         __level,
         __optname,
-        __optval?.reinterpret<ByteVar>()?.toKString(),
+        __optval,
         __optlen.convert()
     )
 }

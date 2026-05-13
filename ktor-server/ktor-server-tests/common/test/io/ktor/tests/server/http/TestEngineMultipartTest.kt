@@ -39,8 +39,8 @@ class TestEngineMultipartTest {
             provider = { ByteReadChannel(bytes) },
             extraFileAssertions = { file ->
                 assertEquals(
-                    hex(bytes),
-                    hex(file.provider().readRemaining().readByteArray())
+                    bytes.toHexString(),
+                    file.provider().readRemaining().readByteArray().toHexString()
                 )
             }
         )
@@ -66,9 +66,9 @@ class TestEngineMultipartTest {
 
             assertEquals("fileField", file.name)
             assertEquals("file.bin", file.originalFileName)
-            assertEquals(hex(bytes), hex(file.provider().readRemaining().readByteArray()))
+            assertEquals(bytes.toHexString(), file.provider().readRemaining().readByteArray().toHexString())
 
-            file.dispose()
+            file.release()
         }) {
             header(HttpHeaders.ContentType, contentType.toString())
             val partHeaders = headersOf(
@@ -133,7 +133,7 @@ class TestEngineMultipartTest {
                                 part.provider().readByteArray()
                             }
                         }
-                        part.dispose()
+                        part.release()
                     }
                     call.respondText("OK")
                 }
@@ -212,7 +212,7 @@ class TestEngineMultipartTest {
         assertEquals(filename, file.originalFileName)
         extraFileAssertions(file)
 
-        file.dispose()
+        file.release()
     }, setup = {
         header(HttpHeaders.ContentType, contentType.toString())
         setBody(
@@ -278,7 +278,7 @@ internal fun buildMultipart(
 
                 append("--$boundary--\r\n")
             } finally {
-                parts.forEach { it.dispose() }
+                parts.forEach { it.release() }
             }
         }.channel
 

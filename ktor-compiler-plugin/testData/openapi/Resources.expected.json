@@ -1,0 +1,284 @@
+{
+    "openapi": "3.1.1",
+    "info": {
+        "title": "OpenAPI Document",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/articles": {
+            "get": {
+                "summary": "Get a list of articles.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Post"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/articles/{id}": {
+            "get": {
+                "summary": "Get a single article by ID.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "text/plain": {}
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Post"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/articles/{id}/comments": {
+            "get": {
+                "summary": "Get a list of comments for a specific article.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Comments"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/articles/featured": {
+            "get": {
+                "summary": "Get a list of featured articles.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Post"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/users/search": {
+            "get": {
+                "summary": "Search for users.",
+                "parameters": [
+                    {
+                        "name": "query",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "offset",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "text/plain": {}
+                        }
+                    }
+                }
+            }
+        },
+        "/posts": {
+            "post": {
+                "summary": "Create or update a post.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Post"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "text/plain": {}
+                        }
+                    }
+                }
+            }
+        },
+        "/posts/{id}": {
+            "put": {
+                "summary": "Update a post.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Post"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "text/plain": {}
+                        }
+                    }
+                }
+            }
+        },
+        "/posts/{id}/comments": {
+            "post": {
+                "summary": "Add a comment to a post.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "text/plain": {}
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Post": {
+                "type": "object",
+                "title": "Post",
+                "required": [
+                    "id",
+                    "title",
+                    "content",
+                    "authorId"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "content": {
+                        "type": "string"
+                    },
+                    "authorId": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "Articles": {
+                "type": "object",
+                "title": "Articles",
+                "properties": {}
+            },
+            "Id": {
+                "type": "object",
+                "title": "Id",
+                "required": [
+                    "parent",
+                    "id"
+                ],
+                "properties": {
+                    "parent": {
+                        "$ref": "#/components/schemas/Articles"
+                    },
+                    "id": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "Comments": {
+                "type": "object",
+                "title": "Comments",
+                "required": [
+                    "parent"
+                ],
+                "properties": {
+                    "parent": {
+                        "$ref": "#/components/schemas/Id"
+                    }
+                }
+            }
+        }
+    }
+}

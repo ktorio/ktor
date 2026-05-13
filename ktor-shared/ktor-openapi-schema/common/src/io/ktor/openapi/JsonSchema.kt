@@ -48,6 +48,7 @@ public data class JsonSchema(
     val default: GenericElement? = null,
     val format: String? = null,
     val items: ReferenceOr<JsonSchema>? = null,
+    val prefixItems: List<ReferenceOr<JsonSchema>>? = null,
     val maximum: Double? = null,
     val exclusiveMaximum: Double? = null,
     val minimum: Double? = null,
@@ -487,6 +488,19 @@ public data class JsonSchema(
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
     @Retention(AnnotationRetention.RUNTIME)
     public annotation class ItemsRef(val value: KClass<*>)
+
+    /**
+     * Defines positional schemas for items within a tuple-style array (`prefixItems`).
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.PrefixItemsRef)
+     *
+     * @param value Variadic array of Kotlin classes representing the schema for each positional item.
+     */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    @Retention(AnnotationRetention.RUNTIME)
+    public annotation class PrefixItemsRef(vararg val value: KClass<*>)
 
     /**
      * Configures polymorphism using a discriminator property and optional explicit mappings.

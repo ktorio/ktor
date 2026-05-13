@@ -5,6 +5,7 @@
 package io.ktor.client.engine.java
 
 import io.ktor.client.request.*
+import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
@@ -17,6 +18,34 @@ import kotlin.test.*
 import kotlin.test.Test
 
 class RequestProducerTest {
+
+    companion object {
+        init {
+            // Trigger the Java engine factory init block which sets the JDK system property
+            // allowing the Host header. This must happen before any test calls convertToHttpRequest,
+            // because the JDK caches the restricted headers set on first HttpClient class load.
+            Java
+        }
+    }
+
+    @OptIn(InternalAPI::class)
+    @Test
+    fun `custom Host header is preserved in request`() {
+        val request = HttpRequestData(
+            Url("http://127.0.0.1/"),
+            HttpMethod.Get,
+            Headers.build {
+                append(HttpHeaders.Host, "CustomHost")
+            },
+            EmptyContent,
+            Job(),
+            Attributes()
+        ).convertToHttpRequest(EmptyCoroutineContext)
+
+        val hostHeader = request.headers().firstValue("Host")
+        assertTrue(hostHeader.isPresent, "Host header should be present in the request")
+        assertEquals("CustomHost", hostHeader.get())
+    }
 
     @OptIn(InternalAPI::class)
     @Test

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.testing.client
@@ -14,8 +14,7 @@ internal class TestEngineWebsocketSession(
     override val incoming: ReceiveChannel<Frame>,
     override val outgoing: SendChannel<Frame>
 ) : WebSocketSession {
-    private val socketJob = Job(callContext[Job])
-    override val coroutineContext: CoroutineContext = callContext + socketJob + CoroutineName("test-ws")
+    override val coroutineContext: CoroutineContext = callContext + CoroutineName("test-ws")
 
     override var masking: Boolean
         get() = true
@@ -30,14 +29,15 @@ internal class TestEngineWebsocketSession(
     override suspend fun flush() {}
 
     suspend fun run() {
-        outgoing.invokeOnClose {
-            if (it != null) {
-                socketJob.completeExceptionally(it)
-            } else {
-                socketJob.complete()
+        suspendCancellableCoroutine { cont ->
+            outgoing.invokeOnClose { ex ->
+                when {
+                    !cont.isActive -> return@invokeOnClose
+                    ex == null -> cont.resume(Unit)
+                    else -> cont.resumeWithException(ex)
+                }
             }
         }
-        socketJob.join()
     }
 
     @Deprecated(

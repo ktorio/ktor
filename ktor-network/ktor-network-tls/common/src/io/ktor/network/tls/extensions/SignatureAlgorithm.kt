@@ -136,6 +136,20 @@ internal fun Source.readHashAndSign(): HashAndSign? {
     return HashAndSign.byCode(hash, sign)
 }
 
+/**
+ * Finds or creates a [HashAndSign] instance by the given hash and signature algorithm codes.
+ *
+ * First searches for a matching algorithm pair in [SupportedSignatureAlgorithms].
+ * If not found, creates a new [HashAndSign] instance with the given codes.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.extensions.HashAndSign.Companion.byCode)
+ *
+ * @param hash the numeric code of the hash algorithm
+ * @param sign the numeric code of the signature algorithm
+ * @return a [HashAndSign] instance, or null if the signature algorithm is unknown
+ * @throws IllegalStateException if [sign] is the anonymous signature code
+ * @throws TLSException if [hash] is an unknown hash algorithm code
+ */
 public fun HashAndSign.Companion.byCode(hash: Byte, sign: Byte): HashAndSign? {
     check(sign != SignatureAlgorithm.ANON.code) { "Anonymous signature not allowed." }
 

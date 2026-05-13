@@ -28,6 +28,27 @@ import io.ktor.client.engine.*
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.java.Java)
  */
 public data object Java : HttpClientEngineFactory<JavaHttpConfig> {
+    init {
+        allowHostHeaderInJdkHttpClient()
+    }
+
+    /**
+     * Adds "host" to the JDK system property `jdk.httpclient.allowRestrictedHeaders` so that
+     * `java.net.http.HttpClient` accepts a user-supplied Host header instead of rejecting it.
+     *
+     * The JDK reads this property once at class-load time and caches the restricted-header set,
+     * so this must run before the first `java.net.http.HttpClient` usage.
+     */
+    private fun allowHostHeaderInJdkHttpClient() {
+        val property = "jdk.httpclient.allowRestrictedHeaders"
+        val existing = System.getProperty(property)
+        if (existing == null) {
+            System.setProperty(property, "host")
+        } else if (!existing.split(",").any { it.trim().equals("host", ignoreCase = true) }) {
+            System.setProperty(property, "$existing,host")
+        }
+    }
+
     override fun create(block: JavaHttpConfig.() -> Unit): HttpClientEngine =
         JavaHttpEngine(JavaHttpConfig().apply(block))
 }

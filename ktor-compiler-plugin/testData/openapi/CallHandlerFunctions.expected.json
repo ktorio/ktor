@@ -1,0 +1,130 @@
+{
+    "openapi": "3.1.1",
+    "info": {
+        "title": "OpenAPI Document",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/call-receiver-extension": {
+            "get": {
+                "summary": "",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "text/plain": {},
+                            "text/html": {}
+                        }
+                    }
+                }
+            }
+        },
+        "/request-parameters": {
+            "get": {
+                "summary": "",
+                "parameters": [
+                    {
+                        "name": "recipient",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "text/plain": {},
+                            "text/html": {}
+                        }
+                    }
+                }
+            }
+        },
+        "/response-header": {
+            "get": {
+                "summary": "",
+                "parameters": [
+                    {
+                        "name": "recipient",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "headers": {
+                            "X-Recipient": {
+                                "content": {
+                                    "text/plain": {}
+                                }
+                            }
+                        },
+                        "content": {
+                            "text/plain": {},
+                            "text/html": {}
+                        }
+                    }
+                }
+            }
+        },
+        "/recursive-function": {
+            "get": {
+                "summary": "",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "text/plain": {}
+                        }
+                    }
+                }
+            }
+        },
+        "/passing-arguments": {
+            "get": {
+                "summary": "",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "headers": {
+                            "X-Foo": {
+                                "content": {
+                                    "text/plain": {}
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                }
+            }
+        },
+        "/reified-type-parameter": {
+            "get": {
+                "summary": "",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {}
+}

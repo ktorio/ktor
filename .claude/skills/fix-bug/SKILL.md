@@ -167,12 +167,12 @@ Fix any lint issues before proceeding.
 
 If the fix changed any `public` or `protected` API (new methods, changed signatures, etc.):
 ```bash
-./gradlew :module-name:checkLegacyAbi
+./gradlew :module-name:checkKotlinAbi
 ```
 
 If it fails, update the ABI dumps:
 ```bash
-./gradlew :module-name:updateLegacyAbi
+./gradlew :module-name:updateKotlinAbi
 ```
 
 Stage the updated `.api` files along with the fix.

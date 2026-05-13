@@ -46,7 +46,7 @@ class MultipartServerTest {
                             }
                         }
                     } finally {
-                        it.dispose()
+                        it.release()
                     }
                 }
                 call.respond(HttpStatusCode.OK)

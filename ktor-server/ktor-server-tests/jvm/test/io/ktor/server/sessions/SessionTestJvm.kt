@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.sessions
@@ -10,7 +10,7 @@ import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import io.ktor.util.*
+import io.ktor.tests.server.sessions.*
 import kotlin.random.*
 import kotlin.test.*
 
@@ -20,7 +20,7 @@ class SessionTestJvm {
 
     @Test
     fun testSessionByValueMac() = testApplication {
-        val key = hex("03515606058610610561058")
+        val key = "003515606058610610561058".hexToByteArray()
 
         install(Sessions) {
             cookie<TestUserSession>(cookieName) {
@@ -33,9 +33,9 @@ class SessionTestJvm {
 
     @Test
     fun testSessionEncrypted() = testApplication {
-        val encryptKey = hex("00112233445566778899aabbccddeeff")
-        val signKey = hex("02030405060708090a0b0c")
-        val forcedIvForTesting = hex("00112233445566778899aabbccddeeff")
+        val encryptKey = "00112233445566778899aabbccddeeff".hexToByteArray()
+        val signKey = "02030405060708090a0b0c".hexToByteArray()
+        val forcedIvForTesting = "00112233445566778899aabbccddeeff".hexToByteArray()
 
         install(Sessions) {
             cookie<TestUserSession>(cookieName) {
@@ -80,9 +80,9 @@ class SessionTestJvm {
 
     @Test
     fun testSessionEncryptedBackwardCompatible() = testApplication {
-        val encryptKey = hex("00112233445566778899aabbccddeeff")
-        val signKey = hex("02030405060708090a0b0c")
-        val forcedIvForTesting = hex("00112233445566778899aabbccddeeff")
+        val encryptKey = "00112233445566778899aabbccddeeff".hexToByteArray()
+        val signKey = "02030405060708090a0b0c".hexToByteArray()
+        val forcedIvForTesting = "00112233445566778899aabbccddeeff".hexToByteArray()
 
         install(Sessions) {
             cookie<TestUserSession>(cookieName) {
@@ -134,9 +134,9 @@ class SessionTestJvm {
 
     @Test
     fun testSessionEncryptedNotBackwardCompatible() = testApplication {
-        val encryptKey = hex("00112233445566778899aabbccddeeff")
-        val signKey = hex("02030405060708090a0b0c")
-        val forcedIvForTesting = hex("00112233445566778899aabbccddeeff")
+        val encryptKey = "00112233445566778899aabbccddeeff".hexToByteArray()
+        val signKey = "02030405060708090a0b0c".hexToByteArray()
+        val forcedIvForTesting = "00112233445566778899aabbccddeeff".hexToByteArray()
 
         install(Sessions) {
             cookie<TestUserSession>(cookieName) {

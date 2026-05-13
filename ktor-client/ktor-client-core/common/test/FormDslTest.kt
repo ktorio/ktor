@@ -9,15 +9,15 @@ import kotlin.test.*
 class FormDslTest {
 
     @Test
-    fun testAppendDoesNotEscapeKeyAndFilenameIfNotNeeded() {
+    fun testAppendQuotesKeyAndFilename() {
         val data = formData {
             append(
                 key = "file",
                 filename = "file.name"
             ) {}
         }
-        assertEquals(data.first().headers.getAll(HttpHeaders.ContentDisposition)!![0], "form-data; name=file")
-        assertEquals(data.first().headers.getAll(HttpHeaders.ContentDisposition)!![1], "filename=file.name")
+        assertEquals(data.first().headers.getAll(HttpHeaders.ContentDisposition)!![0], "form-data; name=\"file\"")
+        assertEquals(data.first().headers.getAll(HttpHeaders.ContentDisposition)!![1], "filename=\"file.name\"")
     }
 
     @Test

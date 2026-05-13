@@ -491,8 +491,8 @@ public final class io/ktor/openapi/HttpSecurityScheme$Companion {
 public final class io/ktor/openapi/JsonSchema {
 	public static final field Companion Lio/ktor/openapi/JsonSchema$Companion;
 	public fun <init> ()V
-	public fun <init> (Lio/ktor/openapi/JsonSchema$SchemaType;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lio/ktor/openapi/ReferenceOr;Ljava/util/List;Ljava/util/Map;Lio/ktor/openapi/AdditionalProperties;Lio/ktor/openapi/JsonSchemaDiscriminator;Ljava/lang/Boolean;Ljava/lang/Boolean;Lio/ktor/openapi/Xml;Lio/ktor/openapi/ExternalDocs;Lio/ktor/openapi/GenericElement;Ljava/util/List;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Lio/ktor/openapi/GenericElement;Ljava/lang/String;Lio/ktor/openapi/ReferenceOr;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Boolean;Ljava/util/List;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;)V
-	public synthetic fun <init> (Lio/ktor/openapi/JsonSchema$SchemaType;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lio/ktor/openapi/ReferenceOr;Ljava/util/List;Ljava/util/Map;Lio/ktor/openapi/AdditionalProperties;Lio/ktor/openapi/JsonSchemaDiscriminator;Ljava/lang/Boolean;Ljava/lang/Boolean;Lio/ktor/openapi/Xml;Lio/ktor/openapi/ExternalDocs;Lio/ktor/openapi/GenericElement;Ljava/util/List;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Lio/ktor/openapi/GenericElement;Ljava/lang/String;Lio/ktor/openapi/ReferenceOr;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Boolean;Ljava/util/List;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lio/ktor/openapi/JsonSchema$SchemaType;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lio/ktor/openapi/ReferenceOr;Ljava/util/List;Ljava/util/Map;Lio/ktor/openapi/AdditionalProperties;Lio/ktor/openapi/JsonSchemaDiscriminator;Ljava/lang/Boolean;Ljava/lang/Boolean;Lio/ktor/openapi/Xml;Lio/ktor/openapi/ExternalDocs;Lio/ktor/openapi/GenericElement;Ljava/util/List;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Lio/ktor/openapi/GenericElement;Ljava/lang/String;Lio/ktor/openapi/ReferenceOr;Ljava/util/List;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Boolean;Ljava/util/List;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;)V
+	public synthetic fun <init> (Lio/ktor/openapi/JsonSchema$SchemaType;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lio/ktor/openapi/ReferenceOr;Ljava/util/List;Ljava/util/Map;Lio/ktor/openapi/AdditionalProperties;Lio/ktor/openapi/JsonSchemaDiscriminator;Ljava/lang/Boolean;Ljava/lang/Boolean;Lio/ktor/openapi/Xml;Lio/ktor/openapi/ExternalDocs;Lio/ktor/openapi/GenericElement;Ljava/util/List;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Lio/ktor/openapi/GenericElement;Ljava/lang/String;Lio/ktor/openapi/ReferenceOr;Ljava/util/List;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Boolean;Ljava/util/List;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Lio/ktor/openapi/JsonSchema$SchemaType;
 	public final fun component10 ()Lio/ktor/openapi/AdditionalProperties;
 	public final fun component11 ()Lio/ktor/openapi/JsonSchemaDiscriminator;
@@ -509,30 +509,31 @@ public final class io/ktor/openapi/JsonSchema {
 	public final fun component21 ()Lio/ktor/openapi/GenericElement;
 	public final fun component22 ()Ljava/lang/String;
 	public final fun component23 ()Lio/ktor/openapi/ReferenceOr;
-	public final fun component24 ()Ljava/lang/Double;
+	public final fun component24 ()Ljava/util/List;
 	public final fun component25 ()Ljava/lang/Double;
 	public final fun component26 ()Ljava/lang/Double;
 	public final fun component27 ()Ljava/lang/Double;
-	public final fun component28 ()Ljava/lang/Integer;
+	public final fun component28 ()Ljava/lang/Double;
 	public final fun component29 ()Ljava/lang/Integer;
 	public final fun component3 ()Ljava/lang/String;
-	public final fun component30 ()Ljava/lang/String;
-	public final fun component31 ()Ljava/lang/Integer;
+	public final fun component30 ()Ljava/lang/Integer;
+	public final fun component31 ()Ljava/lang/String;
 	public final fun component32 ()Ljava/lang/Integer;
-	public final fun component33 ()Ljava/lang/Boolean;
-	public final fun component34 ()Ljava/util/List;
-	public final fun component35 ()Ljava/lang/Double;
-	public final fun component36 ()Ljava/lang/String;
+	public final fun component33 ()Ljava/lang/Integer;
+	public final fun component34 ()Ljava/lang/Boolean;
+	public final fun component35 ()Ljava/util/List;
+	public final fun component36 ()Ljava/lang/Double;
 	public final fun component37 ()Ljava/lang/String;
-	public final fun component38 ()Ljava/lang/Boolean;
+	public final fun component38 ()Ljava/lang/String;
+	public final fun component39 ()Ljava/lang/Boolean;
 	public final fun component4 ()Ljava/util/List;
 	public final fun component5 ()Ljava/util/List;
 	public final fun component6 ()Ljava/util/List;
 	public final fun component7 ()Lio/ktor/openapi/ReferenceOr;
 	public final fun component8 ()Ljava/util/List;
 	public final fun component9 ()Ljava/util/Map;
-	public final fun copy (Lio/ktor/openapi/JsonSchema$SchemaType;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lio/ktor/openapi/ReferenceOr;Ljava/util/List;Ljava/util/Map;Lio/ktor/openapi/AdditionalProperties;Lio/ktor/openapi/JsonSchemaDiscriminator;Ljava/lang/Boolean;Ljava/lang/Boolean;Lio/ktor/openapi/Xml;Lio/ktor/openapi/ExternalDocs;Lio/ktor/openapi/GenericElement;Ljava/util/List;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Lio/ktor/openapi/GenericElement;Ljava/lang/String;Lio/ktor/openapi/ReferenceOr;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Boolean;Ljava/util/List;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;)Lio/ktor/openapi/JsonSchema;
-	public static synthetic fun copy$default (Lio/ktor/openapi/JsonSchema;Lio/ktor/openapi/JsonSchema$SchemaType;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lio/ktor/openapi/ReferenceOr;Ljava/util/List;Ljava/util/Map;Lio/ktor/openapi/AdditionalProperties;Lio/ktor/openapi/JsonSchemaDiscriminator;Ljava/lang/Boolean;Ljava/lang/Boolean;Lio/ktor/openapi/Xml;Lio/ktor/openapi/ExternalDocs;Lio/ktor/openapi/GenericElement;Ljava/util/List;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Lio/ktor/openapi/GenericElement;Ljava/lang/String;Lio/ktor/openapi/ReferenceOr;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Boolean;Ljava/util/List;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;IILjava/lang/Object;)Lio/ktor/openapi/JsonSchema;
+	public final fun copy (Lio/ktor/openapi/JsonSchema$SchemaType;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lio/ktor/openapi/ReferenceOr;Ljava/util/List;Ljava/util/Map;Lio/ktor/openapi/AdditionalProperties;Lio/ktor/openapi/JsonSchemaDiscriminator;Ljava/lang/Boolean;Ljava/lang/Boolean;Lio/ktor/openapi/Xml;Lio/ktor/openapi/ExternalDocs;Lio/ktor/openapi/GenericElement;Ljava/util/List;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Lio/ktor/openapi/GenericElement;Ljava/lang/String;Lio/ktor/openapi/ReferenceOr;Ljava/util/List;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Boolean;Ljava/util/List;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;)Lio/ktor/openapi/JsonSchema;
+	public static synthetic fun copy$default (Lio/ktor/openapi/JsonSchema;Lio/ktor/openapi/JsonSchema$SchemaType;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lio/ktor/openapi/ReferenceOr;Ljava/util/List;Ljava/util/Map;Lio/ktor/openapi/AdditionalProperties;Lio/ktor/openapi/JsonSchemaDiscriminator;Ljava/lang/Boolean;Ljava/lang/Boolean;Lio/ktor/openapi/Xml;Lio/ktor/openapi/ExternalDocs;Lio/ktor/openapi/GenericElement;Ljava/util/List;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Lio/ktor/openapi/GenericElement;Ljava/lang/String;Lio/ktor/openapi/ReferenceOr;Ljava/util/List;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Boolean;Ljava/util/List;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;IILjava/lang/Object;)Lio/ktor/openapi/JsonSchema;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAdditionalProperties ()Lio/ktor/openapi/AdditionalProperties;
 	public final fun getAllOf ()Ljava/util/List;
@@ -564,6 +565,7 @@ public final class io/ktor/openapi/JsonSchema {
 	public final fun getNot ()Lio/ktor/openapi/ReferenceOr;
 	public final fun getOneOf ()Ljava/util/List;
 	public final fun getPattern ()Ljava/lang/String;
+	public final fun getPrefixItems ()Ljava/util/List;
 	public final fun getProperties ()Ljava/util/Map;
 	public final fun getReadOnly ()Ljava/lang/Boolean;
 	public final fun getRequired ()Ljava/util/List;
@@ -833,6 +835,15 @@ public abstract interface annotation class io/ktor/openapi/JsonSchema$Pattern : 
 public final synthetic class io/ktor/openapi/JsonSchema$Pattern$Impl : io/ktor/openapi/JsonSchema$Pattern {
 	public fun <init> (Ljava/lang/String;)V
 	public final synthetic fun value ()Ljava/lang/String;
+}
+
+public abstract interface annotation class io/ktor/openapi/JsonSchema$PrefixItemsRef : java/lang/annotation/Annotation {
+	public abstract fun value ()[Ljava/lang/Class;
+}
+
+public final synthetic class io/ktor/openapi/JsonSchema$PrefixItemsRef$Impl : io/ktor/openapi/JsonSchema$PrefixItemsRef {
+	public fun <init> ([Lkotlin/reflect/KClass;)V
+	public final synthetic fun value ()[Ljava/lang/Class;
 }
 
 public abstract interface annotation class io/ktor/openapi/JsonSchema$ReadOnly : java/lang/annotation/Annotation {

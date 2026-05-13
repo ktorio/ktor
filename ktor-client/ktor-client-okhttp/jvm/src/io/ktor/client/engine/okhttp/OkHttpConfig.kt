@@ -56,6 +56,24 @@ public class OkHttpConfig : HttpClientEngineConfig() {
     public var duplexStreamingEnabled: Boolean = false
 
     /**
+     * Specifies the [Dns] resolver used by the [OkHttpClient] to look up IP addresses for hostnames.
+     * When `null`, OkHttp's default [Dns.SYSTEM] resolver is used.
+     *
+     * Set this to inject a custom resolver, for example to enable DNS-over-HTTPS or
+     * to override host resolution in tests:
+     * ```kotlin
+     * install(OkHttp) {
+     *     engine {
+     *         dns = Dns { hostname -> listOf(InetAddress.getByName("127.0.0.1")) }
+     *     }
+     * }
+     * ```
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.okhttp.OkHttpConfig.dns)
+     */
+    public var dns: Dns? = null
+
+    /**
      * Configures [OkHttpClient] using [OkHttpClient.Builder].
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.okhttp.OkHttpConfig.config)

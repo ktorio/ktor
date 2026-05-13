@@ -20,8 +20,9 @@ fun Project.registerVcpkgInstallTask(
 ): TaskProvider<VcpkgInstall> {
     val downloadKotlinNative = tasks.maybeNamed<KotlinNativeDownloadTask>("downloadKotlinNativeDistribution")
     return tasks.register<VcpkgInstall>("${library}Install") {
-        onlyIf("Kotlin distribution should be available") { downloadKotlinNative != null }
-        if (downloadKotlinNative == null) return@register
+        val kotlinNativeDistributionAvailable = downloadKotlinNative != null
+        onlyIf("Kotlin distribution should be available") { kotlinNativeDistributionAvailable }
+        if (!kotlinNativeDistributionAvailable) return@register
 
         install(library, target)
         // Do not configure Toolchain on macOS as Konan uses native tools there

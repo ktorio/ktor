@@ -29,6 +29,11 @@ kotlin {
             implementation(projects.ktorServerCore)
             implementation(projects.ktorServerTestBase)
             implementation(projects.ktorServerTestSuites)
+            implementation(projects.ktorServerContentNegotiation)
+            implementation(projects.ktorSerializationJackson)
+            implementation(projects.ktorClientContentNegotiation)
+            implementation(libs.jackson.databind)
+            implementation(libs.jackson.module.kotlin)
 
             implementation(libs.jetty.servlet.jakarta)
             implementation(libs.jetty.servlet.websocket.jakarta)

@@ -2,6 +2,17 @@
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+pluginManagement {
+    repositories {
+        maven("https://cache-redirector.jetbrains.com/plugins.gradle.org/m2")
+        gradlePluginPortal()
+        
+        // Consistent with dependencyResolutionManagement
+        val kotlinRepoUrl = providers.gradleProperty("kotlin_repo_url").orNull
+        if (kotlinRepoUrl != null) maven(kotlinRepoUrl) { name = "KotlinDev" }
+    }
+}
+
 plugins {
     // Keep it in sync with libs.versions.toml
     id("com.gradle.develocity") version "4.3.2"

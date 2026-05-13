@@ -2,6 +2,9 @@
  * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+@file:kotlin.jvm.JvmMultifileClass
+@file:kotlin.jvm.JvmName("RoutingKt")
+
 package io.ktor.server.websocket
 
 import io.ktor.http.*
@@ -33,8 +36,8 @@ public fun Route.webSocketRaw(
     path: String,
     protocol: String? = null,
     handler: suspend WebSocketServerSession.() -> Unit
-) {
-    webSocketRaw(path, protocol, negotiateExtensions = false, handler)
+): Route {
+    return webSocketRaw(path, protocol, negotiateExtensions = false, handler)
 }
 
 /**
@@ -59,10 +62,10 @@ public fun Route.webSocketRaw(
     protocol: String? = null,
     negotiateExtensions: Boolean = false,
     handler: suspend WebSocketServerSession.() -> Unit
-) {
+): Route {
     plugin(WebSockets) // early require
 
-    route(path, HttpMethod.Get) {
+    return route(path, HttpMethod.Get) {
         webSocketRaw(protocol, negotiateExtensions, handler)
     }
 }
@@ -81,8 +84,8 @@ public fun Route.webSocketRaw(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.websocket.webSocketRaw)
  */
-public fun Route.webSocketRaw(protocol: String? = null, handler: suspend WebSocketServerSession.() -> Unit) {
-    webSocketRaw(protocol, negotiateExtensions = false, handler)
+public fun Route.webSocketRaw(protocol: String? = null, handler: suspend WebSocketServerSession.() -> Unit): Route {
+    return webSocketRaw(protocol, negotiateExtensions = false, handler)
 }
 
 /**
@@ -106,10 +109,10 @@ public fun Route.webSocketRaw(
     protocol: String? = null,
     negotiateExtensions: Boolean = false,
     handler: suspend WebSocketServerSession.() -> Unit
-) {
+): Route {
     plugin(WebSockets) // early require
 
-    header(HttpHeaders.Connection, "Upgrade") {
+    return header(HttpHeaders.Connection, "Upgrade") {
         header(HttpHeaders.Upgrade, "websocket") {
             webSocketProtocol(protocol) {
                 handle {
@@ -139,8 +142,8 @@ public fun Route.webSocketRaw(
 public fun Route.webSocket(
     protocol: String? = null,
     handler: suspend DefaultWebSocketServerSession.() -> Unit
-) {
-    webSocketRaw(protocol, negotiateExtensions = true) {
+): Route {
+    return webSocketRaw(protocol, negotiateExtensions = true) {
         proceedWebSocket(handler)
     }
 }
@@ -163,8 +166,8 @@ public fun Route.webSocket(
     path: String,
     protocol: String? = null,
     handler: suspend DefaultWebSocketServerSession.() -> Unit
-) {
-    webSocketRaw(path, protocol, negotiateExtensions = true) {
+): Route {
+    return webSocketRaw(path, protocol, negotiateExtensions = true) {
         proceedWebSocket(handler)
     }
 }
