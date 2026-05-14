@@ -384,6 +384,19 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
+    fun testGetRequestWithoutBodyDoesNotSendContentLength() = clientTests(only("CIO", "Java")) {
+        config {
+            install(SSE)
+        }
+
+        test { client ->
+            client.sse("$TEST_SERVER/sse/headers") {
+                assertEquals("", incoming.single().data)
+            }
+        }
+    }
+
+    @Test
     fun testRequestBody() = clientTests {
         config {
             install(SSE)
@@ -400,6 +413,24 @@ class ServerSentEventsTest : ClientLoader() {
             }) {
                 assertEquals(contentType, call.request.contentType()?.withoutParameters())
                 assertEquals(body, incoming.single().data)
+            }
+        }
+    }
+
+    @Test
+    fun testPostRequestWithBodySendsContentLength() = clientTests(only("CIO", "Java")) {
+        config {
+            install(SSE)
+        }
+
+        val body = "hello"
+        test { client ->
+            client.sse({
+                method = HttpMethod.Post
+                url("$TEST_SERVER/sse/echo-headers")
+                setBody(body)
+            }) {
+                assertEquals(body.length.toString(), incoming.single().data)
             }
         }
     }
