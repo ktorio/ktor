@@ -403,6 +403,38 @@ class ServerSentEventsTest : ClientLoader() {
         }
     }
 
+    // Fails on Java before 19 because of https://bugs.openjdk.org/browse/JDK-8283544
+    @Test
+    fun testGetRequestWithoutBodyDoesNotSendContentLength() = clientTests(except("Java")) {
+        config {
+            install(SSE)
+        }
+
+        test { client ->
+            client.sse("$TEST_SERVER/sse/content-length") {
+                assertEquals("", incoming.single().data)
+            }
+        }
+    }
+
+    @Test
+    fun testPostRequestWithBodySendsContentLength() = clientTests {
+        config {
+            install(SSE)
+        }
+
+        val body = "hello"
+        test { client ->
+            client.sse({
+                method = HttpMethod.Post
+                url("$TEST_SERVER/sse/content-length")
+                setBody(body)
+            }) {
+                assertEquals(body.length.toString(), incoming.single().data)
+            }
+        }
+    }
+
     @Test
     fun testErrorForProtocolUpgradeRequestBody() = clientTests {
         config {
