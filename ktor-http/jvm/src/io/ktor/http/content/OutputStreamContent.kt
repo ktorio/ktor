@@ -7,7 +7,7 @@ package io.ktor.http.content
 import io.ktor.http.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
-import java.io.*
+import java.io.OutputStream
 
 /**
  * [OutgoingContent] to respond with [OutputStream].
@@ -23,13 +23,7 @@ public class OutputStreamContent(
 ) : OutgoingContent.WriteChannelContent() {
 
     override suspend fun writeTo(channel: ByteWriteChannel) {
-        withBlocking {
-            // use block should be inside because closing OutputStream is blocking as well
-            // and should not be invoked in a epoll/kqueue/reactor thread
-            channel.toOutputStream().use { stream ->
-                stream.body()
-            }
-        }
+        channel.withBlockingOutputStream(block = body)
     }
 
     /**
