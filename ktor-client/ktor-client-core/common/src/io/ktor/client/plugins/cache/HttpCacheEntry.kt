@@ -50,6 +50,9 @@ public class HttpCacheEntry internal constructor(
     }
 }
 
+// RFC 7230 §3.2.2: multiple values for the same header field are equivalent to a comma-separated list.
+internal fun List<String>?.joinHeaderValues(): String = this?.joinToString(",") ?: ""
+
 internal fun HttpResponse.varyKeys(): Map<String, String> {
     val validationKeys = vary() ?: return emptyMap()
 
@@ -57,7 +60,7 @@ internal fun HttpResponse.varyKeys(): Map<String, String> {
     val requestHeaders = call.request.headers
 
     for (key in validationKeys) {
-        result[key.lowercase()] = requestHeaders.getAll(key)?.joinToString(",") ?: ""
+        result[key.lowercase()] = requestHeaders.getAll(key).joinHeaderValues()
     }
 
     return result
