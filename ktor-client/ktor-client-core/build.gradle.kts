@@ -34,6 +34,7 @@ kotlin {
             implementation(projects.ktorTestDispatcher)
             implementation(projects.ktorClientMock)
             implementation(projects.ktorServerTestHost)
+            implementation(projects.ktorClientContentNegotiation)
         }
     }
 }
