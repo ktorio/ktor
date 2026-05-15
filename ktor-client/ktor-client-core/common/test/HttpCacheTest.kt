@@ -199,31 +199,27 @@ class HttpCacheTest {
     )
 
     /**
-     * Unit test: shows the separator mismatch between how varyKeys are stored and looked up.
+     * Regression test: varyKeys() and mergedHeadersLookup() must produce identical strings for
+     * the same multi-value header so that findResponse() can match cached entries.
      *
-     * HttpCacheEntry.varyKeys() stores multi-value headers joined with "," (comma):
-     *   result[key.lowercase()] = requestHeaders.getAll(key)?.joinToString(",") ?: ""
-     *
-     * mergedHeadersLookup() in HttpCache.kt joins them with ";" (semicolon):
-     *   value.joinToString(";")
-     *
-     * When ContentNegotiation appends a second Accept value, the stored "a,b" never equals
-     * the looked-up "a;b", so findResponse() always discards the cached entry.
+     * Before the fix, varyKeys() joined with "," while mergedHeadersLookup() joined with ";",
+     * so stored "a,b" never equalled looked-up "a;b" and every request was a cache miss.
+     * Both now delegate to joinHeaderValues() (RFC 7230 §3.2.2 comma separator).
      */
     @Test
-    fun varyKeysStoredWithCommaSeparatorButMergedHeadersLookupUsesSemicolon() {
+    fun varyKeysSeparatorMatchesMergedHeadersLookupSeparator() {
         val requestHeaders = Headers.build {
             append(HttpHeaders.Accept, "application/vnd.github+json") // set by caller
             append(HttpHeaders.Accept, "application/json")            // appended by ContentNegotiation
         }
 
-        // How HttpCacheEntry.varyKeys() stores the value:
-        val stored = requestHeaders.getAll(HttpHeaders.Accept)?.joinToString(",")
+        // How HttpCacheEntry.varyKeys() stores the value (joinHeaderValues → comma):
+        val stored = requestHeaders.getAll(HttpHeaders.Accept).joinHeaderValues()
         //  → "application/vnd.github+json,application/json"
 
-        // How mergedHeadersLookup() computes the lookup value:
-        val lookup = (requestHeaders.getAll(HttpHeaders.Accept) ?: emptyList()).joinToString(";")
-        //  → "application/vnd.github+json;application/json"
+        // How mergedHeadersLookup() now computes the lookup value (joinHeaderValues → comma):
+        val lookup = requestHeaders.getAll(HttpHeaders.Accept).joinHeaderValues()
+        //  → "application/vnd.github+json,application/json"
 
         assertEquals(stored, lookup)
     }
@@ -234,7 +230,7 @@ class HttpCacheTest {
      * mismatch in findResponse() causes it to always discard the cached entry.
      */
     @Test
-    fun freshCacheableEntryWithVaryAcceptIsNeverServedFromCacheWhenContentNegotiationIsInstalled() =
+    fun cacheHitOccursWithContentNegotiationAndVaryAccept() =
         runTest {
             var serverCallCount = 0
             val client = HttpClient(
@@ -255,7 +251,6 @@ class HttpCacheTest {
 
             // First response is cacheable (max-age=60) and the second request is identical.
             // Expected: second request served from cache → serverCallCount == 1.
-            // Actual:   varyKey filter fails due to "," vs ";" separator → serverCallCount == 2.
             assertEquals(1, serverCallCount)
             client.close()
         }
