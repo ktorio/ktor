@@ -207,6 +207,7 @@ abstract class io.ktor.http/HeaderValueWithParameters { // io.ktor.http/HeaderVa
 
 final class io.ktor.http.auth/DigestAlgorithm { // io.ktor.http.auth/DigestAlgorithm|null[0]
     constructor <init>(kotlin/String, kotlin/String, kotlin/Boolean) // io.ktor.http.auth/DigestAlgorithm.<init>|<init>(kotlin.String;kotlin.String;kotlin.Boolean){}[0]
+    constructor <init>(kotlin/String, kotlin/String, kotlin/Boolean, kotlin/String?) // io.ktor.http.auth/DigestAlgorithm.<init>|<init>(kotlin.String;kotlin.String;kotlin.Boolean;kotlin.String?){}[0]
 
     final val hashName // io.ktor.http.auth/DigestAlgorithm.hashName|{}hashName[0]
         final fun <get-hashName>(): kotlin/String // io.ktor.http.auth/DigestAlgorithm.hashName.<get-hashName>|<get-hashName>(){}[0]
@@ -214,6 +215,8 @@ final class io.ktor.http.auth/DigestAlgorithm { // io.ktor.http.auth/DigestAlgor
         final fun <get-isSession>(): kotlin/Boolean // io.ktor.http.auth/DigestAlgorithm.isSession.<get-isSession>|<get-isSession>(){}[0]
     final val name // io.ktor.http.auth/DigestAlgorithm.name|{}name[0]
         final fun <get-name>(): kotlin/String // io.ktor.http.auth/DigestAlgorithm.name.<get-name>|<get-name>(){}[0]
+    final val uri // io.ktor.http.auth/DigestAlgorithm.uri|{}uri[0]
+        final fun <get-uri>(): kotlin/String? // io.ktor.http.auth/DigestAlgorithm.uri.<get-uri>|<get-uri>(){}[0]
 
     final object Companion { // io.ktor.http.auth/DigestAlgorithm.Companion|null[0]
         final val DEFAULT_ALGORITHMS // io.ktor.http.auth/DigestAlgorithm.Companion.DEFAULT_ALGORITHMS|{}DEFAULT_ALGORITHMS[0]
@@ -226,12 +229,17 @@ final class io.ktor.http.auth/DigestAlgorithm { // io.ktor.http.auth/DigestAlgor
             final fun <get-SHA_256>(): io.ktor.http.auth/DigestAlgorithm // io.ktor.http.auth/DigestAlgorithm.Companion.SHA_256.<get-SHA_256>|<get-SHA_256>(){}[0]
         final val SHA_256_SESS // io.ktor.http.auth/DigestAlgorithm.Companion.SHA_256_SESS|{}SHA_256_SESS[0]
             final fun <get-SHA_256_SESS>(): io.ktor.http.auth/DigestAlgorithm // io.ktor.http.auth/DigestAlgorithm.Companion.SHA_256_SESS.<get-SHA_256_SESS>|<get-SHA_256_SESS>(){}[0]
+        final val SHA_384 // io.ktor.http.auth/DigestAlgorithm.Companion.SHA_384|{}SHA_384[0]
+            final fun <get-SHA_384>(): io.ktor.http.auth/DigestAlgorithm // io.ktor.http.auth/DigestAlgorithm.Companion.SHA_384.<get-SHA_384>|<get-SHA_384>(){}[0]
+        final val SHA_512 // io.ktor.http.auth/DigestAlgorithm.Companion.SHA_512|{}SHA_512[0]
+            final fun <get-SHA_512>(): io.ktor.http.auth/DigestAlgorithm // io.ktor.http.auth/DigestAlgorithm.Companion.SHA_512.<get-SHA_512>|<get-SHA_512>(){}[0]
         final val SHA_512_256 // io.ktor.http.auth/DigestAlgorithm.Companion.SHA_512_256|{}SHA_512_256[0]
             final fun <get-SHA_512_256>(): io.ktor.http.auth/DigestAlgorithm // io.ktor.http.auth/DigestAlgorithm.Companion.SHA_512_256.<get-SHA_512_256>|<get-SHA_512_256>(){}[0]
         final val SHA_512_256_SESS // io.ktor.http.auth/DigestAlgorithm.Companion.SHA_512_256_SESS|{}SHA_512_256_SESS[0]
             final fun <get-SHA_512_256_SESS>(): io.ktor.http.auth/DigestAlgorithm // io.ktor.http.auth/DigestAlgorithm.Companion.SHA_512_256_SESS.<get-SHA_512_256_SESS>|<get-SHA_512_256_SESS>(){}[0]
 
         final fun from(kotlin/String): io.ktor.http.auth/DigestAlgorithm? // io.ktor.http.auth/DigestAlgorithm.Companion.from|from(kotlin.String){}[0]
+        final fun fromUri(kotlin/String): io.ktor.http.auth/DigestAlgorithm? // io.ktor.http.auth/DigestAlgorithm.Companion.fromUri|fromUri(kotlin.String){}[0]
     }
 }
 
@@ -250,6 +258,44 @@ final class io.ktor.http.auth/DigestQop { // io.ktor.http.auth/DigestQop|null[0]
             final fun <get-DEFAULT_QOPS>(): kotlin.collections/List<io.ktor.http.auth/DigestQop> // io.ktor.http.auth/DigestQop.Companion.DEFAULT_QOPS.<get-DEFAULT_QOPS>|<get-DEFAULT_QOPS>(){}[0]
 
         final fun from(kotlin/String): io.ktor.http.auth/DigestQop? // io.ktor.http.auth/DigestQop.Companion.from|from(kotlin.String){}[0]
+    }
+}
+
+final class io.ktor.http.auth/SignatureAlgorithm { // io.ktor.http.auth/SignatureAlgorithm|null[0]
+    constructor <init>(kotlin/String, kotlin/String, io.ktor.http.auth/DigestAlgorithm, io.ktor.http.auth/KeyAlgorithm, kotlin/String? = ..., kotlin/String? = ...) // io.ktor.http.auth/SignatureAlgorithm.<init>|<init>(kotlin.String;kotlin.String;io.ktor.http.auth.DigestAlgorithm;io.ktor.http.auth.KeyAlgorithm;kotlin.String?;kotlin.String?){}[0]
+
+    final val digestAlgorithm // io.ktor.http.auth/SignatureAlgorithm.digestAlgorithm|{}digestAlgorithm[0]
+        final fun <get-digestAlgorithm>(): io.ktor.http.auth/DigestAlgorithm // io.ktor.http.auth/SignatureAlgorithm.digestAlgorithm.<get-digestAlgorithm>|<get-digestAlgorithm>(){}[0]
+    final val jcaAlgorithm // io.ktor.http.auth/SignatureAlgorithm.jcaAlgorithm|{}jcaAlgorithm[0]
+        final fun <get-jcaAlgorithm>(): kotlin/String // io.ktor.http.auth/SignatureAlgorithm.jcaAlgorithm.<get-jcaAlgorithm>|<get-jcaAlgorithm>(){}[0]
+    final val jwaName // io.ktor.http.auth/SignatureAlgorithm.jwaName|{}jwaName[0]
+        final fun <get-jwaName>(): kotlin/String? // io.ktor.http.auth/SignatureAlgorithm.jwaName.<get-jwaName>|<get-jwaName>(){}[0]
+    final val keyAlgorithm // io.ktor.http.auth/SignatureAlgorithm.keyAlgorithm|{}keyAlgorithm[0]
+        final fun <get-keyAlgorithm>(): io.ktor.http.auth/KeyAlgorithm // io.ktor.http.auth/SignatureAlgorithm.keyAlgorithm.<get-keyAlgorithm>|<get-keyAlgorithm>(){}[0]
+    final val name // io.ktor.http.auth/SignatureAlgorithm.name|{}name[0]
+        final fun <get-name>(): kotlin/String // io.ktor.http.auth/SignatureAlgorithm.name.<get-name>|<get-name>(){}[0]
+    final val xmlUri // io.ktor.http.auth/SignatureAlgorithm.xmlUri|{}xmlUri[0]
+        final fun <get-xmlUri>(): kotlin/String? // io.ktor.http.auth/SignatureAlgorithm.xmlUri.<get-xmlUri>|<get-xmlUri>(){}[0]
+
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.http.auth/SignatureAlgorithm.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.ktor.http.auth/SignatureAlgorithm.hashCode|hashCode(){}[0]
+
+    final object Companion { // io.ktor.http.auth/SignatureAlgorithm.Companion|null[0]
+        final val ECDSA_SHA_256 // io.ktor.http.auth/SignatureAlgorithm.Companion.ECDSA_SHA_256|{}ECDSA_SHA_256[0]
+            final fun <get-ECDSA_SHA_256>(): io.ktor.http.auth/SignatureAlgorithm // io.ktor.http.auth/SignatureAlgorithm.Companion.ECDSA_SHA_256.<get-ECDSA_SHA_256>|<get-ECDSA_SHA_256>(){}[0]
+        final val ECDSA_SHA_384 // io.ktor.http.auth/SignatureAlgorithm.Companion.ECDSA_SHA_384|{}ECDSA_SHA_384[0]
+            final fun <get-ECDSA_SHA_384>(): io.ktor.http.auth/SignatureAlgorithm // io.ktor.http.auth/SignatureAlgorithm.Companion.ECDSA_SHA_384.<get-ECDSA_SHA_384>|<get-ECDSA_SHA_384>(){}[0]
+        final val ECDSA_SHA_512 // io.ktor.http.auth/SignatureAlgorithm.Companion.ECDSA_SHA_512|{}ECDSA_SHA_512[0]
+            final fun <get-ECDSA_SHA_512>(): io.ktor.http.auth/SignatureAlgorithm // io.ktor.http.auth/SignatureAlgorithm.Companion.ECDSA_SHA_512.<get-ECDSA_SHA_512>|<get-ECDSA_SHA_512>(){}[0]
+        final val RSA_SHA_256 // io.ktor.http.auth/SignatureAlgorithm.Companion.RSA_SHA_256|{}RSA_SHA_256[0]
+            final fun <get-RSA_SHA_256>(): io.ktor.http.auth/SignatureAlgorithm // io.ktor.http.auth/SignatureAlgorithm.Companion.RSA_SHA_256.<get-RSA_SHA_256>|<get-RSA_SHA_256>(){}[0]
+        final val RSA_SHA_384 // io.ktor.http.auth/SignatureAlgorithm.Companion.RSA_SHA_384|{}RSA_SHA_384[0]
+            final fun <get-RSA_SHA_384>(): io.ktor.http.auth/SignatureAlgorithm // io.ktor.http.auth/SignatureAlgorithm.Companion.RSA_SHA_384.<get-RSA_SHA_384>|<get-RSA_SHA_384>(){}[0]
+        final val RSA_SHA_512 // io.ktor.http.auth/SignatureAlgorithm.Companion.RSA_SHA_512|{}RSA_SHA_512[0]
+            final fun <get-RSA_SHA_512>(): io.ktor.http.auth/SignatureAlgorithm // io.ktor.http.auth/SignatureAlgorithm.Companion.RSA_SHA_512.<get-RSA_SHA_512>|<get-RSA_SHA_512>(){}[0]
+
+        final fun fromJwaName(kotlin/String): io.ktor.http.auth/SignatureAlgorithm? // io.ktor.http.auth/SignatureAlgorithm.Companion.fromJwaName|fromJwaName(kotlin.String){}[0]
+        final fun fromXmlUri(kotlin/String): io.ktor.http.auth/SignatureAlgorithm? // io.ktor.http.auth/SignatureAlgorithm.Companion.fromXmlUri|fromXmlUri(kotlin.String){}[0]
     }
 }
 
@@ -1262,6 +1308,28 @@ final class io.ktor.http/Url : io.ktor.utils.io/JvmSerializable { // io.ktor.htt
 
     final object Companion { // io.ktor.http/Url.Companion|null[0]
         final fun serializer(): kotlinx.serialization/KSerializer<io.ktor.http/Url> // io.ktor.http/Url.Companion.serializer|serializer(){}[0]
+    }
+}
+
+final value class io.ktor.http.auth/KeyAlgorithm { // io.ktor.http.auth/KeyAlgorithm|null[0]
+    constructor <init>(kotlin/String) // io.ktor.http.auth/KeyAlgorithm.<init>|<init>(kotlin.String){}[0]
+
+    final val name // io.ktor.http.auth/KeyAlgorithm.name|{}name[0]
+        final fun <get-name>(): kotlin/String // io.ktor.http.auth/KeyAlgorithm.name.<get-name>|<get-name>(){}[0]
+
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.http.auth/KeyAlgorithm.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.ktor.http.auth/KeyAlgorithm.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.ktor.http.auth/KeyAlgorithm.toString|toString(){}[0]
+
+    final object Companion { // io.ktor.http.auth/KeyAlgorithm.Companion|null[0]
+        final val EC // io.ktor.http.auth/KeyAlgorithm.Companion.EC|{}EC[0]
+            final fun <get-EC>(): io.ktor.http.auth/KeyAlgorithm // io.ktor.http.auth/KeyAlgorithm.Companion.EC.<get-EC>|<get-EC>(){}[0]
+        final val HMAC // io.ktor.http.auth/KeyAlgorithm.Companion.HMAC|{}HMAC[0]
+            final fun <get-HMAC>(): io.ktor.http.auth/KeyAlgorithm // io.ktor.http.auth/KeyAlgorithm.Companion.HMAC.<get-HMAC>|<get-HMAC>(){}[0]
+        final val OKP // io.ktor.http.auth/KeyAlgorithm.Companion.OKP|{}OKP[0]
+            final fun <get-OKP>(): io.ktor.http.auth/KeyAlgorithm // io.ktor.http.auth/KeyAlgorithm.Companion.OKP.<get-OKP>|<get-OKP>(){}[0]
+        final val RSA // io.ktor.http.auth/KeyAlgorithm.Companion.RSA|{}RSA[0]
+            final fun <get-RSA>(): io.ktor.http.auth/KeyAlgorithm // io.ktor.http.auth/KeyAlgorithm.Companion.RSA.<get-RSA>|<get-RSA>(){}[0]
     }
 }
 
