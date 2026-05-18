@@ -74,29 +74,7 @@ public val AuthenticationInterceptors: RouteScopedPlugin<RouteAuthenticationConf
         requiredProviders - firstSuccessfulProviders
 
     // To cache the request body which can be consumed by the OAuth2 callback handler
-    on(ReceiveBytes) { call, body ->
-        var newBody: Any = body
-
-        if (call.attributes.contains(cacheOAuthFormReceiveKey) && call.receiveType == typeInfo<Parameters>()) {
-            if (body is ByteReadChannel) {
-                try {
-                    val array = body.readRemaining().readByteArray()
-                    call.attributes.put(formCacheKey, array)
-                    newBody = ByteReadChannel(array)
-                } finally {
-                    call.attributes.remove(cacheOAuthFormReceiveKey)
-                }
-            }
-        } else {
-            val cache = call.attributes.getOrNull(formCacheKey)
-
-            if (cache != null) {
-                newBody = ByteReadChannel(cache)
-            }
-        }
-
-        newBody
-    }
+    installOAuthBodyCache()
 
     on(AuthenticationHook) { call ->
         if (call.isHandled) return@on
@@ -159,9 +137,9 @@ public val AuthenticationInterceptors: RouteScopedPlugin<RouteAuthenticationConf
 
 internal val cacheOAuthFormReceiveKey = AttributeKey<Unit>("OauthFormReceiveKey")
 
-private val formCacheKey = AttributeKey<ByteArray>("AuthFormCacheKey")
+internal val formCacheKey = AttributeKey<ByteArray>("AuthFormCacheKey")
 
-private object ReceiveBytes : Hook<suspend (ApplicationCall, Any) -> Any> {
+internal object ReceiveBytes : Hook<suspend (ApplicationCall, Any) -> Any> {
     override fun install(
         pipeline: ApplicationCallPipeline,
         handler: suspend (ApplicationCall, Any) -> Any
@@ -171,6 +149,44 @@ private object ReceiveBytes : Hook<suspend (ApplicationCall, Any) -> Any> {
             proceedWith(body)
         }
     }
+}
+
+/**
+ * Installs the OAuth body cache hook.
+ *
+ * OAuth providers may consume the request body during authentication.
+ * This hook caches form bodies so they can be read again by the route handler.
+ */
+internal fun RouteScopedPluginBuilder<*>.installOAuthBodyCache() {
+    on(ReceiveBytes) { call, body ->
+        var newBody: Any = body
+
+        if (call.attributes.contains(cacheOAuthFormReceiveKey) && call.receiveType == typeInfo<Parameters>()) {
+            if (body is ByteReadChannel) {
+                try {
+                    val array = body.readRemaining().readByteArray()
+                    call.attributes.put(formCacheKey, array)
+                    newBody = ByteReadChannel(array)
+                } finally {
+                    call.attributes.remove(cacheOAuthFormReceiveKey)
+                }
+            }
+        } else {
+            val cache = call.attributes.getOrNull(formCacheKey)
+            if (cache != null) {
+                newBody = ByteReadChannel(cache)
+            }
+        }
+
+        newBody
+    }
+}
+
+/**
+ * Creates a standalone route-scoped plugin that installs the OAuth body cache.
+ */
+internal fun createOAuthBodyCachePlugin() = createRouteScopedPlugin("OAuthBodyCache") {
+    installOAuthBodyCache()
 }
 
 internal suspend fun AuthenticationContext.executeChallenges(call: ApplicationCall) {

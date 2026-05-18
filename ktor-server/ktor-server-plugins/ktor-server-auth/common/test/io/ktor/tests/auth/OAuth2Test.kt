@@ -32,6 +32,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlin.io.encoding.Base64
 import kotlin.test.*
+import kotlin.time.Duration.Companion.milliseconds
 
 class OAuth2Test {
 
@@ -175,7 +176,7 @@ class OAuth2Test {
                 validate {
                     try {
                         verifyWithOAuth2(it, testClient, settings)
-                    } catch (ioe: OAuth2Exception) {
+                    } catch (_: OAuth2Exception) {
                         null
                     }
                 }
@@ -298,7 +299,7 @@ class OAuth2Test {
         val testClient = testClient.await()
 
         suspend fun resolveProvider(providerId: String): OAuthServerSettings.OAuth2ServerSettings {
-            delay(5)
+            delay(5.milliseconds)
             return when (providerId) {
                 "provider1" -> OAuthServerSettings.OAuth2ServerSettings(
                     name = "provider1-oauth2",
@@ -330,7 +331,7 @@ class OAuth2Test {
                     resolveProvider(providerId)
                 }
                 urlProvider = {
-                    delay(5)
+                    delay(5.milliseconds)
                     "http://localhost/login/${parameters["provider"]}"
                 }
             }
@@ -453,7 +454,7 @@ class OAuth2Test {
         val testClient = testClient.await()
 
         suspend fun resolveProvider(providerId: String): OAuthServerSettings.OAuth2ServerSettings {
-            delay(5)
+            delay(5.milliseconds)
             return when (providerId) {
                 "provider1" -> OAuthServerSettings.OAuth2ServerSettings(
                     name = "provider1-oauth2",
@@ -688,8 +689,98 @@ class OAuth2Test {
     }
 
     @Test
+    fun testDynamicExtraTokenParams() = testApplication {
+        var tokenRequestParameters = Parameters.Empty
+
+        install(Authentication) {
+            oauth("login") {
+                client = this@testApplication.client
+                urlProvider = { "http://localhost/login" }
+                settings = OAuthServerSettings.OAuth2ServerSettings(
+                    name = "oauth2",
+                    authorizeUrl = "http://localhost/authorize",
+                    accessTokenUrl = "http://localhost/oauth/access_token",
+                    clientId = "clientId1",
+                    clientSecret = "clientSecret1",
+                    requestMethod = HttpMethod.Post,
+                    extraTokenParameters = listOf("static" to "value"),
+                    extraTokenParametersProvider = { call, callback ->
+                        listOf(
+                            "dynamic" to call.request.queryParameters["dynamic"]!!,
+                            "callback_code" to callback.token,
+                            "callback_state" to callback.state
+                        )
+                    }
+                )
+            }
+        }
+        routing {
+            post("/oauth/access_token") {
+                tokenRequestParameters = call.receiveParameters()
+                call.respondText("access_token=a_token", ContentType.Application.FormUrlEncoded)
+            }
+            authenticate("login") {
+                get("/login") {
+                    call.respond("We're in.")
+                }
+            }
+        }
+
+        client.get("/login?code=code&state=state&dynamic=request-value").also {
+            assertEquals(HttpStatusCode.OK, it.status)
+            assertEquals("We're in.", it.bodyAsText())
+        }
+
+        assertEquals("value", tokenRequestParameters["static"])
+        assertEquals("request-value", tokenRequestParameters["dynamic"])
+        assertEquals("code", tokenRequestParameters["callback_code"])
+        assertEquals("state", tokenRequestParameters["callback_state"])
+    }
+
+    @Test
+    fun testStateVerifierPreventsTokenRequest() = testApplication {
+        var tokenEndpointRequests = 0
+
+        install(Authentication) {
+            oauth("login") {
+                client = this@testApplication.client
+                urlProvider = { "http://localhost/login" }
+                settings = OAuthServerSettings.OAuth2ServerSettings(
+                    name = "oauth2",
+                    authorizeUrl = "http://localhost/authorize",
+                    accessTokenUrl = "http://localhost/oauth/access_token",
+                    clientId = "clientId1",
+                    clientSecret = "clientSecret1",
+                    requestMethod = HttpMethod.Post,
+                    verifyState = { call, state ->
+                        call.request.queryParameters["allow"] == "true" && state == "state"
+                    }
+                )
+            }
+        }
+        routing {
+            post("/oauth/access_token") {
+                tokenEndpointRequests++
+                call.respondText("access_token=a_token", ContentType.Application.FormUrlEncoded)
+            }
+            authenticate("login") {
+                get("/login") {
+                    call.respond("We're in.")
+                }
+            }
+        }
+
+        client.get("/login?code=code&state=state").also {
+            assertEquals(HttpStatusCode.Unauthorized, it.status)
+        }
+        assertEquals(0, tokenEndpointRequests)
+    }
+
+    @Test
     fun testFailedNonce() = retryTest(retries = 3) {
         testApplication {
+            var tokenEndpointRequests = 0
+
             install(Authentication) {
                 oauth("login") {
                     client = this@testApplication.client
@@ -712,6 +803,7 @@ class OAuth2Test {
             }
             routing {
                 post("/oauth/access_token") {
+                    tokenEndpointRequests++
                     call.respondText("access_token=a_token", ContentType.Application.FormUrlEncoded)
                 }
                 authenticate("login") {
@@ -727,6 +819,7 @@ class OAuth2Test {
             assertEquals("some_nonce", state)
             val failedNonceResponse = client.get("/login?code=some_code&state=$state")
             assertEquals(HttpStatusCode.Unauthorized, failedNonceResponse.status)
+            assertEquals(0, tokenEndpointRequests)
         }
     }
 
