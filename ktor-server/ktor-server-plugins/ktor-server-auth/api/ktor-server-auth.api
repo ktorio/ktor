@@ -662,10 +662,6 @@ public abstract interface class io/ktor/server/auth/typesafe/AuthenticatedContex
 	public abstract fun principal (Lio/ktor/server/routing/RoutingContext;)Ljava/lang/Object;
 }
 
-public final class io/ktor/server/auth/typesafe/BasicTypedProviderKt {
-	public static final fun bearer (Ljava/lang/String;Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/auth/typesafe/DefaultAuthScheme;
-}
-
 public class io/ktor/server/auth/typesafe/DefaultAuthScheme : io/ktor/server/auth/typesafe/AuthScheme {
 	public static final field Companion Lio/ktor/server/auth/typesafe/DefaultAuthScheme$Companion;
 	public fun <init> (Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/server/auth/AuthenticationProvider;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function1;)V
