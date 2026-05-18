@@ -28,7 +28,7 @@ class OidcDiscoveryTest {
         refreshingOpenIdProvider(discoveryRequests, allowRefreshResponse)
 
         val openIdClient = openIdHttpClient()
-        lateinit var provider: OidcProvider
+        lateinit var provider: OidcProvider<OidcPrincipal>
         application {
             val oidc = openIdConnect {
                 httpClient = openIdClient
@@ -88,7 +88,7 @@ class OidcDiscoveryTest {
         }
 
         val openIdClient = openIdHttpClient()
-        lateinit var provider: OidcProvider
+        lateinit var provider: OidcProvider<OidcPrincipal>
         application {
             monitor.subscribe(OidcMetadataRefreshFailed) { failure ->
                 refreshFailed.complete(failure)
