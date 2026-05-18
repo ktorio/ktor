@@ -412,4 +412,3 @@ sealed interface KindShape {
     @SerialName("rectangle")
     data class Rectangle(val width: Double, val height: Double) : KindShape
 }
-
