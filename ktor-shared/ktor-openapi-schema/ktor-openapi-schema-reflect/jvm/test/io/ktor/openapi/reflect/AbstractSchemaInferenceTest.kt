@@ -9,8 +9,11 @@ import com.charleskorn.kaml.Yaml
 import com.charleskorn.kaml.YamlConfiguration
 import io.ktor.openapi.*
 import io.ktor.openapi.JsonSchema.*
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.JsonClassDiscriminator
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -44,6 +47,10 @@ abstract class AbstractSchemaInferenceTest(
     @Test
     fun `sealed type inference`() =
         assertSchemaMatches<Shape>()
+
+    @Test
+    fun `custom discriminator annotation with serial names`() =
+        assertSchemaMatches<KindShape>()
 
     @Test
     fun `advanced container annotations`() =
@@ -392,3 +399,16 @@ data class Page<out E>(
     val items: List<E>,
     val total: Int,
 )
+
+@OptIn(ExperimentalSerializationApi::class)
+@JsonClassDiscriminator("kind")
+@Serializable
+sealed interface KindShape {
+    @Serializable
+    @SerialName("circle")
+    data class Circle(val radius: Double) : KindShape
+
+    @Serializable
+    @SerialName("rectangle")
+    data class Rectangle(val width: Double, val height: Double) : KindShape
+}

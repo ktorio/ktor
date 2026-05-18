@@ -83,6 +83,17 @@ public interface SchemaReflectionAdapter {
      */
     public fun isNullable(type: KType): Boolean =
         type.isMarkedNullable
+
+    /**
+     * Returns the discriminator property name for the given sealed [kClass].
+     * By default, returns `"type"`.
+     *
+     * Override this to support serialization-framework-specific discriminator annotations,
+     * for example `@JsonClassDiscriminator` from kotlinx.serialization.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.reflect.SchemaReflectionAdapter.getDiscriminatorProperty)
+     */
+    public fun getDiscriminatorProperty(kClass: KClass<*>): String = "type"
 }
 
 /**
@@ -222,13 +233,14 @@ public class ReflectionJsonSchemaInference(
                         subclass.qualifiedName!! to "#/components/schemas/${subclass.qualifiedName}"
                     }
 
+                val discriminatorProperty = adapter.getDiscriminatorProperty(kClass)
                 return jsonSchemaFromAnnotations(
                     title = typeName,
                     annotations = includeAnnotations + kClass.annotations,
                     reflectSchema = ::schemaRefForClass,
                     type = JsonType.OBJECT.wrapIfNullable(nullable),
                     oneOf = sealedSubclassSchema,
-                    discriminator = JsonSchemaDiscriminator("type", discriminatorMapping),
+                    discriminator = JsonSchemaDiscriminator(discriminatorProperty, discriminatorMapping),
                 )
             }
 
