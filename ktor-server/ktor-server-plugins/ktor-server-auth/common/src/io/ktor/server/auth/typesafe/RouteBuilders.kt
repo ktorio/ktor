@@ -4,7 +4,6 @@
 
 package io.ktor.server.auth.typesafe
 
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
@@ -29,6 +28,8 @@ Route.() -> Unit
  *
  * The scheme is registered in [Authentication] when this route is created. Inside [build], use [principal] to access
  * the principal as [P] without casting.
+ * The first use of a scheme instance registers it lazily; later uses of the same scheme instance reuse that
+ * registration. A different scheme instance with the same name is rejected.
  *
  * ```kotlin
  * val userAuth = basic<User>("user-auth") {
@@ -68,17 +69,20 @@ public fun <P : Any, C : AuthenticatedContext<P>> Route.authenticateWith(
 /**
  * Handles authentication failure for routes protected by [authenticateWithAnyOf].
  *
- * The map contains one [AuthenticationFailedCause] for each scheme name that failed to authenticate the call.
+ * The handler receives the current [RoutingContext]. The map contains one [AuthenticationFailedCause] for each scheme
+ * name that failed to authenticate the call.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.MultiUnauthorizedHandler)
  */
-public typealias MultiUnauthorizedHandler = suspend (ApplicationCall, Map<String, AuthenticationFailedCause>) -> Unit
+public typealias MultiUnauthorizedHandler = suspend RoutingContext.(Map<String, AuthenticationFailedCause>) -> Unit
 
 /**
  * Creates a child route that accepts any of the provided typed authentication [schemes].
  *
  * The first scheme that authenticates the call supplies the [principal] available inside [build]. All schemes must
  * produce principals assignable to [P].
+ * Each scheme instance is registered lazily on first use and reused on later uses. A different scheme instance with an
+ * already registered name is rejected.
  *
  * ```kotlin
  * authenticateWithAnyOf(apiKeyAuth, bearerAuth) {
@@ -127,12 +131,12 @@ internal fun <P : Any> Route.authenticateWithAnyOf(
 /**
  * Handles authorization failure for a role-protected typed route.
  *
- * The handler receives the current [ApplicationCall] and the roles required by the route.
+ * The handler receives the current [RoutingContext] and the roles required by the route.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.ForbiddenHandler)
  */
 @OptIn(ExperimentalKtorApi::class)
-public typealias ForbiddenHandler = suspend (ApplicationCall, Set<AuthRole>) -> Unit
+public typealias ForbiddenHandler = suspend RoutingContext.(Set<AuthRole>) -> Unit
 
 /**
  * Creates a child route protected by [scheme] and the required [roles].

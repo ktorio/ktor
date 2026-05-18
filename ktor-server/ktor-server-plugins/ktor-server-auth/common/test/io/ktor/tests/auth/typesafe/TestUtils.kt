@@ -7,14 +7,10 @@
 package io.ktor.tests.auth.typesafe
 
 import io.ktor.server.auth.typesafe.*
-import io.ktor.utils.io.ExperimentalKtorApi
-import kotlinx.serialization.Serializable
+import io.ktor.utils.io.*
 import kotlin.io.encoding.Base64
 
 data class TestUser(val name: String, val email: String)
-
-@Serializable
-data class TestSession(val name: String)
 
 enum class TestRole : AuthRole {
     User,
@@ -52,8 +48,4 @@ fun testBearerScheme(name: String = "test-bearer") = bearer<TestUser>(name) {
             null
         }
     }
-}
-
-fun testSessionScheme(name: String = "test-session") = session<TestSession>(name) {
-    validate { it }
 }

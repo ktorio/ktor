@@ -4,8 +4,8 @@
 
 package io.ktor.server.auth.typesafe
 
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.routing.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 
@@ -60,9 +60,9 @@ public class TypedBasicAuthConfig<P : Any> @PublishedApi internal constructor() 
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedBasicAuthConfig.onUnauthorized)
      */
-    public var onUnauthorized: (suspend (ApplicationCall, AuthenticationFailedCause) -> Unit)? = null
+    public var onUnauthorized: UnauthorizedHandler? = null
 
-    private var validateFn: (suspend ApplicationCall.(UserPasswordCredential) -> P?)? = null
+    private var validateFn: (suspend RoutingContext.(UserPasswordCredential) -> P?)? = null
 
     /**
      * Sets a validation function for [UserPasswordCredential].
@@ -71,9 +71,9 @@ public class TypedBasicAuthConfig<P : Any> @PublishedApi internal constructor() 
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedBasicAuthConfig.validate)
      *
-     * @param body validation function called for credentials extracted from the request.
+     * @param body validation function called with the current routing context and credentials extracted from the request.
      */
-    public fun validate(body: suspend ApplicationCall.(UserPasswordCredential) -> P?) {
+    public fun validate(body: suspend RoutingContext.(UserPasswordCredential) -> P?) {
         validateFn = body
     }
 
@@ -82,7 +82,7 @@ public class TypedBasicAuthConfig<P : Any> @PublishedApi internal constructor() 
         val config = BasicAuthenticationProvider.Config(name, description)
         config.realm = realm
         config.charset = charset
-        validateFn?.let { fn -> config.validate { credential -> fn(credential) } }
+        validateFn?.let { fn -> config.validate { credential -> toRoutingContext().fn(credential) } }
         return BasicAuthenticationProvider(config)
     }
 }

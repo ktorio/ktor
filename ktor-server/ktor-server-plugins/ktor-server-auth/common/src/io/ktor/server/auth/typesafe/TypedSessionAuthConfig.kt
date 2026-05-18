@@ -4,11 +4,32 @@
 
 package io.ktor.server.auth.typesafe
 
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.plugins.csrf.*
+import io.ktor.server.routing.*
+import io.ktor.server.sessions.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlin.reflect.KClass
+
+/**
+ * Configures the [Sessions] plugin for a typed session authentication scheme.
+ *
+ * @param S stored session type.
+ * @param P route principal type.
+ * @param C authenticated route context type.
+ */
+@OptIn(ExperimentalKtorApi::class)
+public typealias SessionsPluginConfig<S, P, C> = SessionsConfig.(SessionAuthScheme<S, P, C>) -> Unit
+
+/**
+ * Resolves a route principal from a stored session value.
+ *
+ * The resolver receives the current [RoutingContext] and the session value.
+ *
+ * Return `null` to reject the session.
+ */
+public typealias SessionPrincipalResolver<S, P> = suspend RoutingContext.(S) -> P?
 
 /**
  * Configures a typed Session authentication scheme.
@@ -29,13 +50,17 @@ import kotlin.reflect.KClass
  */
 @ExperimentalKtorApi
 @KtorDsl
-public class TypedSessionAuthConfig<S : Any, P : Any> @PublishedApi internal constructor() {
+public open class TypedSessionAuthConfig<
+    S : Any,
+    P : Any,
+    C : SessionAuthenticatedContext<S, P>
+    > @PublishedApi internal constructor() {
     /**
      * Human-readable description of this authentication scheme.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedSessionAuthConfig.description)
      */
-    public var description: String? = null
+    internal var description: String? = null
 
     /**
      * Default handler for authentication failures.
@@ -45,9 +70,21 @@ public class TypedSessionAuthConfig<S : Any, P : Any> @PublishedApi internal con
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedSessionAuthConfig.onUnauthorized)
      */
-    public var onUnauthorized: (suspend (ApplicationCall, AuthenticationFailedCause) -> Unit)? = null
+    internal var onUnauthorized: UnauthorizedHandler? = null
 
-    private var validateFn: (suspend ApplicationCall.(S) -> P?)? = null
+    internal var principalResolver: SessionPrincipalResolver<S, P>? = null
+
+    internal var csrfConfig: (CSRFConfig.() -> Unit)? = null
+
+    internal var sessionsPluginConfig: SessionsPluginConfig<S, P, *>? = null
+
+    /**
+     * Creates the authenticated route context from the default session context.
+     *
+     * This internal API is intended for integrations that need provider-bound helpers in typed route bodies.
+     */
+    @InternalAPI
+    public var contextFactory: ((DefaultSessionAuthenticatedContext<S, P>) -> C)? = null
 
     /**
      * Sets a validation function for the session value.
@@ -56,11 +93,29 @@ public class TypedSessionAuthConfig<S : Any, P : Any> @PublishedApi internal con
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedSessionAuthConfig.validate)
      *
-     * @param body validation function called with the session value read by the [io.ktor.server.sessions.Sessions]
-     * plugin.
+     * @param body validation function called with the current routing context and session value read by the
+     * [io.ktor.server.sessions.Sessions] plugin.
      */
-    public fun validate(body: suspend ApplicationCall.(S) -> P?) {
-        validateFn = body
+    public fun validate(body: suspend RoutingContext.(S) -> P?) {
+        principalResolver = body
+    }
+
+    /**
+     * Configures CSRF protection for routes authenticated with this session scheme.
+     *
+     * @param config CSRF plugin configuration.
+     */
+    public fun csrfProtection(config: CSRFConfig.() -> Unit) {
+        csrfConfig = config
+    }
+
+    /**
+     * Configures how the typed session scheme installs the [io.ktor.server.sessions.Sessions] plugin.
+     *
+     * @param config session plugin configuration block.
+     */
+    public fun storage(config: SessionsPluginConfig<S, P, *>) {
+        sessionsPluginConfig = config
     }
 
     @PublishedApi
@@ -70,15 +125,13 @@ public class TypedSessionAuthConfig<S : Any, P : Any> @PublishedApi internal con
         sessionKey: AttributeKey<S>
     ): SessionAuthenticationProvider<S> {
         val config = SessionAuthenticationProvider.Config(name, description, sessionType)
-        config.sessionName = name
-        validateFn?.let { fn ->
-            config.validate { session ->
-                val principal = fn(session)
-                if (principal != null) {
-                    attributes.put(sessionKey, session)
-                }
-                principal
+        val resolver = requireNotNull(principalResolver) { "Principal resolver cannot be null" }
+        config.validate { session ->
+            val principal = toRoutingContext().resolver(session)
+            if (principal != null) {
+                attributes.put(sessionKey, session)
             }
+            principal
         }
         return config.buildProvider()
     }

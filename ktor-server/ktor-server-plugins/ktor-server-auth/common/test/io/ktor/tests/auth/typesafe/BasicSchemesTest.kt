@@ -86,6 +86,67 @@ class BasicSchemesTest {
     }
 
     @Test
+    fun `different typed schemes with same name fail fast`() = testApplication {
+        val first = bearer<TestUser>("duplicate-bearer") {
+            authenticate { TestUser("first", "first@test.com") }
+        }
+        val second = bearer<TestUser>("duplicate-bearer") {
+            authenticate { TestUser("second", "second@test.com") }
+        }
+
+        routing {
+            authenticateWith(first) {
+                get("/first") {
+                    call.respondText(principal.name)
+                }
+            }
+            authenticateWith(second) {
+                get("/second") {
+                    call.respondText(principal.name)
+                }
+            }
+        }
+
+        val failure = assertFailsWith<IllegalArgumentException> {
+            startApplication()
+        }
+
+        assertContains(failure.message.orEmpty(), "already registered")
+    }
+
+    @Test
+    fun `same typed scheme instance can protect multiple route blocks`() = testApplication {
+        val scheme = bearer<TestUser>("reused-bearer") {
+            authenticate { TestUser("user", "user@test.com") }
+        }
+
+        routing {
+            authenticateWith(scheme) {
+                get("/first") {
+                    call.respondText(principal.name)
+                }
+            }
+            authenticateWith(scheme) {
+                get("/second") {
+                    call.respondText(principal.name)
+                }
+            }
+        }
+
+        val first = client.get("/first") {
+            header(HttpHeaders.Authorization, bearerAuthHeader("anything"))
+        }
+        assertEquals(HttpStatusCode.OK, first.status)
+        assertEquals("user", first.bodyAsText())
+
+        val second = client.get("/second") {
+            header(HttpHeaders.Authorization, bearerAuthHeader("anything"))
+        }
+        assertEquals(HttpStatusCode.OK, second.status)
+        assertEquals("user", second.bodyAsText())
+    }
+
+    @Test
     fun `form scheme authenticates and rejects`() = testApplication {
         val formScheme = form<TestUser>("test-form") {
             validate { credentials ->
@@ -154,11 +215,12 @@ class BasicSchemesTest {
 
     @Test
     fun `session scheme exposes stored session and mapped principal`() = testApplication {
-        val sessionScheme = session<UserSession, TestUser>("test-session-principal") {
-            validate { session ->
-                TestUser(session.username, "${session.username}@test.com")
+        val sessionScheme =
+            session<UserSession, TestUser>("test-session-principal") {
+                validate { session ->
+                    TestUser(session.username, "${session.username}@test.com")
+                }
             }
-        }
 
         install(Sessions) {
             cookie(sessionScheme)

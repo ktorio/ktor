@@ -53,7 +53,6 @@ class NestedRoutesTest {
         }
         assertEquals("bearer:bearer-user", bearerResp.bodyAsText())
 
-        // Same scheme registered once, works on both routes
         val basic2Resp = client.get("/basic2") {
             header(HttpHeaders.Authorization, basicAuthHeader("alice"))
         }

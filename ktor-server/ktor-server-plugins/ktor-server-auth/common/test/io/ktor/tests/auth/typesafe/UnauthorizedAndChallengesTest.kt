@@ -59,7 +59,7 @@ class UnauthorizedAndChallengesTest {
     @Test
     fun `scheme-level onUnauthorized overrides default challenge`() = testApplication {
         val scheme = basic<TestUser>("custom-401") {
-            onUnauthorized = { call, _ ->
+            onUnauthorized = { _ ->
                 call.respondText("Custom 401", status = HttpStatusCode.Unauthorized)
             }
             validate { credentials ->
@@ -85,7 +85,7 @@ class UnauthorizedAndChallengesTest {
     @Test
     fun `route-level onUnauthorized overrides scheme-level`() = testApplication {
         val scheme = basic<TestUser>("override-test") {
-            onUnauthorized = { call, _ ->
+            onUnauthorized = { _ ->
                 call.respondText("Scheme default", status = HttpStatusCode.Unauthorized)
             }
             validate { credentials ->
@@ -101,7 +101,7 @@ class UnauthorizedAndChallengesTest {
             authenticateWith(scheme) {
                 get("/default") { call.respondText(principal.name) }
             }
-            authenticateWith(scheme, onUnauthorized = { call, _ ->
+            authenticateWith(scheme, onUnauthorized = { _ ->
                 call.respondText("Route override", status = HttpStatusCode.Unauthorized)
             }) {
                 get("/custom") { call.respondText(principal.name) }
@@ -119,7 +119,7 @@ class UnauthorizedAndChallengesTest {
         routing {
             authenticateWith(
                 scheme,
-                onUnauthorized = { call, cause ->
+                onUnauthorized = { cause ->
                     call.respondText(cause::class.simpleName!!, status = HttpStatusCode.Unauthorized)
                 }
             ) {
@@ -146,7 +146,7 @@ class UnauthorizedAndChallengesTest {
             authenticateWithAnyOf(
                 basicScheme,
                 bearerScheme,
-                onUnauthorized = { call, failures ->
+                onUnauthorized = { failures ->
                     val text = failures.entries
                         .sortedBy { it.key }
                         .joinToString(";") { (name, cause) -> "$name=${cause::class.simpleName}" }
@@ -173,7 +173,7 @@ class UnauthorizedAndChallengesTest {
         routing {
             authenticateWithAnyOf(
                 scheme,
-                onUnauthorized = { call, failures ->
+                onUnauthorized = { failures ->
                     val cause = failures.getValue("final-failure")
                     call.respondText(cause::class.simpleName!!, status = HttpStatusCode.Unauthorized)
                 }
