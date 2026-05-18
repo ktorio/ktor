@@ -1,0 +1,67 @@
+public final class io/ktor/server/auth/openid/DiscoveryException : java/lang/RuntimeException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class io/ktor/server/auth/openid/OpenIdProviderMetadata {
+	public static final field Companion Lio/ktor/server/auth/openid/OpenIdProviderMetadata$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getAcrValuesSupported ()Ljava/util/List;
+	public final fun getAuthorizationEndpoint ()Ljava/lang/String;
+	public final fun getAuthorizationResponseIssParameterSupported ()Ljava/lang/Boolean;
+	public final fun getCheckSessionIframe ()Ljava/lang/String;
+	public final fun getClaimTypesSupported ()Ljava/util/List;
+	public final fun getClaimsLocalesSupported ()Ljava/util/List;
+	public final fun getClaimsParameterSupported ()Ljava/lang/Boolean;
+	public final fun getClaimsSupported ()Ljava/util/List;
+	public final fun getDisplayValuesSupported ()Ljava/util/List;
+	public final fun getEndSessionEndpoint ()Ljava/lang/String;
+	public final fun getGrantTypesSupported ()Ljava/util/List;
+	public final fun getIdTokenEncryptionAlgValuesSupported ()Ljava/util/List;
+	public final fun getIdTokenEncryptionEncValuesSupported ()Ljava/util/List;
+	public final fun getIdTokenSigningAlgValuesSupported ()Ljava/util/List;
+	public final fun getIssuer ()Ljava/lang/String;
+	public final fun getJwksUri ()Ljava/lang/String;
+	public final fun getOpPolicyUri ()Ljava/lang/String;
+	public final fun getOpTosUri ()Ljava/lang/String;
+	public final fun getRegistrationEndpoint ()Ljava/lang/String;
+	public final fun getRequestObjectEncryptionAlgValuesSupported ()Ljava/util/List;
+	public final fun getRequestObjectEncryptionEncValuesSupported ()Ljava/util/List;
+	public final fun getRequestObjectSigningAlgValuesSupported ()Ljava/util/List;
+	public final fun getRequestParameterSupported ()Ljava/lang/Boolean;
+	public final fun getRequestUriParameterSupported ()Ljava/lang/Boolean;
+	public final fun getRequireRequestUriRegistration ()Ljava/lang/Boolean;
+	public final fun getResponseModesSupported ()Ljava/util/List;
+	public final fun getResponseTypesSupported ()Ljava/util/List;
+	public final fun getScopesSupported ()Ljava/util/List;
+	public final fun getSubjectTypesSupported ()Ljava/util/List;
+	public final fun getTokenEndpoint ()Ljava/lang/String;
+	public final fun getTokenEndpointAuthMethodsSupported ()Ljava/util/List;
+	public final fun getTokenEndpointAuthSigningAlgValuesSupported ()Ljava/util/List;
+	public final fun getUiLocalesSupported ()Ljava/util/List;
+	public final fun getUserInfoEndpoint ()Ljava/lang/String;
+	public final fun getUserinfoEncryptionAlgValuesSupported ()Ljava/util/List;
+	public final fun getUserinfoEncryptionEncValuesSupported ()Ljava/util/List;
+	public final fun getUserinfoSigningAlgValuesSupported ()Ljava/util/List;
+}
+
+public final synthetic class io/ktor/server/auth/openid/OpenIdProviderMetadata$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/ktor/server/auth/openid/OpenIdProviderMetadata$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/server/auth/openid/OpenIdProviderMetadata;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/server/auth/openid/OpenIdProviderMetadata;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/auth/openid/OpenIdProviderMetadata$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/auth/openid/OpenIdProviderMetadataKt {
+	public static final fun fetchOpenIdMetadata (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
