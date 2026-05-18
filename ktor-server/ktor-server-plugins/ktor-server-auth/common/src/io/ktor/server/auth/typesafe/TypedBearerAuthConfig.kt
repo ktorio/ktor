@@ -29,7 +29,7 @@ import io.ktor.utils.io.*
  */
 @ExperimentalKtorApi
 @KtorDsl
-public class TypedBearerAuthConfig<P : Any> @PublishedApi internal constructor() {
+public class TypedBearerAuthConfig<P : Any> @InternalAPI constructor() {
     /**
      * Human-readable description of this authentication scheme.
      *
