@@ -16,6 +16,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(projects.ktorClientCore)
+            api(projects.ktorServerCsrf)
             api(projects.ktorServerSessions)
             api(libs.kotlinx.serialization.json)
         }

@@ -17,7 +17,7 @@ import kotlin.coroutines.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RoutingPipelineCall)
  *
- * @property call original call from [io.ktor.server.engine.ApplicationEngine]
+ * @property engineCall original call from [io.ktor.server.engine.ApplicationEngine]
  * @property route is the selected route
  */
 public class RoutingPipelineCall(

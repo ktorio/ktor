@@ -4,7 +4,6 @@
 
 package io.ktor.server.auth.typesafe
 
-import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import kotlin.jvm.JvmName
@@ -53,6 +52,38 @@ public inline fun <reified P : Any> bearer(
 }
 
 /**
+ * Creates a typed Bearer authentication scheme with an explicit principal type and custom authenticated context.
+ *
+ * This internal API exists for authentication integrations that need to expose provider-bound helpers in
+ * [authenticateWith] route bodies while still reusing Ktor's typed Bearer provider implementation.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.bearer)
+ *
+ * @param name name that identifies the Bearer authentication scheme.
+ * @param principalType principal type produced by this scheme.
+ * @param contextFactory creates the route context exposed by [authenticateWith].
+ * @param configure configures Bearer authentication for this scheme.
+ * @return a typed authentication scheme that produces principals of type [P].
+ */
+@InternalAPI
+@ExperimentalKtorApi
+public fun <P : Any, C : AuthenticatedContext<P>> bearer(
+    name: String,
+    principalType: KClass<P>,
+    contextFactory: (DefaultAuthenticatedContext<P>) -> C,
+    configure: TypedBearerAuthConfig<P>.() -> Unit
+): DefaultAuthScheme<P, C> {
+    val typedConfig = TypedBearerAuthConfig<P>().apply(configure)
+    return DefaultAuthScheme(
+        name = name,
+        principalType = principalType,
+        provider = typedConfig.buildProvider(name),
+        onUnauthorized = typedConfig.onUnauthorized,
+        contextFactory = contextFactory,
+    )
+}
+
+/**
  * Creates a typed Form authentication scheme.
  *
  * The [validate][TypedFormAuthConfig.validate] callback returns a principal of type [P]. Use the returned scheme with
@@ -86,45 +117,20 @@ public inline fun <reified P : Any> form(
  * @return a typed authentication scheme that produces principals of type [P].
  */
 @ExperimentalKtorApi
+@OptIn(InternalAPI::class)
 @JvmName("sessionWithPrincipal")
 public inline fun <reified S : Any, reified P : Any> session(
     name: String,
-    noinline configure: TypedSessionAuthConfig<S, P>.() -> Unit
-): SessionAuthScheme<S, P> {
-    return buildSessionAuthScheme(
+    configure: TypedSessionAuthConfig<S, P, DefaultSessionAuthenticatedContext<S, P>>.() -> Unit
+): SessionAuthScheme<S, P, DefaultSessionAuthenticatedContext<S, P>> {
+    val config = TypedSessionAuthConfig<S, P, DefaultSessionAuthenticatedContext<S, P>>().apply(configure)
+    check(config.contextFactory == null)
+    config.contextFactory = { it }
+    return SessionAuthScheme.from(
         name = name,
         sessionTypeInfo = typeInfo<S>(),
         principalType = P::class,
-        configure = configure
-    )
-}
-
-@PublishedApi
-@OptIn(ExperimentalKtorApi::class)
-internal fun <S : Any, P : Any> buildSessionAuthScheme(
-    name: String,
-    sessionTypeInfo: TypeInfo,
-    principalType: KClass<P>,
-    configure: TypedSessionAuthConfig<S, P>.() -> Unit
-): SessionAuthScheme<S, P> {
-    val typedConfig = TypedSessionAuthConfig<S, P>().apply(configure)
-
-    @Suppress("UNCHECKED_CAST")
-    val sessionType = sessionTypeInfo.type as KClass<S>
-    val sessionKey = AttributeKey<S>("TypesafeAuth:$name:Session", sessionTypeInfo)
-    val provider = typedConfig.buildProvider(
-        name = name,
-        sessionType = sessionType,
-        sessionKey = sessionKey
-    )
-    return SessionAuthScheme(
-        name = name,
-        sessionType = sessionType,
-        sessionTypeInfo = sessionTypeInfo,
-        principalType = principalType,
-        provider = provider,
-        onUnauthorized = typedConfig.onUnauthorized,
-        sessionKey = sessionKey
+        config = config
     )
 }
 
@@ -143,7 +149,6 @@ internal fun <S : Any, P : Any> buildSessionAuthScheme(
 @ExperimentalKtorApi
 public inline fun <reified P : Any> session(
     name: String,
-    noinline configure: TypedSessionAuthConfig<P, P>.() -> Unit
-): SessionAuthScheme<P, P> {
-    return session<P, P>(name, configure)
-}
+    noinline configure: TypedSessionAuthConfig<P, P, DefaultSessionAuthenticatedContext<P, P>>.() -> Unit
+): SessionAuthScheme<P, P, DefaultSessionAuthenticatedContext<P, P>> =
+    session<P, P>(name, configure)
