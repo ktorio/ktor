@@ -69,6 +69,22 @@ public class BearerAuthConfig {
     internal var loadTokens: suspend () -> BearerTokens? = { null }
     internal var sendWithoutRequest: (HttpRequestBuilder) -> Boolean = { true }
 
+    /**
+     * Specifies the authentication realm this provider should answer.
+     *
+     * The realm is matched against the `realm` parameter from a `WWW-Authenticate: Bearer`
+     * challenge. Leave it `null` (default) when the client has a single bearer provider or when
+     * the server does not distinguish bearer credentials by realm. Set it when multiple bearer
+     * providers are installed, and this provider should only handle challenges for a particular
+     * protection space.
+     *
+     * Typical values are the exact realm strings advertised by the server, for example `api`,
+     * `admin`, or another application-defined name. Do not include the `Bearer` scheme name.
+     * When set, a bearer challenge whose `realm` parameter is absent or different is ignored by
+     * this provider.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.BearerAuthConfig.realm)
+     */
     public var realm: String? = null
 
     /**
