@@ -26,7 +26,7 @@ public fun File.readChannel(
     coroutineContext: CoroutineContext = Dispatchers.IO
 ): ByteReadChannel {
     val fileLength = length()
-    val randomAccessFile by lazy { RandomAccessFile(this@readChannel, "r") }
+    val randomAccessFile = lazy { RandomAccessFile(this@readChannel, "r") }
     val writer = CoroutineScope(coroutineContext).writer(
         CoroutineName("file-reader") + coroutineContext,
         autoFlush = false
@@ -37,14 +37,19 @@ public fun File.readChannel(
         }
 
         @Suppress("BlockingMethodInNonBlockingContext")
-        randomAccessFile.use { file ->
+        randomAccessFile.value.use { file ->
             val fileChannel: FileChannel = file.channel
             fileChannel.writeToScope(this, start, endInclusive)
         }
     }
 
     writer.invokeOnCompletion {
-        randomAccessFile.close()
+        if (randomAccessFile.isInitialized()) {
+            // The writer block already closes the file via `use { ... }` on the happy path.
+            // Swallow errors here so an unopened or already-closed file doesn't surface as
+            // an uncaught CompletionHandlerException on a worker thread.
+            runCatching { randomAccessFile.value.close() }
+        }
     }
 
     return writer.channel

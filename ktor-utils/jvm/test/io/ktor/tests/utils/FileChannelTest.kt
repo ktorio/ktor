@@ -129,4 +129,25 @@ class FileChannelTest {
         assertEquals(5, file.length())
         assertEquals("Hello", file.readText())
     }
+
+    @Test
+    fun `readChannel on nonexistent file does not leak exception from completion handler`() = runBlocking {
+        val nonexistent = File(sandbox, "definitely-does-not-exist-${System.nanoTime()}")
+        assertFalse(nonexistent.exists())
+
+        val caught = mutableListOf<Throwable>()
+        val handler = CoroutineExceptionHandler { _, t -> caught.add(t) }
+
+        val channel = nonexistent.readChannel(coroutineContext = Dispatchers.IO + handler)
+        runCatching { channel.discard() }
+
+        delay(200)
+
+        assertTrue(
+            caught.isEmpty(),
+            "completion handler leaked: ${caught.map {
+                "${it.javaClass.simpleName}(cause=${it.cause?.javaClass?.simpleName})"
+            }}"
+        )
+    }
 }
