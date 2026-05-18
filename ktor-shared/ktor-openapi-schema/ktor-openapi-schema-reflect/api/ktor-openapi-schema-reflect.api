@@ -11,6 +11,7 @@ public final class io/ktor/openapi/reflect/ReflectionJsonSchemaInference$Compani
 }
 
 public abstract interface class io/ktor/openapi/reflect/SchemaReflectionAdapter {
+	public fun getDiscriminatorProperty (Lkotlin/reflect/KClass;)Ljava/lang/String;
 	public fun getName (Lkotlin/reflect/KProperty1;)Ljava/lang/String;
 	public fun getName (Lkotlin/reflect/KType;)Ljava/lang/String;
 	public fun getProperties (Lkotlin/reflect/KClass;)Ljava/util/Collection;
@@ -19,6 +20,7 @@ public abstract interface class io/ktor/openapi/reflect/SchemaReflectionAdapter 
 }
 
 public final class io/ktor/openapi/reflect/SchemaReflectionAdapter$DefaultImpls {
+	public static fun getDiscriminatorProperty (Lio/ktor/openapi/reflect/SchemaReflectionAdapter;Lkotlin/reflect/KClass;)Ljava/lang/String;
 	public static fun getName (Lio/ktor/openapi/reflect/SchemaReflectionAdapter;Lkotlin/reflect/KProperty1;)Ljava/lang/String;
 	public static fun getName (Lio/ktor/openapi/reflect/SchemaReflectionAdapter;Lkotlin/reflect/KType;)Ljava/lang/String;
 	public static fun getProperties (Lio/ktor/openapi/reflect/SchemaReflectionAdapter;Lkotlin/reflect/KClass;)Ljava/util/Collection;
