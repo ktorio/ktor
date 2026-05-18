@@ -30,7 +30,7 @@ class TypedApiKeyAuthTest {
         routing {
             authenticateWith(
                 scheme,
-                onUnauthorized = { call, cause ->
+                onUnauthorized = { cause ->
                     call.respondText(cause::class.simpleName!!, status = HttpStatusCode.Unauthorized)
                 }
             ) {
@@ -84,7 +84,7 @@ class TypedApiKeyAuthTest {
     @Test
     fun `api key onUnauthorized can be configured per scheme and route`() = testApplication {
         val scheme = typedApiKey<ApiKeyPrincipal>("typed-api-key-unauthorized") {
-            onUnauthorized = { call, cause ->
+            onUnauthorized = { cause ->
                 call.respondText("scheme:${cause::class.simpleName}", status = HttpStatusCode.Unauthorized)
             }
             validate { apiKey ->
@@ -100,7 +100,7 @@ class TypedApiKeyAuthTest {
             }
             authenticateWith(
                 scheme,
-                onUnauthorized = { call, cause ->
+                onUnauthorized = { cause ->
                     call.respondText("route:${cause::class.simpleName}", status = HttpStatusCode.Unauthorized)
                 }
             ) {
@@ -140,7 +140,7 @@ class TypedApiKeyAuthTest {
             authenticateWithAnyOf(
                 primary,
                 secondary,
-                onUnauthorized = { call, failures ->
+                onUnauthorized = { failures ->
                     val text = failures.entries.joinToString(";") { (name, cause) ->
                         "$name=${cause::class.simpleName}"
                     }

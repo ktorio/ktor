@@ -50,7 +50,7 @@ internal fun DefaultAuthScheme<*, *>.createTypedAuthPlugin(
     kind: String,
     onUnauthorized: UnauthorizedHandler?,
     optional: Boolean = false,
-    onAccepted: (suspend (ApplicationCall) -> Unit)? = null
+    onAccepted: (suspend RoutingContext.() -> Unit)? = null
 ): RouteScopedPlugin<Unit> =
     createRouteScopedPlugin(name = route.typedAuthPluginName(kind, name)) {
         on(AuthenticationHook) { call ->
@@ -58,34 +58,36 @@ internal fun DefaultAuthScheme<*, *>.createTypedAuthPlugin(
                 return@on
             }
 
-            val context = call.authentication
-            val existingPrincipal = principalFrom(context)
+            val authContext = call.authentication
+            val existingPrincipal = principalFrom(authContext)
             if (existingPrincipal != null) {
                 capture(call, existingPrincipal)
                 return@on
             }
 
             logAuthenticationAttempt(call, provider)
-            provider.onAuthenticate(context)
-            if (principalFrom(context) != null) {
+            provider.onAuthenticate(authContext)
+
+            val routingContext = call.toRoutingContext()
+            if (principalFrom(authContext) != null) {
                 logAuthenticationSucceeded(call, provider)
-                onAccepted?.invoke(call)
-                principalFrom(context)?.let { principal -> capture(call, principal) }
+                onAccepted?.invoke(routingContext)
+                principalFrom(authContext)?.let { principal -> capture(call, principal) }
                 return@on
             }
 
             logAuthenticationFailed(call, provider)
-            val cause = context.allFailures.lastOrNull() ?: AuthenticationFailedCause.NoCredentials
+            val cause = authContext.allFailures.lastOrNull() ?: AuthenticationFailedCause.NoCredentials
 
             when {
                 optional && cause == AuthenticationFailedCause.NoCredentials -> {
-                    logOptionalAuthentication(call)
-                    onAccepted?.invoke(call)
-                    principalFrom(context)?.let { principal -> capture(call, principal) }
+                    LOGGER.trace("Authentication is optional and no credentials were provided for ${call.request.uri}")
+                    onAccepted?.invoke(routingContext)
+                    principalFrom(authContext)?.let { principal -> capture(call, principal) }
                 }
 
-                onUnauthorized != null -> onUnauthorized(call, cause)
-                else -> context.executeChallenges(call)
+                onUnauthorized != null -> routingContext.onUnauthorized(cause)
+                else -> authContext.executeChallenges(call)
             }
         }
     }
@@ -159,7 +161,7 @@ internal fun <P : Any> createTypedMultiAuthInterceptor(
                 logAuthenticationFailed(call, provider)
                 failures[scheme.name] = schemeContext.lastFailureOrNoCredentials()
             }
-            onUnauthorized(call, failures)
+            call.toRoutingContext().onUnauthorized(failures)
         }
     }
 }
@@ -180,10 +182,6 @@ private fun logAuthenticationSucceeded(call: ApplicationCall, provider: Authenti
 
 private fun logAuthenticationFailed(call: ApplicationCall, provider: AuthenticationProvider) {
     LOGGER.trace("Authentication failed for ${call.request.uri} with provider $provider")
-}
-
-private fun logOptionalAuthentication(call: ApplicationCall) {
-    LOGGER.trace("Authentication is optional and no credentials were provided for ${call.request.uri}")
 }
 
 private fun logSkippingOtherProviders(call: ApplicationCall) {

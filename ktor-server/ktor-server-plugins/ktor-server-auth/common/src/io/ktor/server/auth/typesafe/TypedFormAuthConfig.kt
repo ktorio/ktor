@@ -4,8 +4,8 @@
 
 package io.ktor.server.auth.typesafe
 
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.routing.*
 import io.ktor.utils.io.*
 
 /**
@@ -56,9 +56,9 @@ public class TypedFormAuthConfig<P : Any> @PublishedApi internal constructor() {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedFormAuthConfig.onUnauthorized)
      */
-    public var onUnauthorized: (suspend (ApplicationCall, AuthenticationFailedCause) -> Unit)? = null
+    public var onUnauthorized: UnauthorizedHandler? = null
 
-    private var validateFn: (suspend ApplicationCall.(UserPasswordCredential) -> P?)? = null
+    private var validateFn: (suspend RoutingContext.(UserPasswordCredential) -> P?)? = null
 
     /**
      * Sets a validation function for [UserPasswordCredential].
@@ -67,9 +67,10 @@ public class TypedFormAuthConfig<P : Any> @PublishedApi internal constructor() {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedFormAuthConfig.validate)
      *
-     * @param body validation function called for credentials extracted from form parameters.
+     * @param body validation function called with the current routing context and credentials extracted from form
+     * parameters.
      */
-    public fun validate(body: suspend ApplicationCall.(UserPasswordCredential) -> P?) {
+    public fun validate(body: suspend RoutingContext.(UserPasswordCredential) -> P?) {
         validateFn = body
     }
 
@@ -78,7 +79,7 @@ public class TypedFormAuthConfig<P : Any> @PublishedApi internal constructor() {
         val config = FormAuthenticationProvider.Config(name, description)
         config.userParamName = userParamName
         config.passwordParamName = passwordParamName
-        validateFn?.let { fn -> config.validate { credential -> fn(credential) } }
+        validateFn?.let { fn -> config.validate { credential -> toRoutingContext().fn(credential) } }
         return config.build()
     }
 }
