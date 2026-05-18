@@ -23,6 +23,20 @@ public fun Sequence<Route>.mapToPathItemsAndSchema(): Pair<Map<String, PathItem>
     // original qualified title -> component name, for rewriting discriminator $ref values after collection
     val schemaComponentNameMapping = mutableMapOf<String, String>()
     val jsonSchema = mutableMapOf<String, JsonSchema>()
+
+    // Allocates a unique component name when distinct schemas share the same title (for example,
+    // when the same Kotlin type is documented under multiple routes with different schema inferences).
+    fun uniqueName(preferred: String, candidate: JsonSchema): String {
+        val existing = jsonSchema[preferred]
+        if (existing == null || existing == candidate.copy(title = preferred)) return preferred
+        var counter = 2
+        while (true) {
+            val name = "$preferred$counter"
+            val existingAlt = jsonSchema[name]
+            if (existingAlt == null || existingAlt == candidate.copy(title = name)) return name
+            counter++
+        }
+    }
     val pathItems = mapToPathItems(
         PopulateMediaTypeDefaults + CollectSchemaReferences { schema ->
             val title = schema.title ?: return@CollectSchemaReferences null
@@ -30,13 +44,12 @@ public fun Sequence<Route>.mapToPathItemsAndSchema(): Pair<Map<String, PathItem>
             val existingQualifiedTitle = qualifiedNameMap[unqualifiedTitle] ?: title
             // if the shortened title is already in use by a different type, use the full title instead
             val componentName = if (existingQualifiedTitle != title) {
-                jsonSchema[title] = schema.copy(title = title)
-                title
+                uniqueName(title, schema)
             } else {
                 qualifiedNameMap[unqualifiedTitle] = title
-                jsonSchema[unqualifiedTitle] = schema.copy(title = unqualifiedTitle)
-                unqualifiedTitle
+                uniqueName(unqualifiedTitle, schema)
             }
+            jsonSchema[componentName] = schema.copy(title = componentName)
             schemaComponentNameMapping[title] = componentName
             componentName
         }
@@ -149,13 +162,15 @@ private fun Route.method(): HttpMethod? =
         ?.method
 
 private fun Route.operation(): Operation? {
-    val schemaInference = application.attributes.getOrNull(JsonSchemaAttributeKey)
+    val lineageFromRoot = lineage().toList().asReversed()
+    val schemaInference = lineageFromRoot.firstNotNullOfOrNull { it.attributes.getOrNull(JsonSchemaAttributeKey) }
+        ?: application.attributes.getOrNull(JsonSchemaAttributeKey)
         ?: KotlinxSerializerJsonSchemaInference.Default
     val defaultContentTypes = application.attributes.getOrNull(DefaultContentTypesAttribute)
         ?: listOf(ContentType.Application.Json)
 
     // Merge operations from top to bottom, selectors to describe calls
-    return lineage().toList().asReversed().fold(null) { acc: Operation?, node: Route ->
+    return lineageFromRoot.fold(null) { acc: Operation?, node: Route ->
         val current = mergeNullable(
             node.operationFromSelector(),
             node.operationFromDescribeCalls(schemaInference, defaultContentTypes),

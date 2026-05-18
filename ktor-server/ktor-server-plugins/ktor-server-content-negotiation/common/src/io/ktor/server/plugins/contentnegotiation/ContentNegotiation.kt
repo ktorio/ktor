@@ -6,12 +6,14 @@ package io.ktor.server.plugins.contentnegotiation
 
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.openapi.JsonSchemaInference
 import io.ktor.serialization.*
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
 import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
+import io.ktor.server.routing.openapi.JsonSchemaAttributeKey
 import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
@@ -64,6 +66,13 @@ public val ContentNegotiation: RouteScopedPlugin<ContentNegotiationConfig> = cre
 
     // register default content types for application metadata, used in OpenAPI
     application.attributes[DefaultContentTypesAttribute] = pluginConfig.registrations.map { it.contentType }.distinct()
+
+    // content converters can optionally implement JsonSchemaInference
+    // so that the models supplied to `describe {}` will be aligned
+    pluginConfig.registrations.firstNotNullOfOrNull { it.converter as? JsonSchemaInference }?.let { schemaInference ->
+        val attributes = route?.attributes ?: application.attributes
+        attributes.put(JsonSchemaAttributeKey, schemaInference)
+    }
 }
 
 /**

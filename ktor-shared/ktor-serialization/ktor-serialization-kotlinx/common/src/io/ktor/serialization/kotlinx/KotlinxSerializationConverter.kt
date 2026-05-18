@@ -6,6 +6,7 @@ package io.ktor.serialization.kotlinx
 
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.openapi.*
 import io.ktor.serialization.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
@@ -14,6 +15,8 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.flow.*
 import kotlinx.io.*
 import kotlinx.serialization.*
+import kotlin.jvm.*
+import kotlin.reflect.KType
 
 /**
  * Creates a converter serializing with the specified string [format]
@@ -23,15 +26,24 @@ import kotlinx.serialization.*
 @OptIn(ExperimentalSerializationApi::class, InternalSerializationApi::class)
 public class KotlinxSerializationConverter(
     private val format: SerialFormat,
-) : ContentConverter {
+) : ContentConverter, JsonSchemaInference {
 
     private val extensions: List<KotlinxSerializationExtension> = extensions(format)
+
+    /**
+     * JSON schema inference that respects the [SerializersModule] of the wrapped [format],
+     * so contextual serializers registered by the caller are reflected in the generated schema.
+     */
+    private val schemaInference: JsonSchemaInference =
+        KotlinxSerializerJsonSchemaInference(format.serializersModule)
 
     init {
         require(format is BinaryFormat || format is StringFormat) {
             "Only binary and string formats are supported, $format is not supported."
         }
     }
+
+    override fun buildSchema(type: KType): JsonSchema = schemaInference.buildSchema(type)
 
     @OptIn(InternalAPI::class)
     override suspend fun serialize(
