@@ -7,6 +7,7 @@ package io.ktor.tests.http.content
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.server.http.content.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -19,6 +20,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class StaticContentResolutionTest {
 
@@ -46,6 +48,20 @@ class StaticContentResolutionTest {
             val data = String(runBlocking { readFrom().toByteArray() })
             assertEquals("test\n", data)
         }
+    }
+
+    @OptIn(InternalAPI::class)
+    @Test
+    fun `resourceClasspathResource falls back to URIFileContent for nested jar URL`() {
+        val nestedJarUrl = URL("jar:file:/outer.jar!/lib/dep.jar!/static/index.html")
+        val content = resourceClasspathResource(nestedJarUrl, "static/index.html") {
+            ContentType.Text.Html
+        }
+
+        assertNotNull(content)
+        assertTrue(content is URIFileContent)
+        assertEquals(nestedJarUrl.toURI(), content.uri)
+        assertEquals(ContentType.Text.Html, content.contentType)
     }
 
     @Test
