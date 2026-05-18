@@ -107,7 +107,13 @@ public class BearerAuthConfig {
     }
 
     /**
-     * Sends credentials without waiting for [HttpStatusCode.Unauthorized].
+     * Configures when bearer credentials are sent without waiting for [HttpStatusCode.Unauthorized].
+     *
+     * By default, bearer authentication sends credentials with every request. Use this predicate to limit
+     * preemptive authentication to trusted hosts, paths, or other request properties.
+     *
+     * @param block a predicate that receives an outgoing request and returns `true` when bearer credentials
+     * should be sent with it before receiving a challenge.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.BearerAuthConfig.sendWithoutRequest)
      */
