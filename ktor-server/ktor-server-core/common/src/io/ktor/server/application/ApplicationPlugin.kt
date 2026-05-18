@@ -173,6 +173,14 @@ private fun <B : Any, F : Any> RoutingNode.installIntoRoute(
         copyChildrenRecursively(child)
     }
 
+    // Transfer attributes from the exposed route
+    fakePipeline.attributes.allKeys
+        .filter { it != pluginRegistryKey }
+        .forEach { key ->
+            @Suppress("UNCHECKED_CAST")
+            attributes.put(key as AttributeKey<Any>, fakePipeline.attributes[key])
+        }
+
     mergePhases(fakePipeline)
     receivePipeline.mergePhases(fakePipeline.receivePipeline)
     sendPipeline.mergePhases(fakePipeline.sendPipeline)

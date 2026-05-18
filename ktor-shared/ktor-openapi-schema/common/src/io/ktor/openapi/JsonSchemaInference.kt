@@ -18,8 +18,6 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
-import kotlin.time.ExperimentalTime
-import kotlin.uuid.ExperimentalUuidApi
 
 /**
  * Context interface for creating schema from type metadata.
@@ -42,7 +40,6 @@ public fun interface JsonSchemaInference {
  */
 public val KotlinxJsonSchemaInference: JsonSchemaInference get() = KotlinxSerializerJsonSchemaInference.Default
 
-@OptIn(ExperimentalUuidApi::class, ExperimentalTime::class)
 public val KotlinxSerializerDefaultFormats: (SerialDescriptor) -> String? = { type ->
     when (type.nonNullSerialName) {
         "kotlin.uuid.Uuid" -> "uuid"
@@ -346,9 +343,29 @@ public class KotlinxSerializerJsonSchemaInference(
                 )
             }
 
-            PolymorphicKind.OPEN,
             SerialKind.CONTEXTUAL -> {
-                // For contextual serializers, we need to get the actual serializer from the context
+                // For contextual serializers, resolve the actual serializer from the module
+                // (if registered) and recurse into its descriptor so the schema reflects the
+                // concrete representation chosen by the caller.
+                val contextualDescriptor = descriptor.capturedKClass
+                    ?.let { kClass -> module.getContextual(kClass)?.descriptor }
+                if (contextualDescriptor != null) {
+                    buildSchemaFromDescriptor(
+                        descriptor = contextualDescriptor,
+                        includeTitle = includeTitle,
+                        includeAnnotations = includeAnnotations,
+                        visiting = visiting,
+                    ).wrapIfNullable(isNullable)
+                } else {
+                    jsonSchemaFromAnnotations(
+                        annotations = annotations,
+                        reflectSchema = reflectJsonSchema,
+                        type = JsonType.OBJECT.wrapIfNullable(isNullable),
+                    )
+                }
+            }
+
+            PolymorphicKind.OPEN -> {
                 jsonSchemaFromAnnotations(
                     annotations = annotations,
                     reflectSchema = reflectJsonSchema,
