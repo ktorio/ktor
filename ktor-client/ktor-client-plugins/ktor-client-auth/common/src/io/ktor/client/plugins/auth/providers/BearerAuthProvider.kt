@@ -104,7 +104,18 @@ public class BearerAuthConfig {
     public var cacheTokens: Boolean = true
 
     /**
-     * Configures a callback that refreshes a token when the 401 status code is received.
+     * Configures a callback that refreshes bearer tokens when the client receives an unauthorized response.
+     *
+     * The callback is synchronized with the provider's token cache. If several requests receive an unauthorized
+     * response for the same cached token at the same time, only one refresh callback is executed and the other
+     * requests reuse the refreshed token.
+     *
+     * Return new tokens when refresh succeeds. With the default [cacheTokens] value, the returned tokens replace
+     * the cached tokens and are used to retry the failed request. Return `null` when refresh is not possible; the
+     * original request is not retried with new bearer credentials, and the unauthorized response is returned.
+     *
+     * @param block a callback that receives the unauthorized response, client, and previously loaded tokens, and
+     * returns refreshed bearer tokens or `null` when refresh fails.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.BearerAuthConfig.refreshTokens)
      */
