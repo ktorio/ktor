@@ -108,7 +108,7 @@ class TypedJwtAuthTest {
     @Test
     fun `jwt onUnauthorized can be configured per scheme and route`() = testApplication {
         val scheme = typedJwt<JwtUser>("typed-jwt-unauthorized") {
-            onUnauthorized = { call, cause ->
+            onUnauthorized = { cause ->
                 call.respondText("scheme:${cause::class.simpleName}", status = HttpStatusCode.Unauthorized)
             }
             verifier(ISSUER, AUDIENCE, ALGORITHM)
@@ -123,7 +123,7 @@ class TypedJwtAuthTest {
             }
             authenticateWith(
                 scheme,
-                onUnauthorized = { call, cause ->
+                onUnauthorized = { cause ->
                     call.respondText("route:${cause::class.simpleName}", status = HttpStatusCode.Unauthorized)
                 }
             ) {

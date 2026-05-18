@@ -74,6 +74,38 @@ public class RoleBasedContext<P : Any, R : AuthRole> internal constructor(
 }
 
 /**
+ * Typed authentication context that exposes a stored session and the principal derived from it.
+ *
+ * @param S the stored session type.
+ * @param P the principal type.
+ */
+@ExperimentalKtorApi
+public interface SessionAuthenticatedContext<S : Any, P : Any> : AuthenticatedContext<P> {
+
+    /**
+     * Returns the session value captured for [context].
+     */
+    public fun session(context: RoutingContext): S
+
+    /**
+     * Stores [value] as the current session for [context].
+     */
+    public fun setSession(context: RoutingContext, value: S)
+
+    /**
+     * Replaces the current session for [context] with the value returned by [transform].
+     *
+     * @return the updated session value.
+     */
+    public fun updateSession(context: RoutingContext, transform: (S) -> S): S
+
+    /**
+     * Clears the current session for [context].
+     */
+    public fun clearSession(context: RoutingContext)
+}
+
+/**
  * Typed authentication context used by Session authentication.
  *
  * The context exposes the authenticated [principal], the session value that passed authentication, and helpers to
@@ -84,19 +116,19 @@ public class RoleBasedContext<P : Any, R : AuthRole> internal constructor(
  * @param S the stored session type.
  * @param P the principal type.
  */
-@ExperimentalKtorApi
 @KtorDsl
-public class SessionAuthenticatedContext<S : Any, P : Any> @PublishedApi internal constructor(
-    defaultContext: DefaultAuthenticatedContext<P>,
+@ExperimentalKtorApi
+public class DefaultSessionAuthenticatedContext<S : Any, P : Any> @PublishedApi internal constructor(
+    base: DefaultAuthenticatedContext<P>,
     private val sessionKey: AttributeKey<S>,
     private val sessionProviderName: String,
-) : AuthenticatedContext<P> by defaultContext {
+) : SessionAuthenticatedContext<S, P>, AuthenticatedContext<P> by base {
     /**
      * Returns the session value that passed authentication for [context].
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.SessionAuthenticatedContext.session)
      */
-    public fun session(context: RoutingContext): S {
+    override fun session(context: RoutingContext): S {
         return checkNotNull(context.call.attributes.getOrNull(sessionKey)) {
             "Session not found. This should not happen inside a session authenticateWith block."
         }
@@ -109,7 +141,7 @@ public class SessionAuthenticatedContext<S : Any, P : Any> @PublishedApi interna
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.SessionAuthenticatedContext.setSession)
      */
-    public fun setSession(context: RoutingContext, value: S) {
+    override fun setSession(context: RoutingContext, value: S) {
         context.call.sessions.set(sessionProviderName, value)
         context.call.attributes.put(sessionKey, value)
     }
@@ -119,7 +151,7 @@ public class SessionAuthenticatedContext<S : Any, P : Any> @PublishedApi interna
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.SessionAuthenticatedContext.clearSession)
      */
-    public fun clearSession(context: RoutingContext) {
+    override fun clearSession(context: RoutingContext) {
         context.call.sessions.clear(sessionProviderName)
         context.call.attributes.remove(sessionKey)
     }
@@ -131,7 +163,7 @@ public class SessionAuthenticatedContext<S : Any, P : Any> @PublishedApi interna
      *
      * @return the updated session value.
      */
-    public fun updateSession(context: RoutingContext, transform: (S) -> S): S {
+    override fun updateSession(context: RoutingContext, transform: (S) -> S): S {
         val updated = transform(session(context))
         setSession(context, updated)
         return updated
@@ -186,11 +218,11 @@ public val <P> RoutingContext.principal: P
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.session)
  */
 @ExperimentalKtorApi
-context(auth: SessionAuthenticatedContext<S, *>)
+context(ctx: SessionAuthenticatedContext<S, *>)
 public var <S : Any> RoutingContext.session: S
-    get() = auth.session(context = this)
+    get() = ctx.session(context = this)
     set(value) {
-        auth.setSession(context = this, value)
+        ctx.setSession(context = this, value)
     }
 
 /**
@@ -200,9 +232,9 @@ public var <S : Any> RoutingContext.session: S
  */
 @ExperimentalKtorApi
 @JvmName("setAuthenticatedSession")
-context(auth: SessionAuthenticatedContext<S, *>)
+context(ctx: SessionAuthenticatedContext<S, *>)
 public fun <S : Any> RoutingContext.setSession(value: S) {
-    auth.setSession(context = this, value)
+    ctx.setSession(context = this, value)
 }
 
 /**
@@ -213,9 +245,9 @@ public fun <S : Any> RoutingContext.setSession(value: S) {
  * @return the updated session value.
  */
 @ExperimentalKtorApi
-context(auth: SessionAuthenticatedContext<S, *>)
+context(ctx: SessionAuthenticatedContext<S, *>)
 public fun <S : Any> RoutingContext.updateSession(transform: (S) -> S): S {
-    return auth.updateSession(context = this, transform)
+    return ctx.updateSession(context = this, transform)
 }
 
 /**
@@ -224,9 +256,9 @@ public fun <S : Any> RoutingContext.updateSession(transform: (S) -> S): S {
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.clearSession)
  */
 @ExperimentalKtorApi
-context(auth: SessionAuthenticatedContext<S, *>)
+context(ctx: SessionAuthenticatedContext<S, *>)
 public fun <S : Any> RoutingContext.clearSession() {
-    auth.clearSession(context = this)
+    ctx.clearSession(context = this)
 }
 
 /**
@@ -237,6 +269,6 @@ public fun <S : Any> RoutingContext.clearSession() {
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.roles)
  */
 @ExperimentalKtorApi
-context(auth: RoleBasedContext<*, R>)
+context(ctx: RoleBasedContext<*, R>)
 public val <R : AuthRole> RoutingContext.roles: Set<R>
-    get() = auth.roles(context = this)
+    get() = ctx.roles(context = this)

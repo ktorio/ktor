@@ -121,7 +121,7 @@ public class AnonymousAuthScheme<B : Any, P : B, AP : B>(
             route = route,
             kind = "Anonymous",
             optional = true,
-            onAccepted = { call ->
+            onAccepted = {
                 val ctx = call.authentication
                 val principal: B = base.principalFrom(ctx) ?: anonymousFactory(call).also { anonymous ->
                     // Use ctx.principal directly; anonymous type AP may differ from base type P.

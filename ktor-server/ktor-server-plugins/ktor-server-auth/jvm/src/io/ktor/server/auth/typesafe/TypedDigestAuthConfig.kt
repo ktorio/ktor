@@ -5,8 +5,8 @@
 package io.ktor.server.auth.typesafe
 
 import io.ktor.http.auth.*
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
@@ -88,9 +88,9 @@ public class TypedDigestAuthConfig<P : Any> @PublishedApi internal constructor()
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedDigestAuthConfig.onUnauthorized)
      */
-    public var onUnauthorized: (suspend (ApplicationCall, AuthenticationFailedCause) -> Unit)? = null
+    public var onUnauthorized: UnauthorizedHandler? = null
 
-    private var validateFn: (suspend ApplicationCall.(DigestCredential) -> P?)? = null
+    private var validateFn: (suspend RoutingContext.(DigestCredential) -> P?)? = null
     private var digestProviderFn: DigestProviderFunctionV2? = null
     private var legacyDigestProviderFn: DigestProviderFunction? = null
     private var userHashResolverFn: UserHashResolverFunction? = null
@@ -104,9 +104,9 @@ public class TypedDigestAuthConfig<P : Any> @PublishedApi internal constructor()
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedDigestAuthConfig.validate)
      *
-     * @param body validation function called after Digest credentials are verified.
+     * @param body validation function called with the current routing context after Digest credentials are verified.
      */
-    public fun validate(body: suspend ApplicationCall.(DigestCredential) -> P?) {
+    public fun validate(body: suspend RoutingContext.(DigestCredential) -> P?) {
         validateFn = body
     }
 
@@ -169,7 +169,9 @@ public class TypedDigestAuthConfig<P : Any> @PublishedApi internal constructor()
         config.supportedQop = supportedQop
         config.charset = charset
         config.nonceManager = nonceManager
-        validateFn?.let { fn -> config.validate { credential -> fn(credential) } }
+        validateFn?.let { fn ->
+            config.validate { credential -> toRoutingContext().fn(credential) }
+        }
         val digestProvider = digestProviderFn
         if (digestProvider != null) {
             config.digestProvider(digestProvider)

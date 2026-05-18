@@ -7,6 +7,7 @@ package io.ktor.server.auth.typesafe
 import io.ktor.http.auth.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.routing.*
 import io.ktor.utils.io.*
 
 /**
@@ -51,9 +52,9 @@ public class TypedBearerAuthConfig<P : Any> @PublishedApi internal constructor()
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedBearerAuthConfig.onUnauthorized)
      */
-    public var onUnauthorized: (suspend (ApplicationCall, AuthenticationFailedCause) -> Unit)? = null
+    public var onUnauthorized: UnauthorizedHandler? = null
 
-    private var authenticateFn: (suspend ApplicationCall.(BearerTokenCredential) -> P?)? = null
+    private var authenticateFn: (suspend RoutingContext.(BearerTokenCredential) -> P?)? = null
     private var authHeaderFn: ((ApplicationCall) -> HttpAuthHeader?)? = null
     private var defaultScheme: String? = null
     private var additionalSchemes: List<String>? = null
@@ -65,9 +66,10 @@ public class TypedBearerAuthConfig<P : Any> @PublishedApi internal constructor()
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedBearerAuthConfig.authenticate)
      *
-     * @param body authentication function called with the extracted [BearerTokenCredential].
+     * @param body authentication function called with the current routing context and extracted
+     * [BearerTokenCredential].
      */
-    public fun authenticate(body: suspend ApplicationCall.(BearerTokenCredential) -> P?) {
+    public fun authenticate(body: suspend RoutingContext.(BearerTokenCredential) -> P?) {
         authenticateFn = body
     }
 
@@ -106,7 +108,7 @@ public class TypedBearerAuthConfig<P : Any> @PublishedApi internal constructor()
     internal fun buildProvider(name: String): BearerAuthenticationProvider {
         val config = BearerAuthenticationProvider.Config(name, description)
         realm?.let { config.realm = it }
-        authenticateFn?.let { fn -> config.authenticate { credential -> fn(credential) } }
+        authenticateFn?.let { fn -> config.authenticate { credential -> toRoutingContext().fn(credential) } }
         authHeaderFn?.let { config.authHeader(it) }
         defaultScheme?.let { ds ->
             config.authSchemes(ds, *additionalSchemes!!.toTypedArray())
