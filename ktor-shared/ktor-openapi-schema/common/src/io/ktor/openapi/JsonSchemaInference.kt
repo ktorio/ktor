@@ -11,6 +11,7 @@ import io.ktor.utils.io.*
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonClassDiscriminator
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
@@ -192,7 +193,10 @@ public class KotlinxSerializerJsonSchemaInference(
 
             PolymorphicKind.SEALED -> {
                 if (descriptor.elementsCount == 2) {
-                    val discriminatorProperty = descriptor.getElementName(0)
+                    val discriminatorProperty = descriptor.annotations
+                        .filterIsInstance<JsonClassDiscriminator>()
+                        .firstOrNull()?.discriminator
+                        ?: descriptor.getElementName(0)
                     val sealedElementsDescriptor = descriptor.getElementDescriptor(1)
                     val sealedSubclassComponentNames = sealedSubclassComponentNameMapping(serializer)
                     val sealedElementsSchema = (0..<sealedElementsDescriptor.elementsCount)
