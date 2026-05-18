@@ -10,8 +10,8 @@ import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.interfaces.Verification
 import io.ktor.http.auth.*
 import io.ktor.server.application.*
-import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
+import io.ktor.server.auth.typesafe.*
 import io.ktor.utils.io.*
 
 /**
@@ -56,7 +56,7 @@ public class TypedJwtAuthConfig<P : Any> @PublishedApi internal constructor() {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedJwtAuthConfig.onUnauthorized)
      */
-    public var onUnauthorized: (suspend (ApplicationCall, AuthenticationFailedCause) -> Unit)? = null
+    public var onUnauthorized: UnauthorizedHandler? = null
 
     private var validateFn: (suspend ApplicationCall.(JWTCredential) -> P?)? = null
     private var authHeaderFn: ((ApplicationCall) -> HttpAuthHeader?)? = null

@@ -15,12 +15,12 @@ import kotlin.reflect.KClass
 /**
  * Handles an authentication failure for a typed authentication scheme.
  *
- * The handler receives the current [ApplicationCall] and the [AuthenticationFailedCause] for the failed
- * authentication attempt.
+ * The handler receives the current [RoutingContext] and the [AuthenticationFailedCause] for the failed authentication
+ * attempt.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.UnauthorizedHandler)
  */
-public typealias UnauthorizedHandler = suspend (ApplicationCall, AuthenticationFailedCause) -> Unit
+public typealias UnauthorizedHandler = suspend RoutingContext.(AuthenticationFailedCause) -> Unit
 
 /**
  * Represents a typed authentication scheme that can provide an authenticated route context.
@@ -51,12 +51,14 @@ public interface AuthScheme<P : Any, C : AuthenticatedContext<*>> {
     public fun createAuthenticatedContext(route: Route): C
 }
 
-private val RegisteredSchemesKey = AttributeKey<MutableSet<String>>("TypesafeAuthRegisteredSchemes")
+private val RegisteredSchemesKey = AttributeKey<MutableMap<String, Any>>("TypesafeAuthRegisteredSchemes")
 
 /**
  * Default [AuthScheme] implementation created by typed authentication builders.
  *
- * The scheme is registered lazily when it is used by [authenticateWith].
+ * The scheme is registered lazily when it is first used by [authenticateWith]. Reusing the same scheme instance in
+ * another typed route reuses the existing application registration. Creating a different scheme instance with the same
+ * name fails fast because scheme names are application-wide identifiers.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.DefaultAuthScheme)
  *
@@ -92,10 +94,16 @@ public open class DefaultAuthScheme<P : Any, C : AuthenticatedContext<P>>(
     }
 
     private fun Application.registerSchemeIfNeeded() {
-        val registered = attributes.computeIfAbsent(RegisteredSchemesKey) { mutableSetOf() }
-        if (name in registered) return
+        val registered = attributes.computeIfAbsent(RegisteredSchemesKey) { mutableMapOf() }
+        val existing = registered[name]
+        if (existing != null) {
+            require(existing === this@DefaultAuthScheme) {
+                "Typed authentication scheme `$name` is already registered"
+            }
+            return
+        }
+        registered[name] = this@DefaultAuthScheme
         authentication { setup(this) }
-        registered.add(name)
     }
 
     internal open fun preinstall(route: Route) {
@@ -107,7 +115,7 @@ public open class DefaultAuthScheme<P : Any, C : AuthenticatedContext<P>>(
         onUnauthorized: UnauthorizedHandler? = null,
         kind: String = "Scheme",
         optional: Boolean = false,
-        onAccepted: (suspend (ApplicationCall) -> Unit)? = null
+        onAccepted: (suspend RoutingContext.() -> Unit)? = null
     ): C {
         preinstall(route)
         val plugin = createTypedAuthPlugin(
@@ -157,3 +165,6 @@ public open class DefaultAuthScheme<P : Any, C : AuthenticatedContext<P>>(
         }
     }
 }
+
+@OptIn(ExperimentalKtorApi::class)
+public typealias DefaultAuthenticatedScheme<P> = DefaultAuthScheme<P, DefaultAuthenticatedContext<P>>
