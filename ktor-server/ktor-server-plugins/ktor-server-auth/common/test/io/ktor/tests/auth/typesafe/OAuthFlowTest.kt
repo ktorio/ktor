@@ -19,6 +19,7 @@ import io.ktor.server.testing.*
 import io.ktor.utils.io.*
 import kotlinx.serialization.Serializable
 import kotlin.test.Test
+import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
@@ -27,32 +28,29 @@ data class OAuthSession(val accessToken: String)
 
 data class OAuthPrincipal(val token: String, val source: String)
 
-class OAuthWithSessionTest {
+class OAuthFlowTest {
 
-    private fun createOAuthScheme(testClient: HttpClient): OAuthWithSessionScheme<OAuthSession, OAuthPrincipal> =
-        oauthWithSession<OAuthSession, OAuthPrincipal>(
-            name = "test-oauth",
-            principalFactory = { OAuthPrincipal(it.accessToken, "session") }
-        ) {
-            oauth {
-                client = testClient
-                urlProvider = { "http://localhost/callback" }
-                settings = OAuthServerSettings.OAuth2ServerSettings(
-                    name = "test-provider",
-                    authorizeUrl = "http://oauth.test/authorize",
-                    accessTokenUrl = "http://oauth.test/token",
-                    clientId = "test-client-id",
-                    clientSecret = "test-client-secret",
-                    requestMethod = HttpMethod.Post,
-                )
+    private fun createOAuthScheme(testClient: HttpClient) =
+        oauth2Flow(name = "test-oauth") {
+            client = testClient
+            urlProvider = { "http://localhost/callback" }
+            settings = OAuthServerSettings.OAuth2ServerSettings(
+                name = "test-provider",
+                authorizeUrl = "http://oauth.test/authorize",
+                accessTokenUrl = "http://oauth.test/token",
+                clientId = "test-client-id",
+                clientSecret = "test-client-secret",
+                requestMethod = HttpMethod.Post,
+            )
+        }.withSessions<OAuthPrincipal, OAuthSession> {
+            storage {
+                cookie(scheme = it)
             }
-            session {
-                cookie(it)
-            }
-            sessionFactory { token ->
+            sessionCreator = { token ->
                 val oauth2 = token as OAuthAccessTokenResponse.OAuth2
                 OAuthSession(accessToken = oauth2.accessToken)
             }
+            principalResolver = { OAuthPrincipal(it.accessToken, source = "session") }
         }
 
     private fun ApplicationTestBuilder.mockOAuthServices(accessToken: String = "test_token") {
@@ -100,6 +98,35 @@ class OAuthWithSessionTest {
     }
 
     @Test
+    fun `oauth error invokes onForbidden`() = testApplication {
+        val testClient = createClient { install(HttpCookies) }
+        val scheme = oauth2Flow(name = "test-oauth") {
+            client = testClient
+            urlProvider = { "http://localhost/callback" }
+            settings = OAuthServerSettings.OAuth2ServerSettings(
+                name = "test-provider",
+                authorizeUrl = "http://oauth.test/authorize",
+                accessTokenUrl = "http://oauth.test/token",
+                clientId = "test-client-id",
+                clientSecret = "test-client-secret",
+                requestMethod = HttpMethod.Post,
+            )
+            onForbidden = { cause ->
+                val message = (cause as? AuthenticationFailedCause.Error)?.message ?: cause.toString()
+                call.respondText("forbidden:$message", status = HttpStatusCode.Forbidden)
+            }
+        }
+
+        routing {
+            oauthCallback(scheme, path = "/callback") { call.respondText("done") }
+        }
+
+        val response = testClient.get("/callback?error=access_denied&error_description=denied")
+        assertEquals(HttpStatusCode.Forbidden, response.status)
+        assertEquals("forbidden:access_denied: denied", response.bodyAsText())
+    }
+
+    @Test
     fun `oauth callback creates session and protects routes`() = testApplication {
         val testClient = createClient { install(HttpCookies) }
         val scheme = createOAuthScheme(testClient)
@@ -109,7 +136,7 @@ class OAuthWithSessionTest {
             oauthCallback(scheme, path = "/callback") {
                 call.respondText("${session.accessToken}:${principal.token}:${principal.source}")
             }
-            authenticateWith(scheme) {
+            authenticateWith(scheme.sessions) {
                 get("/protected") { call.respondText("${session.accessToken}:${principal.token}:${principal.source}") }
             }
         }
@@ -130,7 +157,7 @@ class OAuthWithSessionTest {
 
         routing {
             oauthCallback(scheme, path = "/callback") { call.respondRedirect("/") }
-            authenticateWith(scheme) {
+            authenticateWith(scheme.sessions) {
                 get("/protected") { call.respondText(principal.token) }
             }
         }
@@ -139,40 +166,32 @@ class OAuthWithSessionTest {
     }
 
     @Test
-    fun `missing oauth config throws`() {
-        assertFailsWith<IllegalArgumentException> {
-            oauthWithSession<OAuthSession>("bad") {
-                session { cookie(it) }
-                sessionFactory { OAuthSession("t") }
-            }
-        }
-    }
-
-    @Test
-    fun `missing session config throws`() {
-        assertFailsWith<IllegalArgumentException> {
-            oauthWithSession<OAuthSession>("bad") {
-                oauth {
-                    client = HttpClient()
-                    urlProvider = { "" }
-                    providerLookup = { null }
-                }
-                sessionFactory { OAuthSession("t") }
-            }
-        }
-    }
-
-    @Test
     fun `missing sessionFactory throws`() {
-        assertFailsWith<IllegalArgumentException> {
-            oauthWithSession<OAuthSession>("bad") {
-                oauth {
-                    client = HttpClient()
+        val failure = assertFailsWith<IllegalArgumentException> {
+            HttpClient().use { c ->
+                oauth2Flow(name = "google") {
+                    client = c
                     urlProvider = { "" }
                     providerLookup = { null }
-                }
-                session { cookie(it) }
+                }.withSessions<OAuthPrincipal, OAuthSession> {}
             }
         }
+        assertContains(failure.message.orEmpty(), "Session creator cannot be null for OAuth2SessionFlow google")
+    }
+
+    @Test
+    fun `missing principal resolver throws`() {
+        val failure = assertFailsWith<IllegalArgumentException> {
+            HttpClient().use { c ->
+                oauth2Flow(name = "google") {
+                    client = c
+                    urlProvider = { "" }
+                    providerLookup = { null }
+                }.withSessions<OAuthPrincipal, OAuthSession> {
+                    sessionCreator = { OAuthSession("token") }
+                }
+            }
+        }
+        assertContains(failure.message.orEmpty(), "Principal resolver cannot be null for OAuth2SessionFlow google")
     }
 }
