@@ -52,7 +52,7 @@ class StaticContentResolutionTest {
 
     @OptIn(InternalAPI::class)
     @Test
-    fun testResourceClasspathResourceFallsBackToURIFileContentForNestedJar() {
+    fun `resourceClasspathResource falls back to URIFileContent for nested jar URL`() {
         val nestedJarUrl = URL("jar:file:/outer.jar!/lib/dep.jar!/static/index.html")
         val content = resourceClasspathResource(nestedJarUrl, "static/index.html") {
             ContentType.Text.Html
