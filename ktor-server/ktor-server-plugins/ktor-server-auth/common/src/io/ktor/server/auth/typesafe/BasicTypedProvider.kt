@@ -7,7 +7,6 @@ package io.ktor.server.auth.typesafe
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import kotlin.jvm.JvmName
-import kotlin.reflect.*
 
 /**
  * Creates a typed Basic authentication scheme.
@@ -47,40 +46,9 @@ public inline fun <reified P : Any> bearer(
     name: String,
     configure: TypedBearerAuthConfig<P>.() -> Unit
 ): DefaultAuthScheme<P, DefaultAuthenticatedContext<P>> {
+    @OptIn(InternalAPI::class)
     val typedConfig = TypedBearerAuthConfig<P>().apply(configure)
     return DefaultAuthScheme.withDefaultContext(name, typedConfig.buildProvider(name), typedConfig.onUnauthorized)
-}
-
-/**
- * Creates a typed Bearer authentication scheme with an explicit principal type and custom authenticated context.
- *
- * This internal API exists for authentication integrations that need to expose provider-bound helpers in
- * [authenticateWith] route bodies while still reusing Ktor's typed Bearer provider implementation.
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.bearer)
- *
- * @param name name that identifies the Bearer authentication scheme.
- * @param principalType principal type produced by this scheme.
- * @param contextFactory creates the route context exposed by [authenticateWith].
- * @param configure configures Bearer authentication for this scheme.
- * @return a typed authentication scheme that produces principals of type [P].
- */
-@InternalAPI
-@ExperimentalKtorApi
-public fun <P : Any, C : AuthenticatedContext<P>> bearer(
-    name: String,
-    principalType: KClass<P>,
-    contextFactory: (DefaultAuthenticatedContext<P>) -> C,
-    configure: TypedBearerAuthConfig<P>.() -> Unit
-): DefaultAuthScheme<P, C> {
-    val typedConfig = TypedBearerAuthConfig<P>().apply(configure)
-    return DefaultAuthScheme(
-        name = name,
-        principalType = principalType,
-        provider = typedConfig.buildProvider(name),
-        onUnauthorized = typedConfig.onUnauthorized,
-        contextFactory = contextFactory,
-    )
 }
 
 /**
