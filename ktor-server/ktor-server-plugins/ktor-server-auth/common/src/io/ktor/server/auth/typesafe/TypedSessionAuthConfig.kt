@@ -13,6 +13,15 @@ import io.ktor.utils.io.*
 import kotlin.reflect.KClass
 
 /**
+ * Resolves a route principal from a stored session value.
+ *
+ * The resolver receives the current [RoutingContext] and the session value.
+ *
+ * Return `null` to reject the session.
+ */
+public typealias SessionPrincipalResolver<S, P> = suspend RoutingContext.(S) -> P?
+
+/**
  * Configures the [Sessions] plugin for a typed session authentication scheme.
  *
  * @param S stored session type.
@@ -21,15 +30,6 @@ import kotlin.reflect.KClass
  */
 @OptIn(ExperimentalKtorApi::class)
 public typealias SessionsPluginConfig<S, P, C> = SessionsConfig.(SessionAuthScheme<S, P, C>) -> Unit
-
-/**
- * Resolves a route principal from a stored session value.
- *
- * The resolver receives the current [RoutingContext] and the session value.
- *
- * Return `null` to reject the session.
- */
-public typealias SessionPrincipalResolver<S, P> = suspend RoutingContext.(S) -> P?
 
 /**
  * Configures a typed Session authentication scheme.

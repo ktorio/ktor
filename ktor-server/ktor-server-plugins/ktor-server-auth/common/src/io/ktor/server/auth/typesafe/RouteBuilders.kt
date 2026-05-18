@@ -223,24 +223,3 @@ public fun <B : Any, P : B, AP : B> Route.authenticateWith(
     }
     return route
 }
-
-/**
- * Creates a child route protected by the session part of an [OAuthWithSessionScheme].
- *
- * Use [oauthCallback] to create the OAuth callback route that stores the session, then use this route builder to
- * protect routes that require that session.
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.authenticateWith)
- *
- * @param scheme compound OAuth and Session authentication scheme.
- * @param onUnauthorized optional route-level handler invoked when session authentication fails.
- * @param build route builder with [SessionAuthenticatedContext] available as a context parameter.
- */
-@ExperimentalKtorApi
-public fun <S : Any, P : Any> Route.authenticateWith(
-    scheme: OAuthWithSessionScheme<S, P>,
-    onUnauthorized: UnauthorizedHandler? = null,
-    build: AuthenticatedRouteBuilder<SessionAuthenticatedContext<S, P>>
-): Route {
-    return authenticateWith(scheme.sessionScheme, onUnauthorized, build)
-}
