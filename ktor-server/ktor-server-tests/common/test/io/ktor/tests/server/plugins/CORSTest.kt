@@ -1592,4 +1592,33 @@ class CORSTest {
             assertEquals(response.status, HttpStatusCode.Forbidden)
         }
     }
+
+    @Test
+    fun testDefaultMethodsIncludedInAllowMethodsHeader() = testApplication {
+        install(CORS) {
+            allowMethod(HttpMethod.Post)
+            anyHost()
+        }
+
+        routing {
+            post("/") {
+                call.respond("OK")
+            }
+        }
+
+        val response = client.options("/") {
+            header(HttpHeaders.Origin, "https://example.com")
+            header(HttpHeaders.AccessControlRequestMethod, "POST")
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        val allowMethodsHeader = response.headers[HttpHeaders.AccessControlAllowMethods]
+
+        assertNotNull(allowMethodsHeader, "Access-Control-Allow-Methods header should not be null")
+        assertTrue(
+            allowMethodsHeader.contains("POST"),
+            "Expected Access-Control-Allow-Methods to include POST, but got: $allowMethodsHeader"
+        )
+    }
+
 }
