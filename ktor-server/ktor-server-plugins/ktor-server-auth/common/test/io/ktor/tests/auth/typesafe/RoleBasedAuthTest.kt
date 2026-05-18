@@ -61,7 +61,7 @@ class RoleBasedAuthTest {
     @Test
     fun `custom onForbidden handler receives required roles`() = testApplication {
         val scheme = acceptAllBasicScheme("forbidden-test").withRoles(
-            onForbidden = { call, requiredRoles ->
+            onForbidden = { requiredRoles ->
                 call.respondText(
                     "Need: ${requiredRoles.joinToString { it.name }}",
                     status = HttpStatusCode.Forbidden
@@ -90,7 +90,7 @@ class RoleBasedAuthTest {
     @Test
     fun `route-level onForbidden overrides scheme-level`() = testApplication {
         val scheme = acceptAllBasicScheme("forbidden-override").withRoles(
-            onForbidden = { call, _ ->
+            onForbidden = {
                 call.respondText("Scheme forbidden", status = HttpStatusCode.Forbidden)
             }
         ) { principal ->
@@ -107,7 +107,7 @@ class RoleBasedAuthTest {
             authenticateWith(
                 scheme,
                 roles = setOf(TestRole.Admin),
-                onForbidden = { call, requiredRoles ->
+                onForbidden = { requiredRoles ->
                     call.respondText(
                         "Route: need ${requiredRoles.joinToString { it.name }}",
                         status = HttpStatusCode.Forbidden
@@ -132,7 +132,7 @@ class RoleBasedAuthTest {
     @Test
     fun `route-level onUnauthorized overrides scheme-level for role-based auth`() = testApplication {
         val baseScheme = basic<TestUser>("role-unauthorized-override") {
-            onUnauthorized = { call, _ ->
+            onUnauthorized = {
                 call.respondText("Scheme unauthorized", status = HttpStatusCode.Unauthorized)
             }
             validate { credentials ->
@@ -154,7 +154,7 @@ class RoleBasedAuthTest {
             authenticateWith(
                 scheme,
                 roles = setOf(TestRole.Admin),
-                onUnauthorized = { call, cause ->
+                onUnauthorized = { cause ->
                     call.respondText(
                         "Route unauthorized:${cause::class.simpleName}",
                         status = HttpStatusCode.Unauthorized
