@@ -24,7 +24,8 @@ import kotlin.time.toJavaDuration
  * [bearer] is available when the provider was configured with `bearer { }`.
  *
  * @param P principal type exposed by this provider's route-facing capabilities.
- * @property name provider name. It is also used to derive the Bearer scheme name (`{name}-bearer`).
+ * @property name provider name. It is also used to derive default routes (`/oidc/{name}/...`), the OAuth flow
+ * name (`{name}`), and the Bearer scheme name (`{name}-bearer`).
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.openid.OidcProvider)
  */
@@ -41,10 +42,15 @@ public class OidcProvider<P : Any> internal constructor(
     private var providerState: OidcProviderState? = null
 
     internal var bearerScheme: OidcBearerScheme<P>? = null
+    internal var oauthFlow: OAuth2Flow? = null
+
+    internal val authorizationTransactionStore = OidcAuthorizationTransactionStore()
 
     internal fun createSchemes() {
         check(bearerScheme == null)
+        check(oauthFlow == null)
         bearerScheme = createBearerScheme()
+        oauthFlow = createOauthFlow()
     }
 
     internal fun updateMetadata(newMetadata: OpenIdProviderMetadata) {

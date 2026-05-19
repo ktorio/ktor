@@ -52,6 +52,51 @@ internal fun <P : Any> OidcProvider<P>.createBearerScheme(): OidcBearerScheme<P>
     }
 }
 
+internal fun OidcProvider<*>.createOauthFlow(): OAuth2Flow? {
+    val oauthConfig = config.oauthConfig ?: return null
+    val provider = this
+
+    val oauthFlow = oauth2Flow(name) {
+        client = this@createOauthFlow.client
+        settings = provider.oauthServerSettings()
+        urlProvider = { call.request.oidcRedirectUri(oauthConfig.redirectUri) }
+        onForbidden = onForbidden@{ cause ->
+            val message = (cause as? AuthenticationFailedCause.Error)?.message ?: cause.toString()
+            provider.logger.debug("OAuth authentication failed for: {}", message)
+            oauthConfig.onFailure.invoke(this@onForbidden, cause)
+        }
+    }
+    return oauthFlow
+}
+
+private fun OidcProvider<*>.oauthServerSettings(): OAuthServerSettings.OAuth2ServerSettings {
+    val oauthConfig = checkNotNull(config.oauthConfig)
+    val metadata = currentMetadata()
+    return OAuthServerSettings.OAuth2ServerSettings(
+        name = name,
+        authorizeUrl = metadata.authorizationEndpoint,
+        accessTokenUrl = metadata.tokenEndpoint,
+        requestMethod = HttpMethod.Post,
+        clientId = oauthConfig.clientId,
+        clientSecret = oauthConfig.clientSecret,
+        defaultScopes = oauthConfig.scopes,
+        authorizeUrlInterceptor = authorize@{ request ->
+            val state = parameters[OAuth2RequestParameters.State]
+            val authorizationTransaction = state?.let { findAuthorizationTransaction(request.call, state = it) }
+                ?: return@authorize
+            parameters.append("nonce", authorizationTransaction.nonce)
+        },
+        verifyState = { call, state ->
+            validateAuthorizationResponseIssuer(call)
+            state != null && findAuthorizationTransaction(call, state) != null
+        },
+        extraTokenParametersProvider = { _, _ -> emptyList() },
+        onStateCreated = { call, state ->
+            createAuthorizationTransaction(call, state)
+        },
+    )
+}
+
 private fun ApplicationCall.extractBearerHeader(extractor: TokenExtractor?, logger: Logger): HttpAuthHeader? {
     val token = if (extractor == null) {
         val header = request.headers[HttpHeaders.Authorization] ?: return null
