@@ -96,9 +96,14 @@ public class ByteChannel(public override val autoFlush: Boolean = false) : ByteR
         sleepWhile(Slot::Read) {
             flushBufferSize + _readBuffer.size < min && _closedCause.value == null
         }
+        rethrowCloseCauseIfNeeded()
 
         if (_readBuffer.size < CHANNEL_MAX_SIZE) moveFlushToReadBuffer()
         return _readBuffer.size >= min
+    }
+
+    private fun rethrowCloseCauseIfNeeded() {
+        closedCause?.let { throw it }
     }
 
     @OptIn(InternalAPI::class)

@@ -162,7 +162,6 @@ public suspend fun ByteReadChannel.copyTo(channel: ByteWriteChannel): Long {
         channel.flush()
     }
 
-    rethrowCloseCauseIfNeeded()
     return result
 }
 
@@ -217,7 +216,6 @@ public suspend fun ByteReadChannel.copyTo(channel: ByteWriteChannel, limit: Long
         channel.flush()
     }
 
-    rethrowCloseCauseIfNeeded()
     return limit - remaining
 }
 
