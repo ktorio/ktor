@@ -63,10 +63,9 @@ actual constructor(
 
         CoroutineScope(application.coroutineContext).launch {
             engine.resolvedConnectors().forEach {
-                val host = escapeHostname(it.host)
-                environment.log.info(
-                    "Responding at ${it.type.name.lowercase()}://$host:${it.port}"
-                )
+                val address = it.addressDescription
+                    ?: "${it.type.name.lowercase()}://${escapeHostname(it.host)}:${it.port}"
+                environment.log.info("Responding at $address")
             }
         }
     }

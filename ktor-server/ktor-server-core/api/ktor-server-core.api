@@ -666,6 +666,7 @@ public class io/ktor/server/engine/EngineConnectorBuilder : io/ktor/server/engin
 	public fun <init> ()V
 	public fun <init> (Lio/ktor/server/engine/ConnectorType;)V
 	public synthetic fun <init> (Lio/ktor/server/engine/ConnectorType;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getAddressDescription ()Ljava/lang/String;
 	public fun getHost ()Ljava/lang/String;
 	public fun getPort ()I
 	public fun getType ()Lio/ktor/server/engine/ConnectorType;
@@ -675,9 +676,14 @@ public class io/ktor/server/engine/EngineConnectorBuilder : io/ktor/server/engin
 }
 
 public abstract interface class io/ktor/server/engine/EngineConnectorConfig {
+	public fun getAddressDescription ()Ljava/lang/String;
 	public abstract fun getHost ()Ljava/lang/String;
 	public abstract fun getPort ()I
 	public abstract fun getType ()Lio/ktor/server/engine/ConnectorType;
+}
+
+public final class io/ktor/server/engine/EngineConnectorConfig$DefaultImpls {
+	public static fun getAddressDescription (Lio/ktor/server/engine/EngineConnectorConfig;)Ljava/lang/String;
 }
 
 public final class io/ktor/server/engine/EngineConnectorConfigJvmKt {
@@ -741,6 +747,10 @@ public abstract interface class io/ktor/server/engine/EngineSSLConnectorConfig :
 	public abstract fun getPrivateKeyPassword ()Lkotlin/jvm/functions/Function0;
 	public abstract fun getTrustStore ()Ljava/security/KeyStore;
 	public abstract fun getTrustStorePath ()Ljava/io/File;
+}
+
+public final class io/ktor/server/engine/EngineSSLConnectorConfig$DefaultImpls {
+	public static fun getAddressDescription (Lio/ktor/server/engine/EngineSSLConnectorConfig;)Ljava/lang/String;
 }
 
 public final class io/ktor/server/engine/ShutDownUrl {

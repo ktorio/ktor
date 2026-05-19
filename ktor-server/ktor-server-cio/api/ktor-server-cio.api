@@ -57,6 +57,7 @@ public final class io/ktor/server/cio/HttpServerSettings {
 
 public final class io/ktor/server/cio/UnixSocketConnectorBuilder : io/ktor/server/engine/EngineConnectorBuilder, io/ktor/server/cio/UnixSocketConnectorConfig {
 	public fun <init> ()V
+	public fun getAddressDescription ()Ljava/lang/String;
 	public fun getSocketPath ()Ljava/lang/String;
 	public fun setSocketPath (Ljava/lang/String;)V
 	public fun toString ()Ljava/lang/String;
@@ -64,6 +65,10 @@ public final class io/ktor/server/cio/UnixSocketConnectorBuilder : io/ktor/serve
 
 public abstract interface class io/ktor/server/cio/UnixSocketConnectorConfig : io/ktor/server/engine/EngineConnectorConfig {
 	public abstract fun getSocketPath ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/cio/UnixSocketConnectorConfig$DefaultImpls {
+	public static fun getAddressDescription (Lio/ktor/server/cio/UnixSocketConnectorConfig;)Ljava/lang/String;
 }
 
 public final class io/ktor/server/cio/UnixSocketConnectorConfigKt {
