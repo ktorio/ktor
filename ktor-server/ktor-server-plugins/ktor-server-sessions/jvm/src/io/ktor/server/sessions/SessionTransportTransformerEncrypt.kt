@@ -58,7 +58,10 @@ public class SessionTransportTransformerEncrypt(
 
     // AES CBC IV length always equals the cipher block size (16 bytes for AES),
     // regardless of the key length. Using encryptionKeySize here used to break AES-256.
-    private val ivSize: Int = Cipher.getInstance("$encryptAlgorithm/CBC/PKCS5PADDING").blockSize
+    private val ivSize: Int = when (encryptionKeySpec.algorithm.uppercase()) {
+        "AES" -> 16
+        else -> Cipher.getInstance("$encryptAlgorithm/CBC/PKCS5PADDING").blockSize
+    }
 
     // Check that input keys are right
     init {

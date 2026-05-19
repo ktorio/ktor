@@ -5,6 +5,7 @@
 package io.ktor.tests.sessions
 
 import io.ktor.server.sessions.*
+import javax.crypto.spec.SecretKeySpec
 import kotlin.test.*
 
 class SessionTransportTransformerEncryptTest {
@@ -34,5 +35,23 @@ class SessionTransportTransformerEncryptTest {
             val decoded = transformer.transformRead(encoded)
             assertEquals(original, decoded, "round-trip failed for AES-${keyLength * 8}")
         }
+    }
+
+    @Test
+    fun `uses cipher block size for non-AES algorithm (DESede)`() {
+        val encryptionKeySpec = SecretKeySpec(ByteArray(24), "DESede")
+        val signKeySpec = SecretKeySpec(ByteArray(32), "HmacSHA256")
+
+        val transformer = SessionTransportTransformerEncrypt(
+            encryptionKeySpec = encryptionKeySpec,
+            signKeySpec = signKeySpec,
+        )
+
+        val original = "non-aes-session-value"
+        val encoded = transformer.transformWrite(original)
+        val iv = encoded.substringBefore('/').hexToByteArray()
+
+        assertEquals(8, iv.size, "DESede should use an 8-byte IV matching its block size")
+        assertEquals(original, transformer.transformRead(encoded))
     }
 }
