@@ -21,7 +21,7 @@ public fun Sequence<Route>.mapToPathItemsAndSchema(): Pair<Map<String, PathItem>
     // unqualifiedTitle -> original qualified title, for conflict detection without relying on stored schema title
     val qualifiedNameMap = mutableMapOf<String, String>()
     // original qualified title -> component name, for rewriting discriminator $ref values after collection
-    val nameMapping = mutableMapOf<String, String>()
+    val schemaComponentNameMapping = mutableMapOf<String, String>()
     val jsonSchema = mutableMapOf<String, JsonSchema>()
     val pathItems = mapToPathItems(
         PopulateMediaTypeDefaults + CollectSchemaReferences { schema ->
@@ -37,24 +37,68 @@ public fun Sequence<Route>.mapToPathItemsAndSchema(): Pair<Map<String, PathItem>
                 jsonSchema[unqualifiedTitle] = schema.copy(title = unqualifiedTitle)
                 unqualifiedTitle
             }
-            nameMapping[title] = componentName
+            schemaComponentNameMapping[title] = componentName
             componentName
         }
     )
-    // Rewrite discriminator mapping $ref values to use the simplified component names
     for ((key, schema) in jsonSchema.toMap()) {
-        val discriminator = schema.discriminator ?: continue
-        val mapping = discriminator.mapping ?: continue
-        val updatedMapping = mapping.mapValues { (_, refValue) ->
-            val refSchemaName = refValue.removePrefix("#/components/schemas/")
-            "#/components/schemas/${nameMapping[refSchemaName] ?: refSchemaName}"
-        }
-        if (updatedMapping != mapping) {
-            jsonSchema[key] = schema.copy(discriminator = discriminator.copy(mapping = updatedMapping))
-        }
+        jsonSchema[key] = schema.rewriteSchemaComponentReferences(schemaComponentNameMapping)
     }
     return pathItems to jsonSchema
 }
+
+private fun JsonSchema.rewriteSchemaComponentReferences(schemaComponentNameMapping: Map<String, String>): JsonSchema =
+    copy(
+        allOf = allOf?.map { it.rewriteSchemaComponentReferences(schemaComponentNameMapping) },
+        oneOf = oneOf?.map { it.rewriteSchemaComponentReferences(schemaComponentNameMapping) },
+        not = not?.rewriteSchemaComponentReferences(schemaComponentNameMapping),
+        anyOf = anyOf?.map { it.rewriteSchemaComponentReferences(schemaComponentNameMapping) },
+        properties = properties?.mapValues { (_, schema) ->
+            schema.rewriteSchemaComponentReferences(schemaComponentNameMapping)
+        },
+        additionalProperties = additionalProperties?.rewriteSchemaComponentReferences(schemaComponentNameMapping),
+        discriminator = discriminator?.rewriteSchemaComponentReferences(schemaComponentNameMapping),
+        items = items?.rewriteSchemaComponentReferences(schemaComponentNameMapping),
+        prefixItems = prefixItems?.map { it.rewriteSchemaComponentReferences(schemaComponentNameMapping) },
+    )
+
+private fun AdditionalProperties.rewriteSchemaComponentReferences(
+    schemaComponentNameMapping: Map<String, String>
+): AdditionalProperties =
+    when (this) {
+        is AdditionalProperties.Allowed -> this
+
+        is AdditionalProperties.PSchema -> AdditionalProperties.PSchema(
+            value.rewriteSchemaComponentReferences(schemaComponentNameMapping)
+        )
+    }
+
+private fun JsonSchemaDiscriminator.rewriteSchemaComponentReferences(
+    schemaComponentNameMapping: Map<String, String>
+): JsonSchemaDiscriminator {
+    val updatedMapping = mapping?.mapValues { (_, refValue) ->
+        val refSchemaName = refValue.removePrefix("#/components/schemas/")
+        "#/components/schemas/${schemaComponentNameMapping[refSchemaName] ?: refSchemaName}"
+    }
+    return if (updatedMapping == mapping) this else copy(mapping = updatedMapping)
+}
+
+private fun ReferenceOr<JsonSchema>.rewriteSchemaComponentReferences(
+    schemaComponentNameMapping: Map<String, String>
+): ReferenceOr<JsonSchema> =
+    when (this) {
+        is ReferenceOr.Reference -> {
+            val refSchemaName = ref.removePrefix("#/components/schemas/")
+            val mappedName = schemaComponentNameMapping[refSchemaName] ?: refSchemaName
+            if (mappedName == refSchemaName) {
+                this
+            } else {
+                ReferenceOr.Reference("#/components/schemas/$mappedName", isDynamic)
+            }
+        }
+
+        is ReferenceOr.Value -> value(value.rewriteSchemaComponentReferences(schemaComponentNameMapping))
+    }
 
 /**
  * Converts the sequence of [Route]s to a map of [String] to [PathItem]s.

@@ -23,10 +23,13 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.ExperimentalKtorApi
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonClassDiscriminator
+import kotlin.reflect.typeOf
 import kotlin.test.*
 
 class DescribeRouteTest {
@@ -638,6 +641,326 @@ class DescribeRouteTest {
         assertFalse("hidden" in responseText)
     }
 
+    @Test
+    fun `same serial name across sealed hierarchies keeps distinct component schemas`() = testApplication {
+        val firstSchema = KotlinxJsonSchemaInference.jsonSchema<FirstResponse>()
+        val secondSchema = KotlinxJsonSchemaInference.jsonSchema<SecondResponse>()
+        assertEquals(
+            listOf(componentName<FirstResponse.SharedCase>()),
+            firstSchema.oneOf?.mapNotNull { it.valueOrNull()?.title },
+        )
+        assertEquals(
+            listOf(componentName<SecondResponse.SharedCase>()),
+            secondSchema.oneOf?.mapNotNull { it.valueOrNull()?.title },
+        )
+
+        install(ContentNegotiation) {
+            json(jsonFormat)
+        }
+        @OptIn(ExperimentalKtorApi::class)
+        routing {
+            get("/routes") {
+                call.respond(
+                    OpenApiDoc(info = OpenApiInfo("Test API", "1.0.0")) +
+                        call.application.routingRoot.descendants()
+                )
+            }.hide()
+
+            get("/first") {
+                call.respondText("ok")
+            }.describe {
+                responses {
+                    HttpStatusCode.OK {
+                        schema = jsonSchema<FirstResponse>()
+                    }
+                }
+            }
+
+            get("/second") {
+                call.respondText("ok")
+            }.describe {
+                responses {
+                    HttpStatusCode.OK {
+                        schema = jsonSchema<SecondResponse>()
+                    }
+                }
+            }
+        }
+
+        val routesResponse = client.get("/routes")
+        val responseText = routesResponse.bodyAsText()
+        val openApiSpec = jsonFormat.decodeFromString<OpenApiDoc>(responseText)
+        val schemas = openApiSpec.components?.schemas
+        assertNotNull(schemas, "Schema components should be defined")
+
+        assertFalse("shared_case" in schemas, "SerialName should not be used as a component key: ${schemas.keys}")
+
+        val sharedCaseSchemas = schemas.filterKeys { it == "SharedCase" || it.endsWith(".SharedCase") }
+        assertEquals(2, sharedCaseSchemas.size, "Expected two distinct SharedCase schemas, but found: ${schemas.keys}")
+        assertTrue(
+            sharedCaseSchemas.values.any { "value" in (it.properties ?: emptyMap()) },
+            "Expected one SharedCase schema with property 'value', but found: $sharedCaseSchemas"
+        )
+        assertTrue(
+            sharedCaseSchemas.values.any { "count" in (it.properties ?: emptyMap()) },
+            "Expected one SharedCase schema with property 'count', but found: $sharedCaseSchemas"
+        )
+    }
+
+    @Test
+    fun `same serial name across nested sealed hierarchies keeps distinct component schemas`() = testApplication {
+        val nestedSchema = KotlinxJsonSchemaInference.jsonSchema<NestedResponses>()
+        val nestedProperties = nestedSchema.properties ?: fail("NestedResponses should expose properties")
+        assertEquals(
+            componentName<FirstResponse>(),
+            nestedProperties["first"]?.valueOrNull()?.title
+                ?: (nestedProperties["first"] as? ReferenceOr.Reference)?.ref?.substringAfterLast('/'),
+        )
+        assertEquals(
+            componentName<SecondResponse>(),
+            nestedProperties["second"]?.valueOrNull()?.title
+                ?: (nestedProperties["second"] as? ReferenceOr.Reference)?.ref?.substringAfterLast('/'),
+        )
+
+        install(ContentNegotiation) {
+            json(jsonFormat)
+        }
+        @OptIn(ExperimentalKtorApi::class)
+        routing {
+            get("/routes") {
+                call.respond(
+                    OpenApiDoc(info = OpenApiInfo("Test API", "1.0.0")) +
+                        call.application.routingRoot.descendants()
+                )
+            }.hide()
+
+            get("/nested") {
+                call.respondText("ok")
+            }.describe {
+                responses {
+                    HttpStatusCode.OK {
+                        schema = jsonSchema<NestedResponses>()
+                    }
+                }
+            }
+        }
+
+        val routesResponse = client.get("/routes")
+        val responseText = routesResponse.bodyAsText()
+        val openApiSpec = jsonFormat.decodeFromString<OpenApiDoc>(responseText)
+        val schemas = openApiSpec.components?.schemas
+        assertNotNull(schemas, "Schema components should be defined")
+
+        assertFalse("shared_case" in schemas, "SerialName should not be used as a component key: ${schemas.keys}")
+
+        val nestedComponent = schemas["NestedResponses"] ?: fail("NestedResponses schema should be present")
+        val properties = nestedComponent.properties ?: fail("NestedResponses schema should have properties")
+        assertEquals(
+            "#/components/schemas/FirstResponse",
+            (properties["first"] as? ReferenceOr.Reference)?.ref,
+        )
+        assertEquals(
+            "#/components/schemas/SecondResponse",
+            (properties["second"] as? ReferenceOr.Reference)?.ref,
+        )
+
+        val firstRootSchema = schemas["FirstResponse"] ?: fail("FirstResponse schema should be present")
+        val secondRootSchema = schemas["SecondResponse"] ?: fail("SecondResponse schema should be present")
+        assertNotNull(firstRootSchema.oneOf, "FirstResponse should remain polymorphic")
+        assertNotNull(secondRootSchema.oneOf, "SecondResponse should remain polymorphic")
+
+        val sharedCaseSchemas = schemas.filterKeys { it == "SharedCase" || it.endsWith(".SharedCase") }
+        assertEquals(2, sharedCaseSchemas.size, "Expected two distinct SharedCase schemas, but found: ${schemas.keys}")
+        assertTrue(
+            sharedCaseSchemas.values.any { "value" in (it.properties ?: emptyMap()) },
+            "Expected one SharedCase schema with property 'value', but found: $sharedCaseSchemas"
+        )
+        assertTrue(
+            sharedCaseSchemas.values.any { "count" in (it.properties ?: emptyMap()) },
+            "Expected one SharedCase schema with property 'count', but found: $sharedCaseSchemas"
+        )
+    }
+
+    @Test
+    fun `nullable sealed schema generation keeps distinct subtype component names`() {
+        val nullableSchema = KotlinxJsonSchemaInference.buildSchema(typeOf<FirstResponse?>())
+        assertEquals(
+            listOf(componentName<FirstResponse.SharedCase>()),
+            nullableSchema.oneOf?.mapNotNull { it.valueOrNull()?.title },
+        )
+    }
+
+    @Test
+    fun `nullable sealed root preserves nested sealed subtype naming`() {
+        val nullableSchema = KotlinxJsonSchemaInference.buildSchema(typeOf<NullableNestedRoot?>())
+        val subtypeSchemas = nullableSchema.oneOf?.mapNotNull { it.valueOrNull() } ?: fail("Expected sealed subtypes")
+
+        val firstNestedSchema = subtypeSchemas
+            .firstOrNull { it.title == componentName<NullableNestedRoot.First>() }
+            ?.properties?.get("nested")?.valueOrNull()
+            ?: fail("Expected nested schema for first subtype")
+        val secondNestedSchema = subtypeSchemas
+            .firstOrNull { it.title == componentName<NullableNestedRoot.Second>() }
+            ?.properties?.get("nested")?.valueOrNull()
+            ?: fail("Expected nested schema for second subtype")
+
+        assertEquals(
+            listOf(componentName<FirstNested.SharedCase>()),
+            firstNestedSchema.oneOf?.mapNotNull { it.valueOrNull()?.title },
+            "Unexpected nested schema for first subtype: $firstNestedSchema",
+        )
+        assertEquals(
+            listOf(componentName<SecondNested.SharedCase>()),
+            secondNestedSchema.oneOf?.mapNotNull { it.valueOrNull()?.title },
+            "Unexpected nested schema for second subtype: $secondNestedSchema",
+        )
+    }
+
+    @Test
+    fun `recursive sealed subtype references renamed component`() {
+        val schema = KotlinxJsonSchemaInference.jsonSchema<RecursiveResponse>()
+        val recursiveSubtype = schema.oneOf?.singleOrNull()?.valueOrNull() ?: fail("Expected recursive subtype")
+        val nextSchema =
+            recursiveSubtype.properties?.get("next")?.valueOrNull() ?: fail("Expected nullable next schema")
+        assertEquals(
+            "#/components/schemas/${componentName<RecursiveResponse.Node>()}",
+            (nextSchema.oneOf?.firstOrNull() as? ReferenceOr.Reference)?.ref,
+            "Unexpected recursive subtype schema: $recursiveSubtype",
+        )
+    }
+
+    @Test
+    fun `recursive sealed subtype references shortened component in final openapi`() = testApplication {
+        install(ContentNegotiation) {
+            json(jsonFormat)
+        }
+        @OptIn(ExperimentalKtorApi::class)
+        routing {
+            get("/routes") {
+                call.respond(
+                    OpenApiDoc(info = OpenApiInfo("Test API", "1.0.0")) +
+                        call.application.routingRoot.descendants()
+                )
+            }.hide()
+
+            get("/recursive") {
+                call.respondText("ok")
+            }.describe {
+                responses {
+                    HttpStatusCode.OK {
+                        schema = jsonSchema<RecursiveResponse>()
+                    }
+                }
+            }
+        }
+
+        val routesResponse = client.get("/routes")
+        val responseText = routesResponse.bodyAsText()
+        val openApiSpec = jsonFormat.decodeFromString<OpenApiDoc>(responseText)
+        val schemas = openApiSpec.components?.schemas ?: fail("Schema components should be defined")
+
+        val nodeSchema = schemas["Node"] ?: fail("Node schema should be present: ${schemas.keys}")
+        val nextSchema = nodeSchema.properties?.get("next")?.valueOrNull() ?: fail("Expected nullable next schema")
+        assertEquals(
+            "#/components/schemas/Node",
+            (nextSchema.oneOf?.firstOrNull() as? ReferenceOr.Reference)?.ref,
+            "Unexpected recursive subtype schema in final OpenAPI: $nodeSchema",
+        )
+    }
+
+    @Test
+    fun `recursive sealed subtype in list references shortened component in final openapi`() = testApplication {
+        install(ContentNegotiation) {
+            json(jsonFormat)
+        }
+        @OptIn(ExperimentalKtorApi::class)
+        routing {
+            get("/routes") {
+                call.respond(
+                    OpenApiDoc(info = OpenApiInfo("Test API", "1.0.0")) +
+                        call.application.routingRoot.descendants()
+                )
+            }.hide()
+
+            get("/recursive-list") {
+                call.respondText("ok")
+            }.describe {
+                responses {
+                    HttpStatusCode.OK {
+                        schema = jsonSchema<RecursiveListResponse>()
+                    }
+                }
+            }
+        }
+
+        val routesResponse = client.get("/routes")
+        val responseText = routesResponse.bodyAsText()
+        val openApiSpec = jsonFormat.decodeFromString<OpenApiDoc>(responseText)
+        val schemas = openApiSpec.components?.schemas ?: fail("Schema components should be defined")
+
+        val nodeSchema = schemas["Node"] ?: fail("Node schema should be present: ${schemas.keys}")
+        val childrenSchema = nodeSchema.properties?.get("children")?.valueOrNull() ?: fail("Expected children schema")
+        assertEquals(
+            "#/components/schemas/Node",
+            (childrenSchema.items as? ReferenceOr.Reference)?.ref,
+            "Unexpected recursive list subtype schema in final OpenAPI: $nodeSchema",
+        )
+    }
+
+    @Test
+    fun `annotation item refs keep distinct sealed subtype component names`() = testApplication {
+        install(ContentNegotiation) {
+            json(jsonFormat)
+        }
+        @OptIn(ExperimentalKtorApi::class)
+        routing {
+            get("/routes") {
+                call.respond(
+                    OpenApiDoc(info = OpenApiInfo("Test API", "1.0.0")) +
+                        call.application.routingRoot.descendants()
+                )
+            }.hide()
+
+            get("/annotated-lists") {
+                call.respondText("ok")
+            }.describe {
+                responses {
+                    HttpStatusCode.OK {
+                        schema = jsonSchema<AnnotatedSharedCaseLists>()
+                    }
+                }
+            }
+        }
+
+        val routesResponse = client.get("/routes")
+        val responseText = routesResponse.bodyAsText()
+        val openApiSpec = jsonFormat.decodeFromString<OpenApiDoc>(responseText)
+        val schemas = openApiSpec.components?.schemas ?: fail("Schema components should be defined")
+
+        val annotatedSchema =
+            schemas["AnnotatedSharedCaseLists"] ?: fail("AnnotatedSharedCaseLists schema should be present")
+        val properties = annotatedSchema.properties ?: fail("AnnotatedSharedCaseLists should have properties")
+        val firstSchema = properties["first"]?.valueOrNull() ?: fail("Expected first schema")
+        val secondSchema = properties["second"]?.valueOrNull() ?: fail("Expected second schema")
+        val firstRef = (firstSchema.items as? ReferenceOr.Reference)?.ref ?: fail("Expected first items ref")
+        val secondRef = (secondSchema.items as? ReferenceOr.Reference)?.ref ?: fail("Expected second items ref")
+        assertNotEquals(firstRef, secondRef, "Annotated item refs should point to distinct components")
+
+        val sharedCaseSchemas = schemas.filterKeys { it == "SharedCase" || it.endsWith(".SharedCase") }
+        assertEquals(2, sharedCaseSchemas.size, "Expected two distinct SharedCase schemas, but found: ${schemas.keys}")
+        assertTrue(
+            sharedCaseSchemas.values.any { "value" in (it.properties ?: emptyMap()) },
+            "Expected one SharedCase schema with property 'value', but found: $sharedCaseSchemas",
+        )
+        assertTrue(
+            sharedCaseSchemas.values.any { "count" in (it.properties ?: emptyMap()) },
+            "Expected one SharedCase schema with property 'count', but found: $sharedCaseSchemas",
+        )
+    }
+
+    private inline fun <reified T : Any> componentName(): String =
+        T::class.qualifiedName ?: fail("Missing qualified name")
+
     private fun TestApplicationBuilder.openApiTestRoutes(authProvider: String) {
         routing {
             authenticate(authProvider) {
@@ -677,3 +1000,84 @@ sealed interface Message {
         override val timestamp: Long
     ) : Message
 }
+
+@OptIn(ExperimentalSerializationApi::class)
+@JsonClassDiscriminator("status")
+@Serializable
+sealed interface FirstResponse {
+    @Serializable
+    @SerialName("shared_case")
+    data class SharedCase(val value: String) : FirstResponse
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+@JsonClassDiscriminator("status")
+@Serializable
+sealed interface SecondResponse {
+    @Serializable
+    @SerialName("shared_case")
+    data class SharedCase(val count: Int) : SecondResponse
+}
+
+@Serializable
+data class NestedResponses(
+    val first: FirstResponse,
+    val second: SecondResponse,
+)
+
+@OptIn(ExperimentalSerializationApi::class)
+@JsonClassDiscriminator("status")
+@Serializable
+sealed interface NullableNestedRoot {
+    @Serializable
+    @SerialName("first")
+    data class First(val nested: FirstNested) : NullableNestedRoot
+
+    @Serializable
+    @SerialName("second")
+    data class Second(val nested: SecondNested) : NullableNestedRoot
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+@JsonClassDiscriminator("kind")
+@Serializable
+sealed interface FirstNested {
+    @Serializable
+    @SerialName("shared_case")
+    data class SharedCase(val value: String) : FirstNested
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+@JsonClassDiscriminator("kind")
+@Serializable
+sealed interface SecondNested {
+    @Serializable
+    @SerialName("shared_case")
+    data class SharedCase(val count: Int) : SecondNested
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+@JsonClassDiscriminator("status")
+@Serializable
+sealed interface RecursiveResponse {
+    @Serializable
+    @SerialName("node")
+    data class Node(val next: Node?) : RecursiveResponse
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+@JsonClassDiscriminator("status")
+@Serializable
+sealed interface RecursiveListResponse {
+    @Serializable
+    @SerialName("node")
+    data class Node(val children: List<Node>) : RecursiveListResponse
+}
+
+@Serializable
+data class AnnotatedSharedCaseLists(
+    @JsonSchema.ItemsRef(FirstNested.SharedCase::class)
+    val first: List<String>,
+    @JsonSchema.ItemsRef(SecondNested.SharedCase::class)
+    val second: List<String>,
+)
