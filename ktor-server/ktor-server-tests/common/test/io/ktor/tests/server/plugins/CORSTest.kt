@@ -1620,5 +1620,4 @@ class CORSTest {
             "Expected Access-Control-Allow-Methods to include POST, but got: $allowMethodsHeader"
         )
     }
-
 }
