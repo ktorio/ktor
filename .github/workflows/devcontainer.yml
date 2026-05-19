@@ -76,6 +76,7 @@ jobs:
           }
           read_version node
           read_version yarn
+          read_version puppeteer
       - name: Build image
         id: build
         uses: docker/build-push-action@v7
@@ -86,6 +87,7 @@ jobs:
           build-args: |
             node_version=${{ steps.versions.outputs.node }}
             yarn_version=${{ steps.versions.outputs.yarn }}
+            puppeteer_version=${{ steps.versions.outputs.puppeteer }}
           platforms: linux/amd64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

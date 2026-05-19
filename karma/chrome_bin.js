@@ -13,6 +13,7 @@ config.set({
                 "--no-sandbox",
                 "--disable-web-security",
                 "--disable-setuid-sandbox",
+                "--use-mock-keychain",
                 "--enable-logging",
                 "--v=1",
                 "--use-fake-device-for-media-stream",
@@ -40,5 +41,14 @@ config.set({
 
 // CHROME_BIN might be already defined, otherwise use puppeteer to get the path
 if (!process.env.CHROME_BIN) {
-    process.env.CHROME_BIN = require('puppeteer').executablePath();
+    const path = require('path');
+    const os = require('os');
+    const puppeteer = require('puppeteer');
+    const { Browser, computeExecutablePath } = require('@puppeteer/browsers');
+
+    process.env.CHROME_BIN = computeExecutablePath({
+        browser: Browser.CHROME,
+        buildId: puppeteer.PUPPETEER_REVISIONS.chrome,
+        cacheDir: process.env.PUPPETEER_CACHE_DIR || path.join(os.homedir(), '.cache', 'puppeteer')
+    });
 }
