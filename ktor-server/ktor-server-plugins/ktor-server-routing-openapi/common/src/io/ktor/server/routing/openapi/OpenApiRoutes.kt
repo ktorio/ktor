@@ -77,6 +77,9 @@ private fun JsonSchemaDiscriminator.rewriteSchemaComponentReferences(
     schemaComponentNameMapping: Map<String, String>
 ): JsonSchemaDiscriminator {
     val updatedMapping = mapping?.mapValues { (_, refValue) ->
+        if (!refValue.startsWith("#/components/schemas/")) {
+            return@mapValues refValue
+        }
         val refSchemaName = refValue.removePrefix("#/components/schemas/")
         "#/components/schemas/${schemaComponentNameMapping[refSchemaName] ?: refSchemaName}"
     }

@@ -958,6 +958,49 @@ class DescribeRouteTest {
         )
     }
 
+    @Test
+    fun `discriminator mappings keep external refs during component rewrite`() = testApplication {
+        install(ContentNegotiation) {
+            json(jsonFormat)
+        }
+        @OptIn(ExperimentalKtorApi::class)
+        routing {
+            get("/routes") {
+                call.respond(
+                    OpenApiDoc(info = OpenApiInfo("Test API", "1.0.0")) +
+                        call.application.routingRoot.descendants()
+                )
+            }.hide()
+
+            get("/external-mapping") {
+                call.respondText("ok")
+            }.describe {
+                responses {
+                    HttpStatusCode.OK {
+                        schema = JsonSchema(
+                            title = "ExternalDiscriminator",
+                            discriminator = JsonSchemaDiscriminator(
+                                propertyName = "kind",
+                                mapping = mapOf("external" to "https://example.com/schemas/shared_case")
+                            )
+                        )
+                    }
+                }
+            }
+        }
+
+        val routesResponse = client.get("/routes")
+        val responseText = routesResponse.bodyAsText()
+        val openApiSpec = jsonFormat.decodeFromString<OpenApiDoc>(responseText)
+        val schemas = openApiSpec.components?.schemas ?: fail("Schema components should be defined")
+
+        val schema = schemas["ExternalDiscriminator"] ?: fail("ExternalDiscriminator schema should be present")
+        assertEquals(
+            "https://example.com/schemas/shared_case",
+            schema.discriminator?.mapping?.get("external"),
+        )
+    }
+
     private inline fun <reified T : Any> componentName(): String =
         T::class.qualifiedName ?: fail("Missing qualified name")
 
