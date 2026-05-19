@@ -100,6 +100,9 @@ final class io.ktor.server.cio/HttpServerSettings { // io.ktor.server.cio/HttpSe
 final class io.ktor.server.cio/UnixSocketConnectorBuilder : io.ktor.server.cio/UnixSocketConnectorConfig, io.ktor.server.engine/EngineConnectorBuilder { // io.ktor.server.cio/UnixSocketConnectorBuilder|null[0]
     constructor <init>() // io.ktor.server.cio/UnixSocketConnectorBuilder.<init>|<init>(){}[0]
 
+    final val addressDescription // io.ktor.server.cio/UnixSocketConnectorBuilder.addressDescription|{}addressDescription[0]
+        final fun <get-addressDescription>(): kotlin/String // io.ktor.server.cio/UnixSocketConnectorBuilder.addressDescription.<get-addressDescription>|<get-addressDescription>(){}[0]
+
     final var socketPath // io.ktor.server.cio/UnixSocketConnectorBuilder.socketPath|{}socketPath[0]
         final fun <get-socketPath>(): kotlin/String // io.ktor.server.cio/UnixSocketConnectorBuilder.socketPath.<get-socketPath>|<get-socketPath>(){}[0]
         final fun <set-socketPath>(kotlin/String) // io.ktor.server.cio/UnixSocketConnectorBuilder.socketPath.<set-socketPath>|<set-socketPath>(kotlin.String){}[0]

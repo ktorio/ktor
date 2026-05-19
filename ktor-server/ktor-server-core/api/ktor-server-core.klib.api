@@ -178,6 +178,8 @@ abstract interface io.ktor.server.engine/EngineConnectorConfig { // io.ktor.serv
         abstract fun <get-port>(): kotlin/Int // io.ktor.server.engine/EngineConnectorConfig.port.<get-port>|<get-port>(){}[0]
     abstract val type // io.ktor.server.engine/EngineConnectorConfig.type|{}type[0]
         abstract fun <get-type>(): io.ktor.server.engine/ConnectorType // io.ktor.server.engine/EngineConnectorConfig.type.<get-type>|<get-type>(){}[0]
+    open val addressDescription // io.ktor.server.engine/EngineConnectorConfig.addressDescription|{}addressDescription[0]
+        open fun <get-addressDescription>(): kotlin/String? // io.ktor.server.engine/EngineConnectorConfig.addressDescription.<get-addressDescription>|<get-addressDescription>(){}[0]
 }
 
 abstract interface io.ktor.server.logging/MDCProvider { // io.ktor.server.logging/MDCProvider|null[0]

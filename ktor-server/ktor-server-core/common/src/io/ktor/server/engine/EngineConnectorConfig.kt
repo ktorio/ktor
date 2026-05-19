@@ -64,6 +64,17 @@ public interface EngineConnectorConfig {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.EngineConnectorConfig.port)
      */
     public val port: Int
+
+    /**
+     * Optional human-readable address shown in startup logs.
+     *
+     * Defaults to `null`, in which case the connector is logged as `type://host:port`.
+     * Engines that bind to addresses not expressible as `host:port` (e.g. Unix domain sockets)
+     * should override this to display the actual location.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.EngineConnectorConfig.addressDescription)
+     */
+    public val addressDescription: String? get() = null
 }
 
 /**
