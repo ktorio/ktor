@@ -116,6 +116,42 @@ class ByteReadChannelOperationsTest {
     }
 
     @Test
+    fun `copyTo propagates closedCause from cancelled source`() = runTest {
+        val src = ByteChannel()
+        val dst = ByteChannel()
+        src.writeFully(byteArrayOf(1, 2, 3))
+        src.flush()
+        src.cancel(IOException("source cancelled"))
+        assertFailsWith<IOException> {
+            src.copyTo(dst)
+        }
+        assertTrue(src.isClosedForRead)
+    }
+
+    @Test
+    fun `copyTo with limit propagates closedCause from cancelled source`() = runTest {
+        val src = ByteChannel()
+        val dst = ByteChannel()
+        src.writeFully(byteArrayOf(1, 2, 3))
+        src.flush()
+        src.cancel(IOException("source cancelled"))
+        assertFailsWith<IOException> {
+            src.copyTo(dst, limit = 1024L)
+        }
+        assertTrue(src.isClosedForRead)
+    }
+
+    @Test
+    fun `copyTo does not throw on normal close`() = runTest {
+        val src = ByteChannel()
+        val dst = ByteChannel()
+        src.writeFully(byteArrayOf(1, 2, 3))
+        src.flushAndClose()
+        val copied = src.copyTo(dst)
+        assertEquals(3, copied)
+    }
+
+    @Test
     fun readFully() = runTest {
         val expected = ByteArray(10) { it.toByte() }
         val actual = ByteArray(10)
