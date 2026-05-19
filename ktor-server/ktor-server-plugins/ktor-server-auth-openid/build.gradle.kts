@@ -11,7 +11,10 @@ kotlin {
     sourceSets {
         jvmMain.dependencies {
             api(projects.ktorClientCore)
+            api(projects.ktorServerCore)
             api(libs.kotlinx.serialization.json)
+            implementation(projects.ktorClientContentNegotiation)
+            implementation(projects.ktorSerializationKotlinxJson)
         }
         jvmTest.dependencies {
             implementation(projects.ktorServerTestHost)
