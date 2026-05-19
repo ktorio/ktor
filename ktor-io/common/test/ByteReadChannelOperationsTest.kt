@@ -8,6 +8,7 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.yield
 import kotlinx.io.IOException
 import kotlinx.io.InternalIoApi
 import kotlinx.io.bytestring.ByteString
@@ -116,12 +117,13 @@ class ByteReadChannelOperationsTest {
     }
 
     @Test
-    fun `copyTo propagates closedCause from cancelled source`() = runTest {
+    fun `copyTo propagates closedCause cancelled mid-await`() = runTest {
         val src = ByteChannel()
         val dst = ByteChannel()
-        src.writeFully(byteArrayOf(1, 2, 3))
-        src.flush()
-        src.cancel(IOException("source cancelled"))
+        launch {
+            yield()
+            src.cancel(IOException("source cancelled"))
+        }
         assertFailsWith<IOException> {
             src.copyTo(dst)
         }
@@ -129,12 +131,13 @@ class ByteReadChannelOperationsTest {
     }
 
     @Test
-    fun `copyTo with limit propagates closedCause from cancelled source`() = runTest {
+    fun `copyTo with limit propagates closedCause cancelled mid-await`() = runTest {
         val src = ByteChannel()
         val dst = ByteChannel()
-        src.writeFully(byteArrayOf(1, 2, 3))
-        src.flush()
-        src.cancel(IOException("source cancelled"))
+        launch {
+            yield()
+            src.cancel(IOException("source cancelled"))
+        }
         assertFailsWith<IOException> {
             src.copyTo(dst, limit = 1024L)
         }
@@ -149,6 +152,19 @@ class ByteReadChannelOperationsTest {
         src.flushAndClose()
         val copied = src.copyTo(dst)
         assertEquals(3, copied)
+    }
+
+    @Test
+    fun `awaitContent rethrows closedCause after suspension`() = runTest {
+        val channel = ByteChannel()
+        launch {
+            yield()
+            channel.cancel(IOException("cancelled mid-await"))
+        }
+        assertFailsWith<IOException> {
+            channel.awaitContent()
+        }
+        assertTrue(channel.isClosedForRead)
     }
 
     @Test
