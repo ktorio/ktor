@@ -1615,9 +1615,6 @@ class CORSTest {
         val allowMethodsHeader = response.headers[HttpHeaders.AccessControlAllowMethods]
 
         assertNotNull(allowMethodsHeader, "Access-Control-Allow-Methods header should not be null")
-        assertTrue(
-            allowMethodsHeader.contains("POST"),
-            "Expected Access-Control-Allow-Methods to include POST, but got: $allowMethodsHeader"
-        )
+        assertEquals("GET, HEAD, POST", allowMethodsHeader)
     }
 }
