@@ -24,8 +24,10 @@ private val ProviderNameRegex = Regex("[a-z0-9]+(?:-[a-z0-9]+)*")
 /**
  * First-class OpenID Connect plugin for Ktor server authentication.
  *
- * Installs per-provider Bearer token authentication (`bearer { }`) that validates JWT access tokens issued by the
- * provider. Use [OidcProvider.bearer] with `authenticateWith`.
+ * Installs per-provider support for:
+ * - Bearer token authentication (`bearer { }`) that validates JWT access tokens issued by the provider.
+ *   Use [OidcProvider.bearer] with `authenticateWith`.
+ * - OAuth 2.0 / OIDC login flow (`oauth { }`) with provider-specific login and callback routes.
  *
  * Provider metadata is fetched automatically from the issuer's discovery document
  * (`<issuer>/.well-known/openid-configuration`) and periodically refreshed.
@@ -58,7 +60,7 @@ private val ProviderNameRegex = Regex("[a-z0-9]+(?:-[a-z0-9]+)*")
  * val google = oidc.provider("google") {
  *     issuer = "https://accounts.google.com"
  *
- *     // JWT settings used for access-token verification.
+ *     // JWT settings shared by ID-token and JWT access-token verification.
  *     jwt {
  *         clockSkew = 60.seconds
  *     }
@@ -72,6 +74,17 @@ private val ProviderNameRegex = Regex("[a-z0-9]+(?:-[a-z0-9]+)*")
  *     bearer {
  *         // Optional: customise where the token is extracted from.
  *         tokenExtractor = { call -> call.request.cookies["MY_TOKEN"] }
+ *     }
+ *
+ *     // OAuth/OIDC login flow — installs login and callback routes.
+ *     oauth {
+ *         clientId = System.getenv("GOOGLE_CLIENT_ID")
+ *         clientSecret = System.getenv("GOOGLE_CLIENT_SECRET")
+ *         scopes = listOf("openid", "profile", "email")
+ *
+ *         onSuccess {
+ *             call.respondRedirect("/dashboard")
+ *         }
  *     }
  * }
  *
@@ -99,6 +112,9 @@ private val ProviderNameRegex = Regex("[a-z0-9]+(?:-[a-z0-9]+)*")
  * ```hocon
  * ktor.openid.google {
  *     issuer = "https://accounts.google.com"
+ *     clientId = ${GOOGLE_CLIENT_ID}
+ *     clientSecret = ${GOOGLE_CLIENT_SECRET}
+ *     scopes = ["openid", "profile", "email"]
  * }
  * ```
  *
@@ -111,6 +127,7 @@ private val ProviderNameRegex = Regex("[a-z0-9]+(?:-[a-z0-9]+)*")
  *         audiences = setOf("api")
  *     }
  *     bearer()
+ *     oauth()
  * }
  * ```
  *
@@ -155,7 +172,7 @@ public class Oidc internal constructor(
      * @param name provider name used in generated routes and authentication scheme names. Must contain lowercase
      * letters, digits, and hyphen-separated segments only.
      * @param transformPrincipal maps verified OpenID Connect principals to the typed route principal.
-     * @param configure configures discovery, token validation, and Bearer authentication.
+     * @param configure configures discovery, token validation, Bearer authentication, and OAuth flow.
      * @return configured provider whose route-facing capabilities use principal type [P].
      * @throws IllegalArgumentException when [name] or issuer is already configured, or the provider
      * configuration is invalid.
@@ -173,7 +190,7 @@ public class Oidc internal constructor(
      *
      * @param name provider name used in generated routes and authentication scheme names. Must contain lowercase
      * letters, digits, and hyphen-separated segments only.
-     * @param configure configures discovery, token validation, and Bearer authentication.
+     * @param configure configures discovery, token validation, Bearer authentication, and OAuth flow.
      * @return configured provider whose route-facing capabilities use [OidcPrincipal].
      * @throws IllegalArgumentException when [name] or issuer is already configured, or the provider
      * configuration is invalid.
@@ -226,6 +243,7 @@ public class Oidc internal constructor(
 
     private suspend fun commitProvider(provider: OidcProvider<*>) = providerRegistrationMutex.withLock {
         provider.createSchemes()
+        application.configureOAuthRoute(provider)
         application.startRefreshingMetadata(provider)
         providers = providers + (provider.name to provider)
         config.environmentProviders.remove(provider.name)
@@ -340,6 +358,13 @@ public class Oidc internal constructor(
 private fun <P : Any> OidcProviderConfig<P>.applyEnvDefaults(env: OidcPluginConfig.EnvConfig) =
     apply {
         issuer = env.issuer
+        if (env.clientId != null) {
+            oauth {
+                clientId = env.clientId
+                clientSecret = env.clientSecret!!
+                scopes = env.scopes
+            }
+        }
     }
 
 /**

@@ -17,6 +17,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
 import kotlin.test.Test
+import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.time.Duration.Companion.ZERO
 
@@ -102,6 +103,56 @@ class OidcJwtKeyAndAlgorithmTest {
             header(HttpHeaders.Authorization, "Bearer ${keys.token(audience = "api", subject = "alg-user")}")
         }
         assertEquals(HttpStatusCode.Unauthorized, response.status)
+    }
+
+    @Test
+    fun `id token algorithms default to discovery metadata`() = testApplication {
+        val keys = OpenIdTestKeys()
+        openIdProvider(
+            OpenIdProviderMetadata(
+                issuer = ISSUER_URL,
+                authorizationEndpoint = "$ISSUER_URL/authorize",
+                tokenEndpoint = "$ISSUER_URL/token",
+                jwksUri = "$ISSUER_URL/jwks",
+                idTokenSigningAlgValuesSupported = listOf(SignatureAlgorithm.RSA_SHA_384.testJwaName),
+            )
+        )
+
+        val openIdClient = client
+        application {
+            val oidc = openIdConnect {
+                httpClient = openIdClient
+                discoveryRefreshInterval = ZERO
+            }
+            val provider = oidc.provider("auth0") {
+                issuer = ISSUER_URL
+                jwt {
+                    jwkProviderFactory = { keys.jwkProvider }
+                }
+                oauth {
+                    clientId = "client-id"
+                    clientSecret = "client-secret"
+                }
+            }
+
+            routing {
+                get("/verify") {
+                    val failure = runCatching {
+                        provider.buildVerifiedPrincipal(
+                            idToken = keys.token(audience = "client-id", subject = "alg-user"),
+                            accessToken = null,
+                            refreshToken = null,
+                            expectedAudience = "client-id",
+                        )
+                    }.exceptionOrNull()
+                    call.respondText(failure?.message.orEmpty())
+                }
+            }
+        }
+
+        val response = client.get("/verify")
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertContains(response.bodyAsText(), "allowed algorithms")
     }
 
     private fun ApplicationTestBuilder.installJwtBearer(

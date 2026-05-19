@@ -11,15 +11,25 @@ import com.auth0.jwk.JwkException
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import com.auth0.jwt.exceptions.JWTDecodeException
 import com.auth0.jwt.exceptions.JWTVerificationException
 import com.auth0.jwt.interfaces.DecodedJWT
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
 import io.ktor.http.auth.*
+import io.ktor.server.auth.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.security.interfaces.ECPublicKey
 import java.security.interfaces.RSAPublicKey
+import java.util.*
+import kotlin.text.equals
+import kotlin.text.isNullOrBlank
 
 internal class OidcTokenRejectedException(message: String?) : RuntimeException(message)
 
@@ -32,7 +42,14 @@ private inline fun requireToken(condition: Boolean, lazyMessage: () -> String) {
     }
 }
 
+private enum class JwtTokenType {
+    IdToken,
+    AccessToken,
+    UserInfo,
+}
+
 private val hmacAlgorithms = setOf("HS256", "HS384", "HS512")
+private const val BEARER_TOKEN_TYPE = "Bearer"
 
 private val SignatureAlgorithm.ecJwaCurve: String?
     get() = when (this) {
@@ -41,6 +58,41 @@ private val SignatureAlgorithm.ecJwaCurve: String?
         SignatureAlgorithm.ECDSA_SHA_512 -> "P-521"
         else -> null
     }
+
+internal suspend fun OidcProvider<*>.buildOAuthPrincipal(
+    response: OAuthAccessTokenResponse.OAuth2,
+    expectedNonce: String?,
+): OidcPrincipal {
+    val oauthConfig = requireNotNull(config.oauthConfig) {
+        "OAuth configuration is not enabled"
+    }
+    val idToken = response.extraParameters["id_token"]
+    if (idToken != null) {
+        requireBearerTokenType(response.tokenType)
+        val nonce = expectedNonce ?: rejectToken("OIDC state nonce is missing")
+        return buildVerifiedPrincipal(
+            idToken = idToken,
+            accessToken = response.accessToken,
+            refreshToken = response.refreshToken,
+            expectedAudience = oauthConfig.idTokenAudience ?: oauthConfig.clientId,
+            expectedNonce = nonce,
+            fetchUserInfo = oauthConfig.fetchUserInfo,
+        )
+    }
+
+    requireNotNull(config.accessTokenConfig) {
+        "OAuth callback did not include id_token and accessToken { audiences = ... } is not configured"
+    }
+    return requireNotNull(verifyAccessToken(response.accessToken)) {
+        "OAuth callback access token was not accepted"
+    }
+}
+
+private fun requireBearerTokenType(type: String?) {
+    requireToken(type.equals(BEARER_TOKEN_TYPE, ignoreCase = true)) {
+        "OIDC token response token_type must be Bearer"
+    }
+}
 
 internal suspend fun OidcProvider<*>.verifyAccessToken(token: String): OidcPrincipal {
     require(config.accessTokenAllowed) {
@@ -74,6 +126,7 @@ private suspend fun OidcProvider<*>.verifyJwtAccessToken(
         token = token,
         jwt = jwt,
         audiences = config.audiences,
+        tokenType = JwtTokenType.AccessToken,
         metadata = metadata,
         jwkProvider = jwkProvider,
     )
@@ -84,14 +137,108 @@ private suspend fun OidcProvider<*>.verifyJwtAccessToken(
     )
 }
 
+internal suspend fun OidcProvider<*>.buildVerifiedPrincipal(
+    idToken: String,
+    accessToken: String?,
+    refreshToken: String?,
+    expectedAudience: String,
+    expectedNonce: String? = null,
+    fetchUserInfo: Boolean = false,
+): OidcPrincipal.IdToken {
+    val decoded = try {
+        JWT.decode(idToken)
+    } catch (cause: JWTDecodeException) {
+        rejectToken(cause.message)
+    }
+    val metadata = currentMetadata()
+    val jwkProvider = currentJwkProvider()
+    val verifiedJwt = verifyJwtToken(
+        token = idToken,
+        jwt = decoded,
+        audiences = listOf(expectedAudience),
+        tokenType = JwtTokenType.IdToken,
+        metadata = metadata,
+        jwkProvider = jwkProvider,
+    )
+    val tokenNonce = verifiedJwt.getClaim("nonce").asString()
+    val idTokenSubject = verifiedJwt.requireSubject()
+    if (expectedNonce != null) {
+        requireToken(tokenNonce == expectedNonce) {
+            "ID token nonce mismatch: replay protection check failed"
+        }
+    }
+    verifiedJwt.validateAtHash(accessToken)
+    val userInfoEndpoint = metadata.userInfoEndpoint
+    val userInfo = if (fetchUserInfo && userInfoEndpoint != null && !accessToken.isNullOrBlank()) {
+        fetchUserInfo(
+            endpoint = userInfoEndpoint,
+            accessToken = accessToken,
+            expectedSubject = idTokenSubject,
+            expectedAudience = expectedAudience,
+            metadata = metadata,
+            jwkProvider = jwkProvider,
+        )
+    } else {
+        verifiedJwt.extractUserInfo()
+    }
+
+    return OidcPrincipal.IdToken(
+        idToken = idToken,
+        accessToken = accessToken,
+        refreshToken = refreshToken,
+        userInfo = userInfo,
+    )
+}
+
+private suspend fun OidcProvider<*>.fetchUserInfo(
+    endpoint: String,
+    accessToken: String,
+    expectedSubject: String,
+    expectedAudience: String,
+    metadata: OpenIdProviderMetadata,
+    jwkProvider: JwkProvider,
+): OidcPrincipal.UserInfo {
+    val response = client.get(endpoint) { bearerAuth(accessToken) }
+    val userInfo = if (response.contentType().isJwt()) {
+        val token = response.bodyAsText()
+        if (token.count { it == '.' } == 4) {
+            rejectToken("Encrypted UserInfo JWT responses are not supported")
+        }
+        val decoded = try {
+            JWT.decode(token)
+        } catch (cause: JWTDecodeException) {
+            rejectToken(cause.message)
+        }
+        verifyJwtToken(
+            token = token,
+            jwt = decoded,
+            audiences = listOf(expectedAudience),
+            tokenType = JwtTokenType.UserInfo,
+            metadata = metadata,
+            jwkProvider = jwkProvider,
+        ).extractUserInfo()
+    } else {
+        response.body<OidcPrincipal.UserInfo>()
+    }
+
+    requireToken(userInfo.subject == expectedSubject) {
+        "UserInfo subject mismatch: expected $expectedSubject, got ${userInfo.subject}"
+    }
+    return userInfo
+}
+
+private fun ContentType?.isJwt(): Boolean =
+    this?.withoutParameters()?.match(ContentType("application", "jwt")) == true
+
 private suspend fun OidcProvider<*>.verifyJwtToken(
     token: String,
     jwt: DecodedJWT,
     audiences: Collection<String>,
+    tokenType: JwtTokenType,
     metadata: OpenIdProviderMetadata,
     jwkProvider: JwkProvider,
 ): DecodedJWT {
-    val tokenAlgorithm = requireAllowedAlgorithm(jwt)
+    val tokenAlgorithm = requireAllowedAlgorithm(jwt, tokenType, metadata)
     val keyId = jwt.keyId
     if (keyId != null) {
         val jwk = jwkProvider.getJwk(keyId)
@@ -124,7 +271,11 @@ private fun OidcProvider<*>.verifyJwt(
         rejectToken(cause.message)
     }
 
-private fun OidcProvider<*>.requireAllowedAlgorithm(jwt: DecodedJWT): SignatureAlgorithm {
+private fun OidcProvider<*>.requireAllowedAlgorithm(
+    jwt: DecodedJWT,
+    tokenType: JwtTokenType,
+    metadata: OpenIdProviderMetadata,
+): SignatureAlgorithm {
     val algorithmName = jwt.algorithm ?: rejectToken("JWT algorithm is missing")
     requireToken(algorithmName != "none" && algorithmName !in hmacAlgorithms) {
         "JWT algorithm $algorithmName is not accepted"
@@ -132,7 +283,14 @@ private fun OidcProvider<*>.requireAllowedAlgorithm(jwt: DecodedJWT): SignatureA
     val algorithm = SignatureAlgorithm.fromJwaName(algorithmName)
         ?: rejectToken("JWT algorithm $algorithmName is not accepted")
 
-    val allowedAlgorithms = config.jwtConfig.allowedAlgorithms
+    val allowedAlgorithms = when (tokenType) {
+        JwtTokenType.IdToken ->
+            config.jwtConfig.allowedAlgorithms ?: metadata.idTokenSigningAlgValuesSupported?.toSet()
+
+        JwtTokenType.AccessToken -> config.jwtConfig.allowedAlgorithms
+        JwtTokenType.UserInfo ->
+            config.jwtConfig.allowedAlgorithms ?: metadata.userinfoSigningAlgValuesSupported?.toSet()
+    }
     requireToken(allowedAlgorithms == null || algorithmName in allowedAlgorithms) {
         "JWT algorithm $algorithmName is not in the allowed algorithms: ${allowedAlgorithms!!.joinToString()}"
     }
@@ -186,6 +344,30 @@ private fun Jwk.curveSupportsAlgorithm(algorithm: SignatureAlgorithm): Boolean {
     val expectedCurve = algorithm.ecJwaCurve ?: return true
     val curve = additionalAttributes["crv"] as? String ?: return true
     return curve == expectedCurve
+}
+
+private fun DecodedJWT.validateAtHash(accessToken: String?) {
+    val actual = getClaim("at_hash").asString() ?: return
+    val token = accessToken ?: rejectToken("ID token contains at_hash but access token is missing")
+    val expected = calculateAtHash(input = token, jwtAlgorithm = algorithm)
+    requireToken(actual == expected) {
+        "ID token at_hash does not match the access token"
+    }
+}
+
+private fun DecodedJWT.requireSubject(): String {
+    requireToken(!subject.isNullOrBlank()) {
+        "sub claim must not be blank"
+    }
+    return subject
+}
+
+private fun calculateAtHash(input: String, jwtAlgorithm: String): String {
+    val digestAlgorithm = SignatureAlgorithm.fromJwaName(jwtAlgorithm)?.digestAlgorithm
+        ?: rejectToken("Cannot validate at_hash for unsupported JWT algorithm $jwtAlgorithm")
+    val digest = digestAlgorithm.toDigester().digest(input.toByteArray(Charsets.US_ASCII))
+    val leftHalf = digest.copyOfRange(0, digest.size / 2)
+    return Base64.getUrlEncoder().withoutPadding().encodeToString(leftHalf)
 }
 
 private fun Jwk.createAlgorithm(tokenAlgorithm: SignatureAlgorithm): Algorithm =

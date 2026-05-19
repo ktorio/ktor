@@ -6,7 +6,10 @@ package io.ktor.server.auth.openid.utils
 
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import io.ktor.server.auth.openid.*
 import io.ktor.server.testing.*
 import kotlinx.serialization.json.Json
 
@@ -20,4 +23,13 @@ internal fun ApplicationTestBuilder.openIdHttpClient(): HttpClient = createClien
     install(ContentNegotiation) {
         json(openIdTestJson)
     }
+}
+
+internal fun HttpResponse.oidcAuthorizationSessionCookieHeader(providerName: String = "auth0"): String? {
+    val name = oidcAuthorizationSessionCookieName(providerName)
+    return headers.getAll(HttpHeaders.SetCookie)
+        .orEmpty()
+        .firstOrNull { it.startsWith("$name=") }
+        ?.let(::parseServerSetCookieHeader)
+        ?.let { "${it.name}=${it.value}" }
 }

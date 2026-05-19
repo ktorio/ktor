@@ -7,8 +7,13 @@ package io.ktor.server.auth.openid
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
 import io.ktor.client.*
+import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.typesafe.UnauthorizedHandler
 import io.ktor.server.config.*
+import io.ktor.server.plugins.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.utils.io.*
 import kotlinx.serialization.Serializable
@@ -28,7 +33,7 @@ public class OidcPluginConfig {
     internal val environmentProviders: MutableMap<String, EnvConfig> = linkedMapOf()
 
     /**
-     * Optional HTTP client used for OpenID Connect discovery requests.
+     * Optional HTTP client used for discovery and userinfo requests.
      * If not configured, the plugin installs an internal client.
      */
     public var httpClient: HttpClient? = null
@@ -69,6 +74,9 @@ public class OidcPluginConfig {
     @Serializable
     internal data class EnvConfig(
         val issuer: String,
+        val clientId: String? = null,
+        val clientSecret: String? = null,
+        val scopes: List<String> = listOf("openid", "profile", "email"),
     )
 
     internal fun Application.loadConfigFromEnvironment() {
@@ -78,7 +86,11 @@ public class OidcPluginConfig {
 
         val root = environment.config.config("ktor.openid")
         root.keys().map { it.substringBefore(".") }.distinct().forEach { providerName ->
-            this@OidcPluginConfig.environmentProviders[providerName] = root.property(providerName).getAs()
+            val env = root.property(providerName).getAs<EnvConfig>()
+            require((env.clientId == null) == (env.clientSecret == null)) {
+                "OpenID Connect provider $providerName must configure both clientId and clientSecret, or neither"
+            }
+            this@OidcPluginConfig.environmentProviders[providerName] = env
         }
     }
 
@@ -95,10 +107,10 @@ public class OidcPluginConfig {
 /**
  * Configuration for a single OpenID Connect provider (issuer).
  *
- * The provider is the typed root for route-facing capabilities. Bearer schemes created from this configuration expose
- * the same principal type [P].
+ * The provider is the typed root for route-facing capabilities. Bearer schemes and OAuth callbacks created from this
+ * configuration expose the same principal type [P].
  *
- * @property name provider name used for generated authentication scheme names.
+ * @property name provider name used for generated routes and authentication scheme names.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.openid.OidcProviderConfig)
  */
@@ -116,19 +128,20 @@ public class OidcProviderConfig<P : Any> internal constructor(
     internal val jwtConfig: OidcJwtConfig = OidcJwtConfig()
     internal var accessTokenConfig: OidcAccessTokenConfig? = null
     internal var bearerConfig: OidcBearerConfig? = null
+    internal var oauthConfig: OidcOAuthConfig<P>? = null
 
     internal val accessTokenAllowed: Boolean
         get() = accessTokenConfig != null
 
     /**
-     * Configures JWT verification for JWT access tokens.
+     * Configures JWT verification shared by ID-token and JWT access-token validation.
      */
     public fun jwt(configure: OidcJwtConfig.() -> Unit) {
         jwtConfig.apply(configure)
     }
 
     /**
-     * Configures access-token acceptance for Bearer authentication.
+     * Configures access-token acceptance for Bearer authentication and OAuth callbacks without an ID token.
      */
     public fun accessToken(configure: OidcAccessTokenConfig.() -> Unit) {
         accessTokenConfig = (accessTokenConfig ?: OidcAccessTokenConfig()).apply(configure)
@@ -144,6 +157,16 @@ public class OidcProviderConfig<P : Any> internal constructor(
         bearerConfig = OidcBearerConfig().apply(configure)
     }
 
+    /**
+     * Configures the OAuth/OpenID Connect login flow for this provider.
+     *
+     * This installs provider-specific login and callback routes. The callback verifies the token response and passes
+     * [P] to the configured success handler.
+     */
+    public fun oauth(configure: OidcOAuthConfig<P>.() -> Unit = {}) {
+        oauthConfig = (oauthConfig ?: OidcOAuthConfig(name)).apply(configure)
+    }
+
     internal fun validate() {
         require(::issuer.isInitialized && issuer.isNotBlank()) {
             "issuer must be configured"
@@ -153,6 +176,7 @@ public class OidcProviderConfig<P : Any> internal constructor(
         }
         jwtConfig.validate()
         accessTokenConfig?.validate()
+        oauthConfig?.validate(accessTokenAllowed = accessTokenConfig != null)
     }
 }
 
@@ -161,14 +185,14 @@ public class OidcProviderConfig<P : Any> internal constructor(
  *
  * The transformer receives the current [RoutingContext] and verified principal.
  *
- * Return `null` to reject a verified JWT access token for this provider.
+ * Return `null` to reject a verified ID token or JWT access token for this provider.
  *
  * @param P the principal type exposed to typed route handlers.
  */
 public typealias PrincipalTransformer<P> = suspend RoutingContext.(OidcPrincipal) -> P?
 
 /**
- * JWT verification configuration.
+ * JWT verification configuration shared by ID tokens and JWT access tokens.
  *
  * @property clockSkew accepted JWT clock skew.
  * @property allowedAlgorithms accepted JWT signing algorithms, or `null` to use provider defaults.
@@ -207,8 +231,10 @@ public class OidcJwtConfig internal constructor() {
     /**
      * Accepted JWT signing algorithms.
      *
-     * When `null`, JWT access tokens keep the default RSA/EC verification behavior. `none` and HMAC algorithms are
-     * never accepted.
+     * When `null`, ID tokens use the provider discovery `id_token_signing_alg_values_supported` value when present.
+     * JWT access tokens keep the default RSA/EC verification behavior unless this set is configured explicitly.
+     *
+     * `none` and HMAC algorithms are never accepted.
      */
     public var allowedAlgorithms: Set<String>? = null
 
@@ -286,7 +312,8 @@ public class OidcJwtConfig internal constructor() {
 /**
  * Access-token verification policy.
  *
- * Access-token authentication is disabled unless this block is configured. Configure resource audiences explicitly.
+ * Access-token authentication is disabled unless this block is configured. Unlike ID-token validation, access-token
+ * audience never defaults to the OAuth client ID; configure resource audiences explicitly.
  *
  * @property audiences accepted resource identifiers for this server. Access tokens must include at least one value
  * from this set.
@@ -327,4 +354,132 @@ public class OidcBearerConfig internal constructor() {
      * When `null`, the provider reads the standard `Authorization: Bearer <token>` header.
      */
     public var tokenExtractor: TokenExtractor? = null
+}
+
+/**
+ * OAuth/OpenID Connect configuration.
+ *
+ * OAuth installs a provider-specific login route and callback route. The callback verifies the token response
+ * and passes the transformed provider principal to [onSuccess].
+ *
+ * @param P the typed principal exposed to [onSuccess].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.openid.OidcOAuthConfig)
+ */
+@KtorDsl
+public class OidcOAuthConfig<P : Any> internal constructor(
+    internal val providerName: String,
+) {
+    /**
+     * OAuth client ID. Required when OAuth is configured.
+     */
+    public lateinit var clientId: String
+
+    /**
+     * OAuth client secret. Required when OAuth is configured.
+     */
+    public lateinit var clientSecret: String
+
+    /**
+     * OAuth scopes requested during authorization.
+     *
+     * The `openid` scope is required unless [OidcProviderConfig.accessToken] is configured, in which case
+     * OAuth callbacks may accept an access-token-only response.
+     */
+    public var scopes: List<String> = listOf("openid", "profile", "email")
+
+    /**
+     * Expected audience for ID token validation in callback.
+     * Defaults to [clientId] when not specified.
+     */
+    public var idTokenAudience: String? = null
+
+    /**
+     * Enables userinfo request in callback flow.
+     */
+    public var fetchUserInfo: Boolean = false
+
+    internal var redirectUri: URLBuilder.() -> Unit = { path("oidc", providerName, "callback") }
+    internal var loginUri: URLBuilder.() -> Unit = { path("oidc", providerName, "login") }
+
+    /**
+     * Called after a successful OAuth login.
+     */
+    public var onSuccess: suspend RoutingContext.(P) -> Unit = { call.respond(HttpStatusCode.OK) }
+
+    /**
+     * Called when OAuth, OpenID Connect verification, or principal mapping fails during the callback.
+     */
+    public var onFailure: UnauthorizedHandler = { call.respond(HttpStatusCode.Unauthorized) }
+
+    /**
+     * Configures the OAuth callback route URI.
+     *
+     * Defaults to `/oidc/{providerName}/callback`. Query parameters are not supported.
+     */
+    public fun redirectUri(block: URLBuilder.() -> Unit) {
+        redirectUri = block
+    }
+
+    /**
+     * Configures the OAuth login route URI.
+     *
+     * Defaults to `/oidc/{providerName}/login`. Query parameters are not supported.
+     */
+    public fun loginUri(block: URLBuilder.() -> Unit) {
+        loginUri = block
+    }
+
+    /**
+     * Sets the handler called after a successful OAuth/OIDC login.
+     *
+     * @param block handler invoked with the typed provider principal.
+     */
+    public fun onSuccess(block: suspend RoutingContext.(P) -> Unit) {
+        onSuccess = block
+    }
+
+    /**
+     * Sets the handler called when OIDC verification or principal mapping fails after token exchange.
+     *
+     * @param block failure handler.
+     */
+    public fun onFailure(block: UnauthorizedHandler) {
+        onFailure = block
+    }
+
+    internal fun validate(accessTokenAllowed: Boolean) {
+        require(::clientId.isInitialized) {
+            "clientId must be configured"
+        }
+        require(::clientSecret.isInitialized) {
+            "clientSecret must be configured"
+        }
+        require(accessTokenAllowed || "openid" in scopes) {
+            "OAuth scopes for OpenID Connect must include openid unless accessToken { audiences = ... } is configured"
+        }
+        idTokenAudience?.let { audience ->
+            require(audience.isNotBlank()) {
+                "idTokenAudience must not be blank"
+            }
+        }
+    }
+}
+
+internal fun oidcRoutePath(build: URLBuilder.() -> Unit): String {
+    val url = URLBuilder().apply(build).build()
+    require(url.encodedQuery.isEmpty()) {
+        "$url must not include query parameters"
+    }
+    return url.encodedPath
+}
+
+internal fun ApplicationRequest.oidcRedirectUri(build: URLBuilder.() -> Unit): String {
+    val requestOrigin = origin
+    return URLBuilder().apply {
+        protocol = URLProtocol.createOrDefault(requestOrigin.scheme)
+        host = requestOrigin.serverHost
+        port = requestOrigin.serverPort
+        encodedPath = oidcRoutePath(build)
+    }.buildString()
 }

@@ -66,6 +66,29 @@ public final class io/ktor/server/auth/openid/OidcMetadataRefreshFailure {
 	public final fun getProvider ()Lio/ktor/server/auth/openid/OidcProvider;
 }
 
+public final class io/ktor/server/auth/openid/OidcOAuthConfig {
+	public field clientId Ljava/lang/String;
+	public field clientSecret Ljava/lang/String;
+	public final fun getClientId ()Ljava/lang/String;
+	public final fun getClientSecret ()Ljava/lang/String;
+	public final fun getFetchUserInfo ()Z
+	public final fun getIdTokenAudience ()Ljava/lang/String;
+	public final fun getOnFailure ()Lkotlin/jvm/functions/Function3;
+	public final fun getOnSuccess ()Lkotlin/jvm/functions/Function3;
+	public final fun getScopes ()Ljava/util/List;
+	public final fun loginUri (Lkotlin/jvm/functions/Function1;)V
+	public final fun onFailure (Lkotlin/jvm/functions/Function3;)V
+	public final fun onSuccess (Lkotlin/jvm/functions/Function3;)V
+	public final fun redirectUri (Lkotlin/jvm/functions/Function1;)V
+	public final fun setClientId (Ljava/lang/String;)V
+	public final fun setClientSecret (Ljava/lang/String;)V
+	public final fun setFetchUserInfo (Z)V
+	public final fun setIdTokenAudience (Ljava/lang/String;)V
+	public final fun setOnFailure (Lkotlin/jvm/functions/Function3;)V
+	public final fun setOnSuccess (Lkotlin/jvm/functions/Function3;)V
+	public final fun setScopes (Ljava/util/List;)V
+}
+
 public final class io/ktor/server/auth/openid/OidcPluginConfig {
 	public fun <init> ()V
 	public final fun getDiscoveryRefreshFailureDelay-UwyO8pc ()J
@@ -188,6 +211,8 @@ public final class io/ktor/server/auth/openid/OidcProviderConfig {
 	public final fun getIssuer ()Ljava/lang/String;
 	public final fun getName ()Ljava/lang/String;
 	public final fun jwt (Lkotlin/jvm/functions/Function1;)V
+	public final fun oauth (Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun oauth$default (Lio/ktor/server/auth/openid/OidcProviderConfig;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public final fun setIssuer (Ljava/lang/String;)V
 }
 

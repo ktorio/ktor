@@ -6,6 +6,7 @@
 
 package io.ktor.server.auth.openid
 
+import io.ktor.http.*
 import io.ktor.server.auth.openid.utils.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
@@ -15,10 +16,45 @@ import kotlin.time.Duration.Companion.ZERO
 class OidcConfigValidationTest {
 
     @Test
-    fun `bearer config validates required access token settings`() {
+    fun `route uri configs reject query parameters`() {
+        val failure = assertProviderValidationFails {
+            oauth {
+                clientId = "client-id"
+                clientSecret = "client-secret"
+                loginUri {
+                    path("auth0", "login")
+                    parameters.append("debug", "true")
+                }
+            }
+        }
+
+        assertContains(failure.message.orEmpty(), "query parameters")
+    }
+
+    @Test
+    fun `bearer and oauth configs validate required security settings`() {
         val bearerFailure = assertProviderValidationFails { bearer() }
         assertContains(bearerFailure.message.orEmpty(), "accessToken")
         assertContains(bearerFailure.message.orEmpty(), "audiences")
+
+        val scopeFailure = assertProviderValidationFails {
+            oauth {
+                clientId = "client-id"
+                clientSecret = "client-secret"
+                scopes = listOf("profile")
+            }
+        }
+        assertContains(scopeFailure.message.orEmpty(), "openid")
+        assertContains(scopeFailure.message.orEmpty(), "accessToken")
+
+        val audienceFailure = assertProviderValidationFails {
+            oauth {
+                clientId = "client-id"
+                clientSecret = "client-secret"
+                idTokenAudience = " "
+            }
+        }
+        assertContains(audienceFailure.message.orEmpty(), "idTokenAudience")
     }
 
     @Test
