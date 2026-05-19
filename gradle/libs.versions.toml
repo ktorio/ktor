@@ -70,7 +70,6 @@ jte = "3.2.4"
 javax-servlet = "4.0.1"
 jakarta-servlet = "5.0.0"
 
-ws = "8.18.3"
 xmlutil = "0.91.3"
 yamlkt = "0.13.0"
 kaml = "0.79.0"
@@ -79,7 +78,6 @@ swagger-codegen = "3.0.79"
 swagger-codegen-generators = "1.0.61"
 swagger-parser = "2.1.42"
 
-puppeteer = "24.16.1"
 tomlj = "1.1.1"
 
 zstd-jni = "1.5.7-8"
@@ -94,6 +92,12 @@ android-compileSdk = "36"
 android-minSdk = "28"
 ios-deploymentTarget = "13.0"
 ios-webrtc-sdk = "137.7151.04"
+
+# JS versions
+node = "22.22.2"
+yarn = "1.22.22"
+ws = "8.18.3"
+puppeteer = "24.16.1"
 
 [libraries]
 

@@ -56,17 +56,18 @@ ENV PATH="$local_bin:$PATH"
 
 # Install Node.js
 ARG node_version="22"
-ARG nvm_version="0.40.3"
+ARG yarn_version="1.22.22"
+ARG nvm_version="0.40.4"
 ENV NVM_DIR="$HOME/.nvm"
+ENV NODE_VERSION="$node_version"
 
 RUN <<EOT
   # Install NVM
-  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v$nvm_version/install.sh | bash
-  source $NVM_DIR/nvm.sh
+  curl -o- "https://raw.githubusercontent.com/nvm-sh/nvm/v${nvm_version}/install.sh" | bash
+  source "$NVM_DIR/nvm.sh"
 
-  # Install Node and Yarn Classic
-  nvm install "$node_version"
-  npm install -g yarn
+  # Install Yarn Classic
+  npm install -g "yarn@$yarn_version"
 
   # Make Node.js binaries available without "source $NVM_DIR/nvm.sh"
   # This should be done *after* installation of Yarn

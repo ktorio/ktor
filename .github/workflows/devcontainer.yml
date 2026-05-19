@@ -5,14 +5,14 @@ on:
     paths:
       - .devcontainer/**
       - .github/workflows/devcontainer.yml
-      - .nvmrc
+      - gradle/libs.versions.toml
 
   push:
     branches: [ main ]
     paths:
       - .devcontainer/**
       - .github/workflows/devcontainer.yml
-      - .nvmrc
+      - gradle/libs.versions.toml
 
   schedule:
     - cron: '0 0 * * 6' # Every Saturday at 00:00
@@ -63,10 +63,19 @@ jobs:
             latest
             {{date 'YYYYMMDD'}}
 
-      - name: Extract Node.js version
-        id: node-version
-        run: echo "result=$(cat .nvmrc)" >> $GITHUB_OUTPUT
-
+      - name: Extract toolchain versions
+        id: versions
+        run: |
+          set -euo pipefail
+          # Reads version from .gradle/libs.versions.toml and outputs it as a step result
+          function read_version() {
+            local alias=$1
+            # Format: alias = "X.Y.Z"
+            local version=$(grep -E "^$alias = \"" gradle/libs.versions.toml | cut -d'"' -f2)
+            echo "$alias=$version" | tee --append "$GITHUB_OUTPUT"
+          }
+          read_version node
+          read_version yarn
       - name: Build image
         id: build
         uses: docker/build-push-action@v7
@@ -75,7 +84,8 @@ jobs:
           context: .devcontainer
           target: dev
           build-args: |
-            node_version=${{ steps.node-version.outputs.result }}
+            node_version=${{ steps.versions.outputs.node }}
+            yarn_version=${{ steps.versions.outputs.yarn }}
           platforms: linux/amd64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
