@@ -5,6 +5,7 @@
 package io.ktor.client.webrtc.utils
 
 import io.ktor.client.webrtc.*
+import io.ktor.test.*
 import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.runTest
+import kotlin.time.Duration
 
 // Create different WebRtc engine implementation to be tested for every platform.
 @OptIn(ExperimentalKtorApi::class)
@@ -43,13 +45,19 @@ fun runTestWithPermissions(
     audio: Boolean = true,
     video: Boolean = true,
     realTime: Boolean = false,
+    timeout: Duration = DEFAULT_TEST_TIMEOUT,
     block: suspend BackgroundTasksScope.() -> Unit
 ): TestResult {
     grantPermissions(audio, video)
-    suspend fun CoroutineScope.testBody() = withBackgroundTasks {
-        block()
+    val testBody: suspend CoroutineScope.() -> Unit = {
+        withBackgroundTasks {
+            block()
+        }
     }
-    return if (realTime) runTestWithRealTime { testBody() } else runTest { testBody() }
+    return when {
+        realTime -> runTestWithRealTime(timeout = timeout, testBody = testBody)
+        else -> runTest(timeout = timeout, testBody = testBody)
+    }
 }
 
 // Listen for the connection ICE candidates and add them to the other peer (two-way).

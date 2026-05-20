@@ -60,11 +60,8 @@ kotlin {
             api(libs.kotlinx.serialization.core)
         }
 
-        commonTest {
-            dependencies {
-                implementation(libs.kotlin.test)
-                implementation(projects.ktorTestDispatcher)
-            }
+        commonTest.dependencies {
+            implementation(projects.ktorTestBase)
         }
 
         webMain.dependencies {

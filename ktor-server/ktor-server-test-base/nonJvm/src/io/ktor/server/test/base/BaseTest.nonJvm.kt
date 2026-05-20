@@ -11,11 +11,10 @@ import io.ktor.utils.io.locks.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.TestResult
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 @OptIn(InternalAPI::class)
 actual abstract class BaseTest actual constructor() {
-    actual open val timeout: Duration = 10.seconds
+    actual open val timeout: Duration = DEFAULT_TEST_TIMEOUT
 
     private val errors = mutableListOf<Throwable>()
 
