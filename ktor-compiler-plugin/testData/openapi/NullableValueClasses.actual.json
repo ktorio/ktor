@@ -12,7 +12,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/ExampleRequest"
+                                "$ref": "#/components/schemas/NullableValueClassRequest"
                             }
                         }
                     }
@@ -23,7 +23,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ExampleResponse"
+                                    "$ref": "#/components/schemas/NullableValueClassResponse"
                                 }
                             }
                         }
@@ -34,14 +34,15 @@
     },
     "components": {
         "schemas": {
-            "ExampleRequest": {
+            "NullableValueClassRequest": {
                 "type": "object",
-                "title": "ExampleRequest",
+                "title": "NullableValueClassRequest",
                 "required": [
-                    "token"
+                    "token",
+                    "tokenWithNullableContent"
                 ],
                 "properties": {
-                    "plainText": {
+                    "nullableText": {
                         "type": [
                             "string",
                             "null"
@@ -51,6 +52,12 @@
                         "type": "string"
                     },
                     "optionalToken": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "tokenWithNullableContent": {
                         "type": [
                             "string",
                             "null"
@@ -64,14 +71,15 @@
                     }
                 }
             },
-            "ExampleResponse": {
+            "NullableValueClassResponse": {
                 "type": "object",
-                "title": "ExampleResponse",
+                "title": "NullableValueClassResponse",
                 "required": [
-                    "token"
+                    "token",
+                    "tokenWithNullableContent"
                 ],
                 "properties": {
-                    "plainText": {
+                    "nullableText": {
                         "type": [
                             "string",
                             "null"
@@ -81,6 +89,12 @@
                         "type": "string"
                     },
                     "optionalToken": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "tokenWithNullableContent": {
                         "type": [
                             "string",
                             "null"
