@@ -1,0 +1,99 @@
+{
+    "openapi": "3.1.1",
+    "info": {
+        "title": "OpenAPI Document",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/nullable-value-classes": {
+            "post": {
+                "summary": "",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ExampleRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ExampleResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ExampleRequest": {
+                "type": "object",
+                "title": "ExampleRequest",
+                "required": [
+                    "token"
+                ],
+                "properties": {
+                    "plainText": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "token": {
+                        "type": "string"
+                    },
+                    "optionalToken": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "optionalCount": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    }
+                }
+            },
+            "ExampleResponse": {
+                "type": "object",
+                "title": "ExampleResponse",
+                "required": [
+                    "token"
+                ],
+                "properties": {
+                    "plainText": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "token": {
+                        "type": "string"
+                    },
+                    "optionalToken": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "optionalCount": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    }
+                }
+            }
+        }
+    }
+}
