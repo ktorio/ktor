@@ -385,13 +385,18 @@ public fun JsonSchema.wrapIfNullable(isNullable: Boolean): JsonSchema =
         this
     }
 
+@OptIn(InternalAPI::class)
 private fun JsonSchema.withNullableType(isNullable: Boolean): JsonSchema =
     if (!isNullable) {
         this
     } else {
         when (val schemaType = type) {
             is JsonType -> copy(type = schemaType.wrapIfNullable(true))
-            is SchemaType.AnyOf -> this
+            is SchemaType.AnyOf -> if (JsonType.NULL in schemaType.types) {
+                this
+            } else {
+                copy(type = SchemaType.AnyOf(schemaType.types + JsonType.NULL))
+            }
             null -> wrapIfNullable(true)
         }
     }
