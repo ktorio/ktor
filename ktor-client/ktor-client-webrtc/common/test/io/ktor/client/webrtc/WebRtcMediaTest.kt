@@ -7,6 +7,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.withTimeout
 import kotlin.test.*
+import kotlin.time.Duration.Companion.seconds
 
 @IgnoreJvm
 @IgnoreDesktop
@@ -94,7 +95,7 @@ class WebRtcMediaTest {
             negotiate(pc1, pc2)
 
             // Check if remote tracks are emitted
-            withTimeout(5000) {
+            withTimeout(5.seconds) {
                 for (remoteTracks in listOf(remoteTracks1, remoteTracks2)) {
                     val tracks = arrayOf(remoteTracks.receive(), remoteTracks.receive())
                     assertTrue(tracks.all { it is TrackEvent.Add })
@@ -105,7 +106,7 @@ class WebRtcMediaTest {
 
             // assert that remote tracks are replayed
             val remoteTracks3 = pc2.trackEvents.collectToChannel(this, jobs)
-            withTimeout(5000) {
+            withTimeout(5.seconds) {
                 val tracks = arrayOf(remoteTracks3.receive(), remoteTracks3.receive())
                 assertTrue(tracks.all { it is TrackEvent.Add })
                 assertEquals(1, tracks.filter { it.track.kind === WebRtcMedia.TrackType.AUDIO }.size)
@@ -118,7 +119,7 @@ class WebRtcMediaTest {
             negotiate(pc1, pc2)
 
             // Check if the remote track is removed
-            withTimeout(5000) {
+            withTimeout(5.seconds) {
                 val removedTrack = remoteTracks1.receive()
                 assertTrue(removedTrack is TrackEvent.Remove)
                 assertEquals(WebRtcMedia.TrackType.AUDIO, removedTrack.track.kind)

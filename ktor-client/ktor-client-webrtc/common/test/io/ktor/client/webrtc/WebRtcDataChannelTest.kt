@@ -5,7 +5,7 @@
 package io.ktor.client.webrtc
 
 import io.ktor.client.webrtc.utils.*
-import io.ktor.utils.io.ExperimentalKtorApi
+import io.ktor.utils.io.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -13,6 +13,7 @@ import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.withTimeout
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 @IgnoreJvm
 @IgnoreDesktop
@@ -44,7 +45,7 @@ class WebRtcDataChannelTest {
         }
     }
 
-    private suspend fun waitForChannel(events: Channel<DataChannelEvent>) = withTimeout(5000) {
+    private suspend fun waitForChannel(events: Channel<DataChannelEvent>) = withTimeout(5.seconds) {
         val event = events.receive()
         assertTrue(event is DataChannelEvent.Open, "Expected DataChannelEvent.Open, got $event")
         assertEquals(WebRtc.DataChannel.State.OPEN, event.channel.state)
@@ -52,7 +53,7 @@ class WebRtcDataChannelTest {
     }
 
     private suspend fun WebRtcDataChannel.waitForClose(events: Channel<DataChannelEvent>) {
-        val closeEvent = withTimeout(2000) {
+        val closeEvent = withTimeout(2.seconds) {
             while (true) {
                 val event = events.receive()
                 if (event is DataChannelEvent.Closed) {
@@ -100,7 +101,7 @@ class WebRtcDataChannelTest {
         val testMessage = "Hello from pc1!"
         dataChannel1.send(testMessage)
 
-        val receivedMessage = withTimeout(5000) {
+        val receivedMessage = withTimeout(5.seconds) {
             val message = dataChannel2.receive()
             assertTrue(message is WebRtc.DataChannel.Message.Text, "Expected string message")
             message.data
@@ -111,7 +112,7 @@ class WebRtcDataChannelTest {
         val testBinaryData = byteArrayOf(1, 2, 3, 4, 5)
         dataChannel2.send(testBinaryData)
 
-        val receivedBinaryMessage = withTimeout(5000) {
+        val receivedBinaryMessage = withTimeout(5.seconds) {
             val message = dataChannel1.receive()
             assertTrue(message is WebRtc.DataChannel.Message.Binary)
             message.data
@@ -122,8 +123,8 @@ class WebRtcDataChannelTest {
         dataChannel1.send("Message from pc1")
         dataChannel2.send("Message from pc2")
 
-        val msg1 = withTimeout(2000) { dataChannel2.receiveText() }
-        val msg2 = withTimeout(2000) { dataChannel1.receiveText() }
+        val msg1 = withTimeout(2.seconds) { dataChannel2.receiveText() }
+        val msg2 = withTimeout(2.seconds) { dataChannel1.receiveText() }
 
         assertEquals("Message from pc1", msg1)
         assertEquals("Message from pc2", msg2)
@@ -135,6 +136,7 @@ class WebRtcDataChannelTest {
 
     @Test
     fun testDataChannelOptions() = testDataChannel { pc1, pc2, jobs ->
+        val dataChannelEvents1 = pc1.dataChannelEvents.collectToChannel(this, jobs)
         val dataChannel = pc1.createDataChannel(label = "options-test") {
             id = 42
             ordered = false
@@ -150,6 +152,7 @@ class WebRtcDataChannelTest {
         assertFalse(dataChannel.negotiated)
 
         connect(pc1, pc2, jobs)
+        waitForChannel(dataChannelEvents1)
 
         assertTrue(dataChannel.id!! >= 0, "Expected id to be non-negative after negotiation")
 
@@ -184,7 +187,7 @@ class WebRtcDataChannelTest {
         }
 
         // Receive all messages
-        withTimeout(10_000) {
+        withTimeout(10.seconds) {
             repeat(messageCount) { i ->
                 assertEquals("Message $i", dataChannel2.receiveText())
             }
@@ -201,6 +204,7 @@ class WebRtcDataChannelTest {
         connect(pc1, pc2, jobs)
 
         val dataChannel2 = waitForChannel(dataChannelEvents2)
+        waitForChannel(dataChannelEvents1)
 
         // Test sending on a closed channel
         dataChannel1.closeTransport()
@@ -223,6 +227,7 @@ class WebRtcDataChannelTest {
         connect(pc1, pc2, jobs)
 
         val dataChannel2 = waitForChannel(dataChannelEvents2)
+        waitForChannel(dataChannelEvents1)
 
         val threshold = 1000L
         dataChannel1.setBufferedAmountLowThreshold(threshold)
@@ -231,7 +236,7 @@ class WebRtcDataChannelTest {
         dataChannel1.send(largeData)
 
         // Now wait for the BufferedAmountLow event
-        val bufferedAmountLowEvent = withTimeout(5000) {
+        val bufferedAmountLowEvent = withTimeout(5.seconds) {
             while (true) {
                 val event = dataChannelEvents1.receive()
                 if (event is DataChannelEvent.BufferedAmountLow) {

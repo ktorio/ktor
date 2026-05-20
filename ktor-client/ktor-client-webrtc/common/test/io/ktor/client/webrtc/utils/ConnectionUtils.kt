@@ -6,7 +6,7 @@ package io.ktor.client.webrtc.utils
 
 import io.ktor.client.webrtc.*
 import io.ktor.test.dispatcher.*
-import io.ktor.utils.io.ExperimentalKtorApi
+import io.ktor.utils.io.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
+import kotlin.time.Duration.Companion.seconds
 
 // Create different WebRtc engine implementation to be tested for every platform.
 @OptIn(ExperimentalKtorApi::class)
@@ -36,7 +37,7 @@ fun runTestWithPermissions(
     val jobs = mutableListOf<Job>()
     return when {
         realTime -> runTestWithRealTime {
-            withTimeout(10_000) {
+            withTimeout(10.seconds) {
                 try {
                     block(jobs)
                 } finally {

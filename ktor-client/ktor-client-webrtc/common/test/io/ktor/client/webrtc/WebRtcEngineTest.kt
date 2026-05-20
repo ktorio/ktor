@@ -15,6 +15,7 @@ import kotlinx.coroutines.test.TestResult
 import kotlin.coroutines.CoroutineContext
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 @IgnoreJvm
 @IgnoreDesktop
@@ -88,7 +89,7 @@ class WebRtcEngineTest {
             val offer = peerConnection.createOffer()
             peerConnection.setLocalDescription(offer)
 
-            withTimeout(5000) {
+            withTimeout(5.seconds) {
                 receivedCandidates.receive()
             }
         }
@@ -141,7 +142,7 @@ class WebRtcEngineTest {
                     pc1.iceGatheringState.value == WebRtc.IceGatheringState.COMPLETE &&
                     pc2.iceGatheringState.value == WebRtc.IceGatheringState.COMPLETE
 
-            withTimeout(5000) {
+            withTimeout(5.seconds) {
                 // Exchange ICE candidates
                 while (!connectionEstablished()) {
                     select {
@@ -162,7 +163,7 @@ class WebRtcEngineTest {
             assertEquals(2, negotiationNeededCnt.receive())
             pc1.restartIce()
 
-            withTimeout(5000) {
+            withTimeout(5.seconds) {
                 negotiationNeededCnt.receive()
             }
         }
@@ -202,7 +203,7 @@ class WebRtcEngineTest {
             val stats = peerConnection.stats.collectToChannel(this, jobs)
             assertNull(stats.tryReceive().getOrNull())
 
-            withTimeout(5000) {
+            withTimeout(5.seconds) {
                 val firstStats = stats.receive()
                 assertEquals(emptyList(), firstStats)
 
@@ -268,7 +269,7 @@ class WebRtcEngineTest {
             // ensure no more elements are emitted after close
             assertNull(stats1.tryReceive().getOrNull())
             // connection2 should still receive stats
-            withTimeout(1000) { stats2.receive() }
+            withTimeout(1.seconds) { stats2.receive() }
         } finally {
             jobs.forEach { it.cancel() }
         }
@@ -297,7 +298,7 @@ class WebRtcEngineTest {
             }
 
             connection.use {
-                withTimeout(1000) {
+                withTimeout(1.seconds) {
                     val exception = channel.receive()
                     assertEquals("Ktor is awesome!", exception.message)
                 }
