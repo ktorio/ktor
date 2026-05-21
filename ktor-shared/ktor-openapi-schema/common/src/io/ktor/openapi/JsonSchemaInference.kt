@@ -129,7 +129,7 @@ public class KotlinxSerializerJsonSchemaInference(
                 descriptor = descriptor.getElementDescriptor(0),
                 includeAnnotations = includeAnnotations,
                 visiting = visiting,
-            ).withNullableType(isNullable)
+            ).wrapIfNullable(isNullable)
         }
 
         return when (descriptor.kind) {
@@ -374,19 +374,6 @@ public fun ReferenceOr<JsonSchema>.wrapIfNullable(isNullable: Boolean): Referenc
 
 @InternalAPI
 public fun JsonSchema.wrapIfNullable(isNullable: Boolean): JsonSchema =
-    if (isNullable) {
-        JsonSchema(
-            oneOf = listOf(
-                Value(this),
-                Value(JsonSchema(type = JsonType.NULL))
-            )
-        )
-    } else {
-        this
-    }
-
-@OptIn(InternalAPI::class)
-private fun JsonSchema.withNullableType(isNullable: Boolean): JsonSchema =
     if (!isNullable) {
         this
     } else {
@@ -397,7 +384,12 @@ private fun JsonSchema.withNullableType(isNullable: Boolean): JsonSchema =
             } else {
                 copy(type = SchemaType.AnyOf(schemaType.types + JsonType.NULL))
             }
-            null -> wrapIfNullable(true)
+            null -> JsonSchema(
+                oneOf = listOf(
+                    Value(this),
+                    Value(JsonSchema(type = JsonType.NULL))
+                )
+            )
         }
     }
 
