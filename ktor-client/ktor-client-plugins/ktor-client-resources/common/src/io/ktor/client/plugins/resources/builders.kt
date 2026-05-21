@@ -303,7 +303,7 @@ public suspend inline fun <reified T : Any> HttpClient.prepareRequest(
  * The instance of the [Resource] annotated class used to for a request.
  * Plugins may want to utilize this for monitoring.
  */
-public val RESOURCE: AttributeKey<Any> = AttributeKey<Any>("RESOURCE")
+public val RESOURCE: AttributeKey<Any> = AttributeKey<Any>("Resource")
 
 @PublishedApi
 internal fun HttpClient.resources(): io.ktor.resources.Resources {
