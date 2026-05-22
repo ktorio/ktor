@@ -90,7 +90,11 @@ context(scope: BackgroundTasksScope)
 fun <T> Flow<T>.collectToChannel(channelCapacity: Int = Channel.UNLIMITED): Channel<T> {
     val channel = Channel<T>(channelCapacity)
     scope.launch {
-        collect { channel.trySend(it) }
+        try {
+            collect { channel.trySend(it) }
+        } finally {
+            channel.close()
+        }
     }
     return channel
 }
