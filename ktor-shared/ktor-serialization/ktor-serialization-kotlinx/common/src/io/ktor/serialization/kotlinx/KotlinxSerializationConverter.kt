@@ -7,8 +7,6 @@ package io.ktor.serialization.kotlinx
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.*
-import io.ktor.util.*
-import io.ktor.util.pipeline.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
@@ -16,7 +14,6 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.flow.*
 import kotlinx.io.*
 import kotlinx.serialization.*
-import kotlin.jvm.*
 
 /**
  * Creates a converter serializing with the specified string [format]
@@ -58,13 +55,14 @@ public class KotlinxSerializationConverter(
     }
 
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
+        val contentPacket = content.readRemaining()
+
         val fromExtension = extensions.asFlow()
             .map { it.deserialize(charset, typeInfo, content) }
-            .firstOrNull { it != null || content.isClosedForRead }
-        if (extensions.isNotEmpty() && (fromExtension != null || content.isClosedForRead)) return fromExtension
+            .firstOrNull { it != null || contentPacket.exhausted() }
+        if (extensions.isNotEmpty() && (fromExtension != null || contentPacket.exhausted())) return fromExtension
 
         val serializer = format.serializersModule.serializerForTypeInfo(typeInfo)
-        val contentPacket = content.readRemaining()
 
         try {
             return when (format) {
