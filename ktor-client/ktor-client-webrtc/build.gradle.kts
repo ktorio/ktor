@@ -59,19 +59,19 @@ kotlin {
             api(libs.kotlinx.serialization.core)
         }
 
-        commonTest.dependencies {
-            implementation(libs.kotlin.test)
-            implementation(project(":ktor-test-dispatcher"))
+        commonTest {
+            compilerOptions {
+                freeCompilerArgs.add("-Xcontext-parameters")
+            }
+
+            dependencies {
+                implementation(libs.kotlin.test)
+                implementation(project(":ktor-test-dispatcher"))
+            }
         }
 
         webMain.dependencies {
             api(kotlinWrappers.browser)
-        }
-
-        wasmJs {
-            compilerOptions {
-                freeCompilerArgs.add("-Xwasm-attach-js-exception")
-            }
         }
 
         optional.androidMain.dependencies {

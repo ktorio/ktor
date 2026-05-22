@@ -7,16 +7,12 @@ package io.ktor.client.webrtc.utils
 import io.ktor.client.webrtc.*
 import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.withTimeout
-import kotlin.time.Duration.Companion.seconds
 
 // Create different WebRtc engine implementation to be tested for every platform.
 @OptIn(ExperimentalKtorApi::class)
@@ -25,62 +21,53 @@ expect fun createTestWebRtcClient(): WebRtcClient
 // Grant permissions to use audio and video media devices
 expect fun grantPermissions(audio: Boolean = true, video: Boolean = true)
 
+class BackgroundTasksScope(parent: CoroutineScope) : CoroutineScope by parent {
+    fun stopBackgroundTasks() {
+        coroutineContext.cancelChildren()
+    }
+}
+
+suspend fun CoroutineScope.withBackgroundTasks(block: suspend BackgroundTasksScope.() -> Unit) {
+    val scope = BackgroundTasksScope(parent = this)
+    try {
+        block(scope)
+    } finally {
+        scope.stopBackgroundTasks()
+    }
+}
+
 fun runTestWithPermissions(
     audio: Boolean = true,
     video: Boolean = true,
     realTime: Boolean = false,
-    block: suspend CoroutineScope.(MutableList<Job>) -> Unit
+    block: suspend BackgroundTasksScope.() -> Unit
 ): TestResult {
     grantPermissions(audio, video)
-    // List to collect all jobs launched during the test to gracefully cancel
-    // them in batch so no job will be hanging which lead to timeout on the js target.
-    val jobs = mutableListOf<Job>()
-    return when {
-        realTime -> runTestWithRealTime {
-            withTimeout(10.seconds) {
-                try {
-                    block(jobs)
-                } finally {
-                    jobs.forEach { it.cancel() }
-                }
-            }
-        }
-
-        else -> {
-            runTest {
-                try {
-                    block(jobs)
-                } finally {
-                    jobs.forEach { it.cancel() }
-                }
-            }
-        }
+    suspend fun CoroutineScope.testBody() = withBackgroundTasks {
+        block()
     }
+    return if (realTime) runTestWithRealTime { testBody() } else runTest { testBody() }
 }
 
 // Listen for the connection ICE candidates and add them to the other peer (two-way).
-fun CoroutineScope.setupIceExchange(
+fun BackgroundTasksScope.setupIceExchange(
     pc1: WebRtcPeerConnection,
-    pc2: WebRtcPeerConnection,
-    jobs: MutableList<Job>
+    pc2: WebRtcPeerConnection
 ) {
     // Collect ICE candidates from both peers
-    val iceCandidates1 = pc1.iceCandidates.collectToChannel(this, jobs)
-    val iceCandidates2 = pc2.iceCandidates.collectToChannel(this, jobs)
+    val iceCandidates1 = pc1.iceCandidates.collectToChannel()
+    val iceCandidates2 = pc2.iceCandidates.collectToChannel()
 
-    val iceExchangeJobs = arrayOf(
-        launch {
-            for (candidate in iceCandidates1) {
-                pc2.addIceCandidate(candidate)
-            }
-        },
-        launch {
-            for (candidate in iceCandidates2) {
-                pc1.addIceCandidate(candidate)
-            }
+    launch {
+        for (candidate in iceCandidates1) {
+            pc2.addIceCandidate(candidate)
         }
-    )
-    jobs.addAll(iceExchangeJobs)
+    }
+    launch {
+        for (candidate in iceCandidates2) {
+            pc1.addIceCandidate(candidate)
+        }
+    }
 }
 
 // Offer-Answer exchange. The first peer creates an offer, the second - an answer.
@@ -99,30 +86,23 @@ suspend fun negotiate(
     pc1.setRemoteDescription(answer)
 }
 
-fun <T> Flow<T>.collectToChannel(
-    scope: CoroutineScope,
-    jobs: MutableList<Job>,
-    channelCapacity: Int = Channel.UNLIMITED
-): Channel<T> {
+context(scope: BackgroundTasksScope)
+fun <T> Flow<T>.collectToChannel(channelCapacity: Int = Channel.UNLIMITED): Channel<T> {
     val channel = Channel<T>(channelCapacity)
-    val collectorJob = scope.launch {
+    scope.launch {
         collect { channel.trySend(it) }
     }
-    jobs.add(collectorJob)
     return channel
 }
 
-fun <T> StateFlow<T>.collectToChannel(
-    scope: CoroutineScope,
-    jobs: MutableList<Job>
-): Channel<T> = collectToChannel(scope, jobs, Channel.CONFLATED)
+context(scope: BackgroundTasksScope)
+fun <T> StateFlow<T>.collectToChannel(): Channel<T> = collectToChannel(channelCapacity = Channel.CONFLATED)
 
 // Exchange ice candidates first, then exchange offer and answer.
-suspend fun CoroutineScope.connect(
+suspend fun BackgroundTasksScope.connect(
     pc1: WebRtcPeerConnection,
     pc2: WebRtcPeerConnection,
-    jobs: MutableList<Job>
 ) {
-    setupIceExchange(pc1, pc2, jobs)
+    setupIceExchange(pc1, pc2)
     negotiate(pc1, pc2)
 }

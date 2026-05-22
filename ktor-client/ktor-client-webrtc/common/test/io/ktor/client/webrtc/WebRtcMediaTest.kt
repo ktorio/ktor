@@ -2,8 +2,6 @@ package io.ktor.client.webrtc
 
 import io.ktor.client.webrtc.utils.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.withTimeout
 import kotlin.test.*
@@ -18,10 +16,10 @@ class WebRtcMediaTest {
 
     private fun testConnection(
         realtime: Boolean = false,
-        block: suspend CoroutineScope.(WebRtcPeerConnection, MutableList<Job>) -> Unit
+        block: suspend BackgroundTasksScope.(WebRtcPeerConnection) -> Unit
     ): TestResult {
-        return runTestWithPermissions(audio = true, video = true, realtime) { jobs ->
-            client.createPeerConnection().use { block(it, jobs) }
+        return runTestWithPermissions(audio = true, video = true, realtime) {
+            client.createPeerConnection().use { block(it) }
         }
     }
 
@@ -54,7 +52,7 @@ class WebRtcMediaTest {
     }
 
     @Test
-    fun testAddRemoveTrack() = testConnection { pc, _ ->
+    fun testAddRemoveTrack() = testConnection { pc ->
         client.createAudioTrack().use { audioTrack ->
             val sender = pc.addTrack(audioTrack)
 
@@ -81,10 +79,10 @@ class WebRtcMediaTest {
     }
 
     @Test
-    fun receiveRemoteTracks() = testConnection(realtime = true) { pc1, jobs ->
+    fun receiveRemoteTracks() = testConnection(realtime = true) { pc1 ->
         client.createPeerConnection().use { pc2 ->
-            val remoteTracks1 = pc1.trackEvents.collectToChannel(this, jobs)
-            val remoteTracks2 = pc2.trackEvents.collectToChannel(this, jobs)
+            val remoteTracks1 = pc1.trackEvents.collectToChannel()
+            val remoteTracks2 = pc2.trackEvents.collectToChannel()
 
             pc1.addTrack(client.createAudioTrack())
             pc1.addTrack(client.createVideoTrack())
@@ -105,7 +103,7 @@ class WebRtcMediaTest {
             }
 
             // assert that remote tracks are replayed
-            val remoteTracks3 = pc2.trackEvents.collectToChannel(this, jobs)
+            val remoteTracks3 = pc2.trackEvents.collectToChannel()
             withTimeout(5.seconds) {
                 val tracks = arrayOf(remoteTracks3.receive(), remoteTracks3.receive())
                 assertTrue(tracks.all { it is TrackEvent.Add })
