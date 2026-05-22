@@ -21,18 +21,21 @@ expect fun createTestWebRtcClient(): WebRtcClient
 // Grant permissions to use audio and video media devices
 expect fun grantPermissions(audio: Boolean = true, video: Boolean = true)
 
-class BackgroundTasksScope(parent: CoroutineScope) : CoroutineScope by parent {
-    fun stopBackgroundTasks() {
-        coroutineContext.cancelChildren()
-    }
+class BackgroundTasksScope(parent: CoroutineScope) : CoroutineScope {
+    // we still want to propagate exception to the parent
+    internal val job = Job(parent = parent.coroutineContext.job)
+    override val coroutineContext = parent.coroutineContext + job
 }
 
+/**
+ * Creates a new child coroutine scope that cancels all children jobs on completion of the block
+ */
 suspend fun CoroutineScope.withBackgroundTasks(block: suspend BackgroundTasksScope.() -> Unit) {
     val scope = BackgroundTasksScope(parent = this)
     try {
         block(scope)
     } finally {
-        scope.stopBackgroundTasks()
+        scope.job.cancelAndJoin()
     }
 }
 
