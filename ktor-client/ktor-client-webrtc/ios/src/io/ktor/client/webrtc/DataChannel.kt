@@ -25,6 +25,11 @@ public class IosWebRtcDataChannel(
     receiveOptions: DataChannelReceiveOptions
 ) : WebRtcDataChannel(receiveOptions) {
 
+    // Apple's `RTCDataChannel.delegate` is `weak` — keep a strong reference on the
+    // Kotlin side so the anonymous delegate object stays alive for the connection's lifetime.
+    @Suppress("unused")
+    private lateinit var retainedDelegate: NSObject
+
     override val id: Int?
         get() = nativeChannel.channelId.let { if (it < 0) null else it }
 
@@ -88,7 +93,8 @@ public class IosWebRtcDataChannel(
     }
 
     internal fun setupEvents(eventsEmitter: WebRtcConnectionEventsEmitter) {
-        nativeChannel.setDelegate(object : RTCDataChannelDelegateProtocol, NSObject() {
+        check(!::retainedDelegate.isInitialized) { "setupEvents() must be called at most once per channel." }
+        val delegate = object : RTCDataChannelDelegateProtocol, NSObject() {
             override fun dataChannel(dataChannel: RTCDataChannel, didChangeBufferedAmount: ULong) =
                 runInConnectionScope {
                     // guard against duplicate events
@@ -123,7 +129,9 @@ public class IosWebRtcDataChannel(
             ) = runInConnectionScope {
                 emitMessage(didReceiveMessageWithBuffer.toKtor())
             }
-        })
+        }
+        retainedDelegate = delegate
+        nativeChannel.setDelegate(delegate)
     }
 }
 

@@ -31,8 +31,15 @@ public class IosWebRtcConnection(
 ) : WebRtcPeerConnection(coroutineContext, config) {
     internal val peerConnection: RTCPeerConnection
 
+    // Apple's `RTCPeerConnection.delegate` is `weak` — keep a strong reference on the
+    // Kotlin side so the anonymous delegate object stays alive for the connection's lifetime.
+    @Suppress("unused")
+    private val retainedDelegate: NSObject
+
     init {
-        peerConnection = createConnection(createDelegate()) ?: error("Failed to create peer connection.")
+        val delegate = createDelegate()
+        retainedDelegate = delegate
+        peerConnection = createConnection(delegate) ?: error("Failed to create peer connection.")
     }
 
     override suspend fun getStatistics(): List<WebRtc.Stats> = suspendCancellableCoroutine { cont ->
