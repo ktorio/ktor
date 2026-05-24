@@ -66,7 +66,7 @@ class IosDelegateRetentionTest {
     }
 
     @Test
-    fun dataChannelDelegateSurvivesGcAfterSetup(): TestResult = runTestWithPermissions(
+    fun `data channel delegate survives GC after setup`(): TestResult = runTestWithPermissions(
         audio = false,
         video = false,
         realTime = true,
@@ -116,7 +116,7 @@ class IosDelegateRetentionTest {
     }
 
     @Test
-    fun peerConnectionDelegateSurvivesGcAfterSetup(): TestResult = runTestWithPermissions(
+    fun `peer connection delegate survives GC after setup`(): TestResult = runTestWithPermissions(
         audio = false,
         video = false,
         realTime = true,
