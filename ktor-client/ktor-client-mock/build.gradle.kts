@@ -15,7 +15,7 @@ kotlin {
         }
 
         commonTest.dependencies {
-            implementation(projects.ktorTestDispatcher)
+            implementation(projects.ktorTestBase)
         }
 
         jvmTest.dependencies {

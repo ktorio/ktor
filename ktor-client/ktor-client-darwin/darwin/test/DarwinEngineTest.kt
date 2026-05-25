@@ -12,12 +12,12 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.test.base.*
 import io.ktor.http.*
+import io.ktor.test.*
 import io.ktor.utils.io.*
 import io.ktor.websocket.*
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.UnsafeNumber
 import kotlinx.coroutines.*
-import kotlinx.coroutines.test.runTest
 import platform.Foundation.NSHTTPCookieStorage.Companion.sharedHTTPCookieStorage
 import platform.Foundation.NSOperationQueue
 import platform.Foundation.NSURLSession

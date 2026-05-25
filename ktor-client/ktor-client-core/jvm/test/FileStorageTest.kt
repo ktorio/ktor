@@ -4,10 +4,10 @@
 
 import io.ktor.client.plugins.cache.storage.*
 import io.ktor.http.*
+import io.ktor.test.*
 import io.ktor.util.date.*
-import kotlinx.coroutines.test.*
-import java.io.*
-import kotlin.io.path.*
+import java.io.File
+import kotlin.io.path.createTempDirectory
 import kotlin.test.*
 
 class FileStorageTest {

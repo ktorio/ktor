@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.apache5
@@ -9,9 +9,9 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.*
+import io.ktor.test.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.test.runTest
 import org.apache.hc.client5.http.config.ConnectionConfig
 import org.apache.hc.core5.util.Timeout
 import java.net.SocketTimeoutException

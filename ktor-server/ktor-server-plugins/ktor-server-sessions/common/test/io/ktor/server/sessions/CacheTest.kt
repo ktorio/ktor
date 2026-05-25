@@ -4,10 +4,10 @@
 
 package io.ktor.server.sessions
 
+import io.ktor.test.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
 class CacheTest {

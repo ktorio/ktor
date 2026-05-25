@@ -15,7 +15,7 @@ kotlin {
             implementation(projects.ktorUtils)
         }
         commonTest.dependencies {
-            implementation(projects.ktorTestDispatcher)
+            implementation(projects.ktorTestBase)
         }
         jvmMain.dependencies {
             implementation(libs.zstd.jni)

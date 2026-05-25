@@ -4,10 +4,13 @@
 
 package io.ktor.client.webrtc
 
+import io.ktor.test.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.test.runTest
 import kotlin.js.ExperimentalWasmJsInterop
-import kotlin.test.*
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 @OptIn(ExperimentalKtorApi::class)
 class JsWebRtcMediaTest {

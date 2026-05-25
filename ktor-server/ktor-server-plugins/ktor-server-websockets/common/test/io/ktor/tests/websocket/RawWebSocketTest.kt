@@ -4,15 +4,16 @@
 
 package io.ktor.tests.websocket
 
+import io.ktor.test.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.locks.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.channels.*
-import kotlinx.coroutines.test.*
-import kotlinx.io.*
-import kotlin.reflect.*
+import kotlinx.coroutines.channels.ClosedSendChannelException
+import kotlinx.coroutines.channels.consumeEach
+import kotlinx.io.IOException
+import kotlin.reflect.KClass
 import kotlin.test.*
 
 @OptIn(DelicateCoroutinesApi::class)

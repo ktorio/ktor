@@ -5,21 +5,22 @@
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
-import io.ktor.client.plugins.DefaultRequest
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.api.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.test.dispatcher.*
+import io.ktor.test.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.test.runTest
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class ClientPluginsTest {
 
     @Test
-    fun testEmptyPluginDoesNotBreakPipeline() = testSuspend {
+    fun testEmptyPluginDoesNotBreakPipeline() = runTest {
         val plugin = createClientPlugin("F", createConfiguration = {}) {
         }
 
@@ -37,7 +38,7 @@ class ClientPluginsTest {
     }
 
     @Test
-    fun testPluginOnRequestOnResponseInterception() = testSuspend {
+    fun testPluginOnRequestOnResponseInterception() = runTest {
         data class Config(var enabled: Boolean = false)
 
         var onResponseCalled = false
@@ -74,7 +75,7 @@ class ClientPluginsTest {
     }
 
     @Test
-    fun testSamePhaseDefinedTwice() = testSuspend {
+    fun testSamePhaseDefinedTwice() = runTest {
         var onCallProcessedTimes = 0
         val plugin = createClientPlugin("F") {
             onRequest { _, _ ->
@@ -101,7 +102,7 @@ class ClientPluginsTest {
     }
 
     @Test
-    fun testTransformBody() = testSuspend {
+    fun testTransformBody() = runTest {
         val plugin = createClientPlugin("F") {
             transformRequestBody { _, content, bodyType ->
                 assertEquals(String::class, bodyType!!.type)
@@ -139,7 +140,7 @@ class ClientPluginsTest {
     }
 
     @Test
-    fun testCustomHook() = testSuspend {
+    fun testCustomHook() = runTest {
         var hookCalled = false
         val plugin = createClientPlugin("F") {
             on(CustomHook) {
@@ -162,7 +163,7 @@ class ClientPluginsTest {
     }
 
     @Test
-    fun testSendHook() = testSuspend {
+    fun testSendHook() = runTest {
         val plugin = createClientPlugin("F") {
             on(Send) {
                 val call = proceed(it)

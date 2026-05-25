@@ -17,9 +17,11 @@ import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.test.*
-import kotlinx.io.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.test.TestResult
+import kotlinx.io.IOException
+import kotlinx.io.readByteArray
 import kotlin.test.*
 
 class TestEngineMultipartTest {

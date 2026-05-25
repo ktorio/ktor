@@ -9,12 +9,12 @@ import io.ktor.client.network.sockets.*
 import io.ktor.client.plugins.sse.*
 import io.ktor.client.test.base.*
 import io.ktor.client.tests.*
+import io.ktor.test.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.runTest
 import okhttp3.OkHttpClient
 import org.junit.jupiter.api.assertInstanceOf
 import java.util.concurrent.TimeUnit
