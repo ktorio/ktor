@@ -206,6 +206,7 @@ class WebRtcDataChannelTest {
         negotiate(pc1, pc2)
 
         val dataChannel2 = waitForChannel(dataChannelEvents2)
+        waitForChannel(dataChannelEvents1)
 
         // Test sending on a closed channel
         dataChannel1.closeTransport()
@@ -228,6 +229,7 @@ class WebRtcDataChannelTest {
         negotiate(pc1, pc2)
 
         val dataChannel2 = waitForChannel(dataChannelEvents2)
+        waitForChannel(dataChannelEvents1)
 
         val threshold = 1000L
         dataChannel1.setBufferedAmountLowThreshold(threshold)

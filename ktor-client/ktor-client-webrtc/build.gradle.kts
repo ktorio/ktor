@@ -6,6 +6,7 @@
 import ktorbuild.disableNativeCompileConfigurationCache
 import ktorbuild.targets.*
 import org.jetbrains.kotlin.gradle.*
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 
 description = "Ktor WebRTC Client"
 
@@ -55,23 +56,19 @@ kotlin {
             // using `atomicfu` as a library, but not a plugin
             // because its plugin is not compatible with Android KMP plugin
             implementation(libs.kotlinx.atomicfu)
-            api(project(":ktor-io"))
+            api(projects.ktorIo)
             api(libs.kotlinx.serialization.core)
         }
 
-        commonTest.dependencies {
-            implementation(libs.kotlin.test)
-            implementation(project(":ktor-test-dispatcher"))
+        commonTest {
+            dependencies {
+                implementation(libs.kotlin.test)
+                implementation(projects.ktorTestDispatcher)
+            }
         }
 
         webMain.dependencies {
             api(kotlinWrappers.browser)
-        }
-
-        wasmJs {
-            compilerOptions {
-                freeCompilerArgs.add("-Xwasm-attach-js-exception")
-            }
         }
 
         optional.androidMain.dependencies {
@@ -80,4 +77,12 @@ kotlin {
     }
 
     disableNativeCompileConfigurationCache()
+}
+
+tasks.withType<KotlinCompilationTask<*>>().configureEach {
+    if (name.contains("Test", ignoreCase = true)) {
+        compilerOptions {
+            freeCompilerArgs.add("-Xcontext-parameters")
+        }
+    }
 }
