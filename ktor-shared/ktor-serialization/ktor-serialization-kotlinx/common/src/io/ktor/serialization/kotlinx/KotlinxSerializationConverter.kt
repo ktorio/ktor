@@ -58,7 +58,7 @@ public class KotlinxSerializationConverter(
         val contentPacket = content.readRemaining()
 
         val fromExtension = extensions.asFlow()
-            .map { it.deserialize(charset, typeInfo, content) }
+            .map { it.deserialize(charset, typeInfo, ByteReadChannel(contentPacket)) }
             .firstOrNull { it != null || contentPacket.exhausted() }
         if (extensions.isNotEmpty() && (fromExtension != null || contentPacket.exhausted())) return fromExtension
 
