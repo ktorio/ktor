@@ -8,6 +8,7 @@ import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrLocalDelegatedPropertyReference
 import org.jetbrains.kotlin.ir.types.classFqName
 import org.jetbrains.kotlin.ir.types.isString
+import org.jetbrains.kotlin.ir.util.kotlinFqName
 
 val ParameterInference = IrCallHandlerInference { call: IrCall ->
     val functionName = call.symbol.owner.name.asString()
@@ -41,9 +42,44 @@ val ParameterInference = IrCallHandlerInference { call: IrCall ->
                 parameterType = call.type.asReference()
             )
         }
+        // requireXxx accessors on ApplicationCall / RoutingCall
+        "requireQueryParameter",
+        "requireHeader",
+        "requireCookie",
+        "requirePathParameter" -> inferFromRequireAccess(call, functionName)
 
         else -> null
     }
+}
+
+context(context: CodeGenContext)
+private fun inferFromRequireAccess(
+    call: IrCall,
+    functionName: String,
+): List<RouteField>? {
+    val packageFqName = call.symbol.owner.parent.kotlinFqName.asString()
+    if (packageFqName != "io.ktor.server.request") return null
+
+    val keyArg = call.symbol.owner.parameters.firstOrNull {
+        it.kind == IrParameterKind.Regular && it.type.isString()
+    } ?: return null
+    val parameterName = call.arguments[keyArg.indexInParameters]
+        ?.let { LocalReference.of(it) }
+        ?: return null
+
+    val inValue = when (functionName) {
+        "requireQueryParameter" -> ParamIn.QUERY
+        "requireHeader" -> ParamIn.HEADER
+        "requireCookie" -> ParamIn.COOKIE
+        "requirePathParameter" -> ParamIn.PATH
+        else -> return null
+    }
+    return listOf(
+        RouteField.Parameter(
+            `in` = inValue,
+            name = parameterName,
+        )
+    )
 }
 
 private fun inferFromStringValuesAccess(
