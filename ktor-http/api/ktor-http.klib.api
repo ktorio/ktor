@@ -656,6 +656,8 @@ final class io.ktor.http/ContentType : io.ktor.http/HeaderValueWithParameters { 
             final fun <get-Html>(): io.ktor.http/ContentType // io.ktor.http/ContentType.Text.Html.<get-Html>|<get-Html>(){}[0]
         final val JavaScript // io.ktor.http/ContentType.Text.JavaScript|{}JavaScript[0]
             final fun <get-JavaScript>(): io.ktor.http/ContentType // io.ktor.http/ContentType.Text.JavaScript.<get-JavaScript>|<get-JavaScript>(){}[0]
+        final val Markdown // io.ktor.http/ContentType.Text.Markdown|{}Markdown[0]
+            final fun <get-Markdown>(): io.ktor.http/ContentType // io.ktor.http/ContentType.Text.Markdown.<get-Markdown>|<get-Markdown>(){}[0]
         final val Plain // io.ktor.http/ContentType.Text.Plain|{}Plain[0]
             final fun <get-Plain>(): io.ktor.http/ContentType // io.ktor.http/ContentType.Text.Plain.<get-Plain>|<get-Plain>(){}[0]
         final val VCard // io.ktor.http/ContentType.Text.VCard|{}VCard[0]
