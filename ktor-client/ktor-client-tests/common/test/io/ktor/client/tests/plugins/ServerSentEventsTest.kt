@@ -31,7 +31,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -200,7 +199,7 @@ class ServerSentEventsTest : ClientLoader() {
         test { client ->
             coroutineScope {
                 val job: Job
-                suspendCoroutine { cont ->
+                suspendCancellableCoroutine { cont ->
                     job = launch {
                         client.serverSentEvents("$TEST_SERVER/sse/hello") {
                             cont.resume(Unit)
@@ -1007,7 +1006,7 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
-    fun testCancellingUnderlyingConnection() = clientTests(except("WinHttp")) {
+    fun testCancellingUnderlyingConnection() = clientTests(except("WinHttp"), timeout = 5.seconds) {
         config {
             install(SSE)
         }
@@ -1018,12 +1017,10 @@ class ServerSentEventsTest : ClientLoader() {
                 assertEquals("ok", it.data)
                 sseSession.cancel()
             }
-            withTimeout(5000) {
-                while (true) {
-                    val count = client.get("$TEST_SERVER/sse/active-sessions-count").bodyAsText().toInt()
-                    if (count == 0) break
-                    delay(100)
-                }
+            while (true) {
+                val count = client.get("$TEST_SERVER/sse/active-sessions-count").bodyAsText().toInt()
+                if (count == 0) break
+                delay(100.milliseconds)
             }
         }
     }
