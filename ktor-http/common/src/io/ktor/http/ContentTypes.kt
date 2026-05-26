@@ -374,6 +374,7 @@ public class ContentType private constructor(
         public val CSV: ContentType = ContentType(TYPE, "csv")
         public val Html: ContentType = ContentType(TYPE, "html")
         public val JavaScript: ContentType = ContentType(TYPE, "javascript")
+        public val Markdown: ContentType = ContentType(TYPE, "markdown")
         public val VCard: ContentType = ContentType(TYPE, "vcard")
         public val Xml: ContentType = ContentType(TYPE, "xml")
         public val EventStream: ContentType = ContentType(TYPE, "event-stream")
