@@ -9,6 +9,7 @@ import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import org.apache.hc.core5.concurrent.CallbackContribution
@@ -21,6 +22,7 @@ import org.apache.hc.core5.http.nio.AsyncResponseConsumer
 import org.apache.hc.core5.http.nio.CapacityChannel
 import org.apache.hc.core5.http.protocol.HttpContext
 import java.nio.ByteBuffer
+import java.util.concurrent.Future
 import kotlin.coroutines.CoroutineContext
 
 private object CloseChannel
@@ -81,6 +83,9 @@ internal class ApacheResponseConsumer(
     parentContext: CoroutineContext,
     private val requestData: HttpRequestData
 ) : AsyncEntityConsumer<Unit>, CoroutineScope {
+
+    private val closed = atomic(false)
+    private val cancellationCause = atomic<Throwable?>(null)
 
     private val consumerJob = Job(parentContext.job)
     override val coroutineContext: CoroutineContext = parentContext + consumerJob
@@ -150,17 +155,42 @@ internal class ApacheResponseConsumer(
     }
 
     override fun failed(cause: Exception) {
+        if (!closed.compareAndSet(expect = false, update = true)) return
+        if (completeCallbackFromCancellationCause()) return
+
         val mappedCause = mapCause(cause, requestData)
         consumerJob.completeExceptionally(mappedCause)
-        responseChannel.cancel(mappedCause)
         streamResultCallback.getAndSet(null)?.failed(cause)
     }
 
     internal fun close() {
+        if (!closed.compareAndSet(expect = false, update = true)) return
+        if (completeCallbackFromCancellationCause()) return
+
         channel.close()
         consumerJob.complete()
         streamResultCallback.getAndSet(null)?.completed(Unit)
     }
 
+    private fun completeCallbackFromCancellationCause(): Boolean {
+        val completionCause = cancellationCause.getAndSet(null) ?: return false
+        if (completionCause is CancellationException) {
+            streamResultCallback.getAndSet(null)?.cancelled()
+        } else {
+            streamResultCallback.getAndSet(null)?.failed(
+                completionCause as? Exception ?: CancellationException("Response consumer failed", completionCause)
+            )
+        }
+        return true
+    }
+
     override fun getContent() = Unit
+
+    @OptIn(InternalCoroutinesApi::class)
+    fun attachFuture(future: Future<Unit>) {
+        consumerJob.invokeOnCompletion(onCancelling = true) { cause ->
+            // Calling `future.cancel()` triggers `failed` path with `InterruptedIOException`
+            if (cause != null && cancellationCause.compareAndSet(null, cause)) future.cancel(true)
+        }
+    }
 }

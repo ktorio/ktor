@@ -210,7 +210,7 @@ public class HttpRequestRetryConfig {
 
     /**
      * Specifies an exponential delay between retries, which is calculated using the Exponential backoff algorithm.
-     * This delay equals to `(base ^ retryCount-1) * baseDelayMs + [0..randomizationMs]`.
+     * This delay equals to `base ^ (retryCount-1) * baseDelayMs + [0..randomizationMs]`.
      *
      * For the defaults (base delay 1000ms, base 2), this results in 1000ms, 2000ms, 4000ms, 8000ms ... plus a random
      * value up to 1000ms.
