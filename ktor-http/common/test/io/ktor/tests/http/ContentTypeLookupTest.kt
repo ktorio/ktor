@@ -9,10 +9,13 @@ import kotlin.test.*
 
 class ContentTypeLookupTest {
     private val plainText = listOf(ContentType.Text.Plain)
+    private val markdownText = listOf(ContentType.Text.Markdown)
 
     @Test
     fun testExtensionSingle() {
         assertEquals(plainText, ContentType.fromFileExtension(".txt"))
+        assertEquals(markdownText, ContentType.fromFileExtension(".md"))
+        assertEquals(markdownText, ContentType.fromFileExtension(".markdown"))
     }
 
     @Test
@@ -114,5 +117,6 @@ class ContentTypeLookupTest {
     @Test
     fun testLookupExtensionByContentType() {
         assertEquals(listOf("djvu"), ContentType.parse("image/vnd.djvu").fileExtensions())
+        assertEquals(listOf("markdown", "md"), ContentType.Text.Markdown.fileExtensions())
     }
 }
