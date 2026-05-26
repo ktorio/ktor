@@ -377,6 +377,7 @@ public class ContentType private constructor(
         public val VCard: ContentType = ContentType(TYPE, "vcard")
         public val Xml: ContentType = ContentType(TYPE, "xml")
         public val EventStream: ContentType = ContentType(TYPE, "event-stream")
+        public val Markdown: ContentType = ContentType(TYPE, "markdown")
 
         /**
          * Checks that the given [contentType] has type `text/`.
