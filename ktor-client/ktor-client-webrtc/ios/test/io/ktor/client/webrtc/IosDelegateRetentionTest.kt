@@ -20,6 +20,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Regression tests for the iOS delegate-retention bug.
@@ -79,7 +80,7 @@ class IosDelegateRetentionTest {
                 connect(pc1, pc2, jobs)
 
                 // Wait for pc2 to receive the remote channel.
-                val remote = withTimeout(5000) {
+                val remote = withTimeout(5.seconds) {
                     val event = pc2DataChannels.receive()
                     assertTrue(event is DataChannelEvent.Open, "Expected Open, got $event")
                     event.channel
@@ -95,12 +96,12 @@ class IosDelegateRetentionTest {
 
                 val pc1ToPc2 = "hello after GC"
                 local.send(pc1ToPc2)
-                val receivedAtPc2 = withTimeout(5000) { remote.receiveText() }
+                val receivedAtPc2 = withTimeout(5.seconds) { remote.receiveText() }
                 assertEquals(pc1ToPc2, receivedAtPc2)
 
                 val pc2ToPc1 = "reply after GC"
                 remote.send(pc2ToPc1)
-                val receivedAtPc1 = withTimeout(5000) { local.receiveText() }
+                val receivedAtPc1 = withTimeout(5.seconds) { local.receiveText() }
                 assertEquals(pc2ToPc1, receivedAtPc1)
 
                 // Second round: GC between every message to make sure delivery stays
@@ -108,7 +109,7 @@ class IosDelegateRetentionTest {
                 repeat(8) { i ->
                     forceGc(rounds = 2)
                     local.send("msg-$i")
-                    val got = withTimeout(5000) { remote.receiveText() }
+                    val got = withTimeout(5.seconds) { remote.receiveText() }
                     assertEquals("msg-$i", got)
                 }
             }
@@ -134,13 +135,13 @@ class IosDelegateRetentionTest {
                 connect(pc1, pc2, jobs)
 
                 // Drain pc2's channels flow so the connection settles into CONNECTED.
-                withTimeout(5000) { pc2DataChannels.receive() }
+                withTimeout(5.seconds) { pc2DataChannels.receive() }
 
                 // We must observe CONNECTED on pc1; that only arrives if the PC delegate
                 // is still alive to fire `didChangeConnectionState`. `state` is a
                 // StateFlow whose current value is replayed to new collectors, so
                 // `first { }` will see CONNECTED even if it was reached earlier.
-                withTimeout(5000) {
+                withTimeout(5.seconds) {
                     pc1.state.first { it == WebRtc.ConnectionState.CONNECTED }
                 }
             }

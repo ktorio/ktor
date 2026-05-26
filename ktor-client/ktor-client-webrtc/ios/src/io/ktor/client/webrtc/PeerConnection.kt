@@ -33,8 +33,7 @@ public class IosWebRtcConnection(
 
     // Apple's `RTCPeerConnection.delegate` is `weak` — keep a strong reference on the
     // Kotlin side so the anonymous delegate object stays alive for the connection's lifetime.
-    @Suppress("unused")
-    private val retainedDelegate: NSObject
+    private var retainedDelegate: NSObject? = null
 
     init {
         val delegate = createDelegate()
@@ -243,6 +242,7 @@ public class IosWebRtcConnection(
     override fun close() {
         super.close()
         peerConnection.close()
+        retainedDelegate = null
     }
 }
 
