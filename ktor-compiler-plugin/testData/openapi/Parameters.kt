@@ -4,6 +4,10 @@ package openapi
 
 import io.ktor.server.application.Application
 import io.ktor.server.request.header
+import io.ktor.server.request.requireCookie
+import io.ktor.server.request.requireHeader
+import io.ktor.server.request.requirePathParameter
+import io.ktor.server.request.requireQueryParameter
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.util.getOrFail
@@ -14,7 +18,7 @@ fun Application.installParameters() {
         /**
          * @tag parameters
          */
-        get("/parameters/{a}/{b}/{c}") {
+        get("/parameters/{a}/{b}/{c}/{k}") {
             call.respondText(listOf(
                 call.parameters["a"],
                 call.pathParameters["b"],
@@ -25,7 +29,11 @@ fun Application.installParameters() {
                 call.request.queryParameters.getOrFail("g"),
                 call.request.headers["h"],
                 call.request.headers.getAll("i"),
-                call.request.header("j")
+                call.request.header("j"),
+                call.requirePathParameter("k"),
+                call.requireQueryParameter("l"),
+                call.requireHeader("m"),
+                call.requireCookie("n"),
             ).joinToString())
         }
 
