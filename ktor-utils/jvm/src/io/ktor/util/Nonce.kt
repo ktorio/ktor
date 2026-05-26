@@ -137,6 +137,8 @@ private fun lookupSecureRandom(): SecureRandom {
         return SecureRandom.getInstanceStrong()
     } catch (_: NoSuchAlgorithmException) {
         // ignored
+    } catch (_: NoSuchMethodError) {
+        // SecureRandom.getInstanceStrong() is unavailable on older Android API levels
     }
 
     logger.warn("None of the JDK determined strong SecureRandom providers were available, falling back to the default")
