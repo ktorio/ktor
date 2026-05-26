@@ -19,6 +19,7 @@ import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.io.IOException
+import kotlin.time.Duration.Companion.milliseconds
 
 private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.HttpTimeout")
 
@@ -149,7 +150,6 @@ public val HttpTimeout: ClientPlugin<HttpTimeoutConfig> = createClientPlugin(
             socketTimeoutMillis != null
 
     on(Send) { request ->
-        val callerContext = currentCoroutineContext()
         val supportsRequestTimeout = request.supportsRequestTimeout
         var configuration = request.getCapabilityOrNull(HttpTimeoutCapability)
         if (configuration == null && hasNotNullTimeouts(supportsRequestTimeout)) {
@@ -163,7 +163,7 @@ public val HttpTimeout: ClientPlugin<HttpTimeoutConfig> = createClientPlugin(
 
             if (supportsRequestTimeout) {
                 this.requestTimeoutMillis = this.requestTimeoutMillis ?: requestTimeoutMillis
-                CoroutineScope(callerContext).applyRequestTimeout(request, this.requestTimeoutMillis)
+                applyRequestTimeout(request, this.requestTimeoutMillis)
             }
         }
         proceed(request)
@@ -182,7 +182,7 @@ private fun CoroutineScope.applyRequestTimeout(request: HttpRequestBuilder, requ
 
     val executionContext = request.executionContext
     val killer = launch(CoroutineName("request-timeout")) {
-        delay(requestTimeout)
+        delay(requestTimeout.milliseconds)
         val cause = HttpRequestTimeoutException(request)
         LOGGER.trace { "Request timeout: ${request.url}" }
         executionContext.cancel(cause.message!!, cause)
