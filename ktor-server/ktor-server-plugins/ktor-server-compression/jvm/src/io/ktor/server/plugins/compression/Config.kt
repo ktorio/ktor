@@ -68,6 +68,36 @@ public class CompressionConfig : ConditionsHolderBuilder {
     public var mode: Mode = Mode.All
 
     /**
+     * The maximum number of chained content encodings that will be decoded automatically.
+     *
+     * Requests whose `Content-Encoding` header lists more than this number of codecs will be
+     * rejected with a [ContentEncodingChainTooLongException]. This protects against
+     * "decompression bomb" attacks where a small request chains many encodings to expand into
+     * a huge payload.
+     *
+     * Set to a non-positive value to disable the chain length check. Defaults to
+     * [DEFAULT_MAX_ENCODING_CHAIN_LENGTH].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.compression.CompressionConfig.maxEncodingChainLength)
+     */
+    public var maxEncodingChainLength: Int = DEFAULT_MAX_ENCODING_CHAIN_LENGTH
+
+    /**
+     * The maximum size (in bytes) of the decoded request body.
+     *
+     * If decompression produces more than this number of bytes, a
+     * [PayloadTooLargeException] is thrown and the decoded channel is cancelled. This protects
+     * against "decompression bomb" attacks where a small compressed body decompresses to a huge
+     * payload.
+     *
+     * Set to a non-positive value to disable the size cap. Defaults to
+     * [DEFAULT_MAX_DECODED_CONTENT_LENGTH] (100 MiB).
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.compression.CompressionConfig.maxDecodedContentLength)
+     */
+    public var maxDecodedContentLength: Long = DEFAULT_MAX_DECODED_CONTENT_LENGTH
+
+    /**
      * Provides access to a map of encoders.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.compression.CompressionConfig.encoders)
