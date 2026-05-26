@@ -760,6 +760,7 @@ class CompressionTest {
     fun testDecoding() = testApplication {
         install(Compression) {
             zstdStandard()
+            maxEncodingChainLength = 5
         }
         routing {
             post("/identity") {

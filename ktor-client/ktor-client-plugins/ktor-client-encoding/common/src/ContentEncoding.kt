@@ -30,10 +30,10 @@ private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.compression.Conten
 public const val DEFAULT_MAX_ENCODING_CHAIN_LENGTH: Int = 2
 
 /**
- * Default maximum size, in bytes, of decompressed response content. Defaults to 100 MiB.
+ * Default maximum size, in bytes, of decompressed response content. Defaults to -1 (disabled).
  *
  * Helps mitigate "decompression bomb" / DoS attacks where a small compressed body
- * decompresses to a huge payload (for example a 269-byte gzip payload inflating to 1 GiB).
+ * decompresses to a huge payload.
  */
 public const val DEFAULT_MAX_DECODED_CONTENT_LENGTH: Long = -1L
 

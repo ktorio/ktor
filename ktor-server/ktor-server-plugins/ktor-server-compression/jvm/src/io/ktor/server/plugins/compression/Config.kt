@@ -91,7 +91,7 @@ public class CompressionConfig : ConditionsHolderBuilder {
      * payload.
      *
      * Set to a non-positive value to disable the size cap. Defaults to
-     * [DEFAULT_MAX_DECODED_CONTENT_LENGTH] (100 MiB).
+     * [DEFAULT_MAX_DECODED_CONTENT_LENGTH] (disabled).
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.compression.CompressionConfig.maxDecodedContentLength)
      */
