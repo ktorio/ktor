@@ -45,6 +45,12 @@ public class OpenapiTestGenerated extends AbstractOpenapiTest {
   }
 
   @Test
+  @TestMetadata("NullableValueClasses.kt")
+  public void testNullableValueClasses() {
+    runTest("ktor-compiler-plugin/testData/openapi/NullableValueClasses.kt");
+  }
+
+  @Test
   @TestMetadata("OddReferences.kt")
   public void testOddReferences() {
     runTest("ktor-compiler-plugin/testData/openapi/OddReferences.kt");
