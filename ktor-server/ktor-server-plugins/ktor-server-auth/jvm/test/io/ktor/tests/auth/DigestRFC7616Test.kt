@@ -427,6 +427,28 @@ class DigestRFC7616Test {
     }
 
     @Test
+    fun `KTOR-9623 server accepts lowercase charset parameter in Authorization header`() = testApplication {
+        setupDigestAuth(algorithms = listOf(DigestAlgorithm.MD5))
+
+        val challenge = client.get("/")
+        assertEquals(HttpStatusCode.Unauthorized, challenge.status)
+        val nonce = Regex("""nonce="([^"]+)"""").find(challenge.headers[HttpHeaders.WWWAuthenticate]!!)!!.groupValues[1]
+
+        val ha1 = computeHA1("user", "test", "pass", DigestAlgorithm.MD5)
+        val credential = createCredential("test", "user", "/", nonce, "MD5", "testcnonce")
+        val response = credential.expectedDigest(HttpMethod.Get, ha1).toHexString()
+
+        val authResponse = client.get("/") {
+            header(
+                HttpHeaders.Authorization,
+                buildAuthHeader("user", "test", nonce, "/", response, "MD5", "00000001", "testcnonce") +
+                    ", charset=utf-8"
+            )
+        }
+        assertEquals(HttpStatusCode.OK, authResponse.status)
+    }
+
+    @Test
     fun testCharsetUTF8InChallenge() = testApplication {
         setupDigestAuth()
 
