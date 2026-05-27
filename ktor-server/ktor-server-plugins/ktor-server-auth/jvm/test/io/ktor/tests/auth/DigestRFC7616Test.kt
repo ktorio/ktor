@@ -427,6 +427,15 @@ class DigestRFC7616Test {
     }
 
     @Test
+    fun `KTOR-9623 server sends one WWW-Authenticate header per algorithm`() = testApplication {
+        setupDigestAuth(algorithms = listOf(DigestAlgorithm.SHA_512_256, DigestAlgorithm.MD5))
+
+        val response = client.get("/")
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
+        assertEquals(2, response.headers.getAll(HttpHeaders.WWWAuthenticate)?.size)
+    }
+
+    @Test
     fun `KTOR-9623 server accepts lowercase charset parameter in Authorization header`() = testApplication {
         setupDigestAuth(algorithms = listOf(DigestAlgorithm.MD5))
 
