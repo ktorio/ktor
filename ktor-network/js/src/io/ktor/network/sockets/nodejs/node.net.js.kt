@@ -5,8 +5,26 @@
 package io.ktor.network.sockets.nodejs
 
 import io.ktor.network.sockets.*
+import kotlinx.coroutines.await
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Int8Array
+import kotlin.js.Promise
+
+internal actual suspend fun loadNodeNet(): NodeNet = nodeNetPromise.await()
+    ?: throw UnsupportedOperationException("Module node:net is not available. Please verify that you are using Node.js")
+
+private val nodeNetPromise: Promise<NodeNet?> by lazy {
+    loadNodeModule(nodeNetModuleName())
+}
+
+// Keep the module name behind a function so browser bundlers don't resolve `node:net` statically.
+private fun nodeNetModuleName() = "node:net"
+
+@JsFun(
+    "moduleName => ((typeof process !== 'undefined') && process.release.name === 'node')" +
+        " ? import(moduleName) : Promise.resolve(null)"
+)
+private external fun loadNodeModule(moduleName: String): Promise<NodeNet?>
 
 internal actual fun TcpCreateConnectionOptions(
     block: TcpCreateConnectionOptions.() -> Unit
