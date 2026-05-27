@@ -341,6 +341,7 @@ class DigestRFC7616Test {
         val response = client.get("/")
         assertEquals(HttpStatusCode.Unauthorized, response.status)
         val challenges = response.headers.getAll(HttpHeaders.WWWAuthenticate)!!
+        assertEquals(2, challenges.size)
         assertTrue(challenges.any { it.contains("algorithm=SHA-256") })
         assertTrue(challenges.any { it.contains("algorithm=MD5") })
     }
