@@ -47,8 +47,6 @@ public final class io/ktor/server/plugins/compression/CompressionEncoderConfig {
 }
 
 public final class io/ktor/server/plugins/compression/CompressionKt {
-	public static final field DEFAULT_MAX_DECODED_CONTENT_LENGTH J
-	public static final field DEFAULT_MAX_ENCODING_CHAIN_LENGTH I
 	public static final fun getAppliedDecoders (Lio/ktor/server/request/ApplicationRequest;)Ljava/util/List;
 	public static final fun getCompression ()Lio/ktor/server/application/RouteScopedPlugin;
 }
@@ -83,11 +81,5 @@ public final class io/ktor/server/plugins/compression/ConfigKt {
 	public static synthetic fun identity$default (Lio/ktor/server/plugins/compression/CompressionConfig;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public static final fun matchContentType (Lio/ktor/server/plugins/compression/ConditionsHolderBuilder;[Lio/ktor/http/ContentType;)V
 	public static final fun minimumSize (Lio/ktor/server/plugins/compression/ConditionsHolderBuilder;J)V
-}
-
-public final class io/ktor/server/plugins/compression/ContentEncodingChainTooLongException : io/ktor/server/plugins/BadRequestException {
-	public fun <init> (II)V
-	public final fun getChainLength ()I
-	public final fun getLimit ()I
 }
 

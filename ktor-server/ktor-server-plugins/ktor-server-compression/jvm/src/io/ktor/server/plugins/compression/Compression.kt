@@ -41,7 +41,7 @@ internal const val DEFAULT_MINIMAL_COMPRESSION_SIZE: Long = 200L
  * Helps mitigate "decompression bomb" / DoS attacks where a small request chains many
  * encodings to expand into a huge payload.
  */
-public const val DEFAULT_MAX_ENCODING_CHAIN_LENGTH: Int = 2
+internal const val DEFAULT_MAX_ENCODING_CHAIN_LENGTH: Int = 2
 
 /**
  * Default maximum size, in bytes, of decompressed request content. Defaults to -1 (disabled).
@@ -49,7 +49,7 @@ public const val DEFAULT_MAX_ENCODING_CHAIN_LENGTH: Int = 2
  * Helps mitigate "decompression bomb" / DoS attacks where a small compressed body
  * decompresses to a huge payload.
  */
-public const val DEFAULT_MAX_DECODED_CONTENT_LENGTH: Long = -1
+internal const val DEFAULT_MAX_DECODED_CONTENT_LENGTH: Long = -1
 
 /**
  * Thrown when the `Content-Encoding` header on a request lists more codecs than
@@ -63,9 +63,9 @@ public const val DEFAULT_MAX_DECODED_CONTENT_LENGTH: Long = -1
  * @property chainLength the number of encodings present in the request
  * @property limit the configured maximum chain length
  */
-public class ContentEncodingChainTooLongException(
-    public val chainLength: Int,
-    public val limit: Int,
+internal class ContentEncodingChainTooLongException(
+    private val chainLength: Int,
+    private val limit: Int,
 ) : BadRequestException(
     "Content-Encoding chain of length $chainLength exceeds the configured limit of $limit. " +
         "This may indicate a decompression bomb."
@@ -79,7 +79,6 @@ public class ContentEncodingChainTooLongException(
  * coroutine scope), so it is cancelled together with the request and does not leak into
  * [GlobalScope].
  */
-@OptIn(InternalAPI::class)
 internal fun ByteReadChannel.limitDecodedSize(
     limit: Long,
     coroutineContext: CoroutineContext,
@@ -180,10 +179,10 @@ private suspend fun ContentDecoding.Context.decode(
     }
     val encoding = parseHeaderValue(encodingRaw)
     if (maxEncodingChainLength > 0 && encoding.size > maxEncodingChainLength) {
-        LOGGER.trace(
+        LOGGER.trace {
             "Rejecting decompression for ${call.request.uri} because the Content-Encoding chain " +
                 "of length ${encoding.size} exceeds the configured limit of $maxEncodingChainLength."
-        )
+        }
         throw ContentEncodingChainTooLongException(encoding.size, maxEncodingChainLength)
     }
     val encoders = encoding.mapNotNull { options.encoders[it.value] }
@@ -206,10 +205,12 @@ private suspend fun ContentDecoding.Context.decode(
     call.attributes.put(DecompressionListAttribute, encoderNames)
 
     transformBody { body ->
-        val decoded = encoders.fold(body) { content, encoder -> encoder.encoder.decode(content) }
-        if (maxDecodedContentLength > 0) {
-            decoded.limitDecodedSize(maxDecodedContentLength, call.coroutineContext)
-        } else {
+        encoders.fold(body) { content, encoder ->
+            encoder.encoder.decode(content)
+        }.let { decoded ->
+            if (maxDecodedContentLength > 0) {
+                return@let decoded.limitDecodedSize(maxDecodedContentLength, call.coroutineContext)
+            }
             decoded
         }
     }

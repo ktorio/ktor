@@ -1,24 +1,14 @@
-public final class io/ktor/client/plugins/compression/ContentEncodingChainTooLongException : java/lang/IllegalStateException {
-	public fun <init> (II)V
-	public final fun getChainLength ()I
-	public final fun getLimit ()I
-}
-
 public final class io/ktor/client/plugins/compression/ContentEncodingConfig {
 	public fun <init> ()V
 	public final fun customEncoder (Lio/ktor/util/ContentEncoder;Ljava/lang/Float;)V
 	public static synthetic fun customEncoder$default (Lio/ktor/client/plugins/compression/ContentEncodingConfig;Lio/ktor/util/ContentEncoder;Ljava/lang/Float;ILjava/lang/Object;)V
 	public final fun deflate (Ljava/lang/Float;)V
 	public static synthetic fun deflate$default (Lio/ktor/client/plugins/compression/ContentEncodingConfig;Ljava/lang/Float;ILjava/lang/Object;)V
-	public final fun getMaxDecodedContentLength ()J
-	public final fun getMaxEncodingChainLength ()I
 	public final fun getMode ()Lio/ktor/client/plugins/compression/ContentEncodingConfig$Mode;
 	public final fun gzip (Ljava/lang/Float;)V
 	public static synthetic fun gzip$default (Lio/ktor/client/plugins/compression/ContentEncodingConfig;Ljava/lang/Float;ILjava/lang/Object;)V
 	public final fun identity (Ljava/lang/Float;)V
 	public static synthetic fun identity$default (Lio/ktor/client/plugins/compression/ContentEncodingConfig;Ljava/lang/Float;ILjava/lang/Object;)V
-	public final fun setMaxDecodedContentLength (J)V
-	public final fun setMaxEncodingChainLength (I)V
 	public final fun setMode (Lio/ktor/client/plugins/compression/ContentEncodingConfig$Mode;)V
 }
 
@@ -32,19 +22,12 @@ public final class io/ktor/client/plugins/compression/ContentEncodingConfig$Mode
 }
 
 public final class io/ktor/client/plugins/compression/ContentEncodingKt {
-	public static final field DEFAULT_MAX_DECODED_CONTENT_LENGTH J
-	public static final field DEFAULT_MAX_ENCODING_CHAIN_LENGTH I
 	public static final fun ContentEncoding (Lio/ktor/client/HttpClientConfig;Lio/ktor/client/plugins/compression/ContentEncodingConfig$Mode;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun ContentEncoding$default (Lio/ktor/client/HttpClientConfig;Lio/ktor/client/plugins/compression/ContentEncodingConfig$Mode;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public static final fun compress (Lio/ktor/client/request/HttpRequestBuilder;Ljava/util/List;)V
 	public static final fun compress (Lio/ktor/client/request/HttpRequestBuilder;[Ljava/lang/String;)V
 	public static final fun getAppliedDecoders (Lio/ktor/client/statement/HttpResponse;)Ljava/util/List;
 	public static final fun getContentEncoding ()Lio/ktor/client/plugins/api/ClientPlugin;
-}
-
-public final class io/ktor/client/plugins/compression/DecodedContentTooLargeException : java/io/IOException {
-	public fun <init> (J)V
-	public final fun getLimit ()J
 }
 
 public final class io/ktor/client/plugins/compression/UnsupportedContentEncodingException : java/lang/IllegalStateException {
