@@ -150,6 +150,14 @@ public class DigestAuthProvider(
             return false
         }
 
+        // Per RFC 7616 §3.3: a missing algorithm parameter defaults to MD5.
+        val challengeAlgorithm = auth.parameter("algorithm") ?: "MD5"
+        @Suppress("DEPRECATION_ERROR")
+        if (!challengeAlgorithm.equals(algorithmName, ignoreCase = true)) {
+            LOGGER.trace("Digest Auth Provider is not applicable for algorithm $challengeAlgorithm")
+            return false
+        }
+
         serverNonce.value = newNonce
         qop.value = newQop
         opaque.value = newOpaque

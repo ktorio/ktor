@@ -74,6 +74,38 @@ class DigestProviderTest {
     }
 
     @Test
+    fun `KTOR-9623 isApplicable accepts challenge with no algorithm parameter treating it as MD5`() = runTest {
+        if (!PlatformUtils.IS_JVM) return@runTest
+
+        val legacyChallenge = parseAuthorizationHeader(
+            """Digest realm="realm", nonce="legacy-nonce""""
+        )!!
+
+        assertTrue(digestAuthProvider.isApplicable(legacyChallenge))
+    }
+
+    @Test
+    fun `KTOR-9623 client uses nonce from the algorithm-matching challenge not from the first challenge`() = runTest {
+        if (!PlatformUtils.IS_JVM) return@runTest
+
+        val provider = DigestAuthProvider({ DigestAuthCredentials("username", "password") }, "realm")
+
+        val sha512Challenge = parseAuthorizationHeader(
+            """Digest algorithm=SHA-512-256, realm="realm", nonce="sha-nonce""""
+        )!!
+        val md5Challenge = parseAuthorizationHeader(
+            """Digest algorithm=MD5, realm="realm", nonce="md5-nonce""""
+        )!!
+
+        assertFalse(provider.isApplicable(sha512Challenge))
+        assertTrue(provider.isApplicable(md5Challenge))
+
+        provider.addRequestHeaders(requestBuilder, md5Challenge)
+
+        assertContains(requestBuilder.headers[HttpHeaders.Authorization]!!, """nonce="md5-nonce"""")
+    }
+
+    @Test
     fun addRequestHeadersSetsExpectedAuthHeaderFields() = runTest {
         if (!PlatformUtils.IS_JVM) return@runTest
 
