@@ -57,10 +57,10 @@ public class KotlinxSerializationConverter(
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
         val contentPacket = content.readRemaining()
 
-        val fromExtension = extensions.asFlow()
-            .map { it.deserialize(charset, typeInfo, ByteReadChannel(contentPacket)) }
-            .firstOrNull { it != null || contentPacket.exhausted() }
-        if (extensions.isNotEmpty() && (fromExtension != null || contentPacket.exhausted())) return fromExtension
+        for (ext in extensions) {
+            if (contentPacket.exhausted()) return null
+            return ext.deserialize(charset, typeInfo, ByteReadChannel(contentPacket)) ?: continue
+        }
 
         val serializer = format.serializersModule.serializerForTypeInfo(typeInfo)
 
