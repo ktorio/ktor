@@ -63,6 +63,17 @@ class DigestProviderTest {
     }
 
     @Test
+    fun `KTOR-9623 isApplicable rejects challenge whose algorithm does not match the configured one`() = runTest {
+        if (!PlatformUtils.IS_JVM) return@runTest
+
+        val sha512Challenge = parseAuthorizationHeader(
+            """Digest algorithm=SHA-512-256, realm="realm", nonce="sha-nonce""""
+        )!!
+
+        assertFalse(digestAuthProvider.isApplicable(sha512Challenge))
+    }
+
+    @Test
     fun addRequestHeadersSetsExpectedAuthHeaderFields() = runTest {
         if (!PlatformUtils.IS_JVM) return@runTest
 
