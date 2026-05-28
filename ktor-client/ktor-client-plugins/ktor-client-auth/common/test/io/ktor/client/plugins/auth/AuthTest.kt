@@ -14,11 +14,17 @@ import io.ktor.client.statement.*
 import io.ktor.client.test.base.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
-import io.ktor.test.dispatcher.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.test.runTest
 import kotlinx.io.IOException
+import kotlin.concurrent.atomics.AtomicInt
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import kotlin.concurrent.atomics.incrementAndFetch
+import kotlin.concurrent.atomics.update
 import kotlin.test.*
+import kotlin.time.Duration.Companion.milliseconds
 
 class AuthTest : ClientLoader() {
 
@@ -53,9 +59,7 @@ class AuthTest : ClientLoader() {
             }
         }
         test { client ->
-            client.get("$TEST_SERVER/auth/digest").let {
-                assertTrue(it.status.isSuccess())
-            }
+            assertTrue(client.get("$TEST_SERVER/auth/digest").status.isSuccess())
         }
     }
 
@@ -74,12 +78,8 @@ class AuthTest : ClientLoader() {
             }
         }
         test { client ->
-            client.get("$TEST_SERVER/auth/digest").let {
-                assertTrue(it.status.isSuccess())
-            }
-            client.get("$TEST_SERVER/auth/digest-2").let {
-                assertTrue(it.status.isSuccess())
-            }
+            assertTrue(client.get("$TEST_SERVER/auth/digest").status.isSuccess())
+            assertTrue(client.get("$TEST_SERVER/auth/digest-2").status.isSuccess())
         }
     }
 
@@ -98,6 +98,52 @@ class AuthTest : ClientLoader() {
             assertTrue(client.get("$TEST_SERVER/auth/digest-SHA256").status.isSuccess())
         }
     }
+
+    @Test
+    fun `digest client selects nonce from the challenge matching its configured algorithm`() =
+        testWithEngine(MockEngine) {
+            config {
+                if (!PlatformUtils.IS_NATIVE) {
+                    install(Auth) {
+                        digest {
+                            credentials { DigestAuthCredentials(username = "jetbrains", password = "foobar") }
+                            realm = "realm"
+                        }
+                    }
+                }
+                engine {
+                    addHandler { request ->
+                        if (request.headers[HttpHeaders.Authorization] == null) {
+                            // Initial request: respond with two challenges, SHA-512-256 first, MD5 second.
+                            respond(
+                                content = "",
+                                status = HttpStatusCode.Unauthorized,
+                                headers = Headers.build {
+                                    append(
+                                        HttpHeaders.WWWAuthenticate,
+                                        """Digest realm="realm", nonce="sha-nonce", algorithm=SHA-512-256, qop="auth""""
+                                    )
+                                    append(
+                                        HttpHeaders.WWWAuthenticate,
+                                        """Digest realm="realm", nonce="md5-nonce", algorithm=MD5, qop="auth""""
+                                    )
+                                }
+                            )
+                        } else {
+                            respond("OK", HttpStatusCode.OK)
+                        }
+                    }
+                }
+            }
+
+            if (PlatformUtils.IS_NATIVE) return@testWithEngine
+
+            test { client ->
+                val response = client.get("/")
+                val header = assertNotNull(response.call.request.headers[HttpHeaders.Authorization])
+                assertContains(header, "nonce=\"md5-nonce\"")
+            }
+        }
 
     @Suppress("DEPRECATION_ERROR")
     @Test
@@ -296,9 +342,10 @@ class AuthTest : ClientLoader() {
 
         test { client ->
             client.get("$TEST_SERVER/auth/basic-fixed")
-            client.post("$TEST_SERVER/auth/basic") { expectSuccess = false }.let {
-                assertEquals(HttpStatusCode.Unauthorized, it.status)
-            }
+            assertEquals(
+                HttpStatusCode.Unauthorized,
+                client.post("$TEST_SERVER/auth/basic") { expectSuccess = false }.status
+            )
         }
     }
 
@@ -323,9 +370,9 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
-    fun testUsesFreshTokenIfAvailable() = testSuspend {
-        val request1FinishMonitor = Job()
-        val request2StartMonitor = Job()
+    fun testUsesFreshTokenIfAvailable() = runTest {
+        val request1FinishMonitor = CompletableDeferred<Unit>()
+        val request2StartMonitor = CompletableDeferred<Unit>()
         var refreshCount = 0
         val client = HttpClient(MockEngine) {
             install(Auth) {
@@ -354,12 +401,12 @@ class AuthTest : ClientLoader() {
 
                     when (request.url.encodedPath) {
                         "/url1" -> {
-                            request2StartMonitor.join()
+                            request2StartMonitor.await()
                             respond()
                         }
 
                         "/url2" -> {
-                            request1FinishMonitor.join()
+                            request1FinishMonitor.await()
                             respond()
                         }
 
@@ -368,18 +415,16 @@ class AuthTest : ClientLoader() {
                 }
             }
         }
-
-        val request1 = launch {
-            client.get("/url1")
-            request1FinishMonitor.complete()
+        coroutineScope {
+            launch {
+                client.get("/url1")
+                request1FinishMonitor.complete(Unit)
+            }
+            launch {
+                request2StartMonitor.complete(Unit)
+                client.get("/url2")
+            }
         }
-        val request2 = launch {
-            request2StartMonitor.complete()
-            client.get("/url2")
-        }
-
-        request1.join()
-        request2.join()
         assertEquals(1, refreshCount)
     }
 
@@ -424,7 +469,7 @@ class AuthTest : ClientLoader() {
         }
     }
 
-    // The return of refreshTokenFun is null, cause it should not be called at all, if loadTokensFun returns valid tokens
+    // The return of refreshTokenFun is null, cause it should not be called at all if loadTokensFun returns valid tokens
     @Test
     fun testUnauthorizedBearerAuthWithValidAccessTokenAndInvalidRefreshToken() = clientTests {
         config {
@@ -541,7 +586,6 @@ class AuthTest : ClientLoader() {
         }
     }
 
-    @Suppress("JoinDeclarationAndAssignment")
     @Test
     fun testRefreshWithSameClient() = clientTests {
         lateinit var clientWithAuth: HttpClient
@@ -567,7 +611,6 @@ class AuthTest : ClientLoader() {
         }
     }
 
-    @Suppress("JoinDeclarationAndAssignment")
     @Test
     fun testRefreshReplies401() = clientTests {
         lateinit var clientWithAuth: HttpClient
@@ -616,16 +659,16 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
-    @OptIn(DelicateCoroutinesApi::class)
+    @OptIn(ExperimentalAtomicApi::class)
     fun testMultipleRefreshShouldMakeSingleCall() = clientTests {
-        var refreshRequestsCount = 0
+        val refreshRequestsCount = AtomicInt(0)
         config {
             install(Auth) {
                 bearer {
                     loadTokens { BearerTokens("first", "first") }
 
                     refreshTokens {
-                        refreshRequestsCount++
+                        refreshRequestsCount.incrementAndFetch()
                         val token = client.get("$TEST_SERVER/auth/bearer/token/second?delay=500").bodyAsText()
                         BearerTokens(token, token)
                     }
@@ -633,24 +676,24 @@ class AuthTest : ClientLoader() {
             }
         }
         test { client ->
-            refreshRequestsCount = 0
+            refreshRequestsCount.update { 0 }
             client.get("$TEST_SERVER/auth/bearer/first").bodyAsText()
 
-            val jobs = mutableListOf<Job>()
-            jobs += GlobalScope.launch {
-                val second = client.get("$TEST_SERVER/auth/bearer/second").bodyAsText()
-                assertEquals("OK", second)
+            withContext(Dispatchers.Default) {
+                launch {
+                    val second = client.get("$TEST_SERVER/auth/bearer/second").bodyAsText()
+                    assertEquals("OK", second)
+                }
+                launch {
+                    val second = client.get("$TEST_SERVER/auth/bearer/second").bodyAsText()
+                    assertEquals("OK", second)
+                }
+                launch {
+                    val second = client.get("$TEST_SERVER/auth/bearer/second").bodyAsText()
+                    assertEquals("OK", second)
+                }
             }
-            jobs += GlobalScope.launch {
-                val second = client.get("$TEST_SERVER/auth/bearer/second").bodyAsText()
-                assertEquals("OK", second)
-            }
-            jobs += GlobalScope.launch {
-                val second = client.get("$TEST_SERVER/auth/bearer/second").bodyAsText()
-                assertEquals("OK", second)
-            }
-            jobs.joinAll()
-            assertEquals(1, refreshRequestsCount)
+            assertEquals(1, refreshRequestsCount.load())
         }
     }
 
@@ -1204,7 +1247,7 @@ class AuthTest : ClientLoader() {
                                 serverRefreshToken = new.refresh
 
                                 tokensRenewed.complete(Unit)
-                                delay(250)
+                                delay(250.milliseconds)
 
                                 respond(
                                     content = ByteReadChannel(

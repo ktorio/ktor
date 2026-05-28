@@ -21,7 +21,9 @@ public class UnauthorizedResponse(public vararg val challenges: HttpAuthHeader) 
 
     override val headers: Headers
         get() = if (challenges.isNotEmpty()) {
-            headersOf(HttpHeaders.WWWAuthenticate, challenges.joinToString(", ") { it.render() })
+            Headers.build {
+                challenges.forEach { challenge -> append(HttpHeaders.WWWAuthenticate, challenge.render()) }
+            }
         } else {
             Headers.Empty
         }
