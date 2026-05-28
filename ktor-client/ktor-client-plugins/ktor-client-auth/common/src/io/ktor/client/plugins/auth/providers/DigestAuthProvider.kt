@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.auth.providers
@@ -10,6 +10,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.util.*
+import io.ktor.util.logging.trace
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
@@ -129,24 +130,24 @@ public class DigestAuthProvider(
 
     override fun isApplicable(auth: HttpAuthHeader): Boolean {
         if (auth !is HttpAuthHeader.Parameterized || auth.authScheme != AuthScheme.Digest) {
-            LOGGER.trace("Digest Auth Provider is not applicable for $auth")
+            LOGGER.trace { "Digest Auth Provider is not applicable for $auth" }
             return false
         }
 
         val newNonce = auth.parameter("nonce") ?: run {
-            LOGGER.trace("Digest Auth Provider can not handle response without nonce parameter")
+            LOGGER.trace { "Digest Auth Provider can not handle response without nonce parameter" }
             return false
         }
         val newQop = auth.parameter("qop")
         val newOpaque = auth.parameter("opaque")
 
         val newRealm = auth.parameter("realm") ?: run {
-            LOGGER.trace("Digest Auth Provider can not handle response without realm parameter")
+            LOGGER.trace { "Digest Auth Provider can not handle response without realm parameter" }
             return false
         }
         @Suppress("DEPRECATION_ERROR")
         if (newRealm != realm && realm != null) {
-            LOGGER.trace("Digest Auth Provider is not applicable for this realm")
+            LOGGER.trace { "Digest Auth Provider is not applicable for this realm" }
             return false
         }
 
@@ -154,7 +155,7 @@ public class DigestAuthProvider(
         val challengeAlgorithm = auth.parameter("algorithm") ?: "MD5"
         @Suppress("DEPRECATION_ERROR")
         if (!challengeAlgorithm.equals(algorithmName, ignoreCase = true)) {
-            LOGGER.trace("Digest Auth Provider is not applicable for algorithm $challengeAlgorithm")
+            LOGGER.trace { "Digest Auth Provider is not applicable for algorithm $challengeAlgorithm" }
             return false
         }
 

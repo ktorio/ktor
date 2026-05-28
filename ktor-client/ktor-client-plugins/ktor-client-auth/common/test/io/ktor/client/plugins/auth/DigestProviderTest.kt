@@ -63,46 +63,44 @@ class DigestProviderTest {
     }
 
     @Test
-    fun `KTOR-9623 isApplicable rejects challenge whose algorithm does not match the configured one`() = runTest {
+    fun `isApplicable rejects challenge whose algorithm does not match the configured one`() = runTest {
         if (!PlatformUtils.IS_JVM) return@runTest
 
-        val sha512Challenge = parseAuthorizationHeader(
-            """Digest algorithm=SHA-512-256, realm="realm", nonce="sha-nonce""""
-        )!!
-
+        val sha512Challenge =
+            parseAuthorizationHeader("""Digest algorithm=SHA-512-256, realm="realm", nonce="sha-nonce"""")
+        assertNotNull(sha512Challenge)
         assertFalse(digestAuthProvider.isApplicable(sha512Challenge))
     }
 
     @Test
-    fun `KTOR-9623 isApplicable accepts challenge with no algorithm parameter treating it as MD5`() = runTest {
+    fun `isApplicable accepts challenge with no algorithm parameter treating it as MD5`() = runTest {
         if (!PlatformUtils.IS_JVM) return@runTest
 
-        val legacyChallenge = parseAuthorizationHeader(
-            """Digest realm="realm", nonce="legacy-nonce""""
-        )!!
-
+        val legacyChallenge = parseAuthorizationHeader("""Digest realm="realm", nonce="legacy-nonce"""")
+        assertNotNull(legacyChallenge)
         assertTrue(digestAuthProvider.isApplicable(legacyChallenge))
     }
 
     @Test
-    fun `KTOR-9623 client uses nonce from the algorithm-matching challenge not from the first challenge`() = runTest {
+    fun `client uses nonce from the algorithm-matching challenge not from the first challenge`() = runTest {
         if (!PlatformUtils.IS_JVM) return@runTest
 
         val provider = DigestAuthProvider({ DigestAuthCredentials("username", "password") }, "realm")
 
-        val sha512Challenge = parseAuthorizationHeader(
-            """Digest algorithm=SHA-512-256, realm="realm", nonce="sha-nonce""""
-        )!!
-        val md5Challenge = parseAuthorizationHeader(
-            """Digest algorithm=MD5, realm="realm", nonce="md5-nonce""""
-        )!!
-
+        val sha512Challenge =
+            parseAuthorizationHeader("""Digest algorithm=SHA-512-256, realm="realm", nonce="sha-nonce"""")
+        assertNotNull(sha512Challenge)
         assertFalse(provider.isApplicable(sha512Challenge))
+
+        val md5Challenge =
+            parseAuthorizationHeader("""Digest algorithm=MD5, realm="realm", nonce="md5-nonce"""")
+        assertNotNull(md5Challenge)
         assertTrue(provider.isApplicable(md5Challenge))
 
         provider.addRequestHeaders(requestBuilder, md5Challenge)
 
-        assertContains(requestBuilder.headers[HttpHeaders.Authorization]!!, """nonce="md5-nonce"""")
+        val header = assertNotNull(requestBuilder.headers[HttpHeaders.Authorization])
+        assertContains(header, """nonce="md5-nonce"""")
     }
 
     @Test
