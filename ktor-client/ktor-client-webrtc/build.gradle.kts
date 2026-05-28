@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 @file:OptIn(ExperimentalWasmDsl::class, ExperimentalKotlinGradlePluginApi::class)
 
@@ -24,6 +24,13 @@ kotlin {
         namespace = "io.ktor.client.webrtc"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
+
+        packaging {
+            // Both 'net.java.dev.jna:jna-platform' and 'net.java.dev.jna:jna' (5.9.0) provide these licenses,
+            // so we have to filter them out to resolve the conflict
+            resources.excludes.add("META-INF/AL2.0")
+            resources.excludes.add("META-INF/LGPL2.1")
+        }
     }
 
     optionalCocoapods {
@@ -74,6 +81,18 @@ kotlin {
     }
 
     disableNativeCompileConfigurationCache()
+}
+
+// Exclude JUnit 5 from Android device tests
+configurations.named { it.startsWith("androidDeviceTest") }.configureEach {
+    resolutionStrategy.dependencySubstitution {
+        substitute(module(libs.kotlin.test.junit5))
+            .using(module(libs.kotlin.test.junit))
+            .because("Junit 5 is not supported for Android device tests")
+    }
+
+    exclude(group = "org.junit.jupiter")
+    exclude(group = "org.junit.platform")
 }
 
 tasks.withType<KotlinCompilationTask<*>>().configureEach {
