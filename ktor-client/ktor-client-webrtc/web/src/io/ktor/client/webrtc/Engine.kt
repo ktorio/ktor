@@ -26,7 +26,7 @@ public class JsWebRtcEngine(
 ) : WebRtcEngineBase("js-webrtc", config),
     MediaTrackFactory by mediaTrackFactory {
 
-    override suspend fun createPeerConnection(config: WebRtcConnectionConfig): WebRtcPeerConnection {
+    override suspend fun createPeerConnectionInternal(config: WebRtcConnectionConfig): WebRtcPeerConnection {
         val nativePeerConnection = RTCPeerConnection(configuration = config.toJs())
         val coroutineContext = createConnectionContext(config.exceptionHandler)
         return JsWebRtcPeerConnection(nativePeerConnection, coroutineContext, config)
