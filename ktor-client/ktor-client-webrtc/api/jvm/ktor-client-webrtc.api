@@ -533,7 +533,9 @@ public abstract class io/ktor/client/webrtc/WebRtcEngineBase : io/ktor/client/we
 	public fun close ()V
 	public fun createAudioTrack (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected final fun createConnectionContext (Lkotlinx/coroutines/CoroutineExceptionHandler;)Lkotlin/coroutines/CoroutineContext;
+	public final fun createPeerConnection (Lio/ktor/client/webrtc/WebRtcConnectionConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun createPeerConnection (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	protected abstract fun createPeerConnectionInternal (Lio/ktor/client/webrtc/WebRtcConnectionConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun createVideoTrack (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getConfig ()Lio/ktor/client/webrtc/WebRtcConfig;
 }

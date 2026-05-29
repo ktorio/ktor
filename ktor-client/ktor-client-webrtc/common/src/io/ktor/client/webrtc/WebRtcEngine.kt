@@ -51,7 +51,7 @@ public open class WebRtcConnectionConfig {
     public var bundlePolicy: WebRtc.BundlePolicy = WebRtc.BundlePolicy.BALANCED
 
     /**
-     * A string which specifies the RTCP mux policy to use when gathering ICE candidates to support non-multiplexed RTCP.
+     * A string that specifies the RTCP mux policy to use when gathering ICE candidates to support non-multiplexed RTCP.
      * Defaults to [WebRtc.RtcpMuxPolicy.REQUIRE].
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcConnectionConfig.rtcpMuxPolicy)
@@ -108,7 +108,7 @@ public open class WebRtcConnectionConfig {
 public open class WebRtcConfig {
     /**
      * Dispatcher that will be used for coroutines in the background (e.g., emit events).
-     * Defaults to [Dispatchers.IO] if available, or [Dispatchers.Default].
+     * Defaults to Dispatchers.IO if available, or [Dispatchers.Default].
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcConfig.dispatcher)
      */
@@ -187,6 +187,16 @@ public abstract class WebRtcEngineBase(
     private val dispatcher = configuration.dispatcher ?: ioDispatcher()
     private val defaultExceptionHandler = DefaultExceptionHandler("io.ktor.client.webrtc")
     private val engineContext = parentJob + CoroutineName("$engineName-context") + dispatcher
+
+    final override suspend fun createPeerConnection(config: WebRtcConnectionConfig): WebRtcPeerConnection {
+        return createPeerConnectionInternal(config).also { it.startFetchingStatistics() }
+    }
+
+    /**
+     * Engine-specific peer connection construction.
+     * Implementors must NOT start background statistics collection here.
+     */
+    protected abstract suspend fun createPeerConnectionInternal(config: WebRtcConnectionConfig): WebRtcPeerConnection
 
     /**
      * Creates a new coroutine context for the new connection based on engine context and provided exception handler.

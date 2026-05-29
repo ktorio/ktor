@@ -279,7 +279,7 @@ class WebRtcEngineTest {
         }
 
         val mockEngine = object : MockWebRtcEngine() {
-            override suspend fun createPeerConnection(config: WebRtcConnectionConfig): WebRtcPeerConnection =
+            override suspend fun createPeerConnectionInternal(config: WebRtcConnectionConfig): WebRtcPeerConnection =
                 TestConnection(createConnectionContext(config.exceptionHandler), config)
         }
 
@@ -295,6 +295,44 @@ class WebRtcEngineTest {
                 withTimeout(1.seconds) {
                     val exception = channel.receive()
                     assertEquals("Ktor is awesome!", exception.message)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testFetchingStatisticsStartedByEngine() = runTestWithRealTime {
+        class TestConnection(context: CoroutineContext, config: WebRtcConnectionConfig) :
+            MockWebRtcConnection(context, config) {
+
+            val calls = atomic(0)
+            val calledAtLeastOnce = CompletableDeferred<Unit>()
+
+            override suspend fun getStatistics(): List<WebRtc.Stats> {
+                if (calls.incrementAndGet() == 1) {
+                    calledAtLeastOnce.complete(Unit)
+                }
+                return emptyList()
+            }
+        }
+
+        val refreshRate = 5.milliseconds
+
+        object : MockWebRtcEngine() {
+            override suspend fun createPeerConnectionInternal(config: WebRtcConnectionConfig): WebRtcPeerConnection {
+                val context = createConnectionContext(config.exceptionHandler)
+                val connection = TestConnection(context, config)
+                delay(duration = refreshRate * 10)
+                assertEquals(0, connection.calls.value, "Constructor must not start the stats loop")
+                return connection
+            }
+        }.use { engine ->
+            engine.createPeerConnection {
+                statsRefreshRate = refreshRate
+            }.use { pc ->
+                assertIs<TestConnection>(pc)
+                withTimeout(1.seconds) {
+                    pc.calledAtLeastOnce.await()
                 }
             }
         }
