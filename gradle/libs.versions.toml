@@ -83,6 +83,7 @@ tomlj = "1.1.1"
 zstd-jni = "1.5.7-8"
 
 # Keep it in sync with build-settings-logic/settings.gradle.kts
+# TODO: Remove module 'develocity-patched' after updating Develocity plugin to 4.4+
 develocity = "4.3.2" # Should be compatible with our server: ge.jetbrains.com
 develocity-commonCustomUserData = "2.6.0"
 gradleDoctor = "0.12.1"

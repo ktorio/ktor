@@ -62,3 +62,5 @@ buildCache {
     }
 }
 // endregion
+
+include(":develocity-patched")
