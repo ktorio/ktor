@@ -9,7 +9,10 @@ import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.test.runTest
+import kotlinx.io.readByteArray
+import kotlin.random.Random
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 
 /**
@@ -20,9 +23,26 @@ private const val DEFAULT_BUFFER_SIZE = 4098
 class ZstdTest {
 
     @Test
+    fun `encode handles incompressible payload close to buffer size`() = runTest {
+        val bytes = Random(0).nextBytes(DEFAULT_BUFFER_SIZE)
+
+        val encodedReadChannel = encodeBytes(bytes)
+        val decodedReadChannel = ZstdEncoder().decode(encodedReadChannel)
+        val decodedBytes = decodedReadChannel.readRemaining().readByteArray()
+
+        assertContentEquals(bytes, decodedBytes)
+    }
+
+    @Test
     fun `decode handles payload split into multiple zstd frames`() = runTest {
-        val string = "zstd".repeat(DEFAULT_BUFFER_SIZE)
-        val encodedReadChannel = ZstdEncoder().encode(ByteReadChannel(string.toByteArray()))
+        val firstPart = "zstd".repeat(DEFAULT_BUFFER_SIZE)
+        val secondPart = "ktor".repeat(DEFAULT_BUFFER_SIZE)
+        val string = firstPart + secondPart
+
+        val firstFrame = encodeString(firstPart).readRemaining().readByteArray()
+        val secondFrame = encodeString(secondPart).readRemaining().readByteArray()
+
+        val encodedReadChannel = ByteReadChannel(firstFrame + secondFrame)
         val decodedReadChannel = ZstdEncoder().decode(encodedReadChannel)
         val decodedString = decodedReadChannel.readRemaining().readText()
 
@@ -33,7 +53,7 @@ class ZstdTest {
     fun `decode handles zstd frames that span multiple buffer reads`() = runTest {
         val string = "zstd".repeat(DEFAULT_BUFFER_SIZE)
 
-        val encodedReadChannel = Zstd(DEFAULT_COMPRESSION_LEVEL).encode(ByteReadChannel(string.toByteArray()))
+        val encodedReadChannel = encodeString(string)
         val decodedReadChannel = ByteChannel()
         with(Zstd(DEFAULT_COMPRESSION_LEVEL)) {
             // the absolute smallest possible zstd frame is 6 bytes,
@@ -46,3 +66,6 @@ class ZstdTest {
         assertEquals(string, decodedString)
     }
 }
+
+private fun encodeString(string: String): ByteReadChannel = encodeBytes(string.toByteArray())
+private fun encodeBytes(bytes: ByteArray): ByteReadChannel = ZstdEncoder().encode(ByteReadChannel(bytes))
