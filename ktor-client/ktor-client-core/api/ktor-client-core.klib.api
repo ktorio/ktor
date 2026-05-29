@@ -2373,10 +2373,6 @@ abstract interface io.ktor.client.fetch/Uint8ArrayConstructor { // io.ktor.clien
 }
 
 // Targets: [js]
-final val io.ktor.client.engine.js/initHook // io.ktor.client.engine.js/initHook|{}initHook[0]
-    final fun <get-initHook>(): dynamic // io.ktor.client.engine.js/initHook.<get-initHook>|<get-initHook>(){}[0]
-
-// Targets: [js]
 final inline fun (io.ktor.client.fetch/Uint8Array).io.ktor.client.fetch/get(kotlin/Number): kotlin/Number? // io.ktor.client.fetch/get|get@io.ktor.client.fetch.Uint8Array(kotlin.Number){}[0]
 
 // Targets: [js]

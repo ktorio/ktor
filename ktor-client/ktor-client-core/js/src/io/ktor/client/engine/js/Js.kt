@@ -69,8 +69,6 @@ public actual open class JsClientEngineConfig : HttpClientEngineConfig() {
 }
 
 @Suppress("DEPRECATION")
-@OptIn(ExperimentalStdlibApi::class, ExperimentalJsExport::class, InternalAPI::class)
-@Deprecated("", level = DeprecationLevel.HIDDEN)
-@JsExport
+@OptIn(ExperimentalStdlibApi::class, InternalAPI::class)
 @EagerInitialization
-public val initHook: dynamic = engines.append(Js)
+private val initHook: Unit = engines.append(Js)
