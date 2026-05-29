@@ -28,7 +28,7 @@ import kotlin.time.Duration.Companion.seconds
  * Apple's `RTCDataChannel.delegate` and `RTCPeerConnection.delegate` are both
  * declared `@property(nonatomic, weak)`. Earlier versions of this library passed
  * an anonymous `NSObject` to those setters without keeping a Kotlin-side strong
- * reference, so once Kotlin/Native's ARC observed no remaining references the
+ * reference, so once Kotlin/Native's ARC observed no remaining references, the
  * delegate was deallocated and the framework's weak pointer was nilled out —
  * silently halting message delivery and lifecycle callbacks on the channel.
  *
@@ -53,7 +53,7 @@ class IosDelegateRetentionTest {
     }
 
     /**
-     * Aggressively reclaims unreferenced Kotlin/Native objects so a delegate the
+     * Aggressively reclaims unreferenced Kotlin/Native objects, so a delegate the
      * library forgot to retain has every opportunity to be freed before we send.
      * The 1 MiB allocation per round goes out of scope before the next iteration's
      * `GC.collect()`, creating real allocation churn to exercise the collector.
@@ -71,13 +71,13 @@ class IosDelegateRetentionTest {
         audio = false,
         video = false,
         realTime = true,
-    ) { jobs ->
+    ) {
         client.createPeerConnection().use { pc1 ->
             client.createPeerConnection().use { pc2 ->
-                val pc2DataChannels = pc2.dataChannelEvents.collectToChannel(this, jobs)
+                val pc2DataChannels = pc2.dataChannelEvents.collectToChannel()
 
                 val local = pc1.createDataChannel("delegate-retention-local")
-                connect(pc1, pc2, jobs)
+                connect(pc1, pc2)
 
                 // Wait for pc2 to receive the remote channel.
                 val remote = withTimeout(5.seconds) {
@@ -121,10 +121,10 @@ class IosDelegateRetentionTest {
         audio = false,
         video = false,
         realTime = true,
-    ) { jobs ->
+    ) {
         client.createPeerConnection().use { pc1 ->
             client.createPeerConnection().use { pc2 ->
-                val pc2DataChannels = pc2.dataChannelEvents.collectToChannel(this, jobs)
+                val pc2DataChannels = pc2.dataChannelEvents.collectToChannel()
 
                 pc1.createDataChannel("pc-delegate-test")
 
@@ -132,9 +132,9 @@ class IosDelegateRetentionTest {
                 // before the state-transition callbacks would have fired.
                 forceGc()
 
-                connect(pc1, pc2, jobs)
+                connect(pc1, pc2)
 
-                // Drain pc2's channels flow so the connection settles into CONNECTED.
+                // Drain pc2's channel flow so the connection settles into CONNECTED.
                 withTimeout(5.seconds) { pc2DataChannels.receive() }
 
                 // We must observe CONNECTED on pc1; that only arrives if the PC delegate

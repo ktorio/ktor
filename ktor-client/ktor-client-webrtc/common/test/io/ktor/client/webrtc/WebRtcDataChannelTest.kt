@@ -7,8 +7,12 @@ package io.ktor.client.webrtc
 import io.ktor.client.webrtc.utils.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestResult
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.yield
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -50,7 +54,10 @@ class WebRtcDataChannelTest {
         event.channel
     }
 
-    private suspend fun WebRtcDataChannel.waitForClose(events: Channel<DataChannelEvent>) {
+    private suspend fun WebRtcDataChannel.waitForClose(
+        events: Channel<DataChannelEvent>,
+        validateState: Boolean = true
+    ) {
         val closeEvent = withTimeout(2.seconds) {
             while (true) {
                 val event = events.receive()
@@ -62,7 +69,9 @@ class WebRtcDataChannelTest {
             error("Expected DataChannelEvent.Closed")
         }
         assertEquals(this, closeEvent.channel)
-        assertEquals(WebRtc.DataChannel.State.CLOSED, state)
+        if (validateState) {
+            assertEquals(WebRtc.DataChannel.State.CLOSED, state)
+        }
     }
 
     @Test
@@ -193,6 +202,18 @@ class WebRtcDataChannelTest {
     }
 
     @Test
+    fun testReceivePropagatesCancellationException() = runTest {
+        client.createPeerConnection().use { pc1 ->
+            val channel = pc1.createDataChannel("test-label")
+            val job = launch { channel.receive() }
+            yield() // ensure receive() is actually suspended
+            job.cancel()
+            job.join()
+            assertTrue(job.isCancelled)
+        }
+    }
+
+    @Test
     fun testDataChannelCloseHandling() = testDataChannel { pc1, pc2 ->
         val dataChannel1 = pc1.createDataChannel("close-test")
 
@@ -209,10 +230,43 @@ class WebRtcDataChannelTest {
         dataChannel1.waitForClose(dataChannelEvents1)
         dataChannel2.waitForClose(dataChannelEvents2)
 
-        assertFails { dataChannel1.send("Hello") }
-        assertFails { dataChannel2.send("Hello") }
-        assertFails { dataChannel1.receive() }
+        val sendException1 = assertFailsWith<WebRtcDataChannelClosedException> { dataChannel1.send("Hello") }
+        assertNull(sendException1.cause)
+
+        val sendException2 = assertFailsWith<WebRtcDataChannelClosedException> { dataChannel2.send("Hello") }
+        assertNull(sendException2.cause)
+
+        val receiveException1 = assertFailsWith<WebRtcDataChannelClosedException> { dataChannel1.receive() }
+        assertIs<ClosedReceiveChannelException>(receiveException1.cause)
+
+        val receiveException2 = assertFailsWith<WebRtcDataChannelClosedException> { dataChannel2.receive() }
+        assertIs<ClosedReceiveChannelException>(receiveException2.cause)
+
+        assertEquals(null, dataChannel1.tryReceive())
         assertEquals(null, dataChannel2.tryReceive())
+    }
+
+    @Test
+    fun testCloseIsIdempotent() = testDataChannel { pc1, pc2 ->
+        val ch1 = pc1.createDataChannel("idempotent-close")
+        val events1 = pc1.dataChannelEvents.collectToChannel()
+        val events2 = pc2.dataChannelEvents.collectToChannel()
+        connect(pc1, pc2)
+        val ch2 = waitForChannel(events2)
+        waitForChannel(events1)
+
+        // Multiple close() calls must not throw
+        ch1.close()
+        ch1.close()
+
+        // don't check state because object is in undefined state after close
+        // and could throw exception on field access etc.
+        ch1.waitForClose(events1, validateState = false)
+        ch2.waitForClose(events2, validateState = false)
+
+        ch1.close()
+        ch2.close()
+        ch2.close()
     }
 
     @Test
