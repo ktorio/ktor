@@ -42,9 +42,8 @@ kotlin {
         }
 
         commonTest.dependencies {
-            implementation(libs.kotlin.test)
+            implementation(projects.ktorTestBase)
             implementation(libs.kotlinx.datetime)
-            implementation(projects.ktorTestDispatcher)
         }
     }
 

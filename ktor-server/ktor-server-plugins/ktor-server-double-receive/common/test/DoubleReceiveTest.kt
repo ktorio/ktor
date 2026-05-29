@@ -3,11 +3,12 @@
  */
 
 import io.ktor.server.plugins.doublereceive.*
+import io.ktor.test.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.test.*
-import kotlinx.io.*
-import kotlin.coroutines.*
-import kotlin.test.*
+import kotlinx.io.readByteArray
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.test.Test
+import kotlin.test.assertContentEquals
 
 class DoubleReceiveTest {
 

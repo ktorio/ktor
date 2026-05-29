@@ -16,11 +16,11 @@ import io.ktor.server.plugins.partialcontent.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.test.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import kotlinx.coroutines.test.*
-import kotlinx.io.*
+import kotlinx.io.readByteArray
 import kotlin.test.*
 
 class PartialContentTest {

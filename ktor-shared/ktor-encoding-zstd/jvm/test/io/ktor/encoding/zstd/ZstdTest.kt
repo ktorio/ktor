@@ -5,10 +5,10 @@
 package io.ktor.encoding.zstd
 
 import io.ktor.encoding.zstd.ZstdEncoder.Companion.DEFAULT_COMPRESSION_LEVEL
+import io.ktor.test.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.*
-import kotlinx.coroutines.test.runTest
 import kotlinx.io.readByteArray
 import kotlin.random.Random
 import kotlin.test.Test

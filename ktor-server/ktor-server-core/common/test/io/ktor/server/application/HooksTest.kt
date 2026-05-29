@@ -5,15 +5,15 @@
 package io.ktor.server.application
 
 import io.ktor.client.request.*
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.HttpStatusCode
+import io.ktor.client.statement.*
+import io.ktor.http.*
 import io.ktor.server.application.hooks.*
-import io.ktor.server.config.MapApplicationConfig
-import io.ktor.server.plugins.BadRequestException
+import io.ktor.server.config.*
+import io.ktor.server.plugins.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import kotlinx.coroutines.test.*
+import io.ktor.test.*
 import kotlin.test.*
 
 class HooksTest {

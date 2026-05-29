@@ -13,11 +13,14 @@ import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.test.*
 import io.ktor.util.*
-import io.ktor.utils.io.InternalAPI
-import kotlinx.coroutines.test.*
-import java.security.*
-import kotlin.test.*
+import io.ktor.utils.io.*
+import java.security.MessageDigest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class DigestTest {
     @Test

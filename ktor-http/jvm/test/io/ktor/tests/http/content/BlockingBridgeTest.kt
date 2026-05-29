@@ -5,6 +5,7 @@
 package io.ktor.tests.http.content
 
 import io.ktor.http.content.*
+import io.ktor.test.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.CompletableDeferred
@@ -12,7 +13,6 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.debug.junit5.CoroutinesTimeout
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 
 @CoroutinesTimeout(testTimeoutMs = 5_000)

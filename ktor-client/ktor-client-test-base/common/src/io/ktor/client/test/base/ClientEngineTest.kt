@@ -7,11 +7,10 @@ package io.ktor.client.test.base
 import io.ktor.client.engine.*
 import io.ktor.test.*
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
 
 abstract class ClientEngineTest<T : HttpClientEngineConfig>(
     private val factory: HttpClientEngineFactory<T>,
-    private val timeout: Duration = 1.minutes,
+    private val timeout: Duration = DEFAULT_TEST_TIMEOUT,
 ) {
 
     /**

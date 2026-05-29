@@ -16,12 +16,11 @@ import org.junit.jupiter.api.TestInfo
 import java.lang.reflect.Method
 import java.util.*
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 @CoroutinesTimeout(5 * 60 * 1000)
 @ErrorCollectorTest
 actual abstract class BaseTest actual constructor() {
-    actual open val timeout: Duration = 60.seconds // not used
+    actual open val timeout: Duration = DEFAULT_TEST_TIMEOUT // not used
 
     private val errorCollector = ErrorCollector()
 

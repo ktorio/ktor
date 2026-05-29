@@ -16,11 +16,11 @@ import io.ktor.client.test.base.*
 import io.ktor.client.test.base.EngineSelectionRule.Companion.except
 import io.ktor.http.*
 import io.ktor.serialization.*
+import io.ktor.test.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds

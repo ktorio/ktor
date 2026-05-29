@@ -1,27 +1,11 @@
 /*
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.mock.MockEngine
-import io.ktor.client.engine.mock.respondOk
-import io.ktor.client.request.delete
-import io.ktor.client.request.get
-import io.ktor.client.request.head
-import io.ktor.client.request.options
-import io.ktor.client.request.patch
-import io.ktor.client.request.post
-import io.ktor.client.request.prepareDelete
-import io.ktor.client.request.prepareGet
-import io.ktor.client.request.prepareHead
-import io.ktor.client.request.prepareOptions
-import io.ktor.client.request.preparePatch
-import io.ktor.client.request.preparePost
-import io.ktor.client.request.preparePut
-import io.ktor.client.request.prepareQuery
-import io.ktor.client.request.put
-import io.ktor.client.request.query
-import io.ktor.http.HttpMethod
-import kotlinx.coroutines.test.runTest
+import io.ktor.client.*
+import io.ktor.client.engine.mock.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import io.ktor.test.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

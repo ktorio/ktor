@@ -29,9 +29,6 @@ kotlin {
             api(libs.kotlinx.serialization.core)
         }
         commonTest.dependencies {
-            implementation(projects.ktorTestDispatcher)
-        }
-        jvmTest.dependencies {
             implementation(projects.ktorTestBase)
         }
     }

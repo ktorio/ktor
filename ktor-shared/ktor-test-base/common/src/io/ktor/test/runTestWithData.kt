@@ -6,11 +6,9 @@ package io.ktor.test
 
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.runTest
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
 import kotlin.time.TimeMark
 import kotlin.time.TimeSource
 
@@ -102,8 +100,8 @@ sealed interface TestExecutionResult<T> {
 fun <T> runTestWithData(
     testCases: Iterable<T>,
     context: CoroutineContext = EmptyCoroutineContext,
-    timeout: Duration = 1.minutes,
-    retries: Int = 1,
+    timeout: Duration = DEFAULT_TEST_TIMEOUT,
+    retries: Int = DEFAULT_RETRIES,
     afterEach: (TestExecutionResult<T>) -> Unit = {},
     handleFailures: (List<TestFailure<T>>) -> Unit = ::defaultAggregatedError,
     afterAll: () -> Unit = {},
@@ -129,7 +127,7 @@ fun <T> runTestWithData(
                 runTest(context, timeout = timeout) {
                     start = timeSource.markNow()
                     test(testCase)
-                    afterEach(TestSuccess(testCase, start?.elapsedNow() ?: Duration.ZERO))
+                    afterEach(TestSuccess(testCase, start.elapsedNow()))
                 }
             }
         }

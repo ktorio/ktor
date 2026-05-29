@@ -4,8 +4,8 @@
 
 package io.ktor.utils.io.jvm.javaio
 
+import io.ktor.test.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.test.runTest
 import kotlinx.io.IOException
 import kotlin.test.Test
 import kotlin.test.assertFailsWith

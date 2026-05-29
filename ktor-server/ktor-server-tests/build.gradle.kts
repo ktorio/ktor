@@ -12,6 +12,7 @@ plugins {
 kotlin {
     sourceSets {
         commonTest.dependencies {
+            implementation(projects.ktorTestBase)
             implementation(projects.ktorServer)
             implementation(projects.ktorServerRateLimit)
             implementation(projects.ktorServerTestHost)

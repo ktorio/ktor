@@ -10,6 +10,7 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.test.*
 import io.ktor.test.dispatcher.*
 import io.ktor.util.logging.*
 import io.ktor.util.reflect.*
@@ -19,7 +20,6 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.TestResult
-import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.Serializable
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
