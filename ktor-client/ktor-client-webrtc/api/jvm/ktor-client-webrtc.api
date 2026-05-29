@@ -496,6 +496,11 @@ public abstract class io/ktor/client/webrtc/WebRtcDataChannel : io/ktor/client/w
 	public fun tryReceiveText ()Ljava/lang/String;
 }
 
+public final class io/ktor/client/webrtc/WebRtcDataChannelClosedException : java/lang/Exception {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
 public final class io/ktor/client/webrtc/WebRtcDataChannelOptions {
 	public fun <init> ()V
 	public final fun getId ()Ljava/lang/Integer;

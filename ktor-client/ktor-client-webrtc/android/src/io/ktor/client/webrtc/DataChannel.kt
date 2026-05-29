@@ -1,9 +1,10 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.webrtc
 
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
@@ -25,8 +26,7 @@ public class AndroidWebRtcDataChannel(
     override val id: Int?
         get() = nativeChannel.id().let { if (it >= 0) it else null }
 
-    override val label: String
-        get() = nativeChannel.label()
+    override val label: String = nativeChannel.label()
 
     override val state: WebRtc.DataChannel.State
         get() = nativeChannel.state().toKtor()
@@ -52,20 +52,21 @@ public class AndroidWebRtcDataChannel(
     override val protocol: String
         get() = channelInit?.protocol ?: error("Protocol is not supported in WebRTC")
 
-    private fun assertOpen() {
-        if (!state.canSend()) {
-            error("Data channel is closed.")
-        }
+    private val closed = atomic(false)
+
+    private fun requireOpen() {
+        if (!closed.value && state.canSend()) return
+        throw WebRtcDataChannelClosedException("Data channel '$label' is closed.")
     }
 
     override suspend fun send(text: String) {
-        assertOpen()
+        requireOpen()
         val buffer = DataChannel.Buffer(Charsets.UTF_8.encode(text), false)
         nativeChannel.send(buffer)
     }
 
     override suspend fun send(bytes: ByteArray) {
-        assertOpen()
+        requireOpen()
         val buffer = DataChannel.Buffer(ByteBuffer.wrap(bytes), true)
         nativeChannel.send(buffer)
     }
@@ -79,7 +80,11 @@ public class AndroidWebRtcDataChannel(
     }
 
     override fun close() {
+        if (!closed.compareAndSet(expect = false, update = true)) {
+            return
+        }
         super.close()
+        nativeChannel.unregisterObserver()
         nativeChannel.dispose()
     }
 
